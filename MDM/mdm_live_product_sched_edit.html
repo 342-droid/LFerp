@@ -9,9 +9,9 @@
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/lf-mdm-points-rule.css">
     <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
-    <link rel="stylesheet" href="../css/lf-product.css?v=20260904-channel-ledger">
+    <link rel="stylesheet" href="../css/lf-product.css?v=20260905-reset-spec">
     <link rel="stylesheet" href="../css/lf-mdm-edit-page.css">
-    <link rel="stylesheet" href="../css/lf-live.css?v=20260831-wh-stock">
+    <link rel="stylesheet" href="../css/lf-live.css?v=20260905-sku-align">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -91,16 +91,17 @@
                 </div>
 
                 <div class="pts-rule-card lf-live-card">
-                    <div class="pts-rule-card__title">
-                        <span>售卖规格配置</span>
-                        <button type="button" class="lf-live-reset-spec" id="pResetSkuBtn">重置规格</button>
-                    </div>
+                    <div class="pts-rule-card__title">售卖规格配置</div>
                     <div class="pts-rule-card__body">
                         <div class="lf-live-sku-pick">
                             <label class="lf-live-sku-pick__label">选择 SKU</label>
                             <div class="product-proxy-form__sku-picker lf-live-sku-pick__box" id="pSkuPicker">
                                 <button type="button" class="product-proxy-form__sku-trigger" id="pSkuTrigger">已选 0 个 SKU <span class="product-proxy-form__sku-caret">▼</span></button>
                                 <div class="product-proxy-form__sku-dropdown" id="pSkuDropdown" hidden></div>
+                            </div>
+                            <div class="product-proxy-form__sku-bar-actions">
+                                <button type="button" class="product-proxy-form__btn-batch-shelf" id="pBatchShelfBtn">批量上架</button>
+                                <button type="button" class="product-proxy-form__btn-reset-spec" id="pResetSkuBtn">重置规格</button>
                             </div>
                         </div>
                         <div class="product-proxy-form__spec-list" id="pSkuList"></div>
@@ -141,6 +142,7 @@
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>
                         保存
                     </button>
+                    <button type="button" class="erp-btn erp-btn--primary" id="pSaveShelfBtn">保存并上架</button>
                 </div>
             </div>
         </main>
@@ -148,6 +150,6 @@
     <script src="../js/common.js"></script>
     <script src="../js/mdm-sku-wh-stock.js?v=20260904-channel-ledger"></script>
     <script src="../js/mdm-live-demo-data.js"></script>
-    <script src="../js/mdm-live-product-sched-edit.js?v=20260904-channel-ledger"></script>
+    <script src="../js/mdm-live-product-sched-edit.js?v=20260905-reset-spec"></script>
 </body>
 </html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>订单清分数据导出 · 复制后贴到禅道</title>
+  <style>
+    body { font-family: "PingFang SC", "Microsoft YaHei", sans-serif; padding: 24px; max-width: 880px; color: #333; line-height: 1.6; }
+    .tip { background: #fff7ef; border: 1px solid #ffd4b0; padding: 10px 14px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; }
+    #copyRoot table { border-collapse: collapse; width: 100%; margin: 10px 0 16px; }
+    #copyRoot th, #copyRoot td { border: 1px solid #d0d0d0; padding: 8px 10px; text-align: left; vertical-align: top; font-size: 14px; }
+    #copyRoot th { background: #f5f5f5; font-weight: 600; }
+    #copyRoot h2 { font-size: 18px; margin: 22px 0 8px; }
+    #copyRoot h3 { font-size: 16px; margin: 16px 0 8px; }
+    #copyRoot p { margin: 8px 0; }
+  </style>
+</head>
+<body>
+  <p class="tip">用法：用浏览器打开本页 → 选中下方正文全选复制 → 禅道描述里先点掉「&lt;/&gt;」源码按钮，再粘贴。不要直接贴 Markdown。</p>
+
+  <div id="copyRoot">
+    <p><strong>订单清分数据导出</strong></p>
+    <table>
+      <tbody>
+        <tr><th>版本</th><td>v1.0</td><th>日期</th><td>2026-09-05</td><th>状态</th><td>待评审</td></tr>
+      </tbody>
+    </table>
+    <p>入口：零售订单、代采订单列表工具栏。本文只含「导出订单」与「导出订单清分明细」。不含清分规则本身、订单详情清分表改版、结算对账页导出。直播订单列表本期不做。</p>
+
+    <h2>口径（后文不再重复）</h2>
+    <p>两个按钮各导出一种表，勾选框共用。先勾订单，再决定导出哪一种表。</p>
+    <table>
+      <thead>
+        <tr><th>按钮</th><th>一行是什么</th><th>文件中心任务</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>导出订单</td><td>一条订单</td><td>订单列表导出</td></tr>
+        <tr><td>导出订单清分明细</td><td>一条清分项</td><td>订单清分明细导出</td></tr>
+      </tbody>
+    </table>
+    <p>清分明细口径与订单详情「清分明细」一致：支付成功后生成；未配门店佣金比例时仍有供应商/平台项，不生成门店/商户项。</p>
+
+    <h2>1. 入口</h2>
+    <p>零售原「导出」改名为「导出订单」，右侧新增「导出订单清分明细」。代采同样。</p>
+
+    <h2>2. 导出订单</h2>
+    <p>沿用原导出弹窗，只改按钮文案。范围：勾选数据 / 当前查询全部。字段仍是列表列 + 列表外（收货地址、售后状态）。确定后提交「订单列表导出」，到文件中心下载。未勾选却选「勾选」→ 提示先勾选。查询无单 → 提示无数据。</p>
+
+    <h2>3. 导出订单清分明细</h2>
+    <p>弹窗结构与「导出订单」相同：范围 + 字段 + 全选，标题为「导出订单清分明细」。勾选过的字段下次记住。</p>
+
+    <h3>3.1 范围</h3>
+    <table>
+      <thead>
+        <tr><th>选项</th><th>取哪些订单</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>导出勾选数据</td><td>当前查询里已勾选的订单</td></tr>
+        <tr><td>导出所有查询数据</td><td>当前筛选结果全部订单</td></tr>
+      </tbody>
+    </table>
+    <p>默认：有勾选用勾选，否则用全部查询。范围内先按订单取清分，再拆成清分项行。提示条数按清分项计，不按订单计。</p>
+
+    <h3>3.2 一行怎么拆</h3>
+    <p>优先用订单详情的 SKU 清分表：每个 SKU 下每一条收款方记录一行。</p>
+    <p>没有 SKU 表、但有门店明细且已配门店佣金比例：一门店明细一行。</p>
+    <p>该单无清分（未支付、或详情为空）→ 该单不产出行。范围内一行都没有 → 不提任务，提示「所选订单暂无清分明细可导出」。</p>
+
+    <h3>3.3 导出字段</h3>
+    <p>默认全选。列表内字段与详情清分表对齐：</p>
+    <table>
+      <thead>
+        <tr><th>字段</th><th>说明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>订单号</td><td>所属订单</td></tr>
+        <tr><td>订单状态</td><td>待支付 / 待发货 / 交易成功等</td></tr>
+        <tr><td>订单场景</td><td>直播 / 商城；代采可空</td></tr>
+        <tr><td>商品名称</td><td>SKU 名称；门店明细行可空</td></tr>
+        <tr><td>商品规格</td><td>该 SKU 规格</td></tr>
+        <tr><td>商品编码</td><td>SKU 编码</td></tr>
+        <tr><td>商品数量</td><td>该 SKU 下单数量</td></tr>
+        <tr><td>实付</td><td>该 SKU 实付</td></tr>
+        <tr><td>售后金额</td><td>该 SKU 已退/在退金额</td></tr>
+        <tr><td>净实付金额</td><td>实付 − 售后金额</td></tr>
+        <tr><td>售后状态</td><td>订单售后汇总状态（退款中 / 已完成等）</td></tr>
+        <tr><td>角色分佣</td><td>该 SKU 角色分佣合计</td></tr>
+        <tr><td>供应商采购成本</td><td>采购价 × 售卖系数 × 下单数量</td></tr>
+        <tr><td>毛利率</td><td>该 SKU</td></tr>
+        <tr><td>收款方</td><td>平台 / 商户 / 门店 / 供应商等</td></tr>
+        <tr><td>角色</td><td>收款方角色</td></tr>
+        <tr><td>账户</td><td>收款账户（脱敏展示）</td></tr>
+        <tr><td>分佣方式</td><td>如按比例、采购成本</td></tr>
+        <tr><td>命中策略</td><td>结算策略名称；是否默认策略一并带出</td></tr>
+        <tr><td>应收 / 实收</td><td>该清分项金额</td></tr>
+        <tr><td>清分状态</td><td>待清分 / 已清分</td></tr>
+        <tr><td>结算状态</td><td>待结算等</td></tr>
+        <tr><td>入账状态</td><td>待入账等</td></tr>
+      </tbody>
+    </table>
+    <p>列表外、可勾选一并导出：订单渠道（如下单端小程序）、下单门店、通道流水（收款明细里的通道侧流水，不是列表「支付流水」）。</p>
+
+    <h3>3.4 提交之后</h3>
+    <p>通过校验后提交文件中心任务「订单清分明细导出」。</p>
+    <table>
+      <thead>
+        <tr><th>页面</th><th>文件名前缀</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>零售订单</td><td>零售订单清分明细_日期</td></tr>
+        <tr><td>代采订单</td><td>代采订单清分明细_日期</td></tr>
+      </tbody>
+    </table>
+    <p>提示：已提交导出勾选/查询数据（N 条清分明细，M 个字段），请到文件中心下载。</p>
+
+    <h2>4. 校验一览</h2>
+    <table>
+      <thead>
+        <tr><th>情况</th><th>结果</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>未选任何导出字段</td><td>请至少选择一个导出字段</td></tr>
+        <tr><td>范围=勾选且未勾订单</td><td>请先勾选要导出的订单</td></tr>
+        <tr><td>范围=查询且当前无单</td><td>当前查询无数据可导出</td></tr>
+        <tr><td>范围内订单都没有清分项</td><td>所选订单暂无清分明细可导出，不生成任务</td></tr>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>

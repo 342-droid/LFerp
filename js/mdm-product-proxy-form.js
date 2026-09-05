@@ -6,6 +6,7 @@
 (function () {
   var pickerInstance = null;
   var formState = null;
+  var skuSnapshot = null;
   var formChannel = 'proxy';
 
   var SALE_UNIT_OPTIONS = ['件', '箱', '瓶', '袋', 'kg', 'L', '罐', '包', '套', '卷', '个', '斤', '盒'];
@@ -33,6 +34,39 @@
     { value: 'spot', label: '按现货库存' },
     { value: 'fixed', label: '按具体数量' }
   ];
+  /** 售卖规格同步：不含条码/规格值/展示名/库存实数/默认与上下架 */
+  var SALE_SPEC_SYNC_FIELDS = [
+    'img',
+    'saleRatio',
+    'saleUnit',
+    'limitConfig',
+    'pointExchange',
+    'pointsAmount',
+    'pointCash',
+    'salePrice',
+    'linePrice',
+    'minQty',
+    'sellableMode',
+    'sellablePercent',
+    'sellableFixed'
+  ];
+
+  function copySaleSpecToSku(source, target) {
+    if (!source || !target || source.id === target.id) return target;
+    SALE_SPEC_SYNC_FIELDS.forEach(function (key) {
+      target[key] = source[key];
+    });
+    target.pointExchange = normalizePointExchange(target.pointExchange);
+    target.sellableMode = normalizeSellableMode(target.sellableMode);
+    if (!target.displayNameManual) {
+      target.displayName = buildDefaultDisplayName(
+        (formState && formState.productName) || '',
+        target.specValue,
+        target.saleUnit
+      );
+    }
+    return ensureSkuStockFields(target);
+  }
 
   function normalizeSellableMode(value) {
     if (window.MdmSkuWhStock && typeof window.MdmSkuWhStock.normalizeSellableMode === 'function') {
@@ -48,6 +82,10 @@
 
   function stockOpts(extra) {
     return Object.assign({ channel: formChannel }, extra || {});
+  }
+
+  function cloneJson(obj) {
+    return JSON.parse(JSON.stringify(obj));
   }
 
   function computeSellableStock(sku) {
@@ -633,7 +671,8 @@
     return html;
   }
 
-  function renderSpecPanel(sku) {
+  function renderSpecPanel(sku, idx) {
+    var multiSku = !!(formState && formState.selectedSkuIds && formState.selectedSkuIds.length > 1);
     var saleUnit = SALE_UNIT_OPTIONS.indexOf(sku.saleUnit) >= 0 ? sku.saleUnit : '';
     var saleUnitOptions =
       '<option value="">请选择</option>' +
@@ -672,7 +711,7 @@
       '    <input type="text" class="product-proxy-spec__head-input" data-field="displayName" value="' +
       escapeHtml(sku.displayName || '') +
       '" placeholder="请输入展示规格名称">' +
-      (sku.isDefault ? '<span class="product-proxy-spec__default-tag">默认</span>' : '') +
+      (multiSku && sku.isDefault ? '<span class="product-proxy-spec__default-tag">默认</span>' : '') +
       '  </div>' +
       '  <div class="product-proxy-spec__body">' +
       '    <div class="product-proxy-spec__thumb">' +
@@ -705,14 +744,17 @@
       '    </div>' +
       '  </div>' +
       '  <div class="product-proxy-spec__foot">' +
-      (sku.isDefault
-        ? '<button type="button" class="product-proxy-spec__btn-default" data-action="unset-default">取消默认</button>'
-        : '<button type="button" class="product-proxy-spec__btn-default" data-action="set-default">设为默认</button>') +
+      (multiSku && idx === 0
+        ? '<button type="button" class="product-proxy-spec__btn-sync" data-action="sync-sale-spec">同步至其他 SKU</button>'
+        : '') +
       '    <button type="button" class="product-proxy-spec__btn-off' +
       (sku.onShelf === false ? ' is-off' : '') +
       '" data-action="toggle-shelf">' +
       (sku.onShelf === false ? '上架' : '下架') +
       '    </button>' +
+      (multiSku && !sku.isDefault
+        ? '<button type="button" class="product-proxy-spec__btn-default" data-action="set-default">设为默认</button>'
+        : '') +
       '  </div>' +
       '</article>'
     );
@@ -985,6 +1027,10 @@
       '          <div class="product-proxy-form__sku-dropdown" id="proxyFormSkuDropdown" hidden>' + skuDropdown + '</div>' +
       '        </div>' +
       '        <p class="product-proxy-form__sku-tip">1份SKU采购价：采购价/基础单位 × 售卖系数</p>' +
+      '        <div class="product-proxy-form__sku-bar-actions">' +
+      '          <button type="button" class="product-proxy-form__btn-batch-shelf" data-batch-shelf>批量上架</button>' +
+      '          <button type="button" class="product-proxy-form__btn-reset-spec" data-reset-spec>重置规格</button>' +
+      '        </div>' +
       '      </div>' +
       '      <div class="product-proxy-form__spec-list" id="proxyFormSpecList">' + renderSkuPanels(state) + '</div>' +
       '    </section>' +
@@ -1016,6 +1062,7 @@
       '    <div class="product-proxy-form__footer-actions">' +
       '      <button type="button" class="erp-btn" data-form-cancel>取消</button>' +
       '      <button type="button" class="erp-btn erp-btn--primary" data-form-save>保存</button>' +
+      '      <button type="button" class="erp-btn erp-btn--primary" data-form-save-shelf>保存并上架</button>' +
       '    </div>' +
       '  </div>' +
       '</div>'
@@ -1136,6 +1183,29 @@
           s.isDefault = s.id === otherId;
         });
         refreshSpecList(backdrop);
+      };
+    });
+
+    backdrop.querySelectorAll('.product-proxy-spec [data-action="sync-sale-spec"]').forEach(function (btn) {
+      btn.onclick = function () {
+        readSpecPanelsFromDom(backdrop);
+        var selected = formState.selectedSkuIds
+          .map(function (id) {
+            return formState.skuPool.find(function (s) {
+              return s.id === id;
+            });
+          })
+          .filter(Boolean);
+        if (selected.length < 2) {
+          if (typeof showToast === 'function') showToast('请先选择多个 SKU', 'warning');
+          return;
+        }
+        var source = selected[0];
+        selected.slice(1).forEach(function (target) {
+          copySaleSpecToSku(source, target);
+        });
+        refreshSpecList(backdrop);
+        if (typeof showToast === 'function') showToast('已将第一个 SKU 的售卖规格同步到其余 SKU', 'success');
       };
     });
 
@@ -1520,6 +1590,10 @@
 
     closeModal();
     formState = normalizeDetail(product);
+    skuSnapshot = {
+      skuPool: cloneJson(formState.skuPool),
+      selectedSkuIds: formState.selectedSkuIds.slice()
+    };
 
     var backdrop = document.createElement('div');
     backdrop.className = 'erp-modal-backdrop product-proxy-form-backdrop';
@@ -1540,7 +1614,7 @@
       });
     }
 
-    backdrop.querySelector('[data-form-save]').addEventListener('click', function () {
+    function submitForm(publish) {
       var payload = collectPayload(backdrop, product);
       if (!payload.name) {
         if (typeof showToast === 'function') showToast('请输入商品名称', 'warning');
@@ -1574,9 +1648,56 @@
         if (typeof showToast === 'function') showToast('可售开始与结束时间不能相同', 'warning');
         return;
       }
+      /* 保存并上架：只改 SPU 商品状态；各 SKU 上下架仍按规格卡当前值，不在这里批量上架 */
+      if (publish) payload.status = 'on_shelf';
       if (typeof onSave === 'function') onSave(payload, product);
       closeModal();
+    }
+
+    backdrop.querySelector('[data-form-save]').addEventListener('click', function () {
+      submitForm(false);
     });
+    var saveShelfBtn = backdrop.querySelector('[data-form-save-shelf]');
+    if (saveShelfBtn) {
+      saveShelfBtn.addEventListener('click', function () {
+        submitForm(true);
+      });
+    }
+
+    var batchShelfBtn = backdrop.querySelector('[data-batch-shelf]');
+    if (batchShelfBtn) {
+      batchShelfBtn.addEventListener('click', function () {
+        readSpecPanelsFromDom(backdrop);
+        var count = 0;
+        formState.selectedSkuIds.forEach(function (id) {
+          var sku = formState.skuPool.find(function (s) {
+            return s.id === id;
+          });
+          if (!sku) return;
+          sku.onShelf = true;
+          count += 1;
+        });
+        refreshSpecList(backdrop);
+        if (typeof showToast === 'function') {
+          showToast(count ? '已批量上架 ' + count + ' 个 SKU' : '请先选择 SKU', count ? 'success' : 'warning');
+        }
+      });
+    }
+
+    var resetSpecBtn = backdrop.querySelector('[data-reset-spec]');
+    if (resetSpecBtn) {
+      resetSpecBtn.addEventListener('click', function () {
+        if (!skuSnapshot) return;
+        if (!window.confirm('确认重置当前规格配置吗？重置后将恢复到进入编辑前的内容。')) return;
+        formState.skuPool = cloneJson(skuSnapshot.skuPool);
+        formState.selectedSkuIds = skuSnapshot.selectedSkuIds.slice();
+        backdrop.querySelectorAll('#proxyFormSkuDropdown input[type="checkbox"]').forEach(function (box) {
+          box.checked = formState.selectedSkuIds.indexOf(box.getAttribute('data-sku-id')) >= 0;
+        });
+        refreshSpecList(backdrop);
+        if (typeof showToast === 'function') showToast('规格已重置', 'success');
+      });
+    }
 
     document.body.appendChild(backdrop);
 

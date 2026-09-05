@@ -1201,6 +1201,48 @@
         }
     }
 
+    function syncStoreReceiveFromArchiveRow(tr) {
+        if (!window.MdmReceiveAddressStore || !tr) return;
+        var c = tr.querySelectorAll('td');
+        if (!c.length) return;
+        var nameEl = c[2] && (c[2].querySelector('.subject-name-link') || c[2].querySelector('a') || c[2]);
+        window.MdmReceiveAddressStore.syncStoreFromArchive({
+            id: (c[0] && c[0].textContent || '').trim(),
+            name: nameEl ? nameEl.textContent.trim() : '',
+            contactName: (c[6] && c[6].textContent || '').trim(),
+            phone: (c[7] && c[7].textContent || '').trim(),
+            region: tr.getAttribute('data-region') || '',
+            detailAddress: tr.getAttribute('data-address') || '',
+            fulfillWarehouse: (c[8] && c[8].textContent || '').trim()
+        });
+    }
+
+    function seedStoreReceiveFromArchiveTable() {
+        var tbody = document.getElementById('tableBody');
+        if (!tbody || !window.MdmReceiveAddressStore) return;
+        tbody.querySelectorAll('tr').forEach(syncStoreReceiveFromArchiveRow);
+    }
+
+    function seedWarehouseReceiveFromArchiveTable() {
+        if (!window.MdmReceiveAddressStore) return;
+        var tbody = document.getElementById('tableBody');
+        if (!tbody) return;
+        tbody.querySelectorAll('tr').forEach(function (tr) {
+            var c = tr.querySelectorAll('td');
+            if (c.length < 9) return;
+            window.MdmReceiveAddressStore.seedWarehouseFromArchive(
+                {
+                    id: (c[0].textContent || '').trim(),
+                    name: (c[2].textContent || '').trim(),
+                    admin: (c[5].textContent || '').trim(),
+                    phone: (c[6].textContent || '').trim(),
+                    location: (c[8].textContent || '').trim()
+                },
+                { onlyIfEmpty: true }
+            );
+        });
+    }
+
     function storeRowMeta(tr) {
         var c = tr.querySelectorAll('td');
         if (c.length < STORE_COL.status + 1) return null;
@@ -1513,6 +1555,7 @@
                     patch[STORE_COL.status] = { value: st, isStatus: true };
                     pm.updateTableRow(row, patch);
                     pm.decorateDetailLinkCell(row);
+                    syncStoreReceiveFromArchiveRow(row);
                     showToast('门店档案已更新（演示）', 'success');
                     pm.currentEditRow = null;
                 }
@@ -1570,6 +1613,7 @@
                 detailAddrCol: 10,
                 contactMobileCol: 7
             });
+            seedStoreReceiveFromArchiveTable();
         }, 0);
     }
 
@@ -1909,6 +1953,7 @@
                 detailAddrCol: 8,
                 contactMobileCol: 6
             });
+            seedWarehouseReceiveFromArchiveTable();
         }, 0);
     }
 

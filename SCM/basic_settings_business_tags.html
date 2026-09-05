@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 标签管理</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/basic-settings.css">
+    <link rel="stylesheet" href="../css/lf-business-tags.css?v=20260905-basic-settings">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/basic-settings-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="content-title">基础设置 / 标签管理</div>
+            <hr class="content-divider">
+
+            <section class="bs-card">
+                <div class="bt-admin-note">
+                    <span aria-hidden="true">ⓘ</span>
+                    <div><strong>系统管理员开通，业务模块使用。</strong> 标签侧只维护标签事实；截单等规则由对应业务配置选择标签。</div>
+                </div>
+                <h2 class="bt-capability-heading">标签能力配置</h2>
+                <p class="bt-capability-subtitle">按业务模块独立开通，关闭能力不会删除已经维护的标签。</p>
+                <div class="bt-capability-grid" id="businessTagCapabilityApp"></div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script src="../js/business-tag-prototype-store.js?v=20260905-basic-settings"></script>
+    <script src="../js/business-tag-prototype-ui.js?v=20260905-basic-settings"></script>
+    <script src="../js/business-tag-prototype-pages.js?v=20260905-basic-settings"></script>
+</body>
+</html>

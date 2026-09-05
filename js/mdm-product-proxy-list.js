@@ -456,7 +456,9 @@
     var addedCodes = getAddedCodesMap();
     var count = 0;
     items.forEach(function (item) {
-      if (addedCodes[item.code]) return;
+      if (!item || !item.code || addedCodes[item.code]) return;
+      if (window.MdmProductCatalog && typeof window.MdmProductCatalog.isSellableForDownstream === 'function'
+        && !window.MdmProductCatalog.isSellableForDownstream(item.code)) return;
       var product = catalogItemToProxyProduct(item);
       ALL_PRODUCTS.unshift(product);
       addedCodes[item.code] = true;
@@ -572,10 +574,13 @@
           original.fulfillmentMode = original.deliveryMode;
           original.detail = payload.detail;
           original.detailEdited = true;
+          if (payload.status === 'on_shelf') original.status = 'on_shelf';
           persistProducts();
           renderTable();
           populateCategoryFilter();
-          if (typeof showToast === 'function') showToast('商品已更新', 'success');
+          if (typeof showToast === 'function') {
+            showToast(payload.status === 'on_shelf' ? '已保存并上架该商品' : '商品已更新', 'success');
+          }
           return;
         }
         var newItem = {
@@ -595,7 +600,7 @@
           pricePoints: payload.pricePoints || 0,
           linePrice: payload.linePrice,
           sales: 0,
-          status: 'draft',
+          status: payload.status === 'on_shelf' ? 'on_shelf' : 'draft',
           etaCountdown: payload.etaCountdown || '',
           etaCountdownUnit: payload.etaCountdownUnit || '天',
           saleTimeMode: payload.saleTimeMode === 'custom' ? 'custom' : 'follow_category',
@@ -613,7 +618,9 @@
         applyFilters();
         renderTable();
         populateCategoryFilter();
-        if (typeof showToast === 'function') showToast('商品已添加', 'success');
+        if (typeof showToast === 'function') {
+          showToast(payload.status === 'on_shelf' ? '已保存并上架该商品' : '商品已添加', 'success');
+        }
       }
     });
   }

@@ -88,7 +88,10 @@
     var text = String((el && el.textContent) || '').replace(/\s+/g, '');
     var title = '列表导出';
     var type = 'list-export';
-    if (/订单/.test(text) || /order/i.test((el && el.id) || '')) {
+    if (/清分/.test(text) || /ClearingExport/i.test((el && el.id) || '')) {
+      title = '订单清分明细导出';
+      type = 'order-clearing-export';
+    } else if (/订单/.test(text) || /order/i.test((el && el.id) || '')) {
       title = '订单列表导出';
       type = 'order-list-export';
     } else if (/售后/.test(text) || /aftersale|asTicket/i.test((el && el.id) || '')) {

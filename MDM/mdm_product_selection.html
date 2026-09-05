@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
-    <link rel="stylesheet" href="../css/lf-product.css?v=20260808-price-unit">
+    <link rel="stylesheet" href="../css/lf-product.css?v=20260905-sel-del">
     <link rel="stylesheet" href="../css/lf-product-selection-tag.css?v=20260902-tag">
 </head>
 <body>
@@ -138,7 +138,7 @@
                     <span class="sel-tag-info__icon" aria-hidden="true">i</span>
                     <div>
                         <p class="sel-tag-info__title">系统标签使用说明</p>
-                        <p class="sel-tag-info__desc">系统标签由系统预置并维护，名称、颜色和业务语义不可修改或删除；业务可正常绑定、移除和筛选。具体用途请悬停“系统维护”查看。</p>
+                        <p class="sel-tag-info__desc">系统标签由系统预置并维护，名称、颜色不可修改或删除；业务可正常绑定、移除和筛选。截单等规则请在对应业务配置中选择商品标签。</p>
                     </div>
                 </div>
 
@@ -225,10 +225,12 @@
 
     <script src="../js/common.js"></script>
     <script src="../js/product-page-tabs.js"></script>
-    <script src="../js/mdm-product-catalog-store.js"></script>
-    <script src="../js/mdm-product-selection-tag-store.js?v=20260902-no-skip-cutoff"></script>
+    <script src="../js/mdm-product-catalog-store.js?v=20260905-sellable"></script>
+    <script src="../js/mdm-live-demo-data.js"></script>
+    <script src="../js/business-tag-prototype-store.js?v=20260905-product-tag-sync"></script>
+    <script src="../js/mdm-product-selection-tag-store.js?v=20260905-domain-owned-tag"></script>
     <script src="../js/mdm-product-add-drawer.js?v=20260902-no-skip-cutoff"></script>
-    <script src="../js/mdm-product-selection.js"></script>
-    <script src="../js/mdm-product-selection-tag.js"></script>
+    <script src="../js/mdm-product-selection.js?v=20260905-sellable"></script>
+    <script src="../js/mdm-product-selection-tag.js?v=20260905-domain-owned-tag"></script>
 </body>
 </html>

@@ -187,18 +187,27 @@
     return '<div class="mkt-newcomer-zone-schedule-cell">' + escapeHtml(lines.join('\n')).replace(/\n/g, '<br>') + '</div>';
   }
 
+  function isCatalogMissing(code) {
+    return !(window.MdmProductCatalog && window.MdmProductCatalog.getByCode(code));
+  }
+
   function renderActions(item) {
+    var gone = isCatalogMissing(item.code);
     var shelf = displayShelfStatus(item);
     var html = '<div class="product-action">';
-    html += '<button type="button" class="product-action__link" data-action="edit" data-code="' +
-      escapeHtml(item.code) + '">编辑</button>';
-    if (shelf === 'on_shelf') {
-      html += '<button type="button" class="product-action__link" data-action="off-shelf" data-code="' +
-        escapeHtml(item.code) + '">下架</button>';
-    } else {
-      html += '<button type="button" class="product-action__link" data-action="on-shelf" data-code="' +
-        escapeHtml(item.code) + '">上架</button>';
+    if (!gone) {
+      html += '<button type="button" class="product-action__link" data-action="edit" data-code="' +
+        escapeHtml(item.code) + '">编辑</button>';
+      if (shelf === 'on_shelf') {
+        html += '<button type="button" class="product-action__link" data-action="off-shelf" data-code="' +
+          escapeHtml(item.code) + '">下架</button>';
+      } else {
+        html += '<button type="button" class="product-action__link" data-action="on-shelf" data-code="' +
+          escapeHtml(item.code) + '">上架</button>';
+      }
     }
+    html += '<button type="button" class="product-action__link" data-action="delete" data-code="' +
+      escapeHtml(item.code) + '">删除</button>';
     html += '</div>';
     return html;
   }
@@ -245,7 +254,8 @@
       var rowCls = 'product-proxy-table__row mkt-newcomer-zone-row' +
         (alt ? ' product-proxy-table__row--alt' : '') +
         (si < visible.length - 1 ? ' mkt-newcomer-zone-row--sku-open' : '') +
-        (si > 0 ? ' mkt-newcomer-zone-row--sku-cont' : '');
+        (si > 0 ? ' mkt-newcomer-zone-row--sku-cont' : '') +
+        (isCatalogMissing(item.code) ? ' is-catalog-missing' : '');
       var html = '<tr class="' + rowCls + '" data-code="' + escapeHtml(item.code) + '">';
 
       if (isFirst) {

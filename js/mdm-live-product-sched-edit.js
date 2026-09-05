@@ -55,7 +55,7 @@
   var product = null;
   var skuPool = [];
   var selectedSkuIds = [];
-  var snapshot = null;
+  var skuSnapshot = null;
   var images = [];
   var video = '';
 
@@ -94,7 +94,7 @@
     return null;
   }
 
-  function clone(obj) {
+  function cloneJson(obj) {
     return JSON.parse(JSON.stringify(obj));
   }
 
@@ -107,6 +107,29 @@
     if (mode === 'points' || mode === 'POINTS_ONLY' || mode === 'points_only') return 'points';
     if (mode === 'points_cash' || mode === 'POINTS_CASH') return 'points_cash';
     return 'cash';
+  }
+
+  /** 售卖规格同步：不含条码/规格值/展示名/库存实数/本场配额/上下架 */
+  var SALE_SPEC_SYNC_FIELDS = [
+    'img',
+    'saleRatio',
+    'saleUnit',
+    'limitConfig',
+    'pointExchange',
+    'pointsAmount',
+    'pointCash',
+    'salePrice',
+    'linePrice',
+    'minQty'
+  ];
+
+  function copySaleSpecToSku(source, target) {
+    if (!source || !target || source.id === target.id) return target;
+    SALE_SPEC_SYNC_FIELDS.forEach(function (key) {
+      target[key] = source[key];
+    });
+    target.pointExchange = normalizePoint(target.pointExchange);
+    return target;
   }
 
   function goodsIdOf(p) {
@@ -144,7 +167,8 @@
       sellableFixed: raw.sellableFixed || '',
       liveStock: raw.liveStock != null ? raw.liveStock : raw.stock,
       onShelf: raw.onShelf !== false && raw.enabled !== false,
-      img: raw.img || productImg || '../user-app/assets/restock/product-leaf.svg'
+      img: raw.img || productImg || '../user-app/assets/restock/product-leaf.svg',
+      isDefault: !!raw.isDefault
     };
   }
 
@@ -159,7 +183,7 @@
         unit: '份'
       }
     ];
-    return list.map(function (s) {
+    var mapped = list.map(function (s) {
       var sku = normalizeSku(s, p.img);
       if (window.MdmSkuWhStock && window.MdmSkuWhStock.attachToSku) {
         var sum = window.MdmSkuWhStock.attachToSku(sku, { channel: 'live', sessionId: sessionId });
@@ -170,6 +194,11 @@
       }
       return sku;
     });
+    var hasDefault = mapped.some(function (s) {
+      return s.isDefault;
+    });
+    if (!hasDefault && mapped.length) mapped[0].isDefault = true;
+    return mapped;
   }
 
   function fillCategories() {
@@ -348,14 +377,16 @@
       .join('');
   }
 
-  function renderSkuCard(sku) {
+  function renderSkuCard(sku, idx, total) {
     var saleUnits = [{ value: '', label: '请选择' }].concat(
       SALE_UNITS.map(function (u) {
         return { value: u, label: u };
       })
     );
     return (
-      '<article class="product-proxy-spec" data-sku-id="' +
+      '<article class="product-proxy-spec' +
+      (total > 1 && sku.isDefault ? ' is-default' : '') +
+      '" data-sku-id="' +
       escapeHtml(sku.id) +
       '">' +
       '<div class="product-proxy-spec__head">' +
@@ -363,6 +394,7 @@
       '<input type="text" class="product-proxy-spec__head-input" data-field="displayName" value="' +
       escapeHtml(sku.displayName || '') +
       '" placeholder="请输入展示规格名称">' +
+      (total > 1 && sku.isDefault ? '<span class="product-proxy-spec__default-tag">默认</span>' : '') +
       '</div>' +
       '<div class="product-proxy-spec__body">' +
       '<div class="product-proxy-spec__thumb"><img src="' +
@@ -390,12 +422,18 @@
         : '<p class="product-proxy-spec__stock-tip product-proxy-spec__stock-tip--span">可售与预占都在放单渠道。本场配额不超过剩余可售（直播可售−直播预占，含本场已占）。</p>') +
       '</div></div>' +
       '<div class="product-proxy-spec__foot">' +
+      (idx === 0 && total > 1
+        ? '<button type="button" class="product-proxy-spec__btn-sync" data-act="sync-sale-spec">同步至其他 SKU</button>'
+        : '') +
       '<button type="button" class="product-proxy-spec__btn-off' +
       (sku.onShelf === false ? ' is-off' : '') +
       '" data-act="toggle-shelf">' +
       (sku.onShelf === false ? '上架' : '下架') +
       '</button>' +
       '<button type="button" class="product-proxy-spec__btn-del" data-act="remove-sku">删除</button>' +
+      (total > 1 && !sku.isDefault
+        ? '<button type="button" class="product-proxy-spec__btn-default" data-act="set-default">设为默认</button>'
+        : '') +
       '</div></article>'
     );
   }
@@ -411,7 +449,11 @@
     if (!cards.length) {
       list.innerHTML = '<div class="lf-live-empty-tip">请至少选择一个 SKU</div>';
     } else {
-      list.innerHTML = cards.map(renderSkuCard).join('');
+      list.innerHTML = cards
+        .map(function (sku, idx) {
+          return renderSkuCard(sku, idx, cards.length);
+        })
+        .join('');
     }
     renderSkuTrigger();
     renderSkuDropdown();
@@ -468,13 +510,6 @@
     if (input) input.hidden = mode !== 'CUSTOM';
   }
 
-  function takeSnapshot() {
-    snapshot = {
-      skuPool: clone(skuPool),
-      selectedSkuIds: selectedSkuIds.slice()
-    };
-  }
-
   function loadForm() {
     productId = qs('id');
     sessionId = qs('sessionId');
@@ -526,7 +561,10 @@
     selectedSkuIds = skuPool.map(function (s) {
       return s.id;
     });
-    takeSnapshot();
+    skuSnapshot = {
+      skuPool: cloneJson(skuPool),
+      selectedSkuIds: selectedSkuIds.slice()
+    };
     renderSkuCards();
   }
 
@@ -573,7 +611,9 @@
         return findSku(id);
       })
       .filter(Boolean);
-    var first = kept[0];
+    var first = kept.filter(function (s) {
+      return s.isDefault;
+    })[0] || kept[0];
     Object.assign(product, {
       name: document.getElementById('pName').value.trim(),
       categoryId: catId,
@@ -615,7 +655,8 @@
           liveStock: s.liveStock,
           onShelf: s.onShelf,
           enabled: s.onShelf !== false,
-          img: s.img
+          img: s.img,
+          isDefault: !!s.isDefault
         };
       }),
       spec: first ? first.displayName : product.spec,
@@ -636,18 +677,45 @@
       applyToProduct();
       toast('保存成功，仅本场排品生效');
     });
+    var saveShelfBtn = document.getElementById('pSaveShelfBtn');
+    if (saveShelfBtn) {
+      saveShelfBtn.addEventListener('click', function () {
+        if (!validate()) return;
+        applyToProduct();
+        /* 上架的是本场排品 SPU，不改各 SKU 上下架 */
+        product.status = 'enabled';
+        toast('已保存并上架该商品，仅本场排品生效');
+      });
+    }
+    var batchShelfBtn = document.getElementById('pBatchShelfBtn');
+    if (batchShelfBtn) {
+      batchShelfBtn.addEventListener('click', function () {
+        readSkuCards();
+        var count = 0;
+        selectedSkuIds.forEach(function (id) {
+          var sku = findSku(id);
+          if (!sku) return;
+          sku.onShelf = true;
+          count += 1;
+        });
+        renderSkuCards();
+        toast(count ? '已批量上架 ' + count + ' 个 SKU' : '请先选择 SKU', count ? 'success' : 'warning');
+      });
+    }
+    var resetSkuBtn = document.getElementById('pResetSkuBtn');
+    if (resetSkuBtn) {
+      resetSkuBtn.addEventListener('click', function () {
+        if (!skuSnapshot) return;
+        if (!window.confirm('确认重置当前规格配置吗？重置后将恢复到进入编辑前的内容。')) return;
+        skuPool = cloneJson(skuSnapshot.skuPool);
+        selectedSkuIds = skuSnapshot.selectedSkuIds.slice();
+        renderSkuCards();
+        toast('规格已重置');
+      });
+    }
 
     document.querySelectorAll('input[name="displaySalesMode"]').forEach(function (el) {
       el.addEventListener('change', syncSalesInput);
-    });
-
-    document.getElementById('pResetSkuBtn').addEventListener('click', function () {
-      if (!snapshot) return;
-      if (!window.confirm('确认重置当前规格配置吗？重置后将恢复到进入编辑前的内容。')) return;
-      skuPool = clone(snapshot.skuPool);
-      selectedSkuIds = snapshot.selectedSkuIds.slice();
-      renderSkuCards();
-      toast('规格已重置');
     });
 
     var trigger = document.getElementById('pSkuTrigger');
@@ -677,6 +745,15 @@
             return x !== id;
           });
         }
+        var stillDefault = selectedSkuIds.some(function (sid) {
+          var one = findSku(sid);
+          return one && one.isDefault;
+        });
+        if (!stillDefault && selectedSkuIds[0]) {
+          skuPool.forEach(function (s) {
+            s.isDefault = s.id === selectedSkuIds[0];
+          });
+        }
         renderSkuCards();
       });
     }
@@ -700,6 +777,29 @@
       var sku = findSku(id);
       if (!sku) return;
       readSkuCards();
+      if (actEl.getAttribute('data-act') === 'set-default') {
+        skuPool.forEach(function (s) {
+          s.isDefault = s.id === id;
+        });
+        renderSkuCards();
+        toast('已设为默认规格');
+        return;
+      }
+      if (actEl.getAttribute('data-act') === 'sync-sale-spec') {
+        var selected = selectedSkuIds
+          .map(function (sid) {
+            return findSku(sid);
+          })
+          .filter(Boolean);
+        if (selected.length < 2) return toast('请先选择多个 SKU', 'warning');
+        var source = selected[0];
+        selected.slice(1).forEach(function (target) {
+          copySaleSpecToSku(source, target);
+        });
+        renderSkuCards();
+        toast('已将第一个 SKU 的售卖规格同步到其余 SKU');
+        return;
+      }
       if (actEl.getAttribute('data-act') === 'toggle-shelf') {
         sku.onShelf = sku.onShelf === false;
         renderSkuCards();
@@ -714,6 +814,11 @@
         skuPool = skuPool.filter(function (s) {
           return s.id !== id;
         });
+        if (sku.isDefault && selectedSkuIds[0]) {
+          skuPool.forEach(function (s) {
+            s.isDefault = s.id === selectedSkuIds[0];
+          });
+        }
         renderSkuCards();
         toast('已删除该规格');
       }

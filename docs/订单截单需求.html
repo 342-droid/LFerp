@@ -23,11 +23,11 @@
   <div id="copyRoot">
 <h1>订单截单 产品需求文档（完整版）</h1>
 <h2>文档信息</h2>
-<table><thead><tr><th>字段</th><th>内容</th></tr></thead><tbody><tr><td>文档标题</td><td>订单截单（完整 PRD）</td></tr><tr><td>产品/功能名称</td><td>冷丰 ERP · 订单截单策略 / 门店订货汇总人工截单 / 订单统一截单状态回写 / 对客主状态「待接单」</td></tr><tr><td>文档版本</td><td>v1.2</td></tr><tr><td>状态</td><td>待评审</td></tr><tr><td>作者</td><td>产品</td></tr><tr><td>最后更新</td><td>2026-09-03</td></tr><tr><td>审阅人</td><td>[待确认]</td></tr><tr><td>文档用途</td><td>研发评审 / 测试验收 / 业务对齐</td></tr><tr><td>存放说明</td><td>仅本地查阅，不提交远端（<code>docs/PRD*.md</code> 已 gitignore）</td></tr><tr><td>产品原型</td><td>订单截单：<code>MDM/mdm_order_express_cutoff.html</code> + <code>js/mdm-order-express-cutoff.js</code> + <code>js/order-cutoff-runtime.js</code>；门店订货汇总：<code>SCM/purchase_store_demand_summary.html</code>；零售/代采：<code>MDM/mdm_order_retail.html</code>、<code>MDM/mdm_order_proxy.html</code>；用户 APP：<code>user-app/h5/profile.html</code>、<code>orders.html</code>、<code>order-detail.html</code></td></tr><tr><td>业务边界</td><td><strong>订单截单页统一配零售 / 代采</strong>（按渠道 + 履约 + 标签 + 类目）；系统只兜零售 × 快递到家；采购 → 门店订货汇总只留人工截单；各入口都回写订单统一截单状态</td></tr><tr><td>口径原则</td><td><strong>以现行订单截单 / 订货汇总原型 + 本 PRD 为准</strong>；历史「有订货单 / 有 shipment_plan_id 就算截单」作废</td></tr><tr><td>本文不含</td><td><strong>选品库 · 商品标签管理</strong>（系统标签、打标入口、是否进订货汇总等另文）</td></tr></tbody></table>
+<table><thead><tr><th>字段</th><th>内容</th></tr></thead><tbody><tr><td>文档标题</td><td>订单截单（完整 PRD）</td></tr><tr><td>产品/功能名称</td><td>冷丰 ERP · 订单截单策略 / 门店订货汇总人工截单 / 订单统一截单状态回写 / 对客主状态「待接单」</td></tr><tr><td>文档版本</td><td>v1.3</td></tr><tr><td>状态</td><td>待评审</td></tr><tr><td>作者</td><td>产品</td></tr><tr><td>最后更新</td><td>2026-09-04</td></tr><tr><td>审阅人</td><td>[待确认]</td></tr><tr><td>文档用途</td><td>研发评审 / 测试验收 / 业务对齐</td></tr><tr><td>存放说明</td><td>仅本地查阅，不提交远端（<code>docs/PRD*.md</code> 已 gitignore）</td></tr><tr><td>产品原型</td><td>订单截单：<code>MDM/mdm_order_express_cutoff.html</code> + <code>js/mdm-order-express-cutoff.js</code> + <code>js/order-cutoff-runtime.js</code>；门店订货汇总：<code>SCM/purchase_store_demand_summary.html</code>；零售/代采：<code>MDM/mdm_order_retail.html</code>、<code>MDM/mdm_order_proxy.html</code>；用户 APP：<code>user-app/h5/profile.html</code>、<code>orders.html</code>、<code>order-detail.html</code></td></tr><tr><td>业务边界</td><td><strong>订单截单页统一配零售 / 代采</strong>（按渠道 + 履约 + 标签 + 类目）；系统两条兜底：零售快递到家、不走订货单；采购 → 门店订货汇总只留人工截单；各入口都回写订单统一截单状态</td></tr><tr><td>口径原则</td><td><strong>以现行订单截单 / 订货汇总原型 + 本 PRD 为准</strong>；历史「有订货单 / 有 shipment_plan_id 就算截单」作废</td></tr><tr><td>本文不含</td><td><strong>选品库 · 商品标签管理</strong>（系统标签、打标入口、是否进订货汇总等另文）</td></tr></tbody></table>
 <p><strong>变更记录</strong></p>
-<table><thead><tr><th>版本</th><th>日期</th><th>说明</th></tr></thead><tbody><tr><td><strong>v1.2</strong></td><td>2026-09-03</td><td><strong>快递截单升级为订单截单</strong>：覆盖零售 / 代采；履约随渠道；新增支付后自动截单；门店订货汇总自动截单并入本页；系统只兜零售快递到家；本文不含选品库商品标签板块</td></tr><tr><td><strong>v1.1</strong></td><td>2026-09-01</td><td>按钱包完整骨架扩写；任一商品截单整单已接单；已截单不可释放；后台进度条拆出待接单 / 待发货；C 端待接单不单开页签</td></tr><tr><td><strong>v1.0</strong></td><td>2026-09-01</td><td>简约版：只写了统一边界与回写节点，未覆盖配置页字段与策略生命周期</td></tr></tbody></table>
+<table><thead><tr><th>版本</th><th>日期</th><th>说明</th></tr></thead><tbody><tr><td><strong>v1.3</strong></td><td>2026-09-04</td><td>新增兜底「不走订货单」（代采配送 / 零售自提 + 标签「不走订货单」，默认支付后截单可改每日定时）；商品标签改为不限标签 / 全部标签 / 指定商品标签；匹配指定 &gt; 全部标签 &gt; 不限标签</td></tr><tr><td><strong>v1.2</strong></td><td>2026-09-03</td><td><strong>快递截单升级为订单截单</strong>：覆盖零售 / 代采；履约随渠道；新增支付后自动截单；门店订货汇总自动截单并入本页；系统兜零售快递到家；本文不含选品库商品标签板块</td></tr><tr><td><strong>v1.1</strong></td><td>2026-09-01</td><td>按钱包完整骨架扩写；任一商品截单整单已接单；已截单不可释放；后台进度条拆出待接单 / 待发货；C 端待接单不单开页签</td></tr><tr><td><strong>v1.0</strong></td><td>2026-09-01</td><td>简约版：只写了统一边界与回写节点，未覆盖配置页字段与策略生命周期</td></tr></tbody></table>
 <p><strong>业务范围声明（强制）</strong></p>
-<table><thead><tr><th>在范围内</th><th>不在范围内</th></tr></thead><tbody><tr><td>订单截单策略：渠道、场景、履约、标签、类目、每日定时、支付后自动截单</td><td>选品库 · 商品标签管理（另文）</td></tr><tr><td>系统兜底仅零售 × 快递到家；不做全渠道通用兜底</td><td>把「截单」做成对客主状态档</td></tr><tr><td>到点 / 支付后 / 人工截单后回写订单统一状态</td><td>用户 APP 补进度条</td></tr><tr><td>门店订货汇总<strong>人工</strong>截单后回写对应订单</td><td>订货汇总继续配自动截单弹窗（已并入本页）</td></tr><tr><td>未截单提前发货：发货事件当场补截单 + 接单 + 发货</td><td>在页面上展示补截单 / 接单 / 发货过程</td></tr><tr><td>用户 APP / 后台订单流露出「待接单」</td><td>改支付成功跳转、取消/退款页交互</td></tr><tr><td>取消 / 退款 / 售后 / 核销改为只读统一截单状态</td><td>门店核销详情改版；订单支付流水（另文）</td></tr></tbody></table>
+<table><thead><tr><th>在范围内</th><th>不在范围内</th></tr></thead><tbody><tr><td>订单截单策略：渠道、场景、履约、标签、类目、每日定时、支付后自动截单</td><td>选品库 · 商品标签管理（另文）</td></tr><tr><td>系统两条兜底：零售快递到家、不走订货单；不做全渠道通用兜底</td><td>把「截单」做成对客主状态档</td></tr><tr><td>到点 / 支付后 / 人工截单后回写订单统一状态</td><td>用户 APP 补进度条</td></tr><tr><td>门店订货汇总<strong>人工</strong>截单后回写对应订单</td><td>订货汇总继续配自动截单弹窗（已并入本页）</td></tr><tr><td>未截单提前发货：发货事件当场补截单 + 接单 + 发货</td><td>在页面上展示补截单 / 接单 / 发货过程</td></tr><tr><td>用户 APP / 后台订单流露出「待接单」</td><td>改支付成功跳转、取消/退款页交互</td></tr><tr><td>取消 / 退款 / 售后 / 核销改为只读统一截单状态</td><td>门店核销详情改版；订单支付流水（另文）</td></tr></tbody></table>
 <hr>
 <h2>一、背景与目标</h2>
 <h3>1.1 背景</h3>
@@ -39,9 +39,9 @@
 <li>履约随渠道：零售仅快递到家、门店自提；代采仅平台配送、快递配送；</li>
 <li>截单方式除每日定时外，增加<strong>支付后自动截单</strong>；</li>
 <li>门店订货汇总的<strong>自动截单并入本页</strong>，汇总页只留人工「截单并生成门店订货单」；</li>
-<li>系统两条兜底：<strong>零售 × 快递到家</strong>（默认每日定时）；以及<strong>代采平台配送 / 代采快递配送 / 零售门店自提</strong>且标签为<strong>不走订货单</strong>时<strong>支付后自动截单</strong>。不做全部渠道×全部履约的通用兜底。</li>
+<li>系统两条兜底：<strong>零售 × 快递到家</strong>（不限标签、全部类目，默认每日定时）；以及<strong>代采平台配送 / 代采快递配送 / 零售门店自提</strong>且标签为<strong>不走订货单</strong>（默认支付后自动截单，可改每日定时）。不做全部渠道×全部履约的通用兜底。</li>
 </ol>
-<p>统一截单事实源、待接单、提前发货补截单等底层口径沿用 v1.1。</p>
+<p>v1.3 补上第二条兜底「不走订货单」，并把商品标签拆成不限标签 / 全部标签 / 指定商品标签。统一截单事实源、待接单、提前发货补截单等底层口径沿用 v1.1。</p>
 <h3>1.2 目标</h3>
 <ul>
 <li>运营在一页配齐零售 / 代采的自动截单（到点或支付后）。</li>
@@ -53,13 +53,13 @@
 <h3>1.3 发布逻辑</h3>
 <p>订单截单配置页先落地 → 订单域按新维度匹配并回写 → 订货汇总自动截单下线、只留人工 → 对客露出待接单（支付后截单的单跳过待接单）→ 售后/取消改读统一状态。</p>
 <h3>1.4 范围与优先级</h3>
-<table><thead><tr><th>优先级</th><th>内容</th></tr></thead><tbody><tr><td>P0</td><td>订单截单页按渠道 + 履约 + 标签 + 类目配置；支付后自动截单；兜底仅零售快递到家；回写统一截单状态；待接单；提前发货补截单</td></tr><tr><td>P0</td><td>订货汇总自动截单并入本页；人工截单后到点策略不再重复执行</td></tr><tr><td>本期不做</td><td>选品库商品标签管理；C 端进度条；核销详情改版；全渠道通用兜底</td></tr></tbody></table>
+<table><thead><tr><th>优先级</th><th>内容</th></tr></thead><tbody><tr><td>P0</td><td>订单截单页按渠道 + 履约 + 标签 + 类目配置；支付后自动截单；两条兜底（零售快递到家、不走订货单）；回写统一截单状态；待接单；提前发货补截单</td></tr><tr><td>P0</td><td>订货汇总自动截单并入本页；人工截单后到点策略不再重复执行</td></tr><tr><td>本期不做</td><td>选品库商品标签管理；C 端进度条；核销详情改版；全渠道通用兜底</td></tr></tbody></table>
 <hr>
 <h2>二、用户与角色</h2>
 <table><thead><tr><th>角色</th><th>诉求</th></tr></thead><tbody><tr><td>平台运营</td><td>在订单截单页配零售 / 代采策略；到点或支付后自动截；订货汇总只做人工截单</td></tr><tr><td>用户 / 门店进货人</td><td>已付未截单看「待接单」可取消；截单后看「待发货」；发出后看「待收货」；支付后自动截单的单不停留待接单</td></tr><tr><td>履约 / 仓配</td><td>直发按本页时刻或支付后备货发快递；仓配按 MDH 履约</td></tr><tr><td>售后 / 核销</td><td>只看订单截单状态，不再猜订货单</td></tr><tr><td>研发 / 测试</td><td>策略规则、匹配窗口、回写节点可对照验收</td></tr></tbody></table>
 <hr>
 <h2>三、术语与概念</h2>
-<table><thead><tr><th>术语</th><th>产品定义</th></tr></thead><tbody><tr><td>截单</td><td>平台对外承诺「这单要履约」。跨过即不能再当没承诺过</td></tr><tr><td>订单截单状态</td><td>订单上的统一事实源。取值：截单前 / 已截单。<strong>已截单不可释放</strong></td></tr><tr><td>对客主状态</td><td>用户和后台订单列表看到的词：待支付、待接单、待发货、待收货 / 待提货</td></tr><tr><td>待接单</td><td>已付款且仍在截单前。不要写成「待商家接单」</td></tr><tr><td>待发货</td><td>已截单且尚未发出</td></tr><tr><td>订单截单策略</td><td>本页一条配置：名称 + 订单渠道 +（零售）适用场景 + 履约方式 + 截单方式 +（定时则）每日时刻 + 商品标签范围 + 商品类目范围 + 状态</td></tr><tr><td>订单渠道</td><td>零售、代采，可多选。渠道决定可选履约，也决定是否出现适用场景</td></tr><tr><td>适用场景</td><td>仅零售：直播、商城，可多选。代采不区分场景。匹配时按订单实际场景分开算</td></tr><tr><td>履约方式</td><td>零售：快递到家、门店自提。代采：平台配送、快递配送。可「全部」或「指定」</td></tr><tr><td>截单方式</td><td>每日定时 / 支付后自动截单</td></tr><tr><td>支付后自动截单</td><td>支付成功即写入已截单，对客直接待发货，不再停留待接单。只决定<strong>何时截</strong>，不决定是否进订货汇总</td></tr><tr><td>兜底策略</td><td>系统默认一条：<strong>零售 × 快递到家 × 直播+商城 × 全部标签 × 全部类目</strong>。仅可改名称、截单方式、截单时间、备注；不可停用、删除</td></tr><tr><td>商品标签范围</td><td>全部标签，或指定商品标签（可多选）。<strong>匹配字段</strong>，标签怎么维护不在本文</td></tr><tr><td>商品类目范围</td><td>全部类目，或指定选品库类目（可多选）</td></tr><tr><td>截单窗口</td><td>每日定时策略在时刻 T 触发时，截「上次该时刻 ～ 本次 T 的前一秒」内、命中该策略且仍待接单、未发货的订单</td></tr><tr><td>截单来源</td><td>支付后自动截单 / 每日定时 / 订货汇总人工截单 / 提前发货补截单</td></tr><tr><td>门店订货单 MDH</td><td>仓配人工截单后按门店合并的凭证。只证明「怎么跨」，不能当「是否已截单」</td></tr><tr><td>提前发货补截单</td><td>仍在截单前却已发货：由<strong>发货事件</strong>当场写入已截单，不走任何配置时刻</td></tr></tbody></table>
+<table><thead><tr><th>术语</th><th>产品定义</th></tr></thead><tbody><tr><td>截单</td><td>平台对外承诺「这单要履约」。跨过即不能再当没承诺过</td></tr><tr><td>订单截单状态</td><td>订单上的统一事实源。取值：截单前 / 已截单。<strong>已截单不可释放</strong></td></tr><tr><td>对客主状态</td><td>用户和后台订单列表看到的词：待支付、待接单、待发货、待收货 / 待提货</td></tr><tr><td>待接单</td><td>已付款且仍在截单前。不要写成「待商家接单」</td></tr><tr><td>待发货</td><td>已截单且尚未发出</td></tr><tr><td>订单截单策略</td><td>本页一条配置：名称 + 订单渠道 +（零售）适用场景 + 履约方式 + 截单方式 +（定时则）每日时刻 + 商品标签范围 + 商品类目范围 + 状态</td></tr><tr><td>订单渠道</td><td>零售、代采，可多选。渠道决定可选履约，也决定是否出现适用场景</td></tr><tr><td>适用场景</td><td>仅零售：直播、商城，可多选。代采不区分场景。匹配时按订单实际场景分开算</td></tr><tr><td>履约方式</td><td>零售：快递到家、门店自提。代采：平台配送、快递配送。可「全部」或「指定」</td></tr><tr><td>截单方式</td><td>每日定时 / 支付后自动截单</td></tr><tr><td>支付后自动截单</td><td>支付成功即写入已截单，对客直接待发货，不再停留待接单。只决定<strong>何时截</strong>，不决定是否进订货汇总</td></tr><tr><td>兜底策略</td><td>系统默认两条，均不可停用、删除。<strong>零售快递到家</strong>：零售 × 快递到家 × 直播+商城 × 不限标签 × 全部类目，默认可改名称 / 截单方式 / 时间 / 备注。<strong>不走订货单</strong>：零售+代采 × 门店自提 / 平台配送 / 快递配送 × 指定标签「不走订货单」 × 全部类目，默认支付后截单，可改名称 / 截单方式 / 时间 / 备注</td></tr><tr><td>商品标签范围</td><td>不限标签（含未打标）/ 全部标签（须打过任意标签）/ 指定商品标签（可多选）。<strong>匹配字段</strong>，标签怎么维护不在本文</td></tr><tr><td>商品类目范围</td><td>全部类目，或指定选品库类目（可多选）</td></tr><tr><td>截单窗口</td><td>每日定时策略在时刻 T 触发时，截「上次该时刻 ～ 本次 T 的前一秒」内、命中该策略且仍待接单、未发货的订单</td></tr><tr><td>截单来源</td><td>支付后自动截单 / 每日定时 / 订货汇总人工截单 / 提前发货补截单</td></tr><tr><td>门店订货单 MDH</td><td>仓配人工截单后按门店合并的凭证。只证明「怎么跨」，不能当「是否已截单」</td></tr><tr><td>提前发货补截单</td><td>仍在截单前却已发货：由<strong>发货事件</strong>当场写入已截单，不走任何配置时刻</td></tr></tbody></table>
 <p><strong>截单状态 vs 对客主状态（二维）</strong></p>
 <ul>
 <li>截单状态：有没有对外承诺。取消 / 售后只认这个。</li>
@@ -83,8 +83,8 @@
 <h3>4.2 策略负责「怎么跨」：渠道 × 履约</h3>
 <p>维度是 <strong>订单渠道 × 履约方式</strong>。渠道先定，履约再定；不是「零售 / 代采」二选一就结束。</p>
 <table><thead><tr><th>订单渠道</th><th>可选履约</th><th>适用场景</th></tr></thead><tbody><tr><td>零售</td><td>快递到家、门店自提</td><td>直播、商城（可多选，匹配时分开算）</td></tr><tr><td>代采</td><td>平台配送、快递配送</td><td>不区分</td></tr></tbody></table>
-<table><thead><tr><th>履约组合</th><th>谁负责自动跨界</th><th>跨界后典型凭证 / 单据</th></tr></thead><tbody><tr><td>零售 × 快递到家</td><td><strong>订单截单</strong>（系统兜底 + 指定策略）</td><td>预计接单时间 / 截单批次；<strong>不生成 MDH</strong></td></tr><tr><td>零售 × 门店自提</td><td><strong>订单截单</strong>指定策略；无策略则只能人工或提前发货</td><td>仓配类可生成 MDH</td></tr><tr><td>代采 × 平台配送</td><td><strong>订单截单</strong>指定策略；无策略则只能人工或提前发货</td><td>生成 MDH，回写各 CO</td></tr><tr><td>代采 × 快递配送</td><td>同上</td><td>生成 MDH，回写各 CO</td></tr><tr><td>任意履约 · 订货汇总人工截单</td><td>采购侧人工按钮</td><td>生成 MDH，回写各 CO</td></tr><tr><td>任意履约 · 未截单提前发货</td><td><strong>发货事件</strong>当场补截单</td><td>运单号 / 出库单；不走配置时刻</td></tr></tbody></table>
-<p><strong>不做全渠道通用兜底。</strong> 代采、门店自提没有系统默认策略，必须单独配，或走订货汇总人工截单。</p>
+<table><thead><tr><th>履约组合</th><th>谁负责自动跨界</th><th>跨界后典型凭证 / 单据</th></tr></thead><tbody><tr><td>零售 × 快递到家</td><td><strong>订单截单</strong>（系统兜底 + 指定策略）</td><td>预计接单时间 / 截单批次；<strong>不生成 MDH</strong></td></tr><tr><td>零售 × 门店自提</td><td><strong>订单截单</strong>指定策略；打「不走订货单」走该兜底；其余无策略则只能人工或提前发货</td><td>仓配类可生成 MDH；「不走订货单」不进汇总、不生成 MDH</td></tr><tr><td>代采 × 平台配送</td><td>同上</td><td>生成 MDH，回写各 CO；「不走订货单」不进汇总</td></tr><tr><td>代采 × 快递配送</td><td>同上</td><td>生成 MDH，回写各 CO；「不走订货单」不进汇总</td></tr><tr><td>任意履约 · 订货汇总人工截单</td><td>采购侧人工按钮</td><td>生成 MDH，回写各 CO</td></tr><tr><td>任意履约 · 未截单提前发货</td><td><strong>发货事件</strong>当场补截单</td><td>运单号 / 出库单；不走配置时刻</td></tr></tbody></table>
+<p><strong>不做全渠道通用兜底。</strong> 代采配送、门店自提除「不走订货单」兜底外，没有覆盖全部商品的系统默认策略；未打该标签且未单独配，须走订货汇总人工截单或 N5。</p>
 <p>履约可拆成供应商到仓、仓到店、店到人，允许跳过（零售直发不进仓、不到店）。跳过只影响后面单据，<strong>不改变已截单后的取消 / 售后规则</strong>。</p>
 <h3>4.3 对客主状态（B / C 必须同名）</h3>
 <p>不要把「截单」做成对客主状态。后台可留截单前 / 已截单作事实源。</p>
@@ -100,7 +100,7 @@
 <p>本页作用于<strong>全平台零售线与代采线</strong>。  </p>
 <p>人工生成 MDH 仍在「采购 → 门店订货汇总」，自动截单不在那边配。</p>
 <h4>4.4.1 一条策略包含什么</h4>
-<table><thead><tr><th>字段</th><th>必填</th><th>说明</th></tr></thead><tbody><tr><td>策略名称</td><td>是</td><td>后台识别用</td></tr><tr><td>订单渠道</td><td>是</td><td>零售、代采，至少选一个，可同时勾选</td></tr><tr><td>适用场景</td><td>勾了零售则必填</td><td>直播、商城，至少选一个。只勾代采时不出现、不校验</td></tr><tr><td>履约方式</td><td>是</td><td>全部履约方式，或指定（选项随已选渠道变化；指定时至少 1 个）</td></tr><tr><td>截单方式</td><td>是</td><td>每日定时 / 支付后自动截单</td></tr><tr><td>截单时间</td><td>每日定时必填</td><td>每日时刻，精确到秒；默认示例 <code>10:00:00</code>。支付后自动截单不填</td></tr><tr><td>商品标签</td><td>是</td><td>全部标签，或指定商品标签（指定时至少选 1 个）</td></tr><tr><td>商品类目</td><td>是</td><td>全部类目，或指定选品库类目（指定时至少选 1 个）</td></tr><tr><td>备注</td><td>否</td><td>仅后台查看，不给用户看</td></tr><tr><td>状态</td><td>系统写</td><td>草稿 / 启用 / 停用</td></tr><tr><td>是否兜底</td><td>系统写</td><td>仅一条：零售 × 快递到家 × 直播+商城 × 全部标签 × 全部类目</td></tr></tbody></table>
+<table><thead><tr><th>字段</th><th>必填</th><th>说明</th></tr></thead><tbody><tr><td>策略名称</td><td>是</td><td>后台识别用</td></tr><tr><td>订单渠道</td><td>是</td><td>零售、代采，至少选一个，可同时勾选</td></tr><tr><td>适用场景</td><td>勾了零售则必填</td><td>直播、商城，至少选一个。只勾代采时不出现、不校验</td></tr><tr><td>履约方式</td><td>是</td><td>全部履约方式，或指定（选项随已选渠道变化；指定时至少 1 个）</td></tr><tr><td>截单方式</td><td>是</td><td>每日定时 / 支付后自动截单</td></tr><tr><td>截单时间</td><td>每日定时必填</td><td>每日时刻，精确到秒；默认示例 <code>10:00:00</code>。支付后自动截单不填</td></tr><tr><td>商品标签</td><td>是</td><td>不限标签 / 全部标签 / 指定商品标签（指定时至少选 1 个）</td></tr><tr><td>商品类目</td><td>是</td><td>全部类目，或指定选品库类目（指定时至少选 1 个）</td></tr><tr><td>备注</td><td>否</td><td>仅后台查看，不给用户看</td></tr><tr><td>状态</td><td>系统写</td><td>草稿 / 启用 / 停用</td></tr><tr><td>是否兜底</td><td>系统写</td><td>两条：零售快递到家；不走订货单</td></tr></tbody></table>
 <h4>4.4.2 一单会不会进本页自动截单</h4>
 <p>必须同时满足：</p>
 <ol>
@@ -151,7 +151,8 @@
 <li>零售快递到家、未单独配标签/类目的，走兜底策略「零售快递到家」。</li>
 <li>代采平台配送、代采快递配送、零售门店自提中，商品标签为「不走订货单」的，走兜底策略「不走订货单」（默认支付后自动截单，可改每日定时）。未打该标签且未单独配置的，本页不自动截，可走订货汇总人工截单或 N5。</li>
 </ol>
-<p>页顶与抽屉原文：<strong>同一履约下指定标签优先于全部标签，指定类目优先于全部类目。</strong></p>
+<p>页顶与抽屉原文：<strong>指定标签优先于全部标签，全部标签优先于不限标签；没有标签的商品只走「不限标签」。指定类目优先于全部类目。</strong></p>
+<p>行内特异度相同、触发时刻也相同时，用 <code>strategy_id</code> 稳定打破。整单取各行里最早的触发时刻，不要按整单先绑「更指定」再等更晚的点。</p>
 <p>一单多商品、多条策略时刻不同时：以<strong>最先触发截单的那一行</strong>为准，整单接单，不按行各出一套对客状态。</p>
 <h4>4.4.6 任一商品截单，整单视为已接单（冻结）</h4>
 <p>截单状态、对客主状态都在<strong>订单头</strong>，不按商品行拆「待接单 / 待发货」。</p>
@@ -183,12 +184,12 @@
 </ul>
 <p>2）不走订货单</p>
 <ul>
-<li>范围锁死：零售 + 代采；零售场景直播 + 商城；指定履约 = 门店自提、平台配送、快递配送；指定标签 =「不走订货单」；全部类目；截单方式锁死支付后自动截单；状态永远启用。</li>
+<li>范围锁死：零售 + 代采；零售场景直播 + 商城；指定履约 = 门店自提、平台配送、快递配送；指定标签 =「不走订货单」；全部类目；状态永远启用。</li>
 <li>名称默认「不走订货单」（历史「不走订货单支付即截」加载时改成此名）。</li>
 <li>截单方式默认支付后自动截单，可改为每日定时。</li>
 <li>仅支持修改：名称、截单方式、截单时间、备注。</li>
 <li><strong>不支持</strong>改渠道、场景、履约、标签、类目、停用、删除。</li>
-<li>若不存在，系统补一条。此类商品不进门店订货汇总，必须靠本策略在支付后截单。</li>
+<li>若不存在，系统补一条。此类商品不进门店订货汇总，必须靠本策略截单。</li>
 </ul>
 <ul>
 <li>列表名称旁打橙色「兜底」标（不再叫「通用」）。</li>
@@ -198,10 +199,10 @@
 <table><thead><tr><th>动作</th><th>结果</th></tr></thead><tbody><tr><td>新增保存</td><td>状态 = <strong>草稿</strong>，须在列表手动启用才生效</td></tr><tr><td>修改启用中的策略并保存</td><td>保存成功后状态变为 <strong>停用</strong>，须再手动启用（避免改时刻立刻按新规则空跑）</td></tr><tr><td>修改草稿 / 停用</td><td>保持原状态</td></tr><tr><td>列表点启用 / 停用</td><td>启用 ↔ 停用；兜底策略无此按钮</td></tr><tr><td>删除</td><td>仅草稿、停用可删；启用中不可删；兜底不可删</td></tr></tbody></table>
 <h3>4.6 策略重叠（保存时拦截）</h3>
 <p>先看渠道是否相交；仅零售相交时再看场景是否相交。渠道、场景都对上之后，履约、标签、类目<strong>三组同时冲突</strong>才拦截：</p>
-<table><thead><tr><th>冲突</th><th>提示口径（原型）</th></tr></thead><tbody><tr><td>两条都是「全部标签 + 全部类目」（且履约也冲突）</td><td><code>{渠道}（{场景}）{履约}已有「全部标签、全部类目」策略「{名称}」</code></td></tr><tr><td>两条指定标签出现同一个标签</td><td><code>{渠道}（{场景}）{履约}标签「{标签}」已在策略「{名称}」中配置</code></td></tr><tr><td>两条指定类目出现同一个类目</td><td><code>{渠道}（{场景}）{履约}类目「{类目}」已在策略「{名称}」中配置</code></td></tr></tbody></table>
-<p>指定与全部<strong>允许同时存在</strong>（靠 §4.4.5 优先级，不是互斥）：指定履约 vs 全部履约、指定标签 vs 全部标签、指定类目 vs 全部类目。  </p>
+<table><thead><tr><th>冲突</th><th>提示口径（原型）</th></tr></thead><tbody><tr><td>两条都是「不限标签 + 全部类目」（且履约也冲突）</td><td><code>{渠道}（{场景}）{履约}已有「不限标签、全部类目」策略「{名称}」</code></td></tr><tr><td>两条都是「全部标签 + 全部类目」（且履约也冲突）</td><td><code>{渠道}（{场景}）{履约}已有「全部标签、全部类目」策略「{名称}」</code></td></tr><tr><td>两条指定标签出现同一个标签</td><td><code>{渠道}（{场景}）{履约}标签「{标签}」已在策略「{名称}」中配置</code></td></tr><tr><td>两条指定类目出现同一个类目</td><td><code>{渠道}（{场景}）{履约}类目「{类目}」已在策略「{名称}」中配置</code></td></tr></tbody></table>
+<p>指定与全部 / 不限<strong>允许同时存在</strong>（靠 §4.4.5 优先级，不是互斥）：指定履约 vs 全部履约、指定标签 vs 全部标签 vs 不限标签、指定类目 vs 全部类目。  </p>
 <p>无渠道重叠，或零售无场景重叠，不算冲突。  </p>
-<p>兜底占掉「零售 × 快递到家 × 直播+商城 × 全部标签 × 全部类目」，因此不能再新增第二条同样范围。</p>
+<p>兜底占掉「零售 × 快递到家 × 直播+商城 × 不限标签 × 全部类目」，以及「代采配送 / 零售自提 × 标签不走订货单 × 全部类目」，因此不能再新增同样范围。</p>
 <p>校验时机：新增 / 修改保存。启用不重新做重叠（保存时已拦）。</p>
 <h3>4.7 截单后对客规则（各策略统一）</h3>
 <p>抽屉「截单后」只读说明，各策略相同，运营不能改：</p>
@@ -250,11 +251,11 @@
 <h3>4.11 下游只读</h3>
 <table><thead><tr><th>模块</th><th>读什么</th><th>不许读什么</th></tr></thead><tbody><tr><td>取消订单</td><td>截单前 → 可取消；已截单 → 不可普通取消</td><td>有没有 MDH / shipment_plan_id</td></tr><tr><td>申请退款 / 售后</td><td>已截单 → 售后审核；截单前 → 发货前规则</td><td>同上</td></tr><tr><td>核销门槛</td><td>截单状态 + 既有核销开关</td><td>用订货单猜是否已截单</td></tr></tbody></table>
 <h3>4.12 关键决策（冻结）</h3>
-<table><thead><tr><th>议题</th><th>决策</th></tr></thead><tbody><tr><td>配置页范围</td><td>零售 + 代采；履约随渠道；自动截单收口到订单截单</td></tr><tr><td>系统兜底</td><td>只兜零售 × 快递到家；不做全渠道通用兜底</td></tr><tr><td>支付后自动截单</td><td>支付成功即已截单，跳过待接单；不决定是否进订货汇总</td></tr><tr><td>订货汇总</td><td>只留人工截单；人工截单后到点不再重复</td></tr><tr><td>是否已截单</td><td>只看订单截单状态</td></tr><tr><td>无 MDH 的直发单</td><td>到点或支付后仍是已截单</td></tr><tr><td>有 MDH</td><td>只当凭证，必须同时回写订单</td></tr><tr><td>待接单</td><td>已付 + 截单前；B/C 同名；支付后截单不经过此态</td></tr><tr><td>提前发货</td><td>发货事件补截单，不走配置时刻；底层一次接单+发货；页面不呈现</td></tr><tr><td>已发货</td><td>不进每日定时窗口</td></tr><tr><td>一单多商品</td><td><strong>任一商品截单，整单视为已接单</strong>；不按行拆对客状态</td></tr><tr><td>已截单能否释放</td><td><strong>不能</strong>。无回退、无反截、无释放入口</td></tr><tr><td>选品库商品标签</td><td><strong>不在本文</strong></td></tr></tbody></table>
+<table><thead><tr><th>议题</th><th>决策</th></tr></thead><tbody><tr><td>配置页范围</td><td>零售 + 代采；履约随渠道；自动截单收口到订单截单</td></tr><tr><td>系统兜底</td><td>两条：零售快递到家、不走订货单；不做全渠道通用兜底</td></tr><tr><td>支付后自动截单</td><td>支付成功即已截单，跳过待接单；不决定是否进订货汇总</td></tr><tr><td>订货汇总</td><td>只留人工截单；人工截单后到点不再重复</td></tr><tr><td>是否已截单</td><td>只看订单截单状态</td></tr><tr><td>无 MDH 的直发单</td><td>到点或支付后仍是已截单</td></tr><tr><td>有 MDH</td><td>只当凭证，必须同时回写订单</td></tr><tr><td>待接单</td><td>已付 + 截单前；B/C 同名；支付后截单不经过此态</td></tr><tr><td>提前发货</td><td>发货事件补截单，不走配置时刻；底层一次接单+发货；页面不呈现</td></tr><tr><td>已发货</td><td>不进每日定时窗口</td></tr><tr><td>一单多商品</td><td><strong>任一商品截单，整单视为已接单</strong>；不按行拆对客状态</td></tr><tr><td>已截单能否释放</td><td><strong>不能</strong>。无回退、无反截、无释放入口</td></tr><tr><td>选品库商品标签</td><td>维护入口<strong>不在本文</strong>；本文认「不走订货单」对截单 / 订货汇总的结果</td></tr></tbody></table>
 <hr>
 <h2>五、匹配与回写</h2>
 <h3>5.1 是否进入自动截单</h3>
-<table><thead><tr><th>条件</th><th>进哪条</th><th>结果</th></tr></thead><tbody><tr><td>命中启用的「支付后自动截单」+ 支付成功 + 未发货</td><td>是</td><td>N1-pay</td></tr><tr><td>命中启用的「每日定时」+ 待接单 + 未发货 + 落入窗口</td><td>是</td><td>N2</td></tr><tr><td>待接单 + <strong>已发货</strong></td><td>否</td><td>N5</td></tr><tr><td>已是待发货 / 已截单</td><td>否</td><td>等 N4；任务跳过</td></tr><tr><td>订货汇总已人工截单</td><td>否</td><td>到点不再重复</td></tr><tr><td>代采 / 自提未单独配策略</td><td>否</td><td>N3 人工或 N5</td></tr><tr><td>策略草稿 / 停用</td><td>否</td><td>不触发</td></tr></tbody></table>
+<table><thead><tr><th>条件</th><th>进哪条</th><th>结果</th></tr></thead><tbody><tr><td>命中启用的「支付后自动截单」+ 支付成功 + 未发货</td><td>是</td><td>N1-pay</td></tr><tr><td>命中启用的「每日定时」+ 待接单 + 未发货 + 落入窗口</td><td>是</td><td>N2</td></tr><tr><td>待接单 + <strong>已发货</strong></td><td>否</td><td>N5</td></tr><tr><td>已是待发货 / 已截单</td><td>否</td><td>等 N4；任务跳过</td></tr><tr><td>订货汇总已人工截单</td><td>否</td><td>到点不再重复</td></tr><tr><td>代采 / 自提未单独配，且未打「不走订货单」</td><td>否</td><td>N3 人工或 N5</td></tr><tr><td>策略草稿 / 停用</td><td>否</td><td>不触发</td></tr></tbody></table>
 <h3>5.2 订单回写字段</h3>
 <table><thead><tr><th>字段（产品）</th><th>取值</th><th>谁写</th></tr></thead><tbody><tr><td>截单状态</td><td>截单前 / 已截单</td><td>支付后默认截单前；N1-pay / N2 / N3 / N5 → 已截单；<strong>不可再写回截单前</strong></td></tr><tr><td>对客主状态</td><td>待支付 / 待接单 / 待发货 / 待收货 / 待提货</td><td>与截单、是否已发同时落</td></tr><tr><td>截单时间</td><td>实际跨界时刻</td><td>N1-pay / N2 / N3 / N5</td></tr><tr><td>截单来源</td><td>支付后自动截单 / 每日定时 / 订货汇总人工截单 / 提前发货补截单</td><td>按节点</td></tr><tr><td>截单凭证</td><td>策略 ID、窗口、MDH 单号、运单号等</td><td>有则写；直发到点无 MDH 允许空，<strong>不能因此判没截单</strong></td></tr><tr><td>命中策略</td><td>策略 ID / 名称（可选）</td><td>N1-pay / N2</td></tr></tbody></table>
 <p>已截单后再发货（N4）：截单状态不改，只改对客主状态。</p>
@@ -271,7 +272,7 @@
 <li><strong>已截单不可释放</strong>，不能打回待接单 / 截单前。</li>
 </ul>
 <h3>5.4 分履约对照</h3>
-<table><thead><tr><th>订单类型 × 履约</th><th>正常自动跨界</th><th>回写后对客</th><th>MDH</th><th>无自动策略时</th><th>提前发货</th></tr></thead><tbody><tr><td>零售 × 快递到家</td><td>N1-pay 或 N2（有系统兜底）</td><td>待发货</td><td>无</td><td>走兜底</td><td>N5 → 待收货</td></tr><tr><td>零售 × 门店自提</td><td>N1-pay 或 N2（须单独配）</td><td>待发货</td><td>可有，必须回写 CO</td><td>N3 人工</td><td>N5 → 待收货</td></tr><tr><td>代采 × 平台配送</td><td>N1-pay 或 N2（须单独配）</td><td>待发货</td><td>有，必须回写 CO</td><td>N3 人工</td><td>N5 → 待收货</td></tr><tr><td>代采 × 快递配送</td><td>N1-pay 或 N2（须单独配）</td><td>待发货</td><td>有，必须回写 CO</td><td>N3 人工</td><td>N5 → 待收货</td></tr></tbody></table>
+<table><thead><tr><th>订单类型 × 履约</th><th>正常自动跨界</th><th>回写后对客</th><th>MDH</th><th>无自动策略时</th><th>提前发货</th></tr></thead><tbody><tr><td>零售 × 快递到家</td><td>N1-pay 或 N2（有系统兜底）</td><td>待发货</td><td>无</td><td>走兜底</td><td>N5 → 待收货</td></tr><tr><td>零售 × 门店自提</td><td>N1-pay 或 N2（须单独配；「不走订货单」走该兜底）</td><td>待发货</td><td>可有，必须回写 CO；该标签不进汇总</td><td>N3 人工</td><td>N5 → 待收货</td></tr><tr><td>代采 × 平台配送</td><td>同上</td><td>待发货</td><td>有，必须回写 CO；该标签不进汇总</td><td>N3 人工</td><td>N5 → 待收货</td></tr><tr><td>代采 × 快递配送</td><td>同上</td><td>待发货</td><td>有，必须回写 CO；该标签不进汇总</td><td>N3 人工</td><td>N5 → 待收货</td></tr></tbody></table>
 <hr>
 <h2>六、页面与交互（现行原型为准）</h2>
 <blockquote><p>本章按现行原型写清，供研发/测试对照。选品库商品标签怎么建、怎么打，不在本章。</p></blockquote>
@@ -288,7 +289,7 @@
 </ul>
 <p><strong>表头</strong></p>
 <p>勾选、序号、策略名称、订单渠道、履约方式、商品标签、商品类目、截单规则、状态、操作</p>
-<table><thead><tr><th>列</th><th>展示</th></tr></thead><tbody><tr><td>策略名称</td><td>可点进详情（只读抽屉）；兜底策略追加橙色「兜底」标</td></tr><tr><td>订单渠道</td><td>零售、代采，多选用顿号</td></tr><tr><td>履约方式</td><td>全部履约方式，或指定履约名顿号拼接</td></tr><tr><td>商品标签</td><td>全部标签，或指定标签名顿号拼接</td></tr><tr><td>商品类目</td><td>全部类目，或指定类目名顿号拼接</td></tr><tr><td>截单规则</td><td>每日定时写 <code>HH:mm:ss</code>；支付后自动截单写该六字</td></tr><tr><td>状态</td><td>草稿（橙）/ 启用（绿）/ 停用（灰）</td></tr><tr><td>操作</td><td>修改；非兜底另有启用或停用</td></tr></tbody></table>
+<table><thead><tr><th>列</th><th>展示</th></tr></thead><tbody><tr><td>策略名称</td><td>可点进详情（只读抽屉）；兜底策略追加橙色「兜底」标</td></tr><tr><td>订单渠道</td><td>零售、代采，多选用顿号</td></tr><tr><td>履约方式</td><td>全部履约方式，或指定履约名顿号拼接</td></tr><tr><td>商品标签</td><td>不限标签 / 全部标签，或指定标签名顿号拼接</td></tr><tr><td>商品类目</td><td>全部类目，或指定类目名顿号拼接</td></tr><tr><td>截单规则</td><td>每日定时写 <code>HH:mm:ss</code>；支付后自动截单写该六字</td></tr><tr><td>状态</td><td>草稿（橙）/ 启用（绿）/ 停用（灰）</td></tr><tr><td>操作</td><td>修改；非兜底另有启用或停用</td></tr></tbody></table>
 <p><strong>分页</strong>：20 / 50 / 100 条；上一页 / 当前页 / 下一页；跳转页。空态：「暂无截单策略」。</p>
 <p>勾选：兜底、启用中的复选框禁用，全选只覆盖本页可删行。</p>
 <h3>6.2 订单截单 · 新增 / 修改 / 详情抽屉</h3>
@@ -296,7 +297,7 @@
 <p>底栏：保存 + 返回（详情无保存）。点遮罩或 × 关闭。</p>
 <p>新增 / 添加类目弹窗须盖在抽屉之上（z-index 高于抽屉）。</p>
 <h4>6.2.1 基本信息</h4>
-<table><thead><tr><th>字段</th><th>必填</th><th>控件</th><th>规则</th></tr></thead><tbody><tr><td>策略名称</td><td>是</td><td>输入</td><td>空则「请输入策略名称」</td></tr><tr><td>订单渠道</td><td>是</td><td>零售、代采多选</td><td>至少一项。兜底锁死零售</td></tr><tr><td>适用场景</td><td>勾了零售则必填</td><td>直播、商城多选</td><td>只在零售出现；代采隐藏。兜底锁死两项</td></tr><tr><td>履约方式</td><td>是</td><td>全部 / 指定</td><td>指定选项按渠道分组渲染。未选渠道时提示先选渠道。兜底锁死「指定 · 快递到家」</td></tr></tbody></table>
+<table><thead><tr><th>字段</th><th>必填</th><th>控件</th><th>规则</th></tr></thead><tbody><tr><td>策略名称</td><td>是</td><td>输入</td><td>空则「请输入策略名称」</td></tr><tr><td>订单渠道</td><td>是</td><td>零售、代采多选</td><td>至少一项。零售快递到家兜底锁死零售；不走订货单兜底锁死零售+代采</td></tr><tr><td>适用场景</td><td>勾了零售则必填</td><td>直播、商城多选</td><td>只在零售出现；代采隐藏。含零售的兜底锁死两项</td></tr><tr><td>履约方式</td><td>是</td><td>全部 / 指定</td><td>指定选项按渠道分组渲染。未选渠道时提示先选渠道。零售快递到家兜底锁死「指定 · 快递到家」；不走订货单兜底锁死自提 / 平台配送 / 快递配送</td></tr></tbody></table>
 <p>渠道下灰字：可同时勾选。零售履约：快递到家、门店自提；代采履约：平台配送、快递配送。代采不区分直播 / 商城。</p>
 <p>履约下灰字：履约方式随订单渠道变化。指定履约优先于「全部履约方式」。门店订货汇总的自动截单已并入本页。</p>
 <p>场景下灰字（非兜底）：</p>
@@ -307,12 +308,12 @@
 <li>兜底「不走订货单」：代采平台配送 / 代采快递配送 / 零售门店自提 + 标签「不走订货单」。默认支付后自动截单，可改每日定时。仅可修改名称、截单方式、截单时间和备注。</li>
 </ul>
 <h4>6.2.2 截单规则</h4>
-<table><thead><tr><th>字段</th><th>必填</th><th>控件</th><th>规则</th></tr></thead><tbody><tr><td>截单方式</td><td>是</td><td>每日定时 / 支付后自动截单</td><td>选支付后则隐藏截单时间</td></tr><tr><td>截单时间</td><td>每日定时必填</td><td><code>time</code>，步进到秒</td><td>空或不合法 →「请填写截单时间」</td></tr><tr><td>商品标签</td><td>是</td><td>全部标签 / 指定商品标签</td><td>兜底锁死全部标签。指定须至少选 1 个，否则「请选择商品标签」</td></tr><tr><td>商品类目</td><td>是</td><td>全部类目 / 指定选品库类目</td><td>兜底锁死全部类目。指定须至少选 1 个，否则「请选择商品类目」</td></tr><tr><td>备注</td><td>否</td><td>多行</td><td>仅后台查看，不给用户看</td></tr></tbody></table>
-<p>支付后灰字：支付成功即写入已截单，对客直接进入「待发货」，不再停留待接单。仓配类仍会生成门店订货单。</p>
+<table><thead><tr><th>字段</th><th>必填</th><th>控件</th><th>规则</th></tr></thead><tbody><tr><td>截单方式</td><td>是</td><td>每日定时 / 支付后自动截单</td><td>选支付后则隐藏截单时间</td></tr><tr><td>截单时间</td><td>每日定时必填</td><td><code>time</code>，步进到秒</td><td>空或不合法 →「请填写截单时间」</td></tr><tr><td>商品标签</td><td>是</td><td>不限标签 / 全部标签 / 指定商品标签</td><td>零售快递到家兜底锁死不限标签；不走订货单兜底锁死指定「不走订货单」。指定须至少选 1 个，否则「请选择商品标签」</td></tr><tr><td>商品类目</td><td>是</td><td>全部类目 / 指定选品库类目</td><td>兜底锁死全部类目。指定须至少选 1 个，否则「请选择商品类目」</td></tr><tr><td>备注</td><td>否</td><td>多行</td><td>仅后台查看，不给用户看</td></tr></tbody></table>
+<p>支付后灰字：支付成功即写入已截单，对客直接进入「待发货」，不再停留待接单。是否进门店订货汇总由商品标签决定：打了「不走订货单」的不进汇总、不生成门店订货单。</p>
 <p>截单时间下灰字（随填写变化）：</p>
 <p>每次截单覆盖「上次该时刻 ～ 本次前一秒」。例：今天 <code>{T}</code> 截昨天 <code>{T}</code> 至今天 <code>{T-1s}</code> 的订单。</p>
 <p>指定标签 / 指定类目：出现已选列表，每行可删；<code>+ 添加</code> 打开多选弹窗（名称筛选，确定回写）。标签、类目选项来自既有主数据，无数据则空态提示。<strong>标签如何在选品库维护，不在本抽屉展开。</strong></p>
-<p>标签下灰字：同一履约下指定标签优先于「全部标签」。  </p>
+<p>标签下灰字：指定标签优先于全部标签，全部标签优先于不限标签。没有标签的商品只走「不限标签」。</p>
 <p>类目下灰字：同一履约下指定类目优先于「全部类目」。未单独配置的走该履约的兜底策略。</p>
 <h4>6.2.3 截单后（只读，各策略相同）</h4>
 <ul>
@@ -338,22 +339,23 @@
 <h3>6.7 门店核销详情</h3>
 <p>不改（<code>store-app/h5/order-detail.html</code> 是核销详情，不是进货详情）。</p>
 <h3>6.8 策略存储字段（对照用）</h3>
-<table><thead><tr><th>属性</th><th>中文名</th><th>取值</th></tr></thead><tbody><tr><td>name</td><td>策略名称</td><td>—</td></tr><tr><td>channels</td><td>订单渠道</td><td><code>retail</code> 零售 / <code>proxy</code> 代采，可多选</td></tr><tr><td>scenes</td><td>适用场景</td><td><code>live</code> 直播 / <code>mall</code> 商城；仅零售有意义</td></tr><tr><td>fulfillmentScope</td><td>履约范围</td><td><code>all</code> 全部履约 / <code>specified</code> 指定履约</td></tr><tr><td>fulfillments</td><td>指定履约</td><td><code>express_home</code> 快递到家 / <code>pickup</code> 门店自提 / <code>platform</code> 平台配送 / <code>express_proxy</code> 快递配送</td></tr><tr><td>cutoffMode</td><td>截单方式</td><td><code>time</code> 每日定时 / <code>after_pay</code> 支付后自动截单</td></tr><tr><td>cutoffTime</td><td>截单时间</td><td><code>HH:mm:ss</code>；支付后为空</td></tr><tr><td>tagScope</td><td>商品标签范围</td><td><code>all</code> 全部标签 / <code>specified</code> 指定标签</td></tr><tr><td>tags</td><td>指定标签</td><td>指定时的标签 id / name</td></tr><tr><td>categoryScope</td><td>商品类目范围</td><td><code>all</code> 全部类目 / <code>specified</code> 指定类目</td></tr><tr><td>categories</td><td>指定类目</td><td>指定时的选品库类目</td></tr><tr><td>status</td><td>策略状态</td><td><code>draft</code> 草稿 / <code>active</code> 启用 / <code>stopped</code> 停用</td></tr><tr><td>isDefault</td><td>是否兜底策略</td><td>是则不可停用、删除</td></tr><tr><td>userDesc</td><td>备注</td><td>仅后台查看</td></tr></tbody></table>
+<table><thead><tr><th>属性</th><th>中文名</th><th>取值</th></tr></thead><tbody><tr><td>name</td><td>策略名称</td><td>—</td></tr><tr><td>channels</td><td>订单渠道</td><td><code>retail</code> 零售 / <code>proxy</code> 代采，可多选</td></tr><tr><td>scenes</td><td>适用场景</td><td><code>live</code> 直播 / <code>mall</code> 商城；仅零售有意义</td></tr><tr><td>fulfillmentScope</td><td>履约范围</td><td><code>all</code> 全部履约 / <code>specified</code> 指定履约</td></tr><tr><td>fulfillments</td><td>指定履约</td><td><code>express_home</code> 快递到家 / <code>pickup</code> 门店自提 / <code>platform</code> 平台配送 / <code>express_proxy</code> 快递配送</td></tr><tr><td>cutoffMode</td><td>截单方式</td><td><code>time</code> 每日定时 / <code>after_pay</code> 支付后自动截单</td></tr><tr><td>cutoffTime</td><td>截单时间</td><td><code>HH:mm:ss</code>；支付后为空</td></tr><tr><td>tagScope</td><td>商品标签范围</td><td><code>all</code> 不限标签 / <code>all_tags</code> 全部标签 / <code>specified</code> 指定标签</td></tr><tr><td>tags</td><td>指定标签</td><td>指定时的标签 id / name</td></tr><tr><td>categoryScope</td><td>商品类目范围</td><td><code>all</code> 全部类目 / <code>specified</code> 指定类目</td></tr><tr><td>categories</td><td>指定类目</td><td>指定时的选品库类目</td></tr><tr><td>status</td><td>策略状态</td><td><code>draft</code> 草稿 / <code>active</code> 启用 / <code>stopped</code> 停用</td></tr><tr><td>isDefault</td><td>是否兜底策略</td><td>是则不可停用、删除</td></tr><tr><td>fallbackKind</td><td>兜底种类</td><td><code>retail_express</code> 零售快递到家 / <code>skip_demand_after_pay</code> 不走订货单</td></tr><tr><td>userDesc</td><td>备注</td><td>仅后台查看</td></tr></tbody></table>
 <p>演示种子（原型）：兜底「零售快递到家」10:00 启用；兜底「不走订货单」（默认支付后，可改每日定时）启用；快递到家蔬菜 08:00 启用；商城水果 14:00 停用；平台配送优选 16:00 启用；代采快递支付即截（支付后）启用。</p>
 <p>存储 key：<code>lf_order_express_cutoff_v6</code>（兼容读取 v5 / v4 / v3）。</p>
 <hr>
 <h2>七、验收清单</h2>
 <h3>7.1 订单截单页</h3>
 <ol>
-<li>[ ] 页顶说明与 §4.2 / §4.4 / §4.5 一致：零售/代采；履约随渠道；只兜零售快递到家；支付后可跳过待接单</li>
-<li>[ ] 永远存在一条兜底：零售 × 快递到家 × 直播+商城 × 全部标签类目 × 启用；不可停用、删除；只能改名称 / 截单方式 / 时间 / 备注</li>
-<li>[ ] 不做全渠道通用兜底；代采、自提须单独配或走人工</li>
+<li>[ ] 页顶说明与 §4.2 / §4.4 / §4.5 一致：零售/代采；履约随渠道；两条兜底；支付后可跳过待接单；标签三档</li>
+<li>[ ] 永远存在两条兜底：零售快递到家（不限标签、全部类目）；不走订货单（指定标签、可改截单方式）。均不可停用、删除</li>
+<li>[ ] 不做全渠道通用兜底；未打「不走订货单」的代采 / 自提须单独配或走人工</li>
 <li>[ ] 勾零售才出适用场景；只勾代采不出场景</li>
 <li>[ ] 履约选项随渠道：零售只出快递到家/门店自提，代采只出平台配送/快递配送</li>
 <li>[ ] 新增保存为草稿，须手动启用才进任务</li>
 <li>[ ] 启用中非兜底策略保存后变停用，提示手动启用</li>
 <li>[ ] 同渠道（零售还要同场景）+ 履约冲突 + 标签冲突 + 类目冲突：保存拦截，文案同 §4.6</li>
-<li>[ ] 指定与全部可并存；匹配指定优先</li>
+<li>[ ] 指定与全部 / 不限可并存；匹配指定标签 &gt; 全部标签 &gt; 不限标签</li>
+<li>[ ] 无标签商品只命中「不限标签」，不命中「全部标签」</li>
 <li>[ ] 删除：仅草稿/停用；启用中、兜底不可勾不可删</li>
 <li>[ ] 每日定时时间提示为「上次该时刻 ～ 本次前一秒」；支付后隐藏时间</li>
 <li>[ ] 截单后只读块：取消隐藏、退款改审核；已发货不受本页时刻影响</li>
@@ -375,6 +377,7 @@
 <li>[ ] <strong>任一商品截单，整单已接单</strong>。一单多类目、多时刻时，以最先截到的那一行为准</li>
 <li>[ ] <strong>已截单不可释放</strong>：无回退、无反截、无释放入口</li>
 <li>[ ] 支付后自动截单<strong>不</strong>单独决定是否进订货汇总</li>
+<li>[ ] 打「不走订货单」的商品不进订货汇总；代采配送 / 零售自提走「不走订货单」兜底</li>
 </ol>
 <h3>7.3 页面露出</h3>
 <ul>
@@ -387,10 +390,10 @@
 </ul>
 <hr>
 <h2>八、开放问题与风险</h2>
-<table><thead><tr><th>类型</th><th>问题</th><th>本期临时方案</th><th>最晚决策点</th></tr></thead><tbody><tr><td>产品</td><td>一单多类目命中多条指定策略</td><td><strong>已定</strong>：任一商品截单，整单视为已接单；以最先触发的那一行为准</td><td>已冻结</td></tr><tr><td>产品</td><td>窗口锚点用支付时间还是下单时间</td><td>优先支付成功时间</td><td>联调前</td></tr><tr><td>产品</td><td>已截单能否释放</td><td><strong>已定：不能释放</strong>，无回退、无反截</td><td>已冻结</td></tr><tr><td>产品</td><td>系统要不要全渠道兜底</td><td><strong>已定：不要</strong>，只兜零售快递到家</td><td>已冻结</td></tr><tr><td>产品</td><td>支付后截单是否进订货汇总</td><td><strong>已定：两件事独立</strong>；进汇总规则不在本页（选品库另文）</td><td>已冻结</td></tr><tr><td>研发</td><td>历史单用订货单猜截单的数据怎么洗</td><td>有 MDH 或已过配置时刻的补写已截单；已发货补 N4/N5</td><td>上线前</td></tr><tr><td>风险</td><td>改时刻后「保存即停用」漏启用</td><td>保持原型：必须手动启用；列表状态醒目</td><td>—</td></tr><tr><td>风险</td><td>代采 / 自提未配策略漏截</td><td>页顶写明须单独配或走人工；验收列一条</td><td>上线前</td></tr></tbody></table>
+<table><thead><tr><th>类型</th><th>问题</th><th>本期临时方案</th><th>最晚决策点</th></tr></thead><tbody><tr><td>产品</td><td>一单多类目命中多条指定策略</td><td><strong>已定</strong>：任一商品截单，整单视为已接单；以最先触发的那一行为准</td><td>已冻结</td></tr><tr><td>产品</td><td>窗口锚点用支付时间还是下单时间</td><td>优先支付成功时间</td><td>联调前</td></tr><tr><td>产品</td><td>已截单能否释放</td><td><strong>已定：不能释放</strong>，无回退、无反截</td><td>已冻结</td></tr><tr><td>产品</td><td>系统要不要全渠道兜底</td><td><strong>已定：不要</strong>。只兜零售快递到家 + 不走订货单，不做全部渠道×全部履约</td><td>已冻结</td></tr><tr><td>产品</td><td>支付后截单是否进订货汇总</td><td><strong>已定：两件事独立</strong>；进汇总规则不在本页（选品库另文）</td><td>已冻结</td></tr><tr><td>研发</td><td>历史单用订货单猜截单的数据怎么洗</td><td>有 MDH 或已过配置时刻的补写已截单；已发货补 N4/N5</td><td>上线前</td></tr><tr><td>风险</td><td>改时刻后「保存即停用」漏启用</td><td>保持原型：必须手动启用；列表状态醒目</td><td>—</td></tr><tr><td>风险</td><td>代采 / 自提未配策略漏截</td><td>未打「不走订货单」须单独配或走人工；页顶写明；验收列一条</td><td>上线前</td></tr></tbody></table>
 <hr>
 <h2>九、关联材料与代码锚点</h2>
-<table><thead><tr><th>模块</th><th>路径</th></tr></thead><tbody><tr><td>订单截单页</td><td><code>MDM/mdm_order_express_cutoff.html</code></td></tr><tr><td>订单截单逻辑</td><td><code>js/mdm-order-express-cutoff.js</code>（存储 key <code>lf_order_express_cutoff_v6</code>）</td></tr><tr><td>截单运行时</td><td><code>js/order-cutoff-runtime.js</code></td></tr><tr><td>订单侧栏</td><td><code>js/order-sidebar.js</code>（菜单「订单截单」）</td></tr><tr><td>门店订货汇总</td><td><code>SCM/purchase_store_demand_summary.html</code></td></tr><tr><td>门店订货单</td><td><code>SCM/purchase_store_order_sheet.html</code></td></tr><tr><td>履约分叉（背景）</td><td><code>docs/C端订单履约售后四方流转图.html</code></td></tr><tr><td>零售/代采列表</td><td><code>mdm_order_retail.html</code> / <code>mdm_order_proxy.html</code> + <code>order-live-list.js</code></td></tr><tr><td>订单详情进度</td><td><code>js/order-live-detail.js</code></td></tr><tr><td>售后取消可见性</td><td><code>js/order-platform-aftersale.js</code></td></tr><tr><td>状态文案</td><td><code>js/order-retail-status.js</code></td></tr><tr><td>用户订单流</td><td><code>user-app/h5/orders.html</code>、<code>profile.html</code>、<code>user-app-orders.js</code>、<code>user-app-order-detail.js</code></td></tr><tr><td>上一版</td><td><code>docs/PRD-订单截单-v1.1-20260901.md</code>（快递截单范围）</td></tr><tr><td>口径原则</td><td>冲突时以<strong>本 PRD + 现行原型</strong>为准；选品库商品标签以另文为准</td></tr></tbody></table>
+<table><thead><tr><th>模块</th><th>路径</th></tr></thead><tbody><tr><td>订单截单页</td><td><code>MDM/mdm_order_express_cutoff.html</code></td></tr><tr><td>订单截单逻辑</td><td><code>js/mdm-order-express-cutoff.js</code>（存储 key <code>lf_order_express_cutoff_v6</code>）</td></tr><tr><td>截单运行时</td><td><code>js/order-cutoff-runtime.js</code></td></tr><tr><td>订单侧栏</td><td><code>js/order-sidebar.js</code>（菜单「订单截单」）</td></tr><tr><td>门店订货汇总</td><td><code>SCM/purchase_store_demand_summary.html</code></td></tr><tr><td>门店订货单</td><td><code>SCM/purchase_store_order_sheet.html</code></td></tr><tr><td>履约分叉（背景）</td><td><code>docs/C端订单履约售后四方流转图.html</code></td></tr><tr><td>零售/代采列表</td><td><code>mdm_order_retail.html</code> / <code>mdm_order_proxy.html</code> + <code>order-live-list.js</code></td></tr><tr><td>订单详情进度</td><td><code>js/order-live-detail.js</code></td></tr><tr><td>售后取消可见性</td><td><code>js/order-platform-aftersale.js</code></td></tr><tr><td>状态文案</td><td><code>js/order-retail-status.js</code></td></tr><tr><td>用户订单流</td><td><code>user-app/h5/orders.html</code>、<code>profile.html</code>、<code>user-app-orders.js</code>、<code>user-app-order-detail.js</code></td></tr><tr><td>禅道粘贴稿</td><td><code>docs/快递截单需求-禅道粘贴.html</code>（v1.3 精简）</td></tr><tr><td>上一版</td><td><code>docs/PRD-订单截单-v1.1-20260901.md</code>（快递截单范围）</td></tr><tr><td>口径原则</td><td>冲突时以<strong>本 PRD + 现行原型</strong>为准；选品库商品标签以另文为准</td></tr></tbody></table>
 <hr>
 <p><strong>文档结束</strong></p>
   </div>

@@ -363,6 +363,96 @@
     return null;
   }
 
+  function itemMatchesCode(item, code) {
+    if (!item || !code) return false;
+    if (typeof item === 'string') return item === code;
+    return item.code === code || item.sku === code || item.goodsId === code;
+  }
+
+  function readStoreList(storage, key) {
+    try {
+      var raw = storage.getItem(key);
+      var parsed = raw ? JSON.parse(raw) : null;
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function listHasCode(list, code) {
+    return (list || []).some(function (item) {
+      return itemMatchesCode(item, code);
+    });
+  }
+
+  /**
+   * 选品库 SPU 能否被下游（商城 / 代采 / 直播）新关联。
+   * 待售卖不能被关联；须审核通过变为「售卖中」后才能加入下游。
+   * 商品库里没有对应选品库编码的演示品不拦截。
+   */
+  function isSellableForDownstream(code) {
+    if (!catalog.length) load();
+    var item = null;
+    for (var i = 0; i < catalog.length; i++) {
+      if (catalog[i] && catalog[i].code === code) {
+        item = catalog[i];
+        break;
+      }
+    }
+    if (!item) return true;
+    return item.status === 'selling';
+  }
+
+  /** 下游售卖：商城 / 代采 / 直播排品。停售后删除仍按此判断，待售卖按规则不会有下游 */
+  function getDownstreamUsage(code) {
+    var channels = [];
+    if (listHasCode(readStoreList(sessionStorage, 'mdm_mall_product_list_v1'), code)) {
+      channels.push('商城商品');
+    }
+    if (listHasCode(readStoreList(sessionStorage, 'mdm_proxy_product_list_v1'), code)) {
+      channels.push('代采商品');
+    }
+    var liveHit = false;
+    if (window.MdmLiveDemo && window.MdmLiveDemo.productsBySession) {
+      var map = window.MdmLiveDemo.productsBySession;
+      Object.keys(map).forEach(function (sid) {
+        if (listHasCode(map[sid], code)) liveHit = true;
+      });
+    }
+    if (!liveHit && listHasCode(readStoreList(sessionStorage, 'mdm_live_sched_catalog_codes_v1'), code)) {
+      liveHit = true;
+    }
+    if (liveHit) channels.push('直播商品');
+    return channels;
+  }
+
+  /** 营销引用：不拦截删除；对应营销商品置灰后仍可在活动里删 */
+  function getMarketingUsage(code) {
+    var channels = [];
+    if (listHasCode(readStoreList(sessionStorage, 'mdm_marketing_points_mall_v12'), code)) {
+      channels.push('积分商城');
+    }
+    if (listHasCode(readStoreList(sessionStorage, 'mdm_marketing_newcomer_zone_v1'), code)) {
+      channels.push('新人专区');
+    }
+    var seckillHit = readStoreList(localStorage, 'mdm_marketing_seckill_v1').some(function (act) {
+      return listHasCode(act && act.products, code);
+    });
+    if (seckillHit) channels.push('秒杀');
+    return channels;
+  }
+
+  function removeProduct(code) {
+    if (!catalog.length) load();
+    var next = catalog.filter(function (item) {
+      return !item || item.code !== code;
+    });
+    if (next.length === catalog.length) return false;
+    catalog = next;
+    persist();
+    return true;
+  }
+
   function resubmitAudit(code) {
     if (!catalog.length) load();
     for (var i = 0; i < catalog.length; i++) {
@@ -387,6 +477,10 @@
     updateProduct: updateProduct,
     resubmitAudit: resubmitAudit,
     addProduct: addProduct,
+    removeProduct: removeProduct,
+    isSellableForDownstream: isSellableForDownstream,
+    getDownstreamUsage: getDownstreamUsage,
+    getMarketingUsage: getMarketingUsage,
     reload: load
   };
 
