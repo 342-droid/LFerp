@@ -104,6 +104,26 @@ test('shared table view mounts when deployed below the repository base path', as
   await context.close();
 });
 
+test('shared filter entry keeps the existing actions grouped on the right', async () => {
+  const { context, page } = await freshPage('/MDM/mdm_aftersale_ticket.html');
+  const alignment = await page.evaluate(() => {
+    const host = document.querySelector('.aftersale-filter-actions').getBoundingClientRect();
+    const query = document.querySelector('#asTicketQuery').getBoundingClientRect();
+    const reset = document.querySelector('#asTicketReset').getBoundingClientRect();
+    const manage = document.querySelector('.lf-view-entry--filter').getBoundingClientRect();
+    return {
+      hostMidpoint: host.left + host.width / 2,
+      queryLeft: query.left,
+      resetRight: reset.right,
+      manageLeft: manage.left
+    };
+  });
+
+  assert.ok(alignment.queryLeft > alignment.hostMidpoint, JSON.stringify(alignment));
+  assert.ok(alignment.manageLeft > alignment.resetRight, JSON.stringify(alignment));
+  await context.close();
+});
+
 test('filter draft previews order and visibility, cancel restores values, save persists layout only', async () => {
   const { context, page } = await freshPage('/MDM/mdm_aftersale_ticket.html');
   await page.locator('#asUserPhone').fill('13800000000');
