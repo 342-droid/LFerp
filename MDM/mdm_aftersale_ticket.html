@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/lf-aftersale.css?v=20260727-offline-to-refund">
+    <link rel="stylesheet" href="../css/lf-business-tags.css?v=20260905-product-tag-sync">
+    <link rel="stylesheet" href="../css/lf-table-personal-view.css?v=20260905-sync">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -183,30 +185,30 @@
                             <table class="aftersale-table" id="asTicketTable">
                                 <thead>
                                     <tr>
-                                        <th class="aftersale-table__th aftersale-table__th--ticket">售后单号</th>
-                                        <th>售后来源</th>
-                                        <th>售后类型</th>
-                                        <th>售后状态</th>
-                                        <th>订单来源</th>
-                                        <th>直播场次</th>
-                                        <th>履约方式</th>
-                                        <th>用户信息</th>
-                                        <th>提货门店</th>
-                                        <th>门店地址</th>
-                                        <th>商品信息</th>
-                                        <th>申请退款金额</th>
-                                        <th>审批退款金额</th>
-                                        <th>退款执行状态</th>
-                                        <th>实际退款金额</th>
-                                        <th>券退还金额</th>
-                                        <th>积分退还数量</th>
-                                        <th>售后原因</th>
-                                        <th>审批人</th>
-                                        <th>结算状态</th>
-                                        <th>售后发生时间</th>
-                                        <th>审批时间</th>
-                                        <th>申请时间</th>
-                                        <th>更新时间</th>
+                                        <th class="aftersale-table__th aftersale-table__th--ticket" data-preference-key="afterSaleNo">售后单号</th>
+                                        <th data-preference-key="afterSaleSource">售后来源</th>
+                                        <th data-preference-key="afterSaleType">售后类型</th>
+                                        <th data-preference-key="afterSaleStatus">售后状态</th>
+                                        <th data-preference-key="orderSource">订单来源</th>
+                                        <th data-preference-key="liveSession">直播场次</th>
+                                        <th data-preference-key="fulfillmentMethod">履约方式</th>
+                                        <th data-preference-key="userInfo">用户信息</th>
+                                        <th data-preference-key="pickupStore">提货门店</th>
+                                        <th data-preference-key="storeAddress">门店地址</th>
+                                        <th data-preference-key="productInfo">商品信息</th>
+                                        <th data-preference-key="requestedRefundAmount">申请退款金额</th>
+                                        <th data-preference-key="approvedRefundAmount">审批退款金额</th>
+                                        <th data-preference-key="refundExecutionStatus">退款执行状态</th>
+                                        <th data-preference-key="actualRefundAmount">实际退款金额</th>
+                                        <th data-preference-key="couponReturnAmount">券退还金额</th>
+                                        <th data-preference-key="pointsReturnAmount">积分退还数量</th>
+                                        <th data-preference-key="afterSaleReason">售后原因</th>
+                                        <th data-preference-key="approver">审批人</th>
+                                        <th data-preference-key="settlementStatus">结算状态</th>
+                                        <th data-preference-key="afterSaleOccurredAt">售后发生时间</th>
+                                        <th data-preference-key="approvedAt">审批时间</th>
+                                        <th data-preference-key="appliedAt">申请时间</th>
+                                        <th data-preference-key="updatedAt">更新时间</th>
                                         <th class="aftersale-table__th aftersale-table__th--action">操作</th>
                                     </tr>
                                 </thead>
@@ -240,5 +242,10 @@
     <script src="../js/mdm-aftersale-reasons.js"></script>
     <script src="../js/freight-refund-aftersale-store.js?v=20260826-refund-only"></script>
     <script src="../js/mdm-aftersale-ticket.js?v=20260826-refund-only"></script>
+    <script src="../js/member-tag-projection.js?v=20260905-member-tag-projection"></script>
+    <script src="../js/business-tag-prototype-store.js?v=20260905-product-tag-sync"></script>
+    <script src="../js/business-tag-prototype-ui.js?v=20260905-product-tag-sync"></script>
+    <script src="../js/business-tag-prototype-pages.js?v=20260905-product-tag-sync"></script>
+    <script src="../js/lf-table-personal-view.js?v=20260905-sync"></script>
 </body>
 </html>

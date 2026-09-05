@@ -70,18 +70,7 @@
 
   function renderOps(row) {
     if (row.isSystem) {
-      return (
-        '<span class="sel-tag-maintain">' +
-        '<span class="sel-tag-maintain__label">系统维护</span>' +
-        '<span>·</span>' +
-        '<span>' +
-        escapeHtml(row.maintainBiz || '截单链路') +
-        '</span>' +
-        '<span class="sel-tag-maintain__tip">' +
-        escapeHtml(row.maintainTip || '系统标签用途请联系产品确认。') +
-        '</span>' +
-        '</span>'
-      );
+      return '<span aria-label="系统标签不可编辑">—</span>';
     }
     return (
       '<div class="sel-tag-actions">' +
@@ -450,6 +439,14 @@
   function bindEntry() {
     var btn = $('productTagManageBtn');
     if (!btn) return;
+    if (
+      window.BusinessTagPrototypeStore &&
+      !window.BusinessTagPrototypeStore.isModuleEnabled('MDM_PRODUCT_TAG')
+    ) {
+      btn.hidden = true;
+      btn.style.setProperty('display', 'none', 'important');
+      return;
+    }
     btn.addEventListener('click', function (e) {
       e.preventDefault();
       openDrawer();

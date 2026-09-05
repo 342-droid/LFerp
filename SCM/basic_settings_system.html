@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/basic-settings.css">
+    <link rel="stylesheet" href="../css/lf-business-tags.css?v=20260905-product-tag-sync">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -17,9 +18,20 @@
         <main class="main-content">
             <div class="content-title">基础设置 / 系统管理</div>
             <hr class="content-divider">
-            <div class="bs-placeholder-page">系统管理页面（演示占位）</div>
+            <section class="bs-card">
+                <div class="bt-admin-note">
+                    <span aria-hidden="true">ⓘ</span>
+                    <div><strong>系统管理员开通，业务模块使用。</strong> 此处只控制标签能力，不集中管理各业务的标签库；标签颜色为可选项。</div>
+                </div>
+                <h2 class="bt-capability-heading">标签能力配置</h2>
+                <p class="bt-capability-subtitle">按业务模块独立开通。标签侧只维护标签事实，截单等规则由对应业务配置选择标签。</p>
+                <div class="bt-capability-grid" id="businessTagCapabilityApp"></div>
+            </section>
         </main>
     </div>
     <script src="../js/common.js"></script>
+    <script src="../js/business-tag-prototype-store.js?v=20260905-product-tag-sync"></script>
+    <script src="../js/business-tag-prototype-ui.js?v=20260905-product-tag-sync"></script>
+    <script src="../js/business-tag-prototype-pages.js?v=20260905-product-tag-sync"></script>
 </body>
 </html>
