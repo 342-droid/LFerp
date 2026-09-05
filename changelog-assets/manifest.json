@@ -1416,6 +1416,13 @@
     "status": "diff",
     "date": "2026-09-02"
   },
+  "55f316a|SCM/basic_settings_business_tags.html": {
+    "before": "changelog-assets/55f316a/SCM__basic_settings_business_tags.html.before.jpg",
+    "after": "changelog-assets/55f316a/SCM__basic_settings_business_tags.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
   "5ea31e5|MDM/mdm_order_live.html": {
     "regions": 0,
     "status": "diff",

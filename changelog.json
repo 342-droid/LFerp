@@ -1,10 +1,24 @@
 {
-  "latestSha": "78bc824149ba8aafd148880f3ec631f2fdcac708",
-  "total": 358,
+  "latestSha": "55f316a65e94f7e65956e7704e120a8b036dbe22",
+  "total": 359,
   "days": [
     {
       "date": "2026-09-05",
       "items": [
+        {
+          "sha": "55f316a",
+          "type": "fix",
+          "text": "仅拆分标签管理菜单",
+          "author": "Di Wu",
+          "time": "15:02",
+          "pages": [
+            {
+              "file": "SCM/basic_settings_business_tags.html",
+              "module": "冷丰WMS",
+              "title": "标签管理"
+            }
+          ]
+        },
         {
           "sha": "78bc824",
           "type": "fix",
@@ -845,11 +859,6 @@
               "title": "订单截单"
             },
             {
-              "file": "SCM/basic_settings_business_tags.html",
-              "module": "冷丰WMS",
-              "title": "标签管理"
-            },
-            {
               "file": "SCM/purchase_store_demand_summary.html",
               "module": "冷丰采购",
               "title": "门店订货汇总"
@@ -1624,11 +1633,6 @@
               "title": "选品库"
             },
             {
-              "file": "SCM/basic_settings_business_tags.html",
-              "module": "冷丰WMS",
-              "title": "标签管理"
-            },
-            {
               "file": "SCM/purchase_store_demand_summary.html",
               "module": "冷丰采购",
               "title": "门店订货汇总"
@@ -1662,11 +1666,6 @@
               "file": "MDM/mdm_product_selection.html",
               "module": "冷丰WMS",
               "title": "选品库"
-            },
-            {
-              "file": "SCM/basic_settings_business_tags.html",
-              "module": "冷丰WMS",
-              "title": "标签管理"
             },
             {
               "file": "SCM/purchase_store_demand_summary.html",
@@ -1789,11 +1788,6 @@
               "file": "MDM/mdm_product_selection.html",
               "module": "冷丰WMS",
               "title": "选品库"
-            },
-            {
-              "file": "SCM/basic_settings_business_tags.html",
-              "module": "冷丰WMS",
-              "title": "标签管理"
             },
             {
               "file": "SCM/purchase_store_demand_summary.html",
