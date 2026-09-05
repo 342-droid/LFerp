@@ -53,6 +53,7 @@
   function buildFileRows(count, mineOnly) {
     var titles = [
       '订单列表导出',
+      '订单清分明细导出',
       '门店档案导出',
       '售后单导出',
       '会员列表导出',
@@ -63,6 +64,7 @@
     ];
     var types = [
       'order-list-export',
+      'order-clearing-export',
       'store-archive-export',
       'aftersale-export',
       'member-list-export',

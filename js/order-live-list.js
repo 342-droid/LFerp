@@ -818,6 +818,8 @@
 
   var RETAIL_EXPORT_FIELDS_KEY = 'lfRetailOrderExportFields';
   var PROXY_EXPORT_FIELDS_KEY = 'lfProxyOrderExportFields';
+  var RETAIL_CLEARING_EXPORT_FIELDS_KEY = 'lfRetailClearingExportFields';
+  var PROXY_CLEARING_EXPORT_FIELDS_KEY = 'lfProxyClearingExportFields';
   var RETAIL_EXPORT_FIELDS = [
     { key: 'orderNo', label: '订单号' },
     { key: 'orderTime', label: '下单时间' },
@@ -864,6 +866,27 @@
     { key: 'address', label: '收货地址', extra: true },
     { key: 'aftersaleStatus', label: '售后状态', extra: true }
   ];
+  /** 清分明细导出：对齐订单详情 SKU 清分表，一行一个清分项 */
+  var CLEARING_EXPORT_FIELDS = [
+    { key: 'orderNo', label: '订单号' },
+    { key: 'skuName', label: '商品名称' },
+    { key: 'paid', label: '实付' },
+    { key: 'roleCommission', label: '角色分佣' },
+    { key: 'supplierCost', label: '供应商采购成本' },
+    { key: 'marginRate', label: '毛利率' },
+    { key: 'payee', label: '收款方' },
+    { key: 'role', label: '角色' },
+    { key: 'account', label: '账户' },
+    { key: 'method', label: '分佣方式' },
+    { key: 'strategy', label: '命中策略' },
+    { key: 'receivable', label: '应收' },
+    { key: 'received', label: '实收' },
+    { key: 'clearStatus', label: '清分状态' },
+    { key: 'settleStatus', label: '结算状态' },
+    { key: 'bookStatus', label: '入账状态' },
+    { key: 'store', label: '下单门店', extra: true },
+    { key: 'payNo', label: '支付流水', extra: true }
+  ];
 
   function isRetailOrderPage() {
     return document.body && document.body.getAttribute('data-order-page') === 'retail';
@@ -873,28 +896,52 @@
     return document.body && document.body.getAttribute('data-order-page') === 'proxy';
   }
 
-  function getOrderExportSpec() {
+  function getOrderPageCheckSpec() {
     if (isRetailOrderPage()) {
       return {
-        fields: RETAIL_EXPORT_FIELDS,
-        storageKey: RETAIL_EXPORT_FIELDS_KEY,
-        filePrefix: '零售订单_',
         checkClass: 'js-order-retail-check',
-        checkAllClass: 'js-order-retail-check-all',
-        btnId: 'orderRetailExport'
+        checkAllClass: 'js-order-retail-check-all'
       };
     }
     if (isProxyOrderPage()) {
       return {
-        fields: PROXY_EXPORT_FIELDS,
-        storageKey: PROXY_EXPORT_FIELDS_KEY,
-        filePrefix: '代采订单_',
         checkClass: 'js-order-proxy-check',
-        checkAllClass: 'js-order-proxy-check-all',
-        btnId: 'orderProxyExport'
+        checkAllClass: 'js-order-proxy-check-all'
       };
     }
     return null;
+  }
+
+  function getOrderExportSpec(kind) {
+    var page = getOrderPageCheckSpec();
+    if (!page) return null;
+    var isRetail = isRetailOrderPage();
+    if (kind === 'clearing') {
+      return {
+        kind: 'clearing',
+        title: '导出订单清分明细',
+        fields: CLEARING_EXPORT_FIELDS,
+        storageKey: isRetail ? RETAIL_CLEARING_EXPORT_FIELDS_KEY : PROXY_CLEARING_EXPORT_FIELDS_KEY,
+        filePrefix: (isRetail ? '零售订单清分明细_' : '代采订单清分明细_'),
+        taskTitle: '订单清分明细导出',
+        taskType: 'order-clearing-export',
+        checkClass: page.checkClass,
+        checkAllClass: page.checkAllClass,
+        btnId: isRetail ? 'orderRetailClearingExport' : 'orderProxyClearingExport'
+      };
+    }
+    return {
+      kind: 'order',
+      title: '导出订单',
+      fields: isRetail ? RETAIL_EXPORT_FIELDS : PROXY_EXPORT_FIELDS,
+      storageKey: isRetail ? RETAIL_EXPORT_FIELDS_KEY : PROXY_EXPORT_FIELDS_KEY,
+      filePrefix: isRetail ? '零售订单_' : '代采订单_',
+      taskTitle: '订单列表导出',
+      taskType: 'order-list-export',
+      checkClass: page.checkClass,
+      checkAllClass: page.checkAllClass,
+      btnId: isRetail ? 'orderRetailExport' : 'orderProxyExport'
+    };
   }
 
   function getOrderListTableRows() {
@@ -911,6 +958,7 @@
 
   function getCheckedOrderListRows(spec) {
     spec = spec || getOrderExportSpec();
+    if (!spec) spec = getOrderPageCheckSpec();
     if (!spec) return [];
     return getVisibleOrderListRows().filter(function (row) {
       var cb = row.querySelector('.' + spec.checkClass);
@@ -919,7 +967,7 @@
   }
 
   function syncOrderExportChecks() {
-    var spec = getOrderExportSpec();
+    var spec = getOrderPageCheckSpec() || getOrderExportSpec();
     if (!spec) return;
     var visible = getVisibleOrderListRows();
     var checked = 0;
@@ -934,7 +982,7 @@
   }
 
   function ensureOrderListRowChecks(spec) {
-    spec = spec || getOrderExportSpec();
+    spec = spec || getOrderPageCheckSpec() || getOrderExportSpec();
     if (!spec) return;
     getOrderListTableRows().forEach(function (row) {
       if (row.querySelector('.' + spec.checkClass)) return;
@@ -970,7 +1018,7 @@
       } catch (eSeen) {
         seenPayNo = true;
       }
-      if (!seenPayNo && selected.indexOf('payNo') < 0 && defaults.indexOf('payNo') >= 0) {
+      if (spec.kind !== 'clearing' && !seenPayNo && selected.indexOf('payNo') < 0 && defaults.indexOf('payNo') >= 0) {
         var storeIdx = selected.indexOf('store');
         selected.splice(storeIdx >= 0 ? storeIdx + 1 : selected.length, 0, 'payNo');
       }
@@ -983,10 +1031,41 @@
   function writeOrderExportFields(spec, keys) {
     try {
       localStorage.setItem(spec.storageKey, JSON.stringify(keys || []));
-      localStorage.setItem(spec.storageKey + ':payNo', '1');
+      if (spec.kind !== 'clearing') {
+        localStorage.setItem(spec.storageKey + ':payNo', '1');
+      }
     } catch (e) {
       /* ignore */
     }
+  }
+
+  function resolveOrderDetailForExport(row) {
+    var orderId = row && row.getAttribute('data-order-id');
+    if (!orderId || !window.OrderLiveDetail || typeof window.OrderLiveDetail.resolveDetail !== 'function') {
+      return null;
+    }
+    return window.OrderLiveDetail.resolveDetail(orderId, row);
+  }
+
+  /** 范围内有清分数据的行数：SKU 清分项优先，否则门店明细 */
+  function countClearingExportRows(orderRows) {
+    var count = 0;
+    (orderRows || []).forEach(function (row) {
+      var detail = resolveOrderDetailForExport(row);
+      if (!detail || detail.clearingEmpty) return;
+      var clearing = detail.clearing || {};
+      if (clearing.skus && clearing.skus.length) {
+        clearing.skus.forEach(function (sku) {
+          count += (sku.rows && sku.rows.length) ? sku.rows.length : 0;
+        });
+        return;
+      }
+      var storeRows = clearing.storeRows || [];
+      if (storeRows.length && detail.storeCommissionRate != null && detail.storeCommissionRate !== '') {
+        count += storeRows.length;
+      }
+    });
+    return count;
   }
 
   function closeOrderExportModal() {
@@ -1061,13 +1140,14 @@
       '-' +
       String(now.getDate()).padStart(2, '0');
     var scopeLabel = scope === 'selected' ? '勾选数据' : '所有查询数据';
-    var count =
-      scope === 'selected' ? getCheckedOrderListRows(spec).length : getVisibleOrderListRows().length;
+    var sourceRows = scope === 'selected' ? getCheckedOrderListRows(spec) : getVisibleOrderListRows();
+    var count = spec.kind === 'clearing' ? countClearingExportRows(sourceRows) : sourceRows.length;
+    var unit = spec.kind === 'clearing' ? '条清分明细' : '条';
     if (window.LfFileCenterNotify && typeof window.LfFileCenterNotify.bump === 'function') {
       window.LfFileCenterNotify.bump(
         {
-          title: '订单列表导出',
-          type: 'order-list-export',
+          title: spec.taskTitle || '订单列表导出',
+          type: spec.taskType || 'order-list-export',
           fileName: spec.filePrefix + stamp + '.xlsx'
         },
         { fromEl: triggerEl, toast: false }
@@ -1075,14 +1155,14 @@
     }
     if (typeof showToast === 'function') {
       showToast(
-        '已提交导出' + scopeLabel + '（' + count + ' 条，' + fieldKeys.length + ' 个字段），请到文件中心下载',
+        '已提交导出' + scopeLabel + '（' + count + ' ' + unit + '，' + fieldKeys.length + ' 个字段），请到文件中心下载',
         'success'
       );
     }
   }
 
-  function openOrderListExportModal() {
-    var spec = getOrderExportSpec();
+  function openOrderListExportModal(kind) {
+    var spec = getOrderExportSpec(kind);
     if (!spec) return;
     closeOrderExportModal();
     var selectedCount = getCheckedOrderListRows(spec).length;
@@ -1102,7 +1182,9 @@
     backdrop.innerHTML =
       '<div class="order-export-modal" role="dialog" aria-modal="true" aria-labelledby="orderListExportTitle">' +
       '<div class="order-export-modal__head">' +
-      '<h3 id="orderListExportTitle" class="order-export-modal__title">导出订单</h3>' +
+      '<h3 id="orderListExportTitle" class="order-export-modal__title">' +
+      spec.title +
+      '</h3>' +
       '<button type="button" class="order-export-modal__close js-order-export-close" aria-label="关闭">×</button>' +
       '</div>' +
       '<div class="order-export-modal__body">' +
@@ -1179,12 +1261,17 @@
         if (typeof showToast === 'function') showToast('请至少选择一个导出字段', 'warning');
         return;
       }
-      if (scope === 'selected' && !getCheckedOrderListRows(spec).length) {
+      var pickedRows = scope === 'selected' ? getCheckedOrderListRows(spec) : getVisibleOrderListRows();
+      if (scope === 'selected' && !pickedRows.length) {
         if (typeof showToast === 'function') showToast('请先勾选要导出的订单', 'warning');
         return;
       }
-      if (scope === 'query' && !getVisibleOrderListRows().length) {
+      if (scope === 'query' && !pickedRows.length) {
         if (typeof showToast === 'function') showToast('当前查询无数据可导出', 'warning');
+        return;
+      }
+      if (spec.kind === 'clearing' && !countClearingExportRows(pickedRows)) {
+        if (typeof showToast === 'function') showToast('所选订单暂无清分明细可导出', 'warning');
         return;
       }
       writeOrderExportFields(spec, fieldKeys);
@@ -1194,8 +1281,21 @@
     });
   }
 
+  function bindOrderExportButton(kind) {
+    var spec = getOrderExportSpec(kind);
+    if (!spec) return;
+    var exportBtn = document.getElementById(spec.btnId);
+    if (!exportBtn || exportBtn.dataset.orderExportBound) return;
+    exportBtn.dataset.orderExportBound = '1';
+    exportBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      openOrderListExportModal(kind);
+    });
+  }
+
   function initOrderListExport() {
-    var spec = getOrderExportSpec();
+    var spec = getOrderPageCheckSpec() || getOrderExportSpec();
     if (!spec) return;
     ensureOrderListRowChecks(spec);
     syncOrderExportChecks();
@@ -1219,15 +1319,8 @@
       });
     }
 
-    var exportBtn = document.getElementById(spec.btnId);
-    if (exportBtn && !exportBtn.dataset.orderExportBound) {
-      exportBtn.dataset.orderExportBound = '1';
-      exportBtn.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        openOrderListExportModal();
-      });
-    }
+    bindOrderExportButton('order');
+    bindOrderExportButton('clearing');
   }
 
   function initRetailBatchExpressUpload() {
