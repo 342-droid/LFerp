@@ -1,10 +1,85 @@
 {
-  "latestSha": "771b96d6f84023923d150ada5e913cbca9be3ec4",
-  "total": 356,
+  "latestSha": "84457aed9d693b3cd0dbff969a71dea865740d8c",
+  "total": 357,
   "days": [
     {
       "date": "2026-09-05",
       "items": [
+        {
+          "sha": "84457ae",
+          "type": "feat",
+          "text": "直播排品支持删除本场SPU",
+          "author": "sisi",
+          "time": "14:47",
+          "pages": [
+            {
+              "file": "MDM/mdm_live_control.html",
+              "module": "冷丰WMS",
+              "title": "直播中控"
+            },
+            {
+              "file": "MDM/mdm_live_data.html",
+              "module": "冷丰WMS",
+              "title": "直播数据"
+            },
+            {
+              "file": "MDM/mdm_live_product_category.html",
+              "module": "冷丰WMS",
+              "title": "直播类目"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched.html",
+              "module": "冷丰WMS",
+              "title": "直播排品"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "module": "冷丰WMS",
+              "title": "直播排品编辑"
+            },
+            {
+              "file": "MDM/mdm_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间"
+            },
+            {
+              "file": "MDM/mdm_live_session.html",
+              "module": "冷丰WMS",
+              "title": "直播场次"
+            },
+            {
+              "file": "MDM/mdm_live_session_detail.html",
+              "module": "冷丰WMS",
+              "title": "直播场次详情"
+            },
+            {
+              "file": "MDM/mdm_live_session_form.html",
+              "module": "冷丰WMS",
+              "title": "直播场次编辑"
+            },
+            {
+              "file": "MDM/mdm_live_timeslot.html",
+              "module": "冷丰WMS",
+              "title": "直播时段"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "module": "冷丰WMS",
+              "title": "秒杀活动"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "module": "冷丰WMS",
+              "title": "编辑秒杀商品"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_live_product_sched.html",
+              "text": "草稿和下架可在更多里删除本场排品，上架中须先下架；更多菜单改为页面悬浮，不被表格滚动裁切"
+            }
+          ]
+        },
         {
           "sha": "771b96d",
           "type": "feat",
