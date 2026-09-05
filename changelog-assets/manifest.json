@@ -1761,6 +1761,147 @@
     "status": "diff",
     "date": "2026-09-05"
   },
+  "78bc824|MDM/mdm_aftersale_ticket.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
+  "78bc824|MDM/mdm_aftersale_ticket_detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
+  "78bc824|MDM/mdm_archive_store.html": {
+    "before": "changelog-assets/78bc824/MDM__mdm_archive_store.html.before.jpg",
+    "after": "changelog-assets/78bc824/MDM__mdm_archive_store.html.after.jpg",
+    "regions": 8,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
+  "78bc824|MDM/mdm_product_selection.html": {
+    "before": "changelog-assets/78bc824/MDM__mdm_product_selection.html.before.jpg",
+    "after": "changelog-assets/78bc824/MDM__mdm_product_selection.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
+  "78bc824|SCM/basic_settings_business_tags.html": {
+    "after": "changelog-assets/78bc824/SCM__basic_settings_business_tags.html.after.jpg",
+    "status": "added",
+    "date": "2026-09-05"
+  },
+  "78bc824|SCM/basic_settings_contract_config.html": {
+    "before": "changelog-assets/78bc824/SCM__basic_settings_contract_config.html.before.jpg",
+    "after": "changelog-assets/78bc824/SCM__basic_settings_contract_config.html.after.jpg",
+    "regions": 16,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
+  "78bc824|SCM/basic_settings_contract_party.html": {
+    "before": "changelog-assets/78bc824/SCM__basic_settings_contract_party.html.before.jpg",
+    "after": "changelog-assets/78bc824/SCM__basic_settings_contract_party.html.after.jpg",
+    "regions": 18,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
+  "78bc824|SCM/basic_settings_contract_task.html": {
+    "before": "changelog-assets/78bc824/SCM__basic_settings_contract_task.html.before.jpg",
+    "after": "changelog-assets/78bc824/SCM__basic_settings_contract_task.html.after.jpg",
+    "regions": 9,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
+  "78bc824|SCM/basic_settings_contract_task_detail.html": {
+    "before": "changelog-assets/78bc824/SCM__basic_settings_contract_task_detail.html.before.jpg",
+    "after": "changelog-assets/78bc824/SCM__basic_settings_contract_task_detail.html.after.jpg",
+    "regions": 9,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
+  "78bc824|SCM/basic_settings_contract_task_form.html": {
+    "before": "changelog-assets/78bc824/SCM__basic_settings_contract_task_form.html.before.jpg",
+    "after": "changelog-assets/78bc824/SCM__basic_settings_contract_task_form.html.after.jpg",
+    "regions": 9,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
+  "78bc824|SCM/basic_settings_contract_template.html": {
+    "before": "changelog-assets/78bc824/SCM__basic_settings_contract_template.html.before.jpg",
+    "after": "changelog-assets/78bc824/SCM__basic_settings_contract_template.html.after.jpg",
+    "regions": 9,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
+  "78bc824|SCM/basic_settings_contract_template_form.html": {
+    "before": "changelog-assets/78bc824/SCM__basic_settings_contract_template_form.html.before.jpg",
+    "after": "changelog-assets/78bc824/SCM__basic_settings_contract_template_form.html.after.jpg",
+    "regions": 9,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
+  "78bc824|SCM/basic_settings_cooperation.html": {
+    "before": "changelog-assets/78bc824/SCM__basic_settings_cooperation.html.before.jpg",
+    "after": "changelog-assets/78bc824/SCM__basic_settings_cooperation.html.after.jpg",
+    "regions": 3,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
+  "78bc824|SCM/basic_settings_file_center.html": {
+    "before": "changelog-assets/78bc824/SCM__basic_settings_file_center.html.before.jpg",
+    "after": "changelog-assets/78bc824/SCM__basic_settings_file_center.html.after.jpg",
+    "regions": 7,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
+  "78bc824|SCM/basic_settings_material.html": {
+    "before": "changelog-assets/78bc824/SCM__basic_settings_material.html.before.jpg",
+    "after": "changelog-assets/78bc824/SCM__basic_settings_material.html.after.jpg",
+    "regions": 7,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
+  "78bc824|SCM/basic_settings_material_type.html": {
+    "before": "changelog-assets/78bc824/SCM__basic_settings_material_type.html.before.jpg",
+    "after": "changelog-assets/78bc824/SCM__basic_settings_material_type.html.after.jpg",
+    "regions": 7,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
+  "78bc824|SCM/basic_settings_member.html": {
+    "before": "changelog-assets/78bc824/SCM__basic_settings_member.html.before.jpg",
+    "after": "changelog-assets/78bc824/SCM__basic_settings_member.html.after.jpg",
+    "regions": 7,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
+  "78bc824|SCM/basic_settings_miniprogram_agreement.html": {
+    "before": "changelog-assets/78bc824/SCM__basic_settings_miniprogram_agreement.html.before.jpg",
+    "after": "changelog-assets/78bc824/SCM__basic_settings_miniprogram_agreement.html.after.jpg",
+    "regions": 7,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
+  "78bc824|SCM/basic_settings_order.html": {
+    "before": "changelog-assets/78bc824/SCM__basic_settings_order.html.before.jpg",
+    "after": "changelog-assets/78bc824/SCM__basic_settings_order.html.after.jpg",
+    "regions": 7,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
+  "78bc824|SCM/basic_settings_recommendation.html": {
+    "before": "changelog-assets/78bc824/SCM__basic_settings_recommendation.html.before.jpg",
+    "after": "changelog-assets/78bc824/SCM__basic_settings_recommendation.html.after.jpg",
+    "regions": 7,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
+  "78bc824|SCM/basic_settings_system.html": {
+    "before": "changelog-assets/78bc824/SCM__basic_settings_system.html.before.jpg",
+    "after": "changelog-assets/78bc824/SCM__basic_settings_system.html.after.jpg",
+    "regions": 21,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
   "7fba2a9|MDM/mdm_live_product_sched_edit.html": {
     "before": "changelog-assets/7fba2a9/MDM__mdm_live_product_sched_edit.html.before.jpg",
     "after": "changelog-assets/7fba2a9/MDM__mdm_live_product_sched_edit.html.after.jpg",
