@@ -91,6 +91,19 @@ test('the four synced lists expose separate filter and column settings entrances
   }
 });
 
+test('shared table view mounts when deployed below the repository base path', async () => {
+  const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+  const page = await context.newPage();
+  await page.route('**/js/lf-table-personal-view.js*', (route) => route.abort());
+  await page.goto(`${ORIGIN}/MDM/mdm_aftersale_ticket.html`);
+  await page.evaluate(() => history.replaceState({}, '', '/LFerp/MDM/mdm_aftersale_ticket.html'));
+  await page.addScriptTag({ path: path.join(ROOT, 'js', 'lf-table-personal-view.js') });
+
+  assert.equal(await page.getByRole('button', { name: /管理筛选项/ }).count(), 1);
+  assert.equal(await page.getByRole('button', { name: '列设置', exact: true }).count(), 1);
+  await context.close();
+});
+
 test('filter draft previews order and visibility, cancel restores values, save persists layout only', async () => {
   const { context, page } = await freshPage('/MDM/mdm_aftersale_ticket.html');
   await page.locator('#asUserPhone').fill('13800000000');
