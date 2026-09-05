@@ -1,10 +1,49 @@
 {
-  "latestSha": "cdf4ba2964448e7b63054752bf43c656e26375a4",
-  "total": 353,
+  "latestSha": "301e9e3d289855175430c085db07b6fa9ce049db",
+  "total": 354,
   "days": [
     {
       "date": "2026-09-05",
       "items": [
+        {
+          "sha": "301e9e3",
+          "type": "feat",
+          "text": "零售和代采订单支持导出清分明细",
+          "author": "sisi",
+          "time": "09:01",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            },
+            {
+              "file": "SCM/basic_settings_file_center.html",
+              "module": "冷丰WMS",
+              "title": "文件中心"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "工具栏拆成「导出订单」和「导出订单清分明细」，清分按勾选或查询范围导出"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "text": "同样拆出两个导出按钮，无清分数据时提示不可导出"
+            }
+          ]
+        },
         {
           "sha": "cdf4ba2",
           "type": "feat",

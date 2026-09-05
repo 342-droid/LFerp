@@ -839,6 +839,32 @@
     "status": "added",
     "date": "2026-08-28"
   },
+  "301e9e3|MDM/mdm_order_live.html": {
+    "before": "changelog-assets/301e9e3/MDM__mdm_order_live.html.before.jpg",
+    "after": "changelog-assets/301e9e3/MDM__mdm_order_live.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
+  "301e9e3|MDM/mdm_order_proxy.html": {
+    "before": "changelog-assets/301e9e3/MDM__mdm_order_proxy.html.before.jpg",
+    "after": "changelog-assets/301e9e3/MDM__mdm_order_proxy.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
+  "301e9e3|MDM/mdm_order_retail.html": {
+    "before": "changelog-assets/301e9e3/MDM__mdm_order_retail.html.before.jpg",
+    "after": "changelog-assets/301e9e3/MDM__mdm_order_retail.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
+  "301e9e3|SCM/basic_settings_file_center.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
   "33f6d56|MDM/mdm_marketing_cash_redpack.html": {
     "before": "changelog-assets/33f6d56/MDM__mdm_marketing_cash_redpack.html.before.jpg",
     "after": "changelog-assets/33f6d56/MDM__mdm_marketing_cash_redpack.html.after.jpg",
