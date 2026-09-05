@@ -1,10 +1,64 @@
 {
-  "latestSha": "98f38776bc4f355d5a72cd506be44e468bfe8c2b",
-  "total": 363,
+  "latestSha": "ac83ceb594f108571716e6da05fc2d5f83de56db",
+  "total": 364,
   "days": [
     {
       "date": "2026-09-05",
       "items": [
+        {
+          "sha": "ac83ceb",
+          "type": "feat",
+          "text": "调整订货管理菜单与渠道页面",
+          "author": "342-droid",
+          "time": "17:24",
+          "pages": [
+            {
+              "file": "SCM/purchase_demand_summary.html",
+              "module": "冷丰采购",
+              "title": "采购需求汇总"
+            },
+            {
+              "file": "SCM/purchase_index.html",
+              "module": "冷丰采购",
+              "title": "首页"
+            },
+            {
+              "file": "SCM/purchase_order.html",
+              "module": "冷丰采购",
+              "title": "采购单"
+            },
+            {
+              "file": "SCM/purchase_return_order.html",
+              "module": "冷丰WMS",
+              "title": "退货单"
+            },
+            {
+              "file": "SCM/purchase_store_demand_summary.html",
+              "module": "冷丰采购",
+              "title": "门店订货汇总"
+            },
+            {
+              "file": "SCM/purchase_store_order_sheet.html",
+              "module": "冷丰采购",
+              "title": "门店订货单"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "SCM/purchase_store_demand_summary.html",
+              "text": "移除订单渠道查询并按渠道访问"
+            },
+            {
+              "file": "SCM/purchase_store_order_sheet.html",
+              "text": "移除订单渠道查询并按渠道访问"
+            },
+            {
+              "file": null,
+              "text": "统一订货管理二级菜单结构与三角形交互"
+            }
+          ]
+        },
         {
           "sha": "98f3877",
           "type": "feat",

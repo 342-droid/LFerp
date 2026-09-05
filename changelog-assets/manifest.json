@@ -2766,6 +2766,48 @@
     "status": "diff",
     "date": "2026-08-25"
   },
+  "ac83ceb|SCM/purchase_demand_summary.html": {
+    "before": "changelog-assets/ac83ceb/SCM__purchase_demand_summary.html.before.jpg",
+    "after": "changelog-assets/ac83ceb/SCM__purchase_demand_summary.html.after.jpg",
+    "regions": 8,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
+  "ac83ceb|SCM/purchase_index.html": {
+    "before": "changelog-assets/ac83ceb/SCM__purchase_index.html.before.jpg",
+    "after": "changelog-assets/ac83ceb/SCM__purchase_index.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
+  "ac83ceb|SCM/purchase_order.html": {
+    "before": "changelog-assets/ac83ceb/SCM__purchase_order.html.before.jpg",
+    "after": "changelog-assets/ac83ceb/SCM__purchase_order.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
+  "ac83ceb|SCM/purchase_return_order.html": {
+    "before": "changelog-assets/ac83ceb/SCM__purchase_return_order.html.before.jpg",
+    "after": "changelog-assets/ac83ceb/SCM__purchase_return_order.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
+  "ac83ceb|SCM/purchase_store_demand_summary.html": {
+    "before": "changelog-assets/ac83ceb/SCM__purchase_store_demand_summary.html.before.jpg",
+    "after": "changelog-assets/ac83ceb/SCM__purchase_store_demand_summary.html.after.jpg",
+    "regions": 14,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
+  "ac83ceb|SCM/purchase_store_order_sheet.html": {
+    "before": "changelog-assets/ac83ceb/SCM__purchase_store_order_sheet.html.before.jpg",
+    "after": "changelog-assets/ac83ceb/SCM__purchase_store_order_sheet.html.after.jpg",
+    "regions": 11,
+    "status": "diff",
+    "date": "2026-09-05"
+  },
   "aee8124|MDM/mdm_bd_merchants.html": {
     "before": "changelog-assets/aee8124/MDM__mdm_bd_merchants.html.before.jpg",
     "after": "changelog-assets/aee8124/MDM__mdm_bd_merchants.html.after.jpg",
