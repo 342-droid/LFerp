@@ -61,7 +61,7 @@ async function freshPage(pathname) {
   return { context, page };
 }
 
-test('basic settings owns the tag management entry while product selection only consumes tags', async () => {
+test('basic settings owns a separate capability menu without moving product tag management', async () => {
   const { context, page } = await freshPage('/SCM/basic_settings_business_tags.html');
 
   assert.equal(await page.getByRole('link', { name: /标签管理/ }).count(), 1);
@@ -74,22 +74,19 @@ test('basic settings owns the tag management entry while product selection only 
     assert.equal(await page.getByText(label, { exact: true }).count(), 1);
   }
   assert.equal(await page.getByText('业务用途', { exact: true }).count(), 0);
-  assert.equal(await page.getByRole('button', { name: '管理商品标签', exact: true }).count(), 1);
-
-  await page.locator('[data-business-tag-module="MDM_PRODUCT_TAG"]').getByRole('switch').uncheck();
-  await page.reload();
-  assert.equal(await page.getByRole('button', { name: '管理商品标签', exact: true }).isVisible(), true);
+  assert.equal(await page.getByRole('heading', { name: '标签库管理', exact: true }).count(), 0);
+  assert.equal(await page.getByRole('button', { name: '管理商品标签', exact: true }).count(), 0);
 
   await page.goto(`${ORIGIN}/MDM/mdm_product_selection.html`);
-  assert.equal(await page.getByRole('button', { name: '标签管理', exact: true }).count(), 0);
+  assert.equal(await page.getByRole('button', { name: '标签管理', exact: true }).isVisible(), true);
 
   await context.close();
 });
 
 test('product tag management owns facts while requirement 570 binds tags from the cutoff rule', async () => {
-  const { context, page } = await freshPage('/SCM/basic_settings_business_tags.html');
+  const { context, page } = await freshPage('/MDM/mdm_product_selection.html');
 
-  await page.getByRole('button', { name: '管理商品标签', exact: true }).click();
+  await page.getByRole('button', { name: '标签管理', exact: true }).click();
   const drawer = page.getByRole('dialog', { name: '商品标签管理' });
   await drawer.waitFor({ state: 'visible' });
   assert.equal(await drawer.getByText('业务用途', { exact: true }).count(), 0);
