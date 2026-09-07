@@ -114,8 +114,8 @@
       fieldSelect('baseUnit', '基础单位', true, '请选择', ['斤', 'kg', '箱', '袋', '瓶']) +
       fieldInputUnit('productWeight', '商品重量', true, '请输入商品重量', 'KG') +
       fieldReadonly('productCode', '商品编码', '系统将自动生成唯一数字编码') +
-      fieldInput('shelfLife', '保质期天数', false, '请输入保质期天数', 'number') +
-      fieldSelect('tempLayer', '温层', false, '请选择温层', ['常温', '冷藏', '冷冻']) +
+      fieldInput('shelfLife', '保质期天数', true, '请输入保质期天数', 'number') +
+      fieldSelect('tempLayer', '温层', true, '请选择温层', ['常温', '冷藏', '冷冻']) +
       '    </div>' +
       '  </div>' +
       '</section>'
@@ -731,7 +731,9 @@
       productWeight: '请输入商品重量',
       productCategory: '请选择商品类目',
       purchaser: '请选择采购员',
-      productImage: '请上传商品图片'
+      productImage: '请上传商品图片',
+      shelfLife: '请输入保质期天数',
+      tempLayer: '请选择温层'
     };
 
     Object.keys(requiredMap).forEach(function (key) {

@@ -1,0 +1,238 @@
+/* 订单详情 — 修改地址 */
+.ua-oea-page {
+  background: #f5f5f5;
+}
+
+.ua-oea-page .ua-mp-capsule {
+  top: 50px;
+}
+
+.ua-oea-scroll {
+  padding-bottom: 88px;
+  background: #f5f5f5;
+}
+
+.ua-oea-nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 48px;
+  background: #ffffff;
+}
+
+.ua-oea-nav__back {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333333;
+  text-decoration: none;
+}
+
+.ua-oea-nav__back svg {
+  width: 22px;
+  height: 22px;
+}
+
+.ua-oea-nav__title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #111111;
+  line-height: 1.3;
+}
+
+.ua-oea-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px 12px;
+  background: #fff4e8;
+}
+
+.ua-oea-tip__icon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  border-radius: 50%;
+  background: #ff9f40;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+  font-style: italic;
+}
+
+.ua-oea-tip p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: #8a5a28;
+}
+
+.ua-oea-section {
+  background: #ffffff;
+  padding: 14px 16px 16px;
+}
+
+.ua-oea-section--list {
+  margin-top: 8px;
+  padding-bottom: 8px;
+}
+
+.ua-oea-section__title {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111111;
+}
+
+.ua-oea-origin__region,
+.ua-oea-item__region {
+  font-size: 12px;
+  color: #999999;
+  line-height: 1.4;
+}
+
+.ua-oea-origin__detail,
+.ua-oea-item__detail {
+  margin-top: 4px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #222222;
+  line-height: 1.4;
+}
+
+.ua-oea-origin__user,
+.ua-oea-item__user {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 13px;
+  color: #333333;
+  line-height: 1.4;
+}
+
+.ua-oea-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 3px;
+  background: #fff1e6;
+  color: #ff7a1a;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.ua-oea-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 0;
+  border: 0;
+  border-top: 1px solid #f0f0f0;
+  background: #ffffff;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.ua-oea-list .ua-oea-item:first-child {
+  border-top: 0;
+}
+
+.ua-oea-item.is-selected {
+  background: #fffaf5;
+}
+
+.ua-oea-item__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.ua-oea-item__edit {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  margin-top: 8px;
+  border: 0;
+  background: transparent;
+  color: #bbbbbb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+}
+
+.ua-oea-item__edit svg {
+  width: 18px;
+  height: 18px;
+}
+
+.ua-oea-empty {
+  padding: 20px 0 12px;
+  font-size: 13px;
+  color: #999999;
+  text-align: center;
+}
+
+.ua-oea-footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+  background: #ffffff;
+}
+
+.ua-oea-footer__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 44px;
+  border: 0;
+  border-radius: 22px;
+  background: #ff7019;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.ua-oea-toast {
+  position: absolute;
+  left: 50%;
+  bottom: 96px;
+  z-index: 30;
+  transform: translateX(-50%);
+  max-width: 80%;
+  padding: 8px 14px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.72);
+  color: #ffffff;
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.ua-oea-toast[hidden] {
+  display: none;
+}

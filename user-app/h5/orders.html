@@ -37,6 +37,7 @@
         <nav class="ua-orders-tabs">
           <a href="#" class="ua-orders-tab ua-orders-tab--active" data-tab="all">全部</a>
           <a href="#" class="ua-orders-tab" data-tab="unpaid">待付款</a>
+          <a href="#" class="ua-orders-tab" data-tab="pending_accept" hidden>待接单</a>
           <a href="#" class="ua-orders-tab" data-tab="shipping">待发货</a>
           <a href="#" class="ua-orders-tab" data-tab="pickup">待自提/待收货</a>
           <a href="#" class="ua-orders-tab" data-tab="review">待评价</a>
@@ -329,6 +330,35 @@
           </div>
         </article>
 
+        <!-- 进货演示：待接单 · 快递到店（零售列表默认隐藏） -->
+        <article class="ua-order-card" data-status="pending_accept" data-supplier-name="冷丰优选供应链" data-detail-status="pending_accept" data-delivery="store" data-restock-only="1" hidden>
+          <a href="order-detail.html?status=pending_accept&amp;delivery=store&amp;from=restock.html" class="ua-order-card--link">
+            <div class="ua-order-card__head">
+              <span class="ua-order-merchant ua-order-merchant--store"><span class="ua-order-store">悠悠生鲜超市</span></span>
+              <span class="ua-order-merchant ua-order-merchant--supplier" hidden><span class="ua-order-supplier">冷丰优选供应链</span></span>
+              <span class="ua-order-status">待接单</span>
+            </div>
+            <div class="ua-order-card__body">
+              <div class="ua-order-imgs">
+                <img src="../assets/restock/product-leaf.svg" alt="">
+                <img src="../assets/restock/product-egg.svg" alt="">
+              </div>
+              <div class="ua-order-sum">
+                <div class="ua-order-price"><small>¥</small>86<small>.80</small></div>
+                <div class="ua-order-count">共2件 · 快递</div>
+              </div>
+            </div>
+          </a>
+          <div class="ua-order-card__foot">
+            <div class="ua-order-meta">
+              <span class="ua-order-date">2026-03-07 10:18</span>
+            </div>
+            <div class="ua-order-actions">
+              <a href="order-detail.html?status=pending_accept&amp;delivery=store&amp;from=restock.html" class="ua-order-btn ua-order-btn--outline">查看详情</a>
+            </div>
+          </div>
+        </article>
+
         <article class="ua-order-card" data-status="pending_accept" data-supplier-name="冷丰优选供应链" data-detail-status="pending_accept">
           <a href="order-detail.html?status=pending_accept" class="ua-order-card--link">
             <div class="ua-order-card__head">
@@ -391,7 +421,7 @@
 <script src="../js/user-app-blacklist-guard.js"></script>
 <script src="../../js/mdm-supplier-archive-store.js"></script>
 <script src="../js/user-app-orders-store.js?v=20260728-merge-main"></script>
-<script src="../js/user-app-orders.js?v=20260728-merge-main"></script>
+<script src="../js/user-app-orders.js?v=20260907-restock-pa-express"></script>
 <script src="../js/user-app-live-invite.js?v=20260904-livepromo3"></script>
 <script src="../js/user-app-auth.js?v=20260904-livepromo3"></script>
 <script src="../js/user-app-queue.js"></script>

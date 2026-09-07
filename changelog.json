@@ -1,7 +1,171 @@
 {
-  "latestSha": "ac83ceb594f108571716e6da05fc2d5f83de56db",
-  "total": 364,
+  "latestSha": "50abb5a8c58ca58cbd011b1fb6decf0f668b263c",
+  "total": 366,
   "days": [
+    {
+      "date": "2026-09-07",
+      "items": [
+        {
+          "sha": "50abb5a",
+          "type": "feat",
+          "text": "待接单快递单支持修改收货地址，选品库保质期和温层改为必填",
+          "author": "sisi",
+          "time": "16:32",
+          "pages": [
+            {
+              "file": "MDM/mdm_product_audit.html",
+              "module": "冷丰WMS",
+              "title": "商品详情"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "module": "冷丰WMS",
+              "title": "选品库"
+            },
+            {
+              "file": "user-app/h5/order-aftersale-list.html",
+              "module": "",
+              "title": "退款/售后 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-address-book.html",
+              "module": "",
+              "title": "地址簿 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-address-create.html",
+              "module": "",
+              "title": "新建寄件人地址 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-detail.html",
+              "module": "",
+              "title": "退款详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-exchange.html",
+              "module": "",
+              "title": "换货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-only.html",
+              "module": "",
+              "title": "仅退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pickup-edit.html",
+              "module": "",
+              "title": "修改上门取件信息 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pickup-order.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pre-ship.html",
+              "module": "",
+              "title": "仅退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-restock.html",
+              "module": "",
+              "title": "补货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return-goods.html",
+              "module": "",
+              "title": "退货商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return-ship.html",
+              "module": "",
+              "title": "预约寄件 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return.html",
+              "module": "",
+              "title": "退货退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-select.html",
+              "module": "",
+              "title": "选择服务类型 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_product_audit.html",
+              "text": "基础信息中保质期天数、温层标为必填并打星号"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "text": "添加商品时保质期天数、温层必填，未填会提示"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "text": "待接单快递单地址卡片增加「修改>」；底栏「修改地址」在取消订单左侧，进入修改地址页"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "text": "进货待接单增加快递演示单和待接单页签"
+            },
+            {
+              "file": "user-app/h5/order-edit-address.html",
+              "text": "新增修改地址页，接单前可反复改址，列表不含原地址"
+            },
+            {
+              "file": "user-app/h5/order-refund-address-book.html",
+              "text": "原功能不变"
+            },
+            {
+              "file": null,
+              "text": "补充待接单快递改地址需求说明"
+            }
+          ]
+        },
+        {
+          "sha": "af012b4",
+          "type": "fix",
+          "text": "优化按商品收货录入操作与数量展示",
+          "author": "342-droid",
+          "time": "15:49",
+          "pages": [
+            {
+              "file": "SCM/ibd_receipt.html",
+              "module": "冷丰WMS",
+              "title": "入库单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/ibd_receipt.html",
+              "text": "增加关闭确认、调整收货字段和默认数量，移除商品列表操作列"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-09-05",
       "items": [
@@ -6697,6 +6861,11 @@
               "title": "订单详情 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-refund-address-book.html",
               "module": "",
               "title": "地址簿 · 用户 APP"
@@ -7623,6 +7792,11 @@
               "file": "user-app/h5/order-detail.html",
               "module": "",
               "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-refund-address-book.html",
@@ -10112,6 +10286,11 @@
               "title": "订单详情 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-refund-address-book.html",
               "module": "",
               "title": "地址簿 · 用户 APP"
@@ -10260,6 +10439,11 @@
               "file": "user-app/h5/order-detail.html",
               "module": "",
               "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-refund-address-book.html",
@@ -10419,6 +10603,11 @@
               "file": "user-app/h5/order-detail.html",
               "module": "",
               "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-refund-address-book.html",
@@ -13245,6 +13434,11 @@
               "title": "订单详情 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-refund-address-book.html",
               "module": "",
               "title": "地址簿 · 用户 APP"
@@ -13386,6 +13580,11 @@
               "title": "订单详情 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-refund-address-book.html",
               "module": "",
               "title": "地址簿 · 用户 APP"
@@ -13496,6 +13695,11 @@
               "file": "user-app/h5/order-detail.html",
               "module": "",
               "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-refund-address-book.html",
@@ -13610,6 +13814,11 @@
               "file": "user-app/h5/order-detail.html",
               "module": "",
               "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-refund-address-book.html",
@@ -13968,6 +14177,11 @@
               "file": "user-app/h5/order-detail.html",
               "module": "",
               "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-refund-address-book.html",
@@ -14494,6 +14708,11 @@
               "title": "订单详情 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-refund-address-book.html",
               "module": "",
               "title": "地址簿 · 用户 APP"
@@ -14716,6 +14935,11 @@
               "title": "订单详情 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-refund-address-book.html",
               "module": "",
               "title": "地址簿 · 用户 APP"
@@ -14884,6 +15108,11 @@
               "file": "user-app/h5/order-detail.html",
               "module": "",
               "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-refund-address-book.html",
@@ -15115,6 +15344,11 @@
               "title": "订单详情 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-refund-address-book.html",
               "module": "",
               "title": "地址簿 · 用户 APP"
@@ -15285,6 +15519,11 @@
               "file": "user-app/h5/order-detail.html",
               "module": "",
               "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-refund-address-book.html",
@@ -15463,6 +15702,11 @@
               "file": "user-app/h5/order-detail.html",
               "module": "",
               "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-logistics.html",
@@ -16139,6 +16383,11 @@
               "title": "订单详情 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-refund-address-book.html",
               "module": "",
               "title": "地址簿 · 用户 APP"
@@ -16261,6 +16510,11 @@
               "file": "user-app/h5/order-detail.html",
               "module": "",
               "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-refund-address-book.html",
@@ -17102,6 +17356,11 @@
               "title": "订单详情 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-refund-address-book.html",
               "module": "",
               "title": "地址簿 · 用户 APP"
@@ -17538,6 +17797,11 @@
               "title": "订单详情 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-refund-address-book.html",
               "module": "",
               "title": "地址簿 · 用户 APP"
@@ -17847,6 +18111,11 @@
               "title": "订单详情 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-refund-address-book.html",
               "module": "",
               "title": "地址簿 · 用户 APP"
@@ -17987,6 +18256,11 @@
               "title": "订单详情 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-refund-address-book.html",
               "module": "",
               "title": "地址簿 · 用户 APP"
@@ -18115,6 +18389,11 @@
               "file": "user-app/h5/order-detail.html",
               "module": "",
               "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-logistics.html",
@@ -18329,6 +18608,11 @@
               "title": "订单详情 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-refund-address-book.html",
               "module": "",
               "title": "地址簿 · 用户 APP"
@@ -18427,6 +18711,11 @@
               "file": "user-app/h5/order-detail.html",
               "module": "",
               "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-refund-address-book.html",
@@ -18528,6 +18817,11 @@
               "title": "订单详情 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-refund-address-book.html",
               "module": "",
               "title": "地址簿 · 用户 APP"
@@ -18627,6 +18921,11 @@
               "title": "订单详情 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-refund-address-book.html",
               "module": "",
               "title": "地址簿 · 用户 APP"
@@ -18720,6 +19019,11 @@
               "file": "user-app/h5/order-detail.html",
               "module": "",
               "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-refund-address-book.html",
@@ -18892,6 +19196,11 @@
               "title": "订单详情 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-refund-address-book.html",
               "module": "",
               "title": "地址簿 · 用户 APP"
@@ -18993,6 +19302,11 @@
               "file": "user-app/h5/order-detail.html",
               "module": "",
               "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-refund-address-book.html",
@@ -19145,6 +19459,11 @@
               "title": "订单详情 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-refund-address-book.html",
               "module": "",
               "title": "地址簿 · 用户 APP"
@@ -19263,6 +19582,11 @@
               "file": "user-app/h5/order-detail.html",
               "module": "",
               "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-refund-address-book.html",
@@ -20365,6 +20689,11 @@
               "title": "订单详情 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-refund-address-book.html",
               "module": "",
               "title": "地址簿 · 用户 APP"
@@ -20470,6 +20799,11 @@
               "file": "user-app/h5/order-detail.html",
               "module": "",
               "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-refund-address-book.html",

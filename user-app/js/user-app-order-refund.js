@@ -2792,6 +2792,32 @@
     return 'order-confirm.html';
   }
 
+  function buildOrderDetailReturnHref() {
+    var from = getParams().get('from') || 'order-detail.html?status=pending_accept';
+    try {
+      var decoded = decodeURIComponent(from);
+      if (/order-detail\.html/i.test(decoded) || /order-detail(\?|$)/i.test(decoded)) {
+        return decoded;
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    return 'order-detail.html?status=pending_accept';
+  }
+
+  function buildOrderEditAddressReturnHref() {
+    var from = getParams().get('from') || 'order-edit-address.html';
+    try {
+      var decoded = decodeURIComponent(from);
+      if (/order-edit-address\.html/i.test(decoded) || /order-edit-address(\?|$)/i.test(decoded)) {
+        return decoded;
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    return 'order-edit-address.html';
+  }
+
   function buildPickupEditReturnHref(extra) {
     extra = extra || {};
     var refundType = extra.type || getRefundType() || 'return';
@@ -9096,13 +9122,15 @@
         ? buildCheckoutReturnHref()
         : addrFrom === 'order_confirm'
           ? buildOrderConfirmReturnHref()
-          : addrFrom === 'profile'
-            ? buildProfileReturnHref()
-            : buildPickupEditHref({
-                type: refundType,
-                stage: stage,
-                pickupEditFrom: getPickupEditFrom()
-              });
+          : addrFrom === 'order_detail'
+            ? buildOrderDetailReturnHref()
+            : addrFrom === 'profile'
+              ? buildProfileReturnHref()
+              : buildPickupEditHref({
+                  type: refundType,
+                  stage: stage,
+                  pickupEditFrom: getPickupEditFrom()
+                });
     var backEl = document.getElementById('addrBookBack');
     if (backEl) backEl.setAttribute('href', backHref);
 
@@ -9684,19 +9712,28 @@
     var editGroupId = params.get('groupId') || '';
     var editAddrId = params.get('addrId') || '';
     var isEdit = params.get('edit') === '1' && !!editGroupId && !!editAddrId;
-    var backHref = buildAddressBookHref({
-      type: refundType,
-      stage: stage,
-      pickupEditFrom: getPickupEditFrom(),
-      addrFrom: getAddrFrom() || ''
-    });
+    var addrFrom = getAddrFrom();
+    var backHref =
+      addrFrom === 'order_edit_address'
+        ? buildOrderEditAddressReturnHref()
+        : buildAddressBookHref({
+            type: refundType,
+            stage: stage,
+            pickupEditFrom: getPickupEditFrom(),
+            addrFrom: addrFrom || ''
+          });
     var backEl = document.getElementById('addrCreateBack');
     if (backEl) backEl.setAttribute('href', backHref);
 
     var titleEl = document.getElementById('addrCreateTitle');
     if (isEdit) {
-      if (titleEl) titleEl.textContent = '编辑寄件人信息';
-      document.title = '编辑寄件人信息 · 用户 APP';
+      if (addrFrom === 'order_edit_address') {
+        if (titleEl) titleEl.textContent = '编辑地址';
+        document.title = '编辑地址 · 用户 APP';
+      } else {
+        if (titleEl) titleEl.textContent = '编辑寄件人信息';
+        document.title = '编辑寄件人信息 · 用户 APP';
+      }
     }
 
     var state = {
@@ -10417,6 +10454,7 @@
     initReturnShipPage: initReturnShipPage,
     initAddressBookPage: initAddressBookPage,
     initAddressCreatePage: initAddressCreatePage,
+    loadAddressBookGroups: loadAddressBookGroups,
     initAftersaleListPage: initAftersaleListPage,
     loadAftersaleRecords: loadAftersaleRecords,
     getAftersaleRecordsByItem: getAftersaleRecordsByItem,

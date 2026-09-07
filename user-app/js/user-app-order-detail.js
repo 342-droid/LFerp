@@ -201,6 +201,119 @@
     phone: '181****4215',
     text: '四川省成都市武侯区天府大道中段666号天府软件园A区'
   };
+  var DEMO_RESTOCK_EXPRESS_ADDRESS = {
+    name: '张店长',
+    phone: '138****6688',
+    text: '浙江省杭州市萧山区建设一路88号 悠悠生鲜超市'
+  };
+  var ORDER_DETAIL_ADDR_KEY = 'ua_order_detail_shipping_address';
+
+  function maskOrderPhone(phone) {
+    var digits = String(phone || '').replace(/\D/g, '');
+    if (digits.length >= 7) {
+      return digits.slice(0, 3) + '****' + digits.slice(-4);
+    }
+    return String(phone || '');
+  }
+
+  function orderAddrStorageKey() {
+    var orderNo = getParams().get('orderNo') || '';
+    return orderNo ? ORDER_DETAIL_ADDR_KEY + '_' + orderNo : ORDER_DETAIL_ADDR_KEY;
+  }
+
+  function readOrderShippingAddress() {
+    try {
+      var raw = sessionStorage.getItem(orderAddrStorageKey());
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && parsed.text) {
+          return {
+            name: parsed.name || DEMO_HOME_ADDRESS.name,
+            phone: parsed.phone || DEMO_HOME_ADDRESS.phone,
+            text: parsed.text
+          };
+        }
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    return isFromRestock() ? DEMO_RESTOCK_EXPRESS_ADDRESS : DEMO_HOME_ADDRESS;
+  }
+
+  function writeOrderShippingAddress(addr) {
+    if (!addr || !addr.text) return;
+    try {
+      sessionStorage.setItem(
+        orderAddrStorageKey(),
+        JSON.stringify({
+          name: addr.name || DEMO_HOME_ADDRESS.name,
+          phone: addr.phone || DEMO_HOME_ADDRESS.phone,
+          text: addr.text
+        })
+      );
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function applyPickedOrderAddress() {
+    try {
+      var raw = sessionStorage.getItem('ua_refund_picked_address');
+      if (!raw) return;
+      var picked = JSON.parse(raw);
+      sessionStorage.removeItem('ua_refund_picked_address');
+      if (!picked || !(picked.full || picked.label)) return;
+      writeOrderShippingAddress({
+        name: picked.contact || DEMO_HOME_ADDRESS.name,
+        phone: maskOrderPhone(picked.phone) || DEMO_HOME_ADDRESS.phone,
+        text: picked.full || picked.label
+      });
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function isRestockExpress() {
+    return isFromRestock() && isStoreDirectDelivery();
+  }
+
+  /* 零售快递到家全程展示地址；进货快递单在待付款/待接单展示可改地址 */
+  function shouldShowShippingAddressCard(status) {
+    if (isUserAppExpressHome()) return true;
+    return isRestockExpress() && (status === 'unpaid' || status === 'pending_accept');
+  }
+
+  function canEditOrderAddress(status) {
+    return shouldShowShippingAddressCard(status) && (status === 'unpaid' || status === 'pending_accept');
+  }
+
+  function buildOrderEditAddressHref() {
+    var returnTo = 'order-detail.html' + (window.location.search || '');
+    return (
+      'order-edit-address.html?from=' + encodeURIComponent(returnTo)
+    );
+  }
+
+  function goEditOrderAddress() {
+    try {
+      var addr = readOrderShippingAddress();
+      var digits = String(addr.phone || '').replace(/\D/g, '');
+      if (digits.length !== 11) {
+        digits = isFromRestock() ? '13866886688' : '18142154215';
+      }
+      sessionStorage.setItem(
+        'ua_order_edit_address_origin',
+        JSON.stringify({
+          name: addr.name,
+          phone: digits,
+          text: addr.text
+        })
+      );
+    } catch (e) {
+      /* ignore */
+    }
+    window.location.href = buildOrderEditAddressHref();
+  }
 
   function buildLogisticsHref(pkgIndex) {
     var params = getParams();
@@ -341,44 +454,54 @@
     }
   }
 
-  /* 用户 APP 快递到家：顶部家庭收货地址；隐藏配送门店 / 配送到店卡片 */
+  /* 快递单地址卡片：零售到家全程展示；进货待付款/待接单可改址 */
   function applyUserAppExpressLayout(status, config) {
     var addressCard = document.getElementById('orderAddressCard');
     var storeCard = document.getElementById('orderStoreCard');
     var addrEdit = document.getElementById('orderAddrEdit');
     var isExpressHome = isUserAppExpressHome();
+    var showAddr = shouldShowShippingAddressCard(status);
 
     if (addressCard) {
-      addressCard.hidden = !isExpressHome;
-      if (isExpressHome) {
+      addressCard.hidden = !showAddr;
+      if (showAddr) {
+        applyPickedOrderAddress();
+        var addr = readOrderShippingAddress();
         var nameEl = document.getElementById('orderAddrName');
         var phoneEl = document.getElementById('orderAddrPhone');
         var textEl = document.getElementById('orderAddrText');
-        if (nameEl) nameEl.textContent = DEMO_HOME_ADDRESS.name;
-        if (phoneEl) phoneEl.textContent = DEMO_HOME_ADDRESS.phone;
-        if (textEl) textEl.textContent = DEMO_HOME_ADDRESS.text;
+        if (nameEl) nameEl.textContent = addr.name;
+        if (phoneEl) phoneEl.textContent = addr.phone;
+        if (textEl) textEl.textContent = addr.text;
       }
     }
 
     if (storeCard) {
-      /* 快递到家不展示门店；配送/补货仍展示配送门店 */
-      storeCard.hidden = isExpressHome;
+      /* 展示地址卡片时不再叠配送门店 */
+      if (showAddr) storeCard.hidden = true;
+      else if (isExpressHome) storeCard.hidden = true;
     }
 
     if (addrEdit) {
-      addrEdit.hidden = !(isExpressHome && status === 'unpaid');
+      addrEdit.hidden = !canEditOrderAddress(status);
     }
 
-    if (!isExpressHome) return config;
+    if (!showAddr && !isExpressHome) return config;
 
     config = Object.assign({}, config);
     config.showStoreDelivery = false;
-    if (status === 'receipt') {
+    if (isExpressHome && status === 'receipt') {
       config.title = '商家已发货';
       config.sub = '快递配送到家，还剩14天23小时自动确认收货';
     } else if (status === 'pending_accept') {
-      config.sub = '已付款，等待商家接单后发货';
-    } else if (status === 'shipping') {
+      config.sub = isFromRestock()
+        ? '已付款，等待供应商接单后发货'
+        : '已付款，等待商家接单后发货';
+      config.footer = [
+        { label: '修改地址', type: 'ghost', action: 'edit_address' },
+        { label: '取消订单', type: 'ghost', action: 'cancel' }
+      ];
+    } else if (isExpressHome && status === 'shipping') {
       config.sub = '供应商正在备货，将快递配送到家';
     }
 
@@ -1299,6 +1422,12 @@
   }
 
   function bindEvents() {
+    var addrEdit = document.getElementById('orderAddrEdit');
+    if (addrEdit && !addrEdit._boundEditAddr) {
+      addrEdit._boundEditAddr = true;
+      addrEdit.addEventListener('click', goEditOrderAddress);
+    }
+
     var copyBtn = document.getElementById('orderCopyBtn');
     if (copyBtn) {
       copyBtn.addEventListener('click', function () {
@@ -1351,6 +1480,10 @@
         var btn = e.target.closest('[data-footer-action]');
         if (!btn) return;
         var action = btn.getAttribute('data-footer-action');
+        if (action === 'edit_address') {
+          goEditOrderAddress();
+          return;
+        }
         if (action === 'cancel') {
           openCancelModal();
           return;
@@ -1528,6 +1661,7 @@
     if (isFromRestock()) {
       config = applyRestockMode(status, config);
       config = applyDeliveryMode(status, config);
+      config = applyUserAppExpressLayout(status, config);
     } else {
       config = applyUserAppExpressLayout(status, config);
       applyRetailPickupStore(status);
