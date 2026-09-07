@@ -1,10 +1,31 @@
 {
-  "latestSha": "50abb5a8c58ca58cbd011b1fb6decf0f668b263c",
-  "total": 366,
+  "latestSha": "0fdd93d727663896c4dbbd77bf079858abf8384c",
+  "total": 367,
   "days": [
     {
       "date": "2026-09-07",
       "items": [
+        {
+          "sha": "0fdd93d",
+          "type": "feat",
+          "text": "新增每日库存报表",
+          "author": "342-droid",
+          "time": "17:42",
+          "pages": [
+            {
+              "file": "SCM/daily_inventory_report.html",
+              "module": "冷丰WMS",
+              "title": "每日库存报表"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "SCM/daily_inventory_report.html",
+              "text": "支持按日期、仓库、货主和商品查询库存汇总，并可导出报表\\n- 通用: 仓储侧边栏新增报表管理及每日库存报表菜单入口"
+            }
+          ]
+        },
         {
           "sha": "50abb5a",
           "type": "feat",

@@ -429,6 +429,11 @@
     "status": "diff",
     "date": "2026-08-25"
   },
+  "0fdd93d|SCM/daily_inventory_report.html": {
+    "after": "changelog-assets/0fdd93d/SCM__daily_inventory_report.html.after.jpg",
+    "status": "added",
+    "date": "2026-09-07"
+  },
   "10f2e60|SCM/obd_outbound.html": {
     "before": "changelog-assets/10f2e60/SCM__obd_outbound.html.before.jpg",
     "after": "changelog-assets/10f2e60/SCM__obd_outbound.html.after.jpg",
