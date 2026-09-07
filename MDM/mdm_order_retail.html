@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
-    <link rel="stylesheet" href="../css/lf-order.css?v=20260831-pay-no">
+    <link rel="stylesheet" href="../css/lf-order.css?v=20260907-live-session">
     <link rel="stylesheet" href="../css/lf-table-personal-view.css?v=20260905-sync">
 </head>
 <body data-order-page="retail">
@@ -49,11 +49,21 @@
                                         <div class="order-filter-switch__menu" hidden role="listbox">
                                             <button type="button" class="order-filter-switch__item is-active" role="option" aria-selected="true" data-value="nickname" data-placeholder="请输入用户昵称">用户昵称</button>
                                             <button type="button" class="order-filter-switch__item" role="option" aria-selected="false" data-value="receiverName" data-placeholder="请输入收货人姓名">收货人姓名</button>
-                                            <button type="button" class="order-filter-switch__item" role="option" aria-selected="false" data-value="receiverPhone" data-placeholder="请输入收货人电话">收货人电话</button>
                                         </div>
                                         <input type="hidden" id="qUserKey" name="qUserKey" value="nickname">
                                     </div>
                                     <input class="order-filter-field__input" id="qNickname" type="text" placeholder="请输入用户昵称" aria-label="用户昵称">
+                                </div>
+                                <div class="order-filter-field" data-view-required>
+                                    <label class="order-filter-field__label" for="qReceiverPhone">收货人电话</label>
+                                    <input class="order-filter-field__input" id="qReceiverPhone" type="text" placeholder="请输入收货人电话" aria-label="收货人电话">
+                                </div>
+                                <div class="order-filter-field" data-view-required>
+                                    <label class="order-filter-field__label" for="qLiveSession">直播场次</label>
+                                    <div class="order-filter-combo" id="qLiveSessionCombo">
+                                        <input class="order-filter-field__input" id="qLiveSession" type="text" placeholder="请输入直播场次" autocomplete="off" aria-label="直播场次" aria-autocomplete="list" aria-controls="qLiveSessionMenu" aria-expanded="false">
+                                        <div class="order-filter-combo__menu" id="qLiveSessionMenu" hidden role="listbox"></div>
+                                    </div>
                                 </div>
                                 <div class="order-filter-field">
                                     <label class="order-filter-field__label" for="qPayChannel">支付渠道</label>
@@ -140,19 +150,6 @@
                                     </div>
                                 </div>
                                 <div class="order-filter-field">
-                                    <div class="order-filter-switch" data-order-filter-switch="live">
-                                        <button type="button" class="order-filter-switch__trigger" aria-expanded="false" aria-haspopup="listbox">
-                                            <span class="order-filter-switch__text">直播场次 ID</span>
-                                        </button>
-                                        <div class="order-filter-switch__menu" hidden role="listbox">
-                                            <button type="button" class="order-filter-switch__item is-active" role="option" aria-selected="true" data-value="session" data-placeholder="请输入场次 ID">直播场次 ID</button>
-                                            <button type="button" class="order-filter-switch__item" role="option" aria-selected="false" data-value="period" data-placeholder="请输入时段 ID">直播时段 ID</button>
-                                        </div>
-                                        <input type="hidden" id="qLiveIdType" name="qLiveIdType" value="session">
-                                    </div>
-                                    <input class="order-filter-field__input" id="qLiveId" type="text" placeholder="请输入场次 ID" aria-label="直播场次 ID">
-                                </div>
-                                <div class="order-filter-field">
                                     <label class="order-filter-field__label" for="qStore">下单门店</label>
                                     <select class="order-filter-field__select" id="qStore">
                                         <option value="">全部</option>
@@ -221,7 +218,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr data-order-id="ORD-3212689201598341" data-delivery-mode="pickup" data-pay-channel="wechat" data-store="华强北" data-pay-no="4200009201598341">
+                                    <tr data-order-id="ORD-3212689201598341" data-delivery-mode="pickup" data-pay-channel="wechat" data-store="华强北" data-pay-no="4200009201598341" data-live-session="美物甄选-9.7午间场">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201598341">ORD-3212689201598341</a></td>
                                         <td>2026-06-05 20:47</td>
                                         <td>赵金芝</td>
@@ -282,7 +279,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201588561-B" data-delivery-mode="pickup" data-pay-channel="wechat" data-store="华强北" data-pay-no="4200009201588566">
+                                    <tr data-order-id="ORD-3212689201588561-B" data-delivery-mode="pickup" data-pay-channel="wechat" data-store="华强北" data-pay-no="4200009201588566" data-live-session="美物甄选-9.6晚间场X">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201588561-B">ORD-3212689201588561</a></td>
                                         <td>2026-06-03 09:36</td>
                                         <td>赵金芝</td>
@@ -350,7 +347,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201584693" data-delivery-mode="pickup" data-pay-channel="alipay" data-as-status="待审核" data-store="德清乾元天恩冷丰店" data-pay-no="2026083101584693">
+                                    <tr data-order-id="ORD-3212689201584693" data-delivery-mode="pickup" data-pay-channel="alipay" data-as-status="待审核" data-store="德清乾元天恩冷丰店" data-pay-no="2026083101584693" data-live-session="美物甄选-9.6晚间场L">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201584693">ORD-3212689201584693</a></td>
                                         <td>2026-06-02 18:07</td>
                                         <td>赵金芝</td>
@@ -406,7 +403,7 @@
                                         <td class="order-status-cell"><span class="order-tag order-tag--pending-pay">待支付</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201562037-A">查看</a></td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201562037-B" data-delivery-mode="pickup" data-as-status="退货成功" data-store="悠悠生鲜超市" data-pay-no="">
+                                    <tr data-order-id="ORD-3212689201562037-B" data-delivery-mode="pickup" data-as-status="退货成功" data-store="悠悠生鲜超市" data-pay-no="" data-live-session="美物甄选-9.6午间场">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201562037-B">ORD-3212689201562037</a></td>
                                         <td>2026-06-02 18:05</td>
                                         <td>赵金芝</td>
@@ -434,7 +431,7 @@
                                         <td class="order-status-cell"><span class="order-tag order-tag--pending-pay">待支付</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201562037-B">查看</a></td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201560683" data-delivery-mode="pickup" data-as-status="退款成功" data-store="德清乾元天恩冷丰店" data-pay-no="">
+                                    <tr data-order-id="ORD-3212689201560683" data-delivery-mode="pickup" data-as-status="退款成功" data-store="德清乾元天恩冷丰店" data-pay-no="" data-live-session="美物甄选-9.5晚间场X">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201560683">ORD-3212689201560683</a></td>
                                         <td>2026-06-02 18:04</td>
                                         <td>赵金芝</td>
@@ -495,7 +492,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201599002" data-delivery-mode="pickup" data-pay-channel="alipay" data-demo-as="退款中·禁核销" data-store="华强北" data-pay-no="2026083101599002">
+                                    <tr data-order-id="ORD-3212689201599002" data-delivery-mode="pickup" data-pay-channel="alipay" data-demo-as="退款中·禁核销" data-store="华强北" data-pay-no="2026083101599002" data-live-session="美物甄选-9.5晚间场L">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599002">ORD-3212689201599002</a></td>
                                         <td>2026-06-04 11:35</td>
                                         <td>宋雨琦</td>
@@ -832,7 +829,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201560682" data-delivery-mode="express" data-pay-channel="alipay" data-store="悠悠生鲜超市" data-pay-no="2026083101560682">
+                                    <tr data-order-id="ORD-3212689201560682" data-delivery-mode="express" data-pay-channel="alipay" data-store="悠悠生鲜超市" data-pay-no="2026083101560682" data-live-session="美物甄选-9.5午间场L">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201560682">ORD-3212689201560682</a></td>
                                         <td>2026-06-02 18:03</td>
                                         <td>赵金芝</td>
@@ -893,7 +890,7 @@
     <script src="../js/order-platform-aftersale.js?v=20260820-as-apply"></script>
     <script src="../js/vendor/xlsx.full.min.js"></script>
     <script src="../js/order-proxy-express.js?v=20260820-goods-info"></script>
-    <script src="../js/order-live-list.js?v=20260905-clearing-nobarcode"></script>
+    <script src="../js/order-live-list.js?v=20260907-live-session"></script>
     <script src="../js/order-live-detail.js?v=20260901-retail-pay"></script>
     <script src="../js/lf-table-personal-view.js?v=20260905-sync"></script>
 </body>

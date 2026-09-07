@@ -32,6 +32,7 @@
           expandBtn.classList.toggle('is-expanded', defaultExpanded);
         }
         if (expandLabel) expandLabel.textContent = defaultExpanded ? '收起' : '展开';
+        closeOrderLiveSessionCombo();
         applyOrderListFilters();
       });
     }
@@ -47,6 +48,7 @@
 
     initOrderFilterSwitches();
     initOrderStatusMulti();
+    initLiveSessionCombo();
   }
 
   function closeOrderFilterSwitches(except) {
@@ -126,11 +128,13 @@
         if (e.target.closest('.order-filter-switch')) return;
         closeOrderFilterSwitches();
         if (!e.target.closest('.order-filter-multi')) closeOrderStatusMulti();
+        if (!e.target.closest('.order-filter-combo')) closeOrderLiveSessionCombo();
       });
       document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
           closeOrderFilterSwitches();
           closeOrderStatusMulti();
+          closeOrderLiveSessionCombo();
         }
       });
     }
@@ -274,6 +278,160 @@
     syncOrderStatusMulti();
   }
 
+  var RETAIL_LIVE_SESSIONS = [
+    '美物甄选-9.7午间场',
+    '美物甄选-9.6晚间场X',
+    '美物甄选-9.6晚间场L',
+    '美物甄选-9.6午间场',
+    '美物甄选-9.5晚间场X',
+    '美物甄选-9.5晚间场L',
+    '美物甄选-9.5午间场L',
+    '美物甄选-9.4晚间场X'
+  ];
+
+  function normalizeFilterText(text) {
+    return String(text || '').replace(/\s+/g, '').toLowerCase();
+  }
+
+  function closeOrderLiveSessionCombo() {
+    var combo = document.getElementById('qLiveSessionCombo');
+    var input = document.getElementById('qLiveSession');
+    var menu = document.getElementById('qLiveSessionMenu');
+    if (combo) combo.classList.remove('is-open');
+    if (input) input.setAttribute('aria-expanded', 'false');
+    if (menu) menu.hidden = true;
+  }
+
+  var ORDER_FILTER_COL_LABELS = {
+    nickname: '用户昵称',
+    receiverName: '收货人姓名',
+    receiverPhone: '收货人电话'
+  };
+
+  function getRowCellByPrefKey(row, key) {
+    var table = row && row.closest('table');
+    if (!table || !key) return '';
+    var label = ORDER_FILTER_COL_LABELS[key] || '';
+    var ths = table.querySelectorAll('thead th');
+    var idx = -1;
+    for (var i = 0; i < ths.length; i++) {
+      if (ths[i].getAttribute('data-preference-key') === key) {
+        idx = i;
+        break;
+      }
+      var headText = String(ths[i].textContent || '').replace(/[?？]/g, '').replace(/\s+/g, '');
+      if (label && headText === label) {
+        idx = i;
+        break;
+      }
+    }
+    if (idx < 0) return '';
+    var td = row.children[idx];
+    return normalizeFilterText(td && td.textContent);
+  }
+
+  function initLiveSessionCombo() {
+    var combo = document.getElementById('qLiveSessionCombo');
+    var input = document.getElementById('qLiveSession');
+    var menu = document.getElementById('qLiveSessionMenu');
+    if (!combo || !input || !menu) return;
+
+    var activeIndex = -1;
+    var visibleItems = [];
+
+    function renderMenu() {
+      var query = normalizeFilterText(input.value);
+      visibleItems = RETAIL_LIVE_SESSIONS.filter(function (name) {
+        return !query || normalizeFilterText(name).indexOf(query) >= 0;
+      });
+      if (!visibleItems.length) {
+        menu.innerHTML = '<div class="order-filter-combo__empty">无匹配场次</div>';
+        activeIndex = -1;
+        return;
+      }
+      if (activeIndex >= visibleItems.length) activeIndex = visibleItems.length - 1;
+      if (activeIndex < 0) activeIndex = 0;
+      menu.innerHTML = visibleItems
+        .map(function (name, idx) {
+          return (
+            '<button type="button" class="order-filter-combo__item' +
+            (idx === activeIndex ? ' is-active' : '') +
+            '" role="option" data-value="' +
+            name.replace(/"/g, '&quot;') +
+            '">' +
+            name +
+            '</button>'
+          );
+        })
+        .join('');
+      var activeEl = menu.querySelector('.order-filter-combo__item.is-active');
+      if (activeEl && typeof activeEl.scrollIntoView === 'function') {
+        activeEl.scrollIntoView({ block: 'nearest' });
+      }
+    }
+
+    function openMenu() {
+      closeOrderFilterSwitches();
+      closeOrderStatusMulti();
+      combo.classList.add('is-open');
+      input.setAttribute('aria-expanded', 'true');
+      menu.hidden = false;
+      renderMenu();
+    }
+
+    function pickItem(name) {
+      input.value = name || '';
+      closeOrderLiveSessionCombo();
+    }
+
+    input.addEventListener('focus', function () {
+      openMenu();
+    });
+    input.addEventListener('click', function (e) {
+      e.stopPropagation();
+      openMenu();
+    });
+    input.addEventListener('input', function () {
+      openMenu();
+    });
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (menu.hidden) openMenu();
+        if (!visibleItems.length) return;
+        if (e.key === 'ArrowDown') {
+          activeIndex = (activeIndex + 1) % visibleItems.length;
+        } else {
+          activeIndex = (activeIndex - 1 + visibleItems.length) % visibleItems.length;
+        }
+        renderMenu();
+        return;
+      }
+      if (e.key === 'Enter' && !menu.hidden && visibleItems.length && activeIndex >= 0) {
+        e.preventDefault();
+        pickItem(visibleItems[activeIndex]);
+      }
+    });
+    menu.addEventListener('mousedown', function (e) {
+      e.preventDefault();
+    });
+    menu.addEventListener('click', function (e) {
+      var item = e.target.closest('.order-filter-combo__item');
+      if (!item) return;
+      pickItem(item.getAttribute('data-value') || item.textContent || '');
+    });
+    menu.addEventListener('mousemove', function (e) {
+      var item = e.target.closest('.order-filter-combo__item');
+      if (!item) return;
+      var items = menu.querySelectorAll('.order-filter-combo__item');
+      items.forEach(function (btn, idx) {
+        var active = btn === item;
+        btn.classList.toggle('is-active', active);
+        if (active) activeIndex = idx;
+      });
+    });
+  }
+
   /** 零售/代采/直播：支付渠道、支付流水；零售/代采另支持下单门店，零售另支持履约方式 */
   function applyOrderListFilters() {
     var page = document.body ? document.body.getAttribute('data-order-page') : '';
@@ -292,6 +450,14 @@
     var store = storeSel ? (storeSel.value || '').trim() : '';
     var payNoInput = document.getElementById('qPayNo');
     var payNo = payNoInput ? (payNoInput.value || '').trim() : '';
+    var userKeyEl = document.getElementById('qUserKey');
+    var userKey = userKeyEl ? (userKeyEl.value || 'nickname') : 'nickname';
+    var userInput = document.getElementById('qNickname');
+    var userQ = userInput ? normalizeFilterText(userInput.value) : '';
+    var phoneInput = document.getElementById('qReceiverPhone');
+    var phoneQ = phoneInput ? normalizeFilterText(phoneInput.value) : '';
+    var liveInput = document.getElementById('qLiveSession');
+    var liveQ = liveInput ? normalizeFilterText(liveInput.value) : '';
     var statusLabels = getSelectedOrderStatusLabels();
 
     var tbody = document.querySelector('.order-live-table tbody');
@@ -327,6 +493,24 @@
           : '';
         show = rowPayNo.indexOf(needle) >= 0 || cellPayNo.indexOf(needle) >= 0;
       }
+      if (show && (userQ || phoneQ)) {
+        if (userQ) {
+          var userCol =
+            userKey === 'receiverName'
+              ? 'receiverName'
+              : userKey === 'receiverPhone'
+                ? 'receiverPhone'
+                : 'nickname';
+          show = getRowCellByPrefKey(row, userCol).indexOf(userQ) >= 0;
+        }
+        if (show && phoneQ) {
+          show = getRowCellByPrefKey(row, 'receiverPhone').indexOf(phoneQ) >= 0;
+        }
+      }
+      if (show && liveQ) {
+        var rowLive = normalizeFilterText(row.getAttribute('data-live-session') || '');
+        show = rowLive.indexOf(liveQ) >= 0;
+      }
       /* 发起退货/退款：只看售后状态，不改订单状态列；与履约态同时勾选时为或关系 */
       if (show && statusLabels.length) {
         var orderStatuses = statusLabels.filter(function (label) {
@@ -355,6 +539,9 @@
       scene ||
       store ||
       payNo ||
+      userQ ||
+      phoneQ ||
+      liveQ ||
       (!isLive && statusLabels.length)
     );
     if (totalEl && hasFilter) {

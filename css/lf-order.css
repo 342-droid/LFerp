@@ -463,6 +463,50 @@
   border-color: var(--color-primary, #ff7019);
 }
 
+.order-filter-combo {
+  position: relative;
+}
+
+.order-filter-combo__menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 260px;
+  overflow: auto;
+  padding: 4px 0;
+  background: #ffffff;
+  border-radius: 4px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  z-index: 34;
+}
+
+.order-filter-combo__item {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: 0;
+  background: transparent;
+  font-size: 13px;
+  font-family: inherit;
+  line-height: 1.4;
+  color: #333333;
+  text-align: left;
+  cursor: pointer;
+}
+
+.order-filter-combo__item:hover,
+.order-filter-combo__item.is-active {
+  background: #ecf5ff;
+}
+
+.order-filter-combo__empty {
+  padding: 16px 12px;
+  font-size: 13px;
+  color: #999999;
+  text-align: center;
+}
+
 .order-filter-actions {
   display: flex;
   align-items: center;
