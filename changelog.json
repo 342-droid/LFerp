@@ -1,10 +1,49 @@
 {
-  "latestSha": "0fdd93d727663896c4dbbd77bf079858abf8384c",
-  "total": 367,
+  "latestSha": "f0382acd028a4fa44ea23c2e9737a8039d48c38b",
+  "total": 368,
   "days": [
     {
       "date": "2026-09-07",
       "items": [
+        {
+          "sha": "f0382ac",
+          "type": "feat",
+          "text": "零售与代采订单支持按收货人电话独立搜索",
+          "author": "sisi",
+          "time": "19:11",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_queue.html",
+              "module": "冷丰WMS",
+              "title": "排队记录"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "收货人电话从用户昵称中拆出独立搜索；去掉直播场次ID和时段ID，改为可输入名称模糊搜索或下拉选择直播场次"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "text": "收货人电话从用户昵称中拆出独立搜索"
+            }
+          ]
+        },
         {
           "sha": "0fdd93d",
           "type": "feat",
