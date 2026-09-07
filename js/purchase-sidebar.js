@@ -4,6 +4,7 @@
     const pageHref = function (f) { return wp.page(f); };
     const assetHref = function (r) { return wp.asset(r); };
     const currentPage = window.location.pathname.split('/').pop() || 'purchase_index.html';
+    const orderChannel = new URLSearchParams(window.location.search).get('channel') || '';
 
     const sidebarContainer = document.getElementById('sidebar-container');
     if (!sidebarContainer) {
@@ -20,8 +21,14 @@
     const isReturnManagementSection = isReturnOrderPage;
 
     const storeOrderSubmenuHtml =
-        '<li><a href="' + pageHref('purchase_store_demand_summary.html') + '"' + (isSummaryPage ? ' class="active"' : '') + '>门店订货汇总</a></li>' +
-        '<li><a href="' + pageHref('purchase_store_order_sheet.html') + '"' + (isOrderSheetPage ? ' class="active"' : '') + '>门店订货单</a></li>';
+        '<li class="menu-item"><a href="#" class="menu-link" onclick="toggleSubmenu(this)"><span>零售订货</span><button class="menu-toggle" type="button">▶</button></a>' +
+        '<ul class="submenu' + (orderChannel === '零售订单' ? ' expanded' : '') + '">' +
+        '<li><a href="' + pageHref('purchase_store_demand_summary.html') + '?channel=零售订单"' + (isSummaryPage && orderChannel === '零售订单' ? ' class="active"' : '') + '>零售订货汇总</a></li>' +
+        '<li><a href="' + pageHref('purchase_store_order_sheet.html') + '?channel=零售订单"' + (isOrderSheetPage && orderChannel === '零售订单' ? ' class="active"' : '') + '>零售订货单</a></li></ul></li>' +
+        '<li class="menu-item"><a href="#" class="menu-link" onclick="toggleSubmenu(this)"><span>代采订货</span><button class="menu-toggle" type="button">▶</button></a>' +
+        '<ul class="submenu' + (orderChannel === '代采订单' ? ' expanded' : '') + '">' +
+        '<li><a href="' + pageHref('purchase_store_demand_summary.html') + '?channel=代采订单"' + (isSummaryPage && orderChannel === '代采订单' ? ' class="active"' : '') + '>代采订货汇总</a></li>' +
+        '<li><a href="' + pageHref('purchase_store_order_sheet.html') + '?channel=代采订单"' + (isOrderSheetPage && orderChannel === '代采订单' ? ' class="active"' : '') + '>代采订货单</a></li></ul></li>';
 
     sidebarContainer.innerHTML =
         '<aside class="sidebar" id="sidebar">' +
@@ -33,7 +40,7 @@
         '<li class="menu-item">' +
         '<a href="#" class="menu-link" onclick="toggleSubmenu(this)">' +
         '<img src="' + assetHref('image/基础信息.svg') + '" alt="门店订货" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
-        '<span>门店订货</span>' +
+        '<span>订货管理</span>' +
         '<button class="menu-toggle" type="button">' + (isStoreOrderSection ? '▼' : '▶') + '</button>' +
         '</a>' +
         '<ul class="submenu' + (isStoreOrderSection ? ' expanded' : '') + '">' + storeOrderSubmenuHtml + '</ul>' +

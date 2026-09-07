@@ -61,9 +61,10 @@ async function freshPage(pathname) {
   return { context, page };
 }
 
-test('system admin exposes the four domain-owned tag capabilities', async () => {
-  const { context, page } = await freshPage('/SCM/basic_settings_system.html');
+test('basic settings owns a separate capability menu without moving product tag management', async () => {
+  const { context, page } = await freshPage('/SCM/basic_settings_business_tags.html');
 
+  assert.equal(await page.getByRole('link', { name: /标签管理/ }).count(), 1);
   assert.equal(await page.getByRole('heading', { name: '标签能力配置', exact: true }).count(), 1);
   assert.equal(await page.locator('[data-business-tag-module]').count(), 4);
   for (const code of ['STORE_TAG', 'MEMBER_TAG', 'MDM_PRODUCT_TAG', 'AFTER_SALE_TAG']) {
@@ -73,10 +74,11 @@ test('system admin exposes the four domain-owned tag capabilities', async () => 
     assert.equal(await page.getByText(label, { exact: true }).count(), 1);
   }
   assert.equal(await page.getByText('业务用途', { exact: true }).count(), 0);
+  assert.equal(await page.getByRole('heading', { name: '标签库管理', exact: true }).count(), 0);
+  assert.equal(await page.getByRole('button', { name: '管理商品标签', exact: true }).count(), 0);
 
-  await page.locator('[data-business-tag-module="MDM_PRODUCT_TAG"]').getByRole('switch').uncheck();
   await page.goto(`${ORIGIN}/MDM/mdm_product_selection.html`);
-  assert.equal(await page.getByRole('button', { name: '标签管理', exact: true }).isVisible(), false);
+  assert.equal(await page.getByRole('button', { name: '标签管理', exact: true }).isVisible(), true);
 
   await context.close();
 });
@@ -112,7 +114,7 @@ test('product tag management owns facts while requirement 570 binds tags from th
 });
 
 test('business tag bindings can be cleared and colors reject unsafe CSS values', async () => {
-  const { context, page } = await freshPage('/SCM/basic_settings_system.html');
+  const { context, page } = await freshPage('/SCM/basic_settings_business_tags.html');
   const result = await page.evaluate(() => {
     const store = window.BusinessTagPrototypeStore;
     store.saveBinding('STORE', 'STORE-CLEAR-CHECK', ['store-focus']);

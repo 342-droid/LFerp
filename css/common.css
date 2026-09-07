@@ -401,7 +401,7 @@ body {
     transition: transform 0.2s ease;
 }
 
-.menu-item:has(.submenu.expanded) .menu-toggle {
+.menu-item:has(> .submenu.expanded) > .menu-link .menu-toggle {
     transform: rotate(180deg);
 }
 
@@ -419,6 +419,14 @@ body {
 
 .submenu li {
     margin-bottom: 4px;
+}
+
+.submenu li.submenu-group-title {
+    margin: 8px 0 2px;
+    padding: 4px 14px 2px 36px;
+    color: #aeb6c4;
+    font-size: 12px;
+    cursor: default;
 }
 
 .submenu li a {

@@ -395,7 +395,7 @@
 
   ready(function () {
     var page = pageName();
-    if (page === 'basic_settings_system.html') mountCapabilityPage();
+    if (page === 'basic_settings_business_tags.html') mountCapabilityPage();
     else if (page === 'mdm_aftersale_ticket.html') mountAfterSaleList();
     else if (page === 'mdm_aftersale_ticket_detail.html') mountAfterSaleDetail();
     else if (page === 'mdm_archive_store.html') {

@@ -869,6 +869,13 @@
   function init() {
     var path = normalizePath(window.location.pathname);
     var profile = profiles[path];
+    if (!profile) {
+      var modulePath = path.match(/\/(?:MDM|SCM)\/.*$/);
+      if (modulePath) {
+        path = modulePath[0];
+        profile = profiles[path];
+      }
+    }
     if (!profile && !/\.html$/.test(path)) profile = profiles[path + '.html'];
     if (!profile) return;
     var controller = createController(profile);

@@ -1,10 +1,408 @@
 {
-  "latestSha": "771b96d6f84023923d150ada5e913cbca9be3ec4",
-  "total": 356,
+  "latestSha": "af012b4e96a6faa2bf9682dfeb34a0aeabf001b8",
+  "total": 365,
   "days": [
+    {
+      "date": "2026-09-07",
+      "items": [
+        {
+          "sha": "af012b4",
+          "type": "fix",
+          "text": "优化按商品收货录入操作与数量展示",
+          "author": "342-droid",
+          "time": "15:49",
+          "pages": [
+            {
+              "file": "SCM/ibd_receipt.html",
+              "module": "冷丰WMS",
+              "title": "入库单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/ibd_receipt.html",
+              "text": "增加关闭确认、调整收货字段和默认数量，移除商品列表操作列"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-09-05",
       "items": [
+        {
+          "sha": "ac83ceb",
+          "type": "feat",
+          "text": "调整订货管理菜单与渠道页面",
+          "author": "342-droid",
+          "time": "17:24",
+          "pages": [
+            {
+              "file": "SCM/purchase_demand_summary.html",
+              "module": "冷丰采购",
+              "title": "采购需求汇总"
+            },
+            {
+              "file": "SCM/purchase_index.html",
+              "module": "冷丰采购",
+              "title": "首页"
+            },
+            {
+              "file": "SCM/purchase_order.html",
+              "module": "冷丰采购",
+              "title": "采购单"
+            },
+            {
+              "file": "SCM/purchase_return_order.html",
+              "module": "冷丰WMS",
+              "title": "退货单"
+            },
+            {
+              "file": "SCM/purchase_store_demand_summary.html",
+              "module": "冷丰采购",
+              "title": "门店订货汇总"
+            },
+            {
+              "file": "SCM/purchase_store_order_sheet.html",
+              "module": "冷丰采购",
+              "title": "门店订货单"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "SCM/purchase_store_demand_summary.html",
+              "text": "移除订单渠道查询并按渠道访问"
+            },
+            {
+              "file": "SCM/purchase_store_order_sheet.html",
+              "text": "移除订单渠道查询并按渠道访问"
+            },
+            {
+              "file": null,
+              "text": "统一订货管理二级菜单结构与三角形交互"
+            }
+          ]
+        },
+        {
+          "sha": "98f3877",
+          "type": "feat",
+          "text": "采购单新增商品明细补充条码信息",
+          "author": "342-droid",
+          "time": "16:47",
+          "pages": [
+            {
+              "file": "SCM/purchase_order.html",
+              "module": "冷丰采购",
+              "title": "采购单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/purchase_order.html",
+              "text": "新增商品条码、规格、单位、保质期字段并支持选品自动回填"
+            },
+            {
+              "file": "SCM/purchase_order.html",
+              "text": "采购单模拟数据: 补充 EAN-13 风格商品条码 Mock 数据"
+            }
+          ]
+        },
+        {
+          "sha": "803d72c",
+          "type": "fix",
+          "text": "保持筛选操作区右对齐",
+          "author": "Di Wu",
+          "time": "15:39",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "module": "冷丰售后",
+              "title": "售后单"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            },
+            {
+              "file": "SCM/purchase_order.html",
+              "module": "冷丰采购",
+              "title": "采购单"
+            },
+            {
+              "file": "SCM/purchase_store_order_sheet.html",
+              "module": "冷丰采购",
+              "title": "门店订货单"
+            }
+          ]
+        },
+        {
+          "sha": "5a934c1",
+          "type": "fix",
+          "text": "兼容 Pages 基础路径挂载个人视图",
+          "author": "Di Wu",
+          "time": "15:31",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "module": "冷丰售后",
+              "title": "售后单"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            },
+            {
+              "file": "SCM/purchase_order.html",
+              "module": "冷丰采购",
+              "title": "采购单"
+            },
+            {
+              "file": "SCM/purchase_store_order_sheet.html",
+              "module": "冷丰采购",
+              "title": "门店订货单"
+            }
+          ]
+        },
+        {
+          "sha": "7bb47bb",
+          "type": "fix",
+          "text": "恢复商品标签管理入口",
+          "author": "Di Wu",
+          "time": "15:04",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "module": "冷丰售后",
+              "title": "售后单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "module": "冷丰WMS",
+              "title": "选品库"
+            },
+            {
+              "file": "SCM/basic_settings_business_tags.html",
+              "module": "冷丰WMS",
+              "title": "标签管理"
+            }
+          ]
+        },
+        {
+          "sha": "55f316a",
+          "type": "fix",
+          "text": "仅拆分标签管理菜单",
+          "author": "Di Wu",
+          "time": "15:02",
+          "pages": [
+            {
+              "file": "SCM/basic_settings_business_tags.html",
+              "module": "冷丰WMS",
+              "title": "标签管理"
+            }
+          ]
+        },
+        {
+          "sha": "78bc824",
+          "type": "fix",
+          "text": "标签管理入口移至基础设置",
+          "author": "Di Wu",
+          "time": "14:50",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "module": "冷丰售后",
+              "title": "售后单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "module": "冷丰WMS",
+              "title": "选品库"
+            },
+            {
+              "file": "SCM/basic_settings_business_tags.html",
+              "module": "冷丰WMS",
+              "title": "标签管理"
+            },
+            {
+              "file": "SCM/basic_settings_contract_config.html",
+              "module": "冷丰WMS",
+              "title": "接入配置"
+            },
+            {
+              "file": "SCM/basic_settings_contract_party.html",
+              "module": "冷丰WMS",
+              "title": "签署主体"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task.html",
+              "module": "冷丰WMS",
+              "title": "签署任务"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_detail.html",
+              "module": "冷丰WMS",
+              "title": "签署任务详情"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template.html",
+              "module": "冷丰WMS",
+              "title": "合同模板"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template_form.html",
+              "module": "冷丰WMS",
+              "title": "合同模板配置"
+            },
+            {
+              "file": "SCM/basic_settings_cooperation.html",
+              "module": "冷丰WMS",
+              "title": "合作管理"
+            },
+            {
+              "file": "SCM/basic_settings_file_center.html",
+              "module": "冷丰WMS",
+              "title": "文件中心"
+            },
+            {
+              "file": "SCM/basic_settings_material.html",
+              "module": "冷丰WMS",
+              "title": "素材列表"
+            },
+            {
+              "file": "SCM/basic_settings_material_type.html",
+              "module": "冷丰WMS",
+              "title": "素材类型"
+            },
+            {
+              "file": "SCM/basic_settings_member.html",
+              "module": "冷丰WMS",
+              "title": "会员配置"
+            },
+            {
+              "file": "SCM/basic_settings_miniprogram_agreement.html",
+              "module": "冷丰WMS",
+              "title": "小程序协议"
+            },
+            {
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
+            },
+            {
+              "file": "SCM/basic_settings_recommendation.html",
+              "module": "冷丰WMS",
+              "title": "推荐位配置"
+            },
+            {
+              "file": "SCM/basic_settings_system.html",
+              "module": "冷丰WMS",
+              "title": "系统管理"
+            }
+          ]
+        },
+        {
+          "sha": "84457ae",
+          "type": "feat",
+          "text": "直播排品支持删除本场SPU",
+          "author": "sisi",
+          "time": "14:47",
+          "pages": [
+            {
+              "file": "MDM/mdm_live_control.html",
+              "module": "冷丰WMS",
+              "title": "直播中控"
+            },
+            {
+              "file": "MDM/mdm_live_data.html",
+              "module": "冷丰WMS",
+              "title": "直播数据"
+            },
+            {
+              "file": "MDM/mdm_live_product_category.html",
+              "module": "冷丰WMS",
+              "title": "直播类目"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched.html",
+              "module": "冷丰WMS",
+              "title": "直播排品"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "module": "冷丰WMS",
+              "title": "直播排品编辑"
+            },
+            {
+              "file": "MDM/mdm_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间"
+            },
+            {
+              "file": "MDM/mdm_live_session.html",
+              "module": "冷丰WMS",
+              "title": "直播场次"
+            },
+            {
+              "file": "MDM/mdm_live_session_detail.html",
+              "module": "冷丰WMS",
+              "title": "直播场次详情"
+            },
+            {
+              "file": "MDM/mdm_live_session_form.html",
+              "module": "冷丰WMS",
+              "title": "直播场次编辑"
+            },
+            {
+              "file": "MDM/mdm_live_timeslot.html",
+              "module": "冷丰WMS",
+              "title": "直播时段"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "module": "冷丰WMS",
+              "title": "秒杀活动"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "module": "冷丰WMS",
+              "title": "编辑秒杀商品"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_live_product_sched.html",
+              "text": "草稿和下架可在更多里删除本场排品，上架中须先下架；更多菜单改为页面悬浮，不被表格滚动裁切"
+            }
+          ]
+        },
         {
           "sha": "771b96d",
           "type": "feat",
@@ -41,6 +439,11 @@
               "file": "MDM/mdm_product_selection.html",
               "module": "冷丰WMS",
               "title": "选品库"
+            },
+            {
+              "file": "SCM/basic_settings_business_tags.html",
+              "module": "冷丰WMS",
+              "title": "标签管理"
             },
             {
               "file": "SCM/basic_settings_system.html",
@@ -2742,6 +3145,11 @@
               "file": "MDM/mdm_super_admin_accounts.html",
               "module": "冷丰WMS",
               "title": "商户主体建档"
+            },
+            {
+              "file": "SCM/basic_settings_business_tags.html",
+              "module": "冷丰WMS",
+              "title": "标签管理"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -6793,6 +7201,11 @@
               "title": "零售订单"
             },
             {
+              "file": "SCM/basic_settings_business_tags.html",
+              "module": "冷丰WMS",
+              "title": "标签管理"
+            },
+            {
               "file": "SCM/basic_settings_contract_config.html",
               "module": "冷丰WMS",
               "title": "接入配置"
@@ -7743,6 +8156,11 @@
               "title": "商户主体建档"
             },
             {
+              "file": "SCM/basic_settings_business_tags.html",
+              "module": "冷丰WMS",
+              "title": "标签管理"
+            },
+            {
               "file": "SCM/basic_settings_contract_config.html",
               "module": "冷丰WMS",
               "title": "接入配置"
@@ -8005,6 +8423,11 @@
               "file": "MDM/mdm_settle_index.html",
               "module": "冷丰结算",
               "title": "结算中心"
+            },
+            {
+              "file": "SCM/basic_settings_business_tags.html",
+              "module": "冷丰WMS",
+              "title": "标签管理"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -22098,6 +22521,11 @@
               "file": "MDM/mdm_workbench.html",
               "module": "冷丰WMS",
               "title": "工作台"
+            },
+            {
+              "file": "SCM/basic_settings_business_tags.html",
+              "module": "冷丰WMS",
+              "title": "标签管理"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",

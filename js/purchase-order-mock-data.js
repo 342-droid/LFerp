@@ -303,4 +303,20 @@
             ]
         }
     ];
+
+    // 商品条码模拟数据（EAN-13 格式），供采购单新增选品回填使用
+    var mockProductBarcodes = {
+        SKU001: '6901234567001',
+        SKU002: '6901234567018',
+        SKU003: '6901234567025',
+        SKU004: '6901234567032',
+        SKU005: '6901234567049',
+        SKU006: '6901234567056',
+        SKU007: '6901234567063'
+    };
+    window.PURCHASE_ORDERS.forEach(function(order) {
+        (order.lines || []).forEach(function(line) {
+            if (mockProductBarcodes[line.skuCode]) line.barcode = mockProductBarcodes[line.skuCode];
+        });
+    });
 })();
