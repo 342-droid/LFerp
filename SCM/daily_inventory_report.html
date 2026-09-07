@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 每日库存报表</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        .daily-report-search .form-group { min-width: 230px; }
+        .daily-report-search input[readonly] { background: #f5f5f5; color: #666; cursor: not-allowed; }
+        .daily-report-table .wms-sku-image { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid #eee; }
+        .daily-report-table td, .daily-report-table th { white-space: nowrap; }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/wms-sidebar.js"></script>
+    <div id="header-container"></div>
+
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button class="active">每日库存报表</button></div>
+            <hr class="content-divider">
+            <div class="content-title">报表管理 / 库内报表 / 每日库存报表</div>
+
+            <section class="search-section">
+                <form class="search-form daily-report-search" id="dailyReportSearchForm">
+                    <div class="form-group">
+                        <label>日期:</label>
+                        <input type="date" id="reportDate">
+                    </div>
+                    <div class="form-group">
+                        <label>仓库:</label>
+                        <input type="text" id="reportWarehouse" readonly>
+                    </div>
+                    <div class="form-group custom-select-wrapper">
+                        <label>货主:</label>
+                        <div class="custom-select">
+                            <input type="text" id="reportCompany" placeholder="请选择或输入搜索">
+                            <span class="select-arrow">▼</span><span class="clear-btn">×</span>
+                            <div class="select-dropdown" id="reportCompanyDropdown"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>商品:</label>
+                        <div class="input-wrapper"><input type="text" id="reportSku" placeholder="请输入商品编码/条码/名称"><span class="clear-btn">×</span></div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">查询</button>
+                        <button type="button" class="btn btn-secondary" id="exportDailyReportBtn">导出</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table daily-report-table">
+                        <thead><tr><th>日期</th><th>仓库</th><th>货主</th><th>商品图片</th><th>商品编码</th><th>商品名称</th><th>商品规格</th><th>商品单位</th><th>总库存量</th><th>总占用量</th><th>总可用量</th></tr></thead>
+                        <tbody id="dailyReportTableBody"></tbody>
+                    </table>
+                </div>
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        const dailyInventoryData = [
+            { date: '2026-09-07', warehouseCode: 'W001', warehouseName: '南京仓', companyCode: 'C001', companyName: '货主1', skuCode: 'SKU001', skuName: '商品A', skuSpec: '500g/袋', unit: '件', image: '../user-app/assets/order-product-1.svg', quantity: 100, occupied: 20 },
+            { date: '2026-09-07', warehouseCode: 'W001', warehouseName: '南京仓', companyCode: 'C002', companyName: '货主2', skuCode: 'SKU002', skuName: '商品B', skuSpec: '1kg/盒', unit: '箱', image: '../user-app/assets/order-product-2.svg', quantity: 200, occupied: 50 },
+            { date: '2026-09-07', warehouseCode: 'W001', warehouseName: '南京仓', companyCode: 'C003', companyName: '货主3', skuCode: 'SKU003', skuName: '商品C', skuSpec: '12盒/箱', unit: '个', image: '../user-app/assets/order-product-3.svg', quantity: 50, occupied: 10 },
+            { date: '2026-09-06', warehouseCode: 'W001', warehouseName: '南京仓', companyCode: 'C001', companyName: '货主1', skuCode: 'SKU004', skuName: '商品D', skuSpec: '250g/袋', unit: '件', image: '../user-app/assets/order-product-1.svg', quantity: 80, occupied: 12 }
+        ];
+
+        const escapeReportHtml = (value) => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
+        const reportDateText = (value) => String(value || '').replace(/-/g, '');
+
+        function getReportWarehouse() {
+            const saved = typeof getSavedWarehouse === 'function' ? getSavedWarehouse() : null;
+            return saved || (WMSConfig.warehouses && WMSConfig.warehouses[0]) || { code: 'W001', name: '南京仓' };
+        }
+
+        function renderDailyReport() {
+            const date = document.getElementById('reportDate').value;
+            const company = document.getElementById('reportCompany').value.trim().toLowerCase();
+            const sku = document.getElementById('reportSku').value.trim().toLowerCase();
+            const warehouse = getReportWarehouse();
+            const rows = dailyInventoryData.filter(item =>
+                item.date === date && item.warehouseCode === warehouse.code &&
+                (!company || `${item.companyCode} ${item.companyName}`.toLowerCase().includes(company)) &&
+                (!sku || `${item.skuCode} ${item.skuName}`.toLowerCase().includes(sku))
+            );
+            document.getElementById('dailyReportTableBody').innerHTML = rows.map(item => `<tr>
+                <td>${reportDateText(item.date)}</td><td>${escapeReportHtml(item.warehouseCode + '-' + item.warehouseName)}</td><td>${escapeReportHtml(item.companyCode + '-' + item.companyName)}</td>
+                <td><img class="wms-sku-image" src="${escapeReportHtml(item.image)}" alt="${escapeReportHtml(item.skuName)}"></td><td>${escapeReportHtml(item.skuCode)}</td><td>${escapeReportHtml(item.skuName)}</td><td>${escapeReportHtml(item.skuSpec)}</td><td>${escapeReportHtml(item.unit)}</td><td>${item.quantity}</td><td>${item.occupied}</td><td>${item.quantity - item.occupied}</td>
+            </tr>`).join('') || '<tr><td colspan="11" class="empty-state">暂无数据</td></tr>';
+            window.currentDailyReportRows = rows;
+        }
+
+        function exportDailyReport() {
+            const rows = window.currentDailyReportRows || [];
+            if (!rows.length) { showToast('暂无可导出的数据'); return; }
+            const headers = ['日期', '仓库', '货主', '商品编码', '商品名称', '商品规格', '商品单位', '总库存量', '总占用量', '总可用量'];
+            const csv = [headers, ...rows.map(item => [reportDateText(item.date), `${item.warehouseCode}-${item.warehouseName}`, `${item.companyCode}-${item.companyName}`, item.skuCode, item.skuName, item.skuSpec, item.unit, item.quantity, item.occupied, item.quantity - item.occupied])]
+                .map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(',')).join('\n');
+            const url = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' }));
+            const link = document.createElement('a'); link.href = url; link.download = '每日库存报表.csv'; link.click(); URL.revokeObjectURL(url);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const warehouse = getReportWarehouse();
+            document.getElementById('reportWarehouse').value = `${warehouse.code}-${warehouse.name}`;
+            document.getElementById('reportDate').value = new Date().toISOString().slice(0, 10);
+            const companies = [...new Set(dailyInventoryData.map(item => `${item.companyCode} ${item.companyName}`))];
+            document.getElementById('reportCompanyDropdown').innerHTML = companies.map(item => `<div class="select-option" data-value="${escapeReportHtml(item)}">${escapeReportHtml(item)}</div>`).join('');
+            initCustomSelect('reportCompany', 'reportCompanyDropdown');
+            document.getElementById('dailyReportSearchForm').addEventListener('submit', e => { e.preventDefault(); renderDailyReport(); });
+            document.getElementById('exportDailyReportBtn').addEventListener('click', exportDailyReport);
+            document.addEventListener('warehouseChange', () => { const current = getReportWarehouse(); document.getElementById('reportWarehouse').value = `${current.code}-${current.name}`; renderDailyReport(); });
+            renderDailyReport();
+        });
+    </script>
+</body>
+</html>

@@ -87,6 +87,15 @@
         { href: 'negative_inventory.html', text: '负库存' }
     ];
 
+    // 报表管理菜单项
+    const reportMenuItems = [
+        { href: '#', text: '入库报表' },
+        { href: '#', text: '出库报表' }
+    ];
+    const innerReportMenuItems = [
+        { href: 'daily_inventory_report.html', text: '每日库存报表' }
+    ];
+
     // 运维工具菜单项
     const opsToolsMenuItems = [
         { href: 'ops_one_click_init.html', text: '一键初始化' }
@@ -105,6 +114,8 @@
     const isInventoryAdjustPage = currentPage === 'inventory_adjustment.html';
     const isInnerWarehousePage = isInnerWarehouseInventoryPage || isInventoryAdjustPage;
     const isExceptionPage = exceptionMenuItems.some(item => item.href === currentPage);
+    const isReportPage = reportMenuItems.some(item => item.href === currentPage);
+    const isDailyInventoryReportPage = innerReportMenuItems.some(item => item.href === currentPage);
     const isOpsToolsPage = opsToolsMenuItems.some(item => item.href === currentPage);
 
     const basicMenuHtml = basicMenuItems.map(item => 
@@ -136,6 +147,13 @@
     ).join('');
 
     const innerWarehouseInventoryMenuHtml = innerWarehouseInventoryMenuItems.map(item =>
+        '<li><a href="' + pageHref(item.href) + '"' + (item.href === currentPage ? ' class="active"' : '') + '>' + item.text + '</a></li>'
+    ).join('');
+
+    const reportMenuHtml = reportMenuItems.map(item =>
+        '<li><a href="' + pageHref(item.href) + '"' + (item.href === currentPage ? ' class="active"' : '') + '>' + item.text + '</a></li>'
+    ).join('');
+    const innerReportMenuHtml = innerReportMenuItems.map(item =>
         '<li><a href="' + pageHref(item.href) + '"' + (item.href === currentPage ? ' class="active"' : '') + '>' + item.text + '</a></li>'
     ).join('');
     
@@ -251,6 +269,22 @@
             '<button class="menu-toggle">▼</button>' +
             '</a>' +
             '<ul class="submenu' + (isExceptionPage ? ' expanded' : '') + '">' + exceptionMenuHtml + '</ul>' +
+            '</li>' +
+            '<li class="menu-item">' +
+            '<a href="#" class="menu-link" onclick="toggleSubmenu(this)">' +
+            '<img src="' + assetHref('image/库存管理.svg') + '" alt="报表管理" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
+            '<span>报表管理</span>' +
+            '<button class="menu-toggle">▼</button>' +
+            '</a>' +
+            '<ul class="submenu' + (isReportPage || isDailyInventoryReportPage ? ' expanded' : '') + '">' + reportMenuHtml +
+            '<li>' +
+            '<a href="#" class="menu-link" onclick="toggleSubmenu(this)">' +
+            '<span>库内报表</span>' +
+            '<button class="menu-toggle">▼</button>' +
+            '</a>' +
+            '<ul class="submenu' + (isDailyInventoryReportPage ? ' expanded' : '') + '">' + innerReportMenuHtml + '</ul>' +
+            '</li>' +
+            '</ul>' +
             '</li>' +
             '<li class="menu-item">' +
             '<a href="#" class="menu-link" onclick="toggleSubmenu(this)">' +
