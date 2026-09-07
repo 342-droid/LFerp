@@ -1,7 +1,32 @@
 {
-  "latestSha": "ac83ceb594f108571716e6da05fc2d5f83de56db",
-  "total": 364,
+  "latestSha": "af012b4e96a6faa2bf9682dfeb34a0aeabf001b8",
+  "total": 365,
   "days": [
+    {
+      "date": "2026-09-07",
+      "items": [
+        {
+          "sha": "af012b4",
+          "type": "fix",
+          "text": "优化按商品收货录入操作与数量展示",
+          "author": "342-droid",
+          "time": "15:49",
+          "pages": [
+            {
+              "file": "SCM/ibd_receipt.html",
+              "module": "冷丰WMS",
+              "title": "入库单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/ibd_receipt.html",
+              "text": "增加关闭确认、调整收货字段和默认数量，移除商品列表操作列"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-09-05",
       "items": [
