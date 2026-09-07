@@ -378,8 +378,6 @@
 .ua-od-address {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
   padding: 14px;
 }
 
@@ -408,6 +406,11 @@
   height: 22px;
 }
 
+.ua-od-address__body {
+  flex: 1;
+  min-width: 0;
+}
+
 .ua-od-address__user {
   display: flex;
   align-items: center;
@@ -426,11 +429,13 @@
 }
 
 .ua-od-address__edit {
+  margin-left: auto;
   flex-shrink: 0;
   border: 0;
   background: transparent;
   padding: 0;
   font-size: 13px;
+  font-weight: 500;
   color: #1677ff;
   cursor: pointer;
   white-space: nowrap;

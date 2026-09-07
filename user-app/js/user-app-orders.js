@@ -7,7 +7,7 @@
 
   function getAllowedTabs() {
     return isFromRestock()
-      ? ['all', 'unpaid', 'shipping', 'review']
+      ? ['all', 'unpaid', 'pending_accept', 'shipping', 'review']
       : ['all', 'unpaid', 'shipping', 'pickup', 'review'];
   }
 
@@ -24,6 +24,9 @@
       document.querySelectorAll('.ua-order-card[data-restock-only="1"]').forEach(function (card) {
         card.remove();
       });
+      document.querySelectorAll('.ua-orders-tab[data-tab="pending_accept"]').forEach(function (el) {
+        el.remove();
+      });
       return;
     }
 
@@ -31,6 +34,10 @@
 
     document.querySelectorAll('.ua-orders-tab[data-tab="pickup"]').forEach(function (el) {
       el.remove();
+    });
+
+    document.querySelectorAll('.ua-orders-tab[data-tab="pending_accept"]').forEach(function (el) {
+      el.hidden = false;
     });
 
     document.querySelectorAll('.ua-order-card[data-status="pickup"]').forEach(function (card) {

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>待接单快递改地址 · 复制后贴到禅道</title>
+  <style>
+    body { font-family: "PingFang SC", "Microsoft YaHei", sans-serif; padding: 24px; max-width: 920px; color: #333; line-height: 1.6; }
+    .tip { background: #fff7ef; border: 1px solid #ffd4b0; padding: 10px 14px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; }
+    #copyRoot table { border-collapse: collapse; width: 100%; margin: 10px 0 16px; }
+    #copyRoot th, #copyRoot td { border: 1px solid #d0d0d0; padding: 8px 10px; text-align: left; vertical-align: top; font-size: 14px; }
+    #copyRoot th { background: #f5f5f5; font-weight: 600; }
+    #copyRoot h2 { font-size: 18px; margin: 22px 0 8px; }
+    #copyRoot h3 { font-size: 16px; margin: 16px 0 8px; }
+    #copyRoot p { margin: 8px 0; }
+    #copyRoot li { margin: 4px 0; }
+  </style>
+</head>
+<body>
+  <p class="tip">用法：用浏览器打开本页 → 选中下方正文全选复制 → 禅道描述里先点掉「&lt;/&gt;」源码按钮，再粘贴。不要直接贴 Markdown。</p>
+
+  <div id="copyRoot">
+    <p><strong>零售客户端 / 丰银宝 APP · 待接单快递单修改收货地址</strong></p>
+    <table>
+      <tbody>
+        <tr><th>版本</th><td>v1.0</td><th>日期</th><td>2026-09-07</td><th>状态</th><td>待评审</td></tr>
+      </tbody>
+    </table>
+    <p>已付款、仍为「待接单」的快递订单，用户可改收货地址。订单详情地址卡片增加「修改」，底栏增加「修改地址」，均进入「修改地址」页。地址簿页本身不改。</p>
+
+    <h2>1. 范围</h2>
+    <table>
+      <thead>
+        <tr><th>在范围内</th><th>不在范围内</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>零售客户端（冷丰鲜选）、丰银宝 APP（进货 / 代采）</td>
+          <td>地址簿列表页改版（搜索、批量删除、新建入口保持原样）</td>
+        </tr>
+        <tr>
+          <td>履约：零售快递到家、代采快递到店</td>
+          <td>门店自提、仓配 / 平台配送</td>
+        </tr>
+        <tr>
+          <td>对客主状态 = 待接单（已付、截单前 / 未接单）</td>
+          <td>待发货及以后改地址；后台代客改地址</td>
+        </tr>
+        <tr>
+          <td>待付款快递单：详情卡片可出「修改」，进同一修改地址页（底栏仍是取消 / 付款）</td>
+          <td>支付后自动截单、跳过待接单直接待发货的单（按已接单，不能改）</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>2. 口径</h2>
+    <table>
+      <thead>
+        <tr><th>项</th><th>规则</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>能否改</td><td>商家接单前（待付款、待接单）可改；商家接单后不可再改</td></tr>
+        <tr><td>改几次</td><td>接单前可反复修改，不限制「付款后只能改一次」</td></tr>
+        <tr><td>价格</td><td>只能原价修改。新地址导致运费变化则提交失败，不改价、不补差</td></tr>
+        <tr><td>截止点</td><td>以订单对客主状态离开「待接单」为准（含截单成功进入待发货、提前发货补截单）</td></tr>
+        <tr><td>整单</td><td>按订单头地址改，不按商品行拆地址</td></tr>
+      </tbody>
+    </table>
+
+    <h2>3. 订单详情入口</h2>
+    <p>仅当：快递单，且状态为待接单（零售待付款卡片也可出「修改」）。</p>
+    <table>
+      <thead>
+        <tr><th>位置</th><th>展示</th><th>点击</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>收货地址卡片</td><td>「修改&gt;」与电话同一行、右对齐</td><td>进入修改地址页</td></tr>
+        <tr><td>底栏（待接单）</td><td>「修改地址」在「取消订单」左侧，均为描边按钮</td><td>进入同一修改地址页</td></tr>
+      </tbody>
+    </table>
+    <p>接单后（待发货及以后）：两个入口都消失。自提单、仓配单不展示本能力。</p>
+
+    <h2>4. 修改地址页</h2>
+    <h3>4.1 结构</h3>
+    <table>
+      <thead>
+        <tr><th>区块</th><th>内容</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>导航</td><td>返回 + 标题「修改地址」。无右上角「…」、无红点数字</td></tr>
+        <tr><td>说明条</td><td>修改后会影响物流时效、送货上门等服务，只能原价修改。商家接单后不可再改。若因商品换仓、已发货、运费变更等原因导致修改失败，请您谅解。</td></tr>
+        <tr><td>原地址</td><td>只读。展示当前订单收货地址：省市区、详细地址、姓名、完整 11 位手机号。仅此处打「默认」标，全页只有这一个默认标</td></tr>
+        <tr><td>选择新的收货地址</td><td>复用地址簿数据。列表不出现与原地址相同的那条。每条：省市区、详细地址、姓名、完整 11 位手机号；右侧铅笔进入原有「编辑地址」</td></tr>
+        <tr><td>底栏</td><td>橙色「提交修改」</td></tr>
+      </tbody>
+    </table>
+    <p>电话一律展示连续 11 位数字，不打码、不空格分隔。本页不提供「新建地址」「批量删除」；新建 / 维护仍走地址簿原功能。</p>
+    <p>返回：回到进入时的订单详情，不改地址。</p>
+
+    <h3>4.2 选择与提交</h3>
+    <p>点列表一条即选中。必须另选一条与原地址不同的地址，再点「提交修改」。</p>
+    <p>提交成功：回订单详情，地址卡片立即更新为新地址；底栏「修改地址」仍在（接单前可再改）。</p>
+    <p>成功后写订单收货地址，记一条订单日志（操作人 = 用户，内容含改前 / 改后地址）。不通知短信。商家侧下次拉单看到新地址。</p>
+
+    <h2>5. 提示文案</h2>
+    <h3>5.1 页内校验（提交前，不调接口）</h3>
+    <table>
+      <thead>
+        <tr><th>场景</th><th>文案</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>未选择新地址</td><td>请选择新的收货地址</td></tr>
+        <tr><td>选中的仍是原地址</td><td>请选择与原地址不同的收货地址</td></tr>
+        <tr><td>列表剔除原地址后为空</td><td>暂无可用地址</td></tr>
+      </tbody>
+    </table>
+
+    <h3>5.2 提交失败（接口返回，Toast）</h3>
+    <p>失败不改订单地址，用户留在修改地址页。按原因只出一条：</p>
+    <table>
+      <thead>
+        <tr><th>原因</th><th>文案</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>商家已接单 / 已截单 / 对客已是待发货（含用户停在本页期间接单）</td><td>商家已接单，无法修改地址</td></tr>
+        <tr><td>已发货或已有运单</td><td>订单已发货，无法修改地址</td></tr>
+        <tr><td>改址导致换仓</td><td>商品已换仓，无法修改地址</td></tr>
+        <tr><td>改址导致运费变化（不能原价）</td><td>修改后运费发生变化，无法按原价修改</td></tr>
+        <tr><td>新地址缺省市区 / 详细地址 / 联系人或手机号不是 11 位</td><td>收货地址无效，请重新选择</td></tr>
+        <tr><td>存在处理中售后</td><td>订单存在处理中售后，暂无法修改地址</td></tr>
+        <tr><td>其它系统异常</td><td>修改失败，请稍后重试</td></tr>
+      </tbody>
+    </table>
+    <p>失败后若订单已离开待接单：返回详情时「修改」「修改地址」入口不再展示。</p>
+
+    <h3>5.3 提交成功</h3>
+    <table>
+      <thead>
+        <tr><th>场景</th><th>文案</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>改址成功</td><td>地址已修改</td></tr>
+      </tbody>
+    </table>
+
+    <h2>6. 状态与入口矩阵</h2>
+    <table>
+      <thead>
+        <tr><th>端</th><th>履约</th><th>状态</th><th>卡片「修改」</th><th>底栏「修改地址」</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>零售 / 丰银宝</td><td>快递</td><td>待付款</td><td>有</td><td>无（底栏仍是取消 / 付款）</td></tr>
+        <tr><td>零售 / 丰银宝</td><td>快递</td><td>待接单</td><td>有</td><td>有，在取消订单左侧</td></tr>
+        <tr><td>零售 / 丰银宝</td><td>快递</td><td>待发货及以后</td><td>无</td><td>无</td></tr>
+        <tr><td>零售 / 丰银宝</td><td>自提 / 仓配</td><td>任意</td><td>无</td><td>无</td></tr>
+      </tbody>
+    </table>
+
+    <h2>7. 验收</h2>
+    <ul>
+      <li>[ ] 零售、丰银宝待接单快递详情：卡片「修改&gt;」与电话同行右对齐；底栏「修改地址」在「取消订单」左侧</li>
+      <li>[ ] 两个入口都进入「修改地址」页；返回不改地址</li>
+      <li>[ ] 接单前可改两次及以上，每次成功详情地址更新</li>
+      <li>[ ] 商家接单后入口消失；停留在修改页再提交 →「商家已接单，无法修改地址」</li>
+      <li>[ ] 已发货 / 换仓 / 运费变化 / 地址无效 / 处理中售后：分别出 §5.2 对应文案，地址不变</li>
+      <li>[ ] 列表不含原地址；电话 11 位不打码；「默认」只在原地址出现一次</li>
+      <li>[ ] 地址簿页功能不变</li>
+      <li>[ ] 自提、仓配、支付后自动截单进待发货的单：无改址入口</li>
+    </ul>
+  </div>
+</body>
+</html>

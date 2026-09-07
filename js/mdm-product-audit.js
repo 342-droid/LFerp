@@ -251,8 +251,8 @@
       '  </div>' +
       '</div>' +
       fieldViewReadonly('productCode', '商品编码', data.code, '系统将自动生成唯一数字编码') +
-      fieldViewInput('shelfLife', '保质期天数', false, data.shelfLife, 'number') +
-      fieldViewSelect('tempLayer', '温层', false, data.tempLayer) +
+      fieldViewInput('shelfLife', '保质期天数', true, data.shelfLife, 'number') +
+      fieldViewSelect('tempLayer', '温层', true, data.tempLayer) +
       '    </div>' +
       '  </div>' +
       '</section>'
