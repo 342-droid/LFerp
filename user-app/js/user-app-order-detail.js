@@ -711,7 +711,14 @@
       isRestock: isFromRestock(),
       getPayable: getUnpaidPayable,
       onPaid: function (extra) {
-        payDemoOrder(extra);
+        var paid = persistUnpaidPay(extra);
+        return {
+          orderHref: buildPaidDetailHref(paid),
+          homeHref: isFromRestock() ? 'restock.html' : 'home.html',
+          unpaidHref: isFromRestock()
+            ? 'orders.html?from=restock.html&tab=unpaid'
+            : 'orders.html?tab=unpaid'
+        };
       }
     });
   }
@@ -722,7 +729,7 @@
     }
   }
 
-  function payDemoOrder(extra) {
+  function persistUnpaidPay(extra) {
     extra = extra || {};
     var p = getParams();
     var orderNo = p.get('orderNo');
@@ -738,6 +745,13 @@
       paid = Object.assign({}, order, { status: nextStatus }, extra);
       if (window.UaOrdersStore) paid = window.UaOrdersStore.upsert(paid);
     }
+    return paid;
+  }
+
+  function buildPaidDetailHref(paid) {
+    var p = getParams();
+    var orderNo = p.get('orderNo');
+    var nextStatus = isFromRestock() ? 'pending_accept' : 'shipping';
     var href =
       window.UaOrdersStore && paid
         ? window.UaOrdersStore.buildDetailHref(paid)
@@ -750,8 +764,12 @@
       if (href.indexOf(key + '=') >= 0) return;
       href += (href.indexOf('?') >= 0 ? '&' : '?') + key + '=' + encodeURIComponent(p.get(key));
     });
-    window.alert('支付成功（演示）');
-    window.location.replace(href);
+    return href;
+  }
+
+  function payDemoOrder(extra) {
+    var paid = persistUnpaidPay(extra);
+    window.location.replace(buildPaidDetailHref(paid));
   }
 
   function escapeOdText(str) {

@@ -1,5 +1,8 @@
 /**
- * 待支付：钱包余额 + 支付宝/微信二选一
+ * 待支付收银台：参考支付宝确认付款
+ * - 仅纯余额：输入 6 位支付密码（演示非 000000 成功）
+ * - 混合 / 纯三方：先勾选支付宝或微信，再点「确认付款」跳三方
+ * 密码成败结果页、提醒文案对齐确认订单页。
  * 详情「立即付款」、订单列表「去付款」共用。
  */
 (function (global) {
@@ -19,12 +22,14 @@
     getPayable: function () {
       return 0;
     },
-    onPaid: null
+    onPaid: null,
+    nav: {}
   };
   var state = {
     useBalance: true,
     channel: '',
-    pwd: ''
+    pwd: '',
+    busy: false
   };
 
   function readMixPayDemo() {
@@ -89,7 +94,9 @@
       channelLeg: channelLeg,
       channel: state.channel || '',
       needChannel: channelLeg > 0.001,
-      balanceOnly: balanceLeg > 0 && channelLeg <= 0.001
+      balanceOnly: balanceLeg > 0 && channelLeg <= 0.001,
+      /* 仅纯余额支付需要支付密码；混合 / 纯三方不需要 */
+      needsPassword: ctx.isRestock && useBalance && balanceLeg > 0 && channelLeg <= 0.001
     };
   }
 
@@ -162,33 +169,61 @@
     });
   }
 
-  function renderWallet() {
+  function updatePwdDots() {
+    document.querySelectorAll('#orderPayPwdDots span').forEach(function (dot, i) {
+      dot.classList.toggle('filled', i < state.pwd.length);
+      dot.classList.toggle('is-focus', i === state.pwd.length && i < 6);
+    });
+  }
+
+  function renderSheet() {
+    var legs = getLegs();
+    var amountEl = document.getElementById('orderPayAmount');
+    if (amountEl) amountEl.textContent = '¥' + legs.payable.toFixed(2);
     var row = document.getElementById('orderPayWalletRow');
     var hint = document.getElementById('orderPayWalletHint');
     var toggle = document.getElementById('orderPayUseBalance');
-    var legs = getLegs();
     var showWallet = ctx.isRestock && legs.available > 0.001;
     if (row) row.hidden = !showWallet;
     if (toggle) toggle.checked = !!state.useBalance;
-    if (hint) hint.textContent = '已抵扣 ¥' + legs.balanceLeg.toFixed(2);
+    if (hint) {
+      hint.textContent = state.useBalance
+        ? '已抵扣 ¥' + legs.balanceLeg.toFixed(2)
+        : '可用 ¥' + legs.available.toFixed(2);
+    }
+    var pwdBlock = document.getElementById('orderPayPwdBlock');
+    if (pwdBlock) pwdBlock.hidden = !legs.needsPassword;
+    var confirm = document.getElementById('orderPayConfirm');
+    if (confirm) confirm.hidden = !!legs.needsPassword;
+    var split = document.getElementById('orderPaySplit');
+    if (split) {
+      if (legs.balanceLeg > 0.001 && legs.channelLeg > 0.001) {
+        split.hidden = false;
+        split.innerHTML = buildPayLegParts(legs)
+          .map(function (p) {
+            return (
+              '<div class="ua-od-pay-sheet__split-row"><span>' +
+              p.name +
+              '</span><span>-¥' +
+              Number(p.amount).toFixed(2) +
+              '</span></div>'
+            );
+          })
+          .join('');
+      } else {
+        split.hidden = true;
+        split.innerHTML = '';
+      }
+    }
     syncChannelUI();
+    updatePwdDots();
   }
 
   function closeSheet() {
     var sheet = document.getElementById('orderPaySheet');
     if (sheet) sheet.hidden = true;
-  }
-
-  function updatePwdDots() {
-    document.querySelectorAll('#orderPayPwdDots span').forEach(function (dot, i) {
-      dot.classList.toggle('filled', i < state.pwd.length);
-    });
-  }
-
-  function closePwd() {
-    var sheet = document.getElementById('orderPayPwdSheet');
-    if (sheet) sheet.hidden = true;
     state.pwd = '';
+    state.busy = false;
     updatePwdDots();
   }
 
@@ -237,67 +272,135 @@
     var parts = buildPayLegParts(L);
     settlePayAfterOk(L);
     closeSheet();
-    closePwd();
+    ctx.nav = {};
     if (typeof ctx.onPaid === 'function') {
-      ctx.onPaid({
+      var nav = ctx.onPaid({
         payMethod: formatPayMethodNames(parts),
         payLegs: parts,
         payable: L.payable
       });
+      if (nav && typeof nav === 'object') ctx.nav = nav;
     }
+    showResult(true, L);
   }
 
-  function openPwd(legs) {
-    var L = legs || getLegs();
-    var freeze = beginPayFreeze(L);
-    if (freeze && freeze.ok === false) {
-      window.alert(freeze.message || '余额冻结失败');
-      return;
-    }
-    state.pwd = '';
-    updatePwdDots();
-    var amountEl = document.getElementById('orderPayPwdAmount');
-    if (amountEl) amountEl.textContent = '¥' + L.payable.toFixed(2);
-    var methodEl = document.getElementById('orderPayPwdMethodText');
-    if (methodEl) {
-      if (L.balanceOnly) methodEl.textContent = '钱包余额支付';
-      else if (L.balanceLeg > 0 && L.channelLeg > 0) {
-        methodEl.textContent = '余额 + ' + payChannelShortName(L.channel);
-      } else {
-        methodEl.textContent = payChannelShortName(L.channel);
-      }
-    }
-    var split = document.getElementById('orderPayPwdSplit');
-    if (split) {
-      var parts = buildPayLegParts(L);
-      if (L.balanceLeg > 0 && L.channelLeg > 0) {
-        split.hidden = false;
-        split.innerHTML = parts
-          .map(function (p) {
-            return (
-              '<div class="ua-od-pwd-sheet__split-row"><span>' +
-              p.name +
-              '</span><span class="ua-od-pwd-sheet__split-amount">-¥' +
-              Number(p.amount).toFixed(2) +
-              '</span></div>'
-            );
-          })
-          .join('');
-      } else {
-        split.hidden = true;
-        split.innerHTML = '';
-      }
-    }
+  function finishPayFail(legs) {
+    releasePayFreeze();
     closeSheet();
-    var sheet = document.getElementById('orderPayPwdSheet');
-    if (sheet) sheet.hidden = false;
+    showResult(false, legs || getLegs());
   }
 
-  function jumpThirdPartyPay(channel) {
-    state.channel = channel;
-    var legs = getLegs();
-    legs.channel = channel;
-    var freeze = beginPayFreeze(legs);
+  function showResult(success, paidLegs) {
+    ensureResultDom();
+    var el = document.getElementById('orderPayResult');
+    var body = document.getElementById('orderPayResultBody');
+    if (!el || !body) return;
+    var L = paidLegs || getLegs();
+    var parts = buildPayLegParts(L).filter(function (p) {
+      return p && Number(p.amount) > 0.001;
+    });
+    if (success) {
+      var isMixed = parts.length >= 2;
+      var amountHtml = isMixed
+        ? '<div class="ua-co-result__amount-line"><span class="ua-co-result__amount">¥' +
+          L.payable.toFixed(2) +
+          '</span>' +
+          '<button type="button" class="ua-co-pay-legs-toggle" id="orderPayLegsToggle" aria-expanded="false" aria-label="展开支付明细">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button></div>' +
+          '<div class="ua-co-pay-legs ua-co-pay-legs--result" id="orderPayResultLegs" hidden>' +
+          parts
+            .map(function (p) {
+              return (
+                '<div class="ua-co-pay-legs__row"><span class="ua-co-pay-legs__name">' +
+                p.name +
+                '</span><span class="ua-co-pay-legs__amount">-¥' +
+                Number(p.amount).toFixed(2) +
+                '</span></div>'
+              );
+            })
+            .join('') +
+          '</div>'
+        : '<div class="ua-co-result__amount">¥' + L.payable.toFixed(2) + '</div>';
+      body.innerHTML =
+        '<div class="ua-co-result__icon ua-co-result__icon--success">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg></div>' +
+        '<div class="ua-co-result__title">支付成功</div>' +
+        amountHtml +
+        '<div class="ua-co-result__actions">' +
+        '<button type="button" class="ua-co-result__btn" id="orderPayResultOrders">查看订单</button>' +
+        '<button type="button" class="ua-co-result__btn ua-co-result__btn--primary" id="orderPayResultHome">返回首页</button>' +
+        '</div>' +
+        '<div class="ua-co-result__recommend">' +
+        '<div class="ua-co-result__recommend-title">猜你喜欢</div>' +
+        '<div class="ua-co-result__grid">' +
+        '<div class="ua-co-result__product"><img src="../assets/restock/product-egg.svg" alt=""><div class="ua-co-result__product-name">红壳黄心鲜鸡蛋 中码 托装</div><div class="ua-co-result__product-price">¥28.90</div></div>' +
+        '<div class="ua-co-result__product"><img src="../assets/restock/product-leaf.svg" alt=""><div class="ua-co-result__product-name">油麦菜【菜鲜】</div><div class="ua-co-result__product-price">¥3.20</div></div>' +
+        '</div></div>';
+      var toggle = document.getElementById('orderPayLegsToggle');
+      var legsEl = document.getElementById('orderPayResultLegs');
+      if (toggle && legsEl) {
+        toggle.addEventListener('click', function () {
+          var next = toggle.getAttribute('aria-expanded') !== 'true';
+          toggle.setAttribute('aria-expanded', next ? 'true' : 'false');
+          toggle.classList.toggle('is-expanded', next);
+          legsEl.hidden = !next;
+        });
+      }
+      var ordersBtn = document.getElementById('orderPayResultOrders');
+      if (ordersBtn) {
+        ordersBtn.addEventListener('click', function () {
+          window.location.href = ctx.nav.orderHref || 'orders.html?from=restock.html';
+        });
+      }
+      var homeBtn = document.getElementById('orderPayResultHome');
+      if (homeBtn) {
+        homeBtn.addEventListener('click', function () {
+          window.location.href = ctx.nav.homeHref || 'restock.html';
+        });
+      }
+    } else {
+      body.innerHTML =
+        '<div class="ua-co-result__icon ua-co-result__icon--fail">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><circle cx="12" cy="16" r="0.8" fill="currentColor"/></svg></div>' +
+        '<div class="ua-co-result__title">支付失败</div>' +
+        '<div class="ua-co-result__sub">请在 30 分钟内完成支付</div>' +
+        '<div class="ua-co-result__actions">' +
+        '<button type="button" class="ua-co-result__btn ua-co-result__btn--primary" id="orderPayResultRetry">重新支付</button>' +
+        '<button type="button" class="ua-co-result__btn" id="orderPayResultView">查看订单</button>' +
+        '</div>';
+      var retry = document.getElementById('orderPayResultRetry');
+      if (retry) {
+        retry.addEventListener('click', function () {
+          el.hidden = true;
+          reopenSheet();
+        });
+      }
+      var view = document.getElementById('orderPayResultView');
+      if (view) {
+        view.addEventListener('click', function () {
+          window.location.href = ctx.nav.unpaidHref || 'orders.html?from=restock.html&tab=unpaid';
+        });
+      }
+    }
+    el.hidden = false;
+  }
+
+  function ensureResultDom() {
+    var shell = document.querySelector('.ua-mobile-shell') || document.body;
+    if (document.getElementById('orderPayResult')) return;
+    var el = document.createElement('div');
+    el.className = 'ua-co-result';
+    el.id = 'orderPayResult';
+    el.hidden = true;
+    el.innerHTML = '<div class="ua-co-result__body" id="orderPayResultBody"></div>';
+    shell.appendChild(el);
+  }
+
+  function jumpThirdPartyPay(channel, legs) {
+    var L = legs || getLegs();
+    L.channel = channel || L.channel || state.channel;
+    state.channel = L.channel;
+    var freeze = beginPayFreeze(L);
     if (freeze && freeze.ok === false) {
       window.alert(freeze.message || '余额冻结失败');
       return;
@@ -316,30 +419,49 @@
     var text = document.getElementById('orderThirdPayText');
     if (text) {
       text.textContent =
-        (legs.balanceLeg > 0.001 ? '已冻结余额，' : '') +
+        (L.balanceLeg > 0.001 ? '已冻结余额，' : '') +
         '正在验证' +
-        (channel === 'alipay' ? '支付宝' : '微信支付') +
+        (L.channel === 'alipay' ? '支付宝' : '微信支付') +
         '回调…';
     }
     overlay.hidden = false;
     window.setTimeout(function () {
       overlay.hidden = true;
-      finishPay(legs);
+      finishPay(L);
     }, 900);
   }
 
   function onPickChannel(channel) {
     if (channel !== 'alipay' && channel !== 'wechat') return;
     state.channel = channel;
-    syncChannelUI();
+    renderSheet();
+  }
+
+  function confirmChannelPay() {
+    if (state.busy) return;
     var legs = getLegs();
-    legs.channel = channel;
-    if (ctx.isRestock && state.useBalance && legs.balanceOnly) {
-      openPwd(legs);
+    if (legs.needsPassword) return;
+    if (legs.needChannel && legs.channel !== 'alipay' && legs.channel !== 'wechat') {
+      window.alert(legs.balanceLeg > 0.001 ? '请选择支付宝或微信补足差额' : '请选择支付方式');
       return;
     }
-    if (ctx.isRestock && legs.needChannel) {
-      jumpThirdPartyPay(channel);
+    jumpThirdPartyPay(legs.channel, legs);
+  }
+
+  function submitWithPassword() {
+    if (state.busy) return;
+    var legs = getLegs();
+    if (!legs.needsPassword) return;
+    /* 与确认订单页一致：演示密码非 000000 即成功 */
+    if (state.pwd === '000000') {
+      finishPayFail(legs);
+      return;
+    }
+    state.busy = true;
+    var freeze = beginPayFreeze(legs);
+    if (freeze && freeze.ok === false) {
+      state.busy = false;
+      window.alert(freeze.message || '余额冻结失败');
       return;
     }
     finishPay(legs);
@@ -347,73 +469,81 @@
 
   function ensureDom() {
     var shell = document.querySelector('.ua-mobile-shell') || document.body;
-    if (!document.getElementById('orderPaySheet')) {
-      var sheet = document.createElement('div');
-      sheet.className = 'ua-od-pay-sheet';
-      sheet.id = 'orderPaySheet';
-      sheet.hidden = true;
-      sheet.innerHTML =
-        '<div class="ua-od-pay-sheet__mask" id="orderPaySheetMask"></div>' +
-        '<div class="ua-od-pay-sheet__panel" role="dialog" aria-modal="true" aria-label="选择支付方式">' +
-        '<div class="ua-od-pay-sheet__wallet" id="orderPayWalletRow">' +
-        '<span class="ua-od-pay-sheet__wallet-label">钱包余额</span>' +
-        '<span class="ua-od-pay-sheet__wallet-hint" id="orderPayWalletHint">已抵扣 ¥0.00</span>' +
-        '<label class="ua-od-pay-switch">' +
-        '<input type="checkbox" class="ua-od-pay-switch__input" id="orderPayUseBalance" checked>' +
-        '<span class="ua-od-pay-switch__track"></span></label></div>' +
-        '<div class="ua-od-pay-sheet__list" role="radiogroup" aria-label="支付方式">' +
-        '<button type="button" class="ua-od-pay-sheet__item" data-pay-channel="alipay" role="radio" aria-checked="false">支付宝</button>' +
-        '<button type="button" class="ua-od-pay-sheet__item" data-pay-channel="wechat" role="radio" aria-checked="false">微信支付</button>' +
-        '</div>' +
-        '<button type="button" class="ua-od-pay-sheet__cancel" id="orderPaySheetCancel">取消</button>' +
-        '</div>';
-      shell.appendChild(sheet);
-    }
-    if (!document.getElementById('orderPayPwdSheet')) {
-      var pwd = document.createElement('div');
-      pwd.className = 'ua-od-pwd-sheet';
-      pwd.id = 'orderPayPwdSheet';
-      pwd.hidden = true;
-      pwd.innerHTML =
-        '<div class="ua-od-pwd-sheet__mask" id="orderPayPwdMask"></div>' +
-        '<div class="ua-od-pwd-sheet__panel" role="dialog" aria-modal="true" aria-labelledby="orderPayPwdTitle">' +
-        '<button type="button" class="ua-od-pwd-sheet__close" id="orderPayPwdClose" aria-label="关闭">×</button>' +
-        '<div class="ua-od-pwd-sheet__title" id="orderPayPwdTitle">确认付款</div>' +
-        '<div class="ua-od-pwd-sheet__amount" id="orderPayPwdAmount">¥0.00</div>' +
-        '<div class="ua-od-pwd-sheet__method" id="orderPayPwdMethod">' +
-        '<svg viewBox="0 0 24 24" fill="#FF7A00"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18" stroke="#fff" stroke-width="1.2"/><circle cx="16.5" cy="14.5" r="1.2" fill="#fff"/></svg>' +
-        '<span id="orderPayPwdMethodText">钱包余额</span></div>' +
-        '<div class="ua-od-pwd-sheet__split" id="orderPayPwdSplit" hidden></div>' +
-        '<div class="ua-od-pwd-sheet__pwd-label">请输入支付密码</div>' +
-        '<div class="ua-od-pwd-sheet__pwd" id="orderPayPwdDots" aria-label="支付密码">' +
-        '<span></span><span></span><span></span><span></span><span></span><span></span></div>' +
-        '<div class="ua-od-pwd-sheet__keypad" id="orderPayPwdKeypad">' +
-        '<button type="button" data-pay-key="1">1</button>' +
-        '<button type="button" data-pay-key="2">2</button>' +
-        '<button type="button" data-pay-key="3">3</button>' +
-        '<button type="button" data-pay-key="4">4</button>' +
-        '<button type="button" data-pay-key="5">5</button>' +
-        '<button type="button" data-pay-key="6">6</button>' +
-        '<button type="button" data-pay-key="7">7</button>' +
-        '<button type="button" data-pay-key="8">8</button>' +
-        '<button type="button" data-pay-key="9">9</button>' +
-        '<button type="button" class="ua-od-pwd-sheet__empty" disabled></button>' +
-        '<button type="button" data-pay-key="0">0</button>' +
-        '<button type="button" class="ua-od-pwd-sheet__del" data-pay-key="del" aria-label="删除">⌫</button>' +
-        '</div></div>';
-      shell.appendChild(pwd);
-    }
+    if (document.getElementById('orderPaySheet')) return;
+    var sheet = document.createElement('div');
+    sheet.className = 'ua-od-pay-sheet';
+    sheet.id = 'orderPaySheet';
+    sheet.hidden = true;
+    sheet.innerHTML =
+      '<div class="ua-od-pay-sheet__mask" id="orderPaySheetMask"></div>' +
+      '<div class="ua-od-pay-sheet__panel" role="dialog" aria-modal="true" aria-label="确认付款">' +
+      '<button type="button" class="ua-od-pay-sheet__close" id="orderPaySheetClose" aria-label="关闭">×</button>' +
+      '<div class="ua-od-pay-sheet__amount" id="orderPayAmount">¥0.00</div>' +
+      '<div class="ua-od-pay-sheet__methods">' +
+      '<div class="ua-od-pay-sheet__wallet" id="orderPayWalletRow">' +
+      '<span class="ua-od-pay-sheet__wallet-label">钱包余额</span>' +
+      '<span class="ua-od-pay-sheet__wallet-hint" id="orderPayWalletHint">已抵扣 ¥0.00</span>' +
+      '<label class="ua-od-pay-switch">' +
+      '<input type="checkbox" class="ua-od-pay-switch__input" id="orderPayUseBalance" checked>' +
+      '<span class="ua-od-pay-switch__track"></span></label></div>' +
+      '<button type="button" class="ua-od-pay-sheet__item" data-pay-channel="alipay" role="radio" aria-checked="false">' +
+      '<span>支付宝</span><i class="ua-od-pay-sheet__check" aria-hidden="true"></i></button>' +
+      '<button type="button" class="ua-od-pay-sheet__item" data-pay-channel="wechat" role="radio" aria-checked="false">' +
+      '<span>微信支付</span><i class="ua-od-pay-sheet__check" aria-hidden="true"></i></button>' +
+      '</div>' +
+      '<div class="ua-od-pay-sheet__split" id="orderPaySplit" hidden></div>' +
+      '<button type="button" class="ua-od-pay-sheet__confirm" id="orderPayConfirm">确认付款</button>' +
+      '<div class="ua-od-pay-sheet__pwd-block" id="orderPayPwdBlock" hidden>' +
+      '<div class="ua-od-pay-sheet__pwd-label">请输入支付密码</div>' +
+      '<div class="ua-od-pay-sheet__pwd" id="orderPayPwdDots" aria-label="支付密码">' +
+      '<span></span><span></span><span></span><span></span><span></span><span></span></div>' +
+      '<div class="ua-od-pay-sheet__forgot-row">' +
+      '<button type="button" class="ua-od-pay-sheet__forgot" id="orderPayForgot">忘记密码</button></div>' +
+      '<div class="ua-od-pay-sheet__keypad" id="orderPayPwdKeypad">' +
+      '<button type="button" data-pay-key="1">1</button>' +
+      '<button type="button" data-pay-key="2">2</button>' +
+      '<button type="button" data-pay-key="3">3</button>' +
+      '<button type="button" data-pay-key="4">4</button>' +
+      '<button type="button" data-pay-key="5">5</button>' +
+      '<button type="button" data-pay-key="6">6</button>' +
+      '<button type="button" data-pay-key="7">7</button>' +
+      '<button type="button" data-pay-key="8">8</button>' +
+      '<button type="button" data-pay-key="9">9</button>' +
+      '<button type="button" class="ua-od-pay-sheet__empty" disabled></button>' +
+      '<button type="button" data-pay-key="0">0</button>' +
+      '<button type="button" class="ua-od-pay-sheet__del" data-pay-key="del" aria-label="删除">⌫</button>' +
+      '</div></div></div>';
+    shell.appendChild(sheet);
   }
 
   function bindOnce() {
     if (document.body.dataset.uaPaySheetBound) return;
     document.body.dataset.uaPaySheetBound = '1';
     ensureDom();
+    function cancelSheet() {
+      releasePayFreeze();
+      closeSheet();
+    }
     var mask = document.getElementById('orderPaySheetMask');
-    var cancel = document.getElementById('orderPaySheetCancel');
-    if (mask) mask.addEventListener('click', closeSheet);
-    if (cancel) cancel.addEventListener('click', closeSheet);
-    var list = document.querySelector('#orderPaySheet .ua-od-pay-sheet__list');
+    var closeBtn = document.getElementById('orderPaySheetClose');
+    if (mask) mask.addEventListener('click', cancelSheet);
+    if (closeBtn) closeBtn.addEventListener('click', cancelSheet);
+    var confirm = document.getElementById('orderPayConfirm');
+    if (confirm) confirm.addEventListener('click', confirmChannelPay);
+    var forgot = document.getElementById('orderPayForgot');
+    if (forgot) {
+      forgot.addEventListener('click', function () {
+        var path = window.location.pathname.split('/').pop() + window.location.search;
+        var q = new URLSearchParams();
+        q.set('step', 'sms');
+        q.set('from', 'order-pay');
+        q.set('return', path);
+        var appFrom = new URLSearchParams(window.location.search).get('from');
+        if (appFrom) q.set('appFrom', appFrom);
+        window.location.href = 'store-pay-password.html?' + q.toString();
+      });
+    }
+    var list = document.querySelector('#orderPaySheet .ua-od-pay-sheet__methods');
     if (list) {
       list.addEventListener('click', function (e) {
         var btn = e.target.closest('[data-pay-channel]');
@@ -425,40 +555,24 @@
     if (toggle) {
       toggle.addEventListener('change', function () {
         state.useBalance = !!toggle.checked;
+        state.pwd = '';
         var legs = getLegs();
         if (legs.channelLeg > 0.001 && !state.channel) state.channel = 'wechat';
         if (state.useBalance && legs.balanceOnly) state.channel = '';
-        renderWallet();
+        renderSheet();
       });
     }
-    var pwdClose = document.getElementById('orderPayPwdClose');
-    var pwdMask = document.getElementById('orderPayPwdMask');
-    function cancelPwd() {
-      releasePayFreeze();
-      closePwd();
-    }
-    if (pwdClose) pwdClose.addEventListener('click', cancelPwd);
-    if (pwdMask) pwdMask.addEventListener('click', cancelPwd);
     var keypad = document.getElementById('orderPayPwdKeypad');
     if (keypad) {
       keypad.addEventListener('click', function (e) {
         var btn = e.target.closest('[data-pay-key]');
-        if (!btn) return;
+        if (!btn || state.busy) return;
         var key = btn.getAttribute('data-pay-key');
         if (key === 'del') state.pwd = state.pwd.slice(0, -1);
         else if (state.pwd.length < 6) state.pwd += key;
         updatePwdDots();
         if (state.pwd.length === 6) {
-          window.setTimeout(function () {
-            var success = state.pwd !== '000000';
-            var legs = getLegs();
-            closePwd();
-            if (success) finishPay(legs);
-            else {
-              releasePayFreeze();
-              window.alert('支付失败，请重试');
-            }
-          }, 300);
+          window.setTimeout(submitWithPassword, 160);
         }
       });
     }
@@ -473,20 +587,27 @@
         : function () {
             return Number(options.payable) || 0;
           };
-    ctx.onPaid = typeof options.onPaid === 'function' ? options.onPaid : null;
+    if (typeof options.onPaid === 'function') ctx.onPaid = options.onPaid;
+    reopenSheet();
+  }
+
+  function reopenSheet() {
+    state.pwd = '';
+    state.busy = false;
     ensureDom();
     bindOnce();
     applyScene();
     var legs = getLegs();
     if (ctx.isRestock && legs.channelLeg > 0.001 && !state.channel) state.channel = 'wechat';
     if (ctx.isRestock && state.useBalance && legs.balanceOnly) state.channel = '';
-    renderWallet();
+    renderSheet();
+    var result = document.getElementById('orderPayResult');
+    if (result) result.hidden = true;
     var sheet = document.getElementById('orderPaySheet');
     if (sheet) sheet.hidden = false;
   }
 
   function mountDemoPanel() {
-    if (!ctx.isRestock && !(arguments[0] && arguments[0].forceRestock)) return;
     if (!ctx.isRestock) return;
     if (document.getElementById('uaMixPayDemo')) return;
     var current = readMixPayDemo().scene;
@@ -510,7 +631,7 @@
       '<select id="uaMixPayDemoScene">' +
       options +
       '</select></label>' +
-      '<div class="ua-mix-pay-demo__tip">选场景后点应用并刷新。余额不足会压低钱包可用额，用来走混合支付。</div>' +
+      '<div class="ua-mix-pay-demo__tip">选场景后点应用并刷新。纯余额输支付密码；混合/三方勾选渠道后点确认付款。</div>' +
       '<button type="button" class="ua-mix-pay-demo__apply" id="uaMixPayDemoApply">应用并刷新</button>';
     document.body.appendChild(panel);
     var apply = document.getElementById('uaMixPayDemoApply');
