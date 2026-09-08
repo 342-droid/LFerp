@@ -162,7 +162,8 @@
 
   function realWalletAvailable() {
     if (window.StoreWalletDemo && typeof window.StoreWalletDemo.snapshot === 'function') {
-      return window.StoreWalletDemo.snapshot().available || 0;
+      var snap = window.StoreWalletDemo.snapshot();
+      return Number(snap.restockAvailable != null ? snap.restockAvailable : snap.available) || 0;
     }
     return 0;
   }

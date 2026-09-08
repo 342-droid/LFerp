@@ -45,6 +45,11 @@
               </div>
               <div class="ua-sw-overview__line">余额：¥<span id="swDepositActual">0.00</span></div>
               <div class="ua-sw-overview__line">可提款：¥<span id="swDepositWithdrawable">0.00</span></div>
+              <div class="ua-sw-overview__line ua-sw-overview__line--muted ua-sw-overview__line--with-help" id="swDepositNeedLine">
+                需补金额
+                <button type="button" class="ua-sw-overview__help" data-sw-help="depositNeed" aria-label="需补金额说明">?</button>
+                ¥<span id="swDepositNeedFill">0.00</span>
+              </div>
               <div class="ua-sw-overview__line ua-sw-overview__line--muted" id="swDepositMeta">应保有 ¥2,000</div>
             </div>
             <div class="ua-sw-overview__acct">
@@ -58,6 +63,11 @@
                 货款
                 <button type="button" class="ua-sw-overview__help" data-sw-help="goods" aria-label="货款说明">?</button>
                 ¥<span id="swGoodsQuota">0.00</span>
+              </div>
+              <div class="ua-sw-overview__line ua-sw-overview__line--muted ua-sw-overview__line--with-help">
+                在途
+                <button type="button" class="ua-sw-overview__help" data-sw-help="inTransit" aria-label="在途说明">?</button>
+                ¥<span id="swInTransit">0.00</span>
               </div>
             </div>
           </div>
@@ -143,9 +153,9 @@
       </div>
     </div>
   </div>
-  <script src="../../js/store-wallet-demo.js?v=20260828-deposit-fill-pair"></script>
+  <script src="../../js/store-wallet-demo.js?v=20260908-in-transit"></script>
   <script src="../../js/store-onboarding-gate.js?v=20260805-wd-unlock"></script>
-  <script src="../js/user-app-store-wallet.js?v=20260828-deposit-fill-pair"></script>
+  <script src="../js/user-app-store-wallet.js?v=20260908-in-transit"></script>
 
 </body>
 </html>

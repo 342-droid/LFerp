@@ -246,6 +246,13 @@
   cursor: pointer;
 }
 
+.ua-wd-amount__hint {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #888;
+  line-height: 1.45;
+}
+
 .ua-wd-amount__pending {
   margin: 8px 0 0;
   font-size: 12px;
