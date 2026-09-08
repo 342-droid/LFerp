@@ -1,23 +1,4 @@
 {
-  "0080c87|store-app/h5/home.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "0080c87|store-app/h5/order-detail.html": {
-    "before": "changelog-assets/0080c87/store-app__h5__order-detail.html.before.jpg",
-    "after": "changelog-assets/0080c87/store-app__h5__order-detail.html.after.jpg",
-    "regions": 5,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "0080c87|store-app/h5/store-orders.html": {
-    "before": "changelog-assets/0080c87/store-app__h5__store-orders.html.before.jpg",
-    "after": "changelog-assets/0080c87/store-app__h5__store-orders.html.after.jpg",
-    "regions": 4,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
   "01063b8|MDM/mdm_aftersale_ticket_detail.html": {
     "regions": 0,
     "status": "diff",
@@ -263,76 +244,6 @@
     "regions": 0,
     "status": "diff",
     "date": "2026-08-28"
-  },
-  "061470f|MDM/mdm_archive_carrier.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "061470f|MDM/mdm_archive_live_room.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "061470f|MDM/mdm_archive_store.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "061470f|MDM/mdm_archive_supplier.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "061470f|MDM/mdm_audit_store_registration.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "061470f|MDM/mdm_bd_h5.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "061470f|MDM/mdm_bd_merchants.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "061470f|MDM/mdm_bd_not_found.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "061470f|MDM/mdm_bd_personal.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "061470f|MDM/mdm_bd_store_form.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "061470f|MDM/mdm_bd_stores.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "061470f|MDM/mdm_bd_workbench.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "061470f|MDM/mdm_resource_onboarding.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "061470f|store-app/h5/onboarding.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
   },
   "06f3090|MDM/mdm_order_live.html": {
     "regions": 0,
@@ -1119,116 +1030,6 @@
     "status": "diff",
     "date": "2026-09-02"
   },
-  "6a9a370|MDM/mdm_archive_carrier.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "6a9a370|MDM/mdm_archive_live_room.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "6a9a370|MDM/mdm_archive_store.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "6a9a370|MDM/mdm_archive_supplier.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "6a9a370|MDM/mdm_archive_warehouse.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "6a9a370|MDM/mdm_audit_store_registration.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "6a9a370|MDM/mdm_bd_h5.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "6a9a370|MDM/mdm_bd_merchants.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "6a9a370|MDM/mdm_bd_not_found.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "6a9a370|MDM/mdm_bd_personal.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "6a9a370|MDM/mdm_bd_store_form.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "6a9a370|MDM/mdm_bd_stores.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "6a9a370|MDM/mdm_bd_workbench.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "6a9a370|MDM/mdm_member_c.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "6a9a370|MDM/mdm_party_all.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "6a9a370|MDM/mdm_people_anchor.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "6a9a370|MDM/mdm_people_bd.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "6a9a370|MDM/mdm_people_driver.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "6a9a370|MDM/mdm_people_purchaser.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "6a9a370|MDM/mdm_resource_onboarding.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "6a9a370|MDM/mdm_super_admin_accounts.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "6a9a370|store-app/h5/onboarding.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
   "6c7759f|store-app/h5/home.html": {
     "regions": 0,
     "status": "diff",
@@ -1860,40 +1661,6 @@
     "status": "diff",
     "date": "2026-09-08"
   },
-  "8c2196a|MDM/mdm_aftersale_ticket.html": {
-    "before": "changelog-assets/8c2196a/MDM__mdm_aftersale_ticket.html.before.jpg",
-    "after": "changelog-assets/8c2196a/MDM__mdm_aftersale_ticket.html.after.jpg",
-    "regions": 4,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "8c2196a|MDM/mdm_aftersale_ticket_detail.html": {
-    "before": "changelog-assets/8c2196a/MDM__mdm_aftersale_ticket_detail.html.before.jpg",
-    "after": "changelog-assets/8c2196a/MDM__mdm_aftersale_ticket_detail.html.after.jpg",
-    "regions": 1,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "8c2196a|MDM/mdm_order_live.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "8c2196a|MDM/mdm_order_proxy.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "8c2196a|MDM/mdm_order_queue.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "8c2196a|MDM/mdm_order_retail.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
   "8c700c6|MDM/mdm_order_express_cutoff.html": {
     "before": "changelog-assets/8c700c6/MDM__mdm_order_express_cutoff.html.before.jpg",
     "after": "changelog-assets/8c700c6/MDM__mdm_order_express_cutoff.html.after.jpg",
@@ -1957,135 +1724,6 @@
     "status": "diff",
     "date": "2026-09-02"
   },
-  "8ea74f5|MDM/mdm_archive_carrier.html": {
-    "before": "changelog-assets/8ea74f5/MDM__mdm_archive_carrier.html.before.jpg",
-    "after": "changelog-assets/8ea74f5/MDM__mdm_archive_carrier.html.after.jpg",
-    "regions": 4,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "8ea74f5|MDM/mdm_archive_live_room.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "8ea74f5|MDM/mdm_archive_store.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "8ea74f5|MDM/mdm_archive_supplier.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "8ea74f5|MDM/mdm_archive_warehouse.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "8ea74f5|MDM/mdm_audit_store_registration.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "8ea74f5|MDM/mdm_bd_h5.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "8ea74f5|MDM/mdm_bd_merchants.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "8ea74f5|MDM/mdm_bd_not_found.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "8ea74f5|MDM/mdm_bd_personal.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "8ea74f5|MDM/mdm_bd_store_form.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "8ea74f5|MDM/mdm_bd_stores.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "8ea74f5|MDM/mdm_bd_workbench.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "8ea74f5|MDM/mdm_member_c.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "8ea74f5|MDM/mdm_party_all.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "8ea74f5|MDM/mdm_people_anchor.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "8ea74f5|MDM/mdm_people_bd.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "8ea74f5|MDM/mdm_people_driver.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "8ea74f5|MDM/mdm_people_purchaser.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "8ea74f5|MDM/mdm_resource_onboarding.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "8ea74f5|MDM/mdm_super_admin_accounts.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "8ea74f5|store-app/h5/onboarding.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "918ae5b|store-app/h5/home.html": {
-    "before": "changelog-assets/918ae5b/store-app__h5__home.html.before.jpg",
-    "after": "changelog-assets/918ae5b/store-app__h5__home.html.after.jpg",
-    "regions": 12,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "918ae5b|store-app/h5/order-detail.html": {
-    "after": "changelog-assets/918ae5b/store-app__h5__order-detail.html.after.jpg",
-    "status": "added",
-    "date": "2026-08-26"
-  },
-  "918ae5b|store-app/h5/store-orders.html": {
-    "after": "changelog-assets/918ae5b/store-app__h5__store-orders.html.after.jpg",
-    "status": "added",
-    "date": "2026-08-26"
-  },
   "91aac09|MDM/mdm_archive_carrier.html": {
     "regions": 0,
     "status": "diff",
@@ -2110,13 +1748,6 @@
     "regions": 0,
     "status": "diff",
     "date": "2026-09-04"
-  },
-  "94a7a93|store-app/h5/store-orders.html": {
-    "before": "changelog-assets/94a7a93/store-app__h5__store-orders.html.before.jpg",
-    "after": "changelog-assets/94a7a93/store-app__h5__store-orders.html.after.jpg",
-    "regions": 1,
-    "status": "diff",
-    "date": "2026-08-26"
   },
   "94b2f71|store-app/h5/order-detail.html": {
     "regions": 0,
@@ -2419,13 +2050,6 @@
     "status": "diff",
     "date": "2026-09-05"
   },
-  "aee8124|MDM/mdm_bd_merchants.html": {
-    "before": "changelog-assets/aee8124/MDM__mdm_bd_merchants.html.before.jpg",
-    "after": "changelog-assets/aee8124/MDM__mdm_bd_merchants.html.after.jpg",
-    "regions": 3,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
   "af012b4|SCM/ibd_receipt.html": {
     "regions": 0,
     "status": "diff",
@@ -2492,26 +2116,6 @@
     "regions": 0,
     "status": "diff",
     "date": "2026-09-04"
-  },
-  "b8b6536|MDM/mdm_order_live.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "b8b6536|MDM/mdm_order_proxy.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "b8b6536|MDM/mdm_order_queue.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "b8b6536|MDM/mdm_order_retail.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
   },
   "b9d0ca3|MDM/mdm_order_express_cutoff.html": {
     "before": "changelog-assets/b9d0ca3/MDM__mdm_order_express_cutoff.html.before.jpg",
@@ -2708,43 +2312,6 @@
     "regions": 0,
     "status": "diff",
     "date": "2026-08-28"
-  },
-  "e195ab9|MDM/mdm_order_live.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "e195ab9|MDM/mdm_order_proxy.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "e195ab9|MDM/mdm_order_queue.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "e195ab9|MDM/mdm_order_retail.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "e421cfb|store-app/h5/home.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "e421cfb|store-app/h5/order-detail.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "e421cfb|store-app/h5/store-orders.html": {
-    "before": "changelog-assets/e421cfb/store-app__h5__store-orders.html.before.jpg",
-    "after": "changelog-assets/e421cfb/store-app__h5__store-orders.html.after.jpg",
-    "regions": 2,
-    "status": "diff",
-    "date": "2026-08-26"
   },
   "e4352d2|SCM/purchase_order.html": {
     "regions": 0,
@@ -3705,38 +3272,6 @@
     "regions": 0,
     "status": "diff",
     "date": "2026-09-08"
-  },
-  "f86fa71|MDM/mdm_aftersale_ticket.html": {
-    "before": "changelog-assets/f86fa71/MDM__mdm_aftersale_ticket.html.before.jpg",
-    "after": "changelog-assets/f86fa71/MDM__mdm_aftersale_ticket.html.after.jpg",
-    "regions": 4,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "f86fa71|MDM/mdm_aftersale_ticket_detail.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "f86fa71|MDM/mdm_order_live.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "f86fa71|MDM/mdm_order_proxy.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "f86fa71|MDM/mdm_order_queue.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
-  },
-  "f86fa71|MDM/mdm_order_retail.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-26"
   },
   "fae3a2d|MDM/mdm_order_live.html": {
     "before": "changelog-assets/fae3a2d/MDM__mdm_order_live.html.before.jpg",
