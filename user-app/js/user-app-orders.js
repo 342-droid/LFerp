@@ -189,8 +189,15 @@
         },
         onPaid: function (extra) {
           markCardPaid(card, extra);
-          window.alert('支付成功（演示）');
           if (typeof window.__uaOrdersRefilter === 'function') window.__uaOrdersRefilter();
+          var link = card.querySelector('a[href*="order-detail.html"]');
+          return {
+            orderHref: link ? link.getAttribute('href') : 'orders.html?from=restock.html',
+            homeHref: isFromRestock() ? 'restock.html' : 'home.html',
+            unpaidHref: isFromRestock()
+              ? 'orders.html?from=restock.html&tab=unpaid'
+              : 'orders.html?tab=unpaid'
+          };
         }
       });
     });
