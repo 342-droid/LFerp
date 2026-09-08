@@ -1,10 +1,48 @@
 {
-  "latestSha": "888e5eef171c0f83d604c098841b2392f8b53a11",
-  "total": 370,
+  "latestSha": "e79cae49eb97c48ba6419499ead479d468b902d4",
+  "total": 371,
   "days": [
     {
       "date": "2026-09-08",
       "items": [
+        {
+          "sha": "e79cae4",
+          "type": "feat",
+          "text": "待支付收银台对齐确认订单的密码与结果页",
+          "author": "sisi",
+          "time": "21:26",
+          "pages": [
+            {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/order-detail.html",
+              "text": "立即付款仅纯余额输密码；混合/三方勾选渠道后点确认付款跳转；支付成败进入结果页"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "text": "去付款同样走确认付款与支付成功/失败页"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "text": "密码框右下增加忘记密码；混合与三方支付不输密码"
+            }
+          ]
+        },
         {
           "sha": "888e5ee",
           "type": "feat",
