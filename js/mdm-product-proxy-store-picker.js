@@ -57,7 +57,15 @@
     { id: 'st-017', name: '和平路店', address: '和平路116号', regionId: '120000', customerCount: 0 },
     { id: 'st-018', name: '河西陈塘庄店', address: '陈塘庄街道黑牛城道33号', regionId: '120000', customerCount: 2 },
     { id: 'st-019', name: '裕华万达店', address: '裕华区建华南大街136号', regionId: '130000', customerCount: 4 },
-    { id: 'st-020', name: '长安勒泰店', address: '长安区中山东路39号勒泰中心', regionId: '130000', customerCount: 6 }
+    { id: 'st-020', name: '长安勒泰店', address: '长安区中山东路39号勒泰中心', regionId: '130000', customerCount: 6 },
+    { id: 'st-021', name: '余杭未来科技城店', address: '仓前街道文一西路海创园', regionId: '330000', customerCount: 7 },
+    { id: 'st-022', name: '下沙金沙湖店', address: '下沙街道金沙大道96号', regionId: '330000', customerCount: 4 },
+    { id: 'st-023', name: '宁波天一广场店', address: '海曙区中山东路188号', regionId: '330000', customerCount: 9 },
+    { id: 'st-024', name: '温州五马街店', address: '鹿城区五马街56号', regionId: '330000', customerCount: 3 },
+    { id: 'st-025', name: '青岛台东店', address: '市北区台东一路78号', regionId: '370000', customerCount: 6 },
+    { id: 'st-026', name: '济南泉城路店', address: '历下区泉城路168号', regionId: '370000', customerCount: 5 },
+    { id: 'st-027', name: '西安小寨店', address: '雁塔区长安中路小寨赛格', regionId: '610000', customerCount: 8 },
+    { id: 'st-028', name: '郑州二七广场店', address: '二七区二七路198号', regionId: '410000', customerCount: 2 }
   ];
 
   function escapeHtml(str) {

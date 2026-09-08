@@ -1,6 +1,6 @@
 /**
  * C 端 · 丰银宝直播分享带参
- * - 海报 / 小程序链接携带 storeId + staffId（邀请人）
+ * - 海报 / 小程序链接携带 storeId，员工选填时再带 staffId（邀请人）
  * - 打开后参数写入本地缓存，页内跳转、先逛后登录均保留
  * - 注册登录后自动绑定该门店并进入该场直播页；门店停业则绑系统默认店并提示
  */
@@ -134,7 +134,7 @@
 
   function syncUrlFromPayload() {
     var payload = readSessionPayload();
-    if (!payload || !payload.storeId || !payload.staffId) return;
+    if (!payload || !payload.storeId) return;
     try {
       var url = new URL(global.location.href);
       var keys = ['storeId', 'staffId', 'inviteName', 'invitePhone', 'sessionId'];
@@ -164,15 +164,15 @@
     var inviteName = params.get('inviteName') || '';
     var invitePhone = params.get('invitePhone') || '';
     var sessionId = params.get('sessionId') || '';
-    if (!storeId || !staffId) {
+    if (!storeId) {
       var existing = readSessionPayload();
       return existing;
     }
     var payload = {
       storeId: storeId,
       staffId: staffId,
-      inviteName: inviteName || '牛店长',
-      invitePhone: invitePhone || '13812348001',
+      inviteName: inviteName,
+      invitePhone: invitePhone,
       sessionId: sessionId,
       capturedAt: Date.now()
     };
@@ -182,7 +182,7 @@
 
   function hasInvite() {
     var p = readSessionPayload();
-    return !!(p && p.storeId && p.staffId);
+    return !!(p && p.storeId);
   }
 
   function isLoggedIn() {
@@ -249,7 +249,8 @@
   }
 
   function inviterText(payload) {
-    var name = (payload && payload.inviteName) || '牛店长';
+    var name = (payload && payload.inviteName) || '';
+    if (!name) return '';
     var phone = maskPhone((payload && payload.invitePhone) || '');
     return phone ? name + '（' + phone + '）' : name;
   }
@@ -268,7 +269,7 @@
       orders: '—',
       refundAmt: '—',
       refundCnt: '—',
-      inviter: inviterText(payload)
+      inviter: inviterText(payload) || '—'
     };
     var map = readJson(BIND_LOG_KEY, {});
     var memberId = 'U10001';
@@ -353,7 +354,7 @@
 
   function consumeLanding() {
     var payload = captureFromUrl();
-    if (!payload || !payload.storeId || !payload.staffId) return false;
+    if (!payload || !payload.storeId) return false;
     if (!isLoggedIn()) return true;
     applyBind(payload);
     return true;
@@ -361,7 +362,7 @@
 
   function applyBindAfterLogin() {
     var payload = captureFromUrl() || readSessionPayload();
-    if (!payload || !payload.storeId || !payload.staffId) return;
+    if (!payload || !payload.storeId) return;
     var result = applyBind(payload);
     if (result.fallback) {
       try {
@@ -389,14 +390,14 @@
 
   function appendToUrl(href) {
     var payload = readSessionPayload();
-    if (!payload || !payload.storeId || !payload.staffId) return href;
+    if (!payload || !payload.storeId) return href;
     if (!href || href.charAt(0) === '#' || href.indexOf('javascript:') === 0) return href;
     if (/^(tel:|mailto:)/i.test(href)) return href;
     try {
       var url = new URL(href, global.location.href);
       if (url.origin !== global.location.origin) return href;
       if (!url.searchParams.get('storeId')) url.searchParams.set('storeId', payload.storeId);
-      if (!url.searchParams.get('staffId')) url.searchParams.set('staffId', payload.staffId);
+      if (payload.staffId && !url.searchParams.get('staffId')) url.searchParams.set('staffId', payload.staffId);
       if (payload.inviteName && !url.searchParams.get('inviteName')) {
         url.searchParams.set('inviteName', payload.inviteName);
       }

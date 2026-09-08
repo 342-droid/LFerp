@@ -2514,9 +2514,19 @@
         var couponPageSize = 10;
         var couponKeyword = '';
 
+        function memberCouponSource() {
+            var CS = window.MdmMarketingCouponStore;
+            if (CS && typeof CS.listSelectable === 'function') {
+                return CS.listSelectable('MEMBER').map(function (item) {
+                    return CS.toMemberPickerItem(item);
+                });
+            }
+            return COUPON_OPTIONS.filter(function (c) { return !c.expired; });
+        }
+
         function filteredCoupons() {
             var k = couponKeyword.trim().toLowerCase();
-            return COUPON_OPTIONS.filter(function (c) {
+            return memberCouponSource().filter(function (c) {
                 if (c.expired) return false;
                 return !k || String(c.label).toLowerCase().indexOf(k) !== -1;
             });

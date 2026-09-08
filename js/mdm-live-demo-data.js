@@ -1,5 +1,6 @@
 /**
- * 直播模块共享演示数据（各列表页复用，内存可变，刷新重置）
+ * 直播模块共享演示数据（各列表页复用）
+ * 场次新建/编辑/删除写入 localStorage，刷新后保留；封面过大时会省略 dataURL 以免撑爆配额。
  */
 (function () {
   'use strict';
@@ -63,6 +64,45 @@
     { code: '330106', label: '浙江省 杭州市 西湖区' },
     { code: '330200', label: '浙江省 宁波市（全市）' }
   ];
+
+  var targetedDemoStores = [
+    { id: 'st-001', name: '振宁十足', regionId: '330000' },
+    { id: 'st-002', name: '萧山万达店', regionId: '330000' },
+    { id: 'st-003', name: '西湖文三路店', regionId: '330000' },
+    { id: 'st-004', name: '滨江网商路店', regionId: '330000' },
+    { id: 'st-005', name: '朝阳大悦城店', regionId: '110000' },
+    { id: 'st-006', name: '海淀中关村店', regionId: '110000' },
+    { id: 'st-007', name: '浦东陆家嘴店', regionId: '310000' },
+    { id: 'st-008', name: '静安南京西路店', regionId: '310000' },
+    { id: 'st-009', name: '天河城店', regionId: '440000' },
+    { id: 'st-010', name: '南山科技园店', regionId: '440000' },
+    { id: 'st-011', name: '武侯祠店', regionId: '510000' },
+    { id: 'st-012', name: '锦江春熙路店', regionId: '510000' },
+    { id: 'st-013', name: '江汉路店', regionId: '420000' },
+    { id: 'st-014', name: '洪山光谷店', regionId: '420000' },
+    { id: 'st-015', name: '鼓楼湖南路店', regionId: '320000' },
+    { id: 'st-016', name: '工业园金鸡湖店', regionId: '320000' },
+    { id: 'st-017', name: '和平路店', regionId: '120000' },
+    { id: 'st-018', name: '河西陈塘庄店', regionId: '120000' },
+    { id: 'st-019', name: '裕华万达店', regionId: '130000' },
+    { id: 'st-020', name: '长安勒泰店', regionId: '130000' },
+    { id: 'st-021', name: '余杭未来科技城店', regionId: '330000' },
+    { id: 'st-022', name: '下沙金沙湖店', regionId: '330000' },
+    { id: 'st-023', name: '宁波天一广场店', regionId: '330000' },
+    { id: 'st-024', name: '温州五马街店', regionId: '330000' },
+    { id: 'st-025', name: '青岛台东店', regionId: '370000' },
+    { id: 'st-026', name: '济南泉城路店', regionId: '370000' },
+    { id: 'st-027', name: '西安小寨店', regionId: '610000' },
+    { id: 'st-028', name: '郑州二七广场店', regionId: '410000' }
+  ];
+
+  function targetedDemoSaleStores() {
+    var map = {};
+    targetedDemoStores.forEach(function (s) {
+      map[s.id] = true;
+    });
+    return map;
+  }
 
   function defaultTemplates() {
     return [];
@@ -367,11 +407,10 @@
       intro: '会员日定向门店闪购场。',
       viewPermission: 'STORE_MEMBER',
       regions: [],
-      stores: [
-        { id: 'st-001', name: '振宁十足' },
-        { id: 'st-002', name: '萧山万达店' }
-      ],
-      saleStores: { 'st-001': true, 'st-002': true },
+      stores: targetedDemoStores.map(function (s) {
+        return { id: s.id, name: s.name };
+      }),
+      saleStores: targetedDemoSaleStores(),
       pushUrl: 'rtmp://push.demo.lengfeng.com/live/sess-003?txSecret=****',
       playUrl: 'https://play.demo.lengfeng.com/live/sess-003.m3u8',
       templates: [
@@ -1586,7 +1625,8 @@
       stock: 4400,
       channel: '全渠道',
       validPeriod: '领取后7天有效',
-      collectLimit: '不限'
+      collectLimit: '不限',
+      perUserLimit: null
     },
     {
       id: 'CT10002',
@@ -1597,7 +1637,8 @@
       stock: 2800,
       channel: 'APP/小程序',
       validPeriod: '领取后15天有效',
-      collectLimit: '每人3次'
+      collectLimit: '每人3次',
+      perUserLimit: 3
     },
     {
       id: 'CT10003',
@@ -1608,7 +1649,8 @@
       stock: 4000,
       channel: '全渠道',
       validPeriod: '2026-03-01~09-30',
-      collectLimit: '每人2次'
+      collectLimit: '每人2次',
+      perUserLimit: 2
     },
     {
       id: 'CT10004',
@@ -1619,7 +1661,8 @@
       stock: 1200,
       channel: '全渠道',
       validPeriod: '领取后7天有效',
-      collectLimit: '每人1次'
+      collectLimit: '每人1次',
+      perUserLimit: 1
     },
     {
       id: 'CT10005',
@@ -1630,12 +1673,18 @@
       stock: 0,
       channel: '全渠道',
       validPeriod: '2025-01-01~12-31',
-      collectLimit: '每人1次'
+      collectLimit: '每人1次',
+      perUserLimit: 1
     }
   ];
 
   function findCouponTemplate(id) {
     var i;
+    var CS = window.MdmMarketingCouponStore;
+    if (CS && typeof CS.findById === 'function') {
+      var found = CS.findById(id);
+      if (found) return CS.toLivePickerItem(found);
+    }
     for (i = 0; i < couponTemplates.length; i++) {
       if (couponTemplates[i].id === id) return couponTemplates[i];
     }
@@ -1649,6 +1698,10 @@
   }
 
   function deductCouponStock(templateId, qty) {
+    var CS = window.MdmMarketingCouponStore;
+    if (CS && typeof CS.deductStock === 'function' && CS.findById(templateId)) {
+      return CS.deductStock(templateId, qty);
+    }
     var tpl = findCouponTemplate(templateId);
     var n = Math.floor(Number(qty) || 0);
     if (!tpl || n < 1) return false;
@@ -2194,6 +2247,7 @@
         couponTotalStock: 4,
         couponClaimedCount: 2,
         couponUsedCount: 0,
+        perUserLimit: 1,
         participantCount: 2,
         participateTimes: 2
       },
@@ -2208,6 +2262,7 @@
         couponTotalStock: 4,
         couponClaimedCount: 4,
         couponUsedCount: 2,
+        perUserLimit: 1,
         participantCount: 4,
         participateTimes: 4
       }
@@ -2225,6 +2280,7 @@
         couponTotalStock: 100,
         couponClaimedCount: 100,
         couponUsedCount: 61,
+        perUserLimit: 1,
         participantCount: 86,
         participateTimes: 100
       }
@@ -2320,7 +2376,8 @@
         status: 'CLOSED',
         couponTotalStock: 4,
         couponClaimedCount: 4,
-        couponUsedCount: 3
+        couponUsedCount: 3,
+        perUserLimit: 1
       },
       {
         id: 'win-c3-2',
@@ -2331,7 +2388,8 @@
         status: 'CLOSED',
         couponTotalStock: 4,
         couponClaimedCount: 3,
-        couponUsedCount: 1
+        couponUsedCount: 1,
+        perUserLimit: 1
       },
       {
         id: 'win-c3-1',
@@ -2342,7 +2400,8 @@
         status: 'CLOSED',
         couponTotalStock: 4,
         couponClaimedCount: 4,
-        couponUsedCount: 2
+        couponUsedCount: 2,
+        perUserLimit: 1
       }
     ],
     'tpl-b3': [
@@ -2427,10 +2486,208 @@
     return welfareWindows[planId];
   }
 
+  var SESSIONS_LS_KEY = 'lf_mdm_live_sessions_v1';
+  var SESSIONS_SEED_REV = 2;
+
+  function cloneSessionForStore(sess) {
+    var copy;
+    try {
+      copy = JSON.parse(JSON.stringify(sess));
+    } catch (e) {
+      copy = Object.assign({}, sess);
+    }
+    if (copy.cover && String(copy.cover).indexOf('data:') === 0 && String(copy.cover).length > 80000) {
+      copy.cover = '';
+    }
+    return copy;
+  }
+
+  function persistSessions() {
+    var list = sessions;
+    if (window.MdmLiveDemo && Array.isArray(window.MdmLiveDemo.sessions)) {
+      list = window.MdmLiveDemo.sessions;
+    }
+    var payload = {
+      v: 1,
+      seedRev: SESSIONS_SEED_REV,
+      sessions: (list || []).map(cloneSessionForStore)
+    };
+    try {
+      localStorage.setItem(SESSIONS_LS_KEY, JSON.stringify(payload));
+    } catch (err) {
+      try {
+        payload.sessions = payload.sessions.map(function (s) {
+          if (s.cover && String(s.cover).indexOf('data:') === 0) s.cover = '';
+          return s;
+        });
+        localStorage.setItem(SESSIONS_LS_KEY, JSON.stringify(payload));
+      } catch (e2) {}
+    }
+  }
+
+  function hydrateSessionsFromStorage() {
+    try {
+      var raw = localStorage.getItem(SESSIONS_LS_KEY);
+      if (!raw) return;
+      var parsed = JSON.parse(raw);
+      var saved = parsed && parsed.sessions;
+      if (!Array.isArray(saved)) return;
+      var seedIds = {};
+      sessions.forEach(function (s) {
+        if (s && s.id) seedIds[s.id] = true;
+      });
+      if (parsed.seedRev === SESSIONS_SEED_REV) {
+        sessions.length = 0;
+        saved.forEach(function (s) {
+          if (s && s.id) sessions.push(s);
+        });
+        return;
+      }
+      saved
+        .filter(function (s) {
+          return s && s.id && !seedIds[s.id];
+        })
+        .reverse()
+        .forEach(function (s) {
+          sessions.unshift(s);
+        });
+    } catch (e) {}
+  }
+
+  hydrateSessionsFromStorage();
+
+  var STORE_STAFF_POOL = [
+    { name: '牛店长', role: '店长' },
+    { name: '王店员', role: '店员' },
+    { name: '李店员', role: '店员' },
+    { name: '周店员', role: '店员' }
+  ];
+
+  function hashStr(s) {
+    var h = 0;
+    String(s || '')
+      .split('')
+      .forEach(function (c) {
+        h = (h * 31 + c.charCodeAt(0)) >>> 0;
+      });
+    return h;
+  }
+
+  function regionPrefix(code) {
+    return String(code || '').replace(/\D/g, '').slice(0, 2);
+  }
+
+  function getAllPromoStores() {
+    var map = {};
+    function add(s) {
+      if (!s || !s.id) return;
+      if (!map[s.id]) {
+        map[s.id] = {
+          id: s.id,
+          name: s.name || s.id,
+          address: s.address || '',
+          regionId: s.regionId || ''
+        };
+        return;
+      }
+      if (!map[s.id].name && s.name) map[s.id].name = s.name;
+      if (!map[s.id].address && s.address) map[s.id].address = s.address;
+      if (!map[s.id].regionId && s.regionId) map[s.id].regionId = s.regionId;
+    }
+    targetedDemoStores.forEach(add);
+    if (window.MdmProxyStorePicker && typeof window.MdmProxyStorePicker.listAll === 'function') {
+      window.MdmProxyStorePicker.listAll().forEach(add);
+    }
+    return Object.keys(map).map(function (k) {
+      return map[k];
+    });
+  }
+
+  function sessionRegionPrefixes(sess) {
+    var set = {};
+    function mark(code) {
+      var p = regionPrefix(code);
+      if (p) set[p] = true;
+    }
+    (sess.saleRegionSummary || []).forEach(function (r) {
+      mark(r && (r.id || r.code));
+    });
+    (sess.regions || []).forEach(function (r) {
+      mark(r && (r.code || r.id));
+    });
+    Object.keys(sess.saleRegions || {}).forEach(mark);
+    return set;
+  }
+
+  function resolvePromoStore(id, name, catalog) {
+    var found = null;
+    for (var i = 0; i < catalog.length; i++) {
+      if (catalog[i].id === id) {
+        found = catalog[i];
+        break;
+      }
+    }
+    return {
+      id: id,
+      name: name || (found && found.name) || id,
+      address: (found && found.address) || '',
+      regionId: (found && found.regionId) || ''
+    };
+  }
+
+  function getSessionPromoStores(sess) {
+    sess = sess || {};
+    var catalog = getAllPromoStores();
+    var liveType = sess.liveType || 'OFFICIAL';
+    if (liveType === 'TARGETED') {
+      var fromSess = (sess.stores || []).filter(function (s) {
+        return s && s.id;
+      });
+      if (fromSess.length) {
+        return fromSess.map(function (s) {
+          return resolvePromoStore(s.id, s.name, catalog);
+        });
+      }
+      return Object.keys(sess.saleStores || {})
+        .map(function (id) {
+          return resolvePromoStore(id, '', catalog);
+        })
+        .filter(function (s) {
+          return s && s.id;
+        });
+    }
+    if (liveType === 'REGION') {
+      var prefixes = sessionRegionPrefixes(sess);
+      if (!Object.keys(prefixes).length) return catalog.slice();
+      return catalog.filter(function (s) {
+        return prefixes[regionPrefix(s.regionId)];
+      });
+    }
+    return catalog.slice();
+  }
+
+  function listStoreStaff(storeId) {
+    var sid = String(storeId || '');
+    if (!sid) return [];
+    var h = hashStr(sid);
+    var count = 2 + (h % 3);
+    return STORE_STAFF_POOL.slice(0, count).map(function (p, i) {
+      var seq = String(10000000 + ((h + i * 17) % 90000000)).slice(-8);
+      return {
+        id: sid + '-emp-' + (i + 1),
+        name: p.name,
+        role: p.role,
+        phone: '138' + seq
+      };
+    });
+  }
+
   window.MdmLiveDemo = {
     rooms: rooms,
     timeslots: timeslots,
     sessions: sessions,
+    persistSessions: persistSessions,
+    SESSIONS_LS_KEY: SESSIONS_LS_KEY,
     categories: categories,
     productsBySession: productsBySession,
     normalizeSchedStatus: normalizeSchedStatus,
@@ -2452,6 +2709,9 @@
     dataMetrics: dataMetrics,
     controlMetrics: controlMetrics,
     demoStores: demoStores,
+    targetedDemoStores: targetedDemoStores,
+    getSessionPromoStores: getSessionPromoStores,
+    listStoreStaff: listStoreStaff,
     demoRegions: demoRegions,
     marketingTemplatePool: marketingTemplatePool,
     liveTypeOptions: [

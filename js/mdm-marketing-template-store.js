@@ -446,6 +446,7 @@
       taskType = parts[1] || '';
     }
     var rows = list.filter(function (item) {
+      if (item.activityType === 'COUPON') return false;
       if (activityType && item.activityType !== activityType) return false;
       if (taskType) {
         var tt = (item.config && item.config.taskType) || '';
@@ -608,6 +609,10 @@
   }
 
   function listActiveCoupons() {
+    var CouponStore = global.MdmMarketingCouponStore;
+    if (CouponStore && typeof CouponStore.listSelectable === 'function') {
+      return CouponStore.listSelectable('MARKETING');
+    }
     return list.filter(function (item) {
       return item.activityType === 'COUPON' && item.status === 'ACTIVE';
     });
