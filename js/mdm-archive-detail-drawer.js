@@ -4013,7 +4013,7 @@
                     ['余额', money(available)],
                     ['货款', money(goodsQuota)],
                     ['可提款', money(withdrawable)],
-                    ['待解冻', money(pending)]
+                    ['在途', money(pending)]
                 ])
             );
             root.appendChild(

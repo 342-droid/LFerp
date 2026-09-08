@@ -2,17 +2,17 @@
  * 门店钱包演示数据（H5 钱包 / 进货收银台 / PC 门店档案共用）
  * 余额账户资金规则：
  * - 货款：不可提现，仅用于门店进货支付
- * - 可提款：已满足 T+1 解冻，可提现至汇付对公账户（不含货款）
- * - 待解冻：入账未满 T+1，不可提现，可用于门店进货支付
+ * - 可提款：当前可发起提现的资金（入账即可提，不含货款、不含在途）
+ * - 在途：提现已发起、待 T+1 到账的资金，不可再提、不可进货
  * - 支出口径：账户=对手方；付款方式=出款钱包（二者不可相同）
  * - 售后/责任类扣款：账户=平台；付款方式可为余额账户或保证金账户
  * - 佣金回退 / 进货支付：付款方式=余额账户；不扣货款
- * - 进货支付底层扣款顺序：货款 → 余额(可提现+待解冻) → 支付宝/微信
+ * - 进货支付底层扣款顺序：货款 → 余额(可提现) → 支付宝/微信
  * - 混合支付：先冻结积分+余额，先验三方回调，再解冻划拨余额、扣减积分
  * - 保证金补缴出双分录：余额账户支出 + 保证金账户划拨入账
  */
 (function (global) {
-  var STORAGE_KEY = 'lf_store_wallet_demo_v25';
+  var STORAGE_KEY = 'lf_store_wallet_demo_v26';
   /* 演示商户（供应商简称）：收入·佣金结算的支付方式 / 支出·佣金回退的账户 */
   var DEMO_MERCHANT_SHORT = '优鲜供应链';
   /* 零售：售后/责任类扣款（余额账户付款）/ 佣金回退 —— 不扣货款，扣余额剩余层 */
@@ -29,13 +29,13 @@
     ruleSnapshot: { D: 2000, L: 8000, version: '加盟资金规则-v2026.07' },
     depositRequired: 2000,
     depositActual: 2000,
-    /* 可用余额 = 货款 + 可提现 + 待解冻 = 10000；货款不可提现 */
+    /* 余额 = 货款 + 可提现 + 在途 = 10000；进货可用 = 货款 + 可提现 */
     goodsQuota: 6000,
     /* 货款已缴（累计入货款层，消费不减少）；需补 = 应缴 - 已缴 */
     goodsQuotaPaid: 8000,
     goodsQuotaRequired: 8000,
     withdrawable: 3000,
-    /* 已入账未满 T+1，不可提现，可进货支付 */
+    /* 提现已发起、待 T+1 到账（不可再提、不可进货） */
     pending: 1000,
     /* 混合支付冻结占用（演示） */
     frozenGoodsQuota: 0,
@@ -60,7 +60,7 @@
       bankBranch: '杭州西湖支行',
       cardNo: '33050161663700000992',
       cardTail: '0992',
-      arriveTip: '汇付开户对公账户，预计24小时内到账'
+      arriveTip: '汇付开户对公账户，提现后预计 T+1 到账'
     }
   };
 
@@ -208,7 +208,7 @@
         channelNo: 'SPLIT-1102',
         payMethod: DEMO_MERCHANT_SHORT,
         thawStatus: 'ready',
-        remark: '零售订单佣金结算·来自商户' + DEMO_MERCHANT_SHORT + '（已满 T+1，可提现）'
+        remark: '零售订单佣金结算·来自商户' + DEMO_MERCHANT_SHORT + '（计入可提现）'
       },
       {
         id: 'L007',
@@ -221,7 +221,7 @@
         channelNo: 'WX-PAY-77881',
         payMethod: '微信',
         thawStatus: 'ready',
-        remark: '门店后续充值（已满 T+1；有缺口时先补保证金）'
+        remark: '门店后续充值（计入可提现；有缺口时先补保证金）'
       },
       {
         id: 'L007B',
@@ -233,8 +233,8 @@
         bizNo: 'CM-20260803-3301',
         channelNo: 'SPLIT-3301',
         payMethod: DEMO_MERCHANT_SHORT,
-        thawStatus: 'pending',
-        remark: '当日佣金结算·来自商户' + DEMO_MERCHANT_SHORT + '·未满 T+1，计入待解冻'
+        thawStatus: 'ready',
+        remark: '当日佣金结算·来自商户' + DEMO_MERCHANT_SHORT + '（计入可提现）'
       },
       {
         /* 售后/责任类扣款：账户=平台，付款方式=余额账户 */
@@ -317,7 +317,7 @@
         time: '2026-08-02 20:05:33',
         type: '提现申请',
         dir: 'out',
-        amount: 200,
+        amount: 1000,
         account: '中国建设银行(0992)',
         bizNo: 'WD-20260802-01',
         channelNo: 'WD-PEND-01',
@@ -326,7 +326,7 @@
         bankTail: '0992',
         ledgerStatus: '处理中',
         withdrawStatus: 'pending',
-        remark: '从余额账户提现至中国建设银行(0992)，待渠道确认'
+        remark: '从余额账户提现至中国建设银行(0992)，计入在途，预计 T+1 到账'
       },
       {
         id: 'L014',
@@ -372,8 +372,8 @@
         bizNo: 'RF-20260804-8821',
         channelNo: 'RF-WALLET-8821',
         payMethod: '平台',
-        thawStatus: 'pending',
-        remark: '进货订单退款·由平台退回钱包（仅钱包变动金额）'
+        thawStatus: 'ready',
+        remark: '进货订单退款·由平台退回钱包（计入可提现）'
       },
       {
         id: 'L017',
@@ -386,7 +386,7 @@
         channelNo: 'RF-WALLET-1108',
         payMethod: '平台',
         thawStatus: 'ready',
-        remark: '进货售后仅退款·由平台退回钱包（已满 T+1，可提现）'
+        remark: '进货售后仅退款·由平台退回钱包（计入可提现）'
       }
     ];
   }
@@ -436,7 +436,8 @@
     var goodsQuota = round2(Math.max(0, Number(d.goodsQuota || 0) - fq));
     var withdrawable = round2(Math.max(0, Number(d.withdrawable || 0) - fw));
     var pendingAvail = round2(Math.max(0, pending - fp));
-    /* 进货可用 = 货款 + 可提现 + 待解冻（扣冻结占用）；提现仅看可提现 */
+    /* 余额含在途（资金仍在钱包）；进货 / 提现不含在途 */
+    var restockAvailable = round2(goodsQuota + withdrawable);
     var available = round2(goodsQuota + withdrawable + pendingAvail);
     var settle = Object.assign({}, DEFAULT.settleAccount, d.settleAccount || {});
     return {
@@ -462,7 +463,9 @@
       ),
       withdrawable: withdrawable,
       available: available,
+      restockAvailable: restockAvailable,
       pending: pendingAvail,
+      inTransit: pendingAvail,
       frozenAmount: round2(fq + fw + fp),
       freezeRecord: d.freezeRecord || null,
       /* 货款不可提现，仅可用于门店进货 */
@@ -525,7 +528,7 @@
     return round2(Math.max(0, limit - used));
   }
 
-  /** 充值演示：优先补齐保证金缺口，其余进待解冻（T+1 后可提） */
+  /** 充值演示：优先补齐保证金缺口，其余进可提现（入账即可提） */
   function applyRecharge(amount, meta) {
     var amt = round2(amount);
     var d = normalizeRechargeDaily(load());
@@ -627,7 +630,7 @@
       };
     }
 
-    /* 后续充值：正常门店有缺口先补齐；已禁用已解冻则不补缺口，全额待解冻 */
+    /* 后续充值：正常门店有缺口先补齐；已禁用已解冻则不补缺口，全额进可提现 */
     if (fill > 0) {
       d.depositActual = round2(d.depositActual + fill);
       pushDepositFillPair(d, {
@@ -641,7 +644,7 @@
       });
     }
     if (amt > 0 && (rest > 0 || fill > 0)) {
-      if (rest > 0) d.pending = round2((d.pending || 0) + rest);
+      if (rest > 0) d.withdrawable = round2((d.withdrawable || 0) + rest);
       d.ledgers.unshift({
         id: 'R' + Date.now(),
         time: now,
@@ -655,12 +658,12 @@
         bankTail: settle.cardTail,
         channel: channel,
         payMethod: payMethod,
-        thawStatus: 'pending',
+        thawStatus: 'ready',
         remark: gapSuppressed
-          ? payMethod + '充值·已禁用已解冻不补保证金·未满 T+1，计入待解冻'
+          ? payMethod + '充值·已禁用已解冻不补保证金·计入可提现'
           : fill > 0
-            ? payMethod + '充值 ' + amt + '·其中补缴保证金 ' + fill + '·未满 T+1'
-            : payMethod + '充值·未满 T+1，计入待解冻'
+            ? payMethod + '充值 ' + amt + '·其中补缴保证金 ' + fill + '·剩余计入可提现'
+            : payMethod + '充值·计入可提现'
       });
     }
     save(d);
@@ -668,11 +671,12 @@
       ok: true,
       snapshot: snapshot(d),
       filledGap: fill,
-      toPending: rest
+      toPending: 0,
+      toWithdrawable: rest
     };
   }
 
-  /** 提现演示：扣减可提现余额并记流水 */
+  /** 提现演示：可提现划入在途，T+1 到账前仍在钱包 */
   function applyWithdraw(amount, meta) {
     var amt = round2(amount);
     var d = load();
@@ -694,6 +698,7 @@
     var bankTail = settle.cardTail || '';
     var accountName = settle.accountName || d.storeName || '';
     d.withdrawable = round2(d.withdrawable - amt);
+    d.pending = round2(Number(d.pending || 0) + amt);
     var bankAccount = formatPayMethod('对公账户', settle, meta);
     d.ledgers.unshift({
       id: 'W' + Date.now(),
@@ -709,35 +714,34 @@
       accountName: accountName,
       payMethod: '余额账户',
       settleType: settle.settleType || '对公',
+      ledgerStatus: '处理中',
       withdrawStatus: 'pending',
       remark:
         '从余额账户提现至' +
         bankAccount +
-        (accountName ? '·' + accountName : '')
+        (accountName ? '·' + accountName : '') +
+        '，计入在途，预计 T+1 到账'
     });
     save(d);
     return { ok: true, snapshot: snapshot(d) };
   }
 
-  /** 按进货顺序拆分扣款：货款 → 余额(可提现) → 待解冻 */
+  /** 按进货顺序拆分扣款：货款 → 余额(可提现)；在途不可扣 */
   function splitRestockDebit(d, amount) {
     var amt = round2(amount);
     var q = round2(Math.max(0, Number(d.goodsQuota || 0) - Number(d.frozenGoodsQuota || 0)));
     var w = round2(Math.max(0, Number(d.withdrawable || 0) - Number(d.frozenWithdrawable || 0)));
-    var p = round2(Math.max(0, Number(d.pending || 0) - Number(d.frozenPending || 0)));
-    var avail = round2(q + w + p);
+    var avail = round2(q + w);
     if (amt > avail + 0.001) amt = avail;
     var left = amt;
     var fromQ = Math.min(q, left);
     left = round2(left - fromQ);
-    var fromW = Math.min(w, left);
-    left = round2(left - fromW);
-    var fromP = left;
+    var fromW = left;
     return {
       amount: amt,
       fromGoodsQuota: round2(fromQ),
       fromWithdrawable: round2(fromW),
-      fromPending: round2(fromP)
+      fromPending: 0
     };
   }
 
@@ -837,7 +841,7 @@
 
   /**
    * 进货支付演示：扣减余额
-   * 顺序：货款 → 余额(可提现) → 待解冻；渠道腿由收银台走支付宝/微信
+   * 顺序：货款 → 余额(可提现)；渠道腿由收银台走支付宝/微信
    */
   function applyRestockPay(balanceAmount, meta) {
     var amt = round2(balanceAmount);
@@ -874,7 +878,7 @@
 
   /**
    * 进货退款等：由平台退回钱包金额记入收入明细（仅钱包变动）
-   * 默认入待解冻（T+1）；meta.ready === true 时直接进可提现
+   * 入账即可提现（计入可提款）
    */
   function applyWalletRefund(amount, meta) {
     var amt = round2(amount);
@@ -882,12 +886,7 @@
       return { ok: false, message: '退款金额无效', snapshot: snapshot() };
     }
     var d = load();
-    var ready = !!(meta && meta.ready);
-    if (ready) {
-      d.withdrawable = round2(Number(d.withdrawable || 0) + amt);
-    } else {
-      d.pending = round2(Number(d.pending || 0) + amt);
-    }
+    d.withdrawable = round2(Number(d.withdrawable || 0) + amt);
     d.ledgers.unshift({
       id: 'RF' + Date.now(),
       time: formatNow(),
@@ -898,8 +897,8 @@
       bizNo: (meta && meta.bizNo) || 'RF-' + Date.now().toString().slice(-8),
       channelNo: (meta && meta.channelNo) || 'RF-WALLET-' + Date.now().toString().slice(-4),
       payMethod: '平台',
-      thawStatus: ready ? 'ready' : 'pending',
-      remark: (meta && meta.remark) || '进货订单退款·由平台退回钱包（仅钱包变动金额）'
+      thawStatus: 'ready',
+      remark: (meta && meta.remark) || '进货订单退款·由平台退回钱包（计入可提现）'
     });
     save(d);
     return { ok: true, snapshot: snapshot(d) };
@@ -1054,7 +1053,7 @@
    * - 佣金回退：账户=商户（供应商简称），付款方式=余额账户
    *   → 从余额账户把佣金回退给该商户
    * - 售后/责任类扣款：账户=平台，付款方式=余额账户（默认）
-   * - 不扣货款；扣「余额 − 货款」= 可提现 + 待解冻
+   * - 不扣货款；扣「余额 − 货款 − 在途」= 可提现
    * - meta.payFromDeposit / type=保证金出账 → 走保证金账户付款
    */
   function applyNonGoodsBalanceExpense(type, amount, meta) {
@@ -1071,22 +1070,20 @@
     var amt = round2(amount);
     var d = load();
     var w = round2(Math.max(0, Number(d.withdrawable || 0) - Number(d.frozenWithdrawable || 0)));
-    var p = round2(Math.max(0, Number(d.pending || 0) - Number(d.frozenPending || 0)));
-    var pool = round2(w + p);
+    var pool = w;
     if (!(amt > 0)) {
       return { ok: false, message: '金额无效', snapshot: snapshot(d) };
     }
     if (amt > pool + 0.001) {
       return {
         ok: false,
-        message: '余额剩余不足（不含货款，当前可扣¥' + pool.toFixed(2) + '）',
+        message: '余额剩余不足（不含货款与在途，当前可扣¥' + pool.toFixed(2) + '）',
         snapshot: snapshot(d)
       };
     }
-    var fromW = Math.min(w, amt);
-    var fromP = round2(amt - fromW);
+    var fromW = amt;
+    var fromP = 0;
     d.withdrawable = round2(Number(d.withdrawable || 0) - fromW);
-    d.pending = round2(Number(d.pending || 0) - fromP);
     var account =
       (meta && meta.account) ||
       (expenseType === '佣金回退' ? DEMO_MERCHANT_SHORT : '平台');

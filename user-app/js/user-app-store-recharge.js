@@ -290,8 +290,10 @@
       if (result.filledGap > 0) {
         msg += '\n其中补齐保证金 ¥' + moneyPlain(result.filledGap);
       }
-      if (result.toPending > 0) {
-        msg += '\n计入待解冻 ¥' + moneyPlain(result.toPending) + '（T+1 后可提现）';
+      if (result.toWithdrawable > 0 || result.toPending > 0) {
+        msg +=
+          '\n计入可提现 ¥' +
+          moneyPlain(result.toWithdrawable > 0 ? result.toWithdrawable : result.toPending);
       }
     }
     window.alert(msg);

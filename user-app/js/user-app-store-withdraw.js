@@ -175,18 +175,6 @@
     state.settle = snap.settleAccount || null;
     var balEl = $('wdBalance');
     if (balEl) balEl.textContent = moneyPlain(state.balance);
-    var pendingTip = $('wdPendingTip');
-    var pendingAmt = Number(snap.pending || 0);
-    if (pendingTip) {
-      if (pendingAmt > 0) {
-        pendingTip.hidden = false;
-        pendingTip.textContent =
-          '¥' + moneyPlain(pendingAmt) + ' 未满 T+1（待解冻），暂不可提现';
-      } else {
-        pendingTip.hidden = true;
-        pendingTip.textContent = '';
-      }
-    }
     syncSettleUi();
     syncAmountUi();
     setKeypad(true);
@@ -255,7 +243,7 @@
         closePaySheet();
         return;
       }
-      toast('提交成功！');
+      toast('提交成功，预计 T+1 到账');
       setTimeout(function () {
         window.location.href = 'store-wallet.html' + walletQuery({ tab: 'out', bizType: '提现申请' });
       }, 800);
