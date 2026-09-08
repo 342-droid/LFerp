@@ -32,6 +32,13 @@
 
     const activityItems = [
         {
+            href: 'mdm_marketing_coupon.html',
+            text: '优惠券',
+            alsoActive: [
+                'mdm_marketing_coupon_form.html'
+            ]
+        },
+        {
             href: 'mdm_marketing_points_mall.html',
             text: '积分商城',
             alsoActive: [

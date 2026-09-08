@@ -96,8 +96,34 @@
         "user-app/h5/login-password.html",
         "user-app/h5/profile.html",
         "user-app/h5/orders.html",
-        "MDM/mdm_member_c.html"
+        "MDM/mdm_member_c.html",
+        "MDM/mdm_bd_workbench.html"
+      ]
+    },
+    {
+      "id": "659-直播中控发券自定义每轮次每人可领取的数量+优惠券一个时刻只能发放一场正在进行的发券活动",
+      "title": "【659】直播中控发券自定义每轮次每人可领取的数量+优惠券一个时刻只能发放一场正在进行的发券活动",
+      "file": "659-直播中控发券自定义每轮次每人可领取的数量+优惠券一个时刻只能发放一场正在进行的发券活动.md",
+      "pages": [
+        "MDM/mdm_live_control.html"
+      ]
+    },
+    {
+      "id": "23-会员发券以及优惠券增加审核",
+      "title": "【23】会员发券以及优惠券增加审核",
+      "file": "23-会员发券以及优惠券增加审核.md",
+      "pages": [
+        "MDM/mdm_member_c.html",
+        "MDM/mdm_marketing_mall_record.html",
+        "MDM/mdm_marketing_coupon.html",
+        "MDM/mdm_marketing_coupon_form.html",
+        "MDM/mdm_audit_coupon.html",
+        "MDM/mdm_marketing_template.html",
+        "MDM/mdm_live_session_form.html",
+        "MDM/mdm_live_control.html",
+        "SCM/basic_settings_recommendation.html"
       ]
     }
   ]
 }
+

@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/basic-settings.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
+    <link rel="stylesheet" href="../css/lf-marketing-coupon.css">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -17,9 +20,28 @@
         <main class="main-content">
             <div class="content-title">基础设置 / 推荐位配置</div>
             <hr class="content-divider">
-            <div class="bs-placeholder-page">推荐位配置页面（演示占位）</div>
+            <div class="mdm-biz-tip" role="note">商城推荐位只能关联<strong>已启用</strong>且发放场景包含<strong>商城推荐位</strong>（或发放场景为全部）的优惠券。</div>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>推荐位</th>
+                                <th>关联优惠券</th>
+                                <th>券面值</th>
+                                <th>适用渠道</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recTableBody"></tbody>
+                    </table>
+                </div>
+            </section>
         </main>
     </div>
     <script src="../js/common.js"></script>
+    <script src="../js/mdm-marketing-coupon-store.js"></script>
+    <script src="../js/mdm-basic-recommendation.js"></script>
 </body>
 </html>

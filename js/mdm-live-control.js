@@ -11,6 +11,7 @@
  * 新增一键评论 / 快捷回复、发送弹幕与回复均过敏感词风控，命中则拦截。
  * 观看记录：当前在线 / 累计观看 / 观看人次。
  * 福袋开奖：符合条件人数不足时，按 min(中奖人数, 参与人数) 补虚拟用户进中奖名单。
+ * 发券每轮可配每人限领（1–20，默认 1），且不得大于券模板限领；同一时刻只能有一个券活动正在发放。
  */
 (function () {
   'use strict';
@@ -65,6 +66,10 @@
   var C_STATE_KEY = 'lf_live_c_state_v1';
   var LIKE_REPORT_KEY = 'lf_live_like_reports_v1';
   var TASK_DURATION_SEC = 1440 * 60;
+  var COUPON_ROUND_LIMIT_MIN = 1;
+  var COUPON_ROUND_LIMIT_MAX = 20;
+  var COUPON_ROUND_LIMIT_TIP =
+    '每轮限制领取数量除了受当轮设置外还受券模板限领控制，即：券模板限领1张，而用户之前已经领取，那么此时该用户将无法再次领取';
   var welfareUi = {
     open: false,
     kind: 'coupon',
@@ -72,6 +77,7 @@
     planId: '',
     duration: '',
     quantity: '',
+    perUserLimit: '1',
     winnerCount: '',
     drawType: 'RANDOM',
     assignUsers: [],
@@ -1537,7 +1543,7 @@
     var other = otherUnfinishedCoupon(welfarePlanIdOf(plan));
     if (!other) return '';
     var name = liveCouponFields(other).name || '优惠券活动';
-    return '前一个券活动「' + name + '」尚未发放完毕，不能发放下一个券活动';
+    return '当前已有优惠券活动「' + name + '」正在发放，同一时刻只能发放一次优惠券活动';
   }
 
   function couponIssueBlockedReason(plan) {
@@ -1820,6 +1826,7 @@
     var tpl = couponTemplateOf(t);
     var status = tpl ? tpl.status : '';
     var statusKey = status === 'disabled' || status === 'expired' ? status : 'enabled';
+    var tplLimit = parseTplPerUserLimit(tpl);
     return {
       name: tpl ? tpl.name : '—',
       templateId: (t && t.templateId) || '—',
@@ -1827,8 +1834,108 @@
       denomination: tpl ? tpl.denomination : 0,
       status: status,
       statusLabel: tpl && Demo.couponTemplateStatusLabel ? Demo.couponTemplateStatusLabel(status) : '—',
-      statusKey: tpl ? statusKey : 'disabled'
+      statusKey: tpl ? statusKey : 'disabled',
+      perUserLimit: tplLimit,
+      perUserLimitLabel: tplLimit == null ? '不限' : '每人' + tplLimit + '张'
     };
+  }
+
+  function parseTplPerUserLimit(tpl) {
+    if (!tpl) return null;
+    if (tpl.perUserLimit != null && tpl.perUserLimit !== '') {
+      var n = Math.floor(Number(tpl.perUserLimit));
+      if (isFinite(n) && n > 0) return n;
+    }
+    var s = String(tpl.collectLimit || '').trim();
+    if (!s || /不限/.test(s)) return null;
+    var m = s.match(/(\d+)/);
+    if (!m) return null;
+    var v = Math.floor(Number(m[1]));
+    return isFinite(v) && v > 0 ? v : null;
+  }
+
+  function couponTplLimitCap(plan) {
+    return parseTplPerUserLimit(couponTemplateOf(plan));
+  }
+
+  function couponTplLimitLabel(plan) {
+    var n = couponTplLimitCap(plan);
+    return n == null ? '不限' : '每人' + n + '张';
+  }
+
+  function couponRoundLimitMax(plan) {
+    var cap = couponTplLimitCap(plan);
+    var max = COUPON_ROUND_LIMIT_MAX;
+    if (cap != null) max = Math.min(max, cap);
+    return Math.max(COUPON_ROUND_LIMIT_MIN, max);
+  }
+
+  function couponRoundLimitCheck(plan, raw) {
+    var parsed = requiredPositiveInt(raw);
+    var cap = couponTplLimitCap(plan);
+    var max = couponRoundLimitMax(plan);
+    if (parsed.empty) return { ok: false, empty: true, value: 0, tip: '' };
+    if (!parsed.ok || parsed.value > COUPON_ROUND_LIMIT_MAX) {
+      return { ok: false, empty: false, value: parsed.value, tip: '每人限领须为 1～20 的整数' };
+    }
+    if (cap != null && parsed.value > cap) {
+      return {
+        ok: false,
+        empty: false,
+        value: parsed.value,
+        tip: '每人限领不能大于券模板限领（' + couponTplLimitLabel(plan) + '）'
+      };
+    }
+    if (parsed.value > max) {
+      return { ok: false, empty: false, value: parsed.value, tip: '每人限领须为 1～' + max + ' 的整数' };
+    }
+    return { ok: true, empty: false, value: parsed.value, tip: '' };
+  }
+
+  function syncCouponRoundLimitForPlan() {
+    if (!String(welfareUi.perUserLimit || '').trim()) welfareUi.perUserLimit = '1';
+  }
+
+  function couponRoundLimitErrorText(plan, raw) {
+    var chk = couponRoundLimitCheck(plan, raw);
+    if (!chk.ok && !chk.empty && chk.tip) return chk.tip;
+    return '';
+  }
+
+  function paintCouponRoundLimitError(doToast) {
+    var err = document.getElementById('welfarePerUserLimitErr');
+    var inp = document.getElementById('welfarePerUserLimit');
+    if (!err || !inp) return;
+    var tip = couponRoundLimitErrorText(selectedWelfarePlan(), welfareUi.perUserLimit);
+    err.textContent = tip;
+    err.hidden = !tip;
+    if (tip) inp.classList.add('is-error');
+    else inp.classList.remove('is-error');
+    if (doToast && tip) toast(tip, 'warning');
+  }
+
+  function hideWelfareHelpPop() {
+    var pop = document.getElementById('welfareHelpPop');
+    if (pop) pop.hidden = true;
+  }
+
+  function showWelfareHelpPop(anchor) {
+    var pop = document.getElementById('welfareHelpPop');
+    var tip = anchor && anchor.getAttribute('data-tip');
+    if (!pop || !tip) return;
+    pop.textContent = tip;
+    pop.hidden = false;
+    var r = anchor.getBoundingClientRect();
+    var gap = 8;
+    var left = r.right - pop.offsetWidth;
+    if (left < 12) left = 12;
+    if (left + pop.offsetWidth > window.innerWidth - 12) {
+      left = Math.max(12, window.innerWidth - pop.offsetWidth - 12);
+    }
+    var top = r.top - pop.offsetHeight - gap;
+    if (top < 56) top = r.bottom + gap;
+    pop.style.left = Math.round(left) + 'px';
+    pop.style.top = Math.round(top) + 'px';
   }
 
   function couponStatusText(t) {
@@ -2020,6 +2127,7 @@
     if (kind === 'coupon') {
       if (!requiredPositiveInt(welfareUi.duration).ok) return '持续时间';
       if (!requiredPositiveInt(welfareUi.quantity).ok) return '发放数量';
+      if (!requiredPositiveInt(welfareUi.perUserLimit).ok) return '每人限领';
     } else if (kind === 'bag') {
       if (!requiredPositiveInt(welfareUi.duration).ok) return '福袋持续时间';
       if (!requiredPositiveInt(welfareUi.winnerCount).ok) return '中奖人数';
@@ -2343,6 +2451,7 @@
   }
 
   function closeWelfareDrawer() {
+    hideWelfareHelpPop();
     var drawer = document.getElementById('welfareDrawer');
     if (drawer) drawer.hidden = true;
     welfareUi.open = false;
@@ -2362,6 +2471,7 @@
       welfareUi.planId = '';
       welfareUi.duration = '';
       welfareUi.quantity = '';
+      welfareUi.perUserLimit = '1';
       welfareUi.winnerCount = '';
       welfareUi.drawType = 'RANDOM';
       welfareUi.assignUsers = [];
@@ -2400,6 +2510,11 @@
         if (couponQty.ok && couponQty.value > couponRemain(plan)) {
           disabled = true;
           tip = '本活动剩余发券库存不足（剩余 ' + couponRemain(plan) + ' 张）';
+        }
+        var roundLimit = couponRoundLimitCheck(plan, welfareUi.perUserLimit);
+        if (!roundLimit.ok && roundLimit.tip) {
+          disabled = true;
+          if (!tip) tip = roundLimit.tip;
         }
       }
     } else if (kind === 'bag') {
@@ -2466,6 +2581,7 @@
   }
 
   function renderWelfareDrawer() {
+    hideWelfareHelpPop();
     expireWelfareWindows();
     var meta = WELFARE_META[welfareUi.kind] || WELFARE_META.coupon;
     var title = document.getElementById('welfareDrawerTitle');
@@ -2856,6 +2972,8 @@
           escapeHtml(String(total == null ? '—' : total)) +
           '　发放轮次：' +
           escapeHtml(couponRoundsLabel(t)) +
+          '　券模板限领：' +
+          escapeHtml(live.perUserLimitLabel) +
           releaseHtml +
           '</div></div>'
         );
@@ -2863,6 +2981,8 @@
       .join('');
     var remain = plan ? couponRemain(plan) : 0;
     var lockedPlan = plan ? couponLockedReason(plan) : '';
+    syncCouponRoundLimitForPlan();
+    var limitErr = plan ? couponRoundLimitErrorText(plan, welfareUi.perUserLimit) : '';
     var form = plan
       ? '<div class="coupon-dialog__form"><div class="coupon-dialog__form-title">发放设置</div>' +
         '<div class="lf-welfare-form-grid">' +
@@ -2878,7 +2998,30 @@
         '" placeholder="请输入"' +
         (remain > 0 ? ' max="' + remain + '"' : '') +
         (lockedPlan ? ' disabled' : '') +
-        '></label></div>' +
+        '></label>' +
+        '<div class="lf-welfare-field lf-welfare-field--limit">' +
+        '<span><span class="erp-req">*</span>每人限领（单位：张）' +
+        '<i class="lf-welfare-help" tabindex="0" data-tip="' +
+        escapeHtml(COUPON_ROUND_LIMIT_TIP) +
+        '">?</i></span>' +
+        '<div class="lf-welfare-limit-row">' +
+        '<input class="erp-input' +
+        (limitErr ? ' is-error' : '') +
+        '" type="number" min="' +
+        COUPON_ROUND_LIMIT_MIN +
+        '" step="1" id="welfarePerUserLimit" value="' +
+        escapeHtml(welfareUi.perUserLimit || '1') +
+        '" placeholder="请输入"' +
+        (lockedPlan ? ' disabled' : '') +
+        '>' +
+        '<span class="lf-welfare-limit-tpl">券模板限领：' +
+        escapeHtml(couponTplLimitLabel(plan)) +
+        '</span></div>' +
+        '<p class="lf-welfare-field-error" id="welfarePerUserLimitErr"' +
+        (limitErr ? '' : ' hidden') +
+        '>' +
+        escapeHtml(limitErr) +
+        '</p></div></div>' +
         (lockedPlan
           ? '<p class="lf-live-dialog__hint">' + escapeHtml(lockedPlan) + '</p>'
           : '<p class="lf-live-dialog__hint">本活动剩余可发 ' + remain + ' 张（总数量 ' + (plan.quotaTotal || plan.stock || 0) + '）。</p>') +
@@ -3140,6 +3283,9 @@
       '<div class="record-card__metric"><div class="record-card__metric-label">发放数量</div><div class="record-card__metric-value">' +
       escapeHtml(String(w.couponTotalStock || 0)) +
       ' 张</div></div>' +
+      '<div class="record-card__metric"><div class="record-card__metric-label">每人限领</div><div class="record-card__metric-value">' +
+      escapeHtml(w.perUserLimit != null && w.perUserLimit !== '' ? '每人' + w.perUserLimit + '张' : '—') +
+      '</div></div>' +
       '<div class="record-card__metric"><div class="record-card__metric-label">领取人数</div><div class="record-card__metric-value">' +
       escapeHtml(String(w.couponClaimedCount || 0)) +
       ' 人</div></div>' +
@@ -3501,7 +3647,14 @@
 
     function filteredList() {
       var k = String(addCouponUi.keyword || '').trim().toLowerCase();
-      return (Demo.couponTemplates || []).filter(function (c) {
+      var source = Demo.couponTemplates || [];
+      var CS = window.MdmMarketingCouponStore;
+      if (CS && typeof CS.listSelectable === 'function') {
+        source = CS.listSelectable('LIVE').map(function (item) {
+          return CS.toLivePickerItem(item);
+        });
+      }
+      return source.filter(function (c) {
         if (c.status === 'expired') return false;
         if (!k) return true;
         return (
@@ -4090,6 +4243,8 @@
       var qty = couponQty.value;
       var remain = couponRemain(plan);
       if (qty > remain) return toast('本活动剩余发券库存不足（剩余 ' + remain + ' 张）', 'warning');
+      var roundLimit = couponRoundLimitCheck(plan, welfareUi.perUserLimit);
+      if (!roundLimit.ok) return toast(roundLimit.tip || '请填写每人限领', 'warning');
       var list = welfareWindowsOfPlan(welfarePlanIdOf(plan));
       list.unshift({
         id: Demo.nextWindowId(),
@@ -4102,6 +4257,7 @@
         couponTotalStock: qty,
         couponClaimedCount: 0,
         couponUsedCount: 0,
+        perUserLimit: roundLimit.value,
         participantCount: 0,
         participateTimes: 0
       });
@@ -6489,6 +6645,10 @@
         var el = ev.target;
         if (el.id === 'welfareDuration') welfareUi.duration = el.value;
         if (el.id === 'welfareQuantity') welfareUi.quantity = el.value;
+        if (el.id === 'welfarePerUserLimit') {
+          welfareUi.perUserLimit = el.value;
+          paintCouponRoundLimitError(true);
+        }
         if (el.id === 'welfareWinnerCount') welfareUi.winnerCount = el.value;
         if (el.id === 'assignUserKeyword') welfareUi.assignKeyword = el.value;
         applyWelfarePrimary();
@@ -6509,6 +6669,31 @@
           welfareUi.bagWinDraft = ev.target.value;
         }
       });
+      welfareDrawer.addEventListener('mouseover', function (ev) {
+        var help = ev.target.closest('.lf-welfare-help');
+        if (help) showWelfareHelpPop(help);
+      });
+      welfareDrawer.addEventListener('mouseout', function (ev) {
+        var help = ev.target.closest('.lf-welfare-help');
+        if (!help) return;
+        var next = ev.relatedTarget;
+        if (next && help.contains(next)) return;
+        hideWelfareHelpPop();
+      });
+      welfareDrawer.addEventListener('focusin', function (ev) {
+        var help = ev.target.closest('.lf-welfare-help');
+        if (help) showWelfareHelpPop(help);
+      });
+      welfareDrawer.addEventListener('focusout', function (ev) {
+        if (ev.target && ev.target.classList && ev.target.classList.contains('lf-welfare-help')) {
+          hideWelfareHelpPop();
+        }
+      });
+      welfareDrawer.addEventListener('mousedown', function (ev) {
+        if (ev.target.closest('.lf-welfare-help')) ev.preventDefault();
+      });
+      var welfareBody = document.getElementById('welfareDrawerBody');
+      if (welfareBody) welfareBody.addEventListener('scroll', hideWelfareHelpPop);
     }
 
     var addBagList = document.getElementById('addBagList');

@@ -77,7 +77,11 @@
           return;
         }
         if (action === 'livePromo') {
-          window.location.href = 'live-promo.html';
+          var href =
+            window.SaLivePromoSession && window.SaLivePromoSession.livePromoHref
+              ? window.SaLivePromoSession.livePromoHref()
+              : 'live-promo.html';
+          window.location.href = href;
           return;
         }
         var labels = {
@@ -131,8 +135,31 @@
     }
   }
 
+  function syncLiveIdentityHeader() {
+    var api = window.SaLivePromoSession;
+    if (api && typeof api.applyUrlHints === 'function') api.applyUrlHints();
+    var info = api && typeof api.identity === 'function' ? api.identity() : null;
+    var avatar = document.getElementById('saHomeAvatar');
+    var nameEl = document.getElementById('saHomeStoreName');
+    var roleEl = document.getElementById('saHomeRole');
+    if (!info) return;
+    if (avatar) avatar.textContent = (info.staffName || '店').slice(0, 1);
+    if (nameEl) nameEl.textContent = info.storeName || '门店';
+    if (roleEl) {
+      if (info.role === 'bd') {
+        roleEl.hidden = false;
+        roleEl.textContent = 'BD · ' + info.staffName + ' · 已切到该店';
+      } else {
+        roleEl.hidden = true;
+        roleEl.textContent = '';
+      }
+    }
+    if (api && typeof api.mountDemoPanel === 'function') api.mountDemoPanel();
+  }
+
   bindActions();
   syncOnboardingDot();
+  syncLiveIdentityHeader();
 
   if (window.LFScan && window.LFMockData) {
     window.LFScan.init(window.LFMockData, {

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>门店APP · 工作台</title>
-  <link rel="stylesheet" href="../css/store-app.css?v=20260826-scan-fit">
+  <link rel="stylesheet" href="../css/store-app.css?v=20260905-livepromo-bd">
   <link rel="stylesheet" href="../css/store-app-scan.css?v=20260826-scan-fit">
   <link rel="stylesheet" href="../css/store-app-qrcode.css?v=20260826-scan-fit">
 </head>
@@ -13,8 +13,11 @@
     <div class="sa-home">
       <div class="sa-scroll">
         <header class="sa-header">
-          <span class="sa-avatar" aria-hidden="true">牛</span>
-          <h1 class="sa-store-name">斯斯门店商家2</h1>
+          <span class="sa-avatar" id="saHomeAvatar" aria-hidden="true">牛</span>
+          <div class="sa-header-text">
+            <h1 class="sa-store-name" id="saHomeStoreName">冷丰生鲜超市</h1>
+            <p class="sa-header-role" id="saHomeRole" hidden></p>
+          </div>
           <button type="button" class="sa-settings" data-sa-action="settings" aria-label="设置">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round">
               <path d="M12 3.2l7 3.8v5.2c0 4.4-2.9 8.1-7 9.6-4.1-1.5-7-5.2-7-9.6V7L12 3.2z"/>
@@ -323,7 +326,8 @@
   <script src="../js/store-app-toast.js?v=20260826-cutoff"></script>
   <script src="../js/store-app-qrcode.js?v=20260826-cutoff"></script>
   <script src="../js/store-app-scan.js?v=20260826-cutoff"></script>
-  <script src="../js/store-app-home.js?v=20260904-livepromo"></script>
+  <script src="../js/store-app-live-session.js?v=20260905-livepromo-bd"></script>
+  <script src="../js/store-app-home.js?v=20260905-livepromo-bd"></script>
   <script src="../../js/pg-prd-float.js?v=20260828-537"></script>
 </body>
 </html>

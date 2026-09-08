@@ -17,8 +17,15 @@
     '<path d="M3 4h2l2.2 11h9.8L19 8H7"/>' +
     '<path d="M12 7v5m0 0l-2-2m2 2l2-2" stroke-linecap="round"/>' +
     '</svg>';
+  var LIVE_SVG =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">' +
+    '<rect x="3" y="6" width="18" height="12" rx="2"/>' +
+    '<path d="M10 10.2l5 1.8-5 1.8v-3.6z" fill="currentColor" stroke="none"/>' +
+    '<circle cx="7" cy="9" r="1" fill="currentColor" stroke="none"/>' +
+    '</svg>';
   var workbenchItems = [
     { label: '进货', emoji: '', cls: 'wb10', hash: 'restock', svg: CART_SVG },
+    { label: '直播推广', emoji: '', cls: 'wb11', hash: 'live-promo', svg: LIVE_SVG },
     { label: '门店管理', emoji: '🗺', cls: 'wb1', hash: 'stores' },
     { label: '协议管理', emoji: '📝', cls: 'wb2', hash: 'stores-agreements' },
     { label: '商户进件', emoji: '🏪', cls: 'wb3', hash: 'merchants' },
@@ -554,6 +561,13 @@
               ? window.wmsPath.page('user-app/h5/restock.html')
               : '../user-app/h5/restock.html';
           location.href = restockHref + '?from=bd-app';
+        }
+        else if (x === 'live-promo') {
+          var liveHref =
+            window.wmsPath && typeof window.wmsPath.page === 'function'
+              ? window.wmsPath.page('store-app/h5/live-promo.html')
+              : '../store-app/h5/live-promo.html';
+          location.href = liveHref + '?from=bd-app&role=bd';
         }
         else if (x === 'stores') location.href = page('mdm_bd_stores.html');
         else if (x === 'stores-agreements') location.href = page('mdm_bd_stores.html#agreements');

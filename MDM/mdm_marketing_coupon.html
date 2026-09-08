@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>冷丰WMS - 模版配置</title>
+    <title>冷丰WMS - 优惠券</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/mdm-member360-list.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
     <link rel="stylesheet" href="../css/lf-marketing-template.css">
+    <link rel="stylesheet" href="../css/lf-marketing-coupon.css">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -17,29 +19,59 @@
     <div id="header-container"></div>
     <div class="container">
         <main class="main-content">
-            <div class="content-tabs"><button class="active">模版配置</button></div>
+            <div class="content-tabs"><button class="active">优惠券</button></div>
             <hr class="content-divider">
 
+            <div class="mdm-biz-tip" role="note">保存进入<strong>草稿</strong>（不校验必填）；提交进入<strong>待审核</strong>并生成审核记录。启用后的券才会按<strong>发放场景</strong>出现在直播、营销送券、商城推荐位、会员发券的选券列表中。</div>
+
             <section class="search-section">
-                <form class="search-form" id="tplFilterForm" onsubmit="return false;">
+                <form class="search-form" id="cpFilterForm" onsubmit="return false;">
                     <div class="form-group">
-                        <label>模板类型:</label>
-                        <select id="qTplType">
+                        <label>模板名称:</label>
+                        <div class="input-wrapper">
+                            <input id="qCpName" placeholder="券名称或模板ID" autocomplete="off">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>状态:</label>
+                        <select id="qCpStatus">
                             <option value="">全部</option>
-                            <option value="FORTUNE_BAG">福袋</option>
-                            <option value="SIGN_IN">签到</option>
-                            <option value="TASK:WATCH">观看任务</option>
+                            <option value="DRAFT">草稿</option>
+                            <option value="PENDING">待审核</option>
+                            <option value="APPROVED">审核成功</option>
+                            <option value="REJECTED">审核失败</option>
+                            <option value="ACTIVE">启用</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>发放场景:</label>
+                        <select id="qCpScene">
+                            <option value="">全部</option>
+                            <option value="LIVE">直播发券</option>
+                            <option value="MARKETING">营销送券</option>
+                            <option value="MALL">商城推荐位</option>
+                            <option value="MEMBER">会员发券</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>适用范围:</label>
+                        <select id="qCpScope">
+                            <option value="">全部</option>
+                            <option value="ALL">全部商品</option>
+                            <option value="GOODS">指定商品</option>
+                            <option value="CATEGORY">指定类目</option>
                         </select>
                     </div>
                     <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" id="tplFilterReset">重置</button>
-                        <button type="button" class="btn btn-primary" id="tplFilterQuery">查询</button>
+                        <button type="button" class="btn btn-secondary" id="cpFilterReset">重置</button>
+                        <button type="button" class="btn btn-primary" id="cpFilterQuery">查询</button>
                     </div>
                 </form>
             </section>
 
             <div class="mkt-tpl-toolbar">
-                <button type="button" class="erp-btn erp-btn--primary" id="tplAddBtn">新增模板</button>
+                <button type="button" class="erp-btn erp-btn--primary" id="cpAddBtn">新建优惠券</button>
             </div>
 
             <section class="table-section">
@@ -47,61 +79,24 @@
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>模板名称</th>
-                                <th style="text-align:center;width:120px">模板类型</th>
-                                <th style="text-align:center;width:120px">适用渠道</th>
-                                <th style="text-align:center;width:120px">适用商品</th>
+                                <th>模板ID</th>
+                                <th>券名称</th>
+                                <th>券面值</th>
+                                <th>券门槛</th>
+                                <th>适用渠道</th>
+                                <th>适用商品</th>
                                 <th>创建时间</th>
-                                <th style="text-align:center;width:120px">启用状态</th>
-                                <th style="text-align:center;width:200px">操作</th>
+                                <th style="text-align:center;width:100px">状态</th>
+                                <th>备注</th>
+                                <th style="width:240px">操作</th>
                             </tr>
                         </thead>
-                        <tbody id="tplTableBody"></tbody>
+                        <tbody id="cpTableBody"></tbody>
                     </table>
                 </div>
                 <div id="pagination-container"></div>
             </section>
         </main>
-    </div>
-
-    <div id="tplEditBackdrop" class="erp-modal-backdrop mkt-tpl-edit-backdrop" hidden>
-        <div class="erp-modal" role="dialog" aria-modal="true" aria-labelledby="tplEditTitle">
-            <div class="erp-modal__header">
-                <h2 class="erp-modal__title" id="tplEditTitle">新增模板</h2>
-                <div class="erp-modal__header-actions">
-                    <button type="button" class="erp-modal__header-btn" id="tplEditClose" aria-label="关闭">&times;</button>
-                </div>
-            </div>
-            <div class="erp-modal__body" id="tplEditBody"></div>
-            <div class="erp-modal__footer" id="tplEditFooter">
-                <button type="button" class="erp-btn" id="tplEditCancel">取消</button>
-                <button type="button" class="erp-btn erp-btn--primary" id="tplEditSave">保存</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="tplSkuBackdrop" class="erp-modal-backdrop erp-modal-backdrop--nested mkt-tpl-sku-backdrop" hidden>
-        <div class="erp-modal" role="dialog" aria-modal="true" aria-labelledby="tplSkuTitle">
-            <div class="erp-modal__header">
-                <h2 class="erp-modal__title" id="tplSkuTitle">选择商品（精确到规格）</h2>
-                <div class="erp-modal__header-actions">
-                    <button type="button" class="erp-modal__header-btn" id="tplSkuClose" aria-label="关闭">&times;</button>
-                </div>
-            </div>
-            <div class="erp-modal__body">
-                <input id="tplSkuKeyword" type="text" placeholder="搜索商品名称" style="width:100%;height:32px;padding:0 10px;border:1px solid #dcdfe6;border-radius:4px;">
-                <div class="mkt-tpl-sku-tree" id="tplSkuTree"></div>
-            </div>
-            <div class="erp-modal__footer">
-                <div class="mkt-tpl-sku-footer">
-                    <span class="mkt-tpl-sku-footer__hint" id="tplSkuHint">已选 0 个规格</span>
-                    <div class="mkt-tpl-sku-footer__actions">
-                        <button type="button" class="erp-btn" id="tplSkuCancel">取消</button>
-                        <button type="button" class="erp-btn erp-btn--primary" id="tplSkuOk">确定</button>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <div id="tplLogDrawer" class="mkt-tpl-log-drawer" hidden>
@@ -151,7 +146,8 @@
     <script src="../js/pagination.js"></script>
     <script src="../js/form-utils.js"></script>
     <script src="../js/mdm-marketing-coupon-store.js"></script>
-    <script src="../js/mdm-marketing-template-store.js"></script>
-    <script src="../js/mdm-marketing-template.js"></script>
+    <script src="../js/mdm-marketing-coupon-goods-dialog.js"></script>
+    <script src="../js/mdm-marketing-coupon-log-ui.js"></script>
+    <script src="../js/mdm-marketing-coupon.js"></script>
 </body>
 </html>
