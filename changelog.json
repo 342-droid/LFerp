@@ -1,10 +1,148 @@
 {
-  "latestSha": "f0d8a492ce09396b4efa49a9f9bbf2c14a8f7c44",
-  "total": 369,
+  "latestSha": "888e5eef171c0f83d604c098841b2392f8b53a11",
+  "total": 370,
   "days": [
     {
       "date": "2026-09-08",
       "items": [
+        {
+          "sha": "888e5ee",
+          "type": "feat",
+          "text": "提现改为T+1到账并补齐进货待支付收银台",
+          "author": "sisi",
+          "time": "18:44",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
+            },
+            {
+              "file": "store-app/h5/biz-center.html",
+              "module": "",
+              "title": "经营中心 · 门店APP"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-detail.html",
+              "module": "",
+              "title": "退款详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "module": "",
+              "title": "进货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/store-bind-card.html",
+              "module": "",
+              "title": "绑定银行卡 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-pay-password.html",
+              "module": "",
+              "title": "设置支付密码 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-recharge.html",
+              "module": "",
+              "title": "充值 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-wallet.html",
+              "module": "",
+              "title": "我的钱包 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-withdraw-records.html",
+              "module": "",
+              "title": "提现明细 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-withdraw.html",
+              "module": "",
+              "title": "提现 · 门店 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/store-wallet.html",
+              "text": "保证金增加「需补金额」，余额增加「在途」；入账即可提现"
+            },
+            {
+              "file": "user-app/h5/store-withdraw.html",
+              "text": "提现后资金计入在途，文案改为预计 T+1 到账"
+            },
+            {
+              "file": "user-app/h5/store-recharge.html",
+              "text": "充值剩余计入可提现，不再进入待解冻"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "text": "账户信息「待解冻」改为「在途」"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "text": "进货待支付点立即付款弹出钱包+支付宝/微信收银台"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "text": "去付款同样弹出收银台，付完后留在列表变为待接单"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "text": "进货可用余额改为不含在途资金"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "text": "收银台按可进货余额扣款，不含在途"
+            }
+          ]
+        },
         {
           "sha": "f0d8a49",
           "type": "feat",
@@ -3467,9 +3605,19 @@
               "title": "确认订单 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-refund-detail.html",
               "module": "",
               "title": "退款详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
             },
             {
               "file": "user-app/h5/product-detail.html",
@@ -6602,6 +6750,16 @@
               "file": "user-app/h5/order-confirm.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
             },
             {
               "file": "user-app/h5/product-detail.html",
@@ -10620,9 +10778,19 @@
               "title": "确认订单 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-refund-detail.html",
               "module": "",
               "title": "退款详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
             },
             {
               "file": "user-app/h5/restock.html",
@@ -10896,6 +11064,11 @@
               "file": "user-app/h5/order-refund-select.html",
               "module": "",
               "title": "选择服务类型 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
             },
             {
               "file": "user-app/h5/restock.html",
@@ -12087,9 +12260,19 @@
               "title": "确认订单 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-refund-detail.html",
               "module": "",
               "title": "退款详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
             },
             {
               "file": "user-app/h5/restock.html",
@@ -12247,9 +12430,19 @@
               "title": "确认订单 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-refund-detail.html",
               "module": "",
               "title": "退款详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
             },
             {
               "file": "user-app/h5/restock.html",
@@ -12599,9 +12792,19 @@
               "title": "确认订单 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-refund-detail.html",
               "module": "",
               "title": "退款详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
             },
             {
               "file": "user-app/h5/restock.html",
@@ -12732,9 +12935,19 @@
               "title": "确认订单 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-refund-detail.html",
               "module": "",
               "title": "退款详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
             },
             {
               "file": "user-app/h5/restock.html",
@@ -13326,9 +13539,19 @@
               "title": "确认订单 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-refund-detail.html",
               "module": "",
               "title": "退款详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
             },
             {
               "file": "user-app/h5/restock.html",
@@ -13785,9 +14008,19 @@
               "title": "确认订单 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-refund-detail.html",
               "module": "",
               "title": "退款详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
             },
             {
               "file": "user-app/h5/restock.html",
