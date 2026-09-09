@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 全渠道库存日志</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        .omni-log-table { min-width: 1900px; }
+        .omni-log-table th, .omni-log-table td { white-space: nowrap; text-align: center; }
+        .omni-log-table .number-cell { text-align: center; }
+        .omni-log-table .empty-cell { padding: 40px; color: #999; }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/wms-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button class="active">全渠道库存日志</button></div>
+            <hr class="content-divider">
+            <div class="content-title">全渠道库存 / 全渠道库存日志</div>
+            <section class="search-section">
+                <form class="search-form" id="omniLogSearchForm">
+                    <div class="form-group"><label for="ruleCode">规则编码:</label><input id="ruleCode" class="form-control" placeholder="请输入"></div>
+                    <div class="form-group"><label for="warehouse">仓库:</label><select id="warehouse" class="form-control"><option value="">全部仓库</option><option>W001 南京仓</option><option>W002 嘉兴仓</option><option>W003 上海仓</option></select></div>
+                    <div class="form-group"><label for="product">商品:</label><input id="product" class="form-control" placeholder="请输入商品编码/条码/名称"></div>
+                    <div class="form-group"><label for="documentType">单据类型:</label><select id="documentType" class="form-control"><option value="">全部</option><option>采购入库单</option><option>销售出库单</option><option>库存调整单</option></select></div>
+                    <div class="form-group"><label for="businessType">业务类型:</label><select id="businessType" class="form-control"><option value="">全部</option><option>采购</option><option>销售</option><option>库存</option></select></div>
+                    <div class="form-group"><label for="changeType">变更类型:</label><select id="changeType" class="form-control"><option value="">全部</option><option>在途单据</option><option>在途库存</option><option>当前库存</option><option>出库预占</option><option>冻结库存</option><option>退货预占</option><option>收货差异</option></select></div>
+                    <div class="form-group"><label for="sourceType">来源类型:</label><select id="sourceType" class="form-control"><option value="">全部</option><option>采购</option><option>订单</option><option>调整</option></select></div>
+                    <div class="form-group"><label for="changeDirection">变更方向:</label><select id="changeDirection" class="form-control"><option value="">全部</option><option>增加</option><option>减少</option></select></div>
+                    <div class="form-group"><label for="relatedNo">关联单号:</label><input id="relatedNo" class="form-control" placeholder="请输入"></div>
+                    <div class="form-group"><label for="sourceNo">来源单号:</label><input id="sourceNo" class="form-control" placeholder="请输入"></div>
+                    <div class="form-actions"><button type="submit" class="btn btn-primary">查询</button><button type="button" class="btn btn-secondary" id="omniLogExportBtn">导出</button></div>
+                </form>
+            </section>
+            <section class="table-section">
+                <div class="table-scroll-container"><table class="table omni-log-table"><thead><tr>
+                    <th>规则编码</th><th>仓库</th><th>商品编码</th><th>商品名称</th><th>关联单号</th><th>来源单号</th><th>单据类型</th><th>业务类型</th><th>来源明细单号</th><th>变更类型</th><th>来源类型</th><th>变更方向</th><th>变更数量</th><th>变更前数量</th><th>变更后数量</th>
+                </tr></thead><tbody id="omniLogTableBody"></tbody></table></div>
+            </section>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        (function () {
+            const rows = [
+                { rule: 'S01', warehouse: 'W001 南京仓', productCode: 'SKU001', productName: '冷鲜鸡胸肉', documentType: '采购入库单', businessType: '采购', related: 'ASN20260908001', source: 'PO20260908001', detail: 'PO20260908001-01', changeType: '当前库存', sourceType: '采购', direction: '增加', changeQty: 120, beforeQty: 740, afterQty: 860 },
+                { rule: 'S02', warehouse: 'W002 嘉兴仓', productCode: 'SKU002', productName: '精品番茄', documentType: '销售出库单', businessType: '销售', related: 'SO20260908018', source: 'SO20260908018', detail: 'SO20260908018-02', changeType: '出库预占', sourceType: '订单', direction: '减少', changeQty: 35, beforeQty: 465, afterQty: 430 },
+                { rule: 'S03', warehouse: 'W003 上海仓', productCode: 'SKU003', productName: '速冻水饺', documentType: '库存调整单', businessType: '库存', related: 'ADJ20260908003', source: 'ADJ20260908003', detail: 'ADJ20260908003-01', changeType: '收货差异', sourceType: '调整', direction: '增加', changeQty: 3, beforeQty: 0, afterQty: 3 }
+            ];
+            const body = document.getElementById('omniLogTableBody');
+            const escapeHtml = function (value) { return String(value == null ? '' : value).replace(/[&<>'"]/g, function (char) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]; }); };
+            const getFilteredRows = function () {
+                const product = document.getElementById('product').value.trim().toLowerCase();
+                return rows.filter(function (row) {
+                    return (!document.getElementById('ruleCode').value.trim() || row.rule.indexOf(document.getElementById('ruleCode').value.trim()) >= 0) &&
+                        (!document.getElementById('warehouse').value || row.warehouse === document.getElementById('warehouse').value) &&
+                        (!product || row.productCode.toLowerCase().indexOf(product) >= 0 || row.productName.toLowerCase().indexOf(product) >= 0) &&
+                        (!document.getElementById('documentType').value || row.documentType === document.getElementById('documentType').value) &&
+                        (!document.getElementById('businessType').value || row.businessType === document.getElementById('businessType').value) &&
+                        (!document.getElementById('changeType').value || row.changeType === document.getElementById('changeType').value) &&
+                        (!document.getElementById('sourceType').value || row.sourceType === document.getElementById('sourceType').value) &&
+                        (!document.getElementById('changeDirection').value || row.direction === document.getElementById('changeDirection').value) &&
+                        (!document.getElementById('relatedNo').value.trim() || row.related.indexOf(document.getElementById('relatedNo').value.trim()) >= 0) &&
+                        (!document.getElementById('sourceNo').value.trim() || row.source.indexOf(document.getElementById('sourceNo').value.trim()) >= 0);
+                });
+            };
+            const render = function (data) {
+                body.innerHTML = data.length ? data.map(function (row) { return '<tr>' + [row.rule, row.warehouse, row.productCode, row.productName, row.related, row.source, row.documentType, row.businessType, row.detail, row.changeType, row.sourceType, row.direction, row.changeQty, row.beforeQty, row.afterQty].map(function (value) { return '<td>' + escapeHtml(value) + '</td>'; }).join('') + '</tr>'; }).join('') : '<tr><td colspan="15" class="empty-cell">暂无数据</td></tr>';
+            };
+            document.getElementById('omniLogSearchForm').addEventListener('submit', function (event) { event.preventDefault(); render(getFilteredRows()); });
+            document.getElementById('omniLogExportBtn').addEventListener('click', function () {
+                const headers = ['规则编码', '仓库', '商品编码', '商品名称', '关联单号', '来源单号', '单据类型', '业务类型', '来源明细单号', '变更类型', '来源类型', '变更方向', '变更数量', '变更前数量', '变更后数量'];
+                const data = getFilteredRows().map(function (row) { return [row.rule, row.warehouse, row.productCode, row.productName, row.related, row.source, row.documentType, row.businessType, row.detail, row.changeType, row.sourceType, row.direction, row.changeQty, row.beforeQty, row.afterQty]; });
+                const csv = '\ufeff' + [headers].concat(data).map(function (line) { return line.map(function (value) { return '"' + String(value).replace(/"/g, '""') + '"'; }).join(','); }).join('\n');
+                const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' })); link.download = '全渠道库存日志.csv'; link.click(); URL.revokeObjectURL(link.href);
+            });
+            render(rows);
+        }());
+    </script>
+</body>
+</html>
