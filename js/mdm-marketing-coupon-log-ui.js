@@ -19,7 +19,7 @@
     'config.perUserLimit': '每人限领'
   };
   var VALUE_MAP = {
-    status: { ACTIVE: '启用', APPROVED: '审核成功', PENDING: '待审核', REJECTED: '审核失败', DRAFT: '草稿' },
+    status: { ACTIVE: '启用', APPROVED: '审核成功', PENDING: '待审核', REJECTED: '审核失败', DRAFT: '草稿', DISABLED: '禁用' },
     applicableChannel: { ALL: '全部渠道', LIVE_ONLY: '仅直播', MALL_ONLY: '仅商城' },
     'config.itemScope': { ALL: '全部商品', GOODS: '指定商品', CATEGORY: '指定类目' }
   };

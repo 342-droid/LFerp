@@ -22,7 +22,7 @@
             <div class="content-tabs"><button class="active">优惠券</button></div>
             <hr class="content-divider">
 
-            <div class="mdm-biz-tip" role="note">保存进入<strong>草稿</strong>（不校验必填）；提交进入<strong>待审核</strong>并生成审核记录。启用后的券才会按<strong>发放场景</strong>出现在直播、营销送券、商城推荐位、会员发券的选券列表中。</div>
+            <div class="mdm-biz-tip" role="note">保存进入<strong>草稿</strong>（不校验必填）；提交进入<strong>待审核</strong>并生成审核记录。启用后的券才会按<strong>发放场景</strong>出现在直播发券、福袋送券、签到送券、观看任务送券、商城推荐位、会员等级送券、会员手工发券的选券列表中。仅从<strong>启用</strong>禁用后状态为<strong>禁用</strong>，可再启用，或编辑后保存为草稿、提交为待审核。</div>
 
             <section class="search-section">
                 <form class="search-form" id="cpFilterForm" onsubmit="return false;">
@@ -42,6 +42,7 @@
                             <option value="APPROVED">审核成功</option>
                             <option value="REJECTED">审核失败</option>
                             <option value="ACTIVE">启用</option>
+                            <option value="DISABLED">禁用</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -49,9 +50,12 @@
                         <select id="qCpScene">
                             <option value="">全部</option>
                             <option value="LIVE">直播发券</option>
-                            <option value="MARKETING">营销送券</option>
+                            <option value="BAG">福袋送券</option>
+                            <option value="SIGNIN">签到送券</option>
+                            <option value="WATCH">观看任务送券</option>
                             <option value="MALL">商城推荐位</option>
-                            <option value="MEMBER">会员发券</option>
+                            <option value="LEVEL">会员等级送券</option>
+                            <option value="MEMBER">会员手工发券</option>
                         </select>
                     </div>
                     <div class="form-group">

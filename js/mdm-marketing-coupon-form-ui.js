@@ -65,7 +65,9 @@
     m.claimLimitMode = cfg.perUserLimit ? 'LIMITED' : 'UNLIMITED';
     m.totalStock = item.totalStock == null ? '' : String(item.totalStock);
     m.issueSceneMode = item.issueSceneMode || '';
-    m.issueScenes = Array.isArray(item.issueScenes) ? item.issueScenes.slice() : [];
+    m.issueScenes = typeof Store.migrateIssueScenes === 'function'
+      ? Store.migrateIssueScenes(item.issueScenes)
+      : (Array.isArray(item.issueScenes) ? item.issueScenes.slice() : []);
     try {
       var scope = typeof cfg.productScopeJson === 'string' ? JSON.parse(cfg.productScopeJson) : cfg.productScopeJson;
       if (scope && scope.type === 'GOODS' && Array.isArray(scope.items)) {
@@ -242,7 +244,7 @@
       });
       html += '</div>';
     }
-    html += '<div class="pts-rule-tip">发放场景决定该券能否被直播场次、福袋/签到/观看奖励、商城推荐位、会员发券选择。</div>';
+    html += '<div class="pts-rule-tip">发放场景决定该券能否被直播场次、福袋、签到、观看任务、商城推荐位、会员等级、会员手工发券选择。</div>';
     return html;
   }
 

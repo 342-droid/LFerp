@@ -392,9 +392,19 @@
         var couponPageSize = 10;
         var couponKeyword = '';
 
-        function filteredCoupons() {
+    function listLevelCouponOptions() {
+        var CS = window.MdmMarketingCouponStore;
+        if (CS && typeof CS.listSelectable === 'function' && typeof CS.toMemberPickerItem === 'function') {
+            return CS.listSelectable('LEVEL').map(function (item) {
+                return CS.toMemberPickerItem(item);
+            });
+        }
+        return COUPON_OPTIONS.filter(function (c) { return !c.expired; });
+    }
+
+    function filteredCoupons() {
             var k = couponKeyword.trim().toLowerCase();
-            return COUPON_OPTIONS.filter(function (c) {
+            return listLevelCouponOptions().filter(function (c) {
                 if (c.expired) return false;
                 return !k || String(c.label).toLowerCase().indexOf(k) !== -1;
             });
@@ -429,7 +439,9 @@
                 emptyTd.colSpan = 7;
                 emptyTd.className = 'member-level-coupon-picker__empty';
                 emptyTd.style.textAlign = 'center';
-                emptyTd.textContent = '无匹配优惠券';
+                emptyTd.textContent = listLevelCouponOptions().length
+                    ? '无匹配优惠券'
+                    : '暂无已启用且发放场景含「会员等级送券」的优惠券';
                 emptyTr.appendChild(emptyTd);
                 tbody.appendChild(emptyTr);
             } else {

@@ -5,9 +5,10 @@
 (function (global) {
   'use strict';
 
-  var STORAGE_KEY = 'mdm_marketing_coupon_v3';
-  var AUDIT_KEY = 'mdm_marketing_coupon_audit_v3';
-  var LOG_KEY = 'mdm_marketing_coupon_logs_v3';
+  var STORAGE_KEY = 'mdm_marketing_coupon_v5';
+  var STORAGE_KEY_LEGACY = ['mdm_marketing_coupon_v4', 'mdm_marketing_coupon_v3'];
+  var AUDIT_KEY = 'mdm_marketing_coupon_audit_v4';
+  var LOG_KEY = 'mdm_marketing_coupon_logs_v4';
   var REC_KEY = 'mdm_mall_recommendation_coupon_v1';
 
   var STATUS_LABEL = {
@@ -15,7 +16,8 @@
     PENDING: '待审核',
     APPROVED: '审核成功',
     REJECTED: '审核失败',
-    ACTIVE: '启用'
+    ACTIVE: '启用',
+    DISABLED: '禁用'
   };
   var AUDIT_STATUS_LABEL = {
     PENDING: '待审核',
@@ -28,15 +30,21 @@
   var COUPON_TYPE_LABEL = { NO_THRESHOLD: '无门槛', FULL_MINUS: '满减' };
   var SCENE_LABEL = {
     LIVE: '直播发券',
-    MARKETING: '营销送券',
+    BAG: '福袋送券',
+    SIGNIN: '签到送券',
+    WATCH: '观看任务送券',
     MALL: '商城推荐位',
-    MEMBER: '会员发券'
+    LEVEL: '会员等级送券',
+    MEMBER: '会员手工发券'
   };
   var SCENE_OPTIONS = [
     { v: 'LIVE', l: '直播发券' },
-    { v: 'MARKETING', l: '营销送券（福袋、观看奖励、签到可关联此券）' },
+    { v: 'BAG', l: '福袋送券' },
+    { v: 'SIGNIN', l: '签到送券' },
+    { v: 'WATCH', l: '观看任务送券' },
     { v: 'MALL', l: '商城推荐位' },
-    { v: 'MEMBER', l: '会员发券' }
+    { v: 'LEVEL', l: '会员等级送券' },
+    { v: 'MEMBER', l: '会员手工发券' }
   ];
   var ACTION_LABEL = {
     'coupon.create': '创建优惠券',
@@ -223,7 +231,7 @@
         status: 'ACTIVE',
         applicableChannel: 'MALL_ONLY',
         issueSceneMode: 'SPECIFIC',
-        issueScenes: ['MALL', 'MARKETING'],
+        issueScenes: ['MALL', 'BAG'],
         totalStock: 2800,
         remark: '',
         createdAt: '2026-08-18 09:33:05',
@@ -272,7 +280,7 @@
         status: 'ACTIVE',
         applicableChannel: 'ALL',
         issueSceneMode: 'SPECIFIC',
-        issueScenes: ['MARKETING'],
+        issueScenes: ['BAG'],
         totalStock: 800,
         remark: '',
         createdAt: '2026-08-21 11:12:00',
@@ -335,6 +343,64 @@
         updatedAt: '2026-09-03 16:18:00',
         submittedAt: '2026-09-03 14:30:00',
         config: couponCfg({ couponType: 'FULL_MINUS', threshold: 10, denomination: 20 })
+      },
+      {
+        id: '10086016',
+        name: '已禁用满减券',
+        status: 'DISABLED',
+        applicableChannel: 'ALL',
+        issueSceneMode: 'SPECIFIC',
+        issueScenes: ['MALL'],
+        totalStock: 600,
+        remark: '',
+        createdAt: '2026-09-06 11:20:00',
+        updatedAt: '2026-09-08 09:40:00',
+        submittedAt: '2026-09-06 11:40:00',
+        validStart: '',
+        validEnd: '',
+        config: couponCfg({ couponType: 'FULL_MINUS', threshold: 39, denomination: 6, perUserLimit: 2 })
+      },
+      {
+        id: '10086017',
+        name: '签到有礼券',
+        status: 'ACTIVE',
+        applicableChannel: 'LIVE_ONLY',
+        issueSceneMode: 'SPECIFIC',
+        issueScenes: ['SIGNIN'],
+        totalStock: 1200,
+        remark: '',
+        createdAt: '2026-08-21 12:00:00',
+        updatedAt: '2026-08-21 12:00:00',
+        submittedAt: '2026-08-21 12:00:00',
+        config: couponCfg({ couponType: 'NO_THRESHOLD', threshold: 0, denomination: 2, perUserLimit: 1 })
+      },
+      {
+        id: '10086018',
+        name: '观看任务券',
+        status: 'ACTIVE',
+        applicableChannel: 'LIVE_ONLY',
+        issueSceneMode: 'SPECIFIC',
+        issueScenes: ['WATCH'],
+        totalStock: 900,
+        remark: '',
+        createdAt: '2026-08-21 12:10:00',
+        updatedAt: '2026-08-21 12:10:00',
+        submittedAt: '2026-08-21 12:10:00',
+        config: couponCfg({ couponType: 'FULL_MINUS', threshold: 39, denomination: 5, perUserLimit: 1 })
+      },
+      {
+        id: '10086019',
+        name: '银卡专属券',
+        status: 'ACTIVE',
+        applicableChannel: 'ALL',
+        issueSceneMode: 'SPECIFIC',
+        issueScenes: ['LEVEL'],
+        totalStock: 1500,
+        remark: '',
+        createdAt: '2026-08-22 10:00:00',
+        updatedAt: '2026-08-22 10:00:00',
+        submittedAt: '2026-08-22 10:00:00',
+        config: couponCfg({ couponType: 'FULL_MINUS', threshold: 50, denomination: 5, perUserLimit: 1 })
       },
       {
         id: 'CT10001',
@@ -437,6 +503,17 @@
         auditedBy: '审核员小李',
         reason: '',
         snapshot: clone(findIn(seedCoupons(), '10086003'))
+      },
+      {
+        id: 'AUD-10086016-1',
+        couponId: '10086016',
+        status: 'APPROVED',
+        submittedAt: '2026-09-06 11:40:00',
+        submittedBy: '张征',
+        auditedAt: '2026-09-06 12:00:00',
+        auditedBy: '审核员小李',
+        reason: '',
+        snapshot: clone(findIn(seedCoupons(), '10086016'))
       }
     ];
   }
@@ -505,7 +582,13 @@
           item.id
         )
       ];
-      if (item.status === 'PENDING' || item.status === 'APPROVED' || item.status === 'REJECTED' || item.status === 'ACTIVE') {
+      if (
+        item.status === 'PENDING' ||
+        item.status === 'APPROVED' ||
+        item.status === 'REJECTED' ||
+        item.status === 'ACTIVE' ||
+        item.status === 'DISABLED'
+      ) {
         recs.push(
           makeLog(
             {
@@ -533,12 +616,12 @@
           )
         );
       }
-      if (item.status === 'APPROVED' || item.status === 'ACTIVE') {
+      if (item.status === 'APPROVED' || item.status === 'ACTIVE' || item.status === 'DISABLED') {
         recs.push(
           makeLog(
             {
               id: 'log-' + item.id + '-3',
-              time: item.updatedAt,
+              time: item.status === 'DISABLED' ? item.submittedAt || item.createdAt : item.updatedAt,
               action: 'coupon.approve',
               operator: '审核员小李',
               content: '审核成功'
@@ -547,16 +630,31 @@
           )
         );
       }
-      if (item.status === 'ACTIVE') {
+      if (item.status === 'ACTIVE' || item.status === 'DISABLED') {
         recs.push(
           makeLog(
             {
               id: 'log-' + item.id + '-4',
-              time: item.updatedAt,
+              time: item.status === 'DISABLED' ? '2026-09-06 12:10:00' : item.updatedAt,
               action: 'coupon.enable',
               operator: '张征',
               content: '启用优惠券',
               changes: [{ field: 'status', oldValue: 'APPROVED', newValue: 'ACTIVE' }]
+            },
+            item.id
+          )
+        );
+      }
+      if (item.status === 'DISABLED') {
+        recs.push(
+          makeLog(
+            {
+              id: 'log-' + item.id + '-5',
+              time: item.updatedAt,
+              action: 'coupon.disable',
+              operator: '张征',
+              content: '禁用优惠券',
+              changes: [{ field: 'status', oldValue: 'ACTIVE', newValue: 'DISABLED' }]
             },
             item.id
           )
@@ -570,9 +668,50 @@
     return map;
   }
 
+  function migrateIssueScenes(arr) {
+    var out = [];
+    var seen = {};
+    function push(code) {
+      if (!code || !SCENE_LABEL[code] || seen[code]) return;
+      seen[code] = true;
+      out.push(code);
+    }
+    (Array.isArray(arr) ? arr : []).forEach(function (s) {
+      if (s === 'MARKETING') {
+        push('BAG');
+        push('SIGNIN');
+        push('WATCH');
+      } else {
+        push(s);
+      }
+    });
+    return out;
+  }
+
+  function migrateCouponItem(item) {
+    if (!item || typeof item !== 'object') return false;
+    var next = migrateIssueScenes(item.issueScenes);
+    var before = (item.issueScenes || []).join(',');
+    item.issueScenes = next;
+    return next.join(',') !== before;
+  }
+
+  function readStoredListRaw() {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return raw;
+    for (var i = 0; i < STORAGE_KEY_LEGACY.length; i++) {
+      raw = localStorage.getItem(STORAGE_KEY_LEGACY[i]);
+      if (raw) return raw;
+    }
+    return null;
+  }
+
   function load() {
+    var migrated = false;
+    var hadCurrent = false;
     try {
-      var raw = localStorage.getItem(STORAGE_KEY);
+      hadCurrent = !!localStorage.getItem(STORAGE_KEY);
+      var raw = readStoredListRaw();
       list = raw ? JSON.parse(raw) : seedCoupons();
       var araw = localStorage.getItem(AUDIT_KEY);
       audits = araw ? JSON.parse(araw) : seedAudits();
@@ -590,6 +729,20 @@
     if (!Array.isArray(audits)) audits = seedAudits();
     if (!logs || typeof logs !== 'object') logs = seedLogs();
     if (!Array.isArray(recSlots) || !recSlots.length) recSlots = seedRecSlots();
+    (list || []).forEach(function (item) {
+      if (migrateCouponItem(item)) migrated = true;
+    });
+    var seen = {};
+    (list || []).forEach(function (item) {
+      if (item && item.id) seen[String(item.id)] = true;
+    });
+    seedCoupons().forEach(function (s) {
+      if (s && s.id && !seen[String(s.id)]) {
+        list.push(s);
+        migrated = true;
+      }
+    });
+    if (!hadCurrent || migrated) persist();
   }
 
   function pushLog(item, action, content, extra) {
@@ -1052,10 +1205,11 @@
 
   function enableCoupon(id) {
     var item = findById(id);
-    if (!item || item.status !== 'APPROVED') return null;
+    if (!item || (item.status !== 'APPROVED' && item.status !== 'DISABLED')) return null;
+    var from = item.status;
     item.status = 'ACTIVE';
     item.updatedAt = nowStr();
-    pushLog(item, 'coupon.enable', '启用优惠券');
+    pushLog(item, 'coupon.enable', '启用优惠券', { id: item.id, from: from, to: 'ACTIVE' });
     persist();
     return item;
   }
@@ -1063,9 +1217,9 @@
   function disableCoupon(id) {
     var item = findById(id);
     if (!item || item.status !== 'ACTIVE') return null;
-    item.status = 'APPROVED';
+    item.status = 'DISABLED';
     item.updatedAt = nowStr();
-    pushLog(item, 'coupon.disable', '禁用，状态回到审核成功');
+    pushLog(item, 'coupon.disable', '禁用优惠券');
     persist();
     return item;
   }
@@ -1139,6 +1293,7 @@
     COUPON_TYPE_LABEL: COUPON_TYPE_LABEL,
     SCENE_LABEL: SCENE_LABEL,
     SCENE_OPTIONS: SCENE_OPTIONS,
+    migrateIssueScenes: migrateIssueScenes,
     ACTION_LABEL: ACTION_LABEL,
     CAT_SOURCE_LABEL: CAT_SOURCE_LABEL,
     statusLabel: statusLabel,

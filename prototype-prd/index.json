@@ -121,9 +121,10 @@
         "MDM/mdm_marketing_template.html",
         "MDM/mdm_live_session_form.html",
         "MDM/mdm_live_control.html",
-        "SCM/basic_settings_recommendation.html"
+        "SCM/basic_settings_recommendation.html",
+        "MDM/mdm_member_level_form.html",
+        "MDM/mdm_member_level.html"
       ]
     }
   ]
 }
-

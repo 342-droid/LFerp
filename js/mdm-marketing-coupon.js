@@ -40,6 +40,7 @@
     if (status === 'APPROVED') return 'mkt-tpl-tag mkt-tpl-tag--primary';
     if (status === 'PENDING') return 'mkt-tpl-tag mkt-tpl-tag--warning';
     if (status === 'REJECTED') return 'mkt-tpl-tag mkt-tpl-tag--danger';
+    if (status === 'DISABLED') return 'mkt-tpl-tag mkt-tpl-tag--info';
     return 'mkt-tpl-tag mkt-tpl-tag--info';
   }
 
@@ -54,11 +55,11 @@
 
   function rowActions(item) {
     var acts = [];
-    if (item.status === 'DRAFT' || item.status === 'APPROVED' || item.status === 'REJECTED') {
+    if (item.status === 'DRAFT' || item.status === 'APPROVED' || item.status === 'REJECTED' || item.status === 'DISABLED') {
       acts.push({ key: 'edit', label: '编辑' });
     }
     if (item.status === 'PENDING') acts.push({ key: 'cancel', label: '取消审核' });
-    if (item.status === 'APPROVED') acts.push({ key: 'enable', label: '启用' });
+    if (item.status === 'APPROVED' || item.status === 'DISABLED') acts.push({ key: 'enable', label: '启用' });
     if (item.status === 'ACTIVE') acts.push({ key: 'disable', label: '禁用' });
     acts.push({ key: 'operationLog', label: '操作日志' });
     return acts;
@@ -179,11 +180,29 @@
       return;
     }
     if (act === 'disable') {
-      if (!window.confirm('禁用后状态将回到审核成功，确认禁用？')) return;
+      if (!window.confirm('确认禁用该优惠券？禁用后不可被发放场景选择。')) return;
       Store.disableCoupon(id);
-      toast('已禁用，状态回到审核成功', 'success');
+      toast('已禁用', 'success');
       renderTable();
     }
+  }
+
+  function fillSceneFilter() {
+    var sel = document.getElementById('qCpScene');
+    if (!sel || !Store.SCENE_OPTIONS) return;
+    var keep = sel.value || '';
+    sel.innerHTML = '';
+    var all = document.createElement('option');
+    all.value = '';
+    all.textContent = '全部';
+    sel.appendChild(all);
+    Store.SCENE_OPTIONS.forEach(function (o) {
+      var opt = document.createElement('option');
+      opt.value = o.v;
+      opt.textContent = o.l;
+      sel.appendChild(opt);
+    });
+    sel.value = keep;
   }
 
   document.addEventListener('DOMContentLoaded', function () {
@@ -215,6 +234,7 @@
       handleAct(btn.getAttribute('data-act'), btn.getAttribute('data-id'));
     });
     if (LogUi) LogUi.bind();
+    fillSceneFilter();
     renderTable();
     if (qs('created')) toast('已保存', 'success');
   });
