@@ -1294,13 +1294,6 @@
     "status": "diff",
     "date": "2026-09-04"
   },
-  "5f90efc|store-app/h5/home.html": {
-    "before": "changelog-assets/5f90efc/store-app__h5__home.html.before.jpg",
-    "after": "changelog-assets/5f90efc/store-app__h5__home.html.after.jpg",
-    "regions": 1,
-    "status": "diff",
-    "date": "2026-08-27"
-  },
   "60b59cb|MDM/mdm_order_express_cutoff.html": {
     "before": "changelog-assets/60b59cb/MDM__mdm_order_express_cutoff.html.before.jpg",
     "after": "changelog-assets/60b59cb/MDM__mdm_order_express_cutoff.html.after.jpg",
@@ -1324,28 +1317,6 @@
     "regions": 0,
     "status": "diff",
     "date": "2026-09-02"
-  },
-  "6c7759f|store-app/h5/home.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-27"
-  },
-  "6c7759f|store-app/h5/order-detail.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-27"
-  },
-  "6c7759f|store-app/h5/order-logistics.html": {
-    "after": "changelog-assets/6c7759f/store-app__h5__order-logistics.html.after.jpg",
-    "status": "added",
-    "date": "2026-08-27"
-  },
-  "6c7759f|store-app/h5/store-orders.html": {
-    "before": "changelog-assets/6c7759f/store-app__h5__store-orders.html.before.jpg",
-    "after": "changelog-assets/6c7759f/store-app__h5__store-orders.html.after.jpg",
-    "regions": 2,
-    "status": "diff",
-    "date": "2026-08-27"
   },
   "6c8bf12|MDM/mdm_order_live.html": {
     "regions": 0,
@@ -1396,23 +1367,6 @@
     "regions": 2,
     "status": "diff",
     "date": "2026-09-09"
-  },
-  "6e9e83f|store-app/h5/order-detail.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-27"
-  },
-  "6e9e83f|store-app/h5/order-logistics.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-27"
-  },
-  "6e9e83f|store-app/h5/store-orders.html": {
-    "before": "changelog-assets/6e9e83f/store-app__h5__store-orders.html.before.jpg",
-    "after": "changelog-assets/6e9e83f/store-app__h5__store-orders.html.after.jpg",
-    "regions": 1,
-    "status": "diff",
-    "date": "2026-08-27"
   },
   "7149e1a|MDM/mdm_order_express_cutoff.html": {
     "before": "changelog-assets/7149e1a/MDM__mdm_order_express_cutoff.html.before.jpg",
@@ -2071,16 +2025,6 @@
     "regions": 0,
     "status": "diff",
     "date": "2026-09-04"
-  },
-  "94b2f71|store-app/h5/order-detail.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-27"
-  },
-  "94b2f71|store-app/h5/store-orders.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-08-27"
   },
   "9881c8d|MDM/mdm_aftersale_ticket.html": {
     "regions": 0,
