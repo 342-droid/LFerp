@@ -125,6 +125,22 @@
         "MDM/mdm_member_level_form.html",
         "MDM/mdm_member_level.html"
       ]
+    },
+    {
+      "id": "576-会员黑名单和注销会员",
+      "title": "【576】会员黑名单和注销会员",
+      "file": "576-会员黑名单和注销会员.md",
+      "pages": [
+        "MDM/mdm_member_c.html",
+        "user-app/h5/account-cancel.html",
+        "user-app/h5/settings-more.html",
+        "user-app/h5/settings.html",
+        "user-app/h5/login.html",
+        "user-app/h5/login-phone.html",
+        "user-app/h5/home.html",
+        "user-app/h5/live-room.html",
+        "user-app/h5/order-confirm.html"
+      ]
     }
   ]
 }

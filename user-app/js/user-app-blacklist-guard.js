@@ -30,10 +30,10 @@
   var FUNC_OPTIONS = [FUNC.COMMENT, FUNC.LIVE, FUNC.ORDER, FUNC.ACCESS];
 
   var MSG = {
-    comment: '抱歉，你正在小黑屋中，暂不支持发布评论。可联系客服进行申诉~',
-    live: '抱歉，你正在小黑屋中，暂不支持观看直播。可联系客服进行申诉~',
-    order: '抱歉，你正在小黑屋中，暂不支持下单。可联系客服进行申诉~',
-    access: '抱歉，你的账号异常，暂不支持访问。可联系客服进行申诉~'
+    comment: '抱歉，你的账号异常，暂不支持发布评论。',
+    live: '抱歉，你的账号异常，暂不支持观看直播。',
+    order: '抱歉，你的账号异常，暂不支持下单。',
+    access: '抱歉，你的账号异常，暂不支持访问。'
   };
 
   var DEMO_MAP = {
