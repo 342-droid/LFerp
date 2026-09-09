@@ -347,6 +347,16 @@
     "status": "diff",
     "date": "2026-08-28"
   },
+  "16b213a|SCM/omni_inventory.html": {
+    "after": "changelog-assets/16b213a/SCM__omni_inventory.html.after.jpg",
+    "status": "added",
+    "date": "2026-09-09"
+  },
+  "16b213a|SCM/omni_inventory_log.html": {
+    "after": "changelog-assets/16b213a/SCM__omni_inventory_log.html.after.jpg",
+    "status": "added",
+    "date": "2026-09-09"
+  },
   "1b0db57|MDM/mdm_bd_h5.html": {
     "regions": 0,
     "status": "diff",

@@ -1,7 +1,46 @@
 {
-  "latestSha": "e79cae49eb97c48ba6419499ead479d468b902d4",
-  "total": 371,
+  "latestSha": "16b213a8cef9ebfb6024cc2c7850da6e2bd4a885",
+  "total": 372,
   "days": [
+    {
+      "date": "2026-09-09",
+      "items": [
+        {
+          "sha": "16b213a",
+          "type": "feat",
+          "text": "新增全渠道库存查询与日志",
+          "author": "342-droid",
+          "time": "09:12",
+          "pages": [
+            {
+              "file": "SCM/omni_inventory.html",
+              "module": "冷丰WMS",
+              "title": "全渠道库存查询"
+            },
+            {
+              "file": "SCM/omni_inventory_log.html",
+              "module": "冷丰WMS",
+              "title": "全渠道库存日志"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "SCM/omni_inventory.html",
+              "text": "新增仓库、货主和商品筛选，展示全渠道库存数量并支持导出"
+            },
+            {
+              "file": "SCM/omni_inventory_log.html",
+              "text": "新增库存变更筛选与变更前后数量记录，支持导出"
+            },
+            {
+              "file": null,
+              "text": "顶部目录调整为采购、仓储、物流，仓储菜单新增全渠道库存入口"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-09-08",
       "items": [
