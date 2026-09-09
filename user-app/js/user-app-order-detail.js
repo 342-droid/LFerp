@@ -690,28 +690,86 @@
     window.location.href = href;
   }
 
-  function payDemoOrder() {
+  function getUnpaidPayable() {
     var p = getParams();
     var orderNo = p.get('orderNo');
     var order =
       (orderNo && window.UaOrdersStore && window.UaOrdersStore.getByNo(orderNo)) ||
       (window.UaOrdersStore && window.UaOrdersStore.getLatest());
+    if (order && order.payable != null) return Math.max(0, Number(order.payable) || 0);
+    var el = document.getElementById('orderPayTotal');
+    var n = Number(el ? String(el.textContent || '').replace(/[^\d.]/g, '') : '');
+    return n > 0 ? n : 60.99;
+  }
+
+  function openOrderPaySheet() {
+    if (!window.UaOrderPaySheet) {
+      payDemoOrder();
+      return;
+    }
+    window.UaOrderPaySheet.open({
+      isRestock: isFromRestock(),
+      getPayable: getUnpaidPayable,
+      onPaid: function (extra) {
+        var paid = persistUnpaidPay(extra);
+        return {
+          orderHref: buildPaidDetailHref(paid),
+          homeHref: isFromRestock() ? 'restock.html' : 'home.html',
+          unpaidHref: isFromRestock()
+            ? 'orders.html?from=restock.html&tab=unpaid'
+            : 'orders.html?tab=unpaid'
+        };
+      }
+    });
+  }
+
+  function bindOrderPaySheet() {
+    if (window.UaOrderPaySheet && isFromRestock() && getStatus() === 'unpaid') {
+      window.UaOrderPaySheet.mountDemoPanel(true);
+    }
+  }
+
+  function persistUnpaidPay(extra) {
+    extra = extra || {};
+    var p = getParams();
+    var orderNo = p.get('orderNo');
+    var order =
+      (orderNo && window.UaOrdersStore && window.UaOrdersStore.getByNo(orderNo)) ||
+      (window.UaOrdersStore && window.UaOrdersStore.getLatest());
+    var nextStatus = isFromRestock() ? 'pending_accept' : 'shipping';
     var paid = null;
     if (order && window.UaOrdersStore) {
-      paid = window.UaOrdersStore.updateStatus(order.orderNo, 'shipping');
+      paid = window.UaOrdersStore.updateStatus(order.orderNo, nextStatus, extra);
     }
     if (!paid && order) {
-      paid = Object.assign({}, order, { status: 'shipping' });
+      paid = Object.assign({}, order, { status: nextStatus }, extra);
       if (window.UaOrdersStore) paid = window.UaOrdersStore.upsert(paid);
     }
+    return paid;
+  }
+
+  function buildPaidDetailHref(paid) {
+    var p = getParams();
+    var orderNo = p.get('orderNo');
+    var nextStatus = isFromRestock() ? 'pending_accept' : 'shipping';
     var href =
       window.UaOrdersStore && paid
         ? window.UaOrdersStore.buildDetailHref(paid)
-        : 'order-detail.html?status=shipping' +
+        : 'order-detail.html?status=' +
+          encodeURIComponent(nextStatus) +
           (orderNo ? '&orderNo=' + encodeURIComponent(orderNo) : '') +
           (p.get('pointsItem') ? '&pointsItem=' + encodeURIComponent(p.get('pointsItem')) : '');
-    window.alert('支付成功（演示）');
-    window.location.replace(href);
+    ['from', 'supplier', 'delivery'].forEach(function (key) {
+      if (!p.get(key)) return;
+      if (href.indexOf(key + '=') >= 0) return;
+      href += (href.indexOf('?') >= 0 ? '&' : '?') + key + '=' + encodeURIComponent(p.get(key));
+    });
+    return href;
+  }
+
+  function payDemoOrder(extra) {
+    var paid = persistUnpaidPay(extra);
+    window.location.replace(buildPaidDetailHref(paid));
   }
 
   function escapeOdText(str) {
@@ -1493,7 +1551,7 @@
           return;
         }
         if (action === 'pay') {
-          payDemoOrder();
+          openOrderPaySheet();
           return;
         }
         var map = {
@@ -1721,6 +1779,7 @@
     renderItemAftersaleBars();
     renderFooter(config.footer);
     applyInvoiceType();
+    bindOrderPaySheet();
 
     var backEl = document.getElementById('orderDetailBack');
     if (backEl && !isFromRestock()) {

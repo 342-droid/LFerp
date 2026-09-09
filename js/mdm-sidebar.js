@@ -97,6 +97,10 @@
         { href: 'mdm_audit_store_registration.html#onboarding-review', text: '进件审核' }
     ];
 
+    const marketingAuditItems = [
+        { href: 'mdm_audit_coupon.html', text: '优惠券' }
+    ];
+
     function groupHasActive(items) {
         return items.some(function (item) { return hrefMatchesCurrentPage(item.href); });
     }
@@ -113,7 +117,8 @@
         isMemberSystemPage ||
         isMemberPointsPage ||
         /^mdm_member_/i.test(currentPage);
-    const isAuditPage = groupHasActive(auditItems);
+    const isMarketingAuditPage = groupHasActive(marketingAuditItems);
+    const isAuditPage = groupHasActive(auditItems) || isMarketingAuditPage;
 
     /**
      * 与 WMS wms-sidebar 一致：分组 + submenu + toggleSubmenu(this)
@@ -146,7 +151,9 @@
     var itemsHtml;
     if (isAuditPage) {
         /** 顶栏「审核中心」独立入口：仅在该模块页面展示侧栏审核菜单 */
-        itemsHtml = renderCollapsibleGroup('审核中心', '任务管理', auditItems, true);
+        itemsHtml =
+            renderCollapsibleGroup('审核中心', '任务管理', auditItems, !isMarketingAuditPage) +
+            renderCollapsibleGroup('营销审核', '策略管理', marketingAuditItems, true);
     } else if (isMemberPage) {
         /** 顶栏「会员」独立入口：分组均默认展开，便于一眼看到完整菜单 */
         itemsHtml =

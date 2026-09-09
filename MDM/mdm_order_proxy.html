@@ -48,11 +48,14 @@
                                         <div class="order-filter-switch__menu" hidden role="listbox">
                                             <button type="button" class="order-filter-switch__item is-active" role="option" aria-selected="true" data-value="nickname" data-placeholder="请输入用户昵称">用户昵称</button>
                                             <button type="button" class="order-filter-switch__item" role="option" aria-selected="false" data-value="receiverName" data-placeholder="请输入收货人姓名">收货人姓名</button>
-                                            <button type="button" class="order-filter-switch__item" role="option" aria-selected="false" data-value="receiverPhone" data-placeholder="请输入收货人电话">收货人电话</button>
                                         </div>
                                         <input type="hidden" id="qUserKey" name="qUserKey" value="nickname">
                                     </div>
                                     <input class="order-filter-field__input" id="qNickname" type="text" placeholder="请输入用户昵称" aria-label="用户昵称">
+                                </div>
+                                <div class="order-filter-field">
+                                    <label class="order-filter-field__label" for="qReceiverPhone">收货人电话</label>
+                                    <input class="order-filter-field__input" id="qReceiverPhone" type="text" placeholder="请输入收货人电话" aria-label="收货人电话">
                                 </div>
                                 <div class="order-filter-field">
                                     <label class="order-filter-field__label" for="qPayChannel">支付渠道</label>
@@ -492,7 +495,7 @@
     <script src="../js/order-platform-aftersale.js?v=20260820-as-apply"></script>
     <script src="../js/freight-refund-aftersale-store.js?v=20260826-refund-only"></script>
     <script src="../js/order-freight-refund.js?v=20260826-refund-only"></script>
-    <script src="../js/order-live-list.js?v=20260905-clearing-nobarcode"></script>
+    <script src="../js/order-live-list.js?v=20260907-live-session"></script>
     <script src="../js/order-proxy-list.js?v=20260820-as-apply"></script>
     <script src="../js/logistics-tracking-no.js"></script>
     <script src="../js/vendor/xlsx.full.min.js"></script>

@@ -6,7 +6,15 @@
   var CURRENT_STORE_ID = 'ONS303445581201';
   var ASSET = '../../user-app/assets/shop/';
 
+  function sessionApi() {
+    return window.SaLivePromoSession;
+  }
+
   function storeInfo() {
+    var api = sessionApi();
+    if (api && typeof api.identity === 'function') {
+      return api.identity();
+    }
     var mock = window.LFMockData && window.LFMockData.store;
     var staff = (mock && mock.staff) || {
       id: 'STAFF-001',
@@ -14,12 +22,47 @@
       phone: '13812348001'
     };
     return {
+      role: 'staff',
       storeId: (mock && mock.storeId) || CURRENT_STORE_ID,
       storeName: (mock && mock.companyName) || '冷丰生鲜超市',
       staffId: staff.id || 'STAFF-001',
       staffName: staff.name || '牛店长',
       staffPhone: staff.phone || '13812348001'
     };
+  }
+
+  function escapeHtml(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function syncIdentityUi() {
+    var info = storeInfo();
+    var api = sessionApi();
+    var who = document.getElementById('livePromoWho');
+    if (who) {
+      var phone = api && api.maskPhone ? api.maskPhone(info.staffPhone) : info.staffPhone;
+      who.innerHTML =
+        '当前门店 <strong>' +
+        escapeHtml(info.storeName) +
+        '</strong> · 推广人 <strong>' +
+        escapeHtml(info.staffName) +
+        ' ' +
+        escapeHtml(phone) +
+        '</strong>';
+    }
+    var back = document.getElementById('livePromoBack');
+    if (back && api && api.backHref) back.href = api.backHref();
+    var storeBtn = document.getElementById('liveStoreBtn');
+    var storeBtnText = document.getElementById('liveStoreBtnText');
+    if (storeBtn) {
+      var show = info.role === 'bd';
+      storeBtn.hidden = !show;
+      if (storeBtnText) storeBtnText.textContent = info.storeName;
+    }
   }
 
   function maskPhone(phone) {
@@ -161,14 +204,6 @@
     }
   ];
 
-  function escapeHtml(str) {
-    return String(str == null ? '' : str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
-
   function toast(msg) {
     if (window.LFToast && typeof window.LFToast.show === 'function') {
       window.LFToast.show(msg);
@@ -287,6 +322,13 @@
     return '已结束';
   }
 
+  function shareHint() {
+    var info = storeInfo();
+    var api = sessionApi();
+    var phone = api && api.maskPhone ? api.maskPhone(info.staffPhone) : info.staffPhone;
+    return info.storeName + ' · ' + info.staffName + ' ' + phone;
+  }
+
   function buildShareUrl(sess) {
     var info = storeInfo();
     var url = new URL('../../user-app/h5/live-room.html', location.href);
@@ -302,6 +344,7 @@
     var host = document.getElementById('livePromoList');
     var empty = document.getElementById('livePromoEmpty');
     if (!host) return;
+    syncIdentityUi();
     var info = storeInfo();
     var rows = listByTab(tab, info.storeId);
     host.innerHTML = rows
@@ -466,8 +509,8 @@
         var act = e.target.closest('[data-poster-act]');
         if (!act || !state.current) return;
         var kind = act.getAttribute('data-poster-act');
-        if (kind === 'wx') toast('已将海报分享给微信好友（含门店与邀请人）');
-        else if (kind === 'moment') toast('已将海报分享到朋友圈（含门店与邀请人）');
+        if (kind === 'wx') toast('已将海报分享给微信好友（' + shareHint() + '）');
+        else if (kind === 'moment') toast('已将海报分享到朋友圈（' + shareHint() + '）');
         else if (kind === 'download') toast('海报已保存到相册（演示）');
         closePoster();
       });
@@ -479,13 +522,97 @@
         var act = e.target.closest('[data-share-act]');
         if (!act || !state.current) return;
         var kind = act.getAttribute('data-share-act');
-        if (kind === 'wx') toast('已分享给微信好友（含门店与邀请人）');
-        else if (kind === 'moment') toast('已分享到朋友圈（含门店与邀请人）');
+        if (kind === 'wx') toast('已分享给微信好友（' + shareHint() + '）');
+        else if (kind === 'moment') toast('已分享到朋友圈（' + shareHint() + '）');
         closeShare();
       });
     }
+    bindStoreSheet();
+    bindFlowToggle();
   }
 
+  function bindFlowToggle() {
+    var flow = document.getElementById('livePromoFlow');
+    var btn = document.getElementById('liveFlowToggle');
+    if (!flow || !btn) return;
+    btn.addEventListener('click', function () {
+      var collapsed = flow.classList.toggle('is-collapsed');
+      btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+      var label = btn.querySelector('.sa-live-flow__action-text');
+      if (label) label.textContent = collapsed ? '展开' : '收起';
+    });
+  }
+
+  function renderStoreSheet() {
+    var api = sessionApi();
+    var listEl = document.getElementById('liveStoreSheetList');
+    if (!listEl || !api) return;
+    var currentId = storeInfo().storeId;
+    listEl.innerHTML = (api.STORES || [])
+      .map(function (store) {
+        var active = store.id === currentId ? ' is-active' : '';
+        return (
+          '<button type="button" class="sa-live-store-sheet__item' +
+          active +
+          '" data-store-pick="' +
+          escapeHtml(store.id) +
+          '">' +
+          '<span class="sa-live-store-sheet__item-name">' +
+          escapeHtml(store.name) +
+          '</span>' +
+          '<span class="sa-live-store-sheet__item-meta">' +
+          escapeHtml(store.region || '') +
+          '</span></button>'
+        );
+      })
+      .join('');
+  }
+
+  function openStoreSheet() {
+    if (storeInfo().role !== 'bd') return;
+    renderStoreSheet();
+    var sheet = document.getElementById('liveStoreSheet');
+    if (sheet) sheet.hidden = false;
+  }
+
+  function closeStoreSheet() {
+    var sheet = document.getElementById('liveStoreSheet');
+    if (sheet) sheet.hidden = true;
+  }
+
+  function applyStoreChange(storeId) {
+    var api = sessionApi();
+    if (!api) return;
+    api.write({ role: 'bd', storeId: storeId });
+    if (api.persistListUrl) api.persistListUrl();
+    closeStoreSheet();
+    closePoster();
+    closeShare();
+    setTab(state.tab || defaultTab(storeInfo().storeId));
+  }
+
+  function bindStoreSheet() {
+    var btn = document.getElementById('liveStoreBtn');
+    if (btn) {
+      btn.addEventListener('click', function () {
+        openStoreSheet();
+      });
+    }
+    var sheet = document.getElementById('liveStoreSheet');
+    if (!sheet) return;
+    sheet.addEventListener('click', function (e) {
+      if (e.target.closest('[data-store-sheet-close]')) {
+        closeStoreSheet();
+        return;
+      }
+      var pick = e.target.closest('[data-store-pick]');
+      if (pick) applyStoreChange(pick.getAttribute('data-store-pick'));
+    });
+  }
+
+  if (sessionApi() && sessionApi().applyUrlHints) sessionApi().applyUrlHints();
+  if (sessionApi() && sessionApi().persistListUrl) sessionApi().persistListUrl();
+  if (sessionApi() && sessionApi().mountDemoPanel) sessionApi().mountDemoPanel();
   var info = storeInfo();
   setTab(defaultTab(info.storeId));
   bindUi();

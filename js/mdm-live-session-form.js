@@ -83,11 +83,22 @@
       if (form) {
         form.querySelectorAll('input, select, textarea, button').forEach(function (el) {
           if (el.type === 'hidden') return;
+          if (
+            el.id === 'fRegionViewBtn' ||
+            el.id === 'fStoreViewBtn' ||
+            el.id === 'sessionFormCancel'
+          ) {
+            el.disabled = false;
+            return;
+          }
           el.disabled = true;
         });
       }
       setElDisabled('fRegionPickBtn', true);
       setElDisabled('fStorePickBtn', true);
+      setElDisabled('fRegionViewBtn', false);
+      setElDisabled('fStoreViewBtn', false);
+      syncScopeActionButtons();
       if (saveBtn) saveBtn.hidden = true;
       if (cancelBtn) {
         cancelBtn.disabled = false;
@@ -101,6 +112,7 @@
 
     if (saveBtn) saveBtn.hidden = false;
     if (cancelBtn) cancelBtn.textContent = '取消';
+    syncScopeActionButtons();
     setElDisabled('fStartAt', false);
     setElDisabled('fActualStartAt', true);
     setElDisabled('fActualEndAt', true);
@@ -236,6 +248,17 @@
       .join('');
   }
 
+  function syncScopeActionButtons() {
+    var regionPick = document.getElementById('fRegionPickBtn');
+    var regionView = document.getElementById('fRegionViewBtn');
+    var storePick = document.getElementById('fStorePickBtn');
+    var storeView = document.getElementById('fStoreViewBtn');
+    if (regionPick) regionPick.hidden = isDetailMode();
+    if (regionView) regionView.hidden = !isDetailMode();
+    if (storePick) storePick.hidden = isDetailMode();
+    if (storeView) storeView.hidden = !isDetailMode();
+  }
+
   function syncSaleScopeUi() {
     renderSaleRegionTags();
     var count = getSaleStoreCount();
@@ -243,7 +266,205 @@
     if (countEl) {
       countEl.hidden = !count;
       countEl.textContent = '已选择 ' + count + ' 个门店';
+      countEl.classList.toggle('is-clickable', isDetailMode() && count > 0);
     }
+    syncScopeActionButtons();
+  }
+
+  function getSelectedRegionItems() {
+    var summary = saleRegionSummary || [];
+    if (
+      (!summary.length || !summary.some(function (item) { return item && (item.label || item.name); })) &&
+      window.MdmProxyRegionPicker &&
+      typeof window.MdmProxyRegionPicker.summarize === 'function'
+    ) {
+      summary = window.MdmProxyRegionPicker.summarize(saleRegions) || summary;
+    }
+    return summary
+      .map(function (item) {
+        return {
+          id: item.id || item.code || '',
+          name: item.label || item.name || item.id || item.code || '—'
+        };
+      })
+      .filter(function (item) {
+        return item.name && item.name !== '—';
+      });
+  }
+
+  function getSelectedStoreItems() {
+    return Object.keys(saleStores || {}).map(function (id) {
+      var found =
+        window.MdmProxyStorePicker && typeof window.MdmProxyStorePicker.getStoreById === 'function'
+          ? window.MdmProxyStorePicker.getStoreById(id)
+          : null;
+      var fallback = selectedStoresForSave().filter(function (s) {
+        return s.id === id;
+      })[0];
+      return {
+        id: id,
+        name: (found && found.name) || (fallback && fallback.name) || id,
+        address: found && found.address ? found.address : ''
+      };
+    });
+  }
+
+  function openScopeViewDialog(kind) {
+    var isRegion = kind === 'region';
+    var pageSize = 20;
+    var page = 1;
+    var items = isRegion ? getSelectedRegionItems() : getSelectedStoreItems();
+    var title = isRegion ? '已选区域' : '已选门店（' + items.length + '个）';
+    var placeholder = isRegion ? '请输入区域名称' : '请输入门店名称';
+    var existing = document.querySelector('[data-live-scope-view]');
+    if (existing) existing.remove();
+
+    var backdrop = document.createElement('div');
+    backdrop.className = 'erp-modal-backdrop lf-live-scope-view-backdrop';
+    backdrop.setAttribute('data-live-scope-view', kind);
+    backdrop.innerHTML =
+      '<div class="erp-modal lf-live-scope-view-modal">' +
+      '<div class="erp-modal__header">' +
+      '<h2 class="erp-modal__title" id="liveScopeViewTitle">' +
+      escapeHtml(title) +
+      '</h2>' +
+      '<div class="erp-modal__header-actions">' +
+      '<button type="button" class="erp-modal__header-btn" data-close aria-label="关闭">&times;</button>' +
+      '</div></div>' +
+      '<div class="erp-modal__body">' +
+      '<div class="lf-live-scope-view__search">' +
+      '<input class="erp-input" id="liveScopeViewKeyword" placeholder="' +
+      escapeHtml(placeholder) +
+      '" autocomplete="off">' +
+      '</div>' +
+      '<div class="lf-live-scope-view__list" id="liveScopeViewList"></div>' +
+      (isRegion ? '' : '<div class="lf-live-scope-view__pager" id="liveScopeViewPager"></div>') +
+      '</div>' +
+      '<div class="erp-modal__footer">' +
+      '<button type="button" class="erp-btn erp-btn--primary" data-close>关闭</button>' +
+      '</div></div>';
+
+    function close() {
+      backdrop.remove();
+    }
+
+    function getFiltered() {
+      var kw = ((document.getElementById('liveScopeViewKeyword') || {}).value || '').trim().toLowerCase();
+      return items.filter(function (item) {
+        if (!kw) return true;
+        var name = String(item.name || '').toLowerCase();
+        var extra = String(item.address || '').toLowerCase();
+        return name.indexOf(kw) >= 0 || extra.indexOf(kw) >= 0;
+      });
+    }
+
+    function renderPager(filtered) {
+      var pager = backdrop.querySelector('#liveScopeViewPager');
+      if (!pager) return;
+      if (!filtered.length) {
+        pager.hidden = true;
+        pager.innerHTML = '';
+        return;
+      }
+      var maxPage = Math.max(1, Math.ceil(filtered.length / pageSize));
+      pager.hidden = false;
+      var nums = '';
+      var p;
+      for (p = 1; p <= maxPage; p++) {
+        nums +=
+          '<button type="button" class="erp-page-btn' +
+          (p === page ? ' is-active' : '') +
+          '" data-page="' +
+          p +
+          '">' +
+          p +
+          '</button>';
+      }
+      pager.innerHTML =
+        '<div class="erp-pagination lf-live-scope-view__pagination">' +
+        '<span class="erp-pagination__total">共 ' +
+        filtered.length +
+        ' 条</span>' +
+        '<div class="erp-pagination__mid">' +
+        '<span class="erp-pagination__hint">' +
+        pageSize +
+        ' 条/页</span>' +
+        '<div class="erp-pagination__pages">' +
+        '<button type="button" class="erp-page-btn" data-page="' +
+        (page - 1) +
+        '" ' +
+        (page <= 1 ? 'disabled' : '') +
+        ' aria-label="上一页">‹</button>' +
+        nums +
+        '<button type="button" class="erp-page-btn" data-page="' +
+        (page + 1) +
+        '" ' +
+        (page >= maxPage ? 'disabled' : '') +
+        ' aria-label="下一页">›</button>' +
+        '</div></div></div>';
+    }
+
+    function renderList() {
+      var filtered = getFiltered();
+      var maxPage = Math.max(1, Math.ceil(filtered.length / pageSize) || 1);
+      if (page > maxPage) page = maxPage;
+      if (page < 1) page = 1;
+      var listEl = backdrop.querySelector('#liveScopeViewList');
+      if (!listEl) return;
+      if (!filtered.length) {
+        listEl.innerHTML =
+          '<div class="lf-live-scope-view__empty">' +
+          (items.length
+            ? '没有匹配的' + (isRegion ? '区域' : '门店')
+            : '暂无已选' + (isRegion ? '区域' : '门店')) +
+          '</div>';
+        renderPager(filtered);
+        return;
+      }
+      var slice = isRegion ? filtered : filtered.slice((page - 1) * pageSize, page * pageSize);
+      listEl.innerHTML = slice
+        .map(function (item) {
+          var sub = item.address
+            ? '<div class="lf-live-scope-view__sub">' + escapeHtml(item.address) + '</div>'
+            : '';
+          return (
+            '<div class="lf-live-scope-view__item"><div class="lf-live-scope-view__name">' +
+            escapeHtml(item.name) +
+            '</div>' +
+            sub +
+            '</div>'
+          );
+        })
+        .join('');
+      renderPager(filtered);
+    }
+
+    backdrop.addEventListener('click', function (ev) {
+      if (ev.target === backdrop || ev.target.closest('[data-close]')) close();
+    });
+    var pagerHost = backdrop.querySelector('#liveScopeViewPager');
+    if (pagerHost) {
+      pagerHost.addEventListener('click', function (ev) {
+        var btn = ev.target.closest('[data-page]');
+        if (!btn || btn.disabled) return;
+        var next = Number(btn.getAttribute('data-page'));
+        if (!next || next < 1) return;
+        page = next;
+        renderList();
+      });
+    }
+    document.body.appendChild(backdrop);
+    var input = backdrop.querySelector('#liveScopeViewKeyword');
+    if (input) {
+      input.addEventListener('input', function () {
+        page = 1;
+        renderList();
+      });
+      setTimeout(function () {
+        input.focus();
+      }, 0);
+    }
+    renderList();
   }
 
   function hydrateSaleScope(sess) {
@@ -382,6 +603,18 @@
     var list = (Demo.marketingTemplatePool || []).filter(function (t) {
       return t.type === type;
     });
+    if (type === 'COUPON' && window.MdmMarketingCouponStore && typeof window.MdmMarketingCouponStore.listSelectable === 'function') {
+      list = window.MdmMarketingCouponStore.listSelectable('LIVE').map(function (c) {
+        return { id: c.id, type: 'COUPON', typeName: '优惠券', name: c.name, stock: c.totalStock };
+      });
+    }
+    if (type === 'COUPON' && !list.length) {
+      nameEl.disabled = true;
+      nameEl.innerHTML = '<option value="">暂无已启用且发放场景含「直播发券」的优惠券</option>';
+      if (stockRow) stockRow.hidden = true;
+      applyFieldLocks();
+      return;
+    }
     nameEl.disabled = false;
     nameEl.innerHTML =
       '<option value="">请选择模板</option>' +
@@ -627,6 +860,7 @@
       }
       toast('保存成功');
     }
+    if (typeof Demo.persistSessions === 'function') Demo.persistSessions();
     setTimeout(function () {
       window.location.href = wp.page('mdm_live_session.html');
     }, 400);
@@ -677,6 +911,20 @@
       });
     }
 
+    var regionViewBtn = document.getElementById('fRegionViewBtn');
+    if (regionViewBtn) {
+      regionViewBtn.addEventListener('click', function () {
+        openScopeViewDialog('region');
+      });
+    }
+    var regionTags = document.getElementById('fRegionTags');
+    if (regionTags) {
+      regionTags.addEventListener('click', function () {
+        if (!isDetailMode()) return;
+        openScopeViewDialog('region');
+      });
+    }
+
     var storePickBtn = document.getElementById('fStorePickBtn');
     if (storePickBtn) {
       storePickBtn.addEventListener('click', function () {
@@ -692,6 +940,20 @@
             syncSaleScopeUi();
           }
         });
+      });
+    }
+
+    var storeViewBtn = document.getElementById('fStoreViewBtn');
+    if (storeViewBtn) {
+      storeViewBtn.addEventListener('click', function () {
+        openScopeViewDialog('store');
+      });
+    }
+    var storeCountEl = document.getElementById('fStoreCount');
+    if (storeCountEl) {
+      storeCountEl.addEventListener('click', function () {
+        if (!isDetailMode()) return;
+        openScopeViewDialog('store');
       });
     }
 
@@ -733,6 +995,12 @@
         var pool = (Demo.marketingTemplatePool || []).find(function (t) {
           return t.id === tplId;
         });
+        if (!pool && type === 'COUPON' && window.MdmMarketingCouponStore) {
+          var cp = window.MdmMarketingCouponStore.findById(tplId);
+          if (cp) {
+            pool = { id: cp.id, type: 'COUPON', typeName: '优惠券', name: cp.name, stock: cp.totalStock };
+          }
+        }
         if (!pool) return toast('未找到所选模板，请重新选择', 'warning');
         if (type === 'COUPON' && boundTemplates.some(function (t) { return t.type === 'COUPON' && t.poolId === pool.id; })) {
           return toast('当前场次已添加该优惠券模板，请勿重复添加', 'warning');

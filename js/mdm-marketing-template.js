@@ -66,7 +66,7 @@
 
   function emptyForm() {
     return {
-      base: { activityType: 'COUPON', name: '', applicableChannel: 'ALL', totalStock: '' },
+      base: { activityType: 'FORTUNE_BAG', name: '', applicableChannel: 'ALL', totalStock: '' },
       coupon: {
         couponType: 'FULL_MINUS',
         threshold: 0,
@@ -579,7 +579,11 @@
   }
 
   function couponSelect(selected) {
-    var opts = Store.listActiveCoupons()
+    var list = Store.listActiveCoupons();
+    if (!list.length) {
+      return '<option value="">暂无已启用且发放场景含「营销送券」的优惠券</option>';
+    }
+    var opts = list
       .map(function (c) {
         return (
           '<option value="' +
@@ -627,7 +631,6 @@
     footer.hidden = locked;
 
     var typeOpts = [
-      { v: 'COUPON', l: '优惠券' },
       { v: 'FORTUNE_BAG', l: '福袋' },
       { v: 'SIGN_IN', l: '签到' },
       { v: 'TASK', l: '观看任务' }

@@ -3396,10 +3396,90 @@
   background: #f7f7f7;
 }
 
-.lf-live-form--readonly .product-proxy-sale-scope__pick,
+.lf-live-form--readonly #fRegionPickBtn,
+.lf-live-form--readonly #fStorePickBtn,
 .lf-live-form--readonly .lf-live-template-form,
 .lf-live-form--live-lock .lf-live-template-form {
   display: none;
+}
+
+.lf-live-form--readonly #fRegionViewBtn:not([hidden]),
+.lf-live-form--readonly #fStoreViewBtn:not([hidden]) {
+  display: inline;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.lf-live-form--readonly #fRegionTags,
+.lf-live-form--readonly #fStoreCount.is-clickable {
+  cursor: pointer;
+}
+
+.lf-live-scope-view-backdrop {
+  z-index: 3820;
+}
+
+.lf-live-scope-view-modal {
+  width: min(560px, 94vw);
+  max-width: none;
+}
+
+.lf-live-scope-view__search {
+  margin-bottom: 12px;
+}
+
+.lf-live-scope-view__search .erp-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.lf-live-scope-view__list {
+  max-height: 360px;
+  overflow-y: auto;
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+}
+
+.lf-live-scope-view__item {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.lf-live-scope-view__item:last-child {
+  border-bottom: none;
+}
+
+.lf-live-scope-view__name {
+  font-size: 13px;
+  color: #333;
+  line-height: 1.4;
+}
+
+.lf-live-scope-view__sub {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.4;
+}
+
+.lf-live-scope-view__empty {
+  text-align: center;
+  color: #999;
+  padding: 32px 12px;
+  font-size: 13px;
+}
+
+.lf-live-scope-view__pager {
+  margin-top: 12px;
+}
+
+.lf-live-scope-view__pagination {
+  padding-top: 0;
+}
+
+.lf-live-scope-view__pagination .erp-page-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .lf-live-form--readonly .lf-live-radio input:disabled {
@@ -4151,6 +4231,7 @@
 .bag-dialog__form,
 .signin-dialog__form {
   margin-top: 12px;
+  overflow: visible;
 }
 
 .coupon-dialog__form-title,
@@ -4191,14 +4272,92 @@
   gap: 6px;
 }
 
-.lf-welfare-field span {
+.lf-welfare-field > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 13px;
   color: #606266;
+}
+
+.lf-welfare-help {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid #c0c4cc;
+  color: #909399;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 14px;
+  cursor: help;
+  flex-shrink: 0;
+}
+
+.lf-welfare-help-pop {
+  position: fixed;
+  z-index: 1600;
+  width: 320px;
+  max-width: calc(100vw - 24px);
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.82);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.55;
+  text-align: left;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  pointer-events: none;
+  white-space: normal;
+}
+
+.lf-welfare-help-pop[hidden] {
+  display: none !important;
+}
+
+.lf-welfare-field--limit {
+  grid-column: 1 / -1;
+}
+
+.lf-welfare-limit-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.lf-welfare-limit-tpl {
+  font-size: 13px;
+  color: #909399;
+  line-height: 1.4;
+}
+
+.lf-welfare-field-error {
+  margin: 0;
+  font-size: 12px;
+  color: #ff4d4f;
+  line-height: 1.4;
+}
+
+.lf-welfare-field-error[hidden] {
+  display: none !important;
+}
+
+.lf-welfare-field .erp-input.is-error {
+  border-color: #ff4d4f;
 }
 
 .lf-welfare-field .erp-input,
 .lf-welfare-field .erp-select {
   width: 100%;
+}
+
+.lf-welfare-field .lf-welfare-limit-row .erp-input {
+  width: 160px;
+  max-width: 40%;
+  flex: 0 0 160px;
 }
 
 .signin-dialog__plan-head {
@@ -4698,5 +4857,131 @@
 .lf-welfare-drawer.lf-live-control--ended [data-welfare-stop] {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+/* 直播场次列表 · 推广海报 */
+.lf-live-session-page .table td.action-links {
+  flex-wrap: wrap;
+  white-space: normal;
+  min-width: 168px;
+}
+
+.lf-live-promo-modal {
+  width: min(520px, 94vw);
+  max-width: none;
+}
+
+.lf-live-promo-session {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.lf-live-promo-store__list {
+  margin-top: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+}
+
+.lf-live-promo-store__item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border: 0;
+  border-bottom: 1px solid #f5f5f5;
+  background: #fff;
+  cursor: pointer;
+}
+
+.lf-live-promo-store__item:last-child {
+  border-bottom: none;
+}
+
+.lf-live-promo-store__item:hover {
+  background: #fafafa;
+}
+
+.lf-live-promo-store__item.is-active {
+  background: #fff7f0;
+}
+
+.lf-live-promo-store__name {
+  display: block;
+  font-size: 13px;
+  color: #333;
+  line-height: 1.4;
+}
+
+.lf-live-promo-store__sub {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.4;
+}
+
+.lf-live-promo-store__empty {
+  text-align: center;
+  color: #999;
+  padding: 28px 12px;
+  font-size: 13px;
+}
+
+.lf-live-promo-store__picked {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #ff7019;
+  line-height: 1.4;
+}
+
+.lf-live-promo-tip {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.5;
+}
+
+.lf-live-promo-qr {
+  text-align: center;
+  padding: 8px 0 4px;
+}
+
+.lf-live-promo-qr__store {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
+  line-height: 1.4;
+}
+
+.lf-live-promo-qr__inviter {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #666;
+  line-height: 1.4;
+}
+
+.lf-live-promo-qr__code {
+  width: 180px;
+  height: 180px;
+  margin: 20px auto 0;
+  line-height: 0;
+}
+
+.lf-live-promo-qr__code canvas,
+.lf-live-promo-qr__code img {
+  display: block;
+  width: 180px !important;
+  height: 180px !important;
+}
+
+.lf-live-promo-qr__hint {
+  margin: 16px 0 0;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.5;
 }
 

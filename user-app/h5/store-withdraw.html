@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1">
   <title>提现 · 门店 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
-  <link rel="stylesheet" href="../css/user-app-store-withdraw.css?v=20260804-pay-sheet">
+  <link rel="stylesheet" href="../css/user-app-store-withdraw.css?v=20260908-in-transit">
 </head>
 <body class="user-app-body">
   <div class="ua-mobile-shell ua-wd-page">
@@ -48,7 +48,7 @@
               <span>可提现金额¥<span id="wdBalance">0.00</span>，</span>
               <button type="button" class="ua-wd-amount__all" id="wdAllBtn">全部提现</button>
             </div>
-            <p class="ua-wd-amount__pending" id="wdPendingTip" hidden></p>
+            <p class="ua-wd-amount__hint" id="wdArriveHint">提现后预计 T+1 到账，到账前计入在途资金</p>
             <p class="ua-wd-amount__err" id="wdErr" hidden></p>
           </div>
 
@@ -115,11 +115,11 @@
     </div>
   </div>
 
-  <script src="../../js/store-wallet-demo.js?v=20260810-deposit-unfreeze6"></script>
+  <script src="../../js/store-wallet-demo.js?v=20260908-in-transit"></script>
   <script src="../../js/store-onboarding-gate.js?v=20260805-wd-unlock"></script>
   <script src="../../js/store-pay-password.js?v=20260804"></script>
   <script src="../js/user-app-store-pay-guard.js?v=20260804-inline"></script>
-  <script src="../js/user-app-store-withdraw.js?v=20260810-deposit-unfreeze6"></script>
+  <script src="../js/user-app-store-withdraw.js?v=20260908-no-pending-tip"></script>
 
 </body>
 </html>

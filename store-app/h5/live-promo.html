@@ -4,18 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>直播推广 · 门店APP</title>
-  <link rel="stylesheet" href="../css/store-app.css?v=20260904-livepromo">
+  <link rel="stylesheet" href="../css/store-app.css?v=20260905-livepromo-bd">
   <link rel="stylesheet" href="../css/store-app-qrcode.css?v=20260904-livepromo">
-  <link rel="stylesheet" href="../css/store-app-live-promo.css?v=20260904-livepromo4">
+  <link rel="stylesheet" href="../css/store-app-live-promo.css?v=20260905-flow-collapse">
 </head>
 <body class="store-app-body">
   <div class="sa-shell sa-live-shell">
     <div class="sa-live">
       <header class="sa-live-nav">
-        <a href="home.html" class="sa-live-nav__back" aria-label="返回">
+        <a href="home.html" class="sa-live-nav__back" id="livePromoBack" aria-label="返回">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg>
         </a>
         <h1 class="sa-live-nav__title">直播推广</h1>
+        <button type="button" class="sa-live-nav__store" id="liveStoreBtn" hidden>
+          <span id="liveStoreBtnText">切店</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
       </header>
 
       <div class="sa-live-tabs" role="tablist" aria-label="直播状态">
@@ -25,16 +29,23 @@
       </div>
 
       <div class="sa-live-scroll">
-        <div class="sa-live-flow" role="note">
-          <div class="sa-live-flow__title">推广路径</div>
-          <ol class="sa-live-flow__steps">
-            <li>店长/员工分享指定场次到微信群<small>链接和海报均携带当前门店、店员</small></li>
+        <div class="sa-live-flow is-collapsed" id="livePromoFlow">
+          <button type="button" class="sa-live-flow__head" id="liveFlowToggle" aria-expanded="false" aria-controls="liveFlowSteps">
+            <span class="sa-live-flow__title">推广路径</span>
+            <span class="sa-live-flow__action">
+              <span class="sa-live-flow__action-text">展开</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+            </span>
+          </button>
+          <ol class="sa-live-flow__steps" id="liveFlowSteps">
+            <li>店长/员工/BD 分享指定场次到微信群<small>链接和海报均携带当前门店、当前推广人账号</small></li>
             <li>用户点击小程序链接或识别海报</li>
             <li>进入冷丰鲜选小程序</li>
             <li>注册登录后自动绑定分享门店<small>门店停业则绑定系统默认门店</small></li>
             <li>进入该场直播页</li>
           </ol>
         </div>
+        <div class="sa-live-who" id="livePromoWho"></div>
         <div id="livePromoEmpty" class="sa-live-empty" hidden>暂无本门店可看的直播场次</div>
         <div id="livePromoList"></div>
       </div>
@@ -134,12 +145,25 @@
         <button type="button" class="sa-sheet__cancel" data-share-close>取消</button>
       </div>
     </div>
+
+    <div id="liveStoreSheet" class="sa-live-store-sheet" hidden>
+      <div class="sa-live-store-sheet__mask" data-store-sheet-close></div>
+      <div class="sa-live-store-sheet__panel">
+        <div class="sa-live-store-sheet__head">
+          <h3 class="sa-live-store-sheet__title">切换门店</h3>
+          <button type="button" class="sa-live-store-sheet__close" data-store-sheet-close aria-label="关闭">×</button>
+        </div>
+        <p class="sa-live-store-sheet__hint">分享绑定的门店为当前所选门店，推广人是 BD 的姓名和手机号。</p>
+        <div class="sa-live-store-sheet__list" id="liveStoreSheetList"></div>
+      </div>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <script src="../js/store-app-orders-mock.js?v=20260904-livepromo"></script>
   <script src="../js/store-app-toast.js?v=20260904-livepromo"></script>
-  <script src="../js/store-app-live-promo.js?v=20260904-livepromo4"></script>
+  <script src="../js/store-app-live-session.js?v=20260905-livepromo-bd"></script>
+  <script src="../js/store-app-live-promo.js?v=20260905-flow-collapse"></script>
   <script src="../../js/pg-prd-float.js?v=20260904-livepromo"></script>
 </body>
 </html>

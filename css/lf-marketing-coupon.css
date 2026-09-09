@@ -1,0 +1,263 @@
+/* 营销优惠券 */
+.mkt-tpl-tag--danger {
+  color: #f56c6c;
+  background: #fef0f0;
+  border-color: #fde2e2;
+}
+
+.mkt-cp-scene-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.mkt-cp-scene-checks .pts-rule-check-label {
+  min-height: 22px;
+}
+
+.mdm-edit-page .pts-rule-field__control > .erp-select.pts-rule-field__input--name {
+  width: 100%;
+  max-width: 480px;
+}
+
+.mkt-cp-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 560px;
+}
+
+.mkt-cp-name-row .erp-input {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  max-width: 480px;
+}
+
+.mdm-edit-page .pts-rule-unit .erp-input.mkt-cp-datetime {
+  flex: 0 1 220px;
+  min-width: 200px;
+  max-width: 240px;
+}
+
+.mdm-edit-page .pts-rule-field__control .erp-input:disabled,
+.mdm-edit-page .pts-rule-field__control .erp-select:disabled {
+  background: #f5f7fa;
+  color: #c0c4cc;
+  cursor: not-allowed;
+}
+
+.mkt-cp-cats {
+  margin-top: 4px;
+}
+
+.mkt-cp-reject-backdrop .erp-modal {
+  width: 480px;
+}
+
+.mkt-cp-reject-backdrop textarea {
+  width: 100%;
+  min-height: 96px;
+  padding: 8px 10px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 13px;
+  resize: vertical;
+}
+
+.mkt-rg-form-back {
+  color: #2196f3;
+  text-decoration: none;
+  font-size: 13px;
+}
+.mkt-rg-form-back:hover { text-decoration: underline; }
+
+.mkt-rec-coupon-select {
+  min-width: 240px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+}
+
+.mkt-cp-goods-count-row {
+  margin-top: 8px;
+}
+
+.mkt-cp-goods-count-empty {
+  font-size: 13px;
+  color: #909399;
+}
+
+.mkt-cp-goods-backdrop .erp-modal {
+  width: 820px;
+  max-width: 94vw;
+  max-height: calc(100vh - 48px);
+}
+
+.mkt-cp-goods-modal .erp-modal__body {
+  overflow: auto;
+  padding: 16px 20px 12px;
+}
+
+.mkt-cp-scope-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: #fafafa;
+  border: 1px solid #eee;
+  border-radius: 4px;
+}
+
+.mkt-cp-scope-filter__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 240px;
+  min-width: 220px;
+  max-width: 360px;
+}
+
+.mkt-cp-scope-filter__item label {
+  flex: 0 0 auto;
+  width: auto;
+  padding: 0;
+  color: #666;
+  font-size: 13px;
+  white-space: nowrap;
+  line-height: 32px;
+}
+
+.mkt-cp-scope-filter__item .input-wrapper,
+.mkt-cp-scope-filter__item select {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.mkt-cp-scope-filter__item .input-wrapper input,
+.mkt-cp-scope-filter__item select {
+  width: 100%;
+  height: 32px;
+  box-sizing: border-box;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  padding: 0 10px;
+  background: #fff;
+}
+
+.mkt-cp-scope-filter__actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+
+.mkt-cp-scope-table-wrap {
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.mkt-cp-scope-table {
+  width: 100%;
+  margin: 0;
+  border: none;
+}
+
+.mkt-cp-scope-table th {
+  background: #fafafa;
+  font-weight: 600;
+  font-size: 13px;
+  color: #333;
+  padding: 10px 12px;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.mkt-cp-scope-table td {
+  padding: 12px;
+  font-size: 13px;
+  color: #333;
+  vertical-align: middle;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.mkt-cp-scope-table tr:last-child td {
+  border-bottom: none;
+}
+
+.mkt-cp-scope-row:hover td {
+  background: #fafafa;
+}
+
+.mkt-cp-goods-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 4px;
+  border: 1px solid #eee;
+  background: #f7f7f7;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #bbb;
+  font-size: 16px;
+  overflow: hidden;
+  vertical-align: middle;
+}
+
+.mkt-cp-goods-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.mkt-cp-goods-name {
+  font-size: 13px;
+  color: #303133;
+  line-height: 1.4;
+}
+
+.mkt-cp-goods-code {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #909399;
+}
+
+.mkt-cp-goods-spec {
+  border: none;
+  background: none;
+  padding: 0;
+  color: #2196f3;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.mkt-cp-goods-spec:hover,
+.mkt-cp-goods-spec.is-open {
+  color: #ff7019;
+}
+
+.mkt-cp-goods-spec-empty {
+  color: #909399;
+  font-size: 13px;
+}
+
+.mkt-cp-goods-child td {
+  background: #fafafa;
+  color: #666;
+  font-size: 13px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.mkt-cp-goods-sku {
+  display: inline-block;
+  padding: 2px 8px 2px 16px;
+  border-left: 2px solid #e6e6e6;
+  line-height: 1.5;
+}

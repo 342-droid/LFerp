@@ -33,14 +33,15 @@
     setText('swAvailable', moneyPlain(snap.available));
     setText('swWithdrawable', moneyPlain(snap.withdrawable));
     setText('swGoodsQuota', moneyPlain(snap.goodsQuota));
+    setText('swInTransit', moneyPlain(snap.inTransit != null ? snap.inTransit : snap.pending));
+    var gap = Number(snap.depositGap || 0);
+    setText('swDepositNeedFill', moneyPlain(gap));
+    var needLine = document.getElementById('swDepositNeedLine');
+    if (needLine) needLine.classList.toggle('is-warn', gap > 0);
     var metaEl = document.getElementById('swDepositMeta');
     if (metaEl) {
-      var gap = Number(snap.depositGap || 0);
-      metaEl.textContent =
-        '应保有 ¥' +
-        moneyPlain(snap.depositRequired) +
-        (gap > 0 ? ' · 缺口 ¥' + moneyPlain(gap) : '');
-      metaEl.classList.toggle('is-warn', gap > 0);
+      metaEl.textContent = '应保有 ¥' + moneyPlain(snap.depositRequired);
+      metaEl.classList.remove('is-warn');
     }
   }
 
@@ -623,8 +624,17 @@
         lead: '入驻锁定资金，保障履约与售后责任，不可提现。',
         points: [
           '入驻时锁定，不支持提现',
-          '存在缺口时，后续入账优先补齐保证金',
+          '需补金额：应保有与保证金余额的差额，后续入账优先补齐',
           '「售后/责任类扣款」从保证金账户付款至平台；保证金不足时出账失败（不从余额拼扣）'
+        ]
+      },
+      depositNeed: {
+        title: '需补金额说明',
+        lead: '保证金余额低于应保有时的差额。',
+        points: [
+          '需补金额 = 应保有 − 保证金余额',
+          '后续充值、佣金等入账优先补齐需补金额',
+          '存在需补金额时，不可提现'
         ]
       },
       balance: {
@@ -632,9 +642,9 @@
         lead: '',
         points: [
           '货款：不可提现，仅用于门店进货支付。',
-          '可提款：余额账户中已满足 T+1 解冻规则的资金，可提现至汇付对公账户（不包含货款）。',
-          '待解冻：入账未满 T+1 的资金，不可提现，可用于门店进货支付。',
-          '进货支付 / 售后·责任类扣款（余额账户付款）/ 佣金回退等：不扣货款，可扣 = 余额 − 货款（可提款 + 待解冻）'
+          '可提款：当前可发起提现的资金，入账即可提（不含货款、不含在途）。',
+          '在途：已发起提现、待 T+1 到账的资金，不可再次提现，也不可用于进货。',
+          '进货支付 / 售后·责任类扣款（余额账户付款）/ 佣金回退等：不扣货款与在途，可扣 = 可提款'
         ]
       },
       goods: {
@@ -644,6 +654,15 @@
           '不支持提现，仅用于门店进货支付',
           '进货支付、售后/责任类扣款、佣金回退等规则见余额与保证金说明',
           '可提现部分请查看上方「可提款金额」'
+        ]
+      },
+      inTransit: {
+        title: '在途说明',
+        lead: '提现操作后资金从可提款划入在途，预计 T+1 到账对公账户。',
+        points: [
+          '在途期间不可再次提现，也不可用于进货支付',
+          '到账后在途减少，资金离开钱包进入结算账户',
+          '货款与可提款不受在途占用影响'
         ]
       }
     };

@@ -162,7 +162,8 @@
 
   function realWalletAvailable() {
     if (window.StoreWalletDemo && typeof window.StoreWalletDemo.snapshot === 'function') {
-      return window.StoreWalletDemo.snapshot().available || 0;
+      var snap = window.StoreWalletDemo.snapshot();
+      return Number(snap.restockAvailable != null ? snap.restockAvailable : snap.available) || 0;
     }
     return 0;
   }
@@ -1985,8 +1986,8 @@
 
   /**
    * 提交分流：
-   * 1) 余额充足 → 直接支付密码半层（收单渠道可空）
-   * 2) 余额不足 / 未用余额 → 须勾选支付宝/微信后跳三方收单
+   * 1) 仅纯余额支付 → 支付密码半层
+   * 2) 混合支付 / 纯支付宝 / 微信 → 不输支付密码，直接跳三方收单
    */
   function onSubmitOrder() {
     if (isBdAppBrowse()) {
@@ -2005,7 +2006,7 @@
       return;
     }
     if (!isPayChannel(payState.channel)) {
-      window.alert('请选择支付方式');
+      window.alert(legs.balanceLeg > 0.001 ? '请选择支付宝或微信补足差额' : '请选择支付方式');
       return;
     }
     var channel = payState.channel;
@@ -2110,6 +2111,18 @@
 
     document.getElementById('checkoutInvoiceConfirm') &&
       document.getElementById('checkoutInvoiceConfirm').addEventListener('click', confirmInvoice);
+
+    document.getElementById('checkoutPayForgot') &&
+      document.getElementById('checkoutPayForgot').addEventListener('click', function () {
+        var path = window.location.pathname.split('/').pop() + window.location.search;
+        var q = new URLSearchParams();
+        q.set('step', 'sms');
+        q.set('from', 'checkout');
+        q.set('return', path);
+        var appFrom = new URLSearchParams(window.location.search).get('from');
+        if (appFrom) q.set('appFrom', appFrom);
+        window.location.href = 'store-pay-password.html?' + q.toString();
+      });
 
     document.getElementById('checkoutKeypad') &&
       document.getElementById('checkoutKeypad').addEventListener('click', function (e) {

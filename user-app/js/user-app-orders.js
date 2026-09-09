@@ -128,10 +128,89 @@
     if (endEl) endEl.hidden = visible === 0;
   }
 
+  function readCardPayable(card) {
+    var orderNo = card ? card.getAttribute('data-order-no') : '';
+    if (orderNo && window.UaOrdersStore && window.UaOrdersStore.getByNo) {
+      var order = window.UaOrdersStore.getByNo(orderNo);
+      if (order && order.payable != null) return Math.max(0, Number(order.payable) || 0);
+    }
+    var price = card ? card.querySelector('.ua-order-price') : null;
+    var n = Number(price ? String(price.textContent || '').replace(/[^\d.]/g, '') : '');
+    return n > 0 ? n : 0;
+  }
+
+  function markCardPaid(card, extra) {
+    var nextStatus = isFromRestock() ? 'pending_accept' : 'shipping';
+    var orderNo = card.getAttribute('data-order-no');
+    if (orderNo && window.UaOrdersStore && window.UaOrdersStore.updateStatus) {
+      window.UaOrdersStore.updateStatus(orderNo, nextStatus, extra || {});
+    }
+    card.setAttribute('data-status', nextStatus);
+    card.setAttribute('data-detail-status', nextStatus);
+    var statusEl = card.querySelector('.ua-order-status');
+    if (statusEl) {
+      statusEl.textContent = isFromRestock() ? '待接单' : '待发货';
+      statusEl.classList.remove('ua-order-status--red');
+    }
+    var payBtn = card.querySelector('[data-order-pay]');
+    if (payBtn) payBtn.remove();
+    var supplier = card.getAttribute('data-supplier-name') || '';
+    var href =
+      (orderNo && window.UaOrdersStore && window.UaOrdersStore.getByNo
+        ? window.UaOrdersStore.buildDetailHref(window.UaOrdersStore.getByNo(orderNo))
+        : 'order-detail.html?status=' + encodeURIComponent(nextStatus)) ||
+      'order-detail.html?status=' + encodeURIComponent(nextStatus);
+    if (isFromRestock() && href.indexOf('from=') < 0) {
+      href += (href.indexOf('?') >= 0 ? '&' : '?') + 'from=restock.html';
+    }
+    if (supplier && href.indexOf('supplier=') < 0) {
+      href += (href.indexOf('?') >= 0 ? '&' : '?') + 'supplier=' + encodeURIComponent(supplier);
+    }
+    card.querySelectorAll('a[href*="order-detail.html"]').forEach(function (link) {
+      link.setAttribute('href', href);
+    });
+  }
+
+  function bindOrderPayButtons() {
+    var list = document.querySelector('.ua-orders-list');
+    if (!list || list.dataset.orderPayBound) return;
+    list.dataset.orderPayBound = '1';
+    list.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-order-pay]');
+      if (!btn) return;
+      e.preventDefault();
+      e.stopPropagation();
+      var card = btn.closest('.ua-order-card');
+      if (!card || !window.UaOrderPaySheet) return;
+      window.UaOrderPaySheet.open({
+        isRestock: isFromRestock(),
+        getPayable: function () {
+          return readCardPayable(card);
+        },
+        onPaid: function (extra) {
+          markCardPaid(card, extra);
+          if (typeof window.__uaOrdersRefilter === 'function') window.__uaOrdersRefilter();
+          var link = card.querySelector('a[href*="order-detail.html"]');
+          return {
+            orderHref: link ? link.getAttribute('href') : 'orders.html?from=restock.html',
+            homeHref: isFromRestock() ? 'restock.html' : 'home.html',
+            unpaidHref: isFromRestock()
+              ? 'orders.html?from=restock.html&tab=unpaid'
+              : 'orders.html?tab=unpaid'
+          };
+        }
+      });
+    });
+  }
+
   function init() {
     injectDemoOrders();
     applyRestockOrdersMode();
     bindDemoOrderLinks();
+    bindOrderPayButtons();
+    if (window.UaOrderPaySheet && isFromRestock()) {
+      window.UaOrderPaySheet.mountDemoPanel(true);
+    }
 
     var backEl = document.querySelector('.ua-orders-back');
     if (backEl && isFromRestock()) {
@@ -162,6 +241,9 @@
       setTab: function (tab) {
         applyTab(tab, true);
       }
+    };
+    window.__uaOrdersRefilter = function () {
+      applyTab(getActiveTab(), false);
     };
 
     tabs.forEach(function (tabEl) {
@@ -237,9 +319,7 @@
             ? '<a href="' +
               href +
               '" class="ua-order-btn ua-order-btn--outline">查看详情</a>' +
-              '<a href="' +
-              href +
-              '" class="ua-order-btn ua-order-btn--primary">去付款</a>'
+              '<button type="button" class="ua-order-btn ua-order-btn--primary" data-order-pay="1">去付款</button>'
             : '<a href="' + href + '" class="ua-order-btn ua-order-btn--outline">查看详情</a>';
         return (
           '<article class="ua-order-card" data-status="' +
