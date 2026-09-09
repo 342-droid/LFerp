@@ -50,7 +50,7 @@
   function readFilterFromForm() {
     var method = (document.getElementById('qCollectMethod') || {}).value || '';
     var activityId = '';
-    if (method && method !== '后台人工发券') {
+    if (method && method !== Store.COLLECT_METHOD_MANUAL) {
       activityId = (document.getElementById('qActivityId') || {}).value || '';
     }
     return {
@@ -139,6 +139,24 @@
     renderPagination(total);
   }
 
+  function fillSceneFilter() {
+    var sel = document.getElementById('qCollectMethod');
+    if (!sel || !Store.SCENE_OPTIONS) return;
+    var keep = sel.value || '';
+    sel.innerHTML = '';
+    var all = document.createElement('option');
+    all.value = '';
+    all.textContent = '全部';
+    sel.appendChild(all);
+    Store.SCENE_OPTIONS.forEach(function (name) {
+      var opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      sel.appendChild(opt);
+    });
+    sel.value = keep;
+  }
+
   function bind() {
     var queryBtn = document.getElementById('btnFilterQuery');
     var resetBtn = document.getElementById('btnFilterReset');
@@ -182,6 +200,7 @@
   }
 
   bind();
+  fillSceneFilter();
   syncActivityFilter();
   render(true);
 })();

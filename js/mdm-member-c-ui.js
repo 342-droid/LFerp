@@ -293,11 +293,21 @@
         if (window.MdmMallMarketingRecordStore && typeof window.MdmMallMarketingRecordStore.normalizeCollectMethod === 'function') {
             return window.MdmMallMarketingRecordStore.normalizeCollectMethod(method);
         }
-        if (method === '后台手工发券') return '后台人工发券';
-        if (method === '直播发券' || method === '福袋发券' || method === '签到发券' || method === '后台人工发券') {
+        if (method === '后台手工发券' || method === '后台人工发券' || method === '会员发券') return '会员手工发券';
+        if (method === '福袋发券') return '福袋送券';
+        if (method === '签到发券') return '签到送券';
+        if (
+            method === '直播发券' ||
+            method === '福袋送券' ||
+            method === '签到送券' ||
+            method === '观看任务送券' ||
+            method === '商城推荐位' ||
+            method === '会员等级送券' ||
+            method === '会员手工发券'
+        ) {
             return method;
         }
-        return '后台人工发券';
+        return '会员手工发券';
     }
 
     function couponActivityIdText(row) {
@@ -305,7 +315,7 @@
             return window.MdmMallMarketingRecordStore.formatActivityId(row) || '—';
         }
         var scene = couponSceneLabel(row && (row.scene || row.collectMethod));
-        if (scene === '后台人工发券') return '—';
+        if (scene === '会员手工发券') return '—';
         var id = String((row && row.activityId) || '').trim();
         return id && id !== '—' ? id : '—';
     }
@@ -410,8 +420,8 @@
                 channel: '全渠道',
                 validPeriod: '2026-04-01~10-31',
                 collectAt: '2026-07-22 19:40:11',
-                scene: '福袋发券',
-                collectMethod: '福袋发券',
+                scene: '福袋送券',
+                collectMethod: '福袋送券',
                 activityId: 'tpl-b1',
                 status: '已使用',
                 orderNos: ['ORD-3212689201598341']
@@ -424,10 +434,52 @@
                 channel: '全渠道',
                 validPeriod: '每周五~周日',
                 collectAt: '2026-06-14 21:08:44',
-                scene: '签到发券',
-                collectMethod: '签到发券',
+                scene: '签到送券',
+                collectMethod: '签到送券',
                 activityId: 'tpl-s1',
                 status: '已过期',
+                orderNos: []
+            },
+            {
+                id: 'WT' + uid + '-001',
+                name: '观看任务券',
+                threshold: '39元',
+                faceValue: '5元',
+                channel: '仅直播',
+                validPeriod: '领取后不限制',
+                collectAt: '2026-08-09 21:18:00',
+                scene: '观看任务送券',
+                collectMethod: '观看任务送券',
+                activityId: '10086007',
+                status: '未使用',
+                orderNos: []
+            },
+            {
+                id: 'ML' + uid + '-001',
+                name: '果蔬满减券',
+                threshold: '59元',
+                faceValue: '8元',
+                channel: '仅商城',
+                validPeriod: '2026-09-01 ~ 2026-09-30',
+                collectAt: '2026-08-13 10:02:16',
+                scene: '商城推荐位',
+                collectMethod: '商城推荐位',
+                activityId: 'rec-home-banner',
+                status: '未使用',
+                orderNos: []
+            },
+            {
+                id: 'LV' + uid + '-001',
+                name: '银卡专属券',
+                threshold: '50元',
+                faceValue: '5元',
+                channel: '全渠道',
+                validPeriod: '领取后不限制',
+                collectAt: '2026-08-14 09:08:22',
+                scene: '会员等级送券',
+                collectMethod: '会员等级送券',
+                activityId: 'ML10002',
+                status: '未使用',
                 orderNos: []
             }
         ];
@@ -444,8 +496,8 @@
                 channel: 'APP/小程序',
                 validPeriod: '领取后30天有效',
                 collectAt: '2026-08-10 16:40:18',
-                scene: '后台人工发券',
-                collectMethod: '后台人工发券',
+                scene: '会员手工发券',
+                collectMethod: '会员手工发券',
                 activityId: '',
                 status: '未使用',
                 orderNos: []
@@ -458,8 +510,8 @@
                 channel: '快递配送',
                 validPeriod: '领取后3天有效',
                 collectAt: '2026-08-01 10:22:11',
-                scene: '后台人工发券',
-                collectMethod: '后台人工发券',
+                scene: '会员手工发券',
+                collectMethod: '会员手工发券',
                 activityId: '',
                 status: '未使用',
                 orderNos: ['ORD-3212689201598341']
@@ -472,8 +524,8 @@
                 channel: 'APP/小程序',
                 validPeriod: '2026-01-01~12-31',
                 collectAt: '2026-08-01 11:08:20',
-                scene: '后台人工发券',
-                collectMethod: '后台人工发券',
+                scene: '会员手工发券',
+                collectMethod: '会员手工发券',
                 activityId: '',
                 status: '已使用',
                 orderNos: ['ORD-3212689201588561', 'ORD-3212689201599001']
@@ -533,13 +585,27 @@
         var thresholdInp = mkInput('请输入门槛，如无门槛、5元');
         toolbar.appendChild(mkField('门槛', thresholdInp));
 
-        var sceneSel = mkSelect([
-            { value: '', label: '全部' },
-            { value: '直播发券', label: '直播发券' },
-            { value: '福袋发券', label: '福袋发券' },
-            { value: '签到发券', label: '签到发券' },
-            { value: '后台人工发券', label: '后台人工发券' }
-        ]);
+        function couponSceneFilterOptions() {
+            var Store = window.MdmMallMarketingRecordStore;
+            var opts = [{ value: '', label: '全部' }];
+            if (Store && Array.isArray(Store.SCENE_OPTIONS) && Store.SCENE_OPTIONS.length) {
+                Store.SCENE_OPTIONS.forEach(function (name) {
+                    opts.push({ value: name, label: name });
+                });
+                return opts;
+            }
+            return opts.concat([
+                { value: '直播发券', label: '直播发券' },
+                { value: '福袋送券', label: '福袋送券' },
+                { value: '签到送券', label: '签到送券' },
+                { value: '观看任务送券', label: '观看任务送券' },
+                { value: '商城推荐位', label: '商城推荐位' },
+                { value: '会员等级送券', label: '会员等级送券' },
+                { value: '会员手工发券', label: '会员手工发券' }
+            ]);
+        }
+
+        var sceneSel = mkSelect(couponSceneFilterOptions());
         toolbar.appendChild(mkField('领券场景', sceneSel));
 
         var activitySel = mkSelect([{ value: '', label: '全部' }]);

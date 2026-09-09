@@ -1201,10 +1201,16 @@
         pinBox.innerHTML = '';
       } else {
         pinBox.hidden = false;
+        var pinLevel =
+          window.MdmLiveCommentLevel && typeof window.MdmLiveCommentLevel.badgeHtml === 'function'
+            ? window.MdmLiveCommentLevel.badgeHtml(pin, 'light')
+            : '';
         pinBox.innerHTML =
           '<div class="lf-live-danmu-pin__item" data-chat-id="' +
           escapeHtml(pin.id) +
-          '"><span class="lf-live-danmu-pin__bar"></span><span class="lf-live-danmu-pin__body"><span class="lf-live-danmu-pin__user">@' +
+          '"><span class="lf-live-danmu-pin__bar"></span><span class="lf-live-danmu-pin__body"><span class="lf-live-danmu-pin__user">' +
+          pinLevel +
+          '@' +
           escapeHtml(pin.user || '观众') +
           '</span><span class="lf-live-danmu-pin__text">' +
           escapeHtml(pin.text || '') +
@@ -1223,10 +1229,16 @@
     var last = msgs.slice(-8);
     box.innerHTML = last
       .map(function (m) {
+        var levelHtml =
+          window.MdmLiveCommentLevel && typeof window.MdmLiveCommentLevel.badgeHtml === 'function'
+            ? window.MdmLiveCommentLevel.badgeHtml(m, 'dark')
+            : '';
         return (
           '<div class="lf-live-danmu-overlay__item" data-chat-id="' +
           escapeHtml(m.id) +
-          '"><b>' +
+          '">' +
+          levelHtml +
+          '<b>' +
           escapeHtml(m.user) +
           '</b> ' +
           escapeHtml(m.text) +
@@ -4288,6 +4300,14 @@
       }
       var randomFill = drawType === 'ASSIGN' ? Math.max(0, winners - assignUsers.length) : 0;
       var live = liveBagFields(plan);
+      if (String(live.prizeType || '').toUpperCase() === 'POINTS') {
+        var ptsOn = true;
+        try {
+          var ptsRaw = localStorage.getItem('mdm_member_points_rule_v1');
+          if (ptsRaw && JSON.parse(ptsRaw).enabled === false) ptsOn = false;
+        } catch (ePts) { /* ignore */ }
+        if (!ptsOn) return toast('积分能力已下线', 'warning');
+      }
       var bagList = welfareWindowsOfPlan(welfarePlanIdOf(plan));
       var bagRoundIdx = nextRoundIndex(bagList);
       var bagWinRow = {
@@ -4543,6 +4563,9 @@
       escapeHtml(m.id) +
       '">' +
       '<span class="lf-live-chat-item__user">' +
+      (window.MdmLiveCommentLevel && typeof window.MdmLiveCommentLevel.badgeHtml === 'function'
+        ? window.MdmLiveCommentLevel.badgeHtml(m, 'light')
+        : '') +
       escapeHtml(m.user) +
       '</span>' +
       '<span class="lf-live-chat-item__text">' +

@@ -32,6 +32,32 @@
     return m ? decodeURIComponent(m[1]) : '';
   }
 
+  function queryMode() {
+    var m = String(window.location.search || '').match(/[?&]mode=([^&]+)/);
+    return m ? decodeURIComponent(m[1]) : '';
+  }
+
+  var isView = false;
+
+  function lockViewForm() {
+    var form = document.getElementById('cashRuleForm');
+    if (!form) return;
+    form.classList.add('pts-rule-form--view');
+    form.querySelectorAll('input, select, textarea, button').forEach(function (el) {
+      if (el.id === 'btnCashCancel') return;
+      el.disabled = true;
+    });
+    form.querySelectorAll('[data-scope-remove]').forEach(function (el) {
+      el.hidden = true;
+    });
+    var pickWrap = document.getElementById('cashScopePickWrap');
+    if (pickWrap) pickWrap.hidden = true;
+    var saveBtn = document.getElementById('btnCashSave');
+    if (saveBtn) saveBtn.hidden = true;
+    var cancelBtn = document.getElementById('btnCashCancel');
+    if (cancelBtn) cancelBtn.textContent = '返回';
+  }
+
   function escapeHtml(str) {
     return String(str == null ? '' : str)
       .replace(/&/g, '&amp;')
@@ -182,8 +208,16 @@
 
   document.addEventListener('DOMContentLoaded', function () {
     editingId = queryId();
+    isView = queryMode() === 'view';
     var tab = document.getElementById('cashFormTabTitle');
-    if (tab) tab.textContent = editingId ? '编辑积分抵现' : '新增积分抵现';
+    if (tab) {
+      tab.textContent = isView ? '查看积分抵现' : (editingId ? '编辑积分抵现' : '新增积分抵现');
+    }
+
+    if (isView && !editingId) {
+      window.location.href = wp.page('mdm_member_points_cash.html');
+      return;
+    }
 
     productScopeCtrl = Scope.createScopeController({
       radioName: 'cashProductScope',
@@ -205,6 +239,7 @@
     var regionPickBtn = document.getElementById('cashSaleScopePickBtn');
     if (regionPickBtn) {
       regionPickBtn.addEventListener('click', function () {
+        if (isView) return;
         if (!window.MdmProxyRegionPicker) {
           toast('区域选择组件未加载', 'warning');
           return;
@@ -226,6 +261,7 @@
     var storePickBtn = document.getElementById('cashSaleScopeStorePickBtn');
     if (storePickBtn) {
       storePickBtn.addEventListener('click', function () {
+        if (isView) return;
         if (!window.MdmProxyStorePicker) {
           toast('门店选择组件未加载', 'warning');
           return;
@@ -254,6 +290,7 @@
     });
 
     document.getElementById('btnCashSave').addEventListener('click', function () {
+      if (isView) return;
       var item = readForm();
       item.perPointAmount = round2(item.perPointAmount);
       item.maxRatio = Math.floor(Number(item.maxRatio));
@@ -271,7 +308,13 @@
     if (editingId) {
       var found = Store.getById(editingId);
       if (found) applyItem(found);
-      else toast('未找到该规则，将作为新增保存', 'warning');
+      else if (isView) {
+        toast('未找到该规则', 'warning');
+        window.location.href = wp.page('mdm_member_points_cash.html');
+        return;
+      } else {
+        toast('未找到该规则，将作为新增保存', 'warning');
+      }
     } else {
       applyItem({
         name: '',
@@ -288,5 +331,6 @@
         productScope: { type: 'all', products: [], categories: [] }
       });
     }
+    if (isView) lockViewForm();
   });
 })();

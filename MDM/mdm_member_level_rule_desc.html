@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 成长值规则说明</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-mdm-edit-page.css">
+    <link rel="stylesheet" href="../css/lf-mdm-rule-desc.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/mdm-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content mdm-edit-page" data-rule-desc-kind="growth">
+            <div class="content-tabs">
+                <button type="button" data-goto-page="mdm_member_level_rule.html">成长值规则</button>
+                <button type="button" class="active">成长值规则说明</button>
+            </div>
+            <hr class="content-divider">
+
+            <div class="member-level-desc-card">
+                <div class="member-level-desc-field">
+                    <label for="ruleDescTitle">说明标题</label>
+                    <input class="erp-input" id="ruleDescTitle" type="text" maxlength="50" placeholder="请输入成长值规则说明标题">
+                </div>
+                <div class="member-level-desc-field">
+                    <label>说明正文</label>
+                    <div class="ml-editor">
+                        <div class="ml-editor-toolbar">
+                            <button type="button" data-cmd="bold" title="加粗"><strong>B</strong></button>
+                            <button type="button" data-cmd="italic" title="斜体"><em>I</em></button>
+                            <button type="button" data-cmd="underline" title="下划线"><u>U</u></button>
+                            <span class="ml-toolbar-divider"></span>
+                            <button type="button" data-cmd="insertUnorderedList" title="无序列表">• 列表</button>
+                            <button type="button" data-cmd="insertOrderedList" title="有序列表">1. 列表</button>
+                            <span class="ml-toolbar-divider"></span>
+                            <button type="button" data-cmd="formatBlock" data-val="h3" title="小标题">标题</button>
+                            <button type="button" data-cmd="foreColor" data-val="#ff7019" title="主题色">A</button>
+                            <button type="button" id="btnInsertImage" title="上传图片">图片</button>
+                            <button type="button" data-cmd="removeFormat" title="清除格式">清除</button>
+                            <input type="file" id="ruleDescImageInput" accept="image/jpeg,image/png,image/gif,image/webp" hidden>
+                        </div>
+                        <div class="ml-editor-body" id="ruleDescEditor" contenteditable="true" data-placeholder="请输入成长值规则说明…"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="member-level-desc-actions mdm-edit-page__footer">
+                <button type="button" class="btn btn-secondary" id="btnDescReset">恢复默认</button>
+                <button type="button" class="btn btn-primary" id="btnDescSave">保存</button>
+            </div>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/mdm-member-level-desc.js"></script>
+</body>
+</html>

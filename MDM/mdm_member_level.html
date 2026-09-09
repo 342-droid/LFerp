@@ -31,6 +31,10 @@
             color: #888;
             font-weight: 500;
             line-height: 1;
+            margin-left: 4px;
+        }
+        .content-tabs button .member-level-count {
+            font-weight: 500;
         }
         /* 会员权益：对齐会员分群「筛选规则」多行圆点列表 */
         .member-level-benefit-summary {
@@ -320,24 +324,6 @@
         .erp-modal--member-level .member-level-unit:has(.erp-input:disabled) .member-level-unit__text {
             color: #bbb;
         }
-        .member-level-tip {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 14px;
-            height: 14px;
-            margin-left: 4px;
-            border-radius: 50%;
-            border: 1px solid #c0c4cc;
-            color: #999;
-            font-size: 10px;
-            font-weight: 600;
-            cursor: help;
-            background: #fff;
-            vertical-align: middle;
-            position: relative;
-            top: -1px;
-        }
         .form-actions .erp-btn {
             margin-left: 0;
         }
@@ -351,17 +337,6 @@
             background: #fff7f0;
             color: #e85f10;
             border-color: #e85f10;
-        }
-        .btn.btn-outline-muted {
-            background: #fff;
-            color: #555;
-            border: 1px solid #bbb;
-            box-sizing: border-box;
-        }
-        .btn.btn-outline-muted:hover {
-            background: #f7f7f7;
-            color: #333;
-            border-color: #999;
         }
         .member-level-icon-cell {
             display: inline-flex;
@@ -460,8 +435,8 @@
     <div class="container">
         <main class="main-content">
             <div class="content-tabs">
-                <button class="active">会员等级</button>
-                <span class="member-level-count" id="levelCountHint">(0/15)</span>
+                <button type="button" class="active">会员等级 <span class="member-level-count" id="levelCountHint">(0/15)</span></button>
+                <button type="button" data-goto-page="mdm_member_level_desc.html">规则说明</button>
             </div>
             <hr class="content-divider">
 
@@ -486,7 +461,6 @@
                         <button type="button" class="btn btn-secondary" id="btnFilterReset">重置</button>
                         <button type="button" class="btn btn-primary" id="btnFilterQuery">查询</button>
                         <button type="button" class="btn btn-outline" id="btnAddLevel">新增等级</button>
-                        <button type="button" class="btn btn-outline-muted" id="btnGotoDesc">规则说明 <span class="member-level-tip" title="此处的规则说明描述内容用来展示给c端用户，告知用户我们的会员等级晋升规则。">?</span></button>
                     </div>
                 </form>
             </section>
@@ -497,6 +471,7 @@
                         <thead>
                             <tr>
                                 <th>序号</th>
+                                <th>等级ID</th>
                                 <th>等级图标</th>
                                 <th>等级名称</th>
                                 <th>成长值</th>

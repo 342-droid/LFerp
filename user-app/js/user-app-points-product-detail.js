@@ -121,7 +121,7 @@
         : '暂无规格';
     }
     if (delivery) {
-      delivery.textContent = product.deliveryMode === 'express' ? '快递配送' : '平台配送';
+      delivery.textContent = product.deliveryMode === 'express' ? '快递配送' : '自提';
     }
     if (detail) {
       detail.innerHTML = product.detailHtml
@@ -280,6 +280,19 @@
   }
 
   function init() {
+    var cfg = window.MdmPointsMallConfig;
+    if (cfg && typeof cfg.bounceIfPointsOffline === 'function' && cfg.bounceIfPointsOffline()) {
+      return;
+    }
+    if (cfg && !cfg.isExchangeEnabled()) {
+      cfg.notifyPointsOffline && cfg.notifyPointsOffline();
+      window.location.replace(
+        window.UaNav && window.UaNav.withFrom
+          ? window.UaNav.withFrom('profile.html')
+          : 'profile.html'
+      );
+      return;
+    }
     if (window.UaNav) {
       window.UaNav.applyBackLink('#ppdBack', 'points-mall.html');
     }

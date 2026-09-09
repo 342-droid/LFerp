@@ -36,10 +36,13 @@
       .replace(/"/g, '&quot;');
   }
 
-  function formHref(id) {
+  function formHref(id, mode) {
     var base = wp.page('mdm_member_points_consume_form.html');
-    if (!id) return base;
-    return base + (base.indexOf('?') >= 0 ? '&' : '?') + 'id=' + encodeURIComponent(id);
+    var parts = [];
+    if (id) parts.push('id=' + encodeURIComponent(id));
+    if (mode) parts.push('mode=' + encodeURIComponent(mode));
+    if (!parts.length) return base;
+    return base + (base.indexOf('?') >= 0 ? '&' : '?') + parts.join('&');
   }
 
   function readFilter() {
@@ -109,9 +112,11 @@
         '<td><span class="' + statusCls + '">' + statusTxt + '</span></td>' +
         '<td>' + escapeHtml(it.updatedAt || '—') + '</td>' +
         '<td class="pts-rule-ops">' +
+        '<a href="' + formHref(it.id, 'view') + '">查看</a>' +
         '<a href="' + formHref(it.id) + '">编辑</a>' +
         '<a href="javascript:;" data-act="toggle">' + toggleTxt + '</a>' +
         '<a href="javascript:;" data-act="delete">删除</a>' +
+        '<a href="javascript:;" data-act="log">操作日志</a>' +
         '</td>' +
         '</tr>'
       );
@@ -172,11 +177,18 @@
           Store.remove(id);
           toast('已删除');
           render();
+          return;
+        }
+        if (act === 'log') {
+          if (window.MdmMemberPointsLogUi) {
+            window.MdmMemberPointsLogUi.open(Store, id);
+          }
         }
       });
     }
 
     if (typeof initClearButtons === 'function') initClearButtons();
+    if (window.MdmMemberPointsLogUi) window.MdmMemberPointsLogUi.bind();
     render();
   });
 })();

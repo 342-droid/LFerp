@@ -449,8 +449,14 @@
     var msgs = liveDanmuList().slice(-8);
     box.innerHTML = msgs
       .map(function (m) {
+        var levelHtml =
+          global.MdmLiveCommentLevel && typeof global.MdmLiveCommentLevel.badgeHtml === 'function'
+            ? global.MdmLiveCommentLevel.badgeHtml(m, 'dark')
+            : '';
         return (
-          '<div class="ua-live-danmu__item"><b>' +
+          '<div class="ua-live-danmu__item">' +
+          levelHtml +
+          '<b>' +
           escapeLiveText(m.user || '观众') +
           '</b> ' +
           escapeLiveText(m.text || '') +
@@ -475,8 +481,14 @@
       return;
     }
     box.hidden = false;
+    var pinLevel =
+      global.MdmLiveCommentLevel && typeof global.MdmLiveCommentLevel.badgeHtml === 'function'
+        ? global.MdmLiveCommentLevel.badgeHtml(pin, 'light')
+        : '';
     box.innerHTML =
-      '<span class="ua-live-danmu-pin__bar"></span><span class="ua-live-danmu-pin__body"><span class="ua-live-danmu-pin__user">@' +
+      '<span class="ua-live-danmu-pin__bar"></span><span class="ua-live-danmu-pin__body"><span class="ua-live-danmu-pin__user">' +
+      pinLevel +
+      '@' +
       escapeLiveText(pin.user || '观众') +
       '</span><span class="ua-live-danmu-pin__text">' +
       escapeLiveText(pin.text || '') +
@@ -2073,12 +2085,38 @@
         availablePts +
         '）';
     }
+    var masterOn = !(cfg && typeof cfg.isMasterEnabled === 'function') || cfg.isMasterEnabled();
+    var hasMemberDiscount = !!(
+      global.UAProfile &&
+      typeof global.UAProfile.hasMemberDiscountBenefit === 'function' &&
+      global.UAProfile.hasMemberDiscountBenefit()
+    );
+    if (!masterOn) {
+      deductInfo = {
+        enabled: false,
+        hidden: true,
+        deductAmount: 0,
+        pointsUsed: 0,
+        eligibleAmount: 0,
+        tip: (cfg && cfg.POINTS_OFFLINE_TIP) || '积分能力已下线'
+      };
+    }
+    var hidePointsCash =
+      !masterOn || (!isNewcomerCheckout && mallGoodsTotal <= 0 && pointsExchangePts > 0);
+    var couponBlockedReason = '';
+    if (isNewcomerCheckout) couponBlockedReason = '新人专区商品不支持用券';
+    else if (pointsExchangePts > 0) couponBlockedReason = '积分兑换商品不可与优惠券同享';
+    else if (hasMemberDiscount) couponBlockedReason = '已享会员折扣，不可与优惠券同享';
+
     return {
       items: items,
       splits: splits,
       hasExpress: hasExpress,
       hasPickup: hasPickup,
       isNewcomerCheckout: isNewcomerCheckout,
+      hasMemberDiscount: hasMemberDiscount,
+      hidePointsCash: hidePointsCash,
+      couponBlockedReason: couponBlockedReason,
       mallGoodsTotal: mallGoodsTotal,
       pointsExchangeCash: pointsExchangeCash,
       pointsExchangePts: pointsExchangePts,
@@ -2086,7 +2124,7 @@
       freight: freight,
       availablePts: availablePts,
       deductInfo: deductInfo,
-      usePointsDeduct: !isNewcomerCheckout && !!deductInfo.enabled
+      usePointsDeduct: !hidePointsCash && !isNewcomerCheckout && !!deductInfo.enabled
     };
   }
 
@@ -2253,9 +2291,11 @@
     var pointsExchangePts = pricing.pointsExchangePts || 0;
     var deductDisp = getConfirmDeductDisplay(pricing, usePointsDeduct);
     var payable = deductDisp.payable;
-    var couponText = pricing.isNewcomerCheckout
-      ? '新人专区不可用券'
-      : '暂无可用优惠券';
+    var couponText = pricing.couponBlockedReason
+      ? pricing.couponBlockedReason
+      : pricing.isNewcomerCheckout
+        ? '新人专区不可用券'
+        : '暂无可用优惠券';
     var shippingAddr = readConfirmShippingAddress();
 
     var shopIcon =
@@ -2439,7 +2479,9 @@
       '</span>' +
       rowChevron +
       '</button>' +
-      '<button type="button" class="ua-confirm-row" data-confirm-points>' +
+      '<button type="button" class="ua-confirm-row" data-confirm-points' +
+      (pricing.hidePointsCash ? ' hidden' : '') +
+      '>' +
       '<span class="ua-confirm-row__label">积分抵扣</span>' +
       '<span class="ua-confirm-row__value' +
       (deductDisp.muted ? ' ua-confirm-row__value--muted' : '') +
@@ -2596,8 +2638,8 @@
     if (coupon) {
       coupon.addEventListener('click', function () {
         if (hooks.onCoupon) hooks.onCoupon();
-        else if (view.pricing && view.pricing.isNewcomerCheckout) {
-          showToast('新人专区商品不支持用券');
+        else if (view.pricing && view.pricing.couponBlockedReason) {
+          showToast(view.pricing.couponBlockedReason);
         } else showToast('暂无可用优惠券');
       });
     }
@@ -3997,13 +4039,17 @@
       body.innerHTML = view.html;
       bindSharedOrderConfirmInteractions(body, view, remarks, {
         onCoupon: function () {
-          if (pricing.isNewcomerCheckout) {
-            showToast('新人专区商品不支持用券');
+          if (pricing.couponBlockedReason) {
+            showToast(pricing.couponBlockedReason);
             return;
           }
           showToast('暂无可用优惠券');
         },
         onPointsDeduct: function () {
+          if (pricing.hidePointsCash) {
+            showToast(pricing.deductInfo.tip || '积分兑换不可与积分抵现同享');
+            return;
+          }
           if (pricing.isNewcomerCheckout) {
             showToast('新人专区商品不支持积分抵扣');
             return;
@@ -4682,9 +4728,17 @@
       body.innerHTML = view.html;
       bindSharedOrderConfirmInteractions(body, view, confirmRemarks, {
         onCoupon: function () {
+          if (confirmPricing.couponBlockedReason) {
+            showToast(confirmPricing.couponBlockedReason);
+            return;
+          }
           showToast('暂无可用优惠券');
         },
         onPointsDeduct: function () {
+          if (confirmPricing.hidePointsCash) {
+            showToast(confirmPricing.deductInfo.tip || '积分兑换不可与积分抵现同享');
+            return;
+          }
           if (!confirmPricing.deductInfo.enabled || !(confirmPricing.deductInfo.eligibleAmount > 0)) {
             showToast(confirmPricing.deductInfo.tip || '当前订单无可抵扣的普通商品');
             return;

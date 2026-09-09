@@ -236,7 +236,7 @@
       if (ruleLink) {
         ruleLink.setAttribute(
           'href',
-          window.UaNav.withFrom(ruleLink.getAttribute('href') || 'growth-rule-desc.html')
+          window.UaNav.withFrom(ruleLink.getAttribute('href') || 'growth-rule-desc.html?kind=growth')
         );
       }
     }

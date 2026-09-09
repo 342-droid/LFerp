@@ -273,7 +273,8 @@ function logReady() {
 }
 
 function spawnDaemon() {
-  const child = spawn(process.execPath, [SELF], {
+  /* 脱离控制台拉起 --watch：任务计划/登录脚本退出时不会把预览一起杀掉 */
+  const child = spawn(process.execPath, [SELF, '--watch'], {
     cwd: ROOT,
     detached: true,
     stdio: 'ignore',

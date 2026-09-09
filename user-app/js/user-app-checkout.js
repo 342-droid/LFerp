@@ -4,6 +4,18 @@
   var CHANNEL_PREF_KEY = 'ua_checkout_channel_pref_v1';
   /* 收银台混合支付验收：覆盖钱包可用额 / 默认勾选，不改真实演示钱包 */
   var MIX_PAY_DEMO_KEY = 'ua_checkout_mix_pay_demo_v1';
+
+  function isPointsMasterOn() {
+    var cfg = window.MdmPointsMallConfig;
+    if (cfg && typeof cfg.isMasterEnabled === 'function') return cfg.isMasterEnabled();
+    try {
+      var raw = localStorage.getItem('mdm_member_points_rule_v1');
+      if (!raw) return true;
+      return JSON.parse(raw).enabled !== false;
+    } catch (e) {
+      return true;
+    }
+  }
   var MIX_PAY_SCENES = [
     { id: 'auto', label: '按实际钱包' },
     { id: 'wallet', label: '余额充足·仅钱包' },
@@ -1257,6 +1269,11 @@
 
     var couponRow = document.getElementById('checkoutCouponDiscountRow');
     if (couponRow) couponRow.hidden = !state.coupon;
+    var pointsEntry = document.getElementById('checkoutPointsEntry');
+    var masterOn = isPointsMasterOn();
+    if (pointsEntry) pointsEntry.hidden = !masterOn;
+    if (!masterOn && state.pointsEnabled) state.pointsEnabled = false;
+
     var pointsRow = document.getElementById('checkoutPointsDiscountRow');
     if (pointsRow) pointsRow.hidden = !state.pointsEnabled;
     /* 开关关闭时下方明细不展示积分抵扣金额 */

@@ -366,6 +366,13 @@
 
   function init() {
     ensureDeliveryParam();
+    var api = getApi();
+    if (api && typeof api.mountPointsAftersaleDemoPanel === 'function') {
+      api.mountPointsAftersaleDemoPanel();
+    }
+    if (api && typeof api.applyPointsExchangeDemoFlags === 'function') {
+      api.applyPointsExchangeDemoFlags();
+    }
     applySummaryMeta();
     applyPickupQtyRules();
     bindEvents();

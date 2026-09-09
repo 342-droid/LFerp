@@ -548,8 +548,29 @@
     );
   }
 
-  /** 可退与可补都耗尽时，C 端申请售后入口隐藏 */
+  /** 可退与可补都耗尽，或积分兑换未勾选支持售后：C 端申请售后入口隐藏（PC 后台不走这里） */
+  function isCEndPointsAftersaleOpen() {
+    if (window.MdmPointsMallConfig && typeof window.MdmPointsMallConfig.isExchangeRefundEnabled === 'function') {
+      return !!window.MdmPointsMallConfig.isExchangeRefundEnabled();
+    }
+    try {
+      var demo = localStorage.getItem('ua_points_exchange_refund_demo_v1');
+      if (demo === 'off') return false;
+      if (demo === 'on') return true;
+      var raw = localStorage.getItem('mdm_member_points_rule_v1');
+      if (!raw) return true;
+      var parsed = JSON.parse(raw);
+      if (parsed && parsed.exchange && typeof parsed.exchange.refundEnabled === 'boolean') {
+        return parsed.exchange.refundEnabled;
+      }
+    } catch (e) { /* ignore */ }
+    return true;
+  }
+
   function canShowAftersaleEntry(itemIndex, orderNo) {
+    if (isPointsExchangeByIndex(itemIndex) && !isCEndPointsAftersaleOpen()) {
+      return false;
+    }
     return (
       getRefundableMaxQty(itemIndex, orderNo) > 0 || getRestockMaxQty(itemIndex, orderNo) > 0
     );
@@ -4359,6 +4380,7 @@
   }
 
   function initRestockPage() {
+    if (bouncePointsAftersaleIfClosed()) return;
     var item = getItem();
     var orderSpec = getOrderSpec(item);
     var specs = orderSpec ? [orderSpec] : [];
@@ -4470,6 +4492,7 @@
   }
 
   function initExchangePage() {
+    if (bouncePointsAftersaleIfClosed()) return;
     var item = getItem();
     var specs = getItemSpecs(item);
     var orderSpec = getOrderSpec(item);
@@ -4728,8 +4751,79 @@
     return isNaN(idx) || idx < 0 ? 0 : idx;
   }
 
+  function findOrderItemEl(itemIndex) {
+    var idx = String(itemIndex);
+    return (
+      document.querySelector('.ua-od-item[data-item-index="' + idx + '"]') ||
+      document.querySelector('.ua-od-product[data-item-index="' + idx + '"]')
+    );
+  }
+
+  function applyPointsExchangeDemoFlags() {
+    function mark(idx) {
+      var el = findOrderItemEl(idx);
+      if (el) el.setAttribute('data-points-exchange', '1');
+    }
+    try {
+      var raw = sessionStorage.getItem('ua_last_order_items_v1');
+      if (raw) {
+        var list = JSON.parse(raw);
+        if (Array.isArray(list)) {
+          list.forEach(function (it, idx) {
+            if (it && it.isPointsExchange) mark(idx);
+          });
+        }
+      }
+    } catch (e0) { /* ignore */ }
+    var pointsItem = getParams().get('pointsItem') || '';
+    String(pointsItem)
+      .split(',')
+      .forEach(function (raw) {
+        var idx = parseInt(String(raw).trim(), 10);
+        if (!isNaN(idx)) mark(idx);
+      });
+  }
+
+  function mountPointsAftersaleDemoPanel() {
+    if (document.getElementById('uaPtsAsDemo')) return;
+    var panel = document.createElement('div');
+    panel.id = 'uaPtsAsDemo';
+    panel.className = 'ua-rg-demo ua-pts-as-demo';
+    var cur = 'follow';
+    try {
+      var v = localStorage.getItem('ua_points_exchange_refund_demo_v1');
+      if (v === 'off' || v === 'on') cur = v;
+    } catch (e) { /* ignore */ }
+    panel.innerHTML =
+      '<div class="ua-rg-demo__title">积分兑换售后验收开关</div>' +
+      '<label class="ua-rg-demo__row">状态' +
+      '<select id="uaPtsAsDemoSelect">' +
+      '<option value="follow"' + (cur === 'follow' ? ' selected' : '') + '>跟随后台规则</option>' +
+      '<option value="on"' + (cur === 'on' ? ' selected' : '') + '>已勾选支持售后</option>' +
+      '<option value="off"' + (cur === 'off' ? ' selected' : '') + '>未勾选支持售后</option>' +
+      '</select></label>' +
+      '<button type="button" class="ua-rg-demo__apply" id="uaPtsAsDemoApply">应用并刷新</button>';
+    document.body.appendChild(panel);
+    var apply = document.getElementById('uaPtsAsDemoApply');
+    if (apply) {
+      apply.addEventListener('click', function () {
+        var sel = document.getElementById('uaPtsAsDemoSelect');
+        var val = sel ? sel.value : 'follow';
+        try {
+          if (val === 'follow') localStorage.removeItem('ua_points_exchange_refund_demo_v1');
+          else localStorage.setItem('ua_points_exchange_refund_demo_v1', val);
+        } catch (err) { /* ignore */ }
+        window.location.reload();
+      });
+    }
+  }
+
   function isPointsExchangeByIndex(itemIndex) {
     var idx = itemIndex == null ? getItemIndex() : Number(itemIndex);
+    try {
+      var el = findOrderItemEl(idx);
+      if (el && el.getAttribute('data-points-exchange') === '1') return true;
+    } catch (e0) { /* ignore */ }
     try {
       var raw = sessionStorage.getItem('ua_last_order_items_v1');
       if (raw) {
@@ -4746,6 +4840,14 @@
         }
       }
     } catch (e2) { /* ignore */ }
+    try {
+      var orderNo = typeof getCurrentOrderNo === 'function' ? getCurrentOrderNo() : '';
+      if (orderNo && window.UaOrdersStore && typeof window.UaOrdersStore.getByNo === 'function') {
+        var stored = window.UaOrdersStore.getByNo(orderNo);
+        var items = stored && stored.items;
+        if (Array.isArray(items) && items[idx] && items[idx].isPointsExchange) return true;
+      }
+    } catch (e3) { /* ignore */ }
     var pointsItem = getParams().get('pointsItem') || '';
     return String(pointsItem)
       .split(',')
@@ -5244,7 +5346,16 @@
     return { open: openCancelPickupSheet };
   }
 
+  function bouncePointsAftersaleIfClosed() {
+    if (isPointsExchangeByIndex(getItemIndex()) && !isCEndPointsAftersaleOpen()) {
+      window.location.replace(buildDetailBackHref());
+      return true;
+    }
+    return false;
+  }
+
   function initSelectPage() {
+    if (bouncePointsAftersaleIfClosed()) return;
     var scene = getScene();
     /* 零售·待发货前 / 门店待收货：不进选择页，直达仅退款（防止从 only 误返后死循环） */
     if (skipsServiceSelectPage(scene)) {
@@ -5381,6 +5492,7 @@
   }
 
   function initFormPage(formType) {
+    if (bouncePointsAftersaleIfClosed()) return;
     var scene = getScene();
     var item = getItem();
     var state = createFormState(formType);
@@ -5623,6 +5735,7 @@
   }
 
   function initPreShipPage() {
+    if (bouncePointsAftersaleIfClosed()) return;
     var item = getItem();
     var app = loadApplication();
     var isEdit = getParams().get('edit') === '1';
@@ -10471,6 +10584,10 @@
     getRefundSuccessQty: getRefundSuccessQty,
     getAftersaleOccupiedQty: getAftersaleOccupiedQty,
     canShowAftersaleEntry: canShowAftersaleEntry,
+    isCEndPointsAftersaleOpen: isCEndPointsAftersaleOpen,
+    isPointsExchangeByIndex: isPointsExchangeByIndex,
+    mountPointsAftersaleDemoPanel: mountPointsAftersaleDemoPanel,
+    applyPointsExchangeDemoFlags: applyPointsExchangeDemoFlags,
     saveItemPickedQtyMap: saveItemPickedQtyMap,
     getItemPickedQty: getItemPickedQty,
     resolveRetailOrderFulfillmentStatus: resolveRetailOrderFulfillmentStatus,

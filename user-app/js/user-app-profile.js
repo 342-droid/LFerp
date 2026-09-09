@@ -269,6 +269,16 @@
     if (vipText) vipText.textContent = '您当前会员等级：' + level.name;
   }
 
+  function isPointsMasterEnabled() {
+    try {
+      var raw = localStorage.getItem('mdm_member_points_rule_v1');
+      if (!raw) return true;
+      return JSON.parse(raw).enabled !== false;
+    } catch (e) {
+      return true;
+    }
+  }
+
   function isPointsMallEnabled() {
     try {
       var raw = localStorage.getItem('mdm_member_points_rule_v1');
@@ -282,6 +292,15 @@
     }
   }
 
+  function hasMemberDiscountBenefit() {
+    var level = resolveCurrentLevel(DEMO_GROWTH);
+    if (!level) return false;
+    var on = level.memberDiscountEnabled == null
+      ? (level.memberDiscount != null && Number(level.memberDiscount) < 100)
+      : !!level.memberDiscountEnabled;
+    return on && Number(level.memberDiscount) < 100;
+  }
+
   function applyProfileToPage(profile) {
     var nameEl = document.getElementById('uaProfileName');
     var phoneEl = document.getElementById('uaProfilePhone');
@@ -293,15 +312,20 @@
     if (avatarEl && profile.avatar) avatarEl.src = profile.avatar;
     /* 我的积分：展示当前积分（可用+冻结） */
     if (pointsEl) pointsEl.textContent = String(DEMO_POINTS_CURRENT);
-    /* 开启积分商城 → 进商城；关闭 → 直接进积分明细 */
+    /* 全局关闭：隐藏「我的积分」入口 */
     if (pointsLink) {
-      var target = isPointsMallEnabled() ? 'points-mall.html' : 'points-detail.html';
-      pointsLink.href =
-        window.UaNav && window.UaNav.withFrom ? window.UaNav.withFrom(target) : target;
-      pointsLink.setAttribute(
-        'aria-label',
-        isPointsMallEnabled() ? '我的积分，进入积分商城' : '我的积分，查看明细'
-      );
+      if (!isPointsMasterEnabled()) {
+        pointsLink.hidden = true;
+      } else {
+        pointsLink.hidden = false;
+        var target = isPointsMallEnabled() ? 'points-mall.html' : 'points-detail.html';
+        pointsLink.href =
+          window.UaNav && window.UaNav.withFrom ? window.UaNav.withFrom(target) : target;
+        pointsLink.setAttribute(
+          'aria-label',
+          isPointsMallEnabled() ? '我的积分，进入积分商城' : '我的积分，查看明细'
+        );
+      }
     }
     applyLevelBadge();
   }
@@ -320,6 +344,7 @@
     save: saveProfile,
     applyToPage: applyProfileToPage,
     resolveCurrentLevel: resolveCurrentLevel,
+    hasMemberDiscountBenefit: hasMemberDiscountBenefit,
     loadMemberList: loadMemberList,
     syncProfileToMemberList: syncProfileToMemberList,
     clearDemoMemberBirthday: clearDemoMemberBirthday

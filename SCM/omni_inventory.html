@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 全渠道库存查询</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        .omni-inventory-table { min-width: 1500px; }
+        .omni-inventory-table th, .omni-inventory-table td { white-space: nowrap; text-align: center; }
+        .omni-inventory-table .product-image { width: 48px; height: 48px; object-fit: contain; border-radius: 4px; border: 1px solid #eee; background: #fff; }
+        .omni-inventory-table .number-cell { text-align: center; }
+        .omni-inventory-table .empty-cell { text-align: center; padding: 40px; color: #999; }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/wms-sidebar.js"></script>
+    <div id="header-container"></div>
+
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button class="active">全渠道库存查询</button></div>
+            <hr class="content-divider">
+            <div class="content-title">全渠道库存 / 全渠道库存查询</div>
+
+            <section class="search-section">
+                <form class="search-form" id="omniInventorySearchForm">
+                    <div class="form-group">
+                        <label for="omniWarehouse">仓库:</label>
+                        <select id="omniWarehouse" class="form-control">
+                            <option value="">全部仓库</option>
+                            <option value="W001 南京仓">W001 南京仓</option>
+                            <option value="W002 嘉兴仓">W002 嘉兴仓</option>
+                            <option value="W003 上海仓">W003 上海仓</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="omniCompany">货主:</label>
+                        <select id="omniCompany" class="form-control">
+                            <option value="">全部货主</option>
+                            <option value="C001 货主1">C001 货主1</option>
+                            <option value="C002 货主2">C002 货主2</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="omniProduct">商品:</label>
+                        <input type="text" id="omniProduct" class="form-control" placeholder="请输入商品编码/条码/名称">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">查询</button>
+                        <button type="button" class="btn btn-secondary" id="omniExportBtn">导出</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table omni-inventory-table">
+                        <thead><tr>
+                            <th>仓库</th><th>货主</th><th>商品图片</th><th>商品编码</th><th>商品条码</th><th>商品名称</th><th>商品规格</th><th>商品单位</th>
+                            <th>在途单据</th><th>在途库存</th><th>当前库存</th><th>出库预占</th><th>冻结库存</th><th>退货预占</th><th>收货差异</th>
+                        </tr></thead>
+                        <tbody id="omniInventoryTableBody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        (function () {
+            const rows = [
+                { warehouse: 'W001 南京仓', company: 'C001 货主1', image: '../user-app/assets/order-product-1.svg', code: 'SKU001', barcode: '6900000000011', name: '冷鲜鸡胸肉', spec: '500g/袋', unit: '袋', document: 3, transit: 120, current: 860, outbound: 80, frozen: 20, returned: 10, difference: 0 },
+                { warehouse: 'W002 嘉兴仓', company: 'C001 货主1', image: '../user-app/assets/order-product-2.svg', code: 'SKU002', barcode: '6900000000028', name: '精品番茄', spec: '1kg/盒', unit: '盒', document: 2, transit: 60, current: 430, outbound: 35, frozen: 0, returned: 5, difference: -2 },
+                { warehouse: 'W003 上海仓', company: 'C002 货主2', image: '../user-app/assets/order-product-3.svg', code: 'SKU003', barcode: '6900000000035', name: '速冻水饺', spec: '500g/包', unit: '包', document: 4, transit: 200, current: 1250, outbound: 120, frozen: 50, returned: 0, difference: 3 }
+            ];
+            const body = document.getElementById('omniInventoryTableBody');
+            const escapeHtml = function (value) {
+                return String(value == null ? '' : value).replace(/[&<>'"]/g, function (char) {
+                    return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char];
+                });
+            };
+            const render = function (data) {
+                if (!data.length) {
+                    body.innerHTML = '<tr><td colspan="15" class="empty-cell">暂无数据</td></tr>';
+                    return;
+                }
+                body.innerHTML = data.map(function (row) {
+                    return '<tr>' +
+                        '<td>' + escapeHtml(row.warehouse) + '</td><td>' + escapeHtml(row.company) + '</td>' +
+                        '<td><img class="product-image" src="' + escapeHtml(row.image) + '" alt="' + escapeHtml(row.name) + '"></td>' +
+                        '<td>' + escapeHtml(row.code) + '</td><td>' + escapeHtml(row.barcode) + '</td><td>' + escapeHtml(row.name) + '</td>' +
+                        '<td>' + escapeHtml(row.spec) + '</td><td>' + escapeHtml(row.unit) + '</td><td class="number-cell">' + row.document + '</td>' +
+                        '<td class="number-cell">' + row.transit + '</td><td class="number-cell">' + row.current + '</td>' +
+                        '<td class="number-cell">' + row.outbound + '</td><td class="number-cell">' + row.frozen + '</td>' +
+                        '<td class="number-cell">' + row.returned + '</td><td class="number-cell">' + Math.abs(row.difference) + '</td></tr>';
+                }).join('');
+            };
+            const filter = function () {
+                const warehouse = document.getElementById('omniWarehouse').value;
+                const company = document.getElementById('omniCompany').value;
+                const keyword = document.getElementById('omniProduct').value.trim().toLowerCase();
+                return rows.filter(function (row) {
+                    const matchesKeyword = !keyword || [row.code, row.barcode, row.name].some(function (value) { return value.toLowerCase().indexOf(keyword) >= 0; });
+                    return (!warehouse || row.warehouse === warehouse) && (!company || row.company === company) && matchesKeyword;
+                });
+            };
+            document.getElementById('omniInventorySearchForm').addEventListener('submit', function (event) {
+                event.preventDefault();
+                render(filter());
+            });
+            document.getElementById('omniExportBtn').addEventListener('click', function () {
+                const headers = ['仓库', '货主', '商品编码', '商品条码', '商品名称', '商品规格', '商品单位', '在途单据', '在途库存', '当前库存', '出库预占', '冻结库存', '退货预占', '收货差异'];
+                const data = filter().map(function (row) { return [row.warehouse, row.company, row.code, row.barcode, row.name, row.spec, row.unit, row.document, row.transit, row.current, row.outbound, row.frozen, row.returned, Math.abs(row.difference)]; });
+                const csv = '\ufeff' + [headers].concat(data).map(function (line) { return line.map(function (value) { return '"' + String(value).replace(/"/g, '""') + '"'; }).join(','); }).join('\n');
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+                link.download = '全渠道库存查询.csv';
+                link.click();
+                URL.revokeObjectURL(link.href);
+            });
+            render(rows);
+        }());
+    </script>
+</body>
+</html>

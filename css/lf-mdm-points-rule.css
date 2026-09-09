@@ -234,6 +234,13 @@
 .pts-rule-list-toolbar {
   margin: 0 0 12px;
 }
+.pts-rule-ops {
+  white-space: nowrap;
+}
+.pts-rule-form--view .pts-rule-scope-chip__remove,
+.pts-rule-form--view .pts-rule-scope-actions {
+  display: none;
+}
 .pts-rule-ops a {
   margin-right: 8px;
 }

@@ -1,20 +1,27 @@
 /**
  * 营销记录 — 领券记录（localStorage）
- * Key: mdm_mall_marketing_record_v3
+ * Key: mdm_mall_marketing_record_v4
  */
 (function (global) {
   'use strict';
 
-  var STORAGE_KEY = 'mdm_mall_marketing_record_v3';
-  var COLLECT_METHOD_MANUAL = '后台人工发券';
+  var STORAGE_KEY = 'mdm_mall_marketing_record_v4';
+  var STORAGE_KEY_LEGACY = 'mdm_mall_marketing_record_v3';
+  var COLLECT_METHOD_MANUAL = '会员手工发券';
   var COLLECT_METHOD_LIVE = '直播发券';
-  var COLLECT_METHOD_BAG = '福袋发券';
-  var COLLECT_METHOD_SIGNIN = '签到发券';
+  var COLLECT_METHOD_BAG = '福袋送券';
+  var COLLECT_METHOD_SIGNIN = '签到送券';
+  var COLLECT_METHOD_WATCH = '观看任务送券';
+  var COLLECT_METHOD_MALL = '商城推荐位';
+  var COLLECT_METHOD_LEVEL = '会员等级送券';
   var COUPON_TYPE = '商品优惠券';
   var SCENE_OPTIONS = [
     COLLECT_METHOD_LIVE,
     COLLECT_METHOD_BAG,
     COLLECT_METHOD_SIGNIN,
+    COLLECT_METHOD_WATCH,
+    COLLECT_METHOD_MALL,
+    COLLECT_METHOD_LEVEL,
     COLLECT_METHOD_MANUAL
   ];
   var ACTIVITY_FILTER_META = {};
@@ -24,11 +31,23 @@
   };
   ACTIVITY_FILTER_META[COLLECT_METHOD_BAG] = {
     label: '福袋模板ID',
-    ids: ['tpl-b1', 'tpl-pool-b1', 'tpl-pool-b2']
+    ids: ['tpl-b1', 'tpl-pool-b1', 'tpl-pool-b2', '10086004', '10086005']
   };
   ACTIVITY_FILTER_META[COLLECT_METHOD_SIGNIN] = {
     label: '签到模板ID',
-    ids: ['tpl-s1', 'tpl-pool-s1']
+    ids: ['tpl-s1', 'tpl-pool-s1', '10086006']
+  };
+  ACTIVITY_FILTER_META[COLLECT_METHOD_WATCH] = {
+    label: '观看任务模板ID',
+    ids: ['10086007', '10086008']
+  };
+  ACTIVITY_FILTER_META[COLLECT_METHOD_MALL] = {
+    label: '推荐位活动ID',
+    ids: ['rec-home-banner', 'rec-cart', 'rec-settle']
+  };
+  ACTIVITY_FILTER_META[COLLECT_METHOD_LEVEL] = {
+    label: '等级ID',
+    ids: ['ML10001', 'ML10002', 'ML10003', 'ML10004']
   };
 
   var COUPON_META = {
@@ -311,6 +330,120 @@
       channel: '全渠道',
       validPeriod: '2026-04-01~10-31',
       orderNos: []
+    },
+    {
+      id: 'LC20260809001',
+      userId: 'U10001',
+      nickname: '小程序用户A',
+      phone: '138****2211',
+      couponName: '观看任务券',
+      type: COUPON_TYPE,
+      faceValue: '5元',
+      threshold: '39元',
+      templateId: '10086018',
+      collectAt: '2026-08-09 21:18:00',
+      collectMethod: COLLECT_METHOD_WATCH,
+      activityId: '10086007',
+      status: '未使用',
+      remark: '—',
+      channel: '仅直播',
+      validPeriod: '领取后不限制',
+      orderNos: []
+    },
+    {
+      id: 'LC20260813001',
+      userId: 'U10001',
+      nickname: '小程序用户A',
+      phone: '138****2211',
+      couponName: '果蔬满减券',
+      type: COUPON_TYPE,
+      faceValue: '8元',
+      threshold: '59元',
+      templateId: '10086003',
+      collectAt: '2026-08-13 10:02:16',
+      collectMethod: COLLECT_METHOD_MALL,
+      activityId: 'rec-home-banner',
+      status: '未使用',
+      remark: '—',
+      channel: '仅商城',
+      validPeriod: '2026-09-01 ~ 2026-09-30',
+      orderNos: []
+    },
+    {
+      id: 'LC20260814001',
+      userId: 'U10001',
+      nickname: '小程序用户A',
+      phone: '138****2211',
+      couponName: '银卡专属券',
+      type: COUPON_TYPE,
+      faceValue: '5元',
+      threshold: '50元',
+      templateId: '10086019',
+      collectAt: '2026-08-14 09:08:22',
+      collectMethod: COLLECT_METHOD_LEVEL,
+      activityId: 'ML10002',
+      status: '未使用',
+      remark: '—',
+      channel: '全渠道',
+      validPeriod: '领取后不限制',
+      orderNos: []
+    },
+    {
+      id: 'LC20260809002',
+      userId: 'U10002',
+      nickname: 'APP会员B',
+      phone: '139****9033',
+      couponName: '观看任务券',
+      type: COUPON_TYPE,
+      faceValue: '5元',
+      threshold: '39元',
+      templateId: '10086018',
+      collectAt: '2026-08-09 22:40:11',
+      collectMethod: COLLECT_METHOD_WATCH,
+      activityId: '10086008',
+      status: '已使用',
+      remark: '—',
+      channel: '仅直播',
+      validPeriod: '领取后不限制',
+      orderNos: ['ORD-3212689201599001']
+    },
+    {
+      id: 'LC20260813002',
+      userId: 'U10002',
+      nickname: 'APP会员B',
+      phone: '139****9033',
+      couponName: '果蔬满减券',
+      type: COUPON_TYPE,
+      faceValue: '8元',
+      threshold: '59元',
+      templateId: '10086003',
+      collectAt: '2026-08-13 15:20:08',
+      collectMethod: COLLECT_METHOD_MALL,
+      activityId: 'rec-settle',
+      status: '未使用',
+      remark: '—',
+      channel: '仅商城',
+      validPeriod: '2026-09-01 ~ 2026-09-30',
+      orderNos: []
+    },
+    {
+      id: 'LC20260814002',
+      userId: 'U10004',
+      nickname: '演示会员4',
+      phone: '137****1004',
+      couponName: '银卡专属券',
+      type: COUPON_TYPE,
+      faceValue: '5元',
+      threshold: '50元',
+      templateId: '10086019',
+      collectAt: '2026-08-14 11:12:40',
+      collectMethod: COLLECT_METHOD_LEVEL,
+      activityId: 'ML10003',
+      status: '已过期',
+      remark: '—',
+      channel: '全渠道',
+      validPeriod: '领取后不限制',
+      orderNos: []
     }
   ];
 
@@ -381,15 +514,11 @@
 
   function normalizeCollectMethod(method) {
     var s = String(method || '').trim();
-    if (s === '后台手工发券') return COLLECT_METHOD_MANUAL;
-    if (
-      s === COLLECT_METHOD_LIVE ||
-      s === COLLECT_METHOD_BAG ||
-      s === COLLECT_METHOD_SIGNIN ||
-      s === COLLECT_METHOD_MANUAL
-    ) {
-      return s;
-    }
+    if (s === '后台手工发券' || s === '后台人工发券' || s === '会员发券') return COLLECT_METHOD_MANUAL;
+    if (s === '福袋发券') return COLLECT_METHOD_BAG;
+    if (s === '签到发券') return COLLECT_METHOD_SIGNIN;
+    if (s === '营销送券') return COLLECT_METHOD_BAG;
+    if (SCENE_OPTIONS.indexOf(s) >= 0) return s;
     return COLLECT_METHOD_MANUAL;
   }
 
@@ -397,6 +526,9 @@
     if (method === COLLECT_METHOD_LIVE) return 'sess-001';
     if (method === COLLECT_METHOD_BAG) return 'tpl-b1';
     if (method === COLLECT_METHOD_SIGNIN) return 'tpl-s1';
+    if (method === COLLECT_METHOD_WATCH) return '10086007';
+    if (method === COLLECT_METHOD_MALL) return 'rec-home-banner';
+    if (method === COLLECT_METHOD_LEVEL) return 'ML10001';
     return '';
   }
 
@@ -407,7 +539,7 @@
     return id;
   }
 
-  /* 直播场次ID / 福袋模板ID / 签到模板ID；后台人工发券为空 */
+  /* 直播场次ID / 福袋模板ID / 签到模板ID / 观看任务模板ID / 推荐位活动ID / 等级ID；会员手工发券为空 */
   function formatActivityId(row) {
     var method = normalizeCollectMethod(row && row.collectMethod);
     if (method === COLLECT_METHOD_MANUAL) return '';
@@ -492,18 +624,34 @@
 
   function loadList() {
     try {
-      var raw = localStorage.getItem(STORAGE_KEY);
+      var hadCurrent = !!localStorage.getItem(STORAGE_KEY);
+      var raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(STORAGE_KEY_LEGACY);
       if (!raw) {
         saveList(SEED);
         return SEED.slice().map(normalizeRow);
       }
       var parsed = JSON.parse(raw);
       var source = Array.isArray(parsed) ? parsed : SEED.slice();
-      var hadLegacy = source.some(function (row) {
-        return row && String(row.status || '') === '待使用';
+      var remapped = source.some(function (row) {
+        if (!row) return false;
+        return (
+          normalizeCollectMethod(row.collectMethod) !== String(row.collectMethod || '').trim() ||
+          String(row.status || '') === '待使用'
+        );
       });
       var list = source.map(normalizeRow);
-      if (hadLegacy) saveList(list);
+      var seen = {};
+      list.forEach(function (row) {
+        if (row && row.id) seen[String(row.id)] = true;
+      });
+      var merged = false;
+      SEED.forEach(function (s) {
+        if (s && s.id && !seen[String(s.id)]) {
+          list.push(normalizeRow(s));
+          merged = true;
+        }
+      });
+      if (!hadCurrent || remapped || merged) saveList(list);
       return list;
     } catch (e) {
       return SEED.slice().map(normalizeRow);
@@ -570,8 +718,8 @@
       if (nickname && String(row.nickname || '').toLowerCase().indexOf(nickname) === -1) return false;
       if (phone && String(row.phone || '').indexOf(phone) === -1) return false;
       if (status && String(row.status || '') !== status) return false;
-      if (collectMethod && String(row.collectMethod || '') !== collectMethod) return false;
-      if (collectMethod && collectMethod !== COLLECT_METHOD_MANUAL && activityId && String(row.activityId || '') !== activityId) {
+      if (collectMethod && normalizeCollectMethod(row.collectMethod) !== normalizeCollectMethod(collectMethod)) return false;
+      if (collectMethod && normalizeCollectMethod(collectMethod) !== COLLECT_METHOD_MANUAL && activityId && String(row.activityId || '') !== activityId) {
         return false;
       }
       return true;
@@ -625,6 +773,9 @@
     COLLECT_METHOD_LIVE: COLLECT_METHOD_LIVE,
     COLLECT_METHOD_BAG: COLLECT_METHOD_BAG,
     COLLECT_METHOD_SIGNIN: COLLECT_METHOD_SIGNIN,
+    COLLECT_METHOD_WATCH: COLLECT_METHOD_WATCH,
+    COLLECT_METHOD_MALL: COLLECT_METHOD_MALL,
+    COLLECT_METHOD_LEVEL: COLLECT_METHOD_LEVEL,
     SCENE_OPTIONS: SCENE_OPTIONS,
     loadList: loadList,
     saveList: saveList,

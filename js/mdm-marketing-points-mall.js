@@ -69,14 +69,22 @@
     if (mode === 'express' || mode === '快递到店' || mode === '快递' || mode === '快递配送' || mode === 'store') {
       return 'express';
     }
-    if (mode === 'platform' || mode === '平台配送' || mode === '配送' || mode === 'warehouse' || mode === 'delivery') {
-      return 'platform';
+    if (
+      mode === 'pickup' ||
+      mode === '自提' ||
+      mode === 'platform' ||
+      mode === '平台配送' ||
+      mode === '配送' ||
+      mode === 'warehouse' ||
+      mode === 'delivery'
+    ) {
+      return 'pickup';
     }
-    return 'platform';
+    return 'pickup';
   }
 
   function deliveryModeLabel(mode) {
-    return normalizeDeliveryMode(mode) === 'express' ? '快递配送' : '平台配送';
+    return normalizeDeliveryMode(mode) === 'express' ? '快递配送' : '自提';
   }
 
   function normalizeSaleScope(scope) {
@@ -325,7 +333,6 @@
           ? renderSpecCell(spec, item, visible.length, totalEnabled, expanded)
           : '<div class="mkt-points-mall-spec-cell">' + escapeHtml(spec.specName || '-') + '</div>') +
         '</td>' +
-        '<td class="product-proxy-table__td">' + formatMoney(spec.purchasePrice) + '</td>' +
         '<td class="product-proxy-table__td">' + renderLinePrice(spec) + '</td>' +
         '<td class="product-proxy-table__td">' + escapeHtml(String(spec.stock != null ? spec.stock : 0)) + '</td>' +
         '<td class="product-proxy-table__td">' + renderExchangePoints(Object.assign({}, spec, {
@@ -691,7 +698,7 @@
       '    </div>' +
       '  </div>' +
       '  <div class="erp-modal__body">' +
-      '    <p class="mkt-points-mall-banner-tip">最多可配置 10 个轮播；标题、图片必填，跳转链接选填。将展示在 C 端积分商城顶部。</p>' +
+      '    <p class="mkt-points-mall-banner-tip">可不配置；未配置时 C 端不展示轮播区域。最多 10 条，有配置时标题、图片必填，跳转链接选填。</p>' +
       '    <div class="mkt-points-mall-banner-list" id="pointsMallBannerList"></div>' +
       '    <button type="button" class="erp-btn mkt-points-mall-banner-add" id="pointsMallBannerAdd">添加轮播</button>' +
       '  </div>' +

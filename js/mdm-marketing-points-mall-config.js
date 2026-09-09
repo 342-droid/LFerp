@@ -7,6 +7,7 @@
   var RULE_KEY = 'mdm_member_points_rule_v1';
   var CASH_LIST_KEY = 'mdm_member_points_cash_v1';
   var BANNER_KEY = 'mdm_marketing_points_mall_banners_v1';
+  var REFUND_DEMO_KEY = 'ua_points_exchange_refund_demo_v1';
   var MAX_BANNERS = 10;
   var AVAILABLE_POINTS_DEMO = 161;
 
@@ -160,15 +161,57 @@
     return rule;
   }
 
+  function isMasterEnabled() {
+    var parsed = loadRuleRaw();
+    if (!parsed) return true;
+    return parsed.enabled !== false;
+  }
+
   function isExchangeEnabled() {
     var rule = getRule();
     return !!(rule.enabled && rule.exchange && rule.exchange.enabled);
   }
 
-  /** 积分兑换商品是否支持售后（读后台积分规则） */
+  var POINTS_OFFLINE_TIP = '积分能力已下线';
+
+  function notifyPointsOffline() {
+    var msg = POINTS_OFFLINE_TIP;
+    if (typeof showToast === 'function') {
+      showToast(msg, 'warning');
+      return;
+    }
+    var el = document.getElementById('uaShopToast');
+    if (el) {
+      el.textContent = msg;
+      el.hidden = false;
+      window.setTimeout(function () {
+        el.hidden = true;
+      }, 2200);
+      return;
+    }
+    if (window.alert) window.alert(msg);
+  }
+
+  /** 总开关关闭时拦截积分页，回到个人中心 */
+  function bounceIfPointsOffline(fallback) {
+    if (isMasterEnabled()) return false;
+    notifyPointsOffline();
+    var target = fallback || 'profile.html';
+    window.location.replace(
+      window.UaNav && window.UaNav.withFrom ? window.UaNav.withFrom(target) : target
+    );
+    return true;
+  }
+
+  /** 积分兑换商品是否支持售后：未勾选只影响 C 端申请入口；PC 后台不读此开关拦操作 */
   function isExchangeRefundEnabled() {
+    try {
+      var demo = localStorage.getItem(REFUND_DEMO_KEY);
+      if (demo === 'off') return false;
+      if (demo === 'on') return true;
+    } catch (e) { /* ignore */ }
     var rule = getRule();
-    if (!(rule.enabled && rule.exchange && rule.exchange.enabled)) return false;
+    if (!rule.exchange || typeof rule.exchange.refundEnabled !== 'boolean') return true;
     return !!rule.exchange.refundEnabled;
   }
 
@@ -217,7 +260,18 @@
     var rule = getRule(ctx || {});
     var ptsAvail =
       availablePoints != null ? Number(availablePoints) : AVAILABLE_POINTS_DEMO;
-    if (!(rule.enabled && rule.cash && rule.cash.enabled)) {
+    if (!rule.enabled) {
+      return {
+        enabled: false,
+        hidden: true,
+        eligibleAmount: 0,
+        deductAmount: 0,
+        pointsUsed: 0,
+        maxAmount: 0,
+        tip: POINTS_OFFLINE_TIP
+      };
+    }
+    if (!(rule.cash && rule.cash.enabled)) {
       return {
         enabled: false,
         eligibleAmount: 0,
@@ -303,12 +357,13 @@
   function loadBanners() {
     try {
       var raw = localStorage.getItem(BANNER_KEY);
-      if (!raw) return clone(DEFAULT_BANNERS);
+      /* 未配置时返回空：C 端隐藏轮播区域 */
+      if (!raw) return [];
       var parsed = JSON.parse(raw);
-      if (!Array.isArray(parsed)) return clone(DEFAULT_BANNERS);
+      if (!Array.isArray(parsed)) return [];
       return parsed.map(normalizeBanner).slice(0, MAX_BANNERS);
     } catch (e) {
-      return clone(DEFAULT_BANNERS);
+      return [];
     }
   }
 
@@ -321,9 +376,14 @@
   window.MdmPointsMallConfig = {
     MAX_BANNERS: MAX_BANNERS,
     AVAILABLE_POINTS_DEMO: AVAILABLE_POINTS_DEMO,
+    POINTS_OFFLINE_TIP: POINTS_OFFLINE_TIP,
     getRule: getRule,
+    isMasterEnabled: isMasterEnabled,
     isExchangeEnabled: isExchangeEnabled,
+    notifyPointsOffline: notifyPointsOffline,
+    bounceIfPointsOffline: bounceIfPointsOffline,
     isExchangeRefundEnabled: isExchangeRefundEnabled,
+    REFUND_DEMO_KEY: REFUND_DEMO_KEY,
     setExchangeEnabled: setExchangeEnabled,
     calcCashDeduction: calcCashDeduction,
     scopeIncludes: scopeIncludes,

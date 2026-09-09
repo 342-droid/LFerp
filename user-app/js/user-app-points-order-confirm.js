@@ -118,12 +118,12 @@
     if (delivery) {
       var modes = {};
       lines.forEach(function (line) {
-        modes[line.deliveryMode === 'express' ? 'express' : 'platform'] = true;
+        modes[line.deliveryMode === 'express' ? 'express' : 'pickup'] = true;
       });
       var labels = [];
       if (modes.express) labels.push('快递配送');
-      if (modes.platform) labels.push('平台配送');
-      delivery.textContent = '履约方式：' + (labels.join(' / ') || '平台配送');
+      if (modes.pickup) labels.push('自提');
+      delivery.textContent = '配送方式：' + (labels.join(' / ') || '自提');
     }
 
     var pointsTotal = document.getElementById('pocPointsTotal');
@@ -262,6 +262,19 @@
   }
 
   function init() {
+    var cfg = window.MdmPointsMallConfig;
+    if (cfg && typeof cfg.bounceIfPointsOffline === 'function' && cfg.bounceIfPointsOffline()) {
+      return;
+    }
+    if (cfg && !cfg.isExchangeEnabled()) {
+      cfg.notifyPointsOffline && cfg.notifyPointsOffline();
+      window.location.replace(
+        window.UaNav && window.UaNav.withFrom
+          ? window.UaNav.withFrom('profile.html')
+          : 'profile.html'
+      );
+      return;
+    }
     if (window.UaNav) {
       window.UaNav.applyBackLink('#pocBack', 'points-mall.html');
     }

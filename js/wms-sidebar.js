@@ -117,6 +117,8 @@
     const isReportPage = reportMenuItems.some(item => item.href === currentPage);
     const isDailyInventoryReportPage = innerReportMenuItems.some(item => item.href === currentPage);
     const isOpsToolsPage = opsToolsMenuItems.some(item => item.href === currentPage);
+    const isOmniInventoryPage = currentPage === 'omni_inventory.html' || currentPage === 'omni_inventory_log.html';
+    const isOmniInventoryLogPage = currentPage === 'omni_inventory_log.html';
 
     const basicMenuHtml = basicMenuItems.map(item => 
         '<li><a href="' + pageHref(item.href) + '"' + (item.href === currentPage ? ' class="active"' : '') + '>' + item.text + '</a></li>'
@@ -269,6 +271,17 @@
             '<button class="menu-toggle">▼</button>' +
             '</a>' +
             '<ul class="submenu' + (isExceptionPage ? ' expanded' : '') + '">' + exceptionMenuHtml + '</ul>' +
+            '</li>' +
+            '<li class="menu-item">' +
+            '<a href="#" class="menu-link" onclick="toggleSubmenu(this)">' +
+            '<img src="' + assetHref('image/库存管理.svg') + '" alt="全渠道库存" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
+            '<span>全渠道库存</span>' +
+            '<button class="menu-toggle">' + (isOmniInventoryPage ? '▼' : '▶') + '</button>' +
+            '</a>' +
+            '<ul class="submenu' + (isOmniInventoryPage ? ' expanded' : '') + '">' +
+            '<li><a href="' + pageHref('omni_inventory.html') + '"' + (currentPage === 'omni_inventory.html' ? ' class="active"' : '') + '>全渠道库存查询</a></li>' +
+            '<li><a href="' + pageHref('omni_inventory_log.html') + '"' + (isOmniInventoryLogPage ? ' class="active"' : '') + '>全渠道库存日志</a></li>' +
+            '</ul>' +
             '</li>' +
             '<li class="menu-item">' +
             '<a href="#" class="menu-link" onclick="toggleSubmenu(this)">' +

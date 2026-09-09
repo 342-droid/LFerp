@@ -246,6 +246,19 @@
 
   var modalQueue = [];
   var modalOpen = false;
+  var pointsOfflineToastShown = false;
+
+  function isPointsMasterOn() {
+    var cfg = global.MdmPointsMallConfig;
+    if (cfg && typeof cfg.isMasterEnabled === 'function') return cfg.isMasterEnabled();
+    try {
+      var raw = localStorage.getItem('mdm_member_points_rule_v1');
+      if (!raw) return true;
+      return JSON.parse(raw).enabled !== false;
+    } catch (e) {
+      return true;
+    }
+  }
 
   function closeModal() {
     var el = document.getElementById('uaWatchRewardModal');
@@ -284,6 +297,17 @@
     for (i = 0; i < ms.length; i++) {
       if (claimed.indexOf(i) >= 0) continue;
       if (minutes + 0.001 < Number(ms[i].threshold || 0)) continue;
+      if (ms[i].rewardType === 'POINTS' && !isPointsMasterOn()) {
+        if (!pointsOfflineToastShown) {
+          pointsOfflineToastShown = true;
+          if (global.MdmPointsMallConfig && global.MdmPointsMallConfig.notifyPointsOffline) {
+            global.MdmPointsMallConfig.notifyPointsOffline();
+          } else if (typeof showToast === 'function') {
+            showToast('积分能力已下线', 'warning');
+          }
+        }
+        continue;
+      }
       claimed.push(i);
       changed = true;
       openModal(rewardText(ms[i]), '观看满 ' + ms[i].threshold + ' 分钟，奖励已自动发放');

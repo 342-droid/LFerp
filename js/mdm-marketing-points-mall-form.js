@@ -1,11 +1,14 @@
 /**
  * 营销 — 编辑积分商品（独立页面）
- * 含：定时上下架、限购三选一、兑换方式单选、履约方式、划线价、售卖范围、商品图片、详情
+ * 含：基础信息（对齐秒杀商品）、限购三选一（仅 SPU）、兑换方式、会员等级、商品状态、售卖范围、规格卡片
  */
 (function () {
   var IMAGE_MAX_BYTES = 5 * 1024 * 1024;
+  var SALE_UNITS = ['件', '箱', '瓶', '袋', 'kg', 'L', '罐', '包', '套', '卷', '个', '斤', '盒'];
   var product = null;
   var specs = [];
+  var selectedSkuIds = [];
+  var specSnapshot = null;
   var formExtra = {
     images: [],
     saleRegions: {},
@@ -27,12 +30,6 @@
       return;
     }
     window.alert(msg);
-  }
-
-  function formatMoney(num) {
-    var n = Math.round((Number(num) || 0) * 100) / 100;
-    if (n % 1 === 0) return '¥' + Math.round(n);
-    return '¥' + n.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
   }
 
   function queryCode() {
@@ -207,79 +204,202 @@
     return getCheckedRadio('mallFormExchangeType') === 'points_money' ? 'points_money' : 'points';
   }
 
-  function syncSpecRowControls(tr, exchangeType) {
-    var enabled = !!(tr.querySelector('[data-field="exchangeEnabled"]') || {}).checked;
-    var stockEl = tr.querySelector('[data-field="stock"]');
-    var minSaleEl = tr.querySelector('[data-field="minSaleQty"]');
-    var pointsEl = tr.querySelector('[data-field="points"]');
-    var moneyEl = tr.querySelector('[data-field="money"]');
-    var lineEl = tr.querySelector('[data-field="linePrice"]');
-    var showMoney = exchangeType === 'points_money';
-    tr.classList.toggle('is-disabled', !enabled);
-    if (stockEl) stockEl.disabled = !enabled;
-    if (minSaleEl) minSaleEl.disabled = !enabled;
-    if (pointsEl) pointsEl.disabled = !enabled;
-    if (lineEl) lineEl.disabled = !enabled;
-    if (moneyEl) {
-      moneyEl.disabled = !enabled || !showMoney;
-      if (!showMoney) moneyEl.value = moneyEl.value || '0';
+  function cloneSpecs(list) {
+    return (list || []).map(function (s) {
+      return Object.assign({}, s);
+    });
+  }
+
+  function findSpec(skuCode) {
+    var key = String(skuCode || '');
+    for (var i = 0; i < specs.length; i++) {
+      if (String(specs[i].skuCode || '') === key) return specs[i];
+    }
+    return null;
+  }
+
+  function takeSpecSnapshot() {
+    specSnapshot = {
+      specs: cloneSpecs(specs),
+      selected: selectedSkuIds.slice()
+    };
+  }
+
+  function optionHtml(options, current) {
+    return options.map(function (opt) {
+      var value = typeof opt === 'string' ? opt : opt.value;
+      var label = typeof opt === 'string' ? opt : opt.label;
+      return (
+        '<option value="' +
+        escapeHtml(value) +
+        '"' +
+        (String(current || '') === String(value) ? ' selected' : '') +
+        '>' +
+        escapeHtml(label) +
+        '</option>'
+      );
+    }).join('');
+  }
+
+  function fieldHtml(label, field, value, readonly, extraClass) {
+    return (
+      '<div class="product-proxy-spec__field' + (extraClass ? ' ' + extraClass : '') + '">' +
+      '<label class="product-proxy-spec__label">' + escapeHtml(label) + '</label>' +
+      '<input type="text" class="product-proxy-spec__input" data-field="' + field + '" value="' +
+      escapeHtml(value == null ? '' : value) + '"' + (readonly ? ' readonly' : '') + '>' +
+      '</div>'
+    );
+  }
+
+  function moneyHtml(label, field, value, readonly) {
+    return (
+      '<div class="product-proxy-spec__field">' +
+      '<label class="product-proxy-spec__label">' + escapeHtml(label) + '</label>' +
+      '<div class="product-proxy-spec__money">' +
+      '<span class="product-proxy-spec__money-prefix">¥</span>' +
+      '<input type="text" class="product-proxy-spec__input product-proxy-spec__input--money" data-field="' +
+      field + '" value="' + escapeHtml(value == null || value === '' ? '' : value) + '"' +
+      (readonly ? ' readonly' : '') + '>' +
+      '</div></div>'
+    );
+  }
+
+  function selectHtml(label, field, options, current) {
+    return (
+      '<div class="product-proxy-spec__field">' +
+      '<label class="product-proxy-spec__label">' + escapeHtml(label) + '</label>' +
+      '<select class="product-proxy-spec__input" data-field="' + field + '">' +
+      optionHtml(options, current) +
+      '</select></div>'
+    );
+  }
+
+  function syncSkuTrigger() {
+    var el = document.getElementById('mallFormSkuTrigger');
+    if (el) {
+      el.innerHTML = '已选 ' + selectedSkuIds.length + ' 个 SKU <span class="product-proxy-form__sku-caret">▼</span>';
     }
   }
 
-  function syncExchangeTypeUi() {
-    var type = getExchangeType();
-    var showMoney = type === 'points_money';
-    document.querySelectorAll('[data-money-col]').forEach(function (el) {
-      el.hidden = !showMoney;
-    });
-    document.querySelectorAll('#mallFormSpecBody tr').forEach(function (tr) {
-      syncSpecRowControls(tr, type);
+  function renderSkuDropdown() {
+    var box = document.getElementById('mallFormSkuDropdown');
+    if (!box) return;
+    box.innerHTML = specs.map(function (spec) {
+      var id = String(spec.skuCode || '');
+      var checked = selectedSkuIds.indexOf(id) >= 0 ? ' checked' : '';
+      return (
+        '<label class="product-proxy-form__sku-option">' +
+        '<input type="checkbox" data-sku-pick="' + escapeHtml(id) + '"' + checked + '>' +
+        '<span>' + escapeHtml(spec.specName || spec.specValue || id) + '</span></label>'
+      );
+    }).join('');
+  }
+
+  function renderSkuCard(spec) {
+    var showMoney = getExchangeType() === 'points_money';
+    var enabled = !!spec.exchangeEnabled;
+    var fallbackImg = (formExtra.images && formExtra.images[0]) || (product && product.img) ||
+      '../user-app/assets/restock/product-leaf.svg';
+    var skuImg = spec.skuImg || fallbackImg;
+    var saleUnits = [{ value: '', label: '请选择' }].concat(
+      SALE_UNITS.map(function (u) { return { value: u, label: u }; })
+    );
+    var lineVal = spec.linePrice == null ? '' : spec.linePrice;
+    var extraMoney = showMoney
+      ? moneyHtml('加价金额', 'money', spec.money || 0)
+      : '';
+    return (
+      '<article class="product-proxy-spec' + (enabled ? '' : ' is-disabled') + '" data-sku-id="' +
+      escapeHtml(spec.skuCode || '') + '">' +
+      '<div class="product-proxy-spec__head">' +
+      '<span class="product-proxy-spec__head-label">展示规格名称</span>' +
+      '<input type="text" class="product-proxy-spec__head-input" data-field="specName" value="' +
+      escapeHtml(spec.specName || '') + '" placeholder="请输入展示规格名称">' +
+      '</div>' +
+      '<div class="product-proxy-spec__body">' +
+      '<button type="button" class="product-proxy-spec__thumb" data-act="edit-spec-img" title="点击更换规格图片">' +
+      '<img src="' + escapeHtml(skuImg) + '" alt="" onerror="this.onerror=null;this.src=\'../user-app/assets/restock/product-leaf.svg\'">' +
+      '</button>' +
+      '<div class="product-proxy-spec__grid">' +
+      fieldHtml('商品条形码', 'barcode', spec.barcode, true) +
+      fieldHtml('规格值', 'specValue', spec.specValue || spec.specName, true) +
+      fieldHtml('基础单位', 'baseUnit', spec.baseUnit, true) +
+      moneyHtml('采购价', 'purchasePrice', spec.purchasePrice, true) +
+      fieldHtml('售卖系数', 'saleRatio', spec.saleRatio || '') +
+      selectHtml('售卖单位', 'saleUnit', saleUnits, spec.saleUnit) +
+      fieldHtml('兑换积分', 'points', spec.points != null ? spec.points : 100, false, 'is-live-stock') +
+      extraMoney +
+      moneyHtml('划线价', 'linePrice', lineVal) +
+      fieldHtml('起售量', 'minSaleQty', spec.minSaleQty != null ? spec.minSaleQty : 1) +
+      fieldHtml('现货库存', 'spotStock', spec.spotStock, true) +
+      fieldHtml('实际库存', 'sellableStock', spec.sellableStock, true) +
+      fieldHtml('兑换库存', 'stock', spec.stock != null ? spec.stock : 0, false, 'is-live-stock') +
+      fieldHtml('已兑换', 'exchangedQty', spec.exchangedQty != null ? spec.exchangedQty : 0, true) +
+      '<p class="product-proxy-spec__stock-tip product-proxy-spec__stock-tip--span">划线价选填。商品限购只在上方 SPU 设置，规格上不配限购。上架的规格会出现在积分商城列表中。</p>' +
+      '</div></div>' +
+      '<div class="product-proxy-spec__foot">' +
+      '<button type="button" class="product-proxy-spec__btn-off' + (enabled ? '' : ' is-off') +
+      '" data-act="toggle-exchange">' + (enabled ? '下架' : '上架') + '</button>' +
+      '<button type="button" class="product-proxy-spec__btn-del" data-act="remove-sku">删除</button>' +
+      '</div></article>'
+    );
+  }
+
+  function renderSkuCards() {
+    var list = document.getElementById('mallFormSkuList');
+    if (!list) return;
+    var cards = selectedSkuIds.map(findSpec).filter(Boolean);
+    if (!cards.length) {
+      list.innerHTML = '<div class="mkt-points-mall-sku-empty">请至少选择一个 SKU</div>';
+    } else {
+      list.innerHTML = cards.map(renderSkuCard).join('');
+    }
+    syncSkuTrigger();
+    renderSkuDropdown();
+  }
+
+  function readSkuCards() {
+    document.querySelectorAll('#mallFormSkuList .product-proxy-spec').forEach(function (panel) {
+      var spec = findSpec(panel.getAttribute('data-sku-id'));
+      if (!spec) return;
+      panel.querySelectorAll('[data-field]').forEach(function (input) {
+        var field = input.getAttribute('data-field');
+        if (field === 'barcode' || field === 'specValue' || field === 'baseUnit' ||
+            field === 'purchasePrice' || field === 'spotStock' || field === 'sellableStock' ||
+            field === 'exchangedQty') {
+          return;
+        }
+        spec[field] = input.value;
+      });
+      var lineRaw = String(spec.linePrice == null ? '' : spec.linePrice).trim();
+      if (lineRaw === '') spec.linePrice = null;
+      else {
+        var lp = Number(lineRaw);
+        spec.linePrice = isNaN(lp) || lp < 0 ? null : Math.round(lp * 100) / 100;
+      }
+      spec.points = Math.max(0, Math.round(Number(spec.points) || 0));
+      spec.money = Math.round((Number(spec.money) || 0) * 100) / 100;
+      spec.stock = Math.max(0, Math.round(Number(spec.stock) || 0));
+      spec.minSaleQty = Math.max(1, Math.round(Number(spec.minSaleQty) || 1));
+      spec.saleRatio = String(spec.saleRatio || '');
+      spec.saleUnit = String(spec.saleUnit || '');
+      spec.specName = String(spec.specName || spec.specValue || '默认规格');
     });
   }
 
-  function renderSpecRows(list, exchangeType) {
-    var showMoney = exchangeType === 'points_money';
-    var body = document.getElementById('mallFormSpecBody');
-    if (!body) return;
-    var fallbackImg = (formExtra.images && formExtra.images[0]) || (product && product.img) ||
-      '../user-app/assets/restock/product-leaf.svg';
-    body.innerHTML = list.map(function (spec, i) {
-      var enabled = !!spec.exchangeEnabled;
-      var lineVal = spec.linePrice == null ? '' : String(spec.linePrice);
-      var skuImg = spec.skuImg || fallbackImg;
-      return (
-        '<tr data-spec-index="' + i + '" class="' + (enabled ? '' : 'is-disabled') + '">' +
-        '<td class="mkt-points-mall-spec-table__check">' +
-        '  <label class="mkt-points-mall-check">' +
-        '    <input type="checkbox" data-field="exchangeEnabled"' + (enabled ? ' checked' : '') + '>' +
-        '    <span>开启</span>' +
-        '  </label>' +
-        '</td>' +
-        '<td>' + escapeHtml(spec.skuCode || '-') + '</td>' +
-        '<td>' + escapeHtml(spec.specName || '-') + '</td>' +
-        '<td>' +
-        '  <button type="button" class="mkt-points-mall-spec-img" data-action="edit-spec-img" data-spec-index="' + i + '" title="点击更换规格图片">' +
-        '    <img src="' + escapeHtml(skuImg) + '" alt="" onerror="this.onerror=null;this.src=\'../user-app/assets/restock/product-leaf.svg\'">' +
-        '    <span>更换</span>' +
-        '  </button>' +
-        '</td>' +
-        '<td>' + formatMoney(spec.purchasePrice) + '</td>' +
-        '<td><input type="number" min="0" step="0.01" data-field="linePrice" placeholder="选填" value="' +
-        escapeHtml(lineVal) + '"' + (enabled ? '' : ' disabled') + '></td>' +
-        '<td><input type="number" min="0" step="1" data-field="stock" value="' +
-        escapeHtml(String(spec.stock != null ? spec.stock : 0)) + '"' + (enabled ? '' : ' disabled') + '></td>' +
-        '<td><input type="number" min="1" step="1" data-field="minSaleQty" value="' +
-        escapeHtml(String(spec.minSaleQty != null ? spec.minSaleQty : 1)) + '"' + (enabled ? '' : ' disabled') + '></td>' +
-        '<td><input type="number" min="1" step="1" data-field="points" value="' +
-        escapeHtml(String(spec.points || 100)) + '"' + (enabled ? '' : ' disabled') + '></td>' +
-        '<td data-money-col' + (showMoney ? '' : ' hidden') + '>' +
-        '  <input type="number" min="0" step="0.01" data-field="money" value="' +
-        escapeHtml(String(spec.money || 0)) + '"' + (enabled && showMoney ? '' : ' disabled') + '>' +
-        '</td>' +
-        '<td>' + escapeHtml(String(spec.exchangedQty != null ? spec.exchangedQty : 0)) + '</td>' +
-        '</tr>'
-      );
-    }).join('');
+  function syncExchangeTypeUi() {
+    readSkuCards();
+    renderSkuCards();
+  }
+
+  function initSelectedSkuIds() {
+    selectedSkuIds = specs.filter(function (s) { return s.exchangeEnabled; }).map(function (s) {
+      return String(s.skuCode || '');
+    }).filter(Boolean);
+    if (!selectedSkuIds.length && specs[0] && specs[0].skuCode) {
+      selectedSkuIds = [String(specs[0].skuCode)];
+      specs[0].exchangeEnabled = true;
+    }
   }
 
   function renderImages() {
@@ -295,9 +415,12 @@
     }).join('');
     root.innerHTML = html +
       '<button type="button" class="product-add-upload__box" data-action="add-image"><span class="product-add-upload__plus">+</span></button>';
+  }
 
-    var cover = document.getElementById('mallFormImg');
-    if (cover && formExtra.images[0]) cover.src = formExtra.images[0];
+  function syncSalesInput() {
+    var mode = getCheckedRadio('mallFormDisplaySalesMode') || 'ACTUAL';
+    var input = document.getElementById('mallFormDisplaySales');
+    if (input) input.hidden = mode !== 'CUSTOM';
   }
 
   function fillForm(item) {
@@ -310,17 +433,16 @@
     formExtra.saleRegionSummary = Array.isArray(item.saleRegionSummary) ? item.saleRegionSummary.slice() : [];
     formExtra.saleStores = cloneMap(item.saleStores);
 
-    var imgEl = document.getElementById('mallFormImg');
+    var idEl = document.getElementById('mallFormProductId');
+    if (idEl) idEl.textContent = item.code || '-';
     var nameEl = document.getElementById('mallFormName');
-    var metaEl = document.getElementById('mallFormMeta');
-    if (imgEl) imgEl.src = formExtra.images[0] || item.img || '';
-    if (nameEl) nameEl.textContent = item.name || '—';
-    var enabledCount = specs.filter(function (s) { return s.exchangeEnabled; }).length;
-    if (metaEl) {
-      metaEl.textContent =
-        (item.code || '') + ' · ' + (item.category || '-') +
-        ' · 选品库 ' + specs.length + ' 个规格 · 已开启兑换 ' + enabledCount + ' 个';
-    }
+    if (nameEl) nameEl.value = item.name || '';
+    var descEl = document.getElementById('mallFormDesc');
+    if (descEl) descEl.value = item.desc || '';
+    var arrivalEl = document.getElementById('mallFormArrival');
+    if (arrivalEl) arrivalEl.value = item.arrivalTime || '';
+    var arrivalUnitEl = document.getElementById('mallFormArrivalUnit');
+    if (arrivalUnitEl) arrivalUnitEl.value = item.arrivalUnit === 'HOUR' ? 'HOUR' : 'DAY';
 
     setRadio('mallFormStatus', item.status === 'schedule' ? 'schedule' : (item.status === 'on_shelf' ? 'on_shelf' : 'off_shelf'));
     var onEl = document.getElementById('mallFormScheduleOn');
@@ -329,7 +451,13 @@
     if (offEl) offEl.value = toDatetimeLocal(item.scheduleOffAt);
     syncStatusUi();
 
-    setRadio('mallFormDeliveryMode', item.deliveryMode === 'express' ? 'express' : 'platform');
+    setRadio('mallFormDeliveryMode', item.deliveryMode === 'express' ? 'express' : 'pickup');
+
+    var salesMode = item.displaySalesMode === 'CUSTOM' ? 'CUSTOM' : 'ACTUAL';
+    setRadio('mallFormDisplaySalesMode', salesMode);
+    var salesEl = document.getElementById('mallFormDisplaySales');
+    if (salesEl) salesEl.value = item.displaySales || '';
+    syncSalesInput();
 
     renderLevelBlock(item.memberLevelIds);
     syncLevelScopeUi();
@@ -354,8 +482,9 @@
 
     var exchangeType = item.exchangeType === 'points_money' ? 'points_money' : 'points';
     setRadio('mallFormExchangeType', exchangeType);
-    renderSpecRows(specs, exchangeType);
-    syncExchangeTypeUi();
+    initSelectedSkuIds();
+    renderSkuCards();
+    takeSpecSnapshot();
 
     renderImages();
 
@@ -364,6 +493,38 @@
   }
 
   function readForm() {
+    var name = ((document.getElementById('mallFormName') || {}).value || '').trim();
+    if (!name) {
+      toast('请填写商品名称', 'warning');
+      return null;
+    }
+    if (!getCheckedRadio('mallFormDeliveryMode')) {
+      toast('请选择配送方式', 'warning');
+      return null;
+    }
+    if (!getCheckedRadio('mallFormDisplaySalesMode')) {
+      toast('请选择展示销量', 'warning');
+      return null;
+    }
+    var salesMode = getCheckedRadio('mallFormDisplaySalesMode') || 'ACTUAL';
+    var displaySales = ((document.getElementById('mallFormDisplaySales') || {}).value || '').trim();
+    if (salesMode === 'CUSTOM' && !displaySales) {
+      toast('请填写自定义展示销量', 'warning');
+      return null;
+    }
+    if (!getCheckedRadio('mallFormExchangeType')) {
+      toast('请选择兑换方式', 'warning');
+      return null;
+    }
+    if (!getCheckedRadio('mallFormLimitType')) {
+      toast('请选择商品限购', 'warning');
+      return null;
+    }
+    if (!getCheckedRadio('mallFormStatus')) {
+      toast('请选择商品状态', 'warning');
+      return null;
+    }
+
     var status = getCheckedRadio('mallFormStatus') || 'off_shelf';
     var scheduleOnAt = ((document.getElementById('mallFormScheduleOn') || {}).value || '').trim();
     var scheduleOffAt = ((document.getElementById('mallFormScheduleOff') || {}).value || '').trim();
@@ -381,7 +542,7 @@
       scheduleOffAt = '';
     }
 
-    var deliveryMode = getCheckedRadio('mallFormDeliveryMode') === 'express' ? 'express' : 'platform';
+    var deliveryMode = getCheckedRadio('mallFormDeliveryMode') === 'express' ? 'express' : 'pickup';
 
     var levelScope = getCheckedRadio('mallFormLevelScope') || 'all';
     var memberLevelIds = [];
@@ -428,23 +589,28 @@
     }
 
     var type = getExchangeType();
+    readSkuCards();
     var nextSpecs = [];
     var enabledCount = 0;
     var invalid = false;
+    var selectedMap = {};
+    selectedSkuIds.forEach(function (id) { selectedMap[id] = true; });
 
-    document.querySelectorAll('#mallFormSpecBody tr').forEach(function (tr, i) {
-      var src = specs[i] || {};
-      var enabled = !!(tr.querySelector('[data-field="exchangeEnabled"]') || {}).checked;
-      var stockVal = Number((tr.querySelector('[data-field="stock"]') || {}).value);
-      var minSaleVal = Number((tr.querySelector('[data-field="minSaleQty"]') || {}).value);
-      var pts = Number((tr.querySelector('[data-field="points"]') || {}).value);
-      var moneyVal = Number((tr.querySelector('[data-field="money"]') || {}).value);
-      var lineRaw = ((tr.querySelector('[data-field="linePrice"]') || {}).value || '').trim();
-      var linePrice = null;
-      if (lineRaw !== '') {
-        var lp = Number(lineRaw);
+    specs.forEach(function (src) {
+      var id = String(src.skuCode || '');
+      var selected = !!selectedMap[id];
+      var enabled = selected && !!src.exchangeEnabled;
+      var pts = Number(src.points);
+      var moneyVal = Number(src.money);
+      var stockVal = Number(src.stock);
+      var minSaleVal = Number(src.minSaleQty);
+      var linePrice = src.linePrice;
+      if (linePrice != null && linePrice !== '') {
+        var lp = Number(linePrice);
         if (isNaN(lp) || lp < 0) invalid = true;
         else linePrice = Math.round(lp * 100) / 100;
+      } else {
+        linePrice = null;
       }
 
       if (enabled) {
@@ -467,12 +633,19 @@
         exchangeType: type,
         points: enabled ? Math.round(pts) : Math.max(0, Math.round(pts) || 0),
         money: enabled && type === 'points_money' ? moneyVal : 0,
-        exchangedQty: src.exchangedQty || 0
+        exchangedQty: src.exchangedQty || 0,
+        barcode: src.barcode || '',
+        specValue: src.specValue || src.specName || '',
+        baseUnit: src.baseUnit || '',
+        saleUnit: src.saleUnit || '',
+        saleRatio: src.saleRatio || '',
+        spotStock: src.spotStock,
+        sellableStock: src.sellableStock
       });
     });
 
     if (!enabledCount) {
-      toast('请至少开启一个规格的积分兑换', 'warning');
+      toast('请至少上架一个规格', 'warning');
       return null;
     }
     if (invalid) {
@@ -488,7 +661,12 @@
     return {
       code: product.code,
       goodsId: product.code,
-      name: product.name,
+      name: name,
+      desc: ((document.getElementById('mallFormDesc') || {}).value || '').trim(),
+      arrivalTime: ((document.getElementById('mallFormArrival') || {}).value || '').trim(),
+      arrivalUnit: ((document.getElementById('mallFormArrivalUnit') || {}).value || 'DAY') === 'HOUR' ? 'HOUR' : 'DAY',
+      displaySalesMode: salesMode,
+      displaySales: salesMode === 'CUSTOM' ? displaySales : '',
       img: cover,
       category: product.category,
       status: status,
@@ -527,6 +705,9 @@
     document.querySelectorAll('input[name="mallFormStatus"]').forEach(function (el) {
       el.addEventListener('change', syncStatusUi);
     });
+    document.querySelectorAll('input[name="mallFormDisplaySalesMode"]').forEach(function (el) {
+      el.addEventListener('change', syncSalesInput);
+    });
     document.querySelectorAll('input[name="mallFormLimitType"]').forEach(function (el) {
       el.addEventListener('change', syncLimitUi);
     });
@@ -547,32 +728,50 @@
       });
     }
 
-    var specBody = document.getElementById('mallFormSpecBody');
+    var specList = document.getElementById('mallFormSkuList');
     var specImageInput = document.getElementById('mallFormSpecImageInput');
-    var pendingSpecImgIndex = -1;
-    if (specBody) {
-      specBody.addEventListener('change', function (e) {
-        var tr = e.target.closest('tr');
-        if (!tr) return;
-        if (e.target.getAttribute('data-field') === 'exchangeEnabled') {
-          syncSpecRowControls(tr, getExchangeType());
+    var pendingSpecImgCode = '';
+    if (specList) {
+      specList.addEventListener('click', function (e) {
+        var actEl = e.target.closest('[data-act]');
+        if (!actEl) return;
+        var panel = actEl.closest('[data-sku-id]');
+        if (!panel) return;
+        var id = panel.getAttribute('data-sku-id');
+        var spec = findSpec(id);
+        if (!spec) return;
+        readSkuCards();
+        if (actEl.getAttribute('data-act') === 'edit-spec-img') {
+          pendingSpecImgCode = id;
+          if (specImageInput) specImageInput.click();
+          return;
         }
-      });
-      specBody.addEventListener('click', function (e) {
-        var imgBtn = e.target.closest('[data-action="edit-spec-img"]');
-        if (!imgBtn || !specImageInput) return;
-        pendingSpecImgIndex = Number(imgBtn.getAttribute('data-spec-index'));
-        if (isNaN(pendingSpecImgIndex)) pendingSpecImgIndex = -1;
-        specImageInput.click();
+        if (actEl.getAttribute('data-act') === 'toggle-exchange') {
+          spec.exchangeEnabled = !spec.exchangeEnabled;
+          renderSkuCards();
+          toast(spec.exchangeEnabled ? '该规格已上架' : '该规格已下架');
+          return;
+        }
+        if (actEl.getAttribute('data-act') === 'remove-sku') {
+          if (selectedSkuIds.length <= 1) {
+            toast('至少保留一个规格', 'warning');
+            return;
+          }
+          selectedSkuIds = selectedSkuIds.filter(function (x) { return x !== id; });
+          spec.exchangeEnabled = false;
+          renderSkuCards();
+          toast('已移除该规格');
+        }
       });
     }
     if (specImageInput) {
       specImageInput.addEventListener('change', function () {
         var file = specImageInput.files && specImageInput.files[0];
-        var idx = pendingSpecImgIndex;
-        pendingSpecImgIndex = -1;
+        var code = pendingSpecImgCode;
+        pendingSpecImgCode = '';
         specImageInput.value = '';
-        if (!file || idx < 0 || !specs[idx]) return;
+        var spec = findSpec(code);
+        if (!file || !spec) return;
         if (!/^image\/(jpeg|png|gif|webp)$/i.test(file.type)) {
           toast('请上传 JPG/PNG/GIF/WEBP 格式图片', 'warning');
           return;
@@ -583,16 +782,63 @@
         }
         var reader = new FileReader();
         reader.onload = function () {
-          specs[idx].skuImg = String(reader.result || '');
-          var imgEl = document.querySelector(
-            '#mallFormSpecBody [data-action="edit-spec-img"][data-spec-index="' + idx + '"] img'
-          );
-          if (imgEl) imgEl.src = specs[idx].skuImg;
+          spec.skuImg = String(reader.result || '');
+          var imgEl = document.querySelector('#mallFormSkuList [data-sku-id="' + code + '"] .product-proxy-spec__thumb img');
+          if (imgEl) imgEl.src = spec.skuImg;
           toast('规格图片已更新', 'success');
         };
         reader.readAsDataURL(file);
       });
     }
+
+    var resetBtn = document.getElementById('mallFormResetSkuBtn');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', function () {
+        if (!specSnapshot) return;
+        if (!window.confirm('确认重置当前规格配置吗？重置后将恢复到进入编辑前的内容。')) return;
+        specs = cloneSpecs(specSnapshot.specs);
+        selectedSkuIds = specSnapshot.selected.slice();
+        renderSkuCards();
+        toast('规格已重置');
+      });
+    }
+
+    var trigger = document.getElementById('mallFormSkuTrigger');
+    var dropdown = document.getElementById('mallFormSkuDropdown');
+    var picker = document.getElementById('mallFormSkuPicker');
+    if (trigger && dropdown) {
+      trigger.addEventListener('click', function (ev) {
+        ev.stopPropagation();
+        dropdown.hidden = !dropdown.hidden;
+      });
+    }
+    if (dropdown) {
+      dropdown.addEventListener('change', function (ev) {
+        var box = ev.target.closest('[data-sku-pick]');
+        if (!box) return;
+        var id = box.getAttribute('data-sku-pick');
+        var spec = findSpec(id);
+        readSkuCards();
+        if (box.checked) {
+          if (selectedSkuIds.indexOf(id) < 0) selectedSkuIds.push(id);
+          if (spec && !spec.exchangeEnabled) spec.exchangeEnabled = true;
+        } else {
+          if (selectedSkuIds.length <= 1) {
+            box.checked = true;
+            toast('请至少保留一个 SKU', 'warning');
+            return;
+          }
+          selectedSkuIds = selectedSkuIds.filter(function (x) { return x !== id; });
+          if (spec) spec.exchangeEnabled = false;
+        }
+        renderSkuCards();
+      });
+    }
+    document.addEventListener('click', function (ev) {
+      if (!picker || !dropdown || dropdown.hidden) return;
+      if (picker.contains(ev.target)) return;
+      dropdown.hidden = true;
+    });
 
     var regionPickBtn = document.getElementById('mallSaleScopePickBtn');
     if (regionPickBtn) {

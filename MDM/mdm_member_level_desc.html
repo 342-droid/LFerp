@@ -7,116 +7,8 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
-    <style>
-        .member-level-desc-toolbar {
-            margin: 0 0 12px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .flow-box {
-            margin: 0 0 14px;
-            padding: 12px 14px;
-            background: #fafafa;
-            border: 1px solid #eee;
-            border-radius: 4px;
-            font-size: 13px;
-            color: #555;
-            line-height: 1.65;
-        }
-        .member-level-desc-card {
-            background: #fff;
-            border: 1px solid #eee;
-            border-radius: 4px;
-            padding: 16px;
-            margin-bottom: 24px;
-        }
-        .member-level-desc-field {
-            margin-bottom: 14px;
-        }
-        .member-level-desc-field label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 13px;
-            color: #333;
-            font-weight: 600;
-        }
-        .member-level-desc-field .erp-input {
-            width: 100%;
-            max-width: 560px;
-            height: 36px;
-            box-sizing: border-box;
-        }
-        .ml-editor {
-            border: 1px solid #dcdfe6;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        .ml-editor-toolbar {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 4px;
-            padding: 8px 10px;
-            background: #fafafa;
-            border-bottom: 1px solid #e8e8e8;
-        }
-        .ml-editor-toolbar button {
-            min-width: 28px;
-            height: 28px;
-            padding: 0 8px;
-            border: 1px solid transparent;
-            background: transparent;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 13px;
-            color: #333;
-        }
-        .ml-editor-toolbar button:hover {
-            background: #eee;
-            border-color: #ddd;
-        }
-        .ml-editor-toolbar .ml-toolbar-divider {
-            width: 1px;
-            height: 18px;
-            background: #ddd;
-            margin: 0 4px;
-        }
-        .ml-editor-body {
-            min-height: 420px;
-            padding: 16px 18px;
-            font-size: 14px;
-            line-height: 1.8;
-            color: #333;
-            outline: none;
-            background: #fff;
-        }
-        .ml-editor-body:empty::before {
-            content: attr(data-placeholder);
-            color: #bbb;
-        }
-        .ml-editor-body h3 {
-            font-size: 15px;
-            margin: 16px 0 8px;
-            font-weight: 600;
-        }
-        .ml-editor-body p {
-            margin: 0 0 10px;
-        }
-        .ml-editor-body img {
-            max-width: 100%;
-            height: auto;
-            display: block;
-            margin: 10px 0;
-            border-radius: 4px;
-        }
-        .member-level-desc-actions {
-            display: flex;
-            gap: 10px;
-            padding-bottom: 32px;
-        }
-    </style>
+    <link rel="stylesheet" href="../css/lf-mdm-edit-page.css">
+    <link rel="stylesheet" href="../css/lf-mdm-rule-desc.css">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -124,14 +16,17 @@
     <script src="../js/mdm-sidebar.js"></script>
     <div id="header-container"></div>
     <div class="container">
-        <main class="main-content">
-            <div class="content-tabs"><button class="active">规则说明</button></div>
+        <main class="main-content mdm-edit-page" data-rule-desc-kind="member">
+            <div class="content-tabs">
+                <button type="button" data-goto-page="mdm_member_level.html">会员等级</button>
+                <button type="button" class="active">规则说明</button>
+            </div>
             <hr class="content-divider">
 
             <div class="member-level-desc-card">
                 <div class="member-level-desc-field">
                     <label for="ruleDescTitle">说明标题</label>
-                    <input class="erp-input" id="ruleDescTitle" type="text" maxlength="50" placeholder="请输入规则说明标题">
+                    <input class="erp-input" id="ruleDescTitle" type="text" maxlength="50" placeholder="请输入会员规则说明标题">
                 </div>
                 <div class="member-level-desc-field">
                     <label>说明正文</label>
@@ -150,12 +45,12 @@
                             <button type="button" data-cmd="removeFormat" title="清除格式">清除</button>
                             <input type="file" id="ruleDescImageInput" accept="image/jpeg,image/png,image/gif,image/webp" hidden>
                         </div>
-                        <div class="ml-editor-body" id="ruleDescEditor" contenteditable="true" data-placeholder="请输入会员等级规则说明…"></div>
+                        <div class="ml-editor-body" id="ruleDescEditor" contenteditable="true" data-placeholder="请输入会员规则说明…"></div>
                     </div>
                 </div>
             </div>
 
-            <div class="member-level-desc-actions">
+            <div class="member-level-desc-actions mdm-edit-page__footer">
                 <button type="button" class="btn btn-secondary" id="btnDescReset">恢复默认</button>
                 <button type="button" class="btn btn-primary" id="btnDescSave">保存</button>
             </div>

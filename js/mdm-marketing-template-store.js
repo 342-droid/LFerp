@@ -608,10 +608,17 @@
     return null;
   }
 
-  function listActiveCoupons() {
+  function sceneForTemplateType(type) {
+    if (type === 'SIGN_IN') return 'SIGNIN';
+    if (type === 'TASK') return 'WATCH';
+    return 'BAG';
+  }
+
+  function listActiveCoupons(scene) {
     var CouponStore = global.MdmMarketingCouponStore;
+    var code = scene || 'BAG';
     if (CouponStore && typeof CouponStore.listSelectable === 'function') {
-      return CouponStore.listSelectable('MARKETING');
+      return CouponStore.listSelectable(code);
     }
     return list.filter(function (item) {
       return item.activityType === 'COUPON' && item.status === 'ACTIVE';
@@ -657,6 +664,7 @@
     setStatus: setStatus,
     listLogs: listLogs,
     findLog: findLog,
+    sceneForTemplateType: sceneForTemplateType,
     listActiveCoupons: listActiveCoupons,
     couponOptionLabel: couponOptionLabel,
     searchProducts: searchProducts,

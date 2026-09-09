@@ -579,9 +579,17 @@
   }
 
   function couponSelect(selected) {
-    var list = Store.listActiveCoupons();
+    var scene =
+      Store.sceneForTemplateType && edit && edit.base
+        ? Store.sceneForTemplateType(edit.base.activityType)
+        : 'BAG';
+    var list = Store.listActiveCoupons(scene);
+    var sceneName =
+      (window.MdmMarketingCouponStore && typeof window.MdmMarketingCouponStore.sceneLabel === 'function'
+        ? window.MdmMarketingCouponStore.sceneLabel(scene)
+        : '') || '福袋送券';
     if (!list.length) {
-      return '<option value="">暂无已启用且发放场景含「营销送券」的优惠券</option>';
+      return '<option value="">暂无已启用且发放场景含「' + escapeHtml(sceneName) + '」的优惠券</option>';
     }
     var opts = list
       .map(function (c) {

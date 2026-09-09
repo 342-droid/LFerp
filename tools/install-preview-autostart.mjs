@@ -23,10 +23,10 @@ const ps1 = [
   '$taskName = ' + psQuote(TASK_NAME),
   'Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue',
   '$action = New-ScheduledTaskAction -Execute ' + psQuote(nodePath) +
-    ' -Argument ' + psQuote('"' + scriptPath + '" --watch') +
+    ' -Argument ' + psQuote('"' + scriptPath + '" --ensure') +
     ' -WorkingDirectory ' + psQuote(ROOT),
   '$trigger = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME',
-  '$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1) -ExecutionTimeLimit ([TimeSpan]::Zero) -MultipleInstances IgnoreNew',
+  '$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1) -ExecutionTimeLimit ([TimeSpan]::Zero) -MultipleInstances IgnoreNew -Hidden',
   '$principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Limited',
   'Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force | Out-Null',
   'Write-Output ("registered " + $taskName)'

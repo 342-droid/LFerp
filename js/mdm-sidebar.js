@@ -35,6 +35,14 @@
             (currentPage === 'mdm_member_batch_tag_form' || currentPage === 'mdm_member_batch_tag_members')) {
             samePath = true;
         }
+        // 会员规则说明归属「会员等级」高亮
+        if (!samePath && hrefBase === 'mdm_member_level' && currentPage === 'mdm_member_level_desc') {
+            samePath = true;
+        }
+        // 成长值规则说明归属「成长值规则」高亮
+        if (!samePath && hrefBase === 'mdm_member_level_rule' && currentPage === 'mdm_member_level_rule_desc') {
+            samePath = true;
+        }
         // 消费送积分 / 积分抵现编辑页归属对应列表高亮
         if (!samePath && hrefBase === 'mdm_member_points_consume' && currentPage === 'mdm_member_points_consume_form') {
             samePath = true;
@@ -80,8 +88,7 @@
     const memberSystemItems = [
         { href: 'mdm_member_level.html', text: '会员等级' },
         { href: 'mdm_member_level_rule.html', text: '成长值规则' },
-        { href: 'mdm_member_level_growth.html', text: '成长值明细' },
-        { href: 'mdm_member_level_desc.html', text: '规则说明' }
+        { href: 'mdm_member_level_growth.html', text: '成长值明细' }
     ];
 
     /** 会员 · 积分管理 */

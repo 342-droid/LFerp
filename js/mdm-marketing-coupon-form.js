@@ -148,7 +148,7 @@
       if (mode === 'add' || mode === 'edit') {
         tip.hidden = false;
         tip.innerHTML =
-          '点击<strong>保存</strong>进入草稿，草稿不校验必填；点击<strong>提交</strong>需填齐全部必填项，并生成一条待审核记录进入审核中心-优惠券。';
+          '点击<strong>保存</strong>进入草稿，草稿不校验必填；点击<strong>提交</strong>需填齐全部必填项，并生成一条待审核记录进入审核中心-优惠券。禁用状态编辑后同样按保存/提交变为草稿或待审核。';
       } else if (mode === 'audit') {
         tip.hidden = false;
         tip.innerHTML = '以下为提交时的券模板全部信息，只读。审核通过后状态为<strong>审核成功</strong>，需运营再启用才可被各发放场景选择。';
