@@ -321,6 +321,16 @@
                 toast('成长值规则已保存', 'success');
             });
         }
+
+        document.querySelectorAll('[data-goto-page]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var name = btn.getAttribute('data-goto-page');
+                if (!name) return;
+                window.location.href = (window.wmsPath && typeof window.wmsPath.page === 'function')
+                    ? window.wmsPath.page(name)
+                    : name;
+            });
+        });
     }
 
     document.addEventListener('DOMContentLoaded', function () {

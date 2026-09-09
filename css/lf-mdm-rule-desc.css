@@ -1,0 +1,92 @@
+/**
+ * 会员规则说明 / 成长值规则说明 共用编辑样式
+ */
+.member-level-desc-card {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    padding: 16px;
+    margin-bottom: 24px;
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+}
+.member-level-desc-field {
+    margin-bottom: 14px;
+}
+.member-level-desc-field label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: #333;
+    font-weight: 600;
+}
+.member-level-desc-field .erp-input {
+    width: 100%;
+    max-width: none;
+    height: 36px;
+    box-sizing: border-box;
+}
+.ml-editor {
+    border: 1px solid #dcdfe6;
+    border-radius: 4px;
+    overflow: hidden;
+}
+.ml-editor-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 10px;
+    background: #fafafa;
+    border-bottom: 1px solid #e8e8e8;
+}
+.ml-editor-toolbar button {
+    min-width: 28px;
+    height: 28px;
+    padding: 0 8px;
+    border: 1px solid transparent;
+    background: transparent;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #333;
+}
+.ml-editor-toolbar button:hover {
+    background: #eee;
+    border-color: #ddd;
+}
+.ml-editor-toolbar .ml-toolbar-divider {
+    width: 1px;
+    height: 18px;
+    background: #ddd;
+    margin: 0 4px;
+}
+.ml-editor-body {
+    min-height: 420px;
+    padding: 16px 18px;
+    font-size: 14px;
+    line-height: 1.8;
+    color: #333;
+    outline: none;
+    background: #fff;
+}
+.ml-editor-body:empty::before {
+    content: attr(data-placeholder);
+    color: #bbb;
+}
+.ml-editor-body h3 {
+    font-size: 15px;
+    margin: 16px 0 8px;
+    font-weight: 600;
+}
+.ml-editor-body p {
+    margin: 0 0 10px;
+}
+.ml-editor-body img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 10px 0;
+    border-radius: 4px;
+}

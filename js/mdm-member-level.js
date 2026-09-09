@@ -111,12 +111,12 @@
         return '<span class="member-level-icon-cell member-level-icon-cell--empty">' + Data.escapeHtml(initial) + '</span>';
     }
 
-    function renderTable(pageItems, startIndex, total) {
+    function renderTable(pageItems, startIndex) {
         var tbody = document.getElementById('tableBody');
         if (!tbody) return;
 
         if (!pageItems.length) {
-            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#999;padding:24px;">暂无数据</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:#999;padding:24px;">暂无数据</td></tr>';
             return;
         }
 
@@ -139,7 +139,8 @@
                 : '<a href="#" data-action="toggle">' + toggleText + '</a>';
             return (
                 '<tr data-id="' + Data.escapeHtml(item.id) + '">' +
-                '<td>' + (total - startIndex - idx) + '</td>' +
+                '<td>' + (startIndex + idx + 1) + '</td>' +
+                '<td>' + Data.escapeHtml(item.id) + '</td>' +
                 '<td>' + renderLevelIconCell(item) + '</td>' +
                 '<td>' + Data.escapeHtml(item.name) + '</td>' +
                 '<td>' + growthLabel + '</td>' +
@@ -187,7 +188,7 @@
         if (state.page > totalPages) state.page = totalPages;
         var start = (state.page - 1) * state.pageSize;
         var pageItems = filtered.slice(start, start + state.pageSize);
-        renderTable(pageItems, start, total);
+        renderTable(pageItems, start);
         renderPagination(total);
     }
 
@@ -227,12 +228,15 @@
             });
         }
 
-        var descBtn = document.getElementById('btnGotoDesc');
-        if (descBtn) {
-            descBtn.addEventListener('click', function () {
-                window.location.href = 'mdm_member_level_desc.html';
+        document.querySelectorAll('[data-goto-page]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var name = btn.getAttribute('data-goto-page');
+                if (!name) return;
+                window.location.href = (window.wmsPath && typeof window.wmsPath.page === 'function')
+                    ? window.wmsPath.page(name)
+                    : name;
             });
-        }
+        });
 
         var queryBtn = document.getElementById('btnFilterQuery');
         if (queryBtn) {
