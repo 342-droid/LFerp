@@ -2951,7 +2951,7 @@
         var grid = el('div', 'supplier-detail-grid');
         var regionDisp = store.region ? store.region.replace(/\//g, ' / ') : '—';
 
-        grid.appendChild(detailCell('门店ID', store.storeId));
+        grid.appendChild(detailCell('门店编码', store.storeId));
         grid.appendChild(detailCell('主体名称', store.subjectName));
         grid.appendChild(detailCell('联系人', store.contact));
         grid.appendChild(detailCell('手机号码', store.phone));
@@ -5113,7 +5113,7 @@
             heroName: store.name,
             heroTags: store.detailTags,
             storeHoursStoreId: store.storeId,
-            metaLines: ['门店ID：' + store.storeId + ' · 所属组织：' + store.orgId],
+            metaLines: ['门店编码：' + store.storeId + ' · 所属组织：' + store.orgId],
             wideClass: 'store-drawer--store-wide',
             withFooter: false,
             tabIds: [

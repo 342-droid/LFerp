@@ -511,6 +511,56 @@
         status: 14,
         createTime: 15
     };
+    var archiveStorePage = null;
+
+    function escapeStoreCell(s) {
+        return String(s || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function appendArchiveStoreRow(data) {
+        if (!archiveStorePage || !data || !data.storeCode) return null;
+        var name = data.name || '新门店';
+        var row = archiveStorePage.addTableRow({
+            cells: [
+                escapeStoreCell(data.storeCode),
+                escapeStoreCell(data.subjectName || '—'),
+                '<a href="#" class="subject-name-link">' + escapeStoreCell(name) + '</a>',
+                escapeStoreCell(data.partner || '—'),
+                escapeStoreCell(data.storeType || '—'),
+                escapeStoreCell(data.bindBd || '—'),
+                escapeStoreCell(data.contact || '—'),
+                escapeStoreCell(data.phone || '—'),
+                escapeStoreCell(data.warehouse || '—'),
+                '营业中',
+                '',
+                '未进件',
+                '未提交',
+                '—',
+                { value: '正常', isStatus: true },
+                archiveStorePage.getCurrentTimeStr()
+            ]
+        });
+        if (!row) return null;
+        row.setAttribute('data-region', data.region || '');
+        row.setAttribute('data-address', data.address || '');
+        row.setAttribute('data-latlng', '—');
+        row.setAttribute('data-withdraw', '—');
+        row.setAttribute('data-settle-cycle', '—');
+        row.setAttribute('data-split', '关闭');
+        var hoursTd = row.querySelectorAll('td')[STORE_COL.hours];
+        if (hoursTd) {
+            hoursTd.classList.add('mdm-store-hours-td');
+            hoursTd.setAttribute('data-store-hours-col', '');
+        }
+        syncStoreReceiveFromArchiveRow(row);
+        refreshAllStoreHoursCells();
+        refreshStoreArchiveActions();
+        return row;
+    }
 
     function loadPlatformBusinessHoursForStore() {
         try {
@@ -739,10 +789,12 @@
 
     function seedDemoStoreHours() {
         var map = readStoreHoursMap();
-        if (!map.ONS303445581201) {
-            map.ONS303445581201 = { start: '09:00', end: '21:00' };
-            writeStoreHoursMap(map);
+        var migrated = window.MdmStoreCode && window.MdmStoreCode.migrateMapKeys(map);
+        if (!map.TSN00001) {
+            map.TSN00001 = { start: '09:00', end: '21:00' };
+            migrated = true;
         }
+        if (migrated) writeStoreHoursMap(map);
     }
 
     function storeRecordKey(id) {
@@ -817,9 +869,16 @@
 
     function seedStoreDemoBalancePayments() {
         var map = readStoreBalancePayments();
-        if (!map.ONS303445581201) map.ONS303445581201 = '已开通';
-        if (!map['ONS-CENTER-01']) map['ONS-CENTER-01'] = '已开通';
-        writeStoreBalancePayments(map);
+        var migrated = window.MdmStoreCode && window.MdmStoreCode.migrateMapKeys(map);
+        if (!map.TSN00001) {
+            map.TSN00001 = '已开通';
+            migrated = true;
+        }
+        if (!map.HGH00002) {
+            map.HGH00002 = '已开通';
+            migrated = true;
+        }
+        if (migrated) writeStoreBalancePayments(map);
     }
 
     function resolveSupplierBalancePayment(supplierId, onboardingDisplay) {
@@ -1064,6 +1123,7 @@
     function storeArchiveFilter(pm) {
         var tbody = document.getElementById(pm.config.tableBodyId);
         if (!tbody) return;
+        var qCode = (document.getElementById('qStoreCode') || {}).value.trim().toUpperCase();
         var qSub = (document.getElementById('qSubjectName') || {}).value.trim();
         var qStore = (document.getElementById('qStoreName') || {}).value.trim();
         var qOp = (document.getElementById('qStoreOpStatus') || {}).value.trim();
@@ -1076,6 +1136,7 @@
         tbody.querySelectorAll('tr').forEach(function (tr) {
             var cells = tr.querySelectorAll('td');
             if (cells.length < STORE_COL.status + 1) return;
+            var code = cells[0].textContent.trim().toUpperCase();
             var sub = cells[1].textContent.trim();
             /* 门店名称列可能含链接，取纯文本 */
             var sn = cells[2].textContent.trim();
@@ -1086,6 +1147,7 @@
             var stSpan = cells[STORE_COL.status].querySelector('.status');
             var stTxt = stSpan ? stSpan.textContent.trim() : '';
             var ok = true;
+            if (qCode && code.indexOf(qCode) === -1) ok = false;
             if (qSub && sub.indexOf(qSub) === -1) ok = false;
             if (qStore && sn.indexOf(qStore) === -1) ok = false;
             if (qOp && opTxt !== opMap[qOp]) ok = false;
@@ -1421,7 +1483,7 @@
 
     function initArchiveStore() {
         var fields = [
-            { id: 'storeId', label: '门店ID', type: 'text', editDisabled: true },
+            { id: 'storeId', label: '门店编码', type: 'text', editDisabled: true },
             { id: 'subjectName', label: '主体名称', type: 'text', editDisabled: true },
             { id: 'storeName', label: '门店名称', type: 'text', required: true },
             { id: 'contactPerson', label: '联系人', type: 'text', required: true },
@@ -1561,6 +1623,7 @@
                 }
             }
         });
+        archiveStorePage = pm;
         pm.init();
         seedStoreDemoBalancePayments();
         seedDemoStoreHours();
@@ -1582,6 +1645,7 @@
         });
         bindSimpleFilter(pm, {
             resetFields: [
+                'qStoreCode',
                 'qSubjectName',
                 'qStoreName',
                 'qStoreOpStatus',
@@ -4181,6 +4245,7 @@
 
     window.MdmErpLists = {
         initArchiveStore: initArchiveStore,
+        appendArchiveStoreRow: appendArchiveStoreRow,
         initArchiveSupplier: initArchiveSupplier,
         initArchiveWarehouse: initArchiveWarehouse,
         initArchiveLiveRoom: initArchiveLiveRoom,

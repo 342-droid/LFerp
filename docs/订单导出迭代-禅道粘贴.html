@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>订单导出迭代 · 复制后贴到禅道</title>
+  <style>
+    body { font-family: "PingFang SC", "Microsoft YaHei", sans-serif; padding: 24px; max-width: 880px; color: #333; line-height: 1.6; }
+    .tip { background: #fff7ef; border: 1px solid #ffd4b0; padding: 10px 14px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; }
+    #copyRoot table { border-collapse: collapse; width: 100%; margin: 10px 0 16px; }
+    #copyRoot th, #copyRoot td { border: 1px solid #d0d0d0; padding: 8px 10px; text-align: left; vertical-align: top; font-size: 14px; }
+    #copyRoot th { background: #f5f5f5; font-weight: 600; }
+    #copyRoot h2 { font-size: 18px; margin: 22px 0 8px; }
+    #copyRoot h3 { font-size: 16px; margin: 16px 0 8px; }
+    #copyRoot p { margin: 8px 0; }
+  </style>
+</head>
+<body>
+  <p class="tip">用法：用浏览器打开本页 → 选中下方正文全选复制 → 禅道描述里先点掉「&lt;/&gt;」源码按钮，再粘贴。不要直接贴 Markdown。</p>
+
+  <div id="copyRoot">
+    <p><strong>订单导出字段迭代</strong></p>
+    <table>
+      <tbody>
+        <tr><th>版本</th><td>v1.1</td><th>日期</th><td>2026-09-09</td><th>状态</th><td>已落地原型</td></tr>
+      </tbody>
+    </table>
+    <p>入口：零售订单、代采订单「导出订单」。粒度与生产一致：<strong>一个 SKU 一行</strong>，本期不改拆行。</p>
+    <p>只补字段和金额口径。导出清分明细、直播订单列表、列表表头本期不动。直播单、商城单都走零售订单，同一套导出。</p>
+    <p>列表没有的字段标「列表外」，可勾选一并导出，默认勾选。</p>
+
+    <h2>1. 本次字段</h2>
+    <p>原「实付金额」拆成两列；其余为新增。代采没有订单场景 / 直播场次，不导出「直播场次」。</p>
+    <table>
+      <thead>
+        <tr><th>字段</th><th>类型</th><th>位置</th><th>谁有</th><th>取值</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>实付金额（不含运费）</td>
+          <td>原「实付金额」拆出</td>
+          <td>列表内</td>
+          <td>零售、代采</td>
+          <td>订单实付去掉运费后，按该行商品金额占整单商品金额的比例分摊。末行吃分毫尾差，不再把整笔运费叠进最后一行实付。</td>
+        </tr>
+        <tr>
+          <td>实付金额（含分摊运费）</td>
+          <td>原「实付金额」拆出</td>
+          <td>列表内</td>
+          <td>零售、代采</td>
+          <td>该行「实付金额（不含运费）」+ 该行「分摊运费」。</td>
+        </tr>
+        <tr>
+          <td>商品编码</td>
+          <td>新增</td>
+          <td>列表外</td>
+          <td>零售、代采</td>
+          <td>该行 SKU 编码。无值「—」。</td>
+        </tr>
+        <tr>
+          <td>商品类目</td>
+          <td>新增</td>
+          <td>列表外</td>
+          <td>零售、代采</td>
+          <td>有档案类目用档案；没有则按品名归到选品库类目（水产海鲜 / 肉禽蛋品 / 时令水果 / 乳品烘焙 / 新鲜蔬菜 / 粮油调味 / 酒水饮料 / 其他）。</td>
+        </tr>
+        <tr>
+          <td>分摊运费</td>
+          <td>新增</td>
+          <td>列表外</td>
+          <td>零售、代采</td>
+          <td>本单运费按该行商品金额比例分摊，末行吃尾差。无运费 0.00。</td>
+        </tr>
+        <tr>
+          <td>退款金额</td>
+          <td>新增</td>
+          <td>列表外</td>
+          <td>零售、代采</td>
+          <td>该行已完成的商品售后退款 + 按同样比例分摊的已退运费。待审批、退款中等处理中金额不计入。无退款 0.00。</td>
+        </tr>
+        <tr>
+          <td>直播场次</td>
+          <td>新增</td>
+          <td>列表外</td>
+          <td>仅零售</td>
+          <td>该单所属直播场次名称。商城单或无场次为「—」。</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>2. 金额关系</h2>
+    <p>实付金额（含分摊运费）＝ 实付金额（不含运费）＋ 分摊运费。</p>
+    <p>验一笔：牛腩单实付 25、运费 10、已退运费 4 → 不含运费 15.00，分摊运费 10.00，含分摊运费 25.00，退款金额 4.00。</p>
+
+    <h2>3. 本期不做</h2>
+    <p>不改「一 SKU 一行」。不改导出清分明细。不改直播订单列表。列表不增加「商品编码 / 商品类目 / 分摊运费 / 退款金额 / 直播场次」列，只在导出里给。</p>
+  </div>
+</body>
+</html>

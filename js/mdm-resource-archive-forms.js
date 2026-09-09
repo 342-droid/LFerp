@@ -703,6 +703,53 @@
         { value: 'ANC5003', label: '郑可' }
     ];
 
+    function compactStoreRegion(path) {
+        if (window.MdmStoreCode && typeof window.MdmStoreCode.compactRegion === 'function') {
+            return window.MdmStoreCode.compactRegion(path);
+        }
+        return String(path || '')
+            .replace(/\s*\/\s*/g, '/')
+            .trim();
+    }
+
+    function bindStoreCodeField(refs, options) {
+        var existingCode = String((options && options.storeCode) || '').trim();
+        var originalRegion = '';
+        function refresh() {
+            var api = window.MdmStoreCode;
+            var region = refs.regionInp ? String(refs.regionInp.value || '').trim() : '';
+            if (!refs.codeInp) return;
+            if (!api) {
+                refs.codeInp.value = existingCode;
+                return;
+            }
+            if (existingCode) {
+                var oldCity = api.cityCodeOf(originalRegion);
+                var newCity = api.cityCodeOf(region);
+                if (originalRegion && newCity && oldCity && newCity !== oldCity) {
+                    refs.codeInp.value = api.peekNextCode(region, existingCode);
+                    refs.codeInp.setAttribute('data-reallocated', '1');
+                } else {
+                    refs.codeInp.value = existingCode;
+                    refs.codeInp.removeAttribute('data-reallocated');
+                }
+                return;
+            }
+            refs.codeInp.value = region ? api.peekNextCode(region) : '';
+            refs.codeInp.removeAttribute('data-reallocated');
+        }
+        refs.refreshStoreCode = refresh;
+        refs.captureOriginalRegion = function () {
+            originalRegion = refs.regionInp ? String(refs.regionInp.value || '').trim() : '';
+            refresh();
+        };
+        if (refs.regionInp) {
+            refs.regionInp.addEventListener('input', refresh);
+            refs.regionInp.addEventListener('change', refresh);
+        }
+        refresh();
+    }
+
     function createStoreFormBundle(options) {
         var opts = options || {};
         var optsInitialVenuePhotos = opts.initialVenuePhotos || {};
@@ -711,6 +758,16 @@
         body.appendChild(sectionTitle('基础信息'));
         refs.subjectSel = sel(STORE_SUBJECTS, '');
         body.appendChild(formRow('主体名称', true, refs.subjectSel));
+        var codeWrap = document.createElement('div');
+        refs.codeInp = txt('选择门店地址后由系统自动生成', opts.storeCode || '');
+        refs.codeInp.readOnly = true;
+        refs.codeInp.style.background = '#f5f5f5';
+        var codeTip = document.createElement('div');
+        codeTip.style.cssText = 'margin-top:6px;font-size:12px;color:#999;line-height:1.5;';
+        codeTip.textContent = '8 位编码：3 位城市码（IATA）+ 5 位顺序码；按城市自动生成，注销后不回收。';
+        codeWrap.appendChild(refs.codeInp);
+        codeWrap.appendChild(codeTip);
+        body.appendChild(formRow('门店编码', false, codeWrap));
         refs.contactInp = txt('请输入联系人', '');
         body.appendChild(formRow('联系人', true, refs.contactInp));
         var phoneRowWrap = smsRow();
@@ -766,12 +823,24 @@
         regionRow.appendChild(sfLabel('门店地址', true));
         var rc = document.createElement('div');
         rc.className = 'store-form__control';
-        var regHint = document.createElement('input');
-        regHint.type = 'text';
-        regHint.className = 'erp-input';
-        regHint.placeholder = '省 / 市 / 区（与 LF 级联选择器一致 · 演示可手输）';
-        refs.regionInp = regHint;
-        rc.appendChild(regHint);
+        var regionHidden = document.createElement('input');
+        regionHidden.type = 'hidden';
+        regionHidden.setAttribute('data-required-msg', '请选择门店地址');
+        refs.regionInp = regionHidden;
+        rc.appendChild(regionHidden);
+        if (window.MdmStoreRegionCascader && typeof window.MdmStoreRegionCascader.create === 'function') {
+            refs.regionCascader = window.MdmStoreRegionCascader.create(rc, '', {
+                onChange: function (path) {
+                    regionHidden.value = compactStoreRegion(path);
+                    if (typeof refs.refreshStoreCode === 'function') refs.refreshStoreCode();
+                }
+            });
+            rc.appendChild(refs.regionCascader.wrap);
+        } else {
+            regionHidden.type = 'text';
+            regionHidden.className = 'erp-input';
+            regionHidden.placeholder = '省 / 市 / 区';
+        }
         regionRow.appendChild(rc);
         body.appendChild(regionRow);
         var addressWrap = txtAreaWithCount('请输入详细地址，输入后将自动在地图上定位', 200, '');
@@ -882,11 +951,17 @@
             refs.partnerSel.value = pmap[cellPlainText(c[3])] || '';
             refs.storeTypeInp.value = cellPlainText(c[4]);
             refs.warehouseSel.value = guessWarehouseSelectValue(cellPlainText(c[8]));
-            refs.regionInp.value = cellPlainText(c[9]);
-            if (refs.addressTa) refs.addressTa.value = cellPlainText(c[10]);
+            var regionVal = tr.getAttribute('data-region') || '';
+            refs.regionInp.value = compactStoreRegion(regionVal);
+            if (refs.regionCascader && typeof refs.regionCascader.setValue === 'function') {
+                refs.regionCascader.setValue(regionVal);
+            }
+            if (refs.addressTa) refs.addressTa.value = tr.getAttribute('data-address') || '';
+            if (typeof refs.captureOriginalRegion === 'function') refs.captureOriginalRegion();
             syncPartner();
         }
 
+        bindStoreCodeField(refs, { storeCode: opts.storeCode || '' });
         return { body: body, fillFromArchiveRow: fillFromArchiveRow, refs: refs };
     }
 
@@ -1270,15 +1345,42 @@
         openStoreAdd: function () {
             var bundle = createStoreFormBundle({});
             attachWideModal('添加门店', bundle.body, function () {
-                var name =
-                    bundle.refs && bundle.refs.nameInp
-                        ? String(bundle.refs.nameInp.value || '').trim()
-                        : '';
-                var tempId = 'NEW-STORE-' + String(Date.now()).slice(-6);
-                writeVenuePhotos('store', tempId, collectVenuePhotosFromRefs(bundle.refs));
+                var refs = bundle.refs || {};
+                var name = refs.nameInp ? String(refs.nameInp.value || '').trim() : '';
+                var region = refs.regionInp ? String(refs.regionInp.value || '').trim() : '';
+                var api = window.MdmStoreCode;
+                if (!region) {
+                    if (typeof showToast === 'function') showToast('请选择门店地址以生成门店编码', 'error');
+                    return false;
+                }
+                var storeCode = api && typeof api.allocateNextCode === 'function' ? api.allocateNextCode(region) : '';
+                if (!storeCode) {
+                    if (typeof showToast === 'function') {
+                        showToast('所选城市暂无城市码，请联系 IT 分配后再建店', 'error');
+                    }
+                    return false;
+                }
+                if (refs.codeInp) refs.codeInp.value = storeCode;
+                writeVenuePhotos('store', storeCode, collectVenuePhotosFromRefs(refs));
                 /* 演示：亦按名称索引，便于列表尚未落库时进件带入 */
-                if (name) writeVenuePhotos('store', 'name:' + name, collectVenuePhotosFromRefs(bundle.refs));
-                syncStoreReceiveFromForm(tempId, name, bundle.refs);
+                if (name) writeVenuePhotos('store', 'name:' + name, collectVenuePhotosFromRefs(refs));
+                syncStoreReceiveFromForm(storeCode, name, refs);
+                var partnerMap = { franchise: '加盟店', partner: '合作店', peer: '同行店', fresh: '生鲜店' };
+                if (window.MdmErpLists && typeof window.MdmErpLists.appendArchiveStoreRow === 'function') {
+                    window.MdmErpLists.appendArchiveStoreRow({
+                        storeCode: storeCode,
+                        subjectName: selectedLabel(refs.subjectSel) || '—',
+                        name: name,
+                        partner: partnerMap[refs.partnerSel && refs.partnerSel.value] || '—',
+                        storeType: refs.storeTypeInp ? String(refs.storeTypeInp.value || '').trim() : '—',
+                        bindBd: selectedLabel(refs.bindBdSel) || '—',
+                        contact: refs.contactInp ? String(refs.contactInp.value || '').trim() : '—',
+                        phone: refs.phoneInp ? String(refs.phoneInp.value || '').trim() : '—',
+                        warehouse: selectedLabel(refs.warehouseSel) || '—',
+                        region: region,
+                        address: refs.addressTa ? String(refs.addressTa.value || '').trim() : ''
+                    });
+                }
             });
         },
         openStoreEdit: function (tr) {
@@ -1290,18 +1392,30 @@
             if (!initial.store_header_pic && storeName) {
                 initial = readVenuePhotos('store', 'name:' + storeName);
             }
-            var bundle = createStoreFormBundle({ initialVenuePhotos: initial });
+            var bundle = createStoreFormBundle({ initialVenuePhotos: initial, storeCode: storeId });
             bundle.fillFromArchiveRow(tr);
             attachWideModal('编辑门店', bundle.body, function () {
-                writeVenuePhotos('store', storeId, collectVenuePhotosFromRefs(bundle.refs));
+                var refs = bundle.refs || {};
+                var region = refs.regionInp ? String(refs.regionInp.value || '').trim() : '';
+                var nextCode = storeId;
+                var api = window.MdmStoreCode;
+                if (refs.codeInp && refs.codeInp.getAttribute('data-reallocated') === '1' && api) {
+                    nextCode = api.allocateNextCode(region, storeId) || storeId;
+                    if (refs.codeInp) refs.codeInp.value = nextCode;
+                    if (nextCode !== storeId && typeof showToast === 'function') {
+                        showToast('跨城搬迁已按新城市重新分配门店编码 ' + nextCode, 'success');
+                    }
+                }
+                if (cells[0] && nextCode) cells[0].textContent = nextCode;
+                if (region) tr.setAttribute('data-region', region);
+                if (refs.addressTa) tr.setAttribute('data-address', String(refs.addressTa.value || '').trim());
+                writeVenuePhotos('store', nextCode || storeId, collectVenuePhotosFromRefs(refs));
                 if (storeName) {
-                    writeVenuePhotos('store', 'name:' + storeName, collectVenuePhotosFromRefs(bundle.refs));
+                    writeVenuePhotos('store', 'name:' + storeName, collectVenuePhotosFromRefs(refs));
                 }
                 var nextName =
-                    bundle.refs && bundle.refs.nameInp
-                        ? String(bundle.refs.nameInp.value || '').trim()
-                        : storeName;
-                syncStoreReceiveFromForm(storeId, nextName || storeName, bundle.refs);
+                    refs.nameInp ? String(refs.nameInp.value || '').trim() : storeName;
+                syncStoreReceiveFromForm(nextCode || storeId, nextName || storeName, refs);
             });
         },
         openSupplierAdd: function () {

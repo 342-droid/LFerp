@@ -109,6 +109,7 @@
                     selected = prov + ' / ' + city + ' / ' + d;
                     syncTrigger();
                     panel.style.display = 'none';
+                    if (typeof opts.onChange === 'function') opts.onChange(selected);
                 });
                 colD.appendChild(item);
             });

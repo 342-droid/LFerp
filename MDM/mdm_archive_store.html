@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css?v=20260828-auth-5">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
     <style>
         .subject-name-link { color: #2196F3; text-decoration: none; font-weight: 600; }
         .subject-name-link:hover { text-decoration: underline; color: #1976D2; }
@@ -207,9 +208,16 @@
             <div class="content-tabs"><button class="active">门店档案</button></div>
             <hr class="content-divider">
             <div class="content-title">业务伙伴 / 资源中心 / 门店档案</div>
+            <div class="mdm-biz-tip" role="note">门店编码由系统按所选城市自动生成，格式为 <strong>3 位城市码 + 5 位顺序码</strong>（如 SHA00023）。一经分配不得重复使用，门店注销后顺序码不回收。</div>
 
             <section class="search-section">
                 <form class="search-form">
+                    <div class="form-group">
+                        <label>门店编码</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="qStoreCode" placeholder="如 SHA00023"><span class="clear-btn">×</span>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label>主体名称</label>
                         <div class="input-wrapper">
@@ -282,7 +290,7 @@
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>门店ID</th>
+                                <th>门店编码</th>
                                 <th>主体名称</th>
                                 <th>门店名称</th>
                                 <th>门店合作类型</th>
@@ -310,7 +318,7 @@
                                 data-settle-cycle="自然周"
                                 data-split="已开通"
                             >
-                                <td>ONS-CENTER-01</td>
+                                <td>HGH00002</td>
                                 <td>冷丰</td>
                                 <td><a href="#" class="subject-name-link">中心店01</a></td>
                                 <td>直营店</td>
@@ -336,7 +344,7 @@
                                 data-settle-cycle="—"
                                 data-split="未开通"
                             >
-                                <td>ONS307892038169264128</td>
+                                <td>BJS00001</td>
                                 <td>冷丰演示门店</td>
                                 <td><a href="#" class="subject-name-link">测试通知</a></td>
                                 <td>加盟店</td>
@@ -362,7 +370,7 @@
                                 data-settle-cycle="自然周"
                                 data-split="开启"
                             >
-                                <td>ONS303445581201</td>
+                                <td>TSN00001</td>
                                 <td>冷丰演示门店</td>
                                 <td><a href="#" class="subject-name-link">111</a></td>
                                 <td>合作店</td>
@@ -388,7 +396,7 @@
                                 data-settle-cycle="自然月"
                                 data-split="关闭"
                             >
-                                <td>ONS303445581202</td>
+                                <td>SHA00001</td>
                                 <td>五角场体验店</td>
                                 <td><a href="#" class="subject-name-link">DDD</a></td>
                                 <td>同行店</td>
@@ -414,7 +422,7 @@
                                 data-settle-cycle="—"
                                 data-split="关闭"
                             >
-                                <td>ONS303445581203</td>
+                                <td>HGH00001</td>
                                 <td>张江快闪店</td>
                                 <td><a href="#" class="subject-name-link">张三</a></td>
                                 <td>生鲜店</td>
@@ -445,25 +453,26 @@
     <script src="../js/modal-manager.js"></script>
     <script src="../js/page-manager.js"></script>
     <script src="../js/mdm-onboard-address.js?v=20260826-name-tip-wrap"></script>
-    <script src="../js/mdm-store-region-cascader.js?v=20260826-name-tip-wrap"></script>
+    <script src="../js/mdm-store-region-cascader.js?v=20260909-store-code"></script>
+    <script src="../js/mdm-store-code.js?v=20260909-store-code"></script>
     <script src="../js/mdm-subject-pagemanager.js?v=20260826-name-tip-wrap"></script>
     <script src="../js/mdm-unified-onboarding-ui.js?v=20260826-name-tip-wrap"></script>
-    <script src="../js/mdm-resource-archive-forms.js?v=20260828-fresh-franchise"></script>
+    <script src="../js/mdm-resource-archive-forms.js?v=20260909-store-code"></script>
     <script src="../js/order-config-ui.js"></script>
     <script src="../js/store-account-config.js?v=20260810-sac1"></script>
     <script src="../js/store-wallet-demo.js?v=20260908-in-transit"></script>
     <script src="../js/store-bind-card-demo.js?v=20260806-bank"></script>
     <script src="../store-app/js/store-app-biz-orders.js?v=20260828-earned-comm"></script>
-    <script src="../js/mdm-receive-address-store.js?v=20260904-recv-addr"></script>
-    <script src="../js/mdm-archive-detail-drawer.js?v=20260908-in-transit"></script>
+    <script src="../js/mdm-receive-address-store.js?v=20260909-store-code"></script>
+    <script src="../js/mdm-archive-detail-drawer.js?v=20260909-store-code"></script>
     <script src="../js/mdm-system-default-store.js?v=20260827-sys-default"></script>
-    <script src="../js/mdm-erp-lists.js?v=20260828-sys-default"></script>
+    <script src="../js/mdm-erp-lists.js?v=20260909-store-code"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         MdmErpLists.initArchiveStore();
     });
     </script>
-    <script src="../js/business-tag-prototype-store.js?v=20260905-product-tag-sync"></script>
+    <script src="../js/business-tag-prototype-store.js?v=20260909-store-code"></script>
     <script src="../js/business-tag-prototype-ui.js?v=20260905-product-tag-sync"></script>
     <script src="../js/business-tag-prototype-pages.js?v=20260905-product-tag-sync"></script>
 </body>

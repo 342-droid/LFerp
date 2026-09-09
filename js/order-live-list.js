@@ -1003,8 +1003,8 @@
     });
   }
 
-  var RETAIL_EXPORT_FIELDS_KEY = 'lfRetailOrderExportFields';
-  var PROXY_EXPORT_FIELDS_KEY = 'lfProxyOrderExportFields';
+  var RETAIL_EXPORT_FIELDS_KEY = 'lfRetailOrderExportFieldsV7';
+  var PROXY_EXPORT_FIELDS_KEY = 'lfProxyOrderExportFieldsV4';
   var RETAIL_CLEARING_EXPORT_FIELDS_KEY = 'lfRetailClearingExportFieldsV3';
   var PROXY_CLEARING_EXPORT_FIELDS_KEY = 'lfProxyClearingExportFieldsV3';
   var RETAIL_EXPORT_FIELDS = [
@@ -1013,7 +1013,8 @@
     { key: 'nickname', label: '用户昵称' },
     { key: 'receiverName', label: '收货人姓名' },
     { key: 'receiverPhone', label: '收货人电话' },
-    { key: 'goods', label: '商品信息' },
+    { key: 'goodsName', label: '商品名称' },
+    { key: 'spec', label: '规格' },
     { key: 'qty', label: '总件数' },
     { key: 'marketingType', label: '营销类型' },
     { key: 'payable', label: '应付金额' },
@@ -1021,13 +1022,19 @@
     { key: 'coupon', label: '优惠券' },
     { key: 'pointsUsed', label: '使用积分' },
     { key: 'pointsDeduct', label: '积分抵扣金额' },
-    { key: 'paid', label: '实付金额' },
+    { key: 'paidWithFreight', label: '实付金额（含分摊运费）' },
+    { key: 'paidWithoutFreight', label: '实付金额（不含运费）' },
     { key: 'scene', label: '订单场景' },
     { key: 'deliveryMode', label: '履约方式' },
     { key: 'payChannel', label: '支付渠道' },
     { key: 'store', label: '下单门店' },
     { key: 'payNo', label: '支付流水' },
     { key: 'orderStatus', label: '订单状态' },
+    { key: 'skuCode', label: '商品编码', extra: true },
+    { key: 'category', label: '商品类目', extra: true },
+    { key: 'allocatedFreight', label: '分摊运费', extra: true },
+    { key: 'refundAmount', label: '退款金额', extra: true },
+    { key: 'liveSession', label: '直播场次', extra: true },
     { key: 'address', label: '收货地址', extra: true },
     { key: 'aftersaleStatus', label: '售后状态', extra: true }
   ];
@@ -1037,19 +1044,25 @@
     { key: 'nickname', label: '用户昵称' },
     { key: 'receiverName', label: '收货人姓名' },
     { key: 'receiverPhone', label: '收货人电话' },
-    { key: 'goods', label: '商品信息' },
+    { key: 'goodsName', label: '商品名称' },
+    { key: 'spec', label: '规格' },
     { key: 'qty', label: '总件数' },
     { key: 'payable', label: '应付金额' },
     { key: 'discount', label: '优惠金额' },
     { key: 'coupon', label: '优惠券' },
     { key: 'pointsUsed', label: '使用积分' },
     { key: 'pointsDeduct', label: '积分抵扣金额' },
-    { key: 'paid', label: '实付金额' },
+    { key: 'paidWithFreight', label: '实付金额（含分摊运费）' },
+    { key: 'paidWithoutFreight', label: '实付金额（不含运费）' },
     { key: 'payChannel', label: '支付渠道' },
     { key: 'deliveryMode', label: '履约方式' },
     { key: 'store', label: '下单门店' },
     { key: 'payNo', label: '支付流水' },
     { key: 'orderStatus', label: '订单状态' },
+    { key: 'skuCode', label: '商品编码', extra: true },
+    { key: 'category', label: '商品类目', extra: true },
+    { key: 'allocatedFreight', label: '分摊运费', extra: true },
+    { key: 'refundAmount', label: '退款金额', extra: true },
     { key: 'address', label: '收货地址', extra: true },
     { key: 'aftersaleStatus', label: '售后状态', extra: true }
   ];
@@ -1243,6 +1256,345 @@
     return window.OrderLiveDetail.resolveDetail(orderId, row);
   }
 
+  function getOrderExportDataCells(row) {
+    return Array.prototype.filter.call(row.querySelectorAll('td'), function (td) {
+      return (
+        !td.classList.contains('order-live-table__check-col') &&
+        !td.classList.contains('lf-row-no-td') &&
+        !td.classList.contains('order-live-table__sticky-col')
+      );
+    });
+  }
+
+  function cellTextOf(cells, index) {
+    var td = cells[index];
+    return td ? String(td.textContent || '').replace(/\s+/g, ' ').trim() : '';
+  }
+
+  function parseMoneyYuan(v) {
+    var n = parseFloat(String(v == null ? '' : v).replace(/[^\d.-]/g, ''));
+    return isNaN(n) ? 0 : n;
+  }
+
+  function yuanToCents(v) {
+    return Math.round(parseMoneyYuan(v) * 100);
+  }
+
+  function centsToYuanText(cents) {
+    return (cents / 100).toFixed(2);
+  }
+
+  function skuAmountCents(item) {
+    if (item && item.subtotal) return Math.abs(yuanToCents(item.subtotal));
+    var price = Math.abs(yuanToCents(item && item.price));
+    var qty = parseInt(String((item && item.qty) || '1').replace(/\D/g, ''), 10) || 1;
+    return price * qty;
+  }
+
+  function allocateCents(totalCents, weights) {
+    var n = weights.length;
+    var out = [];
+    var sumW = 0;
+    var i;
+    for (i = 0; i < n; i++) sumW += weights[i];
+    if (!n) return out;
+    if (!totalCents || sumW <= 0) {
+      for (i = 0; i < n; i++) out.push(0);
+      return out;
+    }
+    var used = 0;
+    for (i = 0; i < n; i++) {
+      if (i === n - 1) {
+        out.push(totalCents - used);
+      } else {
+        var share = Math.round((totalCents * weights[i]) / sumW);
+        out.push(share);
+        used += share;
+      }
+    }
+    return out;
+  }
+
+  function resolveOrderFreightCents(detail) {
+    if (detail && detail.freight && detail.freight.original != null) {
+      return Math.max(0, yuanToCents(detail.freight.original));
+    }
+    return Math.max(0, yuanToCents(detail && detail.amounts && detail.amounts.shipping));
+  }
+
+  /**
+   * 商品实付 = 订单实付去掉运费后，按商品金额比例分摊。
+   * 若订单实付已含运费则先扣除；末行吃分摊尾差，不再把整笔运费叠进最后一条实付。
+   */
+  function resolveGoodsPaidCents(amounts, freightCents) {
+    var paid = yuanToCents(amounts && amounts.paid);
+    var goods = yuanToCents(amounts && amounts.goods);
+    var discount = yuanToCents(amounts && amounts.discount);
+    var withFreight = goods + discount + freightCents;
+    var noFreight = goods + discount;
+    if (Math.abs(paid - withFreight) <= 1) return Math.max(0, paid - freightCents);
+    if (Math.abs(paid - noFreight) <= 1) return Math.max(0, paid);
+    return Math.max(0, paid - freightCents);
+  }
+
+  function resolveGoodsExportName(item, fallback) {
+    var name = item && item.name ? String(item.name).trim() : '';
+    return name || fallback || '—';
+  }
+
+  function resolveGoodsExportSpec(item) {
+    var spec = item && (item.spec || item.skuName);
+    spec = String(spec || '')
+      .replace(/^规格：/, '')
+      .trim();
+    return spec || '—';
+  }
+
+  /** 列表无「商品类目」列：导出按商品明细取类目，无值时按品名归到选品库类目 */
+  function resolveGoodsCategory(item) {
+    var raw = item && (item.category || item.categoryName || item.cateName);
+    if (raw && String(raw).trim()) return String(raw).trim();
+    var name = String((item && item.name) || '');
+    if (/虾|鱼|蟹|贝|海鲜/.test(name)) return '水产海鲜';
+    if (/牛|猪|羊|鸡|鸭|肉|蛋/.test(name)) return '肉禽蛋品';
+    if (/车厘子|橙|瓜|莓|蕉|果|苹/.test(name)) return '时令水果';
+    if (/奶|酸奶|乳/.test(name)) return '乳品烘焙';
+    if (/萝卜|菜|茄|椒/.test(name)) return '新鲜蔬菜';
+    if (/油|米|面|调味|干/.test(name)) return '粮油调味';
+    if (/酒|水|饮料|茶/.test(name)) return '酒水饮料';
+    return '其他';
+  }
+
+  function isFreightRefundAftersale(item) {
+    return !!(
+      item &&
+      (item.refundScene === 'ORDER_FREIGHT' || item.type === '退运费')
+    );
+  }
+
+  /** 处理中不计入退款合计，与订单详情一致 */
+  function isCompletedMoneyRefund(item) {
+    if (!item || item.type === '补货') return false;
+    var st = item.status || '';
+    return st === '已完成' || st === '退款成功';
+  }
+
+  function aftersaleRefundCents(item) {
+    if (!item) return 0;
+    return Math.max(
+      0,
+      yuanToCents(item.refundSubtotal != null ? item.refundSubtotal : item.refundAmount)
+    );
+  }
+
+  function goodsMatchesAftersale(item, aftersale) {
+    if (!item || !aftersale) return false;
+    if (aftersale.goodId && item.id && aftersale.goodId === item.id) return true;
+    return !!(aftersale.productName && item.name && aftersale.productName === item.name);
+  }
+
+  /**
+   * 一行商品的退款金额 = 已完成商品售后 + 分摊已退运费。
+   * 无售后明细时，按订单退款合计比例分摊。
+   */
+  function resolveSkuRefundCents(goods, aftersales, detail) {
+    var n = goods.length;
+    var out = [];
+    var i;
+    for (i = 0; i < n; i++) out.push(0);
+    if (!n) return out;
+
+    (aftersales || []).forEach(function (as) {
+      if (!isCompletedMoneyRefund(as) || isFreightRefundAftersale(as)) return;
+      var cents = aftersaleRefundCents(as);
+      if (!cents) return;
+      var idx = -1;
+      for (i = 0; i < n; i++) {
+        if (goodsMatchesAftersale(goods[i], as)) {
+          idx = i;
+          break;
+        }
+      }
+      if (idx < 0 && n === 1) idx = 0;
+      if (idx >= 0) out[idx] += cents;
+    });
+
+    var freightRefunded = 0;
+    if (detail && detail.freight && detail.freight.refunded != null) {
+      freightRefunded = Math.max(0, yuanToCents(detail.freight.refunded));
+    } else {
+      (aftersales || []).forEach(function (as) {
+        if (!isCompletedMoneyRefund(as) || !isFreightRefundAftersale(as)) return;
+        freightRefunded += aftersaleRefundCents(as);
+      });
+    }
+    var freightParts = allocateCents(freightRefunded, goods.map(skuAmountCents));
+    for (i = 0; i < n; i++) out[i] += freightParts[i] || 0;
+
+    var assigned = 0;
+    for (i = 0; i < n; i++) assigned += out[i];
+    var orderRefund = Math.max(0, yuanToCents(detail && detail.amounts && detail.amounts.refund));
+    if (orderRefund > 0 && assigned === 0) {
+      return allocateCents(orderRefund, goods.map(skuAmountCents));
+    }
+    if (orderRefund > assigned) {
+      var leftover = allocateCents(orderRefund - assigned, goods.map(skuAmountCents));
+      for (i = 0; i < n; i++) out[i] += leftover[i] || 0;
+    }
+    return out;
+  }
+
+  function resolveLiveSessionExport(row, detail) {
+    var fromRow = row && row.getAttribute('data-live-session');
+    fromRow = String(fromRow || '').trim();
+    if (fromRow) return fromRow;
+    var tags = detail && detail.tags;
+    var fromDetail = tags && (tags.liveSession || tags.livePeriod);
+    fromDetail = String(fromDetail || '').trim();
+    if (fromDetail && fromDetail !== '-') return fromDetail;
+    return '—';
+  }
+
+  function getOrderExportColMap() {
+    if (isRetailOrderPage()) {
+      return {
+        orderNo: 0,
+        orderTime: 1,
+        nickname: 2,
+        receiverName: 3,
+        receiverPhone: 4,
+        goods: 5,
+        qty: 6,
+        marketingType: 7,
+        payable: 8,
+        discount: 9,
+        coupon: 10,
+        pointsUsed: 11,
+        pointsDeduct: 12,
+        paid: 13,
+        scene: 14,
+        deliveryMode: 15,
+        payChannel: 16,
+        store: 17,
+        payNo: 18,
+        orderStatus: 19
+      };
+    }
+    return {
+      orderNo: 0,
+      orderTime: 1,
+      nickname: 2,
+      receiverName: 3,
+      receiverPhone: 4,
+      goods: 5,
+      qty: 6,
+      payable: 7,
+      discount: 8,
+      coupon: 9,
+      pointsUsed: 10,
+      pointsDeduct: 11,
+      paid: 12,
+      payChannel: 13,
+      deliveryMode: 14,
+      store: 15,
+      payNo: 16,
+      orderStatus: 17
+    };
+  }
+
+  function collectOrderGoodsExportLines(row) {
+    var cells = getOrderExportDataCells(row);
+    var col = getOrderExportColMap();
+    var detail = resolveOrderDetailForExport(row) || {};
+    var goods = Array.isArray(detail.goods) && detail.goods.length ? detail.goods : [{}];
+    var freightCents = resolveOrderFreightCents(detail);
+    var goodsPaidCents = resolveGoodsPaidCents(detail.amounts, freightCents);
+    var weights = goods.map(skuAmountCents);
+    var paidParts = allocateCents(goodsPaidCents, weights);
+    var freightParts = allocateCents(freightCents, weights);
+    var refundParts = resolveSkuRefundCents(goods, detail.aftersales, detail);
+    var aftersaleStatus = '';
+    if (window.OrderLiveDetail && typeof window.OrderLiveDetail.getOrderAftersaleStatus === 'function') {
+      aftersaleStatus = window.OrderLiveDetail.getOrderAftersaleStatus(
+        row.getAttribute('data-order-id'),
+        row
+      ) || '';
+    } else {
+      aftersaleStatus = row.getAttribute('data-as-status') || '';
+    }
+    var base = {
+      orderNo: cellTextOf(cells, col.orderNo),
+      orderTime: cellTextOf(cells, col.orderTime),
+      nickname: cellTextOf(cells, col.nickname),
+      receiverName: cellTextOf(cells, col.receiverName),
+      receiverPhone: cellTextOf(cells, col.receiverPhone),
+      qty: cellTextOf(cells, col.qty),
+      marketingType: col.marketingType != null ? cellTextOf(cells, col.marketingType) : '',
+      payable: cellTextOf(cells, col.payable),
+      discount: cellTextOf(cells, col.discount),
+      coupon: cellTextOf(cells, col.coupon),
+      pointsUsed: cellTextOf(cells, col.pointsUsed),
+      pointsDeduct: cellTextOf(cells, col.pointsDeduct),
+      scene: col.scene != null ? cellTextOf(cells, col.scene) : '',
+      deliveryMode: cellTextOf(cells, col.deliveryMode),
+      payChannel: cellTextOf(cells, col.payChannel),
+      store: cellTextOf(cells, col.store),
+      payNo: cellTextOf(cells, col.payNo),
+      orderStatus: cellTextOf(cells, col.orderStatus),
+      address: (detail.delivery && (detail.delivery.address || detail.delivery.homeAddress)) || '—',
+      aftersaleStatus: aftersaleStatus || '—',
+      liveSession: resolveLiveSessionExport(row, detail)
+    };
+    return goods.map(function (item, index) {
+      return Object.assign({}, base, {
+        goodsName: resolveGoodsExportName(item, cellTextOf(cells, col.goods)),
+        spec: resolveGoodsExportSpec(item),
+        skuCode: (item && (item.sku || item.skuCode || item.spu)) || '—',
+        category: resolveGoodsCategory(item),
+        allocatedFreight: centsToYuanText(freightParts[index] || 0),
+        paidWithoutFreight: centsToYuanText(paidParts[index] || 0),
+        paidWithFreight: centsToYuanText((paidParts[index] || 0) + (freightParts[index] || 0)),
+        refundAmount: centsToYuanText(refundParts[index] || 0)
+      });
+    });
+  }
+
+  function collectOrderExportRecords(spec, orderRows) {
+    var records = [];
+    (orderRows || []).forEach(function (row) {
+      if (spec.kind === 'order') {
+        records = records.concat(collectOrderGoodsExportLines(row));
+      }
+    });
+    return records;
+  }
+
+  function csvEscape(value) {
+    var s = String(value == null ? '' : value);
+    if (/[",\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  }
+
+  function buildOrderExportCsv(spec, fieldKeys, records) {
+    var fields = (spec.fields || []).filter(function (f) {
+      return fieldKeys.indexOf(f.key) >= 0;
+    });
+    var header = fields.map(function (f) {
+      return csvEscape(f.label);
+    }).join(',');
+    var lines = [header];
+    records.forEach(function (rec) {
+      lines.push(
+        fields
+          .map(function (f) {
+            return csvEscape(rec[f.key]);
+          })
+          .join(',')
+      );
+    });
+    return '\ufeff' + lines.join('\r\n');
+  }
+
   /** 范围内有清分数据的行数：SKU 清分项优先，否则门店明细 */
   function countClearingExportRows(orderRows) {
     var count = 0;
@@ -1337,14 +1689,30 @@
       String(now.getDate()).padStart(2, '0');
     var scopeLabel = scope === 'selected' ? '勾选数据' : '所有查询数据';
     var sourceRows = scope === 'selected' ? getCheckedOrderListRows(spec) : getVisibleOrderListRows();
-    var count = spec.kind === 'clearing' ? countClearingExportRows(sourceRows) : sourceRows.length;
-    var unit = spec.kind === 'clearing' ? '条清分明细' : '条';
+    var exportRecords = spec.kind === 'order' ? collectOrderExportRecords(spec, sourceRows) : [];
+    var count =
+      spec.kind === 'clearing'
+        ? countClearingExportRows(sourceRows)
+        : spec.kind === 'order'
+          ? exportRecords.length
+          : sourceRows.length;
+    var unit =
+      spec.kind === 'clearing'
+        ? '条清分明细'
+        : spec.kind === 'order'
+          ? '条商品明细'
+          : '条';
+    var csvContent =
+      spec.kind === 'order' ? buildOrderExportCsv(spec, fieldKeys, exportRecords) : '';
+    var fileExt = spec.kind === 'order' ? '.csv' : '.xlsx';
     if (window.LfFileCenterNotify && typeof window.LfFileCenterNotify.bump === 'function') {
       window.LfFileCenterNotify.bump(
         {
           title: spec.taskTitle || '订单列表导出',
           type: spec.taskType || 'order-list-export',
-          fileName: spec.filePrefix + stamp + '.xlsx'
+          fileName: spec.filePrefix + stamp + fileExt,
+          csvContent: csvContent,
+          size: csvContent ? (csvContent.length / 1024).toFixed(1) + ' KB' : undefined
         },
         { fromEl: triggerEl, toast: false }
       );

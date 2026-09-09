@@ -216,7 +216,8 @@
         downloadCount: task.downloadCount || 0,
         submitTime: task.submitTime,
         expireTime: task.expireTime,
-        mine: true
+        mine: true,
+        csvContent: task.csvContent || ''
       };
       MY_FILES.unshift(row);
       ALL_FILES.unshift(row);
@@ -552,16 +553,23 @@
     if (typeof showToast === 'function') {
       showToast('开始下载：' + file.fileName, 'success');
     }
-    /* 生成演示文本文件供浏览器下载 */
+    /* 有真实导出内容则下载 CSV，否则给演示占位文本 */
     try {
+      var hasCsv = !!(file.csvContent && String(file.csvContent).trim());
       var blob = new Blob(
-        ['演示导出文件\n任务号：' + file.taskNo + '\n文件名：' + file.fileName + '\n'],
-        { type: 'text/plain;charset=utf-8' }
+        [
+          hasCsv
+            ? file.csvContent
+            : '演示导出文件\n任务号：' + file.taskNo + '\n文件名：' + file.fileName + '\n'
+        ],
+        { type: hasCsv ? 'text/csv;charset=utf-8' : 'text/plain;charset=utf-8' }
       );
       var url = URL.createObjectURL(blob);
       var a = document.createElement('a');
       a.href = url;
-      a.download = String(file.fileName || 'export.txt').replace(/\.xlsx$/i, '.txt');
+      a.download = hasCsv
+        ? String(file.fileName || 'export.csv').replace(/\.xlsx$/i, '.csv')
+        : String(file.fileName || 'export.txt').replace(/\.xlsx$/i, '.txt');
       document.body.appendChild(a);
       a.click();
       a.remove();

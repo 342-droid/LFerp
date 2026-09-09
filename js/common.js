@@ -968,7 +968,7 @@ if (document.readyState === 'loading') {
         if (/\/(shop-h5|user-app|store-app)\//i.test(window.location.pathname || '')) return;
         var s = document.createElement('script');
         s.id = 'lf-fab-dock-js';
-        s.src = assetUrl('js/lf-fab-dock.js') + '?v=20260820-file-only';
+        s.src = assetUrl('js/lf-fab-dock.js') + '?v=20260909-sku-freight';
         s.async = false;
         (document.body || document.head).appendChild(s);
     }

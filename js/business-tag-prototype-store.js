@@ -32,9 +32,9 @@
     },
     bindings: {
       STORE: {
-        ONS307892038169264128: ['store-focus'],
-        ONS303445581201: ['store-delivery'],
-        ONS303445581202: ['store-focus', 'store-new']
+        BJS00001: ['store-focus'],
+        TSN00001: ['store-delivery'],
+        SHA00001: ['store-focus', 'store-new']
       },
       AFTER_SALE: {}
     }
@@ -97,6 +97,8 @@
       });
       if (!next.bindings[type] || typeof next.bindings[type] !== 'object') {
         next.bindings[type] = clone(DEFAULTS.bindings[type]);
+      } else if (type === 'STORE' && window.MdmStoreCode && window.MdmStoreCode.migrateMapKeys) {
+        window.MdmStoreCode.migrateMapKeys(next.bindings.STORE);
       }
     });
     return next;

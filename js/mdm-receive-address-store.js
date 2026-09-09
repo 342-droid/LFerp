@@ -410,7 +410,7 @@
 
         var stores = [
             {
-                id: 'ONS-CENTER-01',
+                id: 'HGH00002',
                 name: '中心店01',
                 contactName: '喻巧',
                 phone: '15395629562',

@@ -737,10 +737,10 @@
       amounts: {
         goods: '¥0.40',
         discount: '¥0.00',
-        shipping: '¥0.00',
-        payable: '¥0.40',
-        paid: '¥0.40',
-        merchant: '¥0.40',
+        shipping: '¥6.00',
+        payable: '¥6.40',
+        paid: '¥6.40',
+        merchant: '¥6.40',
         refund: '¥0.00'
       },
       paymentCount: 4,

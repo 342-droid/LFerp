@@ -144,7 +144,8 @@
       submitTime: formatDateTime(now),
       expireTime: formatDateTime(expire),
       mine: true,
-      queuedAt: now.getTime()
+      queuedAt: now.getTime(),
+      csvContent: (meta && meta.csvContent) || ''
     };
   }
 
