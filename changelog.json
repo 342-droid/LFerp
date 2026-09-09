@@ -1,10 +1,293 @@
 {
-  "latestSha": "21c193d91813a47381e398141178bb950f773311",
-  "total": 377,
+  "latestSha": "446c1addbdc30ddd2436ea3a60006cd5b8bb9ee2",
+  "total": 378,
   "days": [
     {
       "date": "2026-09-09",
       "items": [
+        {
+          "sha": "446c1ad",
+          "type": "feat",
+          "text": "完善积分规则操作日志、明细命中规则和全局开关下线",
+          "author": "zhangzheng",
+          "time": "18:55",
+          "pages": [
+            {
+              "file": "MDM/mdm_live_control.html",
+              "module": "冷丰WMS",
+              "title": "直播中控"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "module": "冷丰WMS",
+              "title": "直播排品编辑"
+            },
+            {
+              "file": "MDM/mdm_live_session_detail.html",
+              "module": "冷丰WMS",
+              "title": "直播场次详情"
+            },
+            {
+              "file": "MDM/mdm_live_session_form.html",
+              "module": "冷丰WMS",
+              "title": "直播场次编辑"
+            },
+            {
+              "file": "MDM/mdm_marketing_coupon_form.html",
+              "module": "冷丰WMS",
+              "title": "优惠券"
+            },
+            {
+              "file": "MDM/mdm_marketing_points_mall.html",
+              "module": "冷丰WMS",
+              "title": "积分商城"
+            },
+            {
+              "file": "MDM/mdm_marketing_points_mall_form.html",
+              "module": "冷丰WMS",
+              "title": "编辑积分商品"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "module": "冷丰WMS",
+              "title": "秒杀活动"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "module": "冷丰WMS",
+              "title": "编辑秒杀商品"
+            },
+            {
+              "file": "MDM/mdm_member_level_form.html",
+              "module": "冷丰WMS",
+              "title": "会员等级配置"
+            },
+            {
+              "file": "MDM/mdm_member_points_cash.html",
+              "module": "冷丰WMS",
+              "title": "积分抵现"
+            },
+            {
+              "file": "MDM/mdm_member_points_cash_form.html",
+              "module": "冷丰WMS",
+              "title": "积分抵现"
+            },
+            {
+              "file": "MDM/mdm_member_points_consume.html",
+              "module": "冷丰WMS",
+              "title": "消费送积分"
+            },
+            {
+              "file": "MDM/mdm_member_points_consume_form.html",
+              "module": "冷丰WMS",
+              "title": "消费送积分"
+            },
+            {
+              "file": "MDM/mdm_member_points_detail.html",
+              "module": "冷丰WMS",
+              "title": "积分明细"
+            },
+            {
+              "file": "MDM/mdm_member_points_rule.html",
+              "module": "冷丰WMS",
+              "title": "积分规则"
+            },
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "module": "冷丰订单",
+              "title": "订单截单"
+            },
+            {
+              "file": "SCM/basic_settings_contract_config.html",
+              "module": "冷丰WMS",
+              "title": "接入配置"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_detail.html",
+              "module": "冷丰WMS",
+              "title": "签署任务详情"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template_form.html",
+              "module": "冷丰WMS",
+              "title": "合同模板配置"
+            },
+            {
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
+            },
+            {
+              "file": "user-app/h5/account-cancel.html",
+              "module": "",
+              "title": "账号注销 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/category.html",
+              "module": "",
+              "title": "分类 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/feedback.html",
+              "module": "",
+              "title": "意见反馈 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "module": "",
+              "title": "商城 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/member-center.html",
+              "module": "",
+              "title": "会员中心 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/points-detail.html",
+              "module": "",
+              "title": "积分明细 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/points-mall.html",
+              "module": "",
+              "title": "积分商城 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/points-order-confirm.html",
+              "module": "",
+              "title": "确认兑换 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/points-product-detail.html",
+              "module": "",
+              "title": "积分商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/points-rule-desc.html",
+              "module": "",
+              "title": "规则说明 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile-edit.html",
+              "module": "",
+              "title": "会员资料 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/report-records.html",
+              "module": "",
+              "title": "举报记录 · 用户 APP"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_member_points_rule.html",
+              "text": "去掉底栏「重置」；操作日志抽屉与优惠券一致；保存配置走独立权限点，页面不放勾选"
+            },
+            {
+              "file": "MDM/mdm_member_points_consume.html",
+              "text": "列表增加「查看」只读打开规则，并支持操作日志抽屉；查看态控件全禁用、无保存仅返回"
+            },
+            {
+              "file": "MDM/mdm_member_points_cash.html",
+              "text": "列表增加「查看」只读打开规则，并支持操作日志抽屉；查看态控件全禁用、无保存仅返回"
+            },
+            {
+              "file": "MDM/mdm_member_points_detail.html",
+              "text": "变动后余额后展示「命中规则ID」，橙色可点打开对应规则只读页"
+            },
+            {
+              "file": "MDM/mdm_live_control.html",
+              "text": "积分总开关关闭时拦截福袋积分发放"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "text": "总开关关闭时隐藏「我的积分」入口"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "text": "总开关关闭时不展示积分抵现"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "text": "总开关关闭时隐藏积分抵现；会员折扣与券互斥、可与积分抵现同享"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "text": "总开关关闭时观看任务不再发积分"
+            },
+            {
+              "file": "user-app/h5/points-detail.html",
+              "text": "挂上【670】浮窗"
+            },
+            {
+              "file": "user-app/h5/points-mall.html",
+              "text": "总开关关闭兑换提示「积分能力已下线」；挂上【670】浮窗"
+            },
+            {
+              "file": "user-app/h5/points-order-confirm.html",
+              "text": "总开关关闭拦截兑换；积分兑换不可与优惠券、积分抵现同享"
+            },
+            {
+              "file": "user-app/h5/points-product-detail.html",
+              "text": "总开关关闭后拦截兑换"
+            },
+            {
+              "file": "user-app/h5/points-rule-desc.html",
+              "text": "挂上【670】浮窗"
+            }
+          ]
+        },
         {
           "sha": "21c193d",
           "type": "chore",
@@ -145,6 +428,11 @@
               "file": "user-app/h5/order-refund-select.html",
               "module": "",
               "title": "选择服务类型 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/points-detail.html",
+              "module": "",
+              "title": "积分明细 · 用户 APP"
             },
             {
               "file": "user-app/h5/points-mall.html",
@@ -2871,6 +3159,21 @@
               "file": "MDM/mdm_marketing_template.html",
               "module": "冷丰WMS",
               "title": "模版配置"
+            },
+            {
+              "file": "MDM/mdm_member_points_cash.html",
+              "module": "冷丰WMS",
+              "title": "积分抵现"
+            },
+            {
+              "file": "MDM/mdm_member_points_consume.html",
+              "module": "冷丰WMS",
+              "title": "消费送积分"
+            },
+            {
+              "file": "MDM/mdm_member_points_rule.html",
+              "module": "冷丰WMS",
+              "title": "积分规则"
             },
             {
               "file": "user-app/h5/cart.html",
@@ -12034,6 +12337,11 @@
               "title": "仓库管理"
             },
             {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/live-room.html",
               "module": "",
               "title": "黑灯直播间 · 用户 APP"
@@ -12054,9 +12362,19 @@
               "title": "订单详情 · 用户 APP"
             },
             {
+              "file": "user-app/h5/points-detail.html",
+              "module": "",
+              "title": "积分明细 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/points-mall.html",
               "module": "",
               "title": "积分商城 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/points-order-confirm.html",
+              "module": "",
+              "title": "确认兑换 · 用户 APP"
             },
             {
               "file": "user-app/h5/points-product-detail.html",
@@ -17135,6 +17453,11 @@
               "file": "user-app/h5/member-center.html",
               "module": "",
               "title": "会员中心 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-detail-pickup.html",
