@@ -7,8 +7,10 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-mdm-points-rule.css">
     <link rel="stylesheet" href="../css/lf-product.css">
-    <link rel="stylesheet" href="../css/lf-marketing-points-mall.css">
+    <link rel="stylesheet" href="../css/lf-live.css">
+    <link rel="stylesheet" href="../css/lf-marketing-points-mall.css?v=20260909-670-5">
     <link rel="stylesheet" href="../css/lf-mdm-edit-page.css">
 </head>
 <body>
@@ -17,90 +19,71 @@
     <script src="../js/marketing-sidebar.js"></script>
     <div id="header-container"></div>
     <div class="container">
-        <main class="main-content mdm-edit-page">
+        <main class="main-content mdm-edit-page lf-live-edit-page">
             <div class="content-tabs"><button class="active">编辑积分商品</button></div>
             <hr class="content-divider">
             <div class="content-title">营销 / 营销活动 / 积分商城 / 编辑积分商品</div>
 
-            <div class="mkt-points-mall-form-toolbar">
-                <a class="mkt-points-mall-form-back" href="mdm_marketing_points_mall.html">← 返回积分商城</a>
-            </div>
-
-            <div class="flow-box mkt-points-mall-form-intro">
-                配置积分商品的上下架、履约、限购、兑换方式、售卖范围及规格兑换积分；保存后同步至积分商城列表与用户端兑换页。
+            <div class="lf-live-edit-header">
+                <div class="lf-live-edit-header__left">
+                    <a class="lf-live-form-back" href="mdm_marketing_points_mall.html">← 返回积分商城</a>
+                    <span class="lf-live-edit-header__divider">/</span>
+                    <span class="lf-live-edit-header__title">编辑积分商品</span>
+                </div>
+                <div class="lf-live-edit-header__right">商品 ID：<span id="mallFormProductId">-</span></div>
             </div>
 
             <div id="mallFormPanel">
-                <div class="pts-rule-card mkt-points-mall-card">
-                    <div class="pts-rule-card__title">商品信息</div>
-                    <div class="pts-rule-card__body">
-                        <div class="mkt-points-mall-form-product" id="mallFormProduct">
-                            <img class="mkt-points-mall-form-product__img" id="mallFormImg" src="" alt="">
-                            <div>
-                                <p class="mkt-points-mall-form-product__name" id="mallFormName">—</p>
-                                <p class="mkt-points-mall-form-product__meta" id="mallFormMeta">—</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="pts-rule-card mkt-points-mall-card">
+                <div class="pts-rule-card lf-live-card mkt-points-mall-card">
                     <div class="pts-rule-card__title">基础配置</div>
-                    <div class="pts-rule-card__body">
-                        <div class="pts-rule-field">
-                            <label class="pts-rule-field__label"><span class="erp-req">*</span>商品状态</label>
+                    <div class="pts-rule-card__body lf-live-edit-grid">
+                        <div class="pts-rule-field lf-live-edit-grid__full">
+                            <label class="pts-rule-field__label" for="mallFormName"><span class="erp-req">*</span>商品名称</label>
                             <div class="pts-rule-field__control">
-                                <div class="pts-rule-check-row" id="mallFormStatusScope">
-                                    <label class="pts-rule-check-label">
-                                        <input type="radio" name="mallFormStatus" value="on_shelf"> 上架
-                                    </label>
-                                    <label class="pts-rule-check-label">
-                                        <input type="radio" name="mallFormStatus" value="off_shelf" checked> 下架
-                                    </label>
-                                    <label class="pts-rule-check-label">
-                                        <input type="radio" name="mallFormStatus" value="schedule"> 定时上下架
-                                    </label>
-                                </div>
-                                <div class="mkt-points-mall-schedule" id="mallFormSchedule" hidden>
-                                    <label class="mkt-points-mall-schedule__item">
-                                        <span>上架时间</span>
-                                        <input class="erp-input mkt-points-mall-form-row__input" id="mallFormScheduleOn" type="datetime-local">
-                                    </label>
-                                    <label class="mkt-points-mall-schedule__item">
-                                        <span>下架时间</span>
-                                        <input class="erp-input mkt-points-mall-form-row__input" id="mallFormScheduleOff" type="datetime-local">
-                                    </label>
-                                </div>
-                                <div class="pts-rule-tip" id="mallFormScheduleHint" hidden>选择「定时上下架」后需填写上架/下架时间，到点自动切换状态</div>
+                                <input class="erp-input" id="mallFormName" placeholder="请输入商品名称">
                             </div>
                         </div>
-
                         <div class="pts-rule-field">
-                            <label class="pts-rule-field__label">履约方式</label>
+                            <label class="pts-rule-field__label" for="mallFormArrival">预计到店时间</label>
                             <div class="pts-rule-field__control">
-                                <div class="pts-rule-check-row" id="mallFormDeliveryMode">
-                                    <label class="pts-rule-check-label">
-                                        <input type="radio" name="mallFormDeliveryMode" value="express"> 快递配送
-                                    </label>
-                                    <label class="pts-rule-check-label">
-                                        <input type="radio" name="mallFormDeliveryMode" value="platform" checked> 平台配送
-                                    </label>
+                                <div class="pts-rule-unit">
+                                    <input class="erp-input" id="mallFormArrival" placeholder="请输入预计到店时间">
+                                    <select class="erp-select" id="mallFormArrivalUnit">
+                                        <option value="DAY">天</option>
+                                        <option value="HOUR">小时</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
-
                         <div class="pts-rule-field">
-                            <label class="pts-rule-field__label"><span class="erp-req">*</span>适用会员等级</label>
+                            <label class="pts-rule-field__label"><span class="erp-req">*</span>配送方式</label>
                             <div class="pts-rule-field__control">
-                                <div id="mallFormLevelBlock"></div>
-                                <div class="pts-rule-tip">选择「指定等级」后需至少勾选一个会员等级</div>
+                                <div class="lf-live-radio-row" id="mallFormDeliveryMode">
+                                    <label class="lf-live-radio"><input type="radio" name="mallFormDeliveryMode" value="express"> 快递配送</label>
+                                    <label class="lf-live-radio"><input type="radio" name="mallFormDeliveryMode" value="pickup"> 自提</label>
+                                </div>
                             </div>
                         </div>
-
                         <div class="pts-rule-field">
-                            <label class="pts-rule-field__label">商品限购</label>
+                            <label class="pts-rule-field__label"><span class="erp-req">*</span>展示销量</label>
                             <div class="pts-rule-field__control">
-                                <div class="pts-rule-check-row mkt-points-mall-limit-radios" id="mallFormLimitType">
+                                <div class="lf-live-radio-row">
+                                    <label class="lf-live-radio"><input type="radio" name="mallFormDisplaySalesMode" value="ACTUAL"> 实际销量</label>
+                                    <label class="lf-live-radio"><input type="radio" name="mallFormDisplaySalesMode" value="CUSTOM"> 自定义销量</label>
+                                </div>
+                                <input class="erp-input lf-live-edit-sales-input" id="mallFormDisplaySales" placeholder="请输入展示销量" hidden>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field lf-live-edit-grid__full">
+                            <label class="pts-rule-field__label" for="mallFormDesc">文字描述</label>
+                            <div class="pts-rule-field__control">
+                                <textarea class="erp-input lf-live-textarea" id="mallFormDesc" rows="4" placeholder="请输入商品文字描述"></textarea>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field lf-live-edit-grid__full">
+                            <label class="pts-rule-field__label"><span class="erp-req">*</span>商品限购</label>
+                            <div class="pts-rule-field__control">
+                                <div class="pts-rule-check-row" id="mallFormLimitType">
                                     <label class="pts-rule-check-label">
                                         <input type="radio" name="mallFormLimitType" value="none" checked> 不限购
                                     </label>
@@ -113,27 +96,45 @@
                                     <label class="pts-rule-check-label">
                                         <input type="radio" name="mallFormLimitType" value="total"> 累计限购
                                     </label>
+                                    <span class="mkt-points-mall-limit-qty" id="mallFormLimitValueWrap" hidden>
+                                        <input class="erp-input" id="mallFormLimitValue" type="number" min="1" step="1" placeholder="限购件数">
+                                        <span>件</span>
+                                    </span>
                                 </div>
-                                <div class="mkt-points-mall-limit-value" id="mallFormLimitValueWrap" hidden>
-                                    <input class="erp-input mkt-points-mall-form-row__input" id="mallFormLimitValue" type="number" min="1" step="1" placeholder="请输入件数">
-                                    <em>件</em>
-                                </div>
-                                <div class="pts-rule-tip">每单 / 每天 / 累计三选一；选择后填写限购件数</div>
+                                <div class="pts-rule-tip">每单 / 每天 / 累计三选一，仅在本商品（SPU）上设置；选择后填写限购件数。</div>
                             </div>
                         </div>
-
-                        <div class="pts-rule-field">
+                        <div class="pts-rule-field lf-live-edit-grid__full">
                             <label class="pts-rule-field__label"><span class="erp-req">*</span>兑换方式</label>
                             <div class="pts-rule-field__control">
-                                <div class="pts-rule-check-row" id="mallFormExchangeType">
-                                    <label class="pts-rule-check-label">
-                                        <input type="radio" name="mallFormExchangeType" value="points" checked> 纯积分兑换
-                                    </label>
-                                    <label class="pts-rule-check-label">
-                                        <input type="radio" name="mallFormExchangeType" value="points_money"> 积分加现金
-                                    </label>
+                                <div class="lf-live-radio-row" id="mallFormExchangeType">
+                                    <label class="lf-live-radio"><input type="radio" name="mallFormExchangeType" value="points" checked> 纯积分兑换</label>
+                                    <label class="lf-live-radio"><input type="radio" name="mallFormExchangeType" value="points_money"> 积分加现金</label>
                                 </div>
                                 <div class="pts-rule-tip">多规格共用同一兑换方式</div>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field lf-live-edit-grid__full">
+                            <label class="pts-rule-field__label"><span class="erp-req">*</span>适用会员等级</label>
+                            <div class="pts-rule-field__control">
+                                <div id="mallFormLevelBlock"></div>
+                                <div class="pts-rule-tip">选择「指定等级」后需至少勾选一个会员等级</div>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field lf-live-edit-grid__full">
+                            <label class="pts-rule-field__label"><span class="erp-req">*</span>商品状态</label>
+                            <div class="pts-rule-field__control">
+                                <div class="lf-live-radio-row" id="mallFormStatusScope">
+                                    <label class="lf-live-radio"><input type="radio" name="mallFormStatus" value="on_shelf"> 上架</label>
+                                    <label class="lf-live-radio"><input type="radio" name="mallFormStatus" value="off_shelf" checked> 下架</label>
+                                    <label class="lf-live-radio"><input type="radio" name="mallFormStatus" value="schedule"> 定时上下架</label>
+                                </div>
+                                <div class="mkt-points-mall-schedule" id="mallFormSchedule" hidden>
+                                    <input class="erp-input" id="mallFormScheduleOn" type="datetime-local" step="60" title="上架时间" style="max-width:220px;">
+                                    <span class="sep">至</span>
+                                    <input class="erp-input" id="mallFormScheduleOff" type="datetime-local" step="60" title="下架时间" style="max-width:220px;">
+                                </div>
+                                <div class="pts-rule-tip" id="mallFormScheduleHint" hidden>选择「定时上下架」后需填写上架/下架时间，到点自动切换状态</div>
                             </div>
                         </div>
                     </div>
@@ -198,34 +199,23 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="pts-rule-card mkt-points-mall-card">
+                    <div class="pts-rule-card__title">
+                        <span>商品配置</span>
+                        <button type="button" class="mkt-points-mall-reset-spec" id="mallFormResetSkuBtn">重置规格</button>
+                    </div>
                     <div class="pts-rule-card__body">
-                        <div class="pts-rule-field">
-                            <label class="pts-rule-field__label">规格</label>
-                            <div class="pts-rule-field__control pts-rule-field__control--wide">
-                                <div class="mkt-points-mall-spec-table-wrap">
-                                    <table class="mkt-points-mall-spec-table">
-                                        <thead>
-                                            <tr>
-                                                <th>开启兑换</th>
-                                                <th>SKU编码</th>
-                                                <th>规格</th>
-                                                <th>规格图片</th>
-                                                <th>采购价</th>
-                                                <th>划线价</th>
-                                                <th>库存</th>
-                                                <th>起售量</th>
-                                                <th>兑换积分</th>
-                                                <th data-money-col hidden>加价金额</th>
-                                                <th>已兑换</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="mallFormSpecBody"></tbody>
-                                    </table>
-                                </div>
-                                <div class="pts-rule-tip">规格与选品库 SKU 一致；可更换规格图片；划线价选填；起售量按 SKU 独立设置（至少 1）；勾选开启的规格会出现在积分商城列表中</div>
-                                <input type="file" id="mallFormSpecImageInput" accept="image/jpeg,image/png,image/gif,image/webp" hidden>
+                        <div class="mkt-points-mall-sku-pick">
+                            <label class="mkt-points-mall-sku-pick__label">选择 SKU</label>
+                            <div class="product-proxy-form__sku-picker mkt-points-mall-sku-pick__box" id="mallFormSkuPicker">
+                                <button type="button" class="product-proxy-form__sku-trigger" id="mallFormSkuTrigger">已选 0 个 SKU <span class="product-proxy-form__sku-caret">▼</span></button>
+                                <div class="product-proxy-form__sku-dropdown" id="mallFormSkuDropdown" hidden></div>
                             </div>
                         </div>
+                        <div class="product-proxy-form__spec-list" id="mallFormSkuList"></div>
+                        <p class="pts-rule-tip">规格为选品库与秒杀已配 SKU 的并集。卡片样式与秒杀商品配置一致；条形码、规格值、单位、现货/实际库存只读，不含 SKU 限购。点缩略图可换规格图；划线价选填；上架的规格会出现在积分商城。</p>
+                        <input type="file" id="mallFormSpecImageInput" accept="image/jpeg,image/png,image/gif,image/webp" hidden>
                     </div>
                 </div>
 
@@ -276,7 +266,8 @@
     <script src="../js/mdm-product-catalog-store.js"></script>
     <script src="../js/mdm-product-proxy-region-picker.js"></script>
     <script src="../js/mdm-product-proxy-store-picker.js"></script>
-    <script src="../js/mdm-marketing-points-mall-store.js"></script>
-    <script src="../js/mdm-marketing-points-mall-form.js"></script>
+    <script src="../js/mdm-marketing-seckill-store.js"></script>
+    <script src="../js/mdm-marketing-points-mall-store.js?v=20260909-670-5"></script>
+    <script src="../js/mdm-marketing-points-mall-form.js?v=20260909-670-6"></script>
 </body>
 </html>

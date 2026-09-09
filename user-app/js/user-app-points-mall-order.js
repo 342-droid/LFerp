@@ -70,7 +70,7 @@
   function toShopCartItem(line) {
     var qty = Math.max(1, Math.round(Number(line.qty) || 1));
     var money = Number(line.money) || 0;
-    var deliveryMode = line.deliveryMode === 'express' ? 'express' : 'platform';
+    var deliveryMode = line.deliveryMode === 'express' ? 'express' : 'pickup';
     var fulfillType = deliveryMode === 'express' ? 'express' : 'pickup';
     var supplierId = String(line.supplierId || '斯斯供应商商家').trim();
     var supplierName = String(line.supplierName || supplierId).trim();
@@ -218,7 +218,7 @@
         code: line.code,
         name: line.name,
         img: line.skuImg || line.img,
-        deliveryMode: line.deliveryMode || 'platform',
+        deliveryMode: line.deliveryMode || 'pickup',
         skuCode: line.skuCode,
         specName: line.specName,
         points: line.points,
@@ -253,7 +253,7 @@
       name: product.name,
       img: product.img,
       category: product.category || '',
-      deliveryMode: product.deliveryMode === 'express' ? 'express' : 'platform',
+      deliveryMode: product.deliveryMode === 'express' ? 'express' : 'pickup',
       supplierId: product.supplierId || '斯斯供应商商家',
       supplierName: product.supplierName || product.supplierId || '斯斯供应商商家',
       skuCode: spec.skuCode,
@@ -302,7 +302,7 @@
       img: item.img,
       skuImg: item.img,
       category: item.category || '',
-      deliveryMode: item.deliveryMode || (item.fulfillType === 'express' ? 'express' : 'platform'),
+      deliveryMode: item.deliveryMode === 'express' || item.fulfillType === 'express' ? 'express' : 'pickup',
       supplierId: item.supplierId,
       supplierName: item.supplierName || item.merchantName,
       skuCode: item.skuCode,

@@ -7,6 +7,7 @@
   var RULE_KEY = 'mdm_member_points_rule_v1';
   var CASH_LIST_KEY = 'mdm_member_points_cash_v1';
   var BANNER_KEY = 'mdm_marketing_points_mall_banners_v1';
+  var REFUND_DEMO_KEY = 'ua_points_exchange_refund_demo_v1';
   var MAX_BANNERS = 10;
   var AVAILABLE_POINTS_DEMO = 161;
 
@@ -165,10 +166,15 @@
     return !!(rule.enabled && rule.exchange && rule.exchange.enabled);
   }
 
-  /** 积分兑换商品是否支持售后（读后台积分规则） */
+  /** 积分兑换商品是否支持售后：未勾选只影响 C 端申请入口；PC 后台不读此开关拦操作 */
   function isExchangeRefundEnabled() {
+    try {
+      var demo = localStorage.getItem(REFUND_DEMO_KEY);
+      if (demo === 'off') return false;
+      if (demo === 'on') return true;
+    } catch (e) { /* ignore */ }
     var rule = getRule();
-    if (!(rule.enabled && rule.exchange && rule.exchange.enabled)) return false;
+    if (!rule.exchange || typeof rule.exchange.refundEnabled !== 'boolean') return true;
     return !!rule.exchange.refundEnabled;
   }
 
@@ -303,12 +309,13 @@
   function loadBanners() {
     try {
       var raw = localStorage.getItem(BANNER_KEY);
-      if (!raw) return clone(DEFAULT_BANNERS);
+      /* 未配置时返回空：C 端隐藏轮播区域 */
+      if (!raw) return [];
       var parsed = JSON.parse(raw);
-      if (!Array.isArray(parsed)) return clone(DEFAULT_BANNERS);
+      if (!Array.isArray(parsed)) return [];
       return parsed.map(normalizeBanner).slice(0, MAX_BANNERS);
     } catch (e) {
-      return clone(DEFAULT_BANNERS);
+      return [];
     }
   }
 
@@ -324,6 +331,7 @@
     getRule: getRule,
     isExchangeEnabled: isExchangeEnabled,
     isExchangeRefundEnabled: isExchangeRefundEnabled,
+    REFUND_DEMO_KEY: REFUND_DEMO_KEY,
     setExchangeEnabled: setExchangeEnabled,
     calcCashDeduction: calcCashDeduction,
     scopeIncludes: scopeIncludes,

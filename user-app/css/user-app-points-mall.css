@@ -307,7 +307,10 @@
 }
 
 .ua-pm-banner[hidden] {
-  display: none;
+  display: none !important;
+  margin: 0;
+  height: 0;
+  aspect-ratio: auto;
 }
 
 .ua-pm-banner__track {

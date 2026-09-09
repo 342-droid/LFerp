@@ -1,5 +1,5 @@
 /**
- * 积分商城 — 从选品库添加（仅电商直播 + 售卖中）
+ * 积分商城 — 添加商品（选品库电商直播+售卖中 ∪ 秒杀活动已配置商品）
  * 用 pickId 唯一标识，避免选品库重复编码导致串选
  */
 (function () {
@@ -44,15 +44,83 @@
     return ch.indexOf('电商直播') >= 0;
   }
 
+  function specsFromSeckillProduct(p) {
+    var skus = p && p.skus && p.skus.length ? p.skus : [];
+    return skus.map(function (s, i) {
+      var specName = s.displayName || s.specName || s.specValue || '默认规格';
+      var stock = s.activityStock != null ? s.activityStock : (s.liveStock != null ? s.liveStock : s.stock);
+      return {
+        skuCode: s.skuCode || s.id || ('sku-' + i),
+        specName: specName,
+        packaging: specName,
+        skuImg: s.img || s.skuImg || (p && p.img) || '',
+        price: s.purchasePrice != null ? s.purchasePrice : s.price,
+        purchasePrice: s.purchasePrice,
+        stock: stock,
+        barcode: s.barcode || '',
+        specValue: s.specValue || specName,
+        baseUnit: s.baseUnit || s.unit || '',
+        saleUnit: s.saleUnit || '',
+        saleRatio: s.saleRatio,
+        spotStock: s.spotStock,
+        sellableStock: s.sellableStock
+      };
+    });
+  }
+
+  function collectSeckillProductMap() {
+    var map = {};
+    if (!window.MdmMarketingSeckillStore || typeof window.MdmMarketingSeckillStore.getList !== 'function') {
+      return map;
+    }
+    window.MdmMarketingSeckillStore.getList().forEach(function (act) {
+      ((act && act.products) || []).forEach(function (p) {
+        var code = String(p.sku || p.mallProductId || p.code || '').trim();
+        if (!code || map[code]) return;
+        var catalog = window.MdmProductCatalog && typeof window.MdmProductCatalog.getByCode === 'function'
+          ? window.MdmProductCatalog.getByCode(code)
+          : null;
+        if (catalog) {
+          map[code] = Object.assign({}, catalog, { _fromSeckill: true });
+          return;
+        }
+        map[code] = {
+          code: code,
+          goodsId: code,
+          name: p.name || '',
+          img: p.img || '',
+          category: p.category || '',
+          status: 'selling',
+          saleChannels: ['live'],
+          channel: '电商直播',
+          price: p.price,
+          specs: specsFromSeckillProduct(p),
+          _fromSeckill: true
+        };
+      });
+    });
+    return map;
+  }
+
   /** 打开抽屉时构建一次，保证 pickId 稳定，避免勾选串扰 */
   function rebuildEligibleCache() {
-    if (!window.MdmProductCatalog) {
-      eligibleCache = [];
-      drawerState.productByPickId = {};
-      return eligibleCache;
+    var seckillMap = collectSeckillProductMap();
+    var catalogList = [];
+    if (window.MdmProductCatalog && typeof window.MdmProductCatalog.getAll === 'function') {
+      catalogList = window.MdmProductCatalog.getAll().filter(function (item) {
+        return item.status === 'selling' && hasLiveChannel(item);
+      });
     }
-    var raw = window.MdmProductCatalog.getAll().filter(function (item) {
-      return item.status === 'selling' && hasLiveChannel(item);
+    var seen = {};
+    var raw = [];
+    catalogList.forEach(function (item) {
+      var code = String(item.code || '');
+      seen[code] = true;
+      raw.push(Object.assign({}, item, seckillMap[code] ? { _fromSeckill: true } : {}));
+    });
+    Object.keys(seckillMap).forEach(function (code) {
+      if (seen[code]) return;
+      raw.push(seckillMap[code]);
     });
     var map = {};
     eligibleCache = raw.map(function (item, index) {
@@ -160,6 +228,7 @@
       '    <img class="proxy-library-card__img" src="' + escapeHtml(resolveImg(item.img)) + '" alt="" onerror="this.onerror=null;this.src=\'' + ASSET_FALLBACK + '\'">' +
       '    <div class="proxy-library-card__media-tags">' +
       '      <span class="proxy-library-card__tag proxy-library-card__tag--type">电商直播</span>' +
+      (item._fromSeckill ? '<span class="proxy-library-card__tag">秒杀</span>' : '') +
       statusTag +
       '    </div>' +
       '  </div>' +
@@ -182,7 +251,7 @@
     if (totalEl) totalEl.textContent = '共 ' + products.length + ' 件商品';
 
     if (!products.length) {
-      gridEl.innerHTML = '<div class="proxy-library-drawer__empty">暂无符合条件的商品<br><span class="mkt-points-mall-picker-tip">请确认选品库中存在「电商直播」渠道且「售卖中」的商品</span></div>';
+      gridEl.innerHTML = '<div class="proxy-library-drawer__empty">暂无符合条件的商品<br><span class="mkt-points-mall-picker-tip">请确认选品库中存在「电商直播」渠道且「售卖中」的商品，或秒杀活动已配置商品</span></div>';
     } else {
       gridEl.innerHTML = products.map(renderCard).join('');
     }
@@ -244,7 +313,7 @@
       '    </div>' +
       '  </div>' +
       '  <footer class="proxy-library-drawer__footer">' +
-      '    <p class="proxy-library-drawer__footer-tip">仅展示选品库中可售卖渠道含「电商直播」且状态为「售卖中」的商品</p>' +
+      '    <p class="proxy-library-drawer__footer-tip">展示选品库「电商直播 + 售卖中」与秒杀活动已配置商品的并集</p>' +
       '    <div class="proxy-library-drawer__footer-actions">' +
       '      <span class="proxy-library-drawer__selected" id="pointsMallPickerSelectedCount">已选 0 件</span>' +
       '      <button type="button" class="erp-btn" data-points-mall-picker-cancel>取消</button>' +

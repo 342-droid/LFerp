@@ -136,27 +136,27 @@
 }
 
 .mkt-points-mall-table {
-  width: 100%;
-  min-width: 1360px;
+  width: max-content;
+  min-width: 100%;
+  table-layout: auto;
 }
 
 .mkt-points-mall-table__col--seq { width: 56px; }
-.mkt-points-mall-table__col--name { width: 12%; }
-.mkt-points-mall-table__col--code { width: 110px; }
+.mkt-points-mall-table__col--name { width: 160px; }
+.mkt-points-mall-table__col--code { width: 120px; }
 .mkt-points-mall-table__col--img { width: 72px; }
-.mkt-points-mall-table__col--category { width: 8%; }
-.mkt-points-mall-table__col--spec { width: 10%; }
-.mkt-points-mall-table__col--purchase { width: 72px; }
-.mkt-points-mall-table__col--line { width: 72px; }
-.mkt-points-mall-table__col--stock { width: 78px; }
+.mkt-points-mall-table__col--category { width: 88px; }
+.mkt-points-mall-table__col--spec { width: 120px; }
+.mkt-points-mall-table__col--line { width: 80px; }
+.mkt-points-mall-table__col--stock { width: 72px; }
 .mkt-points-mall-table__col--delivery { width: 88px; }
-.mkt-points-mall-table__col--type { width: 96px; }
-.mkt-points-mall-table__col--scope { width: 110px; }
+.mkt-points-mall-table__col--type { width: 104px; }
+.mkt-points-mall-table__col--scope { width: 120px; }
 .mkt-points-mall-table__col--exchange { width: 120px; }
-.mkt-points-mall-table__col--qty { width: 96px; }
+.mkt-points-mall-table__col--qty { width: 80px; }
 .mkt-points-mall-table__col--status { width: 72px; }
-.mkt-points-mall-table__col--schedule { width: 148px; }
-.mkt-points-mall-table__col--action { width: 120px; }
+.mkt-points-mall-table__col--schedule { width: 156px; }
+.mkt-points-mall-table__col--action { width: 128px; }
 
 .mkt-points-mall-table .product-proxy-code__sub {
   color: #909399;
@@ -374,14 +374,15 @@
 }
 
 .mkt-points-mall-spec-table-wrap {
-  max-height: 260px;
+  max-height: 420px;
   overflow: auto;
   border: 1px solid #eee;
   border-radius: 4px;
 }
 
 .mkt-points-mall-spec-table {
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
   border-collapse: collapse;
   font-size: 12px;
 }
@@ -579,6 +580,9 @@
   font-size: 14px;
   font-weight: 600;
   color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .mkt-points-mall-card .pts-rule-card__body {
@@ -696,15 +700,18 @@
 .mkt-points-mall-schedule {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px 20px;
+  align-items: center;
+  gap: 8px 12px;
   margin-top: 10px;
-  padding: 10px 12px;
-  background: #fafafa;
-  border: 1px solid #eee;
-  border-radius: 4px;
+}
+
+.mkt-points-mall-schedule .sep {
+  color: #999;
+  line-height: 36px;
 }
 
 .mkt-points-mall-schedule[hidden],
+.mkt-points-mall-limit-qty[hidden],
 .mkt-points-mall-limit-value[hidden],
 .mkt-points-mall-sale-scope__panel[hidden],
 .mkt-points-mall-level-list[hidden],
@@ -730,6 +737,17 @@
 
 .mkt-points-mall-limit-radios {
   margin-bottom: 0;
+}
+
+.mkt-points-mall-limit-qty {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 8px;
+}
+
+.mkt-points-mall-limit-qty .erp-input {
+  width: 120px;
 }
 
 .mkt-points-mall-limit-value {
@@ -948,15 +966,21 @@
 }
 
 .mkt-points-mall-page .mkt-points-mall-table {
-  width: 100%;
-  min-width: 1360px;
+  width: max-content;
+  min-width: 100%;
   max-width: none;
-  table-layout: fixed;
+  table-layout: auto;
 }
 
 .mkt-points-mall-page .mkt-points-mall-table th,
 .mkt-points-mall-page .mkt-points-mall-table td {
+  white-space: nowrap;
+  word-break: normal;
+}
+
+.mkt-points-mall-page .mkt-points-mall-table td:nth-child(2) {
   white-space: normal;
+  max-width: 200px;
   word-break: break-word;
 }
 
@@ -1024,7 +1048,7 @@
   }
 
   .mkt-points-mall-page .mkt-points-mall-table {
-    min-width: 1200px;
+    min-width: 0;
     font-size: 12px;
   }
 
@@ -1047,4 +1071,98 @@
 .mkt-points-mall-page .search-form,
 .mkt-points-mall-page .search-form > .form-group.pts-sale-filter-extra {
   overflow: visible;
+}
+
+.mkt-points-mall-reset-spec {
+  margin-left: auto;
+  border: none;
+  background: none;
+  color: #ff7019;
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+}
+
+.mkt-points-mall-reset-spec:hover {
+  text-decoration: underline;
+}
+
+.mkt-points-mall-sku-pick {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.mkt-points-mall-sku-pick__label {
+  display: block;
+  margin: 0;
+  flex-shrink: 0;
+  font-size: 13px;
+  color: #333;
+  font-weight: 500;
+}
+
+.mkt-points-mall-sku-pick__box {
+  flex: 0 1 360px;
+  min-width: 0;
+  max-width: 360px;
+}
+
+.mkt-points-mall-sku-pick__box .product-proxy-form__sku-trigger {
+  width: 100%;
+  min-width: 0;
+  justify-content: space-between;
+}
+
+.mkt-points-mall-sku-pick__box .product-proxy-form__sku-dropdown {
+  width: 100%;
+  max-height: 260px;
+  overflow: auto;
+}
+
+.mkt-points-mall-card .product-proxy-spec__thumb {
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.mkt-points-mall-card button.product-proxy-spec__thumb {
+  display: block;
+}
+
+.mkt-points-mall-card .product-proxy-spec__thumb:hover {
+  border-color: #ff7019;
+}
+
+.mkt-points-mall-card .product-proxy-spec__btn-off {
+  color: #ff7019;
+}
+
+.mkt-points-mall-card .product-proxy-spec__btn-del {
+  border: none;
+  background: none;
+  color: #ff4d4f;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0;
+  font-family: inherit;
+}
+
+.mkt-points-mall-card .product-proxy-spec__btn-del:hover {
+  text-decoration: underline;
+}
+
+.mkt-points-mall-card .product-proxy-spec.is-disabled {
+  opacity: 0.72;
+}
+
+.mkt-points-mall-sku-empty {
+  padding: 20px;
+  text-align: center;
+  color: #999;
+  font-size: 13px;
 }

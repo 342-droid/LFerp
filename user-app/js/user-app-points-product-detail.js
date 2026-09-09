@@ -121,7 +121,7 @@
         : '暂无规格';
     }
     if (delivery) {
-      delivery.textContent = product.deliveryMode === 'express' ? '快递配送' : '平台配送';
+      delivery.textContent = product.deliveryMode === 'express' ? '快递配送' : '自提';
     }
     if (detail) {
       detail.innerHTML = product.detailHtml

@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/lf-product.css?v=20260905-sel-del">
     <link rel="stylesheet" href="../css/lf-marketing-points-home.css">
-    <link rel="stylesheet" href="../css/lf-marketing-points-mall.css">
+    <link rel="stylesheet" href="../css/lf-marketing-points-mall.css?v=20260909-670-5">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -63,11 +63,11 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>履约方式:</label>
+                        <label>配送方式:</label>
                         <select id="qMallDeliveryMode">
                             <option value="">全部</option>
                             <option value="express">快递配送</option>
-                            <option value="platform">平台配送</option>
+                            <option value="pickup">自提</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -127,7 +127,7 @@
                 <button type="button" class="erp-btn erp-btn--primary" id="pointsMallAddBtn">添加商品</button>
                 <button type="button" class="erp-btn" id="pointsMallBannerBtn">轮播图配置</button>
                 <button type="button" class="erp-btn" id="pointsMallRuleDescBtn">积分规则说明</button>
-                <span class="mkt-points-mall-toolbar-tip">仅可选选品库中「可售卖渠道含电商直播」且「售卖中」的商品</span>
+                <span class="mkt-points-mall-toolbar-tip">可选选品库中「可售卖渠道含电商直播」且「售卖中」的商品，以及秒杀活动已配置的商品</span>
             </div>
 
             <section class="table-section">
@@ -140,7 +140,6 @@
                             <col class="mkt-points-mall-table__col mkt-points-mall-table__col--img">
                             <col class="mkt-points-mall-table__col mkt-points-mall-table__col--category">
                             <col class="mkt-points-mall-table__col mkt-points-mall-table__col--spec">
-                            <col class="mkt-points-mall-table__col mkt-points-mall-table__col--purchase">
                             <col class="mkt-points-mall-table__col mkt-points-mall-table__col--line">
                             <col class="mkt-points-mall-table__col mkt-points-mall-table__col--stock">
                             <col class="mkt-points-mall-table__col mkt-points-mall-table__col--exchange">
@@ -160,7 +159,6 @@
                                 <th>商品图</th>
                                 <th>商品类目</th>
                                 <th>规格</th>
-                                <th>采购价</th>
                                 <th>划线价</th>
                                 <th>
                                     <button type="button" class="mkt-points-mall-th-sort" data-sort-key="stock" aria-label="按库存排序">
@@ -182,7 +180,7 @@
                                         </span>
                                     </button>
                                 </th>
-                                <th>履约方式</th>
+                                <th>配送方式</th>
                                 <th>兑换方式</th>
                                 <th>适用范围</th>
                                 <th>状态</th>
@@ -220,9 +218,10 @@
     <script src="../js/mdm-product-proxy-region-picker.js"></script>
     <script src="../js/mdm-product-proxy-store-picker.js"></script>
     <script src="../js/mdm-member-points-rule-list-filter.js"></script>
-    <script src="../js/mdm-marketing-points-mall-store.js?v=20260905-sel-del"></script>
-    <script src="../js/mdm-marketing-points-mall-config.js"></script>
-    <script src="../js/mdm-marketing-points-mall-picker.js"></script>
-    <script src="../js/mdm-marketing-points-mall.js?v=20260905-sel-del"></script>
+    <script src="../js/mdm-marketing-seckill-store.js"></script>
+    <script src="../js/mdm-marketing-points-mall-store.js?v=20260909-670-5"></script>
+    <script src="../js/mdm-marketing-points-mall-config.js?v=20260908-670-2"></script>
+    <script src="../js/mdm-marketing-points-mall-picker.js?v=20260908-670-2"></script>
+    <script src="../js/mdm-marketing-points-mall.js?v=20260909-670-5"></script>
 </body>
 </html>

@@ -71,7 +71,7 @@
       status: 'schedule',
       scheduleOnAt: '2026-07-20T08:00',
       scheduleOffAt: '2026-08-31T23:59',
-      deliveryMode: 'platform',
+      deliveryMode: 'pickup',
       exchangeType: 'points',
       saleScope: 'region',
       saleRegions: { '440000': 1 },
@@ -91,7 +91,7 @@
       img: '../user-app/assets/restock/product-eggplant-round.svg',
       category: '新鲜蔬菜',
       status: 'off_shelf',
-      deliveryMode: 'platform',
+      deliveryMode: 'pickup',
       exchangeType: 'points',
       saleScope: 'store',
       saleStores: { 'st-001': 1, 'st-002': 1, 'st-003': 1 },
@@ -126,7 +126,7 @@
       img: '../user-app/assets/restock/product-egg.svg',
       category: '肉禽蛋品',
       status: 'off_shelf',
-      deliveryMode: 'platform',
+      deliveryMode: 'pickup',
       exchangeType: 'points',
       saleScope: 'all',
       memberLevelIds: [],
@@ -177,6 +177,16 @@
       var lp = Number(s.linePrice);
       s.linePrice = isNaN(lp) || lp < 0 ? null : Math.round(lp * 100) / 100;
     }
+    /* 与秒杀规格并集字段；限购只在 SPU，SKU 上去掉 */
+    s.barcode = String(s.barcode || '');
+    s.specValue = String(s.specValue || s.specName || '');
+    s.baseUnit = String(s.baseUnit || s.unit || '');
+    s.saleUnit = String(s.saleUnit || '');
+    s.saleRatio = s.saleRatio != null && s.saleRatio !== '' ? String(s.saleRatio) : '';
+    s.spotStock = s.spotStock == null || s.spotStock === '' ? null : Math.max(0, Math.round(Number(s.spotStock) || 0));
+    s.sellableStock = s.sellableStock == null || s.sellableStock === '' ? null : Math.max(0, Math.round(Number(s.sellableStock) || 0));
+    delete s.limitConfig;
+    delete s.unit;
     return s;
   }
 
@@ -184,10 +194,18 @@
     if (mode === 'express' || mode === '快递到店' || mode === '快递' || mode === '快递配送' || mode === 'store') {
       return 'express';
     }
-    if (mode === 'platform' || mode === '平台配送' || mode === '配送' || mode === 'warehouse' || mode === 'delivery') {
-      return 'platform';
+    if (
+      mode === 'pickup' ||
+      mode === '自提' ||
+      mode === 'platform' ||
+      mode === '平台配送' ||
+      mode === '配送' ||
+      mode === 'warehouse' ||
+      mode === 'delivery'
+    ) {
+      return 'pickup';
     }
-    return 'platform';
+    return 'pickup';
   }
 
   function normalizeSaleScope(scope) {
@@ -228,6 +246,11 @@
     /* goodsId 与商品编码等同，作为与选品库的唯一关联键 */
     copy.goodsId = copy.code;
     copy.img = copy.img || '../user-app/assets/restock/product-leaf.svg';
+    copy.desc = copy.desc != null ? String(copy.desc) : '';
+    copy.arrivalTime = copy.arrivalTime != null ? String(copy.arrivalTime) : '';
+    copy.arrivalUnit = copy.arrivalUnit === 'HOUR' ? 'HOUR' : 'DAY';
+    copy.displaySalesMode = copy.displaySalesMode === 'CUSTOM' ? 'CUSTOM' : 'ACTUAL';
+    copy.displaySales = copy.displaySales != null ? String(copy.displaySales) : '';
     copy.deliveryMode = normalizeDeliveryMode(copy.deliveryMode);
     copy.saleScope = normalizeSaleScope(copy.saleScope);
     copy.saleRegions = copy.saleRegions && typeof copy.saleRegions === 'object' ? copy.saleRegions : {};
@@ -453,7 +476,14 @@
           specName: specName,
           skuImg: s.skuImg || s.specImg || src.img || '',
           purchasePrice: Number(s.price != null ? s.price : (s.purchasePrice != null ? s.purchasePrice : src.price)) || 0,
-          stock: s.stock != null ? Number(s.stock) : (50 + i * 10)
+          stock: s.stock != null ? Number(s.stock) : (50 + i * 10),
+          barcode: s.barcode || '',
+          specValue: s.specValue || specName,
+          baseUnit: s.baseUnit || s.unit || '',
+          saleUnit: s.saleUnit || '',
+          saleRatio: s.saleRatio != null ? String(s.saleRatio) : '',
+          spotStock: s.spotStock,
+          sellableStock: s.sellableStock
         };
       });
     }
@@ -462,7 +492,14 @@
       specName: '默认',
       skuImg: src.img || '',
       purchasePrice: Number(src.price) || 0,
-      stock: 100
+      stock: 100,
+      barcode: '',
+      specValue: '默认',
+      baseUnit: '',
+      saleUnit: '',
+      saleRatio: '',
+      spotStock: null,
+      sellableStock: null
     }];
   }
 
@@ -498,6 +535,18 @@
     });
 
     var baseSpecs = catalogSpecsFromProduct(src);
+    var seckillSpecs = collectSeckillSpecsByCode(code);
+    seckillSpecs.forEach(function (ss) {
+      var hit = false;
+      for (var bi = 0; bi < baseSpecs.length; bi++) {
+        if (baseSpecs[bi].skuCode === ss.skuCode) {
+          fillEmptySpecFields(baseSpecs[bi], ss);
+          hit = true;
+          break;
+        }
+      }
+      if (!hit) baseSpecs.push(ss);
+    });
     var exchangeType = defaults.exchangeType === 'points_money' ? 'points_money' : 'points';
 
     var specs = baseSpecs.map(function (s, i) {
@@ -508,12 +557,19 @@
         skuImg: s.skuImg || src.img || '',
         purchasePrice: s.purchasePrice,
         stock: s.stock,
-        minSaleQty: 1,
+        minSaleQty: s.minSaleQty != null ? s.minSaleQty : 1,
         exchangeEnabled: enabled,
         exchangeType: exchangeType,
         points: enabled ? (Number(defaults.points) || 100) : 0,
         money: enabled && exchangeType === 'points_money' ? (Number(defaults.money) || 0) : 0,
-        exchangedQty: 0
+        exchangedQty: 0,
+        barcode: s.barcode || '',
+        specValue: s.specValue || s.specName || '',
+        baseUnit: s.baseUnit || '',
+        saleUnit: s.saleUnit || '',
+        saleRatio: s.saleRatio || '',
+        spotStock: s.spotStock,
+        sellableStock: s.sellableStock
       };
     });
 
@@ -526,7 +582,12 @@
       status: defaults.status || 'off_shelf',
       scheduleOnAt: defaults.scheduleOnAt || '',
       scheduleOffAt: defaults.scheduleOffAt || '',
-      deliveryMode: normalizeDeliveryMode(defaults.deliveryMode || 'platform'),
+      deliveryMode: normalizeDeliveryMode(defaults.deliveryMode || 'pickup'),
+      desc: defaults.desc != null ? String(defaults.desc) : '',
+      arrivalTime: defaults.arrivalTime != null ? String(defaults.arrivalTime) : '',
+      arrivalUnit: defaults.arrivalUnit === 'HOUR' ? 'HOUR' : 'DAY',
+      displaySalesMode: defaults.displaySalesMode === 'CUSTOM' ? 'CUSTOM' : 'ACTUAL',
+      displaySales: defaults.displaySales != null ? String(defaults.displaySales) : '',
       supplierId: src.supplierId || defaults.supplierId || '斯斯供应商商家',
       supplierName: src.supplierName || src.supplierId || defaults.supplierName || '斯斯供应商商家',
       saleScope: normalizeSaleScope(defaults.saleScope || 'all'),
@@ -547,45 +608,128 @@
     };
   }
 
-  /** 编辑时合并选品库全部规格 + 已保存兑换配置（规格总数以选品库为准） */
+  function collectSeckillSpecsByCode(code) {
+    code = String(code || '').trim();
+    if (!code || !window.MdmMarketingSeckillStore || typeof window.MdmMarketingSeckillStore.getList !== 'function') {
+      return [];
+    }
+    var out = [];
+    var seen = {};
+    window.MdmMarketingSeckillStore.getList().forEach(function (act) {
+      ((act && act.products) || []).forEach(function (p) {
+        var pcode = String(p.sku || p.mallProductId || p.code || '').trim();
+        if (pcode !== code) return;
+        var skus = p.skus && p.skus.length
+          ? p.skus
+          : [{
+            id: (p.id || code) + '-sku',
+            specName: p.spec || '默认规格',
+            displayName: p.spec || '默认规格',
+            purchasePrice: p.price,
+            stock: p.stock,
+            img: p.img,
+            linePrice: p.marketPrice,
+            minQty: 1
+          }];
+        skus.forEach(function (s) {
+          var skuCode = String(s.skuCode || s.id || '').trim();
+          if (!skuCode || seen[skuCode]) return;
+          seen[skuCode] = true;
+          var specName = s.displayName || s.specName || s.specValue || '默认规格';
+          var stock = s.activityStock != null ? s.activityStock : (s.liveStock != null ? s.liveStock : s.stock);
+          out.push({
+            skuCode: skuCode,
+            specName: specName,
+            skuImg: s.img || s.skuImg || p.img || '',
+            purchasePrice: Number(s.purchasePrice != null ? s.purchasePrice : 0) || 0,
+            stock: stock != null ? Number(stock) : 0,
+            barcode: s.barcode || '',
+            specValue: s.specValue || specName,
+            baseUnit: s.baseUnit || s.unit || '',
+            saleUnit: s.saleUnit || '',
+            saleRatio: s.saleRatio != null ? String(s.saleRatio) : '',
+            spotStock: s.spotStock,
+            sellableStock: s.sellableStock,
+            minSaleQty: s.minQty != null && s.minQty !== '' ? Number(s.minQty) : 1,
+            linePrice: s.linePrice != null ? s.linePrice : s.marketPrice
+          });
+        });
+      });
+    });
+    return out;
+  }
+
+  function fillEmptySpecFields(target, source) {
+    if (!target || !source) return target;
+    Object.keys(source).forEach(function (key) {
+      if (key === 'limitConfig') return;
+      var cur = target[key];
+      var next = source[key];
+      if (next == null || next === '') return;
+      if (cur == null || cur === '') target[key] = next;
+    });
+    return target;
+  }
+
+  /** 编辑时规格 = 选品库 ∪ 秒杀活动已配 SKU ∪ 已保存兑换配置；不含 SKU 限购 */
   function mergeWithCatalogSpecs(mallItem) {
     var item = mallItem || {};
     var detail = window.MdmProductCatalog && item.code
       ? window.MdmProductCatalog.getByCode(item.code)
       : null;
     var catalogSpecs = catalogSpecsFromProduct(detail || item);
+    var seckillSpecs = collectSeckillSpecsByCode(item.code);
     var savedList = item.specs || [];
-    var savedMap = {};
-    savedList.forEach(function (s) {
-      if (s && s.skuCode) savedMap[s.skuCode] = s;
-    });
     var productType = item.exchangeType === 'points_money' ? 'points_money' : 'points';
+    var map = {};
+    var order = [];
 
-    var specs = catalogSpecs.map(function (cs, i) {
-      var saved = savedMap[cs.skuCode] || savedList[i] || null;
-      if (saved) {
-        return normalizeSpec(Object.assign({}, saved, {
-          skuCode: cs.skuCode,
-          specName: cs.specName,
-          purchasePrice: cs.purchasePrice,
-          skuImg: saved.skuImg || cs.skuImg || '',
-          /* 库存以积分商城已保存值为准（可编辑），无则回落选品库 */
-          stock: saved.stock != null ? saved.stock : cs.stock
-        }), i, item.code, productType);
+    function ensure(spec) {
+      var key = String((spec && spec.skuCode) || '').trim();
+      if (!key) return null;
+      if (!map[key]) {
+        order.push(key);
+        map[key] = Object.assign({}, spec);
       }
-      return normalizeSpec({
-        skuCode: cs.skuCode,
-        specName: cs.specName,
-        skuImg: cs.skuImg || '',
-        purchasePrice: cs.purchasePrice,
-        stock: cs.stock,
-        minSaleQty: 1,
-        exchangeEnabled: false,
-        exchangeType: productType,
-        points: 100,
-        money: 0,
-        exchangedQty: 0
-      }, i, item.code, productType);
+      return map[key];
+    }
+
+    catalogSpecs.forEach(function (cs) { ensure(cs); });
+    seckillSpecs.forEach(function (ss) {
+      var cur = ensure(ss);
+      if (cur && cur !== ss) fillEmptySpecFields(cur, ss);
+    });
+    savedList.forEach(function (saved) {
+      if (!saved || !saved.skuCode) return;
+      var cur = ensure(saved);
+      if (!cur) return;
+      map[saved.skuCode] = Object.assign({}, cur, saved, {
+        skuCode: saved.skuCode,
+        specName: cur.specName || saved.specName,
+        purchasePrice: cur.purchasePrice != null ? cur.purchasePrice : saved.purchasePrice,
+        skuImg: saved.skuImg || cur.skuImg || '',
+        stock: saved.stock != null ? saved.stock : cur.stock,
+        barcode: cur.barcode || saved.barcode || '',
+        specValue: cur.specValue || saved.specValue || '',
+        baseUnit: cur.baseUnit || saved.baseUnit || '',
+        saleUnit: saved.saleUnit || cur.saleUnit || '',
+        saleRatio: saved.saleRatio || cur.saleRatio || '',
+        spotStock: cur.spotStock != null ? cur.spotStock : saved.spotStock,
+        sellableStock: cur.sellableStock != null ? cur.sellableStock : saved.sellableStock
+      });
+      delete map[saved.skuCode].limitConfig;
+    });
+
+    var specs = order.map(function (key, i) {
+      var src = map[key] || {};
+      if (!Object.prototype.hasOwnProperty.call(src, 'exchangeEnabled')) {
+        src.exchangeEnabled = i === 0 && !savedList.length;
+      }
+      if (src.points == null) src.points = 100;
+      if (src.minSaleQty == null) src.minSaleQty = 1;
+      if (src.exchangedQty == null) src.exchangedQty = 0;
+      src.exchangeType = productType;
+      return normalizeSpec(src, i, item.code, productType);
     });
 
     return Object.assign({}, item, {

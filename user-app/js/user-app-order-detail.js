@@ -996,6 +996,11 @@
       var itemIndex = itemEl
         ? parseInt(itemEl.getAttribute('data-item-index') || String(index), 10)
         : index;
+      /* 积分兑换未勾选支持售后：只隐藏 C 端申请入口 */
+      if (isPointsExchangeOrderItem(itemIndex) && !isCEndPointsAftersaleOpen()) {
+        wrap.innerHTML = '';
+        return;
+      }
       /* 可退与可补均耗尽：隐藏申请入口 */
       if (
         api &&
@@ -1240,9 +1245,13 @@
   }
 
   function isPointsExchangeOrderItem(itemIndex) {
-    var el = document.querySelector(
-      '.ua-od-item[data-item-index="' + String(itemIndex) + '"]'
-    );
+    var api = getAftersaleApi();
+    if (api && typeof api.isPointsExchangeByIndex === 'function') {
+      return !!api.isPointsExchangeByIndex(itemIndex);
+    }
+    var el =
+      document.querySelector('.ua-od-item[data-item-index="' + String(itemIndex) + '"]') ||
+      document.querySelector('.ua-od-product[data-item-index="' + String(itemIndex) + '"]');
     if (el && el.getAttribute('data-points-exchange') === '1') return true;
     try {
       var raw = sessionStorage.getItem('ua_last_order_items_v1');
@@ -1254,17 +1263,21 @@
     }
   }
 
+  function isCEndPointsAftersaleOpen() {
+    if (window.UAOrderRefund && typeof window.UAOrderRefund.isCEndPointsAftersaleOpen === 'function') {
+      return window.UAOrderRefund.isCEndPointsAftersaleOpen();
+    }
+    var cfg = window.MdmPointsMallConfig;
+    if (cfg && typeof cfg.isExchangeRefundEnabled === 'function') {
+      return !!cfg.isExchangeRefundEnabled();
+    }
+    return true;
+  }
+
   function canStartAftersaleForItem(itemIndex, actionMode) {
-    /* 积分兑换商品是否支持售后：读后台积分规则 exchange.refundEnabled */
-    if (isPointsExchangeOrderItem(itemIndex)) {
-      var cfg = window.MdmPointsMallConfig;
-      var allowed =
-        cfg && typeof cfg.isExchangeRefundEnabled === 'function'
-          ? cfg.isExchangeRefundEnabled()
-          : true;
-      if (!allowed) {
-        return { ok: false, msg: '抱歉，积分兑换商品暂不支持售后' };
-      }
+    /* 未勾选支持售后：C 端不展示入口，也不弹「暂不支持售后」 */
+    if (isPointsExchangeOrderItem(itemIndex) && !isCEndPointsAftersaleOpen()) {
+      return { ok: false, silent: true };
     }
     var api = getAftersaleApi();
     var orderNo = typeof getDemoOrderNo === 'function' ? getDemoOrderNo() : '';
@@ -1573,7 +1586,7 @@
         var actionMode = btn.getAttribute('data-item-action') || 'refund';
         var check = canStartAftersaleForItem(itemIndex, actionMode);
         if (!check.ok) {
-          window.alert(check.msg);
+          if (check.msg) window.alert(check.msg);
           return;
         }
         window.location.href = buildItemRefundHref(itemIndex);
@@ -1665,7 +1678,15 @@
     return status;
   }
 
+  function mountPointsAftersaleDemoPanel() {
+    var api = getAftersaleApi();
+    if (api && typeof api.mountPointsAftersaleDemoPanel === 'function') {
+      api.mountPointsAftersaleDemoPanel();
+    }
+  }
+
   function init() {
+    mountPointsAftersaleDemoPanel();
     var demoOrder = applyDemoOrderSnapshot();
     var status = getStatus();
     /* URL 与存储不一致时，校正地址栏，避免刷新后又变回待付款 */
@@ -1683,19 +1704,9 @@
 
     var config = STATUS_CONFIG[status] || STATUS_CONFIG.unpaid;
     applyLastOrderPointsFlags();
-    /* URL 演示：?pointsItem=0 或 0,2 将对应行标为积分兑换商品 */
-    var pointsItemParam = getParams().get('pointsItem');
-    if (pointsItemParam) {
-      String(pointsItemParam)
-        .split(',')
-        .forEach(function (raw) {
-          var idx = parseInt(String(raw).trim(), 10);
-          if (isNaN(idx)) return;
-          var el = document.querySelector(
-            '.ua-od-item[data-item-index="' + String(idx) + '"]'
-          );
-          if (el) el.setAttribute('data-points-exchange', '1');
-        });
+    var refundApi = getAftersaleApi();
+    if (refundApi && typeof refundApi.applyPointsExchangeDemoFlags === 'function') {
+      refundApi.applyPointsExchangeDemoFlags();
     }
     applyPointsExchangeNameTags();
 
