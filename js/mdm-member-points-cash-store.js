@@ -70,6 +70,99 @@
 
   var list = [];
   var loaded = false;
+  var OplogFactory = global.MdmMemberPointsOplog;
+  var LOG_FIELDS = [
+    'name',
+    'enabled',
+    'perPointAmount',
+    'maxRatio',
+    'maxAmount',
+    'portScope',
+    'ports',
+    'saleScope',
+    'saleRegions',
+    'saleStores',
+    'productScope'
+  ];
+  var oplog = OplogFactory
+    ? OplogFactory.createModule({
+        storageKey: 'mdm_member_points_cash_logs_v1',
+        resource: 'member_points_cash',
+        service: 'member-core',
+        actionLabel: {
+          'cash.create': '创建规则',
+          'cash.save': '保存规则',
+          'cash.enable': '启用',
+          'cash.disable': '禁用',
+          'cash.delete': '删除'
+        },
+        actionUri: {
+          'cash.create': '/member-core/v1/points-cash/create',
+          'cash.save': '/member-core/v1/points-cash/update',
+          'cash.enable': '/member-core/v1/points-cash/activate',
+          'cash.disable': '/member-core/v1/points-cash/pause',
+          'cash.delete': '/member-core/v1/points-cash/delete'
+        },
+        fieldLabel: {
+          name: '规则名称',
+          enabled: '状态',
+          perPointAmount: '每1积分抵多少元',
+          maxRatio: '每笔订单最大可抵扣比例',
+          maxAmount: '最大可抵扣金额',
+          portScope: '适用端口',
+          ports: '指定端口',
+          saleScope: '售卖范围',
+          saleRegions: '省市区',
+          saleStores: '门店',
+          productScope: '适用商品'
+        },
+        valueMap: {
+          enabled: { true: '已启用', false: '已禁用' },
+          portScope: { all: '不限', custom: '指定端口' },
+          saleScope: { all: '全部范围', region: '省市区', store: '门店' }
+        }
+      })
+    : null;
+
+  function seedCashLogs() {
+    if (!oplog) return;
+    oplog.seedIfEmpty(list, function (item, makeLog) {
+      var recs = [
+        makeLog(
+          {
+            id: 'log-' + item.id + '-1',
+            time: item.createdAt,
+            action: 'cash.create',
+            changes: [{ field: 'name', oldValue: '', newValue: item.name }],
+            requestParams: JSON.stringify({ id: item.id, name: item.name, action: 'cash.create' })
+          },
+          item.id
+        )
+      ];
+      if (item.updatedAt && item.updatedAt !== item.createdAt) {
+        recs.push(
+          makeLog(
+            {
+              id: 'log-' + item.id + '-2',
+              time: item.updatedAt,
+              action: 'cash.save',
+              requestParams: JSON.stringify({ id: item.id, name: item.name, action: 'cash.save' })
+            },
+            item.id
+          )
+        );
+      }
+      recs.sort(function (a, b) {
+        return String(b.timestamp || b.time || '').localeCompare(String(a.timestamp || a.time || ''));
+      });
+      return recs;
+    });
+  }
+
+  function pushItemLog(id, action, extra) {
+    if (!oplog) return;
+    oplog.pushLog(id, action, extra || {});
+  }
 
   function pad2(n) {
     return n < 10 ? '0' + n : String(n);
@@ -229,6 +322,7 @@
     } catch (e) {
       list = SEED.map(normalizeItem);
     }
+    seedCashLogs();
   }
 
   function nextId() {
@@ -266,23 +360,40 @@
     list.forEach(function (it, i) {
       if (it.id === normalized.id) idx = i;
     });
-    if (idx >= 0) {
+    var isNew = idx < 0;
+    var oldItem = isNew ? null : clone(list[idx]);
+    if (!isNew) {
       normalized.createdAt = list[idx].createdAt || normalized.createdAt;
       list[idx] = normalized;
     } else {
       list.unshift(normalized);
     }
     persist();
+    pushItemLog(normalized.id, isNew ? 'cash.create' : 'cash.save', {
+      changes: isNew
+        ? [{ field: 'name', oldValue: '', newValue: normalized.name }]
+        : OplogFactory
+          ? OplogFactory.diffFields(oldItem, normalized, LOG_FIELDS)
+          : [],
+      requestParams: JSON.stringify(normalized)
+    });
     return clone(normalized);
   }
 
   function remove(id) {
     ensureLoaded();
+    var oldItem = getById(id);
     var before = list.length;
     list = list.filter(function (it) {
       return it.id !== id;
     });
-    if (list.length !== before) persist();
+    if (list.length !== before) {
+      persist();
+      pushItemLog(id, 'cash.delete', {
+        changes: oldItem ? [{ field: 'name', oldValue: oldItem.name, newValue: '' }] : [],
+        requestParams: JSON.stringify({ id: id, action: 'cash.delete' })
+      });
+    }
     return list.length !== before;
   }
 
@@ -292,9 +403,14 @@
       return it.id === id;
     })[0];
     if (!item) return null;
+    var oldEnabled = !!item.enabled;
     item.enabled = !!enabled;
     item.updatedAt = formatNow();
     persist();
+    pushItemLog(id, item.enabled ? 'cash.enable' : 'cash.disable', {
+      changes: [{ field: 'enabled', oldValue: String(oldEnabled), newValue: String(!!item.enabled) }],
+      requestParams: JSON.stringify({ id: id, enabled: item.enabled })
+    });
     return clone(item);
   }
 
@@ -359,6 +475,10 @@
 
   /** 取命中规则：启用且匹配场景，按创建时间最新；未命中返回 null（不支持抵现） */
   function resolveActiveRule(ctx) {
+    try {
+      var raw = localStorage.getItem('mdm_member_points_rule_v1');
+      if (raw && JSON.parse(raw).enabled === false) return null;
+    } catch (e) { /* ignore */ }
     ensureLoaded();
     var enabled = list.filter(function (it) {
       return matchesContext(it, ctx || {});
@@ -378,6 +498,15 @@
     setEnabled: setEnabled,
     resolveActiveRule: resolveActiveRule,
     matchesContext: matchesContext,
-    normalizeItem: normalizeItem
+    normalizeItem: normalizeItem,
+    listLogs: function (resourceId, pageNum, pageSize) {
+      return oplog ? oplog.listLogs(resourceId, pageNum, pageSize) : { list: [], total: 0 };
+    },
+    findLog: function (logId) {
+      return oplog ? oplog.findLog(logId) : null;
+    },
+    ACTION_LABEL: oplog ? oplog.ACTION_LABEL : {},
+    FIELD_LABEL: oplog ? oplog.FIELD_LABEL : {},
+    VALUE_MAP: oplog ? oplog.VALUE_MAP : {}
   };
 })(window);

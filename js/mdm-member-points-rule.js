@@ -63,6 +63,81 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
     }
 
+    var RULE_LOG_ID = 'global';
+    var OplogFactory = window.MdmMemberPointsOplog;
+    var LOG_FIELDS = [
+        'enabled',
+        'validityDays',
+        'ruleDesc',
+        'exchange.enabled',
+        'exchange.refundEnabled',
+        'exchange.refundValidity'
+    ];
+    var ruleOplog = OplogFactory
+        ? OplogFactory.createModule({
+            storageKey: 'mdm_member_points_rule_logs_v1',
+            resource: 'member_points_rule',
+            service: 'member-core',
+            actionLabel: {
+                'rule.save': '保存配置'
+            },
+            actionUri: {
+                'rule.save': '/member-core/v1/points-rule/update'
+            },
+            fieldLabel: {
+                enabled: '开启积分功能',
+                validityDays: '积分有效期',
+                ruleDesc: '规则说明',
+                'exchange.enabled': '开启积分兑换商品',
+                'exchange.refundEnabled': '支持售后',
+                'exchange.refundValidity': '退还积分有效期'
+            },
+            valueMap: {
+                enabled: { true: '开启', false: '关闭' },
+                'exchange.enabled': { true: '开启', false: '关闭' },
+                'exchange.refundEnabled': { true: '支持', false: '不支持' },
+                'exchange.refundValidity': { keep_original: '保留原有效期' }
+            }
+        })
+        : null;
+
+    if (ruleOplog) {
+        ruleOplog.seedIfEmpty([{ id: RULE_LOG_ID, name: '积分规则' }], function (item, makeLog) {
+            return [
+                makeLog(
+                    {
+                        id: 'log-rule-seed-1',
+                        time: '2026-07-01 10:00:00',
+                        action: 'rule.save',
+                        changes: [
+                            { field: 'enabled', oldValue: '', newValue: 'true' },
+                            { field: 'validityDays', oldValue: '', newValue: '365' }
+                        ],
+                        requestParams: JSON.stringify({ id: RULE_LOG_ID, action: 'rule.save' })
+                    },
+                    item.id
+                )
+            ];
+        });
+    }
+
+    var logAdapter = ruleOplog
+        ? {
+            ACTION_LABEL: ruleOplog.ACTION_LABEL,
+            FIELD_LABEL: ruleOplog.FIELD_LABEL,
+            VALUE_MAP: ruleOplog.VALUE_MAP,
+            listLogs: function (id, page, size) {
+                return ruleOplog.listLogs(id || RULE_LOG_ID, page, size);
+            },
+            findLog: function (logId) {
+                return ruleOplog.findLog(logId);
+            },
+            getById: function () {
+                return { name: '积分规则' };
+            }
+        }
+        : null;
+
     function setBodyDisabled(bodyEl, disabled) {
         if (!bodyEl) return;
         bodyEl.classList.toggle('pts-rule-section-disabled', !!disabled);
@@ -150,10 +225,15 @@
         document.getElementById('exchangeEnabled').addEventListener('change', syncExchangeUi);
         document.getElementById('exchangeRefundEnabled').addEventListener('change', syncExchangeUi);
 
-        document.getElementById('btnPtsRuleReset').addEventListener('click', function () {
-            applyRuleToForm(clone(defaultRule));
-            toast('已重置为默认配置', 'info');
-        });
+        if (window.MdmMemberPointsLogUi) window.MdmMemberPointsLogUi.bind();
+        var logBtn = document.getElementById('btnPtsRuleLog');
+        if (logBtn) {
+            logBtn.addEventListener('click', function () {
+                if (window.MdmMemberPointsLogUi && logAdapter) {
+                    window.MdmMemberPointsLogUi.open(logAdapter, RULE_LOG_ID, '积分规则');
+                }
+            });
+        }
 
         document.getElementById('btnPtsRuleSave').addEventListener('click', function () {
             var rule = readForm();
@@ -165,7 +245,14 @@
                 toast(err, 'warning');
                 return;
             }
+            var prev = clone(draft);
             saveRule(rule);
+            if (ruleOplog) {
+                ruleOplog.pushLog(RULE_LOG_ID, 'rule.save', {
+                    changes: OplogFactory ? OplogFactory.diffFields(prev, rule, LOG_FIELDS) : [],
+                    requestParams: JSON.stringify(rule)
+                });
+            }
             draft = clone(rule);
             applyRuleToForm(rule);
             toast('积分规则已保存');

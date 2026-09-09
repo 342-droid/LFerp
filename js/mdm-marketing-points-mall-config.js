@@ -161,9 +161,46 @@
     return rule;
   }
 
+  function isMasterEnabled() {
+    var parsed = loadRuleRaw();
+    if (!parsed) return true;
+    return parsed.enabled !== false;
+  }
+
   function isExchangeEnabled() {
     var rule = getRule();
     return !!(rule.enabled && rule.exchange && rule.exchange.enabled);
+  }
+
+  var POINTS_OFFLINE_TIP = '积分能力已下线';
+
+  function notifyPointsOffline() {
+    var msg = POINTS_OFFLINE_TIP;
+    if (typeof showToast === 'function') {
+      showToast(msg, 'warning');
+      return;
+    }
+    var el = document.getElementById('uaShopToast');
+    if (el) {
+      el.textContent = msg;
+      el.hidden = false;
+      window.setTimeout(function () {
+        el.hidden = true;
+      }, 2200);
+      return;
+    }
+    if (window.alert) window.alert(msg);
+  }
+
+  /** 总开关关闭时拦截积分页，回到个人中心 */
+  function bounceIfPointsOffline(fallback) {
+    if (isMasterEnabled()) return false;
+    notifyPointsOffline();
+    var target = fallback || 'profile.html';
+    window.location.replace(
+      window.UaNav && window.UaNav.withFrom ? window.UaNav.withFrom(target) : target
+    );
+    return true;
   }
 
   /** 积分兑换商品是否支持售后：未勾选只影响 C 端申请入口；PC 后台不读此开关拦操作 */
@@ -223,7 +260,18 @@
     var rule = getRule(ctx || {});
     var ptsAvail =
       availablePoints != null ? Number(availablePoints) : AVAILABLE_POINTS_DEMO;
-    if (!(rule.enabled && rule.cash && rule.cash.enabled)) {
+    if (!rule.enabled) {
+      return {
+        enabled: false,
+        hidden: true,
+        eligibleAmount: 0,
+        deductAmount: 0,
+        pointsUsed: 0,
+        maxAmount: 0,
+        tip: POINTS_OFFLINE_TIP
+      };
+    }
+    if (!(rule.cash && rule.cash.enabled)) {
       return {
         enabled: false,
         eligibleAmount: 0,
@@ -328,8 +376,12 @@
   window.MdmPointsMallConfig = {
     MAX_BANNERS: MAX_BANNERS,
     AVAILABLE_POINTS_DEMO: AVAILABLE_POINTS_DEMO,
+    POINTS_OFFLINE_TIP: POINTS_OFFLINE_TIP,
     getRule: getRule,
+    isMasterEnabled: isMasterEnabled,
     isExchangeEnabled: isExchangeEnabled,
+    notifyPointsOffline: notifyPointsOffline,
+    bounceIfPointsOffline: bounceIfPointsOffline,
     isExchangeRefundEnabled: isExchangeRefundEnabled,
     REFUND_DEMO_KEY: REFUND_DEMO_KEY,
     setExchangeEnabled: setExchangeEnabled,

@@ -32,6 +32,32 @@
     return m ? decodeURIComponent(m[1]) : '';
   }
 
+  function queryMode() {
+    var m = String(window.location.search || '').match(/[?&]mode=([^&]+)/);
+    return m ? decodeURIComponent(m[1]) : '';
+  }
+
+  var isView = false;
+
+  function lockViewForm() {
+    var form = document.getElementById('consumeRuleForm');
+    if (!form) return;
+    form.classList.add('pts-rule-form--view');
+    form.querySelectorAll('input, select, textarea, button').forEach(function (el) {
+      if (el.id === 'btnConsumeCancel') return;
+      el.disabled = true;
+    });
+    form.querySelectorAll('[data-scope-remove]').forEach(function (el) {
+      el.hidden = true;
+    });
+    var pickWrap = document.getElementById('consumeScopePickWrap');
+    if (pickWrap) pickWrap.hidden = true;
+    var saveBtn = document.getElementById('btnConsumeSave');
+    if (saveBtn) saveBtn.hidden = true;
+    var cancelBtn = document.getElementById('btnConsumeCancel');
+    if (cancelBtn) cancelBtn.textContent = '返回';
+  }
+
   function escapeHtml(str) {
     return String(str == null ? '' : str)
       .replace(/&/g, '&amp;')
@@ -179,8 +205,16 @@
 
   document.addEventListener('DOMContentLoaded', function () {
     editingId = queryId();
+    isView = queryMode() === 'view';
     var tab = document.getElementById('consumeFormTabTitle');
-    if (tab) tab.textContent = editingId ? '编辑消费送积分' : '新增消费送积分';
+    if (tab) {
+      tab.textContent = isView ? '查看消费送积分' : (editingId ? '编辑消费送积分' : '新增消费送积分');
+    }
+
+    if (isView && !editingId) {
+      window.location.href = wp.page('mdm_member_points_consume.html');
+      return;
+    }
 
     productScopeCtrl = Scope.createScopeController({
       radioName: 'consumeProductScope',
@@ -202,6 +236,7 @@
     var regionPickBtn = document.getElementById('consumeSaleScopePickBtn');
     if (regionPickBtn) {
       regionPickBtn.addEventListener('click', function () {
+        if (isView) return;
         if (!window.MdmProxyRegionPicker) {
           toast('区域选择组件未加载', 'warning');
           return;
@@ -223,6 +258,7 @@
     var storePickBtn = document.getElementById('consumeSaleScopeStorePickBtn');
     if (storePickBtn) {
       storePickBtn.addEventListener('click', function () {
+        if (isView) return;
         if (!window.MdmProxyStorePicker) {
           toast('门店选择组件未加载', 'warning');
           return;
@@ -250,6 +286,7 @@
     });
 
     document.getElementById('btnConsumeSave').addEventListener('click', function () {
+      if (isView) return;
       var item = readForm();
       item.amountPerPoint = round2(item.amountPerPoint);
       var err = validate(item);
@@ -265,7 +302,13 @@
     if (editingId) {
       var found = Store.getById(editingId);
       if (found) applyItem(found);
-      else toast('未找到该规则，将作为新增保存', 'warning');
+      else if (isView) {
+        toast('未找到该规则', 'warning');
+        window.location.href = wp.page('mdm_member_points_consume.html');
+        return;
+      } else {
+        toast('未找到该规则，将作为新增保存', 'warning');
+      }
     } else {
       applyItem({
         name: '',
@@ -281,5 +324,6 @@
         productScope: { type: 'all', products: [], categories: [] }
       });
     }
+    if (isView) lockViewForm();
   });
 })();

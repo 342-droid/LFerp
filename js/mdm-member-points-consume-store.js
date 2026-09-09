@@ -63,6 +63,98 @@
 
   var list = [];
   var loaded = false;
+  var OplogFactory = global.MdmMemberPointsOplog;
+  var LOG_FIELDS = [
+    'name',
+    'enabled',
+    'amountPerPoint',
+    'lessThanOne',
+    'portScope',
+    'ports',
+    'saleScope',
+    'saleRegions',
+    'saleStores',
+    'productScope'
+  ];
+  var oplog = OplogFactory
+    ? OplogFactory.createModule({
+        storageKey: 'mdm_member_points_consume_logs_v1',
+        resource: 'member_points_consume',
+        service: 'member-core',
+        actionLabel: {
+          'consume.create': '创建规则',
+          'consume.save': '保存规则',
+          'consume.enable': '启用',
+          'consume.disable': '禁用',
+          'consume.delete': '删除'
+        },
+        actionUri: {
+          'consume.create': '/member-core/v1/points-consume/create',
+          'consume.save': '/member-core/v1/points-consume/update',
+          'consume.enable': '/member-core/v1/points-consume/activate',
+          'consume.disable': '/member-core/v1/points-consume/pause',
+          'consume.delete': '/member-core/v1/points-consume/delete'
+        },
+        fieldLabel: {
+          name: '规则名称',
+          enabled: '状态',
+          amountPerPoint: '每消费多少元送1积分',
+          lessThanOne: '积分不足1时',
+          portScope: '适用端口',
+          ports: '指定端口',
+          saleScope: '售卖范围',
+          saleRegions: '省市区',
+          saleStores: '门店',
+          productScope: '适用商品'
+        },
+        valueMap: {
+          enabled: { true: '已启用', false: '已禁用' },
+          lessThanOne: { count_one: '计1积分', ignore: '不赠送', round: '四舍五入' },
+          portScope: { all: '不限', custom: '指定端口' },
+          saleScope: { all: '全部范围', region: '省市区', store: '门店' }
+        }
+      })
+    : null;
+
+  function seedConsumeLogs() {
+    if (!oplog) return;
+    oplog.seedIfEmpty(list, function (item, makeLog) {
+      var recs = [
+        makeLog(
+          {
+            id: 'log-' + item.id + '-1',
+            time: item.createdAt,
+            action: 'consume.create',
+            changes: [{ field: 'name', oldValue: '', newValue: item.name }],
+            requestParams: JSON.stringify({ id: item.id, name: item.name, action: 'consume.create' })
+          },
+          item.id
+        )
+      ];
+      if (item.updatedAt && item.updatedAt !== item.createdAt) {
+        recs.push(
+          makeLog(
+            {
+              id: 'log-' + item.id + '-2',
+              time: item.updatedAt,
+              action: 'consume.save',
+              requestParams: JSON.stringify({ id: item.id, name: item.name, action: 'consume.save' })
+            },
+            item.id
+          )
+        );
+      }
+      recs.sort(function (a, b) {
+        return String(b.timestamp || b.time || '').localeCompare(String(a.timestamp || a.time || ''));
+      });
+      return recs;
+    });
+  }
+
+  function pushItemLog(id, action, extra) {
+    if (!oplog) return;
+    oplog.pushLog(id, action, extra || {});
+  }
 
   function pad2(n) {
     return n < 10 ? '0' + n : String(n);
@@ -224,6 +316,7 @@
     } catch (e) {
       list = SEED.map(normalizeItem);
     }
+    seedConsumeLogs();
   }
 
   function nextId() {
@@ -261,23 +354,40 @@
     list.forEach(function (it, i) {
       if (it.id === normalized.id) idx = i;
     });
-    if (idx >= 0) {
+    var isNew = idx < 0;
+    var oldItem = isNew ? null : clone(list[idx]);
+    if (!isNew) {
       normalized.createdAt = list[idx].createdAt || normalized.createdAt;
       list[idx] = normalized;
     } else {
       list.unshift(normalized);
     }
     persist();
+    pushItemLog(normalized.id, isNew ? 'consume.create' : 'consume.save', {
+      changes: isNew
+        ? [{ field: 'name', oldValue: '', newValue: normalized.name }]
+        : OplogFactory
+          ? OplogFactory.diffFields(oldItem, normalized, LOG_FIELDS)
+          : [],
+      requestParams: JSON.stringify(normalized)
+    });
     return clone(normalized);
   }
 
   function remove(id) {
     ensureLoaded();
+    var oldItem = getById(id);
     var before = list.length;
     list = list.filter(function (it) {
       return it.id !== id;
     });
-    if (list.length !== before) persist();
+    if (list.length !== before) {
+      persist();
+      pushItemLog(id, 'consume.delete', {
+        changes: oldItem ? [{ field: 'name', oldValue: oldItem.name, newValue: '' }] : [],
+        requestParams: JSON.stringify({ id: id, action: 'consume.delete' })
+      });
+    }
     return list.length !== before;
   }
 
@@ -287,9 +397,14 @@
       return it.id === id;
     })[0];
     if (!item) return null;
+    var oldEnabled = !!item.enabled;
     item.enabled = !!enabled;
     item.updatedAt = formatNow();
     persist();
+    pushItemLog(id, item.enabled ? 'consume.enable' : 'consume.disable', {
+      changes: [{ field: 'enabled', oldValue: String(oldEnabled), newValue: String(!!item.enabled) }],
+      requestParams: JSON.stringify({ id: id, enabled: item.enabled })
+    });
     return clone(item);
   }
 
@@ -356,6 +471,10 @@
    * 取命中规则：启用且匹配场景，按创建时间最新；未命中返回 null（不赠送）
    */
   function resolveActiveRule(ctx) {
+    try {
+      var raw = localStorage.getItem('mdm_member_points_rule_v1');
+      if (raw && JSON.parse(raw).enabled === false) return null;
+    } catch (e) { /* ignore */ }
     ensureLoaded();
     var enabled = list.filter(function (it) {
       return matchesContext(it, ctx || {});
@@ -391,6 +510,15 @@
     matchesContext: matchesContext,
     applyLessThanOne: applyLessThanOne,
     normalizeItem: normalizeItem,
+    listLogs: function (resourceId, pageNum, pageSize) {
+      return oplog ? oplog.listLogs(resourceId, pageNum, pageSize) : { list: [], total: 0 };
+    },
+    findLog: function (logId) {
+      return oplog ? oplog.findLog(logId) : null;
+    },
+    ACTION_LABEL: oplog ? oplog.ACTION_LABEL : {},
+    FIELD_LABEL: oplog ? oplog.FIELD_LABEL : {},
+    VALUE_MAP: oplog ? oplog.VALUE_MAP : {},
     LESS_THAN_ONE_LABEL: {
       count_one: '计1积分',
       ignore: '不赠送',

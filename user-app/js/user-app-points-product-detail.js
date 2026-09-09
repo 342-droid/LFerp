@@ -280,6 +280,19 @@
   }
 
   function init() {
+    var cfg = window.MdmPointsMallConfig;
+    if (cfg && typeof cfg.bounceIfPointsOffline === 'function' && cfg.bounceIfPointsOffline()) {
+      return;
+    }
+    if (cfg && !cfg.isExchangeEnabled()) {
+      cfg.notifyPointsOffline && cfg.notifyPointsOffline();
+      window.location.replace(
+        window.UaNav && window.UaNav.withFrom
+          ? window.UaNav.withFrom('profile.html')
+          : 'profile.html'
+      );
+      return;
+    }
     if (window.UaNav) {
       window.UaNav.applyBackLink('#ppdBack', 'points-mall.html');
     }

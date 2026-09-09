@@ -350,6 +350,10 @@
   }
 
   function init() {
+    var cfg = window.MdmPointsMallConfig;
+    if (cfg && typeof cfg.bounceIfPointsOffline === 'function' && cfg.bounceIfPointsOffline()) {
+      return;
+    }
     if (window.UaNav) {
       /* 商城开启时从商城进入明细，返回商城；否则返回个人中心 */
       window.UaNav.applyBackLink(

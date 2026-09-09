@@ -636,6 +636,32 @@
         return '<span class="pts-remain--zero">0</span>';
     }
 
+    function resolveHitRule(item) {
+        if (item.hitRuleId) {
+            return {
+                id: item.hitRuleId,
+                kind: item.hitRuleKind || (String(item.hitRuleId).indexOf('PX') === 0 ? 'cash' : 'consume')
+            };
+        }
+        if (item.changeType === 'consume') {
+            return { id: item.memberId === 'U10002' ? 'PC10002' : 'PC10001', kind: 'consume' };
+        }
+        if (item.changeType === 'cash' || item.changeType === 'cash_refund') {
+            return { id: item.memberId === 'U10002' ? 'PX10002' : 'PX10001', kind: 'cash' };
+        }
+        return null;
+    }
+
+    function formatHitRuleHtml(item) {
+        var hit = resolveHitRule(item);
+        if (!hit || !hit.id) return '—';
+        var page = hit.kind === 'cash' ? 'mdm_member_points_cash_form.html' : 'mdm_member_points_consume_form.html';
+        var href = pageHref(page) +
+            '?id=' + encodeURIComponent(hit.id) +
+            '&mode=view';
+        return '<a class="pts-hit-rule-link" href="' + href + '" title="查看规则详情">' + escapeHtml(hit.id) + '</a>';
+    }
+
     function formatMemberIdHtml(item) {
         var href = pageHref('mdm_member_c.html') +
             '?memberId=' + encodeURIComponent(item.memberId) +
@@ -694,7 +720,7 @@
         if (!tbody) return;
 
         if (!pageRows.length) {
-            tbody.innerHTML = '<tr><td colspan="14" style="text-align:center;color:#999;padding:28px 0;">暂无数据</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="15" style="text-align:center;color:#999;padding:28px 0;">暂无数据</td></tr>';
         } else {
             tbody.innerHTML = pageRows.map(function (item) {
                 return (
@@ -707,6 +733,7 @@
                     '<td>' + formatChange(item.change) + '</td>' +
                     '<td>' + formatRemaining(item) + '</td>' +
                     '<td>' + escapeHtml(item.afterValue) + '</td>' +
+                    '<td>' + formatHitRuleHtml(item) + '</td>' +
                     '<td>' + formatRefNoHtml(item) + '</td>' +
                     '<td>' + formatRemarkHtml(item) + '</td>' +
                     '<td>' + escapeHtml(item.occurAt) + '</td>' +

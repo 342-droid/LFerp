@@ -418,6 +418,9 @@
 
   function init() {
     var cfg = window.MdmPointsMallConfig;
+    if (cfg && typeof cfg.bounceIfPointsOffline === 'function' && cfg.bounceIfPointsOffline()) {
+      return;
+    }
     if (cfg && !cfg.isExchangeEnabled()) {
       window.location.replace(
         window.UaNav && window.UaNav.withFrom

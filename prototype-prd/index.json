@@ -156,14 +156,19 @@
         "MDM/mdm_marketing_points_mall.html",
         "MDM/mdm_marketing_points_mall_form.html",
         "MDM/mdm_marketing_points_rule_desc.html",
+        "MDM/mdm_live_control.html",
+        "user-app/h5/profile.html",
         "user-app/h5/points-mall.html",
         "user-app/h5/points-product-detail.html",
         "user-app/h5/points-order-confirm.html",
         "user-app/h5/points-detail.html",
         "user-app/h5/points-rule-desc.html",
+        "user-app/h5/order-confirm.html",
         "user-app/h5/checkout.html",
+        "user-app/h5/cart.html",
         "user-app/h5/order-detail.html",
-        "user-app/h5/order-detail-pickup.html"
+        "user-app/h5/order-detail-pickup.html",
+        "user-app/h5/live-room.html"
       ]
     }
   ]
