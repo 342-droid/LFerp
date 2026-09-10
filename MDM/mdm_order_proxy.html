@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
-    <link rel="stylesheet" href="../css/lf-order.css?v=20260910-order-time3">
+    <link rel="stylesheet" href="../css/lf-order.css?v=20260911-time-rect">
 </head>
 <body data-order-page="proxy">
     <div id="sidebar-container"></div>
@@ -35,20 +35,21 @@
                                 <label class="order-filter-field__label is-required" for="qOrderTimeStart">下单时间</label>
                                 <div class="order-filter-time">
                                     <div class="order-filter-range">
+                                        <input class="order-filter-range__input" id="qOrderTimeStart" type="text" placeholder="开始时间" autocomplete="off" required>
+                                        <span class="order-filter-range__sep"> - </span>
+                                        <input class="order-filter-range__input" id="qOrderTimeEnd" type="text" placeholder="结束时间" autocomplete="off" required>
                                         <span class="order-filter-range__icon" aria-hidden="true">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg>
                                         </span>
-                                        <input class="order-filter-range__input" id="qOrderTimeStart" type="text" placeholder="开始时间" autocomplete="off" required>
-                                        <span class="order-filter-range__sep">-</span>
-                                        <input class="order-filter-range__input" id="qOrderTimeEnd" type="text" placeholder="结束时间" autocomplete="off" required>
                                     </div>
                                     <div class="order-filter-time__presets" id="qOrderTimePresets">
-                                        <label class="order-filter-time__preset"><input type="checkbox" value="today"> 今天</label>
-                                        <label class="order-filter-time__preset"><input type="checkbox" value="yesterday"> 昨天</label>
-                                        <label class="order-filter-time__preset"><input type="checkbox" value="3d"> 近3天</label>
-                                        <label class="order-filter-time__preset"><input type="checkbox" value="7d" checked> 近7天</label>
-                                        <label class="order-filter-time__preset"><input type="checkbox" value="15d"> 近15天</label>
-                                        <label class="order-filter-time__preset"><input type="checkbox" value="30d"> 近30天</label>
+                                        <button type="button" class="order-filter-time__preset" data-preset="today" aria-pressed="false">今天</button>
+                                        <button type="button" class="order-filter-time__preset" data-preset="yesterday" aria-pressed="false">昨天</button>
+                                        <button type="button" class="order-filter-time__preset is-active" data-preset="7d" aria-pressed="true">近7天</button>
+                                        <button type="button" class="order-filter-time__preset" data-preset="14d" aria-pressed="false">近14天</button>
+                                        <button type="button" class="order-filter-time__preset" data-preset="30d" aria-pressed="false">近30天</button>
+                                        <button type="button" class="order-filter-time__preset" data-preset="lastMonth" aria-pressed="false">上个月</button>
+                                        <button type="button" class="order-filter-time__preset" data-preset="thisMonth" aria-pressed="false">本月</button>
                                     </div>
                                     <input type="hidden" id="qOrderTime" name="qOrderTime" value="7d">
                                 </div>
@@ -506,7 +507,7 @@
     <script src="../js/order-platform-aftersale.js?v=20260820-as-apply"></script>
     <script src="../js/freight-refund-aftersale-store.js?v=20260826-refund-only"></script>
     <script src="../js/order-freight-refund.js?v=20260826-refund-only"></script>
-    <script src="../js/order-live-list.js?v=20260910-order-time2"></script>
+    <script src="../js/order-live-list.js?v=20260911-time-preset"></script>
     <script src="../js/order-proxy-list.js?v=20260820-as-apply"></script>
     <script src="../js/logistics-tracking-no.js"></script>
     <script src="../js/vendor/xlsx.full.min.js"></script>

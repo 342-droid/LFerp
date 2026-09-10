@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>门店档案手动调账 · 复制后贴到禅道</title>
+  <style>
+    body { font-family: "PingFang SC", "Microsoft YaHei", sans-serif; padding: 24px; max-width: 880px; color: #333; line-height: 1.6; }
+    .tip { background: #fff7ef; border: 1px solid #ffd4b0; padding: 10px 14px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; }
+    #copyRoot table { border-collapse: collapse; width: 100%; margin: 10px 0 16px; }
+    #copyRoot th, #copyRoot td { border: 1px solid #d0d0d0; padding: 8px 10px; text-align: left; vertical-align: top; font-size: 14px; }
+    #copyRoot th { background: #f5f5f5; font-weight: 600; }
+    #copyRoot h2 { font-size: 18px; margin: 22px 0 8px; }
+    #copyRoot p { margin: 8px 0; }
+  </style>
+</head>
+<body>
+  <p class="tip">用法：用浏览器打开本页 → 选中下方正文全选复制 → 禅道描述里先点掉「&lt;/&gt;」源码按钮，再粘贴。不要直接贴 Markdown。</p>
+
+  <div id="copyRoot">
+    <p><strong>门店档案 · 手动调账</strong></p>
+    <table>
+      <tbody>
+        <tr><th>版本</th><td>v1.0</td><th>日期</th><td>2026-09-11</td><th>状态</th><td>已落地原型</td></tr>
+      </tbody>
+    </table>
+    <p>入口：门店详情 → 账户信息。保证金账户、余额账户的「余额」旁各有【手动调账】。保证金原【解冻】保留。</p>
+    <p>资金性质：平台基本户 ↔ 所选门店账户划拨。增加：平台基本户 → 所选账户入账。减少：所选账户出账 → 平台基本户。</p>
+    <p>不受货款不可提现、在途、冻结占用限制，按该账户账面全额可调减。保证金按保证金余额可调减。</p>
+
+    <h2>1. 弹窗</h2>
+    <table>
+      <thead>
+        <tr><th>字段</th><th>规则</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>账户</td><td>余额账户 / 保证金账户。从哪边点进来预填哪边，可改。</td></tr>
+        <tr><td>调账方向</td><td>增加 / 减少。默认增加。切换后刷新原因枚举和划拨路径。</td></tr>
+        <tr><td>调账金额</td><td>必填，&gt; 0，两位小数。</td></tr>
+        <tr><td>调账原因</td><td>必填。取「账户 × 方向」账变类型单选 +「其他」。选其他必须写具体原因。</td></tr>
+        <tr><td>备注</td><td>选填，最多 100 字。</td></tr>
+        <tr><td>图片 / 视频</td><td>选填。图片最多 9 张，jpg/png/gif/webp，单张 ≤ 2MB。视频最多 1 个，mp4/mov，≤ 20MB。超限或格式不对不可传。</td></tr>
+      </tbody>
+    </table>
+    <p>取消 / 关窗不落账。确认校验通过后改余额并写一条账变。</p>
+
+    <h2>2. 调账原因枚举</h2>
+    <table>
+      <thead>
+        <tr><th>账户</th><th>增加</th><th>减少</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>余额账户</td>
+          <td>首次充值、佣金结算、充值、提现回退、退款、保证金解冻</td>
+          <td>提现、进货支付、售后/责任类扣款、佣金回退、保证金补缴</td>
+        </tr>
+        <tr>
+          <td>保证金账户</td>
+          <td>保证金入账、保证金补缴</td>
+          <td>售后/责任类扣款、保证金解冻</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>每组另加「其他」。选其他：账变类型落「其他(具体原因)」（如「其他(店庆补贴)」），具体原因不进说明列。</p>
+
+    <h2>3. 账变记录</h2>
+    <p>确认后即时入账变：账户类型=所选账户，资金方向=划拨，资金来源/去向=平台基本户，账变类型=所选原因（其他见上），金额按增 + / 减 −，操作人=当前后台账号（姓名 / 账号）。</p>
+    <p>说明列只放备注 + 图片/视频。无备注无附件为「—」。图片、视频可点击放大查看，视频放大后可播放。</p>
+    <p>筛选项「账变类型」增加【其他】。所有「其他(具体原因)」都归这一项，列表显示如「其他(店庆补贴)」。</p>
+    <p>门店 APP 钱包账户明细同一条流水按划拨、交易方=平台基本户展示；筛「其他」同样归并。</p>
+
+    <h2>4. 本期不做</h2>
+    <p>不做出双分录（不自动对打另一边钱包）。不改解冻、账户配置、充值提现原规则。附件不落生产对象存储（原型会话内回显）。</p>
+  </div>
+</body>
+</html>

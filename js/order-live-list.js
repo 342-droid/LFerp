@@ -435,7 +435,7 @@
   }
 
   var ORDER_TIME_PRESET_DEFAULT = '7d';
-  var ORDER_TIME_PRESETS = ['today', 'yesterday', '3d', '7d', '15d', '30d'];
+  var ORDER_TIME_PRESETS = ['today', 'yesterday', '7d', '14d', '30d', 'lastMonth', 'thisMonth'];
 
   function startOfLocalDay(date) {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -460,7 +460,7 @@
     return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
   }
 
-  /* 近 N 天含今天，共 N 个自然日；今天/昨天为单日 */
+  /* 近 N 天含今天，共 N 个自然日；今天/昨天为单日；本月/上个月为整自然月 */
   function getOrderTimePresetRange(preset) {
     var today = startOfLocalDay(new Date());
     var start = today;
@@ -470,27 +470,37 @@
     } else if (preset === 'yesterday') {
       start = addLocalDays(today, -1);
       end = start;
-    } else if (preset === '3d') {
-      start = addLocalDays(today, -2);
     } else if (preset === '7d') {
       start = addLocalDays(today, -6);
-    } else if (preset === '15d') {
-      start = addLocalDays(today, -14);
+    } else if (preset === '14d') {
+      start = addLocalDays(today, -13);
     } else if (preset === '30d') {
       start = addLocalDays(today, -29);
+    } else if (preset === 'thisMonth') {
+      start = new Date(today.getFullYear(), today.getMonth(), 1);
+      end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    } else if (preset === 'lastMonth') {
+      start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      end = new Date(today.getFullYear(), today.getMonth(), 0);
     } else {
       return null;
     }
     return { start: start, end: end };
   }
 
-  function getOrderTimePresetBoxes() {
-    return document.querySelectorAll('#qOrderTimePresets input[type="checkbox"]');
+  function formatOrderDateTime(date, endOfDay) {
+    return formatOrderDay(date) + (endOfDay ? ' 23:59:59' : ' 00:00:00');
+  }
+
+  function getOrderTimePresetBtns() {
+    return document.querySelectorAll('#qOrderTimePresets [data-preset]');
   }
 
   function setOrderTimePresetChecked(preset) {
-    getOrderTimePresetBoxes().forEach(function (box) {
-      box.checked = box.value === preset;
+    getOrderTimePresetBtns().forEach(function (btn) {
+      var on = btn.getAttribute('data-preset') === preset;
+      btn.classList.toggle('is-active', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
     var hidden = document.getElementById('qOrderTime');
     if (hidden) hidden.value = preset || '';
@@ -501,8 +511,8 @@
     var startEl = document.getElementById('qOrderTimeStart');
     var endEl = document.getElementById('qOrderTimeEnd');
     if (!range || !startEl || !endEl) return;
-    startEl.value = formatOrderDay(range.start);
-    endEl.value = formatOrderDay(range.end);
+    startEl.value = formatOrderDateTime(range.start, false);
+    endEl.value = formatOrderDateTime(range.end, true);
     setOrderTimePresetChecked(preset);
   }
 
@@ -546,14 +556,10 @@
     var endEl = document.getElementById('qOrderTimeEnd');
     if (!presets || !startEl || !endEl) return;
 
-    presets.addEventListener('change', function (e) {
-      var box = e.target.closest('input[type="checkbox"]');
-      if (!box) return;
-      if (!box.checked) {
-        box.checked = true;
-        return;
-      }
-      applyOrderTimePreset(box.value);
+    presets.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-preset]');
+      if (!btn || !presets.contains(btn)) return;
+      applyOrderTimePreset(btn.getAttribute('data-preset'));
     });
 
     function syncPresetFromInputs() {

@@ -1483,10 +1483,11 @@
         });
     }
 
-    /** 点击缩略图放大查看 */
-    function openPhotoLightbox(src, title) {
+    /** 点击缩略图放大查看；kind=video 播视频 */
+    function openPhotoLightbox(src, title, kind) {
         if (!src) return;
         closePhotoLightbox();
+        var isVideo = kind === 'video';
         var backdrop = el(
             'div',
             'erp-modal-backdrop erp-modal-backdrop--over-drawer mdm-photo-lightbox'
@@ -1494,20 +1495,37 @@
         backdrop.setAttribute('data-archive-photo-lightbox', '1');
         var box = el('div', 'mdm-photo-lightbox__box');
         var head = el('div', 'mdm-photo-lightbox__head');
-        head.appendChild(el('div', 'mdm-photo-lightbox__title', title || '查看照片'));
+        head.appendChild(el('div', 'mdm-photo-lightbox__title', title || (isVideo ? '查看视频' : '查看照片')));
         var closeBtn = el('button', 'erp-modal__header-btn');
         closeBtn.type = 'button';
         closeBtn.setAttribute('aria-label', '关闭');
         closeBtn.innerHTML = '&times;';
         head.appendChild(closeBtn);
-        var img = document.createElement('img');
-        img.className = 'mdm-photo-lightbox__img';
-        img.src = src;
-        img.alt = title || '照片';
+        var media;
+        if (isVideo) {
+            media = document.createElement('video');
+            media.className = 'mdm-photo-lightbox__img mdm-photo-lightbox__video';
+            media.src = src;
+            media.controls = true;
+            media.autoplay = true;
+            media.playsInline = true;
+        } else {
+            media = document.createElement('img');
+            media.className = 'mdm-photo-lightbox__img';
+            media.src = src;
+            media.alt = title || '照片';
+        }
         box.appendChild(head);
-        box.appendChild(img);
+        box.appendChild(media);
         backdrop.appendChild(box);
         function shut() {
+            if (media && media.tagName === 'VIDEO') {
+                try {
+                    media.pause();
+                } catch (err) {
+                    /* ignore */
+                }
+            }
             closePhotoLightbox();
         }
         backdrop.addEventListener('click', function (ev) {
@@ -4150,6 +4168,11 @@
                 img.src = item.url;
                 img.alt = item.name || '';
                 thumb.appendChild(img);
+                thumb.title = '点击放大查看';
+                thumb.addEventListener('click', function (ev) {
+                    if (ev.target.closest('.store-adjust-upload__remove')) return;
+                    openPhotoLightbox(item.url, item.name || '查看图片', 'image');
+                });
                 var rm = el('button', 'store-adjust-upload__remove', '×');
                 rm.type = 'button';
                 rm.setAttribute('aria-label', '删除图片');
@@ -4168,6 +4191,11 @@
                 v.muted = true;
                 vThumb.appendChild(v);
                 vThumb.appendChild(el('span', 'store-adjust-upload__badge', '视频'));
+                vThumb.title = '点击放大查看';
+                vThumb.addEventListener('click', function (ev) {
+                    if (ev.target.closest('.store-adjust-upload__remove')) return;
+                    openPhotoLightbox(video.url, video.name || '查看视频', 'video');
+                });
                 var vRm = el('button', 'store-adjust-upload__remove', '×');
                 vRm.type = 'button';
                 vRm.setAttribute('aria-label', '删除视频');
@@ -4287,6 +4315,23 @@
                     item.appendChild(img);
                 } else {
                     item.appendChild(el('em', '', '图'));
+                }
+                if (m.url) {
+                    item.setAttribute('role', 'button');
+                    item.tabIndex = 0;
+                    item.title = '点击放大查看';
+                    item.addEventListener('click', function () {
+                        openPhotoLightbox(
+                            m.url,
+                            m.name || (m.kind === 'video' ? '查看视频' : '查看图片'),
+                            m.kind === 'video' ? 'video' : 'image'
+                        );
+                    });
+                    item.addEventListener('keydown', function (ev) {
+                        if (ev.key !== 'Enter' && ev.key !== ' ') return;
+                        ev.preventDefault();
+                        item.click();
+                    });
                 }
                 rowEl.appendChild(item);
             });
@@ -4753,7 +4798,11 @@
             余额支付: '进货支付',
             进货退款: '退款'
         };
-        return map[t] || t || '—';
+        var mapped = map[t] || t || '—';
+        if (mapped.indexOf('其他') === 0 && mapped !== '其他' && mapped.charAt(2) !== '(') {
+            return '其他(' + mapped.slice(2) + ')';
+        }
+        return mapped;
     }
 
     function mapStoreLedgerDirection(item) {

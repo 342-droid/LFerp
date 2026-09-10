@@ -1867,6 +1867,11 @@
   background: #000;
 }
 
+.mdm-photo-lightbox__video {
+  width: min(920px, calc(100vw - 48px));
+  max-height: calc(100vh - 96px);
+}
+
 /* 门店/供应商进件 · 绑定汇付商户号 */
 .mdm-huifu-bind-actions {
   display: inline-flex;
@@ -2738,6 +2743,7 @@ select.store-ledger-filter__control {
 .store-adjust-upload__item {
   border: 1px solid #ddd;
   background: #f5f5f5;
+  cursor: zoom-in;
 }
 
 .store-adjust-upload__item img,
@@ -2842,6 +2848,7 @@ select.store-ledger-filter__control {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  cursor: zoom-in;
 }
 
 .store-ledger-remark__thumb img,
