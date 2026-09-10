@@ -1,10 +1,179 @@
 {
-  "latestSha": "904a63ed89d8f98c83b8ba9044abc4f71fb0c3fa",
-  "total": 380,
+  "latestSha": "50ae9458de52a706b981a14dd1ca7c6ab3e0cde1",
+  "total": 381,
   "days": [
     {
       "date": "2026-09-11",
       "items": [
+        {
+          "sha": "50ae945",
+          "type": "feat",
+          "text": "完善商品库跨页全选、账变调账演示和订单下单时间快捷项",
+          "author": "sisi",
+          "time": "01:24",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched.html",
+              "module": "冷丰WMS",
+              "title": "直播排品"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "module": "冷丰WMS",
+              "title": "秒杀活动"
+            },
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_queue.html",
+              "module": "冷丰WMS",
+              "title": "排队记录"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            },
+            {
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
+            },
+            {
+              "file": "store-app/h5/biz-center.html",
+              "module": "",
+              "title": "经营中心 · 门店APP"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-detail.html",
+              "module": "",
+              "title": "退款详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "module": "",
+              "title": "进货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/store-pay-password.html",
+              "module": "",
+              "title": "设置支付密码 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-recharge.html",
+              "module": "",
+              "title": "充值 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-wallet.html",
+              "module": "",
+              "title": "我的钱包 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-withdraw-records.html",
+              "module": "",
+              "title": "提现明细 · 门店 APP"
+            },
+            {
+              "file": "user-app/h5/store-withdraw.html",
+              "module": "",
+              "title": "提现 · 门店 APP"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "text": "从商品库添加的全选改为一次选中当前筛选下全部页"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "text": "从商品库添加全选同样改为跨页全选"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched.html",
+              "text": "从商品库添加全选改为跨页全选"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "text": "从商品库添加全选改为跨页全选"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "text": "账变记录预置带图、视频和备注的手动调账；其他类型显示为其他(具体原因)；附件可点击放大"
+            },
+            {
+              "file": "user-app/h5/store-wallet.html",
+              "text": "其他账变类型展示格式与后台对齐"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "下单时间快捷项改为今天/昨天/近7天/近14天/近30天/上个月/本月，文字单选红色下划线，时间框与其它输入框同为圆角长方形"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "text": "下单时间快捷项与零售一致"
+            }
+          ]
+        },
         {
           "sha": "904a63e",
           "type": "feat",
