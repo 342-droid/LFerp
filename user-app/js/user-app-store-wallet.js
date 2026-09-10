@@ -100,7 +100,11 @@
 
   function mapLedgerBizType(rawType) {
     var t = String(rawType || '');
-    return BIZ_TYPE_MAP[t] || t || '—';
+    var mapped = BIZ_TYPE_MAP[t] || t || '—';
+    if (mapped.indexOf('其他') === 0 && mapped !== '其他' && mapped.charAt(2) !== '(') {
+      return '其他(' + mapped.slice(2) + ')';
+    }
+    return mapped;
   }
 
   function matchBizTypeFilter(item) {

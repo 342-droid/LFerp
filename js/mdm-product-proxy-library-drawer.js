@@ -91,22 +91,23 @@
     return products.slice(start, start + drawerState.pageSize);
   }
 
-  function selectableOnPage(pageItems, addedCodes) {
-    return pageItems.filter(function (item) {
+  /** 当前类目+搜索下全部页可添加商品（全选范围，不限当前页） */
+  function selectableAll(products, addedCodes) {
+    return (products || []).filter(function (item) {
       return isItemSelectable(item, addedCodes);
     });
   }
 
-  function syncCheckAll(pageItems, addedCodes) {
+  function syncCheckAll(products, addedCodes) {
     var box = document.getElementById('proxyLibraryCheckAll');
     if (!box) return;
-    var pickable = selectableOnPage(pageItems, addedCodes);
-    var selectedOnPage = pickable.filter(function (item) {
+    var pickable = selectableAll(products, addedCodes);
+    var selectedAll = pickable.filter(function (item) {
       return drawerState.selected[item.code];
     });
     box.disabled = pickable.length === 0;
-    box.checked = pickable.length > 0 && selectedOnPage.length === pickable.length;
-    box.indeterminate = selectedOnPage.length > 0 && selectedOnPage.length < pickable.length;
+    box.checked = pickable.length > 0 && selectedAll.length === pickable.length;
+    box.indeterminate = selectedAll.length > 0 && selectedAll.length < pickable.length;
   }
 
   function renderPager(total) {
@@ -239,7 +240,7 @@
     var pageItems = getPageItems(products);
     if (totalEl) totalEl.textContent = '共 ' + products.length + ' 件商品';
     renderPager(products.length);
-    syncCheckAll(pageItems, addedCodes);
+    syncCheckAll(products, addedCodes);
 
     if (!products.length) {
       gridEl.innerHTML = '<div class="proxy-library-drawer__empty">暂无符合条件的商品</div>';
@@ -300,7 +301,7 @@
       '          <svg class="proxy-library-drawer__search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>' +
       '          <input type="text" class="proxy-library-drawer__search-input" id="proxyLibrarySearch" placeholder="搜索商品名称、编码..." autocomplete="off">' +
       '        </div>' +
-      '        <label class="proxy-library-drawer__checkall" for="proxyLibraryCheckAll">' +
+      '        <label class="proxy-library-drawer__checkall" for="proxyLibraryCheckAll" title="选中当前类目与搜索下全部页可添加商品">' +
       '          <input type="checkbox" id="proxyLibraryCheckAll">' +
       '          <span>全选</span>' +
       '        </label>' +
@@ -387,8 +388,7 @@
     var checkAll = document.getElementById('proxyLibraryCheckAll');
     if (checkAll) {
       checkAll.addEventListener('change', function () {
-        var pageItems = getPageItems(getVisibleProducts(addedCodes));
-        selectableOnPage(pageItems, addedCodes).forEach(function (item) {
+        selectableAll(getVisibleProducts(addedCodes), addedCodes).forEach(function (item) {
           if (checkAll.checked) drawerState.selected[item.code] = true;
           else delete drawerState.selected[item.code];
         });

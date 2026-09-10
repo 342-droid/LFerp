@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>订单下单时间筛选 · 复制后贴到禅道</title>
+  <style>
+    body { font-family: "PingFang SC", "Microsoft YaHei", sans-serif; padding: 24px; max-width: 880px; color: #333; line-height: 1.6; }
+    .tip { background: #fff7ef; border: 1px solid #ffd4b0; padding: 10px 14px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; }
+    #copyRoot table { border-collapse: collapse; width: 100%; margin: 10px 0 16px; }
+    #copyRoot th, #copyRoot td { border: 1px solid #d0d0d0; padding: 8px 10px; text-align: left; vertical-align: top; font-size: 14px; }
+    #copyRoot th { background: #f5f5f5; font-weight: 600; }
+    #copyRoot h2 { font-size: 18px; margin: 22px 0 8px; }
+    #copyRoot p { margin: 8px 0; }
+  </style>
+</head>
+<body>
+  <p class="tip">用法：用浏览器打开本页 → 选中下方正文全选复制 → 禅道描述里先点掉「&lt;/&gt;」源码按钮，再粘贴。不要直接贴 Markdown。</p>
+
+  <div id="copyRoot">
+    <p><strong>零售 / 代采订单 · 下单时间筛选</strong></p>
+    <table>
+      <tbody>
+        <tr><th>版本</th><td>v1.1</td><th>日期</th><td>2026-09-11</td><th>状态</th><td>已落地原型</td></tr>
+      </tbody>
+    </table>
+    <p>入口：零售订单、代采订单筛选区。直播订单列表本期不动。</p>
+    <p>下单时间独立占筛选区最上一行：左侧日期区间，右侧快捷项。必填，未选区间点查询提示「请选择下单时间」。</p>
+
+    <h2>1. 区间展示</h2>
+    <p>圆角输入框，日历图标在右侧。起止精确到时分秒：开始日 <strong>00:00:00</strong>，结束日 <strong>23:59:59</strong>，中间用「-」连接，如 2026-09-05 00:00:00 - 2026-09-11 23:59:59。</p>
+
+    <h2>2. 快捷项</h2>
+    <p>文字单选，从左到右：今天、昨天、近7天、近14天、近30天、上个月、本月。无勾选框。默认<strong>近7天</strong>，打开页面即回填区间。</p>
+    <p>选中态：文字与底部短下划线均为红色（#ff4d4f）。未选为深灰。点某一项立刻回填区间；已选项再点一次不取消（必须换一项或改日期）。</p>
+    <p>近 N 天含今天，共 N 个自然日（近7天 = 今天往前共 7 个自然日）。今天 / 昨天为单日，开始=结束。</p>
+    <p>本月：当月 1 日 00:00:00 至当月最后一天 23:59:59。上个月：上月 1 日 00:00:00 至上月最后一天 23:59:59。</p>
+
+    <h2>3. 手改日期</h2>
+    <p>结束日早于开始日时，按起止对调后再筛。</p>
+    <p>手改后的区间若与某个快捷项的自然日完全一致，自动点亮该项；对不上则全部取消选中，区间仍按手填值查询。</p>
+
+    <h2>4. 展开 / 查询</h2>
+    <p>下单时间始终露在首行，不随「展开/收起」藏进附加区。个人视图不能把「展开」藏掉，也不能强开 extra 区。</p>
+    <p>查询按闭区间筛下单日。重置回到默认近7天。</p>
+
+    <h2>5. 本期不做</h2>
+    <p>直播订单列表不加这套快捷项。不改导出、不改列表列。不再提供近3天、近15天。</p>
+  </div>
+</body>
+</html>

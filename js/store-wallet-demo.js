@@ -12,7 +12,7 @@
  * - 保证金补缴出双分录：余额账户支出 + 保证金账户划拨入账
  */
 (function (global) {
-  var STORAGE_KEY = 'lf_store_wallet_demo_v26';
+  var STORAGE_KEY = 'lf_store_wallet_demo_v27';
   /* 演示商户（供应商简称）：收入·佣金结算的支付方式 / 支出·佣金回退的账户 */
   var DEMO_MERCHANT_SHORT = '优鲜供应链';
   /* 零售：售后/责任类扣款（余额账户付款）/ 佣金回退 —— 不扣货款，扣余额剩余层 */
@@ -117,9 +117,108 @@
     });
   }
 
+  function demoAdjustAsset(file) {
+    var rel = 'assets/demo/store-adjust/' + file;
+    if (typeof window !== 'undefined' && window.wmsPath && typeof window.wmsPath.asset === 'function') {
+      return window.wmsPath.asset(rel);
+    }
+    return '../' + rel;
+  }
+
+  function demoAdjustMedia(items) {
+    return (items || []).map(function (it) {
+      return {
+        kind: it.kind === 'video' ? 'video' : 'image',
+        name: it.name,
+        url: demoAdjustAsset(it.file),
+        size: Number(it.size || 0)
+      };
+    });
+  }
+
+  /** 演示用手动调账：带备注、图片、视频，列表新在前靠发生时间排 */
+  function demoManualAdjustLedgers() {
+    return [
+      {
+        id: 'ADJ-DEMO-01',
+        time: '2026-09-10 16:28:41',
+        type: '其他(店庆补贴)',
+        dir: 'in',
+        amount: 500,
+        account: '余额账户',
+        bizNo: 'ADJ-20260910-01',
+        channelNo: '',
+        payMethod: '平台基本户',
+        operator: '超级管理员 / admin',
+        manualAdjust: true,
+        remark: '店庆活动补贴，已与门店核对到账凭证。',
+        media: demoAdjustMedia([
+          { kind: 'image', name: '店庆回单.png', file: 'voucher-recharge.png', size: 503 },
+          { kind: 'image', name: '银行回执.png', file: 'voucher-bank.png', size: 291 },
+          { kind: 'video', name: '沟通说明.mp4', file: 'adjust-note.mp4', size: 1128375 }
+        ])
+      },
+      {
+        id: 'ADJ-DEMO-02',
+        time: '2026-09-10 11:06:12',
+        type: '充值',
+        dir: 'in',
+        amount: 800,
+        account: '余额账户',
+        bizNo: 'ADJ-20260910-02',
+        channelNo: '',
+        payMethod: '平台基本户',
+        operator: '李运营 / liyunying',
+        manualAdjust: true,
+        remark: '对公转账凭证已核对，补记平台基本户充值。',
+        media: demoAdjustMedia([
+          { kind: 'image', name: '充值凭证.png', file: 'voucher-recharge.png', size: 503 },
+          { kind: 'image', name: '到账截图.png', file: 'voucher-bank.png', size: 291 },
+          { kind: 'image', name: '核对备注.png', file: 'voucher-deposit.png', size: 359 }
+        ])
+      },
+      {
+        id: 'ADJ-DEMO-03',
+        time: '2026-09-09 15:42:08',
+        type: '保证金入账',
+        dir: 'in',
+        amount: 300,
+        account: '保证金账户',
+        bizNo: 'ADJ-20260909-03',
+        channelNo: '',
+        payMethod: '平台基本户',
+        operator: '超级管理员 / admin',
+        manualAdjust: true,
+        remark: '新店保证金入账，附件为汇款回单。',
+        media: demoAdjustMedia([
+          { kind: 'image', name: '保证金回单.png', file: 'voucher-deposit.png', size: 359 },
+          { kind: 'image', name: '银行回执.png', file: 'voucher-bank.png', size: 291 }
+        ])
+      },
+      {
+        id: 'ADJ-DEMO-04',
+        time: '2026-09-08 09:18:33',
+        type: '售后/责任类扣款',
+        dir: 'out',
+        amount: 150,
+        account: '余额账户',
+        bizNo: 'ADJ-20260908-04',
+        channelNo: '',
+        payMethod: '平台基本户',
+        operator: '李运营 / liyunying',
+        manualAdjust: true,
+        remark: '客诉破损赔付，现场照片与沟通录像已附。',
+        media: demoAdjustMedia([
+          { kind: 'image', name: '破损现场.png', file: 'photo-damage.png', size: 286 },
+          { kind: 'video', name: '沟通录像.mp4', file: 'adjust-note.mp4', size: 1128375 }
+        ])
+      }
+    ];
+  }
+
   function defaultLedgers() {
     /* 首次充值 10000→余额，再自动划拨 2000 至保证金（出账+入账） */
-    return [
+    return demoManualAdjustLedgers().concat([
       {
         id: 'L001-A',
         time: '2026-07-28 10:12:03',
@@ -388,7 +487,7 @@
         thawStatus: 'ready',
         remark: '进货售后仅退款·由平台退回钱包（计入可提现）'
       }
-    ];
+    ]);
   }
 
   function load() {
@@ -1260,7 +1359,7 @@
     }
 
     var extraRemark = String(meta.remark || '').trim().slice(0, 100);
-    var bizType = reason === '其他' ? '其他' + reasonDetail : reason;
+    var bizType = reason === '其他' ? '其他(' + reasonDetail + ')' : reason;
     var operator = String(meta.operator || '').trim() || '超级管理员 / admin';
     if (!Array.isArray(d.ledgers)) d.ledgers = [];
     var ledgerId = 'ADJ' + Date.now();
