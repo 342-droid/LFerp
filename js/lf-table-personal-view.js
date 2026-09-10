@@ -21,9 +21,9 @@
     },
     '/MDM/mdm_order_retail.html': {
       preferenceKey: 'commerce.retail-order.list',
-      filterItemSelector: '.order-filter-grid > .order-filter-field',
+      /* 展开区与代采一致：不纳入个人视图，保留「展开 / 收起」 */
+      filterItemSelector: '.order-filter-grid:not(.order-filter-grid--extra) > .order-filter-field',
       filterEntryHost: '.order-filter-actions',
-      legacyFilterToggle: '#orderFilterExpand',
       table: '.order-live-table-wrap > .order-live-table',
       tableEntryHost: '.order-table-toolbar',
       queryButton: '#orderFilterQuery'

@@ -1657,8 +1657,8 @@
         card(
           '商户信息',
           renderBindTypeFields() +
-        fieldFull('商户简称', 'on_short_name', '账单展示名称', getDraftField('short_name'), 'short_name') +
-          fieldFull('小票名称', 'on_receipt_name', '小票展示名称', getDraftField('receipt_name'), 'receipt_name') +
+        fieldFull('商户简称', 'on_short_name', '商户简称', getDraftField('short_name'), 'short_name') +
+          fieldFull('小票名称', 'on_receipt_name', '小票名称', getDraftField('receipt_name'), 'receipt_name') +
           fieldFull('实际经营地址', 'on_detail_addr', '经营详细地址', getDraftField('detail_addr'), 'detail_addr') +
           fieldFull('法人手机号', 'on_legal_mobile_no', '法人联系方式', getDraftField('legal_mobile_no'), 'legal_mobile_no')
         ) +

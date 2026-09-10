@@ -2905,7 +2905,12 @@
             subjectName: cellPlain(c[1]),
             contact: cellPlain(c[6]),
             phone: cellPlain(c[7]),
-            shortName: '—',
+            shortName:
+                (window.MdmStoreSiteSlot &&
+                    window.MdmStoreSiteSlot.getShortName(cellPlain(c[0]), name)) ||
+                attr('data-short-name', '') ||
+                name ||
+                '—',
             partnerDivision: partner,
             storeType: cellPlain(c[4]),
             bd: cellPlain(c[5]),
@@ -3937,6 +3942,17 @@
             var storeDisabled =
                 store &&
                 (store.storeStatus === '已禁用' || store.storeStatus === '停用');
+            function mkManualAdjustBtn(accountType) {
+                var btn = el('button', 'store-summary-bar__action-btn', '手动调账');
+                btn.type = 'button';
+                btn.addEventListener('click', function () {
+                    openManualAdjustModal(accountType, money, function () {
+                        render();
+                        refreshOpenStoreLedgerPanel();
+                    });
+                });
+                return btn;
+            }
             var unfreezeBtn = el('button', 'store-summary-bar__action-btn', '解冻');
             unfreezeBtn.type = 'button';
             if (!storeDisabled) {
@@ -3997,10 +4013,14 @@
                 ])
             );
 
+            var depositActions = el('div', 'store-summary-bar__actions');
+            depositActions.appendChild(unfreezeBtn);
+            depositActions.appendChild(mkManualAdjustBtn('保证金账户'));
+
             root.appendChild(sectionTitle('保证金账户'));
             root.appendChild(
                 summaryBar([
-                    ['余额', money(depositActual), unfreezeBtn],
+                    ['余额', money(depositActual), depositActions],
                     ['可提款', money(depositWithdrawable)],
                     ['应保有', money(depositRequired)],
                     ['需补金额', money(depositGap)]
@@ -4010,7 +4030,7 @@
             root.appendChild(sectionTitle('余额账户'));
             root.appendChild(
                 summaryBar([
-                    ['余额', money(available)],
+                    ['余额', money(available), mkManualAdjustBtn('余额账户')],
                     ['货款', money(goodsQuota)],
                     ['可提款', money(withdrawable)],
                     ['在途', money(pending)]
@@ -4033,6 +4053,496 @@
         document.querySelectorAll('[data-archive-account-cfg="1"]').forEach(function (n) {
             n.remove();
         });
+    }
+
+    function closeManualAdjustModal() {
+        document.querySelectorAll('[data-archive-manual-adjust="1"]').forEach(function (n) {
+            n.remove();
+        });
+    }
+
+    var storeLedgerPanelRef = null;
+
+    function refreshOpenStoreLedgerPanel() {
+        if (storeLedgerPanelRef && typeof storeLedgerPanelRef.refreshStoreLedger === 'function') {
+            storeLedgerPanelRef.refreshStoreLedger();
+        }
+    }
+
+    /**
+     * 手动调账原因：账户 × 调账方向 对应账变类型（与账变记录枚举对齐）+「其他」
+     * 余额增加≈收入/划拨入；余额减少≈支出/划拨出；保证金额外只保留本账户会落账的类型
+     */
+    var MANUAL_ADJUST_REASONS = {
+        余额账户: {
+            增加: ['首次充值', '佣金结算', '充值', '提现回退', '退款', '保证金解冻'],
+            减少: ['提现', '进货支付', '售后/责任类扣款', '佣金回退', '保证金补缴']
+        },
+        保证金账户: {
+            增加: ['保证金入账', '保证金补缴'],
+            减少: ['售后/责任类扣款', '保证金解冻']
+        }
+    };
+
+    function bindManualAdjustMedia(host) {
+        var images = [];
+        var video = null;
+        var listEl = el('div', 'store-adjust-upload__list');
+        var addBtn = el('button', 'store-adjust-upload__add');
+        addBtn.type = 'button';
+        addBtn.innerHTML = '<span>+</span><em>上传</em>';
+        var fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'image/jpeg,image/png,image/gif,image/webp,video/mp4,video/quicktime';
+        fileInput.multiple = true;
+        fileInput.className = 'store-adjust-upload__file';
+        var countEl = el('div', 'store-adjust-upload__count', '图片 0/9 · 视频 0/1');
+        var tip = el(
+            'div',
+            'store-adjust-upload__tip',
+            '图片支持 jpg、png、gif、webp，单张不超过 2MB；视频支持 mp4、mov，不超过 20MB'
+        );
+        var IMAGE_MAX = 2 * 1024 * 1024;
+        var VIDEO_MAX = 20 * 1024 * 1024;
+
+        function fileExt(name) {
+            var m = String(name || '')
+                .toLowerCase()
+                .match(/\.([a-z0-9]+)$/);
+            return m ? m[1] : '';
+        }
+        function isAllowedImage(file) {
+            var ext = fileExt(file && file.name);
+            return (
+                /image\/(jpeg|png|gif|webp)/i.test((file && file.type) || '') ||
+                /^(jpe?g|png|gif|webp)$/.test(ext)
+            );
+        }
+        function isAllowedVideo(file) {
+            var ext = fileExt(file && file.name);
+            return (
+                /video\/(mp4|quicktime|x-m4v)/i.test((file && file.type) || '') ||
+                /^(mp4|mov|m4v)$/.test(ext)
+            );
+        }
+
+        function revoke(item) {
+            if (item && item.url && String(item.url).indexOf('blob:') === 0) {
+                try {
+                    URL.revokeObjectURL(item.url);
+                } catch (err) {
+                    /* ignore */
+                }
+            }
+        }
+
+        function snapshot() {
+            var list = images.slice();
+            if (video) list.push(video);
+            return list;
+        }
+
+        function render() {
+            empty(listEl);
+            images.forEach(function (item, idx) {
+                var thumb = el('div', 'store-adjust-upload__item');
+                var img = document.createElement('img');
+                img.src = item.url;
+                img.alt = item.name || '';
+                thumb.appendChild(img);
+                var rm = el('button', 'store-adjust-upload__remove', '×');
+                rm.type = 'button';
+                rm.setAttribute('aria-label', '删除图片');
+                rm.addEventListener('click', function () {
+                    revoke(item);
+                    images.splice(idx, 1);
+                    render();
+                });
+                thumb.appendChild(rm);
+                listEl.appendChild(thumb);
+            });
+            if (video) {
+                var vThumb = el('div', 'store-adjust-upload__item is-video');
+                var v = document.createElement('video');
+                v.src = video.url;
+                v.muted = true;
+                vThumb.appendChild(v);
+                vThumb.appendChild(el('span', 'store-adjust-upload__badge', '视频'));
+                var vRm = el('button', 'store-adjust-upload__remove', '×');
+                vRm.type = 'button';
+                vRm.setAttribute('aria-label', '删除视频');
+                vRm.addEventListener('click', function () {
+                    revoke(video);
+                    video = null;
+                    render();
+                });
+                vThumb.appendChild(vRm);
+                listEl.appendChild(vThumb);
+            }
+            addBtn.style.display = images.length >= 9 && video ? 'none' : '';
+            listEl.appendChild(addBtn);
+            countEl.textContent =
+                '图片 ' + images.length + '/9 · 视频 ' + (video ? 1 : 0) + '/1';
+        }
+
+        addBtn.addEventListener('click', function () {
+            fileInput.value = '';
+            fileInput.click();
+        });
+        fileInput.addEventListener('change', function () {
+            Array.prototype.forEach.call(fileInput.files || [], function (file) {
+                if (isAllowedImage(file)) {
+                    if (images.length >= 9) {
+                        if (typeof showToast === 'function') showToast('图片最多 9 张', 'error');
+                        return;
+                    }
+                    if (file.size > IMAGE_MAX) {
+                        if (typeof showToast === 'function') showToast('单张图片不能超过 2MB', 'error');
+                        return;
+                    }
+                    images.push({
+                        kind: 'image',
+                        name: file.name,
+                        size: file.size,
+                        url: URL.createObjectURL(file)
+                    });
+                    return;
+                }
+                if (isAllowedVideo(file)) {
+                    if (video) {
+                        if (typeof showToast === 'function') showToast('视频只能上传 1 个', 'error');
+                        return;
+                    }
+                    if (file.size > VIDEO_MAX) {
+                        if (typeof showToast === 'function') showToast('视频不能超过 20MB', 'error');
+                        return;
+                    }
+                    video = {
+                        kind: 'video',
+                        name: file.name,
+                        size: file.size,
+                        url: URL.createObjectURL(file)
+                    };
+                    return;
+                }
+                if (typeof showToast === 'function') {
+                    showToast('仅支持 jpg/png/gif/webp 图片或 mp4/mov 视频', 'error');
+                }
+            });
+            render();
+        });
+
+        host.appendChild(listEl);
+        host.appendChild(fileInput);
+        host.appendChild(countEl);
+        host.appendChild(tip);
+        render();
+        return {
+            snapshot: snapshot,
+            destroy: function () {
+                images.forEach(revoke);
+                revoke(video);
+                images = [];
+                video = null;
+            }
+        };
+    }
+
+    function currentBackendOperator() {
+        var user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+        if (user) {
+            var name = user.name || user.realName || user.nickname || user.username || '';
+            var account = user.account || user.username || user.loginName || user.id || '';
+            if (name && account && String(name) !== String(account)) return name + ' / ' + account;
+            if (name) return name;
+            if (account) return account;
+        }
+        return '超级管理员 / admin';
+    }
+
+    function renderLedgerRemarkCell(row) {
+        var wrap = el('div', 'store-ledger-remark');
+        var text = String(row.remark || '').trim();
+        var media = row.media || [];
+        if (text) wrap.appendChild(el('div', 'store-ledger-remark__text', text));
+        if (media.length) {
+            var rowEl = el('div', 'store-ledger-remark__media');
+            media.forEach(function (m) {
+                var item = el(
+                    'span',
+                    'store-ledger-remark__thumb' + (m.kind === 'video' ? ' is-video' : '')
+                );
+                if (m.kind === 'video') {
+                    if (m.url) {
+                        var v = document.createElement('video');
+                        v.src = m.url;
+                        v.muted = true;
+                        item.appendChild(v);
+                    }
+                    item.appendChild(el('em', '', '视频'));
+                } else if (m.url) {
+                    var img = document.createElement('img');
+                    img.src = m.url;
+                    img.alt = m.name || '';
+                    item.appendChild(img);
+                } else {
+                    item.appendChild(el('em', '', '图'));
+                }
+                rowEl.appendChild(item);
+            });
+            wrap.appendChild(rowEl);
+        }
+        if (!text && !media.length) wrap.appendChild(el('div', 'store-ledger-remark__text', '—'));
+        return { node: wrap };
+    }
+
+    function openManualAdjustModal(presetAccount, moneyFn, onDone) {
+        closeManualAdjustModal();
+        var money =
+            typeof moneyFn === 'function'
+                ? moneyFn
+                : function (n) {
+                      return '¥' + Number(n || 0).toFixed(2);
+                  };
+        var account =
+            presetAccount === '保证金账户' || presetAccount === '余额账户'
+                ? presetAccount
+                : '余额账户';
+        var direction = '增加';
+
+        var backdrop = el('div', 'erp-modal-backdrop erp-modal-backdrop--over-drawer');
+        backdrop.setAttribute('data-archive-manual-adjust', '1');
+
+        var modal = el('div', 'erp-modal erp-modal--account-cfg erp-modal--manual-adjust');
+        var header = el('div', 'erp-modal__header');
+        header.appendChild(el('h2', 'erp-modal__title', '手动调账'));
+        var acts = el('div', 'erp-modal__header-actions');
+        var closeBtn = el('button', 'erp-modal__header-btn');
+        closeBtn.type = 'button';
+        closeBtn.setAttribute('aria-label', '关闭');
+        closeBtn.innerHTML = '&times;';
+        acts.appendChild(closeBtn);
+        header.appendChild(acts);
+
+        var body = el('div', 'erp-modal__body');
+        body.appendChild(
+            el(
+                'div',
+                'store-account-cfg__banner',
+                '调账金额为平台基本户与所选门店账户之间划拨：增加由平台基本户划入，减少由所选账户出账到平台基本户。'
+            )
+        );
+
+        function fieldRow(labelText, required) {
+            var row = el('div', 'store-account-cfg__row store-adjust__row');
+            var lab = el('div', 'store-account-cfg__label');
+            if (required) {
+                var star = el('span', 'store-adjust__required', '*');
+                lab.appendChild(star);
+            }
+            lab.appendChild(document.createTextNode(labelText));
+            row.appendChild(lab);
+            var ctrl = el('div', 'store-account-cfg__control store-adjust__control');
+            row.appendChild(ctrl);
+            body.appendChild(row);
+            return ctrl;
+        }
+
+        function mkRadio(name, value, label, checked) {
+            var lab = el('label', 'store-adjust__radio');
+            var inp = document.createElement('input');
+            inp.type = 'radio';
+            inp.name = name;
+            inp.value = value;
+            if (checked) inp.checked = true;
+            lab.appendChild(inp);
+            lab.appendChild(document.createTextNode(label));
+            return lab;
+        }
+
+        function selectedValue(name) {
+            var n = backdrop.querySelector('input[name="' + name + '"]:checked');
+            return n ? n.value : '';
+        }
+
+        var acctCtrl = fieldRow('账户', true);
+        var acctRadios = el('div', 'store-adjust__radios');
+        acctRadios.appendChild(mkRadio('store-adjust-acct', '余额账户', '余额账户', account === '余额账户'));
+        acctRadios.appendChild(mkRadio('store-adjust-acct', '保证金账户', '保证金账户', account === '保证金账户'));
+        acctCtrl.appendChild(acctRadios);
+
+        var dirCtrl = fieldRow('调账方向', true);
+        var dirRadios = el('div', 'store-adjust__radios');
+        dirRadios.appendChild(mkRadio('store-adjust-dir', '增加', '增加', true));
+        dirRadios.appendChild(mkRadio('store-adjust-dir', '减少', '减少', false));
+        dirCtrl.appendChild(dirRadios);
+
+        var amtCtrl = fieldRow('调账金额', true);
+        var amtWrap = el('div', 'store-adjust__amount');
+        amtWrap.appendChild(el('span', 'store-adjust__amount-prefix', '¥'));
+        var amtInput = el('input', 'erp-input');
+        amtInput.type = 'number';
+        amtInput.min = '0.01';
+        amtInput.step = '0.01';
+        amtInput.placeholder = '请输入调账金额';
+        amtWrap.appendChild(amtInput);
+        amtCtrl.appendChild(amtWrap);
+        var pathHint = el('div', 'store-adjust__path', '划拨路径：平台基本户 → 余额账户（入账）');
+        amtCtrl.appendChild(pathHint);
+
+        var reasonCtrl = fieldRow('调账原因', true);
+        var reasonRadios = el('div', 'store-adjust__radios');
+        reasonCtrl.appendChild(reasonRadios);
+        var reasonExtra = el('input', 'erp-input store-adjust__reason-extra');
+        reasonExtra.type = 'text';
+        reasonExtra.placeholder = '请写明具体调账原因';
+        reasonExtra.style.display = 'none';
+        reasonCtrl.appendChild(reasonExtra);
+
+        var remarkCtrl = fieldRow('备注', false);
+        var remarkInput = el('input', 'erp-input');
+        remarkInput.type = 'text';
+        remarkInput.maxLength = 100;
+        remarkInput.placeholder = '选填，最多 100 个字符';
+        remarkCtrl.appendChild(remarkInput);
+        var remarkCount = el('div', 'store-adjust__count', '0/100');
+        remarkCtrl.appendChild(remarkCount);
+        remarkInput.addEventListener('input', function () {
+            if (remarkInput.value.length > 100) remarkInput.value = remarkInput.value.slice(0, 100);
+            remarkCount.textContent = String(remarkInput.value.length) + '/100';
+        });
+
+        var mediaCtrl = fieldRow('图片/视频', false);
+        var mediaBind = bindManualAdjustMedia(mediaCtrl);
+
+        function fillReasons() {
+            var acctNow = selectedValue('store-adjust-acct') || account;
+            var dirNow = selectedValue('store-adjust-dir') || direction;
+            var prev = selectedValue('store-adjust-reason');
+            var list =
+                (MANUAL_ADJUST_REASONS[acctNow] && MANUAL_ADJUST_REASONS[acctNow][dirNow]) || [];
+            empty(reasonRadios);
+            var keep = prev && (list.indexOf(prev) >= 0 || prev === '其他');
+            list.forEach(function (name, i) {
+                reasonRadios.appendChild(
+                    mkRadio('store-adjust-reason', name, name, keep ? prev === name : i === 0)
+                );
+            });
+            reasonRadios.appendChild(
+                mkRadio('store-adjust-reason', '其他', '其他', keep && prev === '其他')
+            );
+            toggleReasonExtra();
+        }
+
+        function toggleReasonExtra() {
+            var isOther = selectedValue('store-adjust-reason') === '其他';
+            reasonExtra.style.display = isOther ? '' : 'none';
+            if (!isOther) reasonExtra.value = '';
+        }
+
+        function syncPathHint() {
+            var acctNow = selectedValue('store-adjust-acct') || account;
+            var dirNow = selectedValue('store-adjust-dir') || direction;
+            pathHint.textContent =
+                dirNow === '减少'
+                    ? '划拨路径：' + acctNow + ' → 平台基本户（出账）'
+                    : '划拨路径：平台基本户 → ' + acctNow + '（入账）';
+        }
+
+        acctRadios.addEventListener('change', function () {
+            fillReasons();
+            syncPathHint();
+        });
+        dirRadios.addEventListener('change', function () {
+            fillReasons();
+            syncPathHint();
+        });
+        reasonRadios.addEventListener('change', toggleReasonExtra);
+        fillReasons();
+        syncPathHint();
+
+        var footer = el('div', 'erp-modal__footer');
+        var cancelBtn = mkBtn('取消', false);
+        var okBtn = mkBtn('确认', true);
+        footer.appendChild(cancelBtn);
+        footer.appendChild(okBtn);
+
+        modal.appendChild(header);
+        modal.appendChild(body);
+        modal.appendChild(footer);
+        backdrop.appendChild(modal);
+
+        function shut(keepMedia) {
+            if (!keepMedia && mediaBind && typeof mediaBind.destroy === 'function') {
+                mediaBind.destroy();
+            }
+            closeManualAdjustModal();
+        }
+        backdrop.addEventListener('click', function (ev) {
+            if (ev.target === backdrop) shut();
+        });
+        closeBtn.addEventListener('click', shut);
+        cancelBtn.addEventListener('click', shut);
+        okBtn.addEventListener('click', function () {
+            var acctNow = selectedValue('store-adjust-acct');
+            var dirNow = selectedValue('store-adjust-dir');
+            var reason = selectedValue('store-adjust-reason');
+            var amt = Number(amtInput.value);
+            if (!acctNow) {
+                if (typeof showToast === 'function') showToast('请选择账户', 'error');
+                return;
+            }
+            if (!dirNow) {
+                if (typeof showToast === 'function') showToast('请选择调账方向', 'error');
+                return;
+            }
+            if (!(amt > 0) || Number.isNaN(amt)) {
+                if (typeof showToast === 'function') showToast('请输入正确的调账金额', 'error');
+                return;
+            }
+            if (!reason) {
+                if (typeof showToast === 'function') showToast('请选择调账原因', 'error');
+                return;
+            }
+            var reasonDetail = String(reasonExtra.value || '').trim();
+            if (reason === '其他' && !reasonDetail) {
+                if (typeof showToast === 'function') showToast('请写明具体调账原因', 'error');
+                return;
+            }
+            if (
+                !window.StoreWalletDemo ||
+                typeof window.StoreWalletDemo.applyManualAdjust !== 'function'
+            ) {
+                if (typeof showToast === 'function') showToast('调账能力未就绪', 'error');
+                return;
+            }
+            var result = window.StoreWalletDemo.applyManualAdjust(acctNow, dirNow, amt, {
+                reason: reason,
+                reasonDetail: reasonDetail,
+                remark: String(remarkInput.value || '').trim().slice(0, 100),
+                operator: currentBackendOperator(),
+                media: mediaBind && typeof mediaBind.snapshot === 'function' ? mediaBind.snapshot() : []
+            });
+            if (!result || !result.ok) {
+                if (typeof showToast === 'function') {
+                    showToast((result && result.message) || '调账失败', 'error');
+                }
+                return;
+            }
+            shut(true);
+            if (typeof showToast === 'function') {
+                showToast(
+                    '已' + dirNow + money(result.amount) + '（' + acctNow + '）',
+                    'success'
+                );
+            }
+            if (typeof onDone === 'function') onDone();
+        });
+
+        document.body.appendChild(backdrop);
+        setTimeout(function () {
+            amtInput.focus();
+        }, 0);
     }
 
     /** 门店个性化账户配置弹框（优先于平台通用配置） */
@@ -4247,6 +4757,8 @@
     }
 
     function mapStoreLedgerDirection(item) {
+        /* 手动调账：平台基本户 ↔ 所选门店账户划拨，资金方向一律记划拨 */
+        if (item && item.manualAdjust) return '划拨';
         var biz = mapStoreLedgerBizType(item && item.type);
         if (biz === '保证金补缴' || (item && item.dir === 'lock')) {
             /* 双分录：余额出账=支出，保证金进账=划拨 */
@@ -4322,6 +4834,7 @@
 
     /** 资金来源/去向：与门店 APP「交易方」同值 */
     function mapStoreLedgerPayWay(item) {
+        if (item && item.manualAdjust) return '平台基本户';
         var biz = mapStoreLedgerBizType(item && item.type);
         var dir = mapStoreLedgerDirection(item);
         if (biz === '提现' || dir === '支出') return mapStoreLedgerFundDest(item);
@@ -4330,6 +4843,9 @@
 
     /** 本方账户实际增减，仅用于推算变前 / 变后 */
     function mapStoreLedgerChangeDir(item) {
+        if (item && item.manualAdjust) {
+            return item.dir === 'out' ? '减少' : '增加';
+        }
         var bizDir = mapStoreLedgerDirection(item);
         if (bizDir === '支出') return '减少';
         if (bizDir === '收入') return '增加';
@@ -4345,6 +4861,7 @@
     }
 
     function mapStoreLedgerOperator(item) {
+        if (item && item.operator) return String(item.operator);
         var biz = mapStoreLedgerBizType(item && item.type);
         var dir = mapStoreLedgerDirection(item);
         if (dir === '划拨') return '系统';
@@ -4389,11 +4906,11 @@
         return status === '成功' || status === '处理中';
     }
 
-    function formatStoreLedgerAmount(dir, amount, moneyFn) {
+    function formatStoreLedgerAmount(changeDir, amount, moneyFn) {
         var n = Number(amount) || 0;
         var body = moneyFn(n);
-        if (dir === '支出') return '-' + body;
-        if (dir === '收入' || dir === '划拨') return '+' + body;
+        if (changeDir === '减少') return '-' + body;
+        if (changeDir === '增加') return '+' + body;
         return body;
     }
 
@@ -4424,13 +4941,14 @@
                 bizType: bizType,
                 direction: dir,
                 beforeText: moneyFn(before),
-                amountText: formatStoreLedgerAmount(dir, amt, moneyFn),
+                amountText: formatStoreLedgerAmount(changeDir, amt, moneyFn),
                 afterText: moneyFn(after),
                 status: status,
                 bizNo: item.bizNo || '—',
                 channelNo: item.channelNo || '—',
                 operator: mapStoreLedgerOperator(item),
-                remark: item.remark || '—'
+                remark: item.remark || '—',
+                media: Array.isArray(item.media) ? item.media : []
             };
         });
     }
@@ -4438,10 +4956,8 @@
     /** 门店档案 · 账变记录（一级 Tab，位于账户信息右侧） */
     function panelStoreLedger() {
         var root = el('div', 'supplier-detail-tab');
-        var snap =
-            window.StoreWalletDemo && typeof window.StoreWalletDemo.snapshot === 'function'
-                ? window.StoreWalletDemo.snapshot()
-                : null;
+        root.setAttribute('data-store-ledger-panel', '1');
+        storeLedgerPanelRef = root;
         var money =
             window.StoreWalletDemo && typeof window.StoreWalletDemo.money === 'function'
                 ? window.StoreWalletDemo.money
@@ -4449,11 +4965,19 @@
                       return '¥' + Number(n || 0).toFixed(2);
                   };
 
-        var enriched = enrichStoreLedgerRows(snap && snap.ledgers ? snap.ledgers : [], money);
-        /* 列表默认新在前 */
-        enriched.sort(function (a, b) {
-            return String(b.time || '').localeCompare(String(a.time || ''));
-        });
+        var enriched = [];
+        function reloadLedgerData() {
+            var snap =
+                window.StoreWalletDemo && typeof window.StoreWalletDemo.snapshot === 'function'
+                    ? window.StoreWalletDemo.snapshot()
+                    : null;
+            enriched = enrichStoreLedgerRows(snap && snap.ledgers ? snap.ledgers : [], money);
+            /* 列表默认新在前 */
+            enriched.sort(function (a, b) {
+                return String(b.time || '').localeCompare(String(a.time || ''));
+            });
+        }
+        reloadLedgerData();
 
         var LEDGER_HEADERS = [
             '账户类型',
@@ -4474,9 +4998,9 @@
         /* 资金方向 → 账变类型枚举（与门店 APP 钱包账户明细对齐） */
         var LEDGER_BIZ_TYPES_BY_DIR = {
             /* 收入无「支付退回」：支付失败整笔状态为失败，未入账则无回退 */
-            收入: ['首次充值', '保证金入账', '佣金结算', '充值', '提现回退', '退款'],
-            支出: ['提现', '进货支付', '售后/责任类扣款', '佣金回退', '保证金补缴'],
-            划拨: ['保证金补缴', '保证金解冻']
+            收入: ['首次充值', '保证金入账', '佣金结算', '充值', '提现回退', '退款', '其他'],
+            支出: ['提现', '进货支付', '售后/责任类扣款', '佣金回退', '保证金补缴', '其他'],
+            划拨: ['保证金补缴', '保证金解冻', '其他']
         };
         var LEDGER_BIZ_TYPES_ALL = [];
         ['收入', '支出', '划拨'].forEach(function (dirKey) {
@@ -4564,7 +5088,7 @@
 
         var payWayOpts = [['', '全部']];
         var payWaySeen = {};
-        ['余额账户', '保证金账户', '平台', '支付宝', '微信'].forEach(function (name) {
+        ['余额账户', '保证金账户', '平台', '平台基本户', '支付宝', '微信'].forEach(function (name) {
             payWaySeen[name] = true;
             payWayOpts.push([name, name]);
         });
@@ -4679,7 +5203,13 @@
                 if (start && d && d < start) return false;
                 if (end && d && d > end) return false;
                 if (dirKw && row.direction !== dirKw) return false;
-                if (typeKw && row.bizType !== typeKw) return false;
+                if (typeKw) {
+                    if (typeKw === '其他') {
+                        if (String(row.bizType || '').indexOf('其他') !== 0) return false;
+                    } else if (row.bizType !== typeKw) {
+                        return false;
+                    }
+                }
                 if (statusKw && row.status !== statusKw) return false;
                 if (bizKw && String(row.bizNo || '').indexOf(bizKw) < 0) return false;
                 return true;
@@ -4710,7 +5240,7 @@
                     row.bizNo,
                     row.channelNo,
                     row.operator,
-                    row.remark
+                    renderLedgerRemarkCell(row)
                 ];
             });
             tableHost.appendChild(dataTable(LEDGER_HEADERS, rows));
@@ -4750,6 +5280,10 @@
             renderLedgerTable();
         });
         renderLedgerTable();
+        root.refreshStoreLedger = function () {
+            reloadLedgerData();
+            renderLedgerTable();
+        };
         return root;
     }
 
@@ -5059,7 +5593,12 @@
                 tabs[i].classList.toggle('is-active', tid === id);
             });
             empty(bodyHost);
-            bodyHost.appendChild(bodies[id]);
+            var body = bodies[id];
+            /* 账变记录在抽屉打开时已建好，切回时按最新钱包台账刷新 */
+            if (body && typeof body.refreshStoreLedger === 'function') {
+                body.refreshStoreLedger();
+            }
+            bodyHost.appendChild(body);
             bodyHost.scrollTop = 0;
         }
 

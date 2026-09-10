@@ -23,6 +23,7 @@
         var form = document.getElementById('orderLiveFilterForm');
         if (!form) return;
         form.reset();
+        ensureOrderTimePreset();
         resetOrderFilterSwitches();
         resetOrderStatusMulti();
         if (extraGrid) {
@@ -39,7 +40,7 @@
 
     if (queryBtn) {
       queryBtn.addEventListener('click', function () {
-        applyOrderListFilters();
+        if (applyOrderListFilters() === false) return;
         if (typeof showToast === 'function') {
           showToast('查询完成（演示）', 'success');
         }
@@ -49,6 +50,7 @@
     initOrderFilterSwitches();
     initOrderStatusMulti();
     initLiveSessionCombo();
+    initOrderTimeFilter();
   }
 
   function closeOrderFilterSwitches(except) {
@@ -432,6 +434,160 @@
     });
   }
 
+  var ORDER_TIME_PRESET_DEFAULT = '7d';
+  var ORDER_TIME_PRESETS = ['today', 'yesterday', '3d', '7d', '15d', '30d'];
+
+  function startOfLocalDay(date) {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  }
+
+  function addLocalDays(date, days) {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
+  }
+
+  function formatOrderDay(date) {
+    var y = date.getFullYear();
+    var m = String(date.getMonth() + 1);
+    var d = String(date.getDate());
+    if (m.length < 2) m = '0' + m;
+    if (d.length < 2) d = '0' + d;
+    return y + '-' + m + '-' + d;
+  }
+
+  function parseOrderDay(text) {
+    var m = String(text || '').match(/(\d{4})-(\d{2})-(\d{2})/);
+    if (!m) return null;
+    return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  }
+
+  /* 近 N 天含今天，共 N 个自然日；今天/昨天为单日 */
+  function getOrderTimePresetRange(preset) {
+    var today = startOfLocalDay(new Date());
+    var start = today;
+    var end = today;
+    if (preset === 'today') {
+      /* 今天 */
+    } else if (preset === 'yesterday') {
+      start = addLocalDays(today, -1);
+      end = start;
+    } else if (preset === '3d') {
+      start = addLocalDays(today, -2);
+    } else if (preset === '7d') {
+      start = addLocalDays(today, -6);
+    } else if (preset === '15d') {
+      start = addLocalDays(today, -14);
+    } else if (preset === '30d') {
+      start = addLocalDays(today, -29);
+    } else {
+      return null;
+    }
+    return { start: start, end: end };
+  }
+
+  function getOrderTimePresetBoxes() {
+    return document.querySelectorAll('#qOrderTimePresets input[type="checkbox"]');
+  }
+
+  function setOrderTimePresetChecked(preset) {
+    getOrderTimePresetBoxes().forEach(function (box) {
+      box.checked = box.value === preset;
+    });
+    var hidden = document.getElementById('qOrderTime');
+    if (hidden) hidden.value = preset || '';
+  }
+
+  function applyOrderTimePreset(preset) {
+    var range = getOrderTimePresetRange(preset);
+    var startEl = document.getElementById('qOrderTimeStart');
+    var endEl = document.getElementById('qOrderTimeEnd');
+    if (!range || !startEl || !endEl) return;
+    startEl.value = formatOrderDay(range.start);
+    endEl.value = formatOrderDay(range.end);
+    setOrderTimePresetChecked(preset);
+  }
+
+  function matchOrderTimePreset(start, end) {
+    if (!start || !end) return '';
+    var startKey = formatOrderDay(start);
+    var endKey = formatOrderDay(end);
+    for (var i = 0; i < ORDER_TIME_PRESETS.length; i++) {
+      var range = getOrderTimePresetRange(ORDER_TIME_PRESETS[i]);
+      if (range && formatOrderDay(range.start) === startKey && formatOrderDay(range.end) === endKey) {
+        return ORDER_TIME_PRESETS[i];
+      }
+    }
+    return '';
+  }
+
+  function readOrderTimeRange() {
+    var startEl = document.getElementById('qOrderTimeStart');
+    var endEl = document.getElementById('qOrderTimeEnd');
+    if (!startEl && !endEl) return null;
+    var start = parseOrderDay(startEl && startEl.value);
+    var end = parseOrderDay(endEl && endEl.value);
+    if (!start || !end) return null;
+    if (end < start) {
+      var swap = start;
+      start = end;
+      end = swap;
+    }
+    return { start: start, end: end };
+  }
+
+  function ensureOrderTimePreset() {
+    var startEl = document.getElementById('qOrderTimeStart');
+    if (!startEl) return;
+    applyOrderTimePreset(ORDER_TIME_PRESET_DEFAULT);
+  }
+
+  function initOrderTimeFilter() {
+    var presets = document.getElementById('qOrderTimePresets');
+    var startEl = document.getElementById('qOrderTimeStart');
+    var endEl = document.getElementById('qOrderTimeEnd');
+    if (!presets || !startEl || !endEl) return;
+
+    presets.addEventListener('change', function (e) {
+      var box = e.target.closest('input[type="checkbox"]');
+      if (!box) return;
+      if (!box.checked) {
+        box.checked = true;
+        return;
+      }
+      applyOrderTimePreset(box.value);
+    });
+
+    function syncPresetFromInputs() {
+      var range = readOrderTimeRange();
+      setOrderTimePresetChecked(range ? matchOrderTimePreset(range.start, range.end) : '');
+    }
+
+    startEl.addEventListener('change', syncPresetFromInputs);
+    endEl.addEventListener('change', syncPresetFromInputs);
+    startEl.addEventListener('blur', syncPresetFromInputs);
+    endEl.addEventListener('blur', syncPresetFromInputs);
+  }
+
+  function getRowOrderedAt(row) {
+    var raw = row.getAttribute('data-ordered-at');
+    if (raw) return parseOrderDay(raw);
+    var table = row.closest('table');
+    if (!table) return null;
+    var ths = table.querySelectorAll('thead th');
+    var idx = -1;
+    for (var i = 0; i < ths.length; i++) {
+      if (ths[i].getAttribute('data-preference-key') === 'orderedAt') {
+        idx = i;
+        break;
+      }
+      if (String(ths[i].textContent || '').replace(/\s+/g, '') === '下单时间') {
+        idx = i;
+        break;
+      }
+    }
+    if (idx < 0) return null;
+    return parseOrderDay(row.children[idx] && row.children[idx].textContent);
+  }
+
   /** 零售/代采/直播：支付渠道、支付流水；零售/代采另支持下单门店，零售另支持履约方式 */
   function applyOrderListFilters() {
     var page = document.body ? document.body.getAttribute('data-order-page') : '';
@@ -439,6 +595,13 @@
     var isRetail = page === 'retail';
     var isLive = page === 'live';
     if (!isProxy && !isRetail && !isLive) return;
+
+    var needOrderTime = isProxy || isRetail;
+    var orderTimeRange = needOrderTime ? readOrderTimeRange() : null;
+    if (needOrderTime && !orderTimeRange) {
+      if (typeof showToast === 'function') showToast('请选择下单时间', 'warning');
+      return false;
+    }
 
     var paySel = document.getElementById('qPayChannel');
     var payChannel = paySel ? (paySel.value || '').trim() : '';
@@ -466,7 +629,11 @@
     var visible = 0;
     rows.forEach(function (row) {
       var show = true;
-      if (payChannel) {
+      if (show && orderTimeRange) {
+        var orderedAt = getRowOrderedAt(row);
+        show = !!(orderedAt && orderedAt >= orderTimeRange.start && orderedAt <= orderTimeRange.end);
+      }
+      if (show && payChannel) {
         var rowPay = row.getAttribute('data-pay-channel') || '';
         show = rowPay === payChannel;
       }
@@ -534,6 +701,7 @@
     });
     var totalEl = document.querySelector('.order-pagination__total');
     var hasFilter = !!(
+      orderTimeRange ||
       payChannel ||
       (isRetail && delivery) ||
       scene ||
@@ -1927,18 +2095,7 @@
     }
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () {
-      initFilter();
-      initPagination();
-      initVerifyPickup();
-      initRetailExpressUpload();
-      initRetailBatchExpressUpload();
-      initRetailActionLayout();
-      initRetailCancelAndRefund();
-      initOrderListExport();
-    });
-  } else {
+  function bootOrderListPage() {
     initFilter();
     initPagination();
     initVerifyPickup();
@@ -1947,5 +2104,13 @@
     initRetailActionLayout();
     initRetailCancelAndRefund();
     initOrderListExport();
+    ensureOrderTimePreset();
+    applyOrderListFilters();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootOrderListPage);
+  } else {
+    bootOrderListPage();
   }
 })();
