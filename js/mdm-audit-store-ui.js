@@ -25,12 +25,16 @@
         return b;
     }
 
-    function textInput(placeholder, value) {
+    function textInput(placeholder, value, extra) {
         var inp = document.createElement('input');
         inp.className = 'erp-input';
         inp.type = 'text';
         inp.placeholder = placeholder || '';
         inp.value = value != null ? String(value) : '';
+        if (extra && extra.readOnly) {
+            inp.readOnly = true;
+            inp.style.background = '#f5f5f5';
+        }
         return inp;
     }
 
@@ -180,7 +184,7 @@
                   { key: 'subjectName', msg: '请填写门店主体' },
                   { key: 'bd', msg: '请填写绑定BD' },
                   { key: 'warehouse', msg: '请选择配送仓库' },
-                  { key: 'storeName', msg: '请填写入驻方名称' },
+                  { key: 'storeName', msg: '请填写门店名称' },
                   { key: 'partnerDivision', msg: '请选择门店合作类型' },
                   { key: 'storeType', msg: '请填写门店类型' },
                   { key: 'region', msg: '请选择省市区' },
@@ -565,8 +569,13 @@
         body.appendChild(detailRow('主体类型', row.subjectType || '门店'));
 
         body.appendChild(el('div', 'supplier-detail-section-title', '门店档案字段'));
-        body.appendChild(editRow('入驻方名称', textInput('请输入入驻方名称', row.storeName), 'storeName', row));
-        body.appendChild(editRow('门店简称', textInput('请输入门店简称', row.shortName), 'shortName', row));
+        var storeNameInp = textInput('请输入门店名称', row.storeName);
+        var shortNameInp = textInput('', row.storeName || row.shortName || '', { readOnly: true });
+        storeNameInp.addEventListener('input', function () {
+            shortNameInp.value = storeNameInp.value;
+        });
+        body.appendChild(editRow('门店名称', storeNameInp, 'storeName', row));
+        body.appendChild(editRow('门店简称', shortNameInp, 'shortName', row));
         var partnerSel = selectInput(
             [
                 { value: '加盟店', label: '加盟店' },
@@ -1070,6 +1079,16 @@
         /* 供应商商家无独立入驻方名称：列表「入驻方名称」与主体名称同步 */
         if (isSupplierAuditRow(row) && patch.subjectName != null) {
             row.storeName = String(patch.subjectName).trim();
+        }
+        if (!isSupplierAuditRow(row) && patch.storeName != null) {
+            row.shortName = String(patch.storeName).trim();
+            if (window.MdmStoreSiteSlot) {
+                window.MdmStoreSiteSlot.syncFromStore({
+                    storeCode: row.id || '',
+                    storeName: row.storeName,
+                    source: 'audit'
+                });
+            }
         }
     }
 

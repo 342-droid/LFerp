@@ -418,9 +418,42 @@
     return fresh;
   }
 
+  /** 手动调账附件 blob/dataURL 不落盘，仅本页会话内回显缩略图 */
+  var LEDGER_MEDIA_MEMO = {};
+
+  function memoLedgerMedia(id, media) {
+    if (id) LEDGER_MEDIA_MEMO[id] = Array.isArray(media) ? media.slice() : [];
+  }
+
+  function persistableMedia(list) {
+    return (list || []).map(function (m) {
+      return {
+        kind: m.kind === 'video' ? 'video' : 'image',
+        name: String((m && m.name) || ''),
+        size: Number((m && m.size) || 0)
+      };
+    });
+  }
+
+  function withMemoMedia(ledgers) {
+    return (ledgers || []).map(function (row) {
+      var memo = LEDGER_MEDIA_MEMO[row.id];
+      if (memo && memo.length) return Object.assign({}, row, { media: memo });
+      return row;
+    });
+  }
+
   function save(data) {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      var clone = JSON.parse(
+        JSON.stringify(data, function (key, val) {
+          if (key === 'url' && typeof val === 'string' && /^(blob:|data:)/i.test(val)) {
+            return '';
+          }
+          return val;
+        })
+      );
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(clone));
     } catch (e) {
       /* ignore */
     }
@@ -475,7 +508,7 @@
       rechargeDailyLimit: Number(d.rechargeDailyLimit || DEFAULT.rechargeDailyLimit),
       rechargeDailyRemain: rechargeDailyRemain(d),
       settleAccount: settle,
-      ledgers: (d.ledgers || []).slice()
+      ledgers: withMemoMedia((d.ledgers || []).slice())
     };
   }
 
@@ -1126,6 +1159,131 @@
     return applyNonGoodsBalanceExpense(type, amount, meta);
   }
 
+  /**
+   * 运营手动调账：金额为平台基本户与所选门店账户之间划拨
+   * 增加：平台基本户 → 所选账户入账；减少：所选账户出账 → 平台基本户
+   * 不受货款不可提现、在途及冻结占用限制；操作人取实际后台账号
+   * accountType: 余额账户 | 保证金账户
+   * direction: 增加 | 减少
+   * meta.reason: 该账户该方向的账变类型，或「其他」
+   * meta.reasonDetail: 选「其他」时必填的具体原因
+   */
+  function applyManualAdjust(accountType, direction, amount, meta) {
+    var acct = String(accountType || '').trim();
+    var dir = String(direction || '').trim();
+    var amt = round2(amount);
+    var d = load();
+    meta = meta || {};
+    if (acct !== '余额账户' && acct !== '保证金账户') {
+      return { ok: false, message: '请选择调账账户', snapshot: snapshot(d) };
+    }
+    if (dir !== '增加' && dir !== '减少') {
+      return { ok: false, message: '请选择调账方向', snapshot: snapshot(d) };
+    }
+    if (!(amt > 0)) {
+      return { ok: false, message: '请输入正确的调账金额', snapshot: snapshot(d) };
+    }
+    var reason = String(meta.reason || '').trim();
+    if (!reason) {
+      return { ok: false, message: '请选择调账原因', snapshot: snapshot(d) };
+    }
+    var reasonDetail = String(meta.reasonDetail || '').trim();
+    if (reason === '其他' && !reasonDetail) {
+      return { ok: false, message: '请写明具体调账原因', snapshot: snapshot(d) };
+    }
+    var media = Array.isArray(meta.media) ? meta.media : [];
+    var imgN = 0;
+    var vidN = 0;
+    media.forEach(function (m) {
+      if (m && m.kind === 'video') vidN += 1;
+      else if (m) imgN += 1;
+    });
+    if (imgN > 9) {
+      return { ok: false, message: '图片最多 9 张', snapshot: snapshot(d) };
+    }
+    if (vidN > 1) {
+      return { ok: false, message: '视频只能上传 1 个', snapshot: snapshot(d) };
+    }
+
+    if (acct === '保证金账户') {
+      var depositAvail = round2(Math.max(0, Number(d.depositActual || 0)));
+      if (dir === '减少') {
+        if (amt > depositAvail + 0.001) {
+          return {
+            ok: false,
+            message: '调减金额不能超过保证金余额（当前¥' + depositAvail.toFixed(2) + '）',
+            snapshot: snapshot(d)
+          };
+        }
+        d.depositActual = round2(depositAvail - amt);
+      } else {
+        d.depositActual = round2(depositAvail + amt);
+      }
+    } else {
+      /* 手动调账不受货款不可提现、在途、冻结占用限制，按账面全额划拨 */
+      var rawW = round2(Math.max(0, Number(d.withdrawable || 0)));
+      var rawG = round2(Math.max(0, Number(d.goodsQuota || 0)));
+      var rawP = round2(Math.max(0, Number(d.pending || 0)));
+      var rawTotal = round2(rawW + rawG + rawP);
+      if (dir === '减少') {
+        if (amt > rawTotal + 0.001) {
+          return {
+            ok: false,
+            message: '调减金额不能超过余额账户账面余额（当前¥' + rawTotal.toFixed(2) + '）',
+            snapshot: snapshot(d)
+          };
+        }
+        var left = amt;
+        var takeW = Math.min(rawW, left);
+        d.withdrawable = round2(rawW - takeW);
+        left = round2(left - takeW);
+        if (left > 0) {
+          var takeG = Math.min(rawG, left);
+          d.goodsQuota = round2(rawG - takeG);
+          left = round2(left - takeG);
+        }
+        if (left > 0) {
+          d.pending = round2(rawP - left);
+        }
+        d.frozenWithdrawable = round2(
+          Math.min(Number(d.frozenWithdrawable || 0), Math.max(0, Number(d.withdrawable || 0)))
+        );
+        d.frozenGoodsQuota = round2(
+          Math.min(Number(d.frozenGoodsQuota || 0), Math.max(0, Number(d.goodsQuota || 0)))
+        );
+        d.frozenPending = round2(
+          Math.min(Number(d.frozenPending || 0), Math.max(0, Number(d.pending || 0)))
+        );
+      } else {
+        d.withdrawable = round2(Number(d.withdrawable || 0) + amt);
+      }
+    }
+
+    var extraRemark = String(meta.remark || '').trim().slice(0, 100);
+    var bizType = reason === '其他' ? '其他' + reasonDetail : reason;
+    var operator = String(meta.operator || '').trim() || '超级管理员 / admin';
+    if (!Array.isArray(d.ledgers)) d.ledgers = [];
+    var ledgerId = 'ADJ' + Date.now();
+    memoLedgerMedia(ledgerId, media);
+    d.ledgers.unshift({
+      id: ledgerId,
+      time: formatNow(),
+      type: bizType,
+      dir: dir === '增加' ? 'in' : 'out',
+      amount: amt,
+      account: acct,
+      bizNo: meta.bizNo || 'ADJ-' + Date.now().toString().slice(-8),
+      channelNo: '',
+      payMethod: '平台基本户',
+      operator: operator,
+      manualAdjust: true,
+      media: persistableMedia(media),
+      remark: extraRemark
+    });
+    save(d);
+    return { ok: true, snapshot: snapshot(d), amount: amt };
+  }
+
   function money(n) {
     return '¥' + round2(n).toFixed(2);
   }
@@ -1136,6 +1294,7 @@
     } catch (e) {
       /* ignore */
     }
+    LEDGER_MEDIA_MEMO = {};
     return snapshot();
   }
 
@@ -1158,6 +1317,7 @@
     NON_GOODS_BALANCE_EXPENSE: NON_GOODS_BALANCE_EXPENSE,
     DEMO_MERCHANT_SHORT: DEMO_MERCHANT_SHORT,
     applyWithdraw: applyWithdraw,
+    applyManualAdjust: applyManualAdjust,
     applyRecharge: applyRecharge,
     rechargeDailyRemain: rechargeDailyRemain,
     money: money,

@@ -107,6 +107,9 @@
     if (!bizTypeFilter) return true;
     var raw = String(item.type || '');
     var mapped = mapLedgerBizType(raw);
+    if (bizTypeFilter === '其他') {
+      return raw.indexOf('其他') === 0 || mapped.indexOf('其他') === 0;
+    }
     return raw === bizTypeFilter || mapped === bizTypeFilter;
   }
 
@@ -115,6 +118,7 @@
     var mapped = mapLedgerBizType(type);
     if (!matchBizTypeFilter(item)) return false;
     if (tab === 'all') return true;
+    if (item.manualAdjust) return tab === 'lock';
     if (tab === 'in') {
       return item.dir === 'in' || INCOME_TYPES.indexOf(type) >= 0 || INCOME_TYPES.indexOf(mapped) >= 0;
     }
@@ -349,13 +353,15 @@
     }
   }
 
-  function amtClass(dir) {
+  function amtClass(dir, item) {
+    if (item && item.manualAdjust) return item.dir === 'out' ? 'is-out' : 'is-lock';
     if (dir === 'in') return 'is-in';
     if (dir === 'lock' || dir === 'unlock') return 'is-lock';
     return 'is-out';
   }
 
-  function amtPrefix(dir) {
+  function amtPrefix(dir, item) {
+    if (item && item.manualAdjust) return item.dir === 'out' ? '-' : '+';
     if (dir === 'in' || dir === 'unlock') return '+';
     if (dir === 'out') return '-';
     return '';
@@ -446,6 +452,7 @@
 
   /** 交易方：收入=资金来源，支出=资金去向 */
   function tradePartyLabel(item) {
+    if (item && item.manualAdjust) return '平台基本户';
     var biz = mapLedgerBizType(item && item.type);
     if (biz === '提现' || isExpenseLedger(item)) return fundDestLabel(item);
     return fundSourceLabel(item);
@@ -538,9 +545,9 @@
           '</div>' +
           '<div class="ua-sw-ledger__row"><span class="ua-sw-ledger__k">金额</span>' +
           '<span class="ua-sw-ledger__v ' +
-          amtClass(item.dir) +
+          amtClass(item.dir, item) +
           '">' +
-          amtPrefix(item.dir) +
+          amtPrefix(item.dir, item) +
           api.money(item.amount) +
           '</span></div>' +
           '<div class="ua-sw-ledger__row"><span class="ua-sw-ledger__k">账变类型</span>' +

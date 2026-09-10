@@ -1028,6 +1028,10 @@
   width: 100%;
 }
 
+.erp-modal--manual-adjust {
+  max-width: 560px;
+}
+
 .erp-modal--onboarding {
   max-width: 880px;
   width: 100%;
@@ -2642,6 +2646,226 @@ select.store-ledger-filter__control {
   border-color: #d9d9d9;
   color: #bbb;
   cursor: not-allowed;
+}
+
+.store-summary-bar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.store-adjust__required {
+  color: #f53f3f;
+  margin-right: 2px;
+}
+
+.store-adjust__radios {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  align-items: center;
+  min-height: 32px;
+}
+
+.store-adjust__radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+  line-height: 32px;
+  white-space: nowrap;
+}
+
+.store-adjust__radio input {
+  margin: 0;
+}
+
+.store-adjust__amount {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.store-adjust__amount-prefix {
+  font-size: 14px;
+  color: #333;
+}
+
+.store-adjust__control .erp-input {
+  width: 220px;
+}
+
+.store-adjust__reason-extra {
+  width: 100%;
+  max-width: 280px;
+  margin-top: 4px;
+}
+
+.store-adjust__path {
+  width: 100%;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.5;
+}
+
+.store-adjust__count {
+  width: 100%;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.4;
+}
+
+.store-adjust-upload__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+}
+
+.store-adjust-upload__item,
+.store-adjust-upload__add {
+  width: 64px;
+  height: 64px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.store-adjust-upload__item {
+  border: 1px solid #ddd;
+  background: #f5f5f5;
+}
+
+.store-adjust-upload__item img,
+.store-adjust-upload__item video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.store-adjust-upload__remove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.store-adjust-upload__badge {
+  position: absolute;
+  left: 2px;
+  bottom: 2px;
+  padding: 0 4px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 10px;
+  line-height: 16px;
+}
+
+.store-adjust-upload__add {
+  border: 1px dashed #ccc;
+  background: #fafafa;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: #888;
+  cursor: pointer;
+  gap: 2px;
+}
+
+.store-adjust-upload__add:hover {
+  border-color: var(--color-primary, #ff7019);
+  color: var(--color-primary, #ff7019);
+}
+
+.store-adjust-upload__add span {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.store-adjust-upload__file {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.store-adjust-upload__count,
+.store-adjust-upload__tip {
+  width: 100%;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.5;
+}
+
+.store-ledger-remark {
+  min-width: 160px;
+}
+
+.store-ledger-remark__text {
+  line-height: 1.45;
+}
+
+.store-ledger-remark__media {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.store-ledger-remark__thumb {
+  width: 36px;
+  height: 36px;
+  border-radius: 3px;
+  border: 1px solid #e8e8e8;
+  background: #f5f5f5;
+  overflow: hidden;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.store-ledger-remark__thumb img,
+.store-ledger-remark__thumb video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.store-ledger-remark__thumb em {
+  font-style: normal;
+  font-size: 10px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 0 4px;
+  border-radius: 2px;
+  line-height: 16px;
+}
+
+.store-ledger-remark__thumb.is-video em {
+  position: absolute;
+  left: 2px;
+  bottom: 2px;
 }
 
 /* 门店档案 · 账户信息 · 账户配置入口/弹框 */

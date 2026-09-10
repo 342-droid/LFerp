@@ -16,11 +16,10 @@
 
   var SALE_UNITS = ['件', '箱', '瓶', '袋', 'kg', 'L', '罐', '包', '套', '卷', '个', '斤', '盒'];
   var LIMIT_OPTIONS = [
-    { value: '', label: '请选择' },
-    { value: 'none', label: '不限购' },
     { value: 'per_order', label: '每单限购' },
-    { value: 'per_user', label: '每用户限购' },
-    { value: 'per_day', label: '每天限购' }
+    { value: 'per_day', label: '每天限购' },
+    { value: 'total', label: '累计限购' },
+    { value: 'none', label: '不限购' }
   ];
   var POINT_OPTIONS = [
     { value: 'cash', label: '现金' },
@@ -109,12 +108,40 @@
     return 'cash';
   }
 
+  function normalizeLimitConfig(value) {
+    var v = String(value || '').trim();
+    if (v === 'per_order' || v === 'order') return 'per_order';
+    if (v === 'per_day' || v === 'daily') return 'per_day';
+    if (v === 'total') return 'total';
+    if (v === 'per_user') return 'per_order';
+    return 'none';
+  }
+
+  function limitConfigHtml(sku) {
+    var current = normalizeLimitConfig(sku && sku.limitConfig);
+    return (
+      '<div class="product-proxy-spec__field product-proxy-spec__field--limit" data-limit-config="' +
+      escapeHtml(current) +
+      '">' +
+      '<label class="product-proxy-spec__label">限购配置</label>' +
+      '<div class="product-proxy-spec__limit-row">' +
+      '<select class="product-proxy-spec__input product-proxy-spec__limit-select" data-field="limitConfig">' +
+      optionHtml(LIMIT_OPTIONS, current) +
+      '</select>' +
+      '<input type="text" class="product-proxy-spec__input product-proxy-spec__limit-qty" data-field="limitQty" inputmode="numeric" placeholder="限购数量" value="' +
+      escapeHtml((sku && sku.limitQty) || '') +
+      '">' +
+      '</div></div>'
+    );
+  }
+
   /** 售卖规格同步：不含条码/规格值/展示名/库存实数/本场配额/上下架 */
   var SALE_SPEC_SYNC_FIELDS = [
     'img',
     'saleRatio',
     'saleUnit',
     'limitConfig',
+    'limitQty',
     'pointExchange',
     'pointsAmount',
     'pointCash',
@@ -129,6 +156,7 @@
       target[key] = source[key];
     });
     target.pointExchange = normalizePoint(target.pointExchange);
+    target.limitConfig = normalizeLimitConfig(target.limitConfig);
     return target;
   }
 
@@ -153,7 +181,8 @@
       purchasePrice: raw.purchasePrice != null ? raw.purchasePrice : 0.01,
       saleRatio: raw.saleRatio != null ? raw.saleRatio : raw.saleCoeff != null ? Number(raw.saleCoeff).toFixed(3) : '1.000',
       saleUnit: raw.saleUnit || '',
-      limitConfig: raw.limitConfig || '',
+      limitConfig: normalizeLimitConfig(raw.limitConfig),
+      limitQty: raw.limitQty != null ? raw.limitQty : '',
       pointExchange: normalizePoint(raw.pointExchange || raw.bundleMode),
       pointsAmount: raw.pointsAmount || raw.bundlePoints || '',
       pointCash: raw.pointCash || raw.bundleCash || '',
@@ -407,7 +436,7 @@
       moneyHtml('采购价', 'purchasePrice', sku.purchasePrice, true) +
       fieldHtml('售卖系数', 'saleRatio', sku.saleRatio || '1.000') +
       selectHtml('售卖单位', 'saleUnit', saleUnits, sku.saleUnit) +
-      selectHtml('限购配置', 'limitConfig', LIMIT_OPTIONS, sku.limitConfig) +
+      limitConfigHtml(sku) +
       renderPointField(sku) +
       (normalizePoint(sku.pointExchange) === 'points' ? '' : moneyHtml('售价', 'salePrice', sku.salePrice)) +
       moneyHtml('划线价', 'linePrice', sku.linePrice) +
@@ -643,6 +672,7 @@
           saleCoeff: s.saleRatio,
           saleUnit: s.saleUnit,
           limitConfig: s.limitConfig,
+          limitQty: s.limitQty,
           pointExchange: s.pointExchange,
           pointsAmount: s.pointsAmount,
           pointCash: s.pointCash,
@@ -764,7 +794,13 @@
     });
 
     document.getElementById('pSkuList').addEventListener('change', function (ev) {
-      if (ev.target.getAttribute('data-field') !== 'pointExchange') return;
+      var field = ev.target.getAttribute('data-field');
+      if (field === 'limitConfig') {
+        var wrap = ev.target.closest('[data-limit-config]');
+        if (wrap) wrap.setAttribute('data-limit-config', normalizeLimitConfig(ev.target.value));
+        return;
+      }
+      if (field !== 'pointExchange') return;
       readSkuCards();
       renderSkuCards();
     });

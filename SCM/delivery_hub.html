@@ -82,7 +82,8 @@
                                 <th>站点编码</th>
                                 <th>站点名称</th>
                                 <th>站点线路</th>
-                                <th>站点储位</th>
+                                <th>储位编码</th>
+                                <th>储位名称</th>
                                 <th>仓库</th>
                                 <th>站点类型</th>
                                 <th>省</th>
@@ -100,7 +101,7 @@
                         <tbody id="tableBody">
                             <tr>
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
-                                <td>DH001</td><td>南京分站</td><td>L001-华东干线</td><td>NJ01</td><td>W001-南京仓</td><td>仓库</td>
+                                <td>DH001</td><td>南京分站</td><td>L001-华东干线</td><td>NJ01</td><td>南京分站</td><td>W001-南京仓</td><td>仓库</td>
                                 <td>江苏省</td><td>南京市</td><td>江宁区</td><td>XX路XX号</td><td>张三</td><td>13800138001</td>
                                 <td><span class="status active">启用</span></td>
                                 <td>2025-01-05 12:31:43</td><td>李四</td>
@@ -108,7 +109,7 @@
                             </tr>
                             <tr>
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
-                                <td>DH002</td><td>上海门店</td><td>L002-沪宁线路</td><td>SH01</td><td>W003-上海仓</td><td>门店</td>
+                                <td>DH002</td><td>上海门店</td><td>L002-沪宁线路</td><td>SH01</td><td>上海门店</td><td>W003-上海仓</td><td>门店</td>
                                 <td>上海市</td><td>市辖区</td><td>浦东新区</td><td>XX路XX号</td><td>王五</td><td>13800138002</td>
                                 <td><span class="status inactive">禁用</span></td>
                                 <td>2025-01-05 12:31:43</td><td>李四</td>
@@ -131,11 +132,12 @@
     <script src="../js/region-cascader.js"></script>
     <script src="../js/modal-manager.js"></script>
     <script src="../js/page-manager.js"></script>
+    <script src="../js/mdm-store-site-slot.js?v=20260910-slot"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const page = new PageManager({
                 entityName: '站点',
-                statusColumnIndex: 13,
+                statusColumnIndex: 14,
                 detailView: { enabled: true },
                 
                 customSelects: [
@@ -155,13 +157,8 @@
                     { id: 'hubType', label: '站点类型', type: 'select', required: true, editDisabled: true,
                       options: CommonOptions.siteType },
                     { id: 'route', label: '站点线路', type: 'text', editDisabled: true },
-                    { id: 'hubLocation', label: '站点储位', type: 'select',
-                      options: [
-                          { value: '', text: '请选择' },
-                          { value: 'A01-B02-C03', text: 'A01-B02-C03' },
-                          { value: 'B03-C01-A02', text: 'B03-C01-A02' },
-                          { value: 'C02-A03-B01', text: 'C02-A03-B01' }
-                      ] },
+                    { id: 'hubLocation', label: '储位编码', type: 'text' },
+                    { id: 'slotName', label: '储位名称', type: 'text', required: true },
                     ...RegionCascader.buildPageManagerAddressFields({ labelWidth: '110px', editDisabled: true }),
                     { id: 'contact', label: '联系人', type: 'text', editDisabled: true },
                     { id: 'phone', label: '电话', type: 'text', editDisabled: true },
@@ -193,16 +190,30 @@
                         if (page.currentEditRow) {
                             const cells = page.currentEditRow.querySelectorAll('td');
                             RegionCascader.initModalAddress('edit');
-                            RegionCascader.setModalAddress('edit', RegionCascader.readRowAddressCells(cells, 7));
+                            RegionCascader.setModalAddress('edit', RegionCascader.readRowAddressCells(cells, 8));
                         }
                     },
                     onSave: () => {
                         if (!page.currentEditRow) return;
+                        const slotCode = document.getElementById('editHubLocation')?.value.trim() || '';
+                        const slotName = document.getElementById('editSlotName')?.value.trim() || '';
+                        const cells = page.currentEditRow.querySelectorAll('td');
+                        const hubCode = cells[1] ? cells[1].textContent.trim() : '';
+                        const storeCode = page.currentEditRow.getAttribute('data-store-code') || '';
                         page.updateTableRow(page.currentEditRow, {
-                            4: document.getElementById('editHubLocation')?.value.trim() || '-',
-                            14: page.getCurrentTimeStr(),
-                            15: '当前用户'
+                            4: slotCode || '-',
+                            5: slotName || '-',
+                            15: page.getCurrentTimeStr(),
+                            16: '当前用户'
                         });
+                        if (window.MdmStoreSiteSlot) {
+                            window.MdmStoreSiteSlot.updateFromSite({
+                                hubCode: hubCode,
+                                storeCode: storeCode,
+                                slotCode: slotCode,
+                                slotName: slotName
+                            });
+                        }
                         showToast('站点信息已更新', 'success');
                         page.currentEditRow = null;
                     },
@@ -214,12 +225,13 @@
                             editHubName: cells[2].textContent,
                             editRoute: cells[3].textContent,
                             editHubLocation: cells[4].textContent,
-                            editWarehouse: cells[5].textContent,
-                            editHubType: cells[6].textContent,
-                            editDetailAddress: cells[10].textContent === '-' ? '' : cells[10].textContent,
-                            editContact: cells[11].textContent === '-' ? '' : cells[11].textContent,
-                            editPhone: cells[12].textContent === '-' ? '' : cells[12].textContent,
-                            editIsEnabled: cells[13].querySelector('.status').textContent
+                            editSlotName: cells[5].textContent,
+                            editWarehouse: cells[6].textContent,
+                            editHubType: cells[7].textContent,
+                            editDetailAddress: cells[11].textContent === '-' ? '' : cells[11].textContent,
+                            editContact: cells[12].textContent === '-' ? '' : cells[12].textContent,
+                            editPhone: cells[13].textContent === '-' ? '' : cells[13].textContent,
+                            editIsEnabled: cells[14].querySelector('.status').textContent
                         };
                     }
                 }
@@ -227,7 +239,11 @@
             
             renderSelectOptions('searchHubTypeDropdown', [{ value: '', text: '请选择' }, ...CommonOptions.siteType]);
             page.init();
-            document.getElementById('editCloseBtn').addEventListener('click', () => page.closeModal('edit'));
+            if (window.MdmStoreSiteSlot) {
+                window.MdmStoreSiteSlot.hydrateHubTable(document.getElementById('tableBody'));
+            }
+            const editCloseBtn = document.getElementById('editCloseBtn');
+            if (editCloseBtn) editCloseBtn.addEventListener('click', () => page.closeModal('edit'));
 
             // 监听仓库切换，保持编辑弹窗字段同步
             document.addEventListener('warehouseChange', (e) => {

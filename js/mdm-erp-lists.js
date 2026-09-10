@@ -547,6 +547,7 @@
         if (!row) return null;
         row.setAttribute('data-region', data.region || '');
         row.setAttribute('data-address', data.address || '');
+        row.setAttribute('data-short-name', data.shortName || name);
         row.setAttribute('data-latlng', '—');
         row.setAttribute('data-withdraw', '—');
         row.setAttribute('data-settle-cycle', '—');
@@ -1670,6 +1671,9 @@
         setTimeout(function () {
             pm.decorateAllDetailLinkCells();
             syncAllStoreArchiveRows();
+            if (window.MdmStoreSiteSlot) {
+                window.MdmStoreSiteSlot.applyShortNamesToStoreTable(document.getElementById('tableBody'));
+            }
             refreshStoreArchiveActions();
             cacheFirstResourceRows('store', {
                 subjectCol: 1,

@@ -11,12 +11,12 @@
 
   var SALE_UNIT_OPTIONS = ['件', '箱', '瓶', '袋', 'kg', 'L', '罐', '包', '套', '卷', '个', '斤', '盒'];
   var ETA_COUNTDOWN_UNITS = ['天', '小时'];
-  /** 限购配置（演示枚举） */
+  /** 限购配置：每单 / 每天 / 累计 / 不限购；不限购时不展示数量 */
   var LIMIT_CONFIG_OPTIONS = [
-    { value: '', label: '请选择' },
-    { value: 'none', label: '不限购' },
     { value: 'per_order', label: '每单限购' },
-    { value: 'per_user', label: '每用户限购' }
+    { value: 'per_day', label: '每天限购' },
+    { value: 'total', label: '累计限购' },
+    { value: 'none', label: '不限购' }
   ];
   /**
    * 积分兑换三态（售卖规格）：
@@ -40,6 +40,7 @@
     'saleRatio',
     'saleUnit',
     'limitConfig',
+    'limitQty',
     'pointExchange',
     'pointsAmount',
     'pointCash',
@@ -57,6 +58,7 @@
       target[key] = source[key];
     });
     target.pointExchange = normalizePointExchange(target.pointExchange);
+    target.limitConfig = normalizeLimitConfig(target.limitConfig);
     target.sellableMode = normalizeSellableMode(target.sellableMode);
     if (!target.displayNameManual) {
       target.displayName = buildDefaultDisplayName(
@@ -73,6 +75,44 @@
       return window.MdmSkuWhStock.normalizeSellableMode(value);
     }
     return value === 'fixed' ? 'fixed' : 'spot';
+  }
+
+  function normalizeLimitConfig(value) {
+    var v = String(value || '').trim();
+    if (v === 'per_order' || v === 'order') return 'per_order';
+    if (v === 'per_day' || v === 'daily') return 'per_day';
+    if (v === 'total') return 'total';
+    if (v === 'per_user') return 'per_order';
+    return 'none';
+  }
+
+  function renderLimitConfigField(sku) {
+    var current = normalizeLimitConfig(sku && sku.limitConfig);
+    var options = LIMIT_CONFIG_OPTIONS.map(function (opt) {
+      return (
+        '<option value="' +
+        escapeHtml(opt.value) +
+        '"' +
+        (current === opt.value ? ' selected' : '') +
+        '>' +
+        escapeHtml(opt.label) +
+        '</option>'
+      );
+    }).join('');
+    return (
+      '<div class="product-proxy-spec__field product-proxy-spec__field--limit" data-limit-config="' +
+      escapeHtml(current) +
+      '">' +
+      '<label class="product-proxy-spec__label">限购配置</label>' +
+      '<div class="product-proxy-spec__limit-row">' +
+      '<select class="product-proxy-spec__input product-proxy-spec__limit-select" data-field="limitConfig">' +
+      options +
+      '</select>' +
+      '<input type="text" class="product-proxy-spec__input product-proxy-spec__limit-qty" data-field="limitQty" inputmode="numeric" placeholder="限购数量" value="' +
+      escapeHtml((sku && sku.limitQty) || '') +
+      '">' +
+      '</div></div>'
+    );
   }
 
   function parseStockNum(value) {
@@ -416,7 +456,8 @@
       purchasePrice: index === 0 ? '0.01' : '8.00',
       saleRatio: '1.000',
       saleUnit: saleUnit,
-      limitConfig: '',
+      limitConfig: 'none',
+      limitQty: '',
       pointExchange: pointExchange,
       pointsAmount: product.pricePoints != null ? String(product.pricePoints) : '',
       pointCash: pointExchange === 'points_cash' ? String(product.priceMoney || '0') : '',
@@ -458,7 +499,8 @@
       );
       if (s.saleRatio == null && s.stockStatus != null) s.saleRatio = s.stockStatus;
       if (s.saleRatio == null || s.saleRatio === '') s.saleRatio = '1.000';
-      if (s.limitConfig == null) s.limitConfig = '';
+      s.limitConfig = normalizeLimitConfig(s.limitConfig);
+      if (s.limitQty == null) s.limitQty = '';
       if (s.pointsAmount == null) s.pointsAmount = '';
       if (s.pointCash == null) s.pointCash = '';
       if (s.barcode && !s.internalCode) s.internalCode = s.barcode;
@@ -687,17 +729,6 @@
           '</option>'
         );
       }).join('');
-    var limitOptions = LIMIT_CONFIG_OPTIONS.map(function (opt) {
-      return (
-        '<option value="' +
-        escapeHtml(opt.value) +
-        '"' +
-        (String(sku.limitConfig || '') === opt.value ? ' selected' : '') +
-        '>' +
-        escapeHtml(opt.label) +
-        '</option>'
-      );
-    }).join('');
     var barcode = sku.barcode || sku.internalCode || '';
 
     return (
@@ -731,12 +762,7 @@
       saleUnitOptions +
       '</select>' +
       '      </div>' +
-      '      <div class="product-proxy-spec__field">' +
-      '        <label class="product-proxy-spec__label">限购配置</label>' +
-      '        <select class="product-proxy-spec__input" data-field="limitConfig">' +
-      limitOptions +
-      '</select>' +
-      '      </div>' +
+      renderLimitConfigField(sku) +
       renderPointExchangeFields(sku) +
       renderPriceFieldsByExchange(sku) +
       renderSpecField('起售量', 'minQty', sku.minQty) +
@@ -1253,6 +1279,15 @@
       });
 
       // 积分兑换切换：重绘规格卡，露出对应字段
+      var limitWrap = panel.querySelector('[data-limit-config]');
+      var limitSelect = panel.querySelector('[data-field="limitConfig"]');
+      if (limitWrap && limitSelect) {
+        limitSelect.addEventListener('change', function () {
+          sku.limitConfig = normalizeLimitConfig(limitSelect.value);
+          limitWrap.setAttribute('data-limit-config', sku.limitConfig);
+        });
+      }
+
       var exchangeSelect = panel.querySelector('[data-field="pointExchange"]');
       if (exchangeSelect) {
         exchangeSelect.addEventListener('change', function () {

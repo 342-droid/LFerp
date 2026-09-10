@@ -785,12 +785,21 @@
         nc.textContent = '0 / 50';
         nameInp.addEventListener('input', function () {
             nc.textContent = nameInp.value.length + ' / 50';
+            if (refs.shortNameInp && !refs.shortNameLocked) refs.shortNameInp.value = nameInp.value;
         });
         nameWrap.appendChild(nameInp);
         nameWrap.appendChild(nc);
         body.appendChild(formRow('门店名称', true, nameWrap));
-        refs.shortNameInp = txt('请输入门店简称', '');
-        body.appendChild(formRow('门店简称', false, refs.shortNameInp));
+        refs.shortNameInp = txt('', '');
+        refs.shortNameInp.readOnly = true;
+        refs.shortNameInp.style.background = '#f5f5f5';
+        var shortWrap = document.createElement('div');
+        shortWrap.appendChild(refs.shortNameInp);
+        var shortTip = document.createElement('div');
+        shortTip.style.cssText = 'margin-top:6px;font-size:12px;color:#999;line-height:1.5;';
+        shortTip.textContent = '取门店名称，不可改；仓储站点维护储位后回写为「储位编码-储位名称」。';
+        shortWrap.appendChild(shortTip);
+        body.appendChild(formRow('门店简称', false, shortWrap));
         refs.bindBdSel = sel([{ value: '', label: '请选择绑定BD' }], '');
         refs.bindBdSel.setAttribute('data-required-msg', '请选择绑定BD');
         body.appendChild(formRow('绑定BD', true, refs.bindBdSel));
@@ -943,7 +952,13 @@
             if (refs.phoneInp) refs.phoneInp.value = cellPlainText(c[7]);
             refs.verifyInp.value = '';
             refs.nameInp.value = cellPlainText(c[2]);
-            refs.shortNameInp.value = '';
+            var storeCode = cellPlainText(c[0]);
+            var mapped = window.MdmStoreSiteSlot && window.MdmStoreSiteSlot.getByStore(storeCode);
+            refs.shortNameLocked = !!(mapped && mapped.fromSite);
+            refs.shortNameInp.value =
+                mapped && mapped.fromSite
+                    ? window.MdmStoreSiteSlot.composeShortName(mapped.slotCode, mapped.slotName)
+                    : refs.nameInp.value;
             var bindBdName = cellPlainText(c[5]);
             if (bindBdName === '—') bindBdName = '';
             hydrateBdSelectFromPeoplePage(refs.bindBdSel, bindBdName);
@@ -1366,11 +1381,15 @@
                 if (name) writeVenuePhotos('store', 'name:' + name, collectVenuePhotosFromRefs(refs));
                 syncStoreReceiveFromForm(storeCode, name, refs);
                 var partnerMap = { franchise: '加盟店', partner: '合作店', peer: '同行店', fresh: '生鲜店' };
+                if (window.MdmStoreSiteSlot) {
+                    window.MdmStoreSiteSlot.syncFromStore({ storeCode: storeCode, storeName: name, source: 'store' });
+                }
                 if (window.MdmErpLists && typeof window.MdmErpLists.appendArchiveStoreRow === 'function') {
                     window.MdmErpLists.appendArchiveStoreRow({
                         storeCode: storeCode,
                         subjectName: selectedLabel(refs.subjectSel) || '—',
                         name: name,
+                        shortName: name,
                         partner: partnerMap[refs.partnerSel && refs.partnerSel.value] || '—',
                         storeType: refs.storeTypeInp ? String(refs.storeTypeInp.value || '').trim() : '—',
                         bindBd: selectedLabel(refs.bindBdSel) || '—',
@@ -1415,6 +1434,20 @@
                 }
                 var nextName =
                     refs.nameInp ? String(refs.nameInp.value || '').trim() : storeName;
+                var nextShort = nextName;
+                if (window.MdmStoreSiteSlot) {
+                    var mapped = window.MdmStoreSiteSlot.getByStore(nextCode || storeId);
+                    if (mapped && mapped.fromSite) {
+                        nextShort = window.MdmStoreSiteSlot.composeShortName(mapped.slotCode, mapped.slotName);
+                    } else {
+                        window.MdmStoreSiteSlot.syncFromStore({
+                            storeCode: nextCode || storeId,
+                            storeName: nextName || storeName,
+                            source: 'store'
+                        });
+                    }
+                }
+                tr.setAttribute('data-short-name', nextShort || nextName || storeName);
                 syncStoreReceiveFromForm(nextCode || storeId, nextName || storeName, refs);
             });
         },
