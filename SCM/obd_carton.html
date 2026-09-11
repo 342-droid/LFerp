@@ -173,6 +173,7 @@
                     <table class="table no-last-column-freeze">
                         <thead>
                             <tr>
+                                <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
                                 <th>包裹号</th>
                                 <th>包裹状态</th>
                                 <th>站点</th>
@@ -388,6 +389,7 @@
             data.forEach(item => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
+                    <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
                     <td><a href="#" class="carton-no-link" data-carton-no="${item.cartonNo}">${item.cartonNo}</a></td>
                     <td><span class="status-badge ${getCartonStatusClass(item.cartonStatus)}">${item.cartonStatus}</span></td>
                     <td>${formatSiteDisplay(item.siteCode, item.siteName)}</td>
