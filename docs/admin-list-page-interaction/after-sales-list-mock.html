@@ -1,0 +1,1554 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>冷丰售后 - 列表交互规范 Mock</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/342-droid/LFerp@7f65adc/css/common.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/342-droid/LFerp@7f65adc/css/components.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/342-droid/LFerp@7f65adc/css/lf-mdm-from-master.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/342-droid/LFerp@7f65adc/css/lf-aftersale.css"
+    />
+    <style>
+      :root {
+        --lf-selection-width: 3rem;
+        --lf-layer-shadow: 0 0.45rem 1.4rem color-mix(in srgb, black 10%, transparent);
+      }
+
+      body {
+        min-width: 80rem;
+      }
+
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+
+      button:focus-visible,
+      input:focus-visible,
+      select:focus-visible,
+      summary:focus-visible {
+        outline: 0.125rem solid var(--color-primary);
+        outline-offset: 0.125rem;
+      }
+
+      #sidebar-container,
+      #header-container,
+      .container {
+        transition:
+          width 0.2s ease,
+          margin-left 0.2s ease;
+      }
+
+      .lf-prototype-note {
+        margin-left: auto;
+        align-self: center;
+        padding: var(--space-xs) var(--space-sm);
+        border: 0.0625rem solid var(--color-border);
+        border-radius: var(--radius-sm);
+        background: var(--color-header-bg);
+        color: var(--color-text-muted);
+        font-size: 0.75rem;
+        white-space: nowrap;
+      }
+
+      .lf-primary-status-card {
+        margin-bottom: 0.75rem;
+        padding: 0 var(--space-md);
+      }
+
+      .lf-primary-status-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 2.6rem;
+        border-bottom: 0.0625rem solid var(--color-border);
+      }
+
+      .lf-primary-status-head strong {
+        font-size: 0.875rem;
+        color: var(--color-text);
+      }
+
+      .lf-contract-note {
+        color: var(--color-text-muted);
+        font-size: 0.75rem;
+      }
+
+      .lf-queue-list {
+        display: flex;
+        align-items: center;
+        gap: var(--space-lg);
+        min-height: 3rem;
+        overflow-x: auto;
+      }
+
+      .lf-queue-button {
+        position: relative;
+        align-self: stretch;
+        padding: 0 var(--space-xs);
+        border: 0;
+        background: transparent;
+        color: var(--color-text-secondary);
+        cursor: pointer;
+        white-space: nowrap;
+      }
+
+      .lf-queue-button::after {
+        content: "";
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        height: 0.125rem;
+        background: transparent;
+      }
+
+      .lf-queue-button.is-active {
+        color: var(--color-primary);
+        font-weight: 600;
+      }
+
+      .lf-queue-button.is-active::after {
+        background: var(--color-primary);
+      }
+
+      .lf-queue-count {
+        display: inline-flex;
+        min-width: 1.35rem;
+        justify-content: center;
+        margin-left: var(--space-xs);
+        padding: 0.05rem 0.32rem;
+        border-radius: 999rem;
+        background: var(--color-bg-page);
+        color: var(--color-text-muted);
+        font-size: 0.7rem;
+      }
+
+      .lf-queue-button.is-active .lf-queue-count {
+        background: var(--color-primary-soft);
+        color: var(--color-primary);
+      }
+
+      .aftersale-filter-grid.is-collapsed .aftersale-filter-field--extra {
+        display: none;
+      }
+
+      .lf-filter-meta {
+        display: flex;
+        flex: 1;
+        align-items: center;
+        justify-content: flex-start;
+        gap: var(--space-sm);
+        min-height: 2rem;
+        color: var(--color-text-muted);
+        font-size: 0.75rem;
+      }
+
+      .lf-filter-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-md);
+        margin-top: var(--space-sm);
+      }
+
+      .lf-filter-footer .aftersale-filter-actions {
+        margin-top: 0;
+      }
+
+      .lf-filter-meta button {
+        border: 0;
+        background: transparent;
+        color: var(--color-text-secondary);
+        cursor: pointer;
+      }
+
+      .lf-table-toolbar-shell {
+        min-height: 3.55rem;
+        border-bottom: 0.0625rem solid var(--color-border);
+      }
+
+      .lf-table-toolbar {
+        display: flex;
+        min-height: 3.55rem;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-md);
+        padding: 0 var(--space-md);
+      }
+
+      .lf-toolbar-group {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+      }
+
+      .lf-toolbar-button {
+        min-height: 2rem;
+        padding: 0 0.85rem;
+        border: 0.0625rem solid var(--color-border);
+        border-radius: var(--radius-sm);
+        background: var(--color-header-bg);
+        color: var(--color-text-secondary);
+        cursor: pointer;
+      }
+
+      .lf-toolbar-button:hover:not(:disabled) {
+        border-color: var(--color-primary);
+        color: var(--color-primary);
+      }
+
+      .lf-toolbar-button.is-primary {
+        border-color: var(--color-primary);
+        color: var(--color-primary);
+      }
+
+      .lf-toolbar-button.is-filled {
+        border-color: var(--color-primary);
+        background: var(--color-primary);
+        color: var(--color-header-bg);
+      }
+
+      .lf-toolbar-button:disabled {
+        cursor: not-allowed;
+        opacity: 0.45;
+      }
+
+      .lf-selection-toolbar {
+        background: var(--color-primary-soft);
+      }
+
+      .lf-selection-summary {
+        color: var(--color-text);
+        font-size: 0.875rem;
+      }
+
+      .lf-selection-summary strong {
+        color: var(--color-primary);
+      }
+
+      .lf-selection-scope {
+        margin-left: var(--space-sm);
+        color: var(--color-text-muted);
+        font-size: 0.75rem;
+      }
+
+      .lf-selection-col {
+        position: sticky !important;
+        left: 0;
+        z-index: 5 !important;
+        width: var(--lf-selection-width);
+        min-width: var(--lf-selection-width);
+        max-width: var(--lf-selection-width);
+        padding-right: var(--space-sm) !important;
+        padding-left: var(--space-sm) !important;
+        text-align: center !important;
+      }
+
+      .aftersale-table__th--ticket,
+      .aftersale-table__td--ticket {
+        position: sticky;
+        left: var(--lf-selection-width);
+        z-index: 4;
+        min-width: 14rem;
+        background: var(--color-header-bg);
+        box-shadow: 0.4rem 0 0.6rem -0.55rem color-mix(in srgb, black 20%, transparent);
+      }
+
+      .aftersale-table thead .aftersale-table__th--ticket {
+        background: var(--color-bg-page);
+        z-index: 6;
+      }
+
+      .aftersale-table tbody tr:nth-child(even) .lf-selection-col,
+      .aftersale-table tbody tr:nth-child(even) .aftersale-table__td--ticket {
+        background: var(--color-bg-content);
+      }
+
+      .aftersale-table tbody tr:hover .lf-selection-col,
+      .aftersale-table tbody tr:hover .aftersale-table__td--ticket {
+        background: color-mix(in srgb, var(--color-primary) 8%, var(--color-header-bg));
+      }
+
+      .lf-checkbox-hit {
+        display: inline-flex;
+        width: 2rem;
+        height: 2rem;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+      }
+
+      .lf-checkbox-hit input {
+        width: 1rem;
+        height: 1rem;
+        accent-color: var(--color-primary);
+        cursor: pointer;
+      }
+
+      .lf-checkbox-hit input:disabled {
+        cursor: not-allowed;
+      }
+
+      .lf-ticket-main {
+        display: inline-flex;
+        border: 0;
+        padding: 0;
+        background: transparent;
+        color: var(--color-primary);
+        cursor: pointer;
+      }
+
+      .lf-ticket-main:hover {
+        text-decoration: underline;
+      }
+
+      .lf-cell-sub {
+        margin-top: var(--space-xs);
+        color: var(--color-text-muted);
+        font-size: 0.72rem;
+      }
+
+      .lf-business-tags {
+        display: flex;
+        align-items: center;
+        gap: var(--space-xs);
+        margin-top: var(--space-xs);
+      }
+
+      .lf-business-tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.08rem 0.38rem;
+        border: 0.0625rem solid var(--color-primary);
+        border-radius: 999rem;
+        background: var(--color-primary-soft);
+        color: var(--color-primary);
+        font-size: 0.68rem;
+      }
+
+      .lf-product {
+        display: flex;
+        min-width: 13rem;
+        flex-direction: column;
+        gap: var(--space-xs);
+      }
+
+      .lf-product strong {
+        max-width: 16rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .lf-action-area {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-sm);
+      }
+
+      .lf-action-button {
+        border: 0;
+        padding: 0;
+        background: transparent;
+        color: var(--color-primary);
+        cursor: pointer;
+      }
+
+      .lf-action-button:disabled {
+        color: var(--color-text-muted);
+        cursor: not-allowed;
+      }
+
+      .lf-action-disabled {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-xs);
+      }
+
+      .lf-action-help {
+        display: inline-flex;
+        width: 1rem;
+        height: 1rem;
+        align-items: center;
+        justify-content: center;
+        border: 0.0625rem solid var(--color-text-muted);
+        border-radius: 50%;
+        color: var(--color-text-muted);
+        font-size: 0.65rem;
+      }
+
+      .lf-action-disabled:hover::after,
+      .lf-action-disabled:focus-within::after {
+        content: attr(data-reason);
+        position: absolute;
+        right: 0;
+        bottom: calc(100% + var(--space-sm));
+        z-index: 20;
+        width: 15rem;
+        padding: var(--space-sm);
+        border-radius: var(--radius-sm);
+        background: var(--color-sidebar-bg);
+        color: var(--color-sidebar-text);
+        box-shadow: var(--lf-layer-shadow);
+        font-size: 0.75rem;
+        line-height: 1.5;
+        white-space: normal;
+      }
+
+      .lf-more {
+        position: relative;
+      }
+
+      .lf-more summary {
+        list-style: none;
+        color: var(--color-primary);
+        cursor: pointer;
+      }
+
+      .lf-more summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .lf-more-menu {
+        position: absolute;
+        top: calc(100% + var(--space-xs));
+        right: 0;
+        z-index: 18;
+        min-width: 8.5rem;
+        padding: var(--space-xs);
+        border: 0.0625rem solid var(--color-border);
+        border-radius: var(--radius-sm);
+        background: var(--color-header-bg);
+        box-shadow: var(--lf-layer-shadow);
+      }
+
+      .lf-more-menu button {
+        width: 100%;
+        padding: var(--space-sm);
+        border: 0;
+        border-radius: var(--radius-sm);
+        background: transparent;
+        color: var(--color-text);
+        text-align: left;
+        cursor: pointer;
+      }
+
+      .lf-more-menu button:hover {
+        background: var(--color-primary-soft);
+        color: var(--color-primary);
+      }
+
+      .lf-toast {
+        position: fixed;
+        right: var(--space-lg);
+        bottom: var(--space-lg);
+        z-index: 3000;
+        max-width: 28rem;
+        padding: var(--space-sm) var(--space-md);
+        border-radius: var(--radius-sm);
+        background: var(--color-sidebar-bg);
+        color: var(--color-sidebar-text);
+        box-shadow: var(--lf-layer-shadow);
+        font-size: 0.8rem;
+      }
+
+      .lf-empty {
+        padding: 4rem;
+        color: var(--color-text-muted);
+        text-align: center;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="sidebar-container">
+      <aside class="sidebar aftersale-sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <img
+            src="https://cdn.jsdelivr.net/gh/342-droid/LFerp@7f65adc/image/冷丰图标.png"
+            alt="冷丰售后"
+          />
+          <span>冷丰售后</span>
+        </div>
+        <ul class="sidebar-menu aftersale-sidebar-menu">
+          <li class="menu-item aftersale-side-group">
+            <a class="menu-link aftersale-side-group__head" href="#">
+              <img
+                src="https://cdn.jsdelivr.net/gh/342-droid/LFerp@7f65adc/image/任务管理.svg"
+                alt=""
+                style="height: 1.25rem; margin-right: 0.625rem; vertical-align: middle"
+              />
+              <span class="aftersale-side-group__title">售后管理</span>
+              <button class="menu-toggle" type="button" aria-label="展开">▼</button>
+            </a>
+            <ul class="submenu aftersale-side-submenu expanded">
+              <li><a class="active" href="#">售后单</a></li>
+              <li><a href="#">退款单</a></li>
+            </ul>
+          </li>
+          <li class="menu-item aftersale-side-group">
+            <a class="menu-link aftersale-side-group__head" href="#">
+              <img
+                src="https://cdn.jsdelivr.net/gh/342-droid/LFerp@7f65adc/image/任务管理.svg"
+                alt=""
+                style="height: 1.25rem; margin-right: 0.625rem; vertical-align: middle"
+              />
+              <span class="aftersale-side-group__title">举报与意见反馈</span>
+              <button class="menu-toggle" type="button" aria-label="展开">▼</button>
+            </a>
+            <ul class="submenu aftersale-side-submenu expanded">
+              <li><a href="#">举报管理</a></li>
+              <li><a href="#">意见反馈</a></li>
+            </ul>
+          </li>
+        </ul>
+      </aside>
+    </div>
+
+    <div id="header-container">
+      <header class="header">
+        <button class="sidebar-toggle" id="sidebarToggle" type="button">
+          <img
+            src="https://cdn.jsdelivr.net/gh/342-droid/LFerp@7f65adc/image/侧边收起.svg"
+            alt="收起侧边栏"
+            style="height: 1.25rem; vertical-align: middle"
+          />
+        </button>
+        <nav class="nav-tabs" aria-label="一级导航">
+          <a href="#">移动端</a>
+          <a href="#">工作台</a>
+          <a href="#">业务伙伴</a>
+          <a href="#">会员</a>
+          <a href="#">商品</a>
+          <a href="#">审核中心</a>
+          <a href="#">订单</a>
+          <a class="active" href="#">售后</a>
+          <a href="#">营销</a>
+          <a href="#">直播</a>
+          <a href="#">仓储</a>
+          <a href="#">物流</a>
+          <a href="#">采购</a>
+          <a href="#">财务</a>
+          <a href="#">基础设置</a>
+          <a href="#">权限设计</a>
+        </nav>
+        <div class="header-right">
+          <img
+            src="https://cdn.jsdelivr.net/gh/342-droid/LFerp@7f65adc/image/头像.png"
+            alt="头像"
+          />
+          <span>用户名⌄</span>
+        </div>
+      </header>
+    </div>
+
+    <div class="container">
+      <main class="main-content">
+        <div class="aftersale-page">
+          <div class="aftersale-page-tabs">
+            <a class="aftersale-page-tabs__item" href="#">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M4 10.5L12 4l8 6.5V19a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1v-8.5z"></path>
+              </svg>
+              首页
+            </a>
+            <span class="aftersale-page-tabs__item aftersale-page-tabs__item--active">
+              售后单
+              <button class="aftersale-page-tabs__close" type="button" aria-label="关闭">×</button>
+            </span>
+            <a class="aftersale-page-tabs__item" href="#">
+              退款单
+              <button class="aftersale-page-tabs__close" type="button" aria-label="关闭">×</button>
+            </a>
+            <a class="aftersale-page-tabs__item" href="#">
+              举报管理
+              <button class="aftersale-page-tabs__close" type="button" aria-label="关闭">×</button>
+            </a>
+            <a class="aftersale-page-tabs__item" href="#">
+              意见反馈
+              <button class="aftersale-page-tabs__close" type="button" aria-label="关闭">×</button>
+            </a>
+            <span class="lf-prototype-note">基于 LFerp 售后单原型 · 交互规范增量 Mock</span>
+          </div>
+
+          <div class="aftersale-page-body">
+            <section class="erp-page__card lf-primary-status-card">
+              <div class="lf-primary-status-head">
+                <strong>处理队列</strong>
+                <span class="lf-contract-note">示例数据 · 正式启用依赖后端 queue/count 同口径合同</span>
+              </div>
+              <div class="lf-queue-list" id="queueList" aria-label="售后处理队列"></div>
+            </section>
+
+            <section class="erp-page__card aftersale-filter-card">
+              <form id="filterForm" onsubmit="return false">
+                <div class="aftersale-filter-grid is-collapsed" id="filterGrid">
+                  <div class="aftersale-filter-field">
+                    <label class="aftersale-filter-field__label" for="ticketNo">售后单号</label>
+                    <input
+                      class="aftersale-filter-field__input"
+                      id="ticketNo"
+                      name="ticketNo"
+                      placeholder="请输入售后单号"
+                    />
+                  </div>
+                  <div class="aftersale-filter-field">
+                    <label class="aftersale-filter-field__label" for="orderNo">订单号</label>
+                    <input
+                      class="aftersale-filter-field__input"
+                      id="orderNo"
+                      name="orderNo"
+                      placeholder="请输入订单号"
+                    />
+                  </div>
+                  <div class="aftersale-filter-field">
+                    <label class="aftersale-filter-field__label" for="orderSource">订单来源</label>
+                    <select class="aftersale-filter-field__select" id="orderSource" name="orderSource">
+                      <option value="">全部</option>
+                      <option value="零售">零售</option>
+                      <option value="代采">代采</option>
+                    </select>
+                  </div>
+                  <div class="aftersale-filter-field">
+                    <label class="aftersale-filter-field__label" for="userPhone">用户手机号</label>
+                    <input
+                      class="aftersale-filter-field__input"
+                      id="userPhone"
+                      name="userPhone"
+                      placeholder="请输入用户手机号"
+                    />
+                  </div>
+                  <div class="aftersale-filter-field">
+                    <label class="aftersale-filter-field__label" for="productName">商品名称</label>
+                    <input
+                      class="aftersale-filter-field__input"
+                      id="productName"
+                      name="productName"
+                      placeholder="请输入商品名称"
+                    />
+                  </div>
+                  <div class="aftersale-filter-field">
+                    <label class="aftersale-filter-field__label" for="afterSaleType">售后类型</label>
+                    <select class="aftersale-filter-field__select" id="afterSaleType" name="afterSaleType">
+                      <option value="">全部</option>
+                      <option value="仅退款">仅退款</option>
+                      <option value="退货退款">退货退款</option>
+                      <option value="补货">补货</option>
+                      <option value="换货">换货</option>
+                    </select>
+                  </div>
+                  <div class="aftersale-filter-field aftersale-filter-field--extra">
+                    <label class="aftersale-filter-field__label" for="status">售后状态</label>
+                    <select class="aftersale-filter-field__select" id="status" name="status">
+                      <option value="">全部</option>
+                      <option value="待审批">待审批</option>
+                      <option value="待退货">待退货</option>
+                      <option value="退款中">退款中</option>
+                      <option value="退款异常">退款异常</option>
+                      <option value="已完成">已完成</option>
+                    </select>
+                  </div>
+                  <div class="aftersale-filter-field aftersale-filter-field--extra">
+                    <label class="aftersale-filter-field__label" for="refundStatus">退款执行状态</label>
+                    <select class="aftersale-filter-field__select" id="refundStatus" name="refundStatus">
+                      <option value="">全部</option>
+                      <option value="未发起退款">未发起退款</option>
+                      <option value="退款执行中">退款执行中</option>
+                      <option value="退款成功">退款成功</option>
+                      <option value="退款失败">退款失败</option>
+                    </select>
+                  </div>
+                  <div class="aftersale-filter-field aftersale-filter-field--extra">
+                    <label class="aftersale-filter-field__label" for="reason">售后原因</label>
+                    <select class="aftersale-filter-field__select" id="reason" name="reason">
+                      <option value="">全部</option>
+                      <option value="未收到货">未收到货</option>
+                      <option value="不喜欢不想要">不喜欢不想要</option>
+                      <option value="商品破损">商品破损</option>
+                    </select>
+                  </div>
+                  <div class="aftersale-filter-field aftersale-filter-field--extra aftersale-filter-field--amount">
+                    <label class="aftersale-filter-field__label" for="applyAmountMin">申请退款金额</label>
+                    <div class="aftersale-filter-amount">
+                      <input
+                        class="aftersale-filter-field__input"
+                        id="applyAmountMin"
+                        name="applyAmountMin"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="最小值"
+                      />
+                      <span class="aftersale-filter-amount__sep">-</span>
+                      <input
+                        class="aftersale-filter-field__input"
+                        id="applyAmountMax"
+                        name="applyAmountMax"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="最大值"
+                      />
+                    </div>
+                  </div>
+                  <div class="aftersale-filter-field aftersale-filter-field--extra">
+                    <label class="aftersale-filter-field__label" for="approver">审批人</label>
+                    <select class="aftersale-filter-field__select" id="approver" name="approver">
+                      <option value="">全部</option>
+                      <option value="系统">系统</option>
+                      <option value="超级管理员">超级管理员</option>
+                    </select>
+                  </div>
+                  <div class="aftersale-filter-field aftersale-filter-field--extra aftersale-filter-field--amount">
+                    <label class="aftersale-filter-field__label" for="execAmountMin">退款执行金额</label>
+                    <div class="aftersale-filter-amount">
+                      <input
+                        class="aftersale-filter-field__input"
+                        id="execAmountMin"
+                        name="execAmountMin"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="最小值"
+                      />
+                      <span class="aftersale-filter-amount__sep">-</span>
+                      <input
+                        class="aftersale-filter-field__input"
+                        id="execAmountMax"
+                        name="execAmountMax"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="最大值"
+                      />
+                    </div>
+                  </div>
+                  <div class="aftersale-filter-field aftersale-filter-field--extra">
+                    <label class="aftersale-filter-field__label" for="afterSaleSource">售后来源</label>
+                    <select
+                      class="aftersale-filter-field__select"
+                      id="afterSaleSource"
+                      name="afterSaleSource"
+                    >
+                      <option value="">全部</option>
+                      <option value="用户自助发起">用户自助发起</option>
+                      <option value="运营代用户发起">运营代用户发起</option>
+                    </select>
+                  </div>
+                  <div class="aftersale-filter-field aftersale-filter-field--extra">
+                    <label class="aftersale-filter-field__label" for="liveSession">直播场次</label>
+                    <input
+                      class="aftersale-filter-field__input"
+                      id="liveSession"
+                      name="liveSession"
+                      placeholder="请输入直播场次"
+                    />
+                  </div>
+                  <div class="aftersale-filter-field aftersale-filter-field--extra">
+                    <label class="aftersale-filter-field__label" for="applyDate">申请时间</label>
+                    <input
+                      class="aftersale-filter-field__input"
+                      id="applyDate"
+                      name="applyDate"
+                      type="date"
+                    />
+                  </div>
+                  <div class="aftersale-filter-field aftersale-filter-field--extra">
+                    <label class="aftersale-filter-field__label" for="approveDate">审批时间</label>
+                    <input
+                      class="aftersale-filter-field__input"
+                      id="approveDate"
+                      name="approveDate"
+                      type="date"
+                    />
+                  </div>
+                  <div class="aftersale-filter-field aftersale-filter-field--extra">
+                    <label class="aftersale-filter-field__label" for="refundDate">退款执行时间</label>
+                    <input
+                      class="aftersale-filter-field__input"
+                      id="refundDate"
+                      name="refundDate"
+                      type="date"
+                    />
+                  </div>
+                  <div class="aftersale-filter-field aftersale-filter-field--extra">
+                    <label class="aftersale-filter-field__label" for="afterSaleTag">售后标签</label>
+                    <select class="aftersale-filter-field__select" id="afterSaleTag" name="afterSaleTag">
+                      <option value="">全部标签</option>
+                      <option value="优先处理">优先处理</option>
+                      <option value="重点跟进">重点跟进</option>
+                      <option value="退款异常">退款异常</option>
+                    </select>
+                  </div>
+                  <div class="aftersale-filter-field aftersale-filter-field--extra">
+                    <label class="aftersale-filter-field__label" for="memberTag">会员标签</label>
+                    <select class="aftersale-filter-field__select" id="memberTag" name="memberTag">
+                      <option value="">全部标签</option>
+                      <option value="高活跃">高活跃</option>
+                      <option value="储值">储值</option>
+                      <option value="复购">复购</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="lf-filter-footer">
+                  <div class="lf-filter-meta">
+                    <span id="activeFilters">默认展示 6 个高频筛选项，其余 13 个按需展开。</span>
+                    <button type="button" data-demo-action="filter-settings">管理筛选项 · 19</button>
+                  </div>
+                  <div class="aftersale-filter-actions">
+                    <button
+                      class="aftersale-filter-btn aftersale-filter-btn--primary"
+                      id="queryButton"
+                      type="submit"
+                    >
+                      查询
+                    </button>
+                    <button
+                      class="aftersale-filter-btn aftersale-filter-btn--default"
+                      id="resetButton"
+                      type="button"
+                    >
+                      重置
+                    </button>
+                    <button
+                      class="aftersale-filter-btn aftersale-filter-btn--text"
+                      id="collapseButton"
+                      type="button"
+                      aria-expanded="false"
+                    >
+                      <span id="collapseLabel">展开</span>
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </section>
+
+            <section class="erp-page__card aftersale-table-card">
+              <div class="lf-table-toolbar-shell">
+                <div class="lf-table-toolbar" id="normalToolbar">
+                  <div class="lf-toolbar-group">
+                    <button class="lf-toolbar-button is-primary" type="button" data-demo-action="tag-manage">
+                      标签管理
+                    </button>
+                    <button
+                      class="lf-toolbar-button"
+                      id="batchEntry"
+                      type="button"
+                      disabled
+                      title="请先勾选至少一条售后单"
+                    >
+                      批量设置标签
+                    </button>
+                    <button class="lf-toolbar-button" type="button" data-demo-action="export">导出列表</button>
+                  </div>
+                  <button class="lf-toolbar-button" type="button" data-demo-action="columns">列设置</button>
+                </div>
+
+                <div class="lf-table-toolbar lf-selection-toolbar" id="selectionToolbar" hidden>
+                  <div class="lf-selection-summary">
+                    已选 <strong id="selectionCount">0</strong> 条
+                    <span class="lf-selection-scope" id="selectionScope">当前页</span>
+                    <button
+                      class="aftersale-filter-btn aftersale-filter-btn--text"
+                      id="selectAllResults"
+                      type="button"
+                      hidden
+                    ></button>
+                  </div>
+                  <div class="lf-toolbar-group">
+                    <button class="lf-toolbar-button is-filled" type="button" data-demo-action="batch-tags">
+                      批量设置标签
+                    </button>
+                    <button class="lf-toolbar-button" type="button" data-demo-action="batch-export">
+                      导出所选
+                    </button>
+                    <details class="lf-more">
+                      <summary>更多⌄</summary>
+                      <div class="lf-more-menu">
+                        <button type="button" data-demo-action="batch-transfer">批量转交</button>
+                        <button type="button" data-demo-action="batch-note">批量备注</button>
+                      </div>
+                    </details>
+                    <button class="aftersale-filter-btn aftersale-filter-btn--text" id="clearSelection" type="button">
+                      清空选择
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="aftersale-table-wrap" tabindex="0" aria-label="可横向滚动的售后单列表">
+                <table class="aftersale-table" id="afterSaleTable">
+                  <thead>
+                    <tr>
+                      <th class="lf-selection-col">
+                        <label class="lf-checkbox-hit" title="选择当前页可选售后单">
+                          <input id="selectCurrentPage" type="checkbox" aria-label="选择当前页可选售后单" />
+                        </label>
+                      </th>
+                      <th class="aftersale-table__th--ticket">售后单号／售后标签</th>
+                      <th>售后来源</th>
+                      <th>售后类型</th>
+                      <th>售后状态</th>
+                      <th>用户信息／会员标签</th>
+                      <th>订单来源</th>
+                      <th>直播场次</th>
+                      <th>履约方</th>
+                      <th>商品信息</th>
+                      <th>申请退款金额</th>
+                      <th>退款执行状态</th>
+                      <th>售后原因</th>
+                      <th>申请时间</th>
+                      <th class="aftersale-table__th--action">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tableBody"></tbody>
+                </table>
+              </div>
+              <div class="aftersale-pagination">
+                <span id="resultSummary">共 0 条</span>
+                <div class="aftersale-pagination__right">
+                  <select class="aftersale-pagination__size" aria-label="每页条数">
+                    <option>20 条 / 页</option>
+                    <option>50 条 / 页</option>
+                  </select>
+                  <div class="aftersale-pagination__pages">
+                    <button class="aftersale-page-btn" type="button" disabled>‹</button>
+                    <button class="aftersale-page-btn is-active" type="button">1</button>
+                    <button class="aftersale-page-btn" type="button">2</button>
+                    <button class="aftersale-page-btn" type="button">›</button>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <div class="lf-toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+    <script>
+      (function () {
+        "use strict";
+
+        var queues = [
+          { key: "all", label: "全部", count: 128 },
+          { key: "mine", label: "待我处理", count: 12 },
+          { key: "counterpart", label: "待对方处理", count: 31 },
+          { key: "processing", label: "处理中", count: 18 },
+          { key: "completed", label: "已完成", count: 64 },
+          { key: "exception", label: "异常", count: 3 }
+        ];
+
+        var rows = [
+          {
+            id: "AS-RT300000000000000",
+            orderNo: "ORD-260910-0018",
+            queue: "mine",
+            source: "用户自助发起",
+            type: "仅退款",
+            status: "待审批",
+            statusClass: "pending",
+            user: "沈女士 · 181****5166",
+            memberTag: "高活跃",
+            orderSource: "零售",
+            liveSession: "9.10 生鲜专场",
+            fulfillment: "快递",
+            product: "云南蓝莓 125g × 4 盒",
+            sku: "SKU 81272725",
+            amount: "¥99.00",
+            refundStatus: "未发起退款",
+            reason: "未收到货",
+            appliedAt: "2026-09-10 20:54",
+            tags: ["优先处理", "重点跟进"],
+            phone: "1815166",
+            selectable: true,
+            action: "审核",
+            actionReason: ""
+          },
+          {
+            id: "AS-PX30000000005850",
+            orderNo: "ORD-260910-0011",
+            queue: "counterpart",
+            source: "用户自助发起",
+            type: "退货退款",
+            status: "待退货",
+            statusClass: "return",
+            user: "李先生 · 182****7993",
+            memberTag: "储值",
+            orderSource: "代采",
+            liveSession: "-",
+            fulfillment: "快递",
+            product: "有机玉米 230g × 10 根",
+            sku: "SKU 81273049",
+            amount: "¥21.90",
+            refundStatus: "未发起退款",
+            reason: "不喜欢不想要",
+            appliedAt: "2026-09-10 15:18",
+            tags: ["重点跟进"],
+            phone: "1827993",
+            selectable: true,
+            action: "确认收货",
+            actionReason: "等待买家寄回；买家填写退货物流后才可确认收货。"
+          },
+          {
+            id: "AS-RT300000000000117",
+            orderNo: "ORD-260910-0008",
+            queue: "processing",
+            source: "运营代用户发起",
+            type: "仅退款",
+            status: "退款中",
+            statusClass: "refunding",
+            user: "王女士 · 185****0381",
+            memberTag: "复购",
+            orderSource: "零售",
+            liveSession: "9.9 晚间专场",
+            fulfillment: "快递",
+            product: "冷鲜牛腩 500g × 1 份",
+            sku: "SKU 81272418",
+            amount: "¥58.80",
+            refundStatus: "退款执行中",
+            reason: "商品破损",
+            appliedAt: "2026-09-10 12:46",
+            tags: ["自动退款"],
+            phone: "1850381",
+            selectable: true,
+            action: "继续处理",
+            actionReason: "退款正在处理中；请等待支付通道返回结果。"
+          },
+          {
+            id: "AS-RT300000000000098",
+            orderNo: "ORD-260909-0091",
+            queue: "exception",
+            source: "用户自助发起",
+            type: "退货退款",
+            status: "退款异常",
+            statusClass: "exception",
+            user: "赵先生 · 186****8620",
+            memberTag: "高活跃",
+            orderSource: "零售",
+            liveSession: "9.9 海鲜专场",
+            fulfillment: "快递",
+            product: "海鲜礼盒 2.8kg × 1 盒",
+            sku: "SKU 81271806",
+            amount: "¥399.00",
+            refundStatus: "退款失败",
+            reason: "商品破损",
+            appliedAt: "2026-09-09 18:20",
+            tags: ["优先处理", "退款异常", "高金额"],
+            phone: "1868620",
+            selectable: true,
+            action: "处理异常",
+            actionReason: ""
+          },
+          {
+            id: "AS-RT300000000000076",
+            orderNo: "ORD-260909-0044",
+            queue: "completed",
+            source: "用户自助发起",
+            type: "仅退款",
+            status: "已完成",
+            statusClass: "done",
+            user: "周女士 · 183****2239",
+            memberTag: "高活跃",
+            orderSource: "零售",
+            liveSession: "-",
+            fulfillment: "门店自提",
+            product: "阳光玫瑰葡萄 1kg × 1 盒",
+            sku: "SKU 81271683",
+            amount: "¥79.00",
+            refundStatus: "退款成功",
+            reason: "未收到货",
+            appliedAt: "2026-09-09 10:05",
+            tags: ["跨组织只读"],
+            phone: "1832239",
+            selectable: false,
+            unselectableReason: "跨组织只读记录不能参与批量操作。",
+            action: "",
+            actionReason: ""
+          },
+          {
+            id: "AS-RT300000000000052",
+            orderNo: "ORD-260908-0022",
+            queue: "completed",
+            source: "运营代用户发起",
+            type: "退货退款",
+            status: "已完成",
+            statusClass: "done",
+            user: "陈先生 · 188****1807",
+            memberTag: "储值",
+            orderSource: "代采",
+            liveSession: "-",
+            fulfillment: "快递",
+            product: "进口香蕉 1kg × 2 份",
+            sku: "SKU 81270955",
+            amount: "¥36.00",
+            refundStatus: "退款成功",
+            reason: "不喜欢不想要",
+            appliedAt: "2026-09-08 09:14",
+            tags: ["已回访"],
+            phone: "1881807",
+            selectable: true,
+            action: "",
+            actionReason: ""
+          }
+        ];
+
+        var state = {
+          queue: "all",
+          filters: {},
+          selected: new Set(),
+          shiftAnchor: null,
+          allResults: false
+        };
+        var queueList = document.getElementById("queueList");
+        var tableBody = document.getElementById("tableBody");
+        var selectCurrentPage = document.getElementById("selectCurrentPage");
+        var normalToolbar = document.getElementById("normalToolbar");
+        var selectionToolbar = document.getElementById("selectionToolbar");
+        var selectAllResults = document.getElementById("selectAllResults");
+        var toast = document.getElementById("toast");
+        var toastTimer;
+
+        function escapeHtml(value) {
+          return String(value)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+        }
+
+        function commonMatch(row) {
+          var filters = state.filters;
+          if (filters.ticketNo && row.id.indexOf(filters.ticketNo) === -1) return false;
+          if (filters.orderNo && row.orderNo.indexOf(filters.orderNo) === -1) return false;
+          if (filters.orderSource && row.orderSource !== filters.orderSource) return false;
+          if (filters.userPhone && row.phone.indexOf(filters.userPhone) === -1) return false;
+          if (filters.productName && row.product.indexOf(filters.productName) === -1) return false;
+          if (filters.afterSaleType && row.type !== filters.afterSaleType) return false;
+          if (filters.status && row.status !== filters.status) return false;
+          if (filters.refundStatus && row.refundStatus !== filters.refundStatus) return false;
+          if (filters.reason && row.reason !== filters.reason) return false;
+          var amount = Number(row.amount.replace(/[^0-9.]/g, ""));
+          if (filters.applyAmountMin && amount < Number(filters.applyAmountMin)) return false;
+          if (filters.applyAmountMax && amount > Number(filters.applyAmountMax)) return false;
+          if (filters.execAmountMin && amount < Number(filters.execAmountMin)) return false;
+          if (filters.execAmountMax && amount > Number(filters.execAmountMax)) return false;
+          if (filters.afterSaleSource && row.source !== filters.afterSaleSource) return false;
+          if (filters.liveSession && row.liveSession.indexOf(filters.liveSession) === -1) return false;
+          if (filters.applyDate && row.appliedAt.slice(0, 10) !== filters.applyDate) return false;
+          if (filters.approveDate && row.appliedAt.slice(0, 10) !== filters.approveDate) return false;
+          if (filters.refundDate && row.appliedAt.slice(0, 10) !== filters.refundDate) return false;
+          if (filters.afterSaleTag && row.tags.indexOf(filters.afterSaleTag) === -1) return false;
+          if (filters.memberTag && row.memberTag !== filters.memberTag) return false;
+          return true;
+        }
+
+        function hasCommonFilters() {
+          return Object.values(state.filters).some(function (value) {
+            return Boolean(value);
+          });
+        }
+
+        function visibleRows(queueKey) {
+          var targetQueue = queueKey || state.queue;
+          return rows.filter(function (row) {
+            return (
+              (targetQueue === "all" || row.queue === targetQueue) &&
+              commonMatch(row)
+            );
+          });
+        }
+
+        function queueCount(queue) {
+          return hasCommonFilters() ? visibleRows(queue.key).length : queue.count;
+        }
+
+        function activeQueueCount() {
+          var queue = queues.find(function (item) {
+            return item.key === state.queue;
+          });
+          return queue ? queueCount(queue) : 0;
+        }
+
+        function clearSelection(message) {
+          var hadSelection = state.selected.size > 0 || state.allResults;
+          state.selected.clear();
+          state.shiftAnchor = null;
+          state.allResults = false;
+          if (message && hadSelection) showToast(message);
+        }
+
+        function renderQueues() {
+          queueList.innerHTML = queues
+            .map(function (queue) {
+              return (
+                '<button class="lf-queue-button' +
+                (queue.key === state.queue ? " is-active" : "") +
+                '" type="button" data-queue="' +
+                queue.key +
+                '" aria-pressed="' +
+                String(queue.key === state.queue) +
+                '">' +
+                escapeHtml(queue.label) +
+                '<span class="lf-queue-count">' +
+                queueCount(queue) +
+                "</span></button>"
+              );
+            })
+            .join("");
+        }
+
+        function tagsHtml(tags) {
+          var visible = tags.slice(0, 2);
+          var html = visible
+            .map(function (tag) {
+              return '<span class="lf-business-tag">' + escapeHtml(tag) + "</span>";
+            })
+            .join("");
+          if (tags.length > 2) {
+            html +=
+              '<span class="lf-business-tag" title="' +
+              escapeHtml(tags.join("、")) +
+              '">+' +
+              String(tags.length - 2) +
+              "</span>";
+          }
+          return html;
+        }
+
+        function actionHtml(row) {
+          var direct = "";
+          if (row.actionReason) {
+            direct =
+              '<span class="lf-action-disabled" tabindex="0" data-reason="' +
+              escapeHtml(row.actionReason) +
+              '"><button class="lf-action-button" type="button" disabled>' +
+              escapeHtml(row.action) +
+              '</button><span class="lf-action-help" aria-hidden="true">?</span></span>';
+          } else if (row.action) {
+            direct =
+              '<button class="lf-action-button" type="button" data-row-action="' +
+              row.id +
+              '">' +
+              escapeHtml(row.action) +
+              "</button>";
+          }
+          return (
+            '<div class="lf-action-area">' +
+            direct +
+            '<details class="lf-more"><summary>更多⌄</summary><div class="lf-more-menu">' +
+            '<button type="button" data-demo-action="history">处理记录</button>' +
+            '<button type="button" data-demo-action="copy">复制售后单号</button>' +
+            "</div></details></div>"
+          );
+        }
+
+        function renderRows() {
+          var list = visibleRows();
+          if (!list.length) {
+            tableBody.innerHTML =
+              '<tr><td colspan="15"><div class="lf-empty">未查询到符合条件的售后单</div></td></tr>';
+            return;
+          }
+          tableBody.innerHTML = list
+            .map(function (row) {
+              var selectionTitle = row.selectable
+                ? "选择售后单 " + row.id
+                : row.unselectableReason;
+              return (
+                '<tr data-record="' +
+                row.id +
+                '"><td class="lf-selection-col"><label class="lf-checkbox-hit" title="' +
+                escapeHtml(selectionTitle) +
+                '"><input type="checkbox" data-select="' +
+                row.id +
+                '" aria-label="' +
+                escapeHtml(selectionTitle) +
+                '"' +
+                (state.selected.has(row.id) ? " checked" : "") +
+                (row.selectable ? "" : " disabled") +
+                " /></label></td>" +
+                '<td class="aftersale-table__td--ticket"><button class="lf-ticket-main" type="button" data-detail="' +
+                row.id +
+                '">' +
+                row.id +
+                '</button><div class="lf-cell-sub">订单 ' +
+                row.orderNo +
+                '</div><div class="lf-business-tags">' +
+                tagsHtml(row.tags) +
+                "</div></td>" +
+                "<td>" +
+                escapeHtml(row.source) +
+                "</td><td>" +
+                escapeHtml(row.type) +
+                '</td><td><span class="aftersale-tag aftersale-tag--' +
+                row.statusClass +
+                '">' +
+                escapeHtml(row.status) +
+                "</span></td>" +
+                "<td>" +
+                escapeHtml(row.user) +
+                '<div class="lf-cell-sub">' +
+                escapeHtml(row.memberTag) +
+                " · 来自会员管理</div></td>" +
+                "<td>" +
+                escapeHtml(row.orderSource) +
+                "</td><td>" +
+                escapeHtml(row.liveSession) +
+                "</td><td>" +
+                escapeHtml(row.fulfillment) +
+                '</td><td><div class="lf-product"><strong>' +
+                escapeHtml(row.product) +
+                '</strong><span class="lf-cell-sub">' +
+                escapeHtml(row.sku) +
+                "</span></div></td>" +
+                "<td><strong>" +
+                escapeHtml(row.amount) +
+                "</strong></td><td>" +
+                escapeHtml(row.refundStatus) +
+                "</td><td>" +
+                escapeHtml(row.reason) +
+                "</td><td>" +
+                escapeHtml(row.appliedAt) +
+                '</td><td class="aftersale-table__td--action">' +
+                actionHtml(row) +
+                "</td></tr>"
+              );
+            })
+            .join("");
+        }
+
+        function renderSelection() {
+          var eligible = visibleRows().filter(function (row) {
+            return row.selectable;
+          });
+          var selectedOnPage = eligible.filter(function (row) {
+            return state.selected.has(row.id);
+          }).length;
+          var hasSelection = state.selected.size > 0 || state.allResults;
+          var allPageSelected =
+            eligible.length > 0 && selectedOnPage === eligible.length;
+
+          normalToolbar.hidden = hasSelection;
+          selectionToolbar.hidden = !hasSelection;
+          selectCurrentPage.disabled = eligible.length === 0;
+          selectCurrentPage.checked = allPageSelected;
+          selectCurrentPage.indeterminate =
+            selectedOnPage > 0 && selectedOnPage < eligible.length;
+
+          document.getElementById("selectionCount").textContent = state.allResults
+            ? String(activeQueueCount())
+            : String(state.selected.size);
+          document.getElementById("selectionScope").textContent = state.allResults
+            ? "全部筛选结果"
+            : "当前可见页";
+          selectAllResults.hidden = !(
+            !state.allResults &&
+            allPageSelected &&
+            activeQueueCount() > eligible.length
+          );
+          selectAllResults.textContent =
+            "选择全部 " + activeQueueCount() + " 条筛选结果";
+        }
+
+        function renderMeta() {
+          var labels = [];
+          Object.entries(state.filters).forEach(function (entry) {
+            if (entry[1]) labels.push(entry[1]);
+          });
+          document.getElementById("activeFilters").textContent = labels.length
+            ? "已生效：" + labels.join("、")
+            : "默认展示 6 个高频筛选项，其余 13 个按需展开。";
+          document.getElementById("resultSummary").textContent =
+            "队列共 " +
+            activeQueueCount() +
+            " 条 · 当前 Mock 展示 " +
+            visibleRows().length +
+            " 条示例记录";
+        }
+
+        function render() {
+          renderQueues();
+          renderRows();
+          renderSelection();
+          renderMeta();
+        }
+
+        function showToast(message) {
+          window.clearTimeout(toastTimer);
+          toast.textContent = message;
+          toast.hidden = false;
+          toastTimer = window.setTimeout(function () {
+            toast.hidden = true;
+          }, 3600);
+        }
+
+        queueList.addEventListener("click", function (event) {
+          var button = event.target.closest("[data-queue]");
+          if (!button || button.dataset.queue === state.queue) return;
+          clearSelection("切换处理队列后已清空选择。");
+          state.queue = button.dataset.queue;
+          render();
+        });
+
+        tableBody.addEventListener("click", function (event) {
+          var checkbox = event.target.closest("[data-select]");
+          if (checkbox) {
+            var list = visibleRows();
+            var index = list.findIndex(function (row) {
+              return row.id === checkbox.dataset.select;
+            });
+            var changed = 0;
+            var skipped = 0;
+            state.allResults = false;
+
+            if (event.shiftKey && state.shiftAnchor !== null) {
+              var start = Math.min(index, state.shiftAnchor);
+              var end = Math.max(index, state.shiftAnchor);
+              list.slice(start, end + 1).forEach(function (row) {
+                if (!row.selectable) {
+                  skipped += 1;
+                  return;
+                }
+                if (checkbox.checked) state.selected.add(row.id);
+                else state.selected.delete(row.id);
+                changed += 1;
+              });
+              showToast(
+                "Shift 连选已处理 " +
+                  changed +
+                  " 条" +
+                  (skipped ? "，跳过 " + skipped + " 条不可选记录。" : "。")
+              );
+            } else if (checkbox.checked) {
+              state.selected.add(checkbox.dataset.select);
+            } else {
+              state.selected.delete(checkbox.dataset.select);
+            }
+            state.shiftAnchor = index;
+            renderRows();
+            renderSelection();
+            return;
+          }
+
+          var detail = event.target.closest("[data-detail]");
+          if (detail) {
+            showToast("打开售后详情；详情入口不会改变当前勾选。");
+            return;
+          }
+
+          var rowAction = event.target.closest("[data-row-action]");
+          if (rowAction) {
+            showToast("行级动作只演示稳定位置，不调用真实业务接口。");
+          }
+        });
+
+        selectCurrentPage.addEventListener("change", function () {
+          state.allResults = false;
+          visibleRows().forEach(function (row) {
+            if (!row.selectable) return;
+            if (selectCurrentPage.checked) state.selected.add(row.id);
+            else state.selected.delete(row.id);
+          });
+          state.shiftAnchor = null;
+          renderRows();
+          renderSelection();
+          showToast(
+            selectCurrentPage.checked
+              ? "只选择了当前页可选记录；未自动扩大到其他分页。"
+              : "已取消当前页选择。"
+          );
+        });
+
+        selectAllResults.addEventListener("click", function () {
+          state.allResults = true;
+          renderSelection();
+          showToast("已选择全部筛选结果；正式执行必须由后端按筛选快照处理。");
+        });
+
+        document
+          .getElementById("clearSelection")
+          .addEventListener("click", function () {
+            clearSelection();
+            renderRows();
+            renderSelection();
+            showToast("已清空选择。");
+          });
+
+        document
+          .getElementById("filterForm")
+          .addEventListener("submit", function (event) {
+            event.preventDefault();
+            state.filters = Object.fromEntries(new FormData(event.currentTarget).entries());
+            clearSelection("查询条件变化后已清空选择。");
+            render();
+          });
+
+        document
+          .getElementById("resetButton")
+          .addEventListener("click", function () {
+            document.getElementById("filterForm").reset();
+            state.filters = {};
+            clearSelection("重置筛选后已清空选择。");
+            render();
+          });
+
+        document
+          .getElementById("collapseButton")
+          .addEventListener("click", function () {
+            var grid = document.getElementById("filterGrid");
+            var expanded = grid.classList.contains("is-collapsed");
+            grid.classList.toggle("is-collapsed", !expanded);
+            this.setAttribute("aria-expanded", String(expanded));
+            document.getElementById("collapseLabel").textContent = expanded
+              ? "收起"
+              : "展开";
+          });
+
+        document
+          .getElementById("sidebarToggle")
+          .addEventListener("click", function () {
+            document.getElementById("sidebar-container").classList.toggle("collapsed");
+            document.getElementById("sidebar").classList.toggle("collapsed");
+          });
+
+        document.body.addEventListener("click", function (event) {
+          var action = event.target.closest("[data-demo-action]");
+          if (!action) return;
+          showToast("该入口沿用 LFerp 现有能力，Mock 只演示布局与交互。");
+        });
+
+        var demoState = new URLSearchParams(window.location.search).get("demoState");
+        if (demoState === "selected") {
+          visibleRows().forEach(function (row) {
+            if (row.selectable) state.selected.add(row.id);
+          });
+          state.allResults = true;
+        }
+
+        render();
+      })();
+    </script>
+  </body>
+</html>
