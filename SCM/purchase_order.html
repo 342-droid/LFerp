@@ -766,6 +766,7 @@
                                     <th>商品分类</th>
                                     <th>采购量</th>
                                     <th>收货量</th>
+                                    <th>已取消量</th>
                                     <th>采购单价</th>
                                     <th>销售单价</th>
                                     <th>采购金额</th>
@@ -2232,6 +2233,7 @@
                 buyer: getLineBuyer(l),
                 purchaseQty: Number(l.purchaseQty) || 0,
                 receivedQty: 0,
+                canceledQty: 0,
                 suggestedUnitPrice: Number(l.suggestedUnitPrice) || 0,
                 actualUnitPrice: Number(l.actualUnitPrice) || 0,
                 purchaseAmount: Number(l.purchaseAmount) || 0,
@@ -2526,6 +2528,7 @@
                     '<td>' + escapeHtml(l.skuCategory || '') + '</td>' +
                     '<td>' + escapeHtml(qtyWithUnit(l.purchaseQty, l)) + '</td>' +
                     '<td>' + escapeHtml(qtyWithUnit(l.receivedQty, l)) + '</td>' +
+                    '<td>' + escapeHtml(qtyWithUnit(l.canceledQty, l)) + '</td>' +
                     '<td>' + escapeHtml(formatUnitPrice(l.actualUnitPrice)) + '</td>' +
                     '<td>' + escapeHtml(formatUnitPrice(lineSalesUnitPrice(l))) + '</td>' +
                     '<td>' + escapeHtml(formatYuan(l.purchaseAmount)) + '</td>' +
