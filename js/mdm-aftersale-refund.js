@@ -85,6 +85,31 @@
     return source !== '售后单';
   }
 
+  function refundApplyDesc(row) {
+    if (!row) return '';
+    if (row.desc) return String(row.desc);
+    if (sourceSkipsApproval(row.source) && row.method !== '线下付款' && row.remark) {
+      return String(row.remark);
+    }
+    return '';
+  }
+
+  function refundApplyProofs(row) {
+    if (!row) return [];
+    if (Array.isArray(row.proofs) && row.proofs.length) {
+      return row.proofs.filter(Boolean);
+    }
+    if (
+      sourceSkipsApproval(row.source) &&
+      row.method !== '线下付款' &&
+      row.proofUrl &&
+      row.proofUrl !== 'uploaded'
+    ) {
+      return [row.proofUrl];
+    }
+    return [];
+  }
+
   function statusTag(status) {
     var cls = 'aftersale-tag aftersale-tag--info';
     if (status === '退款成功') cls = 'aftersale-tag aftersale-tag--success';
@@ -130,6 +155,8 @@
       var actualPaid = null;
       var remark = '';
       var proofUrl = '';
+      var desc = '';
+      var proofs = [];
       var voucherUploaded = false;
       var skipApproval = sourceSkipsApproval(source);
       var aftersaleId = source === '售后单' ? 'AS-' + String(340048455512625152 + i * 131) : '';
@@ -140,6 +167,15 @@
             ? ADJUST_REASONS[i % ADJUST_REASONS.length]
             : AFTERSALE_REASONS[i % AFTERSALE_REASONS.length];
       var channelPool = orderSource === '代采' ? CHANNELS_PROXY : CHANNELS_RETAIL;
+      if (source === '批量退款' || source === '仅退款') {
+        desc = source === '批量退款'
+          ? '批量仅退款：商品与页面描述不符，按运营填写直接退。'
+          : '单笔仅退款：质量问题，运营代用户申请后直接退。';
+        proofs = [
+          '../user-app/assets/order-product-1.svg',
+          '../user-app/assets/order-product-2.svg'
+        ];
+      }
 
       if (status === '退款成功') {
         completedAt = '2026-07-' + day + ' ' + hour + ':' + minute + ':' + pad(Math.min(59, parseInt(second, 10) + 3));
@@ -169,6 +205,8 @@
         source: source,
         skipApproval: skipApproval,
         reason: reason,
+        desc: desc,
+        proofs: proofs,
         status: status,
         cashAmount: cash,
         actualPaid: actualPaid,
@@ -646,13 +684,17 @@
   }
 
   /* —— 退款单详情 —— */
-  function descCell(label, valueHtml) {
+  function descCell(label, valueHtml, wide) {
     return (
-      '<div class="aftersale-refund-desc__cell">' +
+      '<div class="aftersale-refund-desc__cell' +
+      (wide ? ' aftersale-refund-desc__cell--wide' : '') +
+      '">' +
       '<div class="aftersale-refund-desc__label">' +
       escapeHtml(label) +
       '</div>' +
-      '<div class="aftersale-refund-desc__value">' +
+      '<div class="aftersale-refund-desc__value' +
+      (wide ? ' aftersale-refund-desc__value--top' : '') +
+      '">' +
       valueHtml +
       '</div></div>'
     );
@@ -730,6 +772,31 @@
       descCell('退款渠道', escapeHtml(dash(row.channel)));
 
     var html = descSection('退款信息', info) + descSection('退款金额', amount);
+
+    if (sourceSkipsApproval(row.source)) {
+      var applyDesc = refundApplyDesc(row);
+      var applyProofs = refundApplyProofs(row);
+      var proofHtml = '—';
+      if (applyProofs.length) {
+        proofHtml =
+          '<div class="aftersale-refund-detail-proofs">' +
+          applyProofs
+            .map(function (src) {
+              return (
+                '<img class="aftersale-refund-detail-proof" src="' +
+                escapeHtml(src) +
+                '" alt="退款凭证">'
+              );
+            })
+            .join('') +
+          '</div>';
+      }
+      html += descSection(
+        '申请信息',
+        descCell('退款描述', escapeHtml(dash(applyDesc)), true) +
+          descCell('上传凭证', proofHtml, true)
+      );
+    }
 
     // 线下付款详情：展示支付凭证区块（图五）
     if (row.method === '线下付款') {

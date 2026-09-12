@@ -284,8 +284,10 @@
           createdAt: nowText(),
           updatedAt: nowText(),
           completedAt: nowText(),
+          desc: it.desc || '',
+          proofs: (it.proofs || []).slice(),
           remark: it.desc || '',
-          proofUrl: '',
+          proofUrl: (it.proofs && it.proofs[0]) || '',
           voucherUploaded: false,
           offlineChannel: ''
         });
@@ -612,13 +614,13 @@
       '</select></label>' +
       '</div>' +
       '<div class="order-as-form__row order-as-form__row--desc">' +
-      '<label class="order-as-field order-as-field--desc"><span class="order-as-field__label"><i>*</i>售后描述</span>' +
+      '<label class="order-as-field order-as-field--desc"><span class="order-as-field__label">售后描述</span>' +
       '<div class="order-as-textarea-wrap">' +
       '<textarea class="order-as-field__control order-as-field__textarea js-as-desc" data-id="' +
       escapeHtml(it.id) +
       '" maxlength="' +
       DESC_MAX +
-      '" placeholder="请填写售后描述">' +
+      '" placeholder="选填，补充说明">' +
       escapeHtml(it.desc || '') +
       '</textarea>' +
       '<span class="order-as-textarea-count js-as-desc-count">' +
@@ -626,7 +628,7 @@
       ' / ' +
       DESC_MAX +
       '</span></div></label>' +
-      '<div class="order-as-field order-as-field--upload"><span class="order-as-field__label"><i>*</i>上传凭证</span>' +
+      '<div class="order-as-field order-as-field--upload"><span class="order-as-field__label">上传凭证</span>' +
       '<div class="order-as-upload">' +
       '<button type="button" class="order-as-upload__btn js-as-upload" data-id="' +
       escapeHtml(it.id) +
@@ -870,14 +872,6 @@
       }
       if (!it.reason) {
         if (typeof showToast === 'function') showToast('请选择售后原因', 'error');
-        return;
-      }
-      if (!String(it.desc || '').trim()) {
-        if (typeof showToast === 'function') showToast('请填写售后描述', 'error');
-        return;
-      }
-      if (!it.proofs || !it.proofs.length) {
-        if (typeof showToast === 'function') showToast('请上传凭证图片', 'error');
         return;
       }
     }
