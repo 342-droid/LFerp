@@ -3798,6 +3798,22 @@ button.order-detail-refund-breakdown__row.is-link:focus-visible {
   opacity: 0.7;
 }
 
+.order-as-batch-tip {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  background: #fff7f0;
+  border: 1px solid #ffe0c2;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #555;
+  line-height: 1.6;
+}
+
+.order-as-batch-tip strong {
+  color: #ff7019;
+  font-weight: 600;
+}
+
 .order-as-section-title {
   margin: 0 0 12px;
   font-size: 14px;
@@ -3908,6 +3924,77 @@ button.order-detail-refund-breakdown__row.is-link:focus-visible {
   display: grid;
   gap: 12px 16px;
   margin-bottom: 12px;
+}
+
+.order-as-form-hint {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.6;
+}
+
+.order-as-order-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 16px;
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.order-as-order-table th,
+.order-as-order-table td {
+  padding: 10px 12px;
+  font-size: 13px;
+  text-align: left;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.order-as-order-table th {
+  background: #fafafa;
+  color: #666;
+  font-weight: 500;
+}
+
+.order-as-order-table th:nth-child(n+4),
+.order-as-order-table td:nth-child(n+4) {
+  white-space: nowrap;
+}
+
+.order-as-order-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.order-as-order-goods {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.order-as-order-goods__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 8px;
+  line-height: 1.45;
+}
+
+.order-as-order-goods__name {
+  color: #333;
+}
+
+.order-as-order-goods__spec {
+  color: #999;
+  font-size: 12px;
+}
+
+.order-as-order-goods__qty {
+  color: #666;
+}
+
+.order-as-form__row--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .order-as-form__row--3 {
@@ -4320,6 +4407,7 @@ button.order-detail-refund-breakdown__row.is-link:focus-visible {
     width: 100vw;
   }
   .order-as-item__meta,
+  .order-as-form__row--2,
   .order-as-form__row--3,
   .order-as-form__row--4,
   .order-as-form__row--desc {

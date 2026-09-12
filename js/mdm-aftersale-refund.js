@@ -1,11 +1,16 @@
 /**
  * 售后 — 退款单列表
- * 筛选项：退款来源（售后退款/履约调整退款/订单取消退款）
+ * 筛选项：退款来源（批量退款/仅退款/取消订单/售后单）
  *         退款状态（未发起退款/待退款/退款执行中/退款成功/退款失败）
  * 线下付款：待退款时可「上传付款凭证」标记线下已付款
  */
 (function () {
-  var SOURCES = ['售后退款', '履约调整退款', '订单取消退款'];
+  var SOURCES = ['批量退款', '仅退款', '取消订单', '售后单'];
+  var LEGACY_SOURCES = {
+    售后退款: '售后单',
+    履约调整退款: '仅退款',
+    订单取消退款: '取消订单'
+  };
   var STATUSES = ['未发起退款', '待退款', '退款执行中', '退款成功', '退款失败'];
   var METHODS = ['原路退回', '线下付款'];
   /** 钱包渠道仅代采售后线下付款可用；零售不含钱包 */
@@ -13,6 +18,10 @@
   var CHANNELS_PROXY = ['微信', '支付宝', '钱包', '银行转账'];
   var CHANNELS = CHANNELS_PROXY;
   var TOTAL_DEMO = 742;
+  var DIRECT_REFUND_KEY = 'lfRetailDirectRefunds';
+  var AFTERSALE_REASONS = ['质量问题', '卖家发错货', '商品信息描述不符'];
+  var CANCEL_REASONS = ['我不想要了', '地址/电话信息填写错误', '订单信息拍错（规格/颜色等）'];
+  var ADJUST_REASONS = ['履约差异调整', '少件/漏发', '质量问题'];
 
   var state = {
     page: 1,
@@ -57,6 +66,23 @@
 
   function dash(v) {
     return v == null || v === '' || v === '-' ? '—' : v;
+  }
+
+  function refundReasonText(row) {
+    if (row && row.reason) return row.reason;
+    if (row && row.remark) return row.remark;
+    return '—';
+  }
+
+  function normalizeRefundSource(source, from) {
+    var raw = String(source || '');
+    if (SOURCES.indexOf(raw) >= 0) return raw;
+    if (raw === '售后退款') return from === 'batch' ? '批量退款' : '售后单';
+    return LEGACY_SOURCES[raw] || raw;
+  }
+
+  function sourceSkipsApproval(source) {
+    return source !== '售后单';
   }
 
   function statusTag(status) {
@@ -105,8 +131,14 @@
       var remark = '';
       var proofUrl = '';
       var voucherUploaded = false;
-      var aftersaleId =
-        source === '售后退款' ? 'AS-' + String(340048455512625152 + i * 131) : '';
+      var skipApproval = sourceSkipsApproval(source);
+      var aftersaleId = source === '售后单' ? 'AS-' + String(340048455512625152 + i * 131) : '';
+      var reason =
+        source === '取消订单'
+          ? CANCEL_REASONS[i % CANCEL_REASONS.length]
+          : source === '仅退款'
+            ? ADJUST_REASONS[i % ADJUST_REASONS.length]
+            : AFTERSALE_REASONS[i % AFTERSALE_REASONS.length];
       var channelPool = orderSource === '代采' ? CHANNELS_PROXY : CHANNELS_RETAIL;
 
       if (status === '退款成功') {
@@ -135,6 +167,8 @@
         orderSource: orderSource,
         method: method,
         source: source,
+        skipApproval: skipApproval,
+        reason: reason,
         status: status,
         cashAmount: cash,
         actualPaid: actualPaid,
@@ -153,7 +187,29 @@
     return list;
   }
 
+  function loadStoredDirectRefunds() {
+    var stored = [];
+    try {
+      stored = JSON.parse(window.localStorage.getItem(DIRECT_REFUND_KEY) || '[]');
+    } catch (e) {
+      stored = [];
+    }
+    if (!Array.isArray(stored)) return;
+    stored.forEach(function (row) {
+      if (!row || !row.id) return;
+      var exists = ALL_ROWS.some(function (item) {
+        return item.id === row.id;
+      });
+      if (!exists) {
+        row.source = normalizeRefundSource(row.source, 'batch');
+        row.skipApproval = sourceSkipsApproval(row.source);
+        ALL_ROWS.unshift(row);
+      }
+    });
+  }
+
   var ALL_ROWS = buildDemoRows();
+  loadStoredDirectRefunds();
 
   function queryParam(name) {
     var m = new RegExp('(?:\\?|&)' + name + '=([^&]*)').exec(window.location.search || '');
@@ -170,7 +226,7 @@
     var cashRaw = queryParam('cash');
     var method = queryParam('method') || '线下付款';
     var status = queryParam('status') || '待退款';
-    var source = queryParam('source') || '售后退款';
+    var source = normalizeRefundSource(queryParam('source') || '售后单', 'ticket');
     var createdAt = queryParam('createdAt') || nowStamp();
     var cash = parseFloat(cashRaw);
     if (isNaN(cash)) cash = 0;
@@ -200,6 +256,8 @@
         orderSource: queryParam('orderSource') === '零售' ? '零售' : '代采',
         method: method,
         source: source,
+        skipApproval: queryParam('skipApproval') === '1' ? true : sourceSkipsApproval(source),
+        reason: queryParam('reason') || '',
         status: status,
         cashAmount: cash,
         actualPaid: status === '退款成功' ? cash : null,
@@ -222,6 +280,9 @@
       found.orderSource = queryParam('orderSource') === '零售' ? '零售' : found.orderSource || '代采';
       if (!isNaN(cash) && cashRaw !== '') found.cashAmount = cash;
       if (source) found.source = source;
+      if (queryParam('reason')) found.reason = queryParam('reason');
+      if (queryParam('skipApproval') === '1') found.skipApproval = true;
+      else found.skipApproval = sourceSkipsApproval(found.source);
     }
     return true;
   }
@@ -247,7 +308,7 @@
     state.filters = {
       refundNo: (($('asRefundNo') || {}).value || '').trim(),
       orderNo: (($('asRefundOrderNo') || {}).value || '').trim(),
-      source: ($('asRefundSource') || {}).value || '',
+      source: normalizeRefundSource(($('asRefundSource') || {}).value || '', 'ticket'),
       status: ($('asRefundStatus') || {}).value || '',
       txnNo: (($('asRefundTxnNo') || {}).value || '').trim()
     };
@@ -351,6 +412,9 @@
           '</td>' +
           '<td>' +
           escapeHtml(row.source) +
+          '</td>' +
+          '<td>' +
+          escapeHtml(refundReasonText(row)) +
           '</td>' +
           '<td>' +
           statusTag(row.status) +
@@ -646,6 +710,7 @@
       descCell('退款状态', statusTag(row.status)) +
       descCell('售后单号', aftersaleLink) +
       descCell('退款来源', escapeHtml(row.source)) +
+      descCell('退款原因', escapeHtml(refundReasonText(row))) +
       descCell('创建时间', escapeHtml(row.createdAt)) +
       descCell('退款完成时间', escapeHtml(dash(row.completedAt)));
 
@@ -657,6 +722,8 @@
     var amount =
       descCell('退款方式', escapeHtml(row.method)) +
       descCell('现金退款金额', escapeHtml(money(row.cashAmount))) +
+      descCell('退优惠券', row.couponAmount != null && row.couponAmount !== '' ? escapeHtml(money(row.couponAmount)) : '—') +
+      descCell('退积分', row.refundPoints != null && row.refundPoints !== '' ? escapeHtml(String(row.refundPoints)) : '—') +
       descCell('实际打款金额', escapeHtml(actualInAmount)) +
       descCell('原支付流水号', escapeHtml(dash(row.payTxnNo))) +
       descCell('退款流水号', escapeHtml(dash(row.refundTxnNo))) +

@@ -331,6 +331,9 @@
           okLabel: '确认取消',
           onConfirm: function () {
             updateRowAfterCancel(cancelRow);
+            if (window.OrderPlatformAftersale && typeof window.OrderPlatformAftersale.persistCancelRefund === 'function') {
+              window.OrderPlatformAftersale.persistCancelRefund(cancelOrderId, cancelRow, '代采');
+            }
             if (typeof showToast === 'function') showToast('订单已取消', 'success');
           }
         });
