@@ -1174,6 +1174,175 @@
     DETAILS[cfg.id] = buildPickupVerifyDemo(cfg);
   });
 
+  /** 批量退款演示：近 7 天内、可售后的多 SKU 订单；多单共用「阳光番茄 500g」方便按商品搜 */
+  function buildBatchRefundMultiSkuDemo(cfg) {
+    var goods = (cfg.goods || []).map(function (g, i) {
+      var qty = g.qty || 1;
+      var unit = parseFloat(String(g.price || '0').replace(/[^\d.-]/g, '')) || 0;
+      return {
+        id: 'g' + (i + 1),
+        name: g.name,
+        spec: g.spec || '规格：见包装',
+        img: g.img || '../user-app/assets/order-product-1.svg',
+        spu: g.spu || ('SPU-93' + (i + 1) + '…'),
+        sku: g.sku || ('SKU-93' + (i + 1) + '…'),
+        barcode: g.barcode || ('69019993000' + (i + 1)),
+        weight: g.weight || '0.50',
+        price: g.price,
+        qty: String(qty),
+        subtotal: '¥' + (unit * qty).toFixed(2),
+        marketing: '普通售卖'
+      };
+    });
+    return {
+      displayId: cfg.id,
+      progress: {
+        completedSteps: cfg.mode === 'express' ? 2 : 3,
+        outcome: null,
+        status: cfg.status,
+        submitTime: cfg.submitTime
+      },
+      goods: goods,
+      amounts: {
+        goods: cfg.goodsAmt,
+        discount: cfg.discount || '¥0.00',
+        coupon: cfg.coupon || '¥0.00',
+        points: cfg.points || 0,
+        pointsDiscount: cfg.pointsDiscount || '¥0.00',
+        shipping: '¥0.00',
+        payable: cfg.paid,
+        paid: cfg.paid,
+        merchant: cfg.paid,
+        refund: '¥0.00'
+      },
+      paymentCount: 1,
+      aftersales: [],
+      customer: { nickname: cfg.nickname, phone: cfg.phone, userId: cfg.userId },
+      delivery: {
+        type: cfg.mode === 'express' ? 'EXPRESS' : 'SELF_PICKUP',
+        deliveryMode: cfg.mode === 'express' ? '快递' : '自提',
+        name: cfg.receiver || cfg.nickname,
+        phone: cfg.phone,
+        address: cfg.address || '浙江省杭州市西湖区文三路168号',
+        store: cfg.store
+      },
+      tags: {
+        channel: 'MINI_PROGRAM',
+        orderScene: cfg.scene || '商城',
+        payChannel: cfg.pay === 'alipay' ? '支付宝' : '微信',
+        marketing: '普通售卖',
+        livePeriod: '-',
+        bd: '1',
+        settleStatus: '-',
+        commissionStatus: '-'
+      },
+      logs: [
+        { time: cfg.submitTime, title: '订单已创建', desc: '订单创建，金额 ' + cfg.paid },
+        { time: cfg.submitTime, title: '支付成功', desc: '支付成功' }
+      ],
+      clearingEmpty: true
+    };
+  }
+
+  [
+    {
+      id: 'ORD-3212689201599301',
+      mode: 'pickup',
+      status: '待提货',
+      submitTime: '2026-09-11 20:15',
+      nickname: '周晓棠',
+      receiver: '周晓棠',
+      phone: '13800009301',
+      userId: '318605592681793001',
+      store: '华强北',
+      pay: 'wechat',
+      scene: '商城',
+      goodsAmt: '¥25.60',
+      coupon: '¥5.00',
+      points: 0,
+      pointsDiscount: '¥0.00',
+      discount: '-¥5.00',
+      paid: '¥20.60',
+      goods: [
+        { name: '阳光番茄 500g', spec: '规格：500g', price: '¥9.90', qty: 2, sku: 'SKU-TOMATO', img: '../user-app/assets/order-product-1.svg' },
+        { name: '黄瓜 500g', spec: '规格：500g', price: '¥5.80', qty: 1, sku: 'SKU-CUCUMBER', img: '../user-app/assets/order-product-2.svg' }
+      ]
+    },
+    {
+      id: 'ORD-3212689201599302',
+      mode: 'express',
+      status: '待收货',
+      submitTime: '2026-09-11 14:08',
+      nickname: '陈予安',
+      receiver: '陈予安',
+      phone: '13600009302',
+      userId: '318605592681793002',
+      store: '悠悠生鲜超市',
+      pay: 'wechat',
+      scene: '商城',
+      address: '浙江省杭州市上城区望江街道望江路16号',
+      goodsAmt: '¥27.96',
+      coupon: '¥3.00',
+      points: 200,
+      pointsDiscount: '¥2.00',
+      discount: '-¥5.00',
+      paid: '¥22.96',
+      goods: [
+        { name: '阳光番茄 500g', spec: '规格：500g', price: '¥9.90', qty: 1, sku: 'SKU-TOMATO', img: '../user-app/assets/order-product-1.svg' },
+        { name: '赣南脐橙 果大皮薄 5斤装', spec: '规格：5斤', price: '¥18.06', qty: 1, sku: 'SKU-ORANGE', img: '../user-app/assets/order-product-2.svg' }
+      ]
+    },
+    {
+      id: 'ORD-3212689201599303',
+      mode: 'pickup',
+      status: '待提货',
+      submitTime: '2026-09-10 19:42',
+      nickname: '何清和',
+      receiver: '何清和',
+      phone: '13700009303',
+      userId: '318605592681793003',
+      store: '德清乾元天恩冷丰店',
+      pay: 'alipay',
+      scene: '直播',
+      goodsAmt: '¥47.70',
+      coupon: '¥8.00',
+      points: 500,
+      pointsDiscount: '¥5.00',
+      discount: '-¥13.00',
+      paid: '¥34.70',
+      goods: [
+        { name: '阳光番茄 500g', spec: '规格：500g', price: '¥9.90', qty: 3, sku: 'SKU-TOMATO', img: '../user-app/assets/order-product-1.svg' },
+        { name: '精品牛腩 500g', spec: '规格：500g', price: '¥18.00', qty: 1, sku: 'SKU-BEEF', img: '../user-app/assets/order-product-3.svg' }
+      ]
+    },
+    {
+      id: 'ORD-3212689201599304',
+      mode: 'express',
+      status: '待收货',
+      submitTime: '2026-09-10 11:20',
+      nickname: '苏晚晴',
+      receiver: '苏晚晴',
+      phone: '13500009304',
+      userId: '318605592681793004',
+      store: '华强北',
+      pay: 'wechat',
+      scene: '商城',
+      address: '浙江省杭州市西湖区文三路168号1幢502室',
+      goodsAmt: '¥17.50',
+      coupon: '¥1.50',
+      points: 50,
+      pointsDiscount: '¥0.50',
+      discount: '-¥2.00',
+      paid: '¥15.50',
+      goods: [
+        { name: '黄瓜 500g', spec: '规格：500g', price: '¥5.80', qty: 2, sku: 'SKU-CUCUMBER', img: '../user-app/assets/order-product-2.svg' },
+        { name: '新鲜鲫鱼 300g', spec: '规格：300g', price: '¥5.90', qty: 1, sku: 'SKU-FISH', img: '../user-app/assets/order-product-4.svg' }
+      ]
+    }
+  ].forEach(function (cfg) {
+    DETAILS[cfg.id] = buildBatchRefundMultiSkuDemo(cfg);
+  });
+
   var MID_STEPS = ['提交订单', '待接单', '待发货', '待收货', '待提货'];
   var PROXY_MID_STEPS = ['提交订单', '待接单', '待发货', '待收货'];
 
@@ -2002,6 +2171,7 @@
       if (!row) return;
       var orderId = row.getAttribute('data-order-id');
       var detail = DETAILS[orderId] || fallbackDetail(orderId, row);
+      mergeExtraAftersales(orderId, detail);
       renderListProductCell(row, detail.goods || [], detail.aftersales || []);
     });
   }
@@ -3866,9 +4036,42 @@
     };
   }
 
+  var EXTRA_AFTERSALES = {};
+
+  function mergeExtraAftersales(orderId, detail) {
+    if (!orderId || !detail) return detail;
+    var extras = EXTRA_AFTERSALES[orderId];
+    if (!extras || !extras.length) return detail;
+    var existing = detail.aftersales || [];
+    extras.forEach(function (item) {
+      if (!existing.some(function (a) { return a && a.id === item.id; })) {
+        existing.push(item);
+      }
+    });
+    detail.aftersales = existing;
+    return detail;
+  }
+
+  function appendGoodsAftersale(orderId, row, item) {
+    if (!orderId || !item) return;
+    if (!EXTRA_AFTERSALES[orderId]) EXTRA_AFTERSALES[orderId] = [];
+    EXTRA_AFTERSALES[orderId].push(item);
+    if (DETAILS[orderId]) {
+      mergeExtraAftersales(orderId, DETAILS[orderId]);
+      (DETAILS[orderId].goods || []).forEach(function (g) {
+        if (g && item.productName && g.name === item.productName) delete g.aftersaleTag;
+      });
+    }
+    if (row) {
+      row.setAttribute('data-as-status', item.status || '待审批');
+      syncRetailListAftersaleUI(row);
+    }
+  }
+
   window.OrderLiveDetail = {
     resolveDetail: function (orderId, row) {
       var detail = DETAILS[orderId] || fallbackDetail(orderId, row);
+      mergeExtraAftersales(orderId, detail);
       if (row && !isProxyOrderPage()) {
         var modeLabel = readDeliveryModeFromRow(row);
         detail.delivery = detail.delivery || {};
@@ -3890,9 +4093,11 @@
     syncRetailListAftersaleUI: syncRetailListAftersaleUI,
     getOrderAftersaleStatus: function (orderId, row) {
       var detail = DETAILS[orderId] || (row ? fallbackDetail(orderId, row) : null);
+      mergeExtraAftersales(orderId, detail);
       return resolveOrderAftersaleStatus(detail && detail.aftersales);
     },
-    hasOpenAftersaleBlockingCancel: hasOpenAftersaleBlockingCancel
+    hasOpenAftersaleBlockingCancel: hasOpenAftersaleBlockingCancel,
+    appendGoodsAftersale: appendGoodsAftersale
   };
 
   function openFromQuery() {

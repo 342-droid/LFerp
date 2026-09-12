@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
-    <link rel="stylesheet" href="../css/lf-aftersale.css?v=20260727-refund-drawer">
+    <link rel="stylesheet" href="../css/lf-aftersale.css?v=20260912-no-skip-flag">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -35,9 +35,10 @@
                                     <label class="aftersale-filter-field__label" for="asRefundSource">退款来源</label>
                                     <select class="aftersale-filter-field__select" id="asRefundSource">
                                         <option value="">全部</option>
-                                        <option value="售后退款">售后退款</option>
-                                        <option value="履约调整退款">履约调整退款</option>
-                                        <option value="订单取消退款">订单取消退款</option>
+                                        <option value="批量退款">批量退款</option>
+                                        <option value="仅退款">仅退款</option>
+                                        <option value="取消订单">取消订单</option>
+                                        <option value="售后单">售后单</option>
                                     </select>
                                 </div>
                                 <div class="aftersale-filter-field">
@@ -82,6 +83,7 @@
                                         <th>售后单号</th>
                                         <th>退款方式</th>
                                         <th>退款来源</th>
+                                        <th>退款原因</th>
                                         <th>退款状态</th>
                                         <th>现金退款金额</th>
                                         <th>原支付流水号</th>
@@ -188,6 +190,6 @@
     </aside>
 
     <script src="../js/common.js"></script>
-    <script src="../js/mdm-aftersale-refund.js?v=20260810-proxy-wallet-iso"></script>
+    <script src="../js/mdm-aftersale-refund.js?v=20260912-sku-benefit"></script>
 </body>
 </html>

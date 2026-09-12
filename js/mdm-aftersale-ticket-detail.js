@@ -762,7 +762,7 @@
       'cash=' + encodeURIComponent(String(cash != null ? cash : '')),
       'method=' + encodeURIComponent(ticket.method || '线下付款'),
       'status=' + encodeURIComponent(ticket.status || '待退款'),
-      'source=' + encodeURIComponent('售后退款'),
+      'source=' + encodeURIComponent('售后单'),
       'orderSource=' + encodeURIComponent(detail.orderSource || '零售'),
       'createdAt=' + encodeURIComponent(ticket.createdAt || '')
     ];
@@ -1526,7 +1526,11 @@
         amount: Number(record.orderAmount) || 0,
         status: record.orderStatus || '已完成',
         source: record.orderSource || '代采',
-        store: record.store || '-'
+        store: record.store || '-',
+        expressNo:
+          normalizeFulfillmentMode(record.fulfillment || '快递') === '快递'
+            ? record.expressNo || '773075059702651'
+            : ''
       },
       supplier: { id: DEMO_SUPPLIER_ID, name: '-', buyer: '-' },
       returnAddress: null,
@@ -1679,7 +1683,12 @@
         source: orderSource,
         store: '德清乾元天恩冷丰店',
         warehouseId: 'WH001',
-        deliveryWarehouse: 'WH001 主仓库'
+        deliveryWarehouse: 'WH001 主仓库',
+        expressNo: isExpressFulfillment(deliveryMode)
+          ? isDone
+            ? 'YT887766554433'
+            : 'SF1234567890123'
+          : ''
       },
       supplier: {
         id: DEMO_SUPPLIER_ID,
@@ -3151,6 +3160,24 @@
     var originalOrderHref =
       originalOrderBase + '?orderNo=' + encodeURIComponent((o && o.orderNo) || '');
 
+    function formatOrderGoodsLine(g) {
+      if (!g) return '';
+      var qty = g.buyQty != null ? g.buyQty : g.applyQty != null ? g.applyQty : g.refundQty;
+      return (
+        String(g.name || '-') +
+        '*' +
+        String(g.spec || '-') +
+        '*' +
+        (qty != null && qty !== '' ? String(qty) : '-')
+      );
+    }
+    var goodsLines = ((detail && detail.goods) || [])
+      .map(formatOrderGoodsLine)
+      .filter(Boolean);
+    var goodsText = goodsLines.length ? goodsLines.join('；') : '-';
+    var expressNo = String((o && o.expressNo) || '').trim();
+    var showExpressNo = isExpressFulfillment(detail.deliveryMode);
+
     return (
       '<aside class="aftersale-detail-aside">' +
       '<div><h3 class="aftersale-aside-section__title">客户信息</h3>' +
@@ -3174,7 +3201,10 @@
       escapeHtml(originalOrderHref) +
       '">' +
       escapeHtml(o.orderNo) +
-      ' · 查看原订单</a></div>' +
+      '</a></div>' +
+      '<div class="aftersale-aside-kv"><span>商品信息</span><span>' +
+      escapeHtml(goodsText) +
+      '</span></div>' +
       '<div class="aftersale-aside-kv"><span>下单时间</span><span>' +
       escapeHtml(o.orderTime) +
       '</span></div>' +
@@ -3196,6 +3226,17 @@
       '<div class="aftersale-aside-kv"><span>履约方式</span><span>' +
       escapeHtml(detail.deliveryMode || '-') +
       '</span></div>' +
+      (showExpressNo
+        ? '<div class="aftersale-aside-kv"><span>快递单号</span>' +
+          (expressNo
+            ? '<button type="button" class="aftersale-track-link js-as-order-express" data-express-no="' +
+              escapeHtml(expressNo) +
+              '">' +
+              escapeHtml(expressNo) +
+              '</button>'
+            : '<span>-</span>') +
+          '</div>'
+        : '') +
       '<div class="aftersale-aside-kv"><span>结算状态</span><span class="' +
       (isPostSettlement(detail) ? 'aftersale-aside-status' : '') +
       '">' +
@@ -3383,6 +3424,51 @@
     if (backdrop) backdrop.remove();
     if (drawer) drawer.remove();
     document.body.style.overflow = '';
+  }
+
+  function openOrderExpressTrack(expressNo) {
+    var no = String(expressNo || '').trim();
+    if (!no) {
+      if (typeof showToast === 'function') showToast('暂无物流信息', 'error');
+      return;
+    }
+    var api = window.OrderProxyExpress;
+    var detail = state.detail || {};
+    var order = detail.order || {};
+    var goods = (detail.goods || [])
+      .map(function (g, idx) {
+        return { id: g.sku || 'g' + (idx + 1), name: g.name || '商品' };
+      })
+      .filter(function (g) {
+        return g.name;
+      });
+    var timeline = ((api && api.defaultTimeline) || DEFAULT_TIMELINE).map(function (item) {
+      return Object.assign({}, item);
+    });
+    if (timeline[0] && timeline[0].type === 'address') {
+      var addr = [order.store, order.phone].filter(Boolean).join(' ');
+      timeline[0].text = '【收货地址】' + (addr || timeline[0].text.replace(/^【收货地址】/, ''));
+    }
+    if (api && typeof api.openTrackingShipments === 'function') {
+      api.openTrackingShipments([
+        {
+          id: 'AS-ORD-' + no,
+          courier:
+            (api.inferCourierFromTrackingNo && api.inferCourierFromTrackingNo(no)) ||
+            inferCourierFromTrackingNo(no) ||
+            '快递',
+          trackingNo: no,
+          goods: goods,
+          timeline: timeline
+        }
+      ]);
+      return;
+    }
+    openAsTrackDrawer({
+      company: inferCourierFromTrackingNo(no) || '快递',
+      trackingNo: no,
+      timeline: timeline
+    });
   }
 
   function openAsTrackDrawer(ship) {
@@ -4560,6 +4646,11 @@
             );
           }
         }
+        return;
+      }
+      var orderExpressBtn = e.target.closest('.js-as-order-express');
+      if (orderExpressBtn) {
+        openOrderExpressTrack(orderExpressBtn.getAttribute('data-express-no'));
         return;
       }
       var trackBtn = e.target.closest('.js-as-track');

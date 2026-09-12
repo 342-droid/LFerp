@@ -692,7 +692,11 @@
   }
 
   function openTrackingModal(orderId, activeShipmentId) {
-    var shipments = getShipments(orderId);
+    openTrackingShipments(getShipments(orderId), activeShipmentId);
+  }
+
+  function openTrackingShipments(shipments, activeShipmentId) {
+    shipments = (shipments || []).filter(Boolean);
     if (!shipments.length) {
       if (typeof showToast === 'function') showToast('暂无物流信息', 'error');
       return;
@@ -1998,7 +2002,10 @@
     canUploadExpressStatus: canUploadExpressStatus,
     buildDeliveryCard: buildDeliveryCard,
     openUploadModal: openUploadModal,
+    inferCourierFromTrackingNo: inferCourierFromTrackingNo,
+    defaultTimeline: DEFAULT_TIMELINE,
     openTrackingModal: openTrackingModal,
+    openTrackingShipments: openTrackingShipments,
     openBatchUploadModal: openBatchUploadModal,
     downloadBatchExpressTemplate: downloadBatchExpressTemplate,
     downloadBatchExpressDeleteTemplate: downloadBatchExpressDeleteTemplate,
