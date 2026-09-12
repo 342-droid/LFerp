@@ -1,10 +1,30 @@
 {
-  "latestSha": "4e61c0d1687836ad946a4321bbd48b354f88704d",
-  "total": 388,
+  "latestSha": "655e8431872da086493cc318f54dfaaa7ec19ac9",
+  "total": 389,
   "days": [
     {
       "date": "2026-09-12",
       "items": [
+        {
+          "sha": "655e843",
+          "type": "feat",
+          "text": "退款单申请信息仅限批量与仅退款并去掉结算前支付凭证",
+          "author": "sisi",
+          "time": "17:56",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_refund.html",
+              "module": "冷丰售后",
+              "title": "退款单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_aftersale_refund.html",
+              "text": "申请信息只在来源为批量退款、仅退款时展示；取消订单和售后单不再显示；结算前直退改为原路退回，详情和列表都不再出现支付凭证"
+            }
+          ]
+        },
         {
           "sha": "4e61c0d",
           "type": "feat",

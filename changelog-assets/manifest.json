@@ -1295,6 +1295,13 @@
     "status": "diff",
     "date": "2026-09-02"
   },
+  "655e843|MDM/mdm_aftersale_refund.html": {
+    "before": "changelog-assets/655e843/MDM__mdm_aftersale_refund.html.before.jpg",
+    "after": "changelog-assets/655e843/MDM__mdm_aftersale_refund.html.after.jpg",
+    "regions": 6,
+    "status": "diff",
+    "date": "2026-09-12"
+  },
   "6b63b93|SCM/ibd_receipt.html": {
     "regions": 0,
     "status": "diff",
