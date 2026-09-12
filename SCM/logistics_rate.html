@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰TMS - 物流费率表</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        .modal-section-title {
+            width: 100%;
+            flex: 0 0 100%;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .modal-form > .modal-section-title:not(:first-child) {
+            margin-top: 8px;
+        }
+
+        #rateModal .modal-content {
+            max-width: 980px;
+        }
+
+        #rateModal .modal-form-group > .custom-select-wrapper {
+            flex: 1;
+            min-width: 0;
+        }
+
+        #rateModal .rate-block {
+            width: 100%;
+            align-items: flex-start;
+        }
+
+        #rateModal .rate-block > label {
+            padding-top: 8px;
+        }
+
+        #rateModal .rate-block__body {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        #rateModal .rate-tier-table,
+        #rateModal .rate-extra-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        #rateModal .rate-fee-block.is-idle {
+            display: none;
+        }
+
+        #rateModal .rate-tier-table.is-amount .rate-tier-cont {
+            display: none;
+        }
+
+        #rateModal .rate-tier-table th,
+        #rateModal .rate-extra-table th,
+        #rateModal .rate-tier-table td,
+        #rateModal .rate-extra-table td {
+            padding: 6px 6px 6px 0;
+            text-align: left;
+            font-size: 13px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        #rateModal .rate-tier-table td,
+        #rateModal .rate-extra-table td {
+            font-weight: 400;
+            vertical-align: middle;
+        }
+
+        #rateModal .rate-tier-table th:last-child,
+        #rateModal .rate-tier-table td:last-child,
+        #rateModal .rate-extra-table th:last-child,
+        #rateModal .rate-extra-table td:last-child {
+            width: 56px;
+            padding-right: 0;
+        }
+
+        #rateModal .rate-tier-table input,
+        #rateModal .rate-extra-table input {
+            width: 100%;
+            min-width: 0;
+            text-align: left;
+        }
+
+        #rateModal .rate-ratio {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #rateModal .rate-ratio input {
+            flex: 1;
+            min-width: 0;
+        }
+
+        #rateModal .rate-ratio-sep {
+            color: #666;
+            flex-shrink: 0;
+        }
+
+        #rateModal .rate-input-with-unit {
+            position: relative;
+            flex: 1;
+            min-width: 0;
+        }
+
+        #rateModal .rate-input-with-unit input {
+            width: 100%;
+            padding-right: 28px;
+        }
+
+        #rateModal .rate-input-unit {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            font-size: 14px;
+            pointer-events: none;
+        }
+
+        #rateModal .rate-extra-fields {
+            width: 100%;
+            flex: 0 0 100%;
+        }
+
+        #rateModal .rate-extra-table .custom-select-wrapper,
+        #rateModal .rate-extra-table .custom-select {
+            width: 100%;
+        }
+
+        #rateModal.is-detail #addTier,
+        #rateModal.is-detail #addExtraItem,
+        #rateModal.is-detail .remove-tier,
+        #rateModal.is-detail .remove-extra {
+            display: none;
+        }
+
+        .table td.rate-fee-cell,
+        .table td.rate-extra-cell {
+            white-space: normal;
+            line-height: 1.5;
+            min-width: 220px;
+        }
+
+        .table td {
+            vertical-align: middle;
+        }
+
+        .table td.action-links {
+            display: table-cell;
+            height: auto;
+            vertical-align: middle;
+            white-space: nowrap;
+            overflow: visible;
+        }
+
+        .table td.action-links a {
+            display: inline-block;
+        }
+
+        .table td.action-links a + a {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/tms-sidebar.js"></script>
+
+    <div id="header-container"></div>
+
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button class="active">物流费率表</button>
+            </div>
+
+            <hr class="content-divider">
+
+            <div class="content-title">物流费率表</div>
+
+            <section class="search-section">
+                <form class="search-form" id="rateSearch">
+                    <div class="form-group">
+                        <label style="width: 70px;">承运商:</label>
+                        <select id="qCarrier">
+                            <option value="">请选择</option>
+                            <option>SF 顺丰速运</option>
+                            <option>ZTO 中通快递</option>
+                            <option>YTO 圆通速递</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>物流类型:</label>
+                        <select id="qType">
+                            <option value="">请选择</option>
+                            <option>常温</option>
+                            <option>冷链</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>始发地:</label>
+                        <select id="qOrigin">
+                            <option value="">请选择</option>
+                            <option>W001 南京仓</option>
+                            <option>W002 嘉兴仓</option>
+                            <option>W003 上海仓</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>目的区域:</label>
+                        <select id="qProvince">
+                            <option value="">省</option>
+                            <option>江苏省</option>
+                            <option>浙江省</option>
+                            <option>上海市</option>
+                        </select>
+                        <select id="qCity">
+                            <option value="">市</option>
+                        </select>
+                        <select id="qDistrict">
+                            <option value="">区</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>费用方案:</label>
+                        <select id="qFeeScheme">
+                            <option value="">请选择</option>
+                            <option>重量计费</option>
+                            <option>金额计费</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>是否启用:</label>
+                        <select id="qEnabled">
+                            <option value="">请选择</option>
+                            <option>是</option>
+                            <option>否</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" id="btnQuery">查询</button>
+                        <button type="button" class="btn btn-secondary" id="btnReset">重置</button>
+                        <button type="button" class="btn btn-primary" id="btnAdd">新增</button>
+                        <button type="button" class="btn btn-secondary" id="btnImport">导入</button>
+                        <button type="button" class="btn btn-secondary" id="btnExport">导出</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
+                                <th>始发地</th>
+                                <th>承运商</th>
+                                <th>物流类型</th>
+                                <th>目的省</th>
+                                <th>目的市</th>
+                                <th>目的区</th>
+                                <th>物流时效(天)</th>
+                                <th>费用方案</th>
+                                <th>物流费用</th>
+                                <th>重抛比</th>
+                                <th>增值服务</th>
+                                <th>运费折扣</th>
+                                <th>结算折扣</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr data-extra="否" data-extras="[]" data-tiers='[{"start":"0","end":"1","price":"8","cont":"2"},{"start":"1","end":"5","price":"12","cont":"1.5"},{"start":"5","end":"999","price":"20","cont":"1"}]'>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>W001 南京仓</td>
+                                <td>SF 顺丰速运</td>
+                                <td>常温</td>
+                                <td>江苏省</td>
+                                <td>南京市</td>
+                                <td>江宁区</td>
+                                <td>1</td>
+                                <td>重量计费</td>
+                                <td class="rate-fee-cell">0~1kg 首重¥8 续¥2/KG<br>1~5kg 首重¥12 续¥1.5/KG<br>5~999kg 首重¥20 续¥1/KG</td>
+                                <td>1:3</td>
+                                <td class="rate-extra-cell">否</td>
+                                <td>1.00</td>
+                                <td>0.95</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr data-extra="是" data-extras='[{"name":"保价费","amount":"5","min":"2","rate":"0.5"},{"name":"派送费","amount":"8","min":"3","rate":"1"}]' data-tiers='[{"start":"0","end":"1","price":"12","cont":"3"},{"start":"1","end":"10","price":"18","cont":"2"},{"start":"10","end":"999","price":"30","cont":"1.5"}]'>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>W001 南京仓</td>
+                                <td>ZTO 中通快递</td>
+                                <td>冷链</td>
+                                <td>江苏省</td>
+                                <td>南京市</td>
+                                <td>鼓楼区</td>
+                                <td>1</td>
+                                <td>重量计费</td>
+                                <td class="rate-fee-cell">0~1kg 首重¥12 续¥3/KG<br>1~10kg 首重¥18 续¥2/KG<br>10~999kg 首重¥30 续¥1.5/KG</td>
+                                <td>1:4</td>
+                                <td class="rate-extra-cell">保价费 每票¥5 最低¥2 费率0.5%<br>派送费 每票¥8 最低¥3 费率1%</td>
+                                <td>0.95</td>
+                                <td>0.90</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr data-extra="否" data-extras="[]" data-tiers='[{"start":"0","end":"100","price":"6"},{"start":"100","end":"500","price":"10"},{"start":"500","end":"9999","price":"15"}]'>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>W002 嘉兴仓</td>
+                                <td>YTO 圆通速递</td>
+                                <td>常温</td>
+                                <td>浙江省</td>
+                                <td>杭州市</td>
+                                <td>余杭区</td>
+                                <td>2</td>
+                                <td>金额计费</td>
+                                <td class="rate-fee-cell">0~100元 运费¥6<br>100~500元 运费¥10<br>500~9999元 运费¥15</td>
+                                <td>1:3</td>
+                                <td class="rate-extra-cell">否</td>
+                                <td>1.00</td>
+                                <td>1.00</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr data-extra="是" data-extras='[{"name":"保价费","amount":"6","min":"3","rate":"0.8"},{"name":"派送费","amount":"10","min":"5","rate":"1.2"}]' data-tiers='[{"start":"0","end":"2","price":"10","cont":"2.5"},{"start":"2","end":"8","price":"16","cont":"2"},{"start":"8","end":"999","price":"28","cont":"1.2"}]'>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>W003 上海仓</td>
+                                <td>SF 顺丰速运</td>
+                                <td>冷链</td>
+                                <td>上海市</td>
+                                <td>上海市</td>
+                                <td>浦东新区</td>
+                                <td>1</td>
+                                <td>重量计费</td>
+                                <td class="rate-fee-cell">0~2kg 首重¥10 续¥2.5/KG<br>2~8kg 首重¥16 续¥2/KG<br>8~999kg 首重¥28 续¥1.2/KG</td>
+                                <td>1:3</td>
+                                <td class="rate-extra-cell">保价费 每票¥6 最低¥3 费率0.8%<br>派送费 每票¥10 最低¥5 费率1.2%</td>
+                                <td>0.90</td>
+                                <td>0.88</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr data-extra="否" data-extras="[]" data-tiers='[{"start":"0","end":"200","price":"7"},{"start":"200","end":"800","price":"12"},{"start":"800","end":"9999","price":"18"}]'>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>W002 嘉兴仓</td>
+                                <td>ZTO 中通快递</td>
+                                <td>常温</td>
+                                <td>浙江省</td>
+                                <td>嘉兴市</td>
+                                <td>南湖区</td>
+                                <td>1</td>
+                                <td>金额计费</td>
+                                <td class="rate-fee-cell">0~200元 运费¥7<br>200~800元 运费¥12<br>800~9999元 运费¥18</td>
+                                <td>1:3</td>
+                                <td class="rate-extra-cell">否</td>
+                                <td>1.00</td>
+                                <td>0.95</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <div class="modal" id="rateModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">物流费率-新增</h2>
+                <span class="close" id="modalClose">&times;</span>
+            </div>
+            <form class="modal-form">
+                <div class="modal-section-title">基础信息</div>
+                <div class="modal-form-group">
+                    <label>始发地 <span style="color: red;">*</span></label>
+                    <select id="origin">
+                        <option value="">请选择</option>
+                        <option>W001 南京仓</option>
+                        <option>W002 嘉兴仓</option>
+                        <option>W003 上海仓</option>
+                    </select>
+                </div>
+                <div class="modal-form-group">
+                    <label>承运商 <span style="color: red;">*</span></label>
+                    <select id="carrier">
+                        <option value="">请选择</option>
+                        <option>SF 顺丰速运</option>
+                        <option>ZTO 中通快递</option>
+                        <option>YTO 圆通速递</option>
+                    </select>
+                </div>
+                <div class="modal-form-group">
+                    <label>物流类型 <span style="color: red;">*</span></label>
+                    <select id="logisticsType">
+                        <option value="">请选择</option>
+                        <option>常温</option>
+                        <option>冷链</option>
+                    </select>
+                </div>
+                <div class="modal-form-group region-cascader-form-group" style="width: 100%;">
+                    <label>目的区域 <span style="color: red;">*</span></label>
+                    <div id="rateDestMount" class="region-cascader-modal-mount"></div>
+                </div>
+                <div class="modal-form-group">
+                    <label>物流时效</label>
+                    <div class="rate-input-with-unit">
+                        <input id="days" type="number" min="0" placeholder="请输入">
+                        <span class="rate-input-unit">天</span>
+                    </div>
+                </div>
+                <div class="modal-form-group">
+                    <label>重抛比</label>
+                    <div class="rate-ratio">
+                        <input id="ratioLeft" type="text" inputmode="decimal" placeholder="请输入">
+                        <span class="rate-ratio-sep">:</span>
+                        <input id="ratioRight" type="text" inputmode="decimal" placeholder="请输入">
+                    </div>
+                </div>
+                <div class="modal-form-group">
+                    <label>运费折扣</label>
+                    <div class="rate-input-with-unit">
+                        <input id="freightDiscount" type="number" min="0.1" max="1" step="0.01" placeholder="0.10~1.00">
+                        <span class="rate-input-unit">折</span>
+                    </div>
+                </div>
+                <div class="modal-form-group">
+                    <label>结算折扣</label>
+                    <div class="rate-input-with-unit">
+                        <input id="settleDiscount" type="number" min="0.1" max="1" step="0.01" placeholder="0.10~1.00">
+                        <span class="rate-input-unit">折</span>
+                    </div>
+                </div>
+                <div class="modal-form-group">
+                    <label>费用方案 <span style="color: red;">*</span></label>
+                    <select id="feeScheme">
+                        <option value="">请选择</option>
+                        <option>重量计费</option>
+                        <option>金额计费</option>
+                    </select>
+                </div>
+                <div class="modal-form-group">
+                    <label>增值服务 <span style="color: red;">*</span></label>
+                    <select id="extra">
+                        <option>否</option>
+                        <option>是</option>
+                    </select>
+                </div>
+
+                <div class="modal-section-title">计费规则</div>
+                <div class="modal-form-group rate-block rate-fee-block is-idle">
+                    <label>物流费用 <span style="color: red;">*</span></label>
+                    <div class="rate-block__body">
+                        <table class="rate-tier-table">
+                            <thead>
+                                <tr>
+                                    <th class="rate-tier-start">起始重量</th>
+                                    <th class="rate-tier-end">结束重量</th>
+                                    <th class="rate-tier-price">首重价(元)</th>
+                                    <th class="rate-tier-cont">续价(元/KG)</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tiers">
+                                <tr class="tier">
+                                    <td><input placeholder="起始重量"></td>
+                                    <td><input placeholder="结束重量"></td>
+                                    <td><input placeholder="首重价"></td>
+                                    <td class="rate-tier-cont"><input placeholder="续价"></td>
+                                    <td><a href="#" class="remove-tier">删除</a></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div>
+                            <button type="button" class="btn btn-secondary" id="addTier">+ 增加阶梯</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="extraFields" class="rate-extra-fields" style="display:none">
+                    <div class="modal-form-group rate-block">
+                        <label>增值服务 <span style="color: red;">*</span></label>
+                        <div class="rate-block__body">
+                            <table class="rate-extra-table">
+                                <thead>
+                                    <tr>
+                                        <th>项目</th>
+                                        <th>金额(每票)</th>
+                                        <th>最低价(元)</th>
+                                        <th>费率(%)</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="extraRows">
+                                    <tr class="extra-row">
+                                        <td>
+                                            <select>
+                                                <option value="">请选择</option>
+                                                <option>保价费</option>
+                                                <option>派送费</option>
+                                            </select>
+                                        </td>
+                                        <td><input placeholder="金额"></td>
+                                        <td><input placeholder="最低价"></td>
+                                        <td><input placeholder="费率"></td>
+                                        <td><a href="#" class="remove-extra">删除</a></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div>
+                                <button type="button" class="btn btn-secondary" id="addExtraItem">+ 增加项目</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancel">取消</button>
+                <button type="button" class="btn btn-primary" id="save">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/region-cascader.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            function setSelectByText(selectId, text) {
+                const sel = document.getElementById(selectId);
+                if (!sel) return;
+                const match = Array.from(sel.options).find((opt) => opt.text === text || opt.value === text);
+                sel.value = match ? match.value : '';
+                const wrap = sel.previousElementSibling;
+                const input = wrap && wrap.classList.contains('custom-select-wrapper')
+                    ? wrap.querySelector('input')
+                    : null;
+                if (input) {
+                    input.value = sel.options[sel.selectedIndex]?.text || '';
+                }
+            }
+
+            function getSelectText(selectId) {
+                const sel = document.getElementById(selectId);
+                if (!sel || sel.selectedIndex < 0 || !sel.value) return '';
+                return sel.options[sel.selectedIndex].text;
+            }
+
+            function wrapNativeSelect(sel) {
+                if (!sel || sel.closest('#rateRegionMount') || sel.closest('#rateDestMount')) return;
+                if (sel.previousElementSibling && sel.previousElementSibling.classList.contains('custom-select-wrapper')) return;
+
+                const wrap = document.createElement('div');
+                wrap.className = 'custom-select-wrapper';
+
+                const box = document.createElement('div');
+                box.className = 'custom-select';
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.readOnly = true;
+                input.value = sel.options[sel.selectedIndex]?.text || '';
+                input.placeholder = '请选择';
+
+                const arrow = document.createElement('span');
+                arrow.className = 'select-arrow';
+                arrow.textContent = '▼';
+
+                const drop = document.createElement('div');
+                drop.className = 'select-dropdown';
+
+                Array.from(sel.options).forEach((opt) => {
+                    const item = document.createElement('div');
+                    item.className = 'select-option';
+                    item.textContent = opt.text;
+                    item.dataset.value = opt.value;
+                    item.addEventListener('click', () => {
+                        sel.value = opt.value;
+                        input.value = opt.text;
+                        drop.classList.remove('show');
+                        sel.dispatchEvent(new Event('change', { bubbles: true }));
+                    });
+                    drop.appendChild(item);
+                });
+
+                box.append(input, arrow, drop);
+                wrap.appendChild(box);
+                sel.parentNode.insertBefore(wrap, sel);
+                sel.style.display = 'none';
+
+                input.addEventListener('click', () => {
+                    if (input.disabled) return;
+                    document.querySelectorAll('.select-dropdown.show').forEach((el) => {
+                        if (el !== drop) el.classList.remove('show');
+                    });
+                    drop.classList.toggle('show');
+                });
+            }
+
+            function clearExtraRow(row) {
+                if (!row) return;
+                row.querySelectorAll('input').forEach((input) => {
+                    if (input.closest('.custom-select')) return;
+                    input.value = '';
+                });
+                const sel = row.querySelector('select');
+                if (!sel) return;
+                sel.value = '';
+                const wrap = sel.previousElementSibling;
+                const input = wrap && wrap.classList.contains('custom-select-wrapper')
+                    ? wrap.querySelector('input')
+                    : null;
+                if (input) input.value = sel.options[sel.selectedIndex]?.text || '';
+            }
+
+            function resetExtraRows() {
+                setExtraItems([]);
+            }
+
+            function cloneExtraRow() {
+                const source = document.querySelector('#extraRows .extra-row');
+                if (!source) return null;
+                const row = source.cloneNode(true);
+                const oldWrap = row.querySelector('.custom-select-wrapper');
+                if (oldWrap) oldWrap.remove();
+                const sel = row.querySelector('select');
+                if (sel) {
+                    sel.style.display = '';
+                    sel.value = '';
+                }
+                row.querySelectorAll('input').forEach((input) => {
+                    if (input.closest('.custom-select')) return;
+                    input.value = '';
+                });
+                wrapNativeSelect(sel);
+                return row;
+            }
+
+            function fillExtraRow(row, item) {
+                if (!row || !item) return;
+                const sel = row.querySelector('select');
+                if (sel) {
+                    const name = item.name || '';
+                    const match = Array.from(sel.options).find((opt) => opt.text === name || opt.value === name);
+                    sel.value = match ? match.value : '';
+                    const wrap = sel.previousElementSibling;
+                    const input = wrap && wrap.classList.contains('custom-select-wrapper')
+                        ? wrap.querySelector('input')
+                        : null;
+                    if (input) input.value = sel.options[sel.selectedIndex]?.text || '';
+                }
+                const tds = row.querySelectorAll('td');
+                const amountInput = tds[1] && tds[1].querySelector('input');
+                const minInput = tds[2] && tds[2].querySelector('input');
+                const rateInput = tds[3] && tds[3].querySelector('input');
+                if (amountInput) amountInput.value = item.amount || '';
+                if (minInput) minInput.value = item.min || '';
+                if (rateInput) rateInput.value = item.rate || '';
+            }
+
+            function collectExtraItems() {
+                if (getSelectText('extra') !== '是') return [];
+                return Array.from(document.querySelectorAll('#extraRows .extra-row')).map((row) => {
+                    const sel = row.querySelector('select');
+                    const tds = row.querySelectorAll('td');
+                    const name = sel && sel.value ? sel.options[sel.selectedIndex].text : '';
+                    const amount = tds[1] && tds[1].querySelector('input');
+                    const min = tds[2] && tds[2].querySelector('input');
+                    const rate = tds[3] && tds[3].querySelector('input');
+                    return {
+                        name: name,
+                        amount: amount ? amount.value.trim() : '',
+                        min: min ? min.value.trim() : '',
+                        rate: rate ? rate.value.trim() : ''
+                    };
+                }).filter((item) => item.name);
+            }
+
+            function formatExtraHtml(items) {
+                if (!items || !items.length) return '否';
+                return items.map((item) => {
+                    const parts = [item.name];
+                    if (item.amount) parts.push('每票¥' + item.amount);
+                    if (item.min) parts.push('最低¥' + item.min);
+                    if (item.rate) parts.push('费率' + item.rate + '%');
+                    return parts.join(' ');
+                }).join('<br>');
+            }
+
+            function parseRowExtras(row) {
+                if (!row) return [];
+                try {
+                    const parsed = JSON.parse(row.getAttribute('data-extras') || '[]');
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            function getRowExtraFlag(row) {
+                if (!row) return '否';
+                const attr = row.getAttribute('data-extra');
+                if (attr === '是' || attr === '否') return attr;
+                return parseRowExtras(row).length ? '是' : '否';
+            }
+
+            function writeRowExtra(row, extra, items) {
+                if (!row) return;
+                const list = extra === '是' ? (items || []) : [];
+                row.setAttribute('data-extra', extra === '是' ? '是' : '否');
+                row.setAttribute('data-extras', JSON.stringify(list));
+                const cell = row.querySelectorAll('td')[11];
+                if (!cell) return;
+                cell.classList.add('rate-extra-cell');
+                cell.innerHTML = formatExtraHtml(list);
+            }
+
+            function setExtraItems(items) {
+                const tbody = document.getElementById('extraRows');
+                if (!tbody) return;
+                const list = items && items.length
+                    ? items
+                    : [{ name: '', amount: '', min: '', rate: '' }];
+                while (tbody.querySelectorAll('.extra-row').length > 1) {
+                    tbody.lastElementChild.remove();
+                }
+                list.forEach((item, index) => {
+                    let row = tbody.querySelectorAll('.extra-row')[index];
+                    if (!row) {
+                        row = cloneExtraRow();
+                        if (row) tbody.appendChild(row);
+                    }
+                    fillExtraRow(row, item);
+                });
+            }
+
+            function bindDecimalInput(el) {
+                if (!el) return;
+                el.addEventListener('input', () => {
+                    let value = el.value.replace(/[^\d.]/g, '');
+                    const parts = value.split('.');
+                    if (parts.length > 2) {
+                        value = parts[0] + '.' + parts.slice(1).join('');
+                    }
+                    const next = value.split('.');
+                    if (next[1] && next[1].length > 2) {
+                        value = next[0] + '.' + next[1].slice(0, 2);
+                    }
+                    el.value = value;
+                });
+            }
+
+            function getRatioValue() {
+                const left = document.getElementById('ratioLeft').value.trim();
+                const right = document.getElementById('ratioRight').value.trim();
+                if (!left && !right) return '-';
+                return left + ':' + right;
+            }
+
+            function setRatioValue(text) {
+                const raw = String(text || '').trim();
+                const parts = raw === '-' ? [] : raw.split(':');
+                document.getElementById('ratioLeft').value = (parts[0] || '').trim();
+                document.getElementById('ratioRight').value = (parts[1] || '').trim();
+            }
+
+            function collectRateForm() {
+                const dest = destRegion ? destRegion.getParts() : { province: '', city: '', district: '' };
+                return {
+                    origin: getSelectText('origin'),
+                    carrier: getSelectText('carrier'),
+                    logisticsType: getSelectText('logisticsType'),
+                    destProvince: dest.province || '',
+                    destCity: dest.city || '',
+                    destDistrict: dest.district || '',
+                    days: document.getElementById('days').value.trim() || '-',
+                    feeScheme: getSelectText('feeScheme'),
+                    ratio: getRatioValue(),
+                    extra: getSelectText('extra') || '否',
+                    freightDiscount: document.getElementById('freightDiscount').value.trim() || '-',
+                    settleDiscount: document.getElementById('settleDiscount').value.trim() || '-'
+                };
+            }
+
+            function collectFeeTiers() {
+                const isAmount = getSelectText('feeScheme') === '金额计费';
+                return Array.from(document.querySelectorAll('#tiers .tier')).map((row) => {
+                    const inputs = row.querySelectorAll('td input');
+                    return {
+                        start: inputs[0]?.value.trim() || '',
+                        end: inputs[1]?.value.trim() || '',
+                        price: inputs[2]?.value.trim() || '',
+                        cont: isAmount ? '' : (inputs[3]?.value.trim() || '')
+                    };
+                }).filter((tier) => {
+                    if (!tier.start || !tier.end || !tier.price) return false;
+                    if (!isAmount && !tier.cont) return false;
+                    return true;
+                });
+            }
+
+            function formatFeeTiersHtml(scheme, tiers) {
+                const isAmount = scheme === '金额计费';
+                return (tiers || []).map((tier) => {
+                    if (isAmount) {
+                        return `${tier.start}~${tier.end}元 运费¥${tier.price}`;
+                    }
+                    return `${tier.start}~${tier.end}kg 首重¥${tier.price} 续¥${tier.cont}/KG`;
+                }).join('<br>');
+            }
+
+            function parseRowFeeTiers(row) {
+                if (!row) return [];
+                try {
+                    const parsed = JSON.parse(row.getAttribute('data-tiers') || '[]');
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            function writeRowFee(row, scheme, tiers) {
+                if (!row) return;
+                row.setAttribute('data-tiers', JSON.stringify(tiers || []));
+                const cell = row.querySelectorAll('td')[9];
+                if (!cell) return;
+                cell.classList.add('rate-fee-cell');
+                cell.innerHTML = formatFeeTiersHtml(scheme, tiers);
+            }
+
+            function setFeeTiers(tiers) {
+                const tbody = document.getElementById('tiers');
+                if (!tbody) return;
+                const template = tbody.querySelector('.tier');
+                if (!template) return;
+                const list = tiers && tiers.length
+                    ? tiers
+                    : [{ start: '', end: '', price: '', cont: '' }];
+                while (tbody.querySelectorAll('.tier').length > 1) {
+                    tbody.lastElementChild.remove();
+                }
+                list.forEach((tier, index) => {
+                    let row = tbody.querySelectorAll('.tier')[index];
+                    if (!row) {
+                        row = template.cloneNode(true);
+                        tbody.appendChild(row);
+                    }
+                    const inputs = row.querySelectorAll('td input');
+                    if (inputs[0]) inputs[0].value = tier.start || '';
+                    if (inputs[1]) inputs[1].value = tier.end || '';
+                    if (inputs[2]) inputs[2].value = tier.price || '';
+                    if (inputs[3]) inputs[3].value = tier.cont || '';
+                });
+            }
+
+            function setDestRegion(province, city, district) {
+                if (!destRegion) return;
+                const parts = [province, city, district].filter(Boolean);
+                destRegion.setValue(parts.join(RegionCascader.SEPARATOR));
+            }
+
+            function syncFeeTable() {
+                const scheme = getSelectText('feeScheme');
+                const isAmount = scheme === '金额计费';
+                const hasScheme = scheme === '重量计费' || scheme === '金额计费';
+                const table = document.querySelector('#rateModal .rate-tier-table');
+                const feeBlock = document.querySelector('#rateModal .rate-fee-block');
+                if (feeBlock) feeBlock.classList.toggle('is-idle', !hasScheme);
+                if (!table) return;
+                table.classList.toggle('is-amount', isAmount);
+                const startTh = table.querySelector('.rate-tier-start');
+                const endTh = table.querySelector('.rate-tier-end');
+                const priceTh = table.querySelector('.rate-tier-price');
+                if (startTh) startTh.textContent = isAmount ? '起始金额' : '起始重量';
+                if (endTh) endTh.textContent = isAmount ? '结束金额' : '结束重量';
+                if (priceTh) priceTh.textContent = isAmount ? '运费' : '首重价(元)';
+                table.querySelectorAll('.tier').forEach((row) => {
+                    const inputs = row.querySelectorAll('td input');
+                    if (!inputs.length) return;
+                    inputs[0].placeholder = isAmount ? '起始金额' : '起始重量';
+                    if (inputs[1]) inputs[1].placeholder = isAmount ? '结束金额' : '结束重量';
+                    if (inputs[2]) inputs[2].placeholder = isAmount ? '运费' : '首重价';
+                    if (inputs[3]) inputs[3].placeholder = '续价';
+                });
+            }
+
+            function syncExtraFields() {
+                const extra = document.getElementById('extra');
+                document.getElementById('extraFields').style.display =
+                    extra && extra.value === '是' ? 'block' : 'none';
+            }
+
+            function validateDestRegion() {
+                const parts = destRegion ? destRegion.getParts() : { province: '', city: '', district: '' };
+                return !!(parts.province && parts.city && parts.district);
+            }
+
+            function validateFeeTiers() {
+                const scheme = getSelectText('feeScheme');
+                const isAmount = scheme === '金额计费';
+                return Array.from(document.querySelectorAll('#tiers .tier')).some((row) => {
+                    const inputs = row.querySelectorAll('td input');
+                    const start = inputs[0]?.value.trim();
+                    const end = inputs[1]?.value.trim();
+                    const price = inputs[2]?.value.trim();
+                    const cont = inputs[3]?.value.trim();
+                    if (!start || !end || !price) return false;
+                    if (!isAmount && !cont) return false;
+                    return true;
+                });
+            }
+
+            function validateExtraItems() {
+                return Array.from(document.querySelectorAll('#extraRows .extra-row')).some((row) => {
+                    const sel = row.querySelector('select');
+                    return sel && sel.value;
+                });
+            }
+
+            let destRegion = null;
+            if (window.RegionCascader) {
+                destRegion = RegionCascader.create({
+                    mount: '#rateDestMount',
+                    id: 'rateDest',
+                    inline: true,
+                    width: '100%'
+                });
+            }
+
+            const page = new PageManager({
+                entityName: '物流费率',
+                checkboxColumn: true,
+                detailView: { enabled: true, columnIndex: 1 },
+                detailModalTitle: '物流费率-详情',
+                editModalTitle: '物流费率-编辑',
+                editModal: {
+                    modalId: 'rateModal',
+                    cancelBtnId: 'cancel',
+                    saveBtnId: 'save',
+                    validations: [
+                        { id: 'origin', message: '请选择始发地', required: true },
+                        { id: 'carrier', message: '请选择承运商', required: true },
+                        { id: 'logisticsType', message: '请选择物流类型', required: true },
+                        { id: 'feeScheme', message: '请选择费用方案', required: true },
+                        { id: 'extra', message: '请选择增值服务', required: true }
+                    ],
+                    onDetailModeChange: (isDetailMode) => {
+                        document.getElementById('rateModal').classList.toggle('is-detail', isDetailMode);
+                        if (destRegion) destRegion.setDisabled(isDetailMode);
+                    },
+                    onOpen: () => {
+                        const titleEl = document.getElementById('modalTitle');
+                        if (page.currentEditRow) {
+                            if (!page.isDetailMode) {
+                                titleEl.textContent = '物流费率-编辑';
+                            }
+                            ['origin', 'carrier', 'logisticsType', 'feeScheme', 'extra'].forEach((id) => {
+                                setSelectByText(id, getSelectText(id));
+                            });
+                            const cells = page.currentEditRow.querySelectorAll('td');
+                            setDestRegion(
+                                cells[4].textContent.trim(),
+                                cells[5].textContent.trim(),
+                                cells[6].textContent.trim()
+                            );
+                            setSelectByText('feeScheme', cells[8].textContent.trim());
+                            setRatioValue(cells[10].textContent.trim());
+                            setFeeTiers(parseRowFeeTiers(page.currentEditRow));
+                            setExtraItems(getRowExtraFlag(page.currentEditRow) === '是'
+                                ? parseRowExtras(page.currentEditRow)
+                                : []);
+                        } else {
+                            titleEl.textContent = '物流费率-新增';
+                            setSelectByText('origin', '');
+                            setSelectByText('carrier', '');
+                            setSelectByText('logisticsType', '');
+                            setSelectByText('feeScheme', '');
+                            setSelectByText('extra', '否');
+                            if (destRegion) destRegion.reset();
+                            document.getElementById('days').value = '';
+                            setRatioValue('');
+                            document.getElementById('freightDiscount').value = '';
+                            document.getElementById('settleDiscount').value = '';
+                            setFeeTiers([]);
+                            resetExtraRows();
+                        }
+                        syncFeeTable();
+                        syncExtraFields();
+                    },
+                    mapRowToForm: (row) => {
+                        page.currentEditRow = row;
+                        const cells = row.querySelectorAll('td');
+                        return {
+                            origin: cells[1].textContent.trim(),
+                            carrier: cells[2].textContent.trim(),
+                            logisticsType: cells[3].textContent.trim(),
+                            days: cells[7].textContent.trim() === '-' ? '' : cells[7].textContent.trim(),
+                            feeScheme: cells[8].textContent.trim(),
+                            extra: getRowExtraFlag(row),
+                            freightDiscount: cells[12].textContent.trim(),
+                            settleDiscount: cells[13].textContent.trim()
+                        };
+                    },
+                    onSave: () => {
+                        if (!validateDestRegion()) {
+                            showToast('请选择目的区域');
+                            return false;
+                        }
+                        if (!validateFeeTiers()) {
+                            showToast('请填写物流费用');
+                            return false;
+                        }
+                        if (getSelectText('extra') === '是' && !validateExtraItems()) {
+                            showToast('请填写增值服务');
+                            return false;
+                        }
+                        const data = collectRateForm();
+                        const tiers = collectFeeTiers();
+                        const extras = collectExtraItems();
+                        if (page.currentEditRow) {
+                            page.updateTableRow(page.currentEditRow, {
+                                1: data.origin,
+                                2: data.carrier,
+                                3: data.logisticsType,
+                                4: data.destProvince,
+                                5: data.destCity,
+                                6: data.destDistrict,
+                                7: data.days,
+                                8: data.feeScheme,
+                                10: data.ratio,
+                                12: data.freightDiscount,
+                                13: data.settleDiscount
+                            });
+                            writeRowFee(page.currentEditRow, data.feeScheme, tiers);
+                            writeRowExtra(page.currentEditRow, data.extra, extras);
+                        } else {
+                            const row = page.addTableRow({
+                                cells: [
+                                    data.origin,
+                                    data.carrier,
+                                    data.logisticsType,
+                                    data.destProvince,
+                                    data.destCity,
+                                    data.destDistrict,
+                                    data.days,
+                                    data.feeScheme,
+                                    formatFeeTiersHtml(data.feeScheme, tiers),
+                                    data.ratio,
+                                    formatExtraHtml(data.extra === '是' ? extras : []),
+                                    data.freightDiscount,
+                                    data.settleDiscount
+                                ]
+                            });
+                            writeRowFee(row, data.feeScheme, tiers);
+                            writeRowExtra(row, data.extra, extras);
+                        }
+                        showToast('物流费率已保存', 'success');
+                        page.currentEditRow = null;
+                    }
+                },
+                deleteModal: {}
+            });
+
+            page.init();
+
+            bindDecimalInput(document.getElementById('ratioLeft'));
+            bindDecimalInput(document.getElementById('ratioRight'));
+
+            document.getElementById('btnAdd').addEventListener('click', () => {
+                page.currentEditRow = null;
+                page.isDetailMode = false;
+                page.updateEditModalMode(false);
+                page.openModal('edit', { reset: true });
+            });
+
+            document.getElementById('feeScheme').onchange = () => {
+                syncFeeTable();
+            };
+
+            document.getElementById('extra').onchange = () => {
+                syncExtraFields();
+            };
+
+            document.getElementById('addTier').onclick = () => {
+                if (page.isDetailMode) return;
+                const tier = document.querySelector('.tier').cloneNode(true);
+                tier.querySelectorAll('input').forEach((input) => {
+                    input.value = '';
+                });
+                document.getElementById('tiers').appendChild(tier);
+                syncFeeTable();
+            };
+
+            document.getElementById('tiers').onclick = (e) => {
+                const btn = e.target.closest('.remove-tier');
+                if (!btn || page.isDetailMode) return;
+                e.preventDefault();
+                if (document.querySelectorAll('.tier').length > 1) {
+                    btn.closest('.tier').remove();
+                }
+            };
+
+            document.getElementById('addExtraItem').onclick = () => {
+                if (page.isDetailMode) return;
+                const row = cloneExtraRow();
+                if (!row) return;
+                document.getElementById('extraRows').appendChild(row);
+            };
+
+            document.getElementById('extraFields').addEventListener('click', (e) => {
+                const btn = e.target.closest('.remove-extra');
+                if (!btn || page.isDetailMode) return;
+                e.preventDefault();
+                if (document.querySelectorAll('#extraRows .extra-row').length > 1) {
+                    btn.closest('.extra-row').remove();
+                } else {
+                    clearExtraRow(btn.closest('.extra-row'));
+                }
+            });
+
+            document.querySelector('#rateModal .modal-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+            });
+
+            const province = document.getElementById('qProvince');
+            const city = document.getElementById('qCity');
+            const district = document.getElementById('qDistrict');
+            if (province && window.RegionCascader) {
+                const mount = document.createElement('div');
+                mount.id = 'rateRegionMount';
+                province.parentElement.insertBefore(mount, province);
+                province.remove();
+                city.remove();
+                district.remove();
+                RegionCascader.create({
+                    mount: '#rateRegionMount',
+                    id: 'rateRegion',
+                    label: '目的区域:',
+                    labelWidth: '70px'
+                });
+                const label = mount.parentElement.querySelector(':scope > label');
+                if (label) label.remove();
+            }
+
+            document.querySelectorAll('.search-form select, .modal-form-group select').forEach((sel) => {
+                wrapNativeSelect(sel);
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.custom-select')) {
+                    document.querySelectorAll('.select-dropdown.show').forEach((el) => {
+                        el.classList.remove('show');
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
