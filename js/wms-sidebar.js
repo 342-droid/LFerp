@@ -15,7 +15,7 @@
         { href: 'location.html', text: '储位' },
         { href: 'lpn.html', text: '容器' },
         { href: 'warehouse_sku.html', text: '商品' },
-        { href: 'carrier.html', text: '承运商' },
+        { href: 'tms_route.html', text: '线路管理' },
         { href: 'delivery_hub.html', text: '站点' }
     ];
 
