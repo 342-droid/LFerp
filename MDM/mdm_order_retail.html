@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
-    <link rel="stylesheet" href="../css/lf-order.css?v=20260912-sku-benefit">
+    <link rel="stylesheet" href="../css/lf-order.css?v=20260912-refund-scope">
     <link rel="stylesheet" href="../css/lf-table-personal-view.css?v=20260905-sync">
 </head>
 <body data-order-page="retail">
@@ -196,7 +196,16 @@
                         <div class="order-table-toolbar">
                             <button type="button" class="order-table-toolbar__btn order-table-toolbar__btn--primary" id="orderRetailBatchUpload">批量上传快递单</button>
                             <button type="button" class="order-filter-btn order-filter-btn--default" id="orderRetailBatchDelete">批量删除快递单</button>
-                            <button type="button" class="order-filter-btn order-filter-btn--default" id="orderRetailBatchRefund" title="未搜商品为整单退款；搜索单个商品后按该 SKU 退款">批量退款</button>
+                            <div class="order-batch-refund" id="orderRetailBatchRefund">
+                                <button type="button" class="order-filter-btn order-filter-btn--default order-batch-refund__btn" id="orderRetailBatchRefundBtn" aria-expanded="false" aria-haspopup="true">
+                                    批量退款
+                                    <span class="order-batch-refund__caret" aria-hidden="true"></span>
+                                </button>
+                                <div class="order-batch-refund__menu" id="orderRetailBatchRefundMenu" hidden>
+                                    <button type="button" class="order-batch-refund__item" data-refund-scope="selected">当前勾选数据</button>
+                                    <button type="button" class="order-batch-refund__item" data-refund-scope="query">所有查询数据</button>
+                                </div>
+                            </div>
                             <button type="button" class="order-filter-btn order-filter-btn--default" id="orderRetailExport" data-lf-skip-export-notify>导出订单</button>
                             <button type="button" class="order-filter-btn order-filter-btn--default" id="orderRetailClearingExport" data-lf-skip-export-notify>导出订单清分明细</button>
                         </div>
@@ -1085,11 +1094,11 @@
     <script src="../js/order-retail-status.js"></script>
     <script src="../js/logistics-tracking-no.js"></script>
     <script src="../js/mdm-aftersale-reasons.js"></script>
-    <script src="../js/order-platform-aftersale.js?v=20260912-sku-benefit"></script>
+    <script src="../js/order-platform-aftersale.js?v=20260912-proxy-batch"></script>
     <script src="../js/vendor/xlsx.full.min.js"></script>
     <script src="../js/order-proxy-express.js?v=20260820-goods-info"></script>
-    <script src="../js/order-live-list.js?v=20260912-refund-source"></script>
-    <script src="../js/order-live-detail.js?v=20260912-sku-benefit"></script>
+    <script src="../js/order-live-list.js?v=20260912-refund-scope2"></script>
+    <script src="../js/order-live-detail.js?v=20260912-proxy-batch"></script>
     <script src="../js/lf-table-personal-view.js?v=20260910-expand"></script>
 </body>
 </html>

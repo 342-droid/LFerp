@@ -692,6 +692,68 @@
   overflow: hidden;
 }
 
+.order-table-card:has(.order-batch-refund) {
+  overflow: visible;
+}
+
+.order-batch-refund {
+  position: relative;
+  z-index: 8;
+}
+
+.order-batch-refund__btn {
+  gap: 6px;
+}
+
+.order-batch-refund.is-open .order-batch-refund__btn {
+  border-color: var(--color-primary, #ff7019);
+  color: var(--color-primary, #ff7019);
+}
+
+.order-batch-refund__caret {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid currentColor;
+}
+
+.order-batch-refund.is-open .order-batch-refund__caret {
+  transform: rotate(180deg);
+}
+
+.order-batch-refund__menu {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 4px);
+  min-width: 168px;
+  padding: 6px 0;
+  background: #ffffff;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  z-index: 30;
+}
+
+.order-batch-refund__item {
+  display: block;
+  width: 100%;
+  padding: 8px 14px;
+  border: 0;
+  background: none;
+  text-align: left;
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.order-batch-refund__item:hover {
+  background: #fff7f0;
+  color: var(--color-primary, #ff7019);
+}
+
 .order-table-toolbar {
   display: flex;
   align-items: center;

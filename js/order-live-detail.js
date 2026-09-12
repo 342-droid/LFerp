@@ -1219,8 +1219,16 @@
       aftersales: [],
       customer: { nickname: cfg.nickname, phone: cfg.phone, userId: cfg.userId },
       delivery: {
-        type: cfg.mode === 'express' ? 'EXPRESS' : 'SELF_PICKUP',
-        deliveryMode: cfg.mode === 'express' ? '快递' : '自提',
+        type: cfg.mode === 'warehouse' || cfg.mode === 'delivery'
+          ? 'DELIVERY'
+          : cfg.mode === 'express'
+            ? 'EXPRESS'
+            : 'SELF_PICKUP',
+        deliveryMode: cfg.mode === 'warehouse' || cfg.mode === 'delivery'
+          ? '配送'
+          : cfg.mode === 'express'
+            ? '快递'
+            : '自提',
         name: cfg.receiver || cfg.nickname,
         phone: cfg.phone,
         address: cfg.address || '浙江省杭州市西湖区文三路168号',
@@ -1332,6 +1340,100 @@
       coupon: '¥1.50',
       points: 50,
       pointsDiscount: '¥0.50',
+      discount: '-¥2.00',
+      paid: '¥15.50',
+      goods: [
+        { name: '黄瓜 500g', spec: '规格：500g', price: '¥5.80', qty: 2, sku: 'SKU-CUCUMBER', img: '../user-app/assets/order-product-2.svg' },
+        { name: '新鲜鲫鱼 300g', spec: '规格：300g', price: '¥5.90', qty: 1, sku: 'SKU-FISH', img: '../user-app/assets/order-product-4.svg' }
+      ]
+    },
+    {
+      id: 'ORD-3212689201599401',
+      mode: 'warehouse',
+      status: '待收货',
+      submitTime: '2026-09-11 19:20',
+      nickname: '江晚宁',
+      receiver: '江晚宁',
+      phone: '13800009401',
+      userId: '318605592681794001',
+      store: '华强北',
+      pay: 'wechat',
+      scene: '商城',
+      goodsAmt: '¥25.60',
+      coupon: '¥4.00',
+      points: 0,
+      pointsDiscount: '¥0.00',
+      discount: '-¥4.00',
+      paid: '¥21.60',
+      goods: [
+        { name: '阳光番茄 500g', spec: '规格：500g', price: '¥9.90', qty: 2, sku: 'SKU-TOMATO', img: '../user-app/assets/order-product-1.svg' },
+        { name: '黄瓜 500g', spec: '规格：500g', price: '¥5.80', qty: 1, sku: 'SKU-CUCUMBER', img: '../user-app/assets/order-product-2.svg' }
+      ]
+    },
+    {
+      id: 'ORD-3212689201599402',
+      mode: 'express',
+      status: '待收货',
+      submitTime: '2026-09-11 13:05',
+      nickname: '陆承安',
+      receiver: '陆承安',
+      phone: '13600009402',
+      userId: '318605592681794002',
+      store: '悠悠生鲜超市',
+      pay: 'alipay',
+      scene: '商城',
+      address: '浙江省杭州市上城区望江街道望江路16号',
+      goodsAmt: '¥27.96',
+      coupon: '¥2.50',
+      points: 180,
+      pointsDiscount: '¥1.80',
+      discount: '-¥4.30',
+      paid: '¥23.66',
+      goods: [
+        { name: '阳光番茄 500g', spec: '规格：500g', price: '¥9.90', qty: 1, sku: 'SKU-TOMATO', img: '../user-app/assets/order-product-1.svg' },
+        { name: '赣南脐橙 果大皮薄 5斤装', spec: '规格：5斤', price: '¥18.06', qty: 1, sku: 'SKU-ORANGE', img: '../user-app/assets/order-product-2.svg' }
+      ]
+    },
+    {
+      id: 'ORD-3212689201599403',
+      mode: 'warehouse',
+      status: '待收货',
+      submitTime: '2026-09-10 18:40',
+      nickname: '沈清晏',
+      receiver: '沈清晏',
+      phone: '13700009403',
+      userId: '318605592681794003',
+      store: '德清乾元天恩冷丰店',
+      pay: 'wechat',
+      scene: '直播',
+      goodsAmt: '¥47.70',
+      coupon: '¥6.00',
+      points: 400,
+      pointsDiscount: '¥4.00',
+      discount: '-¥10.00',
+      paid: '¥37.70',
+      goods: [
+        { name: '阳光番茄 500g', spec: '规格：500g', price: '¥9.90', qty: 3, sku: 'SKU-TOMATO', img: '../user-app/assets/order-product-1.svg' },
+        { name: '精品牛腩 500g', spec: '规格：500g', price: '¥18.00', qty: 1, sku: 'SKU-BEEF', img: '../user-app/assets/order-product-3.svg' }
+      ]
+    },
+    {
+      id: 'ORD-3212689201599404',
+      mode: 'express',
+      status: '交易成功',
+      submitTime: '2026-09-10 10:12',
+      nickname: '顾知夏',
+      receiver: '顾知夏',
+      phone: '13500009404',
+      userId: '318605592681794004',
+      store: '华强北',
+      pay: 'alipay',
+      scene: '商城',
+      address: '浙江省杭州市西湖区文三路168号1幢502室',
+      goodsAmt: '¥17.50',
+      coupon: '¥1.20',
+      points: 80,
+      pointsDiscount: '¥0.80',
       discount: '-¥2.00',
       paid: '¥15.50',
       goods: [

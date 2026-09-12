@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
-    <link rel="stylesheet" href="../css/lf-order.css?v=20260911-time-rect">
+    <link rel="stylesheet" href="../css/lf-order.css?v=20260912-refund-scope">
 </head>
 <body data-order-page="proxy">
     <div id="sidebar-container"></div>
@@ -157,6 +157,16 @@
 
                     <section class="erp-page__card order-table-card">
                         <div class="order-table-toolbar">
+                            <div class="order-batch-refund" id="orderProxyBatchRefund">
+                                <button type="button" class="order-filter-btn order-filter-btn--default order-batch-refund__btn" id="orderProxyBatchRefundBtn" aria-expanded="false" aria-haspopup="true">
+                                    批量退款
+                                    <span class="order-batch-refund__caret" aria-hidden="true"></span>
+                                </button>
+                                <div class="order-batch-refund__menu" id="orderProxyBatchRefundMenu" hidden>
+                                    <button type="button" class="order-batch-refund__item" data-refund-scope="selected">当前勾选数据</button>
+                                    <button type="button" class="order-batch-refund__item" data-refund-scope="query">所有查询数据</button>
+                                </div>
+                            </div>
                             <button type="button" class="order-filter-btn order-filter-btn--default" id="orderProxyExport" data-lf-skip-export-notify>导出订单</button>
                             <button type="button" class="order-filter-btn order-filter-btn--default" id="orderProxyClearingExport" data-lf-skip-export-notify>导出订单清分明细</button>
                         </div>
@@ -475,11 +485,154 @@
                                         <td class="order-status-cell"><span class="order-tag order-tag--success">交易成功</span></td>
                                         <td class="order-live-table__sticky-col"><div class="order-live-table__actions"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201560682">查看</a></div></td>
                                     </tr>
+                                    <tr data-order-id="ORD-3212689201599401" data-fulfillment-mode="warehouse" data-pay-channel="wechat" data-store="华强北" data-pay-no="4200009201599401" data-ordered-at="2026-09-11">
+                                        <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599401">ORD-3212689201599401</a></td>
+                                        <td>2026-09-11 19:20</td>
+                                        <td>江晚宁</td>
+                                        <td>江晚宁</td>
+                                        <td>13800009401</td>
+                                        <td>
+                                            <div class="order-product-cell">
+                                                <img class="order-product-cell__thumb" src="../user-app/assets/order-product-1.svg" alt="">
+                                                <div class="order-product-cell__meta">
+                                                    <div class="order-product-cell__name-row">
+                                                        <span class="order-product-cell__name">阳光番茄 500g</span>
+                                                    </div>
+                                                    <button type="button" class="order-product-cell__sku js-order-goods-pop">共 3 件 / 2 个 SKU</button>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>× 3</td>
+                                        <td>¥21.60</td>
+                                        <td>-¥4.00</td>
+                                        <td>¥4.00</td>
+                                        <td>-</td>
+                                        <td>¥0.00</td>
+                                        <td>¥21.60</td>
+                                        <td>微信</td>
+                                        <td><span class="order-tag order-tag--scene">配送</span></td>
+                                        <td>华强北</td>
+                                        <td class="order-pay-no">4200009201599401</td>
+                                        <td class="order-status-cell"><span class="order-tag order-tag--receipt">待收货</span></td>
+                                        <td class="order-live-table__sticky-col">
+                                            <div class="order-live-table__actions">
+                                                <a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599401">查看</a>
+                                                <button type="button" class="order-live-table__confirm-receipt js-order-confirm-receipt" data-order-id="ORD-3212689201599401">确认收货</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr data-order-id="ORD-3212689201599402" data-fulfillment-mode="store" data-pay-channel="alipay" data-store="悠悠生鲜超市" data-pay-no="2026091101599402" data-ordered-at="2026-09-11">
+                                        <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599402">ORD-3212689201599402</a></td>
+                                        <td>2026-09-11 13:05</td>
+                                        <td>陆承安</td>
+                                        <td>陆承安</td>
+                                        <td>13600009402</td>
+                                        <td>
+                                            <div class="order-product-cell">
+                                                <img class="order-product-cell__thumb" src="../user-app/assets/order-product-1.svg" alt="">
+                                                <div class="order-product-cell__meta">
+                                                    <div class="order-product-cell__name-row">
+                                                        <span class="order-product-cell__name">阳光番茄 500g</span>
+                                                    </div>
+                                                    <button type="button" class="order-product-cell__sku js-order-goods-pop">共 2 件 / 2 个 SKU</button>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>× 2</td>
+                                        <td>¥23.66</td>
+                                        <td>-¥4.30</td>
+                                        <td>¥2.50</td>
+                                        <td>180</td>
+                                        <td>¥1.80</td>
+                                        <td>¥23.66</td>
+                                        <td>支付宝</td>
+                                        <td><span class="order-tag order-tag--scene">快递</span></td>
+                                        <td>悠悠生鲜超市</td>
+                                        <td class="order-pay-no">2026091101599402</td>
+                                        <td class="order-status-cell"><span class="order-tag order-tag--receipt">待收货</span></td>
+                                        <td class="order-live-table__sticky-col">
+                                            <div class="order-live-table__actions">
+                                                <a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599402">查看</a>
+                                                <button type="button" class="order-live-table__confirm-receipt js-order-confirm-receipt" data-order-id="ORD-3212689201599402">确认收货</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr data-order-id="ORD-3212689201599403" data-fulfillment-mode="warehouse" data-pay-channel="wechat" data-store="德清乾元天恩冷丰店" data-pay-no="4200009201599403" data-live-session="美物甄选-9.10晚间场" data-ordered-at="2026-09-10">
+                                        <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599403">ORD-3212689201599403</a></td>
+                                        <td>2026-09-10 18:40</td>
+                                        <td>沈清晏</td>
+                                        <td>沈清晏</td>
+                                        <td>13700009403</td>
+                                        <td>
+                                            <div class="order-product-cell">
+                                                <img class="order-product-cell__thumb" src="../user-app/assets/order-product-1.svg" alt="">
+                                                <div class="order-product-cell__meta">
+                                                    <div class="order-product-cell__name-row">
+                                                        <span class="order-product-cell__name">阳光番茄 500g</span>
+                                                    </div>
+                                                    <button type="button" class="order-product-cell__sku js-order-goods-pop">共 4 件 / 2 个 SKU</button>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>× 4</td>
+                                        <td>¥37.70</td>
+                                        <td>-¥10.00</td>
+                                        <td>¥6.00</td>
+                                        <td>400</td>
+                                        <td>¥4.00</td>
+                                        <td>¥37.70</td>
+                                        <td>微信</td>
+                                        <td><span class="order-tag order-tag--scene">配送</span></td>
+                                        <td>德清乾元天恩冷丰店</td>
+                                        <td class="order-pay-no">4200009201599403</td>
+                                        <td class="order-status-cell"><span class="order-tag order-tag--receipt">待收货</span></td>
+                                        <td class="order-live-table__sticky-col">
+                                            <div class="order-live-table__actions">
+                                                <a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599403">查看</a>
+                                                <button type="button" class="order-live-table__confirm-receipt js-order-confirm-receipt" data-order-id="ORD-3212689201599403">确认收货</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr data-order-id="ORD-3212689201599404" data-fulfillment-mode="store" data-pay-channel="alipay" data-store="华强北" data-pay-no="2026091001599404" data-ordered-at="2026-09-10">
+                                        <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599404">ORD-3212689201599404</a></td>
+                                        <td>2026-09-10 10:12</td>
+                                        <td>顾知夏</td>
+                                        <td>顾知夏</td>
+                                        <td>13500009404</td>
+                                        <td>
+                                            <div class="order-product-cell">
+                                                <img class="order-product-cell__thumb" src="../user-app/assets/order-product-2.svg" alt="">
+                                                <div class="order-product-cell__meta">
+                                                    <div class="order-product-cell__name-row">
+                                                        <span class="order-product-cell__name">黄瓜 500g</span>
+                                                    </div>
+                                                    <button type="button" class="order-product-cell__sku js-order-goods-pop">共 3 件 / 2 个 SKU</button>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>× 3</td>
+                                        <td>¥15.50</td>
+                                        <td>-¥2.00</td>
+                                        <td>¥1.20</td>
+                                        <td>80</td>
+                                        <td>¥0.80</td>
+                                        <td>¥15.50</td>
+                                        <td>支付宝</td>
+                                        <td><span class="order-tag order-tag--scene">快递</span></td>
+                                        <td>华强北</td>
+                                        <td class="order-pay-no">2026091001599404</td>
+                                        <td class="order-status-cell"><span class="order-tag order-tag--success">交易成功</span></td>
+                                        <td class="order-live-table__sticky-col">
+                                            <div class="order-live-table__actions">
+                                                <a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599404">查看</a>
+                                            </div>
+                                        </td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
                         <div class="order-pagination">
-                            <span>共 11 条</span>
+                            <span class="order-pagination__total">共 15 条</span>
                             <select class="order-pagination__size" aria-label="每页条数">
                                 <option selected>20条/页</option>
                                 <option>50条/页</option>
@@ -504,14 +657,14 @@
     <script src="../js/common.js"></script>
     <script src="../js/order-retail-status.js"></script>
     <script src="../js/mdm-aftersale-reasons.js"></script>
-    <script src="../js/order-platform-aftersale.js?v=20260912-sku-benefit"></script>
+    <script src="../js/order-platform-aftersale.js?v=20260912-proxy-batch"></script>
     <script src="../js/freight-refund-aftersale-store.js?v=20260826-refund-only"></script>
     <script src="../js/order-freight-refund.js?v=20260826-refund-only"></script>
-    <script src="../js/order-live-list.js?v=20260911-time-preset"></script>
+    <script src="../js/order-live-list.js?v=20260912-refund-scope2"></script>
     <script src="../js/order-proxy-list.js?v=20260912-refund-source"></script>
     <script src="../js/logistics-tracking-no.js"></script>
     <script src="../js/vendor/xlsx.full.min.js"></script>
     <script src="../js/order-proxy-express.js?v=20260820-store-label"></script>
-    <script src="../js/order-live-detail.js?v=20260831-pay-flow"></script>
+    <script src="../js/order-live-detail.js?v=20260912-proxy-batch"></script>
 </body>
 </html>
