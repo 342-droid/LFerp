@@ -257,7 +257,7 @@
           id: 'RF-DIR-' + Date.now() + '-' + idx + '-' + gi,
           orderNo: target.orderId,
           aftersaleId: '',
-          orderSource: '零售',
+          orderSource: pageType() === 'proxy' ? '代采' : '零售',
           method: '原路退回',
           source: '批量退款',
           skipApproval: true,
@@ -280,7 +280,9 @@
           offlineChannel: ''
         });
       });
-      var cb = target.row ? target.row.querySelector('.js-order-retail-check') : null;
+      var cb = target.row
+        ? target.row.querySelector('.js-order-retail-check, .js-order-proxy-check')
+        : null;
       if (cb) cb.checked = false;
       applied += 1;
     });

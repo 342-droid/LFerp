@@ -2144,6 +2144,17 @@
     bindOrderExportButton('clearing');
   }
 
+  function canBatchRefundOrder(row) {
+    if (window.OrderPlatformAftersale && typeof window.OrderPlatformAftersale.canOpenAftersaleDrawer === 'function') {
+      return window.OrderPlatformAftersale.canOpenAftersaleDrawer(row);
+    }
+    return isRetailOrderPage() ? canRetailOpenAftersale(row) : (
+      getRowOrderStatus(row) === '待收货' ||
+      getRowOrderStatus(row) === '交易成功' ||
+      getRowOrderStatus(row) === '已完成'
+    );
+  }
+
   function classifyRetailBatchRefundRows(rows, sku) {
     var eligible = [];
     var noSku = [];
@@ -2155,7 +2166,7 @@
         noSku.push(row);
         return;
       }
-      if (!canRetailOpenAftersale(row) || skuHasOpenAftersale(orderId, row, sku.name)) {
+      if (!canBatchRefundOrder(row) || skuHasOpenAftersale(orderId, row, sku.name)) {
         blocked.push(row);
         return;
       }
@@ -2169,7 +2180,7 @@
     var blocked = [];
     rows.forEach(function (row) {
       var orderId = row.getAttribute('data-order-id');
-      if (!canRetailOpenAftersale(row)) {
+      if (!canBatchRefundOrder(row)) {
         blocked.push(row);
         return;
       }
@@ -2199,69 +2210,138 @@
     });
   }
 
-  function initRetailBatchRefund() {
-    if (!document.body || document.body.getAttribute('data-order-page') !== 'retail') return;
-    var btn = document.getElementById('orderRetailBatchRefund');
-    if (!btn) return;
+  function closeBatchRefundMenu() {
+    document.querySelectorAll('.order-batch-refund').forEach(function (wrap) {
+      wrap.classList.remove('is-open');
+      var btn = wrap.querySelector('.order-batch-refund__btn');
+      var menu = wrap.querySelector('.order-batch-refund__menu');
+      if (btn) btn.setAttribute('aria-expanded', 'false');
+      if (menu) menu.hidden = true;
+    });
+  }
 
-    btn.addEventListener('click', function () {
-      if (applyOrderListFilters() === false) return;
+  function updateBatchRefundMenuLabels(wrap) {
+    if (!wrap) return;
+    var spec = getOrderPageCheckSpec();
+    var selectedEl = wrap.querySelector('[data-refund-scope="selected"]');
+    var queryEl = wrap.querySelector('[data-refund-scope="query"]');
+    if (selectedEl) {
+      selectedEl.textContent = '当前勾选数据（' + getCheckedOrderListRows(spec).length + '）';
+    }
+    if (queryEl) {
+      queryEl.textContent = '所有查询数据（' + getVisibleOrderListRows().length + '）';
+    }
+  }
 
-      var spec = getOrderPageCheckSpec();
-      var rows = getCheckedOrderListRows(spec);
-      if (!rows.length) {
-        if (typeof showToast === 'function') showToast('请先勾选要申请退款的订单', 'error');
-        return;
+  function runBatchRefund(scope) {
+    if (applyOrderListFilters() === false) return;
+
+    var spec = getOrderPageCheckSpec();
+    var rows = scope === 'query' ? getVisibleOrderListRows() : getCheckedOrderListRows(spec);
+    if (!rows.length) {
+      if (typeof showToast === 'function') {
+        showToast(
+          scope === 'query' ? '当前查询无数据可退款' : '请先勾选要申请退款的订单',
+          'error'
+        );
       }
+      return;
+    }
 
-      var productQ = getRetailProductQuery();
-      if (!productQ) {
-        var orderGroups = classifyRetailBatchOrderRefundRows(rows);
-        if (!orderGroups.eligible.length) {
-          if (typeof showToast === 'function') {
-            showToast('所选订单当前不可整单退款（状态不符或商品售后处理中）', 'error');
-          }
-          return;
-        }
-        openRetailBatchRefund({
-          scope: 'order',
-          targets: orderGroups.eligible,
-          excluded: orderGroups.blocked.length
-        });
-        return;
-      }
-
-      var visible = getVisibleOrderListRows();
-      var skus = collectMatchingSkuNames(visible, productQ);
-      if (!skus.length) {
-        if (typeof showToast === 'function') showToast('当前筛选没有匹配的商品', 'error');
-        return;
-      }
-      if (skus.length > 1) {
+    var productQ = getRetailProductQuery();
+    if (!productQ) {
+      var orderGroups = classifyRetailBatchOrderRefundRows(rows);
+      if (!orderGroups.eligible.length) {
         if (typeof showToast === 'function') {
-          showToast('当前搜索命中多个商品，请精确到单个商品后再按 SKU 批量退款', 'error');
+          showToast(
+            scope === 'query'
+              ? '当前查询订单不可整单退款（状态不符或商品售后处理中）'
+              : '所选订单当前不可整单退款（状态不符或商品售后处理中）',
+            'error'
+          );
         }
-        return;
-      }
-
-      var sku = skus[0];
-      var groups = classifyRetailBatchRefundRows(rows, sku);
-      if (!groups.eligible.length) {
-        var msg = '所选订单当前不可申请该商品退款';
-        if (groups.noSku.length && !groups.blocked.length) {
-          msg = '所选订单中没有「' + sku.name + '」';
-        } else if (groups.blocked.length && !groups.noSku.length) {
-          msg = '所选订单当前不可申请退款（状态不符或该商品售后处理中）';
-        }
-        if (typeof showToast === 'function') showToast(msg, 'error');
         return;
       }
       openRetailBatchRefund({
-        scope: 'sku',
-        sku: sku,
-        targets: groups.eligible,
-        excluded: groups.noSku.length + groups.blocked.length
+        scope: 'order',
+        targets: orderGroups.eligible,
+        excluded: orderGroups.blocked.length
       });
+      return;
+    }
+
+    var visible = getVisibleOrderListRows();
+    var skus = collectMatchingSkuNames(visible, productQ);
+    if (!skus.length) {
+      if (typeof showToast === 'function') showToast('当前筛选没有匹配的商品', 'error');
+      return;
+    }
+    if (skus.length > 1) {
+      if (typeof showToast === 'function') {
+        showToast('当前搜索命中多个商品，请精确到单个商品后再按 SKU 批量退款', 'error');
+      }
+      return;
+    }
+
+    var sku = skus[0];
+    var groups = classifyRetailBatchRefundRows(rows, sku);
+    if (!groups.eligible.length) {
+      var msg = scope === 'query' ? '当前查询订单不可申请该商品退款' : '所选订单当前不可申请该商品退款';
+      if (groups.noSku.length && !groups.blocked.length) {
+        msg = (scope === 'query' ? '当前查询订单中没有「' : '所选订单中没有「') + sku.name + '」';
+      } else if (groups.blocked.length && !groups.noSku.length) {
+        msg =
+          scope === 'query'
+            ? '当前查询订单不可申请退款（状态不符或该商品售后处理中）'
+            : '所选订单当前不可申请退款（状态不符或该商品售后处理中）';
+      }
+      if (typeof showToast === 'function') showToast(msg, 'error');
+      return;
+    }
+    openRetailBatchRefund({
+      scope: 'sku',
+      sku: sku,
+      targets: groups.eligible,
+      excluded: groups.noSku.length + groups.blocked.length
+    });
+  }
+
+  function initRetailBatchRefund() {
+    var page = document.body && document.body.getAttribute('data-order-page');
+    if (page !== 'retail' && page !== 'proxy') return;
+    var wrap = document.getElementById(page === 'proxy' ? 'orderProxyBatchRefund' : 'orderRetailBatchRefund');
+    if (!wrap) return;
+    var btn = wrap.querySelector('.order-batch-refund__btn');
+    var menu = wrap.querySelector('.order-batch-refund__menu');
+    if (!btn || !menu) return;
+
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var open = !wrap.classList.contains('is-open');
+      closeBatchRefundMenu();
+      if (!open) return;
+      updateBatchRefundMenuLabels(wrap);
+      wrap.classList.add('is-open');
+      btn.setAttribute('aria-expanded', 'true');
+      menu.hidden = false;
+    });
+
+    menu.addEventListener('click', function (e) {
+      var item = e.target.closest('[data-refund-scope]');
+      if (!item) return;
+      e.preventDefault();
+      e.stopPropagation();
+      var scope = item.getAttribute('data-refund-scope') === 'query' ? 'query' : 'selected';
+      closeBatchRefundMenu();
+      runBatchRefund(scope);
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.order-batch-refund')) closeBatchRefundMenu();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeBatchRefundMenu();
     });
   }
 
