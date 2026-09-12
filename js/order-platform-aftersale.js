@@ -671,9 +671,10 @@
     return cells[3] ? cells[3].textContent.replace(/\s+/g, ' ').trim() : '-';
   }
 
-  function renderRefundableGoods(goods) {
+  function renderRefundableGoods(goods, skippedGoods) {
     var list = goods && goods.length ? goods : [];
-    if (!list.length) return '—';
+    var skipped = skippedGoods && skippedGoods.length ? skippedGoods : [];
+    if (!list.length && !skipped.length) return '—';
     return (
       '<div class="order-as-order-goods">' +
       list
@@ -694,6 +695,15 @@
           );
         })
         .join('') +
+      (skipped.length
+        ? '<div class="order-as-order-goods__skip">已排除 ' +
+          skipped
+            .map(function (g) {
+              return escapeHtml(String(g.name || '商品'));
+            })
+            .join('、') +
+          '（售后处理中）</div>'
+        : '') +
       '</div>'
     );
   }
@@ -704,7 +714,7 @@
         '<tr>' +
         '<td>' + escapeHtml(t.orderId || '-') + '</td>' +
         '<td>' + escapeHtml(readBatchOrderNick(t.row)) + '</td>' +
-        '<td>' + renderRefundableGoods(t.goods) + '</td>' +
+        '<td>' + renderRefundableGoods(t.goods, t.skippedGoods) + '</td>' +
         '<td>¥' + formatMoney(t.remainAmount) + '</td>' +
         '<td>¥' + formatMoney(t.remainCoupon) + '</td>' +
         '<td>' + escapeHtml(String(t.remainPoints || 0)) + '</td>' +
@@ -989,6 +999,26 @@
     return String(name || '').replace(/\s+/g, '').toLowerCase();
   }
 
+  function isOpenAftersaleGood(orderId, row, good) {
+    var name = good && good.name;
+    if (!orderId || !name) return false;
+    var detail = null;
+    if (global.OrderLiveDetail && typeof global.OrderLiveDetail.resolveDetail === 'function') {
+      detail = global.OrderLiveDetail.resolveDetail(orderId, row);
+    }
+    var list = detail && Array.isArray(detail.aftersales) ? detail.aftersales : [];
+    var key = normalizeGoodsName(name);
+    var openStatuses = ['待审批', '退款中', '待退货', '待收货', '退款异常'];
+    var openTypes = ['仅退款', '退货退款', '补货', '换货'];
+    if (list.some(function (item) {
+      if (!item) return false;
+      if (openTypes.indexOf(item.type) < 0) return false;
+      if (openStatuses.indexOf(item.status) < 0) return false;
+      return normalizeGoodsName(item.productName) === key;
+    })) return true;
+    return !!(good && (good.aftersaleTag === '退款中' || good.aftersaleTag === '补发中'));
+  }
+
   function sumTargetField(list, key) {
     return (list || []).reduce(function (total, item) {
       return total + (key === 'qty' ? (parseInt(item[key], 10) || 0) : parseMoney(item[key]));
@@ -1000,6 +1030,7 @@
     return (targets || []).map(function (t) {
       var resolved = resolveGoods(t.orderId, t.row);
       var goods;
+      var skipped = t.skippedGoods || [];
       if (isOrder) {
         var allow = {};
         (t.goods || []).forEach(function (g) {
@@ -1007,8 +1038,14 @@
         });
         goods = Object.keys(allow).length
           ? resolved.filter(function (g) { return allow[normalizeGoodsName(g.name)]; })
-          : resolved.slice();
-        if (!goods.length) goods = resolved.slice();
+          : resolved.filter(function (g) {
+              return !isOpenAftersaleGood(t.orderId, t.row, g);
+            });
+        skipped = Object.keys(allow).length
+          ? resolved.filter(function (g) { return !allow[normalizeGoodsName(g.name)]; })
+          : resolved.filter(function (g) {
+              return isOpenAftersaleGood(t.orderId, t.row, g);
+            });
       } else {
         var key = normalizeGoodsName(sku && sku.name);
         var good = null;
@@ -1024,6 +1061,7 @@
         row: t.row,
         good: first,
         goods: goods,
+        skippedGoods: skipped,
         qty: sumTargetField(goods, 'qty') || 1,
         remainAmount: sumTargetField(goods, 'remainAmount'),
         remainCoupon: sumTargetField(goods, 'remainCoupon'),
@@ -1131,9 +1169,9 @@
         state.batchScope === 'order'
           ? '<div class="order-as-batch-tip" role="note">未筛选商品名称，将为 <strong>' +
             state.batchTargets.length +
-            '</strong> 笔订单<strong>整单仅退款</strong>。优惠券、积分按订单分摊，各单退现金/退券/退积分分别计算，提交后直接退款。' +
+            '</strong> 笔订单<strong>整单仅退款</strong>。处理中售后的商品已排除，只退其余可退商品。优惠券、积分按订单分摊，各单退现金/退券/退积分分别计算，提交后直接退款。' +
             (state.excluded
-              ? '另已排除 ' + state.excluded + ' 笔（状态不符或商品售后处理中）。'
+              ? '另已排除 ' + state.excluded + ' 笔（状态不符或没有可退商品）。'
               : '') +
             '</div>'
           : '<div class="order-as-batch-tip" role="note">将为 <strong>' +
