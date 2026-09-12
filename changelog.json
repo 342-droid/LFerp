@@ -1,10 +1,68 @@
 {
-  "latestSha": "040c973b81958f698893c5c6472bd473cb7ced13",
-  "total": 387,
+  "latestSha": "4e61c0d1687836ad946a4321bbd48b354f88704d",
+  "total": 388,
   "days": [
     {
       "date": "2026-09-12",
       "items": [
+        {
+          "sha": "4e61c0d",
+          "type": "feat",
+          "text": "退款单详情展示申请描述凭证，并改为选填",
+          "author": "sisi",
+          "time": "17:03",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_feedback.html",
+              "module": "冷丰售后",
+              "title": "意见反馈"
+            },
+            {
+              "file": "MDM/mdm_aftersale_refund.html",
+              "module": "冷丰售后",
+              "title": "退款单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_report.html",
+              "module": "冷丰售后",
+              "title": "举报管理"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "module": "冷丰售后",
+              "title": "售后单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_aftersale_refund.html",
+              "text": "批量退款、仅退款、取消订单详情增加申请信息，展示退款描述和上传凭证"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "批量退款的售后描述、上传凭证改为选填，不填也可提交"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "text": "批量退款的售后描述、上传凭证改为选填，不填也可提交"
+            }
+          ]
+        },
         {
           "sha": "040c973",
           "type": "feat",
