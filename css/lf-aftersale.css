@@ -2735,6 +2735,10 @@ a.aftersale-btn {
   border-bottom: 1px solid #ebeef5;
 }
 
+.aftersale-refund-desc__cell--wide {
+  grid-column: 1 / -1;
+}
+
 .aftersale-refund-desc__label {
   display: flex;
   align-items: center;
@@ -2755,6 +2759,16 @@ a.aftersale-btn {
   word-break: break-all;
   box-sizing: border-box;
   min-width: 0;
+}
+
+.aftersale-refund-desc__value--top {
+  align-items: flex-start;
+}
+
+.aftersale-refund-detail-proofs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .aftersale-refund-detail-proof {
