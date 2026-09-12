@@ -1,7 +1,84 @@
 {
-  "latestSha": "6b63b9369a7dbf51b46b61ad0a812fc0e9ab0631",
-  "total": 382,
+  "latestSha": "95c457e5bd1ff565b8796e05db3a9ea2ecf55a59",
+  "total": 383,
   "days": [
+    {
+      "date": "2026-09-12",
+      "items": [
+        {
+          "sha": "95c457e",
+          "type": "feat",
+          "text": "零售订单支持批量退款并调整退款单来源原因",
+          "author": "sisi",
+          "time": "13:42",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_feedback.html",
+              "module": "冷丰售后",
+              "title": "意见反馈"
+            },
+            {
+              "file": "MDM/mdm_aftersale_refund.html",
+              "module": "冷丰售后",
+              "title": "退款单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_report.html",
+              "module": "冷丰售后",
+              "title": "举报管理"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "module": "冷丰售后",
+              "title": "售后单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_queue.html",
+              "module": "冷丰WMS",
+              "title": "排队记录"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "工具栏增加批量退款；未搜商品整单退，搜到单个商品按该 SKU 退；可退商品展示品名和件数，只支持仅退款且提交后直接退；各单按优惠券、积分分摊分别退现金、退券、退积分"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "text": "取消订单后同步生成来源为「取消订单」的退款单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_refund.html",
+              "text": "来源改为批量退款、仅退款、取消订单、售后单；列表和详情展示退款原因，以及退优惠券、退积分"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "text": "右侧订单信息补商品信息和快递单号，可点开物流跟踪；跳转退款单的来源改为售后单"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-09-11",
       "items": [
@@ -99,6 +176,11 @@
           "author": "sisi",
           "time": "01:24",
           "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
             {
               "file": "MDM/mdm_archive_carrier.html",
               "module": "冷丰WMS",
@@ -272,6 +354,11 @@
               "file": "MDM/mdm_aftersale_ticket.html",
               "module": "冷丰售后",
               "title": "售后单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
             },
             {
               "file": "MDM/mdm_archive_carrier.html",
@@ -2038,6 +2125,11 @@
           "author": "sisi",
           "time": "19:11",
           "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
             {
               "file": "MDM/mdm_order_live.html",
               "module": "冷丰WMS",
@@ -4383,6 +4475,11 @@
           "time": "10:04",
           "pages": [
             {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
               "file": "MDM/mdm_order_live.html",
               "module": "冷丰WMS",
               "title": "直播订单"
@@ -4633,6 +4730,11 @@
           "time": "15:02",
           "pages": [
             {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
               "file": "MDM/mdm_order_live.html",
               "module": "冷丰WMS",
               "title": "直播订单"
@@ -4671,6 +4773,11 @@
           "author": "sisi",
           "time": "14:34",
           "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
             {
               "file": "MDM/mdm_live_product_sched_edit.html",
               "module": "冷丰WMS",
@@ -6651,6 +6758,11 @@
           "time": "14:59",
           "pages": [
             {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
               "file": "MDM/mdm_order_live.html",
               "module": "冷丰WMS",
               "title": "直播订单"
@@ -6771,6 +6883,11 @@
           "author": "weekwood",
           "time": "00:31",
           "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
             {
               "file": "MDM/mdm_order_live.html",
               "module": "冷丰WMS",
@@ -7618,6 +7735,11 @@
           "time": "11:28",
           "pages": [
             {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
               "file": "MDM/mdm_order_express_cutoff.html",
               "module": "冷丰订单",
               "title": "订单截单"
@@ -7704,6 +7826,11 @@
           "time": "23:58",
           "pages": [
             {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
               "file": "MDM/mdm_order_proxy.html",
               "module": "冷丰WMS",
               "title": "代采订单"
@@ -7747,6 +7874,11 @@
           "author": "sisi",
           "time": "16:38",
           "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
             {
               "file": "MDM/mdm_order_proxy.html",
               "module": "冷丰WMS",
@@ -7812,6 +7944,11 @@
           "time": "18:57",
           "pages": [
             {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
               "file": "MDM/mdm_order_live.html",
               "module": "冷丰WMS",
               "title": "直播订单"
@@ -7855,6 +7992,11 @@
           "author": "sisi",
           "time": "16:41",
           "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
             {
               "file": "MDM/mdm_live_timeslot.html",
               "module": "冷丰WMS",
@@ -8356,6 +8498,11 @@
           "time": "22:22",
           "pages": [
             {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
               "file": "MDM/mdm_order_live.html",
               "module": "冷丰WMS",
               "title": "直播订单"
@@ -8836,6 +8983,11 @@
           "author": "sisi",
           "time": "23:37",
           "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
             {
               "file": "MDM/mdm_order_live.html",
               "module": "冷丰WMS",
@@ -12262,6 +12414,11 @@
           "time": "00:34",
           "pages": [
             {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
               "file": "MDM/mdm_archive_carrier.html",
               "module": "冷丰WMS",
               "title": "承运商档案"
@@ -12590,6 +12747,11 @@
           "author": "sisi",
           "time": "18:05",
           "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
             {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
@@ -13360,6 +13522,11 @@
           "time": "11:38",
           "pages": [
             {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
               "file": "MDM/mdm_order_live.html",
               "module": "冷丰WMS",
               "title": "直播订单"
@@ -13625,6 +13792,11 @@
           "author": "sisi",
           "time": "00:22",
           "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
             {
               "file": "MDM/mdm_archive_carrier.html",
               "module": "冷丰WMS",
@@ -14970,6 +15142,11 @@
           "time": "18:09",
           "pages": [
             {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
               "file": "MDM/mdm_order_live.html",
               "module": "冷丰WMS",
               "title": "直播订单"
@@ -15391,6 +15568,11 @@
           "time": "23:53",
           "pages": [
             {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
               "file": "MDM/mdm_order_live.html",
               "module": "冷丰WMS",
               "title": "直播订单"
@@ -15434,6 +15616,11 @@
           "author": "sisi",
           "time": "18:51",
           "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
             {
               "file": "MDM/mdm_order_live.html",
               "module": "冷丰WMS",
@@ -20432,6 +20619,11 @@
           "time": "01:13",
           "pages": [
             {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
               "file": "MDM/mdm_order_live.html",
               "module": "冷丰WMS",
               "title": "直播订单"
@@ -20673,6 +20865,11 @@
           "author": "sisi",
           "time": "09:40",
           "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
             {
               "file": "MDM/mdm_order_proxy.html",
               "module": "冷丰WMS",
@@ -21505,6 +21702,11 @@
           "time": "15:26",
           "pages": [
             {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
               "file": "MDM/mdm_order_live.html",
               "module": "冷丰WMS",
               "title": "直播订单"
@@ -21639,6 +21841,11 @@
           "author": "sisi",
           "time": "10:10",
           "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
             {
               "file": "MDM/mdm_order_live.html",
               "module": "冷丰WMS",
@@ -21796,6 +22003,11 @@
               "file": "MDM/mdm_aftersale_ticket.html",
               "module": "冷丰售后",
               "title": "售后单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
             },
             {
               "file": "MDM/mdm_order_proxy.html",
@@ -22031,6 +22243,11 @@
           "author": "sisi",
           "time": "21:50",
           "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
             {
               "file": "MDM/mdm_order_live.html",
               "module": "冷丰WMS",
@@ -22304,6 +22521,11 @@
           "time": "00:05",
           "pages": [
             {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
               "file": "MDM/mdm_order_live.html",
               "module": "冷丰WMS",
               "title": "直播订单"
@@ -22344,6 +22566,11 @@
           "time": "23:22",
           "pages": [
             {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
               "file": "MDM/mdm_order_live.html",
               "module": "冷丰WMS",
               "title": "直播订单"
@@ -22378,6 +22605,11 @@
           "author": "sisi",
           "time": "17:51",
           "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
             {
               "file": "MDM/mdm_order_express_cutoff.html",
               "module": "冷丰订单",
@@ -22658,6 +22890,11 @@
           "author": "sisi",
           "time": "01:05",
           "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
             {
               "file": "MDM/mdm_live_product_sched.html",
               "module": "冷丰WMS",
@@ -24663,6 +24900,11 @@
           "author": "sisi",
           "time": "18:23",
           "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
             {
               "file": "MDM/mdm_order_express_cutoff.html",
               "module": "冷丰订单",
