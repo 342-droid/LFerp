@@ -2185,14 +2185,20 @@
         blocked.push(row);
         return;
       }
+      var skippedGoods = [];
       var goods = (getOrderGoods(orderId, row) || []).filter(function (g) {
-        return g && g.name && !skuHasOpenAftersale(orderId, row, g.name);
+        if (!g || !g.name) return false;
+        if (skuHasOpenAftersale(orderId, row, g.name)) {
+          skippedGoods.push(g);
+          return false;
+        }
+        return true;
       });
       if (!goods.length) {
         blocked.push(row);
         return;
       }
-      eligible.push({ row: row, orderId: orderId, goods: goods });
+      eligible.push({ row: row, orderId: orderId, goods: goods, skippedGoods: skippedGoods });
     });
     return { eligible: eligible, blocked: blocked };
   }
@@ -2256,8 +2262,8 @@
         if (typeof showToast === 'function') {
           showToast(
             scope === 'query'
-              ? '当前查询订单不可整单退款（状态不符或商品售后处理中）'
-              : '所选订单当前不可整单退款（状态不符或商品售后处理中）',
+              ? '当前查询订单不可整单退款（状态不符或没有可退商品）'
+              : '所选订单当前不可整单退款（状态不符或没有可退商品）',
             'error'
           );
         }

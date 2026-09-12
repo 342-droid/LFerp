@@ -1216,7 +1216,7 @@
         refund: '¥0.00'
       },
       paymentCount: 1,
-      aftersales: [],
+      aftersales: cfg.aftersales || [],
       customer: { nickname: cfg.nickname, phone: cfg.phone, userId: cfg.userId },
       delivery: {
         type: cfg.mode === 'warehouse' || cfg.mode === 'delivery'
@@ -1274,7 +1274,18 @@
       goods: [
         { name: '阳光番茄 500g', spec: '规格：500g', price: '¥9.90', qty: 2, sku: 'SKU-TOMATO', img: '../user-app/assets/order-product-1.svg' },
         { name: '黄瓜 500g', spec: '规格：500g', price: '¥5.80', qty: 1, sku: 'SKU-CUCUMBER', img: '../user-app/assets/order-product-2.svg' }
-      ]
+      ],
+      aftersales: [{
+        id: 'AS-9301-1',
+        productName: '黄瓜 500g',
+        type: '仅退款',
+        status: '待审批',
+        returnQty: 1,
+        refundAmount: '¥5.80',
+        refundCoupon: '¥0.00',
+        refundPoints: 0,
+        adjustAmount: '¥0.00'
+      }]
     },
     {
       id: 'ORD-3212689201599302',
@@ -1368,7 +1379,18 @@
       goods: [
         { name: '阳光番茄 500g', spec: '规格：500g', price: '¥9.90', qty: 2, sku: 'SKU-TOMATO', img: '../user-app/assets/order-product-1.svg' },
         { name: '黄瓜 500g', spec: '规格：500g', price: '¥5.80', qty: 1, sku: 'SKU-CUCUMBER', img: '../user-app/assets/order-product-2.svg' }
-      ]
+      ],
+      aftersales: [{
+        id: 'AS-9401-1',
+        productName: '黄瓜 500g',
+        type: '仅退款',
+        status: '待审批',
+        returnQty: 1,
+        refundAmount: '¥5.80',
+        refundCoupon: '¥0.00',
+        refundPoints: 0,
+        adjustAmount: '¥0.00'
+      }]
     },
     {
       id: 'ORD-3212689201599402',
