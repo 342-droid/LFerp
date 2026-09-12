@@ -12,6 +12,14 @@
         .omni-inventory-table .product-image { width: 48px; height: 48px; object-fit: contain; border-radius: 4px; border: 1px solid #eee; background: #fff; }
         .omni-inventory-table .number-cell { text-align: center; }
         .omni-inventory-table .empty-cell { text-align: center; padding: 40px; color: #999; }
+        #omniInventoryAdjustmentModal .modal-form-group:nth-child(1),
+        #omniInventoryAdjustmentModal .modal-form-group:nth-child(2),
+        #omniInventoryAdjustmentModal .modal-form-group:nth-child(3),
+        #omniInventoryAdjustmentModal .modal-form-group:nth-child(4),
+        #omniInventoryAdjustmentModal .modal-form-group:nth-child(5),
+        #omniInventoryAdjustmentModal .modal-form-group:nth-child(6) {
+            width: calc(50% - 10px);
+        }
     </style>
 </head>
 <body>
@@ -52,6 +60,7 @@
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary">查询</button>
                         <button type="button" class="btn btn-secondary" id="omniExportBtn">导出</button>
+                        <button type="button" class="btn btn-primary" id="omniAdjustmentBtn">调账</button>
                     </div>
                 </form>
             </section>
@@ -60,6 +69,7 @@
                 <div class="table-scroll-container">
                     <table class="table omni-inventory-table">
                         <thead><tr>
+                            <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
                             <th>仓库</th><th>货主</th><th>商品图片</th><th>商品编码</th><th>商品条码</th><th>商品名称</th><th>商品规格</th><th>商品单位</th>
                             <th>在途单据</th><th>在途库存</th><th>当前库存</th><th>出库预占</th><th>冻结库存</th><th>退货预占</th><th>收货差异</th>
                         </tr></thead>
@@ -83,6 +93,18 @@
                 { warehouse: 'W003 上海仓', company: 'C002 货主2', image: '../user-app/assets/order-product-3.svg', code: 'SKU003', barcode: '6900000000035', name: '速冻水饺', spec: '500g/包', unit: '包', document: 4, transit: 200, current: 1250, outbound: 120, frozen: 50, returned: 0, difference: 3 }
             ];
             const body = document.getElementById('omniInventoryTableBody');
+            const adjustmentTypeOptions = [
+                { value: 'transit', text: '在途库存' },
+                { value: 'current', text: '当前库存' },
+                { value: 'outbound', text: '出库预占' },
+                { value: 'frozen', text: '冻结库存' },
+                { value: 'returned', text: '退货预占' },
+                { value: 'difference', text: '收货差异' }
+            ];
+            const adjustmentDirectionOptions = [
+                { value: 'increase', text: '增加' },
+                { value: 'decrease', text: '减少' }
+            ];
             const escapeHtml = function (value) {
                 return String(value == null ? '' : value).replace(/[&<>'"]/g, function (char) {
                     return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char];
@@ -90,11 +112,11 @@
             };
             const render = function (data) {
                 if (!data.length) {
-                    body.innerHTML = '<tr><td colspan="15" class="empty-cell">暂无数据</td></tr>';
+                    body.innerHTML = '<tr><td colspan="16" class="empty-cell">暂无数据</td></tr>';
                     return;
                 }
                 body.innerHTML = data.map(function (row) {
-                    return '<tr>' +
+                    return '<tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td>' +
                         '<td>' + escapeHtml(row.warehouse) + '</td><td>' + escapeHtml(row.company) + '</td>' +
                         '<td><img class="product-image" src="' + escapeHtml(row.image) + '" alt="' + escapeHtml(row.name) + '"></td>' +
                         '<td>' + escapeHtml(row.code) + '</td><td>' + escapeHtml(row.barcode) + '</td><td>' + escapeHtml(row.name) + '</td>' +
@@ -127,7 +149,72 @@
                 link.click();
                 URL.revokeObjectURL(link.href);
             });
+
+            const adjustmentPage = new PageManager({
+                entityName: '全渠道库存调账',
+                modalWidth: '760px',
+                labelWidth: '110px',
+                fields: [
+                    { id: 'adjustmentWarehouse', label: '仓库', type: 'select', required: true, options: [
+                        { value: 'W001 南京仓', text: 'W001 南京仓' },
+                        { value: 'W002 嘉兴仓', text: 'W002 嘉兴仓' },
+                        { value: 'W003 上海仓', text: 'W003 上海仓' }
+                    ] },
+                    { id: 'adjustmentCompany', label: '货主', type: 'select', required: true, options: [
+                        { value: 'C001 货主1', text: 'C001 货主1' },
+                        { value: 'C002 货主2', text: 'C002 货主2' }
+                    ] },
+                    { id: 'adjustmentProduct', label: '商品', type: 'select', required: true,
+                        options: rows.map(function (row) { return { value: row.code, text: row.code + ' ' + row.name }; }) },
+                    { id: 'adjustmentType', label: '变更类型', type: 'select', required: true, options: adjustmentTypeOptions },
+                    { id: 'adjustmentDirection', label: '变更方向', type: 'select', required: true, options: adjustmentDirectionOptions },
+                    { id: 'adjustmentQuantity', label: '变更数量', type: 'number', required: true, placeholder: '请输入大于0的数量', step: '1' },
+                    { id: 'adjustmentRemark', label: '备注', type: 'textarea', placeholder: '请输入备注（选填）' }
+                ],
+                addModal: {
+                    modalId: 'omniInventoryAdjustmentModal',
+                    triggerBtnId: 'omniAdjustmentBtn',
+                    cancelBtnId: 'omniInventoryAdjustmentCancelBtn',
+                    saveBtnId: 'omniInventoryAdjustmentSaveBtn',
+                    title: '全渠道库存调账',
+                    validations: [
+                        { id: 'adjustmentWarehouse', message: '请选择仓库', required: true },
+                        { id: 'adjustmentCompany', message: '请选择货主', required: true },
+                        { id: 'adjustmentProduct', message: '请选择商品', required: true },
+                        { id: 'adjustmentType', message: '请选择变更类型', required: true },
+                        { id: 'adjustmentDirection', message: '请选择变更方向', required: true },
+                        { id: 'adjustmentQuantity', message: '请输入大于0的变更数量', required: true, pattern: /^[1-9]\d*$/ }
+                    ],
+                    onSave: function () {
+                        const warehouse = document.getElementById('adjustmentWarehouse').value;
+                        const company = document.getElementById('adjustmentCompany').value;
+                        const product = document.getElementById('adjustmentProduct').dataset.value;
+                        const type = document.getElementById('adjustmentType').dataset.value;
+                        const direction = document.getElementById('adjustmentDirection').dataset.value;
+                        const quantity = Number(document.getElementById('adjustmentQuantity').value);
+                        const row = rows.find(function (item) {
+                            return item.warehouse === warehouse && item.company === company && item.code === product;
+                        });
+                        if (!row) {
+                            showToast('未找到对应的全渠道库存记录', 'error');
+                            return false;
+                        }
+                        const currentValue = Number(row[type] || 0);
+                        const nextValue = direction === 'increase' ? currentValue + quantity : currentValue - quantity;
+                        if (nextValue < 0) {
+                            const typeText = (adjustmentTypeOptions.find(function (item) { return item.value === type; }) || {}).text || '库存';
+                            showToast('减少数量不能超过当前' + typeText, 'error');
+                            return false;
+                        }
+                        row[type] = nextValue;
+                        render(filter());
+                        showToast('全渠道库存调账成功', 'success');
+                    }
+                }
+            });
+            adjustmentPage.init();
             render(rows);
+            initTableCheckbox('omniInventoryTableBody');
         }());
     </script>
 </body>

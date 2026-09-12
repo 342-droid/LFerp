@@ -1,10 +1,97 @@
 {
-  "latestSha": "50ae9458de52a706b981a14dd1ca7c6ab3e0cde1",
-  "total": 381,
+  "latestSha": "6b63b9369a7dbf51b46b61ad0a812fc0e9ab0631",
+  "total": 382,
   "days": [
     {
       "date": "2026-09-11",
       "items": [
+        {
+          "sha": "6b63b93",
+          "type": "feat",
+          "text": "完善库存与采购页面业务字段及调账功能",
+          "author": "342-droid",
+          "time": "11:27",
+          "pages": [
+            {
+              "file": "SCM/ibd_receipt.html",
+              "module": "冷丰WMS",
+              "title": "入库单"
+            },
+            {
+              "file": "SCM/inventory-log.html",
+              "module": "冷丰WMS",
+              "title": "库存日志"
+            },
+            {
+              "file": "SCM/obd_carton.html",
+              "module": "冷丰WMS",
+              "title": "包裹管理"
+            },
+            {
+              "file": "SCM/obd_outbound_exception.html",
+              "module": "冷丰WMS",
+              "title": "出库异常"
+            },
+            {
+              "file": "SCM/omni_inventory.html",
+              "module": "冷丰WMS",
+              "title": "全渠道库存查询"
+            },
+            {
+              "file": "SCM/omni_inventory_log.html",
+              "module": "冷丰WMS",
+              "title": "全渠道库存日志"
+            },
+            {
+              "file": "SCM/purchase_order.html",
+              "module": "冷丰采购",
+              "title": "采购单"
+            },
+            {
+              "file": "SCM/purchase_store_order_sheet.html",
+              "module": "冷丰采购",
+              "title": "门店订货单"
+            }
+          ],
+          "notes": [
+            {
+              "file": null,
+              "text": "入库收货页面: 增加已取消量字段并展示收货数据"
+            },
+            {
+              "file": "SCM/inventory-log.html",
+              "text": "库存日志页面: 增加勾选、货主筛选及库存业务类型"
+            },
+            {
+              "file": null,
+              "text": "箱单页面: 增加批量勾选列"
+            },
+            {
+              "file": "SCM/obd_outbound_exception.html",
+              "text": "出库异常页面: 增加批量勾选列"
+            },
+            {
+              "file": null,
+              "text": "全渠道库存页面: 增加调账入口、调账表单及勾选列"
+            },
+            {
+              "file": "SCM/omni_inventory_log.html",
+              "text": "全渠道库存日志页面: 扩充货主、备注及业务字段并支持筛选导出"
+            },
+            {
+              "file": "SCM/purchase_order.html",
+              "text": "采购单页面: 增加已取消量展示"
+            },
+            {
+              "file": "SCM/purchase_order.html",
+              "text": "门店采购单页面: 增加已取消量展示"
+            },
+            {
+              "file": null,
+              "text": "更新会话检查点"
+            }
+          ]
+        },
         {
           "sha": "50ae945",
           "type": "feat",
