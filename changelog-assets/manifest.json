@@ -2661,6 +2661,23 @@
     "status": "diff",
     "date": "2026-09-09"
   },
+  "a31c960|MDM/mdm_order_live.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-12"
+  },
+  "a31c960|MDM/mdm_order_proxy.html": {
+    "before": "changelog-assets/a31c960/MDM__mdm_order_proxy.html.before.jpg",
+    "after": "changelog-assets/a31c960/MDM__mdm_order_proxy.html.after.jpg",
+    "regions": 6,
+    "status": "diff",
+    "date": "2026-09-12"
+  },
+  "a31c960|MDM/mdm_order_retail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-12"
+  },
   "a867d9c|MDM/mdm_archive_carrier.html": {
     "regions": 0,
     "status": "diff",
