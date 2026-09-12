@@ -400,6 +400,39 @@
     "status": "diff",
     "date": "2026-09-09"
   },
+  "2ba9506|SCM/TMS_index.html": {
+    "before": "changelog-assets/2ba9506/SCM__TMS_index.html.before.jpg",
+    "after": "changelog-assets/2ba9506/SCM__TMS_index.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-09-12"
+  },
+  "2ba9506|SCM/carrier.html": {
+    "before": "changelog-assets/2ba9506/SCM__carrier.html.before.jpg",
+    "after": "changelog-assets/2ba9506/SCM__carrier.html.after.jpg",
+    "regions": 22,
+    "status": "diff",
+    "date": "2026-09-12"
+  },
+  "2ba9506|SCM/logistics_rate.html": {
+    "after": "changelog-assets/2ba9506/SCM__logistics_rate.html.after.jpg",
+    "status": "added",
+    "date": "2026-09-12"
+  },
+  "2ba9506|SCM/tms_route.html": {
+    "before": "changelog-assets/2ba9506/SCM__tms_route.html.before.jpg",
+    "after": "changelog-assets/2ba9506/SCM__tms_route.html.after.jpg",
+    "regions": 23,
+    "status": "diff",
+    "date": "2026-09-12"
+  },
+  "2ba9506|SCM/tms_route_rule.html": {
+    "before": "changelog-assets/2ba9506/SCM__tms_route_rule.html.before.jpg",
+    "after": "changelog-assets/2ba9506/SCM__tms_route_rule.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-09-12"
+  },
   "301e9e3|MDM/mdm_order_live.html": {
     "before": "changelog-assets/301e9e3/MDM__mdm_order_live.html.before.jpg",
     "after": "changelog-assets/301e9e3/MDM__mdm_order_live.html.after.jpg",

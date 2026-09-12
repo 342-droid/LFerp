@@ -1,10 +1,63 @@
 {
-  "latestSha": "7067d0dd49a5c9b240d0c999ef63a004172a0fdb",
-  "total": 384,
+  "latestSha": "2ba95067be9192689e16f905c6d7416bcc58ab5f",
+  "total": 385,
   "days": [
     {
       "date": "2026-09-12",
       "items": [
+        {
+          "sha": "2ba9506",
+          "type": "feat",
+          "text": "TMS新增物流费率表，承运商改到TMS、线路管理改回WMS",
+          "author": "342-droid",
+          "time": "14:04",
+          "pages": [
+            {
+              "file": "SCM/TMS_index.html",
+              "module": "冷丰TMS",
+              "title": "首页"
+            },
+            {
+              "file": "SCM/carrier.html",
+              "module": "冷丰TMS",
+              "title": "承运商"
+            },
+            {
+              "file": "SCM/logistics_rate.html",
+              "module": "冷丰TMS",
+              "title": "物流费率表"
+            },
+            {
+              "file": "SCM/tms_route.html",
+              "module": "冷丰WMS",
+              "title": "线路管理"
+            },
+            {
+              "file": "SCM/tms_route_rule.html",
+              "module": "冷丰TMS",
+              "title": "路由规则"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "SCM/logistics_rate.html",
+              "text": "新增查询、列表和新增编辑详情；列表按配置展示费用阶梯和增值服务；查询增加费用方案"
+            },
+            {
+              "file": "SCM/carrier.html",
+              "text": "改到 TMS 菜单，支持编辑承运商名称"
+            },
+            {
+              "file": "SCM/tms_route.html",
+              "text": "改回 WMS 基础信息菜单"
+            },
+            {
+              "file": null,
+              "text": "TMS 侧栏增加承运商和物流费率表，WMS 侧栏用线路管理替换承运商"
+            }
+          ]
+        },
         {
           "sha": "7067d0d",
           "type": "feat",
@@ -13167,6 +13220,11 @@
               "title": "站点"
             },
             {
+              "file": "SCM/logistics_rate.html",
+              "module": "冷丰TMS",
+              "title": "物流费率表"
+            },
+            {
               "file": "SCM/obd_outbound.html",
               "module": "冷丰WMS",
               "title": "出库单"
@@ -23944,6 +24002,11 @@
               "title": "站点"
             },
             {
+              "file": "SCM/logistics_rate.html",
+              "module": "冷丰TMS",
+              "title": "物流费率表"
+            },
+            {
               "file": "SCM/obd_outbound.html",
               "module": "冷丰WMS",
               "title": "出库单"
@@ -28623,7 +28686,7 @@
             },
             {
               "file": "SCM/carrier.html",
-              "module": "冷丰WMS",
+              "module": "冷丰TMS",
               "title": "承运商"
             },
             {
@@ -28675,6 +28738,11 @@
               "file": "SCM/login.html",
               "module": "冷丰WMS",
               "title": "登录"
+            },
+            {
+              "file": "SCM/logistics_rate.html",
+              "module": "冷丰TMS",
+              "title": "物流费率表"
             },
             {
               "file": "SCM/lpn.html",
@@ -28778,7 +28846,7 @@
             },
             {
               "file": "SCM/tms_route.html",
-              "module": "冷丰TMS",
+              "module": "冷丰WMS",
               "title": "线路管理"
             },
             {
