@@ -2,7 +2,8 @@
  * 售后 — 退款单列表
  * 筛选项：退款来源（批量退款/仅退款/取消订单/售后单）
  *         退款状态（未发起退款/待退款/退款执行中/退款成功/退款失败）
- * 线下付款：待退款时可「上传付款凭证」标记线下已付款
+ * 申请信息：仅「批量退款 / 仅退款」详情展示
+ * 支付凭证：仅售后单线下付款；结算前直退不展示、不可上传付款凭证
  */
 (function () {
   var SOURCES = ['批量退款', '仅退款', '取消订单', '售后单'];
@@ -85,10 +86,18 @@
     return source !== '售后单';
   }
 
+  function isApplyInfoSource(source) {
+    return source === '批量退款' || source === '仅退款';
+  }
+
+  function isPreSettleRefund(source) {
+    return source === '批量退款' || source === '仅退款' || source === '取消订单';
+  }
+
   function refundApplyDesc(row) {
     if (!row) return '';
     if (row.desc) return String(row.desc);
-    if (sourceSkipsApproval(row.source) && row.method !== '线下付款' && row.remark) {
+    if (isApplyInfoSource(row.source) && row.method !== '线下付款' && row.remark) {
       return String(row.remark);
     }
     return '';
@@ -100,7 +109,7 @@
       return row.proofs.filter(Boolean);
     }
     if (
-      sourceSkipsApproval(row.source) &&
+      isApplyInfoSource(row.source) &&
       row.method !== '线下付款' &&
       row.proofUrl &&
       row.proofUrl !== 'uploaded'
@@ -122,7 +131,12 @@
 
   /** 线下付款且待退款：可上传付款凭证 */
   function canUploadVoucher(row) {
-    return row.method === '线下付款' && row.status === '待退款' && !row.voucherUploaded;
+    return (
+      row.source === '售后单' &&
+      row.method === '线下付款' &&
+      row.status === '待退款' &&
+      !row.voucherUploaded
+    );
   }
 
   function buildDemoRows() {
@@ -130,7 +144,8 @@
     var amounts = [1, 0.2, 0.02, 12.5, 0.75, 2.0, 9.9, 0.1, 3.6, 0.5];
     for (var i = 0; i < TOTAL_DEMO; i++) {
       var source = SOURCES[i % SOURCES.length];
-      var method = i % 5 === 2 || i % 7 === 0 ? '线下付款' : '原路退回';
+      var method =
+        isPreSettleRefund(source) || !(i % 5 === 2 || i % 7 === 0) ? '原路退回' : '线下付款';
       var status;
       if (method === '线下付款') {
         // 线下：多数待退款，部分成功
@@ -773,7 +788,7 @@
 
     var html = descSection('退款信息', info) + descSection('退款金额', amount);
 
-    if (sourceSkipsApproval(row.source)) {
+    if (isApplyInfoSource(row.source)) {
       var applyDesc = refundApplyDesc(row);
       var applyProofs = refundApplyProofs(row);
       var proofHtml = '—';
@@ -798,8 +813,8 @@
       );
     }
 
-    // 线下付款详情：展示支付凭证区块（图五）
-    if (row.method === '线下付款') {
+    // 结算前直退（批量 / 仅退款 / 取消订单）不展示支付凭证；仅售后单线下付款保留
+    if (row.method === '线下付款' && !isPreSettleRefund(row.source)) {
       var voucherActual =
         row.voucherUploaded && row.actualPaid != null
           ? money(row.actualPaid)
