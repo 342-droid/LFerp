@@ -1279,7 +1279,7 @@
     {
       id: 'ORD-3212689201599302',
       mode: 'express',
-      status: '待收货',
+      status: '待发货',
       submitTime: '2026-09-11 14:08',
       nickname: '陈予安',
       receiver: '陈予安',
@@ -1326,7 +1326,7 @@
     {
       id: 'ORD-3212689201599304',
       mode: 'express',
-      status: '待收货',
+      status: '待发货',
       submitTime: '2026-09-10 11:20',
       nickname: '苏晚晴',
       receiver: '苏晚晴',
@@ -1350,7 +1350,7 @@
     {
       id: 'ORD-3212689201599401',
       mode: 'warehouse',
-      status: '待收货',
+      status: '待发货',
       submitTime: '2026-09-11 19:20',
       nickname: '江晚宁',
       receiver: '江晚宁',
@@ -1373,7 +1373,7 @@
     {
       id: 'ORD-3212689201599402',
       mode: 'express',
-      status: '待收货',
+      status: '待发货',
       submitTime: '2026-09-11 13:05',
       nickname: '陆承安',
       receiver: '陆承安',
@@ -1397,7 +1397,7 @@
     {
       id: 'ORD-3212689201599403',
       mode: 'warehouse',
-      status: '待收货',
+      status: '待发货',
       submitTime: '2026-09-10 18:40',
       nickname: '沈清晏',
       receiver: '沈清晏',
@@ -1420,7 +1420,7 @@
     {
       id: 'ORD-3212689201599404',
       mode: 'express',
-      status: '交易成功',
+      status: '待发货',
       submitTime: '2026-09-10 10:12',
       nickname: '顾知夏',
       receiver: '顾知夏',

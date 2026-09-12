@@ -42,8 +42,8 @@
 
   /**
    * 取消订单可见性
-   * - 零售自提：待支付、已支付、待接单、待发货、待收货、待提货
-   * - 零售快递 / 代采快递 / 代采配送：待支付、已支付、待接单、待发货
+   * - 零售自提：待支付、已创建、已支付、待接单、待发货、待收货、待提货
+   * - 零售快递 / 代采快递 / 代采配送：待支付、已创建、已支付、待接单、待发货
    */
   function canCancelOrder(row) {
     var status = getRowOrderStatus(row);
@@ -52,6 +52,16 @@
       return ['待支付', '已创建', '已支付', '待接单', '待发货', '待收货', '待提货'].indexOf(status) >= 0;
     }
     return ['待支付', '已创建', '已支付', '待接单', '待发货'].indexOf(status) >= 0;
+  }
+
+  /**
+   * 批量退款资格（与单笔「申请售后 / 发起售后」不同）
+   * - 零售自提：待支付、已创建、已支付、待接单、待发货、待收货、待提货
+   * - 零售快递：待支付、已创建、已支付、待接单、待发货
+   * - 代采：与后台「取消订单」同一套（待支付、已创建、已支付、待接单、待发货）
+   */
+  function canBatchRefundOrder(row) {
+    return canCancelOrder(row);
   }
 
   /**
@@ -1187,6 +1197,7 @@
 
   global.OrderPlatformAftersale = {
     canCancelOrder: canCancelOrder,
+    canBatchRefundOrder: canBatchRefundOrder,
     canPlatformRefund: canPlatformRefund,
     canOpenAftersaleDrawer: canOpenAftersaleDrawer,
     aftersaleActionLabel: aftersaleActionLabel,

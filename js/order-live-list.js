@@ -2145,13 +2145,14 @@
   }
 
   function canBatchRefundOrder(row) {
-    if (window.OrderPlatformAftersale && typeof window.OrderPlatformAftersale.canOpenAftersaleDrawer === 'function') {
-      return window.OrderPlatformAftersale.canOpenAftersaleDrawer(row);
+    if (window.OrderPlatformAftersale && typeof window.OrderPlatformAftersale.canBatchRefundOrder === 'function') {
+      return window.OrderPlatformAftersale.canBatchRefundOrder(row);
     }
-    return isRetailOrderPage() ? canRetailOpenAftersale(row) : (
-      getRowOrderStatus(row) === '待收货' ||
-      getRowOrderStatus(row) === '交易成功' ||
-      getRowOrderStatus(row) === '已完成'
+    if (window.OrderPlatformAftersale && typeof window.OrderPlatformAftersale.canCancelOrder === 'function') {
+      return window.OrderPlatformAftersale.canCancelOrder(row);
+    }
+    return isRetailOrderPage() ? canCancelRetailOrder(row) : (
+      ['待支付', '已创建', '已支付', '待接单', '待发货'].indexOf(getRowOrderStatus(row)) >= 0
     );
   }
 
