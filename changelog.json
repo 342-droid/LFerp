@@ -1,10 +1,54 @@
 {
-  "latestSha": "a31c960541a3fee38ad5b2381516007a9a705a53",
-  "total": 386,
+  "latestSha": "040c973b81958f698893c5c6472bd473cb7ced13",
+  "total": 387,
   "days": [
     {
       "date": "2026-09-12",
       "items": [
+        {
+          "sha": "040c973",
+          "type": "feat",
+          "text": "整单批量退款排除售后占用商品后继续退其余商品",
+          "author": "sisi",
+          "time": "15:39",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_queue.html",
+              "module": "冷丰WMS",
+              "title": "排队记录"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "整单批量退不再因部分商品售后处理中整单排除，抽屉只退其余可退商品并注明已排除项"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "text": "整单批量退同样排除处理中售后商品，其余可退商品继续退"
+            }
+          ]
+        },
         {
           "sha": "a31c960",
           "type": "feat",
