@@ -573,6 +573,22 @@
                     pad2(now.getHours()) + pad2(now.getMinutes()) + pad2(now.getSeconds());
             }
 
+            function loadXlsxLib() {
+                if (window.XLSX && window.XLSX.utils && typeof window.XLSX.writeFile === 'function') {
+                    return Promise.resolve();
+                }
+                const src = (window.wmsPath && typeof window.wmsPath.asset === 'function')
+                    ? window.wmsPath.asset('js/vendor/xlsx.full.min.js')
+                    : '../js/vendor/xlsx.full.min.js';
+                return new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = src;
+                    script.onload = () => resolve();
+                    script.onerror = () => reject(new Error('xlsx'));
+                    document.head.appendChild(script);
+                });
+            }
+
             function exportRows() {
                 const rows = exportTargetRows();
                 if (!rows.length) {
@@ -590,13 +606,15 @@
                     row.freightDisc || '—', row.settleDisc || '—',
                     formatMoney(customerFeeOf(row)), formatMoney(settleFeeOf(row))
                 ]), ['合计', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', formatMoney(customerSum), formatMoney(settleSum)]];
-                const csv = lines.map((line) => line.map((value) => '"' + String(value).replace(/"/g, '""') + '"').join(',')).join('\n');
-                const url = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' }));
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = '运费预估报表_' + stamp() + '.csv';
-                link.click();
-                URL.revokeObjectURL(url);
+                loadXlsxLib().then(() => {
+                    const wb = window.XLSX.utils.book_new();
+                    const ws = window.XLSX.utils.aoa_to_sheet(lines);
+                    window.XLSX.utils.book_append_sheet(wb, ws, '运费预估报表');
+                    window.XLSX.writeFile(wb, '运费预估报表_' + stamp() + '.xlsx');
+                    showToast('已导出 Excel', 'success');
+                }).catch(() => {
+                    showToast('导出失败');
+                });
             }
 
             if (window.RegionCascader) {
