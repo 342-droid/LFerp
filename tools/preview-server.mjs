@@ -46,7 +46,8 @@ const MIME = {
   '.map': 'application/json',
   '.txt': 'text/plain; charset=utf-8',
   '.md': 'text/plain; charset=utf-8',
-  '.csv': 'text/csv; charset=utf-8'
+  '.csv': 'text/csv; charset=utf-8',
+  '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 };
 
 let servers = [];

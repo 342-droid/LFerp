@@ -6,7 +6,13 @@
     <title>冷丰TMS - 物流费率表</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
     <style>
+        #rateModal .custom-select input:disabled {
+            background: #f5f5f5;
+            color: #999;
+            cursor: not-allowed;
+        }
         .modal-section-title {
             width: 100%;
             flex: 0 0 100%;
@@ -49,7 +55,8 @@
         }
 
         #rateModal .rate-tier-table,
-        #rateModal .rate-extra-table {
+        #rateModal .rate-extra-table,
+        #rateModal .rate-upstairs-table {
             width: 100%;
             border-collapse: collapse;
             table-layout: fixed;
@@ -59,14 +66,45 @@
             display: none;
         }
 
+        #rateModal .rate-fee-block.is-amount .rate-first-fields,
+        #rateModal .rate-fee-block.is-amount .rate-fee-tip {
+            display: none;
+        }
+
+        #rateModal .rate-first-fields {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        #rateModal .rate-first-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 220px;
+        }
+
+        #rateModal .rate-first-item > span:first-child {
+            flex-shrink: 0;
+            color: #666;
+            font-size: 13px;
+        }
+
         #rateModal .rate-tier-table.is-amount .rate-tier-cont {
+            display: none;
+        }
+
+        #rateModal .rate-tier-table:not(.is-amount) .rate-tier-price {
             display: none;
         }
 
         #rateModal .rate-tier-table th,
         #rateModal .rate-extra-table th,
+        #rateModal .rate-upstairs-table th,
         #rateModal .rate-tier-table td,
-        #rateModal .rate-extra-table td {
+        #rateModal .rate-extra-table td,
+        #rateModal .rate-upstairs-table td {
             padding: 6px 6px 6px 0;
             text-align: left;
             font-size: 13px;
@@ -75,7 +113,8 @@
         }
 
         #rateModal .rate-tier-table td,
-        #rateModal .rate-extra-table td {
+        #rateModal .rate-extra-table td,
+        #rateModal .rate-upstairs-table td {
             font-weight: 400;
             vertical-align: middle;
         }
@@ -89,10 +128,23 @@
         }
 
         #rateModal .rate-tier-table input,
-        #rateModal .rate-extra-table input {
+        #rateModal .rate-extra-table input,
+        #rateModal .rate-upstairs-table input {
             width: 100%;
             min-width: 0;
             text-align: left;
+        }
+
+        #rateModal .rate-tier-table input[readonly] {
+            background: #f5f5f5;
+            color: #666;
+            cursor: default;
+        }
+
+        #rateModal .rate-upstairs-table th:first-child,
+        #rateModal .rate-upstairs-table td:first-child {
+            width: 72px;
+            white-space: nowrap;
         }
 
         #rateModal .rate-ratio {
@@ -152,10 +204,68 @@
         }
 
         .table td.rate-fee-cell,
-        .table td.rate-extra-cell {
+        .table td.rate-extra-cell,
+        .table td.rate-upstairs-cell {
+            text-align: left;
             white-space: normal;
-            line-height: 1.5;
+            line-height: 1.45;
             min-width: 220px;
+            font-size: 12px;
+            color: #333;
+        }
+
+        .table td.rate-fee-cell {
+            min-width: 240px;
+        }
+
+        .table td.rate-upstairs-cell {
+            min-width: 260px;
+        }
+
+        .table td.rate-rule-cell .rate-rule-line,
+        .table td.rate-fee-cell .rate-rule-line,
+        .table td.rate-extra-cell .rate-rule-line,
+        .table td.rate-upstairs-cell .rate-rule-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 12px;
+        }
+
+        .table td.rate-fee-cell .rate-rule-line + .rate-rule-line,
+        .table td.rate-extra-cell .rate-rule-line + .rate-rule-line,
+        .table td.rate-upstairs-cell .rate-rule-line + .rate-rule-line {
+            margin-top: 4px;
+            padding-top: 4px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .table td.rate-fee-cell .rate-rule-k,
+        .table td.rate-extra-cell .rate-rule-k,
+        .table td.rate-upstairs-cell .rate-rule-k {
+            color: #999;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .table td.rate-extra-cell .rate-rule-k,
+        .table td.rate-upstairs-cell .rate-rule-k {
+            width: 42px;
+        }
+
+        .table td.rate-fee-cell .rate-rule-v,
+        .table td.rate-extra-cell .rate-rule-v,
+        .table td.rate-upstairs-cell .rate-rule-v {
+            color: #333;
+            text-align: right;
+            white-space: nowrap;
+            margin-left: auto;
+        }
+
+        .table td.rate-fee-cell .rate-rule-empty,
+        .table td.rate-extra-cell .rate-rule-empty,
+        .table td.rate-upstairs-cell .rate-rule-empty {
+            color: #bbb;
         }
 
         .table td {
@@ -208,11 +318,20 @@
                         </select>
                     </div>
                     <div class="form-group">
+                        <label>订单渠道:</label>
+                        <select id="qChannel">
+                            <option value="">请选择</option>
+                            <option>零售订单</option>
+                            <option>代采订单</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label>物流类型:</label>
                         <select id="qType">
                             <option value="">请选择</option>
                             <option>常温</option>
                             <option>冷链</option>
+                            <option>不区分</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -251,8 +370,8 @@
                         <label>是否启用:</label>
                         <select id="qEnabled">
                             <option value="">请选择</option>
-                            <option>是</option>
-                            <option>否</option>
+                            <option>启用</option>
+                            <option>禁用</option>
                         </select>
                     </div>
                     <div class="form-actions">
@@ -273,116 +392,158 @@
                                 <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
                                 <th>始发地</th>
                                 <th>承运商</th>
+                                <th>订单渠道</th>
                                 <th>物流类型</th>
                                 <th>目的省</th>
                                 <th>目的市</th>
                                 <th>目的区</th>
                                 <th>物流时效(天)</th>
                                 <th>费用方案</th>
-                                <th>物流费用</th>
                                 <th>重抛比</th>
+                                <th>物流费用</th>
                                 <th>增值服务</th>
+                                <th>上楼费</th>
                                 <th>运费折扣</th>
                                 <th>结算折扣</th>
+                                <th>是否启用</th>
+                                <th>创建人</th>
+                                <th>创建时间</th>
+                                <th>更新人</th>
+                                <th>更新时间</th>
                                 <th>操作</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody">
-                            <tr data-extra="否" data-extras="[]" data-tiers='[{"start":"0","end":"1","price":"8","cont":"2"},{"start":"1","end":"5","price":"12","cont":"1.5"},{"start":"5","end":"999","price":"20","cont":"1"}]'>
+                            <tr data-extra="否" data-extras="[]" data-upstairs="否" data-tiers='{"firstWeight":"25","firstPrice":"77","tiers":[{"start":"25","end":"100","cont":"0.71"},{"start":"100","end":"∞","cont":"1.3"}]}'>
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
                                 <td>W001 南京仓</td>
                                 <td>SF 顺丰速运</td>
+                                <td>零售订单</td>
                                 <td>常温</td>
                                 <td>江苏省</td>
                                 <td>南京市</td>
                                 <td>江宁区</td>
                                 <td>1</td>
                                 <td>重量计费</td>
-                                <td class="rate-fee-cell">0~1kg 首重¥8 续¥2/KG<br>1~5kg 首重¥12 续¥1.5/KG<br>5~999kg 首重¥20 续¥1/KG</td>
                                 <td>1:3</td>
-                                <td class="rate-extra-cell">否</td>
+                                <td class="rate-fee-cell"><div class="rate-rule-line"><span class="rate-rule-k">0~25KG</span><span class="rate-rule-v">¥77</span></div><div class="rate-rule-line"><span class="rate-rule-k">25~100KG</span><span class="rate-rule-v">¥77+0.71/KG</span></div><div class="rate-rule-line"><span class="rate-rule-k">100~∞KG</span><span class="rate-rule-v">¥77+1.3/KG</span></div></td>
+                                <td class="rate-extra-cell"><span class="rate-rule-empty">否</span></td>
+                                <td class="rate-upstairs-cell"><span class="rate-rule-empty">否</span></td>
                                 <td>1.00</td>
                                 <td>0.95</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>李四</td>
+                                <td>2026-04-20 10:12:00</td>
+                                <td>李四</td>
+                                <td>2026-04-20 10:12:00</td>
                                 <td class="action-links">
                                     <a href="#" class="edit-btn">编辑</a>
                                     <a href="#" class="delete-btn">删除</a>
                                 </td>
                             </tr>
-                            <tr data-extra="是" data-extras='[{"name":"保价费","amount":"5","min":"2","rate":"0.5"},{"name":"派送费","amount":"8","min":"3","rate":"1"}]' data-tiers='[{"start":"0","end":"1","price":"12","cont":"3"},{"start":"1","end":"10","price":"18","cont":"2"},{"start":"10","end":"999","price":"30","cont":"1.5"}]'>
+                            <tr data-extra="是" data-extras='[{"name":"保价费","min":"2","rate":"0.5"},{"name":"派送费","amount":"8"}]' data-upstairs="是" data-upstairs-config='{"freeWeight":"20","withElevator":{"base":"5","weightRate":"0.1","floorRate":"0","pieceRate":"0"},"withoutElevator":{"base":"10","weightRate":"0.1","floorRate":"5","pieceRate":"0.5"}}' data-tiers='{"firstWeight":"25","firstPrice":"96","tiers":[{"start":"25","end":"80","cont":"0.9"},{"start":"80","end":"∞","cont":"1.5"}]}'>
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
                                 <td>W001 南京仓</td>
                                 <td>ZTO 中通快递</td>
+                                <td>代采订单</td>
                                 <td>冷链</td>
                                 <td>江苏省</td>
                                 <td>南京市</td>
                                 <td>鼓楼区</td>
                                 <td>1</td>
                                 <td>重量计费</td>
-                                <td class="rate-fee-cell">0~1kg 首重¥12 续¥3/KG<br>1~10kg 首重¥18 续¥2/KG<br>10~999kg 首重¥30 续¥1.5/KG</td>
                                 <td>1:4</td>
-                                <td class="rate-extra-cell">保价费 每票¥5 最低¥2 费率0.5%<br>派送费 每票¥8 最低¥3 费率1%</td>
+                                <td class="rate-fee-cell"><div class="rate-rule-line"><span class="rate-rule-k">0~25KG</span><span class="rate-rule-v">¥96</span></div><div class="rate-rule-line"><span class="rate-rule-k">25~80KG</span><span class="rate-rule-v">¥96+0.9/KG</span></div><div class="rate-rule-line"><span class="rate-rule-k">80~∞KG</span><span class="rate-rule-v">¥96+1.5/KG</span></div></td>
+                                <td class="rate-extra-cell"><div class="rate-rule-line"><span class="rate-rule-k">保价费</span><span class="rate-rule-v">最低¥2 · 费率0.5%</span></div><div class="rate-rule-line"><span class="rate-rule-k">派送费</span><span class="rate-rule-v">每票¥8</span></div></td>
+                                <td class="rate-upstairs-cell"><div class="rate-rule-line"><span class="rate-rule-k">免上楼</span><span class="rate-rule-v">≤20KG</span></div><div class="rate-rule-line"><span class="rate-rule-k">有电梯</span><span class="rate-rule-v">5+0.1×重量</span></div><div class="rate-rule-line"><span class="rate-rule-k">无电梯</span><span class="rate-rule-v">10+0.1×重量+5×楼层+0.5×件数</span></div></td>
                                 <td>0.95</td>
                                 <td>0.90</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>张三</td>
+                                <td>2026-04-18 16:40:22</td>
+                                <td>李四</td>
+                                <td>2026-05-02 09:18:11</td>
                                 <td class="action-links">
                                     <a href="#" class="edit-btn">编辑</a>
                                     <a href="#" class="delete-btn">删除</a>
                                 </td>
                             </tr>
-                            <tr data-extra="否" data-extras="[]" data-tiers='[{"start":"0","end":"100","price":"6"},{"start":"100","end":"500","price":"10"},{"start":"500","end":"9999","price":"15"}]'>
+                            <tr data-extra="否" data-extras="[]" data-upstairs="否" data-tiers='{"tiers":[{"start":"0","end":"100","price":"6"},{"start":"100","end":"500","price":"10"},{"start":"500","end":"∞","price":"15"}]}'>
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
                                 <td>W002 嘉兴仓</td>
                                 <td>YTO 圆通速递</td>
-                                <td>常温</td>
+                                <td>零售订单</td>
+                                <td>不区分</td>
                                 <td>浙江省</td>
                                 <td>杭州市</td>
                                 <td>余杭区</td>
                                 <td>2</td>
                                 <td>金额计费</td>
-                                <td class="rate-fee-cell">0~100元 运费¥6<br>100~500元 运费¥10<br>500~9999元 运费¥15</td>
                                 <td>1:3</td>
-                                <td class="rate-extra-cell">否</td>
+                                <td class="rate-fee-cell"><div class="rate-rule-line"><span class="rate-rule-k">0~100元</span><span class="rate-rule-v">¥6</span></div><div class="rate-rule-line"><span class="rate-rule-k">100~500元</span><span class="rate-rule-v">¥10</span></div><div class="rate-rule-line"><span class="rate-rule-k">500~∞元</span><span class="rate-rule-v">¥15</span></div></td>
+                                <td class="rate-extra-cell"><span class="rate-rule-empty">否</span></td>
+                                <td class="rate-upstairs-cell"><span class="rate-rule-empty">否</span></td>
                                 <td>1.00</td>
                                 <td>1.00</td>
+                                <td><span class="status inactive">禁用</span></td>
+                                <td>王五</td>
+                                <td>2026-03-12 11:05:33</td>
+                                <td>王五</td>
+                                <td>2026-03-12 11:05:33</td>
                                 <td class="action-links">
                                     <a href="#" class="edit-btn">编辑</a>
                                     <a href="#" class="delete-btn">删除</a>
                                 </td>
                             </tr>
-                            <tr data-extra="是" data-extras='[{"name":"保价费","amount":"6","min":"3","rate":"0.8"},{"name":"派送费","amount":"10","min":"5","rate":"1.2"}]' data-tiers='[{"start":"0","end":"2","price":"10","cont":"2.5"},{"start":"2","end":"8","price":"16","cont":"2"},{"start":"8","end":"999","price":"28","cont":"1.2"}]'>
+                            <tr data-extra="是" data-extras='[{"name":"保价费","min":"3","rate":"0.8"},{"name":"派送费","amount":"10"}]' data-upstairs="是" data-upstairs-config='{"freeWeight":"20","withElevator":{"base":"5","weightRate":"0.1","floorRate":"0","pieceRate":"0"},"withoutElevator":{"base":"10","weightRate":"0.1","floorRate":"5","pieceRate":"0.5"}}' data-tiers='{"firstWeight":"20","firstPrice":"88","tiers":[{"start":"20","end":"50","cont":"0.8"},{"start":"50","end":"∞","cont":"1.2"}]}'>
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
                                 <td>W003 上海仓</td>
                                 <td>SF 顺丰速运</td>
+                                <td>代采订单</td>
                                 <td>冷链</td>
                                 <td>上海市</td>
                                 <td>上海市</td>
                                 <td>浦东新区</td>
                                 <td>1</td>
                                 <td>重量计费</td>
-                                <td class="rate-fee-cell">0~2kg 首重¥10 续¥2.5/KG<br>2~8kg 首重¥16 续¥2/KG<br>8~999kg 首重¥28 续¥1.2/KG</td>
                                 <td>1:3</td>
-                                <td class="rate-extra-cell">保价费 每票¥6 最低¥3 费率0.8%<br>派送费 每票¥10 最低¥5 费率1.2%</td>
+                                <td class="rate-fee-cell"><div class="rate-rule-line"><span class="rate-rule-k">0~20KG</span><span class="rate-rule-v">¥88</span></div><div class="rate-rule-line"><span class="rate-rule-k">20~50KG</span><span class="rate-rule-v">¥88+0.8/KG</span></div><div class="rate-rule-line"><span class="rate-rule-k">50~∞KG</span><span class="rate-rule-v">¥88+1.2/KG</span></div></td>
+                                <td class="rate-extra-cell"><div class="rate-rule-line"><span class="rate-rule-k">保价费</span><span class="rate-rule-v">最低¥3 · 费率0.8%</span></div><div class="rate-rule-line"><span class="rate-rule-k">派送费</span><span class="rate-rule-v">每票¥10</span></div></td>
+                                <td class="rate-upstairs-cell"><div class="rate-rule-line"><span class="rate-rule-k">免上楼</span><span class="rate-rule-v">≤20KG</span></div><div class="rate-rule-line"><span class="rate-rule-k">有电梯</span><span class="rate-rule-v">5+0.1×重量</span></div><div class="rate-rule-line"><span class="rate-rule-k">无电梯</span><span class="rate-rule-v">10+0.1×重量+5×楼层+0.5×件数</span></div></td>
                                 <td>0.90</td>
                                 <td>0.88</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>张三</td>
+                                <td>2026-04-08 14:22:06</td>
+                                <td>赵六</td>
+                                <td>2026-05-10 08:41:50</td>
                                 <td class="action-links">
                                     <a href="#" class="edit-btn">编辑</a>
                                     <a href="#" class="delete-btn">删除</a>
                                 </td>
                             </tr>
-                            <tr data-extra="否" data-extras="[]" data-tiers='[{"start":"0","end":"200","price":"7"},{"start":"200","end":"800","price":"12"},{"start":"800","end":"9999","price":"18"}]'>
+                            <tr data-extra="否" data-extras="[]" data-upstairs="否" data-tiers='{"tiers":[{"start":"0","end":"200","price":"7"},{"start":"200","end":"800","price":"12"},{"start":"800","end":"∞","price":"18"}]}'>
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
                                 <td>W002 嘉兴仓</td>
                                 <td>ZTO 中通快递</td>
-                                <td>常温</td>
+                                <td>零售订单</td>
+                                <td>不区分</td>
                                 <td>浙江省</td>
                                 <td>嘉兴市</td>
                                 <td>南湖区</td>
                                 <td>1</td>
                                 <td>金额计费</td>
-                                <td class="rate-fee-cell">0~200元 运费¥7<br>200~800元 运费¥12<br>800~9999元 运费¥18</td>
                                 <td>1:3</td>
-                                <td class="rate-extra-cell">否</td>
+                                <td class="rate-fee-cell"><div class="rate-rule-line"><span class="rate-rule-k">0~200元</span><span class="rate-rule-v">¥7</span></div><div class="rate-rule-line"><span class="rate-rule-k">200~800元</span><span class="rate-rule-v">¥12</span></div><div class="rate-rule-line"><span class="rate-rule-k">800~∞元</span><span class="rate-rule-v">¥18</span></div></td>
+                                <td class="rate-extra-cell"><span class="rate-rule-empty">否</span></td>
+                                <td class="rate-upstairs-cell"><span class="rate-rule-empty">否</span></td>
                                 <td>1.00</td>
                                 <td>0.95</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>李四</td>
+                                <td>2026-04-25 09:30:00</td>
+                                <td>李四</td>
+                                <td>2026-04-25 09:30:00</td>
                                 <td class="action-links">
                                     <a href="#" class="edit-btn">编辑</a>
                                     <a href="#" class="delete-btn">删除</a>
@@ -423,11 +584,20 @@
                     </select>
                 </div>
                 <div class="modal-form-group">
-                    <label>物流类型 <span style="color: red;">*</span></label>
+                    <label>订单渠道 <span style="color: red;">*</span></label>
+                    <select id="orderChannel">
+                        <option value="">请选择</option>
+                        <option>零售订单</option>
+                        <option>代采订单</option>
+                    </select>
+                </div>
+                <div class="modal-form-group">
+                    <label>物流类型 <span id="logisticsTypeStar" style="color: red;">*</span></label>
                     <select id="logisticsType">
                         <option value="">请选择</option>
                         <option>常温</option>
                         <option>冷链</option>
+                        <option>不区分</option>
                     </select>
                 </div>
                 <div class="modal-form-group region-cascader-form-group" style="width: 100%;">
@@ -478,26 +648,59 @@
                         <option>是</option>
                     </select>
                 </div>
+                <div class="modal-form-group">
+                    <label>上楼费 <span style="color: red;">*</span></label>
+                    <select id="upstairsFee">
+                        <option>否</option>
+                        <option>是</option>
+                    </select>
+                </div>
+                <div class="modal-form-group">
+                    <label>是否启用 <span style="color: red;">*</span></label>
+                    <select id="isEnabled">
+                        <option>启用</option>
+                        <option>禁用</option>
+                    </select>
+                </div>
 
                 <div class="modal-section-title">计费规则</div>
                 <div class="modal-form-group rate-block rate-fee-block is-idle">
                     <label>物流费用 <span style="color: red;">*</span></label>
                     <div class="rate-block__body">
+                        <div class="rate-first-fields">
+                            <div class="rate-first-item">
+                                <span>首重重量 <span style="color: red;">*</span></span>
+                                <div class="rate-input-with-unit">
+                                    <input id="firstWeight" type="text" inputmode="decimal" placeholder="请输入">
+                                    <span class="rate-input-unit">KG</span>
+                                </div>
+                            </div>
+                            <div class="rate-first-item">
+                                <span>首重价 <span style="color: red;">*</span></span>
+                                <div class="rate-input-with-unit">
+                                    <input id="firstPrice" type="text" inputmode="decimal" placeholder="请输入">
+                                    <span class="rate-input-unit">元</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mdm-biz-tip mdm-biz-tip--flush rate-fee-tip" role="note">
+                            运费 = <strong>首重价</strong> + <strong>续价</strong> × (实重 − 首重重量)；续价取实重所在区间。
+                        </div>
                         <table class="rate-tier-table">
                             <thead>
                                 <tr>
                                     <th class="rate-tier-start">起始重量</th>
                                     <th class="rate-tier-end">结束重量</th>
-                                    <th class="rate-tier-price">首重价(元)</th>
+                                    <th class="rate-tier-price">运费</th>
                                     <th class="rate-tier-cont">续价(元/KG)</th>
                                     <th>操作</th>
                                 </tr>
                             </thead>
                             <tbody id="tiers">
                                 <tr class="tier">
-                                    <td><input placeholder="起始重量"></td>
-                                    <td><input placeholder="结束重量"></td>
-                                    <td><input placeholder="首重价"></td>
+                                    <td><input placeholder="起始重量" readonly></td>
+                                    <td><input placeholder="结束重量" value="∞" readonly></td>
+                                    <td class="rate-tier-price"><input placeholder="运费"></td>
                                     <td class="rate-tier-cont"><input placeholder="续价"></td>
                                     <td><a href="#" class="remove-tier">删除</a></td>
                                 </tr>
@@ -544,6 +747,52 @@
                         </div>
                     </div>
                 </div>
+                <div id="upstairsFields" class="rate-extra-fields" style="display:none">
+                    <div class="modal-form-group rate-block">
+                        <label>上楼费用 <span style="color: red;">*</span></label>
+                        <div class="rate-block__body">
+                            <div class="rate-first-fields">
+                                <div class="rate-first-item">
+                                    <span>免上楼重量 <span style="color: red;">*</span></span>
+                                    <div class="rate-input-with-unit">
+                                        <input id="upstairsFreeWeight" type="text" inputmode="decimal" placeholder="请输入">
+                                        <span class="rate-input-unit">KG</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mdm-biz-tip mdm-biz-tip--flush" role="note">
+                                结算重量不超过免上楼重量时免费。有电梯 / 无电梯：<strong>基础费</strong> + <strong>重量系数</strong> × 结算重量 + <strong>楼层系数</strong> × 楼层数 + <strong>件数系数</strong> × 件数；系数可填 0。<strong>1楼不上楼，上楼费为 0</strong>。楼层数：2楼按 2 层、3楼按 3 层；负1层按 2 层、负2层按 3 层，以此类推。
+                            </div>
+                            <table class="rate-upstairs-table">
+                                <thead>
+                                    <tr>
+                                        <th>电梯</th>
+                                        <th>基础费(元)</th>
+                                        <th>重量系数(元/KG)</th>
+                                        <th>楼层系数(元/层)</th>
+                                        <th>件数系数(元/件)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>有电梯</td>
+                                        <td><input id="upElevatorBase" placeholder="基础费"></td>
+                                        <td><input id="upElevatorWeight" placeholder="重量系数"></td>
+                                        <td><input id="upElevatorFloor" placeholder="楼层系数"></td>
+                                        <td><input id="upElevatorPiece" placeholder="件数系数"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>无电梯</td>
+                                        <td><input id="upNoElevatorBase" placeholder="基础费"></td>
+                                        <td><input id="upNoElevatorWeight" placeholder="重量系数"></td>
+                                        <td><input id="upNoElevatorFloor" placeholder="楼层系数"></td>
+                                        <td><input id="upNoElevatorPiece" placeholder="件数系数"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </form>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" id="cancel">取消</button>
@@ -552,10 +801,85 @@
         </div>
     </div>
 
+    <div id="rateImportOverlay" class="batch-init-overlay" aria-hidden="true">
+        <div class="batch-init-modal" role="dialog" aria-labelledby="rateImportTitle">
+            <div class="batch-init-modal__head">
+                <h3 id="rateImportTitle" class="batch-init-modal__title">物流费率导入</h3>
+                <button type="button" class="batch-init-modal__close" id="rateImportCloseBtn" aria-label="关闭">×</button>
+            </div>
+            <div class="batch-init-modal__body">
+                <div class="batch-init-toolbar">
+                    <div class="batch-init-toolbar__left">
+                        <button type="button" class="batch-init-btn batch-init-btn--query" id="rateImportQueryBtn">查询</button>
+                        <button type="button" class="batch-init-btn batch-init-btn--template" id="rateImportTemplateBtn">模板下载</button>
+                    </div>
+                    <div class="batch-init-toolbar__center">
+                        <button type="button" class="batch-init-btn batch-init-btn--browse" id="rateImportBrowseBtn">文件浏览</button>
+                        <input type="file" id="rateImportFile" class="batch-init-file" accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv">
+                    </div>
+                    <div class="batch-init-toolbar__right">
+                        <button type="button" class="batch-init-btn batch-init-btn--exec" id="rateImportSubmitBtn">执行导入 (上限1000条)</button>
+                    </div>
+                </div>
+                <div class="batch-init-table-wrap">
+                    <table class="batch-init-table">
+                        <thead>
+                            <tr>
+                                <th style="width:22%">文件名</th>
+                                <th style="width:12%">状态</th>
+                                <th style="width:16%">结果</th>
+                                <th style="width:14%">创建人</th>
+                                <th style="width:22%">创建时间</th>
+                                <th style="width:14%">下载结果</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rateImportTbody">
+                            <tr>
+                                <td>物流费率导入_20260913_001.csv</td>
+                                <td>成功</td>
+                                <td>导入成功</td>
+                                <td>张三</td>
+                                <td>2026-09-13 09:12:36</td>
+                                <td><button type="button" class="batch-init-link rate-import-download-result">下载</button></td>
+                            </tr>
+                            <tr>
+                                <td>物流费率导入_南京仓_补录.csv</td>
+                                <td>失败</td>
+                                <td>导入失败，请下载结果查看</td>
+                                <td>李四</td>
+                                <td>2026-09-12 16:48:05</td>
+                                <td><button type="button" class="batch-init-link rate-import-download-result">下载</button></td>
+                            </tr>
+                            <tr>
+                                <td>logistics_rate_template.csv</td>
+                                <td>成功</td>
+                                <td>导入成功</td>
+                                <td>王五</td>
+                                <td>2026-09-11 11:03:22</td>
+                                <td><button type="button" class="batch-init-link rate-import-download-result">下载</button></td>
+                            </tr>
+                            <tr>
+                                <td>物流费率_金额计费_更新.csv</td>
+                                <td>失败</td>
+                                <td>导入失败，请下载结果查看</td>
+                                <td>赵六</td>
+                                <td>2026-09-10 14:27:51</td>
+                                <td><button type="button" class="batch-init-link rate-import-download-result">下载</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="batch-init-modal__foot">
+                <button type="button" class="batch-init-btn--close" id="rateImportCancelBtn">关闭</button>
+            </div>
+        </div>
+    </div>
+
     <script src="../js/common.js"></script>
     <script src="../js/pagination.js"></script>
     <script src="../js/form-utils.js"></script>
-    <script src="../js/region-cascader.js"></script>
+<script src="../js/region-cascader.js"></script>
     <script src="../js/modal-manager.js"></script>
     <script src="../js/page-manager.js"></script>
     <script>
@@ -578,6 +902,104 @@
                 const sel = document.getElementById(selectId);
                 if (!sel || sel.selectedIndex < 0 || !sel.value) return '';
                 return sel.options[sel.selectedIndex].text;
+            }
+
+            function setSelectDisabled(selectId, disabled) {
+                const sel = document.getElementById(selectId);
+                if (!sel) return;
+                sel.disabled = !!disabled;
+                const wrap = sel.previousElementSibling;
+                const input = wrap && wrap.classList.contains('custom-select-wrapper')
+                    ? wrap.querySelector('input')
+                    : null;
+                if (input) input.disabled = !!disabled;
+            }
+
+            function setSelectDisplay(selectId, text) {
+                const sel = document.getElementById(selectId);
+                if (!sel) return;
+                const wrap = sel.previousElementSibling;
+                const input = wrap && wrap.classList.contains('custom-select-wrapper')
+                    ? wrap.querySelector('input')
+                    : null;
+                if (input) input.value = text;
+            }
+
+            function syncLogisticsTypeOptions(isAmount) {
+                const sel = document.getElementById('logisticsType');
+                if (!sel) return;
+                Array.from(sel.options).forEach((opt) => {
+                    if (opt.text === '不区分') {
+                        opt.hidden = !isAmount;
+                        opt.disabled = !isAmount;
+                    }
+                });
+                const wrap = sel.previousElementSibling;
+                const drop = wrap && wrap.querySelector('.select-dropdown');
+                if (!drop) return;
+                Array.from(drop.querySelectorAll('.select-option')).forEach((item) => {
+                    if (item.textContent.trim() === '不区分') {
+                        item.style.display = isAmount ? '' : 'none';
+                    }
+                });
+            }
+
+            function syncLogisticsTypeByScheme() {
+                const isAmount = getSelectText('feeScheme') === '金额计费';
+                const detail = !!(page && page.isDetailMode);
+                const star = document.getElementById('logisticsTypeStar');
+                if (star) star.style.display = '';
+                syncLogisticsTypeOptions(isAmount);
+                if (isAmount) {
+                    if (!detail) setSelectByText('logisticsType', '不区分');
+                    setSelectDisabled('logisticsType', true);
+                    setSelectDisplay('logisticsType', '不区分');
+                    return;
+                }
+                setSelectDisabled('logisticsType', detail);
+                const current = getSelectText('logisticsType');
+                if (!detail && current === '不区分') {
+                    setSelectByText('logisticsType', '');
+                    setSelectDisplay('logisticsType', '请选择');
+                    return;
+                }
+                setSelectDisplay('logisticsType', current || '请选择');
+            }
+
+            function typeDisplayOf(scheme, type) {
+                return scheme === '金额计费' ? '不区分' : (type || '');
+            }
+
+            function cellsOf(row) {
+                return row ? row.querySelectorAll('td') : [];
+            }
+
+            function matchKeyFromData(data) {
+                const type = data.feeScheme === '金额计费' ? '' : (data.logisticsType || '');
+                return [data.origin, data.carrier, data.orderChannel, type, data.destProvince, data.destCity, data.destDistrict].join('\t');
+            }
+
+            function matchKeyFromRow(row) {
+                const c = cellsOf(row);
+                if (c.length < 10) return '';
+                const scheme = c[9].textContent.trim();
+                const type = scheme === '金额计费' ? '' : c[4].textContent.trim();
+                return [c[1], c[2], c[3], type, c[5], c[6], c[7]].map((td) => td.textContent.trim()).join('\t');
+            }
+
+            function laneKeyFromData(data) {
+                return [data.origin, data.orderChannel, data.destProvince, data.destCity, data.destDistrict].join('\t');
+            }
+
+            function laneKeyFromRow(row) {
+                const c = cellsOf(row);
+                if (c.length < 8) return '';
+                return [c[1], c[3], c[5], c[6], c[7]].map((td) => td.textContent.trim()).join('\t');
+            }
+
+            function schemeFromRow(row) {
+                const c = cellsOf(row);
+                return c[9] ? c[9].textContent.trim() : '';
             }
 
             function wrapNativeSelect(sel) {
@@ -604,6 +1026,7 @@
                 drop.className = 'select-dropdown';
 
                 Array.from(sel.options).forEach((opt) => {
+                    if (sel.id === 'logisticsType' && opt.text === '不区分') return;
                     const item = document.createElement('div');
                     item.className = 'select-option';
                     item.textContent = opt.text;
@@ -631,6 +1054,37 @@
                 });
             }
 
+            function getExtraRowName(row) {
+                const sel = row.querySelector('select');
+                if (!sel || sel.selectedIndex < 0 || !sel.value) return '';
+                return sel.options[sel.selectedIndex].text;
+            }
+
+            function getExtraRowInputs(row) {
+                const tds = row.querySelectorAll('td');
+                return {
+                    amount: tds[1] && tds[1].querySelector('input'),
+                    min: tds[2] && tds[2].querySelector('input'),
+                    rate: tds[3] && tds[3].querySelector('input')
+                };
+            }
+
+            function setExtraInputLocked(input, locked, readOnly) {
+                if (!input) return;
+                input.disabled = locked || readOnly;
+                if (locked) input.value = '';
+            }
+
+            function syncExtraAmountState(row) {
+                if (!row) return;
+                const name = getExtraRowName(row);
+                const readOnly = !!(page && page.isDetailMode);
+                const inputs = getExtraRowInputs(row);
+                setExtraInputLocked(inputs.amount, name === '保价费', readOnly);
+                setExtraInputLocked(inputs.min, name === '派送费', readOnly);
+                setExtraInputLocked(inputs.rate, name === '派送费', readOnly);
+            }
+
             function clearExtraRow(row) {
                 if (!row) return;
                 row.querySelectorAll('input').forEach((input) => {
@@ -645,6 +1099,7 @@
                     ? wrap.querySelector('input')
                     : null;
                 if (input) input.value = sel.options[sel.selectedIndex]?.text || '';
+                syncExtraAmountState(row);
             }
 
             function resetExtraRows() {
@@ -667,6 +1122,7 @@
                     input.value = '';
                 });
                 wrapNativeSelect(sel);
+                syncExtraAmountState(row);
                 return row;
             }
 
@@ -690,6 +1146,7 @@
                 if (amountInput) amountInput.value = item.amount || '';
                 if (minInput) minInput.value = item.min || '';
                 if (rateInput) rateInput.value = item.rate || '';
+                syncExtraAmountState(row);
             }
 
             function collectExtraItems() {
@@ -701,24 +1158,26 @@
                     const amount = tds[1] && tds[1].querySelector('input');
                     const min = tds[2] && tds[2].querySelector('input');
                     const rate = tds[3] && tds[3].querySelector('input');
+                    const isDelivery = name === '派送费';
+                    const isInsure = name === '保价费';
                     return {
                         name: name,
-                        amount: amount ? amount.value.trim() : '',
-                        min: min ? min.value.trim() : '',
-                        rate: rate ? rate.value.trim() : ''
+                        amount: isInsure ? '' : (amount ? amount.value.trim() : ''),
+                        min: isDelivery ? '' : (min ? min.value.trim() : ''),
+                        rate: isDelivery ? '' : (rate ? rate.value.trim() : '')
                     };
                 }).filter((item) => item.name);
             }
 
             function formatExtraHtml(items) {
-                if (!items || !items.length) return '否';
+                if (!items || !items.length) return formatRuleEmptyHtml();
                 return items.map((item) => {
-                    const parts = [item.name];
+                    const parts = [];
                     if (item.amount) parts.push('每票¥' + item.amount);
                     if (item.min) parts.push('最低¥' + item.min);
                     if (item.rate) parts.push('费率' + item.rate + '%');
-                    return parts.join(' ');
-                }).join('<br>');
+                    return formatRuleLineHtml(item.name, parts.join(' · '));
+                }).join('');
             }
 
             function parseRowExtras(row) {
@@ -743,7 +1202,7 @@
                 const list = extra === '是' ? (items || []) : [];
                 row.setAttribute('data-extra', extra === '是' ? '是' : '否');
                 row.setAttribute('data-extras', JSON.stringify(list));
-                const cell = row.querySelectorAll('td')[11];
+                const cell = row.querySelectorAll('td')[12];
                 if (!cell) return;
                 cell.classList.add('rate-extra-cell');
                 cell.innerHTML = formatExtraHtml(list);
@@ -766,6 +1225,140 @@
                     }
                     fillExtraRow(row, item);
                 });
+            }
+
+            function getRowUpstairs(row) {
+                if (!row) return '否';
+                return row.getAttribute('data-upstairs') === '是' ? '是' : '否';
+            }
+
+            function emptyUpstairsConfig() {
+                return {
+                    freeWeight: '',
+                    withElevator: { base: '', weightRate: '', floorRate: '', pieceRate: '' },
+                    withoutElevator: { base: '', weightRate: '', floorRate: '', pieceRate: '' }
+                };
+            }
+
+            function pickUpstairsVal(value) {
+                if (value === undefined || value === null) return '';
+                return String(value);
+            }
+
+            function isUpstairsFilled(value) {
+                return pickUpstairsVal(value).trim() !== '';
+            }
+
+            function normalizeUpstairsBand(raw) {
+                const data = raw && typeof raw === 'object' ? raw : {};
+                return {
+                    base: pickUpstairsVal(data.base),
+                    weightRate: pickUpstairsVal(data.weightRate),
+                    floorRate: pickUpstairsVal(data.floorRate),
+                    pieceRate: pickUpstairsVal(data.pieceRate)
+                };
+            }
+
+            function normalizeUpstairsConfig(raw) {
+                const data = raw && typeof raw === 'object' ? raw : {};
+                return {
+                    freeWeight: pickUpstairsVal(data.freeWeight),
+                    withElevator: normalizeUpstairsBand(data.withElevator),
+                    withoutElevator: normalizeUpstairsBand(data.withoutElevator)
+                };
+            }
+
+            function parseRowUpstairsConfig(row) {
+                if (!row) return emptyUpstairsConfig();
+                try {
+                    const parsed = JSON.parse(row.getAttribute('data-upstairs-config') || '{}');
+                    return normalizeUpstairsConfig(parsed);
+                } catch (e) {
+                    return emptyUpstairsConfig();
+                }
+            }
+
+            function collectUpstairsConfig() {
+                const val = (id) => pickUpstairsVal(document.getElementById(id)?.value).trim();
+                return {
+                    freeWeight: val('upstairsFreeWeight'),
+                    withElevator: {
+                        base: val('upElevatorBase'),
+                        weightRate: val('upElevatorWeight'),
+                        floorRate: val('upElevatorFloor'),
+                        pieceRate: val('upElevatorPiece')
+                    },
+                    withoutElevator: {
+                        base: val('upNoElevatorBase'),
+                        weightRate: val('upNoElevatorWeight'),
+                        floorRate: val('upNoElevatorFloor'),
+                        pieceRate: val('upNoElevatorPiece')
+                    }
+                };
+            }
+
+            function setUpstairsConfig(config) {
+                const data = normalizeUpstairsConfig(config);
+                const setVal = (id, value) => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = pickUpstairsVal(value);
+                };
+                setVal('upstairsFreeWeight', data.freeWeight);
+                setVal('upElevatorBase', data.withElevator.base);
+                setVal('upElevatorWeight', data.withElevator.weightRate);
+                setVal('upElevatorFloor', data.withElevator.floorRate);
+                setVal('upElevatorPiece', data.withElevator.pieceRate);
+                setVal('upNoElevatorBase', data.withoutElevator.base);
+                setVal('upNoElevatorWeight', data.withoutElevator.weightRate);
+                setVal('upNoElevatorFloor', data.withoutElevator.floorRate);
+                setVal('upNoElevatorPiece', data.withoutElevator.pieceRate);
+            }
+
+            function isUpstairsZero(value) {
+                const text = pickUpstairsVal(value).trim();
+                if (text === '') return true;
+                return Number(text) === 0;
+            }
+
+            function formatUpstairsFormula(band) {
+                const parts = [];
+                if (!isUpstairsZero(band.base)) parts.push(band.base);
+                if (!isUpstairsZero(band.weightRate)) parts.push(`${band.weightRate}×重量`);
+                if (!isUpstairsZero(band.floorRate)) parts.push(`${band.floorRate}×楼层`);
+                if (!isUpstairsZero(band.pieceRate)) parts.push(`${band.pieceRate}×件数`);
+                return parts.join('+');
+            }
+
+            function formatUpstairsHtml(flag, config) {
+                if (flag !== '是') return formatRuleEmptyHtml();
+                const data = normalizeUpstairsConfig(config);
+                return [
+                    formatRuleLineHtml('免上楼', `≤${data.freeWeight}KG`),
+                    formatRuleLineHtml('有电梯', formatUpstairsFormula(data.withElevator) || '—'),
+                    formatRuleLineHtml('无电梯', formatUpstairsFormula(data.withoutElevator) || '—')
+                ].join('');
+            }
+
+            function writeRowUpstairs(row, flag, config) {
+                if (!row) return;
+                const enabled = flag === '是';
+                row.setAttribute('data-upstairs', enabled ? '是' : '否');
+                row.setAttribute('data-upstairs-config', JSON.stringify(enabled ? normalizeUpstairsConfig(config) : {}));
+                const cell = row.querySelectorAll('td')[13];
+                if (!cell) return;
+                cell.classList.add('rate-upstairs-cell');
+                cell.innerHTML = formatUpstairsHtml(enabled ? '是' : '否', config);
+            }
+
+            function validateUpstairsConfig() {
+                const data = collectUpstairsConfig();
+                const withEl = data.withElevator;
+                const noEl = data.withoutElevator;
+                return [
+                    data.freeWeight,
+                    withEl.base, withEl.weightRate, withEl.floorRate, withEl.pieceRate,
+                    noEl.base, noEl.weightRate, noEl.floorRate, noEl.pieceRate
+                ].every(isUpstairsFilled);
             }
 
             function bindDecimalInput(el) {
@@ -803,7 +1396,8 @@
                 return {
                     origin: getSelectText('origin'),
                     carrier: getSelectText('carrier'),
-                    logisticsType: getSelectText('logisticsType'),
+                    orderChannel: getSelectText('orderChannel'),
+                    logisticsType: typeDisplayOf(getSelectText('feeScheme'), getSelectText('logisticsType')),
                     destProvince: dest.province || '',
                     destCity: dest.city || '',
                     destDistrict: dest.district || '',
@@ -811,55 +1405,171 @@
                     feeScheme: getSelectText('feeScheme'),
                     ratio: getRatioValue(),
                     extra: getSelectText('extra') || '否',
+                    upstairsFee: getSelectText('upstairsFee') || '否',
+                    isEnabled: getSelectText('isEnabled') || '启用',
                     freightDiscount: document.getElementById('freightDiscount').value.trim() || '-',
                     settleDiscount: document.getElementById('settleDiscount').value.trim() || '-'
                 };
             }
 
-            function collectFeeTiers() {
+            function getFirstWeight() {
+                return document.getElementById('firstWeight')?.value.trim() || '';
+            }
+
+            function getFirstPrice() {
+                return document.getElementById('firstPrice')?.value.trim() || '';
+            }
+
+            function setFirstWeightFields(weight, price) {
+                const wEl = document.getElementById('firstWeight');
+                const pEl = document.getElementById('firstPrice');
+                if (wEl) wEl.value = weight || '';
+                if (pEl) pEl.value = price || '';
+            }
+
+            function emptyFeeConfig(isAmount) {
+                return isAmount
+                    ? { tiers: [] }
+                    : { firstWeight: '', firstPrice: '', tiers: [] };
+            }
+
+            function normalizeFeeConfig(scheme, raw) {
+                const isAmount = scheme === '金额计费';
+                if (!raw) return emptyFeeConfig(isAmount);
+                if (Array.isArray(raw)) {
+                    if (isAmount) {
+                        return {
+                            tiers: raw.map((tier) => ({
+                                start: tier.start || '',
+                                end: tier.end || '',
+                                price: tier.price || ''
+                            }))
+                        };
+                    }
+                    return {
+                        firstWeight: raw[0]?.end || '',
+                        firstPrice: raw[0]?.price || '',
+                        tiers: raw.slice(1).map((tier) => ({
+                            start: tier.start || '',
+                            end: tier.end || '',
+                            cont: tier.cont || ''
+                        }))
+                    };
+                }
+                return {
+                    firstWeight: raw.firstWeight || '',
+                    firstPrice: raw.firstPrice || '',
+                    tiers: Array.isArray(raw.tiers) ? raw.tiers : []
+                };
+            }
+
+            function collectFeeConfig() {
                 const isAmount = getSelectText('feeScheme') === '金额计费';
-                return Array.from(document.querySelectorAll('#tiers .tier')).map((row) => {
+                const rows = Array.from(document.querySelectorAll('#tiers .tier'));
+                const tiers = rows.map((row, index) => {
                     const inputs = row.querySelectorAll('td input');
+                    const end = index === rows.length - 1 ? '∞' : (inputs[1]?.value.trim() || '');
+                    if (isAmount) {
+                        return {
+                            start: inputs[0]?.value.trim() || '',
+                            end,
+                            price: inputs[2]?.value.trim() || ''
+                        };
+                    }
                     return {
                         start: inputs[0]?.value.trim() || '',
-                        end: inputs[1]?.value.trim() || '',
-                        price: inputs[2]?.value.trim() || '',
-                        cont: isAmount ? '' : (inputs[3]?.value.trim() || '')
+                        end,
+                        cont: inputs[3]?.value.trim() || ''
                     };
                 }).filter((tier) => {
-                    if (!tier.start || !tier.end || !tier.price) return false;
-                    if (!isAmount && !tier.cont) return false;
+                    if (!tier.start || !tier.end) return false;
+                    if (isAmount) return !!tier.price;
                     return true;
+                });
+                if (isAmount) return { tiers };
+                return {
+                    firstWeight: getFirstWeight(),
+                    firstPrice: getFirstPrice(),
+                    tiers
+                };
+            }
+
+            function isInfEnd(value) {
+                const text = String(value || '').trim();
+                return text === '∞' || text.toUpperCase() === 'INF' || text === '9999';
+            }
+
+            function displayTierEnd(value) {
+                return isInfEnd(value) ? '∞' : (value || '');
+            }
+
+            function lockTierEnds() {
+                const rows = Array.from(document.querySelectorAll('#tiers .tier'));
+                const detail = !!(page && page.isDetailMode);
+                rows.forEach((row, index) => {
+                    const inputs = row.querySelectorAll('td input');
+                    const startInput = inputs[0];
+                    const endInput = inputs[1];
+                    if (startInput) startInput.readOnly = true;
+                    if (!endInput) return;
+                    const isLast = index === rows.length - 1;
+                    if (isLast) {
+                        endInput.value = '∞';
+                        endInput.readOnly = true;
+                    } else {
+                        if (isInfEnd(endInput.value)) endInput.value = '';
+                        endInput.readOnly = detail;
+                    }
                 });
             }
 
-            function formatFeeTiersHtml(scheme, tiers) {
-                const isAmount = scheme === '金额计费';
-                return (tiers || []).map((tier) => {
-                    if (isAmount) {
-                        return `${tier.start}~${tier.end}元 运费¥${tier.price}`;
-                    }
-                    return `${tier.start}~${tier.end}kg 首重¥${tier.price} 续¥${tier.cont}/KG`;
-                }).join('<br>');
+            function formatRuleEmptyHtml() {
+                return '<span class="rate-rule-empty">否</span>';
             }
 
-            function parseRowFeeTiers(row) {
-                if (!row) return [];
+            function formatRuleLineHtml(key, value) {
+                return `<div class="rate-rule-line"><span class="rate-rule-k">${key}</span><span class="rate-rule-v">${value}</span></div>`;
+            }
+
+            function formatFeeTiersHtml(scheme, config) {
+                const data = normalizeFeeConfig(scheme, config);
+                if (scheme === '金额计费') {
+                    return (data.tiers || []).map((tier) => {
+                        return formatRuleLineHtml(`${tier.start}~${displayTierEnd(tier.end)}元`, `¥${tier.price}`);
+                    }).join('');
+                }
+                const lines = [
+                    formatRuleLineHtml(`0~${data.firstWeight}KG`, `¥${data.firstPrice}`)
+                ];
+                (data.tiers || []).forEach((tier) => {
+                    const cont = tier.cont === '' ? '0' : tier.cont;
+                    lines.push(formatRuleLineHtml(
+                        `${tier.start}~${displayTierEnd(tier.end)}KG`,
+                        `¥${data.firstPrice}+${cont}/KG`
+                    ));
+                });
+                return lines.join('');
+            }
+
+            function parseRowFeeConfig(row) {
+                if (!row) return { tiers: [] };
                 try {
-                    const parsed = JSON.parse(row.getAttribute('data-tiers') || '[]');
-                    return Array.isArray(parsed) ? parsed : [];
+                    const parsed = JSON.parse(row.getAttribute('data-tiers') || '{}');
+                    if (Array.isArray(parsed)) return { tiers: parsed };
+                    return parsed && typeof parsed === 'object' ? parsed : { tiers: [] };
                 } catch (e) {
-                    return [];
+                    return { tiers: [] };
                 }
             }
 
-            function writeRowFee(row, scheme, tiers) {
+            function writeRowFee(row, scheme, config) {
                 if (!row) return;
-                row.setAttribute('data-tiers', JSON.stringify(tiers || []));
-                const cell = row.querySelectorAll('td')[9];
+                const data = normalizeFeeConfig(scheme, config);
+                row.setAttribute('data-tiers', JSON.stringify(data));
+                const cell = row.querySelectorAll('td')[11];
                 if (!cell) return;
                 cell.classList.add('rate-fee-cell');
-                cell.innerHTML = formatFeeTiersHtml(scheme, tiers);
+                cell.innerHTML = formatFeeTiersHtml(scheme, data);
             }
 
             function setFeeTiers(tiers) {
@@ -881,9 +1591,35 @@
                     }
                     const inputs = row.querySelectorAll('td input');
                     if (inputs[0]) inputs[0].value = tier.start || '';
-                    if (inputs[1]) inputs[1].value = tier.end || '';
+                    if (inputs[1]) {
+                        inputs[1].value = index === list.length - 1 ? '∞' : displayTierEnd(tier.end);
+                    }
                     if (inputs[2]) inputs[2].value = tier.price || '';
                     if (inputs[3]) inputs[3].value = tier.cont || '';
+                });
+            }
+
+            function setFeeConfig(config) {
+                const data = config || {};
+                setFirstWeightFields(data.firstWeight, data.firstPrice);
+                setFeeTiers(data.tiers);
+            }
+
+            function chainTierStarts() {
+                const scheme = getSelectText('feeScheme');
+                const isAmount = scheme === '金额计费';
+                if (scheme !== '重量计费' && !isAmount) return;
+                const rows = document.querySelectorAll('#tiers .tier');
+                rows.forEach((row, index) => {
+                    const inputs = row.querySelectorAll('td input');
+                    if (!inputs[0]) return;
+                    if (index === 0) {
+                        inputs[0].value = isAmount ? '0' : getFirstWeight();
+                        return;
+                    }
+                    const prevEnd = rows[index - 1].querySelectorAll('td input')[1];
+                    const prevVal = prevEnd ? prevEnd.value.trim() : '';
+                    inputs[0].value = isInfEnd(prevVal) ? '' : prevVal;
                 });
             }
 
@@ -899,7 +1635,10 @@
                 const hasScheme = scheme === '重量计费' || scheme === '金额计费';
                 const table = document.querySelector('#rateModal .rate-tier-table');
                 const feeBlock = document.querySelector('#rateModal .rate-fee-block');
-                if (feeBlock) feeBlock.classList.toggle('is-idle', !hasScheme);
+                if (feeBlock) {
+                    feeBlock.classList.toggle('is-idle', !hasScheme);
+                    feeBlock.classList.toggle('is-amount', isAmount);
+                }
                 if (!table) return;
                 table.classList.toggle('is-amount', isAmount);
                 const startTh = table.querySelector('.rate-tier-start');
@@ -907,21 +1646,29 @@
                 const priceTh = table.querySelector('.rate-tier-price');
                 if (startTh) startTh.textContent = isAmount ? '起始金额' : '起始重量';
                 if (endTh) endTh.textContent = isAmount ? '结束金额' : '结束重量';
-                if (priceTh) priceTh.textContent = isAmount ? '运费' : '首重价(元)';
+                if (priceTh) priceTh.textContent = '运费';
                 table.querySelectorAll('.tier').forEach((row) => {
                     const inputs = row.querySelectorAll('td input');
                     if (!inputs.length) return;
                     inputs[0].placeholder = isAmount ? '起始金额' : '起始重量';
                     if (inputs[1]) inputs[1].placeholder = isAmount ? '结束金额' : '结束重量';
-                    if (inputs[2]) inputs[2].placeholder = isAmount ? '运费' : '首重价';
+                    if (inputs[2]) inputs[2].placeholder = '运费';
                     if (inputs[3]) inputs[3].placeholder = '续价';
                 });
+                if (hasScheme) chainTierStarts();
+                lockTierEnds();
             }
 
             function syncExtraFields() {
                 const extra = document.getElementById('extra');
                 document.getElementById('extraFields').style.display =
                     extra && extra.value === '是' ? 'block' : 'none';
+            }
+
+            function syncUpstairsFields() {
+                const fields = document.getElementById('upstairsFields');
+                if (!fields) return;
+                fields.style.display = getSelectText('upstairsFee') === '是' ? 'block' : 'none';
             }
 
             function validateDestRegion() {
@@ -932,14 +1679,14 @@
             function validateFeeTiers() {
                 const scheme = getSelectText('feeScheme');
                 const isAmount = scheme === '金额计费';
+                if (!isAmount && (!getFirstWeight() || !getFirstPrice())) return false;
                 return Array.from(document.querySelectorAll('#tiers .tier')).some((row) => {
                     const inputs = row.querySelectorAll('td input');
                     const start = inputs[0]?.value.trim();
                     const end = inputs[1]?.value.trim();
                     const price = inputs[2]?.value.trim();
-                    const cont = inputs[3]?.value.trim();
-                    if (!start || !end || !price) return false;
-                    if (!isAmount && !cont) return false;
+                    if (!start || !end) return false;
+                    if (isAmount && !price) return false;
                     return true;
                 });
             }
@@ -961,9 +1708,32 @@
                 });
             }
 
+            function getRateOperatorName() {
+                const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+                return (user && (user.name || user.username)) || '当前用户';
+            }
+
+            function getRowEnabled(row) {
+                if (!row) return '启用';
+                const cell = row.querySelectorAll('td')[16];
+                if (!cell) return '启用';
+                const status = cell.querySelector('.status');
+                const text = (status ? status.textContent : cell.textContent).trim();
+                return text === '禁用' ? '禁用' : '启用';
+            }
+
+            function writeRowEnabled(row, value) {
+                if (!row) return;
+                const cell = row.querySelectorAll('td')[16];
+                if (!cell) return;
+                const enabled = value === '禁用' ? '禁用' : '启用';
+                cell.innerHTML = `<span class="status ${enabled === '启用' ? 'active' : 'inactive'}">${enabled}</span>`;
+            }
+
             const page = new PageManager({
                 entityName: '物流费率',
                 checkboxColumn: true,
+                statusColumnIndex: 16,
                 detailView: { enabled: true, columnIndex: 1 },
                 detailModalTitle: '物流费率-详情',
                 editModalTitle: '物流费率-编辑',
@@ -974,13 +1744,18 @@
                     validations: [
                         { id: 'origin', message: '请选择始发地', required: true },
                         { id: 'carrier', message: '请选择承运商', required: true },
-                        { id: 'logisticsType', message: '请选择物流类型', required: true },
+                        { id: 'orderChannel', message: '请选择订单渠道', required: true },
                         { id: 'feeScheme', message: '请选择费用方案', required: true },
-                        { id: 'extra', message: '请选择增值服务', required: true }
+                        { id: 'extra', message: '请选择增值服务', required: true },
+                        { id: 'upstairsFee', message: '请选择上楼费', required: true },
+                        { id: 'isEnabled', message: '请选择是否启用', required: true }
                     ],
                     onDetailModeChange: (isDetailMode) => {
                         document.getElementById('rateModal').classList.toggle('is-detail', isDetailMode);
                         if (destRegion) destRegion.setDisabled(isDetailMode);
+                        document.querySelectorAll('#extraRows .extra-row').forEach(syncExtraAmountState);
+                        syncLogisticsTypeByScheme();
+                        syncFeeTable();
                     },
                     onOpen: () => {
                         const titleEl = document.getElementById('modalTitle');
@@ -988,38 +1763,51 @@
                             if (!page.isDetailMode) {
                                 titleEl.textContent = '物流费率-编辑';
                             }
-                            ['origin', 'carrier', 'logisticsType', 'feeScheme', 'extra'].forEach((id) => {
+                            ['origin', 'carrier', 'orderChannel', 'logisticsType', 'feeScheme', 'extra', 'upstairsFee', 'isEnabled'].forEach((id) => {
                                 setSelectByText(id, getSelectText(id));
                             });
                             const cells = page.currentEditRow.querySelectorAll('td');
                             setDestRegion(
-                                cells[4].textContent.trim(),
                                 cells[5].textContent.trim(),
-                                cells[6].textContent.trim()
+                                cells[6].textContent.trim(),
+                                cells[7].textContent.trim()
                             );
-                            setSelectByText('feeScheme', cells[8].textContent.trim());
+                            setSelectByText('orderChannel', cells[3].textContent.trim());
+                            setSelectByText('logisticsType', cells[4].textContent.trim());
+                            setSelectByText('feeScheme', cells[9].textContent.trim());
+                            setSelectByText('upstairsFee', getRowUpstairs(page.currentEditRow));
+                            setSelectByText('isEnabled', getRowEnabled(page.currentEditRow));
                             setRatioValue(cells[10].textContent.trim());
-                            setFeeTiers(parseRowFeeTiers(page.currentEditRow));
+                            setFeeConfig(parseRowFeeConfig(page.currentEditRow));
                             setExtraItems(getRowExtraFlag(page.currentEditRow) === '是'
                                 ? parseRowExtras(page.currentEditRow)
                                 : []);
+                            setUpstairsConfig(getRowUpstairs(page.currentEditRow) === '是'
+                                ? parseRowUpstairsConfig(page.currentEditRow)
+                                : emptyUpstairsConfig());
                         } else {
                             titleEl.textContent = '物流费率-新增';
                             setSelectByText('origin', '');
                             setSelectByText('carrier', '');
+                            setSelectByText('orderChannel', '');
                             setSelectByText('logisticsType', '');
                             setSelectByText('feeScheme', '');
                             setSelectByText('extra', '否');
+                            setSelectByText('upstairsFee', '否');
+                            setSelectByText('isEnabled', '启用');
                             if (destRegion) destRegion.reset();
                             document.getElementById('days').value = '';
                             setRatioValue('');
                             document.getElementById('freightDiscount').value = '';
                             document.getElementById('settleDiscount').value = '';
-                            setFeeTiers([]);
+                            setFeeConfig(emptyFeeConfig(false));
                             resetExtraRows();
+                            setUpstairsConfig(emptyUpstairsConfig());
                         }
                         syncFeeTable();
+                        syncLogisticsTypeByScheme();
                         syncExtraFields();
+                        syncUpstairsFields();
                     },
                     mapRowToForm: (row) => {
                         page.currentEditRow = row;
@@ -1027,17 +1815,34 @@
                         return {
                             origin: cells[1].textContent.trim(),
                             carrier: cells[2].textContent.trim(),
-                            logisticsType: cells[3].textContent.trim(),
-                            days: cells[7].textContent.trim() === '-' ? '' : cells[7].textContent.trim(),
-                            feeScheme: cells[8].textContent.trim(),
+                            orderChannel: cells[3].textContent.trim(),
+                            logisticsType: cells[4].textContent.trim(),
+                            days: cells[8].textContent.trim() === '-' ? '' : cells[8].textContent.trim(),
+                            feeScheme: cells[9].textContent.trim(),
                             extra: getRowExtraFlag(row),
-                            freightDiscount: cells[12].textContent.trim(),
-                            settleDiscount: cells[13].textContent.trim()
+                            upstairsFee: getRowUpstairs(row),
+                            isEnabled: getRowEnabled(row),
+                            freightDiscount: cells[14].textContent.trim(),
+                            settleDiscount: cells[15].textContent.trim()
                         };
                     },
                     onSave: () => {
                         if (!validateDestRegion()) {
                             showToast('请选择目的区域');
+                            return false;
+                        }
+                        const scheme = getSelectText('feeScheme');
+                        const logisticsType = getSelectText('logisticsType');
+                        if (!logisticsType) {
+                            showToast('请选择物流类型');
+                            return false;
+                        }
+                        if (scheme === '重量计费' && logisticsType === '不区分') {
+                            showToast('重量计费不得选择不区分');
+                            return false;
+                        }
+                        if (scheme === '金额计费' && (logisticsType === '常温' || logisticsType === '冷链')) {
+                            showToast('金额计费不得填写物流类型');
                             return false;
                         }
                         if (!validateFeeTiers()) {
@@ -1048,45 +1853,90 @@
                             showToast('请填写增值服务');
                             return false;
                         }
+                        if (getSelectText('upstairsFee') === '是' && !validateUpstairsConfig()) {
+                            showToast('请填写上楼费用');
+                            return false;
+                        }
                         const data = collectRateForm();
-                        const tiers = collectFeeTiers();
+                        const exclude = page.currentEditRow;
+                        const matchKey = matchKeyFromData(data);
+                        const dup = Array.from(document.querySelectorAll('#tableBody tr')).some((row) => {
+                            return row !== exclude && matchKeyFromRow(row) === matchKey;
+                        });
+                        if (dup) {
+                            showToast('已存在相同的物流费率，请勿重复保存');
+                            return false;
+                        }
+                        if (data.isEnabled === '启用') {
+                            const lane = laneKeyFromData(data);
+                            const clash = Array.from(document.querySelectorAll('#tableBody tr')).some((row) => {
+                                if (row === exclude) return false;
+                                if (getRowEnabled(row) !== '启用') return false;
+                                if (laneKeyFromRow(row) !== lane) return false;
+                                const other = schemeFromRow(row);
+                                return (data.feeScheme === '金额计费' && other === '重量计费')
+                                    || (data.feeScheme === '重量计费' && other === '金额计费');
+                            });
+                            if (clash) {
+                                showToast('同一配送仓、订单渠道、目的地不可同时启用重量计费与金额计费');
+                                return false;
+                            }
+                        }
+                        const feeConfig = collectFeeConfig();
                         const extras = collectExtraItems();
+                        const upstairsConfig = collectUpstairsConfig();
+                        const operator = getRateOperatorName();
+                        const now = page.getCurrentTimeStr();
                         if (page.currentEditRow) {
                             page.updateTableRow(page.currentEditRow, {
                                 1: data.origin,
                                 2: data.carrier,
-                                3: data.logisticsType,
-                                4: data.destProvince,
-                                5: data.destCity,
-                                6: data.destDistrict,
-                                7: data.days,
-                                8: data.feeScheme,
+                                3: data.orderChannel,
+                                4: data.logisticsType,
+                                5: data.destProvince,
+                                6: data.destCity,
+                                7: data.destDistrict,
+                                8: data.days,
+                                9: data.feeScheme,
                                 10: data.ratio,
-                                12: data.freightDiscount,
-                                13: data.settleDiscount
+                                14: data.freightDiscount,
+                                15: data.settleDiscount,
+                                19: operator,
+                                20: now
                             });
-                            writeRowFee(page.currentEditRow, data.feeScheme, tiers);
+                            writeRowFee(page.currentEditRow, data.feeScheme, feeConfig);
                             writeRowExtra(page.currentEditRow, data.extra, extras);
+                            writeRowUpstairs(page.currentEditRow, data.upstairsFee, upstairsConfig);
+                            writeRowEnabled(page.currentEditRow, data.isEnabled);
                         } else {
                             const row = page.addTableRow({
                                 cells: [
                                     data.origin,
                                     data.carrier,
+                                    data.orderChannel,
                                     data.logisticsType,
                                     data.destProvince,
                                     data.destCity,
                                     data.destDistrict,
                                     data.days,
                                     data.feeScheme,
-                                    formatFeeTiersHtml(data.feeScheme, tiers),
                                     data.ratio,
+                                    formatFeeTiersHtml(data.feeScheme, feeConfig),
                                     formatExtraHtml(data.extra === '是' ? extras : []),
+                                    formatUpstairsHtml(data.upstairsFee, upstairsConfig),
                                     data.freightDiscount,
-                                    data.settleDiscount
+                                    data.settleDiscount,
+                                    { value: data.isEnabled, isStatus: true },
+                                    operator,
+                                    now,
+                                    operator,
+                                    now
                                 ]
                             });
-                            writeRowFee(row, data.feeScheme, tiers);
+                            writeRowFee(row, data.feeScheme, feeConfig);
                             writeRowExtra(row, data.extra, extras);
+                            writeRowUpstairs(row, data.upstairsFee, upstairsConfig);
+                            writeRowEnabled(row, data.isEnabled);
                         }
                         showToast('物流费率已保存', 'success');
                         page.currentEditRow = null;
@@ -1099,6 +1949,19 @@
 
             bindDecimalInput(document.getElementById('ratioLeft'));
             bindDecimalInput(document.getElementById('ratioRight'));
+            bindDecimalInput(document.getElementById('firstWeight'));
+            bindDecimalInput(document.getElementById('firstPrice'));
+            [
+                'upstairsFreeWeight',
+                'upElevatorBase',
+                'upElevatorWeight',
+                'upElevatorFloor',
+                'upElevatorPiece',
+                'upNoElevatorBase',
+                'upNoElevatorWeight',
+                'upNoElevatorFloor',
+                'upNoElevatorPiece'
+            ].forEach((id) => bindDecimalInput(document.getElementById(id)));
 
             document.getElementById('btnAdd').addEventListener('click', () => {
                 page.currentEditRow = null;
@@ -1109,21 +1972,66 @@
 
             document.getElementById('feeScheme').onchange = () => {
                 syncFeeTable();
+                syncLogisticsTypeByScheme();
             };
 
             document.getElementById('extra').onchange = () => {
                 syncExtraFields();
             };
 
+            document.getElementById('extraRows').addEventListener('change', (e) => {
+                const sel = e.target.closest('select');
+                if (!sel) return;
+                syncExtraAmountState(sel.closest('.extra-row'));
+            });
+
+            document.getElementById('upstairsFee').onchange = () => {
+                syncUpstairsFields();
+            };
+
             document.getElementById('addTier').onclick = () => {
                 if (page.isDetailMode) return;
-                const tier = document.querySelector('.tier').cloneNode(true);
+                const tbody = document.getElementById('tiers');
+                const last = tbody.querySelector('.tier:last-child');
+                if (last) {
+                    const lastEnd = last.querySelectorAll('td input')[1];
+                    if (lastEnd && isInfEnd(lastEnd.value)) lastEnd.value = '';
+                    if (lastEnd) lastEnd.readOnly = false;
+                }
+                const prevEnd = last ? (last.querySelectorAll('td input')[1]?.value.trim() || '') : '';
+                const template = document.querySelector('#tiers .tier');
+                const tier = template.cloneNode(true);
                 tier.querySelectorAll('input').forEach((input) => {
                     input.value = '';
+                    input.readOnly = false;
                 });
-                document.getElementById('tiers').appendChild(tier);
+                tbody.appendChild(tier);
+                const startInput = tier.querySelectorAll('td input')[0];
+                if (startInput && !isInfEnd(prevEnd)) startInput.value = prevEnd;
                 syncFeeTable();
             };
+
+            document.getElementById('firstWeight').addEventListener('input', () => {
+                if (getSelectText('feeScheme') !== '重量计费') return;
+                const first = document.querySelector('#tiers .tier td input');
+                if (first) first.value = getFirstWeight();
+            });
+
+            document.getElementById('tiers').addEventListener('input', (e) => {
+                const scheme = getSelectText('feeScheme');
+                if (scheme !== '重量计费' && scheme !== '金额计费') return;
+                const input = e.target;
+                if (!input || input.tagName !== 'INPUT') return;
+                const row = input.closest('.tier');
+                if (!row) return;
+                const inputs = row.querySelectorAll('td input');
+                if (input !== inputs[1]) return;
+                const rows = Array.from(document.querySelectorAll('#tiers .tier'));
+                const next = rows[rows.indexOf(row) + 1];
+                if (!next) return;
+                const nextStart = next.querySelectorAll('td input')[0];
+                if (nextStart) nextStart.value = isInfEnd(input.value) ? '' : input.value.trim();
+            });
 
             document.getElementById('tiers').onclick = (e) => {
                 const btn = e.target.closest('.remove-tier');
@@ -1131,6 +2039,7 @@
                 e.preventDefault();
                 if (document.querySelectorAll('.tier').length > 1) {
                     btn.closest('.tier').remove();
+                    syncFeeTable();
                 }
             };
 
@@ -1170,7 +2079,8 @@
                     mount: '#rateRegionMount',
                     id: 'rateRegion',
                     label: '目的区域:',
-                    labelWidth: '70px'
+                    labelWidth: '70px',
+                    width: '200px'
                 });
                 const label = mount.parentElement.querySelector(':scope > label');
                 if (label) label.remove();
@@ -1179,12 +2089,186 @@
             document.querySelectorAll('.search-form select, .modal-form-group select').forEach((sel) => {
                 wrapNativeSelect(sel);
             });
+            syncLogisticsTypeOptions(false);
 
             document.addEventListener('click', (e) => {
                 if (!e.target.closest('.custom-select')) {
                     document.querySelectorAll('.select-dropdown.show').forEach((el) => {
                         el.classList.remove('show');
                     });
+                }
+            });
+
+            function openRateImportModal() {
+                const overlay = document.getElementById('rateImportOverlay');
+                const fileInput = document.getElementById('rateImportFile');
+                const execBtn = document.getElementById('rateImportSubmitBtn');
+                if (fileInput) fileInput.value = '';
+                if (execBtn) execBtn.classList.remove('is-ready');
+                if (overlay) {
+                    overlay.classList.add('is-open');
+                    overlay.setAttribute('aria-hidden', 'false');
+                }
+            }
+
+            function closeRateImportModal() {
+                const overlay = document.getElementById('rateImportOverlay');
+                if (overlay) {
+                    overlay.classList.remove('is-open');
+                    overlay.setAttribute('aria-hidden', 'true');
+                }
+            }
+
+            function getRateImportNowStr() {
+                const d = new Date();
+                const p = (n) => String(n).padStart(2, '0');
+                return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) +
+                    ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+            }
+
+            function appendRateImportRecord(fileName, status) {
+                const tbody = document.getElementById('rateImportTbody');
+                if (!tbody) return;
+                const emptyRow = tbody.querySelector('.batch-init-empty');
+                if (emptyRow) emptyRow.closest('tr').remove();
+                const resultText = status === '成功' ? '导入成功' : '导入失败，请下载结果查看';
+                const tr = document.createElement('tr');
+                tr.innerHTML =
+                    '<td>' + fileName + '</td>' +
+                    '<td>' + status + '</td>' +
+                    '<td>' + resultText + '</td>' +
+                    '<td>当前用户</td>' +
+                    '<td>' + getRateImportNowStr() + '</td>' +
+                    '<td><button type="button" class="batch-init-link rate-import-download-result">下载</button></td>';
+                tbody.insertBefore(tr, tbody.firstChild);
+            }
+
+            const btnImport = document.getElementById('btnImport');
+            if (btnImport) {
+                btnImport.addEventListener('click', openRateImportModal);
+            }
+            document.getElementById('rateImportCloseBtn').addEventListener('click', closeRateImportModal);
+            document.getElementById('rateImportCancelBtn').addEventListener('click', closeRateImportModal);
+            document.getElementById('rateImportQueryBtn').addEventListener('click', () => {
+                showToast('已刷新导入记录', 'info');
+            });
+            function rateImportTemplateSheets() {
+                return [
+                    {
+                        name: '主表',
+                        rows: [
+                            ['行号', '始发地（编号）', '承运商（编号）', '订单渠道（零售订单、代采订单）', '物流类型（常温、冷链、不区分）', '目的省', '目的市', '目的区', '物流时效(天)', '重抛比', '运费折扣', '结算折扣', '费用方案（重量计费、金额计费）', '增值服务（是、否）', '上楼费（是、否）', '是否启用（启用、禁用）', '首重重量', '首重价', '免上楼重量', '有电梯基础费', '有电梯重量系数', '有电梯楼层系数', '有电梯件数系数', '无电梯基础费', '无电梯重量系数', '无电梯楼层系数', '无电梯件数系数'],
+                            ['1', 'W001', 'SF', '零售订单', '常温', '江苏省', '南京市', '江宁区', '1', '1:3', '1.00', '0.95', '重量计费', '是', '是', '启用', '25', '77', '20', '5', '0.1', '0', '0', '10', '0.1', '5', '0.5'],
+                            ['2', 'W002', 'YTO', '零售订单', '不区分', '浙江省', '杭州市', '余杭区', '2', '', '1.00', '1.00', '金额计费', '否', '否', '启用', '', '', '', '', '', '', '', '', '', '', '']
+                        ]
+                    },
+                    {
+                        name: '物流费用阶梯',
+                        rows: [
+                            ['行号', '起始', '结束', '续价或运费'],
+                            ['1', '25', '100', '0.71'],
+                            ['1', '100', '∞', '1.3'],
+                            ['2', '0', '100', '6'],
+                            ['2', '100', '500', '10'],
+                            ['2', '500', '∞', '15']
+                        ]
+                    },
+                    {
+                        name: '增值服务',
+                        rows: [
+                            ['行号', '项目（保价费、派送费）', '金额(每票)', '最低价', '费率(%)'],
+                            ['1', '保价费', '', '2', '0.5'],
+                            ['1', '派送费', '8', '', '']
+                        ]
+                    }
+                ];
+            }
+
+            function rateImportColWidth(text) {
+                let width = 0;
+                for (const ch of String(text || '')) {
+                    width += ch.charCodeAt(0) > 255 ? 2.2 : 1.15;
+                }
+                return Math.max(12, Math.ceil(width + 4));
+            }
+
+            function rateImportSheetCols(rows) {
+                const widths = [];
+                (rows || []).forEach((row) => {
+                    (row || []).forEach((cell, i) => {
+                        widths[i] = Math.max(widths[i] || 12, rateImportColWidth(cell));
+                    });
+                });
+                return widths.map((wch) => ({ wch }));
+            }
+
+            function loadRateXlsxLib() {
+                if (window.XLSX && window.XLSX.utils && typeof window.XLSX.writeFile === 'function') {
+                    return Promise.resolve();
+                }
+                const src = (window.wmsPath && typeof window.wmsPath.asset === 'function')
+                    ? window.wmsPath.asset('js/vendor/xlsx.full.min.js')
+                    : '../js/vendor/xlsx.full.min.js';
+                return new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = src;
+                    script.onload = () => resolve();
+                    script.onerror = () => reject(new Error('xlsx'));
+                    document.head.appendChild(script);
+                });
+            }
+
+            document.getElementById('rateImportTemplateBtn').addEventListener('click', () => {
+                loadRateXlsxLib().then(() => {
+                    const wb = window.XLSX.utils.book_new();
+                    rateImportTemplateSheets().forEach((sheet) => {
+                        const ws = window.XLSX.utils.aoa_to_sheet(sheet.rows);
+                        ws['!cols'] = rateImportSheetCols(sheet.rows);
+                        window.XLSX.utils.book_append_sheet(wb, ws, sheet.name);
+                    });
+                    window.XLSX.writeFile(wb, '物流费率导入模板.xlsx');
+                    showToast('已下载导入模板（主表 / 物流费用阶梯 / 增值服务）', 'success');
+                }).catch(() => {
+                    showToast('导入模板下载失败', 'error');
+                });
+            });
+            document.getElementById('rateImportBrowseBtn').addEventListener('click', () => {
+                document.getElementById('rateImportFile').click();
+            });
+            document.getElementById('rateImportFile').addEventListener('change', function() {
+                const file = this.files && this.files[0];
+                const execBtn = document.getElementById('rateImportSubmitBtn');
+                if (execBtn) {
+                    if (file) execBtn.classList.add('is-ready');
+                    else execBtn.classList.remove('is-ready');
+                }
+                if (file) showToast('已选择文件：' + file.name, 'info');
+            });
+            document.getElementById('rateImportSubmitBtn').addEventListener('click', () => {
+                const fileInput = document.getElementById('rateImportFile');
+                const file = fileInput && fileInput.files && fileInput.files[0];
+                if (!file) {
+                    showToast('请先通过「文件浏览」选择 Excel 或 CSV 文件', 'error');
+                    return;
+                }
+                const name = String(file.name || '').toLowerCase();
+                if (!/\.(xlsx|csv)$/.test(name)) {
+                    showToast('请上传 Excel 模板（.xlsx）或 CSV 文件', 'error');
+                    return;
+                }
+                appendRateImportRecord(file.name, '成功');
+                fileInput.value = '';
+                document.getElementById('rateImportSubmitBtn').classList.remove('is-ready');
+                showToast('物流费率导入成功（演示）', 'success');
+            });
+            document.getElementById('rateImportTbody').addEventListener('click', (e) => {
+                if (e.target && e.target.classList.contains('rate-import-download-result')) {
+                    showToast('结果文件详见需求文档', 'info');
+                }
+            });
+            document.getElementById('rateImportOverlay').addEventListener('click', (e) => {
+                if (e.target && e.target.id === 'rateImportOverlay') {
+                    closeRateImportModal();
                 }
             });
         });
