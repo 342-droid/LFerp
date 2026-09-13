@@ -182,10 +182,14 @@ const RegionCascader = {
             return item;
         }
 
+        function provinceHasCities(p) {
+            return Object.keys(regionTree[p] || {}).length > 0;
+        }
+
         function fillProvinces() {
             colProvince.innerHTML = '';
             Object.keys(regionTree).forEach(p => {
-                const item = createItem(p, p === prov, true);
+                const item = createItem(p, p === prov, provinceHasCities(p));
                 item.addEventListener('click', (e) => {
                     e.stopPropagation();
                     prov = p;
@@ -205,7 +209,7 @@ const RegionCascader = {
         }
 
         function fillCities() {
-            if (!prov || !regionTree[prov]) {
+            if (!prov || !provinceHasCities(prov)) {
                 removeCityColumn();
                 return;
             }
