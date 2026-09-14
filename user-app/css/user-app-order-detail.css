@@ -884,6 +884,10 @@
   line-height: 1.4;
 }
 
+.ua-od-price__row[hidden] {
+  display: none !important;
+}
+
 .ua-od-price__row span:last-child {
   color: #333333;
 }

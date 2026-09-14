@@ -61,6 +61,17 @@
 
   function normalizeOrder(order) {
     order = order || {};
+    var status = order.status || 'unpaid';
+    /* 后台「待核销 / 现货直核」不对用户展示：自提对客仍是待自提 */
+    if (status === '待核销' || status === 'verify') status = 'pickup';
+    var items = Array.isArray(order.items)
+      ? order.items.map(function (item) {
+          var copy = Object.assign({}, item || {});
+          if (copy.fulfillTag === '现货直核') delete copy.fulfillTag;
+          delete copy.spotDirectVerify;
+          return copy;
+        })
+      : [];
     var payLegs = Array.isArray(order.payLegs)
       ? order.payLegs
           .map(function (leg) {
@@ -75,7 +86,7 @@
       : [];
     return {
       orderNo: String(order.orderNo || ''),
-      status: order.status || 'unpaid',
+      status: status,
       createdAt: order.createdAt || nowText(),
       paidAt: order.paidAt || '',
       closedReason: order.closedReason || '',
@@ -84,6 +95,8 @@
       deductAmount: Number(order.deductAmount) || 0,
       goodsTotal: Number(order.goodsTotal) || 0,
       freight: Number(order.freight) || 0,
+      ambientFee: order.ambientFee != null ? Number(order.ambientFee) : null,
+      coldFee: order.coldFee != null ? Number(order.coldFee) : null,
       payable: Number(order.payable) || 0,
       payLabel: order.payLabel || '',
       /* 混合支付：支付方式名（顿号拼接）+ 各腿金额明细 */
@@ -91,7 +104,15 @@
       payNo: order.payNo || demoPayNo(order.orderNo, order.payMethod),
       payLegs: payLegs,
       from: order.from || '',
-      items: Array.isArray(order.items) ? order.items : []
+      items: items,
+      splitGroupId: order.splitGroupId || '',
+      siblingOrderNo: order.siblingOrderNo || '',
+      siblingOrderNos: Array.isArray(order.siblingOrderNos)
+        ? order.siblingOrderNos.filter(Boolean)
+        : order.siblingOrderNo
+          ? [order.siblingOrderNo]
+          : [],
+      splitKind: order.splitKind || ''
     };
   }
 

@@ -156,13 +156,15 @@
       serviceText: '坏了包退 三天内到货',
       img: '../assets/shop/product-wonton-pork.svg',
       detailImg: '../assets/shop/product-wonton-pork.svg',
-      heroTags: ['冷丰特选', '鲜香入味'],
+      heroTags: ['门店现货', '鲜香入味'],
       fulfillType: 'pickup',
+      skipDemandSummary: true,
+      productTags: ['不走订货单'],
       category: '肉禽蛋品',
       store: STORE,
       pickupStore: '生产验证门店',
       distance: '180m',
-      pickupBadge: '后天可提',
+      pickupBadge: '支付后可提',
       specs: ['猪肉雪菜笋丁云吞 12只', '猪肉雪菜笋丁云吞 24只'],
       defaultSpec: '猪肉雪菜笋丁云吞 12只',
       reviewCount: 204,
@@ -1938,6 +1940,8 @@
           merchantName: mallInfo.merchantName,
           isPointsExchange: false,
           category: p.category || '',
+          skipDemandSummary: !!(p.skipDemandSummary || (p.productTags && p.productTags.indexOf('不走订货单') >= 0)),
+          productTags: p.productTags || [],
           deliveryText:
             mallInfo.fulfillType === 'express'
               ? (p.supplier && p.supplier.deliveryText) || '预计2-3天送达'
@@ -1946,17 +1950,36 @@
       });
   }
 
+  function isSpotDirectCheckoutItem(item) {
+    if (!item) return false;
+    if ((item.fulfillType || '') === 'express') return false;
+    if (item.skipDemandSummary || item.spotDirectVerify) return true;
+    var tags = item.productTags || item.tags || [];
+    if (tags.indexOf && tags.indexOf('不走订货单') >= 0) return true;
+    var p = PRODUCTS[item.id];
+    if (!p) return false;
+    if (p.skipDemandSummary) return true;
+    var pt = p.productTags || [];
+    return pt.indexOf('不走订货单') >= 0;
+  }
+
   function buildConfirmSplitOrders(items) {
     var groups = [];
     var map = {};
     (items || []).forEach(function (item) {
-      var key = item.fulfillType + ':' + item.merchantId;
+      var spot = isSpotDirectCheckoutItem(item);
+      var key =
+        item.fulfillType +
+        ':' +
+        item.merchantId +
+        (item.fulfillType === 'pickup' ? (spot ? ':spot' : ':wh') : '');
       if (!map[key]) {
         map[key] = {
           key: key,
           fulfillType: item.fulfillType,
           merchantId: item.merchantId,
           merchantName: item.merchantName,
+          spotDirect: !!(item.fulfillType === 'pickup' && spot),
           items: []
         };
         groups.push(map[key]);
@@ -1964,23 +1987,28 @@
       map[key].items.push(item);
     });
     groups.sort(function (a, b) {
-      if (a.fulfillType === b.fulfillType) {
-        return String(a.merchantName).localeCompare(String(b.merchantName), 'zh');
+      if (a.fulfillType !== b.fulfillType) {
+        return a.fulfillType === 'pickup' ? -1 : 1;
       }
-      return a.fulfillType === 'pickup' ? -1 : 1;
+      if (a.spotDirect !== b.spotDirect) return a.spotDirect ? -1 : 1;
+      return String(a.merchantName).localeCompare(String(b.merchantName), 'zh');
     });
     return groups.map(function (group, index) {
       var qty = group.items.reduce(function (sum, it) {
         return sum + (it.qty || 0);
       }, 0);
+      var packageLabel = '门店自提';
+      if (group.fulfillType === 'express') packageLabel = '快递发货';
+      else if (group.spotDirect) packageLabel = '现货自提';
+      else packageLabel = '到店自提';
       return {
         key: group.key,
         fulfillType: group.fulfillType,
         merchantId: group.merchantId,
         merchantName: group.merchantName,
+        spotDirect: !!group.spotDirect,
         packageNo: index + 1,
-        packageLabel:
-          group.fulfillType === 'express' ? '快递发货' : '门店自提',
+        packageLabel: packageLabel,
         timeText: group.items[0] ? group.items[0].deliveryText : '',
         items: group.items,
         totalQty: qty
@@ -2011,6 +2039,8 @@
       merchantId: merchant && merchant.id ? merchant.id : STORE.id,
       merchantName: merchantName,
       isPointsExchange: false,
+      skipDemandSummary: !!(p.skipDemandSummary || (p.productTags && p.productTags.indexOf('不走订货单') >= 0)),
+      productTags: p.productTags || [],
       deliveryText:
         fulfillType === 'express'
           ? (merchant && merchant.deliveryText) || '预计2-3天送达'
@@ -2144,6 +2174,169 @@
       0,
       Math.round((pricing.goodsTotal + pricing.freight - (d.deductAmount || 0)) * 100) /
         100
+    );
+  }
+
+  function checkoutItemGoodsAmount(it) {
+    if (it && it.isPointsExchange) {
+      return Math.round((Number(it.money) || 0) * (it.qty || 1) * 100) / 100;
+    }
+    return Math.round((Number(it.price) || 0) * (it.qty || 1) * 100) / 100;
+  }
+
+  function mapCheckoutLineToOrderItem(it) {
+    return {
+      id: it.id,
+      name: it.name,
+      spec: it.spec || '',
+      img: it.img || '',
+      qty: it.isNewcomerExclusive ? 1 : it.qty,
+      price: Number(it.price) || 0,
+      points: Number(it.points) || 0,
+      money: Number(it.money) || 0,
+      isPointsExchange: !!it.isPointsExchange,
+      isNewcomerExclusive: !!it.isNewcomerExclusive,
+      newcomerCode: it.newcomerCode || '',
+      pointsCode: it.pointsCode || '',
+      skuCode: it.skuCode || '',
+      fulfillType: it.fulfillType || '',
+      skipDemandSummary: isSpotDirectCheckoutItem(it)
+    };
+  }
+
+  /** 用户 APP 零售：现货自提与需走订货商品拆成两单。进货商城不走本逻辑。 */
+  function persistSplitUnpaidOrders(opts) {
+    opts = opts || {};
+    var allItems = opts.items || [];
+    var pricing = opts.pricing || {};
+    var usePointsDeduct = !!opts.usePointsDeduct;
+    var d = opts.deduct || { pointsUsed: 0, deductAmount: 0 };
+    var extra = opts.extra || {};
+    var spotItems = allItems.filter(isSpotDirectCheckoutItem);
+    var otherItems = allItems.filter(function (it) {
+      return !isSpotDirectCheckoutItem(it);
+    });
+    var groups =
+      spotItems.length && otherItems.length
+        ? [
+            { kind: 'spot', items: spotItems },
+            { kind: 'wh', items: otherItems }
+          ]
+        : [{ kind: spotItems.length ? 'spot' : 'normal', items: allItems }];
+    var totalGoods = allItems.reduce(function (s, it) {
+      return s + checkoutItemGoodsAmount(it);
+    }, 0);
+    var freightTotal = Number(pricing.freight) || 0;
+    var deductPts = usePointsDeduct ? Number(d.pointsUsed) || 0 : 0;
+    var deductAmt = usePointsDeduct ? Number(d.deductAmount) || 0 : 0;
+    var groupId = global.UaOrdersStore ? global.UaOrdersStore.genOrderNo() : String(Date.now());
+    var nos = groups.map(function (_, i) {
+      return global.UaOrdersStore ? global.UaOrdersStore.genOrderNo() : String(Date.now() + i);
+    });
+    var remainFreight = freightTotal;
+    var remainDeductAmt = deductAmt;
+    var remainDeductPts = deductPts;
+    var saved = [];
+    groups.forEach(function (group, idx) {
+      var goodsTotal = Math.round(
+        group.items.reduce(function (s, it) {
+          return s + checkoutItemGoodsAmount(it);
+        }, 0) * 100
+      ) / 100;
+      var last = idx === groups.length - 1;
+      var share = totalGoods > 0 ? goodsTotal / totalGoods : 1 / groups.length;
+      var freight = 0;
+      if (group.kind !== 'spot') {
+        freight = last ? remainFreight : Math.round(freightTotal * share * 100) / 100;
+        remainFreight = Math.round((remainFreight - freight) * 100) / 100;
+      } else if (last) {
+        freight = remainFreight;
+        remainFreight = 0;
+      }
+      var thisDeductAmt = last
+        ? remainDeductAmt
+        : Math.round(deductAmt * share * 100) / 100;
+      remainDeductAmt = Math.round((remainDeductAmt - thisDeductAmt) * 100) / 100;
+      var thisDeductPts = last ? remainDeductPts : Math.round(deductPts * share);
+      remainDeductPts -= thisDeductPts;
+      var exchangePts = group.items.reduce(function (s, it) {
+        return s + (it.isPointsExchange ? (Number(it.points) || 0) * (it.qty || 1) : 0);
+      }, 0);
+      var payable = Math.round((goodsTotal + freight - thisDeductAmt) * 100) / 100;
+      if (payable < 0) payable = 0;
+      var siblingNos = nos.filter(function (n) {
+        return n !== nos[idx];
+      });
+      var payload = Object.assign(
+        {
+          orderNo: nos[idx],
+          status: 'unpaid',
+          createdAt: global.UaOrdersStore ? global.UaOrdersStore.nowText() : '',
+          exchangePoints: exchangePts,
+          deductPoints: thisDeductPts,
+          deductAmount: thisDeductAmt,
+          goodsTotal: goodsTotal,
+          freight: freight,
+          payable: payable,
+          payLabel:
+            exchangePts > 0 && payable > 0
+              ? exchangePts + '积分 + ¥' + payable.toFixed(2)
+              : exchangePts > 0
+                ? exchangePts + '积分'
+                : '¥' + payable.toFixed(2),
+          items: group.items.map(mapCheckoutLineToOrderItem),
+          splitGroupId: groups.length > 1 ? groupId : '',
+          siblingOrderNo: siblingNos[0] || '',
+          siblingOrderNos: siblingNos,
+          splitKind: group.kind
+        },
+        extra
+      );
+      saved.push(global.UaOrdersStore ? global.UaOrdersStore.upsert(payload) : payload);
+    });
+    return saved;
+  }
+
+  function markSplitOrdersPaid(first) {
+    var seen = {};
+    var list = [];
+    function pushOrder(order) {
+      if (!order || !order.orderNo || seen[order.orderNo]) return;
+      seen[order.orderNo] = true;
+      list.push(order);
+    }
+    pushOrder(first);
+    ((first && first.siblingOrderNos) || []).forEach(function (no) {
+      if (global.UaOrdersStore && global.UaOrdersStore.getByNo) {
+        pushOrder(global.UaOrdersStore.getByNo(no));
+      }
+    });
+    if (!list.length && first) list = [first];
+    return list.map(function (order) {
+      var nextStatus = order.splitKind === 'spot' ? 'pickup' : 'shipping';
+      var one = null;
+      if (global.UaOrdersStore && order.orderNo) {
+        one = global.UaOrdersStore.updateStatus(order.orderNo, nextStatus);
+      }
+      if (!one) {
+        one = Object.assign({}, order, { status: nextStatus });
+        if (global.UaOrdersStore && one.orderNo) one = global.UaOrdersStore.upsert(one);
+      }
+      return one;
+    });
+  }
+
+  function hrefAfterSplitPay(paidList) {
+    if (paidList && paidList.length > 1) return 'orders.html';
+    var paid = paidList && paidList[0];
+    if (global.UaOrdersStore && global.UaOrdersStore.buildDetailHref && paid) {
+      return global.UaOrdersStore.buildDetailHref(paid);
+    }
+    return (
+      'order-detail.html?status=' +
+      encodeURIComponent((paid && paid.status) || 'shipping') +
+      '&orderNo=' +
+      encodeURIComponent((paid && paid.orderNo) || '')
     );
   }
 
@@ -2400,8 +2593,15 @@
         var tagClass =
           split.fulfillType === 'express'
             ? 'ua-confirm-split__tag--express'
-            : 'ua-confirm-split__tag--pickup';
-        var tagText = split.fulfillType === 'express' ? '快递到家' : '门店自提';
+            : split.spotDirect
+              ? 'ua-confirm-split__tag--spot'
+              : 'ua-confirm-split__tag--pickup';
+        var tagText =
+          split.fulfillType === 'express'
+            ? '快递到家'
+            : split.spotDirect
+              ? '现货自提'
+              : '门店自提';
         var storeBlock = '';
         if (split.fulfillType === 'pickup' && !pickupStoreShown) {
           storeBlock = pickupStoreHtml;
@@ -4149,85 +4349,46 @@
         showToast(newcomerCheck.message || '暂无法购买新人专区商品');
         return null;
       }
-      var d = currentDeduct();
-      var payable = calcPayable();
-      var orderPayload = {
-        orderNo: global.UaOrdersStore ? global.UaOrdersStore.genOrderNo() : String(Date.now()),
-        status: 'unpaid',
-        createdAt: global.UaOrdersStore ? global.UaOrdersStore.nowText() : '',
-        exchangePoints: pricing.pointsExchangePts,
-        deductPoints: usePointsDeduct ? d.pointsUsed || 0 : 0,
-        deductAmount: usePointsDeduct ? d.deductAmount || 0 : 0,
-        goodsTotal: pricing.goodsTotal,
-        freight: pricing.freight,
-        payable: payable,
-        payLabel:
-          pricing.pointsExchangePts > 0 && payable > 0
-            ? pricing.pointsExchangePts + '积分 + ¥' + payable.toFixed(2)
-            : pricing.pointsExchangePts > 0
-              ? pricing.pointsExchangePts + '积分'
-              : '¥' + payable.toFixed(2),
-        items: items.map(function (it) {
-          return {
-            id: it.id,
-            name: it.name,
-            spec: it.spec || '',
-            img: it.img || '',
-            qty: it.isNewcomerExclusive ? 1 : it.qty,
-            price: Number(it.price) || 0,
-            points: Number(it.points) || 0,
-            money: Number(it.money) || 0,
-            isPointsExchange: !!it.isPointsExchange,
-            isNewcomerExclusive: !!it.isNewcomerExclusive,
-            newcomerCode: it.newcomerCode || '',
-            pointsCode: it.pointsCode || '',
-            skuCode: it.skuCode || ''
-          };
-        })
-      };
-      var saved = global.UaOrdersStore
-        ? global.UaOrdersStore.upsert(orderPayload)
-        : orderPayload;
+      var savedList = persistSplitUnpaidOrders({
+        items: items,
+        pricing: pricing,
+        usePointsDeduct: usePointsDeduct,
+        deduct: currentDeduct()
+      });
+      var saved = savedList[0] || null;
       try {
-        global.sessionStorage.setItem(
-          'ua_last_order_items_v1',
-          JSON.stringify(
-            saved.items.map(function (it) {
-              return {
-                id: it.id,
-                name: it.name,
-                isPointsExchange: !!it.isPointsExchange,
-                pointsCode: it.pointsCode || '',
-                points: Number(it.points) || 0,
-                money: Number(it.money) || 0,
-                qty: it.qty
-              };
-            })
-          )
-        );
+        var snapItems = [];
+        savedList.forEach(function (ord) {
+          (ord.items || []).forEach(function (it) {
+            snapItems.push({
+              id: it.id,
+              name: it.name,
+              isPointsExchange: !!it.isPointsExchange,
+              pointsCode: it.pointsCode || '',
+              points: Number(it.points) || 0,
+              money: Number(it.money) || 0,
+              qty: it.qty
+            });
+          });
+        });
+        global.sessionStorage.setItem('ua_last_order_items_v1', JSON.stringify(snapItems));
       } catch (e) { /* ignore */ }
       clearCheckoutCart();
       pendingOrder = saved;
+      pendingOrder._splitList = savedList;
       return saved;
     }
 
     function goPaidOrderDetail(order) {
-      var paid = null;
-      if (global.UaOrdersStore && order && order.orderNo) {
-        paid = global.UaOrdersStore.updateStatus(order.orderNo, 'shipping');
+      var first = order || pendingOrder;
+      if (first && pendingOrder && pendingOrder._splitList && pendingOrder._splitList[0]) {
+        first = pendingOrder._splitList[0];
+        first.siblingOrderNos = pendingOrder._splitList.slice(1).map(function (o) {
+          return o.orderNo;
+        });
       }
-      if (!paid) {
-        paid = Object.assign({}, order || {}, { status: 'shipping' });
-        if (global.UaOrdersStore && paid.orderNo) {
-          paid = global.UaOrdersStore.upsert(paid);
-        }
-      }
-      var href =
-        global.UaOrdersStore && global.UaOrdersStore.buildDetailHref
-          ? global.UaOrdersStore.buildDetailHref(paid)
-          : 'order-detail.html?status=shipping&orderNo=' +
-            encodeURIComponent((paid && paid.orderNo) || '');
-      window.location.replace(href);
+      var paidList = markSplitOrdersPaid(first);
+      window.location.replace(hrefAfterSplitPay(paidList));
     }
 
     function openPaySheet() {
@@ -4340,7 +4501,9 @@
         if (!pendingOrder) {
           var created = createUnpaidOrder();
           if (!created) return;
-          showToast('订单已生成，请支付');
+          showToast(
+            created.siblingOrderNo ? '已拆成2笔订单，请一并支付' : '订单已生成，请支付'
+          );
         }
         openPaySheet();
       });
@@ -4772,43 +4935,20 @@
 
     function createLiveUnpaidOrder() {
       if (!confirmPricing) return null;
-      var d =
-        confirmUsePointsDeduct && confirmPricing.deductInfo.enabled
-          ? confirmPricing.deductInfo
-          : { deductAmount: 0, pointsUsed: 0 };
-      var payable = calcConfirmPayable(confirmPricing, confirmUsePointsDeduct);
-      var orderPayload = {
-        orderNo: global.UaOrdersStore ? global.UaOrdersStore.genOrderNo() : String(Date.now()),
-        status: 'unpaid',
-        createdAt: global.UaOrdersStore ? global.UaOrdersStore.nowText() : '',
-        exchangePoints: 0,
-        deductPoints: confirmUsePointsDeduct ? d.pointsUsed || 0 : 0,
-        deductAmount: confirmUsePointsDeduct ? d.deductAmount || 0 : 0,
-        goodsTotal: confirmPricing.goodsTotal,
-        freight: confirmPricing.freight,
-        payable: payable,
-        payLabel: '¥' + payable.toFixed(2),
-        source: 'live',
-        items: (state.confirmItems || []).map(function (it) {
-          return {
-            id: it.id,
-            name: it.name,
-            spec: it.spec || '',
-            img: it.img || '',
-            qty: it.qty,
-            price: Number(it.price) || 0,
-            points: 0,
-            money: 0,
-            isPointsExchange: false,
-            isNewcomerExclusive: false
-          };
-        })
-      };
-      var saved = global.UaOrdersStore
-        ? global.UaOrdersStore.upsert(orderPayload)
-        : orderPayload;
+      var savedList = persistSplitUnpaidOrders({
+        items: state.confirmItems || [],
+        pricing: confirmPricing,
+        usePointsDeduct: confirmUsePointsDeduct,
+        deduct:
+          confirmUsePointsDeduct && confirmPricing.deductInfo.enabled
+            ? confirmPricing.deductInfo
+            : { deductAmount: 0, pointsUsed: 0 },
+        extra: { source: 'live' }
+      });
+      var saved = savedList[0] || null;
       clearLiveConfirmCart();
       confirmPendingOrder = saved;
+      if (confirmPendingOrder) confirmPendingOrder._splitList = savedList;
       return saved;
     }
 
@@ -4822,22 +4962,15 @@
     }
 
     function goLivePaidOrderDetail(order) {
-      var paid = null;
-      if (global.UaOrdersStore && order && order.orderNo) {
-        paid = global.UaOrdersStore.updateStatus(order.orderNo, 'shipping');
+      var first = order || confirmPendingOrder;
+      if (first && confirmPendingOrder && confirmPendingOrder._splitList && confirmPendingOrder._splitList[0]) {
+        first = confirmPendingOrder._splitList[0];
+        first.siblingOrderNos = confirmPendingOrder._splitList.slice(1).map(function (o) {
+          return o.orderNo;
+        });
       }
-      if (!paid) {
-        paid = Object.assign({}, order || {}, { status: 'shipping' });
-        if (global.UaOrdersStore && paid.orderNo) {
-          paid = global.UaOrdersStore.upsert(paid);
-        }
-      }
-      var href =
-        global.UaOrdersStore && global.UaOrdersStore.buildDetailHref
-          ? global.UaOrdersStore.buildDetailHref(paid)
-          : 'order-detail.html?status=shipping&orderNo=' +
-            encodeURIComponent((paid && paid.orderNo) || '');
-      window.location.href = href;
+      var paidList = markSplitOrdersPaid(first);
+      window.location.href = hrefAfterSplitPay(paidList);
     }
 
     function openConfirmWithLiveCart() {
@@ -4965,7 +5098,9 @@
         if (!confirmPendingOrder) {
           var created = createLiveUnpaidOrder();
           if (!created) return;
-          showToast('订单已生成，请支付');
+          showToast(
+            created.siblingOrderNo ? '已拆成2笔订单，请一并支付' : '订单已生成，请支付'
+          );
         }
         openLivePaySheet();
       });

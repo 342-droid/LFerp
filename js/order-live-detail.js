@@ -68,6 +68,7 @@
       },
       goods: [{
         name: '小龙虾',
+        tempLayer: '冷冻',
         spec: '大小：小龙虾',
         img: '../user-app/assets/order-product-1.svg',
         spu: 'SPU-3208…',
@@ -148,6 +149,204 @@
       ],
       clearingEmpty: true
     },
+    /* 自采已入库 + 不走订货单：支付截单后现货直核，跳过订货单，直接待核销 */
+    'ORD-3212689201599501': {
+      displayId: 'ORD-3212689201599501',
+      spotDirectVerify: true,
+      cutoffSource: 'after_pay',
+      progress: {
+        completedSteps: 2,
+        outcome: null,
+        status: '待核销',
+        submitTime: '2026-09-13 09:18',
+        payTime: '2026-09-13 09:18'
+      },
+      goods: [{
+        id: 'g1',
+        name: '门店现货·有机上海青 500g',
+        spec: '规格：500g',
+        img: '../user-app/assets/order-product-1.svg',
+        spu: 'SPU-9501…',
+        sku: 'SKU-9501…',
+        barcode: '6901009501001',
+        weight: '0.50',
+        price: '¥6.80',
+        qty: '2',
+        subtotal: '¥13.60',
+        marketing: '普通售卖',
+        skipDemandSummary: true,
+        productTags: ['不走订货单'],
+        fulfillTag: '现货直核',
+        spotDirectVerify: true
+      }],
+      amounts: {
+        goods: '¥13.60',
+        discount: '¥0.00',
+        shipping: '¥0.00',
+        payable: '¥13.60',
+        paid: '¥13.60',
+        merchant: '¥13.60',
+        refund: '¥0.00'
+      },
+      paymentCount: 1,
+      aftersales: [],
+      customer: { nickname: '赵金芝', phone: '13800009501', userId: '318605592681791601' },
+      delivery: {
+        type: 'SELF_PICKUP',
+        deliveryMode: '自提',
+        name: '赵金芝',
+        phone: '13800009501',
+        address: '浙江省杭州市上城区望江街道望江路16号',
+        store: '华强北'
+      },
+      tags: {
+        channel: 'MINI_PROGRAM',
+        orderScene: '商城',
+        payChannel: '微信',
+        marketing: '普通售卖',
+        livePeriod: '-',
+        bd: '1',
+        settleStatus: '-',
+        commissionStatus: '-'
+      },
+      logs: [
+        { time: '2026-09-13 09:18', title: '订单已创建', desc: '订单创建，金额 ¥13.60' },
+        { time: '2026-09-13 09:18', title: '支付成功并截单', desc: '命中「不走订货单」支付后截单，不生成门店订货单' },
+        { time: '2026-09-13 09:18', title: '现货直核', desc: '自采商品已在门店入库，商品行打标现货直核，订单进入待核销' }
+      ],
+      clearingEmpty: true
+    },
+    /* 混单拆单：现货直核一单 */
+    'ORD-3212689201599601': {
+      displayId: 'ORD-3212689201599601',
+      siblingOrderNo: 'ORD-3212689201599602',
+      splitKind: 'spot',
+      spotDirectVerify: true,
+      cutoffSource: 'after_pay',
+      progress: {
+        completedSteps: 2,
+        outcome: null,
+        status: '待核销',
+        submitTime: '2026-09-14 10:22',
+        payTime: '2026-09-14 10:22'
+      },
+      goods: [{
+        id: 'g1',
+        name: '门店现货·有机上海青 500g',
+        spec: '规格：500g',
+        img: '../user-app/assets/order-product-1.svg',
+        spu: 'SPU-9601…',
+        sku: 'SKU-9601…',
+        barcode: '6901009601001',
+        weight: '0.50',
+        price: '¥6.80',
+        qty: '2',
+        subtotal: '¥13.60',
+        marketing: '普通售卖',
+        skipDemandSummary: true,
+        productTags: ['不走订货单'],
+        fulfillTag: '现货直核',
+        spotDirectVerify: true
+      }],
+      amounts: {
+        goods: '¥13.60',
+        discount: '¥0.00',
+        shipping: '¥0.00',
+        payable: '¥13.60',
+        paid: '¥13.60',
+        merchant: '¥13.60',
+        refund: '¥0.00'
+      },
+      paymentCount: 1,
+      aftersales: [],
+      customer: { nickname: '赵金芝', phone: '13800009601', userId: '318605592681791601' },
+      delivery: {
+        type: 'SELF_PICKUP',
+        deliveryMode: '自提',
+        name: '赵金芝',
+        phone: '13800009601',
+        address: '浙江省杭州市上城区望江街道望江路16号',
+        store: '华强北'
+      },
+      tags: {
+        channel: 'MINI_PROGRAM',
+        orderScene: '商城',
+        payChannel: '微信',
+        marketing: '普通售卖',
+        livePeriod: '-',
+        bd: '1',
+        settleStatus: '-',
+        commissionStatus: '-'
+      },
+      logs: [
+        { time: '2026-09-14 10:22', title: '订单已拆单', desc: '购物车同时含现货与需走订货商品，拆出本单（现货直核）' },
+        { time: '2026-09-14 10:22', title: '支付成功并截单', desc: '命中「不走订货单」支付后截单，不生成门店订货单' },
+        { time: '2026-09-14 10:22', title: '现货直核', desc: '商品行打标现货直核，订单进入待核销' }
+      ],
+      clearingEmpty: true
+    },
+    /* 混单拆单：需走订货/采购的一单 */
+    'ORD-3212689201599602': {
+      displayId: 'ORD-3212689201599602',
+      siblingOrderNo: 'ORD-3212689201599601',
+      splitKind: 'wh',
+      progress: {
+        completedSteps: 2,
+        outcome: null,
+        status: '待发货',
+        submitTime: '2026-09-14 10:22',
+        payTime: '2026-09-14 10:22'
+      },
+      goods: [{
+        id: 'g1',
+        name: '精选金钱牛腱子肉 1kg',
+        spec: '规格：1kg',
+        img: '../user-app/assets/order-product-2.svg',
+        spu: 'SPU-9602…',
+        sku: 'SKU-9602…',
+        barcode: '6901009602001',
+        weight: '1.00',
+        price: '¥96.80',
+        qty: '1',
+        subtotal: '¥96.80',
+        marketing: '普通售卖'
+      }],
+      amounts: {
+        goods: '¥96.80',
+        discount: '¥0.00',
+        shipping: '¥0.00',
+        payable: '¥96.80',
+        paid: '¥96.80',
+        merchant: '¥96.80',
+        refund: '¥0.00'
+      },
+      paymentCount: 1,
+      aftersales: [],
+      customer: { nickname: '赵金芝', phone: '13800009601', userId: '318605592681791601' },
+      delivery: {
+        type: 'SELF_PICKUP',
+        deliveryMode: '自提',
+        name: '赵金芝',
+        phone: '13800009601',
+        address: '浙江省杭州市上城区望江街道望江路16号',
+        store: '华强北'
+      },
+      tags: {
+        channel: 'MINI_PROGRAM',
+        orderScene: '商城',
+        payChannel: '微信',
+        marketing: '普通售卖',
+        livePeriod: '-',
+        bd: '1',
+        settleStatus: '-',
+        commissionStatus: '-'
+      },
+      logs: [
+        { time: '2026-09-14 10:22', title: '订单已拆单', desc: '购物车同时含现货与需走订货商品，拆出本单（进门店订货汇总）' },
+        { time: '2026-09-14 10:22', title: '支付成功并截单', desc: '已截单，商品进入门店订货汇总，待生成订货单' }
+      ],
+      clearingEmpty: true
+    },
     'ORD-3212689201588561': {
       displayId: 'ORD-3212689201588561',
       progress: {
@@ -160,6 +359,7 @@
       goods: [{
         id: 'g1',
         name: '微辣萝卜干 500g 4号…',
+        tempLayer: '常温',
         spec: '规格：500g',
         img: '../user-app/assets/order-product-2.svg',
         spu: 'SPU-2101…',
@@ -228,6 +428,7 @@
       goods: [{
         id: 'g1',
         name: '冷丰优选3J智利车厘子 3斤装',
+        tempLayer: '冷藏',
         spec: '规格：3斤',
         img: '../user-app/assets/order-detail-cherry.svg',
         spu: 'SPU-1001…',
@@ -311,6 +512,7 @@
       goods: [{
         id: 'g1',
         name: '赣南脐橙 果大皮薄 5斤装',
+        tempLayer: '常温',
         spec: '规格：5斤',
         img: '../user-app/assets/order-product-2.svg',
         spu: 'SPU-1002…',
@@ -421,6 +623,7 @@
       goods: [{
         id: 'g1',
         name: '新鲜红颜草莓 香甜多汁 500g装',
+        tempLayer: '冷藏',
         spec: '规格：500g',
         img: '../user-app/assets/order-product-1.svg',
         spu: 'SPU-1003…',
@@ -436,6 +639,7 @@
       }, {
         id: 'g2',
         name: '进口香蕉 香甜软糯 3斤装',
+        tempLayer: '常温',
         spec: '规格：3斤',
         img: '../user-app/assets/order-detail-orange.svg',
         spu: 'SPU-1004…',
@@ -627,6 +831,7 @@
       goods: [{
         id: 'g1',
         name: '精品牛腩 500g',
+        tempLayer: '冷藏',
         spec: '规格：500g',
         img: '../user-app/assets/order-product-2.svg',
         spu: 'SPU-3301…',
@@ -647,7 +852,7 @@
         merchant: '¥21.00',
         refund: '¥4.00'
       },
-      freight: { original: 10, refunded: 4 },
+      freight: { original: 10, refunded: 4, cold: 10 },
       paymentCount: 1,
       aftersales: [{
         id: 'AS-0682-1',
@@ -1469,6 +1674,8 @@
 
   var MID_STEPS = ['提交订单', '待接单', '待发货', '待收货', '待提货'];
   var PROXY_MID_STEPS = ['提交订单', '待接单', '待发货', '待收货'];
+  /* 自提不走订货单：支付截单后跳过待发货/待收货，直接待核销 */
+  var SPOT_MID_STEPS = ['提交订单', '待接单', '待核销'];
 
   function isRetailExpressDetail(detail, row) {
     if (isProxyOrderPage()) return false;
@@ -1487,8 +1694,27 @@
     return isProxyOrderPage() || isRetailExpressDetail(detail, row);
   }
 
+  function isSpotDirectVerifyDetail(detail) {
+    if (!detail || isProxyOrderPage()) return false;
+    if (detail.spotDirectVerify) return true;
+    var goods = detail.goods || [];
+    if (!goods.length) return false;
+    return goods.every(function (g) {
+      return !!(g && (g.fulfillTag === '现货直核' || g.spotDirectVerify || g.skipDemandSummary));
+    });
+  }
+
+  function applySpotDirectVerifyDetail(detail) {
+    if (isProxyOrderPage()) return detail;
+    var api = window.OrderCutoffRuntime;
+    if (!api || typeof api.applySpotDirectVerify !== 'function') return detail;
+    return api.applySpotDirectVerify(detail);
+  }
+
   function getMidSteps(detail, row) {
-    return usesExpressProgress(detail, row) ? PROXY_MID_STEPS : MID_STEPS;
+    if (usesExpressProgress(detail, row)) return PROXY_MID_STEPS;
+    if (isSpotDirectVerifyDetail(detail)) return SPOT_MID_STEPS;
+    return MID_STEPS;
   }
 
   function normalizeProgressByMode(progress, isExpress) {
@@ -1506,6 +1732,8 @@
       p.completedSteps = 2;
     } else if (p.status === '待收货') {
       p.completedSteps = 3;
+    } else if (p.status === '待核销') {
+      p.completedSteps = isExpress ? 3 : 2;
     } else if (p.status === '待提货' || p.status === '部分提货') {
       p.completedSteps = 4;
     } else if (p.status === '已完成' || p.status === '交易成功' || p.outcome === 'success') {
@@ -1586,6 +1814,14 @@
         completedSteps: 2,
         outcome: null,
         status: statusText === '已支付' ? '已支付' : '待发货',
+        submitTime: submitTime
+      };
+    }
+    if (statusText === '待核销') {
+      return {
+        completedSteps: 2,
+        outcome: null,
+        status: '待核销',
         submitTime: submitTime
       };
     }
@@ -1677,6 +1913,124 @@
     return parseFloat(String(str).replace(/[¥,\s]/g, '')) || 0;
   }
 
+  /** 代采商品温层 → 费率表物流类型：冷藏/冷冻走冷链 */
+  function resolveGoodLogisticsType(g) {
+    var api = window.TmsLogisticsRate;
+    var temp = (g && g.tempLayer) || '';
+    if (!temp && api && typeof api.resolveTempLayer === 'function') {
+      temp = api.resolveTempLayer({
+        title: g.name,
+        name: g.name,
+        id: g.sku || g.id,
+        tempLayer: g.tempLayer
+      });
+    }
+    if (!temp) {
+      var name = (g && g.name) || '';
+      if (/冷冻/.test(name)) temp = '冷冻';
+      else if (/冷藏|车厘子|草莓|小龙虾|牛腩|鲫鱼|虾|猪心/.test(name)) temp = '冷藏';
+      else temp = '常温';
+    }
+    if (api && typeof api.logisticsTypeFromTemp === 'function') {
+      return api.logisticsTypeFromTemp(temp);
+    }
+    return temp === '冷藏' || temp === '冷冻' ? '冷链' : '常温';
+  }
+
+  function classifyProxyGoods(goods) {
+    var hasAmbient = false;
+    var hasCold = false;
+    (goods || []).forEach(function (g) {
+      if (resolveGoodLogisticsType(g) === '冷链') hasCold = true;
+      else hasAmbient = true;
+    });
+    return { hasAmbient: hasAmbient, hasCold: hasCold };
+  }
+
+  function resolveProxyFreightSplit(detail, amounts) {
+    var freight = detail && detail.freight;
+    var goods = (detail && detail.goods) || [];
+    var types = classifyProxyGoods(goods);
+    var ambient = null;
+    var cold = null;
+    if (freight && (freight.ambient != null || freight.cold != null)) {
+      ambient = Number(freight.ambient) || 0;
+      cold = Number(freight.cold) || 0;
+    } else {
+      var api = window.TmsLogisticsRate;
+      if (api && typeof api.quoteOrder === 'function') {
+        var destAddr = (detail && detail.delivery && (detail.delivery.homeAddress || detail.delivery.address)) || '';
+        var quote = api.quoteOrder({
+          channel: api.CHANNEL_PROXY,
+          address: destAddr,
+          items: goods.map(function (g) {
+            return {
+              name: g.name,
+              title: g.name,
+              qty: parseInt(g.qty, 10) || 1,
+              price: parsePrice(g.price),
+              gross: parseFloat(g.weight) || 0,
+              tempLayer: g.tempLayer
+            };
+          })
+        });
+        ambient = quote.ambient.empty ? 0 : (quote.ambient.amount || 0);
+        cold = quote.cold.empty ? 0 : (quote.cold.amount || 0);
+        types.hasAmbient = !quote.ambient.empty;
+        types.hasCold = !quote.cold.empty;
+      }
+    }
+    if (ambient == null && cold == null) {
+      var shipping = parsePrice(amounts && amounts.shipping);
+      if (types.hasCold && !types.hasAmbient) {
+        ambient = 0;
+        cold = shipping;
+      } else if (types.hasAmbient && !types.hasCold) {
+        ambient = shipping;
+        cold = 0;
+      } else {
+        ambient = shipping;
+        cold = 0;
+      }
+    }
+    if (!types.hasAmbient && !types.hasCold) types.hasAmbient = true;
+    return {
+      hasAmbient: types.hasAmbient,
+      hasCold: types.hasCold,
+      ambient: ambient || 0,
+      cold: cold || 0
+    };
+  }
+
+  function buildFreightRowsHtml(detail, amounts) {
+    if (!isProxyOrderPage()) {
+      return (
+        '<div class="order-detail-amount-row"><span>+ 运费</span><span>' +
+        (amounts.shipping || '¥0.00') +
+        '</span></div>'
+      );
+    }
+    var split = resolveProxyFreightSplit(detail, amounts);
+    var html = '';
+    if (split.hasAmbient) {
+      html +=
+        '<div class="order-detail-amount-row"><span>+ 常温运费</span><span>' +
+        formatMoney(split.ambient) +
+        '</span></div>';
+    }
+    if (split.hasCold) {
+      html +=
+        '<div class="order-detail-amount-row"><span>+ 冷链运费</span><span>' +
+        formatMoney(split.cold) +
+        '</span></div>';
+    }
+    return html || (
+      '<div class="order-detail-amount-row"><span>+ 运费</span><span>' +
+      (amounts.shipping || '¥0.00') +
+      '</span></div>'
+    );
+  }
+
   function isFreightRefundAftersale(item) {
     return !!(
       item &&
@@ -1712,14 +2066,22 @@
       pickedQty: pickedQty,
       unitPrice: unitPrice,
       subtotal: item.subtotal || formatMoney(unitPrice * qty),
-      marketing: item.marketing
+      marketing: item.marketing,
+      tempLayer: item.tempLayer || '',
+      fulfillTag: item.fulfillTag || '',
+      skipDemandSummary: !!item.skipDemandSummary,
+      spotDirectVerify: !!item.spotDirectVerify,
+      productTags: item.productTags || item.tags || []
     };
   }
 
   function isPickupOrder(status, detail, row) {
     if (isProxyOrderPage()) return false;
     if (isRetailExpressDetail(detail, row)) return false;
-    return status === '待提货';
+    if (window.OrderRetailStatus && typeof window.OrderRetailStatus.isVerifyReady === 'function') {
+      return window.OrderRetailStatus.isVerifyReady(status);
+    }
+    return status === '待提货' || status === '待核销' || status === '部分提货';
   }
 
   function hasPartialPickup(goods) {
@@ -1739,20 +2101,23 @@
     return { text: '待提货', cls: 'order-tag--pickup' };
   }
 
-  function computeOrderPickupProgress(goods) {
+  function computeOrderPickupProgress(goods, prevStatus) {
     var allDone = goods.every(function (g) { return getGoodRemaining(g) === 0; });
+    var spot = prevStatus === '待核销' || (goods || []).some(function (g) {
+      return g && (g.fulfillTag === '现货直核' || g.spotDirectVerify);
+    });
     if (allDone) {
       return {
         status: '已完成',
         outcome: 'success',
-        completedSteps: MID_STEPS.length,
+        completedSteps: spot ? SPOT_MID_STEPS.length : MID_STEPS.length,
         finishTime: formatNow()
       };
     }
     return {
-      status: '待提货',
+      status: spot ? '待核销' : '待提货',
       outcome: null,
-      completedSteps: 4
+      completedSteps: spot ? 2 : 4
     };
   }
 
@@ -1905,7 +2270,8 @@
     '部分退款': 'is-partial',
     '全额退款': 'is-full',
     '补发中': 'is-restocking',
-    '已补发': 'is-restocked'
+    '已补发': 'is-restocked',
+    '现货直核': 'is-spot-direct'
   };
 
   function goodsAftersaleTagHtml(tag) {
@@ -1949,11 +2315,19 @@
     return '';
   }
 
+  function goodsFulfillTagHtml(item) {
+    if (isProxyOrderPage()) return '';
+    var tag = item && item.fulfillTag;
+    if (tag !== '现货直核' && !(item && item.spotDirectVerify)) return '';
+    return goodsAftersaleTagHtml('现货直核');
+  }
+
   function buildGoodsProductCell(item, aftersales) {
     var tag = resolveGoodsAftersaleTag(item, aftersales);
     return '<td><div class="order-detail-goods-product">' +
       '<img src="' + item.img + '" alt="">' +
       '<div><div class="order-detail-goods-product__name">' + item.name +
+      goodsFulfillTagHtml(item) +
       goodsAftersaleTagHtml(tag) + '</div>' +
       '<div class="order-detail-goods-product__spec">' + item.spec + '</div></div>' +
       '</div></td>';
@@ -2660,7 +3034,7 @@
 
     if (!applied.length) return;
 
-    var progress = computeOrderPickupProgress(state.goods);
+    var progress = computeOrderPickupProgress(state.goods, prevStatus);
     Object.assign(state.progress, progress);
 
     if (isBatchVerify) {
@@ -2740,7 +3114,9 @@
 
     var newSteps = buildSteps({
       progress: state.progress,
-      delivery: drawer._deliveryMeta
+      delivery: drawer._deliveryMeta,
+      spotDirectVerify: state.spotDirectVerify,
+      goods: state.goods
     });
     refs.stepsContainer.replaceWith(newSteps);
     refs.stepsContainer = newSteps;
@@ -3129,7 +3505,7 @@
     return wrap;
   }
 
-  function buildAmounts(amounts, payLegs, freight, aftersales, onOpenPendingRefund) {
+  function buildAmounts(amounts, payLegs, freight, aftersales, onOpenPendingRefund, detail) {
     var box = el('div', 'order-detail-amount-box');
     var legs = (payLegs || []).filter(function (leg) {
       return leg && leg.name && Number(leg.amount) > 0 && normalizeRetailPayMethod(leg.name);
@@ -3223,9 +3599,7 @@
       '<div class="order-detail-amount-row"><span>优惠（促销+券+积分抵扣）</span><span>' +
       amounts.discount +
       '</span></div>' +
-      '<div class="order-detail-amount-row"><span>+ 运费</span><span>' +
-      amounts.shipping +
-      '</span></div>' +
+      buildFreightRowsHtml(detail || { freight: freight, goods: [] }, amounts) +
       '<div class="order-detail-amount-row order-detail-amount-row--due"><span>应付金额</span><span>' +
       amounts.payable +
       '</span></div>' +
@@ -3533,7 +3907,9 @@
     progressCard.appendChild(progressHead);
     var stepsEl = buildSteps({
       progress: progress,
-      delivery: detail.delivery
+      delivery: detail.delivery,
+      spotDirectVerify: detail.spotDirectVerify,
+      goods: detail.goods
     });
     progressCard.appendChild(stepsEl);
     main.appendChild(progressCard);
@@ -3579,7 +3955,8 @@
               if (typeof target.scrollIntoView === 'function') {
                 target.scrollIntoView({ block: 'center', behavior: 'smooth' });
               }
-            }
+            },
+            detail
           )
         );
         if (drawer && pickupMode) {
@@ -3710,13 +4087,25 @@
     } else {
       deliveryCard = el('div', 'order-detail-card');
       deliveryCard.appendChild(el('h3', 'order-detail-card__title', '收货 / 自提信息'));
-      deliveryCard.appendChild(buildKv({
+      var deliveryRows = {
         '履约方式': retailDeliveryLabel(detail.delivery.deliveryMode || detail.delivery.type),
         '收货人': detail.delivery.name,
         '电话': detail.delivery.phone,
         '地址': detail.delivery.address,
         '门店': detail.delivery.store
-      }));
+      };
+      var siblingNo =
+        detail.siblingOrderNo ||
+        (drawer && drawer._sourceRow && drawer._sourceRow.getAttribute('data-sibling-order'));
+      if (siblingNo) {
+        deliveryRows['关联拆单'] =
+          '<a href="#" class="order-live-table__link js-split-sibling" data-order-id="' +
+          siblingNo +
+          '">' +
+          siblingNo +
+          '</a>';
+      }
+      deliveryCard.appendChild(buildKv(deliveryRows));
     }
     aside.appendChild(deliveryCard);
 
@@ -3778,6 +4167,7 @@
       progress: progress,
       goods: [{
         name: displayGoodsName(productName ? productName.textContent.trim() : '商品'),
+        tempLayer: '',
         spec: '规格：默认',
         img: productImg ? productImg.getAttribute('src') : '../user-app/assets/order-product-1.svg',
         spu: 'SPU-0001…',
@@ -3889,6 +4279,7 @@
       }
     }
     detail.progress = resolveProgress(detail.progress, row);
+    applySpotDirectVerifyDetail(detail);
     detail.progress = normalizeProgressByMode(detail.progress, usesExpressProgress(detail, row));
 
     var backdrop = el('div', 'store-drawer-backdrop');
@@ -3914,7 +4305,8 @@
       drawer._pickupState = {
         goods: detail.goods.map(normalizeGood),
         logs: detail.logs.slice(),
-        progress: Object.assign({}, detail.progress)
+        progress: Object.assign({}, detail.progress),
+        spotDirectVerify: !!detail.spotDirectVerify
       };
     }
 
@@ -3929,6 +4321,16 @@
     document.body.appendChild(backdrop);
     document.body.appendChild(drawer);
     document.body.style.overflow = 'hidden';
+    drawer.addEventListener('click', function (e) {
+      var link = e.target.closest && e.target.closest('.js-split-sibling');
+      if (!link) return;
+      e.preventDefault();
+      var sid = link.getAttribute('data-order-id');
+      if (!sid) return;
+      var srow = document.querySelector('tr[data-order-id="' + sid + '"]');
+      closeDrawer();
+      openDrawer(sid, srow);
+    });
 
     document.addEventListener('keydown', onEsc);
     function onEsc(e) {
@@ -4210,6 +4612,7 @@
         }
       }
       detail.progress = resolveProgress(detail.progress, row);
+      applySpotDirectVerifyDetail(detail);
       detail.progress = normalizeProgressByMode(detail.progress, usesExpressProgress(detail, row));
       return detail;
     },

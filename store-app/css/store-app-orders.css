@@ -995,6 +995,12 @@
   min-width: 0;
 }
 
+.order-card__sibling {
+  font-size: 11px;
+  color: #8a8a8a;
+  white-space: nowrap;
+}
+
 .order-card__check {
   display: inline-flex;
   align-items: center;
@@ -1236,6 +1242,11 @@
 .order-card__item-pickup-tag--partial {
   color: #27ae60;
   background: rgba(39, 174, 96, 0.12);
+}
+
+.order-card__item-pickup-tag--spot {
+  color: #08979c;
+  background: rgba(8, 151, 156, 0.12);
 }
 
 .order-card__item-pickup-tag--done {

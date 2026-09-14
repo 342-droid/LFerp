@@ -47,6 +47,7 @@
     待发货: "order-card__tag--ship",
     待收货: "order-card__tag--pending",
     待提货: "order-card__tag--pickup",
+    待核销: "order-card__tag--pickup",
     "待提货/待收货": "order-card__tag--pickup",
     已完成: "order-card__tag--done",
     部分核销: "order-card__tag--partial",
@@ -54,7 +55,7 @@
     已取消: "order-card__tag--closed",
   };
 
-  var PICKUP_ORDER_STATUSES = ["待提货", "部分核销"];
+  var PICKUP_ORDER_STATUSES = ["待提货", "待核销", "部分核销"];
 
   function isQueueMode() {
     return currentStatus === "排队中";
@@ -89,7 +90,7 @@
     } else if (status === "待提货") {
       list = list.filter(function (o) {
         if (isExpressOrder(o)) return o.status === "待收货";
-        return o.status === "待提货" || o.status === "部分核销";
+        return o.status === "待提货" || o.status === "待核销" || o.status === "部分核销";
       });
     } else if (status !== "全部") {
       list = list.filter(function (o) { return o.status === status; });
@@ -153,13 +154,17 @@
   }
 
   function getItemPickupTag(item, orderStatus) {
-    if (PICKUP_ORDER_STATUSES.indexOf(orderStatus) === -1) return "";
+    var html = "";
+    if (item && (item.fulfillTag === "现货直核" || item.spotDirectVerify)) {
+      html += '<span class="order-card__item-pickup-tag order-card__item-pickup-tag--spot">现货直核</span>';
+    }
+    if (PICKUP_ORDER_STATUSES.indexOf(orderStatus) === -1) return html;
     var verifiedQty = getItemVerifiedQty(item);
     var pendingQty = getItemPendingQty(item);
     if (verifiedQty > 0 && pendingQty > 0) {
-      return '<span class="order-card__item-pickup-tag order-card__item-pickup-tag--partial">部分提货' + verifiedQty + "</span>";
+      html += '<span class="order-card__item-pickup-tag order-card__item-pickup-tag--partial">部分提货' + verifiedQty + "</span>";
     }
-    return "";
+    return html;
   }
 
   function renderOrderCard(o) {
@@ -245,7 +250,7 @@
       });
     }
 
-    if (o.status === "待提货") {
+    if (o.status === "待提货" || o.status === "待核销") {
       o.items.forEach(function (item, idx) {
         if (!isItemVisible(o, idx)) return;
         var verifiedQty = getItemVerifiedQty(item);
@@ -276,6 +281,9 @@
       '<div class="order-card__header-left">' +
       checkHtml +
       '<span class="order-card__no">' + o.orderNo + "</span>" +
+      (o.siblingOrderNo
+        ? '<span class="order-card__sibling">关联拆单 ' + escapeHtml(o.siblingOrderNo) + "</span>"
+        : "") +
       getShipModeTagHtml(o) +
       "</div>" +
       statusTag +
@@ -315,7 +323,7 @@
     return /^规格[:：]/.test(text) ? text : "规格：" + text;
   }
 
-  var VERIFIABLE_STATUSES = ["待发货", "待收货", "待提货", "部分核销"];
+  var VERIFIABLE_STATUSES = ["待发货", "待收货", "待提货", "待核销", "部分核销"];
 
   function isExpressOrder(o) {
     if (window.LFStoreVerifyPolicy && typeof window.LFStoreVerifyPolicy.isExpress === "function") {
@@ -358,7 +366,7 @@
     if (window.LFStoreVerifyPolicy && typeof window.LFStoreVerifyPolicy.isVerifiable === "function") {
       return window.LFStoreVerifyPolicy.isVerifiable(o);
     }
-    return o.status === "待提货" || o.status === "部分核销";
+    return o.status === "待提货" || o.status === "待核销" || o.status === "部分核销";
   }
 
   function renderExpressTrackHtml(order, packages, shippedPkgs) {
@@ -428,6 +436,9 @@
       '<div class="order-card__header">' +
       '<div class="order-card__header-left">' +
       '<span class="order-card__no">' + o.orderNo + "</span>" +
+      (o.siblingOrderNo
+        ? '<span class="order-card__sibling">关联拆单 ' + escapeHtml(o.siblingOrderNo) + "</span>"
+        : "") +
       getShipModeTagHtml(o) +
       "</div>" +
       '<span class="order-card__tag ' + tagClass + '">' + statusLabel + "</span>" +

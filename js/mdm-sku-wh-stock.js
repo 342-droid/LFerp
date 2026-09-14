@@ -391,6 +391,8 @@
 
   function renderPanel(sku, opts) {
     opts = opts || {};
+    /* 按具体数量配置可售时不展示仓店现货；按现货库存才需要对照仓行 */
+    if (isFixedMode(sku)) return '';
     var channel = normalizeChannel(opts.channel, opts);
     var sum = applyStoreScope(attachToSku(sku, opts), opts.storeNames);
     var scoped = opts.storeNames && opts.storeNames.length;
@@ -402,7 +404,7 @@
       '渠道该 SKU，不摊到仓、不与其它渠道加总。' +
       '<strong>剩余可售</strong> = 本渠道可售 − 本渠道预占。' +
       (opts.variant === 'live'
-        ? '直播不单独配可售，可售按现货合计算出（默认 100%），用来卡本场配额。本场配额不超过剩余可售（含本场已占）。'
+        ? '本场配额不超过剩余可售（含本场已占）。'
         : '') +
       (scoped ? '下表已按售卖范围门店过滤。' : '');
     return (

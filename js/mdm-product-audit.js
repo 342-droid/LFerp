@@ -259,6 +259,17 @@
     );
   }
 
+  function freightSection(data) {
+    if (!window.TmsLogisticsRate) return '';
+    return window.TmsLogisticsRate.renderStrategySection({
+      variant: 'selection',
+      saleChannels: data.saleChannels,
+      tempLayer: data.tempLayer,
+      supplierId: data.supplierId,
+      product: data
+    });
+  }
+
   function specValueKey(groupName) {
     if (groupName === '包装') return 'packaging';
     if (groupName === '口味') return 'flavor';
@@ -418,11 +429,11 @@
       '            <th class="product-add-spec-table__th product-add-spec-table__th--sku"><span class="product-add-field__req">*</span>SKU图片</th>' +
       '            <th class="product-add-spec-table__th product-add-spec-table__th--price"><span class="product-add-field__req">*</span>采购价/基础单位</th>' +
       '            <th class="product-add-spec-table__th product-add-spec-table__th--barcode"><span class="product-add-field__req">*</span>商品条形码</th>' +
-      '            <th class="product-add-spec-table__th product-add-spec-table__th--dim">长(cm)</th>' +
-      '            <th class="product-add-spec-table__th product-add-spec-table__th--dim">宽(cm)</th>' +
-      '            <th class="product-add-spec-table__th product-add-spec-table__th--dim">高(cm)</th>' +
+      '            <th class="product-add-spec-table__th product-add-spec-table__th--dim"><span class="product-add-field__req">*</span>长(cm)</th>' +
+      '            <th class="product-add-spec-table__th product-add-spec-table__th--dim"><span class="product-add-field__req">*</span>宽(cm)</th>' +
+      '            <th class="product-add-spec-table__th product-add-spec-table__th--dim"><span class="product-add-field__req">*</span>高(cm)</th>' +
       '            <th class="product-add-spec-table__th product-add-spec-table__th--volume">体积(cm³)</th>' +
-      '            <th class="product-add-spec-table__th product-add-spec-table__th--weight">毛重(kg)</th>' +
+      '            <th class="product-add-spec-table__th product-add-spec-table__th--weight"><span class="product-add-field__req">*</span>毛重(kg)</th>' +
       '            <th class="product-add-spec-table__th product-add-spec-table__th--weight">皮重(kg)</th>' +
       '            <th class="product-add-spec-table__th product-add-spec-table__th--weight">净重(kg)</th>' +
       '          </tr></thead>' +
@@ -457,6 +468,7 @@
         '<form class="product-add-form product-add-form--readonly" id="productAuditForm">' +
         basicSection(data) +
         specSalesSection(data) +
+        freightSection(data) +
         detailSection(data) +
         '</form>';
     } catch (err) {

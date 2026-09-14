@@ -1611,7 +1611,7 @@
             '          <label><input type="radio" name="cutoffFormMode" value="time"> 每日定时</label>' +
             '          <label><input type="radio" name="cutoffFormMode" value="after_pay"> 支付后自动截单</label>' +
             '        </div>' +
-            '        <div class="cutoff-form-tip" id="cutoffFormPayTip" hidden>支付成功即写入已截单，对客直接进入「待发货」，不再停留待接单。是否进门店订货汇总由商品标签决定：打了「不走订货单」的不进汇总、不生成门店订货单。</div>' +
+            '        <div class="cutoff-form-tip" id="cutoffFormPayTip" hidden>支付成功即写入已截单，对客直接进入「待发货」，不再停留待接单。是否进门店订货汇总由商品标签决定：打了「不走订货单」的不进汇总、不生成门店订货单。该标签只出现在用户 APP 零售（商城/直播），门店 APP 进货商城不售此类商品。零售自提且带该标签时，截单后商品行打标「现货直核」（用户端不展示），订单进入待核销；混有需走订货商品则下单拆成两单。进货/代采不拆单、不现货直核。</div>' +
             '      </div></div>' +
             '    <div class="sf-form-item" id="cutoffFormTimeItem"><div class="sf-form-item__label"><span class="sf-req">*</span>截单时间</div>' +
             '      <div class="sf-form-item__control"><input class="sf-input" id="cutoffFormTime" type="time" step="1">' +

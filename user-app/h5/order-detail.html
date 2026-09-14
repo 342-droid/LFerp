@@ -6,7 +6,7 @@
   <title>订单详情 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
   <link rel="stylesheet" href="../css/user-app-profile.css">
-  <link rel="stylesheet" href="../css/user-app-order-detail.css?v=20260909-pts-as">
+  <link rel="stylesheet" href="../css/user-app-order-detail.css?v=20260914-freight-split">
   <link rel="stylesheet" href="../css/user-app-order-pay-sheet.css?v=20260908-pay-result">
   <link rel="stylesheet" href="../css/user-app-sale-time.css">
   <link rel="stylesheet" href="../css/user-app-order-refund.css">
@@ -147,7 +147,7 @@
             <span class="ua-od-shop__name" id="orderShopName" data-store-name="线上商城" data-supplier-name="冷丰优选供应链">线上商城</span>
           </div>
 
-          <article class="ua-od-item" data-item-index="0">
+          <article class="ua-od-item" data-item-index="0" data-temp-layer="冷藏">
             <img class="ua-od-item__img" src="../assets/order-product-1.svg" alt="">
             <div class="ua-od-item__body">
               <div class="ua-od-item__name">冷丰优选智利车厘子 鲜脆清甜 礼盒装</div>
@@ -164,7 +164,7 @@
             <div class="ua-od-item__actions" id="orderItemActionsPrimary"></div>
           </article>
 
-          <article class="ua-od-item" data-item-index="1">
+          <article class="ua-od-item" data-item-index="1" data-temp-layer="冷藏">
             <img class="ua-od-item__img" src="../assets/order-product-2.svg" alt="">
             <div class="ua-od-item__body">
               <div class="ua-od-item__name">新鲜红颜草莓 香甜多汁 500g装</div>
@@ -181,7 +181,7 @@
             <div class="ua-od-item__actions" id="orderItemActionsSecondary"></div>
           </article>
 
-          <article class="ua-od-item" data-item-index="2">
+          <article class="ua-od-item" data-item-index="2" data-temp-layer="常温">
             <img class="ua-od-item__img" src="../assets/order-product-3.svg" alt="">
             <div class="ua-od-item__body">
               <div class="ua-od-item__name">海南贵妃芒 香甜软糯 礼盒装</div>
@@ -209,7 +209,9 @@
           <div class="ua-od-price__row ua-od-price__row--discount" id="orderDiscountRow" data-price-layout="user">
             <span>订单优惠</span><span id="orderDiscount">-¥60.00</span>
           </div>
-          <div class="ua-od-price__row" data-price-layout="restock" hidden><span>运费</span><span id="orderFreight">¥15.00</span></div>
+          <div class="ua-od-price__row" data-price-layout="restock" hidden id="orderAmbientFreightRow"><span>常温运费</span><span id="orderAmbientFreight">¥0.00</span></div>
+          <div class="ua-od-price__row" data-price-layout="restock" hidden id="orderColdFreightRow"><span>冷链运费</span><span id="orderColdFreight">¥0.00</span></div>
+          <div class="ua-od-price__row" data-price-layout="restock" hidden id="orderFreightRow"><span>运费</span><span id="orderFreight">¥0.00</span></div>
           <div class="ua-od-price__row ua-od-price__row--discount" data-price-layout="restock" hidden><span>优惠券</span><span>-¥10.00</span></div>
           <div class="ua-od-price__row ua-od-price__row--discount" data-price-layout="restock" hidden><span>免邮券</span><span>-¥15.00</span></div>
           <div class="ua-od-price__row ua-od-price__row--discount" data-price-layout="restock" hidden><span>活动优惠</span><span>-¥5.00</span></div>
@@ -246,6 +248,12 @@
             <span class="ua-od-info__value">
               <span id="orderNoText">1089765423471123</span>
               <button type="button" class="ua-od-info__copy" id="orderCopyBtn">复制</button>
+            </span>
+          </div>
+          <div class="ua-od-info__row" id="orderSiblingRow" hidden>
+            <span class="ua-od-info__label">同时下单</span>
+            <span class="ua-od-info__value">
+              <a href="orders.html" id="orderSiblingLink"></a>
             </span>
           </div>
           <div class="ua-od-info__row"><span class="ua-od-info__label">下单时间</span><span class="ua-od-info__value" id="orderCreatedAtValue">2026-03-05 15:56:10</span></div>
@@ -297,10 +305,14 @@
   <script src="../../js/mdm-supplier-archive-store.js"></script>
   <script src="../../js/mdm-marketing-points-mall-config.js?v=20260909-pts-as"></script>
   <script src="../../js/store-wallet-demo.js?v=20260908-in-transit"></script>
-  <script src="../js/user-app-orders-store.js?v=20260831-pay-no"></script>
+  <script src="../../js/mdm-product-catalog-store.js?v=20260913-dims"></script>
+  <script src="../js/ua-proxy-sale-scope.js"></script>
+  <script src="../js/user-app-product-catalog.js?v=20260914-temp-layer"></script>
+  <script src="../../js/tms-logistics-rate-store.js?v=20260914-freight-split"></script>
+  <script src="../js/user-app-orders-store.js?v=20260914-spot-verify"></script>
   <script src="../js/user-app-order-refund.js?v=20260909-pts-as"></script>
   <script src="../js/user-app-order-pay-sheet.js?v=20260908-pay-result"></script>
-  <script src="../js/user-app-order-detail.js?v=20260909-pts-as"></script>
+  <script src="../js/user-app-order-detail.js?v=20260914-freight-split"></script>
   <script src="../js/user-app-auth.js"></script>
   <script src="../../js/pg-prd-float.js?v=20260909-670"></script>
 

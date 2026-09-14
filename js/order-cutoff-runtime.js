@@ -3,7 +3,10 @@
  *
  * 1. 支付后自动截单：支付成功即已截单，不再走每日定时。是否进订货汇总由商品标签决定，不跟截单方式绑定。
  * 2. 选品库系统标签「不走订货单」：该商品行不进入采购「门店订货汇总」，不生成门店订货单。
- * 3. 采购侧人工截单后，到点策略不再重复执行。
+ * 3. 自提 +「不走订货单」支付截单后：商品行后端打标「现货直核」（用户端不展示），订单进入待核销，门店可核销。
+ * 4. 同一购物车同时含现货直核与需走订货/采购的商品：下单时拆成两单，互挂关联拆单。
+ *    仅用户 APP 零售订单。门店 APP 进货商城不售「不走订货单」商品，进货/代采不拆单、不现货直核。
+ * 5. 采购侧人工截单后，到点策略不再重复执行。
  * 已截单不可释放；任一来源写入后，其它自动截单任务跳过该单。
  */
 (function (global) {
@@ -21,6 +24,8 @@
         MANUAL_DEMAND: 'manual_demand',
         EARLY_SHIP: 'early_ship'
     };
+
+    var SPOT_DIRECT_VERIFY_TAG = '现货直核';
 
     var FULFILLMENT_MAP = {
         快递到家: 'express_home',
@@ -230,6 +235,102 @@
         return tagTokensOf(row).some(isSkipDemandSummaryToken);
     }
 
+    function isPickupFulfillment(rowOrDetail) {
+        if (!rowOrDetail) return false;
+        if (fulfillmentOf(rowOrDetail) === 'pickup') return true;
+        var del = rowOrDetail.delivery || {};
+        var mode = String(del.type || del.deliveryMode || rowOrDetail.fulfillmentMethod || '');
+        return mode === 'SELF_PICKUP' || mode === 'pickup' || mode === '自提' || mode === '门店自提';
+    }
+
+    function isSkipPoGood(good) {
+        if (!good) return false;
+        if (good.skipDemandSummary || good.spotDirectVerify) return true;
+        if (good.fulfillTag === SPOT_DIRECT_VERIFY_TAG) return true;
+        return skipsDemandSummary({
+            tags: good.productTags || good.tags,
+            productTags: good.productTags,
+            skuTags: good.skuTags,
+            skuCode: good.sku || good.skuCode
+        });
+    }
+
+    function isCutoffReadyStatus(status) {
+        var st = String(status || '');
+        return (
+            st === '待发货' ||
+            st === '已支付' ||
+            st === '待收货' ||
+            st === '待提货' ||
+            st === '待核销' ||
+            st === '部分提货' ||
+            st === '部分核销'
+        );
+    }
+
+    function partitionGoodsBySpot(goods) {
+        var spot = [];
+        var rest = [];
+        (goods || []).forEach(function (g) {
+            if (isSkipPoGood(g)) spot.push(g);
+            else rest.push(g);
+        });
+        return { spot: spot, rest: rest, shouldSplit: spot.length > 0 && rest.length > 0 };
+    }
+
+    /**
+     * 自提 + 不走订货单：截单后商品行打标「现货直核」。
+     * 混单应已在下单时拆开；若仍落到同一单，只打符合条件的行，整单不改成待核销。
+     */
+    function isRetailSpotChannel(detail, ctx) {
+        ctx = ctx || {};
+        if (ctx.proxy || ctx.restock) return false;
+        if (channelOf(detail) === 'proxy') return false;
+        var src = String((detail && (detail.orderSource || detail.from || detail.source || detail.channel)) || '');
+        if (src.indexOf('代采') >= 0 || src === 'proxy') return false;
+        if (src.indexOf('restock') >= 0 || src.indexOf('进货') >= 0) return false;
+        return true;
+    }
+
+    function applySpotDirectVerify(detail, ctx) {
+        ctx = ctx || {};
+        if (!detail) return detail;
+        if (!isRetailSpotChannel(detail, ctx)) return detail;
+        if (!isPickupFulfillment(detail) && !ctx.pickup) return detail;
+        var goods = detail.goods || [];
+        var marked = 0;
+        goods.forEach(function (g) {
+            if (isSkipPoGood(g) || ctx.allSkipPo) {
+                g.fulfillTag = SPOT_DIRECT_VERIFY_TAG;
+                g.spotDirectVerify = true;
+                marked += 1;
+            }
+        });
+        if (!marked) return detail;
+        detail.spotDirectVerify = marked === goods.length;
+        var progress = detail.progress || {};
+        var st = progress.status || '';
+        var cutoffReady = ctx.cutoffReady;
+        if (cutoffReady == null) {
+            cutoffReady =
+                isCutoffReadyStatus(st) ||
+                alreadyCommitted({ sourceOrderNo: detail.displayId || detail.orderId }) ||
+                detail.cutoffSource === SOURCE.AFTER_PAY ||
+                isAfterPayCutoffOrder({
+                    sourceOrderNo: detail.displayId || detail.orderId,
+                    cutoffSource: detail.cutoffSource,
+                    fulfillmentMethod: '门店自提',
+                    orderSource: '零售订单',
+                    tags: ['不走订货单']
+                });
+        }
+        if (detail.spotDirectVerify && cutoffReady && (st === '待接单' || st === '待发货' || st === '已支付' || st === '待收货' || st === '待提货')) {
+            progress.status = '待核销';
+            detail.progress = progress;
+        }
+        return detail;
+    }
+
     function alreadyCommitted(row) {
         var fact = factOf(row);
         if (fact && fact.status === 'CUTOFF_COMMITTED') return true;
@@ -299,10 +400,16 @@
 
     global.OrderCutoffRuntime = {
         SOURCE: SOURCE,
+        SPOT_DIRECT_VERIFY_TAG: SPOT_DIRECT_VERIFY_TAG,
         orderNosOf: orderNosOf,
         factOf: factOf,
         isAfterPayCutoffOrder: isAfterPayCutoffOrder,
         skipsDemandSummary: skipsDemandSummary,
+        isPickupFulfillment: isPickupFulfillment,
+        isSkipPoGood: isSkipPoGood,
+        isRetailSpotChannel: isRetailSpotChannel,
+        partitionGoodsBySpot: partitionGoodsBySpot,
+        applySpotDirectVerify: applySpotDirectVerify,
         shouldAppearInDemandSummary: shouldAppearInDemandSummary,
         filterDemandSummaryLines: filterDemandSummaryLines,
         canApplyScheduleCutoff: canApplyScheduleCutoff,
