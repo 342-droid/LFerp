@@ -135,6 +135,11 @@
     );
   }
 
+  var SELLABLE_STOCK_MODES = [
+    { value: 'spot', label: '按现货库存' },
+    { value: 'fixed', label: '按具体数量' }
+  ];
+
   /** 售卖规格同步：不含条码/规格值/展示名/库存实数/本场配额/上下架 */
   var SALE_SPEC_SYNC_FIELDS = [
     'img',
@@ -147,7 +152,10 @@
     'pointCash',
     'salePrice',
     'linePrice',
-    'minQty'
+    'minQty',
+    'sellableMode',
+    'sellablePercent',
+    'sellableFixed'
   ];
 
   function copySaleSpecToSku(source, target) {
@@ -157,7 +165,58 @@
     });
     target.pointExchange = normalizePoint(target.pointExchange);
     target.limitConfig = normalizeLimitConfig(target.limitConfig);
+    if (window.MdmSkuWhStock && window.MdmSkuWhStock.normalizeSellableMode) {
+      target.sellableMode = window.MdmSkuWhStock.normalizeSellableMode(target.sellableMode);
+    }
     return target;
+  }
+
+  function renderSellableStockField(sku) {
+    var mode = sku && sku.sellableMode === 'fixed' ? 'fixed' : 'spot';
+    var modeOptions = SELLABLE_STOCK_MODES.map(function (opt) {
+      return (
+        '<option value="' +
+        escapeHtml(opt.value) +
+        '"' +
+        (mode === opt.value ? ' selected' : '') +
+        '>' +
+        escapeHtml(opt.label) +
+        '</option>'
+      );
+    }).join('');
+    return (
+      '<div class="product-proxy-spec__field product-proxy-spec__field--sellable" data-sellable-mode="' +
+      escapeHtml(mode) +
+      '">' +
+      '<div class="product-proxy-spec__stock-head">' +
+      '<span class="product-proxy-spec__label product-proxy-spec__stock-head-sellable">可售库存</span>' +
+      (mode === 'spot'
+        ? '<span class="product-proxy-spec__stock-head-gap" aria-hidden="true"></span>' +
+          '<span class="product-proxy-spec__label product-proxy-spec__stock-head-spot">现货库存</span>'
+        : '') +
+      '</div>' +
+      '<div class="product-proxy-spec__stock-row">' +
+      '<select class="product-proxy-spec__input product-proxy-spec__stock-mode" data-field="sellableMode" aria-label="可售库存配置方式">' +
+      modeOptions +
+      '</select>' +
+      (mode === 'spot'
+        ? '<div class="product-proxy-spec__stock-pct">' +
+          '<input type="text" class="product-proxy-spec__input product-proxy-spec__stock-extra product-proxy-spec__stock-extra--percent" data-field="sellablePercent" inputmode="decimal" value="' +
+          escapeHtml((sku && sku.sellablePercent) || '100') +
+          '" placeholder="100" aria-label="现货百分比">' +
+          '<span class="product-proxy-spec__stock-suffix">%</span>' +
+          '</div>' +
+          '<input type="text" class="product-proxy-spec__input product-proxy-spec__stock-extra product-proxy-spec__stock-extra--spot" data-field="spotStock" readonly tabindex="-1" value="' +
+          escapeHtml((sku && sku.spotStock) || '0') +
+          '" aria-label="现货库存">'
+        : '') +
+      '<input type="text" class="product-proxy-spec__input product-proxy-spec__stock-extra product-proxy-spec__stock-extra--fixed" data-field="sellableFixed" inputmode="decimal" value="' +
+      escapeHtml((sku && sku.sellableFixed) || '') +
+      '" placeholder="本渠道可售件数" aria-label="固定可售数量"' +
+      (mode === 'fixed' ? '' : ' hidden') +
+      '>' +
+      '</div></div>'
+    );
   }
 
   function goodsIdOf(p) {
@@ -441,14 +500,14 @@
       (normalizePoint(sku.pointExchange) === 'points' ? '' : moneyHtml('售价', 'salePrice', sku.salePrice)) +
       moneyHtml('划线价', 'linePrice', sku.linePrice) +
       fieldHtml('起售量', 'minQty', sku.minQty) +
-      fieldHtml('现货库存', 'spotStock', sku.spotStock, true) +
-      fieldHtml('可售库存', 'sellableStock', sku.sellableStock, true) +
-      fieldHtml('预占库存', 'reservedStock', sku.reservedStock, true) +
+      renderSellableStockField(sku) +
       fieldHtml('剩余可售', 'remainStock', sku.remainStock, true) +
       fieldHtml('本场售卖配额', 'liveStock', sku.liveStock, false, 'is-live-stock') +
-      (window.MdmSkuWhStock && typeof window.MdmSkuWhStock.renderPanel === 'function'
-        ? window.MdmSkuWhStock.renderPanel(sku, { variant: 'live', channel: 'live', sessionId: sessionId })
-        : '<p class="product-proxy-spec__stock-tip product-proxy-spec__stock-tip--span">可售与预占都在放单渠道。本场配额不超过剩余可售（直播可售−直播预占，含本场已占）。</p>') +
+      ((sku.sellableMode === 'fixed')
+        ? ''
+        : (window.MdmSkuWhStock && typeof window.MdmSkuWhStock.renderPanel === 'function'
+          ? window.MdmSkuWhStock.renderPanel(sku, { variant: 'live', channel: 'live', sessionId: sessionId })
+          : '<p class="product-proxy-spec__stock-tip product-proxy-spec__stock-tip--span">可售与预占都在放单渠道。本场配额不超过剩余可售（直播可售−直播预占，含本场已占）。</p>')) +
       '</div></div>' +
       '<div class="product-proxy-spec__foot">' +
       (idx === 0 && total > 1
@@ -472,7 +531,11 @@
     if (!list) return;
     var cards = selectedSkuIds
       .map(function (id) {
-        return findSku(id);
+        var sku = findSku(id);
+        if (sku && window.MdmSkuWhStock && window.MdmSkuWhStock.attachToSku) {
+          window.MdmSkuWhStock.attachToSku(sku, { channel: 'live', sessionId: sessionId });
+        }
+        return sku;
       })
       .filter(Boolean);
     if (!cards.length) {
@@ -800,9 +863,25 @@
         if (wrap) wrap.setAttribute('data-limit-config', normalizeLimitConfig(ev.target.value));
         return;
       }
-      if (field !== 'pointExchange') return;
-      readSkuCards();
-      renderSkuCards();
+      if (field === 'sellableMode' || field === 'pointExchange') {
+        readSkuCards();
+        renderSkuCards();
+      }
+    });
+    document.getElementById('pSkuList').addEventListener('input', function (ev) {
+      var field = ev.target.getAttribute('data-field');
+      if (field !== 'sellablePercent' && field !== 'sellableFixed') return;
+      var panel = ev.target.closest('[data-sku-id]');
+      var sku = findSku(panel && panel.getAttribute('data-sku-id'));
+      if (!sku) return;
+      sku[field] = ev.target.value;
+      if (window.MdmSkuWhStock && window.MdmSkuWhStock.attachToSku) {
+        window.MdmSkuWhStock.attachToSku(sku, { channel: 'live', sessionId: sessionId });
+      }
+      var remain = panel.querySelector('[data-field="remainStock"]');
+      if (remain) remain.value = sku.remainStock == null ? '' : sku.remainStock;
+      var spot = panel.querySelector('[data-field="spotStock"]');
+      if (spot) spot.value = sku.spotStock == null ? '' : sku.spotStock;
     });
     document.getElementById('pSkuList').addEventListener('click', function (ev) {
       var actEl = ev.target.closest('[data-act]');

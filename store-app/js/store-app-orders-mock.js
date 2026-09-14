@@ -118,6 +118,43 @@
        */
       orders: [
         {
+          id: "o6-split-spot",
+          orderNo: "ORD-3212689201599601",
+          createdAt: "2026-09-14 10:22",
+          status: "待核销",
+          cutoff: true,
+          amount: 13.6,
+          siblingOrderNo: "ORD-3212689201599602",
+          items: [
+            {
+              name: "门店现货·有机上海青 500g",
+              qty: 2,
+              price: 6.8,
+              fulfillTag: "现货直核",
+              skipDemandSummary: true,
+              image: "../user-app/assets/order-product-1.svg",
+            },
+          ],
+        },
+        {
+          id: "o6-spot",
+          orderNo: "ORD-3212689201599501",
+          createdAt: "2026-09-13 09:18",
+          status: "待核销",
+          cutoff: true,
+          amount: 13.6,
+          items: [
+            {
+              name: "门店现货·有机上海青 500g",
+              qty: 2,
+              price: 6.8,
+              fulfillTag: "现货直核",
+              skipDemandSummary: true,
+              image: "../user-app/assets/order-product-1.svg",
+            },
+          ],
+        },
+        {
           id: "o6-2",
           orderNo: "WDJ20260401001",
           createdAt: "2026-04-01 10:20",
@@ -328,6 +365,65 @@
     ],
 
     orders: [
+      {
+        id: "oSpot1",
+        orderNo: "ORD-3212689201599501",
+        status: "待核销",
+        cutoff: true,
+        amount: 13.6,
+        createdAt: "2026-09-13 09:18",
+        customer: "赵金芝",
+        phone: "138****9501",
+        pickupTime: "2026-09-13 09:18",
+        items: [
+          {
+            name: "门店现货·有机上海青 500g",
+            qty: 2,
+            price: 6.8,
+            fulfillTag: "现货直核",
+            skipDemandSummary: true,
+          },
+        ],
+      },
+      {
+        id: "oSplitSpot",
+        orderNo: "ORD-3212689201599601",
+        status: "待核销",
+        cutoff: true,
+        amount: 13.6,
+        createdAt: "2026-09-14 10:22",
+        customer: "赵金芝",
+        phone: "138****9601",
+        pickupTime: "2026-09-14 10:22",
+        siblingOrderNo: "ORD-3212689201599602",
+        items: [
+          {
+            name: "门店现货·有机上海青 500g",
+            qty: 2,
+            price: 6.8,
+            fulfillTag: "现货直核",
+            skipDemandSummary: true,
+          },
+        ],
+      },
+      {
+        id: "oSplitWh",
+        orderNo: "ORD-3212689201599602",
+        status: "待发货",
+        cutoff: true,
+        amount: 96.8,
+        createdAt: "2026-09-14 10:22",
+        customer: "赵金芝",
+        phone: "138****9601",
+        siblingOrderNo: "ORD-3212689201599601",
+        items: [
+          {
+            name: "精选金钱牛腱子肉 1kg",
+            qty: 1,
+            price: 96.8,
+          },
+        ],
+      },
       {
         id: "o1",
         orderNo: "WDJ20260330001",
@@ -938,7 +1034,7 @@
     if (!order) return false;
     if (order.cutoff === true || order.cutoffPassed === true) return true;
     if (order.cutoff === false || order.cutoffPassed === false) return false;
-    return order.status === "待提货" || order.status === "部分核销" || order.status === "已完成";
+    return order.status === "待提货" || order.status === "待核销" || order.status === "部分核销" || order.status === "已完成";
   }
 
   function isExpressOrder(order) {
@@ -948,7 +1044,7 @@
   function isFulfillmentVerifiable(order) {
     if (!order || isExpressOrder(order)) return false;
     var status = order.status;
-    if (status === "待提货" || status === "部分核销") return true;
+    if (status === "待提货" || status === "待核销" || status === "部分核销") return true;
     if (status !== "待发货" && status !== "待收货") return false;
     return isPendingShipmentVerifyEnabled() && isOrderCutoff(order);
   }

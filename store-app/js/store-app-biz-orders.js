@@ -58,7 +58,7 @@
     if (!order || isExpressOrder(order)) return false;
     var st = String(order.status || '');
     var text = String(order.statusText || '');
-    return st === 'pending_pickup' || st === 'partial' || text === '待提货' || text === '部分核销';
+    return st === 'pending_pickup' || st === 'partial' || text === '待提货' || text === '待核销' || text === '部分核销';
   }
 
   /** 门店端收货：非快递待收货（仓配到店） */

@@ -185,14 +185,23 @@
     });
   }
 
+  function getItemFulfillTag(item) {
+    if (!item) return "";
+    if (item.fulfillTag === "现货直核" || item.spotDirectVerify) {
+      return '<span class="detail-item__status-tag detail-item__status-tag--spot">现货直核</span>';
+    }
+    return "";
+  }
+
   function getItemPickupStatusTag(item) {
     var verifiedQty = getVerifiedQty(item);
     var pendingQty = getPendingPickupQty(item);
-    if (verifiedQty <= 0) return "";
+    var fulfill = getItemFulfillTag(item);
+    if (verifiedQty <= 0) return fulfill;
     if (pendingQty > 0) {
-      return '<span class="detail-item__status-tag detail-item__status-tag--partial-pickup">部分提货' + verifiedQty + "</span>";
+      return fulfill + '<span class="detail-item__status-tag detail-item__status-tag--partial-pickup">部分提货' + verifiedQty + "</span>";
     }
-    return '<span class="detail-item__status-tag detail-item__status-tag--picked">已提货</span>';
+    return fulfill + '<span class="detail-item__status-tag detail-item__status-tag--picked">已提货</span>';
   }
 
   // 同步 Mock 中商品级退款/退款中信息，避免 sessionStorage 缓存导致数据缺失
@@ -241,6 +250,7 @@
   var STATUS_TAG_CLASS = {
     待收货: "detail-tag--pending",
     待提货: "detail-tag--pickup",
+    待核销: "detail-tag--pickup",
     待取货: "detail-tag--pickup",
     已完成: "detail-tag--done",
     部分核销: "detail-tag--partial",

@@ -27,6 +27,7 @@
       '    <form class="product-add-form" id="productAddForm" novalidate>' +
       drawerBasicSection() +
       drawerSalesSection() +
+      '<div id="productAddFreightHost"></div>' +
       drawerDetailSection() +
       '    </form>' +
       '  </div>' +
@@ -549,11 +550,11 @@
       '<th class="product-add-spec-table__th product-add-spec-table__th--sku"><span class="product-add-field__req">*</span>SKU图片</th>' +
       '<th class="product-add-spec-table__th product-add-spec-table__th--price"><span class="product-add-field__req">*</span>采购价/基础单位</th>' +
       '<th class="product-add-spec-table__th product-add-spec-table__th--barcode"><span class="product-add-field__req">*</span>商品条形码</th>' +
-      '<th class="product-add-spec-table__th product-add-spec-table__th--dim">长(cm)</th>' +
-      '<th class="product-add-spec-table__th product-add-spec-table__th--dim">宽(cm)</th>' +
-      '<th class="product-add-spec-table__th product-add-spec-table__th--dim">高(cm)</th>' +
+      '<th class="product-add-spec-table__th product-add-spec-table__th--dim"><span class="product-add-field__req">*</span>长(cm)</th>' +
+      '<th class="product-add-spec-table__th product-add-spec-table__th--dim"><span class="product-add-field__req">*</span>宽(cm)</th>' +
+      '<th class="product-add-spec-table__th product-add-spec-table__th--dim"><span class="product-add-field__req">*</span>高(cm)</th>' +
       '<th class="product-add-spec-table__th product-add-spec-table__th--volume">体积(cm³)</th>' +
-      '<th class="product-add-spec-table__th product-add-spec-table__th--weight">毛重(kg)</th>' +
+      '<th class="product-add-spec-table__th product-add-spec-table__th--weight"><span class="product-add-field__req">*</span>毛重(kg)</th>' +
       '<th class="product-add-spec-table__th product-add-spec-table__th--weight">皮重(kg)</th>' +
       '<th class="product-add-spec-table__th product-add-spec-table__th--weight">净重(kg)</th>';
     theadRow.innerHTML = headHtml;
@@ -605,6 +606,31 @@
         }
       });
       updateRowVolume(tr);
+    });
+  }
+
+  function collectSaleChannels() {
+    var list = [];
+    document.querySelectorAll('input[name="saleChannels"]:checked').forEach(function (el) {
+      list.push(el.value);
+    });
+    return list;
+  }
+
+  function currentTempLayer() {
+    var sel = document.getElementById('tempLayer');
+    return sel && sel.value ? sel.value : '常温';
+  }
+
+  function renderFreightSection() {
+    var host = document.getElementById('productAddFreightHost');
+    if (!host || !window.TmsLogisticsRate) return;
+    host.innerHTML = window.TmsLogisticsRate.renderStrategySection({
+      variant: 'selection',
+      hostId: 'productAddFreightSection',
+      saleChannels: collectSaleChannels(),
+      tempLayer: currentTempLayer(),
+      supplierId: ((document.getElementById('supplierId') || {}).value || '')
     });
   }
 
@@ -782,6 +808,27 @@
       }
     }
 
+    var dimChecks = [
+      { sel: '[data-spec-length]', msg: '请填写长(cm)' },
+      { sel: '[data-spec-width]', msg: '请填写宽(cm)' },
+      { sel: '[data-spec-height]', msg: '请填写高(cm)' },
+      { sel: '[data-spec-gross]', msg: '请填写毛重(kg)' }
+    ];
+    var d;
+    for (d = 0; d < dimChecks.length; d++) {
+      var dimInputs = document.querySelectorAll(dimChecks[d].sel);
+      var di;
+      for (di = 0; di < dimInputs.length; di++) {
+        if (!String(dimInputs[di].value || '').trim()) {
+          if (typeof showToast === 'function') showToast(dimChecks[d].msg, 'warning');
+          dimInputs[di].focus();
+          valid = false;
+          d = dimChecks.length;
+          break;
+        }
+      }
+    }
+
     return valid;
   }
 
@@ -877,6 +924,15 @@
       });
     });
     syncWeighTypeVisibility(drawer);
+
+    drawer.querySelectorAll('input[name="saleChannels"]').forEach(function (box) {
+      box.addEventListener('change', renderFreightSection);
+    });
+    var tempSel = document.getElementById('tempLayer');
+    if (tempSel) tempSel.addEventListener('change', renderFreightSection);
+    var supplierSel = document.getElementById('supplierId');
+    if (supplierSel) supplierSel.addEventListener('change', renderFreightSection);
+    renderFreightSection();
 
     bindSpecEvents(drawer);
 

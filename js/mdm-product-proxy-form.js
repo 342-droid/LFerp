@@ -584,7 +584,9 @@
   function getTagOptions() {
     var tagStore = formChannel === 'mall' ? window.MdmMallTagStore : window.MdmProxyTagStore;
     if (tagStore) {
-      return tagStore.getAll().map(function (t) { return t.name; });
+      return tagStore.getAll().map(function (t) { return t.name; }).filter(function (name) {
+        return name !== '不走订货单' && name !== 'sys_skip_demand_summary';
+      });
     }
     return ['冷丰溯源', '冷丰优选', '牛牛专用', '蔬菜水果', '优选商品', '天天平价'];
   }
@@ -825,53 +827,42 @@
     }).join('');
     var percentTip = parseStockNum(sku.sellablePercent) > 100 ? '当前按现货溢出可售。' : parseStockNum(sku.sellablePercent) < 100 ? '当前按现货打折可售。' : '100% 即取现货库存。';
     return (
-      '<div class="product-proxy-spec__field">' +
-      '  <label class="product-proxy-spec__label">现货库存</label>' +
-      '  <input type="text" class="product-proxy-spec__input" data-field="spotStock" value="' +
-      escapeHtml(sku.spotStock) +
-      '" readonly tabindex="-1" aria-label="现货库存">' +
-      '  <p class="product-proxy-spec__stock-tip">各配送仓现货之和，由仓储维护。</p>' +
-      '</div>' +
       '<div class="product-proxy-spec__field product-proxy-spec__field--sellable" data-sellable-mode="' +
       escapeHtml(mode) +
       '">' +
-      '  <label class="product-proxy-spec__label">可售库存</label>' +
+      '  <div class="product-proxy-spec__stock-head">' +
+      '    <span class="product-proxy-spec__label product-proxy-spec__stock-head-sellable">可售库存</span>' +
+      (mode === 'spot'
+        ? '<span class="product-proxy-spec__stock-head-gap" aria-hidden="true"></span>' +
+          '<span class="product-proxy-spec__label product-proxy-spec__stock-head-spot">现货库存</span>'
+        : '') +
+      '  </div>' +
       '  <div class="product-proxy-spec__stock-row">' +
       '    <select class="product-proxy-spec__input product-proxy-spec__stock-mode" data-field="sellableMode" aria-label="可售库存配置方式">' +
       modeOptions +
       '</select>' +
-      '    <input type="text" class="product-proxy-spec__input product-proxy-spec__stock-extra product-proxy-spec__stock-extra--percent" data-field="sellablePercent" inputmode="decimal" value="' +
-      escapeHtml(sku.sellablePercent) +
-      '" placeholder="100" aria-label="现货百分比"' +
-      (mode === 'spot' ? '' : ' hidden') +
-      '>' +
-      '    <span class="product-proxy-spec__stock-suffix"' +
-      (mode === 'spot' ? '' : ' hidden') +
-      '>%</span>' +
+      (mode === 'spot'
+        ? '<div class="product-proxy-spec__stock-pct">' +
+          '<input type="text" class="product-proxy-spec__input product-proxy-spec__stock-extra product-proxy-spec__stock-extra--percent" data-field="sellablePercent" inputmode="decimal" value="' +
+          escapeHtml(sku.sellablePercent) +
+          '" placeholder="100" aria-label="现货百分比">' +
+          '<span class="product-proxy-spec__stock-suffix">%</span>' +
+          '</div>' +
+          '<input type="text" class="product-proxy-spec__input product-proxy-spec__stock-extra product-proxy-spec__stock-extra--spot" data-field="spotStock" data-spot-result readonly tabindex="-1" value="' +
+          escapeHtml(sku.spotStock) +
+          '" aria-label="现货库存">'
+        : '') +
       '    <input type="text" class="product-proxy-spec__input product-proxy-spec__stock-extra product-proxy-spec__stock-extra--fixed" data-field="sellableFixed" inputmode="decimal" value="' +
       escapeHtml(sku.sellableFixed) +
       '" placeholder="本渠道可售件数" aria-label="固定可售数量"' +
       (mode === 'fixed' ? '' : ' hidden') +
       '>' +
-      '    <input type="text" class="product-proxy-spec__input product-proxy-spec__stock-result" data-sellable-result readonly tabindex="-1" value="' +
-      escapeHtml(sku.sellableStock) +
-      '" aria-label="可售库存结果"' +
-      (mode === 'fixed' ? ' hidden' : '') +
-      '>' +
       '  </div>' +
       '  <p class="product-proxy-spec__stock-tip">' +
       (mode === 'fixed'
-        ? '可售与预占都在<strong>放单渠道</strong>：本页只看本渠道该 SKU，不是仓字段，也不是多渠道加总。'
-        : '可售与预占都在<strong>放单渠道</strong>：本页只看本渠道该 SKU，不是仓字段。100% 取现货合计，大于 100% 按现货溢出。' +
-          percentTip) +
+        ? '按本渠道填写可售件数，不是仓字段，也不与其它渠道加总。'
+        : '按现货合计的百分比计算本渠道可售。' + percentTip) +
       '</p>' +
-      '</div>' +
-      '<div class="product-proxy-spec__field">' +
-      '  <label class="product-proxy-spec__label">预占库存</label>' +
-      '  <input type="text" class="product-proxy-spec__input" data-field="reservedStock" data-reserved-result value="' +
-      escapeHtml(sku.reservedStock) +
-      '" readonly tabindex="-1" aria-label="预占库存">' +
-      '  <p class="product-proxy-spec__stock-tip">本渠道已支付、尚未按履约节点释放的数量。</p>' +
       '</div>' +
       '<div class="product-proxy-spec__field">' +
       '  <label class="product-proxy-spec__label">剩余可售</label>' +
@@ -880,7 +871,7 @@
       '" readonly tabindex="-1" aria-label="剩余可售">' +
       '  <p class="product-proxy-spec__stock-tip">本渠道可售 − 本渠道预占。</p>' +
       '</div>' +
-      renderWhStockPanel(sku)
+      (mode === 'spot' ? renderWhStockPanel(sku) : '')
     );
   }
 
@@ -1301,12 +1292,8 @@
       if (sellableWrap) {
         function syncSellableResult() {
           ensureSkuStockFields(sku);
-          var resultEl = panel.querySelector('[data-sellable-result]');
-          if (resultEl) resultEl.value = sku.sellableStock;
-          var spotEl = panel.querySelector('[data-field="spotStock"]');
+          var spotEl = panel.querySelector('[data-spot-result]');
           if (spotEl) spotEl.value = sku.spotStock;
-          var reservedEl = panel.querySelector('[data-reserved-result]');
-          if (reservedEl) reservedEl.value = sku.reservedStock;
           var remainEl = panel.querySelector('[data-remain-result]');
           if (remainEl) remainEl.value = sku.remainStock;
           refreshPanelWhStock(panel, sku);

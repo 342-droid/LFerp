@@ -295,6 +295,7 @@
           unpaid: '待付款',
           pending_accept: '待接单',
           shipping: '待发货',
+          pickup: '待自提',
           receipt: '待收货',
           completed: '已完成',
           closed: '已关闭'

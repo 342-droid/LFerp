@@ -803,6 +803,21 @@
 
     var noEl = document.getElementById('orderNoText');
     if (noEl) noEl.textContent = order.orderNo;
+    var siblingRow = document.getElementById('orderSiblingRow');
+    var siblingLink = document.getElementById('orderSiblingLink');
+    if (siblingRow && siblingLink) {
+      var sibNo = order.siblingOrderNo || (order.siblingOrderNos && order.siblingOrderNos[0]) || '';
+      if (sibNo) {
+        siblingRow.hidden = false;
+        siblingLink.textContent = sibNo;
+        var sib = window.UaOrdersStore.getByNo(sibNo);
+        siblingLink.href = sib
+          ? window.UaOrdersStore.buildDetailHref(sib)
+          : 'orders.html';
+      } else {
+        siblingRow.hidden = true;
+      }
+    }
     var createdAtEl = document.getElementById('orderCreatedAtValue');
     if (createdAtEl && order.createdAt) createdAtEl.textContent = order.createdAt;
     var payTimeEl = document.getElementById('orderPayTimeValue');
@@ -856,10 +871,7 @@
     var goodsTotalEl = document.getElementById('orderGoodsTotal');
     if (goodsTotalEl) goodsTotalEl.textContent = '¥' + goodsTotal.toFixed(2);
     if (isFromRestock()) {
-      var freightEl = document.getElementById('orderFreight');
-      if (freightEl) {
-        freightEl.textContent = freight > 0 ? '¥' + freight.toFixed(2) : '免运费';
-      }
+      applyRestockFreightRows(order);
       var deductRow = document.getElementById('orderPointsDeductRow');
       var deductEl = document.getElementById('orderPointsDeduct');
       if (deductRow && deductEl) {
@@ -1373,6 +1385,111 @@
         deductRow.hidden = true;
       }
     }
+    applyRestockFreightRows(order);
+  }
+
+  function parseOdMoney(text) {
+    var m = String(text || '').replace(/,/g, '').match(/¥\s*([\d.]+)/);
+    return m ? Number(m[1]) : 0;
+  }
+
+  function parseOdQty(text) {
+    var m = String(text || '').match(/(\d+)/);
+    return m ? Number(m[1]) : 1;
+  }
+
+  function collectDetailFreightItems(order) {
+    if (order && order.items && order.items.length) {
+      return order.items.map(function (it) {
+        return {
+          id: it.id || '',
+          title: it.name || it.title || '',
+          priceNum: it.price != null ? it.price : it.priceNum,
+          qty: it.qty || 1,
+          tempLayer: it.tempLayer || '',
+          spuId: it.spuId || ''
+        };
+      });
+    }
+    var items = [];
+    document.querySelectorAll('.ua-od-item').forEach(function (el) {
+      if (el.hidden) return;
+      var nameEl = el.querySelector('.ua-od-item__name');
+      var qtyEl = el.querySelector('.ua-od-item__qty');
+      var saleEl = el.querySelector('.ua-od-item__sale');
+      items.push({
+        id: el.getAttribute('data-item-index') || '',
+        title: nameEl ? nameEl.textContent.replace(/\s+/g, ' ').trim() : '',
+        priceNum: parseOdMoney(saleEl && saleEl.textContent),
+        qty: parseOdQty(qtyEl && qtyEl.textContent),
+        tempLayer: el.getAttribute('data-temp-layer') || ''
+      });
+    });
+    return items;
+  }
+
+  function formatOdFreight(num) {
+    var n = Math.round((Number(num) || 0) * 100) / 100;
+    return n > 0 ? '¥' + n.toFixed(2) : '免运费';
+  }
+
+  function applyRestockFreightRows(order) {
+    if (!isFromRestock()) return;
+    var ambientRow = document.getElementById('orderAmbientFreightRow');
+    var coldRow = document.getElementById('orderColdFreightRow');
+    var totalRow = document.getElementById('orderFreightRow');
+    var ambientEl = document.getElementById('orderAmbientFreight');
+    var coldEl = document.getElementById('orderColdFreight');
+    var totalEl = document.getElementById('orderFreight');
+    var ambient = order && order.ambientFee != null ? Number(order.ambientFee) : null;
+    var cold = order && order.coldFee != null ? Number(order.coldFee) : null;
+    var hasAmbientItems = true;
+    var hasColdItems = true;
+    if (ambient == null || cold == null) {
+      var api = window.TmsLogisticsRate;
+      if (api && typeof api.quoteOrder === 'function') {
+        var addrEl = document.getElementById('orderStoreAddr');
+        var quote = api.quoteOrder({
+          channel: api.CHANNEL_PROXY,
+          address: (addrEl && addrEl.textContent) || '浙江省杭州市萧山区建设一路88号',
+          items: collectDetailFreightItems(order)
+        });
+        ambient = quote.ambient.amount || 0;
+        cold = quote.cold.amount || 0;
+        hasAmbientItems = !quote.ambient.empty;
+        hasColdItems = !quote.cold.empty;
+        if (order) {
+          order.ambientFee = ambient;
+          order.coldFee = cold;
+          order.freight = quote.total;
+        }
+      } else {
+        ambient = order && order.freight != null ? Number(order.freight) : 0;
+        cold = 0;
+        hasAmbientItems = ambient > 0;
+        hasColdItems = false;
+      }
+    } else {
+      var typed = collectDetailFreightItems(order);
+      if (typed.length && window.TmsLogisticsRate) {
+        hasAmbientItems = typed.some(function (it) {
+          return window.TmsLogisticsRate.logisticsTypeFromTemp(
+            window.TmsLogisticsRate.resolveTempLayer(it)
+          ) !== '冷链';
+        });
+        hasColdItems = typed.some(function (it) {
+          return window.TmsLogisticsRate.logisticsTypeFromTemp(
+            window.TmsLogisticsRate.resolveTempLayer(it)
+          ) === '冷链';
+        });
+      }
+    }
+    if (ambientEl) ambientEl.textContent = formatOdFreight(ambient);
+    if (coldEl) coldEl.textContent = formatOdFreight(cold);
+    if (totalEl) totalEl.textContent = formatOdFreight((Number(ambient) || 0) + (Number(cold) || 0));
+    if (ambientRow) ambientRow.hidden = !hasAmbientItems;
+    if (coldRow) coldRow.hidden = !hasColdItems;
+    if (totalRow) totalRow.hidden = hasAmbientItems || hasColdItems;
   }
 
   function applyRestockMode(status, config) {

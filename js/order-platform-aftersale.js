@@ -49,7 +49,7 @@
     var status = getRowOrderStatus(row);
     var kind = getFulfillmentKind(row);
     if (pageType() === 'retail' && kind === 'pickup') {
-      return ['待支付', '已创建', '已支付', '待接单', '待发货', '待收货', '待提货'].indexOf(status) >= 0;
+      return ['待支付', '已创建', '已支付', '待接单', '待发货', '待收货', '待提货', '待核销'].indexOf(status) >= 0;
     }
     return ['待支付', '已创建', '已支付', '待接单', '待发货'].indexOf(status) >= 0;
   }
@@ -66,14 +66,14 @@
 
   /**
    * 平台退款可见性
-   * - 零售自提：待收货、待提货
+   * - 零售自提：待收货、待提货、待核销
    * - 其余：待收货
    */
   function canPlatformRefund(row) {
     var status = getRowOrderStatus(row);
     var kind = getFulfillmentKind(row);
     if (pageType() === 'retail' && kind === 'pickup') {
-      return status === '待收货' || status === '待提货';
+      return status === '待收货' || status === '待提货' || status === '待核销';
     }
     return status === '待收货';
   }

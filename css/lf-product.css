@@ -1384,6 +1384,159 @@ body.product-add-drawer-open {
   color: #bfbfbf;
 }
 
+.lf-freight-strategy {
+  margin-bottom: 16px;
+}
+
+.lf-freight-strategy__tip {
+  margin: 0 0 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #999999;
+}
+
+.lf-freight-strategy__tip strong {
+  color: #ff7019;
+  font-weight: 600;
+}
+
+.lf-freight-strategy__group + .lf-freight-strategy__group {
+  margin-top: 12px;
+}
+
+.lf-freight-strategy__group {
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.lf-freight-strategy__group-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.lf-freight-strategy__group-head strong {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333333;
+}
+
+.lf-freight-strategy__group-head em {
+  font-style: normal;
+  font-size: 12px;
+  color: #999999;
+}
+
+.lf-freight-strategy__group > .lf-freight-strategy__empty {
+  padding: 10px 12px;
+}
+
+.lf-freight-strategy__more {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-top: 1px solid #f0f0f0;
+  background: #fafafa;
+  font-size: 12px;
+  line-height: 20px;
+  color: #ff7019;
+  cursor: pointer;
+}
+
+.lf-freight-strategy__more:hover {
+  background: #fff7f0;
+}
+
+.lf-freight-strategy__table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.lf-freight-strategy__table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.lf-freight-strategy__table th,
+.lf-freight-strategy__table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #ffffff;
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+  color: #333333;
+}
+
+.lf-freight-strategy__table thead th {
+  background: #fafafa;
+  color: #666666;
+  font-weight: 600;
+}
+
+.lf-freight-strategy__table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.lf-freight-strategy__type {
+  display: inline-block;
+  padding: 0 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+.lf-freight-strategy__type.is-normal {
+  color: #1677ff;
+  background: #e6f4ff;
+}
+
+.lf-freight-strategy__type.is-cold {
+  color: #0958d9;
+  background: #d6e4ff;
+}
+
+.lf-freight-strategy__level {
+  font-weight: 500;
+  color: #ff7019;
+}
+
+.lf-freight-strategy__miss,
+.lf-freight-strategy__empty {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #999999;
+}
+
+.lf-freight-strategy__table td.lf-freight-strategy__miss {
+  padding: 10px;
+  white-space: normal;
+}
+
+.lf-freight-strategy__tiers {
+  white-space: normal;
+  min-width: 180px;
+  line-height: 1.55;
+  color: #333333;
+}
+
+.lf-freight-strategy__path {
+  white-space: normal;
+  min-width: 140px;
+  line-height: 1.45;
+}
+
 .product-add-upload__box--sm {
   width: 44px;
   height: 44px;
@@ -3955,41 +4108,74 @@ body.product-add-drawer-open {
 
 .product-proxy-spec__field--sellable {
   grid-column: span 2;
-}
-
-.product-proxy-spec__stock-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  width: auto;
+  max-width: 100%;
   min-width: 0;
 }
 
-.product-proxy-spec__stock-mode {
-  flex: 0 0 132px;
-  max-width: 132px;
+.product-proxy-spec__stock-head,
+.product-proxy-spec__stock-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 
-.product-proxy-spec__stock-extra {
+.product-proxy-spec__field--sellable[data-sellable-mode="spot"] .product-proxy-spec__stock-head,
+.product-proxy-spec__field--sellable[data-sellable-mode="spot"] .product-proxy-spec__stock-row {
+  display: grid;
+  grid-template-columns: 132px 92px 72px;
+  column-gap: 8px;
+  align-items: center;
+  justify-content: start;
+}
+
+.product-proxy-spec__field--sellable .product-proxy-spec__stock-mode,
+.product-proxy-spec__stock-head-sellable {
+  width: 132px;
+  max-width: 132px;
+  box-sizing: border-box;
+}
+
+.product-proxy-spec__stock-pct {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.product-proxy-spec__stock-pct .product-proxy-spec__input {
   flex: 0 0 72px;
+  width: 72px;
+  min-width: 72px;
   max-width: 72px;
 }
 
-.product-proxy-spec__field--sellable[data-sellable-mode="fixed"] .product-proxy-spec__stock-extra--fixed {
-  flex: 1;
-  max-width: none;
+.product-proxy-spec__field--sellable .product-proxy-spec__stock-extra--percent,
+.product-proxy-spec__field--sellable .product-proxy-spec__stock-extra--spot,
+.product-proxy-spec__stock-head-spot {
+  width: 72px;
+  min-width: 72px;
+  max-width: 72px;
+  box-sizing: border-box;
 }
 
 .product-proxy-spec__stock-suffix {
-  flex: none;
+  flex: 0 0 auto;
+  width: auto;
   font-size: 12px;
+  line-height: 32px;
   color: #999;
 }
 
-.product-proxy-spec__stock-result {
-  flex: 1;
-  min-width: 64px;
+.product-proxy-spec__field--sellable .product-proxy-spec__stock-extra--fixed {
+  width: 176px;
+  min-width: 176px;
+  max-width: 176px;
+}
+
+.product-proxy-spec__stock-extra--spot {
   background: #f7f7f7;
-  color: #333;
 }
 
 .product-proxy-spec__stock-tip {

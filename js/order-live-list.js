@@ -903,7 +903,7 @@
     var status = getRowOrderStatus(row);
     var mode = (row.getAttribute('data-delivery-mode') || '') === 'express' ? 'express' : 'pickup';
     if (mode === 'pickup') {
-      return ['待支付', '已创建', '已支付', '待接单', '待发货', '待收货', '待提货'].indexOf(status) >= 0;
+      return ['待支付', '已创建', '已支付', '待接单', '待发货', '待收货', '待提货', '待核销'].indexOf(status) >= 0;
     }
     return ['待支付', '已创建', '已支付', '待接单', '待发货'].indexOf(status) >= 0;
   }
@@ -993,7 +993,7 @@
     if (window.OrderPlatformAftersale) return window.OrderPlatformAftersale.canPlatformRefund(row);
     var status = getRowOrderStatus(row);
     var mode = (row.getAttribute('data-delivery-mode') || '') === 'express' ? 'express' : 'pickup';
-    if (mode === 'pickup') return status === '待收货' || status === '待提货';
+    if (mode === 'pickup') return status === '待收货' || status === '待提货' || status === '待核销';
     return status === '待收货';
   }
 
@@ -1043,7 +1043,9 @@
     var aftersaleLabel = retailAftersaleActionLabel(row);
     var isExpress = (row.getAttribute('data-delivery-mode') || '') === 'express';
     var showUpload = isExpress && canUploadRetailExpress(row);
-    var showVerify = !isExpress && getRowOrderStatus(row) === '待提货';
+    var showVerify = !isExpress && (
+      getRowOrderStatus(row) === '待提货' || getRowOrderStatus(row) === '待核销'
+    );
     var verifyBlocked = showVerify &&
       window.OrderLivePickup &&
       typeof window.OrderLivePickup.hasApprovedRefundAftersale === 'function' &&

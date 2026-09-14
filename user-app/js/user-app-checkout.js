@@ -545,6 +545,7 @@
                   priceNum: 24,
                   qty: 2,
                   fulfillmentMethod: '配送',
+                  tempLayer: '冷冻',
                   img: '../assets/restock/product-leaf.svg'
                 }
               ]
@@ -662,7 +663,8 @@
         qty: item.qty || 1,
         img: item.img || '../assets/restock/product-leaf.svg',
         spuId: item.spuId || '',
-        fulfillmentMethod: fulfillment
+        fulfillmentMethod: fulfillment,
+        tempLayer: item.tempLayer || ''
       });
     });
 
@@ -724,6 +726,35 @@
     return FULFILLMENT_BY_SPU[spuId] || '配送';
   }
 
+  function listCheckoutLineItems() {
+    var items = [];
+    (state.suppliers || []).forEach(function (sup) {
+      (sup.packages || []).forEach(function (pkg) {
+        (pkg.items || []).forEach(function (item) {
+          items.push(item);
+        });
+      });
+    });
+    return items;
+  }
+
+  function checkoutFreightDest() {
+    var api = window.TmsLogisticsRate;
+    if (!api) return null;
+    var address = state && state.store && state.store.address;
+    return api.parseDestFromAddress(address) || api.DEMO_DEST;
+  }
+
+  function quoteCheckoutFreight() {
+    var api = window.TmsLogisticsRate;
+    if (!api || typeof api.quoteOrder !== 'function') return null;
+    return api.quoteOrder({
+      channel: api.CHANNEL_PROXY,
+      dest: checkoutFreightDest(),
+      items: listCheckoutLineItems()
+    });
+  }
+
   function matchDeliveryFreight(amount) {
     var amt = Math.max(0, Number(amount) || 0);
     var current = DELIVERY_FREIGHT_TIERS[0];
@@ -739,65 +770,37 @@
   }
 
   function calcFreightBreakdown() {
-    var deliveryAmount = 0;
-    var expressAmount = 0;
-    var packageRows = [];
+    var quote = quoteCheckoutFreight();
+    if (quote) {
+      return {
+        ambientFee: quote.ambient.amount || 0,
+        coldFee: quote.cold.amount || 0,
+        expressFee: 0,
+        deliveryFee: quote.total || 0,
+        total: quote.total || 0,
+        quote: quote,
+        packages: [],
+        label: quote.text || formatMoney(quote.total || 0)
+      };
+    }
 
+    var deliveryAmount = 0;
     (state.suppliers || []).forEach(function (sup) {
-      (sup.packages || []).forEach(function (pkg, idx) {
-        var amount = getPackageGoodsAmount(pkg);
-        var mode = getPackageFulfillment(pkg);
-        if (mode === '快递') expressAmount += amount;
-        else deliveryAmount += amount;
-        packageRows.push({
-          id: pkg.id,
-          supplierName: resolveCheckoutSupplierName(sup.id, sup.name),
-          pkgIndex: idx + 1,
-          mode: mode,
-          amount: amount
-        });
+      (sup.packages || []).forEach(function (pkg) {
+        if (getPackageFulfillment(pkg) !== '快递') {
+          deliveryAmount += getPackageGoodsAmount(pkg);
+        }
       });
     });
-
-    var expressFee = 0; /* 现阶段快递不收运费 */
     var deliveryFee = deliveryAmount > 0 ? matchDeliveryFreight(deliveryAmount) : 0;
-
-    var deliveryShares = allocateFreightByAmount(
-      packageRows.filter(function (r) {
-        return r.mode === '配送';
-      }),
-      deliveryFee
-    );
-    var expressShares = allocateFreightByAmount(
-      packageRows.filter(function (r) {
-        return r.mode === '快递';
-      }),
-      expressFee
-    );
-    var shareMap = {};
-    deliveryShares.concat(expressShares).forEach(function (s) {
-      shareMap[s.id] = s.fee;
-    });
-
-    var packages = packageRows.map(function (row) {
-      return {
-        id: row.id,
-        supplierName: row.supplierName,
-        pkgIndex: row.pkgIndex,
-        mode: row.mode,
-        amount: row.amount,
-        fee: shareMap[row.id] != null ? shareMap[row.id] : 0
-      };
-    });
-
     return {
-      expressFee: expressFee,
+      ambientFee: deliveryFee,
+      coldFee: 0,
+      expressFee: 0,
       deliveryFee: deliveryFee,
-      total: expressFee + deliveryFee,
-      expressAmount: expressAmount,
-      deliveryAmount: deliveryAmount,
-      packages: packages,
-      label: formatMoney(expressFee + deliveryFee)
+      total: deliveryFee,
+      packages: [],
+      label: formatMoney(deliveryFee)
     };
   }
 
@@ -1367,41 +1370,18 @@
     }
   }
 
-  function formatFreightTierRange(tier) {
-    if (tier.end === Infinity) {
-      return '货款满' + formatMoney(tier.start);
-    }
-    return '货款' + formatMoney(tier.start) + '～' + formatMoney(tier.end);
-  }
-
   function renderFreightRules() {
     var el = document.getElementById('checkoutFreightRulesBody');
     if (!el) return;
-    var tiersHtml = DELIVERY_FREIGHT_TIERS.map(function (tier) {
-      var feeText = tier.freight <= 0 ? '免运费' : formatMoney(tier.freight);
-      return (
-        '<div class="ua-co-freight-rules__item">' +
-        '<span>' +
-        formatFreightTierRange(tier) +
-        '</span>' +
-        '<span class="ua-co-freight-rules__fee">' +
-        feeText +
-        '</span></div>'
-      );
-    }).join('');
-
-    el.innerHTML =
-      '<div class="ua-co-freight-rules">' +
-      '<p class="ua-co-freight-rules__intro">快递与配送分开计算；同履约方式商品合并货款后匹配档位。现阶段快递不收取运费。</p>' +
-      '<div class="ua-co-freight-rules__section">' +
-      '<h4 class="ua-co-freight-rules__title">配送运费档位</h4>' +
-      tiersHtml +
-      '</div>' +
-      '<div class="ua-co-freight-rules__section">' +
-      '<h4 class="ua-co-freight-rules__title">快递运费</h4>' +
-      '<div class="ua-co-freight-rules__item"><span>全部快递订单</span><span class="ua-co-freight-rules__fee">免运费</span></div>' +
-      '<p class="ua-co-freight-rules__note">快递暂不收取运费，后续如有调整将按最新规则执行。</p>' +
-      '</div></div>';
+    var api = window.TmsLogisticsRate;
+    if (api && typeof api.renderExplainHtml === 'function') {
+      el.innerHTML = api.renderExplainHtml({
+        channel: api.CHANNEL_PROXY,
+        address: (state && state.store && state.store.address) || '浙江省杭州市萧山区建设一路88号'
+      });
+      return;
+    }
+    el.innerHTML = '<p class="ua-freight-explain__intro">运费按物流费率表计，常温与冷链分开，目的地优先匹配区、市、省、全国。</p>';
   }
 
   function openFreightRulesSheet() {
@@ -1409,45 +1389,83 @@
     openSheet('freightRules');
   }
 
-  function renderFreightDetail() {
-    var el = document.getElementById('checkoutFreightDetail');
-    if (!el) return;
-    var info = calcFreightBreakdown();
-    var pkgsHtml = (info.packages || [])
-      .map(function (pkg) {
+  function renderFreightTypeBlock(group, title) {
+    if (!group || group.empty) {
+      return (
+        '<div class="ua-co-freight-detail__section">' +
+        '<div class="ua-co-freight-detail__pkg">' +
+        '<div class="ua-co-freight-detail__pkg-main">' +
+        '<span class="ua-co-freight-detail__pkg-name">' +
+        title +
+        '</span>' +
+        '<span class="ua-co-freight-detail__pkg-sub">本单无此温层商品</span></div>' +
+        '<span class="ua-co-freight-detail__pkg-fee">' +
+        formatMoney(0) +
+        '</span></div></div>'
+      );
+    }
+    var lines = (group.items || [])
+      .map(function (item) {
         return (
           '<div class="ua-co-freight-detail__pkg">' +
           '<div class="ua-co-freight-detail__pkg-main">' +
           '<span class="ua-co-freight-detail__pkg-name">' +
-          pkg.supplierName +
-          ' 包裹' +
-          pkg.pkgIndex +
-          '（' +
-          pkg.mode +
-          '）</span>' +
-          '<span class="ua-co-freight-detail__pkg-sub">货款' +
-          formatMoney(pkg.amount) +
-          '</span></div>' +
-          '<span class="ua-co-freight-detail__pkg-fee">' +
-          formatMoney(pkg.fee) +
-          '</span></div>'
+          item.title +
+          ' ×' +
+          item.qty +
+          '</span>' +
+          '<span class="ua-co-freight-detail__pkg-sub">温层' +
+          item.tempLayer +
+          ' · 货款' +
+          formatMoney(item.amount) +
+          '</span></div></div>'
         );
       })
       .join('');
+    var scheme = group.miss
+      ? group.miss
+      : (group.carrier || '') +
+        ' · ' +
+        (group.feeScheme || '') +
+        (group.level ? ' · 命中' + group.level : '');
+    return (
+      '<div class="ua-co-freight-detail__section">' +
+      '<div class="ua-co-freight-detail__pkg">' +
+      '<div class="ua-co-freight-detail__pkg-main">' +
+      '<span class="ua-co-freight-detail__pkg-name">' +
+      title +
+      '</span>' +
+      '<span class="ua-co-freight-detail__pkg-sub">' +
+      scheme +
+      '</span></div>' +
+      '<span class="ua-co-freight-detail__pkg-fee">' +
+      formatMoney(group.amount) +
+      '</span></div>' +
+      lines +
+      '</div>'
+    );
+  }
 
+  function renderFreightDetail() {
+    var el = document.getElementById('checkoutFreightDetail');
+    if (!el) return;
+    var info = calcFreightBreakdown();
+    var quote = info.quote || {};
     el.innerHTML =
       '<div class="ua-co-freight-detail">' +
       '<div class="ua-co-freight-detail__totals">' +
-      '<div class="ua-co-freight-detail__total"><span>快递总计</span><strong>' +
-      formatMoney(info.expressFee) +
+      '<div class="ua-co-freight-detail__total"><span>常温运费</span><strong>' +
+      formatMoney(info.ambientFee) +
       '</strong></div>' +
-      '<div class="ua-co-freight-detail__total"><span>配送总计</span><strong>' +
-      formatMoney(info.deliveryFee) +
+      '<div class="ua-co-freight-detail__total"><span>冷链运费</span><strong>' +
+      formatMoney(info.coldFee) +
       '</strong></div></div>' +
-      '<div class="ua-co-freight-detail__section">' +
-      '<h4 class="ua-co-freight-detail__section-title">各包裹均摊</h4>' +
-      (pkgsHtml || '<div class="ua-co-freight-detail__pkg"><span>暂无包裹</span></div>') +
-      '</div></div>';
+      '<div class="ua-co-freight-detail__total ua-co-freight-detail__total--sum"><span>总运费</span><strong>' +
+      formatMoney(info.total) +
+      '</strong></div>' +
+      renderFreightTypeBlock(quote.ambient, '常温') +
+      renderFreightTypeBlock(quote.cold, '冷链') +
+      '</div>';
   }
 
   function openFreightSheet() {
@@ -1611,7 +1629,9 @@
             spec: item.spec || '',
             img: item.img || '',
             qty: item.qty || 1,
-            price: Number(item.priceNum != null ? item.priceNum : item.price) || 0
+            price: Number(item.priceNum != null ? item.priceNum : item.price) || 0,
+            tempLayer: item.tempLayer || '',
+            spuId: item.spuId || ''
           });
         });
       });
@@ -1666,13 +1686,16 @@
     var pointsCount = state.pointsEnabled ? Number(state.pointsAvailable) || 0 : 0;
     var orderNo = window.UaOrdersStore ? window.UaOrdersStore.genOrderNo() : String(Date.now());
     var payMethod = formatPayMethodNames(parts);
+    var freightInfo = calcFreightBreakdown();
     var payload = {
       orderNo: orderNo,
       status: 'shipping',
       createdAt: window.UaOrdersStore ? window.UaOrdersStore.nowText() : '',
       paidAt: window.UaOrdersStore ? window.UaOrdersStore.nowText() : '',
       goodsTotal: getGoodsSubtotal(),
-      freight: calcFreight(),
+      freight: freightInfo.total,
+      ambientFee: freightInfo.ambientFee,
+      coldFee: freightInfo.coldFee,
       payable: legs.payable,
       payLabel: formatMoney(legs.payable),
       payMethod: payMethod,
@@ -1684,7 +1707,13 @@
       deductPoints: pointsCount,
       deductAmount: pointsAmt,
       from: 'restock.html',
-      items: items
+      items: items.map(function (it) {
+        var copy = Object.assign({}, it || {});
+        delete copy.skipDemandSummary;
+        delete copy.spotDirectVerify;
+        if (copy.fulfillTag === '现货直核') delete copy.fulfillTag;
+        return copy;
+      })
     };
     if (window.UaOrdersStore && typeof window.UaOrdersStore.upsert === 'function') {
       return window.UaOrdersStore.upsert(payload);

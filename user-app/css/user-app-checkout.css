@@ -895,7 +895,90 @@
 }
 
 .ua-co-sheet__panel--freight {
-  max-height: 58%;
+  max-height: 78%;
+}
+
+.ua-freight-explain {
+  padding: 2px 2px 12px;
+}
+
+.ua-freight-explain__intro {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: #666;
+  line-height: 1.55;
+}
+
+.ua-freight-explain__intro strong {
+  color: #ff7019;
+  font-weight: 600;
+}
+
+.ua-freight-explain__section {
+  margin-bottom: 14px;
+}
+
+.ua-freight-explain__section:last-child {
+  margin-bottom: 0;
+}
+
+.ua-freight-explain__title {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.ua-freight-explain__tpl {
+  margin-bottom: 8px;
+  padding: 10px 12px;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.ua-freight-explain__tpl:last-child {
+  margin-bottom: 0;
+}
+
+.ua-freight-explain__tpl-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+  font-size: 13px;
+  color: #333;
+}
+
+.ua-freight-explain__tpl-head strong {
+  font-weight: 600;
+}
+
+.ua-freight-explain__tpl-head span {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: #ff7019;
+}
+
+.ua-freight-explain__tpl-meta,
+.ua-freight-explain__tpl-extra,
+.ua-freight-explain__empty {
+  margin: 0;
+  font-size: 12px;
+  color: #888;
+  line-height: 1.5;
+}
+
+.ua-freight-explain__tpl-tiers {
+  margin: 6px 0;
+  font-size: 12px;
+  color: #333;
+  line-height: 1.6;
+}
+
+.ua-freight-explain__empty {
+  padding: 4px 0;
 }
 
 .ua-co-freight-rules {
@@ -969,6 +1052,13 @@
   justify-content: space-between;
   font-size: 14px;
   color: #333;
+}
+
+.ua-co-freight-detail__total--sum {
+  margin-top: 10px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+  font-weight: 600;
 }
 
 .ua-co-freight-detail__total strong {

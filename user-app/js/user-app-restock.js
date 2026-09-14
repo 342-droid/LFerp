@@ -54,7 +54,33 @@
     return scopeApi().getCurrentStore({ fromBd: true });
   }
 
+  /** 不走订货单只出现在用户 APP 零售，进货商城不售、不拆、不现货直核 */
+  function isSkipDemandRestockProduct(productId, item) {
+    var api = window.OrderCutoffRuntime;
+    if (api && typeof api.skipsDemandSummary === 'function') {
+      if (
+        api.skipsDemandSummary({
+          tags: (item && (item.productTags || item.tags)) || [],
+          productTags: item && item.productTags,
+          skuCode: productId || (item && (item.id || item.spuId))
+        })
+      ) {
+        return true;
+      }
+    }
+    if (item && (item.skipDemandSummary || item.spotDirectVerify || item.fulfillTag === '现货直核')) {
+      return true;
+    }
+    var catalog = window.UAProductCatalog && window.UAProductCatalog.PRODUCT_CATALOG;
+    var p = catalog && (catalog[productId] || (item && catalog[item.spuId]));
+    if (p && (p.skipDemandSummary || (p.productTags && p.productTags.indexOf('不走订货单') >= 0))) {
+      return true;
+    }
+    return false;
+  }
+
   function isInSaleScope(productId) {
+    if (isSkipDemandRestockProduct(productId)) return false;
     if (!fromBdApp) return true;
     if (!scopeApi()) return true;
     return scopeApi().isVisible(productId, currentScopeStore());
@@ -94,6 +120,7 @@
   }
 
   function isRestockSaleable(item) {
+    if (isSkipDemandRestockProduct(item && item.id, item)) return false;
     if (!saleApi() || typeof saleApi().isSaleableNow !== 'function') return true;
     return !!saleApi().isSaleableNow(saleProductFromItem(item), restockSaleOpts());
   }
@@ -162,12 +189,23 @@
       } catch (e) {
         memoryCart = [];
       }
+      var kept = memoryCart.filter(function (it) {
+        return !isSkipDemandRestockProduct(it && it.id, it);
+      });
+      if (kept.length !== memoryCart.length) {
+        memoryCart = kept;
+        try {
+          localStorage.setItem(CART_KEY, JSON.stringify(memoryCart));
+        } catch (e2) { /* ignore */ }
+      }
     }
     return memoryCart.slice();
   }
 
   function writeCart(items) {
-    memoryCart = (items || []).slice();
+    memoryCart = (items || []).filter(function (it) {
+      return !isSkipDemandRestockProduct(it && it.id, it);
+    });
     try {
       localStorage.setItem(CART_KEY, JSON.stringify(memoryCart));
     } catch (e) {
@@ -566,11 +604,36 @@
       }
     });
 
+    var api = window.TmsLogisticsRate;
+    if (api && typeof api.quoteOrder === 'function' && list.length) {
+      var quote = api.quoteOrder(Object.assign({
+        channel: api.CHANNEL_PROXY,
+        items: list
+      }, restockFreightExplainOpts()));
+      var parts = [];
+      if (quote.ambient && !quote.ambient.empty) {
+        parts.push('常温' + (quote.ambient.text || formatFreightMoney(quote.ambient.amount)));
+      }
+      if (quote.cold && !quote.cold.empty) {
+        parts.push('冷链' + (quote.cold.text || formatFreightMoney(quote.cold.amount)));
+      }
+      return {
+        text: parts.length ? parts.join(' + ') : (quote.text || ''),
+        done: (quote.total || 0) <= 0,
+        fee: quote.total || 0,
+        deliveryAmount: deliveryAmount,
+        expressAmount: expressAmount,
+        deliveryCount: deliveryCount,
+        expressCount: expressCount,
+        quote: quote
+      };
+    }
+
     var delivery =
       deliveryCount > 0
         ? buildDeliveryFreightTip(deliveryAmount)
         : { text: '', done: true, fee: 0, amount: 0, matched: null };
-    var expressFee = 0; /* 现阶段快递不收运费 */
+    var expressFee = 0;
     var fee = (deliveryCount > 0 ? delivery.fee : 0) + expressFee;
     var text = '';
     var done = true;
@@ -605,40 +668,27 @@
     return '¥' + (Math.round(Number(num) * 100) / 100).toFixed(2);
   }
 
-  function formatFreightTierRange(tier) {
-    if (tier.end === Infinity) {
-      return '货款满' + formatFreightMoney(tier.start);
+  function restockFreightExplainOpts() {
+    var api = window.TmsLogisticsRate;
+    var opts = { channel: api && api.CHANNEL_PROXY };
+    var store = scopeApi() && typeof scopeApi().getCurrentStore === 'function'
+      ? scopeApi().getCurrentStore({ fromStore: fromStoreApp, fromBd: fromBdApp })
+      : null;
+    if (store && (store.regionCascade || store.address)) {
+      opts.regionCascade = store.regionCascade || '';
+      opts.address = store.address || '';
+      return opts;
     }
-    return '货款' + formatFreightMoney(tier.start) + '～' + formatFreightMoney(tier.end);
+    opts.address = '浙江省杭州市萧山区建设一路88号';
+    return opts;
   }
 
   function buildFreightRulesHtml() {
-    var tiersHtml = DELIVERY_FREIGHT_TIERS.map(function (tier) {
-      var feeText = tier.freight <= 0 ? '免运费' : formatFreightMoney(tier.freight);
-      return (
-        '<div class="ua-restock-freight-rules__item">' +
-        '<span>' +
-        formatFreightTierRange(tier) +
-        '</span>' +
-        '<span class="ua-restock-freight-rules__fee">' +
-        feeText +
-        '</span></div>'
-      );
-    }).join('');
-
-    return (
-      '<div class="ua-restock-freight-rules">' +
-      '<p class="ua-restock-freight-rules__intro">快递与配送分开计算；同履约方式商品合并货款后匹配档位。现阶段快递不收取运费。</p>' +
-      '<div class="ua-restock-freight-rules__section">' +
-      '<h4 class="ua-restock-freight-rules__title">配送运费档位</h4>' +
-      tiersHtml +
-      '</div>' +
-      '<div class="ua-restock-freight-rules__section">' +
-      '<h4 class="ua-restock-freight-rules__title">快递运费</h4>' +
-      '<div class="ua-restock-freight-rules__item"><span>全部快递订单</span><span class="ua-restock-freight-rules__fee">免运费</span></div>' +
-      '<p class="ua-restock-freight-rules__note">快递暂不收取运费，后续如有调整将按最新规则执行。</p>' +
-      '</div></div>'
-    );
+    var api = window.TmsLogisticsRate;
+    if (api && typeof api.renderExplainHtml === 'function') {
+      return api.renderExplainHtml(restockFreightExplainOpts());
+    }
+    return '<p class="ua-freight-explain__intro">运费按物流费率表计，常温与冷链分开，目的地优先匹配区、市、省、全国。</p>';
   }
 
   function openFreightRulesModal() {
@@ -4625,7 +4675,8 @@
             spuId: item.spuId || '',
             supplierId: item.supplierId || '',
             supplierName: item.supplierName || '',
-            fulfillmentMethod: item.fulfillmentMethod || ''
+            fulfillmentMethod: item.fulfillmentMethod || '',
+            tempLayer: item.tempLayer || ''
           };
         }),
         invalidItems: unsaleable.map(function (item) {

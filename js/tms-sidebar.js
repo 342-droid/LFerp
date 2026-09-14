@@ -24,9 +24,15 @@
         '</a>' +
         '</li>' +
         '<li class="menu-item">' +
-        '<a href="' + pageHref('tms_route.html') + '" class="menu-link' + (currentPage === 'tms_route.html' ? ' active' : '') + '">' +
-        '<img src="' + assetHref('image/基础信息.svg') + '" alt="线路管理" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
-        '<span>线路管理</span>' +
+        '<a href="' + pageHref('carrier.html') + '" class="menu-link' + (currentPage === 'carrier.html' ? ' active' : '') + '">' +
+        '<img src="' + assetHref('image/基础信息.svg') + '" alt="承运商" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
+        '<span>承运商</span>' +
+        '</a>' +
+        '</li>' +
+        '<li class="menu-item">' +
+        '<a href="' + pageHref('logistics_rate.html') + '" class="menu-link' + (currentPage === 'logistics_rate.html' ? ' active' : '') + '">' +
+        '<img src="' + assetHref('image/基础信息.svg') + '" alt="物流费率表" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
+        '<span>物流费率表</span>' +
         '</a>' +
         '</li>' +
         '</ul>' +

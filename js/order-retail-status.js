@@ -1,7 +1,8 @@
 /**
  * 订单履约状态（零售 / 代采共用文案）
- * 列表只写履约态：待支付、待接单、待发货、待收货、待提货（仅零售）、交易成功、交易失败
+ * 列表只写履约态：待支付、待接单、待发货、待收货、待提货 / 待核销（仅零售）、交易成功、交易失败
  * 待接单 = 已付且截单前；待发货 = 已截单（对外已承诺履约）
+ * 待核销 = 自提「不走订货单」截单后现货直核，与待提货一样可门店核销
  * 「发起退货/退款」是筛选项，不写进订单状态列
  * 兼容历史文案：已创建→待支付，已完成→交易成功，已关闭/已取消→交易失败
  */
@@ -19,7 +20,8 @@
     待接单: ['待接单'],
     待发货: ['待发货'],
     待收货: ['待收货'],
-    待提货: ['待提货', '部分提货'],
+    待提货: ['待提货', '部分提货', '待核销'],
+    待核销: ['待核销', '待提货', '部分提货'],
     交易成功: ['交易成功', '已完成'],
     交易失败: ['交易失败', '已关闭', '已取消']
   };
@@ -31,6 +33,7 @@
     待发货: 'order-tag--pending-ship',
     待收货: 'order-tag--receipt',
     待提货: 'order-tag--pickup',
+    待核销: 'order-tag--pickup',
     交易成功: 'order-tag--success',
     交易失败: 'order-tag--failed'
   };
@@ -50,6 +53,11 @@
 
   function isUnpaid(status) {
     return display(status) === '待支付';
+  }
+
+  function isVerifyReady(status) {
+    var d = display(status);
+    return d === '待提货' || d === '待核销' || d === '部分提货' || d === '部分核销';
   }
 
   function isTerminal(status) {
@@ -78,6 +86,7 @@
     isSuccess: isSuccess,
     isFailed: isFailed,
     isUnpaid: isUnpaid,
+    isVerifyReady: isVerifyReady,
     isTerminal: isTerminal,
     matchesFilter: matchesFilter,
     tagClass: tagClass,

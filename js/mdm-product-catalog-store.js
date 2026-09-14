@@ -160,9 +160,18 @@
     var code = String(item.code || 'SPU');
     /* 无规格主数据时，按常见包装生成稳定多 SKU，便于积分商城完整展示 */
     var packs = ['默认', '500g', '1kg'];
+    var dimSeeds = [
+      { length: '20', width: '15', height: '10', gross: '0.8', tare: '0.05', net: '0.75' },
+      { length: '22', width: '16', height: '12', gross: '0.5', tare: '0.04', net: '0.46' },
+      { length: '25', width: '18', height: '14', gross: '1.2', tare: '0.08', net: '1.12' }
+    ];
     return {
       specGroups: [{ name: '包装', values: packs }],
       specs: packs.map(function (pack, i) {
+        var dim = dimSeeds[i % dimSeeds.length];
+        var length = Number(dim.length);
+        var width = Number(dim.width);
+        var height = Number(dim.height);
         return {
           packaging: pack,
           flavor: '',
@@ -171,13 +180,13 @@
           barcode: '690' + String(1000000000 + i).slice(-10),
           skuImg: img,
           stock: 80 + i * 15,
-          length: '',
-          width: '',
-          height: '',
-          volume: '',
-          gross: '',
-          tare: '',
-          net: ''
+          length: dim.length,
+          width: dim.width,
+          height: dim.height,
+          volume: String(Math.round(length * width * height)),
+          gross: dim.gross,
+          tare: dim.tare,
+          net: dim.net
         };
       })
     };
