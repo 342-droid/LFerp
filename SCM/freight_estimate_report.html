@@ -116,6 +116,14 @@
                         </select>
                     </div>
                     <div class="form-group">
+                        <label style="width: 70px;">费用方案:</label>
+                        <select id="qFeeScheme">
+                            <option value="">请选择</option>
+                            <option>重量计费</option>
+                            <option>金额计费</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label style="width: 70px;">物流类型:</label>
                         <select id="qType">
                             <option value="">请选择</option>
@@ -165,6 +173,7 @@
                                 <th>目的省</th>
                                 <th>目的市</th>
                                 <th>目的区</th>
+                                <th>费用方案</th>
                                 <th>物流类型</th>
                                 <th>承运商</th>
                                 <th>订单实付</th>
@@ -173,7 +182,6 @@
                                 <th>重抛比</th>
                                 <th>体积重</th>
                                 <th>计费重量/金额</th>
-                                <th>费用方案</th>
                                 <th>费率档</th>
                                 <th>增值服务</th>
                                 <th>有无电梯</th>
@@ -466,6 +474,7 @@
                     '<td>' + escapeHtml(row.province) + '</td>' +
                     '<td>' + escapeHtml(row.city) + '</td>' +
                     '<td>' + escapeHtml(row.district) + '</td>' +
+                    '<td>' + escapeHtml(row.feeScheme || '—') + '</td>' +
                     '<td>' + escapeHtml(row.type) + '</td>' +
                     '<td>' + escapeHtml(row.carrier) + '</td>' +
                     '<td class="is-money">' + emptyCell(paidText(row)) + '</td>' +
@@ -474,7 +483,6 @@
                     '<td>' + emptyCell(throwText(row)) + '</td>' +
                     '<td class="is-money">' + emptyCell(volWeightText(row)) + '</td>' +
                     '<td class="is-money">' + escapeHtml(billBaseText(row)) + '</td>' +
-                    '<td>' + escapeHtml(row.feeScheme || '—') + '</td>' +
                     '<td class="is-detail">' + tierHtml(row) + '</td>' +
                     '<td class="is-detail">' + extraHtml(row) + '</td>' +
                     '<td>' + emptyCell(elevatorText(row)) + '</td>' +
@@ -496,6 +504,7 @@
                 const fulfill = selectText('qFulfill');
                 const warehouse = selectText('qWarehouse');
                 const carrier = selectText('qCarrier');
+                const feeScheme = selectText('qFeeScheme');
                 const type = selectText('qType');
                 const dest = destCascader ? destCascader.getValue() : '';
                 return MOCK_ROWS.filter((row) => {
@@ -508,6 +517,7 @@
                     if (fulfill && row.fulfill !== fulfill) return false;
                     if (warehouse && row.warehouse !== warehouse) return false;
                     if (carrier && row.carrier !== carrier) return false;
+                    if (feeScheme && row.feeScheme !== feeScheme) return false;
                     if (type && row.type !== type) return false;
                     if (dest && window.RegionCascader && !RegionCascader.matchRegion(row, dest)) return false;
                     return true;
@@ -561,6 +571,7 @@
                 setSelectText('qFulfill', '');
                 setSelectText('qWarehouse', '');
                 setSelectText('qCarrier', '');
+                setSelectText('qFeeScheme', '');
                 setSelectText('qType', '');
                 if (destCascader) destCascader.reset();
                 applyDefaultDates();
@@ -595,13 +606,13 @@
                     showToast('暂无可导出的数据');
                     return;
                 }
-                const headers = ['下单时间', '配送仓', '订单号', '订单渠道', '履约方式', '门店', '目的省', '目的市', '目的区', '物流类型', '承运商', '订单实付', '订单重量', '订单体积', '重抛比', '体积重', '计费重量/金额', '费用方案', '费率档', '增值服务', '有无电梯', '楼层', '上楼费', '运费折扣', '结算折扣', '客户运费', '承运商结算'];
+                const headers = ['下单时间', '配送仓', '订单号', '订单渠道', '履约方式', '门店', '目的省', '目的市', '目的区', '费用方案', '物流类型', '承运商', '订单实付', '订单重量', '订单体积', '重抛比', '体积重', '计费重量/金额', '费率档', '增值服务', '有无电梯', '楼层', '上楼费', '运费折扣', '结算折扣', '客户运费', '承运商结算'];
                 const customerSum = rows.reduce((sum, row) => sum + customerFeeOf(row), 0);
                 const settleSum = rows.reduce((sum, row) => sum + settleFeeOf(row), 0);
                 const lines = [headers, ...rows.map((row) => [
                     row.orderTime, row.warehouse, row.orderNo, row.channel, row.fulfill,
-                    storeText(row), row.province, row.city, row.district, row.type, row.carrier,
-                    paidText(row), inWeightText(row), dimText(row), throwText(row), volWeightText(row), billBaseText(row), row.feeScheme || '—', tierText(row),
+                    storeText(row), row.province, row.city, row.district, row.feeScheme || '—', row.type, row.carrier,
+                    paidText(row), inWeightText(row), dimText(row), throwText(row), volWeightText(row), billBaseText(row), tierText(row),
                     extraText(row), elevatorText(row), floorText(row), upstairsText(row),
                     row.freightDisc || '—', row.settleDisc || '—',
                     formatMoney(customerFeeOf(row)), formatMoney(settleFeeOf(row))

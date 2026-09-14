@@ -66,7 +66,6 @@
             display: none;
         }
 
-        #rateModal .rate-fee-block.is-amount .rate-first-fields,
         #rateModal .rate-fee-block.is-amount .rate-fee-tip {
             display: none;
         }
@@ -91,7 +90,8 @@
             font-size: 13px;
         }
 
-        #rateModal .rate-tier-table.is-amount .rate-tier-cont {
+        #rateModal .rate-tier-table.is-amount .rate-tier-cont,
+        #rateModal .rate-tier-table.is-amount .rate-tier-first {
             display: none;
         }
 
@@ -215,7 +215,7 @@
         }
 
         .table td.rate-fee-cell {
-            min-width: 240px;
+            min-width: 280px;
         }
 
         .table td.rate-upstairs-cell {
@@ -309,6 +309,15 @@
             <section class="search-section">
                 <form class="search-form" id="rateSearch">
                     <div class="form-group">
+                        <label style="width: 70px;">始发地:</label>
+                        <select id="qOrigin">
+                            <option value="">请选择</option>
+                            <option>W001 南京仓</option>
+                            <option>W002 嘉兴仓</option>
+                            <option>W003 上海仓</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label style="width: 70px;">承运商:</label>
                         <select id="qCarrier">
                             <option value="">请选择</option>
@@ -326,21 +335,20 @@
                         </select>
                     </div>
                     <div class="form-group">
+                        <label>费用方案:</label>
+                        <select id="qFeeScheme">
+                            <option value="">请选择</option>
+                            <option>重量计费</option>
+                            <option>金额计费</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label>物流类型:</label>
                         <select id="qType">
                             <option value="">请选择</option>
                             <option>常温</option>
                             <option>冷链</option>
                             <option>不区分</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>始发地:</label>
-                        <select id="qOrigin">
-                            <option value="">请选择</option>
-                            <option>W001 南京仓</option>
-                            <option>W002 嘉兴仓</option>
-                            <option>W003 上海仓</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -357,14 +365,6 @@
                         </select>
                         <select id="qDistrict">
                             <option value="">区</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>费用方案:</label>
-                        <select id="qFeeScheme">
-                            <option value="">请选择</option>
-                            <option>重量计费</option>
-                            <option>金额计费</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -394,12 +394,12 @@
                                 <th>始发地</th>
                                 <th>承运商</th>
                                 <th>订单渠道</th>
+                                <th>费用方案</th>
                                 <th>物流类型</th>
                                 <th>目的省</th>
                                 <th>目的市</th>
                                 <th>目的区</th>
                                 <th>物流时效(天)</th>
-                                <th>费用方案</th>
                                 <th>重抛比</th>
                                 <th>物流费用</th>
                                 <th>增值服务</th>
@@ -415,19 +415,19 @@
                             </tr>
                         </thead>
                         <tbody id="tableBody">
-                            <tr data-extra="否" data-extras="[]" data-upstairs="否" data-tiers='{"firstWeight":"25","firstPrice":"77","tiers":[{"start":"25","end":"100","cont":"0.71"},{"start":"100","end":"∞","cont":"1.3"}]}'>
+                            <tr data-extra="否" data-extras="[]" data-upstairs="否" data-tiers='{"tiers":[{"start":"0","end":"100","firstWeight":"25","firstPrice":"77","cont":"0.71"},{"start":"100","end":"∞","firstWeight":"25","firstPrice":"77","cont":"1.3"}]}'>
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
                                 <td>W001 南京仓</td>
                                 <td>SF 顺丰速运</td>
                                 <td>零售订单</td>
+                                <td>重量计费</td>
                                 <td>常温</td>
                                 <td>江苏省</td>
                                 <td>南京市</td>
                                 <td>江宁区</td>
                                 <td>1</td>
-                                <td>重量计费</td>
                                 <td>1:3</td>
-                                <td class="rate-fee-cell"><div class="rate-rule-line"><span class="rate-rule-k">0~25KG</span><span class="rate-rule-v">¥77</span></div><div class="rate-rule-line"><span class="rate-rule-k">25~100KG</span><span class="rate-rule-v">¥77+0.71/KG</span></div><div class="rate-rule-line"><span class="rate-rule-k">100~∞KG</span><span class="rate-rule-v">¥77+1.3/KG</span></div></td>
+                                <td class="rate-fee-cell"><div class="rate-rule-line"><span class="rate-rule-k">0~100KG</span><span class="rate-rule-v">首重25KG ¥77+0.71/KG</span></div><div class="rate-rule-line"><span class="rate-rule-k">100~∞KG</span><span class="rate-rule-v">首重25KG ¥77+1.3/KG</span></div></td>
                                 <td class="rate-extra-cell"><span class="rate-rule-empty">否</span></td>
                                 <td class="rate-upstairs-cell"><span class="rate-rule-empty">否</span></td>
                                 <td>1.00</td>
@@ -442,19 +442,45 @@
                                     <a href="#" class="delete-btn">删除</a>
                                 </td>
                             </tr>
-                            <tr data-extra="是" data-extras='[{"name":"保价费","min":"2","rate":"0.5"},{"name":"派送费","amount":"8"}]' data-upstairs="是" data-upstairs-config='{"freeWeight":"20","withElevator":{"base":"5","weightRate":"0.1","floorRate":"0","pieceRate":"0"},"withoutElevator":{"base":"10","weightRate":"0.1","floorRate":"5","pieceRate":"0.5"}}' data-tiers='{"firstWeight":"25","firstPrice":"96","tiers":[{"start":"25","end":"80","cont":"0.9"},{"start":"80","end":"∞","cont":"1.5"}]}'>
+                            <tr data-extra="否" data-extras="[]" data-upstairs="否" data-tiers='{"tiers":[{"start":"0","end":"100","firstWeight":"25","firstPrice":"70","cont":"0.65"},{"start":"100","end":"∞","firstWeight":"25","firstPrice":"70","cont":"1.2"}]}'>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>W001 南京仓</td>
+                                <td>ZTO 中通快递</td>
+                                <td>零售订单</td>
+                                <td>重量计费</td>
+                                <td>常温</td>
+                                <td>江苏省</td>
+                                <td>南京市</td>
+                                <td>江宁区</td>
+                                <td>1</td>
+                                <td>1:3</td>
+                                <td class="rate-fee-cell"><div class="rate-rule-line"><span class="rate-rule-k">0~100KG</span><span class="rate-rule-v">首重25KG ¥70+0.65/KG</span></div><div class="rate-rule-line"><span class="rate-rule-k">100~∞KG</span><span class="rate-rule-v">首重25KG ¥70+1.2/KG</span></div></td>
+                                <td class="rate-extra-cell"><span class="rate-rule-empty">否</span></td>
+                                <td class="rate-upstairs-cell"><span class="rate-rule-empty">否</span></td>
+                                <td>1.00</td>
+                                <td>0.92</td>
+                                <td><span class="status inactive">禁用</span></td>
+                                <td>李四</td>
+                                <td>2026-04-22 15:08:00</td>
+                                <td>李四</td>
+                                <td>2026-04-22 15:08:00</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
                                 <td>W001 南京仓</td>
                                 <td>ZTO 中通快递</td>
                                 <td>代采订单</td>
+                                <td>重量计费</td>
                                 <td>冷链</td>
                                 <td>江苏省</td>
                                 <td>南京市</td>
                                 <td>鼓楼区</td>
                                 <td>1</td>
-                                <td>重量计费</td>
                                 <td>1:4</td>
-                                <td class="rate-fee-cell"><div class="rate-rule-line"><span class="rate-rule-k">0~25KG</span><span class="rate-rule-v">¥96</span></div><div class="rate-rule-line"><span class="rate-rule-k">25~80KG</span><span class="rate-rule-v">¥96+0.9/KG</span></div><div class="rate-rule-line"><span class="rate-rule-k">80~∞KG</span><span class="rate-rule-v">¥96+1.5/KG</span></div></td>
+                                <td class="rate-fee-cell"><div class="rate-rule-line"><span class="rate-rule-k">0~80KG</span><span class="rate-rule-v">首重25KG ¥96+0.9/KG</span></div><div class="rate-rule-line"><span class="rate-rule-k">80~∞KG</span><span class="rate-rule-v">首重25KG ¥96+1.5/KG</span></div></td>
                                 <td class="rate-extra-cell"><div class="rate-rule-line"><span class="rate-rule-k">保价费</span><span class="rate-rule-v">最低¥2 · 费率0.5%</span></div><div class="rate-rule-line"><span class="rate-rule-k">派送费</span><span class="rate-rule-v">每票¥8</span></div></td>
                                 <td class="rate-upstairs-cell"><div class="rate-rule-line"><span class="rate-rule-k">免上楼</span><span class="rate-rule-v">≤20KG</span></div><div class="rate-rule-line"><span class="rate-rule-k">有电梯</span><span class="rate-rule-v">5+0.1×重量</span></div><div class="rate-rule-line"><span class="rate-rule-k">无电梯</span><span class="rate-rule-v">10+0.1×重量+5×楼层+0.5×件数</span></div></td>
                                 <td>0.95</td>
@@ -474,12 +500,12 @@
                                 <td>W002 嘉兴仓</td>
                                 <td>YTO 圆通速递</td>
                                 <td>零售订单</td>
+                                <td>金额计费</td>
                                 <td>不区分</td>
                                 <td>浙江省</td>
                                 <td>杭州市</td>
                                 <td>余杭区</td>
                                 <td>2</td>
-                                <td>金额计费</td>
                                 <td>1:3</td>
                                 <td class="rate-fee-cell"><div class="rate-rule-line"><span class="rate-rule-k">0~100元</span><span class="rate-rule-v">¥6</span></div><div class="rate-rule-line"><span class="rate-rule-k">100~500元</span><span class="rate-rule-v">¥10</span></div><div class="rate-rule-line"><span class="rate-rule-k">500~∞元</span><span class="rate-rule-v">¥15</span></div></td>
                                 <td class="rate-extra-cell"><span class="rate-rule-empty">否</span></td>
@@ -496,19 +522,19 @@
                                     <a href="#" class="delete-btn">删除</a>
                                 </td>
                             </tr>
-                            <tr data-extra="是" data-extras='[{"name":"保价费","min":"3","rate":"0.8"},{"name":"派送费","amount":"10"}]' data-upstairs="是" data-upstairs-config='{"freeWeight":"20","withElevator":{"base":"5","weightRate":"0.1","floorRate":"0","pieceRate":"0"},"withoutElevator":{"base":"10","weightRate":"0.1","floorRate":"5","pieceRate":"0.5"}}' data-tiers='{"firstWeight":"20","firstPrice":"88","tiers":[{"start":"20","end":"50","cont":"0.8"},{"start":"50","end":"∞","cont":"1.2"}]}'>
+                            <tr data-extra="是" data-extras='[{"name":"保价费","min":"3","rate":"0.8"},{"name":"派送费","amount":"10"}]' data-upstairs="是" data-upstairs-config='{"freeWeight":"20","withElevator":{"base":"5","weightRate":"0.1","floorRate":"0","pieceRate":"0"},"withoutElevator":{"base":"10","weightRate":"0.1","floorRate":"5","pieceRate":"0.5"}}' data-tiers='{"tiers":[{"start":"0","end":"50","firstWeight":"20","firstPrice":"88","cont":"0.8"},{"start":"50","end":"∞","firstWeight":"20","firstPrice":"88","cont":"1.2"}]}'>
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
                                 <td>W003 上海仓</td>
                                 <td>SF 顺丰速运</td>
                                 <td>代采订单</td>
+                                <td>重量计费</td>
                                 <td>冷链</td>
                                 <td>上海市</td>
                                 <td>上海市</td>
                                 <td>浦东新区</td>
                                 <td>1</td>
-                                <td>重量计费</td>
                                 <td>1:3</td>
-                                <td class="rate-fee-cell"><div class="rate-rule-line"><span class="rate-rule-k">0~20KG</span><span class="rate-rule-v">¥88</span></div><div class="rate-rule-line"><span class="rate-rule-k">20~50KG</span><span class="rate-rule-v">¥88+0.8/KG</span></div><div class="rate-rule-line"><span class="rate-rule-k">50~∞KG</span><span class="rate-rule-v">¥88+1.2/KG</span></div></td>
+                                <td class="rate-fee-cell"><div class="rate-rule-line"><span class="rate-rule-k">0~50KG</span><span class="rate-rule-v">首重20KG ¥88+0.8/KG</span></div><div class="rate-rule-line"><span class="rate-rule-k">50~∞KG</span><span class="rate-rule-v">首重20KG ¥88+1.2/KG</span></div></td>
                                 <td class="rate-extra-cell"><div class="rate-rule-line"><span class="rate-rule-k">保价费</span><span class="rate-rule-v">最低¥3 · 费率0.8%</span></div><div class="rate-rule-line"><span class="rate-rule-k">派送费</span><span class="rate-rule-v">每票¥10</span></div></td>
                                 <td class="rate-upstairs-cell"><div class="rate-rule-line"><span class="rate-rule-k">免上楼</span><span class="rate-rule-v">≤20KG</span></div><div class="rate-rule-line"><span class="rate-rule-k">有电梯</span><span class="rate-rule-v">5+0.1×重量</span></div><div class="rate-rule-line"><span class="rate-rule-k">无电梯</span><span class="rate-rule-v">10+0.1×重量+5×楼层+0.5×件数</span></div></td>
                                 <td>0.90</td>
@@ -528,12 +554,12 @@
                                 <td>W002 嘉兴仓</td>
                                 <td>ZTO 中通快递</td>
                                 <td>零售订单</td>
+                                <td>金额计费</td>
                                 <td>不区分</td>
                                 <td>浙江省</td>
                                 <td>嘉兴市</td>
                                 <td>南湖区</td>
                                 <td>1</td>
-                                <td>金额计费</td>
                                 <td>1:3</td>
                                 <td class="rate-fee-cell"><div class="rate-rule-line"><span class="rate-rule-k">0~200元</span><span class="rate-rule-v">¥7</span></div><div class="rate-rule-line"><span class="rate-rule-k">200~800元</span><span class="rate-rule-v">¥12</span></div><div class="rate-rule-line"><span class="rate-rule-k">800~∞元</span><span class="rate-rule-v">¥18</span></div></td>
                                 <td class="rate-extra-cell"><span class="rate-rule-empty">否</span></td>
@@ -550,19 +576,19 @@
                                     <a href="#" class="delete-btn">删除</a>
                                 </td>
                             </tr>
-                            <tr data-extra="否" data-extras="[]" data-upstairs="否" data-tiers='{"firstWeight":"30","firstPrice":"85","tiers":[{"start":"30","end":"120","cont":"0.85"},{"start":"120","end":"∞","cont":"1.4"}]}'>
+                            <tr data-extra="否" data-extras="[]" data-upstairs="否" data-tiers='{"tiers":[{"start":"0","end":"120","firstWeight":"30","firstPrice":"85","cont":"0.85"},{"start":"120","end":"∞","firstWeight":"30","firstPrice":"85","cont":"1.4"}]}'>
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
                                 <td>W001 南京仓</td>
                                 <td>SF 顺丰速运</td>
                                 <td>零售订单</td>
+                                <td>重量计费</td>
                                 <td>常温</td>
                                 <td>全国</td>
                                 <td></td>
                                 <td></td>
                                 <td>3</td>
-                                <td>重量计费</td>
                                 <td>1:3</td>
-                                <td class="rate-fee-cell"><div class="rate-rule-line"><span class="rate-rule-k">0~30KG</span><span class="rate-rule-v">¥85</span></div><div class="rate-rule-line"><span class="rate-rule-k">30~120KG</span><span class="rate-rule-v">¥85+0.85/KG</span></div><div class="rate-rule-line"><span class="rate-rule-k">120~∞KG</span><span class="rate-rule-v">¥85+1.4/KG</span></div></td>
+                                <td class="rate-fee-cell"><div class="rate-rule-line"><span class="rate-rule-k">0~120KG</span><span class="rate-rule-v">首重30KG ¥85+0.85/KG</span></div><div class="rate-rule-line"><span class="rate-rule-k">120~∞KG</span><span class="rate-rule-v">首重30KG ¥85+1.4/KG</span></div></td>
                                 <td class="rate-extra-cell"><span class="rate-rule-empty">否</span></td>
                                 <td class="rate-upstairs-cell"><span class="rate-rule-empty">否</span></td>
                                 <td>1.00</td>
@@ -577,19 +603,19 @@
                                     <a href="#" class="delete-btn">删除</a>
                                 </td>
                             </tr>
-                            <tr data-extra="否" data-extras="[]" data-upstairs="否" data-tiers='{"firstWeight":"20","firstPrice":"110","tiers":[{"start":"20","end":"60","cont":"1.1"},{"start":"60","end":"∞","cont":"1.8"}]}'>
+                            <tr data-extra="否" data-extras="[]" data-upstairs="否" data-tiers='{"tiers":[{"start":"0","end":"60","firstWeight":"20","firstPrice":"110","cont":"1.1"},{"start":"60","end":"∞","firstWeight":"20","firstPrice":"110","cont":"1.8"}]}'>
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
                                 <td>W001 南京仓</td>
                                 <td>YTO 圆通速递</td>
                                 <td>零售订单</td>
+                                <td>重量计费</td>
                                 <td>冷链</td>
                                 <td>全国</td>
                                 <td></td>
                                 <td></td>
                                 <td>2</td>
-                                <td>重量计费</td>
                                 <td>1:4</td>
-                                <td class="rate-fee-cell"><div class="rate-rule-line"><span class="rate-rule-k">0~20KG</span><span class="rate-rule-v">¥110</span></div><div class="rate-rule-line"><span class="rate-rule-k">20~60KG</span><span class="rate-rule-v">¥110+1.1/KG</span></div><div class="rate-rule-line"><span class="rate-rule-k">60~∞KG</span><span class="rate-rule-v">¥110+1.8/KG</span></div></td>
+                                <td class="rate-fee-cell"><div class="rate-rule-line"><span class="rate-rule-k">0~60KG</span><span class="rate-rule-v">首重20KG ¥110+1.1/KG</span></div><div class="rate-rule-line"><span class="rate-rule-k">60~∞KG</span><span class="rate-rule-v">首重20KG ¥110+1.8/KG</span></div></td>
                                 <td class="rate-extra-cell"><span class="rate-rule-empty">否</span></td>
                                 <td class="rate-upstairs-cell"><span class="rate-rule-empty">否</span></td>
                                 <td>1.00</td>
@@ -609,12 +635,12 @@
                                 <td>W003 上海仓</td>
                                 <td>ZTO 中通快递</td>
                                 <td>零售订单</td>
+                                <td>金额计费</td>
                                 <td>不区分</td>
                                 <td>全国</td>
                                 <td></td>
                                 <td></td>
                                 <td>2</td>
-                                <td>金额计费</td>
                                 <td>-</td>
                                 <td class="rate-fee-cell"><div class="rate-rule-line"><span class="rate-rule-k">0~150元</span><span class="rate-rule-v">¥8</span></div><div class="rate-rule-line"><span class="rate-rule-k">150~600元</span><span class="rate-rule-v">¥14</span></div><div class="rate-rule-line"><span class="rate-rule-k">600~∞元</span><span class="rate-rule-v">¥20</span></div></td>
                                 <td class="rate-extra-cell"><span class="rate-rule-empty">否</span></td>
@@ -674,12 +700,27 @@
                     </select>
                 </div>
                 <div class="modal-form-group">
+                    <label>费用方案 <span style="color: red;">*</span></label>
+                    <select id="feeScheme">
+                        <option value="">请选择</option>
+                        <option>重量计费</option>
+                        <option>金额计费</option>
+                    </select>
+                </div>
+                <div class="modal-form-group">
                     <label>物流类型 <span id="logisticsTypeStar" style="color: red;">*</span></label>
                     <select id="logisticsType">
                         <option value="">请选择</option>
                         <option>常温</option>
                         <option>冷链</option>
                         <option>不区分</option>
+                    </select>
+                </div>
+                <div class="modal-form-group">
+                    <label>是否启用 <span style="color: red;">*</span></label>
+                    <select id="isEnabled">
+                        <option>启用</option>
+                        <option>禁用</option>
                     </select>
                 </div>
                 <div class="modal-form-group region-cascader-form-group" style="width: 100%;">
@@ -716,14 +757,6 @@
                     </div>
                 </div>
                 <div class="modal-form-group">
-                    <label>费用方案 <span style="color: red;">*</span></label>
-                    <select id="feeScheme">
-                        <option value="">请选择</option>
-                        <option>重量计费</option>
-                        <option>金额计费</option>
-                    </select>
-                </div>
-                <div class="modal-form-group">
                     <label>增值服务 <span style="color: red;">*</span></label>
                     <select id="extra">
                         <option>否</option>
@@ -737,42 +770,21 @@
                         <option>是</option>
                     </select>
                 </div>
-                <div class="modal-form-group">
-                    <label>是否启用 <span style="color: red;">*</span></label>
-                    <select id="isEnabled">
-                        <option>启用</option>
-                        <option>禁用</option>
-                    </select>
-                </div>
 
                 <div class="modal-section-title">计费规则</div>
                 <div class="modal-form-group rate-block rate-fee-block is-idle">
                     <label>物流费用 <span style="color: red;">*</span></label>
                     <div class="rate-block__body">
-                        <div class="rate-first-fields">
-                            <div class="rate-first-item">
-                                <span>首重重量 <span style="color: red;">*</span></span>
-                                <div class="rate-input-with-unit">
-                                    <input id="firstWeight" type="text" inputmode="decimal" placeholder="请输入">
-                                    <span class="rate-input-unit">KG</span>
-                                </div>
-                            </div>
-                            <div class="rate-first-item">
-                                <span>首重价 <span style="color: red;">*</span></span>
-                                <div class="rate-input-with-unit">
-                                    <input id="firstPrice" type="text" inputmode="decimal" placeholder="请输入">
-                                    <span class="rate-input-unit">元</span>
-                                </div>
-                            </div>
-                        </div>
                         <div class="mdm-biz-tip mdm-biz-tip--flush rate-fee-tip" role="note">
-                            运费 = <strong>首重价</strong> + <strong>续价</strong> × (实重 − 首重重量)；续价取实重所在区间。
+                            命中档后，运费 = <strong>该档首重价</strong> + <strong>该档续价</strong> × (实重 − 该档首重重量)；实重不超过该档首重时只收首重价。各档首重、首重价可不同。
                         </div>
                         <table class="rate-tier-table">
                             <thead>
                                 <tr>
                                     <th class="rate-tier-start">起始重量</th>
                                     <th class="rate-tier-end">结束重量</th>
+                                    <th class="rate-tier-first">首重重量</th>
+                                    <th class="rate-tier-first">首重价</th>
                                     <th class="rate-tier-price">运费</th>
                                     <th class="rate-tier-cont">续价(元/KG)</th>
                                     <th>操作</th>
@@ -782,6 +794,8 @@
                                 <tr class="tier">
                                     <td><input placeholder="起始重量" readonly></td>
                                     <td><input placeholder="结束重量" value="∞" readonly></td>
+                                    <td class="rate-tier-first"><input placeholder="首重重量"></td>
+                                    <td class="rate-tier-first"><input placeholder="首重价"></td>
                                     <td class="rate-tier-price"><input placeholder="运费"></td>
                                     <td class="rate-tier-cont"><input placeholder="续价"></td>
                                     <td><a href="#" class="remove-tier">删除</a></td>
@@ -1057,16 +1071,14 @@
             }
 
             function matchKeyFromData(data) {
-                const type = data.feeScheme === '金额计费' ? '' : (data.logisticsType || '');
+                const type = data.logisticsType || (data.feeScheme === '金额计费' ? '不区分' : '');
                 return [data.origin, data.carrier, data.orderChannel, type, data.destProvince, data.destCity, data.destDistrict].join('\t');
             }
 
             function matchKeyFromRow(row) {
                 const c = cellsOf(row);
                 if (c.length < 10) return '';
-                const scheme = c[9].textContent.trim();
-                const type = scheme === '金额计费' ? '' : c[4].textContent.trim();
-                return [c[1], c[2], c[3], type, c[5], c[6], c[7]].map((td) => td.textContent.trim()).join('\t');
+                return [c[1], c[2], c[3], c[5], c[6], c[7], c[8]].map((td) => td.textContent.trim()).join('\t');
             }
 
             function laneKeyFromData(data) {
@@ -1075,13 +1087,43 @@
 
             function laneKeyFromRow(row) {
                 const c = cellsOf(row);
-                if (c.length < 8) return '';
-                return [c[1], c[3], c[5], c[6], c[7]].map((td) => td.textContent.trim()).join('\t');
+                if (c.length < 9) return '';
+                return [c[1], c[3], c[6], c[7], c[8]].map((td) => td.textContent.trim()).join('\t');
             }
 
             function schemeFromRow(row) {
                 const c = cellsOf(row);
-                return c[9] ? c[9].textContent.trim() : '';
+                return c[4] ? c[4].textContent.trim() : '';
+            }
+
+            function typeFromRow(row) {
+                const c = cellsOf(row);
+                return c[5] ? c[5].textContent.trim() : '';
+            }
+
+            function enableConflictMessage(data, exclude) {
+                const lane = laneKeyFromData(data);
+                const myType = data.logisticsType || (data.feeScheme === '金额计费' ? '不区分' : '');
+                const rows = Array.from(document.querySelectorAll('#tableBody tr'));
+                for (let i = 0; i < rows.length; i++) {
+                    const row = rows[i];
+                    if (row === exclude) continue;
+                    if (getRowEnabled(row) !== '启用') continue;
+                    if (laneKeyFromRow(row) !== lane) continue;
+                    const otherScheme = schemeFromRow(row);
+                    const otherType = typeFromRow(row);
+                    if ((data.feeScheme === '金额计费' && otherScheme === '重量计费')
+                        || (data.feeScheme === '重量计费' && otherScheme === '金额计费')) {
+                        return '同一配送仓、订单渠道、目的地不可同时启用重量计费与金额计费';
+                    }
+                    if (otherType === myType) {
+                        if (myType === '不区分' || data.feeScheme === '金额计费') {
+                            return '同一配送仓、订单渠道、目的地只能启用一条金额计费';
+                        }
+                        return '同一配送仓、订单渠道、目的地只能启用一条' + myType + '重量计费';
+                    }
+                }
+                return '';
             }
 
             function wrapNativeSelect(sel) {
@@ -1494,30 +1536,47 @@
                 };
             }
 
-            function getFirstWeight() {
-                return document.getElementById('firstWeight')?.value.trim() || '';
+            function getTierInputs(row) {
+                const inputs = row ? row.querySelectorAll('td input') : [];
+                return {
+                    start: inputs[0],
+                    end: inputs[1],
+                    firstWeight: inputs[2],
+                    firstPrice: inputs[3],
+                    price: inputs[4],
+                    cont: inputs[5]
+                };
             }
 
-            function getFirstPrice() {
-                return document.getElementById('firstPrice')?.value.trim() || '';
+            function tierInputValue(input) {
+                return input ? input.value.trim() : '';
             }
 
-            function setFirstWeightFields(weight, price) {
-                const wEl = document.getElementById('firstWeight');
-                const pEl = document.getElementById('firstPrice');
-                if (wEl) wEl.value = weight || '';
-                if (pEl) pEl.value = price || '';
+            function isPositiveAmount(text) {
+                const value = String(text || '').trim();
+                if (value === '') return false;
+                const num = Number(value);
+                return !Number.isNaN(num) && num > 0;
             }
 
-            function emptyFeeConfig(isAmount) {
-                return isAmount
-                    ? { tiers: [] }
-                    : { firstWeight: '', firstPrice: '', tiers: [] };
+            function emptyFeeConfig() {
+                return { tiers: [] };
+            }
+
+            function mapWeightTier(tier, fallback) {
+                const base = fallback || {};
+                return {
+                    start: tier.start || '',
+                    end: tier.end || '',
+                    firstWeight: tier.firstWeight || base.firstWeight || '',
+                    firstPrice: tier.firstPrice || base.firstPrice || '',
+                    cont: tier.cont || ''
+                };
             }
 
             function normalizeFeeConfig(scheme, raw) {
                 const isAmount = scheme === '金额计费';
-                if (!raw) return emptyFeeConfig(isAmount);
+                if (!raw) return emptyFeeConfig();
                 if (Array.isArray(raw)) {
                     if (isAmount) {
                         return {
@@ -1528,20 +1587,30 @@
                             }))
                         };
                     }
+                    const first = raw[0] || {};
                     return {
-                        firstWeight: raw[0]?.end || '',
-                        firstPrice: raw[0]?.price || '',
-                        tiers: raw.slice(1).map((tier) => ({
+                        tiers: raw.slice(1).map((tier) => mapWeightTier(tier, {
+                            firstWeight: first.end || first.firstWeight || '',
+                            firstPrice: first.price || first.firstPrice || ''
+                        }))
+                    };
+                }
+                const fallback = {
+                    firstWeight: raw.firstWeight || '',
+                    firstPrice: raw.firstPrice || ''
+                };
+                const tiers = Array.isArray(raw.tiers) ? raw.tiers : [];
+                if (isAmount) {
+                    return {
+                        tiers: tiers.map((tier) => ({
                             start: tier.start || '',
                             end: tier.end || '',
-                            cont: tier.cont || ''
+                            price: tier.price || ''
                         }))
                     };
                 }
                 return {
-                    firstWeight: raw.firstWeight || '',
-                    firstPrice: raw.firstPrice || '',
-                    tiers: Array.isArray(raw.tiers) ? raw.tiers : []
+                    tiers: tiers.map((tier) => mapWeightTier(tier, fallback))
                 };
             }
 
@@ -1549,31 +1618,28 @@
                 const isAmount = getSelectText('feeScheme') === '金额计费';
                 const rows = Array.from(document.querySelectorAll('#tiers .tier'));
                 const tiers = rows.map((row, index) => {
-                    const inputs = row.querySelectorAll('td input');
-                    const end = index === rows.length - 1 ? '∞' : (inputs[1]?.value.trim() || '');
+                    const inputs = getTierInputs(row);
+                    const end = index === rows.length - 1 ? '∞' : tierInputValue(inputs.end);
                     if (isAmount) {
                         return {
-                            start: inputs[0]?.value.trim() || '',
+                            start: tierInputValue(inputs.start),
                             end,
-                            price: inputs[2]?.value.trim() || ''
+                            price: tierInputValue(inputs.price)
                         };
                     }
                     return {
-                        start: inputs[0]?.value.trim() || '',
+                        start: tierInputValue(inputs.start),
                         end,
-                        cont: inputs[3]?.value.trim() || ''
+                        firstWeight: tierInputValue(inputs.firstWeight),
+                        firstPrice: tierInputValue(inputs.firstPrice),
+                        cont: tierInputValue(inputs.cont)
                     };
                 }).filter((tier) => {
                     if (!tier.start || !tier.end) return false;
                     if (isAmount) return !!tier.price;
                     return true;
                 });
-                if (isAmount) return { tiers };
-                return {
-                    firstWeight: getFirstWeight(),
-                    firstPrice: getFirstPrice(),
-                    tiers
-                };
+                return { tiers };
             }
 
             function isInfEnd(value) {
@@ -1589,18 +1655,19 @@
                 const rows = Array.from(document.querySelectorAll('#tiers .tier'));
                 const detail = !!(page && page.isDetailMode);
                 rows.forEach((row, index) => {
-                    const inputs = row.querySelectorAll('td input');
-                    const startInput = inputs[0];
-                    const endInput = inputs[1];
-                    if (startInput) startInput.readOnly = true;
-                    if (!endInput) return;
+                    const inputs = getTierInputs(row);
+                    if (inputs.start) inputs.start.readOnly = true;
+                    ['firstWeight', 'firstPrice', 'price', 'cont'].forEach((key) => {
+                        if (inputs[key]) inputs[key].readOnly = detail;
+                    });
+                    if (!inputs.end) return;
                     const isLast = index === rows.length - 1;
                     if (isLast) {
-                        endInput.value = '∞';
-                        endInput.readOnly = true;
+                        inputs.end.value = '∞';
+                        inputs.end.readOnly = true;
                     } else {
-                        if (isInfEnd(endInput.value)) endInput.value = '';
-                        endInput.readOnly = detail;
+                        if (isInfEnd(inputs.end.value)) inputs.end.value = '';
+                        inputs.end.readOnly = detail;
                     }
                 });
             }
@@ -1620,17 +1687,13 @@
                         return formatRuleLineHtml(`${tier.start}~${displayTierEnd(tier.end)}元`, `¥${tier.price}`);
                     }).join('');
                 }
-                const lines = [
-                    formatRuleLineHtml(`0~${data.firstWeight}KG`, `¥${data.firstPrice}`)
-                ];
-                (data.tiers || []).forEach((tier) => {
+                return (data.tiers || []).map((tier) => {
                     const cont = tier.cont === '' ? '0' : tier.cont;
-                    lines.push(formatRuleLineHtml(
+                    return formatRuleLineHtml(
                         `${tier.start}~${displayTierEnd(tier.end)}KG`,
-                        `¥${data.firstPrice}+${cont}/KG`
-                    ));
-                });
-                return lines.join('');
+                        `首重${tier.firstWeight || '-'}KG ¥${tier.firstPrice || '-'}+${cont}/KG`
+                    );
+                }).join('');
             }
 
             function parseRowFeeConfig(row) {
@@ -1661,7 +1724,7 @@
                 if (!template) return;
                 const list = tiers && tiers.length
                     ? tiers
-                    : [{ start: '', end: '', price: '', cont: '' }];
+                    : [{ start: '', end: '', firstWeight: '', firstPrice: '', price: '', cont: '' }];
                 while (tbody.querySelectorAll('.tier').length > 1) {
                     tbody.lastElementChild.remove();
                 }
@@ -1671,19 +1734,20 @@
                         row = template.cloneNode(true);
                         tbody.appendChild(row);
                     }
-                    const inputs = row.querySelectorAll('td input');
-                    if (inputs[0]) inputs[0].value = tier.start || '';
-                    if (inputs[1]) {
-                        inputs[1].value = index === list.length - 1 ? '∞' : displayTierEnd(tier.end);
+                    const inputs = getTierInputs(row);
+                    if (inputs.start) inputs.start.value = tier.start || '';
+                    if (inputs.end) {
+                        inputs.end.value = index === list.length - 1 ? '∞' : displayTierEnd(tier.end);
                     }
-                    if (inputs[2]) inputs[2].value = tier.price || '';
-                    if (inputs[3]) inputs[3].value = tier.cont || '';
+                    if (inputs.firstWeight) inputs.firstWeight.value = tier.firstWeight || '';
+                    if (inputs.firstPrice) inputs.firstPrice.value = tier.firstPrice || '';
+                    if (inputs.price) inputs.price.value = tier.price || '';
+                    if (inputs.cont) inputs.cont.value = tier.cont || '';
                 });
             }
 
             function setFeeConfig(config) {
-                const data = config || {};
-                setFirstWeightFields(data.firstWeight, data.firstPrice);
+                const data = normalizeFeeConfig(getSelectText('feeScheme'), config);
                 setFeeTiers(data.tiers);
             }
 
@@ -1693,15 +1757,15 @@
                 if (scheme !== '重量计费' && !isAmount) return;
                 const rows = document.querySelectorAll('#tiers .tier');
                 rows.forEach((row, index) => {
-                    const inputs = row.querySelectorAll('td input');
-                    if (!inputs[0]) return;
+                    const inputs = getTierInputs(row);
+                    if (!inputs.start) return;
                     if (index === 0) {
-                        inputs[0].value = isAmount ? '0' : getFirstWeight();
+                        inputs.start.value = '0';
                         return;
                     }
-                    const prevEnd = rows[index - 1].querySelectorAll('td input')[1];
+                    const prevEnd = getTierInputs(rows[index - 1]).end;
                     const prevVal = prevEnd ? prevEnd.value.trim() : '';
-                    inputs[0].value = isInfEnd(prevVal) ? '' : prevVal;
+                    inputs.start.value = isInfEnd(prevVal) ? '' : prevVal;
                 });
             }
 
@@ -1730,12 +1794,13 @@
                 if (endTh) endTh.textContent = isAmount ? '结束金额' : '结束重量';
                 if (priceTh) priceTh.textContent = '运费';
                 table.querySelectorAll('.tier').forEach((row) => {
-                    const inputs = row.querySelectorAll('td input');
-                    if (!inputs.length) return;
-                    inputs[0].placeholder = isAmount ? '起始金额' : '起始重量';
-                    if (inputs[1]) inputs[1].placeholder = isAmount ? '结束金额' : '结束重量';
-                    if (inputs[2]) inputs[2].placeholder = '运费';
-                    if (inputs[3]) inputs[3].placeholder = '续价';
+                    const inputs = getTierInputs(row);
+                    if (inputs.start) inputs.start.placeholder = isAmount ? '起始金额' : '起始重量';
+                    if (inputs.end) inputs.end.placeholder = isAmount ? '结束金额' : '结束重量';
+                    if (inputs.firstWeight) inputs.firstWeight.placeholder = '首重重量';
+                    if (inputs.firstPrice) inputs.firstPrice.placeholder = '首重价';
+                    if (inputs.price) inputs.price.placeholder = '运费';
+                    if (inputs.cont) inputs.cont.placeholder = '续价';
                 });
                 if (hasScheme) chainTierStarts();
                 lockTierEnds();
@@ -1761,18 +1826,27 @@
                 return '';
             }
 
+            function validateFeeFirstFields() {
+                if (getSelectText('feeScheme') === '金额计费') return '';
+                const rows = Array.from(document.querySelectorAll('#tiers .tier'));
+                if (rows.some((row) => !isPositiveAmount(tierInputValue(getTierInputs(row).firstWeight)))) {
+                    return '请填写首重重量';
+                }
+                if (rows.some((row) => !isPositiveAmount(tierInputValue(getTierInputs(row).firstPrice)))) {
+                    return '请填写首重价';
+                }
+                return '';
+            }
+
             function validateFeeTiers() {
-                const scheme = getSelectText('feeScheme');
-                const isAmount = scheme === '金额计费';
-                if (!isAmount && (!getFirstWeight() || !getFirstPrice())) return false;
-                return Array.from(document.querySelectorAll('#tiers .tier')).some((row) => {
-                    const inputs = row.querySelectorAll('td input');
-                    const start = inputs[0]?.value.trim();
-                    const end = inputs[1]?.value.trim();
-                    const price = inputs[2]?.value.trim();
-                    if (!start || !end) return false;
-                    if (isAmount && !price) return false;
-                    return true;
+                const isAmount = getSelectText('feeScheme') === '金额计费';
+                const rows = Array.from(document.querySelectorAll('#tiers .tier'));
+                if (!rows.length) return false;
+                return rows.every((row) => {
+                    const inputs = getTierInputs(row);
+                    if (!tierInputValue(inputs.start) || !tierInputValue(inputs.end)) return false;
+                    if (isAmount) return !!tierInputValue(inputs.price);
+                    return tierInputValue(inputs.cont) !== '';
                 });
             }
 
@@ -1853,18 +1927,18 @@
                             if (!page.isDetailMode) {
                                 titleEl.textContent = '物流费率-编辑';
                             }
-                            ['origin', 'carrier', 'orderChannel', 'logisticsType', 'feeScheme', 'extra', 'upstairsFee', 'isEnabled'].forEach((id) => {
+                            ['origin', 'carrier', 'orderChannel', 'feeScheme', 'logisticsType', 'extra', 'upstairsFee', 'isEnabled'].forEach((id) => {
                                 setSelectByText(id, getSelectText(id));
                             });
                             const cells = page.currentEditRow.querySelectorAll('td');
                             setDestRegion(
-                                cells[5].textContent.trim(),
                                 cells[6].textContent.trim(),
-                                cells[7].textContent.trim()
+                                cells[7].textContent.trim(),
+                                cells[8].textContent.trim()
                             );
                             setSelectByText('orderChannel', cells[3].textContent.trim());
-                            setSelectByText('logisticsType', cells[4].textContent.trim());
-                            setSelectByText('feeScheme', cells[9].textContent.trim());
+                            setSelectByText('feeScheme', cells[4].textContent.trim());
+                            setSelectByText('logisticsType', cells[5].textContent.trim());
                             setSelectByText('upstairsFee', getRowUpstairs(page.currentEditRow));
                             setSelectByText('isEnabled', getRowEnabled(page.currentEditRow));
                             setRatioValue(cells[10].textContent.trim());
@@ -1890,7 +1964,7 @@
                             setRatioValue('');
                             document.getElementById('freightDiscount').value = '';
                             document.getElementById('settleDiscount').value = '';
-                            setFeeConfig(emptyFeeConfig(false));
+                            setFeeConfig(emptyFeeConfig());
                             resetExtraRows();
                             setUpstairsConfig(emptyUpstairsConfig());
                         }
@@ -1906,9 +1980,9 @@
                             origin: cells[1].textContent.trim(),
                             carrier: cells[2].textContent.trim(),
                             orderChannel: cells[3].textContent.trim(),
-                            logisticsType: cells[4].textContent.trim(),
-                            days: cells[8].textContent.trim() === '-' ? '' : cells[8].textContent.trim(),
-                            feeScheme: cells[9].textContent.trim(),
+                            feeScheme: cells[4].textContent.trim(),
+                            logisticsType: cells[5].textContent.trim(),
+                            days: cells[9].textContent.trim() === '-' ? '' : cells[9].textContent.trim(),
                             extra: getRowExtraFlag(row),
                             upstairsFee: getRowUpstairs(row),
                             isEnabled: getRowEnabled(row),
@@ -1917,12 +1991,11 @@
                         };
                     },
                     onSave: () => {
-                        const destError = validateDestRegion();
-                        if (destError) {
-                            showToast(destError);
+                        const scheme = getSelectText('feeScheme');
+                        if (!scheme) {
+                            showToast('请选择费用方案');
                             return false;
                         }
-                        const scheme = getSelectText('feeScheme');
                         const logisticsType = getSelectText('logisticsType');
                         if (!logisticsType) {
                             showToast('请选择物流类型');
@@ -1934,6 +2007,16 @@
                         }
                         if (scheme === '金额计费' && (logisticsType === '常温' || logisticsType === '冷链')) {
                             showToast('金额计费不得填写物流类型');
+                            return false;
+                        }
+                        const destError = validateDestRegion();
+                        if (destError) {
+                            showToast(destError);
+                            return false;
+                        }
+                        const firstError = validateFeeFirstFields();
+                        if (firstError) {
+                            showToast(firstError);
                             return false;
                         }
                         if (!validateFeeTiers()) {
@@ -1959,17 +2042,9 @@
                             return false;
                         }
                         if (data.isEnabled === '启用') {
-                            const lane = laneKeyFromData(data);
-                            const clash = Array.from(document.querySelectorAll('#tableBody tr')).some((row) => {
-                                if (row === exclude) return false;
-                                if (getRowEnabled(row) !== '启用') return false;
-                                if (laneKeyFromRow(row) !== lane) return false;
-                                const other = schemeFromRow(row);
-                                return (data.feeScheme === '金额计费' && other === '重量计费')
-                                    || (data.feeScheme === '重量计费' && other === '金额计费');
-                            });
-                            if (clash) {
-                                showToast('同一配送仓、订单渠道、目的地不可同时启用重量计费与金额计费');
+                            const conflict = enableConflictMessage(data, exclude);
+                            if (conflict) {
+                                showToast(conflict);
                                 return false;
                             }
                         }
@@ -1983,12 +2058,12 @@
                                 1: data.origin,
                                 2: data.carrier,
                                 3: data.orderChannel,
-                                4: data.logisticsType,
-                                5: data.destProvince,
-                                6: data.destCity,
-                                7: data.destDistrict,
-                                8: data.days,
-                                9: data.feeScheme,
+                                4: data.feeScheme,
+                                5: data.logisticsType,
+                                6: data.destProvince,
+                                7: data.destCity,
+                                8: data.destDistrict,
+                                9: data.days,
                                 10: data.ratio,
                                 14: data.freightDiscount,
                                 15: data.settleDiscount,
@@ -2005,12 +2080,12 @@
                                     data.origin,
                                     data.carrier,
                                     data.orderChannel,
+                                    data.feeScheme,
                                     data.logisticsType,
                                     data.destProvince,
                                     data.destCity,
                                     data.destDistrict,
                                     data.days,
-                                    data.feeScheme,
                                     data.ratio,
                                     formatFeeTiersHtml(data.feeScheme, feeConfig),
                                     formatExtraHtml(data.extra === '是' ? extras : []),
@@ -2040,8 +2115,6 @@
 
             bindDecimalInput(document.getElementById('ratioLeft'));
             bindDecimalInput(document.getElementById('ratioRight'));
-            bindDecimalInput(document.getElementById('firstWeight'));
-            bindDecimalInput(document.getElementById('firstPrice'));
             [
                 'upstairsFreeWeight',
                 'upElevatorBase',
@@ -2084,12 +2157,14 @@
                 if (page.isDetailMode) return;
                 const tbody = document.getElementById('tiers');
                 const last = tbody.querySelector('.tier:last-child');
-                if (last) {
-                    const lastEnd = last.querySelectorAll('td input')[1];
-                    if (lastEnd && isInfEnd(lastEnd.value)) lastEnd.value = '';
-                    if (lastEnd) lastEnd.readOnly = false;
+                const lastInputs = getTierInputs(last);
+                if (lastInputs.end) {
+                    if (isInfEnd(lastInputs.end.value)) lastInputs.end.value = '';
+                    lastInputs.end.readOnly = false;
                 }
-                const prevEnd = last ? (last.querySelectorAll('td input')[1]?.value.trim() || '') : '';
+                const prevEnd = lastInputs.end ? lastInputs.end.value.trim() : '';
+                const prevFirstWeight = lastInputs.firstWeight ? lastInputs.firstWeight.value : '';
+                const prevFirstPrice = lastInputs.firstPrice ? lastInputs.firstPrice.value : '';
                 const template = document.querySelector('#tiers .tier');
                 const tier = template.cloneNode(true);
                 tier.querySelectorAll('input').forEach((input) => {
@@ -2097,30 +2172,38 @@
                     input.readOnly = false;
                 });
                 tbody.appendChild(tier);
-                const startInput = tier.querySelectorAll('td input')[0];
-                if (startInput && !isInfEnd(prevEnd)) startInput.value = prevEnd;
+                const nextInputs = getTierInputs(tier);
+                if (nextInputs.start && !isInfEnd(prevEnd)) nextInputs.start.value = prevEnd;
+                if (nextInputs.firstWeight) nextInputs.firstWeight.value = prevFirstWeight;
+                if (nextInputs.firstPrice) nextInputs.firstPrice.value = prevFirstPrice;
                 syncFeeTable();
             };
 
-            document.getElementById('firstWeight').addEventListener('input', () => {
-                if (getSelectText('feeScheme') !== '重量计费') return;
-                const first = document.querySelector('#tiers .tier td input');
-                if (first) first.value = getFirstWeight();
-            });
-
             document.getElementById('tiers').addEventListener('input', (e) => {
-                const scheme = getSelectText('feeScheme');
-                if (scheme !== '重量计费' && scheme !== '金额计费') return;
                 const input = e.target;
                 if (!input || input.tagName !== 'INPUT') return;
+                if (!input.readOnly) {
+                    let value = input.value.replace(/[^\d.]/g, '');
+                    const parts = value.split('.');
+                    if (parts.length > 2) {
+                        value = parts[0] + '.' + parts.slice(1).join('');
+                    }
+                    const next = value.split('.');
+                    if (next[1] && next[1].length > 2) {
+                        value = next[0] + '.' + next[1].slice(0, 2);
+                    }
+                    if (input.value !== value) input.value = value;
+                }
+                const scheme = getSelectText('feeScheme');
+                if (scheme !== '重量计费' && scheme !== '金额计费') return;
                 const row = input.closest('.tier');
                 if (!row) return;
-                const inputs = row.querySelectorAll('td input');
-                if (input !== inputs[1]) return;
+                const inputs = getTierInputs(row);
+                if (input !== inputs.end) return;
                 const rows = Array.from(document.querySelectorAll('#tiers .tier'));
-                const next = rows[rows.indexOf(row) + 1];
-                if (!next) return;
-                const nextStart = next.querySelectorAll('td input')[0];
+                const nextRow = rows[rows.indexOf(row) + 1];
+                if (!nextRow) return;
+                const nextStart = getTierInputs(nextRow).start;
                 if (nextStart) nextStart.value = isInfEnd(input.value) ? '' : input.value.trim();
             });
 
@@ -2253,20 +2336,20 @@
                     {
                         name: '主表',
                         rows: [
-                            ['行号', '始发地（编号）', '承运商（编号）', '订单渠道（零售订单、代采订单）', '物流类型（常温、冷链、不区分）', '目的省', '目的市', '目的区', '物流时效(天)', '重抛比', '运费折扣', '结算折扣', '费用方案（重量计费、金额计费）', '增值服务（是、否）', '上楼费（是、否）', '是否启用（启用、禁用）', '首重重量', '首重价', '免上楼重量', '有电梯基础费', '有电梯重量系数', '有电梯楼层系数', '有电梯件数系数', '无电梯基础费', '无电梯重量系数', '无电梯楼层系数', '无电梯件数系数'],
-                            ['1', 'W001', 'SF', '零售订单', '常温', '江苏省', '南京市', '江宁区', '1', '1:3', '1.00', '0.95', '重量计费', '是', '是', '启用', '25', '77', '20', '5', '0.1', '0', '0', '10', '0.1', '5', '0.5'],
-                            ['2', 'W002', 'YTO', '零售订单', '不区分', '浙江省', '杭州市', '余杭区', '2', '', '1.00', '1.00', '金额计费', '否', '否', '启用', '', '', '', '', '', '', '', '', '', '', '']
+                            ['行号', '始发地（编号）', '承运商（编号）', '订单渠道（零售订单、代采订单）', '费用方案（重量计费、金额计费）', '物流类型（常温、冷链、不区分）', '目的省', '目的市', '目的区', '物流时效(天)', '重抛比', '运费折扣', '结算折扣', '增值服务（是、否）', '上楼费（是、否）', '是否启用（启用、禁用）', '免上楼重量', '有电梯基础费', '有电梯重量系数', '有电梯楼层系数', '有电梯件数系数', '无电梯基础费', '无电梯重量系数', '无电梯楼层系数', '无电梯件数系数'],
+                            ['1', 'W001', 'SF', '零售订单', '重量计费', '常温', '江苏省', '南京市', '江宁区', '1', '1:3', '1.00', '0.95', '是', '是', '启用', '20', '5', '0.1', '0', '0', '10', '0.1', '5', '0.5'],
+                            ['2', 'W002', 'YTO', '零售订单', '金额计费', '不区分', '浙江省', '杭州市', '余杭区', '2', '', '1.00', '1.00', '否', '否', '启用', '', '', '', '', '', '', '', '', '']
                         ]
                     },
                     {
                         name: '物流费用阶梯',
                         rows: [
-                            ['行号', '起始', '结束', '续价或运费'],
-                            ['1', '25', '100', '0.71'],
-                            ['1', '100', '∞', '1.3'],
-                            ['2', '0', '100', '6'],
-                            ['2', '100', '500', '10'],
-                            ['2', '500', '∞', '15']
+                            ['行号', '起始', '结束', '首重重量', '首重价', '续价或运费'],
+                            ['1', '0', '100', '25', '77', '0.71'],
+                            ['1', '100', '∞', '25', '77', '1.3'],
+                            ['2', '0', '100', '', '', '6'],
+                            ['2', '100', '500', '', '', '10'],
+                            ['2', '500', '∞', '', '', '15']
                         ]
                     },
                     {
@@ -2349,20 +2432,21 @@
             function rateExportSheets(rows) {
                 const mainHeader = [
                     '行号', '始发地（编号）', '承运商（编号）', '订单渠道（零售订单、代采订单）',
-                    '物流类型（常温、冷链、不区分）', '目的省', '目的市', '目的区', '物流时效(天)',
-                    '重抛比', '运费折扣', '结算折扣', '费用方案（重量计费、金额计费）',
+                    '费用方案（重量计费、金额计费）', '物流类型（常温、冷链、不区分）',
+                    '目的省', '目的市', '目的区', '物流时效(天)',
+                    '重抛比', '运费折扣', '结算折扣',
                     '增值服务（是、否）', '上楼费（是、否）', '是否启用（启用、禁用）',
-                    '首重重量', '首重价', '免上楼重量',
+                    '免上楼重量',
                     '有电梯基础费', '有电梯重量系数', '有电梯楼层系数', '有电梯件数系数',
                     '无电梯基础费', '无电梯重量系数', '无电梯楼层系数', '无电梯件数系数'
                 ];
                 const main = [mainHeader];
-                const tiers = [['行号', '起始', '结束', '续价或运费']];
+                const tiers = [['行号', '起始', '结束', '首重重量', '首重价', '续价或运费']];
                 const extras = [['行号', '项目（保价费、派送费）', '金额(每票)', '最低价', '费率(%)']];
                 rows.forEach((row, index) => {
                     const lineNo = String(index + 1);
                     const cells = cellsOf(row);
-                    const scheme = cells[9] ? cells[9].textContent.trim() : '';
+                    const scheme = cells[4] ? cells[4].textContent.trim() : '';
                     const isAmount = scheme === '金额计费';
                     const fee = parseRowFeeConfig(row);
                     const extraFlag = getRowExtraFlag(row);
@@ -2375,20 +2459,18 @@
                         rateExportCode(cells[1] && cells[1].textContent),
                         rateExportCode(cells[2] && cells[2].textContent),
                         (cells[3] && cells[3].textContent.trim()) || '',
-                        (cells[4] && cells[4].textContent.trim()) || '',
+                        scheme,
                         (cells[5] && cells[5].textContent.trim()) || '',
                         (cells[6] && cells[6].textContent.trim()) || '',
                         (cells[7] && cells[7].textContent.trim()) || '',
-                        rateExportEmptyDash(cells[8] && cells[8].textContent),
+                        (cells[8] && cells[8].textContent.trim()) || '',
+                        rateExportEmptyDash(cells[9] && cells[9].textContent),
                         rateExportEmptyDash(cells[10] && cells[10].textContent),
                         rateExportEmptyDash(cells[14] && cells[14].textContent) || '1.00',
                         rateExportEmptyDash(cells[15] && cells[15].textContent) || '1.00',
-                        scheme,
                         extraFlag,
                         upstairsFlag,
                         getRowEnabled(row),
-                        isAmount ? '' : (fee.firstWeight || ''),
-                        isAmount ? '' : (fee.firstPrice || ''),
                         upstairsFlag === '是' ? (upstairs.freeWeight || '') : '',
                         upstairsFlag === '是' ? (withEl.base || '') : '',
                         upstairsFlag === '是' ? (withEl.weightRate || '') : '',
@@ -2404,6 +2486,8 @@
                             lineNo,
                             tier.start || '',
                             displayTierEnd(tier.end),
+                            isAmount ? '' : (tier.firstWeight || ''),
+                            isAmount ? '' : (tier.firstPrice || ''),
                             isAmount ? (tier.price || '') : (tier.cont || '')
                         ]);
                     });
