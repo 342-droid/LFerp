@@ -1281,6 +1281,20 @@
     "status": "diff",
     "date": "2026-09-12"
   },
+  "68823b3|SCM/freight_estimate_report.html": {
+    "before": "changelog-assets/68823b3/SCM__freight_estimate_report.html.before.jpg",
+    "after": "changelog-assets/68823b3/SCM__freight_estimate_report.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-09-14"
+  },
+  "68823b3|SCM/logistics_rate.html": {
+    "before": "changelog-assets/68823b3/SCM__logistics_rate.html.before.jpg",
+    "after": "changelog-assets/68823b3/SCM__logistics_rate.html.after.jpg",
+    "regions": 4,
+    "status": "diff",
+    "date": "2026-09-14"
+  },
   "6b63b93|SCM/ibd_receipt.html": {
     "regions": 0,
     "status": "diff",

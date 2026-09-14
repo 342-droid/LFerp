@@ -1,10 +1,43 @@
 {
-  "latestSha": "c747316f1977efc584722cead4e5fe7d84d219ac",
-  "total": 391,
+  "latestSha": "68823b309f3b6058178bf0908cf283fdf3b0c083",
+  "total": 392,
   "days": [
     {
       "date": "2026-09-14",
       "items": [
+        {
+          "sha": "68823b3",
+          "type": "feat",
+          "text": "完善物流费率启用规则并调整费用方案位置",
+          "author": "342-droid",
+          "time": "21:28",
+          "pages": [
+            {
+              "file": "SCM/freight_estimate_report.html",
+              "module": "冷丰TMS",
+              "title": "运费预估报表"
+            },
+            {
+              "file": "SCM/logistics_rate.html",
+              "module": "冷丰TMS",
+              "title": "物流费率表"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/logistics_rate.html",
+              "text": "查询始发地提前、费用方案调到物流类型左侧、是否启用调到物流类型右侧；首重重量和首重价改到每一档分别填写；同一线路启用时重量与金额互斥，金额/常温/冷链各只能启用一条"
+            },
+            {
+              "file": "SCM/freight_estimate_report.html",
+              "text": "查询增加费用方案；列表和导出费用方案调到物流类型左侧"
+            },
+            {
+              "file": null,
+              "text": "需求说明补充唯一键、启用互斥、按档首重和导入校验"
+            }
+          ]
+        },
         {
           "sha": "c747316",
           "type": "feat",
