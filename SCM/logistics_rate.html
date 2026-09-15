@@ -407,10 +407,10 @@
                                 <th>运费折扣</th>
                                 <th>结算折扣</th>
                                 <th>是否启用</th>
-                                <th>创建人</th>
                                 <th>创建时间</th>
-                                <th>更新人</th>
+                                <th>创建人</th>
                                 <th>更新时间</th>
+                                <th>更新人</th>
                                 <th>操作</th>
                             </tr>
                         </thead>
@@ -433,10 +433,10 @@
                                 <td>1.00</td>
                                 <td>0.95</td>
                                 <td><span class="status active">启用</span></td>
-                                <td>李四</td>
                                 <td>2026-04-20 10:12:00</td>
                                 <td>李四</td>
                                 <td>2026-04-20 10:12:00</td>
+                                <td>李四</td>
                                 <td class="action-links">
                                     <a href="#" class="edit-btn">编辑</a>
                                     <a href="#" class="delete-btn">删除</a>
@@ -460,10 +460,10 @@
                                 <td>1.00</td>
                                 <td>0.92</td>
                                 <td><span class="status inactive">禁用</span></td>
-                                <td>李四</td>
                                 <td>2026-04-22 15:08:00</td>
                                 <td>李四</td>
                                 <td>2026-04-22 15:08:00</td>
+                                <td>李四</td>
                                 <td class="action-links">
                                     <a href="#" class="edit-btn">编辑</a>
                                     <a href="#" class="delete-btn">删除</a>
@@ -486,10 +486,10 @@
                                 <td>0.95</td>
                                 <td>0.90</td>
                                 <td><span class="status active">启用</span></td>
-                                <td>张三</td>
                                 <td>2026-04-18 16:40:22</td>
-                                <td>李四</td>
+                                <td>张三</td>
                                 <td>2026-05-02 09:18:11</td>
+                                <td>李四</td>
                                 <td class="action-links">
                                     <a href="#" class="edit-btn">编辑</a>
                                     <a href="#" class="delete-btn">删除</a>
@@ -513,10 +513,10 @@
                                 <td>1.00</td>
                                 <td>1.00</td>
                                 <td><span class="status inactive">禁用</span></td>
-                                <td>王五</td>
                                 <td>2026-03-12 11:05:33</td>
                                 <td>王五</td>
                                 <td>2026-03-12 11:05:33</td>
+                                <td>王五</td>
                                 <td class="action-links">
                                     <a href="#" class="edit-btn">编辑</a>
                                     <a href="#" class="delete-btn">删除</a>
@@ -540,10 +540,10 @@
                                 <td>0.90</td>
                                 <td>0.88</td>
                                 <td><span class="status active">启用</span></td>
-                                <td>张三</td>
                                 <td>2026-04-08 14:22:06</td>
-                                <td>赵六</td>
+                                <td>张三</td>
                                 <td>2026-05-10 08:41:50</td>
+                                <td>赵六</td>
                                 <td class="action-links">
                                     <a href="#" class="edit-btn">编辑</a>
                                     <a href="#" class="delete-btn">删除</a>
@@ -567,10 +567,10 @@
                                 <td>1.00</td>
                                 <td>0.95</td>
                                 <td><span class="status active">启用</span></td>
-                                <td>李四</td>
                                 <td>2026-04-25 09:30:00</td>
                                 <td>李四</td>
                                 <td>2026-04-25 09:30:00</td>
+                                <td>李四</td>
                                 <td class="action-links">
                                     <a href="#" class="edit-btn">编辑</a>
                                     <a href="#" class="delete-btn">删除</a>
@@ -594,10 +594,10 @@
                                 <td>1.00</td>
                                 <td>0.98</td>
                                 <td><span class="status active">启用</span></td>
-                                <td>李四</td>
                                 <td>2026-05-06 11:20:00</td>
                                 <td>李四</td>
                                 <td>2026-05-06 11:20:00</td>
+                                <td>李四</td>
                                 <td class="action-links">
                                     <a href="#" class="edit-btn">编辑</a>
                                     <a href="#" class="delete-btn">删除</a>
@@ -621,10 +621,10 @@
                                 <td>1.00</td>
                                 <td>0.95</td>
                                 <td><span class="status active">启用</span></td>
-                                <td>张三</td>
                                 <td>2026-05-08 14:05:18</td>
                                 <td>张三</td>
                                 <td>2026-05-08 14:05:18</td>
+                                <td>张三</td>
                                 <td class="action-links">
                                     <a href="#" class="edit-btn">编辑</a>
                                     <a href="#" class="delete-btn">删除</a>
@@ -648,10 +648,10 @@
                                 <td>1.00</td>
                                 <td>1.00</td>
                                 <td><span class="status active">启用</span></td>
-                                <td>王五</td>
                                 <td>2026-05-12 09:16:40</td>
                                 <td>王五</td>
                                 <td>2026-05-12 09:16:40</td>
+                                <td>王五</td>
                                 <td class="action-links">
                                     <a href="#" class="edit-btn">编辑</a>
                                     <a href="#" class="delete-btn">删除</a>
@@ -2067,8 +2067,8 @@
                                 10: data.ratio,
                                 14: data.freightDiscount,
                                 15: data.settleDiscount,
-                                19: operator,
-                                20: now
+                                19: now,
+                                20: operator
                             });
                             writeRowFee(page.currentEditRow, data.feeScheme, feeConfig);
                             writeRowExtra(page.currentEditRow, data.extra, extras);
@@ -2093,10 +2093,10 @@
                                     data.freightDiscount,
                                     data.settleDiscount,
                                     { value: data.isEnabled, isStatus: true },
-                                    operator,
                                     now,
                                     operator,
-                                    now
+                                    now,
+                                    operator
                                 ]
                             });
                             writeRowFee(row, data.feeScheme, feeConfig);

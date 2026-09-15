@@ -141,6 +141,8 @@
                                 <th>储位</th>
                                 <th>状态</th>
                                 <th>重试次数</th>
+                                <th>创建时间</th>
+                                <th>创建人</th>
                                 <th>更新时间</th>
                                 <th>更新人</th>
                             </tr>
@@ -210,6 +212,8 @@
                 sourceOrder: 'PO001',
                 status: '初始',
                 retryCount: 0,
+                createTime: '2026-02-09 08:00:00',
+                createUser: 'admin',
                 updateTime: '2026-02-10 10:00:00',
                 updateUser: 'admin'
             },
@@ -227,6 +231,8 @@
                 sourceOrder: 'WO001',
                 status: '已执行',
                 retryCount: 1,
+                createTime: '2026-02-09 09:00:00',
+                createUser: 'admin',
                 updateTime: '2026-02-10 11:00:00',
                 updateUser: 'admin'
             },
@@ -244,6 +250,8 @@
                 sourceOrder: 'RO001',
                 status: '初始',
                 retryCount: 3,
+                createTime: '2026-02-09 10:00:00',
+                createUser: 'admin',
                 updateTime: '2026-02-10 12:00:00',
                 updateUser: 'admin'
             }
@@ -292,6 +300,8 @@
                             <td>${item.location}</td>
                             <td>${item.status}</td>
                             <td>${item.retryCount}</td>
+                            <td>${item.createTime}</td>
+                            <td>${item.createUser}</td>
                             <td>${item.updateTime}</td>
                             <td>${item.updateUser}</td>
                         `;

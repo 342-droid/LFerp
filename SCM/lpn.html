@@ -110,6 +110,8 @@
                                 <th>占用时间</th>
                                 <th>占用单据</th>
                                 <th>是否启用</th>
+                                <th>创建时间</th>
+                                <th>创建人</th>
                                 <th>更新时间</th>
                                 <th>更新人</th>
                                 <th>操作</th>
@@ -129,6 +131,8 @@
                                 <td>-</td>
                                 <td>-</td>
                                 <td><span class="status active">启用</span></td>
+                                <td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
                                 <td>2025-01-05 12:31:43</td>
                                 <td>李四</td>
                                 <td class="action-links">
@@ -149,6 +153,8 @@
                                 <td>2025-01-05 10:20:30</td>
                                 <td>IN001</td>
                                 <td><span class="status active">启用</span></td>
+                                <td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
                                 <td>2025-01-05 12:31:43</td>
                                 <td>李四</td>
                                 <td class="action-links">
@@ -241,6 +247,8 @@
                                 '-',
                                 { value: enabled, isStatus: true },
                                 page.getCurrentTimeStr(),
+                                '当前用户',
+                                page.getCurrentTimeStr(),
                                 '当前用户'
                             ]
                         });
@@ -282,8 +290,8 @@
                             5: modelCode,
                             6: modelName,
                             11: { value: newStatus, isStatus: true },
-                            12: page.getCurrentTimeStr(),
-                            13: '当前用户'
+                            14: page.getCurrentTimeStr(),
+                            15: '当前用户'
                         });
                         showToast('容器信息已更新', 'success');
                         page.currentEditRow = null;

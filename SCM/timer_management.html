@@ -25,7 +25,7 @@
                     <div class="form-actions"><button type="button" class="btn btn-primary" id="searchTimerBtn">查询</button><button type="button" class="btn btn-secondary" id="addTimerBtn">新增</button></div>
                 </form>
             </section>
-            <section class="table-section"><div class="table-scroll-container"><table class="table"><thead><tr><th><input type="checkbox" class="table-checkbox checkbox-all"></th><th>定时器编码</th><th>定时器名称</th><th>执行说明</th><th>是否启用</th><th>更新时间</th><th>更新人</th><th>操作</th></tr></thead><tbody id="timerTableBody"></tbody></table></div><div id="pagination-container"></div></section>
+            <section class="table-section"><div class="table-scroll-container"><table class="table"><thead><tr><th><input type="checkbox" class="table-checkbox checkbox-all"></th><th>定时器编码</th><th>定时器名称</th><th>执行说明</th><th>是否启用</th><th>创建时间</th><th>创建人</th><th>更新时间</th><th>更新人</th><th>操作</th></tr></thead><tbody id="timerTableBody"></tbody></table></div><div id="pagination-container"></div></section>
         </main>
     </div>
     <script src="../js/common.js"></script>
@@ -35,11 +35,11 @@
     <script src="../js/page-manager.js"></script>
     <script>
         const timerData = [
-            { code: 'TIMER001', name: '库存同步', desc: '每10分钟同步库存', status: '启用', update: '2026-08-26 10:20:02', user: '当前用户' },
-            { code: 'TIMER002', name: '任务超时检查', desc: '每5分钟检查超时任务', status: '启用', update: '2026-08-26 10:25:01', user: '当前用户' },
-            { code: 'TIMER003', name: '日结数据归档', desc: '每日凌晨归档业务数据', status: '禁用', update: '2026-08-25 18:10:12', user: '管理员' }
+            { code: 'TIMER001', name: '库存同步', desc: '每10分钟同步库存', status: '启用', created: '2026-08-25 08:20:02', creator: '当前用户', update: '2026-08-26 10:20:02', user: '当前用户' },
+            { code: 'TIMER002', name: '任务超时检查', desc: '每5分钟检查超时任务', status: '启用', created: '2026-08-25 08:25:01', creator: '当前用户', update: '2026-08-26 10:25:01', user: '当前用户' },
+            { code: 'TIMER003', name: '日结数据归档', desc: '每日凌晨归档业务数据', status: '禁用', created: '2026-08-24 16:10:12', creator: '管理员', update: '2026-08-25 18:10:12', user: '管理员' }
         ];
-        function renderTimers(rows) { document.getElementById('timerTableBody').innerHTML = rows.map(item => '<tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>' + item.code + '</td><td>' + item.name + '</td><td>' + item.desc + '</td><td><span class="status ' + (item.status === '启用' ? 'active' : 'inactive') + '">' + item.status + '</span></td><td>' + item.update + '</td><td>' + item.user + '</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>').join(''); }
+        function renderTimers(rows) { document.getElementById('timerTableBody').innerHTML = rows.map(item => '<tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>' + item.code + '</td><td>' + item.name + '</td><td>' + item.desc + '</td><td><span class="status ' + (item.status === '启用' ? 'active' : 'inactive') + '">' + item.status + '</span></td><td>' + item.created + '</td><td>' + item.creator + '</td><td>' + item.update + '</td><td>' + item.user + '</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>').join(''); }
         function searchTimers() { const code = document.getElementById('searchTimerCode').value.trim(), name = document.getElementById('searchTimerName').value.trim(), status = document.getElementById('searchTimerStatus').value.trim(); renderTimers(timerData.filter(item => (!code || item.code.includes(code)) && (!name || item.name.includes(name)) && (!status || item.status === status))); }
         document.addEventListener('DOMContentLoaded', function () { new PageManager({ entityName: '定时器', customSelects: [{ inputId: 'searchTimerStatus', dropdownId: 'searchTimerStatusDropdown' }], addModal: { triggerBtnId: 'addTimerBtn' }, deleteModal: {} }).init(); document.getElementById('searchTimerBtn').addEventListener('click', searchTimers); renderTimers(timerData); });
     </script>

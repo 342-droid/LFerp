@@ -225,6 +225,8 @@
                                 <th>详细地址</th>
                                 <th>联系人</th>
                                 <th>电话</th>
+                                <th>创建时间</th>
+                                <th>创建人</th>
                                 <th>更新时间</th>
                                 <th>更新人</th>
                                 <th>操作</th>
@@ -240,6 +242,8 @@
                                 <td>江苏省</td><td>南京市</td><td>江陵区</td><td>江陵东路88号</td>
                                 <td>张三</td>
                                 <td>18612341234</td>
+                                <td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
                                 <td>2025-01-05 12:31:43</td>
                                 <td>李四</td>
                                 <td class="action-links">
@@ -256,6 +260,8 @@
                                 <td>江苏省</td><td>南京市</td><td>江陵区</td><td>江陵东路88号</td>
                                 <td>张三</td>
                                 <td>18612341234</td>
+                                <td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
                                 <td>2025-01-05 12:31:43</td>
                                 <td>李四</td>
                                 <td class="action-links">
@@ -263,35 +269,93 @@
                                     <a href="#" class="delete-btn">删除</a>
                                 </td>
                             </tr>
-                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W003</td><td>上海仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>上海市</td><td>市辖区</td><td>浦东新区</td><td>世纪大道100号</td><td>王五</td><td>18612341235</td><td>2025-01-05 12:31:43</td><td>赵六</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
-                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W004</td><td>北京仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>北京市</td><td>市辖区</td><td>朝阳区</td><td>建国路88号</td><td>钱七</td><td>18612341236</td><td>2025-01-05 12:31:43</td><td>孙八</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
-                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W005</td><td>广州仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>广东省</td><td>广州市</td><td>天河区</td><td>体育西路100号</td><td>周九</td><td>18612341237</td><td>2025-01-05 12:31:43</td><td>吴十</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
-                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W006</td><td>深圳仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>广东省</td><td>深圳市</td><td>南山区</td><td>科技园南路18号</td><td>郑一</td><td>18612341238</td><td>2025-01-05 12:31:43</td><td>王二</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
-                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W007</td><td>杭州仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>浙江省</td><td>杭州市</td><td>余杭区</td><td>文一西路866号</td><td>张三</td><td>18612341239</td><td>2025-01-05 12:31:43</td><td>李四</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
-                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W008</td><td>成都仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>四川省</td><td>成都市</td><td>武侯区</td><td>天府大道100号</td><td>王五</td><td>18612341240</td><td>2025-01-05 12:31:43</td><td>赵六</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
-                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W009</td><td>重庆仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>重庆市</td><td>市辖区</td><td>渝中区</td><td>解放碑步行街1号</td><td>钱七</td><td>18612341241</td><td>2025-01-05 12:31:43</td><td>孙八</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
-                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W010</td><td>武汉仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>湖北省</td><td>武汉市</td><td>江汉区</td><td>中山大道100号</td><td>周九</td><td>18612341242</td><td>2025-01-05 12:31:43</td><td>吴十</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
-                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W011</td><td>西安仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>陕西省</td><td>西安市</td><td>雁塔区</td><td>高新路88号</td><td>郑一</td><td>18612341243</td><td>2025-01-05 12:31:43</td><td>王二</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
-                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W012</td><td>天津仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>天津市</td><td>市辖区</td><td>和平区</td><td>南京路100号</td><td>张三</td><td>18612341244</td><td>2025-01-05 12:31:43</td><td>李四</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
-                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W013</td><td>苏州仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>江苏省</td><td>苏州市</td><td>工业园区</td><td>星湖街328号</td><td>王五</td><td>18612341245</td><td>2025-01-05 12:31:43</td><td>赵六</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
-                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W014</td><td>长沙仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>湖南省</td><td>长沙市</td><td>岳麓区</td><td>麓谷大道668号</td><td>钱七</td><td>18612341246</td><td>2025-01-05 12:31:43</td><td>孙八</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
-                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W015</td><td>青岛仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>山东省</td><td>青岛市</td><td>市南区</td><td>香港中路100号</td><td>周九</td><td>18612341247</td><td>2025-01-05 12:31:43</td><td>吴十</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
-                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W016</td><td>郑州仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>河南省</td><td>郑州市</td><td>金水区</td><td>花园路100号</td><td>郑一</td><td>18612341248</td><td>2025-01-05 12:31:43</td><td>王二</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
-                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W017</td><td>厦门仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>福建省</td><td>厦门市</td><td>思明区</td><td>厦禾路100号</td><td>张三</td><td>18612341249</td><td>2025-01-05 12:31:43</td><td>李四</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
-                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W018</td><td>福州仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>福建省</td><td>福州市</td><td>鼓楼区</td><td>五四路100号</td><td>王五</td><td>18612341250</td><td>2025-01-05 12:31:43</td><td>赵六</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
-                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W019</td><td>济南仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>山东省</td><td>济南市</td><td>历下区</td><td>经十路100号</td><td>钱七</td><td>18612341251</td><td>2025-01-05 12:31:43</td><td>孙八</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
-                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W020</td><td>沈阳仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>辽宁省</td><td>沈阳市</td><td>和平区</td><td>青年大街100号</td><td>周九</td><td>18612341252</td><td>2025-01-05 12:31:43</td><td>吴十</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
-                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W021</td><td>大连仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>辽宁省</td><td>大连市</td><td>中山区</td><td>人民路100号</td><td>郑一</td><td>18612341253</td><td>2025-01-05 12:31:43</td><td>王二</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
-                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W022</td><td>昆明仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>云南省</td><td>昆明市</td><td>五华区</td><td>北京路100号</td><td>张三</td><td>18612341254</td><td>2025-01-05 12:31:43</td><td>李四</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
-                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W023</td><td>贵阳仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>贵州省</td><td>贵阳市</td><td>南明区</td><td>中华南路100号</td><td>王五</td><td>18612341255</td><td>2025-01-05 12:31:43</td><td>赵六</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
-                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W024</td><td>南宁仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>广西壮族自治区</td><td>南宁市</td><td>青秀区</td><td>民族大道100号</td><td>钱七</td><td>18612341256</td><td>2025-01-05 12:31:43</td><td>孙八</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
-                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W025</td><td>南昌仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>江西省</td><td>南昌市</td><td>东湖区</td><td>八一大道100号</td><td>周九</td><td>18612341257</td><td>2025-01-05 12:31:43</td><td>吴十</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
-                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W026</td><td>合肥仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>安徽省</td><td>合肥市</td><td>蜀山区</td><td>长江西路100号</td><td>郑一</td><td>18612341258</td><td>2025-01-05 12:31:43</td><td>王二</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
-                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W027</td><td>兰州仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>甘肃省</td><td>兰州市</td><td>城关区</td><td>庆阳路100号</td><td>张三</td><td>18612341259</td><td>2025-01-05 12:31:43</td><td>李四</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
-                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W028</td><td>银川仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>宁夏回族自治区</td><td>银川市</td><td>兴庆区</td><td>解放西街100号</td><td>王五</td><td>18612341260</td><td>2025-01-05 12:31:43</td><td>赵六</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
-                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W029</td><td>西宁仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>青海省</td><td>西宁市</td><td>城西区</td><td>五四大街100号</td><td>钱七</td><td>18612341261</td><td>2025-01-05 12:31:43</td><td>孙八</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
-                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W030</td><td>拉萨仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>西藏自治区</td><td>拉萨市</td><td>城关区</td><td>北京中路100号</td><td>周九</td><td>18612341262</td><td>2025-01-05 12:31:43</td><td>吴十</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
-                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W031</td><td>乌鲁木齐仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>新疆维吾尔自治区</td><td>乌鲁木齐市</td><td>天山区</td><td>人民路100号</td><td>郑一</td><td>18612341263</td><td>2025-01-05 12:31:43</td><td>王二</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W003</td><td>上海仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>上海市</td><td>市辖区</td><td>浦东新区</td><td>世纪大道100号</td><td>王五</td><td>18612341235</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>赵六</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W004</td><td>北京仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>北京市</td><td>市辖区</td><td>朝阳区</td><td>建国路88号</td><td>钱七</td><td>18612341236</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>孙八</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W005</td><td>广州仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>广东省</td><td>广州市</td><td>天河区</td><td>体育西路100号</td><td>周九</td><td>18612341237</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>吴十</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W006</td><td>深圳仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>广东省</td><td>深圳市</td><td>南山区</td><td>科技园南路18号</td><td>郑一</td><td>18612341238</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>王二</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W007</td><td>杭州仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>浙江省</td><td>杭州市</td><td>余杭区</td><td>文一西路866号</td><td>张三</td><td>18612341239</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>李四</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W008</td><td>成都仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>四川省</td><td>成都市</td><td>武侯区</td><td>天府大道100号</td><td>王五</td><td>18612341240</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>赵六</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W009</td><td>重庆仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>重庆市</td><td>市辖区</td><td>渝中区</td><td>解放碑步行街1号</td><td>钱七</td><td>18612341241</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>孙八</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W010</td><td>武汉仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>湖北省</td><td>武汉市</td><td>江汉区</td><td>中山大道100号</td><td>周九</td><td>18612341242</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>吴十</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W011</td><td>西安仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>陕西省</td><td>西安市</td><td>雁塔区</td><td>高新路88号</td><td>郑一</td><td>18612341243</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>王二</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W012</td><td>天津仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>天津市</td><td>市辖区</td><td>和平区</td><td>南京路100号</td><td>张三</td><td>18612341244</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>李四</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W013</td><td>苏州仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>江苏省</td><td>苏州市</td><td>工业园区</td><td>星湖街328号</td><td>王五</td><td>18612341245</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>赵六</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W014</td><td>长沙仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>湖南省</td><td>长沙市</td><td>岳麓区</td><td>麓谷大道668号</td><td>钱七</td><td>18612341246</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>孙八</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W015</td><td>青岛仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>山东省</td><td>青岛市</td><td>市南区</td><td>香港中路100号</td><td>周九</td><td>18612341247</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>吴十</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W016</td><td>郑州仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>河南省</td><td>郑州市</td><td>金水区</td><td>花园路100号</td><td>郑一</td><td>18612341248</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>王二</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W017</td><td>厦门仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>福建省</td><td>厦门市</td><td>思明区</td><td>厦禾路100号</td><td>张三</td><td>18612341249</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>李四</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W018</td><td>福州仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>福建省</td><td>福州市</td><td>鼓楼区</td><td>五四路100号</td><td>王五</td><td>18612341250</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>赵六</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W019</td><td>济南仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>山东省</td><td>济南市</td><td>历下区</td><td>经十路100号</td><td>钱七</td><td>18612341251</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>孙八</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W020</td><td>沈阳仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>辽宁省</td><td>沈阳市</td><td>和平区</td><td>青年大街100号</td><td>周九</td><td>18612341252</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>吴十</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W021</td><td>大连仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>辽宁省</td><td>大连市</td><td>中山区</td><td>人民路100号</td><td>郑一</td><td>18612341253</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>王二</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W022</td><td>昆明仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>云南省</td><td>昆明市</td><td>五华区</td><td>北京路100号</td><td>张三</td><td>18612341254</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>李四</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W023</td><td>贵阳仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>贵州省</td><td>贵阳市</td><td>南明区</td><td>中华南路100号</td><td>王五</td><td>18612341255</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>赵六</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W024</td><td>南宁仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>广西壮族自治区</td><td>南宁市</td><td>青秀区</td><td>民族大道100号</td><td>钱七</td><td>18612341256</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>孙八</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W025</td><td>南昌仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>江西省</td><td>南昌市</td><td>东湖区</td><td>八一大道100号</td><td>周九</td><td>18612341257</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>吴十</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W026</td><td>合肥仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>安徽省</td><td>合肥市</td><td>蜀山区</td><td>长江西路100号</td><td>郑一</td><td>18612341258</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>王二</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W027</td><td>兰州仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>甘肃省</td><td>兰州市</td><td>城关区</td><td>庆阳路100号</td><td>张三</td><td>18612341259</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>李四</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W028</td><td>银川仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>宁夏回族自治区</td><td>银川市</td><td>兴庆区</td><td>解放西街100号</td><td>王五</td><td>18612341260</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>赵六</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W029</td><td>西宁仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>青海省</td><td>西宁市</td><td>城西区</td><td>五四大街100号</td><td>钱七</td><td>18612341261</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>孙八</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W030</td><td>拉萨仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>西藏自治区</td><td>拉萨市</td><td>城关区</td><td>北京中路100号</td><td>周九</td><td>18612341262</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>吴十</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W031</td><td>乌鲁木齐仓</td><td>仓库</td><td><span class="status active">启用</span></td><td>新疆维吾尔自治区</td><td>乌鲁木齐市</td><td>天山区</td><td>人民路100号</td><td>郑一</td><td>18612341263</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>王二</td><td class="action-links"><a href="#" class="edit-btn">编辑</a><a href="#" class="delete-btn">删除</a></td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -445,6 +509,7 @@
                                 { value: enabled, isStatus: true },
                                 ...RegionCascader.tableCells(addr),
                                 contact, phone,
+                                page.getCurrentTimeStr(), '当前用户',
                                 page.getCurrentTimeStr(), '当前用户'
                             ]
                         });
@@ -510,8 +575,8 @@
                             8: addr.detailAddress || '-',
                             9: document.getElementById('editContactPerson').value.trim() || '-',
                             10: document.getElementById('editPhone').value.trim() || '-',
-                            11: page.getCurrentTimeStr(),
-                            12: '当前用户'
+                            13: page.getCurrentTimeStr(),
+                            14: '当前用户'
                         });
                         showToast('仓库信息已更新', 'success');
                         isDetailMode = false;
