@@ -211,7 +211,8 @@
         payMethod: order.payMethod || '',
         payNo: order.payNo || '',
         siblingOrderNos: order.siblingOrderNos || [],
-        splitKind: order.splitKind || ''
+        splitKind: order.splitKind || '',
+        upstairs: order.upstairs || null
       };
       list = list.filter(function (x) {
         return !x || x.orderNo !== rec.orderNo;

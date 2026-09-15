@@ -20,6 +20,16 @@
     return isProxyOrderPage();
   }
 
+  function getListDataCells(row) {
+    if (!row) return [];
+    return Array.prototype.filter.call(row.querySelectorAll('td'), function (td) {
+      return (
+        !td.classList.contains('order-live-table__check-col') &&
+        !td.classList.contains('lf-row-no-td')
+      );
+    });
+  }
+
   function getListCellIndices(row) {
     var sceneEl = row ? row.querySelector('.order-scene') : null;
     var hasDeliveryCol = !!(row && (row.getAttribute('data-delivery-mode') || row.querySelector('.order-delivery-mode')));
@@ -369,6 +379,7 @@
           spu: 'SPU-9701A…',
           sku: 'SKU-9701A…',
           weight: '2.50',
+          tempLayer: '常温',
           price: '¥21.00',
           qty: '1',
           subtotal: '¥21.00',
@@ -382,6 +393,7 @@
           spu: 'SPU-9701B…',
           sku: 'SKU-9701B…',
           weight: '5.00',
+          tempLayer: '常温',
           price: '¥30.00',
           qty: '1',
           subtotal: '¥30.00',
@@ -397,6 +409,7 @@
         merchant: '¥63.00',
         refund: '¥0.00'
       },
+      freight: { original: 12, refunded: 0, ambient: 12, cold: 0 },
       paymentCount: 1,
       aftersales: [],
       customer: { nickname: '张店长', phone: '13800138000', userId: '318605592681791701' },
@@ -406,7 +419,10 @@
         name: '张店长',
         phone: '13800138000',
         address: '浙江省杭州市萧山区建设一路88号',
-        store: '悠悠生鲜超市'
+        store: '悠悠生鲜超市',
+        hasElevator: true,
+        floor: 2,
+        upstairs: { hasElevator: true, floor: 2 }
       },
       tags: {
         channel: 'STORE_APP',
@@ -468,7 +484,10 @@
         name: '张店长',
         phone: '13800138000',
         address: '浙江省杭州市萧山区建设一路88号',
-        store: '悠悠生鲜超市'
+        store: '悠悠生鲜超市',
+        hasElevator: true,
+        floor: 2,
+        upstairs: { hasElevator: true, floor: 2 }
       },
       tags: {
         channel: 'STORE_APP',
@@ -4583,7 +4602,7 @@
   function fallbackDetail(orderId, row) {
     var productImg = row ? row.querySelector('.order-product-cell__thumb') : null;
     var productName = row ? row.querySelector('.order-product-cell__name') : null;
-    var cells = row ? row.querySelectorAll('td') : [];
+    var cells = getListDataCells(row);
     var sceneEl = row ? row.querySelector('.order-scene') : null;
     var cellIdx = getListCellIndices(row);
     var marketingLabel = isProxyOrderPage() ? null : readMarketingFromRow(row);
@@ -4663,7 +4682,10 @@
         address: isRetailExpressDetail(null, row)
           ? '浙江省杭州市西湖区文三路168号1幢502室'
           : '浙江省杭州市上城区望江街道望江路16号',
-        store: (row && row.getAttribute('data-store')) || '悠悠生鲜超市'
+        store: (row && row.getAttribute('data-store')) || '悠悠生鲜超市',
+        hasElevator: (readProxyUpstairsPref() || {}).hasElevator !== false,
+        floor: (readProxyUpstairsPref() || {}).floor,
+        upstairs: readProxyUpstairsPref()
       },
       tags: {
         channel: 'MINI_PROGRAM',
@@ -4700,7 +4722,7 @@
       }
       /* 支付渠道与列表一致：微信 / 支付宝 / - */
       var cellIdx = getListCellIndices(row);
-      var cells = row.querySelectorAll('td');
+      var cells = getListDataCells(row);
       if (cells[cellIdx.payChannel]) {
         detail.tags = detail.tags || {};
         detail.tags.payChannel = cells[cellIdx.payChannel].textContent.trim() || '-';
@@ -5083,7 +5105,8 @@
       return resolveOrderAftersaleStatus(detail && detail.aftersales);
     },
     hasOpenAftersaleBlockingCancel: hasOpenAftersaleBlockingCancel,
-    appendGoodsAftersale: appendGoodsAftersale
+    appendGoodsAftersale: appendGoodsAftersale,
+    resolveFreightSplit: resolveProxyFreightSplit
   };
 
   function openFromQuery() {
@@ -5149,8 +5172,11 @@
         marketing: '普通售卖'
       };
     });
-    var isProxy = rec.channel === 'proxy';
-    var created = rec.createdAt || '';
+      var isProxy = rec.channel === 'proxy';
+      var created = rec.createdAt || '';
+      var upstairs = rec.upstairs || null;
+      var hasElevator = !upstairs || upstairs.hasElevator !== false;
+      var floor = upstairs && upstairs.floor != null && upstairs.floor !== '' ? upstairs.floor : 2;
     DETAILS[rec.orderNo] = {
       displayId: rec.orderNo,
       siblingOrderNo: (rec.siblingOrderNos || [])[0] || '',
@@ -5184,7 +5210,10 @@
         name: isProxy ? '张店长' : '演示用户',
         phone: '13800138000',
         address: isProxy ? '浙江省杭州市萧山区建设一路88号' : '浙江省杭州市上城区望江街道望江路16号',
-        store: rec.storeName || (isProxy ? '悠悠生鲜超市' : '华强北')
+        store: rec.storeName || (isProxy ? '悠悠生鲜超市' : '华强北'),
+        hasElevator: hasElevator,
+        floor: floor,
+        upstairs: { hasElevator: hasElevator, floor: floor }
       },
       tags: {
         channel: isProxy ? 'STORE_APP' : 'MINI_PROGRAM',
@@ -5261,6 +5290,9 @@
       var day = String(rec.createdAt || '').slice(0, 10);
       var sib = (rec.siblingOrderNos || [])[0] || '';
       var payNo = rec.payNo || '';
+      var checkTd = isProxyOrderPage()
+        ? '<td class="order-live-table__check-col"><input type="checkbox" class="table-checkbox js-order-proxy-check" aria-label="选择订单"></td>'
+        : '<td class="order-live-table__check-col"><input type="checkbox" class="table-checkbox js-order-retail-check" aria-label="选择订单"></td>';
       if (isProxyOrderPage()) {
         html +=
           '<tr data-order-id="' +
@@ -5276,6 +5308,7 @@
           '"' +
           (sib ? ' data-sibling-order="' + escapeText(sib) + '"' : '') +
           '>' +
+          checkTd +
           '<td><a href="#" class="order-live-table__link js-order-view" data-order-id="' +
           escapeText(rec.orderNo) +
           '">' +
@@ -5292,7 +5325,7 @@
           qty +
           '</td>' +
           '<td>' +
-          moneyText(rec.goodsTotal) +
+          moneyText(rec.payable != null ? rec.payable : rec.goodsTotal) +
           '</td>' +
           '<td>¥0.00</td><td>¥0.00</td><td>-</td><td>¥0.00</td>' +
           '<td>' +
@@ -5331,6 +5364,7 @@
           '"' +
           (sib ? ' data-sibling-order="' + escapeText(sib) + '"' : '') +
           '>' +
+          checkTd +
           '<td><a href="#" class="order-live-table__link js-order-view" data-order-id="' +
           escapeText(rec.orderNo) +
           '">' +
@@ -5375,7 +5409,17 @@
           '">查看</a></div></td></tr>';
       }
     });
-    if (html) tbody.insertAdjacentHTML('afterbegin', html);
+    if (html) {
+      tbody.insertAdjacentHTML('afterbegin', html);
+      if (window.OrderLiveListPage && typeof window.OrderLiveListPage.ensureRowChecks === 'function') {
+        window.OrderLiveListPage.ensureRowChecks();
+      }
+      try {
+        window.dispatchEvent(new Event('lf-table-row-no:refresh'));
+      } catch (eRefresh) {
+        /* ignore */
+      }
+    }
   }
 
   if (document.readyState === 'loading') {

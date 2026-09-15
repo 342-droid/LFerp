@@ -2408,6 +2408,15 @@
     applyOrderListFilters();
   }
 
+  window.OrderLiveListPage = {
+    ensureRowChecks: function () {
+      var spec = getOrderPageCheckSpec() || getOrderExportSpec();
+      ensureOrderListRowChecks(spec);
+      syncOrderExportChecks();
+    },
+    applyFilters: applyOrderListFilters
+  };
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', bootOrderListPage);
   } else {

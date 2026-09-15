@@ -874,10 +874,10 @@
     return '';
   }
 
-  /** 是否向客户计费：先看订单配置·包邮配置，未配则仅代采配送计费 */
+  /** 是否向客户计费：先看包邮配置（渠道 × 履约），未配则仅代采配送计费 */
   function chargesFreight(channel, fulfill) {
     if (global.MdmOrderFreeShip && typeof global.MdmOrderFreeShip.isFreeShip === 'function') {
-      return !global.MdmOrderFreeShip.isFreeShip(fulfill);
+      return !global.MdmOrderFreeShip.isFreeShip(fulfill, channel);
     }
     if (channel !== CHANNEL_PROXY) return false;
     var f = normalizeFulfill(fulfill);

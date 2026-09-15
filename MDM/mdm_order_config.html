@@ -3,72 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>冷丰订单 - 订单配置</title>
+    <title>冷丰订单 - 包邮配置</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/lf-mdm-edit-page.css">
     <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
-    <link rel="stylesheet" href="../css/lf-mdm-points-rule.css">
+    <link rel="stylesheet" href="../css/lf-mdm-points-rule.css?v=20260916-fs-switch">
 </head>
 <body>
     <div id="sidebar-container"></div>
     <script src="../js/path-prefix.js"></script>
-    <script src="../js/order-sidebar.js?v=20260915-order-config"></script>
+    <script src="../js/order-sidebar.js?v=20260916-free-ship-menu"></script>
     <div id="header-container"></div>
     <div class="container">
         <main class="main-content mdm-edit-page">
-            <div class="content-tabs"><button class="active">订单配置</button></div>
+            <div class="content-tabs"><button class="active">包邮配置</button></div>
             <hr class="content-divider">
 
             <div class="mdm-biz-tip" role="note">
-                按<strong>履约方式</strong>配置客户默认是否包邮。商城 / 代采 / 直播编辑商品时可<strong>单独覆盖</strong>。未包邮的走<strong>TMS 物流费率表</strong>计费。
+                按<strong>订单渠道</strong>（零售、代采）和<strong>履约方式</strong>配置客户默认是否包邮。开关<strong>开启</strong>为包邮，<strong>关闭</strong>走<strong>TMS 物流费率表</strong>计费。商城 / 代采 / 直播编辑商品时可<strong>单独覆盖</strong>。
             </div>
 
             <form id="freeShipForm" onsubmit="return false;">
                 <div class="pts-rule-card">
-                    <div class="pts-rule-card__title">包邮配置</div>
+                    <div class="pts-rule-card__title">零售</div>
                     <div class="pts-rule-card__body">
-                        <div class="pts-rule-field">
-                            <label class="pts-rule-field__label"><span class="erp-req">*</span>配送</label>
-                            <div class="pts-rule-field__control">
-                                <div class="pts-rule-check-row">
-                                    <label class="pts-rule-check-label">
-                                        <input type="radio" name="fs-delivery" value="yes"> 包邮
-                                    </label>
-                                    <label class="pts-rule-check-label is-checked">
-                                        <input type="radio" name="fs-delivery" value="no" checked> 不包邮
-                                    </label>
-                                </div>
-                                <div class="pts-rule-tip">适用<strong>代采订单</strong>。未包邮时按门店对应配送仓 → 门店地址计费。</div>
-                            </div>
-                        </div>
                         <div class="pts-rule-field">
                             <label class="pts-rule-field__label"><span class="erp-req">*</span>自提</label>
                             <div class="pts-rule-field__control">
-                                <div class="pts-rule-check-row">
-                                    <label class="pts-rule-check-label is-checked">
-                                        <input type="radio" name="fs-pickup" value="yes" checked> 包邮
-                                    </label>
-                                    <label class="pts-rule-check-label">
-                                        <input type="radio" name="fs-pickup" value="no"> 不包邮
-                                    </label>
+                                <div class="pts-rule-switch-row">
+                                    <button type="button" class="pts-rule-switch is-on" data-channel="retail" data-fulfill="pickup" aria-pressed="true" aria-label="零售自提包邮开关"></button>
+                                    <span class="pts-rule-switch__text">开启</span>
                                 </div>
-                                <div class="pts-rule-tip">适用<strong>零售、直播</strong>门店自提。</div>
+                                <div class="pts-rule-tip">适用<strong>商城、直播</strong>到店自提。开启则不收客户运费。</div>
                             </div>
                         </div>
                         <div class="pts-rule-field">
                             <label class="pts-rule-field__label"><span class="erp-req">*</span>快递</label>
                             <div class="pts-rule-field__control">
-                                <div class="pts-rule-check-row">
-                                    <label class="pts-rule-check-label is-checked">
-                                        <input type="radio" name="fs-express" value="yes" checked> 包邮
-                                    </label>
-                                    <label class="pts-rule-check-label">
-                                        <input type="radio" name="fs-express" value="no"> 不包邮
-                                    </label>
+                                <div class="pts-rule-switch-row">
+                                    <button type="button" class="pts-rule-switch is-on" data-channel="retail" data-fulfill="express" aria-pressed="true" aria-label="零售快递包邮开关"></button>
+                                    <span class="pts-rule-switch__text">开启</span>
                                 </div>
-                                <div class="pts-rule-tip">适用<strong>零售、代采、直播</strong>快递。未包邮时按费率表向客户计费。</div>
+                                <div class="pts-rule-tip">适用<strong>商城、直播</strong>快递到家。关闭则按费率表向客户计费。</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pts-rule-card">
+                    <div class="pts-rule-card__title">代采</div>
+                    <div class="pts-rule-card__body">
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label"><span class="erp-req">*</span>配送</label>
+                            <div class="pts-rule-field__control">
+                                <div class="pts-rule-switch-row">
+                                    <button type="button" class="pts-rule-switch" data-channel="proxy" data-fulfill="delivery" aria-pressed="false" aria-label="代采配送包邮开关"></button>
+                                    <span class="pts-rule-switch__text">关闭</span>
+                                </div>
+                                <div class="pts-rule-tip">适用<strong>代采</strong>仓配到店。关闭则按门店对应配送仓 → 门店地址计费。</div>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label"><span class="erp-req">*</span>快递</label>
+                            <div class="pts-rule-field__control">
+                                <div class="pts-rule-switch-row">
+                                    <button type="button" class="pts-rule-switch is-on" data-channel="proxy" data-fulfill="express" aria-pressed="true" aria-label="代采快递包邮开关"></button>
+                                    <span class="pts-rule-switch__text">开启</span>
+                                </div>
+                                <div class="pts-rule-tip">适用<strong>代采</strong>快递到店。关闭则按费率表向客户计费。</div>
                             </div>
                         </div>
                     </div>
@@ -83,7 +87,7 @@
     </div>
 
     <script src="../js/common.js"></script>
-    <script src="../js/mdm-order-free-ship-store.js?v=20260915-order-config"></script>
-    <script src="../js/mdm-order-free-ship.js?v=20260915-order-config"></script>
+    <script src="../js/mdm-order-free-ship-store.js?v=20260916-channel-switch"></script>
+    <script src="../js/mdm-order-free-ship.js?v=20260916-channel-switch"></script>
 </body>
 </html>

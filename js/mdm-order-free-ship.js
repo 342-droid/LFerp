@@ -1,5 +1,5 @@
 /**
- * 订单配置 · 包邮配置
+ * 包邮配置（渠道 × 履约开关）
  */
 (function () {
   var api = window.MdmOrderFreeShip;
@@ -12,35 +12,46 @@
     window.alert(msg);
   }
 
+  function switchEl(channel, fulfill) {
+    return document.querySelector(
+      '.pts-rule-switch[data-channel="' + channel + '"][data-fulfill="' + fulfill + '"]'
+    );
+  }
+
+  function setSwitch(btn, on) {
+    if (!btn) return;
+    btn.classList.toggle('is-on', !!on);
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    var text = btn.parentElement && btn.parentElement.querySelector('.pts-rule-switch__text');
+    if (text) text.textContent = on ? '开启' : '关闭';
+  }
+
   function readForm() {
-    var rule = {};
-    (api.ROWS || []).forEach(function (row) {
-      var el = document.querySelector('input[name="fs-' + row.key + '"]:checked');
-      rule[row.key] = !!(el && el.value === 'yes');
+    var rule = { retail: {}, proxy: {} };
+    (api.CHANNELS || []).forEach(function (ch) {
+      rule[ch.key] = {};
+      ch.rows.forEach(function (row) {
+        var btn = switchEl(ch.key, row.key);
+        rule[ch.key][row.key] = !!(btn && btn.classList.contains('is-on'));
+      });
     });
     return rule;
   }
 
   function fillForm(rule) {
     rule = rule || api.load();
-    (api.ROWS || []).forEach(function (row) {
-      var yes = !!rule[row.key];
-      document.querySelectorAll('input[name="fs-' + row.key + '"]').forEach(function (input) {
-        input.checked = input.value === (yes ? 'yes' : 'no');
-        var wrap = input.closest('.pts-rule-check-label');
-        if (wrap) wrap.classList.toggle('is-checked', input.checked);
+    (api.CHANNELS || []).forEach(function (ch) {
+      var src = (rule && rule[ch.key]) || {};
+      ch.rows.forEach(function (row) {
+        setSwitch(switchEl(ch.key, row.key), !!src[row.key]);
       });
     });
   }
 
-  function bindRadios() {
-    document.querySelectorAll('input[name^="fs-"]').forEach(function (input) {
-      input.addEventListener('change', function () {
-        var name = input.name;
-        document.querySelectorAll('input[name="' + name + '"]').forEach(function (el) {
-          var wrap = el.closest('.pts-rule-check-label');
-          if (wrap) wrap.classList.toggle('is-checked', el.checked);
-        });
+  function bindSwitches() {
+    document.querySelectorAll('.pts-rule-switch[data-channel]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        setSwitch(btn, !btn.classList.contains('is-on'));
       });
     });
   }
@@ -48,7 +59,7 @@
   function init() {
     if (!api) return;
     fillForm(api.load());
-    bindRadios();
+    bindSwitches();
     var saveBtn = document.getElementById('fsSaveBtn');
     var resetBtn = document.getElementById('fsResetBtn');
     if (saveBtn) {
@@ -60,7 +71,7 @@
     if (resetBtn) {
       resetBtn.addEventListener('click', function () {
         fillForm(api.reset());
-        toast('已恢复默认：配送不包邮，自提 / 快递包邮', 'success');
+        toast('已恢复默认：零售自提/快递开启，代采配送关闭、快递开启', 'success');
       });
     }
   }

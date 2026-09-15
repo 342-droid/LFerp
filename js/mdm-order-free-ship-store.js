@@ -1,34 +1,35 @@
 /**
- * 订单配置 · 包邮配置（按履约方式的全局默认）
+ * 包邮配置（按订单渠道 × 履约方式）
+ * 开关开启 = 包邮；关闭 = 按 TMS 物流费率表计费。
  * 商品编辑未单独改过「是否包邮」时，跟本页。
  */
 (function (global) {
-  var STORAGE_KEY = 'lf_order_free_ship_v1';
+  var STORAGE_KEY = 'lf_order_free_ship_v2';
+  var LEGACY_KEY = 'lf_order_free_ship_v1';
 
   var DEFAULTS = {
-    delivery: false,
-    pickup: true,
-    express: true
+    retail: { pickup: true, express: true },
+    proxy: { delivery: false, express: true }
   };
 
-  var ROWS = [
+  var CHANNELS = [
     {
-      key: 'delivery',
-      label: '配送',
-      apply: '代采订单',
-      tip: '未包邮时按 TMS 物流费率表计费（仓 → 门店）。'
+      key: 'retail',
+      label: '零售',
+      tip: '适用商城、直播零售订单。',
+      rows: [
+        { key: 'pickup', label: '自提', tip: '用户到店自提。开启则不收客户运费。' },
+        { key: 'express', label: '快递', tip: '快递到家。关闭则按费率表向客户计费。' }
+      ]
     },
     {
-      key: 'pickup',
-      label: '自提',
-      apply: '零售、直播',
-      tip: '用户到店自提。包邮则不收客户运费。'
-    },
-    {
-      key: 'express',
-      label: '快递',
-      apply: '零售、代采、直播',
-      tip: '快递到家 / 代采快递。包邮则不收客户运费。'
+      key: 'proxy',
+      label: '代采',
+      tip: '适用门店代采进货订单。',
+      rows: [
+        { key: 'delivery', label: '配送', tip: '仓配到店。关闭则按门店对应配送仓 → 门店地址计费。' },
+        { key: 'express', label: '快递', tip: '代采快递到店。关闭则按费率表向客户计费。' }
+      ]
     }
   ];
 
@@ -56,6 +57,7 @@
       f === 'mail' ||
       f === '快递' ||
       f === '快递到家' ||
+      f === '快递到店' ||
       f === '快递配送'
     ) {
       return 'express';
@@ -63,23 +65,68 @@
     return '';
   }
 
+  function normalizeChannel(channel) {
+    var c = String(channel || '').trim();
+    if (
+      c === 'retail' ||
+      c === 'mall' ||
+      c === 'live' ||
+      c === '零售' ||
+      c === '零售订单' ||
+      c === '商城' ||
+      c === '直播'
+    ) {
+      return 'retail';
+    }
+    if (c === 'proxy' || c === '代采' || c === '代采订单') {
+      return 'proxy';
+    }
+    return '';
+  }
+
+  function migrateLegacy(raw) {
+    var next = clone(DEFAULTS);
+    if (!raw || typeof raw !== 'object') return next;
+    if (typeof raw.pickup === 'boolean') next.retail.pickup = raw.pickup;
+    if (typeof raw.delivery === 'boolean') next.proxy.delivery = raw.delivery;
+    if (typeof raw.express === 'boolean') {
+      next.retail.express = raw.express;
+      next.proxy.express = raw.express;
+    }
+    return next;
+  }
+
   function normalizeRule(raw) {
     var rule = clone(DEFAULTS);
     if (!raw || typeof raw !== 'object') return rule;
-    ROWS.forEach(function (row) {
-      if (typeof raw[row.key] === 'boolean') rule[row.key] = raw[row.key];
-    });
-    return rule;
+    if (raw.retail || raw.proxy) {
+      CHANNELS.forEach(function (ch) {
+        var src = raw[ch.key];
+        if (!src || typeof src !== 'object') return;
+        ch.rows.forEach(function (row) {
+          if (typeof src[row.key] === 'boolean') rule[ch.key][row.key] = src[row.key];
+        });
+      });
+      return rule;
+    }
+    return migrateLegacy(raw);
+  }
+
+  function readStorage(key) {
+    try {
+      var raw = global.localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
   }
 
   function load() {
-    try {
-      var raw = global.localStorage.getItem(STORAGE_KEY);
-      if (!raw) return clone(DEFAULTS);
-      return normalizeRule(JSON.parse(raw));
-    } catch (e) {
-      return clone(DEFAULTS);
-    }
+    var current = readStorage(STORAGE_KEY);
+    if (current) return normalizeRule(current);
+    var legacy = readStorage(LEGACY_KEY);
+    if (legacy) return migrateLegacy(legacy);
+    return clone(DEFAULTS);
   }
 
   function save(rule) {
@@ -96,17 +143,25 @@
     return save(clone(DEFAULTS));
   }
 
-  function isFreeShip(fulfill) {
-    var key = normalizeFulfill(fulfill);
-    if (!key) return true;
-    return !!load()[key];
+  function isFreeShip(fulfill, channel) {
+    var rule = load();
+    var f = normalizeFulfill(fulfill);
+    var ch = normalizeChannel(channel);
+    if (ch && f && rule[ch] && typeof rule[ch][f] === 'boolean') {
+      return !!rule[ch][f];
+    }
+    if (f === 'pickup') return !!rule.retail.pickup;
+    if (f === 'delivery') return !!rule.proxy.delivery;
+    if (f === 'express') return !!(rule.retail.express && rule.proxy.express);
+    return true;
   }
 
   global.MdmOrderFreeShip = {
     STORAGE_KEY: STORAGE_KEY,
     DEFAULTS: clone(DEFAULTS),
-    ROWS: ROWS,
+    CHANNELS: CHANNELS,
     normalizeFulfill: normalizeFulfill,
+    normalizeChannel: normalizeChannel,
     load: load,
     save: save,
     reset: reset,

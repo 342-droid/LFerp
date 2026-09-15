@@ -189,6 +189,15 @@
     if (!(coupon > 0)) coupon = readRowMoneyByPref(row, 'couponAmount');
     if (!points) points = Math.round(readRowMoneyByPref(row, 'usedPoints'));
     if (!(paid > 0)) paid = readRowMoneyByPref(row, 'paidAmount');
+    var freight = 0;
+    if (detail && detail.freight && detail.freight.original != null) {
+      freight = parseMoney(detail.freight.original);
+    } else if (detail && detail.amounts) {
+      freight = parseMoney(detail.amounts.shipping);
+    }
+    if (paid > 0 && freight > 0 && paid + 0.001 >= freight) {
+      paid = Math.round((paid - freight) * 100) / 100;
+    }
     var weights = goods.map(function (g) {
       return parseMoney(g.paidAmount) || parseMoney(g.remainAmount);
     });
@@ -409,7 +418,11 @@
             paidAmount: paid,
             remainAmount: paid,
             remainCoupon: 0,
-            remainPoints: 0
+            remainPoints: 0,
+            tempLayer: g.tempLayer || '',
+            weight: parseFloat(g.weight) || 0,
+            allocatedFreight: 0,
+            remainFreight: 0
           };
         });
       }
@@ -448,12 +461,166 @@
           paidAmount: paid,
           remainAmount: paid,
           remainCoupon: 0,
-          remainPoints: 0
+          remainPoints: 0,
+          tempLayer: '',
+          weight: 0,
+          allocatedFreight: 0,
+          remainFreight: 0
         }
       ];
     }
     applyOrderBenefits(goods, row, detail);
+    applyFreightShares(goods, row, detail, orderId);
     return goods;
+  }
+
+  function goodIsCold(g) {
+    var t = String((g && g.tempLayer) || '');
+    return t === '冷藏' || t === '冷冻' || t === '冷链';
+  }
+
+  function goodChargeWeight(g) {
+    var w = parseFloat(g && g.weight);
+    if (!(w > 0)) return 0;
+    return w * (parseInt(g && g.qty, 10) || 1);
+  }
+
+  function resolveFreightPool(detail, row, orderId) {
+    if (global.OrderFreightRefund && typeof global.OrderFreightRefund.getSummary === 'function' && orderId) {
+      var summary = global.OrderFreightRefund.getSummary(orderId, row);
+      if (summary && summary.original > 0) {
+        return {
+          original: summary.original,
+          refunded: summary.refunded,
+          pending: summary.pending,
+          remaining: summary.remaining
+        };
+      }
+    }
+    var original = 0;
+    var refunded = 0;
+    if (detail && detail.freight) {
+      original = parseMoney(
+        detail.freight.original != null ? detail.freight.original : detail.freight.total
+      );
+      refunded = parseMoney(detail.freight.refunded);
+    }
+    if (!(original > 0) && detail && detail.amounts) {
+      original = parseMoney(detail.amounts.shipping);
+    }
+    return {
+      original: original,
+      refunded: refunded,
+      pending: 0,
+      remaining: Math.max(0, Math.round((original - refunded) * 100) / 100)
+    };
+  }
+
+  function quoteFreightScheme(detail) {
+    var api = global.TmsLogisticsRate;
+    if (!api || typeof api.quoteOrder !== 'function') return null;
+    var goods = (detail && detail.goods) || [];
+    try {
+      return api.quoteOrder({
+        channel: api.CHANNEL_PROXY,
+        fulfill: 'platform',
+        address: detail && detail.delivery && (detail.delivery.homeAddress || detail.delivery.address),
+        items: goods.map(function (g) {
+          return {
+            name: g.name,
+            qty: parseInt(g.qty, 10) || 1,
+            price: parseMoney(g.price != null ? g.price : g.subtotal),
+            gross: parseFloat(g.weight) || 0,
+            tempLayer: g.tempLayer
+          };
+        })
+      });
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /**
+   * 按现有运费规则把整单运费摊到 SKU：
+   * - 常温 / 冷链基础运费只摊进对应温层；重量计费按计费重量，金额计费按货款
+   * - 保价按货款；上楼按重量；派送整票按货款
+   * - 没有拆分明细时，整单运费按货款比例摊
+   * 剩余可退运费按同一权重摊已退/在途后退回各 SKU，真正退款仍走订单级「退运费」
+   */
+  function applyFreightShares(goods, row, detail, orderId) {
+    if (!goods || !goods.length) return;
+    var pool = resolveFreightPool(detail, row, orderId);
+    var n = goods.length;
+    var allocated = goods.map(function () {
+      return 0;
+    });
+    function addParts(total, weights) {
+      var parts = allocateByWeights(total, weights);
+      goods.forEach(function (_, idx) {
+        allocated[idx] = Math.round(((allocated[idx] || 0) + (parts[idx] || 0)) * 100) / 100;
+      });
+    }
+    var split =
+      global.OrderLiveDetail && typeof global.OrderLiveDetail.resolveFreightSplit === 'function'
+        ? global.OrderLiveDetail.resolveFreightSplit(detail, detail && detail.amounts)
+        : null;
+    var stored = (detail && detail.freight) || {};
+    var extrasOnOrder = stored.insure != null || stored.insureFee != null || stored.deliver != null || stored.deliverFee != null || stored.upstairs != null || stored.upstairsFee != null;
+    var ambientAmt = split ? Number(split.ambient) || 0 : 0;
+    var coldAmt = split ? Number(split.cold) || 0 : 0;
+    var insureAmt = extrasOnOrder ? Number(split && split.insure) || 0 : 0;
+    var deliverAmt = extrasOnOrder ? Number(split && split.deliver) || 0 : 0;
+    var upstairsAmt = extrasOnOrder ? Number(split && split.upstairs) || 0 : 0;
+    var hasSplit = !!(ambientAmt > 0 || coldAmt > 0 || insureAmt > 0 || deliverAmt > 0 || upstairsAmt > 0);
+    if (hasSplit) {
+      var quote = quoteFreightScheme(detail);
+      var ambientScheme = quote && quote.ambient && quote.ambient.feeScheme;
+      var coldScheme = quote && quote.cold && quote.cold.feeScheme;
+      var amountW = goods.map(function (g) {
+        return parseMoney(g.paidAmount) || 1;
+      });
+      var weightW = goods.map(function (g) {
+        var w = goodChargeWeight(g);
+        return w > 0 ? w : parseMoney(g.paidAmount) || 1;
+      });
+      var ambientW = goods.map(function (g) {
+        if (goodIsCold(g)) return 0;
+        return ambientScheme === '金额计费' ? parseMoney(g.paidAmount) || 0 : goodChargeWeight(g);
+      });
+      var coldW = goods.map(function (g) {
+        if (!goodIsCold(g)) return 0;
+        return coldScheme === '金额计费' ? parseMoney(g.paidAmount) || 0 : goodChargeWeight(g);
+      });
+      if (ambientAmt > 0) {
+        addParts(ambientAmt, ambientW.some(function (w) { return w > 0; }) ? ambientW : amountW);
+      }
+      if (coldAmt > 0) {
+        addParts(coldAmt, coldW.some(function (w) { return w > 0; }) ? coldW : amountW);
+      }
+      if (insureAmt > 0) addParts(insureAmt, amountW);
+      if (deliverAmt > 0) addParts(deliverAmt, amountW);
+      if (upstairsAmt > 0) addParts(upstairsAmt, weightW);
+    } else if (pool.original > 0) {
+      addParts(
+        pool.original,
+        goods.map(function (g) {
+          return parseMoney(g.paidAmount) || 1;
+        })
+      );
+    }
+    var used = allocated.reduce(function (a, b) {
+      return a + b;
+    }, 0);
+    if (n && pool.original > 0 && Math.abs(used - pool.original) >= 0.01) {
+      allocated[n - 1] = Math.round((allocated[n - 1] + (pool.original - used)) * 100) / 100;
+    }
+    var remainParts = pool.original > 0 ? allocateByWeights(pool.remaining, allocated) : allocated.map(function () {
+      return 0;
+    });
+    goods.forEach(function (g, idx) {
+      g.allocatedFreight = allocated[idx] || 0;
+      g.remainFreight = remainParts[idx] || 0;
+    });
   }
 
   function reasonsForType(type) {
@@ -763,6 +930,9 @@
       '<div class="order-as-kv"><span class="order-as-kv__k">剩余可退金额</span><span class="order-as-kv__v">¥' +
       formatMoney(it.remainAmount) +
       '</span></div>' +
+      '<div class="order-as-kv"><span class="order-as-kv__k">剩余可退运费</span><span class="order-as-kv__v">¥' +
+      formatMoney(it.remainFreight) +
+      '</span></div>' +
       '</div>' +
       '<div class="order-as-item__meta-col">' +
       '<div class="order-as-kv"><span class="order-as-kv__k">商品规格</span><span class="order-as-kv__v">' +
@@ -773,6 +943,9 @@
       '</span></div>' +
       '<div class="order-as-kv"><span class="order-as-kv__k">剩余可退优惠券</span><span class="order-as-kv__v">¥' +
       formatMoney(it.remainCoupon) +
+      '</span></div>' +
+      '<div class="order-as-kv"><span class="order-as-kv__k">分摊运费</span><span class="order-as-kv__v">¥' +
+      formatMoney(it.allocatedFreight) +
       '</span></div>' +
       '</div>' +
       '<div class="order-as-item__meta-col">' +
@@ -1141,6 +1314,8 @@
           remainAmount: g.remainAmount,
           remainCoupon: g.remainCoupon,
           remainPoints: g.remainPoints,
+          allocatedFreight: g.allocatedFreight || 0,
+          remainFreight: g.remainFreight || 0,
           checked: idx === 0,
           type: '仅退款',
           refundAmount: g.remainAmount,

@@ -527,6 +527,42 @@
     });
   }
 
+  function readUpstairsPref() {
+    try {
+      var raw = localStorage.getItem('ua_checkout_upstairs_v1');
+      if (raw) {
+        var pref = JSON.parse(raw);
+        return {
+          hasElevator: !pref || pref.hasElevator !== false,
+          floor: pref && pref.floor != null && pref.floor !== '' ? pref.floor : 2
+        };
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    return { hasElevator: true, floor: 2 };
+  }
+
+  function resolveUpstairsAccess(detail) {
+    var delivery = (detail && detail.delivery) || {};
+    var freight = (detail && detail.freight) || {};
+    var src = delivery.upstairs || freight.upstairsPref || (detail && detail.upstairs) || null;
+    if (delivery.hasElevator != null || (delivery.floor != null && delivery.floor !== '')) {
+      src = {
+        hasElevator: delivery.hasElevator !== false,
+        floor: delivery.floor != null && delivery.floor !== '' ? delivery.floor : (src && src.floor)
+      };
+    }
+    if (!src) src = readUpstairsPref();
+    var floor = src.floor != null && src.floor !== '' ? src.floor : 2;
+    return {
+      hasElevator: src.hasElevator !== false,
+      floor: floor,
+      elevatorText: src.hasElevator === false ? '无电梯' : '有电梯',
+      floorText: String(floor) + '楼'
+    };
+  }
+
   function buildDeliveryCard(detail, orderId, row, options) {
     var handlers = typeof options === 'function'
       ? { onUpload: options }
@@ -552,11 +588,14 @@
           ? '<dt>下单门店</dt><dd>' + escapeHtml(detail.delivery.store) + '</dd>'
           : '');
     } else {
+      var access = resolveUpstairsAccess(detail);
       baseKv.innerHTML =
         '<dt>履约方式</dt><dd><span class="order-tag order-tag--scene">' + fulfillmentLabel(mode) + '</span></dd>' +
         '<dt>收货人</dt><dd>' + escapeHtml(detail.delivery.name) + '</dd>' +
         '<dt>电话</dt><dd>' + escapeHtml(detail.delivery.phone) + '</dd>' +
         '<dt>地址</dt><dd>' + escapeHtml(detail.delivery.address) + '</dd>' +
+        '<dt>电梯</dt><dd>' + escapeHtml(access.elevatorText) + '</dd>' +
+        '<dt>楼层</dt><dd>' + escapeHtml(access.floorText) + '</dd>' +
         '<dt>门店</dt><dd>' + escapeHtml(detail.delivery.store) + '</dd>';
     }
     card.appendChild(baseKv);
