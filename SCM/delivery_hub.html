@@ -93,6 +93,8 @@
                                 <th>联系人</th>
                                 <th>电话</th>
                                 <th>是否启用</th>
+                                <th>创建时间</th>
+                                <th>创建人</th>
                                 <th>更新时间</th>
                                 <th>更新人</th>
                                 <th>操作</th>
@@ -104,6 +106,8 @@
                                 <td>DH001</td><td>南京分站</td><td>L001-华东干线</td><td>NJ01</td><td>南京分站</td><td>W001-南京仓</td><td>仓库</td>
                                 <td>江苏省</td><td>南京市</td><td>江宁区</td><td>XX路XX号</td><td>张三</td><td>13800138001</td>
                                 <td><span class="status active">启用</span></td>
+                                <td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
                                 <td>2025-01-05 12:31:43</td><td>李四</td>
                                 <td class="action-links"><a href="#" class="edit-btn">编辑</a></td>
                             </tr>
@@ -112,6 +116,8 @@
                                 <td>DH002</td><td>上海门店</td><td>L002-沪宁线路</td><td>SH01</td><td>上海门店</td><td>W003-上海仓</td><td>门店</td>
                                 <td>上海市</td><td>市辖区</td><td>浦东新区</td><td>XX路XX号</td><td>王五</td><td>13800138002</td>
                                 <td><span class="status inactive">禁用</span></td>
+                                <td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
                                 <td>2025-01-05 12:31:43</td><td>李四</td>
                                 <td class="action-links"><a href="#" class="edit-btn">编辑</a></td>
                             </tr>
@@ -203,8 +209,8 @@
                         page.updateTableRow(page.currentEditRow, {
                             4: slotCode || '-',
                             5: slotName || '-',
-                            15: page.getCurrentTimeStr(),
-                            16: '当前用户'
+                            17: page.getCurrentTimeStr(),
+                            18: '当前用户'
                         });
                         if (window.MdmStoreSiteSlot) {
                             window.MdmStoreSiteSlot.updateFromSite({

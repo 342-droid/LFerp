@@ -81,6 +81,8 @@
                                 <th>用户账号</th>
                                 <th>货主</th>
                                 <th>是否启用</th>
+                                <th>创建时间</th>
+                                <th>创建人</th>
                                 <th>更新时间</th>
                                 <th>更新人</th>
                                 <th>操作</th>
@@ -92,6 +94,8 @@
                                 <td>U001</td>
                                 <td>Y001-南京货主</td>
                                 <td><span class="status active">启用</span></td>
+                                <td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
                                 <td>2025-01-05 12:31:43</td>
                                 <td>李四</td>
                                 <td class="action-links">
@@ -104,6 +108,8 @@
                                 <td>U002</td>
                                 <td>Y002-北京货主</td>
                                 <td><span class="status inactive">禁用</span></td>
+                                <td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
                                 <td>2025-01-05 12:31:43</td>
                                 <td>李四</td>
                                 <td class="action-links">
@@ -168,6 +174,8 @@
                                 company,
                                 { value: enabled, isStatus: true },
                                 page.getCurrentTimeStr(),
+                                '当前用户',
+                                page.getCurrentTimeStr(),
                                 '当前用户'
                             ]
                         });
@@ -188,8 +196,8 @@
                         page.updateTableRow(page.currentEditRow, {
                             2: document.getElementById('editCompany').value.trim(),
                             3: { value: document.getElementById('editIsEnabled').value.trim(), isStatus: true },
-                            4: page.getCurrentTimeStr(),
-                            5: '当前用户'
+                            6: page.getCurrentTimeStr(),
+                            7: '当前用户'
                         });
                         showToast('用户-货主信息已更新', 'success');
                         page.currentEditRow = null;

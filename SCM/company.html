@@ -83,6 +83,8 @@
                                 <th>详细地址</th>
                                 <th>联系人</th>
                                 <th>电话</th>
+                                <th>创建时间</th>
+                                <th>创建人</th>
                                 <th>更新时间</th>
                                 <th>更新人</th>
                                 <th>操作</th>
@@ -98,6 +100,8 @@
                                 <td>江苏省</td><td>南京市</td><td>江陵区</td><td>江陵东路88号</td>
                                 <td>张三</td>
                                 <td>18612341234</td>
+                                <td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
                                 <td>2025-01-05 12:31:43</td>
                                 <td>李四</td>
                                 <td class="action-links">
@@ -114,6 +118,8 @@
                                 <td>北京市</td><td>市辖区</td><td>朝阳区</td><td>建国路88号</td>
                                 <td>张三</td>
                                 <td>18612341236</td>
+                                <td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
                                 <td>2025-01-05 12:31:43</td>
                                 <td>李四</td>
                                 <td class="action-links">
@@ -130,6 +136,8 @@
                                 <td>上海市</td><td>市辖区</td><td>浦东新区</td><td>世纪大道100号</td>
                                 <td>李四</td>
                                 <td>18612341237</td>
+                                <td>2025-01-04 10:31:43</td>
+                                <td>李四</td>
                                 <td>2025-01-05 12:31:43</td>
                                 <td>张三</td>
                                 <td class="action-links">
@@ -146,6 +154,8 @@
                                 <td>广东省</td><td>广州市</td><td>天河区</td><td>体育西路100号</td>
                                 <td>张三</td>
                                 <td>18612341238</td>
+                                <td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
                                 <td>2025-01-05 12:31:43</td>
                                 <td>李四</td>
                                 <td class="action-links">
@@ -162,6 +172,8 @@
                                 <td>广东省</td><td>深圳市</td><td>南山区</td><td>科技园南路18号</td>
                                 <td>李四</td>
                                 <td>18612341239</td>
+                                <td>2025-01-04 10:31:43</td>
+                                <td>李四</td>
                                 <td>2025-01-05 12:31:43</td>
                                 <td>张三</td>
                                 <td class="action-links">
@@ -178,6 +190,8 @@
                                 <td>浙江省</td><td>杭州市</td><td>余杭区</td><td>文一西路866号</td>
                                 <td>张三</td>
                                 <td>18612341240</td>
+                                <td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
                                 <td>2025-01-05 12:31:43</td>
                                 <td>李四</td>
                                 <td class="action-links">
@@ -262,6 +276,8 @@
                                 contact,
                                 phone,
                                 page.getCurrentTimeStr(),
+                                '当前用户',
+                                page.getCurrentTimeStr(),
                                 '当前用户'
                             ]
                         });
@@ -290,8 +306,8 @@
                             8: addr.detailAddress || '-',
                             9: document.getElementById('editContactPerson')?.value.trim() || '-',
                             10: document.getElementById('editPhone')?.value.trim() || '-',
-                            11: page.getCurrentTimeStr(),
-                            12: '当前用户'
+                            13: page.getCurrentTimeStr(),
+                            14: '当前用户'
                         });
                         showToast('货主信息已更新', 'success');
                         page.currentEditRow = null;

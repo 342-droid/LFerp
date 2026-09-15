@@ -159,10 +159,10 @@
                                 <th>状态</th>
                                 <th>仓库</th>
                                 <th>货主</th>
-                                <th>更新时间</th>
-                                <th>更新人</th>
                                 <th>创建时间</th>
                                 <th>创建人</th>
+                                <th>更新时间</th>
+                                <th>更新人</th>
                             </tr>
                         </thead>
                         <tbody id="adjustmentTableBody"></tbody>
@@ -411,10 +411,10 @@
                     <td><span class="status-badge ${getStatusClass(item.status)}">${item.status}</span></td>
                     <td>${item.warehouse || ''}</td>
                     <td>${item.company}</td>
-                    <td>${item.updateTime}</td>
-                    <td>${item.updateUser}</td>
                     <td>${item.createTime}</td>
                     <td>${item.createUser}</td>
+                    <td>${item.updateTime}</td>
+                    <td>${item.updateUser}</td>
                 `;
                 tbody.appendChild(row);
             });

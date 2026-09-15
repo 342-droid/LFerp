@@ -87,7 +87,12 @@ function loadHeader() {
         // serve 等会去掉 .html，统一成带后缀的文件名再判断模块
         let pageFile = (path.split('/').pop() || '').toLowerCase().split('?')[0];
         if (pageFile && !pageFile.endsWith('.html')) pageFile += '.html';
-        const isTmsPage = (pageFile.startsWith('tms_') && pageFile !== 'tms_route.html') || pageFile === 'carrier.html' || pageFile === 'logistics_rate.html' || pageFile === 'freight_estimate_report.html' || path.includes('TMS_index.html') || href.includes('TMS_index.html');
+        const isTmsPage = (pageFile.startsWith('tms_') && pageFile !== 'tms_route.html')
+            || pageFile === 'carrier.html'
+            || pageFile === 'logistics_rate.html'
+            || pageFile === 'freight_estimate_report.html'
+            || path.includes('TMS_index.html')
+            || href.includes('TMS_index.html');
         const isPurchasePage = pageFile === 'purchase_index.html' || pageFile.startsWith('purchase_');
         const isBasicSettingsPage = pageFile === 'basic_settings_index.html' || pageFile.startsWith('basic_settings_');
         const isAuthzDesignerPage = pageFile === 'authz-designer.html';
