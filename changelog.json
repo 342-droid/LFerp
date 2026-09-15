@@ -1,10 +1,316 @@
 {
-  "latestSha": "1c51d16df8f0605db57a2238dea8181d0bf8988e",
-  "total": 394,
+  "latestSha": "971673e09ba8a1d70dde131c45679db08e47b1a0",
+  "total": 396,
   "days": [
     {
       "date": "2026-09-15",
       "items": [
+        {
+          "sha": "971673e",
+          "type": "feat",
+          "text": "统一列表审计列顺序并取消日志末列冻结",
+          "author": "342-droid",
+          "time": "17:38",
+          "pages": [
+            {
+              "file": "SCM/inventory-log.html",
+              "module": "冷丰WMS",
+              "title": "库存日志"
+            },
+            {
+              "file": "SCM/inventory_adjustment.html",
+              "module": "冷丰WMS",
+              "title": "库存调整单"
+            },
+            {
+              "file": "SCM/logistics_rate.html",
+              "module": "冷丰TMS",
+              "title": "物流费率表"
+            },
+            {
+              "file": "SCM/omni_inventory_log.html",
+              "module": "冷丰WMS",
+              "title": "全渠道库存日志"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "SCM/logistics_rate.html",
+              "text": "列表改为创建时间、创建人、更新时间、更新人"
+            },
+            {
+              "file": "SCM/inventory_adjustment.html",
+              "text": "列表改为创建时间、创建人、更新时间、更新人"
+            },
+            {
+              "file": "SCM/inventory-log.html",
+              "text": "最后一列横向滚动时不再钉在右侧"
+            },
+            {
+              "file": "SCM/omni_inventory_log.html",
+              "text": "最后一列横向滚动时不再钉在右侧"
+            },
+            {
+              "file": null,
+              "text": "物流费率表和运费预估报表顶部按物流模块展示"
+            }
+          ]
+        },
+        {
+          "sha": "aa54e6a",
+          "type": "feat",
+          "text": "仓储和物流列表补齐创建时间与创建人",
+          "author": "342-droid",
+          "time": "17:18",
+          "pages": [
+            {
+              "file": "SCM/allocation_strategy.html",
+              "module": "冷丰WMS",
+              "title": "分配策略"
+            },
+            {
+              "file": "SCM/area.html",
+              "module": "冷丰WMS",
+              "title": "作业区域"
+            },
+            {
+              "file": "SCM/carrier.html",
+              "module": "冷丰TMS",
+              "title": "承运商"
+            },
+            {
+              "file": "SCM/company.html",
+              "module": "冷丰WMS",
+              "title": "货主管理"
+            },
+            {
+              "file": "SCM/delivery_hub.html",
+              "module": "冷丰WMS",
+              "title": "站点"
+            },
+            {
+              "file": "SCM/ibd_strategy.html",
+              "module": "冷丰WMS",
+              "title": "入库策略"
+            },
+            {
+              "file": "SCM/inventory-log.html",
+              "module": "冷丰WMS",
+              "title": "库存日志"
+            },
+            {
+              "file": "SCM/inventory.html",
+              "module": "冷丰WMS",
+              "title": "库存查询"
+            },
+            {
+              "file": "SCM/inventory_rule.html",
+              "module": "冷丰WMS",
+              "title": "库存规则"
+            },
+            {
+              "file": "SCM/location.html",
+              "module": "冷丰WMS",
+              "title": "储位"
+            },
+            {
+              "file": "SCM/lpn.html",
+              "module": "冷丰WMS",
+              "title": "容器管理"
+            },
+            {
+              "file": "SCM/negative_inventory.html",
+              "module": "冷丰WMS",
+              "title": "负库存"
+            },
+            {
+              "file": "SCM/omni_inventory_log.html",
+              "module": "冷丰WMS",
+              "title": "全渠道库存日志"
+            },
+            {
+              "file": "SCM/profile.html",
+              "module": "冷丰WMS",
+              "title": "作业档案"
+            },
+            {
+              "file": "SCM/room.html",
+              "module": "冷丰WMS",
+              "title": "仓间管理"
+            },
+            {
+              "file": "SCM/task_engine.html",
+              "module": "冷丰WMS",
+              "title": "任务引擎"
+            },
+            {
+              "file": "SCM/timer_management.html",
+              "module": "冷丰WMS",
+              "title": "定时器管理"
+            },
+            {
+              "file": "SCM/tms_route.html",
+              "module": "冷丰WMS",
+              "title": "线路管理"
+            },
+            {
+              "file": "SCM/turn_strategy.html",
+              "module": "冷丰WMS",
+              "title": "周转策略"
+            },
+            {
+              "file": "SCM/user_company.html",
+              "module": "冷丰WMS",
+              "title": "用户-货主"
+            },
+            {
+              "file": "SCM/user_profile.html",
+              "module": "冷丰WMS",
+              "title": "用户-作业档案"
+            },
+            {
+              "file": "SCM/warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库管理"
+            },
+            {
+              "file": "SCM/warehouse_company.html",
+              "module": "冷丰WMS",
+              "title": "仓库-货主"
+            },
+            {
+              "file": "SCM/warehouse_sku.html",
+              "module": "冷丰WMS",
+              "title": "商品"
+            },
+            {
+              "file": "SCM/wave_flow.html",
+              "module": "冷丰WMS",
+              "title": "波次流程"
+            },
+            {
+              "file": "SCM/wave_template.html",
+              "module": "冷丰WMS",
+              "title": "波次模板"
+            },
+            {
+              "file": "SCM/zone.html",
+              "module": "冷丰WMS",
+              "title": "库区管理"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/warehouse.html",
+              "text": "列表增加创建时间、创建人，新增写入创建信息，编辑只更新更新人时间"
+            },
+            {
+              "file": "SCM/company.html",
+              "text": "列表增加创建时间、创建人"
+            },
+            {
+              "file": "SCM/room.html",
+              "text": "列表增加创建时间、创建人"
+            },
+            {
+              "file": "SCM/zone.html",
+              "text": "列表增加创建时间、创建人"
+            },
+            {
+              "file": "SCM/area.html",
+              "text": "列表增加创建时间、创建人"
+            },
+            {
+              "file": "SCM/location.html",
+              "text": "列表增加创建时间、创建人"
+            },
+            {
+              "file": "SCM/lpn.html",
+              "text": "列表增加创建时间、创建人"
+            },
+            {
+              "file": "SCM/warehouse_sku.html",
+              "text": "列表增加创建时间、创建人"
+            },
+            {
+              "file": "SCM/tms_route.html",
+              "text": "列表增加创建时间、创建人"
+            },
+            {
+              "file": "SCM/delivery_hub.html",
+              "text": "列表增加创建时间、创建人"
+            },
+            {
+              "file": "SCM/profile.html",
+              "text": "列表增加创建时间、创建人"
+            },
+            {
+              "file": "SCM/user_profile.html",
+              "text": "列表增加创建时间、创建人"
+            },
+            {
+              "file": "SCM/user_company.html",
+              "text": "列表增加创建时间、创建人"
+            },
+            {
+              "file": "SCM/warehouse_company.html",
+              "text": "列表增加创建时间、创建人"
+            },
+            {
+              "file": "SCM/ibd_strategy.html",
+              "text": "列表增加创建时间、创建人"
+            },
+            {
+              "file": "SCM/wave_flow.html",
+              "text": "列表增加创建时间、创建人"
+            },
+            {
+              "file": "SCM/wave_template.html",
+              "text": "列表增加创建时间、创建人"
+            },
+            {
+              "file": "SCM/allocation_strategy.html",
+              "text": "列表增加创建时间、创建人"
+            },
+            {
+              "file": "SCM/turn_strategy.html",
+              "text": "列表增加创建时间、创建人"
+            },
+            {
+              "file": "SCM/task_engine.html",
+              "text": "列表增加创建时间、创建人"
+            },
+            {
+              "file": "SCM/inventory_rule.html",
+              "text": "列表增加创建时间、创建人"
+            },
+            {
+              "file": "SCM/timer_management.html",
+              "text": "列表增加创建时间、创建人"
+            },
+            {
+              "file": "SCM/inventory.html",
+              "text": "列表增加创建时间、创建人"
+            },
+            {
+              "file": "SCM/inventory-log.html",
+              "text": "列表增加创建时间、创建人"
+            },
+            {
+              "file": "SCM/negative_inventory.html",
+              "text": "列表增加创建时间、创建人"
+            },
+            {
+              "file": "SCM/omni_inventory_log.html",
+              "text": "列表增加创建时间、创建人、更新时间、更新人"
+            },
+            {
+              "file": "SCM/carrier.html",
+              "text": "列表增加创建时间、创建人"
+            }
+          ]
+        },
         {
           "sha": "1c51d16",
           "type": "feat",
