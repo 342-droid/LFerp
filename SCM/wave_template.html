@@ -128,6 +128,8 @@
                                 <th>出库类型</th>
                                 <th>出库业务类型</th>
                                 <th>是否启用</th>
+                                <th>创建时间</th>
+                                <th>创建人</th>
                                 <th>更新时间</th>
                                 <th>更新人</th>
                                 <th>操作</th>
@@ -143,6 +145,8 @@
                                 <td>销售出库</td>
                                 <td>直播订单</td>
                                 <td><span class="status active">启用</span></td>
+                                <td>2026-03-23 08:30:00</td>
+                                <td>李四</td>
                                 <td>2026-03-24 10:30:00</td>
                                 <td>张三</td>
                                 <td class="action-links">
@@ -159,6 +163,8 @@
                                 <td>仓配出库</td>
                                 <td>配送出库</td>
                                 <td><span class="status active">启用</span></td>
+                                <td>2026-03-23 09:15:00</td>
+                                <td>张三</td>
                                 <td>2026-03-24 11:15:00</td>
                                 <td>李四</td>
                                 <td class="action-links">
@@ -175,6 +181,8 @@
                                 <td>销售出库</td>
                                 <td>直播订单</td>
                                 <td><span class="status inactive">禁用</span></td>
+                                <td>2026-03-22 14:45:00</td>
+                                <td>张三</td>
                                 <td>2026-03-23 16:45:00</td>
                                 <td>王五</td>
                                 <td class="action-links">
@@ -437,6 +445,8 @@
                                 outboundBizType,
                                 { value: isEnabled, isStatus: true },
                                 page.getCurrentTimeStr(),
+                                '当前用户',
+                                page.getCurrentTimeStr(),
                                 '当前用户'
                             ]
                         });
@@ -476,8 +486,8 @@
                             5: document.getElementById('editOutboundType').value.trim(),
                             6: document.getElementById('editOutboundBizType').value.trim(),
                             7: { value: document.getElementById('editIsEnabled').value.trim(), isStatus: true },
-                            8: page.getCurrentTimeStr(),
-                            9: '当前用户'
+                            10: page.getCurrentTimeStr(),
+                            11: '当前用户'
                         });
                         page.currentEditRow.dataset.isHidden = isHidden;
                         page.currentEditRow.dataset.needRecheck = needRecheck;

@@ -152,6 +152,8 @@
                                 <th>仓库</th>
                                 <th>周转类型</th>
                                 <th>是否启用</th>
+                                <th>创建时间</th>
+                                <th>创建人</th>
                                 <th>更新时间</th>
                                 <th>更新人</th>
                                 <th>操作</th>
@@ -165,6 +167,8 @@
                                 <td>W001-南京仓</td>
                                 <td>出库</td>
                                 <td><span class="status active">启用</span></td>
+                                <td>2026-03-25 07:16:22</td>
+                                <td>李四</td>
                                 <td>2026-03-26 09:16:22</td>
                                 <td>张三</td>
                                 <td class="action-links">
@@ -179,6 +183,8 @@
                                 <td>W002-嘉兴仓</td>
                                 <td>入库</td>
                                 <td><span class="status inactive">禁用</span></td>
+                                <td>2026-03-25 08:05:41</td>
+                                <td>张三</td>
                                 <td>2026-03-26 10:05:41</td>
                                 <td>李四</td>
                                 <td class="action-links">
@@ -350,6 +356,8 @@
                                 turnType,
                                 { value: isEnabled, isStatus: true },
                                 page.getCurrentTimeStr(),
+                                '当前用户',
+                                page.getCurrentTimeStr(),
                                 '当前用户'
                             ]
                         });
@@ -375,8 +383,8 @@
                         if (!page.currentEditRow) return;
                         page.updateTableRow(page.currentEditRow, {
                             5: { value: document.getElementById('editIsEnabled').value.trim(), isStatus: true },
-                            6: page.getCurrentTimeStr(),
-                            7: '当前用户'
+                            8: page.getCurrentTimeStr(),
+                            9: '当前用户'
                         });
                         page.currentEditRow.dataset.remark = document.getElementById('editRemark').value.trim();
                         showToast('周转策略已更新', 'success');

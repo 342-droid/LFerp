@@ -144,6 +144,8 @@
                                 <th>仓库</th>
                                 <th>货主</th>
                                 <th>是否启用</th>
+                                <th>创建时间</th>
+                                <th>创建人</th>
                                 <th>更新时间</th>
                                 <th>更新人</th>
                                 <th>操作</th>
@@ -157,6 +159,8 @@
                                 <td>W001-南京仓</td>
                                 <td>Y001-南京货主</td>
                                 <td><span class="status active">启用</span></td>
+                                <td>2026-03-24 08:12:36</td>
+                                <td>李四</td>
                                 <td>2026-03-25 10:12:36</td>
                                 <td>张三</td>
                                 <td class="action-links">
@@ -171,6 +175,8 @@
                                 <td>W002-嘉兴仓</td>
                                 <td>Y003-上海货主</td>
                                 <td><span class="status inactive">禁用</span></td>
+                                <td>2026-03-24 09:24:08</td>
+                                <td>张三</td>
                                 <td>2026-03-25 11:24:08</td>
                                 <td>李四</td>
                                 <td class="action-links">
@@ -399,6 +405,8 @@
                                 company,
                                 { value: isEnabled, isStatus: true },
                                 page.getCurrentTimeStr(),
+                                '当前用户',
+                                page.getCurrentTimeStr(),
                                 '当前用户'
                             ]
                         });
@@ -424,8 +432,8 @@
                         if (!page.currentEditRow) return;
                         page.updateTableRow(page.currentEditRow, {
                             5: { value: document.getElementById('editIsEnabled').value.trim(), isStatus: true },
-                            6: page.getCurrentTimeStr(),
-                            7: '当前用户'
+                            8: page.getCurrentTimeStr(),
+                            9: '当前用户'
                         });
                         page.currentEditRow.dataset.remark = document.getElementById('editRemark').value.trim();
                         showToast('分配策略已更新', 'success');

@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <style>
-        .omni-log-table { min-width: 1900px; }
+        .omni-log-table { min-width: 2300px; }
         .omni-log-table th, .omni-log-table td { white-space: nowrap; text-align: center; }
         .omni-log-table .number-cell { text-align: center; }
         .omni-log-table .empty-cell { padding: 40px; color: #999; }
@@ -41,7 +41,7 @@
             </section>
             <section class="table-section">
                 <div class="table-scroll-container"><table class="table omni-log-table"><thead><tr>
-                    <th><input type="checkbox" class="table-checkbox checkbox-all"></th><th>规则编码</th><th>仓库</th><th>货主</th><th>商品编码</th><th>商品名称</th><th>关联单号</th><th>来源单号</th><th>单据类型</th><th>业务类型</th><th>来源明细单号</th><th>变更类型</th><th>来源类型</th><th>变更方向</th><th>变更数量</th><th>变更前数量</th><th>变更后数量</th><th>备注</th>
+                    <th><input type="checkbox" class="table-checkbox checkbox-all"></th><th>规则编码</th><th>仓库</th><th>货主</th><th>商品编码</th><th>商品名称</th><th>关联单号</th><th>来源单号</th><th>单据类型</th><th>业务类型</th><th>来源明细单号</th><th>变更类型</th><th>来源类型</th><th>变更方向</th><th>变更数量</th><th>变更前数量</th><th>变更后数量</th><th>备注</th><th>创建时间</th><th>创建人</th><th>更新时间</th><th>更新人</th>
                 </tr></thead><tbody id="omniLogTableBody"></tbody></table></div>
             </section>
         </main>
@@ -54,9 +54,9 @@
     <script>
         (function () {
             const rows = [
-                { rule: 'S01', warehouse: 'W001 南京仓', company: 'C001 货主1', productCode: 'SKU001', productName: '冷鲜鸡胸肉', documentType: '入库单', businessType: '采购入库', related: 'ASN20260908001', source: 'PO20260908001', detail: 'PO20260908001-01', changeType: '当前库存', sourceType: '入库', direction: '增加', changeQty: 120, beforeQty: 740, afterQty: 860, remark: '收货确认入库' },
-                { rule: 'S02', warehouse: 'W002 嘉兴仓', company: 'C001 货主1', productCode: 'SKU002', productName: '精品番茄', documentType: '出库单', businessType: '销售出库', related: 'SO20260908018', source: 'SO20260908018', detail: 'SO20260908018-02', changeType: '出库预占', sourceType: '销售占用', direction: '减少', changeQty: 35, beforeQty: 465, afterQty: 430, remark: '订单库存预占' },
-                { rule: 'S03', warehouse: 'W003 上海仓', company: 'C002 货主2', productCode: 'SKU003', productName: '速冻水饺', documentType: '全渠道库存调账', businessType: '全渠道库存调账', related: 'ADJ20260908003', source: 'ADJ20260908003', detail: 'ADJ20260908003-01', changeType: '收货差异', sourceType: '全渠道库存调账', direction: '增加', changeQty: 3, beforeQty: 0, afterQty: 3, remark: '收货差异调账' }
+                { rule: 'S01', warehouse: 'W001 南京仓', company: 'C001 货主1', productCode: 'SKU001', productName: '冷鲜鸡胸肉', documentType: '入库单', businessType: '采购入库', related: 'ASN20260908001', source: 'PO20260908001', detail: 'PO20260908001-01', changeType: '当前库存', sourceType: '入库', direction: '增加', changeQty: 120, beforeQty: 740, afterQty: 860, remark: '收货确认入库', createTime: '2026-09-07 09:00:00', createUser: '张三', updateTime: '2026-09-08 10:12:00', updateUser: '李四' },
+                { rule: 'S02', warehouse: 'W002 嘉兴仓', company: 'C001 货主1', productCode: 'SKU002', productName: '精品番茄', documentType: '出库单', businessType: '销售出库', related: 'SO20260908018', source: 'SO20260908018', detail: 'SO20260908018-02', changeType: '出库预占', sourceType: '销售占用', direction: '减少', changeQty: 35, beforeQty: 465, afterQty: 430, remark: '订单库存预占', createTime: '2026-09-07 14:20:00', createUser: '张三', updateTime: '2026-09-08 11:05:00', updateUser: '王五' },
+                { rule: 'S03', warehouse: 'W003 上海仓', company: 'C002 货主2', productCode: 'SKU003', productName: '速冻水饺', documentType: '全渠道库存调账', businessType: '全渠道库存调账', related: 'ADJ20260908003', source: 'ADJ20260908003', detail: 'ADJ20260908003-01', changeType: '收货差异', sourceType: '全渠道库存调账', direction: '增加', changeQty: 3, beforeQty: 0, afterQty: 3, remark: '收货差异调账', createTime: '2026-09-08 08:30:00', createUser: '李四', updateTime: '2026-09-08 16:40:00', updateUser: '李四' }
             ];
             const body = document.getElementById('omniLogTableBody');
             const escapeHtml = function (value) { return String(value == null ? '' : value).replace(/[&<>'"]/g, function (char) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]; }); };
@@ -77,12 +77,12 @@
                 });
             };
             const render = function (data) {
-                body.innerHTML = data.length ? data.map(function (row) { return '<tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td>' + [row.rule, row.warehouse, row.company, row.productCode, row.productName, row.related, row.source, row.documentType, row.businessType, row.detail, row.changeType, row.sourceType, row.direction, row.changeQty, row.beforeQty, row.afterQty, row.remark].map(function (value) { return '<td>' + escapeHtml(value) + '</td>'; }).join('') + '</tr>'; }).join('') : '<tr><td colspan="18" class="empty-cell">暂无数据</td></tr>';
+                body.innerHTML = data.length ? data.map(function (row) { return '<tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td>' + [row.rule, row.warehouse, row.company, row.productCode, row.productName, row.related, row.source, row.documentType, row.businessType, row.detail, row.changeType, row.sourceType, row.direction, row.changeQty, row.beforeQty, row.afterQty, row.remark, row.createTime, row.createUser, row.updateTime, row.updateUser].map(function (value) { return '<td>' + escapeHtml(value) + '</td>'; }).join('') + '</tr>'; }).join('') : '<tr><td colspan="22" class="empty-cell">暂无数据</td></tr>';
             };
             document.getElementById('omniLogSearchForm').addEventListener('submit', function (event) { event.preventDefault(); render(getFilteredRows()); });
             document.getElementById('omniLogExportBtn').addEventListener('click', function () {
-                const headers = ['规则编码', '仓库', '货主', '商品编码', '商品名称', '关联单号', '来源单号', '单据类型', '业务类型', '来源明细单号', '变更类型', '来源类型', '变更方向', '变更数量', '变更前数量', '变更后数量', '备注'];
-                const data = getFilteredRows().map(function (row) { return [row.rule, row.warehouse, row.company, row.productCode, row.productName, row.related, row.source, row.documentType, row.businessType, row.detail, row.changeType, row.sourceType, row.direction, row.changeQty, row.beforeQty, row.afterQty, row.remark]; });
+                const headers = ['规则编码', '仓库', '货主', '商品编码', '商品名称', '关联单号', '来源单号', '单据类型', '业务类型', '来源明细单号', '变更类型', '来源类型', '变更方向', '变更数量', '变更前数量', '变更后数量', '备注', '创建时间', '创建人', '更新时间', '更新人'];
+                const data = getFilteredRows().map(function (row) { return [row.rule, row.warehouse, row.company, row.productCode, row.productName, row.related, row.source, row.documentType, row.businessType, row.detail, row.changeType, row.sourceType, row.direction, row.changeQty, row.beforeQty, row.afterQty, row.remark, row.createTime, row.createUser, row.updateTime, row.updateUser]; });
                 const csv = '\ufeff' + [headers].concat(data).map(function (line) { return line.map(function (value) { return '"' + String(value).replace(/"/g, '""') + '"'; }).join(','); }).join('\n');
                 const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' })); link.download = '全渠道库存日志.csv'; link.click(); URL.revokeObjectURL(link.href);
             });
