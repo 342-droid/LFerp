@@ -605,10 +605,16 @@
     });
 
     var api = window.TmsLogisticsRate;
-    if (api && typeof api.quoteOrder === 'function' && list.length) {
+    var deliveryItems = list.filter(function (item) {
+      return resolveFulfillmentMethod(item) !== '快递';
+    });
+    if (api && typeof api.quoteOrder === 'function' && deliveryItems.length) {
       var quote = api.quoteOrder(Object.assign({
         channel: api.CHANNEL_PROXY,
-        items: list
+        fulfill: 'platform',
+        items: deliveryItems.map(function (item) {
+          return Object.assign({}, item, { fulfillmentMethod: '配送' });
+        })
       }, restockFreightExplainOpts()));
       var parts = [];
       if (quote.ambient && !quote.ambient.empty) {
@@ -617,6 +623,7 @@
       if (quote.cold && !quote.cold.empty) {
         parts.push('冷链' + (quote.cold.text || formatFreightMoney(quote.cold.amount)));
       }
+      if (expressCount > 0) parts.push('快递包邮');
       return {
         text: parts.length ? parts.join(' + ') : (quote.text || ''),
         done: (quote.total || 0) <= 0,
@@ -645,7 +652,7 @@
       text = delivery.text;
       done = delivery.done;
     } else if (expressCount > 0) {
-      text = '快递暂不收取运费';
+      text = '快递包邮';
       done = true;
     } else {
       text = '';
@@ -686,9 +693,9 @@
   function buildFreightRulesHtml() {
     var api = window.TmsLogisticsRate;
     if (api && typeof api.renderExplainHtml === 'function') {
-      return api.renderExplainHtml(restockFreightExplainOpts());
+      return api.renderExplainHtml();
     }
-    return '<p class="ua-freight-explain__intro">运费按物流费率表计，常温与冷链分开，目的地优先匹配区、市、省、全国。</p>';
+    return '<p class="ua-freight-explain__intro">进货运费按物流费率表计价，确认订单可查看明细。</p>';
   }
 
   function openFreightRulesModal() {

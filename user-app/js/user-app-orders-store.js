@@ -5,6 +5,7 @@
   var STORAGE_KEY = 'ua_demo_orders_v1';
   var LAST_KEY = 'ua_last_order_v1';
   var LAST_ITEMS_KEY = 'ua_last_order_items_v1';
+  var MDM_MIRROR_KEY = 'lf_mdm_cend_split_orders_v1';
 
   function readAll() {
     try {
@@ -112,8 +113,56 @@
         : order.siblingOrderNo
           ? [order.siblingOrderNo]
           : [],
-      splitKind: order.splitKind || ''
+      splitKind: order.splitKind || '',
+      fulfillType: order.fulfillType || '',
+      warehouse: order.warehouse || '',
+      supplierName: order.supplierName || '',
+      insureFee: Number(order.insureFee) || 0,
+      deliverFee: Number(order.deliverFee) || 0,
+      upstairsFee: Number(order.upstairsFee) || 0,
+      upstairs: order.upstairs || null
     };
+  }
+
+  function publishMdmMirror(order) {
+    try {
+      var raw = global.localStorage.getItem(MDM_MIRROR_KEY);
+      var list = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(list)) list = [];
+      var rec = {
+        channel: order.from === 'restock.html' ? 'proxy' : 'retail',
+        orderNo: order.orderNo,
+        createdAt: order.createdAt,
+        status: order.status,
+        storeName: order.from === 'restock.html' ? '悠悠生鲜超市' : '华强北',
+        fulfill: order.fulfillType || order.splitKind || '',
+        warehouse: order.warehouse || '',
+        supplierName: order.supplierName || '',
+        goods: (order.items || []).map(function (it) {
+          return {
+            name: it.name || it.title || '',
+            img: it.img || '',
+            qty: Number(it.qty) || 1,
+            price: Number(it.price) || 0,
+            spec: it.spec || ''
+          };
+        }),
+        goodsTotal: order.goodsTotal,
+        freight: order.freight,
+        payable: order.payable,
+        payMethod: order.payMethod || '',
+        payNo: order.payNo || '',
+        siblingOrderNos: order.siblingOrderNos || [],
+        splitKind: order.splitKind || ''
+      };
+      list = list.filter(function (x) {
+        return !x || x.orderNo !== rec.orderNo;
+      });
+      list.unshift(rec);
+      global.localStorage.setItem(MDM_MIRROR_KEY, JSON.stringify(list.slice(0, 40)));
+    } catch (e) {
+      /* ignore */
+    }
   }
 
   function upsert(order) {
@@ -124,6 +173,9 @@
     });
     list.unshift(next);
     writeAll(list.slice(0, 30));
+    if (next.from === 'restock.html' || next.fulfillType || next.splitKind) {
+      publishMdmMirror(next);
+    }
     try {
       global.sessionStorage.setItem(LAST_KEY, JSON.stringify(next));
       global.sessionStorage.setItem(

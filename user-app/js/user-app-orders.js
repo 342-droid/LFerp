@@ -334,8 +334,25 @@
           href +
           '" class="ua-order-card--link">' +
           '<div class="ua-order-card__head">' +
-          '<span class="ua-order-merchant"><span class="ua-order-store">线上商城' +
-          (hasPoints ? ' · 含积分兑换' : '') +
+          '<span class="ua-order-merchant"><span class="ua-order-store">' +
+          escapeHtml(
+            (function () {
+              var fulfillText = '';
+              if (fresh.fulfillType === 'delivery' || fresh.splitKind === 'delivery') fulfillText = '配送';
+              else if (fresh.fulfillType === 'express' || fresh.splitKind === 'express') fulfillText = '快递';
+              else if (fresh.fulfillType === 'pickup' || fresh.splitKind === 'wh' || fresh.splitKind === 'spot') {
+                fulfillText = '自提';
+              }
+              var title =
+                fresh.from === 'restock.html'
+                  ? fresh.warehouse || fresh.supplierName || '进货商城'
+                  : fresh.supplierName || '线上商城';
+              if (fulfillText) title += ' · ' + fulfillText;
+              if (hasPoints) title += ' · 含积分兑换';
+              if (fresh.siblingOrderNo) title += ' · 关联拆单';
+              return title;
+            })()
+          ) +
           '</span></span>' +
           '<span class="ua-order-status">' +
           escapeHtml(statusText) +

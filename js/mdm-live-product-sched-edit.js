@@ -635,6 +635,9 @@
     var dm = normalizeDelivery(product.deliveryMode);
     var dmEl = document.querySelector('input[name="deliveryMode"][value="' + dm + '"]');
     if (dmEl) dmEl.checked = true;
+    var freeShip = product.freeShip === false ? 'no' : 'yes';
+    var fsEl = document.querySelector('input[name="freeShip"][value="' + freeShip + '"]');
+    if (fsEl) fsEl.checked = true;
 
     var salesMode = product.displaySalesMode || 'ACTUAL';
     var smEl = document.querySelector('input[name="displaySalesMode"][value="' + salesMode + '"]');
@@ -665,6 +668,9 @@
     if (!name) return toast('请输入商品名称', 'warning'), false;
     if (!(document.querySelector('input[name="deliveryMode"]:checked') || {}).value) {
       return toast('请选择配送方式', 'warning'), false;
+    }
+    if (!(document.querySelector('input[name="freeShip"]:checked') || {}).value) {
+      return toast('请选择是否包邮', 'warning'), false;
     }
     readSkuCards();
     if (!selectedSkuIds.length) return toast('请至少选择一个 SKU', 'warning'), false;
@@ -714,6 +720,7 @@
       arrivalTime: document.getElementById('pArrival').value.trim(),
       arrivalUnit: document.getElementById('pArrivalUnit').value,
       deliveryMode: (document.querySelector('input[name="deliveryMode"]:checked') || {}).value || 'express',
+      freeShip: ((document.querySelector('input[name="freeShip"]:checked') || {}).value || 'yes') === 'yes',
       displaySalesMode: (document.querySelector('input[name="displaySalesMode"]:checked') || {}).value || 'ACTUAL',
       displaySales: document.getElementById('pDisplaySales').value.trim(),
       images: images.slice(),
@@ -759,6 +766,24 @@
         return sum + (Number(s.liveStock) || 0);
       }, 0)
     });
+    persistLiveShipFlag(product);
+  }
+
+  function persistLiveShipFlag(item) {
+    var code = item && (item.sku || item.code || item.goodsId);
+    if (!code) return;
+    try {
+      var map = {};
+      var raw = sessionStorage.getItem('mdm_live_product_ship_v1');
+      if (raw) map = JSON.parse(raw) || {};
+      map[String(code)] = {
+        freeShip: item.freeShip !== false,
+        deliveryMode: item.deliveryMode || 'express'
+      };
+      sessionStorage.setItem('mdm_live_product_ship_v1', JSON.stringify(map));
+    } catch (e) {
+      /* ignore */
+    }
   }
 
   function bindEvents() {

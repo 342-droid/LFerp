@@ -985,6 +985,54 @@
   color: #999;
 }
 
+.ua-od-price__row--freight {
+  align-items: flex-start;
+}
+
+.ua-od-price__freight-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ua-od-price__freight-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ua-od-price__freight-legs {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 140px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.ua-od-price__freight-legs[hidden] {
+  display: none !important;
+}
+
+.ua-od-price__freight-leg-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ua-od-price__freight-leg-name {
+  color: #999;
+}
+
+.ua-od-price__freight-leg-amount {
+  color: #333;
+  font-weight: 400;
+}
+
 .ua-od-price__pay-leg-amount {
   color: #ff4d4f;
   font-weight: 600;

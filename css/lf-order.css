@@ -2198,6 +2198,31 @@ body[data-order-page="retail"] .order-live-table__action:hover {
   font-variant-numeric: tabular-nums;
 }
 
+.order-detail-amount-row--freight {
+  align-items: flex-start;
+}
+
+.order-detail-freight-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  min-width: 140px;
+}
+
+.order-detail-freight-line {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.order-detail-freight-leg-amount {
+  color: #303133;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
 .order-detail-amount-foot {
   display: flex;
   align-items: flex-start;

@@ -173,6 +173,26 @@
     return formChannel === 'mall' ? MALL_DELIVERY_MODE_OPTIONS : PROXY_DELIVERY_MODE_OPTIONS;
   }
 
+  function defaultFreeShip(mode) {
+    if (formChannel === 'proxy' && normalizeDeliveryMode(mode) === 'platform') return false;
+    return true;
+  }
+
+  function parseFreeShipFlag(raw, mode) {
+    if (raw === true || raw === 'yes' || raw === '是') return true;
+    if (raw === false || raw === 'no' || raw === '否') return false;
+    return defaultFreeShip(mode);
+  }
+
+  function syncFreeShipRadios(backdrop) {
+    if (!backdrop || !formState) return;
+    backdrop.querySelectorAll('input[name="proxyFreeShip"]').forEach(function (r) {
+      r.checked = (r.value === 'yes') === !!formState.freeShip;
+      var lab = r.closest('.product-add-radio');
+      if (lab) lab.classList.toggle('is-checked', r.checked);
+    });
+  }
+
   function normalizeDeliveryMode(mode) {
     if (formChannel === 'mall') {
       if (mode === 'pickup' || mode === '自提' || mode === '门店自提') return 'pickup';
@@ -542,6 +562,11 @@
       deliveryMode: normalizeDeliveryMode(
         detail.deliveryMode || product.deliveryMode || product.fulfillmentMode
       ),
+      freeShip: parseFreeShipFlag(
+        detail.freeShip != null ? detail.freeShip : product.freeShip,
+        detail.deliveryMode || product.deliveryMode || product.fulfillmentMode
+      ),
+      freeShipTouched: detail.freeShip != null || product.freeShip != null,
       saleScope: detail.saleScope || 'all',
       saleRegions: detail.saleRegions ? cloneRegionSelected(detail.saleRegions) : {},
       saleRegionSummary: Array.isArray(detail.saleRegionSummary) ? detail.saleRegionSummary.slice() : [],
@@ -1005,6 +1030,22 @@
       '            </div>' +
       '          </div>' +
       '        </div>' +
+      '        <div class="product-proxy-form__field">' +
+      '          <label class="product-proxy-form__label"><span class="product-proxy-form__req">*</span>是否包邮</label>' +
+      '          <div class="product-proxy-form__control">' +
+      '            <div class="product-add-radio-row">' +
+      [{ value: 'yes', label: '是' }, { value: 'no', label: '否' }].map(function (opt) {
+        var checked = opt.value === 'yes' ? !!state.freeShip : !state.freeShip;
+        return (
+          '<label class="product-add-radio' + (checked ? ' is-checked' : '') + '">' +
+          '<input type="radio" name="proxyFreeShip" value="' + opt.value + '"' +
+          (checked ? ' checked' : '') + '> ' + opt.label +
+          '</label>'
+        );
+      }).join('') +
+      '            </div>' +
+      '          </div>' +
+      '        </div>' +
       '        <div class="product-proxy-form__field product-proxy-form__field--sale-time">' +
       '          <label class="product-proxy-form__label" for="proxySaleTimeStart">可售时间</label>' +
       '          <div class="product-proxy-form__control product-proxy-form__sale-time-wrap">' +
@@ -1422,7 +1463,19 @@
           var lab = r.closest('.product-add-radio');
           if (lab) lab.classList.toggle('is-checked', r.checked);
         });
+        if (!formState.freeShipTouched) {
+          formState.freeShip = defaultFreeShip(formState.deliveryMode);
+          syncFreeShipRadios(backdrop);
+        }
         syncInheritedSaleTime(backdrop, product);
+      });
+    });
+    backdrop.querySelectorAll('input[name="proxyFreeShip"]').forEach(function (radio) {
+      radio.addEventListener('change', function () {
+        if (!formState) return;
+        formState.freeShip = radio.value === 'yes';
+        formState.freeShipTouched = true;
+        syncFreeShipRadios(backdrop);
       });
     });
   }
@@ -1517,6 +1570,8 @@
     var deliveryEl = backdrop.querySelector('input[name="proxyDeliveryMode"]:checked');
     var detailEditor = backdrop.querySelector('#proxyFormDetailEditor');
     var deliveryMode = normalizeDeliveryMode(deliveryEl ? deliveryEl.value : formState.deliveryMode);
+    var freeShipEl = backdrop.querySelector('input[name="proxyFreeShip"]:checked');
+    var freeShip = freeShipEl ? freeShipEl.value === 'yes' : defaultFreeShip(deliveryMode);
     var etaCountdown = ((backdrop.querySelector('#proxyFormEta') || {}).value || '').trim();
     var etaCountdownUnit = ((backdrop.querySelector('#proxyFormEtaUnit') || {}).value || '天').trim() || '天';
     var saleTimeStart = ((backdrop.querySelector('#proxySaleTimeStart') || {}).value || '').trim();
@@ -1565,6 +1620,7 @@
       saleTimeEnd: saleTimeEnd,
       deliveryMode: deliveryMode,
       fulfillmentMode: deliveryMode,
+      freeShip: freeShip,
       category_l3_ids: pickerInstance ? pickerInstance.getValues() : getProductCategoryIds(product),
       category_paths: pickerInstance ? pickerInstance.getPaths() : getProductCategoryPaths(product),
       category_l3_id: pickerInstance ? pickerInstance.getValue() : (product.category_l3_id || ''),
@@ -1587,6 +1643,7 @@
         saleTimeStart: saleTimeStart,
         saleTimeEnd: saleTimeEnd,
         deliveryMode: deliveryMode,
+        freeShip: freeShip,
         saleScope: scopeEl ? scopeEl.value : 'all',
         saleRegions: cloneRegionSelected(formState.saleRegions),
         saleRegionSummary: (formState.saleRegionSummary || []).slice(),
@@ -1640,6 +1697,10 @@
       var payload = collectPayload(backdrop, product);
       if (!payload.name) {
         if (typeof showToast === 'function') showToast('请输入商品名称', 'warning');
+        return;
+      }
+      if (!backdrop.querySelector('input[name="proxyFreeShip"]:checked')) {
+        if (typeof showToast === 'function') showToast('请选择是否包邮', 'warning');
         return;
       }
       if (!payload.category_l3_ids.length || !payload.category_l3_ids.every(function (id) {

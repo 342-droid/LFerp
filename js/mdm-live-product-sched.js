@@ -641,6 +641,10 @@
       addedAt: nowStamp(),
       img: item.img || '',
       fromLibrary: true,
+      goodsId: item.code,
+      code: item.code,
+      deliveryMode: 'express',
+      freeShip: true,
       skus: [
         {
           id: item.code + '-sku',
@@ -658,6 +662,7 @@
   function persistLiveCatalogCodes() {
     var codes = [];
     var seen = {};
+    var shipMap = {};
     var map = Demo.productsBySession || {};
     Object.keys(map).forEach(function (sid) {
       (map[sid] || []).forEach(function (p) {
@@ -665,10 +670,18 @@
         if (!code || seen[code]) return;
         seen[code] = true;
         codes.push(code);
+        shipMap[String(code)] = {
+          freeShip: !p || p.freeShip !== false,
+          deliveryMode: (p && p.deliveryMode) || 'express'
+        };
       });
     });
     try {
       sessionStorage.setItem('mdm_live_sched_catalog_codes_v1', JSON.stringify(codes));
+      var prev = {};
+      var raw = sessionStorage.getItem('mdm_live_product_ship_v1');
+      if (raw) prev = JSON.parse(raw) || {};
+      sessionStorage.setItem('mdm_live_product_ship_v1', JSON.stringify(Object.assign(prev, shipMap)));
     } catch (e) { /* ignore */ }
   }
 
