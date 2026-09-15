@@ -384,6 +384,14 @@
     return params.get('port') === 'bd-app' || params.get('from') === 'bd-app';
   }
 
+  function isStoreAppPort() {
+    if (window.LfAppShell && typeof window.LfAppShell.isStoreApp === 'function') {
+      return window.LfAppShell.isStoreApp();
+    }
+    var params = new URLSearchParams(window.location.search);
+    return params.get('port') === 'store-app' || params.get('from') === 'store-app';
+  }
+
   function cartBackHref() {
     var params = new URLSearchParams(window.location.search);
     if (isBdAppBrowse()) {
@@ -392,8 +400,7 @@
         'restock.html?from=bd-app&tab=cart' + (sid ? '&storeId=' + encodeURIComponent(sid) : '')
       );
     }
-    var fromStore = params.get('port') === 'store-app' || params.get('from') === 'store-app';
-    return fromStore ? 'restock.html?from=store-app&tab=cart' : 'restock.html?tab=cart';
+    return isStoreAppPort() ? 'restock.html?from=store-app&tab=cart' : 'restock.html?tab=cart';
   }
 
   function renderCheckoutInvalid() {
@@ -1210,9 +1217,18 @@
     renderAccessCard();
   }
 
+  function checkoutHasDelivery() {
+    return (state.suppliers || []).some(function (block) {
+      return checkoutBlockKind(block) === 'delivery';
+    });
+  }
+
   function renderAccessCard() {
     var el = document.getElementById('checkoutAccessCard');
     if (!el) return;
+    /* 仅配送单收上楼费，纯快递确认页不展示电梯/楼层 */
+    el.hidden = !checkoutHasDelivery();
+    if (el.hidden) return;
     var up = (state && state.upstairs) || { hasElevator: true, floor: 2 };
     var chips = el.querySelectorAll('[data-upstairs-lift]');
     chips.forEach(function (btn) {
@@ -1405,10 +1421,14 @@
           '<div class="ua-co-supplier__head">' +
           '<svg class="ua-co-supplier__icon" viewBox="0 0 24 24" fill="none"><path d="M6 3h12l2 4v14a1 1 0 01-1 1H5a1 1 0 01-1-1V3h2z" fill="#FFB800"/><path d="M8 3h8v3H8V3z" fill="#FF9500"/></svg>' +
           '<span class="ua-co-supplier__name">' +
-          (sup.kind === 'delivery' ? sup.name : resolveCheckoutSupplierName(sup.id, sup.name)) +
+          (checkoutBlockKind(sup) === 'delivery'
+            ? sup.name
+            : resolveExpressOrderShopName(sup) || resolveCheckoutSupplierName(sup.id, sup.name)) +
           '</span>' +
-          (sup.kind
-            ? '<span class="ua-co-supplier__tag">' + (sup.kind === 'delivery' ? '配送' : '快递') + '</span>'
+          (sup.kind || checkoutBlockKind(sup)
+            ? '<span class="ua-co-supplier__tag">' +
+              (checkoutBlockKind(sup) === 'delivery' ? '配送' : '快递') +
+              '</span>'
             : '') +
           '</div>' +
           pkgsHtml +
@@ -1940,9 +1960,22 @@
   }
 
   function checkoutBlockKind(block) {
+    var name = (block && block.name) || '';
+    if (/W002|嘉兴仓/.test(name) || /^W00\d/.test(name) || /仓$/.test(name) && !/供应商/.test(name)) {
+      return 'delivery';
+    }
     if (block && block.kind) return block.kind;
     var pkg = block && block.packages && block.packages[0];
     return pkg && pkg.deliveryType === 'store' ? 'express' : 'delivery';
+  }
+
+  function resolveExpressOrderShopName(block) {
+    var id = (block && block.id) || '';
+    var name = (block && block.name) || '';
+    if (id === 'supplier-huadong' || name === '华东冷链' || name === '华东冷链仓') {
+      return '华东冷链供应商';
+    }
+    return name;
   }
 
   /**
@@ -2084,9 +2117,10 @@
         deductPoints: thisPointsCount,
         deductAmount: thisPointsAmt,
         from: 'restock.html',
+        store: state.store || null,
         fulfillType: isDelivery ? 'delivery' : 'express',
         warehouse: isDelivery ? (block.packages[0] && block.packages[0].warehouse) || block.name : '',
-        supplierName: isDelivery ? '' : block.name,
+        supplierName: isDelivery ? '' : resolveExpressOrderShopName(block),
         splitKind: isDelivery ? 'delivery' : 'express',
         splitGroupId: blocks.length > 1 ? groupId : '',
         siblingOrderNo: siblingNos[0] || '',
@@ -2348,14 +2382,30 @@
         '</div></div>';
       if (isMixed) bindPayLegsToggle('checkoutPayLegsToggle', '.ua-co-pay-legs--result');
       document.getElementById('checkoutResultOrders').addEventListener('click', function () {
+        if (isStoreAppPort()) {
+          if (lastPaidOrders && lastPaidOrders.length > 1) {
+            window.location.href =
+              window.LfAppShell && window.LfAppShell.restockOrdersHref
+                ? window.LfAppShell.restockOrdersHref()
+                : '../../store-app/h5/restock-orders.html';
+            return;
+          }
+          var paid = lastPaidOrder;
+          window.location.href =
+            paid && paid.orderNo && window.LfAppShell && window.LfAppShell.restockDetailHref
+              ? window.LfAppShell.restockDetailHref(paid.orderNo)
+              : paid && paid.orderNo
+                ? '../../store-app/h5/restock-order-detail.html?orderNo=' + encodeURIComponent(paid.orderNo)
+                : '../../store-app/h5/restock-orders.html';
+          return;
+        }
         if (lastPaidOrders && lastPaidOrders.length > 1) {
           window.location.href = 'orders.html?from=restock.html&tab=shipping';
           return;
         }
         var order = lastPaidOrder;
         if (order && window.UaOrdersStore && window.UaOrdersStore.buildDetailHref) {
-          window.location.href =
-            window.UaOrdersStore.buildDetailHref(order) + '&from=restock.html';
+          window.location.href = window.UaOrdersStore.buildDetailHref(order);
           return;
         }
         if (order && order.orderNo) {
@@ -2368,7 +2418,7 @@
         window.location.href = 'orders.html?from=restock.html&tab=shipping';
       });
       document.getElementById('checkoutResultHome').addEventListener('click', function () {
-        window.location.href = 'restock.html';
+        window.location.href = isStoreAppPort() ? 'restock.html?from=store-app' : 'restock.html';
       });
       clearCartSelectedItems();
     } else {
@@ -2388,7 +2438,11 @@
         openPaySheet();
       });
       document.getElementById('checkoutResultView').addEventListener('click', function () {
-        window.location.href = 'orders.html?from=restock.html&tab=unpaid';
+        window.location.href = isStoreAppPort()
+          ? window.LfAppShell && window.LfAppShell.restockOrdersHref
+            ? window.LfAppShell.restockOrdersHref()
+            : '../../store-app/h5/restock-orders.html'
+          : 'orders.html?from=restock.html&tab=unpaid';
       });
     }
   }

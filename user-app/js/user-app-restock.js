@@ -20,8 +20,13 @@
   var memoryCart = null;
   var memoryCartPage = null;
   var pageParams = new URLSearchParams(window.location.search);
-  var fromStoreApp = pageParams.get('from') === 'store-app';
+  var fromStoreApp =
+    pageParams.get('from') === 'store-app' ||
+    (window.LfAppShell && typeof window.LfAppShell.isStoreApp === 'function' && window.LfAppShell.isStoreApp());
   var fromBdApp = pageParams.get('from') === 'bd-app';
+  if (fromStoreApp && window.LfAppShell && typeof window.LfAppShell.remember === 'function') {
+    window.LfAppShell.remember('store-app');
+  }
 
   function scopeApi() {
     return window.UaProxySaleScope;
@@ -407,8 +412,15 @@
 
   function switchTab(tabId) {
     if (tabId === 'orders') {
+      if (fromStoreApp) {
+        window.location.href =
+          window.LfAppShell && window.LfAppShell.restockOrdersHref
+            ? window.LfAppShell.restockOrdersHref()
+            : '../../store-app/h5/restock-orders.html';
+        return;
+      }
       window.location.href =
-        'orders.html?from=restock.html' + (fromBdApp ? '&port=bd-app' : fromStoreApp ? '&port=store-app' : '');
+        'orders.html?from=restock.html' + (fromBdApp ? '&port=bd-app' : '');
       return;
     }
     var prevPanel = document.querySelector('.ua-restock-panel--active');

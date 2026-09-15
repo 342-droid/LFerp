@@ -61,27 +61,7 @@
       card.setAttribute('data-status', 'review');
     });
 
-    document.querySelectorAll('.ua-order-card[data-status]').forEach(function (card) {
-      var supplierName = card.getAttribute('data-supplier-name');
-      var storeMerchant = card.querySelector('.ua-order-merchant--store');
-      var supplierMerchant = card.querySelector('.ua-order-merchant--supplier');
-      var supplierEl = card.querySelector('.ua-order-supplier');
-
-      if (supplierName && supplierEl) {
-        var displayName =
-          window.MdmSupplierArchiveStore &&
-          typeof window.MdmSupplierArchiveStore.getDisplayName === 'function'
-            ? window.MdmSupplierArchiveStore.getDisplayName({
-                id: card.getAttribute('data-supplier-id') || '',
-                name: supplierName
-              })
-            : supplierName;
-        supplierEl.textContent = displayName;
-      }
-
-      if (storeMerchant) storeMerchant.hidden = true;
-      if (supplierMerchant) supplierMerchant.hidden = false;
-    });
+    applyOrderCardTitles();
 
     document.querySelectorAll('.ua-order-card[data-detail-status]').forEach(function (card) {
       /* 演示订单链接含 orderNo，禁止被补货模式覆写成无单号链接 */
@@ -103,6 +83,46 @@
       card.querySelectorAll('a[href*="order-detail.html"]').forEach(function (link) {
         link.setAttribute('href', href);
       });
+    });
+  }
+
+  function supplierDisplayName(name, id) {
+    if (
+      window.MdmSupplierArchiveStore &&
+      typeof window.MdmSupplierArchiveStore.getDisplayName === 'function'
+    ) {
+      return (
+        window.MdmSupplierArchiveStore.getDisplayName({
+          id: id || '',
+          name: name || ''
+        }) || name || ''
+      );
+    }
+    return name || '';
+  }
+
+  /** 零售：供应商；进货快递：供应商；进货配送：仓库 */
+  function cardShopTitle(card) {
+    var supplier = card.getAttribute('data-supplier-name') || '';
+    var warehouse = card.getAttribute('data-warehouse-name') || '';
+    var delivery = card.getAttribute('data-delivery') || '';
+    if (isFromRestock() && (delivery === 'warehouse' || (warehouse && delivery !== 'store'))) {
+      return warehouse || '配送仓';
+    }
+    return supplierDisplayName(supplier, card.getAttribute('data-supplier-id')) || supplier;
+  }
+
+  function applyOrderCardTitles() {
+    document.querySelectorAll('.ua-order-card[data-status]').forEach(function (card) {
+      var title = cardShopTitle(card);
+      var storeMerchant = card.querySelector('.ua-order-merchant--store');
+      var supplierMerchant = card.querySelector('.ua-order-merchant--supplier');
+      var supplierEl = card.querySelector('.ua-order-supplier');
+      var storeEl = card.querySelector('.ua-order-store');
+      if (supplierEl && title) supplierEl.textContent = title;
+      if (storeEl && title && !supplierMerchant) storeEl.textContent = title;
+      if (storeMerchant) storeMerchant.hidden = true;
+      if (supplierMerchant) supplierMerchant.hidden = false;
     });
   }
 
@@ -203,9 +223,26 @@
     });
   }
 
+  function isStoreAppPort() {
+    if (window.LfAppShell && typeof window.LfAppShell.isStoreApp === 'function') {
+      return window.LfAppShell.isStoreApp();
+    }
+    var p = new URLSearchParams(window.location.search);
+    return p.get('port') === 'store-app' || p.get('from') === 'store-app';
+  }
+
   function init() {
+    if (isStoreAppPort()) {
+      window.location.replace(
+        window.LfAppShell && window.LfAppShell.restockOrdersHref
+          ? window.LfAppShell.restockOrdersHref()
+          : '../../store-app/h5/restock-orders.html'
+      );
+      return;
+    }
     injectDemoOrders();
     applyRestockOrdersMode();
+    if (!isFromRestock()) applyOrderCardTitles();
     bindDemoOrderLinks();
     bindOrderPayButtons();
     if (window.UaOrderPaySheet && isFromRestock()) {
@@ -283,7 +320,10 @@
 
   function injectDemoOrders() {
     if (!window.UaOrdersStore || !window.UaOrdersStore.list) return;
-    var list = window.UaOrdersStore.list();
+    var list = (window.UaOrdersStore.list() || []).filter(function (order) {
+      var restock = !!(order && (order.from === 'restock.html' || order.fulfillType || order.splitKind));
+      return isFromRestock() ? restock : !restock;
+    });
     var wrap = document.querySelector('.ua-orders-list') || document.querySelector('#ordersList');
     if (!wrap || !list.length) return;
     var html = list
@@ -329,6 +369,18 @@
           escapeHtml(fresh.status) +
           '" data-demo-order="1" data-order-no="' +
           escapeHtml(fresh.orderNo) +
+          '" data-supplier-name="' +
+          escapeHtml(fresh.supplierName || '') +
+          '" data-warehouse-name="' +
+          escapeHtml(fresh.warehouse || '') +
+          '" data-delivery="' +
+          escapeHtml(
+            isFromRestock()
+              ? window.UaOrdersStore.isRestockDelivery && window.UaOrdersStore.isRestockDelivery(fresh)
+                ? 'warehouse'
+                : 'store'
+              : ''
+          ) +
           '">' +
           '<a href="' +
           href +
@@ -337,19 +389,12 @@
           '<span class="ua-order-merchant"><span class="ua-order-store">' +
           escapeHtml(
             (function () {
-              var fulfillText = '';
-              if (fresh.fulfillType === 'delivery' || fresh.splitKind === 'delivery') fulfillText = '配送';
-              else if (fresh.fulfillType === 'express' || fresh.splitKind === 'express') fulfillText = '快递';
-              else if (fresh.fulfillType === 'pickup' || fresh.splitKind === 'wh' || fresh.splitKind === 'spot') {
-                fulfillText = '自提';
-              }
-              var title =
-                fresh.from === 'restock.html'
-                  ? fresh.warehouse || fresh.supplierName || '进货商城'
-                  : fresh.supplierName || '线上商城';
-              if (fulfillText) title += ' · ' + fulfillText;
+              var title = isFromRestock()
+                ? window.UaOrdersStore.restockShopTitle
+                  ? window.UaOrdersStore.restockShopTitle(fresh)
+                  : fresh.warehouse || fresh.supplierName || '进货商城'
+                : fresh.supplierName || '冷丰优选供应链';
               if (hasPoints) title += ' · 含积分兑换';
-              if (fresh.siblingOrderNo) title += ' · 关联拆单';
               return title;
             })()
           ) +

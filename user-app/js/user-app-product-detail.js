@@ -136,6 +136,9 @@
   }
 
   function isStoreAppPort() {
+    if (window.LfAppShell && typeof window.LfAppShell.isStoreApp === 'function') {
+      return window.LfAppShell.isStoreApp();
+    }
     var p = getParams();
     return p.get('port') === 'store-app' || p.get('from') === 'store-app';
   }

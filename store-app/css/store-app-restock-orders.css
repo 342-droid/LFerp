@@ -1,0 +1,181 @@
+.sa-ro-card {
+  display: block;
+  margin: 10px 12px;
+  padding: 12px;
+  background: #fff;
+  border-radius: 10px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.sa-ro-card__head,
+.sa-ro-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sa-ro-card__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111;
+}
+
+.sa-ro-card__status {
+  font-size: 13px;
+  color: #ff6a00;
+}
+
+.sa-ro-card__body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.sa-ro-card__imgs {
+  display: flex;
+  gap: 6px;
+}
+
+.sa-ro-card__imgs img {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #f5f5f5;
+}
+
+.sa-ro-card__sum {
+  text-align: right;
+}
+
+.sa-ro-card__price {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111;
+}
+
+.sa-ro-card__count,
+.sa-ro-card__time,
+.sa-ro-kv span:first-child {
+  font-size: 12px;
+  color: #999;
+}
+
+.sa-ro-block {
+  margin: 10px 12px;
+  padding: 12px;
+  background: #fff;
+  border-radius: 10px;
+}
+
+.sa-ro-block__title {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.sa-ro-item {
+  display: flex;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.sa-ro-item + .sa-ro-item {
+  border-top: 1px solid #f3f3f3;
+}
+
+.sa-ro-item img {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #f5f5f5;
+}
+
+.sa-ro-item__name {
+  font-size: 14px;
+  color: #111;
+}
+
+.sa-ro-item__meta {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #999;
+}
+
+.sa-ro-kv {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  font-size: 13px;
+  color: #333;
+}
+
+.sa-ro-kv--total {
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid #f3f3f3;
+  font-weight: 600;
+}
+
+.sa-ro-empty {
+  padding: 48px 16px;
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+}
+
+.sa-ro-kv--freight {
+  align-items: flex-start;
+}
+
+.sa-ro-freight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.sa-ro-freight__line {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sa-ro-freight__toggle {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #999;
+}
+
+.sa-ro-freight__toggle svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+  transition: transform 0.18s ease;
+}
+
+.sa-ro-freight__toggle.is-expanded svg {
+  transform: rotate(180deg);
+}
+
+.sa-ro-freight__legs {
+  min-width: 168px;
+}
+
+.sa-ro-freight__leg {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 12px;
+  color: #999;
+  padding: 2px 0;
+}

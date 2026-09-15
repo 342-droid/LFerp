@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>进货订单详情 · 门店APP</title>
+  <link rel="stylesheet" href="../css/store-app.css?v=20260826-cutoff">
+  <link rel="stylesheet" href="../css/store-app-orders.css?v=20260914-spot-verify">
+  <link rel="stylesheet" href="../css/store-app-restock-orders.css?v=20260916-freight">
+</head>
+<body class="store-app-body">
+  <div class="sa-shell sa-orders-shell">
+    <div class="sa-orders">
+      <header class="sa-orders-nav">
+        <a href="restock-orders.html" class="sa-orders-nav__back" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <h1 class="sa-orders-nav__title">进货订单详情</h1>
+      </header>
+      <div class="sa-orders-scroll">
+        <main class="subpage-body" id="restockOrderDetail">
+          <div class="detail-loading">加载中...</div>
+        </main>
+      </div>
+    </div>
+  </div>
+  <script src="../../js/lf-app-shell.js?v=20260916-isolate"></script>
+  <script src="../../js/tms-logistics-rate-store.js?v=20260915-explain-v2"></script>
+  <script src="../../user-app/js/user-app-orders-store.js?v=20260916-freight"></script>
+  <script src="../js/store-app-restock-order-detail.js?v=20260916-freight"></script>
+</body>
+</html>

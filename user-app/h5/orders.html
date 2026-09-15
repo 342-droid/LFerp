@@ -4,6 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>我的订单 · 用户 APP</title>
+  <script src="../../js/lf-app-shell.js?v=20260916-isolate"></script>
+  <script>
+    if (window.LfAppShell && window.LfAppShell.isStoreApp()) {
+      location.replace(window.LfAppShell.restockOrdersHref());
+    }
+  </script>
   <link rel="stylesheet" href="../css/user-app-shell.css">
   <link rel="stylesheet" href="../css/user-app-profile.css">
   <link rel="stylesheet" href="../css/user-app-orders.css?v=20260908-pay-sheet">
@@ -192,11 +198,11 @@
         </article>
 
         <!-- 进货演示卡：仅 from=restock 时由 JS 改写链接；零售列表默认隐藏仓配语义 -->
-        <article class="ua-order-card" data-status="receiving" data-supplier-name="江南果蔬批发" data-detail-status="receipt" data-delivery="warehouse" data-restock-only="1" hidden>
+        <article class="ua-order-card" data-status="receiving" data-supplier-name="江南果蔬批发" data-warehouse-name="W002 嘉兴仓" data-detail-status="receipt" data-delivery="warehouse" data-restock-only="1" hidden>
           <a href="order-detail.html?status=receipt&amp;delivery=warehouse&amp;from=restock.html" class="ua-order-card--link">
             <div class="ua-order-card__head">
               <span class="ua-order-merchant ua-order-merchant--store"><span class="ua-order-store">悠悠生鲜超市</span></span>
-              <span class="ua-order-merchant ua-order-merchant--supplier" hidden><span class="ua-order-supplier">江南果蔬批发</span></span>
+              <span class="ua-order-merchant ua-order-merchant--supplier" hidden><span class="ua-order-supplier">W002 嘉兴仓</span></span>
               <span class="ua-order-status ua-order-status--red">待收货</span>
             </div>
             <div class="ua-order-card__body">
@@ -423,9 +429,9 @@
 <script src="../js/user-app-blacklist-guard.js"></script>
 <script src="../../js/mdm-supplier-archive-store.js"></script>
 <script src="../../js/store-wallet-demo.js?v=20260908-in-transit"></script>
-<script src="../js/user-app-orders-store.js?v=20260915-split-wh"></script>
+<script src="../js/user-app-orders-store.js?v=20260916-freight"></script>
 <script src="../js/user-app-order-pay-sheet.js?v=20260908-pay-result"></script>
-<script src="../js/user-app-orders.js?v=20260915-split-wh"></script>
+<script src="../js/user-app-orders.js?v=20260916-shop-title"></script>
 <script src="../js/user-app-live-invite.js?v=20260904-livepromo3"></script>
 <script src="../js/user-app-auth.js?v=20260904-livepromo3"></script>
 <script src="../js/user-app-queue.js"></script>

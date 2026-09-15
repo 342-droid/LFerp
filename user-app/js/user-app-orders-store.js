@@ -60,8 +60,65 @@
     );
   }
 
+  function isWarehouseShopName(name) {
+    var s = String(name || '').trim();
+    if (!s || /供应商/.test(s)) return false;
+    if (/^W00\d/.test(s) || /嘉兴仓|南京仓|上海仓/.test(s)) return true;
+    if (s === '华东冷链仓') return true;
+    return /仓$/.test(s);
+  }
+
+  function looksLikeJiaxingDelivery(order) {
+    var title = String((order && (order.warehouse || order.supplierName)) || '');
+    return /W002|嘉兴仓/.test(title);
+  }
+
+  /** 进货配送单：按仓履约。W002 嘉兴仓即使被误写成快递，也按配送修回。 */
+  function isRestockDelivery(order) {
+    if (!order) return false;
+    if (looksLikeJiaxingDelivery(order)) return true;
+    if (order.fulfillType === 'delivery' || order.splitKind === 'delivery') return true;
+    if (order.fulfillType === 'express' || order.splitKind === 'express') return false;
+    return isWarehouseShopName(order.warehouse);
+  }
+
+  function restockShopTitle(order) {
+    if (!order) return '进货商城';
+    if (isRestockDelivery(order)) {
+      return (
+        String(order.warehouse || '').trim() ||
+        (isWarehouseShopName(order.supplierName) ? String(order.supplierName).trim() : '') ||
+        '配送仓'
+      );
+    }
+    var name = String(order.supplierName || '').trim();
+    if (name === '华东冷链' || name === '华东冷链仓') return '华东冷链供应商';
+    return name || '进货商城';
+  }
+
+  function applyRestockFulfillRepair(order) {
+    if (!order) return order;
+    if (isRestockDelivery(order)) {
+      order.fulfillType = 'delivery';
+      order.splitKind = 'delivery';
+      if (!order.warehouse) {
+        order.warehouse = isWarehouseShopName(order.supplierName)
+          ? order.supplierName
+          : looksLikeJiaxingDelivery(order)
+            ? order.supplierName || 'W002 嘉兴仓'
+            : '';
+      }
+      if (isWarehouseShopName(order.supplierName)) order.supplierName = '';
+    } else if (order.fulfillType === 'express' || order.splitKind === 'express') {
+      if (order.supplierName === '华东冷链' || order.supplierName === '华东冷链仓') {
+        order.supplierName = '华东冷链供应商';
+      }
+    }
+    return order;
+  }
+
   function normalizeOrder(order) {
-    order = order || {};
+    order = applyRestockFulfillRepair(Object.assign({}, order || {}));
     var status = order.status || 'unpaid';
     /* 后台「待核销 / 现货直核」不对用户展示：自提对客仍是待自提 */
     if (status === '待核销' || status === 'verify') status = 'pickup';
@@ -120,7 +177,8 @@
       insureFee: Number(order.insureFee) || 0,
       deliverFee: Number(order.deliverFee) || 0,
       upstairsFee: Number(order.upstairsFee) || 0,
-      upstairs: order.upstairs || null
+      upstairs: order.upstairs || null,
+      store: order.store || null
     };
   }
 
@@ -201,12 +259,28 @@
     return next;
   }
 
+  function listNormalized() {
+    var raw = readAll();
+    var next = raw.map(normalizeOrder);
+    var changed = next.some(function (n, i) {
+      var o = raw[i] || {};
+      return (
+        n.fulfillType !== (o.fulfillType || '') ||
+        n.splitKind !== (o.splitKind || '') ||
+        n.warehouse !== (o.warehouse || '') ||
+        n.supplierName !== (o.supplierName || '')
+      );
+    });
+    if (changed) writeAll(next);
+    return next;
+  }
+
   function getByNo(orderNo) {
     var no = String(orderNo || '');
     if (!no) return null;
-    var list = readAll();
+    var list = listNormalized();
     for (var i = 0; i < list.length; i++) {
-      if (list[i].orderNo === no) return normalizeOrder(list[i]);
+      if (list[i].orderNo === no) return list[i];
     }
     try {
       var raw = global.sessionStorage.getItem(LAST_KEY);
@@ -241,8 +315,20 @@
     return upsert(order);
   }
 
+  function isStoreAppShell() {
+    return !!(global.LfAppShell && typeof global.LfAppShell.isStoreApp === 'function' && global.LfAppShell.isStoreApp());
+  }
+
   function buildDetailHref(order) {
-    if (!order) return 'orders.html';
+    if (!order) {
+      return isStoreAppShell()
+        ? (global.LfAppShell ? global.LfAppShell.restockOrdersHref() : '../../store-app/h5/restock-orders.html')
+        : 'orders.html';
+    }
+    order = normalizeOrder(order);
+    if (isStoreAppShell() && (order.from === 'restock.html' || order.fulfillType || order.splitKind)) {
+      return global.LfAppShell.restockDetailHref(order.orderNo);
+    }
     var qs = ['status=' + encodeURIComponent(order.status || 'unpaid')];
     qs.push('orderNo=' + encodeURIComponent(order.orderNo));
     if (order.status === 'closed' && order.closedReason) {
@@ -253,6 +339,12 @@
       if (it && it.isPointsExchange) pointsIdx.push(idx);
     });
     if (pointsIdx.length) qs.push('pointsItem=' + pointsIdx.join(','));
+    if (order.from === 'restock.html' || order.fulfillType || order.splitKind) {
+      qs.push('from=restock.html');
+      qs.push('delivery=' + (isRestockDelivery(order) ? 'warehouse' : 'store'));
+      var shop = restockShopTitle(order);
+      if (shop) qs.push('supplier=' + encodeURIComponent(shop));
+    }
     return 'order-detail.html?' + qs.join('&');
   }
 
@@ -264,8 +356,11 @@
     getByNo: getByNo,
     getLatest: getLatest,
     updateStatus: updateStatus,
-    list: readAll,
+    list: listNormalized,
     buildDetailHref: buildDetailHref,
+    isRestockDelivery: isRestockDelivery,
+    restockShopTitle: restockShopTitle,
+    isWarehouseShopName: isWarehouseShopName,
     STORAGE_KEY: STORAGE_KEY,
     LAST_KEY: LAST_KEY
   };

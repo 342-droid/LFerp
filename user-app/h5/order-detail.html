@@ -4,6 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>订单详情 · 用户 APP</title>
+  <script src="../../js/lf-app-shell.js?v=20260916-isolate"></script>
+  <script>
+    if (window.LfAppShell && window.LfAppShell.isStoreApp()) {
+      var no = new URLSearchParams(location.search).get('orderNo') || '';
+      location.replace(window.LfAppShell.restockDetailHref(no));
+    }
+  </script>
   <link rel="stylesheet" href="../css/user-app-shell.css">
   <link rel="stylesheet" href="../css/user-app-profile.css">
   <link rel="stylesheet" href="../css/user-app-order-detail.css?v=20260915-freight-expand">
@@ -209,11 +216,11 @@
           <div class="ua-od-price__row ua-od-price__row--discount" id="orderDiscountRow" data-price-layout="user">
             <span>订单优惠</span><span id="orderDiscount">-¥60.00</span>
           </div>
-          <div class="ua-od-price__row ua-od-price__row--freight" data-price-layout="restock" hidden id="orderFreightRow">
+          <div class="ua-od-price__row ua-od-price__row--freight" id="orderFreightRow">
             <span>运费</span>
             <span class="ua-od-price__freight-wrap">
               <span class="ua-od-price__freight-line">
-                <span id="orderFreight">¥0.00</span>
+                <span id="orderFreight">免运费</span>
                 <button type="button" class="ua-od-pay-legs-toggle" id="orderFreightToggle" hidden aria-expanded="false" aria-label="展开运费明细">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
                 </button>
@@ -225,8 +232,8 @@
           <div class="ua-od-price__row ua-od-price__row--discount" data-price-layout="restock" hidden><span>免邮券</span><span>-¥15.00</span></div>
           <div class="ua-od-price__row ua-od-price__row--discount" data-price-layout="restock" hidden><span>活动优惠</span><span>-¥5.00</span></div>
           <div class="ua-od-price__row ua-od-price__row--discount" data-price-layout="restock" hidden><span>店铺优惠</span><span>-¥10.00</span></div>
-          <div class="ua-od-price__row ua-od-price__row--discount" id="orderPointsDeductRow" data-price-layout="restock" hidden>
-            <span>积分抵扣</span><span id="orderPointsDeduct">-¥20.00</span>
+          <div class="ua-od-price__row ua-od-price__row--discount" id="orderPointsDeductRow" data-price-layout="user">
+            <span>积分抵扣</span><span id="orderPointsDeduct">-¥0.00</span>
           </div>
           <div class="ua-od-price__row ua-od-price__row--total">
             <span>实付金额</span>
@@ -318,10 +325,10 @@
   <script src="../js/ua-proxy-sale-scope.js"></script>
   <script src="../js/user-app-product-catalog.js?v=20260914-temp-layer"></script>
   <script src="../../js/tms-logistics-rate-store.js?v=20260915-svc-fixed"></script>
-  <script src="../js/user-app-orders-store.js?v=20260914-spot-verify"></script>
+  <script src="../js/user-app-orders-store.js?v=20260916-freight"></script>
   <script src="../js/user-app-order-refund.js?v=20260909-pts-as"></script>
   <script src="../js/user-app-order-pay-sheet.js?v=20260908-pay-result"></script>
-  <script src="../js/user-app-order-detail.js?v=20260915-freight-expand"></script>
+  <script src="../js/user-app-order-detail.js?v=20260916-user-price"></script>
   <script src="../js/user-app-auth.js"></script>
   <script src="../../js/pg-prd-float.js?v=20260909-670"></script>
 

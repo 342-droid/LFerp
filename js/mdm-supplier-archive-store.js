@@ -29,7 +29,8 @@
     {
       id: 'supplier-huadong',
       name: '华东冷链供应商',
-      shortName: '华东冷链'
+      /* 不用「华东冷链」作简称，避免和仓库「华东冷链仓」混淆 */
+      shortName: ''
     },
     {
       id: 'supplier-jiangnan',
@@ -76,6 +77,10 @@
       if (!existing.name && seed.name) existing.name = seed.name;
       /* 档案未维护简称时，保留演示种子简称，便于 APP 透出 */
       if (!existing.shortName && seed.shortName) existing.shortName = seed.shortName;
+      /* 华东冷链供应商：清掉易与「华东冷链仓」混淆的旧简称 */
+      if (existing.id === 'supplier-huadong' && existing.shortName === '华东冷链') {
+        existing.shortName = '';
+      }
     });
   }
 
