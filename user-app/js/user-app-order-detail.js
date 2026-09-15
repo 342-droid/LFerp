@@ -1407,7 +1407,8 @@
           priceNum: it.price != null ? it.price : it.priceNum,
           qty: it.qty || 1,
           tempLayer: it.tempLayer || '',
-          spuId: it.spuId || ''
+          spuId: it.spuId || '',
+          fulfillmentMethod: it.fulfillmentMethod || it.deliveryMode || ''
         };
       });
     }
@@ -1422,7 +1423,8 @@
         title: nameEl ? nameEl.textContent.replace(/\s+/g, ' ').trim() : '',
         priceNum: parseOdMoney(saleEl && saleEl.textContent),
         qty: parseOdQty(qtyEl && qtyEl.textContent),
-        tempLayer: el.getAttribute('data-temp-layer') || ''
+        tempLayer: el.getAttribute('data-temp-layer') || '',
+        fulfillmentMethod: el.getAttribute('data-fulfillment') || ''
       });
     });
     return items;
@@ -1433,63 +1435,155 @@
     return n > 0 ? '¥' + n.toFixed(2) : '免运费';
   }
 
-  function applyRestockFreightRows(order) {
-    if (!isFromRestock()) return;
-    var ambientRow = document.getElementById('orderAmbientFreightRow');
-    var coldRow = document.getElementById('orderColdFreightRow');
-    var totalRow = document.getElementById('orderFreightRow');
-    var ambientEl = document.getElementById('orderAmbientFreight');
-    var coldEl = document.getElementById('orderColdFreight');
-    var totalEl = document.getElementById('orderFreight');
+  function readOdUpstairsPref() {
+    try {
+      var raw = localStorage.getItem('ua_checkout_upstairs_v1');
+      if (raw) {
+        var pref = JSON.parse(raw);
+        return {
+          hasElevator: !pref || pref.hasElevator !== false,
+          floor: pref && pref.floor != null && pref.floor !== '' ? pref.floor : 2
+        };
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    return { hasElevator: true, floor: 2 };
+  }
+
+  function resolveOdFreightBreakdown(order) {
+    var hasSavedExtras = !!(order && (
+      order.insureFee != null || order.deliverFee != null || order.upstairsFee != null
+    ));
     var ambient = order && order.ambientFee != null ? Number(order.ambientFee) : null;
     var cold = order && order.coldFee != null ? Number(order.coldFee) : null;
-    var hasAmbientItems = true;
-    var hasColdItems = true;
-    if (ambient == null || cold == null) {
+    var insure = hasSavedExtras ? Number(order.insureFee) || 0 : null;
+    var deliver = hasSavedExtras ? Number(order.deliverFee) || 0 : null;
+    var upstairs = hasSavedExtras ? Number(order.upstairsFee) || 0 : null;
+    var hasAmbient = ambient != null && ambient >= 0;
+    var hasCold = cold != null && cold >= 0;
+    if (ambient == null || cold == null || !hasSavedExtras) {
       var api = window.TmsLogisticsRate;
       if (api && typeof api.quoteOrder === 'function') {
         var addrEl = document.getElementById('orderStoreAddr');
         var quote = api.quoteOrder({
           channel: api.CHANNEL_PROXY,
+          fulfill: 'platform',
           address: (addrEl && addrEl.textContent) || '浙江省杭州市萧山区建设一路88号',
-          items: collectDetailFreightItems(order)
+          items: collectDetailFreightItems(order),
+          payable: order && order.goodsTotal != null ? Number(order.goodsTotal) : undefined,
+          services: { insure: true, deliver: true, upstairs: true },
+          upstairs: (order && order.upstairs) || readOdUpstairsPref()
         });
-        ambient = quote.ambient.amount || 0;
-        cold = quote.cold.amount || 0;
-        hasAmbientItems = !quote.ambient.empty;
-        hasColdItems = !quote.cold.empty;
+        var summary = quote.serviceSummary || {};
+        if (ambient == null) ambient = quote.ambient.amount || 0;
+        if (cold == null) cold = quote.cold.amount || 0;
+        hasAmbient = !quote.ambient.empty;
+        hasCold = !quote.cold.empty;
+        if (insure == null) insure = (summary.insure && summary.insure.available) ? summary.insure.amount : 0;
+        if (deliver == null) deliver = (summary.deliver && summary.deliver.available) ? summary.deliver.amount : 0;
+        if (upstairs == null) upstairs = (summary.upstairs && summary.upstairs.available) ? summary.upstairs.amount : 0;
         if (order) {
           order.ambientFee = ambient;
           order.coldFee = cold;
+          order.insureFee = insure;
+          order.deliverFee = deliver;
+          order.upstairsFee = upstairs;
           order.freight = quote.total;
         }
-      } else {
-        ambient = order && order.freight != null ? Number(order.freight) : 0;
-        cold = 0;
-        hasAmbientItems = ambient > 0;
-        hasColdItems = false;
       }
-    } else {
-      var typed = collectDetailFreightItems(order);
-      if (typed.length && window.TmsLogisticsRate) {
-        hasAmbientItems = typed.some(function (it) {
-          return window.TmsLogisticsRate.logisticsTypeFromTemp(
-            window.TmsLogisticsRate.resolveTempLayer(it)
-          ) !== '冷链';
-        });
-        hasColdItems = typed.some(function (it) {
-          return window.TmsLogisticsRate.logisticsTypeFromTemp(
-            window.TmsLogisticsRate.resolveTempLayer(it)
-          ) === '冷链';
+    }
+    ambient = Number(ambient) || 0;
+    cold = Number(cold) || 0;
+    insure = Number(insure) || 0;
+    deliver = Number(deliver) || 0;
+    upstairs = Number(upstairs) || 0;
+    if (order && order.freight != null && hasSavedExtras) {
+      return {
+        total: Number(order.freight) || 0,
+        ambient: ambient,
+        cold: cold,
+        insure: insure,
+        deliver: deliver,
+        upstairs: upstairs,
+        hasAmbient: hasAmbient,
+        hasCold: hasCold
+      };
+    }
+    var typed = collectDetailFreightItems(order);
+    if (typed.length && window.TmsLogisticsRate) {
+      hasAmbient = typed.some(function (it) {
+        return window.TmsLogisticsRate.logisticsTypeFromTemp(
+          window.TmsLogisticsRate.resolveTempLayer(it)
+        ) !== '冷链';
+      });
+      hasCold = typed.some(function (it) {
+        return window.TmsLogisticsRate.logisticsTypeFromTemp(
+          window.TmsLogisticsRate.resolveTempLayer(it)
+        ) === '冷链';
+      });
+    }
+    return {
+      total: Math.round((ambient + cold + insure + deliver + upstairs) * 100) / 100,
+      ambient: ambient,
+      cold: cold,
+      insure: insure,
+      deliver: deliver,
+      upstairs: upstairs,
+      hasAmbient: hasAmbient,
+      hasCold: hasCold
+    };
+  }
+
+  function applyRestockFreightRows(order) {
+    if (!isFromRestock()) return;
+    var totalRow = document.getElementById('orderFreightRow');
+    var totalEl = document.getElementById('orderFreight');
+    var legsEl = document.getElementById('orderFreightLegs');
+    var toggle = document.getElementById('orderFreightToggle');
+    var info = resolveOdFreightBreakdown(order);
+    var lines = [];
+    if (info.hasAmbient) lines.push({ name: '常温运费', amount: info.ambient });
+    if (info.hasCold) lines.push({ name: '冷链运费', amount: info.cold });
+    if (info.insure > 0) lines.push({ name: '保价费', amount: info.insure });
+    if (info.deliver > 0) lines.push({ name: '派送费', amount: info.deliver });
+    if (info.upstairs > 0) lines.push({ name: '上楼费', amount: info.upstairs });
+    if (totalEl) totalEl.textContent = formatOdFreight(info.total);
+    if (totalRow) totalRow.hidden = false;
+    if (legsEl) {
+      legsEl.innerHTML = lines
+        .map(function (line) {
+          return (
+            '<div class="ua-od-price__freight-leg-row">' +
+            '<span class="ua-od-price__freight-leg-name">' +
+            line.name +
+            '</span>' +
+            '<span class="ua-od-price__freight-leg-amount">' +
+            formatOdFreight(line.amount) +
+            '</span></div>'
+          );
+        })
+        .join('');
+      legsEl.hidden = true;
+    }
+    if (toggle) {
+      var canExpand = lines.length > 0 && info.total > 0;
+      toggle.hidden = !canExpand;
+      toggle.classList.remove('is-expanded');
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.setAttribute('aria-label', '展开运费明细');
+      if (canExpand && !toggle._boundFreightLegs) {
+        toggle._boundFreightLegs = true;
+        toggle.addEventListener('click', function () {
+          var expanded = toggle.getAttribute('aria-expanded') === 'true';
+          var next = !expanded;
+          toggle.setAttribute('aria-expanded', next ? 'true' : 'false');
+          toggle.setAttribute('aria-label', next ? '收起运费明细' : '展开运费明细');
+          toggle.classList.toggle('is-expanded', next);
+          if (legsEl) legsEl.hidden = !next;
         });
       }
     }
-    if (ambientEl) ambientEl.textContent = formatOdFreight(ambient);
-    if (coldEl) coldEl.textContent = formatOdFreight(cold);
-    if (totalEl) totalEl.textContent = formatOdFreight((Number(ambient) || 0) + (Number(cold) || 0));
-    if (ambientRow) ambientRow.hidden = !hasAmbientItems;
-    if (coldRow) coldRow.hidden = !hasColdItems;
-    if (totalRow) totalRow.hidden = hasAmbientItems || hasColdItems;
   }
 
   function applyRestockMode(status, config) {

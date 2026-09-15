@@ -1060,11 +1060,20 @@
     if (isPointsExchangeItem(item)) {
       var supplierId = item.supplierId || String(item.merchantId || '').replace(/^supplier:/, '') || '斯斯供应商商家';
       var supplierName = item.supplierName || item.merchantName || supplierId;
+      var pointsFulfill = item.fulfillType === 'express' ? 'express' : 'pickup';
+      if (pointsFulfill === 'express') {
+        return {
+          fulfillType: 'express',
+          merchantId: 'supplier:' + supplierId,
+          merchantName: supplierName,
+          merchantAvatar: ''
+        };
+      }
       return {
-        fulfillType: item.fulfillType === 'express' ? 'express' : 'pickup',
-        merchantId: 'supplier:' + supplierId,
-        merchantName: supplierName,
-        merchantAvatar: ''
+        fulfillType: 'pickup',
+        merchantId: STORE.id,
+        merchantName: STORE.name,
+        merchantAvatar: STORE.avatar || ''
       };
     }
     var p = PRODUCTS[item && item.id];
@@ -2204,7 +2213,10 @@
     };
   }
 
-  /** 用户 APP 零售：现货自提与需走订货商品拆成两单。进货商城不走本逻辑。 */
+  /**
+   * 用户 APP 零售拆单：自提按门店配送仓合并（现货直核仍单独一单）；快递仍按供应商拆。
+   * 进货商城不走本函数。
+   */
   function persistSplitUnpaidOrders(opts) {
     opts = opts || {};
     var allItems = opts.items || [];
@@ -2212,17 +2224,18 @@
     var usePointsDeduct = !!opts.usePointsDeduct;
     var d = opts.deduct || { pointsUsed: 0, deductAmount: 0 };
     var extra = opts.extra || {};
-    var spotItems = allItems.filter(isSpotDirectCheckoutItem);
-    var otherItems = allItems.filter(function (it) {
-      return !isSpotDirectCheckoutItem(it);
-    });
-    var groups =
-      spotItems.length && otherItems.length
-        ? [
-            { kind: 'spot', items: spotItems },
-            { kind: 'wh', items: otherItems }
-          ]
-        : [{ kind: spotItems.length ? 'spot' : 'normal', items: allItems }];
+    var splitViews = buildConfirmSplitOrders(allItems);
+    var groups = splitViews.length
+      ? splitViews.map(function (g) {
+          return {
+            kind: g.spotDirect ? 'spot' : g.fulfillType === 'express' ? 'express' : 'wh',
+            fulfillType: g.fulfillType,
+            merchantId: g.merchantId,
+            merchantName: g.merchantName,
+            items: g.items
+          };
+        })
+      : [{ kind: 'normal', fulfillType: '', merchantId: '', merchantName: '', items: allItems }];
     var totalGoods = allItems.reduce(function (s, it) {
       return s + checkoutItemGoodsAmount(it);
     }, 0);
@@ -2288,7 +2301,9 @@
           splitGroupId: groups.length > 1 ? groupId : '',
           siblingOrderNo: siblingNos[0] || '',
           siblingOrderNos: siblingNos,
-          splitKind: group.kind
+          splitKind: group.kind,
+          fulfillType: group.fulfillType || '',
+          supplierName: group.fulfillType === 'express' ? group.merchantName || '' : ''
         },
         extra
       );
@@ -2631,7 +2646,7 @@
           '）</span>' +
           '<span class="ua-confirm-pkg__time">' +
           split.timeText +
-          (split.fulfillType === 'express' ? ' · 免运费' : '') +
+          ' · 包邮' +
           '</span></div>' +
           renderPkgBody(split) +
           '<div class="ua-confirm-pkg__remark">' +
@@ -2853,7 +2868,7 @@
     var freightHelp = host.querySelector('[data-confirm-freight-help]');
     if (freightHelp) {
       freightHelp.addEventListener('click', function () {
-        showToast(view.hasExpress ? '快递订单满额包邮（演示）' : '自提订单无需运费');
+        showToast('零售自提、快递均包邮，不收取运费');
       });
     }
     var agree = host.querySelector('[data-confirm-agree]');

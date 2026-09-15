@@ -2768,6 +2768,22 @@
   color: #333;
 }
 
+.ua-freight-explain__p {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: #555;
+  line-height: 1.6;
+}
+
+.ua-freight-explain__p:last-child {
+  margin-bottom: 0;
+}
+
+.ua-freight-explain__p strong {
+  color: #333;
+  font-weight: 600;
+}
+
 .ua-freight-explain__tpl {
   margin-bottom: 8px;
   padding: 10px 12px;

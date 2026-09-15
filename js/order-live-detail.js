@@ -347,6 +347,334 @@
       ],
       clearingEmpty: true
     },
+    /* 代采配送：多供应商按门店配送仓合并一单 */
+    'ORD-3212689201599701': {
+      displayId: 'ORD-3212689201599701',
+      siblingOrderNo: 'ORD-3212689201599702',
+      siblingOrderNos: ['ORD-3212689201599702'],
+      splitKind: 'delivery',
+      progress: {
+        completedSteps: 2,
+        outcome: null,
+        status: '待发货',
+        submitTime: '2026-09-15 09:18',
+        payTime: '2026-09-15 09:18'
+      },
+      goods: [
+        {
+          id: 'g1',
+          name: '长茄子 广茄',
+          spec: '规格：5斤',
+          img: '../user-app/assets/restock/product-eggplant-long.svg',
+          spu: 'SPU-9701A…',
+          sku: 'SKU-9701A…',
+          weight: '2.50',
+          price: '¥21.00',
+          qty: '1',
+          subtotal: '¥21.00',
+          marketing: '普通售卖'
+        },
+        {
+          id: 'g2',
+          name: '油麦菜【菜鲜】',
+          spec: '规格：10斤',
+          img: '../user-app/assets/order-product-2.svg',
+          spu: 'SPU-9701B…',
+          sku: 'SKU-9701B…',
+          weight: '5.00',
+          price: '¥30.00',
+          qty: '1',
+          subtotal: '¥30.00',
+          marketing: '普通售卖'
+        }
+      ],
+      amounts: {
+        goods: '¥51.00',
+        discount: '¥0.00',
+        shipping: '¥12.00',
+        payable: '¥63.00',
+        paid: '¥63.00',
+        merchant: '¥63.00',
+        refund: '¥0.00'
+      },
+      paymentCount: 1,
+      aftersales: [],
+      customer: { nickname: '张店长', phone: '13800138000', userId: '318605592681791701' },
+      delivery: {
+        type: 'DELIVERY',
+        deliveryMode: '配送',
+        name: '张店长',
+        phone: '13800138000',
+        address: '浙江省杭州市萧山区建设一路88号',
+        store: '悠悠生鲜超市'
+      },
+      tags: {
+        channel: 'STORE_APP',
+        orderScene: '代采',
+        payChannel: '微信',
+        marketing: '普通售卖',
+        livePeriod: '-',
+        bd: '1',
+        settleStatus: '-',
+        commissionStatus: '-'
+      },
+      logs: [
+        { time: '2026-09-15 09:18', title: '订单已拆单', desc: '配送按门店对应配送仓（W002 嘉兴仓）合并，江南/鲜丰商品落在同一单' },
+        { time: '2026-09-15 09:18', title: '支付成功', desc: '支付成功，金额 ¥63.00' }
+      ],
+      clearingEmpty: true
+    },
+    /* 代采快递：仍按供应商拆 */
+    'ORD-3212689201599702': {
+      displayId: 'ORD-3212689201599702',
+      siblingOrderNo: 'ORD-3212689201599701',
+      siblingOrderNos: ['ORD-3212689201599701'],
+      splitKind: 'express',
+      progress: {
+        completedSteps: 2,
+        outcome: null,
+        status: '待发货',
+        submitTime: '2026-09-15 09:18',
+        payTime: '2026-09-15 09:18'
+      },
+      goods: [{
+        id: 'g1',
+        name: '[可口可乐]摩登罐汽水330ml',
+        spec: '规格：24罐',
+        img: '../user-app/assets/restock/product-cola.svg',
+        spu: 'SPU-9702…',
+        sku: 'SKU-9702…',
+        weight: '8.00',
+        price: '¥52.00',
+        qty: '1',
+        subtotal: '¥52.00',
+        marketing: '普通售卖'
+      }],
+      amounts: {
+        goods: '¥52.00',
+        discount: '¥0.00',
+        shipping: '¥0.00',
+        payable: '¥52.00',
+        paid: '¥52.00',
+        merchant: '¥52.00',
+        refund: '¥0.00'
+      },
+      paymentCount: 1,
+      aftersales: [],
+      customer: { nickname: '张店长', phone: '13800138000', userId: '318605592681791701' },
+      delivery: {
+        type: 'EXPRESS',
+        deliveryMode: '快递',
+        name: '张店长',
+        phone: '13800138000',
+        address: '浙江省杭州市萧山区建设一路88号',
+        store: '悠悠生鲜超市'
+      },
+      tags: {
+        channel: 'STORE_APP',
+        orderScene: '代采',
+        payChannel: '微信',
+        marketing: '普通售卖',
+        livePeriod: '-',
+        bd: '1',
+        settleStatus: '-',
+        commissionStatus: '-'
+      },
+      logs: [
+        { time: '2026-09-15 09:18', title: '订单已拆单', desc: '快递仍按供应商拆出本单（冷丰优选供应链）' },
+        { time: '2026-09-15 09:18', title: '支付成功', desc: '与配送单同一笔支付' }
+      ],
+      clearingEmpty: true
+    },
+    /* 零售自提：按门店配送仓合并，不按供应商拆 */
+    'ORD-3212689201599801': {
+      displayId: 'ORD-3212689201599801',
+      siblingOrderNo: 'ORD-3212689201599802',
+      siblingOrderNos: ['ORD-3212689201599802', 'ORD-3212689201599803'],
+      splitKind: 'wh',
+      progress: {
+        completedSteps: 2,
+        outcome: null,
+        status: '待发货',
+        submitTime: '2026-09-15 11:06',
+        payTime: '2026-09-15 11:06'
+      },
+      goods: [
+        {
+          id: 'g1',
+          name: '阳光番茄 500g',
+          spec: '规格：500g',
+          img: '../user-app/assets/order-product-1.svg',
+          price: '¥9.90',
+          qty: '2',
+          subtotal: '¥19.80',
+          marketing: '普通售卖'
+        },
+        {
+          id: 'g2',
+          name: '黄瓜 500g',
+          spec: '规格：500g',
+          img: '../user-app/assets/order-product-2.svg',
+          price: '¥5.80',
+          qty: '1',
+          subtotal: '¥5.80',
+          marketing: '普通售卖'
+        }
+      ],
+      amounts: {
+        goods: '¥25.60',
+        discount: '¥0.00',
+        shipping: '¥0.00',
+        payable: '¥25.60',
+        paid: '¥25.60',
+        merchant: '¥25.60',
+        refund: '¥0.00'
+      },
+      paymentCount: 1,
+      aftersales: [],
+      customer: { nickname: '周晓棠', phone: '13800009801', userId: '318605592681791801' },
+      delivery: {
+        type: 'SELF_PICKUP',
+        deliveryMode: '自提',
+        name: '周晓棠',
+        phone: '13800009801',
+        address: '浙江省杭州市上城区望江街道望江路16号',
+        store: '华强北'
+      },
+      tags: {
+        channel: 'MINI_PROGRAM',
+        orderScene: '商城',
+        payChannel: '微信',
+        marketing: '普通售卖',
+        livePeriod: '-',
+        bd: '1',
+        settleStatus: '-',
+        commissionStatus: '-'
+      },
+      logs: [
+        { time: '2026-09-15 11:06', title: '订单已拆单', desc: '自提按门店对应配送仓合并一单，不按供应商拆' },
+        { time: '2026-09-15 11:06', title: '支付成功', desc: '同一购物车的快递商品已拆到关联单' }
+      ],
+      clearingEmpty: true
+    },
+    'ORD-3212689201599802': {
+      displayId: 'ORD-3212689201599802',
+      siblingOrderNo: 'ORD-3212689201599801',
+      siblingOrderNos: ['ORD-3212689201599801', 'ORD-3212689201599803'],
+      splitKind: 'express',
+      progress: {
+        completedSteps: 2,
+        outcome: null,
+        status: '待发货',
+        submitTime: '2026-09-15 11:06',
+        payTime: '2026-09-15 11:06'
+      },
+      goods: [{
+        id: 'g1',
+        name: '微辣萝卜干 500g',
+        spec: '规格：500g',
+        img: '../user-app/assets/order-product-2.svg',
+        price: '¥0.90',
+        qty: '1',
+        subtotal: '¥0.90',
+        marketing: '普通售卖'
+      }],
+      amounts: {
+        goods: '¥0.90',
+        discount: '¥0.00',
+        shipping: '¥0.00',
+        payable: '¥0.90',
+        paid: '¥0.90',
+        merchant: '¥0.90',
+        refund: '¥0.00'
+      },
+      paymentCount: 1,
+      aftersales: [],
+      customer: { nickname: '周晓棠', phone: '13800009801', userId: '318605592681791801' },
+      delivery: {
+        type: 'EXPRESS',
+        deliveryMode: '快递',
+        name: '周晓棠',
+        phone: '13800009801',
+        address: '浙江省杭州市上城区望江街道望江路16号',
+        store: '华强北',
+        homeAddress: '浙江省杭州市上城区望江街道望江路16号'
+      },
+      tags: {
+        channel: 'MINI_PROGRAM',
+        orderScene: '商城',
+        payChannel: '微信',
+        marketing: '普通售卖',
+        livePeriod: '-',
+        bd: '1',
+        settleStatus: '-',
+        commissionStatus: '-'
+      },
+      logs: [
+        { time: '2026-09-15 11:06', title: '订单已拆单', desc: '快递仍按供应商拆出本单' },
+        { time: '2026-09-15 11:06', title: '支付成功', desc: '与自提单同一笔支付' }
+      ],
+      clearingEmpty: true
+    },
+    'ORD-3212689201599803': {
+      displayId: 'ORD-3212689201599803',
+      siblingOrderNo: 'ORD-3212689201599801',
+      siblingOrderNos: ['ORD-3212689201599801', 'ORD-3212689201599802'],
+      splitKind: 'express',
+      progress: {
+        completedSteps: 2,
+        outcome: null,
+        status: '待发货',
+        submitTime: '2026-09-15 11:06',
+        payTime: '2026-09-15 11:06'
+      },
+      goods: [{
+        id: 'g1',
+        name: '赣南脐橙 果大皮薄 5斤装',
+        spec: '规格：5斤',
+        img: '../user-app/assets/order-product-3.svg',
+        price: '¥18.06',
+        qty: '1',
+        subtotal: '¥18.06',
+        marketing: '普通售卖'
+      }],
+      amounts: {
+        goods: '¥18.06',
+        discount: '¥0.00',
+        shipping: '¥0.00',
+        payable: '¥18.06',
+        paid: '¥18.06',
+        merchant: '¥18.06',
+        refund: '¥0.00'
+      },
+      paymentCount: 1,
+      aftersales: [],
+      customer: { nickname: '周晓棠', phone: '13800009801', userId: '318605592681791801' },
+      delivery: {
+        type: 'EXPRESS',
+        deliveryMode: '快递',
+        name: '周晓棠',
+        phone: '13800009801',
+        address: '浙江省杭州市上城区望江街道望江路16号',
+        store: '华强北',
+        homeAddress: '浙江省杭州市上城区望江街道望江路16号'
+      },
+      tags: {
+        channel: 'MINI_PROGRAM',
+        orderScene: '商城',
+        payChannel: '微信',
+        marketing: '普通售卖',
+        livePeriod: '-',
+        bd: '1',
+        settleStatus: '-',
+        commissionStatus: '-'
+      },
+      logs: [
+        { time: '2026-09-15 11:06', title: '订单已拆单', desc: '快递仍按供应商拆出本单' },
+        { time: '2026-09-15 11:06', title: '支付成功', desc: '与自提单同一笔支付' }
+      ],
+      clearingEmpty: true
+    },
     'ORD-3212689201588561': {
       displayId: 'ORD-3212689201588561',
       progress: {
@@ -1947,21 +2275,42 @@
     return { hasAmbient: hasAmbient, hasCold: hasCold };
   }
 
+  function readProxyUpstairsPref() {
+    try {
+      var raw = localStorage.getItem('ua_checkout_upstairs_v1');
+      if (raw) {
+        var pref = JSON.parse(raw);
+        return {
+          hasElevator: !pref || pref.hasElevator !== false,
+          floor: pref && pref.floor != null && pref.floor !== '' ? pref.floor : 2
+        };
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    return { hasElevator: true, floor: 2 };
+  }
+
   function resolveProxyFreightSplit(detail, amounts) {
     var freight = detail && detail.freight;
     var goods = (detail && detail.goods) || [];
     var types = classifyProxyGoods(goods);
     var ambient = null;
     var cold = null;
+    var insure = freight && freight.insure != null ? Number(freight.insure) : (freight && freight.insureFee != null ? Number(freight.insureFee) : null);
+    var deliver = freight && freight.deliver != null ? Number(freight.deliver) : (freight && freight.deliverFee != null ? Number(freight.deliverFee) : null);
+    var upstairs = freight && freight.upstairs != null ? Number(freight.upstairs) : (freight && freight.upstairsFee != null ? Number(freight.upstairsFee) : null);
     if (freight && (freight.ambient != null || freight.cold != null)) {
       ambient = Number(freight.ambient) || 0;
       cold = Number(freight.cold) || 0;
-    } else {
+    }
+    if (ambient == null || cold == null || insure == null || deliver == null || upstairs == null) {
       var api = window.TmsLogisticsRate;
       if (api && typeof api.quoteOrder === 'function') {
         var destAddr = (detail && detail.delivery && (detail.delivery.homeAddress || detail.delivery.address)) || '';
         var quote = api.quoteOrder({
           channel: api.CHANNEL_PROXY,
+          fulfill: 'platform',
           address: destAddr,
           items: goods.map(function (g) {
             return {
@@ -1972,12 +2321,18 @@
               gross: parseFloat(g.weight) || 0,
               tempLayer: g.tempLayer
             };
-          })
+          }),
+          services: { insure: true, deliver: true, upstairs: true },
+          upstairs: (freight && freight.upstairsPref) || readProxyUpstairsPref()
         });
-        ambient = quote.ambient.empty ? 0 : (quote.ambient.amount || 0);
-        cold = quote.cold.empty ? 0 : (quote.cold.amount || 0);
+        var summary = quote.serviceSummary || {};
+        if (ambient == null) ambient = quote.ambient.empty ? 0 : (quote.ambient.amount || 0);
+        if (cold == null) cold = quote.cold.empty ? 0 : (quote.cold.amount || 0);
         types.hasAmbient = !quote.ambient.empty;
         types.hasCold = !quote.cold.empty;
+        if (insure == null) insure = summary.insure && summary.insure.available ? summary.insure.amount : 0;
+        if (deliver == null) deliver = summary.deliver && summary.deliver.available ? summary.deliver.amount : 0;
+        if (upstairs == null) upstairs = summary.upstairs && summary.upstairs.available ? summary.upstairs.amount : 0;
       }
     }
     if (ambient == null && cold == null) {
@@ -1994,40 +2349,88 @@
       }
     }
     if (!types.hasAmbient && !types.hasCold) types.hasAmbient = true;
+    ambient = ambient || 0;
+    cold = cold || 0;
+    insure = Number(insure) || 0;
+    deliver = Number(deliver) || 0;
+    upstairs = Number(upstairs) || 0;
+    var total = freight && freight.total != null
+      ? Number(freight.total) || 0
+      : Math.round((ambient + cold + insure + deliver + upstairs) * 100) / 100;
     return {
       hasAmbient: types.hasAmbient,
       hasCold: types.hasCold,
-      ambient: ambient || 0,
-      cold: cold || 0
+      ambient: ambient,
+      cold: cold,
+      insure: insure,
+      deliver: deliver,
+      upstairs: upstairs,
+      total: total
     };
   }
 
+  function isProxyDeliveryOrder(detail) {
+    if (!isProxyOrderPage()) return false;
+    var mode = '';
+    if (detail && detail.delivery) {
+      mode = detail.delivery.deliveryMode || detail.delivery.type || detail.delivery.mode || '';
+    }
+    if (!String(mode).trim()) return true;
+    var label = retailDeliveryLabel(mode);
+    if (label === '快递' || label === '自提') return false;
+    if (mode === 'express' || mode === 'EXPRESS' || mode === 'store' || mode === 'pickup' || mode === 'SELF_PICKUP') return false;
+    return true;
+  }
+
   function buildFreightRowsHtml(detail, amounts) {
-    if (!isProxyOrderPage()) {
+    if (!isProxyDeliveryOrder(detail)) {
       return (
-        '<div class="order-detail-amount-row"><span>+ 运费</span><span>' +
-        (amounts.shipping || '¥0.00') +
-        '</span></div>'
+        '<div class="order-detail-amount-row"><span>+ 运费</span><span>免运费</span></div>'
       );
     }
     var split = resolveProxyFreightSplit(detail, amounts);
-    var html = '';
-    if (split.hasAmbient) {
-      html +=
-        '<div class="order-detail-amount-row"><span>+ 常温运费</span><span>' +
-        formatMoney(split.ambient) +
-        '</span></div>';
+    var lines = [];
+    if (split.hasAmbient) lines.push({ name: '常温运费', amount: split.ambient });
+    if (split.hasCold) lines.push({ name: '冷链运费', amount: split.cold });
+    if (split.insure > 0) lines.push({ name: '保价费', amount: split.insure });
+    if (split.deliver > 0) lines.push({ name: '派送费', amount: split.deliver });
+    if (split.upstairs > 0) lines.push({ name: '上楼费', amount: split.upstairs });
+    var totalText = split.total > 0 ? formatMoney(split.total) : '免运费';
+    if (!lines.length || split.total <= 0) {
+      return (
+        '<div class="order-detail-amount-row"><span>+ 运费</span><span>' +
+        totalText +
+        '</span></div>'
+      );
     }
-    if (split.hasCold) {
-      html +=
-        '<div class="order-detail-amount-row"><span>+ 冷链运费</span><span>' +
-        formatMoney(split.cold) +
-        '</span></div>';
-    }
-    return html || (
-      '<div class="order-detail-amount-row"><span>+ 运费</span><span>' +
-      (amounts.shipping || '¥0.00') +
-      '</span></div>'
+    var legs = lines
+      .map(function (line) {
+        return (
+          '<div class="order-detail-pay-leg-row">' +
+          '<span class="order-detail-pay-leg-name">' +
+          line.name +
+          '</span>' +
+          '<span class="order-detail-freight-leg-amount">' +
+          formatMoney(line.amount) +
+          '</span></div>'
+        );
+      })
+      .join('');
+    return (
+      '<div class="order-detail-amount-row order-detail-amount-row--freight">' +
+      '<span>+ 运费</span>' +
+      '<span class="order-detail-freight-wrap">' +
+      '<span class="order-detail-freight-line">' +
+      '<span>' +
+      totalText +
+      '</span>' +
+      '<button type="button" class="order-detail-pay-legs-toggle" data-freight-legs-toggle aria-expanded="false" aria-label="展开运费明细">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">' +
+      '<path d="M6 9l6 6 6-6"/></svg>' +
+      '</button></span>' +
+      '<div class="order-detail-pay-legs" data-freight-legs hidden>' +
+      legs +
+      '</div></span></div>'
     );
   }
 
@@ -3610,8 +4013,20 @@
       refundSummaryHtml +
       '</div>';
 
-    var toggle = box.querySelector('.order-detail-pay-legs-toggle');
-    var legsEl = box.querySelector('.order-detail-pay-legs');
+    var freightToggle = box.querySelector('[data-freight-legs-toggle]');
+    var freightLegs = box.querySelector('[data-freight-legs]');
+    if (freightToggle && freightLegs) {
+      freightToggle.addEventListener('click', function () {
+        var expanded = freightToggle.getAttribute('aria-expanded') === 'true';
+        var next = !expanded;
+        freightToggle.setAttribute('aria-expanded', next ? 'true' : 'false');
+        freightToggle.setAttribute('aria-label', next ? '收起运费明细' : '展开运费明细');
+        freightToggle.classList.toggle('is-expanded', next);
+        freightLegs.hidden = !next;
+      });
+    }
+    var toggle = box.querySelector('.order-detail-pay-legs-toggle:not([data-freight-legs-toggle])');
+    var legsEl = box.querySelector('.order-detail-pay-legs:not([data-freight-legs])');
     if (toggle && legsEl) {
       toggle.addEventListener('click', function () {
         var expanded = toggle.getAttribute('aria-expanded') === 'true';
@@ -4094,20 +4509,54 @@
         '地址': detail.delivery.address,
         '门店': detail.delivery.store
       };
-      var siblingNo =
-        detail.siblingOrderNo ||
-        (drawer && drawer._sourceRow && drawer._sourceRow.getAttribute('data-sibling-order'));
-      if (siblingNo) {
-        deliveryRows['关联拆单'] =
-          '<a href="#" class="order-live-table__link js-split-sibling" data-order-id="' +
-          siblingNo +
-          '">' +
-          siblingNo +
-          '</a>';
+      var siblingNos = [];
+      if (detail.siblingOrderNo) siblingNos.push(detail.siblingOrderNo);
+      (detail.siblingOrderNos || []).forEach(function (n) {
+        if (n && siblingNos.indexOf(n) < 0) siblingNos.push(n);
+      });
+      var rowSibling =
+        drawer && drawer._sourceRow && drawer._sourceRow.getAttribute('data-sibling-order');
+      if (rowSibling && siblingNos.indexOf(rowSibling) < 0) siblingNos.push(rowSibling);
+      if (siblingNos.length) {
+        deliveryRows['关联拆单'] = siblingNos
+          .map(function (n) {
+            return (
+              '<a href="#" class="order-live-table__link js-split-sibling" data-order-id="' +
+              n +
+              '">' +
+              n +
+              '</a>'
+            );
+          })
+          .join('、');
       }
       deliveryCard.appendChild(buildKv(deliveryRows));
     }
     aside.appendChild(deliveryCard);
+    if (isProxyOrderPage()) {
+      var proxySibs = [];
+      if (detail.siblingOrderNo) proxySibs.push(detail.siblingOrderNo);
+      (detail.siblingOrderNos || []).forEach(function (n) {
+        if (n && proxySibs.indexOf(n) < 0) proxySibs.push(n);
+      });
+      var rowSib = drawer && drawer._sourceRow && drawer._sourceRow.getAttribute('data-sibling-order');
+      if (rowSib && proxySibs.indexOf(rowSib) < 0) proxySibs.push(rowSib);
+      if (proxySibs.length) {
+        var sibCard = el('div', 'order-detail-card');
+        sibCard.appendChild(el('h3', 'order-detail-card__title', '关联拆单'));
+        var sibRows = {};
+        proxySibs.forEach(function (n, i) {
+          sibRows[proxySibs.length > 1 ? '拆单 ' + (i + 1) : '关联拆单'] =
+            '<a href="#" class="order-live-table__link js-split-sibling" data-order-id="' +
+            n +
+            '">' +
+            n +
+            '</a>';
+        });
+        sibCard.appendChild(buildKv(sibRows));
+        aside.appendChild(sibCard);
+      }
+    }
 
     var tagCard = el('div', 'order-detail-card');
     tagCard.appendChild(el('h3', 'order-detail-card__title', '订单标记'));
@@ -4275,6 +4724,16 @@
           }
         } else if (modeLabel === '自提') {
           detail.delivery.type = 'SELF_PICKUP';
+        }
+      } else {
+        var fulfill = row.getAttribute('data-fulfillment-mode') || '';
+        detail.delivery = detail.delivery || {};
+        if (fulfill === 'warehouse' || fulfill === 'delivery' || fulfill === 'platform') {
+          detail.delivery.deliveryMode = '配送';
+          detail.delivery.type = 'DELIVERY';
+        } else if (fulfill === 'express' || fulfill === 'store') {
+          detail.delivery.deliveryMode = '快递';
+          detail.delivery.type = 'EXPRESS';
         }
       }
     }
@@ -4646,14 +5105,289 @@
     } catch (e) { /* ignore */ }
   }
 
+  function moneyText(n) {
+    return '¥' + (Math.round((Number(n) || 0) * 100) / 100).toFixed(2);
+  }
+
+  function recFulfillMeta(rec) {
+    var f = String((rec && (rec.fulfill || rec.splitKind)) || '');
+    if (f === 'express' || f === 'store') {
+      return { proxyAttr: 'store', proxyLabel: '快递', retailAttr: 'express', retailLabel: '快递' };
+    }
+    if (f === 'pickup' || f === 'spot' || f === 'wh') {
+      return { proxyAttr: 'warehouse', proxyLabel: '配送', retailAttr: 'pickup', retailLabel: '自提' };
+    }
+    return { proxyAttr: 'warehouse', proxyLabel: '配送', retailAttr: 'pickup', retailLabel: '自提' };
+  }
+
+  function recStatusMeta(rec) {
+    var s = String((rec && rec.status) || 'shipping');
+    if (s === 'unpaid') return { cls: 'order-tag--pending-pay', text: '待支付' };
+    if (s === 'pickup' || s === 'verify' || s === '待核销') {
+      return { cls: 'order-tag--pickup', text: isProxyOrderPage() ? '待收货' : '待核销' };
+    }
+    if (s === 'completed' || s === 'success') return { cls: 'order-tag--success', text: '交易成功' };
+    if (s === 'closed' || s === 'failed') return { cls: 'order-tag--failed', text: '交易失败' };
+    if (s === 'receipt') return { cls: 'order-tag--receipt', text: '待收货' };
+    return { cls: 'order-tag--pending-ship', text: '待发货' };
+  }
+
+  function registerCendDetail(rec) {
+    if (!rec || !rec.orderNo || DETAILS[rec.orderNo]) return;
+    var meta = recFulfillMeta(rec);
+    var goods = (rec.goods || []).map(function (g, i) {
+      var price = Number(g.price) || 0;
+      var qty = Number(g.qty) || 1;
+      return {
+        id: 'g' + (i + 1),
+        name: g.name || '商品',
+        spec: g.spec || '',
+        img: g.img || '../user-app/assets/order-product-1.svg',
+        price: moneyText(price),
+        qty: String(qty),
+        subtotal: moneyText(price * qty),
+        marketing: '普通售卖'
+      };
+    });
+    var isProxy = rec.channel === 'proxy';
+    var created = rec.createdAt || '';
+    DETAILS[rec.orderNo] = {
+      displayId: rec.orderNo,
+      siblingOrderNo: (rec.siblingOrderNos || [])[0] || '',
+      siblingOrderNos: rec.siblingOrderNos || [],
+      splitKind: rec.splitKind || '',
+      progress: {
+        completedSteps: rec.status === 'unpaid' ? 1 : 2,
+        outcome: null,
+        status: recStatusMeta(rec).text,
+        submitTime: created,
+        payTime: rec.status === 'unpaid' ? '' : created
+      },
+      goods: goods,
+      amounts: {
+        goods: moneyText(rec.goodsTotal),
+        discount: '¥0.00',
+        shipping: moneyText(rec.freight),
+        payable: moneyText(rec.payable),
+        paid: moneyText(rec.payable),
+        merchant: moneyText(rec.payable),
+        refund: '¥0.00'
+      },
+      paymentCount: 1,
+      aftersales: [],
+      customer: { nickname: isProxy ? '张店长' : '演示用户', phone: '13800138000', userId: '318605592681791888' },
+      delivery: {
+        type: isProxy
+          ? meta.proxyLabel === '快递' ? 'EXPRESS' : 'DELIVERY'
+          : meta.retailLabel === '快递' ? 'EXPRESS' : 'SELF_PICKUP',
+        deliveryMode: isProxy ? meta.proxyLabel : meta.retailLabel,
+        name: isProxy ? '张店长' : '演示用户',
+        phone: '13800138000',
+        address: isProxy ? '浙江省杭州市萧山区建设一路88号' : '浙江省杭州市上城区望江街道望江路16号',
+        store: rec.storeName || (isProxy ? '悠悠生鲜超市' : '华强北')
+      },
+      tags: {
+        channel: isProxy ? 'STORE_APP' : 'MINI_PROGRAM',
+        orderScene: isProxy ? '代采' : '商城',
+        payChannel: rec.payMethod || '微信',
+        marketing: '普通售卖',
+        livePeriod: '-',
+        bd: '1',
+        settleStatus: '-',
+        commissionStatus: '-'
+      },
+      logs: [
+        {
+          time: created,
+          title: '订单已拆单',
+          desc: isProxy
+            ? meta.proxyLabel === '配送'
+              ? '配送按门店对应配送仓合并，不按供应商拆'
+              : '快递仍按供应商拆出本单'
+            : meta.retailLabel === '自提'
+              ? '自提按门店对应配送仓合并，不按供应商拆'
+              : '快递仍按供应商拆出本单'
+        },
+        { time: created, title: rec.status === 'unpaid' ? '待支付' : '支付成功', desc: '金额 ' + moneyText(rec.payable) }
+      ],
+      clearingEmpty: true
+    };
+  }
+
+  function injectCendSplitRows() {
+    var tbody = document.querySelector('.order-live-table tbody');
+    if (!tbody) return;
+    var want = isProxyOrderPage() ? 'proxy' : 'retail';
+    var list = [];
+    try {
+      list = JSON.parse(localStorage.getItem('lf_mdm_cend_split_orders_v1') || '[]');
+    } catch (e) {
+      list = [];
+    }
+    if (!Array.isArray(list) || !list.length) return;
+    var html = '';
+    list.forEach(function (rec) {
+      if (!rec || rec.channel !== want || !rec.orderNo) return;
+      if (document.querySelector('tr[data-order-id="' + rec.orderNo.replace(/"/g, '') + '"]')) return;
+      registerCendDetail(rec);
+      var meta = recFulfillMeta(rec);
+      var st = recStatusMeta(rec);
+      var goods = rec.goods || [];
+      var first = goods[0] || {};
+      var qty = goods.reduce(function (s, g) {
+        return s + (Number(g.qty) || 0);
+      }, 0) || 1;
+      var skuBtn =
+        goods.length > 1
+          ? '<button type="button" class="order-product-cell__sku js-order-goods-pop">共 ' +
+            qty +
+            ' 件 / ' +
+            goods.length +
+            ' 个 SKU</button>'
+          : '';
+      var productCell =
+        '<div class="order-product-cell">' +
+        '<img class="order-product-cell__thumb" src="' +
+        escapeText(first.img || '../user-app/assets/order-product-1.svg') +
+        '" alt="">' +
+        (skuBtn
+          ? '<div class="order-product-cell__meta"><div class="order-product-cell__name-row"><span class="order-product-cell__name">' +
+            escapeText(first.name || '商品') +
+            '</span></div>' +
+            skuBtn +
+            '</div>'
+          : '<span class="order-product-cell__name">' + escapeText(first.name || '商品') + '</span>') +
+        '</div>';
+      var day = String(rec.createdAt || '').slice(0, 10);
+      var sib = (rec.siblingOrderNos || [])[0] || '';
+      var payNo = rec.payNo || '';
+      if (isProxyOrderPage()) {
+        html +=
+          '<tr data-order-id="' +
+          escapeText(rec.orderNo) +
+          '" data-fulfillment-mode="' +
+          meta.proxyAttr +
+          '" data-pay-channel="wechat" data-store="' +
+          escapeText(rec.storeName || '悠悠生鲜超市') +
+          '" data-pay-no="' +
+          escapeText(payNo) +
+          '" data-ordered-at="' +
+          escapeText(day) +
+          '"' +
+          (sib ? ' data-sibling-order="' + escapeText(sib) + '"' : '') +
+          '>' +
+          '<td><a href="#" class="order-live-table__link js-order-view" data-order-id="' +
+          escapeText(rec.orderNo) +
+          '">' +
+          escapeText(rec.orderNo) +
+          '</a></td>' +
+          '<td>' +
+          escapeText(rec.createdAt || '') +
+          '</td>' +
+          '<td>张店长</td><td>张店长</td><td>13800138000</td>' +
+          '<td>' +
+          productCell +
+          '</td>' +
+          '<td>× ' +
+          qty +
+          '</td>' +
+          '<td>' +
+          moneyText(rec.goodsTotal) +
+          '</td>' +
+          '<td>¥0.00</td><td>¥0.00</td><td>-</td><td>¥0.00</td>' +
+          '<td>' +
+          moneyText(rec.payable) +
+          '</td>' +
+          '<td>微信</td>' +
+          '<td><span class="order-tag order-tag--scene">' +
+          meta.proxyLabel +
+          '</span></td>' +
+          '<td>' +
+          escapeText(rec.storeName || '悠悠生鲜超市') +
+          '</td>' +
+          '<td class="order-pay-no">' +
+          escapeText(payNo || '-') +
+          '</td>' +
+          '<td class="order-status-cell"><span class="order-tag ' +
+          st.cls +
+          '">' +
+          st.text +
+          '</span></td>' +
+          '<td class="order-live-table__sticky-col"><div class="order-live-table__actions"><a href="#" class="order-live-table__link js-order-view" data-order-id="' +
+          escapeText(rec.orderNo) +
+          '">查看</a></div></td></tr>';
+      } else {
+        html +=
+          '<tr data-order-id="' +
+          escapeText(rec.orderNo) +
+          '" data-delivery-mode="' +
+          meta.retailAttr +
+          '" data-pay-channel="wechat" data-store="' +
+          escapeText(rec.storeName || '华强北') +
+          '" data-pay-no="' +
+          escapeText(payNo) +
+          '" data-ordered-at="' +
+          escapeText(day) +
+          '"' +
+          (sib ? ' data-sibling-order="' + escapeText(sib) + '"' : '') +
+          '>' +
+          '<td><a href="#" class="order-live-table__link js-order-view" data-order-id="' +
+          escapeText(rec.orderNo) +
+          '">' +
+          escapeText(rec.orderNo) +
+          '</a></td>' +
+          '<td>' +
+          escapeText(rec.createdAt || '') +
+          '</td>' +
+          '<td>演示用户</td><td>演示用户</td><td>13800138000</td>' +
+          '<td>' +
+          productCell +
+          '</td>' +
+          '<td>× ' +
+          qty +
+          '</td>' +
+          '<td><span class="order-tag order-tag--sale">普通售卖</span></td>' +
+          '<td>' +
+          moneyText(rec.goodsTotal) +
+          '</td>' +
+          '<td>¥0.00</td><td>¥0.00</td><td>-</td><td>¥0.00</td>' +
+          '<td>' +
+          moneyText(rec.payable) +
+          '</td>' +
+          '<td><span class="order-scene">商城</span></td>' +
+          '<td><span class="order-tag order-tag--scene order-delivery-mode">' +
+          meta.retailLabel +
+          '</span></td>' +
+          '<td>微信</td>' +
+          '<td>' +
+          escapeText(rec.storeName || '华强北') +
+          '</td>' +
+          '<td class="order-pay-no">' +
+          escapeText(payNo || '-') +
+          '</td>' +
+          '<td class="order-status-cell"><span class="order-tag ' +
+          st.cls +
+          '">' +
+          st.text +
+          '</span></td>' +
+          '<td class="order-live-table__sticky-col"><div class="order-live-table__actions"><a href="#" class="order-live-table__link js-order-view" data-order-id="' +
+          escapeText(rec.orderNo) +
+          '">查看</a></div></td></tr>';
+      }
+    });
+    if (html) tbody.insertAdjacentHTML('afterbegin', html);
+  }
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () {
+      injectCendSplitRows();
       initViewLinks();
       initListGoodsPopover();
       syncRetailListAftersaleUI();
       openFromQuery();
     });
   } else {
+    injectCendSplitRows();
     initViewLinks();
     initListGoodsPopover();
     syncRetailListAftersaleUI();

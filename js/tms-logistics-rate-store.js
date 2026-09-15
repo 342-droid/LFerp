@@ -8,13 +8,13 @@
  * - 目的地多级匹配，越细越优先：区 > 市 > 省 > 全国（兜底）
  *   仅「该级写了、更细一级为空」的配置可在该级命中，区级专属费率不会当成市级兜底
  * - 常温 / 冷链费率不同，按商品温层匹配物流类型
- * - 同一渠道+温层下，不同承运商模板可同时命中（各取该承运商最优层级）
- * - 履约路径：
- *   自提 / 配送：可售卖门店的配送仓库 → 门店
- *   快递：供应商地址 → 门店（代采）/ 用户收货地址（零售）
+ * - 同路线同物流类型只启用一家承运商，匹配取目的地粒度最高的一条
+ * - 选品库物流费率按零售订单、代采订单命中展示
+ * - 是否包邮读商城 / 直播 / 代采编辑商品里履约方式旁的「是否包邮」
+ * - 履约路径（代采配送）：始发=门店对应配送仓，目的=门店地址；一门店只对应一个配送仓，只展示一条线路
  */
 (function (global) {
-  var STORAGE_KEY = 'lf_tms_logistics_rate_v3';
+  var STORAGE_KEY = 'lf_tms_logistics_rate_v5';
   var CHANNEL_RETAIL = '零售订单';
   var CHANNEL_PROXY = '代采订单';
   var LEVELS = { district: 4, city: 3, province: 2, nationwide: 1 };
@@ -34,7 +34,7 @@
     'st-016': { name: '工业园金鸡湖店', warehouse: 'W001 南京仓', dest: { province: '江苏省', city: '苏州市', district: '工业园区' } },
     'st-jiangning': { name: '江宁科学园店', warehouse: 'W001 南京仓', dest: { province: '江苏省', city: '南京市', district: '江宁区' } }
   };
-  var DEMO_STORES = [STORE_PROFILES['st-jiangning'], STORE_PROFILES['st-003']];
+  var DEMO_STORES = [STORE_PROFILES['st-jiangning']];
   var WAREHOUSE_BY_REGION = {
     '320000': 'W001 南京仓',
     '330000': 'W002 嘉兴仓',
@@ -295,6 +295,12 @@
         { name: '保价费', amount: '4', min: '2', rate: '0.4' },
         { name: '派送费', amount: '5', min: '2', rate: '0.6' }
       ],
+      upstairs: {
+        enabled: true,
+        freeKg: '5',
+        lift: { base: '5', weight: '0.2', floor: '2', qty: '0' },
+        noLift: { base: '8', weight: '0.3', floor: '3', qty: '0' }
+      },
       freightDiscount: '0.85',
       settleDiscount: '0.88',
       enabled: true,
@@ -383,17 +389,26 @@
       destCity: '杭州市',
       destDistrict: '萧山区',
       days: '1',
-      feeScheme: '金额计费',
+      feeScheme: '重量计费',
       ratio: '1:3',
-      extra: '否',
-      extras: [],
-      freightDiscount: '1.00',
+      extra: '是',
+      extras: [
+        { name: '保价费', amount: '', min: '2', rate: '0.4' },
+        { name: '派送费', amount: '8', min: '', rate: '' }
+      ],
+      upstairs: {
+        enabled: true,
+        freeKg: '5',
+        lift: { base: '5', weight: '0.2', floor: '2', qty: '0' },
+        noLift: { base: '8', weight: '0.3', floor: '3', qty: '0' }
+      },
+      freightDiscount: '0.95',
       settleDiscount: '0.95',
       enabled: true,
       tiers: [
-        { start: '0', end: '200', price: '12' },
-        { start: '200', end: '399', price: '8' },
-        { start: '399', end: '9999', price: '0' }
+        { start: '0', end: '1', first: '1', price: '12', cont: '3' },
+        { start: '1', end: '10', first: '1', price: '12', cont: '3' },
+        { start: '10', end: '999', first: '1', price: '12', cont: '2' }
       ]
     },
     {
@@ -409,14 +424,23 @@
       feeScheme: '重量计费',
       ratio: '1:4',
       extra: '是',
-      extras: [{ name: '保价费', amount: '6', min: '3', rate: '0.8' }],
+      extras: [
+        { name: '保价费', amount: '', min: '3', rate: '0.8' },
+        { name: '派送费', amount: '6', min: '', rate: '' }
+      ],
+      upstairs: {
+        enabled: true,
+        freeKg: '5',
+        lift: { base: '6', weight: '0.25', floor: '2.5', qty: '0' },
+        noLift: { base: '10', weight: '0.4', floor: '4', qty: '0' }
+      },
       freightDiscount: '0.95',
       settleDiscount: '0.90',
       enabled: true,
       tiers: [
-        { start: '0', end: '1', price: '16', cont: '4' },
-        { start: '1', end: '8', price: '24', cont: '2.5' },
-        { start: '8', end: '999', price: '38', cont: '2' }
+        { start: '0', end: '1', first: '1', price: '16', cont: '4' },
+        { start: '1', end: '8', first: '1', price: '24', cont: '2.5' },
+        { start: '8', end: '999', first: '1', price: '38', cont: '2' }
       ]
     }
   ];
@@ -483,7 +507,8 @@
             ? tier.start + '~' + tier.end + '元 免运费'
             : tier.start + '~' + tier.end + '元 运费¥' + tier.price;
         }
-        return tier.start + '~' + tier.end + 'kg 首重¥' + tier.price + ' 续¥' + (tier.cont || '0') + '/KG';
+        var firstW = firstWeightOf(tier);
+        return tier.start + '~' + tier.end + 'kg 首重' + firstW + 'kg ¥' + tier.price + ' 续¥' + (tier.cont || '0') + '/KG';
       })
       .join('<br>');
   }
@@ -492,9 +517,26 @@
     if (extra !== '是' || !extras || !extras.length) return '否';
     return extras
       .map(function (item) {
+        if (item.name === '保价费') {
+          return '保价费 max(最低¥' + toNum(item.min).toFixed(2) + '，货款×' + toNum(item.rate) + '%)';
+        }
+        if (item.name === '派送费') {
+          return '派送费 每票¥' + toNum(item.amount).toFixed(2);
+        }
         return item.name + ' 每票¥' + item.amount + ' 最低¥' + item.min + ' 费率' + item.rate + '%';
       })
       .join('<br>');
+  }
+
+  function formatUpstairsHtml(upstairs) {
+    if (!upstairs || !upstairs.enabled) return '否';
+    var lift = upstairs.lift || {};
+    var noLift = upstairs.noLift || {};
+    return [
+      '免上楼' + toNum(upstairs.freeKg) + 'kg；1楼不上楼',
+      '有电梯：基础¥' + toNum(lift.base) + ' + ' + toNum(lift.weight) + '×重量 + ' + toNum(lift.floor) + '×楼层',
+      '无电梯：基础¥' + toNum(noLift.base) + ' + ' + toNum(noLift.weight) + '×重量 + ' + toNum(noLift.floor) + '×楼层'
+    ].join('<br>');
   }
 
   function formatChannels(channels) {
@@ -522,6 +564,104 @@
   function toNum(v) {
     var n = parseFloat(v);
     return isFinite(n) ? n : 0;
+  }
+
+  function firstWeightOf(tier) {
+    var w = toNum(tier && (tier.first || tier.firstWeight));
+    if (w > 0) return w;
+    var start = toNum(tier && tier.start);
+    return start === 0 ? 1 : start;
+  }
+
+  function roundKg(n) {
+    return Math.round((Number(n) || 0) * 1000) / 1000;
+  }
+
+  function guessGrossFromSpec(product) {
+    var text = String((product && (product.spec || product.title || product.name)) || '');
+    var jin = text.match(/(\d+(?:\.\d+)?)\s*斤/);
+    if (jin) return toNum(jin[1]) * 0.5;
+    var kg = text.match(/(\d+(?:\.\d+)?)\s*k(?:g|ilo)/i);
+    if (kg) return toNum(kg[1]);
+    return 0;
+  }
+
+  function extraKeyOf(name) {
+    if (name === '保价费') return 'insure';
+    if (name === '派送费') return 'deliver';
+    return '';
+  }
+
+  function findExtra(rate, name) {
+    if (!rate || rate.extra !== '是') return null;
+    var list = rate.extras || [];
+    var i;
+    for (i = 0; i < list.length; i++) {
+      if (list[i] && list[i].name === name) return list[i];
+    }
+    return null;
+  }
+
+  function rateHasUpstairs(rate) {
+    return !!(rate && rate.upstairs && rate.upstairs.enabled);
+  }
+
+  function calcInsureFee(extra, payable) {
+    if (!extra) return 0;
+    var min = toNum(extra.min);
+    var fromRate = toNum(payable) * toNum(extra.rate) / 100;
+    return roundMoney(Math.max(min, fromRate));
+  }
+
+  function calcDeliverFee(extra) {
+    return extra ? roundMoney(toNum(extra.amount)) : 0;
+  }
+
+  function floorLayers(floor) {
+    var n = parseInt(floor, 10);
+    if (!isFinite(n) || n === 0) return 1;
+    if (n >= 1) return n;
+    return Math.abs(n) + 1;
+  }
+
+  function calcUpstairsFee(upstairs, weightKg, hasElevator, floor) {
+    var empty = {
+      amount: 0,
+      free: true,
+      reason: '未配置',
+      weight: roundKg(weightKg),
+      hasElevator: !!hasElevator,
+      floor: floorLayers(floor),
+      freeKg: 0
+    };
+    if (!upstairs || !upstairs.enabled) return empty;
+    var layers = floorLayers(floor);
+    var freeKg = toNum(upstairs.freeKg);
+    var result = {
+      amount: 0,
+      free: false,
+      reason: '',
+      weight: roundKg(weightKg),
+      hasElevator: !!hasElevator,
+      floor: layers,
+      freeKg: freeKg
+    };
+    if (layers <= 1) {
+      result.free = true;
+      result.reason = '1楼不上楼';
+      return result;
+    }
+    if (toNum(weightKg) <= freeKg) {
+      result.free = true;
+      result.reason = '未超过免上楼重量';
+      return result;
+    }
+    var cfg = hasElevator ? upstairs.lift : upstairs.noLift;
+    cfg = cfg || {};
+    result.amount = roundMoney(
+      toNum(cfg.base) + toNum(cfg.weight) * toNum(weightKg) + toNum(cfg.floor) * layers
+    );
+    return result;
   }
 
   function roundMoney(n) {
@@ -620,20 +760,80 @@
     return last;
   }
 
+  function explainWeightFee(rate, weightKg) {
+    var empty = {
+      scheme: '重量计费',
+      weight: roundKg(weightKg),
+      firstWeight: 0,
+      firstPrice: 0,
+      extraKg: 0,
+      cont: 0,
+      extraFee: 0,
+      base: 0,
+      discount: 1,
+      amount: 0,
+      tierStart: '',
+      tierEnd: ''
+    };
+    var tier = findTier(rate && rate.tiers, weightKg);
+    if (!tier) return empty;
+    var firstW = firstWeightOf(tier);
+    var firstPrice = toNum(tier.price);
+    var cont = toNum(tier.cont);
+    var extraKg = Math.max(0, toNum(weightKg) - firstW);
+    var extraFee = extraKg * cont;
+    var base = firstPrice + extraFee;
+    var discount = toNum(rate.freightDiscount || 1);
+    if (discount <= 0) discount = 1;
+    return {
+      scheme: '重量计费',
+      weight: roundKg(weightKg),
+      firstWeight: firstW,
+      firstPrice: firstPrice,
+      extraKg: roundKg(extraKg),
+      cont: cont,
+      extraFee: roundMoney(extraFee),
+      base: roundMoney(base),
+      discount: discount,
+      amount: roundMoney(base * discount),
+      tierStart: tier.start,
+      tierEnd: tier.end
+    };
+  }
+
   function calcWeightFee(rate, weightKg) {
-    var tier = findTier(rate.tiers, weightKg);
-    if (!tier) return 0;
-    var start = toNum(tier.start);
-    var included = start === 0 ? 1 : start;
-    var extraKg = Math.max(0, weightKg - included);
-    var fee = toNum(tier.price) + extraKg * toNum(tier.cont);
-    return roundMoney(fee * toNum(rate.freightDiscount || 1));
+    return explainWeightFee(rate, weightKg).amount;
+  }
+
+  function explainAmountFee(rate, amount) {
+    var tier = findTier(rate && rate.tiers, amount);
+    var discount = toNum(rate && rate.freightDiscount || 1);
+    if (discount <= 0) discount = 1;
+    if (!tier) {
+      return {
+        scheme: '金额计费',
+        goodsAmount: roundMoney(amount),
+        price: 0,
+        discount: discount,
+        amount: 0,
+        tierStart: '',
+        tierEnd: ''
+      };
+    }
+    var price = toNum(tier.price);
+    return {
+      scheme: '金额计费',
+      goodsAmount: roundMoney(amount),
+      price: price,
+      discount: discount,
+      amount: roundMoney(price * discount),
+      tierStart: tier.start,
+      tierEnd: tier.end
+    };
   }
 
   function calcAmountFee(rate, amount) {
-    var tier = findTier(rate.tiers, amount);
-    if (!tier) return 0;
-    return roundMoney(toNum(tier.price) * toNum(rate.freightDiscount || 1));
+    return explainAmountFee(rate, amount).amount;
   }
 
   function destText(dest) {
@@ -672,6 +872,13 @@
       return 'express';
     }
     return '';
+  }
+
+  /** 本期只代采配送计费；其余履约包邮 */
+  function chargesFreight(channel, fulfill) {
+    if (channel !== CHANNEL_PROXY) return false;
+    var f = normalizeFulfill(fulfill);
+    return !f || f === 'platform';
   }
 
   function resolveSupplier(opts) {
@@ -729,15 +936,135 @@
       seen[key] = true;
       list.push(store);
     });
-    if (list.length) return list.slice(0, 3);
-    return DEMO_STORES;
+    /* 一门店只对应一个配送仓，费率展示只取一条仓→店线路 */
+    if (list.length) return [list[0]];
+    return DEMO_STORES.slice(0, 1);
+  }
+
+  var MALL_LIST_KEY = 'mdm_mall_product_list_v1';
+  var PROXY_LIST_KEY = 'mdm_proxy_product_list_v1';
+  var LIVE_SHIP_KEY = 'mdm_live_product_ship_v1';
+
+  function productCodeOf(opts) {
+    var product = (opts && opts.product) || {};
+    return String(
+      product.code || product.goodsId || product.sourceCode || product.sku || (opts && opts.code) || ''
+    ).trim();
+  }
+
+  function readJsonStore(key) {
+    try {
+      var raw = sessionStorage.getItem(key);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function findListProduct(key, code) {
+    if (!code) return null;
+    var list = readJsonStore(key);
+    if (!Array.isArray(list)) return null;
+    var i;
+    for (i = 0; i < list.length; i++) {
+      var item = list[i];
+      if (!item) continue;
+      if (String(item.code || item.goodsId || item.sku || '') === code) return item;
+    }
+    return null;
+  }
+
+  function findLiveShip(code) {
+    if (!code) return null;
+    var map = readJsonStore(LIVE_SHIP_KEY);
+    if (map && map[code]) return map[code];
+    var Demo = global.MdmLiveDemo;
+    if (!Demo || !Demo.productsBySession) return null;
+    var found = null;
+    Object.keys(Demo.productsBySession).forEach(function (sid) {
+      (Demo.productsBySession[sid] || []).forEach(function (p) {
+        var c = p && (p.sku || p.code || p.goodsId);
+        if (String(c || '') === code) found = p;
+      });
+    });
+    if (!found) return null;
+    return {
+      freeShip: found.freeShip !== false,
+      deliveryMode: found.deliveryMode || 'express'
+    };
+  }
+
+  function fulfillLabelOf(fulfill) {
+    var f = normalizeFulfill(fulfill);
+    if (f === 'pickup') return '自提';
+    if (f === 'platform') return '配送';
+    return '快递';
+  }
+
+  function parseListingFreeShip(raw, fulfill, channelKind) {
+    if (raw === true || raw === 'yes' || raw === '是') return true;
+    if (raw === false || raw === 'no' || raw === '否') return false;
+    if (channelKind === 'proxy') return normalizeFulfill(fulfill) !== 'platform';
+    return true;
+  }
+
+  function resolveShipConfig(opts) {
+    opts = opts || {};
+    var code = productCodeOf(opts);
+    var saleChannels = (opts && opts.saleChannels) || [];
+    var mall = findListProduct(MALL_LIST_KEY, code);
+    var proxy = findListProduct(PROXY_LIST_KEY, code);
+    var live = findLiveShip(code);
+    var retailListings = [];
+    if (mall) {
+      var mallFulfill = normalizeFulfill(mall.deliveryMode || mall.fulfillmentMode) || 'express';
+      retailListings.push({
+        source: '商城',
+        fulfill: mallFulfill,
+        freeShip: parseListingFreeShip(mall.freeShip, mallFulfill, 'mall')
+      });
+    }
+    if (live) {
+      var liveFulfill = normalizeFulfill(live.deliveryMode || live.fulfillmentMode) || 'express';
+      retailListings.push({
+        source: '直播',
+        fulfill: liveFulfill,
+        freeShip: parseListingFreeShip(live.freeShip, liveFulfill, 'live')
+      });
+    } else if (!saleChannels.length || saleChannels.indexOf('live') >= 0) {
+      retailListings.push({ source: '直播', fulfill: 'express', freeShip: true });
+    }
+    var retailCharge = retailListings.filter(function (x) { return !x.freeShip; });
+    var proxyFulfill = 'platform';
+    var proxyFree = false;
+    var proxyListing = null;
+    if (proxy) {
+      proxyFulfill = normalizeFulfill(proxy.deliveryMode || proxy.fulfillmentMode) || 'platform';
+      proxyFree = parseListingFreeShip(proxy.freeShip, proxyFulfill, 'proxy');
+      proxyListing = { source: '代采', fulfill: proxyFulfill, freeShip: proxyFree };
+    } else if (!saleChannels.length || saleChannels.indexOf('proxy') >= 0) {
+      proxyListing = { source: '代采', fulfill: 'platform', freeShip: false };
+    }
+    return {
+      code: code,
+      retailListings: retailListings,
+      retailFree: !retailCharge.length,
+      retailFulfills: retailCharge.map(function (x) { return x.fulfill; }),
+      proxyListing: proxyListing,
+      proxyFree: !proxyListing || !!proxyListing.freeShip,
+      proxyFulfills: proxyListing && !proxyListing.freeShip ? [proxyListing.fulfill] : []
+    };
   }
 
   function allowChannel(opts, channel) {
     var mode = (opts && opts.channelMode) || 'both';
     var saleChannels = opts && opts.saleChannels;
-    var allowRetail = !saleChannels || !saleChannels.length || saleChannels.indexOf('live') >= 0;
-    var allowProxy = !saleChannels || !saleChannels.length || saleChannels.indexOf('proxy') >= 0;
+    var code = productCodeOf(opts);
+    var allowRetail = !saleChannels || !saleChannels.length || saleChannels.indexOf('live') >= 0
+      || !!findListProduct(MALL_LIST_KEY, code);
+    var allowProxy = !saleChannels || !saleChannels.length || saleChannels.indexOf('proxy') >= 0
+      || !!findListProduct(PROXY_LIST_KEY, code);
     if (channel === CHANNEL_RETAIL) {
       return (mode === 'retail' || mode === 'both') && allowRetail;
     }
@@ -821,14 +1148,13 @@
   }
 
   /**
-   * 按承运商各自取最优命中：同一渠道 + 物流类型下可同时命中多家。
-   * 每个承运商只保留目的地层级最高的一条（区 > 市 > 省 > 全国）。
-   * originKey 有值时（自提/配送）还要卡始发仓。
+   * 同路线同物流类型只启用一家。取目的地粒度最高的一条启用费率（区 > 市 > 省 > 全国）。
+   * originKey 有值时还要卡始发仓。
    */
   function pickRatesByCarrier(channel, dest, logisticsType, originKey) {
     dest = dest || DEMO_DEST;
     var list = ensureLoaded();
-    var bestByCarrier = {};
+    var best = null;
     var i;
     for (i = 0; i < list.length; i++) {
       var rate = list[i];
@@ -838,18 +1164,11 @@
       if (!originHit(rate, originKey)) continue;
       var score = matchScore(rate, dest);
       if (!score) continue;
-      var key = rate.carrier || rate.id;
-      var prev = bestByCarrier[key];
-      if (!prev || score > prev.score) {
-        bestByCarrier[key] = { rate: rate, score: score, level: levelLabel(score) };
+      if (!best || score > best.score) {
+        best = { rate: rate, score: score, level: levelLabel(score) };
       }
     }
-    return Object.keys(bestByCarrier)
-      .map(function (key) { return bestByCarrier[key]; })
-      .sort(function (a, b) {
-        if (b.score !== a.score) return b.score - a.score;
-        return String(a.rate.carrier || '').localeCompare(String(b.rate.carrier || ''), 'zh-CN');
-      });
+    return best ? [best] : [];
   }
 
   function pickRate(channel, dest, logisticsType) {
@@ -865,6 +1184,17 @@
     var channel = opts.channel;
     var dest = opts.dest || DEMO_DEST;
     var logisticsType = opts.logisticsType || logisticsTypeFromTemp(opts.tempLayer);
+    if (!chargesFreight(channel, opts.fulfill || opts.fulfillmentMethod || opts.deliveryMode)) {
+      return {
+        ok: true,
+        freeShip: true,
+        text: '包邮',
+        amount: 0,
+        level: '',
+        destLabel: '',
+        channel: channel
+      };
+    }
     var hasDims = toNum(opts.length) > 0 && toNum(opts.width) > 0 && toNum(opts.height) > 0 && toNum(opts.gross) > 0;
     if (!hasDims) {
       return {
@@ -996,13 +1326,44 @@
       title: raw.title || raw.name || '',
       tempLayer: tempLayer,
       logisticsType: logisticsTypeFromTemp(tempLayer),
+      fulfill: normalizeFulfill(raw.fulfillmentMethod || raw.deliveryMode || raw.fulfill || raw.fulfillType),
+      freeShip: raw.freeShip === true ? true : raw.freeShip === false ? false : null,
       qty: qty,
       price: price,
       amount: roundMoney(price * qty),
       length: toNum(raw.length) || toNum(spec.length),
       width: toNum(raw.width) || toNum(spec.width),
       height: toNum(raw.height) || toNum(spec.height),
-      gross: toNum(raw.gross) || toNum(spec.gross)
+      gross: toNum(raw.gross) || toNum(spec.gross) || guessGrossFromSpec(raw)
+    };
+  }
+
+  function emptyGroup(type, freeShip) {
+    return {
+      ok: true,
+      empty: true,
+      freeShip: !!freeShip,
+      amount: 0,
+      text: freeShip ? '免运费' : formatMoney(0),
+      logisticsType: type,
+      items: []
+    };
+  }
+
+  function freeShipQuote(dest, items) {
+    return {
+      ambient: emptyGroup('常温', true),
+      cold: emptyGroup('冷链', true),
+      total: 0,
+      baseTotal: 0,
+      extras: [],
+      serviceSummary: emptyServiceSummary(),
+      serviceTotal: 0,
+      text: '免运费',
+      freeShip: true,
+      dest: dest,
+      destLabel: destText(dest),
+      items: items || []
     };
   }
 
@@ -1045,13 +1406,15 @@
     var weight = items.reduce(function (sum, item) {
       return sum + chargeableKg(item.length, item.width, item.height, item.gross, rate.ratio) * item.qty;
     }, 0);
-    var fee = rate.feeScheme === '金额计费'
-      ? calcAmountFee(rate, goodsAmount)
-      : calcWeightFee(rate, weight);
+    var breakdown = rate.feeScheme === '金额计费'
+      ? explainAmountFee(rate, goodsAmount)
+      : explainWeightFee(rate, weight);
+    var fee = breakdown.amount;
     return {
       ok: true,
       empty: false,
       amount: fee,
+      baseAmount: fee,
       text: formatMoney(fee),
       logisticsType: type,
       feeScheme: rate.feeScheme,
@@ -1059,10 +1422,114 @@
       level: hit.level,
       destLabel: destHitLabel(rate),
       goodsAmount: roundMoney(goodsAmount),
-      weight: roundMoney(weight),
+      weight: roundKg(weight),
       itemCount: items.reduce(function (sum, item) { return sum + item.qty; }, 0),
       items: items,
-      rate: rate
+      rate: rate,
+      breakdown: breakdown
+    };
+  }
+
+  function emptyServiceSummary() {
+    return {
+      insure: { available: false, selected: false, amount: 0 },
+      deliver: { available: false, selected: false, amount: 0 },
+      upstairs: { available: false, selected: false, amount: 0, hasElevator: true, floor: 1, weight: 0 }
+    };
+  }
+
+  function pickBestExtra(groups, name, payable) {
+    var best = null;
+    var bestAmt = -1;
+    groups.forEach(function (group) {
+      var extra = findExtra(group.rate, name);
+      if (!extra) return;
+      var amt = name === '保价费' ? calcInsureFee(extra, payable) : calcDeliverFee(extra);
+      if (amt > bestAmt) {
+        best = extra;
+        bestAmt = amt;
+      }
+    });
+    return best;
+  }
+
+  function pickUpstairsRate(groups, weightKg, hasElevator, floor) {
+    var best = null;
+    var bestAmt = -1;
+    groups.forEach(function (group) {
+      if (!rateHasUpstairs(group.rate)) return;
+      var up = calcUpstairsFee(group.rate.upstairs, weightKg, hasElevator, floor);
+      if (!best || up.amount > bestAmt) {
+        best = { rate: group.rate, upstairs: up };
+        bestAmt = up.amount;
+      }
+    });
+    return best;
+  }
+
+  function applyOrderServices(ambient, cold, opts, payable) {
+    var groups = [ambient, cold].filter(function (g) { return g && !g.empty && g.rate; });
+    var totalWeight = roundKg((ambient.weight || 0) + (cold.weight || 0));
+    var services = opts.services;
+    var upOpts = opts.upstairs || {};
+    var extras = [];
+    var insure = pickBestExtra(groups, '保价费', payable);
+    if (insure) {
+      extras.push({
+        key: 'insure',
+        name: '保价费',
+        amount: calcInsureFee(insure, payable),
+        selected: !!(services && services.insure !== false),
+        hint: 'max(最低¥' + toNum(insure.min).toFixed(2) + '，货款×' + toNum(insure.rate) + '%)'
+      });
+    }
+    var deliver = pickBestExtra(groups, '派送费', payable);
+    if (deliver) {
+      extras.push({
+        key: 'deliver',
+        name: '派送费',
+        amount: calcDeliverFee(deliver),
+        selected: !!(services && services.deliver !== false),
+        hint: '每票¥' + toNum(deliver.amount).toFixed(2)
+      });
+    }
+    var pickedUp = pickUpstairsRate(groups, totalWeight, upOpts.hasElevator !== false, upOpts.floor);
+    if (pickedUp) {
+      extras.push({
+        key: 'upstairs',
+        name: '上楼费',
+        amount: pickedUp.upstairs.amount,
+        selected: !!(services && services.upstairs !== false),
+        hint: (pickedUp.upstairs.hasElevator ? '有电梯' : '无电梯') +
+          ' · ' + pickedUp.upstairs.floor + '层 · 计费' + pickedUp.upstairs.weight + 'kg' +
+          (pickedUp.upstairs.reason ? '（' + pickedUp.upstairs.reason + '）' : ''),
+        upstairs: pickedUp.upstairs
+      });
+    }
+    var summary = emptyServiceSummary();
+    summary.upstairs.hasElevator = upOpts.hasElevator !== false;
+    summary.upstairs.floor = floorLayers(upOpts.floor);
+    summary.upstairs.weight = totalWeight;
+    extras.forEach(function (line) {
+      var slot = summary[line.key];
+      if (!slot) return;
+      slot.available = true;
+      slot.amount = line.amount;
+      slot.selected = line.selected;
+      if (line.key === 'upstairs' && line.upstairs) {
+        slot.hasElevator = line.upstairs.hasElevator;
+        slot.floor = line.upstairs.floor;
+        slot.weight = line.upstairs.weight;
+        slot.freeKg = line.upstairs.freeKg;
+      }
+    });
+    var serviceTotal = extras.reduce(function (sum, line) {
+      return sum + (line.selected ? line.amount : 0);
+    }, 0);
+    return {
+      extras: extras,
+      serviceSummary: summary,
+      serviceTotal: roundMoney(serviceTotal)
     };
   }
 
@@ -1070,7 +1537,15 @@
     opts = opts || {};
     var channel = opts.channel || CHANNEL_PROXY;
     var dest = opts.dest || resolveExplainDest(opts) || DEMO_DEST;
-    var items = (opts.items || []).map(normalizeQuoteItem);
+    var lockedFulfill = normalizeFulfill(opts.fulfill || opts.fulfillmentMethod || opts.deliveryMode);
+    if (!chargesFreight(channel, lockedFulfill || 'platform')) {
+      return freeShipQuote(dest, (opts.items || []).map(normalizeQuoteItem));
+    }
+    var items = (opts.items || []).map(normalizeQuoteItem).filter(function (item) {
+      if (item.freeShip === true) return false;
+      return chargesFreight(channel, item.fulfill || lockedFulfill || 'platform');
+    });
+    if (!items.length) return freeShipQuote(dest, []);
     var ambient = quoteGroup({
       channel: channel,
       dest: dest,
@@ -1083,12 +1558,23 @@
       logisticsType: '冷链',
       items: items
     });
-    var total = roundMoney((ambient.amount || 0) + (cold.amount || 0));
+    var payable = opts.payable != null
+      ? toNum(opts.payable)
+      : items.reduce(function (sum, item) { return sum + item.amount; }, 0);
+    var applied = applyOrderServices(ambient, cold, opts, payable);
+    var baseTotal = roundMoney((ambient.amount || 0) + (cold.amount || 0));
+    var total = roundMoney(baseTotal + applied.serviceTotal);
     return {
       ambient: ambient,
       cold: cold,
+      baseTotal: baseTotal,
+      extras: applied.extras,
+      serviceSummary: applied.serviceSummary,
+      serviceTotal: applied.serviceTotal,
+      payable: roundMoney(payable),
       total: total,
-      text: formatMoney(total),
+      text: total > 0 ? formatMoney(total) : '免运费',
+      freeShip: total <= 0,
       dest: dest,
       destLabel: destText(dest),
       items: items
@@ -1111,12 +1597,13 @@
       ratio: rate.ratio,
       extra: rate.extra,
       extraHtml: formatExtraHtml(rate.extra, rate.extras),
+      upstairsHtml: formatUpstairsHtml(rate.upstairs),
       freightDiscount: rate.freightDiscount,
       settleDiscount: rate.settleDiscount
     };
   }
 
-  /** 只返回命中策略（可多家承运商），不算具体金额 */
+  /** 只返回命中策略（同路线同温层一条），不算具体金额 */
   function describeHits(channel, dest, logisticsType, originKey) {
     dest = dest || DEMO_DEST;
     var picks = pickRatesByCarrier(channel, dest, logisticsType, originKey);
@@ -1135,16 +1622,27 @@
   function collectHits(opts) {
     opts = opts || {};
     var type = opts.logisticsType || logisticsTypeFromTemp(opts.tempLayer);
+    var ship = resolveShipConfig(opts);
     var lanes = buildLanes(opts);
     var hits = [];
     var seenHit = {};
     lanes.forEach(function (lane) {
+      if (lane.channel === CHANNEL_RETAIL) {
+        if (ship.retailFree) return;
+        if (ship.retailFulfills.length && ship.retailFulfills.indexOf(lane.fulfill) < 0) return;
+      }
+      if (lane.channel === CHANNEL_PROXY) {
+        if (ship.proxyFree) return;
+        if (ship.proxyFulfills.length && ship.proxyFulfills.indexOf(lane.fulfill) < 0) return;
+      }
       var picks = pickRatesByCarrier(lane.channel, lane.dest, type, lane.originKey);
       picks.forEach(function (pick) {
         var hit = describePick(lane.channel, pick);
         hit.originLabel = lane.originLabel;
         hit.laneDestLabel = lane.destLabel;
-        var key = [hit.channel, hit.originLabel, hit.laneDestLabel, hit.carrier].join('|');
+        hit.fulfill = lane.fulfill;
+        hit.fulfillLabel = lane.fulfillLabel;
+        var key = [hit.channel, hit.originLabel, hit.laneDestLabel, hit.carrier, lane.fulfill].join('|');
         if (seenHit[key]) return;
         seenHit[key] = true;
         hits.push(hit);
@@ -1165,6 +1663,7 @@
     var extraText = hit.extra === '是' && hit.extraHtml && hit.extraHtml !== '否'
       ? hit.extraHtml
       : '无';
+    var upstairsText = hit.upstairsHtml && hit.upstairsHtml !== '否' ? hit.upstairsHtml : '无';
     var days = hit.days && hit.days !== '-' ? hit.days + ' 天' : '-';
     return (
       '<tr' + (extra ? ' class="lf-freight-strategy__extra" hidden' : '') + '>' +
@@ -1179,8 +1678,8 @@
       '<td class="lf-freight-strategy__tiers">' + hit.feeHtml + '</td>' +
       '<td>' + escapeHtml(hit.ratio || '-') + '</td>' +
       '<td class="lf-freight-strategy__tiers">' + extraText + '</td>' +
+      '<td class="lf-freight-strategy__tiers">' + upstairsText + '</td>' +
       '<td>' + escapeHtml(hit.freightDiscount || '-') + '</td>' +
-      '<td>' + escapeHtml(hit.settleDiscount || '-') + '</td>' +
       '</tr>'
     );
   }
@@ -1198,11 +1697,11 @@
       '<th>物流费用</th>' +
       '<th>重抛比</th>' +
       '<th>增值服务</th>' +
+      '<th>上楼费</th>' +
       '<th>运费折扣</th>' +
-      '<th>结算折扣</th>' +
       '</tr>';
-    var rows = hits.map(function (hit, idx) {
-      return renderStrategyRow(hit, idx > 0);
+    var rows = hits.map(function (hit) {
+      return renderStrategyRow(hit, false);
     });
     return (
       '<div class="lf-freight-strategy__table-wrap">' +
@@ -1226,15 +1725,9 @@
 
   function renderStrategyGroup(channel, hits) {
     var okHits = (hits || []).filter(function (hit) { return hit && hit.ok; });
-    var extraCount = Math.max(0, okHits.length - 1);
     var body = okHits.length
       ? renderStrategyTable(okHits)
       : '<p class="lf-freight-strategy__empty">当前路径未命中费率策略</p>';
-    var more = extraCount
-      ? '<button type="button" class="lf-freight-strategy__more" onclick="window.TmsLogisticsRate.toggleStrategyGroup(this)">展开其余 ' +
-        extraCount +
-        ' 条</button>'
-      : '';
     return (
       '<div class="lf-freight-strategy__group">' +
       '<div class="lf-freight-strategy__group-head">' +
@@ -1242,31 +1735,64 @@
       '<em>' + (okHits.length ? '命中 ' + okHits.length + ' 条' : '未命中') + '</em>' +
       '</div>' +
       body +
-      more +
       '</div>'
     );
   }
 
+  function renderFreeShipGroup(title, text) {
+    return (
+      '<div class="lf-freight-strategy__group">' +
+      '<div class="lf-freight-strategy__group-head">' +
+      '<strong>' + escapeHtml(title) + '</strong>' +
+      '<em>包邮</em>' +
+      '</div>' +
+      '<p class="lf-freight-strategy__empty">' + escapeHtml(text) + '</p>' +
+      '</div>'
+    );
+  }
+
+  function shipListingsText(listings, fallback) {
+    if (!listings || !listings.length) return fallback;
+    return listings.map(function (item) {
+      return item.source + '（' + fulfillLabelOf(item.fulfill) + '）' + (item.freeShip ? '已包邮' : '不包邮，按费率计费');
+    }).join('；');
+  }
+
   function renderStrategyInner(opts) {
     var type = (opts && opts.logisticsType) || logisticsTypeFromTemp(opts && opts.tempLayer);
+    var ship = resolveShipConfig(opts);
     var hits = collectHits(opts);
     var groups = [];
     if (allowChannel(opts, CHANNEL_RETAIL)) {
-      groups.push(renderStrategyGroup(
-        CHANNEL_RETAIL,
-        hits.filter(function (hit) { return hit.channel === CHANNEL_RETAIL; })
-      ));
+      if (ship.retailFree) {
+        groups.push(renderFreeShipGroup(
+          CHANNEL_RETAIL,
+          shipListingsText(ship.retailListings, '商城 / 直播编辑商品已设为包邮，不收取运费')
+        ));
+      } else {
+        groups.push(renderStrategyGroup(
+          CHANNEL_RETAIL,
+          hits.filter(function (hit) { return hit.channel === CHANNEL_RETAIL; })
+        ));
+      }
     }
     if (allowChannel(opts, CHANNEL_PROXY)) {
-      groups.push(renderStrategyGroup(
-        CHANNEL_PROXY,
-        hits.filter(function (hit) { return hit.channel === CHANNEL_PROXY; })
-      ));
+      if (ship.proxyFree) {
+        groups.push(renderFreeShipGroup(
+          CHANNEL_PROXY,
+          shipListingsText(ship.proxyListing ? [ship.proxyListing] : [], '代采编辑商品已设为包邮，不收取运费')
+        ));
+      } else {
+        groups.push(renderStrategyGroup(
+          CHANNEL_PROXY,
+          hits.filter(function (hit) { return hit.channel === CHANNEL_PROXY; })
+        ));
+      }
     }
     var tip =
-      '只展示命中的运费策略，不计算金额。收费按<strong>物流类型</strong>下的始发地到目的地，当前匹配<strong>' +
+      '物流费率按<strong>零售订单</strong>、<strong>代采订单</strong>命中展示。是否包邮以<strong>商城 / 直播 / 代采编辑商品</strong>里履约方式旁的「是否包邮」为准。未包邮时同路线同物流类型只启用一家承运商，一门店一条仓→店线路。当前匹配<strong>' +
       escapeHtml(type) +
-      '</strong>。同一路径可同时命中多家承运商。匹配优先级：<strong>区 &gt; 市 &gt; 省 &gt; 全国</strong>。演示始发含配送仓库、供应商地址；演示目的含可售门店、用户收货地址（江苏省南京市江宁区）。';
+      '</strong>，目的地优先级：<strong>区 &gt; 市 &gt; 省 &gt; 全国</strong>。';
     var body = groups.join('') || '<p class="lf-freight-strategy__empty">当前路径未命中费率策略</p>';
     return '<p class="lf-freight-strategy__tip">' + tip + '</p>' + body;
   }
@@ -1310,6 +1836,19 @@
     天津市: '天津市',
     重庆市: '重庆市'
   };
+
+  /* 一门店只对应一个配送仓：按门店地址省市区落到仓 */
+  function warehouseByDest(dest) {
+    dest = dest || {};
+    var province = dest.province || '';
+    var city = dest.city || '';
+    if (province === '上海市' || city === '上海市') return { id: 'W003', name: 'W003 上海仓' };
+    if (province === '江苏省' || city === '南京市' || city === '苏州市') {
+      return { id: 'W001', name: 'W001 南京仓' };
+    }
+    if (province === '浙江省' || city === '杭州市') return { id: 'W002', name: 'W002 嘉兴仓' };
+    return { id: 'W002', name: 'W002 嘉兴仓' };
+  }
 
   function parseDestFromAddress(text) {
     var raw = String(text || '').trim();
@@ -1396,42 +1935,67 @@
       '</p>' +
       '<div class="ua-freight-explain__tpl-tiers">' + hit.feeHtml + '</div>' +
       '<p class="ua-freight-explain__tpl-extra">增值服务：' + extra + '</p>' +
+      '<p class="ua-freight-explain__tpl-extra">上楼费：' +
+      (hit.upstairsHtml && hit.upstairsHtml !== '否' ? hit.upstairsHtml : '无') +
+      '</p>' +
       '</div>'
     );
   }
 
-  function renderExplainHtml(opts) {
-    opts = opts || {};
-    var channel = opts.channel || CHANNEL_PROXY;
-    var dest = resolveExplainDest(opts);
-    var destLabel = destText(dest);
-    var isProxy = channel === CHANNEL_PROXY;
-    var pathText = isProxy
-      ? '配送由门店对应仓发到门店，快递由供应商发到门店。'
-      : '自提/配送由门店对应仓发到门店，快递由供应商发到用户收货地址。';
-    var intro =
-      '运费按物流费率表计，<strong>常温与冷链分开</strong>。' +
-      pathText +
-      '目的地越细越优先：<strong>区 &gt; 市 &gt; 省 &gt; 全国</strong>。同一路径可同时命中多家承运商。' +
-      '重量计费按计费重量（毛重与抛重取大；抛重＝长×宽×高÷5000，再按重抛比判断是否抛货）；金额计费按货款档位。' +
-      '可加收增值服务，运费再乘运费折扣。当前目的地：<strong>' +
-      escapeHtml(destLabel) +
-      '</strong>。';
-    var body = collectExplainHits(channel, dest).map(function (group) {
-      var cards = group.hits.length
-        ? group.hits.map(renderExplainTpl).join('')
-        : '<p class="ua-freight-explain__empty">当前目的地暂无命中模板</p>';
-      return (
-        '<div class="ua-freight-explain__section">' +
-        '<h4 class="ua-freight-explain__title">物流类型 · ' + escapeHtml(group.type) + '</h4>' +
-        cards +
-        '</div>'
-      );
-    }).join('');
+  function renderExplainHtml() {
     return (
       '<div class="ua-freight-explain">' +
-      '<p class="ua-freight-explain__intro">' + intro + '</p>' +
-      body +
+      '<p class="ua-freight-explain__intro">进货商城运费按平台<strong>物流费率表</strong>计价。下面是门店进货时的通用规则，具体金额以确认订单里的运费明细为准。</p>' +
+
+      '<div class="ua-freight-explain__section">' +
+      '<h4 class="ua-freight-explain__title">1. 哪些商品收运费</h4>' +
+      '<p class="ua-freight-explain__p">按商品<strong>履约方式</strong>和<strong>是否包邮</strong>决定，这两项在代采商品上配置。</p>' +
+      '<p class="ua-freight-explain__p">履约是<strong>配送</strong>且未包邮：按费率表收费。</p>' +
+      '<p class="ua-freight-explain__p">履约是<strong>快递</strong>：商品勾了包邮就不收；未勾包邮才按费率表收费。</p>' +
+      '<p class="ua-freight-explain__p">一单里<strong>常温、冷链分开算</strong>，再加总成总运费。包邮商品不参与计费。</p>' +
+      '</div>' +
+
+      '<div class="ua-freight-explain__section">' +
+      '<h4 class="ua-freight-explain__title">2. 计费重量怎么算</h4>' +
+      '<p class="ua-freight-explain__p">先算抛重：长 × 宽 × 高（厘米）÷ 5000。</p>' +
+      '<p class="ua-freight-explain__p">再和毛重比较：抛重 ÷ 毛重 超过该路线<strong>重抛比</strong>时按抛重，否则按毛重。计费重量取较大的那个。</p>' +
+      '<p class="ua-freight-explain__p">件数多时，按「单件计费重量 × 件数」累加。</p>' +
+      '</div>' +
+
+      '<div class="ua-freight-explain__section">' +
+      '<h4 class="ua-freight-explain__title">3. 基础运费怎么算</h4>' +
+      '<p class="ua-freight-explain__p">费率表有两种方案，命中哪条用哪条：</p>' +
+      '<p class="ua-freight-explain__p"><strong>重量计费</strong>：按计费重量落入一档。不超过该档首重，只收该档<strong>首重价</strong>；超过的部分按「该档续价 ×（计费重量 − 该档首重重量）」加收。各档首重、首重价可以不同。</p>' +
+      '<p class="ua-freight-explain__p"><strong>金额计费</strong>：按本单货款金额落入一档，收该档固定运费，与重量无关。重量只用于上楼费。</p>' +
+      '<p class="ua-freight-explain__p">算出的基础运费再乘<strong>运费折扣</strong>。保价、派送、上楼不打折。</p>' +
+      '</div>' +
+
+      '<div class="ua-freight-explain__section">' +
+      '<h4 class="ua-freight-explain__title">4. 送到哪里、走哪条费率</h4>' +
+      '<p class="ua-freight-explain__p">配送按「门店对应仓库 → 门店地址」匹配。一门店只对应一个配送仓，只走一条线路。</p>' +
+      '<p class="ua-freight-explain__p">目的地越细越优先：<strong>区 &gt; 市 &gt; 省 &gt; 全国</strong>。同一条线路、同一种温层只启用一家承运商。</p>' +
+      '</div>' +
+
+      '<div class="ua-freight-explain__section">' +
+      '<h4 class="ua-freight-explain__title">5. 保价费、派送费</h4>' +
+      '<p class="ua-freight-explain__p">费率配了增值服务时，确认订单页会列出，<strong>默认勾选</strong>，可自行取消。</p>' +
+      '<p class="ua-freight-explain__p"><strong>保价费</strong>按货值：取「最低价」和「货款 × 费率%」里较大的那个。</p>' +
+      '<p class="ua-freight-explain__p"><strong>派送费</strong>按票收一笔固定金额。</p>' +
+      '</div>' +
+
+      '<div class="ua-freight-explain__section">' +
+      '<h4 class="ua-freight-explain__title">6. 上楼费</h4>' +
+      '<p class="ua-freight-explain__p">费率配了上楼费时，确认订单页可勾选。需填写<strong>有无电梯、楼层</strong>，下次默认带出，可改。</p>' +
+      '<p class="ua-freight-explain__p"><strong>1 楼不上楼</strong>，上楼费为 0。计费重量不超过<strong>免上楼重量</strong>也免费。</p>' +
+      '<p class="ua-freight-explain__p">否则按有无电梯：<strong>基础费 + 重量系数 × 计费重量 + 楼层系数 × 楼层数</strong>。</p>' +
+      '<p class="ua-freight-explain__p">楼层数：2 楼按 2 层、3 楼按 3 层；负 1 层按 2 层，以此类推。</p>' +
+      '</div>' +
+
+      '<div class="ua-freight-explain__section">' +
+      '<h4 class="ua-freight-explain__title">7. 本单怎么看金额</h4>' +
+      '<p class="ua-freight-explain__p">购物车展示预估运费。确认订单点「运费」可看明细：常温 / 冷链的首重、续重，以及勾选的保价、派送、上楼。</p>' +
+      '<p class="ua-freight-explain__p">总运费 = 常温基础 + 冷链基础 + 已勾选的增值服务 + 已勾选的上楼费。</p>' +
+      '</div>' +
       '</div>'
     );
   }
@@ -1446,6 +2010,7 @@
     load: load,
     formatFeeTiersHtml: formatFeeTiersHtml,
     formatExtraHtml: formatExtraHtml,
+    formatUpstairsHtml: formatUpstairsHtml,
     formatChannels: formatChannels,
     formatDest: formatDest,
     logisticsTypeFromTemp: logisticsTypeFromTemp,
@@ -1463,6 +2028,10 @@
     renderStrategySection: renderStrategySection,
     toggleStrategyGroup: toggleStrategyGroup,
     parseDestFromAddress: parseDestFromAddress,
-    renderExplainHtml: renderExplainHtml
+    warehouseByDest: warehouseByDest,
+    renderExplainHtml: renderExplainHtml,
+    normalizeFulfill: normalizeFulfill,
+    chargesFreight: chargesFreight,
+    resolveShipConfig: resolveShipConfig
   };
 })(window);

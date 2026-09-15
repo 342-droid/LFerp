@@ -283,6 +283,9 @@
       item.deliveryMode = normalizeDeliveryMode(raw);
     }
     item.fulfillmentMode = item.deliveryMode;
+    if (item.freeShip == null) {
+      item.freeShip = item.deliveryMode !== 'platform';
+    }
     if (item.etaCountdown == null) item.etaCountdown = '';
     if (!item.etaCountdownUnit) item.etaCountdownUnit = '天';
     if (item.saleTimeMode !== 'custom') item.saleTimeMode = 'follow_category';
@@ -572,6 +575,7 @@
           original.saleTimeEnd = payload.saleTimeEnd || '22:00';
           original.deliveryMode = normalizeDeliveryMode(payload.deliveryMode || payload.fulfillmentMode);
           original.fulfillmentMode = original.deliveryMode;
+          original.freeShip = payload.freeShip === true;
           original.detail = payload.detail;
           original.detailEdited = true;
           if (payload.status === 'on_shelf') original.status = 'on_shelf';
@@ -608,6 +612,7 @@
           saleTimeEnd: payload.saleTimeEnd || '22:00',
           deliveryMode: normalizeDeliveryMode(payload.deliveryMode || payload.fulfillmentMode),
           fulfillmentMode: normalizeDeliveryMode(payload.deliveryMode || payload.fulfillmentMode),
+          freeShip: payload.freeShip === true,
           detail: payload.detail,
           detailEdited: true
         };
