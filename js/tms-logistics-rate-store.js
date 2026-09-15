@@ -874,8 +874,11 @@
     return '';
   }
 
-  /** 本期只代采配送计费；其余履约包邮 */
+  /** 是否向客户计费：先看订单配置·包邮配置，未配则仅代采配送计费 */
   function chargesFreight(channel, fulfill) {
+    if (global.MdmOrderFreeShip && typeof global.MdmOrderFreeShip.isFreeShip === 'function') {
+      return !global.MdmOrderFreeShip.isFreeShip(fulfill);
+    }
     if (channel !== CHANNEL_PROXY) return false;
     var f = normalizeFulfill(fulfill);
     return !f || f === 'platform';
@@ -1470,7 +1473,6 @@
   function applyOrderServices(ambient, cold, opts, payable) {
     var groups = [ambient, cold].filter(function (g) { return g && !g.empty && g.rate; });
     var totalWeight = roundKg((ambient.weight || 0) + (cold.weight || 0));
-    var services = opts.services;
     var upOpts = opts.upstairs || {};
     var extras = [];
     var insure = pickBestExtra(groups, '保价费', payable);
@@ -1479,7 +1481,7 @@
         key: 'insure',
         name: '保价费',
         amount: calcInsureFee(insure, payable),
-        selected: !!(services && services.insure !== false),
+        selected: true,
         hint: 'max(最低¥' + toNum(insure.min).toFixed(2) + '，货款×' + toNum(insure.rate) + '%)'
       });
     }
@@ -1489,7 +1491,7 @@
         key: 'deliver',
         name: '派送费',
         amount: calcDeliverFee(deliver),
-        selected: !!(services && services.deliver !== false),
+        selected: true,
         hint: '每票¥' + toNum(deliver.amount).toFixed(2)
       });
     }
@@ -1499,7 +1501,7 @@
         key: 'upstairs',
         name: '上楼费',
         amount: pickedUp.upstairs.amount,
-        selected: !!(services && services.upstairs !== false),
+        selected: true,
         hint: (pickedUp.upstairs.hasElevator ? '有电梯' : '无电梯') +
           ' · ' + pickedUp.upstairs.floor + '层 · 计费' + pickedUp.upstairs.weight + 'kg' +
           (pickedUp.upstairs.reason ? '（' + pickedUp.upstairs.reason + '）' : ''),
@@ -1945,56 +1947,32 @@
   function renderExplainHtml() {
     return (
       '<div class="ua-freight-explain">' +
-      '<p class="ua-freight-explain__intro">进货商城运费按平台<strong>物流费率表</strong>计价。下面是门店进货时的通用规则，具体金额以确认订单里的运费明细为准。</p>' +
+      '<p class="ua-freight-explain__intro">进货运费按履约方式及货物计收。具体金额以确认订单运费明细为准。</p>' +
 
       '<div class="ua-freight-explain__section">' +
-      '<h4 class="ua-freight-explain__title">1. 哪些商品收运费</h4>' +
-      '<p class="ua-freight-explain__p">按商品<strong>履约方式</strong>和<strong>是否包邮</strong>决定，这两项在代采商品上配置。</p>' +
-      '<p class="ua-freight-explain__p">履约是<strong>配送</strong>且未包邮：按费率表收费。</p>' +
-      '<p class="ua-freight-explain__p">履约是<strong>快递</strong>：商品勾了包邮就不收；未勾包邮才按费率表收费。</p>' +
-      '<p class="ua-freight-explain__p">一单里<strong>常温、冷链分开算</strong>，再加总成总运费。包邮商品不参与计费。</p>' +
+      '<h4 class="ua-freight-explain__title">1. 配送费与快递费</h4>' +
+      '<p class="ua-freight-explain__p"><strong>平台配送</strong>收取配送费。<strong>快递</strong>免运费。</p>' +
+      '<p class="ua-freight-explain__p">同一订单中，<strong>常温、冷链分别计费</strong>后计入配送费。</p>' +
       '</div>' +
 
       '<div class="ua-freight-explain__section">' +
-      '<h4 class="ua-freight-explain__title">2. 计费重量怎么算</h4>' +
-      '<p class="ua-freight-explain__p">先算抛重：长 × 宽 × 高（厘米）÷ 5000。</p>' +
-      '<p class="ua-freight-explain__p">再和毛重比较：抛重 ÷ 毛重 超过该路线<strong>重抛比</strong>时按抛重，否则按毛重。计费重量取较大的那个。</p>' +
-      '<p class="ua-freight-explain__p">件数多时，按「单件计费重量 × 件数」累加。</p>' +
+      '<h4 class="ua-freight-explain__title">2. 配送费计收规则</h4>' +
+      '<p class="ua-freight-explain__p">按计费重量计收：先收<strong>起步费</strong>，超出部分按续重计收。</p>' +
+      '<p class="ua-freight-explain__p">计费重量取实际重量与体积折算重量中的较高值。</p>' +
+      '<p class="ua-freight-explain__p">按货款金额计收时，依本单货款分档定额计收，不按重量计收。</p>' +
       '</div>' +
 
       '<div class="ua-freight-explain__section">' +
-      '<h4 class="ua-freight-explain__title">3. 基础运费怎么算</h4>' +
-      '<p class="ua-freight-explain__p">费率表有两种方案，命中哪条用哪条：</p>' +
-      '<p class="ua-freight-explain__p"><strong>重量计费</strong>：按计费重量落入一档。不超过该档首重，只收该档<strong>首重价</strong>；超过的部分按「该档续价 ×（计费重量 − 该档首重重量）」加收。各档首重、首重价可以不同。</p>' +
-      '<p class="ua-freight-explain__p"><strong>金额计费</strong>：按本单货款金额落入一档，收该档固定运费，与重量无关。重量只用于上楼费。</p>' +
-      '<p class="ua-freight-explain__p">算出的基础运费再乘<strong>运费折扣</strong>。保价、派送、上楼不打折。</p>' +
+      '<h4 class="ua-freight-explain__title">3. 保价、派送与上楼</h4>' +
+      '<p class="ua-freight-explain__p"><strong>保价费、派送费、上楼费</strong>计入配送费，下单后不予减免。</p>' +
+      '<p class="ua-freight-explain__p"><strong>保价费</strong>按货款计收。<strong>派送费</strong>按单计收。</p>' +
+      '<p class="ua-freight-explain__p"><strong>上楼费</strong>按有无电梯及送达楼层计收。送达 1 楼，或未超过免上楼标准的，不上楼费。请在收货地址处填写电梯及楼层，下次下单自动带出。</p>' +
       '</div>' +
 
       '<div class="ua-freight-explain__section">' +
-      '<h4 class="ua-freight-explain__title">4. 送到哪里、走哪条费率</h4>' +
-      '<p class="ua-freight-explain__p">配送按「门店对应仓库 → 门店地址」匹配。一门店只对应一个配送仓，只走一条线路。</p>' +
-      '<p class="ua-freight-explain__p">目的地越细越优先：<strong>区 &gt; 市 &gt; 省 &gt; 全国</strong>。同一条线路、同一种温层只启用一家承运商。</p>' +
-      '</div>' +
-
-      '<div class="ua-freight-explain__section">' +
-      '<h4 class="ua-freight-explain__title">5. 保价费、派送费</h4>' +
-      '<p class="ua-freight-explain__p">费率配了增值服务时，确认订单页会列出，<strong>默认勾选</strong>，可自行取消。</p>' +
-      '<p class="ua-freight-explain__p"><strong>保价费</strong>按货值：取「最低价」和「货款 × 费率%」里较大的那个。</p>' +
-      '<p class="ua-freight-explain__p"><strong>派送费</strong>按票收一笔固定金额。</p>' +
-      '</div>' +
-
-      '<div class="ua-freight-explain__section">' +
-      '<h4 class="ua-freight-explain__title">6. 上楼费</h4>' +
-      '<p class="ua-freight-explain__p">费率配了上楼费时，确认订单页可勾选。需填写<strong>有无电梯、楼层</strong>，下次默认带出，可改。</p>' +
-      '<p class="ua-freight-explain__p"><strong>1 楼不上楼</strong>，上楼费为 0。计费重量不超过<strong>免上楼重量</strong>也免费。</p>' +
-      '<p class="ua-freight-explain__p">否则按有无电梯：<strong>基础费 + 重量系数 × 计费重量 + 楼层系数 × 楼层数</strong>。</p>' +
-      '<p class="ua-freight-explain__p">楼层数：2 楼按 2 层、3 楼按 3 层；负 1 层按 2 层，以此类推。</p>' +
-      '</div>' +
-
-      '<div class="ua-freight-explain__section">' +
-      '<h4 class="ua-freight-explain__title">7. 本单怎么看金额</h4>' +
-      '<p class="ua-freight-explain__p">购物车展示预估运费。确认订单点「运费」可看明细：常温 / 冷链的首重、续重，以及勾选的保价、派送、上楼。</p>' +
-      '<p class="ua-freight-explain__p">总运费 = 常温基础 + 冷链基础 + 已勾选的增值服务 + 已勾选的上楼费。</p>' +
+      '<h4 class="ua-freight-explain__title">4. 本单金额查询</h4>' +
+      '<p class="ua-freight-explain__p">购物车展示预估运费。确认订单点击「运费」，查看配送费、快递费明细。</p>' +
+      '<p class="ua-freight-explain__p">总运费 = 配送费 + 快递费。</p>' +
       '</div>' +
       '</div>'
     );

@@ -695,7 +695,7 @@
     if (api && typeof api.renderExplainHtml === 'function') {
       return api.renderExplainHtml();
     }
-    return '<p class="ua-freight-explain__intro">进货运费按物流费率表计价，确认订单可查看明细。</p>';
+    return '<p class="ua-freight-explain__intro">进货运费按履约方式及货物计收，具体金额以确认订单运费明细为准。</p>';
   }
 
   function openFreightRulesModal() {

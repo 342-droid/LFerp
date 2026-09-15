@@ -494,6 +494,51 @@
   margin-top: 4px;
 }
 
+.ua-co-card.ua-co-store {
+  margin-bottom: 0;
+  border-radius: 10px 10px 0 0;
+}
+
+.ua-co-card.ua-co-access {
+  margin-top: 0;
+  border-radius: 0 0 10px 10px;
+  border-top: 1px solid #f2f2f2;
+  padding: 10px 12px 12px;
+}
+
+.ua-co-access__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ua-co-access__row + .ua-co-access__row {
+  margin-top: 10px;
+}
+
+.ua-co-access__label {
+  width: 36px;
+  flex-shrink: 0;
+  font-size: 13px;
+  color: #666;
+}
+
+.ua-co-access__chips {
+  display: flex;
+  gap: 8px;
+}
+
+.ua-co-access__floor {
+  width: 72px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  background: #fafafa;
+  font-size: 13px;
+  color: #333;
+}
+
 /* 供应商 + 包裹 */
 .ua-co-supplier-block {
   margin-bottom: 4px;
@@ -938,41 +983,6 @@
   padding: 5px 0;
   font-size: 12px;
   color: #888;
-  cursor: pointer;
-}
-
-.ua-co-freight-svc__input {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.ua-co-freight-svc__box {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-  border: 1.5px solid #ccc;
-  border-radius: 4px;
-  background: #fff;
-  position: relative;
-}
-
-.ua-co-freight-svc__input:checked + .ua-co-freight-svc__box {
-  border-color: #ff7019;
-  background: #ff7019;
-}
-
-.ua-co-freight-svc__input:checked + .ua-co-freight-svc__box::after {
-  content: '';
-  position: absolute;
-  left: 4px;
-  top: 1px;
-  width: 5px;
-  height: 8px;
-  border: solid #fff;
-  border-width: 0 1.5px 1.5px 0;
-  transform: rotate(45deg);
 }
 
 .ua-co-freight-svc__name {
@@ -987,7 +997,7 @@
 }
 
 .ua-co-freight-upstairs {
-  margin: 0 0 2px 24px;
+  margin: 0 0 2px 0;
   padding: 2px 0 4px;
 }
 
@@ -1235,6 +1245,28 @@
 
 .ua-co-freight-detail__total strong {
   font-weight: 600;
+}
+
+.ua-co-freight-detail__subs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: -2px 0 2px;
+  padding: 0 0 2px 12px;
+  border-left: 2px solid #ffe0c7;
+}
+
+.ua-co-freight-detail__sub {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: #888;
+}
+
+.ua-co-freight-detail__sub span:last-child {
+  color: #999;
 }
 
 .ua-co-freight-detail__section {

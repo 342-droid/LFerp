@@ -761,7 +761,6 @@
     }
     applyDefaultDeliveryTimes();
     state.invalidItems = (payload && Array.isArray(payload.invalidItems) ? payload.invalidItems : []) || [];
-    state.freightServices = { insure: true, deliver: true, upstairs: true };
     state.upstairs = loadUpstairsPref();
     autoSelectCoupon();
   }
@@ -823,6 +822,7 @@
     (state.suppliers || []).forEach(function (sup) {
       (sup.packages || []).forEach(function (pkg) {
         if (opts.deliveryOnly && getPackageFulfillment(pkg) === '快递') return;
+        if (opts.expressOnly && getPackageFulfillment(pkg) !== '快递') return;
         (pkg.items || []).forEach(function (item) {
           items.push(item);
         });
@@ -841,7 +841,6 @@
   function quoteCheckoutFreight() {
     var api = window.TmsLogisticsRate;
     if (!api || typeof api.quoteOrder !== 'function') return null;
-    var services = (state && state.freightServices) || { insure: true, deliver: true, upstairs: true };
     var upstairs = (state && state.upstairs) || { hasElevator: true, floor: 2 };
     return api.quoteOrder({
       channel: api.CHANNEL_PROXY,
@@ -849,9 +848,35 @@
       dest: checkoutFreightDest(),
       items: listCheckoutLineItems({ deliveryOnly: true }),
       payable: getGoodsSubtotal(),
-      services: services,
       upstairs: upstairs
     });
+  }
+
+  function quoteCheckoutExpressFreight() {
+    var api = window.TmsLogisticsRate;
+    var items = listCheckoutLineItems({ expressOnly: true });
+    if (!items.length || !api || typeof api.quoteOrder !== 'function') return null;
+    var payable = items.reduce(function (sum, item) {
+      return sum + (Number(item.priceNum != null ? item.priceNum : item.price) || 0) * (Number(item.qty) || 0);
+    }, 0);
+    return api.quoteOrder({
+      channel: api.CHANNEL_PROXY,
+      fulfill: 'express',
+      dest: checkoutFreightDest(),
+      items: items,
+      payable: payable
+    });
+  }
+
+  function summarizeLineItems(items) {
+    var qty = 0;
+    var amount = 0;
+    (items || []).forEach(function (item) {
+      var q = Number(item.qty) || 0;
+      qty += q;
+      amount += (Number(item.priceNum != null ? item.priceNum : item.price) || 0) * q;
+    });
+    return { qty: qty, amount: Math.round(amount * 100) / 100 };
   }
 
   function matchDeliveryFreight(amount) {
@@ -869,20 +894,29 @@
   }
 
   function calcFreightBreakdown() {
+    var deliveryItems = listCheckoutLineItems({ deliveryOnly: true });
+    var expressItems = listCheckoutLineItems({ expressOnly: true });
+    var expressQuote = quoteCheckoutExpressFreight();
+    var expressFee = expressQuote ? Number(expressQuote.total) || 0 : 0;
     var quote = quoteCheckoutFreight();
     if (quote) {
+      var deliveryFee = quote.total || 0;
+      var total = Math.round((deliveryFee + expressFee) * 100) / 100;
       return {
         ambientFee: quote.ambient.amount || 0,
         coldFee: quote.cold.amount || 0,
-        expressFee: 0,
-        deliveryFee: quote.total || 0,
-        total: quote.total || 0,
+        expressFee: expressFee,
+        deliveryFee: deliveryFee,
+        total: total,
         baseTotal: quote.baseTotal || 0,
         extras: quote.extras || [],
         serviceSummary: quote.serviceSummary || null,
         quote: quote,
+        expressQuote: expressQuote,
+        hasDelivery: deliveryItems.length > 0,
+        hasExpress: expressItems.length > 0,
         packages: [],
-        label: quote.total > 0 ? (quote.text || formatMoney(quote.total)) : '免运费'
+        label: total > 0 ? formatMoney(total) : '免运费'
       };
     }
 
@@ -895,14 +929,18 @@
       });
     });
     var deliveryFee = deliveryAmount > 0 ? matchDeliveryFreight(deliveryAmount) : 0;
+    var total = Math.round((deliveryFee + expressFee) * 100) / 100;
     return {
       ambientFee: deliveryFee,
       coldFee: 0,
-      expressFee: 0,
+      expressFee: expressFee,
       deliveryFee: deliveryFee,
-      total: deliveryFee,
+      total: total,
+      expressQuote: expressQuote,
+      hasDelivery: deliveryItems.length > 0,
+      hasExpress: expressItems.length > 0,
       packages: [],
-      label: formatMoney(deliveryFee)
+      label: total > 0 ? formatMoney(total) : '免运费'
     };
   }
 
@@ -1169,6 +1207,25 @@
     if (nameEl) nameEl.textContent = s.name;
     if (contactEl) contactEl.textContent = s.contact + ' ' + s.phone;
     if (addrEl) addrEl.textContent = s.address;
+    renderAccessCard();
+  }
+
+  function renderAccessCard() {
+    var el = document.getElementById('checkoutAccessCard');
+    if (!el) return;
+    var up = (state && state.upstairs) || { hasElevator: true, floor: 2 };
+    var chips = el.querySelectorAll('[data-upstairs-lift]');
+    chips.forEach(function (btn) {
+      var on = btn.getAttribute('data-upstairs-lift') === '1';
+      btn.classList.toggle(
+        'ua-co-chip--active',
+        on ? up.hasElevator !== false : up.hasElevator === false
+      );
+    });
+    var floor = document.getElementById('checkoutUpstairsFloor');
+    if (floor && document.activeElement !== floor) {
+      floor.value = up.floor != null && up.floor !== '' ? up.floor : 2;
+    }
   }
 
   function maskPhone(phone) {
@@ -1371,7 +1428,6 @@
 
     setText('checkoutGoodsTotal', formatMoney(goods));
     setText('checkoutFreight', freightInfo.label);
-    renderFreightServices(freightInfo);
     setText('checkoutActivityDiscount', activity > 0 ? '-' + formatMoney(activity) : '-¥0.00');
     setText('checkoutCouponDiscount', state.coupon ? '-¥' + coupon.toFixed(2) : '-¥0.00');
     setText('checkoutPayable', formatMoney(payable));
@@ -1422,13 +1478,6 @@
     setText('checkoutFreight', freightInfo.label);
     setText('checkoutPayable', formatMoney(getPayable()));
     setText('checkoutFooterTotal', formatMoney(getFooterPayable()));
-    var summary = freightInfo.serviceSummary || {};
-    ['insure', 'deliver', 'upstairs'].forEach(function (key) {
-      var input = document.querySelector('[data-freight-svc="' + key + '"]');
-      if (!input || !input.parentNode) return;
-      var fee = input.parentNode.querySelector('.ua-co-freight-svc__fee');
-      if (fee) fee.textContent = formatMoney((summary[key] && summary[key].amount) || 0);
-    });
     renderPayWays();
   }
 
@@ -1500,76 +1549,12 @@
       el.innerHTML = api.renderExplainHtml();
       return;
     }
-    el.innerHTML = '<p class="ua-freight-explain__intro">进货运费按物流费率表计价，确认订单可查看明细。</p>';
+    el.innerHTML = '<p class="ua-freight-explain__intro">进货运费按履约方式及货物计收，具体金额以确认订单运费明细为准。</p>';
   }
 
   function openFreightRulesSheet() {
     renderFreightRules();
     openSheet('freightRules');
-  }
-
-  function renderFreightServices(info) {
-    var el = document.getElementById('checkoutFreightServices');
-    if (!el) return;
-    var summary = (info && info.serviceSummary) || {};
-    var insure = summary.insure || {};
-    var deliver = summary.deliver || {};
-    var upstairs = summary.upstairs || {};
-    var hasAny = !!(insure.available || deliver.available || upstairs.available);
-    el.hidden = !hasAny;
-    if (!hasAny) {
-      el.innerHTML = '';
-      return;
-    }
-    var svc = (state && state.freightServices) || { insure: true, deliver: true, upstairs: true };
-    var up = (state && state.upstairs) || { hasElevator: true, floor: 2 };
-    var html = '<p class="ua-co-freight-svcs__cap">其中含</p>';
-    if (insure.available) {
-      html += renderFreightServiceRow('insure', '保价服务', insure.amount, svc.insure !== false);
-    }
-    if (deliver.available) {
-      html += renderFreightServiceRow('deliver', '派送服务', deliver.amount, svc.deliver !== false);
-    }
-    if (upstairs.available) {
-      html += renderFreightServiceRow('upstairs', '上楼服务', upstairs.amount, svc.upstairs !== false);
-      if (svc.upstairs !== false) {
-        html +=
-          '<div class="ua-co-freight-upstairs">' +
-          '<div class="ua-co-freight-upstairs__row">' +
-          '<span class="ua-co-freight-upstairs__label">电梯</span>' +
-          '<div class="ua-co-freight-upstairs__chips">' +
-          '<button type="button" class="ua-co-chip' +
-          (up.hasElevator !== false ? ' ua-co-chip--active' : '') +
-          '" data-upstairs-lift="1">有电梯</button>' +
-          '<button type="button" class="ua-co-chip' +
-          (up.hasElevator === false ? ' ua-co-chip--active' : '') +
-          '" data-upstairs-lift="0">无电梯</button></div></div>' +
-          '<label class="ua-co-freight-upstairs__row">' +
-          '<span class="ua-co-freight-upstairs__label">楼层</span>' +
-          '<input type="number" class="ua-co-freight-upstairs__floor" id="checkoutUpstairsFloor" min="-10" max="99" step="1" value="' +
-          (up.floor != null && up.floor !== '' ? up.floor : 2) +
-          '"></label></div>';
-      }
-    }
-    el.innerHTML = html;
-  }
-
-  function renderFreightServiceRow(key, name, amount, checked) {
-    return (
-      '<label class="ua-co-freight-svc">' +
-      '<input type="checkbox" class="ua-co-freight-svc__input" data-freight-svc="' +
-      key +
-      '"' +
-      (checked ? ' checked' : '') +
-      '>' +
-      '<span class="ua-co-freight-svc__box" aria-hidden="true"></span>' +
-      '<span class="ua-co-freight-svc__name">' +
-      name +
-      '</span>' +
-      '<span class="ua-co-freight-svc__fee">' +
-      formatMoney(amount || 0) +
-      '</span></label>'
-    );
   }
 
   function renderFreightTypeBlock(group, title) {
@@ -1587,27 +1572,13 @@
         '</span></div></div>'
       );
     }
-    var lines = (group.items || [])
-      .map(function (item) {
-        return (
-          '<div class="ua-co-freight-detail__pkg">' +
-          '<div class="ua-co-freight-detail__pkg-main">' +
-          '<span class="ua-co-freight-detail__pkg-name">' +
-          item.title +
-          ' ×' +
-          item.qty +
-          '</span>' +
-          '<span class="ua-co-freight-detail__pkg-sub">温层' +
-          item.tempLayer +
-          ' · 货款' +
-          formatMoney(item.amount) +
-          '</span></div></div>'
-        );
-      })
-      .join('');
+    var summaryBits = [];
+    if (group.itemCount) summaryBits.push(group.itemCount + '件');
+    if (group.goodsAmount) summaryBits.push('货款' + formatMoney(group.goodsAmount));
     var scheme = group.miss
       ? group.miss
-      : (group.carrier || '') +
+      : (summaryBits.length ? summaryBits.join(' · ') + ' · ' : '') +
+        (group.carrier || '') +
         ' · ' +
         (group.feeScheme || '') +
         (group.level ? ' · 命中' + group.level : '');
@@ -1625,7 +1596,6 @@
       formatMoney(group.amount) +
       '</span></div>' +
       renderFreightBreakdownLines(group) +
-      lines +
       '</div>'
     );
   }
@@ -1721,29 +1691,68 @@
     );
   }
 
+  function renderExpressFreightBlock(info) {
+    if (!info || !info.hasExpress) return '';
+    var sum = summarizeLineItems(listCheckoutLineItems({ expressOnly: true }));
+    var bits = [];
+    if (sum.qty) bits.push(sum.qty + '件');
+    if (sum.amount) bits.push('货款' + formatMoney(sum.amount));
+    bits.push(info.expressFee > 0 ? '按费率计费' : '按包邮配置不收取');
+    return (
+      '<div class="ua-co-freight-detail__section">' +
+      '<div class="ua-co-freight-detail__pkg">' +
+      '<div class="ua-co-freight-detail__pkg-main">' +
+      '<span class="ua-co-freight-detail__pkg-name">快递费</span>' +
+      '<span class="ua-co-freight-detail__pkg-sub">' +
+      bits.join(' · ') +
+      '</span></div>' +
+      '<span class="ua-co-freight-detail__pkg-fee">' +
+      (info.expressFee > 0 ? formatMoney(info.expressFee) : '免运费') +
+      '</span></div></div>'
+    );
+  }
+
   function renderFreightDetail() {
     var el = document.getElementById('checkoutFreightDetail');
     if (!el) return;
     var info = calcFreightBreakdown();
     var quote = info.quote || {};
+    var deliveryFee = Number(info.deliveryFee) || 0;
+    var totals = '';
+    if (info.hasDelivery) {
+      totals +=
+        '<div class="ua-co-freight-detail__total"><span>配送费</span><strong>' +
+        formatMoney(deliveryFee) +
+        '</strong></div>' +
+        '<div class="ua-co-freight-detail__subs">' +
+        '<div class="ua-co-freight-detail__sub"><span>常温基础运费</span><span>' +
+        formatMoney(info.ambientFee) +
+        '</span></div>' +
+        '<div class="ua-co-freight-detail__sub"><span>冷链基础运费</span><span>' +
+        formatMoney(info.coldFee) +
+        '</span></div>' +
+        '<div class="ua-co-freight-detail__sub"><span>增值 / 上楼</span><span>' +
+        formatMoney((info.quote && info.quote.serviceTotal) || 0) +
+        '</span></div></div>';
+    }
+    if (info.hasExpress) {
+      totals +=
+        '<div class="ua-co-freight-detail__total"><span>快递费</span><strong>' +
+        (info.expressFee > 0 ? formatMoney(info.expressFee) : '免运费') +
+        '</strong></div>';
+    }
     el.innerHTML =
       '<div class="ua-co-freight-detail">' +
       '<div class="ua-co-freight-detail__totals">' +
-      '<div class="ua-co-freight-detail__total"><span>常温基础运费</span><strong>' +
-      formatMoney(info.ambientFee) +
-      '</strong></div>' +
-      '<div class="ua-co-freight-detail__total"><span>冷链基础运费</span><strong>' +
-      formatMoney(info.coldFee) +
-      '</strong></div>' +
-      '<div class="ua-co-freight-detail__total"><span>增值 / 上楼</span><strong>' +
-      formatMoney((info.quote && info.quote.serviceTotal) || 0) +
-      '</strong></div></div>' +
+      totals +
+      '</div>' +
       '<div class="ua-co-freight-detail__total ua-co-freight-detail__total--sum"><span>总运费</span><strong>' +
-      formatMoney(info.total) +
+      (info.total > 0 ? formatMoney(info.total) : '免运费') +
       '</strong></div>' +
-      renderFreightTypeBlock(quote.ambient, '常温') +
-      renderFreightTypeBlock(quote.cold, '冷链') +
-      renderFreightExtraBlock(info) +
+      (info.hasDelivery ? renderFreightTypeBlock(quote.ambient, '常温') : '') +
+      (info.hasDelivery ? renderFreightTypeBlock(quote.cold, '冷链') : '') +
+      (info.hasDelivery ? renderFreightExtraBlock(info) : '') +
+      renderExpressFreightBlock(info) +
       '</div>';
   }
 
@@ -2475,16 +2484,9 @@
     document.getElementById('checkoutFreightDetailBtn') &&
       document.getElementById('checkoutFreightDetailBtn').addEventListener('click', openFreightSheet);
 
-    var freightSvcs = document.getElementById('checkoutFreightServices');
-    if (freightSvcs) {
-      freightSvcs.addEventListener('change', function (e) {
-        var box = e.target.closest('[data-freight-svc]');
-        if (box) {
-          if (!state.freightServices) state.freightServices = { insure: true, deliver: true, upstairs: true };
-          state.freightServices[box.getAttribute('data-freight-svc')] = box.checked;
-          renderSummary();
-          return;
-        }
+    var accessCard = document.getElementById('checkoutAccessCard');
+    if (accessCard) {
+      accessCard.addEventListener('change', function (e) {
         if (e.target && e.target.id === 'checkoutUpstairsFloor') {
           if (!state.upstairs) state.upstairs = loadUpstairsPref();
           state.upstairs.floor = e.target.value === '' ? 1 : e.target.value;
@@ -2492,20 +2494,21 @@
           refreshFreightAmounts();
         }
       });
-      freightSvcs.addEventListener('input', function (e) {
+      accessCard.addEventListener('input', function (e) {
         if (!e.target || e.target.id !== 'checkoutUpstairsFloor') return;
         if (!state.upstairs) state.upstairs = loadUpstairsPref();
         state.upstairs.floor = e.target.value === '' ? 1 : e.target.value;
         saveUpstairsPref();
         refreshFreightAmounts();
       });
-      freightSvcs.addEventListener('click', function (e) {
+      accessCard.addEventListener('click', function (e) {
         var btn = e.target.closest('[data-upstairs-lift]');
         if (!btn) return;
         if (!state.upstairs) state.upstairs = loadUpstairsPref();
         state.upstairs.hasElevator = btn.getAttribute('data-upstairs-lift') === '1';
         saveUpstairsPref();
-        renderSummary();
+        renderAccessCard();
+        refreshFreightAmounts();
       });
     }
 

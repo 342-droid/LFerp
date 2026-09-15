@@ -174,6 +174,9 @@
   }
 
   function defaultFreeShip(mode) {
+    if (window.MdmOrderFreeShip && typeof window.MdmOrderFreeShip.isFreeShip === 'function') {
+      return window.MdmOrderFreeShip.isFreeShip(mode);
+    }
     if (formChannel === 'proxy' && normalizeDeliveryMode(mode) === 'platform') return false;
     return true;
   }

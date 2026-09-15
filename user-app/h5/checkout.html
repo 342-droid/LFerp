@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>确认订单 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
-  <link rel="stylesheet" href="../css/user-app-checkout.css?v=20260915-split-wh">
+  <link rel="stylesheet" href="../css/user-app-checkout.css?v=20260915-deliv-lv">
   <link rel="stylesheet" href="../css/user-app-sale-time.css?v=20260828-mix-pay">
 </head>
 <body class="user-app-body">
@@ -43,6 +43,19 @@
             <p class="ua-co-store__addr" id="checkoutStoreAddr">浙江省杭州市萧山区建设一路88号</p>
           </div>
           <svg class="ua-co-store__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </section>
+        <section class="ua-co-card ua-co-access" id="checkoutAccessCard">
+          <div class="ua-co-access__row">
+            <span class="ua-co-access__label">电梯</span>
+            <div class="ua-co-access__chips">
+              <button type="button" class="ua-co-chip ua-co-chip--active" data-upstairs-lift="1">有电梯</button>
+              <button type="button" class="ua-co-chip" data-upstairs-lift="0">无电梯</button>
+            </div>
+          </div>
+          <label class="ua-co-access__row">
+            <span class="ua-co-access__label">楼层</span>
+            <input type="number" class="ua-co-access__floor" id="checkoutUpstairsFloor" min="-10" max="99" step="1" value="2">
+          </label>
         </section>
 
         <!-- 供应商 + 包裹 -->
@@ -85,7 +98,6 @@
                 <svg class="ua-co-summary__freight-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
               </button>
             </div>
-            <div class="ua-co-freight-svcs" id="checkoutFreightServices" hidden></div>
           </div>
           <div class="ua-co-summary__row ua-co-summary__row--discount"><span>活动优惠</span><span id="checkoutActivityDiscount">-¥0.00</span></div>
           <div class="ua-co-summary__row ua-co-summary__row--discount" id="checkoutCouponDiscountRow"><span>优惠券</span><span id="checkoutCouponDiscount">-¥10.00</span></div>
@@ -280,10 +292,11 @@
   <script src="../../js/mdm-product-catalog-store.js?v=20260913-dims"></script>
   <script src="../js/ua-proxy-sale-scope.js"></script>
   <script src="../js/user-app-product-catalog.js?v=20260914-temp-layer"></script>
-  <script src="../../js/tms-logistics-rate-store.js?v=20260915-split-wh"></script>
+  <script src="../../js/mdm-order-free-ship-store.js?v=20260915-free-ship"></script>
+  <script src="../../js/tms-logistics-rate-store.js?v=20260915-explain-v2"></script>
   <script src="../js/user-app-orders-store.js?v=20260915-split-wh"></script>
   <script src="../js/user-app-product-sale-time.js?v=20260819-sale-dialog-ok"></script>
-  <script src="../js/user-app-checkout.js?v=20260915-split-wh"></script>
+  <script src="../js/user-app-checkout.js?v=20260915-deliv-lv"></script>
   <script src="../../js/pg-prd-float.js?v=20260908-670"></script>
 
 </body>
