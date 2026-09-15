@@ -151,9 +151,10 @@
 
             <section class="table-section">
                 <div class="table-scroll-container">
-                    <table class="table">
+                    <table class="table no-last-column-freeze">
                         <thead>
                             <tr>
+                                <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
                                 <th>仓库</th>
                                 <th>货主</th>
                                 <th>商品编码</th>
@@ -179,6 +180,8 @@
                                 <th>库存ID</th>
                                 <th>规则编码</th>
                                 <th>规则明细ID</th>
+                                <th>创建时间</th>
+                                <th>创建人</th>
                                 <th>更新时间</th>
                                 <th>更新人</th>
                             </tr>
@@ -186,6 +189,7 @@
                         <tbody id="tableBody">
                             <!-- 数据行将由系统自动填充 -->
                             <tr>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
                                 <td>W001 南京仓</td>
                                 <td>C001 冷丰食品</td>
                                 <td>SKU001</td>
@@ -211,6 +215,8 @@
                                 <td>1</td>
                                 <td>RULE001</td>
                                 <td>1</td>
+                                <td>2024-12-31 10:00:00</td>
+                                <td>李四</td>
                                 <td>2025-01-01 12:00:00</td>
                                 <td>张三</td>
                             </tr>

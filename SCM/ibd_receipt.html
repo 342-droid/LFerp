@@ -566,7 +566,7 @@
                     <button type="button" class="btn btn-primary" id="confirmReceiptEntryBtn">确认收货</button>
                     <button type="button" class="btn btn-secondary" id="closeReceiptOrderBtn">关闭收货单</button>
                 </div>
-                <div class="table-scroll-container"><table class="table receipt-entry-table"><thead><tr><th>商品编码</th><th>商品名称</th><th>商品规格</th><th>商品单位</th><th>计划数量</th><th>已收数量</th><th>收货数量</th><th>收货储位</th></tr></thead><tbody id="receiptEntryTableBody"></tbody></table></div>
+                <div class="table-scroll-container"><table class="table receipt-entry-table"><thead><tr><th>商品编码</th><th>商品名称</th><th>商品规格</th><th>商品单位</th><th>计划数量</th><th>已收数量</th><th>收货数量</th><th>已取消量</th><th>收货储位</th></tr></thead><tbody id="receiptEntryTableBody"></tbody></table></div>
             </div>
         </div>
     </div>
@@ -674,6 +674,7 @@
                                         <th>商品单位</th>
                                         <th>计划入库量</th>
                                         <th>实际入库量</th>
+                                        <th>已取消量</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -863,13 +864,13 @@
 
         const RECEIPT_PRODUCT_DATA = {
             'IBD2026022712345678': [
-                { skuCode: 'SKU001', skuName: '商品1', unit: '件', planQty: 100, actualQty: 98 },
-                { skuCode: 'SKU002', skuName: '商品2', unit: '箱', planQty: 50, actualQty: 50 },
-                { skuCode: 'SKU003', skuName: '商品3', unit: '个', planQty: 200, actualQty: 195 }
+                { skuCode: 'SKU001', skuName: '商品1', unit: '件', planQty: 100, actualQty: 98, canceledQty: 2 },
+                { skuCode: 'SKU002', skuName: '商品2', unit: '箱', planQty: 50, actualQty: 50, canceledQty: 0 },
+                { skuCode: 'SKU003', skuName: '商品3', unit: '个', planQty: 200, actualQty: 195, canceledQty: 5 }
             ],
             'IBD2026022787654321': [
-                { skuCode: 'SKU004', skuName: '商品4', unit: '件', planQty: 150, actualQty: 150 },
-                { skuCode: 'SKU005', skuName: '商品5', unit: '箱', planQty: 80, actualQty: 80 }
+                { skuCode: 'SKU004', skuName: '商品4', unit: '件', planQty: 150, actualQty: 150, canceledQty: 0 },
+                { skuCode: 'SKU005', skuName: '商品5', unit: '箱', planQty: 80, actualQty: 80, canceledQty: 0 }
             ]
         };
 
@@ -1255,6 +1256,7 @@
                         <td>${product.unit}</td>
                         <td>${product.planQty}</td>
                         <td>${product.actualQty}</td>
+                        <td>${product.canceledQty || 0}</td>
                     `;
                     tbody.appendChild(row);
                 });
@@ -1481,7 +1483,7 @@
             document.getElementById('receiptEntryWarehouse').value = 'W001-南京仓库';
             document.getElementById('receiptEntryOwner').value = orderId === 'IBD2026022712345678' ? 'Y001-南京货主' : 'Y002-北京货主';
             document.getElementById('receiptEntryType').value = orderId === 'IBD2026022712345678' ? '采购入库' : '调拨入库';
-            document.getElementById('receiptEntryTableBody').innerHTML = products.map(product => `<tr><td>${product.skuCode}</td><td>${product.skuName}</td><td>${getWmsSkuSpec(product.skuCode, product.skuName)}</td><td>${product.unit}</td><td>${product.planQty}</td><td>${product.actualQty || 0}</td><td><input type="number" min="0" max="${product.planQty}" value="${Math.max(0, Number(product.planQty || 0) - Number(product.actualQty || 0))}"></td><td>SH01</td></tr>`).join('');
+            document.getElementById('receiptEntryTableBody').innerHTML = products.map(product => `<tr><td>${product.skuCode}</td><td>${product.skuName}</td><td>${getWmsSkuSpec(product.skuCode, product.skuName)}</td><td>${product.unit}</td><td>${product.planQty}</td><td>${product.actualQty || 0}</td><td><input type="number" min="0" max="${product.planQty}" value="${Math.max(0, Number(product.planQty || 0) - Number(product.actualQty || 0))}"></td><td>${product.canceledQty || 0}</td><td>SH01</td></tr>`).join('');
             modal.style.display = 'block';
             document.getElementById('receiptEntryCloseBtn').onclick = () => modal.style.display = 'none';
             document.getElementById('confirmReceiptEntryBtn').onclick = () => { modal.style.display = 'none'; if (typeof showToast === 'function') showToast('收货已确认', 'success'); };

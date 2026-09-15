@@ -74,6 +74,8 @@
                                 <th>作业档案名称</th>
                                 <th>仓库</th>
                                 <th>是否启用</th>
+                                <th>创建时间</th>
+                                <th>创建人</th>
                                 <th>更新时间</th>
                                 <th>更新人</th>
                                 <th>操作</th>
@@ -86,6 +88,8 @@
                                 <td>标准作业档案</td>
                                 <td>W001-南京仓</td>
                                 <td><span class="status active">启用</span></td>
+                                <td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
                                 <td>2025-01-05 12:31:43</td>
                                 <td>李四</td>
                                 <td class="action-links">
@@ -99,6 +103,8 @@
                                 <td>冷链作业档案</td>
                                 <td>W001-南京仓</td>
                                 <td><span class="status inactive">禁用</span></td>
+                                <td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
                                 <td>2025-01-05 12:31:43</td>
                                 <td>李四</td>
                                 <td class="action-links">
@@ -302,6 +308,8 @@
                                 warehouse,
                                 { value: enabled, isStatus: true },
                                 page.getCurrentTimeStr(),
+                                '当前用户',
+                                page.getCurrentTimeStr(),
                                 '当前用户'
                             ]
                         });
@@ -339,8 +347,8 @@
                         page.updateTableRow(page.currentEditRow, {
                             2: document.getElementById('editProfileName').value.trim(),
                             4: { value: document.getElementById('editIsEnabled').value.trim(), isStatus: true },
-                            5: page.getCurrentTimeStr(),
-                            6: '当前用户'
+                            7: page.getCurrentTimeStr(),
+                            8: '当前用户'
                         });
                         showToast('作业档案信息已更新', 'success');
                         page.currentEditRow = null;

@@ -136,6 +136,8 @@
                                 <th>来源类型</th>
                                 <th>来源单号</th>
                                 <th>是否冻结</th>
+                                <th>创建时间</th>
+                                <th>创建人</th>
                                 <th>更新时间</th>
                                 <th>更新人</th>
                                 <th>操作</th>
@@ -213,6 +215,8 @@
                 sourceType: '收货',
                 sourceOrder: 'PO001',
                 isFrozen: '否',
+                createTime: '2026-02-09 08:00:00',
+                createUser: 'admin',
                 updateTime: '2026-02-10 10:00:00',
                 updateUser: 'admin'
             },
@@ -235,6 +239,8 @@
                 sourceType: '拣货',
                 sourceOrder: 'WO001',
                 isFrozen: '是',
+                createTime: '2026-02-09 09:00:00',
+                createUser: 'admin',
                 updateTime: '2026-02-10 11:00:00',
                 updateUser: 'admin'
             },
@@ -257,6 +263,8 @@
                 sourceType: '分拣',
                 sourceOrder: 'RO001',
                 isFrozen: '否',
+                createTime: '2026-02-09 10:00:00',
+                createUser: 'admin',
                 updateTime: '2026-02-10 12:00:00',
                 updateUser: 'admin'
             }
@@ -309,6 +317,8 @@
                             <td>${item.sourceType}</td>
                             <td>${item.sourceOrder}</td>
                             <td><span class="status ${item.isFrozen === '否' ? 'active' : 'inactive'}">${item.isFrozen}</span></td>
+                            <td>${item.createTime}</td>
+                            <td>${item.createUser}</td>
                             <td>${item.updateTime}</td>
                             <td>${item.updateUser}</td>
                             <td class="action-links">

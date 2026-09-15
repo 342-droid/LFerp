@@ -230,6 +230,7 @@
                     <table class="table no-last-column-freeze">
                         <thead>
                             <tr>
+                                <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
                                 <th>仓库</th>
                                 <th>货主</th>
                                 <th>异常单号</th>
@@ -626,6 +627,7 @@
                 const st = item.outboundStatus || '';
                 const exSt = item.exceptionStatus || '';
                 row.innerHTML = `
+                    <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
                     <td>${item.warehouse || ''}</td>
                     <td>${item.company || ''}</td>
                     <td><a href="#" class="exception-no-link" data-exception-no="${item.exceptionNo}">${item.exceptionNo || ''}</a></td>

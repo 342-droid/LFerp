@@ -512,6 +512,7 @@
                                 <th>订货量</th>
                                 <th>发货量</th>
                                 <th>收货量</th>
+                                <th>已取消量</th>
                                 <th>销售单价</th>
                                 <th>销售金额</th>
                             </tr>
@@ -1110,6 +1111,7 @@
                 lineAmount: Number(l.lineAmount) || 0,
                 shippedQty: 0,
                 receivedQty: 0,
+                canceledQty: 0,
                 sheetNo: sheetNo,
                 sheetHeaderStatus: '初始',
                 docSource: '门店订货汇总生成',
@@ -1591,6 +1593,7 @@
                 var q = (r.qty || 0) + u;
                 var shipQ = formatDetailLineQty(r.shippedQty, u);
                 var recvQ = formatDetailLineQty(r.receivedQty, u);
+                var cancelQ = formatDetailLineQty(r.canceledQty, u);
                 var amt = (r.lineAmount != null && !isNaN(Number(r.lineAmount))) ? formatOrderTotalPrice(r.lineAmount) : '—';
                 var unitPrice = '—';
                 if (r.lineAmount != null && !isNaN(Number(r.lineAmount)) && r.qty != null && !isNaN(Number(r.qty)) && Number(r.qty) !== 0) {
@@ -1608,6 +1611,7 @@
                     '<td>' + escapeHtml(q) + '</td>' +
                     '<td>' + escapeHtml(shipQ) + '</td>' +
                     '<td>' + escapeHtml(recvQ) + '</td>' +
+                    '<td>' + escapeHtml(cancelQ) + '</td>' +
                     '<td>' + escapeHtml(unitPrice) + '</td>' +
                     '<td>' + escapeHtml(amt) + '</td>' +
                     '</tr>'

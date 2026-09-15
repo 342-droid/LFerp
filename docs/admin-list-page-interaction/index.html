@@ -1,0 +1,763 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LFerp 售后列表交互需求图解</title>
+    <style>
+      :root {
+        --ink: #162035;
+        --muted: #667085;
+        --line: #e7eaf0;
+        --soft: #f5f7fa;
+        --orange: #f36d21;
+        --orange-soft: #fff4ec;
+        --blue: #2f6fed;
+        --green: #15966b;
+        --red: #d94a4a;
+        --navy: #101b32;
+      }
+
+      * { box-sizing: border-box; }
+
+      html { scroll-behavior: smooth; }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background: #edf1f6;
+        font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+        line-height: 1.55;
+      }
+
+      a { color: var(--blue); }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 58px;
+        padding: 0 32px;
+        color: white;
+        background: rgba(16, 27, 50, 0.96);
+        backdrop-filter: blur(12px);
+      }
+
+      .topbar strong { font-size: 15px; letter-spacing: 0.02em; }
+
+      .topbar nav { display: flex; gap: 22px; }
+
+      .topbar a {
+        color: rgba(255,255,255,.76);
+        font-size: 13px;
+        text-decoration: none;
+      }
+
+      .page {
+        width: min(1440px, calc(100% - 48px));
+        margin: 26px auto 64px;
+      }
+
+      .sheet {
+        margin-bottom: 24px;
+        overflow: hidden;
+        border: 1px solid #dfe4eb;
+        border-radius: 16px;
+        background: white;
+        box-shadow: 0 14px 38px rgba(20, 31, 53, .08);
+      }
+
+      .cover {
+        position: relative;
+        min-height: 670px;
+        padding: 64px 68px 54px;
+        background:
+          radial-gradient(circle at 88% 16%, rgba(243,109,33,.18), transparent 27%),
+          linear-gradient(140deg, #fff 0%, #fff 57%, #fff8f3 100%);
+      }
+
+      .cover::after {
+        content: "";
+        position: absolute;
+        right: 74px;
+        bottom: 54px;
+        width: 410px;
+        height: 270px;
+        border: 1px solid rgba(243,109,33,.24);
+        border-radius: 28px;
+        transform: rotate(-4deg);
+        pointer-events: none;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        padding: 6px 11px;
+        border-radius: 999px;
+        color: #b54d12;
+        background: var(--orange-soft);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: .04em;
+      }
+
+      h1 {
+        max-width: 820px;
+        margin: 22px 0 18px;
+        font-size: clamp(38px, 4vw, 58px);
+        line-height: 1.12;
+        letter-spacing: -.04em;
+      }
+
+      .lead {
+        max-width: 800px;
+        margin: 0;
+        color: #49556a;
+        font-size: 19px;
+      }
+
+      .decision {
+        max-width: 900px;
+        margin-top: 32px;
+        padding: 22px 26px;
+        border-left: 5px solid var(--orange);
+        border-radius: 0 12px 12px 0;
+        background: white;
+        box-shadow: 0 9px 30px rgba(43, 52, 69, .08);
+        font-size: 18px;
+      }
+
+      .decision strong { color: #b84b0e; }
+
+      .decision-grid {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        margin-top: 42px;
+      }
+
+      .decision-card {
+        min-height: 122px;
+        padding: 18px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: rgba(255,255,255,.92);
+      }
+
+      .decision-card small {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--muted);
+      }
+
+      .decision-card strong {
+        display: block;
+        font-size: 19px;
+      }
+
+      .decision-card span {
+        display: block;
+        margin-top: 5px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .sheet-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 32px;
+        padding: 34px 42px 24px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .sheet-head h2 {
+        margin: 4px 0 7px;
+        font-size: 28px;
+        letter-spacing: -.02em;
+      }
+
+      .sheet-head p {
+        max-width: 850px;
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .figure-no {
+        flex: 0 0 auto;
+        align-self: flex-start;
+        padding: 7px 10px;
+        border-radius: 8px;
+        color: white;
+        background: var(--navy);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .figure-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 320px;
+        gap: 26px;
+        padding: 28px;
+      }
+
+      .mock-frame {
+        position: relative;
+        height: 624px;
+        overflow: hidden;
+        border: 1px solid #d8dde6;
+        border-radius: 12px;
+        background: #f4f6f9;
+        box-shadow: 0 8px 26px rgba(17, 27, 48, .10);
+      }
+
+      .mock-frame img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: left top;
+      }
+
+      .pin {
+        position: absolute;
+        z-index: 5;
+        display: grid;
+        place-items: center;
+        width: 30px;
+        height: 30px;
+        border: 3px solid white;
+        border-radius: 50%;
+        color: white;
+        background: var(--orange);
+        box-shadow: 0 4px 12px rgba(153, 62, 11, .32);
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .pin::after {
+        content: "";
+        position: absolute;
+        inset: -8px;
+        border: 1px solid rgba(243,109,33,.34);
+        border-radius: 50%;
+      }
+
+      .legend {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .legend-item {
+        display: grid;
+        grid-template-columns: 34px 1fr;
+        gap: 10px;
+        padding: 13px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #fbfcfd;
+      }
+
+      .legend-number {
+        display: grid;
+        place-items: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        color: white;
+        background: var(--orange);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .legend-item strong { display: block; font-size: 14px; }
+
+      .legend-item p {
+        margin: 3px 0 0;
+        color: var(--muted);
+        font-size: 12.5px;
+      }
+
+      .rule-band {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        margin: 0 28px 28px;
+        padding: 18px;
+        border-radius: 12px;
+        background: #f6f8fb;
+      }
+
+      .rule-band div {
+        padding: 4px 14px;
+        border-left: 2px solid #cdd5df;
+      }
+
+      .rule-band strong { display: block; margin-bottom: 4px; font-size: 14px; }
+
+      .rule-band span { color: var(--muted); font-size: 12.5px; }
+
+      .comparison {
+        display: grid;
+        grid-template-columns: 1fr 84px 1fr;
+        gap: 20px;
+        align-items: stretch;
+        padding: 30px 40px 38px;
+      }
+
+      .comparison-card {
+        padding: 25px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: #fbfcfd;
+      }
+
+      .comparison-card.is-target {
+        border: 2px solid rgba(21,150,107,.38);
+        background: #f5fbf8;
+      }
+
+      .comparison-card.is-exception {
+        border-color: rgba(217,74,74,.28);
+        background: #fff8f7;
+      }
+
+      .comparison-card h3 { margin: 0 0 4px; font-size: 20px; }
+
+      .comparison-card > p { margin: 0; color: var(--muted); font-size: 13px; }
+
+      .diagram {
+        margin: 22px 0;
+        padding: 16px;
+        border: 1px solid #d9dee7;
+        border-radius: 10px;
+        background: white;
+      }
+
+      .row-schematic {
+        display: grid;
+        grid-template-columns: 42px 1.4fr 1fr 1fr 1.1fr 104px;
+        min-height: 62px;
+        border: 1px solid #dfe3e9;
+        border-radius: 7px;
+        overflow: hidden;
+      }
+
+      .row-schematic > span {
+        display: flex;
+        align-items: center;
+        padding: 9px;
+        border-right: 1px solid #e7eaf0;
+        color: #3d4658;
+        font-size: 12px;
+      }
+
+      .row-schematic > span:last-child { border-right: 0; }
+
+      .row-schematic .primary { color: #b84b0e; font-weight: 700; }
+
+      .two-row {
+        display: grid;
+        grid-template-columns: 42px 1fr;
+        border: 1px solid #e0d9d9;
+        border-radius: 7px;
+        overflow: hidden;
+      }
+
+      .two-row .check {
+        grid-row: 1 / 3;
+        display: grid;
+        place-items: center;
+        border-right: 1px solid #eadede;
+      }
+
+      .two-row .parent,
+      .two-row .child {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr 1fr 104px;
+        min-height: 48px;
+      }
+
+      .two-row .parent { background: #fff1f0; }
+
+      .two-row .child { border-top: 1px solid #eadede; }
+
+      .two-row .parent span,
+      .two-row .child span {
+        display: flex;
+        align-items: center;
+        padding: 8px;
+        border-right: 1px solid #eadede;
+        color: #4e4646;
+        font-size: 12px;
+      }
+
+      .two-row span:last-child { border-right: 0; }
+
+      .verdict-list { display: grid; gap: 9px; }
+
+      .verdict {
+        display: grid;
+        grid-template-columns: 24px 1fr;
+        gap: 8px;
+        color: #3f495b;
+        font-size: 13px;
+      }
+
+      .verdict b { color: var(--green); }
+
+      .is-exception .verdict b { color: var(--red); }
+
+      .versus {
+        display: grid;
+        place-items: center;
+        color: #98a2b3;
+        font-size: 18px;
+        font-weight: 800;
+      }
+
+      .decision-table {
+        width: calc(100% - 80px);
+        margin: 0 40px 38px;
+        border-collapse: separate;
+        border-spacing: 0;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        overflow: hidden;
+        font-size: 13px;
+      }
+
+      .decision-table th,
+      .decision-table td {
+        padding: 13px 16px;
+        border-right: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      .decision-table th:last-child,
+      .decision-table td:last-child { border-right: 0; }
+
+      .decision-table tr:last-child td { border-bottom: 0; }
+
+      .decision-table th { background: #f6f8fb; }
+
+      .basis-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+        padding: 30px 40px 40px;
+      }
+
+      .basis-card {
+        min-height: 245px;
+        padding: 22px;
+        border: 1px solid var(--line);
+        border-radius: 13px;
+        background: #fbfcfd;
+      }
+
+      .basis-card .source {
+        display: inline-block;
+        margin-bottom: 16px;
+        padding: 5px 9px;
+        border-radius: 6px;
+        color: #31589c;
+        background: #edf3ff;
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .basis-card h3 { margin: 0 0 9px; font-size: 18px; }
+
+      .basis-card p { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+
+      .basis-card ul { margin: 0; padding-left: 18px; color: #3e4858; font-size: 13px; }
+
+      .basis-card li + li { margin-top: 6px; }
+
+      .scope {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+        padding: 28px 40px 40px;
+      }
+
+      .scope-card {
+        padding: 22px;
+        border-radius: 12px;
+      }
+
+      .scope-card h3 { margin: 0 0 12px; font-size: 18px; }
+
+      .scope-card ul { margin: 0; padding-left: 20px; }
+
+      .scope-card li + li { margin-top: 8px; }
+
+      .scope-card.is-in { border: 1px solid #c9eadc; background: #f4fbf8; }
+
+      .scope-card.is-out { border: 1px solid #eadfd8; background: #fffaf7; }
+
+      .footer-note {
+        padding: 20px 40px;
+        color: #697386;
+        background: #f7f8fa;
+        font-size: 12px;
+      }
+
+      .p1 { left: 46%; top: 2.5%; }
+      .p2 { left: 40%; top: 15%; }
+      .p3 { left: 48%; top: 29%; }
+      .p4 { left: 15%; top: 51%; }
+      .p5 { left: 19%; top: 54%; }
+      .p6 { right: 2.5%; top: 54%; }
+      .p7 { left: 15%; top: 51%; }
+      .p8 { left: 19%; top: 42%; }
+      .p9 { left: 82%; top: 42%; }
+      .p10 { right: 2.7%; top: 60%; }
+
+      @media (max-width: 1180px) {
+        .figure-layout, .basis-grid, .scope, .comparison { grid-template-columns: 1fr; }
+        .versus { min-height: 42px; }
+        .decision-grid { grid-template-columns: 1fr 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <strong>LFerp · 管理后台列表交互评审稿</strong>
+      <nav aria-label="文档导航">
+        <a href="#structure">页面结构</a>
+        <a href="#selection">多选操作</a>
+        <a href="#row-model">行模型</a>
+        <a href="#basis">理论依据</a>
+        <a href="./after-sales-list-mock.html">打开交互 Mock ↗</a>
+      </nav>
+    </header>
+
+    <main class="page">
+      <section class="sheet cover" id="summary" data-export="summary">
+        <span class="eyebrow">研发需求 #703 · 售后列表试点</span>
+        <h1>先让评审者看懂页面，再讨论组件怎么实现</h1>
+        <p class="lead">本页把需求结论直接标到 LFerp 售后原型上。它不是另画一套后台，而是解释现有页面中主状态、搜索、单行模型、多选和操作列为什么这样组织。</p>
+        <div class="decision">
+          <strong>本次决策：</strong>售后列表以“一张售后单／一件商品记录”为独立处理对象，因此一条记录一行；主状态位于通用搜索上方，但只有后端能够提供同口径队列和数量时才启用。
+        </div>
+        <div class="decision-grid">
+          <article class="decision-card">
+            <small>主状态</small>
+            <strong>搜索区上方</strong>
+            <span>工作分流，不是普通状态筛选</span>
+          </article>
+          <article class="decision-card">
+            <small>售后行模型</small>
+            <strong>一个对象一行</strong>
+            <span>由操作粒度决定，不由字段数量决定</span>
+          </article>
+          <article class="decision-card">
+            <small>多选入口</small>
+            <strong>Checkbox</strong>
+            <span>行点击保留给详情或不绑定动作</span>
+          </article>
+          <article class="decision-card">
+            <small>操作列</small>
+            <strong>主操作＋更多</strong>
+            <span>位置稳定，不可用时说明原因</span>
+          </article>
+        </div>
+      </section>
+
+      <section class="sheet" id="structure" data-export="structure">
+        <header class="sheet-head">
+          <div>
+            <span class="eyebrow">目标原型 · 默认态</span>
+            <h2>页面结构：先选择工作队列，再用搜索精确定位</h2>
+            <p>编号落在真实 LFerp Mock 的对应区域上。研发和产品可按 1 → 6 的顺序检查页面是否符合统一骨架。</p>
+          </div>
+          <span class="figure-no">图 1 / 4</span>
+        </header>
+        <div class="figure-layout">
+          <div class="mock-frame" aria-label="LFerp 售后列表默认态">
+            <img src="./after-sales-list-default.png" alt="LFerp 售后列表默认态截图" />
+            <span class="pin p1">1</span>
+            <span class="pin p2">2</span>
+            <span class="pin p3">3</span>
+            <span class="pin p4">4</span>
+            <span class="pin p5">5</span>
+            <span class="pin p6">6</span>
+          </div>
+          <aside class="legend">
+            <div class="legend-item"><span class="legend-number">1</span><div><strong>沿用 LFerp 页面身份层</strong><p>Header、侧栏和页签不重画，也不再叠一层重复的大标题 Hero。</p></div></div>
+            <div class="legend-item"><span class="legend-number">2</span><div><strong>主状态是工作队列</strong><p>放在通用搜索上方；列表与数量必须由后端采用同一口径。</p></div></div>
+            <div class="legend-item"><span class="legend-number">3</span><div><strong>搜索默认只露出高频条件</strong><p>保留原有 19 项，默认展示 6 项，其余进入展开区和筛选项管理。</p></div></div>
+            <div class="legend-item"><span class="legend-number">4</span><div><strong>Checkbox 是选择命中区</strong><p>点击普通单元格不切换选择，避免“想看详情却误选中”。</p></div></div>
+            <div class="legend-item"><span class="legend-number">5</span><div><strong>主对象固定在左侧</strong><p>售后单号承担详情入口，标签紧邻所属对象，不漂到右侧。</p></div></div>
+            <div class="legend-item"><span class="legend-number">6</span><div><strong>操作列固定右侧</strong><p>直出一个当前最重要动作；其余收入“更多”，不可用时给出业务原因。</p></div></div>
+          </aside>
+        </div>
+        <div class="rule-band">
+          <div><strong>主状态不会锁定表格列</strong><span>主状态配置、普通搜索配置、列配置分别演进。</span></div>
+          <div><strong>无筛选项时不留空壳</strong><span>零搜索字段直接移除搜索容器和无意义留白。</span></div>
+          <div><strong>标签不固定右侧</strong><span>右侧稳定区只保留真正需要持续可发现的操作。</span></div>
+        </div>
+      </section>
+
+      <section class="sheet" id="selection" data-export="selection">
+        <header class="sheet-head">
+          <div>
+            <span class="eyebrow">目标原型 · 选择态</span>
+            <h2>多选：范围必须说清楚，工具栏不能把表格推来推去</h2>
+            <p>进入选择态后，普通结果工具栏在同一高度切换为选择栏；当前页与全部筛选结果采用两步确认。</p>
+          </div>
+          <span class="figure-no">图 2 / 4</span>
+        </header>
+        <div class="figure-layout">
+          <div class="mock-frame" aria-label="LFerp 售后列表全部筛选结果选择态">
+            <img src="./after-sales-list-selected.png" alt="LFerp 售后列表全部筛选结果选择态截图" />
+            <span class="pin p7">7</span>
+            <span class="pin p8">8</span>
+            <span class="pin p9">9</span>
+            <span class="pin p10">10</span>
+          </div>
+          <aside class="legend">
+            <div class="legend-item"><span class="legend-number">7</span><div><strong>Checkbox 与 Shift 连选</strong><p>Shift 只覆盖当前可见排序页；不可选记录跳过并反馈数量和原因。</p></div></div>
+            <div class="legend-item"><span class="legend-number">8</span><div><strong>选择范围明确显示</strong><p>摘要必须写明“当前可见页”或“全部筛选结果”，并展示真实影响数量。</p></div></div>
+            <div class="legend-item"><span class="legend-number">9</span><div><strong>选择栏原位切换</strong><p>普通工具栏在同一高度切换为批量动作，不把表格向下推。</p></div></div>
+            <div class="legend-item"><span class="legend-number">10</span><div><strong>动作位置保持稳定</strong><p>当前状态不能处理时保留可发现性，但必须禁用并解释原因。</p></div></div>
+          </aside>
+        </div>
+        <div class="rule-band">
+          <div><strong>选择不是导航</strong><span>普通行点击不承担勾选；详情入口落在售后单号。</span></div>
+          <div><strong>选择栏占用原工具栏槽位</strong><span>切换状态不新增垂直高度，不让用户丢失阅读位置。</span></div>
+          <div><strong>条件变化清空选择</strong><span>切队列、查询、重置、排序或分页时按合同重置范围。</span></div>
+        </div>
+      </section>
+
+      <section class="sheet" id="row-model" data-export="row-model">
+        <header class="sheet-head">
+          <div>
+            <span class="eyebrow">方案判断</span>
+            <h2>一行还是两层行：由业务对象决定，不是由字段多少决定</h2>
+            <p>下图是结构示意，不复制讨论截图中的手机号、地址等业务数据。两层行不是更高级的视觉，只适合真正的父子生命周期。</p>
+          </div>
+          <span class="figure-no">图 3 / 4</span>
+        </header>
+        <div class="comparison">
+          <article class="comparison-card is-target">
+            <h3>✓ LFerp 单行 Table</h3>
+            <p>本次售后列表目标方案</p>
+            <div class="diagram">
+              <div class="row-schematic">
+                <span>□</span><span class="primary">售后单／商品</span><span>状态</span><span>退款</span><span>处理信息</span><span>操作</span>
+              </div>
+            </div>
+            <div class="verdict-list">
+              <div class="verdict"><b>✓</b><span>每条售后记录可以独立审核、退款、标记和查看。</span></div>
+              <div class="verdict"><b>✓</b><span>同字段保持列对齐，便于扫读、排序、导出和批量处理。</span></div>
+              <div class="verdict"><b>✓</b><span>字段多时用列配置、横向滚动和详情页解决，不拆坏行语义。</span></div>
+            </div>
+          </article>
+          <div class="versus">VS</div>
+          <article class="comparison-card is-exception">
+            <h3>仅在满足条件时用父＋子两层</h3>
+            <p>讨论方案的去业务数据结构示意</p>
+            <div class="diagram">
+              <div class="two-row">
+                <span class="check">□</span>
+                <div class="parent"><span>父对象摘要</span><span>父状态</span><span>父级信息</span><span>父操作</span></div>
+                <div class="child"><span>子项详情</span><span>子项属性</span><span>补充说明</span><span>—</span></div>
+              </div>
+            </div>
+            <div class="verdict-list">
+              <div class="verdict"><b>!</b><span>父对象才是状态、权限、选择和动作的唯一归属。</span></div>
+              <div class="verdict"><b>!</b><span>子项只用于阅读，不参与独立排序、筛选、多选或操作。</span></div>
+              <div class="verdict"><b>!</b><span>收起子项后，父行仍足以判断是否需要处理。</span></div>
+            </div>
+          </article>
+        </div>
+        <table class="decision-table">
+          <thead><tr><th>判断问题</th><th>用单行 Table</th><th>考虑父＋子两层</th></tr></thead>
+          <tbody>
+            <tr><td>谁可以独立处理？</td><td>每条当前记录</td><td>只有父对象；子项不能独立处理</td></tr>
+            <tr><td>谁参与筛选、排序、导出、多选？</td><td>当前行对象</td><td>只有父对象</td></tr>
+            <tr><td>字段太多怎么办？</td><td>列配置、横向滚动、详情页</td><td>字段多本身不是拆行理由</td></tr>
+            <tr><td>售后试点结论</td><td><strong>一张售后单／一件商品记录一行</strong></td><td>本期不采用</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="sheet" id="basis" data-export="basis">
+        <header class="sheet-head">
+          <div>
+            <span class="eyebrow">方法依据</span>
+            <h2>不是个人偏好：每条规则都对应一个可验证的使用问题</h2>
+            <p>外部设计系统只提供交互证据；LFerp 原型和本项目业务对象仍是最终实现基线。</p>
+          </div>
+          <span class="figure-no">图 4 / 4</span>
+        </header>
+        <div class="basis-grid">
+          <article class="basis-card">
+            <span class="source">ANT DESIGN · 官方设计规范</span>
+            <h3>列表首先服务“查看、查找、处理”</h3>
+            <p>查询型表格适合字段较多且目标、查询范围较明确的场景；筛选默认置于表格上方。</p>
+            <ul>
+              <li>支持当前 LFerp 顶部搜索＋结果表格骨架</li>
+              <li>筛选很多时先做信息分层，不直接增加页面高度</li>
+              <li>双栏／侧栏筛选需同时满足条件多与横向空间充足</li>
+            </ul>
+          </article>
+          <article class="basis-card">
+            <span class="source">SHOPIFY / CARBON · 官方文档</span>
+            <h3>多选必须把命中区和范围说清楚</h3>
+            <p>Checkbox、当前页选择、Shift 范围选择和选择后的批量工具栏是成熟后台的共同模式。</p>
+            <ul>
+              <li>Checkbox 与行内导航使用不同命中区</li>
+              <li>当前页与全部结果采用显式的第二步扩大</li>
+              <li>进入选择态后，用上下文动作替换普通工具栏</li>
+            </ul>
+          </article>
+          <article class="basis-card">
+            <span class="source">LFERP · 项目原型最高优先级</span>
+            <h3>专业化不是换皮，而是形成稳定规则</h3>
+            <p>Header、侧栏、页签、19 个筛选项、标签和表格列均来自现有 LFerp；本需求只补齐工作队列、选择范围和操作解释。</p>
+            <ul>
+              <li>不删除现有能力，不制造第二套视觉语言</li>
+              <li>主状态需要后端队列／数量同口径合同</li>
+              <li>操作列保留稳定位置，按钮按主次收拢</li>
+            </ul>
+          </article>
+        </div>
+        <div class="scope">
+          <article class="scope-card is-in">
+            <h3>本需求要做</h3>
+            <ul>
+              <li>VabSchemaTable 增加可选的主状态工作队列槽位。</li>
+              <li>搜索零条件去空壳，多条件默认收敛并可管理。</li>
+              <li>Checkbox、Shift 当前页连选、选择范围与选择栏标准化。</li>
+              <li>固定列和操作列形成统一方法，禁用动作给出原因。</li>
+            </ul>
+          </article>
+          <article class="scope-card is-out">
+            <h3>本需求不做</h3>
+            <ul>
+              <li>不要求一次性改完所有存量列表。</li>
+              <li>不由前端拼接“待我处理”等业务队列。</li>
+              <li>不把售后改成订单头＋商品详情两层行。</li>
+              <li>不把所有按钮永久铺在右侧操作列。</li>
+            </ul>
+          </article>
+        </div>
+        <footer class="footer-note">
+          参考：Ant Design 列表页研究、Shopify Admin 批量操作、Carbon Data Table；详细链接及完整验收规则见《LFerp 管理后台列表页信息架构与交互规范》。
+        </footer>
+      </section>
+    </main>
+  </body>
+</html>

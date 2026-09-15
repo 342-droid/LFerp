@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰TMS - 运费预估报表</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        .freight-report-search .form-group { min-width: 230px; }
+        .freight-report-table th,
+        .freight-report-table td { white-space: nowrap; }
+        .freight-report-table td.is-money { text-align: right; font-variant-numeric: tabular-nums; }
+        .freight-report-table td.is-detail {
+            white-space: normal;
+            min-width: 140px;
+            line-height: 1.45;
+            font-size: 12px;
+        }
+        .freight-report-table td.is-detail .rate-rule-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 12px;
+        }
+        .freight-report-table td.is-detail .rate-rule-line + .rate-rule-line {
+            margin-top: 4px;
+            padding-top: 4px;
+            border-top: 1px solid #f0f0f0;
+        }
+        .freight-report-table td.is-detail .rate-rule-k { color: #999; flex-shrink: 0; }
+        .freight-report-table td.is-detail .rate-rule-v { color: #333; text-align: right; margin-left: auto; }
+        .freight-report-table td.is-detail .rate-rule-empty { color: #bbb; }
+        .freight-report-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            padding: 0 0 12px;
+            font-size: 13px;
+            color: #666;
+        }
+        .freight-report-summary strong {
+            color: #333;
+            font-weight: 600;
+        }
+        .freight-report-empty { text-align: center; color: #999; }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/tms-sidebar.js"></script>
+
+    <div id="header-container"></div>
+
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs">
+                <button class="active">运费预估报表</button>
+            </div>
+
+            <hr class="content-divider">
+
+            <div class="content-title">运费预估报表</div>
+
+            <section class="search-section">
+                <form class="search-form freight-report-search" id="freightReportSearch">
+                    <div class="form-group">
+                        <label style="width: 70px;">配送仓:</label>
+                        <select id="qWarehouse">
+                            <option value="">请选择</option>
+                            <option>W001 南京仓</option>
+                            <option>W002 嘉兴仓</option>
+                            <option>W003 上海仓</option>
+                            <option>W004 北京仓</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 70px;">订单号:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="qOrderNo" placeholder="请输入">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 70px;">订单渠道:</label>
+                        <select id="qChannel">
+                            <option value="">请选择</option>
+                            <option>零售订单</option>
+                            <option>代采订单</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 70px;">履约方式:</label>
+                        <select id="qFulfill">
+                            <option value="">请选择</option>
+                            <option>配送</option>
+                            <option>快递</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 70px;">门店:</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="qStore" placeholder="编码/名称">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 70px;">承运商:</label>
+                        <select id="qCarrier">
+                            <option value="">请选择</option>
+                            <option>SF 顺丰速运</option>
+                            <option>ZTO 中通快递</option>
+                            <option>YTO 圆通速递</option>
+                            <option>JD 京东物流</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 70px;">费用方案:</label>
+                        <select id="qFeeScheme">
+                            <option value="">请选择</option>
+                            <option>重量计费</option>
+                            <option>金额计费</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label style="width: 70px;">物流类型:</label>
+                        <select id="qType">
+                            <option value="">请选择</option>
+                            <option>常温</option>
+                            <option>冷链</option>
+                            <option>不区分</option>
+                        </select>
+                    </div>
+                    <div id="destMount"></div>
+                    <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+                        <label style="width: 70px;">下单时间:</label>
+                        <div class="date-range">
+                            <div class="date-picker">
+                                <input type="date" id="qTimeStart" data-type="start">
+                            </div>
+                            <span class="date-range-separator">至</span>
+                            <div class="date-picker">
+                                <input type="date" id="qTimeEnd" data-type="end">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" id="btnQuery">查询</button>
+                        <button type="button" class="btn btn-secondary" id="btnReset">重置</button>
+                        <button type="button" class="btn btn-secondary" id="btnExport">导出</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="freight-report-summary" id="reportSummary">
+                    <span>当前查询 客户运费合计 <strong id="sumCustomer">¥0.00</strong></span>
+                    <span>承运商结算合计 <strong id="sumSettle">¥0.00</strong></span>
+                    <span>共 <strong id="sumCount">0</strong> 行</span>
+                </div>
+                <div class="table-scroll-container">
+                    <table class="table freight-report-table no-last-column-freeze">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
+                                <th>下单时间</th>
+                                <th>配送仓</th>
+                                <th>订单号</th>
+                                <th>订单渠道</th>
+                                <th>履约方式</th>
+                                <th>门店</th>
+                                <th>目的省</th>
+                                <th>目的市</th>
+                                <th>目的区</th>
+                                <th>费用方案</th>
+                                <th>物流类型</th>
+                                <th>承运商</th>
+                                <th>订单实付</th>
+                                <th>订单重量</th>
+                                <th>订单体积</th>
+                                <th>重抛比</th>
+                                <th>体积重</th>
+                                <th>计费重量/金额</th>
+                                <th>费率档</th>
+                                <th>增值服务</th>
+                                <th>有无电梯</th>
+                                <th>楼层</th>
+                                <th>上楼费</th>
+                                <th>运费折扣</th>
+                                <th>结算折扣</th>
+                                <th>客户运费</th>
+                                <th>承运商结算</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/region-cascader.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const COLSPAN = 28;
+            const MOCK_ROWS = [
+                { orderTime: '2026-09-14 09:12:33', storeCode: 'S001', storeName: '南京新街口店', orderNo: 'RO202609140018', channel: '零售订单', fulfill: '配送', warehouse: 'W001 南京仓', province: '江苏省', city: '南京市', district: '鼓楼区', type: '常温', carrier: 'SF 顺丰速运', feeScheme: '重量计费', paidAmount: 186, inWeight: 20, length: 50, width: 50, height: 39, billWeight: 32.5, throwRatio: '1:3', tierFirst: '25KG ¥77', tier: '25~100KG，续价¥0.71/KG', insure: 2, deliver: 8, elevator: null, floor: null, upstairs: null, freightDisc: '1.00', settleDisc: '0.95' },
+                { orderTime: '2026-09-14 09:12:33', storeCode: 'S001', storeName: '南京新街口店', orderNo: 'RO202609140018', channel: '零售订单', fulfill: '配送', warehouse: 'W001 南京仓', province: '江苏省', city: '南京市', district: '鼓楼区', type: '冷链', carrier: 'JD 京东物流', feeScheme: '重量计费', paidAmount: 186, inWeight: 5, length: 40, width: 20, height: 41, billWeight: 8.2, throwRatio: '1:4', tier: '≤25KG，首重价¥96', insure: 2, deliver: 8, elevator: '有电梯', floor: 3, upstairs: 5, freightDisc: '0.95', settleDisc: '0.90' },
+                { orderTime: '2026-09-14 11:28:07', storeCode: 'S002', storeName: '上海徐家汇店', orderNo: 'RO202609140102', channel: '零售订单', fulfill: '快递', warehouse: 'W003 上海仓', province: '上海市', city: '市辖区', district: '徐汇区', type: '不区分', carrier: 'ZTO 中通快递', feeScheme: '金额计费', paidAmount: 268, inWeight: 9.6, cbm: 0.032, billAmount: 268, throwRatio: '', tier: '0~500元，运费¥12', insure: null, deliver: null, elevator: null, floor: null, upstairs: null, freightDisc: '1.00', settleDisc: '0.82' },
+                { orderTime: '2026-09-13 16:41:19', storeCode: 'S003', storeName: '杭州西湖店', orderNo: 'RO202609130055', channel: '零售订单', fulfill: '配送', warehouse: 'W002 嘉兴仓', province: '浙江省', city: '杭州市', district: '滨江区', type: '常温', carrier: 'SF 顺丰速运', feeScheme: '重量计费', paidAmount: 320, inWeight: 22, length: 60, width: 50, height: 30, billWeight: 30, throwRatio: '1:3', tierFirst: '25KG ¥77', tier: '25~100KG，续价¥0.71/KG', insure: 2, deliver: 8, elevator: '有电梯', floor: 1, upstairs: 0, freightDisc: '1.00', settleDisc: '0.95' },
+                { orderTime: '2026-09-13 16:41:19', storeCode: 'S003', storeName: '杭州西湖店', orderNo: 'RO202609130055', channel: '零售订单', fulfill: '配送', warehouse: 'W002 嘉兴仓', province: '浙江省', city: '杭州市', district: '滨江区', type: '冷链', carrier: 'SF 顺丰速运', feeScheme: '重量计费', paidAmount: 320, inWeight: 0, length: 0, width: 0, height: 0, billWeight: 0, throwRatio: '', tier: '≤25KG，首重价¥51.30', insure: 2, deliver: 8, elevator: '有电梯', floor: 1, upstairs: 0, freightDisc: '1.00', settleDisc: '0.90' },
+                { orderTime: '2026-09-12 08:03:44', storeCode: 'S004', storeName: '苏州园区店', orderNo: 'PO202609120008', channel: '代采订单', fulfill: '配送', warehouse: 'W001 南京仓', province: '江苏省', city: '苏州市', district: '工业园区', type: '常温', carrier: 'YTO 圆通速递', feeScheme: '重量计费', paidAmount: 155, inWeight: 18.4, length: 40, width: 30, height: 20, billWeight: 18.4, throwRatio: '1:3', tier: '≤25KG，首重价¥15', insure: null, deliver: 6, elevator: null, floor: null, upstairs: null, freightDisc: '1.00', settleDisc: '0.84' },
+                { orderTime: '2026-09-12 08:03:44', storeCode: 'S004', storeName: '苏州园区店', orderNo: 'PO202609120008', channel: '代采订单', fulfill: '配送', warehouse: 'W001 南京仓', province: '江苏省', city: '苏州市', district: '工业园区', type: '冷链', carrier: 'JD 京东物流', feeScheme: '重量计费', paidAmount: 155, inWeight: 4, length: 40, width: 22, height: 30, billWeight: 6.6, throwRatio: '1:4', tier: '≤25KG，首重价¥28', insure: 3, deliver: 8, elevator: '无电梯', floor: 2, upstairs: 4.5, freightDisc: '0.95', settleDisc: '0.90' },
+                { orderTime: '2026-09-11 19:22:01', storeCode: 'S001', storeName: '南京新街口店', orderNo: 'RO202609110077', channel: '零售订单', fulfill: '快递', warehouse: 'W001 南京仓', province: '江苏省', city: '南京市', district: '江宁区', type: '常温', carrier: 'ZTO 中通快递', feeScheme: '重量计费', paidAmount: 88, inWeight: 3.2, length: null, width: null, height: null, billWeight: 3.2, throwRatio: '', tier: '≤25KG，首重价¥9.50', insure: null, deliver: null, elevator: null, floor: null, upstairs: null, freightDisc: '1.00', settleDisc: '0.82' },
+                { orderTime: '2026-09-10 14:08:52', storeCode: 'S002', storeName: '上海徐家汇店', orderNo: 'PO202609100021', channel: '代采订单', fulfill: '配送', warehouse: 'W003 上海仓', province: '上海市', city: '市辖区', district: '闵行区', type: '不区分', carrier: 'JD 京东物流', feeScheme: '金额计费', paidAmount: 860, inWeight: 18, cbm: 0, billAmount: 860, throwRatio: '', tier: '500~2000元，运费¥20', insure: 2, deliver: 8, elevator: '有电梯', floor: 1, upstairs: 0, freightDisc: '0.95', settleDisc: '0.90' },
+                { orderTime: '2026-09-09 10:15:26', storeCode: 'S003', storeName: '杭州西湖店', orderNo: 'RO202609090031', channel: '零售订单', fulfill: '配送', warehouse: 'W002 嘉兴仓', province: '浙江省', city: '杭州市', district: '拱墅区', type: '不区分', carrier: 'SF 顺丰速运', feeScheme: '金额计费', paidAmount: 0, inWeight: 0, cbm: 0, billAmount: 0, throwRatio: '', tier: '0~500元，运费¥0.00', insure: null, deliver: null, elevator: '有电梯', floor: 1, upstairs: 0, freightDisc: '1.00', settleDisc: '1.00' },
+                { orderTime: '2026-09-08 17:46:11', storeCode: 'S004', storeName: '苏州园区店', orderNo: 'RO202609080014', channel: '零售订单', fulfill: '快递', warehouse: 'W001 南京仓', province: '江苏省', city: '苏州市', district: '姑苏区', type: '常温', carrier: 'YTO 圆通速递', feeScheme: '重量计费', paidAmount: 120, inWeight: 7.8, length: 30, width: 20, height: 15, billWeight: 7.8, throwRatio: '1:3', tier: '≤25KG，首重价¥11.20', insure: null, deliver: null, elevator: null, floor: null, upstairs: null, freightDisc: '1.00', settleDisc: '0.84' },
+                { orderTime: '2026-09-01 09:00:00', storeCode: 'S001', storeName: '南京新街口店', orderNo: 'RO202609010003', channel: '零售订单', fulfill: '配送', warehouse: 'W004 北京仓', province: '江苏省', city: '南京市', district: '玄武区', type: '常温', carrier: 'SF 顺丰速运', feeScheme: '重量计费', paidAmount: 450, inWeight: 28, length: 50, width: 40, height: 60, billWeight: 40, throwRatio: '1:3', tierFirst: '25KG ¥77', tier: '25~100KG，续价¥0.71/KG', insure: 2, deliver: 8, elevator: '有电梯', floor: 4, upstairs: 10, freightDisc: '1.00', settleDisc: '0.88' }
+            ];
+
+            let destCascader = null;
+            let currentRows = [];
+            let selectedKeys = new Set();
+            let pageIndex = 1;
+            let pageSize = 10;
+
+            function pad2(n) { return String(n).padStart(2, '0'); }
+            function formatYmd(d) {
+                return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+            }
+            function formatMoney(n) {
+                return Number(n || 0).toFixed(2);
+            }
+            function roundFen(n) {
+                return Math.round(Number(n) * 100) / 100;
+            }
+            function parseYuan(text) {
+                const match = String(text || '').match(/¥\s*([\d.]+)/);
+                return match ? Number(match[1]) : 0;
+            }
+            function extraSum(row) {
+                let sum = 0;
+                if (row.insure != null) sum += Number(row.insure);
+                if (row.deliver != null) sum += Number(row.deliver);
+                if (row.upstairs != null) sum += Number(row.upstairs);
+                return sum;
+            }
+            function discRate(row, key) {
+                const n = Number(row[key]);
+                return Number.isFinite(n) ? n : 1;
+            }
+            function baseFee(row) {
+                if (row.feeScheme === '金额计费') return parseYuan(row.tier);
+                if (row.tierFirst) {
+                    const firstPrice = parseYuan(row.tierFirst);
+                    const firstWeight = Number((String(row.tierFirst).match(/([\d.]+)\s*KG/i) || [])[1] || 0);
+                    const cont = Number((String(row.tier).match(/续价¥\s*([\d.]+)/) || [])[1] || 0);
+                    const weight = Number(row.billWeight || 0);
+                    if (weight <= firstWeight) return firstPrice;
+                    return firstPrice + cont * (weight - firstWeight);
+                }
+                return parseYuan(row.tier);
+            }
+            function customerFeeOf(row) {
+                return roundFen(baseFee(row) * discRate(row, 'freightDisc') + extraSum(row));
+            }
+            function settleFeeOf(row) {
+                return roundFen(baseFee(row) * discRate(row, 'settleDisc') + extraSum(row));
+            }
+            function moneyText(n) {
+                return '¥' + formatMoney(n);
+            }
+            function escapeHtml(value) {
+                return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
+                    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+                }[ch]));
+            }
+            function extraItems(row) {
+                const items = [];
+                if (row.insure != null) items.push({ k: '保价', v: '¥' + formatMoney(row.insure) });
+                if (row.deliver != null) items.push({ k: '派送', v: '¥' + formatMoney(row.deliver) });
+                return items;
+            }
+            function extraHtml(row) {
+                const items = extraItems(row);
+                if (!items.length) return '<span class="rate-rule-empty">—</span>';
+                return items.map((item) => '<div class="rate-rule-line"><span class="rate-rule-k">' + escapeHtml(item.k) + '</span><span class="rate-rule-v">' + escapeHtml(item.v) + '</span></div>').join('');
+            }
+            function extraText(row) {
+                const items = extraItems(row);
+                return items.length ? items.map((item) => item.k + item.v).join('；') : '—';
+            }
+            function upstairsText(row) {
+                return row.upstairs != null ? formatMoney(row.upstairs) : '—';
+            }
+            function upstairsHtml(row) {
+                return row.upstairs != null ? escapeHtml(formatMoney(row.upstairs)) : '<span class="rate-rule-empty">—</span>';
+            }
+            function billBaseText(row) {
+                if (row.feeScheme === '金额计费') return formatMoney(row.billAmount) + '元';
+                return Number(row.billWeight || 0).toFixed(3) + 'KG';
+            }
+            function showFirstWeight(row) {
+                return row.feeScheme !== '金额计费' && !!row.tierFirst;
+            }
+            function tierText(row) {
+                if (!showFirstWeight(row)) return row.tier || '—';
+                return '首重' + row.tierFirst + '；' + (row.tier || '');
+            }
+            function tierHtml(row) {
+                if (!showFirstWeight(row)) return escapeHtml(row.tier || '—');
+                return '<div class="rate-rule-line"><span class="rate-rule-k">首重</span><span class="rate-rule-v">' + escapeHtml(row.tierFirst) + '</span></div>' +
+                    '<div class="rate-rule-line"><span class="rate-rule-k">命中</span><span class="rate-rule-v">' + escapeHtml(row.tier || '—') + '</span></div>';
+            }
+            function throwText(row) {
+                return row.throwRatio || '—';
+            }
+            function inWeightText(row) {
+                return Number(row.inWeight || 0).toFixed(3) + 'KG';
+            }
+            function dimText(row) {
+                if (row.cbm != null) return Number(row.cbm).toFixed(6) + 'm³';
+                if (row.length == null && row.width == null && row.height == null) return '—';
+                const cbm = Number(row.length || 0) * Number(row.width || 0) * Number(row.height || 0) / 1000000;
+                return cbm.toFixed(6) + 'm³';
+            }
+            function volWeightText(row) {
+                const ratio = String(row.throwRatio || '').trim();
+                const parts = ratio.split(':');
+                const a = Number(parts[0]);
+                const b = Number(parts[1]);
+                const length = Number(row.length);
+                const width = Number(row.width);
+                const height = Number(row.height);
+                if (!Number.isFinite(a) || !Number.isFinite(b) || a <= 0 || b <= 0) return '—';
+                if (!(length > 0) || !(width > 0) || !(height > 0)) return '—';
+                const kg = length * width * height / (1000 * b / a);
+                return kg.toFixed(3) + 'KG';
+            }
+            function paidText(row) {
+                return row.paidAmount == null ? '—' : formatMoney(row.paidAmount);
+            }
+            function elevatorText(row) {
+                return row.elevator || '—';
+            }
+            function floorText(row) {
+                return row.floor == null ? '—' : String(row.floor);
+            }
+            function emptyCell(text) {
+                return text === '—' ? '<span class="rate-rule-empty">—</span>' : escapeHtml(text);
+            }
+            function storeText(row) {
+                return [row.storeCode, row.storeName].filter(Boolean).join(' ');
+            }
+            function datePart(orderTime) {
+                return String(orderTime || '').slice(0, 10);
+            }
+            function defaultRange() {
+                const end = new Date();
+                const start = new Date();
+                start.setDate(end.getDate() - 6);
+                return { start: formatYmd(start), end: formatYmd(end) };
+            }
+            function selectText(id) {
+                const sel = document.getElementById(id);
+                if (!sel || sel.selectedIndex < 0) return '';
+                return sel.value ? (sel.options[sel.selectedIndex].text || '') : '';
+            }
+            function setSelectText(id, text) {
+                const sel = document.getElementById(id);
+                if (!sel) return;
+                const match = Array.from(sel.options).find((opt) => opt.text === text || opt.value === text);
+                sel.value = match ? match.value : '';
+                const wrap = sel.previousElementSibling;
+                const input = wrap && wrap.classList.contains('custom-select-wrapper')
+                    ? wrap.querySelector('input')
+                    : null;
+                if (input) input.value = sel.options[sel.selectedIndex]?.text || '';
+            }
+            function wrapNativeSelect(sel) {
+                if (!sel || sel.closest('#destMount')) return;
+                if (sel.previousElementSibling && sel.previousElementSibling.classList.contains('custom-select-wrapper')) return;
+                const wrap = document.createElement('div');
+                wrap.className = 'custom-select-wrapper';
+                const box = document.createElement('div');
+                box.className = 'custom-select';
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.readOnly = true;
+                input.value = sel.options[sel.selectedIndex]?.text || '';
+                input.placeholder = '请选择';
+                const arrow = document.createElement('span');
+                arrow.className = 'select-arrow';
+                arrow.textContent = '▼';
+                const drop = document.createElement('div');
+                drop.className = 'select-dropdown';
+                Array.from(sel.options).forEach((opt) => {
+                    const item = document.createElement('div');
+                    item.className = 'select-option';
+                    item.textContent = opt.text;
+                    item.dataset.value = opt.value;
+                    item.addEventListener('click', () => {
+                        sel.value = opt.value;
+                        input.value = opt.text;
+                        drop.classList.remove('show');
+                        sel.dispatchEvent(new Event('change', { bubbles: true }));
+                    });
+                    drop.appendChild(item);
+                });
+                box.append(input, arrow, drop);
+                wrap.appendChild(box);
+                sel.parentNode.insertBefore(wrap, sel);
+                sel.style.display = 'none';
+                input.addEventListener('click', () => {
+                    document.querySelectorAll('.select-dropdown.show').forEach((el) => {
+                        if (el !== drop) el.classList.remove('show');
+                    });
+                    drop.classList.toggle('show');
+                });
+            }
+
+            function applyDefaultDates() {
+                const range = defaultRange();
+                document.getElementById('qTimeStart').value = range.start;
+                document.getElementById('qTimeEnd').value = range.end;
+            }
+
+            function rowKey(row) {
+                return String(row.orderNo || '') + '|' + String(row.type || '');
+            }
+            function pageSlice() {
+                const totalPages = Math.ceil(currentRows.length / pageSize) || 1;
+                if (pageIndex > totalPages) pageIndex = totalPages;
+                if (pageIndex < 1) pageIndex = 1;
+                const start = (pageIndex - 1) * pageSize;
+                return currentRows.slice(start, start + pageSize);
+            }
+            function syncHeaderCheckbox() {
+                const all = document.querySelector('.freight-report-table .checkbox-all');
+                if (!all) return;
+                const visible = pageSlice();
+                if (!currentRows.length || !visible.length) {
+                    all.checked = false;
+                    all.indeterminate = false;
+                    all.disabled = true;
+                    return;
+                }
+                all.disabled = false;
+                const checkedCount = visible.filter((row) => selectedKeys.has(rowKey(row))).length;
+                all.checked = checkedCount === visible.length;
+                all.indeterminate = checkedCount > 0 && checkedCount < visible.length;
+            }
+            function exportTargetRows() {
+                const picked = currentRows.filter((row) => selectedKeys.has(rowKey(row)));
+                return picked.length ? picked : currentRows;
+            }
+            function rowHtml(row) {
+                const checked = selectedKeys.has(rowKey(row)) ? ' checked' : '';
+                return '<tr>' +
+                    '<td><input type="checkbox" class="table-checkbox checkbox-row" data-key="' + escapeHtml(rowKey(row)) + '"' + checked + '></td>' +
+                    '<td>' + escapeHtml(row.orderTime) + '</td>' +
+                    '<td>' + escapeHtml(row.warehouse) + '</td>' +
+                    '<td>' + escapeHtml(row.orderNo) + '</td>' +
+                    '<td>' + escapeHtml(row.channel) + '</td>' +
+                    '<td>' + escapeHtml(row.fulfill) + '</td>' +
+                    '<td>' + escapeHtml(storeText(row)) + '</td>' +
+                    '<td>' + escapeHtml(row.province) + '</td>' +
+                    '<td>' + escapeHtml(row.city) + '</td>' +
+                    '<td>' + escapeHtml(row.district) + '</td>' +
+                    '<td>' + escapeHtml(row.feeScheme || '—') + '</td>' +
+                    '<td>' + escapeHtml(row.type) + '</td>' +
+                    '<td>' + escapeHtml(row.carrier) + '</td>' +
+                    '<td class="is-money">' + emptyCell(paidText(row)) + '</td>' +
+                    '<td class="is-money">' + escapeHtml(inWeightText(row)) + '</td>' +
+                    '<td class="is-money">' + emptyCell(dimText(row)) + '</td>' +
+                    '<td>' + emptyCell(throwText(row)) + '</td>' +
+                    '<td class="is-money">' + emptyCell(volWeightText(row)) + '</td>' +
+                    '<td class="is-money">' + escapeHtml(billBaseText(row)) + '</td>' +
+                    '<td class="is-detail">' + tierHtml(row) + '</td>' +
+                    '<td class="is-detail">' + extraHtml(row) + '</td>' +
+                    '<td>' + emptyCell(elevatorText(row)) + '</td>' +
+                    '<td>' + emptyCell(floorText(row)) + '</td>' +
+                    '<td class="is-money">' + upstairsHtml(row) + '</td>' +
+                    '<td>' + escapeHtml(row.freightDisc || '—') + '</td>' +
+                    '<td>' + escapeHtml(row.settleDisc || '—') + '</td>' +
+                    '<td class="is-money">' + formatMoney(customerFeeOf(row)) + '</td>' +
+                    '<td class="is-money">' + formatMoney(settleFeeOf(row)) + '</td>' +
+                    '</tr>';
+            }
+
+            function filterRows() {
+                const start = document.getElementById('qTimeStart').value;
+                const end = document.getElementById('qTimeEnd').value;
+                const store = document.getElementById('qStore').value.trim().toLowerCase();
+                const orderNo = document.getElementById('qOrderNo').value.trim();
+                const channel = selectText('qChannel');
+                const fulfill = selectText('qFulfill');
+                const warehouse = selectText('qWarehouse');
+                const carrier = selectText('qCarrier');
+                const feeScheme = selectText('qFeeScheme');
+                const type = selectText('qType');
+                const dest = destCascader ? destCascader.getValue() : '';
+                return MOCK_ROWS.filter((row) => {
+                    const day = datePart(row.orderTime);
+                    if (start && day < start) return false;
+                    if (end && day > end) return false;
+                    if (store && !(row.storeCode + row.storeName).toLowerCase().includes(store)) return false;
+                    if (orderNo && row.orderNo !== orderNo) return false;
+                    if (channel && row.channel !== channel) return false;
+                    if (fulfill && row.fulfill !== fulfill) return false;
+                    if (warehouse && row.warehouse !== warehouse) return false;
+                    if (carrier && row.carrier !== carrier) return false;
+                    if (feeScheme && row.feeScheme !== feeScheme) return false;
+                    if (type && row.type !== type) return false;
+                    if (dest && window.RegionCascader && !RegionCascader.matchRegion(row, dest)) return false;
+                    return true;
+                });
+            }
+
+            function renderTable(rows, options) {
+                const opts = options || {};
+                if (rows) currentRows = rows;
+                if (opts.resetPage) pageIndex = 1;
+                if (opts.clearSelect) selectedKeys.clear();
+                const body = document.getElementById('tableBody');
+                const customerSum = currentRows.reduce((sum, row) => sum + customerFeeOf(row), 0);
+                const settleSum = currentRows.reduce((sum, row) => sum + settleFeeOf(row), 0);
+                document.getElementById('sumCustomer').textContent = moneyText(customerSum);
+                document.getElementById('sumSettle').textContent = moneyText(settleSum);
+                document.getElementById('sumCount').textContent = String(currentRows.length);
+                if (!currentRows.length) {
+                    body.innerHTML = '<tr><td class="freight-report-empty" colspan="' + COLSPAN + '">暂无数据</td></tr>';
+                    document.getElementById('pagination-container').innerHTML = '';
+                    syncHeaderCheckbox();
+                    return;
+                }
+                body.innerHTML = pageSlice().map(rowHtml).join('');
+                createPagination({
+                    containerId: 'pagination-container',
+                    totalItems: currentRows.length,
+                    currentPage: pageIndex,
+                    pageSize: pageSize,
+                    onPageChange: (page) => {
+                        pageIndex = page;
+                        renderTable();
+                    },
+                    onPageSizeChange: (size) => {
+                        pageSize = size;
+                        pageIndex = 1;
+                        renderTable();
+                    }
+                });
+                syncHeaderCheckbox();
+            }
+
+            function query() {
+                renderTable(filterRows(), { resetPage: true, clearSelect: true });
+            }
+
+            function resetForm() {
+                document.getElementById('qStore').value = '';
+                document.getElementById('qOrderNo').value = '';
+                setSelectText('qChannel', '');
+                setSelectText('qFulfill', '');
+                setSelectText('qWarehouse', '');
+                setSelectText('qCarrier', '');
+                setSelectText('qFeeScheme', '');
+                setSelectText('qType', '');
+                if (destCascader) destCascader.reset();
+                applyDefaultDates();
+                query();
+            }
+
+            function stamp() {
+                const now = new Date();
+                return now.getFullYear() + pad2(now.getMonth() + 1) + pad2(now.getDate()) +
+                    pad2(now.getHours()) + pad2(now.getMinutes()) + pad2(now.getSeconds());
+            }
+
+            function loadXlsxLib() {
+                if (window.XLSX && window.XLSX.utils && typeof window.XLSX.writeFile === 'function') {
+                    return Promise.resolve();
+                }
+                const src = (window.wmsPath && typeof window.wmsPath.asset === 'function')
+                    ? window.wmsPath.asset('js/vendor/xlsx.full.min.js')
+                    : '../js/vendor/xlsx.full.min.js';
+                return new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = src;
+                    script.onload = () => resolve();
+                    script.onerror = () => reject(new Error('xlsx'));
+                    document.head.appendChild(script);
+                });
+            }
+
+            function exportRows() {
+                const rows = exportTargetRows();
+                if (!rows.length) {
+                    showToast('暂无可导出的数据');
+                    return;
+                }
+                const headers = ['下单时间', '配送仓', '订单号', '订单渠道', '履约方式', '门店', '目的省', '目的市', '目的区', '费用方案', '物流类型', '承运商', '订单实付', '订单重量', '订单体积', '重抛比', '体积重', '计费重量/金额', '费率档', '增值服务', '有无电梯', '楼层', '上楼费', '运费折扣', '结算折扣', '客户运费', '承运商结算'];
+                const customerSum = rows.reduce((sum, row) => sum + customerFeeOf(row), 0);
+                const settleSum = rows.reduce((sum, row) => sum + settleFeeOf(row), 0);
+                const lines = [headers, ...rows.map((row) => [
+                    row.orderTime, row.warehouse, row.orderNo, row.channel, row.fulfill,
+                    storeText(row), row.province, row.city, row.district, row.feeScheme || '—', row.type, row.carrier,
+                    paidText(row), inWeightText(row), dimText(row), throwText(row), volWeightText(row), billBaseText(row), tierText(row),
+                    extraText(row), elevatorText(row), floorText(row), upstairsText(row),
+                    row.freightDisc || '—', row.settleDisc || '—',
+                    formatMoney(customerFeeOf(row)), formatMoney(settleFeeOf(row))
+                ]), ['合计', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', formatMoney(customerSum), formatMoney(settleSum)]];
+                loadXlsxLib().then(() => {
+                    const wb = window.XLSX.utils.book_new();
+                    const ws = window.XLSX.utils.aoa_to_sheet(lines);
+                    window.XLSX.utils.book_append_sheet(wb, ws, '运费预估报表');
+                    window.XLSX.writeFile(wb, '运费预估报表_' + stamp() + '.xlsx');
+                    showToast('已导出 Excel', 'success');
+                }).catch(() => {
+                    showToast('导出失败');
+                });
+            }
+
+            if (window.RegionCascader) {
+                destCascader = RegionCascader.create({
+                    mount: '#destMount',
+                    id: 'freightDest',
+                    label: '目的区域:',
+                    labelWidth: '70px',
+                    width: '200px'
+                });
+            }
+
+            document.querySelectorAll('#freightReportSearch select').forEach(wrapNativeSelect);
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.custom-select')) {
+                    document.querySelectorAll('.select-dropdown.show').forEach((el) => el.classList.remove('show'));
+                }
+            });
+
+            document.getElementById('btnQuery').addEventListener('click', query);
+            document.getElementById('btnReset').addEventListener('click', resetForm);
+            document.getElementById('btnExport').addEventListener('click', exportRows);
+            document.getElementById('freightReportSearch').addEventListener('submit', (e) => {
+                e.preventDefault();
+                query();
+            });
+            document.querySelector('.freight-report-table').addEventListener('change', (e) => {
+                const target = e.target;
+                if (target.classList.contains('checkbox-all')) {
+                    pageSlice().forEach((row) => {
+                        if (target.checked) selectedKeys.add(rowKey(row));
+                        else selectedKeys.delete(rowKey(row));
+                    });
+                    renderTable();
+                    return;
+                }
+                if (target.classList.contains('checkbox-row')) {
+                    const key = target.getAttribute('data-key');
+                    if (target.checked) selectedKeys.add(key);
+                    else selectedKeys.delete(key);
+                    syncHeaderCheckbox();
+                }
+            });
+
+            applyDefaultDates();
+            query();
+        });
+    </script>
+</body>
+</html>

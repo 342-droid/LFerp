@@ -35,6 +35,12 @@
         '<span>物流费率表</span>' +
         '</a>' +
         '</li>' +
+        '<li class="menu-item">' +
+        '<a href="' + pageHref('freight_estimate_report.html') + '" class="menu-link' + (currentPage === 'freight_estimate_report.html' ? ' active' : '') + '">' +
+        '<img src="' + assetHref('image/基础信息.svg') + '" alt="运费预估报表" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
+        '<span>运费预估报表</span>' +
+        '</a>' +
+        '</li>' +
         '</ul>' +
         '</aside>';
 })();

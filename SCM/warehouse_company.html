@@ -100,6 +100,8 @@
                                 <th>货主</th>
                                 <th>公司</th>
                                 <th>地点</th>
+                                <th>创建时间</th>
+                                <th>创建人</th>
                                 <th>更新时间</th>
                                 <th>更新人</th>
                                 <th>操作</th>
@@ -112,6 +114,8 @@
                                 <td>Y001-南京货主</td>
                                 <td>C001-南京公司</td>
                                 <td>L001-南京地点</td>
+                                <td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
                                 <td>2025-01-05 12:31:43</td>
                                 <td>李四</td>
                                 <td class="action-links">
@@ -125,6 +129,8 @@
                                 <td>Y002-北京货主</td>
                                 <td>C002-北京公司</td>
                                 <td>L002-北京地点</td>
+                                <td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
                                 <td>2025-01-05 12:31:43</td>
                                 <td>李四</td>
                                 <td class="action-links">
@@ -193,6 +199,8 @@
                                 companyDetail,
                                 location,
                                 page.getCurrentTimeStr(),
+                                '当前用户',
+                                page.getCurrentTimeStr(),
                                 '当前用户'
                             ]
                         });
@@ -216,8 +224,8 @@
                             2: document.getElementById('editCompany').value.trim(),
                             3: document.getElementById('editCompanyDetail').value.trim(),
                             4: document.getElementById('editLocation').value.trim(),
-                            5: page.getCurrentTimeStr(),
-                            6: '当前用户'
+                            7: page.getCurrentTimeStr(),
+                            8: '当前用户'
                         });
                         showToast('仓库-货主信息已更新', 'success');
                         page.currentEditRow = null;

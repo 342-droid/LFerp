@@ -62,36 +62,56 @@
                     </div>
                     <div class="form-actions">
                         <button type="button" class="btn btn-primary" onclick="location.reload()">查询</button>
+                        <button type="button" class="btn btn-secondary" id="addBtn">新增</button>
                     </div>
                 </form>
             </section>
 
             <section class="table-section">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
-                            <th>承运商编码</th>
-                            <th>承运商名称</th>
-                            <th>是否启用</th>
-                            <th>公司名称</th>
-                            <th>地址</th>
-                            <th>联系人</th>
-                            <th>电话</th>
-                            <th>更新时间</th>
-                            <th>更新人</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody">
-                        <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>SF</td><td>顺丰速运</td><td><span class="status active">启用</span></td><td>顺丰速运有限公司</td><td>广东省深圳市福田区...</td><td>张三</td><td>18612341234</td><td>2025-01-05 12:31:43</td><td>李四</td><td class="action-links"><a href="#" class="edit-btn">编辑</a></td></tr>
-                        <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>ZTO</td><td>中通快递</td><td><span class="status active">启用</span></td><td>中通快递股份有限公司</td><td>上海市青浦区...</td><td>李四</td><td>18612341235</td><td>2025-01-05 12:31:43</td><td>张三</td><td class="action-links"><a href="#" class="edit-btn">编辑</a></td></tr>
-                        <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>YTO</td><td>圆通速递</td><td><span class="status inactive">禁用</span></td><td>圆通速递有限公司</td><td>上海市青浦区...</td><td>王五</td><td>18612341236</td><td>2025-01-05 12:31:43</td><td>李四</td><td class="action-links"><a href="#" class="edit-btn">编辑</a></td></tr>
-                        <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>YD</td><td>韵达快递</td><td><span class="status active">启用</span></td><td>韵达快递有限公司</td><td>上海市青浦区...</td><td>赵六</td><td>18612341237</td><td>2025-01-05 12:31:43</td><td>张三</td><td class="action-links"><a href="#" class="edit-btn">编辑</a></td></tr>
-                        <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>STO</td><td>申通快递</td><td><span class="status active">启用</span></td><td>申通快递有限公司</td><td>上海市青浦区...</td><td>钱七</td><td>18612341238</td><td>2025-01-05 12:31:43</td><td>李四</td><td class="action-links"><a href="#" class="edit-btn">编辑</a></td></tr>
-                        <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>JD</td><td>京东物流</td><td><span class="status inactive">禁用</span></td><td>京东物流有限公司</td><td>北京市大兴区...</td><td>孙八</td><td>18612341239</td><td>2025-01-05 12:31:43</td><td>张三</td><td class="action-links"><a href="#" class="edit-btn">编辑</a></td></tr>
-                    </tbody>
-                </table>
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" class="table-checkbox checkbox-all"></th>
+                                <th>承运商编码</th>
+                                <th>承运商名称</th>
+                                <th>是否启用</th>
+                                <th>公司名称</th>
+                                <th>省</th>
+                                <th>市</th>
+                                <th>区</th>
+                                <th>详细地址</th>
+                                <th>联系人</th>
+                                <th>电话</th>
+                                <th>创建时间</th>
+                                <th>创建人</th>
+                                <th>更新时间</th>
+                                <th>更新人</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>SF</td><td>顺丰速运</td><td><span class="status active">启用</span></td><td>顺丰速运有限公司</td><td>广东省</td><td>深圳市</td><td>福田区</td><td>益田路与福华路交汇处</td><td>张三</td><td>18612341234</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>李四</td><td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>ZTO</td><td>中通快递</td><td><span class="status active">启用</span></td><td>中通快递股份有限公司</td><td>上海市</td><td>市辖区</td><td>青浦区</td><td>华徐公路</td><td>李四</td><td>18612341235</td><td>2025-01-04 10:31:43</td>
+                                <td>李四</td>
+                                <td>2025-01-05 12:31:43</td><td>张三</td><td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>YTO</td><td>圆通速递</td><td><span class="status inactive">禁用</span></td><td>圆通速递有限公司</td><td>上海市</td><td>市辖区</td><td>青浦区</td><td>华新镇华徐公路</td><td>王五</td><td>18612341236</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>李四</td><td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>YD</td><td>韵达快递</td><td><span class="status active">启用</span></td><td>韵达快递有限公司</td><td>上海市</td><td>市辖区</td><td>青浦区</td><td>盈港东路</td><td>赵六</td><td>18612341237</td><td>2025-01-04 10:31:43</td>
+                                <td>李四</td>
+                                <td>2025-01-05 12:31:43</td><td>张三</td><td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>STO</td><td>申通快递</td><td><span class="status active">启用</span></td><td>申通快递有限公司</td><td>上海市</td><td>市辖区</td><td>青浦区</td><td>华志路</td><td>钱七</td><td>18612341238</td><td>2025-01-04 10:31:43</td>
+                                <td>张三</td>
+                                <td>2025-01-05 12:31:43</td><td>李四</td><td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="delete-btn">删除</a></td></tr>
+                            <tr><td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>JD</td><td>京东物流</td><td><span class="status inactive">禁用</span></td><td>京东物流有限公司</td><td>北京市</td><td>市辖区</td><td>大兴区</td><td>亦庄经济开发区</td><td>孙八</td><td>18612341239</td><td>2025-01-04 10:31:43</td>
+                                <td>李四</td>
+                                <td>2025-01-05 12:31:43</td><td>张三</td><td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="delete-btn">删除</a></td></tr>
+                        </tbody>
+                    </table>
+                </div>
                 
                 <!-- 分页组件容器 -->
                 <div id="pagination-container"></div>
@@ -103,6 +123,7 @@
     <script src="../js/common.js"></script>
     <script src="../js/pagination.js"></script>
     <script src="../js/form-utils.js"></script>
+    <script src="../js/region-cascader.js"></script>
     <script src="../js/modal-manager.js"></script>
     <script src="../js/page-manager.js"></script>
     <script>
@@ -121,14 +142,50 @@
                     { id: 'carrierCode', label: '承运商编码', type: 'text', required: true, editDisabled: true },
                     { id: 'carrierName', label: '承运商名称', type: 'text', required: true },
                     { id: 'isEnabled', label: '是否启用', type: 'select', required: true,
-                      options: [{ value: 'yes', text: '启用' }, { value: 'no', text: '禁用' }] },
+                      options: CommonOptions.isEnabled },
                     { id: 'companyName', label: '公司名称', type: 'text' },
-                    { id: 'address', label: '地址', type: 'text' },
+                    ...RegionCascader.buildPageManagerAddressFields({ labelWidth: '100px' }),
                     { id: 'contactPerson', label: '联系人', type: 'text' },
                     { id: 'phone', label: '电话', type: 'text' },
                     { id: 'remark', label: '备注', type: 'textarea', labelWidth: '100px' }
                 ],
                 
+                addModal: {
+                    modalId: 'carrierAddModal',
+                    cancelBtnId: 'cancelBtn',
+                    saveBtnId: 'saveBtn',
+                    triggerBtnId: 'addBtn',
+                    defaults: { isEnabled: '启用' },
+                    onOpen: () => {
+                        RegionCascader.initModalAddress('add');
+                        RegionCascader.resetModalAddress('add');
+                    },
+                    validations: [
+                        { id: 'carrierCode', message: '请输入承运商编码', required: true },
+                        { id: 'carrierName', message: '请输入承运商名称', required: true },
+                        { id: 'isEnabled', message: '请选择是否启用', required: true }
+                    ],
+                    onSave: () => {
+                        const addr = RegionCascader.getModalAddress('add');
+                        page.addTableRow({
+                            cells: [
+                                document.getElementById('carrierCode').value.trim(),
+                                document.getElementById('carrierName').value.trim(),
+                                { value: document.getElementById('isEnabled').value.trim(), isStatus: true },
+                                document.getElementById('companyName')?.value.trim() || '-',
+                                ...RegionCascader.tableCells(addr),
+                                document.getElementById('contactPerson')?.value.trim() || '-',
+                                document.getElementById('phone')?.value.trim() || '-',
+                                page.getCurrentTimeStr(),
+                                '当前用户',
+                                page.getCurrentTimeStr(),
+                                '当前用户'
+                            ]
+                        });
+                        showToast('承运商信息已保存', 'success');
+                    }
+                },
+
                 editModal: {
                     modalId: 'carrierEditModal',
                     cancelBtnId: 'editCancelBtn',
@@ -139,15 +196,19 @@
                     ],
                     onSave: () => {
                         if (!page.currentEditRow) return;
+                        const addr = RegionCascader.getModalAddress('edit');
                         page.updateTableRow(page.currentEditRow, {
                             2: document.getElementById('editCarrierName').value.trim(),
                             3: { value: document.getElementById('editIsEnabled').value.trim(), isStatus: true },
                             4: document.getElementById('editCompanyName')?.value.trim() || '-',
-                            5: document.getElementById('editAddress')?.value.trim() || '-',
-                            6: document.getElementById('editContactPerson')?.value.trim() || '-',
-                            7: document.getElementById('editPhone')?.value.trim() || '-',
-                            8: page.getCurrentTimeStr(),
-                            9: '当前用户'
+                            5: addr.province || '-',
+                            6: addr.city || '-',
+                            7: addr.district || '-',
+                            8: addr.detailAddress || '-',
+                            9: document.getElementById('editContactPerson')?.value.trim() || '-',
+                            10: document.getElementById('editPhone')?.value.trim() || '-',
+                            13: page.getCurrentTimeStr(),
+                            14: '当前用户'
                         });
                         showToast('承运商信息已更新', 'success');
                         page.currentEditRow = null;
@@ -155,21 +216,24 @@
                     mapRowToForm: (row) => {
                         page.currentEditRow = row;
                         const cells = row.querySelectorAll('td');
+                        RegionCascader.initModalAddress('edit');
+                        RegionCascader.setModalAddress('edit', RegionCascader.readRowAddressCells(cells, 5));
                         return {
                             editCarrierCode: cells[1].textContent,
                             editCarrierName: cells[2].textContent,
                             editIsEnabled: cells[3].querySelector('.status').textContent,
                             editCompanyName: cells[4].textContent === '-' ? '' : cells[4].textContent,
-                            editAddress: cells[5].textContent === '-' ? '' : cells[5].textContent,
-                            editContactPerson: cells[6].textContent === '-' ? '' : cells[6].textContent,
-                            editPhone: cells[7].textContent === '-' ? '' : cells[7].textContent
+                            editDetailAddress: cells[8].textContent === '-' ? '' : cells[8].textContent,
+                            editContactPerson: cells[9].textContent === '-' ? '' : cells[9].textContent,
+                            editPhone: cells[10].textContent === '-' ? '' : cells[10].textContent
                         };
                     }
-                }
+                },
+
+                deleteModal: {}
             });
             
             page.init();
-            document.getElementById('editCloseBtn').addEventListener('click', () => page.closeModal('edit'));
         });
     </script>
 </body>
