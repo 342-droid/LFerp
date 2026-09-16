@@ -2980,6 +2980,55 @@
     return app;
   }
 
+  function getOrderFreightRemain() {
+    var orderNo = getCurrentOrderNo();
+    var order =
+      window.UaOrdersStore && typeof window.UaOrdersStore.getByNo === 'function'
+        ? window.UaOrdersStore.getByNo(orderNo)
+        : null;
+    var freight = Number(order && order.freight) || 0;
+    var refunded = Number(order && order.freightRefunded) || 0;
+    return Math.max(0, Math.round((freight - refunded) * 100) / 100);
+  }
+
+  function countOrderItems() {
+    var orderNo = getCurrentOrderNo();
+    var order =
+      window.UaOrdersStore && typeof window.UaOrdersStore.getByNo === 'function'
+        ? window.UaOrdersStore.getByNo(orderNo)
+        : null;
+    if (order && Array.isArray(order.items) && order.items.length) return order.items.length;
+    return DEMO_ITEMS.length;
+  }
+
+  function maybeAttachLastItemFreight(app, formType) {
+    var scene = getScene();
+    var isPre = formType === 'pre_ship' || scene === 'pre_ship';
+    if (!isPre) return;
+    if (formType === 'restock' || formType === 'return' || formType === 'exchange') return;
+    var freight = getOrderFreightRemain();
+    if (!(freight > 0)) return;
+    var orderNo = app.orderNo || getCurrentOrderNo();
+    var leftover = 0;
+    var total = countOrderItems();
+    for (var i = 0; i < total; i++) {
+      leftover += getRefundableMaxQty(i, orderNo, { excludeId: app.aftersaleId || app.refundNo });
+    }
+    leftover -= Number(app.qty) || 0;
+    if (leftover > 0) return;
+    app.freightAuto = freight;
+    app.amount = Math.round(((Number(app.amount) || 0) + freight) * 100) / 100;
+    app.desc = (app.desc ? app.desc + '；' : '') + '订单商品已全部仅退款，运费随本笔自动退还';
+    if (window.UaOrdersStore && typeof window.UaOrdersStore.updateStatus === 'function') {
+      var order = window.UaOrdersStore.getByNo(orderNo);
+      if (order) {
+        window.UaOrdersStore.updateStatus(orderNo, order.status, {
+          freightRefunded: (Number(order.freightRefunded) || 0) + freight
+        });
+      }
+    }
+  }
+
   function persistAndGoDetail(formType, payload) {
     var item = getItem();
     var existing = loadApplication() || {};
@@ -3003,6 +3052,7 @@
       resetRefundFlowForNewApplication(app);
       app.aftersaleId = app.refundNo;
     }
+    maybeAttachLastItemFreight(app, formType);
     saveApplication(app);
     var typeMap = { return: 'return', restock: 'restock', exchange: 'exchange', pre_ship: 'refund_only' };
     var type = typeMap[formType] || 'refund_only';
@@ -5531,7 +5581,7 @@
       if (amountInput) amountInput.value = state.amount.toFixed(2);
       if (amountHint) {
         amountHint.textContent =
-          '可修改，最多' + formatPrice(state.maxAmount) + '，含运费' + formatPrice(state.freight);
+          '可修改，最多' + formatPrice(state.maxAmount) + '（不含运费）';
       }
     }
 
@@ -5779,11 +5829,7 @@
       if (qtyHint) qtyHint.textContent = '最多可退' + state.maxQty + '件';
       if (amountDisplay) amountDisplay.textContent = formatPrice(state.amount);
       if (amountHint) {
-        amountHint.textContent =
-          '不可修改，最多' +
-          formatPrice(state.amount) +
-          '，含发货邮费' +
-          formatPrice(state.shippingFee);
+        amountHint.textContent = '按商品实付金额（不含运费）退款，最多' + formatPrice(state.amount);
       }
     }
 

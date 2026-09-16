@@ -18,12 +18,24 @@
     );
   }
 
+  function isLockedBtn(btn) {
+    if (!btn || !api) return false;
+    if (typeof api.isLocked === 'function') {
+      return api.isLocked(btn.getAttribute('data-channel'), btn.getAttribute('data-fulfill'));
+    }
+    return btn.getAttribute('data-locked') === '1';
+  }
+
   function setSwitch(btn, on) {
     if (!btn) return;
-    btn.classList.toggle('is-on', !!on);
-    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    var locked = isLockedBtn(btn);
+    var next = locked ? true : !!on;
+    btn.classList.toggle('is-on', next);
+    btn.setAttribute('aria-pressed', next ? 'true' : 'false');
+    btn.disabled = locked;
+    btn.setAttribute('aria-disabled', locked ? 'true' : 'false');
     var text = btn.parentElement && btn.parentElement.querySelector('.pts-rule-switch__text');
-    if (text) text.textContent = on ? '开启' : '关闭';
+    if (text) text.textContent = next ? (locked ? '开启（不可变更）' : '开启') : '关闭';
   }
 
   function readForm() {
@@ -51,6 +63,7 @@
   function bindSwitches() {
     document.querySelectorAll('.pts-rule-switch[data-channel]').forEach(function (btn) {
       btn.addEventListener('click', function () {
+        if (isLockedBtn(btn)) return;
         setSwitch(btn, !btn.classList.contains('is-on'));
       });
     });
@@ -71,7 +84,7 @@
     if (resetBtn) {
       resetBtn.addEventListener('click', function () {
         fillForm(api.reset());
-        toast('已恢复默认：零售自提/快递开启，代采配送关闭、快递开启', 'success');
+        toast('已恢复默认：零售自提/快递、代采快递固定包邮；代采配送关闭', 'success');
       });
     }
   }

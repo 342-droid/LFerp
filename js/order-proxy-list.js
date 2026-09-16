@@ -42,6 +42,13 @@
     );
   }
 
+  function canShowFreightRefund(orderId, row) {
+    if (window.OrderFreightRefund && typeof window.OrderFreightRefund.canShow === 'function') {
+      return !!window.OrderFreightRefund.canShow(orderId, row);
+    }
+    return canRefundFreight(orderId, row);
+  }
+
   function aftersaleActionLabel(row) {
     if (window.OrderPlatformAftersale && typeof window.OrderPlatformAftersale.aftersaleActionLabel === 'function') {
       return window.OrderPlatformAftersale.aftersaleActionLabel(row);
@@ -75,7 +82,7 @@
     var freightRefundBtn = cell.querySelector('.js-proxy-freight-refund');
     var showCancel = canCancelOrder(row);
     var showRefund = canOpenAftersale(row);
-    var showFreightRefund = canRefundFreight(orderId, row);
+    var showFreightRefund = canShowFreightRefund(orderId, row);
     var aftersaleLabel = aftersaleActionLabel(row);
 
     if (trackBtn) trackBtn.remove();
@@ -328,7 +335,7 @@
           message:
             '确认取消订单 <strong>' +
             cancelOrderId +
-            '</strong> 吗？<br>取消后订单将变为交易失败，此操作不可撤销。',
+            '</strong> 吗？<br>发货前取消将退还货款和运费，订单变为交易失败，此操作不可撤销。',
           okLabel: '确认取消',
           onConfirm: function () {
             updateRowAfterCancel(cancelRow);

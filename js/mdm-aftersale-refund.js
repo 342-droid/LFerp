@@ -1,16 +1,18 @@
 /**
  * 售后 — 退款单列表
- * 筛选项：退款来源（批量退款/仅退款/取消订单/售后单）
+ * 筛选项：退款来源（批量退款/仅退款/取消订单/退运费/售后单）
  *         退款状态（未发起退款/待退款/退款执行中/退款成功/退款失败）
  * 申请信息：仅「批量退款 / 仅退款」详情展示
  * 支付凭证：仅售后单线下付款；结算前直退不展示、不可上传付款凭证
  */
 (function () {
-  var SOURCES = ['批量退款', '仅退款', '取消订单', '售后单'];
+  var SOURCES = ['批量退款', '仅退款', '取消订单', '退运费', '售后单'];
   var LEGACY_SOURCES = {
     售后退款: '售后单',
     履约调整退款: '仅退款',
-    订单取消退款: '取消订单'
+    订单取消退款: '取消订单',
+    ORDER_FREIGHT: '退运费',
+    运营代用户发起: '退运费'
   };
   var STATUSES = ['未发起退款', '待退款', '退款执行中', '退款成功', '退款失败'];
   var METHODS = ['原路退回', '线下付款'];
@@ -91,7 +93,7 @@
   }
 
   function isPreSettleRefund(source) {
-    return source === '批量退款' || source === '仅退款' || source === '取消订单';
+    return source === '批量退款' || source === '仅退款' || source === '取消订单' || source === '退运费';
   }
 
   function refundApplyDesc(row) {
@@ -174,13 +176,20 @@
       var proofs = [];
       var voucherUploaded = false;
       var skipApproval = sourceSkipsApproval(source);
-      var aftersaleId = source === '售后单' ? 'AS-' + String(340048455512625152 + i * 131) : '';
+      var aftersaleId =
+        source === '售后单'
+          ? 'AS-' + String(340048455512625152 + i * 131)
+          : source === '退运费'
+            ? 'AS-FREIGHT-' + String(340048455512625152 + i * 131)
+            : '';
       var reason =
         source === '取消订单'
           ? CANCEL_REASONS[i % CANCEL_REASONS.length]
           : source === '仅退款'
             ? ADJUST_REASONS[i % ADJUST_REASONS.length]
-            : AFTERSALE_REASONS[i % AFTERSALE_REASONS.length];
+            : source === '退运费'
+              ? '退运费'
+              : AFTERSALE_REASONS[i % AFTERSALE_REASONS.length];
       var channelPool = orderSource === '代采' ? CHANNELS_PROXY : CHANNELS_RETAIL;
       if (source === '批量退款' || source === '仅退款') {
         desc = source === '批量退款'
@@ -190,6 +199,8 @@
           '../user-app/assets/order-product-1.svg',
           '../user-app/assets/order-product-2.svg'
         ];
+      } else if (source === '退运费') {
+        desc = '订单运费退款：按剩余可退运费原路退回，不改变商品售后状态。';
       }
 
       if (status === '退款成功') {
@@ -261,8 +272,56 @@
     });
   }
 
+  function loadStoredFreightRefunds() {
+    var store = window.FreightRefundAftersaleStore;
+    if (!store || typeof store.read !== 'function') return;
+    store.read().forEach(function (record) {
+      if (!record || !(record.refundScene === 'ORDER_FREIGHT' || record.reason === '退运费' || record.type === '退运费')) {
+        return;
+      }
+      var refundId = record.refundNo || record.id;
+      if (!refundId) return;
+      var exists = ALL_ROWS.some(function (item) {
+        return item.id === refundId || item.id === record.id;
+      });
+      if (exists) return;
+      var amount = Number(record.applyAmount) || 0;
+      var status =
+        record.status === '已完成' || record.refundExecStatus === '退款成功'
+          ? '退款成功'
+          : record.status === '退款中' || record.refundExecStatus === '退款执行中'
+            ? '退款执行中'
+            : '待退款';
+      ALL_ROWS.unshift({
+        id: refundId,
+        orderNo: record.orderNo || '',
+        aftersaleId: record.id || '',
+        orderSource: record.orderSource || '代采',
+        method: '原路退回',
+        source: '退运费',
+        skipApproval: true,
+        reason: record.reason || '退运费',
+        desc: record.desc || '订单运费退款：按剩余可退运费原路退回，不改变商品售后状态。',
+        status: status,
+        cashAmount: amount,
+        actualPaid: status === '退款成功' ? amount : null,
+        payTxnNo: record.payTxnNo || 'PAY-' + String(record.orderNo || '').replace(/\D/g, '').slice(-12),
+        refundTxnNo: '',
+        channel: record.payChannel || '',
+        createdAt: record.applyTime || record.occurTime || nowStamp(),
+        updatedAt: record.updateTime || record.applyTime || nowStamp(),
+        completedAt: status === '退款成功' ? record.updateTime || record.applyTime || '' : '',
+        remark: '',
+        proofUrl: '',
+        voucherUploaded: false,
+        offlineChannel: ''
+      });
+    });
+  }
+
   var ALL_ROWS = buildDemoRows();
   loadStoredDirectRefunds();
+  loadStoredFreightRefunds();
 
   function queryParam(name) {
     var m = new RegExp('(?:\\?|&)' + name + '=([^&]*)').exec(window.location.search || '');

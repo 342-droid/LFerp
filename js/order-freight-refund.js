@@ -361,11 +361,28 @@
     return tag ? tag.textContent.trim() : '';
   }
 
-  function canRefund(orderId, row) {
+  function isDeliveryRow(row) {
+    if (!row) return false;
+    if (row.getAttribute('data-fulfillment-mode') === 'warehouse') return true;
+    var tag = row.querySelector('.order-tag--scene');
+    return !!(tag && tag.textContent.trim() === '配送');
+  }
+
+  function isFreightRefundBlockedStatus(status) {
+    return status === '待支付' || status === '交易失败' || status === '订单失败';
+  }
+
+  /** 配送单除待支付、订单失败外显示入口；快递单不显示 */
+  function canShow(orderId, row) {
     if (!document.body || document.body.getAttribute('data-order-page') !== 'proxy') return false;
+    if (!isDeliveryRow(row)) return false;
+    return !isFreightRefundBlockedStatus(rowStatus(row));
+  }
+
+  function canRefund(orderId, row) {
+    if (!canShow(orderId, row)) return false;
     var summary = getSummary(orderId, row);
-    var allowed = ['已支付', '待发货', '待收货', '待提货', '已完成', '交易成功'];
-    return summary.original > 0 && summary.remaining > 0 && allowed.indexOf(rowStatus(row)) >= 0;
+    return summary.original > 0 && summary.remaining > 0;
   }
 
   function close() {
@@ -608,6 +625,21 @@
       });
   }
 
+  function applyAuto(orderId, row, desc) {
+    var summary = getSummary(orderId, row);
+    if (!(summary.remaining > 0) || !summary.detail) return 0;
+    var amount = summary.remaining;
+    var parts = allocateTotalParts(summary, amount);
+    applyPrototypeRefund(summary, amount, desc || '订单商品已全部仅退款，运费随最后一笔自动退还', {
+      mode: 'total',
+      parts: parts.filter(function (part) {
+        return part.amount > 0;
+      }),
+      cats: snapshotCats(parts)
+    });
+    return amount;
+  }
+
   function open(orderId, row) {
     close();
     previousFocus = document.activeElement;
@@ -630,7 +662,7 @@
       '</div>' +
       '<div class="store-drawer__body order-as-drawer__body">' +
       '<div class="order-freight-refund-tip" role="note"><span class="order-freight-refund-tip__icon" aria-hidden="true">i</span>' +
-      '<span>退运费按订单实收的计价类目拆开。可按总额一次退（系统按各类目剩余可退比例分摊），也可按类目分别填写。</span></div>' +
+      '<span>仅配送单可退运费（待支付、订单失败除外）。按订单实收计价类目拆开，可按总额退或按类目退。发货前整单取消、以及全部商品仅退款完成时，运费会自动退还，无需再走本入口。</span></div>' +
       '<div class="order-as-occur"><span class="order-as-occur__label">售后发生时间</span>' +
       '<div class="order-as-occur__value"><span class="order-as-occur__icon" aria-hidden="true">🕒</span>' +
       '<span>' +
@@ -872,9 +904,11 @@
   }
 
   global.OrderFreightRefund = {
+    canShow: canShow,
     canRefund: canRefund,
     getSummary: getSummary,
     resolveCategories: resolveCategories,
+    applyAuto: applyAuto,
     open: open,
     close: close
   };

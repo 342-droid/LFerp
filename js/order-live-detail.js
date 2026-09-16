@@ -5134,9 +5134,12 @@
   }
 
   function recFulfillMeta(rec) {
-    var f = String((rec && (rec.fulfill || rec.splitKind)) || '');
+    var f = String((rec && (rec.fulfill || rec.splitKind || rec.fulfillType)) || '');
     if (f === 'express' || f === 'store') {
       return { proxyAttr: 'store', proxyLabel: '快递', retailAttr: 'express', retailLabel: '快递' };
+    }
+    if (f === 'delivery' || f === 'platform' || f === 'warehouse' || f === '配送') {
+      return { proxyAttr: 'warehouse', proxyLabel: '配送', retailAttr: 'pickup', retailLabel: '自提' };
     }
     if (f === 'pickup' || f === 'spot' || f === 'wh') {
       return { proxyAttr: 'warehouse', proxyLabel: '配送', retailAttr: 'pickup', retailLabel: '自提' };
@@ -5240,6 +5243,15 @@
         },
         { time: created, title: rec.status === 'unpaid' ? '待支付' : '支付成功', desc: '金额 ' + moneyText(rec.payable) }
       ],
+      freight: {
+        original: Number(rec.freight) || 0,
+        refunded: Number(rec.freightRefunded) || 0,
+        ambient: rec.ambientFee != null ? Number(rec.ambientFee) : Number(rec.freight) || 0,
+        cold: rec.coldFee != null ? Number(rec.coldFee) : 0,
+        insure: Number(rec.insureFee) || 0,
+        deliver: Number(rec.deliverFee) || 0,
+        upstairs: Number(rec.upstairsFee) || 0
+      },
       clearingEmpty: true
     };
   }
@@ -5414,6 +5426,9 @@
       tbody.insertAdjacentHTML('afterbegin', html);
       if (window.OrderLiveListPage && typeof window.OrderLiveListPage.ensureRowChecks === 'function') {
         window.OrderLiveListPage.ensureRowChecks();
+      }
+      if (window.OrderProxyList && typeof window.OrderProxyList.refreshActionLayout === 'function') {
+        window.OrderProxyList.refreshActionLayout();
       }
       try {
         window.dispatchEvent(new Event('lf-table-row-no:refresh'));

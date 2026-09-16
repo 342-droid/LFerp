@@ -681,7 +681,12 @@
     var p = getParams();
     var orderNo = p.get('orderNo');
     if (orderNo && window.UaOrdersStore) {
-      window.UaOrdersStore.updateStatus(orderNo, 'closed', { closedReason: 'cancel' });
+      var order = window.UaOrdersStore.getByNo(orderNo);
+      var extra = { closedReason: 'cancel' };
+      if (order && Number(order.freight) > 0) {
+        extra.freightRefunded = Number(order.freight);
+      }
+      window.UaOrdersStore.updateStatus(orderNo, 'closed', extra);
     }
     var href =
       'order-detail.html?status=closed&reason=cancel' +

@@ -1,7 +1,8 @@
 /**
  * 包邮配置（按订单渠道 × 履约方式）
  * 开关开启 = 包邮；关闭 = 按 TMS 物流费率表计费。
- * 商品编辑未单独改过「是否包邮」时，跟本页。
+ * 零售自提、零售快递、代采快递：固定包邮，不可关闭。
+ * 仅代采配送可改；商品编辑未单独改过「是否包邮」时，跟本页。
  */
 (function (global) {
   var STORAGE_KEY = 'lf_order_free_ship_v2';
@@ -18,8 +19,8 @@
       label: '零售',
       tip: '适用商城、直播零售订单。',
       rows: [
-        { key: 'pickup', label: '自提', tip: '用户到店自提。开启则不收客户运费。' },
-        { key: 'express', label: '快递', tip: '快递到家。关闭则按费率表向客户计费。' }
+        { key: 'pickup', label: '自提', locked: true, tip: '用户到店自提。固定包邮，不收客户运费。' },
+        { key: 'express', label: '快递', locked: true, tip: '快递到家。固定包邮，不收客户运费。' }
       ]
     },
     {
@@ -28,7 +29,7 @@
       tip: '适用门店代采进货订单。',
       rows: [
         { key: 'delivery', label: '配送', tip: '仓配到店。关闭则按门店对应配送仓 → 门店地址计费。' },
-        { key: 'express', label: '快递', tip: '代采快递到店。关闭则按费率表向客户计费。' }
+        { key: 'express', label: '快递', locked: true, tip: '代采快递到店。固定包邮，不收客户运费。' }
       ]
     }
   ];
@@ -84,30 +85,50 @@
     return '';
   }
 
+  function isLocked(channel, fulfill) {
+    var ch = normalizeChannel(channel);
+    var f = normalizeFulfill(fulfill);
+    var group = CHANNELS.filter(function (item) {
+      return item.key === ch;
+    })[0];
+    if (!group) return false;
+    var row = group.rows.filter(function (item) {
+      return item.key === f;
+    })[0];
+    return !!(row && row.locked);
+  }
+
+  function applyLocked(rule) {
+    var next = rule && typeof rule === 'object' ? rule : clone(DEFAULTS);
+    CHANNELS.forEach(function (ch) {
+      if (!next[ch.key] || typeof next[ch.key] !== 'object') next[ch.key] = {};
+      ch.rows.forEach(function (row) {
+        if (row.locked) next[ch.key][row.key] = true;
+      });
+    });
+    return next;
+  }
+
   function migrateLegacy(raw) {
     var next = clone(DEFAULTS);
-    if (!raw || typeof raw !== 'object') return next;
-    if (typeof raw.pickup === 'boolean') next.retail.pickup = raw.pickup;
+    if (!raw || typeof raw !== 'object') return applyLocked(next);
     if (typeof raw.delivery === 'boolean') next.proxy.delivery = raw.delivery;
-    if (typeof raw.express === 'boolean') {
-      next.retail.express = raw.express;
-      next.proxy.express = raw.express;
-    }
-    return next;
+    return applyLocked(next);
   }
 
   function normalizeRule(raw) {
     var rule = clone(DEFAULTS);
-    if (!raw || typeof raw !== 'object') return rule;
+    if (!raw || typeof raw !== 'object') return applyLocked(rule);
     if (raw.retail || raw.proxy) {
       CHANNELS.forEach(function (ch) {
         var src = raw[ch.key];
         if (!src || typeof src !== 'object') return;
         ch.rows.forEach(function (row) {
+          if (row.locked) return;
           if (typeof src[row.key] === 'boolean') rule[ch.key][row.key] = src[row.key];
         });
       });
-      return rule;
+      return applyLocked(rule);
     }
     return migrateLegacy(raw);
   }
@@ -144,6 +165,7 @@
   }
 
   function isFreeShip(fulfill, channel) {
+    if (isLocked(channel, fulfill)) return true;
     var rule = load();
     var f = normalizeFulfill(fulfill);
     var ch = normalizeChannel(channel);
@@ -165,6 +187,7 @@
     load: load,
     save: save,
     reset: reset,
+    isLocked: isLocked,
     isFreeShip: isFreeShip
   };
 })(typeof window !== 'undefined' ? window : this);

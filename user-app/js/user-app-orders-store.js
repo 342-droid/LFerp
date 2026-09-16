@@ -153,6 +153,7 @@
       deductAmount: Number(order.deductAmount) || 0,
       goodsTotal: Number(order.goodsTotal) || 0,
       freight: Number(order.freight) || 0,
+      freightRefunded: Number(order.freightRefunded) || 0,
       ambientFee: order.ambientFee != null ? Number(order.ambientFee) : null,
       coldFee: order.coldFee != null ? Number(order.coldFee) : null,
       payable: Number(order.payable) || 0,

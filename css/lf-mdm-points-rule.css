@@ -129,6 +129,11 @@
 .pts-rule-switch.is-on::after {
   transform: translateX(22px);
 }
+.pts-rule-switch[disabled],
+.pts-rule-switch[aria-disabled='true'] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
 .pts-rule-switch__text {
   font-size: 13px;
   color: #333;

@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/lf-mdm-edit-page.css">
     <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
-    <link rel="stylesheet" href="../css/lf-mdm-points-rule.css?v=20260916-fs-switch">
+    <link rel="stylesheet" href="../css/lf-mdm-points-rule.css?v=20260916-fs-locked">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -22,7 +22,7 @@
             <hr class="content-divider">
 
             <div class="mdm-biz-tip" role="note">
-                按<strong>订单渠道</strong>（零售、代采）和<strong>履约方式</strong>配置客户默认是否包邮。开关<strong>开启</strong>为包邮，<strong>关闭</strong>走<strong>TMS 物流费率表</strong>计费。商城 / 代采 / 直播编辑商品时可<strong>单独覆盖</strong>。
+                按<strong>订单渠道</strong>（零售、代采）和<strong>履约方式</strong>配置客户默认是否包邮。开关<strong>开启</strong>为包邮，<strong>关闭</strong>走<strong>TMS 物流费率表</strong>计费。<strong>零售自提、零售快递、代采快递</strong>默认包邮且不可变更；仅<strong>代采配送</strong>可开关。商城 / 代采 / 直播编辑商品时可<strong>单独覆盖</strong>。
             </div>
 
             <form id="freeShipForm" onsubmit="return false;">
@@ -33,20 +33,20 @@
                             <label class="pts-rule-field__label"><span class="erp-req">*</span>自提</label>
                             <div class="pts-rule-field__control">
                                 <div class="pts-rule-switch-row">
-                                    <button type="button" class="pts-rule-switch is-on" data-channel="retail" data-fulfill="pickup" aria-pressed="true" aria-label="零售自提包邮开关"></button>
-                                    <span class="pts-rule-switch__text">开启</span>
+                                    <button type="button" class="pts-rule-switch is-on" data-channel="retail" data-fulfill="pickup" data-locked="1" disabled aria-disabled="true" aria-pressed="true" aria-label="零售自提包邮开关（不可变更）"></button>
+                                    <span class="pts-rule-switch__text">开启（不可变更）</span>
                                 </div>
-                                <div class="pts-rule-tip">适用<strong>商城、直播</strong>到店自提。开启则不收客户运费。</div>
+                                <div class="pts-rule-tip">适用<strong>商城、直播</strong>到店自提。固定包邮，不可关闭。</div>
                             </div>
                         </div>
                         <div class="pts-rule-field">
                             <label class="pts-rule-field__label"><span class="erp-req">*</span>快递</label>
                             <div class="pts-rule-field__control">
                                 <div class="pts-rule-switch-row">
-                                    <button type="button" class="pts-rule-switch is-on" data-channel="retail" data-fulfill="express" aria-pressed="true" aria-label="零售快递包邮开关"></button>
-                                    <span class="pts-rule-switch__text">开启</span>
+                                    <button type="button" class="pts-rule-switch is-on" data-channel="retail" data-fulfill="express" data-locked="1" disabled aria-disabled="true" aria-pressed="true" aria-label="零售快递包邮开关（不可变更）"></button>
+                                    <span class="pts-rule-switch__text">开启（不可变更）</span>
                                 </div>
-                                <div class="pts-rule-tip">适用<strong>商城、直播</strong>快递到家。关闭则按费率表向客户计费。</div>
+                                <div class="pts-rule-tip">适用<strong>商城、直播</strong>快递到家。固定包邮，不可关闭。</div>
                             </div>
                         </div>
                     </div>
@@ -69,10 +69,10 @@
                             <label class="pts-rule-field__label"><span class="erp-req">*</span>快递</label>
                             <div class="pts-rule-field__control">
                                 <div class="pts-rule-switch-row">
-                                    <button type="button" class="pts-rule-switch is-on" data-channel="proxy" data-fulfill="express" aria-pressed="true" aria-label="代采快递包邮开关"></button>
-                                    <span class="pts-rule-switch__text">开启</span>
+                                    <button type="button" class="pts-rule-switch is-on" data-channel="proxy" data-fulfill="express" data-locked="1" disabled aria-disabled="true" aria-pressed="true" aria-label="代采快递包邮开关（不可变更）"></button>
+                                    <span class="pts-rule-switch__text">开启（不可变更）</span>
                                 </div>
-                                <div class="pts-rule-tip">适用<strong>代采</strong>快递到店。关闭则按费率表向客户计费。</div>
+                                <div class="pts-rule-tip">适用<strong>代采</strong>快递到店。固定包邮，不可关闭。</div>
                             </div>
                         </div>
                     </div>
@@ -87,7 +87,7 @@
     </div>
 
     <script src="../js/common.js"></script>
-    <script src="../js/mdm-order-free-ship-store.js?v=20260916-channel-switch"></script>
-    <script src="../js/mdm-order-free-ship.js?v=20260916-channel-switch"></script>
+    <script src="../js/mdm-order-free-ship-store.js?v=20260916-fs-locked"></script>
+    <script src="../js/mdm-order-free-ship.js?v=20260916-fs-locked"></script>
 </body>
 </html>

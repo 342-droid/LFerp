@@ -54,6 +54,15 @@
     return ['待支付', '已创建', '已支付', '待接单', '待发货'].indexOf(status) >= 0;
   }
 
+  /** 发货前：待支付到待发货。发货后售后不跟运费，运费改走后台「退运费」。 */
+  function isPreShipStatus(status) {
+    return ['待支付', '已创建', '已支付', '待接单', '待发货'].indexOf(status) >= 0;
+  }
+
+  function isPreShipRow(row) {
+    return isPreShipStatus(getRowOrderStatus(row));
+  }
+
   /**
    * 批量退款资格（与单笔「申请售后 / 发起售后」不同）
    * - 零售自提：待支付、已创建、已支付、待接单、待发货、待收货、待提货
@@ -338,10 +347,18 @@
 
   function persistCancelRefund(orderId, row, orderSource) {
     var amount = 0;
+    var detail = null;
     if (window.OrderLiveDetail && typeof window.OrderLiveDetail.resolveDetail === 'function') {
-      var detail = window.OrderLiveDetail.resolveDetail(orderId, row);
+      detail = window.OrderLiveDetail.resolveDetail(orderId, row);
       var paid = detail && detail.amounts && (detail.amounts.paid != null ? detail.amounts.paid : detail.amounts.payable);
       amount = parseMoney(paid);
+      /* 发货前取消：货款与运费一并退还 */
+      if (detail && detail.freight && parseMoney(detail.freight.original) > 0) {
+        var freightOriginal = parseMoney(detail.freight.original);
+        detail.freight.refunded = freightOriginal;
+        detail.freight.pending = 0;
+        detail.freight.remaining = 0;
+      }
     }
     persistDirectRefund({
       id: 'RF-CAN-' + Date.now(),
@@ -474,9 +491,29 @@
       ];
     }
     applyOrderBenefits(goods, row, detail);
+    subtractAftersaleOccupied(goods, detail);
     applyFreightShares(goods, row, detail, orderId);
     return goods;
   }
+
+  function goodsCashOccupied(detail, name) {
+    var list = detail && Array.isArray(detail.aftersales) ? detail.aftersales : [];
+    var key = normalizeGoodsName(name);
+    return list.reduce(function (sum, item) {
+      if (!item || item.refundScene === 'ORDER_FREIGHT' || item.type === '退运费') return sum;
+      if (item.type !== '仅退款' && item.type !== '退货退款') return sum;
+      if (normalizeGoodsName(item.productName) !== key) return sum;
+      return sum + parseMoney(item.refundSubtotal != null ? item.refundSubtotal : item.refundAmount);
+    }, 0);
+  }
+
+  function subtractAftersaleOccupied(goods, detail) {
+    (goods || []).forEach(function (g) {
+      var used = goodsCashOccupied(detail, g.name);
+      g.remainAmount = Math.max(0, Math.round((parseMoney(g.remainAmount) - used) * 100) / 100);
+    });
+  }
+
 
   function goodIsCold(g) {
     var t = String((g && g.tempLayer) || '');
@@ -738,11 +775,19 @@
       ? 'order-as-form__row order-as-form__row--2'
       : (isReturn ? 'order-as-form__row order-as-form__row--4' : 'order-as-form__row order-as-form__row--3');
 
+    var refundHint = '';
+    if (hideMoneyQty) {
+      refundHint =
+        '<p class="order-as-form-hint">仅支持仅退款。各订单优惠券、积分分摊不同，无法统一金额，将按各单可退现金、优惠券、积分分别直接退款。</p>';
+    } else if (!isRestock) {
+      refundHint = isPreShipRow(state.row)
+        ? '<p class="order-as-form-hint">退款金额不能超过商品实付金额（不含运费）。发货前把订单里全部商品仅退款后，剩余运费会随最后一笔自动退还。</p>'
+        : '<p class="order-as-form-hint">发货后售后只退商品实付金额（不含运费），不支持随售后退运费。运费请到列表「退运费」操作。</p>';
+    }
+
     return (
       '<div class="order-as-form">' +
-      (hideMoneyQty
-        ? '<p class="order-as-form-hint">仅支持仅退款。各订单优惠券、积分分摊不同，无法统一金额，将按各单可退现金、优惠券、积分分别直接退款。</p>'
-        : '') +
+      refundHint +
       '<div class="' +
       colsClass +
       '">' +
@@ -934,9 +979,11 @@
       '<div class="order-as-kv"><span class="order-as-kv__k">剩余可退金额</span><span class="order-as-kv__v">¥' +
       formatMoney(it.remainAmount) +
       '</span></div>' +
-      '<div class="order-as-kv"><span class="order-as-kv__k">剩余可退运费</span><span class="order-as-kv__v">¥' +
-      formatMoney(it.remainFreight) +
-      '</span></div>' +
+      (isPreShipRow(state.row)
+        ? '<div class="order-as-kv"><span class="order-as-kv__k">剩余可退运费</span><span class="order-as-kv__v">¥' +
+          formatMoney(it.remainFreight) +
+          '</span></div>'
+        : '') +
       '</div>' +
       '<div class="order-as-item__meta-col">' +
       '<div class="order-as-kv"><span class="order-as-kv__k">商品规格</span><span class="order-as-kv__v">' +
@@ -956,7 +1003,9 @@
       '<div class="order-as-kv"><span class="order-as-kv__k">SKU编码</span><span class="order-as-kv__v">' +
       escapeHtml(it.sku) +
       '</span></div>' +
-      '<div class="order-as-kv"><span class="order-as-kv__k">实付金额</span><span class="order-as-kv__v">¥' +
+      '<div class="order-as-kv"><span class="order-as-kv__k">' +
+      (pageType() === 'proxy' ? '实付金额(不含运费)' : '实付金额') +
+      '</span><span class="order-as-kv__v">¥' +
       formatMoney(it.paidAmount) +
       '</span></div>' +
       '<div class="order-as-kv"><span class="order-as-kv__k">分摊运费</span><span class="order-as-kv__v">¥' +
@@ -1031,7 +1080,9 @@
             return;
           }
           if (amt > it.remainAmount + 0.0001) {
-            if (typeof showToast === 'function') showToast('退款金额不能超过剩余可退金额', 'error');
+            if (typeof showToast === 'function') {
+              showToast('退款金额不能超过商品实付金额（不含运费）¥' + formatMoney(it.remainAmount), 'error');
+            }
             return;
           }
         }
@@ -1065,9 +1116,56 @@
       }
       return;
     }
+    persistSingleAftersales(selected);
+    var autoFreight = maybeAutoRefundLastFreight(selected);
     if (typeof showToast === 'function') {
-      showToast('平台退款/售后申请已提交（演示）共 ' + selected.length + ' 件商品', 'success');
+      showToast(
+        autoFreight > 0
+          ? '售后已提交；商品已全部仅退款，运费 ¥' + formatMoney(autoFreight) + ' 已随本笔自动退还'
+          : '平台退款/售后申请已提交（演示）共 ' + selected.length + ' 件商品',
+        'success'
+      );
     }
+    if (global.OrderProxyList && typeof global.OrderProxyList.refreshActionLayout === 'function') {
+      global.OrderProxyList.refreshActionLayout();
+    }
+  }
+
+  function persistSingleAftersales(selected) {
+    if (!global.OrderLiveDetail || typeof global.OrderLiveDetail.appendGoodsAftersale !== 'function') return;
+    selected.forEach(function (it, idx) {
+      var amount = parseMoney(it.refundAmount);
+      global.OrderLiveDetail.appendGoodsAftersale(state.orderId, state.row, {
+        id: 'AS-' + Date.now() + '-' + idx,
+        productName: it.name,
+        type: it.type || '仅退款',
+        status: it.type === '补货' ? '待收货' : '待审批',
+        returnQty: it.type === '退货退款' ? it.returnQty || it.qty : it.qty,
+        refundAmount: it.type === '补货' ? '-' : '¥' + formatMoney(amount),
+        refundSubtotal: it.type === '补货' ? '-' : '¥' + formatMoney(amount),
+        reason: it.reason || '',
+        desc: it.desc || ''
+      });
+    });
+  }
+
+  function maybeAutoRefundLastFreight(selected) {
+    if (!isPreShipRow(state.row)) return 0;
+    var onlyRefund = (selected || []).every(function (it) {
+      return it && it.type === '仅退款';
+    });
+    if (!onlyRefund) return 0;
+    var goods = resolveGoods(state.orderId, state.row);
+    var allCovered = goods.every(function (g) {
+      return parseMoney(g.remainAmount) <= 0.001;
+    });
+    if (!allCovered) return 0;
+    if (!global.OrderFreightRefund || typeof global.OrderFreightRefund.applyAuto !== 'function') return 0;
+    return global.OrderFreightRefund.applyAuto(
+      state.orderId,
+      state.row,
+      '订单商品已全部仅退款，运费随最后一笔自动退还'
+    );
   }
 
   function bindDrawerEvents(backdrop) {

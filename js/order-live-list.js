@@ -1201,7 +1201,7 @@
           message:
             '确认取消订单 <strong>' +
             orderId +
-            '</strong> 吗？<br>取消后订单将变为交易失败，此操作不可撤销。',
+            '</strong> 吗？<br>发货前取消将退还货款和运费，订单变为交易失败，此操作不可撤销。',
           okLabel: '确认取消',
           onConfirm: function () {
             applyRetailCancelRow(row);
