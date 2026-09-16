@@ -1489,7 +1489,9 @@
         original: Number(record.originalFreight) || 0,
         refunded: Number(record.refundedFreight) || 0,
         pending: Number(record.pendingFreight) || amount,
-        current: amount
+        current: amount,
+        mode: record.refundMode || 'total',
+        cats: Array.isArray(record.freightCats) ? record.freightCats : []
       },
       apply: {
         goodsStatus: '/',
@@ -2185,6 +2187,39 @@
     );
   }
 
+  function renderFreightCatTable(cats) {
+    if (!cats || !cats.length) return '';
+    var rows = cats
+      .map(function (cat) {
+        return (
+          '<tr>' +
+          '<td>' +
+          escapeHtml(cat.name || cat.key || '运费') +
+          '</td>' +
+          '<td>' +
+          money(cat.original) +
+          '</td>' +
+          '<td>' +
+          money((Number(cat.refunded) || 0) + (Number(cat.pending) || 0)) +
+          '</td>' +
+          '<td>' +
+          money(cat.remaining) +
+          '</td>' +
+          '<td>' +
+          money(cat.amount != null ? cat.amount : cat.current) +
+          '</td></tr>'
+        );
+      })
+      .join('');
+    return (
+      '<table class="aftersale-freight-cat-table">' +
+      '<thead><tr><th>类目</th><th>原始</th><th>已退 / 处理中</th><th>剩余可退</th><th>本次退</th></tr></thead>' +
+      '<tbody>' +
+      rows +
+      '</tbody></table>'
+    );
+  }
+
   function renderFreightInfo(detail) {
     var freight = detail.freight || {};
     var original = freight.original != null ? freight.original : detail.applyAmount;
@@ -2192,18 +2227,21 @@
     var current = freight.current != null ? freight.current : detail.applyAmount;
     var pending = freight.pending != null ? freight.pending : current;
     var channel = detail.payChannel || '-';
+    var modeLabel = freight.mode === 'category' ? '按类目退' : '按总额退';
     return (
       '<section class="aftersale-detail-card">' +
       '<h2 class="aftersale-detail-card__title">运费信息</h2>' +
       renderInfoGrid(
-        field('原始运费', money(original)) +
+        field('原始总运费', money(original)) +
           field('累计成功退运费', money(refunded)) +
           field('本次退运费', money(current)) +
           field('退款中运费', money(pending)) +
+          field('退运费方式', modeLabel) +
           field('退款渠道', channel) +
           field('退款范围', '仅订单运费，不改变商品售后状态'),
         4
       ) +
+      renderFreightCatTable(freight.cats) +
       '</section>'
     );
   }

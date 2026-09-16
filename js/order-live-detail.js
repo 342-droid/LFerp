@@ -409,7 +409,8 @@
         merchant: '¥63.00',
         refund: '¥0.00'
       },
-      freight: { original: 12, refunded: 0, ambient: 12, cold: 0 },
+      /* 实收运费按计价类目拆开，便于退运费按总额 / 按类目演示 */
+      freight: { original: 12, refunded: 0, ambient: 8, cold: 0, insure: 2, deliver: 2, upstairs: 0 },
       paymentCount: 1,
       aftersales: [],
       customer: { nickname: '张店长', phone: '13800138000', userId: '318605592681791701' },

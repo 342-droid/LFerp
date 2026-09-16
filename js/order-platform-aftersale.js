@@ -65,15 +65,19 @@
   }
 
   /**
-   * 平台退款可见性
+   * 平台退款 / 申请售后可见性
    * - 零售自提：待收货、待提货、待核销
-   * - 其余：待收货
+   * - 零售快递：待收货
+   * - 代采配送 / 代采快递：待发货、待收货（与 C 端一致，待发货可仅退款）
    */
   function canPlatformRefund(row) {
     var status = getRowOrderStatus(row);
     var kind = getFulfillmentKind(row);
     if (pageType() === 'retail' && kind === 'pickup') {
       return status === '待收货' || status === '待提货' || status === '待核销';
+    }
+    if (pageType() === 'proxy') {
+      return status === '待发货' || status === '待收货';
     }
     return status === '待收货';
   }
@@ -944,8 +948,8 @@
       '<div class="order-as-kv"><span class="order-as-kv__k">剩余可退优惠券</span><span class="order-as-kv__v">¥' +
       formatMoney(it.remainCoupon) +
       '</span></div>' +
-      '<div class="order-as-kv"><span class="order-as-kv__k">分摊运费</span><span class="order-as-kv__v">¥' +
-      formatMoney(it.allocatedFreight) +
+      '<div class="order-as-kv"><span class="order-as-kv__k">剩余可退积分</span><span class="order-as-kv__v">' +
+      escapeHtml(String(it.remainPoints || 0)) +
       '</span></div>' +
       '</div>' +
       '<div class="order-as-item__meta-col">' +
@@ -955,8 +959,8 @@
       '<div class="order-as-kv"><span class="order-as-kv__k">实付金额</span><span class="order-as-kv__v">¥' +
       formatMoney(it.paidAmount) +
       '</span></div>' +
-      '<div class="order-as-kv"><span class="order-as-kv__k">剩余可退积分</span><span class="order-as-kv__v">' +
-      escapeHtml(String(it.remainPoints || 0)) +
+      '<div class="order-as-kv"><span class="order-as-kv__k">分摊运费</span><span class="order-as-kv__v">¥' +
+      formatMoney(it.allocatedFreight) +
       '</span></div>' +
       '</div>' +
       '</div></div>' +

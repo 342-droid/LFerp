@@ -19,7 +19,8 @@
 
   function canPlatformRefund(row) {
     if (window.OrderPlatformAftersale) return window.OrderPlatformAftersale.canPlatformRefund(row);
-    return getRowOrderStatus(row) === '待收货';
+    var status = getRowOrderStatus(row);
+    return status === '待发货' || status === '待收货';
   }
 
   function canOpenAftersale(row) {
