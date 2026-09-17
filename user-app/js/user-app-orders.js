@@ -1,8 +1,29 @@
 (function () {
   var TAB_PARAM = 'tab';
 
+  function isRestockHostPage() {
+    return !!(
+      window.LfAppShell &&
+      typeof window.LfAppShell.isRestockOrdersPage === 'function' &&
+      window.LfAppShell.isRestockOrdersPage()
+    );
+  }
+
   function isFromRestock() {
+    if (isRestockHostPage()) return true;
     return new URLSearchParams(window.location.search).get('from') === 'restock.html';
+  }
+
+  function uaPage(href) {
+    return window.LfAppShell && typeof window.LfAppShell.userAppPage === 'function'
+      ? window.LfAppShell.userAppPage(href)
+      : href;
+  }
+
+  function resolveUaAsset(src) {
+    return window.LfAppShell && typeof window.LfAppShell.resolveAsset === 'function'
+      ? window.LfAppShell.resolveAsset(src)
+      : src || '../assets/order-product-1.svg';
   }
 
   function getAllowedTabs() {
@@ -80,9 +101,14 @@
         (closedReason ? '&reason=' + encodeURIComponent(closedReason) : '') +
         (cutoff ? '&cutoff=' + encodeURIComponent(cutoff) : '') +
         (delivery ? '&delivery=' + encodeURIComponent(delivery) : '');
-      card.querySelectorAll('a[href*="order-detail.html"]').forEach(function (link) {
-        link.setAttribute('href', href);
-      });
+      if (isStoreAppPort() && window.LfAppShell && window.LfAppShell.restockDetailHref) {
+        href = window.LfAppShell.restockDetailHref(card.getAttribute('data-order-no') || '');
+      }
+      card
+        .querySelectorAll('a[href*="order-detail.html"], a[href*="restock-order-detail.html"]')
+        .forEach(function (link) {
+          link.setAttribute('href', href);
+        });
     });
   }
 
@@ -186,7 +212,7 @@
     if (supplier && href.indexOf('supplier=') < 0) {
       href += (href.indexOf('?') >= 0 ? '&' : '?') + 'supplier=' + encodeURIComponent(supplier);
     }
-    card.querySelectorAll('a[href*="order-detail.html"]').forEach(function (link) {
+    card.querySelectorAll('a[href*="order-detail.html"], a[href*="restock-order-detail.html"]').forEach(function (link) {
       link.setAttribute('href', href);
     });
   }
@@ -210,12 +236,25 @@
         onPaid: function (extra) {
           markCardPaid(card, extra);
           if (typeof window.__uaOrdersRefilter === 'function') window.__uaOrdersRefilter();
-          var link = card.querySelector('a[href*="order-detail.html"]');
+          var link = card.querySelector(
+            'a[href*="order-detail.html"], a[href*="restock-order-detail.html"]'
+          );
+          var storeApp = isStoreAppPort();
           return {
-            orderHref: link ? link.getAttribute('href') : 'orders.html?from=restock.html',
-            homeHref: isFromRestock() ? 'restock.html' : 'home.html',
+            orderHref: link
+              ? link.getAttribute('href')
+              : storeApp && window.LfAppShell
+                ? window.LfAppShell.restockOrdersHref()
+                : 'orders.html?from=restock.html',
+            homeHref: isFromRestock()
+              ? storeApp
+                ? uaPage('restock.html?from=store-app')
+                : 'restock.html'
+              : 'home.html',
             unpaidHref: isFromRestock()
-              ? 'orders.html?from=restock.html&tab=unpaid'
+              ? storeApp && window.LfAppShell
+                ? window.LfAppShell.restockOrdersHref() + '?tab=unpaid'
+                : 'orders.html?from=restock.html&tab=unpaid'
               : 'orders.html?tab=unpaid'
           };
         }
@@ -232,7 +271,7 @@
   }
 
   function init() {
-    if (isStoreAppPort()) {
+    if (isStoreAppPort() && !isRestockHostPage()) {
       window.location.replace(
         window.LfAppShell && window.LfAppShell.restockOrdersHref
           ? window.LfAppShell.restockOrdersHref()
@@ -251,7 +290,10 @@
 
     var backEl = document.querySelector('.ua-orders-back');
     if (backEl && isFromRestock()) {
-      backEl.setAttribute('href', 'restock.html');
+      backEl.setAttribute(
+        'href',
+        isStoreAppPort() ? uaPage('restock.html?from=store-app') : 'restock.html'
+      );
     }
 
     var tabs = Array.prototype.slice.call(document.querySelectorAll('.ua-orders-tab'));
@@ -306,20 +348,25 @@
     document.querySelectorAll('.ua-order-card[data-demo-order="1"]').forEach(function (card) {
       var orderNo = card.getAttribute('data-order-no');
       if (!orderNo) return;
-      card.querySelectorAll('a[href*="order-detail.html"]').forEach(function (link) {
-        link.addEventListener('click', function (e) {
-          if (!window.UaOrdersStore || !window.UaOrdersStore.getByNo) return;
-          var order = window.UaOrdersStore.getByNo(orderNo);
-          if (!order) return;
-          e.preventDefault();
-          window.location.href = window.UaOrdersStore.buildDetailHref(order);
+      card
+        .querySelectorAll('a[href*="order-detail.html"], a[href*="restock-order-detail.html"]')
+        .forEach(function (link) {
+          link.addEventListener('click', function (e) {
+            if (!window.UaOrdersStore || !window.UaOrdersStore.getByNo) return;
+            var order = window.UaOrdersStore.getByNo(orderNo);
+            if (!order) return;
+            e.preventDefault();
+            window.location.href = window.UaOrdersStore.buildDetailHref(order);
+          });
         });
-      });
     });
   }
 
   function injectDemoOrders() {
     if (!window.UaOrdersStore || !window.UaOrdersStore.list) return;
+    if (isFromRestock() && window.UaOrdersStore.ensureRestockDemoList) {
+      window.UaOrdersStore.ensureRestockDemoList();
+    }
     var list = (window.UaOrdersStore.list() || []).filter(function (order) {
       var restock = !!(order && (order.from === 'restock.html' || order.fulfillType || order.splitKind));
       return isFromRestock() ? restock : !restock;
@@ -344,10 +391,14 @@
         var imgs = (fresh.items || [])
           .slice(0, 3)
           .map(function (it) {
-            return '<img src="' + escapeHtml(it.img || '../assets/order-product-1.svg') + '" alt="">';
+            return (
+              '<img src="' +
+              escapeHtml(resolveUaAsset(it.img || '../assets/order-product-1.svg')) +
+              '" alt="">'
+            );
           })
           .join('');
-        if (!imgs) imgs = '<img src="../assets/order-product-1.svg" alt="">';
+        if (!imgs) imgs = '<img src="' + escapeHtml(resolveUaAsset('../assets/order-product-1.svg')) + '" alt="">';
         var qty = (fresh.items || []).reduce(function (s, it) {
           return s + (Number(it.qty) || 0);
         }, 0);

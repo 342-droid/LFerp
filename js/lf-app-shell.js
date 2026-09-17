@@ -72,6 +72,42 @@
       : '../../store-app/h5/restock-order-detail.html' + q;
   }
 
+  function isRestockOrdersPage() {
+    return /restock-orders\.html/i.test(pathName());
+  }
+
+  function isRestockDetailPage() {
+    return /restock-order-detail\.html/i.test(pathName());
+  }
+
+  function userAppH5(file) {
+    file = String(file || '');
+    return /\/store-app\//i.test(pathName()) ? '../../user-app/h5/' + file : file;
+  }
+
+  function userAppAsset(file) {
+    file = String(file || '');
+    return /\/store-app\//i.test(pathName()) ? '../../user-app/assets/' + file : '../assets/' + file;
+  }
+
+  function userAppPage(href) {
+    href = String(href || '');
+    if (!href || !/\/store-app\//i.test(pathName())) return href;
+    if (/user-app\/h5\//.test(href) || /^https?:/i.test(href) || href.charAt(0) === '/') return href;
+    return '../../user-app/h5/' + href.replace(/^\.\//, '');
+  }
+
+  function resolveAsset(src) {
+    src = String(src || '');
+    if (!src) return userAppAsset('order-product-1.svg');
+    if (!/\/store-app\//i.test(pathName())) return src;
+    if (/user-app\//.test(src) || /^https?:/i.test(src) || src.charAt(0) === '/') return src;
+    if (src.indexOf('../assets/') === 0) return '../../user-app/assets/' + src.slice(10);
+    if (src.indexOf('./assets/') === 0) return '../../user-app/assets/' + src.slice(9);
+    if (src.indexOf('assets/') === 0) return '../../user-app/' + src;
+    return src;
+  }
+
   function boot() {
     var fromPath = pathShell();
     if (fromPath) {
@@ -97,6 +133,12 @@
     remember: remember,
     isStoreApp: isStoreApp,
     restockOrdersHref: restockOrdersHref,
-    restockDetailHref: restockDetailHref
+    restockDetailHref: restockDetailHref,
+    isRestockOrdersPage: isRestockOrdersPage,
+    isRestockDetailPage: isRestockDetailPage,
+    userAppH5: userAppH5,
+    userAppAsset: userAppAsset,
+    userAppPage: userAppPage,
+    resolveAsset: resolveAsset
   };
 })(typeof window !== 'undefined' ? window : this);

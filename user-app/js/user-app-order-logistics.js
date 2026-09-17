@@ -155,6 +155,14 @@
       if (val) qs.push(key + '=' + encodeURIComponent(val));
     });
     if (!params.get('status')) qs.unshift('status=receipt');
+    if (
+      window.LfAppShell &&
+      typeof window.LfAppShell.isStoreApp === 'function' &&
+      window.LfAppShell.isStoreApp() &&
+      window.LfAppShell.restockDetailHref
+    ) {
+      return window.LfAppShell.restockDetailHref(params.get('orderNo') || '');
+    }
     return 'order-detail.html?' + qs.join('&');
   }
 

@@ -293,6 +293,122 @@
     return null;
   }
 
+  function restockAsset(file) {
+    return '../assets/' + file;
+  }
+
+  function isRestockOrder(order) {
+    return !!(order && (order.from === 'restock.html' || order.fulfillType || order.splitKind));
+  }
+
+  function ensureRestockDemo(orderNo) {
+    var no = String(orderNo || '').trim();
+    if (no) {
+      var existing = getByNo(no);
+      if (existing && isRestockOrder(existing)) return existing;
+    }
+    var seedNo = no || '9550747005504';
+    return upsert({
+      orderNo: seedNo,
+      status: 'receipt',
+      createdAt: '2026-09-16 10:22:08',
+      paidAt: '2026-09-16 10:22:36',
+      goodsTotal: 93.9,
+      freight: 12.5,
+      payable: 93.9,
+      payLabel: '¥93.90',
+      payMethod: '微信支付',
+      from: 'restock.html',
+      fulfillType: 'delivery',
+      splitKind: 'delivery',
+      warehouse: 'W002 嘉兴仓',
+      supplierName: '',
+      items: [
+        {
+          name: '冷丰优选智利车厘子 鲜脆清甜 礼盒装',
+          spec: '2.5kg；颜色：白色',
+          qty: 1,
+          price: 18,
+          img: restockAsset('order-product-1.svg'),
+          tempLayer: '冷藏'
+        },
+        {
+          name: '新鲜红颜草莓 香甜多汁 500g装',
+          spec: '500g；颜色：红色',
+          qty: 1,
+          price: 16,
+          img: restockAsset('order-product-2.svg'),
+          tempLayer: '冷藏'
+        },
+        {
+          name: '海南贵妃芒 香甜软糯 礼盒装',
+          spec: '2.5kg',
+          qty: 1,
+          price: 59.9,
+          img: restockAsset('order-product-3.svg'),
+          tempLayer: '常温'
+        }
+      ]
+    });
+  }
+
+  function ensureRestockDemoList() {
+    var list = listNormalized().filter(isRestockOrder);
+    if (list.length) return list;
+    ensureRestockDemo('9550747005504');
+    upsert({
+      orderNo: '9550747005511',
+      status: 'pending_accept',
+      createdAt: '2026-09-16 11:08:22',
+      paidAt: '2026-09-16 11:08:40',
+      goodsTotal: 36,
+      freight: 0,
+      payable: 36,
+      payLabel: '¥36.00',
+      payMethod: '微信支付',
+      from: 'restock.html',
+      fulfillType: 'express',
+      splitKind: 'express',
+      warehouse: '',
+      supplierName: '华东冷链供应商',
+      items: [
+        {
+          name: '新鲜红颜草莓 香甜多汁 500g装',
+          spec: '500g；颜色：红色',
+          qty: 2,
+          price: 18,
+          img: restockAsset('order-product-2.svg'),
+          tempLayer: '冷藏'
+        }
+      ]
+    });
+    upsert({
+      orderNo: '9550747005528',
+      status: 'unpaid',
+      createdAt: '2026-09-16 14:16:05',
+      goodsTotal: 59.9,
+      freight: 0,
+      payable: 59.9,
+      payLabel: '¥59.90',
+      from: 'restock.html',
+      fulfillType: 'express',
+      splitKind: 'express',
+      warehouse: '',
+      supplierName: '冷丰优选供应链',
+      items: [
+        {
+          name: '海南贵妃芒 香甜软糯 礼盒装',
+          spec: '2.5kg',
+          qty: 1,
+          price: 59.9,
+          img: restockAsset('order-product-3.svg'),
+          tempLayer: '常温'
+        }
+      ]
+    });
+    return listNormalized().filter(isRestockOrder);
+  }
+
   function getLatest() {
     var list = readAll();
     if (list.length) return normalizeOrder(list[0]);
@@ -360,6 +476,9 @@
     updateStatus: updateStatus,
     list: listNormalized,
     buildDetailHref: buildDetailHref,
+    isRestockOrder: isRestockOrder,
+    ensureRestockDemo: ensureRestockDemo,
+    ensureRestockDemoList: ensureRestockDemoList,
     isRestockDelivery: isRestockDelivery,
     restockShopTitle: restockShopTitle,
     isWarehouseShopName: isWarehouseShopName,

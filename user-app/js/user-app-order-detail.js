@@ -181,7 +181,28 @@
     return window.UaOrdersStore.getByNo(orderNo);
   }
 
+  function isRestockHostPage() {
+    return !!(
+      window.LfAppShell &&
+      typeof window.LfAppShell.isRestockDetailPage === 'function' &&
+      window.LfAppShell.isRestockDetailPage()
+    );
+  }
+
+  function uaPage(href) {
+    return window.LfAppShell && typeof window.LfAppShell.userAppPage === 'function'
+      ? window.LfAppShell.userAppPage(href)
+      : href;
+  }
+
+  function resolveUaAsset(src) {
+    return window.LfAppShell && typeof window.LfAppShell.resolveAsset === 'function'
+      ? window.LfAppShell.resolveAsset(src)
+      : src || '../assets/order-product-1.svg';
+  }
+
   function isFromRestock() {
+    if (isRestockHostPage()) return true;
     if (getParams().get('from') === 'restock.html') return true;
     var order = getStoredDemoOrder();
     return !!(order && (order.from === 'restock.html' || order.fulfillType || order.splitKind));
@@ -348,9 +369,11 @@
 
   function buildLogisticsHref(pkgIndex) {
     var params = getParams();
-    var href = 'order-logistics.html?';
+    var href = uaPage('order-logistics.html?');
     var qs = [];
     if (params.get('from')) qs.push('from=' + encodeURIComponent(params.get('from')));
+    else if (isFromRestock()) qs.push('from=restock.html');
+    if (params.get('orderNo')) qs.push('orderNo=' + encodeURIComponent(params.get('orderNo')));
     qs.push('status=' + encodeURIComponent(getStatus()));
     if (params.get('supplier')) qs.push('supplier=' + encodeURIComponent(params.get('supplier')));
     if (params.get('delivery')) qs.push('delivery=' + encodeURIComponent(params.get('delivery')));
@@ -591,6 +614,7 @@
     var qs = [];
     qs.push('status=' + encodeURIComponent(getStatus()));
     if (p.get('from')) qs.push('from=' + encodeURIComponent(p.get('from')));
+    else if (isFromRestock()) qs.push('from=restock.html');
     if (p.get('supplier')) qs.push('supplier=' + encodeURIComponent(p.get('supplier')));
     var delivery = p.get('delivery');
     if (!delivery && !isFromRestock()) {
@@ -616,15 +640,15 @@
   }
 
   function buildPreShipHref(itemIndex) {
-    return 'order-refund-pre-ship.html?' + buildRefundQuery(itemIndex);
+    return uaPage('order-refund-pre-ship.html?' + buildRefundQuery(itemIndex));
   }
 
   function buildOnlyRefundHref(itemIndex) {
-    return (
+    return uaPage(
       'order-refund-only.html?scene=' +
-      encodeURIComponent(getRefundScene()) +
-      '&' +
-      buildRefundQuery(itemIndex)
+        encodeURIComponent(getRefundScene()) +
+        '&' +
+        buildRefundQuery(itemIndex)
     );
   }
 
@@ -643,7 +667,7 @@
       var delivery = getStatus() === 'pickup' ? 'pickup' : getDeliveryType();
       query += '&delivery=' + encodeURIComponent(delivery);
     }
-    return 'order-refund-select.html?scene=' + encodeURIComponent(scene) + '&' + query;
+    return uaPage('order-refund-select.html?scene=' + encodeURIComponent(scene) + '&' + query);
   }
 
   function hasOpenAftersaleBlockingCancel() {
@@ -688,6 +712,10 @@
       }
       window.UaOrdersStore.updateStatus(orderNo, 'closed', extra);
     }
+    if (isStoreAppPort() && window.LfAppShell && window.LfAppShell.restockDetailHref) {
+      window.location.href = window.LfAppShell.restockDetailHref(orderNo || '');
+      return;
+    }
     var href =
       'order-detail.html?status=closed&reason=cancel' +
       (orderNo ? '&orderNo=' + encodeURIComponent(orderNo) : '') +
@@ -712,6 +740,14 @@
   function confirmReceiptOrder() {
     closeConfirmReceiptModal();
     var p = getParams();
+    if (isStoreAppPort() && window.LfAppShell && window.LfAppShell.restockDetailHref) {
+      var recNo = p.get('orderNo') || '';
+      if (recNo && window.UaOrdersStore && window.UaOrdersStore.updateStatus) {
+        window.UaOrdersStore.updateStatus(recNo, 'completed');
+      }
+      window.location.href = window.LfAppShell.restockDetailHref(recNo);
+      return;
+    }
     var href = 'order-detail.html?status=completed';
     if (p.get('from')) href += '&from=' + encodeURIComponent(p.get('from'));
     if (p.get('supplier')) href += '&supplier=' + encodeURIComponent(p.get('supplier'));
@@ -746,9 +782,15 @@
         var paid = persistUnpaidPay(extra);
         return {
           orderHref: buildPaidDetailHref(paid),
-          homeHref: isFromRestock() ? 'restock.html' : 'home.html',
+          homeHref: isFromRestock()
+            ? isStoreAppPort()
+              ? uaPage('restock.html?from=store-app')
+              : 'restock.html'
+            : 'home.html',
           unpaidHref: isFromRestock()
-            ? 'orders.html?from=restock.html&tab=unpaid'
+            ? isStoreAppPort() && window.LfAppShell
+              ? window.LfAppShell.restockOrdersHref() + '?tab=unpaid'
+              : 'orders.html?from=restock.html&tab=unpaid'
             : 'orders.html?tab=unpaid'
         };
       }
@@ -835,23 +877,6 @@
 
     var noEl = document.getElementById('orderNoText');
     if (noEl) noEl.textContent = order.orderNo;
-    var siblingRow = document.getElementById('orderSiblingRow');
-    var siblingLink = document.getElementById('orderSiblingLink');
-    if (siblingRow && siblingLink) {
-      var sibNo = order.siblingOrderNo || (order.siblingOrderNos && order.siblingOrderNos[0]) || '';
-      if (sibNo) {
-        siblingRow.hidden = false;
-        siblingLink.textContent = sibNo;
-        var sib = window.UaOrdersStore.getByNo(sibNo);
-        siblingLink.href = sib
-          ? window.UaOrdersStore.buildDetailHref(sib)
-          : isFromRestock()
-            ? 'orders.html?from=restock.html'
-            : 'orders.html';
-      } else {
-        siblingRow.hidden = true;
-      }
-    }
     var createdAtEl = document.getElementById('orderCreatedAtValue');
     if (createdAtEl && order.createdAt) createdAtEl.textContent = order.createdAt;
     var payTimeEl = document.getElementById('orderPayTimeValue');
@@ -869,7 +894,7 @@
       if (it.isPointsExchange) el.setAttribute('data-points-exchange', '1');
       else el.removeAttribute('data-points-exchange');
       var img = el.querySelector('.ua-od-item__img');
-      if (img && it.img) img.setAttribute('src', it.img);
+      if (img && it.img) img.setAttribute('src', resolveUaAsset(it.img));
       var nameEl = el.querySelector('.ua-od-item__name');
       if (nameEl) {
         nameEl.innerHTML =
@@ -1107,7 +1132,7 @@
         qs.push(key + '=' + encodeURIComponent(payload[key]));
       }
     });
-    return 'order-aftersale-list.html?' + qs.join('&');
+    return uaPage('order-aftersale-list.html?' + qs.join('&'));
   }
 
   function canShowItemAftersale(status) {
@@ -1685,6 +1710,8 @@
     if (!isFromRestock()) return config;
 
     document.body.classList.add('ua-order-detail-from-restock');
+    var noLabel = document.getElementById('orderNoLabel');
+    if (noLabel) noLabel.textContent = '履约单号';
 
     var override = RESTOCK_STATUS_OVERRIDES[status] || {};
     config = Object.assign({}, config, override);
@@ -1735,6 +1762,7 @@
     renderReceiptLogisticsTrack(status);
     applyStoreExpressCard(status);
     applyRestockPriceLayout();
+    applyRestockFreightRows(getStoredDemoOrder());
 
     var backEl = document.getElementById('orderDetailBack');
     if (backEl) {
@@ -1832,14 +1860,14 @@
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(text).then(
             function () {
-              toast('已复制订单编号');
+              toast(isFromRestock() ? '已复制履约单号' : '已复制订单编号');
             },
             function () {
-              toast('已复制订单编号');
+              toast(isFromRestock() ? '已复制履约单号' : '已复制订单编号');
             }
           );
         } else {
-          toast('已复制订单编号');
+          toast(isFromRestock() ? '已复制履约单号' : '已复制订单编号');
         }
       });
     }
@@ -2020,7 +2048,7 @@
   }
 
   function init() {
-    if (isStoreAppPort()) {
+    if (isStoreAppPort() && !isRestockHostPage()) {
       var no = getParams().get('orderNo') || '';
       window.location.replace(
         window.LfAppShell && window.LfAppShell.restockDetailHref
@@ -2029,6 +2057,13 @@
             (no ? '?orderNo=' + encodeURIComponent(no) : '')
       );
       return;
+    }
+    if (
+      isFromRestock() &&
+      window.UaOrdersStore &&
+      typeof window.UaOrdersStore.ensureRestockDemo === 'function'
+    ) {
+      window.UaOrdersStore.ensureRestockDemo(getParams().get('orderNo') || '9550747005504');
     }
     mountPointsAftersaleDemoPanel();
     var demoOrder = applyDemoOrderSnapshot();
@@ -2120,6 +2155,7 @@
     if (pointsCard) pointsCard.hidden = !config.showPoints;
 
     applyRestockPriceLayout();
+    if (isFromRestock()) applyRestockFreightRows(getStoredDemoOrder());
     var payTimeRow = document.getElementById('orderPayTimeRow');
     if (payTimeRow) {
       /* 进货详情不加付款时间；用户端待支付/已取消与支付方式一同隐藏 */

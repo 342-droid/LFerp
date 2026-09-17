@@ -952,7 +952,12 @@
 
   /** 门店进货（代采）入口：履约为配送/快递到店，售后逻辑保持原状 */
   function isFromRestock() {
-    return getParams().get('from') === 'restock.html';
+    if (getParams().get('from') === 'restock.html') return true;
+    return !!(
+      window.LfAppShell &&
+      typeof window.LfAppShell.isStoreApp === 'function' &&
+      window.LfAppShell.isStoreApp()
+    );
   }
 
   /**
@@ -4969,6 +4974,14 @@
     var status = p.get('status') || 'shipping';
     var delivery = p.get('delivery') || '';
     var orderNo = getCurrentOrderNo();
+    if (
+      window.LfAppShell &&
+      typeof window.LfAppShell.isStoreApp === 'function' &&
+      window.LfAppShell.isStoreApp() &&
+      window.LfAppShell.restockDetailHref
+    ) {
+      return window.LfAppShell.restockDetailHref(orderNo || '');
+    }
     /* 零售待自提详情页独立 */
     if (status === 'pickup' && isRetailApp()) {
       var pickupHref = 'order-detail-pickup.html';
