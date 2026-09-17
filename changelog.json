@@ -1,10 +1,164 @@
 {
-  "latestSha": "c39a3559aadab594c1bcec2826475c44449b2c6f",
-  "total": 402,
+  "latestSha": "440da6d2c815a7d00e40a686e59fd050e49c4b0b",
+  "total": 403,
   "days": [
     {
       "date": "2026-09-17",
       "items": [
+        {
+          "sha": "440da6d",
+          "type": "feat",
+          "text": "恢复门店进货订单完整详情并展示履约单号",
+          "author": "sisi",
+          "time": "18:53",
+          "pages": [
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/newcomer-zone.html",
+              "module": "",
+              "title": "新人专区 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-aftersale-list.html",
+              "module": "",
+              "title": "退款/售后 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-address-book.html",
+              "module": "",
+              "title": "地址簿 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-address-create.html",
+              "module": "",
+              "title": "新建寄件人地址 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-detail.html",
+              "module": "",
+              "title": "退款详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-exchange.html",
+              "module": "",
+              "title": "换货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-only.html",
+              "module": "",
+              "title": "仅退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pickup-edit.html",
+              "module": "",
+              "title": "修改上门取件信息 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pickup-order.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pre-ship.html",
+              "module": "",
+              "title": "仅退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-restock.html",
+              "module": "",
+              "title": "补货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return-goods.html",
+              "module": "",
+              "title": "退货商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return-ship.html",
+              "module": "",
+              "title": "预约寄件 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return.html",
+              "module": "",
+              "title": "退货退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-select.html",
+              "module": "",
+              "title": "选择服务类型 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/points-order-confirm.html",
+              "module": "",
+              "title": "确认兑换 · 用户 APP"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "text": "列表恢复完整订单卡片和商品图，点进详情仍留在门店 APP"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "text": "顶栏改为「订单详情」；信息区直接展示拆后履约单号，去掉同时下单；恢复申请退款和售后"
+            },
+            {
+              "file": "user-app/h5/order-refund-select.html",
+              "text": "从进货详情申请售后后再返回门店订单详情"
+            }
+          ]
+        },
         {
           "sha": "c39a355",
           "type": "feat",
@@ -50,12 +204,7 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "进货订单详情 · 门店APP"
-            },
-            {
-              "file": "store-app/h5/restock-orders.html",
-              "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "订单详情 · 门店APP"
             },
             {
               "file": "store-app/h5/store-orders.html",
@@ -242,7 +391,7 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "进货订单详情 · 门店APP"
+              "title": "订单详情 · 门店APP"
             },
             {
               "file": "store-app/h5/restock-orders.html",
@@ -625,7 +774,7 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "进货订单详情 · 门店APP"
+              "title": "订单详情 · 门店APP"
             },
             {
               "file": "store-app/h5/restock-orders.html",
@@ -721,7 +870,7 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "进货订单详情 · 门店APP"
+              "title": "订单详情 · 门店APP"
             },
             {
               "file": "store-app/h5/restock-orders.html",
@@ -819,14 +968,35 @@
               "title": "进货 · 用户 APP"
             }
           ],
+          "global": true,
           "notes": [
             {
               "file": "store-app/h5/restock-orders.html",
               "text": "门店进货订单独立列表，不再跳进用户 APP"
             },
             {
+              "file": "store-app/h5/home.html",
+              "text": "进货订单详情 · 门店APP: 配送单展示支付运费并可展开类目，快递单免运费"
+            },
+            {
               "file": "store-app/h5/restock-order-detail.html",
-              "text": "配送单展示支付运费并可展开类目，快递单免运费；不展示积分和优惠券"
+              "text": "进货订单详情 · 门店APP: 配送单展示支付运费并可展开类目，快递单免运费"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "text": "进货订单详情 · 门店APP: 配送单展示支付运费并可展开类目，快递单免运费"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "text": "进货订单详情 · 门店APP: 配送单展示支付运费并可展开类目，快递单免运费"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "text": "进货订单详情 · 门店APP: 配送单展示支付运费并可展开类目，快递单免运费"
+            },
+            {
+              "file": null,
+              "text": "不展示积分和优惠券"
             },
             {
               "file": "user-app/h5/orders.html",
@@ -916,7 +1086,7 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "进货订单详情 · 门店APP"
+              "title": "订单详情 · 门店APP"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -1340,7 +1510,7 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "进货订单详情 · 门店APP"
+              "title": "订单详情 · 门店APP"
             },
             {
               "file": "store-app/h5/restock-orders.html",
@@ -1636,7 +1806,7 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "进货订单详情 · 门店APP"
+              "title": "订单详情 · 门店APP"
             },
             {
               "file": "store-app/h5/restock-orders.html",
@@ -2490,6 +2660,16 @@
               "title": "经营中心 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
+            },
+            {
               "file": "user-app/h5/checkout.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
@@ -2727,6 +2907,16 @@
               "file": "store-app/h5/biz-center.html",
               "module": "",
               "title": "经营中心 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -3092,6 +3282,11 @@
               "title": "门店配置"
             },
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/account-cancel.html",
               "module": "",
               "title": "账号注销 · 用户 APP"
@@ -3292,6 +3487,11 @@
               "file": "MDM/mdm_member_points_rule.html",
               "module": "冷丰WMS",
               "title": "积分规则"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
             },
             {
               "file": "user-app/h5/cart.html",
@@ -3746,6 +3946,16 @@
           "time": "21:26",
           "pages": [
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
+            },
+            {
               "file": "user-app/h5/checkout.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
@@ -3817,6 +4027,16 @@
               "file": "store-app/h5/biz-center.html",
               "module": "",
               "title": "经营中心 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -4227,16 +4447,6 @@
               "title": "密码管理 · 门店APP"
             },
             {
-              "file": "store-app/h5/restock-order-detail.html",
-              "module": "",
-              "title": "进货订单详情 · 门店APP"
-            },
-            {
-              "file": "store-app/h5/restock-orders.html",
-              "module": "",
-              "title": "进货订单 · 门店APP"
-            },
-            {
               "file": "store-app/h5/store-orders.html",
               "module": "",
               "title": "门店订单 · 门店APP"
@@ -4447,6 +4657,16 @@
               "file": "MDM/mdm_product_selection.html",
               "module": "冷丰WMS",
               "title": "选品库"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -5513,6 +5733,16 @@
               "title": "直播推广 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
+            },
+            {
               "file": "user-app/h5/cart.html",
               "module": "",
               "title": "购物车 · 用户 APP"
@@ -5701,6 +5931,16 @@
               "file": "store-app/h5/order-logistics.html",
               "module": "",
               "title": "订单跟踪 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
             },
             {
               "file": "store-app/h5/store-orders.html",
@@ -6702,6 +6942,11 @@
               "title": "零售订单"
             },
             {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
+            },
+            {
               "file": "user-app/h5/orders.html",
               "module": "",
               "title": "我的订单 · 用户 APP"
@@ -6770,7 +7015,7 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "进货订单详情 · 门店APP"
+              "title": "订单详情 · 门店APP"
             },
             {
               "file": "store-app/h5/restock-orders.html",
@@ -6874,6 +7119,11 @@
               "title": "零售订单"
             },
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-detail.html",
               "module": "",
               "title": "订单详情 · 用户 APP"
@@ -6942,7 +7192,7 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "进货订单详情 · 门店APP"
+              "title": "订单详情 · 门店APP"
             },
             {
               "file": "store-app/h5/restock-orders.html",
@@ -7321,6 +7571,11 @@
               "title": "商户进件 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/cart.html",
               "module": "",
               "title": "购物车 · 用户 APP"
@@ -7474,6 +7729,16 @@
               "file": "store-app/h5/order-detail.html",
               "module": "",
               "title": "核销详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -8342,16 +8607,6 @@
               "title": "订单跟踪 · 门店APP"
             },
             {
-              "file": "store-app/h5/restock-order-detail.html",
-              "module": "",
-              "title": "进货订单详情 · 门店APP"
-            },
-            {
-              "file": "store-app/h5/restock-orders.html",
-              "module": "",
-              "title": "进货订单 · 门店APP"
-            },
-            {
               "file": "store-app/h5/store-orders.html",
               "module": "",
               "title": "门店订单 · 门店APP"
@@ -8392,16 +8647,6 @@
               "title": "订单跟踪 · 门店APP"
             },
             {
-              "file": "store-app/h5/restock-order-detail.html",
-              "module": "",
-              "title": "进货订单详情 · 门店APP"
-            },
-            {
-              "file": "store-app/h5/restock-orders.html",
-              "module": "",
-              "title": "进货订单 · 门店APP"
-            },
-            {
               "file": "store-app/h5/store-orders.html",
               "module": "",
               "title": "门店订单 · 门店APP"
@@ -8438,16 +8683,6 @@
               "file": "store-app/h5/order-logistics.html",
               "module": "",
               "title": "订单跟踪 · 门店APP"
-            },
-            {
-              "file": "store-app/h5/restock-order-detail.html",
-              "module": "",
-              "title": "进货订单详情 · 门店APP"
-            },
-            {
-              "file": "store-app/h5/restock-orders.html",
-              "module": "",
-              "title": "进货订单 · 门店APP"
             },
             {
               "file": "store-app/h5/store-orders.html",
@@ -8519,16 +8754,6 @@
               "title": "订单跟踪 · 门店APP"
             },
             {
-              "file": "store-app/h5/restock-order-detail.html",
-              "module": "",
-              "title": "进货订单详情 · 门店APP"
-            },
-            {
-              "file": "store-app/h5/restock-orders.html",
-              "module": "",
-              "title": "进货订单 · 门店APP"
-            },
-            {
               "file": "store-app/h5/store-orders.html",
               "module": "",
               "title": "门店订单 · 门店APP"
@@ -8577,16 +8802,6 @@
               "title": "订单跟踪 · 门店APP"
             },
             {
-              "file": "store-app/h5/restock-order-detail.html",
-              "module": "",
-              "title": "进货订单详情 · 门店APP"
-            },
-            {
-              "file": "store-app/h5/restock-orders.html",
-              "module": "",
-              "title": "进货订单 · 门店APP"
-            },
-            {
               "file": "store-app/h5/store-orders.html",
               "module": "",
               "title": "门店订单 · 门店APP"
@@ -8633,16 +8848,6 @@
               "file": "store-app/h5/order-logistics.html",
               "module": "",
               "title": "订单跟踪 · 门店APP"
-            },
-            {
-              "file": "store-app/h5/restock-order-detail.html",
-              "module": "",
-              "title": "进货订单详情 · 门店APP"
-            },
-            {
-              "file": "store-app/h5/restock-orders.html",
-              "module": "",
-              "title": "进货订单 · 门店APP"
             },
             {
               "file": "store-app/h5/store-orders.html",
@@ -10543,6 +10748,16 @@
           "time": "09:46",
           "pages": [
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
+            },
+            {
               "file": "user-app/h5/cart.html",
               "module": "",
               "title": "购物车 · 用户 APP"
@@ -11377,6 +11592,11 @@
               "title": "零售订单"
             },
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -11552,6 +11772,16 @@
               "file": "MDM/mdm_marketing_seckill_product.html",
               "module": "冷丰WMS",
               "title": "编辑秒杀商品"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
             },
             {
               "file": "user-app/h5/account-cancel.html",
@@ -12293,6 +12523,11 @@
               "file": "SCM/basic_settings_order.html",
               "module": "冷丰WMS",
               "title": "门店配置"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
             },
             {
               "file": "user-app/h5/cart.html",
@@ -14639,6 +14874,16 @@
               "title": "经营中心 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
+            },
+            {
               "file": "user-app/h5/checkout.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
@@ -14847,6 +15092,16 @@
               "title": "经营中心 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
+            },
+            {
               "file": "user-app/h5/checkout.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
@@ -15012,6 +15267,11 @@
           "time": "22:38",
           "pages": [
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -15163,7 +15423,7 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "进货订单详情 · 门店APP"
+              "title": "订单详情 · 门店APP"
             },
             {
               "file": "store-app/h5/restock-orders.html",
@@ -15546,6 +15806,11 @@
               "title": "仓库管理"
             },
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/checkout.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
@@ -15724,6 +15989,16 @@
               "file": "MDM/mdm_member_level_rule.html",
               "module": "冷丰WMS",
               "title": "成长值规则"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
             },
             {
               "file": "user-app/h5/cart.html",
@@ -16009,7 +16284,7 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "进货订单详情 · 门店APP"
+              "title": "订单详情 · 门店APP"
             },
             {
               "file": "store-app/h5/restock-orders.html",
@@ -16134,6 +16409,16 @@
               "file": "store-app/h5/biz-center.html",
               "module": "",
               "title": "经营中心 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -16309,6 +16594,16 @@
               "file": "store-app/h5/biz-order-goods.html",
               "module": "",
               "title": "订单商品明细 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -16534,16 +16829,6 @@
               "title": "密码管理 · 门店APP"
             },
             {
-              "file": "store-app/h5/restock-order-detail.html",
-              "module": "",
-              "title": "进货订单详情 · 门店APP"
-            },
-            {
-              "file": "store-app/h5/restock-orders.html",
-              "module": "",
-              "title": "进货订单 · 门店APP"
-            },
-            {
               "file": "store-app/h5/store-orders.html",
               "module": "",
               "title": "门店订单 · 门店APP"
@@ -16681,6 +16966,16 @@
               "file": "store-app/h5/biz-center.html",
               "module": "",
               "title": "经营中心 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -16824,6 +17119,16 @@
               "file": "store-app/h5/password.html",
               "module": "",
               "title": "密码管理 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -17165,6 +17470,16 @@
               "title": "工作台"
             },
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
+            },
+            {
               "file": "user-app/h5/account-cancel.html",
               "module": "",
               "title": "账号注销 · 用户 APP"
@@ -17433,6 +17748,16 @@
               "file": "store-app/h5/home.html",
               "module": "",
               "title": "门店APP · 工作台"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -17909,6 +18234,16 @@
               "title": "门店APP · 工作台"
             },
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
+            },
+            {
               "file": "user-app/h5/checkout.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
@@ -18125,6 +18460,11 @@
               "title": "零售订单"
             },
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -18271,6 +18611,11 @@
               "title": "售后详情"
             },
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -18386,6 +18731,11 @@
               "file": "MDM/mdm_aftersale_ticket_detail.html",
               "module": "冷丰售后",
               "title": "售后详情"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -18505,6 +18855,11 @@
               "file": "MDM/mdm_order_retail.html",
               "module": "冷丰WMS",
               "title": "零售订单"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -18828,6 +19183,16 @@
               "file": "SCM/purchase_order.html",
               "module": "冷丰采购",
               "title": "采购单"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
             },
             {
               "file": "user-app/h5/cart.html",
@@ -19291,7 +19656,7 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "进货订单详情 · 门店APP"
+              "title": "订单详情 · 门店APP"
             },
             {
               "file": "store-app/h5/restock-orders.html",
@@ -19601,6 +19966,11 @@
           "time": "15:09",
           "pages": [
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -19739,6 +20109,11 @@
               "file": "MDM/mdm_order_retail.html",
               "module": "冷丰WMS",
               "title": "零售订单"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
             },
             {
               "file": "user-app/h5/cart.html",
@@ -20010,6 +20385,11 @@
               "title": "售后详情"
             },
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -20162,6 +20542,11 @@
           "time": "01:03",
           "pages": [
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-detail.html",
               "module": "",
               "title": "订单详情 · 用户 APP"
@@ -20169,7 +20554,7 @@
           ],
           "notes": [
             {
-              "file": "user-app/h5/order-detail.html",
+              "file": "store-app/h5/restock-order-detail.html",
               "text": "确认收货弹出温馨提示，点确认后进入交易完成，不再只弹演示提示"
             }
           ]
@@ -20186,6 +20571,11 @@
           "author": "sisi",
           "time": "23:16",
           "pages": [
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
             {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
@@ -20283,7 +20673,7 @@
               "text": "全额退款/用户取消展示为已取消"
             },
             {
-              "file": "user-app/h5/order-detail-pickup.html",
+              "file": "store-app/h5/restock-order-detail.html",
               "text": "快递待收货按售后成功退款自动切到已取消或已完成"
             },
             {
@@ -20362,7 +20752,7 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "进货订单详情 · 门店APP"
+              "title": "订单详情 · 门店APP"
             },
             {
               "file": "store-app/h5/restock-orders.html",
@@ -20481,7 +20871,7 @@
               "text": "门店待收货在用户侧展示为待发货，收货入仓后进待自提；自提单门店统一为悠悠生鲜超市"
             },
             {
-              "file": "user-app/h5/order-detail-pickup.html",
+              "file": "store-app/h5/restock-order-detail.html",
               "text": "自提待发货文案与自提门店信息对齐，不再显示线上商城"
             },
             {
@@ -20657,6 +21047,16 @@
               "file": "MDM/mdm_super_admin_accounts.html",
               "module": "冷丰WMS",
               "title": "商户主体建档"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
             },
             {
               "file": "user-app/h5/account-cancel.html",
@@ -20897,6 +21297,16 @@
           "time": "09:01",
           "pages": [
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
+            },
+            {
               "file": "user-app/h5/cart.html",
               "module": "",
               "title": "购物车 · 用户 APP"
@@ -21064,6 +21474,11 @@
           "time": "01:53",
           "pages": [
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -21191,6 +21606,11 @@
               "file": "MDM/mdm_aftersale_ticket_detail.html",
               "module": "冷丰售后",
               "title": "售后详情"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -21577,12 +21997,7 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "进货订单详情 · 门店APP"
-            },
-            {
-              "file": "store-app/h5/restock-orders.html",
-              "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "订单详情 · 门店APP"
             },
             {
               "file": "store-app/h5/store-orders.html",
@@ -21826,6 +22241,16 @@
           "time": "11:54",
           "pages": [
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
+            },
+            {
               "file": "user-app/h5/cart.html",
               "module": "",
               "title": "购物车 · 用户 APP"
@@ -22061,6 +22486,11 @@
           "author": "sisi",
           "time": "18:04",
           "pages": [
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
             {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
@@ -22503,6 +22933,11 @@
               "title": "零售订单"
             },
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -22827,6 +23262,11 @@
           "time": "10:16",
           "pages": [
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -22972,6 +23412,11 @@
               "title": "售后详情"
             },
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -23107,6 +23552,11 @@
               "title": "代采商品列表"
             },
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/checkout.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
@@ -23209,6 +23659,10 @@
           ],
           "notes": [
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "text": "同步履约方式为快递/配送，订单详情按状态过滤售后入口，并支持同回退地址合并取件码"
+            },
+            {
               "file": "user-app/h5/order-detail-pickup.html",
               "text": "同步履约方式为快递/配送，订单详情按状态过滤售后入口，并支持同回退地址合并取件码"
             },
@@ -23255,6 +23709,11 @@
               "title": "订单跟踪 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/checkout.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
@@ -23288,6 +23747,10 @@
             {
               "file": "user-app/h5/checkout.html",
               "text": "购物车/确认订单按履约方式分算运费，补充计费说明弹窗与运费明细半遮罩"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "text": "订单详情待发货占位物流、待收货快递物流滑动卡片"
             },
             {
               "file": "user-app/h5/order-detail-pickup.html",
@@ -23332,6 +23795,11 @@
               "file": "MDM/mdm_order_retail.html",
               "module": "冷丰WMS",
               "title": "零售订单"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -23439,6 +23907,11 @@
           "time": "16:10",
           "pages": [
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -23542,6 +24015,11 @@
           "author": "sisi",
           "time": "15:53",
           "pages": [
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
             {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
@@ -23647,6 +24125,11 @@
           "time": "13:47",
           "pages": [
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -23746,6 +24229,11 @@
           "author": "sisi",
           "time": "09:50",
           "pages": [
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
             {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
@@ -23922,6 +24410,11 @@
           "time": "18:41",
           "pages": [
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -24009,6 +24502,10 @@
           ],
           "notes": [
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "text": "支持编辑寄件人地址、城市地区半遮罩联动，以及待上门取件订单详情页跳转"
+            },
+            {
               "file": "user-app/h5/order-detail-pickup.html",
               "text": "支持编辑寄件人地址、城市地区半遮罩联动，以及待上门取件订单详情页跳转"
             },
@@ -24029,6 +24526,11 @@
           "author": "sisi",
           "time": "13:34",
           "pages": [
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
             {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
@@ -24190,6 +24692,11 @@
               "title": "代采商品列表"
             },
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -24318,6 +24825,11 @@
               "file": "MDM/mdm_order_retail.html",
               "module": "冷丰WMS",
               "title": "零售订单"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -25460,6 +25972,11 @@
           "time": "01:54",
           "pages": [
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -25572,6 +26089,11 @@
           "time": "01:39",
           "pages": [
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -25681,6 +26203,11 @@
           "time": "22:24",
           "pages": [
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/checkout.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
@@ -25778,6 +26305,16 @@
               "title": "订单跟踪 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
+            },
+            {
               "file": "user-app/h5/checkout.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
@@ -25821,6 +26358,16 @@
           "author": "sisi",
           "time": "10:54",
           "pages": [
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
+            },
             {
               "file": "user-app/h5/order-detail.html",
               "module": "",
@@ -25926,6 +26473,16 @@
               "title": "库存统计"
             },
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
+            },
+            {
               "file": "user-app/h5/checkout.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
@@ -25969,6 +26526,10 @@
             },
             {
               "file": "MDM/mdm_product_proxy_list.html",
+              "text": "新增结算页与多规格商品详情（平铺规格+批量加购弹层），优化购物车分组、订单列表关闭场景及订单详情代采适配，并同步 MDM 代采商品列表相关调整"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
               "text": "新增结算页与多规格商品详情（平铺规格+批量加购弹层），优化购物车分组、订单列表关闭场景及订单详情代采适配，并同步 MDM 代采商品列表相关调整"
             },
             {
@@ -26169,6 +26730,16 @@
               "file": "MDM/mdm_product_stock.html",
               "module": "冷丰WMS",
               "title": "库存统计"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
             },
             {
               "file": "user-app/h5/forgot-password.html",
@@ -26702,6 +27273,16 @@
               "file": "SCM/mobile_index.html",
               "module": "冷丰WMS",
               "title": "移动端"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
             },
             {
               "file": "user-app/h5/account-cancel.html",
@@ -27439,6 +28020,16 @@
               "title": "销售订单"
             },
             {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-detail-pickup.html",
               "module": "",
               "title": "订单详情 · 用户 APP"
@@ -27511,6 +28102,16 @@
               "file": "SCM/mobile_index.html",
               "module": "冷丰WMS",
               "title": "移动端"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
             },
             {
               "file": "user-app/h5/home.html",

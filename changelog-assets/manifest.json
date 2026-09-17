@@ -691,6 +691,168 @@
     "status": "diff",
     "date": "2026-09-04"
   },
+  "440da6d|store-app/h5/restock-order-detail.html": {
+    "before": "changelog-assets/440da6d/store-app__h5__restock-order-detail.html.before.jpg",
+    "after": "changelog-assets/440da6d/store-app__h5__restock-order-detail.html.after.jpg",
+    "regions": 19,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "440da6d|store-app/h5/restock-orders.html": {
+    "before": "changelog-assets/440da6d/store-app__h5__restock-orders.html.before.jpg",
+    "after": "changelog-assets/440da6d/store-app__h5__restock-orders.html.after.jpg",
+    "regions": 12,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "440da6d|user-app/h5/checkout.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "440da6d|user-app/h5/live-room.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "440da6d|user-app/h5/newcomer-zone.html": {
+    "before": "changelog-assets/440da6d/user-app__h5__newcomer-zone.html.before.jpg",
+    "after": "changelog-assets/440da6d/user-app__h5__newcomer-zone.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "440da6d|user-app/h5/order-aftersale-list.html": {
+    "before": "changelog-assets/440da6d/user-app__h5__order-aftersale-list.html.before.jpg",
+    "after": "changelog-assets/440da6d/user-app__h5__order-aftersale-list.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "440da6d|user-app/h5/order-confirm.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "440da6d|user-app/h5/order-detail-pickup.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "440da6d|user-app/h5/order-detail.html": {
+    "before": "changelog-assets/440da6d/user-app__h5__order-detail.html.before.jpg",
+    "after": "changelog-assets/440da6d/user-app__h5__order-detail.html.after.jpg",
+    "regions": 19,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "440da6d|user-app/h5/order-edit-address.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "440da6d|user-app/h5/order-logistics.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "440da6d|user-app/h5/order-refund-address-book.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "440da6d|user-app/h5/order-refund-address-create.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "440da6d|user-app/h5/order-refund-detail.html": {
+    "before": "changelog-assets/440da6d/user-app__h5__order-refund-detail.html.before.jpg",
+    "after": "changelog-assets/440da6d/user-app__h5__order-refund-detail.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "440da6d|user-app/h5/order-refund-exchange.html": {
+    "before": "changelog-assets/440da6d/user-app__h5__order-refund-exchange.html.before.jpg",
+    "after": "changelog-assets/440da6d/user-app__h5__order-refund-exchange.html.after.jpg",
+    "regions": 7,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "440da6d|user-app/h5/order-refund-only.html": {
+    "before": "changelog-assets/440da6d/user-app__h5__order-refund-only.html.before.jpg",
+    "after": "changelog-assets/440da6d/user-app__h5__order-refund-only.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "440da6d|user-app/h5/order-refund-pickup-edit.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "440da6d|user-app/h5/order-refund-pickup-order.html": {
+    "before": "changelog-assets/440da6d/user-app__h5__order-refund-pickup-order.html.before.jpg",
+    "after": "changelog-assets/440da6d/user-app__h5__order-refund-pickup-order.html.after.jpg",
+    "regions": 3,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "440da6d|user-app/h5/order-refund-pre-ship.html": {
+    "before": "changelog-assets/440da6d/user-app__h5__order-refund-pre-ship.html.before.jpg",
+    "after": "changelog-assets/440da6d/user-app__h5__order-refund-pre-ship.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "440da6d|user-app/h5/order-refund-restock.html": {
+    "before": "changelog-assets/440da6d/user-app__h5__order-refund-restock.html.before.jpg",
+    "after": "changelog-assets/440da6d/user-app__h5__order-refund-restock.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "440da6d|user-app/h5/order-refund-return-goods.html": {
+    "before": "changelog-assets/440da6d/user-app__h5__order-refund-return-goods.html.before.jpg",
+    "after": "changelog-assets/440da6d/user-app__h5__order-refund-return-goods.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "440da6d|user-app/h5/order-refund-return-ship.html": {
+    "before": "changelog-assets/440da6d/user-app__h5__order-refund-return-ship.html.before.jpg",
+    "after": "changelog-assets/440da6d/user-app__h5__order-refund-return-ship.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "440da6d|user-app/h5/order-refund-return.html": {
+    "before": "changelog-assets/440da6d/user-app__h5__order-refund-return.html.before.jpg",
+    "after": "changelog-assets/440da6d/user-app__h5__order-refund-return.html.after.jpg",
+    "regions": 8,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "440da6d|user-app/h5/order-refund-select.html": {
+    "before": "changelog-assets/440da6d/user-app__h5__order-refund-select.html.before.jpg",
+    "after": "changelog-assets/440da6d/user-app__h5__order-refund-select.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "440da6d|user-app/h5/orders.html": {
+    "before": "changelog-assets/440da6d/user-app__h5__orders.html.before.jpg",
+    "after": "changelog-assets/440da6d/user-app__h5__orders.html.after.jpg",
+    "regions": 12,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "440da6d|user-app/h5/points-order-confirm.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
   "446c1ad|MDM/mdm_live_control.html": {
     "regions": 0,
     "status": "diff",
