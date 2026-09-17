@@ -19,6 +19,20 @@
       .replace(/"/g, '&quot;');
   }
 
+  function resolveGoodsImg(src) {
+    if (global.OrderLiveDetail && typeof global.OrderLiveDetail.resolveGoodsImg === 'function') {
+      return global.OrderLiveDetail.resolveGoodsImg(src);
+    }
+    var raw = String(src || '').trim();
+    var fallback = '../user-app/assets/order-product-1.svg';
+    if (!raw) return fallback;
+    if (/^(https?:|data:|blob:)/i.test(raw)) return raw;
+    if (raw.indexOf('../user-app/assets/') === 0) return raw;
+    var m = raw.match(/(?:(?:\.\.\/)+)?(?:user-app\/)?assets\/(.+)$/);
+    if (m && m[1]) return '../user-app/assets/' + m[1];
+    return raw || fallback;
+  }
+
   function pageType() {
     var p = document.body && document.body.getAttribute('data-order-page');
     return p === 'proxy' ? 'proxy' : 'retail';
@@ -511,7 +525,7 @@
             name: g.name || '商品',
             spec: g.spec || '-',
             sku: g.sku || g.spu || '-',
-            img: g.img || '../user-app/assets/order-product-1.svg',
+            img: resolveGoodsImg(g.img),
             unitPrice: unit,
             qty: qty,
             paidAmount: paid,
@@ -554,7 +568,7 @@
           name: name,
           spec: '口味：甜糯',
           sku: 'SKU00148',
-          img: thumb ? thumb.getAttribute('src') : '../user-app/assets/order-product-1.svg',
+          img: resolveGoodsImg(thumb ? thumb.getAttribute('src') : ''),
           unitPrice: paid,
           qty: 1,
           paidAmount: paid,
