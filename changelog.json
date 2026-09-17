@@ -1,10 +1,619 @@
 {
-  "latestSha": "8f59a2085192cdfae3e840709bfdd9ef1c634cf8",
-  "total": 398,
+  "latestSha": "4526a58e63ac61ca41837dfbf1d18319136d4df7",
+  "total": 401,
   "days": [
     {
       "date": "2026-09-16",
       "items": [
+        {
+          "sha": "4526a58",
+          "type": "feat",
+          "text": "完善发货前后运费退款并锁定固定包邮项",
+          "author": "sisi",
+          "time": "16:57",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_refund.html",
+              "module": "冷丰售后",
+              "title": "退款单"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "module": "冷丰WMS",
+              "title": "直播排品编辑"
+            },
+            {
+              "file": "MDM/mdm_live_session_detail.html",
+              "module": "冷丰WMS",
+              "title": "直播场次详情"
+            },
+            {
+              "file": "MDM/mdm_live_session_form.html",
+              "module": "冷丰WMS",
+              "title": "直播场次编辑"
+            },
+            {
+              "file": "MDM/mdm_marketing_coupon_form.html",
+              "module": "冷丰WMS",
+              "title": "优惠券"
+            },
+            {
+              "file": "MDM/mdm_marketing_points_mall_form.html",
+              "module": "冷丰WMS",
+              "title": "编辑积分商品"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "module": "冷丰WMS",
+              "title": "秒杀活动"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "module": "冷丰WMS",
+              "title": "编辑秒杀商品"
+            },
+            {
+              "file": "MDM/mdm_member_level_form.html",
+              "module": "冷丰WMS",
+              "title": "会员等级配置"
+            },
+            {
+              "file": "MDM/mdm_member_points_cash.html",
+              "module": "冷丰WMS",
+              "title": "积分抵现"
+            },
+            {
+              "file": "MDM/mdm_member_points_cash_form.html",
+              "module": "冷丰WMS",
+              "title": "积分抵现"
+            },
+            {
+              "file": "MDM/mdm_member_points_consume.html",
+              "module": "冷丰WMS",
+              "title": "消费送积分"
+            },
+            {
+              "file": "MDM/mdm_member_points_consume_form.html",
+              "module": "冷丰WMS",
+              "title": "消费送积分"
+            },
+            {
+              "file": "MDM/mdm_member_points_rule.html",
+              "module": "冷丰WMS",
+              "title": "积分规则"
+            },
+            {
+              "file": "MDM/mdm_order_config.html",
+              "module": "冷丰订单",
+              "title": "包邮配置"
+            },
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "module": "冷丰订单",
+              "title": "订单截单"
+            },
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            },
+            {
+              "file": "SCM/basic_settings_contract_config.html",
+              "module": "冷丰WMS",
+              "title": "接入配置"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_detail.html",
+              "module": "冷丰WMS",
+              "title": "签署任务详情"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template_form.html",
+              "module": "冷丰WMS",
+              "title": "合同模板配置"
+            },
+            {
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "进货订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/newcomer-zone.html",
+              "module": "",
+              "title": "新人专区 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-aftersale-list.html",
+              "module": "",
+              "title": "退款/售后 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-address-book.html",
+              "module": "",
+              "title": "地址簿 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-address-create.html",
+              "module": "",
+              "title": "新建寄件人地址 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-detail.html",
+              "module": "",
+              "title": "退款详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-exchange.html",
+              "module": "",
+              "title": "换货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-only.html",
+              "module": "",
+              "title": "仅退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pickup-edit.html",
+              "module": "",
+              "title": "修改上门取件信息 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pickup-order.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pre-ship.html",
+              "module": "",
+              "title": "仅退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-restock.html",
+              "module": "",
+              "title": "补货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return-goods.html",
+              "module": "",
+              "title": "退货商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return-ship.html",
+              "module": "",
+              "title": "预约寄件 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return.html",
+              "module": "",
+              "title": "退货退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-select.html",
+              "module": "",
+              "title": "选择服务类型 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/points-order-confirm.html",
+              "module": "",
+              "title": "确认兑换 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "module": "",
+              "title": "进货 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_config.html",
+              "text": "零售自提、零售快递、代采快递固定开启包邮且不可变更；仅代采配送可开关"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "text": "实付金额改为不含运费；配送单除待支付和失败外操作列显示退运费，快递单不显示；发货前取消连带退运费"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "发货前取消提示退货款和运费；发起售后抽屉说明仅退货款"
+            },
+            {
+              "file": "MDM/mdm_aftersale_refund.html",
+              "text": "退款来源新增「退运费」，后台退运费和自动退运费都能筛到"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "text": "发货前取消订单会把运费一起退还"
+            },
+            {
+              "file": "user-app/h5/order-refund-only.html",
+              "text": "仅退商品货款；发货前最后一笔仅退款会自动退剩余运费"
+            }
+          ]
+        },
+        {
+          "sha": "cf32e64",
+          "type": "feat",
+          "text": "代采待发货可申请售后并支持按类目退运费",
+          "author": "sisi",
+          "time": "09:20",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_feedback.html",
+              "module": "冷丰售后",
+              "title": "意见反馈"
+            },
+            {
+              "file": "MDM/mdm_aftersale_refund.html",
+              "module": "冷丰售后",
+              "title": "退款单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_report.html",
+              "module": "冷丰售后",
+              "title": "举报管理"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "module": "冷丰售后",
+              "title": "售后单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_queue.html",
+              "module": "冷丰WMS",
+              "title": "排队记录"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "text": "待发货也可申请售后；退运费抽屉展示总运费和计价类目，支持按总额退和按类目退"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "发起售后商品卡里，剩余可退积分改到剩余可退优惠券同一列下面"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "text": "退运费单展示退运费方式和各类目明细"
+            }
+          ]
+        },
+        {
+          "sha": "a562971",
+          "type": "feat",
+          "text": "完善代采售后运费分摊并按渠道配置包邮",
+          "author": "sisi",
+          "time": "01:06",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "module": "冷丰WMS",
+              "title": "直播排品编辑"
+            },
+            {
+              "file": "MDM/mdm_live_session_detail.html",
+              "module": "冷丰WMS",
+              "title": "直播场次详情"
+            },
+            {
+              "file": "MDM/mdm_live_session_form.html",
+              "module": "冷丰WMS",
+              "title": "直播场次编辑"
+            },
+            {
+              "file": "MDM/mdm_marketing_coupon_form.html",
+              "module": "冷丰WMS",
+              "title": "优惠券"
+            },
+            {
+              "file": "MDM/mdm_marketing_points_mall_form.html",
+              "module": "冷丰WMS",
+              "title": "编辑积分商品"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "module": "冷丰WMS",
+              "title": "秒杀活动"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "module": "冷丰WMS",
+              "title": "编辑秒杀商品"
+            },
+            {
+              "file": "MDM/mdm_member_level_form.html",
+              "module": "冷丰WMS",
+              "title": "会员等级配置"
+            },
+            {
+              "file": "MDM/mdm_member_points_cash.html",
+              "module": "冷丰WMS",
+              "title": "积分抵现"
+            },
+            {
+              "file": "MDM/mdm_member_points_cash_form.html",
+              "module": "冷丰WMS",
+              "title": "积分抵现"
+            },
+            {
+              "file": "MDM/mdm_member_points_consume.html",
+              "module": "冷丰WMS",
+              "title": "消费送积分"
+            },
+            {
+              "file": "MDM/mdm_member_points_consume_form.html",
+              "module": "冷丰WMS",
+              "title": "消费送积分"
+            },
+            {
+              "file": "MDM/mdm_member_points_rule.html",
+              "module": "冷丰WMS",
+              "title": "积分规则"
+            },
+            {
+              "file": "MDM/mdm_order_config.html",
+              "module": "冷丰订单",
+              "title": "包邮配置"
+            },
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "module": "冷丰订单",
+              "title": "订单截单"
+            },
+            {
+              "file": "MDM/mdm_order_free_ship.html",
+              "module": "冷丰订单",
+              "title": "包邮配置"
+            },
+            {
+              "file": "MDM/mdm_order_freight_config.html",
+              "module": "冷丰订单",
+              "title": "运费配置"
+            },
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_queue.html",
+              "module": "冷丰WMS",
+              "title": "排队记录"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            },
+            {
+              "file": "MDM/mdm_order_sales.html",
+              "module": "冷丰WMS",
+              "title": "销售订单"
+            },
+            {
+              "file": "MDM/mdm_product_audit.html",
+              "module": "冷丰WMS",
+              "title": "商品详情"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "module": "冷丰WMS",
+              "title": "选品库"
+            },
+            {
+              "file": "SCM/basic_settings_contract_config.html",
+              "module": "冷丰WMS",
+              "title": "接入配置"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_detail.html",
+              "module": "冷丰WMS",
+              "title": "签署任务详情"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template_form.html",
+              "module": "冷丰WMS",
+              "title": "合同模板配置"
+            },
+            {
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "进货订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/newcomer-zone.html",
+              "module": "",
+              "title": "新人专区 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-detail.html",
+              "module": "",
+              "title": "退款详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/points-order-confirm.html",
+              "module": "",
+              "title": "确认兑换 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "module": "",
+              "title": "进货 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "text": "列表勾选列与数据对齐；配送信息展示电梯和楼层；申请售后商品卡片显示分摊运费和剩余可退运费"
+            },
+            {
+              "file": "MDM/mdm_order_config.html",
+              "text": "菜单由「订单配置」改为「包邮配置」；按零售/代采和履约方式用开关控制是否包邮"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "申请售后商品卡片同步展示分摊运费和剩余可退运费"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "text": "进货下单会把电梯楼层带到后台代采订单"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "text": "是否收运费跟包邮配置的渠道和履约开关走"
+            }
+          ]
+        },
         {
           "sha": "8f59a20",
           "type": "feat",
@@ -165,7 +774,7 @@
             {
               "file": "MDM/mdm_order_config.html",
               "module": "冷丰订单",
-              "title": "订单配置"
+              "title": "包邮配置"
             },
             {
               "file": "MDM/mdm_order_express_cutoff.html",
@@ -175,7 +784,7 @@
             {
               "file": "MDM/mdm_order_free_ship.html",
               "module": "冷丰订单",
-              "title": "订单配置"
+              "title": "包邮配置"
             },
             {
               "file": "MDM/mdm_order_freight_config.html",
@@ -263,7 +872,15 @@
             },
             {
               "file": "MDM/mdm_order_config.html",
-              "text": "新增包邮配置，可按配送、自提、快递设置默认是否包邮；旧包邮页跳转到本页"
+              "text": "订单配置: 新增包邮配置，可按配送、自提、快递设置默认是否包邮"
+            },
+            {
+              "file": "MDM/mdm_order_free_ship.html",
+              "text": "订单配置: 新增包邮配置，可按配送、自提、快递设置默认是否包邮"
+            },
+            {
+              "file": null,
+              "text": "旧包邮页跳转到本页"
             },
             {
               "file": "MDM/mdm_product_mall.html",
@@ -2365,7 +2982,7 @@
             {
               "file": "MDM/mdm_order_config.html",
               "module": "冷丰订单",
-              "title": "订单配置"
+              "title": "包邮配置"
             },
             {
               "file": "MDM/mdm_order_express_cutoff.html",
@@ -5873,7 +6490,7 @@
             {
               "file": "MDM/mdm_order_config.html",
               "module": "冷丰订单",
-              "title": "订单配置"
+              "title": "包邮配置"
             },
             {
               "file": "MDM/mdm_order_express_cutoff.html",
@@ -8451,6 +9068,11 @@
           "time": "14:23",
           "pages": [
             {
+              "file": "MDM/mdm_aftersale_refund.html",
+              "module": "冷丰售后",
+              "title": "退款单"
+            },
+            {
               "file": "MDM/mdm_aftersale_ticket.html",
               "module": "冷丰售后",
               "title": "售后单"
@@ -8503,6 +9125,11 @@
           "author": "weekwood",
           "time": "10:24",
           "pages": [
+            {
+              "file": "MDM/mdm_aftersale_refund.html",
+              "module": "冷丰售后",
+              "title": "退款单"
+            },
             {
               "file": "MDM/mdm_aftersale_ticket.html",
               "module": "冷丰售后",
@@ -9401,7 +10028,7 @@
             {
               "file": "MDM/mdm_order_config.html",
               "module": "冷丰订单",
-              "title": "订单配置"
+              "title": "包邮配置"
             },
             {
               "file": "MDM/mdm_order_express_cutoff.html",
@@ -11459,7 +12086,7 @@
             {
               "file": "MDM/mdm_order_config.html",
               "module": "冷丰订单",
-              "title": "订单配置"
+              "title": "包邮配置"
             },
             {
               "file": "MDM/mdm_order_express_cutoff.html",
@@ -14754,7 +15381,7 @@
             {
               "file": "MDM/mdm_order_config.html",
               "module": "冷丰订单",
-              "title": "订单配置"
+              "title": "包邮配置"
             },
             {
               "file": "MDM/mdm_order_express_cutoff.html",
@@ -24362,7 +24989,7 @@
             {
               "file": "MDM/mdm_order_config.html",
               "module": "冷丰订单",
-              "title": "订单配置"
+              "title": "包邮配置"
             },
             {
               "file": "MDM/mdm_order_express_cutoff.html",
@@ -26613,7 +27240,7 @@
             {
               "file": "MDM/mdm_order_config.html",
               "module": "冷丰订单",
-              "title": "订单配置"
+              "title": "包邮配置"
             },
             {
               "file": "MDM/mdm_order_express_cutoff.html",
@@ -26692,7 +27319,7 @@
             {
               "file": "MDM/mdm_order_config.html",
               "module": "冷丰订单",
-              "title": "订单配置"
+              "title": "包邮配置"
             },
             {
               "file": "MDM/mdm_order_express_cutoff.html",
