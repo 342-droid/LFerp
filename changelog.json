@@ -1,7 +1,46 @@
 {
-  "latestSha": "189aa35d50a217a951732b8a23aa26cbb1691e43",
-  "total": 404,
+  "latestSha": "e824f91d8ff974ed9d8f6ee40f7f5fb870120152",
+  "total": 405,
   "days": [
+    {
+      "date": "2026-09-18",
+      "items": [
+        {
+          "sha": "e824f91",
+          "type": "fix",
+          "text": "修复代采申请售后商品图不显示",
+          "author": "sisi",
+          "time": "00:30",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "text": "申请售后、列表和详情把进货带过来的商品图改成后台能打开的地址"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "同样改写 C 端带过来的商品图路径，避免售后抽屉裂图"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-09-17",
       "items": [
