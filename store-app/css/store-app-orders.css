@@ -1370,6 +1370,18 @@
   color: #333;
 }
 
+.order-card__item-refund--restock .order-card__item-refund-title {
+  color: #ff7019;
+}
+
+.order-card__item-refund--return .order-card__item-refund-title {
+  color: #333;
+}
+
+.detail-item__info .order-card__item-refund {
+  margin: 6px 0 0;
+}
+
 .order-card__item-refund-split {
   flex-shrink: 0;
   width: 1px;
@@ -1504,12 +1516,23 @@
   color: #fff;
 }
 
-.sa-verify-demo {
+.sa-demo-stack {
   position: fixed;
   right: 8px;
   bottom: 8px;
   z-index: 3300;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   width: 220px;
+}
+
+.sa-verify-demo {
+  position: relative;
+  right: auto;
+  bottom: auto;
+  z-index: auto;
+  width: 100%;
   padding: 10px;
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid #eee;

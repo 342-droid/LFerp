@@ -124,7 +124,6 @@
           status: "待核销",
           cutoff: true,
           amount: 13.6,
-          siblingOrderNo: "ORD-3212689201599602",
           items: [
             {
               name: "门店现货·有机上海青 500g",
@@ -211,7 +210,7 @@
           status: "待提货",
           amount: 252,
           items: [
-            { name: "鲜切牛排 200g", qty: 2, price: 86, image: "https://placehold.co/80x80/f5f5f5/999?text=牛排" },
+            { name: "鲜切牛排 200g", qty: 2, price: 86, image: "https://placehold.co/80x80/f5f5f5/999?text=牛排", aftersaleType: "补货", restockQty: 1, aftersaleStatus: "补货中" },
             { name: "有机西兰花 500g", qty: 1, price: 80, image: "https://placehold.co/80x80/f5f5f5/999?text=西兰花" },
           ],
         },
@@ -234,7 +233,7 @@
           amount: 168,
           items: [
             { name: "有机杂粮礼盒", qty: 1, price: 168, image: "https://placehold.co/80x80/f5f5f5/999?text=杂粮" },
-            { name: "有机大米 5kg", qty: 1, price: 88, image: "https://placehold.co/80x80/f5f5f5/999?text=大米", refund: { returnQty: 1, refundAmount: 88 } },
+            { name: "有机大米 5kg", qty: 1, price: 88, image: "https://placehold.co/80x80/f5f5f5/999?text=大米", aftersaleType: "退货退款", refundStatus: "待退货", refund: { returnQty: 1, refundAmount: 88, type: "退货退款" } },
           ],
         },
         {
@@ -244,7 +243,7 @@
           status: "待提货",
           amount: 84,
           items: [
-            { name: "精品坚果礼盒", qty: 2, price: 84, image: "https://placehold.co/80x80/f5f5f5/999?text=坚果", refund: { returnQty: 1, refundAmount: 84 } },
+            { name: "精品坚果礼盒", qty: 2, price: 84, image: "https://placehold.co/80x80/f5f5f5/999?text=坚果", aftersaleType: "退货退款", refundStatus: "待审批", refund: { returnQty: 1, refundAmount: 84, type: "退货退款" } },
           ],
         },
         {
@@ -395,7 +394,6 @@
         customer: "赵金芝",
         phone: "138****9601",
         pickupTime: "2026-09-14 10:22",
-        siblingOrderNo: "ORD-3212689201599602",
         items: [
           {
             name: "门店现货·有机上海青 500g",
@@ -415,7 +413,6 @@
         createdAt: "2026-09-14 10:22",
         customer: "赵金芝",
         phone: "138****9601",
-        siblingOrderNo: "ORD-3212689201599601",
         items: [
           {
             name: "精选金钱牛腱子肉 1kg",
@@ -434,13 +431,23 @@
         phone: "159****8832",
         pickupTime: "2026-04-01 10:00",
         items: [
-          { name: "有机水果礼盒 A款", qty: 1, price: 198 },
+          {
+            name: "有机水果礼盒 A款",
+            qty: 1,
+            price: 198,
+            aftersaleType: "补货",
+            restockQty: 1,
+            aftersaleStatus: "补货中",
+          },
           {
             name: "有机水果礼盒 B款",
             qty: 3,
             price: 130,
             _verifiedQty: 2,
             _lastVerifyTime: "2026-04-01 10:48",
+            aftersaleType: "退货退款",
+            refundStatus: "待退货",
+            refund: { returnQty: 1, refundAmount: 130, type: "退货退款" },
           },
         ],
       },
@@ -454,7 +461,16 @@
         phone: "159****8832",
         pickupTime: "2026-04-01 14:00",
         items: [
-          { name: "冷冻虾仁 500g", qty: 4, price: 99, _verifiedQty: 2, _lastVerifyTime: "2026-04-01 11:05" },
+          {
+            name: "冷冻虾仁 500g",
+            qty: 4,
+            price: 99,
+            _verifiedQty: 2,
+            _lastVerifyTime: "2026-04-01 11:05",
+            aftersaleType: "补货",
+            restockQty: 2,
+            aftersaleStatus: "补货中",
+          },
         ],
       },
       {
@@ -523,7 +539,7 @@
         pickupTime: "2026-03-31 10:00",
         items: [
           { name: "有机杂粮礼盒", qty: 1, price: 168 },
-          { name: "有机大米 5kg", qty: 1, price: 88, refund: { returnQty: 1, refundAmount: 88 } },
+          { name: "有机大米 5kg", qty: 1, price: 88, aftersaleType: "退货退款", refundStatus: "待退货", refund: { returnQty: 1, refundAmount: 88, type: "退货退款" } },
         ],
       },
       {
@@ -536,7 +552,7 @@
         phone: "159****8832",
         pickupTime: "2026-04-01 12:00",
         items: [
-            { name: "精品坚果礼盒", qty: 2, price: 84, refundStatus: "待审批" },
+            { name: "精品坚果礼盒", qty: 2, price: 84, aftersaleType: "退货退款", refundStatus: "待审批", refund: { returnQty: 1, refundAmount: 84, type: "退货退款" } },
         ],
       },
       {
@@ -600,10 +616,10 @@
         customer: "陈晨",
         phone: "186****2233",
         pickupTime: "2026-03-31 10:00",
-        refund: { returnQty: 1, refundAmount: 140 },
+        refund: { returnQty: 1, refundAmount: 140, type: "退货退款" },
         items: [
           { name: "精品水果礼盒", qty: 1, price: 380 },
-          { name: "坚果零食大礼包", qty: 1, price: 140 },
+          { name: "坚果零食大礼包", qty: 1, price: 140, aftersaleType: "退货退款", refundStatus: "待退货", refund: { returnQty: 1, refundAmount: 140, type: "退货退款" } },
         ],
       },
       {
@@ -940,6 +956,10 @@
         if (!item.refund && seedItem.refund) item.refund = JSON.parse(JSON.stringify(seedItem.refund));
         if (!item.refundStatus && seedItem.refundStatus) item.refundStatus = seedItem.refundStatus;
         if (item.refunding == null && seedItem.refunding) item.refunding = seedItem.refunding;
+        if (!item.aftersaleType && seedItem.aftersaleType) item.aftersaleType = seedItem.aftersaleType;
+        if (!item.aftersaleStatus && seedItem.aftersaleStatus) item.aftersaleStatus = seedItem.aftersaleStatus;
+        if (item.restockQty == null && seedItem.restockQty != null) item.restockQty = seedItem.restockQty;
+        if (!item.aftersales && seedItem.aftersales) item.aftersales = JSON.parse(JSON.stringify(seedItem.aftersales));
       });
     });
   }
@@ -948,6 +968,9 @@
     delete item.refunding;
     delete item.refundStatus;
     delete item.aftersaleStatus;
+    delete item.aftersaleType;
+    delete item.aftersales;
+    delete item.restockQty;
     delete item.refund;
     delete item.refunded;
     delete item.refundQty;
@@ -1093,5 +1116,261 @@
       }
       location.reload();
     },
+  };
+
+  function escapeAftersaleHtml(value) {
+    return String(value == null ? "" : value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function normalizeAftersaleType(raw) {
+    var t = String(raw || "").trim();
+    if (t === "restock" || t === "补货") return "补货";
+    if (t === "return" || t === "退货退款" || t === "退货") return "退货退款";
+    if (t === "refund_only" || t === "pre_ship" || t === "仅退款" || t === "退款") return "仅退款";
+    return "";
+  }
+
+  function aftersaleLineKey(line) {
+    return [line.type, line.qty, line.amount].join("|");
+  }
+
+  function pushAftersaleLine(lines, line) {
+    if (!line || !line.type) return;
+    var key = aftersaleLineKey(line);
+    if (lines.some(function (it) { return aftersaleLineKey(it) === key; })) return;
+    lines.push(line);
+  }
+
+  function collectAftersaleLines(item, order, idx) {
+    var lines = [];
+    if (!item) return lines;
+    (item.aftersales || []).forEach(function (as) {
+      var type = normalizeAftersaleType(as.type || as.aftersaleType);
+      if (!type) return;
+      pushAftersaleLine(lines, {
+        type: type,
+        status: as.status || as.aftersaleStatus || "",
+        qty: Number(as.qty != null ? as.qty : as.returnQty != null ? as.returnQty : as.restockQty) || 0,
+        amount: as.amount != null ? Number(as.amount) : as.refundAmount != null ? Number(as.refundAmount) : null
+      });
+    });
+    var type = normalizeAftersaleType(
+      item.aftersaleType || item.refundType || (item.refund && item.refund.type)
+    );
+    var qty = 0;
+    var amount = null;
+    if (item.refund && item.refund.returnQty != null) qty = Number(item.refund.returnQty) || 0;
+    else if (item.refundQty != null) qty = Number(item.refundQty) || 0;
+    if (item.refund && item.refund.refundAmount != null) amount = Number(item.refund.refundAmount);
+    else if (item.refundAmount != null) amount = Number(item.refundAmount);
+    if (type === "补货") {
+      qty = Number(item.restockQty != null ? item.restockQty : qty || item.qty) || 0;
+      amount = null;
+    }
+    if (!type && (qty > 0 || amount != null || item.refunding || item.refundStatus)) {
+      type = item.refundStatus === "待退货" ? "退货退款" : "仅退款";
+    }
+    if (type) {
+      pushAftersaleLine(lines, {
+        type: type,
+        status: item.aftersaleStatus || item.refundStatus || "",
+        qty: qty,
+        amount: amount
+      });
+    }
+    if (!lines.length && order && order.refund) {
+      var items = order.items || [];
+      var matchIdx = -1;
+      items.forEach(function (it, i) {
+        if (it.refund || it.aftersaleType || it.restockQty != null) return;
+        if (it.price === order.refund.refundAmount || it.price * it.qty === order.refund.refundAmount) {
+          if (matchIdx < 0) matchIdx = i;
+        }
+      });
+      if (matchIdx < 0 && items.length) matchIdx = items.length - 1;
+      if (matchIdx === idx) {
+        pushAftersaleLine(lines, {
+          type: normalizeAftersaleType(order.refund.type) || "退货退款",
+          status: "",
+          qty: Number(order.refund.returnQty) || 0,
+          amount: order.refund.refundAmount != null ? Number(order.refund.refundAmount) : null
+        });
+      }
+    }
+    return lines;
+  }
+
+  function aftersaleBarHtml(item, order, idx) {
+    var lines = collectAftersaleLines(item, order, idx);
+    if (!lines.length) return "";
+    return lines.map(function (line) {
+      var cls = "order-card__item-refund";
+      if (line.type === "补货") cls += " order-card__item-refund--restock";
+      else if (line.type === "退货退款") cls += " order-card__item-refund--return";
+      var title = line.status && line.status !== line.type ? line.type : line.type;
+      if (line.status === "待审批") title = line.type;
+      var desc = "";
+      if (line.type === "补货") {
+        desc = "补货数量 " + (line.qty || 0);
+        if (line.status) desc += "　" + line.status;
+      } else if (line.type === "退货退款") {
+        desc = "退货数量 " + (line.qty || 0);
+        if (line.amount != null) {
+          desc += "　退款金额 <em>¥" + Number(line.amount || 0).toFixed(2) + "</em>";
+        }
+      } else {
+        desc = "退款数量 " + (line.qty || 0);
+        if (line.amount != null) {
+          desc += "　退款金额 <em>¥" + Number(line.amount || 0).toFixed(2) + "</em>";
+        }
+      }
+      return (
+        '<div class="' + cls + '">' +
+        '<span class="order-card__item-refund-title">' + escapeAftersaleHtml(title) + "</span>" +
+        '<span class="order-card__item-refund-split" aria-hidden="true"></span>' +
+        '<span class="order-card__item-refund-desc">' + desc + "</span>" +
+        "</div>"
+      );
+    }).join("");
+  }
+
+  function loadUaAftersaleRecords() {
+    try {
+      var raw = sessionStorage.getItem("ua_aftersale_records_v4");
+      var list = raw ? JSON.parse(raw) : [];
+      return Array.isArray(list) ? list : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function isUaAftersaleVisible(rec) {
+    if (!rec) return false;
+    var stage = rec.stage || "";
+    return stage !== "closed" && stage !== "failed";
+  }
+
+  function applyUaAftersalesToOrders(orders) {
+    var recs = loadUaAftersaleRecords().filter(isUaAftersaleVisible);
+    if (!recs.length) return orders;
+    (orders || []).forEach(function (order) {
+      if (!order) return;
+      recs.forEach(function (rec) {
+        if (String(rec.orderNo || "") !== String(order.orderNo || "")) return;
+        var type = normalizeAftersaleType(rec.type);
+        if (!type) return;
+        var items = order.items || [];
+        var target = items[rec.itemIndex];
+        if (!target || (rec.productName && target.name && rec.productName !== target.name)) {
+          target = items.filter(function (it) { return it.name === rec.productName; })[0];
+        }
+        if (!target && items.length === 1) target = items[0];
+        if (!target) return;
+        if (!target.aftersales) target.aftersales = [];
+        var qty = Number(rec.qty) || 0;
+        var amount = rec.amount != null ? Number(rec.amount) : null;
+        var exists = target.aftersales.some(function (as) {
+          return normalizeAftersaleType(as.type) === type && Number(as.qty || 0) === qty;
+        });
+        if (!exists) {
+          target.aftersales.push({
+            type: type,
+            qty: qty,
+            amount: amount,
+            status: rec.stage === "success" ? (type === "补货" ? "补货完成" : "已完成") : (type === "补货" ? "补货中" : rec.stage || "")
+          });
+        }
+        if (!target.aftersaleType) target.aftersaleType = type;
+        if (type === "补货" && target.restockQty == null) target.restockQty = qty || 1;
+        if (type !== "补货" && !target.refund && (qty > 0 || amount != null)) {
+          target.refund = { returnQty: qty || 1, refundAmount: amount, type: type };
+        }
+      });
+    });
+    return orders;
+  }
+
+  applyUaAftersalesToOrders(mockData.orders);
+  if (mockData.pendingVerifyOrder) applyUaAftersalesToOrders(mockData.pendingVerifyOrder.orders);
+  if (mockData.verifyOrdersByPhone) {
+    Object.keys(mockData.verifyOrdersByPhone).forEach(function (phone) {
+      applyUaAftersalesToOrders(mockData.verifyOrdersByPhone[phone].orders);
+    });
+  }
+
+  var AFTERSALE_DEMO_KEY = "lf_store_aftersale_demo_v1";
+  var AFTERSALE_DEMO_SCENES = [
+    { id: "all", label: "全部订单" },
+    { id: "aftersale", label: "三类售后" },
+    { id: "return", label: "退货退款" },
+    { id: "restock", label: "补货" },
+    { id: "refund", label: "仅退款" }
+  ];
+
+  function getAftersaleDemoScene() {
+    try {
+      var saved = localStorage.getItem(AFTERSALE_DEMO_KEY);
+      if (AFTERSALE_DEMO_SCENES.some(function (s) { return s.id === saved; })) return saved;
+    } catch (e) {
+      /* ignore */
+    }
+    return "all";
+  }
+
+  function orderMatchesAftersaleScene(order, scene) {
+    if (!order || !scene || scene === "all") return true;
+    var types = [];
+    (order.items || []).forEach(function (item, idx) {
+      collectAftersaleLines(item, order, idx).forEach(function (line) {
+        if (line && line.type && types.indexOf(line.type) < 0) types.push(line.type);
+      });
+    });
+    if (scene === "aftersale") return types.length > 0;
+    if (scene === "return") return types.indexOf("退货退款") >= 0;
+    if (scene === "restock") return types.indexOf("补货") >= 0;
+    if (scene === "refund") return types.indexOf("仅退款") >= 0;
+    return true;
+  }
+
+  function applyAftersaleDemoScene(scene) {
+    scene = scene || getAftersaleDemoScene();
+    if (scene === "all") return;
+    var source = JSON.parse(JSON.stringify(DEFAULT_ORDERS));
+    applyUaAftersalesToOrders(source);
+    enrichOrderList(source);
+    mockData.orders = source.filter(function (order) {
+      return orderMatchesAftersaleScene(order, scene);
+    });
+  }
+
+  applyAftersaleDemoScene(getAftersaleDemoScene());
+
+  global.LFStoreAftersale = {
+    normalizeType: normalizeAftersaleType,
+    collectLines: collectAftersaleLines,
+    barHtml: aftersaleBarHtml,
+    applyToOrders: applyUaAftersalesToOrders
+  };
+  global.LFStoreAftersaleDemo = {
+    key: AFTERSALE_DEMO_KEY,
+    scenes: AFTERSALE_DEMO_SCENES,
+    getScene: getAftersaleDemoScene,
+    applyAndReload: function (scene) {
+      try {
+        localStorage.setItem(AFTERSALE_DEMO_KEY, scene || "all");
+      } catch (e) {
+        /* ignore */
+      }
+      try {
+        sessionStorage.removeItem("lfStoreAppOrdersState");
+      } catch (e2) {
+        /* ignore */
+      }
+      location.reload();
+    }
   };
 })(typeof window !== "undefined" ? window : globalThis);

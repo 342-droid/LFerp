@@ -500,6 +500,9 @@
   }
 
   function getItemRefundBarHtml(item, order, idx) {
+    if (window.LFStoreAftersale && typeof window.LFStoreAftersale.barHtml === "function") {
+      return window.LFStoreAftersale.barHtml(item, order, idx);
+    }
     var qty = getItemRefundQty(item);
     var amount = getItemRefundAmount(item);
     if ((qty <= 0 && amount == null) && isOrderRefundBoundToItem(order, item, idx)) {
@@ -591,6 +594,10 @@
     if (item.refundAmount != null) copy.refundAmount = item.refundAmount;
             if (item.refunding) copy.refunding = item.refunding;
     if (item.refundStatus) copy.refundStatus = item.refundStatus;
+    if (item.aftersaleType) copy.aftersaleType = item.aftersaleType;
+    if (item.aftersaleStatus) copy.aftersaleStatus = item.aftersaleStatus;
+    if (item.restockQty != null) copy.restockQty = item.restockQty;
+    if (item.aftersales) copy.aftersales = JSON.parse(JSON.stringify(item.aftersales));
     if (item._verified) copy._verified = item._verified;
     if (item._verifyTime) copy._verifyTime = item._verifyTime;
     if (item._verifiedQty != null) copy._verifiedQty = item._verifiedQty;
@@ -1314,6 +1321,40 @@
     }
   });
 
+  function getDemoStack() {
+    var stack = document.getElementById("sa-demo-stack");
+    if (stack) return stack;
+    stack = document.createElement("div");
+    stack.id = "sa-demo-stack";
+    stack.className = "sa-demo-stack";
+    document.body.appendChild(stack);
+    return stack;
+  }
+
+  function mountAftersaleDemoPanel() {
+    var api = window.LFStoreAftersaleDemo;
+    if (!api || document.getElementById("sa-aftersale-demo")) return;
+    var current = api.getScene();
+    var panel = document.createElement("div");
+    panel.id = "sa-aftersale-demo";
+    panel.className = "sa-verify-demo";
+    panel.innerHTML =
+      '<div class="sa-verify-demo__title">售后信息验收开关</div>' +
+      '<label class="sa-verify-demo__row">查看' +
+      '<select id="sa-aftersale-demo-scene">' +
+      api.scenes.map(function (scene) {
+        return '<option value="' + scene.id + '"' + (scene.id === current ? " selected" : "") + ">" + scene.label + "</option>";
+      }).join("") +
+      "</select></label>" +
+      '<p class="sa-verify-demo__hint">可单独查看退货退款、补货、仅退款，或一次看三类售后订单</p>' +
+      '<button type="button" class="sa-verify-demo__apply" id="sa-aftersale-demo-apply">应用并刷新</button>';
+    getDemoStack().appendChild(panel);
+    document.getElementById("sa-aftersale-demo-apply").addEventListener("click", function () {
+      var select = document.getElementById("sa-aftersale-demo-scene");
+      api.applyAndReload(select ? select.value : current);
+    });
+  }
+
   function mountVerifyDemoPanel() {
     var api = window.LFStoreVerifyDemo;
     if (!api || document.getElementById("sa-verify-demo")) return;
@@ -1334,7 +1375,7 @@
       '<label class="sa-verify-demo__row"><input type="checkbox" id="sa-verify-demo-store"' + (switches.store ? " checked" : "") + "> 门店·待发货订单核销</label>" +
       '<p class="sa-verify-demo__hint">两处都开且订单已截单时，待发货/待收货/待提货均可核销</p>' +
       '<button type="button" class="sa-verify-demo__apply" id="sa-verify-demo-apply">应用并刷新</button>';
-    document.body.appendChild(panel);
+    getDemoStack().appendChild(panel);
     document.getElementById("sa-verify-demo-apply").addEventListener("click", function () {
       var select = document.getElementById("sa-verify-demo-scene");
       var platformEl = document.getElementById("sa-verify-demo-platform");
@@ -1346,6 +1387,7 @@
     });
   }
 
+  mountAftersaleDemoPanel();
   mountVerifyDemoPanel();
   doRender();
 })();

@@ -259,17 +259,6 @@
     );
   }
 
-  function freightSection(data) {
-    if (!window.TmsLogisticsRate) return '';
-    return window.TmsLogisticsRate.renderStrategySection({
-      variant: 'selection',
-      saleChannels: data.saleChannels,
-      tempLayer: data.tempLayer,
-      supplierId: data.supplierId,
-      product: data
-    });
-  }
-
   function specValueKey(groupName) {
     if (groupName === '包装') return 'packaging';
     if (groupName === '口味') return 'flavor';
@@ -468,7 +457,6 @@
         '<form class="product-add-form product-add-form--readonly" id="productAuditForm">' +
         basicSection(data) +
         specSalesSection(data) +
-        freightSection(data) +
         detailSection(data) +
         '</form>';
     } catch (err) {

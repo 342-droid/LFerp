@@ -223,6 +223,12 @@
           item.refunding = mockItem.refunding;
           item.refundStatus = mockItem.refundStatus;
         }
+        if (!item.aftersaleType && mockItem.aftersaleType) item.aftersaleType = mockItem.aftersaleType;
+        if (!item.aftersaleStatus && mockItem.aftersaleStatus) item.aftersaleStatus = mockItem.aftersaleStatus;
+        if (item.restockQty == null && mockItem.restockQty != null) item.restockQty = mockItem.restockQty;
+        if (!item.aftersales && mockItem.aftersales) {
+          item.aftersales = JSON.parse(JSON.stringify(mockItem.aftersales));
+        }
         if (mockItem._verifiedQty != null && item._verifiedQty == null) {
           item._verifiedQty = mockItem._verifiedQty;
           item._lastVerifyTime = mockItem._lastVerifyTime;
@@ -297,6 +303,9 @@
         ? '<button type="button" class="detail-item__verify-btn" data-order-id="' + o.id + '" data-item-idx="' + idx + '">核销</button>'
         : "";
 
+      var aftersaleBar = window.LFStoreAftersale && typeof window.LFStoreAftersale.barHtml === "function"
+        ? window.LFStoreAftersale.barHtml(item, o, idx)
+        : "";
       itemsHtml +=
         "<div class=\"" + itemClass + "\">" +
         itemCb +
@@ -304,6 +313,7 @@
         '<div class="detail-item__info">' +
         '<div class="detail-item__name' + (itemDone ? " detail-item__name--done" : "") + '">' + item.name + tagHtml + "</div>" +
         '<div class="detail-item__meta">' + metaHtml + "</div>" +
+        aftersaleBar +
         "</div>" +
         '<div class="detail-item__aside">' +
         '<div class="detail-item__sub' + (itemDone ? " detail-item__sub--done" : "") + '">¥' + displayAmount.toFixed(2) + (itemDone ? " ✓" : "") + "</div>" +

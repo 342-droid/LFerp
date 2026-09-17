@@ -27,7 +27,6 @@
       '    <form class="product-add-form" id="productAddForm" novalidate>' +
       drawerBasicSection() +
       drawerSalesSection() +
-      '<div id="productAddFreightHost"></div>' +
       drawerDetailSection() +
       '    </form>' +
       '  </div>' +
@@ -609,31 +608,6 @@
     });
   }
 
-  function collectSaleChannels() {
-    var list = [];
-    document.querySelectorAll('input[name="saleChannels"]:checked').forEach(function (el) {
-      list.push(el.value);
-    });
-    return list;
-  }
-
-  function currentTempLayer() {
-    var sel = document.getElementById('tempLayer');
-    return sel && sel.value ? sel.value : '常温';
-  }
-
-  function renderFreightSection() {
-    var host = document.getElementById('productAddFreightHost');
-    if (!host || !window.TmsLogisticsRate) return;
-    host.innerHTML = window.TmsLogisticsRate.renderStrategySection({
-      variant: 'selection',
-      hostId: 'productAddFreightSection',
-      saleChannels: collectSaleChannels(),
-      tempLayer: currentTempLayer(),
-      supplierId: ((document.getElementById('supplierId') || {}).value || '')
-    });
-  }
-
   function renderSpecUi() {
     saveSpecRowCache();
     renderSpecPanels();
@@ -924,15 +898,6 @@
       });
     });
     syncWeighTypeVisibility(drawer);
-
-    drawer.querySelectorAll('input[name="saleChannels"]').forEach(function (box) {
-      box.addEventListener('change', renderFreightSection);
-    });
-    var tempSel = document.getElementById('tempLayer');
-    if (tempSel) tempSel.addEventListener('change', renderFreightSection);
-    var supplierSel = document.getElementById('supplierId');
-    if (supplierSel) supplierSel.addEventListener('change', renderFreightSection);
-    renderFreightSection();
 
     bindSpecEvents(drawer);
 
