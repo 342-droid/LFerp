@@ -15,6 +15,26 @@
  */
 (function (global) {
   var STORAGE_KEY = 'lf_tms_logistics_rate_v5';
+  var FEE_SCHEME_DEMO_KEY = 'ua_freight_scheme_demo_v1';
+  var UPSTAIRS_DEMO_KEY = 'ua_freight_upstairs_demo_v1';
+  var FEE_SCHEME_WEIGHT = '重量计费';
+  var FEE_SCHEME_AMOUNT = '金额计费';
+  var DEMO_UPSTAIRS = {
+    enabled: true,
+    freeKg: '5',
+    lift: { base: '5', weight: '0.2', floor: '2', qty: '0' },
+    noLift: { base: '8', weight: '0.3', floor: '3', qty: '0' }
+  };
+  var DEMO_AMOUNT_TIERS = [
+    { start: '0', end: '200', price: '7' },
+    { start: '200', end: '800', price: '12' },
+    { start: '800', end: '9999', price: '18' }
+  ];
+  var DEMO_WEIGHT_TIERS = [
+    { start: '0', end: '1', price: '8', cont: '2' },
+    { start: '1', end: '5', price: '12', cont: '1.5' },
+    { start: '5', end: '999', price: '20', cont: '1' }
+  ];
   var CHANNEL_RETAIL = '零售订单';
   var CHANNEL_PROXY = '代采订单';
   var LEVELS = { district: 4, city: 3, province: 2, nationwide: 1 };
@@ -1150,6 +1170,72 @@
     return lanes;
   }
 
+  function getDemoFeeScheme() {
+    try {
+      var v = String(global.localStorage.getItem(FEE_SCHEME_DEMO_KEY) || '');
+      if (v === FEE_SCHEME_WEIGHT || v === FEE_SCHEME_AMOUNT) return v;
+    } catch (e) {
+      /* ignore */
+    }
+    return '';
+  }
+
+  function setDemoFeeScheme(scheme) {
+    try {
+      if (scheme === FEE_SCHEME_WEIGHT || scheme === FEE_SCHEME_AMOUNT) {
+        global.localStorage.setItem(FEE_SCHEME_DEMO_KEY, scheme);
+      } else {
+        global.localStorage.removeItem(FEE_SCHEME_DEMO_KEY);
+      }
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function getDemoUpstairs() {
+    try {
+      var v = String(global.localStorage.getItem(UPSTAIRS_DEMO_KEY) || '');
+      if (v === 'on' || v === 'off') return v;
+    } catch (e) {
+      /* ignore */
+    }
+    return '';
+  }
+
+  function setDemoUpstairs(flag) {
+    try {
+      if (flag === 'on' || flag === 'off') {
+        global.localStorage.setItem(UPSTAIRS_DEMO_KEY, flag);
+      } else {
+        global.localStorage.removeItem(UPSTAIRS_DEMO_KEY);
+      }
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function adaptRateForDemo(rate) {
+    if (!rate) return rate;
+    var scheme = getDemoFeeScheme();
+    var upstairsDemo = getDemoUpstairs();
+    if ((!scheme || rate.feeScheme === scheme) && !upstairsDemo) return rate;
+    var copy = Object.assign({}, rate);
+    if (scheme && rate.feeScheme !== scheme) {
+      copy.feeScheme = scheme;
+      if (scheme === FEE_SCHEME_AMOUNT) {
+        copy.tiers = DEMO_AMOUNT_TIERS;
+      } else if (!rate.tiers || rate.tiers[0] == null || rate.tiers[0].cont == null) {
+        copy.tiers = DEMO_WEIGHT_TIERS;
+      }
+    }
+    if (upstairsDemo === 'off') {
+      copy.upstairs = { enabled: false };
+    } else if (upstairsDemo === 'on') {
+      copy.upstairs = DEMO_UPSTAIRS;
+    }
+    return copy;
+  }
+
   /**
    * 同路线同物流类型只启用一家。取目的地粒度最高的一条启用费率（区 > 市 > 省 > 全国）。
    * originKey 有值时还要卡始发仓。
@@ -1157,7 +1243,9 @@
   function pickRatesByCarrier(channel, dest, logisticsType, originKey) {
     dest = dest || DEMO_DEST;
     var list = ensureLoaded();
+    var preferred = getDemoFeeScheme();
     var best = null;
+    var fallback = null;
     var i;
     for (i = 0; i < list.length; i++) {
       var rate = list[i];
@@ -1167,11 +1255,13 @@
       if (!originHit(rate, originKey)) continue;
       var score = matchScore(rate, dest);
       if (!score) continue;
-      if (!best || score > best.score) {
-        best = { rate: rate, score: score, level: levelLabel(score) };
-      }
+      var hit = { rate: rate, score: score, level: levelLabel(score) };
+      if (!fallback || score > fallback.score) fallback = hit;
+      if (preferred && rate.feeScheme !== preferred) continue;
+      if (!best || score > best.score) best = hit;
     }
-    return best ? [best] : [];
+    var picked = best || fallback;
+    return picked ? [picked] : [];
   }
 
   function pickRate(channel, dest, logisticsType) {
@@ -1402,7 +1492,7 @@
         items: items
       };
     }
-    var rate = hit.rate;
+    var rate = adaptRateForDemo(hit.rate);
     var goodsAmount = items.reduce(function (sum, item) {
       return sum + item.amount;
     }, 0);
@@ -1563,6 +1653,27 @@
     var payable = opts.payable != null
       ? toNum(opts.payable)
       : items.reduce(function (sum, item) { return sum + item.amount; }, 0);
+    if (getDemoFeeScheme() === FEE_SCHEME_AMOUNT) {
+      var amountRate = adaptRateForDemo((ambient && ambient.rate) || (cold && cold.rate));
+      var amountBd = explainAmountFee(amountRate, payable);
+      var target = ambient && !ambient.empty ? ambient : cold;
+      var other = target === ambient ? cold : ambient;
+      if (target && !target.empty) {
+        target.feeScheme = FEE_SCHEME_AMOUNT;
+        target.breakdown = amountBd;
+        target.amount = amountBd.amount;
+        target.baseAmount = amountBd.amount;
+        target.goodsAmount = amountBd.goodsAmount;
+        target.text = formatMoney(amountBd.amount);
+      }
+      if (other && !other.empty) {
+        other.feeScheme = FEE_SCHEME_AMOUNT;
+        other.breakdown = null;
+        other.amount = 0;
+        other.baseAmount = 0;
+        other.text = formatMoney(0);
+      }
+    }
     var applied = applyOrderServices(ambient, cold, opts, payable);
     var baseTotal = roundMoney((ambient.amount || 0) + (cold.amount || 0));
     var total = roundMoney(baseTotal + applied.serviceTotal);
@@ -2002,6 +2113,10 @@
     quoteSkuByChannels: quoteSkuByChannels,
     quoteGroup: quoteGroup,
     quoteOrder: quoteOrder,
+    getDemoFeeScheme: getDemoFeeScheme,
+    setDemoFeeScheme: setDemoFeeScheme,
+    getDemoUpstairs: getDemoUpstairs,
+    setDemoUpstairs: setDemoUpstairs,
     renderStrategyInner: renderStrategyInner,
     renderStrategySection: renderStrategySection,
     toggleStrategyGroup: toggleStrategyGroup,

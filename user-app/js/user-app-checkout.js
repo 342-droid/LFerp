@@ -281,6 +281,63 @@
     });
   }
 
+  function isRestockCheckout() {
+    var p = new URLSearchParams(window.location.search);
+    return p.get('from') === 'restock.html' || p.get('port') === 'store-app';
+  }
+
+  function mountFreightSchemeDemoPanel() {
+    if (!isRestockCheckout() || document.getElementById('uaFreightSchemeDemo')) return;
+    var api = window.TmsLogisticsRate || {};
+    var current = typeof api.getDemoFeeScheme === 'function' ? api.getDemoFeeScheme() : '';
+    var upstairs = typeof api.getDemoUpstairs === 'function' ? api.getDemoUpstairs() : '';
+    var panel = document.createElement('div');
+    panel.id = 'uaFreightSchemeDemo';
+    panel.className = 'ua-freight-scheme-demo';
+    panel.innerHTML =
+      '<div class="ua-rg-demo__title">费用组成验收开关</div>' +
+      '<label class="ua-rg-demo__row">计费方式' +
+      '<select id="uaFreightSchemeDemoSel">' +
+      '<option value=""' +
+      (!current ? ' selected' : '') +
+      '>跟随费率表</option>' +
+      '<option value="重量计费"' +
+      (current === '重量计费' ? ' selected' : '') +
+      '>重量计费</option>' +
+      '<option value="金额计费"' +
+      (current === '金额计费' ? ' selected' : '') +
+      '>金额计费</option>' +
+      '</select></label>' +
+      '<label class="ua-rg-demo__row">上楼费' +
+      '<select id="uaFreightUpstairsDemoSel">' +
+      '<option value=""' +
+      (!upstairs ? ' selected' : '') +
+      '>跟随费率表</option>' +
+      '<option value="on"' +
+      (upstairs === 'on' ? ' selected' : '') +
+      '>已配置</option>' +
+      '<option value="off"' +
+      (upstairs === 'off' ? ' selected' : '') +
+      '>未配置</option>' +
+      '</select></label>' +
+      '<button type="button" class="ua-rg-demo__apply" id="uaFreightSchemeDemoApply">应用并刷新</button>';
+    document.body.appendChild(panel);
+    var apply = document.getElementById('uaFreightSchemeDemoApply');
+    if (apply) {
+      apply.addEventListener('click', function () {
+        var sel = document.getElementById('uaFreightSchemeDemoSel');
+        var upSel = document.getElementById('uaFreightUpstairsDemoSel');
+        if (typeof api.setDemoFeeScheme === 'function') {
+          api.setDemoFeeScheme(sel ? sel.value : '');
+        }
+        if (typeof api.setDemoUpstairs === 'function') {
+          api.setDemoUpstairs(upSel ? upSel.value : '');
+        }
+        window.location.reload();
+      });
+    }
+  }
+
   /** 余额足够：默认不勾选；仍需收单时：恢复上次选择，首次默认微信 */
   function initPayChannelSelection() {
     if (applyMixPayScene()) return;
@@ -1223,11 +1280,22 @@
     });
   }
 
+  function checkoutHasUpstairsFee() {
+    if (!checkoutHasDelivery()) return false;
+    var api = window.TmsLogisticsRate;
+    var demo = api && typeof api.getDemoUpstairs === 'function' ? api.getDemoUpstairs() : '';
+    if (demo === 'off') return false;
+    if (demo === 'on') return true;
+    var quote = quoteCheckoutFreight();
+    var svc = quote && quote.serviceSummary && quote.serviceSummary.upstairs;
+    return !!(svc && svc.available);
+  }
+
   function renderAccessCard() {
     var el = document.getElementById('checkoutAccessCard');
     if (!el) return;
-    /* 仅配送单收上楼费，纯快递确认页不展示电梯/楼层 */
-    el.hidden = !checkoutHasDelivery();
+    /* 仅配送且费率表配了上楼费时展示电梯/楼层；未配置则隐藏 */
+    el.hidden = !checkoutHasUpstairsFee();
     if (el.hidden) return;
     var up = (state && state.upstairs) || { hasElevator: true, floor: 2 };
     var chips = el.querySelectorAll('[data-upstairs-lift]');
@@ -2716,4 +2784,5 @@
     });
   }
   mountMixPayDemoPanel();
+  mountFreightSchemeDemoPanel();
 })();

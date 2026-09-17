@@ -63,6 +63,84 @@
     return isPreShipStatus(getRowOrderStatus(row));
   }
 
+  function getOrderFreightRemain() {
+    if (!global.OrderFreightRefund || typeof global.OrderFreightRefund.getSummary !== 'function') return 0;
+    var summary = global.OrderFreightRefund.getSummary(state.orderId, state.row);
+    return summary && summary.remaining > 0 ? Math.round(summary.remaining * 100) / 100 : 0;
+  }
+
+  function getCheckedItems() {
+    return state.items.filter(function (it) {
+      return it.checked;
+    });
+  }
+
+  function lastOnlyRefundItem(selected) {
+    selected = selected || getCheckedItems();
+    for (var i = selected.length - 1; i >= 0; i--) {
+      if (selected[i] && selected[i].type === '仅退款') return selected[i];
+    }
+    return null;
+  }
+
+  /** 勾选的仅退款覆盖全部剩余货款 → 本笔是最后一笔 */
+  function isLastOnlyRefundSelection(selected) {
+    if (state.batch || !isPreShipRow(state.row)) return false;
+    selected = selected || getCheckedItems();
+    if (!selected.length) return false;
+    if (
+      !selected.every(function (it) {
+        return it && it.type === '仅退款';
+      })
+    ) {
+      return false;
+    }
+    var goods = resolveGoods(state.orderId, state.row);
+    return goods.every(function (g) {
+      if (parseMoney(g.remainAmount) <= 0.001) return true;
+      return selected.some(function (s) {
+        return s.id === g.id && s.type === '仅退款';
+      });
+    });
+  }
+
+  function lastRefundCap(it) {
+    var goodsCap = parseMoney(it && it.remainAmount);
+    if (it && it.freightAuto > 0) {
+      return Math.round((goodsCap + parseMoney(it.freightAuto)) * 100) / 100;
+    }
+    return goodsCap;
+  }
+
+  function syncLastFreightAttach() {
+    if (state.batch) return 0;
+    var selected = getCheckedItems();
+    var isLast = isLastOnlyRefundSelection(selected);
+    var freight = isLast ? getOrderFreightRemain() : 0;
+    var last = isLast && freight > 0 ? lastOnlyRefundItem(selected) : null;
+    state.items.forEach(function (it) {
+      if (it === last) {
+        var lastCap = Math.round((parseMoney(it.remainAmount) + freight) * 100) / 100;
+        if (!it.freightAuto) {
+          it.refundAmount = lastCap;
+          it.freightAuto = freight;
+        } else {
+          it.freightAuto = freight;
+        }
+      } else if (it.freightAuto) {
+        var goodsCap = parseMoney(it.remainAmount);
+        var prevCap = Math.round((goodsCap + parseMoney(it.freightAuto)) * 100) / 100;
+        if (Math.abs(parseMoney(it.refundAmount) - prevCap) < 0.02) {
+          it.refundAmount = goodsCap;
+        } else {
+          it.refundAmount = Math.min(parseMoney(it.refundAmount), goodsCap);
+        }
+        it.freightAuto = 0;
+      }
+    });
+    return last ? freight : 0;
+  }
+
   /**
    * 批量退款资格（与单笔「申请售后 / 发起售后」不同）
    * - 零售自提：待支付、已创建、已支付、待接单、待发货、待收货、待提货
@@ -526,6 +604,77 @@
     return w * (parseInt(g && g.qty, 10) || 1);
   }
 
+  function goodQty(g) {
+    return parseInt(g && g.qty, 10) || 1;
+  }
+
+  function orderFulfillKey(detail, row) {
+    var mode = '';
+    if (detail && detail.delivery) {
+      mode = detail.delivery.deliveryMode || detail.delivery.type || '';
+    }
+    var kind = (detail && (detail.splitKind || detail.fulfillType)) || '';
+    var text = [mode, kind].join(' ');
+    if (/快递|express/i.test(text)) return 'express';
+    if (/自提|pickup/i.test(text)) return 'pickup';
+    if (/配送|delivery|warehouse|platform/i.test(text)) return 'platform';
+    var rowKind = getFulfillmentKind(row);
+    if (rowKind === 'delivery') return 'platform';
+    if (rowKind === 'pickup') return 'pickup';
+    return 'express';
+  }
+
+  function isChargedFreightOrder(detail, row) {
+    return orderFulfillKey(detail, row) === 'platform';
+  }
+
+  function weightsOrFallback(weights, goods) {
+    if ((weights || []).some(function (w) {
+      return w > 0;
+    })) {
+      return weights;
+    }
+    var qtyW = (goods || []).map(goodQty);
+    if (qtyW.some(function (w) {
+      return w > 0;
+    })) {
+      return qtyW;
+    }
+    return (goods || []).map(function (g) {
+      return parseMoney(g.paidAmount) || 1;
+    });
+  }
+
+  function extraShareWeights(goods) {
+    /* 增值：重量计费按重量摊；金额计费也按重量摊 */
+    return weightsOrFallback(
+      goods.map(function (g) {
+        return goodChargeWeight(g);
+      }),
+      goods
+    );
+  }
+
+  function upstairsShareWeights(goods, quote) {
+    var rate =
+      (quote && quote.ambient && quote.ambient.rate) ||
+      (quote && quote.cold && quote.cold.rate) ||
+      {};
+    var lift = ((rate.upstairs || {}).lift || {});
+    var wCoef = Number(lift.weight) || 0;
+    var qCoef = Number(lift.qty) || 0;
+    return weightsOrFallback(
+      goods.map(function (g) {
+        var weight = goodChargeWeight(g);
+        var qty = goodQty(g);
+        if (wCoef > 0 && qCoef > 0) return weight * wCoef + qty * qCoef;
+        if (qCoef > 0 && !(wCoef > 0)) return qty;
+        return weight > 0 ? weight : qty;
+      }),
+      goods
+    );
+  }
+
   function resolveFreightPool(detail, row, orderId) {
     if (global.OrderFreightRefund && typeof global.OrderFreightRefund.getSummary === 'function' && orderId) {
       var summary = global.OrderFreightRefund.getSummary(orderId, row);
@@ -557,14 +706,14 @@
     };
   }
 
-  function quoteFreightScheme(detail) {
+  function quoteFreightScheme(detail, row) {
     var api = global.TmsLogisticsRate;
     if (!api || typeof api.quoteOrder !== 'function') return null;
     var goods = (detail && detail.goods) || [];
     try {
       return api.quoteOrder({
-        channel: api.CHANNEL_PROXY,
-        fulfill: 'platform',
+        channel: pageType() === 'proxy' ? api.CHANNEL_PROXY : api.CHANNEL_RETAIL,
+        fulfill: orderFulfillKey(detail, row),
         address: detail && detail.delivery && (detail.delivery.homeAddress || detail.delivery.address),
         items: goods.map(function (g) {
           return {
@@ -582,15 +731,15 @@
   }
 
   /**
-   * 按现有运费规则把整单运费摊到 SKU：
-   * - 常温 / 冷链基础运费只摊进对应温层；重量计费按计费重量，金额计费按货款
-   * - 保价按货款；上楼按重量；派送整票按货款
-   * - 没有拆分明细时，整单运费按货款比例摊
-   * 剩余可退运费按同一权重摊已退/在途后退回各 SKU，真正退款仍走订单级「退运费」
+   * 按履约方式、发货方把运费摊到商品行（申请售后「分摊运费」）：
+   * - 快递单免运费，分摊为 0；配送单才摊
+   * - 常温 / 冷链基础运费只摊进对应温层；重量计费按重量，金额计费按货款
+   * - 增值服务按计费模式摊：重量计费按重量，金额计费也按重量
+   * - 上楼费按重量和件数计费时，按重量×系数 + 件数×系数摊
+   * - 行运费 = 温层基础分摊 + 增值分摊 + 上楼分摊
    */
   function applyFreightShares(goods, row, detail, orderId) {
     if (!goods || !goods.length) return;
-    var pool = resolveFreightPool(detail, row, orderId);
     var n = goods.length;
     var allocated = goods.map(function () {
       return 0;
@@ -601,28 +750,33 @@
         allocated[idx] = Math.round(((allocated[idx] || 0) + (parts[idx] || 0)) * 100) / 100;
       });
     }
+    if (!isChargedFreightOrder(detail, row)) {
+      goods.forEach(function (g, idx) {
+        g.allocatedFreight = 0;
+        g.remainFreight = 0;
+        if (detail && detail.goods && detail.goods[idx]) {
+          detail.goods[idx].allocatedFreight = 0;
+        }
+      });
+      return;
+    }
+    var pool = resolveFreightPool(detail, row, orderId);
     var split =
       global.OrderLiveDetail && typeof global.OrderLiveDetail.resolveFreightSplit === 'function'
         ? global.OrderLiveDetail.resolveFreightSplit(detail, detail && detail.amounts)
         : null;
-    var stored = (detail && detail.freight) || {};
-    var extrasOnOrder = stored.insure != null || stored.insureFee != null || stored.deliver != null || stored.deliverFee != null || stored.upstairs != null || stored.upstairsFee != null;
     var ambientAmt = split ? Number(split.ambient) || 0 : 0;
     var coldAmt = split ? Number(split.cold) || 0 : 0;
-    var insureAmt = extrasOnOrder ? Number(split && split.insure) || 0 : 0;
-    var deliverAmt = extrasOnOrder ? Number(split && split.deliver) || 0 : 0;
-    var upstairsAmt = extrasOnOrder ? Number(split && split.upstairs) || 0 : 0;
+    var insureAmt = split ? Number(split.insure) || 0 : 0;
+    var deliverAmt = split ? Number(split.deliver) || 0 : 0;
+    var upstairsAmt = split ? Number(split.upstairs) || 0 : 0;
     var hasSplit = !!(ambientAmt > 0 || coldAmt > 0 || insureAmt > 0 || deliverAmt > 0 || upstairsAmt > 0);
+    var quote = quoteFreightScheme(detail, row);
     if (hasSplit) {
-      var quote = quoteFreightScheme(detail);
       var ambientScheme = quote && quote.ambient && quote.ambient.feeScheme;
       var coldScheme = quote && quote.cold && quote.cold.feeScheme;
       var amountW = goods.map(function (g) {
         return parseMoney(g.paidAmount) || 1;
-      });
-      var weightW = goods.map(function (g) {
-        var w = goodChargeWeight(g);
-        return w > 0 ? w : parseMoney(g.paidAmount) || 1;
       });
       var ambientW = goods.map(function (g) {
         if (goodIsCold(g)) return 0;
@@ -632,21 +786,24 @@
         if (!goodIsCold(g)) return 0;
         return coldScheme === '金额计费' ? parseMoney(g.paidAmount) || 0 : goodChargeWeight(g);
       });
-      if (ambientAmt > 0) {
-        addParts(ambientAmt, ambientW.some(function (w) { return w > 0; }) ? ambientW : amountW);
-      }
-      if (coldAmt > 0) {
-        addParts(coldAmt, coldW.some(function (w) { return w > 0; }) ? coldW : amountW);
-      }
-      if (insureAmt > 0) addParts(insureAmt, amountW);
-      if (deliverAmt > 0) addParts(deliverAmt, amountW);
-      if (upstairsAmt > 0) addParts(upstairsAmt, weightW);
+      var extraW = extraShareWeights(goods);
+      var upW = upstairsShareWeights(goods, quote);
+      if (ambientAmt > 0) addParts(ambientAmt, weightsOrFallback(ambientW, goods));
+      if (coldAmt > 0) addParts(coldAmt, weightsOrFallback(coldW, goods));
+      if (insureAmt > 0) addParts(insureAmt, extraW);
+      if (deliverAmt > 0) addParts(deliverAmt, extraW);
+      if (upstairsAmt > 0) addParts(upstairsAmt, upW);
     } else if (pool.original > 0) {
+      var fallbackScheme = (quote && quote.ambient && quote.ambient.feeScheme) ||
+        (quote && quote.cold && quote.cold.feeScheme) ||
+        '';
       addParts(
         pool.original,
-        goods.map(function (g) {
-          return parseMoney(g.paidAmount) || 1;
-        })
+        fallbackScheme === '金额计费'
+          ? goods.map(function (g) {
+              return parseMoney(g.paidAmount) || 1;
+            })
+          : extraShareWeights(goods)
       );
     }
     var used = allocated.reduce(function (a, b) {
@@ -655,12 +812,17 @@
     if (n && pool.original > 0 && Math.abs(used - pool.original) >= 0.01) {
       allocated[n - 1] = Math.round((allocated[n - 1] + (pool.original - used)) * 100) / 100;
     }
-    var remainParts = pool.original > 0 ? allocateByWeights(pool.remaining, allocated) : allocated.map(function () {
-      return 0;
-    });
+    var remainParts = pool.original > 0
+      ? allocateByWeights(pool.remaining, allocated)
+      : allocated.map(function () {
+          return 0;
+        });
     goods.forEach(function (g, idx) {
       g.allocatedFreight = allocated[idx] || 0;
       g.remainFreight = remainParts[idx] || 0;
+      if (detail && detail.goods && detail.goods[idx]) {
+        detail.goods[idx].allocatedFreight = g.allocatedFreight;
+      }
     });
   }
 
@@ -781,7 +943,11 @@
         '<p class="order-as-form-hint">仅支持仅退款。各订单优惠券、积分分摊不同，无法统一金额，将按各单可退现金、优惠券、积分分别直接退款。</p>';
     } else if (!isRestock) {
       refundHint = isPreShipRow(state.row)
-        ? '<p class="order-as-form-hint">退款金额不能超过商品实付金额（不含运费）。发货前把订单里全部商品仅退款后，剩余运费会随最后一笔自动退还。</p>'
+        ? it.freightAuto > 0
+          ? '<p class="order-as-form-hint">最后一笔仅退款金额为货款 + 整单剩余运费 ¥' +
+            formatMoney(it.freightAuto) +
+            '。非最后一笔仍只退货款。</p>'
+          : '<p class="order-as-form-hint">退款金额不能超过商品实付金额（不含运费）。最后一笔仅退款金额为货款 + 整单运费。</p>'
         : '<p class="order-as-form-hint">发货后售后只退商品实付金额（不含运费），不支持随售后退运费。运费请到列表「退运费」操作。</p>';
     }
 
@@ -981,7 +1147,7 @@
       '</span></div>' +
       (isPreShipRow(state.row)
         ? '<div class="order-as-kv"><span class="order-as-kv__k">剩余可退运费</span><span class="order-as-kv__v">¥' +
-          formatMoney(it.remainFreight) +
+          formatMoney(it.freightAuto > 0 ? it.freightAuto : it.remainFreight) +
           '</span></div>'
         : '') +
       '</div>' +
@@ -1026,6 +1192,7 @@
   }
 
   function renderList() {
+    syncLastFreightAttach();
     var list = $('orderAsProductList');
     if (!list) return;
     if (state.batch) {
@@ -1054,6 +1221,10 @@
       if (typeof showToast === 'function') showToast('请选择售后商品', 'error');
       return;
     }
+    syncLastFreightAttach();
+    selected = state.items.filter(function (it) {
+      return it.checked;
+    });
     for (var i = 0; i < selected.length; i++) {
       var it = selected[i];
       if (!it.type) {
@@ -1079,9 +1250,15 @@
             if (typeof showToast === 'function') showToast('请填写退款金额', 'error');
             return;
           }
-          if (amt > it.remainAmount + 0.0001) {
+          var cap = lastRefundCap(it);
+          if (amt > cap + 0.0001) {
             if (typeof showToast === 'function') {
-              showToast('退款金额不能超过商品实付金额（不含运费）¥' + formatMoney(it.remainAmount), 'error');
+              showToast(
+                it.freightAuto > 0
+                  ? '最后一笔仅退款不能超过货款+整单运费 ¥' + formatMoney(cap)
+                  : '退款金额不能超过商品实付金额（不含运费）¥' + formatMoney(cap),
+                'error'
+              );
             }
             return;
           }
@@ -1117,11 +1294,11 @@
       return;
     }
     persistSingleAftersales(selected);
-    var autoFreight = maybeAutoRefundLastFreight(selected);
+    var autoFreight = markLastFreightRefunded(selected);
     if (typeof showToast === 'function') {
       showToast(
         autoFreight > 0
-          ? '售后已提交；商品已全部仅退款，运费 ¥' + formatMoney(autoFreight) + ' 已随本笔自动退还'
+          ? '售后已提交；最后一笔仅退款含整单运费 ¥' + formatMoney(autoFreight)
           : '平台退款/售后申请已提交（演示）共 ' + selected.length + ' 件商品',
         'success'
       );
@@ -1149,23 +1326,13 @@
     });
   }
 
-  function maybeAutoRefundLastFreight(selected) {
+  function markLastFreightRefunded(selected) {
     if (!isPreShipRow(state.row)) return 0;
-    var onlyRefund = (selected || []).every(function (it) {
-      return it && it.type === '仅退款';
-    });
-    if (!onlyRefund) return 0;
-    var goods = resolveGoods(state.orderId, state.row);
-    var allCovered = goods.every(function (g) {
-      return parseMoney(g.remainAmount) <= 0.001;
-    });
-    if (!allCovered) return 0;
-    if (!global.OrderFreightRefund || typeof global.OrderFreightRefund.applyAuto !== 'function') return 0;
-    return global.OrderFreightRefund.applyAuto(
-      state.orderId,
-      state.row,
-      '订单商品已全部仅退款，运费随最后一笔自动退还'
-    );
+    var last = lastOnlyRefundItem(selected);
+    var freight = last && last.freightAuto > 0 ? parseMoney(last.freightAuto) : 0;
+    if (!(freight > 0)) return 0;
+    if (!global.OrderFreightRefund || typeof global.OrderFreightRefund.markRefunded !== 'function') return freight;
+    return global.OrderFreightRefund.markRefunded(state.orderId, state.row, freight) || freight;
   }
 
   function bindDrawerEvents(backdrop) {

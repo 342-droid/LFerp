@@ -640,6 +640,28 @@
     return amount;
   }
 
+  /** 运费已并进最后一笔仅退款，只记账不另开退运费单 */
+  function markRefunded(orderId, row, amount) {
+    var summary = getSummary(orderId, row);
+    if (!(summary.remaining > 0) || !summary.detail) return 0;
+    var refundAmt = Math.min(roundMoney(amount != null ? amount : summary.remaining), summary.remaining);
+    if (!(refundAmt > 0)) return 0;
+    var parts = allocateTotalParts(summary, refundAmt);
+    var detail = summary.detail;
+    detail.freight = detail.freight || {};
+    detail.freight.original = summary.original;
+    detail.freight.refunded = roundMoney(summary.refunded + refundAmt);
+    detail.freight.pending = summary.pending;
+    detail.freight.remaining = Math.max(0, roundMoney(summary.remaining - refundAmt));
+    var refundedByCat = Object.assign({}, detail.freight.refundedByCat || {});
+    parts.forEach(function (part) {
+      if (!(part.amount > 0)) return;
+      refundedByCat[part.key] = roundMoney((refundedByCat[part.key] || 0) + part.amount);
+    });
+    detail.freight.refundedByCat = refundedByCat;
+    return refundAmt;
+  }
+
   function open(orderId, row) {
     close();
     previousFocus = document.activeElement;
@@ -909,6 +931,7 @@
     getSummary: getSummary,
     resolveCategories: resolveCategories,
     applyAuto: applyAuto,
+    markRefunded: markRefunded,
     open: open,
     close: close
   };
