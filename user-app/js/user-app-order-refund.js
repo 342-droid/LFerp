@@ -2985,12 +2985,83 @@
     return app;
   }
 
+  function readStoredDemoOrder(orderNo) {
+    var no = String(orderNo || '').trim();
+    if (
+      window.UaOrdersStore &&
+      typeof window.UaOrdersStore.getByNo === 'function'
+    ) {
+      var fromStore = window.UaOrdersStore.getByNo(no);
+      if (fromStore) return fromStore;
+    }
+    try {
+      var lastRaw = sessionStorage.getItem('ua_last_order_v1');
+      if (lastRaw) {
+        var last = JSON.parse(lastRaw);
+        if (!no || String(last.orderNo || '') === no) return last;
+      }
+    } catch (e0) {
+      /* ignore */
+    }
+    if (!no) return null;
+    try {
+      var listRaw = sessionStorage.getItem('ua_demo_orders_v1');
+      var list = listRaw ? JSON.parse(listRaw) : [];
+      if (!Array.isArray(list)) return null;
+      for (var i = 0; i < list.length; i++) {
+        if (list[i] && String(list[i].orderNo || '') === no) return list[i];
+      }
+    } catch (e1) {
+      /* ignore */
+    }
+    return null;
+  }
+
+  function writeStoredFreightRefunded(orderNo, refunded) {
+    var no = String(orderNo || '').trim();
+    if (
+      window.UaOrdersStore &&
+      typeof window.UaOrdersStore.updateStatus === 'function'
+    ) {
+      var order = window.UaOrdersStore.getByNo(no);
+      if (order) {
+        window.UaOrdersStore.updateStatus(no, order.status, {
+          freightRefunded: refunded
+        });
+        return;
+      }
+    }
+    try {
+      var lastRaw = sessionStorage.getItem('ua_last_order_v1');
+      if (lastRaw) {
+        var last = JSON.parse(lastRaw);
+        if (!no || String(last.orderNo || '') === no) {
+          last.freightRefunded = refunded;
+          sessionStorage.setItem('ua_last_order_v1', JSON.stringify(last));
+        }
+      }
+    } catch (e0) {
+      /* ignore */
+    }
+    try {
+      var listRaw = sessionStorage.getItem('ua_demo_orders_v1');
+      var list = listRaw ? JSON.parse(listRaw) : [];
+      if (!Array.isArray(list)) return;
+      var hit = false;
+      list.forEach(function (item) {
+        if (item && String(item.orderNo || '') === no) {
+          item.freightRefunded = refunded;
+          hit = true;
+        }
+      });
+      if (hit) sessionStorage.setItem('ua_demo_orders_v1', JSON.stringify(list));
+    } catch (e1) {
+      /* ignore */
+    }
+  }
+
   function getOrderFreightRemain() {
-    var orderNo = getCurrentOrderNo();
-    var order =
-      window.UaOrdersStore && typeof window.UaOrdersStore.getByNo === 'function'
-        ? window.UaOrdersStore.getByNo(orderNo)
-        : null;
+    var order = readStoredDemoOrder(getCurrentOrderNo());
     var freight = Number(order && order.freight) || 0;
     var refunded = Number(order && order.freightRefunded) || 0;
     return Math.max(0, Math.round((freight - refunded) * 100) / 100);
@@ -3006,6 +3077,28 @@
     return DEMO_ITEMS.length;
   }
 
+  function leftoverRefundableQty(app, qtyOverride) {
+    var orderNo = (app && app.orderNo) || getCurrentOrderNo();
+    var leftover = 0;
+    var total = countOrderItems();
+    var excludeId = app && (app.aftersaleId || app.refundNo);
+    for (var i = 0; i < total; i++) {
+      leftover += getRefundableMaxQty(i, orderNo, { excludeId: excludeId || undefined });
+    }
+    leftover -= qtyOverride != null ? Number(qtyOverride) : Number(app && app.qty) || 0;
+    return leftover;
+  }
+
+  function isLastPreShipRefund(app, qty) {
+    return leftoverRefundableQty(app, qty) <= 0;
+  }
+
+  function lastPreShipRefundAmount(item, qty) {
+    var goods = getItemRefundAmount(item, qty);
+    var freight = getOrderFreightRemain();
+    return Math.round((goods + freight) * 100) / 100;
+  }
+
   function maybeAttachLastItemFreight(app, formType) {
     var scene = getScene();
     var isPre = formType === 'pre_ship' || scene === 'pre_ship';
@@ -3013,25 +3106,24 @@
     if (formType === 'restock' || formType === 'return' || formType === 'exchange') return;
     var freight = getOrderFreightRemain();
     if (!(freight > 0)) return;
+    if (!isLastPreShipRefund(app)) return;
     var orderNo = app.orderNo || getCurrentOrderNo();
-    var leftover = 0;
-    var total = countOrderItems();
-    for (var i = 0; i < total; i++) {
-      leftover += getRefundableMaxQty(i, orderNo, { excludeId: app.aftersaleId || app.refundNo });
+    var goodsAmt = getItemRefundAmount(getItem(), app.qty);
+    var current = Number(app.amount) || 0;
+    var combined = Math.round((goodsAmt + freight) * 100) / 100;
+    if (app.freightAuto || Math.abs(current - combined) < 0.02) {
+      app.amount = combined;
+    } else if (current + 0.001 >= goodsAmt) {
+      app.amount = Math.round((current + freight) * 100) / 100;
+    } else {
+      app.amount = combined;
     }
-    leftover -= Number(app.qty) || 0;
-    if (leftover > 0) return;
     app.freightAuto = freight;
-    app.amount = Math.round(((Number(app.amount) || 0) + freight) * 100) / 100;
-    app.desc = (app.desc ? app.desc + '；' : '') + '订单商品已全部仅退款，运费随本笔自动退还';
-    if (window.UaOrdersStore && typeof window.UaOrdersStore.updateStatus === 'function') {
-      var order = window.UaOrdersStore.getByNo(orderNo);
-      if (order) {
-        window.UaOrdersStore.updateStatus(orderNo, order.status, {
-          freightRefunded: (Number(order.freightRefunded) || 0) + freight
-        });
-      }
+    if (!app.desc || app.desc.indexOf('整单运费') < 0) {
+      app.desc = (app.desc ? app.desc + '；' : '') + '最后一笔仅退款含整单运费';
     }
+    var order = readStoredDemoOrder(orderNo);
+    writeStoredFreightRefunded(orderNo, (Number(order && order.freightRefunded) || 0) + freight);
   }
 
   function persistAndGoDetail(formType, payload) {
@@ -5590,11 +5682,16 @@
     }
 
     function syncAmountByQty() {
-      state.amount = Math.round(unitPrice() * state.qty * 100) / 100;
+      var goodsAmt = Math.round(unitPrice() * state.qty * 100) / 100;
+      var last = isPreShip && isLastPreShipRefund({ qty: state.qty }, state.qty);
+      var freight = last ? getOrderFreightRemain() : 0;
+      state.maxAmount = Math.round((goodsAmt + freight) * 100) / 100;
+      state.amount = state.maxAmount;
       if (amountInput) amountInput.value = state.amount.toFixed(2);
       if (amountHint) {
-        amountHint.textContent =
-          '可修改，最多' + formatPrice(state.maxAmount) + '（不含运费）';
+        amountHint.textContent = last
+          ? '最后一笔仅退款为货款+整单运费，最多' + formatPrice(state.maxAmount)
+          : '可修改，最多' + formatPrice(state.maxAmount) + '（不含运费）';
       }
     }
 
@@ -5603,7 +5700,6 @@
       if (qtyMinus) qtyMinus.disabled = state.qty <= 1;
       if (qtyPlus) qtyPlus.disabled = state.qty >= state.maxQty;
       if (qtyHint) qtyHint.textContent = '最多可退' + state.maxQty + '件';
-      state.maxAmount = Math.round(unitPrice() * state.qty * 100) / 100;
       syncAmountByQty();
     }
 
@@ -5840,9 +5936,15 @@
       }
       if (qtyInput) qtyInput.value = String(state.qty);
       if (qtyHint) qtyHint.textContent = '最多可退' + state.maxQty + '件';
+      var goodsAmt = getItemRefundAmount(item, state.qty);
+      var last = isLastPreShipRefund({ qty: state.qty }, state.qty);
+      var freight = last ? getOrderFreightRemain() : 0;
+      state.amount = Math.round((goodsAmt + freight) * 100) / 100;
       if (amountDisplay) amountDisplay.textContent = formatPrice(state.amount);
       if (amountHint) {
-        amountHint.textContent = '按商品实付金额（不含运费）退款，最多' + formatPrice(state.amount);
+        amountHint.textContent = last
+          ? '最后一笔仅退款为货款+整单运费，最多' + formatPrice(state.amount)
+          : '按商品实付金额（不含运费）退款，最多' + formatPrice(state.amount);
       }
     }
 
