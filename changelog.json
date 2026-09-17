@@ -1,7 +1,104 @@
 {
-  "latestSha": "4526a58e63ac61ca41837dfbf1d18319136d4df7",
-  "total": 401,
+  "latestSha": "c39a3559aadab594c1bcec2826475c44449b2c6f",
+  "total": 402,
   "days": [
+    {
+      "date": "2026-09-17",
+      "items": [
+        {
+          "sha": "c39a355",
+          "type": "feat",
+          "text": "选品库去掉物流费率并完善门店售后卡片",
+          "author": "sisi",
+          "time": "16:41",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_product_audit.html",
+              "module": "冷丰WMS",
+              "title": "商品详情"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "module": "冷丰WMS",
+              "title": "选品库"
+            },
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "门店APP · 工作台"
+            },
+            {
+              "file": "store-app/h5/live-promo.html",
+              "module": "",
+              "title": "直播推广 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/order-detail.html",
+              "module": "",
+              "title": "核销详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "进货订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "module": "",
+              "title": "门店订单 · 门店APP"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "module": "",
+              "title": "进货 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "text": "添加商品抽屉不再展示物流费率"
+            },
+            {
+              "file": "MDM/mdm_product_audit.html",
+              "text": "审核详情页去掉物流费率"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "text": "卡片同步显示补货和退货退款；右下角售后信息验收开关叠在核销验收开关上面，可筛选三类售后"
+            },
+            {
+              "file": "store-app/h5/order-detail.html",
+              "text": "商品行同步展示补货、退货退款信息"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-09-16",
       "items": [
@@ -491,11 +588,6 @@
               "title": "销售订单"
             },
             {
-              "file": "MDM/mdm_product_audit.html",
-              "module": "冷丰WMS",
-              "title": "商品详情"
-            },
-            {
               "file": "MDM/mdm_product_mall.html",
               "module": "冷丰WMS",
               "title": "商品列表"
@@ -504,11 +596,6 @@
               "file": "MDM/mdm_product_proxy_list.html",
               "module": "冷丰WMS",
               "title": "代采商品列表"
-            },
-            {
-              "file": "MDM/mdm_product_selection.html",
-              "module": "冷丰WMS",
-              "title": "选品库"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -817,11 +904,6 @@
               "title": "销售订单"
             },
             {
-              "file": "MDM/mdm_product_audit.html",
-              "module": "冷丰WMS",
-              "title": "商品详情"
-            },
-            {
               "file": "MDM/mdm_product_mall.html",
               "module": "冷丰WMS",
               "title": "商品列表"
@@ -830,11 +912,6 @@
               "file": "MDM/mdm_product_proxy_list.html",
               "module": "冷丰WMS",
               "title": "代采商品列表"
-            },
-            {
-              "file": "MDM/mdm_product_selection.html",
-              "module": "冷丰WMS",
-              "title": "选品库"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",

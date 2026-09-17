@@ -3799,6 +3799,73 @@
     "status": "diff",
     "date": "2026-09-04"
   },
+  "c39a355|MDM/mdm_order_proxy.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "c39a355|MDM/mdm_product_audit.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "c39a355|MDM/mdm_product_selection.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "c39a355|store-app/h5/home.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "c39a355|store-app/h5/live-promo.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "c39a355|store-app/h5/order-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "c39a355|store-app/h5/order-logistics.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "c39a355|store-app/h5/restock-order-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "c39a355|store-app/h5/restock-orders.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "c39a355|store-app/h5/store-orders.html": {
+    "before": "changelog-assets/c39a355/store-app__h5__store-orders.html.before.jpg",
+    "after": "changelog-assets/c39a355/store-app__h5__store-orders.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "c39a355|user-app/h5/checkout.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "c39a355|user-app/h5/order-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
+  "c39a355|user-app/h5/restock.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-17"
+  },
   "c747316|MDM/mdm_marketing_newcomer_zone.html": {
     "regions": 0,
     "status": "diff",
