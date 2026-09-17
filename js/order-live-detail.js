@@ -15,6 +15,20 @@
     return document.body && document.body.getAttribute('data-order-page') === 'proxy';
   }
 
+  /** C 端 / 门店 APP 的商品图相对路径，改写成 MDM 页可用 */
+  function resolveMdmGoodsImg(src) {
+    var raw = String(src || '').trim();
+    var fallback = '../user-app/assets/order-product-1.svg';
+    if (!raw) return fallback;
+    if (/^(https?:|data:|blob:)/i.test(raw)) return raw;
+    if (raw.indexOf('../user-app/assets/') === 0) return raw;
+    if (raw.indexOf('/user-app/assets/') === 0) return '..' + raw;
+    var m = raw.match(/(?:(?:\.\.\/)+)?(?:user-app\/)?assets\/(.+)$/);
+    if (m && m[1]) return '../user-app/assets/' + m[1];
+    if (raw.indexOf('/') < 0) return '../user-app/assets/' + raw;
+    return raw;
+  }
+
   /** 门店钱包/混合支付相关单据字段：仅代采订单页生效，零售订单保持原样 */
   function isProxyWalletPayFeature() {
     return isProxyOrderPage();
@@ -2480,7 +2494,7 @@
       id: item.id || ('g' + (index + 1)),
       name: item.name,
       spec: item.spec,
-      img: item.img,
+      img: resolveMdmGoodsImg(item.img),
       spu: item.spu,
       sku: item.sku,
       weight: item.weight,
@@ -2748,7 +2762,7 @@
   function buildGoodsProductCell(item, aftersales) {
     var tag = resolveGoodsAftersaleTag(item, aftersales);
     return '<td><div class="order-detail-goods-product">' +
-      '<img src="' + item.img + '" alt="">' +
+      '<img src="' + resolveMdmGoodsImg(item.img) + '" alt="">' +
       '<div><div class="order-detail-goods-product__name">' + item.name +
       goodsFulfillTagHtml(item) +
       goodsAftersaleTagHtml(tag) + '</div>' +
@@ -2978,7 +2992,7 @@
       var tag = resolveGoodsAftersaleTag(item, aftersales);
       html +=
         '<div class="order-goods-pop__item">' +
-        '<img class="order-goods-pop__thumb" src="' + escapeText(item.img || '../user-app/assets/order-product-1.svg') + '" alt="">' +
+        '<img class="order-goods-pop__thumb" src="' + escapeText(resolveMdmGoodsImg(item.img)) + '" alt="">' +
         '<div class="order-goods-pop__body">' +
         '<div class="order-goods-pop__name">' + escapeText(displayGoodsName(item.name)) +
         goodsAftersaleTagHtml(tag) + '</div>' +
@@ -4638,7 +4652,7 @@
         name: displayGoodsName(productName ? productName.textContent.trim() : '商品'),
         tempLayer: '',
         spec: '规格：默认',
-        img: productImg ? productImg.getAttribute('src') : '../user-app/assets/order-product-1.svg',
+        img: resolveMdmGoodsImg(productImg ? productImg.getAttribute('src') : ''),
         spu: 'SPU-0001…',
         sku: 'SKU-0001…',
         weight: '-',
@@ -5107,7 +5121,8 @@
     },
     hasOpenAftersaleBlockingCancel: hasOpenAftersaleBlockingCancel,
     appendGoodsAftersale: appendGoodsAftersale,
-    resolveFreightSplit: resolveProxyFreightSplit
+    resolveFreightSplit: resolveProxyFreightSplit,
+    resolveGoodsImg: resolveMdmGoodsImg
   };
 
   function openFromQuery() {
@@ -5169,7 +5184,7 @@
         id: 'g' + (i + 1),
         name: g.name || '商品',
         spec: g.spec || '',
-        img: g.img || '../user-app/assets/order-product-1.svg',
+        img: resolveMdmGoodsImg(g.img),
         price: moneyText(price),
         qty: String(qty),
         subtotal: moneyText(price * qty),
@@ -5290,7 +5305,7 @@
       var productCell =
         '<div class="order-product-cell">' +
         '<img class="order-product-cell__thumb" src="' +
-        escapeText(first.img || '../user-app/assets/order-product-1.svg') +
+        escapeText(resolveMdmGoodsImg(first.img)) +
         '" alt="">' +
         (skuBtn
           ? '<div class="order-product-cell__meta"><div class="order-product-cell__name-row"><span class="order-product-cell__name">' +
