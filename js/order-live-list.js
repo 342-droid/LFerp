@@ -1627,7 +1627,7 @@
   function isFreightRefundAftersale(item) {
     return !!(
       item &&
-      (item.refundScene === 'ORDER_FREIGHT' || item.type === '退运费')
+      (item.refundScene === 'ORDER_FREIGHT' || item.type === '退运费' || item.reason === '退运费')
     );
   }
 

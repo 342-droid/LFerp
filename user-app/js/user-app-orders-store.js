@@ -208,6 +208,7 @@
         }),
         goodsTotal: order.goodsTotal,
         freight: order.freight,
+        freightRefunded: Number(order.freightRefunded) || 0,
         payable: order.payable,
         payMethod: order.payMethod || '',
         payNo: order.payNo || '',

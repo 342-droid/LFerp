@@ -385,6 +385,19 @@
     return type === 'refund_only' || type === 'pre_ship' || type === 'return';
   }
 
+  function isFreightRefundReason(reason) {
+    return String(reason || '') === '退运费';
+  }
+
+  function isFreightRefundRecord(rec) {
+    if (!rec) return false;
+    return (
+      rec.refundCategory === 'freight' ||
+      rec.refundScene === 'ORDER_FREIGHT' ||
+      isFreightRefundReason(rec.reason)
+    );
+  }
+
   function getPurchaseQty(itemIndex, orderNo) {
     var idx = Number(itemIndex) || 0;
     var no = resolveOrderNo(orderNo);
@@ -449,6 +462,7 @@
   /** 单条售后占用件数；成功单缺省 qty 时回退为购买数（兼容旧演示数据） */
   function getRecordOccupyQty(rec, purchaseQty) {
     if (!rec) return 0;
+    if (isFreightRefundRecord(rec)) return 0;
     var q = Number(rec.qty);
     if ((isNaN(q) || q <= 0) && rec.type === 'restock') {
       q = Number(rec.applyQty);
@@ -806,7 +820,9 @@
       outShipped: !!app.outShipped,
       applyQty: syncType === 'restock' ? getApplyRestockQty(app) : app.applyQty,
       actualRestockQty:
-        syncType === 'restock' ? getActualRestockQty(app) : app.actualRestockQty
+        syncType === 'restock' ? getActualRestockQty(app) : app.actualRestockQty,
+      refundCategory: app.refundCategory || (isFreightRefundReason(app.reason) ? 'freight' : ''),
+      refundScene: app.refundScene || (isFreightRefundReason(app.reason) ? 'ORDER_FREIGHT' : '')
     });
     saveApplication(app);
   }
@@ -3017,8 +3033,29 @@
     return null;
   }
 
+  function writeMdmMirrorFreightRefunded(orderNo, refunded) {
+    var no = String(orderNo || '').trim();
+    if (!no) return;
+    try {
+      var raw = localStorage.getItem('lf_mdm_cend_split_orders_v1');
+      var list = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(list)) return;
+      var hit = false;
+      list.forEach(function (rec) {
+        if (rec && String(rec.orderNo || '') === no) {
+          rec.freightRefunded = refunded;
+          hit = true;
+        }
+      });
+      if (hit) localStorage.setItem('lf_mdm_cend_split_orders_v1', JSON.stringify(list));
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
   function writeStoredFreightRefunded(orderNo, refunded) {
     var no = String(orderNo || '').trim();
+    var amt = Math.max(0, Math.round((Number(refunded) || 0) * 100) / 100);
     if (
       window.UaOrdersStore &&
       typeof window.UaOrdersStore.updateStatus === 'function'
@@ -3026,8 +3063,9 @@
       var order = window.UaOrdersStore.getByNo(no);
       if (order) {
         window.UaOrdersStore.updateStatus(no, order.status, {
-          freightRefunded: refunded
+          freightRefunded: amt
         });
+        writeMdmMirrorFreightRefunded(no, amt);
         return;
       }
     }
@@ -3036,7 +3074,7 @@
       if (lastRaw) {
         var last = JSON.parse(lastRaw);
         if (!no || String(last.orderNo || '') === no) {
-          last.freightRefunded = refunded;
+          last.freightRefunded = amt;
           sessionStorage.setItem('ua_last_order_v1', JSON.stringify(last));
         }
       }
@@ -3046,22 +3084,54 @@
     try {
       var listRaw = sessionStorage.getItem('ua_demo_orders_v1');
       var list = listRaw ? JSON.parse(listRaw) : [];
-      if (!Array.isArray(list)) return;
+      if (!Array.isArray(list)) list = [];
       var hit = false;
       list.forEach(function (item) {
         if (item && String(item.orderNo || '') === no) {
-          item.freightRefunded = refunded;
+          item.freightRefunded = amt;
           hit = true;
         }
       });
+      if (!hit) {
+        var seed = null;
+        try {
+          var lastSeed = sessionStorage.getItem('ua_last_order_v1');
+          seed = lastSeed ? JSON.parse(lastSeed) : null;
+        } catch (eSeed) {
+          seed = null;
+        }
+        if (seed && String(seed.orderNo || '') === no) {
+          seed.freightRefunded = amt;
+          list.unshift(seed);
+          hit = true;
+        }
+      }
       if (hit) sessionStorage.setItem('ua_demo_orders_v1', JSON.stringify(list));
     } catch (e1) {
       /* ignore */
     }
+    writeMdmMirrorFreightRefunded(no, amt);
+  }
+
+  function readMdmMirrorFreight(orderNo) {
+    var no = String(orderNo || '').trim();
+    if (!no) return null;
+    try {
+      var raw = localStorage.getItem('lf_mdm_cend_split_orders_v1');
+      var list = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(list)) return null;
+      for (var i = 0; i < list.length; i++) {
+        if (list[i] && String(list[i].orderNo || '') === no) return list[i];
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    return null;
   }
 
   function getOrderFreightRemain() {
     var order = readStoredDemoOrder(getCurrentOrderNo());
+    if (!order) order = readMdmMirrorFreight(getCurrentOrderNo());
     var freight = Number(order && order.freight) || 0;
     var refunded = Number(order && order.freightRefunded) || 0;
     return Math.max(0, Math.round((freight - refunded) * 100) / 100);
@@ -3099,7 +3169,27 @@
     return Math.round((goods + freight) * 100) / 100;
   }
 
+  function applyFreightReasonRefund(app) {
+    if (!app || !isFreightRefundReason(app.reason)) return 0;
+    var remain = getOrderFreightRemain();
+    var add = Math.min(Math.max(0, Number(app.amount) || 0), remain);
+    add = Math.round(add * 100) / 100;
+    app.amount = add;
+    app.qty = 0;
+    app.refundCategory = 'freight';
+    app.refundScene = 'ORDER_FREIGHT';
+    app.freightAuto = 0;
+    if (!(add > 0)) return 0;
+    var order = readStoredDemoOrder(app.orderNo || getCurrentOrderNo());
+    writeStoredFreightRefunded(
+      app.orderNo || getCurrentOrderNo(),
+      (Number(order && order.freightRefunded) || 0) + add
+    );
+    return add;
+  }
+
   function maybeAttachLastItemFreight(app, formType) {
+    if (app && isFreightRefundReason(app.reason)) return;
     var scene = getScene();
     var isPre = formType === 'pre_ship' || scene === 'pre_ship';
     if (!isPre) return;
@@ -3149,7 +3239,11 @@
       resetRefundFlowForNewApplication(app);
       app.aftersaleId = app.refundNo;
     }
-    maybeAttachLastItemFreight(app, formType);
+    if (isFreightRefundReason(app.reason)) {
+      applyFreightReasonRefund(app);
+    } else {
+      maybeAttachLastItemFreight(app, formType);
+    }
     saveApplication(app);
     var typeMap = { return: 'return', restock: 'restock', exchange: 'exchange', pre_ship: 'refund_only' };
     var type = typeMap[formType] || 'refund_only';
@@ -5682,6 +5776,14 @@
     }
 
     function syncAmountByQty() {
+      if (isFreightRefundReason(state.reason)) {
+        var freightRemain = getOrderFreightRemain();
+        state.maxAmount = freightRemain;
+        state.amount = freightRemain;
+        if (amountInput) amountInput.value = state.amount.toFixed(2);
+        if (amountHint) amountHint.textContent = '最多' + formatPrice(state.maxAmount);
+        return;
+      }
       var goodsAmt = Math.round(unitPrice() * state.qty * 100) / 100;
       var last = isPreShip && isLastPreShipRefund({ qty: state.qty }, state.qty);
       var freight = last ? getOrderFreightRemain() : 0;
@@ -5691,8 +5793,15 @@
       if (amountHint) {
         amountHint.textContent = last
           ? '最后一笔仅退款为货款+整单运费，最多' + formatPrice(state.maxAmount)
-          : '可修改，最多' + formatPrice(state.maxAmount) + '（不含运费）';
+          : '最多' + formatPrice(state.maxAmount);
       }
+    }
+
+    function syncFreightReasonUI() {
+      var freightReason = isFreightRefundReason(state.reason);
+      var qtyRow = qtyInput ? qtyInput.closest('.ua-or-field-row') : null;
+      if (qtyRow) qtyRow.hidden = freightReason;
+      if (qtyHint) qtyHint.hidden = freightReason;
     }
 
     function syncQtyUI() {
@@ -5700,6 +5809,7 @@
       if (qtyMinus) qtyMinus.disabled = state.qty <= 1;
       if (qtyPlus) qtyPlus.disabled = state.qty >= state.maxQty;
       if (qtyHint) qtyHint.textContent = '最多可退' + state.maxQty + '件';
+      syncFreightReasonUI();
       syncAmountByQty();
     }
 
@@ -5757,6 +5867,8 @@
         if (!val) return;
         state.reason = val;
         syncFieldValues();
+        syncFreightReasonUI();
+        syncAmountByQty();
         closeSheet('refundReasonSheet');
       });
 
@@ -5859,11 +5971,12 @@
           window.alert('请选择退款原因');
           return;
         }
-        if (state.qty <= 0) {
+        var freightReason = isFreightRefundReason(state.reason);
+        if (!freightReason && state.qty <= 0) {
           window.alert(isReturn ? '请填写退货件数' : '请填写申请件数');
           return;
         }
-        if (state.qty > state.maxQty) {
+        if (!freightReason && state.qty > state.maxQty) {
           window.alert(
             (isReturn ? '退货件数' : '申请件数') +
               '不能超过可退上限（最多' +
@@ -5879,11 +5992,13 @@
         if (pickupApi && !pickupApi.validate()) return;
         var payload = {
           reason: state.reason,
-          qty: state.qty,
+          qty: freightReason ? 0 : state.qty,
           amount: state.amount,
           goodsStatus: state.goodsStatus,
           desc: state.desc,
-          images: state.images
+          images: state.images,
+          refundCategory: freightReason ? 'freight' : '',
+          refundScene: freightReason ? 'ORDER_FREIGHT' : ''
         };
         if (pickupApi) Object.assign(payload, pickupApi.payload());
         persistAndGoDetail(isReturn ? 'return' : 'refund_only', payload);

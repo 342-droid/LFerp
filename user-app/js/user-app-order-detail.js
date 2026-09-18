@@ -1551,7 +1551,7 @@
       (Number(order && order.deliverFee) || 0) +
       (Number(order && order.upstairsFee) || 0);
     var savedTotal = order && order.freight != null ? Number(order.freight) : null;
-    var hasPaidFreight = savedTotal != null && savedTotal > 0 && savedParts > 0;
+    var hasPaidFreight = savedTotal != null && savedTotal > 0;
     var hasSavedExtras = !!(order && (
       order.insureFee != null || order.deliverFee != null || order.upstairsFee != null
     ));
@@ -1644,7 +1644,7 @@
         hasAmbient: hasAmbient,
         hasCold: hasCold
       };
-      if (order && result.total > 0 && !hasPaidFreight) {
+      if (order && result.total > 0 && !hasPaidFreight && !(Number(order.freightRefunded) > 0)) {
         persistOdQuotedFreight(order, result);
       }
     }
@@ -1658,17 +1658,26 @@
     var legsEl = document.getElementById('orderFreightLegs');
     var toggle = document.getElementById('orderFreightToggle');
     var delivery = isOdDeliveryOrder(order);
+    var paidFreight =
+      order && order.freight != null && Number(order.freight) >= 0 ? Number(order.freight) : null;
     var info = delivery
       ? resolveOdFreightBreakdown(order)
       : { total: 0, ambient: 0, cold: 0, insure: 0, deliver: 0, upstairs: 0 };
     var extra = Math.round(((info.insure || 0) + (info.deliver || 0) + (info.upstairs || 0)) * 100) / 100;
+    var original = paidFreight != null ? paidFreight : Number(info.total) || 0;
+    var refunded = Math.max(0, Number(order && order.freightRefunded) || 0);
+    var net = Math.max(0, Math.round((original - refunded) * 100) / 100);
+    var ratio = original > 0 ? net / original : 0;
+    function scaleFreight(n) {
+      return Math.round((Number(n) || 0) * ratio * 100) / 100;
+    }
     var lines = [];
     if (delivery) {
-      if (info.ambient > 0) lines.push({ name: '常温基础运费', amount: info.ambient });
-      if (info.cold > 0) lines.push({ name: '冷链基础运费', amount: info.cold });
-      if (extra > 0) lines.push({ name: '增值 / 上楼', amount: extra });
+      if (info.ambient > 0) lines.push({ name: '常温基础运费', amount: scaleFreight(info.ambient) });
+      if (info.cold > 0) lines.push({ name: '冷链基础运费', amount: scaleFreight(info.cold) });
+      if (extra > 0) lines.push({ name: '增值 / 上楼', amount: scaleFreight(extra) });
     }
-    if (totalEl) totalEl.textContent = delivery ? formatOdFreight(info.total) : '免运费';
+    if (totalEl) totalEl.textContent = delivery ? formatOdFreight(net) : '免运费';
     if (totalRow) totalRow.hidden = false;
     if (legsEl) {
       legsEl.innerHTML = lines
