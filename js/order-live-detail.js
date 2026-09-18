@@ -2417,20 +2417,32 @@
   }
 
   function buildFreightRowsHtml(detail, amounts) {
+    var freight = detail && detail.freight ? detail.freight : {};
+    var refunded = parsePrice(freight.refunded);
     if (!isProxyDeliveryOrder(detail)) {
+      var original = parsePrice(freight.original != null ? freight.original : freight.total);
+      if (!(original > 0) && amounts) original = parsePrice(amounts.shipping);
+      var net = Math.max(0, Math.round((original - refunded) * 100) / 100);
       return (
-        '<div class="order-detail-amount-row"><span>+ 运费</span><span>免运费</span></div>'
+        '<div class="order-detail-amount-row"><span>+ 运费</span><span>' +
+        (net > 0 ? formatMoney(net) : '免运费') +
+        '</span></div>'
       );
     }
     var split = resolveProxyFreightSplit(detail, amounts);
+    var ratio = split.total > 0 ? Math.max(0, split.total - refunded) / split.total : 0;
+    function scaleFreight(n) {
+      return Math.round((Number(n) || 0) * ratio * 100) / 100;
+    }
     var lines = [];
-    if (split.hasAmbient) lines.push({ name: '常温运费', amount: split.ambient });
-    if (split.hasCold) lines.push({ name: '冷链运费', amount: split.cold });
-    if (split.insure > 0) lines.push({ name: '保价费', amount: split.insure });
-    if (split.deliver > 0) lines.push({ name: '派送费', amount: split.deliver });
-    if (split.upstairs > 0) lines.push({ name: '上楼费', amount: split.upstairs });
-    var totalText = split.total > 0 ? formatMoney(split.total) : '免运费';
-    if (!lines.length || split.total <= 0) {
+    if (split.hasAmbient) lines.push({ name: '常温运费', amount: scaleFreight(split.ambient) });
+    if (split.hasCold) lines.push({ name: '冷链运费', amount: scaleFreight(split.cold) });
+    if (split.insure > 0) lines.push({ name: '保价费', amount: scaleFreight(split.insure) });
+    if (split.deliver > 0) lines.push({ name: '派送费', amount: scaleFreight(split.deliver) });
+    if (split.upstairs > 0) lines.push({ name: '上楼费', amount: scaleFreight(split.upstairs) });
+    var netTotal = Math.max(0, Math.round((split.total - refunded) * 100) / 100);
+    var totalText = netTotal > 0 ? formatMoney(netTotal) : '免运费';
+    if (!lines.length || netTotal <= 0) {
       return (
         '<div class="order-detail-amount-row"><span>+ 运费</span><span>' +
         totalText +
@@ -2471,8 +2483,60 @@
   function isFreightRefundAftersale(item) {
     return !!(
       item &&
-      (item.refundScene === 'ORDER_FREIGHT' || item.type === '退运费')
+      (item.refundScene === 'ORDER_FREIGHT' || item.type === '退运费' || item.reason === '退运费')
     );
+  }
+
+  function allocateMoneyByWeights(total, weights) {
+    var n = (weights || []).length;
+    var out = [];
+    var sum = 0;
+    var i;
+    for (i = 0; i < n; i++) sum += Math.max(0, Number(weights[i]) || 0);
+    if (!(total > 0) || !(sum > 0) || !n) {
+      for (i = 0; i < n; i++) out.push(0);
+      return out;
+    }
+    var used = 0;
+    for (i = 0; i < n; i++) {
+      var part =
+        i === n - 1
+          ? Math.round((total - used) * 100) / 100
+          : Math.round(((total * (Number(weights[i]) || 0)) / sum) * 100) / 100;
+      if (part < 0) part = 0;
+      out.push(part);
+      used += part;
+    }
+    return out;
+  }
+
+  function syncGoodsFreightRemain(detail) {
+    if (!detail) return;
+    var goods = detail.goods || [];
+    var freight = detail.freight || {};
+    var original = parsePrice(freight.original != null ? freight.original : freight.total);
+    if (!(original > 0) && detail.amounts) original = parsePrice(detail.amounts.shipping);
+    var refunded = parsePrice(freight.refunded);
+    var remain = Math.max(0, Math.round((original - refunded) * 100) / 100);
+    if (!(original > 0) || !goods.length) return;
+    var hasAlloc = goods.some(function (g) {
+      return Number(g && g.allocatedFreight) > 0;
+    });
+    var weights = goods.map(function (g) {
+      if (hasAlloc) return Number(g && g.allocatedFreight) || 0;
+      return parsePrice(g && (g.subtotal || g.price)) || 1;
+    });
+    var parts = allocateMoneyByWeights(remain, weights);
+    goods.forEach(function (g, idx) {
+      if (!g) return;
+      g.remainFreight = parts[idx] || 0;
+    });
+  }
+
+  function goodsShowFreightCol(goods) {
+    return (goods || []).some(function (g) {
+      return g && (g.remainFreight != null || Number(g.allocatedFreight) > 0);
+    });
   }
 
   function formatMoney(n) {
@@ -2508,7 +2572,9 @@
       fulfillTag: item.fulfillTag || '',
       skipDemandSummary: !!item.skipDemandSummary,
       spotDirectVerify: !!item.spotDirectVerify,
-      productTags: item.productTags || item.tags || []
+      productTags: item.productTags || item.tags || [],
+      allocatedFreight: item.allocatedFreight != null ? Number(item.allocatedFreight) || 0 : null,
+      remainFreight: item.remainFreight != null ? Number(item.remainFreight) : null
     };
   }
 
@@ -2723,6 +2789,7 @@
   function resolveGoodsAftersaleTag(item, aftersales) {
     if (item && item.aftersaleTag) return item.aftersaleTag;
     var list = (aftersales || []).filter(function (a) {
+      if (isFreightRefundAftersale(a)) return false;
       return a.productName === item.name || a.goodId === item.id;
     });
     if (!list.length) return '';
@@ -2821,6 +2888,13 @@
           '<td><div class="order-pickup-cell">' + qtyCtrl + action + '</div></td>';
       }
 
+      var freightCell = goodsShowFreightCol(goods)
+        ? '<td>' +
+          formatMoney(
+            item.remainFreight != null ? Number(item.remainFreight) || 0 : Number(item.allocatedFreight) || 0
+          ) +
+          '</td>'
+        : '';
       tr.innerHTML =
         selectCell +
         buildGoodsProductCell(item, aftersales) +
@@ -2830,6 +2904,7 @@
         '<td>' + item.price + '</td>' +
         '<td>' + item.qty + '</td>' +
         '<td>' + item.subtotal + '</td>' +
+        freightCell +
         (isProxyOrderPage() ? '' : '<td>' + marketingTagHtml(item.marketing) + '</td>') +
         pickupCells;
       tbody.appendChild(tr);
@@ -2860,9 +2935,10 @@
     return toolbar;
   }
 
-  function buildGoodsTableHeadRow(pickupMode) {
+  function buildGoodsTableHeadRow(pickupMode, goods) {
     var barcodeCol = isProxyOrderPage() ? '条形码' : '条码';
     var headCols = '<th>商品</th><th>编码</th><th>' + barcodeCol + '</th><th>重量(kg)</th><th>单价</th><th>数量</th><th>小计</th>';
+    if (goodsShowFreightCol(goods)) headCols += '<th>分摊运费</th>';
     if (!isProxyOrderPage()) headCols += '<th>营销</th>';
     if (pickupMode) {
       headCols = '<th class="order-pickup-check-head">选择</th>' + headCols + '<th>已提</th><th>待提</th><th>操作</th>';
@@ -2875,7 +2951,7 @@
     if (pickupMode) wrap.appendChild(buildPickupToolbar(aftersales));
 
     var table = el('table', 'order-detail-goods-table');
-    table.innerHTML = '<thead>' + buildGoodsTableHeadRow(pickupMode) + '</thead>';
+    table.innerHTML = '<thead>' + buildGoodsTableHeadRow(pickupMode, goods) + '</thead>';
     table.appendChild(buildGoodsTableBody(goods, pickupMode, aftersales));
     wrap.appendChild(table);
     return wrap;
@@ -5110,6 +5186,7 @@
       detail.progress = resolveProgress(detail.progress, row);
       applySpotDirectVerifyDetail(detail);
       detail.progress = normalizeProgressByMode(detail.progress, usesExpressProgress(detail, row));
+      syncGoodsFreightRemain(detail);
       return detail;
     },
     openDrawer: openDrawer,
@@ -5175,7 +5252,24 @@
   }
 
   function registerCendDetail(rec) {
-    if (!rec || !rec.orderNo || DETAILS[rec.orderNo]) return;
+    if (!rec || !rec.orderNo) return;
+    if (DETAILS[rec.orderNo]) {
+      var exist = DETAILS[rec.orderNo];
+      exist.freight = exist.freight || {};
+      exist.freight.original = Number(rec.freight) || exist.freight.original || 0;
+      exist.freight.refunded = Math.max(
+        Number(exist.freight.refunded) || 0,
+        Number(rec.freightRefunded) || 0
+      );
+      exist.freight.remaining = Math.max(
+        0,
+        Math.round((exist.freight.original - exist.freight.refunded) * 100) / 100
+      );
+      if (exist.amounts && exist.amounts.shipping && exist.freight.original > 0) {
+        exist.amounts.shipping = moneyText(exist.freight.original);
+      }
+      return;
+    }
     var meta = recFulfillMeta(rec);
     var goods = (rec.goods || []).map(function (g, i) {
       var price = Number(g.price) || 0;

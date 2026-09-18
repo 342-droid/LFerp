@@ -20,7 +20,7 @@
   function isFreightRefund(item) {
     return !!(
       item &&
-      (item.refundScene === REFUND_SCENE || item.type === '退运费')
+      (item.refundScene === REFUND_SCENE || item.type === '退运费' || item.reason === REFUND_REASON)
     );
   }
 
