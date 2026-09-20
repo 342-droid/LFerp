@@ -1771,6 +1771,29 @@
     var weights = goods.map(skuAmountCents);
     var paidParts = allocateCents(goodsPaidCents, weights);
     var freightParts = allocateCents(freightCents, weights);
+    var orderId = row.getAttribute('data-order-id');
+    if (
+      window.OrderPlatformAftersale &&
+      typeof window.OrderPlatformAftersale.applyFreightShares === 'function'
+    ) {
+      var shareGoods = goods.map(function (g, idx) {
+        return {
+          id: g.id || 'g' + (idx + 1),
+          name: g.name || '',
+          qty: parseInt(g.qty, 10) || 1,
+          paidAmount: parseFloat(String(g.subtotal != null ? g.subtotal : g.price || '').replace(/[^\d.-]/g, '')) || 0,
+          tempLayer: g.tempLayer || '',
+          weight: parseFloat(g.weight) || 0,
+          saleRatio: g.saleRatio != null ? g.saleRatio : g.saleCoeff,
+          baseGross: g.baseGross != null ? g.baseGross : g.gross,
+          allocatedFreight: 0
+        };
+      });
+      window.OrderPlatformAftersale.applyFreightShares(shareGoods, row, detail, orderId);
+      freightParts = shareGoods.map(function (g) {
+        return Math.round((Number(g.allocatedFreight) || 0) * 100);
+      });
+    }
     var refundParts = resolveSkuRefundCents(goods, detail.aftersales, detail);
     var aftersaleStatus = '';
     if (window.OrderLiveDetail && typeof window.OrderLiveDetail.getOrderAftersaleStatus === 'function') {

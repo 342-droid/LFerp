@@ -1677,7 +1677,6 @@
     }
     var rate = group.rate;
     var goods = group.goodsAmount != null ? toNum(group.goodsAmount) : toNum(payableHint);
-    var fulfill = normalizeFulfill(opts && (opts.fulfill || opts.fulfillmentMethod || opts.deliveryMode));
     var upOpts = (opts && opts.upstairs) || {};
     var insure = findExtra(rate, '保价费');
     if (insure) {
@@ -1697,7 +1696,7 @@
         '每票¥' + toNum(deliver.amount).toFixed(2)
       ));
     }
-    if (fulfill !== 'express' && rateHasUpstairs(rate)) {
+    if (rateHasUpstairs(rate)) {
       var up = calcUpstairsFee(rate.upstairs, group.weight, upOpts.hasElevator !== false, upOpts.floor);
       extras.push(extraLineOf(
         'upstairs',
@@ -1720,20 +1719,21 @@
   function applyOrderServices(ambient, cold, opts, payable) {
     var scheme = (ambient && ambient.feeScheme) || (cold && cold.feeScheme);
     var extras;
-    if (isWholeOrderScheme(scheme)) {
-      var target = ambient && ambient.breakdown ? ambient : cold && cold.breakdown ? cold : ambient && !ambient.empty ? ambient : cold;
-      var other = target === ambient ? cold : ambient;
-      if (target) {
-        target.weight = roundKg(((ambient && ambient.weight) || 0) + ((cold && cold.weight) || 0));
-        target.logisticsType = '不区分';
-      }
+    var target = ambient && ambient.breakdown ? ambient : cold && cold.breakdown ? cold : ambient && !ambient.empty ? ambient : cold;
+    var other = target === ambient ? cold : ambient;
+    var combinedWeight = roundKg(((ambient && ambient.weight) || 0) + ((cold && cold.weight) || 0));
+    if (target) {
+      var layerWeight = target.weight;
+      target.weight = combinedWeight;
+      if (isWholeOrderScheme(scheme)) target.logisticsType = '不区分';
       extras = buildGroupExtras(target, opts, payable);
-      if (other) {
-        other.extras = [];
-        other.serviceTotal = 0;
-      }
+      if (!isWholeOrderScheme(scheme)) target.weight = layerWeight;
     } else {
-      extras = buildGroupExtras(ambient, opts, payable).concat(buildGroupExtras(cold, opts, payable));
+      extras = [];
+    }
+    if (other) {
+      other.extras = [];
+      other.serviceTotal = 0;
     }
     var upOpts = (opts && opts.upstairs) || {};
     var totalWeight = roundKg(((ambient && ambient.weight) || 0) + ((cold && cold.weight) || 0));
@@ -2237,9 +2237,9 @@
 
       '<div class="ua-freight-explain__section">' +
       '<h4 class="ua-freight-explain__title">3. 保价、派送与上楼</h4>' +
-      '<p class="ua-freight-explain__p"><strong>保价费、派送费、上楼费</strong>计入配送费，下单后不予减免。</p>' +
-      '<p class="ua-freight-explain__p"><strong>保价费</strong>按货款计收。<strong>派送费</strong>按单计收。</p>' +
-      '<p class="ua-freight-explain__p"><strong>上楼费</strong>按有无电梯及送达楼层计收。送达 1 楼，或未超过免上楼标准的，不上楼费。请在收货地址处填写电梯及楼层，下次下单自动带出。</p>' +
+      '<p class="ua-freight-explain__p"><strong>保价费、派送费、上楼费</strong>计入对应履约的运费，下单后不予减免。</p>' +
+      '<p class="ua-freight-explain__p"><strong>保价费</strong>按订单应付金额计收，受最低价约束，每单一次。<strong>派送费</strong>按票计收，每单一次。</p>' +
+      '<p class="ua-freight-explain__p"><strong>上楼费</strong>按有无电梯及送达楼层计收：计费重量不超过免上楼，或送到 1 楼，不上楼费；否则基础费 + 重量系数×计费重量 + 楼层系数×楼层数，件数暂不参与。请填写电梯及楼层，下次下单自动带出。</p>' +
       '</div>' +
 
       '<div class="ua-freight-explain__section">' +

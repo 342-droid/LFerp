@@ -68,7 +68,7 @@
     return ['待支付', '已创建', '已支付', '待接单', '待发货'].indexOf(status) >= 0;
   }
 
-  /** 发货前：待支付到待发货。发货后售后不跟运费，运费改走后台「退运费」。 */
+  /** 发货前：待支付到待发货。发货后普通售后不跟运费；运费走后台「退运费」或原因「退运费」。 */
   function isPreShipStatus(status) {
     return ['待支付', '已创建', '已支付', '待接单', '待发货'].indexOf(status) >= 0;
   }
@@ -585,6 +585,8 @@
             remainPoints: 0,
             tempLayer: g.tempLayer || '',
             weight: parseFloat(g.weight) || 0,
+            saleRatio: g.saleRatio != null ? g.saleRatio : g.saleCoeff,
+            baseGross: g.baseGross != null ? g.baseGross : g.gross,
             allocatedFreight: 0,
             remainFreight: 0
           };
@@ -670,14 +672,31 @@
     return t === '冷藏' || t === '冷冻' || t === '冷链';
   }
 
-  function goodChargeWeight(g) {
-    var w = parseFloat(g && g.weight);
-    if (!(w > 0)) return 0;
-    return w * (parseInt(g && g.qty, 10) || 1);
-  }
-
   function goodQty(g) {
     return parseInt(g && g.qty, 10) || 1;
+  }
+
+  function goodSaleRatio(g) {
+    var r = parseFloat(g && (g.saleRatio != null ? g.saleRatio : g.saleCoeff));
+    return r > 0 ? r : 1;
+  }
+
+  function goodBaseGross(g) {
+    var w = parseFloat(g && (g.baseGross != null ? g.baseGross : g.gross != null ? g.gross : g.weight));
+    return w > 0 ? w : 0;
+  }
+
+  /* 行重量 = 基础单位毛重 × 售卖系数 × 下单数量 */
+  function goodLineWeight(g) {
+    return goodBaseGross(g) * goodSaleRatio(g) * goodQty(g);
+  }
+
+  function goodChargeWeight(g) {
+    return goodLineWeight(g);
+  }
+
+  function goodPaid(g) {
+    return parseMoney(g && g.paidAmount);
   }
 
   function orderFulfillKey(detail, row) {
@@ -719,33 +738,19 @@
   }
 
   function extraShareWeights(goods) {
-    /* 增值：重量计费按重量摊；金额计费也按重量摊 */
-    return weightsOrFallback(
-      goods.map(function (g) {
-        return goodChargeWeight(g);
-      }),
-      goods
-    );
+    return upstairsShareWeights(goods);
   }
 
-  function upstairsShareWeights(goods, quote) {
-    var rate =
-      (quote && quote.ambient && quote.ambient.rate) ||
-      (quote && quote.cold && quote.cold.rate) ||
-      {};
-    var lift = ((rate.upstairs || {}).lift || {});
-    var wCoef = Number(lift.weight) || 0;
-    var qCoef = Number(lift.qty) || 0;
-    return weightsOrFallback(
-      goods.map(function (g) {
-        var weight = goodChargeWeight(g);
-        var qty = goodQty(g);
-        if (wCoef > 0 && qCoef > 0) return weight * wCoef + qty * qCoef;
-        if (qCoef > 0 && !(wCoef > 0)) return qty;
-        return weight > 0 ? weight : qty;
-      }),
-      goods
-    );
+  function insureShareWeights(goods) {
+    return weightsOrFallback(goods.map(goodPaid), goods);
+  }
+
+  function deliverShareWeights(goods) {
+    return weightsOrFallback(goods.map(goodQty), goods);
+  }
+
+  function upstairsShareWeights(goods) {
+    return weightsOrFallback(goods.map(goodLineWeight), goods);
   }
 
   function resolveFreightPool(detail, row, orderId) {
@@ -825,11 +830,10 @@
   }
 
   /**
-   * 按履约方式、发货方把运费摊到商品行（申请售后「分摊运费」）：
-   * - 配送单摊；快递关闭包邮后同样摊，上楼仅配送
+   * 按履约方式把运费摊到商品行（申请售后「分摊运费」）：
+   * - 配送、快递同一套；包邮则全 0
    * - 常温 / 冷链基础运费只摊进对应温层；重量计费按重量，金额计费按货款，按件计费按件数
-   * - 增值服务按计费模式摊：重量计费按重量，金额计费也按重量
-   * - 上楼费按重量和件数计费时，按重量×系数 + 件数×系数摊
+   * - 保价按实付金额，派送按件数，上楼按行重量（毛重×售卖系数×数量）
    * - 行运费 = 温层基础分摊 + 增值分摊 + 上楼分摊
    */
   function applyFreightShares(goods, row, detail, orderId) {
@@ -882,13 +886,11 @@
         if (coldScheme === '按件计费') return goodQty(g);
         return coldScheme === '金额计费' ? parseMoney(g.paidAmount) || 0 : goodChargeWeight(g);
       });
-      var extraW = extraShareWeights(goods);
-      var upW = upstairsShareWeights(goods, quote);
       if (ambientAmt > 0) addParts(ambientAmt, weightsOrFallback(ambientW, goods));
       if (coldAmt > 0) addParts(coldAmt, weightsOrFallback(coldW, goods));
-      if (insureAmt > 0) addParts(insureAmt, extraW);
-      if (deliverAmt > 0) addParts(deliverAmt, extraW);
-      if (upstairsAmt > 0) addParts(upstairsAmt, upW);
+      if (insureAmt > 0) addParts(insureAmt, insureShareWeights(goods));
+      if (deliverAmt > 0) addParts(deliverAmt, deliverShareWeights(goods));
+      if (upstairsAmt > 0) addParts(upstairsAmt, upstairsShareWeights(goods));
     } else if (pool.original > 0) {
       var fallbackScheme = (quote && quote.ambient && quote.ambient.feeScheme) ||
         (quote && quote.cold && quote.cold.feeScheme) ||
@@ -1894,6 +1896,7 @@
     getFulfillmentKind: getFulfillmentKind,
     persistRefund: persistDirectRefund,
     persistCancelRefund: persistCancelRefund,
+    applyFreightShares: applyFreightShares,
     open: openDrawer,
     openBatch: function (opts) {
       openDrawer(null, null, {
