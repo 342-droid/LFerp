@@ -3192,6 +3192,68 @@
     "status": "diff",
     "date": "2026-09-16"
   },
+  "d82f75c|MDM/mdm_order_config.html": {
+    "before": "changelog-assets/d82f75c/MDM__mdm_order_config.html.before.jpg",
+    "after": "changelog-assets/d82f75c/MDM__mdm_order_config.html.after.jpg",
+    "regions": 4,
+    "status": "diff",
+    "date": "2026-09-20"
+  },
+  "d82f75c|MDM/mdm_order_proxy.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-20"
+  },
+  "d82f75c|MDM/mdm_order_retail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-20"
+  },
+  "d82f75c|MDM/mdm_product_mall.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-20"
+  },
+  "d82f75c|MDM/mdm_product_proxy_list.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-20"
+  },
+  "d82f75c|store-app/h5/restock-order-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-20"
+  },
+  "d82f75c|store-app/h5/restock-orders.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-20"
+  },
+  "d82f75c|user-app/h5/checkout.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-20"
+  },
+  "d82f75c|user-app/h5/order-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-20"
+  },
+  "d82f75c|user-app/h5/orders.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-20"
+  },
+  "d82f75c|user-app/h5/product-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-20"
+  },
+  "d82f75c|user-app/h5/restock.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-20"
+  },
   "e79cae4|user-app/h5/checkout.html": {
     "regions": 0,
     "status": "diff",
