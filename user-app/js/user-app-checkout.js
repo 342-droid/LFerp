@@ -1020,6 +1020,7 @@
         serviceSummary: null,
         quote: mixQuoteFromRollup(deliveryRoll),
         expressQuote: mixQuoteFromRollup(expressRoll),
+        undiffFee: deliveryRoll.undiff,
         hasDelivery: true,
         hasExpress: true,
         mixCompare: mixCompare,
@@ -1753,23 +1754,44 @@
     return { base: moneyRound(base), extra: moneyRound(extra), total: moneyRound(base + extra) };
   }
 
-  function mixLayerGroups(cmp, layer) {
-    if (!cmp) return [];
-    return [
-      cmp.weight && cmp.weight[layer],
-      cmp.amount && cmp.amount[layer],
-      cmp.qty && cmp.qty[layer]
-    ];
+  function quoteSchemeOf(quote) {
+    if (!quote) return '';
+    return (
+      (quote.ambient && quote.ambient.feeScheme) ||
+      (quote.cold && quote.cold.feeScheme) ||
+      (quote.ambient && quote.ambient.breakdown && quote.ambient.breakdown.scheme) ||
+      (quote.cold && quote.cold.breakdown && quote.cold.breakdown.scheme) ||
+      quote.feeScheme ||
+      ''
+    );
+  }
+
+  function isUndiffFeeScheme(scheme) {
+    return scheme === '金额计费' || scheme === '按件计费';
+  }
+
+  function pickUndiffGroup(quote) {
+    if (!quote) return null;
+    if (quote.ambient && quote.ambient.breakdown) return quote.ambient;
+    if (quote.cold && quote.cold.breakdown) return quote.cold;
+    if (quote.ambient && !quote.ambient.empty && quote.ambient.amount > 0) return quote.ambient;
+    if (quote.cold && !quote.cold.empty && quote.cold.amount > 0) return quote.cold;
+    return null;
   }
 
   function mixLaneRollup(cmp) {
-    var ambient = sumSchemeGroups(mixLayerGroups(cmp, 'ambient'));
-    var cold = sumSchemeGroups(mixLayerGroups(cmp, 'cold'));
+    var weightA = schemeParts(cmp && cmp.weight && cmp.weight.ambient);
+    var weightC = schemeParts(cmp && cmp.weight && cmp.weight.cold);
+    var amount = schemeParts(pickUndiffGroup(cmp && cmp.amount));
+    var qty = schemeParts(pickUndiffGroup(cmp && cmp.qty));
     return {
-      ambient: ambient.base,
-      cold: cold.base,
-      service: moneyRound(ambient.extra + cold.extra),
-      total: moneyRound(ambient.total + cold.total)
+      ambient: weightA.base,
+      cold: weightC.base,
+      amount: amount.base,
+      qty: qty.base,
+      undiff: moneyRound(amount.base + qty.base),
+      service: moneyRound(weightA.extra + weightC.extra + amount.extra + qty.extra),
+      total: moneyRound(weightA.total + weightC.total + amount.total + qty.total)
     };
   }
 
@@ -1777,8 +1799,12 @@
     return {
       ambient: { amount: roll.ambient, empty: !(roll.ambient > 0) },
       cold: { amount: roll.cold, empty: !(roll.cold > 0) },
+      amount: roll.amount,
+      qty: roll.qty,
+      undiff: roll.undiff,
       serviceTotal: roll.service,
-      total: roll.total
+      total: roll.total,
+      feeScheme: '混合计费'
     };
   }
 
@@ -1864,9 +1890,9 @@
     );
   }
 
-  function renderGroupExtraBlock(group) {
+  function renderGroupExtraBlock(group, showUpstairs) {
     var extras = ((group && group.extras) || []).filter(function (line) {
-      return line && line.selected;
+      return line && line.selected && (showUpstairs || line.key !== 'upstairs');
     });
     if (!extras.length) return '';
     var rows = extras
@@ -1888,69 +1914,76 @@
       .join('');
     return (
       '<div class="ua-co-fd-extra">' +
-      '<div class="ua-co-fd-extra__title">增值服务 / 上楼</div>' +
+      '<div class="ua-co-fd-extra__title">' +
+      (showUpstairs ? '增值服务 / 上楼' : '增值服务') +
+      '</div>' +
       rows +
       '</div>'
     );
   }
 
-  function renderSchemeBlock(group) {
-    if (!group || group.empty || (!group.breakdown && !(group.extras || []).length)) return '';
+  function groupHint(group) {
+    if (!group || group.empty) return '本单无此温层商品';
+    var bits = [];
+    if (group.itemCount) bits.push(group.itemCount + '件');
+    if (group.goodsAmount) bits.push('货款' + formatMoney(group.goodsAmount));
+    if (group.carrier) bits.push(group.carrier);
+    if (group.level) bits.push('命中' + group.level);
+    return group.miss || bits.join(' · ');
+  }
+
+  function renderTypeBlock(group, typeName, showUpstairs) {
     var part = schemeParts(group);
     return (
-      '<div class="ua-co-fd-scheme">' +
-      '<div class="ua-co-fd-scheme__title"><span>' +
-      groupSchemeName(group) +
-      '</span><strong>' +
+      '<div class="ua-co-fd-type">' +
+      '<div class="ua-co-fd-type__head">' +
+      '<div class="ua-co-fd-type__main"><span class="ua-co-fd-type__name">' +
+      typeName +
+      '</span><span class="ua-co-fd-type__sub">' +
+      groupHint(group) +
+      '</span></div><strong>' +
       formatMoney(part.total) +
       '</strong></div>' +
-      renderFreightBreakdownLines(group) +
-      renderGroupExtraBlock(group) +
+      (group && !group.empty ? renderFreightBreakdownLines(group) + renderGroupExtraBlock(group, showUpstairs) : '') +
       '</div>'
     );
   }
 
-  function renderLayerPackage(group, title, moreGroups) {
-    var schemes = [group].concat(moreGroups || []).filter(function (item) {
-      return item && !item.empty;
-    });
-    if (!schemes.length) {
-      return (
-        '<div class="ua-co-fd-pkg">' +
-        '<div class="ua-co-fd-pkg__head">' +
-        '<div class="ua-co-fd-pkg__main"><span class="ua-co-fd-pkg__name">' +
-        title +
-        '</span><span class="ua-co-fd-pkg__sub">本单无此温层商品</span></div>' +
-        '<span class="ua-co-fd-pkg__fee">' +
-        formatMoney(0) +
-        '</span></div></div>'
-      );
+  function renderSchemeCard(title, groups, showUpstairs, splitTypes) {
+    var list = (groups || []).filter(Boolean);
+    var fee = sumSchemeGroups(
+      list.map(function (item) {
+        return item.group || item;
+      })
+    ).total;
+    var body = '';
+    if (splitTypes) {
+      body = list
+        .map(function (item) {
+          return renderTypeBlock(item.group, item.name, showUpstairs);
+        })
+        .join('');
+    } else {
+      var group = list[0] && (list[0].group || list[0]);
+      if (group && !group.empty) {
+        body = renderFreightBreakdownLines(group) + renderGroupExtraBlock(group, showUpstairs);
+      }
     }
-    var primary = schemes[0];
-    var bits = [];
-    if (primary.itemCount) bits.push(primary.itemCount + '件');
-    if (primary.goodsAmount) bits.push('货款' + formatMoney(primary.goodsAmount));
-    if (primary.carrier) bits.push(primary.carrier);
-    if (primary.level) bits.push('命中' + primary.level);
-    var pkgFee = sumSchemeGroups(schemes).total;
-    var body = schemes.map(renderSchemeBlock).join('');
     return (
       '<div class="ua-co-fd-pkg">' +
       '<div class="ua-co-fd-pkg__head">' +
       '<div class="ua-co-fd-pkg__main"><span class="ua-co-fd-pkg__name">' +
       title +
-      '</span><span class="ua-co-fd-pkg__sub">' +
-      (primary.miss || bits.join(' · ')) +
       '</span></div>' +
       '<span class="ua-co-fd-pkg__fee">' +
-      formatMoney(pkgFee) +
+      formatMoney(fee) +
       '</span></div>' +
       body +
       '</div>'
     );
   }
 
-  function renderFulfillLane(title, quote, mixCmp, preview, freeText) {
+  function renderFulfillLane(title, quote, mixCmp, preview, freeText, showUpstairs) {
     var html =
       '<div class="ua-co-fd-lane">' +
       '<div class="ua-co-fd-lane__title">' +
@@ -1964,46 +1997,75 @@
         '</span></div><span class="ua-co-fd-pkg__fee">免运费</span></div></div></div>';
       return html;
     }
-    var ambient = quote && quote.ambient;
-    var cold = quote && quote.cold;
-    var moreA = null;
-    var moreC = null;
     if (mixCmp) {
-      ambient = mixCmp.weight && mixCmp.weight.ambient;
-      cold = mixCmp.weight && mixCmp.weight.cold;
-      moreA = [mixCmp.amount && mixCmp.amount.ambient, mixCmp.qty && mixCmp.qty.ambient];
-      moreC = [mixCmp.amount && mixCmp.amount.cold, mixCmp.qty && mixCmp.qty.cold];
+      html += renderSchemeCard(
+        '按重量',
+        [
+          { name: '常温', group: mixCmp.weight && mixCmp.weight.ambient },
+          { name: '冷链', group: mixCmp.weight && mixCmp.weight.cold }
+        ],
+        showUpstairs,
+        true
+      );
+      html += renderSchemeCard('按订单金额', [pickUndiffGroup(mixCmp.amount)], showUpstairs, false);
+      html += renderSchemeCard('按件', [pickUndiffGroup(mixCmp.qty)], showUpstairs, false);
+      html += '</div>';
+      return html;
     }
-    html += renderLayerPackage(ambient, '常温包裹', moreA);
-    html += renderLayerPackage(cold, '冷链包裹', moreC);
+    if (isUndiffFeeScheme(quoteSchemeOf(quote))) {
+      html += renderSchemeCard(groupSchemeName(pickUndiffGroup(quote)), [pickUndiffGroup(quote)], showUpstairs, false);
+      html += '</div>';
+      return html;
+    }
+    html += renderSchemeCard(
+      '按重量',
+      [
+        { name: '常温', group: quote && quote.ambient },
+        { name: '冷链', group: quote && quote.cold }
+      ],
+      showUpstairs,
+      true
+    );
     html += '</div>';
     return html;
   }
 
+  function renderSubRow(name, amount) {
+    return (
+      '<div class="ua-co-freight-detail__sub"><span>' +
+      name +
+      '</span><span>' +
+      formatMoney(amount) +
+      '</span></div>'
+    );
+  }
+
   function renderFulfillTotals(label, fee, quote, showUpstairs) {
-    var ambient = groupLayerFee(quote, 'ambient');
-    var cold = groupLayerFee(quote, 'cold');
     var extra = quote ? Number(quote.serviceTotal) || 0 : 0;
+    var extraLabel = showUpstairs ? '增值 / 上楼' : '增值服务';
     var html =
       '<div class="ua-co-freight-detail__total"><span>' +
       label +
       '</span><strong>' +
       (fee > 0 ? formatMoney(fee) : '免运费') +
       '</strong></div>';
-    if (!(fee > 0) && !quote) return html;
-    html +=
-      '<div class="ua-co-freight-detail__subs">' +
-      '<div class="ua-co-freight-detail__sub"><span>常温基础运费</span><span>' +
-      formatMoney(ambient) +
-      '</span></div>' +
-      '<div class="ua-co-freight-detail__sub"><span>冷链基础运费</span><span>' +
-      formatMoney(cold) +
-      '</span></div>' +
-      '<div class="ua-co-freight-detail__sub"><span>' +
-      (showUpstairs ? '增值 / 上楼' : '增值服务') +
-      '</span><span>' +
-      formatMoney(extra) +
-      '</span></div></div>';
+    if (!(fee > 0)) return html;
+    var rows = '';
+    if (quote && quote.feeScheme === '混合计费') {
+      rows += renderSubRow('常温基础运费', groupLayerFee(quote, 'ambient'));
+      rows += renderSubRow('冷链基础运费', groupLayerFee(quote, 'cold'));
+      rows += renderSubRow('金额基础运费', quote.amount || 0);
+      rows += renderSubRow('按件基础运费', quote.qty || 0);
+      rows += renderSubRow(extraLabel, extra);
+    } else if (isUndiffFeeScheme(quoteSchemeOf(quote))) {
+      rows += renderSubRow('基础运费', schemeParts(pickUndiffGroup(quote)).base);
+      rows += renderSubRow(extraLabel, extra);
+    } else {
+      rows += renderSubRow('常温基础运费', groupLayerFee(quote, 'ambient'));
+      rows += renderSubRow('冷链基础运费', groupLayerFee(quote, 'cold'));
+      rows += renderSubRow(extraLabel, extra);
+    }
+    html += '<div class="ua-co-freight-detail__subs">' + rows + '</div>';
     return html;
   }
 
@@ -2025,7 +2087,7 @@
     }
     var body = '';
     if (info.hasDelivery) {
-      body += renderFulfillLane('配送费', quote, mix && mix.delivery, mix && mix.deliveryPreview);
+      body += renderFulfillLane('配送费', quote, mix && mix.delivery, mix && mix.deliveryPreview, '', true);
     }
     if (info.hasExpress) {
       var expressFree = !(expressQuote && !expressQuote.freeShip && expressFee > 0) && !mix;
@@ -2034,7 +2096,8 @@
         expressQuote,
         mix && mix.express,
         mix && mix.expressPreview,
-        expressFree ? '按包邮配置不收取' : ''
+        expressFree ? '按包邮配置不收取' : '',
+        false
       );
     }
     el.innerHTML =

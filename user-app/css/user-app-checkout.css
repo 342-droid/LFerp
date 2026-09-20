@@ -1370,7 +1370,8 @@
   color: #333;
 }
 
-.ua-co-fd-scheme {
+.ua-co-fd-scheme,
+.ua-co-fd-type {
   margin: 8px 0 0 10px;
   padding: 8px 10px;
   border-left: 2px solid #ffd2b0;
@@ -1378,24 +1379,46 @@
   border-radius: 0 8px 8px 0;
 }
 
-.ua-co-fd-scheme__title {
+.ua-co-fd-scheme__title,
+.ua-co-fd-type__head {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
   margin: 0 0 6px;
+}
+
+.ua-co-fd-scheme__title {
   font-size: 12px;
   font-weight: 700;
   color: #c45a10;
 }
 
-.ua-co-fd-scheme__title strong {
+.ua-co-fd-scheme__title strong,
+.ua-co-fd-type__head strong {
+  flex-shrink: 0;
   font-size: 13px;
   font-weight: 700;
   color: #333;
 }
 
-.ua-co-fd-scheme .ua-co-freight-detail__calc {
+.ua-co-fd-type__name {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #c45a10;
+}
+
+.ua-co-fd-type__sub {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  color: #999;
+}
+
+.ua-co-fd-scheme .ua-co-freight-detail__calc,
+.ua-co-fd-type .ua-co-freight-detail__calc,
+.ua-co-fd-pkg > .ua-co-freight-detail__calc {
   margin: 0;
   padding: 0;
   background: transparent;

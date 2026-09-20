@@ -1329,6 +1329,16 @@
     return copy;
   }
 
+  function isWholeOrderScheme(scheme) {
+    return scheme === FEE_SCHEME_AMOUNT || scheme === FEE_SCHEME_QTY;
+  }
+
+  function logisticsTypeHit(rate, logisticsType) {
+    if (!logisticsType || !rate.logisticsType) return true;
+    if (rate.logisticsType === logisticsType) return true;
+    return rate.logisticsType === '不区分' && isWholeOrderScheme(rate.feeScheme);
+  }
+
   /**
    * 同路线同物流类型只启用一家。取目的地粒度最高的一条启用费率（区 > 市 > 省 > 全国）。
    * originKey 有值时还要卡始发仓。
@@ -1345,7 +1355,7 @@
       var rate = list[i];
       if (rate.enabled === false) continue;
       if (!channelHit(rate, channel)) continue;
-      if (logisticsType && rate.logisticsType && rate.logisticsType !== logisticsType) continue;
+      if (!logisticsTypeHit(rate, logisticsType)) continue;
       if (!originHit(rate, originKey)) continue;
       var score = matchScore(rate, dest);
       if (!score) continue;
@@ -1708,7 +1718,23 @@
   }
 
   function applyOrderServices(ambient, cold, opts, payable) {
-    var extras = buildGroupExtras(ambient, opts, payable).concat(buildGroupExtras(cold, opts, payable));
+    var scheme = (ambient && ambient.feeScheme) || (cold && cold.feeScheme);
+    var extras;
+    if (isWholeOrderScheme(scheme)) {
+      var target = ambient && ambient.breakdown ? ambient : cold && cold.breakdown ? cold : ambient && !ambient.empty ? ambient : cold;
+      var other = target === ambient ? cold : ambient;
+      if (target) {
+        target.weight = roundKg(((ambient && ambient.weight) || 0) + ((cold && cold.weight) || 0));
+        target.logisticsType = '不区分';
+      }
+      extras = buildGroupExtras(target, opts, payable);
+      if (other) {
+        other.extras = [];
+        other.serviceTotal = 0;
+      }
+    } else {
+      extras = buildGroupExtras(ambient, opts, payable).concat(buildGroupExtras(cold, opts, payable));
+    }
     var upOpts = (opts && opts.upstairs) || {};
     var totalWeight = roundKg(((ambient && ambient.weight) || 0) + ((cold && cold.weight) || 0));
     var summary = emptyServiceSummary();
@@ -1766,55 +1792,49 @@
     var payable = opts.payable != null
       ? toNum(opts.payable)
       : items.reduce(function (sum, item) { return sum + item.amount; }, 0);
-    if (getDemoFeeScheme() === FEE_SCHEME_AMOUNT) {
-      var amountRate = adaptRateForDemo((ambient && ambient.rate) || (cold && cold.rate));
-      var amountBd = explainAmountFee(amountRate, payable);
-      var target = ambient && !ambient.empty ? ambient : cold;
-      var other = target === ambient ? cold : ambient;
-      if (target && !target.empty) {
+
+    function collapseWholeOrderQuote(left, right, orderPayable, orderItems) {
+      var scheme = getDemoFeeScheme();
+      if (scheme === FEE_SCHEME_MIX) scheme = '';
+      if (!isWholeOrderScheme(scheme)) {
+        scheme = (left && left.feeScheme) || (right && right.feeScheme) || '';
+      }
+      if (!isWholeOrderScheme(scheme)) return;
+      var rate = adaptRateForDemo((left && left.rate) || (right && right.rate));
+      var target = left && !left.empty ? left : right;
+      var other = target === left ? right : left;
+      if (!target || target.empty) return;
+      if (scheme === FEE_SCHEME_AMOUNT) {
+        var amountBd = explainAmountFee(rate, orderPayable);
         target.feeScheme = FEE_SCHEME_AMOUNT;
         target.breakdown = amountBd;
         target.amount = amountBd.amount;
         target.baseAmount = amountBd.amount;
         target.goodsAmount = amountBd.goodsAmount;
+        target.logisticsType = '不区分';
         target.text = formatMoney(amountBd.amount);
+      } else {
+        var orderQty = (orderItems || []).reduce(function (sum, item) {
+          return sum + (item.qty || 0);
+        }, 0);
+        var qtyBd = explainQtyFee(rate, orderQty);
+        target.feeScheme = FEE_SCHEME_QTY;
+        target.breakdown = qtyBd;
+        target.amount = qtyBd.amount;
+        target.baseAmount = qtyBd.amount;
+        target.itemCount = qtyBd.qty;
+        target.logisticsType = '不区分';
+        target.text = formatMoney(qtyBd.amount);
       }
       if (other && !other.empty) {
-        other.feeScheme = FEE_SCHEME_AMOUNT;
+        other.feeScheme = scheme;
         other.breakdown = null;
         other.amount = 0;
         other.baseAmount = 0;
         other.text = formatMoney(0);
       }
     }
-    if (
-      getDemoFeeScheme() === FEE_SCHEME_QTY ||
-      (ambient && ambient.feeScheme === FEE_SCHEME_QTY) ||
-      (cold && cold.feeScheme === FEE_SCHEME_QTY)
-    ) {
-      var qtyRate = adaptRateForDemo((ambient && ambient.rate) || (cold && cold.rate));
-      var orderQty = items.reduce(function (sum, item) {
-        return sum + (item.qty || 0);
-      }, 0);
-      var qtyBd = explainQtyFee(qtyRate, orderQty);
-      var qtyTarget = ambient && !ambient.empty ? ambient : cold;
-      var qtyOther = qtyTarget === ambient ? cold : ambient;
-      if (qtyTarget && !qtyTarget.empty) {
-        qtyTarget.feeScheme = FEE_SCHEME_QTY;
-        qtyTarget.breakdown = qtyBd;
-        qtyTarget.amount = qtyBd.amount;
-        qtyTarget.baseAmount = qtyBd.amount;
-        qtyTarget.itemCount = qtyBd.qty;
-        qtyTarget.text = formatMoney(qtyBd.amount);
-      }
-      if (qtyOther && !qtyOther.empty) {
-        qtyOther.feeScheme = FEE_SCHEME_QTY;
-        qtyOther.breakdown = null;
-        qtyOther.amount = 0;
-        qtyOther.baseAmount = 0;
-        qtyOther.text = formatMoney(0);
-      }
-    }
+    collapseWholeOrderQuote(ambient, cold, payable, items);
     var applied = applyOrderServices(ambient, cold, opts, payable);
     var baseTotal = roundMoney((ambient.amount || 0) + (cold.amount || 0));
     var total = roundMoney(baseTotal + applied.serviceTotal);
@@ -2204,7 +2224,7 @@
       '<div class="ua-freight-explain__section">' +
       '<h4 class="ua-freight-explain__title">1. 配送费与快递费</h4>' +
       '<p class="ua-freight-explain__p"><strong>平台配送</strong>按包邮配置收取配送费。<strong>快递</strong>关闭包邮后与配送一样按费率计费，开启则免运费。</p>' +
-      '<p class="ua-freight-explain__p">同一订单中，<strong>常温、冷链分别计费</strong>后计入对应履约的运费。</p>' +
+      '<p class="ua-freight-explain__p"><strong>重量计费</strong>时，同一订单中常温、冷链分别计费。<strong>金额计费、按件计费</strong>整单只计一次，物流类型为不区分，不拆常温/冷链。</p>' +
       '</div>' +
 
       '<div class="ua-freight-explain__section">' +
