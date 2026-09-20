@@ -1,0 +1,1747 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 分拣任务（列表式）</title>
+    <link rel="stylesheet" href="../css/mobile-components.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .mobile-container {
+            width: 393px;
+            height: 851px;
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .header {
+            padding: 16px 20px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .back-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 20px;
+            color: #333333;
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333333;
+            flex: 1;
+            text-align: center;
+            margin-right: 32px;
+        }
+
+        .page {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .page.active {
+            display: flex;
+        }
+
+        .mode-content {
+            flex: 1;
+            padding: 36px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f5f5f5;
+        }
+
+        .mode-title {
+            font-size: 18px;
+            color: #333333;
+            margin-bottom: 8px;
+        }
+
+        .mode-hint {
+            font-size: 13px;
+            color: #999999;
+            margin-bottom: 28px;
+        }
+
+        .mode-buttons {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .mode-btn {
+            width: 100%;
+            text-align: left;
+            padding: 16px 18px;
+            border: 1px solid #2196f3;
+            border-radius: 10px;
+            background-color: #ffffff;
+            cursor: pointer;
+        }
+
+        .mode-btn:active {
+            background-color: #e3f2fd;
+        }
+
+        .mode-btn-title {
+            display: block;
+            font-size: 16px;
+            font-weight: 600;
+            color: #2196f3;
+            margin-bottom: 4px;
+        }
+
+        .mode-btn-desc {
+            display: block;
+            font-size: 13px;
+            color: #888888;
+            line-height: 1.4;
+        }
+
+        .list-content,
+        .execute-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            background-color: #f3f5f8;
+        }
+
+        .search-section {
+            background-color: #ffffff;
+            padding: 12px 16px;
+            border-bottom: 1px solid #eaeaea;
+            flex-shrink: 0;
+        }
+
+        .tabs {
+            display: flex;
+            background-color: #ffffff;
+            border-bottom: 1px solid #eaeaea;
+            flex-shrink: 0;
+        }
+
+        .tab-btn {
+            flex: 1;
+            border: none;
+            background: #ffffff;
+            color: #666666;
+            font-size: 14px;
+            height: 44px;
+            cursor: pointer;
+        }
+
+        .tab-btn.active {
+            color: #2196f3;
+            border-bottom: 2px solid #2196f3;
+            font-weight: 500;
+        }
+
+        .list-wrapper,
+        .execute-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .agg-card,
+        .exec-row,
+        .store-group {
+            background-color: #ffffff;
+            border: 1px solid #e6e6e6;
+            border-radius: 10px;
+            padding: 14px 12px;
+            margin-bottom: 12px;
+        }
+
+        .agg-card {
+            cursor: pointer;
+        }
+
+        .agg-card:active {
+            background-color: #f0f2f5;
+        }
+
+        .agg-card.is-done {
+            cursor: default;
+        }
+
+        .agg-card.is-done:active {
+            background-color: #ffffff;
+        }
+
+        .product-title-with-image {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .product-card-media {
+            flex-shrink: 0;
+            line-height: 0;
+        }
+
+        .product-card-media--clickable {
+            cursor: pointer;
+        }
+
+        .product-card-media--clickable:active {
+            opacity: 0.85;
+        }
+
+        .product-card-image {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 1px solid #e0e0e0;
+            background-color: #eeeeee;
+        }
+
+        .product-card-image--placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            line-height: 1.1;
+            color: #aaaaaa;
+            background-color: #f0f0f0;
+            text-align: center;
+        }
+
+        .agg-header,
+        .exec-row-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .agg-title,
+        .exec-row-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333333;
+            line-height: 1.4;
+            word-break: break-all;
+        }
+
+        .status-tag {
+            flex-shrink: 0;
+            font-size: 12px;
+            padding: 3px 10px;
+            border-radius: 12px;
+        }
+
+        .status-wait {
+            background-color: #fff4e5;
+            color: #ff8f1f;
+        }
+
+        .status-mine {
+            background-color: #e3f2fd;
+            color: #1e88e5;
+        }
+
+        .status-done {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status-exception {
+            background-color: #fdecea;
+            color: #d32f2f;
+        }
+
+        .info-line {
+            display: flex;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .info-label {
+            width: 88px;
+            color: #777777;
+            flex-shrink: 0;
+        }
+
+        .info-value {
+            color: #333333;
+            word-break: break-all;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 60px 12px;
+            color: #999999;
+            font-size: 14px;
+        }
+
+        .execute-summary {
+            margin: 12px 12px 0;
+            background-color: #ffffff;
+            border: 1px solid #e3e6ea;
+            border-radius: 10px;
+            padding: 12px;
+            flex-shrink: 0;
+        }
+
+        .execute-summary-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #111111;
+            margin-bottom: 8px;
+            word-break: break-all;
+        }
+
+        .execute-summary-name-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .execute-summary-name-row .execute-summary-name {
+            flex: 1;
+            min-width: 0;
+            margin-bottom: 0;
+        }
+
+        .execute-progress {
+            margin: 12px 0 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .execute-progress-track {
+            width: 100%;
+            height: 22px;
+            border-radius: 11px;
+            border: 1px solid #8ec7e2;
+            background-color: #edf7fd;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .execute-progress-fill {
+            height: 100%;
+            background-color: #9fd7ef;
+            width: 0;
+        }
+
+        .execute-progress-text {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+            color: #2a8fce;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .execute-scan {
+            padding: 12px 12px 0;
+            flex-shrink: 0;
+        }
+
+        .store-group {
+            padding: 10px 10px 4px;
+        }
+
+        .store-group.is-locked {
+            border-color: #8ec7e2;
+            box-shadow: 0 0 0 1px #cfeaf8;
+        }
+
+        .store-group-head {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333333;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eef0f3;
+        }
+
+        .store-group .exec-row {
+            margin-bottom: 8px;
+            border-radius: 8px;
+        }
+
+        .exec-row {
+            cursor: pointer;
+        }
+
+        .exec-row.is-active {
+            border-color: #2196f3;
+            background-color: #f3f9ff;
+        }
+
+        .exec-row.is-located {
+            border-color: #2196f3;
+            box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.28);
+            animation: exec-locate-flash 0.9s ease 1;
+        }
+
+        .exec-row.is-located.is-done,
+        .exec-row.is-located.is-exception {
+            opacity: 1;
+        }
+
+        @keyframes exec-locate-flash {
+            0% { background-color: #dceeff; }
+            100% { background-color: #f3f9ff; }
+        }
+
+        .exec-row.is-done,
+        .exec-row.is-exception {
+            cursor: default;
+            opacity: 0.72;
+        }
+
+        .exec-qty-line {
+            align-items: center;
+            margin-top: 8px;
+        }
+
+        .exec-qty-line .info-value {
+            flex: 1;
+        }
+
+        .exec-qty-wrap {
+            position: relative;
+            display: block;
+            width: 100%;
+        }
+
+        .exec-qty-input {
+            width: 100%;
+            height: 36px;
+            padding: 0 36px 0 10px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #333333;
+            outline: none;
+            background-color: #ffffff;
+        }
+
+        .exec-row.is-active .exec-qty-input {
+            border-color: #2196f3;
+        }
+
+        .exec-qty-unit {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666666;
+            font-size: 13px;
+            pointer-events: none;
+        }
+
+        .exec-complete-btn {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px 16px;
+            font-size: 15px;
+            border: none;
+            border-radius: 8px;
+            background-color: #2196f3;
+            color: #ffffff;
+            cursor: pointer;
+        }
+
+        .exec-complete-btn:active {
+            opacity: 0.9;
+        }
+
+        .sort-complete-page {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #ffffff;
+        }
+
+        .sort-complete-topbar {
+            background-color: #1e90ff;
+            color: #ffffff;
+            font-size: 17px;
+            font-weight: 600;
+            text-align: center;
+            padding: 14px 12px;
+        }
+
+        .sort-complete-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 22px 24px 16px;
+        }
+
+        .sort-complete-icon {
+            width: 86px;
+            height: 86px;
+            border-radius: 50%;
+            background-color: #e8f6ff;
+            border: 1px solid #c9ecff;
+            color: #1e90ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            margin-bottom: 14px;
+        }
+
+        .sort-complete-title {
+            font-size: 24px;
+            color: #333333;
+        }
+
+        .sort-complete-action {
+            padding: 14px 12px 18px;
+        }
+
+        .sort-complete-btn {
+            width: 100%;
+            border: none;
+            border-radius: 2px;
+            background-color: #00a2ff;
+            color: #ffffff;
+            font-size: 20px;
+            padding: 12px 10px;
+            cursor: pointer;
+        }
+
+        .shortage-modal {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.35);
+            z-index: 30;
+            padding: 20px;
+        }
+
+        .shortage-modal.active {
+            display: flex;
+        }
+
+        .shortage-modal-card {
+            width: 100%;
+            max-width: 320px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 18px 16px 14px;
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+        }
+
+        .shortage-modal-message {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #333333;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .shortage-modal-input {
+            width: 100%;
+            padding: 12px 14px;
+            font-size: 15px;
+            border-radius: 4px;
+            margin-bottom: 14px;
+            border: 1px solid #7ec8e8;
+            text-align: center;
+        }
+
+        .shortage-modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .shortage-modal-btn {
+            flex: 1;
+            border: 1px solid #d0d0d0;
+            border-radius: 8px;
+            background-color: #ffffff;
+            color: #555555;
+            font-size: 15px;
+            padding: 10px 0;
+            cursor: pointer;
+        }
+
+        .shortage-modal-btn--confirm {
+            border-color: #2196f3;
+            background-color: #2196f3;
+            color: #ffffff;
+        }
+
+        .global-toast {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            max-width: calc(100% - 32px);
+            padding: 10px 14px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #ffffff;
+            font-size: 14px;
+            line-height: 1.5;
+            text-align: center;
+            z-index: 60;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .global-toast.active {
+            opacity: 1;
+        }
+
+        .image-preview-modal {
+            position: absolute;
+            inset: 0;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.88);
+            z-index: 50;
+            padding: 24px 16px;
+        }
+
+        .image-preview-modal.active {
+            display: flex;
+        }
+
+        .image-preview-modal-title {
+            flex-shrink: 0;
+            margin-bottom: 16px;
+            font-size: 15px;
+            color: #ffffff;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .image-preview-modal-image {
+            flex: 1;
+            width: 100%;
+            max-height: calc(100% - 72px);
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .image-preview-modal-close {
+            flex-shrink: 0;
+            margin-top: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 8px;
+            background: transparent;
+            color: #ffffff;
+            font-size: 15px;
+            padding: 10px 28px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <div class="header" id="pageHeader">
+            <div class="back-btn" id="backBtn">←</div>
+            <div class="header-title" id="headerTitle">分拣任务</div>
+        </div>
+
+        <div class="page active" id="modePage">
+            <div class="mode-content">
+                <div class="mode-title">请选择分拣方式</div>
+                <div class="mode-hint">按商品、门店或线路领取待分拣任务</div>
+                <div class="mode-buttons">
+                    <button type="button" class="mode-btn" data-mode="sku">
+                        <span class="mode-btn-title">按商品分拣</span>
+                        <span class="mode-btn-desc">同一商品投到各门店储位</span>
+                    </button>
+                    <button type="button" class="mode-btn" data-mode="store">
+                        <span class="mode-btn-title">按门店分拣</span>
+                        <span class="mode-btn-desc">站在一个门店格，投完该店商品</span>
+                    </button>
+                    <button type="button" class="mode-btn" data-mode="route">
+                        <span class="mode-btn-title">按线路分拣</span>
+                        <span class="mode-btn-desc">按线路清场，执行列表按门店分组</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="listPage">
+            <div class="list-content">
+                <div class="search-section">
+                    <div id="listSearchInputContainer"></div>
+                </div>
+                <div class="tabs">
+                    <button type="button" class="tab-btn active" data-tab="未完成">未完成</button>
+                    <button type="button" class="tab-btn" data-tab="已完成">已完成</button>
+                </div>
+                <div class="list-wrapper" id="listWrapper"></div>
+            </div>
+        </div>
+
+        <div class="page" id="executePage">
+            <div class="execute-content">
+                <div class="execute-summary" id="executeSummary"></div>
+                <div class="execute-scan">
+                    <div id="executeScanInputContainer"></div>
+                </div>
+                <div class="execute-list" id="executeList"></div>
+            </div>
+        </div>
+
+        <div class="page" id="completePage">
+            <div class="sort-complete-page">
+                <div class="sort-complete-topbar">分拣完成</div>
+                <div class="sort-complete-body">
+                    <div class="sort-complete-icon">✓</div>
+                    <div class="sort-complete-title">分拣完成</div>
+                </div>
+                <div class="sort-complete-action">
+                    <button type="button" class="sort-complete-btn" id="completeOkBtn">确定</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="shortage-modal" id="shortageQtyModal">
+            <div class="shortage-modal-card">
+                <div class="shortage-modal-message">请输入实际分拣数量</div>
+                <input type="number" class="shortage-modal-input" id="shortageSortedQtyInput" placeholder="请输入实际分拣数量" autocomplete="off" min="0" step="1">
+                <div class="shortage-modal-actions">
+                    <button type="button" class="shortage-modal-btn" id="shortageQtyCancelBtn">取消</button>
+                    <button type="button" class="shortage-modal-btn shortage-modal-btn--confirm" id="shortageQtyOkBtn">确认</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="shortage-modal" id="shortageConfirmModal">
+            <div class="shortage-modal-card">
+                <div class="shortage-modal-message">任务异常登记后将触发异常处理，请确认是否登记</div>
+                <div class="shortage-modal-actions">
+                    <button type="button" class="shortage-modal-btn" id="shortageConfirmCancelBtn">取消</button>
+                    <button type="button" class="shortage-modal-btn shortage-modal-btn--confirm" id="shortageConfirmOkBtn">确认</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="global-toast" id="globalToast"></div>
+        <div class="image-preview-modal" id="productImagePreviewModal">
+            <div class="image-preview-modal-title" id="productImagePreviewTitle"></div>
+            <img class="image-preview-modal-image" id="productImagePreviewImg" alt="">
+            <button type="button" class="image-preview-modal-close" id="productImagePreviewCloseBtn">关闭</button>
+        </div>
+    </div>
+
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/mobile-components.js"></script>
+    <script>
+        const CURRENT_USER = '张三';
+        const SKU_IMAGES = {
+            SKU1001: '../user-app/assets/order-product-1.svg',
+            SKU1002: '../user-app/assets/order-product-2.svg',
+            SKU1003: '../user-app/assets/order-product-3.svg',
+            SKU2001: '../user-app/assets/order-product-4.svg',
+            SKU9001: '../user-app/assets/order-product-2.svg',
+            SKU9002: '../user-app/assets/order-product-1.svg'
+        };
+        const LOCATION_NAMES = {
+            A01: '南京水果市场店分拣位',
+            A02: '南京新街口店分拣位',
+            B01: '杭州下沙店分拣位',
+            B02: '苏州园区店分拣位',
+            C01: '上海浦东店分拣位',
+            C02: '上海徐汇店分拣位'
+        };
+        const MODE_META = {
+            sku: {
+                title: '按商品分拣',
+                searchPlaceholder: '商品编码/条码/名称',
+                scanPlaceholder: '门店编码/门店名称/储位编码'
+            },
+            store: {
+                title: '按门店分拣',
+                searchPlaceholder: '门店编码/库位编码',
+                scanPlaceholder: '商品编码/条码/名称'
+            },
+            route: {
+                title: '按线路分拣',
+                searchPlaceholder: '线路编码/名称',
+                scanPlaceholder: '商品编码/条码/名称'
+            }
+        };
+
+        const headerTitle = document.getElementById('headerTitle');
+        const backBtn = document.getElementById('backBtn');
+        const pageHeader = document.getElementById('pageHeader');
+        const listWrapper = document.getElementById('listWrapper');
+        const executeSummary = document.getElementById('executeSummary');
+        const executeScanSection = document.querySelector('.execute-scan');
+        const executeList = document.getElementById('executeList');
+        const shortageQtyModal = document.getElementById('shortageQtyModal');
+        const shortageConfirmModal = document.getElementById('shortageConfirmModal');
+        const shortageSortedQtyInput = document.getElementById('shortageSortedQtyInput');
+        const globalToast = document.getElementById('globalToast');
+
+        const listSearchComponent = window.WMSMobileComponents
+            ? window.WMSMobileComponents.mountScanBarcodeInput({
+                container: 'listSearchInputContainer',
+                inputId: 'listSearchInput',
+                placeholder: '请扫描/输入'
+            })
+            : null;
+        const executeScanComponent = window.WMSMobileComponents
+            ? window.WMSMobileComponents.mountScanBarcodeInput({
+                container: 'executeScanInputContainer',
+                inputId: 'executeScanInput',
+                placeholder: '请扫描/输入'
+            })
+            : null;
+
+        const listSearchInput = listSearchComponent
+            ? listSearchComponent.input
+            : document.getElementById('listSearchInput');
+        const executeScanInput = executeScanComponent
+            ? executeScanComponent.input
+            : document.getElementById('executeScanInput');
+
+        let toastTimer = null;
+        let listTab = '未完成';
+        let currentMode = 'sku';
+        let currentClaim = null;
+        let selectedLineId = '';
+        let locatedLineId = '';
+        let scanLocationOk = false;
+        let scanSkuOk = false;
+        let routeStoreCode = '';
+        let shortageSortedQty = null;
+
+        const sortingLines = [
+            line('L01', 'SKU1001', '可口可乐600ml', '6901939651605', '600ml*24', '件', 12, 'ONS100001', '冷丰南京水果市场店', 'A01', 'NJ01', '南京1线', ''),
+            line('L02', 'SKU1001', '可口可乐600ml', '6901939651605', '600ml*24', '件', 8, 'ONS100002', '冷丰南京新街口店', 'A02', 'NJ01', '南京1线', ''),
+            line('L03', 'SKU1001', '可口可乐600ml', '6901939651605', '600ml*24', '件', 10, 'ONS100003', '冷丰杭州下沙店', 'B01', 'HN01', '沪宁线', ''),
+            line('L04', 'SKU1002', '香蕉（把）', '6912345678902', '约500g/把', '件', 12, 'ONS100001', '冷丰南京水果市场店', 'A01', 'NJ01', '南京1线', ''),
+            line('L05', 'SKU1002', '香蕉（把）', '6912345678902', '约500g/把', '件', 6, 'ONS100004', '冷丰苏州园区店', 'B02', 'HN01', '沪宁线', ''),
+            line('L06', 'SKU1003', '橙子500g', '6912345678903', '500g/袋', '件', 12, 'ONS100002', '冷丰南京新街口店', 'A02', 'NJ01', '南京1线', ''),
+            line('L07', 'SKU1003', '橙子500g', '6912345678903', '500g/袋', '件', 8, 'ONS100003', '冷丰杭州下沙店', 'B01', 'HN01', '沪宁线', ''),
+            line('L08', 'SKU2001', '三文鱼切片 500g', '6901001001001', '500g/盒', '盒', 5, 'ONS100001', '冷丰南京水果市场店', 'A01', 'NJ01', '南京1线', '李四'),
+            line('L09', 'SKU2001', '三文鱼切片 500g', '6901001001001', '500g/盒', '盒', 4, 'ONS100004', '冷丰苏州园区店', 'B02', 'HN01', '沪宁线', ''),
+            line('L10', 'SKU9001', '红富士苹果', '6923456789001', '5kg/箱', '件', 20, 'ONS100005', '冷丰上海浦东店', 'C01', 'SH01', '上海1线', '张三', true),
+            line('L11', 'SKU9001', '红富士苹果', '6923456789001', '5kg/箱', '件', 16, 'ONS100006', '冷丰上海徐汇店', 'C02', 'SH01', '上海1线', '张三', true),
+            line('L12', 'SKU9002', '纯牛奶250ml', '6923456789002', '250ml*24', '件', 10, 'ONS100005', '冷丰上海浦东店', 'C01', 'SH01', '上海1线', '张三', true)
+        ];
+
+        function line(id, skuCode, productName, barcode, spec, unit, expectedQty, storeCode, storeName, location, routeCode, routeName, claimedBy, closed) {
+            return {
+                id,
+                waveNo: 'WV19090576SORT01',
+                skuCode,
+                productName,
+                barcode,
+                spec,
+                unit,
+                expectedQty,
+                sortedQty: closed ? expectedQty : 0,
+                draftQty: String(expectedQty),
+                storeCode,
+                storeName,
+                location,
+                locationName: LOCATION_NAMES[location] || location,
+                routeCode,
+                routeName,
+                claimedBy: claimedBy || '',
+                closed: !!closed,
+                exception: false,
+                image: SKU_IMAGES[skuCode] || ''
+            };
+        }
+
+        function escapeHtml(value) {
+            return String(value == null ? '' : value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function renderProductImageHtml(item) {
+            const imageUrl = String((item && item.image) || '').trim();
+            const name = escapeHtml((item && item.productName) || '商品图片');
+            if (!imageUrl) {
+                return '<div class="product-card-image product-card-image--placeholder">暂无图片</div>';
+            }
+            return '<img class="product-card-image" src="' + escapeHtml(imageUrl) + '" alt="' + name + '">';
+        }
+
+        function renderProductMediaHtml(item) {
+            const url = String((item && item.image) || '').trim();
+            const name = (item && item.productName) || '';
+            return '<div class="product-card-media' + (url ? ' product-card-media--clickable' : '') + '" data-image-url="' + escapeHtml(url) + '" data-product-name="' + escapeHtml(name) + '">'
+                + renderProductImageHtml(item)
+                + '</div>';
+        }
+
+        function renderTitleWithProductImage(titleHtml, item) {
+            return '<div class="product-title-with-image">'
+                + renderProductMediaHtml(item)
+                + titleHtml
+                + '</div>';
+        }
+
+        function getLargeProductImageUrl(imageUrl) {
+            return String(imageUrl).replace(/\?w=\d+&h=\d+&fit=crop/, '?w=800&fit=crop');
+        }
+
+        function openProductImagePreview(imageUrl, productName) {
+            const url = String(imageUrl || '').trim();
+            if (!url) {
+                showToast('暂无图片');
+                return;
+            }
+            document.getElementById('productImagePreviewTitle').textContent = productName || '';
+            document.getElementById('productImagePreviewImg').src = getLargeProductImageUrl(url);
+            document.getElementById('productImagePreviewModal').classList.add('active');
+        }
+
+        function closeProductImagePreview() {
+            const modal = document.getElementById('productImagePreviewModal');
+            modal.classList.remove('active');
+            document.getElementById('productImagePreviewImg').src = '';
+        }
+
+        function bindProductImages(root) {
+            if (!root) return;
+            root.querySelectorAll('.product-card-image:not(.product-card-image--placeholder)').forEach((img) => {
+                img.addEventListener('error', function onImageError() {
+                    img.removeEventListener('error', onImageError);
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'product-card-image product-card-image--placeholder';
+                    placeholder.textContent = '暂无图片';
+                    img.replaceWith(placeholder);
+                    const media = placeholder.closest('.product-card-media');
+                    if (media) {
+                        media.classList.remove('product-card-media--clickable');
+                        delete media.dataset.imageUrl;
+                        delete media.dataset.productName;
+                    }
+                }, { once: true });
+            });
+            root.querySelectorAll('.product-card-media--clickable').forEach((media) => {
+                media.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    openProductImagePreview(media.dataset.imageUrl, media.dataset.productName);
+                });
+            });
+        }
+
+        function productBaseRows(item) {
+            return infoRow('商品编码', item.skuCode)
+                + infoRow('商品条码', item.barcode)
+                + infoRow('商品规格', item.spec || '-');
+        }
+
+        function remainingQty(item) {
+            if (item.closed) return 0;
+            return Math.max(0, Number(item.expectedQty || 0) - Number(item.sortedQty || 0));
+        }
+
+        function getDraftQty(item) {
+            if (item && item.draftQty != null && String(item.draftQty) !== '') {
+                return String(item.draftQty);
+            }
+            if (item && item.closed) return String(item.sortedQty || 0);
+            return String(remainingQty(item));
+        }
+
+        function renderQtyField(item) {
+            const expected = infoRow('应分拣数量', String(item.expectedQty || 0) + (item.unit || ''));
+            if (!isOpen(item)) {
+                return expected + infoRow('分拣数量', String(item.sortedQty || 0) + (item.unit || ''));
+            }
+            return expected
+                + '<div class="info-line exec-qty-line"><span class="info-label">分拣数量</span><span class="info-value"><span class="exec-qty-wrap">'
+                + '<input type="number" class="exec-qty-input" data-id="' + escapeHtml(item.id) + '" min="0" step="1" inputmode="numeric" value="' + escapeHtml(getDraftQty(item)) + '">'
+                + '<span class="exec-qty-unit">' + escapeHtml(item.unit || '') + '</span>'
+                + '</span></span></div>';
+        }
+
+        function isOpen(item) {
+            return remainingQty(item) > 0;
+        }
+
+        function isLockedByOther(item) {
+            return isOpen(item) && item.claimedBy && item.claimedBy !== CURRENT_USER;
+        }
+
+        function canOperate(item) {
+            return isOpen(item) && !isLockedByOther(item);
+        }
+
+        function storeLabel(item) {
+            return item.storeCode + '-' + item.storeName;
+        }
+
+        function routeLabel(item) {
+            const code = String((item && item.routeCode) || '').trim();
+            const name = String((item && item.routeName) || '').trim();
+            if (code && name) return code + '-' + name;
+            return code || name;
+        }
+
+        function locationLabel(item) {
+            const code = String((item && item.location) || '');
+            const name = String((item && item.locationName) || '').trim();
+            return name ? code + '-' + name : code;
+        }
+
+        function sorterLabel(items) {
+            const names = [];
+            (items || []).forEach((item) => {
+                const name = String((item && item.claimedBy) || '').trim();
+                if (name && names.indexOf(name) === -1) names.push(name);
+            });
+            return names.length ? names.join('、') : '-';
+        }
+
+        function aggKey(mode, item) {
+            if (mode === 'sku') return item.skuCode;
+            if (mode === 'store') return item.storeCode;
+            return item.routeCode;
+        }
+
+        function setActivePage(pageId) {
+            document.querySelectorAll('.page').forEach((page) => page.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            pageHeader.style.display = pageId === 'completePage' ? 'none' : 'flex';
+        }
+
+        function showToast(message) {
+            if (!message) return;
+            globalToast.textContent = String(message);
+            globalToast.classList.add('active');
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => globalToast.classList.remove('active'), 1800);
+        }
+
+        function showModePage() {
+            currentClaim = null;
+            selectedLineId = '';
+            locatedLineId = '';
+            setActivePage('modePage');
+            headerTitle.textContent = '分拣任务';
+            backBtn.onclick = function () {
+                window.location.href = 'app_list.html';
+            };
+        }
+
+        function showListPage() {
+            selectedLineId = '';
+            locatedLineId = '';
+            scanLocationOk = false;
+            scanSkuOk = false;
+            routeStoreCode = '';
+            setActivePage('listPage');
+            headerTitle.textContent = MODE_META[currentMode].title;
+            backBtn.onclick = showModePage;
+            if (listSearchInput) {
+                listSearchInput.placeholder = MODE_META[currentMode].searchPlaceholder;
+            }
+            syncListTabs();
+            renderAggCards();
+        }
+
+        function syncListTabs() {
+            document.querySelectorAll('#listPage .tab-btn').forEach((btn) => {
+                btn.classList.toggle('active', btn.dataset.tab === listTab);
+            });
+        }
+
+        function setListTab(tab) {
+            listTab = tab;
+            syncListTabs();
+            renderAggCards();
+        }
+
+        function getAggregations() {
+            const map = new Map();
+            sortingLines.forEach((item) => {
+                const key = aggKey(currentMode, item);
+                if (!map.has(key)) {
+                    map.set(key, { key, items: [] });
+                }
+                map.get(key).items.push(item);
+            });
+
+            const doneTab = listTab === '已完成';
+            return Array.from(map.values()).map((group) => {
+                const allClosed = group.items.length > 0 && group.items.every((item) => !isOpen(item));
+                const sourceItems = doneTab ? group.items : group.items.filter(canOperate);
+                if (doneTab ? !allClosed : !sourceItems.length) return null;
+
+                const sample = sourceItems[0] || group.items[0];
+                const qty = sourceItems.reduce((sum, item) => (
+                    sum + (doneTab ? Number(item.sortedQty || 0) : remainingQty(item))
+                ), 0);
+                const storeCodes = new Set(sourceItems.map((item) => item.storeCode));
+                const skuCodes = new Set(sourceItems.map((item) => item.skuCode));
+                const qtyLabel = doneTab ? '已分数量' : '待分数量';
+                const result = {
+                    key: group.key,
+                    sample,
+                    mine: sourceItems.some((item) => item.claimedBy === CURRENT_USER),
+                    qty
+                };
+
+                if (currentMode === 'sku') {
+                    result.title = sample.productName;
+                    result.lines = [
+                        { label: '商品编码', value: sample.skuCode },
+                        { label: '商品条码', value: sample.barcode },
+                        { label: '商品规格', value: sample.spec || '-' },
+                        { label: qtyLabel, value: qty + sample.unit },
+                        { label: '门店数', value: String(storeCodes.size) },
+                        { label: '分拣人', value: sorterLabel(sourceItems) }
+                    ];
+                } else if (currentMode === 'store') {
+                    result.title = storeLabel(sample);
+                    result.lines = [
+                        { label: '目的储位', value: locationLabel(sample) },
+                        { label: qtyLabel, value: qty + '件' },
+                        { label: '品项数', value: String(skuCodes.size) }
+                    ];
+                } else {
+                    result.title = routeLabel(sample);
+                    result.lines = [
+                        { label: '门店数', value: String(storeCodes.size) },
+                        { label: '品项数', value: String(skuCodes.size) },
+                        { label: qtyLabel, value: qty + '件' }
+                    ];
+                }
+                return result;
+            }).filter(Boolean);
+        }
+
+        function matchesKeyword(group, keyword) {
+            if (!keyword) return true;
+            const sample = group.sample;
+            const pool = [
+                group.title,
+                sample.productName,
+                sample.barcode,
+                sample.skuCode,
+                sample.storeCode,
+                sample.storeName,
+                sample.location,
+                sample.locationName,
+                sample.routeCode,
+                sample.routeName
+            ];
+            return pool.some((field) => String(field).toLowerCase().includes(keyword));
+        }
+
+        function renderAggCards() {
+            const keyword = listSearchInput ? listSearchInput.value.trim().toLowerCase() : '';
+            const groups = getAggregations().filter((group) => matchesKeyword(group, keyword));
+            const doneTab = listTab === '已完成';
+            if (!groups.length) {
+                listWrapper.innerHTML = doneTab
+                    ? '<div class="empty">暂无已完成任务</div>'
+                    : '<div class="empty">暂无待分拣任务</div>';
+                return;
+            }
+
+            listWrapper.innerHTML = groups.map((group) => {
+                const statusClass = doneTab ? 'status-done' : (group.mine ? 'status-mine' : 'status-wait');
+                const statusText = doneTab ? '已完成' : (group.mine ? '分拣中' : '初始');
+                const rows = group.lines.map((row) => (
+                    '<div class="info-line"><span class="info-label">' + escapeHtml(row.label) + '</span><span class="info-value">' + escapeHtml(row.value) + '</span></div>'
+                )).join('');
+                const titleHtml = '<div class="agg-title">' + escapeHtml(group.title) + '</div>';
+                const titleBlock = currentMode === 'sku'
+                    ? renderTitleWithProductImage(titleHtml, group.sample)
+                    : titleHtml;
+                const header = '<div class="agg-header">' + titleBlock
+                    + '<span class="status-tag ' + statusClass + '">' + statusText + '</span></div>';
+                return '<div class="agg-card' + (doneTab ? ' is-done' : '') + '" data-key="' + escapeHtml(group.key) + '">'
+                    + header
+                    + rows
+                    + '</div>';
+            }).join('');
+            bindProductImages(listWrapper);
+        }
+
+        function claimAndExecute(key) {
+            const targets = sortingLines.filter((item) => canOperate(item) && aggKey(currentMode, item) === key);
+            if (!targets.length) {
+                showToast('没有可领取的分拣行');
+                return;
+            }
+            targets.forEach((item) => {
+                if (!item.claimedBy) item.claimedBy = CURRENT_USER;
+            });
+            currentClaim = {
+                mode: currentMode,
+                key,
+                lineIds: targets.map((item) => item.id)
+            };
+            selectedLineId = '';
+            locatedLineId = '';
+            scanLocationOk = false;
+            scanSkuOk = false;
+            routeStoreCode = '';
+            if (executeScanInput) executeScanInput.value = '';
+            showToast('领取成功');
+            showExecutePage();
+        }
+
+        function claimedLines() {
+            if (!currentClaim) return [];
+            return currentClaim.lineIds
+                .map((id) => sortingLines.find((item) => item.id === id))
+                .filter(Boolean);
+        }
+
+        function claimedOpenLines() {
+            return claimedLines().filter(isOpen);
+        }
+
+        function showExecutePage() {
+            setActivePage('executePage');
+            headerTitle.textContent = '分拣任务执行';
+            backBtn.onclick = showListPage;
+            updateExecuteScanBox();
+            renderExecutePage();
+            setTimeout(function () {
+                if (executeScanInput) executeScanInput.focus();
+            }, 0);
+        }
+
+        function updateExecuteScanBox() {
+            if (executeScanSection) executeScanSection.style.display = '';
+            if (!executeScanInput) return;
+            const meta = MODE_META[currentMode] || {};
+            executeScanInput.placeholder = meta.scanPlaceholder || '请扫描/输入';
+        }
+
+        function renderExecuteSummary() {
+            const lines = claimedLines();
+            const sample = lines[0];
+            if (!sample) {
+                executeSummary.innerHTML = '';
+                return;
+            }
+            const total = lines.reduce((sum, item) => sum + Number(item.expectedQty || 0), 0);
+            const done = lines.reduce((sum, item) => {
+                if (item.closed) return sum + Number(item.sortedQty || 0);
+                return sum + Number(item.sortedQty || 0);
+            }, 0);
+            let title = '';
+            let rows = '';
+            if (currentMode === 'sku') {
+                title = sample.productName;
+                rows = productBaseRows(sample);
+            } else if (currentMode === 'store') {
+                title = storeLabel(sample);
+                rows = infoRow('目的储位', locationLabel(sample));
+            } else {
+                title = routeLabel(sample);
+                const storeCount = new Set(lines.map((item) => item.storeCode)).size;
+                rows = infoRow('门店数', String(storeCount)) + infoRow('品项数', String(new Set(lines.map((item) => item.skuCode)).size));
+            }
+            const percent = total > 0 ? Math.min((done / total) * 100, 100) : 0;
+            const progressHtml = '<div class="execute-progress"><div class="execute-progress-track">'
+                + '<div class="execute-progress-fill" style="width:' + percent + '%;"></div>'
+                + '<div class="execute-progress-text">已分 ' + done + ' / 应分 ' + total + '</div>'
+                + '</div></div>';
+            const nameHtml = '<div class="execute-summary-name">' + escapeHtml(title) + '</div>';
+            const bodyInner = (currentMode === 'sku'
+                ? '<div class="execute-summary-name-row">' + renderProductMediaHtml(sample) + nameHtml + '</div>'
+                : nameHtml) + rows;
+            executeSummary.innerHTML = bodyInner + progressHtml;
+        }
+
+        function infoRow(label, value) {
+            return '<div class="info-line"><span class="info-label">' + escapeHtml(label) + '</span><span class="info-value">' + escapeHtml(value) + '</span></div>';
+        }
+
+        function lineStatus(item) {
+            if (item.exception) return { cls: 'status-exception', text: '异常' };
+            if (!isOpen(item)) return { cls: 'status-done', text: '已完成' };
+            return { cls: 'status-mine', text: '分拣中' };
+        }
+
+        function renderExecRow(item) {
+            const status = lineStatus(item);
+            const finishedClass = item.exception ? ' is-exception' : (!isOpen(item) ? ' is-done' : '');
+            const activeClass = item.id === selectedLineId ? ' is-active' : '';
+            const locatedClass = item.id === locatedLineId ? ' is-located' : '';
+            let body = '';
+            if (currentMode === 'sku') {
+                body = infoRow('目的储位', locationLabel(item));
+            } else if (currentMode === 'store') {
+                body = productBaseRows(item);
+            } else {
+                body = productBaseRows(item) + infoRow('目的储位', locationLabel(item));
+            }
+            const title = currentMode === 'sku' ? storeLabel(item) : item.productName;
+            const titleHtml = '<div class="exec-row-title">' + escapeHtml(title) + '</div>';
+            const titleBlock = currentMode === 'sku'
+                ? titleHtml
+                : renderTitleWithProductImage(titleHtml, item);
+            const action = isOpen(item)
+                ? '<button type="button" class="exec-complete-btn" data-id="' + escapeHtml(item.id) + '">完成</button>'
+                : '';
+            const inner = '<div class="exec-row-header">' + titleBlock
+                + '<span class="status-tag ' + status.cls + '">' + status.text + '</span></div>'
+                + body
+                + renderQtyField(item)
+                + action;
+            return '<div class="exec-row' + activeClass + finishedClass + locatedClass + '" data-id="' + escapeHtml(item.id) + '">'
+                + inner
+                + '</div>';
+        }
+
+        function renderExecuteList() {
+            const lines = claimedLines();
+            if (!lines.length) {
+                executeList.innerHTML = '<div class="empty">暂无分拣明细</div>';
+                return;
+            }
+            if (currentMode !== 'route') {
+                executeList.innerHTML = lines.map(renderExecRow).join('');
+                return;
+            }
+
+            const groups = [];
+            const indexMap = new Map();
+            lines.forEach((item) => {
+                if (!indexMap.has(item.storeCode)) {
+                    indexMap.set(item.storeCode, groups.length);
+                    groups.push({ storeCode: item.storeCode, sample: item, lines: [] });
+                }
+                groups[indexMap.get(item.storeCode)].lines.push(item);
+            });
+
+            executeList.innerHTML = groups.map((group) => {
+                const locked = routeStoreCode === group.storeCode ? ' is-locked' : '';
+                return '<div class="store-group' + locked + '" data-store="' + escapeHtml(group.storeCode) + '">'
+                    + '<div class="store-group-head">' + escapeHtml(storeLabel(group.sample)) + '</div>'
+                    + group.lines.map(renderExecRow).join('')
+                    + '</div>';
+            }).join('');
+        }
+
+        function renderExecutePage() {
+            renderExecuteSummary();
+            renderExecuteList();
+            bindProductImages(executeSummary);
+            bindProductImages(executeList);
+        }
+
+        function selectLine(lineId, options) {
+            const opts = options || {};
+            const item = sortingLines.find((row) => row.id === lineId);
+            if (!item || !isOpen(item)) return;
+            selectedLineId = lineId;
+            if (!opts.keepScan) {
+                scanLocationOk = false;
+                scanSkuOk = false;
+            }
+            if (currentMode === 'route') {
+                routeStoreCode = item.storeCode;
+            }
+            syncScanFlagsFromInput();
+            updateExecuteScanBox();
+            renderExecutePage();
+        }
+
+        function syncScanFlagsFromInput() {
+            const item = sortingLines.find((row) => row.id === selectedLineId);
+            const value = executeScanInput ? executeScanInput.value.trim() : '';
+            if (!item || !value) return;
+            if (currentMode === 'sku') {
+                if (normalizeQuery(value) && executeQueryScore(item, normalizeQuery(value)) === 2) {
+                    scanLocationOk = true;
+                }
+                return;
+            }
+            if (value === item.barcode || value === item.skuCode) scanSkuOk = true;
+        }
+
+        function normalizeQuery(value) {
+            return String(value || '').trim().toLowerCase();
+        }
+
+        function fieldMatchScore(field, keyword) {
+            const text = normalizeQuery(field);
+            if (!text || !keyword) return 0;
+            if (text === keyword) return 2;
+            if (text.indexOf(keyword) !== -1) return 1;
+            return 0;
+        }
+
+        function executeQueryScore(item, keyword) {
+            if (currentMode === 'sku') {
+                return Math.max(
+                    fieldMatchScore(item.storeCode, keyword),
+                    fieldMatchScore(item.storeName, keyword),
+                    fieldMatchScore(item.location, keyword)
+                );
+            }
+            return Math.max(
+                fieldMatchScore(item.skuCode, keyword),
+                fieldMatchScore(item.barcode, keyword),
+                fieldMatchScore(item.productName, keyword)
+            );
+        }
+
+        function findExecuteQueryMatch(keyword) {
+            const key = normalizeQuery(keyword);
+            if (!key) return null;
+            let best = null;
+            let bestScore = 0;
+            let bestOpen = false;
+            let bestIndex = Infinity;
+            claimedLines().forEach((item, index) => {
+                const score = executeQueryScore(item, key);
+                if (!score) return;
+                const open = isOpen(item);
+                const better = score > bestScore
+                    || (score === bestScore && open && !bestOpen)
+                    || (score === bestScore && open === bestOpen && index < bestIndex);
+                if (!better) return;
+                best = item;
+                bestScore = score;
+                bestOpen = open;
+                bestIndex = index;
+            });
+            return best;
+        }
+
+        function scrollToExecuteRow(lineId) {
+            const row = executeList.querySelector('.exec-row[data-id="' + lineId + '"]');
+            if (row && typeof row.scrollIntoView === 'function') {
+                row.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            }
+        }
+
+        function locateExecuteLine(lineId) {
+            locatedLineId = lineId;
+            const item = sortingLines.find((row) => row.id === lineId);
+            if (item && isOpen(item)) {
+                scanLocationOk = true;
+                scanSkuOk = true;
+                selectLine(lineId, { keepScan: true });
+            } else {
+                selectedLineId = '';
+                renderExecutePage();
+            }
+            requestAnimationFrame(function () {
+                scrollToExecuteRow(lineId);
+                if (executeScanInput) executeScanInput.focus();
+            });
+        }
+
+        function handleExecuteScan() {
+            if (!executeScanInput) return;
+            const value = executeScanInput.value.trim();
+            if (!value) {
+                showToast('请先扫描/输入');
+                executeScanInput.focus();
+                return;
+            }
+
+            if (!claimedLines().length) {
+                showToast('暂无分拣明细');
+                return;
+            }
+
+            const match = findExecuteQueryMatch(value);
+            if (!match) {
+                showToast(currentMode === 'sku' ? '未找到匹配的门店或储位' : '未找到匹配的商品明细');
+                executeScanInput.focus();
+                return;
+            }
+            locateExecuteLine(match.id);
+        }
+
+        function tryAutoLocateExecuteScan() {
+            if (!executeScanInput) return;
+            const value = executeScanInput.value.trim();
+            if (!value) {
+                if (!locatedLineId) return;
+                locatedLineId = '';
+                executeList.querySelectorAll('.exec-row.is-located').forEach((row) => {
+                    row.classList.remove('is-located');
+                });
+                return;
+            }
+            const key = normalizeQuery(value);
+            const match = findExecuteQueryMatch(value);
+            if (!match || executeQueryScore(match, key) !== 2) return;
+            if (locatedLineId === match.id && (!isOpen(match) || selectedLineId === match.id)) return;
+            locateExecuteLine(match.id);
+        }
+
+        function confirmSortExecute(lineId) {
+            const item = sortingLines.find((row) => row.id === lineId);
+            if (!item || !isOpen(item)) {
+                showToast('该行不可分拣');
+                return;
+            }
+            selectedLineId = item.id;
+            const expectedQty = Number(item.expectedQty || 0);
+            const { raw, qty } = readLineQty(item);
+            if (raw === '' || !Number.isFinite(qty) || qty < 0 || !Number.isInteger(qty)) {
+                showToast('请输入有效的分拣数量');
+                const input = executeList.querySelector('.exec-qty-input[data-id="' + item.id + '"]');
+                if (input) input.focus();
+                return;
+            }
+            if (qty > expectedQty) {
+                showToast('分拣量大于应分数量');
+                const input = executeList.querySelector('.exec-qty-input[data-id="' + item.id + '"]');
+                if (input) input.focus();
+                return;
+            }
+            if (qty === expectedQty) {
+                showToast('分拣确认成功');
+                finishLine(item, qty, false);
+                return;
+            }
+            shortageSortedQty = qty;
+            shortageConfirmModal.classList.add('active');
+        }
+
+        function finishLine(item, qty, isException) {
+            item.sortedQty = qty;
+            item.closed = true;
+            item.exception = !!isException;
+            selectedLineId = '';
+            locatedLineId = '';
+            scanLocationOk = false;
+            scanSkuOk = false;
+            if (currentMode !== 'route') routeStoreCode = '';
+            if (executeScanInput) executeScanInput.value = '';
+            updateExecuteScanBox();
+
+            if (!claimedOpenLines().length) {
+                showCompletePage();
+                return;
+            }
+            renderExecutePage();
+            if (executeScanInput) executeScanInput.focus();
+        }
+
+        function readLineQty(item) {
+            const input = executeList.querySelector('.exec-qty-input[data-id="' + item.id + '"]');
+            const raw = input ? input.value.trim() : String((item && item.draftQty) || '');
+            const qty = Number(raw);
+            return { raw, qty };
+        }
+
+        function showCompletePage() {
+            setActivePage('completePage');
+        }
+
+        function registerException() {
+            const item = sortingLines.find((row) => row.id === selectedLineId);
+            if (!item || !isOpen(item)) {
+                showToast('请先选择要登记的分拣行');
+                return;
+            }
+            shortageSortedQty = null;
+            const { raw, qty } = readLineQty(item);
+            shortageSortedQtyInput.value = (raw !== '' && Number.isFinite(qty) && qty >= 0 && qty < Number(item.expectedQty || 0))
+                ? String(qty)
+                : '';
+            shortageQtyModal.classList.add('active');
+            setTimeout(function () {
+                shortageSortedQtyInput.focus();
+            }, 0);
+        }
+
+        function submitShortageQty() {
+            const item = sortingLines.find((row) => row.id === selectedLineId);
+            const sortedQty = Number(shortageSortedQtyInput.value.trim());
+            const expectedQty = Number((item && item.expectedQty) || 0);
+            if (!item || !isOpen(item)) {
+                showToast('请先选择要登记的分拣行');
+                return;
+            }
+            if (!Number.isFinite(sortedQty) || sortedQty < 0) {
+                showToast('请输入有效的实际分拣数量');
+                shortageSortedQtyInput.focus();
+                return;
+            }
+            if (sortedQty === expectedQty) {
+                showToast('分拣量等于应分拣量，无法异常登记');
+                shortageSortedQtyInput.focus();
+                return;
+            }
+            if (sortedQty > expectedQty) {
+                showToast('分拣量大于应分拣量，无法异常登记');
+                shortageSortedQtyInput.focus();
+                return;
+            }
+            shortageSortedQty = sortedQty;
+            shortageQtyModal.classList.remove('active');
+            shortageConfirmModal.classList.add('active');
+        }
+
+        function confirmShortageAndContinue() {
+            const item = sortingLines.find((row) => row.id === selectedLineId);
+            const sortedQty = Number(shortageSortedQty);
+            shortageConfirmModal.classList.remove('active');
+            if (!item || !isOpen(item) || !Number.isFinite(sortedQty) || sortedQty < 0 || sortedQty >= Number(item.expectedQty || 0)) {
+                showToast('异常登记校验失败，请重新登记');
+                return;
+            }
+            showToast('登记成功');
+            finishLine(item, sortedQty, true);
+        }
+
+        document.querySelectorAll('.mode-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                currentMode = btn.dataset.mode;
+                listTab = '未完成';
+                if (listSearchInput) listSearchInput.value = '';
+                showListPage();
+            });
+        });
+
+        document.querySelectorAll('#listPage .tab-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                setListTab(btn.dataset.tab);
+            });
+        });
+
+        listWrapper.addEventListener('click', (event) => {
+            if (event.target.closest('.product-card-media')) return;
+            const card = event.target.closest('.agg-card');
+            if (!card || card.classList.contains('is-done') || listTab === '已完成') return;
+            claimAndExecute(card.dataset.key);
+        });
+
+        executeList.addEventListener('click', (event) => {
+            if (event.target.closest('.product-card-media')) return;
+            const completeBtn = event.target.closest('.exec-complete-btn');
+            if (completeBtn) {
+                event.preventDefault();
+                confirmSortExecute(completeBtn.dataset.id);
+                return;
+            }
+            const row = event.target.closest('.exec-row');
+            if (!row || row.classList.contains('is-done') || row.classList.contains('is-exception')) return;
+            const qtyInput = event.target.closest('.exec-qty-input');
+            if (qtyInput && selectedLineId === row.dataset.id) return;
+            if (executeScanInput) executeScanInput.value = '';
+            locatedLineId = '';
+            selectLine(row.dataset.id);
+            if (qtyInput) {
+                const input = executeList.querySelector('.exec-qty-input[data-id="' + row.dataset.id + '"]');
+                if (input) {
+                    input.focus();
+                    input.select();
+                }
+                return;
+            }
+            if (executeScanInput) executeScanInput.focus();
+        });
+
+        executeList.addEventListener('input', (event) => {
+            const input = event.target.closest('.exec-qty-input');
+            if (!input) return;
+            const item = sortingLines.find((row) => row.id === input.dataset.id);
+            if (item) item.draftQty = input.value;
+        });
+
+        document.getElementById('completeOkBtn').addEventListener('click', () => {
+            currentClaim = null;
+            selectedLineId = '';
+            locatedLineId = '';
+            showListPage();
+        });
+        document.getElementById('productImagePreviewCloseBtn').addEventListener('click', (event) => {
+            event.stopPropagation();
+            closeProductImagePreview();
+        });
+        document.getElementById('shortageQtyCancelBtn').addEventListener('click', () => shortageQtyModal.classList.remove('active'));
+        document.getElementById('shortageQtyOkBtn').addEventListener('click', submitShortageQty);
+        document.getElementById('shortageConfirmCancelBtn').addEventListener('click', () => shortageConfirmModal.classList.remove('active'));
+        document.getElementById('shortageConfirmOkBtn').addEventListener('click', confirmShortageAndContinue);
+
+        if (listSearchInput) {
+            listSearchInput.addEventListener('input', renderAggCards);
+            listSearchInput.addEventListener('keypress', (event) => {
+                if (event.key === 'Enter') renderAggCards();
+            });
+        }
+        if (executeScanInput) {
+            executeScanInput.addEventListener('input', tryAutoLocateExecuteScan);
+            executeScanInput.addEventListener('keypress', (event) => {
+                if (event.key === 'Enter') handleExecuteScan();
+            });
+        }
+        if (executeScanComponent && executeScanComponent.button) {
+            executeScanComponent.button.addEventListener('click', () => {
+                if (executeScanInput && executeScanInput.value.trim()) handleExecuteScan();
+            });
+        }
+        shortageSortedQtyInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') submitShortageQty();
+        });
+
+        showModePage();
+    </script>
+</body>
+</html>
