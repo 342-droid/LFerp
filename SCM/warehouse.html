@@ -94,7 +94,7 @@
             flex: 0 0 33.3333%;
             min-width: 0;
             display: flex;
-            justify-content: center;
+            justify-content: flex-start;
         }
 
         .wh-param-empty-hint {
@@ -386,7 +386,8 @@
                 customSelects: [
                     { inputId: 'searchWarehouseType', dropdownId: 'searchWarehouseTypeDropdown' },
                     { inputId: 'searchIsEnabled', dropdownId: 'searchIsEnabledDropdown' },
-                    { inputId: 'editReceiptInteractionMode', dropdownId: 'editReceiptInteractionModeDropdown' }
+                    { inputId: 'editReceiptInteractionMode', dropdownId: 'editReceiptInteractionModeDropdown' },
+                    { inputId: 'editSortingInteractionMode', dropdownId: 'editSortingInteractionModeDropdown' }
                 ],
                 
                 // 字段定义 - 自动生成新增/编辑模态框
@@ -438,6 +439,20 @@
                                         <input type="checkbox" id="editParamReviewScanSku">
                                         <span>复核是否扫商品</span>
                                     </label>
+                                </div>
+                                <div class="wh-param-field">
+                                    <div class="param-select-row">
+                                        <label for="editSortingInteractionMode">分拣交互方式</label>
+                                        <div class="custom-select">
+                                            <input type="text" id="editSortingInteractionMode" placeholder="请选择">
+                                            <span class="select-arrow">▼</span>
+                                            <span class="clear-btn">×</span>
+                                            <div class="select-dropdown" id="editSortingInteractionModeDropdown">
+                                                <div class="select-option" data-value="task">任务式</div>
+                                                <div class="select-option" data-value="list">列表式</div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="wh-param-panel" data-wh-panel="in" role="tabpanel">
@@ -566,6 +581,11 @@
                             if (mode) row.setAttribute('data-receipt-interaction-mode', mode);
                             else row.removeAttribute('data-receipt-interaction-mode');
                         }
+                        const sortingInteractionMode = document.getElementById('editSortingInteractionMode');
+                        if (sortingInteractionMode) {
+                            const mode = (sortingInteractionMode.dataset.value || '').trim() || 'list';
+                            row.setAttribute('data-sorting-interaction-mode', mode);
+                        }
                         page.updateTableRow(row, {
                             2: document.getElementById('editWarehouseName').value.trim(),
                             4: { value: document.getElementById('editIsEnabled').value.trim(), isStatus: true },
@@ -660,6 +680,13 @@
                     const modeTextMap = { task: '任务式', list: '列表式' };
                     receiptInteractionMode.dataset.value = mode;
                     receiptInteractionMode.value = modeTextMap[mode] || '任务式';
+                }
+                const sortingInteractionMode = document.getElementById('editSortingInteractionMode');
+                if (sortingInteractionMode) {
+                    const mode = row ? (row.getAttribute('data-sorting-interaction-mode') || 'list') : 'list';
+                    const modeTextMap = { task: '任务式', list: '列表式' };
+                    sortingInteractionMode.dataset.value = mode;
+                    sortingInteractionMode.value = modeTextMap[mode] || '列表式';
                 }
             }
 
