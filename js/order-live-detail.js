@@ -484,12 +484,13 @@
       amounts: {
         goods: '¥52.00',
         discount: '¥0.00',
-        shipping: '¥0.00',
-        payable: '¥52.00',
-        paid: '¥52.00',
-        merchant: '¥52.00',
+        shipping: '¥8.00',
+        payable: '¥60.00',
+        paid: '¥60.00',
+        merchant: '¥60.00',
         refund: '¥0.00'
       },
+      freight: { original: 8, refunded: 0, ambient: 5, cold: 0, insure: 1, deliver: 1, upstairs: 1 },
       paymentCount: 1,
       aftersales: [],
       customer: { nickname: '张店长', phone: '13800138000', userId: '318605592681791701' },

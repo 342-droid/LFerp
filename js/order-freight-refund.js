@@ -361,21 +361,14 @@
     return tag ? tag.textContent.trim() : '';
   }
 
-  function isDeliveryRow(row) {
-    if (!row) return false;
-    if (row.getAttribute('data-fulfillment-mode') === 'warehouse') return true;
-    var tag = row.querySelector('.order-tag--scene');
-    return !!(tag && tag.textContent.trim() === '配送');
-  }
-
   function isFreightRefundBlockedStatus(status) {
     return status === '待支付' || status === '交易失败' || status === '订单失败';
   }
 
-  /** 配送单除待支付、订单失败外显示入口；快递单不显示 */
+  /** 代采配送、快递同一套：除待支付、失败外显示入口 */
   function canShow(orderId, row) {
     if (!document.body || document.body.getAttribute('data-order-page') !== 'proxy') return false;
-    if (!isDeliveryRow(row)) return false;
+    if (!row) return false;
     return !isFreightRefundBlockedStatus(rowStatus(row));
   }
 
@@ -684,7 +677,7 @@
       '</div>' +
       '<div class="store-drawer__body order-as-drawer__body">' +
       '<div class="order-freight-refund-tip" role="note"><span class="order-freight-refund-tip__icon" aria-hidden="true">i</span>' +
-      '<span>仅配送单可退运费（待支付、订单失败除外）。按订单实收计价类目拆开，可按总额退或按类目退。发货前整单取消、以及全部商品仅退款完成时，运费会自动退还，无需再走本入口。</span></div>' +
+      '<span>代采配送、快递均可退运费（待支付、订单失败除外）。按订单实收计价类目拆开，可按总额退或按类目退。发货前整单取消、以及全部商品仅退款完成时，运费会自动退还，无需再走本入口。</span></div>' +
       '<div class="order-as-occur"><span class="order-as-occur__label">售后发生时间</span>' +
       '<div class="order-as-occur__value"><span class="order-as-occur__icon" aria-hidden="true">🕒</span>' +
       '<span>' +

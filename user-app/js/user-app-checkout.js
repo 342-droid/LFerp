@@ -925,7 +925,7 @@
       dest: checkoutFreightDest(),
       items: items,
       payable: payable,
-      upstairs: fulfill === 'platform' ? upstairs : undefined,
+      upstairs: upstairs,
       forceCharge: isMixFreightDemo()
     };
   }
@@ -1344,27 +1344,23 @@
     renderAccessCard();
   }
 
-  function checkoutHasDelivery() {
-    return (state.suppliers || []).some(function (block) {
-      return checkoutBlockKind(block) === 'delivery';
-    });
+  function quoteHasUpstairs(quote) {
+    var svc = quote && quote.serviceSummary && quote.serviceSummary.upstairs;
+    return !!(svc && svc.available);
   }
 
   function checkoutHasUpstairsFee() {
-    if (!checkoutHasDelivery()) return false;
     var api = window.TmsLogisticsRate;
     var demo = api && typeof api.getDemoUpstairs === 'function' ? api.getDemoUpstairs() : '';
     if (demo === 'off') return false;
     if (demo === 'on') return true;
-    var quote = quoteCheckoutFreight();
-    var svc = quote && quote.serviceSummary && quote.serviceSummary.upstairs;
-    return !!(svc && svc.available);
+    /* 配送、快递同一套：费率配了上楼费才采集，不因履约隐藏 */
+    return quoteHasUpstairs(quoteCheckoutFreight()) || quoteHasUpstairs(quoteCheckoutExpressFreight());
   }
 
   function renderAccessCard() {
     var el = document.getElementById('checkoutAccessCard');
     if (!el) return;
-    /* 仅配送且费率表配了上楼费时展示电梯/楼层；未配置则隐藏 */
     el.hidden = !checkoutHasUpstairsFee();
     if (el.hidden) return;
     var up = (state && state.upstairs) || { hasElevator: true, floor: 2 };
@@ -2083,7 +2079,7 @@
       totals += renderFulfillTotals('配送费', deliveryFee, quote, true);
     }
     if (info.hasExpress) {
-      totals += renderFulfillTotals('快递费', expressFee, expressQuote, false);
+      totals += renderFulfillTotals('快递费', expressFee, expressQuote, true);
     }
     var body = '';
     if (info.hasDelivery) {
@@ -2097,7 +2093,7 @@
         mix && mix.express,
         mix && mix.expressPreview,
         expressFree ? '按包邮配置不收取' : '',
-        false
+        true
       );
     }
     el.innerHTML =
@@ -2453,8 +2449,14 @@
               freightInfo.expressQuote.serviceSummary.deliver &&
               freightInfo.expressQuote.serviceSummary.deliver.amount) ||
             0,
-        upstairsFee: isDelivery ? (svc.upstairs && svc.upstairs.amount) || 0 : 0,
-        upstairs: isDelivery && state.upstairs
+        upstairsFee: isDelivery
+          ? (svc.upstairs && svc.upstairs.amount) || 0
+          : (freightInfo.expressQuote &&
+              freightInfo.expressQuote.serviceSummary &&
+              freightInfo.expressQuote.serviceSummary.upstairs &&
+              freightInfo.expressQuote.serviceSummary.upstairs.amount) ||
+            0,
+        upstairs: state.upstairs
           ? { hasElevator: state.upstairs.hasElevator !== false, floor: state.upstairs.floor }
           : null,
         payable: payable,
