@@ -1719,21 +1719,21 @@
   function applyOrderServices(ambient, cold, opts, payable) {
     var scheme = (ambient && ambient.feeScheme) || (cold && cold.feeScheme);
     var extras;
-    var target = ambient && ambient.breakdown ? ambient : cold && cold.breakdown ? cold : ambient && !ambient.empty ? ambient : cold;
-    var other = target === ambient ? cold : ambient;
-    var combinedWeight = roundKg(((ambient && ambient.weight) || 0) + ((cold && cold.weight) || 0));
-    if (target) {
-      var layerWeight = target.weight;
-      target.weight = combinedWeight;
-      if (isWholeOrderScheme(scheme)) target.logisticsType = '不区分';
+    /* 一单=一条命中费率：重量时常温、冷链各加一次增值；金额/按件不区分只加一次 */
+    if (isWholeOrderScheme(scheme)) {
+      var target = ambient && ambient.breakdown ? ambient : cold && cold.breakdown ? cold : ambient && !ambient.empty ? ambient : cold;
+      var other = target === ambient ? cold : ambient;
+      if (target) {
+        target.weight = roundKg(((ambient && ambient.weight) || 0) + ((cold && cold.weight) || 0));
+        target.logisticsType = '不区分';
+      }
       extras = buildGroupExtras(target, opts, payable);
-      if (!isWholeOrderScheme(scheme)) target.weight = layerWeight;
+      if (other) {
+        other.extras = [];
+        other.serviceTotal = 0;
+      }
     } else {
-      extras = [];
-    }
-    if (other) {
-      other.extras = [];
-      other.serviceTotal = 0;
+      extras = buildGroupExtras(ambient, opts, payable).concat(buildGroupExtras(cold, opts, payable));
     }
     var upOpts = (opts && opts.upstairs) || {};
     var totalWeight = roundKg(((ambient && ambient.weight) || 0) + ((cold && cold.weight) || 0));
@@ -2238,7 +2238,7 @@
       '<div class="ua-freight-explain__section">' +
       '<h4 class="ua-freight-explain__title">3. 保价、派送与上楼</h4>' +
       '<p class="ua-freight-explain__p"><strong>保价费、派送费、上楼费</strong>计入对应履约的运费，下单后不予减免。</p>' +
-      '<p class="ua-freight-explain__p"><strong>保价费</strong>按订单应付金额计收，受最低价约束，每单一次。<strong>派送费</strong>按票计收，每单一次。</p>' +
+      '<p class="ua-freight-explain__p"><strong>保价费</strong>按应付金额计收，受最低价约束。<strong>派送费</strong>按票计收。重量计费时常温、冷链各算一单；金额/按件只命中一条，只加一次。</p>' +
       '<p class="ua-freight-explain__p"><strong>上楼费</strong>按有无电梯及送达楼层计收：计费重量不超过免上楼，或送到 1 楼，不上楼费；否则基础费 + 重量系数×计费重量 + 楼层系数×楼层数，件数暂不参与。请填写电梯及楼层，下次下单自动带出。</p>' +
       '</div>' +
 
