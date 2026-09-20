@@ -1,7 +1,78 @@
 {
-  "latestSha": "f168807d454dce40e15fda02753cf02c24fc62fe",
-  "total": 410,
+  "latestSha": "0df00653bea113fbb2850ca34042a6f173858b0e",
+  "total": 411,
   "days": [
+    {
+      "date": "2026-09-21",
+      "items": [
+        {
+          "sha": "0df0065",
+          "type": "feat",
+          "text": "快递与配送统一上楼采集、退运费和分摊",
+          "author": "sisi",
+          "time": "01:03",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "module": "",
+              "title": "进货 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/checkout.html",
+              "text": "快递单同样采集电梯楼层并计上楼；保价、派送、上楼整单只加一次"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "text": "快递单操作列露出退运费，权限与配送一致；申请售后分摊改为保价按实付、派送按件数、上楼按行重量"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "申请售后与导出分摊运费跟同一套权重"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "text": "快递上楼随费率计入"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "text": "快递也可展示上楼"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-09-20",
       "items": [
