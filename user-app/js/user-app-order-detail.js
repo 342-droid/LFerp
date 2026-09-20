@@ -220,6 +220,20 @@
     return delivery === 'warehouse' || (!delivery && isFromRestock());
   }
 
+  function isOdExpressOrder(order) {
+    order = order || getStoredDemoOrder();
+    if (!order) {
+      var delivery = (getParams().get('delivery') || '').trim();
+      return delivery === 'express' || delivery === 'store';
+    }
+    if (isOdDeliveryOrder(order)) return false;
+    return order.fulfillType === 'express' || order.splitKind === 'express';
+  }
+
+  function odFreightFulfill(order) {
+    return isOdExpressOrder(order) ? 'express' : 'platform';
+  }
+
   function getDeliveryType() {
     var order = getStoredDemoOrder();
     if (order) {
@@ -1568,7 +1582,7 @@
         var addrEl = document.getElementById('orderStoreAddr');
         var quote = api.quoteOrder({
           channel: api.CHANNEL_PROXY,
-          fulfill: 'platform',
+          fulfill: odFreightFulfill(order),
           address: (addrEl && addrEl.textContent) || '浙江省杭州市萧山区建设一路88号',
           items: collectDetailFreightItems(order),
           payable: order && order.goodsTotal != null ? Number(order.goodsTotal) : undefined,
@@ -1657,10 +1671,10 @@
     var totalEl = document.getElementById('orderFreight');
     var legsEl = document.getElementById('orderFreightLegs');
     var toggle = document.getElementById('orderFreightToggle');
-    var delivery = isOdDeliveryOrder(order);
+    var charged = isOdDeliveryOrder(order) || isOdExpressOrder(order);
     var paidFreight =
       order && order.freight != null && Number(order.freight) >= 0 ? Number(order.freight) : null;
-    var info = delivery
+    var info = charged
       ? resolveOdFreightBreakdown(order)
       : { total: 0, ambient: 0, cold: 0, insure: 0, deliver: 0, upstairs: 0 };
     var extra = Math.round(((info.insure || 0) + (info.deliver || 0) + (info.upstairs || 0)) * 100) / 100;
@@ -1672,13 +1686,20 @@
       return Math.round((Number(n) || 0) * ratio * 100) / 100;
     }
     var lines = [];
-    if (delivery) {
+    if (charged) {
       if (info.ambient > 0) lines.push({ name: '常温基础运费', amount: scaleFreight(info.ambient) });
       if (info.cold > 0) lines.push({ name: '冷链基础运费', amount: scaleFreight(info.cold) });
-      if (extra > 0) lines.push({ name: '增值 / 上楼', amount: scaleFreight(extra) });
+      if (extra > 0) {
+        lines.push({
+          name: isOdDeliveryOrder(order) ? '增值 / 上楼' : '增值服务',
+          amount: scaleFreight(extra)
+        });
+      }
     }
-    if (totalEl) totalEl.textContent = delivery ? formatOdFreight(net) : '免运费';
-    if (totalRow) totalRow.hidden = false;
+    if (totalEl) totalEl.textContent = charged ? formatOdFreight(net) : '免运费';
+    if (totalRow) {
+      totalRow.hidden = false;
+    }
     if (legsEl) {
       legsEl.innerHTML = lines
         .map(function (line) {

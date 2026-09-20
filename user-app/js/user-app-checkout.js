@@ -307,6 +307,12 @@
       '<option value="金额计费"' +
       (current === '金额计费' ? ' selected' : '') +
       '>金额计费</option>' +
+      '<option value="按件计费"' +
+      (current === '按件计费' ? ' selected' : '') +
+      '>按件计费</option>' +
+      '<option value="混合计费"' +
+      (current === '混合计费' ? ' selected' : '') +
+      '>混合计费</option>' +
       '</select></label>' +
       '<label class="ua-rg-demo__row">上楼费' +
       '<select id="uaFreightUpstairsDemoSel">' +
@@ -336,6 +342,11 @@
         window.location.reload();
       });
     }
+  }
+
+  function isMixFreightDemo() {
+    var api = window.TmsLogisticsRate;
+    return !!(api && typeof api.isMixFeeScheme === 'function' && api.isMixFeeScheme());
   }
 
   /** 余额足够：默认不勾选；仍需收单时：恢复上次选择，首次默认微信 */
@@ -902,34 +913,63 @@
     return api.parseDestFromAddress(address) || api.DEMO_DEST;
   }
 
+  function checkoutQuoteOpts(fulfill, items) {
+    var api = window.TmsLogisticsRate;
+    var upstairs = (state && state.upstairs) || { hasElevator: true, floor: 2 };
+    var payable = (items || []).reduce(function (sum, item) {
+      return sum + (Number(item.priceNum != null ? item.priceNum : item.price) || 0) * (Number(item.qty) || 0);
+    }, 0);
+    return {
+      channel: api.CHANNEL_PROXY,
+      fulfill: fulfill,
+      dest: checkoutFreightDest(),
+      items: items,
+      payable: payable,
+      upstairs: fulfill === 'platform' ? upstairs : undefined,
+      forceCharge: isMixFreightDemo()
+    };
+  }
+
   function quoteCheckoutFreight() {
     var api = window.TmsLogisticsRate;
     if (!api || typeof api.quoteOrder !== 'function') return null;
-    var upstairs = (state && state.upstairs) || { hasElevator: true, floor: 2 };
-    return api.quoteOrder({
-      channel: api.CHANNEL_PROXY,
-      fulfill: 'platform',
-      dest: checkoutFreightDest(),
-      items: listCheckoutLineItems({ deliveryOnly: true }),
-      payable: getGoodsSubtotal(),
-      upstairs: upstairs
-    });
+    var items = listCheckoutLineItems({ deliveryOnly: true });
+    var opts = checkoutQuoteOpts('platform', items);
+    opts.payable = getGoodsSubtotal();
+    if (isMixFreightDemo() && typeof api.quoteOrderWithScheme === 'function') {
+      return api.quoteOrderWithScheme(opts, '重量计费');
+    }
+    return api.quoteOrder(opts);
   }
 
   function quoteCheckoutExpressFreight() {
     var api = window.TmsLogisticsRate;
     var items = listCheckoutLineItems({ expressOnly: true });
     if (!items.length || !api || typeof api.quoteOrder !== 'function') return null;
-    var payable = items.reduce(function (sum, item) {
-      return sum + (Number(item.priceNum != null ? item.priceNum : item.price) || 0) * (Number(item.qty) || 0);
-    }, 0);
-    return api.quoteOrder({
-      channel: api.CHANNEL_PROXY,
-      fulfill: 'express',
-      dest: checkoutFreightDest(),
-      items: items,
-      payable: payable
-    });
+    var opts = checkoutQuoteOpts('express', items);
+    if (isMixFreightDemo() && typeof api.quoteOrderWithScheme === 'function') {
+      return api.quoteOrderWithScheme(opts, '重量计费');
+    }
+    return api.quoteOrder(opts);
+  }
+
+  function quoteMixCompareLanes() {
+    var api = window.TmsLogisticsRate;
+    if (!api || typeof api.quoteSchemeCompare !== 'function') return null;
+    var allItems = listCheckoutLineItems();
+    if (!allItems.length) return null;
+    var deliveryItems = listCheckoutLineItems({ deliveryOnly: true });
+    var expressItems = listCheckoutLineItems({ expressOnly: true });
+    return {
+      delivery: api.quoteSchemeCompare(
+        checkoutQuoteOpts('platform', deliveryItems.length ? deliveryItems : allItems)
+      ),
+      express: api.quoteSchemeCompare(
+        checkoutQuoteOpts('express', expressItems.length ? expressItems : allItems)
+      ),
+      deliveryPreview: !deliveryItems.length,
+      expressPreview: !expressItems.length
+    };
   }
 
   function summarizeLineItems(items) {
@@ -960,6 +1000,33 @@
   function calcFreightBreakdown() {
     var deliveryItems = listCheckoutLineItems({ deliveryOnly: true });
     var expressItems = listCheckoutLineItems({ expressOnly: true });
+    var mixCompare = isMixFreightDemo() ? quoteMixCompareLanes() : null;
+    if (mixCompare) {
+      var deliveryRoll = mixCompare.deliveryPreview
+        ? { ambient: 0, cold: 0, service: 0, total: 0 }
+        : mixLaneRollup(mixCompare.delivery);
+      var expressRoll = mixCompare.expressPreview
+        ? { ambient: 0, cold: 0, service: 0, total: 0 }
+        : mixLaneRollup(mixCompare.express);
+      var mixTotal = moneyRound(deliveryRoll.total + expressRoll.total);
+      return {
+        ambientFee: deliveryRoll.ambient,
+        coldFee: deliveryRoll.cold,
+        expressFee: expressRoll.total,
+        deliveryFee: deliveryRoll.total,
+        total: mixTotal,
+        baseTotal: moneyRound(deliveryRoll.ambient + deliveryRoll.cold),
+        extras: [],
+        serviceSummary: null,
+        quote: mixQuoteFromRollup(deliveryRoll),
+        expressQuote: mixQuoteFromRollup(expressRoll),
+        hasDelivery: true,
+        hasExpress: true,
+        mixCompare: mixCompare,
+        packages: [],
+        label: mixTotal > 0 ? formatMoney(mixTotal) : '免运费'
+      };
+    }
     var expressQuote = quoteCheckoutExpressFreight();
     var expressFee = expressQuote ? Number(expressQuote.total) || 0 : 0;
     var quote = quoteCheckoutFreight();
@@ -977,8 +1044,9 @@
         serviceSummary: quote.serviceSummary || null,
         quote: quote,
         expressQuote: expressQuote,
-        hasDelivery: deliveryItems.length > 0,
-        hasExpress: expressItems.length > 0,
+        hasDelivery: mixCompare ? true : deliveryItems.length > 0,
+        hasExpress: mixCompare ? true : expressItems.length > 0,
+        mixCompare: mixCompare,
         packages: [],
         label: total > 0 ? formatMoney(total) : '免运费'
       };
@@ -1001,8 +1069,9 @@
       deliveryFee: deliveryFee,
       total: total,
       expressQuote: expressQuote,
-      hasDelivery: deliveryItems.length > 0,
-      hasExpress: expressItems.length > 0,
+      hasDelivery: mixCompare ? true : deliveryItems.length > 0,
+      hasExpress: mixCompare ? true : expressItems.length > 0,
+      mixCompare: mixCompare,
       packages: [],
       label: total > 0 ? formatMoney(total) : '免运费'
     };
@@ -1645,52 +1714,100 @@
     openSheet('freightRules');
   }
 
-  function renderFreightTypeBlock(group, title) {
-    if (!group || group.empty) {
-      return (
-        '<div class="ua-co-freight-detail__section">' +
-        '<div class="ua-co-freight-detail__pkg">' +
-        '<div class="ua-co-freight-detail__pkg-main">' +
-        '<span class="ua-co-freight-detail__pkg-name">' +
-        title +
-        '</span>' +
-        '<span class="ua-co-freight-detail__pkg-sub">本单无此温层商品</span></div>' +
-        '<span class="ua-co-freight-detail__pkg-fee">' +
-        formatMoney(0) +
-        '</span></div></div>'
-      );
-    }
-    var summaryBits = [];
-    if (group.itemCount) summaryBits.push(group.itemCount + '件');
-    if (group.goodsAmount) summaryBits.push('货款' + formatMoney(group.goodsAmount));
-    var scheme = group.miss
-      ? group.miss
-      : (summaryBits.length ? summaryBits.join(' · ') + ' · ' : '') +
-        (group.carrier || '') +
-        ' · ' +
-        (group.feeScheme || '') +
-        (group.level ? ' · 命中' + group.level : '');
-    return (
-      '<div class="ua-co-freight-detail__section">' +
-      '<div class="ua-co-freight-detail__pkg">' +
-      '<div class="ua-co-freight-detail__pkg-main">' +
-      '<span class="ua-co-freight-detail__pkg-name">' +
-      title +
-      '</span>' +
-      '<span class="ua-co-freight-detail__pkg-sub">' +
-      scheme +
-      '</span></div>' +
-      '<span class="ua-co-freight-detail__pkg-fee">' +
-      formatMoney(group.amount) +
-      '</span></div>' +
-      renderFreightBreakdownLines(group) +
-      '</div>'
-    );
+  function schemeHeading(scheme) {
+    if (scheme === '金额计费') return '按订单金额';
+    if (scheme === '按件计费') return '按件';
+    if (scheme === '重量计费') return '按重量';
+    return scheme || '计费明细';
+  }
+
+  function groupSchemeName(group) {
+    return schemeHeading((group && group.feeScheme) || (group && group.breakdown && group.breakdown.scheme) || '');
+  }
+
+  function groupLayerFee(quote, layer) {
+    var group = quote && quote[layer];
+    if (!group || group.empty) return 0;
+    return Number(group.amount) || 0;
+  }
+
+  function moneyRound(n) {
+    return Math.round((Number(n) || 0) * 100) / 100;
+  }
+
+  function schemeParts(group) {
+    if (!group || group.empty) return { base: 0, extra: 0, total: 0 };
+    var base = moneyRound(group.amount);
+    var extra = moneyRound(group.serviceTotal);
+    return { base: base, extra: extra, total: moneyRound(base + extra) };
+  }
+
+  function sumSchemeGroups(groups) {
+    var base = 0;
+    var extra = 0;
+    (groups || []).forEach(function (group) {
+      var part = schemeParts(group);
+      base += part.base;
+      extra += part.extra;
+    });
+    return { base: moneyRound(base), extra: moneyRound(extra), total: moneyRound(base + extra) };
+  }
+
+  function mixLayerGroups(cmp, layer) {
+    if (!cmp) return [];
+    return [
+      cmp.weight && cmp.weight[layer],
+      cmp.amount && cmp.amount[layer],
+      cmp.qty && cmp.qty[layer]
+    ];
+  }
+
+  function mixLaneRollup(cmp) {
+    var ambient = sumSchemeGroups(mixLayerGroups(cmp, 'ambient'));
+    var cold = sumSchemeGroups(mixLayerGroups(cmp, 'cold'));
+    return {
+      ambient: ambient.base,
+      cold: cold.base,
+      service: moneyRound(ambient.extra + cold.extra),
+      total: moneyRound(ambient.total + cold.total)
+    };
+  }
+
+  function mixQuoteFromRollup(roll) {
+    return {
+      ambient: { amount: roll.ambient, empty: !(roll.ambient > 0) },
+      cold: { amount: roll.cold, empty: !(roll.cold > 0) },
+      serviceTotal: roll.service,
+      total: roll.total
+    };
   }
 
   function renderFreightBreakdownLines(group) {
     var bd = group && group.breakdown;
     if (!bd) return '';
+    if (bd.scheme === '按件计费') {
+      return (
+        '<div class="ua-co-freight-detail__calc">' +
+        '<div class="ua-co-freight-detail__calc-row"><span>购买件数</span><span>' +
+        bd.qty +
+        '件</span></div>' +
+        '<div class="ua-co-freight-detail__calc-row"><span>命中档 ' +
+        bd.tierStart +
+        '~' +
+        bd.tierEnd +
+        '件</span><span>¥' +
+        Number(bd.unitPrice || 0).toFixed(2) +
+        '/件</span></div>' +
+        (bd.discount !== 1
+          ? '<div class="ua-co-freight-detail__calc-row"><span>运费折扣</span><span>' +
+            bd.discount +
+            '</span></div>'
+          : '') +
+        '<div class="ua-co-freight-detail__calc-row"><span>基础运费</span><span>' +
+        formatMoney(bd.amount) +
+        '</span></div></div>'
+      );
+    }
     if (bd.scheme === '金额计费') {
       return (
         '<div class="ua-co-freight-detail__calc">' +
@@ -1747,57 +1864,147 @@
     );
   }
 
-  function renderFreightExtraBlock(info) {
-    var extras = (info && info.extras) || [];
-    var selected = extras.filter(function (line) {
-      return line.selected;
+  function renderGroupExtraBlock(group) {
+    var extras = ((group && group.extras) || []).filter(function (line) {
+      return line && line.selected;
     });
-    if (!selected.length) return '';
-    var rows = selected
+    if (!extras.length) return '';
+    var rows = extras
       .map(function (line) {
         return (
-          '<div class="ua-co-freight-detail__pkg">' +
-          '<div class="ua-co-freight-detail__pkg-main">' +
-          '<span class="ua-co-freight-detail__pkg-name">' +
+          '<div class="ua-co-fd-extra__row">' +
+          '<div class="ua-co-fd-extra__main">' +
+          '<span class="ua-co-fd-extra__name">' +
           line.name +
-          (line.from ? '（' + line.from + '）' : '') +
           '</span>' +
-          '<span class="ua-co-freight-detail__pkg-sub">' +
+          '<span class="ua-co-fd-extra__hint">' +
           (line.hint || '') +
           '</span></div>' +
-          '<span class="ua-co-freight-detail__pkg-fee">' +
+          '<span class="ua-co-fd-extra__fee">' +
           formatMoney(line.amount) +
           '</span></div>'
         );
       })
       .join('');
     return (
-      '<div class="ua-co-freight-detail__section">' +
-      '<p class="ua-co-freight-detail__section-title">增值服务 / 上楼</p>' +
+      '<div class="ua-co-fd-extra">' +
+      '<div class="ua-co-fd-extra__title">增值服务 / 上楼</div>' +
       rows +
       '</div>'
     );
   }
 
-  function renderExpressFreightBlock(info) {
-    if (!info || !info.hasExpress) return '';
-    var sum = summarizeLineItems(listCheckoutLineItems({ expressOnly: true }));
-    var bits = [];
-    if (sum.qty) bits.push(sum.qty + '件');
-    if (sum.amount) bits.push('货款' + formatMoney(sum.amount));
-    bits.push(info.expressFee > 0 ? '按费率计费' : '按包邮配置不收取');
+  function renderSchemeBlock(group) {
+    if (!group || group.empty || (!group.breakdown && !(group.extras || []).length)) return '';
+    var part = schemeParts(group);
     return (
-      '<div class="ua-co-freight-detail__section">' +
-      '<div class="ua-co-freight-detail__pkg">' +
-      '<div class="ua-co-freight-detail__pkg-main">' +
-      '<span class="ua-co-freight-detail__pkg-name">快递费</span>' +
-      '<span class="ua-co-freight-detail__pkg-sub">' +
-      bits.join(' · ') +
-      '</span></div>' +
-      '<span class="ua-co-freight-detail__pkg-fee">' +
-      (info.expressFee > 0 ? formatMoney(info.expressFee) : '免运费') +
-      '</span></div></div>'
+      '<div class="ua-co-fd-scheme">' +
+      '<div class="ua-co-fd-scheme__title"><span>' +
+      groupSchemeName(group) +
+      '</span><strong>' +
+      formatMoney(part.total) +
+      '</strong></div>' +
+      renderFreightBreakdownLines(group) +
+      renderGroupExtraBlock(group) +
+      '</div>'
     );
+  }
+
+  function renderLayerPackage(group, title, moreGroups) {
+    var schemes = [group].concat(moreGroups || []).filter(function (item) {
+      return item && !item.empty;
+    });
+    if (!schemes.length) {
+      return (
+        '<div class="ua-co-fd-pkg">' +
+        '<div class="ua-co-fd-pkg__head">' +
+        '<div class="ua-co-fd-pkg__main"><span class="ua-co-fd-pkg__name">' +
+        title +
+        '</span><span class="ua-co-fd-pkg__sub">本单无此温层商品</span></div>' +
+        '<span class="ua-co-fd-pkg__fee">' +
+        formatMoney(0) +
+        '</span></div></div>'
+      );
+    }
+    var primary = schemes[0];
+    var bits = [];
+    if (primary.itemCount) bits.push(primary.itemCount + '件');
+    if (primary.goodsAmount) bits.push('货款' + formatMoney(primary.goodsAmount));
+    if (primary.carrier) bits.push(primary.carrier);
+    if (primary.level) bits.push('命中' + primary.level);
+    var pkgFee = sumSchemeGroups(schemes).total;
+    var body = schemes.map(renderSchemeBlock).join('');
+    return (
+      '<div class="ua-co-fd-pkg">' +
+      '<div class="ua-co-fd-pkg__head">' +
+      '<div class="ua-co-fd-pkg__main"><span class="ua-co-fd-pkg__name">' +
+      title +
+      '</span><span class="ua-co-fd-pkg__sub">' +
+      (primary.miss || bits.join(' · ')) +
+      '</span></div>' +
+      '<span class="ua-co-fd-pkg__fee">' +
+      formatMoney(pkgFee) +
+      '</span></div>' +
+      body +
+      '</div>'
+    );
+  }
+
+  function renderFulfillLane(title, quote, mixCmp, preview, freeText) {
+    var html =
+      '<div class="ua-co-fd-lane">' +
+      '<div class="ua-co-fd-lane__title">' +
+      title +
+      (preview ? '<em class="ua-co-freight-mix__preview">对照试算</em>' : '') +
+      '</div>';
+    if (freeText) {
+      html +=
+        '<div class="ua-co-fd-pkg"><div class="ua-co-fd-pkg__head"><div class="ua-co-fd-pkg__main"><span class="ua-co-fd-pkg__sub">' +
+        freeText +
+        '</span></div><span class="ua-co-fd-pkg__fee">免运费</span></div></div></div>';
+      return html;
+    }
+    var ambient = quote && quote.ambient;
+    var cold = quote && quote.cold;
+    var moreA = null;
+    var moreC = null;
+    if (mixCmp) {
+      ambient = mixCmp.weight && mixCmp.weight.ambient;
+      cold = mixCmp.weight && mixCmp.weight.cold;
+      moreA = [mixCmp.amount && mixCmp.amount.ambient, mixCmp.qty && mixCmp.qty.ambient];
+      moreC = [mixCmp.amount && mixCmp.amount.cold, mixCmp.qty && mixCmp.qty.cold];
+    }
+    html += renderLayerPackage(ambient, '常温包裹', moreA);
+    html += renderLayerPackage(cold, '冷链包裹', moreC);
+    html += '</div>';
+    return html;
+  }
+
+  function renderFulfillTotals(label, fee, quote, showUpstairs) {
+    var ambient = groupLayerFee(quote, 'ambient');
+    var cold = groupLayerFee(quote, 'cold');
+    var extra = quote ? Number(quote.serviceTotal) || 0 : 0;
+    var html =
+      '<div class="ua-co-freight-detail__total"><span>' +
+      label +
+      '</span><strong>' +
+      (fee > 0 ? formatMoney(fee) : '免运费') +
+      '</strong></div>';
+    if (!(fee > 0) && !quote) return html;
+    html +=
+      '<div class="ua-co-freight-detail__subs">' +
+      '<div class="ua-co-freight-detail__sub"><span>常温基础运费</span><span>' +
+      formatMoney(ambient) +
+      '</span></div>' +
+      '<div class="ua-co-freight-detail__sub"><span>冷链基础运费</span><span>' +
+      formatMoney(cold) +
+      '</span></div>' +
+      '<div class="ua-co-freight-detail__sub"><span>' +
+      (showUpstairs ? '增值 / 上楼' : '增值服务') +
+      '</span><span>' +
+      formatMoney(extra) +
+      '</span></div></div>';
+    return html;
   }
 
   function renderFreightDetail() {
@@ -1805,29 +2012,30 @@
     if (!el) return;
     var info = calcFreightBreakdown();
     var quote = info.quote || {};
+    var expressQuote = info.expressQuote || {};
     var deliveryFee = Number(info.deliveryFee) || 0;
+    var expressFee = Number(info.expressFee) || 0;
+    var mix = info.mixCompare;
     var totals = '';
     if (info.hasDelivery) {
-      totals +=
-        '<div class="ua-co-freight-detail__total"><span>配送费</span><strong>' +
-        formatMoney(deliveryFee) +
-        '</strong></div>' +
-        '<div class="ua-co-freight-detail__subs">' +
-        '<div class="ua-co-freight-detail__sub"><span>常温基础运费</span><span>' +
-        formatMoney(info.ambientFee) +
-        '</span></div>' +
-        '<div class="ua-co-freight-detail__sub"><span>冷链基础运费</span><span>' +
-        formatMoney(info.coldFee) +
-        '</span></div>' +
-        '<div class="ua-co-freight-detail__sub"><span>增值 / 上楼</span><span>' +
-        formatMoney((info.quote && info.quote.serviceTotal) || 0) +
-        '</span></div></div>';
+      totals += renderFulfillTotals('配送费', deliveryFee, quote, true);
     }
     if (info.hasExpress) {
-      totals +=
-        '<div class="ua-co-freight-detail__total"><span>快递费</span><strong>' +
-        (info.expressFee > 0 ? formatMoney(info.expressFee) : '免运费') +
-        '</strong></div>';
+      totals += renderFulfillTotals('快递费', expressFee, expressQuote, false);
+    }
+    var body = '';
+    if (info.hasDelivery) {
+      body += renderFulfillLane('配送费', quote, mix && mix.delivery, mix && mix.deliveryPreview);
+    }
+    if (info.hasExpress) {
+      var expressFree = !(expressQuote && !expressQuote.freeShip && expressFee > 0) && !mix;
+      body += renderFulfillLane(
+        '快递费',
+        expressQuote,
+        mix && mix.express,
+        mix && mix.expressPreview,
+        expressFree ? '按包邮配置不收取' : ''
+      );
     }
     el.innerHTML =
       '<div class="ua-co-freight-detail">' +
@@ -1837,10 +2045,7 @@
       '<div class="ua-co-freight-detail__total ua-co-freight-detail__total--sum"><span>总运费</span><strong>' +
       (info.total > 0 ? formatMoney(info.total) : '免运费') +
       '</strong></div>' +
-      (info.hasDelivery ? renderFreightTypeBlock(quote.ambient, '常温') : '') +
-      (info.hasDelivery ? renderFreightTypeBlock(quote.cold, '冷链') : '') +
-      (info.hasDelivery ? renderFreightExtraBlock(info) : '') +
-      renderExpressFreightBlock(info) +
+      body +
       '</div>';
   }
 
@@ -2103,7 +2308,6 @@
     var nos = blocks.map(function (_, i) {
       return window.UaOrdersStore ? window.UaOrdersStore.genOrderNo() : String(Date.now() + i);
     });
-    var remainFreight = Number(freightInfo.total) || 0;
     var remainCoupon = coupon;
     var remainActivity = activity;
     var remainPointsAmt = pointsAmt;
@@ -2113,8 +2317,10 @@
     });
     var saved = [];
     var deliveryIdx = -1;
+    var expressIdx = -1;
     blocks.forEach(function (block, idx) {
       if (checkoutBlockKind(block) === 'delivery') deliveryIdx = idx;
+      else expressIdx = idx;
     });
     blocks.forEach(function (block, idx) {
       var rawItems = collectBlockOrderItems(block);
@@ -2128,11 +2334,9 @@
       var isDelivery = checkoutBlockKind(block) === 'delivery';
       var freight = 0;
       if (isDelivery && idx === deliveryIdx) {
-        freight = remainFreight;
-        remainFreight = 0;
-      } else if (last) {
-        freight = remainFreight;
-        remainFreight = 0;
+        freight = Number(freightInfo.deliveryFee) || 0;
+      } else if (!isDelivery && idx === expressIdx) {
+        freight = Number(freightInfo.expressFee) || 0;
       }
       var thisCoupon = last ? remainCoupon : Math.round(coupon * share * 100) / 100;
       remainCoupon = Math.round((remainCoupon - thisCoupon) * 100) / 100;
@@ -2166,10 +2370,26 @@
         paidAt: window.UaOrdersStore ? window.UaOrdersStore.nowText() : '',
         goodsTotal: goodsTotal,
         freight: freight,
-        ambientFee: isDelivery ? freightInfo.ambientFee : 0,
-        coldFee: isDelivery ? freightInfo.coldFee : 0,
-        insureFee: isDelivery ? (svc.insure && svc.insure.amount) || 0 : 0,
-        deliverFee: isDelivery ? (svc.deliver && svc.deliver.amount) || 0 : 0,
+        ambientFee: isDelivery
+          ? freightInfo.ambientFee
+          : (freightInfo.expressQuote && freightInfo.expressQuote.ambient && freightInfo.expressQuote.ambient.amount) || 0,
+        coldFee: isDelivery
+          ? freightInfo.coldFee
+          : (freightInfo.expressQuote && freightInfo.expressQuote.cold && freightInfo.expressQuote.cold.amount) || 0,
+        insureFee: isDelivery
+          ? (svc.insure && svc.insure.amount) || 0
+          : (freightInfo.expressQuote &&
+              freightInfo.expressQuote.serviceSummary &&
+              freightInfo.expressQuote.serviceSummary.insure &&
+              freightInfo.expressQuote.serviceSummary.insure.amount) ||
+            0,
+        deliverFee: isDelivery
+          ? (svc.deliver && svc.deliver.amount) || 0
+          : (freightInfo.expressQuote &&
+              freightInfo.expressQuote.serviceSummary &&
+              freightInfo.expressQuote.serviceSummary.deliver &&
+              freightInfo.expressQuote.serviceSummary.deliver.amount) ||
+            0,
         upstairsFee: isDelivery ? (svc.upstairs && svc.upstairs.amount) || 0 : 0,
         upstairs: isDelivery && state.upstairs
           ? { hasElevator: state.upstairs.hasElevator !== false, floor: state.upstairs.floor }
@@ -2785,4 +3005,7 @@
   }
   mountMixPayDemoPanel();
   mountFreightSchemeDemoPanel();
+  if (isMixFreightDemo()) {
+    openFreightSheet();
+  }
 })();

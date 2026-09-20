@@ -697,7 +697,8 @@
   }
 
   function isChargedFreightOrder(detail, row) {
-    return orderFulfillKey(detail, row) === 'platform';
+    var key = orderFulfillKey(detail, row);
+    return key === 'platform' || key === 'express';
   }
 
   function weightsOrFallback(weights, goods) {
@@ -802,10 +803,31 @@
     }
   }
 
+  function isQtyFreightScheme() {
+    if (
+      global.TmsLogisticsRate &&
+      typeof global.TmsLogisticsRate.getDemoFeeScheme === 'function' &&
+      global.TmsLogisticsRate.getDemoFeeScheme() === '按件计费'
+    ) {
+      return true;
+    }
+    var quote = quoteFreightScheme(
+      global.OrderLiveDetail && state.orderId
+        ? global.OrderLiveDetail.resolveDetail(state.orderId, state.row)
+        : null,
+      state.row
+    );
+    var scheme =
+      (quote && quote.ambient && quote.ambient.feeScheme) ||
+      (quote && quote.cold && quote.cold.feeScheme) ||
+      '';
+    return scheme === '按件计费';
+  }
+
   /**
    * 按履约方式、发货方把运费摊到商品行（申请售后「分摊运费」）：
-   * - 快递单免运费，分摊为 0；配送单才摊
-   * - 常温 / 冷链基础运费只摊进对应温层；重量计费按重量，金额计费按货款
+   * - 配送单摊；快递关闭包邮后同样摊，上楼仅配送
+   * - 常温 / 冷链基础运费只摊进对应温层；重量计费按重量，金额计费按货款，按件计费按件数
    * - 增值服务按计费模式摊：重量计费按重量，金额计费也按重量
    * - 上楼费按重量和件数计费时，按重量×系数 + 件数×系数摊
    * - 行运费 = 温层基础分摊 + 增值分摊 + 上楼分摊
@@ -852,10 +874,12 @@
       });
       var ambientW = goods.map(function (g) {
         if (goodIsCold(g)) return 0;
+        if (ambientScheme === '按件计费') return goodQty(g);
         return ambientScheme === '金额计费' ? parseMoney(g.paidAmount) || 0 : goodChargeWeight(g);
       });
       var coldW = goods.map(function (g) {
         if (!goodIsCold(g)) return 0;
+        if (coldScheme === '按件计费') return goodQty(g);
         return coldScheme === '金额计费' ? parseMoney(g.paidAmount) || 0 : goodChargeWeight(g);
       });
       var extraW = extraShareWeights(goods);
@@ -871,11 +895,13 @@
         '';
       addParts(
         pool.original,
-        fallbackScheme === '金额计费'
-          ? goods.map(function (g) {
-              return parseMoney(g.paidAmount) || 1;
-            })
-          : extraShareWeights(goods)
+        fallbackScheme === '按件计费'
+          ? goods.map(goodQty)
+          : fallbackScheme === '金额计费'
+            ? goods.map(function (g) {
+                return parseMoney(g.paidAmount) || 1;
+              })
+            : extraShareWeights(goods)
       );
     }
     var used = allocated.reduce(function (a, b) {

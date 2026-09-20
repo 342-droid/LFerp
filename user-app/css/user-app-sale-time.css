@@ -232,7 +232,7 @@
   right: 16px;
   bottom: 72px;
   z-index: 9990;
-  width: 188px;
+  width: 200px;
   padding: 10px;
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid #eee;
@@ -259,7 +259,7 @@
 
 .ua-freight-scheme-demo .ua-rg-demo__row select {
   margin-left: auto;
-  max-width: 96px;
+  max-width: 108px;
   font-size: 11px;
 }
 

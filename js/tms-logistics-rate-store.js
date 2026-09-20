@@ -2,7 +2,7 @@
  * 仓储 / TMS — 物流费率表（演示数据 + 匹配计费）
  *
  * 设计对齐 SCM/logistics_rate.html：
- * - 费用方案：重量计费（首重 + 续重）/ 金额计费（货款阶梯）
+ * - 费用方案：重量计费（首重 + 续重）/ 金额计费（货款阶梯）/ 按件计费（购买件数×档位单价，迭代）
  * - 计费重量 = max(毛重, 抛重)；抛重 = 长×宽×高 / 5000 × (重抛比右/左)
  * - 订单渠道：零售订单、代采订单（原型有，费率表页一并补齐）
  * - 目的地多级匹配，越细越优先：区 > 市 > 省 > 全国（兜底）
@@ -19,6 +19,9 @@
   var UPSTAIRS_DEMO_KEY = 'ua_freight_upstairs_demo_v1';
   var FEE_SCHEME_WEIGHT = '重量计费';
   var FEE_SCHEME_AMOUNT = '金额计费';
+  var FEE_SCHEME_QTY = '按件计费';
+  var FEE_SCHEME_MIX = '混合计费';
+  var demoSchemeOverride = '';
   var DEMO_UPSTAIRS = {
     enabled: true,
     freeKg: '5',
@@ -34,6 +37,12 @@
     { start: '0', end: '1', price: '8', cont: '2' },
     { start: '1', end: '5', price: '12', cont: '1.5' },
     { start: '5', end: '999', price: '20', cont: '1' }
+  ];
+  /* 按件计费：用订单购买总数命中档，基础运费=件数×该档元/件 */
+  var DEMO_QTY_TIERS = [
+    { start: '0', end: '10', price: '3' },
+    { start: '10', end: '30', price: '2.5' },
+    { start: '30', end: '9999', price: '2' }
   ];
   var CHANNEL_RETAIL = '零售订单';
   var CHANNEL_PROXY = '代采订单';
@@ -519,9 +528,13 @@
   }
 
   function formatFeeTiersHtml(scheme, tiers) {
-    var isAmount = scheme === '金额计费';
+    var isAmount = scheme === FEE_SCHEME_AMOUNT;
+    var isQty = scheme === FEE_SCHEME_QTY;
     return (tiers || [])
       .map(function (tier) {
+        if (isQty) {
+          return tier.start + '~' + (tier.end === '9999' ? '∞' : tier.end) + '件 ¥' + tier.price + '/件';
+        }
         if (isAmount) {
           return toNum(tier.price) <= 0
             ? tier.start + '~' + tier.end + '元 免运费'
@@ -856,6 +869,42 @@
     return explainAmountFee(rate, amount).amount;
   }
 
+  function explainQtyFee(rate, qty) {
+    var count = Math.max(0, toNum(qty));
+    var tier = findTier(rate && rate.tiers, count);
+    var discount = toNum(rate && rate.freightDiscount || 1);
+    if (discount <= 0) discount = 1;
+    if (!tier) {
+      return {
+        scheme: FEE_SCHEME_QTY,
+        qty: count,
+        unitPrice: 0,
+        discount: discount,
+        amount: 0,
+        tierStart: '',
+        tierEnd: ''
+      };
+    }
+    var unit = toNum(tier.price);
+    return {
+      scheme: FEE_SCHEME_QTY,
+      qty: count,
+      unitPrice: unit,
+      discount: discount,
+      amount: roundMoney(count * unit * discount),
+      tierStart: tier.start,
+      tierEnd: tier.end === '9999' ? '∞' : tier.end
+    };
+  }
+
+  function calcQtyFee(rate, qty) {
+    return explainQtyFee(rate, qty).amount;
+  }
+
+  function isQtyFeeScheme(scheme) {
+    return scheme === FEE_SCHEME_QTY;
+  }
+
   function destText(dest) {
     dest = dest || {};
     return [dest.province, dest.city, dest.district].filter(Boolean).join('') || '全国';
@@ -895,12 +944,14 @@
   }
 
   /** 是否向客户计费：先看包邮配置（渠道 × 履约），未配则仅代采配送计费 */
-  function chargesFreight(channel, fulfill) {
+  function chargesFreight(channel, fulfill, opts) {
+    if (opts && opts.forceCharge) return true;
     if (global.MdmOrderFreeShip && typeof global.MdmOrderFreeShip.isFreeShip === 'function') {
       return !global.MdmOrderFreeShip.isFreeShip(fulfill, channel);
     }
     if (channel !== CHANNEL_PROXY) return false;
     var f = normalizeFulfill(fulfill);
+    if (f === 'express') return false;
     return !f || f === 'platform';
   }
 
@@ -1028,6 +1079,10 @@
   function parseListingFreeShip(raw, fulfill, channelKind) {
     if (raw === true || raw === 'yes' || raw === '是') return true;
     if (raw === false || raw === 'no' || raw === '否') return false;
+    var channel = channelKind === 'proxy' ? 'proxy' : 'retail';
+    if (global.MdmOrderFreeShip && typeof global.MdmOrderFreeShip.isFreeShip === 'function') {
+      return !!global.MdmOrderFreeShip.isFreeShip(fulfill, channel);
+    }
     if (channelKind === 'proxy') return normalizeFulfill(fulfill) !== 'platform';
     return true;
   }
@@ -1170,10 +1225,24 @@
     return lanes;
   }
 
+  function isKnownFeeScheme(scheme) {
+    return (
+      scheme === FEE_SCHEME_WEIGHT ||
+      scheme === FEE_SCHEME_AMOUNT ||
+      scheme === FEE_SCHEME_QTY ||
+      scheme === FEE_SCHEME_MIX
+    );
+  }
+
+  function isMixFeeScheme(scheme) {
+    return (scheme || getDemoFeeScheme()) === FEE_SCHEME_MIX;
+  }
+
   function getDemoFeeScheme() {
+    if (demoSchemeOverride && demoSchemeOverride !== FEE_SCHEME_MIX) return demoSchemeOverride;
     try {
       var v = String(global.localStorage.getItem(FEE_SCHEME_DEMO_KEY) || '');
-      if (v === FEE_SCHEME_WEIGHT || v === FEE_SCHEME_AMOUNT) return v;
+      if (isKnownFeeScheme(v)) return v;
     } catch (e) {
       /* ignore */
     }
@@ -1182,7 +1251,7 @@
 
   function setDemoFeeScheme(scheme) {
     try {
-      if (scheme === FEE_SCHEME_WEIGHT || scheme === FEE_SCHEME_AMOUNT) {
+      if (isKnownFeeScheme(scheme)) {
         global.localStorage.setItem(FEE_SCHEME_DEMO_KEY, scheme);
       } else {
         global.localStorage.removeItem(FEE_SCHEME_DEMO_KEY);
@@ -1190,6 +1259,27 @@
     } catch (e) {
       /* ignore */
     }
+  }
+
+  function quoteOrderWithScheme(opts, scheme) {
+    var prev = demoSchemeOverride;
+    demoSchemeOverride = scheme === FEE_SCHEME_AMOUNT || scheme === FEE_SCHEME_QTY || scheme === FEE_SCHEME_WEIGHT
+      ? scheme
+      : FEE_SCHEME_WEIGHT;
+    try {
+      return quoteOrder(opts);
+    } finally {
+      demoSchemeOverride = prev;
+    }
+  }
+
+  function quoteSchemeCompare(opts) {
+    opts = Object.assign({}, opts || {}, { forceCharge: true });
+    return {
+      weight: quoteOrderWithScheme(opts, FEE_SCHEME_WEIGHT),
+      amount: quoteOrderWithScheme(opts, FEE_SCHEME_AMOUNT),
+      qty: quoteOrderWithScheme(opts, FEE_SCHEME_QTY)
+    };
   }
 
   function getDemoUpstairs() {
@@ -1217,6 +1307,7 @@
   function adaptRateForDemo(rate) {
     if (!rate) return rate;
     var scheme = getDemoFeeScheme();
+    if (scheme === FEE_SCHEME_MIX) scheme = '';
     var upstairsDemo = getDemoUpstairs();
     if ((!scheme || rate.feeScheme === scheme) && !upstairsDemo) return rate;
     var copy = Object.assign({}, rate);
@@ -1224,6 +1315,8 @@
       copy.feeScheme = scheme;
       if (scheme === FEE_SCHEME_AMOUNT) {
         copy.tiers = DEMO_AMOUNT_TIERS;
+      } else if (scheme === FEE_SCHEME_QTY) {
+        copy.tiers = DEMO_QTY_TIERS;
       } else if (!rate.tiers || rate.tiers[0] == null || rate.tiers[0].cont == null) {
         copy.tiers = DEMO_WEIGHT_TIERS;
       }
@@ -1244,6 +1337,7 @@
     dest = dest || DEMO_DEST;
     var list = ensureLoaded();
     var preferred = getDemoFeeScheme();
+    if (preferred === FEE_SCHEME_MIX) preferred = '';
     var best = null;
     var fallback = null;
     var i;
@@ -1313,7 +1407,13 @@
     var rate = hit.rate;
     var weight = chargeableKg(opts.length, opts.width, opts.height, opts.gross, rate.ratio);
     var amount = toNum(opts.price);
-    var fee = rate.feeScheme === '金额计费' ? calcAmountFee(rate, amount) : calcWeightFee(rate, weight);
+    var qty = toNum(opts.qty) || 1;
+    var fee =
+      rate.feeScheme === FEE_SCHEME_QTY
+        ? calcQtyFee(rate, qty)
+        : rate.feeScheme === FEE_SCHEME_AMOUNT
+          ? calcAmountFee(rate, amount)
+          : calcWeightFee(rate, weight);
     return {
       ok: true,
       amount: fee,
@@ -1439,7 +1539,9 @@
       amount: 0,
       text: freeShip ? '免运费' : formatMoney(0),
       logisticsType: type,
-      items: []
+      items: [],
+      extras: [],
+      serviceTotal: 0
     };
   }
 
@@ -1477,7 +1579,9 @@
         amount: 0,
         text: formatMoney(0),
         logisticsType: type,
-        items: []
+        items: [],
+        extras: [],
+        serviceTotal: 0
       };
     }
     var hit = pickRate(channel, dest, type);
@@ -1489,7 +1593,9 @@
         text: formatMoney(0),
         logisticsType: type,
         miss: '未命中费率',
-        items: items
+        items: items,
+        extras: [],
+        serviceTotal: 0
       };
     }
     var rate = adaptRateForDemo(hit.rate);
@@ -1499,9 +1605,15 @@
     var weight = items.reduce(function (sum, item) {
       return sum + chargeableKg(item.length, item.width, item.height, item.gross, rate.ratio) * item.qty;
     }, 0);
-    var breakdown = rate.feeScheme === '金额计费'
-      ? explainAmountFee(rate, goodsAmount)
-      : explainWeightFee(rate, weight);
+    var itemCount = items.reduce(function (sum, item) {
+      return sum + item.qty;
+    }, 0);
+    var breakdown =
+      rate.feeScheme === FEE_SCHEME_QTY
+        ? explainQtyFee(rate, itemCount)
+        : rate.feeScheme === FEE_SCHEME_AMOUNT
+          ? explainAmountFee(rate, goodsAmount)
+          : explainWeightFee(rate, weight);
     var fee = breakdown.amount;
     return {
       ok: true,
@@ -1516,10 +1628,12 @@
       destLabel: destHitLabel(rate),
       goodsAmount: roundMoney(goodsAmount),
       weight: roundKg(weight),
-      itemCount: items.reduce(function (sum, item) { return sum + item.qty; }, 0),
+      itemCount: itemCount,
       items: items,
       rate: rate,
-      breakdown: breakdown
+      breakdown: breakdown,
+      extras: [],
+      serviceTotal: 0
     };
   }
 
@@ -1531,73 +1645,72 @@
     };
   }
 
-  function pickBestExtra(groups, name, payable) {
-    var best = null;
-    var bestAmt = -1;
-    groups.forEach(function (group) {
-      var extra = findExtra(group.rate, name);
-      if (!extra) return;
-      var amt = name === '保价费' ? calcInsureFee(extra, payable) : calcDeliverFee(extra);
-      if (amt > bestAmt) {
-        best = extra;
-        bestAmt = amt;
-      }
-    });
-    return best;
+  function extraLineOf(key, name, amount, hint, extra) {
+    return {
+      key: key,
+      name: name,
+      amount: amount,
+      selected: true,
+      hint: hint,
+      upstairs: extra || null
+    };
   }
 
-  function pickUpstairsRate(groups, weightKg, hasElevator, floor) {
-    var best = null;
-    var bestAmt = -1;
-    groups.forEach(function (group) {
-      if (!rateHasUpstairs(group.rate)) return;
-      var up = calcUpstairsFee(group.rate.upstairs, weightKg, hasElevator, floor);
-      if (!best || up.amount > bestAmt) {
-        best = { rate: group.rate, upstairs: up };
-        bestAmt = up.amount;
+  function buildGroupExtras(group, opts, payableHint) {
+    var extras = [];
+    if (!group || group.empty || !group.rate) {
+      if (group) {
+        group.extras = [];
+        group.serviceTotal = 0;
       }
-    });
-    return best;
+      return extras;
+    }
+    var rate = group.rate;
+    var goods = group.goodsAmount != null ? toNum(group.goodsAmount) : toNum(payableHint);
+    var fulfill = normalizeFulfill(opts && (opts.fulfill || opts.fulfillmentMethod || opts.deliveryMode));
+    var upOpts = (opts && opts.upstairs) || {};
+    var insure = findExtra(rate, '保价费');
+    if (insure) {
+      extras.push(extraLineOf(
+        'insure',
+        '保价费',
+        calcInsureFee(insure, goods),
+        'max(最低¥' + toNum(insure.min).toFixed(2) + '，货款×' + toNum(insure.rate) + '%)'
+      ));
+    }
+    var deliver = findExtra(rate, '派送费');
+    if (deliver) {
+      extras.push(extraLineOf(
+        'deliver',
+        '派送费',
+        calcDeliverFee(deliver),
+        '每票¥' + toNum(deliver.amount).toFixed(2)
+      ));
+    }
+    if (fulfill !== 'express' && rateHasUpstairs(rate)) {
+      var up = calcUpstairsFee(rate.upstairs, group.weight, upOpts.hasElevator !== false, upOpts.floor);
+      extras.push(extraLineOf(
+        'upstairs',
+        '上楼费',
+        up.amount,
+        (up.hasElevator ? '有电梯' : '无电梯') +
+          ' · ' + up.floor + '层 · 计费' + up.weight + 'kg' +
+          (up.reason ? '（' + up.reason + '）' : ''),
+        up
+      ));
+    }
+    group.extras = extras;
+    group.serviceTotal = extras.reduce(function (sum, line) {
+      return sum + (line.amount || 0);
+    }, 0);
+    group.serviceTotal = roundMoney(group.serviceTotal);
+    return extras;
   }
 
   function applyOrderServices(ambient, cold, opts, payable) {
-    var groups = [ambient, cold].filter(function (g) { return g && !g.empty && g.rate; });
-    var totalWeight = roundKg((ambient.weight || 0) + (cold.weight || 0));
-    var upOpts = opts.upstairs || {};
-    var extras = [];
-    var insure = pickBestExtra(groups, '保价费', payable);
-    if (insure) {
-      extras.push({
-        key: 'insure',
-        name: '保价费',
-        amount: calcInsureFee(insure, payable),
-        selected: true,
-        hint: 'max(最低¥' + toNum(insure.min).toFixed(2) + '，货款×' + toNum(insure.rate) + '%)'
-      });
-    }
-    var deliver = pickBestExtra(groups, '派送费', payable);
-    if (deliver) {
-      extras.push({
-        key: 'deliver',
-        name: '派送费',
-        amount: calcDeliverFee(deliver),
-        selected: true,
-        hint: '每票¥' + toNum(deliver.amount).toFixed(2)
-      });
-    }
-    var pickedUp = pickUpstairsRate(groups, totalWeight, upOpts.hasElevator !== false, upOpts.floor);
-    if (pickedUp) {
-      extras.push({
-        key: 'upstairs',
-        name: '上楼费',
-        amount: pickedUp.upstairs.amount,
-        selected: true,
-        hint: (pickedUp.upstairs.hasElevator ? '有电梯' : '无电梯') +
-          ' · ' + pickedUp.upstairs.floor + '层 · 计费' + pickedUp.upstairs.weight + 'kg' +
-          (pickedUp.upstairs.reason ? '（' + pickedUp.upstairs.reason + '）' : ''),
-        upstairs: pickedUp.upstairs
-      });
-    }
+    var extras = buildGroupExtras(ambient, opts, payable).concat(buildGroupExtras(cold, opts, payable));
+    var upOpts = (opts && opts.upstairs) || {};
+    var totalWeight = roundKg(((ambient && ambient.weight) || 0) + ((cold && cold.weight) || 0));
     var summary = emptyServiceSummary();
     summary.upstairs.hasElevator = upOpts.hasElevator !== false;
     summary.upstairs.floor = floorLayers(upOpts.floor);
@@ -1606,8 +1719,8 @@
       var slot = summary[line.key];
       if (!slot) return;
       slot.available = true;
-      slot.amount = line.amount;
-      slot.selected = line.selected;
+      slot.amount = roundMoney((slot.amount || 0) + (line.amount || 0));
+      slot.selected = true;
       if (line.key === 'upstairs' && line.upstairs) {
         slot.hasElevator = line.upstairs.hasElevator;
         slot.floor = line.upstairs.floor;
@@ -1630,12 +1743,12 @@
     var channel = opts.channel || CHANNEL_PROXY;
     var dest = opts.dest || resolveExplainDest(opts) || DEMO_DEST;
     var lockedFulfill = normalizeFulfill(opts.fulfill || opts.fulfillmentMethod || opts.deliveryMode);
-    if (!chargesFreight(channel, lockedFulfill || 'platform')) {
+    if (!chargesFreight(channel, lockedFulfill || 'platform', opts)) {
       return freeShipQuote(dest, (opts.items || []).map(normalizeQuoteItem));
     }
     var items = (opts.items || []).map(normalizeQuoteItem).filter(function (item) {
-      if (item.freeShip === true) return false;
-      return chargesFreight(channel, item.fulfill || lockedFulfill || 'platform');
+      if (item.freeShip === true && !opts.forceCharge) return false;
+      return chargesFreight(channel, item.fulfill || lockedFulfill || 'platform', opts);
     });
     if (!items.length) return freeShipQuote(dest, []);
     var ambient = quoteGroup({
@@ -1672,6 +1785,34 @@
         other.amount = 0;
         other.baseAmount = 0;
         other.text = formatMoney(0);
+      }
+    }
+    if (
+      getDemoFeeScheme() === FEE_SCHEME_QTY ||
+      (ambient && ambient.feeScheme === FEE_SCHEME_QTY) ||
+      (cold && cold.feeScheme === FEE_SCHEME_QTY)
+    ) {
+      var qtyRate = adaptRateForDemo((ambient && ambient.rate) || (cold && cold.rate));
+      var orderQty = items.reduce(function (sum, item) {
+        return sum + (item.qty || 0);
+      }, 0);
+      var qtyBd = explainQtyFee(qtyRate, orderQty);
+      var qtyTarget = ambient && !ambient.empty ? ambient : cold;
+      var qtyOther = qtyTarget === ambient ? cold : ambient;
+      if (qtyTarget && !qtyTarget.empty) {
+        qtyTarget.feeScheme = FEE_SCHEME_QTY;
+        qtyTarget.breakdown = qtyBd;
+        qtyTarget.amount = qtyBd.amount;
+        qtyTarget.baseAmount = qtyBd.amount;
+        qtyTarget.itemCount = qtyBd.qty;
+        qtyTarget.text = formatMoney(qtyBd.amount);
+      }
+      if (qtyOther && !qtyOther.empty) {
+        qtyOther.feeScheme = FEE_SCHEME_QTY;
+        qtyOther.breakdown = null;
+        qtyOther.amount = 0;
+        qtyOther.baseAmount = 0;
+        qtyOther.text = formatMoney(0);
       }
     }
     var applied = applyOrderServices(ambient, cold, opts, payable);
@@ -2062,8 +2203,8 @@
 
       '<div class="ua-freight-explain__section">' +
       '<h4 class="ua-freight-explain__title">1. 配送费与快递费</h4>' +
-      '<p class="ua-freight-explain__p"><strong>平台配送</strong>收取配送费。<strong>快递</strong>免运费。</p>' +
-      '<p class="ua-freight-explain__p">同一订单中，<strong>常温、冷链分别计费</strong>后计入配送费。</p>' +
+      '<p class="ua-freight-explain__p"><strong>平台配送</strong>按包邮配置收取配送费。<strong>快递</strong>关闭包邮后与配送一样按费率计费，开启则免运费。</p>' +
+      '<p class="ua-freight-explain__p">同一订单中，<strong>常温、冷链分别计费</strong>后计入对应履约的运费。</p>' +
       '</div>' +
 
       '<div class="ua-freight-explain__section">' +
@@ -2071,6 +2212,7 @@
       '<p class="ua-freight-explain__p">按计费重量计收：先收<strong>起步费</strong>，超出部分按续重计收。</p>' +
       '<p class="ua-freight-explain__p">计费重量取实际重量与体积折算重量中的较高值。</p>' +
       '<p class="ua-freight-explain__p">按货款金额计收时，依本单货款分档定额计收，不按重量计收。</p>' +
+      '<p class="ua-freight-explain__p">按购买件数计收时，用订单商品购买总数命中档，基础运费 = 实际件数 × 该档运费（元/件）。</p>' +
       '</div>' +
 
       '<div class="ua-freight-explain__section">' +
@@ -2113,6 +2255,12 @@
     quoteSkuByChannels: quoteSkuByChannels,
     quoteGroup: quoteGroup,
     quoteOrder: quoteOrder,
+    FEE_SCHEME_QTY: FEE_SCHEME_QTY,
+    FEE_SCHEME_MIX: FEE_SCHEME_MIX,
+    isQtyFeeScheme: isQtyFeeScheme,
+    isMixFeeScheme: isMixFeeScheme,
+    quoteOrderWithScheme: quoteOrderWithScheme,
+    quoteSchemeCompare: quoteSchemeCompare,
     getDemoFeeScheme: getDemoFeeScheme,
     setDemoFeeScheme: setDemoFeeScheme,
     getDemoUpstairs: getDemoUpstairs,

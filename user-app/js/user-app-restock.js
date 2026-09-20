@@ -620,31 +620,55 @@
     var deliveryItems = list.filter(function (item) {
       return resolveFulfillmentMethod(item) !== '快递';
     });
-    if (api && typeof api.quoteOrder === 'function' && deliveryItems.length) {
-      var quote = api.quoteOrder(Object.assign({
-        channel: api.CHANNEL_PROXY,
-        fulfill: 'platform',
-        items: deliveryItems.map(function (item) {
-          return Object.assign({}, item, { fulfillmentMethod: '配送' });
-        })
-      }, restockFreightExplainOpts()));
+    var expressItems = list.filter(function (item) {
+      return resolveFulfillmentMethod(item) === '快递';
+    });
+    if (api && typeof api.quoteOrder === 'function' && (deliveryItems.length || expressItems.length)) {
+      var quote = deliveryItems.length
+        ? api.quoteOrder(Object.assign({
+            channel: api.CHANNEL_PROXY,
+            fulfill: 'platform',
+            items: deliveryItems.map(function (item) {
+              return Object.assign({}, item, { fulfillmentMethod: '配送' });
+            })
+          }, restockFreightExplainOpts()))
+        : null;
+      var expressQuote = expressItems.length
+        ? api.quoteOrder(Object.assign({
+            channel: api.CHANNEL_PROXY,
+            fulfill: 'express',
+            items: expressItems.map(function (item) {
+              return Object.assign({}, item, { fulfillmentMethod: '快递' });
+            })
+          }, restockFreightExplainOpts()))
+        : null;
       var parts = [];
-      if (quote.ambient && !quote.ambient.empty) {
-        parts.push('常温' + (quote.ambient.text || formatFreightMoney(quote.ambient.amount)));
+      if (quote) {
+        if (quote.ambient && !quote.ambient.empty) {
+          parts.push('常温' + (quote.ambient.text || formatFreightMoney(quote.ambient.amount)));
+        }
+        if (quote.cold && !quote.cold.empty) {
+          parts.push('冷链' + (quote.cold.text || formatFreightMoney(quote.cold.amount)));
+        }
       }
-      if (quote.cold && !quote.cold.empty) {
-        parts.push('冷链' + (quote.cold.text || formatFreightMoney(quote.cold.amount)));
+      if (expressCount > 0) {
+        if (expressQuote && expressQuote.total > 0) {
+          parts.push('快递' + (expressQuote.text || formatFreightMoney(expressQuote.total)));
+        } else {
+          parts.push('快递包邮');
+        }
       }
-      if (expressCount > 0) parts.push('快递包邮');
+      var fee = (quote && quote.total ? quote.total : 0) + (expressQuote && expressQuote.total ? expressQuote.total : 0);
       return {
-        text: parts.length ? parts.join(' + ') : (quote.text || ''),
-        done: (quote.total || 0) <= 0,
-        fee: quote.total || 0,
+        text: parts.length ? parts.join(' + ') : (quote && quote.text) || '',
+        done: fee <= 0,
+        fee: fee,
         deliveryAmount: deliveryAmount,
         expressAmount: expressAmount,
         deliveryCount: deliveryCount,
         expressCount: expressCount,
-        quote: quote
+        quote: quote,
+        expressQuote: expressQuote
       };
     }
 
@@ -658,13 +682,13 @@
     var done = true;
 
     if (deliveryCount > 0 && expressCount > 0) {
-      text = delivery.text + (expressFee <= 0 ? '，快递免运费' : '');
+      text = delivery.text + '，快递按费率或包邮配置计费';
       done = delivery.done;
     } else if (deliveryCount > 0) {
       text = delivery.text;
       done = delivery.done;
     } else if (expressCount > 0) {
-      text = '快递包邮';
+      text = '快递运费以确认订单为准';
       done = true;
     } else {
       text = '';

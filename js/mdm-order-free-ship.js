@@ -84,7 +84,7 @@
     if (resetBtn) {
       resetBtn.addEventListener('click', function () {
         fillForm(api.reset());
-        toast('已恢复默认：零售自提/快递、代采快递固定包邮；代采配送关闭', 'success');
+        toast('已恢复默认：零售自提/快递固定包邮；代采配送关闭，代采快递开启', 'success');
       });
     }
   }

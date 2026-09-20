@@ -1312,6 +1312,137 @@
   font-weight: 500;
 }
 
+.ua-co-freight-mix__preview {
+  margin-left: 6px;
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 400;
+  color: #ff7019;
+}
+
+.ua-co-fd-lane {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.ua-co-fd-lane__title {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #111;
+}
+
+.ua-co-fd-pkg {
+  margin: 0 0 12px;
+  padding: 10px 10px 10px 12px;
+  border-left: 3px solid #ff7019;
+  background: #fff;
+}
+
+.ua-co-fd-pkg__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.ua-co-fd-pkg__name {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.4;
+}
+
+.ua-co-fd-pkg__sub {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: #999;
+}
+
+.ua-co-fd-pkg__fee {
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.ua-co-fd-scheme {
+  margin: 8px 0 0 10px;
+  padding: 8px 10px;
+  border-left: 2px solid #ffd2b0;
+  background: #fffaf5;
+  border-radius: 0 8px 8px 0;
+}
+
+.ua-co-fd-scheme__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #c45a10;
+}
+
+.ua-co-fd-scheme__title strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: #333;
+}
+
+.ua-co-fd-scheme .ua-co-freight-detail__calc {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.ua-co-fd-extra {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed #f0d0b0;
+}
+
+.ua-co-fd-extra__title {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #8a5a2b;
+}
+
+.ua-co-fd-extra__row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.ua-co-fd-extra__name {
+  display: block;
+  font-size: 12px;
+  color: #333;
+}
+
+.ua-co-fd-extra__hint {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  color: #999;
+  line-height: 1.4;
+}
+
+.ua-co-fd-extra__fee {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+}
+
 .ua-co-summary__row--discount span:last-child {
   color: #ff4d30;
 }
