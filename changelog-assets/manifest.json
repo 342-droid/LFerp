@@ -1354,6 +1354,36 @@
     "status": "diff",
     "date": "2026-09-11"
   },
+  "62d1b67|MDM/mdm_order_proxy.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-20"
+  },
+  "62d1b67|MDM/mdm_order_retail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-20"
+  },
+  "62d1b67|store-app/h5/restock-order-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-20"
+  },
+  "62d1b67|user-app/h5/checkout.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-20"
+  },
+  "62d1b67|user-app/h5/order-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-20"
+  },
+  "62d1b67|user-app/h5/restock.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-20"
+  },
   "6398e0e|SCM/TMS_index.html": {
     "before": "changelog-assets/6398e0e/SCM__TMS_index.html.before.jpg",
     "after": "changelog-assets/6398e0e/SCM__TMS_index.html.after.jpg",
