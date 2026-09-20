@@ -1,10 +1,30 @@
 {
-  "latestSha": "a7b376b6638cbbd27a4ea53040a1177cdfcb7595",
-  "total": 409,
+  "latestSha": "f168807d454dce40e15fda02753cf02c24fc62fe",
+  "total": 410,
   "days": [
     {
       "date": "2026-09-20",
       "items": [
+        {
+          "sha": "f168807",
+          "type": "feat",
+          "text": "物流费率增加履约方式和按件计费",
+          "author": "342-droid",
+          "time": "18:33",
+          "pages": [
+            {
+              "file": "SCM/logistics_rate.html",
+              "module": "冷丰TMS",
+              "title": "物流费率表"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/logistics_rate.html",
+              "text": "查询、列表和编辑增加履约方式；费用方案新增按件计费；启用冲突按配送仓、订单渠道、履约方式和目的地校验"
+            }
+          ]
+        },
         {
           "sha": "a7b376b",
           "type": "feat",
