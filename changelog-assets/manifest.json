@@ -3048,6 +3048,36 @@
     "status": "diff",
     "date": "2026-09-17"
   },
+  "c5e62a1|MDM/mdm_order_proxy.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-21"
+  },
+  "c5e62a1|MDM/mdm_order_retail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-21"
+  },
+  "c5e62a1|store-app/h5/restock-order-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-21"
+  },
+  "c5e62a1|user-app/h5/checkout.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-21"
+  },
+  "c5e62a1|user-app/h5/order-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-21"
+  },
+  "c5e62a1|user-app/h5/restock.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-21"
+  },
   "c747316|MDM/mdm_marketing_newcomer_zone.html": {
     "regions": 0,
     "status": "diff",
