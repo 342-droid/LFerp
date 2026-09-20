@@ -1,10 +1,52 @@
 {
-  "latestSha": "62d1b670015271c00b7918eab5eb9fc50cb795eb",
-  "total": 408,
+  "latestSha": "a7b376b6638cbbd27a4ea53040a1177cdfcb7595",
+  "total": 409,
   "days": [
     {
       "date": "2026-09-20",
       "items": [
+        {
+          "sha": "a7b376b",
+          "type": "feat",
+          "text": "新增列表式分拣并支持仓库配置交互方式",
+          "author": "342-droid",
+          "time": "18:20",
+          "pages": [
+            {
+              "file": "SCM/app_list.html",
+              "module": "冷丰WMS",
+              "title": "移动端工作台"
+            },
+            {
+              "file": "SCM/app_obd_sorting_list.html",
+              "module": "冷丰WMS",
+              "title": "分拣任务（列表式）"
+            },
+            {
+              "file": "SCM/warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库管理"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/warehouse.html",
+              "text": "出库页签增加「分拣交互方式」，可选任务式/列表式，默认列表式；参数文字左对齐"
+            },
+            {
+              "file": "SCM/app_obd_sorting_list.html",
+              "text": "新增按商品/门店/线路领取与执行，支持查询定位明细、完成和异常登记"
+            },
+            {
+              "file": "SCM/app_list.html",
+              "text": "增加「分拣（列表式）」入口"
+            },
+            {
+              "file": null,
+              "text": "补充列表式分拣需求说明"
+            }
+          ]
+        },
         {
           "sha": "62d1b67",
           "type": "feat",
@@ -32193,6 +32235,11 @@
               "file": "SCM/app_obd_sorting.html",
               "module": "冷丰WMS",
               "title": "分拣任务"
+            },
+            {
+              "file": "SCM/app_obd_sorting_list.html",
+              "module": "冷丰WMS",
+              "title": "分拣任务（列表式）"
             },
             {
               "file": "SCM/area.html",

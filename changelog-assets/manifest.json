@@ -2609,6 +2609,23 @@
     "status": "diff",
     "date": "2026-09-16"
   },
+  "a7b376b|SCM/app_list.html": {
+    "before": "changelog-assets/a7b376b/SCM__app_list.html.before.jpg",
+    "after": "changelog-assets/a7b376b/SCM__app_list.html.after.jpg",
+    "regions": 5,
+    "status": "diff",
+    "date": "2026-09-20"
+  },
+  "a7b376b|SCM/app_obd_sorting_list.html": {
+    "after": "changelog-assets/a7b376b/SCM__app_obd_sorting_list.html.after.jpg",
+    "status": "added",
+    "date": "2026-09-20"
+  },
+  "a7b376b|SCM/warehouse.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-20"
+  },
   "aa54e6a|SCM/allocation_strategy.html": {
     "before": "changelog-assets/aa54e6a/SCM__allocation_strategy.html.before.jpg",
     "after": "changelog-assets/aa54e6a/SCM__allocation_strategy.html.after.jpg",
