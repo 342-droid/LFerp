@@ -363,7 +363,7 @@
 
   function shouldMount() {
     var path = (global.location && global.location.pathname) || '';
-    return /restock-orders\.html|restock-order-detail\.html|restock-refund-detail\.html|\/orders\.html|order-detail\.html|order-detail-pickup\.html|order-aftersale-list\.html/i.test(
+    return /restock-orders\.html|restock-order-detail\.html|restock-refund-detail\.html|restock-aftersale-list\.html|\/orders\.html|order-detail\.html|order-detail-pickup\.html|order-aftersale-list\.html/i.test(
       path
     );
   }

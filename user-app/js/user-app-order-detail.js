@@ -1270,8 +1270,24 @@
       scene: getRefundScene()
     };
 
-    /* 多笔成功退款合并：进列表，仅展示对应售后 */
+    /* 多笔成功退款合并：进列表，仅展示对应售后。门店 APP 无独立列表时直达详情 */
     if (asKind === 'merged_refund_success') {
+      if (
+        window.LfAppShell &&
+        typeof window.LfAppShell.isStoreApp === 'function' &&
+        window.LfAppShell.isStoreApp()
+      ) {
+        var mergedRec = (api.getAftersaleRecordsByItem
+          ? api.getAftersaleRecordsByItem(itemIndex, orderNo)
+          : []
+        ).find(function (r) {
+          return r && r.id === asId;
+        });
+        if (mergedRec && api.buildAftersaleDetailHref) {
+          window.location.href = api.buildAftersaleDetailHref(mergedRec, detailExtra);
+          return;
+        }
+      }
       window.location.href = buildAftersaleListFromDetailHref(itemIndex, {
         asFilter: 'done',
         asIds: asIds || asId

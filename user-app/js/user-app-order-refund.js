@@ -810,7 +810,14 @@
   }
 
   function buildAftersaleListHref(extra) {
-    return 'order-aftersale-list.html?' + buildQuery(extra || {});
+    var qs = buildQuery(extra || {});
+    if (isStoreAppShell()) {
+      if (global.LfAppShell && typeof global.LfAppShell.restockAftersaleListHref === 'function') {
+        return global.LfAppShell.restockAftersaleListHref(qs ? '?' + qs : '');
+      }
+      return 'restock-aftersale-list.html?' + qs;
+    }
+    return 'order-aftersale-list.html?' + qs;
   }
 
   function syncAftersaleRecordFromApp(app, type, stage) {
@@ -10710,7 +10717,13 @@
       if (!params.get('orderNo') && getCurrentOrderNo()) {
         odQs.push('orderNo=' + encodeURIComponent(getCurrentOrderNo()));
       }
-      backHref = 'order-detail.html?' + odQs.join('&');
+      if (isStoreAppShell() && global.LfAppShell && global.LfAppShell.restockDetailHref) {
+        backHref = global.LfAppShell.restockDetailHref(params.get('orderNo') || getCurrentOrderNo() || '');
+      } else {
+        backHref = 'order-detail.html?' + odQs.join('&');
+      }
+    } else if (isStoreAppShell() && global.LfAppShell && global.LfAppShell.restockOrdersHref) {
+      backHref = global.LfAppShell.restockOrdersHref();
     }
 
     var backEl = document.getElementById('aftersaleListBack');

@@ -9,6 +9,19 @@
     return (global.location && global.location.pathname) || '';
   }
 
+  function hrefText() {
+    return (global.location && (global.location.href || global.location.pathname)) || '';
+  }
+
+  /** file:// 时 pathname 可能不含目录，同时看 href 和进货页文件名 */
+  function inStoreAppDir() {
+    var text = pathName() + ' ' + hrefText();
+    return (
+      /\/store-app\//i.test(text) ||
+      /restock-(orders|order-detail|refund-detail|aftersale-list)\.html/i.test(text)
+    );
+  }
+
   function searchParams() {
     try {
       return new URLSearchParams((global.location && global.location.search) || '');
@@ -18,7 +31,7 @@
   }
 
   function pathShell() {
-    if (/\/store-app\//i.test(pathName())) return 'store-app';
+    if (inStoreAppDir()) return 'store-app';
     return '';
   }
 
@@ -60,14 +73,12 @@
   }
 
   function restockOrdersHref() {
-    return /\/store-app\//i.test(pathName())
-      ? 'restock-orders.html'
-      : '../../store-app/h5/restock-orders.html';
+    return inStoreAppDir() ? 'restock-orders.html' : '../../store-app/h5/restock-orders.html';
   }
 
   function restockDetailHref(orderNo) {
     var q = orderNo ? '?orderNo=' + encodeURIComponent(orderNo) : '';
-    return /\/store-app\//i.test(pathName())
+    return inStoreAppDir()
       ? 'restock-order-detail.html' + q
       : '../../store-app/h5/restock-order-detail.html' + q;
   }
@@ -75,9 +86,17 @@
   function restockRefundDetailHref(query) {
     var q = String(query || '');
     if (q && q.charAt(0) !== '?') q = '?' + q;
-    return /\/store-app\//i.test(pathName())
+    return inStoreAppDir()
       ? 'restock-refund-detail.html' + q
       : '../../store-app/h5/restock-refund-detail.html' + q;
+  }
+
+  function restockAftersaleListHref(query) {
+    var q = String(query || '');
+    if (q && q.charAt(0) !== '?') q = '?' + q;
+    return inStoreAppDir()
+      ? 'restock-aftersale-list.html' + q
+      : '../../store-app/h5/restock-aftersale-list.html' + q;
   }
 
   function isRestockOrdersPage() {
@@ -94,17 +113,17 @@
 
   function userAppH5(file) {
     file = String(file || '');
-    return /\/store-app\//i.test(pathName()) ? '../../user-app/h5/' + file : file;
+    return inStoreAppDir() ? '../../user-app/h5/' + file : file;
   }
 
   function userAppAsset(file) {
     file = String(file || '');
-    return /\/store-app\//i.test(pathName()) ? '../../user-app/assets/' + file : '../assets/' + file;
+    return inStoreAppDir() ? '../../user-app/assets/' + file : '../assets/' + file;
   }
 
   function userAppPage(href) {
     href = String(href || '');
-    if (!href || !/\/store-app\//i.test(pathName())) return href;
+    if (!href || !inStoreAppDir()) return href;
     if (/user-app\/h5\//.test(href) || /^https?:/i.test(href) || href.charAt(0) === '/') return href;
     return '../../user-app/h5/' + href.replace(/^\.\//, '');
   }
@@ -112,7 +131,7 @@
   function resolveAsset(src) {
     src = String(src || '');
     if (!src) return userAppAsset('order-product-1.svg');
-    if (!/\/store-app\//i.test(pathName())) return src;
+    if (!inStoreAppDir()) return src;
     if (/user-app\//.test(src) || /^https?:/i.test(src) || src.charAt(0) === '/') return src;
     if (src.indexOf('../assets/') === 0) return '../../user-app/assets/' + src.slice(10);
     if (src.indexOf('./assets/') === 0) return '../../user-app/assets/' + src.slice(9);
@@ -147,6 +166,8 @@
     restockOrdersHref: restockOrdersHref,
     restockDetailHref: restockDetailHref,
     restockRefundDetailHref: restockRefundDetailHref,
+    restockAftersaleListHref: restockAftersaleListHref,
+    inStoreAppDir: inStoreAppDir,
     isRestockOrdersPage: isRestockOrdersPage,
     isRestockDetailPage: isRestockDetailPage,
     isRestockRefundDetailPage: isRestockRefundDetailPage,
