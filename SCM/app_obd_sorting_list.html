@@ -171,6 +171,20 @@
             font-weight: 500;
         }
 
+        .done-scope-tip {
+            flex-shrink: 0;
+            padding: 8px 16px;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #8a6d3b;
+            background-color: #fff8e6;
+            border-bottom: 1px solid #f0e4c2;
+        }
+
+        .done-scope-tip[hidden] {
+            display: none !important;
+        }
+
         .list-wrapper,
         .execute-list {
             flex: 1;
@@ -685,6 +699,61 @@
             padding: 10px 28px;
             cursor: pointer;
         }
+
+        .claim-lost-demo {
+            position: absolute;
+            right: 8px;
+            top: 58px;
+            left: auto;
+            bottom: auto;
+            z-index: 25;
+            width: 188px;
+            padding: 10px;
+            background: #ffffff;
+            border: 1px solid #e6e6e6;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .claim-lost-demo[hidden] {
+            display: none !important;
+        }
+
+        .claim-lost-demo-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #333333;
+            margin-bottom: 8px;
+        }
+
+        .claim-lost-demo-label {
+            display: block;
+            font-size: 12px;
+            color: #777777;
+            margin-bottom: 4px;
+        }
+
+        .claim-lost-demo select {
+            width: 100%;
+            height: 28px;
+            margin-bottom: 8px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #333333;
+            background: #ffffff;
+        }
+
+        .claim-lost-demo-btn {
+            width: 100%;
+            height: 28px;
+            border: none;
+            border-radius: 4px;
+            background: #2196f3;
+            color: #ffffff;
+            font-size: 12px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -724,6 +793,7 @@
                     <button type="button" class="tab-btn active" data-tab="未完成">未完成</button>
                     <button type="button" class="tab-btn" data-tab="已完成">已完成</button>
                 </div>
+                <div class="done-scope-tip" id="doneScopeTip" hidden>仅显示当天已完成数据，历史数据请去电脑端查看</div>
                 <div class="list-wrapper" id="listWrapper"></div>
             </div>
         </div>
@@ -772,6 +842,35 @@
             </div>
         </div>
 
+        <div class="shortage-modal" id="takeoverConfirmModal">
+            <div class="shortage-modal-card">
+                <div class="shortage-modal-message" id="takeoverConfirmMessage">当前分拣任务已被领取，确认要领取并作业吗？</div>
+                <div class="shortage-modal-actions">
+                    <button type="button" class="shortage-modal-btn" id="takeoverConfirmCancelBtn">取消</button>
+                    <button type="button" class="shortage-modal-btn shortage-modal-btn--confirm" id="takeoverConfirmOkBtn">确认</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="shortage-modal" id="claimLostModal">
+            <div class="shortage-modal-card">
+                <div class="shortage-modal-message" id="claimLostMessage">当前分拣任务已被领取，无法完成，请重新领取任务</div>
+                <div class="shortage-modal-actions">
+                    <button type="button" class="shortage-modal-btn shortage-modal-btn--confirm" id="claimLostOkBtn">确认</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="claim-lost-demo" id="claimLostDemo" hidden>
+            <div class="claim-lost-demo-title">分拣完成验收开关</div>
+            <label class="claim-lost-demo-label" for="claimLostDemoSelect">完成时分拣人</label>
+            <select id="claimLostDemoSelect">
+                <option value="self">当前账号（张三）</option>
+                <option value="other">李四</option>
+            </select>
+            <button type="button" class="claim-lost-demo-btn" id="claimLostDemoApplyBtn">应用</button>
+        </div>
+
         <div class="global-toast" id="globalToast"></div>
         <div class="image-preview-modal" id="productImagePreviewModal">
             <div class="image-preview-modal-title" id="productImagePreviewTitle"></div>
@@ -808,7 +907,7 @@
             },
             store: {
                 title: '按门店分拣',
-                searchPlaceholder: '门店编码/库位编码',
+                searchPlaceholder: '门店编码/门店名称/库位编码',
                 scanPlaceholder: '商品编码/条码/名称'
             },
             route: {
@@ -827,6 +926,12 @@
         const executeList = document.getElementById('executeList');
         const shortageQtyModal = document.getElementById('shortageQtyModal');
         const shortageConfirmModal = document.getElementById('shortageConfirmModal');
+        const takeoverConfirmModal = document.getElementById('takeoverConfirmModal');
+        const takeoverConfirmMessage = document.getElementById('takeoverConfirmMessage');
+        const claimLostModal = document.getElementById('claimLostModal');
+        const claimLostMessage = document.getElementById('claimLostMessage');
+        const claimLostDemo = document.getElementById('claimLostDemo');
+        const claimLostDemoSelect = document.getElementById('claimLostDemoSelect');
         const shortageSortedQtyInput = document.getElementById('shortageSortedQtyInput');
         const globalToast = document.getElementById('globalToast');
 
@@ -856,6 +961,7 @@
         let listTab = '未完成';
         let currentMode = 'sku';
         let currentClaim = null;
+        let pendingClaimKey = '';
         let selectedLineId = '';
         let locatedLineId = '';
         let scanLocationOk = false;
@@ -1022,10 +1128,6 @@
             return isOpen(item) && item.claimedBy && item.claimedBy !== CURRENT_USER;
         }
 
-        function canOperate(item) {
-            return isOpen(item) && !isLockedByOther(item);
-        }
-
         function storeLabel(item) {
             return item.storeCode + '-' + item.storeName;
         }
@@ -1052,6 +1154,20 @@
             return names.length ? names.join('、') : '-';
         }
 
+        function otherSorterNames(items) {
+            const names = [];
+            (items || []).forEach((item) => {
+                if (!isLockedByOther(item)) return;
+                const name = String(item.claimedBy || '').trim();
+                if (name && names.indexOf(name) === -1) names.push(name);
+            });
+            return names;
+        }
+
+        function claimableLines(key) {
+            return sortingLines.filter((item) => isOpen(item) && aggKey(currentMode, item) === key);
+        }
+
         function aggKey(mode, item) {
             if (mode === 'sku') return item.skuCode;
             if (mode === 'store') return item.storeCode;
@@ -1062,6 +1178,7 @@
             document.querySelectorAll('.page').forEach((page) => page.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
             pageHeader.style.display = pageId === 'completePage' ? 'none' : 'flex';
+            if (claimLostDemo) claimLostDemo.hidden = pageId !== 'executePage';
         }
 
         function showToast(message) {
@@ -1103,6 +1220,10 @@
             document.querySelectorAll('#listPage .tab-btn').forEach((btn) => {
                 btn.classList.toggle('active', btn.dataset.tab === listTab);
             });
+            const doneScopeTip = document.getElementById('doneScopeTip');
+            if (doneScopeTip) {
+                doneScopeTip.hidden = listTab !== '已完成';
+            }
         }
 
         function setListTab(tab) {
@@ -1124,7 +1245,7 @@
             const doneTab = listTab === '已完成';
             return Array.from(map.values()).map((group) => {
                 const allClosed = group.items.length > 0 && group.items.every((item) => !isOpen(item));
-                const sourceItems = doneTab ? group.items : group.items.filter(canOperate);
+                const sourceItems = doneTab ? group.items : group.items.filter(isOpen);
                 if (doneTab ? !allClosed : !sourceItems.length) return null;
 
                 const sample = sourceItems[0] || group.items[0];
@@ -1137,7 +1258,7 @@
                 const result = {
                     key: group.key,
                     sample,
-                    mine: sourceItems.some((item) => item.claimedBy === CURRENT_USER),
+                    inProgress: sourceItems.some((item) => String((item && item.claimedBy) || '').trim()),
                     qty
                 };
 
@@ -1156,14 +1277,16 @@
                     result.lines = [
                         { label: '目的储位', value: locationLabel(sample) },
                         { label: qtyLabel, value: qty + '件' },
-                        { label: '品项数', value: String(skuCodes.size) }
+                        { label: '品项数', value: String(skuCodes.size) },
+                        { label: '分拣人', value: sorterLabel(sourceItems) }
                     ];
                 } else {
                     result.title = routeLabel(sample);
                     result.lines = [
                         { label: '门店数', value: String(storeCodes.size) },
                         { label: '品项数', value: String(skuCodes.size) },
-                        { label: qtyLabel, value: qty + '件' }
+                        { label: qtyLabel, value: qty + '件' },
+                        { label: '分拣人', value: sorterLabel(sourceItems) }
                     ];
                 }
                 return result;
@@ -1200,8 +1323,8 @@
             }
 
             listWrapper.innerHTML = groups.map((group) => {
-                const statusClass = doneTab ? 'status-done' : (group.mine ? 'status-mine' : 'status-wait');
-                const statusText = doneTab ? '已完成' : (group.mine ? '分拣中' : '初始');
+                const statusClass = doneTab ? 'status-done' : (group.inProgress ? 'status-mine' : 'status-wait');
+                const statusText = doneTab ? '已完成' : (group.inProgress ? '分拣中' : '初始');
                 const rows = group.lines.map((row) => (
                     '<div class="info-line"><span class="info-label">' + escapeHtml(row.label) + '</span><span class="info-value">' + escapeHtml(row.value) + '</span></div>'
                 )).join('');
@@ -1219,14 +1342,22 @@
             bindProductImages(listWrapper);
         }
 
-        function claimAndExecute(key) {
-            const targets = sortingLines.filter((item) => canOperate(item) && aggKey(currentMode, item) === key);
-            if (!targets.length) {
-                showToast('没有可领取的分拣行');
-                return;
+        function closeTakeoverConfirm() {
+            pendingClaimKey = '';
+            if (takeoverConfirmModal) takeoverConfirmModal.classList.remove('active');
+        }
+
+        function showTakeoverConfirm(key, sorterName) {
+            pendingClaimKey = key;
+            if (takeoverConfirmMessage) {
+                takeoverConfirmMessage.textContent = '当前分拣任务已被「' + sorterName + '」领取，确认要领取并作业吗？';
             }
+            if (takeoverConfirmModal) takeoverConfirmModal.classList.add('active');
+        }
+
+        function executeClaim(key, targets) {
             targets.forEach((item) => {
-                if (!item.claimedBy) item.claimedBy = CURRENT_USER;
+                item.claimedBy = CURRENT_USER;
             });
             currentClaim = {
                 mode: currentMode,
@@ -1241,6 +1372,32 @@
             if (executeScanInput) executeScanInput.value = '';
             showToast('领取成功');
             showExecutePage();
+        }
+
+        function claimAndExecute(key) {
+            const targets = claimableLines(key);
+            if (!targets.length) {
+                showToast('没有可领取的分拣行');
+                return;
+            }
+            const others = otherSorterNames(targets);
+            if (others.length) {
+                showTakeoverConfirm(key, others.join('、'));
+                return;
+            }
+            executeClaim(key, targets);
+        }
+
+        function confirmTakeoverAndExecute() {
+            const key = pendingClaimKey;
+            closeTakeoverConfirm();
+            if (!key) return;
+            const targets = claimableLines(key);
+            if (!targets.length) {
+                showToast('没有可领取的分拣行');
+                return;
+            }
+            executeClaim(key, targets);
         }
 
         function claimedLines() {
@@ -1532,6 +1689,56 @@
             locateExecuteLine(match.id);
         }
 
+        function lineSorterName(item) {
+            return String((item && item.claimedBy) || '').trim();
+        }
+
+        function isClaimedByOther(item) {
+            const sorter = lineSorterName(item);
+            return !!(sorter && sorter !== CURRENT_USER);
+        }
+
+        function showClaimLostModal(sorterName) {
+            if (shortageQtyModal) shortageQtyModal.classList.remove('active');
+            if (shortageConfirmModal) shortageConfirmModal.classList.remove('active');
+            if (claimLostMessage) {
+                claimLostMessage.textContent = '当前分拣任务已被「' + (sorterName || '他人') + '」领取，无法完成，请重新领取任务';
+            }
+            if (claimLostModal) claimLostModal.classList.add('active');
+        }
+
+        function guardClaimLost(item) {
+            if (!isClaimedByOther(item)) return false;
+            showClaimLostModal(lineSorterName(item));
+            return true;
+        }
+
+        function acknowledgeClaimLost() {
+            if (claimLostModal) claimLostModal.classList.remove('active');
+            currentClaim = null;
+            selectedLineId = '';
+            locatedLineId = '';
+            scanLocationOk = false;
+            scanSkuOk = false;
+            routeStoreCode = '';
+            if (executeScanInput) executeScanInput.value = '';
+            showListPage();
+        }
+
+        function applyClaimLostDemo() {
+            const useOther = claimLostDemoSelect && claimLostDemoSelect.value === 'other';
+            const sorter = useOther ? '李四' : CURRENT_USER;
+            const targets = claimedOpenLines();
+            if (!targets.length) {
+                showToast('暂无未完成明细可模拟');
+                return;
+            }
+            targets.forEach((item) => {
+                item.claimedBy = sorter;
+            });
+            showToast(useOther ? '已模拟为李四领取' : '已恢复为当前账号');
+        }
+
         function confirmSortExecute(lineId) {
             const item = sortingLines.find((row) => row.id === lineId);
             if (!item || !isOpen(item)) {
@@ -1539,6 +1746,7 @@
                 return;
             }
             selectedLineId = item.id;
+            if (guardClaimLost(item)) return;
             const expectedQty = Number(item.expectedQty || 0);
             const { raw, qty } = readLineQty(item);
             if (raw === '' || !Number.isFinite(qty) || qty < 0 || !Number.isInteger(qty)) {
@@ -1646,6 +1854,7 @@
                 showToast('异常登记校验失败，请重新登记');
                 return;
             }
+            if (guardClaimLost(item)) return;
             showToast('登记成功');
             finishLine(item, sortedQty, true);
         }
@@ -1719,6 +1928,10 @@
         document.getElementById('shortageQtyOkBtn').addEventListener('click', submitShortageQty);
         document.getElementById('shortageConfirmCancelBtn').addEventListener('click', () => shortageConfirmModal.classList.remove('active'));
         document.getElementById('shortageConfirmOkBtn').addEventListener('click', confirmShortageAndContinue);
+        document.getElementById('takeoverConfirmCancelBtn').addEventListener('click', closeTakeoverConfirm);
+        document.getElementById('takeoverConfirmOkBtn').addEventListener('click', confirmTakeoverAndExecute);
+        document.getElementById('claimLostOkBtn').addEventListener('click', acknowledgeClaimLost);
+        document.getElementById('claimLostDemoApplyBtn').addEventListener('click', applyClaimLostDemo);
 
         if (listSearchInput) {
             listSearchInput.addEventListener('input', renderAggCards);
