@@ -72,12 +72,24 @@
       : '../../store-app/h5/restock-order-detail.html' + q;
   }
 
+  function restockRefundDetailHref(query) {
+    var q = String(query || '');
+    if (q && q.charAt(0) !== '?') q = '?' + q;
+    return /\/store-app\//i.test(pathName())
+      ? 'restock-refund-detail.html' + q
+      : '../../store-app/h5/restock-refund-detail.html' + q;
+  }
+
   function isRestockOrdersPage() {
     return /restock-orders\.html/i.test(pathName());
   }
 
   function isRestockDetailPage() {
     return /restock-order-detail\.html/i.test(pathName());
+  }
+
+  function isRestockRefundDetailPage() {
+    return /restock-refund-detail\.html/i.test(pathName());
   }
 
   function userAppH5(file) {
@@ -134,8 +146,10 @@
     isStoreApp: isStoreApp,
     restockOrdersHref: restockOrdersHref,
     restockDetailHref: restockDetailHref,
+    restockRefundDetailHref: restockRefundDetailHref,
     isRestockOrdersPage: isRestockOrdersPage,
     isRestockDetailPage: isRestockDetailPage,
+    isRestockRefundDetailPage: isRestockRefundDetailPage,
     userAppH5: userAppH5,
     userAppAsset: userAppAsset,
     userAppPage: userAppPage,

@@ -106,6 +106,46 @@
   var AFTERSALE_RECORDS_KEY = 'ua_aftersale_records_v4';
   var DEMO_ORDER_NO = '1089765423471123';
 
+  function isStoreAppShell() {
+    return !!(
+      global.LfAppShell &&
+      typeof global.LfAppShell.isStoreApp === 'function' &&
+      global.LfAppShell.isStoreApp()
+    );
+  }
+
+  function scopedKey(key) {
+    if (global.UaOrdersStore && typeof global.UaOrdersStore.scopedKey === 'function') {
+      return global.UaOrdersStore.scopedKey(key);
+    }
+    key = String(key || '');
+    if (!isStoreAppShell()) return key;
+    return key.indexOf('ua_') === 0 ? 'sa_' + key.slice(3) : 'sa_' + key;
+  }
+
+  function aftersaleRecordsKey() {
+    return scopedKey(AFTERSALE_RECORDS_KEY);
+  }
+
+  function refundApplicationKey() {
+    return scopedKey(STORAGE_KEY);
+  }
+
+  function lastOrderKey() {
+    return scopedKey('ua_last_order_v1');
+  }
+
+  function lastOrderItemsKey() {
+    return scopedKey('ua_last_order_items_v1');
+  }
+
+  function demoOrdersKey() {
+    if (global.UaOrdersStore && global.UaOrdersStore.STORAGE_KEY) {
+      return global.UaOrdersStore.STORAGE_KEY;
+    }
+    return scopedKey('ua_demo_orders_v1');
+  }
+
   var AFTERSALE_TYPE_LABEL = {
     refund_only: '退款',
     pre_ship: '退款',
@@ -128,7 +168,7 @@
 
   function loadAftersaleRecords() {
     try {
-      var raw = sessionStorage.getItem(AFTERSALE_RECORDS_KEY);
+      var raw = sessionStorage.getItem(aftersaleRecordsKey());
       var list = raw ? JSON.parse(raw) : null;
       if (Array.isArray(list) && list.length) return list;
     } catch (e) {
@@ -139,13 +179,14 @@
 
   function saveAftersaleRecords(list) {
     try {
-      sessionStorage.setItem(AFTERSALE_RECORDS_KEY, JSON.stringify(list || []));
+      sessionStorage.setItem(aftersaleRecordsKey(), JSON.stringify(list || []));
     } catch (e) {
       /* ignore */
     }
   }
 
   function seedDemoAftersaleRecords() {
+    if (isStoreAppShell()) return [];
     var item0 = DEMO_ITEMS[0];
     var item1 = DEMO_ITEMS[1];
     var list = [
@@ -412,7 +453,7 @@
       /* ignore */
     }
     try {
-      var raw = sessionStorage.getItem('ua_last_order_v1');
+      var raw = sessionStorage.getItem(lastOrderKey());
       if (raw) {
         var last = JSON.parse(raw);
         if (!no || String(last.orderNo || '') === String(no)) {
@@ -2171,7 +2212,7 @@
     if (from.indexOf('exchange') >= 0) return 'exchange';
     if (from.indexOf('return') >= 0) return 'return';
     try {
-      var app = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || 'null');
+      var app = JSON.parse(sessionStorage.getItem(refundApplicationKey()) || 'null');
       if (app && app.formType) {
         if (app.formType === 'restock' || app.formType === 'exchange' || app.formType === 'return') {
           return app.formType;
@@ -2271,7 +2312,7 @@
       if (order) return order;
     }
     try {
-      var orderRaw = sessionStorage.getItem('ua_last_order_v1');
+      var orderRaw = sessionStorage.getItem(lastOrderKey());
       if (!orderRaw) return null;
       var last = JSON.parse(orderRaw);
       if (!no || String(last.orderNo || '') === no) return last;
@@ -2779,7 +2820,7 @@
 
   function loadApplication() {
     try {
-      var raw = sessionStorage.getItem(STORAGE_KEY);
+      var raw = sessionStorage.getItem(refundApplicationKey());
       return raw ? JSON.parse(raw) : null;
     } catch (e) {
       return null;
@@ -2788,14 +2829,21 @@
 
   function saveApplication(data) {
     try {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      sessionStorage.setItem(refundApplicationKey(), JSON.stringify(data));
     } catch (e) {
       /* ignore */
     }
   }
 
   function buildDetailHref(extra) {
-    return 'order-refund-detail.html?' + buildQuery(extra);
+    var qs = buildQuery(extra);
+    if (isStoreAppShell()) {
+      if (global.LfAppShell && typeof global.LfAppShell.restockRefundDetailHref === 'function') {
+        return global.LfAppShell.restockRefundDetailHref(qs ? '?' + qs : '');
+      }
+      return 'restock-refund-detail.html?' + qs;
+    }
+    return 'order-refund-detail.html?' + qs;
   }
 
   function getPickupEditFrom() {
@@ -3011,7 +3059,7 @@
       if (fromStore) return fromStore;
     }
     try {
-      var lastRaw = sessionStorage.getItem('ua_last_order_v1');
+      var lastRaw = sessionStorage.getItem(lastOrderKey());
       if (lastRaw) {
         var last = JSON.parse(lastRaw);
         if (!no || String(last.orderNo || '') === no) return last;
@@ -3021,7 +3069,7 @@
     }
     if (!no) return null;
     try {
-      var listRaw = sessionStorage.getItem('ua_demo_orders_v1');
+      var listRaw = sessionStorage.getItem(demoOrdersKey());
       var list = listRaw ? JSON.parse(listRaw) : [];
       if (!Array.isArray(list)) return null;
       for (var i = 0; i < list.length; i++) {
@@ -3070,19 +3118,19 @@
       }
     }
     try {
-      var lastRaw = sessionStorage.getItem('ua_last_order_v1');
+      var lastRaw = sessionStorage.getItem(lastOrderKey());
       if (lastRaw) {
         var last = JSON.parse(lastRaw);
         if (!no || String(last.orderNo || '') === no) {
           last.freightRefunded = amt;
-          sessionStorage.setItem('ua_last_order_v1', JSON.stringify(last));
+          sessionStorage.setItem(lastOrderKey(), JSON.stringify(last));
         }
       }
     } catch (e0) {
       /* ignore */
     }
     try {
-      var listRaw = sessionStorage.getItem('ua_demo_orders_v1');
+      var listRaw = sessionStorage.getItem(demoOrdersKey());
       var list = listRaw ? JSON.parse(listRaw) : [];
       if (!Array.isArray(list)) list = [];
       var hit = false;
@@ -3095,7 +3143,7 @@
       if (!hit) {
         var seed = null;
         try {
-          var lastSeed = sessionStorage.getItem('ua_last_order_v1');
+          var lastSeed = sessionStorage.getItem(lastOrderKey());
           seed = lastSeed ? JSON.parse(lastSeed) : null;
         } catch (eSeed) {
           seed = null;
@@ -3106,7 +3154,7 @@
           hit = true;
         }
       }
-      if (hit) sessionStorage.setItem('ua_demo_orders_v1', JSON.stringify(list));
+      if (hit) sessionStorage.setItem(demoOrdersKey(), JSON.stringify(list));
     } catch (e1) {
       /* ignore */
     }
@@ -5006,7 +5054,7 @@
       if (el) el.setAttribute('data-points-exchange', '1');
     }
     try {
-      var raw = sessionStorage.getItem('ua_last_order_items_v1');
+      var raw = sessionStorage.getItem(lastOrderItemsKey());
       if (raw) {
         var list = JSON.parse(raw);
         if (Array.isArray(list)) {
@@ -5066,14 +5114,14 @@
       if (el && el.getAttribute('data-points-exchange') === '1') return true;
     } catch (e0) { /* ignore */ }
     try {
-      var raw = sessionStorage.getItem('ua_last_order_items_v1');
+      var raw = sessionStorage.getItem(lastOrderItemsKey());
       if (raw) {
         var list = JSON.parse(raw);
         if (Array.isArray(list) && list[idx] && list[idx].isPointsExchange) return true;
       }
     } catch (e) { /* ignore */ }
     try {
-      var orderRaw = sessionStorage.getItem('ua_last_order_v1');
+      var orderRaw = sessionStorage.getItem(lastOrderKey());
       if (orderRaw) {
         var order = JSON.parse(orderRaw);
         if (order && Array.isArray(order.items) && order.items[idx] && order.items[idx].isPointsExchange) {
@@ -6434,7 +6482,7 @@
         if (reapplyBtn) {
           reapplyBtn.addEventListener('click', function () {
             try {
-              sessionStorage.removeItem(STORAGE_KEY);
+              sessionStorage.removeItem(refundApplicationKey());
             } catch (e) {
               /* ignore */
             }

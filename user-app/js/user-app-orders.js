@@ -305,6 +305,9 @@
     function applyTab(tab, pushState) {
       setActiveTab(tab, tabs);
       filterOrders(tab, cards, emptyEl, endEl);
+      if (window.UaOrderMatrixDemo && window.UaOrderMatrixDemo.hideStaticCardsIfFiltered) {
+        window.UaOrderMatrixDemo.hideStaticCardsIfFiltered();
+      }
       if (pushState) {
         var url = new URL(window.location.href);
         if (tab === 'all') {
@@ -333,6 +336,9 @@
     });
 
     applyTab(getActiveTab(), false);
+    if (window.UaOrderMatrixDemo && window.UaOrderMatrixDemo.hideStaticCardsIfFiltered) {
+      window.UaOrderMatrixDemo.hideStaticCardsIfFiltered();
+    }
   }
 
   function escapeHtml(str) {
@@ -366,6 +372,8 @@
     if (!window.UaOrdersStore || !window.UaOrdersStore.list) return;
     if (isFromRestock() && window.UaOrdersStore.ensureRestockDemoList) {
       window.UaOrdersStore.ensureRestockDemoList();
+    } else if (window.UaOrderMatrixDemo && window.UaOrderMatrixDemo.ensureSeed) {
+      window.UaOrderMatrixDemo.ensureSeed();
     }
     var list = (window.UaOrdersStore.list() || []).filter(function (order) {
       var restock = !!(order && (order.from === 'restock.html' || order.fulfillType || order.splitKind));
@@ -374,7 +382,6 @@
     var wrap = document.querySelector('.ua-orders-list') || document.querySelector('#ordersList');
     if (!wrap || !list.length) return;
     var html = list
-      .slice(0, 8)
       .map(function (order) {
         var fresh = window.UaOrdersStore.getByNo(order.orderNo) || order;
         var href = window.UaOrdersStore.buildDetailHref(fresh);
@@ -388,6 +395,12 @@
           closed: '已关闭'
         };
         var statusText = statusMap[fresh.status] || fresh.status;
+        var listStatus = fresh.status;
+        if (isFromRestock() && (fresh.status === 'receipt' || fresh.status === 'receiving')) {
+          listStatus = 'review';
+        } else if (!isFromRestock() && fresh.status === 'receipt') {
+          listStatus = 'receiving';
+        }
         var imgs = (fresh.items || [])
           .slice(0, 3)
           .map(function (it) {
@@ -415,10 +428,13 @@
             : '<a href="' + href + '" class="ua-order-btn ua-order-btn--outline">查看详情</a>';
         return (
           '<article class="ua-order-card" data-status="' +
-          escapeHtml(fresh.status) +
+          escapeHtml(listStatus) +
           '" data-detail-status="' +
           escapeHtml(fresh.status) +
-          '" data-demo-order="1" data-order-no="' +
+          '" data-demo-order="1"' +
+          (fresh.matrixDemo ? ' data-matrix-demo="1"' : '') +
+          (fresh.asFilter ? ' data-as-filter="' + escapeHtml(fresh.asFilter) + '"' : '') +
+          ' data-order-no="' +
           escapeHtml(fresh.orderNo) +
           '" data-supplier-name="' +
           escapeHtml(fresh.supplierName || '') +

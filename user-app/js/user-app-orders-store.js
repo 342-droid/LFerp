@@ -2,14 +2,39 @@
  * 用户 APP — 演示订单存储（确认下单后写入待支付，支付后改状态）
  */
 (function (global) {
-  var STORAGE_KEY = 'ua_demo_orders_v1';
-  var LAST_KEY = 'ua_last_order_v1';
-  var LAST_ITEMS_KEY = 'ua_last_order_items_v1';
+  var USER_STORAGE_KEY = 'ua_demo_orders_v1';
+  var USER_LAST_KEY = 'ua_last_order_v1';
+  var USER_LAST_ITEMS_KEY = 'ua_last_order_items_v1';
+  var USER_AFTERSALE_KEY = 'ua_aftersale_records_v4';
+  var USER_REFUND_APP_KEY = 'ua_refund_application';
   var MDM_MIRROR_KEY = 'lf_mdm_cend_split_orders_v1';
+
+  function isStoreAppShell() {
+    return !!(global.LfAppShell && typeof global.LfAppShell.isStoreApp === 'function' && global.LfAppShell.isStoreApp());
+  }
+
+  /** 门店 APP / 用户 APP 订单与售后各用一套 key，互不串单 */
+  function scopedKey(key) {
+    key = String(key || '');
+    if (!isStoreAppShell()) return key;
+    return key.indexOf('ua_') === 0 ? 'sa_' + key.slice(3) : 'sa_' + key;
+  }
+
+  function STORAGE_KEY() {
+    return scopedKey(USER_STORAGE_KEY);
+  }
+
+  function LAST_KEY() {
+    return scopedKey(USER_LAST_KEY);
+  }
+
+  function LAST_ITEMS_KEY() {
+    return scopedKey(USER_LAST_ITEMS_KEY);
+  }
 
   function readAll() {
     try {
-      var raw = global.sessionStorage.getItem(STORAGE_KEY);
+      var raw = global.sessionStorage.getItem(STORAGE_KEY());
       var list = raw ? JSON.parse(raw) : [];
       return Array.isArray(list) ? list : [];
     } catch (e) {
@@ -19,7 +44,7 @@
 
   function writeAll(list) {
     try {
-      global.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(list || []));
+      global.sessionStorage.setItem(STORAGE_KEY(), JSON.stringify(list || []));
     } catch (e) { /* ignore */ }
   }
 
@@ -179,7 +204,12 @@
       deliverFee: Number(order.deliverFee) || 0,
       upstairsFee: Number(order.upstairsFee) || 0,
       upstairs: order.upstairs || null,
-      store: order.store || null
+      store: order.store || null,
+      matrixDemo: !!order.matrixDemo,
+      asType: order.asType || '',
+      asStage: order.asStage || '',
+      asFilter: order.asFilter || '',
+      asLabel: order.asLabel || ''
     };
   }
 
@@ -233,14 +263,14 @@
       return o.orderNo !== next.orderNo;
     });
     list.unshift(next);
-    writeAll(list.slice(0, 30));
+    writeAll(list.slice(0, 80));
     if (next.from === 'restock.html' || next.fulfillType || next.splitKind) {
       publishMdmMirror(next);
     }
     try {
-      global.sessionStorage.setItem(LAST_KEY, JSON.stringify(next));
+      global.sessionStorage.setItem(LAST_KEY(), JSON.stringify(next));
       global.sessionStorage.setItem(
-        LAST_ITEMS_KEY,
+        LAST_ITEMS_KEY(),
         JSON.stringify(
           next.items.map(function (it) {
             return {
@@ -286,7 +316,7 @@
       if (list[i].orderNo === no) return list[i];
     }
     try {
-      var raw = global.sessionStorage.getItem(LAST_KEY);
+      var raw = global.sessionStorage.getItem(LAST_KEY());
       if (!raw) return null;
       var last = JSON.parse(raw);
       if (last && last.orderNo === no) return normalizeOrder(last);
@@ -354,6 +384,9 @@
   }
 
   function ensureRestockDemoList() {
+    if (global.UaOrderMatrixDemo && typeof global.UaOrderMatrixDemo.ensureSeed === 'function') {
+      return global.UaOrderMatrixDemo.ensureSeed().filter(isRestockOrder);
+    }
     var list = listNormalized().filter(isRestockOrder);
     if (list.length) return list;
     ensureRestockDemo('9550747005504');
@@ -414,7 +447,7 @@
     var list = readAll();
     if (list.length) return normalizeOrder(list[0]);
     try {
-      var raw = global.sessionStorage.getItem(LAST_KEY);
+      var raw = global.sessionStorage.getItem(LAST_KEY());
       return raw ? normalizeOrder(JSON.parse(raw)) : null;
     } catch (e) {
       return null;
@@ -483,7 +516,12 @@
     isRestockDelivery: isRestockDelivery,
     restockShopTitle: restockShopTitle,
     isWarehouseShopName: isWarehouseShopName,
-    STORAGE_KEY: STORAGE_KEY,
-    LAST_KEY: LAST_KEY
+    STORAGE_KEY: STORAGE_KEY(),
+    LAST_KEY: LAST_KEY(),
+    LAST_ITEMS_KEY: LAST_ITEMS_KEY(),
+    AFTERSALE_RECORDS_KEY: scopedKey(USER_AFTERSALE_KEY),
+    REFUND_APP_KEY: scopedKey(USER_REFUND_APP_KEY),
+    scopedKey: scopedKey,
+    isStoreAppShell: isStoreAppShell
   };
 })(typeof window !== 'undefined' ? window : this);
