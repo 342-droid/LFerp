@@ -1,10 +1,168 @@
 {
-  "latestSha": "d09d3875264ebb2f7f12a85206e23cc0e5e1010b",
-  "total": 414,
+  "latestSha": "a76d6ae6d7169fa854ea7b34b6e858af98c576ef",
+  "total": 415,
   "days": [
     {
       "date": "2026-09-21",
       "items": [
+        {
+          "sha": "a76d6ae",
+          "type": "feat",
+          "text": "门店和用户订单数据隔离并补齐售后演示",
+          "author": "sisi",
+          "time": "18:02",
+          "pages": [
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/newcomer-zone.html",
+              "module": "",
+              "title": "新人专区 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-aftersale-list.html",
+              "module": "",
+              "title": "退款/售后 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-address-book.html",
+              "module": "",
+              "title": "地址簿 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-address-create.html",
+              "module": "",
+              "title": "新建寄件人地址 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-detail.html",
+              "module": "",
+              "title": "退款详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-exchange.html",
+              "module": "",
+              "title": "换货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-only.html",
+              "module": "",
+              "title": "仅退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pickup-edit.html",
+              "module": "",
+              "title": "修改上门取件信息 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pickup-order.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pre-ship.html",
+              "module": "",
+              "title": "仅退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-restock.html",
+              "module": "",
+              "title": "补货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return-goods.html",
+              "module": "",
+              "title": "退货商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return-ship.html",
+              "module": "",
+              "title": "预约寄件 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return.html",
+              "module": "",
+              "title": "退货退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-select.html",
+              "module": "",
+              "title": "选择服务类型 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/points-order-confirm.html",
+              "module": "",
+              "title": "确认兑换 · 用户 APP"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "text": "增加订单售后验收开关，可按订单状态和售后状态查看演示单"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "text": "售后消息条进入门店售后详情，不再跳用户APP"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "text": "从用户APP复制售后详情页，返回进货订单详情"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "text": "与门店进货单数据隔离；卡片只显示主状态，不含售后副状态"
+            }
+          ]
+        },
         {
           "sha": "d09d387",
           "type": "feat",
@@ -441,6 +599,11 @@
               "title": "进货订单 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/checkout.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
@@ -646,6 +809,11 @@
               "title": "进货订单 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/checkout.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
@@ -790,6 +958,11 @@
               "file": "store-app/h5/restock-orders.html",
               "module": "",
               "title": "进货订单 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -1171,6 +1344,11 @@
               "file": "store-app/h5/restock-orders.html",
               "module": "",
               "title": "进货订单 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -1556,6 +1734,11 @@
               "title": "进货订单 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/checkout.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
@@ -1571,9 +1754,19 @@
               "title": "新人专区 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-aftersale-list.html",
+              "module": "",
+              "title": "退款/售后 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-confirm.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-detail.html",
@@ -1652,6 +1845,11 @@
               "title": "进货订单 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "store-app/h5/store-orders.html",
               "module": "",
               "title": "门店订单 · 门店APP"
@@ -1695,6 +1893,11 @@
               "file": "user-app/h5/newcomer-zone.html",
               "module": "",
               "title": "新人专区 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-aftersale-list.html",
+              "module": "",
+              "title": "退款/售后 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-confirm.html",
@@ -2292,6 +2495,11 @@
               "title": "进货订单 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/cart.html",
               "module": "",
               "title": "购物车 · 用户 APP"
@@ -2330,6 +2538,11 @@
               "file": "user-app/h5/newcomer-zone.html",
               "module": "",
               "title": "新人专区 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-aftersale-list.html",
+              "module": "",
+              "title": "退款/售后 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-confirm.html",
@@ -2588,6 +2801,11 @@
               "title": "进货订单 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "store-app/h5/store-orders.html",
               "module": "",
               "title": "门店订单 · 门店APP"
@@ -2631,6 +2849,11 @@
               "file": "user-app/h5/newcomer-zone.html",
               "module": "",
               "title": "新人专区 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-aftersale-list.html",
+              "module": "",
+              "title": "退款/售后 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-confirm.html",
@@ -3444,6 +3667,11 @@
               "title": "进货订单 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/checkout.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
@@ -3691,6 +3919,11 @@
               "file": "store-app/h5/restock-orders.html",
               "module": "",
               "title": "进货订单 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -4268,6 +4501,11 @@
               "title": "订单详情 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/cart.html",
               "module": "",
               "title": "购物车 · 用户 APP"
@@ -4811,6 +5049,11 @@
               "file": "store-app/h5/restock-orders.html",
               "module": "",
               "title": "进货订单 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -5441,6 +5684,11 @@
               "file": "store-app/h5/restock-orders.html",
               "module": "",
               "title": "进货订单 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -7797,6 +8045,11 @@
               "title": "进货订单 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/checkout.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
@@ -7812,9 +8065,19 @@
               "title": "新人专区 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-aftersale-list.html",
+              "module": "",
+              "title": "退款/售后 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-confirm.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-detail.html",
@@ -7861,7 +8124,7 @@
               "text": "页签和演示卡增加「待接单」"
             },
             {
-              "file": "user-app/h5/order-detail.html",
+              "file": "user-app/h5/order-detail-pickup.html",
               "text": "待接单展示标题并可取消，不补进度条"
             },
             {
@@ -7974,6 +8237,11 @@
               "title": "进货订单 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/checkout.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
@@ -7987,6 +8255,11 @@
               "file": "user-app/h5/newcomer-zone.html",
               "module": "",
               "title": "新人专区 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-aftersale-list.html",
+              "module": "",
+              "title": "退款/售后 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-confirm.html",
@@ -8513,6 +8786,11 @@
               "file": "store-app/h5/restock-orders.html",
               "module": "",
               "title": "进货订单 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -12371,6 +12649,11 @@
               "title": "订单详情 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -13302,6 +13585,11 @@
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
               "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
             },
             {
               "file": "user-app/h5/cart.html",
@@ -15658,6 +15946,11 @@
               "title": "进货订单 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/checkout.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
@@ -15876,6 +16169,11 @@
               "title": "进货订单 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/checkout.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
@@ -16046,6 +16344,11 @@
               "title": "订单详情 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -16203,6 +16506,11 @@
               "file": "store-app/h5/restock-orders.html",
               "module": "",
               "title": "进货订单 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -17066,6 +17374,11 @@
               "title": "进货订单 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/checkout.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
@@ -17079,6 +17392,11 @@
               "file": "user-app/h5/newcomer-zone.html",
               "module": "",
               "title": "新人专区 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-aftersale-list.html",
+              "module": "",
+              "title": "退款/售后 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-confirm.html",
@@ -17193,6 +17511,11 @@
               "file": "store-app/h5/restock-orders.html",
               "module": "",
               "title": "进货订单 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -17378,6 +17701,11 @@
               "file": "store-app/h5/restock-orders.html",
               "module": "",
               "title": "进货订单 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -17752,6 +18080,11 @@
               "title": "进货订单 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/checkout.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
@@ -17903,6 +18236,11 @@
               "file": "store-app/h5/restock-orders.html",
               "module": "",
               "title": "进货订单 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -18534,6 +18872,11 @@
               "title": "进货订单 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/checkout.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
@@ -19018,6 +19361,11 @@
               "title": "进货订单 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/checkout.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
@@ -19239,6 +19587,11 @@
               "title": "订单详情 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -19342,6 +19695,10 @@
               "text": "售后详情 · 用户 APP: 零售自提核销不再反写关闭补货，关闭仍走确认收货或满10天自动"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "text": "售后详情 · 用户 APP: 零售自提核销不再反写关闭补货，关闭仍走确认收货或满10天自动"
+            },
+            {
               "file": null,
               "text": "纯文档提交不进更新日志主列表；履约售后PRD与临时页加入gitignore"
             }
@@ -19388,6 +19745,11 @@
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
               "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -19512,6 +19874,11 @@
               "title": "订单详情 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -19634,6 +20001,11 @@
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
               "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -19967,6 +20339,11 @@
               "file": "store-app/h5/restock-orders.html",
               "module": "",
               "title": "进货订单 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
             },
             {
               "file": "user-app/h5/cart.html",
@@ -20438,6 +20815,11 @@
               "title": "进货订单 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/account-cancel.html",
               "module": "",
               "title": "账号注销 · 用户 APP"
@@ -20715,7 +21097,7 @@
               "text": "优先按订单号读取本地状态与商品快照，展示支付积分总额与兑换标签"
             },
             {
-              "file": null,
+              "file": "store-app/h5/restock-refund-detail.html",
               "text": "售后详情 · 用户 APP: 积分兑换商品按 B 端是否允许售后处理，并展示兑换标签"
             },
             {
@@ -20743,6 +21125,11 @@
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
               "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -20888,6 +21275,11 @@
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
               "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
             },
             {
               "file": "user-app/h5/cart.html",
@@ -21164,6 +21556,11 @@
               "title": "订单详情 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -21351,6 +21748,11 @@
               "title": "订单详情 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -21534,6 +21936,11 @@
               "title": "进货订单 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "store-app/h5/store-orders.html",
               "module": "",
               "title": "门店订单 · 门店APP"
@@ -21657,8 +22064,8 @@
               "text": "跳过类型选择的场景返回订单详情，避免左上角返回死循环"
             },
             {
-              "file": null,
-              "text": "售后详情: 快递退货寄回后停在寄回商品节点，退货物流进入寄件物流详情页"
+              "file": "store-app/h5/restock-refund-detail.html",
+              "text": "快递退货寄回后停在寄回商品节点，退货物流进入寄件物流详情页"
             },
             {
               "file": "store-app/h5/verify.html",
@@ -22253,6 +22660,11 @@
               "title": "订单详情 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -22385,6 +22797,11 @@
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
               "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -23266,6 +23683,11 @@
               "title": "订单详情 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -23712,6 +24134,11 @@
               "title": "订单详情 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -24041,6 +24468,11 @@
               "title": "订单详情 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -24191,6 +24623,11 @@
               "title": "订单详情 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -24329,6 +24766,11 @@
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
               "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -24576,6 +25018,11 @@
               "title": "订单详情 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -24686,6 +25133,11 @@
               "title": "订单详情 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -24773,7 +25225,7 @@
           ],
           "notes": [
             {
-              "file": null,
+              "file": "store-app/h5/restock-refund-detail.html",
               "text": "平台审核通过后停留在售后详情页展示取件码，点击取件信息进入物流订单页"
             },
             {
@@ -24793,6 +25245,11 @@
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
               "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -24904,6 +25361,11 @@
               "title": "订单详情 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -25007,6 +25469,11 @@
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
               "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -25189,6 +25656,11 @@
               "title": "订单详情 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -25304,6 +25776,11 @@
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
               "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -25471,6 +25948,11 @@
               "title": "订单详情 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -25604,6 +26086,11 @@
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
               "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -26751,6 +27238,11 @@
               "title": "订单详情 · 门店APP"
             },
             {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -26866,6 +27358,11 @@
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
               "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 门店APP"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
