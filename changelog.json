@@ -1,10 +1,58 @@
 {
-  "latestSha": "c5e62a18d38a1cfb188a17320f9f53ca013ae938",
-  "total": 412,
+  "latestSha": "d09d3875264ebb2f7f12a85206e23cc0e5e1010b",
+  "total": 414,
   "days": [
     {
       "date": "2026-09-21",
       "items": [
+        {
+          "sha": "d09d387",
+          "type": "feat",
+          "text": "列表式分拣完成时校验他人领取并退回列表",
+          "author": "342-droid",
+          "time": "13:35",
+          "pages": [
+            {
+              "file": "SCM/app_obd_sorting_list.html",
+              "module": "冷丰WMS",
+              "title": "分拣任务（列表式）"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/app_obd_sorting_list.html",
+              "text": "点完成时若分拣人已不是当前账号，提示任务已被他人领取且无法完成，确认后返回对应方式的列表；执行页可切换分拣人便于验收"
+            },
+            {
+              "file": null,
+              "text": "同步列表式分拣完成校验说明"
+            }
+          ]
+        },
+        {
+          "sha": "3729c88",
+          "type": "feat",
+          "text": "列表式分拣支持领取他人任务并补齐列表字段",
+          "author": "342-droid",
+          "time": "11:59",
+          "pages": [
+            {
+              "file": "SCM/app_obd_sorting_list.html",
+              "module": "冷丰WMS",
+              "title": "分拣任务（列表式）"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/app_obd_sorting_list.html",
+              "text": "按门店、按线路列表增加分拣人；按门店查询框支持按门店名称筛选；已完成页签提示仅显示当天数据；他人分拣中的任务可二次确认后领取"
+            },
+            {
+              "file": null,
+              "text": "同步列表式分拣需求说明，补齐分拣人、当天已完成范围和他人任务领取规则"
+            }
+          ]
+        },
         {
           "sha": "c5e62a1",
           "type": "fix",

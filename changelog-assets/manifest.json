@@ -442,6 +442,11 @@
     "status": "diff",
     "date": "2026-09-12"
   },
+  "3729c88|SCM/app_obd_sorting_list.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-21"
+  },
   "440da6d|store-app/h5/restock-order-detail.html": {
     "before": "changelog-assets/440da6d/store-app__h5__restock-order-detail.html.before.jpg",
     "after": "changelog-assets/440da6d/store-app__h5__restock-order-detail.html.after.jpg",
@@ -3191,6 +3196,11 @@
     "regions": 0,
     "status": "diff",
     "date": "2026-09-16"
+  },
+  "d09d387|SCM/app_obd_sorting_list.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-09-21"
   },
   "d82f75c|MDM/mdm_order_config.html": {
     "before": "changelog-assets/d82f75c/MDM__mdm_order_config.html.before.jpg",
