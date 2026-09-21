@@ -699,6 +699,61 @@
             padding: 10px 28px;
             cursor: pointer;
         }
+
+        .claim-lost-demo {
+            position: absolute;
+            right: 8px;
+            top: 58px;
+            left: auto;
+            bottom: auto;
+            z-index: 25;
+            width: 188px;
+            padding: 10px;
+            background: #ffffff;
+            border: 1px solid #e6e6e6;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .claim-lost-demo[hidden] {
+            display: none !important;
+        }
+
+        .claim-lost-demo-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #333333;
+            margin-bottom: 8px;
+        }
+
+        .claim-lost-demo-label {
+            display: block;
+            font-size: 12px;
+            color: #777777;
+            margin-bottom: 4px;
+        }
+
+        .claim-lost-demo select {
+            width: 100%;
+            height: 28px;
+            margin-bottom: 8px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #333333;
+            background: #ffffff;
+        }
+
+        .claim-lost-demo-btn {
+            width: 100%;
+            height: 28px;
+            border: none;
+            border-radius: 4px;
+            background: #2196f3;
+            color: #ffffff;
+            font-size: 12px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -797,6 +852,25 @@
             </div>
         </div>
 
+        <div class="shortage-modal" id="claimLostModal">
+            <div class="shortage-modal-card">
+                <div class="shortage-modal-message" id="claimLostMessage">当前分拣任务已被领取，无法完成，请重新领取任务</div>
+                <div class="shortage-modal-actions">
+                    <button type="button" class="shortage-modal-btn shortage-modal-btn--confirm" id="claimLostOkBtn">确认</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="claim-lost-demo" id="claimLostDemo" hidden>
+            <div class="claim-lost-demo-title">分拣完成验收开关</div>
+            <label class="claim-lost-demo-label" for="claimLostDemoSelect">完成时分拣人</label>
+            <select id="claimLostDemoSelect">
+                <option value="self">当前账号（张三）</option>
+                <option value="other">李四</option>
+            </select>
+            <button type="button" class="claim-lost-demo-btn" id="claimLostDemoApplyBtn">应用</button>
+        </div>
+
         <div class="global-toast" id="globalToast"></div>
         <div class="image-preview-modal" id="productImagePreviewModal">
             <div class="image-preview-modal-title" id="productImagePreviewTitle"></div>
@@ -854,6 +928,10 @@
         const shortageConfirmModal = document.getElementById('shortageConfirmModal');
         const takeoverConfirmModal = document.getElementById('takeoverConfirmModal');
         const takeoverConfirmMessage = document.getElementById('takeoverConfirmMessage');
+        const claimLostModal = document.getElementById('claimLostModal');
+        const claimLostMessage = document.getElementById('claimLostMessage');
+        const claimLostDemo = document.getElementById('claimLostDemo');
+        const claimLostDemoSelect = document.getElementById('claimLostDemoSelect');
         const shortageSortedQtyInput = document.getElementById('shortageSortedQtyInput');
         const globalToast = document.getElementById('globalToast');
 
@@ -1100,6 +1178,7 @@
             document.querySelectorAll('.page').forEach((page) => page.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
             pageHeader.style.display = pageId === 'completePage' ? 'none' : 'flex';
+            if (claimLostDemo) claimLostDemo.hidden = pageId !== 'executePage';
         }
 
         function showToast(message) {
@@ -1610,6 +1689,56 @@
             locateExecuteLine(match.id);
         }
 
+        function lineSorterName(item) {
+            return String((item && item.claimedBy) || '').trim();
+        }
+
+        function isClaimedByOther(item) {
+            const sorter = lineSorterName(item);
+            return !!(sorter && sorter !== CURRENT_USER);
+        }
+
+        function showClaimLostModal(sorterName) {
+            if (shortageQtyModal) shortageQtyModal.classList.remove('active');
+            if (shortageConfirmModal) shortageConfirmModal.classList.remove('active');
+            if (claimLostMessage) {
+                claimLostMessage.textContent = '当前分拣任务已被「' + (sorterName || '他人') + '」领取，无法完成，请重新领取任务';
+            }
+            if (claimLostModal) claimLostModal.classList.add('active');
+        }
+
+        function guardClaimLost(item) {
+            if (!isClaimedByOther(item)) return false;
+            showClaimLostModal(lineSorterName(item));
+            return true;
+        }
+
+        function acknowledgeClaimLost() {
+            if (claimLostModal) claimLostModal.classList.remove('active');
+            currentClaim = null;
+            selectedLineId = '';
+            locatedLineId = '';
+            scanLocationOk = false;
+            scanSkuOk = false;
+            routeStoreCode = '';
+            if (executeScanInput) executeScanInput.value = '';
+            showListPage();
+        }
+
+        function applyClaimLostDemo() {
+            const useOther = claimLostDemoSelect && claimLostDemoSelect.value === 'other';
+            const sorter = useOther ? '李四' : CURRENT_USER;
+            const targets = claimedOpenLines();
+            if (!targets.length) {
+                showToast('暂无未完成明细可模拟');
+                return;
+            }
+            targets.forEach((item) => {
+                item.claimedBy = sorter;
+            });
+            showToast(useOther ? '已模拟为李四领取' : '已恢复为当前账号');
+        }
+
         function confirmSortExecute(lineId) {
             const item = sortingLines.find((row) => row.id === lineId);
             if (!item || !isOpen(item)) {
@@ -1617,6 +1746,7 @@
                 return;
             }
             selectedLineId = item.id;
+            if (guardClaimLost(item)) return;
             const expectedQty = Number(item.expectedQty || 0);
             const { raw, qty } = readLineQty(item);
             if (raw === '' || !Number.isFinite(qty) || qty < 0 || !Number.isInteger(qty)) {
@@ -1724,6 +1854,7 @@
                 showToast('异常登记校验失败，请重新登记');
                 return;
             }
+            if (guardClaimLost(item)) return;
             showToast('登记成功');
             finishLine(item, sortedQty, true);
         }
@@ -1799,6 +1930,8 @@
         document.getElementById('shortageConfirmOkBtn').addEventListener('click', confirmShortageAndContinue);
         document.getElementById('takeoverConfirmCancelBtn').addEventListener('click', closeTakeoverConfirm);
         document.getElementById('takeoverConfirmOkBtn').addEventListener('click', confirmTakeoverAndExecute);
+        document.getElementById('claimLostOkBtn').addEventListener('click', acknowledgeClaimLost);
+        document.getElementById('claimLostDemoApplyBtn').addEventListener('click', applyClaimLostDemo);
 
         if (listSearchInput) {
             listSearchInput.addEventListener('input', renderAggCards);
