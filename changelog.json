@@ -1,10 +1,30 @@
 {
-  "latestSha": "ccc502d0d56d0f7bd8479c7c699f1c55f99155c1",
-  "total": 416,
+  "latestSha": "e23a74f62270a7caa5e257baedc33a5b907a518b",
+  "total": 417,
   "days": [
     {
       "date": "2026-09-21",
       "items": [
+        {
+          "sha": "e23a74f",
+          "type": "feat",
+          "text": "运费预估报表增加订单应付并将下单时间默认改为空",
+          "author": "342-droid",
+          "time": "18:37",
+          "pages": [
+            {
+              "file": "SCM/freight_estimate_report.html",
+              "module": "冷丰TMS",
+              "title": "运费预估报表"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/freight_estimate_report.html",
+              "text": "列表和导出在订单实付前增加订单应付；下单时间查询默认空白，重置后也不再填近7天"
+            }
+          ]
+        },
         {
           "sha": "ccc502d",
           "type": "fix",

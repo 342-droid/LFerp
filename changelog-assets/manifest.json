@@ -3540,6 +3540,13 @@
     "status": "diff",
     "date": "2026-09-20"
   },
+  "e23a74f|SCM/freight_estimate_report.html": {
+    "before": "changelog-assets/e23a74f/SCM__freight_estimate_report.html.before.jpg",
+    "after": "changelog-assets/e23a74f/SCM__freight_estimate_report.html.after.jpg",
+    "regions": 3,
+    "status": "diff",
+    "date": "2026-09-21"
+  },
   "e79cae4|user-app/h5/checkout.html": {
     "regions": 0,
     "status": "diff",
