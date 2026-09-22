@@ -10181,7 +10181,6 @@
     }
 
     var state = {
-      landline: false,
       region: '',
       editGroupId: editGroupId,
       editAddrId: editAddrId,
@@ -10194,8 +10193,6 @@
     var recognizeBtn = document.getElementById('addrCreateRecognizeBtn');
     var nameEl = document.getElementById('addrCreateName');
     var phoneEl = document.getElementById('addrCreatePhone');
-    var phoneLabel = document.getElementById('addrCreatePhoneLabel');
-    var phoneSwitch = document.getElementById('addrCreatePhoneSwitch');
     var regionRow = document.getElementById('addrCreateRegionRow');
     var regionValue = document.getElementById('addrCreateRegionValue');
     var detailEl = document.getElementById('addrCreateDetail');
@@ -10300,9 +10297,6 @@
         if (nameEl && parsed.name) nameEl.value = parsed.name;
         if (phoneEl && parsed.phone) {
           phoneEl.value = parsed.phone;
-          if (parsed.phone.indexOf('-') >= 0 && !state.landline) {
-            phoneSwitch && phoneSwitch.click();
-          }
         }
         if (parsed.region) {
           state.region = parsed.region;
@@ -10314,19 +10308,6 @@
         if (detailEl && parsed.detail) detailEl.value = parsed.detail;
         syncSaveBtn();
         showToast('识别完成');
-      });
-    }
-
-    if (phoneSwitch) {
-      phoneSwitch.addEventListener('click', function () {
-        state.landline = !state.landline;
-        if (phoneLabel) phoneLabel.textContent = state.landline ? '座机号' : '手机号';
-        if (phoneEl) {
-          phoneEl.placeholder = state.landline ? '请输入座机号' : '请输入手机号';
-          phoneEl.type = state.landline ? 'text' : 'tel';
-          phoneEl.setAttribute('inputmode', state.landline ? 'numeric' : 'tel');
-        }
-        phoneSwitch.textContent = state.landline ? '切换手机' : '切换座机';
       });
     }
 
@@ -10629,7 +10610,7 @@
           return;
         }
         if (!phone) {
-          showToast(state.landline ? '请输入座机号' : '请输入手机号');
+          showToast('请输入手机号');
           return;
         }
         if (!state.region) {
