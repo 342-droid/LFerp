@@ -3,7 +3,7 @@
  */
 (function () {
   var DRAWER_ID = 'mdmProductAddDrawer';
-  var SPEC_CATALOG_KEY = 'lf_mdm_spec_catalog_v1';
+  var SPEC_CATALOG_KEY = 'lf_mdm_spec_catalog_v2';
   var specGroups = [];
   var specRowCache = {};
   var specIdSeq = 0;
@@ -11,12 +11,26 @@
 
   function defaultSpecCatalog() {
     return [
-      { id: 'spec-bao', name: '包', sort: 0, seq: 1 },
-      { id: 'spec-taste', name: '口味', sort: 0, seq: 2 },
-      { id: 'spec-size', name: '尺寸', sort: 0, seq: 3 },
-      { id: 'spec-bottle', name: '瓶', sort: 0, seq: 4 },
-      { id: 'spec-spec', name: '规格', sort: 0, seq: 5 },
-      { id: 'spec-weight', name: '重量', sort: 0, seq: 6 }
+      { id: 'spec-spec', name: '规格', sort: 0, clientSort: 0, seq: 1 },
+      { id: 'spec-ge', name: '个', sort: 0, clientSort: 0, seq: 2 },
+      { id: 'spec-jian', name: '件', sort: 0, clientSort: 0, seq: 3 },
+      { id: 'spec-bao', name: '包', sort: 0, clientSort: 0, seq: 4 },
+      { id: 'spec-juan', name: '卷', sort: 0, clientSort: 0, seq: 5 },
+      { id: 'spec-shuang', name: '双', sort: 0, clientSort: 0, seq: 6 },
+      { id: 'spec-chima', name: '尺码', sort: 0, clientSort: 0, seq: 7 },
+      { id: 'spec-zhang', name: '张', sort: 0, clientSort: 0, seq: 8 },
+      { id: 'spec-da', name: '打', sort: 0, clientSort: 0, seq: 9 },
+      { id: 'spec-ti', name: '提', sort: 0, clientSort: 0, seq: 10 },
+      { id: 'spec-gen', name: '根', sort: 0, clientSort: 0, seq: 11 },
+      { id: 'spec-tong', name: '桶', sort: 0, clientSort: 0, seq: 12 },
+      { id: 'spec-kuan', name: '款', sort: 0, clientSort: 0, seq: 13 },
+      { id: 'spec-bottle', name: '瓶', sort: 0, clientSort: 0, seq: 14 },
+      { id: 'spec-he', name: '盒', sort: 0, clientSort: 0, seq: 15 },
+      { id: 'spec-xiang', name: '箱', sort: 0, clientSort: 0, seq: 16 },
+      { id: 'spec-zu', name: '组', sort: 0, clientSort: 0, seq: 17 },
+      { id: 'spec-dai', name: '袋', sort: 0, clientSort: 0, seq: 18 },
+      { id: 'spec-weight', name: '重量', sort: 0, clientSort: 0, seq: 19 },
+      { id: 'spec-color', name: '颜色', sort: 0, clientSort: 0, seq: 20 }
     ];
   }
 
@@ -28,11 +42,13 @@
       if (!Array.isArray(data) || !data.length) return defaultSpecCatalog();
       return data.map(function (item, idx) {
         var sort = parseInt(item && item.sort, 10);
+        var clientSort = parseInt(item && item.clientSort, 10);
         var seq = parseInt(item && item.seq, 10);
         return {
           id: String((item && item.id) || 'spec-' + (idx + 1)),
           name: String((item && item.name) || '').trim(),
           sort: isNaN(sort) ? 0 : sort,
+          clientSort: isNaN(clientSort) ? 0 : clientSort,
           seq: isNaN(seq) ? idx + 1 : seq
         };
       }).filter(function (item) {
@@ -698,6 +714,7 @@
           '<tr>' +
           '<td class="is-name">' + escapeHtml(item.name) + '</td>' +
           '<td class="is-sort">' + escapeHtml(String(item.sort)) + '</td>' +
+          '<td class="is-client">' + escapeHtml(String(item.clientSort)) + '</td>' +
           '<td class="is-op"><button type="button" class="spec-manage-edit" data-spec-catalog-edit="' + escapeHtml(item.id) + '">编辑</button></td>' +
           '</tr>'
         );
@@ -775,11 +792,13 @@
       '      <colgroup>' +
       '        <col class="spec-manage-table__col-name">' +
       '        <col class="spec-manage-table__col-sort">' +
+      '        <col class="spec-manage-table__col-client">' +
       '        <col class="spec-manage-table__col-op">' +
       '      </colgroup>' +
       '      <thead><tr>' +
       '        <th class="is-name">名称</th>' +
       '        <th class="is-sort"><span class="spec-manage-sort-label">排序<button type="button" class="spec-manage-help" aria-label="数字越大，排序越靠前">?</button></span></th>' +
+      '        <th class="is-client"><span class="spec-manage-sort-label">客户端排序<button type="button" class="spec-manage-help" aria-label="数字越大，排序越靠前">?</button></span></th>' +
       '        <th class="is-op">操作</th>' +
       '      </tr></thead>' +
       '      <tbody id="specManageTableBody"></tbody>' +
@@ -832,9 +851,19 @@
       '      <label class="spec-manage-form__label" for="specCatalogName"><span class="spec-manage-form__req">*</span>规格名称</label>' +
       '      <input class="spec-manage-form__input" id="specCatalogName" type="text" maxlength="20" placeholder="请输入规格名称" value="' + escapeHtml(current ? current.name : '') + '">' +
       '    </div>' +
-      '    <div class="spec-manage-form__row">' +
+      '    <div class="spec-manage-form__row spec-manage-form__row--sort">' +
       '      <label class="spec-manage-form__label" for="specCatalogSort">排序</label>' +
-      '      <input class="spec-manage-form__input" id="specCatalogSort" type="number" step="1" placeholder="请输入排序" value="' + (current ? current.sort : 0) + '">' +
+      '      <div class="spec-manage-form__field">' +
+      '        <input class="spec-manage-form__input" id="specCatalogSort" type="number" step="1" placeholder="请输入排序" value="' + (current ? current.sort : 0) + '">' +
+      '        <p class="spec-manage-form__tip">值越大排序越靠前</p>' +
+      '      </div>' +
+      '    </div>' +
+      '    <div class="spec-manage-form__row spec-manage-form__row--sort">' +
+      '      <label class="spec-manage-form__label" for="specCatalogClientSort">客户端排序</label>' +
+      '      <div class="spec-manage-form__field">' +
+      '        <input class="spec-manage-form__input" id="specCatalogClientSort" type="number" step="1" placeholder="请输入客户端排序" value="' + (current ? current.clientSort : 0) + '">' +
+      '        <p class="spec-manage-form__tip">值越大排序越靠前</p>' +
+      '      </div>' +
       '    </div>' +
       '  </div>' +
       '  <footer class="spec-manage-dialog__footer">' +
@@ -846,8 +875,10 @@
     function submitForm() {
       var nameInput = document.getElementById('specCatalogName');
       var sortInput = document.getElementById('specCatalogSort');
+      var clientSortInput = document.getElementById('specCatalogClientSort');
       var name = nameInput ? String(nameInput.value || '').trim() : '';
       var sortRaw = sortInput ? String(sortInput.value || '').trim() : '';
+      var clientSortRaw = clientSortInput ? String(clientSortInput.value || '').trim() : '';
       if (!name) {
         if (typeof showToast === 'function') showToast('请输入规格名称', 'warning');
         if (nameInput) nameInput.focus();
@@ -866,11 +897,18 @@
         if (sortInput) sortInput.focus();
         return;
       }
+      if (clientSortRaw && !/^-?\d+$/.test(clientSortRaw)) {
+        if (typeof showToast === 'function') showToast('客户端排序请输入整数', 'warning');
+        if (clientSortInput) clientSortInput.focus();
+        return;
+      }
       var sort = sortRaw === '' ? 0 : parseInt(sortRaw, 10);
+      var clientSort = clientSortRaw === '' ? 0 : parseInt(clientSortRaw, 10);
       var oldName = current ? current.name : '';
       if (current) {
         current.name = name;
         current.sort = sort;
+        current.clientSort = clientSort;
       } else {
         var nextSeq = specCatalog.reduce(function (max, item) {
           return item.seq > max ? item.seq : max;
@@ -879,6 +917,7 @@
           id: 'spec-' + Date.now().toString(36),
           name: name,
           sort: sort,
+          clientSort: clientSort,
           seq: nextSeq
         });
       }

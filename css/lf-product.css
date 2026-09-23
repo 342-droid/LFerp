@@ -1187,7 +1187,7 @@ body.product-add-drawer-open {
 }
 
 .spec-manage-dialog {
-  width: 720px;
+  width: 860px;
   max-width: 100%;
   max-height: calc(100vh - 48px);
   display: flex;
@@ -1266,7 +1266,8 @@ body.product-add-drawer-open {
   color: #606266;
 }
 
-.spec-manage-table__col-sort {
+.spec-manage-table__col-sort,
+.spec-manage-table__col-client {
   width: 168px;
 }
 
@@ -1294,6 +1295,7 @@ body.product-add-drawer-open {
 }
 
 .spec-manage-table .is-sort,
+.spec-manage-table .is-client,
 .spec-manage-table .is-op {
   text-align: center;
 }
@@ -1370,8 +1372,24 @@ body.product-add-drawer-open {
   margin-bottom: 0;
 }
 
+.spec-manage-form__row--sort {
+  align-items: flex-start;
+}
+
+.spec-manage-form__field {
+  flex: 1;
+  min-width: 0;
+}
+
+.spec-manage-form__tip {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #909399;
+}
+
 .spec-manage-form__label {
-  flex: 0 0 84px;
+  flex: 0 0 96px;
   text-align: right;
   font-size: 14px;
   line-height: 36px;

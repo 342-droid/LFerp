@@ -2,6 +2,16 @@
   var STORAGE_KEY = 'ua_user_session_v1';
   var CART_KEY = 'ua_restock_cart_v2';
   var CART_PAGE_KEY = 'ua_restock_cart_page_v2';
+  var CHECKOUT_KEY = 'ua_checkout_v1';
+
+  function shellDataKey(key) {
+    if (window.LfAppShell && typeof window.LfAppShell.dataKey === 'function') {
+      return window.LfAppShell.dataKey(key);
+    }
+    if (!fromStoreApp) return key;
+    key = String(key || '');
+    return key.indexOf('ua_') === 0 ? 'sa_' + key.slice(3) : 'sa_' + key;
+  }
   var CART_PLACEHOLDER_IMG = '../assets/restock/product-leaf.svg';
   var CHEVRON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>';
 
@@ -189,7 +199,7 @@
   function readCart() {
     if (!memoryCart) {
       try {
-        var raw = localStorage.getItem(CART_KEY);
+        var raw = localStorage.getItem(shellDataKey(CART_KEY));
         memoryCart = raw ? JSON.parse(raw) : [];
       } catch (e) {
         memoryCart = [];
@@ -200,7 +210,7 @@
       if (kept.length !== memoryCart.length) {
         memoryCart = kept;
         try {
-          localStorage.setItem(CART_KEY, JSON.stringify(memoryCart));
+          localStorage.setItem(shellDataKey(CART_KEY), JSON.stringify(memoryCart));
         } catch (e2) { /* ignore */ }
       }
     }
@@ -212,7 +222,7 @@
       return !isSkipDemandRestockProduct(it && it.id, it);
     });
     try {
-      localStorage.setItem(CART_KEY, JSON.stringify(memoryCart));
+      localStorage.setItem(shellDataKey(CART_KEY), JSON.stringify(memoryCart));
     } catch (e) {
       /* file:// 等环境 localStorage 不可用时仍保留内存购物车 */
     }
@@ -1485,7 +1495,7 @@
       return ensureCartPageStores(JSON.parse(JSON.stringify(memoryCartPage)));
     }
     try {
-      var raw = localStorage.getItem(CART_PAGE_KEY);
+      var raw = localStorage.getItem(shellDataKey(CART_PAGE_KEY));
       if (raw) {
         memoryCartPage = ensureCartPageStores(JSON.parse(raw));
         return JSON.parse(JSON.stringify(memoryCartPage));
@@ -1500,7 +1510,7 @@
   function writeCartPageState(state) {
     memoryCartPage = ensureCartPageStores(JSON.parse(JSON.stringify(state)));
     try {
-      localStorage.setItem(CART_PAGE_KEY, JSON.stringify(memoryCartPage));
+      localStorage.setItem(shellDataKey(CART_PAGE_KEY), JSON.stringify(memoryCartPage));
     } catch (e) {
       /* file:// 等环境 localStorage 不可用时仍保留内存购物车 */
     }
@@ -4733,7 +4743,7 @@
         })
       };
       try {
-        sessionStorage.setItem('ua_checkout_v1', JSON.stringify(payload));
+        sessionStorage.setItem(shellDataKey(CHECKOUT_KEY), JSON.stringify(payload));
       } catch (e) {
         /* ignore */
       }

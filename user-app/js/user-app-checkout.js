@@ -377,7 +377,7 @@
 
   function readCheckoutPayload() {
     try {
-      var raw = sessionStorage.getItem(CHECKOUT_KEY);
+      var raw = sessionStorage.getItem(shellDataKey(CHECKOUT_KEY));
       if (raw) return JSON.parse(raw);
     } catch (e) {
       /* ignore */
@@ -441,7 +441,7 @@
       var payload = readCheckoutPayload() || {};
       payload.items = listCheckoutItems();
       payload.invalidItems = state.invalidItems || [];
-      sessionStorage.setItem(CHECKOUT_KEY, JSON.stringify(payload));
+      sessionStorage.setItem(shellDataKey(CHECKOUT_KEY), JSON.stringify(payload));
     } catch (e) {
       /* ignore */
     }
@@ -458,6 +458,15 @@
     }
     var params = new URLSearchParams(window.location.search);
     return params.get('port') === 'store-app' || params.get('from') === 'store-app';
+  }
+
+  function shellDataKey(key) {
+    if (window.LfAppShell && typeof window.LfAppShell.dataKey === 'function') {
+      return window.LfAppShell.dataKey(key);
+    }
+    if (!isStoreAppPort()) return key;
+    key = String(key || '');
+    return key.indexOf('ua_') === 0 ? 'sa_' + key.slice(3) : 'sa_' + key;
   }
 
   function cartBackHref() {
@@ -1391,7 +1400,7 @@
       var payload = readCheckoutPayload() || {};
       payload.store = state.store;
       if (!payload.items) payload.items = [];
-      sessionStorage.setItem(CHECKOUT_KEY, JSON.stringify(payload));
+      sessionStorage.setItem(shellDataKey(CHECKOUT_KEY), JSON.stringify(payload));
     } catch (e) {
       /* ignore */
     }
@@ -2802,7 +2811,7 @@
 
   function clearCartSelectedItems() {
     try {
-      var raw = localStorage.getItem(CART_PAGE_KEY);
+      var raw = localStorage.getItem(shellDataKey(CART_PAGE_KEY));
       if (!raw) return;
       var cartState = JSON.parse(raw);
       (cartState.stores || []).forEach(function (store) {
@@ -2812,11 +2821,11 @@
           });
         });
       });
-      localStorage.setItem(CART_PAGE_KEY, JSON.stringify(cartState));
+      localStorage.setItem(shellDataKey(CART_PAGE_KEY), JSON.stringify(cartState));
     } catch (e) {
       /* ignore */
     }
-    sessionStorage.removeItem(CHECKOUT_KEY);
+    sessionStorage.removeItem(shellDataKey(CHECKOUT_KEY));
   }
 
   function expandPackage(pkgId) {
