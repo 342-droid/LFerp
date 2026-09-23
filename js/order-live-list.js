@@ -34,13 +34,13 @@
         }
         if (expandLabel) expandLabel.textContent = defaultExpanded ? '收起' : '展开';
         closeOrderLiveSessionCombo();
-        applyOrderListFilters();
+        applyOrderListFilters({ resetPage: true });
       });
     }
 
     if (queryBtn) {
       queryBtn.addEventListener('click', function () {
-        if (applyOrderListFilters() === false) return;
+        if (applyOrderListFilters({ resetPage: true }) === false) return;
         if (typeof showToast === 'function') {
           showToast('查询完成（演示）', 'success');
         }
@@ -550,27 +550,197 @@
     applyOrderTimePreset(ORDER_TIME_PRESET_DEFAULT);
   }
 
+  function parseOrderDateTime(text) {
+    var m = String(text || '').match(/(\d{4})-(\d{2})-(\d{2})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?/);
+    if (!m) return null;
+    return {
+      year: Number(m[1]),
+      month: Number(m[2]) - 1,
+      day: Number(m[3]),
+      hour: Number(m[4] || 0),
+      minute: Number(m[5] || 0),
+      second: Number(m[6] || 0)
+    };
+  }
+
+  function formatOrderDateTimeParts(parts) {
+    function pad(n) {
+      n = String(n);
+      return n.length < 2 ? '0' + n : n;
+    }
+    return (
+      parts.year + '-' + pad(parts.month + 1) + '-' + pad(parts.day) +
+      ' ' + pad(parts.hour) + ':' + pad(parts.minute) + ':' + pad(parts.second)
+    );
+  }
+
   function initOrderTimeFilter() {
     var presets = document.getElementById('qOrderTimePresets');
     var startEl = document.getElementById('qOrderTimeStart');
     var endEl = document.getElementById('qOrderTimeEnd');
-    if (!presets || !startEl || !endEl) return;
+    var rangeEl = startEl && startEl.closest('.order-filter-range');
+    if (!presets || !startEl || !endEl || !rangeEl) return;
+
+    function commitTimeFilter() {
+      var range = readOrderTimeRange();
+      setOrderTimePresetChecked(range ? matchOrderTimePreset(range.start, range.end) : '');
+      applyOrderListFilters({ resetPage: true });
+    }
 
     presets.addEventListener('click', function (e) {
       var btn = e.target.closest('[data-preset]');
       if (!btn || !presets.contains(btn)) return;
       applyOrderTimePreset(btn.getAttribute('data-preset'));
+      commitTimeFilter();
     });
 
-    function syncPresetFromInputs() {
-      var range = readOrderTimeRange();
-      setOrderTimePresetChecked(range ? matchOrderTimePreset(range.start, range.end) : '');
+    startEl.addEventListener('change', commitTimeFilter);
+    endEl.addEventListener('change', commitTimeFilter);
+
+    var pop = document.createElement('div');
+    pop.className = 'order-time-pop';
+    pop.hidden = true;
+    pop.setAttribute('role', 'dialog');
+    pop.setAttribute('aria-label', '选择下单时间');
+    rangeEl.appendChild(pop);
+
+    var activeInput = null;
+    var viewYear = 0;
+    var viewMonth = 0;
+    var draft = null;
+
+    function defaultParts(input) {
+      var parsed = parseOrderDateTime(input.value);
+      if (parsed) return parsed;
+      var now = new Date();
+      var endField = input === endEl;
+      return {
+        year: now.getFullYear(),
+        month: now.getMonth(),
+        day: now.getDate(),
+        hour: endField ? 23 : 0,
+        minute: endField ? 59 : 0,
+        second: endField ? 59 : 0
+      };
     }
 
-    startEl.addEventListener('change', syncPresetFromInputs);
-    endEl.addEventListener('change', syncPresetFromInputs);
-    startEl.addEventListener('blur', syncPresetFromInputs);
-    endEl.addEventListener('blur', syncPresetFromInputs);
+    function timeOptions(max, selected) {
+      var html = '';
+      var i = 0;
+      for (i = 0; i <= max; i++) {
+        var label = i < 10 ? '0' + i : String(i);
+        html += '<option value="' + i + '"' + (i === selected ? ' selected' : '') + '>' + label + '</option>';
+      }
+      return html;
+    }
+
+    function renderPop() {
+      var first = new Date(viewYear, viewMonth, 1);
+      var startWeek = first.getDay();
+      var daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+      var today = new Date();
+      var cells = '';
+      var i = 0;
+      for (i = 0; i < startWeek; i++) cells += '<span class="order-time-pop__day is-empty"></span>';
+      for (i = 1; i <= daysInMonth; i++) {
+        var on = draft && draft.year === viewYear && draft.month === viewMonth && draft.day === i;
+        var isToday = today.getFullYear() === viewYear && today.getMonth() === viewMonth && today.getDate() === i;
+        cells +=
+          '<button type="button" class="order-time-pop__day' +
+          (on ? ' is-active' : '') +
+          (isToday ? ' is-today' : '') +
+          '" data-day="' + i + '">' + i + '</button>';
+      }
+      pop.innerHTML =
+        '<div class="order-time-pop__head">' +
+        '<button type="button" class="order-time-pop__nav" data-nav="-1" aria-label="上个月">‹</button>' +
+        '<span class="order-time-pop__title">' + viewYear + '年' + (viewMonth + 1) + '月</span>' +
+        '<button type="button" class="order-time-pop__nav" data-nav="1" aria-label="下个月">›</button>' +
+        '</div>' +
+        '<div class="order-time-pop__week"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>' +
+        '<div class="order-time-pop__days">' + cells + '</div>' +
+        '<div class="order-time-pop__time">' +
+        '<select data-part="hour" aria-label="时">' + timeOptions(23, draft.hour) + '</select>' +
+        '<span>:</span>' +
+        '<select data-part="minute" aria-label="分">' + timeOptions(59, draft.minute) + '</select>' +
+        '<span>:</span>' +
+        '<select data-part="second" aria-label="秒">' + timeOptions(59, draft.second) + '</select>' +
+        '</div>' +
+        '<div class="order-time-pop__foot">' +
+        '<button type="button" class="order-time-pop__btn" data-act="clear">清空</button>' +
+        '<button type="button" class="order-time-pop__btn order-time-pop__btn--primary" data-act="ok">确定</button>' +
+        '</div>';
+    }
+
+    function openPop(input) {
+      if (!input) return;
+      activeInput = input;
+      draft = defaultParts(input);
+      viewYear = draft.year;
+      viewMonth = draft.month;
+      renderPop();
+      pop.hidden = false;
+      var inputRect = input.getBoundingClientRect();
+      var rangeRect = rangeEl.getBoundingClientRect();
+      pop.style.left = Math.max(0, inputRect.left - rangeRect.left) + 'px';
+    }
+
+    function closePop() {
+      pop.hidden = true;
+      activeInput = null;
+    }
+
+    function openFromEvent(e) {
+      var input = e.target.closest('input');
+      if (input && rangeEl.contains(input)) {
+        openPop(input);
+        return;
+      }
+      if (e.target.closest('.order-filter-range__icon')) openPop(endEl);
+    }
+
+    rangeEl.addEventListener('click', openFromEvent);
+    pop.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var nav = e.target.closest('[data-nav]');
+      if (nav) {
+        var step = Number(nav.getAttribute('data-nav'));
+        var next = new Date(viewYear, viewMonth + step, 1);
+        viewYear = next.getFullYear();
+        viewMonth = next.getMonth();
+        renderPop();
+        return;
+      }
+      var dayBtn = e.target.closest('[data-day]');
+      if (dayBtn) {
+        draft.day = Number(dayBtn.getAttribute('data-day'));
+        draft.year = viewYear;
+        draft.month = viewMonth;
+        renderPop();
+        return;
+      }
+      var act = e.target.closest('[data-act]');
+      if (!act || !activeInput) return;
+      if (act.getAttribute('data-act') === 'clear') {
+        activeInput.value = '';
+        activeInput.dispatchEvent(new Event('change', { bubbles: true }));
+        closePop();
+        return;
+      }
+      activeInput.value = formatOrderDateTimeParts(draft);
+      activeInput.dispatchEvent(new Event('change', { bubbles: true }));
+      closePop();
+    });
+    pop.addEventListener('change', function (e) {
+      var sel = e.target.closest('select[data-part]');
+      if (!sel || !draft) return;
+      draft[sel.getAttribute('data-part')] = Number(sel.value);
+    });
+    document.addEventListener('mousedown', function (e) {
+      if (pop.hidden) return;
+      if (pop.contains(e.target) || rangeEl.contains(e.target)) return;
+      closePop();
+    });
   }
 
   function getRowOrderedAt(row) {
@@ -595,7 +765,78 @@
   }
 
   /** 零售/代采/直播：支付渠道、支付流水；零售/代采另支持下单门店，零售另支持履约方式 */
-  function applyOrderListFilters() {
+  var orderListPage = { page: 1, size: 20 };
+
+  function readOrderPageSize(select) {
+    if (!select) return orderListPage.size || 20;
+    var raw = select.value || (select.options[select.selectedIndex] && select.options[select.selectedIndex].text) || '';
+    var n = parseInt(String(raw), 10);
+    if (n === 50 || n === 100) return n;
+    return 20;
+  }
+
+  function orderPageWindow(current, total) {
+    if (total <= 7) {
+      var all = [];
+      var n = 1;
+      for (n = 1; n <= total; n++) all.push(n);
+      return all;
+    }
+    var pages = [1];
+    var start = Math.max(2, current - 1);
+    var end = Math.min(total - 1, current + 1);
+    if (start > 2) pages.push('…');
+    var i = start;
+    for (i = start; i <= end; i++) pages.push(i);
+    if (end < total - 1) pages.push('…');
+    pages.push(total);
+    return pages;
+  }
+
+  function renderOrderPagination(total) {
+    var size = orderListPage.size;
+    var pages = Math.max(1, Math.ceil(total / size) || 1);
+    if (orderListPage.page > pages) orderListPage.page = pages;
+    if (orderListPage.page < 1) orderListPage.page = 1;
+    var host = document.querySelector('.order-pagination__pages');
+    var gotoInput = document.getElementById('orderPageGoto');
+    var totalEl = document.querySelector('.order-pagination__total');
+    if (totalEl) totalEl.textContent = '共 ' + total + ' 条';
+    if (gotoInput) gotoInput.value = String(orderListPage.page);
+    if (!host) return;
+    var nums = orderPageWindow(orderListPage.page, pages);
+    host.innerHTML =
+      '<button type="button" class="order-pagination__btn" data-page="prev"' +
+      (orderListPage.page <= 1 ? ' disabled' : '') +
+      ' aria-label="上一页">‹</button>' +
+      nums
+        .map(function (n) {
+          if (n === '…') return '<span class="order-pagination__ellipsis">…</span>';
+          return (
+            '<button type="button" class="order-pagination__btn' +
+            (n === orderListPage.page ? ' is-active' : '') +
+            '" data-page="' + n + '">' + n + '</button>'
+          );
+        })
+        .join('') +
+      '<button type="button" class="order-pagination__btn" data-page="next"' +
+      (orderListPage.page >= pages ? ' disabled' : '') +
+      ' aria-label="下一页">›</button>';
+  }
+
+  function applyOrderPageSlice(matched) {
+    var size = orderListPage.size;
+    var pages = Math.max(1, Math.ceil(matched.length / size) || 1);
+    if (orderListPage.page > pages) orderListPage.page = pages;
+    var start = (orderListPage.page - 1) * size;
+    var end = start + size;
+    matched.forEach(function (row, index) {
+      row.hidden = index < start || index >= end;
+    });
+    renderOrderPagination(matched.length);
+  }
+
+  function applyOrderListFilters(options) {
     var page = document.body ? document.body.getAttribute('data-order-page') : '';
     var isProxy = page === 'proxy';
     var isRetail = page === 'retail';
@@ -608,6 +849,7 @@
       if (typeof showToast === 'function') showToast('请选择下单时间', 'warning');
       return false;
     }
+    if (options && options.resetPage) orderListPage.page = 1;
 
     var paySel = document.getElementById('qPayChannel');
     var payChannel = paySel ? (paySel.value || '').trim() : '';
@@ -634,7 +876,6 @@
     var tbody = document.querySelector('.order-live-table tbody');
     if (!tbody) return;
     var rows = tbody.querySelectorAll('tr[data-order-id]');
-    var visible = 0;
     rows.forEach(function (row) {
       var show = true;
       if (show && orderTimeRange) {
@@ -703,45 +944,69 @@
         var matchAftersale = wantAftersale && rowHasReturnRefundAftersale(row);
         show = matchOrder || matchAftersale;
       }
+      row.setAttribute('data-query-match', show ? '1' : '0');
       row.hidden = !show;
       if (!show) {
         var hiddenCheck = row.querySelector('.js-order-retail-check, .js-order-proxy-check');
         if (hiddenCheck) hiddenCheck.checked = false;
       }
-      if (show) visible += 1;
     });
-    var totalEl = document.querySelector('.order-pagination__total');
-    var hasFilter = !!(
-      orderTimeRange ||
-      payChannel ||
-      (isRetail && delivery) ||
-      scene ||
-      store ||
-      payNo ||
-      userQ ||
-      phoneQ ||
-      liveQ ||
-      productQ ||
-      (!isLive && statusLabels.length)
-    );
-    if (totalEl && hasFilter) {
-      totalEl.textContent = '共 ' + visible + ' 条';
-    } else if (totalEl && !hasFilter) {
-      totalEl.textContent = '共 ' + rows.length + ' 条';
-    }
+    var matched = [];
+    rows.forEach(function (row) {
+      if (row.getAttribute('data-query-match') === '1') matched.push(row);
+    });
+    applyOrderPageSlice(matched);
     syncOrderExportChecks();
   }
 
+  function goOrderListPage(nextPage) {
+    var total = getVisibleOrderListRows().length;
+    var pages = Math.max(1, Math.ceil(total / orderListPage.size) || 1);
+    var next = parseInt(nextPage, 10);
+    if (nextPage === 'prev') next = orderListPage.page - 1;
+    if (nextPage === 'next') next = orderListPage.page + 1;
+    if (!next || next < 1) next = 1;
+    if (next > pages) next = pages;
+    if (next === orderListPage.page) {
+      renderOrderPagination(total);
+      return;
+    }
+    orderListPage.page = next;
+    applyOrderListFilters();
+    var wrap = document.querySelector('.order-live-table-wrap');
+    if (wrap && wrap.scrollIntoView) wrap.scrollIntoView({ block: 'nearest' });
+  }
+
   function initPagination() {
+    var sizeEl = document.querySelector('.order-pagination__size');
+    if (sizeEl) {
+      Array.prototype.forEach.call(sizeEl.options, function (opt) {
+        var n = parseInt(opt.textContent, 10);
+        if (n) opt.value = String(n);
+      });
+      orderListPage.size = readOrderPageSize(sizeEl);
+      sizeEl.addEventListener('change', function () {
+        orderListPage.size = readOrderPageSize(sizeEl);
+        orderListPage.page = 1;
+        applyOrderListFilters();
+      });
+    }
+
+    var pagesEl = document.querySelector('.order-pagination__pages');
+    if (pagesEl) {
+      pagesEl.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-page]');
+        if (!btn || btn.disabled) return;
+        goOrderListPage(btn.getAttribute('data-page'));
+      });
+    }
+
     var gotoInput = document.getElementById('orderPageGoto');
     if (gotoInput) {
       gotoInput.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          if (typeof showToast === 'function') {
-            showToast('已跳转至第 ' + (gotoInput.value || '1') + ' 页（演示）', 'success');
-          }
-        }
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        goOrderListPage(gotoInput.value);
       });
     }
   }
@@ -1420,7 +1685,7 @@
 
   function getVisibleOrderListRows() {
     return getOrderListTableRows().filter(function (row) {
-      return !row.hidden;
+      return row.getAttribute('data-query-match') !== '0';
     });
   }
 

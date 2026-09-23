@@ -4859,6 +4859,412 @@
   cursor: not-allowed;
 }
 
+/* 直播场次列表：筛选 + 状态页签 + 卡片 */
+.lf-live-session-page .lf-sess-board {
+  background: #fff;
+  border-radius: 4px;
+  padding: 16px 16px 12px;
+}
+
+.lf-sess-filter__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  column-gap: 40px;
+  row-gap: 16px;
+  align-items: center;
+}
+
+.lf-sess-filter__name { grid-column: 1; grid-row: 1; }
+.lf-sess-filter__type { grid-column: 2; grid-row: 1; }
+.lf-sess-filter__slot { grid-column: 1; grid-row: 2; }
+.lf-sess-filter__room { grid-column: 2; grid-row: 2; }
+.lf-sess-filter__actions {
+  grid-column: 3;
+  grid-row: 2;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.lf-sess-filter .form-group {
+  min-width: 0;
+}
+
+.lf-sess-filter .form-group label {
+  flex: 0 0 auto;
+  color: #606266;
+  font-size: 14px;
+}
+
+.lf-sess-filter .form-group input,
+.lf-sess-filter .form-group select {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background-color: #fff;
+  color: #303133;
+  font-size: 14px;
+}
+
+.lf-sess-filter__actions .btn {
+  height: 32px;
+  padding: 0 18px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 30px;
+}
+
+.lf-sess-filter__actions .btn-primary {
+  background: #ff7019;
+  border: 1px solid #ff7019;
+  color: #fff;
+}
+
+.lf-sess-filter__actions .btn-primary:hover {
+  background: #ff8129;
+}
+
+.lf-sess-filter__actions .btn-secondary {
+  background: #fff;
+  border: 1px solid #dcdfe6;
+  color: #606266;
+}
+
+.lf-sess-filter__actions .btn-secondary:hover {
+  color: #ff7019;
+  border-color: #ff7019;
+  background: #fff;
+}
+
+.lf-sess-tabs {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  margin: 18px 0 14px;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.lf-sess-tabs button {
+  margin: 0 0 -1px;
+  padding: 8px 0 10px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: #606266;
+  font-size: 14px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.lf-sess-tabs button.is-active {
+  color: #ff7019;
+  border-bottom-color: #ff7019;
+  font-weight: 600;
+}
+
+.lf-live-session-page .lf-live-toolbar {
+  margin-bottom: 16px;
+}
+
+.lf-sess-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.lf-sess-empty {
+  grid-column: 1 / -1;
+  padding: 48px 16px;
+  text-align: center;
+  color: #909399;
+  background: #fafafa;
+  border: 1px dashed #e5e5e5;
+  border-radius: 6px;
+}
+
+.lf-sess-card {
+  position: relative;
+  min-width: 0;
+  background: #fff;
+  border: 1px solid #ebeef5;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.lf-sess-card:has(.lf-sess-more__menu:not([hidden])) {
+  z-index: 4;
+}
+
+.lf-sess-card__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 12px 0;
+}
+
+.lf-sess-card__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: 0 0 auto;
+  background: #f2f3f5;
+}
+
+.lf-sess-card__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+  padding-top: 4px;
+}
+
+.lf-sess-card__name {
+  overflow: hidden;
+  color: #303133;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.lf-sess-card__status {
+  flex: 0 0 auto;
+  padding: 0 6px;
+  border-radius: 3px;
+  font-size: 12px;
+  line-height: 20px;
+  font-weight: 400;
+}
+
+.lf-sess-card__status--live {
+  color: #ff7019;
+  background: #fff1e8;
+}
+
+.lf-sess-card__status--upcoming {
+  color: #e6a23c;
+  background: #fdf6ec;
+}
+
+.lf-sess-card__status--ended {
+  color: #909399;
+  background: #f4f4f5;
+}
+
+.lf-sess-card__ops {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+  padding-top: 6px;
+}
+
+.lf-sess-card__control {
+  color: #ff7019;
+  font-size: 13px;
+  line-height: 1.4;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.lf-sess-card__control:hover {
+  color: #ff8129;
+}
+
+.lf-sess-more {
+  position: relative;
+}
+
+.lf-sess-more__btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #606266;
+  font-size: 13px;
+  line-height: 1.4;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.lf-sess-more__btn:hover {
+  color: #ff7019;
+}
+
+.lf-sess-more__menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 8;
+  min-width: 96px;
+  padding: 4px 0;
+  background: #fff;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.lf-sess-more__menu a,
+.lf-sess-more__menu button {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: 0;
+  background: none;
+  color: #303133;
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.lf-sess-more__menu a:hover,
+.lf-sess-more__menu button:hover {
+  background: #f5f7fa;
+  color: #ff7019;
+}
+
+.lf-sess-more__menu .is-danger {
+  color: #f56c6c;
+}
+
+.lf-sess-more__menu .is-danger:hover {
+  color: #f56c6c;
+  background: #fef0f0;
+}
+
+.lf-sess-card__meta {
+  padding: 8px 12px 10px;
+  color: #909399;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.lf-sess-card__meta p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.lf-sess-card__meta p:first-child {
+  color: #606266;
+  font-size: 13px;
+}
+
+.lf-sess-card__cover {
+  height: 168px;
+  margin: 0 12px 12px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #f5f7fa;
+}
+
+.lf-sess-card__cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.lf-sess-pager {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+  color: #606266;
+  font-size: 13px;
+}
+
+.lf-sess-pager__size,
+.lf-sess-pager__jump {
+  height: 28px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background: #fff;
+  color: #606266;
+  font-size: 13px;
+}
+
+.lf-sess-pager__size {
+  padding: 0 8px;
+}
+
+.lf-sess-pager__nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lf-sess-pager__btn {
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background: #fff;
+  color: #606266;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.lf-sess-pager__btn.is-active {
+  border-color: #ff7019;
+  background: #ff7019;
+  color: #fff;
+}
+
+.lf-sess-pager__btn:disabled {
+  color: #c0c4cc;
+  cursor: not-allowed;
+}
+
+.lf-sess-pager__ellipsis {
+  color: #909399;
+}
+
+.lf-sess-pager__goto {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lf-sess-pager__jump {
+  width: 46px;
+  text-align: center;
+}
+
+@media (max-width: 1200px) {
+  .lf-sess-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .lf-sess-filter__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .lf-sess-filter__name,
+  .lf-sess-filter__type,
+  .lf-sess-filter__slot,
+  .lf-sess-filter__room,
+  .lf-sess-filter__actions {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .lf-sess-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* 直播场次列表 · 推广海报 */
 .lf-live-session-page .table td.action-links {
   flex-wrap: wrap;

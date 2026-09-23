@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/mdm-member360-list.css">
-    <link rel="stylesheet" href="../css/lf-live.css?v=20260907-promo-poster">
+    <link rel="stylesheet" href="../css/lf-live.css?v=20260923-session-cards">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -20,79 +20,57 @@
             <div class="content-tabs"><button class="active">直播场次</button></div>
             <hr class="content-divider">
 
-            <section class="search-section">
-                <form class="search-form" id="liveSessionFilterForm" onsubmit="return false;">
-                    <div class="form-group">
-                        <label>场次名称:</label>
-                        <div class="input-wrapper">
-                            <input id="qSessionName" placeholder="请输入场次名称" autocomplete="off">
-                            <span class="clear-btn">×</span>
+            <section class="lf-sess-board">
+                <form class="lf-sess-filter" id="liveSessionFilterForm" onsubmit="return false;">
+                    <div class="lf-sess-filter__grid">
+                        <div class="form-group lf-sess-filter__name">
+                            <label for="qSessionName">直播场次名称</label>
+                            <input id="qSessionName" placeholder="请输入直播场次名称" autocomplete="off">
+                        </div>
+                        <div class="form-group lf-sess-filter__type">
+                            <label for="qSessionType">场次类型</label>
+                            <select id="qSessionType">
+                                <option value="">全部</option>
+                                <option value="regular">常规场</option>
+                                <option value="origin">产地专场</option>
+                                <option value="member">会员专场</option>
+                                <option value="flash">闪购场</option>
+                            </select>
+                        </div>
+                        <div class="form-group lf-sess-filter__slot">
+                            <label for="qSessionSlot">选择直播时段</label>
+                            <select id="qSessionSlot"></select>
+                        </div>
+                        <div class="form-group lf-sess-filter__room">
+                            <label for="qSessionRoom">关联直播间</label>
+                            <select id="qSessionRoom"></select>
+                        </div>
+                        <div class="lf-sess-filter__actions">
+                            <button type="button" class="btn btn-primary" id="sessionFilterQuery">查询</button>
+                            <button type="button" class="btn btn-secondary" id="sessionFilterReset">重置</button>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label>状态:</label>
-                        <select id="qSessionStatus">
-                            <option value="">全部</option>
-                            <option value="live">直播中</option>
-                            <option value="upcoming">未开始</option>
-                            <option value="ended">已结束</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>场次类型:</label>
-                        <select id="qSessionType">
-                            <option value="">全部</option>
-                            <option value="regular">常规场</option>
-                            <option value="origin">产地专场</option>
-                            <option value="member">会员专场</option>
-                            <option value="flash">闪购场</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>直播时段:</label>
-                        <select id="qSessionSlot"></select>
-                    </div>
-                    <div class="form-group">
-                        <label>关联直播间:</label>
-                        <select id="qSessionRoom"></select>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" id="sessionFilterReset">重置</button>
-                        <button type="button" class="btn btn-primary" id="sessionFilterQuery">查询</button>
-                    </div>
                 </form>
-            </section>
 
-            <div class="lf-live-toolbar">
-                <button type="button" class="erp-btn erp-btn--primary" id="sessionAddBtn">新建直播场次</button>
-            </div>
-
-            <section class="table-section">
-                <div class="table-scroll-container">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>场次名称</th>
-                                <th>直播间</th>
-                                <th>时段</th>
-                                <th>类型</th>
-                                <th>状态</th>
-                                <th>开播时间</th>
-                                <th>结束时间</th>
-                                <th>实际开播时间</th>
-                                <th>实际结束时间</th>
-                                <th>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="sessionTableBody"></tbody>
-                    </table>
+                <div class="lf-sess-tabs" id="sessionStatusTabs" role="tablist">
+                    <button type="button" class="is-active" data-status="" role="tab">全部(<span data-tab-count="all">0</span>)</button>
+                    <button type="button" data-status="live" role="tab">直播中(<span data-tab-count="live">0</span>)</button>
+                    <button type="button" data-status="upcoming" role="tab">未开始(<span data-tab-count="upcoming">0</span>)</button>
+                    <button type="button" data-status="ended" role="tab">已结束(<span data-tab-count="ended">0</span>)</button>
                 </div>
+
+                <div class="lf-live-toolbar">
+                    <button type="button" class="erp-btn erp-btn--primary" id="sessionAddBtn">+ 新建直播场次</button>
+                </div>
+
+                <div class="lf-sess-grid" id="sessionCardGrid"></div>
+                <div class="lf-sess-pager" id="sessionPager"></div>
             </section>
         </main>
     </div>
     <script src="../js/common.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-    <script src="../js/mdm-live-demo-data.js?v=20260907-promo-poster"></script>
-    <script src="../js/mdm-live-session.js?v=20260907-promo-poster"></script>
+    <script src="../js/mdm-live-demo-data.js?v=20260923-session-cards"></script>
+    <script src="../js/mdm-live-session.js?v=20260923-session-cards"></script>
 </body>
 </html>

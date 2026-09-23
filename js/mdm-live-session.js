@@ -7,6 +7,8 @@
   var Demo = window.MdmLiveDemo;
   if (!Demo) return;
 
+  var listState = { status: '', page: 1, pageSize: 20 };
+
   var wp = window.wmsPath || {
     page: function (f) {
       return f;
@@ -75,23 +77,31 @@
   function readFilter() {
     return {
       name: ((document.getElementById('qSessionName') || {}).value || '').trim(),
-      status: (document.getElementById('qSessionStatus') || {}).value || '',
+      status: listState.status || '',
       type: (document.getElementById('qSessionType') || {}).value || '',
       slotId: (document.getElementById('qSessionSlot') || {}).value || '',
       roomId: (document.getElementById('qSessionRoom') || {}).value || ''
     };
   }
 
-  function filteredSessions() {
+  function matchSession(s, f, ignoreStatus) {
+    if (f.name && String(s.name).indexOf(f.name) < 0) return false;
+    if (!ignoreStatus && f.status && s.status !== f.status) return false;
+    if (f.type && s.type !== f.type) return false;
+    if (f.slotId && s.slotId !== f.slotId) return false;
+    if (f.roomId && s.roomId !== f.roomId) return false;
+    return true;
+  }
+
+  function sessionsByFilter(ignoreStatus) {
     var f = readFilter();
     return Demo.sessions.filter(function (s) {
-      if (f.name && String(s.name).indexOf(f.name) < 0) return false;
-      if (f.status && s.status !== f.status) return false;
-      if (f.type && s.type !== f.type) return false;
-      if (f.slotId && s.slotId !== f.slotId) return false;
-      if (f.roomId && s.roomId !== f.roomId) return false;
-      return true;
+      return matchSession(s, f, ignoreStatus);
     });
+  }
+
+  function filteredSessions() {
+    return sessionsByFilter(false);
   }
 
   function closeModal() {
@@ -463,136 +473,322 @@
     showForm();
   }
 
-  function render() {
-    var tbody = document.getElementById('sessionTableBody');
-    if (!tbody) return;
-    var rows = filteredSessions();
-    if (!rows.length) {
-      tbody.innerHTML =
-        '<tr><td colspan="10" style="text-align:center;color:#999;padding:24px;">暂无符合条件的直播场次</td></tr>';
-      return;
+  function coverFallbacks() {
+    return [
+      'user-app/assets/shop/cat-veg.svg',
+      'user-app/assets/shop/beef-hero.svg',
+      'user-app/assets/restock/product-cola.svg',
+      'user-app/assets/shop/banner-featured.svg',
+      'user-app/assets/shop/product-dumpling.svg',
+      'user-app/assets/restock/product-tomato.svg'
+    ].map(function (file) {
+      return wp.page(file);
+    });
+  }
+
+  function coverSrc(sess, index) {
+    if (sess.cover) return sess.cover;
+    var list = coverFallbacks();
+    return list[index % list.length];
+  }
+
+  function dash(value) {
+    var text = String(value == null ? '' : value).trim();
+    return text || '—';
+  }
+
+  function closeMenus() {
+    document.querySelectorAll('.lf-sess-more__menu').forEach(function (menu) {
+      menu.hidden = true;
+    });
+  }
+
+  function updateStatusTabs(baseRows) {
+    var counts = { all: baseRows.length, live: 0, upcoming: 0, ended: 0 };
+    baseRows.forEach(function (s) {
+      if (counts[s.status] != null) counts[s.status] += 1;
+    });
+    document.querySelectorAll('#sessionStatusTabs [data-tab-count]').forEach(function (node) {
+      var key = node.getAttribute('data-tab-count');
+      node.textContent = String(counts[key] || 0);
+    });
+    document.querySelectorAll('#sessionStatusTabs [data-status]').forEach(function (btn) {
+      btn.classList.toggle('is-active', (btn.getAttribute('data-status') || '') === listState.status);
+    });
+  }
+
+  function pageWindow(current, total) {
+    if (total <= 7) {
+      var all = [];
+      var n = 1;
+      for (n = 1; n <= total; n++) all.push(n);
+      return all;
     }
-    tbody.innerHTML = rows
-      .map(function (s) {
-        var editHref = pageWithQuery('mdm_live_session_form.html', { id: s.id });
-        var detailHref = pageWithQuery('mdm_live_session_detail.html', { id: s.id });
-        var controlHref = pageWithQuery('mdm_live_control.html', { sessionId: s.id });
-        var actions =
-          '<a href="' +
-          escapeHtml(controlHref) +
-          '">中控台</a>';
-        // 未开始 / 直播中可编辑；已结束仅中控台+详情
-        if (s.status === 'upcoming' || s.status === 'live') {
-          actions += '<a href="' + escapeHtml(editHref) + '">编辑</a>';
-        }
-        actions += '<a href="' + escapeHtml(detailHref) + '">详情</a>';
-        actions += '<a href="#" data-act="promo">推广海报</a>';
-        if (s.status === 'upcoming') {
-          actions += '<a href="#" class="action-link-danger" data-act="delete">删除</a>';
-        }
-        return (
-          '<tr data-id="' +
-          escapeHtml(s.id) +
-          '">' +
-          '<td>' +
-          escapeHtml(s.name) +
-          '</td>' +
-          '<td>' +
-          escapeHtml(s.roomName || '—') +
-          '</td>' +
-          '<td>' +
-          escapeHtml(s.slotName || '—') +
-          '</td>' +
-          '<td>' +
-          escapeHtml(s.typeName || '—') +
-          '</td>' +
-          '<td><span class="' +
-          statusClass(s.status) +
-          '">' +
-          escapeHtml(statusLabel(s.status)) +
-          '</span></td>' +
-          '<td>' +
-          escapeHtml(s.startAt || '—') +
-          '</td>' +
-          '<td>' +
-          escapeHtml(s.endAt || '—') +
-          '</td>' +
-          '<td>' +
-          escapeHtml(s.actualStartAt || '—') +
-          '</td>' +
-          '<td>' +
-          escapeHtml(s.actualEndAt || '—') +
-          '</td>' +
-          '<td class="action-links">' +
-          actions +
-          '</td></tr>'
-        );
+    var pages = [1];
+    var start = Math.max(2, current - 1);
+    var end = Math.min(total - 1, current + 1);
+    if (start > 2) pages.push('...');
+    var i = start;
+    for (i = start; i <= end; i++) pages.push(i);
+    if (end < total - 1) pages.push('...');
+    pages.push(total);
+    return pages;
+  }
+
+  function renderPager(total) {
+    var host = document.getElementById('sessionPager');
+    if (!host) return;
+    var size = listState.pageSize;
+    var pages = Math.max(1, Math.ceil(total / size));
+    if (listState.page > pages) listState.page = pages;
+    if (listState.page < 1) listState.page = 1;
+    var nums = pageWindow(listState.page, pages);
+    var sizeOptions = [10, 20, 50]
+      .map(function (n) {
+        return '<option value="' + n + '"' + (n === size ? ' selected' : '') + '>' + n + '条/页</option>';
       })
       .join('');
+    host.innerHTML =
+      '<span class="lf-sess-pager__total">共 ' + total + ' 条</span>' +
+      '<select class="lf-sess-pager__size" id="sessionPageSize" aria-label="每页条数">' +
+      sizeOptions +
+      '</select>' +
+      '<div class="lf-sess-pager__nav">' +
+      '<button type="button" class="lf-sess-pager__btn" data-page="prev"' +
+      (listState.page <= 1 ? ' disabled' : '') +
+      ' aria-label="上一页">&lt;</button>' +
+      nums
+        .map(function (n) {
+          if (n === '...') return '<span class="lf-sess-pager__ellipsis">…</span>';
+          return (
+            '<button type="button" class="lf-sess-pager__btn' +
+            (n === listState.page ? ' is-active' : '') +
+            '" data-page="' +
+            n +
+            '">' +
+            n +
+            '</button>'
+          );
+        })
+        .join('') +
+      '<button type="button" class="lf-sess-pager__btn" data-page="next"' +
+      (listState.page >= pages ? ' disabled' : '') +
+      ' aria-label="下一页">&gt;</button>' +
+      '</div>' +
+      '<label class="lf-sess-pager__goto">前往<input class="lf-sess-pager__jump" id="sessionPageJump" inputmode="numeric" value="' +
+      listState.page +
+      '" aria-label="跳转页码">页</label>';
+  }
+
+  function renderCard(s, index) {
+    var editHref = pageWithQuery('mdm_live_session_form.html', { id: s.id });
+    var detailHref = pageWithQuery('mdm_live_session_detail.html', { id: s.id });
+    var controlHref = pageWithQuery('mdm_live_control.html', { sessionId: s.id });
+    var canEdit = s.status === 'upcoming' || s.status === 'live';
+    var menu =
+      '<a href="' + escapeHtml(detailHref) + '">详情</a>' +
+      (canEdit ? '<a href="' + escapeHtml(editHref) + '">编辑</a>' : '') +
+      '<button type="button" data-act="promo">推广海报</button>' +
+      (s.status === 'upcoming'
+        ? '<button type="button" class="is-danger" data-act="delete">删除</button>'
+        : '');
+    var avatar = wp.page('user-app/assets/shop/live-avatar.svg');
+    return (
+      '<article class="lf-sess-card" data-id="' +
+      escapeHtml(s.id) +
+      '">' +
+      '<div class="lf-sess-card__head">' +
+      '<img class="lf-sess-card__avatar" src="' +
+      escapeHtml(avatar) +
+      '" alt="">' +
+      '<div class="lf-sess-card__title">' +
+      '<span class="lf-sess-card__name">' +
+      escapeHtml(s.name) +
+      '</span>' +
+      '<span class="lf-sess-card__status lf-sess-card__status--' +
+      escapeHtml(s.status || 'ended') +
+      '">' +
+      escapeHtml(statusLabel(s.status)) +
+      '</span></div>' +
+      '<div class="lf-sess-card__ops">' +
+      '<a class="lf-sess-card__control" href="' +
+      escapeHtml(controlHref) +
+      '">中控台</a>' +
+      '<div class="lf-sess-more">' +
+      '<button type="button" class="lf-sess-more__btn" data-more>更多 <span aria-hidden="true">▾</span></button>' +
+      '<div class="lf-sess-more__menu" hidden>' +
+      menu +
+      '</div></div></div></div>' +
+      '<div class="lf-sess-card__meta">' +
+      '<p>开播时间：' + escapeHtml(dash(s.startAt)) + '</p>' +
+      '<p>结束时间：' + escapeHtml(dash(s.endAt)) + '</p>' +
+      '<p>实际开播：' + escapeHtml(dash(s.actualStartAt)) + '</p>' +
+      '<p>实际结束：' + escapeHtml(dash(s.actualEndAt)) + '</p>' +
+      '<p>直播间：' + escapeHtml(dash(s.roomName)) + '</p>' +
+      '<p>时段：' + escapeHtml(dash(s.slotName)) + '</p>' +
+      '<p>类型：' + escapeHtml(dash(s.typeName)) + '</p>' +
+      '</div>' +
+      '<div class="lf-sess-card__cover">' +
+      '<img src="' +
+      escapeHtml(coverSrc(s, index)) +
+      '" alt="' +
+      escapeHtml(s.name || '') +
+      '">' +
+      '</div></article>'
+    );
+  }
+
+  function render() {
+    var grid = document.getElementById('sessionCardGrid');
+    if (!grid) return;
+    closeMenus();
+    var baseRows = sessionsByFilter(true);
+    updateStatusTabs(baseRows);
+    var rows = filteredSessions();
+    var size = listState.pageSize;
+    var pages = Math.max(1, Math.ceil(rows.length / size) || 1);
+    if (listState.page > pages) listState.page = pages;
+    var start = (listState.page - 1) * size;
+    var pageRows = rows.slice(start, start + size);
+    if (!pageRows.length) {
+      grid.innerHTML = '<div class="lf-sess-empty">暂无符合条件的直播场次</div>';
+    } else {
+      grid.innerHTML = pageRows
+        .map(function (s, idx) {
+          return renderCard(s, start + idx);
+        })
+        .join('');
+    }
+    renderPager(rows.length);
   }
 
   function bindEvents() {
     var queryBtn = document.getElementById('sessionFilterQuery');
     var resetBtn = document.getElementById('sessionFilterReset');
     var addBtn = document.getElementById('sessionAddBtn');
-    if (queryBtn) queryBtn.addEventListener('click', render);
+    if (queryBtn) {
+      queryBtn.addEventListener('click', function () {
+        listState.page = 1;
+        render();
+      });
+    }
     if (addBtn) {
       addBtn.addEventListener('click', function () {
         window.location.href = wp.page('mdm_live_session_form.html');
       });
     }
+    if (queryBtn) {
+      var form = document.getElementById('liveSessionFilterForm');
+      if (form) {
+        form.addEventListener('keydown', function (ev) {
+          if (ev.key !== 'Enter') return;
+          ev.preventDefault();
+          listState.page = 1;
+          render();
+        });
+      }
+    }
     if (resetBtn) {
       resetBtn.addEventListener('click', function () {
-        ['qSessionName', 'qSessionStatus', 'qSessionType', 'qSessionSlot', 'qSessionRoom'].forEach(
-          function (id) {
-            var el = document.getElementById(id);
-            if (el) el.value = '';
-          }
-        );
+        ['qSessionName', 'qSessionType', 'qSessionSlot', 'qSessionRoom'].forEach(function (id) {
+          var el = document.getElementById(id);
+          if (el) el.value = '';
+        });
+        listState.status = '';
+        listState.page = 1;
         render();
       });
     }
 
-    document.querySelectorAll('#liveSessionFilterForm .input-wrapper .clear-btn').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var input = btn.parentElement && btn.parentElement.querySelector('input');
-        if (input) {
-          input.value = '';
-          input.focus();
-        }
-      });
-    });
-
-    var tbody = document.getElementById('sessionTableBody');
-    if (!tbody) return;
-    tbody.addEventListener('click', function (ev) {
-      var promoEl = ev.target.closest('[data-act="promo"]');
-      if (promoEl) {
-        ev.preventDefault();
-        var promoTr = promoEl.closest('tr[data-id]');
-        if (!promoTr) return;
-        var promoSess = findSession(promoTr.getAttribute('data-id'));
-        if (!promoSess) {
-          toast('场次不存在', 'warning');
-          return;
-        }
-        openPromoPoster(promoSess);
-        return;
-      }
-      var actEl = ev.target.closest('[data-act="delete"]');
-      if (!actEl) return;
-      ev.preventDefault();
-      var tr = actEl.closest('tr[data-id]');
-      if (!tr) return;
-      var id = tr.getAttribute('data-id');
-      openConfirm('确定删除该直播场次？', function () {
-        for (var i = Demo.sessions.length - 1; i >= 0; i--) {
-          if (Demo.sessions[i].id === id) Demo.sessions.splice(i, 1);
-        }
-        if (typeof Demo.persistSessions === 'function') Demo.persistSessions();
-        toast('场次已删除');
+    var tabs = document.getElementById('sessionStatusTabs');
+    if (tabs) {
+      tabs.addEventListener('click', function (ev) {
+        var btn = ev.target.closest('[data-status]');
+        if (!btn) return;
+        listState.status = btn.getAttribute('data-status') || '';
+        listState.page = 1;
         render();
       });
+    }
+
+    var grid = document.getElementById('sessionCardGrid');
+    if (grid) {
+      grid.addEventListener('click', function (ev) {
+        var moreBtn = ev.target.closest('[data-more]');
+        if (moreBtn) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          var menu = moreBtn.parentElement && moreBtn.parentElement.querySelector('.lf-sess-more__menu');
+          var willOpen = menu && menu.hidden;
+          closeMenus();
+          if (willOpen) menu.hidden = false;
+          return;
+        }
+        var promoEl = ev.target.closest('[data-act="promo"]');
+        if (promoEl) {
+          ev.preventDefault();
+          var promoCard = promoEl.closest('[data-id]');
+          if (!promoCard) return;
+          var promoSess = findSession(promoCard.getAttribute('data-id'));
+          if (!promoSess) {
+            toast('场次不存在', 'warning');
+            return;
+          }
+          openPromoPoster(promoSess);
+          return;
+        }
+        var actEl = ev.target.closest('[data-act="delete"]');
+        if (!actEl) return;
+        ev.preventDefault();
+        var card = actEl.closest('[data-id]');
+        if (!card) return;
+        var id = card.getAttribute('data-id');
+        openConfirm('确定删除该直播场次？', function () {
+          for (var i = Demo.sessions.length - 1; i >= 0; i--) {
+            if (Demo.sessions[i].id === id) Demo.sessions.splice(i, 1);
+          }
+          if (typeof Demo.persistSessions === 'function') Demo.persistSessions();
+          toast('场次已删除');
+          render();
+        });
+      });
+    }
+
+    var pager = document.getElementById('sessionPager');
+    if (pager) {
+      pager.addEventListener('click', function (ev) {
+        var btn = ev.target.closest('[data-page]');
+        if (!btn || btn.disabled) return;
+        var flag = btn.getAttribute('data-page');
+        var total = filteredSessions().length;
+        var pages = Math.max(1, Math.ceil(total / listState.pageSize));
+        if (flag === 'prev') listState.page = Math.max(1, listState.page - 1);
+        else if (flag === 'next') listState.page = Math.min(pages, listState.page + 1);
+        else listState.page = parseInt(flag, 10) || 1;
+        render();
+      });
+      pager.addEventListener('change', function (ev) {
+        if (ev.target && ev.target.id === 'sessionPageSize') {
+          listState.pageSize = parseInt(ev.target.value, 10) || 20;
+          listState.page = 1;
+          render();
+        }
+      });
+      pager.addEventListener('keydown', function (ev) {
+        if (ev.key !== 'Enter' || !ev.target || ev.target.id !== 'sessionPageJump') return;
+        ev.preventDefault();
+        var total = filteredSessions().length;
+        var pages = Math.max(1, Math.ceil(total / listState.pageSize));
+        var next = parseInt(ev.target.value, 10);
+        if (!next || next < 1) next = 1;
+        if (next > pages) next = pages;
+        listState.page = next;
+        render();
+      });
+    }
+
+    document.addEventListener('click', function () {
+      closeMenus();
     });
   }
 
