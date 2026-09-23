@@ -1,0 +1,69 @@
+/* 结算原型：延续 LFerp 的白底表格与橙色操作色。 */
+.settle-sidebar-caption { padding: 18px 22px 4px; color: #9ba4b3; font-size: 12px; letter-spacing: .08em; }
+#settlement-app { font-size: 13px; color: #30333b; }
+.settle-card { background: #fff; border: 1px solid #eceef2; border-radius: 6px; margin: 12px 0; box-shadow: 0 1px 3px rgba(30,40,60,.04); }
+.settle-card-head { display:flex; align-items:center; justify-content:space-between; padding:16px 18px; border-bottom:1px solid #edf0f3; gap:12px; }
+.settle-card-head h2 { font-size:15px; margin:0; }
+.settle-card-body { padding:18px; }
+.settle-tabs { display:flex; gap:26px; padding:0 18px; border-bottom:1px solid #e9ecf0; background:#fff; border-radius:6px 6px 0 0; }
+.settle-tab { border:0; background:none; padding:15px 2px 13px; cursor:pointer; color:#5f6672; font-size:13px; border-bottom:2px solid transparent; }
+.settle-tab.active { color:#f36b19; border-color:#f36b19; font-weight:600; }
+.settle-filter { display:flex; flex-wrap:wrap; align-items:end; gap:12px; }
+.settle-field { display:flex; flex-direction:column; gap:6px; min-width:148px; }
+.settle-field span, .settle-label { color:#69707e; font-size:12px; }
+.settle-input, .settle-select { height:33px; border:1px solid #dce1e7; border-radius:4px; background:white; padding:0 10px; color:#30333b; font-size:13px; min-width:130px; }
+.settle-input:focus, .settle-select:focus { outline:none; border-color:#f36b19; }
+.settle-input:disabled, .settle-select:disabled { background:#f5f6f8; color:#9096a0; }
+.settle-btn { height:33px; padding:0 13px; border:1px solid #d9dee5; border-radius:4px; background:#fff; color:#394150; cursor:pointer; font-size:13px; white-space:nowrap; }
+.settle-btn:hover { border-color:#f36b19; color:#f36b19; }
+.settle-btn.primary { background:#f36b19; border-color:#f36b19; color:#fff; }
+.settle-btn.primary:hover { background:#de5d0d; }
+.settle-btn:disabled { opacity:.55; cursor:not-allowed; }
+.settle-btn.link { border:0; padding:0; height:auto; color:#ee681d; background:none; }
+.settle-btn.link:hover { text-decoration:underline; }
+.settle-actions { display:flex; align-items:center; gap:9px; flex-wrap:wrap; }
+.settle-note { padding:10px 14px; background:#f7f9fc; border:1px solid #e7edf5; border-radius:4px; line-height:1.55; color:#637083; }
+.settle-table-wrap { overflow:auto; }
+.settle-table { border-collapse:collapse; min-width:100%; width:max-content; font-size:12px; }
+.settle-table th, .settle-table td { border-bottom:1px solid #edf0f3; padding:11px 12px; text-align:left; vertical-align:middle; white-space:nowrap; }
+.settle-table th { background:#f8f9fb; color:#596270; font-weight:600; }
+.settle-table tr:hover td { background:#fffaf6; }
+.settle-table td.wrap { white-space:normal; min-width:200px; max-width:380px; line-height:1.5; }
+.settle-table .money { font-variant-numeric:tabular-nums; text-align:right; }
+.settle-table .muted { color:#9198a2; }
+.settle-table-footer { padding:12px 18px; display:flex; justify-content:flex-end; color:#7a8290; }
+.settle-tag { display:inline-block; padding:3px 8px; border-radius:3px; background:#f1f3f5; color:#5d6570; font-size:12px; }
+.settle-tag.orange { background:#fff1e7; color:#d9621f; }
+.settle-tag.green { background:#eaf7ef; color:#29965e; }
+.settle-tag.red { background:#fff0ee; color:#d84f43; }
+.settle-kv { display:grid; grid-template-columns:repeat(4,minmax(160px,1fr)); gap:18px 24px; }
+.settle-kv-item { min-width:0; }
+.settle-kv-item dt { color:#8b929d; font-size:12px; margin-bottom:7px; }
+.settle-kv-item dd { margin:0; line-height:1.5; word-break:break-word; }
+.settle-back { margin:8px 0 14px; }
+.settle-section-title { font-weight:600; font-size:14px; margin:0 0 14px; }
+.settle-config-grid { display:grid; grid-template-columns:repeat(2,minmax(280px,1fr)); gap:18px 28px; max-width:900px; }
+.settle-config-item { display:flex; align-items:center; justify-content:space-between; gap:18px; min-height:34px; }
+.settle-config-item .settle-input, .settle-config-item .settle-select { width:180px; }
+.settle-switch { position:relative; width:39px; height:21px; border:0; border-radius:12px; background:#bec5ce; cursor:pointer; }
+.settle-switch.on { background:#f36b19; }
+.settle-switch:after { content:''; position:absolute; top:3px; left:3px; width:15px; height:15px; border-radius:50%; background:white; transition:left .15s; }
+.settle-switch.on:after { left:21px; }
+.settle-rule { border:1px solid #e6e9ee; border-radius:5px; padding:15px; margin-top:12px; display:flex; justify-content:space-between; gap:20px; }
+.settle-rule small { display:block; color:#8a929f; margin-top:7px; }
+.settle-overlay { position:fixed; inset:0; background:rgba(24,30,40,.38); z-index:4000; display:flex; align-items:center; justify-content:center; }
+.settle-dialog { background:#fff; border-radius:7px; width:min(580px,94vw); max-height:88vh; overflow:auto; box-shadow:0 12px 38px rgba(0,0,0,.2); }
+.settle-dialog.wide { width:min(1000px,96vw); }
+.settle-dialog-head, .settle-dialog-foot { padding:16px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px; border-bottom:1px solid #edf0f3; }
+.settle-dialog-head strong { font-size:16px; }
+.settle-dialog-foot { border-top:1px solid #edf0f3; border-bottom:0; justify-content:flex-end; }
+.settle-dialog-body { padding:18px 20px; }
+.settle-drawer { position:absolute; top:0; right:0; bottom:0; width:min(850px,95vw); background:#fff; overflow:auto; box-shadow:-8px 0 26px rgba(0,0,0,.15); }
+.settle-drawer .settle-dialog-body { padding:16px; }
+.settle-empty { padding:28px; text-align:center; color:#9299a4; }
+@media (max-width:1000px) { .settle-kv { grid-template-columns:repeat(2,minmax(150px,1fr)); } .settle-config-grid { grid-template-columns:1fr; } }
+@media (max-width:650px) { .settle-kv { grid-template-columns:1fr; } .settle-card-head { align-items:start; flex-direction:column; } }
+
+
+.settle-tech { margin-top:16px; border-top:1px solid #edf0f3; padding:14px 0; }
+.settle-tech summary { cursor:pointer; color:#69707e; margin-bottom:14px; }
