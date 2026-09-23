@@ -1,10 +1,77 @@
 {
-  "latestSha": "22ad2249bc8dc1adfb007d7e212d1c416b2a3cbd",
-  "total": 422,
+  "latestSha": "2307dc23c35db3a7813b2462164a2837a9deb017",
+  "total": 423,
   "days": [
     {
       "date": "2026-09-23",
       "items": [
+        {
+          "sha": "2307dc2",
+          "type": "feat",
+          "text": "购物车多规格可改选，商品详情规格标题去掉数量",
+          "author": "sisi",
+          "time": "18:57",
+          "pages": [
+            {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/category.html",
+              "module": "",
+              "title": "分类 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "module": "",
+              "title": "商城 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/cart.html",
+              "text": "多规格商品可点击规格打开选择页，确认后更新该行规格和数量；规格显示为完整规格名"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "text": "规格标题只显示「规格」，不再带数量"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "text": "内嵌商品详情的规格标题与商品详情一致"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "text": "规格显示为完整规格名，与选择页一致"
+            }
+          ]
+        },
         {
           "sha": "22ad224",
           "type": "feat",
