@@ -1,10 +1,110 @@
 {
-  "latestSha": "1049c7229c4bf7109e2997ad50b05ed5728dc34f",
-  "total": 421,
+  "latestSha": "22ad2249bc8dc1adfb007d7e212d1c416b2a3cbd",
+  "total": 422,
   "days": [
     {
       "date": "2026-09-23",
       "items": [
+        {
+          "sha": "22ad224",
+          "type": "feat",
+          "text": "完善规格管理，并让用户端选规格加购与门店进货数据分开",
+          "author": "sisi",
+          "time": "16:31",
+          "pages": [
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "module": "冷丰WMS",
+              "title": "选品库"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/category.html",
+              "module": "",
+              "title": "分类 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "module": "",
+              "title": "商城 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/product-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "module": "",
+              "title": "进货 · 用户 APP"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "text": "规格管理增加客户端排序，排序说明为值越大越靠前；规格名单只保留规格名称"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "text": "选择规格改为半遮罩，可在列表和大图之间切换；进货详情写入的购物车和结算草稿与门店端分开"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "text": "单规格直接加购，多规格先弹出规格半遮罩；标题只显示规格"
+            },
+            {
+              "file": "user-app/h5/category.html",
+              "text": "加购与商城一致，单规格直接加入，多规格先选规格"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "text": "商品里的选择规格半遮罩与商品详情一致"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "text": "进货购物车和结算草稿与门店端分开存放"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "text": "进货结算草稿按用户端和门店端分开读写"
+            }
+          ]
+        },
         {
           "sha": "1049c72",
           "type": "other",
