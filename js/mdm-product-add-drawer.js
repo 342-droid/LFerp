@@ -3,10 +3,68 @@
  */
 (function () {
   var DRAWER_ID = 'mdmProductAddDrawer';
-  var SPEC_NAME_OPTIONS = ['产品类型', '口味', '包装', '规格', '颜色', '尺码'];
+  var SPEC_CATALOG_KEY = 'lf_mdm_spec_catalog_v1';
   var specGroups = [];
   var specRowCache = {};
   var specIdSeq = 0;
+  var specCatalog = [];
+
+  function defaultSpecCatalog() {
+    return [
+      { id: 'spec-bao', name: '包', sort: 0, seq: 1 },
+      { id: 'spec-taste', name: '口味', sort: 0, seq: 2 },
+      { id: 'spec-size', name: '尺寸', sort: 0, seq: 3 },
+      { id: 'spec-bottle', name: '瓶', sort: 0, seq: 4 },
+      { id: 'spec-spec', name: '规格', sort: 0, seq: 5 },
+      { id: 'spec-weight', name: '重量', sort: 0, seq: 6 }
+    ];
+  }
+
+  function loadSpecCatalog() {
+    try {
+      var raw = localStorage.getItem(SPEC_CATALOG_KEY);
+      if (!raw) return defaultSpecCatalog();
+      var data = JSON.parse(raw);
+      if (!Array.isArray(data) || !data.length) return defaultSpecCatalog();
+      return data.map(function (item, idx) {
+        var sort = parseInt(item && item.sort, 10);
+        var seq = parseInt(item && item.seq, 10);
+        return {
+          id: String((item && item.id) || 'spec-' + (idx + 1)),
+          name: String((item && item.name) || '').trim(),
+          sort: isNaN(sort) ? 0 : sort,
+          seq: isNaN(seq) ? idx + 1 : seq
+        };
+      }).filter(function (item) {
+        return item.name;
+      });
+    } catch (e) {
+      return defaultSpecCatalog();
+    }
+  }
+
+  function saveSpecCatalog() {
+    try {
+      localStorage.setItem(SPEC_CATALOG_KEY, JSON.stringify(specCatalog));
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function sortedSpecCatalog() {
+    return specCatalog.slice().sort(function (a, b) {
+      if (b.sort !== a.sort) return b.sort - a.sort;
+      return a.seq - b.seq;
+    });
+  }
+
+  function specNameList() {
+    return sortedSpecCatalog().map(function (item) {
+      return item.name;
+    });
+  }
+
+  specCatalog = loadSpecCatalog();
 
   function el(tag, cls, html) {
     var node = document.createElement(tag);
@@ -301,6 +359,8 @@
   }
 
   function removeDrawer() {
+    closeSpecForm();
+    closeSpecManage();
     document.querySelectorAll('[data-product-add-backdrop], #' + DRAWER_ID + ', .product-add-drawer-root').forEach(function (node) {
       node.remove();
     });
@@ -325,9 +385,10 @@
     var used = specGroups.map(function (g) {
       return g.name;
     });
+    var names = specNameList();
     var i = 0;
-    for (i = 0; i < SPEC_NAME_OPTIONS.length; i++) {
-      if (used.indexOf(SPEC_NAME_OPTIONS[i]) < 0) return SPEC_NAME_OPTIONS[i];
+    for (i = 0; i < names.length; i++) {
+      if (used.indexOf(names[i]) < 0) return names[i];
     }
     return '规格' + (specGroups.length + 1);
   }
@@ -438,7 +499,9 @@
   }
 
   function renderSpecPanel(group) {
-    var nameOpts = SPEC_NAME_OPTIONS.map(function (name) {
+    var optionNames = specNameList();
+    if (optionNames.indexOf(group.name) < 0) optionNames = [group.name].concat(optionNames);
+    var nameOpts = optionNames.map(function (name) {
       var used = specGroups.some(function (g) {
         return g.id !== group.id && g.name === name;
       });
@@ -614,6 +677,239 @@
     renderSpecTable();
   }
 
+  function closeSpecManage() {
+    document.querySelectorAll('[data-spec-manage-backdrop]').forEach(function (node) {
+      node.remove();
+    });
+  }
+
+  function closeSpecForm() {
+    document.querySelectorAll('[data-spec-form-backdrop]').forEach(function (node) {
+      node.remove();
+    });
+  }
+
+  function renderSpecManageTable() {
+    var body = document.getElementById('specManageTableBody');
+    if (!body) return;
+    body.innerHTML = sortedSpecCatalog()
+      .map(function (item) {
+        return (
+          '<tr>' +
+          '<td class="is-name">' + escapeHtml(item.name) + '</td>' +
+          '<td class="is-sort">' + escapeHtml(String(item.sort)) + '</td>' +
+          '<td class="is-op"><button type="button" class="spec-manage-edit" data-spec-catalog-edit="' + escapeHtml(item.id) + '">编辑</button></td>' +
+          '</tr>'
+        );
+      })
+      .join('');
+  }
+
+  function remapSpecCacheName(oldName, newName) {
+    if (!oldName || oldName === newName) return;
+    var next = {};
+    Object.keys(specRowCache).forEach(function (key) {
+      var mapped = key.split('|').map(function (part) {
+        var eq = part.indexOf('=');
+        if (eq < 0) return part;
+        var name = part.slice(0, eq);
+        var value = part.slice(eq + 1);
+        if (name === oldName) name = newName;
+        return name + '=' + value;
+      }).join('|');
+      next[mapped] = specRowCache[key];
+    });
+    specRowCache = next;
+  }
+
+  function refreshSpecNameSelects() {
+    document.querySelectorAll('[data-spec-name-select]').forEach(function (select) {
+      var group = getSpecGroup(select.getAttribute('data-group-id'));
+      if (!group) return;
+      var optionNames = specNameList();
+      if (optionNames.indexOf(group.name) < 0) optionNames = [group.name].concat(optionNames);
+      select.innerHTML = optionNames.map(function (name) {
+        var used = specGroups.some(function (item) {
+          return item.id !== group.id && item.name === name;
+        });
+        return (
+          '<option value="' + escapeHtml(name) + '"' +
+          (group.name === name ? ' selected' : '') +
+          (used ? ' disabled' : '') +
+          '>' + escapeHtml(name) + '</option>'
+        );
+      }).join('');
+    });
+  }
+
+  function applyCatalogToDrawer(oldName, newName) {
+    var renamed = !!(oldName && newName && oldName !== newName);
+    if (renamed) {
+      if (document.getElementById('productAddSpecPanels')) saveSpecRowCache();
+      specGroups.forEach(function (group) {
+        if (group.name === oldName) group.name = newName;
+      });
+      remapSpecCacheName(oldName, newName);
+      renderSpecPanels();
+      renderSpecTable();
+      return;
+    }
+    refreshSpecNameSelects();
+  }
+
+  function openSpecManage() {
+    closeSpecForm();
+    closeSpecManage();
+    var backdrop = document.createElement('div');
+    backdrop.className = 'spec-manage-backdrop';
+    backdrop.setAttribute('data-spec-manage-backdrop', '1');
+    backdrop.innerHTML =
+      '<div class="spec-manage-dialog" role="dialog" aria-modal="true" aria-label="规格管理">' +
+      '  <header class="spec-manage-dialog__header">' +
+      '    <h3 class="spec-manage-dialog__title">规格管理</h3>' +
+      '    <button type="button" class="spec-manage-dialog__close" data-spec-manage-close aria-label="关闭">×</button>' +
+      '  </header>' +
+      '  <div class="spec-manage-dialog__body">' +
+      '    <button type="button" class="spec-manage-dialog__create" data-spec-catalog-create>新建规格</button>' +
+      '    <table class="spec-manage-table">' +
+      '      <colgroup>' +
+      '        <col class="spec-manage-table__col-name">' +
+      '        <col class="spec-manage-table__col-sort">' +
+      '        <col class="spec-manage-table__col-op">' +
+      '      </colgroup>' +
+      '      <thead><tr>' +
+      '        <th class="is-name">名称</th>' +
+      '        <th class="is-sort"><span class="spec-manage-sort-label">排序<button type="button" class="spec-manage-help" aria-label="数字越大，排序越靠前">?</button></span></th>' +
+      '        <th class="is-op">操作</th>' +
+      '      </tr></thead>' +
+      '      <tbody id="specManageTableBody"></tbody>' +
+      '    </table>' +
+      '  </div>' +
+      '</div>';
+
+    backdrop.addEventListener('click', function (e) {
+      if (e.target === backdrop || e.target.closest('[data-spec-manage-close]')) {
+        closeSpecForm();
+        closeSpecManage();
+        return;
+      }
+      if (e.target.closest('[data-spec-catalog-create]')) {
+        openSpecForm(null);
+        return;
+      }
+      var editBtn = e.target.closest('[data-spec-catalog-edit]');
+      if (editBtn) openSpecForm(editBtn.getAttribute('data-spec-catalog-edit'));
+    });
+
+    document.body.appendChild(backdrop);
+    renderSpecManageTable();
+  }
+
+  function openSpecForm(id) {
+    var current = null;
+    if (id) {
+      var i = 0;
+      for (i = 0; i < specCatalog.length; i++) {
+        if (specCatalog[i].id === id) {
+          current = specCatalog[i];
+          break;
+        }
+      }
+      if (!current) return;
+    }
+    closeSpecForm();
+    var backdrop = document.createElement('div');
+    backdrop.className = 'spec-manage-backdrop spec-manage-backdrop--form';
+    backdrop.setAttribute('data-spec-form-backdrop', '1');
+    backdrop.innerHTML =
+      '<div class="spec-manage-dialog spec-manage-dialog--form" role="dialog" aria-modal="true" aria-label="' + (current ? '编辑规格' : '新建规格') + '">' +
+      '  <header class="spec-manage-dialog__header">' +
+      '    <h3 class="spec-manage-dialog__title">' + (current ? '编辑规格' : '新建规格') + '</h3>' +
+      '    <button type="button" class="spec-manage-dialog__close" data-spec-form-close aria-label="关闭">×</button>' +
+      '  </header>' +
+      '  <div class="spec-manage-dialog__body spec-manage-form">' +
+      '    <div class="spec-manage-form__row">' +
+      '      <label class="spec-manage-form__label" for="specCatalogName"><span class="spec-manage-form__req">*</span>规格名称</label>' +
+      '      <input class="spec-manage-form__input" id="specCatalogName" type="text" maxlength="20" placeholder="请输入规格名称" value="' + escapeHtml(current ? current.name : '') + '">' +
+      '    </div>' +
+      '    <div class="spec-manage-form__row">' +
+      '      <label class="spec-manage-form__label" for="specCatalogSort">排序</label>' +
+      '      <input class="spec-manage-form__input" id="specCatalogSort" type="number" step="1" placeholder="请输入排序" value="' + (current ? current.sort : 0) + '">' +
+      '    </div>' +
+      '  </div>' +
+      '  <footer class="spec-manage-dialog__footer">' +
+      '    <button type="button" class="spec-manage-dialog__btn" data-spec-form-close>取消</button>' +
+      '    <button type="button" class="spec-manage-dialog__btn spec-manage-dialog__btn--primary" data-spec-form-ok>确定</button>' +
+      '  </footer>' +
+      '</div>';
+
+    function submitForm() {
+      var nameInput = document.getElementById('specCatalogName');
+      var sortInput = document.getElementById('specCatalogSort');
+      var name = nameInput ? String(nameInput.value || '').trim() : '';
+      var sortRaw = sortInput ? String(sortInput.value || '').trim() : '';
+      if (!name) {
+        if (typeof showToast === 'function') showToast('请输入规格名称', 'warning');
+        if (nameInput) nameInput.focus();
+        return;
+      }
+      var duplicated = specCatalog.some(function (item) {
+        return item.name === name && (!current || item.id !== current.id);
+      });
+      if (duplicated) {
+        if (typeof showToast === 'function') showToast('规格名称已存在', 'warning');
+        if (nameInput) nameInput.focus();
+        return;
+      }
+      if (sortRaw && !/^-?\d+$/.test(sortRaw)) {
+        if (typeof showToast === 'function') showToast('排序请输入整数', 'warning');
+        if (sortInput) sortInput.focus();
+        return;
+      }
+      var sort = sortRaw === '' ? 0 : parseInt(sortRaw, 10);
+      var oldName = current ? current.name : '';
+      if (current) {
+        current.name = name;
+        current.sort = sort;
+      } else {
+        var nextSeq = specCatalog.reduce(function (max, item) {
+          return item.seq > max ? item.seq : max;
+        }, 0) + 1;
+        specCatalog.push({
+          id: 'spec-' + Date.now().toString(36),
+          name: name,
+          sort: sort,
+          seq: nextSeq
+        });
+      }
+      saveSpecCatalog();
+      applyCatalogToDrawer(oldName, name);
+      closeSpecForm();
+      renderSpecManageTable();
+      if (typeof showToast === 'function') showToast(current ? '规格已更新' : '规格已创建');
+    }
+
+    backdrop.addEventListener('click', function (e) {
+      if (e.target === backdrop || e.target.closest('[data-spec-form-close]')) {
+        closeSpecForm();
+        return;
+      }
+      if (e.target.closest('[data-spec-form-ok]')) submitForm();
+    });
+    backdrop.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && e.target && e.target.tagName === 'INPUT') {
+        e.preventDefault();
+        submitForm();
+      }
+    });
+    document.body.appendChild(backdrop);
+    var focusInput = document.getElementById('specCatalogName');
+    if (focusInput) {
+      focusInput.focus();
+      focusInput.select();
+    }
+  }
+
   function bindSpecEvents(drawer) {
     drawer.addEventListener('click', function (e) {
       if (e.target.closest('[data-spec-add]')) {
@@ -623,7 +919,8 @@
       }
 
       if (e.target.closest('[data-spec-manage]')) {
-        if (typeof showToast === 'function') showToast('规格管理（演示）', 'info');
+        e.preventDefault();
+        openSpecManage();
         return;
       }
 
@@ -949,7 +1246,16 @@
   }
 
   function onEscKey(e) {
-    if (e.key === 'Escape' && document.getElementById(DRAWER_ID)) close();
+    if (e.key !== 'Escape') return;
+    if (document.querySelector('[data-spec-form-backdrop]')) {
+      closeSpecForm();
+      return;
+    }
+    if (document.querySelector('[data-spec-manage-backdrop]')) {
+      closeSpecManage();
+      return;
+    }
+    if (document.getElementById(DRAWER_ID)) close();
   }
 
   function open() {
