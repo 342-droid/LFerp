@@ -61,6 +61,13 @@
     "status": "diff",
     "date": "2026-09-21"
   },
+  "1049c72|MDM/mdm_settle_index.html": {
+    "before": "changelog-assets/1049c72/MDM__mdm_settle_index.html.before.jpg",
+    "after": "changelog-assets/1049c72/MDM__mdm_settle_index.html.after.jpg",
+    "regions": 5,
+    "status": "diff",
+    "date": "2026-09-23"
+  },
   "189aa35|MDM/mdm_order_proxy.html": {
     "regions": 0,
     "status": "diff",
