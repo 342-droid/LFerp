@@ -6,27 +6,21 @@
     <title>冷丰结算 - 结算中心</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/mdm-settlement-prototype.css?v=20260923d">
 </head>
 <body>
     <div id="sidebar-container"></div>
     <script src="../js/path-prefix.js"></script>
-    <script src="../js/settle-sidebar.js"></script>
-
+    <script src="../js/settle-sidebar.js?v=20260923d"></script>
     <div id="header-container"></div>
-
     <div class="container">
         <main class="main-content">
-            <div class="content-header">
-                <div class="content-title">结算 / 结算中心</div>
-            </div>
-            <section class="table-section">
-                <p style="margin: 16px 0; color: #666; font-size: 13px; line-height: 1.6;">
-                    结算中心页面占位，后续补充结算单、对账与分账等业务能力。
-                </p>
-            </section>
+            <div class="content-header"><div class="content-title" id="settle-title">结算 / 清分汇总</div></div>
+            <div id="settlement-app"></div>
         </main>
     </div>
-
+    <div id="settlement-overlay"></div>
     <script src="../js/common.js"></script>
+    <script src="../js/mdm-settlement-prototype.js?v=20260923d"></script>
 </body>
 </html>
