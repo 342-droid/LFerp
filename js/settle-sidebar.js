@@ -8,7 +8,7 @@
     }
     var names = {
         summary: '清分汇总',
-        policy: '佣金策略',
+        policy: '策略管理',
         supplier: '供应商结算',
         commission: '佣金清算',
         compensation: '补偿结款'
