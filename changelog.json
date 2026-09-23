@@ -1,7 +1,26 @@
 {
-  "latestSha": "6b0d6275e5118e5d4508a1c956743716bb6749f2",
-  "total": 418,
+  "latestSha": "dd66b196c448f2887ed6a5052e64d5ff2f776b29",
+  "total": 419,
   "days": [
+    {
+      "date": "2026-09-23",
+      "items": [
+        {
+          "sha": "dd66b19",
+          "type": "feat",
+          "text": "补齐结算原型与佣金策略配置日志",
+          "author": "Di Wu",
+          "time": "13:06",
+          "pages": [
+            {
+              "file": "MDM/mdm_settle_index.html",
+              "module": "冷丰结算",
+              "title": "结算中心"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-09-22",
       "items": [

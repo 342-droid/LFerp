@@ -2909,6 +2909,13 @@
     "status": "diff",
     "date": "2026-09-20"
   },
+  "dd66b19|MDM/mdm_settle_index.html": {
+    "before": "changelog-assets/dd66b19/MDM__mdm_settle_index.html.before.jpg",
+    "after": "changelog-assets/dd66b19/MDM__mdm_settle_index.html.after.jpg",
+    "regions": 29,
+    "status": "diff",
+    "date": "2026-09-23"
+  },
   "e23a74f|SCM/freight_estimate_report.html": {
     "before": "changelog-assets/e23a74f/SCM__freight_estimate_report.html.before.jpg",
     "after": "changelog-assets/e23a74f/SCM__freight_estimate_report.html.after.jpg",
