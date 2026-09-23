@@ -6,7 +6,7 @@
   <title>商品详情 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
   <link rel="stylesheet" href="../css/user-app-profile.css">
-  <link rel="stylesheet" href="../css/user-app-shop.css?v=20260818-zzmerge">
+  <link rel="stylesheet" href="../css/user-app-shop.css?v=20260923-gd-sku-view">
   <link rel="stylesheet" href="../css/user-app-seckill.css?v=20260902-sk-style">
 </head>
 <body class="user-app-body">
@@ -142,17 +142,34 @@
       </div>
     </footer>
 
-    <div class="ua-gd-sheet" id="goodsDetailSpecSheet" hidden>
+    <div class="ua-gd-sheet ua-gd-sheet--sku" id="goodsDetailSpecSheet" hidden>
       <div class="ua-gd-sheet__mask" data-gd-close="spec"></div>
-      <div class="ua-gd-sheet__panel">
-        <div class="ua-gd-sheet__head">
-          <h3>选择规格</h3>
-          <button type="button" class="ua-gd-sheet__close" data-gd-close="spec" aria-label="关闭">×</button>
+      <div class="ua-gd-sheet__panel ua-gd-sku" role="dialog" aria-modal="true" aria-label="选择规格">
+        <button type="button" class="ua-gd-sku__close" data-gd-close="spec" aria-label="关闭">×</button>
+        <div class="ua-gd-sku__head">
+          <img class="ua-gd-sku__thumb" id="goodsDetailSkuThumb" src="" alt="">
+          <div class="ua-gd-sku__meta">
+            <div class="ua-gd-sku__price" id="goodsDetailSkuPrice"></div>
+            <div class="ua-gd-sku__name" id="goodsDetailSkuName"></div>
+            <div class="ua-gd-sku__picked" id="goodsDetailSkuPicked">已选</div>
+          </div>
         </div>
-        <div class="ua-gd-sheet__list" id="goodsDetailSpecList"></div>
-        <div class="ua-gd-sheet__foot">
-          <button type="button" class="ua-gd-sheet__confirm" id="goodsDetailSpecConfirm">确定</button>
+        <div class="ua-gd-sku__section">
+          <div class="ua-gd-sku__section-head">
+            <div class="ua-gd-sku__label" id="goodsDetailSpecLabel">规格</div>
+            <button type="button" class="ua-gd-sku__view" id="goodsDetailSpecView" hidden>大图</button>
+          </div>
+          <div class="ua-gd-sku__specs" id="goodsDetailSpecList"></div>
         </div>
+        <div class="ua-gd-sku__qty-row">
+          <div class="ua-gd-sku__label">购买数量</div>
+          <div class="ua-gd-sku__stepper">
+            <button type="button" id="goodsDetailSkuMinus" aria-label="减少">−</button>
+            <span id="goodsDetailSkuQty">1</span>
+            <button type="button" id="goodsDetailSkuPlus" aria-label="增加">+</button>
+          </div>
+        </div>
+        <button type="button" class="ua-gd-sku__buy" id="goodsDetailSpecConfirm">立即下单</button>
       </div>
     </div>
 
@@ -175,7 +192,7 @@
 <script src="../js/user-app-product-sale-time.js?v=20260818-store-rest-sale"></script>
 <script src="../../js/mdm-marketing-seckill-store.js"></script>
 <script src="../js/user-app-seckill.js?v=20260902-sk-style"></script>
-<script src="../js/user-app-shop.js?v=20260818-store-rest-sale"></script>
+<script src="../js/user-app-shop.js?v=20260923-gd-sku-view"></script>
 <script src="../../js/pg-prd-float.js?v=20260902-605"></script>
 <script>UAShop.initGoodsDetailPage();</script>
 </body>

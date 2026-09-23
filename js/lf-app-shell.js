@@ -72,6 +72,15 @@
     return current() === 'store-app';
   }
 
+  /** 不要求两端同步的本地数据：门店端加 sa_ 前缀，避免和用户端串数据 */
+  function dataKey(key) {
+    key = String(key || '');
+    if (!key || !isStoreApp()) return key;
+    if (key.indexOf('sa_') === 0) return key;
+    if (key.indexOf('ua_') === 0) return 'sa_' + key.slice(3);
+    return 'sa_' + key;
+  }
+
   function restockOrdersHref() {
     return inStoreAppDir() ? 'restock-orders.html' : '../../store-app/h5/restock-orders.html';
   }
@@ -163,6 +172,7 @@
     current: current,
     remember: remember,
     isStoreApp: isStoreApp,
+    dataKey: dataKey,
     restockOrdersHref: restockOrdersHref,
     restockDetailHref: restockDetailHref,
     restockRefundDetailHref: restockRefundDetailHref,

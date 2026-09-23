@@ -4095,6 +4095,270 @@
   cursor: pointer;
 }
 
+.ua-gd-sheet--sku .ua-gd-sheet__panel {
+  max-height: 86%;
+  padding: 18px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  border-radius: 16px 16px 0 0;
+  overflow: auto;
+}
+
+.ua-gd-sku__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #c0c4cc;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ua-gd-sku__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding-right: 22px;
+}
+
+.ua-gd-sku__thumb {
+  width: 78px;
+  height: 78px;
+  flex-shrink: 0;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #f7f7f7;
+}
+
+.ua-gd-sku__meta {
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.ua-gd-sku__price {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px;
+  line-height: 1.15;
+}
+
+.ua-gd-sku__cash {
+  color: #ff3b30;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.ua-gd-sku__cash small {
+  margin-right: 1px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.ua-gd-sku__plus {
+  color: #ff8a1a;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.ua-gd-sku__name {
+  margin-top: 8px;
+  color: #1a1a1a;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.ua-gd-sku__picked {
+  margin-top: 8px;
+  color: #b0b0b0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.ua-gd-sku__section {
+  margin-top: 22px;
+}
+
+.ua-gd-sku__section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ua-gd-sku__label {
+  color: #1a1a1a;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.ua-gd-sku__view {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #666;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ua-gd-sku__view[hidden] {
+  display: none;
+}
+
+.ua-gd-sku__view svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.ua-gd-sku__specs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.ua-gd-sku__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  min-height: 48px;
+  padding: 6px 12px 6px 6px;
+  border: 0;
+  border-radius: 8px;
+  background: #f6f6f6;
+  color: #222;
+  font-size: 14px;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ua-gd-sku__chip.is-active {
+  background: #fff1ee;
+  color: #222;
+  font-weight: 500;
+}
+
+.ua-gd-sku__chip img {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  object-fit: cover;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.ua-gd-sku__specs.is-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px 8px;
+}
+
+.ua-gd-sku__card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 0;
+  border: 1.5px solid transparent;
+  border-radius: 2px;
+  background: #fff;
+  color: #222;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ua-gd-sku__card.is-active {
+  border-color: #ff7a1a;
+}
+
+.ua-gd-sku__card img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  background: #f5f5f5;
+}
+
+.ua-gd-sku__card span {
+  display: -webkit-box;
+  padding: 6px 4px 8px;
+  overflow: hidden;
+  color: #222;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.35;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.ua-gd-sku__qty-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 26px;
+}
+
+.ua-gd-sku__stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ua-gd-sku__stepper button,
+.ua-gd-sku__stepper span {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.ua-gd-sku__stepper button {
+  border: 0;
+  border-radius: 6px;
+  background: #f3f4f6;
+  color: #666;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ua-gd-sku__stepper button:disabled {
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+.ua-gd-sku__stepper span {
+  color: #222;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.ua-gd-sku__buy {
+  width: 100%;
+  height: 46px;
+  margin-top: 28px;
+  border: 0;
+  border-radius: 8px;
+  background: #ff5533;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 .ua-mall-product {
   cursor: pointer;
 }

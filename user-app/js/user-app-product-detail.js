@@ -143,6 +143,15 @@
     return p.get('port') === 'store-app' || p.get('from') === 'store-app';
   }
 
+  function shellDataKey(key) {
+    if (window.LfAppShell && typeof window.LfAppShell.dataKey === 'function') {
+      return window.LfAppShell.dataKey(key);
+    }
+    if (!isStoreAppPort()) return key;
+    key = String(key || '');
+    return key.indexOf('ua_') === 0 ? 'sa_' + key.slice(3) : 'sa_' + key;
+  }
+
   function restockHref(extra) {
     var q = [];
     if (isStoreAppPort()) q.push('from=store-app');
@@ -480,7 +489,7 @@
     }
     var checkoutItems = [];
     try {
-      var raw = localStorage.getItem(CART_PAGE_KEY);
+      var raw = localStorage.getItem(shellDataKey(CART_PAGE_KEY));
       var cartState = raw ? JSON.parse(raw) : { stores: [] };
       if (!cartState.stores) cartState.stores = [];
       var supplierId = p.supplier.id;
@@ -533,14 +542,14 @@
           i.selected = selectedIds.indexOf(i.id) !== -1;
         });
       }
-      localStorage.setItem(CART_PAGE_KEY, JSON.stringify(cartState));
-      localStorage.setItem(CART_KEY, JSON.stringify([]));
+      localStorage.setItem(shellDataKey(CART_PAGE_KEY), JSON.stringify(cartState));
+      localStorage.setItem(shellDataKey(CART_KEY), JSON.stringify([]));
     } catch (e) {
       /* ignore */
     }
     if (goCheckout) {
       sessionStorage.setItem(
-        'ua_checkout_v1',
+        shellDataKey('ua_checkout_v1'),
         JSON.stringify({
           store: { name: '悠悠生鲜超市', contact: '张店长', phone: '138****6688', address: '浙江省杭州市萧山区建设一路88号' },
           items: checkoutItems
@@ -559,7 +568,7 @@
     if (!badge) return;
     var n = 0;
     try {
-      var raw = localStorage.getItem(CART_PAGE_KEY);
+      var raw = localStorage.getItem(shellDataKey(CART_PAGE_KEY));
       if (raw) {
         var cart = JSON.parse(raw);
         (cart.stores || []).forEach(function (s) {
