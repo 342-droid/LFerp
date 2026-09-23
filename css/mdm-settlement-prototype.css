@@ -42,9 +42,16 @@
 .settle-kv-item dd { margin:0; line-height:1.5; word-break:break-word; }
 .settle-back { margin:8px 0 14px; }
 .settle-section-title { font-weight:600; font-size:14px; margin:0 0 14px; }
-.settle-config-grid { display:grid; grid-template-columns:repeat(2,minmax(280px,1fr)); gap:18px 28px; max-width:900px; }
-.settle-config-item { display:flex; align-items:center; justify-content:space-between; gap:18px; min-height:34px; }
-.settle-config-item .settle-input, .settle-config-item .settle-select { width:180px; }
+.settle-config-grid { display:grid; grid-template-columns:1fr; gap:22px; max-width:1080px; }
+.settle-config-item { display:grid; grid-template-columns:175px minmax(0,1fr); gap:22px; align-items:start; }
+.settle-config-label { padding-top:6px; color:#303133; }
+.settle-config-control { min-width:0; color:#606266; line-height:32px; }
+.settle-config-control > .settle-select { margin-left:12px; width:260px; }
+.settle-config-control .settle-config-short { width:105px; margin:0 5px; }
+.settle-config-hint { margin:4px 0 0; line-height:1.6; font-size:12px; color:#909399; }
+.settle-config-cards, .settle-config-radios { display:flex; flex-wrap:wrap; gap:12px; }
+.settle-config-card { display:inline-flex; align-items:center; gap:7px; padding:6px 15px; border:1px solid #dcdfe6; border-radius:4px; background:#f7f8fa; color:#909399; }
+.settle-config-card.selected { border-color:#b8d8ff; color:#409eff; background:#f0f7ff; }
 .settle-switch { position:relative; width:39px; height:21px; border:0; border-radius:12px; background:#bec5ce; cursor:pointer; }
 .settle-switch.on { background:#f36b19; }
 .settle-switch:after { content:''; position:absolute; top:3px; left:3px; width:15px; height:15px; border-radius:50%; background:white; transition:left .15s; }
@@ -61,7 +68,7 @@
 .settle-drawer { position:absolute; top:0; right:0; bottom:0; width:min(850px,95vw); background:#fff; overflow:auto; box-shadow:-8px 0 26px rgba(0,0,0,.15); }
 .settle-drawer .settle-dialog-body { padding:16px; }
 .settle-empty { padding:28px; text-align:center; color:#9299a4; }
-@media (max-width:1000px) { .settle-kv { grid-template-columns:repeat(2,minmax(150px,1fr)); } .settle-config-grid { grid-template-columns:1fr; } }
+@media (max-width:1000px) { .settle-kv { grid-template-columns:repeat(2,minmax(150px,1fr)); } .settle-config-item { grid-template-columns:1fr; gap:4px; } }
 @media (max-width:650px) { .settle-kv { grid-template-columns:1fr; } .settle-card-head { align-items:start; flex-direction:column; } }
 
 

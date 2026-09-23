@@ -176,7 +176,7 @@
         {time:'2026-09-05 17:35', content:'调整策略绑定门店', operator:'—', business:'乐事', result:'成功', change:'绑定门店发生调整'},
         {time:'2026-09-05 17:35', content:'创建佣金策略', operator:'—', business:'乐事', result:'成功', change:'创建零售订单策略'}
     ];
-    var config = {master:true, exclude:false, min:'0.00', basis:'实付金额', rounding:'四舍五入（HALF_UP）', trigger:'履约确认后', cycle:'1', generate:'00:01:00', autoBill:true};
+    var config = {master:true, exclude:false, min:'0.00', cycle:'1', generate:'00:01', autoBill:true};
     function h(v) { return String(v == null ? '' : v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
     function cash(v) { return v === '—' ? '—' : '¥' + h(v); }
     function button(label, act, id, kind) { return '<button type="button" class="settle-btn ' + (kind || 'link') + '" data-act="' + h(act) + '"' + (id ? ' data-id="' + h(id) + '"' : '') + '>' + h(label) + '</button>'; }
@@ -282,22 +282,23 @@
             '<section class="settle-card">'+filters+'<div class="settle-toolbar">'+button('创建策略','new-policy','','primary')+'</div>'+table(head,tr,'共 '+(retail?'15':'1')+' 条 · 20条/页')+'</section>';
     }
     function switcher(key) {return '<button type="button" role="switch" aria-checked="' + (config[key]?'true':'false') + '" class="settle-switch' + (config[key]?' on':'') + '" data-act="switch" data-id="' + h(key) + '"></button>';}
-    function configLine(label, value) {return '<div class="settle-config-item"><span>' + h(label) + '</span>' + value + '</div>';}
+    function configLine(label, value, hint) {return '<div class="settle-config-item"><div class="settle-config-label">' + h(label) + '</div><div class="settle-config-control">' + value + (hint?'<p class="settle-config-hint">'+h(hint)+'</p>':'') + '</div></div>';}
     function renderConfig() {
-        var body='<div class="settle-card-body"><h3 class="settle-section-title">分佣控制</h3><div class="settle-config-grid">' +
-            configLine('分佣总开关',switcher('master')) +
-            configLine('排除订单类型',switcher('exclude')) +
-            configLine('最低支付金额（元）','<input class="settle-input" type="number" min="0" step="0.01" data-config="min" value="' + h(config.min) + '">') +
-            configLine('分佣基数','<input class="settle-input" disabled value="' + h(config.basis) + '">') +
-            configLine('金额进位规则','<input class="settle-input" disabled value="' + h(config.rounding) + '">') +
-            '</div><h3 class="settle-section-title" style="margin-top:28px">结算生成</h3><div class="settle-config-grid">' +
-            configLine('结算触发节点','<input class="settle-input" disabled value="' + h(config.trigger) + '">') +
-            configLine('结算周期（天）','<input class="settle-input" disabled value="' + h(config.cycle) + '">') +
-            configLine('结算单生成时间','<input class="settle-input" type="time" step="1" data-config="generate" value="' + h(config.generate) + '">') +
-            configLine('自动生成结款单',switcher('autoBill')) +
-            configLine('执行小时数','<input class="settle-input" disabled value="1">') +
-            '</div><div class="settle-actions" style="margin-top:26px">' + button('保存配置','save-config','','primary') + '</div></div>';
-        return card('结算通用配置',body,button('操作日志','general-log','',''));
+        var cards=function(options,selected){return '<div class="settle-config-cards">'+options.map(function(x){return '<label class="settle-config-card'+(x===selected?' selected':'')+'"><input type="radio" disabled'+(x===selected?' checked':'')+'>'+h(x)+'</label>';}).join('')+'</div>';};
+        var body='<div class="settle-card-body"><h3 class="settle-section-title">佣金规则设置</h3><div class="settle-config-grid">' +
+            configLine('分佣总开关',switcher('master'),'开启后按分佣策略执行佣金分配；关闭后仅平台保留收益，其余参与方不进行分佣。') +
+            configLine('订单类型',switcher('exclude')+'<select class="settle-select" disabled><option>选择不参与分佣的订单类型</option></select>','开启后，所选类型的订单不参与分佣，资金归入平台（如拉新 / 福袋 / 积分订单）；关闭后所有订单均参与分佣。') +
+            configLine('订单实付金额低于','<input class="settle-input settle-config-short" type="number" min="0" step="0.01" data-config="min" value="'+h(config.min)+'"> 元，低于此值不分佣，资金归入平台（0=不限）','注：商品实际支付金额少于商品采购价，订单不分佣，平台补差结算。') +
+            configLine('分佣基准',cards(['按实付金额分佣','按销售金额分佣'],'按实付金额分佣'),'分佣基准为全局默认展示，下期支持切换；实际算分以各分佣策略明细的基准为准（代销按毛利、平台按实付）。') +
+            configLine('佣金金额不足1分计','<div class="settle-config-radios"><label><input type="radio" disabled> 计1分</label><label><input type="radio" disabled> 不计分</label><label><input type="radio" checked disabled> 四舍五入</label></div>','佣金不足 1 分的进位策略，下期支持，当前固定按「四舍五入」执行。') +
+            '</div><h3 class="settle-section-title" style="margin-top:28px">结算规则设置</h3><div class="settle-config-grid">' +
+            configLine('结算起算节点',cards(['订单履约确认后','售后期结束'],'订单履约确认后'),'分账触发节点，下期支持，当前固定按「订单履约确认后」起算：自提订单为全部核销完成，配送或直发订单为确认收货；「售后期结束」起算下期支持。') +
+            configLine('结算周期','系统每 <select class="settle-select settle-config-short" data-config="cycle">'+[['1','1天'],['2','2天'],['3','3天'],['5','5天'],['7','7天'],['15','15天'],['30','30天'],['month','自然月1日']].map(function(x){return '<option value="'+x[0]+'"'+(config.cycle===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('')+'</select> 结算并出账一次','「N 天」自上次结算滚动；「自然月1日」每月固定 1 号结算。') +
+            configLine('结算单生成时间','<input class="settle-input settle-config-short" type="time" data-config="generate" value="'+h(config.generate)+'">','每日结算单生成时刻（如 09:30）。') +
+            configLine('自动生成结款单',switcher('autoBill'),'开启后，财务未在规定时间内审核时系统自动生成付款单；关闭则需财务手动生成。') +
+            configLine('结款执行时间','生成结款单后 <input class="settle-input settle-config-short" type="number" value="1" disabled> 小时内执行打款','0 = 生成结款单后立即执行；仅「自动生成结款单」开启时生效。') +
+            '</div><div class="settle-actions" style="margin-top:26px">' + button('保存','save-config','','primary') + '</div></div>';
+        return card('通用配置',body,button('操作日志','general-log','',''));
     }
     function openPolicyPage(mode,id) {
         var row=policies.find(function(x){return x.id===id;});
