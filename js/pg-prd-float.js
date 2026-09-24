@@ -286,7 +286,7 @@
   function loadIndexScript() {
     return new Promise(function (resolve, reject) {
       var s = document.createElement('script');
-      s.src = siteRoot() + 'prototype-prd/prd-index.js?v=20260924-prd-790';
+      s.src = siteRoot() + 'prototype-prd/prd-index.js?v=20260924-prd-drop-spec';
       s.onload = function () {
         if (window.__PG_PRD_INDEX) resolve(window.__PG_PRD_INDEX);
         else reject(new Error('index'));
