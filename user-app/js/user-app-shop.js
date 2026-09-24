@@ -879,6 +879,62 @@
     }
   }
 
+  var liveLeftDemoTimer = 0;
+  var LIVE_LEFT_DEMO_SELECTORS = [
+    '.ua-live-sw-demo',
+    '.ua-watch-reward-demo',
+    '.ua-live-qc-demo',
+    '.ua-live-invite-demo',
+    '.ua-bl-demo'
+  ];
+
+  var CART_LEFT_DEMO_SELECTORS = [
+    '.ua-sale-time-demo--cart',
+    '.ua-sk-demo--cart',
+    '.ua-live-invite-demo',
+    '.ua-bl-demo'
+  ];
+
+  function leftDemoSelectors() {
+    if (document.querySelector('.ua-live-room-page')) return LIVE_LEFT_DEMO_SELECTORS;
+    if (document.querySelector('.ua-cart-page')) return CART_LEFT_DEMO_SELECTORS;
+    return null;
+  }
+
+  function layoutLiveRoomLeftDemos() {
+    var selectors = leftDemoSelectors();
+    if (!selectors) return;
+    var nodes = selectors.map(function (sel) {
+      return document.querySelector(sel);
+    }).filter(Boolean);
+    if (!nodes.length) return;
+    var host = document.getElementById('uaLiveLeftDemos');
+    if (!host) {
+      host = document.createElement('div');
+      host.id = 'uaLiveLeftDemos';
+      host.setAttribute('aria-label', '直播间验收开关');
+      document.body.appendChild(host);
+    }
+    nodes.forEach(function (el) {
+      el.style.position = 'relative';
+      el.style.left = 'auto';
+      el.style.right = 'auto';
+      el.style.top = 'auto';
+      el.style.bottom = 'auto';
+      el.style.transform = 'none';
+      el.style.zIndex = '1';
+      el.style.pointerEvents = 'auto';
+      el.style.flex = 'none';
+      if (el.parentNode !== host) host.appendChild(el);
+    });
+  }
+
+  function scheduleLiveRoomLeftDemos() {
+    if (!leftDemoSelectors()) return;
+    if (liveLeftDemoTimer) clearTimeout(liveLeftDemoTimer);
+    liveLeftDemoTimer = setTimeout(layoutLiveRoomLeftDemos, 0);
+  }
+
   function readLiveSaleMode() {
     try {
       var v = localStorage.getItem(LIVE_SALE_MODE_KEY);
@@ -4511,6 +4567,14 @@
     if (global.UaSeckill && typeof global.UaSeckill.mountDemoPanel === 'function') {
       global.UaSeckill.mountDemoPanel({ className: 'ua-sk-demo--cart' });
     }
+    layoutLiveRoomLeftDemos();
+    scheduleLiveRoomLeftDemos();
+    setTimeout(layoutLiveRoomLeftDemos, 300);
+    if (window.MutationObserver && document.body && !document.body.getAttribute('data-left-demos-watch')) {
+      document.body.setAttribute('data-left-demos-watch', '1');
+      var cartLeftObserver = new MutationObserver(scheduleLiveRoomLeftDemos);
+      cartLeftObserver.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden', 'class'] });
+    }
 
     document.getElementById('cartClearBtn') &&
       document.getElementById('cartClearBtn').addEventListener('click', function () {
@@ -5920,6 +5984,13 @@
     mountLiveDanmuDemo();
     mountLiveQuickCommentDemo();
     mountLiveSensitiveDemo();
+    layoutLiveRoomLeftDemos();
+    scheduleLiveRoomLeftDemos();
+    setTimeout(layoutLiveRoomLeftDemos, 300);
+    if (window.MutationObserver && document.body) {
+      var liveLeftObserver = new MutationObserver(scheduleLiveRoomLeftDemos);
+      liveLeftObserver.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden', 'class'] });
+    }
     if (global.UaProductSaleTime && global.UaProductSaleTime.mountDemoPanel) {
       global.UaProductSaleTime.mountDemoPanel({ className: 'ua-sale-time-demo--live' });
     }

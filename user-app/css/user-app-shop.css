@@ -3033,6 +3033,20 @@ button.ua-cart-item__spec {
   font-size: 12px;
 }
 
+#uaLiveLeftDemos {
+  position: fixed;
+  left: 8px;
+  top: 12px;
+  bottom: 12px;
+  z-index: 3300;
+  width: 210px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: auto;
+  pointer-events: none;
+}
+
 .ua-live-goods__checkout {
   height: 40px;
   padding: 0 22px;
