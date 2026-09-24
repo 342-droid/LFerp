@@ -195,8 +195,100 @@
       defaultSpec: '鸭杂复合包 1份',
       reviewCount: 66,
       watermark: false
+    },
+    'steak-eye': {
+      id: 'steak-eye',
+      name: '澳洲眼肉牛排',
+      shortName: '澳洲眼肉牛排',
+      price: 68,
+      originPrice: 88,
+      sold: 246,
+      serviceText: '坏了包退 三天内到货',
+      img: '../assets/shop/beef-hero.svg',
+      detailImg: '../assets/shop/beef-detail.svg',
+      heroTags: ['原切牛排', '多规格演示'],
+      fulfillType: 'pickup',
+      category: '肉禽蛋品',
+      pickupStore: '生产验证门店',
+      distance: '180m',
+      pickupBadge: '后天可提',
+      store: STORE,
+      specGroups: [
+        { name: '部位', clientSort: 10, values: ['眼肉', '西冷', '菲力'] },
+        { name: '重量', clientSort: 30, values: ['200g', '300g', '500g'] }
+      ],
+      reviewCount: 86,
+      watermark: false
+    },
+    'veg-box': {
+      id: 'veg-box',
+      name: '冷鲜时蔬礼盒',
+      shortName: '冷鲜时蔬礼盒',
+      price: 29.9,
+      originPrice: 39.9,
+      sold: 158,
+      serviceText: '坏了包退 当日达',
+      img: '../assets/shop/cat-veg.svg',
+      detailImg: '../assets/shop/cat-veg.svg',
+      heroTags: ['三规格演示', '按客户端排序'],
+      fulfillType: 'express',
+      category: '蔬菜水果',
+      supplier: SUPPLIER_LENGFENG,
+      pickupStore: '生产验证门店',
+      distance: '180m',
+      pickupBadge: '后天可提',
+      specGroups: [
+        { name: '品种', clientSort: 5, values: ['菠菜', '生菜', '西兰花'] },
+        { name: '规格', clientSort: 20, values: ['1份', '3份', '家庭装'] },
+        { name: '包装', clientSort: 40, values: ['袋装', '箱装'] }
+      ],
+      reviewCount: 42,
+      watermark: false
+    },
+    'tissue': {
+      id: 'tissue',
+      name: '厨房纸巾',
+      shortName: '厨房纸巾',
+      price: 19.9,
+      originPrice: 25,
+      sold: 640,
+      serviceText: '坏了包退 三天内到货',
+      img: '../assets/shop/cat-daily.svg',
+      detailImg: '../assets/shop/cat-daily.svg',
+      heroTags: ['短规格值', '并排演示'],
+      fulfillType: 'express',
+      category: '日用百货',
+      supplier: SUPPLIER_LENGFENG,
+      pickupStore: '生产验证门店',
+      distance: '180m',
+      pickupBadge: '后天可提',
+      specGroups: [
+        { name: '层数', clientSort: 8, values: ['3层', '4层'] },
+        { name: '包装', clientSort: 15, values: ['6包', '12包', '24包'] }
+      ],
+      reviewCount: 210,
+      watermark: false
     }
   };
+
+  Object.keys(PRODUCTS).forEach(function (id) {
+    var product = PRODUCTS[id];
+    var groups = sortedSpecGroups(product);
+    if (!groups.length) return;
+    var combos = [''];
+    groups.forEach(function (group) {
+      var next = [];
+      combos.forEach(function (prefix) {
+        group.values.forEach(function (value) {
+          next.push(prefix ? prefix + ' ' + value : value);
+        });
+      });
+      combos = next;
+    });
+    product.specs = combos;
+    product.defaultSpec = combos[0] || '';
+    product.spec = product.defaultSpec;
+  });
 
   var LIVE_PRODUCT_IDS = ['dumpling', 'wonton-pork', 'wonton-corn', 'duck-mix'];
   var LIVE_SALE_MODE_KEY = 'ua_live_sale_mode_v1';
@@ -2960,7 +3052,7 @@
       id: 'test',
       name: '生产测试商',
       img: '../assets/shop/cat-test.svg',
-      products: ['dumpling', 'wonton-pork', 'wonton-corn', 'duck-mix']
+      products: ['steak-eye', 'veg-box', 'tissue', 'dumpling', 'wonton-pork', 'wonton-corn', 'duck-mix']
     }
   ];
 
@@ -2975,10 +3067,65 @@
   var quickSpecState = {
     product: null,
     spec: '',
+    picks: {},
     qty: 1,
     view: 'list',
+    views: {},
     onConfirm: null
   };
+
+  function sortedSpecGroups(product) {
+    var groups = product && product.specGroups;
+    if (!groups || !groups.length) return [];
+    return groups
+      .map(function (group, index) {
+        return {
+          name: String(group.name || '规格'),
+          clientSort: Number(group.clientSort) || 0,
+          values: (group.values || []).map(function (value) {
+            return String(value);
+          }).filter(Boolean),
+          order: index
+        };
+      })
+      .filter(function (group) {
+        return group.values.length;
+      })
+      .sort(function (a, b) {
+        if (b.clientSort !== a.clientSort) return b.clientSort - a.clientSort;
+        return a.order - b.order;
+      });
+  }
+
+  function joinSpecPicks(groups, picks) {
+    return (groups || [])
+      .map(function (group) {
+        return (picks && picks[group.name]) || group.values[0] || '';
+      })
+      .filter(Boolean)
+      .join(' ');
+  }
+
+  function parseSpecPicks(product, text) {
+    var groups = sortedSpecGroups(product);
+    var picks = {};
+    var raw = String(text || '');
+    groups.forEach(function (group) {
+      var values = group.values.slice().sort(function (a, b) {
+        return b.length - a.length;
+      });
+      var matched = group.values[0];
+      values.some(function (value) {
+        if (raw.indexOf(value) >= 0) {
+          matched = value;
+          return true;
+        }
+        return false;
+      });
+      picks[group.name] = matched;
+    });
+    return picks;
+  }
 
   function mallProductSpecs(product) {
     if (!product) return [];
@@ -3045,43 +3192,100 @@
     if (picked) picked.textContent = '已选 ' + (quickSpecState.spec || '');
   }
 
-  function renderQuickSpecOptions() {
-    var specs = mallProductSpecs(quickSpecState.product);
-    var multi = specs.length > 1;
-    if (!multi) quickSpecState.view = 'list';
-    var label = document.getElementById('mallSpecLabel');
-    if (label) label.textContent = '规格';
-    var viewBtn = document.getElementById('mallSpecView');
-    if (viewBtn) {
-      viewBtn.hidden = !multi;
-      viewBtn.innerHTML =
-        quickSpecState.view === 'gallery'
-          ? quickSpecIcon('list') + '<span>列表</span>'
-          : quickSpecIcon('gallery') + '<span>大图</span>';
-    }
-    var list = document.getElementById('mallSpecList');
-    if (!list) return;
-    var img = (quickSpecState.product && quickSpecState.product.img) || '';
-    var gallery = multi && quickSpecState.view === 'gallery';
-    list.classList.toggle('is-gallery', gallery);
-    list.innerHTML = specs
-      .map(function (spec) {
-        var active = spec === quickSpecState.spec ? ' is-active' : '';
-        var picture = img ? '<img src="' + escapeQuickSpec(img) + '" alt="">' : '';
-        return (
-          '<button type="button" class="' +
-          (gallery ? 'ua-gd-sku__card' : 'ua-gd-sku__chip') +
-          active +
-          '" data-mall-spec="' +
-          escapeQuickSpec(spec) +
-          '">' +
-          picture +
-          '<span>' +
-          escapeQuickSpec(spec) +
-          '</span></button>'
+  function specChoiceHtml(value, active, gallery, img, attrs) {
+    var picture = img ? '<img src="' + escapeQuickSpec(img) + '" alt="">' : '';
+    return (
+      '<button type="button" class="' +
+      (gallery ? 'ua-gd-sku__card' : 'ua-gd-sku__chip') +
+      (active ? ' is-active' : '') +
+      '" ' +
+      attrs +
+      '>' +
+      picture +
+      '<span>' +
+      escapeQuickSpec(value) +
+      '</span></button>'
+    );
+  }
+
+  function specSectionHtml(title, values, selected, gallery, img, groupName, showView) {
+    var viewBtn = showView
+      ? '<button type="button" class="ua-gd-sku__view" data-mall-spec-view>' +
+        (gallery ? quickSpecIcon('list') + '<span>列表</span>' : quickSpecIcon('gallery') + '<span>大图</span>') +
+        '</button>'
+      : '';
+    var chips = values
+      .map(function (value) {
+        return specChoiceHtml(
+          value,
+          value === selected,
+          gallery,
+          img,
+          'data-mall-spec="' +
+            escapeQuickSpec(value) +
+            '" data-mall-spec-group="' +
+            escapeQuickSpec(groupName) +
+            '"'
         );
       })
       .join('');
+    return (
+      '<div class="ua-gd-sku__section">' +
+      '<div class="ua-gd-sku__section-head">' +
+      '<div class="ua-gd-sku__label">' +
+      escapeQuickSpec(title) +
+      '</div>' +
+      viewBtn +
+      '</div>' +
+      '<div class="ua-gd-sku__specs' +
+      (gallery ? ' is-gallery' : '') +
+      '">' +
+      chips +
+      '</div></div>'
+    );
+  }
+
+  function renderQuickSpecOptions() {
+    var host = document.getElementById('mallSpecSections');
+    if (!host) return;
+    var product = quickSpecState.product;
+    var groups = sortedSpecGroups(product);
+    var img = (product && product.img) || '';
+    if (groups.length) {
+      var anyMulti = groups.some(function (group) {
+        return group.values.length > 1;
+      });
+      if (!anyMulti) quickSpecState.view = 'list';
+      var gallery = anyMulti && quickSpecState.view === 'gallery';
+      quickSpecState.spec = joinSpecPicks(groups, quickSpecState.picks);
+      host.innerHTML = groups
+        .map(function (group, index) {
+          var title = groups.length > 1 ? group.name : '规格';
+          return specSectionHtml(
+            title,
+            group.values,
+            quickSpecState.picks[group.name],
+            gallery,
+            index === 0 ? img : '',
+            group.name,
+            index === 0 && anyMulti
+          );
+        })
+        .join('');
+      return;
+    }
+    var specs = mallProductSpecs(product);
+    var multi = specs.length > 1;
+    if (!multi) quickSpecState.view = 'list';
+    host.innerHTML = specSectionHtml(
+      '规格',
+      specs,
+      quickSpecState.spec,
+      multi && quickSpecState.view === 'gallery',
+      img,
+      '',
+      multi
+    );
   }
 
   function ensureQuickSpecSheet() {
@@ -3103,13 +3307,7 @@
       '      <div class="ua-gd-sku__picked" id="mallSkuPicked">已选</div>' +
       '    </div>' +
       '  </div>' +
-      '  <div class="ua-gd-sku__section">' +
-      '    <div class="ua-gd-sku__section-head">' +
-      '      <div class="ua-gd-sku__label" id="mallSpecLabel">规格</div>' +
-      '      <button type="button" class="ua-gd-sku__view" id="mallSpecView" hidden>大图</button>' +
-      '    </div>' +
-      '    <div class="ua-gd-sku__specs" id="mallSpecList"></div>' +
-      '  </div>' +
+      '  <div id="mallSpecSections"></div>' +
       '  <div class="ua-gd-sku__qty-row">' +
       '    <div class="ua-gd-sku__label">购买数量</div>' +
       '    <div class="ua-gd-sku__stepper">' +
@@ -3126,14 +3324,21 @@
         closeQuickSpecSheet();
         return;
       }
-      if (e.target.closest('#mallSpecView')) {
+      if (e.target.closest('[data-mall-spec-view]')) {
         quickSpecState.view = quickSpecState.view === 'gallery' ? 'list' : 'gallery';
         renderQuickSpecOptions();
         return;
       }
       var specBtn = e.target.closest('[data-mall-spec]');
       if (specBtn) {
-        quickSpecState.spec = specBtn.getAttribute('data-mall-spec');
+        var groupName = specBtn.getAttribute('data-mall-spec-group') || '';
+        var specValue = specBtn.getAttribute('data-mall-spec');
+        if (groupName && sortedSpecGroups(quickSpecState.product).length) {
+          quickSpecState.picks[groupName] = specValue;
+          quickSpecState.spec = joinSpecPicks(sortedSpecGroups(quickSpecState.product), quickSpecState.picks);
+        } else {
+          quickSpecState.spec = specValue;
+        }
         renderQuickSpecOptions();
         renderQuickSpecSummary();
         return;
@@ -3166,8 +3371,14 @@
     opts = opts || {};
     ensureQuickSpecSheet();
     var specs = mallProductSpecs(product);
+    var groups = sortedSpecGroups(product);
     var preferred = opts.spec || product.defaultSpec || product.spec || specs[0] || '';
-    if (specs.indexOf(preferred) < 0) preferred = specs[0] || preferred;
+    if (groups.length) {
+      quickSpecState.picks = parseSpecPicks(product, preferred);
+      preferred = joinSpecPicks(groups, quickSpecState.picks);
+    } else if (specs.indexOf(preferred) < 0) {
+      preferred = specs[0] || preferred;
+    }
     var qty = Math.round(Number(opts.qty) || 1);
     if (qty < 1) qty = 1;
     if (qty > 99) qty = 99;
@@ -3651,6 +3862,8 @@
     var sheetIntent = 'pick';
     var specQty = 1;
     var specView = 'list';
+    var specViews = {};
+    var specPicks = {};
     var fulfillType = 'pickup';
     var merchant = STORE;
     var livePreview = false;
@@ -3954,33 +4167,92 @@
     }
 
     function renderSpecOptions() {
+      var host = document.getElementById('goodsDetailSpecSections');
+      if (!host) return;
+      var groups = sortedSpecGroups(product);
+      var img = product.img || '';
+      if (groups.length) {
+        var anyMulti = groups.some(function (group) {
+          return group.values.length > 1;
+        });
+        if (!anyMulti) specView = 'list';
+        var groupGallery = anyMulti && specView === 'gallery';
+        selectedSpec = joinSpecPicks(groups, specPicks);
+        host.innerHTML = groups
+          .map(function (group, index) {
+            var title = groups.length > 1 ? group.name : '规格';
+            var showImage = index === 0 && img;
+            var viewBtn =
+              index === 0 && anyMulti
+                ? '<button type="button" class="ua-gd-sku__view" data-gd-spec-view>' +
+                  (groupGallery ? specViewIcon('list') + '<span>列表</span>' : specViewIcon('gallery') + '<span>大图</span>') +
+                  '</button>'
+                : '';
+            var chips = group.values
+              .map(function (value) {
+                var picture = showImage ? '<img src="' + escapeSpecText(img) + '" alt="">' : '';
+                return (
+                  '<button type="button" class="' +
+                  (groupGallery ? 'ua-gd-sku__card' : 'ua-gd-sku__chip') +
+                  (specPicks[group.name] === value ? ' is-active' : '') +
+                  '" data-gd-spec-group="' +
+                  escapeSpecText(group.name) +
+                  '" data-gd-spec-value="' +
+                  escapeSpecText(value) +
+                  '">' +
+                  picture +
+                  '<span>' +
+                  escapeSpecText(value) +
+                  '</span></button>'
+                );
+              })
+              .join('');
+            return (
+              '<div class="ua-gd-sku__section"><div class="ua-gd-sku__section-head"><div class="ua-gd-sku__label">' +
+              escapeSpecText(title) +
+              '</div>' +
+              viewBtn +
+              '</div><div class="ua-gd-sku__specs' +
+              (groupGallery ? ' is-gallery' : '') +
+              '">' +
+              chips +
+              '</div></div>'
+            );
+          })
+          .join('');
+        host.querySelectorAll('[data-gd-spec-view]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            specView = specView === 'gallery' ? 'list' : 'gallery';
+            renderSpecOptions();
+          });
+        });
+        host.querySelectorAll('[data-gd-spec-value]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            specPicks[btn.getAttribute('data-gd-spec-group')] = btn.getAttribute('data-gd-spec-value');
+            selectedSpec = joinSpecPicks(groups, specPicks);
+            renderSpecOptions();
+            renderSkuSummary();
+          });
+        });
+        return;
+      }
       var specs = visibleSpecs();
       var count = specs.length || 0;
       var multi = count > 1;
       if (!multi) specView = 'list';
-      setText('goodsDetailSpecLabel', '规格');
-      var viewBtn = document.getElementById('goodsDetailSpecView');
-      if (viewBtn) {
-        viewBtn.hidden = !multi;
-        viewBtn.innerHTML =
-          specView === 'gallery'
-            ? specViewIcon('list') + '<span>列表</span>'
-            : specViewIcon('gallery') + '<span>大图</span>';
-        viewBtn.setAttribute('aria-label', specView === 'gallery' ? '切换为列表' : '切换为大图');
-      }
-      var list = document.getElementById('goodsDetailSpecList');
-      if (!list) return;
-      var img = product.img || '';
       var gallery = multi && specView === 'gallery';
-      list.classList.toggle('is-gallery', gallery);
-      list.innerHTML = specs
+      var viewBtn = multi
+        ? '<button type="button" class="ua-gd-sku__view" id="goodsDetailSpecView">' +
+          (gallery ? specViewIcon('list') + '<span>列表</span>' : specViewIcon('gallery') + '<span>大图</span>') +
+          '</button>'
+        : '';
+      var chips = specs
         .map(function (spec) {
-          var active = spec === selectedSpec ? ' is-active' : '';
           var picture = img ? '<img src="' + escapeSpecText(img) + '" alt="">' : '';
           return (
             '<button type="button" class="' +
             (gallery ? 'ua-gd-sku__card' : 'ua-gd-sku__chip') +
-            active +
+            (spec === selectedSpec ? ' is-active' : '') +
             '" data-spec="' +
             escapeSpecText(spec) +
             '">' +
@@ -3991,12 +4263,25 @@
           );
         })
         .join('');
-      list.querySelectorAll('[data-spec]').forEach(function (btn) {
+      host.innerHTML =
+        '<div class="ua-gd-sku__section"><div class="ua-gd-sku__section-head"><div class="ua-gd-sku__label">规格</div>' +
+        viewBtn +
+        '</div><div class="ua-gd-sku__specs' +
+        (gallery ? ' is-gallery' : '') +
+        '">' +
+        chips +
+        '</div></div>';
+      var toggle = document.getElementById('goodsDetailSpecView');
+      if (toggle) {
+        toggle.addEventListener('click', function () {
+          specView = specView === 'gallery' ? 'list' : 'gallery';
+          renderSpecOptions();
+        });
+      }
+      host.querySelectorAll('[data-spec]').forEach(function (btn) {
         btn.addEventListener('click', function () {
           selectedSpec = btn.getAttribute('data-spec');
-          list.querySelectorAll('[data-spec]').forEach(function (b) {
-            b.classList.toggle('is-active', b.getAttribute('data-spec') === selectedSpec);
-          });
+          renderSpecOptions();
           renderSkuSummary();
         });
       });
@@ -4028,7 +4313,10 @@
     function load(nextProduct) {
       product = mergeGoodsDetailProduct(nextProduct);
       if (!product) return;
-      selectedSpec = product.defaultSpec || (product.specs && product.specs[0]) || product.spec || '';
+      specPicks = parseSpecPicks(product, product.defaultSpec || product.spec || '');
+      selectedSpec = sortedSpecGroups(product).length
+        ? joinSpecPicks(sortedSpecGroups(product), specPicks)
+        : product.defaultSpec || (product.specs && product.specs[0]) || product.spec || '';
       sheetIntent = 'pick';
       fulfillType = getProductFulfillType(product);
       merchant = getProductMerchant(product);
@@ -4063,12 +4351,6 @@
           closeSheet(el.getAttribute('data-gd-close'));
         });
       });
-
-      document.getElementById('goodsDetailSpecView') &&
-        document.getElementById('goodsDetailSpecView').addEventListener('click', function () {
-          specView = specView === 'gallery' ? 'list' : 'gallery';
-          renderSpecOptions();
-        });
 
       document.getElementById('goodsDetailSkuMinus') &&
         document.getElementById('goodsDetailSkuMinus').addEventListener('click', function () {
