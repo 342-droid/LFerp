@@ -1,10 +1,300 @@
 {
-  "latestSha": "794f6ec100c29b56216aed175e460eeb3d6ac8ee",
-  "total": 424,
+  "latestSha": "93842338f0e9e8755e362ac605373e4b75581995",
+  "total": 425,
   "days": [
     {
       "date": "2026-09-24",
       "items": [
+        {
+          "sha": "9384233",
+          "type": "feat",
+          "text": "补齐多规格演示商品，并让各页面都能打开全部需求文档",
+          "author": "sisi",
+          "time": "15:37",
+          "pages": [
+            {
+              "file": "MDM/mdm_bd_workbench.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 工作台"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
+              "file": "MDM/mdm_member_points_detail.html",
+              "module": "冷丰WMS",
+              "title": "积分明细"
+            },
+            {
+              "file": "SCM/basic_settings_business_tags.html",
+              "module": "冷丰WMS",
+              "title": "标签管理"
+            },
+            {
+              "file": "SCM/basic_settings_contract_config.html",
+              "module": "冷丰WMS",
+              "title": "接入配置"
+            },
+            {
+              "file": "SCM/basic_settings_contract_party.html",
+              "module": "冷丰WMS",
+              "title": "签署主体"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task.html",
+              "module": "冷丰WMS",
+              "title": "签署任务"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_detail.html",
+              "module": "冷丰WMS",
+              "title": "签署任务详情"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template.html",
+              "module": "冷丰WMS",
+              "title": "合同模板"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template_form.html",
+              "module": "冷丰WMS",
+              "title": "合同模板配置"
+            },
+            {
+              "file": "SCM/basic_settings_cooperation.html",
+              "module": "冷丰WMS",
+              "title": "合作管理"
+            },
+            {
+              "file": "SCM/basic_settings_file_center.html",
+              "module": "冷丰WMS",
+              "title": "文件中心"
+            },
+            {
+              "file": "SCM/basic_settings_material.html",
+              "module": "冷丰WMS",
+              "title": "素材列表"
+            },
+            {
+              "file": "SCM/basic_settings_material_type.html",
+              "module": "冷丰WMS",
+              "title": "素材类型"
+            },
+            {
+              "file": "SCM/basic_settings_member.html",
+              "module": "冷丰WMS",
+              "title": "会员配置"
+            },
+            {
+              "file": "SCM/basic_settings_miniprogram_agreement.html",
+              "module": "冷丰WMS",
+              "title": "小程序协议"
+            },
+            {
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
+            },
+            {
+              "file": "SCM/basic_settings_recommendation.html",
+              "module": "冷丰WMS",
+              "title": "推荐位配置"
+            },
+            {
+              "file": "SCM/basic_settings_system.html",
+              "module": "冷丰WMS",
+              "title": "系统管理"
+            },
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "门店APP · 工作台"
+            },
+            {
+              "file": "store-app/h5/live-promo.html",
+              "module": "",
+              "title": "直播推广 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "user-app/h5/account-cancel.html",
+              "module": "",
+              "title": "账号注销 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/category.html",
+              "module": "",
+              "title": "分类 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-password.html",
+              "module": "",
+              "title": "账号密码登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-phone.html",
+              "module": "",
+              "title": "手机快速登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-register.html",
+              "module": "",
+              "title": "账号注册 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-wechat.html",
+              "module": "",
+              "title": "微信授权登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login.html",
+              "module": "",
+              "title": "登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "module": "",
+              "title": "商城 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/points-detail.html",
+              "module": "",
+              "title": "积分明细 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/points-mall.html",
+              "module": "",
+              "title": "积分商城 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/points-order-confirm.html",
+              "module": "",
+              "title": "确认兑换 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/points-product-detail.html",
+              "module": "",
+              "title": "积分商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/points-rule-desc.html",
+              "module": "",
+              "title": "规则说明 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/scan-store.html",
+              "module": "",
+              "title": "扫一扫 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/settings-more.html",
+              "module": "",
+              "title": "更多 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/settings.html",
+              "module": "",
+              "title": "设置 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/switch-address.html",
+              "module": "",
+              "title": "切换门店 · 用户 APP"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "user-app/h5/mall.html",
+              "text": "增加多规格演示商品；选规格时图片只在第一个规格，大图和列表只有一个开关"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "text": "多个规格名分块展示，图片只在第一个规格，大图和列表全局一个开关"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "text": "内嵌商品详情的选规格与商品详情一致"
+            },
+            {
+              "file": "user-app/h5/category.html",
+              "text": "生产测试商可看到多规格演示商品"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "text": "多规格商品改选时按规格名分块"
+            },
+            {
+              "file": "MDM/mdm_member_points_detail.html",
+              "text": "筛选栏去掉调整入口"
+            },
+            {
+              "file": null,
+              "text": "基础设置侧栏去掉会员配置；各模块的 prd 入口都展示全部需求文档；积分需求拆成规则获取明细、抵现商城两份"
+            }
+          ]
+        },
         {
           "sha": "794f6ec",
           "type": "feat",
