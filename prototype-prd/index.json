@@ -189,20 +189,6 @@
         "user-app/h5/order-detail-pickup.html",
         "user-app/h5/live-room.html"
       ]
-    },
-    {
-      "id": "选品库规格客户端排序与多规格交互",
-      "title": "选品库规格客户端排序与客户端多规格交互",
-      "file": "选品库规格客户端排序与多规格交互.md",
-      "pages": [
-        "MDM/mdm_product_selection.html",
-        "user-app/h5/goods-detail.html",
-        "user-app/h5/mall.html",
-        "user-app/h5/category.html",
-        "user-app/h5/cart.html",
-        "user-app/h5/live-room.html",
-        "user-app/h5/order-confirm.html"
-      ]
     }
   ]
 }
