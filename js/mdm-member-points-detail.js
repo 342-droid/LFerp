@@ -1037,7 +1037,8 @@
             renderTable();
         });
 
-        document.getElementById('btnAdjustPoints').addEventListener('click', openAdjustModal);
+        var btnAdjustPoints = document.getElementById('btnAdjustPoints');
+        if (btnAdjustPoints) btnAdjustPoints.addEventListener('click', openAdjustModal);
 
         if (typeof initClearButtons === 'function') initClearButtons();
 

@@ -7,7 +7,7 @@
   window.__pgPrdFloatLoaded = true;
   if (/\/prototype-prd\/view\.html$/i.test(location.pathname || '')) return;
 
-  var POS_KEY_B = 'pg_prd_float_pos_b';
+  var POS_KEY_B = 'pg_prd_float_pos_b_v2';
   var POS_KEY_C = 'pg_prd_float_pos_c';
 
   function siteRoot() {
@@ -125,7 +125,7 @@
       }
       return clamp(window.innerWidth - 64, 24, 52);
     }
-    return clamp(window.innerWidth - 72, window.innerHeight / 2 - 26, 52);
+    return clamp(window.innerWidth - 76, 96, 52);
   }
 
   function applyPos(wrap, pos) {
@@ -277,21 +277,35 @@
     });
   }
 
+  function applyIndex(data) {
+    var all = (data && data.prds) || [];
+    if (!all.length) return;
+    render(all);
+  }
+
+  function loadIndexScript() {
+    return new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = siteRoot() + 'prototype-prd/prd-index.js?v=20260924-prd-all';
+      s.onload = function () {
+        if (window.__PG_PRD_INDEX) resolve(window.__PG_PRD_INDEX);
+        else reject(new Error('index'));
+      };
+      s.onerror = function () { reject(new Error('index')); };
+      document.body.appendChild(s);
+    });
+  }
+
   function boot() {
-    fetch(siteRoot() + 'prototype-prd/index.json', { cache: 'no-store' })
-      .then(function (r) {
-        if (!r.ok) throw new Error('index');
-        return r.json();
-      })
-      .then(function (data) {
-        var all = (data && data.prds) || [];
-        var matched = all.filter(function (item) {
-          return pageMatches(item.pages);
-        });
-        if (!matched.length) return;
-        render(matched);
-      })
-      .catch(function () { /* 未推送或无目录时不展示 */ });
+    var load = location.protocol === 'file:'
+      ? loadIndexScript()
+      : fetch(siteRoot() + 'prototype-prd/index.json', { cache: 'no-store' })
+          .then(function (r) {
+            if (!r.ok) throw new Error('index');
+            return r.json();
+          })
+          .catch(function () { return loadIndexScript(); });
+    load.then(applyIndex).catch(function () { /* 未推送或无目录时不展示 */ });
   }
 
   if (document.readyState === 'loading') {
