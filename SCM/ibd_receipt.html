@@ -480,68 +480,7 @@
                                 <th>操作</th>
                             </tr>
                         </thead>
-                        <tbody id="tableBody">
-                            <tr>
-                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
-                                <td><a href="#" class="order-number-link" data-order-id="IBD2026022712345678">IBD2026022712345678</a></td>
-                                <td>PO20260227001</td>
-                                <td>SO20260227001</td>
-                                <td>W001-南京仓库</td>
-                                <td>W002-北京仓库</td>
-                                <td>Y001-南京货主</td>
-                                <td>采购入库</td>
-                                <td>货到即配</td>
-                                <td><span class="status-badge status-receiving">收货中</span></td>
-                                <td>S001-南京供应商</td>
-                                <td>SF-顺丰</td>
-                                <td>苏A12345</td>
-                                <td>张三</td>
-                                <td>李四</td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td>采购物料入库</td>
-                                <td>2026-02-27 09:00:00</td>
-                                <td>王五</td>
-                                <td>2026-02-27 09:30:00</td>
-                                <td>赵六</td>
-                                <td class="action-links">
-                                    <a href="#" class="receive-order-btn" data-order-id="IBD2026022712345678">收货</a>
-                                    <span class="obd-action-more"><a href="#" class="obd-action-more-toggle">更多<svg class="obd-action-more-caret" viewBox="0 0 12 8" aria-hidden="true"><path d="M1 1.5L6 6.5L11 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a><span class="obd-action-more-menu"><a href="#" class="receipt-record-btn" data-order-id="IBD2026022712345678">收货记录</a><a href="#" class="close-order-btn">关闭</a></span></span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
-                                <td><a href="#" class="order-number-link" data-order-id="IBD2026022787654321">IBD2026022787654321</a></td>
-                                <td>TR20260227001</td>
-                                <td>TR20260227001</td>
-                                <td>W001-南京仓库</td>
-                                <td>W003-上海仓库</td>
-                                <td>Y002-北京货主</td>
-                                <td>调拨入库</td>
-                                <td>仓库调拨</td>
-                                <td><span class="status-badge status-closed">已关闭</span></td>
-                                <td>S002-上海供应商</td>
-                                <td>ZTO-中通</td>
-                                <td>苏B67890</td>
-                                <td>钱七</td>
-                                <td>孙八</td>
-                                <td>2026-02-27 08:00:00</td>
-                                <td>周九</td>
-                                <td></td>
-                                <td></td>
-                                <td>仓库间调拨</td>
-                                <td>2026-02-26 14:00:00</td>
-                                <td>吴十</td>
-                                <td>2026-02-27 08:00:00</td>
-                                <td>郑一</td>
-                                <td class="action-links">
-                                    <a href="#" class="receive-order-btn" data-order-id="IBD2026022787654321">收货</a>
-                                    <span class="obd-action-more"><a href="#" class="obd-action-more-toggle">更多<svg class="obd-action-more-caret" viewBox="0 0 12 8" aria-hidden="true"><path d="M1 1.5L6 6.5L11 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a><span class="obd-action-more-menu"><a href="#" class="receipt-record-btn" data-order-id="IBD2026022787654321">收货记录</a><a href="#" class="close-order-btn">关闭</a></span></span>
-                                </td>
-                            </tr>
-                        </tbody>
+                        <tbody id="tableBody"></tbody>
                     </table>
                 </div>
                 
@@ -823,7 +762,224 @@
     <script src="../js/page-manager.js"></script>
     <script src="../js/date-picker.js"></script>
     <script>
+        // 入库类型 / 业务类型取自 CommonOptions.inboundType + inboundBusinessType 合法组合
+        const IBD_ORDER_MOCK = [
+            {
+                orderNo: 'IBD202609240001',
+                sourceOrderNo: 'PO20260924001',
+                relatedOrderNo: 'SO20260924001',
+                warehouse: 'W001-南京仓库',
+                sourceWarehouse: '',
+                company: 'Y001-南京货主',
+                orderType: '采购入库',
+                businessType: '采购直送',
+                status: '收货中',
+                supplier: 'S001-南京供应商',
+                carrier: 'SF-顺丰',
+                plateNumber: '苏A12345',
+                driver: '张三',
+                creator: '李四',
+                closeTime: '',
+                closer: '',
+                cancelTime: '',
+                canceler: '',
+                remark: '供应商直送采购入库',
+                createTime: '2026-09-24 09:00:00',
+                createUser: '王五',
+                updateTime: '2026-09-24 10:20:00',
+                updateUser: '赵六',
+                products: [
+                    { skuCode: 'SKU001', skuName: '红富士苹果', unit: '件', planQty: 100, actualQty: 98, canceledQty: 2 },
+                    { skuCode: 'SKU002', skuName: '香蕉', unit: '箱', planQty: 50, actualQty: 50, canceledQty: 0 },
+                    { skuCode: 'SKU003', skuName: '脐橙', unit: '箱', planQty: 200, actualQty: 195, canceledQty: 5 }
+                ]
+            },
+            {
+                orderNo: 'IBD202609240002',
+                sourceOrderNo: 'WD20260924002',
+                relatedOrderNo: 'OBD20260924002',
+                warehouse: 'W001-南京仓库',
+                sourceWarehouse: 'W003-上海仓库',
+                company: 'Y001-南京货主',
+                orderType: '仓配入库',
+                businessType: '仓配入库',
+                status: '初始',
+                supplier: '',
+                carrier: '京东物流',
+                plateNumber: '沪D55666',
+                driver: '钱七',
+                creator: '孙八',
+                closeTime: '',
+                closer: '',
+                cancelTime: '',
+                canceler: '',
+                remark: '中心仓配送至门店仓',
+                createTime: '2026-09-24 08:30:00',
+                createUser: '周九',
+                updateTime: '2026-09-24 08:30:00',
+                updateUser: '周九',
+                products: [
+                    { skuCode: 'SKU004', skuName: '薯片组合装', unit: '件', planQty: 120, actualQty: 0, canceledQty: 0 },
+                    { skuCode: 'SKU005', skuName: '上海青', unit: '斤', planQty: 80, actualQty: 0, canceledQty: 0 }
+                ]
+            },
+            {
+                orderNo: 'IBD202609240003',
+                sourceOrderNo: 'RT20260924003',
+                relatedOrderNo: 'OBD20260924003',
+                warehouse: 'W001-南京仓库',
+                sourceWarehouse: 'W005-门店仓',
+                company: 'Y001-南京货主',
+                orderType: '返配入库',
+                businessType: '门店退货',
+                status: '收货中',
+                supplier: '',
+                carrier: '德邦物流',
+                plateNumber: '苏E77889',
+                driver: '吴十',
+                creator: '郑一',
+                closeTime: '',
+                closer: '',
+                cancelTime: '',
+                canceler: '',
+                remark: '门店滞销返仓',
+                createTime: '2026-09-23 16:00:00',
+                createUser: '冯二',
+                updateTime: '2026-09-24 09:10:00',
+                updateUser: '陈三',
+                products: [
+                    { skuCode: 'SKU006', skuName: '胡萝卜', unit: '斤', planQty: 60, actualQty: 40, canceledQty: 0 },
+                    { skuCode: 'SKU007', skuName: '牛奶糖', unit: '盒', planQty: 30, actualQty: 30, canceledQty: 0 }
+                ]
+            },
+            {
+                orderNo: 'IBD202609240004',
+                sourceOrderNo: 'TR20260924004',
+                relatedOrderNo: 'TR20260924004',
+                warehouse: 'W001-南京仓库',
+                sourceWarehouse: 'W002-北京仓库',
+                company: 'Y002-北京货主',
+                orderType: '调拨入库',
+                businessType: '仓库调拨',
+                status: '已关闭',
+                supplier: '',
+                carrier: 'ZTO-中通',
+                plateNumber: '京B67890',
+                driver: '褚四',
+                creator: '卫五',
+                closeTime: '2026-09-23 18:00:00',
+                closer: '蒋六',
+                cancelTime: '',
+                canceler: '',
+                remark: '仓库间调拨入库',
+                createTime: '2026-09-22 14:00:00',
+                createUser: '沈七',
+                updateTime: '2026-09-23 18:00:00',
+                updateUser: '蒋六',
+                products: [
+                    { skuCode: 'SKU001', skuName: '红富士苹果', unit: '件', planQty: 150, actualQty: 150, canceledQty: 0 },
+                    { skuCode: 'SKU008', skuName: '嘎啦苹果', unit: '件', planQty: 80, actualQty: 80, canceledQty: 0 }
+                ]
+            },
+            {
+                orderNo: 'IBD202609240005',
+                sourceOrderNo: 'AS20260924005',
+                relatedOrderNo: 'RO20260924005',
+                warehouse: 'W001-南京仓库',
+                sourceWarehouse: '',
+                company: 'Y001-南京货主',
+                orderType: '客退入库',
+                businessType: '直播退货',
+                status: '已取消',
+                supplier: '',
+                carrier: 'SF-顺丰',
+                plateNumber: '苏C99001',
+                driver: '韩八',
+                creator: '杨九',
+                closeTime: '',
+                closer: '',
+                cancelTime: '2026-09-24 11:00:00',
+                canceler: '朱十',
+                remark: '直播订单客户退货',
+                createTime: '2026-09-24 07:40:00',
+                createUser: '秦一',
+                updateTime: '2026-09-24 11:00:00',
+                updateUser: '朱十',
+                products: [
+                    { skuCode: 'SKU002', skuName: '香蕉', unit: '箱', planQty: 20, actualQty: 0, canceledQty: 20 }
+                ]
+            }
+        ];
+
+        const RECEIPT_PRODUCT_DATA = Object.fromEntries(
+            IBD_ORDER_MOCK.map((order) => [order.orderNo, order.products || []])
+        );
+
+        function getInboundOrderById(orderId) {
+            return IBD_ORDER_MOCK.find((order) => order.orderNo === orderId) || null;
+        }
+
+        function getInboundStatusBadgeClass(status) {
+            const map = {
+                '初始': 'status-initial',
+                '收货中': 'status-receiving',
+                '已关闭': 'status-closed',
+                '已取消': 'status-canceled'
+            };
+            return map[status] || 'status-initial';
+        }
+
+        function escapeInboundCell(value) {
+            return String(value == null ? '' : value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function renderInboundOrderTable() {
+            const tbody = document.getElementById('tableBody');
+            if (!tbody) return;
+            const moreCaret = '<svg class="obd-action-more-caret" viewBox="0 0 12 8" aria-hidden="true"><path d="M1 1.5L6 6.5L11 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+            tbody.innerHTML = IBD_ORDER_MOCK.map((order) => {
+                const id = escapeInboundCell(order.orderNo);
+                const statusClass = getInboundStatusBadgeClass(order.status);
+                return `<tr>
+                    <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                    <td><a href="#" class="order-number-link" data-order-id="${id}">${id}</a></td>
+                    <td>${escapeInboundCell(order.sourceOrderNo)}</td>
+                    <td>${escapeInboundCell(order.relatedOrderNo)}</td>
+                    <td>${escapeInboundCell(order.warehouse)}</td>
+                    <td>${escapeInboundCell(order.sourceWarehouse)}</td>
+                    <td>${escapeInboundCell(order.company)}</td>
+                    <td>${escapeInboundCell(order.orderType)}</td>
+                    <td>${escapeInboundCell(order.businessType)}</td>
+                    <td><span class="status-badge ${statusClass}">${escapeInboundCell(order.status)}</span></td>
+                    <td>${escapeInboundCell(order.supplier)}</td>
+                    <td>${escapeInboundCell(order.carrier)}</td>
+                    <td>${escapeInboundCell(order.plateNumber)}</td>
+                    <td>${escapeInboundCell(order.driver)}</td>
+                    <td>${escapeInboundCell(order.creator)}</td>
+                    <td>${escapeInboundCell(order.closeTime)}</td>
+                    <td>${escapeInboundCell(order.closer)}</td>
+                    <td>${escapeInboundCell(order.cancelTime)}</td>
+                    <td>${escapeInboundCell(order.canceler)}</td>
+                    <td>${escapeInboundCell(order.remark)}</td>
+                    <td>${escapeInboundCell(order.createTime)}</td>
+                    <td>${escapeInboundCell(order.createUser)}</td>
+                    <td>${escapeInboundCell(order.updateTime)}</td>
+                    <td>${escapeInboundCell(order.updateUser)}</td>
+                    <td class="action-links">
+                        <a href="#" class="receive-order-btn" data-order-id="${id}">收货</a>
+                        <span class="obd-action-more"><a href="#" class="obd-action-more-toggle">更多${moreCaret}</a><span class="obd-action-more-menu"><a href="#" class="receipt-record-btn" data-order-id="${id}">收货记录</a><a href="#" class="close-order-btn">关闭</a></span></span>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
+            renderInboundOrderTable();
+
             const page = new PageManager({
                 entityName: '入库单',
                 statusColumnIndex: 10,
@@ -862,18 +1018,6 @@
             initCloseOrderFlow();
             initActionMoreMenus();
         });
-
-        const RECEIPT_PRODUCT_DATA = {
-            'IBD2026022712345678': [
-                { skuCode: 'SKU001', skuName: '商品1', unit: '件', planQty: 100, actualQty: 98, canceledQty: 2 },
-                { skuCode: 'SKU002', skuName: '商品2', unit: '箱', planQty: 50, actualQty: 50, canceledQty: 0 },
-                { skuCode: 'SKU003', skuName: '商品3', unit: '个', planQty: 200, actualQty: 195, canceledQty: 5 }
-            ],
-            'IBD2026022787654321': [
-                { skuCode: 'SKU004', skuName: '商品4', unit: '件', planQty: 150, actualQty: 150, canceledQty: 0 },
-                { skuCode: 'SKU005', skuName: '商品5', unit: '箱', planQty: 80, actualQty: 80, canceledQty: 0 }
-            ]
-        };
 
         const SHORTAGE_VOUCHER_MAX = 6;
         let shortageVoucherFiles = [];
@@ -1171,51 +1315,7 @@
             
             // 填充入库单基础信息
             function fillOrderDetail(orderId) {
-                // 模拟数据 - 实际项目中应从后端获取
-                const orderData = {
-                    'IBD2026022712345678': {
-                        orderNo: 'IBD2026022712345678',
-                        sourceOrderNo: 'PO20260227001',
-                        relatedOrderNo: 'SO20260227001',
-                        warehouse: 'W001-南京仓库',
-                        sourceWarehouse: 'W002-北京仓库',
-                        company: 'Y001-南京货主',
-                        orderType: '采购入库',
-                        businessType: '货到即配',
-                        status: '收货中',
-                        supplier: 'S001-南京供应商',
-                        carrier: 'SF-顺丰',
-                        plateNumber: '苏A12345',
-                        driver: '张三',
-                        creator: '李四',
-                        closeTime: '',
-                        closer: '',
-                        cancelTime: '',
-                        canceler: ''
-                    },
-                    'IBD2026022787654321': {
-                        orderNo: 'IBD2026022787654321',
-                        sourceOrderNo: 'TR20260227001',
-                        relatedOrderNo: 'TR20260227001',
-                        warehouse: 'W001-南京仓库',
-                        sourceWarehouse: 'W003-上海仓库',
-                        company: 'Y002-北京货主',
-                        orderType: '调拨入库',
-                        businessType: '仓库调拨',
-                        status: '已关闭',
-                        supplier: 'S002-上海供应商',
-                        carrier: 'ZTO-中通',
-                        plateNumber: '苏B67890',
-                        driver: '钱七',
-                        creator: '孙八',
-                        closeTime: '2026-02-27 08:00:00',
-                        closer: '周九',
-                        cancelTime: '',
-                        canceler: ''
-                    }
-                };
-                
-                const data = orderData[orderId] || {};
+                const data = getInboundOrderById(orderId) || {};
                 
                 document.getElementById('detailOrderNo').value = data.orderNo || '';
                 document.getElementById('detailSourceOrderNo').value = data.sourceOrderNo || '';
@@ -1477,14 +1577,15 @@
 
         function showReceiptEntry(orderId) {
             const modal = document.getElementById('receiptEntryModal');
-            const products = RECEIPT_PRODUCT_DATA[orderId] || [];
-            const orderType = orderId === 'IBD2026022712345678' ? '采购入库' : '调拨入库';
+            const order = getInboundOrderById(orderId) || {};
+            const products = order.products || RECEIPT_PRODUCT_DATA[orderId] || [];
+            const orderType = order.orderType || '';
             const showProdDate = orderType === '采购入库';
-            document.getElementById('receiptEntryNo').value = orderId || '';
-            document.getElementById('receiptEntrySource').value = orderId === 'IBD2026022712345678' ? 'PO20260227001' : 'TR20260227001';
-            document.getElementById('receiptEntryRelated').value = orderId === 'IBD2026022712345678' ? 'SO20260227001' : 'TR20260227001';
-            document.getElementById('receiptEntryWarehouse').value = 'W001-南京仓库';
-            document.getElementById('receiptEntryOwner').value = orderId === 'IBD2026022712345678' ? 'Y001-南京货主' : 'Y002-北京货主';
+            document.getElementById('receiptEntryNo').value = order.orderNo || orderId || '';
+            document.getElementById('receiptEntrySource').value = order.sourceOrderNo || '';
+            document.getElementById('receiptEntryRelated').value = order.relatedOrderNo || '';
+            document.getElementById('receiptEntryWarehouse').value = order.warehouse || '';
+            document.getElementById('receiptEntryOwner').value = order.company || '';
             document.getElementById('receiptEntryType').value = orderType;
             modal.querySelectorAll('.receipt-entry-prod-date-col').forEach(el => {
                 if (showProdDate) el.removeAttribute('hidden');
