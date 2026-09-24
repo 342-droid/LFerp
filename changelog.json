@@ -1,10 +1,25 @@
 {
-  "latestSha": "9eb21250d42e66597cc2bdb0f447614805dd8074",
-  "total": 427,
+  "latestSha": "64ab300da299fbd5dd002c0a8b0a923a1fe41467",
+  "total": 428,
   "days": [
     {
       "date": "2026-09-24",
       "items": [
+        {
+          "sha": "64ab300",
+          "type": "docs",
+          "text": "从 PRD 列表移除选品库多规格文档",
+          "author": "sisi",
+          "time": "18:19",
+          "pages": [],
+          "global": true,
+          "notes": [
+            {
+              "file": null,
+              "text": "prd 列表不再展示选品库规格客户端排序与多规格交互"
+            }
+          ]
+        },
         {
           "sha": "9eb2125",
           "type": "feat",
