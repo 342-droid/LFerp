@@ -36,6 +36,7 @@
         .receipt-entry-field input, .receipt-entry-field select { flex:1; min-width:0; padding:6px 8px; border:1px solid #d9d9d9; border-radius:3px; background:#fff; color:#333; }
         .receipt-entry-field input[readonly] { background:#f5f5f5; color:#999; border-color:#e5e5e5; cursor:not-allowed; }
         .receipt-entry-table input { width:72px; padding:5px 6px; border:1px solid #ff4d4f; border-radius:2px; }
+        .receipt-entry-table input.receipt-entry-prod-date { width:100px; }
         .receipt-entry-actions { display:flex; justify-content:flex-end; gap:10px; margin:0 0 16px; }
         
         /* 入库单号链接样式 */
@@ -566,7 +567,7 @@
                     <button type="button" class="btn btn-primary" id="confirmReceiptEntryBtn">确认收货</button>
                     <button type="button" class="btn btn-secondary" id="closeReceiptOrderBtn">关闭收货单</button>
                 </div>
-                <div class="table-scroll-container"><table class="table receipt-entry-table"><thead><tr><th>商品编码</th><th>商品名称</th><th>商品规格</th><th>商品单位</th><th>计划数量</th><th>已收数量</th><th>收货数量</th><th>已取消量</th><th>收货储位</th></tr></thead><tbody id="receiptEntryTableBody"></tbody></table></div>
+                <div class="table-scroll-container"><table class="table receipt-entry-table"><thead><tr><th>商品编码</th><th>商品名称</th><th>商品规格</th><th>商品单位</th><th>计划数量</th><th>已收数量</th><th class="receipt-entry-prod-date-col" hidden>生产日期</th><th>收货数量</th><th>已取消量</th><th>收货储位</th></tr></thead><tbody id="receiptEntryTableBody"></tbody></table></div>
             </div>
         </div>
     </div>
@@ -1477,13 +1478,25 @@
         function showReceiptEntry(orderId) {
             const modal = document.getElementById('receiptEntryModal');
             const products = RECEIPT_PRODUCT_DATA[orderId] || [];
+            const orderType = orderId === 'IBD2026022712345678' ? '采购入库' : '调拨入库';
+            const showProdDate = orderType === '采购入库';
             document.getElementById('receiptEntryNo').value = orderId || '';
             document.getElementById('receiptEntrySource').value = orderId === 'IBD2026022712345678' ? 'PO20260227001' : 'TR20260227001';
             document.getElementById('receiptEntryRelated').value = orderId === 'IBD2026022712345678' ? 'SO20260227001' : 'TR20260227001';
             document.getElementById('receiptEntryWarehouse').value = 'W001-南京仓库';
             document.getElementById('receiptEntryOwner').value = orderId === 'IBD2026022712345678' ? 'Y001-南京货主' : 'Y002-北京货主';
-            document.getElementById('receiptEntryType').value = orderId === 'IBD2026022712345678' ? '采购入库' : '调拨入库';
-            document.getElementById('receiptEntryTableBody').innerHTML = products.map(product => `<tr><td>${product.skuCode}</td><td>${product.skuName}</td><td>${getWmsSkuSpec(product.skuCode, product.skuName)}</td><td>${product.unit}</td><td>${product.planQty}</td><td>${product.actualQty || 0}</td><td><input type="number" min="0" max="${product.planQty}" value="${Math.max(0, Number(product.planQty || 0) - Number(product.actualQty || 0))}"></td><td>${product.canceledQty || 0}</td><td>SH01</td></tr>`).join('');
+            document.getElementById('receiptEntryType').value = orderType;
+            modal.querySelectorAll('.receipt-entry-prod-date-col').forEach(el => {
+                if (showProdDate) el.removeAttribute('hidden');
+                else el.setAttribute('hidden', '');
+            });
+            document.getElementById('receiptEntryTableBody').innerHTML = products.map(product => {
+                const remainQty = Math.max(0, Number(product.planQty || 0) - Number(product.actualQty || 0));
+                const prodDateCell = showProdDate
+                    ? `<td class="receipt-entry-prod-date-col"><input type="text" class="receipt-entry-prod-date" inputmode="numeric" maxlength="8" placeholder="如20260601"></td>`
+                    : '';
+                return `<tr><td>${product.skuCode}</td><td>${product.skuName}</td><td>${getWmsSkuSpec(product.skuCode, product.skuName)}</td><td>${product.unit}</td><td>${product.planQty}</td><td>${product.actualQty || 0}</td>${prodDateCell}<td><input type="number" min="0" max="${product.planQty}" value="${remainQty}"></td><td>${product.canceledQty || 0}</td><td>SH01</td></tr>`;
+            }).join('');
             modal.style.display = 'block';
             document.getElementById('receiptEntryCloseBtn').onclick = () => modal.style.display = 'none';
             document.getElementById('confirmReceiptEntryBtn').onclick = () => { modal.style.display = 'none'; if (typeof showToast === 'function') showToast('收货已确认', 'success'); };
