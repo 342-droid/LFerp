@@ -161,21 +161,30 @@
       ]
     },
     {
-      "id": "670-积分抵现、积分商城",
-      "title": "【670】积分抵现、积分商城",
-      "file": "670-积分抵现、积分商城.md",
+      "id": "790-积分抵现",
+      "title": "【790】积分抵现",
+      "file": "790-积分抵现.md",
       "pages": [
         "MDM/mdm_member_c.html",
         "MDM/mdm_member_points_cash.html",
         "MDM/mdm_member_points_cash_form.html",
+        "user-app/h5/order-confirm.html",
+        "user-app/h5/checkout.html",
+        "user-app/h5/cart.html",
+        "user-app/h5/live-room.html"
+      ]
+    },
+    {
+      "id": "791-积分商城",
+      "title": "【791】积分商城",
+      "file": "791-积分商城.md",
+      "pages": [
+        "MDM/mdm_member_c.html",
         "MDM/mdm_marketing_points_mall.html",
         "MDM/mdm_marketing_points_mall_form.html",
         "user-app/h5/points-mall.html",
         "user-app/h5/points-product-detail.html",
         "user-app/h5/points-order-confirm.html",
-        "user-app/h5/order-confirm.html",
-        "user-app/h5/checkout.html",
-        "user-app/h5/cart.html",
         "user-app/h5/order-detail.html",
         "user-app/h5/order-detail-pickup.html",
         "user-app/h5/live-room.html"
