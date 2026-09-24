@@ -1,0 +1,208 @@
+window.__PG_PRD_INDEX = {
+  "prds": [
+    {
+      "id": "303-虚拟点赞数",
+      "title": "【303】虚拟点赞数",
+      "file": "303-虚拟点赞数.md",
+      "pages": [
+        "MDM/mdm_live_control.html",
+        "user-app/h5/live-room.html"
+      ]
+    },
+    {
+      "id": "466-467-468-308-305-直播场次状态对应操作和中控台的活动发放优化",
+      "title": "【466】【467】【468】【308】【305】直播场次状态对应操作和中控台的活动发放优化",
+      "file": "466-467-468-308-305-直播场次状态对应操作和中控台的活动发放优化.md",
+      "pages": [
+        "MDM/mdm_live_session.html",
+        "MDM/mdm_live_session_form.html",
+        "MDM/mdm_live_session_detail.html",
+        "MDM/mdm_live_control.html",
+        "user-app/h5/live-room.html"
+      ]
+    },
+    {
+      "id": "312-举报和意见反馈",
+      "title": "【312】举报和意见反馈",
+      "file": "312-举报和意见反馈.md",
+      "pages": [
+        "MDM/mdm_aftersale_report.html",
+        "MDM/mdm_aftersale_feedback.html",
+        "MDM/mdm_aftersale_ticket.html",
+        "MDM/mdm_aftersale_refund.html",
+        "user-app/h5/live-room.html",
+        "user-app/h5/profile.html",
+        "user-app/h5/feedback.html",
+        "user-app/h5/report-records.html"
+      ]
+    },
+    {
+      "id": "306-直播弹幕置顶",
+      "title": "【306】直播弹幕置顶",
+      "file": "306-直播弹幕置顶.md",
+      "pages": [
+        "MDM/mdm_live_control.html",
+        "user-app/h5/live-room.html"
+      ]
+    },
+    {
+      "id": "311-直播c端用户一键评论",
+      "title": "【311】直播c端用户一键评论",
+      "file": "311-直播c端用户一键评论.md",
+      "pages": [
+        "MDM/mdm_live_control.html",
+        "user-app/h5/live-room.html"
+      ]
+    },
+    {
+      "id": "537-门店绑定与切店",
+      "title": "【537】门店绑定与切店",
+      "file": "537-门店绑定与切店.md",
+      "pages": [
+        "MDM/mdm_archive_store.html",
+        "user-app/h5/home.html",
+        "user-app/h5/switch-address.html",
+        "user-app/h5/scan-store.html",
+        "user-app/h5/profile.html",
+        "store-app/h5/home.html",
+        "MDM/mdm_member_c.html"
+      ]
+    },
+    {
+      "id": "605-秒杀（商品限购）",
+      "title": "【605】秒杀（商品限购）",
+      "file": "605-秒杀（商品限购）.md",
+      "pages": [
+        "MDM/mdm_marketing_seckill.html",
+        "MDM/mdm_marketing_seckill_form.html",
+        "MDM/mdm_marketing_seckill_product.html",
+        "user-app/h5/goods-detail.html",
+        "user-app/h5/cart.html"
+      ]
+    },
+    {
+      "id": "628-丰银宝支持通过分享冷丰鲜选直播场次链接绑定推广会员",
+      "title": "【628】丰银宝支持通过分享冷丰鲜选直播场次链接绑定推广会员",
+      "file": "628-丰银宝支持通过分享冷丰鲜选直播场次链接绑定推广会员.md",
+      "pages": [
+        "store-app/h5/home.html",
+        "store-app/h5/live-promo.html",
+        "user-app/h5/home.html",
+        "user-app/h5/live-room.html",
+        "user-app/h5/login.html",
+        "user-app/h5/login-register.html",
+        "user-app/h5/login-phone.html",
+        "user-app/h5/login-wechat.html",
+        "user-app/h5/login-password.html",
+        "user-app/h5/profile.html",
+        "user-app/h5/orders.html",
+        "MDM/mdm_member_c.html",
+        "MDM/mdm_bd_workbench.html"
+      ]
+    },
+    {
+      "id": "659-直播中控发券自定义每轮次每人可领取的数量+优惠券一个时刻只能发放一场正在进行的发券活动",
+      "title": "【659】直播中控发券自定义每轮次每人可领取的数量+优惠券一个时刻只能发放一场正在进行的发券活动",
+      "file": "659-直播中控发券自定义每轮次每人可领取的数量+优惠券一个时刻只能发放一场正在进行的发券活动.md",
+      "pages": [
+        "MDM/mdm_live_control.html"
+      ]
+    },
+    {
+      "id": "23-会员发券以及优惠券增加审核",
+      "title": "【23】会员发券以及优惠券增加审核",
+      "file": "23-会员发券以及优惠券增加审核.md",
+      "pages": [
+        "MDM/mdm_member_c.html",
+        "MDM/mdm_marketing_mall_record.html",
+        "MDM/mdm_marketing_coupon.html",
+        "MDM/mdm_marketing_coupon_form.html",
+        "MDM/mdm_audit_coupon.html",
+        "MDM/mdm_marketing_template.html",
+        "MDM/mdm_live_session_form.html",
+        "MDM/mdm_live_control.html",
+        "SCM/basic_settings_recommendation.html",
+        "MDM/mdm_member_level_form.html",
+        "MDM/mdm_member_level.html"
+      ]
+    },
+    {
+      "id": "576-会员黑名单和注销会员",
+      "title": "【576】会员黑名单和注销会员",
+      "file": "576-会员黑名单和注销会员.md",
+      "pages": [
+        "MDM/mdm_member_c.html",
+        "user-app/h5/account-cancel.html",
+        "user-app/h5/settings-more.html",
+        "user-app/h5/settings.html",
+        "user-app/h5/login.html",
+        "user-app/h5/login-phone.html",
+        "user-app/h5/home.html",
+        "user-app/h5/live-room.html",
+        "user-app/h5/order-confirm.html"
+      ]
+    },
+    {
+      "id": "670-积分规则、积分获取、积分明细",
+      "title": "【670】积分规则、积分获取、积分明细",
+      "file": "670-积分规则、积分获取、积分明细.md",
+      "pages": [
+        "MDM/mdm_member_c.html",
+        "MDM/mdm_member_points_rule.html",
+        "MDM/mdm_member_points_consume.html",
+        "MDM/mdm_member_points_consume_form.html",
+        "MDM/mdm_member_points_detail.html",
+        "MDM/mdm_marketing_points_rule_desc.html",
+        "MDM/mdm_live_control.html",
+        "user-app/h5/profile.html",
+        "user-app/h5/points-detail.html",
+        "user-app/h5/points-rule-desc.html",
+        "user-app/h5/live-room.html"
+      ]
+    },
+    {
+      "id": "790-积分抵现",
+      "title": "【790】积分抵现",
+      "file": "790-积分抵现.md",
+      "pages": [
+        "MDM/mdm_member_c.html",
+        "MDM/mdm_member_points_cash.html",
+        "MDM/mdm_member_points_cash_form.html",
+        "user-app/h5/order-confirm.html",
+        "user-app/h5/checkout.html",
+        "user-app/h5/cart.html",
+        "user-app/h5/live-room.html"
+      ]
+    },
+    {
+      "id": "791-积分商城",
+      "title": "【791】积分商城",
+      "file": "791-积分商城.md",
+      "pages": [
+        "MDM/mdm_member_c.html",
+        "MDM/mdm_marketing_points_mall.html",
+        "MDM/mdm_marketing_points_mall_form.html",
+        "user-app/h5/points-mall.html",
+        "user-app/h5/points-product-detail.html",
+        "user-app/h5/points-order-confirm.html",
+        "user-app/h5/order-detail.html",
+        "user-app/h5/order-detail-pickup.html",
+        "user-app/h5/live-room.html"
+      ]
+    },
+    {
+      "id": "选品库规格客户端排序与多规格交互",
+      "title": "选品库规格客户端排序与客户端多规格交互",
+      "file": "选品库规格客户端排序与多规格交互.md",
+      "pages": [
+        "MDM/mdm_product_selection.html",
+        "user-app/h5/goods-detail.html",
+        "user-app/h5/mall.html",
+        "user-app/h5/category.html",
+        "user-app/h5/cart.html",
+        "user-app/h5/live-room.html",
+        "user-app/h5/order-confirm.html"
+      ]
+    }
+  ]
+};
