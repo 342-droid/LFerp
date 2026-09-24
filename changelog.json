@@ -1,10 +1,25 @@
 {
-  "latestSha": "93842338f0e9e8755e362ac605373e4b75581995",
-  "total": 425,
+  "latestSha": "e3c98e4e60ccb7b3f528f8c3bd651f403c056b6e",
+  "total": 426,
   "days": [
     {
       "date": "2026-09-24",
       "items": [
+        {
+          "sha": "e3c98e4",
+          "type": "feat",
+          "text": "将积分抵现和积分商城拆成两份需求文档",
+          "author": "sisi",
+          "time": "16:10",
+          "pages": [],
+          "global": true,
+          "notes": [
+            {
+              "file": null,
+              "text": "原积分抵现与积分商城文档拆成【790】积分抵现、【791】积分商城，prd 列表改为展示这两份"
+            }
+          ]
+        },
         {
           "sha": "9384233",
           "type": "feat",
