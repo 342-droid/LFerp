@@ -1,10 +1,30 @@
 {
-  "latestSha": "e3c98e4e60ccb7b3f528f8c3bd651f403c056b6e",
-  "total": 426,
+  "latestSha": "9eb21250d42e66597cc2bdb0f447614805dd8074",
+  "total": 427,
   "days": [
     {
       "date": "2026-09-24",
       "items": [
+        {
+          "sha": "9eb2125",
+          "type": "feat",
+          "text": "入库单示例数据按类型与业务类型重新铺齐",
+          "author": "342-droid",
+          "time": "16:47",
+          "pages": [
+            {
+              "file": "SCM/ibd_receipt.html",
+              "module": "冷丰WMS",
+              "title": "入库单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/ibd_receipt.html",
+              "text": "示例数据覆盖采购/仓配/返配/调拨/客退五种入库类型及对应业务类型，去掉错误的货到即配；列表、详情、收货录入共用同一套数据"
+            }
+          ]
+        },
         {
           "sha": "e3c98e4",
           "type": "feat",

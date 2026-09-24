@@ -2241,6 +2241,13 @@
     "status": "diff",
     "date": "2026-09-15"
   },
+  "9eb2125|SCM/ibd_receipt.html": {
+    "before": "changelog-assets/9eb2125/SCM__ibd_receipt.html.before.jpg",
+    "after": "changelog-assets/9eb2125/SCM__ibd_receipt.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-09-24"
+  },
   "a31c960|MDM/mdm_order_live.html": {
     "regions": 0,
     "status": "diff",
