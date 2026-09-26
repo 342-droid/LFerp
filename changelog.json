@@ -1,7 +1,55 @@
 {
-  "latestSha": "1035c5e19916ceaaa31bcf029aed4f3eaa7bf061",
-  "total": 429,
+  "latestSha": "1a9ba790e05d2fe2bbc651e60e2d5a5b98825b61",
+  "total": 430,
   "days": [
+    {
+      "date": "2026-09-26",
+      "items": [
+        {
+          "sha": "1a9ba79",
+          "type": "feat",
+          "text": "零售和代采订单补齐所属组织，并新增承运商运费结算",
+          "author": "sisi",
+          "time": "19:38",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            },
+            {
+              "file": "MDM/mdm_settle_index.html",
+              "module": "冷丰结算",
+              "title": "结算中心"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "列表和筛选增加门店ID、所属组织，下单门店与这两项合并为一个下拉；所属组织展示创建主体门店商家"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "text": "列表和筛选同样增加门店ID、所属组织；拆单补录行补齐这两列，支付流水和订单状态不再错位"
+            },
+            {
+              "file": "MDM/mdm_settle_index.html",
+              "text": "新增承运商结算，平台结算账户划入承运商基本账户，到账后不分佣且不并入供应商结算；承运商编码对齐物流承运商"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-09-24",
       "items": [
