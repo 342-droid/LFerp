@@ -69,12 +69,19 @@
     var text = (item.textContent || '').replace(/\s+/g, '');
     var placeholder = item.getAttribute('data-placeholder') || ('请输入' + text);
     var value = item.getAttribute('data-value') || '';
+    var controlKind = item.getAttribute('data-control') || '';
     var labelEl = sw.querySelector('.order-filter-switch__text');
     var hidden = sw.querySelector('input[type="hidden"]');
-    var input = sw.parentElement ? sw.parentElement.querySelector('.order-filter-field__input') : null;
+    var field = sw.parentElement;
+    var input = field ? field.querySelector('.order-filter-field__input') : null;
     if (labelEl) labelEl.textContent = text;
     if (hidden) hidden.value = value;
-    if (input) {
+    if (controlKind && field) {
+      field.querySelectorAll('[data-switch-control]').forEach(function (el) {
+        el.hidden = el.getAttribute('data-switch-control') !== controlKind;
+      });
+    }
+    if (input && (!controlKind || controlKind === 'input')) {
       input.placeholder = placeholder;
       input.setAttribute('aria-label', text);
     }
@@ -857,8 +864,20 @@
     var delivery = deliverySel ? (deliverySel.value || '').trim() : '';
     var sceneSel = document.getElementById('qOrderScene');
     var scene = isRetail && sceneSel ? (sceneSel.value || '').trim() : '';
+    var storeKeyEl = document.getElementById('qStoreKey');
+    var storeKey = storeKeyEl ? (storeKeyEl.value || 'store') : 'store';
     var storeSel = document.getElementById('qStore');
-    var store = storeSel ? (storeSel.value || '').trim() : '';
+    var storeKeywordEl = document.getElementById('qStoreKeyword');
+    var store = '';
+    var storeId = '';
+    var orgId = '';
+    if (storeKey === 'storeId') {
+      storeId = storeKeywordEl ? normalizeFilterText(storeKeywordEl.value) : '';
+    } else if (storeKey === 'orgId') {
+      orgId = storeKeywordEl ? normalizeFilterText(storeKeywordEl.value) : '';
+    } else if (storeSel) {
+      store = (storeSel.value || '').trim();
+    }
     var payNoInput = document.getElementById('qPayNo');
     var payNo = payNoInput ? (payNoInput.value || '').trim() : '';
     var userKeyEl = document.getElementById('qUserKey');
@@ -899,6 +918,14 @@
       if (show && store) {
         var rowStore = (row.getAttribute('data-store') || '').trim();
         show = rowStore === store;
+      }
+      if (show && storeId) {
+        var rowStoreId = normalizeFilterText(row.getAttribute('data-store-id') || '');
+        show = rowStoreId.indexOf(storeId) >= 0;
+      }
+      if (show && orgId) {
+        var rowOrgId = normalizeFilterText(row.getAttribute('data-org-id') || '');
+        show = rowOrgId.indexOf(orgId) >= 0;
       }
       if (show && payNo) {
         var needle = payNo.toLowerCase();
@@ -1527,8 +1554,8 @@
     });
   }
 
-  var RETAIL_EXPORT_FIELDS_KEY = 'lfRetailOrderExportFieldsV7';
-  var PROXY_EXPORT_FIELDS_KEY = 'lfProxyOrderExportFieldsV4';
+  var RETAIL_EXPORT_FIELDS_KEY = 'lfRetailOrderExportFieldsV8';
+  var PROXY_EXPORT_FIELDS_KEY = 'lfProxyOrderExportFieldsV5';
   var RETAIL_CLEARING_EXPORT_FIELDS_KEY = 'lfRetailClearingExportFieldsV3';
   var PROXY_CLEARING_EXPORT_FIELDS_KEY = 'lfProxyClearingExportFieldsV3';
   var RETAIL_EXPORT_FIELDS = [
@@ -1552,6 +1579,8 @@
     { key: 'deliveryMode', label: '履约方式' },
     { key: 'payChannel', label: '支付渠道' },
     { key: 'store', label: '下单门店' },
+    { key: 'storeId', label: '门店ID' },
+    { key: 'orgId', label: '所属组织' },
     { key: 'payNo', label: '支付流水' },
     { key: 'orderStatus', label: '订单状态' },
     { key: 'skuCode', label: '商品编码', extra: true },
@@ -1581,6 +1610,8 @@
     { key: 'payChannel', label: '支付渠道' },
     { key: 'deliveryMode', label: '履约方式' },
     { key: 'store', label: '下单门店' },
+    { key: 'storeId', label: '门店ID' },
+    { key: 'orgId', label: '所属组织' },
     { key: 'payNo', label: '支付流水' },
     { key: 'orderStatus', label: '订单状态' },
     { key: 'skuCode', label: '商品编码', extra: true },
@@ -2000,8 +2031,10 @@
         deliveryMode: 15,
         payChannel: 16,
         store: 17,
-        payNo: 18,
-        orderStatus: 19
+        storeId: 18,
+        orgId: 19,
+        payNo: 20,
+        orderStatus: 21
       };
     }
     return {
@@ -2021,8 +2054,10 @@
       payChannel: 13,
       deliveryMode: 14,
       store: 15,
-      payNo: 16,
-      orderStatus: 17
+      storeId: 16,
+      orgId: 17,
+      payNo: 18,
+      orderStatus: 19
     };
   }
 
@@ -2086,6 +2121,8 @@
       deliveryMode: cellTextOf(cells, col.deliveryMode),
       payChannel: cellTextOf(cells, col.payChannel),
       store: cellTextOf(cells, col.store),
+      storeId: col.storeId != null ? cellTextOf(cells, col.storeId) : (row.getAttribute('data-store-id') || ''),
+      orgId: col.orgId != null ? cellTextOf(cells, col.orgId) : (row.getAttribute('data-org-id') || ''),
       payNo: cellTextOf(cells, col.payNo),
       orderStatus: cellTextOf(cells, col.orderStatus),
       address: (detail.delivery && (detail.delivery.address || detail.delivery.homeAddress)) || '—',
@@ -2682,6 +2719,46 @@
     }
   }
 
+  function padOrderDatePart(n) {
+    n = String(n);
+    return n.length < 2 ? '0' + n : n;
+  }
+
+  /**
+   * 代采静态行的下单日在近 7 天之外，默认筛选会把整表滤空，
+   * 所属组织、支付流水这些列就只剩表头、对不上内容。拨进近 7 天再查询。
+   */
+  function shiftProxyOrdersIntoRecentWeek() {
+    if (!isProxyOrderPage()) return;
+    var table = document.querySelector('.order-live-table');
+    if (!table) return;
+    var timeIdx = -1;
+    var ths = table.querySelectorAll('thead th');
+    var i;
+    for (i = 0; i < ths.length; i++) {
+      if (ths[i].getAttribute('data-preference-key') === 'orderedAt') {
+        timeIdx = i;
+        break;
+      }
+    }
+    var rows = table.querySelectorAll('tbody tr[data-order-id]');
+    Array.prototype.forEach.call(rows, function (row, index) {
+      var when = new Date();
+      when.setHours(8 + (index % 12), (index * 5) % 60, 0, 0);
+      when.setDate(when.getDate() - (index % 7));
+      var day =
+        when.getFullYear() +
+        '-' +
+        padOrderDatePart(when.getMonth() + 1) +
+        '-' +
+        padOrderDatePart(when.getDate());
+      var text =
+        day + ' ' + padOrderDatePart(when.getHours()) + ':' + padOrderDatePart(when.getMinutes());
+      row.setAttribute('data-ordered-at', day);
+      if (timeIdx >= 0 && row.children[timeIdx]) row.children[timeIdx].textContent = text;
+    });
+  }
+
   function bootOrderListPage() {
     initFilter();
     initPagination();
@@ -2693,6 +2770,7 @@
     initRetailCancelAndRefund();
     initOrderListExport();
     ensureOrderTimePreset();
+    shiftProxyOrdersIntoRecentWeek();
     applyOrderListFilters();
   }
 

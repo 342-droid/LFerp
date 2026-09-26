@@ -4,7 +4,7 @@
     var app = document.getElementById('settlement-app');
     var overlay = document.getElementById('settlement-overlay');
     if (!app) return;
-    var names = {summary:'清分汇总', policy:'策略管理', supplier:'供应商结算', commission:'佣金清算', compensation:'补偿结款'};
+    var names = {summary:'清分汇总', policy:'策略管理', supplier:'供应商结算', carrier:'承运商结算', commission:'佣金清算', compensation:'补偿结款'};
     var params = new URLSearchParams(location.search);
     var state = {
         view: names[params.get('view')] ? params.get('view') : 'summary',
@@ -18,6 +18,10 @@
         supplierDateFrom: '',
         supplierDateTo: '',
         supplierPage: 1,
+        carrierSelection: [],
+        carrierDateFrom: '',
+        carrierDateTo: '',
+        carrierPage: 1,
         policyType: '',
         policyStore: '',
         policyMenu: '',
@@ -126,6 +130,19 @@
 2|ST_2067671193382502402|张供应商|2.00|0.00|2.00|1|待结款|2026-06-19 02:10|2026-06
 1|ST_2062235364436897793|南京马群枢纽供应商|5.01|2.01|3.00|1|待结款|2026-06-04 02:10|2026-06`;
     supplierStatements.push.apply(supplierStatements,statementRest.split('\n').map(function(line){var x=line.split('|');return {seq:Number(x[0]),id:x[1],supplier:x[2],goods:x[3],payable:x[4],net:x[5],orders:Number(x[6]),status:x[7],created:x[8],cycle:x[9]};}));
+    /* 承运商运费：平台结算账户 → 承运商基本账户，到账后不再分佣，不并入供应商结算单。 */
+    /* 承运商编码、名称与物流承运商 SCM/carrier.html 一致。 */
+    var carrierPending = [
+        {seq:6,id:'CF_360188201',carrier:'顺丰速运',carrierId:'SF',account:'6666000219001100',freight:'128.60',orders:6,status:'待提交',created:'2026-09-24 09:30',cycle:'2026-09-23',blocked:false,reason:''},
+        {seq:5,id:'CF_360188202',carrier:'中通快递',carrierId:'ZTO',account:'',freight:'86.40',orders:4,status:'待提交',created:'2026-09-24 09:30',cycle:'2026-09-23',blocked:true,reason:'未配置承运商基本账户'},
+        {seq:4,id:'CF_360188203',carrier:'圆通速递',carrierId:'YTO',account:'6666000219003300',freight:'36.00',orders:2,status:'待提交',created:'2026-09-23 09:30',cycle:'2026-09-22',blocked:true,reason:'承运商已停用，暂停结算'},
+        {seq:3,id:'CF_360188204',carrier:'顺丰速运',carrierId:'SF',account:'6666000219001100',freight:'0.00',orders:1,status:'待提交',created:'2026-09-22 09:30',cycle:'2026-09-21',blocked:true,reason:'运费明细缺失，无法出账'}
+    ];
+    var carrierStatements = [
+        {seq:3,id:'CF_360177020',carrier:'韵达快递',carrierId:'YD',account:'6666000219004400',freight:'64.00',orders:3,status:'待结款',created:'2026-09-20 09:30',cycle:'2026-09-19',posted:'',flow:'平台结算账户 → 承运商基本账户'},
+        {seq:2,id:'CF_360166011',carrier:'顺丰速运',carrierId:'SF',account:'6666000219001100',freight:'96.20',orders:5,status:'已结款',created:'2026-09-18 09:30',cycle:'2026-09-17',posted:'2026-09-18 11:06',flow:'平台结算账户 → 承运商基本账户'},
+        {seq:1,id:'CF_360155008',carrier:'申通快递',carrierId:'STO',account:'6666000219002200',freight:'54.80',orders:3,status:'结款失败',created:'2026-09-16 09:30',cycle:'2026-09-15',posted:'',flow:'平台结算账户 → 承运商基本账户',reason:'收款账户校验失败'}
+    ];
     var commissions = [
         {seq:182,id:'ST_358643444144418816',supplier:'南京马群枢纽供应商',payee:'上海冷丰科技有限公司',type:'平台',amount:'0.02',orders:'2',status:'待生成',posting:'',related:'ST_358643443066482688',created:'2026-09-17 00:01'},
         {seq:181,id:'ST_357556280904126464',supplier:'斯斯供应商商家',payee:'上海冷丰科技有限公司',type:'平台',amount:'0.24',orders:'1',status:'待生成',posting:'已到账',related:'ST_357556279620669440',created:'2026-09-14 00:01'},
@@ -180,7 +197,7 @@
     function h(v) { return String(v == null ? '' : v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
     function cash(v) { return v === '—' ? '—' : '¥' + h(v); }
     function button(label, act, id, kind) { return '<button type="button" class="settle-btn ' + (kind || 'link') + '" data-act="' + h(act) + '"' + (id ? ' data-id="' + h(id) + '"' : '') + '>' + h(label) + '</button>'; }
-    function tag(v) { var cls = /已结款|已销账|已到账|启用|成功/.test(v) ? 'green' : /异常|失败|阻断/.test(v) ? 'red' : /待|部分/.test(v) ? 'orange' : ''; return '<span class="settle-tag ' + cls + '">' + h(v) + '</span>'; }
+    function tag(v) { var cls = /已结款|已销账|已到账|已出账|启用|成功/.test(v) ? 'green' : /异常|失败|阻断/.test(v) ? 'red' : /待|部分/.test(v) ? 'orange' : ''; return '<span class="settle-tag ' + cls + '">' + h(v) + '</span>'; }
     function table(head, rows, foot) {
         return '<div class="settle-table-wrap"><table class="settle-table"><thead><tr>' + head.map(function(x){return '<th>' + h(x) + '</th>';}).join('') +
             '</tr></thead><tbody>' + (rows.length ? rows.join('') : '<tr><td colspan="' + head.length + '" class="settle-empty">暂无数据</td></tr>') +
@@ -231,6 +248,31 @@
         return tabs([['pending','待处理单据'],['statement','结款单据']])+
             '<section class="settle-card">'+search+(pending?'<div class="settle-toolbar"><button type="button" class="settle-btn primary" data-act="batch-submit"'+(selected.some(function(id){var row=supplierPending.find(function(x){return x.id===id;});return row&&!row.blocked;})?'':' disabled')+'>批量加入结款单</button></div>':'')+
             table(head,tr,footer).replace('<th>□</th>','<th><input type="checkbox" aria-label="选择所有行" data-select-supplier-all></th>')+'</section>';
+    }
+    function renderCarrier() {
+        if (!['pending','statement'].includes(state.tab)) state.tab='pending';
+        var pending=state.tab==='pending', all=pending?carrierPending:carrierStatements;
+        var rows=filtered(all,['id','carrier']).filter(function(x){
+            var name=(state.carrierName||'').trim();
+            if (state.status==='待提交' && x.blocked) return false;
+            return (!name || String(x.carrier).indexOf(name)>=0) && (!state.carrierDateFrom || x.created.slice(0,10)>=state.carrierDateFrom) && (!state.carrierDateTo || x.created.slice(0,10)<=state.carrierDateTo);
+        });
+        var pages=Math.max(1,Math.ceil(rows.length/20));state.carrierPage=Math.min(state.carrierPage,pages);
+        var visibleRows=rows.slice((state.carrierPage-1)*20,state.carrierPage*20);
+        var selected=state.carrierSelection;
+        var tr=visibleRows.map(function(x){return '<tr>'+(pending?'<td><input aria-label="选择 '+h(x.id)+'" type="checkbox" data-select-carrier="'+h(x.id)+'"'+(selected.includes(x.id)?' checked':'')+'></td>':'')+
+            '<td>'+h(x.seq)+'</td><td>'+button(x.id,'detail',x.id)+'</td><td>'+h(x.carrier)+'</td><td>'+h(x.carrierId)+'</td><td class="money">'+cash(x.freight)+'</td><td>'+h(x.orders)+'</td><td>'+h(x.account||'—')+'</td><td>'+tag(x.blocked?'异常':x.status)+'</td><td>'+h(x.created)+'</td><td>'+h(x.cycle)+'</td><td class="settle-actions">'+button('查看详情','detail',x.id)+(pending?(x.blocked?button('重新执行','carrier-retry',x.id):button('加入结款单','carrier-submit',x.id)):(x.status==='结款失败'?button('重新执行','carrier-retry',x.id):''))+'</td></tr>';});
+        var search='<div class="settle-card-body"><div class="settle-filter">'+
+            '<label class="settle-field"><span>结算单号</span><input class="settle-input" id="settle-query" value="'+h(state.query)+'" placeholder="请输入结算单号"></label>'+
+            '<label class="settle-field"><span>承运商</span><input class="settle-input" id="carrier-name" value="'+h(state.carrierName||'')+'" placeholder="请输入承运商名称"></label>'+
+            '<label class="settle-field"><span>结算状态</span><select class="settle-select" id="settle-status"><option value="">全部</option>'+['待提交','异常','待结款','结款失败','已结款'].map(function(x){return '<option'+(state.status===x?' selected':'')+'>'+x+'</option>';}).join('')+'</select></label>'+
+            '<label class="settle-field"><span>创建时间</span><input aria-label="创建时间开始" type="date" class="settle-input" id="carrier-date-from" value="'+h(state.carrierDateFrom)+'"></label><span>至</span><label class="settle-field"><span>&nbsp;</span><input aria-label="创建时间结束" type="date" class="settle-input" id="carrier-date-to" value="'+h(state.carrierDateTo)+'"></label>'+
+            '<div class="settle-actions">'+button('查询','search','','primary')+button('重置','reset')+'</div></div></div>';
+        var head=(pending?['□']:[]).concat(['序号','结算单号','承运商','承运商编码','应付运费','运单数','收款基本账户','结算状态','创建时间','结算周期','操作']);
+        var footer='<span>共 '+rows.length+' 条</span>';
+        return tabs([['pending','待处理单据'],['statement','结款单据']])+
+            '<section class="settle-card">'+search+(pending?'<div class="settle-toolbar"><button type="button" class="settle-btn primary" data-act="carrier-batch"'+(selected.some(function(id){var row=carrierPending.find(function(x){return x.id===id;});return row&&!row.blocked;})?'':' disabled')+'>批量加入结款单</button></div>':'')+
+            table(head,tr,footer).replace('<th>□</th>','<th><input type="checkbox" aria-label="选择所有行" data-select-carrier-all></th>')+'</section>';
     }
     function renderCommission() {
         var rows=commissions.filter(function(x){return (!state.query||x.id.includes(state.query))&&(!state.status||x.status===state.status)&&(!state.commissionType||x.type===state.commissionType)&&(!state.commissionRelated||x.related.includes(state.commissionRelated));});
@@ -317,7 +359,7 @@
             policyField('订单业态 *',policyRadio('orderType',draft.orderType,['零售订单','代采订单'],readonly))+
             (!consign?policyField('适用渠道 *',policyRadio('channel',draft.channel,['商城','直播'],readonly)):'')+
             policyField('策略类型','<div class="settle-type-cards"><span class="selected">默认<br><b>商品分佣</b></span><span class="disabled">商品营销费用承担（二期）</span></div>')+
-            policyField('扣除项规则','<div class="settle-deduction">承运商、仓储服务商：不参与分佣，平台线下结算<br>供应商：不参与分佣，按采购金额结算</div>')+
+            policyField('扣除项规则','<div class="settle-deduction">承运商运费：不参与分佣，由平台结算到承运商基本账户<br>仓储服务商：不参与分佣，平台线下结算<br>供应商：不参与分佣，按采购金额结算</div>')+
             policyField('分佣基准',consign?'实付减进货成本（代采业态固定）':policyRadio('basis','按实付金额分佣',['按实付金额分佣'],true))+
             policyField('结算节点',policyRadio('trigger','订单履约确认后',['订单履约确认后','售后期结束'],true))+'</div>';
         var rules=draft.rules||[];
@@ -388,6 +430,7 @@
     }
     function detailTitle() {
         if(state.view==='supplier') return '供应商结算单详情';
+        if(state.view==='carrier') return '承运商结算单详情';
         if(state.view==='commission') return '佣金清算单详情';
         if(state.view==='compensation') return '补偿结款单详情';
         return '策略详情';
@@ -439,6 +482,28 @@
             return back+'<div class="settle-detail-header"><h2>供应商结算单详情</h2>'+tabs([['current','当前版'],['payments','付款清单']])+'</div>'+card('基础信息',basic)+
                 card(state.tab==='current'?'订单明细':'明细列表',state.tab==='current'?current:payout)+card(state.tab==='current'?'收付款记录':'付款流水',voucher);
         }
+        if (state.view==='carrier') {
+            var cf=carrierPending.concat(carrierStatements).find(function(r){return r.id===id;}) || carrierPending[0];
+            var prefix=cf.carrierId||'SF';
+            var mode='快递';
+            var bad=!!cf.blocked||cf.status==='结款失败';
+            var lines=[
+                '<tr><td>ORD-2609241001</td><td>'+prefix+'10992881001</td><td>'+h(mode)+'</td><td>'+h(cf.carrier)+'</td><td class="money">'+cash(cf.freight)+'</td><td>'+tag(bad?'异常':'已出账')+'</td><td>'+h(cf.reason||'—')+'</td></tr>'
+            ];
+            var payRows=cf.status==='已结款'
+                ? ['<tr><td>1</td><td>付款</td><td>平台结算账户</td><td>'+h(cf.carrier)+'基本账户</td><td class="money">'+cash(cf.freight)+'</td><td>'+tag('已到账')+'</td><td>运费结算，不分佣</td><td>'+h(cf.posted)+'</td></tr>']
+                : cf.status==='结款失败'
+                ? ['<tr><td>1</td><td>付款</td><td>平台结算账户</td><td>'+h(cf.carrier)+'基本账户</td><td class="money">'+cash(cf.freight)+'</td><td>'+tag('结款失败')+'</td><td>'+h(cf.reason||'收款账户校验失败')+'</td><td>'+h(cf.created)+'</td></tr>']
+                : ['<tr><td colspan="8" class="settle-empty">'+h(cf.reason||'尚未生成付款')+'</td></tr>'];
+            return back+'<div class="settle-detail-header"><h2>承运商结算单详情</h2></div>'+
+                card('基础信息',description([['结算单号',h(cf.id)],['承运商',h(cf.carrier)],['承运商编码',h(cf.carrierId)],['单据类型','承运商运费结算单'],
+                    ['应付运费',cash(cf.freight)],['运单数',h(cf.orders)],['结算状态',tag(cf.blocked?'异常':cf.status)],['结算周期',h(cf.cycle)],
+                    ['付款方','平台结算账户'],['付款账户','6666000202016395'],['收款方',h(cf.carrier)],['收款账户',h(cf.account||'—')],['收款账户类型','承运商基本账户'],
+                    ['资金流',h(cf.flow||'平台结算账户 → 承运商基本账户')],['到账后分佣','不分佣'],['关联供应商结算单','无，独立结算'],
+                    ['异常原因',h(cf.reason||'—')],['创建时间',h(cf.created)],['入账时间',h(cf.posted||'—')]]))+
+                card('运费明细',table(['销售订单号','运单号','履约方式','承运商','运费','出账状态','异常'],lines))+
+                card('收付款记录',table(['序号','方向','付款方','收款方','金额','状态','说明','时间'],payRows));
+        }
         if (state.view==='commission') {
             var c=commissions.find(function(r){return r.id===id;}) || commissions[0];
             var firstClearing=c.id==='ST_358643444144418816';
@@ -463,7 +528,7 @@
         }
         var policy=policies.find(function(r){return r.id===id;}) || policies[0];
         return back + card('基本信息','<div class="settle-card-body">'+kv([['策略名称',h(policy.name)],['策略状态',tag(policy.status)],['订单业务类型',h(policy.kind)],['订单渠道',h(policy.channel)],['策略类型','按商品分佣'],['分佣基数',h(policy.basis)],['结算节点',h(policy.trigger)],['绑定门店',h(policy.stores)],['创建时间',h(policy.time)]])+'</div>',button('操作日志','policy-log',policy.id)) +
-            card('扣减规则','<div class="settle-card-body">'+kv([['运费及仓储费','不参与分佣'],['供应商采购款','优先结算给供应商']])+'</div>') +
+            card('扣减规则','<div class="settle-card-body">'+kv([['承运商运费','不参与分佣，平台结算到承运商基本账户'],['仓储费','不参与分佣'],['供应商采购款','优先结算给供应商']])+'</div>') +
             card('策略配置',table(['规则名称','计算方式','结算规则','参与商品','操作'],['<tr><td>'+h(policy.name)+'</td><td>按毛利率阶梯</td><td class="wrap">'+h(policy.rule)+'</td><td>部分商品（1）</td><td>'+button('查看','rule',policy.id)+'</td></tr>']));
     }
     function navigate(detail) {
@@ -477,7 +542,7 @@
         if(state.view==='policy' && state.policyMode && !state.policyDraft){var p=policies.find(function(x){return x.id===state.policyEditing;});state.policyDraft={name:p?p.name:'',enabled:p?p.status==='已启用':true,description:'',orderType:p?p.kind:'零售订单',channel:p?p.channel:'直播',rules:p?[{name:p.name,method:'按实付金额分佣',summary:p.rule,dimension:'全部商品',tiers:[emptyTier()]}]:[]};}
         document.getElementById('settle-title').textContent='结算 / '+names[state.view]+(state.policyMode?' / '+(state.policyMode==='create'?'创建策略':state.policyMode==='edit'?'修改策略':'策略详情'):(state.detail?' / '+detailTitle():''));
         document.title='冷丰结算 - '+names[state.view];
-        app.innerHTML=state.view==='policy'&&state.policyMode?renderPolicyForm():state.detail?renderDetail():({summary:renderSummary,policy:renderPolicy,supplier:renderSupplier,commission:renderCommission,compensation:renderCompensation}[state.view])();
+        app.innerHTML=state.view==='policy'&&state.policyMode?renderPolicyForm():state.detail?renderDetail():({summary:renderSummary,policy:renderPolicy,supplier:renderSupplier,carrier:renderCarrier,commission:renderCommission,compensation:renderCompensation}[state.view])();
     }
     function openModal(title,body,wide,footer) {
         overlay.innerHTML='<div class="settle-overlay" data-overlay="1"><div class="settle-dialog'+(wide?' wide':'')+'" role="dialog" aria-modal="true"><div class="settle-dialog-head"><strong>'+h(title)+'</strong>'+button('✕','close')+'</div><div class="settle-dialog-body">'+body+'</div><div class="settle-dialog-foot">'+(footer||button('关闭','close','',''))+'</div></div></div>';
@@ -513,13 +578,15 @@
     app.addEventListener('click',function(e){
         var b=e.target.closest('[data-act]'); if(!b)return;
         var act=b.dataset.act,id=b.dataset.id||'';
-        if(act==='tab'){state.tab=id;state.query='';state.status='';state.supplierSelection=[];state.supplierPage=1;state.policyMenu='';render();return;}
-        if(act==='search'){state.query=(document.getElementById('settle-query')||{}).value||'';state.status=(document.getElementById('settle-status')||{}).value||'';if(state.view==='supplier'){state.supplierDateFrom=(document.getElementById('supplier-date-from')||{}).value||'';state.supplierDateTo=(document.getElementById('supplier-date-to')||{}).value||'';state.supplierPage=1;}if(state.view==='policy'){state.policyType=(document.getElementById('policy-type')||{}).value||'';state.policyStore=(document.getElementById('policy-store')||{}).value||'';}if(state.view==='summary'){state.summaryType=(document.getElementById('summary-type')||{}).value||'';state.summaryFrom=(document.getElementById('summary-from')||{}).value||'';state.summaryTo=(document.getElementById('summary-to')||{}).value||'';}if(state.view==='commission'){state.commissionType=(document.getElementById('commission-type')||{}).value||'';state.commissionRelated=(document.getElementById('commission-related')||{}).value||'';}if(state.view==='compensation'){state.compensationRelated=(document.getElementById('compensation-related')||{}).value||'';state.compensationPayee=(document.getElementById('compensation-payee')||{}).value||'';state.compensationType=(document.getElementById('compensation-type')||{}).value||'';}render();return;}
-        if(act==='reset'){state.query='';state.status='';state.supplierPage=1;state.supplierDateFrom='';state.supplierDateTo='';state.policyType='';state.policyStore='';state.summaryType='';state.summaryFrom='';state.summaryTo='';state.commissionType='';state.commissionRelated='';state.compensationRelated='';state.compensationPayee='';state.compensationType='';render();return;}
+        if(act==='tab'){state.tab=id;state.query='';state.status='';state.supplierSelection=[];state.supplierPage=1;state.carrierSelection=[];state.carrierPage=1;state.policyMenu='';render();return;}
+        if(act==='search'){state.query=(document.getElementById('settle-query')||{}).value||'';state.status=(document.getElementById('settle-status')||{}).value||'';if(state.view==='supplier'){state.supplierDateFrom=(document.getElementById('supplier-date-from')||{}).value||'';state.supplierDateTo=(document.getElementById('supplier-date-to')||{}).value||'';state.supplierPage=1;}if(state.view==='carrier'){state.carrierDateFrom=(document.getElementById('carrier-date-from')||{}).value||'';state.carrierDateTo=(document.getElementById('carrier-date-to')||{}).value||'';state.carrierName=(document.getElementById('carrier-name')||{}).value||'';state.carrierPage=1;}if(state.view==='policy'){state.policyType=(document.getElementById('policy-type')||{}).value||'';state.policyStore=(document.getElementById('policy-store')||{}).value||'';}if(state.view==='summary'){state.summaryType=(document.getElementById('summary-type')||{}).value||'';state.summaryFrom=(document.getElementById('summary-from')||{}).value||'';state.summaryTo=(document.getElementById('summary-to')||{}).value||'';}if(state.view==='commission'){state.commissionType=(document.getElementById('commission-type')||{}).value||'';state.commissionRelated=(document.getElementById('commission-related')||{}).value||'';}if(state.view==='compensation'){state.compensationRelated=(document.getElementById('compensation-related')||{}).value||'';state.compensationPayee=(document.getElementById('compensation-payee')||{}).value||'';state.compensationType=(document.getElementById('compensation-type')||{}).value||'';}render();return;}
+        if(act==='reset'){state.query='';state.status='';state.supplierPage=1;state.supplierDateFrom='';state.supplierDateTo='';state.carrierPage=1;state.carrierDateFrom='';state.carrierDateTo='';state.carrierName='';state.policyType='';state.policyStore='';state.summaryType='';state.summaryFrom='';state.summaryTo='';state.commissionType='';state.commissionRelated='';state.compensationRelated='';state.compensationPayee='';state.compensationType='';render();return;}
         if(act==='supplier-page'){state.supplierPage=Number(id);render();return;}
         if(act==='detail'){state.view==='policy'?openPolicyPage('detail',id):navigate(id);return;}
         if(act==='back'){navigate('');return;}
         if(act==='supplier-exception'){openModal('异常详情',note('未配置供应商结算账户或结算主体'));return;}
+        if(act==='carrier-retry'){var crow=carrierPending.concat(carrierStatements).find(function(x){return x.id===id;});openModal('重新执行','确认对单据 '+h(id)+' 重新执行？将重新校验承运商基本账户与运费明细。'+(crow&&crow.reason?'<br>当前异常：'+h(crow.reason):''),false,button('取消','close')+button('确认','confirm-demo','','primary'));return;}
+        if(act==='carrier-submit'||act==='carrier-batch'){var cpicked=(act==='carrier-submit'?[id]:state.carrierSelection).filter(function(key){return carrierPending.some(function(x){return x.id===key&&!x.blocked;});});var csum=cpicked.reduce(function(s,key){var row=carrierPending.find(function(x){return x.id===key;});return s+(row?Number(row.freight):0);},0);openModal('新建承运商结款单','共选择 '+cpicked.length+' 组运费（应付运费合计 ¥'+csum.toFixed(2)+'）。确认后由平台结算账户划入承运商基本账户，到账后不再分佣。',false,button('取消','close')+button('确认','confirm-demo','','primary'));return;}
         if(act==='expand-compensation'){state.compensationExpanded=!state.compensationExpanded;render();return;}
         if(act==='export-compensation'){openModal('导出列表',note('真实管理端当前提示：导出列表待对接。'));return;}
         if(act==='policy-back'){state.policyMode='';state.policyEditing='';state.policyDraft=null;history.pushState(null,'',location.pathname+'?view=policy');render();return;}
@@ -586,6 +653,8 @@
         if(e.target.dataset.config)config[e.target.dataset.config]=e.target.value;
         if(e.target.dataset.selectSupplier){state.supplierSelection=e.target.checked?state.supplierSelection.concat(e.target.dataset.selectSupplier):state.supplierSelection.filter(function(id){return id!==e.target.dataset.selectSupplier;});render();}
         if(e.target.dataset.selectSupplierAll!==undefined){var list=state.tab==='pending'?supplierPending:[];var visible=list.slice((state.supplierPage-1)*20,state.supplierPage*20).map(function(x){return x.id;});state.supplierSelection=e.target.checked?Array.from(new Set(state.supplierSelection.concat(visible))):state.supplierSelection.filter(function(id){return !visible.includes(id);});render();}
+        if(e.target.dataset.selectCarrier){state.carrierSelection=e.target.checked?state.carrierSelection.concat(e.target.dataset.selectCarrier):state.carrierSelection.filter(function(id){return id!==e.target.dataset.selectCarrier;});render();}
+        if(e.target.dataset.selectCarrierAll!==undefined){var clist=state.tab==='pending'?carrierPending:[];var cvisible=clist.slice((state.carrierPage-1)*20,state.carrierPage*20).map(function(x){return x.id;});state.carrierSelection=e.target.checked?Array.from(new Set(state.carrierSelection.concat(cvisible))):state.carrierSelection.filter(function(id){return !cvisible.includes(id);});render();}
         if(e.target.dataset.policy && state.policyDraft){state.policyDraft[e.target.dataset.policy]=e.target.type==='checkbox'?e.target.checked:e.target.value;}
         if(e.target.name==='orderType'||e.target.name==='channel'){state.policyDraft[e.target.name]=e.target.value;render();}
     });

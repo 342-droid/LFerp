@@ -15,7 +15,11 @@
     { name: '东北珍珠米 5kg', img: 'order-product-2.svg' }
   ];
   var NAMES = ['赵金芝', '刘十九', '杜建锋', '周敏', '陈浩', '孙丽', '吴凯', '郑晓'];
-  var STORES = ['华强北', '悠悠生鲜超市', '德清乾元天恩冷丰店'];
+  var STORES = [
+    { name: '华强北', storeId: 'ONS303445581210', orgId: '冷丰演示门店' },
+    { name: '悠悠生鲜超市', storeId: 'ONS303445581211', orgId: '五角场体验店' },
+    { name: '德清乾元天恩冷丰店', storeId: 'ONS303445581212', orgId: '张江快闪店' }
+  ];
   var SCENARIOS = [
     { status: '待支付', tag: 'order-tag--pending-pay', mode: 'pickup', pay: '', payLabel: '-', scene: '商城', as: '', demo: '', skip: false, sale: '普通售卖' },
     { status: '待支付', tag: 'order-tag--pending-pay', mode: 'express', pay: '', payLabel: '-', scene: '直播', as: '', demo: '', skip: false, sale: '拉新赠品' },
@@ -112,7 +116,9 @@
       ' data-order-id="' + id + '"' +
       ' data-delivery-mode="' + spec.mode + '"' +
       ' data-pay-channel="' + spec.pay + '"' +
-      ' data-store="' + esc(store) + '"' +
+      ' data-store="' + esc(store.name) + '"' +
+      ' data-store-id="' + esc(store.storeId) + '"' +
+      ' data-org-id="' + esc(store.orgId) + '"' +
       ' data-pay-no="' + payNo + '"' +
       ' data-ordered-at="' + dateText(when) + '"' +
       (live ? ' data-live-session="' + esc(live) + '"' : '') +
@@ -140,7 +146,9 @@
       '<td><span class="order-scene">' + spec.scene + '</span></td>' +
       '<td><span class="order-tag order-tag--scene order-delivery-mode">' + modeLabel + '</span></td>' +
       '<td>' + spec.payLabel + '</td>' +
-      '<td>' + esc(store) + '</td>' +
+      '<td>' + esc(store.name) + '</td>' +
+      '<td>' + esc(store.storeId) + '</td>' +
+      '<td>' + esc(store.orgId) + '</td>' +
       '<td class="order-pay-no">' + (payNo || '-') + '</td>' +
       '<td class="order-status-cell"><span class="order-tag ' + spec.tag + '">' + spec.status + '</span></td>' +
       '<td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="' + id + '">查看</a></td>' +

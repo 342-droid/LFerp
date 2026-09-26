@@ -1,4 +1,4 @@
-/* 结算侧栏：与真实结算工作台对应的五组页面。 */
+/* 结算侧栏：清分、策略、供应商、承运商运费、佣金、补偿。 */
 (function () {
     var wp = window.wmsPath || { page: function (f) { return f; }, asset: function (r) { return r; } };
     var currentPage = String(window.location.pathname.split('/').pop() || '').replace(/\.html$/i, '');
@@ -10,6 +10,7 @@
         summary: '清分汇总',
         policy: '策略管理',
         supplier: '供应商结算',
+        carrier: '承运商结算',
         commission: '佣金清算',
         compensation: '补偿结款'
     };

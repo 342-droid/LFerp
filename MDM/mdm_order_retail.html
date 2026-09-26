@@ -165,13 +165,24 @@
                                     </select>
                                 </div>
                                 <div class="order-filter-field">
-                                    <label class="order-filter-field__label" for="qStore">下单门店</label>
-                                    <select class="order-filter-field__select" id="qStore">
+                                    <div class="order-filter-switch" data-order-filter-switch="store">
+                                        <button type="button" class="order-filter-switch__trigger" aria-expanded="false" aria-haspopup="listbox">
+                                            <span class="order-filter-switch__text">下单门店</span>
+                                        </button>
+                                        <div class="order-filter-switch__menu" hidden role="listbox">
+                                            <button type="button" class="order-filter-switch__item is-active" role="option" aria-selected="true" data-value="store" data-control="select">下单门店</button>
+                                            <button type="button" class="order-filter-switch__item" role="option" aria-selected="false" data-value="storeId" data-control="input" data-placeholder="请输入门店ID">门店ID</button>
+                                            <button type="button" class="order-filter-switch__item" role="option" aria-selected="false" data-value="orgId" data-control="input" data-placeholder="请输入所属组织">所属组织</button>
+                                        </div>
+                                        <input type="hidden" id="qStoreKey" name="qStoreKey" value="store">
+                                    </div>
+                                    <select class="order-filter-field__select" id="qStore" data-switch-control="select" aria-label="下单门店">
                                         <option value="">全部</option>
                                         <option value="华强北">华强北</option>
                                         <option value="悠悠生鲜超市">悠悠生鲜超市</option>
                                         <option value="德清乾元天恩冷丰店">德清乾元天恩冷丰店</option>
                                     </select>
+                                    <input class="order-filter-field__input" id="qStoreKeyword" data-switch-control="input" type="text" placeholder="请输入门店ID" aria-label="门店ID" hidden>
                                 </div>
                                 <div class="order-filter-field">
                                     <label class="order-filter-field__label" for="qPayNo">支付流水</label>
@@ -237,13 +248,15 @@
                                         <th data-preference-key="fulfillmentMethod">履约方式</th>
                                         <th data-preference-key="paymentChannel">支付渠道</th>
                                         <th data-preference-key="orderStore">下单门店</th>
+                                        <th data-preference-key="storeId">门店ID</th>
+                                        <th data-preference-key="orgId">所属组织</th>
                                         <th data-preference-key="paymentNo">支付流水</th>
                                         <th data-preference-key="orderStatus">订单状态</th>
                                         <th class="order-live-table__sticky-col">操作</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr data-order-id="ORD-3212689201598341" data-delivery-mode="pickup" data-pay-channel="wechat" data-store="华强北" data-pay-no="4200009201598341" data-live-session="美物甄选-9.7午间场" data-ordered-at="2026-09-10">
+                                    <tr data-order-id="ORD-3212689201598341" data-delivery-mode="pickup" data-pay-channel="wechat" data-store="华强北" data-store-id="ONS303445581210" data-org-id="冷丰演示门店" data-pay-no="4200009201598341" data-live-session="美物甄选-9.7午间场" data-ordered-at="2026-09-10">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201598341">ORD-3212689201598341</a></td>
                                         <td>2026-09-10 20:47</td>
                                         <td>赵金芝</td>
@@ -267,11 +280,13 @@
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>-</td>
                                         <td>华强北</td>
+                                        <td>ONS303445581210</td>
+                                        <td>冷丰演示门店</td>
                                         <td class="order-pay-no">4200009201598341</td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--failed">交易失败</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201598341">查看</a></td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201588561" data-delivery-mode="express" data-pay-channel="wechat" data-store="悠悠生鲜超市" data-pay-no="4200009201588561" data-ordered-at="2026-09-10">
+                                    <tr data-order-id="ORD-3212689201588561" data-delivery-mode="express" data-pay-channel="wechat" data-store="悠悠生鲜超市" data-store-id="ONS303445581211" data-org-id="五角场体验店" data-pay-no="4200009201588561" data-ordered-at="2026-09-10">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201588561">ORD-3212689201588561</a></td>
                                         <td>2026-09-10 20:46</td>
                                         <td>赵金芝</td>
@@ -295,6 +310,8 @@
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">快递</span></td>
                                         <td>-</td>
                                         <td>悠悠生鲜超市</td>
+                                        <td>ONS303445581211</td>
+                                        <td>五角场体验店</td>
                                         <td class="order-pay-no">4200009201588561</td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--pending-ship">待发货</span></td>
                                         <td class="order-live-table__sticky-col">
@@ -304,7 +321,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201599501" data-delivery-mode="pickup" data-pay-channel="wechat" data-store="华强北" data-pay-no="4200009201599501" data-ordered-at="2026-09-13" data-skip-po="1" data-cutoff-source="after_pay">
+                                    <tr data-order-id="ORD-3212689201599501" data-delivery-mode="pickup" data-pay-channel="wechat" data-store="华强北" data-store-id="ONS303445581210" data-org-id="冷丰演示门店" data-pay-no="4200009201599501" data-ordered-at="2026-09-13" data-skip-po="1" data-cutoff-source="after_pay">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599501">ORD-3212689201599501</a></td>
                                         <td>2026-09-13 09:18</td>
                                         <td>赵金芝</td>
@@ -328,11 +345,13 @@
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>微信</td>
                                         <td>华强北</td>
+                                        <td>ONS303445581210</td>
+                                        <td>冷丰演示门店</td>
                                         <td class="order-pay-no">4200009201599501</td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--pickup">待核销</span></td>
                                         <td class="order-live-table__sticky-col"><div class="order-live-table__actions"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599501">查看</a></div></td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201599601" data-delivery-mode="pickup" data-pay-channel="wechat" data-store="华强北" data-pay-no="4200009201599601" data-ordered-at="2026-09-14" data-skip-po="1" data-cutoff-source="after_pay" data-sibling-order="ORD-3212689201599602">
+                                    <tr data-order-id="ORD-3212689201599601" data-delivery-mode="pickup" data-pay-channel="wechat" data-store="华强北" data-store-id="ONS303445581210" data-org-id="冷丰演示门店" data-pay-no="4200009201599601" data-ordered-at="2026-09-14" data-skip-po="1" data-cutoff-source="after_pay" data-sibling-order="ORD-3212689201599602">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599601">ORD-3212689201599601</a></td>
                                         <td>2026-09-14 10:22</td>
                                         <td>赵金芝</td>
@@ -356,11 +375,13 @@
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>微信</td>
                                         <td>华强北</td>
+                                        <td>ONS303445581210</td>
+                                        <td>冷丰演示门店</td>
                                         <td class="order-pay-no">4200009201599601</td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--pickup">待核销</span></td>
                                         <td class="order-live-table__sticky-col"><div class="order-live-table__actions"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599601">查看</a></div></td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201599602" data-delivery-mode="pickup" data-pay-channel="wechat" data-store="华强北" data-pay-no="4200009201599601" data-ordered-at="2026-09-14" data-sibling-order="ORD-3212689201599601">
+                                    <tr data-order-id="ORD-3212689201599602" data-delivery-mode="pickup" data-pay-channel="wechat" data-store="华强北" data-store-id="ONS303445581210" data-org-id="冷丰演示门店" data-pay-no="4200009201599601" data-ordered-at="2026-09-14" data-sibling-order="ORD-3212689201599601">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599602">ORD-3212689201599602</a></td>
                                         <td>2026-09-14 10:22</td>
                                         <td>赵金芝</td>
@@ -384,11 +405,13 @@
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>微信</td>
                                         <td>华强北</td>
+                                        <td>ONS303445581210</td>
+                                        <td>冷丰演示门店</td>
                                         <td class="order-pay-no">4200009201599601</td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--pending-ship">待发货</span></td>
                                         <td class="order-live-table__sticky-col"><div class="order-live-table__actions"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599602">查看</a></div></td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201599801" data-delivery-mode="pickup" data-pay-channel="wechat" data-store="华强北" data-pay-no="4200009201599801" data-ordered-at="2026-09-15" data-sibling-order="ORD-3212689201599802">
+                                    <tr data-order-id="ORD-3212689201599801" data-delivery-mode="pickup" data-pay-channel="wechat" data-store="华强北" data-store-id="ONS303445581210" data-org-id="冷丰演示门店" data-pay-no="4200009201599801" data-ordered-at="2026-09-15" data-sibling-order="ORD-3212689201599802">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599801">ORD-3212689201599801</a></td>
                                         <td>2026-09-15 11:06</td>
                                         <td>周晓棠</td>
@@ -417,11 +440,13 @@
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>微信</td>
                                         <td>华强北</td>
+                                        <td>ONS303445581210</td>
+                                        <td>冷丰演示门店</td>
                                         <td class="order-pay-no">4200009201599801</td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--pending-ship">待发货</span></td>
                                         <td class="order-live-table__sticky-col"><div class="order-live-table__actions"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599801">查看</a></div></td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201599802" data-delivery-mode="express" data-pay-channel="wechat" data-store="华强北" data-pay-no="4200009201599801" data-ordered-at="2026-09-15" data-sibling-order="ORD-3212689201599801">
+                                    <tr data-order-id="ORD-3212689201599802" data-delivery-mode="express" data-pay-channel="wechat" data-store="华强北" data-store-id="ONS303445581210" data-org-id="冷丰演示门店" data-pay-no="4200009201599801" data-ordered-at="2026-09-15" data-sibling-order="ORD-3212689201599801">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599802">ORD-3212689201599802</a></td>
                                         <td>2026-09-15 11:06</td>
                                         <td>周晓棠</td>
@@ -445,11 +470,13 @@
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">快递</span></td>
                                         <td>微信</td>
                                         <td>华强北</td>
+                                        <td>ONS303445581210</td>
+                                        <td>冷丰演示门店</td>
                                         <td class="order-pay-no">4200009201599801</td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--pending-ship">待发货</span></td>
                                         <td class="order-live-table__sticky-col"><div class="order-live-table__actions"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599802">查看</a><button type="button" class="order-live-table__action js-retail-upload-express" data-order-id="ORD-3212689201599802">上传快递单</button></div></td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201599803" data-delivery-mode="express" data-pay-channel="wechat" data-store="华强北" data-pay-no="4200009201599801" data-ordered-at="2026-09-15" data-sibling-order="ORD-3212689201599801">
+                                    <tr data-order-id="ORD-3212689201599803" data-delivery-mode="express" data-pay-channel="wechat" data-store="华强北" data-store-id="ONS303445581210" data-org-id="冷丰演示门店" data-pay-no="4200009201599801" data-ordered-at="2026-09-15" data-sibling-order="ORD-3212689201599801">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599803">ORD-3212689201599803</a></td>
                                         <td>2026-09-15 11:06</td>
                                         <td>周晓棠</td>
@@ -473,11 +500,13 @@
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">快递</span></td>
                                         <td>微信</td>
                                         <td>华强北</td>
+                                        <td>ONS303445581210</td>
+                                        <td>冷丰演示门店</td>
                                         <td class="order-pay-no">4200009201599801</td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--pending-ship">待发货</span></td>
                                         <td class="order-live-table__sticky-col"><div class="order-live-table__actions"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599803">查看</a><button type="button" class="order-live-table__action js-retail-upload-express" data-order-id="ORD-3212689201599803">上传快递单</button></div></td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201588561-B" data-delivery-mode="pickup" data-pay-channel="wechat" data-store="华强北" data-pay-no="4200009201588566" data-live-session="美物甄选-9.6晚间场X" data-ordered-at="2026-09-09">
+                                    <tr data-order-id="ORD-3212689201588561-B" data-delivery-mode="pickup" data-pay-channel="wechat" data-store="华强北" data-store-id="ONS303445581210" data-org-id="冷丰演示门店" data-pay-no="4200009201588566" data-live-session="美物甄选-9.6晚间场X" data-ordered-at="2026-09-09">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201588561-B">ORD-3212689201588561</a></td>
                                         <td>2026-09-09 09:36</td>
                                         <td>赵金芝</td>
@@ -501,12 +530,14 @@
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>微信</td>
                                         <td>华强北</td>
+                                        <td>ONS303445581210</td>
+                                        <td>冷丰演示门店</td>
                                         <td class="order-pay-no">4200009201588566</td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--pending-accept">待接单</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201588561-B">查看</a></td>
                                     </tr>
                                     <!-- 清分明细 + 多规格商品列演示：哈密瓜-自提 / 无糖酸奶；供应商采购成本=采购价×售卖系数×下单数量 -->
-                                    <tr data-order-id="ORD-3212689201599201" data-delivery-mode="pickup" data-pay-channel="wechat" data-store="德清乾元天恩冷丰店" data-pay-no="4200003526305636" data-ordered-at="2026-09-09">
+                                    <tr data-order-id="ORD-3212689201599201" data-delivery-mode="pickup" data-pay-channel="wechat" data-store="德清乾元天恩冷丰店" data-store-id="ONS303445581212" data-org-id="张江快闪店" data-pay-no="4200003526305636" data-ordered-at="2026-09-09">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599201">ORD-3212689201599201</a></td>
                                         <td>2026-09-09 15:20</td>
                                         <td>赵金芝</td>
@@ -536,6 +567,8 @@
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>微信</td>
                                         <td>德清乾元天恩冷丰店</td>
+                                        <td>ONS303445581212</td>
+                                        <td>张江快闪店</td>
                                         <td class="order-pay-no">4200003526305636</td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--pickup">待提货</span></td>
                                         <td class="order-live-table__sticky-col">
@@ -545,7 +578,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201599301" data-delivery-mode="pickup" data-pay-channel="wechat" data-store="华强北" data-pay-no="4200009201599301" data-ordered-at="2026-09-11">
+                                    <tr data-order-id="ORD-3212689201599301" data-delivery-mode="pickup" data-pay-channel="wechat" data-store="华强北" data-store-id="ONS303445581210" data-org-id="冷丰演示门店" data-pay-no="4200009201599301" data-ordered-at="2026-09-11">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599301">ORD-3212689201599301</a></td>
                                         <td>2026-09-11 20:15</td>
                                         <td>周晓棠</td>
@@ -574,6 +607,8 @@
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>微信</td>
                                         <td>华强北</td>
+                                        <td>ONS303445581210</td>
+                                        <td>冷丰演示门店</td>
                                         <td class="order-pay-no">4200009201599301</td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--pickup">待提货</span></td>
                                         <td class="order-live-table__sticky-col">
@@ -583,7 +618,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201599302" data-delivery-mode="express" data-pay-channel="wechat" data-store="悠悠生鲜超市" data-pay-no="4200009201599302" data-ordered-at="2026-09-11">
+                                    <tr data-order-id="ORD-3212689201599302" data-delivery-mode="express" data-pay-channel="wechat" data-store="悠悠生鲜超市" data-store-id="ONS303445581211" data-org-id="五角场体验店" data-pay-no="4200009201599302" data-ordered-at="2026-09-11">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599302">ORD-3212689201599302</a></td>
                                         <td>2026-09-11 14:08</td>
                                         <td>陈予安</td>
@@ -612,6 +647,8 @@
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">快递</span></td>
                                         <td>微信</td>
                                         <td>悠悠生鲜超市</td>
+                                        <td>ONS303445581211</td>
+                                        <td>五角场体验店</td>
                                         <td class="order-pay-no">4200009201599302</td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--pending-ship">待发货</span></td>
                                         <td class="order-live-table__sticky-col">
@@ -621,7 +658,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201599303" data-delivery-mode="pickup" data-pay-channel="alipay" data-store="德清乾元天恩冷丰店" data-pay-no="2026091001599303" data-live-session="美物甄选-9.10晚间场" data-ordered-at="2026-09-10">
+                                    <tr data-order-id="ORD-3212689201599303" data-delivery-mode="pickup" data-pay-channel="alipay" data-store="德清乾元天恩冷丰店" data-store-id="ONS303445581212" data-org-id="张江快闪店" data-pay-no="2026091001599303" data-live-session="美物甄选-9.10晚间场" data-ordered-at="2026-09-10">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599303">ORD-3212689201599303</a></td>
                                         <td>2026-09-10 19:42</td>
                                         <td>何清和</td>
@@ -650,6 +687,8 @@
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>支付宝</td>
                                         <td>德清乾元天恩冷丰店</td>
+                                        <td>ONS303445581212</td>
+                                        <td>张江快闪店</td>
                                         <td class="order-pay-no">2026091001599303</td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--pickup">待提货</span></td>
                                         <td class="order-live-table__sticky-col">
@@ -659,7 +698,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201599304" data-delivery-mode="express" data-pay-channel="wechat" data-store="华强北" data-pay-no="4200009201599304" data-ordered-at="2026-09-10">
+                                    <tr data-order-id="ORD-3212689201599304" data-delivery-mode="express" data-pay-channel="wechat" data-store="华强北" data-store-id="ONS303445581210" data-org-id="冷丰演示门店" data-pay-no="4200009201599304" data-ordered-at="2026-09-10">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599304">ORD-3212689201599304</a></td>
                                         <td>2026-09-10 11:20</td>
                                         <td>苏晚晴</td>
@@ -688,6 +727,8 @@
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">快递</span></td>
                                         <td>微信</td>
                                         <td>华强北</td>
+                                        <td>ONS303445581210</td>
+                                        <td>冷丰演示门店</td>
                                         <td class="order-pay-no">4200009201599304</td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--pending-ship">待发货</span></td>
                                         <td class="order-live-table__sticky-col">
@@ -697,7 +738,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201584693" data-delivery-mode="pickup" data-pay-channel="alipay" data-as-status="待审核" data-store="德清乾元天恩冷丰店" data-pay-no="2026083101584693" data-live-session="美物甄选-9.6晚间场L" data-ordered-at="2026-09-08">
+                                    <tr data-order-id="ORD-3212689201584693" data-delivery-mode="pickup" data-pay-channel="alipay" data-as-status="待审核" data-store="德清乾元天恩冷丰店" data-store-id="ONS303445581212" data-org-id="张江快闪店" data-pay-no="2026083101584693" data-live-session="美物甄选-9.6晚间场L" data-ordered-at="2026-09-08">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201584693">ORD-3212689201584693</a></td>
                                         <td>2026-09-08 18:07</td>
                                         <td>赵金芝</td>
@@ -721,11 +762,13 @@
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>支付宝</td>
                                         <td>德清乾元天恩冷丰店</td>
+                                        <td>ONS303445581212</td>
+                                        <td>张江快闪店</td>
                                         <td class="order-pay-no">2026083101584693</td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--receipt">待收货</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201584693">查看</a></td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201562037-A" data-delivery-mode="pickup" data-as-status="退货中" data-store="华强北" data-pay-no="" data-ordered-at="2026-09-08">
+                                    <tr data-order-id="ORD-3212689201562037-A" data-delivery-mode="pickup" data-as-status="退货中" data-store="华强北" data-store-id="ONS303445581210" data-org-id="冷丰演示门店" data-pay-no="" data-ordered-at="2026-09-08">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201562037-A">ORD-3212689201562037</a></td>
                                         <td>2026-09-08 18:06</td>
                                         <td>赵金芝</td>
@@ -749,11 +792,13 @@
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>-</td>
                                         <td>华强北</td>
+                                        <td>ONS303445581210</td>
+                                        <td>冷丰演示门店</td>
                                         <td class="order-pay-no">-</td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--pending-pay">待支付</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201562037-A">查看</a></td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201562037-B" data-delivery-mode="pickup" data-as-status="退货成功" data-store="悠悠生鲜超市" data-pay-no="" data-live-session="美物甄选-9.6午间场" data-ordered-at="2026-09-07">
+                                    <tr data-order-id="ORD-3212689201562037-B" data-delivery-mode="pickup" data-as-status="退货成功" data-store="悠悠生鲜超市" data-store-id="ONS303445581211" data-org-id="五角场体验店" data-pay-no="" data-live-session="美物甄选-9.6午间场" data-ordered-at="2026-09-07">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201562037-B">ORD-3212689201562037</a></td>
                                         <td>2026-09-07 18:05</td>
                                         <td>赵金芝</td>
@@ -777,11 +822,13 @@
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>-</td>
                                         <td>悠悠生鲜超市</td>
+                                        <td>ONS303445581211</td>
+                                        <td>五角场体验店</td>
                                         <td class="order-pay-no">-</td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--pending-pay">待支付</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201562037-B">查看</a></td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201560683" data-delivery-mode="pickup" data-as-status="退款成功" data-store="德清乾元天恩冷丰店" data-pay-no="" data-live-session="美物甄选-9.5晚间场X" data-ordered-at="2026-09-06">
+                                    <tr data-order-id="ORD-3212689201560683" data-delivery-mode="pickup" data-as-status="退款成功" data-store="德清乾元天恩冷丰店" data-store-id="ONS303445581212" data-org-id="张江快闪店" data-pay-no="" data-live-session="美物甄选-9.5晚间场X" data-ordered-at="2026-09-06">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201560683">ORD-3212689201560683</a></td>
                                         <td>2026-09-06 18:04</td>
                                         <td>赵金芝</td>
@@ -805,11 +852,13 @@
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>-</td>
                                         <td>德清乾元天恩冷丰店</td>
+                                        <td>ONS303445581212</td>
+                                        <td>张江快闪店</td>
                                         <td class="order-pay-no">-</td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--pending-pay">待支付</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201560683">查看</a></td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201599001" data-delivery-mode="express" data-pay-channel="wechat" data-store="悠悠生鲜超市" data-pay-no="4200009201599001" data-ordered-at="2026-09-05">
+                                    <tr data-order-id="ORD-3212689201599001" data-delivery-mode="express" data-pay-channel="wechat" data-store="悠悠生鲜超市" data-store-id="ONS303445581211" data-org-id="五角场体验店" data-pay-no="4200009201599001" data-ordered-at="2026-09-05">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599001">ORD-3212689201599001</a></td>
                                         <td>2026-09-05 14:20</td>
                                         <td>宁静致远</td>
@@ -833,6 +882,8 @@
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">快递</span></td>
                                         <td>微信</td>
                                         <td>悠悠生鲜超市</td>
+                                        <td>ONS303445581211</td>
+                                        <td>五角场体验店</td>
                                         <td class="order-pay-no">4200009201599001</td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--receipt">待收货</span></td>
                                         <td class="order-live-table__sticky-col">
@@ -842,7 +893,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201599001-B" data-delivery-mode="pickup" data-pay-channel="wechat" data-store="华强北" data-pay-no="4200009201599001B" data-ordered-at="2026-09-08">
+                                    <tr data-order-id="ORD-3212689201599001-B" data-delivery-mode="pickup" data-pay-channel="wechat" data-store="华强北" data-store-id="ONS303445581210" data-org-id="冷丰演示门店" data-pay-no="4200009201599001B" data-ordered-at="2026-09-08">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599001-B">ORD-3212689201599001-B</a></td>
                                         <td>2026-09-08 11:26</td>
                                         <td>林秋实</td>
@@ -866,6 +917,8 @@
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>微信</td>
                                         <td>华强北</td>
+                                        <td>ONS303445581210</td>
+                                        <td>冷丰演示门店</td>
                                         <td class="order-pay-no">4200009201599001B</td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--pickup">待提货</span></td>
                                         <td class="order-live-table__sticky-col">
@@ -875,7 +928,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201599002" data-delivery-mode="pickup" data-pay-channel="alipay" data-demo-as="退款中·禁核销" data-store="华强北" data-pay-no="2026083101599002" data-live-session="美物甄选-9.5晚间场L" data-ordered-at="2026-09-04">
+                                    <tr data-order-id="ORD-3212689201599002" data-delivery-mode="pickup" data-pay-channel="alipay" data-demo-as="退款中·禁核销" data-store="华强北" data-store-id="ONS303445581210" data-org-id="冷丰演示门店" data-pay-no="2026083101599002" data-live-session="美物甄选-9.5晚间场L" data-ordered-at="2026-09-04">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599002">ORD-3212689201599002</a></td>
                                         <td>2026-09-04 11:35</td>
                                         <td>宋雨琦</td>
@@ -899,6 +952,8 @@
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>支付宝</td>
                                         <td>华强北</td>
+                                        <td>ONS303445581210</td>
+                                        <td>冷丰演示门店</td>
                                         <td class="order-pay-no">2026083101599002</td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--pickup">待提货</span></td>
                                         <td class="order-live-table__sticky-col">
@@ -909,7 +964,7 @@
                                         </td>
                                     </tr>
                                     <!-- 自提核销×售后状态演示：9101~9108 -->
-                                    <tr data-order-id="ORD-3212689201599101" data-delivery-mode="pickup" data-pay-channel="wechat" data-demo-as="待审批·可核销" data-store="华强北" data-pay-no="4200009201599101" data-ordered-at="2026-08-30">
+                                    <tr data-order-id="ORD-3212689201599101" data-delivery-mode="pickup" data-pay-channel="wechat" data-demo-as="待审批·可核销" data-store="华强北" data-store-id="ONS303445581210" data-org-id="冷丰演示门店" data-pay-no="4200009201599101" data-ordered-at="2026-08-30">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599101">ORD-3212689201599101</a></td>
                                         <td>2026-08-30 09:10</td>
                                         <td>林小满</td>
@@ -933,6 +988,8 @@
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>微信</td>
                                         <td>华强北</td>
+                                        <td>ONS303445581210</td>
+                                        <td>冷丰演示门店</td>
                                         <td class="order-pay-no">4200009201599101</td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--pickup">待提货</span></td>
                                         <td class="order-live-table__sticky-col">
@@ -942,7 +999,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201599102" data-delivery-mode="pickup" data-pay-channel="alipay" data-demo-as="待退货·禁核销" data-store="悠悠生鲜超市" data-pay-no="2026083101599102" data-ordered-at="2026-08-28">
+                                    <tr data-order-id="ORD-3212689201599102" data-delivery-mode="pickup" data-pay-channel="alipay" data-demo-as="待退货·禁核销" data-store="悠悠生鲜超市" data-store-id="ONS303445581211" data-org-id="五角场体验店" data-pay-no="2026083101599102" data-ordered-at="2026-08-28">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599102">ORD-3212689201599102</a></td>
                                         <td>2026-08-28 09:22</td>
                                         <td>周可欣</td>
@@ -966,6 +1023,8 @@
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>支付宝</td>
                                         <td>悠悠生鲜超市</td>
+                                        <td>ONS303445581211</td>
+                                        <td>五角场体验店</td>
                                         <td class="order-pay-no">2026083101599102</td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--pickup">待提货</span></td>
                                         <td class="order-live-table__sticky-col">
@@ -975,7 +1034,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201599103" data-delivery-mode="pickup" data-pay-channel="wechat" data-demo-as="待收货·禁核销" data-store="德清乾元天恩冷丰店" data-pay-no="4200009201599103" data-ordered-at="2026-08-25">
+                                    <tr data-order-id="ORD-3212689201599103" data-delivery-mode="pickup" data-pay-channel="wechat" data-demo-as="待收货·禁核销" data-store="德清乾元天恩冷丰店" data-store-id="ONS303445581212" data-org-id="张江快闪店" data-pay-no="4200009201599103" data-ordered-at="2026-08-25">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599103">ORD-3212689201599103</a></td>
                                         <td>2026-08-25 09:35</td>
                                         <td>韩冬梅</td>
@@ -999,6 +1058,8 @@
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>微信</td>
                                         <td>德清乾元天恩冷丰店</td>
+                                        <td>ONS303445581212</td>
+                                        <td>张江快闪店</td>
                                         <td class="order-pay-no">4200009201599103</td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--pickup">待提货</span></td>
                                         <td class="order-live-table__sticky-col">
@@ -1008,7 +1069,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201599104" data-delivery-mode="pickup" data-pay-channel="alipay" data-demo-as="退款异常·禁核销" data-store="华强北" data-pay-no="2026083101599104" data-ordered-at="2026-08-20">
+                                    <tr data-order-id="ORD-3212689201599104" data-delivery-mode="pickup" data-pay-channel="alipay" data-demo-as="退款异常·禁核销" data-store="华强北" data-store-id="ONS303445581210" data-org-id="冷丰演示门店" data-pay-no="2026083101599104" data-ordered-at="2026-08-20">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599104">ORD-3212689201599104</a></td>
                                         <td>2026-08-20 09:48</td>
                                         <td>陈晓东</td>
@@ -1032,6 +1093,8 @@
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>支付宝</td>
                                         <td>华强北</td>
+                                        <td>ONS303445581210</td>
+                                        <td>冷丰演示门店</td>
                                         <td class="order-pay-no">2026083101599104</td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--pickup">待提货</span></td>
                                         <td class="order-live-table__sticky-col">
@@ -1041,7 +1104,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201599105" data-delivery-mode="pickup" data-pay-channel="wechat" data-demo-as="仅补货·可核销" data-store="悠悠生鲜超市" data-pay-no="4200009201599105" data-ordered-at="2026-08-15">
+                                    <tr data-order-id="ORD-3212689201599105" data-delivery-mode="pickup" data-pay-channel="wechat" data-demo-as="仅补货·可核销" data-store="悠悠生鲜超市" data-store-id="ONS303445581211" data-org-id="五角场体验店" data-pay-no="4200009201599105" data-ordered-at="2026-08-15">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599105">ORD-3212689201599105</a></td>
                                         <td>2026-08-15 10:05</td>
                                         <td>顾清清</td>
@@ -1065,6 +1128,8 @@
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>微信</td>
                                         <td>悠悠生鲜超市</td>
+                                        <td>ONS303445581211</td>
+                                        <td>五角场体验店</td>
                                         <td class="order-pay-no">4200009201599105</td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--pickup">待提货</span></td>
                                         <td class="order-live-table__sticky-col">
@@ -1074,7 +1139,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201599106" data-delivery-mode="pickup" data-pay-channel="alipay" data-demo-as="无售后·可核销" data-store="德清乾元天恩冷丰店" data-pay-no="2026083101599106" data-ordered-at="2026-08-12">
+                                    <tr data-order-id="ORD-3212689201599106" data-delivery-mode="pickup" data-pay-channel="alipay" data-demo-as="无售后·可核销" data-store="德清乾元天恩冷丰店" data-store-id="ONS303445581212" data-org-id="张江快闪店" data-pay-no="2026083101599106" data-ordered-at="2026-08-12">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599106">ORD-3212689201599106</a></td>
                                         <td>2026-08-12 10:18</td>
                                         <td>马文博</td>
@@ -1098,6 +1163,8 @@
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>支付宝</td>
                                         <td>德清乾元天恩冷丰店</td>
+                                        <td>ONS303445581212</td>
+                                        <td>张江快闪店</td>
                                         <td class="order-pay-no">2026083101599106</td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--pickup">待提货</span></td>
                                         <td class="order-live-table__sticky-col">
@@ -1107,7 +1174,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201599107" data-delivery-mode="pickup" data-pay-channel="wechat" data-demo-as="退款已完成·可核销" data-store="华强北" data-pay-no="4200009201599107" data-ordered-at="2026-08-10">
+                                    <tr data-order-id="ORD-3212689201599107" data-delivery-mode="pickup" data-pay-channel="wechat" data-demo-as="退款已完成·可核销" data-store="华强北" data-store-id="ONS303445581210" data-org-id="冷丰演示门店" data-pay-no="4200009201599107" data-ordered-at="2026-08-10">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599107">ORD-3212689201599107</a></td>
                                         <td>2026-08-10 10:30</td>
                                         <td>许念慈</td>
@@ -1131,6 +1198,8 @@
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>微信</td>
                                         <td>华强北</td>
+                                        <td>ONS303445581210</td>
+                                        <td>冷丰演示门店</td>
                                         <td class="order-pay-no">4200009201599107</td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--pickup">待提货</span></td>
                                         <td class="order-live-table__sticky-col">
@@ -1140,7 +1209,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201599108" data-delivery-mode="pickup" data-pay-channel="alipay" data-demo-as="已拒绝·可核销" data-store="悠悠生鲜超市" data-pay-no="2026083101599108" data-ordered-at="2026-08-08">
+                                    <tr data-order-id="ORD-3212689201599108" data-delivery-mode="pickup" data-pay-channel="alipay" data-demo-as="已拒绝·可核销" data-store="悠悠生鲜超市" data-store-id="ONS303445581211" data-org-id="五角场体验店" data-pay-no="2026083101599108" data-ordered-at="2026-08-08">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599108">ORD-3212689201599108</a></td>
                                         <td>2026-08-08 10:42</td>
                                         <td>沈若兰</td>
@@ -1164,6 +1233,8 @@
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">自提</span></td>
                                         <td>支付宝</td>
                                         <td>悠悠生鲜超市</td>
+                                        <td>ONS303445581211</td>
+                                        <td>五角场体验店</td>
                                         <td class="order-pay-no">2026083101599108</td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--pickup">待提货</span></td>
                                         <td class="order-live-table__sticky-col">
@@ -1173,7 +1244,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201599003" data-delivery-mode="express" data-pay-channel="wechat" data-as-status="退款中" data-store="悠悠生鲜超市" data-pay-no="4200009201599003" data-ordered-at="2026-09-03">
+                                    <tr data-order-id="ORD-3212689201599003" data-delivery-mode="express" data-pay-channel="wechat" data-as-status="退款中" data-store="悠悠生鲜超市" data-store-id="ONS303445581211" data-org-id="五角场体验店" data-pay-no="4200009201599003" data-ordered-at="2026-09-03">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201599003">ORD-3212689201599003</a></td>
                                         <td>2026-09-03 16:48</td>
                                         <td>赵金芝</td>
@@ -1203,6 +1274,8 @@
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">快递</span></td>
                                         <td>微信</td>
                                         <td>悠悠生鲜超市</td>
+                                        <td>ONS303445581211</td>
+                                        <td>五角场体验店</td>
                                         <td class="order-pay-no">4200009201599003</td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--receipt">待收货</span></td>
                                         <td class="order-live-table__sticky-col">
@@ -1212,7 +1285,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                    <tr data-order-id="ORD-3212689201560682" data-delivery-mode="express" data-pay-channel="alipay" data-store="悠悠生鲜超市" data-pay-no="2026083101560682" data-live-session="美物甄选-9.5午间场L" data-ordered-at="2026-09-01">
+                                    <tr data-order-id="ORD-3212689201560682" data-delivery-mode="express" data-pay-channel="alipay" data-store="悠悠生鲜超市" data-store-id="ONS303445581211" data-org-id="五角场体验店" data-pay-no="2026083101560682" data-live-session="美物甄选-9.5午间场L" data-ordered-at="2026-09-01">
                                         <td><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201560682">ORD-3212689201560682</a></td>
                                         <td>2026-09-01 18:03</td>
                                         <td>赵金芝</td>
@@ -1236,6 +1309,8 @@
                                         <td><span class="order-tag order-tag--scene order-delivery-mode">快递</span></td>
                                         <td>支付宝</td>
                                         <td>悠悠生鲜超市</td>
+                                        <td>ONS303445581211</td>
+                                        <td>五角场体验店</td>
                                         <td class="order-pay-no">2026083101560682</td>
                                         <td class="order-status-cell"><span class="order-tag order-tag--success">交易成功</span></td>
                                         <td class="order-live-table__sticky-col"><a href="#" class="order-live-table__link js-order-view" data-order-id="ORD-3212689201560682">查看</a></td>
@@ -1277,9 +1352,9 @@
     <script src="../js/order-platform-aftersale.js?v=20260921-share-weights"></script>
     <script src="../js/vendor/xlsx.full.min.js"></script>
     <script src="../js/order-proxy-express.js?v=20260820-goods-info"></script>
-    <script src="../js/order-retail-demo-seed.js?v=20260923-retail-100"></script>
-    <script src="../js/order-live-list.js?v=20260923-retail-page"></script>
-    <script src="../js/order-live-detail.js?v=20260918-freight-reason"></script>
+    <script src="../js/order-retail-demo-seed.js?v=20260926-org-merchant"></script>
+    <script src="../js/order-live-list.js?v=20260926-org-name"></script>
+    <script src="../js/order-live-detail.js?v=20260926-proxy-cols"></script>
     <script src="../js/lf-table-personal-view.js?v=20260910-expand"></script>
 </body>
 </html>

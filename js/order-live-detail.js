@@ -5366,6 +5366,16 @@
     };
   }
 
+  var STORE_SUBJECT = {
+    '华强北': { storeId: 'ONS303445581210', orgName: '冷丰演示门店' },
+    '悠悠生鲜超市': { storeId: 'ONS303445581211', orgName: '五角场体验店' },
+    '德清乾元天恩冷丰店': { storeId: 'ONS303445581212', orgName: '张江快闪店' }
+  };
+
+  function storeSubjectOf(storeName) {
+    return STORE_SUBJECT[storeName] || { storeId: '-', orgName: '-' };
+  }
+
   function injectCendSplitRows() {
     var tbody = document.querySelector('.order-live-table tbody');
     if (!tbody) return;
@@ -5413,6 +5423,10 @@
       var day = String(rec.createdAt || '').slice(0, 10);
       var sib = (rec.siblingOrderNos || [])[0] || '';
       var payNo = rec.payNo || '';
+      var storeName = rec.storeName || (isProxyOrderPage() ? '悠悠生鲜超市' : '华强北');
+      var subject = storeSubjectOf(storeName);
+      var storeIdCells =
+        '<td>' + escapeText(subject.storeId) + '</td><td>' + escapeText(subject.orgName) + '</td>';
       var checkTd = isProxyOrderPage()
         ? '<td class="order-live-table__check-col"><input type="checkbox" class="table-checkbox js-order-proxy-check" aria-label="选择订单"></td>'
         : '<td class="order-live-table__check-col"><input type="checkbox" class="table-checkbox js-order-retail-check" aria-label="选择订单"></td>';
@@ -5423,7 +5437,11 @@
           '" data-fulfillment-mode="' +
           meta.proxyAttr +
           '" data-pay-channel="wechat" data-store="' +
-          escapeText(rec.storeName || '悠悠生鲜超市') +
+          escapeText(storeName) +
+          '" data-store-id="' +
+          escapeText(subject.storeId) +
+          '" data-org-id="' +
+          escapeText(subject.orgName) +
           '" data-pay-no="' +
           escapeText(payNo) +
           '" data-ordered-at="' +
@@ -5459,8 +5477,9 @@
           meta.proxyLabel +
           '</span></td>' +
           '<td>' +
-          escapeText(rec.storeName || '悠悠生鲜超市') +
+          escapeText(storeName) +
           '</td>' +
+          storeIdCells +
           '<td class="order-pay-no">' +
           escapeText(payNo || '-') +
           '</td>' +
@@ -5479,7 +5498,11 @@
           '" data-delivery-mode="' +
           meta.retailAttr +
           '" data-pay-channel="wechat" data-store="' +
-          escapeText(rec.storeName || '华强北') +
+          escapeText(storeName) +
+          '" data-store-id="' +
+          escapeText(subject.storeId) +
+          '" data-org-id="' +
+          escapeText(subject.orgName) +
           '" data-pay-no="' +
           escapeText(payNo) +
           '" data-ordered-at="' +
@@ -5517,8 +5540,9 @@
           '</span></td>' +
           '<td>微信</td>' +
           '<td>' +
-          escapeText(rec.storeName || '华强北') +
+          escapeText(storeName) +
           '</td>' +
+          storeIdCells +
           '<td class="order-pay-no">' +
           escapeText(payNo || '-') +
           '</td>' +
