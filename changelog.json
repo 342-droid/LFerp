@@ -1,10 +1,69 @@
 {
-  "latestSha": "64ab300da299fbd5dd002c0a8b0a923a1fe41467",
-  "total": 428,
+  "latestSha": "1035c5e19916ceaaa31bcf029aed4f3eaa7bf061",
+  "total": 429,
   "days": [
     {
       "date": "2026-09-24",
       "items": [
+        {
+          "sha": "1035c5e",
+          "type": "feat",
+          "text": "直播间和购物车的验收开关改为左侧纵向排列",
+          "author": "sisi",
+          "time": "18:20",
+          "pages": [
+            {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/category.html",
+              "module": "",
+              "title": "分类 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "module": "",
+              "title": "商城 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/live-room.html",
+              "text": "左侧验收开关分开纵向排列，一屏放不下时可单独滚动"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "text": "左侧验收开关同样分开纵向排列"
+            }
+          ]
+        },
         {
           "sha": "64ab300",
           "type": "docs",
