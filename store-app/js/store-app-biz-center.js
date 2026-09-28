@@ -9,7 +9,9 @@
     searchType: 'phone',
     keyword: '',
     balanceHidden: false,
-    withdrawable: 0
+    withdrawable: 0,
+    /* order 下单日期=预到账；credit 入账日期=实际到账 */
+    dim: 'order'
   };
 
   var SEARCH_TYPE_LABEL = {
@@ -20,8 +22,9 @@
     goods: '商品'
   };
 
-  /* 演示「今天」对齐佣金明细样例日，避免真实日期把时段打成空 */
-  var DEMO_TODAY = '2026-08-03';
+  function demoToday() {
+    return (window.StoreAppBizOrders && StoreAppBizOrders.DEMO_TODAY) || '';
+  }
 
   function earnedOf(o) {
     if (window.StoreAppBizOrders && typeof StoreAppBizOrders.earnedCommission === 'function') {
@@ -44,53 +47,39 @@
   }
 
   function buildSummary() {
-    var todayD = parseDay(DEMO_TODAY);
-    var yestD = todayD ? new Date(todayD.getTime() - 86400000) : null;
-    var weekStart = todayD ? new Date(todayD.getTime() - 6 * 86400000) : null;
-    var monthStart = todayD ? new Date(todayD.getFullYear(), todayD.getMonth(), 1) : null;
-    function dayOf(o) {
-      return parseDay(o.dayKey || o.date);
-    }
-    function inDay(o, d) {
-      var od = dayOf(o);
-      return od && d && od.getTime() === d.getTime();
-    }
-    function fromDay(o, start) {
-      var od = dayOf(o);
-      return od && start && od.getTime() >= start.getTime();
+    if (window.StoreAppBizOrders && typeof StoreAppBizOrders.summarizeCommission === 'function') {
+      var pack = StoreAppBizOrders.summarizeCommission(ORDERS, state.dim, demoToday());
+      return {
+        kind: pack.kind,
+        totalLabel: pack.totalLabel,
+        periodSuffix: pack.periodSuffix,
+        totalAmt: pack.total.amt,
+        totalCnt: pack.total.cnt,
+        todayAmt: pack.today.amt,
+        todayCnt: pack.today.cnt,
+        yestAmt: pack.yest.amt,
+        yestCnt: pack.yest.cnt,
+        weekAmt: pack.week.amt,
+        weekCnt: pack.week.cnt,
+        monthAmt: pack.month.amt,
+        monthCnt: pack.month.cnt
+      };
     }
     var total = sumValid(ORDERS);
-    var today = sumValid(
-      ORDERS.filter(function (o) {
-        return inDay(o, todayD);
-      })
-    );
-    var yest = sumValid(
-      ORDERS.filter(function (o) {
-        return inDay(o, yestD);
-      })
-    );
-    var week = sumValid(
-      ORDERS.filter(function (o) {
-        return fromDay(o, weekStart);
-      })
-    );
-    var month = sumValid(
-      ORDERS.filter(function (o) {
-        return fromDay(o, monthStart);
-      })
-    );
     return {
+      kind: '预到账佣金',
+      totalLabel: '累计预到账佣金',
+      periodSuffix: '预到账',
       totalAmt: total.amt,
       totalCnt: total.cnt,
-      todayAmt: today.amt,
-      todayCnt: today.cnt,
-      yestAmt: yest.amt,
-      yestCnt: yest.cnt,
-      weekAmt: week.amt,
-      weekCnt: week.cnt,
-      monthAmt: month.amt,
-      monthCnt: month.cnt
+      todayAmt: 0,
+      todayCnt: 0,
+      yestAmt: 0,
+      yestCnt: 0,
+      weekAmt: 0,
+      weekCnt: 0,
+      monthAmt: 0,
+      monthCnt: 0
     };
   }
 
@@ -129,27 +118,35 @@
     return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
   }
 
+  function listDateKey(order) {
+    if (state.dim === 'credit') {
+      if (!order || order.settleStatus !== '已结算') return '';
+      var credited = String(order.settleTime || '').match(/^(\d{4}-\d{2}-\d{2})/);
+      return credited ? credited[1] : '';
+    }
+    return order.dayKey || order.date || '';
+  }
+
   function inRange(order) {
-    var d = parseDay(order.dayKey || order.date);
-    if (!d) return true;
+    var key = listDateKey(order);
+    if (!key) return false;
+    var d = parseDay(key);
+    if (!d) return false;
     var now = new Date();
     var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    var start;
-    if (state.range === 'today') {
-      start = today;
-      return d.getTime() >= start.getTime() && d.getTime() < start.getTime() + 86400000;
-    }
+    var start = today;
+    var end = new Date(today.getTime() + 86400000);
     if (state.range === 'yesterday') {
       start = new Date(today.getTime() - 86400000);
-      return d.getTime() >= start.getTime() && d.getTime() < today.getTime();
-    }
-    if (state.range === '7d') {
+      end = today;
+    } else if (state.range === '7d') {
       start = new Date(today.getTime() - 6 * 86400000);
-      return d.getTime() >= start.getTime();
+    } else if (state.range === '30d') {
+      start = new Date(today.getTime() - 29 * 86400000);
+    } else if (state.range !== 'today') {
+      start = new Date(today.getTime() - 29 * 86400000);
     }
-    /* 近1个月：演示数据含历史单，默认放宽到全部；若需严格可改为 29 天 */
-    if (state.range === '30d') return true;
-    return true;
+    return d.getTime() >= start.getTime() && d.getTime() < end.getTime();
   }
 
   function matchStatus(order) {
@@ -198,7 +195,7 @@
     var map = {};
     var keys = [];
     list.forEach(function (o) {
-      var k = o.dayKey || o.date;
+      var k = listDateKey(o) || '未入账';
       if (!map[k]) {
         map[k] = [];
         keys.push(k);
@@ -345,6 +342,7 @@
     root.innerHTML = groups
       .map(function (g) {
         var sum = daySummary(g.orders);
+        var sumLabel = state.dim === 'credit' ? '到账佣金' : '预估佣金';
         return (
           '<section class="sa-biz-day">' +
           '<div class="sa-biz-day__head">' +
@@ -353,7 +351,9 @@
           '</strong>' +
           '<span>共' +
           sum.cnt +
-          '笔有效订单，预估佣金 ¥ ' +
+          '笔有效订单，' +
+          sumLabel +
+          ' ¥ ' +
           money(sum.amt).replace(/\.00$/, '') +
           '</span>' +
           '</div>' +
@@ -366,10 +366,13 @@
 
   function renderSummary() {
     var SUMMARY = buildSummary();
+    var hint = $('bizDimHint');
+    if (hint) hint.textContent = SUMMARY.kind;
     var line = $('bizTotalLine');
     if (line) {
       line.innerHTML =
-        '累计总佣金 <em>' +
+        esc(SUMMARY.totalLabel) +
+        ' <em>' +
         money(SUMMARY.totalAmt) +
         '</em>元 <em>' +
         SUMMARY.totalCnt +
@@ -377,6 +380,17 @@
     }
     var grid = $('bizPeriodGrid');
     if (grid) {
+      var suffix = SUMMARY.periodSuffix || '预到账';
+      var titles = {
+        today: '今日' + suffix,
+        yest: '昨日' + suffix,
+        week: '本周' + suffix,
+        month: '本月' + suffix
+      };
+      Object.keys(titles).forEach(function (key) {
+        var title = grid.querySelector('[data-title="' + key + '"]');
+        if (title) title.textContent = titles[key];
+      });
       grid.querySelectorAll('[data-k]').forEach(function (el) {
         var k = el.getAttribute('data-k');
         if (k && SUMMARY[k] != null) {
@@ -409,6 +423,20 @@
   }
 
   function bind() {
+    var dims = $('bizDimTabs');
+    if (dims) {
+      dims.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-dim]');
+        if (!btn) return;
+        state.dim = btn.getAttribute('data-dim') === 'credit' ? 'credit' : 'order';
+        dims.querySelectorAll('.sa-biz-dim__btn').forEach(function (b) {
+          b.classList.toggle('is-active', b === btn);
+        });
+        renderSummary();
+        renderList();
+      });
+    }
+
     var range = $('bizRangeTabs');
     if (range) {
       range.addEventListener('click', function (e) {

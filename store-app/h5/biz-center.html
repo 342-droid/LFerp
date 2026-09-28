@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>经营中心 · 门店APP</title>
   <link rel="stylesheet" href="../css/store-app.css?v=20260803-biz">
-  <link rel="stylesheet" href="../css/store-app-biz-center.css?v=20260811-settle-matrix">
+  <link rel="stylesheet" href="../css/store-app-biz-center.css?v=20260928-comm-dim">
 </head>
 <body class="store-app-body">
   <div class="sa-shell sa-biz-shell">
@@ -35,28 +35,34 @@
             <button type="button" class="sa-biz-summary__withdraw" id="bizWithdrawBtn">去提现 &gt;</button>
           </div>
 
+          <div class="sa-biz-dim" id="bizDimTabs" role="tablist">
+            <button type="button" class="sa-biz-dim__btn is-active" data-dim="order">下单日期</button>
+            <button type="button" class="sa-biz-dim__btn" data-dim="credit">入账日期</button>
+          </div>
+          <div class="sa-biz-dim__hint" id="bizDimHint">预到账佣金</div>
+
           <div class="sa-biz-summary__total" id="bizTotalLine">
-            累计总佣金 <em>29.87</em>元 <em>4</em>单
+            累计预到账佣金 <em>0.00</em>元 <em>0</em>单
           </div>
 
           <div class="sa-biz-summary__grid" id="bizPeriodGrid">
             <div class="sa-biz-summary__cell">
-              <div class="sa-biz-summary__cell-t">今日佣金</div>
+              <div class="sa-biz-summary__cell-t" data-title="today">今日预到账</div>
               <div class="sa-biz-summary__cell-v"><span data-k="todayAmt">0.00</span>元</div>
               <div class="sa-biz-summary__cell-c"><span data-k="todayCnt">0</span>单</div>
             </div>
             <div class="sa-biz-summary__cell">
-              <div class="sa-biz-summary__cell-t">昨日佣金</div>
+              <div class="sa-biz-summary__cell-t" data-title="yest">昨日预到账</div>
               <div class="sa-biz-summary__cell-v"><span data-k="yestAmt">0.00</span>元</div>
               <div class="sa-biz-summary__cell-c"><span data-k="yestCnt">0</span>单</div>
             </div>
             <div class="sa-biz-summary__cell">
-              <div class="sa-biz-summary__cell-t">本周佣金</div>
+              <div class="sa-biz-summary__cell-t" data-title="week">本周预到账</div>
               <div class="sa-biz-summary__cell-v"><span data-k="weekAmt">0.00</span>元</div>
               <div class="sa-biz-summary__cell-c"><span data-k="weekCnt">0</span>单</div>
             </div>
             <div class="sa-biz-summary__cell">
-              <div class="sa-biz-summary__cell-t">本月佣金</div>
+              <div class="sa-biz-summary__cell-t" data-title="month">本月预到账</div>
               <div class="sa-biz-summary__cell-v"><span data-k="monthAmt">0.00</span>元</div>
               <div class="sa-biz-summary__cell-c"><span data-k="monthCnt">0</span>单</div>
             </div>
@@ -112,7 +118,7 @@
   </div>
 
   <script src="../../js/store-wallet-demo.js"></script>
-  <script src="../js/store-app-biz-orders.js?v=20260828-earned-comm"></script>
-  <script src="../js/store-app-biz-center.js?v=20260828-earned-comm"></script>
+  <script src="../js/store-app-biz-orders.js?v=20260928-comm-range"></script>
+  <script src="../js/store-app-biz-center.js?v=20260928-comm-range"></script>
 </body>
 </html>

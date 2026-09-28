@@ -506,6 +506,246 @@
     return { amt: roundMoney(amt), cnt: cnt };
   }
 
+  /* 演示「今天」跟本机日期走，样例从 2026-08-03 平移过来，今天/昨天/近7天/近1个月都有单 */
+  var DEMO_PIVOT = '2026-08-03';
+  var DEMO_TODAY = '2026-08-03';
+
+  function dateKeyOf(str) {
+    var m = String(str || '').match(/^(\d{4}-\d{2}-\d{2})/);
+    return m ? m[1] : '';
+  }
+
+  function todayKeyNow() {
+    var d = new Date();
+    var month = String(d.getMonth() + 1);
+    var day = String(d.getDate());
+    if (month.length < 2) month = '0' + month;
+    if (day.length < 2) day = '0' + day;
+    return d.getFullYear() + '-' + month + '-' + day;
+  }
+
+  function shiftDateKey(key, delta) {
+    var p = String(key || '').split('-');
+    if (p.length < 3) return '';
+    var d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+    d.setDate(d.getDate() + delta);
+    var month = String(d.getMonth() + 1);
+    var day = String(d.getDate());
+    if (month.length < 2) month = '0' + month;
+    if (day.length < 2) day = '0' + day;
+    return d.getFullYear() + '-' + month + '-' + day;
+  }
+
+  function daysBetweenKeys(fromKey, toKey) {
+    var from = dateKeyOf(fromKey).split('-');
+    var to = dateKeyOf(toKey).split('-');
+    if (from.length < 3 || to.length < 3) return 0;
+    var a = new Date(Number(from[0]), Number(from[1]) - 1, Number(from[2]));
+    var b = new Date(Number(to[0]), Number(to[1]) - 1, Number(to[2]));
+    return Math.round((b.getTime() - a.getTime()) / 86400000);
+  }
+
+  function rewriteDemoDateString(value, delta) {
+    return String(value).replace(/2026-\d{2}-\d{2}/g, function (key) {
+      return shiftDateKey(key, delta);
+    });
+  }
+
+  function walkDemoDates(node, delta) {
+    if (!node || typeof node !== 'object') return;
+    Object.keys(node).forEach(function (key) {
+      var value = node[key];
+      if (typeof value === 'string' && /2026-\d{2}-\d{2}/.test(value)) {
+        node[key] = rewriteDemoDateString(value, delta);
+      } else if (value && typeof value === 'object') {
+        walkDemoDates(value, delta);
+      }
+    });
+  }
+
+  function demoOrder(spec) {
+    var day = spec.day;
+    var time = spec.time || '10:00:00';
+    return {
+      id: spec.id,
+      date: day,
+      nick: spec.nick,
+      contact: spec.contact,
+      phone: spec.phone,
+      verifyCode: spec.verifyCode,
+      shipMode: spec.shipMode || '快递',
+      goods: spec.goods,
+      paid: spec.paid,
+      refund: spec.refund || 0,
+      storeCommissionRate: spec.rate,
+      hasStoreClearing: true,
+      commission: spec.commission,
+      commissionLocked: spec.settleStatus === '已结算' ? spec.commission : undefined,
+      settleStatus: spec.settleStatus,
+      settleTime: spec.settleTime || '-',
+      goodsCount: 1,
+      payTime: day + ' ' + time,
+      deliveryTime: spec.deliveryTime || '-',
+      finishTime: spec.finishTime || '-',
+      remark: spec.remark || '',
+      status: spec.status,
+      statusText: spec.statusText,
+      dayKey: day,
+      goodsItems: [
+        {
+          name: spec.goods,
+          img: IMG.p2,
+          qty: 1,
+          paid: spec.paid,
+          commission: spec.commission
+        }
+      ],
+      refundItems: []
+    };
+  }
+
+  function anchorDemoOrders() {
+    DEMO_TODAY = todayKeyNow();
+    var delta = daysBetweenKeys(DEMO_PIVOT, DEMO_TODAY);
+    if (delta) ORDERS.forEach(function (order) { walkDemoDates(order, delta); });
+    var today = DEMO_TODAY;
+    ORDERS.push(
+      demoOrder({
+        id: '612965464909',
+        day: today,
+        time: '16:20:00',
+        nick: '阿禾',
+        contact: '陈禾',
+        phone: '13800009009',
+        verifyCode: 'HX9009',
+        goods: '冰糖橙 2kg * 1 共1件商品',
+        paid: 32,
+        rate: 0.1,
+        commission: 3.2,
+        settleStatus: '已结算',
+        settleTime: today + ' 18:05:00',
+        finishTime: today + ' 17:40:00',
+        status: 'done',
+        statusText: '已完成',
+        remark: '今日下单并入账'
+      }),
+      demoOrder({
+        id: '612965464910',
+        day: shiftDateKey(today, -3),
+        time: '09:18:00',
+        nick: '阿宁',
+        contact: '孙宁',
+        phone: '13800009010',
+        verifyCode: 'HX9010',
+        shipMode: '自提',
+        goods: '西兰花 400g * 1 共1件商品',
+        paid: 16.8,
+        rate: 0.1,
+        commission: 1.68,
+        settleStatus: '已结算',
+        settleTime: shiftDateKey(today, -3) + ' 15:10:00',
+        finishTime: shiftDateKey(today, -3) + ' 14:00:00',
+        deliveryTime: '到店自提',
+        status: 'done',
+        statusText: '已完成',
+        remark: '近7天入账，不是今天或昨天'
+      }),
+      demoOrder({
+        id: '612965464911',
+        day: shiftDateKey(today, -16),
+        time: '11:26:00',
+        nick: '阿川',
+        contact: '吴川',
+        phone: '13800009011',
+        verifyCode: 'HX9011',
+        goods: '苹果 3kg * 1 共1件商品',
+        paid: 45,
+        rate: 0.12,
+        commission: 5.4,
+        settleStatus: '待结算',
+        status: 'pending_ship',
+        statusText: '待发货',
+        remark: '近1个月下单，超出近7天'
+      }),
+      demoOrder({
+        id: '612965464912',
+        day: shiftDateKey(today, -20),
+        time: '13:40:00',
+        nick: '阿兰',
+        contact: '郑兰',
+        phone: '13800009012',
+        verifyCode: 'HX9012',
+        goods: '车厘子 500g * 1 共1件商品',
+        paid: 68,
+        rate: 0.1,
+        commission: 6.8,
+        settleStatus: '已结算',
+        settleTime: shiftDateKey(today, -15) + ' 09:30:00',
+        finishTime: shiftDateKey(today, -18) + ' 16:00:00',
+        status: 'done',
+        statusText: '已完成',
+        remark: '近1个月入账，超出近7天'
+      })
+    );
+  }
+  anchorDemoOrders();
+
+  /** 下单日期：有效清分单按下单日计入预到账 */
+  function orderDateKey(order) {
+    if (!isValidCommissionOrder(order)) return '';
+    return dateKeyOf(order.dayKey || order.date || order.payTime);
+  }
+
+  /** 入账日期：仅已结算单按结算时间计入实际到账 */
+  function creditDateKey(order) {
+    if (!isValidCommissionOrder(order) || order.settleStatus !== '已结算') return '';
+    return dateKeyOf(order.settleTime);
+  }
+
+  /**
+   * 佣金时段汇总。
+   * dim=order 下单日期 → 预到账佣金；dim=credit 入账日期 → 实际到账佣金。
+   */
+  function summarizeCommission(list, dim, todayKey) {
+    var today = todayKey || DEMO_TODAY;
+    var yest = shiftDateKey(today, -1);
+    var weekStart = shiftDateKey(today, -6);
+    var monthStart = today.slice(0, 8) + '01';
+    var credit = dim === 'credit';
+    function keyOf(order) {
+      return credit ? creditDateKey(order) : orderDateKey(order);
+    }
+    function bucket(match) {
+      return sumEarnedCommission(
+        (list || []).filter(function (order) {
+          var key = keyOf(order);
+          return key && match(key);
+        })
+      );
+    }
+    return {
+      dim: credit ? 'credit' : 'order',
+      kind: credit ? '实际到账佣金' : '预到账佣金',
+      totalLabel: credit ? '累计实际到账佣金' : '累计预到账佣金',
+      periodSuffix: credit ? '到账' : '预到账',
+      total: bucket(function () {
+        return true;
+      }),
+      today: bucket(function (key) {
+        return key === today;
+      }),
+      yest: bucket(function (key) {
+        return key === yest;
+      }),
+      week: bucket(function (key) {
+        return key >= weekStart;
+      }),
+      month: bucket(function (key) {
+        return key >= monthStart;
+      })
+    };
+  }
+
   function getById(id) {
     return (
       ORDERS.find(function (o) {
@@ -528,6 +768,8 @@
     isValidCommissionOrder: isValidCommissionOrder,
     earnedCommission: earnedCommission,
     sumEarnedCommission: sumEarnedCommission,
+    DEMO_TODAY: DEMO_TODAY,
+    summarizeCommission: summarizeCommission,
     ORDER_STATUSES: ORDER_STATUSES,
     ORDER_STATUS_TEXT: ORDER_STATUS_TEXT,
     SETTLE_STATUSES: SETTLE_STATUSES

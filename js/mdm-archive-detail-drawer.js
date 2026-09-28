@@ -3450,84 +3450,96 @@
                 : null;
         var withdrawable = snap ? snap.withdrawable : 0;
 
-        /* 与经营中心演示汇总对齐；时段金额按订单 dayKey 推算 */
-        var DEMO_TODAY = '2026-08-03';
-        function parseDay(str) {
-            var m = String(str || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
-            if (!m) return null;
-            return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-        }
-        function dayKeyOf(o) {
-            return o.dayKey || o.date || '';
-        }
+        /* 与经营中心同一套口径：下单日期=预到账，入账日期=实际到账 */
         function earnedOf(o) {
             return biz && typeof biz.earnedCommission === 'function'
                 ? biz.earnedCommission(o)
                 : Number(o.commission) || 0;
         }
-        function sumCommission(list) {
-            if (biz && typeof biz.sumEarnedCommission === 'function') {
-                return biz.sumEarnedCommission(list);
-            }
-            var amt = 0;
-            var cnt = 0;
-            (list || []).forEach(function (o) {
-                amt += Number(o.commission) || 0;
-                cnt += 1;
-            });
-            return { amt: amt, cnt: cnt };
+        function parseDay(str) {
+            var m = String(str || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (!m) return null;
+            return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
         }
-        var totalSum = sumCommission(orders);
+        /* 列表时段筛选与经营中心同一天 */
+        var DEMO_TODAY = (biz && biz.DEMO_TODAY) || '2026-08-03';
         var todayD = parseDay(DEMO_TODAY);
         var yestD = todayD ? new Date(todayD.getTime() - 86400000) : null;
         var weekStart = todayD ? new Date(todayD.getTime() - 6 * 86400000) : null;
-        var monthStart = todayD
-            ? new Date(todayD.getFullYear(), todayD.getMonth(), 1)
-            : null;
-        function inDemoDay(o, d) {
-            var od = parseDay(dayKeyOf(o));
-            return od && d && od.getTime() === d.getTime();
+        function commissionPack(dim) {
+            if (biz && typeof biz.summarizeCommission === 'function') {
+                return biz.summarizeCommission(orders, dim);
+            }
+            return {
+                kind: dim === 'credit' ? '实际到账佣金' : '预到账佣金',
+                totalLabel: dim === 'credit' ? '累计实际到账佣金' : '累计预到账佣金',
+                periodSuffix: dim === 'credit' ? '到账' : '预到账',
+                total: { amt: 0, cnt: 0 },
+                today: { amt: 0, cnt: 0 },
+                yest: { amt: 0, cnt: 0 },
+                week: { amt: 0, cnt: 0 },
+                month: { amt: 0, cnt: 0 }
+            };
         }
-        function inDemoFrom(o, start) {
-            var od = parseDay(dayKeyOf(o));
-            return od && start && od.getTime() >= start.getTime();
+        function periodText(sum) {
+            return money(sum.amt) + ' / ' + sum.cnt + '单';
         }
-        var todaySum = sumCommission(
-            orders.filter(function (o) {
-                return inDemoDay(o, todayD);
-            })
-        );
-        var yestSum = sumCommission(
-            orders.filter(function (o) {
-                return inDemoDay(o, yestD);
-            })
-        );
-        var weekSum = sumCommission(
-            orders.filter(function (o) {
-                return inDemoFrom(o, weekStart);
-            })
-        );
-        var monthSum = sumCommission(
-            orders.filter(function (o) {
-                return inDemoFrom(o, monthStart);
-            })
-        );
-
-        root.appendChild(
-            summaryBar([
-                ['可提现账户余额', money(withdrawable)],
-                ['累计总佣金', money(totalSum.amt)],
-                ['累计清分单', String(totalSum.cnt) + ' 单']
-            ])
-        );
-        root.appendChild(
-            summaryBar([
-                ['今日佣金', money(todaySum.amt) + ' / ' + todaySum.cnt + '单'],
-                ['昨日佣金', money(yestSum.amt) + ' / ' + yestSum.cnt + '单'],
-                ['本周佣金', money(weekSum.amt) + ' / ' + weekSum.cnt + '单'],
-                ['本月佣金', money(monthSum.amt) + ' / ' + monthSum.cnt + '单']
-            ])
-        );
+        var commDim = 'order';
+        var dimSwitch = el('div', 'store-comm-dim');
+        dimSwitch.setAttribute('role', 'tablist');
+        [
+            ['order', '下单日期'],
+            ['credit', '入账时间']
+        ].forEach(function (item) {
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'store-comm-dim__btn' + (item[0] === commDim ? ' is-active' : '');
+            btn.setAttribute('data-dim', item[0]);
+            btn.textContent = item[1];
+            dimSwitch.appendChild(btn);
+        });
+        var dimHint = el('div', 'store-comm-dim__hint', '预到账佣金');
+        var summaryHost = el('div', 'store-comm-summary');
+        function paintCommissionSummary() {
+            var pack = commissionPack(commDim);
+            dimHint.textContent = pack.kind;
+            summaryHost.innerHTML = '';
+            summaryHost.appendChild(
+                summaryBar([
+                    ['可提现账户余额', money(withdrawable)],
+                    [pack.totalLabel, money(pack.total.amt)],
+                    ['单数', String(pack.total.cnt) + ' 单']
+                ])
+            );
+            var suffix = pack.periodSuffix;
+            summaryHost.appendChild(
+                summaryBar([
+                    ['今日' + suffix, periodText(pack.today)],
+                    ['昨日' + suffix, periodText(pack.yest)],
+                    ['本周' + suffix, periodText(pack.week)],
+                    ['本月' + suffix, periodText(pack.month)]
+                ])
+            );
+        }
+        function syncCommDim(dim) {
+            commDim = dim === 'credit' ? 'credit' : 'order';
+            state.dateField = commDim;
+            dimSwitch.querySelectorAll('.store-comm-dim__btn').forEach(function (node) {
+                node.classList.toggle('is-active', node.getAttribute('data-dim') === commDim);
+            });
+            paintCommissionSummary();
+            state.page = 1;
+            render();
+        }
+        dimSwitch.addEventListener('click', function (e) {
+            var btn = e.target.closest('[data-dim]');
+            if (!btn || btn.getAttribute('data-dim') === commDim) return;
+            syncCommDim(btn.getAttribute('data-dim'));
+        });
+        paintCommissionSummary();
+        root.appendChild(dimSwitch);
+        root.appendChild(dimHint);
+        root.appendChild(summaryHost);
 
         /* 结算状态：待结算 | 结算中 | 已结算 | 结算失败 | 已取消；无清分展示 — */
         var COMM_HEADERS = [
@@ -3600,20 +3612,6 @@
         var filterRow = el('div', 'store-ledger-filter__row');
         /* 组合筛：日期字段 + 时段枚举 + 日期区间（区间随枚举联动） */
         var dateCombo = el('div', 'store-comm-date-combo');
-        var dateFieldSelect = ledgerSelect(
-            [
-                ['order', '下单日期'],
-                ['pay', '支付日期'],
-                ['delivery', '配送日期'],
-                ['finish', '完成日期'],
-                ['settle', '结算日期']
-            ],
-            '110px'
-        );
-        dateFieldSelect.value = state.dateField;
-        dateFieldSelect.setAttribute('aria-label', '日期字段');
-        dateCombo.appendChild(dateFieldSelect);
-
         var rangeSelect = ledgerSelect(
             [
                 ['all', '全部'],
@@ -3708,11 +3706,11 @@
             return new Date(todayD.getFullYear(), todayD.getMonth() - n, todayD.getDate());
         }
         function orderDateByField(order) {
-            if (state.dateField === 'pay') return parseDay(order.payTime);
-            if (state.dateField === 'delivery') return parseDay(order.deliveryTime);
-            if (state.dateField === 'finish') return parseDay(order.finishTime);
-            if (state.dateField === 'settle') return parseDay(order.settleTime);
-            return parseDay(order.date || order.dayKey);
+            if (state.dateField === 'credit') {
+                if (!order || order.settleStatus !== '已结算') return null;
+                return parseDay(order.settleTime);
+            }
+            return parseDay(order.date || order.dayKey || order.payTime);
         }
         function dayKeyStr(d) {
             if (!d) return '';
@@ -3775,10 +3773,11 @@
         applyRangePreset();
 
         function inRange(order) {
+            var d = orderDateByField(order);
+            if (state.dateField === 'credit' && !d) return false;
             var start = String(state.dateStart || '').trim();
             var end = String(state.dateEnd || '').trim();
             if (!start && !end) return true;
-            var d = orderDateByField(order);
             if (!d) return false;
             var key = dayKeyStr(d);
             if (start && key < start) return false;
@@ -3829,10 +3828,16 @@
             if (state.page > maxPage) state.page = maxPage;
             var startIdx = (state.page - 1) * state.pageSize;
             var pageList = list.slice(startIdx, startIdx + state.pageSize);
+            var headers = COMM_HEADERS.slice();
+            headers[1] = state.dateField === 'credit' ? '入账时间' : '下单日期';
             var rows = pageList.map(function (o) {
+                var dateCell =
+                    state.dateField === 'credit'
+                        ? o.settleTime || '—'
+                        : o.date || o.dayKey || '—';
                 return [
                     o.id,
-                    o.date || dayKeyOf(o) || '—',
+                    dateCell,
                     o.contact || '—',
                     o.phone || '—',
                     o.verifyCode || '—',
@@ -3853,13 +3858,22 @@
                     o.remark || '—'
                 ];
             });
-            tableHost.appendChild(dataTable(COMM_HEADERS, rows));
+            tableHost.appendChild(dataTable(headers, rows));
             if (!total) {
                 var box = el('div', 'store-empty store-empty--illus');
+                var emptyText = state.dateField === 'credit' ? '暂无已入账佣金' : '暂无清分数据';
+                var emptyHint =
+                    state.dateField === 'credit'
+                        ? '仅已结算并写入结算时间的订单计入实际到账'
+                        : '结算未配置门店佣金比例时，支付后不会生成门店明细';
                 box.innerHTML =
                     '<div class="store-empty__icon" aria-hidden="true"></div>' +
-                    '<div class="store-empty__text">暂无清分数据</div>' +
-                    '<div class="store-empty__hint">结算未配置门店佣金比例时，支付后不会生成门店明细</div>';
+                    '<div class="store-empty__text">' +
+                    emptyText +
+                    '</div>' +
+                    '<div class="store-empty__hint">' +
+                    emptyHint +
+                    '</div>';
                 emptyHost.appendChild(box);
             }
             pageHost.appendChild(
@@ -3881,7 +3895,7 @@
         }
 
         searchBtn.addEventListener('click', function () {
-            state.dateField = dateFieldSelect.value || 'order';
+            state.dateField = commDim;
             state.range = rangeSelect.value || '30d';
             state.dateStart = dateStart.value || '';
             state.dateEnd = dateEnd.value || '';
@@ -3891,12 +3905,16 @@
             render();
         });
         resetBtn.addEventListener('click', function () {
+            commDim = 'order';
             state.dateField = 'order';
             state.range = '30d';
             state.status = 'all';
             state.keyword = '';
             state.page = 1;
-            dateFieldSelect.value = 'order';
+            dimSwitch.querySelectorAll('.store-comm-dim__btn').forEach(function (node) {
+                node.classList.toggle('is-active', node.getAttribute('data-dim') === 'order');
+            });
+            paintCommissionSummary();
             rangeSelect.value = '30d';
             applyRangePreset();
             statusSelect.value = 'all';
