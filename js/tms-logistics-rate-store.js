@@ -2222,13 +2222,13 @@
       '<p class="ua-freight-explain__intro">进货运费按履约方式及货物计收。具体金额以确认订单运费明细为准。</p>' +
 
       '<div class="ua-freight-explain__section">' +
-      '<h4 class="ua-freight-explain__title">1. 配送费与快递费</h4>' +
-      '<p class="ua-freight-explain__p"><strong>平台配送</strong>按包邮配置收取配送费。<strong>快递</strong>关闭包邮后与配送一样按费率计费，开启则免运费。</p>' +
+      '<h4 class="ua-freight-explain__title">1. 快递/物流配送费用</h4>' +
+      '<p class="ua-freight-explain__p">快递与物流配送按同一套费率计收。</p>' +
       '<p class="ua-freight-explain__p"><strong>重量计费</strong>时，同一订单中常温、冷链分别计费。<strong>金额计费、按件计费</strong>整单只计一次，物流类型为不区分，不拆常温/冷链。</p>' +
       '</div>' +
 
       '<div class="ua-freight-explain__section">' +
-      '<h4 class="ua-freight-explain__title">2. 配送费计收规则</h4>' +
+      '<h4 class="ua-freight-explain__title">2. 快递/物流配送计收规则</h4>' +
       '<p class="ua-freight-explain__p">按计费重量计收：先收<strong>起步费</strong>，超出部分按续重计收。</p>' +
       '<p class="ua-freight-explain__p">计费重量取实际重量与体积折算重量中的较高值。</p>' +
       '<p class="ua-freight-explain__p">按货款金额计收时，依本单货款分档定额计收，不按重量计收。</p>' +
@@ -2244,8 +2244,8 @@
 
       '<div class="ua-freight-explain__section">' +
       '<h4 class="ua-freight-explain__title">4. 本单金额查询</h4>' +
-      '<p class="ua-freight-explain__p">购物车展示预估运费。确认订单点击「运费」，查看配送费、快递费明细。</p>' +
-      '<p class="ua-freight-explain__p">总运费 = 配送费 + 快递费。</p>' +
+      '<p class="ua-freight-explain__p">购物车展示预估运费。确认订单点击「运费」，查看基础运费、增值服务费明细。</p>' +
+      '<p class="ua-freight-explain__p">总运费 = 基础运费 + 增值服务费。</p>' +
       '</div>' +
       '</div>'
     );
