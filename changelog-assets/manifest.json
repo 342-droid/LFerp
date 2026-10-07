@@ -47,13 +47,6 @@
     "status": "diff",
     "date": "2026-09-24"
   },
-  "1049c72|MDM/mdm_settle_index.html": {
-    "before": "changelog-assets/1049c72/MDM__mdm_settle_index.html.before.jpg",
-    "after": "changelog-assets/1049c72/MDM__mdm_settle_index.html.after.jpg",
-    "regions": 5,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
   "1a9ba79|MDM/mdm_order_live.html": {
     "before": "changelog-assets/1a9ba79/MDM__mdm_order_live.html.before.jpg",
     "after": "changelog-assets/1a9ba79/MDM__mdm_order_live.html.after.jpg",
@@ -81,114 +74,6 @@
     "regions": 3,
     "status": "diff",
     "date": "2026-09-26"
-  },
-  "22ad224|MDM/mdm_product_selection.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "22ad224|user-app/h5/cart.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "22ad224|user-app/h5/category.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "22ad224|user-app/h5/checkout.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "22ad224|user-app/h5/goods-detail.html": {
-    "before": "changelog-assets/22ad224/user-app__h5__goods-detail.html.before.jpg",
-    "after": "changelog-assets/22ad224/user-app__h5__goods-detail.html.after.jpg",
-    "regions": 1,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "22ad224|user-app/h5/home.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "22ad224|user-app/h5/live-room.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "22ad224|user-app/h5/mall.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "22ad224|user-app/h5/order-confirm.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "22ad224|user-app/h5/product-detail.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "22ad224|user-app/h5/profile.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "22ad224|user-app/h5/restock.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "2307dc2|user-app/h5/cart.html": {
-    "before": "changelog-assets/2307dc2/user-app__h5__cart.html.before.jpg",
-    "after": "changelog-assets/2307dc2/user-app__h5__cart.html.after.jpg",
-    "regions": 4,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "2307dc2|user-app/h5/category.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "2307dc2|user-app/h5/goods-detail.html": {
-    "before": "changelog-assets/2307dc2/user-app__h5__goods-detail.html.before.jpg",
-    "after": "changelog-assets/2307dc2/user-app__h5__goods-detail.html.after.jpg",
-    "regions": 1,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "2307dc2|user-app/h5/home.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "2307dc2|user-app/h5/live-room.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "2307dc2|user-app/h5/mall.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "2307dc2|user-app/h5/order-confirm.html": {
-    "before": "changelog-assets/2307dc2/user-app__h5__order-confirm.html.before.jpg",
-    "after": "changelog-assets/2307dc2/user-app__h5__order-confirm.html.after.jpg",
-    "regions": 2,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "2307dc2|user-app/h5/profile.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-09-23"
   },
   "794f6ec|SCM/ibd_receipt.html": {
     "regions": 0,
@@ -500,111 +385,6 @@
     "status": "diff",
     "date": "2026-09-24"
   },
-  "be4d230|MDM/mdm_aftersale_ticket_detail.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "be4d230|MDM/mdm_live_control.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "be4d230|MDM/mdm_live_data.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "be4d230|MDM/mdm_live_product_category.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "be4d230|MDM/mdm_live_product_sched.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "be4d230|MDM/mdm_live_product_sched_edit.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "be4d230|MDM/mdm_live_room.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "be4d230|MDM/mdm_live_session.html": {
-    "before": "changelog-assets/be4d230/MDM__mdm_live_session.html.before.jpg",
-    "after": "changelog-assets/be4d230/MDM__mdm_live_session.html.after.jpg",
-    "regions": 2,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "be4d230|MDM/mdm_live_session_detail.html": {
-    "before": "changelog-assets/be4d230/MDM__mdm_live_session_detail.html.before.jpg",
-    "after": "changelog-assets/be4d230/MDM__mdm_live_session_detail.html.after.jpg",
-    "regions": 2,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "be4d230|MDM/mdm_live_session_form.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "be4d230|MDM/mdm_live_timeslot.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "be4d230|MDM/mdm_marketing_points_mall_form.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "be4d230|MDM/mdm_marketing_seckill_form.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "be4d230|MDM/mdm_marketing_seckill_product.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "be4d230|MDM/mdm_order_live.html": {
-    "before": "changelog-assets/be4d230/MDM__mdm_order_live.html.before.jpg",
-    "after": "changelog-assets/be4d230/MDM__mdm_order_live.html.after.jpg",
-    "regions": 33,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "be4d230|MDM/mdm_order_proxy.html": {
-    "before": "changelog-assets/be4d230/MDM__mdm_order_proxy.html.before.jpg",
-    "after": "changelog-assets/be4d230/MDM__mdm_order_proxy.html.after.jpg",
-    "regions": 2,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "be4d230|MDM/mdm_order_queue.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "be4d230|MDM/mdm_order_retail.html": {
-    "before": "changelog-assets/be4d230/MDM__mdm_order_retail.html.before.jpg",
-    "after": "changelog-assets/be4d230/MDM__mdm_order_retail.html.after.jpg",
-    "regions": 33,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
-  "be4d230|MDM/mdm_product_selection.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-09-23"
-  },
   "c64cf34|MDM/mdm_order_proxy.html": {
     "regions": 0,
     "status": "diff",
@@ -634,12 +414,5 @@
     "regions": 0,
     "status": "diff",
     "date": "2026-09-28"
-  },
-  "dd66b19|MDM/mdm_settle_index.html": {
-    "before": "changelog-assets/dd66b19/MDM__mdm_settle_index.html.before.jpg",
-    "after": "changelog-assets/dd66b19/MDM__mdm_settle_index.html.after.jpg",
-    "regions": 29,
-    "status": "diff",
-    "date": "2026-09-23"
   }
 }
