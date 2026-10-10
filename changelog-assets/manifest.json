@@ -1,32 +1,4 @@
 {
-  "1a9ba79|MDM/mdm_order_live.html": {
-    "before": "changelog-assets/1a9ba79/MDM__mdm_order_live.html.before.jpg",
-    "after": "changelog-assets/1a9ba79/MDM__mdm_order_live.html.after.jpg",
-    "regions": 29,
-    "status": "diff",
-    "date": "2026-09-26"
-  },
-  "1a9ba79|MDM/mdm_order_proxy.html": {
-    "before": "changelog-assets/1a9ba79/MDM__mdm_order_proxy.html.before.jpg",
-    "after": "changelog-assets/1a9ba79/MDM__mdm_order_proxy.html.after.jpg",
-    "regions": 43,
-    "status": "diff",
-    "date": "2026-09-26"
-  },
-  "1a9ba79|MDM/mdm_order_retail.html": {
-    "before": "changelog-assets/1a9ba79/MDM__mdm_order_retail.html.before.jpg",
-    "after": "changelog-assets/1a9ba79/MDM__mdm_order_retail.html.after.jpg",
-    "regions": 29,
-    "status": "diff",
-    "date": "2026-09-26"
-  },
-  "1a9ba79|MDM/mdm_settle_index.html": {
-    "before": "changelog-assets/1a9ba79/MDM__mdm_settle_index.html.before.jpg",
-    "after": "changelog-assets/1a9ba79/MDM__mdm_settle_index.html.after.jpg",
-    "regions": 3,
-    "status": "diff",
-    "date": "2026-09-26"
-  },
   "c64cf34|MDM/mdm_order_proxy.html": {
     "regions": 0,
     "status": "diff",
