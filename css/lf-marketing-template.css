@@ -299,6 +299,26 @@ select.mkt-tpl-w240 {
   max-width: 100%;
 }
 
+.mkt-tpl-w360,
+select.mkt-tpl-w360 {
+  width: 360px;
+  max-width: 100%;
+}
+
+select.mkt-tpl-w360 option:disabled {
+  color: #c0c4cc;
+}
+
+.mkt-tpl-w360,
+select.mkt-tpl-w360 {
+  width: 360px;
+  max-width: 100%;
+}
+
+select.mkt-tpl-w360 option:disabled {
+  color: #c0c4cc;
+}
+
 .mkt-tpl-num {
   width: 104px !important;
 }
@@ -319,6 +339,11 @@ select.mkt-tpl-w240 {
   line-height: 32px;
   color: #606266;
   cursor: pointer;
+}
+
+.mkt-tpl-radios label:has(input:disabled) {
+  color: #c0c4cc;
+  cursor: not-allowed;
 }
 
 .mkt-tpl-check {

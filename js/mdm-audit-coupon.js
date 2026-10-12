@@ -35,6 +35,7 @@
     if (status === 'APPROVED') return 'mkt-tpl-tag mkt-tpl-tag--success';
     if (status === 'PENDING') return 'mkt-tpl-tag mkt-tpl-tag--warning';
     if (status === 'REJECTED') return 'mkt-tpl-tag mkt-tpl-tag--danger';
+    if (status === 'CANCELLED') return 'mkt-tpl-tag mkt-tpl-tag--info';
     return 'mkt-tpl-tag mkt-tpl-tag--info';
   }
 

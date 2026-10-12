@@ -822,6 +822,49 @@
     return '演示运营';
   }
 
+  function selectedTrigger() {
+    var el = document.querySelector('input[name="crManualTrigger"]:checked');
+    return el && el.value === 'schedule' ? 'schedule' : 'now';
+  }
+
+  function syncTrigger() {
+    var wrap = document.getElementById('crManualTriggerAtWrap');
+    if (wrap) wrap.hidden = selectedTrigger() !== 'schedule';
+  }
+
+  function localNowKey() {
+    var date = new Date();
+    function pad(n) { return n < 10 ? '0' + n : String(n); }
+    return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate()) + ' ' + pad(date.getHours()) + ':' + pad(date.getMinutes()) + ':00';
+  }
+
+  function readTriggerAt() {
+    var raw = String((document.getElementById('crManualTriggerAt') || {}).value || '').trim();
+    if (!raw) return '';
+    var text = raw.replace('T', ' ');
+    return text.length === 16 ? text + ':00' : text;
+  }
+
+  function triggerError() {
+    if (selectedTrigger() !== 'schedule') return '';
+    var at = readTriggerAt();
+    if (!at) return '请选择触发时间';
+    if (at <= localNowKey()) return '触发时间须晚于当前时间';
+    return '';
+  }
+
+  function fillTrigger(mode, at) {
+    document.querySelectorAll('input[name="crManualTrigger"]').forEach(function (el) {
+      el.checked = el.value === (mode === 'schedule' ? 'schedule' : 'now');
+    });
+    var input = document.getElementById('crManualTriggerAt');
+    if (input) {
+      var text = String(at || '').trim();
+      input.value = text ? text.replace(' ', 'T').slice(0, 16) : '';
+    }
+    syncTrigger();
+  }
+
   function submitManualGrant() {
     if (!Store.isEnabled()) {
       toast('请先开启现金红包', 'warning');
@@ -869,6 +912,12 @@
         return;
       }
     }
+    var triggerMsg = triggerError();
+    if (triggerMsg) {
+      toast(triggerMsg, 'warning');
+      return;
+    }
+    var triggerMode = selectedTrigger();
     var frontRemark = batchMode ? '' : remarkText('crManualFrontRemark');
     var backRemark = batchMode ? '' : remarkText('crManualBackRemark');
     var reward = unifiedAmount();
@@ -877,7 +926,7 @@
         return map[id];
       });
     };
-    Store.createManualAudit({
+    var payload = {
       name: name,
       ports: ports,
       mode: mode,
@@ -891,11 +940,26 @@
       frontRemark: frontRemark,
       backRemark: backRemark,
       fileName: excelFileName,
+      triggerMode: triggerMode,
+      triggerAt: triggerMode === 'schedule' ? readTriggerAt() : '',
       creator: currentCreator()
-    });
+    };
+    if (pageMode === 'edit' && auditId) {
+      var resubmit = Store.resubmitManualDraft(auditId, payload);
+      if (!resubmit || !resubmit.ok) {
+        toast((resubmit && resubmit.message) || '仅草稿可提交', 'warning');
+        return;
+      }
+    } else {
+      Store.createManualAudit(payload);
+    }
     try {
       sessionStorage.setItem('crManualAuditFlash', '已提交审核，请到审核中心-营销审核-派发红包处理');
     } catch (e) {}
+    if (pageMode === 'edit') {
+      window.location.href = listHref();
+      return;
+    }
     window.location.reload();
   }
 
@@ -929,6 +993,7 @@
     if (front) front.value = snap.frontRemark || '';
     var back = document.getElementById('crManualBackRemark');
     if (back) back.value = snap.backRemark || '';
+    fillTrigger(snap.triggerMode, snap.triggerAt);
     if (snap.mode === 'batch') {
       excelUsers = (snap.users || []).map(function (u) {
         return Object.assign({}, u);
@@ -945,7 +1010,7 @@
     });
   }
 
-  function publishExecNotice(batchId, total, success, fail, fileName) {
+  function publishExecNotice(batchId, total, success, fail, fileName, creator) {
     var payload = {
       batchId: batchId,
       fileName: fileName || excelFileName || '—',
@@ -953,6 +1018,7 @@
       success: success,
       fail: fail,
       module: '冷丰营销-营销活动-现金红包-派发红包',
+      creator: creator || '',
       readyAt: Date.now() + 1800
     };
     if (window.LfCashRedpackExecNotice && typeof window.LfCashRedpackExecNotice.publish === 'function') {
@@ -968,6 +1034,7 @@
         success: success,
         fail: fail,
         module: payload.module,
+        creator: payload.creator,
         readyAt: payload.readyAt,
         acked: false
       }));
@@ -978,6 +1045,11 @@
 
   document.addEventListener('DOMContentLoaded', function () {
     var audit = auditId && Store.findManualAudit ? Store.findManualAudit(auditId) : null;
+    if (pageMode === 'edit' && (!audit || audit.status !== 'DRAFT')) {
+      toast('仅草稿可编辑', 'warning');
+      window.location.href = listHref();
+      return;
+    }
     if (fromAudit && !audit) {
       toast('未找到审核记录', 'warning');
       window.location.href = listHref();
@@ -997,10 +1069,10 @@
       back.href = listHref();
       if (fromAudit) back.textContent = '← 返回派发红包审核';
     }
-    var titles = { add: '手动发放', view: '查看派发红包', audit: '审核派发红包' };
+    var titles = { add: '手动发放', edit: '编辑派发红包', view: '查看派发红包', audit: '审核派发红包' };
     var tab = document.querySelector('.content-tabs button');
-    if (fromAudit && tab) tab.textContent = titles[pageMode] || '派发红包';
-    if (fromAudit) document.title = '冷丰WMS - ' + (titles[pageMode] || '派发红包');
+    if ((fromAudit || pageMode === 'edit') && tab) tab.textContent = titles[pageMode] || '派发红包';
+    if (fromAudit || pageMode === 'edit') document.title = '冷丰WMS - ' + (titles[pageMode] || '派发红包');
     var tip = document.getElementById('crManualTip');
     if (tip && pageMode === 'audit') {
       tip.innerHTML = '以下为提交时的派发信息，只读。<strong>审核成功</strong>后才会执行发放。';
@@ -1014,6 +1086,10 @@
     paintExcelTable();
     paintSingleHint();
     syncMode();
+    syncTrigger();
+    document.querySelectorAll('input[name="crManualTrigger"]').forEach(function (el) {
+      el.addEventListener('change', syncTrigger);
+    });
     if (!fromAudit && !Store.isEnabled()) {
       var closedTip = document.getElementById('crManualTip');
       if (closedTip) closedTip.innerHTML = '<strong>现金红包已关闭。</strong>请先回到现金红包页开启总开关。';
@@ -1024,6 +1100,10 @@
     setHidden(document.getElementById('crManualSubmit'), fromAudit);
     setHidden(document.getElementById('crManualReject'), pageMode !== 'audit');
     setHidden(document.getElementById('crManualApprove'), pageMode !== 'audit');
+    var opinion = { read: function () { return ''; } };
+    if (window.MdmMarketingAuditPanel && audit) {
+      opinion = window.MdmMarketingAuditPanel.mount(document.getElementById('crManualAuditPanel'), audit, pageMode === 'audit');
+    }
     if (formLocked) lockFormFields();
 
     document.querySelectorAll('input[name="crManualPort"]').forEach(function (el) {
@@ -1191,42 +1271,35 @@
     var approveBtn = document.getElementById('crManualApprove');
     if (approveBtn) {
       approveBtn.addEventListener('click', function () {
-        var result = Store.approveManualAudit(auditId);
+        var result = Store.approveManualAudit(auditId, opinion.read());
         if (!result.ok) {
           toast(result.message, 'warning');
           return;
         }
-        publishExecNotice(result.batchId, result.total, result.success, result.fail, result.fileName);
+        if (result.scheduled) {
+          toast('审核成功，将于 ' + (result.triggerAt || '') + ' 触发发放', 'success');
+          window.location.href = listHref();
+          return;
+        }
+        var snap = (result.audit && result.audit.snapshot) || {};
+        publishExecNotice(result.batchId, result.total, result.success, result.fail, result.fileName, snap.creator || '');
         toast('审核成功', 'success');
         window.location.href = listHref();
       });
     }
-    function openReject() {
-      var backdrop = document.getElementById('crManualRejectBackdrop');
-      var reason = document.getElementById('crManualRejectReason');
-      if (reason) reason.value = '';
-      if (backdrop) backdrop.hidden = false;
-    }
-    function closeReject() {
-      var backdrop = document.getElementById('crManualRejectBackdrop');
-      if (backdrop) backdrop.hidden = true;
-    }
     var rejectBtn = document.getElementById('crManualReject');
-    if (rejectBtn) rejectBtn.addEventListener('click', openReject);
-    ['crManualRejectClose', 'crManualRejectCancel'].forEach(function (id) {
-      var el = document.getElementById(id);
-      if (el) el.addEventListener('click', closeReject);
-    });
-    var rejectOk = document.getElementById('crManualRejectOk');
-    if (rejectOk) {
-      rejectOk.addEventListener('click', function () {
-        var reason = (document.getElementById('crManualRejectReason') || {}).value || '';
+    if (rejectBtn) {
+      rejectBtn.addEventListener('click', function () {
+        var reason = opinion.read();
+        if (!reason) {
+          toast('请填写驳回原因', 'error');
+          return;
+        }
         var result = Store.rejectManualAudit(auditId, reason);
         if (!result.ok) {
           toast(result.message, 'warning');
           return;
         }
-        closeReject();
         toast('已标记审核失败', 'success');
         window.location.href = listHref();
       });

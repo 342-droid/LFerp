@@ -102,6 +102,7 @@
                             <button type="button" data-main-tab="bag">福袋</button>
                             <button type="button" data-main-tab="sign">签到</button>
                             <button type="button" data-main-tab="task">观看奖励</button>
+                            <button type="button" data-main-tab="redpack">现金红包</button>
                         </div>
 
                         <div id="controlTabProduct" class="lf-live-ctab-pane">
@@ -460,6 +461,23 @@
         </div>
     </div>
 
+    <div id="addRedpackDialog" class="lf-live-dialog" hidden>
+        <div class="lf-live-dialog__mask" data-close-dialog="addRedpackDialog"></div>
+        <div class="lf-live-dialog__box lf-live-dialog__box--settings" role="dialog" aria-labelledby="addRedpackTitle">
+            <div class="lf-live-dialog__title" id="addRedpackTitle">添加现金红包</div>
+            <p class="lf-live-dialog__hint">选择已审核通过且在有效期内的现金红包模版。未通过、已禁用或不在有效期的红包置灰不可选。添加后可在本场直接发送。</p>
+            <div class="lf-live-dialog__field">
+                <span>搜索</span>
+                <input class="erp-input" id="addRedpackKeyword" placeholder="红包名称 / 模版ID" autocomplete="off">
+            </div>
+            <div class="add-sign-list" id="addRedpackList"></div>
+            <div class="lf-live-dialog__footer">
+                <button type="button" class="erp-btn" data-close-dialog="addRedpackDialog">取消</button>
+                <button type="button" class="erp-btn erp-btn--primary" id="addRedpackConfirm">确定添加</button>
+            </div>
+        </div>
+    </div>
+
     <div id="timedAddDialog" class="lf-live-dialog" hidden>
         <div class="lf-live-dialog__mask" data-close-dialog="timedAddDialog"></div>
         <div class="lf-live-dialog__box" role="dialog">
@@ -489,9 +507,11 @@
 
     <script src="../js/common.js"></script>
     <script src="../js/mdm-marketing-coupon-store.js?v=20260907-coupon-limit"></script>
-    <script src="../js/mdm-live-demo-data.js?v=20260907-coupon-limit"></script>
+    <script src="../js/mdm-marketing-cash-redpack-tpl-store.js?v=20261013-redpack-future"></script>
+    <script src="../js/mdm-marketing-template-store.js?v=20261013-live-redpack"></script>
+    <script src="../js/mdm-live-demo-data.js?v=20261013-live-redpack"></script>
     <script src="../js/mdm-live-sensitive-words.js"></script>
     <script src="../js/mdm-live-comment-level.js?v=20260909-cmt-lv"></script>
-    <script src="../js/mdm-live-control.js?v=20260909-670-8"></script>
+    <script src="../js/mdm-live-control.js?v=20261013-redpack-future"></script>
 </body>
 </html>

@@ -85,28 +85,31 @@
     window.location.href = wp.page('mdm_marketing_coupon.html');
   }
 
+  var opinion = { read: function () { return ''; } };
+
   function approve() {
     if (!auditId) return;
     if (!window.confirm('确认审核通过？优惠券将变为审核成功，需再启用后才可被发放场景选择。')) return;
-    Store.approveAudit(auditId);
+    var saved = Store.approveAudit(auditId, opinion.read());
+    if (!saved) {
+      toast('仅待审核可通过', 'warning');
+      return;
+    }
     toast('审核成功', 'success');
     window.location.href = wp.page('mdm_audit_coupon.html');
   }
 
-  function openReject() {
-    var inp = document.getElementById('cpRejectReason');
-    if (inp) inp.value = '';
-    setHidden(document.getElementById('cpRejectBackdrop'), false);
-  }
-
   function confirmReject() {
-    var inp = document.getElementById('cpRejectReason');
-    var reason = inp ? String(inp.value || '').trim() : '';
+    var reason = opinion.read();
     if (!reason) {
-      toast('请填写审核失败原因', 'error');
+      toast('请填写驳回原因', 'error');
       return;
     }
-    Store.rejectAudit(auditId, reason);
+    var saved = Store.rejectAudit(auditId, reason);
+    if (!saved) {
+      toast('仅待审核可驳回', 'warning');
+      return;
+    }
     toast('已审核失败', 'success');
     window.location.href = wp.page('mdm_audit_coupon.html');
   }
@@ -161,14 +164,10 @@
     document.getElementById('cpBtnSave').addEventListener('click', saveDraft);
     document.getElementById('cpBtnSubmit').addEventListener('click', submitNow);
     document.getElementById('cpBtnApprove').addEventListener('click', approve);
-    document.getElementById('cpBtnReject').addEventListener('click', openReject);
-    document.getElementById('cpRejectCancel').addEventListener('click', function () {
-      setHidden(document.getElementById('cpRejectBackdrop'), true);
-    });
-    document.getElementById('cpRejectClose').addEventListener('click', function () {
-      setHidden(document.getElementById('cpRejectBackdrop'), true);
-    });
-    document.getElementById('cpRejectOk').addEventListener('click', confirmReject);
+    document.getElementById('cpBtnReject').addEventListener('click', confirmReject);
+    if (window.MdmMarketingAuditPanel && audit && fromAudit) {
+      opinion = window.MdmMarketingAuditPanel.mount(document.getElementById('cpAuditPanel'), audit, mode === 'audit');
+    }
 
     setHidden(document.getElementById('cpBtnSave'), !canEditFooter());
     setHidden(document.getElementById('cpBtnSubmit'), !canEditFooter());

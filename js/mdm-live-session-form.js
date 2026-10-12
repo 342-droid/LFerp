@@ -608,9 +608,33 @@
         return { id: c.id, type: 'COUPON', typeName: '优惠券', name: c.name, stock: c.totalStock };
       });
     }
+    if (type === 'FORTUNE_BAG' || type === 'SIGN_IN' || type === 'TASK') {
+      if (Demo.refreshMarketingLiveCaches) Demo.refreshMarketingLiveCaches();
+      if (Demo.marketingCashTemplates) list = list.concat(Demo.marketingCashTemplates(type));
+    }
+    if (type === 'CASH_REDPACK' && Demo.listCashRedpackOptions) {
+      list = Demo.listCashRedpackOptions().map(function (opt) {
+        return {
+          id: opt.id,
+          type: 'CASH_REDPACK',
+          typeName: '现金红包',
+          name: opt.name,
+          templateId: opt.id,
+          selectable: opt.selectable,
+          reason: opt.reason
+        };
+      });
+    }
     if (type === 'COUPON' && !list.length) {
       nameEl.disabled = true;
       nameEl.innerHTML = '<option value="">暂无已启用且发放场景含「直播发券」的优惠券</option>';
+      if (stockRow) stockRow.hidden = true;
+      applyFieldLocks();
+      return;
+    }
+    if (type === 'CASH_REDPACK' && !list.length) {
+      nameEl.disabled = true;
+      nameEl.innerHTML = '<option value="">暂无现金红包模版</option>';
       if (stockRow) stockRow.hidden = true;
       applyFieldLocks();
       return;
@@ -621,11 +645,15 @@
       list
         .map(function (t) {
           var stockTip = t.stock != null ? '（库存 ' + t.stock + '）' : '';
+          var reasonTip = t.reason ? '（' + t.reason + '）' : '';
+          var disabled = t.selectable === false ? ' disabled' : '';
           return (
             '<option value="' +
             escapeHtml(t.id) +
-            '">' +
-            escapeHtml(t.name + stockTip) +
+            '"' +
+            disabled +
+            '>' +
+            escapeHtml(t.name + stockTip + reasonTip) +
             '</option>'
           );
         })
@@ -1001,22 +1029,57 @@
             pool = { id: cp.id, type: 'COUPON', typeName: '优惠券', name: cp.name, stock: cp.totalStock };
           }
         }
+        if (!pool && (type === 'FORTUNE_BAG' || type === 'SIGN_IN' || type === 'TASK') && Demo.marketingCashTemplates) {
+          pool = Demo.marketingCashTemplates(type).find(function (t) {
+            return t.id === tplId;
+          });
+        }
+        if (!pool && type === 'CASH_REDPACK' && Demo.listCashRedpackOptions) {
+          var redpackOpt = Demo.listCashRedpackOptions().find(function (t) {
+            return t.id === tplId;
+          });
+          if (redpackOpt) {
+            pool = {
+              id: redpackOpt.id,
+              type: 'CASH_REDPACK',
+              typeName: '现金红包',
+              name: redpackOpt.name,
+              templateId: redpackOpt.id,
+              selectable: redpackOpt.selectable,
+              reason: redpackOpt.reason
+            };
+          }
+        }
         if (!pool) return toast('未找到所选模板，请重新选择', 'warning');
+        if (pool.selectable === false) return toast(pool.reason || '该模板不可选择', 'warning');
         if (type === 'COUPON' && boundTemplates.some(function (t) { return t.type === 'COUPON' && t.poolId === pool.id; })) {
           return toast('当前场次已添加该优惠券模板，请勿重复添加', 'warning');
+        }
+        if (
+          (type === 'CASH_REDPACK' || pool.usesCash) &&
+          boundTemplates.some(function (t) {
+            return t.type === type && (t.poolId === pool.id || t.templateId === pool.id);
+          })
+        ) {
+          return toast('当前场次已添加该模板，请勿重复添加', 'warning');
         }
         var stock = null;
         if (type === 'COUPON' || type === 'FORTUNE_BAG') {
           stock = Math.floor(Number((document.getElementById('fTplStock') || {}).value || 0));
           if (!stock || stock < 1) return toast('请填写发放数量', 'warning');
+          if (pool.usesCash && pool.stock != null && stock > Number(pool.stock)) {
+            return toast('发放数量不能大于模板库存（' + pool.stock + '）', 'warning');
+          }
         }
         boundTemplates.push({
           id: 'bind-' + Date.now().toString(36),
           poolId: pool.id,
+          templateId: pool.templateId || pool.id,
           type: pool.type,
           typeName: pool.typeName,
           name: pool.name,
-          stock: stock
+          stock: stock,
+          usesCash: !!pool.usesCash || type === 'CASH_REDPACK'
         });
         document.getElementById('fTplType').value = '';
         fillTplNames();

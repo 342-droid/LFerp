@@ -21,7 +21,7 @@
   };
   var AUDIT_STATUS_LABEL = {
     PENDING: '待审核',
-    CANCELLED: '取消审核',
+    CANCELLED: '已取消',
     APPROVED: '审核成功',
     REJECTED: '审核失败'
   };
@@ -447,6 +447,28 @@
     ];
   }
 
+  function seedAuditLogs(status, time, reason) {
+    if (status === 'PENDING') return [];
+    return [{
+      node: '营销审核',
+      reviewer: '审核员小李',
+      time: time,
+      result: status === 'REJECTED' ? '驳回' : '通过',
+      reason: status === 'REJECTED' ? reason || '' : ''
+    }];
+  }
+
+  function pushAuditRecord(audit, result, reason) {
+    if (!audit.auditLogs) audit.auditLogs = [];
+    audit.auditLogs.push({
+      node: '营销审核',
+      reviewer: audit.auditedBy || '审核员小李',
+      time: audit.auditedAt || nowStr(),
+      result: result,
+      reason: String(reason || '').trim().slice(0, 100)
+    });
+  }
+
   function seedAudits() {
     return [
       {
@@ -458,6 +480,7 @@
         auditedAt: '',
         auditedBy: '',
         reason: '',
+        auditLogs: [],
         snapshot: clone(findIn(seedCoupons(), '10086014'))
       },
       {
@@ -469,6 +492,7 @@
         auditedAt: '2026-09-03 16:18:00',
         auditedBy: '审核员小李',
         reason: '满减金额不能大于消费金额',
+        auditLogs: seedAuditLogs('REJECTED', '2026-09-03 16:18:00', '满减金额不能大于消费金额'),
         snapshot: clone(findIn(seedCoupons(), '10086015'))
       },
       {
@@ -480,6 +504,7 @@
         auditedAt: '2026-08-12 11:00:00',
         auditedBy: '审核员小李',
         reason: '',
+        auditLogs: seedAuditLogs('APPROVED', '2026-08-12 11:00:00', ''),
         snapshot: clone(findIn(seedCoupons(), '10086001'))
       },
       {
@@ -491,6 +516,7 @@
         auditedAt: '2026-08-28 17:10:00',
         auditedBy: '审核员小李',
         reason: '',
+        auditLogs: seedAuditLogs('APPROVED', '2026-08-28 17:10:00', ''),
         snapshot: clone(findIn(seedCoupons(), '10086002'))
       },
       {
@@ -502,6 +528,7 @@
         auditedAt: '2026-08-18 10:02:00',
         auditedBy: '审核员小李',
         reason: '',
+        auditLogs: seedAuditLogs('APPROVED', '2026-08-18 10:02:00', ''),
         snapshot: clone(findIn(seedCoupons(), '10086003'))
       },
       {
@@ -513,6 +540,7 @@
         auditedAt: '2026-09-06 12:00:00',
         auditedBy: '审核员小李',
         reason: '',
+        auditLogs: seedAuditLogs('APPROVED', '2026-09-06 12:00:00', ''),
         snapshot: clone(findIn(seedCoupons(), '10086016'))
       }
     ];
@@ -743,6 +771,32 @@
       }
     });
     if (!hadCurrent || migrated) persist();
+    ensureCancelledAuditDemo();
+  }
+
+  function ensureCancelledAuditDemo() {
+    if (audits.some(function (row) { return row && row.id === 'AUD-CANCEL-10086013'; })) return;
+    var snap = clone(findIn(list, '10086013') || findIn(seedCoupons(), '10086013'));
+    if (!snap) return;
+    audits.push({
+      id: 'AUD-CANCEL-10086013',
+      couponId: '10086013',
+      status: 'CANCELLED',
+      submittedAt: '2026-10-12 11:20:00',
+      submittedBy: '张征',
+      auditedAt: '2026-10-12 11:28:00',
+      auditedBy: '张征',
+      reason: '',
+      auditLogs: [{
+        node: '营销审核',
+        reviewer: '张征',
+        time: '2026-10-12 11:28:00',
+        result: '取消',
+        reason: '取消审核，回到草稿'
+      }],
+      snapshot: snap
+    });
+    persist();
   }
 
   function pushLog(item, action, content, extra) {
@@ -1144,6 +1198,7 @@
       auditedAt: '',
       auditedBy: '',
       reason: '',
+      auditLogs: [],
       snapshot: clone(item)
     };
     audits.unshift(audit);
@@ -1160,6 +1215,7 @@
       audit.status = 'CANCELLED';
       audit.auditedAt = nowStr();
       audit.auditedBy = '张征';
+      pushAuditRecord(audit, '取消', '取消审核，回到草稿');
     }
     item.status = 'DRAFT';
     item.updatedAt = nowStr();
@@ -1168,19 +1224,21 @@
     return item;
   }
 
-  function approveAudit(auditId) {
+  function approveAudit(auditId, opinion) {
     var audit = findAudit(auditId);
     if (!audit || audit.status !== 'PENDING') return null;
+    var note = String(opinion || '').trim().slice(0, 100);
     audit.status = 'APPROVED';
     audit.auditedAt = nowStr();
     audit.auditedBy = '审核员小李';
     audit.reason = '';
+    pushAuditRecord(audit, '通过', note);
     var item = findById(audit.couponId);
     if (item) {
       item.status = 'APPROVED';
       item.remark = '';
       item.updatedAt = audit.auditedAt;
-      pushLog(item, 'coupon.approve', '审核成功');
+      pushLog(item, 'coupon.approve', note ? '审核成功：' + note : '审核成功');
     }
     persist();
     return { item: item, audit: audit };
@@ -1189,11 +1247,13 @@
   function rejectAudit(auditId, reason) {
     var audit = findAudit(auditId);
     if (!audit || audit.status !== 'PENDING') return null;
-    var why = String(reason || '').trim();
+    var why = String(reason || '').trim().slice(0, 100);
+    if (!why) return null;
     audit.status = 'REJECTED';
     audit.auditedAt = nowStr();
     audit.auditedBy = '审核员小李';
     audit.reason = why;
+    pushAuditRecord(audit, '驳回', why);
     var item = findById(audit.couponId);
     if (item) {
       item.status = 'REJECTED';

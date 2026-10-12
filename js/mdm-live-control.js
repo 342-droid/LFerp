@@ -90,6 +90,7 @@
   var addBagUi = { templateId: '', keyword: '', stock: '' };
   var addSignUi = { templateId: '', keyword: '' };
   var addTaskUi = { templateId: '', keyword: '' };
+  var addRedpackUi = { templateId: '', keyword: '' };
   var WELFARE_META = {
     coupon: {
       type: 'COUPON',
@@ -130,6 +131,16 @@
       panelClass: 'is-task',
       emptyPlan: '该场次暂无绑定的观看奖励活动',
       emptyRecord: '暂无观看奖励记录'
+    },
+    redpack: {
+      type: 'CASH_REDPACK',
+      title: '发送现金红包',
+      issueTab: '发送现金红包',
+      recordTab: '发送记录',
+      primary: '立即发送',
+      panelClass: 'is-bag',
+      emptyPlan: '该场次暂无绑定的现金红包',
+      emptyRecord: '暂无发送记录'
     }
   };
   var WELFARE_GIFT_ICO =
@@ -1601,6 +1612,7 @@
       if (!b) return '福袋';
       return '福袋 ' + b.name + '（' + b.id + '）';
     }
+    if (reward.rewardType === 'CASH_REDPACK') return '现金红包 ' + (reward.redpackName || reward.redpackId || '');
     return reward.rewardType;
   }
 
@@ -1615,6 +1627,7 @@
       var b = reward.prizeBagId && Demo.findBagTemplate ? Demo.findBagTemplate(reward.prizeBagId) : null;
       return b ? '福袋' + b.name : '福袋';
     }
+    if (reward.rewardType === 'CASH_REDPACK') return '现金红包' + (reward.redpackName ? reward.redpackName : '');
     return '—';
   }
 
@@ -2081,6 +2094,15 @@
         '</div></div></div>'
       );
     }
+    if (tpl.prizeType === 'CASH_REDPACK') {
+      return (
+        '<div class="bag-prize">' +
+        typeTag +
+        '<span class="bag-prize__name">' +
+        escapeHtml(tpl.redpackName || '现金红包') +
+        '</span></div>'
+      );
+    }
     return '<div class="bag-prize">' + typeTag + '</div>';
   }
 
@@ -2092,6 +2114,7 @@
     }
     if (tpl.prizeType === 'POINTS') return (tpl.pointsAmount != null ? tpl.pointsAmount : 0) + ' 积分';
     if (tpl.prizeType === 'PRODUCT') return tpl.productName || '商品';
+    if (tpl.prizeType === 'CASH_REDPACK') return tpl.redpackName || '现金红包';
     return '—';
   }
 
@@ -2123,7 +2146,80 @@
     if (tpl.prizeType === 'PRODUCT') {
       return (tpl.productName || '商品') + (tpl.productSpec ? ' / ' + tpl.productSpec : '');
     }
+    if (tpl.prizeType === 'CASH_REDPACK') return '现金红包 ' + (tpl.redpackName || tpl.redpackId || '');
     return '—';
+  }
+
+  function cashRedpackClosed() {
+    return Demo.cashRedpackSwitchOn && !Demo.cashRedpackSwitchOn();
+  }
+
+  function planUsesCash(plan) {
+    if (!plan) return false;
+    if (plan.type === 'CASH_REDPACK' || plan.usesCash) return true;
+    if (plan.type === 'FORTUNE_BAG') {
+      var bag = bagTemplateOf(plan);
+      return !!(bag && (bag.usesCash || bag.prizeType === 'CASH_REDPACK'));
+    }
+    if (plan.type === 'SIGN_IN') {
+      var sign = signTemplateOf(plan);
+      return !!(
+        sign &&
+        (sign.usesCash || (sign.rewards || []).some(function (r) { return r.rewardType === 'CASH_REDPACK'; }))
+      );
+    }
+    if (plan.type === 'TASK') {
+      var task = taskTemplateOf(plan);
+      return !!(
+        task &&
+        (task.usesCash || (task.milestones || []).some(function (m) { return m.rewardType === 'CASH_REDPACK'; }))
+      );
+    }
+    return false;
+  }
+
+  function cashClosedTip() {
+    return '现金红包已关闭，请先在「营销 → 现金红包」中开启';
+  }
+
+  function redpackNotStartedTip(name) {
+    return '现金红包「' + (name || '现金红包') + '」未到有效期，不能发放';
+  }
+
+  function redpackIssueBlock(id) {
+    if (!id) return '';
+    var store = window.MdmMarketingCashRedpackTplStore;
+    if (!store || typeof store.getById !== 'function' || typeof store.rewardBlockReason !== 'function') return '';
+    var item = store.getById(id);
+    if (!item) return '';
+    if (store.rewardBlockReason(item) === '未到有效期') return redpackNotStartedTip(item.name);
+    return '';
+  }
+
+  function planCashIssueBlock(plan) {
+    if (!plan) return '';
+    if (plan.type === 'CASH_REDPACK') return redpackIssueBlock(plan.templateId || plan.poolId);
+    if (plan.type === 'FORTUNE_BAG') {
+      var bag = bagTemplateOf(plan);
+      if (bag && (bag.prizeType === 'CASH_REDPACK' || bag.redpackId)) return redpackIssueBlock(bag.redpackId);
+    }
+    if (plan.type === 'SIGN_IN') {
+      var sign = signTemplateOf(plan);
+      var used = plan.roundsUsed != null ? Number(plan.roundsUsed) || 0 : 0;
+      var reward = sign && sign.rewards ? sign.rewards[used] : null;
+      if (reward && reward.rewardType === 'CASH_REDPACK') return redpackIssueBlock(reward.redpackId);
+    }
+    if (plan.type === 'TASK') {
+      var task = taskTemplateOf(plan);
+      var milestones = (task && task.milestones) || [];
+      var i;
+      for (i = 0; i < milestones.length; i++) {
+        if (!milestones[i] || milestones[i].rewardType !== 'CASH_REDPACK') continue;
+        var block = redpackIssueBlock(milestones[i].redpackId);
+        if (block) return block;
+      }
+    }
+    return '';
   }
 
   function requiredPositiveInt(val) {
@@ -2587,6 +2683,19 @@
       } else {
         disabled = true;
       }
+    } else if (kind === 'redpack') {
+      show = !!plans.length;
+      label = '立即发送';
+      if (!plan) disabled = true;
+    }
+    if (plan && planUsesCash(plan) && cashRedpackClosed()) {
+      disabled = true;
+      tip = cashClosedTip();
+    }
+    var notStartedTip = planCashIssueBlock(plan);
+    if (notStartedTip) {
+      disabled = true;
+      if (!tip) tip = notStartedTip;
     }
     if (ended) disabled = true;
     return { show: show, disabled: disabled, tip: tip, label: label };
@@ -2651,7 +2760,51 @@
     if (kind === 'sign') return renderSignIssue(meta, plans, plan);
     if (kind === 'task') return renderTaskIssue(meta, plans, plan);
     if (kind === 'coupon') return renderCouponIssue(meta, plans, plan);
+    if (kind === 'redpack') return renderRedpackIssue(meta, plans, plan);
     return renderBagIssue(meta, plans, plan);
+  }
+
+  function liveRedpackFields(t) {
+    var id = (t && (t.templateId || t.poolId)) || '';
+    var name = (t && t.name) || '现金红包';
+    var store = window.MdmMarketingCashRedpackTplStore;
+    if (store && typeof store.getById === 'function' && id) {
+      var row = store.getById(id);
+      if (row && row.name) name = row.name;
+    }
+    return { name: name, templateId: id || '—' };
+  }
+
+  function renderRedpackIssue(meta, plans, plan) {
+    var ended = isEndedLocked();
+    var toolbar =
+      '<div class="coupon-dialog__issue-toolbar"><button type="button" class="erp-btn erp-btn--primary" id="btnAddRedpack"' +
+      (ended ? ' disabled' : '') +
+      '>添加现金红包</button></div>';
+    if (!plans.length) {
+      return '<div class="bag-dialog__pane">' + toolbar + welfareEmptyHtml(meta.emptyPlan) + '</div>';
+    }
+    var cards = plans
+      .map(function (t) {
+        var id = welfarePlanIdOf(t);
+        var live = liveRedpackFields(t);
+        var sent = t.deliveredCount != null ? t.deliveredCount : 0;
+        return (
+          '<div class="coupon-card bag-card' +
+          (id === welfareUi.planId ? ' coupon-card--selected bag-card--selected' : '') +
+          '" data-plan-id="' +
+          escapeHtml(id) +
+          '"><div class="coupon-card__head"><span class="coupon-card__title">' +
+          escapeHtml(live.name) +
+          '</span></div><div class="coupon-card__sub">现金红包（' +
+          escapeHtml(String(live.templateId)) +
+          '）　已发送 ' +
+          escapeHtml(String(sent)) +
+          ' 次</div></div>'
+        );
+      })
+      .join('');
+    return '<div class="bag-dialog__pane">' + toolbar + '<div class="coupon-dialog__cards">' + cards + '</div></div>';
   }
 
   function renderBagIssue(meta, plans, plan) {
@@ -3242,6 +3395,7 @@
         if (welfareUi.kind === 'bag') return renderBagRecordCard(w, p, seq);
         if (welfareUi.kind === 'sign') return renderSignRecordCard(w, p, seq);
         if (welfareUi.kind === 'task') return renderTaskRecordCard(w, p, seq);
+        if (welfareUi.kind === 'redpack') return renderRedpackRecordCard(w, p, seq);
         return renderCouponRecordCard(w, p, seq);
       })
       .join('');
@@ -3254,6 +3408,21 @@
             ? 'task-dialog__records'
             : 'coupon-dialog__records';
     return refresh + '<div class="' + listClass + '">' + cards + '</div>';
+  }
+
+  function renderRedpackRecordCard(w, plan, seq) {
+    var live = liveRedpackFields(plan);
+    return (
+      '<div class="record-card"><div class="record-card__head"><span class="record-card__no">' +
+      escapeHtml(String(seq)) +
+      '</span><span class="record-card__name">' +
+      escapeHtml(live.name) +
+      '</span><span class="record-card__status record-card__status--closed">已发送</span></div><div class="record-card__footer"><span class="record-card__time">现金红包（' +
+      escapeHtml(String(live.templateId)) +
+      '）　' +
+      escapeHtml(formatWelfareTime(w.startedAt)) +
+      '</span></div></div>'
+    );
   }
 
   function recordStatusBadge(w, activeText) {
@@ -3842,7 +4011,8 @@
 
   function filteredBagTemplates() {
     var kw = String(addBagUi.keyword || '').trim().toLowerCase();
-    return (Demo.bagTemplates || []).filter(function (tpl) {
+    var source = Demo.listBagTemplates ? Demo.listBagTemplates(false) : Demo.bagTemplates || [];
+    return source.filter(function (tpl) {
       if (!kw) return true;
       return (
         String(tpl.name || '').toLowerCase().indexOf(kw) >= 0 ||
@@ -3865,7 +4035,7 @@
       head +
       list
         .map(function (tpl) {
-          var selectable = tpl.status === 'enabled' && Number(tpl.stock) > 0;
+          var selectable = tpl.status === 'enabled' && Number(tpl.stock) > 0 && !(tpl.usesCash && cashRedpackClosed());
           var selected = selectable && addBagUi.templateId === tpl.id;
           return (
             '<div class="add-coupon-row add-bag-row' +
@@ -3908,6 +4078,7 @@
 
   function openAddBagDialog() {
     if (isEndedLocked()) return toastEndedLock('deliver');
+    if (Demo.refreshMarketingLiveCaches) Demo.refreshMarketingLiveCaches();
     addBagUi.templateId = '';
     addBagUi.keyword = '';
     addBagUi.stock = '';
@@ -3926,6 +4097,7 @@
     var tpl = Demo.findBagTemplate ? Demo.findBagTemplate(addBagUi.templateId) : null;
     if (!tpl) return toast('请先选择福袋模板', 'warning');
     if (tpl.status !== 'enabled') return toast('仅能添加启用中的福袋模板', 'warning');
+    if (tpl.usesCash && cashRedpackClosed()) return toast(cashClosedTip(), 'warning');
     var qty = Math.floor(Number((document.getElementById('addBagStock') || {}).value || addBagUi.stock || 0));
     if (!qty || qty < 1) return toast('请填写福袋库存', 'warning');
     if (qty > tpl.stock) return toast('福袋库存不能大于模板剩余库存（' + tpl.stock + '）', 'warning');
@@ -3957,7 +4129,8 @@
 
   function filteredSignTemplates() {
     var kw = String(addSignUi.keyword || '').trim().toLowerCase();
-    return (Demo.signTemplates || []).filter(function (tpl) {
+    var source = Demo.listSignTemplates ? Demo.listSignTemplates(false) : Demo.signTemplates || [];
+    return source.filter(function (tpl) {
       if (!kw) return true;
       return (
         String(tpl.name || '').toLowerCase().indexOf(kw) >= 0 ||
@@ -3976,7 +4149,7 @@
     }
     box.innerHTML = list
       .map(function (tpl) {
-        var selectable = tpl.status === 'enabled';
+        var selectable = tpl.status === 'enabled' && !(tpl.usesCash && cashRedpackClosed());
         var selected = selectable && addSignUi.templateId === tpl.id;
         return (
           '<div class="add-sign-card' +
@@ -4006,6 +4179,7 @@
 
   function openAddSignDialog() {
     if (isEndedLocked()) return toastEndedLock('deliver');
+    if (Demo.refreshMarketingLiveCaches) Demo.refreshMarketingLiveCaches();
     addSignUi.templateId = '';
     addSignUi.keyword = '';
     var kw = document.getElementById('addSignKeyword');
@@ -4021,6 +4195,7 @@
     var tpl = Demo.findSignTemplate ? Demo.findSignTemplate(addSignUi.templateId) : null;
     if (!tpl) return toast('请先选择签到活动', 'warning');
     if (tpl.status !== 'enabled') return toast('仅能添加启用中的签到模板', 'warning');
+    if (tpl.usesCash && cashRedpackClosed()) return toast(cashClosedTip(), 'warning');
     if (!sess.templates) sess.templates = [];
     var planId = Demo.nextSignPlanId();
     sess.templates.push({
@@ -4045,7 +4220,8 @@
 
   function filteredTaskTemplates() {
     var kw = String(addTaskUi.keyword || '').trim().toLowerCase();
-    return (Demo.taskTemplates || []).filter(function (tpl) {
+    var source = Demo.listTaskTemplates ? Demo.listTaskTemplates(false) : Demo.taskTemplates || [];
+    return source.filter(function (tpl) {
       if (!kw) return true;
       return (
         String(tpl.name || '').toLowerCase().indexOf(kw) >= 0 ||
@@ -4064,7 +4240,7 @@
     }
     box.innerHTML = list
       .map(function (tpl) {
-        var selectable = tpl.status === 'enabled';
+        var selectable = tpl.status === 'enabled' && !(tpl.usesCash && cashRedpackClosed());
         var selected = selectable && addTaskUi.templateId === tpl.id;
         return (
           '<div class="add-sign-card' +
@@ -4094,6 +4270,7 @@
 
   function openAddTaskDialog() {
     if (isEndedLocked()) return toastEndedLock('deliver');
+    if (Demo.refreshMarketingLiveCaches) Demo.refreshMarketingLiveCaches();
     addTaskUi.templateId = '';
     addTaskUi.keyword = '';
     var kw = document.getElementById('addTaskKeyword');
@@ -4109,6 +4286,7 @@
     var tpl = Demo.findTaskTemplate ? Demo.findTaskTemplate(addTaskUi.templateId) : null;
     if (!tpl) return toast('请先选择观看奖励活动', 'warning');
     if (tpl.status !== 'enabled') return toast('仅能添加启用中的观看奖励模板', 'warning');
+    if (tpl.usesCash && cashRedpackClosed()) return toast(cashClosedTip(), 'warning');
     if (!sess.templates) sess.templates = [];
     var planId = Demo.nextTaskPlanId();
     sess.templates.push({
@@ -4127,6 +4305,95 @@
     Demo.welfareWindowsOf(planId);
     welfareUi.planId = planId;
     closeDialog('addTaskDialog');
+    toast('已添加「' + tpl.name + '」');
+    renderWelfareDrawer();
+  }
+
+  function filteredRedpackTemplates() {
+    var kw = String(addRedpackUi.keyword || '').trim().toLowerCase();
+    var list = Demo.listCashRedpackOptions ? Demo.listCashRedpackOptions() : [];
+    return list.filter(function (tpl) {
+      if (!kw) return true;
+      return (
+        String(tpl.name || '').toLowerCase().indexOf(kw) >= 0 ||
+        String(tpl.id || '').toLowerCase().indexOf(kw) >= 0
+      );
+    });
+  }
+
+  function renderAddRedpackList() {
+    var box = document.getElementById('addRedpackList');
+    if (!box) return;
+    var list = filteredRedpackTemplates();
+    if (!list.length) {
+      box.innerHTML = '<div class="add-coupon-empty">没有匹配的现金红包模版</div>';
+      return;
+    }
+    box.innerHTML = list
+      .map(function (tpl) {
+        var selectable = !!tpl.selectable;
+        var selected = selectable && addRedpackUi.templateId === tpl.id;
+        return (
+          '<div class="add-sign-card' +
+          (selected ? ' add-sign-card--selected' : '') +
+          (selectable ? '' : ' add-sign-card--disabled') +
+          '" data-redpack-tpl="' +
+          escapeHtml(tpl.id) +
+          '"' +
+          (selectable ? '' : ' data-disabled="1"') +
+          '><div class="add-sign-card__head"><span class="add-sign-card__name">' +
+          escapeHtml(tpl.name) +
+          '</span></div><div class="add-sign-card__meta">ID ' +
+          escapeHtml(tpl.id) +
+          (tpl.reason ? ' · ' + escapeHtml(tpl.reason) : '') +
+          '</div></div>'
+        );
+      })
+      .join('');
+  }
+
+  function openAddRedpackDialog() {
+    if (isEndedLocked()) return toastEndedLock('deliver');
+    if (cashRedpackClosed()) return toast(cashClosedTip(), 'warning');
+    addRedpackUi.templateId = '';
+    addRedpackUi.keyword = '';
+    var kw = document.getElementById('addRedpackKeyword');
+    if (kw) kw.value = '';
+    renderAddRedpackList();
+    openDialog('addRedpackDialog');
+  }
+
+  function confirmAddRedpack() {
+    if (isEndedLocked()) return toastEndedLock('deliver');
+    if (cashRedpackClosed()) return toast(cashClosedTip(), 'warning');
+    var sess = findSession(sessionId);
+    if (!sess) return;
+    var list = Demo.listCashRedpackOptions ? Demo.listCashRedpackOptions() : [];
+    var tpl = null;
+    var i;
+    for (i = 0; i < list.length; i++) {
+      if (list[i].id === addRedpackUi.templateId) tpl = list[i];
+    }
+    if (!tpl) return toast('请先选择现金红包模版', 'warning');
+    if (!tpl.selectable) return toast(tpl.reason || '该现金红包不可选择', 'warning');
+    if (!sess.templates) sess.templates = [];
+    var planId = 'plan-r-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+    sess.templates.push({
+      id: planId,
+      planId: planId,
+      activityId: planId,
+      templateId: tpl.id,
+      poolId: tpl.id,
+      type: 'CASH_REDPACK',
+      typeName: '现金红包',
+      name: tpl.name,
+      usesCash: true,
+      deliveredCount: 0,
+      stock: null
+    });
+    Demo.welfareWindowsOf(planId);
+    welfareUi.planId = planId;
+    closeDialog('addRedpackDialog');
     toast('已添加「' + tpl.name + '」');
     renderWelfareDrawer();
   }
@@ -4165,6 +4432,9 @@
   }
 
   function issueTaskActivity(plan) {
+    if (planUsesCash(plan) && cashRedpackClosed()) return toast(cashClosedTip(), 'warning');
+    var taskCashBlock = planCashIssueBlock(plan);
+    if (taskCashBlock) return toast(taskCashBlock, 'warning');
     var live = liveTaskFields(plan);
     var taskList = welfareWindowsOfPlan(welfarePlanIdOf(plan));
     var taskRoundIdx = nextRoundIndex(taskList);
@@ -4203,6 +4473,9 @@
   }
 
   function issueSignRound(plan) {
+    if (planUsesCash(plan) && cashRedpackClosed()) return toast(cashClosedTip(), 'warning');
+    var signCashBlock = planCashIssueBlock(plan);
+    if (signCashBlock) return toast(signCashBlock, 'warning');
     var live = liveSignFields(plan);
     if (toastFillRequired()) return;
     var signDur = requiredPositiveInt(welfareUi.duration);
@@ -4300,6 +4573,9 @@
       }
       var randomFill = drawType === 'ASSIGN' ? Math.max(0, winners - assignUsers.length) : 0;
       var live = liveBagFields(plan);
+      if (planUsesCash(plan) && cashRedpackClosed()) return toast(cashClosedTip(), 'warning');
+      var bagCashBlock = planCashIssueBlock(plan);
+      if (bagCashBlock) return toast(bagCashBlock, 'warning');
       if (String(live.prizeType || '').toUpperCase() === 'POINTS') {
         var ptsOn = true;
         try {
@@ -4389,6 +4665,31 @@
       }
       issueTaskActivity(plan);
       return;
+    }
+    if (kind === 'redpack') {
+      if (!plan) return toast('请先选择现金红包', 'warning');
+      if (cashRedpackClosed()) return toast(cashClosedTip(), 'warning');
+      var redpackCashBlock = planCashIssueBlock(plan);
+      if (redpackCashBlock) return toast(redpackCashBlock, 'warning');
+      var liveRp = liveRedpackFields(plan);
+      var redpackList = welfareWindowsOfPlan(welfarePlanIdOf(plan));
+      var redpackIdx = nextRoundIndex(redpackList);
+      redpackList.unshift({
+        id: Demo.nextWindowId(),
+        roundIndex: redpackIdx,
+        roundNo: redpackIdx + 1,
+        startedAt: nowWelfareTs(),
+        endedAt: nowWelfareTs(),
+        durationSec: 0,
+        status: 'CLOSED',
+        participantCount: 0,
+        participateTimes: 0,
+        prizeTitle: liveRp.name
+      });
+      plan.deliveredCount = (plan.deliveredCount || 0) + 1;
+      toast('已发送现金红包「' + liveRp.name + '」');
+      welfareUi.tab = 'record';
+      renderWelfareDrawer();
     }
   }
 
@@ -6619,6 +6920,11 @@
           openAddTaskDialog();
           return;
         }
+        if (ev.target.closest('#btnAddRedpack')) {
+          if (isEndedLocked()) return toastEndedLock('deliver');
+          openAddRedpackDialog();
+          return;
+        }
         if (ev.target.closest('#btnSaveBagWin')) {
           saveBagWinRule();
           return;
@@ -6784,6 +7090,26 @@
     var addTaskConfirm = document.getElementById('addTaskConfirm');
     if (addTaskConfirm) {
       addTaskConfirm.addEventListener('click', confirmAddTask);
+    }
+    var addRedpackList = document.getElementById('addRedpackList');
+    if (addRedpackList) {
+      addRedpackList.addEventListener('click', function (ev) {
+        var row = ev.target.closest('[data-redpack-tpl]');
+        if (!row || row.getAttribute('data-disabled')) return;
+        addRedpackUi.templateId = row.getAttribute('data-redpack-tpl') || '';
+        renderAddRedpackList();
+      });
+    }
+    var addRedpackKw = document.getElementById('addRedpackKeyword');
+    if (addRedpackKw) {
+      addRedpackKw.addEventListener('input', function () {
+        addRedpackUi.keyword = addRedpackKw.value || '';
+        renderAddRedpackList();
+      });
+    }
+    var addRedpackConfirm = document.getElementById('addRedpackConfirm');
+    if (addRedpackConfirm) {
+      addRedpackConfirm.addEventListener('click', confirmAddRedpack);
     }
   }
 

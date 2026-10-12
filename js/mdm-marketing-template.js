@@ -86,6 +86,7 @@
         pointsAmount: 100,
         productSkus: [],
         couponActivityId: '',
+        redpackId: '',
         claimValidityType: '',
         claimValidityValue: '',
         claimValidityUnit: '',
@@ -94,8 +95,8 @@
       sign: {
         totalRounds: 1,
         mode: 'PER_ROUND',
-        roundRewards: [{ rewardType: 'POINTS', pointsAmount: 5, couponActivityId: '', productSkus: [] }],
-        completeReward: { rewardType: 'POINTS', pointsAmount: 5, couponActivityId: '', productSkus: [] },
+        roundRewards: [{ rewardType: 'POINTS', pointsAmount: 5, couponActivityId: '', redpackId: '', productSkus: [] }],
+        completeReward: { rewardType: 'POINTS', pointsAmount: 5, couponActivityId: '', redpackId: '', productSkus: [] },
         continuousRequired: false,
         claimValidityType: '',
         claimValidityValue: '',
@@ -103,7 +104,7 @@
         pickupAutoClaim: ''
       },
       task: {
-        milestones: [{ minutes: 5, points: 10, rewardType: 'POINTS', couponActivityId: '', productSkus: [] }],
+        milestones: [{ minutes: 5, points: 10, rewardType: 'POINTS', couponActivityId: '', redpackId: '', productSkus: [] }],
         claimValidityType: '',
         claimValidityValue: '',
         claimValidityUnit: '',
@@ -193,6 +194,8 @@
         }
       } else if (edit.bag.prizeType === 'COUPON') {
         edit.bag.couponActivityId = String((cfg.prizes && cfg.prizes[0] && cfg.prizes[0].refId) || '');
+      } else if (edit.bag.prizeType === 'CASH_REDPACK') {
+        edit.bag.redpackId = String((cfg.prizes && cfg.prizes[0] && cfg.prizes[0].refId) || '');
       }
     } else if (item.activityType === 'SIGN_IN') {
       edit.sign.totalRounds = Number(cfg.totalRounds || 1);
@@ -203,6 +206,7 @@
           rewardType: u.rewardType || 'POINTS',
           pointsAmount: u.pointsAmount != null ? u.pointsAmount : 5,
           couponActivityId: u.couponActivityId || '',
+          redpackId: u.redpackId || '',
           productSkus: Array.isArray(u.productSkus) ? u.productSkus.slice(0, 1) : []
         };
       });
@@ -212,6 +216,7 @@
           rewardType: cfg.completeReward.rewardType || 'POINTS',
           pointsAmount: cfg.completeReward.pointsAmount != null ? cfg.completeReward.pointsAmount : 5,
           couponActivityId: cfg.completeReward.couponActivityId || '',
+          redpackId: cfg.completeReward.redpackId || '',
           productSkus: Array.isArray(cfg.completeReward.productSkus) ? cfg.completeReward.productSkus.slice(0, 1) : []
         };
       }
@@ -224,11 +229,12 @@
           points: Number(reward.pointsAmount || 10),
           rewardType: reward.rewardType || 'POINTS',
           couponActivityId: reward.couponActivityId || '',
+          redpackId: reward.redpackId || '',
           productSkus: Array.isArray(reward.productSkus) ? reward.productSkus.slice(0, 1) : []
         };
       });
       if (!edit.task.milestones.length) {
-        edit.task.milestones = [{ minutes: 5, points: 10, rewardType: 'POINTS', couponActivityId: '', productSkus: [] }];
+        edit.task.milestones = [{ minutes: 5, points: 10, rewardType: 'POINTS', couponActivityId: '', redpackId: '', productSkus: [] }];
       }
       applyClaimFromCfg(edit.task, cfg);
     }
@@ -302,7 +308,7 @@
     var t = Math.max(1, Number(edit.sign.totalRounds) || 1);
     edit.sign.totalRounds = t;
     while (edit.sign.roundRewards.length < t) {
-      edit.sign.roundRewards.push({ rewardType: 'POINTS', pointsAmount: 5, couponActivityId: '', productSkus: [] });
+      edit.sign.roundRewards.push({ rewardType: 'POINTS', pointsAmount: 5, couponActivityId: '', redpackId: '', productSkus: [] });
     }
     if (edit.sign.roundRewards.length > t) edit.sign.roundRewards.length = t;
   }
@@ -427,6 +433,28 @@
         }
       });
     }
+  }
+
+  function cashSwitchOn() {
+    try {
+      var raw = localStorage.getItem('mdm_marketing_cash_redpack_settings_v1');
+      if (!raw) return true;
+      var data = JSON.parse(raw);
+      return data.enabled !== false;
+    } catch (e) {
+      return true;
+    }
+  }
+
+  function rewardRadio(name, value, current, label, locked) {
+    var closed = !cashSwitchOn();
+    var disabled = !!locked || (closed && (value === 'CASH_REDPACK' || current === 'CASH_REDPACK'));
+    return radio(name, value, current, label, disabled);
+  }
+
+  function cashClosedTip() {
+    if (cashSwitchOn()) return '';
+    return '<div class="mkt-tpl-field-tip">现金红包已关闭，该项不可勾选和修改。请先在「营销 → 现金红包」中开启。</div>';
   }
 
   function radio(name, value, current, label, disabled) {
@@ -607,6 +635,52 @@
     return opts;
   }
 
+  function cashRedpackSelect(selected) {
+    var Redpack = window.MdmMarketingCashRedpackTplStore;
+    var list =
+      Redpack && typeof Redpack.listRewardOptions === 'function'
+        ? Redpack.listRewardOptions({ allowNotStarted: true })
+        : [];
+    if (!list.length) return '<option value="" disabled>暂无现金红包</option>';
+    var sid = String(selected || '');
+    var matched = false;
+    var opts = list
+      .map(function (row) {
+        var picked = sid && String(row.id) === sid;
+        if (picked) matched = true;
+        return (
+          '<option value="' +
+          escapeHtml(row.id) +
+          '"' +
+          (picked ? ' selected' : '') +
+          (row.selectable ? '' : ' disabled') +
+          '>' +
+          escapeHtml(row.label) +
+          '</option>'
+        );
+      })
+      .join('');
+    if (sid && !matched) {
+      opts =
+        '<option value="' +
+        escapeHtml(sid) +
+        '" selected disabled>' +
+        escapeHtml(sid + '（不可选）') +
+        '</option>' +
+        opts;
+    }
+    return opts;
+  }
+
+  function redpackSelectable(id) {
+    var Redpack = window.MdmMarketingCashRedpackTplStore;
+    return !!(
+      Redpack &&
+      typeof Redpack.isRewardSelectable === 'function' &&
+      Redpack.isRewardSelectable(id, { allowNotStarted: true })
+    );
+  }
+
   function shouldRerenderEdit(el) {
     if (!el) return false;
     var id = el.id || '';
@@ -774,10 +848,11 @@
       html += '<span class="mkt-tpl-inline__text">份</span></div></div></div>';
     } else if (edit.base.activityType === 'FORTUNE_BAG') {
       html += '<div class="mkt-tpl-row"><div class="mkt-tpl-row__label is-req">奖品类型</div><div class="mkt-tpl-row__ctrl"><div class="mkt-tpl-radios">';
-      html += radio('fPrize', 'POINTS', edit.bag.prizeType, '积分', locked);
-      html += radio('fPrize', 'GOODS', edit.bag.prizeType, '商品', locked);
-      html += radio('fPrize', 'COUPON', edit.bag.prizeType, '优惠券', locked);
-      html += '</div></div></div>';
+      html += rewardRadio('fPrize', 'POINTS', edit.bag.prizeType, '积分', locked);
+      html += rewardRadio('fPrize', 'GOODS', edit.bag.prizeType, '商品', locked);
+      html += rewardRadio('fPrize', 'COUPON', edit.bag.prizeType, '优惠券', locked);
+      html += rewardRadio('fPrize', 'CASH_REDPACK', edit.bag.prizeType, '现金红包', locked);
+      html += '</div>' + cashClosedTip() + '</div></div>';
       if (edit.bag.prizeType === 'POINTS') {
         html += '<div class="mkt-tpl-row"><div class="mkt-tpl-row__label is-req">积分数量</div><div class="mkt-tpl-row__ctrl"><div class="mkt-tpl-inline">';
         html +=
@@ -790,6 +865,16 @@
       } else if (edit.bag.prizeType === 'GOODS') {
         html += '<div class="mkt-tpl-row"><div class="mkt-tpl-row__label">选择商品</div><div class="mkt-tpl-row__ctrl">';
         html += renderGoodsPick(edit.bag.productSkus, 'bag', locked);
+        html += '</div></div>';
+      } else if (edit.bag.prizeType === 'CASH_REDPACK') {
+        html += '<div class="mkt-tpl-row"><div class="mkt-tpl-row__label is-req">选择现金红包</div><div class="mkt-tpl-row__ctrl">';
+        html +=
+          '<select id="fBagRedpack" class="mkt-tpl-w360"' +
+          (locked || !cashSwitchOn() ? ' disabled' : '') +
+          '><option value="">请选择现金红包</option>' +
+          cashRedpackSelect(edit.bag.redpackId) +
+          '</select>';
+        html += '<div class="mkt-tpl-field-tip">已审核通过的现金红包可选，未到有效期也可先关联。草稿、待审核、审核失败、已禁用、已过有效期置灰不可选。</div>';
         html += '</div></div>';
       } else {
         html += '<div class="mkt-tpl-row"><div class="mkt-tpl-row__label is-req">选择优惠券</div><div class="mkt-tpl-row__ctrl">';
@@ -827,11 +912,12 @@
         edit.sign.roundRewards.forEach(function (rw, i) {
           html += '<div class="mkt-tpl-row"><div class="mkt-tpl-row__label">第 ' + (i + 1) + ' 次签到</div><div class="mkt-tpl-row__ctrl">';
           html += '<div class="mkt-tpl-radios">';
-          html += radio('fRwType' + i, 'POINTS', rw.rewardType, '积分', locked);
-          html += radio('fRwType' + i, 'GOODS', rw.rewardType, '商品', locked);
-          html += radio('fRwType' + i, 'COUPON', rw.rewardType, '优惠券', locked);
-          html += radio('fRwType' + i, 'NONE', rw.rewardType, '无奖励', locked);
-          html += '</div>';
+          html += rewardRadio('fRwType' + i, 'POINTS', rw.rewardType, '积分', locked);
+          html += rewardRadio('fRwType' + i, 'GOODS', rw.rewardType, '商品', locked);
+          html += rewardRadio('fRwType' + i, 'COUPON', rw.rewardType, '优惠券', locked);
+          html += rewardRadio('fRwType' + i, 'CASH_REDPACK', rw.rewardType, '现金红包', locked);
+          html += rewardRadio('fRwType' + i, 'NONE', rw.rewardType, '无奖励', locked);
+          html += '</div>' + cashClosedTip();
           if (rw.rewardType === 'POINTS') {
             html +=
               '<div class="mkt-tpl-rule__extra"><div class="mkt-tpl-inline"><input data-rw-points="' +
@@ -850,6 +936,15 @@
               '><option value="">请选择优惠券活动</option>' +
               couponSelect(rw.couponActivityId) +
               '</select></div>';
+          } else if (rw.rewardType === 'CASH_REDPACK') {
+            html +=
+              '<div class="mkt-tpl-rule__extra"><select data-rw-redpack="' +
+              i +
+              '" class="mkt-tpl-w360"' +
+              (locked || !cashSwitchOn() ? ' disabled' : '') +
+              '><option value="">请选择现金红包</option>' +
+              cashRedpackSelect(rw.redpackId) +
+              '</select><div class="mkt-tpl-field-tip">已审核通过的现金红包可选，未到有效期也可先关联。草稿、待审核、审核失败、已禁用、已过有效期置灰不可选。</div></div>';
           } else if (rw.rewardType === 'GOODS') {
             html += '<div class="mkt-tpl-rule__extra">' + renderGoodsPick(rw.productSkus, 'sign-rw-' + i, locked) + '</div>';
           }
@@ -859,11 +954,12 @@
         var cr = edit.sign.completeReward;
         html += '<div class="mkt-tpl-row"><div class="mkt-tpl-row__label">满 ' + edit.sign.totalRounds + ' 次后发</div><div class="mkt-tpl-row__ctrl">';
         html += '<div class="mkt-tpl-radios">';
-        html += radio('fCompleteType', 'POINTS', cr.rewardType, '积分', locked);
-        html += radio('fCompleteType', 'GOODS', cr.rewardType, '商品', locked);
-        html += radio('fCompleteType', 'COUPON', cr.rewardType, '优惠券', locked);
-        html += radio('fCompleteType', 'NONE', cr.rewardType, '无奖励', locked);
-        html += '</div>';
+        html += rewardRadio('fCompleteType', 'POINTS', cr.rewardType, '积分', locked);
+        html += rewardRadio('fCompleteType', 'GOODS', cr.rewardType, '商品', locked);
+        html += rewardRadio('fCompleteType', 'COUPON', cr.rewardType, '优惠券', locked);
+        html += rewardRadio('fCompleteType', 'CASH_REDPACK', cr.rewardType, '现金红包', locked);
+        html += rewardRadio('fCompleteType', 'NONE', cr.rewardType, '无奖励', locked);
+        html += '</div>' + cashClosedTip();
         if (cr.rewardType === 'POINTS') {
           html +=
             '<div class="mkt-tpl-rule__extra"><div class="mkt-tpl-inline"><input id="fCompletePts" type="number" min="1" step="1" class="mkt-tpl-num" value="' +
@@ -878,6 +974,13 @@
             '><option value="">请选择优惠券活动</option>' +
             couponSelect(cr.couponActivityId) +
             '</select></div>';
+        } else if (cr.rewardType === 'CASH_REDPACK') {
+          html +=
+            '<div class="mkt-tpl-rule__extra"><select id="fCompleteRedpack" class="mkt-tpl-w360"' +
+            (locked || !cashSwitchOn() ? ' disabled' : '') +
+            '><option value="">请选择现金红包</option>' +
+            cashRedpackSelect(cr.redpackId) +
+            '</select><div class="mkt-tpl-field-tip">已审核通过的现金红包可选，未到有效期也可先关联。草稿、待审核、审核失败、已禁用、已过有效期置灰不可选。</div></div>';
         } else if (cr.rewardType === 'GOODS') {
           html += '<div class="mkt-tpl-rule__extra">' + renderGoodsPick(cr.productSkus, 'sign-complete', locked) + '</div>';
         }
@@ -906,10 +1009,11 @@
           '>';
         html += '<span class="mkt-tpl-inline__text">分钟 =</span>';
         html += '<div class="mkt-tpl-radios">';
-        html += radio('fMsType' + i, 'POINTS', ms.rewardType || 'POINTS', '积分', locked);
-        html += radio('fMsType' + i, 'GOODS', ms.rewardType, '商品', locked);
-        html += radio('fMsType' + i, 'COUPON', ms.rewardType, '优惠券', locked);
-        html += '</div>';
+        html += rewardRadio('fMsType' + i, 'POINTS', ms.rewardType || 'POINTS', '积分', locked);
+        html += rewardRadio('fMsType' + i, 'GOODS', ms.rewardType, '商品', locked);
+        html += rewardRadio('fMsType' + i, 'COUPON', ms.rewardType, '优惠券', locked);
+        html += rewardRadio('fMsType' + i, 'CASH_REDPACK', ms.rewardType, '现金红包', locked);
+        html += '</div>' + (i === 0 ? cashClosedTip() : '');
         if (!locked && edit.task.milestones.length > 1) {
           html +=
             '<button type="button" class="mkt-tpl-add-link" data-act="rm-ms" data-i="' + i + '" style="color:#f56c6c">删除</button>';
@@ -933,6 +1037,15 @@
             '><option value="">请选择优惠券活动</option>' +
             couponSelect(ms.couponActivityId) +
             '</select></div>';
+        } else if (ms.rewardType === 'CASH_REDPACK') {
+          html +=
+            '<div class="mkt-tpl-rule__extra"><select data-ms-redpack="' +
+            i +
+            '" class="mkt-tpl-w360"' +
+            (locked || !cashSwitchOn() ? ' disabled' : '') +
+            '><option value="">请选择现金红包</option>' +
+            cashRedpackSelect(ms.redpackId) +
+            '</select><div class="mkt-tpl-field-tip">已审核通过的现金红包可选，未到有效期也可先关联。草稿、待审核、审核失败、已禁用、已过有效期置灰不可选。</div></div>';
         } else if (ms.rewardType === 'GOODS') {
           html += '<div class="mkt-tpl-rule__extra">' + renderGoodsPick(ms.productSkus, 'task-' + i, locked) + '</div>';
         }
@@ -1053,6 +1166,8 @@
     if (pts) edit.bag.pointsAmount = Number(pts.value || 0);
     var bc = document.getElementById('fBagCoupon');
     if (bc) edit.bag.couponActivityId = bc.value;
+    var br = document.getElementById('fBagRedpack');
+    if (br) edit.bag.redpackId = br.value;
     var claimRadios = document.querySelectorAll('input[name="fClaimVal"]');
     var cv = document.querySelector('input[name="fClaimVal"]:checked');
     var cvn = document.getElementById('fClaimValN');
@@ -1083,6 +1198,8 @@
       if (rp) rw.pointsAmount = Number(rp.value || 5);
       var rc = document.querySelector('[data-rw-coupon="' + i + '"]');
       if (rc) rw.couponActivityId = rc.value;
+      var rr = document.querySelector('[data-rw-redpack="' + i + '"]');
+      if (rr) rw.redpackId = rr.value;
       rw.productSkus = rw.productSkus || [];
     });
     var cty = document.querySelector('input[name="fCompleteType"]:checked');
@@ -1091,6 +1208,8 @@
     if (cpts) edit.sign.completeReward.pointsAmount = Number(cpts.value || 5);
     var cc = document.getElementById('fCompleteCoupon');
     if (cc) edit.sign.completeReward.couponActivityId = cc.value;
+    var crp = document.getElementById('fCompleteRedpack');
+    if (crp) edit.sign.completeReward.redpackId = crp.value;
     var cont = document.getElementById('fContinuous');
     if (cont) edit.sign.continuousRequired = cont.checked;
     edit.sign.completeReward.productSkus = edit.sign.completeReward.productSkus || [];
@@ -1100,10 +1219,12 @@
       var mp = document.querySelector('[data-ms-pts="' + i + '"]');
       var mt = document.querySelector('input[name="fMsType' + i + '"]:checked');
       var mc = document.querySelector('[data-ms-coupon="' + i + '"]');
+      var mrp = document.querySelector('[data-ms-redpack="' + i + '"]');
       if (mn) ms.minutes = Number(mn.value || 1);
       if (mp) ms.points = Number(mp.value || 1);
       if (mt) ms.rewardType = mt.value;
       if (mc) ms.couponActivityId = mc.value;
+      if (mrp) ms.redpackId = mrp.value;
       ms.productSkus = ms.productSkus || [];
     });
 
@@ -1174,7 +1295,8 @@
         prizes = edit.bag.productSkus.slice(0, 1).map(function (n) {
           return { refId: n.skuCode || n.id, spuCode: n.spuCode, amount: 1, weight: 1 };
         });
-      } else prizes = [{ refId: edit.bag.couponActivityId, amount: 1, weight: 1 }];
+      } else if (edit.bag.prizeType === 'CASH_REDPACK') prizes = [{ refId: edit.bag.redpackId, amount: 1, weight: 1 }];
+      else prizes = [{ refId: edit.bag.couponActivityId, amount: 1, weight: 1 }];
       var cfg = {
         activityType: 'FORTUNE_BAG',
         prizeType: edit.bag.prizeType,
@@ -1221,6 +1343,7 @@
     var out = { rewardType: rw.rewardType || 'POINTS' };
     if (out.rewardType === 'POINTS') out.pointsAmount = Number(rw.pointsAmount) || 0;
     if (out.rewardType === 'COUPON') out.couponActivityId = rw.couponActivityId || '';
+    if (out.rewardType === 'CASH_REDPACK') out.redpackId = rw.redpackId || '';
     if (out.rewardType === 'GOODS') out.productSkus = (rw.productSkus || []).slice(0, 1);
     return out;
   }
@@ -1229,6 +1352,7 @@
     var out = { rewardType: t.rewardType || 'POINTS' };
     if (out.rewardType === 'POINTS') out.pointsAmount = Number(t.points) || 1;
     if (out.rewardType === 'COUPON') out.couponActivityId = t.couponActivityId || '';
+    if (out.rewardType === 'CASH_REDPACK') out.redpackId = t.redpackId || '';
     if (out.rewardType === 'GOODS') out.productSkus = (t.productSkus || []).slice(0, 1);
     return out;
   }
@@ -1269,6 +1393,9 @@
         if (bagGoodsErr) return bagGoodsErr;
       }
       if (edit.bag.prizeType === 'COUPON' && !edit.bag.couponActivityId) return '请选择优惠券活动';
+      if (edit.bag.prizeType === 'CASH_REDPACK' && !redpackSelectable(edit.bag.redpackId)) {
+        return '请选择已审核通过的现金红包';
+      }
     }
     if (type === 'SIGN_IN') {
       var rounds = Number(edit.sign.totalRounds);
@@ -1278,6 +1405,9 @@
         edit.sign.mode === 'PER_ROUND' ? edit.sign.roundRewards : [edit.sign.completeReward];
       if (signRewards.some(function (rw) { return rw.rewardType === 'COUPON' && !rw.couponActivityId; })) {
         return '请选择优惠券活动';
+      }
+      if (signRewards.some(function (rw) { return rw.rewardType === 'CASH_REDPACK' && !redpackSelectable(rw.redpackId); })) {
+        return '请选择已审核通过的现金红包';
       }
       for (var si = 0; si < signRewards.length; si++) {
         if (signRewards[si].rewardType === 'GOODS') {
@@ -1293,6 +1423,13 @@
         })
       ) {
         return '请选择优惠券活动';
+      }
+      if (
+        edit.task.milestones.some(function (ms) {
+          return ms.rewardType === 'CASH_REDPACK' && !redpackSelectable(ms.redpackId);
+        })
+      ) {
+        return '请选择已审核通过的现金红包';
       }
       for (var ti = 0; ti < edit.task.milestones.length; ti++) {
         if (edit.task.milestones[ti].rewardType === 'GOODS') {
@@ -1768,7 +1905,7 @@
         renderEditBody();
       } else if (act === 'add-ms') {
         readEditDom();
-        edit.task.milestones.push({ minutes: 5, points: 10, rewardType: 'POINTS', couponActivityId: '', productSkus: [] });
+        edit.task.milestones.push({ minutes: 5, points: 10, rewardType: 'POINTS', couponActivityId: '', redpackId: '', productSkus: [] });
         renderEditBody();
       } else if (act === 'rm-ms') {
         readEditDom();

@@ -851,17 +851,7 @@
     goList('已提交审核');
   }
 
-  function openReject() {
-    var backdrop = document.getElementById('crTplRejectBackdrop');
-    var reason = document.getElementById('crTplRejectReason');
-    if (reason) reason.value = '';
-    if (backdrop) backdrop.hidden = false;
-  }
-
-  function closeReject() {
-    var backdrop = document.getElementById('crTplRejectBackdrop');
-    if (backdrop) backdrop.hidden = true;
-  }
+  var opinion = { read: function () { return ''; } };
 
   document.addEventListener('DOMContentLoaded', function () {
     var audit = auditId ? Store.findAudit(auditId) : null;
@@ -897,6 +887,12 @@
     setHidden(document.getElementById('crTplBtnSubmit'), !canEdit);
     setHidden(document.getElementById('crTplBtnReject'), !canAudit);
     setHidden(document.getElementById('crTplBtnApprove'), !canAudit);
+    if (window.MdmMarketingAuditPanel && (fromAudit || canAudit)) {
+      if (!audit && model && model.id && typeof Store.latestAuditOf === 'function') {
+        audit = Store.latestAuditOf(model.id, 'PENDING') || Store.latestAuditOf(model.id);
+      }
+      opinion = window.MdmMarketingAuditPanel.mount(document.getElementById('crTplAuditPanel'), audit, canAudit);
+    }
     render();
 
     var back = document.getElementById('crTplFormBack');
@@ -913,7 +909,8 @@
     var approveBtn = document.getElementById('crTplBtnApprove');
     if (approveBtn) {
       approveBtn.addEventListener('click', function () {
-        var result = auditId ? Store.approveAudit(auditId) : Store.approve(model.id);
+        var note = opinion.read();
+        var result = auditId ? Store.approveAudit(auditId, note) : Store.approve(model.id, note);
         if (!result.ok) {
           toast(result.message, 'warning');
           return;
@@ -922,21 +919,18 @@
       });
     }
     var rejectBtn = document.getElementById('crTplBtnReject');
-    if (rejectBtn) rejectBtn.addEventListener('click', openReject);
-    ['crTplRejectClose', 'crTplRejectCancel'].forEach(function (id) {
-      var el = document.getElementById(id);
-      if (el) el.addEventListener('click', closeReject);
-    });
-    var rejectOk = document.getElementById('crTplRejectOk');
-    if (rejectOk) {
-      rejectOk.addEventListener('click', function () {
-        var reason = (document.getElementById('crTplRejectReason') || {}).value || '';
+    if (rejectBtn) {
+      rejectBtn.addEventListener('click', function () {
+        var reason = opinion.read();
+        if (!reason) {
+          toast('请填写驳回原因', 'error');
+          return;
+        }
         var result = auditId ? Store.rejectAudit(auditId, reason) : Store.reject(model.id, reason);
         if (!result.ok) {
           toast(result.message, 'warning');
           return;
         }
-        closeReject();
         goList('已标记审核失败');
       });
     }

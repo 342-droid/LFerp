@@ -294,8 +294,77 @@
             { index: 1, threshold: 30, reward: { rewardType: 'POINTS', pointsAmount: 30 } }
           ]
         }
+      },
+      {
+        id: '10086009',
+        name: '现金红包福袋',
+        activityType: 'FORTUNE_BAG',
+        applicableChannel: 'LIVE_ONLY',
+        status: 'ACTIVE',
+        totalStock: 200,
+        createdAt: '2026-10-12 10:00:00',
+        updatedAt: '2026-10-12 10:00:00',
+        validStart: '2026-10-01 00:00:00',
+        validEnd: '2026-12-31 23:59:59',
+        config: {
+          activityType: 'FORTUNE_BAG',
+          prizeType: 'CASH_REDPACK',
+          prizes: [{ refId: 'CRPT10001', amount: 1, weight: 1 }]
+        }
+      },
+      {
+        id: '10086010',
+        name: '现金红包签到',
+        activityType: 'SIGN_IN',
+        applicableChannel: 'LIVE_ONLY',
+        status: 'ACTIVE',
+        totalStock: null,
+        createdAt: '2026-10-12 10:10:00',
+        updatedAt: '2026-10-12 10:10:00',
+        validStart: '2026-10-01 00:00:00',
+        validEnd: '2026-12-31 23:59:59',
+        config: {
+          activityType: 'SIGN_IN',
+          totalRounds: 2,
+          mode: 'PER_ROUND',
+          continuousRequired: false,
+          roundRewards: [
+            { rewardType: 'CASH_REDPACK', redpackId: 'CRPT10006' },
+            { rewardType: 'POINTS', pointsAmount: 5 }
+          ]
+        }
+      },
+      {
+        id: '10086011',
+        name: '现金红包观看',
+        activityType: 'TASK',
+        applicableChannel: 'LIVE_ONLY',
+        status: 'ACTIVE',
+        totalStock: null,
+        createdAt: '2026-10-12 10:20:00',
+        updatedAt: '2026-10-12 10:20:00',
+        validStart: '2026-10-01 00:00:00',
+        validEnd: '2026-12-31 23:59:59',
+        config: {
+          activityType: 'TASK',
+          taskType: 'WATCH',
+          milestones: [{ index: 0, threshold: 5, reward: { rewardType: 'CASH_REDPACK', redpackId: 'CRPT10001' } }]
+        }
       }
     ];
+  }
+
+  function ensureCashLiveSeeds() {
+    var seeds = seedTemplates().filter(function (item) {
+      return item.id === '10086009' || item.id === '10086010' || item.id === '10086011';
+    });
+    var changed = false;
+    seeds.forEach(function (item) {
+      if (list.some(function (row) { return row.id === item.id; })) return;
+      list.push(JSON.parse(JSON.stringify(item)));
+      changed = true;
+    });
+    if (changed) persist();
   }
 
   function seedLogs() {
@@ -372,6 +441,7 @@
     } catch (e2) {
       logs = seedLogs();
     }
+    ensureCashLiveSeeds();
     list.forEach(function (item) {
       if (!item || !item.id) return;
       if (logs[item.id] && logs[item.id].length) return;

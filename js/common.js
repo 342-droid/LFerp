@@ -991,7 +991,7 @@ if (document.readyState === 'loading') {
         if (/\/(shop-h5|user-app|store-app)\//i.test(window.location.pathname || '')) return;
         var s = document.createElement('script');
         s.id = 'cr-exec-notice-js';
-        s.src = assetUrl('js/mdm-marketing-cash-redpack-exec-notice.js') + '?v=20261012-exec-notice';
+        s.src = assetUrl('js/mdm-marketing-cash-redpack-exec-notice.js') + '?v=20261012-exec-owner';
         s.async = false;
         (document.body || document.head).appendChild(s);
     }
