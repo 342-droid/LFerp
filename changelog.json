@@ -1,10 +1,89 @@
 {
-  "latestSha": "94c49d6b59786a8cf9135cb74add7f2142ba829e",
-  "total": 434,
+  "latestSha": "7f804ccda6f76b9d36085e0075f32b55f5b3e1c5",
+  "total": 435,
   "days": [
     {
       "date": "2026-10-13",
       "items": [
+        {
+          "sha": "7f804cc",
+          "type": "feat",
+          "text": "直播发放现金红包按剩余数量和领取次数限制",
+          "author": "sisi",
+          "time": "03:16",
+          "pages": [
+            {
+              "file": "MDM/mdm_audit_cash_redpack.html",
+              "module": "冷丰WMS",
+              "title": "现金红包审核"
+            },
+            {
+              "file": "MDM/mdm_live_control.html",
+              "module": "冷丰WMS",
+              "title": "直播中控"
+            },
+            {
+              "file": "MDM/mdm_live_session_detail.html",
+              "module": "冷丰WMS",
+              "title": "直播场次详情"
+            },
+            {
+              "file": "MDM/mdm_live_session_form.html",
+              "module": "冷丰WMS",
+              "title": "直播场次编辑"
+            },
+            {
+              "file": "MDM/mdm_marketing_cash_redpack_tpl.html",
+              "module": "冷丰WMS",
+              "title": "现金红包模版"
+            },
+            {
+              "file": "MDM/mdm_marketing_cash_redpack_tpl_form.html",
+              "module": "冷丰WMS",
+              "title": "现金红包模版"
+            },
+            {
+              "file": "MDM/mdm_marketing_register_gift.html",
+              "module": "冷丰WMS",
+              "title": "注册有礼"
+            },
+            {
+              "file": "MDM/mdm_marketing_register_gift_form.html",
+              "module": "冷丰WMS",
+              "title": "注册有礼"
+            },
+            {
+              "file": "MDM/mdm_marketing_template.html",
+              "module": "冷丰WMS",
+              "title": "模版配置"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/redpack-claim.html",
+              "module": "",
+              "title": "领取红包 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_live_session_form.html",
+              "text": "绑定现金红包需填写发放数量，且不能大于该模版剩余红包总数（已扣掉其他场次已绑定数量）；下拉显示剩余红包"
+            },
+            {
+              "file": "MDM/mdm_live_control.html",
+              "text": "添加现金红包仅可选择本场已绑定模版；发送时发放数量不能大于本场剩余发放数量；每人限领遵循模版领取次数及现金红包通用领取次数配置"
+            }
+          ]
+        },
         {
           "sha": "94c49d6",
           "type": "feat",
@@ -18259,6 +18338,11 @@
               "file": "MDM/mdm_audit_cash_redpack_manual.html",
               "module": "冷丰WMS",
               "title": "派发红包审核"
+            },
+            {
+              "file": "MDM/mdm_live_control.html",
+              "module": "冷丰WMS",
+              "title": "直播中控"
             },
             {
               "file": "MDM/mdm_marketing_cash_redpack.html",

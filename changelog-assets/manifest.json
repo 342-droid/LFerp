@@ -1,4 +1,66 @@
 {
+  "7f804cc|MDM/mdm_audit_cash_redpack.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-13"
+  },
+  "7f804cc|MDM/mdm_live_control.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-13"
+  },
+  "7f804cc|MDM/mdm_live_session_detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-13"
+  },
+  "7f804cc|MDM/mdm_live_session_form.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-13"
+  },
+  "7f804cc|MDM/mdm_marketing_cash_redpack_tpl.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-13"
+  },
+  "7f804cc|MDM/mdm_marketing_cash_redpack_tpl_form.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-13"
+  },
+  "7f804cc|MDM/mdm_marketing_register_gift.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-13"
+  },
+  "7f804cc|MDM/mdm_marketing_register_gift_form.html": {
+    "before": "changelog-assets/7f804cc/MDM__mdm_marketing_register_gift_form.html.before.jpg",
+    "after": "changelog-assets/7f804cc/MDM__mdm_marketing_register_gift_form.html.after.jpg",
+    "regions": 17,
+    "status": "diff",
+    "date": "2026-10-13"
+  },
+  "7f804cc|MDM/mdm_marketing_template.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-13"
+  },
+  "7f804cc|user-app/h5/home.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-13"
+  },
+  "7f804cc|user-app/h5/profile.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-13"
+  },
+  "7f804cc|user-app/h5/redpack-claim.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-13"
+  },
   "94c49d6|MDM/mdm_audit_cash_redpack.html": {
     "before": "changelog-assets/94c49d6/MDM__mdm_audit_cash_redpack.html.before.jpg",
     "after": "changelog-assets/94c49d6/MDM__mdm_audit_cash_redpack.html.after.jpg",
