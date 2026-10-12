@@ -1,6 +1,6 @@
 /**
- * 派发红包执行结束后，后台任意页自行弹出结果。
- * 确认发放写入 localStorage，本脚本随 common.js 挂到各后台页，到点弹出，关闭后不再出现。
+ * 派发红包执行结束后，仅创建人在登录状态下于后台任意页看到结果弹框。
+ * 未登录或其他账号不弹出，也不把这条结果标成已读。
  */
 (function (global) {
   'use strict';
@@ -50,25 +50,51 @@
     return String(value == null ? '' : value);
   }
 
+  function loggedInUser() {
+    try {
+      if (sessionStorage.getItem('isLoggedIn') !== 'true') return null;
+    } catch (e) {
+      return null;
+    }
+    if (typeof getCurrentUser !== 'function') return null;
+    var user = getCurrentUser();
+    if (!user || typeof user !== 'object') return null;
+    var name = text(user.name || user.realName || user.nickname).trim();
+    var account = text(user.username || user.account || user.loginName).trim();
+    if (!name && !account) return null;
+    return { name: name, account: account };
+  }
+
+  function isCreator(notice) {
+    var login = loggedInUser();
+    var creator = text(notice && notice.creator).trim();
+    if (!login || !creator) return false;
+    var slash = creator.indexOf('/');
+    if (slash >= 0) {
+      return login.name === creator.slice(0, slash).trim() && login.account === creator.slice(slash + 1).trim();
+    }
+    return creator === login.name || creator === login.account;
+  }
+
   function ensureDom() {
     if (root) return root;
     var style = document.createElement('style');
     style.textContent = [
-      '.cr-exec-notice{position:fixed;inset:0;z-index:3600;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.45);}',
+      '.cr-exec-notice{position:fixed;inset:0;z-index:3600;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.35);}',
       '.cr-exec-notice.is-open{display:flex;}',
-      '.cr-exec-notice__dialog{width:100%;max-width:720px;background:#fff;border-radius:8px;box-shadow:0 12px 40px rgba(0,0,0,.15);display:flex;flex-direction:column;}',
-      '.cr-exec-notice__header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 14px;border-bottom:1px solid #f0f0f0;}',
-      '.cr-exec-notice__title{margin:0;font-size:20px;font-weight:600;color:#1f1f1f;line-height:1.4;}',
-      '.cr-exec-notice__x{width:32px;height:32px;border:0;background:transparent;color:#8c8c8c;font-size:22px;line-height:1;cursor:pointer;}',
-      '.cr-exec-notice__x:hover{color:#1f1f1f;}',
-      '.cr-exec-notice__body{min-height:168px;padding:36px 48px 28px;color:#262626;font-size:16px;line-height:1.7;}',
-      '.cr-exec-notice__row{margin:0 0 14px;}',
-      '.cr-exec-notice__file{display:flex;align-items:flex-start;gap:10px;}',
-      '.cr-exec-notice__ok{flex:0 0 22px;width:22px;height:22px;margin-top:2px;border-radius:50%;background:#52c41a;color:#fff;display:inline-flex;align-items:center;justify-content:center;}',
+      '.cr-exec-notice__dialog{width:100%;max-width:420px;background:#fff;border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.12);display:flex;flex-direction:column;}',
+      '.cr-exec-notice__header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 10px 16px;border-bottom:1px solid #f0f0f0;}',
+      '.cr-exec-notice__title{margin:0;font-size:15px;font-weight:600;color:#1f1f1f;line-height:1.4;}',
+      '.cr-exec-notice__x{width:28px;height:28px;border:0;border-radius:6px;background:transparent;color:#8c8c8c;font-size:18px;line-height:1;cursor:pointer;}',
+      '.cr-exec-notice__x:hover{background:#f5f5f5;color:#1f1f1f;}',
+      '.cr-exec-notice__body{padding:16px 20px 6px;color:#434343;font-size:13px;line-height:1.65;}',
+      '.cr-exec-notice__row{margin:0 0 8px;}',
+      '.cr-exec-notice__file{display:flex;align-items:flex-start;gap:8px;}',
+      '.cr-exec-notice__ok{flex:0 0 18px;width:18px;height:18px;margin-top:2px;border-radius:50%;background:#52c41a;color:#fff;display:inline-flex;align-items:center;justify-content:center;}',
       '.cr-exec-notice__ok svg{display:block;}',
-      '.cr-exec-notice__result{padding-left:32px;}',
-      '.cr-exec-notice__footer{display:flex;justify-content:center;gap:16px;padding:16px 20px 22px;}',
-      '.cr-exec-notice__btn{min-width:88px;height:36px;padding:0 18px;border-radius:4px;font-size:14px;cursor:pointer;}',
+      '.cr-exec-notice__result{padding-left:26px;}',
+      '.cr-exec-notice__footer{display:flex;justify-content:center;gap:10px;padding:12px 16px 16px;}',
+      '.cr-exec-notice__btn{min-width:72px;height:32px;padding:0 14px;border-radius:6px;font-size:13px;cursor:pointer;}',
       '.cr-exec-notice__close{border:1px solid #d9d9d9;background:#fff;color:#262626;}',
       '.cr-exec-notice__close:hover{border-color:#1677ff;color:#1677ff;}',
       '.cr-exec-notice__view{border:0;background:#1677ff;color:#fff;}',
@@ -87,7 +113,7 @@
       '</div>' +
       '<div class="cr-exec-notice__body">' +
       '<p class="cr-exec-notice__row" data-field="module"></p>' +
-      '<p class="cr-exec-notice__row cr-exec-notice__file"><span class="cr-exec-notice__ok" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7.2 5.6 9.8 11 4.2" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-field="file"></span></p>' +
+      '<p class="cr-exec-notice__row cr-exec-notice__file"><span class="cr-exec-notice__ok" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M3 7.2 5.6 9.8 11 4.2" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span data-field="file"></span></p>' +
       '<p class="cr-exec-notice__row cr-exec-notice__result" data-field="result"></p>' +
       '</div>' +
       '<div class="cr-exec-notice__footer">' +
@@ -167,6 +193,11 @@
       return;
     }
     if (Date.now() < (Number(notice.readyAt) || 0)) return;
+    if (!isCreator(notice)) {
+      hide();
+      disarm();
+      return;
+    }
     show(notice);
     disarm();
   }
@@ -181,6 +212,7 @@
       success: Number(payload.success) || 0,
       fail: Number(payload.fail) || 0,
       module: text(payload.module || MODULE_PATH),
+      creator: text(payload.creator).trim(),
       readyAt: Number(payload.readyAt) || Date.now() + 1800,
       acked: false
     };

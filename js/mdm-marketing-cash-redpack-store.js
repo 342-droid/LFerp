@@ -821,6 +821,7 @@
 
   var BATCH_KEY = 'mdm_marketing_cash_redpack_batches_v1';
   var BATCH_STATUS_LABEL = {
+    scheduled: '待触发',
     granting: '发放中',
     done: '已完成',
     failed: '发放失败',
@@ -1030,6 +1031,7 @@
     ensureDualPortDemo();
     ensureSeedCreators();
     ensureSeedModes();
+    ensureManualStatusDemos();
   }
 
   function ensureSeedModes() {
@@ -1103,6 +1105,233 @@
     }
   }
 
+  function pushDemoBatch(batch, records) {
+    var exists = batches.some(function (item) {
+      return item.id === batch.id;
+    });
+    if (!exists) {
+      batches.push(Object.assign({}, batch));
+      persistBatches();
+    }
+    var added = false;
+    (records || []).forEach(function (row) {
+      if (getById(row.id)) return;
+      list.unshift(normalizeItem(row));
+      added = true;
+    });
+    if (added) persist();
+  }
+
+  /** 各执行状态各留一条，已有同编号不重复写入，方便已打开过的原型刷新后核对 */
+  function ensureManualStatusDemos() {
+    SEED_BATCHES.forEach(function (batch) {
+      pushDemoBatch(
+        batch,
+        SEED_BATCH_RECORDS.filter(function (row) {
+          return row.activityId === batch.id;
+        })
+      );
+    });
+    pushDemoBatch(
+      {
+        id: 'MF2026101301',
+        name: '定时回访红包',
+        port: 'app',
+        createdAt: '2026-10-13 09:00:00',
+        finishedAt: '',
+        status: 'scheduled',
+        creator: '李增长',
+        mode: 'level',
+        triggerMode: 'schedule',
+        triggerAt: '2026-10-20 10:00:00',
+        plannedCount: 12,
+        plannedAmount: 36,
+        frontRemark: '回访关怀',
+        backRemark: '定时待触发'
+      },
+      []
+    );
+    pushDemoBatch(
+      {
+        id: 'MF2026101302',
+        name: '活动补偿发放中',
+        ports: ['mini', 'app'],
+        createdAt: '2026-10-13 08:30:00',
+        finishedAt: '',
+        status: 'granting',
+        creator: '王活动',
+        mode: 'single',
+        triggerMode: 'now',
+        frontRemark: '活动补偿',
+        backRemark: '发放未完成'
+      },
+      [
+        {
+          id: 'CR91021',
+          outBillNo: 'LFCR20261013083000021',
+          transferBillNo: '133000007110099999118202610130021',
+          grantedAt: '2026-10-13 08:30:00',
+          userId: 'U10001',
+          userName: '小程序用户A',
+          userPhone: '138****2211',
+          amount: 2,
+          activityType: 'manual',
+          activityId: 'MF2026101302',
+          activityName: '活动补偿发放中',
+          scene: 'manual',
+          ports: ['mini', 'app'],
+          port: '',
+          status: 'pending',
+          frontRemark: '活动补偿',
+          backRemark: '发放未完成'
+        },
+        {
+          id: 'CR91022',
+          outBillNo: 'LFCR20261013083000022',
+          transferBillNo: '133000007110099999118202610130022',
+          grantedAt: '2026-10-13 08:30:02',
+          userId: 'U10002',
+          userName: 'APP会员B',
+          userPhone: '139****9033',
+          amount: 2,
+          activityType: 'manual',
+          activityId: 'MF2026101302',
+          activityName: '活动补偿发放中',
+          scene: 'manual',
+          ports: ['mini', 'app'],
+          port: '',
+          status: 'pending',
+          frontRemark: '活动补偿',
+          backRemark: '发放未完成'
+        }
+      ]
+    );
+    pushDemoBatch(
+      {
+        id: 'MF2026101303',
+        name: '批量补发部分失败',
+        port: 'mini',
+        createdAt: '2026-10-12 16:00:00',
+        finishedAt: '2026-10-12 16:00:08',
+        status: 'partial',
+        creator: '张运营',
+        mode: 'batch',
+        triggerMode: 'now'
+      },
+      [
+        {
+          id: 'CR91031',
+          outBillNo: 'LFCR20261012160000031',
+          transferBillNo: '133000007110099999118202610120031',
+          grantedAt: '2026-10-12 16:00:00',
+          userId: 'U10001',
+          userName: '小程序用户A',
+          userPhone: '138****2211',
+          amount: 2,
+          activityType: 'manual',
+          activityId: 'MF2026101303',
+          activityName: '批量补发部分失败',
+          scene: 'manual',
+          port: 'mini',
+          status: 'claimed',
+          claimAt: '2026-10-12 16:20:00',
+          frontRemark: '补发成功',
+          backRemark: '已核对'
+        },
+        {
+          id: 'CR91032',
+          outBillNo: 'LFCR20261012160000032',
+          transferBillNo: '133000007110099999118202610120032',
+          grantedAt: '2026-10-12 16:00:01',
+          userId: 'U10002',
+          userName: 'APP会员B',
+          userPhone: '139****9033',
+          amount: 3,
+          activityType: 'manual',
+          activityId: 'MF2026101303',
+          activityName: '批量补发部分失败',
+          scene: 'manual',
+          port: 'mini',
+          status: 'pending',
+          frontRemark: '待领取',
+          backRemark: '跟进中'
+        },
+        {
+          id: 'CR91033',
+          outBillNo: 'LFCR20261012160000033',
+          transferBillNo: '',
+          grantedAt: '2026-10-12 16:00:02',
+          userId: 'U10086',
+          userName: '宁静致远',
+          userPhone: '159****4315',
+          amount: 5,
+          activityType: 'manual',
+          activityId: 'MF2026101303',
+          activityName: '批量补发部分失败',
+          scene: 'manual',
+          port: 'mini',
+          status: 'failed',
+          failReason: '用户微信未实名',
+          frontRemark: '补发失败',
+          backRemark: '待重试'
+        }
+      ]
+    );
+    pushDemoBatch(
+      {
+        id: 'MF2026101304',
+        name: '账户异常发放失败',
+        port: 'app',
+        createdAt: '2026-10-12 11:00:00',
+        finishedAt: '2026-10-12 11:00:06',
+        status: 'failed',
+        creator: '王活动',
+        mode: 'batch',
+        triggerMode: 'now'
+      },
+      [
+        {
+          id: 'CR91041',
+          outBillNo: 'LFCR20261012110000041',
+          transferBillNo: '',
+          grantedAt: '2026-10-12 11:00:00',
+          userId: 'U10006',
+          userName: '演示会员6',
+          userPhone: '136****6606',
+          amount: 1.5,
+          activityType: 'manual',
+          activityId: 'MF2026101304',
+          activityName: '账户异常发放失败',
+          scene: 'manual',
+          port: 'app',
+          status: 'failed',
+          failReason: '账户余额不足',
+          frontRemark: '异常补发',
+          backRemark: '余额不足'
+        },
+        {
+          id: 'CR91042',
+          outBillNo: 'LFCR20261012110000042',
+          transferBillNo: '',
+          grantedAt: '2026-10-12 11:00:01',
+          userId: 'U10002',
+          userName: 'APP会员B',
+          userPhone: '139****9033',
+          amount: 1.5,
+          activityType: 'manual',
+          activityId: 'MF2026101304',
+          activityName: '账户异常发放失败',
+          scene: 'manual',
+          port: 'app',
+          status: 'failed',
+          failReason: '收款账户异常',
+          frontRemark: '异常补发',
+          backRemark: '账户异常'
+        }
+      ]
+    );
+  }
+
   function patchSeedDemoAmounts() {
     var changed = false;
     list.forEach(function (it) {
@@ -1154,6 +1383,10 @@
       claimAmount += Number(r.amount) || 0;
     });
     var status = batchStatusOf(active, batch && batch.status);
+    if (status === 'scheduled') {
+      grantCount = Number(batch && batch.plannedCount) || 0;
+      totalAmount = Number(batch && batch.plannedAmount) || 0;
+    }
     var execFail = rows.filter(function (r) {
       return r.status === 'failed';
     }).length;
@@ -1182,7 +1415,11 @@
       frontRemark: String((payload && payload.frontRemark) || '').trim(),
       backRemark: String((payload && payload.backRemark) || '').trim(),
       creator: String((payload && payload.creator) || '').trim() || '演示运营',
-      mode: MANUAL_MODE_LABEL[payload && payload.mode] ? payload.mode : ''
+      mode: MANUAL_MODE_LABEL[payload && payload.mode] ? payload.mode : '',
+      triggerMode: payload && payload.triggerMode === 'schedule' ? 'schedule' : 'now',
+      triggerAt: payload && payload.triggerMode === 'schedule' ? String(payload.triggerAt || '').trim() : '',
+      plannedCount: Math.max(0, Number(payload && payload.plannedCount) || 0),
+      plannedAmount: toMoney(payload && payload.plannedAmount)
     };
     batches.unshift(item);
     persistBatches();
@@ -1198,9 +1435,11 @@
     segment: '按会员分群'
   };
   var MANUAL_AUDIT_STATUS = {
+    DRAFT: '草稿',
     PENDING: '待审核',
     APPROVED: '审核成功',
-    REJECTED: '审核失败'
+    REJECTED: '审核失败',
+    CANCELLED: '已取消'
   };
   var manualAudits = [];
   var manualAuditsLoaded = false;
@@ -1223,6 +1462,7 @@
         auditedAt: '',
         auditedBy: '',
         reason: '',
+        auditLogs: [],
         batchId: '',
         fileName: '',
         snapshot: {
@@ -1251,6 +1491,13 @@
         auditedAt: '2026-10-11 17:12:00',
         auditedBy: '审核员小李',
         reason: '奖励金额超出活动预算',
+        auditLogs: [{
+          node: '营销审核',
+          reviewer: '审核员小李',
+          time: '2026-10-11 17:12:00',
+          result: '驳回',
+          reason: '奖励金额超出活动预算'
+        }],
         batchId: '',
         fileName: '回访名单.xlsx',
         snapshot: {
@@ -1304,6 +1551,116 @@
       manualAudits = seedManualAudits();
       persistManualAudits();
     }
+    ensurePendingAuditDemo();
+    ensureCancelledAuditDemo();
+  }
+
+  function ensureCancelledAuditDemo() {
+    var changed = false;
+    manualAudits.forEach(function (row) {
+      if (!row || row.status !== 'DRAFT' || row.fromCancelId) return;
+      var cancelId = 'CANCEL-' + row.id;
+      if (!manualAudits.some(function (item) { return item && item.id === cancelId; })) {
+        var cancelled = cloneAudit(row);
+        cancelled.id = cancelId;
+        cancelled.status = 'CANCELLED';
+        cancelled.auditedAt = row.submittedAt || '2026-10-12 18:00:00';
+        cancelled.auditedBy = row.submittedBy || '演示运营';
+        cancelled.auditLogs = [{
+          node: '营销审核',
+          reviewer: cancelled.auditedBy,
+          time: cancelled.auditedAt,
+          result: '取消',
+          reason: '取消审核，回到草稿'
+        }];
+        manualAudits.push(cancelled);
+      }
+      row.fromCancelId = cancelId;
+      changed = true;
+    });
+    if (!manualAudits.some(function (row) { return row && row.id === 'MRAUD2026101305'; })) {
+      manualAudits.push({
+        id: 'MRAUD2026101305',
+        status: 'CANCELLED',
+        submittedAt: '2026-10-12 14:06:00',
+        submittedBy: '张运营',
+        auditedAt: '2026-10-12 14:20:00',
+        auditedBy: '张运营',
+        reason: '',
+        auditLogs: [{
+          node: '营销审核',
+          reviewer: '张运营',
+          time: '2026-10-12 14:20:00',
+          result: '取消',
+          reason: '取消审核，回到草稿'
+        }],
+        batchId: '',
+        fileName: '',
+        snapshot: {
+          name: '已取消的关怀红包',
+          ports: ['mini'],
+          mode: 'single',
+          memberKind: 'phone',
+          memberInput: '13800002211',
+          levelIds: [],
+          tagIds: [],
+          segmentIds: [],
+          users: [{ id: 'U10001', name: '小程序用户A', phone: '138****2211', amount: 2, frontRemark: '取消后不发放', backRemark: '' }],
+          reward: 2,
+          frontRemark: '取消后不发放',
+          backRemark: '',
+          fileName: '',
+          triggerMode: 'now',
+          triggerAt: '',
+          creator: '张运营'
+        },
+        logs: [
+          { at: '2026-10-12 14:06:00', action: '提交审核', operator: '张运营', detail: '提交派发红包', result: '成功' },
+          { at: '2026-10-12 14:20:00', action: '取消审核', operator: '张运营', detail: '回到草稿', result: '成功' }
+        ]
+      });
+      changed = true;
+    }
+    if (changed) persistManualAudits();
+  }
+
+  function ensurePendingAuditDemo() {
+    var exists = manualAudits.some(function (row) {
+      return row.id === 'MRAUD2026101301';
+    });
+    if (exists) return;
+    manualAudits.unshift({
+      id: 'MRAUD2026101301',
+      status: 'PENDING',
+      submittedAt: '2026-10-13 09:30:00',
+      submittedBy: '张运营',
+      auditedAt: '',
+      auditedBy: '',
+      reason: '',
+      auditLogs: [],
+      batchId: '',
+      fileName: '',
+      snapshot: {
+        name: '生日关怀红包',
+        ports: ['mini'],
+        mode: 'single',
+        memberKind: 'phone',
+        memberInput: '13800002211',
+        levelIds: [],
+        tagIds: [],
+        segmentIds: [],
+        users: [{ id: 'U10001', name: '小程序用户A', phone: '138****2211', amount: 6.6, frontRemark: '生日快乐', backRemark: '客服补发' }],
+        reward: 6.6,
+        frontRemark: '生日快乐',
+        backRemark: '客服补发',
+        fileName: '',
+        triggerMode: 'schedule',
+        triggerAt: '2026-10-18 09:00:00',
+        creator: '张运营'
+      },
+      logs: [{ at: '2026-10-13 09:30:00', action: '提交审核', operator: '张运营', detail: '提交派发红包', result: '成功' }]
+    });
+    persistManualAudits();
   }
 
   function pushManualAuditLog(audit, action, operator, detail) {
@@ -1317,11 +1674,35 @@
     });
   }
 
+  function manualSnapshotOf(payload) {
+    var snap = payload || {};
+    var creator = String(snap.creator || '').trim() || '演示运营';
+    return {
+      name: String(snap.name || '').trim(),
+      ports: batchPorts(snap),
+      mode: MANUAL_MODE_LABEL[snap.mode] ? snap.mode : 'single',
+      memberKind: snap.memberKind === 'id' ? 'id' : 'phone',
+      memberInput: String(snap.memberInput || ''),
+      levelIds: Array.isArray(snap.levelIds) ? snap.levelIds.slice() : [],
+      tagIds: Array.isArray(snap.tagIds) ? snap.tagIds.slice() : [],
+      segmentIds: Array.isArray(snap.segmentIds) ? snap.segmentIds.slice() : [],
+      users: Array.isArray(snap.users) ? snap.users.map(function (u) { return Object.assign({}, u); }) : [],
+      reward: toMoney(snap.reward),
+      frontRemark: String(snap.frontRemark || '').trim(),
+      backRemark: String(snap.backRemark || '').trim(),
+      fileName: String(snap.fileName || '').trim(),
+      triggerMode: snap.triggerMode === 'schedule' ? 'schedule' : 'now',
+      triggerAt: snap.triggerMode === 'schedule' ? String(snap.triggerAt || '').trim() : '',
+      creator: creator
+    };
+  }
+
   function createManualAudit(payload) {
     ensureManualAudits();
     var snap = payload || {};
     var now = formatNow();
     var creator = String(snap.creator || '').trim() || '演示运营';
+    var snapshot = manualSnapshotOf(snap);
     var audit = {
       id: 'MRAUD' + String(Date.now()).slice(-8),
       status: 'PENDING',
@@ -1330,30 +1711,36 @@
       auditedAt: '',
       auditedBy: '',
       reason: '',
+      auditLogs: [],
       batchId: '',
-      fileName: String(snap.fileName || '').trim(),
-      snapshot: {
-        name: String(snap.name || '').trim(),
-        ports: batchPorts(snap),
-        mode: MANUAL_MODE_LABEL[snap.mode] ? snap.mode : 'single',
-        memberKind: snap.memberKind === 'id' ? 'id' : 'phone',
-        memberInput: String(snap.memberInput || ''),
-        levelIds: Array.isArray(snap.levelIds) ? snap.levelIds.slice() : [],
-        tagIds: Array.isArray(snap.tagIds) ? snap.tagIds.slice() : [],
-        segmentIds: Array.isArray(snap.segmentIds) ? snap.segmentIds.slice() : [],
-        users: Array.isArray(snap.users) ? snap.users.map(function (u) { return Object.assign({}, u); }) : [],
-        reward: toMoney(snap.reward),
-        frontRemark: String(snap.frontRemark || '').trim(),
-        backRemark: String(snap.backRemark || '').trim(),
-        fileName: String(snap.fileName || '').trim(),
-        creator: creator
-      },
+      fileName: snapshot.fileName,
+      snapshot: snapshot,
       logs: []
     };
     pushManualAuditLog(audit, '提交审核', creator, '提交派发红包');
     manualAudits.unshift(audit);
     persistManualAudits();
     return cloneAudit(audit);
+  }
+
+  function resubmitManualDraft(id, payload) {
+    ensureManualAudits();
+    var audit = findManualAudit(id);
+    if (!audit || audit.status !== 'DRAFT') return { ok: false, message: '仅草稿可提交' };
+    var snap = payload || {};
+    var now = formatNow();
+    var creator = String(snap.creator || (audit.snapshot && audit.snapshot.creator) || '').trim() || '演示运营';
+    audit.status = 'PENDING';
+    audit.submittedAt = now;
+    audit.submittedBy = creator;
+    audit.auditedAt = '';
+    audit.auditedBy = '';
+    audit.reason = '';
+    audit.snapshot = manualSnapshotOf(Object.assign({}, snap, { creator: creator }));
+    audit.fileName = audit.snapshot.fileName;
+    pushManualAuditLog(audit, '提交审核', creator, '草稿重新提交派发红包');
+    persistManualAudits();
+    return { ok: true, audit: cloneAudit(audit) };
   }
 
   function findManualAudit(id) {
@@ -1379,6 +1766,7 @@
       if (mode && snap.mode !== mode) return false;
       if (port && batchPorts(snap).indexOf(port) < 0) return false;
       if (status && row.status !== status) return false;
+      if (!status && row.status === 'DRAFT') return false;
       if (auditor && String(row.auditedBy || '').indexOf(auditor) < 0) return false;
       return true;
     });
@@ -1401,7 +1789,9 @@
       frontRemark: batchMode ? '' : snap.frontRemark,
       backRemark: batchMode ? '' : snap.backRemark,
       creator: snap.creator || '演示运营',
-      mode: snap.mode
+      mode: snap.mode,
+      triggerMode: snap.triggerMode,
+      triggerAt: snap.triggerAt
     });
     var failed = 0;
     users.forEach(function (u) {
@@ -1436,17 +1826,83 @@
     };
   }
 
-  function approveManualAudit(id) {
+  function pushAuditRecord(audit, result, reason) {
+    if (!audit.auditLogs) audit.auditLogs = [];
+    audit.auditLogs.push({
+      node: '营销审核',
+      reviewer: audit.auditedBy || '审核员小李',
+      time: audit.auditedAt || formatNow(),
+      result: result,
+      reason: String(reason || '').trim().slice(0, 100)
+    });
+  }
+
+  function plannedAmountOf(snap) {
+    var users = Array.isArray(snap && snap.users) ? snap.users : [];
+    var total = 0;
+    var batchMode = snap && snap.mode === 'batch';
+    users.forEach(function (user) {
+      total += Number(batchMode ? user.amount : snap.reward || user.amount) || 0;
+    });
+    return toMoney(total);
+  }
+
+  function isFutureTrigger(snap) {
+    if (!snap || snap.triggerMode !== 'schedule') return false;
+    var at = String(snap.triggerAt || '').trim();
+    return !!at && at > formatNow();
+  }
+
+  function scheduleManualGrant(snapshot) {
+    var snap = snapshot || {};
+    var users = Array.isArray(snap.users) ? snap.users : [];
+    var batchMode = snap.mode === 'batch';
+    var batch = addBatch({
+      name: snap.name,
+      ports: batchPorts(snap),
+      createdAt: formatNow(),
+      status: 'scheduled',
+      frontRemark: batchMode ? '' : snap.frontRemark,
+      backRemark: batchMode ? '' : snap.backRemark,
+      creator: snap.creator || '演示运营',
+      mode: snap.mode,
+      triggerMode: 'schedule',
+      triggerAt: snap.triggerAt,
+      plannedCount: users.length,
+      plannedAmount: plannedAmountOf(snap)
+    });
+    return {
+      ok: true,
+      scheduled: true,
+      batchId: batch.id,
+      triggerAt: snap.triggerAt || '',
+      total: users.length,
+      success: 0,
+      fail: 0,
+      fileName: snap.fileName || '—'
+    };
+  }
+
+  function approveManualAudit(id, opinion) {
     ensureManualAudits();
     var audit = findManualAudit(id);
     if (!audit || audit.status !== 'PENDING') return { ok: false, message: '仅待审核可通过' };
-    var executed = executeManualGrant(audit.snapshot);
+    var note = String(opinion || '').trim().slice(0, 100);
+    var executed = isFutureTrigger(audit.snapshot) ? scheduleManualGrant(audit.snapshot) : executeManualGrant(audit.snapshot);
     audit.status = 'APPROVED';
     audit.auditedAt = formatNow();
     audit.auditedBy = '审核员小李';
     audit.reason = '';
     audit.batchId = executed.batchId;
-    pushManualAuditLog(audit, '审核成功', '审核员小李', '审核成功并执行发放');
+    pushAuditRecord(audit, '通过', note);
+    pushManualAuditLog(
+      audit,
+      '审核成功',
+      '审核员小李',
+      executed.scheduled
+        ? '审核成功，将于 ' + (executed.triggerAt || '') + ' 触发发放'
+        : (note ? '审核成功并执行发放：' + note : '审核成功并执行发放')
+    );
     persistManualAudits();
     return {
       ok: true,
@@ -1455,23 +1911,106 @@
       total: executed.total,
       success: executed.success,
       fail: executed.fail,
-      fileName: executed.fileName
+      fileName: executed.fileName,
+      scheduled: !!executed.scheduled,
+      triggerAt: executed.triggerAt || ''
     };
   }
 
   function rejectManualAudit(id, reason) {
     ensureManualAudits();
-    var text = String(reason || '').trim();
-    if (!text) return { ok: false, message: '请填写审核失败原因' };
+    var text = String(reason || '').trim().slice(0, 100);
+    if (!text) return { ok: false, message: '请填写驳回原因' };
     var audit = findManualAudit(id);
     if (!audit || audit.status !== 'PENDING') return { ok: false, message: '仅待审核可驳回' };
     audit.status = 'REJECTED';
     audit.auditedAt = formatNow();
     audit.auditedBy = '审核员小李';
     audit.reason = text;
+    pushAuditRecord(audit, '驳回', text);
     pushManualAuditLog(audit, '审核失败', '审核员小李', text);
     persistManualAudits();
     return { ok: true, audit: cloneAudit(audit) };
+  }
+
+  function saveManualBackRemark(payload) {
+    payload = payload || {};
+    var text = String(payload.backRemark || '').trim();
+    var members = Array.isArray(payload.members) ? payload.members : null;
+    if (payload.kind === 'audit') {
+      ensureManualAudits();
+      var audit = findManualAudit(payload.id);
+      if (!audit || !audit.snapshot) return { ok: false, message: '未找到发放记录' };
+      if (members) {
+        (audit.snapshot.users || []).forEach(function (user) {
+          members.forEach(function (member) {
+            if (String(user.id) !== String(member.id)) return;
+            user.backRemark = String(member.backRemark || '').trim();
+          });
+        });
+      } else {
+        audit.snapshot.backRemark = text;
+      }
+      persistManualAudits();
+      return { ok: true };
+    }
+    ensureBatches();
+    ensureLoaded();
+    var batch = null;
+    var bid = String(payload.id || '');
+    for (var i = 0; i < batches.length; i++) {
+      if (String(batches[i].id) === bid) batch = batches[i];
+    }
+    if (!batch) return { ok: false, message: '未找到发放记录' };
+    if (members) {
+      members.forEach(function (member) {
+        list.forEach(function (record) {
+          if (record.activityType !== 'manual' || String(record.activityId) !== bid) return;
+          if (String(record.id) !== String(member.id)) return;
+          record.backRemark = String(member.backRemark || '').trim();
+        });
+      });
+    } else {
+      batch.backRemark = text;
+      list.forEach(function (record) {
+        if (record.activityType === 'manual' && String(record.activityId) === bid) record.backRemark = text;
+      });
+    }
+    persistBatches();
+    persist();
+    return { ok: true };
+  }
+
+  function cancelManualAudit(id) {
+    ensureManualAudits();
+    var audit = findManualAudit(id);
+    if (!audit || audit.status !== 'PENDING') return { ok: false, message: '仅待审核可取消' };
+    var now = formatNow();
+    var operator = audit.submittedBy || '演示运营';
+    audit.status = 'CANCELLED';
+    audit.auditedAt = now;
+    audit.auditedBy = operator;
+    if (!audit.auditLogs) audit.auditLogs = [];
+    audit.auditLogs.push({
+      node: '营销审核',
+      reviewer: operator,
+      time: now,
+      result: '取消',
+      reason: '取消审核，回到草稿'
+    });
+    pushManualAuditLog(audit, '取消审核', operator, '回到草稿');
+    var draft = cloneAudit(audit);
+    draft.id = 'MRAUD' + String(Date.now()).slice(-8);
+    draft.status = 'DRAFT';
+    draft.fromCancelId = audit.id;
+    draft.auditedAt = '';
+    draft.auditedBy = '';
+    draft.reason = '';
+    draft.auditLogs = [];
+    draft.logs = [{ at: now, action: '取消审核', operator: operator, detail: '回到草稿', result: '成功' }];
+    manualAudits.unshift(draft);
+    persistManualAudits();
+    return { ok: true, audit: cloneAudit(audit), draft: cloneAudit(draft) };
   }
 
   function finishBatch(id, status) {
@@ -1529,10 +2068,13 @@
     finishBatch: finishBatch,
     MANUAL_MODE_LABEL: MANUAL_MODE_LABEL,
     createManualAudit: createManualAudit,
+    resubmitManualDraft: resubmitManualDraft,
     listManualAudits: listManualAudits,
     findManualAudit: findManualAudit,
     approveManualAudit: approveManualAudit,
     rejectManualAudit: rejectManualAudit,
+    cancelManualAudit: cancelManualAudit,
+    saveManualBackRemark: saveManualBackRemark,
     manualAuditStatusLabel: manualAuditStatusLabel,
     nextId: nextId,
     formatNow: formatNow,

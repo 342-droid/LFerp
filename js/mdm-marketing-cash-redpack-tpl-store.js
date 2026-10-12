@@ -56,6 +56,8 @@
       orderDayRange: 1,
       status: 'ACTIVE',
       remark: '',
+      startAt: '2026-06-01T00:00',
+      endAt: '2026-12-31T23:59',
       createdAt: '2026-06-18 09:20:00',
       updatedAt: '2026-07-28 14:20:11'
     },
@@ -74,6 +76,8 @@
       budgetUsed: 88,
       status: 'ACTIVE',
       remark: '',
+      startAt: '2026-01-01T00:00',
+      endAt: '2026-08-01T23:59',
       createdAt: '2026-07-10 11:00:00',
       updatedAt: '2026-07-30 09:12:45'
     },
@@ -97,6 +101,8 @@
       orderDayRange: 7,
       status: 'ACTIVE',
       remark: '',
+      startAt: '2026-11-01T00:00',
+      endAt: '2026-12-31T23:59',
       createdAt: '2026-07-12 15:40:00',
       updatedAt: '2026-07-30 09:12:45'
     },
@@ -118,6 +124,8 @@
       budgetUsed: 0,
       status: 'DRAFT',
       remark: '',
+      startAt: '2026-10-01T00:00',
+      endAt: '2026-12-31T23:59',
       createdAt: '2026-10-01 10:08:00',
       updatedAt: '2026-10-01 10:08:00'
     },
@@ -136,8 +144,70 @@
       budgetUsed: 0,
       status: 'PENDING',
       remark: '',
+      startAt: '2026-10-01T00:00',
+      endAt: '2026-12-31T23:59',
       createdAt: '2026-10-06 16:22:00',
       updatedAt: '2026-10-06 16:30:00'
+    },
+    {
+      id: 'CRPT10006',
+      name: '审核通过红包',
+      issueScenes: ['REGISTER_GIFT'],
+      ports: ['mini', 'app'],
+      rewardType: 'fixed',
+      singleAmount: 1.2,
+      totalAmount: '',
+      packetTotal: 1000,
+      packetIssued: 0,
+      tiers: [],
+      budgetTotal: 1200,
+      budgetUsed: 0,
+      status: 'APPROVED',
+      remark: '',
+      startAt: '2026-10-01T00:00',
+      endAt: '2026-12-31T23:59',
+      createdAt: '2026-10-08 09:00:00',
+      updatedAt: '2026-10-08 11:20:00'
+    },
+    {
+      id: 'CRPT10007',
+      name: '审核失败红包',
+      issueScenes: ['REGISTER_GIFT'],
+      ports: ['mini'],
+      rewardType: 'fixed',
+      singleAmount: 1,
+      totalAmount: '',
+      packetTotal: 500,
+      packetIssued: 0,
+      tiers: [],
+      budgetTotal: 500,
+      budgetUsed: 0,
+      status: 'REJECTED',
+      remark: '奖励金额超出活动预算',
+      startAt: '2026-10-01T00:00',
+      endAt: '2026-12-31T23:59',
+      createdAt: '2026-10-09 10:00:00',
+      updatedAt: '2026-10-09 15:00:00'
+    },
+    {
+      id: 'CRPT10008',
+      name: '已禁用红包',
+      issueScenes: ['REGISTER_GIFT'],
+      ports: ['app'],
+      rewardType: 'fixed',
+      singleAmount: 2,
+      totalAmount: '',
+      packetTotal: 800,
+      packetIssued: 0,
+      tiers: [],
+      budgetTotal: 1600,
+      budgetUsed: 0,
+      status: 'DISABLED',
+      remark: '',
+      startAt: '2026-10-01T00:00',
+      endAt: '2026-12-31T23:59',
+      createdAt: '2026-10-10 10:00:00',
+      updatedAt: '2026-10-11 10:00:00'
     }
   ];
 
@@ -145,7 +215,7 @@
     PENDING: '待审核',
     APPROVED: '审核成功',
     REJECTED: '审核失败',
-    CANCELLED: '取消审核'
+    CANCELLED: '已取消'
   };
 
   var list = [];
@@ -267,6 +337,91 @@
     return item;
   }
 
+  /** 旧演示数据没有有效期时补上，已填写的不覆盖 */
+  function fillSeedValidity(raw) {
+    var item = raw || {};
+    if (item.startAt || item.endAt) return item;
+    var span = {
+      CRPT10001: ['2026-06-01T00:00', '2026-12-31T23:59'],
+      CRPT10002: ['2026-01-01T00:00', '2026-08-01T23:59'],
+      CRPT10003: ['2026-11-01T00:00', '2026-12-31T23:59'],
+      CRPT10004: ['2026-10-01T00:00', '2026-12-31T23:59'],
+      CRPT10005: ['2026-10-01T00:00', '2026-12-31T23:59']
+    };
+    var pair = span[item.id];
+    if (!pair) return item;
+    item.startAt = pair[0];
+    item.endAt = pair[1];
+    return item;
+  }
+
+  function parseAt(value) {
+    var text = String(value || '').trim().replace(' ', 'T');
+    if (!text) return NaN;
+    if (text.length === 16) text += ':00';
+    var time = Date.parse(text);
+    return isNaN(time) ? NaN : time;
+  }
+
+  /** 已打开过的原型补上审核成功 / 审核失败 / 已禁用样例，便于核对可选与置灰 */
+  function ensureRewardStatusDemos() {
+    var ids = { CRPT10006: true, CRPT10007: true, CRPT10008: true };
+    var missing = SEED.filter(function (item) {
+      return ids[item.id] && !list.some(function (row) { return row.id === item.id; });
+    });
+    if (!missing.length) return;
+    missing.forEach(function (item) {
+      list.push(normalize(clone(item)));
+    });
+    persist();
+  }
+
+  /**
+   * 福袋 / 签到 / 观看任务关联红包：已审核通过即可选，未到有效期也可先关联。
+   * 直播发放仍走默认口径，未到有效期不能发。
+   * options.allowNotStarted 为 true 时，不把「未到有效期」当作不可选。
+   */
+  function rewardBlockReason(item, options) {
+    var it = item && item.status ? item : normalize(item);
+    var allowNotStarted = !!(options && options.allowNotStarted);
+    if (it.status === 'DRAFT') return '草稿';
+    if (it.status === 'PENDING') return '待审核';
+    if (it.status === 'REJECTED') return '审核失败';
+    if (it.status === 'DISABLED') return '已禁用';
+    if (it.status !== 'APPROVED' && it.status !== 'ACTIVE') return '未审核通过';
+    var start = parseAt(it.startAt);
+    var end = parseAt(it.endAt);
+    if (isNaN(start) || isNaN(end)) return '未设置有效期';
+    var now = Date.now();
+    if (now < start && !allowNotStarted) return '未到有效期';
+    if (now > end) return '已过有效期';
+    return '';
+  }
+
+  function listRewardOptions(options) {
+    ensureLoaded();
+    return getAll().map(function (it) {
+      var reason = rewardBlockReason(it, options);
+      return {
+        id: it.id,
+        name: it.name,
+        selectable: !reason,
+        reason: reason,
+        label: reason ? it.name + '（' + reason + '）' : it.name
+      };
+    });
+  }
+
+  function isRewardSelectable(id, options) {
+    var sid = String(id || '');
+    if (!sid) return false;
+    var rows = listRewardOptions(options);
+    for (var i = 0; i < rows.length; i++) {
+      if (String(rows[i].id) === sid) return !!rows[i].selectable;
+    }
+    return false;
+  }
+
   function ensureLoaded() {
     if (loaded) return;
     loaded = true;
@@ -274,7 +429,7 @@
       var raw = localStorage.getItem(STORAGE_KEY);
       list = raw ? JSON.parse(raw) : null;
       if (!Array.isArray(list) || !list.length) list = clone(SEED);
-      else list = list.map(fillSeedClaim);
+      else list = list.map(fillSeedClaim).map(fillSeedValidity);
     } catch (e) {
       list = clone(SEED);
     }
@@ -291,6 +446,39 @@
     } catch (e3) {
       audits = seedAudits();
     }
+    ensureRewardStatusDemos();
+    ensureCancelledAuditDemo();
+  }
+
+  function ensureCancelledAuditDemo() {
+    if (audits.some(function (row) { return row && row.id === 'CRAUD-CANCEL-DEMO'; })) return;
+    var src = null;
+    list.forEach(function (item) {
+      if (item && item.id === 'CRPT10004') src = item;
+    });
+    if (!src && list.length) src = list[0];
+    if (!src) return;
+    var snap = clone(normalize(src));
+    snap.name = snap.name || '已取消红包';
+    audits.unshift({
+      id: 'CRAUD-CANCEL-DEMO',
+      templateId: snap.id,
+      status: 'CANCELLED',
+      submittedAt: '2026-10-12 15:10:00',
+      submittedBy: '张征',
+      auditedAt: '2026-10-12 15:18:00',
+      auditedBy: '张征',
+      reason: '',
+      auditLogs: [{
+        node: '营销审核',
+        reviewer: '张征',
+        time: '2026-10-12 15:18:00',
+        result: '取消',
+        reason: '取消审核，回到草稿'
+      }],
+      snapshot: snap
+    });
+    persist();
   }
 
   function nextId() {
@@ -849,20 +1037,45 @@
     return '';
   }
 
+  function seedAuditLogs(status, time, reason) {
+    if (status === 'PENDING') return [];
+    return [{
+      node: '营销审核',
+      reviewer: '审核员小李',
+      time: time,
+      result: status === 'REJECTED' ? '驳回' : '通过',
+      reason: status === 'REJECTED' ? reason || '' : ''
+    }];
+  }
+
+  function pushAuditRecord(audit, result, reason) {
+    if (!audit.auditLogs) audit.auditLogs = [];
+    audit.auditLogs.push({
+      node: '营销审核',
+      reviewer: audit.auditedBy || '审核员小李',
+      time: audit.auditedAt || nowStr(),
+      result: result,
+      reason: String(reason || '').trim().slice(0, 100)
+    });
+  }
+
   function seedAudits() {
     var rows = [];
     list.forEach(function (item) {
       if (!item || item.status === 'DRAFT') return;
       var status = item.status === 'PENDING' ? 'PENDING' : item.status === 'REJECTED' ? 'REJECTED' : 'APPROVED';
+      var auditedAt = status === 'PENDING' ? '' : item.updatedAt || item.createdAt || '';
+      var reason = status === 'REJECTED' ? item.remark || '' : '';
       rows.push({
         id: 'CRAUD-' + item.id,
         templateId: item.id,
         status: status,
         submittedAt: item.createdAt || item.updatedAt || nowStr(),
         submittedBy: '张征',
-        auditedAt: status === 'PENDING' ? '' : item.updatedAt || item.createdAt || '',
+        auditedAt: auditedAt,
         auditedBy: status === 'PENDING' ? '' : '审核员小李',
-        reason: status === 'REJECTED' ? item.remark || '' : '',
+        reason: reason,
+        auditLogs: seedAuditLogs(status, auditedAt, reason),
         snapshot: clone(item)
       });
     });
@@ -902,6 +1115,7 @@
       auditedAt: '',
       auditedBy: '',
       reason: '',
+      auditLogs: [],
       snapshot: clone(item)
     };
     audits.unshift(audit);
@@ -1015,6 +1229,7 @@
       pending.status = 'CANCELLED';
       pending.auditedAt = nowStr();
       pending.auditedBy = '张征';
+      pushAuditRecord(pending, '取消', '取消审核，回到草稿');
     }
     list[idx].status = 'DRAFT';
     list[idx].updatedAt = nowStr();
@@ -1023,20 +1238,22 @@
     return { ok: true, item: normalize(list[idx]) };
   }
 
-  function approveAudit(auditId) {
+  function approveAudit(auditId, opinion) {
     ensureLoaded();
     var audit = findAudit(auditId);
     if (!audit || audit.status !== 'PENDING') return { ok: false, message: '仅待审核可通过' };
+    var note = String(opinion || '').trim().slice(0, 100);
     audit.status = 'APPROVED';
     audit.auditedAt = nowStr();
     audit.auditedBy = '审核员小李';
     audit.reason = '';
+    pushAuditRecord(audit, '通过', note);
     var idx = findIndex(audit.templateId);
     if (idx >= 0 && list[idx].status === 'PENDING') {
       list[idx].status = 'APPROVED';
       list[idx].remark = '';
       list[idx].updatedAt = audit.auditedAt;
-      pushLog(audit.templateId, '审核成功', '审核成功');
+      pushLog(audit.templateId, '审核成功', note ? '审核成功：' + note : '审核成功');
     }
     persist();
     return { ok: true, item: idx >= 0 ? normalize(list[idx]) : null, audit: audit };
@@ -1044,14 +1261,15 @@
 
   function rejectAudit(auditId, reason) {
     ensureLoaded();
-    var text = String(reason || '').trim();
-    if (!text) return { ok: false, message: '请填写审核失败原因' };
+    var text = String(reason || '').trim().slice(0, 100);
+    if (!text) return { ok: false, message: '请填写驳回原因' };
     var audit = findAudit(auditId);
     if (!audit || audit.status !== 'PENDING') return { ok: false, message: '仅待审核可驳回' };
     audit.status = 'REJECTED';
     audit.auditedAt = nowStr();
     audit.auditedBy = '审核员小李';
     audit.reason = text;
+    pushAuditRecord(audit, '驳回', text);
     var idx = findIndex(audit.templateId);
     if (idx >= 0 && list[idx].status === 'PENDING') {
       list[idx].status = 'REJECTED';
@@ -1063,10 +1281,10 @@
     return { ok: true, item: idx >= 0 ? normalize(list[idx]) : null, audit: audit };
   }
 
-  function approve(id) {
+  function approve(id, opinion) {
     ensureLoaded();
     var pending = latestAuditOf(id, 'PENDING');
-    if (pending) return approveAudit(pending.id);
+    if (pending) return approveAudit(pending.id, opinion);
     var idx = findIndex(id);
     if (idx < 0) return { ok: false, message: '模版不存在' };
     if (list[idx].status !== 'PENDING') return { ok: false, message: '仅待审核可通过' };
@@ -1080,8 +1298,8 @@
 
   function reject(id, reason) {
     ensureLoaded();
-    var text = String(reason || '').trim();
-    if (!text) return { ok: false, message: '请填写审核失败原因' };
+    var text = String(reason || '').trim().slice(0, 100);
+    if (!text) return { ok: false, message: '请填写驳回原因' };
     var pending = latestAuditOf(id, 'PENDING');
     if (pending) return rejectAudit(pending.id, text);
     var idx = findIndex(id);
@@ -1180,6 +1398,9 @@
     getById: getById,
     listRows: listRows,
     listForAssociate: listForAssociate,
+    listRewardOptions: listRewardOptions,
+    isRewardSelectable: isRewardSelectable,
+    rewardBlockReason: rewardBlockReason,
     saveDraft: saveDraft,
     submit: submit,
     cancelAudit: cancelAudit,
@@ -1188,6 +1409,7 @@
     approveAudit: approveAudit,
     rejectAudit: rejectAudit,
     findAudit: findAudit,
+    latestAuditOf: latestAuditOf,
     listAuditRows: listAuditRows,
     auditStatusLabel: function (code) {
       return AUDIT_STATUS_LABEL[code] || code || '—';

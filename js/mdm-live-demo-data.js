@@ -1832,12 +1832,163 @@
     return null;
   }
 
-  function findBagTemplate(id) {
+  var marketingBagCache = [];
+  var marketingSignCache = [];
+  var marketingTaskCache = [];
+  var marketingLiveReady = false;
+
+  function cashRedpackSwitchOn() {
+    try {
+      var raw = localStorage.getItem('mdm_marketing_cash_redpack_settings_v1');
+      if (!raw) return true;
+      var parsed = JSON.parse(raw);
+      return !parsed || parsed.enabled !== false;
+    } catch (e) {
+      return true;
+    }
+  }
+
+  function cashRedpackName(id) {
+    var store = window.MdmMarketingCashRedpackTplStore;
+    if (!store || typeof store.getById !== 'function' || !id) return '现金红包';
+    var row = store.getById(id);
+    return row && row.name ? row.name : '现金红包';
+  }
+
+  function templateUsesCash(item) {
+    var cfg = item && item.config;
+    if (!cfg) return false;
+    if (cfg.prizeType === 'CASH_REDPACK') return true;
+    var rounds = cfg.roundRewards || [];
     var i;
-    for (i = 0; i < bagTemplates.length; i++) {
-      if (bagTemplates[i].id === id) return bagTemplates[i];
+    for (i = 0; i < rounds.length; i++) {
+      if (rounds[i] && rounds[i].rewardType === 'CASH_REDPACK') return true;
+    }
+    if (cfg.completeReward && cfg.completeReward.rewardType === 'CASH_REDPACK') return true;
+    var ms = cfg.milestones || [];
+    for (i = 0; i < ms.length; i++) {
+      if (ms[i] && ms[i].reward && ms[i].reward.rewardType === 'CASH_REDPACK') return true;
+    }
+    return false;
+  }
+
+  function mapLiveReward(rw) {
+    if (!rw || !rw.rewardType || rw.rewardType === 'NONE') return { rewardType: 'NONE' };
+    if (rw.rewardType === 'CASH_REDPACK') {
+      return {
+        rewardType: 'CASH_REDPACK',
+        redpackId: rw.redpackId || '',
+        redpackName: cashRedpackName(rw.redpackId)
+      };
+    }
+    if (rw.rewardType === 'POINTS') return { rewardType: 'POINTS', pointsAmount: rw.pointsAmount || 0 };
+    if (rw.rewardType === 'COUPON') return { rewardType: 'COUPON', prizeCouponId: rw.couponActivityId || '' };
+    if (rw.rewardType === 'FORTUNE_BAG') return { rewardType: 'FORTUNE_BAG', prizeBagId: rw.bagActivityId || '' };
+    return { rewardType: rw.rewardType };
+  }
+
+  function adaptMarketingBag(item) {
+    var cfg = item.config || {};
+    var first = (cfg.prizes && cfg.prizes[0]) || {};
+    var stock = item.totalStock == null ? 100 : Math.floor(Number(item.totalStock));
+    if (!isFinite(stock) || stock < 0) stock = 0;
+    return {
+      id: item.id,
+      name: item.name,
+      status: item.status === 'ACTIVE' ? 'enabled' : 'disabled',
+      stock: stock,
+      prizeType: cfg.prizeType || '',
+      redpackId: first.refId || '',
+      redpackName: cfg.prizeType === 'CASH_REDPACK' ? cashRedpackName(first.refId) : '',
+      usesCash: true,
+      fromMarketing: true
+    };
+  }
+
+  function adaptMarketingSign(item) {
+    var cfg = item.config || {};
+    var rewards = (cfg.roundRewards || []).map(mapLiveReward);
+    if (cfg.completeReward && cfg.completeReward.rewardType && cfg.completeReward.rewardType !== 'NONE') {
+      rewards.push(mapLiveReward(cfg.completeReward));
+    }
+    return {
+      id: item.id,
+      name: item.name,
+      status: item.status === 'ACTIVE' ? 'enabled' : 'disabled',
+      totalRounds: cfg.totalRounds || rewards.length || 1,
+      rewards: rewards,
+      usesCash: true,
+      fromMarketing: true
+    };
+  }
+
+  function adaptMarketingTask(item) {
+    var cfg = item.config || {};
+    var milestones = (cfg.milestones || []).map(function (ms) {
+      var rw = mapLiveReward(ms.reward || {});
+      rw.threshold = ms.threshold;
+      return rw;
+    });
+    return {
+      id: item.id,
+      name: item.name,
+      status: item.status === 'ACTIVE' ? 'enabled' : 'disabled',
+      milestones: milestones,
+      usesCash: true,
+      fromMarketing: true
+    };
+  }
+
+  function ensureMarketingLiveCaches(force) {
+    if (marketingLiveReady && !force) return;
+    var store = window.MdmMarketingTemplateStore;
+    if (!store || typeof store.listRows !== 'function') return;
+    marketingLiveReady = true;
+    marketingBagCache = [];
+    marketingSignCache = [];
+    marketingTaskCache = [];
+    store.listRows({ activityType: 'FORTUNE_BAG' }).forEach(function (item) {
+      if (templateUsesCash(item)) marketingBagCache.push(adaptMarketingBag(item));
+    });
+    store.listRows({ activityType: 'SIGN_IN' }).forEach(function (item) {
+      if (templateUsesCash(item)) marketingSignCache.push(adaptMarketingSign(item));
+    });
+    store.listRows({ activityType: 'TASK' }).forEach(function (item) {
+      if (templateUsesCash(item)) marketingTaskCache.push(adaptMarketingTask(item));
+    });
+  }
+
+  function refreshMarketingLiveCaches() {
+    marketingLiveReady = false;
+    ensureMarketingLiveCaches(true);
+  }
+
+  function listBagTemplates(force) {
+    ensureMarketingLiveCaches(!!force);
+    return bagTemplates.concat(marketingBagCache);
+  }
+
+  function listSignTemplates(force) {
+    ensureMarketingLiveCaches(!!force);
+    return signTemplates.concat(marketingSignCache);
+  }
+
+  function listTaskTemplates(force) {
+    ensureMarketingLiveCaches(!!force);
+    return taskTemplates.concat(marketingTaskCache);
+  }
+
+  function findInList(list, id) {
+    var sid = String(id || '');
+    var i;
+    for (i = 0; i < list.length; i++) {
+      if (String(list[i].id) === sid) return list[i];
     }
     return null;
+  }
+
+  function findBagTemplate(id) {
+    return findInList(listBagTemplates(false), id);
   }
 
   function bagTemplateStatusLabel(status) {
@@ -1850,6 +2001,7 @@
     if (type === 'COUPON') return '券';
     if (type === 'POINTS') return '积分';
     if (type === 'PRODUCT') return '商品';
+    if (type === 'CASH_REDPACK') return '现金红包';
     return '—';
   }
 
@@ -1912,11 +2064,7 @@
   ];
 
   function findSignTemplate(id) {
-    var i;
-    for (i = 0; i < signTemplates.length; i++) {
-      if (signTemplates[i].id === id) return signTemplates[i];
-    }
-    return null;
+    return findInList(listSignTemplates(false), id);
   }
 
   function signTemplateStatusLabel(status) {
@@ -1960,11 +2108,53 @@
   ];
 
   function findTaskTemplate(id) {
-    var i;
-    for (i = 0; i < taskTemplates.length; i++) {
-      if (taskTemplates[i].id === id) return taskTemplates[i];
-    }
-    return null;
+    return findInList(listTaskTemplates(false), id);
+  }
+
+  function listCashRedpackOptions() {
+    var store = window.MdmMarketingCashRedpackTplStore;
+    if (!store || typeof store.listRewardOptions !== 'function') return [];
+    var on = cashRedpackSwitchOn();
+    return store.listRewardOptions().map(function (opt) {
+      var reason = opt.reason || '';
+      var selectable = !!opt.selectable;
+      if (!on) {
+        selectable = false;
+        reason = '现金红包已关闭';
+      }
+      return {
+        id: opt.id,
+        name: opt.name,
+        selectable: selectable,
+        reason: reason,
+        label: reason ? opt.name + '（' + reason + '）' : opt.name
+      };
+    });
+  }
+
+  function marketingCashTemplates(type) {
+    ensureMarketingLiveCaches(false);
+    var src =
+      type === 'FORTUNE_BAG' ? marketingBagCache : type === 'SIGN_IN' ? marketingSignCache : type === 'TASK' ? marketingTaskCache : [];
+    var on = cashRedpackSwitchOn();
+    var typeName = type === 'FORTUNE_BAG' ? '福袋' : type === 'SIGN_IN' ? '签到' : '观看奖励';
+    return src.map(function (tpl) {
+      var reason = '';
+      if (!on) reason = '现金红包已关闭';
+      else if (tpl.status !== 'enabled') reason = '已禁用';
+      else if (type === 'FORTUNE_BAG' && !(Number(tpl.stock) > 0)) reason = '库存不足';
+      return {
+        id: tpl.id,
+        type: type,
+        typeName: typeName,
+        name: tpl.name,
+        stock: type === 'FORTUNE_BAG' ? tpl.stock : null,
+        templateId: tpl.id,
+        usesCash: true,
+        selectable: !reason,
+        reason: reason
+      };
+    });
   }
 
   function taskTemplateStatusLabel(status) {
@@ -2727,7 +2917,8 @@
       { value: 'COUPON', label: '优惠券' },
       { value: 'FORTUNE_BAG', label: '福袋' },
       { value: 'SIGN_IN', label: '签到' },
-      { value: 'TASK', label: '观看奖励' }
+      { value: 'TASK', label: '观看奖励' },
+      { value: 'CASH_REDPACK', label: '现金红包' }
     ],
     welfareWindows: welfareWindows,
     welfareWindowsOf: welfareWindowsOf,
@@ -2740,6 +2931,7 @@
     releaseCouponStock: releaseCouponStock,
     nextCouponPlanId: nextCouponPlanId,
     bagTemplates: bagTemplates,
+    listBagTemplates: listBagTemplates,
     findBagTemplate: findBagTemplate,
     bagTemplateStatusLabel: bagTemplateStatusLabel,
     bagPrizeTypeLabel: bagPrizeTypeLabel,
@@ -2747,10 +2939,12 @@
     releaseBagStock: releaseBagStock,
     nextBagPlanId: nextBagPlanId,
     signTemplates: signTemplates,
+    listSignTemplates: listSignTemplates,
     findSignTemplate: findSignTemplate,
     signTemplateStatusLabel: signTemplateStatusLabel,
     nextSignPlanId: nextSignPlanId,
     taskTemplates: taskTemplates,
+    listTaskTemplates: listTaskTemplates,
     findTaskTemplate: findTaskTemplate,
     taskTemplateStatusLabel: taskTemplateStatusLabel,
     nextTaskPlanId: nextTaskPlanId,
@@ -2760,6 +2954,10 @@
     liveAudience: liveAudience,
     member360Seed: member360Seed,
     listMember360: listMember360,
-    findMember360: findMember360
+    findMember360: findMember360,
+    cashRedpackSwitchOn: cashRedpackSwitchOn,
+    listCashRedpackOptions: listCashRedpackOptions,
+    marketingCashTemplates: marketingCashTemplates,
+    refreshMarketingLiveCaches: refreshMarketingLiveCaches
   };
 })();

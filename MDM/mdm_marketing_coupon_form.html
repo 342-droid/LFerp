@@ -30,6 +30,7 @@
             <div class="mdm-biz-tip" id="cpFormTip" role="note"></div>
 
             <div id="cpFormPanel"></div>
+            <div id="cpAuditPanel" hidden></div>
 
             <div class="mdm-edit-page__footer">
                 <button type="button" class="btn btn-secondary" id="cpBtnCancel">取消</button>
@@ -65,34 +66,12 @@
         </div>
     </div>
 
-    <div id="cpRejectBackdrop" class="erp-modal-backdrop mkt-cp-reject-backdrop" hidden>
-        <div class="erp-modal" role="dialog" aria-modal="true" aria-labelledby="cpRejectTitle">
-            <div class="erp-modal__header">
-                <h2 class="erp-modal__title">审核失败</h2>
-                <div class="erp-modal__header-actions">
-                    <button type="button" class="erp-modal__header-btn" id="cpRejectClose" aria-label="关闭">&times;</button>
-                </div>
-            </div>
-            <div class="erp-modal__body">
-                <div class="mkt-tpl-row">
-                    <div class="mkt-tpl-row__label is-req">失败原因</div>
-                    <div class="mkt-tpl-row__ctrl">
-                        <textarea id="cpRejectReason" maxlength="200" placeholder="请填写审核失败原因，将回写到优惠券备注"></textarea>
-                    </div>
-                </div>
-            </div>
-            <div class="erp-modal__footer">
-                <button type="button" class="erp-btn" id="cpRejectCancel">取消</button>
-                <button type="button" class="erp-btn erp-btn--primary" id="cpRejectOk">确定</button>
-            </div>
-        </div>
-    </div>
-
     <script src="../js/common.js"></script>
     <script src="../js/pagination.js"></script>
-    <script src="../js/mdm-marketing-coupon-store.js"></script>
+    <script src="../js/mdm-marketing-coupon-store.js?v=20261012-audit-opinion"></script>
     <script src="../js/mdm-marketing-coupon-goods-dialog.js"></script>
     <script src="../js/mdm-marketing-coupon-form-ui.js"></script>
-    <script src="../js/mdm-marketing-coupon-form.js"></script>
+    <script src="../js/mdm-marketing-audit-panel.js?v=20261012-audit-opinion"></script>
+    <script src="../js/mdm-marketing-coupon-form.js?v=20261012-audit-opinion"></script>
 </body>
 </html>

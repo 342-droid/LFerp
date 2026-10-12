@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="../css/lf-mdm-edit-page.css">
     <link rel="stylesheet" href="../css/lf-mdm-points-rule.css">
     <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
-    <link rel="stylesheet" href="../css/lf-marketing-cash-redpack.css?v=20261012-dispatch-modal">
+    <link rel="stylesheet" href="../css/lf-marketing-cash-redpack.css?v=20261012-trigger-time">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -125,6 +125,19 @@
                             <input class="erp-input" id="crManualReward" type="text" inputmode="decimal" placeholder="请输入奖励金额">
                         </div>
                     </div>
+                    <div class="pts-rule-field" id="crManualTriggerField">
+                        <label class="pts-rule-field__label"><span class="erp-req">*</span>触发时间</label>
+                        <div class="pts-rule-field__control">
+                            <div class="pts-rule-check-row">
+                                <label class="pts-rule-check-label"><input type="radio" name="crManualTrigger" value="now" checked> 即时</label>
+                                <label class="pts-rule-check-label"><input type="radio" name="crManualTrigger" value="schedule"> 定时</label>
+                            </div>
+                            <div id="crManualTriggerAtWrap" hidden>
+                                <input class="erp-input mkt-cr-trigger-at" id="crManualTriggerAt" type="datetime-local" step="60">
+                                <div class="pts-rule-tip">审核成功后，到达该时间再发放。时间须晚于当前时间。</div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="pts-rule-field" id="crManualFrontField">
                         <label class="pts-rule-field__label" for="crManualFrontRemark">前台备注</label>
                         <div class="pts-rule-field__control">
@@ -140,6 +153,8 @@
                 </div>
             </div>
 
+            <div id="crManualAuditPanel" hidden></div>
+
             <div class="mdm-edit-page__footer">
                 <button type="button" class="btn btn-secondary" id="crManualCancel">取消</button>
                 <button type="button" class="btn btn-primary" id="crManualSubmit">确认发放</button>
@@ -147,27 +162,6 @@
                 <button type="button" class="btn btn-primary" id="crManualApprove" hidden>审核成功</button>
             </div>
         </main>
-    </div>
-
-    <div class="erp-modal-backdrop mkt-cr-modal" id="crManualRejectBackdrop" hidden>
-        <div class="erp-modal" role="dialog" aria-modal="true" aria-labelledby="crManualRejectTitle">
-            <div class="erp-modal__header">
-                <h2 class="erp-modal__title" id="crManualRejectTitle">审核失败</h2>
-                <button type="button" class="erp-modal__header-btn" id="crManualRejectClose" aria-label="关闭">&times;</button>
-            </div>
-            <div class="erp-modal__body">
-                <div class="erp-modal-field">
-                    <label class="erp-modal-field__label" for="crManualRejectReason"><span class="erp-req">*</span>失败原因</label>
-                    <div class="erp-modal-field__control">
-                        <textarea class="erp-input" id="crManualRejectReason" maxlength="200" placeholder="请填写审核失败原因" style="height:88px;padding:8px 12px;"></textarea>
-                    </div>
-                </div>
-            </div>
-            <div class="erp-modal__footer">
-                <button type="button" class="btn btn-secondary" id="crManualRejectCancel">取消</button>
-                <button type="button" class="btn btn-primary" id="crManualRejectOk">确定</button>
-            </div>
-        </div>
     </div>
 
     <div class="erp-modal-backdrop mkt-cr-modal" id="crManualDispatchBackdrop" hidden>
@@ -245,8 +239,9 @@
     </div>
     <script src="../js/common.js"></script>
     <script src="../js/vendor/xlsx.full.min.js"></script>
-    <script src="../js/mdm-marketing-cash-redpack-store.js?v=20261012-grant-target"></script>
+    <script src="../js/mdm-marketing-cash-redpack-store.js?v=20261013-draft-cancel"></script>
     <script src="../js/mdm-member-level-data.js?v=20261012-grant-target"></script>
-    <script src="../js/mdm-marketing-cash-redpack-manual-form.js?v=20261012-manual-audit"></script>
+    <script src="../js/mdm-marketing-audit-panel.js?v=20261012-audit-opinion"></script>
+    <script src="../js/mdm-marketing-cash-redpack-manual-form.js?v=20261013-draft-back"></script>
 </body>
 </html>
