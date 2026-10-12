@@ -588,6 +588,27 @@
       .join('');
   }
 
+  /** 还能绑定的红包个数：模版剩余个数，再扣掉其他场次和本页已经绑定的发放数量 */
+  function cashPacketAvailable(templateId) {
+    var store = window.MdmMarketingCashRedpackTplStore;
+    var row = store && store.getById ? store.getById(templateId) : null;
+    var remain = store && store.remainPacketCount && row ? store.remainPacketCount(row) : 0;
+    var reserved = 0;
+    function addReserved(t) {
+      if (!t || t.type !== 'CASH_REDPACK') return;
+      if (String(t.templateId || t.poolId || '') !== String(templateId)) return;
+      var quota = t.quotaTotal != null ? Number(t.quotaTotal) : Number(t.stock);
+      if (!(quota > 0)) return;
+      reserved += quota;
+    }
+    ((Demo && Demo.sessions) || []).forEach(function (sess) {
+      if (!sess || String(sess.id) === String(editingId || '')) return;
+      (sess.templates || []).forEach(addReserved);
+    });
+    (boundTemplates || []).forEach(addReserved);
+    return Math.max(0, remain - reserved);
+  }
+
   function fillTplNames() {
     var type = (document.getElementById('fTplType') || {}).value || '';
     var nameEl = document.getElementById('fTplName');
@@ -614,6 +635,7 @@
     }
     if (type === 'CASH_REDPACK' && Demo.listCashRedpackOptions) {
       list = Demo.listCashRedpackOptions().map(function (opt) {
+        var remain = cashPacketAvailable(opt.id);
         return {
           id: opt.id,
           type: 'CASH_REDPACK',
@@ -621,7 +643,8 @@
           name: opt.name,
           templateId: opt.id,
           selectable: opt.selectable,
-          reason: opt.reason
+          reason: opt.reason,
+          packetRemain: remain
         };
       });
     }
@@ -645,6 +668,7 @@
       list
         .map(function (t) {
           var stockTip = t.stock != null ? '（库存 ' + t.stock + '）' : '';
+          var remainTip = t.packetRemain != null ? '（剩余红包 ' + t.packetRemain + '）' : '';
           var reasonTip = t.reason ? '（' + t.reason + '）' : '';
           var disabled = t.selectable === false ? ' disabled' : '';
           return (
@@ -653,12 +677,12 @@
             '"' +
             disabled +
             '>' +
-            escapeHtml(t.name + stockTip + reasonTip) +
+            escapeHtml(t.name + stockTip + remainTip + reasonTip) +
             '</option>'
           );
         })
         .join('');
-    if (stockRow) stockRow.hidden = !(type === 'COUPON' || type === 'FORTUNE_BAG');
+    if (stockRow) stockRow.hidden = !(type === 'COUPON' || type === 'FORTUNE_BAG' || type === 'CASH_REDPACK');
     applyFieldLocks();
   }
 
@@ -1046,7 +1070,8 @@
               name: redpackOpt.name,
               templateId: redpackOpt.id,
               selectable: redpackOpt.selectable,
-              reason: redpackOpt.reason
+              reason: redpackOpt.reason,
+              packetRemain: cashPacketAvailable(redpackOpt.id)
             };
           }
         }
@@ -1064,11 +1089,16 @@
           return toast('当前场次已添加该模板，请勿重复添加', 'warning');
         }
         var stock = null;
-        if (type === 'COUPON' || type === 'FORTUNE_BAG') {
+        if (type === 'COUPON' || type === 'FORTUNE_BAG' || type === 'CASH_REDPACK') {
           stock = Math.floor(Number((document.getElementById('fTplStock') || {}).value || 0));
           if (!stock || stock < 1) return toast('请填写发放数量', 'warning');
           if (pool.usesCash && pool.stock != null && stock > Number(pool.stock)) {
             return toast('发放数量不能大于模板库存（' + pool.stock + '）', 'warning');
+          }
+          if (type === 'CASH_REDPACK') {
+            var packetRemain = pool.packetRemain != null ? Number(pool.packetRemain) : 0;
+            if (!(packetRemain > 0)) return toast('该现金红包剩余红包总数为 0，不能绑定', 'warning');
+            if (stock > packetRemain) return toast('发放数量不能大于剩余红包总数（' + packetRemain + '）', 'warning');
           }
         }
         boundTemplates.push({
@@ -1079,6 +1109,8 @@
           typeName: pool.typeName,
           name: pool.name,
           stock: stock,
+          quotaTotal: type === 'CASH_REDPACK' ? stock : undefined,
+          deliveredCount: type === 'CASH_REDPACK' ? 0 : undefined,
           usesCash: !!pool.usesCash || type === 'CASH_REDPACK'
         });
         document.getElementById('fTplType').value = '';

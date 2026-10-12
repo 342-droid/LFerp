@@ -1927,6 +1927,38 @@
     return '';
   }
 
+  function paintRedpackIssueErrors(which) {
+    if (welfareUi.kind !== 'redpack') return;
+    var plan = selectedWelfarePlan();
+    var qtyErr = document.getElementById('welfareRedpackQtyErr');
+    var qtyInp = document.getElementById('welfareQuantity');
+    var limitErr = document.getElementById('welfarePerUserLimitErr');
+    var limitInp = document.getElementById('welfarePerUserLimit');
+    var qtyTip = '';
+    var limitTip = '';
+    if (plan) {
+      var remain = redpackSessionRemain(plan);
+      var qty = requiredPositiveInt(welfareUi.quantity);
+      if (qty.ok && qty.value > remain) qtyTip = '发放数量不能大于本场剩余发放数量（' + remain + '）';
+      var user = redpackPerUserCheck(plan, welfareUi.perUserLimit);
+      if (!user.ok && !user.empty && user.tip) limitTip = user.tip;
+    }
+    if (qtyErr && qtyInp) {
+      qtyErr.textContent = qtyTip;
+      qtyErr.hidden = !qtyTip;
+      if (qtyTip) qtyInp.classList.add('is-error');
+      else qtyInp.classList.remove('is-error');
+    }
+    if (limitErr && limitInp) {
+      limitErr.textContent = limitTip;
+      limitErr.hidden = !limitTip;
+      if (limitTip) limitInp.classList.add('is-error');
+      else limitInp.classList.remove('is-error');
+    }
+    var tip = which === 'quantity' ? qtyTip : limitTip;
+    if (tip) toast(tip, 'warning');
+  }
+
   function paintCouponRoundLimitError(doToast) {
     var err = document.getElementById('welfarePerUserLimitErr');
     var inp = document.getElementById('welfarePerUserLimit');
@@ -2222,6 +2254,92 @@
     return '';
   }
 
+  function redpackSessionRemain(plan) {
+    if (!plan) return 0;
+    var total = plan.quotaTotal != null ? plan.quotaTotal : plan.stock;
+    if (total == null || total === '') return 0;
+    var sent = plan.deliveredCount != null ? Number(plan.deliveredCount) || 0 : 0;
+    return Math.max(0, Math.round(Number(total) || 0) - sent);
+  }
+
+  /** 每人限领上限：模版领取次数，以及现金红包通用配置里大于 0 的每场、每日、总次数。0 表示该项不限制 */
+  function redpackClaimRule(plan) {
+    var parts = [];
+    var caps = [];
+    var id = plan && (plan.templateId || plan.poolId);
+    var tplStore = window.MdmMarketingCashRedpackTplStore;
+    var tpl = tplStore && tplStore.getById && id ? tplStore.getById(id) : null;
+    var mode = tpl && tpl.claimTimesMode === 'per_user' ? 'per_user' : 'unlimited';
+    if (mode === 'per_user') {
+      parts.push('模版领取次数：每人限领 1 次');
+      caps.push({ n: 1, label: '模版领取次数（每人限领 1 次）' });
+    } else {
+      parts.push('模版领取次数：不限次数');
+    }
+    var settingsStore = window.MdmMarketingCashRedpackStore;
+    var s = settingsStore && settingsStore.getSettings ? settingsStore.getSettings() : null;
+    if (s) {
+      if (s.liveLimit > 0) {
+        parts.push('每场直播限领 ' + s.liveLimit + ' 次');
+        caps.push({ n: s.liveLimit, label: '每场直播限领 ' + s.liveLimit + ' 次' });
+      } else {
+        parts.push('每场直播限领：不限制');
+      }
+      if (s.dailyMode === 'order_today') {
+        var tiers = s.dailyTiers || [];
+        var positive = [];
+        var unlimitedTier = false;
+        tiers.forEach(function (t) {
+          var c = Math.round(Number(t && t.count) || 0);
+          if (c > 0) positive.push(c);
+          else unlimitedTier = true;
+        });
+        if (positive.length && !unlimitedTier) {
+          var maxTier = positive[0];
+          positive.forEach(function (n) {
+            if (n > maxTier) maxTier = n;
+          });
+          parts.push('每日限领：按当日下单金额档位，最高 ' + maxTier + ' 次');
+          caps.push({ n: maxTier, label: '当日下单最高档限领 ' + maxTier + ' 次' });
+        } else {
+          parts.push(tiers.length ? '每日限领：按当日下单金额档位（有档位次数为 0，该项不限制）' : '每日限领：按当日下单金额档位');
+        }
+      } else if (s.dailyLimit > 0) {
+        parts.push('每日限领 ' + s.dailyLimit + ' 次');
+        caps.push({ n: s.dailyLimit, label: '每日限领 ' + s.dailyLimit + ' 次' });
+      } else {
+        parts.push('每日限领：不限制');
+      }
+      if (s.totalLimit > 0) {
+        parts.push('总次数上限 ' + s.totalLimit + ' 次');
+        caps.push({ n: s.totalLimit, label: '总次数上限 ' + s.totalLimit + ' 次' });
+      } else {
+        parts.push('总次数上限：不限制');
+      }
+    }
+    var max = null;
+    var label = '';
+    caps.forEach(function (c) {
+      if (max == null || c.n < max) {
+        max = c.n;
+        label = c.label;
+      }
+    });
+    return { max: max, label: label, parts: parts, mode: mode };
+  }
+
+  function redpackPerUserCheck(plan, raw) {
+    var parsed = requiredPositiveInt(raw);
+    if (!parsed.ok) {
+      return { ok: false, empty: parsed.empty, tip: parsed.empty ? '' : '请填写每人限领次数' };
+    }
+    var rule = redpackClaimRule(plan);
+    if (rule.max != null && parsed.value > rule.max) {
+      return { ok: false, empty: false, tip: '每人限领不能大于' + rule.label };
+    }
+    return { ok: true, empty: false, value: parsed.value, rule: rule };
+  }
+
   function requiredPositiveInt(val) {
     var s = String(val == null ? '' : val).trim();
     if (!s) return { ok: false, empty: true, value: 0 };
@@ -2242,6 +2360,9 @@
       if (welfareUi.drawType === 'ASSIGN' && !(welfareUi.assignUsers || []).length) return '指定中奖用户';
     } else if (kind === 'sign') {
       if (!requiredPositiveInt(welfareUi.duration).ok) return '持续时间';
+    } else if (kind === 'redpack') {
+      if (!requiredPositiveInt(welfareUi.quantity).ok) return '发放数量';
+      if (!requiredPositiveInt(welfareUi.perUserLimit).ok) return '每人限领次数';
     }
     return '';
   }
@@ -2687,6 +2808,24 @@
       show = !!plans.length;
       label = '立即发送';
       if (!plan) disabled = true;
+      else {
+        var redpackRemain = redpackSessionRemain(plan);
+        if (redpackRemain < 1) {
+          disabled = true;
+          tip = '发放数量已用完';
+        } else {
+          var redpackQty = requiredPositiveInt(welfareUi.quantity);
+          if (redpackQty.ok && redpackQty.value > redpackRemain) {
+            disabled = true;
+            tip = '发放数量不能大于本场剩余发放数量（' + redpackRemain + '）';
+          }
+          var redpackUser = redpackPerUserCheck(plan, welfareUi.perUserLimit);
+          if (!redpackUser.ok && redpackUser.tip) {
+            disabled = true;
+            if (!tip) tip = redpackUser.tip;
+          }
+        }
+      }
     }
     if (plan && planUsesCash(plan) && cashRedpackClosed()) {
       disabled = true;
@@ -2789,6 +2928,11 @@
         var id = welfarePlanIdOf(t);
         var live = liveRedpackFields(t);
         var sent = t.deliveredCount != null ? t.deliveredCount : 0;
+        var total = t.quotaTotal != null ? t.quotaTotal : t.stock;
+        var qtyText =
+          total != null && total !== ''
+            ? '　发放数量：' + sent + '/' + total
+            : '　已发送 ' + sent + ' 次';
         return (
           '<div class="coupon-card bag-card' +
           (id === welfareUi.planId ? ' coupon-card--selected bag-card--selected' : '') +
@@ -2798,13 +2942,72 @@
           escapeHtml(live.name) +
           '</span></div><div class="coupon-card__sub">现金红包（' +
           escapeHtml(String(live.templateId)) +
-          '）　已发送 ' +
-          escapeHtml(String(sent)) +
-          ' 次</div></div>'
+          '）' +
+          escapeHtml(qtyText) +
+          '</div></div>'
         );
       })
       .join('');
-    return '<div class="bag-dialog__pane">' + toolbar + '<div class="coupon-dialog__cards">' + cards + '</div></div>';
+    var remain = plan ? redpackSessionRemain(plan) : 0;
+    var total = plan ? (plan.quotaTotal != null ? plan.quotaTotal : plan.stock) : 0;
+    var rule = plan ? redpackClaimRule(plan) : null;
+    var userErr = '';
+    if (plan) {
+      var userChk = redpackPerUserCheck(plan, welfareUi.perUserLimit);
+      if (!userChk.ok && !userChk.empty) userErr = userChk.tip;
+    }
+    var qtyErr = '';
+    if (plan) {
+      var qtyChk = requiredPositiveInt(welfareUi.quantity);
+      if (qtyChk.ok && qtyChk.value > remain) qtyErr = '发放数量不能大于本场剩余发放数量（' + remain + '）';
+    }
+    var form = plan
+      ? '<div class="coupon-dialog__form"><div class="coupon-dialog__form-title">发放设置</div>' +
+        '<div class="lf-welfare-form-grid">' +
+        '<label class="lf-welfare-field"><span><span class="erp-req">*</span>发放数量（单位：个）</span>' +
+        '<input class="erp-input' +
+        (qtyErr ? ' is-error' : '') +
+        '" type="number" min="1" step="1" id="welfareQuantity" value="' +
+        escapeHtml(welfareUi.quantity) +
+        '" placeholder="请输入"' +
+        (remain > 0 ? ' max="' + remain + '"' : '') +
+        '>' +
+        '<p class="lf-welfare-field-error" id="welfareRedpackQtyErr"' +
+        (qtyErr ? '' : ' hidden') +
+        '>' +
+        escapeHtml(qtyErr) +
+        '</p></label>' +
+        '<div class="lf-welfare-field lf-welfare-field--limit">' +
+        '<span><span class="erp-req">*</span>每人限领（单位：次）</span>' +
+        '<input class="erp-input' +
+        (userErr ? ' is-error' : '') +
+        '" type="number" min="1" step="1" id="welfarePerUserLimit" value="' +
+        escapeHtml(welfareUi.perUserLimit || '1') +
+        '" placeholder="请输入"' +
+        (rule && rule.max != null ? ' max="' + rule.max + '"' : '') +
+        '>' +
+        '<p class="lf-welfare-field-error" id="welfarePerUserLimitErr"' +
+        (userErr ? '' : ' hidden') +
+        '>' +
+        escapeHtml(userErr) +
+        '</p></div></div>' +
+        '<p class="lf-live-dialog__hint">本场剩余发放数量 ' +
+        remain +
+        '（绑定发放数量 ' +
+        (total == null || total === '' ? '—' : total) +
+        '）。' +
+        escapeHtml(rule ? rule.parts.join('；') : '') +
+        '。领取时按以上次数取最小值，剩余为 0 时提示「无活动次数」。</p></div>'
+      : '';
+    return (
+      '<div class="bag-dialog__pane">' +
+      toolbar +
+      '<div class="coupon-dialog__cards">' +
+      cards +
+      '</div>' +
+      form +
+      '</div>'
+    );
   }
 
   function renderBagIssue(meta, plans, plan) {
@@ -3421,6 +3624,8 @@
       escapeHtml(String(live.templateId)) +
       '）　' +
       escapeHtml(formatWelfareTime(w.startedAt)) +
+      (w.quantity != null ? '　发放数量 ' + escapeHtml(String(w.quantity)) : '') +
+      (w.perUserLimit != null ? '　每人限领 ' + escapeHtml(String(w.perUserLimit)) + ' 次' : '') +
       '</span></div></div>'
     );
   }
@@ -4309,10 +4514,32 @@
     renderWelfareDrawer();
   }
 
+  function sessionBoundRedpacks() {
+    var sess = findSession(sessionId);
+    var rows = [];
+    var seen = {};
+    ((sess && sess.templates) || []).forEach(function (t) {
+      if (!t || t.type !== 'CASH_REDPACK') return;
+      var id = String(t.templateId || t.poolId || '');
+      if (!id || seen[id]) return;
+      seen[id] = true;
+      var live = liveRedpackFields(t);
+      var remain = redpackSessionRemain(t);
+      rows.push({
+        id: id,
+        planId: welfarePlanIdOf(t),
+        name: live.name,
+        remain: remain,
+        selectable: remain > 0,
+        reason: remain > 0 ? '' : '本场发放数量已用完'
+      });
+    });
+    return rows;
+  }
+
   function filteredRedpackTemplates() {
     var kw = String(addRedpackUi.keyword || '').trim().toLowerCase();
-    var list = Demo.listCashRedpackOptions ? Demo.listCashRedpackOptions() : [];
-    return list.filter(function (tpl) {
+    return sessionBoundRedpacks().filter(function (tpl) {
       if (!kw) return true;
       return (
         String(tpl.name || '').toLowerCase().indexOf(kw) >= 0 ||
@@ -4324,7 +4551,12 @@
   function renderAddRedpackList() {
     var box = document.getElementById('addRedpackList');
     if (!box) return;
+    var bound = sessionBoundRedpacks();
     var list = filteredRedpackTemplates();
+    if (!bound.length) {
+      box.innerHTML = '<div class="add-coupon-empty">该场次未绑定现金红包模版，请先在直播场次中绑定</div>';
+      return;
+    }
     if (!list.length) {
       box.innerHTML = '<div class="add-coupon-empty">没有匹配的现金红包模版</div>';
       return;
@@ -4345,6 +4577,8 @@
           escapeHtml(tpl.name) +
           '</span></div><div class="add-sign-card__meta">ID ' +
           escapeHtml(tpl.id) +
+          ' · 本场剩余发放 ' +
+          escapeHtml(String(tpl.remain)) +
           (tpl.reason ? ' · ' + escapeHtml(tpl.reason) : '') +
           '</div></div>'
         );
@@ -4366,35 +4600,18 @@
   function confirmAddRedpack() {
     if (isEndedLocked()) return toastEndedLock('deliver');
     if (cashRedpackClosed()) return toast(cashClosedTip(), 'warning');
-    var sess = findSession(sessionId);
-    if (!sess) return;
-    var list = Demo.listCashRedpackOptions ? Demo.listCashRedpackOptions() : [];
+    var list = sessionBoundRedpacks();
+    if (!list.length) return toast('该场次未绑定现金红包模版，请先在直播场次中绑定', 'warning');
     var tpl = null;
     var i;
     for (i = 0; i < list.length; i++) {
       if (list[i].id === addRedpackUi.templateId) tpl = list[i];
     }
-    if (!tpl) return toast('请先选择现金红包模版', 'warning');
+    if (!tpl) return toast('请先选择本场已绑定的现金红包模版', 'warning');
     if (!tpl.selectable) return toast(tpl.reason || '该现金红包不可选择', 'warning');
-    if (!sess.templates) sess.templates = [];
-    var planId = 'plan-r-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
-    sess.templates.push({
-      id: planId,
-      planId: planId,
-      activityId: planId,
-      templateId: tpl.id,
-      poolId: tpl.id,
-      type: 'CASH_REDPACK',
-      typeName: '现金红包',
-      name: tpl.name,
-      usesCash: true,
-      deliveredCount: 0,
-      stock: null
-    });
-    Demo.welfareWindowsOf(planId);
-    welfareUi.planId = planId;
+    welfareUi.planId = tpl.planId;
     closeDialog('addRedpackDialog');
-    toast('已添加「' + tpl.name + '」');
+    toast('已选中「' + tpl.name + '」');
     renderWelfareDrawer();
   }
 
@@ -4671,6 +4888,16 @@
       if (cashRedpackClosed()) return toast(cashClosedTip(), 'warning');
       var redpackCashBlock = planCashIssueBlock(plan);
       if (redpackCashBlock) return toast(redpackCashBlock, 'warning');
+      if (toastFillRequired()) return;
+      var redpackRemain = redpackSessionRemain(plan);
+      if (redpackRemain < 1) return toast('发放数量已用完', 'warning');
+      var redpackQty = requiredPositiveInt(welfareUi.quantity);
+      if (!redpackQty.ok) return toast('请填写发放数量', 'warning');
+      if (redpackQty.value > redpackRemain) {
+        return toast('发放数量不能大于本场剩余发放数量（' + redpackRemain + '）', 'warning');
+      }
+      var redpackUser = redpackPerUserCheck(plan, welfareUi.perUserLimit);
+      if (!redpackUser.ok) return toast(redpackUser.tip || '请填写每人限领次数', 'warning');
       var liveRp = liveRedpackFields(plan);
       var redpackList = welfareWindowsOfPlan(welfarePlanIdOf(plan));
       var redpackIdx = nextRoundIndex(redpackList);
@@ -4684,10 +4911,13 @@
         status: 'CLOSED',
         participantCount: 0,
         participateTimes: 0,
-        prizeTitle: liveRp.name
+        prizeTitle: liveRp.name,
+        quantity: redpackQty.value,
+        perUserLimit: redpackUser.value
       });
-      plan.deliveredCount = (plan.deliveredCount || 0) + 1;
-      toast('已发送现金红包「' + liveRp.name + '」');
+      plan.deliveredCount = (plan.deliveredCount || 0) + redpackQty.value;
+      toast('已发送现金红包「' + liveRp.name + '」' + redpackQty.value + ' 个');
+      welfareUi.quantity = '';
       welfareUi.tab = 'record';
       renderWelfareDrawer();
     }
@@ -6973,10 +7203,14 @@
       welfareDrawer.addEventListener('input', function (ev) {
         var el = ev.target;
         if (el.id === 'welfareDuration') welfareUi.duration = el.value;
-        if (el.id === 'welfareQuantity') welfareUi.quantity = el.value;
+        if (el.id === 'welfareQuantity') {
+          welfareUi.quantity = el.value;
+          if (welfareUi.kind === 'redpack') paintRedpackIssueErrors('quantity');
+        }
         if (el.id === 'welfarePerUserLimit') {
           welfareUi.perUserLimit = el.value;
-          paintCouponRoundLimitError(true);
+          if (welfareUi.kind === 'redpack') paintRedpackIssueErrors('limit');
+          else paintCouponRoundLimitError(true);
         }
         if (el.id === 'welfareWinnerCount') welfareUi.winnerCount = el.value;
         if (el.id === 'assignUserKeyword') welfareUi.assignKeyword = el.value;
