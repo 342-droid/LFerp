@@ -70,7 +70,13 @@
         },
         {
             href: 'mdm_marketing_cash_redpack.html',
-            text: '现金红包'
+            text: '现金红包',
+            alsoActive: [
+                'mdm_marketing_cash_redpack_manual.html',
+                'mdm_marketing_cash_redpack_manual_form.html',
+                'mdm_marketing_cash_redpack_tpl.html',
+                'mdm_marketing_cash_redpack_tpl_form.html'
+            ]
         }
     ];
 

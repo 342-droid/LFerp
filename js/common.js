@@ -986,10 +986,20 @@ if (document.readyState === 'loading') {
         s.onerror = function () {};
         (document.body || document.head).appendChild(s);
     }
+    function loadRedpackExecNotice() {
+        if (window.LfCashRedpackExecNotice || document.getElementById('cr-exec-notice-js')) return;
+        if (/\/(shop-h5|user-app|store-app)\//i.test(window.location.pathname || '')) return;
+        var s = document.createElement('script');
+        s.id = 'cr-exec-notice-js';
+        s.src = assetUrl('js/mdm-marketing-cash-redpack-exec-notice.js') + '?v=20261012-exec-notice';
+        s.async = false;
+        (document.body || document.head).appendChild(s);
+    }
     function boot() {
         loadRowNo();
         loadFabDock();
         loadPrdFloat();
+        loadRedpackExecNotice();
     }
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', boot);

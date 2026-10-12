@@ -983,12 +983,14 @@
     var face = String(q.faceValue || '').trim();
     var channel = String(q.channel || '');
     var status = String(q.status || '');
+    var auditor = String(q.auditor || '').trim();
     var rows = audits.filter(function (a) {
       var item = a.snapshot || findById(a.couponId) || {};
       if (id && String(item.id || a.couponId || '').indexOf(id) < 0) return false;
       if (name && String(item.name || '').indexOf(name) < 0) return false;
       if (channel && item.applicableChannel !== channel) return false;
       if (status && a.status !== status) return false;
+      if (auditor && String(a.auditedBy || '').indexOf(auditor) < 0) return false;
       if (face) {
         var fv = faceValueText(item);
         if (fv.indexOf(face) < 0 && String((item.config && item.config.denomination) || '').indexOf(face) < 0) return false;

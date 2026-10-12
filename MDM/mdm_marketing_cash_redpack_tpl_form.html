@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 现金红包模版</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-mdm-edit-page.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
+    <link rel="stylesheet" href="../css/lf-mdm-points-rule.css">
+    <link rel="stylesheet" href="../css/lf-marketing-template.css">
+    <link rel="stylesheet" href="../css/lf-marketing-coupon.css">
+    <link rel="stylesheet" href="../css/lf-marketing-cash-redpack.css?v=20261009-member-audience">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/marketing-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content mdm-edit-page">
+            <div class="content-tabs"><button class="active" id="crTplFormTab">新建现金红包</button></div>
+            <hr class="content-divider">
+
+            <div class="mkt-rg-form-toolbar" style="margin-bottom:12px">
+                <a class="mkt-rg-form-back" id="crTplFormBack" href="mdm_marketing_cash_redpack_tpl.html">← 返回现金红包模版</a>
+            </div>
+
+            <div class="mdm-biz-tip" id="crTplFormTip" role="note">保存为草稿不校验必填。提交后生成审核记录，进入审核中心-营销审核-现金红包。审核成功并<strong>启用</strong>后，可被<strong>注册有礼</strong>及其他模块关联。<strong>奖励类型</strong>决定单个金额、总计金额或自定义档位，每个会员单次金额须满足<strong>0&lt;奖励金额&lt;1千</strong>。<strong>活动领取终端</strong>只决定可领取的端。</div>
+
+            <div id="crTplFormPanel"></div>
+
+            <div class="mdm-edit-page__footer">
+                <button type="button" class="btn btn-secondary" id="crTplBtnCancel">取消</button>
+                <button type="button" class="btn btn-secondary" id="crTplBtnSave">保存</button>
+                <button type="button" class="btn btn-primary" id="crTplBtnSubmit">提交</button>
+                <button type="button" class="btn" id="crTplBtnReject" hidden>审核失败</button>
+                <button type="button" class="btn btn-primary" id="crTplBtnApprove" hidden>审核成功</button>
+            </div>
+        </main>
+    </div>
+
+    <div id="crTplRejectBackdrop" class="erp-modal-backdrop mkt-cp-reject-backdrop" hidden>
+        <div class="erp-modal" role="dialog" aria-modal="true" aria-labelledby="crTplRejectTitle">
+            <div class="erp-modal__header">
+                <h2 class="erp-modal__title" id="crTplRejectTitle">审核失败</h2>
+                <div class="erp-modal__header-actions">
+                    <button type="button" class="erp-modal__header-btn" id="crTplRejectClose" aria-label="关闭">&times;</button>
+                </div>
+            </div>
+            <div class="erp-modal__body">
+                <div class="mkt-tpl-row">
+                    <div class="mkt-tpl-row__label is-req">失败原因</div>
+                    <div class="mkt-tpl-row__ctrl">
+                        <textarea id="crTplRejectReason" maxlength="200" placeholder="请填写审核失败原因，将回写到备注"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="erp-modal__footer">
+                <button type="button" class="erp-btn" id="crTplRejectCancel">取消</button>
+                <button type="button" class="erp-btn erp-btn--primary" id="crTplRejectOk">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script src="../js/mdm-member-level-data.js?v=20261008-packet-total"></script>
+    <script src="../js/mdm-marketing-cash-redpack-tpl-store.js?v=20261012-amt-1k"></script>
+    <script src="../js/mdm-marketing-cash-redpack-tpl-form.js?v=20261012-claim-times"></script>
+</body>
+</html>

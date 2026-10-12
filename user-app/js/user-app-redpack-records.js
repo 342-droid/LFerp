@@ -46,15 +46,21 @@
     }
 
     if (endEl) endEl.hidden = false;
+    var client = RG.getClientMode ? RG.getClientMode() : 'mini';
     listEl.innerHTML = rows
       .map(function (it) {
-        var canClaim = it.status === 'pending';
+        var allows = typeof C.recordAllowsPort !== 'function' || C.recordAllowsPort(it, client);
+        var canClaim = it.status === 'pending' && allows;
         var tag = canClaim
           ? '<span class="ua-rp-item__action">去领取</span>'
           : '<span class="' +
-            statusClass(it.status) +
+            statusClass(it.status === 'pending' ? '' : it.status) +
             '">' +
-            escapeHtml(C.statusLabel(it.status)) +
+            escapeHtml(
+              it.status === 'pending' && !allows
+                ? '请到' + (C.portsLabel ? C.portsLabel(it.ports) : '指定端口') + '领取'
+                : C.statusLabel(it.status)
+            ) +
             '</span>';
         var billNo = it.outBillNo || '';
         return (
@@ -119,10 +125,39 @@
     });
   }
 
+  function renderDemoPanel() {
+    if (document.getElementById('uaRpPortDemo')) return;
+    var panel = document.createElement('div');
+    panel.id = 'uaRpPortDemo';
+    panel.className = 'ua-rg-demo';
+    var client = RG.getClientMode ? RG.getClientMode() : 'mini';
+    panel.innerHTML =
+      '<div class="ua-rg-demo__title">红包领取验收开关</div>' +
+      '<label class="ua-rg-demo__row">客户端' +
+      '<select id="uaRpPortDemoClient">' +
+      '<option value="mini"' +
+      (client === 'mini' ? ' selected' : '') +
+      '>小程序</option>' +
+      '<option value="app"' +
+      (client === 'app' ? ' selected' : '') +
+      '>APP</option>' +
+      '</select></label>' +
+      '<button type="button" class="ua-rg-demo__apply" id="uaRpPortDemoApply">应用并刷新</button>';
+    document.body.appendChild(panel);
+    var apply = document.getElementById('uaRpPortDemoApply');
+    if (!apply) return;
+    apply.addEventListener('click', function () {
+      var sel = document.getElementById('uaRpPortDemoClient');
+      if (RG.setClientMode) RG.setClientMode(sel && sel.value === 'app' ? 'app' : 'mini');
+      window.location.reload();
+    });
+  }
+
   function init() {
     if (window.UaNav) {
       window.UaNav.applyBackLink('.ua-gd-nav__back', 'profile.html');
     }
+    renderDemoPanel();
     bindFilter();
     bindList();
     render();

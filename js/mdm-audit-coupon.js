@@ -44,7 +44,8 @@
       name: (document.getElementById('qAudName') || {}).value || '',
       faceValue: (document.getElementById('qAudFace') || {}).value || '',
       channel: (document.getElementById('qAudChannel') || {}).value || '',
-      status: (document.getElementById('qAudStatus') || {}).value || ''
+      status: (document.getElementById('qAudStatus') || {}).value || '',
+      auditor: (document.getElementById('qAudAuditor') || {}).value || ''
     };
   }
 
@@ -56,7 +57,7 @@
     var start = (state.page - 1) * state.pageSize;
     var rows = all.slice(start, start + state.pageSize);
     if (!rows.length) {
-      tbody.innerHTML = '<tr><td colspan="9" class="mkt-tpl-empty">未查询到符合条件的数据</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="11" class="mkt-tpl-empty">未查询到符合条件的数据</td></tr>';
     } else {
       tbody.innerHTML = rows
         .map(function (audit) {
@@ -105,6 +106,12 @@
             '">' +
             escapeHtml(Store.auditStatusLabel(audit.status)) +
             '</span></td>' +
+            '<td>' +
+            escapeHtml(audit.auditedBy || '—') +
+            '</td>' +
+            '<td>' +
+            escapeHtml(audit.auditedAt || '—') +
+            '</td>' +
             '<td class="mkt-tpl-ops action-links">' +
             ops +
             '</td></tr>'
@@ -138,7 +145,7 @@
       renderTable();
     });
     document.getElementById('audFilterReset').addEventListener('click', function () {
-      ['qAudId', 'qAudName', 'qAudFace', 'qAudChannel', 'qAudStatus'].forEach(function (id) {
+      ['qAudId', 'qAudName', 'qAudFace', 'qAudChannel', 'qAudStatus', 'qAudAuditor'].forEach(function (id) {
         var el = document.getElementById(id);
         if (el) el.value = '';
       });

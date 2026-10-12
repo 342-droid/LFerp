@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 手动发放红包</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-mdm-edit-page.css">
+    <link rel="stylesheet" href="../css/lf-mdm-points-rule.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
+    <link rel="stylesheet" href="../css/lf-marketing-cash-redpack.css?v=20261012-dispatch-modal">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/marketing-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content mdm-edit-page">
+            <div class="content-tabs"><button class="active">手动发放</button></div>
+            <hr class="content-divider">
+
+            <div class="mkt-cr-form-toolbar">
+                <a class="mkt-cr-form-back" id="crManualBack" href="mdm_marketing_cash_redpack_manual.html">← 返回手动发放红包</a>
+            </div>
+
+            <div class="mdm-biz-tip" id="crManualTip" role="note">按发放对象选择会员。批量发放在表格里按会员填写奖励金额和备注，每个会员单次金额上限为<strong>1千</strong>；其他发放对象使用下方统一的奖励金额。活动领取终端只决定可领取的端，不影响发放人数。确认发放后生成审核记录，进入审核中心-营销审核-派发红包，<strong>审核成功</strong>后才会执行发放。</div>
+
+            <div class="pts-rule-card">
+                <div class="pts-rule-card__title">发放信息</div>
+                <div class="pts-rule-card__body">
+                    <div class="pts-rule-field">
+                        <label class="pts-rule-field__label" for="crManualName"><span class="erp-req">*</span>红包名称</label>
+                        <div class="pts-rule-field__control">
+                            <input class="erp-input pts-rule-field__input--name" id="crManualName" type="text" maxlength="40" placeholder="请输入红包名称">
+                        </div>
+                    </div>
+                    <div class="pts-rule-field">
+                        <label class="pts-rule-field__label"><span class="erp-req">*</span>活动领取终端</label>
+                        <div class="pts-rule-field__control">
+                            <div class="pts-rule-check-row" id="crManualPortRow">
+                                <label class="pts-rule-check-label"><input type="checkbox" name="crManualPort" value="mini" checked> 小程序</label>
+                                <label class="pts-rule-check-label"><input type="checkbox" name="crManualPort" value="app"> APP</label>
+                            </div>
+                            <div class="pts-rule-tip">可多选。只决定用户能在哪些端口领取，不影响发放人数。同一红包只能在其中一个端口领取一次。</div>
+                        </div>
+                    </div>
+                    <div class="pts-rule-field">
+                        <label class="pts-rule-field__label"><span class="erp-req">*</span>发放对象</label>
+                        <div class="pts-rule-field__control">
+                            <div class="pts-rule-check-row">
+                                <label class="pts-rule-check-label"><input type="radio" name="crManualMode" value="single" checked> 单个会员</label>
+                                <label class="pts-rule-check-label"><input type="radio" name="crManualMode" value="batch"> 批量发放</label>
+                                <label class="pts-rule-check-label"><input type="radio" name="crManualMode" value="level"> 按会员等级</label>
+                                <label class="pts-rule-check-label"><input type="radio" name="crManualMode" value="tag"> 按会员标签</label>
+                                <label class="pts-rule-check-label"><input type="radio" name="crManualMode" value="segment"> 按会员分群</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pts-rule-field" id="crManualSingleField">
+                        <label class="pts-rule-field__label">会员类型</label>
+                        <div class="pts-rule-field__control">
+                            <div class="pts-rule-check-row">
+                                <label class="pts-rule-check-label"><input type="radio" name="crMemberKind" value="phone" checked> 会员手机号</label>
+                                <label class="pts-rule-check-label"><input type="radio" name="crMemberKind" value="id"> 会员ID</label>
+                            </div>
+                            <textarea class="erp-input mkt-cr-member-input" id="crManualMemberInput" rows="3" placeholder="输入多条请用逗号拼接，最多支持200个会员手机号"></textarea>
+                            <div class="pts-rule-tip" id="crManualSingleHint">请输入会员手机号</div>
+                        </div>
+                    </div>
+                    <div class="pts-rule-field" id="crManualExcelField" hidden>
+                        <label class="pts-rule-field__label"><span class="erp-req">*</span>批量上传</label>
+                        <div class="pts-rule-field__control">
+                            <div class="mkt-cr-excel-tools">
+                                <label class="erp-btn erp-btn--primary mkt-cr-excel-upload" id="crManualUploadBtn">
+                                    数据上传
+                                    <input type="file" id="crManualFile" accept=".xlsx,.xls" hidden>
+                                    <span class="mkt-cr-excel-upload-tip">请先删除已上传的文件</span>
+                                </label>
+                                <button type="button" class="mkt-cr-excel-tpl" id="crManualTplBtn">模板下载</button>
+                            </div>
+                            <div class="mkt-cr-excel-file" id="crManualExcelFile" hidden>
+                                <span class="mkt-cr-excel-file__icon" aria-hidden="true"></span>
+                                <span class="mkt-cr-excel-file__name" id="crManualExcelFileName"></span>
+                                <button type="button" class="mkt-cr-excel-file__remove" id="crManualExcelFileRemove" aria-label="删除">×</button>
+                            </div>
+                            <div class="mdm-biz-tip mkt-cr-excel-note" role="note">
+                                <div>建议每个文档会员数量 100,000 以下，超出请分批上传</div>
+                                <div>上传文档的大小不超过 20M</div>
+                                <div>每个会员单次增加金额上限为<strong>1千</strong></div>
+                                <div>会员ID与用户手机号<strong>二选一必填</strong></div>
+                                <div>上传文档的字段顺序请按照表格模板，请勿错漏</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pts-rule-field" id="crManualLevelField" hidden>
+                        <label class="pts-rule-field__label">会员等级</label>
+                        <div class="pts-rule-field__control">
+                            <div class="mkt-cr-tag-group__tags" id="crManualLevelBox"></div>
+                            <div class="pts-rule-tip">可多选启用中的会员等级。命中任一已选等级的会员都会列入发放。</div>
+                            <div class="pts-rule-tip" id="crManualLevelHint" hidden></div>
+                        </div>
+                    </div>
+                    <div class="pts-rule-field" id="crManualTagField" hidden>
+                        <label class="pts-rule-field__label">会员标签</label>
+                        <div class="pts-rule-field__control">
+                            <div id="crManualTagBox"></div>
+                            <div class="pts-rule-tip">每组标签均可多选。命中任一已选标签的会员都会列入发放。</div>
+                            <div class="pts-rule-tip" id="crManualTagHint" hidden></div>
+                        </div>
+                    </div>
+                    <div class="pts-rule-field" id="crManualSegmentField" hidden>
+                        <label class="pts-rule-field__label">人群名称</label>
+                        <div class="pts-rule-field__control">
+                            <div class="mkt-cr-tag-group__tags" id="crManualSegmentBox"></div>
+                            <div class="pts-rule-tip">可多选启用中的人群。命中任一已选人群的会员都会列入发放。</div>
+                            <div class="pts-rule-tip" id="crManualSegmentHint" hidden></div>
+                        </div>
+                    </div>
+                    <div class="pts-rule-field" id="crManualRewardField">
+                        <label class="pts-rule-field__label" for="crManualReward"><span class="erp-req">*</span>奖励金额</label>
+                        <div class="pts-rule-field__control">
+                            <input class="erp-input" id="crManualReward" type="text" inputmode="decimal" placeholder="请输入奖励金额">
+                        </div>
+                    </div>
+                    <div class="pts-rule-field" id="crManualFrontField">
+                        <label class="pts-rule-field__label" for="crManualFrontRemark">前台备注</label>
+                        <div class="pts-rule-field__control">
+                            <input class="erp-input" id="crManualFrontRemark" type="text" placeholder="请输入前台备注">
+                        </div>
+                    </div>
+                    <div class="pts-rule-field" id="crManualBackField">
+                        <label class="pts-rule-field__label" for="crManualBackRemark">后台备注</label>
+                        <div class="pts-rule-field__control">
+                            <input class="erp-input" id="crManualBackRemark" type="text" placeholder="请输入后台备注">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mdm-edit-page__footer">
+                <button type="button" class="btn btn-secondary" id="crManualCancel">取消</button>
+                <button type="button" class="btn btn-primary" id="crManualSubmit">确认发放</button>
+                <button type="button" class="btn btn-secondary" id="crManualReject" hidden>审核失败</button>
+                <button type="button" class="btn btn-primary" id="crManualApprove" hidden>审核成功</button>
+            </div>
+        </main>
+    </div>
+
+    <div class="erp-modal-backdrop mkt-cr-modal" id="crManualRejectBackdrop" hidden>
+        <div class="erp-modal" role="dialog" aria-modal="true" aria-labelledby="crManualRejectTitle">
+            <div class="erp-modal__header">
+                <h2 class="erp-modal__title" id="crManualRejectTitle">审核失败</h2>
+                <button type="button" class="erp-modal__header-btn" id="crManualRejectClose" aria-label="关闭">&times;</button>
+            </div>
+            <div class="erp-modal__body">
+                <div class="erp-modal-field">
+                    <label class="erp-modal-field__label" for="crManualRejectReason"><span class="erp-req">*</span>失败原因</label>
+                    <div class="erp-modal-field__control">
+                        <textarea class="erp-input" id="crManualRejectReason" maxlength="200" placeholder="请填写审核失败原因" style="height:88px;padding:8px 12px;"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="erp-modal__footer">
+                <button type="button" class="btn btn-secondary" id="crManualRejectCancel">取消</button>
+                <button type="button" class="btn btn-primary" id="crManualRejectOk">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="erp-modal-backdrop mkt-cr-modal" id="crManualDispatchBackdrop" hidden>
+        <div class="erp-modal mkt-cr-dispatch-modal" role="dialog" aria-modal="true" aria-labelledby="crManualDispatchTitle">
+            <div class="erp-modal__header">
+                <h2 class="erp-modal__title" id="crManualDispatchTitle">派发红包</h2>
+                <button type="button" class="erp-modal__header-btn" id="crManualDispatchClose" aria-label="关闭">&times;</button>
+            </div>
+            <div class="erp-modal__body mkt-cr-dispatch-modal__body">
+                文件校验通过，正在执行中 <a id="crManualDispatchDetail" href="#">查看详情</a>
+            </div>
+            <div class="erp-modal__footer mkt-cr-dispatch-modal__footer">
+                <button type="button" class="btn btn-primary" id="crManualDispatchOk">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="erp-modal-backdrop mkt-cr-modal" id="crManualImportBackdrop" hidden>
+        <div class="erp-modal" role="dialog" aria-modal="true" aria-labelledby="crManualImportTitle">
+            <div class="erp-modal__header">
+                <h2 class="erp-modal__title" id="crManualImportTitle">导入执行结果</h2>
+                <button type="button" class="erp-modal__header-btn" id="crManualImportClose" aria-label="关闭">&times;</button>
+            </div>
+            <div class="erp-modal__body" id="crManualImportBody"></div>
+            <div class="erp-modal__footer">
+                <button type="button" class="btn btn-primary" id="crManualImportOk">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="erp-modal-backdrop mkt-cr-modal" id="crManualEditBackdrop" hidden>
+        <div class="erp-modal" role="dialog" aria-modal="true" aria-labelledby="crManualEditTitle">
+            <div class="erp-modal__header">
+                <h2 class="erp-modal__title" id="crManualEditTitle">修改</h2>
+                <button type="button" class="erp-modal__header-btn" id="crManualEditClose" aria-label="关闭">&times;</button>
+            </div>
+            <div class="erp-modal__body">
+                <div class="erp-modal-field">
+                    <label class="erp-modal-field__label" for="crManualEditId">会员ID</label>
+                    <div class="erp-modal-field__control">
+                        <input class="erp-input" id="crManualEditId" type="text" disabled>
+                    </div>
+                </div>
+                <div class="erp-modal-field">
+                    <label class="erp-modal-field__label" for="crManualEditPhone">用户手机号</label>
+                    <div class="erp-modal-field__control">
+                        <input class="erp-input" id="crManualEditPhone" type="text" disabled>
+                    </div>
+                </div>
+                <div class="erp-modal-field">
+                    <label class="erp-modal-field__label" for="crManualEditAmount"><span class="erp-req">*</span>奖励金额</label>
+                    <div class="erp-modal-field__control">
+                        <input class="erp-input" id="crManualEditAmount" type="text" inputmode="decimal" placeholder="请输入奖励金额">
+                        <div class="pts-rule-tip" id="crManualEditError"></div>
+                    </div>
+                </div>
+                <div class="erp-modal-field">
+                    <label class="erp-modal-field__label" for="crManualEditFront">前台备注</label>
+                    <div class="erp-modal-field__control">
+                        <input class="erp-input" id="crManualEditFront" type="text" placeholder="请输入前台备注">
+                    </div>
+                </div>
+                <div class="erp-modal-field">
+                    <label class="erp-modal-field__label" for="crManualEditBack">后台备注</label>
+                    <div class="erp-modal-field__control">
+                        <input class="erp-input" id="crManualEditBack" type="text" placeholder="请输入后台备注">
+                    </div>
+                </div>
+            </div>
+            <div class="erp-modal__footer">
+                <button type="button" class="btn btn-secondary" id="crManualEditCancel">取消</button>
+                <button type="button" class="btn btn-primary" id="crManualEditSave">保存</button>
+            </div>
+        </div>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/vendor/xlsx.full.min.js"></script>
+    <script src="../js/mdm-marketing-cash-redpack-store.js?v=20261012-grant-target"></script>
+    <script src="../js/mdm-member-level-data.js?v=20261012-grant-target"></script>
+    <script src="../js/mdm-marketing-cash-redpack-manual-form.js?v=20261012-manual-audit"></script>
+</body>
+</html>

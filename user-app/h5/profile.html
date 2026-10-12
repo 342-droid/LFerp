@@ -77,6 +77,10 @@
             </a>
           </div>
           <div class="ua-vip-card__stats">
+            <a href="redpack-records.html" class="ua-vip-card__stat" id="uaProfileRedpackLink" aria-label="红包">
+              <div class="ua-vip-card__num" id="uaProfileRedpackCount">0</div>
+              <div class="ua-vip-card__label">红包</div>
+            </a>
             <div class="ua-vip-card__stat">
               <div class="ua-vip-card__num">6</div>
               <div class="ua-vip-card__label">优惠券</div>
@@ -198,16 +202,6 @@
               <span class="ua-service-text">新人专区</span>
               <span class="ua-service-arrow">&gt;</span>
             </a>
-            <a href="redpack-records.html" class="ua-service-item">
-              <svg class="ua-service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <rect x="5" y="7" width="14" height="12" rx="2"/>
-                <path d="M9 7V6a3 3 0 016 0v1"/>
-                <path d="M12 11v4"/>
-                <path d="M10 13h4"/>
-              </svg>
-              <span class="ua-service-text">红包领取记录</span>
-              <span class="ua-service-arrow">&gt;</span>
-            </a>
             <a href="#" class="ua-service-item">
               <svg class="ua-service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <path d="M3 10l9-6 9 6v10a1 1 0 01-1 1H4a1 1 0 01-1-1V10z"/>
@@ -305,15 +299,16 @@
   <script src="../js/user-app-live-invite.js?v=20260904-livepromo3"></script>
   <script src="../js/user-app-auth.js?v=20260904-livepromo3"></script>
   <script src="../../js/mdm-supplier-archive-store.js"></script>
-  <script src="../../js/mdm-marketing-register-gift-store.js"></script>
-  <script src="../../js/mdm-marketing-cash-redpack-store.js"></script>
+  <script src="../../js/mdm-marketing-cash-redpack-tpl-store.js?v=20261012-amt-1k"></script>
+  <script src="../../js/mdm-marketing-register-gift-store.js?v=20261008-tpl"></script>
+  <script src="../../js/mdm-marketing-cash-redpack-store.js?v=20261012-daily-tier"></script>
   <script src="../../js/mdm-marketing-newcomer-zone-config.js"></script>
   <script src="../js/user-app-shop.js?v=20260909-670-8"></script>
   <script src="../js/user-app-switch-address.js?v=20260827-sys-default"></script>
   <script src="../../js/mdm-system-default-store.js?v=20260827-sys-default"></script>
   <script src="../js/user-app-store-switch.js?v=20260828-autobind"></script>
   <script src="../js/user-app-profile.js?v=20260909-670-8"></script>
-  <script src="../js/user-app-register-gift.js"></script>
+  <script src="../js/user-app-register-gift.js?v=20261012-no-quota"></script>
   <script src="../../js/mdm-aftersale-feedback-store.js"></script>
   <script src="../js/user-app-feedback.js"></script>
   <script>
@@ -389,6 +384,14 @@
 
       /* 登录回流带 rg=1 时，在「我的」页也触发发放弹窗 */
       if (window.UaRegisterGift) UaRegisterGift.bootPage();
+      var redpackLink = document.getElementById('uaProfileRedpackLink');
+      var redpackCount = document.getElementById('uaProfileRedpackCount');
+      if (redpackLink && window.UaNav && window.UaNav.withFrom) {
+        redpackLink.href = window.UaNav.withFrom('redpack-records.html', 'profile.html');
+      }
+      if (redpackCount && window.UaRegisterGift && typeof window.UaRegisterGift.listMyCashRecords === 'function') {
+        redpackCount.textContent = String(window.UaRegisterGift.listMyCashRecords().length);
+      }
       if (window.UaFeedback && typeof window.UaFeedback.syncProfileDot === 'function') {
         window.UaFeedback.syncProfileDot();
       }

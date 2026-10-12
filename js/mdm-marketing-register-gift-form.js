@@ -17,7 +17,6 @@
   var editId = params.get('id') || params.get('Id') || '';
   var editing = !!editId;
 
-  /** @returns {{ couponEnabled: boolean, pointsEnabled: boolean, cashEnabled: boolean, coupons: Array, points: number, cashMin: number, cashMax: number, cashBudgetTotal: number, cashBudgetUsed: number }} */
   function emptyReward() {
     return {
       couponEnabled: false,
@@ -25,6 +24,7 @@
       cashEnabled: false,
       coupons: [{ coupon: '', qty: 1 }],
       points: 0,
+      cashTemplateId: '',
       cashMin: 0,
       cashMax: 0,
       cashBudgetTotal: 0,
@@ -54,6 +54,7 @@
       cashEnabled: cashEnabled,
       coupons: couponEnabled ? coupons : [{ coupon: '', qty: 1 }],
       points: points,
+      cashTemplateId: r.cashTemplateId || '',
       cashMin: r.cashMin || 0,
       cashMax: r.cashMax || 0,
       cashBudgetTotal: r.cashBudgetTotal || 0,
@@ -214,27 +215,28 @@
       points = Math.max(0, Math.round(Number((pointsEl && pointsEl.value) || 0) || 0));
     }
 
+    var cashTemplateId = '';
     var cashMin = 0;
     var cashMax = 0;
     var cashBudgetTotal = 0;
     var cashBudgetUsed = 0;
     var cashGlobalOn = typeof Store.isGlobalCashEnabled === 'function' ? Store.isGlobalCashEnabled() : true;
-    /* 总开关关闭时不可改现金红包：保留原配置，避免误清空 */
+    /* 总开关关闭时不可改现金红包：保留原关联，避免误清空 */
     if (!cashGlobalOn) {
       var prevCash = state.rewards[scene] || emptyReward();
       cashEnabled = !!prevCash.cashEnabled;
+      cashTemplateId = prevCash.cashTemplateId || '';
       cashMin = prevCash.cashMin || 0;
       cashMax = prevCash.cashMax || 0;
       cashBudgetTotal = prevCash.cashBudgetTotal || 0;
       cashBudgetUsed = prevCash.cashBudgetUsed || 0;
     } else if (cashEnabled && cashField) {
-      cashMin = Store.toMoney((cashField.querySelector('[data-cash-min]') || {}).value);
-      cashMax = Store.toMoney((cashField.querySelector('[data-cash-max]') || {}).value);
-      cashBudgetTotal = Store.toMoney((cashField.querySelector('[data-cash-budget]') || {}).value);
-      cashBudgetUsed = Store.toMoney((cashField.querySelector('[data-cash-used]') || {}).value);
-    } else {
-      var usedHidden = card.querySelector('[data-cash-used]');
-      cashBudgetUsed = Store.toMoney(usedHidden && usedHidden.value);
+      cashTemplateId = String((cashField.querySelector('[data-cash-template]') || {}).value || '').trim();
+      var prev = state.rewards[scene] || emptyReward();
+      cashMin = prev.cashMin || 0;
+      cashMax = prev.cashMax || 0;
+      cashBudgetTotal = prev.cashBudgetTotal || 0;
+      cashBudgetUsed = prev.cashBudgetUsed || 0;
     }
 
     return {
@@ -245,6 +247,7 @@
         cashEnabled: cashEnabled,
         coupons: coupons.length ? coupons : [{ coupon: '', qty: 1 }],
         points: points,
+        cashTemplateId: cashTemplateId,
         cashMin: cashMin,
         cashMax: cashMax,
         cashBudgetTotal: cashBudgetTotal,
@@ -328,6 +331,14 @@
         listEl.insertAdjacentHTML('beforeend', buildCouponRowHtml({ coupon: '', qty: 1 }));
       });
     }
+    var cashSelect = card.querySelector('[data-cash-template]');
+    if (cashSelect && !cashSelect._bound) {
+      cashSelect._bound = true;
+      cashSelect.addEventListener('change', function () {
+        var tip = card.querySelector('[data-cash-template-tip]');
+        if (tip) tip.textContent = cashTemplateHint(cashSelect.value);
+      });
+    }
     if (listEl && !listEl._bound) {
       listEl._bound = true;
       listEl.addEventListener('click', function (ev) {
@@ -344,6 +355,31 @@
     }
   }
 
+  function cashTemplatesForPort() {
+    var T = window.MdmMarketingCashRedpackTplStore;
+    if (!T || typeof T.listForAssociate !== 'function') return [];
+    return T.listForAssociate({ port: state.port, scene: 'REGISTER_GIFT' });
+  }
+
+  function cashTemplateHint(templateId) {
+    var T = window.MdmMarketingCashRedpackTplStore;
+    if (!templateId || !T) return '请选择已启用、且活动领取终端包含当前活动端口的现金红包。';
+    var tpl = T.getById(templateId);
+    if (!tpl) return '关联的现金红包不存在，请重新选择。';
+    var portOk = (tpl.ports || []).indexOf(state.port) >= 0;
+    var extra = tpl.status !== 'ACTIVE' ? '当前未启用，保存前请先启用。' : portOk ? '' : '活动领取终端不包含当前活动端口。';
+    return (
+      T.rewardTypeText(tpl) +
+      '，' +
+      T.rewardContentText(tpl) +
+      '；已发放 ' +
+      T.toMoney(tpl.budgetUsed).toFixed(2) +
+      ' 元；活动领取终端 ' +
+      T.portsText(tpl) +
+      (extra ? '。' + extra : '。')
+    );
+  }
+
   function renderRewards() {
     var host = document.getElementById('rgRewardHost');
     if (!host) return;
@@ -358,10 +394,40 @@
         var cashGlobalOn = typeof Store.isGlobalCashEnabled === 'function' ? Store.isGlobalCashEnabled() : true;
         if (!cashGlobalOn) cashOn = false;
         var cashLocked = !cashGlobalOn;
-        var cashMinVal = cashOn && reward.cashMin != null ? String(reward.cashMin) : '';
-        var cashMaxVal = cashOn && reward.cashMax != null ? String(reward.cashMax) : '';
-        var cashBudgetVal = cashOn && reward.cashBudgetTotal ? String(reward.cashBudgetTotal) : '';
-        var cashUsed = reward.cashBudgetUsed || 0;
+        var cashTemplateId = reward.cashTemplateId || '';
+        var tplOptions = cashTemplatesForPort();
+        var optionIds = tplOptions.map(function (it) {
+          return it.id;
+        });
+        var Tpl = window.MdmMarketingCashRedpackTplStore;
+        var selectedTpl = cashTemplateId && Tpl ? Tpl.getById(cashTemplateId) : null;
+        var optionHtml =
+          '<option value="">请选择现金红包</option>' +
+          tplOptions
+            .map(function (it) {
+              return (
+                '<option value="' +
+                escapeHtml(it.id) +
+                '"' +
+                (it.id === cashTemplateId ? ' selected' : '') +
+                '>' +
+                escapeHtml(it.name) +
+                '（' +
+                escapeHtml(Tpl.rewardTypeText(it) + ' ' + Tpl.rewardContentText(it)) +
+                '）</option>'
+              );
+            })
+            .join('');
+        if (selectedTpl && optionIds.indexOf(selectedTpl.id) < 0) {
+          optionHtml +=
+            '<option value="' +
+            escapeHtml(selectedTpl.id) +
+            '" selected>' +
+            escapeHtml(selectedTpl.name) +
+            '（' +
+            escapeHtml(Tpl.statusLabel(selectedTpl.status)) +
+            '）</option>';
+        }
         return (
           '<div class="mkt-rg-reward-card" data-reward-card data-scene="' +
           escapeHtml(scene) +
@@ -422,46 +488,23 @@
           '<input type="checkbox" data-benefit-switch' +
           (cashOn ? ' checked' : '') +
           (cashLocked ? ' disabled' : '') +
-          '> 开启现金红包</label></div>' +
+          '> 关联现金红包</label></div>' +
           (cashLocked
-            ? '<div class="mkt-rg-tip">现金红包总开关已关闭，请先在「营销 → 现金红包」中开启后，再配置该项。</div>'
+            ? '<div class="mkt-rg-tip">现金红包总开关已关闭，请先在「营销 → 现金红包」中开启后，再关联。</div>'
             : '') +
           '<div class="member-level-benefit-body' +
           (cashOn ? '' : ' is-disabled') +
           '" data-benefit-body' +
           (cashOn ? '' : ' hidden') +
           '>' +
-          '<div class="mkt-rg-cash-range" role="group" aria-label="单次奖励金额区间">' +
-          '<span class="mkt-rg-cash-range__label">单次奖励金额</span>' +
-          '<input class="erp-input" type="number" min="0" step="0.01" data-cash-min value="' +
-          escapeHtml(cashMinVal) +
-          '" placeholder="最低" ' +
-          (cashOn ? '' : 'disabled') +
+          '<select class="erp-select pts-rule-field__input--name" data-cash-template' +
+          (cashOn ? '' : ' disabled') +
           '>' +
-          '<span class="mkt-rg-cash-range__sep">～</span>' +
-          '<input class="erp-input" type="number" min="0" step="0.01" data-cash-max value="' +
-          escapeHtml(cashMaxVal) +
-          '" placeholder="最高" ' +
-          (cashOn ? '' : 'disabled') +
-          '>' +
-          '<span class="mkt-rg-unit__text">元</span>' +
+          optionHtml +
+          '</select>' +
+          '<div class="mkt-rg-tip" data-cash-template-tip>' +
+          escapeHtml(cashTemplateHint(cashTemplateId)) +
           '</div>' +
-          '<div class="mkt-rg-tip">最低与最高相同则为固定金额</div>' +
-          '<div class="mkt-rg-unit" style="margin-top:10px">' +
-          '<span class="mkt-rg-cash-range__label">活动发放总额度</span>' +
-          '<input class="erp-input" type="number" min="0.01" step="0.01" data-cash-budget value="' +
-          escapeHtml(cashBudgetVal) +
-          '" placeholder="请输入总额度" ' +
-          (cashOn ? '' : 'disabled') +
-          '>' +
-          '<span class="mkt-rg-unit__text">元</span>' +
-          '</div>' +
-          '<div class="mkt-rg-tip">累计发放达到额度后停止发现金红包；C 端也不再展示该奖励项。演示已用额度：' +
-          escapeHtml(String(cashUsed)) +
-          ' 元</div>' +
-          '<input type="hidden" data-cash-used value="' +
-          escapeHtml(String(cashUsed)) +
-          '">' +
           '</div></div></div>' +
           '</div></div>'
         );
@@ -550,22 +593,19 @@
       }
     }
 
-    var cashMin = 0;
-    var cashMax = 0;
-    var cashBudgetTotal = 0;
-    var cashBudgetUsed = Store.toMoney(reward.cashBudgetUsed);
+    var cashTemplateId = '';
     if (cashEnabled) {
-      cashMin = Store.toMoney(reward.cashMin);
-      cashMax = Store.toMoney(reward.cashMax);
-      cashBudgetTotal = Store.toMoney(reward.cashBudgetTotal);
-      if (cashMin < 0 || cashMax < 0) {
-        return { ok: false, message: label + '现金红包金额不能为负数' };
+      cashTemplateId = String(reward.cashTemplateId || '').trim();
+      if (!cashTemplateId) {
+        return { ok: false, message: label + '已关联现金红包，请选择现金红包' };
       }
-      if (cashMin > cashMax) {
-        return { ok: false, message: label + '现金红包最低金额不能大于最高金额' };
+      var Tpl = window.MdmMarketingCashRedpackTplStore;
+      var tpl = Tpl && Tpl.getById ? Tpl.getById(cashTemplateId) : null;
+      if (!tpl || tpl.status !== 'ACTIVE') {
+        return { ok: false, message: label + '请关联已启用的现金红包' };
       }
-      if (!(cashBudgetTotal > 0)) {
-        return { ok: false, message: label + '已开启现金红包，请填写大于 0 的活动发放总额度' };
+      if ((tpl.ports || []).indexOf(getPort()) < 0) {
+        return { ok: false, message: label + '所选现金红包的活动领取终端不包含当前活动端口' };
       }
     }
 
@@ -579,10 +619,11 @@
           : [],
         points: pointsEnabled ? Math.max(0, points) : 0,
         cashEnabled: cashEnabled,
-        cashMin: cashEnabled ? cashMin : 0,
-        cashMax: cashEnabled ? cashMax : 0,
-        cashBudgetTotal: cashEnabled ? cashBudgetTotal : 0,
-        cashBudgetUsed: cashBudgetUsed
+        cashTemplateId: cashEnabled ? cashTemplateId : '',
+        cashMin: cashEnabled ? Store.toMoney(reward.cashMin) : 0,
+        cashMax: cashEnabled ? Store.toMoney(reward.cashMax) : 0,
+        cashBudgetTotal: cashEnabled ? Store.toMoney(reward.cashBudgetTotal) : 0,
+        cashBudgetUsed: Store.toMoney(reward.cashBudgetUsed)
       }
     };
   }

@@ -18,6 +18,8 @@
   var OFF_DESC =
     '现金红包已关闭，所有能发现金红包的活动中该项均为禁用，无法勾选和编辑修改。';
 
+  var configEditing = false;
+
   function escapeHtml(str) {
     return String(str == null ? '' : str)
       .replace(/&/g, '&amp;')
@@ -62,14 +64,28 @@
     var statusEl = document.getElementById('crSystemStatus');
     var descEl = document.getElementById('crSystemDesc');
     var hoursEl = document.getElementById('crExpireHours');
+    var claimLimit = document.getElementById('crClaimLimit');
     if (!switchBtn) return;
     switchBtn.classList.toggle('mkt-points-switch--on', on);
     switchBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
     if (statusEl) statusEl.textContent = on ? '已开启' : '已关闭';
     if (descEl) descEl.textContent = on ? ON_DESC : OFF_DESC;
-    if (hoursEl) hoursEl.disabled = !on;
+    var locked = !on || !configEditing;
+    if (hoursEl) hoursEl.disabled = locked;
+    if (claimLimit) claimLimit.disabled = locked;
     var saveBtn = document.getElementById('crExpireSaveBtn');
-    if (saveBtn) saveBtn.disabled = !on;
+    if (saveBtn) saveBtn.textContent = configEditing ? '保存' : '修改';
+  }
+
+  function showCount(n) {
+    if (n === '' || n == null || Number(n) === 0) return '';
+    return String(n);
+  }
+
+  function showLimit(n) {
+    var v = Math.round(Number(n));
+    if (isNaN(v) || v < 0) return '0';
+    return String(v);
   }
 
   function applySettingsToUi() {
@@ -77,6 +93,110 @@
     setSystemOn(!!s.enabled);
     var hoursEl = document.getElementById('crExpireHours');
     if (hoursEl) hoursEl.value = String(s.expireHours);
+    var liveEl = document.getElementById('crLiveLimit');
+    var dailyEl = document.getElementById('crDailyLimit');
+    var totalEl = document.getElementById('crTotalLimit');
+    if (liveEl) liveEl.value = showLimit(s.liveLimit);
+    if (dailyEl) dailyEl.value = showLimit(s.dailyLimit);
+    if (totalEl) totalEl.value = showLimit(s.totalLimit);
+    var mode = document.querySelector('input[name="crDailyMode"][value="' + (s.dailyMode === 'order_today' ? 'order_today' : 'fixed') + '"]');
+    if (mode) mode.checked = true;
+    renderDailyTiers(s.dailyTiers && s.dailyTiers.length ? s.dailyTiers : [{ amount: '', count: '' }]);
+    syncDailyMode();
+    applyTotalRange(s.totalDayRange || 0);
+  }
+
+  function syncDailyMode() {
+    var mode = document.querySelector('input[name="crDailyMode"]:checked');
+    var order = !!(mode && mode.value === 'order_today');
+    var fixed = document.getElementById('crDailyFixed');
+    var panel = document.getElementById('crDailyOrder');
+    if (fixed) fixed.hidden = order;
+    if (panel) panel.hidden = !order;
+  }
+
+  function renderDailyTiers(rows) {
+    var host = document.getElementById('crDailyTierList');
+    if (!host) return;
+    var list = rows && rows.length ? rows.slice(0, 20) : [{ amount: '', count: '' }];
+    host.innerHTML = list
+      .map(function (row, index) {
+        var last = index === list.length - 1;
+        var ops = '';
+        if (list.length > 1) ops += '<button type="button" class="mkt-cr-daily-remove" data-daily-remove="' + index + '">删除</button>';
+        if (last) ops += '<button type="button" class="mkt-cr-daily-add" data-daily-add="1" aria-label="新增">+</button>';
+        return (
+          '<div class="mkt-cr-daily-tier" data-daily-tier>' +
+          '<input class="mkt-cr-daily-order__input" data-daily-amount type="number" min="0.01" step="0.01" placeholder="请输入下单金额" value="' +
+          escapeHtml(row.amount === 0 || row.amount ? row.amount : '') +
+          '">' +
+          '<input class="mkt-cr-daily-order__input" data-daily-count type="number" min="0" step="1" placeholder="请输入每日限领次数" value="' +
+          escapeHtml(showCount(row.count)) +
+          '">' +
+          '<span class="mkt-cr-daily-tier__ops">' +
+          ops +
+          '</span></div>'
+        );
+      })
+      .join('');
+  }
+
+  function readDailyTierInputs() {
+    var rows = [];
+    document.querySelectorAll('[data-daily-tier]').forEach(function (row) {
+      rows.push({
+        amount: (row.querySelector('[data-daily-amount]') || {}).value || '',
+        count: (row.querySelector('[data-daily-count]') || {}).value || ''
+      });
+    });
+    return rows;
+  }
+
+  function readDailyOrderTiers() {
+    var rows = readDailyTierInputs();
+    if (rows.length > 20) return { ok: false, message: '最多配置20条' };
+    var out = [];
+    var seen = {};
+    for (var i = 0; i < rows.length; i++) {
+      var amountText = String(rows[i].amount || '').trim();
+      var countText = String(rows[i].count || '').trim();
+      if (!amountText && !countText) continue;
+      if (!/^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/.test(amountText) || !(Number(amountText) > 0)) {
+        return { ok: false, message: '请输入下单金额' };
+      }
+      var count = countText === '' ? 0 : Store.clampClaimCount(countText);
+      if (count == null) return { ok: false, message: '请输入大于等于 0 的整数' };
+      var key = String(Math.round(Number(amountText) * 100));
+      if (seen[key]) return { ok: false, message: '下单金额不可重复' };
+      seen[key] = true;
+      out.push({ amount: amountText, count: count });
+    }
+    return { ok: true, tiers: out };
+  }
+
+  function applyTotalRange(days) {
+    var rangeEl = document.getElementById('crTotalRange');
+    var daysEl = document.getElementById('crTotalRangeDays');
+    var unitEl = document.getElementById('crTotalRangeUnit');
+    if (!rangeEl) return;
+    var n = Math.round(Number(days) || 0);
+    var preset = { 0: true, 7: true, 30: true, 90: true, 180: true, 365: true };
+    var custom = n > 0 && !preset[n];
+    rangeEl.value = custom ? 'custom' : String(n);
+    if (daysEl) {
+      daysEl.hidden = !custom;
+      daysEl.value = custom ? String(n) : '';
+    }
+    if (unitEl) unitEl.hidden = !custom;
+  }
+
+  function readTotalRange() {
+    var rangeEl = document.getElementById('crTotalRange');
+    var daysEl = document.getElementById('crTotalRangeDays');
+    if (!rangeEl || rangeEl.value !== 'custom') return { ok: true, days: Number(rangeEl && rangeEl.value) || 0 };
+    var days = Store.clampClaimCount(daysEl ? daysEl.value : '');
+    if (days == null || days < 1 || days > 3650) return { ok: false, message: '累计天数请填写 1-3650 的整数' };
+    return { ok: true, days: days };
   }
 
   function renderHomeStats() {
@@ -101,12 +221,20 @@
     var list = Store.getGrantActivities();
     grid.innerHTML = list
       .map(function (act) {
+        var manual = act.type === 'manual';
+        var icon = manual
+          ? '<path d="M16 11a3 3 0 10-2.8-4H9.8A3 3 0 107 11c-2.2.5-4 2.4-4 4.7V18h6.2M13 18v-2.2c0-1.6.8-3 2-3.9M17 13v6M14 16h6"/>'
+          : '<path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 5v5.4l3.3 2-.8 1.2L11 13V7h2z"/>';
         return (
           '<article class="mkt-points-card" data-nav="' +
           escapeHtml(act.href || '') +
           '">' +
-          '<div class="mkt-points-card__icon mkt-points-card__icon--earn">' +
-          '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 5v5.4l3.3 2-.8 1.2L11 13V7h2z"/></svg>' +
+          '<div class="mkt-points-card__icon mkt-points-card__icon--earn' +
+          (manual ? ' mkt-points-card__icon--manual' : '') +
+          '">' +
+          '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+          icon +
+          '</svg>' +
           '</div>' +
           '<div class="mkt-points-card__body">' +
           '<h3 class="mkt-points-card__name">' +
@@ -249,7 +377,7 @@
           escapeHtml(Store.sceneLabel(item.scene)) +
           '</td>' +
           '<td>' +
-          escapeHtml(Store.portLabel(item.port)) +
+          escapeHtml(Store.claimPortText(item)) +
           '</td>' +
           '<td>' +
           statusHtml +
@@ -349,18 +477,99 @@
       });
     }
 
+    document.querySelectorAll('input[name="crDailyMode"]').forEach(function (radio) {
+      radio.addEventListener('change', syncDailyMode);
+    });
+    var orderPanel = document.getElementById('crDailyOrder');
+    if (orderPanel) {
+      orderPanel.addEventListener('click', function (e) {
+        var add = e.target.closest('[data-daily-add]');
+        var remove = e.target.closest('[data-daily-remove]');
+        if (!add && !remove) return;
+        var rows = readDailyTierInputs();
+        if (add) {
+          if (rows.length >= 20) {
+            toast('最多配置20条', 'warning');
+            return;
+          }
+          rows.push({ amount: '', count: '' });
+        } else {
+          rows.splice(Number(remove.getAttribute('data-daily-remove')), 1);
+          if (!rows.length) rows.push({ amount: '', count: '' });
+        }
+        renderDailyTiers(rows);
+      });
+    }
+
+    var rangeEl = document.getElementById('crTotalRange');
+    if (rangeEl) {
+      rangeEl.addEventListener('change', function () {
+        var custom = rangeEl.value === 'custom';
+        var daysEl = document.getElementById('crTotalRangeDays');
+        var unitEl = document.getElementById('crTotalRangeUnit');
+        if (daysEl) daysEl.hidden = !custom;
+        if (unitEl) unitEl.hidden = !custom;
+      });
+    }
+
     var hoursEl = document.getElementById('crExpireHours');
     var saveBtn = document.getElementById('crExpireSaveBtn');
     if (hoursEl && saveBtn) {
       saveBtn.addEventListener('click', function () {
-        if (hoursEl.disabled) {
+        var switchBtn = document.getElementById('crSystemSwitch');
+        var systemOn = !!(switchBtn && switchBtn.classList.contains('mkt-points-switch--on'));
+        if (!configEditing) {
+          if (!systemOn) {
+            toast('请先开启现金红包', 'warning');
+            return;
+          }
+          configEditing = true;
+          setSystemOn(true);
+          return;
+        }
+        var claimLimit = document.getElementById('crClaimLimit');
+        if (!systemOn || (hoursEl && hoursEl.disabled) || (claimLimit && claimLimit.disabled)) {
           toast('请先开启现金红包', 'warning');
           return;
         }
+        var liveEl = document.getElementById('crLiveLimit');
+        var dailyEl = document.getElementById('crDailyLimit');
+        var totalEl = document.getElementById('crTotalLimit');
+        var live = Store.clampClaimCount(liveEl ? liveEl.value : 0);
+        var daily = Store.clampClaimCount(dailyEl ? dailyEl.value : 0);
+        var total = Store.clampClaimCount(totalEl ? totalEl.value : 0);
+        if (live == null || daily == null || total == null) {
+          toast('请输入大于等于 0 的整数', 'warning');
+          return;
+        }
+        var modeEl = document.querySelector('input[name="crDailyMode"]:checked');
+        var orderMode = !!(modeEl && modeEl.value === 'order_today');
+        var dailyTiers = readDailyOrderTiers();
+        if (orderMode && !dailyTiers.ok) {
+          toast(dailyTiers.message, 'warning');
+          return;
+        }
+        var range = readTotalRange();
+        if (!range.ok) {
+          toast(range.message, 'warning');
+          return;
+        }
+        var savedTiers = Store.getSettings().dailyTiers || [];
+        var nextTiers = dailyTiers.ok ? dailyTiers.tiers : savedTiers;
         var v = Store.clampExpireHours(hoursEl.value);
         hoursEl.value = String(v);
-        Store.saveSettings({ expireHours: v });
-        toast('失效时间已保存', 'success');
+        Store.saveSettings({
+          expireHours: v,
+          liveLimit: live,
+          dailyMode: orderMode ? 'order_today' : 'fixed',
+          dailyLimit: daily,
+          dailyTiers: nextTiers,
+          totalLimit: total,
+          totalDayRange: range.days
+        });
+        configEditing = false;
+        applySettingsToUi();
+        toast('已保存', 'success');
       });
     }
   }
@@ -466,6 +675,20 @@
     bindTabs();
 
     var params = new URLSearchParams(window.location.search || '');
+    var activityId = params.get('activityId');
+    if (activityId) {
+      var actInput = document.getElementById('qCrActivityId');
+      if (actInput) actInput.value = activityId;
+      switchTab('detail');
+    }
     if (params.get('tab') === 'detail') switchTab('detail');
+    var granted = params.get('granted');
+    if (granted) {
+      switchTab('detail');
+      toast('已向 ' + granted + ' 位用户发放红包', 'success');
+      params.delete('granted');
+      var qs = params.toString();
+      history.replaceState(null, '', location.pathname + (qs ? '?' + qs : ''));
+    }
   });
 })();

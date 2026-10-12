@@ -10,12 +10,12 @@
     <link rel="stylesheet" href="../css/mdm-member360-list.css">
     <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
     <link rel="stylesheet" href="../css/lf-marketing-template.css">
-    <link rel="stylesheet" href="../css/lf-marketing-coupon.css">
+    <link rel="stylesheet" href="../css/lf-marketing-coupon.css?v=20261008-audit-form">
 </head>
 <body>
     <div id="sidebar-container"></div>
     <script src="../js/path-prefix.js"></script>
-    <script src="../js/mdm-sidebar.js"></script>
+    <script src="../js/mdm-sidebar.js?v=20261012-manual-audit"></script>
     <div id="header-container"></div>
     <div class="container">
         <main class="main-content">
@@ -66,6 +66,13 @@
                             <option value="APPROVED">审核成功</option>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label>审核人:</label>
+                        <div class="input-wrapper">
+                            <input id="qAudAuditor" placeholder="请输入审核人" autocomplete="off">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
                     <div class="form-actions">
                         <button type="button" class="btn btn-secondary" id="audFilterReset">重置</button>
                         <button type="button" class="btn btn-primary" id="audFilterQuery">查询</button>
@@ -86,6 +93,8 @@
                                 <th>适用商品</th>
                                 <th>提交时间</th>
                                 <th style="text-align:center;width:100px">审核状态</th>
+                                <th>审核人</th>
+                                <th>审核时间</th>
                                 <th style="width:200px">操作</th>
                             </tr>
                         </thead>
@@ -143,9 +152,9 @@
     <script src="../js/common.js"></script>
     <script src="../js/pagination.js"></script>
     <script src="../js/form-utils.js"></script>
-    <script src="../js/mdm-marketing-coupon-store.js"></script>
-    <script src="../js/mdm-marketing-coupon-goods-dialog.js"></script>
-    <script src="../js/mdm-marketing-coupon-log-ui.js"></script>
-    <script src="../js/mdm-audit-coupon.js"></script>
+    <script src="../js/mdm-marketing-coupon-store.js?v=20261012-auditor"></script>
+    <script src="../js/mdm-marketing-coupon-goods-dialog.js?v=20261008-audit-form"></script>
+    <script src="../js/mdm-marketing-coupon-log-ui.js?v=20261008-audit-form"></script>
+    <script src="../js/mdm-audit-coupon.js?v=20261012-auditor"></script>
 </body>
 </html>

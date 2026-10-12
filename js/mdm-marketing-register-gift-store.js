@@ -39,6 +39,7 @@
           ],
           points: 100,
           cashEnabled: true,
+          cashTemplateId: 'CRPT10001',
           cashMin: 0.5,
           cashMax: 2,
           cashBudgetTotal: 5000,
@@ -61,6 +62,7 @@
           coupons: [{ coupon: '满50减5券', qty: 2 }],
           points: 200,
           cashEnabled: true,
+          cashTemplateId: 'CRPT10002',
           cashMin: 1,
           cashMax: 1,
           cashBudgetTotal: 3000,
@@ -70,6 +72,7 @@
           coupons: [{ coupon: '满100减15券', qty: 1 }],
           points: 50,
           cashEnabled: true,
+          cashTemplateId: 'CRPT10003',
           cashMin: 0.3,
           cashMax: 1.5,
           cashBudgetTotal: 2000,
@@ -159,18 +162,61 @@
     var cashBudgetTotal = toMoney(r.cashBudgetTotal);
     var cashBudgetUsed = toMoney(r.cashBudgetUsed);
     var cashEnabled = r.cashEnabled === true || r.cashEnabled === 'true' || r.cashEnabled === 1;
-    if (!cashEnabled && (cashMin > 0 || cashMax > 0) && cashBudgetTotal > 0 && r.cashEnabled == null) {
-      /* 兼容旧数据：有金额配置但未写开关时视为开启 */
+    var cashTemplateId = String(r.cashTemplateId || '').trim();
+    if (!cashEnabled && (cashTemplateId || ((cashMin > 0 || cashMax > 0) && cashBudgetTotal > 0 && r.cashEnabled == null))) {
+      /* 兼容旧数据：有金额或已关联模版但未写开关时视为开启 */
       cashEnabled = true;
     }
     return {
       coupons: coupons,
       points: points,
       cashEnabled: !!cashEnabled,
+      cashTemplateId: cashTemplateId,
       cashMin: cashMin,
       cashMax: cashMax,
       cashBudgetTotal: cashBudgetTotal,
       cashBudgetUsed: cashBudgetUsed
+    };
+  }
+
+  function templateStore() {
+    return global.MdmMarketingCashRedpackTplStore || null;
+  }
+
+  /**
+   * 关联模版时金额、额度以模版为准；未关联时沿用活动上的历史金额配置。
+   */
+  function cashProfile(reward) {
+    var r = normalizeReward(reward);
+    if (!r.cashEnabled) return { enabled: false };
+    var T = templateStore();
+    if (r.cashTemplateId && T && typeof T.getById === 'function') {
+      var tpl = T.getById(r.cashTemplateId);
+      if (!tpl) {
+        return { enabled: true, missing: true, templateId: r.cashTemplateId };
+      }
+      var bounds = T.amountBounds(tpl);
+      return {
+        enabled: true,
+        template: tpl,
+        templateId: tpl.id,
+        templateName: tpl.name,
+        active: tpl.status === 'ACTIVE',
+        min: bounds.min,
+        max: bounds.max,
+        budgetTotal: tpl.budgetTotal,
+        budgetUsed: tpl.budgetUsed,
+        ports: tpl.ports || []
+      };
+    }
+    return {
+      enabled: true,
+      legacy: true,
+      min: r.cashMin,
+      max: r.cashMax,
+      budgetTotal: r.cashBudgetTotal,
+      budgetUsed: r.cashBudgetUsed,
+      ports: []
     };
   }
 
@@ -181,30 +227,44 @@
     return !!C.isEnabled();
   }
 
-  /** 现金红包是否仍可发放（总开关开启 + 活动已开启且未达总额度） */
+  /** 现金红包是否仍可发放（总开关开启 + 已关联启用模版或历史配置，且未达发放总额度） */
   function isCashAvailable(reward) {
     if (!isGlobalCashEnabled()) return false;
-    var r = normalizeReward(reward);
-    if (!r.cashEnabled) return false;
-    if (r.cashBudgetTotal <= 0) return false;
-    return r.cashBudgetUsed < r.cashBudgetTotal;
+    var profile = cashProfile(reward);
+    if (!profile.enabled || profile.missing) return false;
+    if (profile.templateId && !profile.active) return false;
+    var T = templateStore();
+    if (profile.template && T && typeof T.canGrant === 'function') return T.canGrant(profile.template);
+    if (!(profile.budgetTotal > 0)) return false;
+    return profile.budgetUsed < profile.budgetTotal;
   }
 
-  /** 摘要文案：固定金额或区间 */
+  /** 摘要文案：关联模版名称 + 发放金额；历史配置仍展示金额区间 */
   function formatCashSummary(reward) {
     var r = normalizeReward(reward);
     if (!r.cashEnabled) return '';
-    if (r.cashMin === r.cashMax) return '现金红包：' + r.cashMin + '元';
-    return '现金红包：' + r.cashMin + '~' + r.cashMax + '元';
+    var profile = cashProfile(r);
+    if (profile.missing) return '现金红包：模版不存在';
+    var T = templateStore();
+    if (profile.template && T && typeof T.rewardContentText === 'function') {
+      return '现金红包：' + profile.templateName + '（' + T.rewardTypeText(profile.template) + '，' + T.rewardContentText(profile.template) + '）';
+    }
+    var amountText = '';
+    if (profile.min === profile.max) amountText = profile.min + '元';
+    else amountText = profile.min + '～' + profile.max + '元';
+    if (profile.templateName) return '现金红包：' + profile.templateName + '（' + amountText + '）';
+    return '现金红包：' + amountText;
   }
 
-  /** 在区间内随机金额（演示）；额度不足时返回剩余额度 */
+  /** 在发放金额区间内取值（演示）；额度不足时返回剩余额度 */
   function rollCashAmount(reward) {
-    var r = normalizeReward(reward);
-    if (!isCashAvailable(r)) return 0;
-    var remain = Math.round((r.cashBudgetTotal - r.cashBudgetUsed) * 100) / 100;
-    var min = r.cashMin;
-    var max = r.cashMax;
+    if (!isCashAvailable(reward)) return 0;
+    var profile = cashProfile(reward);
+    var T = templateStore();
+    if (profile.template && T && typeof T.rollAmount === 'function') return T.rollAmount(profile.template);
+    var remain = Math.round((profile.budgetTotal - profile.budgetUsed) * 100) / 100;
+    var min = profile.min;
+    var max = profile.max;
     if (max < min) max = min;
     var amount;
     if (min === max) {
@@ -372,7 +432,7 @@
     return candidates[0] || null;
   }
 
-  /** 累加某场景已用红包额度 */
+  /** 累加已发放金额：已关联模版时记在模版发放总额度上，否则记在活动历史配置上 */
   function addCashBudgetUsed(activityId, scene, amount) {
     ensureLoaded();
     var sid = String(activityId || '');
@@ -382,6 +442,10 @@
       if (String(list[i].id) !== sid) continue;
       var item = normalizeItem(list[i]);
       var reward = normalizeReward(item.rewards && item.rewards[scene]);
+      if (reward.cashTemplateId && templateStore() && typeof templateStore().addBudgetUsed === 'function') {
+        templateStore().addBudgetUsed(reward.cashTemplateId, amt);
+        return normalizeItem(item);
+      }
       reward.cashBudgetUsed = toMoney(reward.cashBudgetUsed + amt);
       item.rewards[scene] = reward;
       item.updatedAt = formatNow();
@@ -474,12 +538,40 @@
         var parsed = JSON.parse(raw);
         if (Array.isArray(parsed) && parsed.length) {
           list = parsed.map(normalizeItem);
+          linkSeedTemplates();
           return;
         }
       }
     } catch (e) {}
     list = SEED.map(normalizeItem);
     persist();
+  }
+
+  /** 演示活动若金额与模版一致且尚未关联，补上模版 ID */
+  function linkSeedTemplates() {
+    var T = templateStore();
+    if (!T || typeof T.getById !== 'function') return;
+    var map = {
+      RG10001: { new_register: 'CRPT10001' },
+      RG10002: { new_register: 'CRPT10002', old_first_download: 'CRPT10003' }
+    };
+    var changed = false;
+    list.forEach(function (item) {
+      var slots = map[item.id];
+      if (!slots || !item.rewards) return;
+      Object.keys(slots).forEach(function (scene) {
+        var reward = item.rewards[scene];
+        if (!reward || reward.cashTemplateId) return;
+        var tpl = T.getById(slots[scene]);
+        if (!tpl) return;
+        var bounds = T.amountBounds(tpl);
+        if (toMoney(reward.cashMin) !== bounds.min || toMoney(reward.cashMax) !== bounds.max) return;
+        reward.cashTemplateId = tpl.id;
+        reward.cashEnabled = true;
+        changed = true;
+      });
+    });
+    if (changed) persist();
   }
 
   function getAll() {
@@ -590,6 +682,7 @@
     STATUS_LABEL: STATUS_LABEL,
     normalizeItem: normalizeItem,
     normalizeReward: normalizeReward,
+    cashProfile: cashProfile,
     toMoney: toMoney,
     isCashAvailable: isCashAvailable,
     isGlobalCashEnabled: isGlobalCashEnabled,

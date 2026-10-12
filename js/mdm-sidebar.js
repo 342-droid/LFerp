@@ -105,7 +105,9 @@
     ];
 
     const marketingAuditItems = [
-        { href: 'mdm_audit_coupon.html', text: '优惠券' }
+        { href: 'mdm_audit_coupon.html', text: '优惠券' },
+        { href: 'mdm_audit_cash_redpack.html', text: '现金红包' },
+        { href: 'mdm_audit_cash_redpack_manual.html', text: '派发红包' }
     ];
 
     function groupHasActive(items) {

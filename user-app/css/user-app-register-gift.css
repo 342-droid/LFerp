@@ -227,6 +227,10 @@
   cursor: pointer;
 }
 
+.ua-rp-records-page .ua-rg-demo {
+  width: 196px;
+}
+
 /* 红包领取半屏弹窗 */
 .ua-rp-sheet {
   position: fixed;

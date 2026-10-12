@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
     <link rel="stylesheet" href="../css/lf-marketing-points-home.css">
     <link rel="stylesheet" href="../css/lf-marketing-register-gift.css">
-    <link rel="stylesheet" href="../css/lf-marketing-cash-redpack.css">
+    <link rel="stylesheet" href="../css/lf-marketing-cash-redpack.css?v=20261012-save-edit">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -46,12 +46,63 @@
                             </div>
                             <p class="mkt-points-system-bar__desc" id="crSystemDesc">现金红包已关闭，所有能发现金红包的活动中该项均为禁用，无法勾选和编辑修改。</p>
                             <div class="mkt-cr-expire">
-                                <span>红包设置超过</span>
-                                <input class="mkt-cr-expire__input" id="crExpireHours" type="number" min="1" max="100" step="1" value="24" aria-label="未领取自动撤销小时数">
-                                <span>小时（1-100，默认 24）未领取自动撤销。</span>
-                                <button type="button" class="btn btn-primary" id="crExpireSaveBtn">保存</button>
+                                <span class="mkt-cr-claim-limit__label">红包领取时效</span>
+                                <div class="mkt-cr-expire__body">
+                                    <span>红包设置超过</span>
+                                    <input class="mkt-cr-expire__input" id="crExpireHours" type="number" min="1" max="100" step="1" value="24" aria-label="未领取自动撤销小时数">
+                                    <span>小时（1-100，默认 24）未领取自动撤销。</span>
+                                </div>
                             </div>
+                            <fieldset class="mkt-cr-claim-limit" id="crClaimLimit">
+                                <div class="mkt-cr-claim-limit__row">
+                                    <label class="mkt-cr-claim-limit__label" for="crLiveLimit">每场直播限领次数<button type="button" class="mkt-cr-claim-help" data-tip="每场直播场次，单个用户领取红包次数。填 0 表示不限制。只在直播场次内参与剩余次数计算。">?</button></label>
+                                    <input class="mkt-cr-claim-limit__input mkt-cr-claim-limit__input--count" id="crLiveLimit" type="number" min="0" step="1" inputmode="numeric" value="0" placeholder="0表示不限制">
+                                    <span class="mkt-cr-claim-limit__text">次</span>
+                                </div>
+                                <div class="mkt-cr-claim-limit__row mkt-cr-claim-limit__row--daily">
+                                    <div class="mkt-cr-claim-limit__label">每日限领次数<button type="button" class="mkt-cr-claim-help" data-tip="每日单个用户领取红包次数。固定：全部用户按填写次数，未填按 0，不限制。当日下单：按当日下单金额匹配对应档的每日限领次数，未达到任一档则该档为 0；次数未填按 0，不限制。最多配置 20 条。">?</button></div>
+                                    <div class="mkt-cr-claim-limit__daily">
+                                        <div class="mkt-cr-claim-limit__daily-line">
+                                            <label class="mkt-cr-claim-limit__radio"><input type="radio" name="crDailyMode" value="fixed" checked> 固定</label>
+                                            <label class="mkt-cr-claim-limit__radio"><input type="radio" name="crDailyMode" value="order_today"> 当日下单</label>
+                                            <span id="crDailyFixed">
+                                                <input class="mkt-cr-claim-limit__input mkt-cr-claim-limit__input--count" id="crDailyLimit" type="number" min="0" step="1" inputmode="numeric" value="0" placeholder="0表示不限制">
+                                                <span class="mkt-cr-claim-limit__text">次</span>
+                                            </span>
+                                        </div>
+                                        <div id="crDailyOrder" class="mkt-cr-daily-order" hidden>
+                                            <div class="mkt-cr-daily-order__head">
+                                                <span>当日下单</span>
+                                                <span>每日限领次数</span>
+                                            </div>
+                                            <div id="crDailyTierList"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mkt-cr-claim-limit__row">
+                                    <label class="mkt-cr-claim-limit__label" for="crTotalLimit">总次数上限<button type="button" class="mkt-cr-claim-help" data-tip="总次数上限：单个用户累计天数范围内领取的总次数。填0 表示不限制。累计天数范围默认注册至今：选择近N 日时，只统计该范围内的领取。">?</button></label>
+                                    <div class="mkt-cr-claim-limit__total">
+                                        <span class="mkt-cr-claim-limit__text">累计天数范围</span>
+                                        <select class="mkt-cr-claim-limit__select" id="crTotalRange" aria-label="累计天数范围">
+                                            <option value="0">注册至今</option>
+                                            <option value="7">近7日</option>
+                                            <option value="30">近30日</option>
+                                            <option value="90">近90日</option>
+                                            <option value="180">近180日</option>
+                                            <option value="365">近365日</option>
+                                            <option value="custom">自定义</option>
+                                        </select>
+                                        <input class="mkt-cr-claim-limit__input mkt-cr-claim-limit__input--days" id="crTotalRangeDays" type="number" min="1" max="3650" step="1" inputmode="numeric" placeholder="天数" hidden>
+                                        <span class="mkt-cr-claim-limit__text" id="crTotalRangeUnit" hidden>日</span>
+                                        <span class="mkt-cr-claim-limit__text">总次数上限</span>
+                                        <input class="mkt-cr-claim-limit__input mkt-cr-claim-limit__input--count" id="crTotalLimit" type="number" min="0" step="1" inputmode="numeric" value="0" placeholder="0表示不限制">
+                                        <span class="mkt-cr-claim-limit__text">次</span>
+                                    </div>
+                                </div>
+                                <p class="mkt-cr-claim-limit__note">用户领取时，取总次数上限、每日限领次数（满足条件的对应档）、每场直播限领次数三者剩余次数的最小值；最小值为 0 时，客户点击领取提示「无活动次数」。单项填 0 表示该项不限制。总次数默认统计注册至今，也可改为近 N 日。手动派发红包不在此次数限制范围内。</p>
+                            </fieldset>
                         </div>
+                        <button type="button" class="btn btn-primary mkt-cr-save" id="crExpireSaveBtn">修改</button>
                     </div>
 
                     <div id="crHomePanel">
@@ -118,6 +169,7 @@
                                     <select id="qCrActivityType">
                                         <option value="">全部</option>
                                         <option value="register_gift">注册有礼</option>
+                                        <option value="manual">手动发放</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
@@ -229,7 +281,7 @@
         </main>
     </div>
     <script src="../js/common.js"></script>
-    <script src="../js/mdm-marketing-cash-redpack-store.js"></script>
-    <script src="../js/mdm-marketing-cash-redpack.js"></script>
+    <script src="../js/mdm-marketing-cash-redpack-store.js?v=20261012-manual-dispatch"></script>
+    <script src="../js/mdm-marketing-cash-redpack.js?v=20261012-default-values"></script>
 </body>
 </html>

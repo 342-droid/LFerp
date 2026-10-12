@@ -47,6 +47,7 @@
   }
 
   function fillFromItem(item) {
+    if (!Store) Store = global.MdmMarketingCouponStore;
     var m = emptyModel();
     if (!item) return m;
     var cfg = item.config || {};

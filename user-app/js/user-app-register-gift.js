@@ -165,7 +165,9 @@
         S.addCashBudgetUsed(activity.id, scene, amount);
         if (C) {
           /* 先落库商户单号，再调微信转账发放：成功→待领取；余额不足→发放失败 */
-          cashRecord = C.addRecord({
+          var profile = S.cashProfile ? S.cashProfile(reward) : null;
+        var grantPorts = profile && profile.ports && profile.ports.length ? profile.ports : [activity.port === 'app' ? 'app' : 'mini'];
+        cashRecord = C.addRecord({
             amount: amount,
             userName: opts.userName || (getSession() && getSession().nickname) || '用户',
             userPhone: maskPhone(phone),
@@ -175,6 +177,7 @@
             activityName: activity.name,
             scene: scene,
             port: activity.port,
+            ports: grantPorts,
             status: 'pending'
           });
           var dispatch = C.dispatchTransfer(cashRecord.id, {
@@ -262,7 +265,7 @@
     if (!record) return { ok: false, message: '红包不存在或已失效' };
 
     if (record.status === 'claimed') {
-      return { ok: false, message: '红包已领取', already: true, record: record };
+      return { ok: false, message: '红包已领取，不可重复领取', already: true, record: record };
     }
     if (record.status === 'revoked' || record.status === 'expired') {
       return { ok: false, message: '红包已失效', record: record };
@@ -279,7 +282,20 @@
       return { ok: false, message: '当前状态不可领取', record: record };
     }
 
-    var updated = C.updateStatus(id, 'claimed');
+    var client = getClientMode();
+    if (typeof C.recordAllowsPort === 'function' && !C.recordAllowsPort(record, client)) {
+      var allowText =
+        typeof C.portsLabel === 'function' && record.ports ? C.portsLabel(record.ports) : '指定端口';
+      return { ok: false, message: '请到' + allowText + '领取', wrongPort: true, record: record };
+    }
+    if (record.activityType !== 'manual' && typeof C.activityClaimRemainForRecord === 'function') {
+      var quota = C.activityClaimRemainForRecord(record);
+      if (quota && quota.limited && quota.remain === 0) {
+        return { ok: false, message: quota.message || '无活动次数', noQuota: true, record: record };
+      }
+    }
+
+    var updated = C.updateStatus(id, 'claimed', { claimPort: client, port: client });
     var pending = readPending();
     if (pending && pending.cashId === id) {
       pending.claimed = true;
@@ -495,6 +511,15 @@
         if (result.already) {
           paint(result.record || (C && C.getById(id)));
           showUaToast(result.message || '红包已领取');
+          return;
+        }
+        if (result.noQuota) {
+          var quotaEl = document.getElementById('uaRpSheetFail');
+          if (quotaEl) {
+            quotaEl.hidden = false;
+            quotaEl.textContent = result.message || '无活动次数';
+          }
+          showUaToast(result.message || '无活动次数');
           return;
         }
         showUaToast(result.message || '领取失败');

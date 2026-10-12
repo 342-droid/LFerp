@@ -568,10 +568,39 @@
         btn.onclick = exportWord;
       }
     }
+    function loadLocalBodies() {
+      if (window.__PG_PRD_BODIES) return Promise.resolve(window.__PG_PRD_BODIES);
+      return new Promise(function (resolve, reject) {
+        var s = document.createElement('script');
+        s.src = 'prd-bodies.js?v=20261007-local';
+        s.onload = function () {
+          if (window.__PG_PRD_BODIES) resolve(window.__PG_PRD_BODIES);
+          else reject(new Error('missing'));
+        };
+        s.onerror = function () { reject(new Error('missing')); };
+        document.head.appendChild(s);
+      });
+    }
+    function bodyFromLocal(name) {
+      return loadLocalBodies().then(function (map) {
+        if (map[name]) return map[name];
+        var stem = String(name || '').replace(/\.md$/i, '');
+        var keys = Object.keys(map);
+        var hit = keys.find(function (key) {
+          var id = key.replace(/\.md$/i, '');
+          return id === stem || id === name;
+        });
+        if (hit) return map[hit];
+        throw new Error('missing');
+      });
+    }
     function fetchPrdMarkdown(name) {
+      if (location.protocol === 'file:') return bodyFromLocal(name);
       return fetch(encodeURI(name), { cache: 'no-store' }).then(function (r) {
         if (!r.ok) throw new Error('missing');
         return r.text();
+      }).catch(function () {
+        return bodyFromLocal(name);
       });
     }
     function fetchPrdWithAlias(name) {

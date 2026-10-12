@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 现金红包模版</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/mdm-member360-list.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
+    <link rel="stylesheet" href="../css/lf-marketing-template.css">
+    <link rel="stylesheet" href="../css/lf-marketing-coupon.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/marketing-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button class="active">现金红包模版</button></div>
+            <hr class="content-divider">
+
+            <div class="mdm-biz-tip" role="note">保存进入<strong>草稿</strong>（不校验必填）；提交进入<strong>待审核</strong>。审核成功后<strong>启用</strong>，即可被<strong>注册有礼</strong>及其他模块关联，不按发放场景限制。活动领取终端只决定用户可在哪些端领取，不影响发放人数。仅从<strong>启用</strong>禁用后状态为<strong>禁用</strong>，可再启用，或编辑后保存为草稿、提交为待审核。</div>
+
+            <section class="search-section">
+                <form class="search-form" id="crTplFilterForm" onsubmit="return false;">
+                    <div class="form-group">
+                        <label>红包名称:</label>
+                        <div class="input-wrapper">
+                            <input id="qCrTplName" placeholder="红包名称或模板ID" autocomplete="off">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>状态:</label>
+                        <select id="qCrTplStatus">
+                            <option value="">全部</option>
+                            <option value="DRAFT">草稿</option>
+                            <option value="PENDING">待审核</option>
+                            <option value="APPROVED">审核成功</option>
+                            <option value="REJECTED">审核失败</option>
+                            <option value="ACTIVE">启用</option>
+                            <option value="DISABLED">禁用</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>活动领取终端:</label>
+                        <select id="qCrTplPort">
+                            <option value="">全部</option>
+                            <option value="mini">小程序</option>
+                            <option value="app">APP</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="crTplFilterReset">重置</button>
+                        <button type="button" class="btn btn-primary" id="crTplFilterQuery">查询</button>
+                    </div>
+                </form>
+            </section>
+
+            <div class="mkt-tpl-toolbar">
+                <button type="button" class="erp-btn erp-btn--primary" id="crTplAddBtn">新建现金红包</button>
+            </div>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>模板ID</th>
+                                <th>红包名称</th>
+                                <th>有效时间</th>
+                                <th>奖励类型</th>
+                                <th>奖励内容</th>
+                                <th>活动领取终端</th>
+                                <th>领取条件</th>
+                                <th>参与会员</th>
+                                <th>已发放金额</th>
+                                <th>创建时间</th>
+                                <th style="text-align:center;width:100px">状态</th>
+                                <th>备注</th>
+                                <th style="width:240px">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="crTplTableBody"></tbody>
+                    </table>
+                </div>
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <div id="tplLogDrawer" class="mkt-tpl-log-drawer" hidden>
+        <div class="mkt-tpl-log-drawer__mask" id="tplLogMask"></div>
+        <aside class="mkt-tpl-log-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="tplLogTitle">
+            <div class="mkt-tpl-log-drawer__header">
+                <div id="tplLogTitle">操作日志</div>
+                <button type="button" class="mkt-tpl-log-drawer__x" id="tplLogClose" aria-label="关闭">×</button>
+            </div>
+            <div class="mkt-tpl-log-drawer__body">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th style="width:170px">操作时间</th>
+                                <th>操作内容</th>
+                                <th style="width:120px">操作人</th>
+                                <th>说明</th>
+                                <th style="width:90px;text-align:center">结果</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tplLogTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/mdm-member-level-data.js?v=20261008-packet-total"></script>
+    <script src="../js/mdm-marketing-cash-redpack-tpl-store.js?v=20261012-amt-1k"></script>
+    <script src="../js/mdm-marketing-cash-redpack-tpl.js?v=20261008-packet-total"></script>
+</body>
+</html>
