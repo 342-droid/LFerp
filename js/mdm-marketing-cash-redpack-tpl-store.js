@@ -654,6 +654,22 @@
     return rewardContentText(item);
   }
 
+  /** 剩余红包个数：红包总数减去已发放个数。自定义金额按各档剩余个数合计 */
+  function remainPacketCount(item) {
+    if (!item) return 0;
+    var it = item.rewardType ? item : normalize(item);
+    if ((it.rewardType === 'custom_fixed' || it.rewardType === 'custom_random') && !(Number(it.packetTotal) > 0)) {
+      var left = 0;
+      (it.tiers || []).forEach(function (t) {
+        left += Math.max(0, Math.round(Number(t.count) || 0) - Math.round(Number(t.issued) || 0));
+      });
+      return left;
+    }
+    var total = Math.max(0, Math.round(Number(it.packetTotal) || 0));
+    var issued = Math.max(0, Math.round(Number(it.packetIssued) || 0));
+    return Math.max(0, total - issued);
+  }
+
   function canGrant(item) {
     var it = item && item.rewardType ? item : normalize(item);
     if (it.rewardType === 'fixed') return it.singleAmount > 0 && it.packetIssued < it.packetTotal;
@@ -1382,6 +1398,7 @@
     rewardTypeText: rewardTypeText,
     claimTimesText: claimTimesText,
     rewardContentText: rewardContentText,
+    remainPacketCount: remainPacketCount,
     rewardSums: rewardSums,
     isTotalAmountOk: isTotalAmountOk,
     canGrant: canGrant,
