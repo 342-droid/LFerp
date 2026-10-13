@@ -38,6 +38,8 @@
       startAt: '',
       endAt: '',
       ports: ['mini'],
+      rewardMode: 'unified',
+      rewardSchemes: [],
       rewardType: 'fixed',
       claimTimesMode: 'unlimited',
       singleAmount: '',
@@ -89,6 +91,64 @@
     return sel.value;
   }
 
+  function readRewardMode() {
+    var checked = document.querySelector('input[name="fCrTplRewardMode"]:checked');
+    if (!checked) return model.rewardMode === 'diff' ? 'diff' : 'unified';
+    return checked.value === 'diff' ? 'diff' : 'unified';
+  }
+
+  function blankScheme(src, withMembers) {
+    var ids = [];
+    if (withMembers && src) {
+      if (src.memberAudience === 'tag') ids = (src.memberTagIds || []).slice();
+      else if (src.memberAudience === 'segment') ids = (src.memberSegmentIds || []).slice();
+      else if (src.memberScope !== 'all') ids = (src.memberLevelIds || []).slice();
+    }
+    var tiers = src && src.tiers && src.tiers.length ? src.tiers : [{ amount: '', amountMin: '', amountMax: '', count: '', expected: '', probability: '' }];
+    return {
+      memberIds: ids,
+      rewardType: (src && src.rewardType) || 'fixed',
+      singleAmount: src ? src.singleAmount : '',
+      totalAmount: src ? src.totalAmount : '',
+      packetTotal: src ? src.packetTotal : '',
+      tiers: tiers.map(function (t) { return Object.assign({}, t); })
+    };
+  }
+
+  function readSchemesFromDom() {
+    var nodes = document.querySelectorAll('[data-cr-scheme]');
+    if (!nodes.length) return (model.rewardSchemes || []).slice();
+    var list = [];
+    nodes.forEach(function (box) {
+      var typeEl = box.querySelector('input[type="radio"]:checked');
+      var tiers = [];
+      box.querySelectorAll('[data-cr-tier]').forEach(function (row) {
+        tiers.push({
+          amount: (row.querySelector('[data-tier-amount]') || {}).value || '',
+          amountMin: (row.querySelector('[data-tier-min]') || {}).value || '',
+          amountMax: (row.querySelector('[data-tier-max]') || {}).value || '',
+          count: (row.querySelector('[data-tier-count]') || {}).value || '',
+          expected: (row.querySelector('[data-tier-expected]') || {}).value || '',
+          probability: (row.querySelector('[data-tier-prob]') || {}).value || '',
+          issued: Number(row.getAttribute('data-tier-issued') || 0)
+        });
+      });
+      var memberIds = [];
+      box.querySelectorAll('[data-scheme-member]:checked').forEach(function (el) {
+        memberIds.push(el.getAttribute('data-scheme-member'));
+      });
+      list.push({
+        memberIds: memberIds,
+        rewardType: typeEl && typeEl.value ? typeEl.value : 'fixed',
+        singleAmount: (box.querySelector('[data-scheme-single]') || {}).value || '',
+        totalAmount: (box.querySelector('[data-scheme-total]') || {}).value || '',
+        packetTotal: (box.querySelector('[data-scheme-packet]') || {}).value || '',
+        tiers: tiers.length ? tiers : [{ amount: '', amountMin: '', amountMax: '', count: '', expected: '', probability: '' }]
+      });
+    });
+    return list;
+  }
+
   function readMemberAudience() {
     var checked = document.querySelector('input[name="fCrTplMemberAudience"]:checked');
     if (!checked) return model.memberAudience || 'level';
@@ -137,32 +197,40 @@
     document.querySelectorAll('[data-cr-tpl-port]:checked').forEach(function (el) {
       ports.push(el.getAttribute('data-cr-tpl-port'));
     });
-    var typeEl = document.querySelector('input[name="fCrTplRewardType"]:checked');
-    var rewardType = typeEl && typeEl.value ? typeEl.value : 'fixed';
+    var rewardMode = readRewardMode();
+    var unified = document.getElementById('fCrTplUnifiedReward');
+    var typeEl = unified ? unified.querySelector('input[name="fCrTplRewardType"]:checked') : null;
+    var rewardType = typeEl && typeEl.value ? typeEl.value : model.rewardType || 'fixed';
     var tiers = [];
-    document.querySelectorAll('[data-cr-tier]').forEach(function (row) {
-      tiers.push({
-        amount: (row.querySelector('[data-tier-amount]') || {}).value || '',
-        amountMin: (row.querySelector('[data-tier-min]') || {}).value || '',
-        amountMax: (row.querySelector('[data-tier-max]') || {}).value || '',
-        count: (row.querySelector('[data-tier-count]') || {}).value || '',
-        expected: (row.querySelector('[data-tier-expected]') || {}).value || '',
-        probability: (row.querySelector('[data-tier-prob]') || {}).value || '',
-        issued: Number(row.getAttribute('data-tier-issued') || 0)
+    if (unified) {
+      unified.querySelectorAll('[data-cr-tier]').forEach(function (row) {
+        tiers.push({
+          amount: (row.querySelector('[data-tier-amount]') || {}).value || '',
+          amountMin: (row.querySelector('[data-tier-min]') || {}).value || '',
+          amountMax: (row.querySelector('[data-tier-max]') || {}).value || '',
+          count: (row.querySelector('[data-tier-count]') || {}).value || '',
+          expected: (row.querySelector('[data-tier-expected]') || {}).value || '',
+          probability: (row.querySelector('[data-tier-prob]') || {}).value || '',
+          issued: Number(row.getAttribute('data-tier-issued') || 0)
+        });
       });
-    });
+    } else {
+      tiers = model.tiers;
+    }
     return {
       id: model.id,
       name: nameEl ? nameEl.value : '',
       startAt: fieldValue('fCrTplStartAt', model.startAt),
       endAt: fieldValue('fCrTplEndAt', model.endAt),
       ports: ports,
+      rewardMode: rewardMode,
+      rewardSchemes: rewardMode === 'diff' ? readSchemesFromDom() : (model.rewardSchemes || []),
       rewardType: rewardType,
       claimTimesMode: (document.getElementById('fCrTplClaimTimes') || {}).value === 'per_user' ? 'per_user' : 'unlimited',
       singleAmount: fieldValue('fCrTplSingle', model.singleAmount),
       totalAmount: fieldValue('fCrTplTotal', model.totalAmount),
       packetTotal: fieldValue('fCrTplPacket', model.packetTotal),
-      tiers: tiers.length ? tiers : model.tiers,
+      tiers: tiers.length ? tiers : model.tiers || [],
       budgetUsed: model.budgetUsed,
       packetIssued: model.packetIssued,
       claimCondition: (document.getElementById('fCrTplClaim') || {}).value || 'none',
@@ -197,7 +265,10 @@
       '> APP</label></div>' +
       '<div class="pts-rule-tip">只决定用户能在哪些终端领取，不影响发放人数。同一红包只能领取一次。</div>';
 
-    var rewardHtml = renderRewardHtml(rewardType, dis);
+    var rewardMode = model.rewardMode === 'diff' ? 'diff' : 'unified';
+    var rewardHtml = rewardMode === 'diff'
+      ? renderSchemeList(dis)
+      : '<div id="fCrTplUnifiedReward">' + renderRewardHtml(rewardType, dis) + '</div>';
 
     var claim = model.claimCondition;
     if (claim === 'order') claim = 'order_count';
@@ -309,6 +380,7 @@
       '><label class="pts-rule-field__label"><span class="erp-req">*</span>累计天数范围</label><div class="pts-rule-field__control">' +
       dayHtml +
       '</div></div>';
+    html += fieldRow(true, '参与会员', renderMemberHtml(dis));
     html += fieldRow(true, '奖励类型', rewardHtml);
     var claimTimes = model.claimTimesMode === 'per_user' ? 'per_user' : 'unlimited';
     html += fieldRow(
@@ -322,7 +394,6 @@
         (claimTimes === 'unlimited' ? ' selected' : '') +
         '>不限次数</option></select>'
     );
-    html += fieldRow(true, '参与会员', renderMemberHtml(dis));
     html += fieldRow(true, '活动领取终端', portHtml);
     html += '</div></div>';
     var panel = document.getElementById('crTplFormPanel');
@@ -424,16 +495,24 @@
         radios[i + 1] +
         '</label>';
     }
+    var unifiedPanels = model.rewardMode === 'diff'
+      ? ''
+      : '<div class="mkt-cr-audience-panels">' + renderLevelPanel(dis, audience) + renderTagPanel(dis, audience) + renderSegmentPanel(dis, audience) + '</div>';
     return (
       '<div class="pts-rule-check-row">' +
       radioHtml +
       '</div>' +
-      '<div class="mkt-cr-audience-panels">' +
-      renderLevelPanel(dis, audience) +
-      renderTagPanel(dis, audience) +
-      renderSegmentPanel(dis, audience) +
-      '</div>' +
-      '<div class="pts-rule-tip">按会员等级、会员分群或会员标签限定可领取用户。全部层级不限制。不在范围内时，客户端提示「抱歉，您暂不符合该红包的领取条件！」。</div>'
+      '<div class="pts-rule-check-row mkt-cr-mode-row">' +
+      '<label class="pts-rule-check-label"><input type="radio" name="fCrTplRewardMode" value="unified"' +
+      (model.rewardMode === 'diff' ? '' : ' checked') +
+      dis +
+      '> 统一配置</label>' +
+      '<label class="pts-rule-check-label"><input type="radio" name="fCrTplRewardMode" value="diff"' +
+      (model.rewardMode === 'diff' ? ' checked' : '') +
+      dis +
+      '> 差异化配置</label></div>' +
+      unifiedPanels +
+      '<div class="pts-rule-tip">同一红包只按一个会员维度配置。统一配置时，全部会员或部分会员共用一套奖励类型和金额。差异化配置时，只在当前维度内按不同等级、标签或分群分别配置奖励，不能混用维度。不在范围内时，客户端提示「抱歉，您暂不符合该红包的领取条件！」。</div>'
     );
   }
 
@@ -535,11 +614,111 @@
     );
   }
 
+  function audienceItems(audience) {
+    if (audience === 'tag') {
+      var tags = [];
+      (Store.memberTagGroups ? Store.memberTagGroups() : []).forEach(function (group) {
+        (group.tags || []).forEach(function (tag) {
+          tags.push({
+            id: String(tag.id),
+            name: group.name + ' / ' + tag.name,
+            groupId: String(group.id),
+            rule: group.rule || 'multi'
+          });
+        });
+      });
+      return tags;
+    }
+    if (audience === 'segment') {
+      return (Store.memberSegmentOptions ? Store.memberSegmentOptions() : []).map(function (seg) {
+        return { id: String(seg.id), name: seg.name };
+      });
+    }
+    return (Store.memberLevelOptions ? Store.memberLevelOptions() : []).map(function (level) {
+      return { id: String(level.id), name: level.name };
+    });
+  }
+
+  function schemeTitle(audience, index) {
+    var name = audience === 'tag' ? '标签方案' : audience === 'segment' ? '分群方案' : '等级方案';
+    return name + ' ' + (index + 1);
+  }
+
+  function renderSchemeList(dis) {
+    var audience = model.memberAudience === 'tag' || model.memberAudience === 'segment' ? model.memberAudience : 'level';
+    var schemes = model.rewardSchemes && model.rewardSchemes.length ? model.rewardSchemes : [blankScheme(null, false)];
+    var used = {};
+    schemes.forEach(function (scheme) {
+      (scheme.memberIds || []).forEach(function (id) { used[String(id)] = true; });
+    });
+    var items = audienceItems(audience);
+    var freeCount = items.filter(function (item) { return !used[item.id]; }).length;
+    var html = schemes.map(function (scheme, index) {
+      var mine = {};
+      (scheme.memberIds || []).forEach(function (id) { mine[String(id)] = true; });
+      var members = items.filter(function (item) {
+        return mine[item.id] || !used[item.id];
+      }).map(function (item) {
+        var checked = !!mine[item.id];
+        return (
+          '<label class="pts-rule-check-label"><input type="checkbox" data-scheme-member="' +
+          escapeHtml(item.id) +
+          '"' +
+          (item.groupId ? ' data-tag-group="' + escapeHtml(item.groupId) + '" data-tag-rule="' + escapeHtml(item.rule || 'multi') + '"' : '') +
+          (checked ? ' checked' : '') +
+          (locked ? ' disabled' : '') +
+          dis +
+          '> ' +
+          escapeHtml(item.name) +
+          '</label>'
+        );
+      }).join('');
+      if (!members) members = '<span class="pts-rule-unit__text">该维度会员已全部配置，不能重复选择</span>';
+      var remove = schemes.length > 1 && !locked
+        ? '<button type="button" class="mkt-cr-tier-remove" data-scheme-remove="' + index + '">删除</button>'
+        : '';
+      return (
+        '<div class="mkt-cr-scheme" data-cr-scheme="' + index + '">' +
+        '<div class="mkt-cr-scheme__head"><span>' + schemeTitle(audience, index) + '</span>' + remove + '</div>' +
+        '<div class="mkt-cr-level-grid">' + members + '</div>' +
+        renderRewardHtml(scheme.rewardType || 'fixed', dis, {
+          radioName: 'fCrTplSchemeReward' + index,
+          data: scheme,
+          singleAttr: 'data-scheme-single',
+          totalAttr: 'data-scheme-total',
+          packetAttr: 'data-scheme-packet',
+          sumId: 'fCrTplSchemeSum' + index,
+          schemeIndex: String(index)
+        }) +
+        '</div>'
+      );
+    }).join('');
+    if (!locked && freeCount > 0 && schemes.length < 20) {
+      html += '<button type="button" class="mkt-cr-reward-add mkt-cr-scheme-add" id="fCrTplSchemeAdd">添加一组</button>';
+    }
+    return html;
+  }
+
   function bindMembers() {
     document.querySelectorAll('input[name="fCrTplMemberAudience"]').forEach(function (radio) {
       radio.addEventListener('change', function () {
         if (radio.disabled) return;
+        var prev = model.memberAudience;
         model = Object.assign(model, readModelFromDom());
+        if (model.memberAudience !== prev && model.rewardMode === 'diff') {
+          (model.rewardSchemes || []).forEach(function (scheme) { scheme.memberIds = []; });
+        }
+        render();
+      });
+    });
+    document.querySelectorAll('input[name="fCrTplRewardMode"]').forEach(function (radio) {
+      radio.addEventListener('change', function () {
+        if (radio.disabled) return;
+        model = Object.assign(model, readModelFromDom());
+        model.rewardMode = radio.value === 'diff' ? 'diff' : 'unified';
+        if (model.rewardMode === 'diff' && !(model.rewardSchemes && model.rewardSchemes.length)) {
+          model.rewardSchemes = [blankScheme(model, true), blankScheme(null, false)];
+        }
         render();
       });
     });
@@ -588,7 +767,13 @@
     return String(v);
   }
 
-  function renderRewardHtml(rewardType, dis) {
+  function renderRewardHtml(rewardType, dis, scope) {
+    var bag = scope || {};
+    var data = bag.data || model;
+    var radioName = bag.radioName || 'fCrTplRewardType';
+    var singleAttr = bag.singleAttr || 'id="fCrTplSingle"';
+    var totalAttr = bag.totalAttr || 'id="fCrTplTotal"';
+    var packetAttr = bag.packetAttr || 'id="fCrTplPacket"';
     var types = [
       ['fixed', '固定金额'],
       ['random', '随机金额'],
@@ -598,7 +783,9 @@
     var html = '<div class="pts-rule-check-row">';
     types.forEach(function (pair) {
       html +=
-        '<label class="pts-rule-check-label"><input type="radio" name="fCrTplRewardType" value="' +
+        '<label class="pts-rule-check-label"><input type="radio" name="' +
+        radioName +
+        '" value="' +
         pair[0] +
         '"' +
         (rewardType === pair[0] ? ' checked' : '') +
@@ -610,40 +797,50 @@
     html += '</div>';
     if (rewardType === 'fixed') {
       html +=
-        '<div class="mkt-cr-reward-block"><div class="pts-rule-unit"><span class="pts-rule-unit__text"><span class="erp-req">*</span>单个金额</span><input class="erp-input" id="fCrTplSingle" type="number" min="0.01" step="0.01" placeholder="请输入单个金额" value="' +
-        escapeHtml(showNum(model.singleAmount)) +
+        '<div class="mkt-cr-reward-block"><div class="pts-rule-unit"><span class="pts-rule-unit__text"><span class="erp-req">*</span>单个金额</span><input class="erp-input" ' +
+        singleAttr +
+        ' type="number" min="0.01" step="0.01" placeholder="请输入单个金额" value="' +
+        escapeHtml(showNum(data.singleAmount)) +
         '"' +
         dis +
         '><span class="pts-rule-unit__text">元</span></div>';
-      html += packetTotalHtml(dis) + '</div>';
+      html += packetTotalHtml(dis, data, packetAttr) + '</div>';
     } else if (rewardType === 'random') {
-      var totalRaw = model.totalAmount == null ? '' : String(model.totalAmount);
+      var totalRaw = data.totalAmount == null ? '' : String(data.totalAmount);
       html +=
-        '<div class="mkt-cr-reward-block"><div class="pts-rule-unit"><span class="pts-rule-unit__text"><span class="erp-req">*</span>总计金额</span><input class="erp-input" id="fCrTplTotal" type="text" inputmode="numeric" maxlength="6" placeholder="请输入1-6位整数" value="' +
+        '<div class="mkt-cr-reward-block"><div class="pts-rule-unit"><span class="pts-rule-unit__text"><span class="erp-req">*</span>总计金额</span><input class="erp-input" ' +
+        totalAttr +
+        ' type="text" inputmode="numeric" maxlength="6" placeholder="请输入1-6位整数" value="' +
         escapeHtml(totalRaw) +
         '"' +
         dis +
         '></div>';
-      html += packetTotalHtml(dis) + '</div>';
+      html += packetTotalHtml(dis, data, packetAttr) + '</div>';
     } else {
-      html += renderTierTable(rewardType, dis);
+      html += renderTierTable(rewardType, dis, bag);
     }
     return html;
   }
 
-  function packetTotalHtml(dis) {
+  function packetTotalHtml(dis, data, packetAttr) {
     return (
-      '<div class="pts-rule-unit" style="margin-top:10px"><span class="pts-rule-unit__text"><span class="erp-req">*</span>红包总数</span><input class="erp-input" id="fCrTplPacket" type="number" min="1" step="1" placeholder="请输入红包总数" value="' +
-      escapeHtml(showNum(model.packetTotal)) +
+      '<div class="pts-rule-unit" style="margin-top:10px"><span class="pts-rule-unit__text"><span class="erp-req">*</span>红包总数</span><input class="erp-input" ' +
+      (packetAttr || 'id="fCrTplPacket"') +
+      ' type="number" min="1" step="1" placeholder="请输入红包总数" value="' +
+      escapeHtml(showNum((data || model).packetTotal)) +
       '"' +
       dis +
       '></div>'
     );
   }
 
-  function renderTierTable(rewardType, dis) {
+  function renderTierTable(rewardType, dis, scope) {
+    var bag = scope || {};
+    var data = bag.data || model;
     var random = rewardType === 'custom_random';
-    var tiers = model.tiers && model.tiers.length ? model.tiers : [{}];
+    var tiers = data.tiers && data.tiers.length ? data.tiers : [{}];
+    var schemeAttr = bag.schemeIndex != null && bag.schemeIndex !== '' ? ' data-scheme-index="' + bag.schemeIndex + '"' : '';
+    var sumId = bag.sumId || 'fCrTplTierSum';
     var head = random
       ? '<span>红包金额区间</span><span>红包数量</span><span>期望奖金(即平均值)</span><span>中奖概率</span><span></span>'
       : '<span>红包金额</span><span>红包数量</span><span>中奖概率</span><span></span>';
@@ -651,7 +848,7 @@
       .map(function (t, i) {
         var remove =
           tiers.length > 1 && !locked
-            ? '<button type="button" class="mkt-cr-tier-remove" data-tier-remove="' + i + '">删除</button>'
+            ? '<button type="button" class="mkt-cr-tier-remove" data-tier-remove="' + i + '"' + schemeAttr + '>删除</button>'
             : '<span class="mkt-cr-tier-remove-slot"></span>';
         if (random) {
           return (
@@ -717,9 +914,13 @@
       '</div>' +
       rows +
       '</div>' +
-      (locked || tiers.length >= 20 ? '' : '<button type="button" class="mkt-cr-reward-add" id="fCrTplTierAdd">+</button>') +
+      (locked || tiers.length >= 20
+        ? ''
+        : '<button type="button" class="mkt-cr-reward-add" ' +
+          (bag.schemeIndex != null && bag.schemeIndex !== '' ? 'data-scheme-tier-add="' + bag.schemeIndex + '"' : 'id="fCrTplTierAdd"') +
+          '>+</button>') +
       (random ? '<div class="mkt-cr-field-error">红包金额区间最小值 ≤ 期望奖金 ≤ 红包金额区间最大值</div>' : '') +
-      '<div class="mkt-cr-reward-sum" id="fCrTplTierSum">' +
+      '<div class="mkt-cr-reward-sum" id="' + sumId + '">' +
       sumText +
       '</div></div>'
     );
@@ -748,8 +949,12 @@
     };
   }
 
+  function emptyTierRow() {
+    return { amount: '', amountMin: '', amountMax: '', count: '', expected: '', probability: '' };
+  }
+
   function bindReward() {
-    document.querySelectorAll('input[name="fCrTplRewardType"]').forEach(function (radio) {
+    document.querySelectorAll('#fCrTplUnifiedReward input[name="fCrTplRewardType"], [data-cr-scheme] input[type="radio"]').forEach(function (radio) {
       radio.addEventListener('change', function () {
         model = Object.assign(model, readModelFromDom());
         render();
@@ -763,22 +968,87 @@
           toast('最多添加20条', 'warning');
           return;
         }
-        model.tiers = (model.tiers || []).concat([{ amount: '', amountMin: '', amountMax: '', count: '', expected: '', probability: '' }]);
+        model.tiers = (model.tiers || []).concat([emptyTierRow()]);
         render();
       });
     }
+    document.querySelectorAll('[data-scheme-tier-add]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var index = Number(btn.getAttribute('data-scheme-tier-add'));
+        model = Object.assign(model, readModelFromDom());
+        var scheme = (model.rewardSchemes || [])[index];
+        if (!scheme) return;
+        if ((scheme.tiers || []).length >= 20) {
+          toast('最多添加20条', 'warning');
+          return;
+        }
+        scheme.tiers = (scheme.tiers || []).concat([emptyTierRow()]);
+        render();
+      });
+    });
     document.querySelectorAll('[data-tier-remove]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var index = Number(btn.getAttribute('data-tier-remove'));
+        var schemeIndex = btn.getAttribute('data-scheme-index');
         model = Object.assign(model, readModelFromDom());
-        model.tiers.splice(index, 1);
+        if (schemeIndex != null && schemeIndex !== '') {
+          var scheme = (model.rewardSchemes || [])[Number(schemeIndex)];
+          if (scheme && scheme.tiers) scheme.tiers.splice(index, 1);
+        } else {
+          model.tiers.splice(index, 1);
+        }
+        render();
+      });
+    });
+    var schemeAdd = document.getElementById('fCrTplSchemeAdd');
+    if (schemeAdd) {
+      schemeAdd.addEventListener('click', function () {
+        model = Object.assign(model, readModelFromDom());
+        var audience = model.memberAudience === 'tag' || model.memberAudience === 'segment' ? model.memberAudience : 'level';
+        var usedIds = {};
+        (model.rewardSchemes || []).forEach(function (scheme) {
+          (scheme.memberIds || []).forEach(function (id) { usedIds[String(id)] = true; });
+        });
+        var freeLeft = audienceItems(audience).some(function (item) { return !usedIds[item.id]; });
+        if (!freeLeft) {
+          toast('该维度会员已全部配置，不能再添加', 'warning');
+          return;
+        }
+        if ((model.rewardSchemes || []).length >= 20) {
+          toast('最多添加20组', 'warning');
+          return;
+        }
+        model.rewardSchemes = (model.rewardSchemes || []).concat([blankScheme(null, false)]);
+        render();
+      });
+    }
+    document.querySelectorAll('[data-scheme-remove]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var index = Number(btn.getAttribute('data-scheme-remove'));
+        model = Object.assign(model, readModelFromDom());
+        model.rewardSchemes.splice(index, 1);
+        render();
+      });
+    });
+    document.querySelectorAll('[data-scheme-member]').forEach(function (el) {
+      el.addEventListener('change', function () {
+        if (el.disabled) return;
+        var box = el.closest('[data-cr-scheme]');
+        if (el.checked && el.getAttribute('data-tag-rule') === 'single' && box) {
+          var gid = el.getAttribute('data-tag-group');
+          box.querySelectorAll('[data-scheme-member][data-tag-group="' + gid + '"]').forEach(function (other) {
+            if (other !== el) other.checked = false;
+          });
+        }
+        model = Object.assign(model, readModelFromDom());
         render();
       });
     });
     document.querySelectorAll('[data-cr-tier] input').forEach(function (input) {
       input.addEventListener('input', function () {
+        var host = input.closest('[data-cr-scheme]') || document.getElementById('fCrTplUnifiedReward') || document;
         var rows = [];
-        document.querySelectorAll('[data-cr-tier]').forEach(function (row) {
+        host.querySelectorAll('[data-cr-tier]').forEach(function (row) {
           rows.push({
             amount: (row.querySelector('[data-tier-amount]') || {}).value,
             amountMin: (row.querySelector('[data-tier-min]') || {}).value,
@@ -786,13 +1056,14 @@
             count: (row.querySelector('[data-tier-count]') || {}).value
           });
         });
-        var sum = document.getElementById('fCrTplTierSum');
+        var sum = host.querySelector('.mkt-cr-reward-sum');
         if (!sum) return;
-        var calc = tierSums(rows, model.rewardType === 'custom_random');
-        sum.textContent =
-          model.rewardType === 'custom_random'
-            ? '红包总额：' + calc.minMoney + '-' + calc.maxMoney + '　　红包总数：' + calc.count
-            : '红包总额：' + calc.money + '　　红包总数：' + calc.count;
+        var typeEl = host.querySelector('input[type="radio"]:checked');
+        var random = typeEl && typeEl.value === 'custom_random';
+        var calc = tierSums(rows, random);
+        sum.textContent = random
+          ? '红包总额：' + calc.minMoney + '-' + calc.maxMoney + '　　红包总数：' + calc.count
+          : '红包总额：' + calc.money + '　　红包总数：' + calc.count;
       });
     });
   }
@@ -848,7 +1119,7 @@
       toast(result.message, 'warning');
       return;
     }
-    goList('已保存草稿');
+    goList(result.message || '已保存草稿');
   }
 
   function submit() {
@@ -857,7 +1128,7 @@
       toast(result.message, 'warning');
       return;
     }
-    goList('已提交审核');
+    goList(result.message || '已提交审核');
   }
 
   var opinion = { read: function () { return ''; } };
@@ -889,6 +1160,8 @@
     var tip = document.getElementById('crTplFormTip');
     if (tip && mode === 'audit') {
       tip.innerHTML = '以下为提交时的现金红包模版，只读。审核成功后需再<strong>启用</strong>，才可被注册有礼及其他模块关联。';
+    } else if (tip && mode === 'edit' && model && model.status === 'DISABLED') {
+      tip.innerHTML = '当前为<strong>禁用</strong>。保存后变为草稿，不能直接启用，也不能被活动关联或发放。需重新<strong>提交</strong>，<strong>审核通过</strong>并<strong>启用</strong>后方有效。';
     }
     var canEdit = mode === 'add' || mode === 'edit';
     var canAudit = mode === 'audit' || (!fromAudit && mode === 'view' && model.status === 'PENDING');

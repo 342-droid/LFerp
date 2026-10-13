@@ -292,7 +292,14 @@
     item.endAt = String(item.endAt || '').trim();
     item.ports = uniquePorts(item.ports);
     item.budgetUsed = toMoney(item.budgetUsed);
-    applyReward(item);
+    item.rewardMode = item.rewardMode === 'diff' ? 'diff' : 'unified';
+    if (item.rewardMode === 'diff') {
+      item.rewardSchemes = normalizeSchemes(item.rewardSchemes);
+      applyDiffRoot(item);
+    } else {
+      item.rewardSchemes = [];
+      applyReward(item);
+    }
     var claim = item.claimCondition;
     if (claim === 'order') {
       claim = toMoney(item.orderAmount) > 0 && !(Math.round(Number(item.orderCount) || 0) >= 1) ? 'order_amount' : 'order_count';
@@ -309,9 +316,32 @@
     item.memberAudience = audience;
     if (item.memberScope !== 'all' && item.memberScope !== 'specific') item.memberScope = 'all';
     item.memberLevelIds = uniqueIds(item.memberLevelIds);
-    if (audience === 'level' && item.memberScope === 'all') item.memberLevelIds = [];
     item.memberTagIds = uniqueIds(item.memberTagIds);
     item.memberSegmentIds = uniqueIds(item.memberSegmentIds);
+    if (item.rewardMode === 'diff') {
+      var schemeIds = [];
+      (item.rewardSchemes || []).forEach(function (scheme) {
+        (scheme.memberIds || []).forEach(function (id) {
+          if (schemeIds.indexOf(id) < 0) schemeIds.push(id);
+        });
+      });
+      item.memberScope = 'specific';
+      if (audience === 'tag') {
+        item.memberTagIds = schemeIds;
+        item.memberLevelIds = [];
+        item.memberSegmentIds = [];
+      } else if (audience === 'segment') {
+        item.memberSegmentIds = schemeIds;
+        item.memberLevelIds = [];
+        item.memberTagIds = [];
+      } else {
+        item.memberLevelIds = schemeIds;
+        item.memberTagIds = [];
+        item.memberSegmentIds = [];
+      }
+    } else if (audience === 'level' && item.memberScope === 'all') {
+      item.memberLevelIds = [];
+    }
     var rawDay = item.orderDayRange;
     var dayRange = Math.round(Number(rawDay));
     if (!dayRange || dayRange < 1) dayRange = rawDay === '' ? 0 : 1;
@@ -565,6 +595,54 @@
     });
   }
 
+  function normalizeSchemes(list) {
+    return (Array.isArray(list) ? list : []).map(function (raw) {
+      var scheme = {
+        memberIds: uniqueIds(raw && raw.memberIds),
+        rewardType: raw && raw.rewardType,
+        singleAmount: raw && raw.singleAmount,
+        totalAmount: raw && raw.totalAmount,
+        packetTotal: raw && raw.packetTotal,
+        packetIssued: raw && raw.packetIssued,
+        tiers: raw && raw.tiers,
+        budgetUsed: raw && raw.budgetUsed
+      };
+      applyReward(scheme);
+      return scheme;
+    });
+  }
+
+  function applyDiffRoot(item) {
+    var schemes = item.rewardSchemes || [];
+    if (!schemes.length) {
+      applyReward(item);
+      return;
+    }
+    var min = 0;
+    var max = 0;
+    var budget = 0;
+    var packets = 0;
+    var issued = 0;
+    schemes.forEach(function (scheme) {
+      if (scheme.amountMin > 0 && (!min || scheme.amountMin < min)) min = scheme.amountMin;
+      if (scheme.amountMax > max) max = scheme.amountMax;
+      budget += Number(scheme.budgetTotal) || 0;
+      packets += Number(scheme.packetTotal) || 0;
+      issued += Number(scheme.packetIssued) || 0;
+    });
+    item.rewardType = schemes[0].rewardType;
+    item.singleAmount = schemes[0].singleAmount;
+    item.totalAmount = schemes[0].totalAmount;
+    item.tiers = schemes[0].tiers;
+    item.amount = toMoney(min);
+    item.amountMin = toMoney(min);
+    item.amountMax = toMoney(max || min);
+    item.amountMode = min === max ? 'fixed' : 'range';
+    item.budgetTotal = toMoney(budget);
+    item.packetTotal = Math.max(0, Math.round(packets));
+    item.packetIssued = Math.max(0, Math.round(issued));
+  }
+
   function emptyTier() {
     return { amount: 0, amountMin: 0, amountMax: 0, count: 0, expected: 0, probability: 0, issued: 0 };
   }
@@ -681,6 +759,10 @@
   function rewardContentText(item) {
     if (!item) return '—';
     var it = item.rewardType ? item : normalize(item);
+    if (it.rewardMode === 'diff') {
+      var dim = it.memberAudience === 'tag' ? '会员标签' : it.memberAudience === 'segment' ? '会员分群' : '会员等级';
+      return '按' + dim + '差异化，共 ' + ((it.rewardSchemes && it.rewardSchemes.length) || 0) + ' 组';
+    }
     if (it.rewardType === 'fixed') return '单个金额 ' + moneyText(it.singleAmount) + ' 元，红包总数 ' + (it.packetTotal || 0);
     if (it.rewardType === 'random') return '总计金额 ' + (it.totalAmount || '—') + '，红包总数 ' + (it.packetTotal || 0);
     var sum = rewardSums(it);
@@ -705,6 +787,48 @@
     return { money: toMoney(money), minMoney: toMoney(minMoney), maxMoney: toMoney(maxMoney), count: count };
   }
 
+  function schemeBudget(item) {
+    var type = item && item.rewardType;
+    if (type === 'fixed') {
+      var money = toMoney((Number(item.singleAmount) || 0) * (Number(item.packetTotal) || 0));
+      return { min: money, max: money, count: Math.max(0, Math.round(Number(item.packetTotal) || 0)) };
+    }
+    if (type === 'random') {
+      var total = isTotalAmountOk(item.totalAmount) ? Number(item.totalAmount) : 0;
+      return { min: toMoney(total), max: toMoney(total), count: Math.max(0, Math.round(Number(item.packetTotal) || 0)) };
+    }
+    var sum = rewardSums(item || {});
+    if (type === 'custom_random') return { min: sum.minMoney, max: sum.maxMoney, count: sum.count };
+    return { min: sum.money, max: sum.money, count: sum.count };
+  }
+
+  function configuredBudget(item) {
+    var it = item && (item.rewardMode || item.rewardType) ? item : normalize(item);
+    if (it.rewardMode === 'diff') {
+      var min = 0;
+      var max = 0;
+      var count = 0;
+      (it.rewardSchemes || []).forEach(function (scheme) {
+        var budget = schemeBudget(scheme);
+        min += budget.min;
+        max += budget.max;
+        count += budget.count;
+      });
+      return { min: toMoney(min), max: toMoney(max), count: count };
+    }
+    return schemeBudget(it);
+  }
+
+  function rewardBudgetText(item) {
+    var budget = configuredBudget(item);
+    if (budget.min !== budget.max) return moneyText(budget.min) + '-' + moneyText(budget.max);
+    return moneyText(budget.min);
+  }
+
+  function rewardPacketCountText(item) {
+    return String(configuredBudget(item).count || 0);
+  }
+
   function amountText(item) {
     return rewardContentText(item);
   }
@@ -712,7 +836,13 @@
   /** 剩余红包个数：红包总数减去已发放个数。自定义金额按各档剩余个数合计 */
   function remainPacketCount(item) {
     if (!item) return 0;
-    var it = item.rewardType ? item : normalize(item);
+    var it = item.rewardMode || item.rewardType ? item : normalize(item);
+    if (it.rewardMode === 'diff') {
+      return (it.rewardSchemes || []).reduce(function (sum, scheme) {
+        var one = Object.assign({}, scheme, { rewardMode: 'unified' });
+        return sum + remainPacketCount(one);
+      }, 0);
+    }
     if ((it.rewardType === 'custom_fixed' || it.rewardType === 'custom_random') && !(Number(it.packetTotal) > 0)) {
       var left = 0;
       (it.tiers || []).forEach(function (t) {
@@ -726,7 +856,12 @@
   }
 
   function canGrant(item) {
-    var it = item && item.rewardType ? item : normalize(item);
+    var it = item && (item.rewardMode || item.rewardType) ? item : normalize(item);
+    if (it.rewardMode === 'diff') {
+      return (it.rewardSchemes || []).some(function (scheme) {
+        return canGrant(Object.assign({}, scheme, { rewardMode: 'unified' }));
+      });
+    }
     if (it.rewardType === 'fixed') return it.singleAmount > 0 && it.packetIssued < it.packetTotal;
     if (it.rewardType === 'random') {
       return isTotalAmountOk(it.totalAmount) && it.packetIssued < it.packetTotal && it.budgetUsed < Number(it.totalAmount);
@@ -739,7 +874,16 @@
   var lastDrawTier = {};
 
   function rollAmount(item) {
-    var it = item && item.rewardType ? item : normalize(item);
+    var it = item && (item.rewardMode || item.rewardType) ? item : normalize(item);
+    if (it.rewardMode === 'diff') {
+      var schemes = it.rewardSchemes || [];
+      var s;
+      for (s = 0; s < schemes.length; s++) {
+        var scheme = Object.assign({}, schemes[s], { rewardMode: 'unified', id: it.id });
+        if (canGrant(scheme)) return rollAmount(scheme);
+      }
+      return 0;
+    }
     if (!canGrant(it)) return 0;
     if (it.rewardType === 'fixed') return capSingleGrant(it.singleAmount);
     if (it.rewardType === 'random') {
@@ -1082,8 +1226,13 @@
       return { ok: false, message: '结束时间需晚于开始时间' };
     }
     if (!item.ports.length) return { ok: false, message: '请选择活动领取终端' };
-    var rewardError = validateReward(item, payload);
-    if (rewardError) return { ok: false, message: rewardError };
+    if (item.rewardMode === 'diff') {
+      var diffError = validateDiff(item, payload);
+      if (diffError) return { ok: false, message: diffError };
+    } else {
+      var rewardError = validateReward(item, payload);
+      if (rewardError) return { ok: false, message: rewardError };
+    }
     if (item.claimCondition === 'register' && item.registerDays < 1) {
       return { ok: false, message: '请填写大于 0 的新注册天数' };
     }
@@ -1098,12 +1247,14 @@
         return { ok: false, message: item.orderDayCustom ? '请填写自定义天数' : '请选择累计天数范围' };
       }
     }
-    if (item.memberAudience === 'tag') {
-      if (!(item.memberTagIds && item.memberTagIds.length)) return { ok: false, message: '请选择会员标签' };
-    } else if (item.memberAudience === 'segment') {
-      if (!(item.memberSegmentIds && item.memberSegmentIds.length)) return { ok: false, message: '请选择会员分群' };
-    } else if (item.memberScope === 'specific' && !(item.memberLevelIds && item.memberLevelIds.length)) {
-      return { ok: false, message: '请选择会员等级' };
+    if (item.rewardMode !== 'diff') {
+      if (item.memberAudience === 'tag') {
+        if (!(item.memberTagIds && item.memberTagIds.length)) return { ok: false, message: '请选择会员标签' };
+      } else if (item.memberAudience === 'segment') {
+        if (!(item.memberSegmentIds && item.memberSegmentIds.length)) return { ok: false, message: '请选择会员分群' };
+      } else if (item.memberScope === 'specific' && !(item.memberLevelIds && item.memberLevelIds.length)) {
+        return { ok: false, message: '请选择会员等级' };
+      }
     }
     return { ok: true, item: item };
   }
@@ -1139,6 +1290,35 @@
   function tierAmount(rawTier, itemTier, key) {
     var source = rawTier && rawTier[key] != null && rawTier[key] !== '' ? rawTier[key] : itemTier ? itemTier[key] : 0;
     return toMoney(source);
+  }
+
+  function schemeDimName(audience) {
+    if (audience === 'tag') return '会员标签';
+    if (audience === 'segment') return '会员分群';
+    return '会员等级';
+  }
+
+  function validateDiff(item, payload) {
+    var schemes = item.rewardSchemes || [];
+    var rawList = payload && Array.isArray(payload.rewardSchemes) ? payload.rewardSchemes : [];
+    var dim = schemeDimName(item.memberAudience);
+    if (schemes.length < 2) return '差异化配置至少需要两组' + dim + '奖励';
+    var seen = {};
+    var i;
+    for (i = 0; i < schemes.length; i++) {
+      var scheme = schemes[i];
+      var title = dim + '方案 ' + (i + 1);
+      if (!(scheme.memberIds && scheme.memberIds.length)) return '请为' + title + '选择会员';
+      var m;
+      for (m = 0; m < scheme.memberIds.length; m++) {
+        var mid = scheme.memberIds[m];
+        if (seen[mid]) return '同一' + dim + '不能出现在两组奖励里';
+        seen[mid] = true;
+      }
+      var rewardError = validateReward(scheme, rawList[i] || scheme);
+      if (rewardError) return title + '：' + rewardError;
+    }
+    return '';
   }
 
   function validateReward(item, raw) {
@@ -1325,6 +1505,7 @@
       if (prev.status === 'PENDING' || prev.status === 'ACTIVE') {
         return { ok: false, message: '当前状态不可保存为草稿' };
       }
+      var fromDisabled = prev.status === 'DISABLED';
       item.id = prev.id;
       item.status = 'DRAFT';
       item.createdAt = prev.createdAt;
@@ -1333,7 +1514,17 @@
       item.remark = '';
       item.updatedAt = now;
       list[idx] = item;
-      pushLog(item.id, '保存草稿', '保存为草稿');
+      pushLog(
+        item.id,
+        '保存草稿',
+        fromDisabled ? '禁用后编辑保存，需重新审核通过并启用后方有效' : '保存为草稿'
+      );
+      persist();
+      return {
+        ok: true,
+        item: normalize(item),
+        message: fromDisabled ? '已保存。修改后需重新提交审核，审核通过并启用后方有效' : ''
+      };
     }
     persist();
     return { ok: true, item: normalize(item) };
@@ -1362,6 +1553,7 @@
       if (prev.status === 'PENDING' || prev.status === 'ACTIVE') {
         return { ok: false, message: '当前状态不可提交' };
       }
+      var fromDisabled = prev.status === 'DISABLED';
       item.id = prev.id;
       item.createdAt = prev.createdAt;
       item.budgetUsed = prev.budgetUsed;
@@ -1371,7 +1563,19 @@
       item.updatedAt = now;
       list[idx] = item;
       var pendingAudit = createPendingAudit(item);
-      pushLog(item.id, '提交审核', '提交审核，生成审核记录 ' + pendingAudit.id);
+      pushLog(
+        item.id,
+        '提交审核',
+        fromDisabled
+          ? '禁用后重新提交审核，审核通过并启用后方有效。审核记录 ' + pendingAudit.id
+          : '提交审核，生成审核记录 ' + pendingAudit.id
+      );
+      persist();
+      return {
+        ok: true,
+        item: normalize(item),
+        message: fromDisabled ? '已提交审核。审核通过并启用后方有效' : ''
+      };
     }
     persist();
     return { ok: true, item: normalize(item) };
@@ -1544,6 +1748,8 @@
     rewardTypeText: rewardTypeText,
     claimTimesText: claimTimesText,
     rewardContentText: rewardContentText,
+    rewardBudgetText: rewardBudgetText,
+    rewardPacketCountText: rewardPacketCountText,
     remainPacketCount: remainPacketCount,
     rewardSums: rewardSums,
     isTotalAmountOk: isTotalAmountOk,

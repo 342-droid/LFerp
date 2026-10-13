@@ -65,7 +65,7 @@
     var start = (state.page - 1) * state.pageSize;
     var rows = all.slice(start, start + state.pageSize);
     if (!rows.length) {
-      tbody.innerHTML = '<tr><td colspan="13" class="mkt-tpl-empty">未查询到符合条件的数据</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="15" class="mkt-tpl-empty">未查询到符合条件的数据</td></tr>';
     } else {
       tbody.innerHTML = rows
         .map(function (item) {
@@ -105,6 +105,12 @@
             '</td>' +
             '<td>' +
             escapeHtml(Store.rewardContentText(item)) +
+            '</td>' +
+            '<td>' +
+            escapeHtml(Store.rewardBudgetText(item)) +
+            '</td>' +
+            '<td>' +
+            escapeHtml(Store.rewardPacketCountText(item)) +
             '</td>' +
             '<td>' +
             escapeHtml(Store.portsText(item)) +

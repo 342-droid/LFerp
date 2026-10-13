@@ -1230,6 +1230,61 @@
     ensureSeedModes();
     ensureSeedFrontRemarks();
     ensureManualStatusDemos();
+    ensureClaimableDemos();
+  }
+
+  /** 演示账号多留几笔待领取的手动派发，小程序和 APP 都能领 */
+  function ensureClaimableDemos() {
+    var user = {
+      userId: 'U10086',
+      userName: '宁静致远',
+      userPhone: '159****4315'
+    };
+    function row(id, bill, at, amount, name, remark) {
+      return Object.assign({}, user, {
+        id: id,
+        outBillNo: bill,
+        transferBillNo: '',
+        grantedAt: at,
+        amount: amount,
+        activityType: 'manual',
+        activityId: 'MF2026101408',
+        activityName: name,
+        frontRemark: remark,
+        scene: 'manual',
+        ports: ['mini', 'app'],
+        port: '',
+        status: 'pending',
+        claimAt: ''
+      });
+    }
+    var emptyIdx = -1;
+    batches.forEach(function (batch, index) {
+      if (batch.id === 'MF2026101401') emptyIdx = index;
+    });
+    if (emptyIdx >= 0) {
+      batches.splice(emptyIdx, 1);
+      persistBatches();
+    }
+    pushDemoBatch(
+      {
+        id: 'MF2026101408',
+        name: '会员关怀补发',
+        ports: ['mini', 'app'],
+        createdAt: '2026-10-14 08:00:00',
+        finishedAt: '2026-10-14 08:00:08',
+        status: 'done',
+        creator: '王活动',
+        mode: 'single',
+        frontRemark: '关怀补发',
+        backRemark: '待用户领取'
+      },
+      [
+        row('CR91051', 'LFCR20261014081206051', '2026-10-14 08:12:06', 3, '生日关怀红包', '生日快乐'),
+        row('CR91052', 'LFCR20261013192018052', '2026-10-13 19:20:18', 0.88, '回访补发红包', '回访补发'),
+        row('CR91053', 'LFCR20261012110840053', '2026-10-12 11:08:40', 2.5, '开业加码红包', '开业加码')
+      ]
+    );
   }
 
   /** 演示单补前台备注：只补原来没有该字段的记录，已填写或留空的不覆盖 */

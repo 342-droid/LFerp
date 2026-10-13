@@ -926,6 +926,34 @@
   text-align: center;
 }
 
+.mkt-cr-mode-row {
+  margin-top: 8px;
+}
+
+.mkt-cr-scheme {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.mkt-cr-scheme__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-weight: 600;
+  line-height: 32px;
+}
+
+.mkt-cr-scheme-add {
+  margin-top: 12px;
+  width: auto;
+  padding: 0 14px;
+  font-size: 14px;
+}
+
 .mkt-cr-excel-tools {
   display: flex;
   align-items: center;

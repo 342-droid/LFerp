@@ -11,11 +11,20 @@
   var C = window.MdmMarketingCashRedpackStore;
   if (!RG || !C) return;
 
-  var statusFilter = '';
+  var STATUS_DEMO_KEY = 'ua_rp_cash_status_demo_v1';
+  var statusFilter = readStatusDemo();
   var BAG_CLAIM_KEY = 'ua_live_bag_cash_claim_v1';
   var BAG_DEMO_KEY = 'ua_live_bag_cash_demo_v1';
   var LIVE_CREDIT_KEY = 'ua_live_cash_credits_v1';
   var BAG_AMOUNT = 0.81;
+
+  function readStatusDemo() {
+    try {
+      var value = localStorage.getItem(STATUS_DEMO_KEY) || '';
+      if (value === 'pending' || value === 'claimed' || value === 'expired') return value;
+    } catch (e) {}
+    return '';
+  }
 
   function escapeHtml(str) {
     return String(str == null ? '' : str)
@@ -245,8 +254,8 @@
       if (/^\d{2}:\d{2}$/.test(at)) at = '2026-10-14 ' + at;
       rows.push({
         id: 'live-credit-' + (item.id || rows.length),
-        activityName: item.name || '现金红包',
-        sceneText: item.source || '现金红包',
+        activityName: item.name === '发送现金红包' ? '现金红包' : (item.name || '现金红包'),
+        sceneText: item.source === '发送现金红包' ? '现金红包' : (item.source || '现金红包'),
         amount: item.amount,
         grantedAt: at,
         claimAt: at,
@@ -259,12 +268,58 @@
     return rows;
   }
 
+  /** 当前用户若缺某一展示状态，补一条仅用于本页验收的记录，不改发放数据 */
+  function coverStatusSamples(list) {
+    var has = { pending: false, claimed: false, expired: false };
+    list.forEach(function (it) {
+      if (has[it.status] != null) has[it.status] = true;
+    });
+    if (!has.pending) {
+      list.push({
+        id: 'demo-status-pending',
+        activityType: 'manual',
+        activityName: '双端补偿红包',
+        frontRemark: '双端补差',
+        sceneText: '手动发放',
+        amount: 1.2,
+        grantedAt: '2026-10-07 10:00:00',
+        status: 'pending',
+        claimKind: 'sheet-demo'
+      });
+    }
+    if (!has.claimed) {
+      list.push({
+        id: 'demo-status-claimed',
+        activityName: '会员补偿红包',
+        frontRemark: '会员日补偿',
+        sceneText: '手动发放',
+        amount: 2,
+        grantedAt: '2026-09-20 11:06:18',
+        claimAt: '2026-09-20 11:20:06',
+        status: 'claimed',
+        outBillNo: 'LFCR20260920110618001'
+      });
+    }
+    if (!has.expired) {
+      list.push({
+        id: 'demo-status-expired',
+        activityName: '直播福袋红包',
+        sceneText: '新用户注册',
+        amount: 0.66,
+        grantedAt: '2026-07-20 14:30:12',
+        status: 'expired'
+      });
+    }
+    return list;
+  }
+
   function allRecords() {
     if (typeof C.getBatches === 'function') C.getBatches();
     var list = RG.listMyCashRecords().map(presentRecord);
     liveDirectRows().forEach(function (row) {
       list.push(presentRecord(row));
     });
+    coverStatusSamples(list);
     list.sort(function (a, b) {
       return String(b.grantedAt).localeCompare(String(a.grantedAt));
     });
@@ -505,6 +560,18 @@
         claimBag(item);
         return;
       }
+      if (id === 'demo-status-pending' && RG.showRedpackClaimSheet) {
+        RG.showRedpackClaimSheet('', {
+          preview: {
+            activityName: '双端补偿红包',
+            frontRemark: '双端补差',
+            scene: 'manual',
+            amount: 1.2,
+            status: 'pending'
+          }
+        });
+        return;
+      }
       /* 手动派发等待领取：再次打开用户领取弹窗；成功后金额飞入现金收益 */
       RG.goRedpackClaim(id, {
         onClaimed: function (record, from) {
@@ -513,6 +580,59 @@
           landEarn(from || item.getBoundingClientRect(), before);
         }
       });
+    });
+  }
+
+  function syncFilterTabs() {
+    document.querySelectorAll('.ua-rp-filter__btn').forEach(function (btn) {
+      btn.classList.toggle('is-active', (btn.getAttribute('data-status') || '') === statusFilter);
+    });
+  }
+
+  function layoutDemoStack() {
+    var stack = document.getElementById('uaRpDemoStack');
+    if (!stack) {
+      stack = document.createElement('div');
+      stack.id = 'uaRpDemoStack';
+      stack.className = 'ua-rp-demo-stack';
+      document.body.appendChild(stack);
+    }
+    ['uaBlDemo', 'uaRpCondDemo', 'uaRpStatusDemo'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) stack.appendChild(el);
+    });
+  }
+
+  function renderStatusDemo() {
+    if (document.getElementById('uaRpStatusDemo')) return;
+    var panel = document.createElement('div');
+    panel.id = 'uaRpStatusDemo';
+    panel.className = 'ua-rg-demo ua-rp-status-demo';
+    var mode = readStatusDemo();
+    function opt(value, label) {
+      return '<option value="' + value + '"' + (mode === value ? ' selected' : '') + '>' + label + '</option>';
+    }
+    panel.innerHTML =
+      '<div class="ua-rg-demo__title">现金红包验收开关</div>' +
+      '<label class="ua-rg-demo__row">展示状态' +
+      '<select id="uaRpStatusDemoMode">' +
+      opt('', '全部状态') +
+      opt('pending', '待领取') +
+      opt('claimed', '已领取') +
+      opt('expired', '已过期') +
+      '</select></label>' +
+      '<button type="button" class="ua-rg-demo__apply" id="uaRpStatusDemoApply">应用并刷新</button>';
+    document.body.appendChild(panel);
+    var apply = document.getElementById('uaRpStatusDemoApply');
+    if (!apply) return;
+    apply.addEventListener('click', function () {
+      var sel = document.getElementById('uaRpStatusDemoMode');
+      var next = sel ? sel.value : '';
+      try {
+        if (next) localStorage.setItem(STATUS_DEMO_KEY, next);
+        else localStorage.removeItem(STATUS_DEMO_KEY);
+      } catch (e) {}
+      window.location.reload();
     });
   }
 
@@ -535,7 +655,9 @@
       '</select></label>' +
       '<button type="button" class="ua-rg-demo__apply" id="uaRpPortDemoApply">应用并刷新</button>';
     document.body.appendChild(panel);
+    renderStatusDemo();
     renderCondDemo();
+    layoutDemoStack();
     var apply = document.getElementById('uaRpPortDemoApply');
     if (!apply) return;
     apply.addEventListener('click', function () {
@@ -589,6 +711,7 @@
       window.UaNav.applyBackLink('.ua-gd-nav__back', 'profile.html');
     }
     renderDemoPanel();
+    syncFilterTabs();
     bindFilter();
     bindList();
     render();
