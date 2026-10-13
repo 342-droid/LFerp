@@ -2264,7 +2264,11 @@
     if (!store || typeof store.getById !== 'function' || typeof store.rewardBlockReason !== 'function') return '';
     var item = store.getById(id);
     if (!item) return '';
-    if (store.rewardBlockReason(item) === '未到有效期') return redpackNotStartedTip(item.name);
+    var reason = store.rewardBlockReason(item);
+    if (reason === '未到有效期') return redpackNotStartedTip(item.name);
+    if (reason === '草稿' || reason === '待审核' || reason === '审核失败' || reason === '未审核通过') {
+      return '现金红包「' + (item.name || '现金红包') + '」' + reason + '，需审核通过后方可发放';
+    }
     return '';
   }
 

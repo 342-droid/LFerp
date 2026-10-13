@@ -410,12 +410,18 @@
     return true;
   }
 
+  function sourceText(source) {
+    var text = String(source || '');
+    if (text === '发送现金红包') return '现金红包';
+    return text;
+  }
+
   function rows() {
     var list = baseRows();
     readCredits().forEach(function (item) {
       list.unshift({
-        source: item.source,
-        name: item.name,
+        source: sourceText(item.source),
+        name: item.name === '发送现金红包' ? '现金红包' : item.name,
         amount: item.amount,
         at: item.at,
         wechat: true
@@ -582,7 +588,7 @@
     list.innerHTML = data.map(function (row) {
       return '<div class="ua-live-cash-sheet__item">' +
         '<div class="ua-live-cash-sheet__head">' +
-          '<span class="ua-live-cash-sheet__src">' + escapeHtml(row.source) + '</span>' +
+          '<span class="ua-live-cash-sheet__src">' + escapeHtml(sourceText(row.source)) + '</span>' +
           '<span class="ua-live-cash-sheet__money">' + money(row.amount) + '</span>' +
         '</div>' +
         '<div class="ua-live-cash-sheet__name">' + escapeHtml(row.name) + '</div>' +

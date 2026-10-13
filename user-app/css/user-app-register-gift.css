@@ -231,14 +231,39 @@
   width: 196px;
 }
 
-.ua-rp-cond-demo {
+/* 记录页左侧多块验收开关纵向排开，避免叠在同一位置 */
+.ua-rp-demo-stack {
+  position: fixed;
   left: 8px;
-  right: auto;
   bottom: 72px;
-  width: 236px;
+  z-index: 3400;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: stretch;
+  gap: 8px;
+  width: 228px;
+  max-height: calc(100vh - 96px);
+  overflow: auto;
+  pointer-events: none;
 }
 
-/* 红包领取半屏弹窗 */
+.ua-rp-demo-stack .ua-rg-demo,
+.ua-rp-demo-stack .ua-bl-demo {
+  position: relative;
+  left: auto;
+  right: auto;
+  top: auto;
+  bottom: auto;
+  width: 100%;
+  pointer-events: auto;
+  flex: 0 0 auto;
+}
+
+.ua-rp-demo-stack .ua-rg-demo__row select {
+  max-width: 118px;
+}
+
+/* 红包领取半屏弹窗：贴在手机框内，宽度跟客户端一致 */
 .ua-rp-sheet {
   position: fixed;
   inset: 0;
@@ -246,6 +271,10 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
+}
+
+.ua-mobile-shell > .ua-rp-sheet {
+  position: absolute;
 }
 
 .ua-rp-sheet__mask {
@@ -257,7 +286,7 @@
 .ua-rp-sheet__panel {
   position: relative;
   width: 100%;
-  max-width: 430px;
+  max-width: 393px;
   max-height: 72vh;
   padding: 0 0 calc(16px + env(safe-area-inset-bottom, 0px));
   background: linear-gradient(180deg, #ff8a3d 0%, #ff5a1f 36%, #fff 36%);

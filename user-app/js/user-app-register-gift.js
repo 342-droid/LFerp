@@ -380,7 +380,8 @@
     var C = CashStore();
     var id = String(cashId || '').trim();
     var record = id && C ? C.getById(id) : null;
-    if (record) syncPendingFromRecord(record);
+    if (!record && opts.preview) record = opts.preview;
+    if (record && id) syncPendingFromRecord(record);
 
     function sceneText(scene) {
       return C && C.sceneLabel
@@ -456,7 +457,8 @@
       '<a class="ua-rp-card__link" href="redpack-records.html">查看红包领取记录</a>' +
       '</div></div>';
 
-    document.body.appendChild(wrap);
+    var host = document.querySelector('.ua-mobile-shell') || document.body;
+    host.appendChild(wrap);
 
     function paint(rec) {
       var amountEl = document.getElementById('uaRpSheetAmount');
@@ -512,7 +514,10 @@
         return;
       }
       if (e.target.closest && e.target.closest('#uaRpSheetClaimBtn')) {
-        if (!id) return;
+        if (!id) {
+          showUaToast('当前没有可领取的发放记录');
+          return;
+        }
         var result = claimCash(id);
         if (result.ok) {
           var fromBtn = e.target.closest ? e.target.closest('#uaRpSheetClaimBtn') : e.target;
