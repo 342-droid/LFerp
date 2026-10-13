@@ -1,7 +1,9 @@
 /**
  * 用户 APP — 直播观看奖励
  * 仅在 B 端发放后开始统计观看时长；达标自动发奖并弹窗。
- * 验收开关：未发放 / 已发放未达标 / 达成各档 / 中断切新活动。
+ * 验收开关：未发放 / 已发放未达标 / 达成各档 / 现金红包到账 / 中断切新活动。
+ * 现金红包达标后弹窗：观看奖励到账、现金金额、已自动发放微信钱包。
+ * 点「开心收下」关闭弹窗，并播放金币落入现金红包账户。
  */
 (function (global) {
   'use strict';
@@ -28,6 +30,11 @@
         { threshold: 5, rewardType: 'POINTS', pointsAmount: 5 },
         { threshold: 15, rewardType: 'POINTS', pointsAmount: 20 }
       ]
+    },
+    'WT-CASH': {
+      id: 'WT-CASH',
+      name: '现金红包观看',
+      milestones: [{ threshold: 3, rewardType: 'CASH_REDPACK', cashAmount: 10 }]
     }
   };
 
@@ -86,6 +93,7 @@
         v === 'hit1' ||
         v === 'hit2' ||
         v === 'hitAll' ||
+        v === 'cash' ||
         v === 'switched'
       ) {
         return v;
@@ -112,9 +120,32 @@
           : null;
       return c ? '优惠券「' + c.name + '」' : m.couponName ? '优惠券「' + m.couponName + '」' : '优惠券';
     }
+    if (m.rewardType === 'CASH_REDPACK') return cashPrizeText(m.cashAmount);
     if (m.rewardType === 'FORTUNE_BAG') return '福袋';
     if (m.rewardType === 'NONE') return '无奖励';
     return '+' + (m.pointsAmount || 0) + ' 积分';
+  }
+
+  function cashPrizeText(amount) {
+    var n = Number(amount);
+    if (!isFinite(n)) n = 0;
+    var text = Math.abs(n - Math.round(n)) < 0.001 ? String(Math.round(n)) : n.toFixed(2);
+    return '现金¥' + text;
+  }
+
+  function modalCopy(m) {
+    if (m && m.rewardType === 'CASH_REDPACK') {
+      return {
+        prize: cashPrizeText(m.cashAmount != null ? m.cashAmount : 10),
+        desc: '观看满 ' + m.threshold + ' 分钟，奖励已自动发放微信钱包',
+        ok: '开心收下'
+      };
+    }
+    return {
+      prize: rewardText(m),
+      desc: '观看满 ' + (m && m.threshold) + ' 分钟，奖励已自动发放',
+      ok: '知道了'
+    };
   }
 
   function claimStoreKey(planId) {
@@ -156,6 +187,15 @@
         name: '晚间观看有礼'
       };
     }
+    if (mode === 'cash') {
+      return {
+        sessionId: sessionId(),
+        planId: 'demo-wt-cash',
+        templateId: 'WT-CASH',
+        status: 'active',
+        name: '现金红包观看'
+      };
+    }
     if (mode === 'switched') {
       return {
         sessionId: sessionId(),
@@ -193,6 +233,9 @@
       for (i = 0; i < Math.max(0, ms.length - 1); i++) prior.push(i);
       writeTime(issued.planId, (last && last.threshold ? last.threshold : 20) * 60);
       writeClaimed(issued.planId, prior);
+    } else if (mode === 'cash') {
+      writeTime(issued.planId, 3 * 60);
+      writeClaimed(issued.planId, []);
     } else if (mode === 'switched') {
       writeTime(issued.planId, 20);
       writeClaimed(issued.planId, []);
@@ -239,13 +282,63 @@
         '</div>';
       document.body.appendChild(modal);
       modal.addEventListener('click', function (ev) {
-        if (ev.target.closest('[data-wr-close]') || ev.target.closest('#uaWatchRewardOk')) closeModal();
+        var ok = ev.target.closest('#uaWatchRewardOk');
+        if (!ok && !ev.target.closest('[data-wr-close]')) return;
+        var cash = modalCash;
+        var from = document.getElementById('uaWatchRewardOk');
+        if (ok && cash && global.UaLiveBagCash) {
+          var watchOpts = {
+            id: cash.id,
+            source: '观看任务',
+            activityType: 'watch',
+            packetId: cash.id,
+            templateId: cash.templateId || '',
+            claimCondition: cash.claimCondition || '',
+            registerDays: cash.registerDays,
+            orderCount: cash.orderCount,
+            orderAmount: cash.orderAmount,
+            orderDayRange: cash.orderDayRange,
+            memberAudience: cash.memberAudience || '',
+            memberScope: cash.memberScope || '',
+            memberLevelIds: cash.memberLevelIds || [],
+            memberTagIds: cash.memberTagIds || [],
+            memberSegmentIds: cash.memberSegmentIds || [],
+            inLive: true
+          };
+          var block = typeof global.UaLiveBagCash.conditionBlock === 'function'
+            ? global.UaLiveBagCash.conditionBlock(watchOpts)
+            : '';
+          if (!block && typeof global.UaLiveBagCash.claimBlock === 'function') {
+            block = global.UaLiveBagCash.claimBlock(watchOpts);
+          }
+          if (block) {
+            var desc = document.getElementById('uaWatchRewardDesc');
+            if (desc) desc.textContent = block;
+            if (typeof global.UaLiveBagCash.showLimitTip === 'function') global.UaLiveBagCash.showLimitTip(block);
+            if (ok) ok.textContent = '知道了';
+            modalCash = null;
+            return;
+          }
+          if (typeof global.UaLiveBagCash.receive === 'function') {
+            global.UaLiveBagCash.receive({
+              id: cash.id,
+              source: '观看任务',
+              activityType: 'watch',
+              name: '现金红包',
+              packetId: cash.id,
+              amount: cash.amount,
+              fromEl: from
+            });
+          }
+        }
+        closeModal();
       });
     }
   }
 
   var modalQueue = [];
   var modalOpen = false;
+  var modalCash = null;
   var pointsOfflineToastShown = false;
 
   function isPointsMasterOn() {
@@ -264,30 +357,34 @@
     var el = document.getElementById('uaWatchRewardModal');
     if (el) el.hidden = true;
     modalOpen = false;
+    modalCash = null;
     if (modalQueue.length) {
       var next = modalQueue.shift();
       window.setTimeout(function () {
-        openModal(next.prize, next.desc);
+        openModal(next.prize, next.desc, next.ok, next.meta);
       }, 240);
     }
   }
 
-  function openModal(prize, desc) {
+  function openModal(prize, desc, ok, meta) {
     ensureUi();
     if (modalOpen) {
-      modalQueue.push({ prize: prize, desc: desc });
+      modalQueue.push({ prize: prize, desc: desc, ok: ok, meta: meta || null });
       return;
     }
+    modalCash = meta && meta.cash ? meta.cash : null;
     var el = document.getElementById('uaWatchRewardModal');
     var prizeEl = document.getElementById('uaWatchRewardPrize');
     var descEl = document.getElementById('uaWatchRewardDesc');
+    var okEl = document.getElementById('uaWatchRewardOk');
     if (prizeEl) prizeEl.textContent = prize;
     if (descEl) descEl.textContent = desc;
+    if (okEl) okEl.textContent = ok || '知道了';
     if (el) el.hidden = false;
     modalOpen = true;
   }
 
-  function grantDue(issued, watchSec) {
+  function grantDue(issued, watchSec, silent) {
     var tpl = findTemplate(issued.templateId);
     var ms = (tpl && tpl.milestones) || issued.milestones || [];
     var claimed = readClaimed(issued.planId).slice();
@@ -310,7 +407,20 @@
       }
       claimed.push(i);
       changed = true;
-      openModal(rewardText(ms[i]), '观看满 ' + ms[i].threshold + ' 分钟，奖励已自动发放');
+      if (silent) continue;
+      var copy = modalCopy(ms[i]);
+      var meta = null;
+      if (ms[i].rewardType === 'CASH_REDPACK') {
+        var cashAmount = Number(ms[i].cashAmount);
+        if (!isFinite(cashAmount) || cashAmount <= 0) cashAmount = 10;
+        meta = {
+          cash: {
+            id: 'watch:' + issued.planId + ':' + i,
+            amount: cashAmount
+          }
+        };
+      }
+      openModal(copy.prize, copy.desc, copy.ok, meta);
     }
     if (changed) writeClaimed(issued.planId, claimed);
     return claimed;
@@ -381,6 +491,9 @@
       '<option value="hitAll"' +
       (mode === 'hitAll' ? ' selected' : '') +
       '>全部档位已领</option>' +
+      '<option value="cash"' +
+      (mode === 'cash' ? ' selected' : '') +
+      '>现金红包到账</option>' +
       '<option value="switched"' +
       (mode === 'switched' ? ' selected' : '') +
       '>中断后按新活动</option>' +
@@ -408,7 +521,12 @@
     applyDemoSeed(issued);
     if (issued && !document.querySelector('.ua-live-room--bl-ban')) {
       var sec = readTime(issued.planId);
-      grantDue(issued, sec);
+      var skipModal = false;
+      try {
+        skipModal = sessionStorage.getItem('ua_skip_watch_reward_modal_v1') === '1';
+        if (skipModal) sessionStorage.removeItem('ua_skip_watch_reward_modal_v1');
+      } catch (e) {}
+      grantDue(issued, sec, skipModal);
       renderChip(issued, sec);
       window.setInterval(tick, 1000);
     } else {

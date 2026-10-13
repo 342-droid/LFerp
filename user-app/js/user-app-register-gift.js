@@ -281,6 +281,8 @@
     if (record.status !== 'pending') {
       return { ok: false, message: '当前状态不可领取', record: record };
     }
+    var denied = claimConditionDeny(record);
+    if (denied) return { ok: false, message: denied, condition: true, record: record };
 
     var client = getClientMode();
     if (typeof C.recordAllowsPort === 'function' && !C.recordAllowsPort(record, client)) {
@@ -288,7 +290,8 @@
         typeof C.portsLabel === 'function' && record.ports ? C.portsLabel(record.ports) : '指定端口';
       return { ok: false, message: '请到' + allowText + '领取', wrongPort: true, record: record };
     }
-    if (record.activityType !== 'manual' && typeof C.activityClaimRemainForRecord === 'function') {
+    var limitExempt = C.claimLimitExempt ? C.claimLimitExempt(record) : record.activityType === 'manual';
+    if (!limitExempt && typeof C.activityClaimRemainForRecord === 'function') {
       var quota = C.activityClaimRemainForRecord(record);
       if (quota && quota.limited && quota.remain === 0) {
         return { ok: false, message: quota.message || '无活动次数', noQuota: true, record: record };
@@ -332,6 +335,17 @@
     return (lines || []).filter(function (l) {
       return String(l).indexOf('现金红包') < 0;
     });
+  }
+
+  function claimConditionDeny(record) {
+    var store = global.MdmMarketingCashRedpackTplStore;
+    if (!store || typeof store.claimDenyMessage !== 'function') return '';
+    var item = record || {};
+    if (item.templateId && typeof store.getById === 'function') {
+      var tpl = store.getById(item.templateId);
+      if (tpl) item = tpl;
+    }
+    return store.claimDenyMessage(item, {});
   }
 
   function showUaToast(msg) {
@@ -379,9 +393,12 @@
     var amountHtml = record
       ? escapeHtml(String(record.amount || 0)) + '<em>元</em>'
       : '—<em>元</em>';
-    var metaText = record
-      ? (record.activityName || '注册有礼') + ' · ' + sceneText(record.scene)
-      : '暂无可领取的红包';
+    function packetMeta(rec) {
+      var name = C && C.packetTitle ? C.packetTitle(rec) : rec.activityName || '注册有礼';
+      return name + ' · ' + sceneText(rec.scene);
+    }
+
+    var metaText = record ? packetMeta(record) : '暂无可领取的红包';
     var labelText = '恭喜获得现金红包';
     var btnText = '立即领取';
     var btnDisabled = !record || record.status !== 'pending';
@@ -451,7 +468,7 @@
       if (!rec) return;
       if (amountEl) amountEl.innerHTML = escapeHtml(String(rec.amount || 0)) + '<em>元</em>';
       if (metaEl) {
-        metaEl.textContent = (rec.activityName || '注册有礼') + ' · ' + sceneText(rec.scene);
+        metaEl.textContent = packetMeta(rec);
       }
       if (done) done.hidden = true;
       if (failEl) failEl.hidden = true;
@@ -498,9 +515,14 @@
         if (!id) return;
         var result = claimCash(id);
         if (result.ok) {
+          var fromBtn = e.target.closest ? e.target.closest('#uaRpSheetClaimBtn') : e.target;
+          var fromBox = fromBtn && fromBtn.getBoundingClientRect ? fromBtn.getBoundingClientRect() : null;
+          var from = fromBox
+            ? { left: fromBox.left, top: fromBox.top, width: fromBox.width, height: fromBox.height }
+            : null;
           showUaToast(result.message || '红包领取成功');
           closeRedpackClaimSheet();
-          if (typeof opts.onClaimed === 'function') opts.onClaimed(result.record);
+          if (typeof opts.onClaimed === 'function') opts.onClaimed(result.record, from);
           return;
         }
         if (result.late) {
@@ -555,6 +577,13 @@
     if (record.status !== 'pending' && record.status !== 'claimed') {
       showUaToast('当前状态不可领取');
       return false;
+    }
+    if (record.status === 'pending') {
+      var denied = claimConditionDeny(record);
+      if (denied) {
+        showUaToast(denied);
+        return false;
+      }
     }
     showRedpackClaimSheet(id, opts);
     return true;
@@ -999,6 +1028,8 @@
     clearPending: clearPending,
     syncPendingFromRecord: syncPendingFromRecord,
     claimCash: claimCash,
+    claimConditionDeny: claimConditionDeny,
+    toast: showUaToast,
     claimPendingCash: claimPendingCash,
     listMyCashRecords: listMyCashRecords,
     showRedpackClaimSheet: showRedpackClaimSheet,

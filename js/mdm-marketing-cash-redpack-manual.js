@@ -126,6 +126,13 @@
     return bits;
   }
 
+  function nameHtml(row) {
+    var name = row.name || '—';
+    var remark = row.mode === 'batch' ? '' : String(row.frontRemark || '').trim();
+    if (!remark) return escapeHtml(name);
+    return escapeHtml(name) + '<span class="mkt-cr-name-remark">（' + escapeHtml(remark) + '）</span>';
+  }
+
   function remarkCell(row) {
     var pieces = remarkPieces(row);
     if (!pieces.length) return '<span class="mkt-cr-remark-cell is-empty">—</span>';
@@ -383,7 +390,7 @@
         return (
           '<tr>' +
           '<td>' + (rows.length - index) + '</td>' +
-          '<td>' + escapeHtml(row.name) + '</td>' +
+          '<td>' + nameHtml(row) + '</td>' +
           '<td>' + escapeHtml(Store.portsLabel(row.ports)) + '</td>' +
           '<td>' + escapeHtml(modeLabel(row.mode)) + '</td>' +
           '<td>' + sum.grantCount + '</td>' +

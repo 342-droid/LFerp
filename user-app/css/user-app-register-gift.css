@@ -231,6 +231,13 @@
   width: 196px;
 }
 
+.ua-rp-cond-demo {
+  left: 8px;
+  right: auto;
+  bottom: 72px;
+  width: 236px;
+}
+
 /* 红包领取半屏弹窗 */
 .ua-rp-sheet {
   position: fixed;
@@ -380,6 +387,77 @@
 }
 
 /* 红包领取记录 */
+.ua-rp-stats {
+  margin-bottom: 12px;
+  padding: 14px 8px 12px;
+  background: #fff;
+  border-radius: 12px;
+}
+
+.ua-rp-stats__earn {
+  text-align: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f3f3f3;
+}
+
+.ua-rp-stats__earn span {
+  font-size: 12px;
+  color: #999;
+}
+
+.ua-rp-stats__earn strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 28px;
+  line-height: 1.1;
+  font-weight: 800;
+  color: #ff5a1f;
+  letter-spacing: -0.4px;
+}
+
+.ua-rp-stats__earn.is-hit strong {
+  animation: uaRpEarnPop 0.45s ease;
+}
+
+@keyframes uaRpEarnPop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.14); }
+  100% { transform: scale(1); }
+}
+
+.ua-rp-flycoin {
+  position: fixed;
+  z-index: 2600;
+  width: 34px;
+  height: 34px;
+  margin: 0;
+  background: url('../assets/shop/live-gold-coin.png?v=20261014-bag-vivid') center/contain no-repeat;
+  filter: drop-shadow(0 0 8px rgba(255, 214, 90, 0.95));
+  pointer-events: none;
+}
+
+.ua-rp-stats__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  padding-top: 10px;
+  text-align: center;
+}
+
+.ua-rp-stats__grid b {
+  display: block;
+  font-size: 16px;
+  line-height: 1.2;
+  color: #222;
+}
+
+.ua-rp-stats__grid span {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  color: #999;
+}
+
 .ua-rp-filter {
   display: flex;
   gap: 8px;
@@ -519,5 +597,10 @@
 .ua-rp-status--muted {
   background: #f5f5f5;
   color: #999;
+}
+
+.ua-rp-status--expired {
+  background: #f4f4f5;
+  color: #909399;
 }
 

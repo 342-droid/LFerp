@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="../css/user-app-shell.css">
   <link rel="stylesheet" href="../css/user-app-profile.css">
   <link rel="stylesheet" href="../css/user-app-growth-detail.css">
-  <link rel="stylesheet" href="../css/user-app-register-gift.css?v=20261007-multi-port">
+  <link rel="stylesheet" href="../css/user-app-register-gift.css?v=20261014-front-remark">
 </head>
 <body class="user-app-body">
   <div class="ua-mobile-shell ua-gd-page ua-rp-records-page">
@@ -34,10 +34,12 @@
       </header>
 
       <div class="ua-gd-body">
+        <div class="ua-rp-stats" id="rpRecordsStats" aria-label="现金红包统计"></div>
         <div class="ua-rp-filter" role="tablist" aria-label="状态筛选">
           <button type="button" class="ua-rp-filter__btn is-active" data-status="">全部</button>
           <button type="button" class="ua-rp-filter__btn" data-status="pending">待领取</button>
           <button type="button" class="ua-rp-filter__btn" data-status="claimed">已领取</button>
+          <button type="button" class="ua-rp-filter__btn" data-status="expired">已过期</button>
         </div>
         <div class="ua-gd-list" id="rpRecordsList"></div>
         <div class="ua-gd-end" id="rpRecordsEnd">— 没有更多了 —</div>
@@ -46,8 +48,9 @@
   </div>
 <script src="../js/user-app-blacklist-guard.js"></script>
 <script src="../js/user-app-nav.js"></script>
-<script src="../../js/mdm-marketing-cash-redpack-store.js?v=20261012-daily-tier"></script>
-<script src="../js/user-app-register-gift.js?v=20261012-no-quota"></script>
-<script src="../js/user-app-redpack-records.js?v=20261007-multi-port"></script>
+<script src="../../js/mdm-marketing-cash-redpack-store.js?v=20261014-limit-exempt"></script>
+<script src="../../js/mdm-marketing-cash-redpack-tpl-store.js?v=20261014-front-remark"></script>
+<script src="../js/user-app-register-gift.js?v=20261014-limit-exempt"></script>
+<script src="../js/user-app-redpack-records.js?v=20261014-front-remark"></script>
 </body>
 </html>

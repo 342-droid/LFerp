@@ -883,6 +883,11 @@
   var LIVE_LEFT_DEMO_SELECTORS = [
     '.ua-live-sw-demo',
     '.ua-watch-reward-demo',
+    '.ua-live-bag-demo',
+    '.ua-live-signin-demo',
+    '.ua-live-rain-demo',
+    '.ua-live-limit-demo',
+    '.ua-live-cond-demo',
     '.ua-live-qc-demo',
     '.ua-live-invite-demo',
     '.ua-bl-demo'
@@ -6049,6 +6054,7 @@
     syncBadges: syncBadges,
     initHomePage: initHomePage,
     initLiveRoomPage: initLiveRoomPage,
+    scheduleLiveRoomLeftDemos: scheduleLiveRoomLeftDemos,
     initMallPage: initMallPage,
     initCategoryPage: initCategoryPage,
     initCartPage: initCartPage,

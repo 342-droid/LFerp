@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
     <link rel="stylesheet" href="../css/lf-marketing-points-home.css">
     <link rel="stylesheet" href="../css/lf-marketing-register-gift.css">
-    <link rel="stylesheet" href="../css/lf-marketing-cash-redpack.css?v=20261012-save-edit">
+    <link rel="stylesheet" href="../css/lf-marketing-cash-redpack.css?v=20261014-front-remark">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -99,7 +99,7 @@
                                         <span class="mkt-cr-claim-limit__text">次</span>
                                     </div>
                                 </div>
-                                <p class="mkt-cr-claim-limit__note">用户领取时，取总次数上限、每日限领次数（满足条件的对应档）、每场直播限领次数三者剩余次数的最小值；最小值为 0 时，客户点击领取提示「无活动次数」。单项填 0 表示该项不限制。总次数默认统计注册至今，也可改为近 N 日。手动派发红包不在此次数限制范围内。</p>
+                                <p class="mkt-cr-claim-limit__note">用户领取时，取总次数上限、每日限领次数（满足条件的对应档）、每场直播限领次数，以及单个红包限领的剩余最小值。剩余为 0 时按触顶项提示：单场次「领取失败，该场次红包已达上限！」，平台累计「领取失败，您已达平台领取上限！」，单个红包「领取失败，该红包已达领取上限！」，每日「领取失败，您今日领取已达上限！」。单项填 0 表示该项不限制。总次数默认统计注册至今，也可改为近 N 日。手动派发、签到、观看任务的现金红包不在此次数限制范围内。</p>
                             </fieldset>
                         </div>
                         <button type="button" class="btn btn-primary mkt-cr-save" id="crExpireSaveBtn">修改</button>
@@ -281,7 +281,7 @@
         </main>
     </div>
     <script src="../js/common.js"></script>
-    <script src="../js/mdm-marketing-cash-redpack-store.js?v=20261012-manual-dispatch"></script>
-    <script src="../js/mdm-marketing-cash-redpack.js?v=20261012-default-values"></script>
+    <script src="../js/mdm-marketing-cash-redpack-store.js?v=20261014-limit-exempt"></script>
+    <script src="../js/mdm-marketing-cash-redpack.js?v=20261014-front-remark"></script>
 </body>
 </html>

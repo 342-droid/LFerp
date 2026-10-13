@@ -196,6 +196,44 @@
       status: 'pending',
       claimAt: '',
       failReason: ''
+    },
+    {
+      id: 'CR10007',
+      outBillNo: 'LFCR20260720143012007',
+      transferBillNo: '1330000071100999991182020050700019480007',
+      grantedAt: '2026-07-20 14:30:12',
+      userId: 'U10086',
+      userName: '宁静致远',
+      userPhone: '159****4315',
+      userAvatar: '',
+      amount: 0.66,
+      activityType: 'register_gift',
+      activityId: 'RG10001',
+      activityName: '直播福袋红包',
+      scene: 'new_register',
+      port: 'mini',
+      status: 'expired',
+      claimAt: '',
+      failReason: ''
+    },
+    {
+      id: 'CR10008',
+      outBillNo: 'LFCR20260708190540008',
+      transferBillNo: '1330000071100999991182020050700019480008',
+      grantedAt: '2026-07-08 19:05:40',
+      userId: 'U10086',
+      userName: '宁静致远',
+      userPhone: '159****4315',
+      userAvatar: '',
+      amount: 1.5,
+      activityType: 'register_gift',
+      activityId: 'RG10002',
+      activityName: '观看任务红包',
+      scene: 'new_register',
+      port: 'app',
+      status: 'expired',
+      claimAt: '',
+      failReason: ''
     }
   ];
 
@@ -307,71 +345,193 @@
   }
 
   /**
-   * 活动领取剩余次数。手动发放不限制。
-   * 单项配置 0 表示该项不限制，不参与最小值。
-   * 每场直播限领只在有直播场次时参与。
-   * 当日下单：按当日下单金额匹配已达到的最高档；未达到任一档则该档为 0。档次数为 0 表示该档不限制。
-   * 参与项剩余次数的最小值为 0 时，用户点击领取提示「无活动次数」。
+   * 领取触顶文案。多项剩余同时为 0 时按此顺序取第一条：
+   * 单场次、平台累计、单个红包、每日。
+   * 手动派发不走这些限制。
+   */
+  var LIMIT_MSG = {
+    live: '领取失败，该场次红包已达上限！',
+    total: '领取失败，您已达平台领取上限！',
+    packet: '领取失败，该红包已达领取上限！',
+    daily: '领取失败，您今日领取已达上限！'
+  };
+  var LIMIT_ORDER = ['live', 'total', 'packet', 'daily'];
+  var CLAIM_LEDGER_KEY = 'ua_live_cash_claim_ledger_v1';
+
+  function readClaimLedger() {
+    try {
+      var data = JSON.parse(localStorage.getItem(CLAIM_LEDGER_KEY) || 'null');
+      if (data && Array.isArray(data.items)) return data.items;
+    } catch (e) {}
+    return [];
+  }
+
+  function currentClientUserId() {
+    try {
+      var raw = localStorage.getItem('ua_user_session_v1');
+      var session = raw ? JSON.parse(raw) : null;
+      if (session && (session.userId || session.id)) return String(session.userId || session.id);
+    } catch (e) {}
+    return 'U10086';
+  }
+
+  /** 当日已支付订单金额，供「当日下单」档位匹配。未传金额时由领取判断自行读取。 */
+  function todayPaidAmount() {
+    var api = global.UaOrdersStore;
+    if (!api || typeof api.list !== 'function') return 0;
+    var today = todayKey();
+    var sum = 0;
+    api.list().forEach(function (order) {
+      if (!order) return;
+      var status = String(order.status || '');
+      if (status === 'unpaid' || status === 'closed' || status === 'cancelled') return;
+      if (dayKey(order.paidAt) !== today) return;
+      sum += Number(order.payable) || 0;
+    });
+    return Math.round(sum * 100) / 100;
+  }
+
+  /**
+   * 手动派发、签到、观看任务的现金红包不占领取次数，也不受次数上限拦截。
+   * 识别活动类型和来源，避免前后端各写一套。
+   */
+  function claimLimitExempt(ctx) {
+    ctx = ctx || {};
+    if (ctx.manual || ctx.limitExempt || ctx.exempt) return true;
+    var type = String(ctx.activityType || '').toLowerCase();
+    if (
+      type === 'manual' ||
+      type === 'sign' ||
+      type === 'signin' ||
+      type === 'sign_in' ||
+      type === 'watch' ||
+      type === 'watch_task' ||
+      type === 'task'
+    ) {
+      return true;
+    }
+    var source = String(ctx.source || '');
+    return source === '签到' || source === '观看任务';
+  }
+
+  /**
+   * 活动领取剩余次数。
+   * 取总次数、每日限领（满足条件的对应档）、每场直播、单个红包的剩余最小值。
+   * 单项配置 0 表示不限制，不参与最小值。每场直播只在直播场次内参与。
+   * 当日下单：按当日下单金额匹配已达到的最高档；未达到任一档则该档剩余为 0。档次数填 0 表示该档不限制。
+   * 总次数窗口：totalDayRange 为 0 统计注册至今，大于 0 统计近 N 日。
+   * 剩余为 0 时按触顶项返回文案。手动派发、签到、观看任务不限制。
    */
   function activityClaimRemain(ctx) {
     ctx = ctx || {};
-    if (ctx.activityType === 'manual') return { limited: false, remain: null, message: '' };
-    var s = getSettings();
-    var caps = [];
-    if (ctx.inLive && s.liveLimit > 0) {
-      caps.push(Math.max(0, s.liveLimit - Math.max(0, Math.round(Number(ctx.usedLive) || 0))));
+    if (claimLimitExempt(ctx)) {
+      return { limited: false, remain: null, reason: '', message: '' };
     }
+    var s = getSettings();
+    var hits = [];
+    function add(reason, remain) {
+      hits.push({ reason: reason, remain: Math.max(0, remain) });
+    }
+    if (ctx.inLive && s.liveLimit > 0) {
+      add('live', s.liveLimit - Math.max(0, Math.round(Number(ctx.usedLive) || 0)));
+    }
+    var orderAmount = ctx.orderAmountToday;
+    if (orderAmount == null || orderAmount === '') orderAmount = todayPaidAmount();
     if (s.dailyMode === 'order_today') {
       var dailyTiers = s.dailyTiers || [];
       if (dailyTiers.length) {
-        var matched = matchDailyTier(dailyTiers, ctx.orderAmountToday);
-        if (!matched) caps.push(0);
+        var matched = matchDailyTier(dailyTiers, orderAmount);
+        if (!matched) add('daily', 0);
         else if (matched.count > 0) {
-          caps.push(Math.max(0, matched.count - Math.max(0, Math.round(Number(ctx.usedToday) || 0))));
+          add('daily', matched.count - Math.max(0, Math.round(Number(ctx.usedToday) || 0)));
         }
       }
     } else if (s.dailyLimit > 0) {
-      caps.push(Math.max(0, s.dailyLimit - Math.max(0, Math.round(Number(ctx.usedToday) || 0))));
+      add('daily', s.dailyLimit - Math.max(0, Math.round(Number(ctx.usedToday) || 0)));
     }
     if (s.totalLimit > 0) {
-      caps.push(Math.max(0, s.totalLimit - Math.max(0, Math.round(Number(ctx.usedTotal) || 0))));
+      add('total', s.totalLimit - Math.max(0, Math.round(Number(ctx.usedTotal) || 0)));
     }
-    if (!caps.length) return { limited: false, remain: null, message: '' };
-    var remain = caps[0];
-    caps.forEach(function (n) {
-      if (n < remain) remain = n;
+    var packetLimit = Math.max(0, Math.round(Number(ctx.packetLimit) || 0));
+    if (packetLimit > 0) {
+      add('packet', packetLimit - Math.max(0, Math.round(Number(ctx.usedPacket) || 0)));
+    }
+    if (ctx.templateOnce) {
+      add('packet', 1 - Math.max(0, Math.round(Number(ctx.usedTemplate) || 0)));
+    }
+    if (!hits.length) return { limited: false, remain: null, reason: '', message: '' };
+    var remain = hits[0].remain;
+    hits.forEach(function (hit) {
+      if (hit.remain < remain) remain = hit.remain;
     });
-    if (remain === 0) return { limited: true, remain: 0, message: '无活动次数' };
-    return { limited: true, remain: remain, message: '' };
+    if (remain > 0) return { limited: true, remain: remain, reason: '', message: '' };
+    var reason = '';
+    LIMIT_ORDER.forEach(function (key) {
+      if (reason) return;
+      hits.forEach(function (hit) {
+        if (!reason && hit.reason === key && hit.remain === 0) reason = key;
+      });
+    });
+    if (!LIMIT_MSG[reason]) reason = 'daily';
+    return { limited: true, remain: 0, reason: reason, message: LIMIT_MSG[reason] };
   }
 
   function activityClaimRemainForRecord(record) {
     var item = record || {};
-    if (item.activityType === 'manual') return activityClaimRemain(item);
+    if (claimLimitExempt(item)) return activityClaimRemain(item);
     ensureLoaded();
     var userId = String(item.userId || '');
-    var liveId = String(item.liveId || '');
+    var liveId = String(item.liveId || item.sessionId || '');
+    var packetId = String(item.packetId || '');
+    var templateId = String(item.templateId || '');
     var today = todayKey();
     var totalDays = getSettings().totalDayRange;
     var usedTotal = 0;
     var usedToday = 0;
     var usedLive = 0;
+    var usedPacket = 0;
+    var usedTemplate = 0;
+    var seen = {};
+    function addUse(id, at, rowLive, rowPacket, rowTemplate) {
+      var key = String(id || at || '');
+      if (!key || seen[key]) return;
+      seen[key] = true;
+      if (inTotalWindow(at, totalDays)) usedTotal += 1;
+      if (dayKey(at) === today) usedToday += 1;
+      if (liveId && String(rowLive || '') === liveId) usedLive += 1;
+      if (packetId && String(rowPacket || '') === packetId) usedPacket += 1;
+      if (templateId && String(rowTemplate || '') === templateId) usedTemplate += 1;
+    }
     list.forEach(function (it) {
-      if (!it || it.activityType === 'manual' || it.status !== 'claimed') return;
+      if (!it || claimLimitExempt(it) || it.status !== 'claimed') return;
       if (String(it.id) === String(item.id)) return;
-      if (String(it.userId || '') !== userId) return;
-      if (inTotalWindow(it.claimAt || it.grantedAt, totalDays)) usedTotal += 1;
-      if (dayKey(it.claimAt || it.grantedAt) === today) usedToday += 1;
-      if (liveId && String(it.liveId || '') === liveId) usedLive += 1;
+      if (userId && String(it.userId || '') !== userId) return;
+      addUse(it.id, it.claimAt || it.grantedAt, it.liveId, it.packetId, it.templateId);
     });
+    if (!userId || userId === currentClientUserId()) {
+      readClaimLedger().forEach(function (it) {
+        if (!it || it.manual || it.exempt || claimLimitExempt(it)) return;
+        addUse(it.id, it.at, it.sessionId, it.packetId, it.templateId);
+      });
+    }
+    var packetLimit = Math.max(0, Math.round(Number(item.perUserLimit) || 0));
+    var templateOnce = item.claimTimesMode === 'per_user';
+    var tplStore = global.MdmMarketingCashRedpackTplStore;
+    if (!templateOnce && templateId && tplStore && typeof tplStore.getById === 'function') {
+      var tpl = tplStore.getById(templateId);
+      if (tpl && tpl.claimTimesMode === 'per_user') templateOnce = true;
+    }
     return activityClaimRemain({
       activityType: item.activityType,
       inLive: !!liveId,
-      orderedToday: !!item.orderedToday,
       orderAmountToday: item.orderAmountToday,
       usedTotal: usedTotal,
       usedToday: usedToday,
-      usedLive: usedLive
+      usedLive: usedLive,
+      usedPacket: usedPacket,
+      packetLimit: packetLimit,
+      usedTemplate: usedTemplate,
+      templateOnce: templateOnce
     });
   }
 
@@ -433,6 +593,8 @@
     if (!ACTIVITY_TYPE_LABEL[item.activityType]) item.activityType = 'register_gift';
     item.activityId = String(item.activityId || '');
     item.activityName = String(item.activityName || '').trim() || '—';
+    if (item.frontRemark == null) item.frontRemark = DEMO_FRONT_REMARK[item.id] || '';
+    else item.frontRemark = String(item.frontRemark).trim();
     if (item.activityType === 'manual') item.scene = 'manual';
     else if (item.scene !== 'old_first_download') item.scene = 'new_register';
     var explicitPorts = portsOf(item);
@@ -468,6 +630,23 @@
     } catch (e) {}
   }
 
+  /** 已有本地明细时只补本页需要的已过期演示单，避免把删掉的种子数据加回来 */
+  var DEMO_EXPIRED_IDS = { CR10007: true, CR10008: true };
+
+  function mergeMissingSeed() {
+    var ids = {};
+    list.forEach(function (it) {
+      if (it && it.id) ids[String(it.id)] = true;
+    });
+    var added = false;
+    SEED.forEach(function (row) {
+      if (!row || !row.id || !DEMO_EXPIRED_IDS[String(row.id)] || ids[String(row.id)]) return;
+      list.push(normalizeItem(row));
+      added = true;
+    });
+    if (added) persist();
+  }
+
   function ensureLoaded() {
     if (loaded) return;
     loaded = true;
@@ -478,6 +657,7 @@
         var parsed = JSON.parse(raw);
         if (Array.isArray(parsed) && parsed.length) {
           list = parsed.map(normalizeItem);
+          mergeMissingSeed();
           return;
         }
       }
@@ -618,8 +798,11 @@
   }
 
   function parseLocal(dt) {
-    if (!dt) return null;
-    var s = String(dt).trim().replace(' ', 'T');
+    if (dt == null || dt === '') return null;
+    if (typeof dt === 'number') return isFinite(dt) ? dt : null;
+    var s = String(dt).trim();
+    if (/^\d{13}$/.test(s)) return Number(s);
+    s = s.replace(' ', 'T');
     var t = Date.parse(s);
     return isNaN(t) ? null : t;
   }
@@ -841,6 +1024,7 @@
       status: 'done',
       creator: '张运营',
       mode: 'single',
+      frontRemark: '会员日补偿',
       backRemark: '会员补偿'
     },
     {
@@ -862,7 +1046,8 @@
       finishedAt: '2026-10-07 10:00:02',
       status: 'done',
       creator: '王活动',
-      mode: 'single'
+      mode: 'single',
+      frontRemark: '双端补差'
     }
   ];
 
@@ -879,6 +1064,7 @@
       activityType: 'manual',
       activityId: 'MF2026092001',
       activityName: '会员补偿红包',
+      frontRemark: '会员日补偿',
       scene: 'manual',
       port: 'app',
       status: 'claimed',
@@ -945,12 +1131,23 @@
       activityType: 'manual',
       activityId: 'MF2026100703',
       activityName: '双端补偿红包',
+      frontRemark: '双端补差',
       scene: 'manual',
       ports: ['mini', 'app'],
       port: '',
       status: 'pending'
     }
   ];
+
+  var DEMO_FRONT_REMARK = {
+    CR91001: '会员日补偿',
+    CR91005: '双端补差'
+  };
+
+  var DEMO_BATCH_FRONT_REMARK = {
+    MF2026092001: '会员日补偿',
+    MF2026100703: '双端补差'
+  };
 
   function persistBatches() {
     try {
@@ -1031,7 +1228,34 @@
     ensureDualPortDemo();
     ensureSeedCreators();
     ensureSeedModes();
+    ensureSeedFrontRemarks();
     ensureManualStatusDemos();
+  }
+
+  /** 演示单补前台备注：只补原来没有该字段的记录，已填写或留空的不覆盖 */
+  function ensureSeedFrontRemarks() {
+    var changed = false;
+    batches.forEach(function (batch) {
+      if (batch.frontRemark != null || !DEMO_BATCH_FRONT_REMARK[batch.id]) return;
+      batch.frontRemark = DEMO_BATCH_FRONT_REMARK[batch.id];
+      changed = true;
+    });
+    if (changed) persistBatches();
+    var recordChanged = false;
+    list.forEach(function (item) {
+      if (item.frontRemark != null || !DEMO_FRONT_REMARK[item.id]) return;
+      item.frontRemark = DEMO_FRONT_REMARK[item.id];
+      recordChanged = true;
+    });
+    if (recordChanged) persist();
+  }
+
+  function packetTitle(item) {
+    var name = String((item && item.activityName) || '').trim();
+    if (!name || name === '—') name = '现金红包';
+    var remark = String((item && item.frontRemark) || '').trim();
+    if (!remark) return name;
+    return name + '（' + remark + '）';
   }
 
   function ensureSeedModes() {
@@ -1095,6 +1319,7 @@
           activityType: 'manual',
           activityId: 'MF2026100703',
           activityName: '双端补偿红包',
+          frontRemark: '双端补差',
           scene: 'manual',
           ports: ['mini', 'app'],
           port: '',
@@ -2035,6 +2260,8 @@
     ACTIVITY_TYPE_LABEL: ACTIVITY_TYPE_LABEL,
     ACTIVITY_SCENES: ACTIVITY_SCENES,
     normalizeItem: normalizeItem,
+    claimLimitExempt: claimLimitExempt,
+    packetTitle: packetTitle,
     getAll: getAll,
     getById: getById,
     addRecord: addRecord,

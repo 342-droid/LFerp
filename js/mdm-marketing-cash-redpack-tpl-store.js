@@ -30,7 +30,21 @@
     custom_fixed: '自定义（固定）',
     custom_random: '自定义（随机）'
   };
-  var CLAIM_LABEL = { none: '无条件', register: '新注册用户', order_count: '累计下单笔数', order_amount: '累计下单金额' };
+  var CLAIM_LABEL = {
+    none: '无条件',
+    register: '新注册用户',
+    order_amount: '累计天数范围内的累计下单金额',
+    order_count: '累计天数范围内的累计下单笔数'
+  };
+  /** 未满足模板领取条件时，客户端固定提示 */
+  var CLAIM_DENY_MSG = {
+    register: '抱歉，您暂不符合领取条件！',
+    order_amount: '您的累计下单金额未达到领取条件！',
+    order_count: '您的累计下单笔数未达到领取条件！'
+  };
+  /** 不在会员等级、分群或标签领取范围内 */
+  var MEMBER_DENY_MSG = '抱歉，您暂不符合该红包的领取条件！';
+  var CLAIM_DEMO_KEY = 'ua_cash_claim_cond_demo_v1';
   var CLAIM_TIMES_LABEL = { per_user: '每人限领', unlimited: '不限次数' };
   /** 累计天数范围。1 展示为「1(即今日)」，与统计口径文案对应 */
   var DAY_RANGE_OPTIONS = [1, 3, 7, 15, 30, 60, 90, 180, 365];
@@ -410,6 +424,47 @@
         label: reason ? it.name + '（' + reason + '）' : it.name
       };
     });
+  }
+
+  function rewardPhase(item) {
+    if (!item) return 'other';
+    var start = parseAt(item.startAt);
+    var end = parseAt(item.endAt);
+    if (isNaN(start) || isNaN(end)) return 'other';
+    var now = Date.now();
+    if (now < start) return 'notStarted';
+    if (now > end) return 'expired';
+    return 'active';
+  }
+
+  /**
+   * 关联现金红包的下拉：只保留可关联的。有效期内的在前，未到有效期其次，并带上有效期。
+   * 草稿、待审核、审核失败、已禁用、已过有效期不出现在下拉中。
+   */
+  function listBindOptions() {
+    var list = listRewardOptions({ allowNotStarted: true }).filter(function (opt) {
+      return opt.selectable;
+    }).map(function (opt) {
+      var row = getById(opt.id);
+      var phase = rewardPhase(row);
+      var period = activityTimeText(row);
+      var periodText = period && period !== '—' ? period : '';
+      var label = opt.name + (periodText ? '（有效期 ' + periodText + '）' : '');
+      return {
+        id: opt.id,
+        name: opt.name,
+        selectable: true,
+        reason: '',
+        periodText: periodText,
+        phase: phase,
+        sortRank: phase === 'notStarted' ? 1 : 0,
+        label: label
+      };
+    });
+    list.sort(function (a, b) {
+      return a.sortRank - b.sortRank;
+    });
+    return list;
   }
 
   function isRewardSelectable(id, options) {
@@ -848,6 +903,93 @@
       return '累计下单笔数' + (item.orderCount || 0) + '笔（' + day + '）';
     }
     return '无条件';
+  }
+
+  function readClaimDemo() {
+    try {
+      return localStorage.getItem(CLAIM_DEMO_KEY) || '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function memberRestricted(item) {
+    if (!item) return false;
+    var audience = item.memberAudience === 'tag' || item.memberAudience === 'segment' ? item.memberAudience : 'level';
+    if (audience === 'tag') return !!(item.memberTagIds && item.memberTagIds.length);
+    if (audience === 'segment') return !!(item.memberSegmentIds && item.memberSegmentIds.length);
+    return item.memberScope === 'specific' && !!(item.memberLevelIds && item.memberLevelIds.length);
+  }
+
+  function idHit(have, need) {
+    var set = {};
+    (have || []).forEach(function (id) {
+      set[String(id)] = true;
+    });
+    var i;
+    for (i = 0; i < (need || []).length; i++) {
+      if (set[String(need[i])]) return true;
+    }
+    return false;
+  }
+
+  /** 原型未提供会员身份时视为在范围内；显式传入且未命中才拦截 */
+  function memberMiss(item, profile) {
+    if (!memberRestricted(item)) return false;
+    profile = profile || {};
+    var audience = item.memberAudience === 'tag' || item.memberAudience === 'segment' ? item.memberAudience : 'level';
+    if (audience === 'tag') {
+      if (profile.memberTagIds == null) return false;
+      return !idHit(profile.memberTagIds, item.memberTagIds);
+    }
+    if (audience === 'segment') {
+      if (profile.memberSegmentIds == null) return false;
+      return !idHit(profile.memberSegmentIds, item.memberSegmentIds);
+    }
+    if (profile.memberLevelId == null && profile.memberLevelIds == null) return false;
+    var have = profile.memberLevelIds || [profile.memberLevelId];
+    return !idHit(have, item.memberLevelIds);
+  }
+
+  /**
+   * 未满足领取条件时返回客户端文案，满足或无条件时返回空串。
+   * 验收开关写入 CLAIM_DEMO_KEY：register / order_amount / order_count / level / segment / tag。
+   * 无限制红包在验收开关打开时也展示对应文案，便于客户端验收；有条件时只拦截被点名的那一项。
+   * 未打开开关时，原型用户默认在会员范围内，且满足新注册、下单金额与笔数条件。
+   * 会员范围不通过时优先于下单/注册条件。
+   */
+  function claimDenyMessage(item, profile) {
+    item = item || {};
+    profile = profile || {};
+    var demo = profile.demo != null ? profile.demo : readClaimDemo();
+    if (demo === 'audience' || demo === 'level' || demo === 'segment' || demo === 'tag') return MEMBER_DENY_MSG;
+    if (demo !== 'register' && demo !== 'order_amount' && demo !== 'order_count' && memberMiss(item, profile)) {
+      return MEMBER_DENY_MSG;
+    }
+    var claim = item.claimCondition || 'none';
+    if (claim === 'order') {
+      claim = Number(item.orderAmount) > 0 && Number(item.orderCount) < 1 ? 'order_amount' : 'order_count';
+    }
+    if (demo === 'register' || demo === 'order_amount' || demo === 'order_count') {
+      if (claim === 'none' || claim === demo) return CLAIM_DENY_MSG[demo];
+    }
+    if (claim === 'none') return '';
+    if (claim === 'register') {
+      var age = profile.registerAgeDays != null ? Number(profile.registerAgeDays) : 0;
+      if (age > Number(item.registerDays || 0)) return CLAIM_DENY_MSG.register;
+      return '';
+    }
+    if (claim === 'order_amount') {
+      var haveAmt = profile.orderAmount != null ? Number(profile.orderAmount) : 999999;
+      if (haveAmt + 0.0001 < Number(item.orderAmount || 0)) return CLAIM_DENY_MSG.order_amount;
+      return '';
+    }
+    if (claim === 'order_count') {
+      var haveCnt = profile.orderCount != null ? Number(profile.orderCount) : 999;
+      if (haveCnt < Number(item.orderCount || 0)) return CLAIM_DENY_MSG.order_count;
+      return '';
+    }
+    return '';
   }
 
   function currentMinuteValue() {
@@ -1384,6 +1526,10 @@
     SCENE_OPTIONS: SCENE_OPTIONS,
     AMOUNT_MODE_LABEL: AMOUNT_MODE_LABEL,
     CLAIM_LABEL: CLAIM_LABEL,
+    CLAIM_DENY_MSG: CLAIM_DENY_MSG,
+    MEMBER_DENY_MSG: MEMBER_DENY_MSG,
+    CLAIM_DEMO_KEY: CLAIM_DEMO_KEY,
+    claimDenyMessage: claimDenyMessage,
     DAY_RANGE_OPTIONS: DAY_RANGE_OPTIONS,
     dayRangeLabel: dayRangeLabel,
     dayRangeHint: dayRangeHint,
@@ -1416,6 +1562,7 @@
     listRows: listRows,
     listForAssociate: listForAssociate,
     listRewardOptions: listRewardOptions,
+    listBindOptions: listBindOptions,
     isRewardSelectable: isRewardSelectable,
     rewardBlockReason: rewardBlockReason,
     saveDraft: saveDraft,

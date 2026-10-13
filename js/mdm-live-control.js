@@ -76,6 +76,7 @@
     tab: 'issue',
     planId: '',
     duration: '',
+    preheat: '',
     quantity: '',
     perUserLimit: '1',
     winnerCount: '',
@@ -136,11 +137,11 @@
       type: 'CASH_REDPACK',
       title: '发送现金红包',
       issueTab: '发送现金红包',
-      recordTab: '发送记录',
+      recordTab: '现金红包记录',
       primary: '立即发送',
       panelClass: 'is-bag',
       emptyPlan: '该场次暂无绑定的现金红包',
-      emptyRecord: '暂无发送记录'
+      emptyRecord: '暂无现金红包记录'
     }
   };
   var WELFARE_GIFT_ICO =
@@ -1733,6 +1734,45 @@
     return false;
   }
 
+  function publishCashRedpackRound(plan, w, status) {
+    if (!Demo.publishCashRedpackIssue) return;
+    var current = Demo.readCashRedpackIssue ? Demo.readCashRedpackIssue() : null;
+    if (!w || status === 'CLOSED') {
+      if (current && w && String(current.id) !== String(w.id)) return;
+      if (current) Demo.publishCashRedpackIssue(Object.assign({}, current, { status: 'CLOSED' }));
+      return;
+    }
+    var live = liveRedpackFields(plan);
+    var amount = redpackDemoAmount(plan, w.roundIndex || 0);
+    if (!(amount > 0)) amount = 0.88;
+    var tplStore = window.MdmMarketingCashRedpackTplStore;
+    var tplId = (plan && plan.templateId) || '';
+    var tpl = tplStore && tplStore.getById && tplId ? tplStore.getById(tplId) : null;
+    Demo.publishCashRedpackIssue({
+      sessionId: sessionId,
+      id: w.id,
+      name: live.name || '现金红包',
+      templateId: tplId,
+      amount: Math.round(amount * 100) / 100,
+      perUserLimit: Math.max(0, Math.round(Number(w.perUserLimit) || 0)),
+      claimTimesMode: tpl && tpl.claimTimesMode === 'per_user' ? 'per_user' : 'unlimited',
+      claimCondition: tpl && tpl.claimCondition ? tpl.claimCondition : 'none',
+      registerDays: tpl ? tpl.registerDays || 0 : 0,
+      orderCount: tpl ? tpl.orderCount || 0 : 0,
+      orderAmount: tpl ? tpl.orderAmount || 0 : 0,
+      orderDayRange: tpl ? tpl.orderDayRange || 1 : 1,
+      memberAudience: tpl && tpl.memberAudience ? tpl.memberAudience : 'level',
+      memberScope: tpl && tpl.memberScope ? tpl.memberScope : 'all',
+      memberLevelIds: tpl && tpl.memberLevelIds ? tpl.memberLevelIds : [],
+      memberTagIds: tpl && tpl.memberTagIds ? tpl.memberTagIds : [],
+      memberSegmentIds: tpl && tpl.memberSegmentIds ? tpl.memberSegmentIds : [],
+      preheatSec: redpackPreheatSec(w),
+      durationSec: redpackClaimSec(w),
+      startedAt: Date.now(),
+      status: 'ACTIVE'
+    });
+  }
+
   function publishActiveWatchReward(plan) {
     if (!Demo.publishWatchRewardIssue) return;
     var sess = findSession(sessionId);
@@ -2299,7 +2339,7 @@
           positive.forEach(function (n) {
             if (n > maxTier) maxTier = n;
           });
-          parts.push('每日限领：按当日下单金额档位，最高 ' + maxTier + ' 次');
+          parts.push('每日限领：领取时按当日下单金额匹配对应档，最高 ' + maxTier + ' 次');
           caps.push({ n: maxTier, label: '当日下单最高档限领 ' + maxTier + ' 次' });
         } else {
           parts.push(tiers.length ? '每日限领：按当日下单金额档位（有档位次数为 0，该项不限制）' : '每日限领：按当日下单金额档位');
@@ -2329,6 +2369,10 @@
   }
 
   function redpackPerUserCheck(plan, raw) {
+    var text = String(raw == null ? '' : raw).trim();
+    if (text === '0') {
+      return { ok: true, empty: false, value: 0, rule: redpackClaimRule(plan) };
+    }
     var parsed = requiredPositiveInt(raw);
     if (!parsed.ok) {
       return { ok: false, empty: parsed.empty, tip: parsed.empty ? '' : '请填写每人限领次数' };
@@ -2361,8 +2405,12 @@
     } else if (kind === 'sign') {
       if (!requiredPositiveInt(welfareUi.duration).ok) return '持续时间';
     } else if (kind === 'redpack') {
+      if (!requiredPositiveInt(welfareUi.preheat).ok) return '预热时间';
+      if (!requiredPositiveInt(welfareUi.duration).ok) return '持续时间';
       if (!requiredPositiveInt(welfareUi.quantity).ok) return '发放数量';
-      if (!requiredPositiveInt(welfareUi.perUserLimit).ok) return '每人限领次数';
+      if (String(welfareUi.perUserLimit == null ? '' : welfareUi.perUserLimit).trim() !== '0' && !requiredPositiveInt(welfareUi.perUserLimit).ok) {
+        return '每人限领次数';
+      }
     }
     return '';
   }
@@ -2632,6 +2680,10 @@
         var end = parseSessionTs(w.endedAt);
         if (isFinite(end) && now >= end) {
           var plan = findTemplateByPlanId(planId);
+          if (plan && plan.type === 'CASH_REDPACK') {
+            freezeRedpackClaims(w, true, plan);
+            publishCashRedpackRound(plan, w, 'CLOSED');
+          }
           var kind = plan && plan.type === 'FORTUNE_BAG' ? 'bag' : plan && plan.type === 'COUPON' ? 'coupon' : '';
           if (kind === 'bag') settleBagRound(plan, w);
           w.status = 'CLOSED';
@@ -2671,6 +2723,10 @@
       var found = findWelfareWindowById(id);
       var w = found ? found.window : null;
       if (!w) return;
+      if (card.hasAttribute('data-redpack-live')) {
+        paintRedpackRecordLive(card, w);
+        return;
+      }
       var pct = windowProgress(w);
       var bar = card.querySelector('.record-card__progress-bar-inner');
       var text = card.querySelector('.record-card__progress-text');
@@ -2699,6 +2755,7 @@
       welfareUi.tab = 'issue';
       welfareUi.planId = '';
       welfareUi.duration = '';
+      welfareUi.preheat = '';
       welfareUi.quantity = '';
       welfareUi.perUserLimit = '1';
       welfareUi.winnerCount = '';
@@ -2964,6 +3021,14 @@
     var form = plan
       ? '<div class="coupon-dialog__form"><div class="coupon-dialog__form-title">发放设置</div>' +
         '<div class="lf-welfare-form-grid">' +
+        '<label class="lf-welfare-field"><span><span class="erp-req">*</span>预热时间（单位：分钟）</span>' +
+        '<input class="erp-input" type="number" min="1" step="1" id="welfarePreheat" value="' +
+        escapeHtml(welfareUi.preheat) +
+        '" placeholder="请输入"></label>' +
+        '<label class="lf-welfare-field"><span><span class="erp-req">*</span>持续时间（单位：分钟）</span>' +
+        '<input class="erp-input" type="number" min="1" step="1" id="welfareDuration" value="' +
+        escapeHtml(welfareUi.duration) +
+        '" placeholder="请输入"></label>' +
         '<label class="lf-welfare-field"><span><span class="erp-req">*</span>发放数量（单位：个）</span>' +
         '<input class="erp-input' +
         (qtyErr ? ' is-error' : '') +
@@ -2977,13 +3042,13 @@
         '>' +
         escapeHtml(qtyErr) +
         '</p></label>' +
-        '<div class="lf-welfare-field lf-welfare-field--limit">' +
+        '<div class="lf-welfare-field">' +
         '<span><span class="erp-req">*</span>每人限领（单位：次）</span>' +
         '<input class="erp-input' +
         (userErr ? ' is-error' : '') +
-        '" type="number" min="1" step="1" id="welfarePerUserLimit" value="' +
-        escapeHtml(welfareUi.perUserLimit || '1') +
-        '" placeholder="请输入"' +
+        '" type="number" min="0" step="1" id="welfarePerUserLimit" value="' +
+        escapeHtml(welfareUi.perUserLimit === 0 || welfareUi.perUserLimit === '0' ? '0' : welfareUi.perUserLimit || '1') +
+        '" placeholder="0表示不限制"' +
         (rule && rule.max != null ? ' max="' + rule.max + '"' : '') +
         '>' +
         '<p class="lf-welfare-field-error" id="welfarePerUserLimitErr"' +
@@ -2997,7 +3062,7 @@
         (total == null || total === '' ? '—' : total) +
         '）。' +
         escapeHtml(rule ? rule.parts.join('；') : '') +
-        '。领取时按以上次数取最小值，剩余为 0 时提示「无活动次数」。</p></div>'
+        '。领取剩余为 0 时按触顶项提示：单场次「领取失败，该场次红包已达上限！」，平台累计「领取失败，您已达平台领取上限！」，单个红包「领取失败，该红包已达领取上限！」，每日「领取失败，您今日领取已达上限！」。手动派发、签到、观看任务不受限制。</p></div>'
       : '';
     return (
       '<div class="bag-dialog__pane">' +
@@ -3613,20 +3678,210 @@
     return refresh + '<div class="' + listClass + '">' + cards + '</div>';
   }
 
+  function redpackPreheatSec(w) {
+    var sec = Number(w && w.preheatSec);
+    if (w && w.preheatSec != null && w.preheatSec !== '' && isFinite(sec) && sec >= 0) return sec;
+    return Math.max(0, (Number(w && w.preheatMin) || 0) * 60);
+  }
+
+  function redpackClaimSec(w) {
+    var min = Number(w && w.durationMin);
+    if (isFinite(min) && min > 0) return min * 60;
+    return Math.max(0, (Number(w && w.durationSec) || 0) - redpackPreheatSec(w));
+  }
+
+  function redpackElapsedSec(w) {
+    var start = parseSessionTs(w && w.startedAt);
+    if (!isFinite(start)) return 0;
+    var endMs = Date.now();
+    if (w && w.status === 'CLOSED') {
+      var end = parseSessionTs(w.endedAt);
+      if (isFinite(end)) endMs = end;
+    }
+    return Math.max(0, (endMs - start) / 1000);
+  }
+
+  function redpackInPreheat(w) {
+    return !!(w && w.status === 'ACTIVE' && redpackPreheatRemainSec(w) > 0);
+  }
+
+  function redpackClaimProgress(w) {
+    if (!w || redpackInPreheat(w)) return 0;
+    var dur = redpackClaimSec(w);
+    var elapsed = Math.max(0, redpackElapsedSec(w) - redpackPreheatSec(w));
+    if (!(dur > 0)) return w.status === 'CLOSED' && !w.interrupted ? 100 : 0;
+    if (w.status === 'CLOSED' && !w.interrupted) return 100;
+    return Math.min(100, Math.max(0, Math.round((elapsed / dur) * 100)));
+  }
+
+  function redpackPreheatRemainSec(w) {
+    return Math.max(0, Math.ceil(redpackPreheatSec(w) - redpackElapsedSec(w)));
+  }
+
+  function formatClock(sec) {
+    sec = Math.max(0, Math.floor(Number(sec) || 0));
+    var m = Math.floor(sec / 60);
+    var s = sec % 60;
+    function pad(n) {
+      return (n < 10 ? '0' : '') + n;
+    }
+    if (m >= 60) {
+      var h = Math.floor(m / 60);
+      return pad(h) + ':' + pad(m % 60) + ':' + pad(s);
+    }
+    return pad(m) + ':' + pad(s);
+  }
+
+  function redpackDemoAmount(plan, index) {
+    var id = plan && (plan.templateId || plan.poolId);
+    var store = window.MdmMarketingCashRedpackTplStore;
+    var tpl = store && store.getById && id ? store.getById(id) : null;
+    if (!tpl) return 1;
+    if (tpl.rewardType === 'fixed') return Math.round((Number(tpl.singleAmount) || 0) * 100) / 100;
+    var tier = (tpl.tiers && tpl.tiers[0]) || null;
+    if (tpl.rewardType === 'custom_fixed') {
+      var fixed = tier ? Number(tier.amount) : Number(tpl.singleAmount);
+      return Math.round((fixed || 0) * 100) / 100;
+    }
+    var min = tier ? Number(tier.amountMin) || 0 : 0.5;
+    var max = tier ? Number(tier.amountMax) || min : min;
+    if (max < min) max = min;
+    var t = ((index * 37) % 100) / 100;
+    return Math.round((min + (max - min) * t) * 100) / 100;
+  }
+
+  function syncRedpackAmounts(w, plan, times) {
+    if (!Array.isArray(w.claimAmounts)) w.claimAmounts = [];
+    var i;
+    for (i = w.claimAmounts.length; i < times; i++) w.claimAmounts.push(redpackDemoAmount(plan, i));
+    if (w.claimAmounts.length > times) w.claimAmounts.length = times;
+    var sum = 0;
+    for (i = 0; i < w.claimAmounts.length; i++) sum += Number(w.claimAmounts[i]) || 0;
+    return Math.round(sum * 100) / 100;
+  }
+
+  function redpackClaimPeople(times, w) {
+    if (times <= 0) return 0;
+    var limit = Math.max(1, Math.floor(Number(w.perUserLimit) || 1));
+    return Math.ceil(times / limit);
+  }
+
+  // 预热倒计时内不可领取，不展示时间进度。倒计时结束后隐藏倒计时，按持续时间计算时间进度，并开始累计领取。
+  function redpackClaimSnapshot(w, plan, naturalEnd) {
+    if (!w) return { people: 0, times: 0, amount: 0 };
+    if (w.claimFrozen) {
+      return {
+        people: Math.max(0, Math.floor(Number(w.claimPeople) || 0)),
+        times: Math.max(0, Math.floor(Number(w.claimedCount) || 0)),
+        amount: Math.round((Number(w.claimAmount) || 0) * 100) / 100
+      };
+    }
+    var qty = Math.max(0, Math.floor(Number(w.quantity) || 0));
+    var times = 0;
+    if (naturalEnd || !redpackInPreheat(w)) {
+      var claimSec = redpackClaimSec(w);
+      var claimElapsed = Math.max(0, redpackElapsedSec(w) - redpackPreheatSec(w));
+      var ratio = claimSec > 0 ? Math.min(1, claimElapsed / claimSec) : claimElapsed > 0 ? 1 : 0;
+      if (naturalEnd || (w.status === 'CLOSED' && !w.interrupted)) ratio = 1;
+      times = Math.min(qty, Math.round(qty * 0.6 * ratio));
+    }
+    return {
+      people: redpackClaimPeople(times, w),
+      times: times,
+      amount: syncRedpackAmounts(w, plan, times)
+    };
+  }
+
+  function freezeRedpackClaims(w, naturalEnd, plan) {
+    if (!w || w.claimFrozen) return;
+    var snap = redpackClaimSnapshot(w, plan, naturalEnd);
+    w.claimedCount = snap.times;
+    w.claimPeople = snap.people;
+    w.claimAmount = snap.amount;
+    w.claimFrozen = true;
+  }
+
+  function paintRedpackRecordLive(card, w) {
+    var preheating = redpackInPreheat(w);
+    var found = findWelfareWindowById(card.getAttribute('data-window-id'));
+    var plan = found ? found.plan : null;
+    var snap = redpackClaimSnapshot(w, plan, false);
+    var countdownEl = card.querySelector('[data-redpack-countdown]');
+    var wrap = card.querySelector('.record-card__countdown');
+    var progress = card.querySelector('.record-card__progress');
+    if (wrap) wrap.hidden = !preheating;
+    if (progress) progress.hidden = preheating;
+    if (preheating && countdownEl) countdownEl.textContent = formatClock(redpackPreheatRemainSec(w));
+    if (!preheating) {
+      var pct = redpackClaimProgress(w);
+      var bar = card.querySelector('.record-card__progress-bar-inner');
+      var text = card.querySelector('.record-card__progress-text');
+      if (bar) bar.style.width = pct + '%';
+      if (text) text.textContent = '时间进度 ' + pct + '%';
+    }
+    var peopleEl = card.querySelector('[data-redpack-people]');
+    var timesEl = card.querySelector('[data-redpack-times]');
+    var amountEl = card.querySelector('[data-redpack-amount]');
+    if (peopleEl) peopleEl.textContent = snap.people + ' 人';
+    if (timesEl) timesEl.textContent = snap.times + ' 次';
+    if (amountEl) amountEl.textContent = formatMoney(snap.amount);
+  }
+
   function renderRedpackRecordCard(w, plan, seq) {
     var live = liveRedpackFields(plan);
+    var snap = redpackClaimSnapshot(w, plan, false);
+    var preheating = redpackInPreheat(w);
+    var pct = redpackClaimProgress(w);
     return (
-      '<div class="record-card"><div class="record-card__head"><span class="record-card__no">' +
-      escapeHtml(String(seq)) +
-      '</span><span class="record-card__name">' +
-      escapeHtml(live.name) +
-      '</span><span class="record-card__status record-card__status--closed">已发送</span></div><div class="record-card__footer"><span class="record-card__time">现金红包（' +
-      escapeHtml(String(live.templateId)) +
-      '）　' +
+      '<div class="record-card" data-redpack-live data-window-id="' +
+      escapeHtml(String(w.id)) +
+      '"><div class="record-card__head">' +
+      recordTitleHtml(seq, live.name) +
+      recordStatusBadge(w, '进行中') +
+      '</div><div class="record-card__metrics">' +
+      '<div class="record-card__metric"><div class="record-card__metric-label">发放数量</div><div class="record-card__metric-value">' +
+      escapeHtml(String(w.quantity != null ? w.quantity : 0)) +
+      ' 个</div></div>' +
+      '<div class="record-card__metric"><div class="record-card__metric-label">每人限领</div><div class="record-card__metric-value">' +
+      escapeHtml(w.perUserLimit != null && w.perUserLimit !== '' ? '每人' + w.perUserLimit + '次' : '—') +
+      '</div></div>' +
+      '<div class="record-card__metric"><div class="record-card__metric-label">预热时间</div><div class="record-card__metric-value">' +
+      escapeHtml(w.preheatMin != null ? w.preheatMin + ' 分钟' : '—') +
+      '</div></div>' +
+      '<div class="record-card__metric"><div class="record-card__metric-label">持续时间</div><div class="record-card__metric-value">' +
+      escapeHtml(w.durationMin != null ? w.durationMin + ' 分钟' : '—') +
+      '</div></div>' +
+      '<div class="record-card__metric"><div class="record-card__metric-label">轮次</div><div class="record-card__metric-value">' +
+      escapeHtml(String(recordRoundNo(w))) +
+      '</div></div>' +
+      '<div class="record-card__metric"><div class="record-card__metric-label">领取人数</div><div class="record-card__metric-value" data-redpack-people>' +
+      escapeHtml(String(snap.people)) +
+      ' 人</div></div>' +
+      '<div class="record-card__metric"><div class="record-card__metric-label">领取次数</div><div class="record-card__metric-value" data-redpack-times>' +
+      escapeHtml(String(snap.times)) +
+      ' 次</div></div>' +
+      '<div class="record-card__metric"><div class="record-card__metric-label">领取金额</div><div class="record-card__metric-value" data-redpack-amount>' +
+      escapeHtml(formatMoney(snap.amount)) +
+      '</div></div></div>' +
+      '<div class="record-card__countdown"' +
+      (preheating ? '' : ' hidden') +
+      '><span class="record-card__countdown-label">预热倒计时</span><span class="record-card__countdown-value" data-redpack-countdown>' +
+      escapeHtml(formatClock(redpackPreheatRemainSec(w))) +
+      '</span></div>' +
+      '<div class="record-card__progress"' +
+      (preheating ? ' hidden' : '') +
+      '><div class="record-card__progress-bar"><div class="record-card__progress-bar-inner" style="width:' +
+      pct +
+      '%"></div></div><span class="record-card__progress-text">时间进度 ' +
+      pct +
+      '%</span></div>' +
+      '<div class="record-card__footer"><span class="record-card__time">' +
       escapeHtml(formatWelfareTime(w.startedAt)) +
-      (w.quantity != null ? '　发放数量 ' + escapeHtml(String(w.quantity)) : '') +
-      (w.perUserLimit != null ? '　每人限领 ' + escapeHtml(String(w.perUserLimit)) + ' 次' : '') +
-      '</span></div></div>'
+      ' ~ ' +
+      escapeHtml(formatWelfareTime(w.endedAt)) +
+      '</span>' +
+      recordStopBtn(w, 'redpack') +
+      '</div></div>'
     );
   }
 
@@ -4898,6 +5153,10 @@
       }
       var redpackUser = redpackPerUserCheck(plan, welfareUi.perUserLimit);
       if (!redpackUser.ok) return toast(redpackUser.tip || '请填写每人限领次数', 'warning');
+      var redpackPreheat = requiredPositiveInt(welfareUi.preheat);
+      var redpackDur = requiredPositiveInt(welfareUi.duration);
+      if (!redpackPreheat.ok) return toast('请填写预热时间', 'warning');
+      if (!redpackDur.ok) return toast('请填写持续时间', 'warning');
       var liveRp = liveRedpackFields(plan);
       var redpackList = welfareWindowsOfPlan(welfarePlanIdOf(plan));
       var redpackIdx = nextRoundIndex(redpackList);
@@ -4906,9 +5165,12 @@
         roundIndex: redpackIdx,
         roundNo: redpackIdx + 1,
         startedAt: nowWelfareTs(),
-        endedAt: nowWelfareTs(),
-        durationSec: 0,
-        status: 'CLOSED',
+        endedAt: tsAfterSec((redpackPreheat.value + redpackDur.value) * 60),
+        preheatMin: redpackPreheat.value,
+        durationMin: redpackDur.value,
+        preheatSec: redpackPreheat.value * 60,
+        durationSec: redpackDur.value * 60,
+        status: 'ACTIVE',
         participantCount: 0,
         participateTimes: 0,
         prizeTitle: liveRp.name,
@@ -4916,8 +5178,12 @@
         perUserLimit: redpackUser.value
       });
       plan.deliveredCount = (plan.deliveredCount || 0) + redpackQty.value;
+      plan.activeWindowId = redpackList[0].id;
+      publishCashRedpackRound(plan, redpackList[0], 'ACTIVE');
       toast('已发送现金红包「' + liveRp.name + '」' + redpackQty.value + ' 个');
       welfareUi.quantity = '';
+      welfareUi.preheat = '';
+      welfareUi.duration = '';
       welfareUi.tab = 'record';
       renderWelfareDrawer();
     }
@@ -4948,6 +5214,10 @@
 
   function stopRoundWindow(plan, w, kind) {
     if (!w) return 0;
+    if (kind === 'redpack') {
+      freezeRedpackClaims(w, false, plan);
+      publishCashRedpackRound(plan, w, 'CLOSED');
+    }
     if (kind === 'bag') settleBagRound(plan, w);
     w.status = 'CLOSED';
     w.endedAt = nowWelfareTs();
@@ -4957,8 +5227,10 @@
   }
 
   function stopWelfareWindow(windowId, kind) {
-    var roundOnly = kind === 'coupon' || kind === 'bag';
-    var msg = roundOnly
+    var roundOnly = kind === 'coupon' || kind === 'bag' || kind === 'redpack';
+    var msg = kind === 'redpack'
+      ? '确认提前停止此轮现金红包？停止后本轮变为已中断。'
+      : roundOnly
       ? kind === 'bag'
         ? '确认提前停止此轮福袋？停止后本轮变为已中断，未领取的福袋库存回滚到本活动可发数量，该福袋仍可继续发放下一轮。'
         : '确认提前停止此轮发放？停止后本轮变为已中断，未领取的券库存回滚到本活动可发数量，该券仍可继续发放下一轮。'
@@ -7203,6 +7475,7 @@
       welfareDrawer.addEventListener('input', function (ev) {
         var el = ev.target;
         if (el.id === 'welfareDuration') welfareUi.duration = el.value;
+        if (el.id === 'welfarePreheat') welfareUi.preheat = el.value;
         if (el.id === 'welfareQuantity') {
           welfareUi.quantity = el.value;
           if (welfareUi.kind === 'redpack') paintRedpackIssueErrors('quantity');

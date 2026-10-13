@@ -23,6 +23,7 @@
     ];
 
     const recordItems = [
+        { href: 'mdm_marketing_live_record.html', text: '直播营销记录' },
         { href: 'mdm_marketing_mall_record.html', text: '领券记录' }
     ];
 
