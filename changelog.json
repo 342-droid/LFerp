@@ -1,10 +1,39 @@
 {
-  "latestSha": "7f804ccda6f76b9d36085e0075f32b55f5b3e1c5",
-  "total": 435,
+  "latestSha": "a6d2434e92db1e0a53f23a6ad8aa7daf1f6cfe91",
+  "total": 436,
   "days": [
     {
       "date": "2026-10-13",
       "items": [
+        {
+          "sha": "a6d2434",
+          "type": "feat",
+          "text": "仓储APP增加任务看板",
+          "author": "342-droid",
+          "time": "14:26",
+          "pages": [
+            {
+              "file": "SCM/app_list.html",
+              "module": "冷丰WMS",
+              "title": "移动端工作台"
+            },
+            {
+              "file": "SCM/app_task_board.html",
+              "module": "冷丰WMS",
+              "title": "任务看板"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/app_list.html",
+              "text": "功能菜单新增「任务看板」"
+            },
+            {
+              "file": "SCM/app_task_board.html",
+              "text": "按入库、出库展示未完结单据，以及拣货、分拣和包裹各状态数量；包裹按待复核、复核中、待装载、待发货排列"
+            }
+          ]
+        },
         {
           "sha": "7f804cc",
           "type": "feat",

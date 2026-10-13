@@ -264,6 +264,18 @@
     "status": "diff",
     "date": "2026-10-13"
   },
+  "a6d2434|SCM/app_list.html": {
+    "before": "changelog-assets/a6d2434/SCM__app_list.html.before.jpg",
+    "after": "changelog-assets/a6d2434/SCM__app_list.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-10-13"
+  },
+  "a6d2434|SCM/app_task_board.html": {
+    "after": "changelog-assets/a6d2434/SCM__app_task_board.html.after.jpg",
+    "status": "added",
+    "date": "2026-10-13"
+  },
   "a762f57|MDM/mdm_audit_cash_redpack.html": {
     "after": "changelog-assets/a762f57/MDM__mdm_audit_cash_redpack.html.after.jpg",
     "status": "added",
