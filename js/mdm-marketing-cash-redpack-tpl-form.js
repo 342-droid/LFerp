@@ -249,20 +249,28 @@
       '>' +
       '<option value="none"' +
       (claim === 'none' ? ' selected' : '') +
-      '>无条件</option>' +
+      '>' +
+      escapeHtml(Store.CLAIM_LABEL.none) +
+      '</option>' +
       '<option value="register"' +
       (claim === 'register' ? ' selected' : '') +
-      '>新注册用户</option>' +
-      '<option value="order_count"' +
-      (claim === 'order_count' ? ' selected' : '') +
-      '>累计下单笔数</option>' +
+      '>' +
+      escapeHtml(Store.CLAIM_LABEL.register) +
+      '</option>' +
       '<option value="order_amount"' +
       (claim === 'order_amount' ? ' selected' : '') +
-      '>累计下单金额</option>' +
+      '>' +
+      escapeHtml(Store.CLAIM_LABEL.order_amount) +
+      '</option>' +
+      '<option value="order_count"' +
+      (claim === 'order_count' ? ' selected' : '') +
+      '>' +
+      escapeHtml(Store.CLAIM_LABEL.order_count) +
+      '</option>' +
       '</select>' +
       claimExtra +
       '</div>' +
-      '<div class="pts-rule-tip">无条件不限制领取用户。新注册按注册至今天数判断。累计下单笔数、累计下单金额分别按累计天数范围统计。</div>';
+      '<div class="pts-rule-tip">无条件不限制领取用户。新注册按注册至今天数判断。后两项分别按累计天数范围统计下单金额或笔数。未满足时客户端提示：新注册「抱歉，您暂不符合领取条件！」；金额「您的累计下单金额未达到领取条件！」；笔数「您的累计下单笔数未达到领取条件！」。</div>';
     var dayHtml =
       '<div class="pts-rule-unit mkt-cr-day-row">' +
       '<select class="erp-select mkt-cr-day-select" id="fCrTplDayRange"' +
@@ -424,7 +432,8 @@
       renderLevelPanel(dis, audience) +
       renderTagPanel(dis, audience) +
       renderSegmentPanel(dis, audience) +
-      '</div>'
+      '</div>' +
+      '<div class="pts-rule-tip">按会员等级、会员分群或会员标签限定可领取用户。全部层级不限制。不在范围内时，客户端提示「抱歉，您暂不符合该红包的领取条件！」。</div>'
     );
   }
 

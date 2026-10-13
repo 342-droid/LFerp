@@ -368,7 +368,9 @@
           '<td>' +
           escapeHtml(formatAmount(item.amount)) +
           ' 元</td>' +
-          '<td><div class="mkt-cr-activity__type">' +
+          '<td><div class="mkt-cr-activity__name">' +
+          escapeHtml(Store.packetTitle ? Store.packetTitle(item) : item.activityName || '—') +
+          '</div><div class="mkt-cr-activity__type">' +
           escapeHtml(Store.activityTypeLabel(item.activityType)) +
           '</div><div class="mkt-cr-activity__id">活动ID：' +
           escapeHtml(item.activityId || '—') +

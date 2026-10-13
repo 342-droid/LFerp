@@ -1,0 +1,653 @@
+/* 直播间现金红包福袋：入口、开袋动效、金币落入账户 */
+
+.ua-live-bag-entry {
+  position: absolute;
+  left: 12px;
+  z-index: 6;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  color: #fff;
+}
+
+.ua-live-bag-entry {
+  top: 108px;
+  width: 58px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  animation: uaBagEntryIn 0.45s ease both;
+}
+
+.ua-live-bag-entry[hidden],
+.ua-live-cash-sheet[hidden],
+.ua-bag-fx[hidden] {
+  display: none !important;
+}
+
+.ua-live-bag-entry__pouch {
+  width: 52px;
+  height: 52px;
+  background: url('../assets/shop/live-bag-closed.png?v=20261014-coin-gold') center/contain no-repeat;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.45));
+}
+
+.ua-live-bag-entry__name {
+  font-size: 11px;
+  line-height: 1.2;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
+}
+
+.ua-live-signin {
+  position: absolute;
+  left: 12px;
+  top: 186px;
+  z-index: 6;
+  width: 52px;
+  height: 52px;
+  border: 0;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #ff8a3d, #e23b12);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.1;
+  cursor: pointer;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.35);
+}
+
+.ua-live-signin.is-done {
+  background: rgba(18, 14, 12, 0.72);
+  cursor: default;
+}
+
+.ua-live-signin[hidden] {
+  display: none !important;
+}
+
+.ua-live-fx-demo .ua-live-cash {
+  position: relative;
+  align-self: center;
+  width: 64px;
+  margin-top: 4px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  color: #fff;
+}
+
+.ua-live-cash__badge {
+  position: relative;
+  display: block;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: rgba(18, 14, 12, 0.78);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.ua-live-cash__amt {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  top: 9px;
+  z-index: 2;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  color: #fff;
+  letter-spacing: -0.3px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
+}
+
+.ua-live-cash__env {
+  position: absolute;
+  left: 50%;
+  bottom: 7px;
+  z-index: 1;
+  width: 24px;
+  height: 30px;
+  transform: translateX(-50%);
+  border-radius: 3px 3px 4px 4px;
+  background: linear-gradient(180deg, #ff5a3c 0%, #ef1d22 42%, #c90812 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 214, 120, 0.28), 0 2px 4px rgba(0, 0, 0, 0.35);
+}
+
+.ua-live-cash__env::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 11px;
+  height: 6px;
+  background: linear-gradient(180deg, #fff1c2, #e0ae3e 46%, #fff3c4);
+}
+
+.ua-live-cash__env::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 9px;
+  width: 10px;
+  height: 10px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 32%, #fff8dc, #f2c85a 42%, #b8861e 78%);
+  box-shadow: 0 0 0 1px rgba(120, 72, 8, 0.35);
+}
+
+.ua-live-cash.is-hit .ua-live-cash__badge {
+  animation: uaBagPile 0.55s ease;
+}
+
+.ua-bag-fx {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(ellipse at 50% 42%, rgba(254, 199, 80, 0.22), rgba(0, 0, 0, 0.08) 36%, rgba(0, 0, 0, 0.46) 100%);
+}
+
+.ua-bag-fx.is-open {
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(254, 199, 80, 0.72), rgba(253, 140, 40, 0.28) 26%, rgba(0, 0, 0, 0.12) 48%, rgba(0, 0, 0, 0.5) 100%);
+}
+
+.ua-bag-fx__float {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ua-bag-fx__float i {
+  position: absolute;
+  top: -14%;
+  width: 28px;
+  height: 28px;
+  background: url('../assets/shop/live-gold-coin.png?v=20261014-bag-vivid') center/contain no-repeat;
+  filter: drop-shadow(0 0 6px rgba(246, 211, 129, 0.85)) drop-shadow(0 2px 3px rgba(214, 120, 20, 0.35));
+  animation: uaBagCoin linear infinite;
+  opacity: 0;
+}
+
+.ua-bag-fx__stage {
+  position: relative;
+  z-index: 1;
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: uaBagPop 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.ua-bag-fx__tip {
+  position: relative;
+  margin-bottom: 14px;
+  max-width: 230px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(20, 20, 20, 0.88);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.ua-bag-fx__tip::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 10px;
+  height: 10px;
+  background: rgba(20, 20, 20, 0.88);
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.ua-bag-pouch {
+  position: relative;
+  width: 250px;
+  height: 270px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.ua-bag-pouch__art {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 250px;
+  height: 270px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.ua-bag-pouch__opened {
+  display: none;
+}
+
+.ua-bag-fx.is-open .ua-bag-pouch__closed {
+  display: none;
+}
+
+.ua-bag-fx.is-open .ua-bag-pouch__opened {
+  display: block;
+}
+
+.ua-bag-pouch__cta,
+.ua-bag-pouch__result {
+  position: absolute;
+  z-index: 5;
+}
+
+.ua-bag-pouch__cta {
+  left: 50%;
+  top: 178px;
+  width: 112px;
+  height: 30px;
+  transform: translateX(-50%);
+  border-radius: 6px;
+  background: #fff4e4;
+  color: #ef3b28;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(180, 40, 20, 0.16);
+}
+
+.ua-bag-pouch__result {
+  left: 36px;
+  right: 36px;
+  top: 148px;
+  opacity: 0;
+  color: #fff6e8;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(160, 40, 10, 0.35);
+  pointer-events: none;
+}
+
+.ua-bag-pouch__result em {
+  display: block;
+  font-style: normal;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.ua-bag-pouch__result strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 40px;
+  line-height: 1.05;
+  font-weight: 700;
+}
+
+.ua-bag-pouch__result small {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.ua-bag-pouch__lost {
+  margin: 0;
+  padding: 8px 8px;
+  border-radius: 8px;
+  background: rgba(255, 246, 232, 0.96);
+  color: #8a3a22;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+  text-shadow: none;
+}
+
+.ua-bag-fx.is-lost .ua-bag-fx__tip {
+  visibility: hidden;
+}
+
+.ua-bag-fx.is-lost .ua-bag-pouch__cta {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ua-bag-fx.is-lost .ua-bag-pouch__result {
+  top: 168px;
+  opacity: 1;
+}
+
+.ua-bag-fx.is-open .ua-bag-pouch__cta {
+  opacity: 0;
+}
+
+.ua-bag-fx.is-open .ua-bag-pouch__result {
+  opacity: 1;
+  animation: uaBagText 0.35s ease both;
+}
+
+.ua-bag-fx.is-open .ua-bag-pouch__opened {
+  animation: uaBagShake 0.5s ease;
+  filter: drop-shadow(0 0 22px rgba(254, 199, 80, 0.65));
+}
+
+.ua-bag-fx__close {
+  margin-top: -28px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  background: transparent;
+  color: #fff;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ua-bag-flycoin {
+  position: absolute;
+  z-index: 32;
+  width: 34px;
+  height: 34px;
+  margin: 0;
+  background: url('../assets/shop/live-gold-coin.png?v=20261014-bag-vivid') center/contain no-repeat;
+  filter: drop-shadow(0 0 8px rgba(255, 214, 90, 0.95));
+  pointer-events: none;
+}
+
+.ua-live-cash-sheet {
+  position: absolute;
+  inset: 0;
+  z-index: 28;
+}
+
+.ua-live-cash-sheet__mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.ua-live-cash-sheet__panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 68%;
+  overflow: auto;
+  background: #fff;
+  border-radius: 16px 16px 0 0;
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0));
+}
+
+.ua-live-cash-sheet__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #303133;
+}
+
+.ua-live-cash-sheet__sub {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #909399;
+}
+
+.ua-live-cash-sheet__sum {
+  margin: 12px 0;
+  font-size: 13px;
+  color: #606266;
+}
+
+.ua-live-cash-sheet__sum b {
+  color: #ff7019;
+  font-size: 18px;
+}
+
+.ua-live-cash-sheet__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ua-live-cash-sheet__item {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #faf7f4;
+  text-align: left;
+}
+
+.ua-live-cash-sheet__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ua-live-cash-sheet__src {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #fff1e8;
+  color: #ff7019;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.ua-live-cash-sheet__name {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #303133;
+  font-weight: 600;
+  text-align: left;
+}
+
+.ua-live-cash-sheet__meta {
+  margin-top: 2px;
+  font-size: 11px;
+  color: #909399;
+}
+
+.ua-live-cash-sheet__money {
+  flex: 0 0 auto;
+  font-size: 15px;
+  font-weight: 700;
+  color: #e24b32;
+  line-height: 1.4;
+}
+
+.ua-live-limit-tip {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  z-index: 40;
+  width: max-content;
+  max-width: 78%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+  text-align: center;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.ua-live-limit-tip[hidden] {
+  display: none !important;
+}
+
+.ua-rg-demo.ua-live-bag-demo {
+  position: relative;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  top: auto;
+  z-index: 1;
+  width: 176px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #eee;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  font-size: 11px;
+  color: #333;
+  pointer-events: auto;
+}
+
+.ua-live-bag-demo .ua-rg-demo__title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+
+.ua-live-bag-demo .ua-rg-demo__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+
+.ua-live-bag-demo .ua-rg-demo__row select {
+  margin-left: auto;
+  max-width: 108px;
+  font-size: 11px;
+}
+
+.ua-rg-demo.ua-live-limit-demo,
+.ua-rg-demo.ua-live-cond-demo,
+.ua-rg-demo.ua-live-signin-demo {
+  position: relative;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  top: auto;
+  z-index: 1;
+  width: 200px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #eee;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  font-size: 11px;
+  color: #333;
+  pointer-events: auto;
+}
+
+.ua-rg-demo.ua-live-cond-demo {
+  width: 228px;
+}
+
+.ua-live-limit-demo .ua-rg-demo__title,
+.ua-live-cond-demo .ua-rg-demo__title,
+.ua-live-signin-demo .ua-rg-demo__title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: #222;
+}
+
+.ua-live-limit-demo .ua-rg-demo__row,
+.ua-live-cond-demo .ua-rg-demo__row,
+.ua-live-signin-demo .ua-rg-demo__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+
+.ua-live-limit-demo .ua-rg-demo__row select,
+.ua-live-cond-demo .ua-rg-demo__row select,
+.ua-live-signin-demo .ua-rg-demo__row select {
+  flex: 1;
+  min-width: 0;
+  height: 28px;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.ua-live-limit-demo .ua-rg-demo__apply,
+.ua-live-cond-demo .ua-rg-demo__apply,
+.ua-live-signin-demo .ua-rg-demo__apply {
+  width: 100%;
+  height: 30px;
+  border: none;
+  border-radius: 6px;
+  background: #ff7019;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ua-live-bag-demo .ua-rg-demo__apply {
+  width: 100%;
+  margin-top: 4px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: #ff7019;
+  color: #fff;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+@keyframes uaBagEntryIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.9); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes uaBagPop {
+  0% { opacity: 0; transform: scale(0.78); }
+  62% { opacity: 1; transform: scale(1.04); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes uaBagShake {
+  0% { transform: scale(0.96); }
+  45% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+@keyframes uaBagText {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes uaBagCoin {
+  0% {
+    transform: translate3d(0, -30px, 0) rotate(var(--rot, 0deg)) scale(0.86);
+    opacity: 0;
+  }
+  8% { opacity: 1; }
+  32% {
+    transform: translate3d(calc(var(--drift, 0px) * 0.55), 250px, 0) rotate(calc(var(--rot, 0deg) + 40deg)) scale(1);
+    opacity: 1;
+  }
+  68% {
+    transform: translate3d(calc(var(--drift, 0px) * -0.2), 540px, 0) rotate(calc(var(--rot, 0deg) + var(--spin, 90deg) * 0.6)) scale(0.96);
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate3d(var(--drift, 0px), 880px, 0) rotate(calc(var(--rot, 0deg) + var(--spin, 140deg))) scale(1.02);
+    opacity: 0.2;
+  }
+}
+
+@keyframes uaBagPile {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}

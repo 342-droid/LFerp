@@ -11,6 +11,8 @@
   <link rel="stylesheet" href="../css/user-app-live-entry-fx.css">
   <link rel="stylesheet" href="../css/user-app-feedback.css">
   <link rel="stylesheet" href="../css/user-app-live-invite.css?v=20260904-livepromo">
+  <link rel="stylesheet" href="../css/user-app-live-bag.css?v=20261014-signin-cash">
+  <link rel="stylesheet" href="../css/user-app-live-cash-rain.css?v=20261014-limit-copy">
 </head>
 <body class="user-app-body">
   <div class="ua-mobile-shell ua-live-room-page">
@@ -357,8 +359,13 @@
   <script src="../../js/mdm-live-sensitive-words.js"></script>
   <script src="../../js/mdm-live-comment-level.js?v=20260909-cmt-lv"></script>
   <script src="../../js/mdm-live-demo-data.js?v=20260905-session-persist"></script>
-  <script src="../js/user-app-shop.js?v=20260924-live-demos"></script>
-  <script src="../js/user-app-live-watch-reward.js?v=20260909-670-8"></script>
+  <script src="../js/user-app-shop.js?v=20261014-signin-cash"></script>
+  <script src="../../js/mdm-marketing-cash-redpack-store.js?v=20261014-limit-exempt"></script>
+  <script src="../../js/mdm-marketing-cash-redpack-tpl-store.js?v=20261014-cond-switch"></script>
+  <script src="../js/user-app-live-watch-reward.js?v=20261014-limit-exempt"></script>
+  <script src="../js/user-app-live-bag.js?v=20261014-limit-exempt"></script>
+  <script src="../js/user-app-live-signin.js?v=20261014-signin-cash"></script>
+  <script src="../js/user-app-live-cash-rain.js?v=20261014-cond-switch"></script>
   <script src="../../js/mdm-system-default-store.js?v=20260904-livepromo"></script>
   <script src="../js/user-app-switch-address.js?v=20260827-sys-default"></script>
   <script src="../js/user-app-store-switch.js?v=20260904-livepromo"></script>
@@ -367,6 +374,9 @@
   <script>
     UAShop.initLiveRoomPage();
     if (window.UaLiveWatchReward) window.UaLiveWatchReward.init();
+    if (window.UaLiveBagCash) window.UaLiveBagCash.init();
+    if (window.UaLiveSignin) window.UaLiveSignin.init();
+    if (window.UaLiveCashRain) window.UaLiveCashRain.init();
   </script>
 </body>
 </html>

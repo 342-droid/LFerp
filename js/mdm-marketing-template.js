@@ -638,16 +638,14 @@
   function cashRedpackSelect(selected) {
     var Redpack = window.MdmMarketingCashRedpackTplStore;
     var list =
-      Redpack && typeof Redpack.listRewardOptions === 'function'
-        ? Redpack.listRewardOptions({ allowNotStarted: true })
+      Redpack && typeof Redpack.listBindOptions === 'function'
+        ? Redpack.listBindOptions()
         : [];
     if (!list.length) return '<option value="" disabled>暂无现金红包</option>';
     var sid = String(selected || '');
-    var matched = false;
     var opts = list
       .map(function (row) {
         var picked = sid && String(row.id) === sid;
-        if (picked) matched = true;
         return (
           '<option value="' +
           escapeHtml(row.id) +
@@ -659,16 +657,7 @@
           '</option>'
         );
       })
-      .join('');
-    if (sid && !matched) {
-      opts =
-        '<option value="' +
-        escapeHtml(sid) +
-        '" selected disabled>' +
-        escapeHtml(sid + '（不可选）') +
-        '</option>' +
-        opts;
-    }
+        .join('');
     return opts;
   }
 
@@ -874,7 +863,7 @@
           '><option value="">请选择现金红包</option>' +
           cashRedpackSelect(edit.bag.redpackId) +
           '</select>';
-        html += '<div class="mkt-tpl-field-tip">已审核通过的现金红包可选，未到有效期也可先关联。草稿、待审核、审核失败、已禁用、已过有效期置灰不可选。</div>';
+        html += '<div class="mkt-tpl-field-tip">已审核通过的现金红包可选，未到有效期也可先关联。有效期内的排在前面，未到有效期排在其后，并显示有效期。草稿、待审核、审核失败、已禁用、已过有效期不在下拉中展示。</div>';
         html += '</div></div>';
       } else {
         html += '<div class="mkt-tpl-row"><div class="mkt-tpl-row__label is-req">选择优惠券</div><div class="mkt-tpl-row__ctrl">';
@@ -944,7 +933,7 @@
               (locked || !cashSwitchOn() ? ' disabled' : '') +
               '><option value="">请选择现金红包</option>' +
               cashRedpackSelect(rw.redpackId) +
-              '</select><div class="mkt-tpl-field-tip">已审核通过的现金红包可选，未到有效期也可先关联。草稿、待审核、审核失败、已禁用、已过有效期置灰不可选。</div></div>';
+              '</select><div class="mkt-tpl-field-tip">已审核通过的现金红包可选，未到有效期也可先关联。有效期内的排在前面，未到有效期排在其后，并显示有效期。草稿、待审核、审核失败、已禁用、已过有效期不在下拉中展示。</div></div>';
           } else if (rw.rewardType === 'GOODS') {
             html += '<div class="mkt-tpl-rule__extra">' + renderGoodsPick(rw.productSkus, 'sign-rw-' + i, locked) + '</div>';
           }
@@ -980,7 +969,7 @@
             (locked || !cashSwitchOn() ? ' disabled' : '') +
             '><option value="">请选择现金红包</option>' +
             cashRedpackSelect(cr.redpackId) +
-            '</select><div class="mkt-tpl-field-tip">已审核通过的现金红包可选，未到有效期也可先关联。草稿、待审核、审核失败、已禁用、已过有效期置灰不可选。</div></div>';
+            '</select><div class="mkt-tpl-field-tip">已审核通过的现金红包可选，未到有效期也可先关联。有效期内的排在前面，未到有效期排在其后，并显示有效期。草稿、待审核、审核失败、已禁用、已过有效期不在下拉中展示。</div></div>';
         } else if (cr.rewardType === 'GOODS') {
           html += '<div class="mkt-tpl-rule__extra">' + renderGoodsPick(cr.productSkus, 'sign-complete', locked) + '</div>';
         }
@@ -1045,7 +1034,7 @@
             (locked || !cashSwitchOn() ? ' disabled' : '') +
             '><option value="">请选择现金红包</option>' +
             cashRedpackSelect(ms.redpackId) +
-            '</select><div class="mkt-tpl-field-tip">已审核通过的现金红包可选，未到有效期也可先关联。草稿、待审核、审核失败、已禁用、已过有效期置灰不可选。</div></div>';
+            '</select><div class="mkt-tpl-field-tip">已审核通过的现金红包可选，未到有效期也可先关联。有效期内的排在前面，未到有效期排在其后，并显示有效期。草稿、待审核、审核失败、已禁用、已过有效期不在下拉中展示。</div></div>';
         } else if (ms.rewardType === 'GOODS') {
           html += '<div class="mkt-tpl-rule__extra">' + renderGoodsPick(ms.productSkus, 'task-' + i, locked) + '</div>';
         }

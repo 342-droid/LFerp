@@ -1,0 +1,393 @@
+/* 直播营销记录：对齐运营后台场次条、页签、筛选、表格与分页 */
+.lmr-page {
+  position: relative;
+  padding: 12px 16px 28px;
+  background: #f5f7fa;
+  min-height: calc(100vh - 60px);
+  box-sizing: border-box;
+}
+
+.lmr-card {
+  position: relative;
+  background: #fff;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  padding: 16px 16px 56px;
+  min-height: calc(100vh - 96px);
+  box-sizing: border-box;
+}
+
+.lmr-session {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 48px;
+  padding: 0 16px;
+  background: #f7f8fa;
+  border-radius: 4px;
+}
+
+.lmr-session__mark {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  color: #ff7a1a;
+}
+
+.lmr-session__label {
+  color: #303133;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.lmr-session__select {
+  flex: 1;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: #303133;
+  font-size: 14px;
+  outline: none;
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #c0c4cc 50%), linear-gradient(135deg, #c0c4cc 50%, transparent 50%);
+  background-position: calc(100% - 14px) 14px, calc(100% - 8px) 14px;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 28px;
+  cursor: pointer;
+}
+
+.lmr-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 28px;
+  margin-top: 12px;
+  padding: 10px 16px;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  color: #303133;
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.lmr-meta b {
+  font-weight: 400;
+  color: #606266;
+}
+
+.lmr-status {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 8px;
+  height: 22px;
+  line-height: 20px;
+  border-radius: 2px;
+  font-size: 12px;
+  color: #909399;
+  background: #f4f4f5;
+  border: 1px solid #e9e9eb;
+  vertical-align: middle;
+}
+
+.lmr-status--live {
+  color: #67c23a;
+  background: #f0f9eb;
+  border-color: #e1f3d8;
+}
+
+.lmr-tabs {
+  display: flex;
+  gap: 28px;
+  margin-top: 8px;
+  padding: 0 8px;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.lmr-tabs button {
+  position: relative;
+  height: 40px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #303133;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.lmr-tabs button.is-active {
+  color: #ff7a1a;
+  font-weight: 600;
+}
+
+.lmr-tabs button.is-active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: #ff7a1a;
+}
+
+.lmr-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 24px;
+  padding: 16px 8px 8px;
+}
+
+.lmr-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lmr-field span {
+  color: #606266;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.lmr-field input,
+.lmr-field select {
+  width: 220px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  color: #303133;
+  font-size: 14px;
+  outline: none;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.lmr-field input::placeholder {
+  color: #c0c4cc;
+}
+
+.lmr-field input:focus,
+.lmr-field select:focus {
+  border-color: #ff7a1a;
+}
+
+.lmr-field--break {
+  flex: 1 0 100%;
+}
+
+.lmr-field--break select {
+  width: 220px;
+}
+
+.lmr-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  margin: 4px 8px 0;
+  padding: 10px 16px;
+  background: #fff7f0;
+  border: 1px solid #ffe1cc;
+  border-radius: 4px;
+  color: #606266;
+  font-size: 13px;
+  line-height: 22px;
+}
+
+.lmr-summary[hidden] {
+  display: none;
+}
+
+.lmr-summary b {
+  color: #ff7a1a;
+  font-weight: 600;
+}
+
+.lmr-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 12px;
+}
+
+.lmr-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 32px;
+  padding: 0 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.lmr-btn--primary {
+  border: 1px solid #ff7a1a;
+  background: #ff7a1a;
+  color: #fff;
+}
+
+.lmr-btn--primary:hover {
+  background: #ff8f3d;
+}
+
+.lmr-btn--plain {
+  border: 1px solid #dcdfe6;
+  background: #fff;
+  color: #606266;
+}
+
+.lmr-btn--plain:hover {
+  color: #ff7a1a;
+  border-color: #ffd3b0;
+}
+
+.lmr-table-wrap {
+  margin-top: 8px;
+  overflow-x: auto;
+}
+
+.lmr-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+}
+
+.lmr-table th {
+  height: 44px;
+  padding: 0 8px;
+  background: #fafafa;
+  color: #909399;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  border-bottom: 1px solid #ebeef5;
+  white-space: nowrap;
+}
+
+.lmr-table td {
+  height: 48px;
+  padding: 0 8px;
+  color: #606266;
+  font-size: 14px;
+  text-align: center;
+  border-bottom: 1px solid #ebeef5;
+  white-space: nowrap;
+}
+
+.lmr-table tbody tr:hover td {
+  background: #fafafa;
+}
+
+.lmr-id {
+  display: inline-block;
+  max-width: 88px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
+.lmr-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.lmr-empty[hidden] {
+  display: none;
+}
+
+.lmr-empty svg {
+  width: 160px;
+  height: 120px;
+}
+
+.lmr-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding-top: 16px;
+  color: #606266;
+  font-size: 13px;
+}
+
+.lmr-pager__size,
+.lmr-pager__jump input {
+  height: 28px;
+  border: 1px solid #dcdfe6;
+  border-radius: 2px;
+  color: #606266;
+  background: #fff;
+  outline: none;
+}
+
+.lmr-pager__size {
+  padding: 0 8px;
+}
+
+.lmr-pager__pages {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lmr-pager__pages button {
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  border: none;
+  border-radius: 2px;
+  background: transparent;
+  color: #606266;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.lmr-pager__pages button.is-active {
+  background: #ff7a1a;
+  color: #fff;
+}
+
+.lmr-pager__pages button:disabled {
+  color: #c0c4cc;
+  cursor: not-allowed;
+}
+
+.lmr-pager__jump {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lmr-pager__jump input {
+  width: 46px;
+  text-align: center;
+}
+
+.lmr-export {
+  position: fixed;
+  right: 28px;
+  bottom: 24px;
+  z-index: 20;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: #ff7a1a;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(255, 122, 26, 0.35);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lmr-export:hover {
+  background: #ff8f3d;
+}

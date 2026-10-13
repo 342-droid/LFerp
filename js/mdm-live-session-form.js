@@ -609,6 +609,32 @@
     return Math.max(0, remain - reserved);
   }
 
+  /** 只列出可关联的现金红包：有效的排前面，未到有效期其次 */
+  function cashRedpackChoiceList() {
+    var store = window.MdmMarketingCashRedpackTplStore;
+    if (!store || typeof store.listBindOptions !== 'function') return [];
+    var on = !Demo.cashRedpackSwitchOn || Demo.cashRedpackSwitchOn();
+    var list = store.listBindOptions().map(function (opt) {
+      var selectable = !!opt.selectable && !!on;
+      return {
+        id: opt.id,
+        type: 'CASH_REDPACK',
+        typeName: '现金红包',
+        name: opt.name,
+        templateId: opt.id,
+        selectable: selectable,
+        reason: on ? opt.reason : '现金红包已关闭',
+        packetRemain: cashPacketAvailable(opt.id),
+        periodText: selectable ? opt.periodText : '',
+        sortRank: selectable ? opt.sortRank : 2
+      };
+    });
+    list.sort(function (a, b) {
+      return a.sortRank - b.sortRank;
+    });
+    return list;
+  }
+
   function fillTplNames() {
     var type = (document.getElementById('fTplType') || {}).value || '';
     var nameEl = document.getElementById('fTplName');
@@ -633,20 +659,8 @@
       if (Demo.refreshMarketingLiveCaches) Demo.refreshMarketingLiveCaches();
       if (Demo.marketingCashTemplates) list = list.concat(Demo.marketingCashTemplates(type));
     }
-    if (type === 'CASH_REDPACK' && Demo.listCashRedpackOptions) {
-      list = Demo.listCashRedpackOptions().map(function (opt) {
-        var remain = cashPacketAvailable(opt.id);
-        return {
-          id: opt.id,
-          type: 'CASH_REDPACK',
-          typeName: '现金红包',
-          name: opt.name,
-          templateId: opt.id,
-          selectable: opt.selectable,
-          reason: opt.reason,
-          packetRemain: remain
-        };
-      });
+    if (type === 'CASH_REDPACK') {
+      list = cashRedpackChoiceList();
     }
     if (type === 'COUPON' && !list.length) {
       nameEl.disabled = true;
@@ -669,6 +683,7 @@
         .map(function (t) {
           var stockTip = t.stock != null ? '（库存 ' + t.stock + '）' : '';
           var remainTip = t.packetRemain != null ? '（剩余红包 ' + t.packetRemain + '）' : '';
+          var periodTip = t.periodText ? '（有效期 ' + t.periodText + '）' : '';
           var reasonTip = t.reason ? '（' + t.reason + '）' : '';
           var disabled = t.selectable === false ? ' disabled' : '';
           return (
@@ -677,7 +692,7 @@
             '"' +
             disabled +
             '>' +
-            escapeHtml(t.name + stockTip + remainTip + reasonTip) +
+            escapeHtml(t.name + stockTip + remainTip + periodTip + reasonTip) +
             '</option>'
           );
         })
@@ -1058,22 +1073,10 @@
             return t.id === tplId;
           });
         }
-        if (!pool && type === 'CASH_REDPACK' && Demo.listCashRedpackOptions) {
-          var redpackOpt = Demo.listCashRedpackOptions().find(function (t) {
+        if (!pool && type === 'CASH_REDPACK') {
+          pool = cashRedpackChoiceList().find(function (t) {
             return t.id === tplId;
           });
-          if (redpackOpt) {
-            pool = {
-              id: redpackOpt.id,
-              type: 'CASH_REDPACK',
-              typeName: '现金红包',
-              name: redpackOpt.name,
-              templateId: redpackOpt.id,
-              selectable: redpackOpt.selectable,
-              reason: redpackOpt.reason,
-              packetRemain: cashPacketAvailable(redpackOpt.id)
-            };
-          }
         }
         if (!pool) return toast('未找到所选模板，请重新选择', 'warning');
         if (pool.selectable === false) return toast(pool.reason || '该模板不可选择', 'warning');

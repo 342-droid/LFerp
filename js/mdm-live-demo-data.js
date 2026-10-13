@@ -308,6 +308,30 @@
           deliveredCount: 0,
           activeWindowId: null,
           stock: null
+        },
+        {
+          id: 'tpl-rp-1',
+          type: 'CASH_REDPACK',
+          typeName: '现金红包',
+          planId: 'tpl-rp-1',
+          activityId: 'act-rp-1',
+          templateId: 'CRPT10001',
+          name: '新人注册红包',
+          deliveredCount: 36,
+          quotaTotal: 200,
+          stock: 200
+        },
+        {
+          id: 'tpl-rp-2',
+          type: 'CASH_REDPACK',
+          typeName: '现金红包',
+          planId: 'tpl-rp-2',
+          activityId: 'act-rp-2',
+          templateId: 'CRPT10006',
+          name: '审核通过红包',
+          deliveredCount: 0,
+          quotaTotal: 80,
+          stock: 80
         }
       ],
       bagWinRule: 'session',
@@ -2111,11 +2135,11 @@
     return findInList(listTaskTemplates(false), id);
   }
 
-  function listCashRedpackOptions() {
+  function listCashRedpackOptions(options) {
     var store = window.MdmMarketingCashRedpackTplStore;
     if (!store || typeof store.listRewardOptions !== 'function') return [];
     var on = cashRedpackSwitchOn();
-    return store.listRewardOptions().map(function (opt) {
+    return store.listRewardOptions(options).map(function (opt) {
       var reason = opt.reason || '';
       var selectable = !!opt.selectable;
       if (!on) {
@@ -2179,6 +2203,25 @@
   function readWatchRewardIssue() {
     try {
       var raw = localStorage.getItem(WATCH_REWARD_ISSUE_KEY);
+      var data = raw ? JSON.parse(raw) : null;
+      return data && typeof data === 'object' ? data : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  var CASH_REDPACK_ISSUE_KEY = 'lf_live_cash_redpack_issue_v1';
+
+  function publishCashRedpackIssue(payload) {
+    try {
+      if (!payload) localStorage.removeItem(CASH_REDPACK_ISSUE_KEY);
+      else localStorage.setItem(CASH_REDPACK_ISSUE_KEY, JSON.stringify(payload));
+    } catch (e) {}
+  }
+
+  function readCashRedpackIssue() {
+    try {
+      var raw = localStorage.getItem(CASH_REDPACK_ISSUE_KEY);
       var data = raw ? JSON.parse(raw) : null;
       return data && typeof data === 'object' ? data : null;
     } catch (e) {
@@ -2677,7 +2720,7 @@
   }
 
   var SESSIONS_LS_KEY = 'lf_mdm_live_sessions_v1';
-  var SESSIONS_SEED_REV = 2;
+  var SESSIONS_SEED_REV = 3;
 
   function cloneSessionForStore(sess) {
     var copy;
@@ -2951,6 +2994,9 @@
     publishWatchRewardIssue: publishWatchRewardIssue,
     readWatchRewardIssue: readWatchRewardIssue,
     WATCH_REWARD_ISSUE_KEY: WATCH_REWARD_ISSUE_KEY,
+    publishCashRedpackIssue: publishCashRedpackIssue,
+    readCashRedpackIssue: readCashRedpackIssue,
+    CASH_REDPACK_ISSUE_KEY: CASH_REDPACK_ISSUE_KEY,
     liveAudience: liveAudience,
     member360Seed: member360Seed,
     listMember360: listMember360,

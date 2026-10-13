@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 直播营销记录</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-marketing-live-record.css?v=20261013-live-record-seed">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/marketing-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content lmr-page">
+            <section class="lmr-card">
+                <div class="lmr-session">
+                    <svg class="lmr-session__mark" viewBox="0 0 16 16" aria-hidden="true">
+                        <path fill="currentColor" d="M3 2.5h7.2L13 5.2V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-9.5a1 1 0 0 1 1-1zm1 2v7.5h7V6H9.2V4.5H4z"/>
+                    </svg>
+                    <span class="lmr-session__label">选择直播场次</span>
+                    <select class="lmr-session__select" id="lmrSession" aria-label="选择直播场次"></select>
+                </div>
+                <div class="lmr-meta" id="lmrMeta"></div>
+                <div class="lmr-tabs" id="lmrTabs" role="tablist"></div>
+                <form class="lmr-filters" id="lmrFilters" onsubmit="return false;"></form>
+                <div class="lmr-summary" id="lmrSummary" hidden></div>
+                <div class="lmr-table-wrap">
+                    <table class="lmr-table">
+                        <thead id="lmrHead"></thead>
+                        <tbody id="lmrBody"></tbody>
+                    </table>
+                </div>
+                <div class="lmr-empty" id="lmrEmpty">
+                    <svg viewBox="0 0 160 120" aria-hidden="true">
+                        <ellipse cx="80" cy="104" rx="46" ry="8" fill="#f0f2f5"/>
+                        <path d="M38 48l42-18 42 18-42 16z" fill="#f7f8fa" stroke="#e4e7ed"/>
+                        <path d="M38 48v36l42 16V64z" fill="#fafafa" stroke="#e4e7ed"/>
+                        <path d="M122 48v36l-42 16V64z" fill="#f2f3f5" stroke="#e4e7ed"/>
+                        <path d="M58 40l22-10 22 10-22 8z" fill="#fff" stroke="#e4e7ed"/>
+                        <path d="M80 38v18" stroke="#e4e7ed"/>
+                    </svg>
+                </div>
+                <div class="lmr-pager" id="lmrPager"></div>
+                <button type="button" class="lmr-export" id="lmrExport" title="导出" aria-label="导出">
+                    <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+                        <path fill="currentColor" d="M9 2a.75.75 0 0 1 .75.75v7.19l2.22-2.22a.75.75 0 1 1 1.06 1.06l-3.5 3.5a.75.75 0 0 1-1.06 0l-3.5-3.5a.75.75 0 1 1 1.06-1.06l2.22 2.22V2.75A.75.75 0 0 1 9 2zM3.75 12.5a.75.75 0 0 1 .75.75V14.5h9v-1.25a.75.75 0 0 1 1.5 0V15a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 3 15v-1.75a.75.75 0 0 1 .75-.75z"/>
+                    </svg>
+                </button>
+            </section>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/mdm-marketing-live-record.js?v=20261014-redpack-id-pos"></script>
+</body>
+</html>
