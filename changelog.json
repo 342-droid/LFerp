@@ -1,10 +1,136 @@
 {
-  "latestSha": "bc231c62d817a489ff9432bd6a8cd4243cf7f719",
-  "total": 437,
+  "latestSha": "dbed1b79619779dab03badea877858ee0c5bbb7b",
+  "total": 438,
   "days": [
     {
       "date": "2026-10-14",
       "items": [
+        {
+          "sha": "dbed1b7",
+          "type": "feat",
+          "text": "现金红包按会员差异化配置，我的红包补齐可领取记录",
+          "author": "sisi",
+          "time": "06:58",
+          "pages": [
+            {
+              "file": "MDM/mdm_audit_cash_redpack.html",
+              "module": "冷丰WMS",
+              "title": "现金红包审核"
+            },
+            {
+              "file": "MDM/mdm_audit_cash_redpack_manual.html",
+              "module": "冷丰WMS",
+              "title": "派发红包审核"
+            },
+            {
+              "file": "MDM/mdm_live_control.html",
+              "module": "冷丰WMS",
+              "title": "直播中控"
+            },
+            {
+              "file": "MDM/mdm_live_session_form.html",
+              "module": "冷丰WMS",
+              "title": "直播场次编辑"
+            },
+            {
+              "file": "MDM/mdm_marketing_cash_redpack.html",
+              "module": "冷丰WMS",
+              "title": "现金红包"
+            },
+            {
+              "file": "MDM/mdm_marketing_cash_redpack_manual.html",
+              "module": "冷丰WMS",
+              "title": "手动发放红包"
+            },
+            {
+              "file": "MDM/mdm_marketing_cash_redpack_manual_form.html",
+              "module": "冷丰WMS",
+              "title": "手动发放红包"
+            },
+            {
+              "file": "MDM/mdm_marketing_cash_redpack_tpl.html",
+              "module": "冷丰WMS",
+              "title": "现金红包模版"
+            },
+            {
+              "file": "MDM/mdm_marketing_cash_redpack_tpl_form.html",
+              "module": "冷丰WMS",
+              "title": "现金红包模版"
+            },
+            {
+              "file": "MDM/mdm_marketing_register_gift.html",
+              "module": "冷丰WMS",
+              "title": "注册有礼"
+            },
+            {
+              "file": "MDM/mdm_marketing_register_gift_form.html",
+              "module": "冷丰WMS",
+              "title": "注册有礼"
+            },
+            {
+              "file": "MDM/mdm_marketing_template.html",
+              "module": "冷丰WMS",
+              "title": "模版配置"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/redpack-claim.html",
+              "module": "",
+              "title": "领取红包 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/redpack-records.html",
+              "module": "",
+              "title": "红包领取记录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/scan-store.html",
+              "module": "",
+              "title": "扫一扫 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/switch-address.html",
+              "module": "",
+              "title": "切换门店 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_marketing_cash_redpack_tpl.html",
+              "text": "差异化配置时同一等级、分群或标签不可重复，全部配完后隐藏添加一组；禁用后编辑保存需重新审核通过并启用才有效；列表红包总额和总数按各组合计"
+            },
+            {
+              "file": "MDM/mdm_audit_cash_redpack.html",
+              "text": "差异化红包的红包总额和总数改为各组金额与数量合计"
+            },
+            {
+              "file": "MDM/mdm_live_control.html",
+              "text": "红包变为草稿、待审核或审核失败后，已绑定场次不能再发放"
+            },
+            {
+              "file": "user-app/h5/redpack-records.html",
+              "text": "左侧验收开关错开排列；可按待领取、已领取、已过期切换；领取弹框与手机框同宽；新增生日关怀、回访补发、开业加码等待领取红包"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "text": "本场现金明细里中控红包来源显示为现金红包"
+            }
+          ]
+        },
         {
           "sha": "bc231c6",
           "type": "feat",

@@ -647,5 +647,112 @@
     "regions": 0,
     "status": "diff",
     "date": "2026-10-14"
+  },
+  "dbed1b7|MDM/mdm_audit_cash_redpack.html": {
+    "before": "changelog-assets/dbed1b7/MDM__mdm_audit_cash_redpack.html.before.jpg",
+    "after": "changelog-assets/dbed1b7/MDM__mdm_audit_cash_redpack.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-10-14"
+  },
+  "dbed1b7|MDM/mdm_audit_cash_redpack_manual.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-14"
+  },
+  "dbed1b7|MDM/mdm_live_control.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-14"
+  },
+  "dbed1b7|MDM/mdm_live_session_form.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-14"
+  },
+  "dbed1b7|MDM/mdm_marketing_cash_redpack.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-14"
+  },
+  "dbed1b7|MDM/mdm_marketing_cash_redpack_manual.html": {
+    "before": "changelog-assets/dbed1b7/MDM__mdm_marketing_cash_redpack_manual.html.before.jpg",
+    "after": "changelog-assets/dbed1b7/MDM__mdm_marketing_cash_redpack_manual.html.after.jpg",
+    "regions": 3,
+    "status": "diff",
+    "date": "2026-10-14"
+  },
+  "dbed1b7|MDM/mdm_marketing_cash_redpack_manual_form.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-14"
+  },
+  "dbed1b7|MDM/mdm_marketing_cash_redpack_tpl.html": {
+    "before": "changelog-assets/dbed1b7/MDM__mdm_marketing_cash_redpack_tpl.html.before.jpg",
+    "after": "changelog-assets/dbed1b7/MDM__mdm_marketing_cash_redpack_tpl.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-10-14"
+  },
+  "dbed1b7|MDM/mdm_marketing_cash_redpack_tpl_form.html": {
+    "before": "changelog-assets/dbed1b7/MDM__mdm_marketing_cash_redpack_tpl_form.html.before.jpg",
+    "after": "changelog-assets/dbed1b7/MDM__mdm_marketing_cash_redpack_tpl_form.html.after.jpg",
+    "regions": 6,
+    "status": "diff",
+    "date": "2026-10-14"
+  },
+  "dbed1b7|MDM/mdm_marketing_register_gift.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-14"
+  },
+  "dbed1b7|MDM/mdm_marketing_register_gift_form.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-14"
+  },
+  "dbed1b7|MDM/mdm_marketing_template.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-14"
+  },
+  "dbed1b7|user-app/h5/home.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-14"
+  },
+  "dbed1b7|user-app/h5/live-room.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-14"
+  },
+  "dbed1b7|user-app/h5/profile.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-14"
+  },
+  "dbed1b7|user-app/h5/redpack-claim.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-14"
+  },
+  "dbed1b7|user-app/h5/redpack-records.html": {
+    "before": "changelog-assets/dbed1b7/user-app__h5__redpack-records.html.before.jpg",
+    "after": "changelog-assets/dbed1b7/user-app__h5__redpack-records.html.after.jpg",
+    "regions": 3,
+    "status": "diff",
+    "date": "2026-10-14"
+  },
+  "dbed1b7|user-app/h5/scan-store.html": {
+    "before": "changelog-assets/dbed1b7/user-app__h5__scan-store.html.before.jpg",
+    "after": "changelog-assets/dbed1b7/user-app__h5__scan-store.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-10-14"
+  },
+  "dbed1b7|user-app/h5/switch-address.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-14"
   }
 }
