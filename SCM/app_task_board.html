@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 任务看板</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .mobile-container {
+            position: relative;
+            width: 393px;
+            height: 851px;
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: 16px 20px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .back-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            color: #333333;
+            cursor: pointer;
+        }
+
+        .header-title {
+            flex: 1;
+            text-align: center;
+            margin-right: 32px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #333333;
+        }
+
+        .board-scroll {
+            flex: 1;
+            overflow-y: auto;
+            background-color: #f5f7fa;
+            padding: 14px 16px 20px;
+        }
+
+        .board-block + .board-block {
+            margin-top: 18px;
+        }
+
+        .block-head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .block-mark {
+            width: 4px;
+            height: 14px;
+            border-radius: 2px;
+        }
+
+        .block-mark--in {
+            background-color: #1e88e5;
+        }
+
+        .block-mark--out {
+            background-color: #ff8f1f;
+        }
+
+        .block-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333333;
+        }
+
+        .hero-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            background-color: #ffffff;
+            border: 1px solid #e8eef5;
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .hero-card--wait {
+            background-color: #fff8f1;
+            border-color: #ffe4c4;
+        }
+
+        .hero-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333333;
+        }
+
+        .hero-hint {
+            margin-top: 4px;
+            font-size: 12px;
+            color: #8a8f99;
+        }
+
+        .hero-figure {
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .hero-count {
+            font-size: 32px;
+            font-weight: 700;
+            line-height: 1;
+            color: #f57c00;
+        }
+
+        .hero-unit {
+            margin-top: 4px;
+            font-size: 12px;
+            color: #8a8f99;
+        }
+
+        .flow-group + .flow-group {
+            margin-top: 12px;
+        }
+
+        .flow-title {
+            font-size: 13px;
+            color: #666666;
+            margin-bottom: 8px;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .metric-tile {
+            background-color: #ffffff;
+            border: 1px solid #e8eef5;
+            border-radius: 12px;
+            padding: 14px 14px 12px;
+            min-height: 88px;
+        }
+
+        .metric-tile--wait {
+            background-color: #fff8f1;
+            border-color: #ffe4c4;
+        }
+
+        .metric-tile--doing {
+            background-color: #f3f9fe;
+            border-color: #d6e9f8;
+        }
+
+        .metric-count {
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1;
+            color: #333333;
+        }
+
+        .metric-tile--wait .metric-count {
+            color: #f57c00;
+        }
+
+        .metric-tile--doing .metric-count {
+            color: #1e88e5;
+        }
+
+        .metric-label {
+            margin-top: 8px;
+            font-size: 14px;
+            color: #333333;
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <div class="header">
+            <div class="back-btn" id="backBtn">←</div>
+            <div class="header-title">任务看板</div>
+        </div>
+        <div class="board-scroll">
+            <section class="board-block">
+                <div class="block-head">
+                    <span class="block-mark block-mark--in"></span>
+                    <span class="block-title">入库</span>
+                </div>
+                <div id="inboundList"></div>
+            </section>
+            <section class="board-block">
+                <div class="block-head">
+                    <span class="block-mark block-mark--out"></span>
+                    <span class="block-title">出库</span>
+                </div>
+                <div id="outboundList"></div>
+            </section>
+        </div>
+    </div>
+
+    <script src="../js/path-prefix.js"></script>
+    <script>
+        // 当前仓任务看板示例数量，仅在本页展示，不跳转其他功能
+        const inboundItems = [
+            { name: '入库单', hint: '未完结的入库单', count: 6, unit: '单' }
+        ];
+
+        const outboundGroups = [
+            {
+                title: '',
+                wide: true,
+                items: [
+                    { name: '出库单', hint: '未完结的出库单', count: 3, unit: '单', tone: 'wait' }
+                ]
+            },
+            {
+                title: '拣货任务',
+                items: [
+                    { name: '待领取', count: 2, tone: 'wait' },
+                    { name: '执行中', count: 1, tone: 'doing' }
+                ]
+            },
+            {
+                title: '分拣任务',
+                items: [
+                    { name: '待领取', count: 2, tone: 'wait' },
+                    { name: '执行中', count: 1, tone: 'doing' }
+                ]
+            },
+            {
+                title: '包裹',
+                items: [
+                    { name: '待复核', count: 4, tone: 'wait' },
+                    { name: '复核中', count: 2, tone: 'doing' },
+                    { name: '待装载', count: 3, tone: 'wait' },
+                    { name: '待发货', count: 5, tone: 'wait' }
+                ]
+            }
+        ];
+
+        function renderHero(item) {
+            return '<div class="hero-card hero-card--wait">'
+                + '<div><div class="hero-name">' + item.name + '</div><div class="hero-hint">' + item.hint + '</div></div>'
+                + '<div class="hero-figure"><div class="hero-count">' + item.count + '</div><div class="hero-unit">' + item.unit + '</div></div>'
+                + '</div>';
+        }
+
+        function renderTile(item) {
+            return '<div class="metric-tile metric-tile--' + item.tone + '">'
+                + '<div class="metric-count">' + item.count + '</div>'
+                + '<div class="metric-label">' + item.name + '</div>'
+                + '</div>';
+        }
+
+        document.getElementById('inboundList').innerHTML = inboundItems.map(renderHero).join('');
+
+        document.getElementById('outboundList').innerHTML = outboundGroups.map((group) => {
+            const body = group.wide
+                ? group.items.map(renderHero).join('')
+                : '<div class="metric-grid">' + group.items.map(renderTile).join('') + '</div>';
+            const title = group.title ? '<div class="flow-title">' + group.title + '</div>' : '';
+            return '<div class="flow-group">' + title + body + '</div>';
+        }).join('');
+
+        document.getElementById('backBtn').addEventListener('click', () => {
+            window.location.href = 'app_list.html';
+        });
+    </script>
+</body>
+</html>
