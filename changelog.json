@@ -1,7 +1,257 @@
 {
-  "latestSha": "a6d2434e92db1e0a53f23a6ad8aa7daf1f6cfe91",
-  "total": 436,
+  "latestSha": "bc231c62d817a489ff9432bd6a8cd4243cf7f719",
+  "total": 437,
   "days": [
+    {
+      "date": "2026-10-14",
+      "items": [
+        {
+          "sha": "bc231c6",
+          "type": "feat",
+          "text": "直播间现金红包领取落袋，并补齐直播营销记录",
+          "author": "sisi",
+          "time": "05:41",
+          "pages": [
+            {
+              "file": "MDM/mdm_audit_cash_redpack.html",
+              "module": "冷丰WMS",
+              "title": "现金红包审核"
+            },
+            {
+              "file": "MDM/mdm_audit_cash_redpack_manual.html",
+              "module": "冷丰WMS",
+              "title": "派发红包审核"
+            },
+            {
+              "file": "MDM/mdm_live_control.html",
+              "module": "冷丰WMS",
+              "title": "直播中控"
+            },
+            {
+              "file": "MDM/mdm_live_data.html",
+              "module": "冷丰WMS",
+              "title": "直播数据"
+            },
+            {
+              "file": "MDM/mdm_live_product_category.html",
+              "module": "冷丰WMS",
+              "title": "直播类目"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched.html",
+              "module": "冷丰WMS",
+              "title": "直播排品"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "module": "冷丰WMS",
+              "title": "直播排品编辑"
+            },
+            {
+              "file": "MDM/mdm_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间"
+            },
+            {
+              "file": "MDM/mdm_live_session.html",
+              "module": "冷丰WMS",
+              "title": "直播场次"
+            },
+            {
+              "file": "MDM/mdm_live_session_detail.html",
+              "module": "冷丰WMS",
+              "title": "直播场次详情"
+            },
+            {
+              "file": "MDM/mdm_live_session_form.html",
+              "module": "冷丰WMS",
+              "title": "直播场次编辑"
+            },
+            {
+              "file": "MDM/mdm_live_timeslot.html",
+              "module": "冷丰WMS",
+              "title": "直播时段"
+            },
+            {
+              "file": "MDM/mdm_marketing_cash_redpack.html",
+              "module": "冷丰WMS",
+              "title": "现金红包"
+            },
+            {
+              "file": "MDM/mdm_marketing_cash_redpack_manual.html",
+              "module": "冷丰WMS",
+              "title": "手动发放红包"
+            },
+            {
+              "file": "MDM/mdm_marketing_cash_redpack_manual_form.html",
+              "module": "冷丰WMS",
+              "title": "手动发放红包"
+            },
+            {
+              "file": "MDM/mdm_marketing_cash_redpack_tpl.html",
+              "module": "冷丰WMS",
+              "title": "现金红包模版"
+            },
+            {
+              "file": "MDM/mdm_marketing_cash_redpack_tpl_form.html",
+              "module": "冷丰WMS",
+              "title": "现金红包模版"
+            },
+            {
+              "file": "MDM/mdm_marketing_live_record.html",
+              "module": "冷丰WMS",
+              "title": "直播营销记录"
+            },
+            {
+              "file": "MDM/mdm_marketing_points_mall_form.html",
+              "module": "冷丰WMS",
+              "title": "编辑积分商品"
+            },
+            {
+              "file": "MDM/mdm_marketing_register_gift.html",
+              "module": "冷丰WMS",
+              "title": "注册有礼"
+            },
+            {
+              "file": "MDM/mdm_marketing_register_gift_form.html",
+              "module": "冷丰WMS",
+              "title": "注册有礼"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "module": "冷丰WMS",
+              "title": "秒杀活动"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "module": "冷丰WMS",
+              "title": "编辑秒杀商品"
+            },
+            {
+              "file": "MDM/mdm_marketing_template.html",
+              "module": "冷丰WMS",
+              "title": "模版配置"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "module": "冷丰WMS",
+              "title": "选品库"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/category.html",
+              "module": "",
+              "title": "分类 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "module": "",
+              "title": "商城 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/redpack-claim.html",
+              "module": "",
+              "title": "领取红包 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/redpack-records.html",
+              "module": "",
+              "title": "红包领取记录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/scan-store.html",
+              "module": "",
+              "title": "扫一扫 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/switch-address.html",
+              "module": "",
+              "title": "切换门店 · 用户 APP"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_marketing_cash_redpack.html",
+              "text": "领取时按总次数、每日、每场和单个红包的剩余最小值拦截，并提示对应失败原因；手动派发、签到、观看任务不占次数"
+            },
+            {
+              "file": "MDM/mdm_marketing_cash_redpack_tpl.html",
+              "text": "领取条件改为累计天数内的下单金额或笔数，并写明不满足时的客户端提示；参与会员不在范围时单独提示"
+            },
+            {
+              "file": "MDM/mdm_marketing_cash_redpack_manual.html",
+              "text": "单个发放的名称后展示前台备注"
+            },
+            {
+              "file": "MDM/mdm_marketing_template.html",
+              "text": "福袋、签到、观看任务关联现金红包时，不可用模版不再出现在下拉中，有效期内的排在前面"
+            },
+            {
+              "file": "MDM/mdm_live_session_form.html",
+              "text": "现金红包下拉只列可关联模版并显示有效期；总开关关闭时不可选"
+            },
+            {
+              "file": "MDM/mdm_live_control.html",
+              "text": "发送现金红包可先预热倒计时再弹出；停止只结束本轮；说明签到和观看任务不受限领"
+            },
+            {
+              "file": "MDM/mdm_marketing_live_record.html",
+              "text": "新增页面，按场次查看优惠券、福袋、签到、观看任务和现金红包领取记录"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "text": "福袋和中控红包领取成功后金币落入现金账户并叮铃铃；签到若是现金红包，点签到直接入账；观看任务现金点开心收下入账"
+            },
+            {
+              "file": "user-app/h5/redpack-records.html",
+              "text": "顶部统计不随筛选变化；待领取和已过期不显示微信流水号；有前台备注时名称后展示；领取成功后金额飞入现金收益"
+            },
+            {
+              "file": "user-app/h5/redpack-claim.html",
+              "text": "领取弹框在红包名称后展示前台备注"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "text": "注册有礼领取与现金红包条件和次数规则一致"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "text": "红包领取与现金红包条件和次数规则一致"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-10-13",
       "items": [
@@ -92,6 +342,11 @@
               "title": "首页 · 用户 APP"
             },
             {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/profile.html",
               "module": "",
               "title": "我的 · 用户 APP"
@@ -100,6 +355,11 @@
               "file": "user-app/h5/redpack-claim.html",
               "module": "",
               "title": "领取红包 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/redpack-records.html",
+              "module": "",
+              "title": "红包领取记录 · 用户 APP"
             }
           ],
           "notes": [
@@ -466,6 +726,11 @@
               "file": "user-app/h5/home.html",
               "module": "",
               "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
             },
             {
               "file": "user-app/h5/profile.html",
