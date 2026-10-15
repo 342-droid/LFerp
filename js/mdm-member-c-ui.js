@@ -63,6 +63,21 @@
         return 'member-detail-text--danger';
     }
 
+    /* 微信 OpenID 演示值：同一会员 ID 始终同一条，28 位 */
+    function demoOpenId(id) {
+        var raw = String(id || 'member').replace(/[^A-Za-z0-9]/g, '') || 'member';
+        var alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        var out = 'oLfss' + raw;
+        var n = 2166136261;
+        var i;
+        for (i = 0; i < raw.length; i++) n = Math.imul(n ^ raw.charCodeAt(i), 16777619) >>> 0;
+        while (out.length < 28) {
+            n = Math.imul(n, 1664525) + 1013904223 >>> 0;
+            out += alphabet[n % alphabet.length];
+        }
+        return out.slice(0, 28);
+    }
+
     function enrichMemberRecord(m) {
         function z(v, def) {
             return v == null || v === '' ? def : v;
@@ -76,6 +91,7 @@
                     : (m.nickname && m.nickname[0]) || '—'
             ),
             phone: String(z(m.phone, '—')),
+            openId: String(z(m.openId, demoOpenId(m.id))),
             gender: String(z(m.gender, '—')),
             isMember: String(z(m.isMember, '—')),
             level: String(z(m.level, '普通会员')),
@@ -167,6 +183,7 @@
         if (tr.getAttribute('data-birthday')) base.birthday = tr.getAttribute('data-birthday');
         if (tr.getAttribute('data-district')) base.district = tr.getAttribute('data-district');
         if (tr.getAttribute('data-phone-full')) base.phone = tr.getAttribute('data-phone-full');
+        if (tr.getAttribute('data-openid')) base.openId = tr.getAttribute('data-openid');
 
         /* 再从同步列表补全生日 / 城区等扩展字段 */
         try {
@@ -179,6 +196,7 @@
                             if (list[i].birthday) base.birthday = list[i].birthday;
                             if (list[i].district) base.district = list[i].district;
                             if (list[i].phone) base.phone = list[i].phone;
+                            if (list[i].openId) base.openId = list[i].openId;
                             if (list[i].growthTotal) base.growthTotal = list[i].growthTotal;
                             break;
                         }
@@ -231,6 +249,7 @@
             ['会员昵称', rec.nickname],
             ['会员性别', rec.gender],
             ['手机号码', rec.phone],
+            ['OpenID', rec.openId],
             ['是否会员', rec.isMember],
             ['会员状态', rec.status],
             ['会员等级', rec.level || '—'],

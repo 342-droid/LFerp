@@ -4,7 +4,7 @@
  * 未授权时，登录成功（含系统自动登录）、进入直播间、领取现金红包（直播现金红包、福袋现金红包、
  * 签到现金红包、观看任务现金红包、派发红包）都会弹出授权半屏。
  * 点「同意」后记为已授权，再点「完成」继续原来的动作。
- * 授权一次后不再弹出，直到用户在设置里自己取消。关闭半屏且未点同意，保持未授权，下次上述场景再弹。
+ * 授权一次后不再弹出。关闭半屏且未点同意，保持未授权，下次上述场景再弹。
  */
 (function (global) {
   'use strict';
@@ -16,12 +16,12 @@
 
   var root = null;
   var queue = [];
-  var cssHref = '../css/user-app-wx-pay-auth.css?v=20261015-wx-auth';
+  var cssHref = '../css/user-app-wx-pay-auth.css?v=20261015-wx-sheet3';
 
   if (document.currentScript && document.currentScript.src) {
     cssHref = document.currentScript.src.replace(
       /\/js\/user-app-wx-pay-auth\.js(\?.*)?$/,
-      '/css/user-app-wx-pay-auth.css?v=20261015-wx-auth'
+      '/css/user-app-wx-pay-auth.css?v=20261015-wx-sheet3'
     );
   }
 
@@ -105,7 +105,7 @@
       '通过微信支付收款</h2>' +
       '<div class="ua-wx-auth__rows">' +
       '<div class="ua-wx-auth__row"><span>转账类型</span><strong>活动奖励</strong></div>' +
-      '<div class="ua-wx-auth__row"><span>转账说明</span><strong>同意后商家可转账至你选定的收款方式</strong></div>' +
+      '<div class="ua-wx-auth__row"><span>转账说明</span><strong>同意后商家可转账至你的微信钱包</strong></div>' +
       '<div class="ua-wx-auth__row"><span>收款方式</span><strong class="ua-wx-auth__pay">' +
       payIcon() +
       '零钱</strong></div>' +
