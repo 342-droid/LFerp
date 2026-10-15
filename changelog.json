@@ -1,10 +1,209 @@
 {
-  "latestSha": "f0b9b5ecf3ee2c9a56fab23cad90b58ba5124a8a",
-  "total": 439,
+  "latestSha": "9c64d6b95bff26d213eb2a584e6ddb9e1686c0f7",
+  "total": 440,
   "days": [
     {
       "date": "2026-10-15",
       "items": [
+        {
+          "sha": "9c64d6b",
+          "type": "feat",
+          "text": "完善现金红包限额、转账场景、收款授权和 OpenID",
+          "author": "sisi",
+          "time": "19:25",
+          "pages": [
+            {
+              "file": "MDM/mdm_audit_cash_redpack.html",
+              "module": "冷丰WMS",
+              "title": "现金红包审核"
+            },
+            {
+              "file": "MDM/mdm_audit_cash_redpack_manual.html",
+              "module": "冷丰WMS",
+              "title": "派发红包审核"
+            },
+            {
+              "file": "MDM/mdm_live_control.html",
+              "module": "冷丰WMS",
+              "title": "直播中控"
+            },
+            {
+              "file": "MDM/mdm_live_session_form.html",
+              "module": "冷丰WMS",
+              "title": "直播场次编辑"
+            },
+            {
+              "file": "MDM/mdm_marketing_cash_redpack.html",
+              "module": "冷丰WMS",
+              "title": "现金红包"
+            },
+            {
+              "file": "MDM/mdm_marketing_cash_redpack_manual.html",
+              "module": "冷丰WMS",
+              "title": "手动发放红包"
+            },
+            {
+              "file": "MDM/mdm_marketing_cash_redpack_manual_form.html",
+              "module": "冷丰WMS",
+              "title": "手动发放红包"
+            },
+            {
+              "file": "MDM/mdm_marketing_cash_redpack_tpl.html",
+              "module": "冷丰WMS",
+              "title": "现金红包模版"
+            },
+            {
+              "file": "MDM/mdm_marketing_cash_redpack_tpl_form.html",
+              "module": "冷丰WMS",
+              "title": "现金红包模版"
+            },
+            {
+              "file": "MDM/mdm_marketing_register_gift.html",
+              "module": "冷丰WMS",
+              "title": "注册有礼"
+            },
+            {
+              "file": "MDM/mdm_marketing_register_gift_form.html",
+              "module": "冷丰WMS",
+              "title": "注册有礼"
+            },
+            {
+              "file": "MDM/mdm_marketing_template.html",
+              "module": "冷丰WMS",
+              "title": "模版配置"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-password.html",
+              "module": "",
+              "title": "账号密码登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-phone.html",
+              "module": "",
+              "title": "手机快速登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-register.html",
+              "module": "",
+              "title": "账号注册 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-wechat.html",
+              "module": "",
+              "title": "微信授权登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login.html",
+              "module": "",
+              "title": "登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/redpack-claim.html",
+              "module": "",
+              "title": "领取红包 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/redpack-records.html",
+              "module": "",
+              "title": "红包领取记录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/settings.html",
+              "module": "",
+              "title": "设置 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_marketing_cash_redpack.html",
+              "text": "首页说明单笔不得超过200元，模版固定现金营销和活动奖励；发放明细的发放用户在会员ID下增加OpenID"
+            },
+            {
+              "file": "MDM/mdm_marketing_cash_redpack_tpl.html",
+              "text": "转账场景固定为现金营销，用户收款感知固定为活动奖励；单用户单笔金额不得超过200元"
+            },
+            {
+              "file": "MDM/mdm_marketing_cash_redpack_manual.html",
+              "text": "新增转账场景和用户收款感知；活动领取终端改到触发时间下，小程序和APP都可选；前台备注最多32字；奖励金额和导入不得超过200元"
+            },
+            {
+              "file": "MDM/mdm_audit_cash_redpack_manual.html",
+              "text": "列表和查看审核表单展示转账场景、用户收款感知"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "text": "会员详情基础信息在手机号码后增加OpenID"
+            },
+            {
+              "file": "MDM/mdm_live_control.html",
+              "text": "演示发放的单笔金额不超过200元"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "text": "收款授权弹框按微信确认收款页比例收矮；转账说明改为同意后商家可转账至你的微信钱包"
+            },
+            {
+              "file": "user-app/h5/settings.html",
+              "text": "去掉取消微信支付收款授权，已授权只展示状态"
+            },
+            {
+              "file": "user-app/h5/login.html",
+              "text": "收款授权弹框与直播间同一套尺寸和转账说明"
+            },
+            {
+              "file": "user-app/h5/login-phone.html",
+              "text": "收款授权弹框与直播间同一套尺寸和转账说明"
+            },
+            {
+              "file": "user-app/h5/login-password.html",
+              "text": "收款授权弹框与直播间同一套尺寸和转账说明"
+            },
+            {
+              "file": "user-app/h5/login-wechat.html",
+              "text": "收款授权弹框与直播间同一套尺寸和转账说明"
+            },
+            {
+              "file": "user-app/h5/login-register.html",
+              "text": "收款授权弹框与直播间同一套尺寸和转账说明"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "text": "收款授权弹框与直播间同一套尺寸和转账说明"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "text": "收款授权弹框与直播间同一套尺寸和转账说明"
+            },
+            {
+              "file": "user-app/h5/redpack-claim.html",
+              "text": "收款授权弹框与直播间同一套尺寸和转账说明"
+            },
+            {
+              "file": "user-app/h5/redpack-records.html",
+              "text": "收款授权弹框与直播间同一套尺寸和转账说明"
+            }
+          ]
+        },
         {
           "sha": "f0b9b5e",
           "type": "feat",
