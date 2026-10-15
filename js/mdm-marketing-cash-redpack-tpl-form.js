@@ -370,6 +370,20 @@
         dis +
         '><div class="pts-rule-tip">最多 50 个字符</div>'
     );
+    html += fieldRow(
+      false,
+      '转账场景',
+      '<input class="erp-input pts-rule-field__input--name" id="fCrTplTransferScene" type="text" value="' +
+        escapeHtml(Store.TRANSFER_SCENE_DEFAULT.label) +
+        '" disabled><div class="pts-rule-tip">红包模版固定为现金营销。</div>'
+    );
+    html += fieldRow(
+      false,
+      '用户收款感知',
+      '<input class="erp-input pts-rule-field__input--name" id="fCrTplUserPerception" type="text" value="' +
+        escapeHtml(Store.USER_PERCEPTION_DEFAULT.label) +
+        '" disabled><div class="pts-rule-tip">用户收款时默认展示活动奖励。</div>'
+    );
     html += fieldRow(true, '有效时间', renderTimeHtml(dis));
     html += '</div></div>';
     html += '<div class="pts-rule-card"><div class="pts-rule-card__title">发放规则</div><div class="pts-rule-card__body">';
@@ -819,6 +833,7 @@
     } else {
       html += renderTierTable(rewardType, dis, bag);
     }
+    html += '<div class="pts-rule-tip">单用户单笔金额不得超过200元。随机金额按总计金额除以红包总数校验，单笔发放也不会超过200元。</div>';
     return html;
   }
 

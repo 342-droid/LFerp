@@ -71,7 +71,7 @@
     var start = (state.page - 1) * state.pageSize;
     var rows = all.slice(start, start + state.pageSize);
     if (!rows.length) {
-      tbody.innerHTML = '<tr><td colspan="11" class="mkt-tpl-empty">未查询到符合条件的数据</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="14" class="mkt-tpl-empty">未查询到符合条件的数据</td></tr>';
     } else {
       tbody.innerHTML = rows
         .map(function (audit) {
@@ -96,6 +96,8 @@
             '<td>' + escapeHtml(snap.name || '—') + '</td>' +
             '<td>' + escapeHtml(Store.MANUAL_MODE_LABEL[snap.mode] || snap.mode || '—') + '</td>' +
             '<td>' + escapeHtml(Store.portsLabel(snap.ports)) + '</td>' +
+            '<td>' + escapeHtml(Store.transferSceneLabel(snap.transferScene)) + '</td>' +
+            '<td>' + escapeHtml(Store.userPerceptionLabel(snap.transferScene, snap.userPerception)) + '</td>' +
             '<td>' + sum.count + '</td>' +
             '<td>' + money(sum.amount) + '</td>' +
             '<td>' + escapeHtml(snap.creator || audit.submittedBy || '—') + '</td>' +

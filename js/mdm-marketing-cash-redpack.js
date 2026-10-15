@@ -364,6 +364,9 @@
           '<div class="mkt-cr-user__id">ID：' +
           escapeHtml(item.userId) +
           '</div>' +
+          '<div class="mkt-cr-user__id">OpenID：' +
+          escapeHtml(item.openId || '—') +
+          '</div>' +
           '</div></div></td>' +
           '<td>' +
           escapeHtml(formatAmount(item.amount)) +

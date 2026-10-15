@@ -577,6 +577,102 @@
     return String(value == null ? '' : value).trim().slice(0, 32);
   }
 
+  /** 单用户单笔现金红包不得超过 200 元 */
+  function capUserGrant(n) {
+    var money = toMoney(n);
+    if (!(money > 0)) return money;
+    if (money > 200) return 200;
+    return money;
+  }
+
+  /**
+   * 微信商家转账：转账场景 → 用户收款感知。
+   * explicit 为 true 时，发起转账必须主动传入该文案，用户侧才会展示。
+   */
+  var TRANSFER_SCENES = [
+    {
+      id: 'cash_marketing',
+      label: '现金营销',
+      intro: '向参与营销活动的用户发放现金奖励',
+      perceptions: [
+        { id: 'activity_reward', label: '活动奖励', explicit: false },
+        { id: 'cash_reward', label: '现金奖励', explicit: true }
+      ]
+    },
+    {
+      id: 'enterprise_payout',
+      label: '企业赔付',
+      intro: '交易后商家向用户进行赔偿或退款',
+      perceptions: [
+        { id: 'refund', label: '退款', explicit: false },
+        { id: 'merchant_payout', label: '商家赔付', explicit: true }
+      ]
+    },
+    {
+      id: 'commission',
+      label: '佣金报酬',
+      intro: '向劳务提供方，如销售、团长、主播支付佣金、报酬等',
+      perceptions: [
+        { id: 'labor', label: '劳务报酬', explicit: false },
+        { id: 'reimburse', label: '报销款', explicit: true },
+        { id: 'subsidy', label: '企业补贴', explicit: true },
+        { id: 'bonus', label: '开工利是', explicit: true }
+      ]
+    }
+  ];
+
+  function transferSceneById(id) {
+    var sid = String(id || '');
+    for (var i = 0; i < TRANSFER_SCENES.length; i++) {
+      if (TRANSFER_SCENES[i].id === sid) return TRANSFER_SCENES[i];
+    }
+    return TRANSFER_SCENES[0];
+  }
+
+  function perceptionInScene(scene, id) {
+    var list = (scene && scene.perceptions) || [];
+    var sid = String(id || '');
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === sid) return list[i];
+    }
+    return list[0] || { id: 'activity_reward', label: '活动奖励', explicit: false };
+  }
+
+  function normalizeTransfer(sceneId, perceptionId) {
+    var scene = transferSceneById(sceneId);
+    var perception = perceptionInScene(scene, perceptionId);
+    return { scene: scene, perception: perception };
+  }
+
+  function transferSceneLabel(id) {
+    return transferSceneById(id).label;
+  }
+
+  function userPerceptionLabel(sceneId, perceptionId) {
+    return normalizeTransfer(sceneId, perceptionId).perception.label;
+  }
+
+  function userPerceptionTip(sceneId, perceptionId) {
+    var pair = normalizeTransfer(sceneId, perceptionId);
+    if (!pair.perception.explicit) return '默认展示';
+    return '需在发起转账时，“用户收款感知”字段主动传入“' + pair.perception.label + '”才可展示';
+  }
+
+  /* 与会员详情同一算法：同一会员 ID 始终同一条 28 位 OpenID */
+  function demoOpenId(id) {
+    var raw = String(id || 'member').replace(/[^A-Za-z0-9]/g, '') || 'member';
+    var alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var out = 'oLfss' + raw;
+    var n = 2166136261;
+    var i;
+    for (i = 0; i < raw.length; i++) n = Math.imul(n ^ raw.charCodeAt(i), 16777619) >>> 0;
+    while (out.length < 28) {
+      n = Math.imul(n, 1664525) + 1013904223 >>> 0;
+      out += alphabet[n % alphabet.length];
+    }
+    return out.slice(0, 28);
+  }
+
   /** 演示用微信转账单号（transfer_bill_no） */
   function genTransferBillNo() {
     var tail = String(Date.now()).slice(-10) + String(Math.floor(Math.random() * 9000) + 1000);
@@ -590,10 +686,15 @@
     item.transferBillNo = String(item.transferBillNo || item.wxTransferBillNo || '').trim();
     item.grantedAt = String(item.grantedAt || '').trim();
     item.userId = String(item.userId || '').trim() || '—';
+    item.openId = String(item.openId || '').trim();
+    if (!item.openId) item.openId = item.userId !== '—' ? demoOpenId(item.userId) : '—';
     item.userName = String(item.userName || '').trim() || '用户';
     item.userPhone = String(item.userPhone || '').trim() || '—';
     item.userAvatar = String(item.userAvatar || '').trim();
     item.amount = toMoney(item.amount);
+    var transfer = normalizeTransfer(item.transferScene, item.userPerception);
+    item.transferScene = transfer.scene.id;
+    item.userPerception = transfer.perception.id;
     item.activityType = String(item.activityType || 'register_gift').trim() || 'register_gift';
     if (!ACTIVITY_TYPE_LABEL[item.activityType]) item.activityType = 'register_gift';
     item.activityId = String(item.activityId || '');
@@ -700,6 +801,7 @@
   function addRecord(payload) {
     ensureLoaded();
     var item = normalizeItem(payload);
+    item.amount = capUserGrant(item.amount);
     if (!item.id) item.id = nextId();
     if (!item.grantedAt) item.grantedAt = formatNow();
     if (!item.outBillNo) item.outBillNo = genOutBillNo();
@@ -856,6 +958,8 @@
       if (keyword) {
         var hay = (
           it.userId +
+          ' ' +
+          it.openId +
           ' ' +
           it.userName +
           ' ' +
@@ -1962,6 +2066,7 @@
   function manualSnapshotOf(payload) {
     var snap = payload || {};
     var creator = String(snap.creator || '').trim() || '演示运营';
+    var transfer = normalizeTransfer(snap.transferScene, snap.userPerception);
     return {
       name: String(snap.name || '').trim(),
       ports: batchPorts(snap),
@@ -1984,6 +2089,8 @@
       fileName: String(snap.fileName || '').trim(),
       triggerMode: snap.triggerMode === 'schedule' ? 'schedule' : 'now',
       triggerAt: snap.triggerMode === 'schedule' ? String(snap.triggerAt || '').trim() : '',
+      transferScene: transfer.scene.id,
+      userPerception: transfer.perception.id,
       creator: creator
     };
   }
@@ -2096,6 +2203,8 @@
         activityType: 'manual',
         activityId: batch.id,
         activityName: snap.name,
+        transferScene: snap.transferScene,
+        userPerception: snap.userPerception,
         scene: 'manual',
         ports: batchPorts(snap),
         port: batchPorts(snap).length === 1 ? batchPorts(snap)[0] : '',
@@ -2360,6 +2469,12 @@
     addBatch: addBatch,
     finishBatch: finishBatch,
     MANUAL_MODE_LABEL: MANUAL_MODE_LABEL,
+    TRANSFER_SCENES: TRANSFER_SCENES,
+    transferSceneById: transferSceneById,
+    normalizeTransfer: normalizeTransfer,
+    transferSceneLabel: transferSceneLabel,
+    userPerceptionLabel: userPerceptionLabel,
+    userPerceptionTip: userPerceptionTip,
     createManualAudit: createManualAudit,
     resubmitManualDraft: resubmitManualDraft,
     listManualAudits: listManualAudits,

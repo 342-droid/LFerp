@@ -3736,22 +3736,29 @@
     return pad(m) + ':' + pad(s);
   }
 
+  function capDemoGrant(n) {
+    var money = Math.round((Number(n) || 0) * 100) / 100;
+    if (!(money > 0)) return 0;
+    if (money > 200) return 200;
+    return money;
+  }
+
   function redpackDemoAmount(plan, index) {
     var id = plan && (plan.templateId || plan.poolId);
     var store = window.MdmMarketingCashRedpackTplStore;
     var tpl = store && store.getById && id ? store.getById(id) : null;
     if (!tpl) return 1;
-    if (tpl.rewardType === 'fixed') return Math.round((Number(tpl.singleAmount) || 0) * 100) / 100;
+    if (tpl.rewardType === 'fixed') return capDemoGrant(tpl.singleAmount);
     var tier = (tpl.tiers && tpl.tiers[0]) || null;
     if (tpl.rewardType === 'custom_fixed') {
       var fixed = tier ? Number(tier.amount) : Number(tpl.singleAmount);
-      return Math.round((fixed || 0) * 100) / 100;
+      return capDemoGrant(fixed);
     }
     var min = tier ? Number(tier.amountMin) || 0 : 0.5;
     var max = tier ? Number(tier.amountMax) || min : min;
     if (max < min) max = min;
     var t = ((index * 37) % 100) / 100;
-    return Math.round((min + (max - min) * t) * 100) / 100;
+    return capDemoGrant(min + (max - min) * t);
   }
 
   function syncRedpackAmounts(w, plan, times) {

@@ -23,6 +23,9 @@
   var PORT_LABEL = { mini: '小程序', app: 'APP' };
   var SCENE_LABEL = { REGISTER_GIFT: '注册有礼' };
   var SCENE_OPTIONS = [{ v: 'REGISTER_GIFT', l: '注册有礼' }];
+  /** 红包模版固定走微信「现金营销」，用户收款感知默认「活动奖励」 */
+  var TRANSFER_SCENE_DEFAULT = { id: 'cash_marketing', label: '现金营销' };
+  var USER_PERCEPTION_DEFAULT = { id: 'activity_reward', label: '活动奖励' };
   var AMOUNT_MODE_LABEL = { fixed: '固定金额', range: '区间金额' };
   var REWARD_TYPE_LABEL = {
     fixed: '固定金额',
@@ -349,6 +352,8 @@
     item.orderDayRange = dayRange;
     item.orderDayCustom = !!item.orderDayCustom || (dayRange > 0 && DAY_RANGE_OPTIONS.indexOf(dayRange) < 0);
     item.claimTimesMode = item.claimTimesMode === 'per_user' ? 'per_user' : 'unlimited';
+    item.transferScene = TRANSFER_SCENE_DEFAULT.id;
+    item.userPerception = USER_PERCEPTION_DEFAULT.id;
     if (!STATUS_LABEL[item.status]) item.status = 'DRAFT';
     item.remark = String(item.remark || '').trim();
     var now = nowStr();
@@ -1259,18 +1264,19 @@
     return { ok: true, item: item };
   }
 
-  var REWARD_AMOUNT_HINT = '0<奖励金额<1千';
+  var REWARD_AMOUNT_MAX = 200;
+  var REWARD_AMOUNT_HINT = '单用户单笔金额不得超过200';
 
   function rewardAmountError(n) {
     var cents = Math.round(toMoney(n) * 100);
-    if (!(cents > 0) || !(cents < 100000)) return REWARD_AMOUNT_HINT;
+    if (!(cents > 0) || cents > REWARD_AMOUNT_MAX * 100) return REWARD_AMOUNT_HINT;
     return '';
   }
 
   function capSingleGrant(n) {
     var money = toMoney(n);
     if (!(money > 0)) return 0;
-    if (money >= 1000) return 999.99;
+    if (money > REWARD_AMOUNT_MAX) return REWARD_AMOUNT_MAX;
     return money;
   }
 
@@ -1331,6 +1337,8 @@
     if (item.rewardType === 'random') {
       if (!isTotalAmountOk(item.totalAmount)) return '请输入1-6位整数';
       if (!(item.packetTotal >= 1)) return '请填写红包总数';
+      var avgCents = Math.round((Number(item.totalAmount) * 100) / item.packetTotal);
+      if (avgCents > REWARD_AMOUNT_MAX * 100) return REWARD_AMOUNT_HINT;
       return '';
     }
     var tiers = item.tiers || [];
@@ -1728,6 +1736,8 @@
     PORT_LABEL: PORT_LABEL,
     SCENE_LABEL: SCENE_LABEL,
     SCENE_OPTIONS: SCENE_OPTIONS,
+    TRANSFER_SCENE_DEFAULT: TRANSFER_SCENE_DEFAULT,
+    USER_PERCEPTION_DEFAULT: USER_PERCEPTION_DEFAULT,
     AMOUNT_MODE_LABEL: AMOUNT_MODE_LABEL,
     CLAIM_LABEL: CLAIM_LABEL,
     CLAIM_DENY_MSG: CLAIM_DENY_MSG,

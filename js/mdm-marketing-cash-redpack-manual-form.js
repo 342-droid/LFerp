@@ -129,6 +129,13 @@
     return ports;
   }
 
+  function applyPorts(ports) {
+    var chosen = Array.isArray(ports) ? ports : [];
+    document.querySelectorAll('input[name="crManualPort"]').forEach(function (el) {
+      el.checked = chosen.indexOf(el.value) >= 0;
+    });
+  }
+
   function selectedMode() {
     var el = document.querySelector('input[name="crManualMode"]:checked');
     var value = el && el.value;
@@ -150,20 +157,47 @@
     return Store.toMoney(text);
   }
 
+  var REWARD_AMOUNT_HINT = '单用户单笔金额不得超过200';
+
   function rewardAmountError(raw) {
     var text = typeof raw === 'number' && isFinite(raw) ? String(raw) : String(raw == null ? '' : raw).replace(/元/g, '').replace(/,/g, '').trim();
     if (typeof raw === 'number' && isFinite(raw)) {
-      if (Math.abs(raw * 100 - Math.round(raw * 100)) > 1e-6) return '0<奖励金额<1千';
+      if (Math.abs(raw * 100 - Math.round(raw * 100)) > 1e-6) return REWARD_AMOUNT_HINT;
       text = String(Math.round(raw * 100) / 100);
     }
-    if (!/^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/.test(text)) return '0<奖励金额<1千';
+    if (!/^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/.test(text)) return REWARD_AMOUNT_HINT;
     var cents = Math.round(Store.toMoney(text) * 100);
-    if (!(cents > 0) || cents >= 100000) return '0<奖励金额<1千';
+    if (!(cents > 0) || cents > 20000) return REWARD_AMOUNT_HINT;
     return '';
   }
 
   function remarkText(id) {
     return String((document.getElementById(id) || {}).value || '').trim();
+  }
+
+  function selectedTransferScene() {
+    return String((document.getElementById('crManualTransferScene') || {}).value || 'cash_marketing');
+  }
+
+  function syncUserPerception(preferred) {
+    var scene = Store.transferSceneById(selectedTransferScene());
+    var sel = document.getElementById('crManualUserPerception');
+    var sceneTip = document.getElementById('crManualSceneTip');
+    var perceptionTip = document.getElementById('crManualPerceptionTip');
+    var want = preferred != null && preferred !== '' ? String(preferred) : sel ? sel.value : '';
+    if (sceneTip) sceneTip.textContent = scene.intro || '';
+    if (!sel) return;
+    var known = (scene.perceptions || []).some(function (item) {
+      return item.id === want;
+    });
+    if (!known) want = (scene.perceptions[0] || {}).id || '';
+    sel.innerHTML = (scene.perceptions || [])
+      .map(function (item) {
+        return '<option value="' + escapeHtml(item.id) + '">' + escapeHtml(item.label) + '</option>';
+      })
+      .join('');
+    sel.value = want;
+    if (perceptionTip) perceptionTip.textContent = Store.userPerceptionTip(scene.id, sel.value);
   }
 
   function frontRemarkError(raw) {
@@ -916,7 +950,7 @@
     }
     var batchMode = mode === 'batch';
     if (!batchMode && rewardAmountError(rewardAmountText())) {
-      toast(rewardAmountText() ? '0<奖励金额<1千' : '请输入奖励金额', 'warning');
+      toast(rewardAmountText() ? REWARD_AMOUNT_HINT : '请输入奖励金额', 'warning');
       return;
     }
     if (batchMode) {
@@ -924,7 +958,7 @@
         return !!rewardAmountError(u.amount);
       });
       if (badAmount) {
-        toast('0<奖励金额<1千', 'warning');
+        toast(REWARD_AMOUNT_HINT, 'warning');
         return;
       }
     }
@@ -962,6 +996,8 @@
       fileName: excelFileName,
       triggerMode: triggerMode,
       triggerAt: triggerMode === 'schedule' ? readTriggerAt() : '',
+      transferScene: selectedTransferScene(),
+      userPerception: String((document.getElementById('crManualUserPerception') || {}).value || ''),
       creator: currentCreator()
     };
     if (pageMode === 'edit' && auditId) {
@@ -987,9 +1023,7 @@
     var snap = (audit && audit.snapshot) || {};
     var name = document.getElementById('crManualName');
     if (name) name.value = snap.name || '';
-    document.querySelectorAll('input[name="crManualPort"]').forEach(function (el) {
-      el.checked = (snap.ports || []).indexOf(el.value) >= 0;
-    });
+    applyPorts(snap.ports);
     document.querySelectorAll('input[name="crManualMode"]').forEach(function (el) {
       el.checked = el.value === (snap.mode || 'single');
     });
@@ -1014,6 +1048,9 @@
     var back = document.getElementById('crManualBackRemark');
     if (back) back.value = snap.backRemark || '';
     fillTrigger(snap.triggerMode, snap.triggerAt);
+    var scene = document.getElementById('crManualTransferScene');
+    if (scene) scene.value = snap.transferScene || 'cash_marketing';
+    syncUserPerception(snap.userPerception || '');
     if (snap.mode === 'batch') {
       excelUsers = (snap.users || []).map(function (u) {
         return Object.assign({}, u);
@@ -1025,7 +1062,7 @@
   function lockFormFields() {
     var card = document.querySelector('.pts-rule-card');
     if (!card) return;
-    card.querySelectorAll('input, textarea, button').forEach(function (el) {
+    card.querySelectorAll('input, textarea, select, button').forEach(function (el) {
       el.disabled = true;
     });
   }
@@ -1110,6 +1147,19 @@
     document.querySelectorAll('input[name="crManualTrigger"]').forEach(function (el) {
       el.addEventListener('change', syncTrigger);
     });
+    var transferScene = document.getElementById('crManualTransferScene');
+    if (transferScene) {
+      transferScene.addEventListener('change', function () {
+        syncUserPerception('');
+      });
+    }
+    var userPerception = document.getElementById('crManualUserPerception');
+    if (userPerception) {
+      userPerception.addEventListener('change', function () {
+        syncUserPerception();
+      });
+    }
+    if (!audit) syncUserPerception('activity_reward');
     if (!fromAudit && !Store.isEnabled()) {
       var closedTip = document.getElementById('crManualTip');
       if (closedTip) closedTip.innerHTML = '<strong>现金红包已关闭。</strong>请先回到现金红包页开启总开关。';
