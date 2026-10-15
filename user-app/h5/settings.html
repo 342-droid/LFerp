@@ -63,6 +63,11 @@
             <span class="ua-set-item__text">用户协议</span>
             <span class="ua-set-item__arrow">&gt;</span>
           </button>
+          <button type="button" class="ua-set-item" id="setWxPayAuth">
+            <span class="ua-set-item__text">微信支付收款授权</span>
+            <span class="ua-set-item__extra" id="setWxPayAuthExtra">未授权</span>
+            <span class="ua-set-item__arrow">&gt;</span>
+          </button>
           <a href="settings-more.html" class="ua-set-item" id="setMore">
             <span class="ua-set-item__text">更多</span>
             <span class="ua-set-item__arrow">&gt;</span>
@@ -85,7 +90,18 @@
       </div>
     </div>
   </div>
+  <div class="ua-cancel-modal" id="setWxAuthModal" hidden>
+    <div class="ua-cancel-modal__mask" id="setWxAuthMask"></div>
+    <div class="ua-cancel-modal__panel" role="dialog" aria-modal="true" aria-labelledby="setWxAuthTitle">
+      <p class="ua-cancel-modal__text" id="setWxAuthTitle">确定取消微信支付收款授权？取消后，登录、进入直播间和领取现金红包时会再次要求授权。</p>
+      <div class="ua-cancel-modal__actions">
+        <button type="button" class="ua-cancel-modal__btn" id="setWxAuthCancel">再想想</button>
+        <button type="button" class="ua-cancel-modal__btn ua-cancel-modal__btn--danger" id="setWxAuthConfirm">取消授权</button>
+      </div>
+    </div>
+  </div>
   <div id="uaCancelToast" class="ua-login-toast" aria-live="polite"></div>
+<script src="../js/user-app-wx-pay-auth.js?v=20261015-wx-auth3"></script>
 <script src="../js/user-app-blacklist-guard.js"></script>
 <script src="../js/user-app-nav.js"></script>
 <script src="../js/user-app-account-cancel.js"></script>

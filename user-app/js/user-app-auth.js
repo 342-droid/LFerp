@@ -209,38 +209,57 @@
   }
 
   function redirectAfterAuth(session) {
-    if (window.UaLiveInvite && session && session.loggedIn) {
-      window.UaLiveInvite.applyBindAfterLogin(session);
+    function go(fromPrompt) {
+      if (window.UaLiveInvite && session && session.loggedIn) {
+        window.UaLiveInvite.applyBindAfterLogin(session);
+      }
+      var next = resolveNextPage();
+      if (session && session.loggedIn && window.UaLiveInvite && typeof window.UaLiveInvite.promotedPage === 'function') {
+        var promo = window.UaLiveInvite.promotedPage();
+        if (promo) next = promo;
+      } else if (
+        session &&
+        !session.loggedIn &&
+        window.UaLiveInvite &&
+        typeof window.UaLiveInvite.hasInvite === 'function' &&
+        window.UaLiveInvite.hasInvite() &&
+        typeof window.UaLiveInvite.guestLandingPage === 'function'
+      ) {
+        /* 未登录先逛：不强制回直播页，参数缓存在本地，稍后登录仍绑店 */
+        next = window.UaLiveInvite.guestLandingPage() || 'home.html';
+      }
+      var params = new URLSearchParams(window.location.search);
+      /* 注册有礼：登录成功后带回发放标记 */
+      if (params.get('rg') === '1' && String(next).indexOf('rg=') < 0) {
+        next += (next.indexOf('?') >= 0 ? '&' : '?') + 'rg=1';
+      }
+      if (window.UaLiveInvite && typeof window.UaLiveInvite.appendToUrl === 'function') {
+        next = window.UaLiveInvite.appendToUrl(next);
+      }
+      var data = session || readSession();
+      if (data) {
+        var sep = next.indexOf('?') >= 0 ? '&' : '?';
+        next += sep + SESSION_HANDOFF_KEY + '=' + encodeURIComponent(JSON.stringify(data));
+      }
+      /* 登录时已弹过收款授权：落地页的自动登录不再连弹；进直播间也不再连弹 */
+      if (fromPrompt && window.UaWxPayAuth) {
+        window.UaWxPayAuth.markLoginPrompted();
+        if (String(next).indexOf('live-room') >= 0) window.UaWxPayAuth.markEnterPrompted();
+      }
+      goTo(next);
     }
-    var next = resolveNextPage();
-    if (session && session.loggedIn && window.UaLiveInvite && typeof window.UaLiveInvite.promotedPage === 'function') {
-      var promo = window.UaLiveInvite.promotedPage();
-      if (promo) next = promo;
-    } else if (
-      session &&
-      !session.loggedIn &&
-      window.UaLiveInvite &&
-      typeof window.UaLiveInvite.hasInvite === 'function' &&
-      window.UaLiveInvite.hasInvite() &&
-      typeof window.UaLiveInvite.guestLandingPage === 'function'
-    ) {
-      /* 未登录先逛：不强制回直播页，参数缓存在本地，稍后登录仍绑店 */
-      next = window.UaLiveInvite.guestLandingPage() || 'home.html';
+    if (session && session.loggedIn && window.UaWxPayAuth && !window.UaWxPayAuth.isAuthorized()) {
+      window.UaWxPayAuth.ensure({
+        onDone: function () {
+          go(true);
+        },
+        onCancel: function () {
+          go(true);
+        }
+      });
+      return;
     }
-    var params = new URLSearchParams(window.location.search);
-    /* 注册有礼：登录成功后带回发放标记 */
-    if (params.get('rg') === '1' && String(next).indexOf('rg=') < 0) {
-      next += (next.indexOf('?') >= 0 ? '&' : '?') + 'rg=1';
-    }
-    if (window.UaLiveInvite && typeof window.UaLiveInvite.appendToUrl === 'function') {
-      next = window.UaLiveInvite.appendToUrl(next);
-    }
-    var data = session || readSession();
-    if (data) {
-      var sep = next.indexOf('?') >= 0 ? '&' : '?';
-      next += sep + SESSION_HANDOFF_KEY + '=' + encodeURIComponent(JSON.stringify(data));
-    }
-    goTo(next);
+    go(false);
   }
 
   function redirectToLogin() {

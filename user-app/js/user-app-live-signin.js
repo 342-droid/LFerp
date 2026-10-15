@@ -1,5 +1,5 @@
 /**
- * 直播间签到。现金红包点「签到」后直接落入现金账户并播放落袋声，不再二次确认。
+ * 直播间签到。现金红包点「签到」后，未授权先走微信支付收款授权，通过后落入现金账户并播放落袋声。
  * 积分奖励只提示到账，不飞金币。未发放时不显示入口。
  */
 (function (global) {
@@ -117,22 +117,29 @@
     }
     var bag = global.UaLiveBagCash;
     if (!bag || typeof bag.receive !== 'function') return;
-    var btn = document.getElementById('uaLiveSignin');
-    var ok = bag.receive({
-      id: signId(),
-      source: '签到',
-      name: '审核通过红包',
-      packetId: signId(),
-      templateId: TEMPLATE_ID,
-      amount: AMOUNT,
-      outBillNo: 'LFCR20261014043000120',
-      fromEl: btn,
-      inLive: true,
-      activityType: 'sign'
-    });
-    if (!ok) return;
-    writeClaim({ kind: 'cash', amount: AMOUNT, at: clockNow() });
-    render();
+    function pay() {
+      var btn = document.getElementById('uaLiveSignin');
+      var ok = bag.receive({
+        id: signId(),
+        source: '签到',
+        name: '审核通过红包',
+        packetId: signId(),
+        templateId: TEMPLATE_ID,
+        amount: AMOUNT,
+        outBillNo: 'LFCR20261014043000120',
+        fromEl: btn,
+        inLive: true,
+        activityType: 'sign'
+      });
+      if (!ok) return;
+      writeClaim({ kind: 'cash', amount: AMOUNT, at: clockNow() });
+      render();
+    }
+    if (global.UaWxPayAuth && !global.UaWxPayAuth.isAuthorized()) {
+      global.UaWxPayAuth.ensure({ onDone: pay });
+      return;
+    }
+    pay();
   }
 
   function mountDemo() {

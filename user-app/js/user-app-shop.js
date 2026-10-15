@@ -5328,7 +5328,23 @@
     var card = document.getElementById('homeLiveCard');
     function enterLive(e) {
       if (e) e.preventDefault();
-      window.location.href = 'live-room.html';
+      function go(fromPrompt) {
+        if (fromPrompt && window.UaWxPayAuth) window.UaWxPayAuth.markEnterPrompted();
+        window.location.href = 'live-room.html';
+      }
+      /* 进直播间前：未授权先弹出微信支付收款半屏，关闭后仍可进入，下次再进会再弹 */
+      if (window.UaWxPayAuth && !window.UaWxPayAuth.isAuthorized()) {
+        window.UaWxPayAuth.ensure({
+          onDone: function () {
+            go(true);
+          },
+          onCancel: function () {
+            go(true);
+          }
+        });
+        return;
+      }
+      go(false);
     }
     if (enterBtn) enterBtn.addEventListener('click', enterLive);
     if (card) card.addEventListener('click', enterLive);

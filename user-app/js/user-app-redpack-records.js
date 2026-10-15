@@ -452,6 +452,14 @@
       if (RG.toast) RG.toast(denied);
       return;
     }
+    if (window.UaWxPayAuth && !window.UaWxPayAuth.isAuthorized()) {
+      window.UaWxPayAuth.ensure({
+        onDone: function () {
+          claimBag(fromEl);
+        }
+      });
+      return;
+    }
     var from = fromEl && fromEl.getBoundingClientRect ? fromEl.getBoundingClientRect() : null;
     var before = earnedNow();
     try {
@@ -597,7 +605,7 @@
       stack.className = 'ua-rp-demo-stack';
       document.body.appendChild(stack);
     }
-    ['uaBlDemo', 'uaRpCondDemo', 'uaRpStatusDemo'].forEach(function (id) {
+    ['uaBlDemo', 'uaRpCondDemo', 'uaRpStatusDemo', 'uaWxPayDemo'].forEach(function (id) {
       var el = document.getElementById(id);
       if (el) stack.appendChild(el);
     });

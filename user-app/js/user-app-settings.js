@@ -63,6 +63,51 @@
     }
 
     bindLogout();
+    bindWxPayAuth();
+  }
+
+  function paintWxPayAuth() {
+    var extra = document.getElementById('setWxPayAuthExtra');
+    if (!extra || !window.UaWxPayAuth) return;
+    extra.textContent = window.UaWxPayAuth.isAuthorized() ? '已授权' : '未授权';
+  }
+
+  function bindWxPayAuth() {
+    var btn = document.getElementById('setWxPayAuth');
+    var modal = document.getElementById('setWxAuthModal');
+    var mask = document.getElementById('setWxAuthMask');
+    var cancelBtn = document.getElementById('setWxAuthCancel');
+    var confirmBtn = document.getElementById('setWxAuthConfirm');
+    paintWxPayAuth();
+    if (!btn) return;
+
+    function closeModal() {
+      if (modal) modal.hidden = true;
+    }
+
+    btn.addEventListener('click', function () {
+      if (!window.UaWxPayAuth) return;
+      if (window.UaWxPayAuth.isAuthorized()) {
+        if (modal) modal.hidden = false;
+        return;
+      }
+      window.UaWxPayAuth.ensure({
+        onDone: function () {
+          paintWxPayAuth();
+          toast('已同意，现金红包可转入微信零钱');
+        }
+      });
+    });
+    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+    if (mask) mask.addEventListener('click', closeModal);
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', function () {
+        if (window.UaWxPayAuth) window.UaWxPayAuth.revoke();
+        closeModal();
+        paintWxPayAuth();
+        toast('已取消微信支付收款授权');
+      });
+    }
   }
 
   function readSession() {

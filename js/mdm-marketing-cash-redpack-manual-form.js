@@ -78,6 +78,8 @@
   var EXCEL_MAX_ROWS = 100000;
   var EXCEL_MAX_BYTES = 20 * 1024 * 1024;
   var EXCEL_HEADERS = ['会员ID', '用户手机号', '奖励金额', '前台备注', '后台备注'];
+  /** 用户收款时可见的前台备注，对齐微信转账备注上限 */
+  var FRONT_REMARK_MAX = 32;
 
   function escapeHtml(str) {
     return String(str == null ? '' : str)
@@ -162,6 +164,11 @@
 
   function remarkText(id) {
     return String((document.getElementById(id) || {}).value || '').trim();
+  }
+
+  function frontRemarkError(raw) {
+    if (String(raw == null ? '' : raw).trim().length > FRONT_REMARK_MAX) return '前台备注最多32个字符';
+    return '';
   }
 
   function memberKind() {
@@ -380,8 +387,7 @@
 
   function normalizeExcelHeader(value) {
     return String(value == null ? '' : value)
-      .replace(/[（(]\s*(?:二选一)?必填\s*[）)]/g, '')
-      .replace(/[（(]\s*选填\s*[）)]/g, '')
+      .replace(/[（(][^）)]*[）)]/g, '')
       .replace(/\s/g, '');
   }
 
@@ -499,6 +505,11 @@
         excelErrors.push('第 ' + lineNo + ' 行：' + amountError);
         return;
       }
+      var frontError = frontRemarkError(front);
+      if (frontError) {
+        excelErrors.push('第 ' + lineNo + ' 行' + frontError);
+        return;
+      }
       if (seen[member.key]) {
         excelErrors.push('第 ' + lineNo + ' 行会员ID或用户手机号重复');
         return;
@@ -567,10 +578,10 @@
       toast('Excel 组件未加载', 'warning');
       return;
     }
-    var headers = ['会员ID(二选一必填)', '用户手机号(二选一必填)', '奖励金额(必填)', '前台备注(选填)', '后台备注(选填)'];
+    var headers = ['会员ID(二选一必填)', '用户手机号(二选一必填)', '奖励金额(必填)', '前台备注(选填，最多32个字符)', '后台备注(选填)'];
     var wb = window.XLSX.utils.book_new();
     var ws = window.XLSX.utils.aoa_to_sheet([headers]);
-    ws['!cols'] = [{ wch: 22 }, { wch: 24 }, { wch: 18 }, { wch: 24 }, { wch: 24 }];
+    ws['!cols'] = [{ wch: 22 }, { wch: 24 }, { wch: 18 }, { wch: 36 }, { wch: 24 }];
     window.XLSX.utils.book_append_sheet(wb, ws, '批量发放');
     window.XLSX.writeFile(wb, '手动发放红包批量模板.xlsx');
   }
@@ -617,8 +628,13 @@
       if (errorEl) errorEl.textContent = error;
       return;
     }
+    var front = remarkText('crManualEditFront');
+    if (frontRemarkError(front)) {
+      if (errorEl) errorEl.textContent = '前台备注最多32个字符';
+      return;
+    }
     user.amount = Store.toMoney(amount);
-    user.frontRemark = remarkText('crManualEditFront');
+    user.frontRemark = front;
     user.backRemark = remarkText('crManualEditBack');
     closeExcelEdit();
     paintExcelTable();
@@ -920,6 +936,10 @@
     var triggerMode = selectedTrigger();
     var frontRemark = batchMode ? '' : remarkText('crManualFrontRemark');
     var backRemark = batchMode ? '' : remarkText('crManualBackRemark');
+    if (frontRemarkError(frontRemark) || users.some(function (user) { return !!frontRemarkError(user.frontRemark); })) {
+      toast('前台备注最多32个字符', 'warning');
+      return;
+    }
     var reward = unifiedAmount();
     var pickedIds = function (map) {
       return Object.keys(map).filter(function (id) {

@@ -2,8 +2,8 @@
  * 用户 APP — 直播观看奖励
  * 仅在 B 端发放后开始统计观看时长；达标自动发奖并弹窗。
  * 验收开关：未发放 / 已发放未达标 / 达成各档 / 现金红包到账 / 中断切新活动。
- * 现金红包达标后弹窗：观看奖励到账、现金金额、已自动发放微信钱包。
- * 点「开心收下」关闭弹窗，并播放金币落入现金红包账户。
+ * 现金红包达标后弹窗：观看奖励到账、现金金额。未授权时先走微信支付收款授权，同意后播放金币落入现金红包账户。
+ * 点「开心收下」完成领取并关闭弹窗。
  */
 (function (global) {
   'use strict';
@@ -319,17 +319,26 @@
             modalCash = null;
             return;
           }
-          if (typeof global.UaLiveBagCash.receive === 'function') {
-            global.UaLiveBagCash.receive({
-              id: cash.id,
-              source: '观看任务',
-              activityType: 'watch',
-              name: '现金红包',
-              packetId: cash.id,
-              amount: cash.amount,
-              fromEl: from
-            });
+          var pay = function () {
+            if (typeof global.UaLiveBagCash.receive === 'function') {
+              global.UaLiveBagCash.receive({
+                id: cash.id,
+                source: '观看任务',
+                activityType: 'watch',
+                name: '现金红包',
+                packetId: cash.id,
+                amount: cash.amount,
+                fromEl: from
+              });
+            }
+            closeModal();
+          };
+          if (global.UaWxPayAuth && !global.UaWxPayAuth.isAuthorized()) {
+            global.UaWxPayAuth.ensure({ onDone: pay });
+            return;
           }
+          pay();
+          return;
         }
         closeModal();
       });
