@@ -1,7 +1,7 @@
 /**
  * 直播间现金红包福袋。
  * 同一活动同一时段每人只能领一个，领取后弹窗消失。
- * 现金领取后自动转账到微信，不进站内钱包。
+ * 现金领取前若未授权微信支付收款，先出授权半屏；同意后自动转账到微信，不进站内钱包。
  * 所有现金红包领取（福袋、观看奖励等）都走 receive：金币落入左侧账户并播放落袋声。
  * 预热只在中控倒计时；这里展示的是已经可以领取的福袋。
  * 验收开关：待领取 / 已领取 / 未中奖 / 未抢到 / 未发放。
@@ -759,6 +759,14 @@
         closeFx();
         renderAccount();
       }, 2600);
+      return;
+    }
+    if (mode !== 'miss' && global.UaWxPayAuth && !global.UaWxPayAuth.isAuthorized()) {
+      global.UaWxPayAuth.ensure({
+        onDone: function () {
+          confirmOpen();
+        }
+      });
       return;
     }
     fx.classList.add('is-open');

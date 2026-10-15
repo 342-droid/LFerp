@@ -518,6 +518,15 @@
           showUaToast('当前没有可领取的发放记录');
           return;
         }
+        if (global.UaWxPayAuth && !global.UaWxPayAuth.isAuthorized()) {
+          global.UaWxPayAuth.ensure({
+            onDone: function () {
+              var again = document.getElementById('uaRpSheetClaimBtn');
+              if (again) again.click();
+            }
+          });
+          return;
+        }
         var result = claimCash(id);
         if (result.ok) {
           var fromBtn = e.target.closest ? e.target.closest('#uaRpSheetClaimBtn') : e.target;

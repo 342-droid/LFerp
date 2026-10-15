@@ -1,7 +1,7 @@
 /**
  * 直播中控发送现金红包后的 C 端表现。
  * 有预热：左侧红包图标走倒计时，倒计时结束才弹出红包雨。
- * 无预热或预热已结束：直接弹出。点击「领取」打开红包，金额自动转入微信，并播放金币落入账户。
+ * 无预热或预热已结束：直接弹出。点击「领取」时若未授权微信支付收款，先出授权半屏；同意后金额自动转入微信，并播放金币落入账户。
  * 文案用本场现金红包业务说法，不照搬参考图外文。
  * 验收开关：跟随中控 / 预热中 / 可领取 / 已领取 / 未抢到 / 未发放。
  * 未抢到：点领取后不转微信、不落金币，提示留下等下一轮。
@@ -236,8 +236,36 @@
 
   var LOST_TEXT = '很遗憾，没有抢到红包，不要离开等待下一轮奖励';
 
+  function cashNeedsWxAuth(issue) {
+    if (!global.UaWxPayAuth || global.UaWxPayAuth.isAuthorized()) return false;
+    if (issue.lost || readDemo() === 'lost') return false;
+    var claimOpts = {
+      id: 'send:' + issue.id,
+      source: '现金红包',
+      packetId: issue.id,
+      templateId: issue.templateId || '',
+      claimCondition: issue.claimCondition || '',
+      inLive: true,
+      activityType: issue.activityType
+    };
+    var block = '';
+    if (global.UaLiveBagCash) {
+      if (global.UaLiveBagCash.conditionBlock) block = global.UaLiveBagCash.conditionBlock(claimOpts);
+      if (!block && global.UaLiveBagCash.claimBlock) block = global.UaLiveBagCash.claimBlock(claimOpts);
+    }
+    return !block;
+  }
+
   function claim(issue) {
     if (opening || !issue || isClaimed(issue.id)) return;
+    if (cashNeedsWxAuth(issue)) {
+      global.UaWxPayAuth.ensure({
+        onDone: function () {
+          claim(issue);
+        }
+      });
+      return;
+    }
     opening = true;
     shownId = issue.id;
     var rain = document.getElementById('uaRain');

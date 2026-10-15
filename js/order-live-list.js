@@ -1554,10 +1554,10 @@
     });
   }
 
-  var RETAIL_EXPORT_FIELDS_KEY = 'lfRetailOrderExportFieldsV8';
-  var PROXY_EXPORT_FIELDS_KEY = 'lfProxyOrderExportFieldsV5';
-  var RETAIL_CLEARING_EXPORT_FIELDS_KEY = 'lfRetailClearingExportFieldsV3';
-  var PROXY_CLEARING_EXPORT_FIELDS_KEY = 'lfProxyClearingExportFieldsV3';
+  var RETAIL_EXPORT_FIELDS_KEY = 'lfRetailOrderExportFieldsV9';
+  var PROXY_EXPORT_FIELDS_KEY = 'lfProxyOrderExportFieldsV6';
+  var RETAIL_CLEARING_EXPORT_FIELDS_KEY = 'lfRetailClearingExportFieldsV4';
+  var PROXY_CLEARING_EXPORT_FIELDS_KEY = 'lfProxyClearingExportFieldsV4';
   var RETAIL_EXPORT_FIELDS = [
     { key: 'orderNo', label: '订单号' },
     { key: 'orderTime', label: '下单时间' },
@@ -1583,6 +1583,7 @@
     { key: 'orgId', label: '所属组织' },
     { key: 'payNo', label: '支付流水' },
     { key: 'orderStatus', label: '订单状态' },
+    { key: 'storeCode', label: '门店编码', extra: true },
     { key: 'skuCode', label: '商品编码', extra: true },
     { key: 'category', label: '商品类目', extra: true },
     { key: 'allocatedFreight', label: '分摊运费', extra: true },
@@ -1614,6 +1615,7 @@
     { key: 'orgId', label: '所属组织' },
     { key: 'payNo', label: '支付流水' },
     { key: 'orderStatus', label: '订单状态' },
+    { key: 'storeCode', label: '门店编码', extra: true },
     { key: 'skuCode', label: '商品编码', extra: true },
     { key: 'category', label: '商品类目', extra: true },
     { key: 'allocatedFreight', label: '分摊运费', extra: true },
@@ -1649,6 +1651,8 @@
     { key: 'bookStatus', label: '入账状态' },
     { key: 'orderChannel', label: '订单渠道', extra: true },
     { key: 'store', label: '下单门店', extra: true },
+    { key: 'bd', label: 'BD', extra: true },
+    { key: 'storeCode', label: '门店编码', extra: true },
     { key: 'channelNo', label: '通道流水', extra: true }
   ];
 
@@ -2010,6 +2014,21 @@
     return '—';
   }
 
+  /** 演示门店编码：城市码 + 5 位顺序码，与列表「门店ID」不是同一字段 */
+  var STORE_CODE_BY_ID = {
+    ONS303445581210: 'SZX00010',
+    ONS303445581211: 'SHA00011',
+    ONS303445581212: 'HUZ00012'
+  };
+
+  function resolveStoreCode(row, storeIdText) {
+    var fromRow = row && row.getAttribute('data-store-code');
+    fromRow = String(fromRow || '').trim();
+    if (fromRow) return fromRow;
+    var id = String((row && row.getAttribute('data-store-id')) || storeIdText || '').trim();
+    return STORE_CODE_BY_ID[id] || '—';
+  }
+
   function getOrderExportColMap() {
     if (isRetailOrderPage()) {
       return {
@@ -2122,6 +2141,7 @@
       payChannel: cellTextOf(cells, col.payChannel),
       store: cellTextOf(cells, col.store),
       storeId: col.storeId != null ? cellTextOf(cells, col.storeId) : (row.getAttribute('data-store-id') || ''),
+      storeCode: resolveStoreCode(row, col.storeId != null ? cellTextOf(cells, col.storeId) : ''),
       orgId: col.orgId != null ? cellTextOf(cells, col.orgId) : (row.getAttribute('data-org-id') || ''),
       payNo: cellTextOf(cells, col.payNo),
       orderStatus: cellTextOf(cells, col.orderStatus),

@@ -572,6 +572,11 @@
     return 'LFCR' + stamp + rand;
   }
 
+  /** 用户收款时可见的前台备注，对齐微信转账备注，最多 32 个字符 */
+  function clampFrontRemark(value) {
+    return String(value == null ? '' : value).trim().slice(0, 32);
+  }
+
   /** 演示用微信转账单号（transfer_bill_no） */
   function genTransferBillNo() {
     var tail = String(Date.now()).slice(-10) + String(Math.floor(Math.random() * 9000) + 1000);
@@ -594,7 +599,7 @@
     item.activityId = String(item.activityId || '');
     item.activityName = String(item.activityName || '').trim() || '—';
     if (item.frontRemark == null) item.frontRemark = DEMO_FRONT_REMARK[item.id] || '';
-    else item.frontRemark = String(item.frontRemark).trim();
+    else item.frontRemark = clampFrontRemark(item.frontRemark);
     if (item.activityType === 'manual') item.scene = 'manual';
     else if (item.scene !== 'old_first_download') item.scene = 'new_register';
     var explicitPorts = portsOf(item);
@@ -1692,7 +1697,7 @@
       createdAt: (payload && payload.createdAt) || formatNow(),
       finishedAt: (payload && payload.finishedAt) || '',
       status: (payload && BATCH_STATUS_LABEL[payload.status] && payload.status) || 'granting',
-      frontRemark: String((payload && payload.frontRemark) || '').trim(),
+      frontRemark: clampFrontRemark(payload && payload.frontRemark),
       backRemark: String((payload && payload.backRemark) || '').trim(),
       creator: String((payload && payload.creator) || '').trim() || '演示运营',
       mode: MANUAL_MODE_LABEL[payload && payload.mode] ? payload.mode : '',
@@ -1966,9 +1971,15 @@
       levelIds: Array.isArray(snap.levelIds) ? snap.levelIds.slice() : [],
       tagIds: Array.isArray(snap.tagIds) ? snap.tagIds.slice() : [],
       segmentIds: Array.isArray(snap.segmentIds) ? snap.segmentIds.slice() : [],
-      users: Array.isArray(snap.users) ? snap.users.map(function (u) { return Object.assign({}, u); }) : [],
+      users: Array.isArray(snap.users)
+        ? snap.users.map(function (u) {
+            var copy = Object.assign({}, u);
+            copy.frontRemark = clampFrontRemark(copy.frontRemark);
+            return copy;
+          })
+        : [],
       reward: toMoney(snap.reward),
-      frontRemark: String(snap.frontRemark || '').trim(),
+      frontRemark: clampFrontRemark(snap.frontRemark),
       backRemark: String(snap.backRemark || '').trim(),
       fileName: String(snap.fileName || '').trim(),
       triggerMode: snap.triggerMode === 'schedule' ? 'schedule' : 'now',

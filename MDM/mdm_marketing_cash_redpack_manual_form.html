@@ -141,7 +141,8 @@
                     <div class="pts-rule-field" id="crManualFrontField">
                         <label class="pts-rule-field__label" for="crManualFrontRemark">前台备注</label>
                         <div class="pts-rule-field__control">
-                            <input class="erp-input" id="crManualFrontRemark" type="text" placeholder="请输入前台备注">
+                            <input class="erp-input" id="crManualFrontRemark" type="text" maxlength="32" placeholder="请输入前台备注">
+                            <div class="pts-rule-tip">用户收款时可见，最多32个字符</div>
                         </div>
                     </div>
                     <div class="pts-rule-field" id="crManualBackField">
@@ -221,7 +222,8 @@
                 <div class="erp-modal-field">
                     <label class="erp-modal-field__label" for="crManualEditFront">前台备注</label>
                     <div class="erp-modal-field__control">
-                        <input class="erp-input" id="crManualEditFront" type="text" placeholder="请输入前台备注">
+                        <input class="erp-input" id="crManualEditFront" type="text" maxlength="32" placeholder="请输入前台备注">
+                        <div class="pts-rule-tip">用户收款时可见，最多32个字符</div>
                     </div>
                 </div>
                 <div class="erp-modal-field">
@@ -239,9 +241,9 @@
     </div>
     <script src="../js/common.js"></script>
     <script src="../js/vendor/xlsx.full.min.js"></script>
-    <script src="../js/mdm-marketing-cash-redpack-store.js?v=20261013-draft-cancel"></script>
+    <script src="../js/mdm-marketing-cash-redpack-store.js?v=20261015-front-remark32"></script>
     <script src="../js/mdm-member-level-data.js?v=20261012-grant-target"></script>
     <script src="../js/mdm-marketing-audit-panel.js?v=20261012-audit-opinion"></script>
-    <script src="../js/mdm-marketing-cash-redpack-manual-form.js?v=20261013-draft-back"></script>
+    <script src="../js/mdm-marketing-cash-redpack-manual-form.js?v=20261015-front-remark32"></script>
 </body>
 </html>
