@@ -1,7 +1,248 @@
 {
-  "latestSha": "dbed1b79619779dab03badea877858ee0c5bbb7b",
-  "total": 438,
+  "latestSha": "f0b9b5ecf3ee2c9a56fab23cad90b58ba5124a8a",
+  "total": 439,
   "days": [
+    {
+      "date": "2026-10-15",
+      "items": [
+        {
+          "sha": "f0b9b5e",
+          "type": "feat",
+          "text": "现金红包收款需微信授权，订单导出补上门店编码",
+          "author": "sisi",
+          "time": "14:34",
+          "pages": [
+            {
+              "file": "MDM/mdm_audit_cash_redpack_manual.html",
+              "module": "冷丰WMS",
+              "title": "派发红包审核"
+            },
+            {
+              "file": "MDM/mdm_live_control.html",
+              "module": "冷丰WMS",
+              "title": "直播中控"
+            },
+            {
+              "file": "MDM/mdm_marketing_cash_redpack.html",
+              "module": "冷丰WMS",
+              "title": "现金红包"
+            },
+            {
+              "file": "MDM/mdm_marketing_cash_redpack_manual.html",
+              "module": "冷丰WMS",
+              "title": "手动发放红包"
+            },
+            {
+              "file": "MDM/mdm_marketing_cash_redpack_manual_form.html",
+              "module": "冷丰WMS",
+              "title": "手动发放红包"
+            },
+            {
+              "file": "MDM/mdm_marketing_register_gift_form.html",
+              "module": "冷丰WMS",
+              "title": "注册有礼"
+            },
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/category.html",
+              "module": "",
+              "title": "分类 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/forgot-password.html",
+              "module": "",
+              "title": "找回密码 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-password.html",
+              "module": "",
+              "title": "账号密码登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-phone.html",
+              "module": "",
+              "title": "手机快速登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-register.html",
+              "module": "",
+              "title": "账号注册 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-wechat.html",
+              "module": "",
+              "title": "微信授权登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login.html",
+              "module": "",
+              "title": "登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "module": "",
+              "title": "商城 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/redpack-claim.html",
+              "module": "",
+              "title": "领取红包 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/redpack-records.html",
+              "module": "",
+              "title": "红包领取记录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/set-password.html",
+              "module": "",
+              "title": "设置密码 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/settings.html",
+              "module": "",
+              "title": "设置 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/login.html",
+              "text": "登录成功后弹出微信支付收款授权，同意后现金红包可转入微信零钱"
+            },
+            {
+              "file": "user-app/h5/login-phone.html",
+              "text": "登录成功后弹出微信支付收款授权"
+            },
+            {
+              "file": "user-app/h5/login-password.html",
+              "text": "登录成功后弹出微信支付收款授权"
+            },
+            {
+              "file": "user-app/h5/login-wechat.html",
+              "text": "登录成功后弹出微信支付收款授权"
+            },
+            {
+              "file": "user-app/h5/login-register.html",
+              "text": "注册登录成功后弹出微信支付收款授权"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "text": "已登录且未授权时弹出微信支付收款授权"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "text": "已登录且未授权时弹出微信支付收款授权"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "text": "进直播间前弹出收款授权；领取现金红包、福袋现金红包、签到现金红包、观看任务现金红包前需先授权"
+            },
+            {
+              "file": "user-app/h5/redpack-claim.html",
+              "text": "领取现金红包前需先完成微信支付收款授权"
+            },
+            {
+              "file": "user-app/h5/redpack-records.html",
+              "text": "领取派发红包前需先完成微信支付收款授权"
+            },
+            {
+              "file": "user-app/h5/settings.html",
+              "text": "可查看并取消微信支付收款授权"
+            },
+            {
+              "file": "MDM/mdm_marketing_cash_redpack_manual.html",
+              "text": "前台备注改为用户收款时可见，最多32个字符；批量导入超长会失败"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "导出订单新增门店编码；导出订单清分明细新增BD和门店编码"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "text": "导出订单新增门店编码；导出订单清分明细新增BD和门店编码"
+            },
+            {
+              "file": null,
+              "text": "订单导出说明补上门店编码，清分明细导出说明补上BD和门店编码"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-10-14",
       "items": [
