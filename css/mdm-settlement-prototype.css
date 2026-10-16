@@ -50,6 +50,33 @@
 .settle-config-control .settle-config-short { width:105px; margin:0 5px; }
 .settle-config-hint { margin:4px 0 0; line-height:1.6; font-size:12px; color:#909399; }
 .settle-config-cards, .settle-config-radios { display:flex; flex-wrap:wrap; gap:12px; }
+.settle-config-radios label { display:inline-flex; align-items:center; gap:6px; cursor:pointer; }
+.settle-config-radios--locked label { cursor:not-allowed; color:#909399; }
+.settle-config-radios--locked label:has(input:checked) { color:#409eff; }
+.settle-config-control > .settle-switch { vertical-align:middle; }
+.settle-multi { position:relative; display:inline-block; width:520px; max-width:calc(100% - 56px); margin-left:12px; vertical-align:middle; line-height:normal; }
+.settle-multi__box { position:relative; display:flex; align-items:center; min-height:32px; box-sizing:border-box; padding:3px 32px 3px 6px; border:1px solid #dcdfe6; border-radius:4px; background:#fff; cursor:pointer; }
+.settle-multi.is-open .settle-multi__box { border-color:#ff7019; }
+.settle-multi.is-disabled .settle-multi__box { background:#f5f7fa; border-color:#e4e7ed; cursor:not-allowed; }
+.settle-multi__tags { display:flex; flex-wrap:wrap; align-items:center; gap:6px; min-width:0; flex:1; }
+.settle-multi__placeholder { padding-left:8px; color:#c0c4cc; font-size:14px; line-height:24px; }
+.settle-multi__tag { display:inline-flex; align-items:center; max-width:100%; height:24px; padding:0 8px; border-radius:4px; background:#f0f2f5; color:#909399; font-size:12px; line-height:22px; }
+.settle-multi.is-disabled .settle-multi__tag { color:#c0c4cc; }
+.settle-multi__tag-x { margin-left:6px; width:14px; height:14px; padding:0; border:0; border-radius:50%; background:transparent; color:#909399; font-size:12px; line-height:14px; cursor:pointer; }
+.settle-multi__tag-x:hover { background:#909399; color:#fff; }
+.settle-multi__clear, .settle-multi__caret { position:absolute; right:10px; top:50%; width:14px; height:14px; color:#c0c4cc; }
+.settle-multi__clear svg, .settle-multi__caret { display:block; width:14px; height:14px; }
+.settle-multi__clear { transform:translateY(-50%); padding:0; border:0; background:transparent; cursor:pointer; display:flex; }
+.settle-multi__clear:hover { color:#909399; }
+.settle-multi__caret { transform:translateY(-50%); pointer-events:none; transition:transform .2s; }
+.settle-multi.is-open .settle-multi__caret { transform:translateY(-50%) rotate(180deg); }
+.settle-multi__panel { position:absolute; z-index:30; left:0; right:0; top:calc(100% + 10px); background:#fff; border:1px solid #e4e7ed; border-radius:4px; box-shadow:0 2px 12px rgba(0,0,0,.1); padding:6px 0; }
+.settle-multi__panel::before { content:''; position:absolute; z-index:1; top:-6px; left:35%; width:10px; height:10px; background:#fff; border-left:1px solid #e4e7ed; border-top:1px solid #e4e7ed; transform:rotate(45deg); }
+.settle-multi__opt { display:flex; align-items:center; justify-content:space-between; width:100%; height:34px; padding:0 20px; border:0; background:transparent; color:#606266; font-size:14px; font-weight:400; text-align:left; cursor:pointer; }
+.settle-multi__opt:hover { background:#f5f7fa; }
+.settle-multi__opt.is-selected { color:#ff7019; font-weight:700; }
+.settle-multi__check { width:14px; height:14px; flex:none; visibility:hidden; }
+.settle-multi__opt.is-selected .settle-multi__check { visibility:visible; }
 .settle-config-card { display:inline-flex; align-items:center; gap:7px; padding:6px 15px; border:1px solid #dcdfe6; border-radius:4px; background:#f7f8fa; color:#909399; }
 .settle-config-card.selected { border-color:#b8d8ff; color:#409eff; background:#f0f7ff; }
 .settle-switch { position:relative; width:39px; height:21px; border:0; border-radius:12px; background:#bec5ce; cursor:pointer; }

@@ -310,16 +310,16 @@
             if (!idCell || idCell.textContent.trim() !== String(memberId)) return;
             tr.setAttribute('data-member-status', displayStatus);
             var cells = tr.querySelectorAll('td');
-            if (cells.length < 21) return;
-            var st = cells[19].querySelector('.status') || document.createElement('span');
+            if (cells.length < 22) return;
+            var st = cells[20].querySelector('.status') || document.createElement('span');
             st.className = statusClass(displayStatus);
             st.textContent = displayStatus;
             if (!st.parentNode) {
-                cells[19].innerHTML = '';
-                cells[19].appendChild(st);
+                cells[20].innerHTML = '';
+                cells[20].appendChild(st);
             }
-            cells[20].className = 'action-links';
-            cells[20].innerHTML = buildMemberListActions(displayStatus);
+            cells[21].className = 'action-links';
+            cells[21].innerHTML = buildMemberListActions(displayStatus);
         });
     }
 
