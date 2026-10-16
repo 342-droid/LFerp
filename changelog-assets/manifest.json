@@ -274,6 +274,138 @@
     "status": "diff",
     "date": "2026-10-13"
   },
+  "9c64d6b|MDM/mdm_audit_cash_redpack.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-15"
+  },
+  "9c64d6b|MDM/mdm_audit_cash_redpack_manual.html": {
+    "before": "changelog-assets/9c64d6b/MDM__mdm_audit_cash_redpack_manual.html.before.jpg",
+    "after": "changelog-assets/9c64d6b/MDM__mdm_audit_cash_redpack_manual.html.after.jpg",
+    "regions": 12,
+    "status": "diff",
+    "date": "2026-10-15"
+  },
+  "9c64d6b|MDM/mdm_live_control.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-15"
+  },
+  "9c64d6b|MDM/mdm_live_session_form.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-15"
+  },
+  "9c64d6b|MDM/mdm_marketing_cash_redpack.html": {
+    "before": "changelog-assets/9c64d6b/MDM__mdm_marketing_cash_redpack.html.before.jpg",
+    "after": "changelog-assets/9c64d6b/MDM__mdm_marketing_cash_redpack.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-10-15"
+  },
+  "9c64d6b|MDM/mdm_marketing_cash_redpack_manual.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-15"
+  },
+  "9c64d6b|MDM/mdm_marketing_cash_redpack_manual_form.html": {
+    "before": "changelog-assets/9c64d6b/MDM__mdm_marketing_cash_redpack_manual_form.html.before.jpg",
+    "after": "changelog-assets/9c64d6b/MDM__mdm_marketing_cash_redpack_manual_form.html.after.jpg",
+    "regions": 3,
+    "status": "diff",
+    "date": "2026-10-15"
+  },
+  "9c64d6b|MDM/mdm_marketing_cash_redpack_tpl.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-15"
+  },
+  "9c64d6b|MDM/mdm_marketing_cash_redpack_tpl_form.html": {
+    "before": "changelog-assets/9c64d6b/MDM__mdm_marketing_cash_redpack_tpl_form.html.before.jpg",
+    "after": "changelog-assets/9c64d6b/MDM__mdm_marketing_cash_redpack_tpl_form.html.after.jpg",
+    "regions": 3,
+    "status": "diff",
+    "date": "2026-10-15"
+  },
+  "9c64d6b|MDM/mdm_marketing_register_gift.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-15"
+  },
+  "9c64d6b|MDM/mdm_marketing_register_gift_form.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-15"
+  },
+  "9c64d6b|MDM/mdm_marketing_template.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-15"
+  },
+  "9c64d6b|MDM/mdm_member_c.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-15"
+  },
+  "9c64d6b|user-app/h5/home.html": {
+    "before": "changelog-assets/9c64d6b/user-app__h5__home.html.before.jpg",
+    "after": "changelog-assets/9c64d6b/user-app__h5__home.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-10-15"
+  },
+  "9c64d6b|user-app/h5/live-room.html": {
+    "before": "changelog-assets/9c64d6b/user-app__h5__live-room.html.before.jpg",
+    "after": "changelog-assets/9c64d6b/user-app__h5__live-room.html.after.jpg",
+    "regions": 4,
+    "status": "diff",
+    "date": "2026-10-15"
+  },
+  "9c64d6b|user-app/h5/login-password.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-15"
+  },
+  "9c64d6b|user-app/h5/login-phone.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-15"
+  },
+  "9c64d6b|user-app/h5/login-register.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-15"
+  },
+  "9c64d6b|user-app/h5/login-wechat.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-15"
+  },
+  "9c64d6b|user-app/h5/login.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-15"
+  },
+  "9c64d6b|user-app/h5/profile.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-15"
+  },
+  "9c64d6b|user-app/h5/redpack-claim.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-15"
+  },
+  "9c64d6b|user-app/h5/redpack-records.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-15"
+  },
+  "9c64d6b|user-app/h5/settings.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-15"
+  },
   "a6d2434|SCM/app_list.html": {
     "before": "changelog-assets/a6d2434/SCM__app_list.html.before.jpg",
     "after": "changelog-assets/a6d2434/SCM__app_list.html.after.jpg",
