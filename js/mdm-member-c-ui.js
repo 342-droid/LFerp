@@ -839,6 +839,54 @@
         return root;
     }
 
+    /* 会员详情现金红包「场景」：与发放来源对齐，不沿用注册有礼内部的新老用户场景 */
+    var MEMBER_CASH_SCENES = [
+        { value: 'register_gift', label: '注册有礼' },
+        { value: 'luckybag', label: '福袋' },
+        { value: 'watch_task', label: '观看任务' },
+        { value: 'checkin', label: '签到' },
+        { value: 'manual', label: '手动派发' }
+    ];
+
+    function memberCashSceneCode(row) {
+        var type = String((row && row.activityType) || '').toLowerCase();
+        var scene = String((row && row.scene) || '').toLowerCase();
+        var source = String((row && row.source) || '');
+        var known = {
+            register_gift: 'register_gift',
+            luckybag: 'luckybag',
+            lucky_bag: 'luckybag',
+            fudai: 'luckybag',
+            watch_task: 'watch_task',
+            watch: 'watch_task',
+            checkin: 'checkin',
+            sign: 'checkin',
+            signin: 'checkin',
+            sign_in: 'checkin',
+            manual: 'manual',
+            new_register: 'register_gift',
+            old_first_download: 'register_gift'
+        };
+        if (known[scene]) return known[scene];
+        if (known[type]) return known[type];
+        if (source === '福袋') return 'luckybag';
+        if (source === '观看任务') return 'watch_task';
+        if (source === '签到') return 'checkin';
+        if (source === '注册有礼') return 'register_gift';
+        if (source === '手动派发' || source === '手动发放') return 'manual';
+        return '';
+    }
+
+    function memberCashSceneLabel(row) {
+        var code = memberCashSceneCode(row);
+        var i;
+        for (i = 0; i < MEMBER_CASH_SCENES.length; i++) {
+            if (MEMBER_CASH_SCENES[i].value === code) return MEMBER_CASH_SCENES[i].label;
+        }
+        var raw = row && (row.scene || row.activityType || row.source);
+        return raw ? String(raw) : '—';
+    }
+
     /* 列表「现金红包」= 该会员已领取金额，与详情统计页第一项一致 */
     function cashMoneyText(n) {
         var v = Math.round((Number(n) || 0) * 100) / 100;
@@ -943,7 +991,7 @@
             }
         });
 
-        var summary = el('div', 'member-growth-summary');
+        var summary = el('div', 'member-growth-summary member-growth-summary--cash');
         [
             ['已领取金额', cashMoneyText(claimed)],
             ['待领取金额', cashMoneyText(pending)],
@@ -960,12 +1008,14 @@
         var allRows = rows.slice().sort(function (a, b) {
             return String(b.grantedAt || '').localeCompare(String(a.grantedAt || ''));
         });
-        var state = { name: '', status: '', timeStart: '', timeEnd: '' };
+        var state = { name: '', scene: '', status: '', timeStart: '', timeEnd: '' };
         var Store = window.MdmMarketingCashRedpackStore;
 
         var toolbar = el('div', 'erp-toolbar member-drawer-filter-toolbar');
         var nameInp = mkInput('请输入红包名称');
         toolbar.appendChild(mkField('红包名称', nameInp));
+        var sceneSel = mkSelect([{ value: '', label: '全部' }].concat(MEMBER_CASH_SCENES));
+        toolbar.appendChild(mkField('场景', sceneSel));
         var statusSel = mkSelect([
             { value: '', label: '全部' },
             { value: 'claimed', label: '领取成功' },
@@ -1009,6 +1059,7 @@
             var name = String(state.name || '').trim().toLowerCase();
             return allRows.filter(function (row) {
                 if (name && packetName(row).toLowerCase().indexOf(name) === -1) return false;
+                if (state.scene && memberCashSceneCode(row) !== state.scene) return false;
                 if (state.status && row.status !== state.status) return false;
                 if (state.timeStart && toComparable(row.grantedAt) < toComparable(state.timeStart)) return false;
                 if (state.timeEnd && toComparable(row.grantedAt) > toComparable(state.timeEnd)) return false;
@@ -1038,7 +1089,7 @@
             } else {
                 list.forEach(function (row) {
                     var tr = el('tr');
-                    var scene = Store && Store.sceneLabel ? Store.sceneLabel(row.scene) : (row.scene || '—');
+                    var scene = memberCashSceneLabel(row);
                     var statusText = Store && Store.statusLabel ? Store.statusLabel(row.status) : (row.status || '—');
                     tr.appendChild(el('td', '', row.grantedAt || '—'));
                     tr.appendChild(el('td', '', packetName(row)));
@@ -1070,6 +1121,7 @@
 
         function readState() {
             state.name = nameInp.value || '';
+            state.scene = sceneSel.value || '';
             state.status = statusSel.value || '';
             state.timeStart = timeStartCtl.input.value || '';
             state.timeEnd = timeEndCtl.input.value || '';
@@ -1085,12 +1137,13 @@
         });
         btnReset.addEventListener('click', function () {
             nameInp.value = '';
+            sceneSel.value = '';
             statusSel.value = '';
             timeStartCtl.input.value = '';
             timeEndCtl.input.value = '';
             timeStartCtl.sync();
             timeEndCtl.sync();
-            state = { name: '', status: '', timeStart: '', timeEnd: '' };
+            state = { name: '', scene: '', status: '', timeStart: '', timeEnd: '' };
             renderList();
         });
         nameInp.addEventListener('keydown', function (e) {
