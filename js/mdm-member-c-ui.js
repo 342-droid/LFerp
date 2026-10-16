@@ -63,6 +63,30 @@
         return 'member-detail-text--danger';
     }
 
+    /* 用户 APP 收款授权记在本机；演示账号 U10001 的会员详情跟这条记录走 */
+    var WX_PAY_AUTH_KEY = 'ua_wx_pay_auth_v1';
+    var DEMO_APP_MEMBER_ID = 'U10001';
+
+    function memberWxPayAuthorized(memberId) {
+        var id = String(memberId || '');
+        if (id === DEMO_APP_MEMBER_ID) {
+            try {
+                var data = JSON.parse(localStorage.getItem(WX_PAY_AUTH_KEY) || 'null');
+                return !!(data && data.authorized);
+            } catch (e) {
+                return false;
+            }
+        }
+        /* 其他会员按 ID 末位固定样例：偶数已授权，奇数未授权 */
+        var digits = id.replace(/\D/g, '');
+        var n = digits ? Number(digits.slice(-1)) : 0;
+        return n % 2 === 0;
+    }
+
+    function wxPayAuthLabel(memberId) {
+        return memberWxPayAuthorized(memberId) ? '已授权' : '未授权';
+    }
+
     /* 微信 OpenID 演示值：同一会员 ID 始终同一条，28 位 */
     function demoOpenId(id) {
         var raw = String(id || 'member').replace(/[^A-Za-z0-9]/g, '') || 'member';
@@ -92,6 +116,7 @@
             ),
             phone: String(z(m.phone, '—')),
             openId: String(z(m.openId, demoOpenId(m.id))),
+            wxPayAuthStatus: String(z(m.wxPayAuthStatus, wxPayAuthLabel(m.id))),
             gender: String(z(m.gender, '—')),
             isMember: String(z(m.isMember, '—')),
             level: String(z(m.level, '普通会员')),
@@ -158,6 +183,7 @@
                 status: ((stCell && (stCell.querySelector('.status') || stCell)).textContent || '注销').trim()
             };
         }
+        /* 业务列：6 成长值 7 等级 8 标签 9 成交金额 10 成交订单数 11 积分 12 现金红包 13 来源 14 绑定方式 15 渠道数 16 满意度时长 17 满意度反馈 18 最近消费 19 注册时间 20 状态 */
         var base = {
             id: c[0].textContent.trim(),
             nickname: c[1].textContent.trim(),
@@ -165,20 +191,21 @@
             phone: c[3].textContent.trim(),
             gender: c[4].textContent.trim(),
             isMember: c[5].textContent.trim(),
-            level: c[6].textContent.trim(),
-            tags: c[7].textContent.trim(),
-            source: c[8].textContent.trim(),
-            bindMethod: c[9].textContent.trim(),
-            channelCount: c[10].textContent.trim(),
+            growthScore: c[6].textContent.trim(),
+            level: c[7].textContent.trim(),
+            tags: c[8].textContent.trim(),
+            amount: c[9].textContent.trim(),
+            orderCount: c[10].textContent.trim(),
             points: c[11].textContent.trim(),
-            satisMinutes: c[12].textContent.trim(),
-            satisFeedback: c[13].textContent.trim(),
-            growthScore: c[14].textContent.trim(),
-            amount: c[15].textContent.trim(),
-            orderCount: c[16].textContent.trim(),
-            lastConsume: c[17].textContent.trim(),
-            registerTime: c.length >= 21 ? c[18].textContent.trim() : '—',
-            status: ((c.length >= 21 ? c[19] : c[18]).querySelector('.status') || (c.length >= 21 ? c[19] : c[18])).textContent.trim()
+            cashRedpack: c[12] ? c[12].textContent.trim() : '0.00',
+            source: c[13].textContent.trim(),
+            bindMethod: c[14].textContent.trim(),
+            channelCount: c[15].textContent.trim(),
+            satisMinutes: c[16].textContent.trim(),
+            satisFeedback: c[17].textContent.trim(),
+            lastConsume: c[18].textContent.trim(),
+            registerTime: c[19] ? c[19].textContent.trim() : '—',
+            status: ((c[20] && (c[20].querySelector('.status') || c[20])) || { textContent: '—' }).textContent.trim()
         };
         if (tr.getAttribute('data-birthday')) base.birthday = tr.getAttribute('data-birthday');
         if (tr.getAttribute('data-district')) base.district = tr.getAttribute('data-district');
@@ -197,6 +224,7 @@
                             if (list[i].district) base.district = list[i].district;
                             if (list[i].phone) base.phone = list[i].phone;
                             if (list[i].openId) base.openId = list[i].openId;
+                            if (list[i].wxPayAuthStatus) base.wxPayAuthStatus = list[i].wxPayAuthStatus;
                             if (list[i].growthTotal) base.growthTotal = list[i].growthTotal;
                             break;
                         }
@@ -250,6 +278,7 @@
             ['会员性别', rec.gender],
             ['手机号码', rec.phone],
             ['OpenID', rec.openId],
+            ['微信支付收款授权状态', rec.wxPayAuthStatus],
             ['是否会员', rec.isMember],
             ['会员状态', rec.status],
             ['会员等级', rec.level || '—'],
@@ -808,6 +837,280 @@
         syncActivityFilter();
         renderList();
         return root;
+    }
+
+    /* 列表「现金红包」= 该会员已领取金额，与详情统计页第一项一致 */
+    function cashMoneyText(n) {
+        var v = Math.round((Number(n) || 0) * 100) / 100;
+        return v.toFixed(2);
+    }
+
+    /* 与现金红包手动派发演示单一致；本机发放明细里还没有该会员时，用这几笔展示 */
+    var MEMBER_CASH_DEMO = {
+        U10001: [
+            {
+                id: 'CR91003',
+                outBillNo: 'LFCR20261001093000003',
+                grantedAt: '2026-10-01 09:30:00',
+                userId: 'U10001',
+                amount: 1.5,
+                activityName: '小程序回访红包',
+                scene: 'manual',
+                status: 'pending',
+                claimAt: ''
+            }
+        ],
+        U10002: [
+            {
+                id: 'CR91002',
+                outBillNo: 'LFCR20260920110618002',
+                grantedAt: '2026-09-20 11:06:18',
+                userId: 'U10002',
+                amount: 8,
+                activityName: '会员补偿红包',
+                scene: 'manual',
+                status: 'pending',
+                claimAt: ''
+            }
+        ],
+        U10006: [
+            {
+                id: 'CR91004',
+                outBillNo: 'LFCR20261001093000004',
+                grantedAt: '2026-10-01 09:30:00',
+                userId: 'U10006',
+                amount: 3,
+                activityName: '小程序回访红包',
+                scene: 'manual',
+                status: 'claimed',
+                claimAt: '2026-10-01 12:08:44'
+            }
+        ]
+    };
+
+    function memberCashRows(memberId) {
+        var Store = window.MdmMarketingCashRedpackStore;
+        var id = String(memberId || '');
+        if (!id) return [];
+        if (Store && typeof Store.getBatches === 'function') Store.getBatches();
+        var fromStore = [];
+        if (Store && typeof Store.getAll === 'function') {
+            fromStore = Store.getAll().filter(function (it) {
+                return it && String(it.userId || '') === id;
+            });
+        }
+        if (fromStore.length) return fromStore;
+        return (MEMBER_CASH_DEMO[id] || []).map(function (row) {
+            return Object.assign({}, row);
+        });
+    }
+
+    function memberCashClaimedText(memberId) {
+        var sum = 0;
+        memberCashRows(memberId).forEach(function (it) {
+            if (it.status === 'claimed') sum += Number(it.amount) || 0;
+        });
+        return cashMoneyText(sum);
+    }
+
+    function cashStatusClass(code) {
+        if (code === 'claimed') return 'mdm-status mdm-status--ok';
+        if (code === 'pending') return 'mdm-status mdm-status--warn';
+        if (code === 'failed') return 'mdm-status mdm-status--danger';
+        return 'mdm-status mdm-status--muted';
+    }
+
+    function panelMemberCash(rec) {
+        var root = el('div', 'member-drawer-panel');
+        root.appendChild(el('div', 'supplier-detail-section-title', '现金红包'));
+
+        var rows = memberCashRows(rec && rec.id);
+        var claimed = 0;
+        var pending = 0;
+        var expired = 0;
+        var packetCount = 0;
+        rows.forEach(function (it) {
+            var amt = Number(it.amount) || 0;
+            if (it.status === 'claimed') {
+                claimed += amt;
+                packetCount += 1;
+            } else if (it.status === 'pending') {
+                pending += amt;
+                packetCount += 1;
+            } else if (it.status === 'expired') {
+                expired += amt;
+                packetCount += 1;
+            }
+        });
+
+        var summary = el('div', 'member-growth-summary');
+        [
+            ['已领取金额', cashMoneyText(claimed)],
+            ['待领取金额', cashMoneyText(pending)],
+            ['已过期金额', cashMoneyText(expired)],
+            ['红包笔数', String(packetCount)]
+        ].forEach(function (item) {
+            var card = el('div', 'member-growth-summary__item');
+            card.appendChild(el('div', 'member-growth-summary__label', item[0]));
+            card.appendChild(el('div', 'member-growth-summary__value', item[1]));
+            summary.appendChild(card);
+        });
+        root.appendChild(summary);
+
+        var allRows = rows.slice().sort(function (a, b) {
+            return String(b.grantedAt || '').localeCompare(String(a.grantedAt || ''));
+        });
+        var state = { name: '', status: '', timeStart: '', timeEnd: '' };
+        var Store = window.MdmMarketingCashRedpackStore;
+
+        var toolbar = el('div', 'erp-toolbar member-drawer-filter-toolbar');
+        var nameInp = mkInput('请输入红包名称');
+        toolbar.appendChild(mkField('红包名称', nameInp));
+        var statusSel = mkSelect([
+            { value: '', label: '全部' },
+            { value: 'claimed', label: '领取成功' },
+            { value: 'pending', label: '待领取' },
+            { value: 'expired', label: '已过期' },
+            { value: 'failed', label: '发放失败' },
+            { value: 'revoked', label: '已撤销' }
+        ]);
+        toolbar.appendChild(mkField('状态', statusSel));
+        var timeStartCtl = mkDatetimeClearable('开始时间');
+        var timeEndCtl = mkDatetimeClearable('结束时间');
+        var timeWrap = el('div', 'member-growth-time-range');
+        timeWrap.appendChild(timeStartCtl.wrap);
+        timeWrap.appendChild(el('span', 'member-growth-time-range__sep', '至'));
+        timeWrap.appendChild(timeEndCtl.wrap);
+        toolbar.appendChild(mkField('发放时间', timeWrap));
+        var actions = el('div', 'erp-toolbar__actions');
+        var btnReset = mkBtn('重置', false);
+        btnReset.classList.add('erp-btn--outline-primary');
+        var btnQuery = mkBtn('查询', true);
+        actions.appendChild(btnReset);
+        actions.appendChild(btnQuery);
+        toolbar.appendChild(actions);
+        root.appendChild(toolbar);
+
+        var tableHost = el('div', 'member-growth-table-host');
+        root.appendChild(tableHost);
+        var pageHost = el('div', 'member-growth-page-host');
+        root.appendChild(pageHost);
+
+        function toComparable(v) {
+            return String(v || '').replace('T', ' ').slice(0, 19);
+        }
+
+        function packetName(row) {
+            if (Store && typeof Store.packetTitle === 'function') return Store.packetTitle(row);
+            return (row && row.activityName) || '现金红包';
+        }
+
+        function getFiltered() {
+            var name = String(state.name || '').trim().toLowerCase();
+            return allRows.filter(function (row) {
+                if (name && packetName(row).toLowerCase().indexOf(name) === -1) return false;
+                if (state.status && row.status !== state.status) return false;
+                if (state.timeStart && toComparable(row.grantedAt) < toComparable(state.timeStart)) return false;
+                if (state.timeEnd && toComparable(row.grantedAt) > toComparable(state.timeEnd)) return false;
+                return true;
+            });
+        }
+
+        function renderCashTable(list) {
+            var wrap = el('div', 'erp-table-scroll member-drawer-table--wide');
+            var table = el('table', 'erp-table');
+            var thead = el('thead');
+            var trh = el('tr');
+            ['发放时间', '红包名称', '场景', '发放金额', '状态', '领取时间', '商户流水号'].forEach(function (h) {
+                trh.appendChild(el('th', '', h));
+            });
+            thead.appendChild(trh);
+            var tbody = el('tbody');
+            if (!list.length) {
+                var emptyTr = el('tr');
+                var emptyTd = el('td', '', '暂无现金红包');
+                emptyTd.colSpan = 7;
+                emptyTd.style.textAlign = 'center';
+                emptyTd.style.color = '#999';
+                emptyTd.style.padding = '24px 10px';
+                emptyTr.appendChild(emptyTd);
+                tbody.appendChild(emptyTr);
+            } else {
+                list.forEach(function (row) {
+                    var tr = el('tr');
+                    var scene = Store && Store.sceneLabel ? Store.sceneLabel(row.scene) : (row.scene || '—');
+                    var statusText = Store && Store.statusLabel ? Store.statusLabel(row.status) : (row.status || '—');
+                    tr.appendChild(el('td', '', row.grantedAt || '—'));
+                    tr.appendChild(el('td', '', packetName(row)));
+                    tr.appendChild(el('td', '', scene || '—'));
+                    tr.appendChild(el('td', '', cashMoneyText(row.amount) + ' 元'));
+                    var tdStatus = el('td');
+                    tdStatus.appendChild(el('span', cashStatusClass(row.status), statusText));
+                    tr.appendChild(tdStatus);
+                    tr.appendChild(el('td', '', row.claimAt || '—'));
+                    tr.appendChild(el('td', '', row.outBillNo || '—'));
+                    tbody.appendChild(tr);
+                });
+            }
+            table.appendChild(thead);
+            table.appendChild(tbody);
+            wrap.appendChild(table);
+            return wrap;
+        }
+
+        function renderList() {
+            var filtered = getFiltered();
+            empty(tableHost);
+            empty(pageHost);
+            tableHost.appendChild(renderCashTable(filtered));
+            var bar = el('div', 'erp-pagination');
+            bar.appendChild(el('span', 'erp-pagination__total', '共 ' + filtered.length + ' 条'));
+            pageHost.appendChild(bar);
+        }
+
+        function readState() {
+            state.name = nameInp.value || '';
+            state.status = statusSel.value || '';
+            state.timeStart = timeStartCtl.input.value || '';
+            state.timeEnd = timeEndCtl.input.value || '';
+        }
+
+        btnQuery.addEventListener('click', function () {
+            readState();
+            if (state.timeStart && state.timeEnd && toComparable(state.timeStart) > toComparable(state.timeEnd)) {
+                window.alert('发放时间起始不能晚于结束时间');
+                return;
+            }
+            renderList();
+        });
+        btnReset.addEventListener('click', function () {
+            nameInp.value = '';
+            statusSel.value = '';
+            timeStartCtl.input.value = '';
+            timeEndCtl.input.value = '';
+            timeStartCtl.sync();
+            timeEndCtl.sync();
+            state = { name: '', status: '', timeStart: '', timeEnd: '' };
+            renderList();
+        });
+        nameInp.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                btnQuery.click();
+            }
+        });
+        renderList();
+        return root;
+    }
+
+    function fillCashRedpackColumn() {
+        var tbody = document.getElementById('tableBody');
+        if (!tbody) return;
+        tbody.querySelectorAll('tr').forEach(function (tr) {
+            var cells = tr.querySelectorAll('td');
+            if (cells.length < 22 || !cells[12]) return;
+            cells[12].textContent = memberCashClaimedText(cells[0].textContent.trim());
+        });
     }
 
     function mkField(label, control) {
@@ -1949,8 +2252,8 @@
         );
 
         var tabsWrap = el('div', 'store-drawer__tabs');
-        var tabIds = ['detail', 'growth', 'points', 'assets', 'stores', 'watch', 'orders'];
-        var tabLabels = ['会员详情', '成长值', '会员积分', '优惠券', '绑定门店', '观看记录', '订单记录'];
+        var tabIds = ['detail', 'growth', 'points', 'assets', 'cash', 'stores', 'watch', 'orders'];
+        var tabLabels = ['会员详情', '成长值', '会员积分', '优惠券', '现金红包', '绑定门店', '观看记录', '订单记录'];
         var bodyHost = el('div', 'store-drawer__body');
 
         var panels = {
@@ -1958,6 +2261,7 @@
             growth: panelMemberGrowth(rec),
             points: panelMemberPoints(rec),
             assets: panelMemberAssets(rec),
+            cash: panelMemberCash(rec),
             stores: panelBindStores(rec),
             watch: panelWatchRecords(),
             orders: panelOrderRecords()
@@ -2096,8 +2400,8 @@
             var idCell = tr.querySelector('td');
             if (!idCell || idCell.textContent.trim() !== String(member.id)) continue;
             var cells = tr.querySelectorAll('td');
-            /* 会员成长分在第 15 列（0-based index 14） */
-            if (cells[14]) cells[14].textContent = String(member.growthScore || '0');
+            /* 成长值在第 7 列（0-based index 6） */
+            if (cells[6]) cells[6].textContent = String(member.growthScore || '0');
             break;
         }
     }
@@ -2760,6 +3064,7 @@
             }
             openChangeStorePicker(m);
         },
-        openGrowthAdjust: openGrowthAdjustModal
+        openGrowthAdjust: openGrowthAdjustModal,
+        fillCashRedpackColumn: fillCashRedpackColumn
     };
 })();

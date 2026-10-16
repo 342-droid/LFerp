@@ -3672,17 +3672,18 @@
                 phoneShow,
                 m.gender || '未知',
                 m.isMember || '是',
+                m.growthScore || '1485',
                 m.level || '普通会员',
                 m.tags || 'C端注册',
+                m.amount || '0.00',
+                m.orderCount || '0',
+                m.points || '500',
+                '0.00',
                 m.source || '微信小程序',
                 m.bindMethod || '手机',
                 m.channelCount || '1',
-                m.points || '500',
                 m.satisMinutes || '0',
                 m.satisFeedback || '0',
-                m.growthScore || '1485',
-                m.amount || '0.00',
-                m.orderCount || '0',
                 m.lastConsume || '—',
                 m.registerTime || '—',
                 null,
@@ -3695,7 +3696,7 @@
                     span.className = 'mdm-list-avatar';
                     span.textContent = avatarText;
                     td.appendChild(span);
-                } else if (idx === 19) {
+                } else if (idx === 20) {
                     var st = document.createElement('span');
                     var stTxt = m.status || '正常';
                     if (window.MdmMemberBlacklist && window.MdmMemberBlacklist.statusClass) {
@@ -3707,7 +3708,7 @@
                     else st.className = 'status active';
                     st.textContent = stTxt === '已注销' ? '注销' : stTxt;
                     td.appendChild(st);
-                } else if (idx === 20) {
+                } else if (idx === 21) {
                     td.className = 'action-links';
                     if (window.MdmMemberBlacklist && window.MdmMemberBlacklist.buildMemberListActions) {
                         td.innerHTML = window.MdmMemberBlacklist.buildMemberListActions(m.status || '正常');
@@ -3781,20 +3782,20 @@
 
         function applyActions(tr, status) {
             var cells = tr.querySelectorAll('td');
-            if (cells.length < 21) return;
-            cells[20].className = 'action-links';
+            if (cells.length < 22) return;
+            cells[21].className = 'action-links';
             if (window.MdmMemberBlacklist && window.MdmMemberBlacklist.buildMemberListActions) {
-                cells[20].innerHTML = window.MdmMemberBlacklist.buildMemberListActions(status);
+                cells[21].innerHTML = window.MdmMemberBlacklist.buildMemberListActions(status);
             } else if (status === '注销' || status === '注销中') {
-                cells[20].innerHTML = '<a href="#" class="mdm-mem-detail">查看详情</a>';
+                cells[21].innerHTML = '<a href="#" class="mdm-mem-detail">查看详情</a>';
             }
         }
 
         /* 校正现有行：注销 / 注销中仅保留查看详情 */
         tbody.querySelectorAll('tr').forEach(function (tr) {
             var cells = tr.querySelectorAll('td');
-            if (cells.length < 21) return;
-            var stEl = cells[19].querySelector('.status');
+            if (cells.length < 22) return;
+            var stEl = cells[20].querySelector('.status');
             var stTxt = stEl
                 ? stEl.textContent.trim()
                 : (tr.getAttribute('data-member-status') || '');
@@ -3830,13 +3831,13 @@
             if (existing) {
                 existing.setAttribute('data-member-status', status);
                 var cells = existing.querySelectorAll('td');
-                if (cells.length >= 21) {
-                    var st = cells[19].querySelector('.status') || document.createElement('span');
+                if (cells.length >= 22) {
+                    var st = cells[20].querySelector('.status') || document.createElement('span');
                     st.className = status === '注销中' ? 'status cancel-pending' : 'status canceled';
                     st.textContent = status;
                     if (!st.parentNode) {
-                        cells[19].innerHTML = '';
-                        cells[19].appendChild(st);
+                        cells[20].innerHTML = '';
+                        cells[20].appendChild(st);
                     }
                     applyActions(existing, status);
                 }
@@ -3871,9 +3872,9 @@
             var phoneShow = m.phoneMasked || m.phone || '—';
             var avatarText = m.avatarText;
             [
-                m.id, m.nickname, null, phoneShow, m.gender, m.isMember, m.level, m.tags,
-                m.source, m.bindMethod, m.channelCount, m.points, m.satisMinutes, m.satisFeedback,
-                m.growthScore, m.amount, m.orderCount, m.lastConsume, m.registerTime, null, null
+                m.id, m.nickname, null, phoneShow, m.gender, m.isMember, m.growthScore, m.level, m.tags,
+                m.amount, m.orderCount, m.points, '0.00', m.source, m.bindMethod, m.channelCount,
+                m.satisMinutes, m.satisFeedback, m.lastConsume, m.registerTime, null, null
             ].forEach(function (val, idx) {
                 var td = document.createElement('td');
                 if (idx === 2) {
@@ -3881,12 +3882,12 @@
                     span.className = 'mdm-list-avatar';
                     span.textContent = avatarText;
                     td.appendChild(span);
-                } else if (idx === 19) {
+                } else if (idx === 20) {
                     var st2 = document.createElement('span');
                     st2.className = status === '注销中' ? 'status cancel-pending' : 'status canceled';
                     st2.textContent = status;
                     td.appendChild(st2);
-                } else if (idx === 20) {
+                } else if (idx === 21) {
                     td.className = 'action-links';
                     td.innerHTML = '<a href="#" class="mdm-mem-detail">查看详情</a>';
                 } else {
@@ -4026,22 +4027,22 @@
                 var endTs = toTs(qRegEnd);
                 tbody.querySelectorAll('tr').forEach(function (tr) {
                     var c = tr.querySelectorAll('td');
-                    if (c.length < 19) return;
+                    if (c.length < 22) return;
                     var ok = true;
                     if (qId && c[0].textContent.trim().indexOf(qId) === -1) ok = false;
                     if (qNick && c[1].textContent.trim().indexOf(qNick) === -1) ok = false;
-                    if (qB && c[9].textContent.trim() !== qB) ok = false;
+                    if (qB && c[14].textContent.trim() !== qB) ok = false;
                     if (qP && c[3].textContent.replace(/\D/g, '').indexOf(qP) === -1) ok = false;
-                    if (qLevel && c[6].textContent.trim() !== qLevel) ok = false;
-                    if (qTag && c[7].textContent.trim().indexOf(qTag) === -1) ok = false;
-                    var stCell = c.length >= 21 ? c[19] : c[18];
+                    if (qLevel && c[7].textContent.trim() !== qLevel) ok = false;
+                    if (qTag && c[8].textContent.trim().indexOf(qTag) === -1) ok = false;
+                    var stCell = c[20];
                     if (qSt) {
                         var stEl = stCell.querySelector('.status');
                         var stTxt = stEl ? stEl.textContent.trim() : (tr.getAttribute('data-member-status') || '');
                         if (stTxt !== qSt) ok = false;
                     }
                     if (!isNaN(startTs) || !isNaN(endTs)) {
-                        var regTxt = c.length >= 21 ? c[18].textContent.trim() : '';
+                        var regTxt = c[19] ? c[19].textContent.trim() : '';
                         var regTs = toTs(regTxt);
                         if (isNaN(regTs)) ok = false;
                         if (!isNaN(startTs) && regTs < startTs) ok = false;
@@ -4078,6 +4079,9 @@
             ensureCanceledMembersInList();
             if (window.MdmMemberBlacklist && typeof window.MdmMemberBlacklist.applyFrozenStatuses === 'function') {
                 window.MdmMemberBlacklist.applyFrozenStatuses();
+            }
+            if (window.MdmMemberCUi && typeof window.MdmMemberCUi.fillCashRedpackColumn === 'function') {
+                window.MdmMemberCUi.fillCashRedpackColumn();
             }
             var qBtn0 = document.getElementById('btnFilterQuery');
             if (qBtn0) qBtn0.click();

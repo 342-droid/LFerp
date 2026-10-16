@@ -28,7 +28,8 @@
         policyMode: params.get('mode') || '',
         policyEditing: params.get('id') || '',
         policyDraft: null,
-        ruleEditing: -1
+        ruleEditing: -1,
+        multiOpen: ''
     };
     // Dev 列表第一页的可见记录快照。交互只修改本地状态，不调用结算接口。
     var supplierPending = [
@@ -193,7 +194,9 @@
         {time:'2026-09-05 17:35', content:'调整策略绑定门店', operator:'—', business:'乐事', result:'成功', change:'绑定门店发生调整'},
         {time:'2026-09-05 17:35', content:'创建佣金策略', operator:'—', business:'乐事', result:'成功', change:'创建零售订单策略'}
     ];
-    var config = {master:true, exclude:false, min:'0.00', cycle:'1', generate:'00:01', autoBill:true};
+    var ORDER_TYPES = ['普通售卖', '拉新赠品', '福袋奖品', '积分兑换', '签到奖品', '观看奖励奖品'];
+    var ROUND_MODES = [['one', '计1分'], ['ignore', '不计分'], ['round', '四舍五入']];
+    var config = {master:true, exclude:false, excludeTypes:[], min:'0.00', roundMode:'round', cycle:'1', generate:'00:01', autoBill:true, payHours:'1'};
     function h(v) { return String(v == null ? '' : v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
     function cash(v) { return v === '—' ? '—' : '¥' + h(v); }
     function button(label, act, id, kind) { return '<button type="button" class="settle-btn ' + (kind || 'link') + '" data-act="' + h(act) + '"' + (id ? ' data-id="' + h(id) + '"' : '') + '>' + h(label) + '</button>'; }
@@ -325,20 +328,53 @@
     }
     function switcher(key) {return '<button type="button" role="switch" aria-checked="' + (config[key]?'true':'false') + '" class="settle-switch' + (config[key]?' on':'') + '" data-act="switch" data-id="' + h(key) + '"></button>';}
     function configLine(label, value, hint) {return '<div class="settle-config-item"><div class="settle-config-label">' + h(label) + '</div><div class="settle-config-control">' + value + (hint?'<p class="settle-config-hint">'+h(hint)+'</p>':'') + '</div></div>';}
+    function orderTypeMulti() {
+        var selected = ORDER_TYPES.filter(function (name) { return (config.excludeTypes || []).indexOf(name) >= 0; });
+        var enabled = !!config.exclude;
+        var open = state.multiOpen === 'excludeTypes' && enabled;
+        var iconCheck = '<svg class="settle-multi__check" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 8.3 6.4 11.4 12.8 4.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        var iconClear = '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.15" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M5.7 5.7 10.3 10.3M10.3 5.7 5.7 10.3" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>';
+        var iconCaret = '<svg class="settle-multi__caret" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 5.8 8 10.4l4.8-4.6" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        var tags = selected.map(function (name) {
+            return '<span class="settle-multi__tag">' + h(name) +
+                (enabled ? '<button type="button" class="settle-multi__tag-x" data-act="multi-remove" data-id="' + h(name) + '" aria-label="移除' + h(name) + '">×</button>' : '') +
+                '</span>';
+        }).join('');
+        var suffix = selected.length && enabled
+            ? '<button type="button" class="settle-multi__clear" data-act="multi-clear" aria-label="清空">' + iconClear + '</button>'
+            : iconCaret;
+        var options = ORDER_TYPES.map(function (name) {
+            var on = selected.indexOf(name) >= 0;
+            return '<button type="button" class="settle-multi__opt' + (on ? ' is-selected' : '') + '" data-act="multi-pick" data-id="' + h(name) + '"><span>' + h(name) + '</span>' + iconCheck + '</button>';
+        }).join('');
+        return '<span class="settle-multi' + (open ? ' is-open' : '') + (enabled ? '' : ' is-disabled') + '">' +
+            '<div class="settle-multi__box" role="combobox" aria-expanded="' + (open ? 'true' : 'false') + '" aria-disabled="' + (enabled ? 'false' : 'true') + '"' +
+            (enabled ? ' data-act="toggle-multi" data-id="excludeTypes" tabindex="0"' : '') + '>' +
+            '<span class="settle-multi__tags">' + (tags || '<span class="settle-multi__placeholder">请选择</span>') + '</span>' + suffix + '</div>' +
+            (open ? '<span class="settle-multi__panel" role="listbox" aria-label="不参与分佣的订单类型">' + options + '</span>' : '') +
+            '</span>';
+    }
+    function roundModeRadios() {
+        config.roundMode = 'round';
+        return '<div class="settle-config-radios settle-config-radios--locked">' + ROUND_MODES.map(function (item) {
+            var on = item[0] === 'round';
+            return '<label><input type="radio" name="roundMode" value="' + h(item[0]) + '" disabled' + (on ? ' checked' : '') + '> ' + h(item[1]) + '</label>';
+        }).join('') + '</div>';
+    }
     function renderConfig() {
         var cards=function(options,selected){return '<div class="settle-config-cards">'+options.map(function(x){return '<label class="settle-config-card'+(x===selected?' selected':'')+'"><input type="radio" disabled'+(x===selected?' checked':'')+'>'+h(x)+'</label>';}).join('')+'</div>';};
         var body='<div class="settle-card-body"><h3 class="settle-section-title">佣金规则设置</h3><div class="settle-config-grid">' +
             configLine('分佣总开关',switcher('master'),'开启后按分佣策略执行佣金分配；关闭后仅平台保留收益，其余参与方不进行分佣。') +
-            configLine('订单类型',switcher('exclude')+'<select class="settle-select" disabled><option>选择不参与分佣的订单类型</option></select>','开启后，所选类型的订单不参与分佣，资金归入平台（如拉新 / 福袋 / 积分订单）；关闭后所有订单均参与分佣。') +
+            configLine('订单类型',switcher('exclude')+orderTypeMulti(),'开启后，所选类型的订单不参与分佣，资金归入平台；可多选。关闭后所有订单均参与分佣。') +
             configLine('订单实付金额低于','<input class="settle-input settle-config-short" type="number" min="0" step="0.01" data-config="min" value="'+h(config.min)+'"> 元，低于此值不分佣，资金归入平台（0=不限）','注：商品实际支付金额少于商品采购价，订单不分佣，平台补差结算。') +
             configLine('分佣基准',cards(['按实付金额分佣','按销售金额分佣'],'按实付金额分佣'),'分佣基准为全局默认展示，下期支持切换；实际算分以各分佣策略明细的基准为准（代销按毛利、平台按实付）。') +
-            configLine('佣金金额不足1分计','<div class="settle-config-radios"><label><input type="radio" disabled> 计1分</label><label><input type="radio" disabled> 不计分</label><label><input type="radio" checked disabled> 四舍五入</label></div>','佣金不足 1 分的进位策略，下期支持，当前固定按「四舍五入」执行。') +
+            configLine('佣金金额不足1分计',roundModeRadios(),'佣金不足 1 分时固定按四舍五入处理，本期不可变更。') +
             '</div><h3 class="settle-section-title" style="margin-top:28px">结算规则设置</h3><div class="settle-config-grid">' +
             configLine('结算起算节点',cards(['订单履约确认后','售后期结束'],'订单履约确认后'),'分账触发节点，下期支持，当前固定按「订单履约确认后」起算：自提订单为全部核销完成，配送或直发订单为确认收货；「售后期结束」起算下期支持。') +
             configLine('结算周期','系统每 <select class="settle-select settle-config-short" data-config="cycle">'+[['1','1天'],['2','2天'],['3','3天'],['5','5天'],['7','7天'],['15','15天'],['30','30天'],['month','自然月1日']].map(function(x){return '<option value="'+x[0]+'"'+(config.cycle===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('')+'</select> 结算并出账一次','「N 天」自上次结算滚动；「自然月1日」每月固定 1 号结算。') +
             configLine('结算单生成时间','<input class="settle-input settle-config-short" type="time" data-config="generate" value="'+h(config.generate)+'">','每日结算单生成时刻（如 09:30）。') +
             configLine('自动生成结款单',switcher('autoBill'),'开启后，财务未在规定时间内审核时系统自动生成付款单；关闭则需财务手动生成。') +
-            configLine('结款执行时间','生成结款单后 <input class="settle-input settle-config-short" type="number" value="1" disabled> 小时内执行打款','0 = 生成结款单后立即执行；仅「自动生成结款单」开启时生效。') +
+            configLine('结款执行时间','生成结款单后 <input class="settle-input settle-config-short" type="number" min="0" step="1" data-config="payHours" value="'+h(config.payHours)+'"> 小时内执行打款','0 = 生成结款单后立即执行；仅「自动生成结款单」开启时生效。') +
             '</div><div class="settle-actions" style="margin-top:26px">' + button('保存','save-config','','primary') + '</div></div>';
         return card('通用配置',body,button('操作日志','general-log','',''));
     }
@@ -575,9 +611,42 @@
         var csv='\uFEFF'+data.map(function(row){return row.join(',');}).join('\r\n');
         var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='分佣汇总-'+(state.tab==='month'?'MONTHLY':'DAILY')+'-'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
     }
+    function readGeneralConfig() {
+        app.querySelectorAll('[data-config]').forEach(function (el) {
+            if (el.type === 'radio' && !el.checked) return;
+            if (el.disabled) return;
+            config[el.dataset.config] = el.value;
+        });
+    }
     app.addEventListener('click',function(e){
-        var b=e.target.closest('[data-act]'); if(!b)return;
+        var inMulti = e.target.closest('.settle-multi');
+        var b=e.target.closest('[data-act]');
+        if (state.multiOpen && !inMulti) {
+            state.multiOpen = '';
+            var openWrap = app.querySelector('.settle-multi.is-open');
+            if (openWrap) {
+                openWrap.classList.remove('is-open');
+                var openBox = openWrap.querySelector('.settle-multi__box');
+                if (openBox) openBox.setAttribute('aria-expanded', 'false');
+            }
+            var openPanel = app.querySelector('.settle-multi__panel');
+            if (openPanel) openPanel.remove();
+        }
+        if(!b) return;
         var act=b.dataset.act,id=b.dataset.id||'';
+        if(act==='toggle-multi'||act==='multi-pick'||act==='multi-remove'||act==='multi-clear'){
+            if(!config.exclude) return;
+            if(act==='toggle-multi') state.multiOpen = state.multiOpen === id ? '' : id;
+            else {
+                var picked=(config.excludeTypes||[]).slice();
+                if(act==='multi-clear') picked=[];
+                else if(picked.indexOf(id)>=0) picked=picked.filter(function(name){return name!==id;});
+                else picked.push(id);
+                config.excludeTypes=ORDER_TYPES.filter(function(name){return picked.indexOf(name)>=0;});
+            }
+            render();
+            return;
+        }
         if(act==='tab'){state.tab=id;state.query='';state.status='';state.supplierSelection=[];state.supplierPage=1;state.carrierSelection=[];state.carrierPage=1;state.policyMenu='';render();return;}
         if(act==='search'){state.query=(document.getElementById('settle-query')||{}).value||'';state.status=(document.getElementById('settle-status')||{}).value||'';if(state.view==='supplier'){state.supplierDateFrom=(document.getElementById('supplier-date-from')||{}).value||'';state.supplierDateTo=(document.getElementById('supplier-date-to')||{}).value||'';state.supplierPage=1;}if(state.view==='carrier'){state.carrierDateFrom=(document.getElementById('carrier-date-from')||{}).value||'';state.carrierDateTo=(document.getElementById('carrier-date-to')||{}).value||'';state.carrierName=(document.getElementById('carrier-name')||{}).value||'';state.carrierPage=1;}if(state.view==='policy'){state.policyType=(document.getElementById('policy-type')||{}).value||'';state.policyStore=(document.getElementById('policy-store')||{}).value||'';}if(state.view==='summary'){state.summaryType=(document.getElementById('summary-type')||{}).value||'';state.summaryFrom=(document.getElementById('summary-from')||{}).value||'';state.summaryTo=(document.getElementById('summary-to')||{}).value||'';}if(state.view==='commission'){state.commissionType=(document.getElementById('commission-type')||{}).value||'';state.commissionRelated=(document.getElementById('commission-related')||{}).value||'';}if(state.view==='compensation'){state.compensationRelated=(document.getElementById('compensation-related')||{}).value||'';state.compensationPayee=(document.getElementById('compensation-payee')||{}).value||'';state.compensationType=(document.getElementById('compensation-type')||{}).value||'';}render();return;}
         if(act==='reset'){state.query='';state.status='';state.supplierPage=1;state.supplierDateFrom='';state.supplierDateTo='';state.carrierPage=1;state.carrierDateFrom='';state.carrierDateTo='';state.carrierName='';state.policyType='';state.policyStore='';state.summaryType='';state.summaryFrom='';state.summaryTo='';state.commissionType='';state.commissionRelated='';state.compensationRelated='';state.compensationPayee='';state.compensationType='';render();return;}
@@ -611,7 +680,7 @@
         if(act==='general-log'){openLogs('general');return;}
         if(act==='policy-log'){openLogs('policy',id);return;}
         if(act==='switch'){config[id]=!config[id];render();return;}
-        if(act==='save-config'){openModal('保存通用配置','确认保存当前结算通用配置？',false,button('取消','close','','')+button('确认保存','confirm-save','','primary'));return;}
+        if(act==='save-config'){readGeneralConfig();openModal('保存通用配置','确认保存当前结算通用配置？',false,button('取消','close','','')+button('确认保存','confirm-save','','primary'));return;}
         if(act==='export-summary'){exportSummary();return;}
         if(act==='manual'){var x=compensations.find(function(r){return r.id===id;})||compensations[0];openModal('人工结款','<div class="settle-policy-form">'+policyField('结款金额','<b>'+cash(x.amount)+'</b> <small>（默认清分待结算金额，不支持修改）</small>')+policyField('上传凭证','<input type="file" accept=".jpg,.jpeg,.png" multiple aria-label="上传凭证"><small>支持 JPG/JPEG/PNG，最多 3 张，单张 ≤ 10MB</small>')+policyField('备注','<textarea class="settle-input settle-textarea" maxlength="100" placeholder="选填，≤100 字"></textarea>')+'</div>',false,button('取消','close')+button('确定','confirm-demo','','primary'));return;}
         if(act==='retry'){openModal('重新执行','确认对单据 '+h(id)+' 重新执行？将重新校验供应商进件/账户，通过后即可加入结款单。',false,button('取消','close')+button('确认','confirm-demo','','primary'));return;}
