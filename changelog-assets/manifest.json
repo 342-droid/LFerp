@@ -406,6 +406,73 @@
     "status": "diff",
     "date": "2026-10-15"
   },
+  "a4abfc0|MDM/mdm_archive_carrier.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-16"
+  },
+  "a4abfc0|MDM/mdm_archive_live_room.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-16"
+  },
+  "a4abfc0|MDM/mdm_archive_store.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-16"
+  },
+  "a4abfc0|MDM/mdm_archive_supplier.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-16"
+  },
+  "a4abfc0|MDM/mdm_archive_warehouse.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-16"
+  },
+  "a4abfc0|MDM/mdm_audit_store_registration.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-16"
+  },
+  "a4abfc0|MDM/mdm_member_c.html": {
+    "before": "changelog-assets/a4abfc0/MDM__mdm_member_c.html.before.jpg",
+    "after": "changelog-assets/a4abfc0/MDM__mdm_member_c.html.after.jpg",
+    "regions": 44,
+    "status": "diff",
+    "date": "2026-10-16"
+  },
+  "a4abfc0|MDM/mdm_people_anchor.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-16"
+  },
+  "a4abfc0|MDM/mdm_people_bd.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-16"
+  },
+  "a4abfc0|MDM/mdm_people_driver.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-16"
+  },
+  "a4abfc0|MDM/mdm_people_purchaser.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-16"
+  },
+  "a4abfc0|MDM/mdm_settle_index.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-16"
+  },
+  "a4abfc0|MDM/mdm_super_admin_accounts.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-16"
+  },
   "a6d2434|SCM/app_list.html": {
     "before": "changelog-assets/a6d2434/SCM__app_list.html.before.jpg",
     "after": "changelog-assets/a6d2434/SCM__app_list.html.after.jpg",
@@ -709,6 +776,11 @@
     "status": "diff",
     "date": "2026-10-14"
   },
+  "bc231c6|MDM/mdm_member_c.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-14"
+  },
   "bc231c6|MDM/mdm_product_selection.html": {
     "regions": 0,
     "status": "diff",
@@ -848,6 +920,11 @@
     "status": "diff",
     "date": "2026-10-14"
   },
+  "dbed1b7|MDM/mdm_member_c.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-14"
+  },
   "dbed1b7|user-app/h5/home.html": {
     "regions": 0,
     "status": "diff",
@@ -915,6 +992,11 @@
     "date": "2026-10-15"
   },
   "f0b9b5e|MDM/mdm_marketing_register_gift_form.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-15"
+  },
+  "f0b9b5e|MDM/mdm_member_c.html": {
     "regions": 0,
     "status": "diff",
     "date": "2026-10-15"

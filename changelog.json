@@ -1,7 +1,96 @@
 {
-  "latestSha": "9c64d6b95bff26d213eb2a584e6ddb9e1686c0f7",
-  "total": 440,
+  "latestSha": "a4abfc0f683ae0d54c71f8954785a2c15f98d011",
+  "total": 441,
   "days": [
+    {
+      "date": "2026-10-16",
+      "items": [
+        {
+          "sha": "a4abfc0",
+          "type": "feat",
+          "text": "会员列表补充现金红包，结算通用配置支持订单类型多选",
+          "author": "sisi",
+          "time": "21:23",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
+              "file": "MDM/mdm_people_anchor.html",
+              "module": "冷丰WMS",
+              "title": "主播"
+            },
+            {
+              "file": "MDM/mdm_people_bd.html",
+              "module": "冷丰WMS",
+              "title": "BD推广员"
+            },
+            {
+              "file": "MDM/mdm_people_driver.html",
+              "module": "冷丰WMS",
+              "title": "司机"
+            },
+            {
+              "file": "MDM/mdm_people_purchaser.html",
+              "module": "冷丰WMS",
+              "title": "采购员"
+            },
+            {
+              "file": "MDM/mdm_settle_index.html",
+              "module": "冷丰结算",
+              "title": "结算中心"
+            },
+            {
+              "file": "MDM/mdm_super_admin_accounts.html",
+              "module": "冷丰WMS",
+              "title": "商户主体建档"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_member_c.html",
+              "text": "是否会员后展示成长值、会员等级；会员标签后展示成交金额、成交订单数、会员积分、现金红包；会员详情基础信息在 OpenID 后只读展示微信支付收款授权状态；优惠券右侧新增现金红包统计页"
+            },
+            {
+              "file": "MDM/mdm_settle_index.html",
+              "text": "通用配置的订单类型开启后可下拉多选不参与分佣的类型，已选项以标签展示；佣金不足1分固定四舍五入且不可改；结款执行时间可编辑"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-10-15",
       "items": [
@@ -240,6 +329,11 @@
               "file": "MDM/mdm_marketing_register_gift_form.html",
               "module": "冷丰WMS",
               "title": "注册有礼"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
             },
             {
               "file": "MDM/mdm_order_live.html",
@@ -513,6 +607,11 @@
               "title": "模版配置"
             },
             {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
               "file": "user-app/h5/home.html",
               "module": "",
               "title": "首页 · 用户 APP"
@@ -697,6 +796,11 @@
               "file": "MDM/mdm_marketing_template.html",
               "module": "冷丰WMS",
               "title": "模版配置"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
             },
             {
               "file": "MDM/mdm_product_selection.html",
@@ -19268,6 +19372,11 @@
               "file": "MDM/mdm_marketing_seckill_form.html",
               "module": "冷丰WMS",
               "title": "秒杀活动"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
             },
             {
               "file": "MDM/mdm_member_level_rule.html",
