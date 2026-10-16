@@ -352,6 +352,7 @@
     item.orderDayRange = dayRange;
     item.orderDayCustom = !!item.orderDayCustom || (dayRange > 0 && DAY_RANGE_OPTIONS.indexOf(dayRange) < 0);
     item.claimTimesMode = item.claimTimesMode === 'per_user' ? 'per_user' : 'unlimited';
+    /* 页面不配置。模版始终是现金营销 + 活动奖励，发放时由转账记录带给微信 */
     item.transferScene = TRANSFER_SCENE_DEFAULT.id;
     item.userPerception = USER_PERCEPTION_DEFAULT.id;
     if (!STATUS_LABEL[item.status]) item.status = 'DRAFT';

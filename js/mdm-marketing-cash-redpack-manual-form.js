@@ -182,10 +182,7 @@
   function syncUserPerception(preferred) {
     var scene = Store.transferSceneById(selectedTransferScene());
     var sel = document.getElementById('crManualUserPerception');
-    var sceneTip = document.getElementById('crManualSceneTip');
-    var perceptionTip = document.getElementById('crManualPerceptionTip');
     var want = preferred != null && preferred !== '' ? String(preferred) : sel ? sel.value : '';
-    if (sceneTip) sceneTip.textContent = scene.intro || '';
     if (!sel) return;
     var known = (scene.perceptions || []).some(function (item) {
       return item.id === want;
@@ -197,7 +194,6 @@
       })
       .join('');
     sel.value = want;
-    if (perceptionTip) perceptionTip.textContent = Store.userPerceptionTip(scene.id, sel.value);
   }
 
   function frontRemarkError(raw) {

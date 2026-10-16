@@ -871,6 +871,16 @@
     var renewOutBill = !!opts.renewOutBillNo || cur.status === 'failed' || !cur.outBillNo;
     if (renewOutBill) cur.outBillNo = genOutBillNo();
     if (!cur.grantedAt) cur.grantedAt = formatNow();
+    /* 模版不在页面上选场景。非手动发放在发起转账时固定带现金营销、活动奖励 */
+    if (cur.activityType !== 'manual') {
+      var tplStore = global.MdmMarketingCashRedpackTplStore;
+      var tpl = cur.templateId && tplStore && typeof tplStore.getById === 'function' ? tplStore.getById(cur.templateId) : null;
+      cur.transferScene = (tpl && tpl.transferScene) || 'cash_marketing';
+      cur.userPerception = (tpl && tpl.userPerception) || 'activity_reward';
+    }
+    var transferPair = normalizeTransfer(cur.transferScene, cur.userPerception);
+    cur.transferScene = transferPair.scene.id;
+    cur.userPerception = transferPair.perception.id;
 
     if (opts.insufficient) {
       cur.status = 'failed';

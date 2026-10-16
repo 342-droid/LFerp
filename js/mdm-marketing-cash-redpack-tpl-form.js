@@ -246,7 +246,9 @@
       memberSegmentIds: readCheckedIds('[data-cr-segment]'),
       status: model.status,
       remark: model.remark,
-      createdAt: model.createdAt
+      createdAt: model.createdAt,
+      transferScene: Store.TRANSFER_SCENE_DEFAULT.id,
+      userPerception: Store.USER_PERCEPTION_DEFAULT.id
     };
   }
 
@@ -370,20 +372,7 @@
         dis +
         '><div class="pts-rule-tip">最多 50 个字符</div>'
     );
-    html += fieldRow(
-      false,
-      '转账场景',
-      '<input class="erp-input pts-rule-field__input--name" id="fCrTplTransferScene" type="text" value="' +
-        escapeHtml(Store.TRANSFER_SCENE_DEFAULT.label) +
-        '" disabled><div class="pts-rule-tip">红包模版固定为现金营销。</div>'
-    );
-    html += fieldRow(
-      false,
-      '用户收款感知',
-      '<input class="erp-input pts-rule-field__input--name" id="fCrTplUserPerception" type="text" value="' +
-        escapeHtml(Store.USER_PERCEPTION_DEFAULT.label) +
-        '" disabled><div class="pts-rule-tip">用户收款时默认展示活动奖励。</div>'
-    );
+    /* 转账场景、用户收款感知不在模版页展示，保存时固定现金营销、活动奖励，触发转账时带给微信 */
     html += fieldRow(true, '有效时间', renderTimeHtml(dis));
     html += '</div></div>';
     html += '<div class="pts-rule-card"><div class="pts-rule-card__title">发放规则</div><div class="pts-rule-card__body">';
