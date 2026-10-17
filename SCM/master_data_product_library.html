@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 基础商品库</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-product.css">
+    <link rel="stylesheet" href="../css/master-data-library.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/master-data-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="product-page master-data-library-page">
+                <div class="product-page-body">
+                    <section class="erp-page__card master-data-library">
+                        <div class="master-data-library__cats">
+                            <div class="product-category-cascade__col" data-level="1">
+                                <div class="product-category-cascade__head">
+                                    <div class="product-category-cascade__title"><span>一级分类</span></div>
+                                </div>
+                                <div class="product-category-cascade__hint">从左到右依次选择</div>
+                                <ul class="product-category-cascade__list" id="catListL1"></ul>
+                            </div>
+                            <div class="product-category-cascade__col" data-level="2">
+                                <div class="product-category-cascade__head">
+                                    <div class="product-category-cascade__title"><span>二级分类</span></div>
+                                </div>
+                                <div class="product-category-cascade__hint" id="catHintL2">请先选择一级分类</div>
+                                <ul class="product-category-cascade__list" id="catListL2"></ul>
+                            </div>
+                            <div class="product-category-cascade__col" data-level="3">
+                                <div class="product-category-cascade__head">
+                                    <div class="product-category-cascade__title"><span>三级分类</span></div>
+                                </div>
+                                <div class="product-category-cascade__hint" id="catHintL3">请先选择二级分类</div>
+                                <ul class="product-category-cascade__list" id="catListL3"></ul>
+                            </div>
+                            <div class="product-category-cascade__col" data-level="4">
+                                <div class="product-category-cascade__head">
+                                    <div class="product-category-cascade__title"><span>四级分类</span></div>
+                                </div>
+                                <div class="product-category-cascade__hint" id="catHintL4">请先选择三级分类</div>
+                                <ul class="product-category-cascade__list" id="catListL4"></ul>
+                            </div>
+                        </div>
+
+                        <div class="master-data-library__main">
+                            <div class="mdl-toolbar">
+                                <div class="mdl-tabs" id="libTabs">
+                                    <button type="button" class="mdl-tabs__item is-active" data-lib-tab="base">基础商品库</button>
+                                </div>
+                                <div class="mdl-toolbar__actions">
+                                    <button type="button" class="mdl-btn mdl-btn--primary" id="libAddGoodsBtn" disabled title="请先选择四级分类">+ 新增商品</button>
+                                </div>
+                            </div>
+
+                            <div class="mdl-pane" id="libPaneBase">
+                                <form class="mdl-query" id="libQueryForm">
+                                    <label class="mdl-query__field">SPU编码
+                                        <input type="text" id="libQuerySpu" placeholder="请输入SPU编码" autocomplete="off">
+                                    </label>
+                                    <label class="mdl-query__field">货号
+                                        <input type="text" id="libQuerySku" placeholder="请输入货号" autocomplete="off">
+                                    </label>
+                                    <label class="mdl-query__field">商品条码
+                                        <input type="text" id="libQueryBarcode" placeholder="请输入商品条码" autocomplete="off">
+                                    </label>
+                                    <label class="mdl-query__field">商品名称
+                                        <input type="text" id="libQueryName" placeholder="请输入商品名称" autocomplete="off">
+                                    </label>
+                                    <label class="mdl-query__field">商品状态
+                                        <select id="libQueryStatus">
+                                            <option value="">全部</option>
+                                            <option value="active">启用</option>
+                                            <option value="disabled">停用</option>
+                                        </select>
+                                    </label>
+                                    <label class="mdl-query__field">品牌
+                                        <select id="libQueryBrand">
+                                            <option value="">全部</option>
+                                            <option value="冷丰优选">冷丰优选</option>
+                                        </select>
+                                    </label>
+                                    <div class="mdl-query__actions">
+                                        <button type="submit" class="mdl-btn mdl-btn--primary">查询</button>
+                                        <button type="button" class="mdl-btn mdl-btn--ghost" id="libQueryReset">重置</button>
+                                    </div>
+                                </form>
+                                <div class="mdl-filterbar">
+                                    <button type="button" class="mdl-btn mdl-btn--primary" id="libFilterBtn">
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 5h16l-6 7v5l-4 2v-7L4 5z"/></svg>
+                                        属性筛选
+                                    </button>
+                                    <div class="mdl-filter-chips" id="libFilterChips" hidden></div>
+                                    <button type="button" class="mdl-filter-clear" id="libFilterClear" hidden>清除</button>
+                                </div>
+                                <div class="mdl-stats" id="libStats"></div>
+                                <div class="mdl-table-wrap">
+                                    <table class="mdl-table">
+                                        <thead>
+                                            <tr>
+                                                <th>SPU编码</th>
+                                                <th>货号</th>
+                                                <th>商品条码</th>
+                                                <th>商品图片</th>
+                                                <th>商品名称</th>
+                                                <th>商品状态</th>
+                                                <th>品牌</th>
+                                                <th>标准采购价</th>
+                                                <th>标准采购单位</th>
+                                                <th>最小单位</th>
+                                                <th>规格单位</th>
+                                                <th>包装单位</th>
+                                                <th class="mdl-table__op">操作</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="libTableBody"></tbody>
+                                    </table>
+                                </div>
+                                <div class="product-pagination" id="libPagination">
+                                    <span id="libPaginationTotal">共 0 条</span>
+                                    <div class="product-pagination__right">
+                                        <select class="product-pagination__size" id="libPageSize" aria-label="每页条数">
+                                            <option value="20" selected>20条/页</option>
+                                            <option value="50">50条/页</option>
+                                            <option value="100">100条/页</option>
+                                        </select>
+                                        <div class="product-pagination__pages" id="libPaginationPages"></div>
+                                        <label class="product-pagination__goto">
+                                            前往
+                                            <input id="libPageGoto" type="text" value="1" inputmode="numeric" aria-label="前往页码">
+                                            页
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/master-data-category-store.js"></script>
+    <script src="../js/master-data-brand-store.js"></script>
+    <script src="../js/master-data-ingredient-category-store.js"></script>
+    <script src="../js/master-data-library.js"></script>
+</body>
+</html>
