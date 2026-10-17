@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 商品分类</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-product.css">
+    <link rel="stylesheet" href="../css/master-data-category.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/master-data-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="product-page master-data-category-page">
+                <div class="product-page-body">
+                    <section class="erp-page__card product-category-cascade-card">
+                        <div class="product-category-cascade master-data-category-cascade">
+                            <div class="product-category-cascade__col" data-level="1">
+                                <div class="product-category-cascade__head">
+                                    <div class="product-category-cascade__title">
+                                        <span>一级分类</span>
+                                    </div>
+                                    <button type="button" class="product-category-cascade__add" id="catAddL1" title="新增一级分类">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                                        新增
+                                    </button>
+                                </div>
+                                <div class="product-category-cascade__hint">从左到右依次维护</div>
+                                <ul class="product-category-cascade__list" id="catListL1"></ul>
+                            </div>
+
+                            <div class="product-category-cascade__col" data-level="2">
+                                <div class="product-category-cascade__head">
+                                    <div class="product-category-cascade__title">
+                                        <span>二级分类</span>
+                                    </div>
+                                    <button type="button" class="product-category-cascade__add" id="catAddL2" title="在当前一级下新增二级分类" disabled>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                                        新增
+                                    </button>
+                                </div>
+                                <div class="product-category-cascade__hint" id="catHintL2">请先选择一级分类</div>
+                                <ul class="product-category-cascade__list" id="catListL2"></ul>
+                            </div>
+
+                            <div class="product-category-cascade__col" data-level="3">
+                                <div class="product-category-cascade__head">
+                                    <div class="product-category-cascade__title">
+                                        <span>三级分类</span>
+                                    </div>
+                                    <button type="button" class="product-category-cascade__add" id="catAddL3" title="在当前二级下新增三级分类" disabled>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                                        新增
+                                    </button>
+                                </div>
+                                <div class="product-category-cascade__hint" id="catHintL3">请先选择二级分类</div>
+                                <ul class="product-category-cascade__list" id="catListL3"></ul>
+                            </div>
+
+                            <div class="product-category-cascade__col" data-level="4">
+                                <div class="product-category-cascade__head">
+                                    <div class="product-category-cascade__title">
+                                        <span>四级分类</span>
+                                    </div>
+                                    <button type="button" class="product-category-cascade__add" id="catAddL4" title="在当前三级下新增四级分类" disabled>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                                        新增
+                                    </button>
+                                </div>
+                                <div class="product-category-cascade__hint" id="catHintL4">请先选择三级分类</div>
+                                <ul class="product-category-cascade__list" id="catListL4"></ul>
+                            </div>
+
+                            <div class="product-category-detail" id="catDetailPanel">
+                                <div class="product-category-cascade__head product-category-detail__head">
+                                    <div class="product-category-cascade__title">
+                                        <span class="product-category-cascade__level">详情</span>
+                                        <span>分类详情</span>
+                                    </div>
+                                </div>
+                                <div class="product-category-detail__breadcrumb" id="catDetailBreadcrumb"></div>
+                                <div class="product-category-detail__tabs" id="catDetailTabs">
+                                    <button type="button" class="product-category-detail__tab is-active" data-tab="info">分类信息</button>
+                                    <button type="button" class="product-category-detail__tab" data-tab="attrcats" id="catDetailTabAttrCats" hidden>属性分类</button>
+                                    <button type="button" class="product-category-detail__tab" data-tab="attrs" id="catDetailTabAttrs" hidden>商品属性</button>
+                                    <button type="button" class="product-category-detail__tab" data-tab="products" id="catDetailTabProducts" hidden>已绑定商品</button>
+                                </div>
+                                <div class="product-category-detail__content">
+                                    <div class="product-category-detail__pane" id="catDetailPaneInfo"></div>
+                                    <div class="product-category-detail__pane" id="catDetailPaneAttrCats" hidden></div>
+                                    <div class="product-category-detail__pane" id="catDetailPaneAttrs" hidden></div>
+                                    <div class="product-category-detail__pane" id="catDetailPaneProducts" hidden></div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/master-data-category-store.js"></script>
+    <script src="../js/master-data-category.js"></script>
+</body>
+</html>
