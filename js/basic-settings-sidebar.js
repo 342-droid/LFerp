@@ -80,6 +80,7 @@
     }
 
     function renderTopLevelItem(item) {
+        if (!item) return '';
         const active = pageMatches(item.href);
         const iconHtml = item.icon
             ? '<img src="' + assetHref('image/' + item.icon + '.svg') + '" alt="" style="height: 20px; margin-right: 10px; vertical-align: middle;">'
@@ -106,13 +107,13 @@
         '</div>' +
         '<ul class="sidebar-menu">' +
         renderCollapsibleGroup('协议配置', null, agreementItems, isAgreementSection) +
-        topLevelItems.slice(0, 3).map(renderTopLevelItem).join('') +
+        topLevelItems.slice(0, 2).map(renderTopLevelItem).join('') +
         renderCollapsibleGroup('素材管理', '基础信息', materialItems, isMaterialSection) +
         renderTopLevelItem(fileCenterItem) +
+        renderTopLevelItem(topLevelItems[2]) +
         renderTopLevelItem(topLevelItems[3]) +
-        renderTopLevelItem(topLevelItems[4]) +
         renderCollapsibleGroup('合同管理', null, contractItems, isContractSection) +
-        renderTopLevelItem(topLevelItems[5]) +
+        renderTopLevelItem(topLevelItems[4]) +
         '</ul>' +
         '</aside>';
 })();

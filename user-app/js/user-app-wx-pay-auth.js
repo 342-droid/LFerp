@@ -1,8 +1,9 @@
 /**
  * 微信支付收款授权（现金红包转入微信零钱）。
  *
- * 未授权时，登录成功（含系统自动登录）、进入直播间、领取现金红包（直播现金红包、福袋现金红包、
- * 签到现金红包、观看任务现金红包、派发红包）都会弹出授权半屏。
+ * 未授权时，登录成功（含系统自动登录）、进入直播间仍弹出授权半屏。
+ * 活动中奖先把红包放入账户，不在中奖当场弹授权，也不自动打微信。
+ * 我的红包点「领取」，或点现金收益旁的「收款授权」，才弹出授权半屏；领取且同意后才转微信。
  * 点「同意」后记为已授权，再点「完成」继续原来的动作。
  * 授权一次后不再弹出。关闭半屏且未点同意，保持未授权，下次上述场景再弹。
  */
@@ -287,8 +288,12 @@
     if (!apply) return;
     apply.addEventListener('click', function () {
       var sel = document.getElementById('uaWxPayDemoMode');
-      if (sel && sel.value === 'on') authorize();
-      else revoke();
+      if (sel && sel.value === 'on') {
+        authorize();
+        if (global.UaLiveBagCash && typeof global.UaLiveBagCash.settleAllHolds === 'function') {
+          global.UaLiveBagCash.settleAllHolds();
+        }
+      } else revoke();
       global.location.reload();
     });
   }

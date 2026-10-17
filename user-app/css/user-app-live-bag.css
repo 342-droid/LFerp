@@ -413,6 +413,14 @@
   font-size: 18px;
 }
 
+.ua-live-cash-sheet__sum span {
+  margin-left: 12px;
+}
+
+.ua-live-cash-sheet__meta.is-pending {
+  color: #ff7019;
+}
+
 .ua-live-cash-sheet__list {
   display: flex;
   flex-direction: column;

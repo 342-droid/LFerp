@@ -1,11 +1,12 @@
 /**
  * 直播间现金红包福袋。
  * 同一活动同一时段每人只能领一个，领取后弹窗消失。
- * 现金领取前若未授权微信支付收款，先出授权半屏；同意后自动转账到微信，不进站内钱包。
- * 所有现金红包领取（福袋、观看奖励等）都走 receive：金币落入左侧账户并播放落袋声。
+ * 已授权时领取后自动转账到微信。未授权时红包先入账户待领取，不自动打微信。
+ * 福袋、中控红包、签到、观看任务领到现金，无论是否已授权，都播放金币落入本场红包图标和落袋声。未授权不加本场已打款金额。
  * 预热只在中控倒计时；这里展示的是已经可以领取的福袋。
  * 验收开关：待领取 / 已领取 / 未中奖 / 未抢到 / 未发放。
  * 未抢到：点领取后不转微信、不落金币，提示留下等下一轮。
+ * 领取条件（会员等级、分群、标签、新注册、累计金额、累计笔数）在点击福袋入口时提示，不打开红包层。次数仍在点领取时判断。
  * 限领触顶：按单场次 / 平台累计 / 单个红包 / 每日给出失败文案，不转微信、不落金币。手动派发、签到、观看任务不受限制。
  */
 (function (global) {
@@ -14,6 +15,7 @@
   var DEMO_KEY = 'ua_live_bag_cash_demo_v1';
   var CLAIM_KEY = 'ua_live_bag_cash_claim_v1';
   var CREDIT_KEY = 'ua_live_cash_credits_v1';
+  var HOLD_KEY = 'ua_live_cash_hold_v1';
   var LIMIT_DEMO_KEY = 'ua_live_cash_limit_demo_v1';
   var LEDGER_KEY = 'ua_live_cash_claim_ledger_v1';
   var BAG_AMOUNT = 0.81;
@@ -381,11 +383,16 @@
     return readDemo() === 'lost' && !!(saved && saved.lost);
   }
 
+  function bagHeld() {
+    var saved = readClaim();
+    return !!(saved && saved.held && !saved.claimed);
+  }
+
   function showEntry() {
     var mode = readDemo();
     if (mode === 'none') return false;
     if (mode === 'claimed') return false;
-    if (bagClaimed() || bagMissed() || bagLost()) return false;
+    if (bagClaimed() || bagHeld() || bagMissed() || bagLost()) return false;
     return mode === 'pending' || mode === 'miss' || mode === 'lost';
   }
 
@@ -395,6 +402,103 @@
       if (data && data.sessionId === sessionId() && Array.isArray(data.items)) return data.items;
     } catch (e) {}
     return [];
+  }
+
+  function readHolds() {
+    try {
+      var data = JSON.parse(localStorage.getItem(HOLD_KEY) || 'null');
+      if (data && data.sessionId === sessionId() && Array.isArray(data.items)) return data.items;
+    } catch (e) {}
+    return [];
+  }
+
+  function writeHolds(items) {
+    try {
+      localStorage.setItem(HOLD_KEY, JSON.stringify({ sessionId: sessionId(), items: items }));
+    } catch (e) {}
+  }
+
+  /** 未授权中奖：红包先入账户待领取，不飞金币、不打微信。 */
+  function holdWin(opts) {
+    opts = opts || {};
+    var id = String(opts.id || '');
+    if (!id) return false;
+    var items = readHolds();
+    var i;
+    for (i = 0; i < items.length; i++) {
+      if (String(items[i].id) === id) return false;
+    }
+    items.unshift({
+      id: id,
+      source: opts.source || '现金红包',
+      name: opts.name || '现金红包',
+      amount: Math.round(Number(opts.amount) * 100) / 100,
+      at: opts.at || clockNow(),
+      sceneText: opts.sceneText || sourceText(opts.source || '现金红包')
+    });
+    writeHolds(items);
+    noteClaim({
+      id: id,
+      packetId: opts.packetId || id,
+      templateId: opts.templateId || '',
+      perUserLimit: opts.perUserLimit,
+      claimTimesMode: opts.claimTimesMode,
+      manual: opts.manual,
+      activityType: opts.activityType,
+      source: opts.source
+    });
+    return true;
+  }
+
+  function listHolds() {
+    return readHolds();
+  }
+
+  /** 用户在红包记录里点领取后，才记为已打入微信。 */
+  function takeHold(id) {
+    var items = readHolds();
+    var found = null;
+    var next = items.filter(function (it) {
+      if (String(it.id) === String(id)) {
+        found = it;
+        return false;
+      }
+      return true;
+    });
+    if (!found) return null;
+    writeHolds(next);
+    if (String(found.id) === 'live-bag' || String(found.source) === '福袋') {
+      writeClaim({
+        claimed: true,
+        held: false,
+        missed: false,
+        lost: false,
+        amount: found.amount,
+        at: found.at || clockNow()
+      });
+    } else {
+      writeCredit({
+        id: found.id,
+        source: found.source,
+        name: found.name,
+        amount: found.amount,
+        at: found.at,
+        wechat: true
+      });
+    }
+    return found;
+  }
+
+  /** 收款授权验收开关切到已授权：本场未转账红包全部打入微信，清单回到自动打款文案。 */
+  function settleAllHolds() {
+    if (!wxAuthorized()) return;
+    readHolds().slice().forEach(function (it) {
+      takeHold(it.id);
+    });
+  }
+
+  function wxAuthorized() {
+    return !global.UaWxPayAuth || global.UaWxPayAuth.isAuthorized();
   }
 
   function writeCredit(item) {
@@ -437,11 +541,30 @@
         wechat: true
       });
     }
+    readHolds().forEach(function (hold) {
+      list.unshift({
+        source: sourceText(hold.source),
+        name: hold.name || '现金红包',
+        amount: hold.amount,
+        at: hold.at,
+        wechat: false
+      });
+    });
     return list;
   }
 
   function totalAmount() {
-    return rows().reduce(function (sum, row) { return sum + Number(row.amount || 0); }, 0);
+    return rows().reduce(function (sum, row) {
+      if (row.wechat === false) return sum;
+      return sum + Number(row.amount || 0);
+    }, 0);
+  }
+
+  function pendingAmount() {
+    return rows().reduce(function (sum, row) {
+      if (row.wechat !== false) return sum;
+      return sum + Number(row.amount || 0);
+    }, 0);
   }
 
   var opening = false;
@@ -582,17 +705,31 @@
   function renderSheet() {
     var list = document.getElementById('uaLiveCashList');
     var sum = document.getElementById('uaLiveCashSum');
+    var sub = document.querySelector('.ua-live-cash-sheet__sub');
     var data = rows();
-    if (sum) sum.innerHTML = '合计 <b>' + money(totalAmount()) + '</b>';
+    var pending = data.some(function (row) { return row.wechat === false; });
+    if (sub) {
+      sub.textContent = pending
+        ? '含福袋、签到、观看任务和现金红包。未转账的已放入我的红包，领取后才打入微信。'
+        : '含福袋、签到、观看任务和现金红包。领取后自动转账至微信。';
+    }
+    if (sum) {
+      sum.innerHTML = pending
+        ? '已打入微信 <b>' + money(totalAmount()) + '</b><span>未转账 <b>' + money(pendingAmount()) + '</b></span>'
+        : '合计 <b>' + money(totalAmount()) + '</b>';
+    }
     if (!list) return;
     list.innerHTML = data.map(function (row) {
+      var status = row.wechat === false ? '已放入账户，未转账' : '已打入微信';
       return '<div class="ua-live-cash-sheet__item">' +
         '<div class="ua-live-cash-sheet__head">' +
           '<span class="ua-live-cash-sheet__src">' + escapeHtml(sourceText(row.source)) + '</span>' +
           '<span class="ua-live-cash-sheet__money">' + money(row.amount) + '</span>' +
         '</div>' +
         '<div class="ua-live-cash-sheet__name">' + escapeHtml(row.name) + '</div>' +
-        '<div class="ua-live-cash-sheet__meta">' + escapeHtml(row.at) + ' · 已打入微信</div>' +
+        '<div class="ua-live-cash-sheet__meta' + (row.wechat === false ? ' is-pending' : '') + '">' +
+          escapeHtml(row.at) + ' · ' + status +
+        '</div>' +
       '</div>';
     }).join('');
   }
@@ -661,6 +798,11 @@
     flyCoinFrom(document.getElementById('uaBagFxOpen'), done);
   }
 
+  /** 只播放落入本场红包图标的金币和叮铃铃，不把红包记成已打入微信。 */
+  function landCoin(fromEl) {
+    flyCoinFrom(fromEl, renderAccount);
+  }
+
   function receive(opts) {
     opts = opts || {};
     var amount = Number(opts.amount);
@@ -700,8 +842,25 @@
     return true;
   }
 
+  function bagClaimOpts() {
+    return {
+      id: 'bag:' + sessionId(),
+      source: '福袋',
+      packetId: 'bag:' + sessionId(),
+      inLive: true
+    };
+  }
+
   function openFx() {
     if (!showEntry() || opening) return;
+    var mode = readDemo();
+    if (mode !== 'miss') {
+      var denied = conditionBlock(bagClaimOpts());
+      if (denied) {
+        showLimitTip(denied);
+        return;
+      }
+    }
     opening = true;
     var fx = document.getElementById('uaBagFx');
     var result = document.getElementById('uaBagFxResult');
@@ -728,18 +887,8 @@
     if (!fx || fx.hidden || fx.classList.contains('is-open') || fx.classList.contains('is-lost')) return;
     var mode = readDemo();
     if (mode !== 'miss') {
-      var denied = conditionBlock({
-        id: 'bag:' + sessionId(),
-        source: '福袋',
-        packetId: 'bag:' + sessionId(),
-        inLive: true
-      });
-      var block = denied || claimBlock({
-        id: 'bag:' + sessionId(),
-        source: '福袋',
-        packetId: 'bag:' + sessionId(),
-        inLive: true
-      });
+      var denied = conditionBlock(bagClaimOpts());
+      var block = denied || claimBlock(bagClaimOpts());
       if (block) {
         var blocked = document.getElementById('uaBagFxResult');
         if (blocked) blocked.innerHTML = '<p class="ua-bag-pouch__lost">' + escapeHtml(block) + '</p>';
@@ -761,13 +910,11 @@
       }, 2600);
       return;
     }
-    if (mode !== 'miss' && global.UaWxPayAuth && !global.UaWxPayAuth.isAuthorized()) {
-      global.UaWxPayAuth.ensure({
-        onDone: function () {
-          confirmOpen();
-        }
-      });
-      return;
+    var unauthorized = mode !== 'miss' && !wxAuthorized();
+    if (unauthorized) {
+      var heldText = document.getElementById('uaBagFxResult');
+      var heldSmall = heldText ? heldText.querySelector('small') : null;
+      if (heldSmall) heldSmall.textContent = '已放入红包账户，请到我的红包领取';
     }
     fx.classList.add('is-open');
     var miss = mode === 'miss';
@@ -776,6 +923,23 @@
         writeClaim({ missed: true, claimed: false, at: clockNow() });
         closeFx();
         renderAccount();
+        return;
+      }
+      if (unauthorized) {
+        holdWin({
+          id: 'live-bag',
+          source: '福袋',
+          name: '现金红包',
+          sceneText: '福袋',
+          packetId: 'bag:' + sessionId(),
+          amount: BAG_AMOUNT,
+          at: clockNow()
+        });
+        writeClaim({ held: true, claimed: false, missed: false, lost: false, amount: BAG_AMOUNT, at: clockNow() });
+        var entryHeld = document.getElementById('uaLiveBagEntry');
+        if (entryHeld) entryHeld.hidden = true;
+        flyCoin(renderAccount);
+        closeFx();
         return;
       }
       writeClaim({ claimed: true, missed: false, amount: BAG_AMOUNT, at: clockNow() });
@@ -827,12 +991,18 @@
     if (!room || document.getElementById('uaLiveBagEntry')) return;
     mount(room);
     bind();
+    settleAllHolds();
     renderAccount();
   }
 
   global.UaLiveBagCash = {
     init: init,
     receive: receive,
+    holdWin: holdWin,
+    listHolds: listHolds,
+    takeHold: takeHold,
+    landCoin: landCoin,
+    settleAllHolds: settleAllHolds,
     claimBlock: claimBlock,
     conditionBlock: conditionBlock,
     showLimitTip: showLimitTip

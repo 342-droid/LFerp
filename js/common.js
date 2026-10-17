@@ -96,6 +96,7 @@ function loadHeader() {
         const isPurchasePage = pageFile === 'purchase_index.html' || pageFile.startsWith('purchase_');
         const isBasicSettingsPage = pageFile === 'basic_settings_index.html' || pageFile.startsWith('basic_settings_');
         const isAuthzDesignerPage = pageFile === 'authz-designer.html';
+        const isAuthz2Page = pageFile === 'authz-2-guide.html' || pageFile === 'authz-2-manual.html' || pageFile === 'authz-2-testcases.html';
         const isMobilePage = pageFile === 'mobile_index.html' || pageFile === 'app_login.html';
         const isMdmPage = /\/MDM\//i.test(path) || /\/MDM$/i.test(path) || pageFile.startsWith('mdm_');
         const isMdmAuditPage = pageFile.startsWith('mdm_audit_');
@@ -142,11 +143,12 @@ function loadHeader() {
                     <a href="${wp.page('mdm_marketing_points_home.html')}" class="${isMdmMarketingPage ? 'active' : ''}">营销</a>
                     <a href="${wp.page('mdm_live_room.html')}" class="${isMdmLivePage ? 'active' : ''}">直播</a>
                     <a href="${wp.page('purchase_index.html')}" class="${isPurchasePage ? 'active' : ''}">采购</a>
-                    <a href="${wp.page('index.html')}" class="${!isTmsPage && !isPurchasePage && !isBasicSettingsPage && !isAuthzDesignerPage && !isMdmPage && !isMobilePage ? 'active' : ''}">仓储</a>
+                    <a href="${wp.page('index.html')}" class="${!isTmsPage && !isPurchasePage && !isBasicSettingsPage && !isAuthzDesignerPage && !isAuthz2Page && !isMdmPage && !isMobilePage ? 'active' : ''}">仓储</a>
                     <a href="${wp.page('TMS_index.html')}" class="${isTmsPage ? 'active' : ''}">物流</a>
                     <a href="${wp.page('mdm_settle_index.html')}" class="${isMdmSettlePage ? 'active' : ''}">财务</a>
                     <a href="${wp.page('basic_settings_miniprogram_agreement.html')}" class="${isBasicSettingsPage ? 'active' : ''}">基础设置</a>
                     <a href="${wp.page('authz-designer.html')}" class="${isAuthzDesignerPage ? 'active' : ''}">权限设计</a>
+                    <a href="${wp.page('authz-2-guide.html')}" class="${isAuthz2Page ? 'active' : ''}">权限2.0</a>
                 </nav>
                 
                 <div class="header-right">

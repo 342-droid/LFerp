@@ -423,6 +423,31 @@
   border-radius: 12px;
 }
 
+.ua-rp-auth-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: #fff4ec;
+  color: #c2410c;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ua-rp-auth-notice::after {
+  content: '>';
+  flex: none;
+  color: #ff5a1f;
+  font-size: 12px;
+}
+
 .ua-rp-stats__earn {
   text-align: center;
   padding-bottom: 12px;

@@ -1,4 +1,4 @@
-/* 结算侧栏：清分、策略、供应商、承运商运费、佣金、补偿。 */
+/* 结算侧栏：清分、策略、异常订单、供应商、承运商运费、佣金、补偿。 */
 (function () {
     var wp = window.wmsPath || { page: function (f) { return f; }, asset: function (r) { return r; } };
     var currentPage = String(window.location.pathname.split('/').pop() || '').replace(/\.html$/i, '');
@@ -9,6 +9,7 @@
     var names = {
         summary: '清分汇总',
         policy: '策略管理',
+        exception: '异常订单',
         supplier: '供应商结算',
         carrier: '承运商结算',
         commission: '佣金清算',

@@ -319,25 +319,36 @@
             modalCash = null;
             return;
           }
-          var pay = function () {
-            if (typeof global.UaLiveBagCash.receive === 'function') {
-              global.UaLiveBagCash.receive({
-                id: cash.id,
-                source: '观看任务',
-                activityType: 'watch',
-                name: '现金红包',
-                packetId: cash.id,
-                amount: cash.amount,
-                fromEl: from
-              });
+          if (global.UaWxPayAuth && !global.UaWxPayAuth.isAuthorized() && typeof global.UaLiveBagCash.holdWin === 'function') {
+            global.UaLiveBagCash.holdWin({
+              id: cash.id,
+              source: '观看任务',
+              activityType: 'watch',
+              name: '现金红包',
+              sceneText: '观看任务',
+              packetId: cash.id,
+              templateId: cash.templateId || '',
+              amount: cash.amount
+            });
+            if (typeof global.UaLiveBagCash.landCoin === 'function') global.UaLiveBagCash.landCoin(from);
+            if (typeof global.UaLiveBagCash.showLimitTip === 'function') {
+              global.UaLiveBagCash.showLimitTip('红包已放入账户，请到我的红包领取');
             }
             closeModal();
-          };
-          if (global.UaWxPayAuth && !global.UaWxPayAuth.isAuthorized()) {
-            global.UaWxPayAuth.ensure({ onDone: pay });
             return;
           }
-          pay();
+          if (typeof global.UaLiveBagCash.receive === 'function') {
+            global.UaLiveBagCash.receive({
+              id: cash.id,
+              source: '观看任务',
+              activityType: 'watch',
+              name: '现金红包',
+              packetId: cash.id,
+              amount: cash.amount,
+              fromEl: from
+            });
+          }
+          closeModal();
           return;
         }
         closeModal();

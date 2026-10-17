@@ -1,5 +1,5 @@
 /**
- * 直播间签到。现金红包点「签到」后，未授权先走微信支付收款授权，通过后落入现金账户并播放落袋声。
+ * 直播间签到。已授权时现金红包点「签到」后落入现金账户并打入微信。未授权时红包先入账户，到我的红包里领取才打微信。
  * 积分奖励只提示到账，不飞金币。未发放时不显示入口。
  */
 (function (global) {
@@ -135,8 +135,21 @@
       writeClaim({ kind: 'cash', amount: AMOUNT, at: clockNow() });
       render();
     }
-    if (global.UaWxPayAuth && !global.UaWxPayAuth.isAuthorized()) {
-      global.UaWxPayAuth.ensure({ onDone: pay });
+    if (global.UaWxPayAuth && !global.UaWxPayAuth.isAuthorized() && bag.holdWin) {
+      bag.holdWin({
+        id: signId(),
+        source: '签到',
+        name: '审核通过红包',
+        sceneText: '签到',
+        packetId: signId(),
+        templateId: TEMPLATE_ID,
+        amount: AMOUNT,
+        activityType: 'sign'
+      });
+      writeClaim({ kind: 'cash', amount: AMOUNT, at: clockNow(), held: true });
+      render();
+      if (typeof bag.landCoin === 'function') bag.landCoin(document.getElementById('uaLiveSignin'));
+      tip('红包已放入账户，请到我的红包领取');
       return;
     }
     pay();
