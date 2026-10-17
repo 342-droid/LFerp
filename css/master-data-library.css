@@ -1112,3 +1112,199 @@
   white-space: pre-wrap;
   word-break: break-all;
 }
+
+.mdl-op-btn--danger {
+  color: #f56c6c;
+}
+
+.mdl-ing-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.mdl-ing-table-wrap {
+  overflow: auto;
+  border-top: 1px solid #f0f0f0;
+}
+
+.mdl-ing-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  color: #303133;
+}
+
+.mdl-ing-table th {
+  padding: 10px 12px;
+  background: #fafafa;
+  color: #909399;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.mdl-ing-table td {
+  padding: 12px;
+  border-top: 1px solid #f0f0f0;
+  vertical-align: middle;
+}
+
+.mdl-ing-table__op {
+  white-space: nowrap;
+}
+
+.mdl-ing-table__op .mdl-op-btn + .mdl-op-btn {
+  margin-left: 12px;
+}
+
+.mdl-ing-empty {
+  padding: 36px 0;
+  color: #909399;
+  text-align: center;
+}
+
+.mdl-ing-pager {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-top: 12px;
+  color: #606266;
+  font-size: 13px;
+}
+
+.mdl-ing-pager__right {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mdl-ing-page,
+.mdl-ing-pager select {
+  height: 28px;
+  min-width: 28px;
+  padding: 0 8px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #606266;
+  font-size: 13px;
+}
+
+.mdl-ing-page.is-active {
+  border-color: #2f6bff;
+  color: #2f6bff;
+}
+
+.mdl-ing-page:disabled {
+  color: #c0c4cc;
+  cursor: not-allowed;
+}
+
+.mdl-ing-modal {
+  width: min(520px, 92vw);
+}
+
+.mdl-ing-copy-modal {
+  width: min(760px, 94vw);
+  max-width: min(760px, 94vw);
+}
+
+.mdl-ing-copy-tip {
+  margin: 0;
+  color: #606266;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.mdl-ing-copy-empty {
+  margin: 0;
+  padding: 28px 0;
+  color: #909399;
+  font-size: 13px;
+  text-align: center;
+}
+
+.mdl-nutri-bar {
+  justify-content: space-between;
+}
+
+.mdl-nutri-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mdl-nutri-basis {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 8px 0 10px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #606266;
+  font-size: 13px;
+}
+
+.mdl-nutri-basis select {
+  border: none;
+  background: transparent;
+  color: #303133;
+  font-size: 13px;
+  outline: none;
+}
+
+.mdl-ing-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.mdl-ing-form .mdl-goods-field {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
+.mdl-ing-form .mdl-goods-field__label {
+  flex: 0 0 84px;
+  margin: 0;
+  text-align: right;
+}
+
+.mdl-ing-form .mdl-goods-field__control,
+.mdl-ing-ratio {
+  flex: 1;
+  width: auto;
+}
+
+.mdl-ing-ratio {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.mdl-ing-ratio input {
+  flex: 1;
+  width: 100%;
+  height: 30px;
+  padding: 0 10px;
+  border: none;
+  outline: none;
+  font-size: 13px;
+}
+
+.mdl-ing-ratio span {
+  padding-right: 10px;
+  color: #909399;
+  font-size: 13px;
+}

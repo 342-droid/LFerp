@@ -11,8 +11,8 @@
 
   /** 商品属性取值与商品分类种子一致，含继承属性和二级属性 */
   var PRODUCTS = [
-    { category: '五花肉', sku: '4134001', barcode: '6974562300012', barcodeCount: 3, name: '生物发面猪肉小笼包 50g 100个/包', brand: '冷丰优选', purchasePrice: 18.8, purchaseQty: 12800, purchaseUnit: '箱', minQty: 25600000, minUnit: '个', specQty: 256000, specUnit: '包', packQty: 12800, packUnit: '箱', amount: 240640, tone: 'blue', mark: '笼', attrs: [attrPick('储存条件', '冷藏'), attrPick('配送时效', '当日达'), attrPick('储存温度', '0-4℃'), attrPick('分割', '切片'), attrPick('肥瘦', '五花'), attrPick('厚度', '薄'), attrPick('部位', '前五花')] },
-    { category: '里脊', sku: '4134001', barcode: '6974562300013', barcodeCount: 3, name: '生物发面牛肉小笼包 50g 100个/包', brand: '冷丰优选', purchasePrice: 18.8, purchaseQty: 6200, purchaseUnit: '箱', minQty: 12400000, minUnit: '个', specQty: 124000, specUnit: '包', packQty: 6200, packUnit: '箱', amount: 116560, tone: 'orange', mark: '笼', attrs: [attrPick('储存条件', '冷冻'), attrPick('配送时效', '次日达'), attrPick('储存温度', '冷冻'), attrPick('分割', '整块'), attrPick('肥瘦', '瘦'), attrPick('厚度', '薄片'), attrPick('是否腌制', '鲜肉')] },
+    { category: '五花肉', spuKey: 'pork-xlb', sku: '4134001', barcode: '6974562300012', barcodeCount: 3, name: '生物发面猪肉小笼包 50g 100个/包', brand: '冷丰优选', purchasePrice: 18.8, purchaseQty: 12800, purchaseUnit: '箱', minQty: 25600000, minUnit: '个', specQty: 256000, specUnit: '包', packQty: 12800, packUnit: '箱', amount: 240640, tone: 'blue', mark: '笼', attrs: [attrPick('储存条件', '冷藏'), attrPick('配送时效', '当日达'), attrPick('储存温度', '0-4℃'), attrPick('分割', '切片'), attrPick('肥瘦', '五花'), attrPick('厚度', '薄'), attrPick('部位', '前五花')] },
+    { category: '里脊', spuKey: 'beef-xlb', sku: '4134001', barcode: '6974562300013', barcodeCount: 3, name: '生物发面牛肉小笼包 50g 100个/包', brand: '冷丰优选', purchasePrice: 18.8, purchaseQty: 6200, purchaseUnit: '箱', minQty: 12400000, minUnit: '个', specQty: 124000, specUnit: '包', packQty: 6200, packUnit: '箱', amount: 116560, tone: 'orange', mark: '笼', attrs: [attrPick('储存条件', '冷冻'), attrPick('配送时效', '次日达'), attrPick('储存温度', '冷冻'), attrPick('分割', '整块'), attrPick('肥瘦', '瘦'), attrPick('厚度', '薄片'), attrPick('是否腌制', '鲜肉')] },
     { category: '茄子', sku: '4134101', barcode: '6974562300101', barcodeCount: 1, name: '圆茄 优质', brand: '冷丰优选', purchasePrice: 3.5, purchaseQty: 860, purchaseUnit: '箱', minQty: 8600, minUnit: '斤', specQty: 860, specUnit: '箱', packQty: 860, packUnit: '箱', amount: 3010, tone: 'green', mark: '茄', attrs: [attrPick('储存条件', '冷藏'), attrPick('配送时效', '当日达'), attrPick('是否洗净', '已洗净'), attrPick('产地类型', '本地'), attrPick('等级', '一级', '产地类型', '本地'), attrPick('是否有机', '有机'), attrPick('产地', '本地'), attrPick('等级', '二级', '产地', '本地'), attrPick('果型', '圆茄')] },
     { category: '西红柿', sku: '4134102', barcode: '6974562300102', barcodeCount: 1, name: '普罗旺斯西红柿', brand: '冷丰优选', purchasePrice: 4, purchaseQty: 420, purchaseUnit: '箱', minQty: 4200, minUnit: '斤', specQty: 420, specUnit: '箱', packQty: 420, packUnit: '箱', amount: 1680, tone: 'orange', mark: '西', attrs: [attrPick('储存条件', '常温'), attrPick('配送时效', '次日达'), attrPick('是否洗净', '未洗净'), attrPick('产地类型', '外地'), attrPick('是否有机', '普通'), attrPick('果型', '大果'), attrPick('成熟度', '硬熟')] },
     { category: '可乐', sku: '4134201', barcode: '6974562300201', barcodeCount: 1, name: '可口可乐摩登罐', brand: '冷丰优选', purchasePrice: 52, purchaseQty: 2400, purchaseUnit: '箱', minQty: 57600, minUnit: '罐', specQty: 2400, specUnit: '箱', packQty: 2400, packUnit: '箱', amount: 124800, tone: 'blue', mark: '可', attrs: [attrPick('包装形式', '罐装'), attrPick('容量档', '小'), attrPick('饮用温度', '冷藏'), attrPick('气量', '标准'), attrPick('容量', '330ml'), attrPick('是否含糖', '有糖')] },
@@ -201,7 +201,7 @@
         '<td>' + escapeHtml(item.barcode) + '</td>' +
         '<td><span class="mdl-thumb mdl-thumb--' + item.tone + '">' + escapeHtml(item.mark) + '</span></td>' +
         '<td class="mdl-table__name">' + escapeHtml(item.name) + '</td>' +
-        '<td><span class="mdl-status mdl-status--' + goodsStatus(item) + '">' + (goodsStatus(item) === 'disabled' ? '停用' : '有效') + '</span></td>' +
+        '<td><span class="mdl-status mdl-status--' + goodsStatus(item) + '">' + (goodsStatus(item) === 'disabled' ? '停用' : '启用') + '</span></td>' +
         '<td>' + escapeHtml(item.brand) + '</td>' +
         '<td>' + formatPrice(item.purchasePrice) + '</td>' +
         '<td>' + escapeHtml(item.purchaseUnit) + '</td>' +
@@ -525,6 +525,8 @@
 
   function closeDetailModal() {
     closePriceModal();
+    closeIngredientModal();
+    closeNutritionModal();
     var modal = document.querySelector('[data-lib-detail-modal]');
     if (modal) modal.remove();
   }
@@ -702,9 +704,13 @@
       '<div class="mdl-detail-tabs" role="tablist">' +
       '<button type="button" class="mdl-detail-tabs__item is-active" data-lib-detail-tab="info">商品信息</button>' +
       '<button type="button" class="mdl-detail-tabs__item" data-lib-detail-tab="copy">图文信息</button>' +
+      '<button type="button" class="mdl-detail-tabs__item" data-lib-detail-tab="ingredient">配料表</button>' +
+      '<button type="button" class="mdl-detail-tabs__item" data-lib-detail-tab="nutrition">营养成分</button>' +
       '</div>' +
       '<div class="mdl-detail-pane" data-lib-detail-pane="info"><div class="mdl-detail-grid">' + infoHtml + '</div></div>' +
       '<div class="mdl-detail-pane" data-lib-detail-pane="copy" hidden>' + copyHtml + '</div>' +
+      '<div class="mdl-detail-pane" data-lib-detail-pane="ingredient" hidden></div>' +
+      '<div class="mdl-detail-pane" data-lib-detail-pane="nutrition" hidden></div>' +
       '</div></div>';
     backdrop.addEventListener('click', function (ev) {
       if (ev.target === backdrop || ev.target.closest('[data-lib-detail-close]')) {
@@ -729,6 +735,748 @@
       backdrop.querySelectorAll('[data-lib-detail-pane]').forEach(function (pane) {
         pane.hidden = pane.getAttribute('data-lib-detail-pane') !== name;
       });
+    });
+    var ingredientPane = backdrop.querySelector('[data-lib-detail-pane="ingredient"]');
+    if (ingredientPane) {
+      ingredientPane.addEventListener('click', function (ev) {
+        if (ev.target.closest('[data-ing-copy]')) {
+          openIngredientCopy(item);
+          return;
+        }
+        if (ev.target.closest('[data-ing-add]')) {
+          openIngredientForm(item, null);
+          return;
+        }
+        var editBtn = ev.target.closest('[data-ing-edit]');
+        if (editBtn) {
+          openIngredientForm(item, findIngredient(item, editBtn.getAttribute('data-ing-edit')));
+          return;
+        }
+        var deleteBtn = ev.target.closest('[data-ing-delete]');
+        if (deleteBtn) {
+          deleteIngredient(item, deleteBtn.getAttribute('data-ing-delete'));
+          return;
+        }
+        var pageBtn = ev.target.closest('[data-ing-page]');
+        if (!pageBtn || pageBtn.disabled) return;
+        var next = parseInt(pageBtn.getAttribute('data-ing-page'), 10);
+        if (!next || next === ingredientView.page) return;
+        ingredientView.page = next;
+        renderIngredientPane(item);
+      });
+      ingredientPane.addEventListener('change', function (ev) {
+        var target = ev.target;
+        if (!target || target.id !== 'ingPageSize') return;
+        ingredientView.pageSize = parseInt(target.value, 10) || 200;
+        ingredientView.page = 1;
+        renderIngredientPane(item);
+      });
+    }
+    var nutritionPane = backdrop.querySelector('[data-lib-detail-pane="nutrition"]');
+    if (nutritionPane) {
+      nutritionPane.addEventListener('click', function (ev) {
+        if (ev.target.closest('[data-nutri-copy]')) {
+          openNutritionCopy(item);
+          return;
+        }
+        if (ev.target.closest('[data-nutri-add]')) {
+          openNutritionForm(item, null);
+          return;
+        }
+        var editBtn = ev.target.closest('[data-nutri-edit]');
+        if (editBtn) {
+          openNutritionForm(item, findNutrition(item, editBtn.getAttribute('data-nutri-edit')));
+          return;
+        }
+        var deleteBtn = ev.target.closest('[data-nutri-delete]');
+        if (deleteBtn) {
+          deleteNutrition(item, deleteBtn.getAttribute('data-nutri-delete'));
+          return;
+        }
+        var pageBtn = ev.target.closest('[data-nutri-page]');
+        if (!pageBtn || pageBtn.disabled) return;
+        var next = parseInt(pageBtn.getAttribute('data-nutri-page'), 10);
+        if (!next || next === nutritionView.page) return;
+        nutritionView.page = next;
+        renderNutritionPane(item);
+      });
+      nutritionPane.addEventListener('change', function (ev) {
+        var target = ev.target;
+        if (!target) return;
+        if (target.id === 'nutriBasis') {
+          item.nutritionBasis = target.value || '每100g';
+          renderNutritionPane(item);
+          return;
+        }
+        if (target.id !== 'nutriPageSize') return;
+        nutritionView.pageSize = parseInt(target.value, 10) || 200;
+        nutritionView.page = 1;
+        renderNutritionPane(item);
+      });
+    }
+    document.body.appendChild(backdrop);
+    renderIngredientPane(item);
+    renderNutritionPane(item);
+  }
+
+  function ingredientCategoryChoices() {
+    var catStore = window.MasterDataIngredientCategoryStore;
+    if (catStore) return catStore.activeNames();
+    return ['面皮原料', '馅料主料', '馅料辅料', '加工辅料', '调味料', '发酵辅料'];
+  }
+  var INGREDIENT_ALLERGENS = ['无', '含麸质的谷物', '含大豆及其制品', '含乳及乳制品', '含蛋类', '含花生及其制品', '含鱼类', '含甲壳类', '含芝麻'];
+  var ingredientView = { sku: '', page: 1, pageSize: 200 };
+
+  function ingredientRow(id, name, category, ratio, allergen, source) {
+    return { id: id, name: name, category: category, ratio: ratio, allergen: allergen, source: source };
+  }
+
+  function ingredientSeed(item) {
+    var name = String(item && item.name || '');
+    if (name.indexOf('小笼包') < 0) return [];
+    var meat = name.indexOf('牛肉') >= 0 ? '牛肉' : '猪肉';
+    return [
+      ingredientRow('ing1', '小麦粉', '面皮原料', 36, '含麸质的谷物', '供应商 BOM 清单'),
+      ingredientRow('ing2', meat, '馅料主料', 28, '无', '供应商 BOM 清单'),
+      ingredientRow('ing3', '饮用水', '加工辅料', 20, '无', '生产工艺单'),
+      ingredientRow('ing4', '洋葱、姜', '馅料辅料', 8, '无', '供应商 BOM 清单'),
+      ingredientRow('ing5', '食用植物油、食用盐、生抽', '调味料', 6, '含大豆及其制品', '配方版本 LF-2026Q3'),
+      ingredientRow('ing6', '酵母 / 老面', '发酵辅料', 2, '无', '生产工艺单')
+    ];
+  }
+
+  function ensureIngredients(item) {
+    if (!item.ingredients) item.ingredients = ingredientSeed(item);
+    return item.ingredients;
+  }
+
+  function syncIngredientView(item) {
+    var key = String((item && (item.sku || item.name)) || '');
+    if (ingredientView.sku === key) return;
+    ingredientView.sku = key;
+    ingredientView.page = 1;
+    ingredientView.pageSize = 200;
+  }
+
+  function ratioText(ratio) {
+    var num = Number(ratio);
+    if (!isFinite(num)) return '';
+    var text = String(Math.round(num * 10) / 10);
+    return '约' + text + '%';
+  }
+
+  function renderIngredientPane(item) {
+    var pane = document.querySelector('[data-lib-detail-pane="ingredient"]');
+    if (!pane || !item) return;
+    syncIngredientView(item);
+    var list = ensureIngredients(item);
+    var pageSize = ingredientView.pageSize || 200;
+    var pages = Math.max(1, Math.ceil(list.length / pageSize) || 1);
+    if (ingredientView.page > pages) ingredientView.page = pages;
+    if (ingredientView.page < 1) ingredientView.page = 1;
+    var start = (ingredientView.page - 1) * pageSize;
+    var rows = list.slice(start, start + pageSize);
+    var body = rows.map(function (row) {
+      return '<tr>' +
+        '<td>' + (list.indexOf(row) + 1) + '</td>' +
+        '<td>' + escapeHtml(row.name) + '</td>' +
+        '<td>' + escapeHtml(row.category) + '</td>' +
+        '<td>' + escapeHtml(ratioText(row.ratio)) + '</td>' +
+        '<td>' + escapeHtml(row.allergen || '无') + '</td>' +
+        '<td>' + escapeHtml(row.source) + '</td>' +
+        '<td class="mdl-ing-table__op"><button type="button" class="mdl-op-btn" data-ing-edit="' + escapeHtml(row.id) + '">编辑</button>' +
+        '<button type="button" class="mdl-op-btn mdl-op-btn--danger" data-ing-delete="' + escapeHtml(row.id) + '">删除</button></td>' +
+        '</tr>';
+    }).join('');
+    if (!body) {
+      body = '<tr><td class="mdl-ing-empty" colspan="7">暂无配料</td></tr>';
+    }
+    var pageButtons = '';
+    for (var i = 1; i <= pages; i += 1) {
+      pageButtons += '<button type="button" class="mdl-ing-page' + (i === ingredientView.page ? ' is-active' : '') + '" data-ing-page="' + i + '">' + i + '</button>';
+    }
+    pane.innerHTML =
+      '<div class="mdl-ing-bar">' +
+      '<button type="button" class="mdl-btn mdl-btn--ghost" data-ing-copy>复制配料</button>' +
+      '<button type="button" class="mdl-btn mdl-btn--primary" data-ing-add>+ 新增配料</button>' +
+      '</div>' +
+      '<div class="mdl-ing-table-wrap"><table class="mdl-ing-table"><thead><tr>' +
+      '<th>序号</th><th>配料名称</th><th>配料类别</th><th>参考占比</th><th>过敏原提示</th><th>资料来源</th><th>操作</th>' +
+      '</tr></thead><tbody>' + body + '</tbody></table></div>' +
+      '<div class="mdl-ing-pager"><span>共 ' + list.length + ' 条</span><div class="mdl-ing-pager__right">' +
+      '<button type="button" class="mdl-ing-page" data-ing-page="' + (ingredientView.page - 1) + '"' + (ingredientView.page <= 1 ? ' disabled' : '') + ' aria-label="上一页">‹</button>' +
+      pageButtons +
+      '<button type="button" class="mdl-ing-page" data-ing-page="' + (ingredientView.page + 1) + '"' + (ingredientView.page >= pages ? ' disabled' : '') + ' aria-label="下一页">›</button>' +
+      '<select id="ingPageSize" aria-label="每页条数">' +
+      [20, 50, 100, 200].map(function (size) {
+        return '<option value="' + size + '"' + (size === pageSize ? ' selected' : '') + '>' + size + '条/页</option>';
+      }).join('') +
+      '</select></div></div>';
+  }
+
+  function findIngredient(item, id) {
+    var list = ensureIngredients(item);
+    for (var i = 0; i < list.length; i += 1) {
+      if (list[i].id === id) return list[i];
+    }
+    return null;
+  }
+
+  function closeIngredientModal() {
+    var modal = document.querySelector('[data-lib-ingredient-modal]');
+    if (modal) modal.remove();
+    var copyModal = document.querySelector('[data-lib-ingredient-copy]');
+    if (copyModal) copyModal.remove();
+    var confirmModal = document.querySelector('[data-lib-ingredient-confirm]');
+    if (confirmModal) confirmModal.remove();
+  }
+
+  function sameSpuProducts(item) {
+    var spu = String(item && item.spu || '');
+    if (!spu) return [];
+    return PRODUCTS.filter(function (other) {
+      return other !== item && String(other.spu || '') === spu;
+    }).sort(function (left, right) {
+      return String(left.sku || '').localeCompare(String(right.sku || ''), 'zh-CN', { numeric: true });
+    });
+  }
+
+  function ingredientPreviewHtml(source) {
+    var list = source ? ensureIngredients(source) : [];
+    if (!list.length) {
+      return '<p class="mdl-ing-copy-empty">该货号暂无配料</p>';
+    }
+    var body = list.map(function (row, index) {
+      return '<tr><td>' + (index + 1) + '</td><td>' + escapeHtml(row.name) + '</td><td>' + escapeHtml(row.category) + '</td><td>' + escapeHtml(ratioText(row.ratio)) + '</td><td>' + escapeHtml(row.allergen || '无') + '</td><td>' + escapeHtml(row.source) + '</td></tr>';
+    }).join('');
+    return '<div class="mdl-ing-table-wrap"><table class="mdl-ing-table"><thead><tr><th>序号</th><th>配料名称</th><th>配料类别</th><th>参考占比</th><th>过敏原提示</th><th>资料来源</th></tr></thead><tbody>' + body + '</tbody></table></div>';
+  }
+
+  function openIngredientCopy(item) {
+    var existing = document.querySelector('[data-lib-ingredient-copy]');
+    if (existing) existing.remove();
+    var siblings = sameSpuProducts(item);
+    var backdrop = document.createElement('div');
+    backdrop.className = 'erp-modal-backdrop erp-modal-backdrop--nested';
+    backdrop.setAttribute('data-lib-ingredient-copy', '1');
+    var sourceHtml = siblings.length
+      ? '<label class="mdl-goods-field"><span class="mdl-goods-field__label"><i>*</i>来源货号</span><select class="mdl-goods-field__control" id="ingCopySource"><option value="">请选择</option>' +
+        siblings.map(function (other) {
+          var count = ensureIngredients(other).length;
+          return '<option value="' + escapeHtml(other.sku) + '">' + escapeHtml(other.sku) + ' ' + escapeHtml(other.name) + '（' + count + '条）</option>';
+        }).join('') + '</select></label><div id="ingCopyPreview"></div>'
+      : '<p class="mdl-ing-copy-empty">同SPU下暂无其他货号</p>';
+    backdrop.innerHTML =
+      '<div class="erp-modal mdl-ing-modal mdl-ing-copy-modal" role="dialog" aria-modal="true">' +
+      '<div class="erp-modal__header"><h2 class="erp-modal__title">复制配料</h2>' +
+      '<div class="erp-modal__header-actions"><button type="button" class="erp-modal__header-btn" data-ing-copy-close aria-label="关闭">&times;</button></div></div>' +
+      '<div class="erp-modal__body"><div class="mdl-ing-form">' +
+      '<p class="mdl-ing-copy-tip">从同 SPU「' + escapeHtml(item.spu || '') + '」的其他货号复制配料，复制后覆盖当前商品已有配料。</p>' +
+      sourceHtml +
+      '</div></div>' +
+      '<div class="erp-modal__footer"><button type="button" class="erp-btn" data-ing-copy-cancel>取消</button>' +
+      '<button type="button" class="erp-btn erp-btn--primary" data-ing-copy-ok' + (siblings.length ? '' : ' disabled') + '>确定</button></div></div>';
+    function preview() {
+      var box = document.getElementById('ingCopyPreview');
+      var select = document.getElementById('ingCopySource');
+      if (!box || !select) return;
+      if (!select.value) {
+        box.innerHTML = '';
+        return;
+      }
+      var source = null;
+      siblings.forEach(function (other) {
+        if (String(other.sku) === select.value) source = other;
+      });
+      box.innerHTML = ingredientPreviewHtml(source);
+    }
+    function closeCopy() { backdrop.remove(); }
+    backdrop.addEventListener('click', function (ev) {
+      if (ev.target === backdrop || ev.target.closest('[data-ing-copy-close]') || ev.target.closest('[data-ing-copy-cancel]')) {
+        closeCopy();
+        return;
+      }
+      if (ev.target.closest('[data-ing-copy-ok]')) applyIngredientCopy(item, siblings);
+    });
+    backdrop.addEventListener('change', function (ev) {
+      if (ev.target && ev.target.id === 'ingCopySource') preview();
+    });
+    document.body.appendChild(backdrop);
+    preview();
+  }
+
+  function applyIngredientCopy(item, siblings) {
+    var select = document.getElementById('ingCopySource');
+    var sku = select ? String(select.value || '') : '';
+    var source = null;
+    siblings.forEach(function (other) {
+      if (String(other.sku) === sku) source = other;
+    });
+    if (!source) {
+      if (typeof showToast === 'function') showToast('请选择来源货号', 'warning');
+      return;
+    }
+    var sourceList = ensureIngredients(source);
+    if (!sourceList.length) {
+      if (typeof showToast === 'function') showToast('该货号暂无配料', 'warning');
+      return;
+    }
+    item.ingredients = sourceList.map(function (row, index) {
+      return ingredientRow('ing' + (index + 1), row.name, row.category, row.ratio, row.allergen, row.source);
+    });
+    ingredientView.page = 1;
+    closeIngredientModal();
+    renderIngredientPane(item);
+    if (typeof showToast === 'function') showToast('配料已复制', 'success');
+  }
+
+  var NUTRITION_BASES = ['每100g', '每100ml'];
+  var nutritionView = { sku: '', page: 1, pageSize: 200 };
+
+  function nutritionRow(id, name, amount, nrv, method, source) {
+    return { id: id, name: name, amount: amount, nrv: nrv, method: method, source: source };
+  }
+
+  function nutritionSeed(item) {
+    var name = String(item && item.name || '');
+    if (name.indexOf('小笼包') < 0) return [];
+    return [
+      nutritionRow('nut1', '能量', '920 kJ', 11, 'GB 5009.8', '第三方检测报告'),
+      nutritionRow('nut2', '蛋白质', '9.8 g', 16, 'GB 5009.5', '第三方检测报告'),
+      nutritionRow('nut3', '脂肪', '8.2 g', 14, 'GB 5009.6', '第三方检测报告'),
+      nutritionRow('nut4', '碳水化合物', '25.6 g', 9, '差减法', '第三方检测报告'),
+      nutritionRow('nut5', '钠', '460 mg', 23, 'GB 5009.91', '第三方检测报告')
+    ];
+  }
+
+  function ensureNutrition(item) {
+    if (!item.nutrition) item.nutrition = nutritionSeed(item);
+    if (!item.nutritionBasis) item.nutritionBasis = '每100g';
+    return item.nutrition;
+  }
+
+  function syncNutritionView(item) {
+    var key = String((item && (item.sku || item.name)) || '');
+    if (nutritionView.sku === key) return;
+    nutritionView.sku = key;
+    nutritionView.page = 1;
+    nutritionView.pageSize = 200;
+  }
+
+  function nrvText(nrv) {
+    var num = Number(nrv);
+    if (!isFinite(num)) return '';
+    return String(Math.round(num * 10) / 10) + '%';
+  }
+
+  function renderNutritionPane(item) {
+    var pane = document.querySelector('[data-lib-detail-pane="nutrition"]');
+    if (!pane || !item) return;
+    syncNutritionView(item);
+    var list = ensureNutrition(item);
+    var basis = NUTRITION_BASES.indexOf(item.nutritionBasis) >= 0 ? item.nutritionBasis : '每100g';
+    item.nutritionBasis = basis;
+    var pageSize = nutritionView.pageSize || 200;
+    var pages = Math.max(1, Math.ceil(list.length / pageSize) || 1);
+    if (nutritionView.page > pages) nutritionView.page = pages;
+    if (nutritionView.page < 1) nutritionView.page = 1;
+    var start = (nutritionView.page - 1) * pageSize;
+    var rows = list.slice(start, start + pageSize);
+    var body = rows.map(function (row) {
+      return '<tr>' +
+        '<td>' + (list.indexOf(row) + 1) + '</td>' +
+        '<td>' + escapeHtml(row.name) + '</td>' +
+        '<td>' + escapeHtml(row.amount) + '</td>' +
+        '<td>' + escapeHtml(nrvText(row.nrv)) + '</td>' +
+        '<td>' + escapeHtml(row.method) + '</td>' +
+        '<td>' + escapeHtml(row.source) + '</td>' +
+        '<td class="mdl-ing-table__op"><button type="button" class="mdl-op-btn" data-nutri-edit="' + escapeHtml(row.id) + '">编辑</button>' +
+        '<button type="button" class="mdl-op-btn mdl-op-btn--danger" data-nutri-delete="' + escapeHtml(row.id) + '">删除</button></td>' +
+        '</tr>';
+    }).join('');
+    if (!body) body = '<tr><td class="mdl-ing-empty" colspan="7">暂无营养成分</td></tr>';
+    var pageButtons = '';
+    for (var i = 1; i <= pages; i += 1) {
+      pageButtons += '<button type="button" class="mdl-ing-page' + (i === nutritionView.page ? ' is-active' : '') + '" data-nutri-page="' + i + '">' + i + '</button>';
+    }
+    pane.innerHTML =
+      '<div class="mdl-ing-bar mdl-nutri-bar">' +
+      '<label class="mdl-nutri-basis">营养标示<select id="nutriBasis" aria-label="营养标示">' +
+      NUTRITION_BASES.map(function (value) {
+        return '<option value="' + escapeHtml(value) + '"' + (value === basis ? ' selected' : '') + '>' + escapeHtml(value) + '</option>';
+      }).join('') +
+      '</select></label>' +
+      '<div class="mdl-nutri-actions">' +
+      '<button type="button" class="mdl-btn mdl-btn--ghost" data-nutri-copy>复制营养成分</button>' +
+      '<button type="button" class="mdl-btn mdl-btn--primary" data-nutri-add>+ 新增营养成分</button>' +
+      '</div>' +
+      '</div>' +
+      '<div class="mdl-ing-table-wrap"><table class="mdl-ing-table"><thead><tr>' +
+      '<th>序号</th><th>营养项目</th><th>' + escapeHtml(basis) + '含量</th><th>NRV%</th><th>检测方法</th><th>数据来源</th><th>操作</th>' +
+      '</tr></thead><tbody>' + body + '</tbody></table></div>' +
+      '<div class="mdl-ing-pager"><span>共 ' + list.length + ' 条</span><div class="mdl-ing-pager__right">' +
+      '<button type="button" class="mdl-ing-page" data-nutri-page="' + (nutritionView.page - 1) + '"' + (nutritionView.page <= 1 ? ' disabled' : '') + ' aria-label="上一页">‹</button>' +
+      pageButtons +
+      '<button type="button" class="mdl-ing-page" data-nutri-page="' + (nutritionView.page + 1) + '"' + (nutritionView.page >= pages ? ' disabled' : '') + ' aria-label="下一页">›</button>' +
+      '<select id="nutriPageSize" aria-label="每页条数">' +
+      [20, 50, 100, 200].map(function (size) {
+        return '<option value="' + size + '"' + (size === pageSize ? ' selected' : '') + '>' + size + '条/页</option>';
+      }).join('') +
+      '</select></div></div>';
+  }
+
+  function findNutrition(item, id) {
+    var list = ensureNutrition(item);
+    for (var i = 0; i < list.length; i += 1) {
+      if (list[i].id === id) return list[i];
+    }
+    return null;
+  }
+
+  function closeNutritionModal() {
+    var modal = document.querySelector('[data-lib-nutrition-modal]');
+    if (modal) modal.remove();
+    var copyModal = document.querySelector('[data-lib-nutrition-copy]');
+    if (copyModal) copyModal.remove();
+    var confirmModal = document.querySelector('[data-lib-nutrition-confirm]');
+    if (confirmModal) confirmModal.remove();
+  }
+
+  function nutritionPreviewHtml(source) {
+    var list = source ? ensureNutrition(source) : [];
+    if (!list.length) return '<p class="mdl-ing-copy-empty">该货号暂无营养成分</p>';
+    var basis = source && NUTRITION_BASES.indexOf(source.nutritionBasis) >= 0 ? source.nutritionBasis : '每100g';
+    var body = list.map(function (row, index) {
+      return '<tr><td>' + (index + 1) + '</td><td>' + escapeHtml(row.name) + '</td><td>' + escapeHtml(row.amount) + '</td><td>' + escapeHtml(nrvText(row.nrv)) + '</td><td>' + escapeHtml(row.method) + '</td><td>' + escapeHtml(row.source) + '</td></tr>';
+    }).join('');
+    return '<div class="mdl-ing-table-wrap"><table class="mdl-ing-table"><thead><tr><th>序号</th><th>营养项目</th><th>' + escapeHtml(basis) + '含量</th><th>NRV%</th><th>检测方法</th><th>数据来源</th></tr></thead><tbody>' + body + '</tbody></table></div>';
+  }
+
+  function openNutritionCopy(item) {
+    var existing = document.querySelector('[data-lib-nutrition-copy]');
+    if (existing) existing.remove();
+    var siblings = sameSpuProducts(item);
+    var backdrop = document.createElement('div');
+    backdrop.className = 'erp-modal-backdrop erp-modal-backdrop--nested';
+    backdrop.setAttribute('data-lib-nutrition-copy', '1');
+    var sourceHtml = siblings.length
+      ? '<label class="mdl-goods-field"><span class="mdl-goods-field__label"><i>*</i>来源货号</span><select class="mdl-goods-field__control" id="nutriCopySource"><option value="">请选择</option>' +
+        siblings.map(function (other) {
+          var count = ensureNutrition(other).length;
+          return '<option value="' + escapeHtml(other.sku) + '">' + escapeHtml(other.sku) + ' ' + escapeHtml(other.name) + '（' + count + '条）</option>';
+        }).join('') + '</select></label><div id="nutriCopyPreview"></div>'
+      : '<p class="mdl-ing-copy-empty">同SPU下暂无其他货号</p>';
+    backdrop.innerHTML =
+      '<div class="erp-modal mdl-ing-modal mdl-ing-copy-modal" role="dialog" aria-modal="true">' +
+      '<div class="erp-modal__header"><h2 class="erp-modal__title">复制营养成分</h2>' +
+      '<div class="erp-modal__header-actions"><button type="button" class="erp-modal__header-btn" data-nutri-copy-close aria-label="关闭">&times;</button></div></div>' +
+      '<div class="erp-modal__body"><div class="mdl-ing-form">' +
+      '<p class="mdl-ing-copy-tip">从同 SPU「' + escapeHtml(item.spu || '') + '」的其他货号复制营养成分，复制后覆盖当前商品已有营养成分。</p>' +
+      sourceHtml +
+      '</div></div>' +
+      '<div class="erp-modal__footer"><button type="button" class="erp-btn" data-nutri-copy-cancel>取消</button>' +
+      '<button type="button" class="erp-btn erp-btn--primary" data-nutri-copy-ok' + (siblings.length ? '' : ' disabled') + '>确定</button></div></div>';
+    function preview() {
+      var box = document.getElementById('nutriCopyPreview');
+      var select = document.getElementById('nutriCopySource');
+      if (!box || !select) return;
+      if (!select.value) {
+        box.innerHTML = '';
+        return;
+      }
+      var source = null;
+      siblings.forEach(function (other) {
+        if (String(other.sku) === select.value) source = other;
+      });
+      box.innerHTML = nutritionPreviewHtml(source);
+    }
+    function closeCopy() { backdrop.remove(); }
+    backdrop.addEventListener('click', function (ev) {
+      if (ev.target === backdrop || ev.target.closest('[data-nutri-copy-close]') || ev.target.closest('[data-nutri-copy-cancel]')) {
+        closeCopy();
+        return;
+      }
+      if (ev.target.closest('[data-nutri-copy-ok]')) applyNutritionCopy(item, siblings);
+    });
+    backdrop.addEventListener('change', function (ev) {
+      if (ev.target && ev.target.id === 'nutriCopySource') preview();
+    });
+    document.body.appendChild(backdrop);
+    preview();
+  }
+
+  function applyNutritionCopy(item, siblings) {
+    var select = document.getElementById('nutriCopySource');
+    var sku = select ? String(select.value || '') : '';
+    var source = null;
+    siblings.forEach(function (other) {
+      if (String(other.sku) === sku) source = other;
+    });
+    if (!source) {
+      if (typeof showToast === 'function') showToast('请选择来源货号', 'warning');
+      return;
+    }
+    var sourceList = ensureNutrition(source);
+    if (!sourceList.length) {
+      if (typeof showToast === 'function') showToast('该货号暂无营养成分', 'warning');
+      return;
+    }
+    item.nutrition = sourceList.map(function (row, index) {
+      return nutritionRow('nut' + (index + 1), row.name, row.amount, row.nrv, row.method, row.source);
+    });
+    item.nutritionBasis = NUTRITION_BASES.indexOf(source.nutritionBasis) >= 0 ? source.nutritionBasis : '每100g';
+    nutritionView.page = 1;
+    closeNutritionModal();
+    renderNutritionPane(item);
+    if (typeof showToast === 'function') showToast('营养成分已复制', 'success');
+  }
+
+  function openNutritionForm(item, row) {
+    closeNutritionModal();
+    var backdrop = document.createElement('div');
+    backdrop.className = 'erp-modal-backdrop erp-modal-backdrop--nested';
+    backdrop.setAttribute('data-lib-nutrition-modal', '1');
+    backdrop.innerHTML =
+      '<div class="erp-modal mdl-ing-modal" role="dialog" aria-modal="true">' +
+      '<div class="erp-modal__header"><h2 class="erp-modal__title">' + (row ? '编辑营养成分' : '新增营养成分') + '</h2>' +
+      '<div class="erp-modal__header-actions"><button type="button" class="erp-modal__header-btn" data-nutri-close aria-label="关闭">&times;</button></div></div>' +
+      '<div class="erp-modal__body"><div class="mdl-ing-form">' +
+      '<label class="mdl-goods-field"><span class="mdl-goods-field__label"><i>*</i>营养项目</span><input class="mdl-goods-field__control" id="nutriFormName" type="text" maxlength="20" placeholder="请输入营养项目" value="' + escapeHtml(row ? row.name : '') + '"></label>' +
+      '<label class="mdl-goods-field"><span class="mdl-goods-field__label"><i>*</i>含量</span><input class="mdl-goods-field__control" id="nutriFormAmount" type="text" maxlength="20" placeholder="如 920 kJ" value="' + escapeHtml(row ? row.amount : '') + '"></label>' +
+      '<label class="mdl-goods-field"><span class="mdl-goods-field__label"><i>*</i>NRV%</span><span class="mdl-ing-ratio"><input id="nutriFormNrv" type="number" min="0" step="0.1" placeholder="如 11" value="' + (row ? escapeHtml(row.nrv) : '') + '"><span>%</span></span></label>' +
+      '<label class="mdl-goods-field"><span class="mdl-goods-field__label"><i>*</i>检测方法</span><input class="mdl-goods-field__control" id="nutriFormMethod" type="text" maxlength="30" placeholder="如 GB 5009.8" value="' + escapeHtml(row ? row.method : '') + '"></label>' +
+      '<label class="mdl-goods-field"><span class="mdl-goods-field__label"><i>*</i>数据来源</span><input class="mdl-goods-field__control" id="nutriFormSource" type="text" maxlength="30" placeholder="如 第三方检测报告" value="' + escapeHtml(row ? row.source : '') + '"></label>' +
+      '</div></div>' +
+      '<div class="erp-modal__footer"><button type="button" class="erp-btn" data-nutri-cancel>取消</button><button type="button" class="erp-btn erp-btn--primary" data-nutri-save>确定</button></div></div>';
+    function closeForm() { backdrop.remove(); }
+    backdrop.addEventListener('click', function (ev) {
+      if (ev.target === backdrop || ev.target.closest('[data-nutri-close]') || ev.target.closest('[data-nutri-cancel]')) {
+        closeForm();
+        return;
+      }
+      if (ev.target.closest('[data-nutri-save]')) saveNutrition(item, row ? row.id : '');
+    });
+    document.body.appendChild(backdrop);
+    var input = document.getElementById('nutriFormName');
+    if (input) input.focus();
+  }
+
+  function saveNutrition(item, editingId) {
+    var nameEl = document.getElementById('nutriFormName');
+    var amountEl = document.getElementById('nutriFormAmount');
+    var nrvEl = document.getElementById('nutriFormNrv');
+    var methodEl = document.getElementById('nutriFormMethod');
+    var sourceEl = document.getElementById('nutriFormSource');
+    var name = nameEl ? String(nameEl.value || '').trim() : '';
+    var amount = amountEl ? String(amountEl.value || '').trim() : '';
+    var nrv = nrvEl ? Number(nrvEl.value) : NaN;
+    var method = methodEl ? String(methodEl.value || '').trim() : '';
+    var source = sourceEl ? String(sourceEl.value || '').trim() : '';
+    if (!name) {
+      if (typeof showToast === 'function') showToast('请输入营养项目', 'warning');
+      return;
+    }
+    if (!amount) {
+      if (typeof showToast === 'function') showToast('请输入含量', 'warning');
+      return;
+    }
+    if (nrvEl && String(nrvEl.value || '').trim() === '' || !isFinite(nrv) || nrv < 0) {
+      if (typeof showToast === 'function') showToast('NRV%请填写大于等于 0 的数字', 'warning');
+      return;
+    }
+    if (!method) {
+      if (typeof showToast === 'function') showToast('请输入检测方法', 'warning');
+      return;
+    }
+    if (!source) {
+      if (typeof showToast === 'function') showToast('请输入数据来源', 'warning');
+      return;
+    }
+    var list = ensureNutrition(item);
+    var duplicated = list.some(function (row) {
+      return row.id !== editingId && row.name === name;
+    });
+    if (duplicated) {
+      if (typeof showToast === 'function') showToast('营养项目已存在', 'warning');
+      return;
+    }
+    if (editingId) {
+      var current = findNutrition(item, editingId);
+      if (!current) return;
+      current.name = name;
+      current.amount = amount;
+      current.nrv = nrv;
+      current.method = method;
+      current.source = source;
+    } else {
+      var max = 0;
+      list.forEach(function (row) {
+        var num = parseInt(String(row.id || '').replace(/\D/g, ''), 10);
+        if (!isNaN(num) && num > max) max = num;
+      });
+      list.push(nutritionRow('nut' + (max + 1), name, amount, nrv, method, source));
+      nutritionView.page = Math.max(1, Math.ceil(list.length / (nutritionView.pageSize || 200)));
+    }
+    closeNutritionModal();
+    renderNutritionPane(item);
+    if (typeof showToast === 'function') showToast(editingId ? '营养成分已更新' : '营养成分已添加', 'success');
+  }
+
+  function deleteNutrition(item, id) {
+    var row = findNutrition(item, id);
+    if (!row) return;
+    var existing = document.querySelector('[data-lib-nutrition-confirm]');
+    if (existing) existing.remove();
+    var backdrop = document.createElement('div');
+    backdrop.className = 'erp-modal-backdrop erp-modal-backdrop--nested mdm-people-warm-confirm-backdrop product-warm-confirm-backdrop';
+    backdrop.setAttribute('data-lib-nutrition-confirm', '1');
+    backdrop.innerHTML =
+      '<div class="erp-modal erp-modal--confirm"><div class="erp-modal__header"><h2 class="erp-modal__title">温馨提示</h2><div class="erp-modal__header-actions"><button type="button" class="erp-modal__header-btn" data-nutri-confirm-close aria-label="关闭">&times;</button></div></div>' +
+      '<div class="erp-modal__body"><div class="erp-modal-confirm__row"><div class="erp-modal-confirm__icon">!</div><div class="erp-modal-confirm__msg">确定删除营养项目「' + escapeHtml(row.name) + '」？</div></div></div>' +
+      '<div class="erp-modal__footer"><button type="button" class="erp-btn" data-nutri-confirm-cancel>取消</button><button type="button" class="erp-btn erp-btn--primary" data-nutri-confirm-ok>确定</button></div></div>';
+    function closeConfirm() { backdrop.remove(); }
+    backdrop.addEventListener('click', function (ev) {
+      if (ev.target === backdrop || ev.target.closest('[data-nutri-confirm-close]') || ev.target.closest('[data-nutri-confirm-cancel]')) {
+        closeConfirm();
+        return;
+      }
+      if (!ev.target.closest('[data-nutri-confirm-ok]')) return;
+      var list = ensureNutrition(item);
+      var index = list.indexOf(row);
+      if (index >= 0) list.splice(index, 1);
+      closeConfirm();
+      renderNutritionPane(item);
+      if (typeof showToast === 'function') showToast('营养成分已删除', 'success');
+    });
+    document.body.appendChild(backdrop);
+  }
+
+  function selectOptions(values, current, placeholder) {
+    var html = '<option value="">' + escapeHtml(placeholder) + '</option>';
+    var merged = values.slice();
+    if (current && merged.indexOf(current) < 0) merged.push(current);
+    merged.forEach(function (value) {
+      html += '<option value="' + escapeHtml(value) + '"' + (value === current ? ' selected' : '') + '>' + escapeHtml(value) + '</option>';
+    });
+    return html;
+  }
+
+  function openIngredientForm(item, row) {
+    closeIngredientModal();
+    var backdrop = document.createElement('div');
+    backdrop.className = 'erp-modal-backdrop erp-modal-backdrop--nested';
+    backdrop.setAttribute('data-lib-ingredient-modal', '1');
+    backdrop.innerHTML =
+      '<div class="erp-modal mdl-ing-modal" role="dialog" aria-modal="true">' +
+      '<div class="erp-modal__header"><h2 class="erp-modal__title">' + (row ? '编辑配料' : '新增配料') + '</h2>' +
+      '<div class="erp-modal__header-actions"><button type="button" class="erp-modal__header-btn" data-ing-close aria-label="关闭">&times;</button></div></div>' +
+      '<div class="erp-modal__body"><div class="mdl-ing-form">' +
+      '<label class="mdl-goods-field"><span class="mdl-goods-field__label"><i>*</i>配料名称</span><input class="mdl-goods-field__control" id="ingFormName" type="text" maxlength="40" placeholder="请输入配料名称" value="' + escapeHtml(row ? row.name : '') + '"></label>' +
+      '<label class="mdl-goods-field"><span class="mdl-goods-field__label"><i>*</i>配料类别</span><select class="mdl-goods-field__control" id="ingFormCategory">' + selectOptions(ingredientCategoryChoices(), row ? row.category : '', '请选择') + '</select></label>' +
+      '<label class="mdl-goods-field"><span class="mdl-goods-field__label"><i>*</i>参考占比</span><span class="mdl-ing-ratio"><input id="ingFormRatio" type="number" min="0" max="100" step="0.1" placeholder="如 36" value="' + (row ? escapeHtml(row.ratio) : '') + '"><span>%</span></span></label>' +
+      '<label class="mdl-goods-field"><span class="mdl-goods-field__label"><i>*</i>过敏原提示</span><select class="mdl-goods-field__control" id="ingFormAllergen">' + selectOptions(INGREDIENT_ALLERGENS, row ? row.allergen : '无', '请选择') + '</select></label>' +
+      '<label class="mdl-goods-field"><span class="mdl-goods-field__label"><i>*</i>资料来源</span><input class="mdl-goods-field__control" id="ingFormSource" type="text" maxlength="40" placeholder="如 供应商 BOM 清单" value="' + escapeHtml(row ? row.source : '') + '"></label>' +
+      '</div></div>' +
+      '<div class="erp-modal__footer"><button type="button" class="erp-btn" data-ing-cancel>取消</button><button type="button" class="erp-btn erp-btn--primary" data-ing-save>确定</button></div></div>';
+    function closeForm() { backdrop.remove(); }
+    backdrop.addEventListener('click', function (ev) {
+      if (ev.target === backdrop || ev.target.closest('[data-ing-close]') || ev.target.closest('[data-ing-cancel]')) {
+        closeForm();
+        return;
+      }
+      if (ev.target.closest('[data-ing-save]')) saveIngredient(item, row ? row.id : '');
+    });
+    document.body.appendChild(backdrop);
+    var input = document.getElementById('ingFormName');
+    if (input) input.focus();
+  }
+
+  function saveIngredient(item, editingId) {
+    var nameEl = document.getElementById('ingFormName');
+    var categoryEl = document.getElementById('ingFormCategory');
+    var ratioEl = document.getElementById('ingFormRatio');
+    var allergenEl = document.getElementById('ingFormAllergen');
+    var sourceEl = document.getElementById('ingFormSource');
+    var name = nameEl ? String(nameEl.value || '').trim() : '';
+    var category = categoryEl ? String(categoryEl.value || '').trim() : '';
+    var ratio = ratioEl ? Number(ratioEl.value) : NaN;
+    var allergen = allergenEl ? String(allergenEl.value || '').trim() : '';
+    var source = sourceEl ? String(sourceEl.value || '').trim() : '';
+    if (!name) {
+      if (typeof showToast === 'function') showToast('请输入配料名称', 'warning');
+      return;
+    }
+    if (!category) {
+      if (typeof showToast === 'function') showToast('请选择配料类别', 'warning');
+      return;
+    }
+    if (!isFinite(ratio) || ratio <= 0 || ratio > 100) {
+      if (typeof showToast === 'function') showToast('参考占比请填写大于 0 且不超过 100 的数字', 'warning');
+      return;
+    }
+    if (!allergen) {
+      if (typeof showToast === 'function') showToast('请选择过敏原提示', 'warning');
+      return;
+    }
+    if (!source) {
+      if (typeof showToast === 'function') showToast('请输入资料来源', 'warning');
+      return;
+    }
+    var list = ensureIngredients(item);
+    var duplicated = list.some(function (row) {
+      return row.id !== editingId && row.name === name;
+    });
+    if (duplicated) {
+      if (typeof showToast === 'function') showToast('配料名称已存在', 'warning');
+      return;
+    }
+    if (editingId) {
+      var current = findIngredient(item, editingId);
+      if (!current) return;
+      current.name = name;
+      current.category = category;
+      current.ratio = ratio;
+      current.allergen = allergen;
+      current.source = source;
+    } else {
+      var max = 0;
+      list.forEach(function (row) {
+        var num = parseInt(String(row.id || '').replace(/\D/g, ''), 10);
+        if (!isNaN(num) && num > max) max = num;
+      });
+      list.push(ingredientRow('ing' + (max + 1), name, category, ratio, allergen, source));
+      ingredientView.page = Math.max(1, Math.ceil(list.length / (ingredientView.pageSize || 200)));
+    }
+    closeIngredientModal();
+    renderIngredientPane(item);
+    if (typeof showToast === 'function') showToast(editingId ? '配料已更新' : '配料已添加', 'success');
+  }
+
+  function deleteIngredient(item, id) {
+    var row = findIngredient(item, id);
+    if (!row) return;
+    var existing = document.querySelector('[data-lib-ingredient-confirm]');
+    if (existing) existing.remove();
+    var backdrop = document.createElement('div');
+    backdrop.className = 'erp-modal-backdrop erp-modal-backdrop--nested mdm-people-warm-confirm-backdrop product-warm-confirm-backdrop';
+    backdrop.setAttribute('data-lib-ingredient-confirm', '1');
+    backdrop.innerHTML =
+      '<div class="erp-modal erp-modal--confirm"><div class="erp-modal__header"><h2 class="erp-modal__title">温馨提示</h2><div class="erp-modal__header-actions"><button type="button" class="erp-modal__header-btn" data-ing-confirm-close aria-label="关闭">&times;</button></div></div>' +
+      '<div class="erp-modal__body"><div class="erp-modal-confirm__row"><div class="erp-modal-confirm__icon">!</div><div class="erp-modal-confirm__msg">确定删除配料「' + escapeHtml(row.name) + '」？</div></div></div>' +
+      '<div class="erp-modal__footer"><button type="button" class="erp-btn" data-ing-confirm-cancel>取消</button><button type="button" class="erp-btn erp-btn--primary" data-ing-confirm-ok>确定</button></div></div>';
+    function closeConfirm() { backdrop.remove(); }
+    backdrop.addEventListener('click', function (ev) {
+      if (ev.target === backdrop || ev.target.closest('[data-ing-confirm-close]') || ev.target.closest('[data-ing-confirm-cancel]')) {
+        closeConfirm();
+        return;
+      }
+      if (!ev.target.closest('[data-ing-confirm-ok]')) return;
+      var list = ensureIngredients(item);
+      var index = list.indexOf(row);
+      if (index >= 0) list.splice(index, 1);
+      closeConfirm();
+      renderIngredientPane(item);
+      if (typeof showToast === 'function') showToast('配料已删除', 'success');
     });
     document.body.appendChild(backdrop);
   }
@@ -799,6 +1547,20 @@
   function assignMissingSpu() {
     PRODUCTS.forEach(function (item) {
       if (item.spu) return;
+      if (item.spuKey) {
+        var leader = null;
+        PRODUCTS.some(function (other) {
+          if (other !== item && other.spuKey === item.spuKey && other.spu) {
+            leader = other;
+            return true;
+          }
+          return false;
+        });
+        if (leader) {
+          item.spu = leader.spu;
+          return;
+        }
+      }
       var node = categoryNodeByName(item.category);
       if (!node) return;
       item.spu = nextSpuCode(node);
@@ -822,10 +1584,26 @@
     return goodsField(id, mark + escapeHtml(label), control);
   }
 
-  function goodsSelect(id, label, options) {
+  function brandChoices(current) {
+    var brandStore = window.MasterDataBrandStore;
+    var names = brandStore ? brandStore.activeNames() : [];
+    if (current && names.indexOf(current) < 0) names.push(current);
+    return names;
+  }
+
+  function fillBrandQuery() {
+    var select = document.getElementById('libQueryBrand');
+    var brandStore = window.MasterDataBrandStore;
+    if (!select || !brandStore) return;
+    select.innerHTML = '<option value="">全部</option>' + brandStore.names().map(function (name) {
+      return '<option value="' + escapeHtml(name) + '">' + escapeHtml(name) + '</option>';
+    }).join('');
+  }
+
+  function goodsSelect(id, label, options, required) {
     return goodsField(
       id,
-      escapeHtml(label),
+      (required ? '<i>*</i>' : '') + escapeHtml(label),
       '<select class="mdl-goods-field__control" id="' + id + '"><option value="">请选择</option>' +
       options.map(function (option) {
         return '<option value="' + escapeHtml(option) + '">' + escapeHtml(option) + '</option>';
@@ -1012,7 +1790,45 @@
       return;
     }
     var barcode = readGoodsValue('libGoodsBarcode');
+    if (!barcode) {
+      if (typeof showToast === 'function') showToast('请输入商品条码', 'warning');
+      return;
+    }
+    var shelfText = readGoodsValue('libGoodsShelf');
+    if (shelfText === '' || !isFinite(Number(shelfText)) || Number(shelfText) < 0) {
+      if (typeof showToast === 'function') showToast('请输入保质期天数', 'warning');
+      return;
+    }
+    var brand = readGoodsValue('libGoodsBrand');
+    if (!brand) {
+      if (typeof showToast === 'function') showToast('请选择商品品牌', 'warning');
+      return;
+    }
+    var operateMode = readGoodsValue('libGoodsOperate');
+    if (!operateMode) {
+      if (typeof showToast === 'function') showToast('请选择经营方式', 'warning');
+      return;
+    }
+    var weigh = readGoodsValue('libGoodsWeigh');
+    if (!weigh) {
+      if (typeof showToast === 'function') showToast('请选择是否称重', 'warning');
+      return;
+    }
+    var tempLayer = readGoodsValue('libGoodsTemp');
+    if (!tempLayer) {
+      if (typeof showToast === 'function') showToast('请选择温层', 'warning');
+      return;
+    }
     var priceText = readGoodsValue('libGoodsPrice');
+    if (priceText === '' || !isFinite(Number(priceText)) || Number(priceText) < 0) {
+      if (typeof showToast === 'function') showToast('请输入标准采购价', 'warning');
+      return;
+    }
+    var purchaseUnit = readGoodsValue('libGoodsPurchaseUnit');
+    if (!purchaseUnit) {
+      if (typeof showToast === 'function') showToast('请选择标准采购单位', 'warning');
+      return;
+    }
     var minConv = readConversion('Min', prev && prev.minRateQty, prev && prev.minRateUnit);
     var specConv = readConversion('Spec', prev && prev.specRateQty, prev && prev.specRateUnit);
     var packConv = readConversion('Pack', prev && prev.packRateQty, prev && prev.packRateUnit);
@@ -1023,10 +1839,10 @@
       barcode: barcode,
       barcodeCount: prev ? prev.barcodeCount : (barcode ? 1 : 0),
       name: name,
-      brand: readGoodsValue('libGoodsBrand'),
-      purchasePrice: priceText === '' ? 0 : Number(priceText),
+      brand: brand,
+      purchasePrice: Number(priceText),
       purchaseQty: prev ? prev.purchaseQty : 0,
-      purchaseUnit: readGoodsValue('libGoodsPurchaseUnit'),
+      purchaseUnit: purchaseUnit,
       minQty: prev ? prev.minQty : 0,
       minUnit: readGoodsValue('libGoodsMinUnit'),
       minRateQty: minConv.qty,
@@ -1043,10 +1859,10 @@
       tone: prev ? prev.tone : (specSource ? specSource.tone : 'blue'),
       mark: prev ? prev.mark : (specSource ? specSource.mark : name.charAt(0)),
       status: prev ? goodsStatus(prev) : 'active',
-      weigh: readGoodsValue('libGoodsWeigh'),
-      operateMode: readGoodsValue('libGoodsOperate'),
-      shelfLife: readGoodsValue('libGoodsShelf'),
-      tempLayer: readGoodsValue('libGoodsTemp'),
+      weigh: weigh,
+      operateMode: operateMode,
+      shelfLife: shelfText,
+      tempLayer: tempLayer,
       measures: {
         min: readMeasure('Min'),
         spec: readMeasure('Spec'),
@@ -1207,14 +2023,14 @@
       goodsInput('libGoodsSpu', 'SPU编码', 'text', '', true, spuText) +
       goodsInput('libGoodsSku', '货号', 'text', '', true, skuText) +
       goodsInput('libGoodsName', '商品名称', 'text', '请输入商品名称', true) +
-      goodsInput('libGoodsBarcode', '商品条码', 'text', '请输入商品条码') +
-      goodsInput('libGoodsShelf', '保质期天数', 'number', '请输入天数') +
-      goodsSelect('libGoodsBrand', '商品品牌', ['冷丰优选']) +
-      goodsSelect('libGoodsOperate', '经营方式', ['代采代销', '购销', '联营']) +
-      goodsSelect('libGoodsWeigh', '是否称重', ['是', '否']) +
-      goodsSelect('libGoodsTemp', '温层', ['常温', '冷藏', '冷冻']) +
-      goodsInput('libGoodsPrice', '标准采购价', 'number', '请输入价格') +
-      goodsSelect('libGoodsPurchaseUnit', '标准采购单位', GOODS_UNITS) +
+      goodsInput('libGoodsBarcode', '商品条码', 'text', '请输入商品条码', true) +
+      goodsInput('libGoodsShelf', '保质期天数', 'number', '请输入天数', true) +
+      goodsSelect('libGoodsBrand', '商品品牌', brandChoices(item && item.brand), true) +
+      goodsSelect('libGoodsOperate', '经营方式', ['代采代销', '购销', '联营'], true) +
+      goodsSelect('libGoodsWeigh', '是否称重', ['是', '否'], true) +
+      goodsSelect('libGoodsTemp', '温层', ['常温', '冷藏', '冷冻'], true) +
+      goodsInput('libGoodsPrice', '标准采购价', 'number', '请输入价格', true) +
+      goodsSelect('libGoodsPurchaseUnit', '标准采购单位', GOODS_UNITS, true) +
       '</div>' +
       goodsUnitCards() +
       '</section>' +
@@ -1814,12 +2630,137 @@
     });
   }
 
+  function copyAttrs(attrs) {
+    return (attrs || []).map(function (attr) {
+      return { name: attr.name, value: attr.value, parentName: attr.parentName || '', parentValue: attr.parentValue || '' };
+    });
+  }
+
+  function addSameSpuSpecs() {
+    var pork = null;
+    var beef = null;
+    PRODUCTS.forEach(function (item) {
+      if (item.spuKey === 'pork-xlb' && !pork) pork = item;
+      if (item.spuKey === 'beef-xlb' && !beef) beef = item;
+    });
+    if (!pork || !beef) return;
+    function pushSpec(base, spec) {
+      PRODUCTS.push({
+        category: base.category,
+        spuKey: base.spuKey,
+        sku: '',
+        barcode: spec.barcode,
+        barcodeCount: 1,
+        name: spec.name,
+        brand: base.brand,
+        purchasePrice: spec.purchasePrice,
+        purchaseQty: 0,
+        purchaseUnit: '箱',
+        minQty: 0,
+        minUnit: '个',
+        specQty: 0,
+        specUnit: '包',
+        packQty: 0,
+        packUnit: '箱',
+        amount: 0,
+        tone: base.tone,
+        mark: base.mark,
+        status: 'active',
+        weigh: '否',
+        operateMode: '购销',
+        shelfLife: '180',
+        tempLayer: '冷冻',
+        minRateQty: spec.minRateQty,
+        minRateUnit: 'g',
+        specRateQty: spec.specRateQty,
+        specRateUnit: '个',
+        packRateQty: spec.packRateQty,
+        packRateUnit: '包',
+        measures: {
+          min: unitMeasure(spec.minGross, 0.005, 5, 4, 3),
+          spec: unitMeasure(spec.specGross, 0.2, 32, 22, 15),
+          pack: unitMeasure(spec.packGross, 4, 48, 36, 32)
+        },
+        sellingPoint: spec.sellingPoint,
+        productIntro: spec.name + '。1个=' + spec.minRateQty + 'g，1包=' + spec.specRateQty + '个，1箱=' + spec.packRateQty + '包。',
+        extraUsage: '冷冻保存，蒸制前无需解冻。',
+        scene: '适用于早餐档口、团餐和门店热食出餐。',
+        afterSale: '到货破损或温度异常，请在签收 24 小时内联系售后。',
+        graphicDetail: spec.name + '的实拍包含单只、整包和整箱。',
+        attrs: copyAttrs(base.attrs),
+        ingredients: spec.ingredients
+      });
+    }
+    pushSpec(pork, {
+      barcode: '6974562300014',
+      name: '生物发面猪肉小笼包 30g 150个/包',
+      purchasePrice: 16.8,
+      minRateQty: 30,
+      specRateQty: 150,
+      packRateQty: 16,
+      minGross: 0.035,
+      specGross: 4.8,
+      packGross: 78,
+      sellingPoint: '30g 小只，150个/包，适合早餐快餐出餐。',
+      ingredients: [
+        ingredientRow('ing1', '小麦粉', '面皮原料', 40, '含麸质的谷物', '供应商 BOM 清单'),
+        ingredientRow('ing2', '猪肉', '馅料主料', 24, '无', '供应商 BOM 清单'),
+        ingredientRow('ing3', '饮用水', '加工辅料', 22, '无', '生产工艺单'),
+        ingredientRow('ing4', '洋葱、姜', '馅料辅料', 8, '无', '供应商 BOM 清单'),
+        ingredientRow('ing5', '食用植物油、食用盐、生抽', '调味料', 4, '含大豆及其制品', '配方版本 LF-2026Q3'),
+        ingredientRow('ing6', '酵母 / 老面', '发酵辅料', 2, '无', '生产工艺单')
+      ]
+    });
+    pushSpec(pork, {
+      barcode: '6974562300015',
+      name: '生物发面猪肉小笼包 80g 60个/包',
+      purchasePrice: 22.6,
+      minRateQty: 80,
+      specRateQty: 60,
+      packRateQty: 12,
+      minGross: 0.086,
+      specGross: 5.4,
+      packGross: 66,
+      sellingPoint: '80g 大只，馅多汁足，60个/包。',
+      ingredients: [
+        ingredientRow('ing1', '小麦粉', '面皮原料', 32, '含麸质的谷物', '供应商 BOM 清单'),
+        ingredientRow('ing2', '猪肉', '馅料主料', 34, '无', '供应商 BOM 清单'),
+        ingredientRow('ing3', '饮用水', '加工辅料', 16, '无', '生产工艺单'),
+        ingredientRow('ing4', '洋葱、姜', '馅料辅料', 8, '无', '供应商 BOM 清单'),
+        ingredientRow('ing5', '食用植物油、食用盐、生抽', '调味料', 7, '含大豆及其制品', '配方版本 LF-2026Q3'),
+        ingredientRow('ing6', '芝麻油', '调味料', 3, '含芝麻', '生产工艺单')
+      ]
+    });
+    pushSpec(beef, {
+      barcode: '6974562300016',
+      name: '生物发面牛肉小笼包 80g 60个/包',
+      purchasePrice: 24.5,
+      minRateQty: 80,
+      specRateQty: 60,
+      packRateQty: 10,
+      minGross: 0.088,
+      specGross: 5.5,
+      packGross: 56,
+      sellingPoint: '80g 牛肉大只，60个/包，适合正餐热食。',
+      ingredients: [
+        ingredientRow('ing1', '小麦粉', '面皮原料', 34, '含麸质的谷物', '供应商 BOM 清单'),
+        ingredientRow('ing2', '牛肉', '馅料主料', 32, '无', '供应商 BOM 清单'),
+        ingredientRow('ing3', '饮用水', '加工辅料', 18, '无', '生产工艺单'),
+        ingredientRow('ing4', '洋葱、姜', '馅料辅料', 8, '无', '供应商 BOM 清单'),
+        ingredientRow('ing5', '食用植物油、食用盐、生抽', '调味料', 6, '含大豆及其制品', '配方版本 LF-2026Q3'),
+        ingredientRow('ing6', '酵母 / 老面', '发酵辅料', 2, '无', '生产工艺单')
+      ]
+    });
+  }
+
   function init() {
     store.load();
     fillCategoryProducts();
+    addSameSpuSpecs();
     assignMissingSpu();
     assignAllSkus();
     syncCategoryCounts();
+    fillBrandQuery();
     bindEvents();
     renderCategories();
     renderLibrary();

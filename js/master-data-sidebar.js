@@ -8,7 +8,13 @@
 
     const productMasterItems = [
         { href: 'master_data_product_category.html', text: '商品分类' },
+        { href: 'master_data_product_brand.html', text: '商品品牌' },
+        { href: 'master_data_ingredient_category.html', text: '配料类别' },
         { href: 'master_data_product_library.html', text: '基础商品库' }
+    ];
+
+    const supplyChainItems = [
+        { href: 'master_data_supplier.html', text: '供应商档案' }
     ];
 
     function pageMatches(href) {
@@ -20,6 +26,7 @@
     }
 
     const isProductMasterSection = groupHasActive(productMasterItems);
+    const isSupplyChainSection = groupHasActive(supplyChainItems);
 
     function renderCollapsibleGroup(label, items, sectionActive) {
         const submenuHtml = items.map(function (item) {
@@ -46,6 +53,7 @@
         '</div>' +
         '<ul class="sidebar-menu">' +
         renderCollapsibleGroup('商品主数据', productMasterItems, isProductMasterSection) +
+        renderCollapsibleGroup('供应链管理', supplyChainItems, isSupplyChainSection) +
         '</ul>' +
         '</aside>';
 })();

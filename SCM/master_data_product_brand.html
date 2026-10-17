@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 商品品牌</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-product.css">
+    <link rel="stylesheet" href="../css/master-data-brand.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/master-data-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="product-page master-data-brand-page">
+                <div class="product-page-body">
+                    <section class="erp-page__card master-data-brand">
+                        <div class="mdb-toolbar">
+                            <span class="mdb-toolbar__title">商品品牌</span>
+                            <button type="button" class="mdb-btn mdb-btn--primary" id="brandAddBtn">+ 新增品牌</button>
+                        </div>
+                        <div class="mdb-pane">
+                            <form class="mdb-query" id="brandQueryForm">
+                                <label class="mdb-query__field">品牌名称
+                                    <input type="text" id="brandQueryName" placeholder="请输入品牌名称" autocomplete="off">
+                                </label>
+                                <label class="mdb-query__field">状态
+                                    <select id="brandQueryStatus">
+                                        <option value="">全部</option>
+                                        <option value="active">启用</option>
+                                        <option value="disabled">停用</option>
+                                    </select>
+                                </label>
+                                <div class="mdb-query__actions">
+                                    <button type="submit" class="mdb-btn mdb-btn--primary">查询</button>
+                                    <button type="button" class="mdb-btn mdb-btn--ghost" id="brandQueryReset">重置</button>
+                                </div>
+                            </form>
+                            <div class="mdb-table-wrap">
+                                <table class="mdb-table">
+                                    <thead>
+                                        <tr>
+                                            <th>品牌名称</th>
+                                            <th>品牌logo</th>
+                                            <th>状态</th>
+                                            <th class="mdb-table__op">操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="brandTableBody"></tbody>
+                                </table>
+                            </div>
+                            <div class="product-pagination" id="brandPagination">
+                                <span id="brandPaginationTotal">共 0 条</span>
+                                <div class="product-pagination__right">
+                                    <select class="product-pagination__size" id="brandPageSize" aria-label="每页条数">
+                                        <option value="20" selected>20条/页</option>
+                                        <option value="50">50条/页</option>
+                                        <option value="100">100条/页</option>
+                                    </select>
+                                    <div class="product-pagination__pages" id="brandPaginationPages"></div>
+                                    <label class="product-pagination__goto">
+                                        前往
+                                        <input id="brandPageGoto" type="text" value="1" inputmode="numeric" aria-label="前往页码">
+                                        页
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/master-data-brand-store.js"></script>
+    <script src="../js/master-data-brand.js"></script>
+</body>
+</html>

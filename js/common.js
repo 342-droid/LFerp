@@ -148,7 +148,7 @@ function loadHeader() {
                     <a href="${wp.page('mdm_settle_index.html')}" class="${isMdmSettlePage ? 'active' : ''}">财务</a>
                     <a href="${wp.page('basic_settings_miniprogram_agreement.html')}" class="${isBasicSettingsPage ? 'active' : ''}">基础设置</a>
                     <a href="${wp.page('authz-designer.html')}" class="${isAuthzDesignerPage ? 'active' : ''}">权限设计</a>
-                    <a href="${wp.page('master_data_product_category.html')}" class="${isMasterDataPage ? 'active' : ''}">供应链管理</a>
+                    <a href="${wp.page('master_data_product_category.html')}" class="${isMasterDataPage ? 'active' : ''}">供应链</a>
                 </nav>
                 
                 <div class="header-right">
