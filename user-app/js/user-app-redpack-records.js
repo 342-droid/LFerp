@@ -68,6 +68,7 @@
       } else if (it.status === 'pending') pending += 1;
       else if (it.status === 'expired') expired += 1;
     });
+    renderAuthNotice();
     box.innerHTML =
       '<div class="ua-rp-stats__earn"><span>现金收益</span><strong>¥' +
       moneyText(earned) +
@@ -78,6 +79,26 @@
       '<div><b>' + pending + '</b><span>待领取</span></div>' +
       '<div><b>' + expired + '</b><span>已过期</span></div>' +
       '</div>';
+  }
+
+  function renderAuthNotice() {
+    var box = document.getElementById('rpRecordsStats');
+    if (!box || !box.parentNode) return;
+    var unauthorized = window.UaWxPayAuth && !window.UaWxPayAuth.isAuthorized();
+    var notice = document.getElementById('rpRecordsAuthNotice');
+    if (!unauthorized) {
+      if (notice) notice.remove();
+      return;
+    }
+    if (!notice) {
+      notice = document.createElement('button');
+      notice.type = 'button';
+      notice.id = 'rpRecordsAuthNotice';
+      notice.className = 'ua-rp-auth-notice';
+      notice.setAttribute('data-wx-auth', '1');
+      notice.textContent = '微信收款未授权，授权后红包自动打入钱包';
+      box.parentNode.insertBefore(notice, box);
+    }
   }
 
   function sceneText(it) {
@@ -159,10 +180,10 @@
     return pad(d.getHours()) + ':' + pad(d.getMinutes());
   }
 
-  /** 待领取里，只有手动派发和抽中福袋要用户自己领；其余直接算已领取 */
+  /** 待领取：手动派发、抽中福袋，以及未授权中奖后放入账户的红包。其余直接算已领取 */
   function presentRecord(it) {
     var row = Object.assign({}, it);
-    var manual = row.activityType === 'manual' || row.claimKind === 'bag';
+    var manual = row.activityType === 'manual' || row.claimKind === 'bag' || row.claimKind === 'hold';
     if (row.status === 'pending' && !manual) {
       row.status = 'claimed';
       if (!row.claimAt) row.claimAt = row.grantedAt;
@@ -189,6 +210,7 @@
   function bagWonRow() {
     var demo = bagDemo();
     var saved = readBagClaim();
+    if (saved && saved.held && !saved.claimed) return null;
     var claimed = demo === 'claimed' || !!(saved && saved.claimed);
     if (demo === 'none' || demo === 'miss' || demo === 'lost' || (saved && (saved.missed || saved.lost) && !claimed)) {
       return null;
@@ -265,6 +287,21 @@
     });
     var bag = bagWonRow();
     if (bag) rows.push(bag);
+    if (window.UaLiveBagCash && window.UaLiveBagCash.listHolds) {
+      window.UaLiveBagCash.listHolds().forEach(function (hold) {
+        var at = String(hold.at || '');
+        if (/^\d{2}:\d{2}$/.test(at)) at = '2026-10-17 ' + at;
+        rows.push({
+          id: hold.id,
+          claimKind: 'hold',
+          activityName: hold.name || '现金红包',
+          sceneText: hold.sceneText || hold.source || '现金红包',
+          amount: hold.amount,
+          grantedAt: at,
+          status: 'pending'
+        });
+      });
+    }
     return rows;
   }
 
@@ -446,6 +483,29 @@
     if (beforeEarn != null) strong.textContent = '¥' + moneyText(beforeEarn);
   }
 
+  function settleHold(id, fromEl) {
+    var bag = window.UaLiveBagCash;
+    if (!bag || !bag.takeHold) return;
+    var before = earnedNow();
+    var found = bag.takeHold(id);
+    if (!found) return;
+    var from = fromEl && fromEl.getBoundingClientRect ? fromEl.getBoundingClientRect() : null;
+    render();
+    landEarn(from, before);
+  }
+
+  function claimHold(id, fromEl) {
+    if (window.UaWxPayAuth && !window.UaWxPayAuth.isAuthorized()) {
+      window.UaWxPayAuth.ensure({
+        onDone: function () {
+          settleHold(id, fromEl);
+        }
+      });
+      return;
+    }
+    settleHold(id, fromEl);
+  }
+
   function claimBag(fromEl) {
     var denied = claimDenied();
     if (denied) {
@@ -501,10 +561,10 @@
     var client = RG.getClientMode ? RG.getClientMode() : 'mini';
     listEl.innerHTML = rows
       .map(function (it) {
-        var allows = it.claimKind === 'bag' || typeof C.recordAllowsPort !== 'function' || C.recordAllowsPort(it, client);
+        var allows = it.claimKind === 'bag' || it.claimKind === 'hold' || typeof C.recordAllowsPort !== 'function' || C.recordAllowsPort(it, client);
         var canClaim = it.status === 'pending' && allows;
         var tag = canClaim
-          ? '<span class="ua-rp-item__action">去领取</span>'
+          ? '<span class="ua-rp-item__action">领取</span>'
           : '<span class="' +
             statusClass(it.status === 'pending' ? '' : it.status) +
             '">' +
@@ -543,6 +603,18 @@
       .join('');
   }
 
+  function bindAuth() {
+    var body = document.querySelector('.ua-gd-body');
+    if (!body || body.getAttribute('data-auth-bound')) return;
+    body.setAttribute('data-auth-bound', '1');
+    body.addEventListener('click', function (e) {
+      var auth = e.target && e.target.closest ? e.target.closest('[data-wx-auth]') : null;
+      if (!auth || !window.UaWxPayAuth) return;
+      e.preventDefault();
+      window.UaWxPayAuth.ensure({ onDone: render });
+    });
+  }
+
   function bindFilter() {
     document.querySelectorAll('.ua-rp-filter__btn').forEach(function (btn) {
       btn.addEventListener('click', function () {
@@ -564,6 +636,14 @@
       if (!item) return;
       var id = item.getAttribute('data-id');
       if (!id) return;
+      var holdRow = null;
+      allRecords().forEach(function (row) {
+        if (String(row.id) === id) holdRow = row;
+      });
+      if (holdRow && holdRow.claimKind === 'hold') {
+        claimHold(id, item);
+        return;
+      }
       if (id === 'live-bag') {
         claimBag(item);
         return;
@@ -722,6 +802,7 @@
     syncFilterTabs();
     bindFilter();
     bindList();
+    bindAuth();
     render();
   }
 

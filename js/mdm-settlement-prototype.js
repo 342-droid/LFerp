@@ -4,7 +4,7 @@
     var app = document.getElementById('settlement-app');
     var overlay = document.getElementById('settlement-overlay');
     if (!app) return;
-    var names = {summary:'清分汇总', policy:'策略管理', supplier:'供应商结算', carrier:'承运商结算', commission:'佣金清算', compensation:'补偿结款'};
+    var names = {summary:'清分汇总', policy:'策略管理', exception:'异常订单', supplier:'供应商结算', carrier:'承运商结算', commission:'佣金清算', compensation:'补偿结款'};
     var params = new URLSearchParams(location.search);
     var state = {
         view: names[params.get('view')] ? params.get('view') : 'summary',
@@ -29,7 +29,11 @@
         policyEditing: params.get('id') || '',
         policyDraft: null,
         ruleEditing: -1,
-        multiOpen: ''
+        multiOpen: '',
+        exceptionPayee: '',
+        exceptionStatus: '',
+        exceptionPage: 1,
+        exceptionPageSize: 20
     };
     // Dev 列表第一页的可见记录快照。交互只修改本地状态，不调用结算接口。
     var supplierPending = [
@@ -218,6 +222,111 @@
     }
     function filtered(rows, fields) { var q=state.query.trim().toLowerCase(); return rows.filter(function(row){return (!q || fields.some(function(f){return String(row[f] || '').toLowerCase().includes(q);})) && (!state.status || row.status === state.status || (state.status==='异常' && row.blocked));}); }
     function note(text) { return '<div class="settle-note">' + h(text) + '</div>'; }
+    /* 异常订单：清分被拦住、还没完成分账的订单。图中生产列表共 7054 条，原型按给定的 3 条完整记录展示。 */
+    var EXCEPTION_PAYEE_TYPES = ['门店', '供应商', '商户', 'BD扶商', '平台', '直播运营商'];
+    var EXCEPTION_STATUSES = ['待处理', '处理中', '已结款', '已结款(人工)', '结款异常', '已关闭'];
+    var exceptionOrders = [
+        {seq:'7054', orderNo:'ORD-2610128893011', lineId:'119797', payee:'—', payeeType:'门店', amount:'0.52', strategy:'常规百货门店', channel:'直播', status:'待处理', reason:'结算金额异常', handleStatus:'待处理', handler:'—', handleTime:'—', remark:'—', relatedDoc:'—', exceptionTime:'2026-10-12 15:58:45'},
+        {seq:'7053', orderNo:'ORD-2610128893011', lineId:'119797', payee:'总部BDBD团队', payeeType:'BD扶商', amount:'0', strategy:'常规百货门店', channel:'直播', status:'待处理', reason:'结算金额异常', handleStatus:'待处理', handler:'—', handleTime:'—', remark:'—', relatedDoc:'—', exceptionTime:'2026-10-12 15:58:45'},
+        {seq:'7052', orderNo:'ORD-2610128893011', lineId:'119797', payee:'主播组', payeeType:'直播运营商', amount:'0.16', strategy:'常规百货门店', channel:'直播', status:'待处理', reason:'结算金额异常', handleStatus:'待处理', handler:'—', handleTime:'—', remark:'—', relatedDoc:'—', exceptionTime:'2026-10-12 15:58:45'}
+    ];
+    function exceptionRows() {
+        var q = String(state.query || '').trim().toLowerCase();
+        return exceptionOrders.filter(function (row) {
+            if (q && String(row.orderNo).toLowerCase().indexOf(q) < 0) return false;
+            if (state.exceptionPayee && row.payeeType !== state.exceptionPayee) return false;
+            if (state.exceptionStatus && row.status !== state.exceptionStatus && row.handleStatus !== state.exceptionStatus) return false;
+            return true;
+        });
+    }
+    function exceptionTip() {
+        return '<div class="settle-exception-tip" role="note"><strong>异常原因说明（清分异常·阻塞订单分账）</strong><ol>' +
+            '<li>账户异常：分佣政策中的账户被移除、禁用，订单不再分佣。</li>' +
+            '<li>分佣对象不在策略范围：BD 离职、直播间停用等，订单无法分佣。</li>' +
+            '<li>佣金策略异常：策略发生变动或已删除，订单无法匹配策略。</li>' +
+            '<li>订单数据缺失：SKU、门店归属、采购价等关键数据缺失，无法计算分佣。</li>' +
+            '<li>系统判定异常订单：风控、作弊订单等，阻止清分。</li>' +
+            '<li>跨账期或入账时间异常：订单跨账期或入账时间异常，系统无法正常清分。</li>' +
+            '</ol></div>';
+    }
+    function renderException() {
+        var rows = exceptionRows();
+        var size = state.exceptionPageSize || 20;
+        var pages = Math.max(1, Math.ceil(rows.length / size));
+        state.exceptionPage = Math.min(Math.max(1, state.exceptionPage), pages);
+        var visible = rows.slice((state.exceptionPage - 1) * size, state.exceptionPage * size);
+        var tr = visible.map(function (x) {
+            return '<tr><td>' + h(x.seq) + '</td><td>' + h(x.orderNo) + '</td><td>' + h(x.lineId) + '</td><td>' + h(x.payee) + '</td><td>' + h(x.payeeType) + '</td><td class="money">' + h(x.amount) + '</td><td>' + h(x.strategy) + '</td><td>' + h(x.channel) + '</td><td>' + h(x.status) + '</td><td><span class="settle-tag orange">' + h(x.reason) + '</span></td><td><span class="settle-tag orange">' + h(x.handleStatus) + '</span></td><td>' + h(x.handler) + '</td><td>' + h(x.handleTime) + '</td><td>' + h(x.remark) + '</td><td>' + h(x.relatedDoc) + '</td><td>' + h(x.exceptionTime) + '</td><td class="settle-op">' + button('查看详情', 'exception-detail', x.seq) + '</td></tr>';
+        });
+        var pageBtns = '';
+        var maxBtn = Math.min(pages, 6);
+        for (var i = 1; i <= maxBtn; i++) {
+            pageBtns += '<button type="button" class="settle-page-btn' + (state.exceptionPage === i ? ' active' : '') + '" data-act="exception-page" data-id="' + i + '">' + i + '</button>';
+        }
+        if (pages > 6) pageBtns += '<span class="settle-page-gap">...</span><button type="button" class="settle-page-btn" data-act="exception-page" data-id="' + pages + '">' + pages + '</button>';
+        var filters = '<div class="settle-card-body"><div class="settle-filter settle-filter--exception">' +
+            '<label class="settle-field"><span>订单号</span><input class="settle-input" id="settle-query" value="' + h(state.query) + '" placeholder="请输入订单号"></label>' +
+            '<label class="settle-field"><span>收款方类型</span><select class="settle-select" id="exception-payee"><option value="">全部</option>' + EXCEPTION_PAYEE_TYPES.map(function (v) { return '<option value="' + h(v) + '"' + (state.exceptionPayee === v ? ' selected' : '') + '>' + h(v) + '</option>'; }).join('') + '</select></label>' +
+            '<label class="settle-field"><span>处理状态</span><select class="settle-select" id="exception-status"><option value="">全部</option>' + EXCEPTION_STATUSES.map(function (v) { return '<option value="' + h(v) + '"' + (state.exceptionStatus === v ? ' selected' : '') + '>' + h(v) + '</option>'; }).join('') + '</select></label>' +
+            '<div class="settle-actions settle-filter-actions">' + button('查询', 'search', '', 'primary') + button('重置', 'reset') + '</div></div></div>';
+        var footer = '<div class="settle-pager"><span>共 ' + rows.length + ' 条</span>' +
+            '<select class="settle-select settle-page-size" id="exception-page-size" aria-label="每页条数"><option value="20"' + (size === 20 ? ' selected' : '') + '>20条/页</option><option value="50"' + (size === 50 ? ' selected' : '') + '>50条/页</option><option value="100"' + (size === 100 ? ' selected' : '') + '>100条/页</option></select>' +
+            '<button type="button" class="settle-page-btn" data-act="exception-page" data-id="' + (state.exceptionPage - 1) + '"' + (state.exceptionPage === 1 ? ' disabled' : '') + '>&lt;</button>' +
+            pageBtns +
+            '<button type="button" class="settle-page-btn" data-act="exception-page" data-id="' + (state.exceptionPage + 1) + '"' + (state.exceptionPage === pages ? ' disabled' : '') + '>&gt;</button>' +
+            '<span>前往</span><input class="settle-input settle-page-jump" id="exception-jump" inputmode="numeric" aria-label="前往页码" value="' + h(state.exceptionPage) + '"><span>页</span>' +
+            '<button type="button" class="settle-btn" data-act="exception-jump">确定</button></div>';
+        return exceptionTip() + '<section class="settle-card settle-exception">' + filters +
+            '<div class="settle-toolbar">' + button('导出列表', 'export-exception') + '</div>' +
+            table(['序号', '订单号', '订单行ID', '收款方名称', '收款方类型', '应付金额（元）', '命中策略', '结算渠道', '处理状态', '异常原因（全部）', '处理状态', '处理人', '处理时间', '处理备注', '关联处理单据', '异常时间', '操作'], tr, '') +
+            footer + '</section>';
+    }
+    function openExceptionDetail(seq) {
+        var row = exceptionOrders.filter(function (x) { return String(x.seq) === String(seq); })[0];
+        if (!row) return;
+        var basic = description([
+            ['编号', h(row.seq)], ['主订单号', h(row.orderNo)], ['子订单号', h(row.lineId)], ['门店ID', '—'], ['门店名称', '—'], ['BID', '—'], ['主播', '—'],
+            ['订单类型', '—'], ['订单渠道', h(row.channel)], ['子订单状态', '—'], ['下单时间', '—'], ['自动核销时间', '—'], ['核销时间', '—'], ['售后截止时间', '—']
+        ]);
+        var goods = table(['商品图片', '商品名称', '商品编码', '规格/单位', '数量', '采购金额', '销售金额', '优惠金额', '退款金额', '实收金额', '净实收金额', '毛利率', '可分佣'],
+            ['<tr><td colspan="13" class="settle-empty">当前异常记录未附带商品明细</td></tr>']);
+        var clearing = table(['收款方ID', '收款方类型', '收款方名称', '收款账户', '分佣方式', '策略ID', '命中策略', '应收金额', '手续费', '营销费用承担', '实收金额'],
+            ['<tr><td>—</td><td>' + h(row.payeeType) + '</td><td>' + h(row.payee) + '</td><td>—</td><td>—</td><td>—</td><td>' + h(row.strategy) + '</td><td class="money">' + h(row.amount) + '</td><td>—</td><td>—</td><td>—</td></tr>']);
+        var settleInfo = description([
+            ['清分状态', '清分异常'], ['清分时间', '—'], ['清分批次号', '—'], ['结算起算节点', '—'], ['结算方式', '—'], ['结算状态', h(row.status)], ['结算单号', h(row.relatedDoc)],
+            ['入账状态', '—'], ['入账时间', '—'], ['入账流水号', '—']
+        ]);
+        var aftersale = description([
+            ['售后状态', '无售后'], ['售后单号', '—'], ['售后申请时间', '—'], ['售后完成时间', '—'], ['售后金额', '—'], ['退款金额', '—'], ['退款类型', '—'],
+            ['是否反结算', '—'], ['反结算金额', '—'], ['台账状态', '—']
+        ]);
+        var abnormal = description([
+            ['异常阶段', '清分异常'], ['异常类型', h(row.reason)], ['异常原因', h(row.reason)], ['异常处理状态', h(row.handleStatus)], ['异常处理时间', h(row.handleTime)], ['备注', h(row.remark)],
+            ['处理人', h(row.handler)], ['异常时间', h(row.exceptionTime)], ['关联处理单据', h(row.relatedDoc)]
+        ]);
+        var system = description([
+            ['是否已对账', '—'], ['对账时间', '—'], ['数据来源', '销售子订单'], ['创建时间', h(row.exceptionTime)], ['更新时间', '—']
+        ]);
+        overlay.innerHTML = '<div class="settle-overlay" data-overlay="1"><div class="settle-drawer settle-drawer--order" role="dialog" aria-modal="true" aria-label="订单详情">' +
+            '<div class="settle-dialog-head"><strong>订单详情</strong>' + button('✕', 'close') + '</div>' +
+            '<div class="settle-dialog-body settle-order-detail">' +
+            '<p class="settle-order-crumb">订单 ' + h(row.orderNo) + ' · 订单行 ' + h(row.lineId) + ' · ' + h(row.payeeType) + ' ' + h(row.payee) + '</p>' +
+            card('基本信息', basic) + card('商品信息', goods) + card('清分信息', clearing) + card('清分结算信息', settleInfo) +
+            card('售后反结算信息', aftersale) + card('异常信息', abnormal) + card('系统信息', system) +
+            '</div></div></div>';
+    }
+    function exportException() {
+        var head = ['序号', '订单号', '订单行ID', '收款方名称', '收款方类型', '应付金额（元）', '命中策略', '结算渠道', '处理状态', '异常原因（全部）', '处理状态', '处理人', '处理时间', '处理备注', '关联处理单据', '异常时间'];
+        var data = [head].concat(exceptionRows().map(function (x) {
+            return [x.seq, x.orderNo, x.lineId, x.payee, x.payeeType, x.amount, x.strategy, x.channel, x.status, x.reason, x.handleStatus, x.handler, x.handleTime, x.remark, x.relatedDoc, x.exceptionTime];
+        }));
+        var csv = '\uFEFF' + data.map(function (row) { return row.map(function (cell) { return '"' + String(cell).replace(/"/g, '""') + '"'; }).join(','); }).join('\r\n');
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'}));
+        a.download = '异常订单-' + new Date().toISOString().slice(0, 10) + '.csv';
+        a.click();
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+    }
     function renderSummary() {
         if (!state.tab) state.tab='day';
         var rows=(state.tab === 'month' ? summaryMonth : summaryDay).filter(function(x){return (!state.query||x.payee.includes(state.query)||x.id.includes(state.query))&&(!state.summaryType||x.type===state.summaryType)&&(!state.summaryFrom||x.period>=state.summaryFrom.slice(0,7))&&(!state.summaryTo||x.period<=state.summaryTo);});
@@ -578,7 +687,7 @@
         if(state.view==='policy' && state.policyMode && !state.policyDraft){var p=policies.find(function(x){return x.id===state.policyEditing;});state.policyDraft={name:p?p.name:'',enabled:p?p.status==='已启用':true,description:'',orderType:p?p.kind:'零售订单',channel:p?p.channel:'直播',rules:p?[{name:p.name,method:'按实付金额分佣',summary:p.rule,dimension:'全部商品',tiers:[emptyTier()]}]:[]};}
         document.getElementById('settle-title').textContent='结算 / '+names[state.view]+(state.policyMode?' / '+(state.policyMode==='create'?'创建策略':state.policyMode==='edit'?'修改策略':'策略详情'):(state.detail?' / '+detailTitle():''));
         document.title='冷丰结算 - '+names[state.view];
-        app.innerHTML=state.view==='policy'&&state.policyMode?renderPolicyForm():state.detail?renderDetail():({summary:renderSummary,policy:renderPolicy,supplier:renderSupplier,carrier:renderCarrier,commission:renderCommission,compensation:renderCompensation}[state.view])();
+        app.innerHTML=state.view==='policy'&&state.policyMode?renderPolicyForm():state.detail?renderDetail():({summary:renderSummary,policy:renderPolicy,exception:renderException,supplier:renderSupplier,carrier:renderCarrier,commission:renderCommission,compensation:renderCompensation}[state.view])();
     }
     function openModal(title,body,wide,footer) {
         overlay.innerHTML='<div class="settle-overlay" data-overlay="1"><div class="settle-dialog'+(wide?' wide':'')+'" role="dialog" aria-modal="true"><div class="settle-dialog-head"><strong>'+h(title)+'</strong>'+button('✕','close')+'</div><div class="settle-dialog-body">'+body+'</div><div class="settle-dialog-foot">'+(footer||button('关闭','close','',''))+'</div></div></div>';
@@ -648,8 +757,12 @@
             return;
         }
         if(act==='tab'){state.tab=id;state.query='';state.status='';state.supplierSelection=[];state.supplierPage=1;state.carrierSelection=[];state.carrierPage=1;state.policyMenu='';render();return;}
-        if(act==='search'){state.query=(document.getElementById('settle-query')||{}).value||'';state.status=(document.getElementById('settle-status')||{}).value||'';if(state.view==='supplier'){state.supplierDateFrom=(document.getElementById('supplier-date-from')||{}).value||'';state.supplierDateTo=(document.getElementById('supplier-date-to')||{}).value||'';state.supplierPage=1;}if(state.view==='carrier'){state.carrierDateFrom=(document.getElementById('carrier-date-from')||{}).value||'';state.carrierDateTo=(document.getElementById('carrier-date-to')||{}).value||'';state.carrierName=(document.getElementById('carrier-name')||{}).value||'';state.carrierPage=1;}if(state.view==='policy'){state.policyType=(document.getElementById('policy-type')||{}).value||'';state.policyStore=(document.getElementById('policy-store')||{}).value||'';}if(state.view==='summary'){state.summaryType=(document.getElementById('summary-type')||{}).value||'';state.summaryFrom=(document.getElementById('summary-from')||{}).value||'';state.summaryTo=(document.getElementById('summary-to')||{}).value||'';}if(state.view==='commission'){state.commissionType=(document.getElementById('commission-type')||{}).value||'';state.commissionRelated=(document.getElementById('commission-related')||{}).value||'';}if(state.view==='compensation'){state.compensationRelated=(document.getElementById('compensation-related')||{}).value||'';state.compensationPayee=(document.getElementById('compensation-payee')||{}).value||'';state.compensationType=(document.getElementById('compensation-type')||{}).value||'';}render();return;}
-        if(act==='reset'){state.query='';state.status='';state.supplierPage=1;state.supplierDateFrom='';state.supplierDateTo='';state.carrierPage=1;state.carrierDateFrom='';state.carrierDateTo='';state.carrierName='';state.policyType='';state.policyStore='';state.summaryType='';state.summaryFrom='';state.summaryTo='';state.commissionType='';state.commissionRelated='';state.compensationRelated='';state.compensationPayee='';state.compensationType='';render();return;}
+        if(act==='search'){state.query=(document.getElementById('settle-query')||{}).value||'';state.status=(document.getElementById('settle-status')||{}).value||'';if(state.view==='supplier'){state.supplierDateFrom=(document.getElementById('supplier-date-from')||{}).value||'';state.supplierDateTo=(document.getElementById('supplier-date-to')||{}).value||'';state.supplierPage=1;}if(state.view==='carrier'){state.carrierDateFrom=(document.getElementById('carrier-date-from')||{}).value||'';state.carrierDateTo=(document.getElementById('carrier-date-to')||{}).value||'';state.carrierName=(document.getElementById('carrier-name')||{}).value||'';state.carrierPage=1;}if(state.view==='policy'){state.policyType=(document.getElementById('policy-type')||{}).value||'';state.policyStore=(document.getElementById('policy-store')||{}).value||'';}if(state.view==='summary'){state.summaryType=(document.getElementById('summary-type')||{}).value||'';state.summaryFrom=(document.getElementById('summary-from')||{}).value||'';state.summaryTo=(document.getElementById('summary-to')||{}).value||'';}if(state.view==='commission'){state.commissionType=(document.getElementById('commission-type')||{}).value||'';state.commissionRelated=(document.getElementById('commission-related')||{}).value||'';}if(state.view==='compensation'){state.compensationRelated=(document.getElementById('compensation-related')||{}).value||'';state.compensationPayee=(document.getElementById('compensation-payee')||{}).value||'';state.compensationType=(document.getElementById('compensation-type')||{}).value||'';}if(state.view==='exception'){state.exceptionPayee=(document.getElementById('exception-payee')||{}).value||'';state.exceptionStatus=(document.getElementById('exception-status')||{}).value||'';state.exceptionPage=1;}render();return;}
+        if(act==='reset'){state.query='';state.status='';state.supplierPage=1;state.supplierDateFrom='';state.supplierDateTo='';state.carrierPage=1;state.carrierDateFrom='';state.carrierDateTo='';state.carrierName='';state.policyType='';state.policyStore='';state.summaryType='';state.summaryFrom='';state.summaryTo='';state.commissionType='';state.commissionRelated='';state.compensationRelated='';state.compensationPayee='';state.compensationType='';state.exceptionPayee='';state.exceptionStatus='';state.exceptionPage=1;render();return;}
+        if(act==='exception-page'){var next=Number(id);var total=Math.max(1,Math.ceil(exceptionRows().length/(state.exceptionPageSize||20)));if(next>=1&&next<=total){state.exceptionPage=next;render();}return;}
+        if(act==='exception-jump'){var jump=parseInt((document.getElementById('exception-jump')||{}).value,10);var jumpTotal=Math.max(1,Math.ceil(exceptionRows().length/(state.exceptionPageSize||20)));if(jump>=1&&jump<=jumpTotal)state.exceptionPage=jump;render();return;}
+        if(act==='exception-detail'){openExceptionDetail(id);return;}
+        if(act==='export-exception'){exportException();return;}
         if(act==='supplier-page'){state.supplierPage=Number(id);render();return;}
         if(act==='detail'){state.view==='policy'?openPolicyPage('detail',id):navigate(id);return;}
         if(act==='back'){navigate('');return;}
@@ -724,6 +837,7 @@
         if(e.target.dataset.selectSupplierAll!==undefined){var list=state.tab==='pending'?supplierPending:[];var visible=list.slice((state.supplierPage-1)*20,state.supplierPage*20).map(function(x){return x.id;});state.supplierSelection=e.target.checked?Array.from(new Set(state.supplierSelection.concat(visible))):state.supplierSelection.filter(function(id){return !visible.includes(id);});render();}
         if(e.target.dataset.selectCarrier){state.carrierSelection=e.target.checked?state.carrierSelection.concat(e.target.dataset.selectCarrier):state.carrierSelection.filter(function(id){return id!==e.target.dataset.selectCarrier;});render();}
         if(e.target.dataset.selectCarrierAll!==undefined){var clist=state.tab==='pending'?carrierPending:[];var cvisible=clist.slice((state.carrierPage-1)*20,state.carrierPage*20).map(function(x){return x.id;});state.carrierSelection=e.target.checked?Array.from(new Set(state.carrierSelection.concat(cvisible))):state.carrierSelection.filter(function(id){return !cvisible.includes(id);});render();}
+        if(e.target.id==='exception-page-size'){state.exceptionPageSize=Number(e.target.value)||20;state.exceptionPage=1;render();}
         if(e.target.dataset.policy && state.policyDraft){state.policyDraft[e.target.dataset.policy]=e.target.type==='checkbox'?e.target.checked:e.target.value;}
         if(e.target.name==='orderType'||e.target.name==='channel'){state.policyDraft[e.target.name]=e.target.value;render();}
     });

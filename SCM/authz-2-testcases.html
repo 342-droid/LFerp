@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>菜单权限 2.0 测试用例</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* 布局：顶部摘要（总数/优先级/执行进度）→ 测试数据准备 → 吸顶筛选栏 → 用例卡片列表；状态仅存本机 */
+:root {
+  --ground: #f5f6f4; --paper: #ffffff; --ink: #1d2422; --ink-2: #56605c; --rule: #dde2de;
+  --accent: #1f6f5c; --accent-soft: #e3f0ec;
+  --p0: #a3322b; --p0-soft: #f8e5e3; --p1: #9a5b0b; --p1-soft: #fbf0df; --p2: #4b5a72; --p2-soft: #e8edf4;
+  --pass: #1f6f5c; --fail: #a3322b; --block: #9a5b0b; --code-bg: #eef1ee;
+  --font-display: "Noto Serif SC", "Songti SC", serif;
+  --font-body: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ground: #141917; --paper: #1b2220; --ink: #e4ebe8; --ink-2: #9ba8a3; --rule: #2f3936;
+    --accent: #5fc2a6; --accent-soft: #1d3530;
+    --p0: #ef8a80; --p0-soft: #3a201e; --p1: #e0a34f; --p1-soft: #362a17; --p2: #9fb3d1; --p2-soft: #1f2836;
+    --pass: #5fc2a6; --fail: #ef8a80; --block: #e0a34f; --code-bg: #232c29;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #141917; --paper: #1b2220; --ink: #e4ebe8; --ink-2: #9ba8a3; --rule: #2f3936;
+  --accent: #5fc2a6; --accent-soft: #1d3530;
+  --p0: #ef8a80; --p0-soft: #3a201e; --p1: #e0a34f; --p1-soft: #362a17; --p2: #9fb3d1; --p2-soft: #1f2836;
+  --pass: #5fc2a6; --fail: #ef8a80; --block: #e0a34f; --code-bg: #232c29;
+}
+* { box-sizing: border-box; }
+body { background: var(--ground); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.7; padding-inline: 20px; padding-block: 0 64px; }
+.wrap { max-width: 1040px; margin: 0 auto; }
+header.top { padding-block: 36px 8px; display: grid; gap: 10px; }
+.eyebrow { font-size: 12px; letter-spacing: .14em; color: var(--accent); font-weight: 700; }
+h1 { font-family: var(--font-display); font-size: 30px; line-height: 1.3; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--font-display); font-size: 21px; margin: 36px 0 10px; text-wrap: balance; }
+.lead { margin: 0; max-width: 46em; }
+.summary { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.stat { background: var(--paper); border: 1px solid var(--rule); border-radius: 6px; padding: 8px 14px; min-width: 96px; }
+.stat b { display: block; font-size: 22px; font-variant-numeric: tabular-nums; line-height: 1.3; }
+.stat span { font-size: 12px; color: var(--ink-2); }
+.stat.p0 b { color: var(--p0); } .stat.p1 b { color: var(--p1); } .stat.p2 b { color: var(--p2); }
+.progress { margin-top: 12px; height: 8px; border-radius: 4px; background: var(--rule); overflow: hidden; display: flex; }
+.progress i { display: block; height: 100%; }
+.progress .ok { background: var(--pass); } .progress .ng { background: var(--fail); } .progress .bk { background: var(--block); }
+.progress-text { font-size: 13px; color: var(--ink-2); margin-top: 4px; font-variant-numeric: tabular-nums; }
+.table-wrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 6px; background: var(--paper); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--rule); }
+th { font-size: 12px; color: var(--ink-2); font-weight: 500; background: var(--ground); white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+code { font-family: var(--font-mono); font-size: .86em; background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+ul.rules { padding-left: 1.3em; margin: 8px 0; display: grid; gap: 4px; max-width: 50em; }
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 2; background: var(--ground); padding-block: 12px; border-bottom: 1px solid var(--rule); display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 28px; }
+.bar select, .bar input { font: inherit; font-size: 14px; color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: 6px; padding: 6px 10px; }
+.bar input { flex: 1 1 200px; min-width: 0; }
+.bar select:focus-visible, .bar input:focus-visible, .chip:focus-visible, .st button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.chip { font: inherit; font-size: 13px; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--rule); background: var(--paper); color: var(--ink-2); cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); font-weight: 500; }
+.count { font-size: 13px; color: var(--ink-2); margin-left: auto; font-variant-numeric: tabular-nums; }
+.group { margin-top: 22px; }
+.group > h3 { font-size: 16px; margin: 0 0 8px; display: flex; gap: 8px; align-items: baseline; }
+.group > h3 small { font-weight: 400; color: var(--ink-2); font-size: 13px; }
+.case { background: var(--paper); border: 1px solid var(--rule); border-left: 4px solid var(--rule); border-radius: 6px; padding: 12px 16px; margin-bottom: 10px; display: grid; gap: 8px; }
+.case.s-pass { border-left-color: var(--pass); } .case.s-fail { border-left-color: var(--fail); } .case.s-block { border-left-color: var(--block); }
+.case-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.case-id { font-family: var(--font-mono); font-size: 12px; color: var(--ink-2); }
+.case-title { font-weight: 700; flex: 1 1 260px; }
+.pill { font-size: 12px; padding: 1px 8px; border-radius: 999px; font-weight: 500; white-space: nowrap; }
+.pill.P0 { background: var(--p0-soft); color: var(--p0); } .pill.P1 { background: var(--p1-soft); color: var(--p1); } .pill.P2 { background: var(--p2-soft); color: var(--p2); }
+.pill.t { background: var(--code-bg); color: var(--ink-2); }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; font-size: 14px; }
+.grid3 h4 { margin: 0 0 2px; font-size: 12px; color: var(--ink-2); font-weight: 500; letter-spacing: .04em; }
+.grid3 p { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
+.st { display: flex; gap: 6px; flex-wrap: wrap; }
+.st button { font: inherit; font-size: 12px; padding: 3px 10px; border-radius: 4px; border: 1px solid var(--rule); background: var(--paper); color: var(--ink-2); cursor: pointer; }
+.st button[aria-pressed="true"].pass { background: var(--pass); border-color: var(--pass); color: var(--paper); }
+.st button[aria-pressed="true"].fail { background: var(--fail); border-color: var(--fail); color: var(--paper); }
+.st button[aria-pressed="true"].block { background: var(--block); border-color: var(--block); color: var(--paper); }
+.empty { padding: 24px; text-align: center; color: var(--ink-2); }
+footer { margin-top: 48px; font-size: 13px; color: var(--ink-2); border-top: 1px solid var(--rule); padding-top: 14px; }
+@media (max-width: 760px) { .grid3 { grid-template-columns: minmax(0, 1fr); } }
+</style>
+</head>
+<body>
+<nav class="authz2-docs" aria-label="权限2.0"><a href="authz-2-guide.html">使用说明</a><a href="authz-2-manual.html">操作手册</a><a href="authz-2-testcases.html" class="is-on" aria-current="page">测试用例</a></nav>
+<style>
+.authz2-docs{position:sticky;top:0;z-index:5;display:flex;gap:8px;align-items:center;margin:0 -20px;padding:10px 20px;background:#1f6f5c;font-family:"PingFang SC","Noto Sans SC",sans-serif}
+.authz2-docs a{color:#e7f6f1;text-decoration:none;font-size:13px;padding:4px 10px;border-radius:999px}
+.authz2-docs a.is-on{background:#fff;color:#1f6f5c;font-weight:700}
+.authz2-docs a:hover{background:rgba(255,255,255,.16)}
+.authz2-docs a.is-on:hover{background:#fff}
+</style>
+
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">OCTOPUS · 菜单权限 2.0 · 测试组</div>
+    <h1>菜单权限 2.0 测试用例</h1>
+    <p class="lead">覆盖本期全部改动：岗位授权与撤权、组织业务边界、能力目录、按钮多能力归属、原子与接口配置、切换组织与资源、合并后的回归点。<b>P0 全部通过才能上线</b>，P1 失败需评估，P2 可带问题上线。</p>
+    <div class="summary">
+      <div class="stat"><b>73</b><span>用例总数</span></div>
+      <div class="stat p0"><b>35</b><span>P0 阻断上线</span></div>
+      <div class="stat p1"><b>26</b><span>P1 重要</span></div>
+      <div class="stat p2"><b>12</b><span>P2 一般</span></div>
+    </div>
+    <div class="progress" aria-hidden="true"><i class="ok" id="bar-ok"></i><i class="ng" id="bar-ng"></i><i class="bk" id="bar-bk"></i></div>
+    <div class="progress-text" id="progress-text">执行进度加载中</div>
+  </header>
+
+  <h2>测试数据准备</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>代号</th><th>准备内容</th></tr></thead>
+    <tbody>
+      <tr><td>SA</td><td>超级管理员账号</td></tr>
+      <tr><td>O1 / O2</td><td>O1：平台根组织（各业务都开通）；O2：只开通门店经营 <code>STORE_MGMT</code>，不开通商城 <code>MALL_MGMT</code></td></tr>
+      <tr><td>X / Y</td><td>X =「门店经营管理」<code>commerce.store.manage</code>（STORE_MGMT）；Y =「商城上架管理」<code>commerce.mall.manage</code>（MALL_MGMT）</td></tr>
+      <tr><td>B1 / B2</td><td>B1：一个按钮原子，测试时在关联管理里让它同时属于 X 和 Y；B2：只属于 X 的按钮原子</td></tr>
+      <tr><td>R1 / RX / RY</td><td>R1：全局岗位，按用例要求勾能力；RX：只勾 X；RY：只勾 Y</td></tr>
+      <tr><td>U1 / U2 / U3 / U4</td><td>U1：在 O1、O2 都有岗位的非超管；U2：只在 O2 的非超管；U3：用于离线场景；U4：某仓库的作业成员（资源岗位）</td></tr>
+    </tbody>
+  </table></div>
+  <ul class="rules">
+    <li>用非超管账号验证权限。<b>超级管理员不受任何权限限制</b>，用它测不出漏配。</li>
+    <li>「立即生效」指对方<b>不重新登录</b>，下一次点击或刷新即按新权限。</li>
+    <li>日志在 system-core：重建看 <code>权限包定向重建完成</code>，按钮被拦看 <code>SUPPRESSED_BY_CAPABILITY</code>，组织边界看 <code>SUPPRESSED_BY_ORG_BOUNDARY</code>。</li>
+    <li>组织能力开关暂无页面，用接口 <code>POST /system-core/v1/org-capability/toggle</code>（参数 orgId、capabilityCode、enabled）。</li>
+    <li>标记的执行结果只保存在你自己的浏览器里，不会同步给其他人；最终结果请登记到禅道。</li>
+  </ul>
+
+  <div class="bar" role="search">
+    <select id="f-module" aria-label="按模块筛选"><option value="">全部模块</option></select>
+    <button type="button" class="chip" data-pri="P0" aria-pressed="false">P0</button>
+    <button type="button" class="chip" data-pri="P1" aria-pressed="false">P1</button>
+    <button type="button" class="chip" data-pri="P2" aria-pressed="false">P2</button>
+    <select id="f-status" aria-label="按执行结果筛选">
+      <option value="">全部结果</option><option value="none">未执行</option><option value="pass">通过</option><option value="fail">失败</option><option value="block">阻塞</option>
+    </select>
+    <input id="f-q" type="search" placeholder="搜索编号、标题、步骤或预期" aria-label="搜索">
+    <span class="count" id="count"></span>
+  </div>
+
+  <div id="list"></div>
+
+  <footer>与 <a href="authz-2-testcases.csv">authz-2-testcases.csv</a> 内容一致，CSV 可用 Excel 打开或导入禅道。相关文档：<a href="authz-2-guide.html">《菜单权限 2.0 使用说明》</a><a href="authz-2-manual.html">《菜单权限 2.0 操作手册》</a>。</footer>
+</div>
+
+<script>
+(function () {
+  var CASES = [{"id": "AUTHZ-A01", "module": "上线与环境", "title": "启动后权限快照发布成功", "priority": "P0", "type": "部署", "pre": "目标环境 system-core 已开启 FLYWAY_ENABLED=true", "steps": "1. 部署后查看 system-core 启动日志", "expect": "出现 [ApiPermission] 配置快照已发布，版本=… 启用原子=… 受控接口=…；无 doesn't exist 报错"}, {"id": "AUTHZ-A02", "module": "上线与环境", "title": "各服务端点清单与快照加载", "priority": "P0", "type": "部署", "pre": "commerce-core、fulfillment-core、settlement-core 已部署新版本", "steps": "1. 分别查看各服务启动日志", "expect": "每个服务出现 端点清单已发布，service=…；非 system-core 服务出现 接口权限配置快照已加载，版本号与 system-core 一致"}, {"id": "AUTHZ-A03", "module": "上线与环境", "title": "迁移脚本执行且可重复", "priority": "P0", "type": "部署", "pre": "测试库为生产数据副本", "steps": "1. 首次启动 system-core\n2. 不改任何数据，再次重启", "expect": "flyway_schema_history 中 V20261005215442 等本期脚本 success=1；第二次启动无报错；sys_capability_atom 行数两次相同"}, {"id": "AUTHZ-A04", "module": "上线与环境", "title": "归属回填与原有一致", "priority": "P0", "type": "部署", "pre": "迁移已执行", "steps": "1. 抽查 10 个原子：对比 sys_permission_atom.parent_capability_code 与 sys_capability_atom 中该原子的能力", "expect": "每个原子在关联表中至少有一行，且包含原 parent_capability_code 的值"}, {"id": "AUTHZ-A05", "module": "上线与环境", "title": "启动自检无失效归属", "priority": "P1", "type": "部署", "pre": "迁移与种子已执行", "steps": "1. 查看启动日志中 [Capability] 相关行", "expect": "出现 原子归属校验通过，无失效归属；不应出现 所属能力全部不存在或已停用 的 ERROR"}, {"id": "AUTHZ-A06", "module": "上线与环境", "title": "上线前后同一岗位权限一致", "priority": "P0", "type": "回归", "pre": "上线前记录 3 个典型岗位（如财务、门店店长、仓管）的账号能看到的菜单与能执行的操作", "steps": "1. 上线并强制全员下线\n2. 用同样账号重新登录，逐项核对", "expect": "菜单、按钮、可执行操作与上线前一致；如有差异，确认是否属于已知的历史遗留按钮（如 JOB_* 岗位的仓储按钮）"}, {"id": "AUTHZ-B01", "module": "岗位授权", "title": "勾选能力后获得对应菜单", "priority": "P0", "type": "功能", "pre": "账号 U1 绑定岗位 R1，R1 未勾选「门店经营管理」", "steps": "1. 管理员在 系统管理 › 角色管理 编辑 R1，「能力授权(第一步)」勾选「门店经营管理」并保存\n2. U1 刷新页面", "expect": "U1 无需重新登录即看到门店相关菜单；接口可正常调用"}, {"id": "AUTHZ-B02", "module": "岗位授权", "title": "第二步只列出已勾能力下的按钮", "priority": "P1", "type": "功能", "pre": "R1 只勾了「门店经营管理」", "steps": "1. 编辑 R1，打开「补充高级权限（第二步）」", "expect": "只出现「门店经营管理」分组；未勾选任何能力时显示「请先在“能力授权(第一步)”中选择能力」"}, {"id": "AUTHZ-B03", "module": "岗位授权", "title": "勾了按钮但没勾所属能力不生效", "priority": "P0", "type": "安全", "pre": "按钮 B2 只属于「门店经营管理」；R1 勾了 B2 但取消了「门店经营管理」", "steps": "1. 保存 R1\n2. U1 刷新，尝试使用 B2 对应操作", "expect": "B2 不显示；直接调用其接口返回 403；system-core 日志出现 SUPPRESSED_BY_CAPABILITY 且包含 B2 的权限码"}, {"id": "AUTHZ-B04", "module": "岗位授权", "title": "取消能力后按钮随之失效", "priority": "P0", "type": "安全", "pre": "R1 勾了「门店经营管理」和其下按钮 B2，U1 在线", "steps": "1. 编辑 R1 取消「门店经营管理」并保存\n2. U1 不重新登录，直接再次操作 B2", "expect": "下一次请求即 403，按钮不再显示"}, {"id": "AUTHZ-B05", "module": "岗位授权", "title": "保存后岗位能力真实清空", "priority": "P1", "type": "功能", "pre": "R1 持有若干能力", "steps": "1. 编辑 R1，「能力授权(第一步)」全部取消勾选并保存\n2. 重新打开 R1", "expect": "能力授权为 0 项；持有 R1 的在线用户下一次请求失去这些能力"}, {"id": "AUTHZ-B06", "module": "岗位授权", "title": "停用能力不在授权页出现", "priority": "P2", "type": "功能", "pre": "某能力在能力目录中已停用", "steps": "1. 编辑任一岗位，查看「能力授权(第一步)」", "expect": "已停用的能力不可新勾选；已勾选的显示状态清楚"}, {"id": "AUTHZ-C01", "module": "撤权即时生效", "title": "给在线用户摘岗位立即生效", "priority": "P0", "type": "安全", "pre": "U1 在线，持有岗位 R1", "steps": "1. 管理员在用户管理中移除 U1 的 R1 并保存\n2. U1 不重新登录直接操作", "expect": "下一次请求即按无 R1 的权限判断；system-core 日志出现 权限包定向重建完成: trigger=userBinding:<U1 的 userId>"}, {"id": "AUTHZ-C02", "module": "撤权即时生效", "title": "给在线用户新增岗位立即生效", "priority": "P1", "type": "功能", "pre": "U1 在线，未持有 R2", "steps": "1. 给 U1 增加 R2 并保存\n2. U1 刷新页面", "expect": "无需重新登录即获得 R2 的菜单与操作"}, {"id": "AUTHZ-C03", "module": "撤权即时生效", "title": "停用岗位立即生效", "priority": "P0", "type": "安全", "pre": "U1 在线，持有 R1", "steps": "1. 在角色管理列表把 R1 状态关闭\n2. U1 直接操作 R1 带来的功能", "expect": "下一次请求即 403；R1 勾选的菜单与按钮也不再生效；日志出现 trigger=role:<R1 的 id>"}, {"id": "AUTHZ-C04", "module": "撤权即时生效", "title": "重新启用岗位恢复权限", "priority": "P1", "type": "功能", "pre": "R1 已停用", "steps": "1. 重新打开 R1 状态\n2. U1 刷新", "expect": "R1 的权限恢复，无需重新登录"}, {"id": "AUTHZ-C05", "module": "撤权即时生效", "title": "停用能力立即撤权", "priority": "P0", "type": "安全", "pre": "U1 通过 R1 持有能力「X」，X 名下没有只属于它的按钮", "steps": "1. 在 能力目录 › 标准能力 停用 X\n2. U1 直接调用 X 下的接口", "expect": "下一次请求即 403；日志出现对持有 X 的岗位的重建记录"}, {"id": "AUTHZ-C06", "module": "撤权即时生效", "title": "账号移出组织后旧权限清空", "priority": "P0", "type": "安全", "pre": "U1 在线，当前组织 O1", "steps": "1. 管理员把 U1 移出 O1，或把 U1 在 O1 的成员状态停用\n2. U1 直接操作", "expect": "下一次请求即 403；日志出现 账号已失效或已不在组织在岗，清除权限包"}, {"id": "AUTHZ-C07", "module": "撤权即时生效", "title": "离线用户变更后登录即为新权限", "priority": "P2", "type": "功能", "pre": "U3 当前未登录", "steps": "1. 修改 U3 的岗位\n2. U3 登录", "expect": "登录后直接是新权限；日志中该次重建记为离线跳过"}, {"id": "AUTHZ-D01", "module": "组织业务边界", "title": "同一岗位在未开通业务的组织自动收窄", "priority": "P0", "type": "安全", "pre": "全局岗位 R1 勾选「门店经营管理」(STORE_MGMT) 与「商城上架管理」(MALL_MGMT)；组织 O2 只开通 STORE_MGMT；U2 在 O2 持有 R1", "steps": "1. U2 登录 O2\n2. 查看菜单并调用商城上架相关接口", "expect": "只看到门店相关功能；商城上架接口 403；日志出现 SUPPRESSED_BY_ORG_BOUNDARY"}, {"id": "AUTHZ-D02", "module": "组织业务边界", "title": "组织开通业务后权限放大", "priority": "P1", "type": "功能", "pre": "同上，O2 未开通 MALL_MGMT", "steps": "1. 超管调用 POST /system-core/v1/org-capability/toggle {orgId:O2, capabilityCode:\"MALL_MGMT\", enabled:true}\n2. U2 刷新", "expect": "U2 无需重新登录即看到商城上架功能"}, {"id": "AUTHZ-D03", "module": "组织业务边界", "title": "组织关闭业务后立即收回", "priority": "P0", "type": "安全", "pre": "O2 已开通 MALL_MGMT，U2 在线", "steps": "1. 调用 toggle 把 O2 的 MALL_MGMT 关闭\n2. U2 直接操作商城上架", "expect": "下一次请求即 403；O2 的下级组织同样收回（_MGMT 类能力会向下继承）"}, {"id": "AUTHZ-D04", "module": "组织业务边界", "title": "门店仍营业时不能关闭门店业务", "priority": "P2", "type": "功能", "pre": "组织下有营业中的门店", "steps": "1. 调用 toggle 关闭该组织的 STORE_MGMT", "expect": "被拒绝，提示 该组织下有营业中的门店，无法关闭门店管理能力"}, {"id": "AUTHZ-E01", "module": "标准能力维护", "title": "新增标准能力", "priority": "P1", "type": "功能", "pre": "持有「权限管理」能力的管理员", "steps": "1. 能力目录 › 标准能力 › 新增，填写 code、中文名、所属域、业务边界，保存", "expect": "保存成功，提示所有服务下一个请求即生效；岗位授权页出现该能力"}, {"id": "AUTHZ-E02", "module": "标准能力维护", "title": "标准能力数量红线", "priority": "P2", "type": "边界", "pre": "启用中的标准能力已达 54 项", "steps": "1. 再新增一个启用的标准能力", "expect": "被拒绝，提示已达红线 54 项；已停用的能力不计入数量"}, {"id": "AUTHZ-E03", "module": "标准能力维护", "title": "编辑已停用能力不会被重新启用", "priority": "P0", "type": "功能", "pre": "能力 X 已停用", "steps": "1. 在能力目录打开 X 的编辑弹窗\n2. 只修改中文名，保存", "expect": "编辑弹窗中的「启用」开关显示为关；保存后 X 仍为停用，列表状态为停用"}, {"id": "AUTHZ-E04", "module": "标准能力维护", "title": "列表状态显示正确", "priority": "P1", "type": "功能", "pre": "目录中同时有启用与停用的能力", "steps": "1. 打开 能力目录 › 标准能力", "expect": "启用的显示「启用」，停用的显示「停用」，与实际一致"}, {"id": "AUTHZ-E05", "module": "标准能力维护", "title": "停用：有只属于本能力的按钮时拒绝", "priority": "P0", "type": "功能", "pre": "能力 X 名下有按钮只属于 X", "steps": "1. 在标准能力列表点「停用」X", "expect": "确认框说明影响；确认后被拒绝，提示停用后有 N 个原子将没有任何启用中的所属能力，并带出原子名"}, {"id": "AUTHZ-E06", "module": "标准能力维护", "title": "停用：按钮还属于其他启用能力时放行", "priority": "P0", "type": "功能", "pre": "能力 X 名下的按钮全部同时属于另一个启用中的能力 Y", "steps": "1. 停用 X", "expect": "停用成功；只靠 X 拿到这些按钮的岗位失去按钮，同时持有 Y 的岗位不受影响"}, {"id": "AUTHZ-E07", "module": "标准能力维护", "title": "通过编辑弹窗停用也走同一校验", "priority": "P0", "type": "安全", "pre": "能力 X 名下有只属于它的按钮", "steps": "1. 打开 X 的编辑弹窗，把「启用」关掉并保存", "expect": "被拒绝，提示与停用按钮一致；X 保持启用"}, {"id": "AUTHZ-F01", "module": "组织能力维护", "title": "非超管不能新增组织能力", "priority": "P0", "type": "安全", "pre": "账号持有「权限管理」能力但不是超级管理员", "steps": "1. 能力目录 › 组织能力 › 新增并保存", "expect": "被拒绝，提示 仅超级管理员可新增、修改或停用组织能力"}, {"id": "AUTHZ-F02", "module": "组织能力维护", "title": "非超管不能停用组织能力", "priority": "P0", "type": "安全", "pre": "同上", "steps": "1. 在组织能力列表点停用", "expect": "被拒绝，提示同上"}, {"id": "AUTHZ-F03", "module": "组织能力维护", "title": "超管新增组织能力自动开通给平台根组织", "priority": "P0", "type": "功能", "pre": "超级管理员登录", "steps": "1. 新增组织能力 NEW_BIZ（编码不以 _MGMT 结尾）\n2. 查看平台根组织的组织能力", "expect": "平台根组织已开通 NEW_BIZ；下级组织未开通"}, {"id": "AUTHZ-F04", "module": "组织能力维护", "title": "新组织能力可开通到其他组织", "priority": "P1", "type": "功能", "pre": "NEW_BIZ 已新增", "steps": "1. 调用 toggle 为组织 O2 开通 NEW_BIZ", "expect": "开通成功；挂在 NEW_BIZ 下的标准能力在 O2 生效"}, {"id": "AUTHZ-F05", "module": "组织能力维护", "title": "停用的组织能力不能再开通", "priority": "P2", "type": "功能", "pre": "组织能力 OLD_BIZ 已停用", "steps": "1. 调用 toggle 为某组织开通 OLD_BIZ", "expect": "被拒绝，提示 组织能力不合法"}, {"id": "AUTHZ-F06", "module": "组织能力维护", "title": "_MGMT 结尾的组织能力向下继承", "priority": "P1", "type": "功能", "pre": "超管新增 NEW_MGMT", "steps": "1. 新增后查看平台根组织的任一下级组织的有效组织能力", "expect": "下级组织也拥有 NEW_MGMT（继承）。用于让测试确认这是预期行为"}, {"id": "AUTHZ-F07", "module": "组织能力维护", "title": "编辑已停用组织能力不会被重新启用", "priority": "P1", "type": "功能", "pre": "某组织能力已停用", "steps": "1. 打开其编辑弹窗，修改名称后保存", "expect": "「启用」开关回显为关，保存后仍为停用"}, {"id": "AUTHZ-G01", "module": "按钮多能力归属", "title": "关联原子是追加归属", "priority": "P0", "type": "功能", "pre": "按钮 B1 当前只属于「门店经营管理」(X)", "steps": "1. 能力目录 › 打开「商城上架管理」(Y) 的关联管理 › 原子权限 › 关联原子，勾选 B1 并确认", "expect": "提示已关联；B1 同时出现在 X 和 Y 的原子列表；在 X 的列表里「同时属于」一列显示 Y"}, {"id": "AUTHZ-G02", "module": "按钮多能力归属", "title": "持有任一所属能力都能使用按钮", "priority": "P0", "type": "功能", "pre": "B1 属于 X 和 Y；岗位 RX 只勾 X 并勾 B1，岗位 RY 只勾 Y 并勾 B1", "steps": "1. 分别用持有 RX、RY 的账号使用 B1", "expect": "两个账号都能看到并使用 B1"}, {"id": "AUTHZ-G03", "module": "按钮多能力归属", "title": "取消一个能力时按钮保留（另一能力仍持有）", "priority": "P0", "type": "功能", "pre": "B1 属于 X 和 Y；岗位 R 同时勾了 X、Y 和 B1", "steps": "1. 编辑 R，取消 X，点保存", "expect": "保存前弹出提示，列出 B1 等仍通过其它能力保留的按钮；确认后保存，持有 R 的账号仍能使用 B1"}, {"id": "AUTHZ-G04", "module": "按钮多能力归属", "title": "两个能力都取消后按钮收回", "priority": "P0", "type": "安全", "pre": "同上", "steps": "1. 编辑 R，取消 X 和 Y 并保存", "expect": "持有 R 的账号下一次请求失去 B1"}, {"id": "AUTHZ-G05", "module": "按钮多能力归属", "title": "移出本能力", "priority": "P0", "type": "功能", "pre": "B1 属于 X 和 Y", "steps": "1. 在 X 的关联管理里对 B1 点「移出」并确认", "expect": "B1 不再出现在 X 的列表；只靠 X 拿到 B1 的岗位立即失去它；持有 Y 的岗位不受影响"}, {"id": "AUTHZ-G06", "module": "按钮多能力归属", "title": "唯一所属能力不能移出", "priority": "P0", "type": "功能", "pre": "B2 只属于 X", "steps": "1. 在 X 的关联管理里查看 B2 的操作", "expect": "「移出」按钮置灰，悬停提示 这是它唯一的所属能力，移出会让它悬空；请改挂"}, {"id": "AUTHZ-G07", "module": "按钮多能力归属", "title": "改挂到另一个能力", "priority": "P1", "type": "功能", "pre": "B2 只属于 X", "steps": "1. 对 B2 点「改挂」，选择 Y 并确认", "expect": "B2 从 X 移出、出现在 Y 下；只持有 X 的岗位失去 B2，持有 Y 的岗位获得 B2"}, {"id": "AUTHZ-G08", "module": "按钮多能力归属", "title": "原子配置页多选所属能力", "priority": "P1", "type": "功能", "pre": "进入 系统管理 › 原子权限配置", "steps": "1. 新增原子，「所属能力」选择两个能力，选接口后保存\n2. 再编辑该原子", "expect": "保存成功；列表「所属能力」列显示两个能力；编辑时回显两个"}, {"id": "AUTHZ-G09", "module": "按钮多能力归属", "title": "所属能力不能为空", "priority": "P1", "type": "功能", "pre": "同上", "steps": "1. 新增原子时不选所属能力直接保存", "expect": "前端提示 请至少选择一个所属能力，未发出保存请求"}, {"id": "AUTHZ-G10", "module": "按钮多能力归属", "title": "第二步按钮出现在每个所属能力分组", "priority": "P1", "type": "功能", "pre": "B1 属于 X 和 Y；编辑岗位时勾选了 X、Y", "steps": "1. 打开「补充高级权限（第二步）」", "expect": "B1 同时出现在 X、Y 两个分组，卡片下方显示 也属于：…；在一个分组勾选后另一个分组同步为已勾选"}, {"id": "AUTHZ-G11", "module": "按钮多能力归属", "title": "按钮分组以原子归属为准", "priority": "P2", "type": "回归", "pre": "某按钮在菜单绑定表挂在能力 Z，原子归属是 Y", "steps": "1. 编辑岗位勾选 Y 与 Z，打开第二步", "expect": "该按钮显示在 Y 分组下，不再显示在 Z 分组（这是本期的预期调整）"}, {"id": "AUTHZ-G12", "module": "按钮多能力归属", "title": "收归候选原子为追加归属", "priority": "P2", "type": "功能", "pre": "某菜单下有已存在于目录、属于 X 的按钮原子", "steps": "1. 在 Y 的关联管理 › 菜单与按钮 › 候选原子，勾选该原子并收归", "expect": "该原子同时属于 X 和 Y，原归属 X 保留"}, {"id": "AUTHZ-H01", "module": "原子权限配置与接口核对", "title": "接口只能从清单中选择", "priority": "P1", "type": "功能", "pre": "原子权限配置 › 新增原子", "steps": "1. 打开「选择接口」", "expect": "接口来自系统扫描清单，可按路径和服务筛选；不能手填路径"}, {"id": "AUTHZ-H02", "module": "原子权限配置与接口核对", "title": "非法接口被后端拒绝", "priority": "P1", "type": "安全", "pre": "使用接口工具直接调用保存接口", "steps": "1. 调用 POST /system-core/v1/api-permission/atom/save，apis 中填一个不存在的路径", "expect": "被拒绝，提示 以下接口不是已注册的端点：…"}, {"id": "AUTHZ-H03", "module": "原子权限配置与接口核对", "title": "接口核对：未覆盖接口", "priority": "P0", "type": "功能", "pre": "存在一个需要鉴权但没有被任何原子覆盖的接口", "steps": "1. 打开「接口核对」页签，勾选只看缺配置", "expect": "该接口出现在列表；用非超管账号调用它返回 403"}, {"id": "AUTHZ-H04", "module": "原子权限配置与接口核对", "title": "配置后立即生效", "priority": "P0", "type": "功能", "pre": "同上", "steps": "1. 为该接口新建原子并挂到 X 下保存\n2. 持有 X 的账号再次调用该接口", "expect": "无需重启、无需重新登录即可调用；接口核对中该接口不再显示为缺配置"}, {"id": "AUTHZ-H05", "module": "原子权限配置与接口核对", "title": "停用原子立即生效", "priority": "P1", "type": "安全", "pre": "原子 A1 覆盖接口 P，账号仅通过 A1 获得 P", "steps": "1. 在原子权限配置中停用 A1\n2. 账号再次调用 P", "expect": "返回 403"}, {"id": "AUTHZ-H06", "module": "原子权限配置与接口核对", "title": "删除原子同时删除归属", "priority": "P2", "type": "功能", "pre": "原子 A2 属于 X 和 Y", "steps": "1. 删除 A2\n2. 查看 X、Y 的关联管理", "expect": "A2 不再出现在任何能力下"}, {"id": "AUTHZ-I01", "module": "切换组织 / 资源", "title": "切换组织后按新组织权限判断", "priority": "P0", "type": "功能", "pre": "U1 在 O1 与 O2 都有岗位，O2 未开通 MALL_MGMT", "steps": "1. U1 从 O1 切换到 O2", "expect": "菜单立即按 O2 重建；商城上架功能不可用"}, {"id": "AUTHZ-I02", "module": "切换组织 / 资源", "title": "切换门店 / 仓库后不越过组织边界", "priority": "P0", "type": "安全", "pre": "U2 在 O2（未开通 MALL_MGMT）下有多个门店资源", "steps": "1. U2 在页面顶部切换当前门店\n2. 调用商城上架相关接口", "expect": "仍为 403；切换资源不会让被组织边界拦掉的能力恢复"}, {"id": "AUTHZ-I03", "module": "切换组织 / 资源", "title": "切换资源后带上该资源岗位的权限", "priority": "P1", "type": "功能", "pre": "U4 是某仓库的作业成员（资源岗位）", "steps": "1. 切换到该仓库", "expect": "获得该仓库岗位的作业权限；切到其他仓库后失去"}, {"id": "AUTHZ-J01", "module": "合并后改造点回归", "title": "审批：有能力的审批人可以审批", "priority": "P0", "type": "回归", "pre": "某审批节点按能力指定审批人；账号持有该能力", "steps": "1. 在审批中心打开该待办\n2. 审批通过", "expect": "可见待办、按钮可点、审批成功"}, {"id": "AUTHZ-J02", "module": "合并后改造点回归", "title": "审批：撤掉能力后不能审批", "priority": "P0", "type": "安全", "pre": "同上", "steps": "1. 撤掉该账号的对应能力\n2. 再次打开待办", "expect": "审批按钮不可用；直接提交审批被拒"}, {"id": "AUTHZ-J03", "module": "合并后改造点回归", "title": "审批：按能力指派的单据可见性", "priority": "P1", "type": "回归", "pre": "单据指派给持有某能力、且在单据所属组织或其上级组织的人", "steps": "1. 分别用符合与不符合条件的账号查看待办列表", "expect": "符合条件的账号能看到，不符合的看不到"}, {"id": "AUTHZ-J04", "module": "合并后改造点回归", "title": "直播大屏可见范围", "priority": "P1", "type": "回归", "pre": "账号持有直播管理能力且数据范围为全部", "steps": "1. 打开直播大屏\n2. 撤掉直播管理能力后再看", "expect": "有能力时可见整场数据；撤掉后不可见"}, {"id": "AUTHZ-J05", "module": "合并后改造点回归", "title": "直播推广门店范围", "priority": "P1", "type": "回归", "pre": "账号持有门店管理能力并有当前门店", "steps": "1. 在直播推广中选择门店", "expect": "只能看到有权限的门店；撤掉门店能力后列表为空"}, {"id": "AUTHZ-J06", "module": "合并后改造点回归", "title": "进件审核按钮", "priority": "P1", "type": "回归", "pre": "账号持有门店管理能力", "steps": "1. 打开 审核中心 › 进件审核 中一条待提交草稿", "expect": "归属 BD 本人或超管可见提交与编辑按钮；无能力时按钮不显示"}, {"id": "AUTHZ-J07", "module": "合并后改造点回归", "title": "业务标签权限", "priority": "P2", "type": "回归", "pre": "业务标签按能力控制编辑", "steps": "1. 分别用有、无对应能力的账号编辑业务标签", "expect": "有能力可编辑；无能力被拒"}, {"id": "AUTHZ-J08", "module": "合并后改造点回归", "title": "运费报表组织收窄", "priority": "P2", "type": "回归", "pre": "合作组织账号仅凭物流配置能力进入；另一账号持有订单管理能力", "steps": "1. 两个账号分别打开运费报表", "expect": "订单管理账号看到租户口径数据；合作组织账号只看到本结算组织数据"}, {"id": "AUTHZ-K01", "module": "会话管理", "title": "非超管不能强制全员下线", "priority": "P0", "type": "安全", "pre": "非超级管理员账号", "steps": "1. 打开 系统管理 › 会话管理 执行强制下线", "expect": "被拒绝，提示 仅 SUPER_ADMIN 可强制全员下线"}, {"id": "AUTHZ-K02", "module": "会话管理", "title": "超管强制全员下线", "priority": "P1", "type": "功能", "pre": "测试环境，有多个在线账号", "steps": "1. 超管执行强制全员下线", "expect": "结果显示扫到会话数、成功下线数、失败列表；所有账号（含执行人）需重新登录"}, {"id": "AUTHZ-L01", "module": "边界与兼容", "title": "超级管理员不受权限限制", "priority": "P0", "type": "回归", "pre": "超管账号", "steps": "1. 访问任意菜单与接口，包括未开通业务的组织", "expect": "全部可用，不出现 403"}, {"id": "AUTHZ-L02", "module": "边界与兼容", "title": "403 提示带出缺少的能力", "priority": "P1", "type": "体验", "pre": "非超管账号访问无权限接口", "steps": "1. 触发一次 403", "expect": "提示中能看到缺少的能力码或名称，可据此在能力目录查找"}, {"id": "AUTHZ-L03", "module": "边界与兼容", "title": "代码写死能力码的接口不受配置页影响", "priority": "P2", "type": "回归", "pre": "某接口在接口核对中显示为代码写死（DECLARED）", "steps": "1. 尝试为该接口配置原子并保存\n2. 用仅有该原子的账号调用", "expect": "该接口的权限仍按代码中声明的能力码判断，配置的原子对它不生效"}, {"id": "AUTHZ-L04", "module": "边界与兼容", "title": "资源岗位不受能力 ∩ 按钮规则影响", "priority": "P1", "type": "回归", "pre": "仓库作业员通过资源岗位获得权限，组织岗位没有对应能力", "steps": "1. 作业员切到仓库执行作业", "expect": "作业正常，不会因组织岗位没勾能力而被拦"}, {"id": "AUTHZ-L05", "module": "边界与兼容", "title": "Redis 短暂不可用时不放行", "priority": "P2", "type": "安全", "pre": "测试环境可短暂断开 Redis", "steps": "1. 断开 Redis 后用非超管账号调用受控接口", "expect": "返回 403 而不是放行；恢复后正常"}];
+  var MODULES = ["上线与环境", "岗位授权", "撤权即时生效", "组织业务边界", "标准能力维护", "组织能力维护", "按钮多能力归属", "原子权限配置与接口核对", "切换组织 / 资源", "合并后改造点回归", "会话管理", "边界与兼容"];
+  var KEY = 'authz2-testcase-status';
+  var status = {};
+  try { status = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { status = {}; }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(status)); } catch (e) {} }
+
+  var fModule = document.getElementById('f-module');
+  var fStatus = document.getElementById('f-status');
+  var fQ = document.getElementById('f-q');
+  var chips = Array.prototype.slice.call(document.querySelectorAll('.chip'));
+  MODULES.forEach(function (m) { var o = document.createElement('option'); o.value = m; o.textContent = m; fModule.appendChild(o); });
+
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+  function progress() {
+    var n = CASES.length, ok = 0, ng = 0, bk = 0, p0fail = 0;
+    CASES.forEach(function (c) {
+      var s = status[c.id];
+      if (s === 'pass') ok++; else if (s === 'fail') { ng++; if (c.priority === 'P0') p0fail++; } else if (s === 'block') bk++;
+    });
+    document.getElementById('bar-ok').style.width = (ok / n * 100) + '%';
+    document.getElementById('bar-ng').style.width = (ng / n * 100) + '%';
+    document.getElementById('bar-bk').style.width = (bk / n * 100) + '%';
+    document.getElementById('progress-text').textContent =
+      '已执行 ' + (ok + ng + bk) + ' / ' + n + '　通过 ' + ok + '　失败 ' + ng + '（其中 P0 ' + p0fail + '）　阻塞 ' + bk;
+  }
+
+  function render() {
+    var mod = fModule.value, st = fStatus.value, q = fQ.value.trim().toLowerCase();
+    var pris = chips.filter(function (c) { return c.getAttribute('aria-pressed') === 'true'; }).map(function (c) { return c.dataset.pri; });
+    var shown = CASES.filter(function (c) {
+      if (mod && c.module !== mod) return false;
+      if (pris.length && pris.indexOf(c.priority) < 0) return false;
+      var s = status[c.id] || 'none';
+      if (st && s !== st) return false;
+      if (q && (c.id + c.title + c.pre + c.steps + c.expect).toLowerCase().indexOf(q) < 0) return false;
+      return true;
+    });
+    var list = document.getElementById('list');
+    list.textContent = '';
+    document.getElementById('count').textContent = '显示 ' + shown.length + ' / ' + CASES.length;
+    if (!shown.length) { list.appendChild(el('div', 'empty', '没有符合条件的用例')); return; }
+    MODULES.forEach(function (m) {
+      var items = shown.filter(function (c) { return c.module === m; });
+      if (!items.length) return;
+      var g = el('section', 'group');
+      var h = el('h3', null, m); h.appendChild(el('small', null, items.length + ' 条')); g.appendChild(h);
+      items.forEach(function (c) {
+        var s = status[c.id] || 'none';
+        var card = el('article', 'case' + (s !== 'none' ? ' s-' + s : ''));
+        var head = el('div', 'case-head');
+        head.appendChild(el('span', 'case-id', c.id));
+        head.appendChild(el('span', 'case-title', c.title));
+        head.appendChild(el('span', 'pill ' + c.priority, c.priority));
+        head.appendChild(el('span', 'pill t', c.type));
+        card.appendChild(head);
+        var grid = el('div', 'grid3');
+        [['前置条件', c.pre], ['操作步骤', c.steps], ['预期结果', c.expect]].forEach(function (p) {
+          var d = el('div'); d.appendChild(el('h4', null, p[0])); d.appendChild(el('p', null, p[1])); grid.appendChild(d);
+        });
+        card.appendChild(grid);
+        var bar = el('div', 'st');
+        [['pass', '通过'], ['fail', '失败'], ['block', '阻塞']].forEach(function (b) {
+          var btn = el('button', b[0], b[1]); btn.type = 'button';
+          btn.setAttribute('aria-pressed', s === b[0] ? 'true' : 'false');
+          btn.addEventListener('click', function () {
+            if (status[c.id] === b[0]) delete status[c.id]; else status[c.id] = b[0];
+            save(); progress(); render();
+          });
+          bar.appendChild(btn);
+        });
+        card.appendChild(bar);
+        g.appendChild(card);
+      });
+      list.appendChild(g);
+    });
+  }
+
+  fModule.addEventListener('change', render);
+  fStatus.addEventListener('change', render);
+  fQ.addEventListener('input', render);
+  chips.forEach(function (c) { c.addEventListener('click', function () {
+    c.setAttribute('aria-pressed', c.getAttribute('aria-pressed') === 'true' ? 'false' : 'true'); render();
+  }); });
+  progress(); render();
+})();
+</script>
+
+</body>
+</html>

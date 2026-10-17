@@ -1,7 +1,7 @@
 /**
  * 直播中控发送现金红包后的 C 端表现。
  * 有预热：左侧红包图标走倒计时，倒计时结束才弹出红包雨。
- * 无预热或预热已结束：直接弹出。点击「领取」时若未授权微信支付收款，先出授权半屏；同意后金额自动转入微信，并播放金币落入账户。
+ * 无预热或预热已结束：直接弹出。领取条件不满足时，点击红包入口或倒计时结束只出提示，不打开领取层。点击「领取」时若未授权微信支付收款，先出授权半屏；同意后金额自动转入微信，并播放金币落入账户。
  * 文案用本场现金红包业务说法，不照搬参考图外文。
  * 验收开关：跟随中控 / 预热中 / 可领取 / 已领取 / 未抢到 / 未发放。
  * 未抢到：点领取后不转微信、不落金币，提示留下等下一轮。
@@ -212,65 +212,8 @@
     else if (phase === 'claim') time.textContent = '领取';
   }
 
-  function openPopup(issue) {
-    var rain = document.getElementById('uaRain');
-    var name = document.getElementById('uaRainName');
-    var amt = document.getElementById('uaRainAmt');
-    if (!rain || !issue) return;
-    if (name) name.textContent = issue.name || '现金红包';
-    if (amt) amt.textContent = moneyText(issue.amount);
-    rain.classList.remove('is-open');
-    rain.classList.remove('is-lost');
-    rain.hidden = false;
-    rain.setAttribute('data-id', issue.id || '');
-    paintEntry(issue, 'claim');
-  }
-
-  function closePopup() {
-    var rain = document.getElementById('uaRain');
-    if (!rain) return;
-    rain.classList.remove('is-open');
-    rain.classList.remove('is-lost');
-    rain.hidden = true;
-  }
-
-  var LOST_TEXT = '很遗憾，没有抢到红包，不要离开等待下一轮奖励';
-
-  function cashNeedsWxAuth(issue) {
-    if (!global.UaWxPayAuth || global.UaWxPayAuth.isAuthorized()) return false;
-    if (issue.lost || readDemo() === 'lost') return false;
-    var claimOpts = {
-      id: 'send:' + issue.id,
-      source: '现金红包',
-      packetId: issue.id,
-      templateId: issue.templateId || '',
-      claimCondition: issue.claimCondition || '',
-      inLive: true,
-      activityType: issue.activityType
-    };
-    var block = '';
-    if (global.UaLiveBagCash) {
-      if (global.UaLiveBagCash.conditionBlock) block = global.UaLiveBagCash.conditionBlock(claimOpts);
-      if (!block && global.UaLiveBagCash.claimBlock) block = global.UaLiveBagCash.claimBlock(claimOpts);
-    }
-    return !block;
-  }
-
-  function claim(issue) {
-    if (opening || !issue || isClaimed(issue.id)) return;
-    if (cashNeedsWxAuth(issue)) {
-      global.UaWxPayAuth.ensure({
-        onDone: function () {
-          claim(issue);
-        }
-      });
-      return;
-    }
-    opening = true;
-    shownId = issue.id;
-    var rain = document.getElementById('uaRain');
-    var lostEl = rain ? rain.querySelector('.ua-rain__lost') : null;
-    var claimOpts = {
+  function issueClaimOpts(issue) {
+    return {
       id: 'send:' + issue.id,
       source: '现金红包',
       packetId: issue.id,
@@ -291,12 +234,58 @@
       activityType: issue.activityType,
       inLive: true
     };
+  }
+
+  function conditionDenied(issue) {
+    if (!issue || !global.UaLiveBagCash || !global.UaLiveBagCash.conditionBlock) return '';
+    return global.UaLiveBagCash.conditionBlock(issueClaimOpts(issue)) || '';
+  }
+
+  function openPopup(issue) {
+    var rain = document.getElementById('uaRain');
+    var name = document.getElementById('uaRainName');
+    var amt = document.getElementById('uaRainAmt');
+    if (!rain || !issue) return;
+    var denied = conditionDenied(issue);
+    if (denied) {
+      if (global.UaLiveBagCash.showLimitTip) global.UaLiveBagCash.showLimitTip(denied);
+      return;
+    }
+    if (name) name.textContent = issue.name || '现金红包';
+    if (amt) amt.textContent = moneyText(issue.amount);
+    rain.classList.remove('is-open');
+    rain.classList.remove('is-lost');
+    rain.hidden = false;
+    rain.setAttribute('data-id', issue.id || '');
+    paintEntry(issue, 'claim');
+  }
+
+  function closePopup() {
+    var rain = document.getElementById('uaRain');
+    if (!rain) return;
+    rain.classList.remove('is-open');
+    rain.classList.remove('is-lost');
+    rain.hidden = true;
+  }
+
+  var LOST_TEXT = '很遗憾，没有抢到红包，不要离开等待下一轮奖励';
+
+  function claim(issue) {
+    if (opening || !issue || isClaimed(issue.id)) return;
+    opening = true;
+    shownId = issue.id;
+    var rain = document.getElementById('uaRain');
+    var lostEl = rain ? rain.querySelector('.ua-rain__lost') : null;
+    var claimOpts = issueClaimOpts(issue);
     var block = '';
     if (!(issue.lost || readDemo() === 'lost') && global.UaLiveBagCash) {
       if (global.UaLiveBagCash.conditionBlock) block = global.UaLiveBagCash.conditionBlock(claimOpts);
       if (!block && global.UaLiveBagCash.claimBlock) block = global.UaLiveBagCash.claimBlock(claimOpts);
     }
     var lost = !block && !!(issue.lost || readDemo() === 'lost');
+    var unauthorized = !block && !lost && global.UaWxPayAuth && !global.UaWxPayAuth.isAuthorized();
+    var doneEl = rain ? rain.querySelector('.ua-rain__done') : null;
+    if (doneEl) doneEl.textContent = unauthorized ? '已放入红包账户，请到我的红包领取' : '已自动转账至微信';
     if (lostEl) lostEl.textContent = block || LOST_TEXT;
     if (rain) {
       rain.classList.add('is-open');
@@ -323,30 +312,26 @@
     }
     global.setTimeout(function () {
       var from = document.querySelector('.ua-rain__slip') || document.getElementById('uaRainPack');
-      if (global.UaLiveBagCash && global.UaLiveBagCash.receive) {
-        global.UaLiveBagCash.receive({
+      if (unauthorized && global.UaLiveBagCash && global.UaLiveBagCash.holdWin) {
+        global.UaLiveBagCash.holdWin({
           id: 'send:' + issue.id,
           source: '现金红包',
           name: issue.name || '现金红包',
+          sceneText: '现金红包',
           packetId: issue.id,
           templateId: issue.templateId || '',
-          claimCondition: issue.claimCondition || '',
-          registerDays: issue.registerDays,
-          orderCount: issue.orderCount,
-          orderAmount: issue.orderAmount,
-          orderDayRange: issue.orderDayRange,
-          memberAudience: issue.memberAudience || '',
-          memberScope: issue.memberScope || '',
-          memberLevelIds: issue.memberLevelIds || [],
-          memberTagIds: issue.memberTagIds || [],
-          memberSegmentIds: issue.memberSegmentIds || [],
           perUserLimit: issue.perUserLimit,
           claimTimesMode: issue.claimTimesMode,
-          manual: issue.manual,
           activityType: issue.activityType,
-          amount: Number(issue.amount) || 0,
-          fromEl: from
+          amount: Number(issue.amount) || 0
         });
+        if (typeof global.UaLiveBagCash.landCoin === 'function') global.UaLiveBagCash.landCoin(from);
+      } else if (global.UaLiveBagCash && global.UaLiveBagCash.receive) {
+        var credit = issueClaimOpts(issue);
+        credit.name = issue.name || '现金红包';
+        credit.amount = Number(issue.amount) || 0;
+        credit.fromEl = from;
+        global.UaLiveBagCash.receive(credit);
       }
       writeClaim(issue.id, issue.amount);
       opening = false;

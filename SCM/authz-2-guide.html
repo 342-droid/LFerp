@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>菜单权限 2.0 使用说明</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* 布局：左侧固定目录 + 右侧单栏正文；顶部按读者角色分流；清单可勾选（仅存本机） */
+:root {
+  --ground: #f5f6f4;
+  --paper: #ffffff;
+  --ink: #1d2422;
+  --ink-2: #56605c;
+  --rule: #dde2de;
+  --accent: #1f6f5c;
+  --accent-soft: #e3f0ec;
+  --warn: #9a5b0b;
+  --warn-soft: #fbf0df;
+  --bad: #a3322b;
+  --bad-soft: #f8e5e3;
+  --code-bg: #eef1ee;
+  --font-display: "Noto Serif SC", "Songti SC", "SimSun", serif;
+  --font-body: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+  --step-0: 15px;
+  --step-1: 18px;
+  --step-2: 23px;
+  --step-3: 32px;
+  --small: 13px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ground: #141917;
+    --paper: #1b2220;
+    --ink: #e4ebe8;
+    --ink-2: #9ba8a3;
+    --rule: #2f3936;
+    --accent: #5fc2a6;
+    --accent-soft: #1d3530;
+    --warn: #e0a34f;
+    --warn-soft: #362a17;
+    --bad: #ef8a80;
+    --bad-soft: #3a201e;
+    --code-bg: #232c29;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #141917;
+  --paper: #1b2220;
+  --ink: #e4ebe8;
+  --ink-2: #9ba8a3;
+  --rule: #2f3936;
+  --accent: #5fc2a6;
+  --accent-soft: #1d3530;
+  --warn: #e0a34f;
+  --warn-soft: #362a17;
+  --bad: #ef8a80;
+  --bad-soft: #3a201e;
+  --code-bg: #232c29;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.75;
+  padding-inline: 20px;
+  padding-block: 0 64px;
+}
+.shell {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 48px;
+}
+nav.toc {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  align-self: start;
+  padding-block: 40px;
+  font-size: var(--small);
+}
+nav.toc .label {
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--ink-2);
+  font-size: 11px;
+  margin-bottom: 8px;
+}
+nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+nav.toc a {
+  display: block;
+  color: var(--ink-2);
+  text-decoration: none;
+  padding: 4px 10px;
+  border-left: 2px solid var(--rule);
+}
+nav.toc a:hover, nav.toc a:focus-visible { color: var(--ink); border-left-color: var(--accent); outline: none; }
+nav.toc .sub a { padding-left: 22px; font-size: 12px; }
+main { padding-block: 40px; min-width: 0; }
+header.top { display: grid; gap: 12px; margin-bottom: 32px; }
+.eyebrow { font-size: 12px; letter-spacing: .14em; color: var(--accent); font-weight: 700; }
+h1 {
+  font-family: var(--font-display);
+  font-size: var(--step-3);
+  line-height: 1.3;
+  margin: 0;
+  text-wrap: balance;
+}
+.lead { font-size: var(--step-1); color: var(--ink); max-width: 46em; margin: 0; line-height: 1.7; }
+.meta { font-size: var(--small); color: var(--ink-2); display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.status {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--warn-soft); color: var(--warn);
+  padding: 2px 10px; border-radius: 999px; font-weight: 500;
+}
+.roles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-block: 8px 40px; }
+.roles a {
+  display: grid; gap: 4px;
+  padding: 14px 16px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  color: var(--ink); text-decoration: none;
+}
+.roles a:hover, .roles a:focus-visible { border-color: var(--accent); outline: none; }
+.roles b { font-size: var(--step-1); font-family: var(--font-display); }
+.roles span { font-size: var(--small); color: var(--ink-2); }
+section { margin-top: 56px; scroll-margin-top: 24px; }
+h2 {
+  font-family: var(--font-display);
+  font-size: var(--step-2);
+  margin: 0 0 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--rule);
+  text-wrap: balance;
+}
+h2 .who { font-family: var(--font-body); font-size: 12px; letter-spacing: .1em; color: var(--accent); font-weight: 700; margin-right: 10px; vertical-align: 3px; }
+h3 { font-size: var(--step-1); margin: 32px 0 8px; text-wrap: balance; }
+p { margin: 10px 0; max-width: 46em; }
+.point { font-size: var(--step-1); line-height: 1.7; }
+code {
+  font-family: var(--font-mono); font-size: .86em;
+  background: var(--code-bg); padding: 1px 5px; border-radius: 4px;
+  overflow-wrap: anywhere;
+}
+pre {
+  background: var(--code-bg); padding: 16px 18px; border-radius: 6px;
+  overflow-x: auto; font-size: 13px; line-height: 1.6; margin: 14px 0;
+}
+pre code { background: none; padding: 0; font-size: inherit; overflow-wrap: normal; }
+.table-wrap { overflow-x: auto; margin: 14px 0; border: 1px solid var(--rule); border-radius: 6px; background: var(--paper); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; line-height: 1.6; }
+th, td { text-align: left; vertical-align: top; padding: 10px 14px; border-bottom: 1px solid var(--rule); }
+th { font-size: 12px; letter-spacing: .06em; color: var(--ink-2); font-weight: 500; background: var(--ground); white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+td:first-child { font-weight: 500; }
+ol.steps, ul.plain { padding-left: 1.4em; margin: 10px 0; max-width: 48em; display: grid; gap: 8px; }
+ol.steps li::marker { color: var(--accent); font-weight: 700; }
+.checklist { list-style: none; padding: 0; margin: 12px 0; display: grid; gap: 6px; max-width: 52em; }
+.checklist label {
+  display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 10px; align-items: start;
+  padding: 8px 12px; background: var(--paper); border: 1px solid var(--rule); border-radius: 6px; cursor: pointer;
+}
+.checklist input { width: 16px; height: 16px; margin-top: 5px; accent-color: var(--accent); }
+.checklist input:checked + span { color: var(--ink-2); text-decoration: line-through; text-decoration-color: var(--ink-2); }
+.checklist input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.note {
+  border-left: 3px solid var(--warn); background: var(--warn-soft);
+  padding: 10px 14px; margin: 14px 0; max-width: 48em; border-radius: 0 6px 6px 0; font-size: 14px;
+}
+.note.bad { border-left-color: var(--bad); background: var(--bad-soft); }
+.note b { color: var(--ink); }
+.pill { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 999px; font-weight: 500; white-space: nowrap; }
+.pill.new { background: var(--bad-soft); color: var(--bad); }
+.pill.old { background: var(--code-bg); color: var(--ink-2); }
+figure.diagram { margin: 18px 0 6px; background: var(--paper); border: 1px solid var(--rule); border-radius: 6px; padding: 12px; overflow-x: auto; }
+figure.diagram svg { display: block; width: 100%; min-width: 600px; height: auto; }
+figcaption { font-size: var(--small); color: var(--ink-2); margin-top: 6px; }
+.d-box { fill: none; stroke: var(--ink-2); stroke-width: 1.25; }
+.d-box.main { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+.d-name { fill: var(--ink); font-weight: 700; font-size: 15px; font-family: var(--font-body); }
+.d-line { fill: var(--ink-2); font-size: 12.5px; font-family: var(--font-body); }
+.d-edge { stroke: var(--ink-2); stroke-width: 1.25; fill: none; }
+.d-arrow { fill: var(--ink-2); }
+.d-label { fill: var(--ink-2); font-size: 12px; font-family: var(--font-body); }
+.pill.ok { background: var(--accent-soft); color: var(--accent); }
+.pill.plan { background: var(--warn-soft); color: var(--warn); }
+details.skill { margin: 18px 0; border: 1px solid var(--rule); border-radius: 6px; background: var(--paper); }
+details.skill summary { cursor: pointer; padding: 12px 16px; font-weight: 500; }
+details.skill summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.skill-bar { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: center; padding: 0 16px 8px; font-size: var(--small); color: var(--ink-2); }
+.skill-bar span { font-family: var(--font-mono); overflow-wrap: anywhere; }
+.skill-bar button { font: inherit; color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 4px; padding: 3px 12px; cursor: pointer; }
+.skill-bar button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+details.skill pre { margin: 0 12px 12px; max-height: 560px; overflow: auto; white-space: pre; }
+td[colspan] { font-weight: 400; }
+footer { margin-top: 64px; font-size: var(--small); color: var(--ink-2); border-top: 1px solid var(--rule); padding-top: 16px; }
+@media (max-width: 900px) {
+  .shell { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  nav.toc { position: static; padding-block: 24px 0; }
+  nav.toc ol { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  nav.toc .sub { display: none; }
+}
+@media (max-width: 560px) {
+  .roles { grid-template-columns: minmax(0, 1fr); }
+  :root { --step-3: 26px; --step-2: 20px; }
+}
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+</head>
+<body>
+<nav class="authz2-docs" aria-label="权限2.0"><a href="authz-2-guide.html" class="is-on" aria-current="page">使用说明</a><a href="authz-2-manual.html">操作手册</a><a href="authz-2-testcases.html">测试用例</a></nav>
+<style>
+.authz2-docs{position:sticky;top:0;z-index:5;display:flex;gap:8px;align-items:center;margin:0 -20px;padding:10px 20px;background:#1f6f5c;font-family:"PingFang SC","Noto Sans SC",sans-serif}
+.authz2-docs a{color:#e7f6f1;text-decoration:none;font-size:13px;padding:4px 10px;border-radius:999px}
+.authz2-docs a.is-on{background:#fff;color:#1f6f5c;font-weight:700}
+.authz2-docs a:hover{background:rgba(255,255,255,.16)}
+.authz2-docs a.is-on:hover{background:#fff}
+</style>
+
+
+<div class="shell">
+  <nav class="toc" aria-label="目录">
+    <div class="label">目录</div>
+    <ol>
+      <li><a href="#overview">一图看懂</a></li>
+      <li><a href="#product">产品视角</a></li>
+      <li class="sub"><a href="#concepts">四个概念</a></li>
+      <li class="sub"><a href="#pages">四个页面</a></li>
+      <li class="sub"><a href="#scenarios">常见场景</a></li>
+      <li><a href="#dev">开发视角</a></li>
+      <li class="sub"><a href="#modes">三种鉴权模式</a></li>
+      <li class="sub"><a href="#new-api">新增受控接口</a></li>
+      <li class="sub"><a href="#read-perms">代码里判断权限</a></li>
+      <li class="sub"><a href="#tests">单元测试</a></li>
+      <li><a href="#collab">前后端配合</a></li>
+      <li class="sub"><a href="#collab-flow">新功能从开发到上线</a></li>
+      <li class="sub"><a href="#collab-contract">对接约定</a></li>
+      <li class="sub"><a href="#collab-403">联调遇到 403</a></li>
+      <li><a href="#tools">工具箱</a></li>
+      <li class="sub"><a href="#tool-authz-map">/authz-map 怎么用</a></li>
+      <li><a href="#ops">实施视角</a></li>
+      <li class="sub"><a href="#release">上线步骤</a></li>
+      <li class="sub"><a href="#verify">上线后验证</a></li>
+      <li class="sub"><a href="#rollback">回滚</a></li>
+      <li class="sub"><a href="#troubleshoot">常见问题排障</a></li>
+      <li><a href="#limits">已知限制与待办</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <header class="top">
+      <div class="eyebrow">OCTOPUS · 系统管理 · 权限</div>
+      <h1>菜单权限 2.0 使用说明</h1>
+      <p class="lead">接口要什么权限，从写在代码里改成了配置决定：接口上只保留无参 <code>@RequiresCapability</code> 表示需要鉴权，归属由能力目录和原子权限决定，改权限不再需要发版。</p>
+      <div class="meta">
+        <span>更新于 2026-10-05</span>
+        <span>涉及：template-scaffold !28 · octopus-cloud !2718 · octopus-admin !1085</span>
+        <span class="status">未推送 · 未在 UAT 验证</span>
+      </div>
+    </header>
+
+    <div class="roles">
+      <a href="#product"><b>产品 / 运营</b><span>怎么给岗位授权、怎么调整按钮归属、有人没权限怎么查</span></a>
+      <a href="#dev"><b>开发</b><span>新接口怎么挂权限、前后端怎么对接、<code>/authz-map</code> 工具怎么用</span></a>
+      <a href="#ops"><b>实施 / 运维</b><span>上线顺序、上线后验证、回滚、排障</span></a>
+    </div>
+
+    <section id="overview">
+      <h2>一图看懂</h2>
+      <p class="point">四层逐级包含；一个人的权限来自岗位授权，再被当前组织已开通的业务收窄，最后在接口上按原子判定。</p>
+      <figure class="diagram">
+        <svg viewBox="0 0 760 360" role="img" aria-label="接口放不放行，由四层主链逐级决定">
+          <defs>
+            <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="d-arrow" d="M0 0L10 5L0 10z"/></marker>
+          </defs>
+          <g>
+            <path class="d-edge" d="M240 76V104" marker-end="url(#arr)"/>
+            <path class="d-edge" d="M240 164V192" marker-end="url(#arr)"/>
+            <path class="d-edge" d="M240 252V280" marker-end="url(#arr)"/>
+            <path class="d-edge" d="M500 46H442" marker-end="url(#arr)"/>
+            <path class="d-edge" d="M500 134H442" marker-end="url(#arr)"/>
+            <path class="d-edge" d="M500 310H442" marker-end="url(#arr)"/>
+          </g>
+          <rect class="d-box" x="40" y="16" width="400" height="60" rx="8"/>
+          <text class="d-name" x="58" y="42">组织能力</text>
+          <text class="d-line" x="58" y="64">组织开通了什么业务，如 STORE_MGMT</text>
+          <rect class="d-box" x="40" y="104" width="400" height="60" rx="8"/>
+          <text class="d-name" x="58" y="130">标准能力</text>
+          <text class="d-line" x="58" y="152">岗位上勾选的那一项，如 commerce.order.manage</text>
+          <rect class="d-box" x="40" y="192" width="400" height="60" rx="8"/>
+          <text class="d-name" x="58" y="218">原子权限</text>
+          <text class="d-line" x="58" y="240">具体动作，只属于一个标准能力；码 = 按钮 identity</text>
+          <rect class="d-box main" x="40" y="280" width="400" height="60" rx="8"/>
+          <text class="d-name" x="58" y="306">后端接口</text>
+          <text class="d-line" x="58" y="328">HTTP 方法 + 路径；被任一已持有的原子覆盖即放行</text>
+          <text class="d-label" x="252" y="95">包含</text>
+          <text class="d-label" x="252" y="183">包含，原子可属于多个能力</text>
+          <text class="d-label" x="252" y="271">覆盖，一个原子可对应多个接口</text>
+          <rect class="d-box" x="500" y="16" width="230" height="60" rx="8"/>
+          <text class="d-name" x="518" y="42">当前组织</text>
+          <text class="d-line" x="518" y="64">只保留已开通业务内的权限</text>
+          <rect class="d-box" x="500" y="104" width="230" height="60" rx="8"/>
+          <text class="d-name" x="518" y="130">岗位授权</text>
+          <text class="d-line" x="518" y="152">勾选标准能力和按钮</text>
+          <rect class="d-box" x="500" y="280" width="230" height="60" rx="8"/>
+          <text class="d-name" x="518" y="306">超级管理员</text>
+          <text class="d-line" x="518" y="328">不做判定，直接放行</text>
+        </svg>
+      </figure>
+      <figcaption>授权主链：四层 + 三个输入</figcaption>
+    </section>
+
+    <section id="product">
+      <h2><span class="who">产品 / 运营</span>怎么配置权限</h2>
+      <p class="point">一个人能做什么，由「岗位勾了哪些标准能力」决定，再被「所在组织开通了哪些业务」兜底收窄。超级管理员不受限。</p>
+
+      <h3 id="concepts">四个概念</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>概念</th><th>是什么</th><th>例子</th><th>在哪配</th></tr></thead>
+        <tbody>
+          <tr><td>组织能力</td><td>一个组织开通了什么业务</td><td><code>STORE_MGMT</code> 门店经营、<code>WAREHOUSE_MGMT</code> 仓储</td><td>能力目录 › 组织能力</td></tr>
+          <tr><td>标准能力</td><td>岗位授权时勾选的那一项，运营看到的就是它的中文名</td><td><code>commerce.order.manage</code> 订单管理</td><td>能力目录 › 标准能力；角色管理 › 能力授权</td></tr>
+          <tr><td>原子权限</td><td>一个具体动作（按钮或接口组），只属于一个标准能力</td><td><code>mallProduct:changeStatus</code> 商品上下架</td><td>原子权限配置</td></tr>
+          <tr><td>接口</td><td>后端的一个 HTTP 方法 + 路径</td><td><code>POST /fulfillment-core/wms/area/create</code></td><td>原子权限配置 › 覆盖的后端接口</td></tr>
+        </tbody>
+      </table></div>
+      <p>判定规则：用户的权限 = 岗位上的标准能力 + 勾选的按钮，再与<b>当前组织</b>已开通的组织能力取交集；接口要求的原子里任意一个满足即放行。同一个岗位放到没开通该业务的组织，会自动降权，这是设计，不是 bug。</p>
+
+      <h3 id="pages">四个页面（都在「系统管理」下）</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>页面</th><th>用来做什么</th><th>要点</th></tr></thead>
+        <tbody>
+          <tr><td>角色管理 › 能力授权页签</td><td>给岗位勾标准能力</td><td>按所属域分组显示；保存、停用角色后，在线用户的权限立即重算，不用重新登录</td></tr>
+          <tr><td>能力目录</td><td>维护标准能力与组织能力；查看并调整一个能力下挂了哪些原子、菜单和按钮</td><td>「关联管理」可认领候选原子、绑定菜单；停用能力前会校验它下面还有没有原子，停用后持有人立即失去该能力；<b>组织能力只有超级管理员能新增、修改、停用</b></td></tr>
+          <tr><td>原子权限配置</td><td>新增或编辑原子：码值、名称、唯一父能力、组织能力、使用端、覆盖的接口</td><td>接口从自动扫描的清单里选，不手填；「接口核对」页签列出未被覆盖或映射失效的接口；点「保存并立即生效」后不需要发版</td></tr>
+          <tr><td>会话管理</td><td>强制全员下线</td><td>只有 SUPER_ADMIN 能执行，执行人自己也会被登出；属于运维动作，不在日常使用</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3 id="scenarios">常见场景</h3>
+      <ol class="steps">
+        <li><b>新岗位授权</b>：角色管理 › 能力授权，勾选能力并保存 → 用户管理里把该角色绑给人 → 对方刷新页面即可看到菜单。给在线用户绑、摘角色，停用角色，停用能力，都会立即重算对方的权限，不用重新登录。</li>
+        <li><b>调整某个按钮或接口归谁管</b>：原子权限配置里改原子的父能力，或增减它覆盖的接口 → 保存立即生效。</li>
+        <li><b>有人反馈「没权限」</b>：403 提示里会带出所需的能力码 → 能力目录搜这个码，确认归属 → 给对方岗位勾上。</li>
+        <li><b>组织开通新业务</b>：在组织上开通对应的组织能力；这个组织下各岗位能用的能力范围会跟着放大。</li>
+        <li><b>新增一种组织能力</b>（仅超级管理员）：能力目录 › 组织能力 › 新增。新建后自动开通给平台根组织，平台侧岗位立即可用；其他组织要在组织上单独开通。<b>码以 <code>_MGMT</code> 结尾的组织能力会沿组织树向下继承</b>，开在平台根组织上等于所有下级组织都拥有，命名前先想清楚。</li>
+      </ol>
+      <div class="note">当前还没有「权限检查器」页面（查某人为什么没权限），排查暂时按场景 3 人工查。</div>
+    </section>
+
+    <section id="dev">
+      <h2><span class="who">开发</span>写代码时怎么做</h2>
+      <p class="point">新接口写无参 <code>@RequiresCapability</code>，再在种子里给它配原子；业务代码要判断权限时读 <code>UserPermissionReader</code>，绝不读 <code>LoginUserInfo.getPermissions()</code>，它现在永远是空的。</p>
+
+      <h3 id="modes">接口的三种鉴权模式</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>写法</th><th>模式</th><th>权限从哪来</th><th>什么时候用</th></tr></thead>
+        <tbody>
+          <tr><td><code>@RequiresCapability</code></td><td>DYNAMIC 配置驱动</td><td>原子权限配置里覆盖该接口的原子，任一满足即放行</td><td><b>新接口默认用这个</b></td></tr>
+          <tr><td><code>@RequiresCapability(Capability.Codes.X)</code></td><td>DECLARED 代码写死</td><td>注解参数，配置页改了也不生效</td><td>存量接口过渡期；不要新增</td></tr>
+          <tr><td>不加注解</td><td>PUBLIC 公开</td><td>不鉴权</td><td>确实公开的接口，并登记到 <code>scripts/endpoint-capability-exemptions.txt</code></td></tr>
+        </tbody>
+      </table></div>
+      <div class="note bad"><b>无参注解的接口如果没有任何原子覆盖，一律 403。</b>拿不到配置就拒绝，不会放行。<code>securityLevel</code>（Token 存活校验）与权限归属无关，继续写在注解上。</div>
+
+      <h3 id="new-api">新增一个受控接口</h3>
+      <ol class="steps">
+        <li>Controller 方法上加无参 <code>@RequiresCapability</code>。</li>
+        <li>在 <code>system-core/src/main/resources/db/seed/common/R__permission_atom.sql</code> 里加一行原子映射：方法 + 路径挂到已有原子；或新建原子（码值就是按钮的 <code>sys_menu.identity</code>），并在 <code>R__capability_atom.sql</code> 里登记它属于哪些能力（可多个）。</li>
+        <li>本地启动 system-core（需要 <code>FLYWAY_ENABLED=true</code>），确认日志 <code>[ApiPermission] 配置快照已发布</code>，再到「原子权限配置 › 接口核对」确认这个接口不在未覆盖列表里。</li>
+        <li>路径禁用 <code>@PathVariable</code>：接口标识是静态的「方法 + 路径」。</li>
+      </ol>
+      <div class="note">种子是 <code>ON DUPLICATE KEY UPDATE</code> 的声明式终态：内容一变就会整体重跑，覆盖页面上对同一原子的修改。影响全环境的归属调整请改种子，不要只在页面上改。</div>
+
+      <h3 id="read-perms">业务代码里判断权限</h3>
+<pre><code>private final UserPermissionReader userPermissionReader;
+
+List&lt;String&gt; perms = userPermissionReader.permissionsOf(
+        String.valueOf(user.getUserId()), user.getPrimaryOrgId());
+boolean canManage = perms.contains(Capability.Codes.COMMERCE_STORE_MANAGE);</code></pre>
+      <ul class="plain">
+        <li>权限存在 Redis <code>authz:user:perms:{userId}:{orgId}</code>，按「用户 + 组织」一份，每次请求读一次，不做本地缓存。</li>
+        <li>读不到或 Redis 抖动时返回空集合，结果是拒绝，不会报 500。</li>
+        <li>合并 dev 时已把 9 处直接读会话权限的代码改掉（审批、直播、进件审核、业务标签、运费报表）。Code Review 时看到新的 <code>getPermissions()</code> 读取要拦下。</li>
+      </ul>
+
+      <h3 id="tests">单元测试怎么写</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>要测的</th><th>用什么</th></tr></thead>
+        <tbody>
+          <tr><td>某个无参接口被哪些能力守着（system-core）</td><td><code>PermissionSeedFixture.capabilitiesGuarding(Controller.class, "method")</code>，直接解析种子文件，不连库</td></tr>
+          <tr><td>同上（fulfillment / settlement 等其他服务）</td><td>本模块测试包里的 <code>CompatSeedCapabilities.guarding("GET", path)</code></td></tr>
+          <tr><td>服务内的权限分支</td><td>注入 <code>SessionStylePermissionReader</code>，沿用在 <code>LoginUserInfo</code> 上写权限的旧写法；或 mock <code>UserPermissionReader</code>，返回 <code>UserPermissionBundle</code> 而不是 null</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>框架层（kernel 0.4.33）做了什么</h3>
+      <ul class="plain">
+        <li><code>@RequiresCapability</code> 支持无参，由 <code>DynamicPermissionResolver</code> 解析所需权限；类级注解改用 <code>findMergedAnnotation</code>，堵住了继承场景的放行漏洞。</li>
+        <li>权限来源抽成 <code>UserPermissionSource</code> SPI，业务侧用 Redis 实现。</li>
+        <li>超级管理员在切面里直接放行。</li>
+        <li>包含 grpc 租户上下文修复（0.4.32，PR !39）。</li>
+      </ul>
+    </section>
+
+    <section id="collab">
+      <h2><span class="who">前端 + 后端</span>前后端配合使用说明</h2>
+      <p class="point">前后端对接一个新功能时，权限要和接口一起交付：后端交接口时带上它归哪个原子，前端交页面时带上每个按钮的权限码，联调用非超管账号走查，没有 403 才算对接完成。</p>
+
+      <h3 id="collab-flow">一个新功能从开发到上线</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>阶段</th><th>后端</th><th>前端</th><th>这一步交付什么</th></tr></thead>
+        <tbody>
+          <tr><td>1. 定方案</td><td>列出新接口：方法 + 路径，标明哪些是页面读接口、哪些是按钮写接口</td><td>列出页面上的按钮，给每个按钮定权限码 <code>&lt;实体&gt;:&lt;动作&gt;</code></td><td>一张「按钮 / 页面 → 接口 → 原子」对照表，写进开发计划；产品确认每个原子归哪个标准能力</td></tr>
+          <tr><td>2. 写代码</td><td>新接口加无参 <code>@RequiresCapability</code>；在 <code>R__permission_atom.sql</code> 补原子与映射行</td><td>按钮加 <code>v-permissions="{ permission: ['&lt;权限码&gt;'] }"</code>；新菜单 / 按钮在 <code>sys_menu</code> 种子里登记，<code>identity</code> 与权限码一致</td><td>代码 + 种子在同一个 PR 里</td></tr>
+          <tr><td>3. 自查</td><td colspan="2">对页面跑一次 <code>/authz-map</code>，对照缺口表补齐；本地开 <code>FLYWAY_ENABLED=true</code>，看「接口核对」没有未覆盖接口</td><td>缺口表里没有「缺映射」</td></tr>
+          <tr><td>4. 联调</td><td colspan="2">建一个只勾了该能力的测试角色，用非超管账号把页面和每个按钮走一遍；出现 403 按下表分工处理</td><td>非超管走查无 403</td></tr>
+          <tr><td>5. 提测</td><td colspan="2">提测说明里写明：新增了哪些原子、挂在哪个能力下、测试账号需要勾哪个能力</td><td>测试同学能直接按说明配角色</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3 id="collab-contract">对接约定</h3>
+      <ul class="plain">
+        <li><b>按钮权限码 = 菜单按钮的 <code>identity</code> = 原子码</b>，三者是同一个值，格式 <code>&lt;实体&gt;:&lt;动作&gt;</code>，如 <code>supplier:create</code>。</li>
+        <li><b>页面读接口</b>（列表、详情、下拉选项）挂到页面的读原子，一般是 <code>&lt;实体&gt;:list</code>；不要挂到某个按钮上，否则没勾那个按钮的人连页面都打不开。</li>
+        <li><b>公共接口</b>（字典 <code>/system-core/v1/dict/*</code>、通用下拉、文件上传）不要挂到业务能力下：要么登记为公开接口，要么归入人人都有的基础能力。</li>
+        <li><b>一个原子可以属于多个能力。</b>同一个按钮要被两类岗位使用时，把它关联到两个能力下即可，不要拆成两个按钮、两个权限码。归属登记在 <code>R__capability_atom.sql</code>，<code>sys_permission_atom.parent_capability_code</code> 已废弃。</li>
+        <li><b>路径禁用 <code>@PathVariable</code></b>：原子映射按静态的「方法 + 路径」匹配。</li>
+        <li><b>前端不要用「接口 403」来隐藏按钮</b>：按钮显隐由 <code>v-permissions</code> 控制；403 只是兜底。</li>
+      </ul>
+
+      <h3 id="collab-403">联调遇到 403，谁来处理</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>403 提示 / 现象</th><th>原因</th><th>谁处理</th></tr></thead>
+        <tbody>
+          <tr><td>提示带了所需能力码，测试账号没勾这个能力</td><td>测试角色配置不全</td><td>联调的人自己给测试角色勾上</td></tr>
+          <tr><td>接口是无参注解，但「接口核对」里显示未覆盖</td><td>后端漏配原子映射</td><td>后端补 <code>R__permission_atom.sql</code></td></tr>
+          <tr><td>按钮能看到，点了 403</td><td>按钮的原子没覆盖它调用的接口，或前端调了别的接口</td><td>前后端对一下 <code>/authz-map</code> 的缺口表</td></tr>
+          <tr><td>按钮看不到，但接口能通</td><td>按钮没加 <code>v-permissions</code> 或权限码与 <code>identity</code> 不一致</td><td>前端</td></tr>
+          <tr><td>改了配置页不生效</td><td>该接口是代码写死的 DECLARED 模式</td><td>后端决定是否改成无参注解（单独改造，不在联调里顺手做）</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section id="tools">
+      <h2>工具箱</h2>
+      <p class="point">现在能用的是一个 Claude 技能和两个配置页；能让研发完全不用手配的两件事（CI 门禁、自动录制）还在规划中。</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>工具</th><th>解决什么</th><th>状态</th></tr></thead>
+        <tbody>
+          <tr><td><code>/authz-map</code> 技能</td><td>给出页面，输出它调了哪些接口、哪些缺映射，并生成种子草稿</td><td><span class="pill ok">可用</span></td></tr>
+          <tr><td>原子权限配置 › 接口核对</td><td>列出未被原子覆盖、或映射已失效的接口</td><td><span class="pill ok">可用</span></td></tr>
+          <tr><td>能力目录 › 关联管理</td><td>看一个能力下挂了哪些原子、菜单、按钮；认领候选原子</td><td><span class="pill ok">可用</span></td></tr>
+          <tr><td><code>scripts/extract-page-endpoints.mjs</code></td><td>静态扫描页面 → 接口（只跟一层 import、无 HTTP 方法）</td><td><span class="pill old">仅作对照</span></td></tr>
+          <tr><td>CI 权限门禁</td><td>构建时发现无参注解接口没有映射就失败，漏配进不了主干</td><td><span class="pill plan">规划中</span></td></tr>
+          <tr><td>测试环境自动录制</td><td>前端请求带上页面路由与按钮权限码，后端记录「页面 / 按钮 → 接口」；自测点一遍即采集完，配置页一键采纳</td><td><span class="pill plan">规划中</span></td></tr>
+        </tbody>
+      </table></div>
+
+      <h3 id="tool-authz-map"><code>/authz-map</code> 怎么用</h3>
+      <p>在 octopus 工作区里打开 Claude Code，直接说要查的页面，技能会自动触发。也可以显式输入 <code>/authz-map</code>。文件位置：<code>octopus/.claude/skills/authz-map/SKILL.md</code>。</p>
+<pre><code>/authz-map 系统管理 › 会话管理
+/authz-map src/views/system/capabilityCatalog/index.vue
+这 10 个页面要配哪些权限：/supplier/list /supplier/detail …
+商品上下架按钮点了 403，缺哪个原子？</code></pre>
+      <ol class="steps">
+        <li><b>递归读页面</b>：页面和它引用的弹窗、抽屉、子组件，找出所有 api / sdk 调用，解析出完整的「方法 + 路径」，按「页面打开」和「哪个按钮点击」分组。</li>
+        <li><b>对照后端</b>：每个接口在 Controller 里是哪种鉴权模式，种子里有没有原子覆盖，按钮权限码对应的原子父能力还在不在。</li>
+        <li><b>输出</b>：每个页面一张缺口表，加上可粘贴进 <code>R__permission_atom.sql</code> 的种子草稿，以及需要产品确认归属的条目。</li>
+      </ol>
+      <div class="note">技能只读分析、只出草稿：不写数据库，不自动改种子，改文件前会先问你。静态分析可能漏掉动态 url 和条件调用，最后仍要用非超管账号走查一遍。</div>
+
+      <details class="skill">
+        <summary>查看技能全文（SKILL.md）</summary>
+        <div class="skill-bar"><span>octopus/.claude/skills/authz-map/SKILL.md</span><button type="button" id="copy-skill">复制全文</button></div>
+<pre id="skill-text"><code>---
+name: authz-map
+description: 菜单权限 2.0 的权限映射生成器：给定前端页面（或功能、或一批页面），找出「页面打开要调的读接口」和「每个按钮点击要调的写接口」，对照后端注解与权限种子，输出缺口清单和可直接粘贴进 R__permission_atom.sql 的种子行。触发词：「这个页面要配哪些权限」「这个页面调了哪些接口」「给这几个页面配权限」「/authz-map」「接口 403 了缺哪个原子」「新功能权限怎么配」「检查页面权限有没有漏配」。只读分析 + 生成种子草稿，不写库、不自动改种子，改种子前必须经用户确认。
+version: 0.1.0
+---
+
+# authz-map：页面 → 接口 → 原子 映射生成
+
+菜单权限 2.0 里，接口用无参 `@RequiresCapability` 表示「需要鉴权」，需要什么权限由 `sys_permission_atom`（原子）和 `sys_permission_atom_api`（原子 → 接口）决定。**无参接口没有任何原子覆盖 = 一律 403**；用超管自测永远发现不了，因为超管在切面里直接放行。
+
+本技能把「研发对接一个页面后，手工去查这个页面调了哪些接口、再去配原子」这件事变成：给出页面 → 输出缺口表 + 种子草稿 → 研发审一遍。
+
+## 仓库与关键位置
+
+| 用途 | 路径 |
+|---|---|
+| 前端页面 | `octopus-admin/src/views/**`（菜单 `sys_menu.component` 指向这里，如 `system/sessionAdmin/index` → `src/views/system/sessionAdmin/index.vue`） |
+| 前端手写接口 | `octopus-admin/src/api/*.ts`：`request({ url, method, module: apiModuleMap.xxx })`，前缀拼接在 `src/utils/request.ts` |
+| 前端生成 SDK | `octopus-admin/src/sdk/&lt;service&gt;/*.ts`：`apiClient({ url, method })`，url 已是完整路径 |
+| 模块前缀表 | `octopus-admin/src/config/net.config.ts`：如 `systemCore: &#x27;/system-core&#x27;`、`commerceCore: &#x27;/commerce-core/v1&#x27;` |
+| 按钮权限码 | 页面里的 `v-permissions=&quot;{ permission: [&#x27;supplier:create&#x27;] }&quot;`；码值 = `sys_menu.identity` = 原子码 |
+| 后端接口 | `octopus-cloud/&lt;service&gt;/src/main/java/**/controller/**Controller.java` |
+| 原子与映射种子 | `octopus-cloud/system-core/src/main/resources/db/seed/common/R__permission_atom.sql` |
+| 存量兼容映射 | 同目录 `R__permission_atom_compat.sql`（`legacy:&lt;svc&gt;:&lt;Controller&gt;:&lt;capability&gt;` 原子） |
+| 能力目录种子 | 同目录 `R__capability_catalog.sql` |
+| 公开接口豁免 | `octopus-cloud/scripts/endpoint-capability-exemptions.txt` |
+| 静态提取脚本（参考） | `octopus-admin/scripts/extract-page-endpoints.mjs`（只跟一层 import、无 HTTP 方法，只作对照） |
+
+先确认两个仓库所在分支（`git -C &lt;repo&gt; branch --show-current`），以权限 2.0 分支或已合入它的 dev 为准；分支不对就停下来告诉用户。
+
+## 输入
+
+用户可以给：页面文件路径、菜单路由（如 `/system/session-admin`）、菜单中文名、功能描述，或一批页面。拿到菜单名或路由时，在 `octopus-cloud` 的 `R__menu_*.sql` 种子里反查 `component`，再定位 `.vue` 文件。
+
+## 第一步：收集页面会调的接口（前端，递归）
+
+对每个页面：
+
+1. 读页面 `.vue`，并**递归**读它 import 的本地组件（`./components/*`、`@/views/**`、弹窗、抽屉、Tab 子组件），直到不再出现新的本地组件。不要只看一层。
+2. 收集所有被调用的 api / sdk 函数，进对应文件读出 `url` 和 `method`：
+   - `src/api`：有 `module` 时，完整路径 = `net.config.ts` 里该模块前缀 + `url`（`request.ts` 第 237 行起）；没写 `module` 的，`url` 本身就是完整路径。
+   - `src/sdk`：`url` 即完整路径，`method` 统一转大写。
+   - 模板串里带变量的 url：列出来，标「动态 url，需人工确认」。
+3. 按**触发时机**分组：
+   - **页面读接口**：`onMounted` / `created` / 初始化 / 列表查询 / 字典与下拉选项加载。
+   - **按钮接口**：在按钮点击处理函数（以及它打开的弹窗提交）里调用的接口，归到该按钮的 `v-permissions` 码下。按钮没有 `v-permissions` 的，标「按钮无权限码」。
+   - 只在某个条件分支里才调的，标「条件调用」。
+
+## 第二步：对照后端（注解模式 + 种子覆盖）
+
+对每个「方法 + 路径」：
+
+1. 在对应服务的 Controller 里找到方法（`@RequestMapping` 类前缀 + 方法 `@GetMapping`/`@PostMapping`）。找不到 = 前端调了不存在的接口，单列出来。
+2. 判定鉴权模式：
+   - 无参 `@RequiresCapability` → **DYNAMIC**，需要原子覆盖；
+   - 带参 `@RequiresCapability(Capability.Codes.X)` → **DECLARED**，权限写死在代码里，配置不生效，记下声明的能力码；
+   - 无注解 → **PUBLIC**，核对是否在 `endpoint-capability-exemptions.txt`，不在就报警（疑似漏加注解）。
+3. 在 `R__permission_atom.sql` 和 `R__permission_atom_compat.sql` 的 `sys_permission_atom_api` 里 grep `&#x27;&lt;METHOD&gt;&#x27;, &#x27;&lt;path&gt;&#x27;`，列出已覆盖它的原子及其父能力。
+4. 按钮的权限码：在 `sys_permission_atom` 里查是否已有同码原子、父能力是什么、父能力是否还在 `R__capability_catalog.sql` 里（父能力已删除 = 孤儿原子，单列）。
+
+## 第三步：输出
+
+### 1）缺口表（每个页面一张）
+
+| 触发 | 方法 | 路径 | 模式 | 已覆盖原子（父能力） | 结论 |
+|---|---|---|---|---|---|
+
+结论只用这几种：`已覆盖` · `缺映射（会 403）` · `DECLARED 不受配置管` · `PUBLIC 未登记豁免` · `后端不存在` · `待人工确认`。
+
+### 2）种子草稿（只针对「缺映射」）
+
+- 页面读接口：优先挂到页面已有的读原子（如 `&lt;entity&gt;:list`）；没有就提议新原子 `&lt;entity&gt;:list`，父能力取该页面菜单在 `sys_menu_capability` 绑定的能力。
+- 按钮接口：挂到按钮自己的原子（码 = 按钮 `v-permissions` 码）；原子不存在就同时生成原子行，父能力取所在页面菜单绑定的能力。**页面绑了 0 个或 2 个以上能力时不要猜**，列为「待产品确认归属」。
+- 公共接口（字典 `/system-core/v1/dict/*`、通用下拉、文件上传等几乎每页都调的）：**不要挂到某个业务能力下**，单列建议「登记为公开接口」或「归入人人都有的基础能力」，由用户决定。
+- id 沿用文件内号段：取 `R__permission_atom.sql` 对应 INSERT 段当前最大 id + 1 递增；生成后 grep 全部 `db/seed` 确认不撞号（菜单 ID 撞车曾导致整行被覆盖、菜单凭空消失）。
+- 格式与文件现有行一致：
+  ```sql
+  -- sys_permission_atom
+  (&lt;id&gt;, &#x27;&lt;code&gt;&#x27;, &#x27;&lt;模块 / 页面 / 按钮&gt;&#x27;, &#x27;&lt;parent_capability_code&gt;&#x27;, &#x27;&lt;ORG_CAPABILITY&gt;&#x27;, &#x27;按钮派生&#x27;, &#x27;管理后台&#x27;, 1),
+  -- sys_permission_atom_api
+  (&lt;id&gt;, &#x27;&lt;atom_code&gt;&#x27;, &#x27;&lt;METHOD&gt;&#x27;, &#x27;&lt;path&gt;&#x27;),
+  ```
+
+### 3）给研发的下一步
+
+- 种子行粘贴进 `R__permission_atom.sql` 对应段落（**先问用户，确认后再改文件**）；
+- 后端新接口确认用的是无参 `@RequiresCapability`；
+- 本地 `FLYWAY_ENABLED=true` 重启 system-core，看日志 `[ApiPermission] 配置快照已发布`，到「原子权限配置 › 接口核对」确认未覆盖列表里没有这些接口；
+- **用只勾了该能力的非超管测试账号**把页面和每个按钮走一遍，确认没有 403。
+
+## 红线
+
+- 只读分析 + 生成草稿。不连数据库写数据，不自动改种子文件，不提交代码；改文件前必须得到用户确认。
+- 静态分析是建议，不是事实：动态 url、条件调用、跨组件事件触发的请求都可能漏。输出里必须写明「已用浏览器 Network 抓包或测试账号走查核对」之前不算完成。
+- 不替产品决定归属：一个接口挂到哪个能力是业务判断，拿不准就列出候选让用户选。
+- 发现 DECLARED 接口不要顺手去参，那会改变该接口的权限来源，属于单独的改造。
+</code></pre>
+      </details>
+    </section>
+
+    <section id="ops">
+      <h2><span class="who">实施 / 运维</span>上线与回滚</h2>
+      <p class="point">这次是一次全员要重新登录的发布：权限移出了会话，新旧版本的会话互不兼容，所有 Java 服务要在同一个窗口发完，发完立刻强制全员下线。建议放在低峰时段，并提前通知业务。</p>
+
+      <h3 id="release">上线步骤</h3>
+      <ol class="steps">
+        <li><b>合并与发布框架层</b>：template-scaffold 的 PR !39 与 !28 合入 dev，发布 kernel <b>0.4.33</b> 到 Maven 仓库。没发布前，后端 CI 无法构建。</li>
+        <li><b>合并业务代码</b>：octopus-cloud !2718、octopus-admin !1085 合入 dev，按常规流程 dev → test → UAT → 生产。一个改动只落一条分支，不要在 test / release 上另提一份。</li>
+        <li><b>备份</b>：发布前导出 <code>sys_menu</code>、<code>sys_menu_capability</code>、<code>sys_role_menu</code>、<code>sys_role_capability</code>。启动时种子会整体重跑并覆盖这些表。</li>
+        <li><b>确认 Flyway 会执行</b>：目标环境 <code>FLYWAY_ENABLED=true</code>（代码默认是 false）。会建 <code>sys_permission_atom</code>、<code>sys_permission_atom_api</code>、<code>sys_capability_def</code>、<code>sys_org_capability_def</code>，并无条件执行 <code>DROP TABLE IF EXISTS sys_api_permission</code>，先确认该表在目标库不存在或为空。</li>
+        <li><b>先发 system-core</b>：它负责建表，并把能力目录和接口权限快照发布到 Redis。</li>
+        <li><b>紧接着发其他服务</b>：commerce-core、fulfillment-core、settlement-core 等所有依赖 common 的服务一起发。</li>
+        <li><b>发前端</b> octopus-admin。</li>
+        <li><b>强制全员下线</b>：全部服务就绪后，由 SUPER_ADMIN 在「系统管理 › 会话管理」执行（接口 <code>POST /system-core/v1/admin/session/force-logout-all</code>）。结果里列出的下线失败会话要人工确认。</li>
+      </ol>
+
+      <h3 id="verify">上线后验证</h3>
+      <p style="font-size:var(--small);color:var(--ink-2)">勾选状态只保存在你这台设备的浏览器里。</p>
+      <ul class="checklist" id="verify-list">
+        <li><label><input type="checkbox" id="v1"><span>system-core 日志有 <code>[ApiPermission] 配置快照已发布，版本=… 启用原子=… 受控接口=…</code>（本地实测：启用原子 610、受控接口 974）</span></label></li>
+        <li><label><input type="checkbox" id="v2"><span>每个服务日志有 <code>[ApiPermission] 端点清单已发布，service=…</code>；非 system-core 服务有 <code>接口权限配置快照已加载</code></span></label></li>
+        <li><label><input type="checkbox" id="v3"><span>没有 <code>doesn't exist</code> 报错；没有 <code>CapabilityDriftDetector</code> 报错</span></label></li>
+        <li><label><input type="checkbox" id="v4"><span>Redis 里有 <code>authz:api:permission:snapshot</code>、<code>authz:api:permission:version</code>、<code>authz:capability:catalog</code>，<code>authz:api:endpoints:services</code> 列出全部服务</span></label></li>
+        <li><label><input type="checkbox" id="v5"><span>「原子权限配置 › 接口核对」没有未覆盖的接口</span></label></li>
+        <li><label><input type="checkbox" id="v6"><span>非超管账号冒烟：有权限的页面正常、无权限的接口返回 403 且带出所需能力码</span></label></li>
+        <li><label><input type="checkbox" id="v7"><span>抽验合并时改过的判定：审批能否审批与按钮、直播大屏、进件审核按钮、业务标签、运费报表</span></label></li>
+        <li><label><input type="checkbox" id="v8"><span>撤权即时生效：A 账号在线时，给他摘掉角色 / 停用其角色 / 停用其持有的能力，A 下一个请求即 403，无需重新登录</span></label></li>
+      </ul>
+
+      <h3 id="rollback">回滚</h3>
+      <p>回退全部服务镜像后，<b>再执行一次强制全员下线</b>：新版本建的会话里没有权限，旧代码读到会全部 403。新增的四张表对旧代码无影响，可以保留；如果菜单或角色数据被种子改坏，用上线第 3 步的备份恢复。</p>
+
+      <h3 id="troubleshoot">常见问题排障</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>现象</th><th>原因</th><th>处理</th></tr></thead>
+        <tbody>
+          <tr><td>所有无参接口都 403，日志 <code>启动期发布配置快照失败</code></td><td>新表不存在，Flyway 没跑</td><td>开 <code>FLYWAY_ENABLED=true</code> 重启 system-core</td></tr>
+          <tr><td>登录状态还在，但什么都点不了；日志 <code>用户权限集缺失</code></td><td>上线前的旧会话，或权限集过期</td><td>让对方重新登录</td></tr>
+          <tr><td>一个接口 403，提示带能力码</td><td>岗位没有该能力，或组织没开通对应业务</td><td>能力目录查归属，给岗位加能力或给组织开通</td></tr>
+          <tr><td>配置页改了归属不生效</td><td>该接口是代码写死的 DECLARED 模式</td><td>看「接口核对」里的鉴权模式；要改只能改代码</td></tr>
+          <tr><td>system-core 生效了，其他服务不生效</td><td>该服务没读到 Redis 快照</td><td>查日志 <code>快照已加载</code> 的版本号和 Redis 连通性</td></tr>
+          <tr><td>停用用户后资源成员没被挂起</td><td>依赖 Kafka 事件，Kafka 不通</td><td>查 Kafka 与 outbox 积压</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section id="limits">
+      <h2>已知限制与上线前待办</h2>
+      <p class="point">三个分支已合入最新 dev；本次新引入的 5 项问题已处理并补了单测。<b>尚未推送，尚未在 UAT 验证</b>。下表是上线前的事项与现状。</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>事项</th><th>影响 / 现状</th><th>状态</th><th>建议</th></tr></thead>
+        <tbody>
+          <tr><td>撤权收敛不全：角色停用、给用户绑/摘角色、停用能力，不触发在线用户权限重算</td><td>已修复：以上操作都会立即重建在线用户的权限包；账号停用或被移出组织时直接清除旧权限包</td><td><span class="pill ok">已修复</span></td><td>UAT 按「上线后验证」最后一条抽验</td></tr>
+          <tr><td><code>/capability/save</code> 传 enabled=false 绕过停用保护，且停用不撤权（AUTHZ-029）</td><td>已修复：保存时停用走同一道校验；停用的能力和原子在运行时一律视为撤销</td><td><span class="pill ok">已修复</span></td><td>—</td></tr>
+          <tr><td>切换资源时不重跑组织能力过滤</td><td>已修复：切资源重算权限时重跑组织闸门</td><td><span class="pill ok">已修复</span></td><td>—</td></tr>
+          <tr><td>编辑已停用的能力会静默重新启用</td><td>已修复：列表返回真实启用状态，编辑弹窗回显；保存时不带启用状态则保持原样</td><td><span class="pill ok">已修复</span></td><td>—</td></tr>
+          <tr><td>种子重跑会覆盖页面修改</td><td>按项目规范保留：种子是声明式终态，是唯一权威来源</td><td><span class="pill old">规范约束</span></td><td>长期有效的归属调整改种子；页面修改只作临时调整，下次该种子变更时会被覆盖</td></tr>
+          <tr><td>新增的组织能力无法在组织上开通</td><td>已修复：开关接受能力目录里启用中的组织能力；新建时只限超级管理员，并自动开通给平台根组织</td><td><span class="pill ok">已修复</span></td><td>注意 <code>_MGMT</code> 结尾的码会向下继承</td></tr>
+          <tr><td>4 个原子的父能力 <code>fulfillment.wms.task.execute</code> 已被删</td><td>已修复：<code>area:create/update/delete</code> 归 <code>fulfillment.wms.warehouse.config</code>，<code>order:create</code> 归 <code>commerce.order.manage</code>，与接口原有映射一致</td><td><span class="pill ok">已修复</span></td><td>—</td></tr>
+          <tr><td>482 个接口仍在注解里写死能力码</td><td>这些接口不归配置页管，行为与现在一致</td><td><span class="pill old">合并 dev 后留下</span></td><td>不阻塞上线；下一期重新生成兼容映射后统一去参</td></tr>
+          <tr><td>资源归属校验缺失：门店、消费者、订单、售后的详情与写操作按 ID 直达；资源成员接口权限注解被注释（AUTHZ-007 系列）</td><td>有接口权限的人可操作本不属于自己范围的数据</td><td><span class="pill old">线上已存在</span></td><td>单独排期修复，优先资源成员接口</td></tr>
+          <tr><td>09-04 会议定的权限检查器、组织能力可修改、角色全局化、按钮可见性走能力派生均未开发</td><td>不在本次上线范围</td><td>—</td><td>确认是否进 2.0；不进则对外说明</td></tr>
+        </tbody>
+      </table></div>
+      <h3>待拍板</h3>
+      <ul class="checklist" id="todo-list">
+        <li><label><input type="checkbox" id="t1"><span>产品确认上线范围（上表最后一行）</span></label></li>
+        <li><label><input type="checkbox" id="t2" checked><span>「本次新引入」的 5 项：已全部处理（4 项代码修复，种子覆盖按规范保留）</span></label></li>
+        <li><label><input type="checkbox" id="t3" checked><span><code>order:create</code> 的父能力：已定为 <code>commerce.order.manage</code></span></label></li>
+        <li><label><input type="checkbox" id="t4"><span>推送三个分支，发布 kernel 0.4.33，在 UAT 走一遍上线与回滚步骤</span></label></li>
+      </ul>
+    </section>
+
+    <footer>菜单权限 2.0 · 依据 2026-10-05 本地合并结果整理；以代码与 UAT 验证结论为准。配套文档：<a href="authz-2-manual.html">操作手册</a>、<a href="authz-2-testcases.html">测试用例</a>。技能文件：octopus/.claude/skills/authz-map/SKILL.md</footer>
+  </main>
+</div>
+
+<script>
+(function () {
+  var KEY = 'authz2-guide-checks';
+  var state = {};
+  try { state = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { state = {}; }
+  var boxes = document.querySelectorAll('.checklist input[type="checkbox"]');
+  boxes.forEach(function (box) {
+    if (state[box.id]) box.checked = true;
+    box.addEventListener('change', function () {
+      state[box.id] = box.checked;
+      try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+    });
+  });
+})();
+
+(function () {
+  var btn = document.getElementById('copy-skill');
+  var pre = document.getElementById('skill-text');
+  if (!btn || !pre) return;
+  btn.addEventListener('click', function () {
+    var text = pre.textContent;
+    var done = function () { btn.textContent = '已复制'; setTimeout(function () { btn.textContent = '复制全文'; }, 1600); };
+    var fallback = function () {
+      var r = document.createRange(); r.selectNodeContents(pre);
+      var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+      btn.textContent = '已选中，按 Ctrl/⌘+C 复制';
+    };
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback);
+      else fallback();
+    } catch (e) { fallback(); }
+  });
+})();
+</script>
+
+</body>
+</html>
