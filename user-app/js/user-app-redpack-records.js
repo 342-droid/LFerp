@@ -1,6 +1,7 @@
 /**
  * C 端 — 红包领取记录（小程序 / APP 共用）
- * 手动派发、抽中现金红包福袋需要用户自己领取；其余现金红包直接到账，在本页显示为已领取。
+ * 未授权时，手动派发出现在列表，状态为未领取。授权后手动派发自动打入微信，无需再点领取。
+ * 抽中现金红包福袋、未授权中奖放入账户的红包，仍可点领取。其余现金红包直接到账，显示为已领取。
  * 顶部统计现金收益（只合计已领取金额），以及红包总数、已领取、待领取、已过期。
  * 明细含已过期。待领取可再次打开领取半屏。不展示发放失败。
  */
@@ -180,11 +181,38 @@
     return pad(d.getHours()) + ':' + pad(d.getMinutes());
   }
 
-  /** 待领取：手动派发、抽中福袋，以及未授权中奖后放入账户的红包。其余直接算已领取 */
+  function wxOn() {
+    return !!(window.UaWxPayAuth && window.UaWxPayAuth.isAuthorized());
+  }
+
+  function isManualPacket(row) {
+    if (!row) return false;
+    if (row.activityType === 'manual' || row.scene === 'manual') return true;
+    var scene = String(row.sceneText || '');
+    return scene === '手动发放' || scene === '手动派发';
+  }
+
+  function portAllows(row) {
+    var client = RG.getClientMode ? RG.getClientMode() : 'mini';
+    if (row.claimKind === 'bag' || row.claimKind === 'hold') return true;
+    if (typeof C.recordAllowsPort !== 'function') return true;
+    return C.recordAllowsPort(row, client);
+  }
+
+  /** 未授权的手动派发留在列表，状态未领取。已授权则自动打款，显示已领取。福袋和未转账红包仍待领取。 */
   function presentRecord(it) {
     var row = Object.assign({}, it);
-    var manual = row.activityType === 'manual' || row.claimKind === 'bag' || row.claimKind === 'hold';
-    if (row.status === 'pending' && !manual) {
+    if (isManualPacket(row) && row.status === 'pending') {
+      if (wxOn() && portAllows(row)) {
+        row.status = 'claimed';
+        if (!row.claimAt) row.claimAt = row.grantedAt;
+      } else if (portAllows(row)) {
+        row.listStatus = '未领取';
+      }
+      return row;
+    }
+    var keepPending = row.claimKind === 'bag' || row.claimKind === 'hold';
+    if (row.status === 'pending' && !keepPending) {
       row.status = 'claimed';
       if (!row.claimAt) row.claimAt = row.grantedAt;
     }
@@ -311,7 +339,7 @@
     list.forEach(function (it) {
       if (has[it.status] != null) has[it.status] = true;
     });
-    if (!has.pending) {
+    if (!has.pending && !wxOn()) {
       list.push({
         id: 'demo-status-pending',
         activityType: 'manual',
@@ -321,6 +349,7 @@
         amount: 1.2,
         grantedAt: '2026-10-07 10:00:00',
         status: 'pending',
+        listStatus: '未领取',
         claimKind: 'sheet-demo'
       });
     }
@@ -562,7 +591,8 @@
     listEl.innerHTML = rows
       .map(function (it) {
         var allows = it.claimKind === 'bag' || it.claimKind === 'hold' || typeof C.recordAllowsPort !== 'function' || C.recordAllowsPort(it, client);
-        var canClaim = it.status === 'pending' && allows;
+        var manualWait = isManualPacket(it) && it.status === 'pending';
+        var canClaim = it.status === 'pending' && allows && !manualWait;
         var tag = canClaim
           ? '<span class="ua-rp-item__action">领取</span>'
           : '<span class="' +
@@ -571,7 +601,7 @@
             escapeHtml(
               it.status === 'pending' && !allows
                 ? '请到' + (C.portsLabel ? C.portsLabel(it.ports) : '指定端口') + '领取'
-                : statusText(it.status)
+                : it.listStatus || statusText(it.status)
             ) +
             '</span>';
         var billNo = it.status === 'claimed' ? it.outBillNo || '' : '';
