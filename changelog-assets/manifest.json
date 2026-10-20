@@ -772,6 +772,38 @@
     "status": "diff",
     "date": "2026-10-12"
   },
+  "b28a85e|SCM/master_data_ingredient_category.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-20"
+  },
+  "b28a85e|SCM/master_data_product_brand.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-20"
+  },
+  "b28a85e|SCM/master_data_product_category.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-20"
+  },
+  "b28a85e|SCM/master_data_product_library.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-20"
+  },
+  "b28a85e|SCM/master_data_supplier.html": {
+    "before": "changelog-assets/b28a85e/SCM__master_data_supplier.html.before.jpg",
+    "after": "changelog-assets/b28a85e/SCM__master_data_supplier.html.after.jpg",
+    "regions": 9,
+    "status": "diff",
+    "date": "2026-10-20"
+  },
+  "b28a85e|SCM/master_data_supply.html": {
+    "after": "changelog-assets/b28a85e/SCM__master_data_supply.html.after.jpg",
+    "status": "added",
+    "date": "2026-10-20"
+  },
   "bc231c6|MDM/mdm_audit_cash_redpack.html": {
     "regions": 0,
     "status": "diff",

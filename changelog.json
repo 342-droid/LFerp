@@ -1,7 +1,65 @@
 {
-  "latestSha": "f8cc9971fc640d920736495d454471dbe25d557a",
-  "total": 445,
+  "latestSha": "b28a85e3a0579d8292e489e8849907a827c375b4",
+  "total": 446,
   "days": [
+    {
+      "date": "2026-10-20",
+      "items": [
+        {
+          "sha": "b28a85e",
+          "type": "feat",
+          "text": "新增供货关系并支持最小起订量与商品详情查看",
+          "author": "342-droid",
+          "time": "12:23",
+          "pages": [
+            {
+              "file": "SCM/master_data_ingredient_category.html",
+              "module": "冷丰WMS",
+              "title": "配料类别"
+            },
+            {
+              "file": "SCM/master_data_product_brand.html",
+              "module": "冷丰WMS",
+              "title": "商品品牌"
+            },
+            {
+              "file": "SCM/master_data_product_category.html",
+              "module": "冷丰WMS",
+              "title": "商品分类"
+            },
+            {
+              "file": "SCM/master_data_product_library.html",
+              "module": "冷丰WMS",
+              "title": "基础商品库"
+            },
+            {
+              "file": "SCM/master_data_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "SCM/master_data_supply.html",
+              "module": "冷丰WMS",
+              "title": "供货关系"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/master_data_supply.html",
+              "text": "新增列表和新增编辑，维护采购核定价、实际采购单位、最小起订量、价格状态、样品状态、主供应商和启用停用"
+            },
+            {
+              "file": "SCM/master_data_product_library.html",
+              "text": "商品详情增加供货关系页签，可查看该商品全部供货关系"
+            },
+            {
+              "file": "SCM/master_data_supplier.html",
+              "text": "点击供应商编码打开详情，支持上传证照；列表操作只保留停用启用和删除"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-10-17",
       "items": [
@@ -246,6 +304,11 @@
               "file": "SCM/master_data_supplier.html",
               "module": "冷丰WMS",
               "title": "供应商档案"
+            },
+            {
+              "file": "SCM/master_data_supply.html",
+              "module": "冷丰WMS",
+              "title": "供货关系"
             }
           ],
           "global": true,
@@ -308,6 +371,11 @@
               "file": "SCM/master_data_supplier.html",
               "module": "冷丰WMS",
               "title": "供应商档案"
+            },
+            {
+              "file": "SCM/master_data_supply.html",
+              "module": "冷丰WMS",
+              "title": "供货关系"
             }
           ],
           "global": true,
