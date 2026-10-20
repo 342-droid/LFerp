@@ -56,6 +56,12 @@
     return '¥' + formatNum(parts[0]) + '.' + parts[1];
   }
 
+  function formatQty(value) {
+    var num = Number(value);
+    if (!isFinite(num) || num < 1) return '—';
+    return String(Math.round(num));
+  }
+
   function selectedId(level) {
     return state['selectedL' + level];
   }
@@ -706,11 +712,13 @@
       '<button type="button" class="mdl-detail-tabs__item" data-lib-detail-tab="copy">图文信息</button>' +
       '<button type="button" class="mdl-detail-tabs__item" data-lib-detail-tab="ingredient">配料表</button>' +
       '<button type="button" class="mdl-detail-tabs__item" data-lib-detail-tab="nutrition">营养成分</button>' +
+      '<button type="button" class="mdl-detail-tabs__item" data-lib-detail-tab="supply">供货关系</button>' +
       '</div>' +
       '<div class="mdl-detail-pane" data-lib-detail-pane="info"><div class="mdl-detail-grid">' + infoHtml + '</div></div>' +
       '<div class="mdl-detail-pane" data-lib-detail-pane="copy" hidden>' + copyHtml + '</div>' +
       '<div class="mdl-detail-pane" data-lib-detail-pane="ingredient" hidden></div>' +
       '<div class="mdl-detail-pane" data-lib-detail-pane="nutrition" hidden></div>' +
+      '<div class="mdl-detail-pane" data-lib-detail-pane="supply" hidden></div>' +
       '</div></div>';
     backdrop.addEventListener('click', function (ev) {
       if (ev.target === backdrop || ev.target.closest('[data-lib-detail-close]')) {
@@ -817,6 +825,80 @@
     document.body.appendChild(backdrop);
     renderIngredientPane(item);
     renderNutritionPane(item);
+    renderSupplyPane(item);
+  }
+
+  function supplySupplier(id) {
+    var store = window.MasterDataSupplierStore;
+    if (!store || typeof store.all !== 'function') return null;
+    var found = null;
+    store.all().some(function (row) {
+      if (row && row.id === id) {
+        found = row;
+        return true;
+      }
+      return false;
+    });
+    return found;
+  }
+
+  function supplyStatusText(row) {
+    return row && row.status === 'disabled' ? '停用' : '启用';
+  }
+
+  function supplyBadge(text, kind) {
+    return '<span class="mdl-status mdl-status--' + kind + '">' + escapeHtml(text || '—') + '</span>';
+  }
+
+  function sampleBadge(value) {
+    if (value === '合格') return supplyBadge(value, 'active');
+    if (value === '无需样品') return supplyBadge(value, 'plain');
+    return supplyBadge(value || '—', 'disabled');
+  }
+
+  function renderSupplyPane(item) {
+    var pane = document.querySelector('[data-lib-detail-pane="supply"]');
+    if (!pane) return;
+    var store = window.MasterDataSupplyRelationStore;
+    var sku = String(item && item.sku || '');
+    var rows = [];
+    if (store && typeof store.all === 'function' && sku) {
+      rows = store.all().filter(function (row) {
+        return row && String(row.sku) === sku;
+      });
+    }
+    rows.sort(function (a, b) {
+      if (!!a.isPrimary !== !!b.isPrimary) return a.isPrimary ? -1 : 1;
+      var supplierA = supplySupplier(a.supplierId);
+      var supplierB = supplySupplier(b.supplierId);
+      var nameA = supplierA && supplierA.name ? supplierA.name : '';
+      var nameB = supplierB && supplierB.name ? supplierB.name : '';
+      return nameA.localeCompare(nameB, 'zh');
+    });
+    if (!rows.length) {
+      pane.innerHTML = '<div class="mdl-ing-empty">暂无该商品的供货关系</div>';
+      return;
+    }
+    var body = rows.map(function (row) {
+      var supplier = supplySupplier(row.supplierId);
+      var enabled = !(row && row.status === 'disabled');
+      return '<tr>' +
+        '<td>' + escapeHtml(supplier && supplier.code ? supplier.code : '—') + '</td>' +
+        '<td>' + escapeHtml(supplier && supplier.name ? supplier.name : '—') + '</td>' +
+        '<td>' + escapeHtml(formatPrice(row.approvedPrice)) + '</td>' +
+        '<td>' + escapeHtml(row.actualPurchaseUnit || '—') + '</td>' +
+        '<td>' + escapeHtml(formatQty(row.minOrderQty)) + '</td>' +
+        '<td>' + escapeHtml(row.priceStatus || '—') + '</td>' +
+        '<td>' + sampleBadge(row.sampleStatus) + '</td>' +
+        '<td>' + (row.isPrimary ? '是' : '否') + '</td>' +
+        '<td>' + supplyBadge(supplyStatusText(row), enabled ? 'active' : 'disabled') + '</td>' +
+        '</tr>';
+    }).join('');
+    pane.innerHTML =
+      '<div class="mdl-supply-summary">共 ' + rows.length + ' 条供货关系</div>' +
+      '<div class="mdl-ing-table-wrap"><table class="mdl-ing-table"><thead><tr>' +
+      '<th>供应商编码</th><th>供应商</th><th>采购核定价</th><th>实际采购单位</th><th>最小起订量</th><th>价格状态</th><th>样品状态</th><th>是否主供应商</th><th>状态</th>' +
+      '</tr></thead><tbody>' + body + '</tbody></table></div>';
   }
 
   function ingredientCategoryChoices() {
@@ -2754,11 +2836,30 @@
   }
 
   function init() {
+    if (!store || typeof store.load !== 'function') return;
     store.load();
     fillCategoryProducts();
     addSameSpuSpecs();
     assignMissingSpu();
     assignAllSkus();
+    window.MasterDataGoodsCatalog = PRODUCTS.filter(function (item) {
+      return item && item.sku;
+    }).map(function (item) {
+      return {
+        sku: item.sku,
+        spu: item.spu || '',
+        name: item.name || '',
+        barcode: item.barcode || '',
+        purchaseUnit: item.purchaseUnit || '',
+        purchasePrice: item.purchasePrice,
+        shelfLife: item.shelfLife || '',
+        tempLayer: item.tempLayer || '',
+        operateMode: item.operateMode || '',
+        tone: item.tone || 'blue',
+        mark: item.mark || (item.name || '').charAt(0)
+      };
+    });
+    if (!document.getElementById('libTableBody')) return;
     syncCategoryCounts();
     fillBrandQuery();
     bindEvents();

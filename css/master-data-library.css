@@ -833,6 +833,17 @@
   color: #909399;
 }
 
+.mdl-status--plain {
+  background: #ecf5ff;
+  color: #409eff;
+}
+
+.mdl-supply-summary {
+  margin-bottom: 10px;
+  color: #606266;
+  font-size: 13px;
+}
+
 .mdl-op-btn {
   padding: 0;
   border: none;

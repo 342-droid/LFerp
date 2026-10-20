@@ -14,7 +14,8 @@
     ];
 
     const supplyChainItems = [
-        { href: 'master_data_supplier.html', text: '供应商档案' }
+        { href: 'master_data_supplier.html', text: '供应商档案' },
+        { href: 'master_data_supply.html', text: '供货关系' }
     ];
 
     function pageMatches(href) {

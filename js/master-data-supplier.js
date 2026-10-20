@@ -12,6 +12,24 @@
     pageSize: 20,
     editingId: null
   };
+  var formDocs = emptyDocs();
+  var docTarget = '';
+  var FACTORY_LIMIT = 6;
+
+  function emptyDocs() {
+    return { license: '', foodLicense: '', legalFront: '', legalBack: '', factory: [] };
+  }
+
+  function copyDocs(item) {
+    var docs = item && item.docs ? item.docs : {};
+    return {
+      license: docs.license || '',
+      foodLicense: docs.foodLicense || '',
+      legalFront: docs.legalFront || docs.legalId || '',
+      legalBack: docs.legalBack || '',
+      factory: Array.isArray(docs.factory) ? docs.factory.filter(Boolean).slice() : []
+    };
+  }
 
   function escapeHtml(text) {
     return String(text == null ? '' : text)
@@ -60,7 +78,7 @@
     body.innerHTML = list.slice(start, start + state.pageSize).map(function (item) {
       var action = supplierStatus(item) === 'disabled' ? '启用' : '停用';
       return '<tr>' +
-        '<td>' + escapeHtml(item.code) + '</td>' +
+        '<td><button type="button" class="mdb-code-link" data-supplier-detail="' + item.id + '">' + escapeHtml(item.code) + '</button></td>' +
         '<td>' + escapeHtml(item.name) + '</td>' +
         '<td>' + escapeHtml(item.type) + '</td>' +
         '<td>' + escapeHtml(item.bizContact) + '</td>' +
@@ -71,7 +89,6 @@
         '<td>' + escapeHtml(item.detailAddress) + '</td>' +
         '<td><span class="mdb-status mdb-status--' + supplierStatus(item) + '">' + statusLabel(item) + '</span></td>' +
         '<td class="mdb-table__op"><div class="mdb-table__ops">' +
-        '<button type="button" class="mdb-op-btn" data-supplier-edit="' + item.id + '">编辑</button>' +
         '<button type="button" class="mdb-op-btn" data-supplier-status="' + item.id + '">' + action + '</button>' +
         '<button type="button" class="mdb-op-btn mdb-op-btn--danger" data-supplier-delete="' + item.id + '">删除</button>' +
         '</div></td></tr>';
@@ -135,6 +152,103 @@
     var modal = document.querySelector('[data-supplier-modal]');
     if (modal) modal.remove();
     state.editingId = null;
+    formDocs = emptyDocs();
+    docTarget = '';
+  }
+
+  function closeDetail() {
+    var modal = document.querySelector('[data-supplier-detail-modal]');
+    if (modal) modal.remove();
+  }
+
+  function detailText(value) {
+    if (value == null || String(value).trim() === '') return '—';
+    return String(value);
+  }
+
+  function detailField(label, value) {
+    return '<div class="mdl-detail-field"><div class="mdl-detail-field__label">' + escapeHtml(label) + '</div><div class="mdl-detail-field__value">' + escapeHtml(detailText(value)) + '</div></div>';
+  }
+
+  function detailFrame(src, alt) {
+    if (!src) return '<div class="mdb-doc-frame"><span class="mdb-doc-empty">未上传</span></div>';
+    return '<div class="mdb-doc-frame"><img src="' + escapeHtml(src) + '" alt="' + escapeHtml(alt) + '"></div>';
+  }
+
+  function detailDocCard(title, body, wide) {
+    return '<article class="mdb-detail-doc-card' + (wide ? ' mdb-detail-doc-card--wide' : '') + '">' +
+      '<div class="mdb-detail-doc-card__title">' + escapeHtml(title) + '</div>' + body + '</article>';
+  }
+
+  function detailDocsSection(docs) {
+    docs = docs || {};
+    var factory = Array.isArray(docs.factory) ? docs.factory.filter(Boolean) : [];
+    var factoryBody = factory.length
+      ? '<div class="mdb-doc-gallery">' + factory.map(function (src, index) {
+          return detailFrame(src, '厂房照片' + (index + 1));
+        }).join('') + '</div>'
+      : detailFrame('', '厂房照片');
+    var legalBody = '<div class="mdb-doc-pair">' +
+      '<div><div class="mdb-doc-caption">人像面</div>' + detailFrame(docs.legalFront || docs.legalId, '身份证人像面') + '</div>' +
+      '<div><div class="mdb-doc-caption">国徽面</div>' + detailFrame(docs.legalBack, '身份证国徽面') + '</div>' +
+      '</div>';
+    return '<section class="mdb-detail-docs"><h3>证照资料</h3><div class="mdb-detail-doc-grid">' +
+      detailDocCard('营业执照', detailFrame(docs.license, '营业执照')) +
+      detailDocCard('食品经营许可证', detailFrame(docs.foodLicense, '食品经营许可证')) +
+      detailDocCard('法人证件', legalBody, true) +
+      detailDocCard('厂房照片', factoryBody, true) +
+      '</div></section>';
+  }
+
+  function openDetail(item) {
+    if (!item) return;
+    closeDetail();
+    var infoHtml =
+      detailField('供应商编码', item.code) +
+      detailField('供应商名称', item.name) +
+      detailField('供应商类型', item.type) +
+      detailField('状态', statusLabel(item)) +
+      detailField('业务联系人', item.bizContact) +
+      detailField('业务联系电话', item.bizPhone) +
+      detailField('仓库联系人', item.warehouseContact) +
+      detailField('仓库联系电话', item.warehousePhone) +
+      detailField('省市区', item.region) +
+      detailField('详细地址', item.detailAddress);
+    var backdrop = document.createElement('div');
+    backdrop.className = 'erp-modal-backdrop product-category-modal-backdrop';
+    backdrop.setAttribute('data-supplier-detail-modal', '1');
+    backdrop.innerHTML =
+      '<div class="erp-modal mdb-supplier-detail" role="dialog" aria-modal="true" aria-labelledby="supplierDetailTitle">' +
+      '<div class="erp-modal__header"><h2 class="erp-modal__title" id="supplierDetailTitle">供应商详情</h2>' +
+      '<div class="erp-modal__header-actions"><button type="button" class="erp-modal__header-btn" data-supplier-detail-close aria-label="关闭">&times;</button></div></div>' +
+      '<div class="erp-modal__body">' +
+      '<div class="mdl-detail-hero">' +
+      '<div class="mdl-detail-hero__main">' +
+      '<div class="mdl-detail-hero__title"><h3>' + escapeHtml(item.name) + '</h3>' +
+      '<button type="button" class="mdl-detail-edit" data-supplier-detail-edit>' +
+      '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M4 20h4l10.5-10.5-4-4L4 16v4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13.5 6.5l4 4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>' +
+      '编辑</button></div>' +
+      '<p class="mdl-detail-hero__meta">供应商编码：' + escapeHtml(detailText(item.code)) + ' · 供应商类型：' + escapeHtml(detailText(item.type)) + ' · 状态：' + escapeHtml(statusLabel(item)) + '</p>' +
+      '</div></div>' +
+      '<div class="mdl-detail-tags">' +
+      '<span class="mdl-detail-tag">' + escapeHtml(detailText(item.type)) + '</span>' +
+      '<span class="mdl-detail-tag">' + escapeHtml(statusLabel(item)) + '</span>' +
+      '</div>' +
+      '<div class="mdl-detail-tabs" role="tablist">' +
+      '<button type="button" class="mdl-detail-tabs__item is-active">基本信息</button></div>' +
+      '<div class="mdl-detail-pane"><div class="mdl-detail-grid">' + infoHtml + '</div>' + detailDocsSection(item.docs) + '</div>' +
+      '</div></div>';
+    backdrop.addEventListener('click', function (ev) {
+      if (ev.target === backdrop || ev.target.closest('[data-supplier-detail-close]')) {
+        closeDetail();
+        return;
+      }
+      if (ev.target.closest('[data-supplier-detail-edit]')) {
+        closeDetail();
+        openForm(item);
+      }
+    });
+    document.body.appendChild(backdrop);
   }
 
   function regionTree() {
@@ -176,9 +290,124 @@
     });
   }
 
+  function snapshotDocs() {
+    return {
+      license: formDocs.license || '',
+      foodLicense: formDocs.foodLicense || '',
+      legalFront: formDocs.legalFront || '',
+      legalBack: formDocs.legalBack || '',
+      factory: formDocs.factory.slice()
+    };
+  }
+
+  function docUploadRow(key, label) {
+    return '<div class="mdb-field mdb-field--doc"><span>' + label + '</span><div class="mdb-docs" data-doc-list="' + key + '"></div></div>';
+  }
+
+  function docAddButton(key, label) {
+    return '<button type="button" class="mdb-logo-box" data-doc-add="' + key + '" aria-label="上传' + label + '"><span class="mdb-logo-plus">+</span></button>';
+  }
+
+  function docThumb(src, label, removeKey) {
+    return '<span class="mdb-doc-item"><img class="mdb-logo-preview" src="' + escapeHtml(src) + '" alt="' + escapeHtml(label) + '">' +
+      '<button type="button" class="mdb-doc-remove" data-doc-remove="' + removeKey + '" aria-label="删除' + escapeHtml(label) + '">×</button></span>';
+  }
+
+  function renderDocUploads() {
+    var singles = [
+      { key: 'license', label: '营业执照' },
+      { key: 'foodLicense', label: '食品经营许可证' }
+    ];
+    singles.forEach(function (field) {
+      var box = document.querySelector('[data-doc-list="' + field.key + '"]');
+      if (!box) return;
+      box.innerHTML = formDocs[field.key]
+        ? docThumb(formDocs[field.key], field.label, field.key)
+        : docAddButton(field.key, field.label);
+    });
+    var legalBox = document.querySelector('[data-doc-list="legal"]');
+    if (legalBox) {
+      legalBox.innerHTML = [
+        { key: 'legalFront', label: '人像面' },
+        { key: 'legalBack', label: '国徽面' }
+      ].map(function (field) {
+        var control = formDocs[field.key]
+          ? docThumb(formDocs[field.key], '身份证' + field.label, field.key)
+          : docAddButton(field.key, '身份证' + field.label);
+        return '<div class="mdb-doc-slot"><span class="mdb-doc-caption">' + field.label + '</span>' + control + '</div>';
+      }).join('');
+    }
+    var factoryBox = document.querySelector('[data-doc-list="factory"]');
+    if (!factoryBox) return;
+    var html = formDocs.factory.map(function (src, index) {
+      return docThumb(src, '厂房照片', 'factory:' + index);
+    }).join('');
+    if (formDocs.factory.length < FACTORY_LIMIT) html += docAddButton('factory', '厂房照片');
+    factoryBox.innerHTML = html;
+  }
+
+  function readDocFile(file, done) {
+    if (!file) return;
+    if (!/^image\/(jpeg|png|webp|gif|svg\+xml)$/.test(file.type)) {
+      if (typeof showToast === 'function') showToast('请上传 JPG、PNG、WEBP、GIF 或 SVG 图片', 'warning');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      if (typeof showToast === 'function') showToast('图片不能超过 2MB', 'warning');
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function () { done(String(reader.result || '')); };
+    reader.readAsDataURL(file);
+  }
+
+  function bindDocUploads(backdrop) {
+    var input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/jpeg,image/png,image/webp,image/gif,image/svg+xml';
+    input.hidden = true;
+    backdrop.appendChild(input);
+    backdrop.addEventListener('click', function (ev) {
+      var addBtn = ev.target.closest('[data-doc-add]');
+      if (addBtn) {
+        docTarget = addBtn.getAttribute('data-doc-add');
+        input.value = '';
+        input.click();
+        return;
+      }
+      var removeBtn = ev.target.closest('[data-doc-remove]');
+      if (!removeBtn) return;
+      var key = removeBtn.getAttribute('data-doc-remove') || '';
+      if (key.indexOf('factory:') === 0) {
+        formDocs.factory.splice(parseInt(key.slice(8), 10), 1);
+      } else if (formDocs[key] != null) {
+        formDocs[key] = '';
+      }
+      renderDocUploads();
+    });
+    input.addEventListener('change', function () {
+      var file = input.files && input.files[0];
+      var target = docTarget;
+      if (!file || !target) return;
+      readDocFile(file, function (url) {
+        if (target === 'factory') {
+          if (formDocs.factory.length >= FACTORY_LIMIT) {
+            if (typeof showToast === 'function') showToast('厂房照片最多 6 张', 'warning');
+            return;
+          }
+          formDocs.factory.push(url);
+        } else {
+          formDocs[target] = url;
+        }
+        renderDocUploads();
+      });
+    });
+  }
+
   function openForm(item) {
     closeModal();
     state.editingId = item ? item.id : null;
+    formDocs = copyDocs(item);
     var backdrop = document.createElement('div');
     backdrop.className = 'erp-modal-backdrop product-category-modal-backdrop';
     backdrop.setAttribute('data-supplier-modal', '1');
@@ -200,6 +429,11 @@
       '<select id="supplierFormDistrict" aria-label="区"></select>' +
       '</span></label>' +
       '<label class="mdb-field"><span><i>*</i>详细地址</span><input id="supplierFormDetail" type="text" maxlength="80" placeholder="请输入详细地址" value="' + escapeHtml(item ? item.detailAddress : '') + '"></label>' +
+      docUploadRow('license', '营业执照') +
+      docUploadRow('foodLicense', '食品经营许可证') +
+      '<div class="mdb-field mdb-field--doc"><span>法人证件</span><div class="mdb-docs" data-doc-list="legal"></div></div>' +
+      docUploadRow('factory', '厂房照片') +
+      '<p class="mdb-doc-hint">支持 JPG、PNG、WEBP、GIF、SVG，每张不超过 2MB。厂房照片最多 6 张。</p>' +
       '</div></div>' +
       '<div class="erp-modal__footer"><button type="button" class="erp-btn" data-supplier-cancel>取消</button>' +
       '<button type="button" class="erp-btn erp-btn--primary" data-supplier-save>确定</button></div></div>';
@@ -212,6 +446,8 @@
     backdrop.querySelector('[data-supplier-save]').addEventListener('click', saveSupplier);
     document.body.appendChild(backdrop);
     bindRegion(item);
+    renderDocUploads();
+    bindDocUploads(backdrop);
     var input = document.getElementById('supplierFormCode');
     if (input) input.focus();
   }
@@ -295,6 +531,7 @@
       current.warehousePhone = form.warehousePhone;
       current.region = form.region;
       current.detailAddress = form.detailAddress;
+      current.docs = snapshotDocs();
       if (store) store.save();
       closeModal();
       renderPage();
@@ -312,6 +549,7 @@
       warehousePhone: form.warehousePhone,
       region: form.region,
       detailAddress: form.detailAddress,
+      docs: snapshotDocs(),
       status: 'active'
     });
     if (store) store.save();
@@ -401,9 +639,9 @@
     var table = document.getElementById('supplierTableBody');
     if (table) {
       table.addEventListener('click', function (ev) {
-        var editBtn = ev.target.closest('[data-supplier-edit]');
-        if (editBtn) {
-          openForm(findSupplier(editBtn.getAttribute('data-supplier-edit')));
+        var detailBtn = ev.target.closest('[data-supplier-detail]');
+        if (detailBtn) {
+          openDetail(findSupplier(detailBtn.getAttribute('data-supplier-detail')));
           return;
         }
         var statusBtn = ev.target.closest('[data-supplier-status]');
