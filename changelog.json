@@ -1,45 +1,68 @@
 {
-  "latestSha": "b09e32eb022c423c48161105c7dce9d008a180c3",
-  "total": 450,
+  "latestSha": "e414fb4e5eca09f0c8c3ee448a248799419059ca",
+  "total": 451,
   "days": [
     {
       "date": "2026-10-22",
       "items": [
+        {
+          "sha": "e414fb4",
+          "type": "refactor",
+          "text": "本仓移除供应链菜单及相关原型与文档",
+          "author": "342-droid",
+          "time": "15:16",
+          "pages": [],
+          "global": true,
+          "notes": [
+            {
+              "file": null,
+              "text": "顶栏去掉「供应链」入口"
+            },
+            {
+              "file": null,
+              "text": "商品分类: 页面与脚本样式已从本仓移除（迁至独立仓）"
+            },
+            {
+              "file": null,
+              "text": "商品品牌: 页面与脚本样式已从本仓移除（迁至独立仓）"
+            },
+            {
+              "file": null,
+              "text": "配料类别: 页面与脚本样式已从本仓移除（迁至独立仓）"
+            },
+            {
+              "file": null,
+              "text": "基础商品库: 页面与脚本样式已从本仓移除（迁至独立仓）"
+            },
+            {
+              "file": null,
+              "text": "供应商档案: 供应链侧档案页已从本仓移除（迁至独立仓）"
+            },
+            {
+              "file": null,
+              "text": "供货关系: 页面与脚本样式已从本仓移除（迁至独立仓）"
+            }
+          ]
+        },
         {
           "sha": "b09e32e",
           "type": "feat",
           "text": "一级分类可配置商品单位并补齐供应链 PRD",
           "author": "342-droid",
           "time": "11:18",
-          "pages": [
-            {
-              "file": "SCM/master_data_product_category.html",
-              "module": "冷丰WMS",
-              "title": "商品分类"
-            },
-            {
-              "file": "SCM/master_data_product_library.html",
-              "module": "冷丰WMS",
-              "title": "基础商品库"
-            },
-            {
-              "file": "SCM/master_data_supply.html",
-              "module": "冷丰WMS",
-              "title": "供货关系"
-            }
-          ],
+          "pages": [],
           "notes": [
             {
-              "file": "SCM/master_data_product_category.html",
-              "text": "一级详情新增商品单位页签，支持从全局枚举增删改查"
+              "file": null,
+              "text": "商品分类: 一级详情新增商品单位页签，支持从全局枚举增删改查"
             },
             {
-              "file": "SCM/master_data_product_library.html",
-              "text": "标准采购单位与换算单位按所属一级分类配置收窄"
+              "file": null,
+              "text": "基础商品库: 标准采购单位与换算单位按所属一级分类配置收窄"
             },
             {
-              "file": "SCM/master_data_supply.html",
-              "text": "实际采购单位同样按商品一级分类单位配置过滤"
+              "file": null,
+              "text": "供货关系: 实际采购单位同样按商品一级分类单位配置过滤"
             },
             {
               "file": null,
@@ -69,16 +92,6 @@
           "time": "10:38",
           "pages": [
             {
-              "file": "SCM/master_data_product_library.html",
-              "module": "冷丰WMS",
-              "title": "基础商品库"
-            },
-            {
-              "file": "SCM/master_data_supply.html",
-              "module": "冷丰WMS",
-              "title": "供货关系"
-            },
-            {
               "file": "SCM/negative_inventory.html",
               "module": "冷丰WMS",
               "title": "负库存"
@@ -91,8 +104,12 @@
           ],
           "notes": [
             {
-              "file": "SCM/master_data_product_library.html",
-              "text": "新增/编辑/详情增加最小计量单位；四级单位并排竖向对比，换算中间两格等宽"
+              "file": null,
+              "text": "基础商品库: 新增/编辑/详情增加最小计量单位"
+            },
+            {
+              "file": null,
+              "text": "四级单位并排竖向对比，换算中间两格等宽"
             },
             {
               "file": "SCM/negative_inventory.html",
@@ -139,50 +156,23 @@
           "text": "新增供货关系并支持最小起订量与商品详情查看",
           "author": "342-droid",
           "time": "12:23",
-          "pages": [
-            {
-              "file": "SCM/master_data_ingredient_category.html",
-              "module": "冷丰WMS",
-              "title": "配料类别"
-            },
-            {
-              "file": "SCM/master_data_product_brand.html",
-              "module": "冷丰WMS",
-              "title": "商品品牌"
-            },
-            {
-              "file": "SCM/master_data_product_category.html",
-              "module": "冷丰WMS",
-              "title": "商品分类"
-            },
-            {
-              "file": "SCM/master_data_product_library.html",
-              "module": "冷丰WMS",
-              "title": "基础商品库"
-            },
-            {
-              "file": "SCM/master_data_supplier.html",
-              "module": "冷丰WMS",
-              "title": "供应商档案"
-            },
-            {
-              "file": "SCM/master_data_supply.html",
-              "module": "冷丰WMS",
-              "title": "供货关系"
-            }
-          ],
+          "pages": [],
           "notes": [
             {
-              "file": "SCM/master_data_supply.html",
-              "text": "新增列表和新增编辑，维护采购核定价、实际采购单位、最小起订量、价格状态、样品状态、主供应商和启用停用"
+              "file": null,
+              "text": "供货关系: 新增列表和新增编辑，维护采购核定价、实际采购单位、最小起订量、价格状态、样品状态、主供应商和启用停用"
             },
             {
-              "file": "SCM/master_data_product_library.html",
-              "text": "商品详情增加供货关系页签，可查看该商品全部供货关系"
+              "file": null,
+              "text": "基础商品库: 商品详情增加供货关系页签，可查看该商品全部供货关系"
             },
             {
-              "file": "SCM/master_data_supplier.html",
-              "text": "点击供应商编码打开详情，支持上传证照；列表操作只保留停用启用和删除"
+              "file": null,
+              "text": "供应商档案: 点击供应商编码打开详情，支持上传证照"
+            },
+            {
+              "file": null,
+              "text": "列表操作只保留停用启用和删除"
             }
           ]
         }
@@ -407,55 +397,32 @@
           "text": "补齐商品品牌、配料和供应商档案",
           "author": "342-droid",
           "time": "15:11",
-          "pages": [
-            {
-              "file": "SCM/master_data_ingredient_category.html",
-              "module": "冷丰WMS",
-              "title": "配料类别"
-            },
-            {
-              "file": "SCM/master_data_product_brand.html",
-              "module": "冷丰WMS",
-              "title": "商品品牌"
-            },
-            {
-              "file": "SCM/master_data_product_category.html",
-              "module": "冷丰WMS",
-              "title": "商品分类"
-            },
-            {
-              "file": "SCM/master_data_product_library.html",
-              "module": "冷丰WMS",
-              "title": "基础商品库"
-            },
-            {
-              "file": "SCM/master_data_supplier.html",
-              "module": "冷丰WMS",
-              "title": "供应商档案"
-            },
-            {
-              "file": "SCM/master_data_supply.html",
-              "module": "冷丰WMS",
-              "title": "供货关系"
-            }
-          ],
+          "pages": [],
           "global": true,
           "notes": [
             {
-              "file": "SCM/master_data_product_brand.html",
-              "text": "支持维护品牌名称和品牌logo，可停用或启用"
+              "file": null,
+              "text": "商品品牌: 支持维护品牌名称和品牌logo，可停用或启用"
             },
             {
-              "file": "SCM/master_data_ingredient_category.html",
-              "text": "支持维护配料类别名称，可停用或启用"
+              "file": null,
+              "text": "配料类别: 支持维护配料类别名称，可停用或启用"
             },
             {
-              "file": "SCM/master_data_product_library.html",
-              "text": "商品品牌改取品牌档案；详情增加配料表和营养成分并支持同SPU复制；商品状态「有效」改为「启用」"
+              "file": null,
+              "text": "基础商品库: 商品品牌改取品牌档案"
             },
             {
-              "file": "SCM/master_data_supplier.html",
-              "text": "支持维护供应商编码、类型、业务和仓库联系人，以及省市区和详细地址"
+              "file": null,
+              "text": "详情增加配料表和营养成分并支持同SPU复制"
+            },
+            {
+              "file": null,
+              "text": "商品状态「有效」改为「启用」"
+            },
+            {
+              "file": null,
+              "text": "供应商档案: 支持维护供应商编码、类型、业务和仓库联系人，以及省市区和详细地址"
             },
             {
               "file": null,
@@ -469,52 +436,44 @@
           "text": "新增供应链管理，支持维护商品分类和基础商品库",
           "author": "342-droid",
           "time": "09:52",
-          "pages": [
-            {
-              "file": "SCM/master_data.html",
-              "module": "冷丰WMS",
-              "title": "主数据管理"
-            },
-            {
-              "file": "SCM/master_data_ingredient_category.html",
-              "module": "冷丰WMS",
-              "title": "配料类别"
-            },
-            {
-              "file": "SCM/master_data_product_brand.html",
-              "module": "冷丰WMS",
-              "title": "商品品牌"
-            },
-            {
-              "file": "SCM/master_data_product_category.html",
-              "module": "冷丰WMS",
-              "title": "商品分类"
-            },
-            {
-              "file": "SCM/master_data_product_library.html",
-              "module": "冷丰WMS",
-              "title": "基础商品库"
-            },
-            {
-              "file": "SCM/master_data_supplier.html",
-              "module": "冷丰WMS",
-              "title": "供应商档案"
-            },
-            {
-              "file": "SCM/master_data_supply.html",
-              "module": "冷丰WMS",
-              "title": "供货关系"
-            }
-          ],
+          "pages": [],
           "global": true,
           "notes": [
             {
-              "file": "SCM/master_data_product_category.html",
-              "text": "支持四级分类维护；分类编码按上级自动生成且编辑时不可改；一级分类增加属性分类，商品属性最多5级；已绑定商品展示货号"
+              "file": null,
+              "text": "商品分类: 支持四级分类维护"
             },
             {
-              "file": "SCM/master_data_product_library.html",
-              "text": "可按SPU、货号、条码、名称、商品状态和品牌查询，列表按SPU排序；商品名称后可查看并停用或启用商品；添加规格沿用原SPU并重新生成货号；三个单位分别维护重量和体积；标准采购价可单独修改"
+              "file": null,
+              "text": "分类编码按上级自动生成且编辑时不可改"
+            },
+            {
+              "file": null,
+              "text": "一级分类增加属性分类，商品属性最多5级"
+            },
+            {
+              "file": null,
+              "text": "已绑定商品展示货号"
+            },
+            {
+              "file": null,
+              "text": "基础商品库: 可按SPU、货号、条码、名称、商品状态和品牌查询，列表按SPU排序"
+            },
+            {
+              "file": null,
+              "text": "商品名称后可查看并停用或启用商品"
+            },
+            {
+              "file": null,
+              "text": "添加规格沿用原SPU并重新生成货号"
+            },
+            {
+              "file": null,
+              "text": "三个单位分别维护重量和体积"
+            },
+            {
+              "file": null,
+              "text": "标准采购价可单独修改"
             },
             {
               "file": null,
@@ -7335,11 +7294,6 @@
               "file": "SCM/basic_settings_file_center.html",
               "module": "冷丰WMS",
               "title": "文件中心"
-            },
-            {
-              "file": "SCM/master_data_supplier.html",
-              "module": "冷丰WMS",
-              "title": "供应商档案"
             }
           ],
           "global": true,
@@ -13238,11 +13192,6 @@
               "file": "MDM/mdm_super_admin_accounts.html",
               "module": "冷丰WMS",
               "title": "商户主体建档"
-            },
-            {
-              "file": "SCM/master_data_supplier.html",
-              "module": "冷丰WMS",
-              "title": "供应商档案"
             },
             {
               "file": "store-app/h5/onboarding.html",
@@ -29827,11 +29776,6 @@
               "file": "MDM/mdm_resource_onboarding.html",
               "module": "冷丰WMS",
               "title": "支付进件"
-            },
-            {
-              "file": "SCM/master_data_supplier.html",
-              "module": "冷丰WMS",
-              "title": "供应商档案"
             }
           ],
           "global": true,
