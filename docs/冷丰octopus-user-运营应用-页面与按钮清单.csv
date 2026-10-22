@@ -1,0 +1,92 @@
+﻿一级菜单,二级菜单,三级菜单,页面路径,页面操作按钮,按钮标识
+采购售后,请选择服务类型,,/pages/procurement-after-sale/apply,请选择服务类型,"apiProcurementCreateAfterSale, apiProcurementModifyAfterSale, apiProcurementSchedulePickup"
+采购售后,售后记录,,/pages/procurement-after-sale/order-item-list,售后记录,"goDetail, noop"
+采购售后,退款/售后,,/pages/procurement-after-sale/list,退款/售后,"onTabChange, goDetail, noop"
+采购售后,退款详情,,/pages/procurement-after-sale/detail,退款详情,"apiAutoLogisticsNo, apiProcurementCancelAfterSale, apiProcurementConfirmAfterSaleReceive, apiProcurementSubmitReturnLogistics"
+采购售后,物流详情,,/pages/procurement-after-sale/reship-logistics,物流详情,"copyNo, callPhone"
+采购售后,协商历史,,/pages/procurement-after-sale/negotiation,协商历史,"copyRow, copySegment"
+采购售后,修改上门取件信息,,/pages/procurement-after-sale/pickup-edit,修改上门取件信息,"onAddressTap, onTimeTap, onSubmit"
+采购售后,选择售后商品,,/pages/procurement-after-sale/select-items,选择售后商品,selectItem
+地址管理,地址管理,,/pages/procurement-address/list,地址管理,"apiStoreAddressDelete, apiStoreAddressSetDefault"
+地址管理,新增寄件人信息,,/pages/procurement-address/edit,新增寄件人信息,"apiStoreAddressCreate, apiStoreAddressUpdate"
+登录,login,,/pages/login/login,页面加载与交互,"apiLogin, apiSendSmsCode, apiSmsLogin"
+更多,more,,/pages/more/more,页面加载与交互,onAppClick
+拣货,按类型查询,,/pages/pick/type-query,按类型查询,onChooseType
+拣货,拣货任务,,/pages/pick/task,拣货任务,"onClaim, onGoTaskList"
+拣货,拣货任务-列表,,/pages/pick/task-list,拣货任务-列表,onClaimTask
+拣货,拣货任务明细,,/pages/pick/detail,拣货任务明细,onStartDetailTask
+拣货,拣货任务执行,,/pages/pick/execute,拣货任务执行,apiConfirmPickExecution
+拣货,拣货完成,,/pages/pick/complete,拣货完成,onConfirm
+拣货,拣货总览,,/pages/pick/overview,拣货总览,"onViewTaskDetail, onStartPick"
+进货订单,进货订单,,/pages/procurement-order/list,进货订单,"onSearchConfirm, onTabChange, goDetail, payOrder"
+进货订单,进货订单详情,,/pages/procurement-order/detail,进货订单详情,"apiProcurementAddCart, apiProcurementCancelOrder, apiProcurementChangeOrderPickupStore, apiProcurementConfirmReceive, apiProcurementHideOrder"
+进货订单,取消订单,,/pages/procurement-order/cancel,取消订单,apiProcurementCancelOrder
+进货订单,确认订单,,/pages/procurement-order/confirm,确认订单,"apiProcurementCreateOrder, apiProcurementPreviewOrder"
+进货订单,物流详情,,/pages/procurement-order/logistics,物流详情,"goBack, previewGoodsImage, copyPanelLogisticsNo, callHeaderPhone, onContextPartClick"
+进货订单,支付结果,,/pages/procurement-order/payment-success,支付结果,"goHome, goOrders"
+库存,库存查询,,/pages/inventory/query,库存查询,"onSearch, goBatchDetail, goAdjust"
+库存,盘点调整,,/pages/inventory/adjust,盘点调整,apiExecuteQuickInventoryAdjustment
+库存,批次详情,,/pages/inventory/batch-detail,批次详情,goAdjust
+门店管理,编辑门店,,/pages/merchant-manage/edit-store,编辑门店,"apiMapGeocode, apiMapPoiSearch, apiMapReverseGeocode, apiSubmitAppStoreOnboarding, apiUpdateStore, apiSendSmsCode"
+门店管理,门店档案,,/pages/merchant-manage/detail,门店档案,"apiMapGeocode, apiAdvanceApproval"
+门店管理,门店管理,,/pages/merchant-manage/merchant-manage,门店管理,"onSearchConfirm, onClearSearch, onMerchantClick, onContactPhoneAction, onActionAreaClick, onReviewMerchant, onQuickActionAddMerchant, onQuickActionStoreQrcode, onToggleQuickActionMenu"
+门店管理,添加门店,,/pages/merchant-manage/add-store,添加门店,"apiMapGeocode, apiMapPoiSearch, apiMapReverseGeocode, apiCreateStore, apiCreateStoreDraft, apiSendSmsCode"
+门店管理,资料审核记录,,/pages/merchant-manage/audit-record,资料审核记录,
+入库单,入库单明细,,/pages/order-detail/order-detail,入库单明细,apiCloseReceipt
+商户进件,商户进件,,/pages/onboarding/list,商户进件,"onSearchConfirm, onClearSearch, onRecordClick, onGoMyMerchants, onCreate"
+商户进件,商户进件,,/pages/onboarding/onboarding,商户进件,"apiCreateMerchantDraft, apiUpdateAgreementOnboardingDraft, apiSubmitAgreementOnboarding, apiResubmitAgreementOnboarding, apiSubmitOnboardingByHolder, apiMapGeocode, apiOcrLicense, apiOcrIdCardFront, apiOcrIdCardBack, apiOcrBankPermit"
+商户进件,商户详情,,/pages/onboarding/detail,商户详情,apiAdvanceAgreementReview
+商户进件,我的商户,,/pages/onboarding/my-merchants,我的商户,"onMerchantClick, closeDetail"
+商户线索,商户线索,,/pages/merchant-leads/merchant-leads,商户线索,"onClaimTabChange, onSourceChange, onStatusChange, onCreateLead, onBatchImport, onFollowLead, onConvertLead, onAbandonLead"
+设计规范,设计规范,,/pages/design-system/design-system,设计规范,"showModal, showDrawer"
+收益,收益明细,,/pages/earnings-ledger/earnings-ledger,收益明细,"filterDrawerVisible, onPeriodChange, onFilterChange"
+首页,index,,/pages/index/index,页面加载与交互,"apiGetStoreVerifyScannable, apiSwitchOrg, apiSwitchResource, apiMarkAllSeen, apiMarkRead"
+售后,售后列表,,/pages/after-sale/list,售后列表,"onCardClick, onPreviewProduct, onPhoneAction"
+售后,售后详情,,/pages/after-sale/detail,售后详情,"apiConfirmAfterSaleReturn, apiCustomerReturnAutoReceive, apiCustomerReturnCancel"
+我要进货,购物车,,/pages/procurement-mall/cart,购物车,"apiProcurementAddCart, apiProcurementBatchDeleteCartItems, apiProcurementDeleteCartItem, apiProcurementUpdateCartQuantity, apiFeeTemplateCalculate"
+我要进货,商品图集,,/pages/procurement-mall/gallery,商品图集,
+我要进货,我要进货,,/pages/procurement-mall/home,我要进货,"apiProcurementAddCart, apiProcurementUpdateCartQuantity"
+我要进货,category,,/pages/procurement-mall/category,页面加载与交互,"apiProcurementAddCart, apiProcurementUpdateCartQuantity"
+我要进货,my,,/pages/procurement-mall/my,页面加载与交互,apiLogout
+我要进货,product-detail,,/pages/procurement-mall/product-detail,页面加载与交互,apiProcurementAddCart
+我要进货,qualification,,/pages/procurement-mall/qualification,页面加载与交互,goBack
+我要进货,search,,/pages/procurement-mall/search,页面加载与交互,"apiProcurementAddCart, apiProcurementUpdateCartQuantity"
+协议管理,协议管理,,/pages/agreement-manage/agreement-manage,协议管理,onOpenArchive
+银行卡,银行卡管理,,/pages/bank-card/bank-card,银行卡管理,"onSendCode, onSubmit"
+装载发货,待装载包裹,,/pages/load-ship/pending-packages,待装载包裹,"onClearKeyword, openRouteDrawer, togglePackage, toggleSelectAll, onSubmitBatchLoad, onCancelSupplyModal, onPrevGroup, onNextGroup, onConfirmSupplyGroup, onSelectRoute"
+装载发货,发货完成,,/pages/load-ship/complete,发货完成,onConfirm
+装载发货,进行中发货单查询,,/pages/load-ship/list,进行中发货单查询,onOpenShipment
+装载发货,已装载包裹,,/pages/load-ship/loaded-packages,已装载包裹,"apiRecordLoadedPackageConsumables, apiUnloadPackage"
+装载发货,执行装载,,/pages/load-ship/execute,执行装载,"apiConfirmShipmentDeparture, apiPrepareQuickLoadPackages"
+装载发货,装载发货,,/pages/load-ship/task,装载发货,apiQueryLoadingShipmentByVehicleNo
+AI,ai,,/pages/ai/ai,页面加载与交互,
+qrcode-invite,邀请好友,,/pages/qrcode-invite/qrcode-invite,邀请好友,"onShareWechat, onCopyLink, onSharePoster"
+qrcode-store,门店拓展二维码,,/pages/qrcode-store/qrcode-store,门店拓展二维码,"loadStoreOnboardQrcode, onSaveToAlbum"
+query,按类型查询,,/pages/query/query,按类型查询,goTo
+receipt,查询入库单,,/pages/receipt/query,查询入库单,"onScanOrderNo, onQuery, onClearOrderNo, goToTypeQuery, onErrorModalConfirm"
+receipt,录入商品,,/pages/receipt/product-form,录入商品,
+receipt,入库单查询,,/pages/receipt/list-style-query,入库单查询,"typeDrawerVisible, focusKeywordInput, onKeywordConfirm, onClearKeyword, onScanKeyword, goToEntry, onTypeSelect"
+receipt,入库单列表,,/pages/receipt/list,入库单列表,goToDetail
+receipt,入库单录入,,/pages/receipt/list-style-entry,入库单录入,"apiCloseReceipt, apiConfirmReceiptRecords, apiReceive"
+receipt,入库单录入,,/pages/receipt/scan-product,入库单录入,apiReceive
+receipt,扫描容器,,/pages/receipt/scan-container,扫描容器,"goToRecord, goToDetail"
+record,收货记录,,/pages/record/initial,收货记录,"apiCancelReceiptRecord, apiConfirmReceiptRecords"
+record,收货记录,,/pages/record/sealed,收货记录,"onCancelSeal, onConfirmCancel"
+record,收货记录详情,,/pages/record/detail,收货记录详情,
+review,复核任务,,/pages/review/task,复核任务,"onSubmit, onScanStation, onCheckingModalConfirm"
+review,复核完成,,/pages/review/complete,复核完成,onConfirm
+review,复核执行,,/pages/review/execute,复核执行,apiConfirmReviewExecution
+review,复核总览,,/pages/review/overview,复核总览,apiStartReviewExecution
+settings,设置,,/pages/settings/settings,设置,apiLogout
+sort,分拣任务,,/pages/sort/task,分拣任务,"onSubmit, onScanTaskKeyword, onStatusModalConfirm"
+sort,分拣任务执行,,/pages/sort/execute,分拣任务执行,apiConfirmSortTask
+sort,分拣任务总览,,/pages/sort/overview,分拣任务总览,onStartSort
+sort,分拣完成,,/pages/sort/complete,分拣完成,onConfirm
+store-member,门店会员,,/pages/store-member/store-member,门店会员,"onClearSearch, onFilterChange, onCallMember"
+store-member-code,门店会员码,,/pages/store-member-code/store-member-code,门店会员码,apiGenerateStoreMemberQrcode
+store-order,核销,,/pages/store-order/verify,核销,"apiConfirmStoreVerify, apiGetStoreVerifyScannable"
+store-order,门店订单,,/pages/store-order/store-order,门店订单,"onClearSearch, onQueueFilterChange, onQueueAvatarClick, openCancelReservation, onSkipQueue, onCancelCall, onCallQueue, onCompleteQueue, onPhoneAction, closeCancelReservation, confirmCancelReservation"
+store-order,扫码核销,,/pages/store-order/scan,扫码核销,apiGetStoreVerifyScannable
+team-management,团队管理,,/pages/team-management/team-management,团队管理,apiUpdateMemberStatus
+wallet,我的钱包,,/pages/wallet/wallet,我的钱包,"onWithdraw, onBankCard, onDatePick"
+withdraw,提现,,/pages/withdraw/withdraw,提现,"onAllClick, showCardPicker, onAddCard, onSubmit, onSelectCard, onAddCardFromPicker"

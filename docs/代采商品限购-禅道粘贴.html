@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>代采商品限购 · 复制后贴到禅道</title>
+  <style>
+    body { font-family: "PingFang SC", "Microsoft YaHei", sans-serif; padding: 24px; max-width: 880px; color: #333; line-height: 1.6; }
+    .tip { background: #fff7ef; border: 1px solid #ffd4b0; padding: 10px 14px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; }
+    #copyRoot table { border-collapse: collapse; width: 100%; margin: 10px 0 16px; }
+    #copyRoot th, #copyRoot td { border: 1px solid #d0d0d0; padding: 8px 10px; text-align: left; vertical-align: top; font-size: 14px; }
+    #copyRoot th { background: #f5f5f5; font-weight: 600; }
+    #copyRoot h2 { font-size: 18px; margin: 22px 0 8px; }
+    #copyRoot p { margin: 8px 0; }
+  </style>
+</head>
+<body>
+  <p class="tip">用法：用浏览器打开本页 → 选中下方正文全选复制 → 禅道描述里先点掉「&lt;/&gt;」源码按钮，再粘贴。不要直接贴 Markdown。</p>
+
+  <div id="copyRoot">
+    <p><strong>代采商品 · 售卖规格限购</strong></p>
+    <table>
+      <tbody>
+        <tr><th>版本</th><td>v1.0</td><th>日期</th><td>2026-09-10</td><th>状态</th><td>已落地原型</td></tr>
+      </tbody>
+    </table>
+    <p>入口：代采商品添加 / 编辑抽屉 → 每个已选 SKU 的售卖规格。按 SKU 配，不按 SPU 统一一条。</p>
+    <p>默认「不限购」。旧值「每用户限购」按「每单限购」读。</p>
+
+    <h2>1. 枚举</h2>
+    <table>
+      <thead>
+        <tr><th>选项</th><th>含义</th><th>限购数量</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>每单限购</td><td>同一订单该 SKU 最多买 N</td><td>展示，必填正整数</td></tr>
+        <tr><td>每天限购</td><td>同一买家当天该 SKU 最多买 N</td><td>展示，必填正整数</td></tr>
+        <tr><td>累计限购</td><td>同一买家历史合计该 SKU 最多买 N</td><td>展示，必填正整数</td></tr>
+        <tr><td>不限购</td><td>不限制购买件数</td><td>不展示；已填数量不参与限购</td></tr>
+      </tbody>
+    </table>
+    <p>切到限购三项时，下拉右侧出现「限购数量」。切回不限购，数量框隐藏。</p>
+
+    <h2>2. 同步与保存</h2>
+    <p>「同步至其他 SKU」含限购配置、限购数量，规则与其它售卖规格字段相同：只覆盖已选 SKU，未选不动。</p>
+    <p>随商品保存落库。未选限购三项时按不限购存。</p>
+
+    <h2>3. 本期不做</h2>
+    <p>列表不增加限购列。不做 C 端下单拦截（配置先落后台）。不改秒杀 / 积分商城 / 直播排品已有限购。</p>
+  </div>
+</body>
+</html>

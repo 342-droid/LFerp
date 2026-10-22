@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>从商品库添加全选与分页 · 复制后贴到禅道</title>
+  <style>
+    body { font-family: "PingFang SC", "Microsoft YaHei", sans-serif; padding: 24px; max-width: 880px; color: #333; line-height: 1.6; }
+    .tip { background: #fff7ef; border: 1px solid #ffd4b0; padding: 10px 14px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; }
+    #copyRoot table { border-collapse: collapse; width: 100%; margin: 10px 0 16px; }
+    #copyRoot th, #copyRoot td { border: 1px solid #d0d0d0; padding: 8px 10px; text-align: left; vertical-align: top; font-size: 14px; }
+    #copyRoot th { background: #f5f5f5; font-weight: 600; }
+    #copyRoot h2 { font-size: 18px; margin: 22px 0 8px; }
+    #copyRoot p { margin: 8px 0; }
+  </style>
+</head>
+<body>
+  <p class="tip">用法：用浏览器打开本页 → 选中下方正文全选复制 → 禅道描述里先点掉「&lt;/&gt;」源码按钮，再粘贴。不要直接贴 Markdown。</p>
+
+  <div id="copyRoot">
+    <p><strong>从商品库添加 · 全选与分页</strong></p>
+    <table>
+      <tbody>
+        <tr><th>版本</th><td>v1.1</td><th>日期</th><td>2026-09-11</td><th>状态</th><td>已落地原型</td></tr>
+      </tbody>
+    </table>
+    <p>入口：商城商品、代采商品、直播排品、秒杀活动「从商品库添加」抽屉。共用同一套抽屉，规则一次生效。</p>
+    <p>可添加条件不变：仅售卖中、未加入过、选品库可售。待售卖、已添加、不可选商品不进全选范围。</p>
+
+    <h2>1. 工具条</h2>
+    <p>搜索框右侧加「全选」，一键作用于当前类目+搜索下<strong>全部页可添加</strong>商品，不限当前页。</p>
+    <p>勾上：当前筛选下全部页可添加都选中；取消：只清当前筛选里可添加的选中，其它类目或其它搜索条件下已选保留。</p>
+    <p>勾选态：当前筛选可添加全部已选为勾上；一部分已选为半选；一个都没有为未勾。没有可添加时禁用。</p>
+    <p>「共 N 件」按当前类目+搜索后的全部可展示件数计，靠右。</p>
+    <p>换类目、改搜索：页码回到第 1 页。已选商品跨页、跨筛选保留，直到取消勾选、点取消或关闭抽屉。</p>
+
+    <h2>2. 底部分页</h2>
+    <p>每页条数：20 / 50 / 100，默认 20。改条数回到第 1 页，已选保留。</p>
+    <p>页码、上一页 / 下一页、前往第 N 页。超出总页数按末页处理。翻页不改变已选，全选勾选态仍按全部页可添加是否都已选刷新。</p>
+
+    <h2>3. 本期不做</h2>
+    <p>不改可添加口径、不改确认添加后的写入规则。</p>
+  </div>
+</body>
+</html>

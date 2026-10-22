@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>门店名称简称与站点储位 · 复制后贴到禅道</title>
+  <style>
+    body { font-family: "PingFang SC", "Microsoft YaHei", sans-serif; padding: 24px; max-width: 880px; color: #333; line-height: 1.6; }
+    .tip { background: #fff7ef; border: 1px solid #ffd4b0; padding: 10px 14px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; }
+    #copyRoot table { border-collapse: collapse; width: 100%; margin: 10px 0 16px; }
+    #copyRoot th, #copyRoot td { border: 1px solid #d0d0d0; padding: 8px 10px; text-align: left; vertical-align: top; font-size: 14px; }
+    #copyRoot th { background: #f5f5f5; font-weight: 600; }
+    #copyRoot h2 { font-size: 18px; margin: 22px 0 8px; }
+    #copyRoot p { margin: 8px 0; }
+  </style>
+</head>
+<body>
+  <p class="tip">用法：用浏览器打开本页 → 选中下方正文全选复制 → 禅道描述里先点掉「&lt;/&gt;」源码按钮，再粘贴。不要直接贴 Markdown。</p>
+
+  <div id="copyRoot">
+    <p><strong>门店名称 / 简称 与 站点储位回写</strong></p>
+    <table>
+      <tbody>
+        <tr><th>版本</th><td>v1.0</td><th>日期</th><td>2026-09-10</td><th>状态</th><td>已落地原型</td></tr>
+      </tbody>
+    </table>
+    <p>涉及：添加门店、入驻审核编辑、门店档案列表、站点列表。一条链路：门店名称 → 门店简称 → 站点储位名称；站点改储位后再回写门店简称。</p>
+
+    <h2>1. 入驻审核 / 添加门店</h2>
+    <p>入驻审核编辑里原「入驻方名称」改为<strong>门店名称</strong>。保存后回写列表「入驻方名称」列（列名可仍叫入驻方名称，值=门店名称）。</p>
+    <p>门店简称 = 当时的门店名称，只读，不可手改。改门店名称时，若站点还没回写过储位，简称跟着变。</p>
+    <p>该简称传到对应站点的<strong>储位名称</strong>。储位编码默认用门店编码。</p>
+
+    <h2>2. 站点改储位</h2>
+    <p>站点列表增加「储位编码」「储位名称」。改完后回写门店档案简称 = <strong>储位编码-储位名称</strong>。</p>
+    <p>站点一旦回写过，门店侧简称锁定为储位拼接值，不再跟门店名称连动。</p>
+
+    <h2>3. 不回溯</h2>
+    <p>已生成的入驻审核单不随站点回写变。站点回写只改门店档案简称，不改历史审核单上的名称。</p>
+
+    <h2>4. 本期不做</h2>
+    <p>不开放门店简称手填。不改门店编码生成规则。</p>
+  </div>
+</body>
+</html>
