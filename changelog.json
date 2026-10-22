@@ -1,10 +1,52 @@
 {
-  "latestSha": "ba0a4878f54884493c85f6ed18c190f38ff0785d",
-  "total": 449,
+  "latestSha": "b09e32eb022c423c48161105c7dce9d008a180c3",
+  "total": 450,
   "days": [
     {
       "date": "2026-10-22",
       "items": [
+        {
+          "sha": "b09e32e",
+          "type": "feat",
+          "text": "一级分类可配置商品单位并补齐供应链 PRD",
+          "author": "342-droid",
+          "time": "11:18",
+          "pages": [
+            {
+              "file": "SCM/master_data_product_category.html",
+              "module": "冷丰WMS",
+              "title": "商品分类"
+            },
+            {
+              "file": "SCM/master_data_product_library.html",
+              "module": "冷丰WMS",
+              "title": "基础商品库"
+            },
+            {
+              "file": "SCM/master_data_supply.html",
+              "module": "冷丰WMS",
+              "title": "供货关系"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/master_data_product_category.html",
+              "text": "一级详情新增商品单位页签，支持从全局枚举增删改查"
+            },
+            {
+              "file": "SCM/master_data_product_library.html",
+              "text": "标准采购单位与换算单位按所属一级分类配置收窄"
+            },
+            {
+              "file": "SCM/master_data_supply.html",
+              "text": "实际采购单位同样按商品一级分类单位配置过滤"
+            },
+            {
+              "file": null,
+              "text": "新增供应链菜单 PRD，并更新商品分类文档中的商品单位说明"
+            }
+          ]
+        },
         {
           "sha": "ba0a487",
           "type": "chore",
