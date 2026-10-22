@@ -593,8 +593,7 @@
   function openPriceModal(item) {
     if (!item) return;
     closePriceModal();
-    var units = GOODS_UNITS.slice();
-    if (item.purchaseUnit && units.indexOf(item.purchaseUnit) < 0) units.unshift(item.purchaseUnit);
+    var units = goodsUnitsForScope(item.purchaseUnit, item);
     var unitOptions = units.map(function (unit) {
       return '<option value="' + escapeHtml(unit) + '"' + (unit === item.purchaseUnit ? ' selected' : '') + '>' + escapeHtml(unit) + '</option>';
     }).join('');
@@ -1692,18 +1691,49 @@
     );
   }
 
-  var GOODS_UNITS = ['个', 'g', 'kg', 'ml', '斤', '包', '袋', '瓶', '罐', '箱', '件'];
+  /* 供应链共用单位枚举；一级分类配置后按分类收窄，见 master-data-units.js */
+  var GOODS_UNITS = (window.MasterDataGoodsUnits && window.MasterDataGoodsUnits.list)
+    ? window.MasterDataGoodsUnits.list.slice()
+    : ['箱', '件', '个', '克', 'kg', 'ml', '斤', '包', '袋', '瓶', '罐'];
 
-  function goodsUnitOptions(selected) {
-    return GOODS_UNITS.map(function (unit) {
+  function goodsUnitScopeId(item) {
+    if (state.goodsCategoryId) return state.goodsCategoryId;
+    if (item && item.category) {
+      var node = categoryNodeByName(item.category);
+      if (node) return node.id;
+    }
+    return state.selectedL4 || null;
+  }
+
+  function goodsUnitsForScope(selected, item) {
+    var catId = goodsUnitScopeId(item);
+    if (window.MasterDataGoodsUnits && window.MasterDataGoodsUnits.withSelectedForCategory) {
+      return window.MasterDataGoodsUnits.withSelectedForCategory(catId, selected);
+    }
+    return (window.MasterDataGoodsUnits && window.MasterDataGoodsUnits.withSelected)
+      ? window.MasterDataGoodsUnits.withSelected(selected)
+      : GOODS_UNITS.slice();
+  }
+
+  function pickScopedUnit(preferred, fallbacks, item) {
+    var units = goodsUnitsForScope('', item);
+    var candidates = [preferred].concat(fallbacks || []);
+    for (var i = 0; i < candidates.length; i += 1) {
+      if (candidates[i] && units.indexOf(candidates[i]) >= 0) return candidates[i];
+    }
+    return units[0] || preferred || '';
+  }
+
+  function goodsUnitOptions(selected, item) {
+    return goodsUnitsForScope(selected, item).map(function (unit) {
       return '<option value="' + escapeHtml(unit) + '"' + (unit === selected ? ' selected' : '') + '>' + escapeHtml(unit) + '</option>';
     }).join('');
   }
 
-  function goodsUnitPick(id, selected, attrs) {
+  function goodsUnitPick(id, selected, attrs, item) {
     return '<div class="mdl-goods-combo__pick">' +
       '<span class="mdl-goods-combo__pick-text">' + escapeHtml(selected) + '</span>' +
-      '<select class="mdl-goods-combo__unit" id="' + id + '"' + (attrs || '') + '>' + goodsUnitOptions(selected) + '</select>' +
+      '<select class="mdl-goods-combo__unit" id="' + id + '"' + (attrs || '') + '>' + goodsUnitOptions(selected, item) + '</select>' +
       '</div>';
   }
 
@@ -1722,19 +1752,19 @@
       '</label>';
   }
 
-  function unitCard(spec) {
+  function unitCard(spec, item) {
     var id = 'libGoods' + spec.prefix + 'Unit';
     var followAttr = spec.followId ? ' data-unit-follow="' + spec.followId + '"' : '';
     var rateControl = spec.lockRate
       ? '<span class="mdl-goods-combo__unit mdl-goods-combo__unit--locked" id="' + id + 'RateUnit">' + escapeHtml(spec.rateUnit) + '</span>'
-      : goodsUnitPick(id + 'RateUnit', spec.rateUnit);
+      : goodsUnitPick(id + 'RateUnit', spec.rateUnit, '', item);
     return '<section class="mdl-unit-card">' +
       '<div class="mdl-unit-card__head"><span class="mdl-unit-card__index">' + spec.index + '</span>' +
       '<div><h4>' + escapeHtml(spec.label) + '</h4><p>' + escapeHtml(spec.hint) + '</p></div></div>' +
       '<div class="mdl-unit-card__field">' +
       '<span class="mdl-unit-card__label">换算</span>' +
       '<div class="mdl-goods-combo mdl-goods-combo--stack">' +
-      goodsUnitPick(id, spec.unit, ' data-unit-echo="' + id + 'Echo"' + followAttr) +
+      goodsUnitPick(id, spec.unit, ' data-unit-echo="' + id + 'Echo"' + followAttr, item) +
       '<span class="mdl-goods-combo__eq">1 <em id="' + id + 'Echo">' + escapeHtml(spec.unit) + '</em> =</span>' +
       '<input class="mdl-goods-combo__num" id="' + id + 'Rate" type="number" min="0" step="any" placeholder="数量">' +
       rateControl +
@@ -1750,12 +1780,16 @@
       '</div></section>';
   }
 
-  function goodsUnitCards() {
+  function goodsUnitCards(item) {
+    var measure = pickScopedUnit('克', ['g', 'kg', 'ml', '个'], item);
+    var min = pickScopedUnit('个', ['包', '袋', '斤', '克'], item);
+    var spec = pickScopedUnit('包', ['袋', '箱', '个'], item);
+    var pack = pickScopedUnit('箱', ['件', '包', '袋'], item);
     return '<div class="mdl-unit-cards">' +
-      unitCard({ index: '1', prefix: 'Measure', group: 'measure', label: '最小计量单位', hint: '按这一级单独填写重量和体积，换算单位可自选', unit: 'g', rateUnit: 'g', followId: 'libGoodsMinUnitRateUnit' }) +
-      unitCard({ index: '2', prefix: 'Min', group: 'min', label: '最小单位', hint: '换算单位跟随最小计量单位', unit: '个', rateUnit: 'g', lockRate: true, followId: 'libGoodsSpecUnitRateUnit' }) +
-      unitCard({ index: '3', prefix: 'Spec', group: 'spec', label: '规格单位', hint: '换算单位跟随最小单位', unit: '包', rateUnit: '个', lockRate: true, followId: 'libGoodsPackUnitRateUnit' }) +
-      unitCard({ index: '4', prefix: 'Pack', group: 'pack', label: '包装单位', hint: '换算单位跟随规格单位', unit: '箱', rateUnit: '包', lockRate: true }) +
+      unitCard({ index: '1', prefix: 'Measure', group: 'measure', label: '最小计量单位', hint: '按这一级单独填写重量和体积，换算单位可自选', unit: measure, rateUnit: measure, followId: 'libGoodsMinUnitRateUnit' }, item) +
+      unitCard({ index: '2', prefix: 'Min', group: 'min', label: '最小单位', hint: '换算单位跟随最小计量单位', unit: min, rateUnit: measure, lockRate: true, followId: 'libGoodsSpecUnitRateUnit' }, item) +
+      unitCard({ index: '3', prefix: 'Spec', group: 'spec', label: '规格单位', hint: '换算单位跟随最小单位', unit: spec, rateUnit: min, lockRate: true, followId: 'libGoodsPackUnitRateUnit' }, item) +
+      unitCard({ index: '4', prefix: 'Pack', group: 'pack', label: '包装单位', hint: '换算单位跟随规格单位', unit: pack, rateUnit: spec, lockRate: true }, item) +
       '</div>';
   }
 
@@ -2116,9 +2150,9 @@
       goodsSelect('libGoodsWeigh', '是否称重', ['是', '否'], true) +
       goodsSelect('libGoodsTemp', '温层', ['常温', '冷藏', '冷冻'], true) +
       goodsInput('libGoodsPrice', '标准采购价', 'number', '请输入价格', true) +
-      goodsSelect('libGoodsPurchaseUnit', '标准采购单位', GOODS_UNITS, true) +
+      goodsSelect('libGoodsPurchaseUnit', '标准采购单位', goodsUnitsForScope(item && item.purchaseUnit, item), true) +
       '</div>' +
-      goodsUnitCards() +
+      goodsUnitCards(item) +
       '</section>' +
       '<section class="mdl-goods-section"><h3 class="mdl-goods-section__title">图文信息</h3>' +
       '<div class="mdl-goods-copy-list">' +
@@ -2533,8 +2567,8 @@
   var DETAIL_BY_BARCODE = {
     '6974562300012': detailProfile({
       shelfLife: '180', operateMode: '购销', weigh: '否', tempLayer: '冷冻',
-      minMeasureUnit: 'g', minMeasureRateQty: 1, minMeasureRateUnit: 'g',
-      minRateQty: 50, minRateUnit: 'g', specRateQty: 100, specRateUnit: '个', packRateQty: 20, packRateUnit: '包',
+      minMeasureUnit: '克', minMeasureRateQty: 1, minMeasureRateUnit: '克',
+      minRateQty: 50, minRateUnit: '克', specRateQty: 100, specRateUnit: '个', packRateQty: 20, packRateUnit: '包',
       measures: { measure: unitMeasure(0.001, 0, 1, 1, 1), min: unitMeasure(0.055, 0.005, 5, 4, 3), spec: unitMeasure(5.2, 0.2, 32, 22, 15), pack: unitMeasure(105, 5, 48, 36, 32) },
       sellingPoint: '50g 一口一个，皮薄馅足，100个/包，冷链到店即可蒸制。',
       productIntro: '生物发面猪肉小笼包，单只净重 50g，每包 100 个，整箱 20 包。',
@@ -2545,8 +2579,8 @@
     }),
     '6974562300013': detailProfile({
       shelfLife: '180', operateMode: '购销', weigh: '否', tempLayer: '冷冻',
-      minMeasureUnit: 'g', minMeasureRateQty: 1, minMeasureRateUnit: 'g',
-      minRateQty: 50, minRateUnit: 'g', specRateQty: 100, specRateUnit: '个', packRateQty: 10, packRateUnit: '包',
+      minMeasureUnit: '克', minMeasureRateQty: 1, minMeasureRateUnit: '克',
+      minRateQty: 50, minRateUnit: '克', specRateQty: 100, specRateUnit: '个', packRateQty: 10, packRateUnit: '包',
       measures: { measure: unitMeasure(0.001, 0, 1, 1, 1), min: unitMeasure(0.058, 0.008, 5, 4, 3), spec: unitMeasure(5.4, 0.4, 32, 22, 15), pack: unitMeasure(55, 3, 40, 32, 28) },
       sellingPoint: '牛肉馅小笼包，单只 50g，口感紧实，适合冷链配送。',
       productIntro: '生物发面牛肉小笼包，1个=50g，1包=100个，1箱=10包。',
@@ -2557,8 +2591,8 @@
     }),
     '6974562300101': detailProfile({
       shelfLife: '7', operateMode: '代采代销', weigh: '是', tempLayer: '冷藏',
-      minMeasureUnit: 'g', minMeasureRateQty: 1, minMeasureRateUnit: 'g',
-      minRateQty: 500, minRateUnit: 'g', specRateQty: 10, specRateUnit: '斤', packRateQty: 10, packRateUnit: '斤',
+      minMeasureUnit: '克', minMeasureRateQty: 1, minMeasureRateUnit: '克',
+      minRateQty: 500, minRateUnit: '克', specRateQty: 10, specRateUnit: '斤', packRateQty: 10, packRateUnit: '斤',
       measures: { measure: unitMeasure(0.001, 0, 1, 1, 1), min: unitMeasure(0.52, 0.02, 12, 8, 8), spec: unitMeasure(5.3, 0.3, 40, 30, 22), pack: unitMeasure(5.3, 0.3, 40, 30, 22) },
       sellingPoint: '本地圆茄，果型均匀，已洗净，冷藏当日达。',
       productIntro: '圆茄按斤称重，1斤=500g，每箱 10 斤。',
@@ -2569,8 +2603,8 @@
     }),
     '6974562300102': detailProfile({
       shelfLife: '7', operateMode: '代采代销', weigh: '是', tempLayer: '常温',
-      minMeasureUnit: 'g', minMeasureRateQty: 1, minMeasureRateUnit: 'g',
-      minRateQty: 500, minRateUnit: 'g', specRateQty: 8, specRateUnit: '斤', packRateQty: 8, packRateUnit: '斤',
+      minMeasureUnit: '克', minMeasureRateQty: 1, minMeasureRateUnit: '克',
+      minRateQty: 500, minRateUnit: '克', specRateQty: 8, specRateUnit: '斤', packRateQty: 8, packRateUnit: '斤',
       measures: { measure: unitMeasure(0.001, 0, 1, 1, 1), min: unitMeasure(0.51, 0.01, 8, 7, 6), spec: unitMeasure(4.2, 0.2, 36, 28, 18), pack: unitMeasure(4.2, 0.2, 36, 28, 18) },
       sellingPoint: '普罗旺斯西红柿，沙瓤，适合生食和热菜。',
       productIntro: '按斤销售，1斤=500g，每箱 8 斤。',
@@ -2605,8 +2639,8 @@
     }),
     '6974562300401': detailProfile({
       shelfLife: '30', operateMode: '联营', weigh: '否', tempLayer: '冷藏',
-      minMeasureUnit: 'g', minMeasureRateQty: 1, minMeasureRateUnit: 'g',
-      minRateQty: 200, minRateUnit: 'g', specRateQty: 40, specRateUnit: '个', packRateQty: 40, packRateUnit: '个',
+      minMeasureUnit: '克', minMeasureRateQty: 1, minMeasureRateUnit: '克',
+      minRateQty: 200, minRateUnit: '克', specRateQty: 40, specRateUnit: '个', packRateQty: 40, packRateUnit: '个',
       measures: { measure: unitMeasure(0.001, 0, 1, 1, 1), min: unitMeasure(0.22, 0.02, 8, 8, 7), spec: unitMeasure(8.6, 0.6, 50, 32, 28), pack: unitMeasure(8.6, 0.6, 50, 32, 28) },
       sellingPoint: '红富士，脆甜，中果，冷藏保鲜。',
       productIntro: '单果约 200g，1箱=40个。',
@@ -2639,11 +2673,11 @@
       operateMode: ['购销', '代采代销', '联营'][index % 3],
       weigh: '否',
       tempLayer: ['常温', '冷藏', '冷冻'][index % 3],
-      minMeasureUnit: 'g',
+      minMeasureUnit: '克',
       minMeasureRateQty: 1,
-      minMeasureRateUnit: 'g',
+      minMeasureRateUnit: '克',
       minRateQty: minRate,
-      minRateUnit: 'g',
+      minRateUnit: '克',
       specRateQty: specRate,
       specRateUnit: units.min,
       packRateQty: packRate,
@@ -2754,9 +2788,9 @@
         purchasePrice: spec.purchasePrice,
         purchaseQty: 0,
         purchaseUnit: '箱',
-        minMeasureUnit: 'g',
+        minMeasureUnit: '克',
         minMeasureRateQty: 1,
-        minMeasureRateUnit: 'g',
+        minMeasureRateUnit: '克',
         minQty: 0,
         minUnit: '个',
         specQty: 0,
@@ -2772,7 +2806,7 @@
         shelfLife: '180',
         tempLayer: '冷冻',
         minRateQty: spec.minRateQty,
-        minRateUnit: 'g',
+        minRateUnit: '克',
         specRateQty: spec.specRateQty,
         specRateUnit: '个',
         packRateQty: spec.packRateQty,
@@ -2870,6 +2904,7 @@
         spu: item.spu || '',
         name: item.name || '',
         barcode: item.barcode || '',
+        category: item.category || '',
         purchaseUnit: item.purchaseUnit || '',
         purchasePrice: item.purchasePrice,
         shelfLife: item.shelfLife || '',

@@ -243,6 +243,14 @@
     '其他': [attr('适用场景', false, ['厨房', '餐厅']), attr('规格', true, ['标准', '加量'])]
   };
 
+  /** 一级分类演示商品单位（从全局枚举中挑选） */
+  var GOODS_UNIT_SEED = {
+    '生鲜食品': ['箱', '件', '斤', '个', '克', '袋', '包', '筐'],
+    '粮油调味': ['箱', '件', '袋', '包', 'kg', '克', '瓶', '罐'],
+    '酒水饮料': ['箱', '件', '瓶', '罐', '盒', 'ml', '提', '个'],
+    '餐厨用品': ['箱', '件', '个', '包', '卷', '张', '套', '支']
+  };
+
   /** 一级分类的属性分类。names 命中的属性归入该组，未命中的归入最后一组 */
   var ATTR_GROUP_SEED = {
     '生鲜食品': [
@@ -344,6 +352,7 @@
         product_count: 0,
         attributes: spec.attributes ? spec.attributes : seedAttributesForName(spec.name),
         attribute_categories: [],
+        goods_units: [],
         created_at: spec.createdAt
       });
     }
@@ -426,8 +435,26 @@
     });
 
     assignSeedAttributeCategories(list);
+    assignSeedGoodsUnits(list);
     recomputeCounts(list, bindings);
     return { categories: list, productBindings: bindings };
+  }
+
+  function assignSeedGoodsUnits(categories) {
+    categories.forEach(function (node) {
+      if (node.level !== 1) {
+        node.goods_units = [];
+        return;
+      }
+      var names = GOODS_UNIT_SEED[node.name] || ['箱', '件', '个'];
+      node.goods_units = names.map(function (name, index) {
+        return {
+          id: 'gunit-' + node.id + '-' + index,
+          name: name,
+          sort: (index + 1) * 10
+        };
+      });
+    });
   }
 
   function assignSeedAttributeCategories(categories) {
@@ -579,6 +606,31 @@
       if (!root || root.level !== 1) return;
       root.attribute_categories = list;
       store.save();
+    },
+
+    /** 一级分类维护的商品单位；传任意下级 id 时取所属一级 */
+    getGoodsUnits: function (id) {
+      var root = rootCategory(id);
+      var list = root && Array.isArray(root.goods_units) ? root.goods_units.slice() : [];
+      return list.sort(function (a, b) {
+        var aSort = parseInt(a.sort, 10);
+        var bSort = parseInt(b.sort, 10);
+        if (isNaN(aSort)) aSort = 0;
+        if (isNaN(bSort)) bSort = 0;
+        return aSort - bSort;
+      });
+    },
+
+    setGoodsUnits: function (id, list) {
+      var root = rootCategory(id);
+      if (!root || root.level !== 1) return;
+      root.goods_units = list;
+      store.save();
+    },
+
+    /** 已配置的单位名称（按排序）；未配置返回空数组 */
+    listGoodsUnitNames: function (id) {
+      return store.getGoodsUnits(id).map(function (item) { return item.name; }).filter(Boolean);
     },
 
     isAttributeCategoryUsed: function (l1Id, categoryId) {
