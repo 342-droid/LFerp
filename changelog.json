@@ -1,6 +1,6 @@
 {
   "latestSha": "ba0a4878f54884493c85f6ed18c190f38ff0785d",
-  "total": 448,
+  "total": 449,
   "days": [
     {
       "date": "2026-10-22",
@@ -63,6 +63,26 @@
             {
               "file": null,
               "text": "docs 整目录改为本地文档，不再纳入版本库"
+            }
+          ]
+        },
+        {
+          "sha": "afe20ce",
+          "type": "feat",
+          "text": "意见反馈列表增加处理状态统计",
+          "author": "u ｌ",
+          "time": "10:31",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_feedback.html",
+              "module": "冷丰售后",
+              "title": "意见反馈"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_aftersale_feedback.html",
+              "text": "表格与分页之间增加统计栏，展示待处理 1 条 / 已处理 3 条"
             }
           ]
         }
