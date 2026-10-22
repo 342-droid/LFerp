@@ -1,7 +1,73 @@
 {
-  "latestSha": "b28a85e3a0579d8292e489e8849907a827c375b4",
-  "total": 446,
+  "latestSha": "ba0a4878f54884493c85f6ed18c190f38ff0785d",
+  "total": 448,
   "days": [
+    {
+      "date": "2026-10-22",
+      "items": [
+        {
+          "sha": "ba0a487",
+          "type": "chore",
+          "text": "恢复 docs 目录纳入版本库",
+          "author": "342-droid",
+          "time": "10:40",
+          "pages": [],
+          "notes": [
+            {
+              "file": null,
+              "text": "撤销 docs 整目录忽略，恢复文档与原有忽略规则"
+            }
+          ]
+        },
+        {
+          "sha": "258bdda",
+          "type": "feat",
+          "text": "基础商品库补最小计量单位，完善负库存与分拣定时配置",
+          "author": "342-droid",
+          "time": "10:38",
+          "pages": [
+            {
+              "file": "SCM/master_data_product_library.html",
+              "module": "冷丰WMS",
+              "title": "基础商品库"
+            },
+            {
+              "file": "SCM/master_data_supply.html",
+              "module": "冷丰WMS",
+              "title": "供货关系"
+            },
+            {
+              "file": "SCM/negative_inventory.html",
+              "module": "冷丰WMS",
+              "title": "负库存"
+            },
+            {
+              "file": "SCM/obd_sorting.html",
+              "module": "冷丰WMS",
+              "title": "分拣单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/master_data_product_library.html",
+              "text": "新增/编辑/详情增加最小计量单位；四级单位并排竖向对比，换算中间两格等宽"
+            },
+            {
+              "file": "SCM/negative_inventory.html",
+              "text": "定时配置拆成「负库存执行」「盘盈并执行」，支持各自启用开关"
+            },
+            {
+              "file": "SCM/obd_sorting.html",
+              "text": "新增分拣超时定时器配置弹窗，支持表达式、描述与启用状态"
+            },
+            {
+              "file": null,
+              "text": "docs 整目录改为本地文档，不再纳入版本库"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-10-20",
       "items": [

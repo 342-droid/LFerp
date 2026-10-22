@@ -1,4 +1,26 @@
 {
+  "258bdda|SCM/master_data_product_library.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-22"
+  },
+  "258bdda|SCM/master_data_supply.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-22"
+  },
+  "258bdda|SCM/negative_inventory.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-22"
+  },
+  "258bdda|SCM/obd_sorting.html": {
+    "before": "changelog-assets/258bdda/SCM__obd_sorting.html.before.jpg",
+    "after": "changelog-assets/258bdda/SCM__obd_sorting.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-10-22"
+  },
   "2de2b51|SCM/master_data_ingredient_category.html": {
     "after": "changelog-assets/2de2b51/SCM__master_data_ingredient_category.html.after.jpg",
     "status": "added",
