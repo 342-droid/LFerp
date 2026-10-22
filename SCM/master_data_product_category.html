@@ -87,12 +87,14 @@
                                 <div class="product-category-detail__breadcrumb" id="catDetailBreadcrumb"></div>
                                 <div class="product-category-detail__tabs" id="catDetailTabs">
                                     <button type="button" class="product-category-detail__tab is-active" data-tab="info">分类信息</button>
+                                    <button type="button" class="product-category-detail__tab" data-tab="units" id="catDetailTabUnits" hidden>商品单位</button>
                                     <button type="button" class="product-category-detail__tab" data-tab="attrcats" id="catDetailTabAttrCats" hidden>属性分类</button>
                                     <button type="button" class="product-category-detail__tab" data-tab="attrs" id="catDetailTabAttrs" hidden>商品属性</button>
                                     <button type="button" class="product-category-detail__tab" data-tab="products" id="catDetailTabProducts" hidden>已绑定商品</button>
                                 </div>
                                 <div class="product-category-detail__content">
                                     <div class="product-category-detail__pane" id="catDetailPaneInfo"></div>
+                                    <div class="product-category-detail__pane" id="catDetailPaneUnits" hidden></div>
                                     <div class="product-category-detail__pane" id="catDetailPaneAttrCats" hidden></div>
                                     <div class="product-category-detail__pane" id="catDetailPaneAttrs" hidden></div>
                                     <div class="product-category-detail__pane" id="catDetailPaneProducts" hidden></div>
@@ -105,6 +107,7 @@
         </main>
     </div>
     <script src="../js/common.js"></script>
+    <script src="../js/master-data-units.js"></script>
     <script src="../js/master-data-category-store.js"></script>
     <script src="../js/master-data-category.js"></script>
 </body>

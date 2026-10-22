@@ -123,9 +123,11 @@
     var node = getDetailNode();
     var breadcrumbEl = document.getElementById('catDetailBreadcrumb');
     var paneInfo = document.getElementById('catDetailPaneInfo');
+    var paneUnits = document.getElementById('catDetailPaneUnits');
     var paneAttrCats = document.getElementById('catDetailPaneAttrCats');
     var paneAttrs = document.getElementById('catDetailPaneAttrs');
     var paneProducts = document.getElementById('catDetailPaneProducts');
+    var tabUnits = document.getElementById('catDetailTabUnits');
     var tabAttrCats = document.getElementById('catDetailTabAttrCats');
     var tabAttrs = document.getElementById('catDetailTabAttrs');
     var tabProducts = document.getElementById('catDetailTabProducts');
@@ -133,6 +135,7 @@
     if (!node) {
       state.detailTab = 'info';
       if (breadcrumbEl) breadcrumbEl.innerHTML = '<span class="product-category-detail__crumb">请选择分类</span>';
+      if (tabUnits) tabUnits.hidden = true;
       if (tabAttrCats) tabAttrCats.hidden = true;
       if (tabAttrs) tabAttrs.hidden = true;
       if (tabProducts) tabProducts.hidden = true;
@@ -140,6 +143,7 @@
         paneInfo.hidden = false;
         paneInfo.innerHTML = '<div class="product-category-detail__products-empty">从左侧选择一级至四级分类</div>';
       }
+      if (paneUnits) paneUnits.hidden = true;
       if (paneAttrCats) paneAttrCats.hidden = true;
       if (paneAttrs) paneAttrs.hidden = true;
       if (paneProducts) paneProducts.hidden = true;
@@ -154,10 +158,11 @@
       }).join('<span class="product-category-detail__sep">/</span>');
     }
 
+    if (tabUnits) tabUnits.hidden = node.level !== 1;
     if (tabAttrCats) tabAttrCats.hidden = node.level !== 1;
     if (tabAttrs) tabAttrs.hidden = false;
     if (tabProducts) tabProducts.hidden = node.level !== 4;
-    if (node.level !== 1 && state.detailTab === 'attrcats') state.detailTab = 'info';
+    if (node.level !== 1 && (state.detailTab === 'attrcats' || state.detailTab === 'units')) state.detailTab = 'info';
     if (node.level !== 4 && state.detailTab === 'products') state.detailTab = 'info';
 
     document.querySelectorAll('.product-category-detail__tab').forEach(function (tab) {
@@ -165,6 +170,7 @@
     });
 
     if (paneInfo) paneInfo.hidden = state.detailTab !== 'info';
+    if (paneUnits) paneUnits.hidden = state.detailTab !== 'units';
     if (paneAttrCats) paneAttrCats.hidden = state.detailTab !== 'attrcats';
     if (paneAttrs) paneAttrs.hidden = state.detailTab !== 'attrs';
     if (paneProducts) paneProducts.hidden = state.detailTab !== 'products';
@@ -206,6 +212,10 @@
         statusBtn +
         deleteBtn +
         '</div>';
+    }
+
+    if (paneUnits && state.detailTab === 'units' && node.level === 1) {
+      paneUnits.innerHTML = renderGoodsUnitsPane(node);
     }
 
     if (paneAttrCats && state.detailTab === 'attrcats' && node.level === 1) {
@@ -537,6 +547,7 @@
         product_count: 0,
         attributes: [],
         attribute_categories: [],
+        goods_units: [],
         created_at: nowStr()
       };
       store.addCategory(newNode);
@@ -623,6 +634,30 @@
       '<div class="master-data-attr__body">' + renderAttrTree(attr.values) + '</div>' +
       '<div class="master-data-attr__ops">' + opsHtml + '</div></div>' +
       '</div>'
+    );
+  }
+
+  function renderGoodsUnitsPane(node) {
+    var list = store.getGoodsUnits(node.id);
+    var rows = list.length
+      ? '<div class="master-data-attr__list">' + list.map(function (item) {
+        return (
+          '<div class="master-data-attr master-data-attrcat">' +
+          '<div class="master-data-attr__line">' +
+          '<div class="master-data-attr__name">' + escapeHtml(item.name) +
+          '<span class="master-data-attr__sort">排序 ' + escapeHtml(String(item.sort != null && item.sort !== '' ? item.sort : 0)) + '</span></div>' +
+          '<div class="master-data-attr__ops">' +
+          '<button type="button" class="product-action__link" data-goods-unit-edit data-cat-id="' + node.id + '" data-goods-unit-id="' + item.id + '">编辑</button>' +
+          '<button type="button" class="product-action__link product-action__link--muted" data-goods-unit-delete data-cat-id="' + node.id + '" data-goods-unit-id="' + item.id + '">删除</button>' +
+          '</div></div></div>'
+        );
+      }).join('') + '</div>'
+      : '<div class="product-category-detail__products-empty">暂无商品单位；配置后，本一级下新增商品与供货关系仅可选这些单位</div>';
+    return (
+      '<div class="master-data-attr__head"><span>共 ' + list.length + ' 个商品单位</span>' +
+      '<button type="button" class="erp-btn erp-btn--primary" data-goods-unit-add data-cat-id="' + node.id + '">新增单位</button></div>' +
+      '<p class="product-category-modal__hint" style="margin:0 0 12px">单位从供应链全局枚举中选择；配置后对该一级分类下全部下级生效。</p>' +
+      rows
     );
   }
 
@@ -1000,6 +1035,118 @@
     });
   }
 
+  function closeGoodsUnitModal() {
+    var modal = document.querySelector('[data-master-goods-unit-modal]');
+    if (modal) modal.remove();
+  }
+
+  function openGoodsUnitModal(l1Id, unitId) {
+    closeGoodsUnitModal();
+    var node = store.getNode(l1Id);
+    if (!node || node.level !== 1) return;
+    var list = store.getGoodsUnits(l1Id);
+    var current = null;
+    if (unitId) {
+      for (var i = 0; i < list.length; i += 1) {
+        if (list[i].id === unitId) current = list[i];
+      }
+      if (!current) return;
+    }
+    var enumList = (window.MasterDataGoodsUnits && window.MasterDataGoodsUnits.list)
+      ? window.MasterDataGoodsUnits.list.slice()
+      : [];
+    var usedNames = {};
+    list.forEach(function (item) {
+      if (!current || item.id !== current.id) usedNames[item.name] = true;
+    });
+    var options = enumList.filter(function (name) {
+      return current && current.name === name ? true : !usedNames[name];
+    });
+    if (!options.length) {
+      if (typeof showToast === 'function') showToast(current ? '没有可切换的单位' : '全局枚举中的单位已全部添加', 'warning');
+      return;
+    }
+    var optionHtml = options.map(function (name) {
+      var selected = current && current.name === name ? ' selected' : (!current && name === options[0] ? ' selected' : '');
+      return '<option value="' + escapeHtml(name) + '"' + selected + '>' + escapeHtml(name) + '</option>';
+    }).join('');
+    var backdrop = document.createElement('div');
+    backdrop.className = 'erp-modal-backdrop product-category-modal-backdrop';
+    backdrop.setAttribute('data-master-goods-unit-modal', '1');
+    backdrop.innerHTML =
+      '<div class="erp-modal product-category-modal">' +
+      '<div class="erp-modal__header"><h2 class="erp-modal__title">' + (current ? '编辑商品单位' : '新增商品单位') + '</h2>' +
+      '<div class="erp-modal__header-actions"><button type="button" class="erp-modal__header-btn" data-goods-unit-modal-close aria-label="关闭">&times;</button></div></div>' +
+      '<div class="erp-modal__body"><p class="product-category-modal__hint">维护一级分类「' + escapeHtml(node.name) + '」的商品单位。配置后，该一级下新增商品与供货关系仅可选这些单位。</p>' +
+      '<div class="product-category-modal__field"><label class="product-category-modal__label" for="masterGoodsUnitName">' + renderFieldLabel('单位', true) + '</label>' +
+      '<select class="product-category-modal__input" id="masterGoodsUnitName">' + optionHtml + '</select></div>' +
+      '<div class="product-category-modal__field"><label class="product-category-modal__label" for="masterGoodsUnitSort">' + renderFieldLabel('排序', true) + '</label>' +
+      '<input class="product-category-modal__input" id="masterGoodsUnitSort" type="number" min="0" placeholder="请输入排序" value="' + (current && current.sort != null && current.sort !== '' ? current.sort : '') + '"></div>' +
+      '</div>' +
+      '<div class="erp-modal__footer"><button type="button" class="erp-btn" data-goods-unit-modal-cancel>取消</button>' +
+      '<button type="button" class="erp-btn erp-btn--primary" data-goods-unit-modal-save>确定</button></div></div>';
+    backdrop.addEventListener('click', function (ev) { if (ev.target === backdrop) closeGoodsUnitModal(); });
+    backdrop.querySelectorAll('[data-goods-unit-modal-close], [data-goods-unit-modal-cancel]').forEach(function (btn) {
+      btn.addEventListener('click', closeGoodsUnitModal);
+    });
+    backdrop.querySelector('[data-goods-unit-modal-save]').addEventListener('click', function () {
+      var nameEl = document.getElementById('masterGoodsUnitName');
+      var name = nameEl ? String(nameEl.value || '').trim() : '';
+      if (!name) {
+        if (typeof showToast === 'function') showToast('请选择单位', 'warning');
+        return;
+      }
+      if (enumList.indexOf(name) < 0) {
+        if (typeof showToast === 'function') showToast('请从全局单位枚举中选择', 'warning');
+        return;
+      }
+      var sortInput = document.getElementById('masterGoodsUnitSort');
+      var sortText = sortInput ? String(sortInput.value || '').trim() : '';
+      var sort = parseInt(sortText, 10);
+      if (sortText === '' || isNaN(sort) || sort < 0) {
+        if (typeof showToast === 'function') showToast('请输入排序', 'warning');
+        return;
+      }
+      if (list.some(function (item) { return (!current || item.id !== current.id) && item.name === name; })) {
+        if (typeof showToast === 'function') showToast('该单位已添加', 'warning');
+        return;
+      }
+      if (list.some(function (item) { return (!current || item.id !== current.id) && parseInt(item.sort, 10) === sort; })) {
+        if (typeof showToast === 'function') showToast('同级下已存在相同排序', 'warning');
+        return;
+      }
+      var next = {
+        id: current ? current.id : genId('gunit'),
+        name: name,
+        sort: sort
+      };
+      var saved = current
+        ? list.map(function (item) { return item.id === next.id ? next : item; })
+        : list.concat([next]);
+      store.setGoodsUnits(l1Id, saved);
+      closeGoodsUnitModal();
+      renderAll();
+      if (typeof showToast === 'function') showToast(current ? '商品单位已更新' : '商品单位已新增', 'success');
+    });
+    document.body.appendChild(backdrop);
+    var sortEl = document.getElementById('masterGoodsUnitSort');
+    if (sortEl) sortEl.focus();
+  }
+
+  function deleteGoodsUnit(l1Id, unitId) {
+    var list = store.getGoodsUnits(l1Id);
+    var current = null;
+    for (var i = 0; i < list.length; i += 1) {
+      if (list[i].id === unitId) current = list[i];
+    }
+    if (!current) return;
+    openWarmConfirm('确定删除商品单位「' + current.name + '」？', function () {
+      store.setGoodsUnits(l1Id, list.filter(function (item) { return item.id !== unitId; }));
+      renderAll();
+      if (typeof showToast === 'function') showToast('商品单位已删除', 'success');
+    });
+  }
+
   function closeAttrCategoryModal() {
     var modal = document.querySelector('[data-master-attr-cat-modal]');
     if (modal) modal.remove();
@@ -1207,6 +1354,21 @@
         var addAttrBtn = e.target.closest('[data-attr-add]');
         if (addAttrBtn) {
           openAttributeModal(addAttrBtn.getAttribute('data-cat-id'));
+          return;
+        }
+        var addGoodsUnitBtn = e.target.closest('[data-goods-unit-add]');
+        if (addGoodsUnitBtn) {
+          openGoodsUnitModal(addGoodsUnitBtn.getAttribute('data-cat-id'));
+          return;
+        }
+        var editGoodsUnitBtn = e.target.closest('[data-goods-unit-edit]');
+        if (editGoodsUnitBtn) {
+          openGoodsUnitModal(editGoodsUnitBtn.getAttribute('data-cat-id'), editGoodsUnitBtn.getAttribute('data-goods-unit-id'));
+          return;
+        }
+        var delGoodsUnitBtn = e.target.closest('[data-goods-unit-delete]');
+        if (delGoodsUnitBtn) {
+          deleteGoodsUnit(delGoodsUnitBtn.getAttribute('data-cat-id'), delGoodsUnitBtn.getAttribute('data-goods-unit-id'));
           return;
         }
         var addAttrCatBtn = e.target.closest('[data-attr-cat-add]');

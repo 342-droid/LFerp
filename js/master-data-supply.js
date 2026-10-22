@@ -7,19 +7,39 @@
   var store = window.MasterDataSupplyRelationStore;
   var supplierStore = window.MasterDataSupplierStore;
   var RELATIONS = [];
-  var PURCHASE_UNITS = ['个', 'g', 'kg', '包', '袋', '瓶', '罐', '箱', '件'];
+  /* 供应链共用单位枚举；按商品所属一级分类收窄，见 master-data-units.js */
+  var PURCHASE_UNITS = (window.MasterDataGoodsUnits && window.MasterDataGoodsUnits.list)
+    ? window.MasterDataGoodsUnits.list.slice()
+    : ['箱', '件', '个', '克', 'kg', 'ml', '斤', '包', '袋', '瓶', '罐'];
   var PRICE_STATUSES = ['未核价', '已核价'];
   var SAMPLE_STATUSES = ['待检', '合格', '无需样品'];
   var FALLBACK_GOODS = [
-    { sku: '100001', spu: 'SPU100001', name: '生物发面猪肉小笼包 50g 100个/包', barcode: '6974562300012', shelfLife: '180', tempLayer: '冷冻', operateMode: '购销', purchasePrice: 18.8, purchaseUnit: '箱', tone: 'blue', mark: '笼' },
-    { sku: '100002', spu: 'SPU100002', name: '生物发面牛肉小笼包 50g 100个/包', barcode: '6974562300013', shelfLife: '180', tempLayer: '冷冻', operateMode: '购销', purchasePrice: 18.8, purchaseUnit: '箱', tone: 'orange', mark: '笼' },
-    { sku: '100003', spu: 'SPU100003', name: '圆茄 优质', barcode: '6974562300101', shelfLife: '7', tempLayer: '冷藏', operateMode: '代采代销', purchasePrice: 3.5, purchaseUnit: '箱', tone: 'green', mark: '茄' },
-    { sku: '100004', spu: 'SPU100004', name: '普罗旺斯西红柿', barcode: '6974562300102', shelfLife: '7', tempLayer: '常温', operateMode: '代采代销', purchasePrice: 4, purchaseUnit: '箱', tone: 'orange', mark: '西' },
-    { sku: '100005', spu: 'SPU100005', name: '红富士苹果', barcode: '6974562300401', shelfLife: '30', tempLayer: '冷藏', operateMode: '联营', purchasePrice: 8, purchaseUnit: '箱', tone: 'orange', mark: '苹' },
-    { sku: '110001', spu: 'SPU110001', name: '东北大米 5kg', barcode: '6974562300301', shelfLife: '365', tempLayer: '常温', operateMode: '购销', purchasePrice: 32, purchaseUnit: '箱', tone: 'green', mark: '米' },
-    { sku: '120001', spu: 'SPU120001', name: '可口可乐摩登罐', barcode: '6974562300201', shelfLife: '270', tempLayer: '常温', operateMode: '购销', purchasePrice: 52, purchaseUnit: '箱', tone: 'blue', mark: '可' },
-    { sku: '130001', spu: 'SPU130001', name: '加厚纸杯 250ml', barcode: '6974562300501', shelfLife: '730', tempLayer: '常温', operateMode: '购销', purchasePrice: 7, purchaseUnit: '箱', tone: 'blue', mark: '杯' }
+    { sku: '100001', spu: 'SPU100001', name: '生物发面猪肉小笼包 50g 100个/包', barcode: '6974562300012', category: '五花肉', shelfLife: '180', tempLayer: '冷冻', operateMode: '购销', purchasePrice: 18.8, purchaseUnit: '箱', tone: 'blue', mark: '笼' },
+    { sku: '100002', spu: 'SPU100002', name: '生物发面牛肉小笼包 50g 100个/包', barcode: '6974562300013', category: '里脊', shelfLife: '180', tempLayer: '冷冻', operateMode: '购销', purchasePrice: 18.8, purchaseUnit: '箱', tone: 'orange', mark: '笼' },
+    { sku: '100003', spu: 'SPU100003', name: '圆茄 优质', barcode: '6974562300101', category: '茄子', shelfLife: '7', tempLayer: '冷藏', operateMode: '代采代销', purchasePrice: 3.5, purchaseUnit: '箱', tone: 'green', mark: '茄' },
+    { sku: '100004', spu: 'SPU100004', name: '普罗旺斯西红柿', barcode: '6974562300102', category: '西红柿', shelfLife: '7', tempLayer: '常温', operateMode: '代采代销', purchasePrice: 4, purchaseUnit: '箱', tone: 'orange', mark: '西' },
+    { sku: '100005', spu: 'SPU100005', name: '红富士苹果', barcode: '6974562300401', category: '苹果', shelfLife: '30', tempLayer: '冷藏', operateMode: '联营', purchasePrice: 8, purchaseUnit: '箱', tone: 'orange', mark: '苹' },
+    { sku: '110001', spu: 'SPU110001', name: '东北大米 5kg', barcode: '6974562300301', category: '东北大米', shelfLife: '365', tempLayer: '常温', operateMode: '购销', purchasePrice: 32, purchaseUnit: '箱', tone: 'green', mark: '米' },
+    { sku: '120001', spu: 'SPU120001', name: '可口可乐摩登罐', barcode: '6974562300201', category: '可乐', shelfLife: '270', tempLayer: '常温', operateMode: '购销', purchasePrice: 52, purchaseUnit: '箱', tone: 'blue', mark: '可' },
+    { sku: '130001', spu: 'SPU130001', name: '加厚纸杯 250ml', barcode: '6974562300501', category: '纸杯', shelfLife: '730', tempLayer: '常温', operateMode: '购销', purchasePrice: 7, purchaseUnit: '箱', tone: 'blue', mark: '杯' }
   ];
+
+  function unitsForProduct(product, selected) {
+    var category = product && product.category ? product.category : '';
+    if (window.MasterDataGoodsUnits && window.MasterDataGoodsUnits.withSelectedForCategoryName) {
+      return window.MasterDataGoodsUnits.withSelectedForCategoryName(category, selected);
+    }
+    var units = PURCHASE_UNITS.slice();
+    if (selected && units.indexOf(selected) < 0) units.unshift(selected);
+    return units;
+  }
+
+  function refreshActualUnitOptions(product, keepValue) {
+    var select = document.getElementById('supplyFormActualUnit');
+    if (!select) return;
+    var current = keepValue != null ? keepValue : String(select.value || '');
+    select.innerHTML = optionList(unitsForProduct(product, current), current, '请选择');
+  }
 
   var state = {
     query: { sku: '', spu: '', name: '', barcode: '', supplier: '', operateMode: '', priceStatus: '', sampleStatus: '', status: '' },
@@ -85,6 +105,7 @@
       spu: relationSpu(item),
       name: item.name || '',
       barcode: item.barcode || '',
+      category: item.category || '',
       shelfLife: item.shelfLife || '',
       tempLayer: item.tempLayer || '',
       operateMode: item.operateMode || '',
@@ -361,6 +382,10 @@
     setAttr('supplyFormOperate', product ? product.operateMode : '');
     setAttr('supplyFormPurchase', product && product.purchasePrice != null && product.purchasePrice !== '' ? formatPrice(product.purchasePrice) : '');
     setAttr('supplyFormPurchaseUnit', product ? product.purchaseUnit : '');
+    var preferred = product && product.purchaseUnit ? product.purchaseUnit : '';
+    var unitSelect = document.getElementById('supplyFormActualUnit');
+    var keep = unitSelect && unitSelect.value ? unitSelect.value : preferred;
+    refreshActualUnitOptions(product, keep);
   }
 
   function syncProductPreview() {
@@ -421,7 +446,7 @@
       field('供应商', supplierControl, true) +
       field('供应商编码', '<input id="supplyFormSupplierCode" type="text" value="' + escapeHtml(editing ? supplierCode(item) : '') + '" readonly tabindex="-1">') +
       field('采购核定价', '<input id="supplyFormApproved" type="number" min="0" step="0.01" placeholder="请输入采购核定价" value="' + escapeHtml(editing ? item.approvedPrice : '') + '">', true) +
-      field('实际采购单位', '<select id="supplyFormActualUnit">' + optionList(PURCHASE_UNITS, editing ? (item.actualPurchaseUnit || '') : '', '请选择') + '</select>', true) +
+      field('实际采购单位', '<select id="supplyFormActualUnit">' + optionList(unitsForProduct(editing ? productView(item) : null, editing ? (item.actualPurchaseUnit || '') : ''), editing ? (item.actualPurchaseUnit || '') : '', '请选择') + '</select>', true) +
       field('最小起订量', '<input id="supplyFormMinOrder" type="number" min="1" step="1" placeholder="请输入最小起订量" value="' + escapeHtml(editing && item.minOrderQty != null ? item.minOrderQty : '') + '">', true) +
       field('价格状态', '<select id="supplyFormPriceStatus">' + optionList(PRICE_STATUSES, editing ? item.priceStatus : '未核价') + '</select>', true) +
       field('样品状态', '<select id="supplyFormSample">' + optionList(SAMPLE_STATUSES, editing ? item.sampleStatus : '待检') + '</select>', true) +
