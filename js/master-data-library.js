@@ -566,19 +566,16 @@
 
   function detailUnitCard(title, unit, qty, rateUnit, measure) {
     measure = measure || {};
-    var size = (measure.length || measure.width || measure.height)
-      ? (measure.length || '—') + ' × ' + (measure.width || '—') + ' × ' + (measure.height || '—')
-      : '';
     return '<div class="mdl-detail-unit">' +
       '<div class="mdl-detail-unit__title">' + escapeHtml(title) + '</div>' +
       '<div class="mdl-detail-unit__convert">' + escapeHtml(convertText(unit, qty, rateUnit) || '—') + '</div>' +
-      '<div class="mdl-detail-unit__line">' +
+      '<div class="mdl-detail-unit__stack">' +
       detailMetric('毛重', measure.grossWeight, ' kg') +
       detailMetric('皮重', measure.tareWeight, ' kg') +
       detailMetric('净重', measure.netWeight, ' kg') +
-      '</div>' +
-      '<div class="mdl-detail-unit__line">' +
-      detailMetric('长×宽×高', size, ' cm') +
+      detailMetric('长', measure.length, ' cm') +
+      detailMetric('宽', measure.width, ' cm') +
+      detailMetric('高', measure.height, ' cm') +
       detailMetric('体积', measure.volume, ' m³') +
       '</div></div>';
   }
@@ -586,6 +583,7 @@
   function detailUnitSection(item) {
     var measures = item.measures || {};
     return '<div class="mdl-detail-units">' +
+      detailUnitCard('最小计量单位', item.minMeasureUnit, item.minMeasureRateQty, item.minMeasureRateUnit, measures.measure) +
       detailUnitCard('最小单位', item.minUnit, item.minRateQty, item.minRateUnit, measures.min) +
       detailUnitCard('规格单位', item.specUnit, item.specRateQty, item.specRateUnit, measures.spec) +
       detailUnitCard('包装单位', item.packUnit, item.packRateQty, item.packRateUnit, measures.pack) +
@@ -653,11 +651,12 @@
     var tags = (item.attrs || []).map(function (attr) {
       return attr && attr.value ? '<span class="mdl-detail-tag">' + escapeHtml(attr.value) + '</span>' : '';
     }).join('');
-    [specChip(item.minRateQty, item.minRateUnit, item.minUnit), specChip(item.specRateQty, item.specRateUnit, item.specUnit), specChip(item.packRateQty, item.packRateUnit, item.packUnit)].forEach(function (text) {
-      if (text && text !== item.minUnit && text !== item.specUnit && text !== item.packUnit) tags += '<span class="mdl-detail-tag">' + escapeHtml(text) + '</span>';
+    [specChip(item.minMeasureRateQty, item.minMeasureRateUnit, item.minMeasureUnit), specChip(item.minRateQty, item.minRateUnit, item.minUnit), specChip(item.specRateQty, item.specRateUnit, item.specUnit), specChip(item.packRateQty, item.packRateUnit, item.packUnit)].forEach(function (text) {
+      if (text && text !== item.minMeasureUnit && text !== item.minUnit && text !== item.specUnit && text !== item.packUnit) tags += '<span class="mdl-detail-tag">' + escapeHtml(text) + '</span>';
     });
     var minNet = item.measures && item.measures.min ? item.measures.min.netWeight : item.netWeight;
     [
+      ['最小计量单位', item.minMeasureUnit],
       ['最小单位', item.minUnit],
       ['规格单位', item.specUnit],
       ['采购单位', item.purchaseUnit],
@@ -1693,7 +1692,7 @@
     );
   }
 
-  var GOODS_UNITS = ['个', 'g', 'kg', '包', '袋', '瓶', '罐', '箱', '件'];
+  var GOODS_UNITS = ['个', 'g', 'kg', 'ml', '斤', '包', '袋', '瓶', '罐', '箱', '件'];
 
   function goodsUnitOptions(selected) {
     return GOODS_UNITS.map(function (unit) {
@@ -1732,36 +1731,31 @@
     return '<section class="mdl-unit-card">' +
       '<div class="mdl-unit-card__head"><span class="mdl-unit-card__index">' + spec.index + '</span>' +
       '<div><h4>' + escapeHtml(spec.label) + '</h4><p>' + escapeHtml(spec.hint) + '</p></div></div>' +
-      '<div class="mdl-unit-card__line">' +
+      '<div class="mdl-unit-card__field">' +
       '<span class="mdl-unit-card__label">换算</span>' +
-      '<div class="mdl-goods-combo">' +
+      '<div class="mdl-goods-combo mdl-goods-combo--stack">' +
       goodsUnitPick(id, spec.unit, ' data-unit-echo="' + id + 'Echo"' + followAttr) +
       '<span class="mdl-goods-combo__eq">1 <em id="' + id + 'Echo">' + escapeHtml(spec.unit) + '</em> =</span>' +
-      '<input class="mdl-goods-combo__num" id="' + id + 'Rate" type="number" min="0" step="any" placeholder="请输入">' +
+      '<input class="mdl-goods-combo__num" id="' + id + 'Rate" type="number" min="0" step="any" placeholder="数量">' +
       rateControl +
       '</div></div>' +
-      '<div class="mdl-unit-card__line mdl-unit-card__line--top">' +
-      '<span class="mdl-unit-card__label">重量</span>' +
-      '<div class="mdl-unit-metrics">' +
+      '<div class="mdl-unit-card__stack">' +
       unitMetric('libGoods' + spec.prefix + 'Gross', '毛重', 'kg', { weight: 'gross', group: spec.group }) +
       unitMetric('libGoods' + spec.prefix + 'Tare', '皮重', 'kg', { weight: 'tare', group: spec.group }) +
       unitMetric('libGoods' + spec.prefix + 'Net', '净重', 'kg', { weight: 'net', group: spec.group, placeholder: '毛重减皮重' }) +
-      '</div></div>' +
-      '<div class="mdl-unit-card__line mdl-unit-card__line--top">' +
-      '<span class="mdl-unit-card__label">体积</span>' +
-      '<div class="mdl-unit-metrics mdl-unit-metrics--volume">' +
       unitMetric('libGoods' + spec.prefix + 'Length', '长', 'cm', { dim: 'length', group: spec.group }) +
       unitMetric('libGoods' + spec.prefix + 'Width', '宽', 'cm', { dim: 'width', group: spec.group }) +
       unitMetric('libGoods' + spec.prefix + 'Height', '高', 'cm', { dim: 'height', group: spec.group }) +
       unitMetric('libGoods' + spec.prefix + 'Volume', '体积', 'm³', { readonly: true, volume: true, group: spec.group }) +
-      '</div></div></section>';
+      '</div></section>';
   }
 
   function goodsUnitCards() {
     return '<div class="mdl-unit-cards">' +
-      unitCard({ index: '1', prefix: 'Min', group: 'min', label: '最小单位', hint: '按这一级单独填写重量和体积，换算单位可自选', unit: '个', rateUnit: 'g', followId: 'libGoodsSpecUnitRateUnit' }) +
-      unitCard({ index: '2', prefix: 'Spec', group: 'spec', label: '规格单位', hint: '换算单位跟随最小单位', unit: '包', rateUnit: '个', lockRate: true, followId: 'libGoodsPackUnitRateUnit' }) +
-      unitCard({ index: '3', prefix: 'Pack', group: 'pack', label: '包装单位', hint: '换算单位跟随规格单位', unit: '箱', rateUnit: '包', lockRate: true }) +
+      unitCard({ index: '1', prefix: 'Measure', group: 'measure', label: '最小计量单位', hint: '按这一级单独填写重量和体积，换算单位可自选', unit: 'g', rateUnit: 'g', followId: 'libGoodsMinUnitRateUnit' }) +
+      unitCard({ index: '2', prefix: 'Min', group: 'min', label: '最小单位', hint: '换算单位跟随最小计量单位', unit: '个', rateUnit: 'g', lockRate: true, followId: 'libGoodsSpecUnitRateUnit' }) +
+      unitCard({ index: '3', prefix: 'Spec', group: 'spec', label: '规格单位', hint: '换算单位跟随最小单位', unit: '包', rateUnit: '个', lockRate: true, followId: 'libGoodsPackUnitRateUnit' }) +
+      unitCard({ index: '4', prefix: 'Pack', group: 'pack', label: '包装单位', hint: '换算单位跟随规格单位', unit: '箱', rateUnit: '包', lockRate: true }) +
       '</div>';
   }
 
@@ -1911,6 +1905,7 @@
       if (typeof showToast === 'function') showToast('请选择标准采购单位', 'warning');
       return;
     }
+    var measureConv = readConversion('Measure', prev && prev.minMeasureRateQty, prev && prev.minMeasureRateUnit);
     var minConv = readConversion('Min', prev && prev.minRateQty, prev && prev.minRateUnit);
     var specConv = readConversion('Spec', prev && prev.specRateQty, prev && prev.specRateUnit);
     var packConv = readConversion('Pack', prev && prev.packRateQty, prev && prev.packRateUnit);
@@ -1925,6 +1920,9 @@
       purchasePrice: Number(priceText),
       purchaseQty: prev ? prev.purchaseQty : 0,
       purchaseUnit: purchaseUnit,
+      minMeasureUnit: readGoodsValue('libGoodsMeasureUnit'),
+      minMeasureRateQty: measureConv.qty,
+      minMeasureRateUnit: measureConv.rateUnit,
       minQty: prev ? prev.minQty : 0,
       minUnit: readGoodsValue('libGoodsMinUnit'),
       minRateQty: minConv.qty,
@@ -1946,6 +1944,7 @@
       shelfLife: shelfText,
       tempLayer: tempLayer,
       measures: {
+        measure: readMeasure('Measure'),
         min: readMeasure('Min'),
         spec: readMeasure('Spec'),
         pack: readMeasure('Pack')
@@ -2040,24 +2039,29 @@
     writeControl('libGoodsAfterSale', item.afterSale);
     writeControl('libGoodsGraphicDetail', item.graphicDetail);
     if (specMode) return;
-    writeControl('libGoodsMinUnit', item.minUnit);
-    if (item.minRateUnit) {
-      writeControl('libGoodsMinUnitRate', item.minRateQty);
-      writeControl('libGoodsMinUnitRateUnit', item.minRateUnit);
+    writeControl('libGoodsMeasureUnit', item.minMeasureUnit);
+    if (item.minMeasureRateUnit) {
+      writeControl('libGoodsMeasureUnitRate', item.minMeasureRateQty);
+      writeControl('libGoodsMeasureUnitRateUnit', item.minMeasureRateUnit);
     }
+    writeControl('libGoodsMinUnit', item.minUnit);
+    if (item.minRateUnit) writeControl('libGoodsMinUnitRate', item.minRateQty);
     writeControl('libGoodsSpecUnit', item.specUnit);
     if (item.specRateUnit) writeControl('libGoodsSpecUnitRate', item.specRateQty);
     writeControl('libGoodsPackUnit', item.packUnit);
     if (item.packRateUnit) writeControl('libGoodsPackUnitRate', item.packRateQty);
     var measures = item.measures || {};
+    fillMeasure('Measure', measures.measure);
     fillMeasure('Min', measures.min);
     fillMeasure('Spec', measures.spec);
     fillMeasure('Pack', measures.pack);
+    var minLock = document.getElementById('libGoodsMinUnitRateUnit');
+    if (minLock && minLock.tagName === 'SPAN') minLock.textContent = readGoodsValue('libGoodsMeasureUnit');
     var specLock = document.getElementById('libGoodsSpecUnitRateUnit');
     if (specLock && specLock.tagName === 'SPAN') specLock.textContent = readGoodsValue('libGoodsMinUnit');
     var packLock = document.getElementById('libGoodsPackUnitRateUnit');
     if (packLock && packLock.tagName === 'SPAN') packLock.textContent = readGoodsValue('libGoodsSpecUnit');
-    ['min', 'spec', 'pack'].forEach(syncUnitVolume);
+    ['measure', 'min', 'spec', 'pack'].forEach(syncUnitVolume);
   }
 
   function openGoodsModal(item, mode) {
@@ -2529,8 +2533,9 @@
   var DETAIL_BY_BARCODE = {
     '6974562300012': detailProfile({
       shelfLife: '180', operateMode: '购销', weigh: '否', tempLayer: '冷冻',
+      minMeasureUnit: 'g', minMeasureRateQty: 1, minMeasureRateUnit: 'g',
       minRateQty: 50, minRateUnit: 'g', specRateQty: 100, specRateUnit: '个', packRateQty: 20, packRateUnit: '包',
-      measures: { min: unitMeasure(0.055, 0.005, 5, 4, 3), spec: unitMeasure(5.2, 0.2, 32, 22, 15), pack: unitMeasure(105, 5, 48, 36, 32) },
+      measures: { measure: unitMeasure(0.001, 0, 1, 1, 1), min: unitMeasure(0.055, 0.005, 5, 4, 3), spec: unitMeasure(5.2, 0.2, 32, 22, 15), pack: unitMeasure(105, 5, 48, 36, 32) },
       sellingPoint: '50g 一口一个，皮薄馅足，100个/包，冷链到店即可蒸制。',
       productIntro: '生物发面猪肉小笼包，单只净重 50g，每包 100 个，整箱 20 包。',
       extraUsage: '冷冻保存，蒸制前无需解冻，大火蒸 8–10 分钟。',
@@ -2540,8 +2545,9 @@
     }),
     '6974562300013': detailProfile({
       shelfLife: '180', operateMode: '购销', weigh: '否', tempLayer: '冷冻',
+      minMeasureUnit: 'g', minMeasureRateQty: 1, minMeasureRateUnit: 'g',
       minRateQty: 50, minRateUnit: 'g', specRateQty: 100, specRateUnit: '个', packRateQty: 10, packRateUnit: '包',
-      measures: { min: unitMeasure(0.058, 0.008, 5, 4, 3), spec: unitMeasure(5.4, 0.4, 32, 22, 15), pack: unitMeasure(55, 3, 40, 32, 28) },
+      measures: { measure: unitMeasure(0.001, 0, 1, 1, 1), min: unitMeasure(0.058, 0.008, 5, 4, 3), spec: unitMeasure(5.4, 0.4, 32, 22, 15), pack: unitMeasure(55, 3, 40, 32, 28) },
       sellingPoint: '牛肉馅小笼包，单只 50g，口感紧实，适合冷链配送。',
       productIntro: '生物发面牛肉小笼包，1个=50g，1包=100个，1箱=10包。',
       extraUsage: '保持冷冻，蒸制时不要叠放，避免粘连。',
@@ -2551,8 +2557,9 @@
     }),
     '6974562300101': detailProfile({
       shelfLife: '7', operateMode: '代采代销', weigh: '是', tempLayer: '冷藏',
+      minMeasureUnit: 'g', minMeasureRateQty: 1, minMeasureRateUnit: 'g',
       minRateQty: 500, minRateUnit: 'g', specRateQty: 10, specRateUnit: '斤', packRateQty: 10, packRateUnit: '斤',
-      measures: { min: unitMeasure(0.52, 0.02, 12, 8, 8), spec: unitMeasure(5.3, 0.3, 40, 30, 22), pack: unitMeasure(5.3, 0.3, 40, 30, 22) },
+      measures: { measure: unitMeasure(0.001, 0, 1, 1, 1), min: unitMeasure(0.52, 0.02, 12, 8, 8), spec: unitMeasure(5.3, 0.3, 40, 30, 22), pack: unitMeasure(5.3, 0.3, 40, 30, 22) },
       sellingPoint: '本地圆茄，果型均匀，已洗净，冷藏当日达。',
       productIntro: '圆茄按斤称重，1斤=500g，每箱 10 斤。',
       extraUsage: '冷藏避光存放，建议 3 日内售完。',
@@ -2562,8 +2569,9 @@
     }),
     '6974562300102': detailProfile({
       shelfLife: '7', operateMode: '代采代销', weigh: '是', tempLayer: '常温',
+      minMeasureUnit: 'g', minMeasureRateQty: 1, minMeasureRateUnit: 'g',
       minRateQty: 500, minRateUnit: 'g', specRateQty: 8, specRateUnit: '斤', packRateQty: 8, packRateUnit: '斤',
-      measures: { min: unitMeasure(0.51, 0.01, 8, 7, 6), spec: unitMeasure(4.2, 0.2, 36, 28, 18), pack: unitMeasure(4.2, 0.2, 36, 28, 18) },
+      measures: { measure: unitMeasure(0.001, 0, 1, 1, 1), min: unitMeasure(0.51, 0.01, 8, 7, 6), spec: unitMeasure(4.2, 0.2, 36, 28, 18), pack: unitMeasure(4.2, 0.2, 36, 28, 18) },
       sellingPoint: '普罗旺斯西红柿，沙瓤，适合生食和热菜。',
       productIntro: '按斤销售，1斤=500g，每箱 8 斤。',
       extraUsage: '常温短存，避免挤压和日晒。',
@@ -2573,8 +2581,9 @@
     }),
     '6974562300201': detailProfile({
       shelfLife: '270', operateMode: '购销', weigh: '否', tempLayer: '常温',
+      minMeasureUnit: 'ml', minMeasureRateQty: 1, minMeasureRateUnit: 'ml',
       minRateQty: 330, minRateUnit: 'ml', specRateQty: 24, specRateUnit: '罐', packRateQty: 24, packRateUnit: '罐',
-      measures: { min: unitMeasure(0.36, 0.03, 6, 6, 12), spec: unitMeasure(8.8, 0.4, 40, 27, 14), pack: unitMeasure(8.8, 0.4, 40, 27, 14) },
+      measures: { measure: unitMeasure(0.001, 0, 1, 1, 1), min: unitMeasure(0.36, 0.03, 6, 6, 12), spec: unitMeasure(8.8, 0.4, 40, 27, 14), pack: unitMeasure(8.8, 0.4, 40, 27, 14) },
       sellingPoint: '摩登罐 330ml，气足，整箱 24 罐便于补货。',
       productIntro: '可口可乐摩登罐，1罐=330ml，1箱=24罐。',
       extraUsage: '常温避光，冷藏后口感更佳，避免暴晒。',
@@ -2584,8 +2593,9 @@
     }),
     '6974562300301': detailProfile({
       shelfLife: '365', operateMode: '购销', weigh: '否', tempLayer: '常温',
+      minMeasureUnit: 'kg', minMeasureRateQty: 1, minMeasureRateUnit: 'kg',
       minRateQty: 5, minRateUnit: 'kg', specRateQty: 5, specRateUnit: 'kg', packRateQty: 4, packRateUnit: '袋',
-      measures: { min: unitMeasure(5.05, 0.05, 38, 26, 8), spec: unitMeasure(5.05, 0.05, 38, 26, 8), pack: unitMeasure(20.4, 0.4, 42, 32, 28) },
+      measures: { measure: unitMeasure(1, 0, 10, 10, 10), min: unitMeasure(5.05, 0.05, 38, 26, 8), spec: unitMeasure(5.05, 0.05, 38, 26, 8), pack: unitMeasure(20.4, 0.4, 42, 32, 28) },
       sellingPoint: '东北大米 5kg 袋装，颗粒完整，适合家庭装。',
       productIntro: '1袋=5kg，1箱=4袋。',
       extraUsage: '阴凉干燥处存放，开封后扎紧袋口。',
@@ -2595,8 +2605,9 @@
     }),
     '6974562300401': detailProfile({
       shelfLife: '30', operateMode: '联营', weigh: '否', tempLayer: '冷藏',
+      minMeasureUnit: 'g', minMeasureRateQty: 1, minMeasureRateUnit: 'g',
       minRateQty: 200, minRateUnit: 'g', specRateQty: 40, specRateUnit: '个', packRateQty: 40, packRateUnit: '个',
-      measures: { min: unitMeasure(0.22, 0.02, 8, 8, 7), spec: unitMeasure(8.6, 0.6, 50, 32, 28), pack: unitMeasure(8.6, 0.6, 50, 32, 28) },
+      measures: { measure: unitMeasure(0.001, 0, 1, 1, 1), min: unitMeasure(0.22, 0.02, 8, 8, 7), spec: unitMeasure(8.6, 0.6, 50, 32, 28), pack: unitMeasure(8.6, 0.6, 50, 32, 28) },
       sellingPoint: '红富士，脆甜，中果，冷藏保鲜。',
       productIntro: '单果约 200g，1箱=40个。',
       extraUsage: '冷藏存放，避免与催熟水果混放。',
@@ -2606,8 +2617,9 @@
     }),
     '6974562300501': detailProfile({
       shelfLife: '730', operateMode: '购销', weigh: '否', tempLayer: '常温',
+      minMeasureUnit: 'ml', minMeasureRateQty: 1, minMeasureRateUnit: 'ml',
       minRateQty: 250, minRateUnit: 'ml', specRateQty: 50, specRateUnit: '个', packRateQty: 100, packRateUnit: '个',
-      measures: { min: unitMeasure(0.008, 0.003, 7, 7, 9), spec: unitMeasure(0.45, 0.05, 28, 20, 24), pack: unitMeasure(0.9, 0.1, 40, 30, 32) },
+      measures: { measure: unitMeasure(0.001, 0, 1, 1, 1), min: unitMeasure(0.008, 0.003, 7, 7, 9), spec: unitMeasure(0.45, 0.05, 28, 20, 24), pack: unitMeasure(0.9, 0.1, 40, 30, 32) },
       sellingPoint: '加厚纸杯 250ml，单层覆膜，不易渗漏。',
       productIntro: '1个=250ml，1箱=100个。',
       extraUsage: '避免重压，使用时不要超过标示容量。',
@@ -2627,6 +2639,9 @@
       operateMode: ['购销', '代采代销', '联营'][index % 3],
       weigh: '否',
       tempLayer: ['常温', '冷藏', '冷冻'][index % 3],
+      minMeasureUnit: 'g',
+      minMeasureRateQty: 1,
+      minMeasureRateUnit: 'g',
       minRateQty: minRate,
       minRateUnit: 'g',
       specRateQty: specRate,
@@ -2634,6 +2649,7 @@
       packRateQty: packRate,
       packRateUnit: units.spec,
       measures: {
+        measure: unitMeasure(0.001, 0, 1, 1, 1),
         min: unitMeasure(0.08 + (index % 4) * 0.02, 0.01, 8, 6, 4),
         spec: unitMeasure(1.2 + (index % 3) * 0.3, 0.1, 24, 16, 10),
         pack: unitMeasure(8 + (index % 4), 0.5, 42, 30, 24)
@@ -2738,6 +2754,9 @@
         purchasePrice: spec.purchasePrice,
         purchaseQty: 0,
         purchaseUnit: '箱',
+        minMeasureUnit: 'g',
+        minMeasureRateQty: 1,
+        minMeasureRateUnit: 'g',
         minQty: 0,
         minUnit: '个',
         specQty: 0,
@@ -2759,6 +2778,7 @@
         packRateQty: spec.packRateQty,
         packRateUnit: '包',
         measures: {
+          measure: unitMeasure(0.001, 0, 1, 1, 1),
           min: unitMeasure(spec.minGross, 0.005, 5, 4, 3),
           spec: unitMeasure(spec.specGross, 0.2, 32, 22, 15),
           pack: unitMeasure(spec.packGross, 4, 48, 36, 32)
