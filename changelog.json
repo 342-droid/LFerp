@@ -1,7 +1,32 @@
 {
-  "latestSha": "e414fb4e5eca09f0c8c3ee448a248799419059ca",
-  "total": 451,
+  "latestSha": "3f507cdca11c5871c91a9f334c907c195147a7ed",
+  "total": 452,
   "days": [
+    {
+      "date": "2026-10-26",
+      "items": [
+        {
+          "sha": "3f507cd",
+          "type": "feat",
+          "text": "出库异常支持配置异常单超时定时器",
+          "author": "342-droid",
+          "time": "10:32",
+          "pages": [
+            {
+              "file": "SCM/obd_outbound_exception.html",
+              "module": "冷丰WMS",
+              "title": "出库异常"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/obd_outbound_exception.html",
+              "text": "查询区新增异常单超时定时器，可配置表达式、描述与启用状态"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-10-22",
       "items": [
