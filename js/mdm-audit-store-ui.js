@@ -519,6 +519,60 @@
         return ta ? String(ta.value || '').trim().slice(0, 100) : '';
     }
 
+    function auditPartyName(row) {
+        if (isSupplierAuditRow(row)) return row.subjectName || row.storeName || '';
+        return row.storeName || row.subjectName || '';
+    }
+
+    /* 门店：总监终审通过后生成门店合作；供应商：财务审核通过后生成供应商合作。 */
+    function attachGeneratedContract(row) {
+        var api = window.LfContract;
+        if (!api || !row || row.auditStatus !== '审核成功') return null;
+        var isSup = isSupplierAuditRow(row);
+        var task = api.generateCoopTask({
+            scene: isSup ? 'supplier' : 'store',
+            bizRef: 'audit:' + row.id,
+            name: auditPartyName(row),
+            partnerType: isSup ? '' : (displayPartnerDivision(row.partnerDivision) || '加盟店'),
+            contact: [row.contact, row.phone].filter(Boolean).join(' '),
+            phone: row.phone || '',
+            address: row.address || '',
+            initiator: isSup ? '供应商入驻审核' : '门店入驻审核',
+            status: 'sign_progress'
+        });
+        if (!task) return null;
+        row.contractTaskId = task.id;
+        row.contractSignUrl = task.signUrl;
+        row.contractName = task.agreementNames || task.name;
+        return task;
+    }
+
+    function appendContractShare(body, row) {
+        if (!row || row.auditStatus !== '审核成功') return;
+        var task = attachGeneratedContract(row);
+        if (!task || !window.LfContract) return;
+        var live = window.LfContract.findTask(task.id) || task;
+        var signed = live.status === 'sign_completed';
+        var isSup = isSupplierAuditRow(row);
+        body.appendChild(el('div', 'supplier-detail-section-title', isSup ? '供应商合作' : '门店合作'));
+        body.appendChild(detailRow('签署协议', live.agreementNames || row.contractName || live.name));
+        body.appendChild(detailRow('签署状态', signed ? '已签署' : '待签署'));
+        body.appendChild(detailRow('合同链接', live.signUrl || ''));
+        var wrap = el('div', 'audit-contract-actions');
+        wrap.style.margin = '8px 0 12px';
+        var btn = mkBtn('复制合同链接', true);
+        btn.addEventListener('click', function () {
+            window.LfContract.copyText(live.signUrl).then(function () {
+                showToast('合同链接已复制，可转发给' + (isSup ? '供应商' : '门店'), 'success');
+            });
+        });
+        wrap.appendChild(btn);
+        wrap.appendChild(el('p', 'audit-reason-hint', isSup
+            ? '可将链接转发给供应商，打开后阅读并确认签署。'
+            : '可将链接转发给门店。门店也可在门店 App 中签署。'));
+        body.appendChild(wrap);
+    }
+
     function approveAudit(row, reason) {
         pushAuditLog(row, '通过', reason);
         /* 供应商：财务总监一道审核，待审核直接 → 审核成功 */
@@ -526,18 +580,21 @@
             if (row.auditStatus === '待审核') {
                 row.auditStatus = '审核成功';
                 row.mdmStatus = '已生成主体与供应商档案';
+                return attachGeneratedContract(row);
             }
-            return;
+            return null;
         }
         if (row.auditStatus === '待审核') {
             row.auditStatus = '待总监审核';
             row.mdmStatus = '未生成';
-            return;
+            return null;
         }
         if (row.auditStatus === '待总监审核') {
             row.auditStatus = '审核成功';
             row.mdmStatus = '已生成主体与门店档案';
+            return attachGeneratedContract(row);
         }
+        return null;
     }
 
     function rejectAudit(row, reason) {
@@ -1168,6 +1225,7 @@
         body.appendChild(el('div', 'supplier-detail-section-title', '状态信息'));
         body.appendChild(detailRow('审核状态', row.auditStatus));
         body.appendChild(detailRow('MDM状态', row.mdmStatus));
+        appendContractShare(body, row);
         appendAuditLogTable(body, row.auditLogs);
 
         var footer = el('div', 'erp-modal__footer');
@@ -1311,13 +1369,15 @@
                 });
                 var approve = mkBtn('审核通过', true);
                 approve.addEventListener('click', function () {
-                    approveAudit(row, readOpinion(body));
+                    var task = approveAudit(row, readOpinion(body));
                     backdrop.remove();
                     onDone();
-                    showToast(
-                        isSup ? '财务审核通过，已生成供应商商家（演示）' : '审核已处理（演示）',
-                        'success'
-                    );
+                    if (task && task.signUrl && window.LfContract) {
+                        window.LfContract.copyText(task.signUrl);
+                        showToast((isSup ? '供应商合作' : '门店合作') + '合同已生成，签署链接已复制', 'success');
+                    } else {
+                        showToast(isSup ? '财务审核通过，已生成供应商商家（演示）' : '审核已处理（演示）', 'success');
+                    }
                 });
                 footer.appendChild(reject);
                 footer.appendChild(approve);
@@ -1336,10 +1396,15 @@
                 });
                 var approve2 = mkBtn('审核通过', true);
                 approve2.addEventListener('click', function () {
-                    approveAudit(row, readOpinion(body));
+                    var task = approveAudit(row, readOpinion(body));
                     backdrop.remove();
                     onDone();
-                    showToast('审核已处理（演示）', 'success');
+                    if (task && task.signUrl && window.LfContract) {
+                        window.LfContract.copyText(task.signUrl);
+                        showToast('门店合作合同已生成，签署链接已复制', 'success');
+                    } else {
+                        showToast('审核已处理（演示）', 'success');
+                    }
                 });
                 footer.appendChild(reject2);
                 footer.appendChild(approve2);

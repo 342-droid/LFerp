@@ -14,7 +14,7 @@
 
   var SCENES = [
     { id: 'store', name: '门店合作', partyType: '门店', partyKind: 'corp', partyHint: '企业/个体户', fill: ['门店名称', '统一社会信用代码', '经营负责人', '门店地址', '联系电话'] },
-    { id: 'supplier', name: '供应商入驻', partyType: '供应商', partyKind: 'corp', partyHint: '企业/个体户', fill: ['供应商名称', '统一社会信用代码', '法定代表人', '注册地址', '联系电话'] },
+    { id: 'supplier', name: '供应商合作', partyType: '供应商', partyKind: 'corp', partyHint: '企业/个体户', fill: ['供应商名称', '统一社会信用代码', '法定代表人', '注册地址', '联系电话'] },
     { id: 'user', name: '用户注册', partyType: '用户', partyKind: 'person', partyHint: '个人', fill: ['手机号', '姓名'] }
   ];
 
@@ -200,6 +200,8 @@
     if (end < 0) end = Math.min(lines.length, 24);
     var identFilled = false;
     var phoneFilled = false;
+    var addressFilled = false;
+    var person = String(party.contact || '').split(/\s+/)[0] || '';
     for (var i = 0; i < end; i++) {
       var line = lines[i];
       if (/^乙方(（[^）]*）)?：\s*$/.test(line.trim())) {
@@ -214,6 +216,15 @@
       if (!phoneFilled && /^联系电话：\s*$/.test(line.trim())) {
         lines[i] = line.replace(/：\s*$/, '：' + (party.contact || ''));
         phoneFilled = true;
+        continue;
+      }
+      if (!addressFilled && /(地址|住所)：\s*$/.test(line.trim()) && party.address) {
+        lines[i] = line.replace(/：\s*$/, '：' + party.address);
+        addressFilled = true;
+        continue;
+      }
+      if (person && /^(实际经营负责人|法定代表人|经营负责人)：\s*$/.test(line.trim())) {
+        lines[i] = line.replace(/：\s*$/, '：' + person);
       }
     }
     return lines.join('\n');
@@ -511,6 +522,7 @@
         '<td>' + esc(t.updatedAt) + '</td>' +
         '<td class="erp-actions-cell"><span class="ct-ops">' +
         '<button type="button" class="ct-link" data-act="detail">详情</button>' +
+        '<button type="button" class="ct-link" data-act="copy-html">复制链接</button>' +
         '<button type="button" class="ct-link" data-act="edit">编辑</button>' +
         '<button type="button" class="ct-link" data-act="toggle">' + toggle + '</button>' +
         '</span></td></tr>';
@@ -553,6 +565,12 @@
         if (!tpl) return;
         if (btn.getAttribute('data-act') === 'detail') {
           go('basic_settings_contract_template_form.html', 'id=' + encodeURIComponent(id) + '&view=1');
+          return;
+        }
+        if (btn.getAttribute('data-act') === 'copy-html') {
+          copyText(htmlTplUrl(tpl.id)).then(function () {
+            toast('合同正文链接已复制，可转发给门店或供应商查阅', 'success');
+          });
           return;
         }
         if (btn.getAttribute('data-act') === 'edit') {
@@ -706,6 +724,20 @@
           remoteName: remote ? remote.name : tpl.remoteName,
           scene: tpl.scene,
           storePartnerTypes: partnerTypesOf(tpl)
+        });
+      });
+      var copyLink = document.createElement('button');
+      copyLink.type = 'button';
+      copyLink.className = 'ct-link';
+      copyLink.id = 'ctRemoteTplCopy';
+      copyLink.style.marginLeft = '12px';
+      copyLink.style.fontSize = '14px';
+      copyLink.style.lineHeight = '36px';
+      copyLink.textContent = '复制链接';
+      remoteSel.parentNode.insertBefore(copyLink, remoteSel);
+      copyLink.addEventListener('click', function () {
+        copyText(htmlTplUrl(tpl.id)).then(function () {
+          toast('合同正文链接已复制，可转发给对方查阅', 'success');
         });
       });
       var saveBtn = document.getElementById('ctTplSave');
@@ -867,8 +899,8 @@
         '<button type="button" class="ct-link" data-act="view">任务详情</button>'
       ];
       if (t.status === 'wait_auth') ops.push('<button type="button" class="ct-link" data-act="auth">去授权</button>');
-      if (t.status === 'sign_progress') {
-        ops.push('<button type="button" class="ct-link" data-act="urge">催签</button>');
+      if (t.status === 'sign_progress') ops.push('<button type="button" class="ct-link" data-act="urge">催签</button>');
+      if (t.status === 'sign_progress' || t.status === 'wait_auth' || t.status === 'sign_completed') {
         ops.push('<button type="button" class="ct-link" data-act="copy">复制链接</button>');
       }
       if (t.status === 'sign_completed') ops.push('<button type="button" class="ct-link" data-act="download">下载</button>');
@@ -920,12 +952,12 @@
       return;
     }
     if (act === 'copy') {
-      var url = task.signUrl || ('https://uat-sign.fadada.com/task/' + (task.fadadaTaskId || task.id));
-      if (global.navigator.clipboard && global.navigator.clipboard.writeText) {
-        global.navigator.clipboard.writeText(url).then(function () {
-          toast('签署链接已复制', 'success');
-        }, function () { toast(url, 'success'); });
-      } else toast(url, 'success');
+      var url = htmlSignUrl(task);
+      task.signUrl = url;
+      saveStore(state);
+      copyText(url).then(function () {
+        toast('合同链接已复制，可转发给对方打开签署', 'success');
+      });
       return;
     }
     if (act === 'download') {
@@ -1115,12 +1147,16 @@
       var party = findParty(partyId);
       var status = party && party.authStatus === 'done' ? 'sign_progress' : 'wait_auth';
       var fadadaTaskId = status === 'sign_progress' ? 'ST-' + Date.now().toString().slice(-6) : '';
-      state.tasks.unshift({
+      var createdTask = {
         id: nextTaskId(),
         name: name,
         scene: scene,
         templateId: templateIds[0],
         templateIds: templateIds,
+        agreementNames: templateIds.map(function (tid) {
+          var item = findTpl(tid);
+          return item ? item.name : tid;
+        }).join('、'),
         storePartnerType: scene === 'store' && partnerSel ? partnerSel.value : '',
         partyId: partyId,
         status: status,
@@ -1128,9 +1164,11 @@
         createdAt: nowText(),
         finishedAt: '',
         fadadaTaskId: fadadaTaskId,
-        signUrl: fadadaTaskId ? 'https://uat-sign.fadada.com/task/' + fadadaTaskId : '',
+        signUrl: '',
         sms: document.getElementById('ctTaskSms').checked
-      });
+      };
+      createdTask.signUrl = htmlSignUrl(createdTask);
+      state.tasks.unshift(createdTask);
       saveStore(state);
       if (status === 'wait_auth') toast('已创建 ' + templateIds.length + ' 份协议，等待相对方完成授权后再签署', 'success');
       else toast('已发起 ' + templateIds.length + ' 份协议（演示）', 'success');
@@ -1236,10 +1274,232 @@
     var dl = document.querySelector('#ctDetailOps [data-act="download"]');
     var cancel = document.querySelector('#ctDetailOps [data-act="cancel"]');
     if (urge) urge.style.display = task.status === 'sign_progress' ? '' : 'none';
-    if (copy) copy.style.display = task.status === 'sign_progress' ? '' : 'none';
+    if (copy) copy.style.display = (task.status === 'cancelled' || task.status === 'rejected' || task.status === 'draft') ? 'none' : '';
     if (dl) dl.style.display = task.status === 'sign_completed' ? '' : 'none';
     if (cancel) cancel.style.display = (task.status === 'sign_progress' || task.status === 'wait_auth' || task.status === 'draft') ? '' : 'none';
   }
+
+  function htmlPageUrl(query) {
+    return global.location.origin + '/SCM/contract_sign.html?' + query;
+  }
+
+  function htmlSignUrl(task) {
+    return htmlPageUrl('task=' + encodeURIComponent(task && task.id ? task.id : ''));
+  }
+
+  function htmlTplUrl(tplId) {
+    return htmlPageUrl('tpl=' + encodeURIComponent(tplId || ''));
+  }
+
+  function copyText(text) {
+    return new Promise(function (resolve) {
+      function finish() { resolve(text); }
+      function fallback() {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', 'readonly');
+        ta.style.position = 'fixed';
+        ta.style.top = '0';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        try { document.execCommand('copy'); } catch (err) {}
+        ta.remove();
+        finish();
+      }
+      if (global.navigator.clipboard && global.navigator.clipboard.writeText) {
+        global.navigator.clipboard.writeText(text).then(finish, fallback);
+      } else fallback();
+    });
+  }
+
+  function nextPartyId() {
+    var n = state.parties.reduce(function (max, p) {
+      var m = String(p.id || '').match(/(\d+)$/);
+      return m ? Math.max(max, Number(m[1])) : max;
+    }, 0);
+    return 'P' + String(n + 1).padStart(3, '0');
+  }
+
+  function upsertParty(spec) {
+    var name = String(spec.name || '').trim();
+    var found = state.parties.filter(function (p) {
+      return p.type === spec.type && p.name === name;
+    })[0];
+    if (found) {
+      if (spec.partnerDivision) found.partnerDivision = spec.partnerDivision;
+      if (spec.identNo) found.identNo = spec.identNo;
+      if (spec.contact) found.contact = spec.contact;
+      if (spec.address) found.address = spec.address;
+      if (spec.authStatus === 'done' && found.authStatus !== 'done') {
+        found.authStatus = 'done';
+        found.authAt = nowText();
+      }
+      return found;
+    }
+    var party = {
+      id: nextPartyId(),
+      type: spec.type,
+      name: name,
+      partnerDivision: spec.partnerDivision || '',
+      identNo: spec.identNo || '',
+      contact: spec.contact || '',
+      address: spec.address || '',
+      identStatus: 'done',
+      authStatus: spec.authStatus || 'done',
+      fadadaId: '',
+      authAt: nowText()
+    };
+    state.parties.unshift(party);
+    return party;
+  }
+
+  /* 入驻审核通过、用户注册勾选：按场景带出已启用协议，生成一条签署任务。 */
+  function generateCoopTask(opts) {
+    opts = opts || {};
+    var scene = opts.scene;
+    var partyName = String(opts.name || '').trim();
+    if (!scene || !partyName) return null;
+    var bizRef = opts.bizRef || '';
+    if (bizRef) {
+      var existing = state.tasks.filter(function (t) {
+        return t.bizRef === bizRef && t.status !== 'cancelled' && t.status !== 'rejected';
+      })[0];
+      if (existing) {
+        if (!existing.agreementNames) {
+          existing.agreementNames = taskTemplates(existing).map(function (t) { return t.name; }).join('、');
+        }
+        if (!existing.signUrl || existing.signUrl.indexOf('contract_sign.html') < 0) {
+          existing.signUrl = htmlSignUrl(existing);
+          saveStore(state);
+        }
+        return existing;
+      }
+    }
+    var partnerType = scene === 'store' ? (opts.partnerType || '加盟店') : '';
+    var tpls = templatesForSign(scene, partnerType);
+    if (!tpls.length) return null;
+    var party = upsertParty({
+      type: scene,
+      name: partyName,
+      partnerDivision: partnerType,
+      identNo: opts.identNo || '',
+      contact: opts.contact || opts.phone || '',
+      address: opts.address || '',
+      authStatus: 'done'
+    });
+    var names = tpls.map(function (t) { return t.name; });
+    var status = opts.status || 'sign_progress';
+    var task = {
+      id: nextTaskId(),
+      name: party.name + ' · ' + names.join('、'),
+      scene: scene,
+      templateId: tpls[0].id,
+      templateIds: tpls.map(function (t) { return t.id; }),
+      agreementNames: names.join('、'),
+      storePartnerType: partnerType,
+      partyId: party.id,
+      status: status,
+      initiator: opts.initiator || '系统',
+      createdAt: nowText(),
+      finishedAt: status === 'sign_completed' ? nowText() : '',
+      fadadaTaskId: 'ST-' + Date.now().toString().slice(-6),
+      signUrl: '',
+      bizRef: bizRef,
+      sms: true
+    };
+    task.signUrl = htmlSignUrl(task);
+    state.tasks.unshift(task);
+    saveStore(state);
+    return task;
+  }
+
+  function signUserByRegister(phone, displayName) {
+    var mobile = String(phone || '').trim();
+    if (!mobile) return null;
+    return generateCoopTask({
+      scene: 'user',
+      bizRef: 'user-reg:' + mobile,
+      name: displayName || mobile,
+      phone: mobile,
+      contact: mobile,
+      identNo: mobile,
+      initiator: '用户注册',
+      status: 'sign_completed'
+    });
+  }
+
+  function listStoreTasks(storeName) {
+    var name = String(storeName || '').trim();
+    return state.tasks.filter(function (t) {
+      if (t.scene !== 'store') return false;
+      if (t.status === 'cancelled' || t.status === 'rejected' || t.status === 'draft') return false;
+      if (!name) return true;
+      var party = findParty(t.partyId);
+      return !!(party && party.name === name);
+    });
+  }
+
+  function templatesOfScene(sceneId) {
+    return state.templates.filter(function (t) {
+      return t.scene === sceneId && t.status === 'on';
+    });
+  }
+
+  function syncSignedBiz(task) {
+    if (!task || task.status !== 'sign_completed' || !task.bizRef) return;
+    if (task.bizRef.indexOf('bd-store:') !== 0) return;
+    try {
+      var raw = sessionStorage.getItem('lf_bd_stores_v1');
+      if (!raw) return;
+      var list = JSON.parse(raw);
+      if (!Array.isArray(list)) return;
+      var id = task.bizRef.slice('bd-store:'.length);
+      list.forEach(function (item) {
+        if (!item || String(item.id) !== String(id)) return;
+        item.companyAgreementStatus = '已签署';
+        item.companyAgreementSignUrl = task.signUrl;
+        item.companyAgreementTaskId = task.id;
+      });
+      sessionStorage.setItem('lf_bd_stores_v1', JSON.stringify(list));
+    } catch (err) {}
+  }
+
+  function markTaskSigned(taskId) {
+    var task = findTask(taskId);
+    if (!task) return null;
+    if (task.status !== 'sign_completed') {
+      task.status = 'sign_completed';
+      task.finishedAt = nowText();
+      var party = findParty(task.partyId);
+      if (party && party.authStatus !== 'done') {
+        party.authStatus = 'done';
+        party.authAt = task.finishedAt;
+      }
+      saveStore(state);
+      syncSignedBiz(task);
+    }
+    return task;
+  }
+
+  global.LfContract = {
+    htmlSignUrl: htmlSignUrl,
+    htmlTplUrl: htmlTplUrl,
+    htmlSceneUrl: function (sceneId) { return htmlPageUrl('scene=' + encodeURIComponent(sceneId || '')); },
+    copyText: copyText,
+    generateCoopTask: generateCoopTask,
+    signUserByRegister: signUserByRegister,
+    listStoreTasks: listStoreTasks,
+    templatesOfScene: templatesOfScene,
+    markTaskSigned: markTaskSigned,
+    findTask: findTask,
+    findParty: findParty,
+    findTpl: findTpl,
+    taskTemplates: taskTemplates,
+    contractBodyOf: contractBodyOf,
+    fillContractParty: fillContractParty
+  };
 
   function init() {
     var page = document.body.getAttribute('data-ct-page');

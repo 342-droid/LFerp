@@ -481,6 +481,13 @@
     bindSms(smsBtn, phoneInput);
     bindEye(document.getElementById('uaRegPwdEye'), pwdInput);
     bindWechatAgree();
+    root.querySelectorAll('.ua-login-agree__text a').forEach(function (link) {
+      link.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        window.open(link.getAttribute('href'), '_blank', 'noopener');
+      });
+    });
 
     if (submitBtn) {
       submitBtn.addEventListener('click', function () {
@@ -508,7 +515,10 @@
           return;
         }
         setPassword(phone, pwd);
-        showToast('注册成功');
+        if (window.LfContract && window.LfContract.signUserByRegister) {
+          window.LfContract.signUserByRegister(phone, phone);
+        }
+        showToast('注册成功，已签署用户协议和隐私政策');
         setTimeout(function () {
           completeLogin(phone, '冷丰用户');
         }, 400);
