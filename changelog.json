@@ -1,10 +1,44 @@
 {
-  "latestSha": "3f507cdca11c5871c91a9f334c907c195147a7ed",
-  "total": 452,
+  "latestSha": "128a17858a7a620fcb24689261f050af839a61f4",
+  "total": 453,
   "days": [
     {
       "date": "2026-10-26",
       "items": [
+        {
+          "sha": "128a178",
+          "type": "feat",
+          "text": "零售和代采订单买家信息支持按用户ID精确筛选",
+          "author": "u ｌ",
+          "time": "15:28",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "买家信息下拉改为用户电话/用户昵称/用户ID，默认用户电话；用户ID须完整匹配；切换选项清空输入，重置回到用户电话"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "text": "买家信息下拉同样增加用户ID，精确匹配完整ID才出结果；切换清空输入，重置回到用户电话"
+            }
+          ]
+        },
         {
           "sha": "3f507cd",
           "type": "feat",
