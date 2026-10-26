@@ -5,6 +5,12 @@
       "label": "LFerp: 本地预览 (5173)",
       "type": "shell",
       "command": "node tools/preview-server.mjs --watch",
+      "osx": {
+        "command": "/bin/sh tools/preview-with-node.sh --watch"
+      },
+      "linux": {
+        "command": "/bin/sh tools/preview-with-node.sh --watch"
+      },
       "options": {
         "cwd": "${workspaceFolder}",
         "env": {
