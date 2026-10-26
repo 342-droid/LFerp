@@ -382,6 +382,111 @@
         return mapRow;
     }
 
+    function mountStoreBizFields(body, refs) {
+        var api = window.StoreBizStructure;
+        if (!api) return;
+        refs.bizLineSel = sel(
+            [{ value: '', label: '请选择事业线' }].concat(
+                api.lines().map(function (n) {
+                    return { value: n, label: n };
+                })
+            ),
+            ''
+        );
+        refs.bizLineSel.setAttribute('data-required-msg', '请选择事业线');
+        body.appendChild(formRow('事业线', true, refs.bizLineSel));
+
+        refs.brandSel = sel([{ value: '', label: '请先选择事业线' }], '');
+        refs.brandSel.setAttribute('data-required-msg', '请选择品牌名称');
+        refs.brandSel.disabled = true;
+        body.appendChild(formRow('品牌名称', true, refs.brandSel));
+
+        var wrap = document.createElement('div');
+        refs.bizChecks = document.createElement('div');
+        refs.bizChecks.className = 'store-form__checks';
+        refs.bizHidden = document.createElement('input');
+        refs.bizHidden.type = 'hidden';
+        refs.bizHidden.setAttribute('data-required-msg', '请选择业务线');
+        var tip = document.createElement('div');
+        tip.className = 'store-form__field-tip';
+        tip.textContent = '请先选择事业线和品牌名称。业务线可多选，选项随品牌变化。';
+        wrap.appendChild(refs.bizChecks);
+        wrap.appendChild(refs.bizHidden);
+        wrap.appendChild(tip);
+        body.appendChild(formRow('业务线', true, wrap));
+
+        function selectedBiz() {
+            return Array.prototype.map.call(refs.bizChecks.querySelectorAll('input:checked'), function (el) {
+                return el.value;
+            });
+        }
+        function syncHidden() {
+            refs.bizHidden.value = api.formatBiz(selectedBiz());
+        }
+        function paintBiz(keep) {
+            var opts = api.bizLines(refs.bizLineSel.value, refs.brandSel.value);
+            var keepSet = keep || [];
+            refs.bizChecks.innerHTML = '';
+            if (!opts.length) {
+                tip.textContent = refs.bizLineSel.value
+                    ? '请先选择品牌名称。业务线可多选。'
+                    : '请先选择事业线和品牌名称。业务线可多选，选项随品牌变化。';
+                syncHidden();
+                return;
+            }
+            tip.textContent = '可多选。更换品牌后，不在该品牌下的业务线会取消勾选。';
+            opts.forEach(function (name) {
+                var lab = document.createElement('label');
+                lab.className = 'store-form__check';
+                var cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.value = name;
+                if (keepSet.indexOf(name) >= 0) cb.checked = true;
+                cb.addEventListener('change', syncHidden);
+                lab.appendChild(cb);
+                lab.appendChild(document.createTextNode(name));
+                refs.bizChecks.appendChild(lab);
+            });
+            syncHidden();
+        }
+        function paintBrands(keepBrand, keepBiz) {
+            var brandList = api.brands(refs.bizLineSel.value);
+            var cur = keepBrand || '';
+            refs.brandSel.innerHTML = '';
+            var ph = document.createElement('option');
+            ph.value = '';
+            ph.textContent = brandList.length ? '请选择品牌名称' : '请先选择事业线';
+            refs.brandSel.appendChild(ph);
+            brandList.forEach(function (n) {
+                var op = document.createElement('option');
+                op.value = n;
+                op.textContent = n;
+                refs.brandSel.appendChild(op);
+            });
+            refs.brandSel.disabled = !brandList.length;
+            refs.brandSel.value = brandList.indexOf(cur) >= 0 ? cur : '';
+            paintBiz(refs.brandSel.value ? keepBiz : []);
+        }
+        refs.bizLineSel.addEventListener('change', function () {
+            paintBrands('', []);
+        });
+        refs.brandSel.addEventListener('change', function () {
+            paintBiz([]);
+        });
+        refs.setBizStructure = function (line, brand, biz) {
+            refs.bizLineSel.value = api.lines().indexOf(line) >= 0 ? line : '';
+            paintBrands(brand, api.normalizeBiz(biz));
+        };
+        paintBrands('', []);
+    }
+
+    function writeStoreBizAttrs(tr, refs) {
+        if (!tr || !refs) return;
+        tr.setAttribute('data-biz-line', refs.bizLineSel ? refs.bizLineSel.value : '');
+        tr.setAttribute('data-brand-name', refs.brandSel ? refs.brandSel.value : '');
+        tr.setAttribute('data-biz-lines', refs.bizHidden ? refs.bizHidden.value : '');
+    }
+
     function yesNoSelect(placeholder) {
         return sel(
             [
@@ -808,9 +913,8 @@
             [
                 { value: '', label: '请选择门店合作类型' },
                 { value: 'franchise', label: '加盟店' },
-                { value: 'partner', label: '合作店' },
-                { value: 'peer', label: '同行店' },
-                { value: 'fresh', label: '生鲜店' }
+                { value: 'joint', label: '联营店' },
+                { value: 'direct', label: '直营店' }
             ],
             ''
         );
@@ -818,6 +922,7 @@
         body.appendChild(formRow('门店合作类型', true, partnerSel));
         refs.storeTypeInp = txt('如社区生鲜店、团购自提点等', '');
         body.appendChild(formRow('门店类型', true, refs.storeTypeInp));
+        mountStoreBizFields(body, refs);
         refs.warehouseSel = sel(
             [
                 { value: '', label: '请选择配送仓库' },
@@ -867,7 +972,7 @@
 
         var franchise = document.createElement('div');
         franchise.style.display = 'none';
-        franchise.appendChild(sectionHint('加盟店 / 合作店补充资料'));
+        franchise.appendChild(sectionHint('加盟店资料'));
         franchise.appendChild(formRow('门店面积', true, txt('请输入门店面积（㎡）', '')));
         franchise.appendChild(formRow('门店楼层', true, txt('请输入门店楼层', '')));
         franchise.appendChild(formRow('店门口口述视频', false, uploadMock('+ 上传店门口视频', '店前两分钟口述视频')));
@@ -915,7 +1020,7 @@
 
         var franchiseSpecialCollapse = makeFormCollapse('特殊情况说明', true);
         franchiseSpecialCollapse.body.appendChild(
-            formRow('特殊情况说明', false, txtAreaWithCount('如涉及区域保护、特殊沟通，请填写说明', 500, ''))
+            formRow('特殊情况说明', false, txtAreaWithCount('选填，供审核人员查阅', 500, ''))
         );
         franchiseSpecialCollapse.body.appendChild(
             formRow('特殊情况配图', false, uploadMock('+ 上传特殊情况配图', '最多 6 张'))
@@ -938,8 +1043,9 @@
 
         function syncPartner() {
             var v = partnerSel.value;
-            franchise.style.display = v === 'franchise' || v === 'partner' || v === 'fresh' ? '' : 'none';
-            peer.style.display = v === 'peer' ? '' : 'none';
+            var franchiseLike = v === 'franchise' || v === 'joint' || v === 'direct';
+            franchise.style.display = franchiseLike ? '' : 'none';
+            peer.style.display = 'none';
         }
         partnerSel.addEventListener('change', syncPartner);
         syncPartner();
@@ -962,8 +1068,21 @@
             var bindBdName = cellPlainText(c[5]);
             if (bindBdName === '—') bindBdName = '';
             hydrateBdSelectFromPeoplePage(refs.bindBdSel, bindBdName);
-            var pmap = { 加盟店: 'franchise', 合作店: 'partner', 同行店: 'peer', 生鲜店: 'fresh' };
-            refs.partnerSel.value = pmap[cellPlainText(c[3])] || '';
+            var partnerLabel = cellPlainText(c[3]);
+            if (partnerLabel === '生鲜店' || partnerLabel === '同行店') partnerLabel = '加盟店';
+            if (partnerLabel === '合作店') partnerLabel = '联营店';
+            var pmap = { 加盟店: 'franchise', 联营店: 'joint', 直营店: 'direct' };
+            if (pmap[partnerLabel]) {
+                refs.partnerSel.value = pmap[partnerLabel];
+            } else if (partnerLabel && partnerLabel !== '—') {
+                var legacyOpt = document.createElement('option');
+                legacyOpt.value = partnerLabel;
+                legacyOpt.textContent = partnerLabel;
+                refs.partnerSel.appendChild(legacyOpt);
+                refs.partnerSel.value = partnerLabel;
+            } else {
+                refs.partnerSel.value = '';
+            }
             refs.storeTypeInp.value = cellPlainText(c[4]);
             refs.warehouseSel.value = guessWarehouseSelectValue(cellPlainText(c[8]));
             var regionVal = tr.getAttribute('data-region') || '';
@@ -973,6 +1092,13 @@
             }
             if (refs.addressTa) refs.addressTa.value = tr.getAttribute('data-address') || '';
             if (typeof refs.captureOriginalRegion === 'function') refs.captureOriginalRegion();
+            if (typeof refs.setBizStructure === 'function') {
+                refs.setBizStructure(
+                    tr.getAttribute('data-biz-line') || '',
+                    tr.getAttribute('data-brand-name') || '',
+                    tr.getAttribute('data-biz-lines') || ''
+                );
+            }
             syncPartner();
         }
 
@@ -1380,7 +1506,9 @@
                 /* 演示：亦按名称索引，便于列表尚未落库时进件带入 */
                 if (name) writeVenuePhotos('store', 'name:' + name, collectVenuePhotosFromRefs(refs));
                 syncStoreReceiveFromForm(storeCode, name, refs);
-                var partnerMap = { franchise: '加盟店', partner: '合作店', peer: '同行店', fresh: '生鲜店' };
+                var partnerMap = { franchise: '加盟店', joint: '联营店', direct: '直营店' };
+                var partnerValue = refs.partnerSel && refs.partnerSel.value;
+                var partnerLabel = partnerMap[partnerValue] || partnerValue || '—';
                 if (window.MdmStoreSiteSlot) {
                     window.MdmStoreSiteSlot.syncFromStore({ storeCode: storeCode, storeName: name, source: 'store' });
                 }
@@ -1390,14 +1518,17 @@
                         subjectName: selectedLabel(refs.subjectSel) || '—',
                         name: name,
                         shortName: name,
-                        partner: partnerMap[refs.partnerSel && refs.partnerSel.value] || '—',
+                        partner: partnerLabel,
                         storeType: refs.storeTypeInp ? String(refs.storeTypeInp.value || '').trim() : '—',
                         bindBd: selectedLabel(refs.bindBdSel) || '—',
                         contact: refs.contactInp ? String(refs.contactInp.value || '').trim() : '—',
                         phone: refs.phoneInp ? String(refs.phoneInp.value || '').trim() : '—',
                         warehouse: selectedLabel(refs.warehouseSel) || '—',
                         region: region,
-                        address: refs.addressTa ? String(refs.addressTa.value || '').trim() : ''
+                        address: refs.addressTa ? String(refs.addressTa.value || '').trim() : '',
+                        bizLine: refs.bizLineSel ? refs.bizLineSel.value : '',
+                        brandName: refs.brandSel ? refs.brandSel.value : '',
+                        bizLines: refs.bizHidden ? refs.bizHidden.value : ''
                     });
                 }
             });
@@ -1428,6 +1559,7 @@
                 if (cells[0] && nextCode) cells[0].textContent = nextCode;
                 if (region) tr.setAttribute('data-region', region);
                 if (refs.addressTa) tr.setAttribute('data-address', String(refs.addressTa.value || '').trim());
+                writeStoreBizAttrs(tr, refs);
                 writeVenuePhotos('store', nextCode || storeId, collectVenuePhotosFromRefs(refs));
                 if (storeName) {
                     writeVenuePhotos('store', 'name:' + storeName, collectVenuePhotosFromRefs(refs));

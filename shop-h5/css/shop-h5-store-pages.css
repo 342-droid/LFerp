@@ -528,6 +528,16 @@
   cursor: pointer;
 }
 
+.shop-h5-biz-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.shop-h5-biz-checks .shop-h5-check-row {
+  margin: 0;
+}
+
 .shop-h5-storefront-wrap {
   border-radius: 14px;
   overflow: hidden;

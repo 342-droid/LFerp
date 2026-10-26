@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>门店注册 · Shop H5</title>
   <link rel="stylesheet" href="../../css/shop-h5-app-shell.css">
-  <link rel="stylesheet" href="../../css/shop-h5-store-pages.css?v=20260811-sec-collapse">
+  <link rel="stylesheet" href="../../css/shop-h5-store-pages.css?v=20261020-biz-structure">
 </head>
 <body class="shop-h5-app-list">
   <div class="shop-h5-mobile-container">
@@ -75,12 +75,11 @@
             <select class="shop-h5-select" id="warehouse"></select>
           </div>
           <div class="shop-h5-field">
-            <div class="shop-h5-field-hd"><span class="shop-h5-req">门店合作类型</span><span class="shop-h5-hint">加盟店/合作店享受区域保护</span></div>
+            <div class="shop-h5-field-hd"><span class="shop-h5-req">门店合作类型</span><span class="shop-h5-hint">三类均按加盟店资料填写</span></div>
             <select class="shop-h5-select" id="partnerDivision">
               <option value="加盟店">加盟店</option>
-              <option value="合作店">合作店</option>
-              <option value="同行店">同行店</option>
-              <option value="生鲜店">生鲜店</option>
+              <option value="联营店">联营店</option>
+              <option value="直营店">直营店</option>
             </select>
           </div>
           <div id="storeTypeRow" class="shop-h5-field shop-h5-hidden">
@@ -131,10 +130,10 @@
               <div class="shop-h5-sec-icon">📍</div>
               <div class="shop-h5-sec-titles">
                 <h3>地址与定位</h3>
-                <p>搜索选点、省市区与详细地址均为必填。模糊搜索门店名称或地址，选中后自动写入省市区与详细地址；坐标与重叠校验由系统落档至后台。</p>
+                <p>搜索选点、省市区与详细地址均为必填。模糊搜索门店名称或地址，选中后自动写入省市区与详细地址。选址是否与已有门店冲突，由审核人员人工排查。</p>
               </div>
             </div>
-            <p class="shop-h5-tip-box">同行店无地域保护：同区域内已有同行店时，可继续在同区域开设同行店；同区域内已有加盟店或合作店时，该区域不得再开设加盟店、合作店或同行店。若拟在同区域开设加盟店或合作店，而此前同区域已存在同行店，则该同行店须无条件退出。</p>
+            <p class="shop-h5-tip-box">加盟店、联营店、直营店均按加盟店资料填写。选址是否冲突不在此拦截，由审核人员人工排查。</p>
             <div class="shop-h5-field">
               <div class="shop-h5-field-hd"><span>搜索门店位置</span><span class="shop-h5-hint">输入关键字，从下列结果中选点</span></div>
               <input class="shop-h5-input" id="mapPoiQuery" type="text" placeholder="如：鲜丰、武林、山姆、道路或小区名…" autocomplete="off">
@@ -173,11 +172,6 @@
               <div class="shop-h5-field-hd"><span class="shop-h5-req">详细地址</span><span class="shop-h5-hint">选点后自动带出，可与现场核对修改</span></div>
               <input class="shop-h5-input" id="detailAddress" type="text" placeholder="街道、门牌号等">
             </div>
-            <div id="protectionAlert" class="shop-h5-alert shop-h5-hidden">
-              <div class="shop-h5-alert-title">区域保护提醒</div>
-              <div class="shop-h5-alert-desc" id="protectionAlertMsg"></div>
-            </div>
-            <p class="shop-h5-tip-box">「区域地图 · 保护范围」可视化示意安排在<strong>二期</strong>开发；现阶段请以列表选点与 PC 后台区域规则为准。</p>
           </section>
 
           <section class="shop-h5-section">
@@ -308,7 +302,7 @@
                 <div class="shop-h5-sec-icon">⚠</div>
                 <div class="shop-h5-sec-titles">
                   <h3>特殊情况说明</h3>
-                  <p>选填；触发区域保护提醒时须用文字或图片补充说明。</p>
+                  <p>选填。如需提请审核同事留意选址或其他情况，可在此说明。</p>
                 </div>
                 <span class="shop-h5-sec-chevron" aria-hidden="true"></span>
               </button>
@@ -376,6 +370,6 @@
   </div>
 
   <script src="../../../js/path-prefix.js"></script>
-  <script src="../../js/shop-h5-register.js?v=20260828-fresh-franchise"></script>
+  <script src="../../js/shop-h5-register.js?v=20261026-classify"></script>
 </body>
 </html>

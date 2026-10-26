@@ -525,6 +525,19 @@
   margin-top: 3px;
 }
 
+.h5-biz-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.h5-biz-check {
+  padding: 8px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+}
+
 /* 店前/店内视频上传（对齐 StoreRegistrationForm） */
 .h5-vid-cell {
   display: flex;

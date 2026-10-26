@@ -5332,9 +5332,10 @@
         if (fromPrompt && window.UaWxPayAuth) window.UaWxPayAuth.markEnterPrompted();
         window.location.href = 'live-room.html';
       }
-      /* 进直播间前：未授权先弹出微信支付收款半屏，关闭后仍可进入，下次再进会再弹 */
+      /* 进直播间前：未授权先弹出微信支付收款半屏。关掉后仍进入，当天再进不再弹。 */
       if (window.UaWxPayAuth && !window.UaWxPayAuth.isAuthorized()) {
         window.UaWxPayAuth.ensure({
+          scene: 'live',
           onDone: function () {
             go(true);
           },

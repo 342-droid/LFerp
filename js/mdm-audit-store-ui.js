@@ -62,13 +62,29 @@
         return sel;
     }
 
-    /** 与 mdm_bd_store_form / mdm-bd-h5-store-register validate() 对齐的编辑必填项 */
+    /** 生鲜店、同行店归加盟店，合作店归联营店。三种类型都按加盟店资料填写。 */
+    function displayPartnerDivision(v) {
+        if (v === '生鲜店' || v === '同行店') return '加盟店';
+        if (v === '合作店') return '联营店';
+        return v;
+    }
+
     function isFranchiseOrPartnerRow(row) {
-        return (
-            row.partnerDivision === '加盟店' ||
-            row.partnerDivision === '合作店' ||
-            row.partnerDivision === '生鲜店'
-        );
+        var v = displayPartnerDivision(row && row.partnerDivision);
+        return v === '加盟店' || v === '联营店' || v === '直营店';
+    }
+
+    function partnerDivisionSelectOptions(current) {
+        var value = displayPartnerDivision(current) || '';
+        var opts = [
+            { value: '加盟店', label: '加盟店' },
+            { value: '联营店', label: '联营店' },
+            { value: '直营店', label: '直营店' }
+        ];
+        if (value && !opts.some(function (o) { return o.value === value; })) {
+            opts.push({ value: value, label: value });
+        }
+        return { options: opts, value: value };
     }
 
     function isSupplierAuditRow(row) {
@@ -92,6 +108,9 @@
             storeName: true,
             partnerDivision: true,
             storeType: true,
+            bizLine: true,
+            brandName: true,
+            bizLines: true,
             region: true,
             address: true,
             facadePhoto: true,
@@ -187,6 +206,9 @@
                   { key: 'storeName', msg: '请填写门店名称' },
                   { key: 'partnerDivision', msg: '请选择门店合作类型' },
                   { key: 'storeType', msg: '请填写门店类型' },
+                  { key: 'bizLine', msg: '请选择事业线' },
+                  { key: 'brandName', msg: '请选择品牌名称' },
+                  { key: 'bizLines', msg: '请选择业务线' },
                   { key: 'region', msg: '请选择省市区' },
                   { key: 'address', msg: '请填写详细地址' },
                   { key: 'phone', msg: '请填写联系电话' },
@@ -358,10 +380,7 @@
             appendSupplierRegistrationFields(body, row);
             return;
         }
-        var isFranchiseOrPartner =
-            row.partnerDivision === '加盟店' ||
-            row.partnerDivision === '合作店' ||
-            row.partnerDivision === '生鲜店';
+        var isFranchiseOrPartner = isFranchiseOrPartnerRow(row);
         var isPeerStore = row.partnerDivision === '同行店';
 
         body.appendChild(el('div', 'supplier-detail-section-title', '主体字段'));
@@ -372,8 +391,9 @@
         body.appendChild(el('div', 'supplier-detail-section-title', '门店档案字段'));
         body.appendChild(detailRow('入驻方名称', row.storeName, 'storeName', row));
         body.appendChild(detailRow('门店简称', row.shortName));
-        body.appendChild(detailRow('门店合作类型', row.partnerDivision, 'partnerDivision', row));
+        body.appendChild(detailRow('门店合作类型', displayPartnerDivision(row.partnerDivision), 'partnerDivision', row));
         body.appendChild(detailRow('门店类型', row.storeType, 'storeType', row));
+        appendStoreBizDetail(body, row);
         body.appendChild(detailRow('配送仓库', row.warehouse, 'warehouse', row));
         body.appendChild(detailRow('省市区', row.region, 'region', row));
         body.appendChild(detailRow('详细地址', row.address, 'address', row));
@@ -387,7 +407,7 @@
         appendContactDetailSection(body, row);
 
         if (isFranchiseOrPartner) {
-            body.appendChild(el('div', 'supplier-detail-section-title', '加盟店 / 合作店补充资料'));
+            body.appendChild(el('div', 'supplier-detail-section-title', '加盟店资料'));
             body.appendChild(detailRow('门店面积（㎡）', row.storeArea, 'storeArea', row));
             body.appendChild(detailRow('门店楼层', row.storeFloors, 'storeFloors', row));
             body.appendChild(detailRow('店门口口述视频', mediaGrid(row.videoStorefrontIntro)));
@@ -533,6 +553,107 @@
         row.mdmStatus = '未生成';
     }
 
+    function bizDisplay(value) {
+        var api = window.StoreBizStructure;
+        var text = api ? api.formatBiz(value) : '';
+        return text || '—';
+    }
+
+    function appendStoreBizDetail(body, row) {
+        body.appendChild(detailRow('事业线', row.bizLine || '—', 'bizLine', row));
+        body.appendChild(detailRow('品牌名称', row.brandName || '—', 'brandName', row));
+        body.appendChild(detailRow('业务线', bizDisplay(row.bizLines), 'bizLines', row));
+    }
+
+    function appendStoreBizEdit(body, row) {
+        var api = window.StoreBizStructure;
+        if (!api) return;
+        var lineSel = selectInput(
+            [{ value: '', label: '请选择事业线' }].concat(
+                api.lines().map(function (n) {
+                    return { value: n, label: n };
+                })
+            ),
+            row.bizLine || ''
+        );
+        var brandSel = selectInput([{ value: '', label: '请先选择事业线' }], '');
+        var checks = el('div', 'store-form__checks');
+        var hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.setAttribute('data-audit-field', 'bizLines');
+        var tip = el('div', 'store-form__field-tip');
+        var wrap = document.createElement('div');
+        wrap.appendChild(checks);
+        wrap.appendChild(hidden);
+        wrap.appendChild(tip);
+
+        function selectedBiz() {
+            return Array.prototype.map.call(checks.querySelectorAll('input:checked'), function (node) {
+                return node.value;
+            });
+        }
+        function syncHidden() {
+            hidden.value = api.formatBiz(selectedBiz());
+        }
+        function paintBiz(keep) {
+            var opts = api.bizLines(lineSel.value, brandSel.value);
+            var keepSet = keep || [];
+            checks.innerHTML = '';
+            opts.forEach(function (name) {
+                var lab = el('label', 'store-form__check');
+                var cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.value = name;
+                if (keepSet.indexOf(name) >= 0) cb.checked = true;
+                cb.addEventListener('change', syncHidden);
+                lab.appendChild(cb);
+                lab.appendChild(document.createTextNode(name));
+                checks.appendChild(lab);
+            });
+            tip.textContent = opts.length
+                ? '可多选。更换品牌后，不在该品牌下的业务线会取消勾选。'
+                : lineSel.value
+                  ? '请先选择品牌名称。业务线可多选。'
+                  : '请先选择事业线和品牌名称。业务线可多选，选项随品牌变化。';
+            syncHidden();
+        }
+        function paintBrands(keepBrand, keepBiz) {
+            var list = api.brands(lineSel.value);
+            brandSel.innerHTML = '';
+            var ph = document.createElement('option');
+            ph.value = '';
+            ph.textContent = list.length ? '请选择品牌名称' : '请先选择事业线';
+            brandSel.appendChild(ph);
+            list.forEach(function (n) {
+                var op = document.createElement('option');
+                op.value = n;
+                op.textContent = n;
+                brandSel.appendChild(op);
+            });
+            brandSel.disabled = !list.length;
+            brandSel.value = list.indexOf(keepBrand) >= 0 ? keepBrand : '';
+            paintBiz(brandSel.value ? keepBiz : []);
+        }
+        lineSel.addEventListener('change', function () {
+            paintBrands('', []);
+        });
+        brandSel.addEventListener('change', function () {
+            paintBiz([]);
+        });
+        body.appendChild(editRow('事业线', lineSel, 'bizLine', row));
+        body.appendChild(editRow('品牌名称', brandSel, 'brandName', row));
+        var rowEl = el('div', 'audit-detail-row');
+        var labelEl = el('span', 'audit-detail-row__label');
+        if (isAuditFieldRequired('bizLines', row)) labelEl.appendChild(el('span', 'audit-req', '*'));
+        labelEl.appendChild(document.createTextNode('业务线'));
+        rowEl.appendChild(labelEl);
+        var value = el('span', 'audit-detail-row__value');
+        value.appendChild(wrap);
+        rowEl.appendChild(value);
+        body.appendChild(rowEl);
+        paintBrands(row.brandName || '', api.normalizeBiz(row.bizLines));
+    }
+
     function editRow(label, control, fieldKey, dataRow) {
         var rowEl = el('div', 'audit-detail-row');
         var labelEl = el('span', 'audit-detail-row__label');
@@ -557,10 +678,7 @@
             return;
         }
 
-        var isFranchiseOrPartner =
-            row.partnerDivision === '加盟店' ||
-            row.partnerDivision === '合作店' ||
-            row.partnerDivision === '生鲜店';
+        var isFranchiseOrPartner = isFranchiseOrPartnerRow(row);
         var isPeerStore = row.partnerDivision === '同行店';
 
         body.appendChild(el('div', 'supplier-detail-section-title', '主体字段'));
@@ -576,18 +694,12 @@
         });
         body.appendChild(editRow('门店名称', storeNameInp, 'storeName', row));
         body.appendChild(editRow('门店简称', shortNameInp, 'shortName', row));
-        var partnerSel = selectInput(
-            [
-                { value: '加盟店', label: '加盟店' },
-                { value: '合作店', label: '合作店' },
-                { value: '同行店', label: '同行店' },
-                { value: '生鲜店', label: '生鲜店' }
-            ],
-            row.partnerDivision
-        );
+        var partnerOpts = partnerDivisionSelectOptions(row.partnerDivision);
+        var partnerSel = selectInput(partnerOpts.options, partnerOpts.value);
         partnerSel.setAttribute('data-audit-field', 'partnerDivision');
         body.appendChild(editRow('门店合作类型', partnerSel, 'partnerDivision', row));
         body.appendChild(editRow('门店类型', textInput('请输入门店类型', row.storeType), 'storeType', row));
+        appendStoreBizEdit(body, row);
         body.appendChild(editRow('配送仓库', textInput('请输入配送仓库', row.warehouse), 'warehouse', row));
         body.appendChild(editRow('省市区', textInput('请输入省市区', row.region), 'region', row));
         body.appendChild(editRow('详细地址', textInput('请输入详细地址', row.address), 'address', row));
@@ -627,7 +739,7 @@
         appendContactEditSection(body, row);
 
         if (isFranchiseOrPartner) {
-            body.appendChild(el('div', 'supplier-detail-section-title', '加盟店 / 合作店补充资料'));
+            body.appendChild(el('div', 'supplier-detail-section-title', '加盟店资料'));
             body.appendChild(editRow('门店面积（㎡）', textInput('', row.storeArea), 'storeArea', row));
             body.appendChild(editRow('门店楼层', textInput('', row.storeFloors), 'storeFloors', row));
             body.appendChild(detailRow('店门口口述视频', mediaGrid(row.videoStorefrontIntro)));
@@ -724,6 +836,9 @@
             submittedAt: '2026-05-07 15:20',
             auditLogs: [],
             storeType: '社区生鲜店',
+            bizLine: '餐饮',
+            brandName: '冷丰锅贴',
+            bizLines: ['拉新', '商城', '代采进货'],
             partnerDivision: '加盟店',
             warehouse: '华东 RDC-杭州',
             region: '浙江省 / 杭州市 / 西湖区',
@@ -778,7 +893,10 @@
                 }
             ],
             storeType: '团购自提点',
-            partnerDivision: '合作店',
+            bizLine: '康美',
+            brandName: '汉言',
+            bizLines: ['外卖运营', 'POS/到店'],
+            partnerDivision: '联营店',
             warehouse: '沪东前置仓',
             region: '上海市 / 市辖区 / 杨浦区',
             address: '五角场商圈政通路 99 号',
@@ -801,10 +919,10 @@
             privateCommerceFamiliarity: '熟悉私域社群，做过团购接龙。',
             surroundingCommunityNote: '周边办公与居民混合，午晚高峰明显。',
             confidenceReach1000: '已有老客群基础。',
-            specialCircumstancesNote: '需总监确认区域保护边界。',
+            specialCircumstancesNote: '选址附近已有门店，提请审核同事确认。',
             specialCircumstancesPhotos: [
-                { type: 'image', name: '区域保护说明-1.jpg' },
-                { type: 'image', name: '区域保护说明-2.jpg' }
+                { type: 'image', name: '选址情况说明-1.jpg' },
+                { type: 'image', name: '选址情况说明-2.jpg' }
             ]
         },
         {
@@ -833,7 +951,10 @@
                 }
             ],
             storeType: '社区便利店',
-            partnerDivision: '生鲜店',
+            bizLine: '纯私域',
+            brandName: '冷丰特选',
+            bizLines: ['拉新', '留存', '私域直播-生鲜场'],
+            partnerDivision: '加盟店',
             warehouse: '华东 RDC-杭州',
             region: '浙江省 / 杭州市 / 滨江区',
             address: '春晓路 198 号',
@@ -887,11 +1008,14 @@
                     reviewer: 'BD总监 李静',
                     time: '2026-05-06 18:20',
                     result: '通过',
-                    reason: '区域保护边界已确认'
+                    reason: '选址情况已人工确认'
                 }
             ],
             storeType: '快闪零售',
-            partnerDivision: '同行店',
+            bizLine: '纯私域',
+            brandName: '其他',
+            bizLines: ['私域直播-百货场'],
+            partnerDivision: '加盟店',
             warehouse: '沪东前置仓',
             region: '上海市 / 市辖区 / 浦东新区',
             address: '张江路 88 号',

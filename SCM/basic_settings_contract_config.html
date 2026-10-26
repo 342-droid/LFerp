@@ -33,8 +33,8 @@
                     <div class="ct-steps">
                         <div class="ct-step"><div class="ct-step__n">01</div><div class="ct-step__t">开通应用</div><div class="ct-step__d">配置 AppId、回调地址、IP 白名单</div></div>
                         <div class="ct-step"><div class="ct-step__n">02</div><div class="ct-step__t">平台企业授权</div><div class="ct-step__d">冷丰主体完成企业实名与授权，绑定印章</div></div>
-                        <div class="ct-step"><div class="ct-step__n">03</div><div class="ct-step__t">绑定场景模板</div><div class="ct-step__d">门店 / 供应商 / 仓库 / 入职各绑一套签署模板</div></div>
-                        <div class="ct-step"><div class="ct-step__n">04</div><div class="ct-step__t">相对方授权</div><div class="ct-step__d">企业走企业授权，员工走个人授权</div></div>
+                        <div class="ct-step"><div class="ct-step__n">03</div><div class="ct-step__t">绑定场景模板</div><div class="ct-step__d">门店合作、供应商入驻、用户注册，一个场景可绑多份协议</div></div>
+                        <div class="ct-step"><div class="ct-step__n">04</div><div class="ct-step__t">相对方授权</div><div class="ct-step__d">门店和供应商走企业授权，用户走个人授权</div></div>
                         <div class="ct-step"><div class="ct-step__n">05</div><div class="ct-step__t">发起并回写</div><div class="ct-step__d">创建签署任务，回调更新状态，完成后归档下载</div></div>
                     </div>
                 </div>
@@ -118,7 +118,7 @@
                         <div class="pts-rule-field__label">默认印章</div>
                         <div class="pts-rule-field__control">
                             <input class="erp-input" id="ctSealName" placeholder="平台自动签使用的印章名称">
-                            <div class="ct-field-tip">门店入驻、供应商、仓库、入职合同的平台方默认走自动签。</div>
+                            <div class="ct-field-tip">门店合作、供应商入驻、用户注册的平台方默认走自动签。</div>
                         </div>
                     </div>
                 </div>
@@ -137,14 +137,14 @@
                         </thead>
                         <tbody>
                             <tr><td>服务凭证</td><td><code>getAccessToken</code></td><td>所有调用前置，凭证缓存约 2 小时</td></tr>
-                            <tr><td>企业授权</td><td><code>getCorpAuthUrl</code></td><td>平台、门店、供应商、仓库完成企业授权</td></tr>
-                            <tr><td>个人授权</td><td><code>getUserAuthUrl</code></td><td>员工入职个人实名与授权</td></tr>
+                            <tr><td>企业授权</td><td><code>getCorpAuthUrl</code></td><td>平台、门店、供应商完成企业授权</td></tr>
+                            <tr><td>个人授权</td><td><code>getUserAuthUrl</code></td><td>用户注册个人实名与授权</td></tr>
                             <tr><td>签署模板</td><td><code>getSignTemplateList / Detail</code></td><td>同步法大大模板，绑定到业务场景</td></tr>
                             <tr><td>创建任务</td><td><code>sign-task/create-with-template</code></td><td>按模板发起合同，填充控件</td></tr>
                             <tr><td>签署链接</td><td><code>sign-task/actor/get-url</code></td><td>短信 / 站内打开对方签署页</td></tr>
                             <tr><td>催办 / 撤销</td><td><code>urge / cancel</code></td><td>签署任务列表操作</td></tr>
                             <tr><td>文件下载</td><td><code>getOwnerDownloadUrl</code></td><td>签署完成后归档到文件中心</td></tr>
-                            <tr><td>事件回调</td><td><code>sign_completed / task_terminated</code></td><td>回写任务状态，驱动入驻/入职流程</td></tr>
+                            <tr><td>事件回调</td><td><code>sign_completed / task_terminated</code></td><td>回写任务状态，驱动门店合作、供应商入驻和用户注册</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -157,6 +157,6 @@
         </main>
     </div>
     <script src="../js/common.js"></script>
-    <script src="../js/basic-settings-contract.js"></script>
+    <script src="../js/basic-settings-contract.js?v=20261026-real-scenes"></script>
 </body>
 </html>
