@@ -84,12 +84,32 @@
     return null;
   }
 
+  function buyerUserId(index) {
+    return '318605592681' + String(100000 + index);
+  }
+
+  function stampBuyerIdentity(row, index, phoneHint) {
+    if (!row) return;
+    if (!row.getAttribute('data-user-id')) {
+      row.setAttribute('data-user-id', buyerUserId(index));
+    }
+    if (!row.getAttribute('data-user-phone')) {
+      var phone = String(phoneHint || '').replace(/\s+/g, '');
+      if (!phone && row.children[4]) {
+        phone = String(row.children[4].textContent || '').replace(/\s+/g, '');
+      }
+      if (!phone) phone = '138' + pad(10000000 + index).slice(-8);
+      row.setAttribute('data-user-phone', phone);
+    }
+  }
+
   function shiftExisting(rows) {
     rows.forEach(function (row, index) {
       var when = atDaysAgo(index % 7, 8 + (index % 12), (index * 5) % 60);
       row.setAttribute('data-ordered-at', dateText(when));
       var timeCell = row.children[1];
       if (timeCell) timeCell.textContent = dateTimeText(when);
+      stampBuyerIdentity(row, index);
     });
   }
 
@@ -124,7 +144,9 @@
       (live ? ' data-live-session="' + esc(live) + '"' : '') +
       (spec.as ? ' data-as-status="' + esc(spec.as) + '"' : '') +
       (spec.demo ? ' data-demo-as="' + esc(spec.demo) + '"' : '') +
-      (spec.skip ? ' data-skip-po="1" data-cutoff-source="after_pay"' : '');
+      (spec.skip ? ' data-skip-po="1" data-cutoff-source="after_pay"' : '') +
+      ' data-user-id="' + buyerUserId(index) + '"' +
+      ' data-user-phone="' + phone + '"';
     return (
       '<tr' + attrs + '>' +
       '<td><a href="#" class="order-live-table__link js-order-view" data-order-id="' + id + '">' + id + '</a></td>' +
@@ -166,7 +188,8 @@
     if (need <= 0) return;
     var html = '';
     var i = 0;
-    for (i = 0; i < need; i++) html += buildRow(i);
+    var start = rows.length;
+    for (i = 0; i < need; i++) html += buildRow(start + i);
     tbody.insertAdjacentHTML('beforeend', html);
   });
 })();
