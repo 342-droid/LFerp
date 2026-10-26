@@ -64,17 +64,19 @@
                                     <input class="order-filter-field__input" id="qProductName" type="text" placeholder="请输入商品名称">
                                 </div>
                                 <div class="order-filter-field">
+                                    <!-- 买家信息：电话/昵称包含匹配；用户ID精确匹配（须完整ID）。切换选项清空输入；重置回到用户电话并清空。 -->
                                     <div class="order-filter-switch" data-order-filter-switch="user">
                                         <button type="button" class="order-filter-switch__trigger" aria-expanded="false" aria-haspopup="listbox">
-                                            <span class="order-filter-switch__text">用户昵称</span>
+                                            <span class="order-filter-switch__text">用户电话</span>
                                         </button>
                                         <div class="order-filter-switch__menu" hidden role="listbox">
-                                            <button type="button" class="order-filter-switch__item is-active" role="option" aria-selected="true" data-value="nickname" data-placeholder="请输入用户昵称">用户昵称</button>
-                                            <button type="button" class="order-filter-switch__item" role="option" aria-selected="false" data-value="receiverName" data-placeholder="请输入收货人姓名">收货人姓名</button>
+                                            <button type="button" class="order-filter-switch__item is-active" role="option" aria-selected="true" data-value="userPhone" data-placeholder="请输入用户电话">用户电话</button>
+                                            <button type="button" class="order-filter-switch__item" role="option" aria-selected="false" data-value="nickname" data-placeholder="请输入用户昵称">用户昵称</button>
+                                            <button type="button" class="order-filter-switch__item" role="option" aria-selected="false" data-value="userId" data-placeholder="请输入用户ID">用户ID</button>
                                         </div>
-                                        <input type="hidden" id="qUserKey" name="qUserKey" value="nickname">
+                                        <input type="hidden" id="qUserKey" name="qUserKey" value="userPhone">
                                     </div>
-                                    <input class="order-filter-field__input" id="qNickname" type="text" placeholder="请输入用户昵称" aria-label="用户昵称">
+                                    <input class="order-filter-field__input" id="qNickname" type="text" placeholder="请输入用户电话" aria-label="用户电话">
                                 </div>
                                 <div class="order-filter-field">
                                     <label class="order-filter-field__label" for="qReceiverPhone">收货人电话</label>
@@ -812,7 +814,7 @@
     <script src="../js/order-platform-aftersale.js?v=20260921-share-weights"></script>
     <script src="../js/freight-refund-aftersale-store.js?v=20260826-refund-only"></script>
     <script src="../js/order-freight-refund.js?v=20260920-express-refund"></script>
-    <script src="../js/order-live-list.js?v=20261015-order-store-code"></script>
+    <script src="../js/order-live-list.js?v=20261026-proxy-buyer-id"></script>
     <script src="../js/order-proxy-list.js?v=20260916-freight-btn"></script>
     <script src="../js/logistics-tracking-no.js"></script>
     <script src="../js/vendor/xlsx.full.min.js"></script>

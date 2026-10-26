@@ -1,60 +1,487 @@
 {
-  "latestSha": "2de2b5148217d0fcc5816846db49ef811f9a66e1",
-  "total": 443,
+  "latestSha": "128a17858a7a620fcb24689261f050af839a61f4",
+  "total": 453,
   "days": [
+    {
+      "date": "2026-10-26",
+      "items": [
+        {
+          "sha": "128a178",
+          "type": "feat",
+          "text": "零售和代采订单买家信息支持按用户ID精确筛选",
+          "author": "u ｌ",
+          "time": "15:28",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "买家信息下拉改为用户电话/用户昵称/用户ID，默认用户电话；用户ID须完整匹配；切换选项清空输入，重置回到用户电话"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "text": "买家信息下拉同样增加用户ID，精确匹配完整ID才出结果；切换清空输入，重置回到用户电话"
+            }
+          ]
+        },
+        {
+          "sha": "3f507cd",
+          "type": "feat",
+          "text": "出库异常支持配置异常单超时定时器",
+          "author": "342-droid",
+          "time": "10:32",
+          "pages": [
+            {
+              "file": "SCM/obd_outbound_exception.html",
+              "module": "冷丰WMS",
+              "title": "出库异常"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/obd_outbound_exception.html",
+              "text": "查询区新增异常单超时定时器，可配置表达式、描述与启用状态"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-10-22",
+      "items": [
+        {
+          "sha": "e414fb4",
+          "type": "refactor",
+          "text": "本仓移除供应链菜单及相关原型与文档",
+          "author": "342-droid",
+          "time": "15:16",
+          "pages": [],
+          "global": true,
+          "notes": [
+            {
+              "file": null,
+              "text": "顶栏去掉「供应链」入口"
+            },
+            {
+              "file": null,
+              "text": "商品分类: 页面与脚本样式已从本仓移除（迁至独立仓）"
+            },
+            {
+              "file": null,
+              "text": "商品品牌: 页面与脚本样式已从本仓移除（迁至独立仓）"
+            },
+            {
+              "file": null,
+              "text": "配料类别: 页面与脚本样式已从本仓移除（迁至独立仓）"
+            },
+            {
+              "file": null,
+              "text": "基础商品库: 页面与脚本样式已从本仓移除（迁至独立仓）"
+            },
+            {
+              "file": null,
+              "text": "供应商档案: 供应链侧档案页已从本仓移除（迁至独立仓）"
+            },
+            {
+              "file": null,
+              "text": "供货关系: 页面与脚本样式已从本仓移除（迁至独立仓）"
+            }
+          ]
+        },
+        {
+          "sha": "b09e32e",
+          "type": "feat",
+          "text": "一级分类可配置商品单位并补齐供应链 PRD",
+          "author": "342-droid",
+          "time": "11:18",
+          "pages": [],
+          "notes": [
+            {
+              "file": null,
+              "text": "商品分类: 一级详情新增商品单位页签，支持从全局枚举增删改查"
+            },
+            {
+              "file": null,
+              "text": "基础商品库: 标准采购单位与换算单位按所属一级分类配置收窄"
+            },
+            {
+              "file": null,
+              "text": "供货关系: 实际采购单位同样按商品一级分类单位配置过滤"
+            },
+            {
+              "file": null,
+              "text": "新增供应链菜单 PRD，并更新商品分类文档中的商品单位说明"
+            }
+          ]
+        },
+        {
+          "sha": "ba0a487",
+          "type": "chore",
+          "text": "恢复 docs 目录纳入版本库",
+          "author": "342-droid",
+          "time": "10:40",
+          "pages": [],
+          "notes": [
+            {
+              "file": null,
+              "text": "撤销 docs 整目录忽略，恢复文档与原有忽略规则"
+            }
+          ]
+        },
+        {
+          "sha": "258bdda",
+          "type": "feat",
+          "text": "基础商品库补最小计量单位，完善负库存与分拣定时配置",
+          "author": "342-droid",
+          "time": "10:38",
+          "pages": [
+            {
+              "file": "SCM/negative_inventory.html",
+              "module": "冷丰WMS",
+              "title": "负库存"
+            },
+            {
+              "file": "SCM/obd_sorting.html",
+              "module": "冷丰WMS",
+              "title": "分拣单"
+            }
+          ],
+          "notes": [
+            {
+              "file": null,
+              "text": "基础商品库: 新增/编辑/详情增加最小计量单位"
+            },
+            {
+              "file": null,
+              "text": "四级单位并排竖向对比，换算中间两格等宽"
+            },
+            {
+              "file": "SCM/negative_inventory.html",
+              "text": "定时配置拆成「负库存执行」「盘盈并执行」，支持各自启用开关"
+            },
+            {
+              "file": "SCM/obd_sorting.html",
+              "text": "新增分拣超时定时器配置弹窗，支持表达式、描述与启用状态"
+            },
+            {
+              "file": null,
+              "text": "docs 整目录改为本地文档，不再纳入版本库"
+            }
+          ]
+        },
+        {
+          "sha": "afe20ce",
+          "type": "feat",
+          "text": "意见反馈列表增加处理状态统计",
+          "author": "u ｌ",
+          "time": "10:31",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_feedback.html",
+              "module": "冷丰售后",
+              "title": "意见反馈"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_aftersale_feedback.html",
+              "text": "表格与分页之间增加统计栏，展示待处理 1 条 / 已处理 3 条"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-10-20",
+      "items": [
+        {
+          "sha": "b28a85e",
+          "type": "feat",
+          "text": "新增供货关系并支持最小起订量与商品详情查看",
+          "author": "342-droid",
+          "time": "12:23",
+          "pages": [],
+          "notes": [
+            {
+              "file": null,
+              "text": "供货关系: 新增列表和新增编辑，维护采购核定价、实际采购单位、最小起订量、价格状态、样品状态、主供应商和启用停用"
+            },
+            {
+              "file": null,
+              "text": "基础商品库: 商品详情增加供货关系页签，可查看该商品全部供货关系"
+            },
+            {
+              "file": null,
+              "text": "供应商档案: 点击供应商编码打开详情，支持上传证照"
+            },
+            {
+              "file": null,
+              "text": "列表操作只保留停用启用和删除"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-10-17",
       "items": [
+        {
+          "sha": "f8cc997",
+          "type": "feat",
+          "text": "补齐异常订单、未授权红包入账和权限2.0说明",
+          "author": "sisi",
+          "time": "18:14",
+          "pages": [
+            {
+              "file": "MDM/mdm_settle_index.html",
+              "module": "冷丰结算",
+              "title": "结算中心"
+            },
+            {
+              "file": "SCM/authz-2-guide.html",
+              "module": "",
+              "title": "菜单权限 2.0 使用说明"
+            },
+            {
+              "file": "SCM/authz-2-manual.html",
+              "module": "",
+              "title": "菜单权限 2.0 操作手册"
+            },
+            {
+              "file": "SCM/authz-2-testcases.html",
+              "module": "",
+              "title": "菜单权限 2.0 测试用例"
+            },
+            {
+              "file": "SCM/basic_settings_business_tags.html",
+              "module": "冷丰WMS",
+              "title": "标签管理"
+            },
+            {
+              "file": "SCM/basic_settings_contract_config.html",
+              "module": "冷丰WMS",
+              "title": "接入配置"
+            },
+            {
+              "file": "SCM/basic_settings_contract_party.html",
+              "module": "冷丰WMS",
+              "title": "签署主体"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task.html",
+              "module": "冷丰WMS",
+              "title": "签署任务"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_detail.html",
+              "module": "冷丰WMS",
+              "title": "签署任务详情"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template.html",
+              "module": "冷丰WMS",
+              "title": "合同模板"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template_form.html",
+              "module": "冷丰WMS",
+              "title": "合同模板配置"
+            },
+            {
+              "file": "SCM/basic_settings_cooperation.html",
+              "module": "冷丰WMS",
+              "title": "合作管理"
+            },
+            {
+              "file": "SCM/basic_settings_file_center.html",
+              "module": "冷丰WMS",
+              "title": "文件中心"
+            },
+            {
+              "file": "SCM/basic_settings_material.html",
+              "module": "冷丰WMS",
+              "title": "素材列表"
+            },
+            {
+              "file": "SCM/basic_settings_material_type.html",
+              "module": "冷丰WMS",
+              "title": "素材类型"
+            },
+            {
+              "file": "SCM/basic_settings_member.html",
+              "module": "冷丰WMS",
+              "title": "会员配置"
+            },
+            {
+              "file": "SCM/basic_settings_miniprogram_agreement.html",
+              "module": "冷丰WMS",
+              "title": "小程序协议"
+            },
+            {
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
+            },
+            {
+              "file": "SCM/basic_settings_recommendation.html",
+              "module": "冷丰WMS",
+              "title": "推荐位配置"
+            },
+            {
+              "file": "SCM/basic_settings_system.html",
+              "module": "冷丰WMS",
+              "title": "系统管理"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-password.html",
+              "module": "",
+              "title": "账号密码登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-phone.html",
+              "module": "",
+              "title": "手机快速登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-register.html",
+              "module": "",
+              "title": "账号注册 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-wechat.html",
+              "module": "",
+              "title": "微信授权登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login.html",
+              "module": "",
+              "title": "登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/redpack-claim.html",
+              "module": "",
+              "title": "领取红包 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/redpack-records.html",
+              "module": "",
+              "title": "红包领取记录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/scan-store.html",
+              "module": "",
+              "title": "扫一扫 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/settings.html",
+              "module": "",
+              "title": "设置 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/switch-address.html",
+              "module": "",
+              "title": "切换门店 · 用户 APP"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_settle_index.html",
+              "text": "策略管理下新增异常订单，可按订单号、收款方类型和处理状态筛选并导出，查看详情在右侧抽屉"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "text": "未授权领到现金红包先放入账户，金币落入本场红包图标和叮铃铃仍在；收款授权后本场未转账红包自动打入微信，清单回到自动打款文案"
+            },
+            {
+              "file": "user-app/h5/redpack-records.html",
+              "text": "未授权时现金收益卡片上方显示授权消息条，点领取才转入微信"
+            },
+            {
+              "file": null,
+              "text": "基础设置侧栏二级菜单恢复；顶栏权限设计右侧增加权限2.0"
+            },
+            {
+              "file": "SCM/authz-2-guide.html",
+              "text": "新增权限2.0使用说明，可切换操作手册和测试用例"
+            },
+            {
+              "file": "SCM/authz-2-manual.html",
+              "text": "新增权限2.0操作手册"
+            },
+            {
+              "file": "SCM/authz-2-testcases.html",
+              "text": "新增权限2.0测试用例，可下载用例表"
+            }
+          ]
+        },
         {
           "sha": "2de2b51",
           "type": "feat",
           "text": "补齐商品品牌、配料和供应商档案",
           "author": "342-droid",
           "time": "15:11",
-          "pages": [
-            {
-              "file": "SCM/master_data_ingredient_category.html",
-              "module": "冷丰WMS",
-              "title": "配料类别"
-            },
-            {
-              "file": "SCM/master_data_product_brand.html",
-              "module": "冷丰WMS",
-              "title": "商品品牌"
-            },
-            {
-              "file": "SCM/master_data_product_category.html",
-              "module": "冷丰WMS",
-              "title": "商品分类"
-            },
-            {
-              "file": "SCM/master_data_product_library.html",
-              "module": "冷丰WMS",
-              "title": "基础商品库"
-            },
-            {
-              "file": "SCM/master_data_supplier.html",
-              "module": "冷丰WMS",
-              "title": "供应商档案"
-            }
-          ],
+          "pages": [],
           "global": true,
           "notes": [
             {
-              "file": "SCM/master_data_product_brand.html",
-              "text": "支持维护品牌名称和品牌logo，可停用或启用"
+              "file": null,
+              "text": "商品品牌: 支持维护品牌名称和品牌logo，可停用或启用"
             },
             {
-              "file": "SCM/master_data_ingredient_category.html",
-              "text": "支持维护配料类别名称，可停用或启用"
+              "file": null,
+              "text": "配料类别: 支持维护配料类别名称，可停用或启用"
             },
             {
-              "file": "SCM/master_data_product_library.html",
-              "text": "商品品牌改取品牌档案；详情增加配料表和营养成分并支持同SPU复制；商品状态「有效」改为「启用」"
+              "file": null,
+              "text": "基础商品库: 商品品牌改取品牌档案"
             },
             {
-              "file": "SCM/master_data_supplier.html",
-              "text": "支持维护供应商编码、类型、业务和仓库联系人，以及省市区和详细地址"
+              "file": null,
+              "text": "详情增加配料表和营养成分并支持同SPU复制"
+            },
+            {
+              "file": null,
+              "text": "商品状态「有效」改为「启用」"
+            },
+            {
+              "file": null,
+              "text": "供应商档案: 支持维护供应商编码、类型、业务和仓库联系人，以及省市区和详细地址"
             },
             {
               "file": null,
@@ -68,51 +495,162 @@
           "text": "新增供应链管理，支持维护商品分类和基础商品库",
           "author": "342-droid",
           "time": "09:52",
+          "pages": [],
+          "global": true,
+          "notes": [
+            {
+              "file": null,
+              "text": "商品分类: 支持四级分类维护"
+            },
+            {
+              "file": null,
+              "text": "分类编码按上级自动生成且编辑时不可改"
+            },
+            {
+              "file": null,
+              "text": "一级分类增加属性分类，商品属性最多5级"
+            },
+            {
+              "file": null,
+              "text": "已绑定商品展示货号"
+            },
+            {
+              "file": null,
+              "text": "基础商品库: 可按SPU、货号、条码、名称、商品状态和品牌查询，列表按SPU排序"
+            },
+            {
+              "file": null,
+              "text": "商品名称后可查看并停用或启用商品"
+            },
+            {
+              "file": null,
+              "text": "添加规格沿用原SPU并重新生成货号"
+            },
+            {
+              "file": null,
+              "text": "三个单位分别维护重量和体积"
+            },
+            {
+              "file": null,
+              "text": "标准采购价可单独修改"
+            },
+            {
+              "file": null,
+              "text": "顶部菜单新增「供应链管理」"
+            }
+          ]
+        },
+        {
+          "sha": "46aea91",
+          "type": "feat",
+          "text": "会员现金红包可按场景筛选，红包创建页收起转账说明",
+          "author": "sisi",
+          "time": "00:04",
           "pages": [
             {
-              "file": "SCM/master_data.html",
+              "file": "MDM/mdm_audit_cash_redpack.html",
               "module": "冷丰WMS",
-              "title": "主数据管理"
+              "title": "现金红包审核"
             },
             {
-              "file": "SCM/master_data_ingredient_category.html",
+              "file": "MDM/mdm_audit_cash_redpack_manual.html",
               "module": "冷丰WMS",
-              "title": "配料类别"
+              "title": "派发红包审核"
             },
             {
-              "file": "SCM/master_data_product_brand.html",
+              "file": "MDM/mdm_live_control.html",
               "module": "冷丰WMS",
-              "title": "商品品牌"
+              "title": "直播中控"
             },
             {
-              "file": "SCM/master_data_product_category.html",
+              "file": "MDM/mdm_live_session_form.html",
               "module": "冷丰WMS",
-              "title": "商品分类"
+              "title": "直播场次编辑"
             },
             {
-              "file": "SCM/master_data_product_library.html",
+              "file": "MDM/mdm_marketing_cash_redpack.html",
               "module": "冷丰WMS",
-              "title": "基础商品库"
+              "title": "现金红包"
             },
             {
-              "file": "SCM/master_data_supplier.html",
+              "file": "MDM/mdm_marketing_cash_redpack_manual.html",
               "module": "冷丰WMS",
-              "title": "供应商档案"
+              "title": "手动发放红包"
+            },
+            {
+              "file": "MDM/mdm_marketing_cash_redpack_manual_form.html",
+              "module": "冷丰WMS",
+              "title": "手动发放红包"
+            },
+            {
+              "file": "MDM/mdm_marketing_cash_redpack_tpl.html",
+              "module": "冷丰WMS",
+              "title": "现金红包模版"
+            },
+            {
+              "file": "MDM/mdm_marketing_cash_redpack_tpl_form.html",
+              "module": "冷丰WMS",
+              "title": "现金红包模版"
+            },
+            {
+              "file": "MDM/mdm_marketing_register_gift.html",
+              "module": "冷丰WMS",
+              "title": "注册有礼"
+            },
+            {
+              "file": "MDM/mdm_marketing_register_gift_form.html",
+              "module": "冷丰WMS",
+              "title": "注册有礼"
+            },
+            {
+              "file": "MDM/mdm_marketing_template.html",
+              "module": "冷丰WMS",
+              "title": "模版配置"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/redpack-claim.html",
+              "module": "",
+              "title": "领取红包 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/redpack-records.html",
+              "module": "",
+              "title": "红包领取记录 · 用户 APP"
             }
           ],
           "global": true,
           "notes": [
             {
-              "file": "SCM/master_data_product_category.html",
-              "text": "支持四级分类维护；分类编码按上级自动生成且编辑时不可改；一级分类增加属性分类，商品属性最多5级；已绑定商品展示货号"
+              "file": "MDM/mdm_member_c.html",
+              "text": "现金红包筛选增加场景，可选全部、注册有礼、福袋、观看任务、签到、手动派发；已领取金额、待领取金额、已过期金额、红包笔数排在同一行"
             },
             {
-              "file": "SCM/master_data_product_library.html",
-              "text": "可按SPU、货号、条码、名称、商品状态和品牌查询，列表按SPU排序；商品名称后可查看并停用或启用商品；添加规格沿用原SPU并重新生成货号；三个单位分别维护重量和体积；标准采购价可单独修改"
+              "file": "MDM/mdm_marketing_cash_redpack_tpl.html",
+              "text": "创建、编辑、查看不再展示转账场景和用户收款感知，保存仍固定现金营销和活动奖励，触发转账时自动带给微信"
             },
             {
-              "file": null,
-              "text": "顶部菜单新增「供应链管理」"
+              "file": "MDM/mdm_marketing_cash_redpack_manual.html",
+              "text": "转账场景和用户收款感知下不再展示场景说明和默认展示"
             }
           ]
         }
@@ -6815,11 +7353,6 @@
               "file": "SCM/basic_settings_file_center.html",
               "module": "冷丰WMS",
               "title": "文件中心"
-            },
-            {
-              "file": "SCM/master_data_supplier.html",
-              "module": "冷丰WMS",
-              "title": "供应商档案"
             }
           ],
           "global": true,
@@ -12718,11 +13251,6 @@
               "file": "MDM/mdm_super_admin_accounts.html",
               "module": "冷丰WMS",
               "title": "商户主体建档"
-            },
-            {
-              "file": "SCM/master_data_supplier.html",
-              "module": "冷丰WMS",
-              "title": "供应商档案"
             },
             {
               "file": "store-app/h5/onboarding.html",
@@ -29307,11 +29835,6 @@
               "file": "MDM/mdm_resource_onboarding.html",
               "module": "冷丰WMS",
               "title": "支付进件"
-            },
-            {
-              "file": "SCM/master_data_supplier.html",
-              "module": "冷丰WMS",
-              "title": "供应商档案"
             }
           ],
           "global": true,
