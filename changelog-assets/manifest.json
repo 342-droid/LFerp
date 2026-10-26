@@ -949,6 +949,275 @@
     "status": "diff",
     "date": "2026-10-14"
   },
+  "bebe0e1|MDM/mdm_archive_carrier.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|MDM/mdm_archive_live_room.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|MDM/mdm_archive_store.html": {
+    "before": "changelog-assets/bebe0e1/MDM__mdm_archive_store.html.before.jpg",
+    "after": "changelog-assets/bebe0e1/MDM__mdm_archive_store.html.after.jpg",
+    "regions": 3,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|MDM/mdm_archive_supplier.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|MDM/mdm_archive_warehouse.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|MDM/mdm_audit_store_registration.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|MDM/mdm_bd_h5.html": {
+    "before": "changelog-assets/bebe0e1/MDM__mdm_bd_h5.html.before.jpg",
+    "after": "changelog-assets/bebe0e1/MDM__mdm_bd_h5.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|MDM/mdm_bd_store_form.html": {
+    "before": "changelog-assets/bebe0e1/MDM__mdm_bd_store_form.html.before.jpg",
+    "after": "changelog-assets/bebe0e1/MDM__mdm_bd_store_form.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|MDM/mdm_bd_stores.html": {
+    "before": "changelog-assets/bebe0e1/MDM__mdm_bd_stores.html.before.jpg",
+    "after": "changelog-assets/bebe0e1/MDM__mdm_bd_stores.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|MDM/mdm_member_c.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|MDM/mdm_people_anchor.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|MDM/mdm_people_bd.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|MDM/mdm_people_driver.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|MDM/mdm_people_purchaser.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|MDM/mdm_super_admin_accounts.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|SCM/basic_settings_contract_config.html": {
+    "before": "changelog-assets/bebe0e1/SCM__basic_settings_contract_config.html.before.jpg",
+    "after": "changelog-assets/bebe0e1/SCM__basic_settings_contract_config.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|SCM/basic_settings_contract_party.html": {
+    "before": "changelog-assets/bebe0e1/SCM__basic_settings_contract_party.html.before.jpg",
+    "after": "changelog-assets/bebe0e1/SCM__basic_settings_contract_party.html.after.jpg",
+    "regions": 19,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|SCM/basic_settings_contract_task.html": {
+    "before": "changelog-assets/bebe0e1/SCM__basic_settings_contract_task.html.before.jpg",
+    "after": "changelog-assets/bebe0e1/SCM__basic_settings_contract_task.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|SCM/basic_settings_contract_task_detail.html": {
+    "before": "changelog-assets/bebe0e1/SCM__basic_settings_contract_task_detail.html.before.jpg",
+    "after": "changelog-assets/bebe0e1/SCM__basic_settings_contract_task_detail.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|SCM/basic_settings_contract_task_form.html": {
+    "before": "changelog-assets/bebe0e1/SCM__basic_settings_contract_task_form.html.before.jpg",
+    "after": "changelog-assets/bebe0e1/SCM__basic_settings_contract_task_form.html.after.jpg",
+    "regions": 4,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|SCM/basic_settings_contract_template.html": {
+    "before": "changelog-assets/bebe0e1/SCM__basic_settings_contract_template.html.before.jpg",
+    "after": "changelog-assets/bebe0e1/SCM__basic_settings_contract_template.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|SCM/basic_settings_contract_template_form.html": {
+    "before": "changelog-assets/bebe0e1/SCM__basic_settings_contract_template_form.html.before.jpg",
+    "after": "changelog-assets/bebe0e1/SCM__basic_settings_contract_template_form.html.after.jpg",
+    "regions": 5,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|shop-h5/h5/store/register.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|shop-h5/h5/store/status.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|store-app/h5/restock-order-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|store-app/h5/restock-orders.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|user-app/h5/cart.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|user-app/h5/category.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|user-app/h5/forgot-password.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|user-app/h5/goods-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|user-app/h5/home.html": {
+    "before": "changelog-assets/bebe0e1/user-app__h5__home.html.before.jpg",
+    "after": "changelog-assets/bebe0e1/user-app__h5__home.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|user-app/h5/live-room.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|user-app/h5/login-password.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|user-app/h5/login-phone.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|user-app/h5/login-register.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|user-app/h5/login-wechat.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|user-app/h5/login.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|user-app/h5/mall.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|user-app/h5/order-confirm.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|user-app/h5/order-detail-pickup.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|user-app/h5/order-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|user-app/h5/order-logistics.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|user-app/h5/orders.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|user-app/h5/profile.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|user-app/h5/redpack-claim.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|user-app/h5/redpack-records.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|user-app/h5/restock.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|user-app/h5/set-password.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
+  "bebe0e1|user-app/h5/settings.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-26"
+  },
   "dbed1b7|MDM/mdm_audit_cash_redpack.html": {
     "before": "changelog-assets/dbed1b7/MDM__mdm_audit_cash_redpack.html.before.jpg",
     "after": "changelog-assets/dbed1b7/MDM__mdm_audit_cash_redpack.html.after.jpg",

@@ -1,10 +1,355 @@
 {
-  "latestSha": "128a17858a7a620fcb24689261f050af839a61f4",
-  "total": 453,
+  "latestSha": "bebe0e14d4a34eab4cf620ffa815409916401e89",
+  "total": 455,
   "days": [
     {
       "date": "2026-10-26",
       "items": [
+        {
+          "sha": "bebe0e1",
+          "type": "feat",
+          "text": "门店合作改为加盟联营直营，合同按现有模板分场景签署",
+          "author": "sisi",
+          "time": "23:49",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_bd_h5.html",
+              "module": "",
+              "title": "冷丰 MDM · 门店扫码 H5"
+            },
+            {
+              "file": "MDM/mdm_bd_store_form.html",
+              "module": "",
+              "title": "冷丰 MDM · 添加 / 编辑门店"
+            },
+            {
+              "file": "MDM/mdm_bd_stores.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 门店模块"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
+              "file": "MDM/mdm_people_anchor.html",
+              "module": "冷丰WMS",
+              "title": "主播"
+            },
+            {
+              "file": "MDM/mdm_people_bd.html",
+              "module": "冷丰WMS",
+              "title": "BD推广员"
+            },
+            {
+              "file": "MDM/mdm_people_driver.html",
+              "module": "冷丰WMS",
+              "title": "司机"
+            },
+            {
+              "file": "MDM/mdm_people_purchaser.html",
+              "module": "冷丰WMS",
+              "title": "采购员"
+            },
+            {
+              "file": "MDM/mdm_super_admin_accounts.html",
+              "module": "冷丰WMS",
+              "title": "商户主体建档"
+            },
+            {
+              "file": "SCM/basic_settings_contract_config.html",
+              "module": "冷丰WMS",
+              "title": "接入配置"
+            },
+            {
+              "file": "SCM/basic_settings_contract_party.html",
+              "module": "冷丰WMS",
+              "title": "签署主体"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task.html",
+              "module": "冷丰WMS",
+              "title": "签署任务"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_detail.html",
+              "module": "冷丰WMS",
+              "title": "签署任务详情"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template.html",
+              "module": "冷丰WMS",
+              "title": "合同模板"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template_form.html",
+              "module": "冷丰WMS",
+              "title": "合同模板配置"
+            },
+            {
+              "file": "shop-h5/h5/store/register.html",
+              "module": "",
+              "title": "门店注册 · Shop H5"
+            },
+            {
+              "file": "shop-h5/h5/store/status.html",
+              "module": "",
+              "title": "门店状态 · Shop H5"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 门店APP"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 门店APP"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/category.html",
+              "module": "",
+              "title": "分类 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/forgot-password.html",
+              "module": "",
+              "title": "找回密码 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-password.html",
+              "module": "",
+              "title": "账号密码登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-phone.html",
+              "module": "",
+              "title": "手机快速登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-register.html",
+              "module": "",
+              "title": "账号注册 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-wechat.html",
+              "module": "",
+              "title": "微信授权登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login.html",
+              "module": "",
+              "title": "登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "module": "",
+              "title": "商城 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/redpack-claim.html",
+              "module": "",
+              "title": "领取红包 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/redpack-records.html",
+              "module": "",
+              "title": "红包领取记录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "module": "",
+              "title": "进货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/set-password.html",
+              "module": "",
+              "title": "设置密码 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/settings.html",
+              "module": "",
+              "title": "设置 · 用户 APP"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "text": "门店合作类型改为加盟店、联营店、直营店；历史生鲜店和同行店归为加盟店，合作店归为联营店；补充事业线、品牌名称、业务线"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "text": "合作类型按加盟店、联营店、直营店展示，并同步事业线、品牌名称、业务线"
+            },
+            {
+              "file": null,
+              "text": "门店扫码 H5: 店主注册不再填写事业线、品牌、业务线"
+            },
+            {
+              "file": null,
+              "text": "合作类型改为三选"
+            },
+            {
+              "file": null,
+              "text": "选址冲突改为审核人工排查"
+            },
+            {
+              "file": null,
+              "text": "添加 / 编辑门店: BD 添加和编辑仍填写事业线、品牌、业务线，合作类型同步为加盟店、联营店、直营店"
+            },
+            {
+              "file": null,
+              "text": "BD 门店模块: 门店协议按合作类型带出全部适用协议，加盟店同时包含品牌合作合同和资金清分结算合同"
+            },
+            {
+              "file": "shop-h5/h5/store/register.html",
+              "text": "不采集事业线、品牌、业务线；合作类型为加盟店、联营店、直营店；选址由审核人员人工排查"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template.html",
+              "text": "按门店合作、供应商入驻、用户注册收录现有六份协议，一个场景可签多份；点模板名称查看绑定详情"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template_form.html",
+              "text": "绑定详情只读，点击法大大签署模板查看合同正文"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "text": "一个场景可一次勾选多份协议一起签署，加盟店默认带出两份门店协议"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task.html",
+              "text": "点合同名称或查看合同可阅读该任务下的协议正文"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_detail.html",
+              "text": "每份合同文件可查看正文"
+            },
+            {
+              "file": "SCM/basic_settings_contract_party.html",
+              "text": "主体改为门店、供应商、用户"
+            },
+            {
+              "file": "SCM/basic_settings_contract_config.html",
+              "text": "场景说明改为门店合作、供应商入驻、用户注册"
+            },
+            {
+              "file": "user-app/h5/redpack-records.html",
+              "text": "未领取显示领取按钮"
+            },
+            {
+              "file": "user-app/h5/login.html",
+              "text": "收款授权关掉后，当天登录场景不再弹出"
+            },
+            {
+              "file": "user-app/h5/login-password.html",
+              "text": "收款授权关掉后，当天登录场景不再弹出"
+            },
+            {
+              "file": "user-app/h5/login-phone.html",
+              "text": "收款授权关掉后，当天登录场景不再弹出"
+            },
+            {
+              "file": "user-app/h5/login-register.html",
+              "text": "收款授权关掉后，当天登录场景不再弹出"
+            },
+            {
+              "file": "user-app/h5/login-wechat.html",
+              "text": "收款授权关掉后，当天登录场景不再弹出"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "text": "进入直播间关掉收款授权后，当天再进不再弹出"
+            }
+          ]
+        },
         {
           "sha": "128a178",
           "type": "feat",
@@ -232,6 +577,31 @@
             {
               "file": null,
               "text": "列表操作只保留停用启用和删除"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "date": "2026-10-19",
+      "items": [
+        {
+          "sha": "ae50ebf",
+          "type": "feat",
+          "text": "未授权时手动派发红包在列表显示未领取，授权后自动打款",
+          "author": "sisi",
+          "time": "10:59",
+          "pages": [
+            {
+              "file": "user-app/h5/redpack-records.html",
+              "module": "",
+              "title": "红包领取记录 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/redpack-records.html",
+              "text": "未授权时手动派发出现在红包列表，状态为未领取且没有领取按钮；授权后这些红包自动打入微信，状态改为已领取，无需再点领取"
             }
           ]
         }
