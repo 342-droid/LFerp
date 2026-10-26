@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>合同</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #f4f5f7;
+      color: #1f2937;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    .sign-bar {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #fff;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 14px 16px 12px;
+    }
+    .sign-bar h1 { margin: 0; font-size: 17px; line-height: 1.4; }
+    .sign-bar p { margin: 6px 0 0; font-size: 12px; color: #6b7280; line-height: 1.5; }
+    .sign-tabs { display: flex; gap: 8px; padding: 12px 16px 0; overflow: auto; }
+    .sign-tab {
+      flex: 0 0 auto;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 13px;
+      color: #374151;
+      cursor: pointer;
+    }
+    .sign-tab.is-active { border-color: #ff7019; color: #ff7019; background: #fff7ed; }
+    .sign-paper {
+      margin: 12px 16px 108px;
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.85;
+      font-size: 14px;
+    }
+    .sign-foot {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+      background: #fff;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      gap: 10px;
+    }
+    .sign-foot button {
+      flex: 1;
+      height: 44px;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      font-size: 15px;
+      cursor: pointer;
+    }
+    .sign-foot .primary { background: #ff7019; color: #fff; border-color: #ff7019; }
+    .sign-foot button:disabled { background: #f3f4f6; color: #15803d; border-color: #e5e7eb; cursor: default; }
+  </style>
+</head>
+<body>
+  <div class="sign-bar">
+    <h1 id="signTitle">合同</h1>
+    <p id="signMeta"></p>
+  </div>
+  <div class="sign-tabs" id="signTabs"></div>
+  <div class="sign-paper" id="signPaper">正在打开合同…</div>
+  <div class="sign-foot" id="signFoot"></div>
+  <script src="../js/contract-bodies.js?v=20261026-sign-html"></script>
+  <script src="../js/basic-settings-contract.js?v=20261026-sign-fill"></script>
+  <script src="../js/contract-sign-page.js?v=20261026-sign-html"></script>
+</body>
+</html>

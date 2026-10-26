@@ -776,12 +776,14 @@
       auditApproved &&
       (store.companyAgreementStatus === '待签署' || store.companyAgreementStatus === '已签署')
     ) {
+      ensureBdStoreContract(store);
+      var agreementLabel = store.companyAgreementName || agreementTitle(store.partnerDivision);
       agreementCard =
         '<div style="margin:0 12px 12px;padding:14px;border-radius:16px;border:1px solid rgba(229,231,235,.7);background:#fff">' +
         '<h3 style="margin:0 0 10px;font-size:14px;font-weight:700">门店协议</h3>' +
         '<div style="font-size:12px;margin-bottom:6px"><span style="color:var(--bd-muted)">协议名称 </span>' +
         '<span style="font-weight:700">' +
-        escapeHtml(agreementTitle(store.partnerDivision)) +
+        escapeHtml(agreementLabel) +
         '</span></div>' +
         '<div style="font-size:12px"><span style="color:var(--bd-muted)">协议状态 </span>' +
         '<span style="font-weight:700">' +
@@ -790,7 +792,8 @@
         (store.companyAgreementNo
           ? '<button type="button" style="margin-top:10px;width:100%;text-align:left;padding:10px;border-radius:10px;border:1px solid var(--bd-border);background:rgba(249,250,251,.8);cursor:pointer" data-open-contract><span style="font-size:11px;color:var(--bd-muted);display:block">协议编号</span><span style="font-family:monospace;color:var(--bd-primary);font-weight:700">' +
             escapeHtml(store.companyAgreementNo) +
-            '</span><span style="font-size:10px;color:var(--bd-muted)">点击查看合同</span></button>'
+            '</span><span style="font-size:10px;color:var(--bd-muted)">点击查看合同</span></button>' +
+            '<button type="button" data-copy-contract style="margin-top:8px;width:100%;height:36px;border-radius:10px;border:1px solid var(--bd-primary);background:#fff;color:var(--bd-primary);font-weight:700;cursor:pointer">复制合同链接</button>'
           : '') +
         '</div>';
     }
@@ -1222,9 +1225,24 @@
     root.querySelectorAll('[data-open-contract]').forEach(function (b) {
       b.onclick = function () {
         var store = getStore(route.id);
-        if (store && store.companyAgreementPdfUrl) window.open(store.companyAgreementPdfUrl, '_blank');
+        if (store && store.companyAgreementSignUrl && store.companyAgreementSignUrl.indexOf('contract_sign.html') >= 0) {
+          window.open(store.companyAgreementSignUrl, '_blank');
+        } else if (store && store.companyAgreementPdfUrl) window.open(store.companyAgreementPdfUrl, '_blank');
         else if (store && store.companyAgreementSignUrl) window.open(store.companyAgreementSignUrl, '_blank');
         else window.bdToast && window.bdToast('暂无可查看的合同链接');
+      };
+    });
+    root.querySelectorAll('[data-copy-contract]').forEach(function (b) {
+      b.onclick = function () {
+        var store = getStore(route.id);
+        var url = store && store.companyAgreementSignUrl;
+        if (!url || !window.LfContract) {
+          window.bdToast && window.bdToast('暂无可复制的合同链接');
+          return;
+        }
+        window.LfContract.copyText(url).then(function () {
+          window.bdToast && window.bdToast('合同链接已复制，可转发给门店');
+        });
       };
     });
     root.querySelectorAll('[data-sysfail]').forEach(function (b) {
@@ -1298,6 +1316,30 @@
     mount();
   }
 
+  function ensureBdStoreContract(store) {
+    if (!store || store.phase !== 'approved') return null;
+    if (store.companyAgreementStatus !== '待签署' && store.companyAgreementStatus !== '已签署') return null;
+    var api = window.LfContract;
+    if (!api) return null;
+    var task = api.generateCoopTask({
+      scene: 'store',
+      bizRef: 'bd-store:' + store.id,
+      name: store.name,
+      partnerType: normalizePartnerDivision(store.partnerDivision) || '加盟店',
+      contact: store.contact || '',
+      address: store.detailAddress || store.address || '',
+      initiator: '门店入驻审核',
+      status: store.companyAgreementStatus === '已签署' ? 'sign_completed' : 'sign_progress'
+    });
+    if (!task) return null;
+    if (task.status === 'sign_completed') store.companyAgreementStatus = '已签署';
+    store.companyAgreementTaskId = task.id;
+    store.companyAgreementSignUrl = task.signUrl;
+    store.companyAgreementName = task.agreementNames || store.companyAgreementName || agreementTitle(store.partnerDivision);
+    store.companyAgreementNo = task.id;
+    return task;
+  }
+
   function confirmApprove() {
     var store = getStore(route.id);
     var ta = qs('#bdApproveTa');
@@ -1322,9 +1364,8 @@
       store.approvedAt = at;
       store.companyAgreementStatus = '待签署';
       store.companyAgreementName = agreementTitle(store.partnerDivision);
-      store.companyAgreementNo = 'HT-DEMO-' + store.id;
       store.companyAgreementGeneratedAt = at;
-      store.companyAgreementSignUrl = 'https://esign.example.com/sign?demo=' + store.id;
+      var task = ensureBdStoreContract(store);
       store.auditHistory.push({
         id: 'h' + Date.now(),
         stage: 'BD总监终审',
@@ -1333,7 +1374,13 @@
         result: '通过',
         remark: remark || '—',
       });
-      window.bdToast && window.bdToast('审核完成', '已生成' + agreementTitle(store.partnerDivision) + '（演示）');
+      if (task && window.LfContract) {
+        window.LfContract.copyText(task.signUrl);
+        window.bdToast && window.bdToast('审核完成', '已生成' + (task.agreementNames || store.companyAgreementName) + '，签署链接已复制');
+      } else {
+        store.companyAgreementNo = store.companyAgreementNo || ('HT-DEMO-' + store.id);
+        window.bdToast && window.bdToast('审核完成', '已生成' + agreementTitle(store.partnerDivision));
+      }
     }
     openModalClose();
     try {

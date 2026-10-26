@@ -43,7 +43,7 @@
     var agreeBtn = document.getElementById('setUserAgreement');
     if (agreeBtn) {
       agreeBtn.addEventListener('click', function () {
-        toast('用户协议内容由基础设置维护（演示）');
+        location.href = '../../SCM/contract_sign.html?scene=user';
       });
     }
 
