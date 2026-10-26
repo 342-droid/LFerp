@@ -64,7 +64,7 @@
     });
   }
 
-  function applyOrderFilterSwitchValue(sw, item) {
+  function applyOrderFilterSwitchValue(sw, item, options) {
     if (!sw || !item) return;
     var text = (item.textContent || '').replace(/\s+/g, '');
     var placeholder = item.getAttribute('data-placeholder') || ('请输入' + text);
@@ -74,6 +74,8 @@
     var hidden = sw.querySelector('input[type="hidden"]');
     var field = sw.parentElement;
     var input = field ? field.querySelector('.order-filter-field__input') : null;
+    var prev = hidden ? hidden.value : '';
+    var isUserSwitch = sw.getAttribute('data-order-filter-switch') === 'user';
     if (labelEl) labelEl.textContent = text;
     if (hidden) hidden.value = value;
     if (controlKind && field) {
@@ -84,6 +86,10 @@
     if (input && (!controlKind || controlKind === 'input')) {
       input.placeholder = placeholder;
       input.setAttribute('aria-label', text);
+      /* 买家信息：切换下拉清空输入；重置时也清空 */
+      if (isUserSwitch && (value !== prev || (options && options.reset))) {
+        input.value = '';
+      }
     }
     sw.querySelectorAll('.order-filter-switch__item').forEach(function (btn) {
       var active = btn === item;
@@ -95,7 +101,7 @@
   function resetOrderFilterSwitches() {
     document.querySelectorAll('.order-filter-switch').forEach(function (sw) {
       var first = sw.querySelector('.order-filter-switch__item');
-      applyOrderFilterSwitchValue(sw, first);
+      applyOrderFilterSwitchValue(sw, first, { reset: true });
     });
     closeOrderFilterSwitches();
   }
@@ -316,6 +322,38 @@
     receiverName: '收货人姓名',
     receiverPhone: '收货人电话'
   };
+
+  function getRowBuyerUserId(row) {
+    return String((row && row.getAttribute('data-user-id')) || '').trim();
+  }
+
+  function getRowBuyerPhone(row) {
+    var phone = String((row && row.getAttribute('data-user-phone')) || '').trim();
+    if (phone) return phone;
+    if (row && window.OrderLiveDetail && typeof window.OrderLiveDetail.resolveDetail === 'function') {
+      var detail = window.OrderLiveDetail.resolveDetail(row.getAttribute('data-order-id'), row);
+      if (detail && detail.customer && detail.customer.phone) return String(detail.customer.phone);
+    }
+    return getRowCellByPrefKey(row, 'receiverPhone');
+  }
+
+  function rowMatchesBuyerQuery(row, userKey, userQ) {
+    if (!userQ) return true;
+    /* 用户ID：精确匹配，须输入完整用户ID才返回结果 */
+    if (userKey === 'userId') {
+      return normalizeFilterText(getRowBuyerUserId(row)) === userQ;
+    }
+    if (userKey === 'userPhone') {
+      return normalizeFilterText(getRowBuyerPhone(row)).indexOf(userQ) >= 0;
+    }
+    if (userKey === 'receiverName') {
+      return getRowCellByPrefKey(row, 'receiverName').indexOf(userQ) >= 0;
+    }
+    if (userKey === 'receiverPhone') {
+      return getRowCellByPrefKey(row, 'receiverPhone').indexOf(userQ) >= 0;
+    }
+    return getRowCellByPrefKey(row, 'nickname').indexOf(userQ) >= 0;
+  }
 
   function getRowCellByPrefKey(row, key) {
     var table = row && row.closest('table');
@@ -938,13 +976,7 @@
       }
       if (show && (userQ || phoneQ)) {
         if (userQ) {
-          var userCol =
-            userKey === 'receiverName'
-              ? 'receiverName'
-              : userKey === 'receiverPhone'
-                ? 'receiverPhone'
-                : 'nickname';
-          show = getRowCellByPrefKey(row, userCol).indexOf(userQ) >= 0;
+          show = rowMatchesBuyerQuery(row, userKey, userQ);
         }
         if (show && phoneQ) {
           show = getRowCellByPrefKey(row, 'receiverPhone').indexOf(phoneQ) >= 0;
@@ -2776,6 +2808,13 @@
         day + ' ' + padOrderDatePart(when.getHours()) + ':' + padOrderDatePart(when.getMinutes());
       row.setAttribute('data-ordered-at', day);
       if (timeIdx >= 0 && row.children[timeIdx]) row.children[timeIdx].textContent = text;
+      /* 买家信息筛选：每行补唯一用户ID；电话回退收货人电话 */
+      if (!row.getAttribute('data-user-id')) {
+        row.setAttribute('data-user-id', '318605592682' + String(100000 + index));
+      }
+      if (!row.getAttribute('data-user-phone')) {
+        row.setAttribute('data-user-phone', getRowCellByPrefKey(row, 'receiverPhone') || '13800138000');
+      }
     });
   }
 
