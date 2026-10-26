@@ -1,7 +1,175 @@
 {
-  "latestSha": "bebe0e14d4a34eab4cf620ffa815409916401e89",
-  "total": 455,
+  "latestSha": "afbd5d86a9bc68e800b2bd05934f94aeda386e1c",
+  "total": 456,
   "days": [
+    {
+      "date": "2026-10-27",
+      "items": [
+        {
+          "sha": "afbd5d8",
+          "type": "feat",
+          "text": "入驻审核通过后生成合作合同，支持转发链接和门店签署",
+          "author": "sisi",
+          "time": "00:25",
+          "pages": [
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_bd_stores.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 门店模块"
+            },
+            {
+              "file": "SCM/basic_settings_contract_config.html",
+              "module": "冷丰WMS",
+              "title": "接入配置"
+            },
+            {
+              "file": "SCM/basic_settings_contract_party.html",
+              "module": "冷丰WMS",
+              "title": "签署主体"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task.html",
+              "module": "冷丰WMS",
+              "title": "签署任务"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_detail.html",
+              "module": "冷丰WMS",
+              "title": "签署任务详情"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template.html",
+              "module": "冷丰WMS",
+              "title": "合同模板"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template_form.html",
+              "module": "冷丰WMS",
+              "title": "合同模板配置"
+            },
+            {
+              "file": "SCM/contract_sign.html",
+              "module": "",
+              "title": "合同"
+            },
+            {
+              "file": "shop-h5/h5/store/contracts.html",
+              "module": "",
+              "title": "签署合同 · Shop H5"
+            },
+            {
+              "file": "shop-h5/h5/store/status.html",
+              "module": "",
+              "title": "门店状态 · Shop H5"
+            },
+            {
+              "file": "user-app/h5/change-password.html",
+              "module": "",
+              "title": "修改密码 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/forgot-password.html",
+              "module": "",
+              "title": "找回密码 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-password.html",
+              "module": "",
+              "title": "账号密码登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-phone.html",
+              "module": "",
+              "title": "手机快速登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-register.html",
+              "module": "",
+              "title": "账号注册 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login.html",
+              "module": "",
+              "title": "登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/set-password.html",
+              "module": "",
+              "title": "设置密码 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/settings.html",
+              "module": "",
+              "title": "设置 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "text": "门店总监终审通过后生成门店合作合同，供应商财务审核通过后生成供应商合作合同；详情可复制合同链接"
+            },
+            {
+              "file": "SCM/contract_sign.html",
+              "text": "BD 门店模块: 总监终审通过后生成门店合作合同，协议卡片可复制链接并打开合同"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template.html",
+              "text": "场景改为供应商合作；列表可复制合同正文链接转发给门店或供应商"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template_form.html",
+              "text": "绑定详情里可复制合同正文链接"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task.html",
+              "text": "说明审核通过后自动生成待签署任务；复制链接打开合同页即可签署"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_detail.html",
+              "text": "底栏改为复制合同链接，打开的是合同正文页"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "text": "发起后的签署链接改为合同正文页"
+            },
+            {
+              "file": "SCM/basic_settings_contract_config.html",
+              "text": "供应商入驻文案改为供应商合作"
+            },
+            {
+              "file": "SCM/contract_sign.html",
+              "text": "新增合同正文页，待签署时可确认签署，模板链接只供查阅"
+            },
+            {
+              "file": "shop-h5/h5/store/status.html",
+              "text": "审核通过后按钮改为去签署合同"
+            },
+            {
+              "file": "shop-h5/h5/store/contracts.html",
+              "text": "门店可查看待签署合同、复制链接或打开签署"
+            },
+            {
+              "file": "user-app/h5/login-register.html",
+              "text": "勾选注册服务协议和隐私政策并完成注册即视为已签署，用户 APP 与小程序规则相同"
+            },
+            {
+              "file": "user-app/h5/settings.html",
+              "text": "用户协议打开注册服务协议和隐私政策正文"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-10-26",
       "items": [
@@ -121,6 +289,16 @@
               "file": "SCM/basic_settings_contract_template_form.html",
               "module": "冷丰WMS",
               "title": "合同模板配置"
+            },
+            {
+              "file": "SCM/contract_sign.html",
+              "module": "",
+              "title": "合同"
+            },
+            {
+              "file": "shop-h5/h5/store/contracts.html",
+              "module": "",
+              "title": "签署合同 · Shop H5"
             },
             {
               "file": "shop-h5/h5/store/register.html",
@@ -285,7 +463,7 @@
               "text": "添加 / 编辑门店: BD 添加和编辑仍填写事业线、品牌、业务线，合作类型同步为加盟店、联营店、直营店"
             },
             {
-              "file": null,
+              "file": "SCM/contract_sign.html",
               "text": "BD 门店模块: 门店协议按合作类型带出全部适用协议，加盟店同时包含品牌合作合同和资金清分结算合同"
             },
             {
@@ -12453,6 +12631,11 @@
               "title": "入驻审核"
             },
             {
+              "file": "MDM/mdm_bd_stores.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 门店模块"
+            },
+            {
               "file": "MDM/mdm_live_control.html",
               "module": "冷丰WMS",
               "title": "直播中控"
@@ -12698,9 +12881,19 @@
               "title": "系统管理"
             },
             {
+              "file": "SCM/contract_sign.html",
+              "module": "",
+              "title": "合同"
+            },
+            {
               "file": "prototype-gen.html",
               "module": "",
               "title": "原型生成 · 版本清单"
+            },
+            {
+              "file": "shop-h5/h5/store/contracts.html",
+              "module": "",
+              "title": "签署合同 · Shop H5"
             },
             {
               "file": "store-app/h5/home.html",
@@ -12756,6 +12949,11 @@
               "file": "user-app/h5/live-room.html",
               "module": "",
               "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-register.html",
+              "module": "",
+              "title": "账号注册 · 用户 APP"
             },
             {
               "file": "user-app/h5/mall.html",
@@ -18873,6 +19071,11 @@
               "file": "MDM/mdm_super_admin_accounts.html",
               "module": "冷丰WMS",
               "title": "商户主体建档"
+            },
+            {
+              "file": "shop-h5/h5/store/contracts.html",
+              "module": "",
+              "title": "签署合同 · Shop H5"
             },
             {
               "file": "shop-h5/h5/store/register.html",
@@ -36031,6 +36234,11 @@
           "time": "15:43",
           "pages": [
             {
+              "file": "shop-h5/h5/store/contracts.html",
+              "module": "",
+              "title": "签署合同 · Shop H5"
+            },
+            {
               "file": "shop-h5/h5/store/register.html",
               "module": "",
               "title": "门店注册 · Shop H5"
@@ -36107,6 +36315,11 @@
           "author": "342-droid",
           "time": "15:08",
           "pages": [
+            {
+              "file": "shop-h5/h5/store/contracts.html",
+              "module": "",
+              "title": "签署合同 · Shop H5"
+            },
             {
               "file": "shop-h5/h5/store/register.html",
               "module": "",

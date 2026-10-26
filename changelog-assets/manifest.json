@@ -189,281 +189,6 @@
     "status": "added",
     "date": "2026-10-17"
   },
-  "7f804cc|MDM/mdm_audit_cash_redpack.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "7f804cc|MDM/mdm_live_control.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "7f804cc|MDM/mdm_live_session_detail.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "7f804cc|MDM/mdm_live_session_form.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "7f804cc|MDM/mdm_marketing_cash_redpack_tpl.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "7f804cc|MDM/mdm_marketing_cash_redpack_tpl_form.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "7f804cc|MDM/mdm_marketing_register_gift.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "7f804cc|MDM/mdm_marketing_register_gift_form.html": {
-    "before": "changelog-assets/7f804cc/MDM__mdm_marketing_register_gift_form.html.before.jpg",
-    "after": "changelog-assets/7f804cc/MDM__mdm_marketing_register_gift_form.html.after.jpg",
-    "regions": 17,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "7f804cc|MDM/mdm_marketing_template.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "7f804cc|user-app/h5/home.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "7f804cc|user-app/h5/live-room.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "7f804cc|user-app/h5/profile.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "7f804cc|user-app/h5/redpack-claim.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "7f804cc|user-app/h5/redpack-records.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|MDM/mdm_audit_cash_redpack.html": {
-    "before": "changelog-assets/94c49d6/MDM__mdm_audit_cash_redpack.html.before.jpg",
-    "after": "changelog-assets/94c49d6/MDM__mdm_audit_cash_redpack.html.after.jpg",
-    "regions": 1,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|MDM/mdm_audit_cash_redpack_manual.html": {
-    "before": "changelog-assets/94c49d6/MDM__mdm_audit_cash_redpack_manual.html.before.jpg",
-    "after": "changelog-assets/94c49d6/MDM__mdm_audit_cash_redpack_manual.html.after.jpg",
-    "regions": 1,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|MDM/mdm_audit_coupon.html": {
-    "before": "changelog-assets/94c49d6/MDM__mdm_audit_coupon.html.before.jpg",
-    "after": "changelog-assets/94c49d6/MDM__mdm_audit_coupon.html.after.jpg",
-    "regions": 48,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|MDM/mdm_live_control.html": {
-    "before": "changelog-assets/94c49d6/MDM__mdm_live_control.html.before.jpg",
-    "after": "changelog-assets/94c49d6/MDM__mdm_live_control.html.after.jpg",
-    "regions": 1,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|MDM/mdm_live_data.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|MDM/mdm_live_product_category.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|MDM/mdm_live_product_sched.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|MDM/mdm_live_product_sched_edit.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|MDM/mdm_live_room.html": {
-    "before": "changelog-assets/94c49d6/MDM__mdm_live_room.html.before.jpg",
-    "after": "changelog-assets/94c49d6/MDM__mdm_live_room.html.after.jpg",
-    "regions": 10,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|MDM/mdm_live_session.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|MDM/mdm_live_session_detail.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|MDM/mdm_live_session_form.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|MDM/mdm_live_timeslot.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|MDM/mdm_marketing_cash_redpack.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|MDM/mdm_marketing_cash_redpack_manual.html": {
-    "before": "changelog-assets/94c49d6/MDM__mdm_marketing_cash_redpack_manual.html.before.jpg",
-    "after": "changelog-assets/94c49d6/MDM__mdm_marketing_cash_redpack_manual.html.after.jpg",
-    "regions": 3,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|MDM/mdm_marketing_cash_redpack_manual_form.html": {
-    "before": "changelog-assets/94c49d6/MDM__mdm_marketing_cash_redpack_manual_form.html.before.jpg",
-    "after": "changelog-assets/94c49d6/MDM__mdm_marketing_cash_redpack_manual_form.html.after.jpg",
-    "regions": 4,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|MDM/mdm_marketing_cash_redpack_tpl.html": {
-    "before": "changelog-assets/94c49d6/MDM__mdm_marketing_cash_redpack_tpl.html.before.jpg",
-    "after": "changelog-assets/94c49d6/MDM__mdm_marketing_cash_redpack_tpl.html.after.jpg",
-    "regions": 1,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|MDM/mdm_marketing_cash_redpack_tpl_form.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|MDM/mdm_marketing_coupon.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|MDM/mdm_marketing_coupon_form.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|MDM/mdm_marketing_register_gift.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|MDM/mdm_marketing_register_gift_form.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|MDM/mdm_marketing_seckill.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|MDM/mdm_marketing_seckill_product.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|MDM/mdm_marketing_template.html": {
-    "before": "changelog-assets/94c49d6/MDM__mdm_marketing_template.html.before.jpg",
-    "after": "changelog-assets/94c49d6/MDM__mdm_marketing_template.html.after.jpg",
-    "regions": 18,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|MDM/mdm_member_c.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|MDM/mdm_member_level_form.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|MDM/mdm_member_points_cash.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|MDM/mdm_member_points_consume.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|MDM/mdm_member_points_rule.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|MDM/mdm_product_selection.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|SCM/basic_settings_recommendation.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|user-app/h5/home.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|user-app/h5/live-room.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|user-app/h5/profile.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|user-app/h5/redpack-claim.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
-  "94c49d6|user-app/h5/redpack-records.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-13"
-  },
   "9c64d6b|MDM/mdm_audit_cash_redpack.html": {
     "regions": 0,
     "status": "diff",
@@ -663,17 +388,117 @@
     "status": "diff",
     "date": "2026-10-16"
   },
-  "a6d2434|SCM/app_list.html": {
-    "before": "changelog-assets/a6d2434/SCM__app_list.html.before.jpg",
-    "after": "changelog-assets/a6d2434/SCM__app_list.html.after.jpg",
+  "afbd5d8|MDM/mdm_audit_store_registration.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-27"
+  },
+  "afbd5d8|MDM/mdm_bd_stores.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-27"
+  },
+  "afbd5d8|SCM/basic_settings_contract_config.html": {
+    "before": "changelog-assets/afbd5d8/SCM__basic_settings_contract_config.html.before.jpg",
+    "after": "changelog-assets/afbd5d8/SCM__basic_settings_contract_config.html.after.jpg",
     "regions": 1,
     "status": "diff",
-    "date": "2026-10-13"
+    "date": "2026-10-27"
   },
-  "a6d2434|SCM/app_task_board.html": {
-    "after": "changelog-assets/a6d2434/SCM__app_task_board.html.after.jpg",
+  "afbd5d8|SCM/basic_settings_contract_party.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-27"
+  },
+  "afbd5d8|SCM/basic_settings_contract_task.html": {
+    "before": "changelog-assets/afbd5d8/SCM__basic_settings_contract_task.html.before.jpg",
+    "after": "changelog-assets/afbd5d8/SCM__basic_settings_contract_task.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-10-27"
+  },
+  "afbd5d8|SCM/basic_settings_contract_task_detail.html": {
+    "before": "changelog-assets/afbd5d8/SCM__basic_settings_contract_task_detail.html.before.jpg",
+    "after": "changelog-assets/afbd5d8/SCM__basic_settings_contract_task_detail.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-10-27"
+  },
+  "afbd5d8|SCM/basic_settings_contract_task_form.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-27"
+  },
+  "afbd5d8|SCM/basic_settings_contract_template.html": {
+    "before": "changelog-assets/afbd5d8/SCM__basic_settings_contract_template.html.before.jpg",
+    "after": "changelog-assets/afbd5d8/SCM__basic_settings_contract_template.html.after.jpg",
+    "regions": 12,
+    "status": "diff",
+    "date": "2026-10-27"
+  },
+  "afbd5d8|SCM/basic_settings_contract_template_form.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-27"
+  },
+  "afbd5d8|SCM/contract_sign.html": {
+    "after": "changelog-assets/afbd5d8/SCM__contract_sign.html.after.jpg",
     "status": "added",
-    "date": "2026-10-13"
+    "date": "2026-10-27"
+  },
+  "afbd5d8|shop-h5/h5/store/contracts.html": {
+    "after": "changelog-assets/afbd5d8/shop-h5__h5__store__contracts.html.after.jpg",
+    "status": "added",
+    "date": "2026-10-27"
+  },
+  "afbd5d8|shop-h5/h5/store/status.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-27"
+  },
+  "afbd5d8|user-app/h5/change-password.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-27"
+  },
+  "afbd5d8|user-app/h5/forgot-password.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-27"
+  },
+  "afbd5d8|user-app/h5/login-password.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-27"
+  },
+  "afbd5d8|user-app/h5/login-phone.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-27"
+  },
+  "afbd5d8|user-app/h5/login-register.html": {
+    "before": "changelog-assets/afbd5d8/user-app__h5__login-register.html.before.jpg",
+    "after": "changelog-assets/afbd5d8/user-app__h5__login-register.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-10-27"
+  },
+  "afbd5d8|user-app/h5/login.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-27"
+  },
+  "afbd5d8|user-app/h5/set-password.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-27"
+  },
+  "afbd5d8|user-app/h5/settings.html": {
+    "before": "changelog-assets/afbd5d8/user-app__h5__settings.html.before.jpg",
+    "after": "changelog-assets/afbd5d8/user-app__h5__settings.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-10-27"
   },
   "afe20ce|MDM/mdm_aftersale_feedback.html": {
     "before": "changelog-assets/afe20ce/MDM__mdm_aftersale_feedback.html.before.jpg",
