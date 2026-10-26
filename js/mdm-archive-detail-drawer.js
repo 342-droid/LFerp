@@ -2908,7 +2908,14 @@
         if (c.length < 16) return null;
         var name = cellPlain(c[2]);
         var partner = cellPlain(c[3]);
-        var isFP = partner === '加盟店' || partner === '合作店' || partner === '生鲜店';
+        if (partner === '生鲜店' || partner === '同行店') partner = '加盟店';
+        if (partner === '合作店') partner = '联营店';
+        var isFP =
+            partner === '加盟店' ||
+            partner === '联营店' ||
+            partner === '直营店' ||
+            partner === '合作店' ||
+            partner === '生鲜店';
         var isPeer = partner === '同行店';
         var settleType = cellPlain(c[13]);
         function attr(key, fallback) {

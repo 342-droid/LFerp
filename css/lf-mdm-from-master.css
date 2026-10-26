@@ -1074,6 +1074,31 @@
   box-sizing: border-box;
 }
 
+.store-form__checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  padding-top: 4px;
+}
+
+.store-form__check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--color-text, #333);
+  cursor: pointer;
+}
+
+.store-form__field-tip {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.5;
+}
+
 /* 与「基础信息」板块标题同款：左侧蓝条，无卡片边框 */
 .store-form__collapse {
   margin: 0 0 14px;

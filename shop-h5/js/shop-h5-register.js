@@ -64,20 +64,6 @@
     return BD_LINKABLE_WAREHOUSES[0];
   }
 
-  function getRegionalProtectionHint(partnerDivision, regionCascade, detailAddress) {
-    var div = (partnerDivision || '').trim();
-    if (div !== '加盟店' && div !== '合作店') return { showWarning: false, message: '' };
-    var text = (regionCascade || '') + (detailAddress || '');
-    if (text.indexOf('西湖区') >= 0 && /文一西路|558/.test(text)) {
-      return {
-        showWarning: true,
-        message:
-          '该区域涉及区域保护范围，已有门店建档。请更换选址，或在「特殊情况说明」中备注并经 BD 总监确认后再提交。',
-      };
-    }
-    return { showWarning: false, message: '' };
-  }
-
   function filterMockStorePois(query) {
     var t = (query || '').trim();
     if (!t) return [];
@@ -166,6 +152,9 @@
       confidenceReach1000: '',
       specialCircumstancesNote: '无',
       otherPlatformsCooperation: '',
+      bizLine: '餐饮',
+      brandName: '冷丰锅贴',
+      bizLines: ['拉新', '商城'],
       mapPoiQuery: MOCK_STORE_POIS[0].displayName,
       companyCallbackNotified: true,
       frontPhotoUploaded: true,
@@ -259,18 +248,6 @@
     });
   }
 
-  function updateProtectionUi() {
-    var pd = $('partnerDivision').value;
-    var rc = $('regionCascade').value;
-    var da = $('detailAddress').value;
-    var hint = getRegionalProtectionHint(pd, rc, da);
-    var box = $('protectionAlert');
-    if (hint.showWarning) {
-      box.classList.remove('shop-h5-hidden');
-      $('protectionAlertMsg').textContent = hint.message;
-    } else box.classList.add('shop-h5-hidden');
-  }
-
   function syncWarehouseHint() {
     var bd = $('boundBd').value || '当前 BD';
     var def = getDefaultWarehouseForBd(resolveBdDisplayName(bd) !== '—' ? resolveBdDisplayName(bd) : bd);
@@ -298,17 +275,47 @@
       else sel.value = def;
     }
 
+  /** 三种合作类型都按加盟店资料填写。历史值：生鲜店、同行店归加盟店，合作店归联营店。 */
+  function normalizePartnerDivision(v) {
+    var t = (v || '').trim();
+    if (t === '生鲜店' || t === '同行店') return '加盟店';
+    if (t === '合作店') return '联营店';
+    return t;
+  }
+
+  function usesFranchiseMaterials(v) {
+    v = normalizePartnerDivision(v);
+    return v === '加盟店' || v === '联营店' || v === '直营店';
+  }
+
+  function ensurePartnerOption(v) {
+    var sel = $('partnerDivision');
+    if (!sel || !v) return;
+    var exists = false;
+    for (var i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].value === v) {
+        exists = true;
+        break;
+      }
+    }
+    if (exists) return;
+    var opt = document.createElement('option');
+    opt.value = v;
+    opt.textContent = v;
+    sel.appendChild(opt);
+  }
+
   function togglePolicyPanels() {
-    var v = $('partnerDivision').value;
+    var raw = $('partnerDivision').value;
+    var v = normalizePartnerDivision(raw);
+    if (v && v !== raw) $('partnerDivision').value = v;
     var policy = !!v;
     $('policyPlaceholder').classList.toggle('shop-h5-hidden', policy);
     $('policyPanels').classList.toggle('shop-h5-hidden', !policy);
     $('storeTypeRow').classList.toggle('shop-h5-hidden', !policy);
-    var fr = v === '加盟店' || v === '合作店' || v === '生鲜店';
-    var peer = v === '同行店';
+    var fr = usesFranchiseMaterials(v);
     $('blockFranchise').classList.toggle('shop-h5-hidden', !fr);
-    $('blockPeer').classList.toggle('shop-h5-hidden', !peer);
-    updateProtectionUi();
+    $('blockPeer').classList.add('shop-h5-hidden');
   }
 
   function refreshPoiList() {
@@ -359,7 +366,6 @@
         $('mapPin').style.left = p.mapX + '%';
         $('mapPin').style.top = p.mapY + '%';
         refreshPoiList();
-        updateProtectionUi();
         toast('已选点：省市区与详细地址已根据地图 POI 更新（演示）');
       };
       listEl.appendChild(btn);
@@ -413,8 +419,7 @@
 
   function collectPayloadFromForm() {
     var partnerDivision = $('partnerDivision').value;
-    var isFranchiseOrPartner =
-      partnerDivision === '加盟店' || partnerDivision === '合作店' || partnerDivision === '生鲜店';
+    var isFranchiseOrPartner = usesFranchiseMaterials(partnerDivision);
     var isPeerStore = partnerDivision === '同行店';
     var nameOut = $('name').value.trim() || '未命名门店';
     var warehouse = $('warehouse').value.trim() || getDefaultWarehouseForBd($('boundBd').value);
@@ -463,7 +468,7 @@
       return toastLines('请填写绑定 BD', '', true), false;
     if (!f.warehouse || !String(f.warehouse).trim() || f.warehouse === '—')
       return toastLines('请选择配送仓库', '', true), false;
-    if (!f.partnerDivision) return toastLines('请选择门店合作类型（加盟店/合作店/同行店/生鲜店）', '', true), false;
+    if (!f.partnerDivision) return toastLines('请选择门店合作类型（加盟店/联营店/直营店）', '', true), false;
 
     var isCreate = state.mode === 'create';
     var mapOk = isCreate
@@ -501,34 +506,6 @@
     if (f.isFranchiseOrPartner) {
       if (!f.storeArea) return toastLines('请填写门店面积', '', true), false;
       if (!f.storeFloors) return toastLines('请填写门店楼层', '', true), false;
-      var hint = getRegionalProtectionHint(f.partnerDivision, f.regionCascade, f.detailAddress);
-      if (hint.showWarning) {
-        var specialTrim = (f.specialCircumstancesNote || '').trim();
-        var textOk = specialTrim.length > 0 && specialTrim !== '无';
-        var hasPic = state.specialUrls.length > 0;
-        if (!textOk && !hasPic) {
-          expandCollapsibleById('specialCircumstancesNote');
-          return (
-            toastLines(
-              '该区域涉及区域保护范围',
-              '请在「特殊情况说明」中填写文字或上传配图，说明与总监沟通等情况（不可留空且不可仅填「无」而无配图）',
-              true
-            ),
-            false
-          );
-        }
-        if (specialTrim === '无' && !hasPic) {
-          expandCollapsibleById('specialCircumstancesNote');
-          return (
-            toastLines(
-              '该区域涉及区域保护范围',
-              '不可仅在正文填写「无」而无配图；请补充说明或上传相关截图',
-              true
-            ),
-            false
-          );
-        }
-      }
     }
 
     if (!f.companyCallbackNotified)
@@ -545,7 +522,9 @@
     $('boundBd').value = s.boundBd || '';
     $('warehouse').dataset.pending = s.warehouse || '';
     fillWarehouseSelect();
-    $('partnerDivision').value = s.partnerDivision || '';
+    var partner = normalizePartnerDivision(s.partnerDivision || '');
+    ensurePartnerOption(partner);
+    $('partnerDivision').value = partner;
     $('storeTypeDetail').value = s.storeTypeDetail || '';
     $('regionCascade').value = s.regionCascade || '';
     $('detailAddress').value = s.detailAddress || '';
@@ -600,7 +579,6 @@
     $('heroTitle').textContent = $('name').value.trim() || '未命名门店';
     $('btnRefrigeratedPick').disabled = $('hasRefrigeratedCabinet').value !== '有';
     $('btnFreezerPick').disabled = $('hasFreezerCabinet').value !== '有';
-    updateProtectionUi();
   }
 
   function phaseAllowsOwnerSupplement(phase) {
@@ -649,9 +627,6 @@
       togglePolicyPanels();
       syncWarehouseHint();
     });
-
-    $('regionCascade').addEventListener('change', updateProtectionUi);
-    $('detailAddress').addEventListener('input', updateProtectionUi);
 
     $('mapPoiQuery').addEventListener('input', function () {
       refreshPoiList();

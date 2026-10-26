@@ -254,9 +254,10 @@
   function chipsHTML(store) {
     var out = [];
     if (store.partnerDivision) {
+      var partnerLabel = normalizePartnerDivision(store.partnerDivision);
       out.push(
         '<span class="bd-chip-partner">' +
-          escapeHtml(store.partnerDivision) +
+          escapeHtml(partnerLabel) +
           '</span>'
       );
     }
@@ -473,8 +474,9 @@
       archiveCard(
         '📄',
         '门店与公司协议',
-        '合作协议生成、签署与合同查阅',
-        fieldBlock('协议状态', statusDisplay) +
+        '按门店合作类型生成该场景下的全部协议，签署与合同查阅',
+        fieldBlock('协议名称', agreementTitle(store.partnerDivision)) +
+          fieldBlock('协议状态', statusDisplay) +
           fieldBlock('协议编号', dash(store.companyAgreementNo)) +
           fieldBlock('生成时间', dash(store.companyAgreementGeneratedAt)) +
           fieldBlock('签署完成时间', dash(store.companyAgreementSignedAt)) +
@@ -523,9 +525,15 @@
   }
 
   function archiveBody(store, appendAgreement) {
-    var div = store.partnerDivision;
-    var policy = div === '加盟店' || div === '合作店' || div === '同行店' || div === '生鲜店';
-    var fr = div === '加盟店' || div === '合作店' || div === '生鲜店';
+    var div = normalizePartnerDivision(store.partnerDivision);
+    var policy =
+      div === '加盟店' ||
+      div === '联营店' ||
+      div === '直营店' ||
+      div === '合作店' ||
+      div === '同行店' ||
+      div === '生鲜店';
+    var fr = div === '加盟店' || div === '联营店' || div === '直营店' || div === '合作店' || div === '生鲜店';
     var peer = div === '同行店';
     var parts = [];
 
@@ -550,7 +558,7 @@
         '配送与分类',
         '配送仓库默认随绑定 BD，可手动调整；门店合作类型与设备归类',
         fieldBlock('配送仓库', '<span' + whStyle + '>' + archiveText(store.warehouse) + '</span>', 'warehouse', store) +
-          fieldBlock('门店合作类型', archiveText(store.partnerDivision), 'partnerDivision', store) +
+          fieldBlock('门店合作类型', archiveText(div), 'partnerDivision', store) +
           (policy ? fieldBlock('门店类型', archiveText(store.storeType), 'storeType', store) : '') +
           fieldBlock('有无冷藏柜', archiveText(store.hasRefrigeratedCabinet)) +
           fieldBlock('有无冷冻柜', archiveText(store.hasFreezerCabinet)) +
@@ -641,7 +649,7 @@
           archiveCard(
             '📋',
             '特殊情况说明',
-            '选填；触发区域保护提醒时须用文字或图片补充说明。',
+            '选填。如需提请审核同事留意选址或其他情况，可在此说明。',
             fieldBlock('说明内容', archiveText(store.specialCircumstancesNote)) + fieldBlock('配图', '—')
           )
         );
@@ -670,9 +678,15 @@
 
   /** 与 mdm-bd-h5-store-register validate() / field(, true) 对齐；审核档案不展示验证码 */
   function isBdArchiveFieldRequired(fieldKey, store) {
-    var div = String((store && store.partnerDivision) || '').trim();
-    var policy = div === '加盟店' || div === '合作店' || div === '同行店' || div === '生鲜店';
-    var fr = div === '加盟店' || div === '合作店' || div === '生鲜店';
+    var div = normalizePartnerDivision((store && store.partnerDivision) || '');
+    var policy =
+      div === '加盟店' ||
+      div === '联营店' ||
+      div === '直营店' ||
+      div === '合作店' ||
+      div === '同行店' ||
+      div === '生鲜店';
+    var fr = div === '加盟店' || div === '联营店' || div === '直营店' || div === '合作店' || div === '生鲜店';
     var common = {
       storeSubject: true,
       name: true,
@@ -765,6 +779,10 @@
       agreementCard =
         '<div style="margin:0 12px 12px;padding:14px;border-radius:16px;border:1px solid rgba(229,231,235,.7);background:#fff">' +
         '<h3 style="margin:0 0 10px;font-size:14px;font-weight:700">门店协议</h3>' +
+        '<div style="font-size:12px;margin-bottom:6px"><span style="color:var(--bd-muted)">协议名称 </span>' +
+        '<span style="font-weight:700">' +
+        escapeHtml(agreementTitle(store.partnerDivision)) +
+        '</span></div>' +
         '<div style="font-size:12px"><span style="color:var(--bd-muted)">协议状态 </span>' +
         '<span style="font-weight:700">' +
         escapeHtml(store.companyAgreementStatus) +
@@ -1303,6 +1321,7 @@
       store.phase = 'approved';
       store.approvedAt = at;
       store.companyAgreementStatus = '待签署';
+      store.companyAgreementName = agreementTitle(store.partnerDivision);
       store.companyAgreementNo = 'HT-DEMO-' + store.id;
       store.companyAgreementGeneratedAt = at;
       store.companyAgreementSignUrl = 'https://esign.example.com/sign?demo=' + store.id;
@@ -1314,7 +1333,7 @@
         result: '通过',
         remark: remark || '—',
       });
-      window.bdToast && window.bdToast('审核完成', '已生成合作协议（演示）');
+      window.bdToast && window.bdToast('审核完成', '已生成' + agreementTitle(store.partnerDivision) + '（演示）');
     }
     openModalClose();
     try {
@@ -1333,6 +1352,50 @@
     else if (h.indexOf('history/') === 0) route = { name: 'history', id: Number(h.split('/')[1]) };
   }
 
+  function normalizePartnerDivision(v) {
+    var t = String(v || '').trim();
+    if (t === '生鲜店' || t === '同行店') return '加盟店';
+    if (t === '合作店') return '联营店';
+    return t;
+  }
+
+  function agreementTitle(partner) {
+    var type = normalizePartnerDivision(partner) || '加盟店';
+    var fallback = {
+      加盟店: '冷丰品牌合作合同、冷丰加盟门店资金清分结算合同',
+      联营店: '冷丰品牌合作合同',
+      直营店: '冷丰品牌合作合同'
+    };
+    try {
+      var raw = localStorage.getItem('lf_contract_proto_v1');
+      if (raw) {
+        var data = JSON.parse(raw);
+        if (data.catalogVersion !== 'real-20261026') return fallback[type] || fallback['加盟店'];
+        var names = (data.templates || []).filter(function (tpl) {
+          if (tpl.scene !== 'store' || tpl.status !== 'on') return false;
+          var types = Array.isArray(tpl.storePartnerTypes) ? tpl.storePartnerTypes.slice() : [];
+          if (!types.length && tpl.storePartnerType) types = String(tpl.storePartnerType).split(/[、,，]/);
+          return types.indexOf(type) >= 0;
+        }).map(function (tpl) { return tpl.name; });
+        if (names.length) return names.join('、');
+      }
+    } catch (e) {}
+    return fallback[type] || fallback['加盟店'];
+  }
+
+  function migrateFreshPartner(list) {
+    var changed = false;
+    (list || []).forEach(function (s) {
+      if (!s || !s.partnerDivision) return;
+      var next = normalizePartnerDivision(s.partnerDivision);
+      if (next !== s.partnerDivision) {
+        s.partnerDivision = next;
+        changed = true;
+      }
+    });
+    return changed;
+  }
+
   function init() {
     function bootstrap(data) {
       var raw = sessionStorage.getItem('lf_bd_stores_v1');
@@ -1341,6 +1404,11 @@
           var o = JSON.parse(raw);
           if (Array.isArray(o) && o.length) {
             stores = JSON.parse(JSON.stringify(o));
+            if (migrateFreshPartner(stores)) {
+              try {
+                sessionStorage.setItem('lf_bd_stores_v1', JSON.stringify(stores));
+              } catch (e2) {}
+            }
             parseHash();
             mount();
             return;
@@ -1348,6 +1416,7 @@
         } catch (e) {}
       }
       stores = JSON.parse(JSON.stringify(Array.isArray(data) ? data : []));
+      migrateFreshPartner(stores);
       parseHash();
       mount();
       window.addEventListener('hashchange', function () {

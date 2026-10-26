@@ -1,7 +1,7 @@
 /**
  * C 端 — 红包领取记录（小程序 / APP 共用）
- * 未授权时，手动派发出现在列表，状态为未领取。授权后手动派发自动打入微信，无需再点领取。
- * 抽中现金红包福袋、未授权中奖放入账户的红包，仍可点领取。其余现金红包直接到账，显示为已领取。
+ * 未领取固定显示领取按钮，不要改回纯文字。授权后手动派发自动打入微信，显示已领取。
+ * 抽中现金红包福袋、未授权中奖放入账户的红包，点领取。其余现金红包直接到账，显示为已领取。
  * 顶部统计现金收益（只合计已领取金额），以及红包总数、已领取、待领取、已过期。
  * 明细含已过期。待领取可再次打开领取半屏。不展示发放失败。
  */
@@ -591,8 +591,7 @@
     listEl.innerHTML = rows
       .map(function (it) {
         var allows = it.claimKind === 'bag' || it.claimKind === 'hold' || typeof C.recordAllowsPort !== 'function' || C.recordAllowsPort(it, client);
-        var manualWait = isManualPacket(it) && it.status === 'pending';
-        var canClaim = it.status === 'pending' && allows && !manualWait;
+        var canClaim = it.status === 'pending' && allows;
         var tag = canClaim
           ? '<span class="ua-rp-item__action">领取</span>'
           : '<span class="' +

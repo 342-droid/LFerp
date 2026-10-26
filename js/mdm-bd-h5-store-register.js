@@ -1,5 +1,6 @@
 /**
  * 门店扫码 H5：注册 / 补充资料 / 提交后状态 — 对齐 bd-guanli-main
+ * 店长扫码注册不填事业线、品牌名称、业务线；BD 添加/编辑仍必填。
  * StoreRegistrationForm + H5StoreRegisterPage + H5StoreStatusPage
  */
 (function () {
@@ -47,7 +48,8 @@
   var BD_CODE_TO_NAME = { BD20240001: '李泽峰', BD2024LZF: '李泽峰' };
   /** 与人员中心 BD 列表 / 门店档案 boundBd 枚举一致 */
   var BD_NAME_OPTIONS = ['李泽峰', '李明', '赵丽', '王强', '周杰', '张芳'];
-  var PARTNER_DIVISIONS = ['加盟店', '合作店', '同行店', '生鲜店'];
+  /** 新增可选：加盟店、联营店、直营店，资料均按加盟店填写。 */
+  var PARTNER_DIVISIONS = ['加盟店', '联营店', '直营店'];
   var MDM_BD_CURRENT_KEY = 'mdmBdCurrentBd';
   var MDM_BD_ROLE_KEY = 'mdmBdAccountRole';
 
@@ -104,7 +106,21 @@
 
   function normalizePartnerDivision(v) {
     var t = String(v || '').trim();
-    return PARTNER_DIVISIONS.indexOf(t) >= 0 ? t : '加盟店';
+    if (t === '生鲜店' || t === '同行店') return '加盟店';
+    if (t === '合作店') return '联营店';
+    if (!t) return '加盟店';
+    return t;
+  }
+
+  function partnerChoices(current) {
+    var list = PARTNER_DIVISIONS.slice();
+    if (current && list.indexOf(current) < 0) list.push(current);
+    return list;
+  }
+
+  function usesFranchiseMaterials(v) {
+    v = normalizePartnerDivision(v);
+    return v === '加盟店' || v === '联营店' || v === '直营店';
   }
 
   function filterPois(q) {
@@ -119,20 +135,6 @@
         p.regionCascade.indexOf(t) >= 0
       );
     });
-  }
-
-  function protectionHint(partnerDivision, regionCascade, detailAddress) {
-    var div = String(partnerDivision || '').trim();
-    if (div !== '加盟店' && div !== '合作店') return { show: false, msg: '' };
-    var text = String(regionCascade || '') + String(detailAddress || '');
-    if (text.indexOf('西湖区') >= 0 && /文一西路|558/.test(text)) {
-      return {
-        show: true,
-        msg:
-          '该区域涉及区域保护范围，已有门店建档。请更换选址，或在「特殊情况说明」中备注并经 BD 总监确认后再提交。'
-      };
-    }
-    return { show: false, msg: '' };
   }
 
   function maskPhone(p) {
@@ -343,7 +345,10 @@
       otherPlatforms: rec.otherPlatformsCooperation || '',
       broadcastPhotos: [],
       companyCb: !!rec.companyCallbackNotified,
-      boundBd: rec.boundBd || ''
+      boundBd: rec.boundBd || '',
+      bizLine: rec.bizLine || '',
+      brandName: rec.brandName || '',
+      bizLines: window.StoreBizStructure ? window.StoreBizStructure.normalizeBiz(rec.bizLines) : []
     };
     if (!st0.selectedPoiId && st0.regionCascade && st0.detailAddress) {
       st0.selectedPoiId = 'legacy';
@@ -427,6 +432,9 @@
       specialCircumstancesNote: (st.specialCircumstancesNote || '').trim() || '—',
       otherPlatformsCooperation: (st.otherPlatforms || '').trim() || '—',
       companyCallbackNotified: !!st.companyCb,
+      bizLine: st.bizLine || '',
+      brandName: st.brandName || '',
+      bizLines: (st.bizLines || []).slice(),
       phase: phase
     });
     if (submitMode === 'submit' && !isCreate && rec.phase === 'awaiting_bd' && phase === 'awaiting_leader') {
@@ -462,15 +470,37 @@
       (document.body.getAttribute('data-json-stores') || '').trim() ||
       new URL('../js/mdm-bd-store-audits.json', location.href).toString();
 
+    function migrateFreshPartner(list) {
+      var changed = false;
+      (list || []).forEach(function (s) {
+        if (!s || !s.partnerDivision) return;
+        var next = normalizePartnerDivision(s.partnerDivision);
+        if (next !== s.partnerDivision) {
+          s.partnerDivision = next;
+          changed = true;
+        }
+      });
+      return changed;
+    }
+
     function resolveFromSession(base) {
       var raw = sessionStorage.getItem(BD_STORES_SESSION_KEY);
       if (raw) {
         try {
           var o = JSON.parse(raw);
-          if (Array.isArray(o) && o.length) return o;
+          if (Array.isArray(o) && o.length) {
+            if (migrateFreshPartner(o)) {
+              try {
+                sessionStorage.setItem(BD_STORES_SESSION_KEY, JSON.stringify(o));
+              } catch (e2) {}
+            }
+            return o;
+          }
         } catch (e) {}
       }
-      return Array.isArray(base) ? base : [];
+      var list = Array.isArray(base) ? base : [];
+      migrateFreshPartner(list);
+      return list;
     }
 
     function paint(data) {
@@ -609,7 +639,10 @@
       specialPhotos: [],
       otherPlatforms: '',
       broadcastPhotos: [],
-      companyCb: false
+      companyCb: false,
+      bizLine: '',
+      brandName: '',
+      bizLines: []
     };
 
     if (isBdApp && !bdCtx.isCreate && bdCtx.record) {
@@ -623,11 +656,7 @@
       return !!st.partnerDivision;
     }
     function isFP() {
-      return (
-        st.partnerDivision === '加盟店' ||
-        st.partnerDivision === '合作店' ||
-        st.partnerDivision === '生鲜店'
-      );
+      return usesFranchiseMaterials(st.partnerDivision);
     }
     function isPeer() {
       return st.partnerDivision === '同行店';
@@ -670,10 +699,6 @@
       return 'left:' + p.mapX + '%;top:' + p.mapY + '%;';
     }
 
-    function prot() {
-      return protectionHint(st.partnerDivision, st.regionCascade, st.detailAddress);
-    }
-
     function fullRender() {
       var whOpts = BD_WAREHOUSES.slice();
       if (st.warehouse && whOpts.indexOf(st.warehouse) < 0) whOpts.unshift(st.warehouse);
@@ -686,7 +711,7 @@
         pageTitle = bdCtx.isCreate ? '添加门店' : '编辑门店';
         subLbl = '门店资料';
         heroDesc =
-          '以下内容用于生鲜赋能同行门店入驻审核，须如实填写；资料不全将无法进入审核。加盟店 / 合作店适用区域保护规则（与 PC 后台保护半径一致）。';
+          '以下内容用于门店入驻审核，须如实填写；资料不全将无法进入审核。加盟店、联营店、直营店均按加盟店资料填写。选址是否冲突由审核人员人工排查。';
       }
 
       var html =
@@ -792,6 +817,7 @@
           }
           return field('绑定 BD', true, inner, hint);
         })() +
+        (isBdApp ? bizStructureFields() : '') +
         '</div></section>'
       );
     }
@@ -819,10 +845,13 @@
           '门店合作类型',
           true,
           '<select class="h5-input" id="f_partner">' +
-          PARTNER_DIVISIONS.map(function (d) {
-            return '<option value="' + esc(d) + '">' + esc(d) + '</option>';
-          }).join('') +
-          '</select>'
+          partnerChoices(st.partnerDivision)
+            .map(function (d) {
+              return '<option value="' + esc(d) + '">' + esc(d) + '</option>';
+            })
+            .join('') +
+          '</select>',
+          '三类均按加盟店资料填写'
         ) +
         (policyOn()
           ? field(
@@ -884,16 +913,15 @@
     }
 
     function secAddr() {
-      var ph = prot();
       return (
         '<section class="h5-sec">' +
         secHead(
           '📍',
           '地址与定位',
-          '搜索选点、省市区与详细地址均为必填。模糊搜索门店名称或地址，选中后自动写入省市区与详细地址；坐标与重叠校验由系统落档至后台。'
+          '搜索选点、省市区与详细地址均为必填。模糊搜索门店名称或地址，选中后自动写入省市区与详细地址。选址是否与已有门店冲突，由审核人员人工排查。'
         ) +
         '<div class="h5-sec-body">' +
-        '<p class="h5-rule">同行店无地域保护：同区域内已有同行店时，可继续在同区域开设同行店；同区域内已有加盟店或合作店时，该区域不得再开设加盟店、合作店或同行店。若拟在同区域开设加盟店或合作店，而此前同区域已存在同行店，则该同行店须无条件退出。</p>' +
+        '<p class="h5-rule">加盟店、联营店、直营店均按加盟店资料填写。选址是否冲突不在此拦截，由审核人员人工排查。</p>' +
         field(
           '搜索门店位置',
           false,
@@ -928,10 +956,6 @@
           '<input type="text" class="h5-input" id="f_detail" placeholder="街道、门牌号等" />',
           '选点后自动带出，可与现场核对修改'
         ) +
-        (ph.show
-          ? '<div class="h5-alert h5-alert-warn"><strong>区域保护提醒</strong><p>' + esc(ph.msg) + '</p></div>'
-          : '') +
-        '<p class="h5-note2">「区域地图 · 保护范围」可视化示意安排在<strong class="h5-note2-strong">二期</strong>开发；现阶段请以列表选点与 PC 后台区域规则为准。</p>' +
         '</div></section>'
       );
     }
@@ -1129,7 +1153,7 @@
       if (!isFP()) return '';
       return (
         '<section class="h5-sec h5-sec--collapsible is-collapsed">' +
-        secHeadToggle('☰', '特殊情况说明', '选填；触发区域保护提醒时须用文字或图片补充说明。') +
+        secHeadToggle('☰', '特殊情况说明', '选填。如需提请审核同事留意选址或其他情况，可在此说明。') +
         '<div class="h5-sec-body">' +
         field(
           '说明内容',
@@ -1184,6 +1208,66 @@
       );
     }
 
+    function bizStructureFields() {
+      var api = window.StoreBizStructure;
+      if (!api) return '';
+      var lineList = api.lines();
+      var brandList = api.brands(st.bizLine);
+      var bizOpts = api.bizLines(st.bizLine, st.brandName);
+      var picked = api.normalizeBiz(st.bizLines);
+      var lineOpts =
+        '<option value="">请选择事业线</option>' +
+        lineList
+          .map(function (n) {
+            return '<option value="' + esc(n) + '"' + (n === st.bizLine ? ' selected' : '') + '>' + esc(n) + '</option>';
+          })
+          .join('');
+      var brandOpts =
+        '<option value="">' +
+        (brandList.length ? '请选择品牌名称' : '请先选择事业线') +
+        '</option>' +
+        brandList
+          .map(function (n) {
+            return (
+              '<option value="' + esc(n) + '"' + (n === st.brandName ? ' selected' : '') + '>' + esc(n) + '</option>'
+            );
+          })
+          .join('');
+      var checks = bizOpts.length
+        ? '<div class="h5-biz-checks">' +
+          bizOpts
+            .map(function (n) {
+              return (
+                '<label class="h5-cb h5-biz-check"><input type="checkbox" data-biz-item value="' +
+                esc(n) +
+                '"' +
+                (picked.indexOf(n) >= 0 ? ' checked' : '') +
+                ' /><span>' +
+                esc(n) +
+                '</span></label>'
+              );
+            })
+            .join('') +
+          '</div>'
+        : '<p class="h5-hint">' +
+          (st.bizLine ? '请先选择品牌名称' : '请先选择事业线和品牌名称') +
+          '</p>';
+      return (
+        field('事业线', true, '<select class="h5-input" id="f_bizline">' + lineOpts + '</select>', '单选') +
+        field(
+          '品牌名称',
+          true,
+          '<select class="h5-input" id="f_brand"' +
+            (brandList.length ? '' : ' disabled') +
+            '>' +
+            brandOpts +
+            '</select>',
+          '随事业线切换'
+        ) +
+        field('业务线', true, checks, '可多选，随品牌切换')
+      );
+    }
+
     function field(lab, req, inner, hint) {
       return (
         '<div class="h5-field"><div class="h5-labrow"><label class="h5-lab">' +
@@ -1230,6 +1314,13 @@
       if (el('f_spec')) st.specialCircumstancesNote = el('f_spec').value;
       if (el('f_plat')) st.otherPlatforms = el('f_plat').value;
       if (el('f_company')) st.companyCb = el('f_company').checked;
+      if (el('f_bizline')) st.bizLine = el('f_bizline').value;
+      if (el('f_brand')) st.brandName = el('f_brand').value;
+      if (el('f_bizline')) {
+        st.bizLines = Array.prototype.map.call(document.querySelectorAll('[data-biz-item]:checked'), function (cb) {
+          return cb.value;
+        });
+      }
     }
 
     function syncFromDom() {
@@ -1370,6 +1461,21 @@
         bdToast('请填写门店名称');
         return false;
       }
+      /* 店长扫码注册不填事业线 / 品牌 / 业务线，仅 BD 添加、编辑必填 */
+      if (isBdApp) {
+        if (!st.bizLine) {
+          bdToast('请选择事业线');
+          return false;
+        }
+        if (!st.brandName) {
+          bdToast('请选择品牌名称');
+          return false;
+        }
+        if (!st.bizLines || !st.bizLines.length) {
+          bdToast('请选择业务线');
+          return false;
+        }
+      }
       if (!(st.boundBd || '').trim()) {
         bdToast('请填写绑定 BD');
         return false;
@@ -1425,22 +1531,6 @@
         if (!st.storeFloors.trim()) {
           bdToast('请填写门店楼层');
           return false;
-        }
-        var ph = prot();
-        var sp = st.specialCircumstancesNote.trim();
-        if (ph.show) {
-          var okText = sp.length > 0 && sp !== '无';
-          var hasPic = st.specialPhotos.length > 0;
-          if (!okText && !hasPic) {
-            expandCollapsibleById('f_spec');
-            bdToast('区域保护：请填写特殊情况说明或上传配图');
-            return false;
-          }
-          if (sp === '无' && !hasPic) {
-            expandCollapsibleById('f_spec');
-            bdToast('区域保护：不可仅填「无」而无配图');
-            return false;
-          }
         }
       }
       if (!st.companyCb) {
@@ -1521,10 +1611,30 @@
           'f_conf',
           'f_spec',
           'f_plat',
-          'f_company'
+          'f_company',
+          'f_bizline',
+          'f_brand'
         ],
         function () {
           readFormToState();
+          if (this && this.id === 'f_bizline') {
+            st.brandName = '';
+            st.bizLines = [];
+            fullRender();
+            fillDomFromState();
+            return;
+          }
+          if (this && this.id === 'f_brand') {
+            var allowed = window.StoreBizStructure
+              ? window.StoreBizStructure.bizLines(st.bizLine, st.brandName)
+              : [];
+            st.bizLines = (st.bizLines || []).filter(function (n) {
+              return allowed.indexOf(n) >= 0;
+            });
+            fullRender();
+            fillDomFromState();
+            return;
+          }
           if (this && this.id === 'f_mapq') {
             document.getElementById('poiList').innerHTML = poiListHtml();
           }
@@ -1543,6 +1653,12 @@
         el('f_wh').onchange = function () {
           readFormToState();
         };
+
+      Array.prototype.forEach.call(document.querySelectorAll('[data-biz-item]'), function (cb) {
+        cb.onchange = function () {
+          readFormToState();
+        };
+      });
 
       ['f', 'i'].forEach(function (w) {
         var key = w === 'f' ? 'vidF' : 'vidI';

@@ -548,6 +548,9 @@
         row.setAttribute('data-region', data.region || '');
         row.setAttribute('data-address', data.address || '');
         row.setAttribute('data-short-name', data.shortName || name);
+        row.setAttribute('data-biz-line', data.bizLine || '');
+        row.setAttribute('data-brand-name', data.brandName || '');
+        row.setAttribute('data-biz-lines', data.bizLines || '');
         row.setAttribute('data-latlng', '—');
         row.setAttribute('data-withdraw', '—');
         row.setAttribute('data-settle-cycle', '—');
