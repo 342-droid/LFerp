@@ -9,10 +9,10 @@
     <style>
         .negative-timer-config-modal .modal-content {
             width: 95%;
-            max-width: 560px;
+            max-width: 640px;
             max-height: 88vh;
             overflow: auto;
-            margin: 8% auto;
+            margin: 5% auto;
         }
 
         .negative-timer-config-modal .config-modal-hint {
@@ -20,6 +20,105 @@
             font-size: 13px;
             color: #666;
             line-height: 1.5;
+        }
+
+        .negative-timer-block {
+            border: 1px solid #e8e8e8;
+            border-radius: 4px;
+            padding: 14px 14px 4px;
+            margin-bottom: 14px;
+            background: #fafafa;
+        }
+
+        .negative-timer-block:last-child {
+            margin-bottom: 0;
+        }
+
+        .negative-timer-block__head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .negative-timer-block__title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            line-height: 22px;
+        }
+
+        .negative-timer-switch-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .negative-timer-switch-row__label {
+            font-size: 13px;
+            color: #606266;
+            line-height: 22px;
+        }
+
+        /* 截图样式：胶囊开关，开启显示「启用」，关闭显示「禁用」 */
+        .negative-timer-switch {
+            position: relative;
+            width: 56px;
+            height: 22px;
+            flex-shrink: 0;
+            border: 1px solid #dcdfe6;
+            padding: 0;
+            border-radius: 11px;
+            background: #dcdfe6;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        .negative-timer-switch::before {
+            content: '禁用';
+            position: absolute;
+            top: 0;
+            right: 7px;
+            height: 20px;
+            line-height: 20px;
+            font-size: 12px;
+            color: #fff;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .negative-timer-switch::after {
+            content: '';
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s;
+        }
+
+        .negative-timer-switch.is-on {
+            background: #ff7019;
+            border-color: #ff7019;
+        }
+
+        .negative-timer-switch.is-on::before {
+            content: '启用';
+            left: 7px;
+            right: auto;
+        }
+
+        .negative-timer-switch.is-on::after {
+            transform: translateX(34px);
         }
 
         .negative-timer-config-form .form-group {
@@ -47,6 +146,7 @@
             padding: 0 8px;
             box-sizing: border-box;
             font-size: 13px;
+            background: #fff;
         }
     </style>
 </head>
@@ -166,18 +266,48 @@
                 <span class="close" id="negativeTimerConfigCloseBtn">&times;</span>
             </div>
             <div class="modal-body">
-                <p class="config-modal-hint">配置负库存自动执行的定时任务表达式与描述。</p>
+                <p class="config-modal-hint">配置「负库存执行」「盘盈并执行」两类定时任务的表达式、描述与启用状态。</p>
                 <div class="negative-timer-config-form">
-                    <div class="form-group">
-                        <label>定时器表达式:</label>
-                        <div class="input-wrapper">
-                            <input type="text" id="negativeTimerExpression" class="negative-timer-config-input" placeholder="如 0 0 2 * * ?">
+                    <div class="negative-timer-block" data-timer-key="execute">
+                        <div class="negative-timer-block__head">
+                            <div class="negative-timer-block__title">负库存执行</div>
+                            <div class="negative-timer-switch-row">
+                                <span class="negative-timer-switch-row__label">状态</span>
+                                <button type="button" class="negative-timer-switch" id="negativeTimerExecuteEnabled" role="switch" aria-checked="false" aria-label="负库存执行状态开关"></button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>定时器表达式:</label>
+                            <div class="input-wrapper">
+                                <input type="text" id="negativeTimerExecuteExpression" class="negative-timer-config-input" placeholder="如 0 0 2 * * ?">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>定时器描述:</label>
+                            <div class="input-wrapper">
+                                <input type="text" id="negativeTimerExecuteDesc" class="negative-timer-config-input" placeholder="如 每日02:00自动执行负库存">
+                            </div>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label>定时器描述:</label>
-                        <div class="input-wrapper">
-                            <input type="text" id="negativeTimerDesc" class="negative-timer-config-input" placeholder="如 每日02:00自动执行负库存">
+                    <div class="negative-timer-block" data-timer-key="surplus">
+                        <div class="negative-timer-block__head">
+                            <div class="negative-timer-block__title">盘盈并执行</div>
+                            <div class="negative-timer-switch-row">
+                                <span class="negative-timer-switch-row__label">状态</span>
+                                <button type="button" class="negative-timer-switch" id="negativeTimerSurplusEnabled" role="switch" aria-checked="false" aria-label="盘盈并执行状态开关"></button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>定时器表达式:</label>
+                            <div class="input-wrapper">
+                                <input type="text" id="negativeTimerSurplusExpression" class="negative-timer-config-input" placeholder="如 0 0 3 * * ?">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>定时器描述:</label>
+                            <div class="input-wrapper">
+                                <input type="text" id="negativeTimerSurplusDesc" class="negative-timer-config-input" placeholder="如 每日03:00盘盈并执行负库存">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -407,9 +537,51 @@
                 page.init();
 
                 var NEGATIVE_TIMER_CONFIG_KEY = 'negative_inventory_timer_config';
+                var NEGATIVE_TIMER_DEFS = [
+                    {
+                        key: 'execute',
+                        name: '负库存执行',
+                        enabledId: 'negativeTimerExecuteEnabled',
+                        expressionId: 'negativeTimerExecuteExpression',
+                        descId: 'negativeTimerExecuteDesc'
+                    },
+                    {
+                        key: 'surplus',
+                        name: '盘盈并执行',
+                        enabledId: 'negativeTimerSurplusEnabled',
+                        expressionId: 'negativeTimerSurplusExpression',
+                        descId: 'negativeTimerSurplusDesc'
+                    }
+                ];
+
+                function getDefaultTimerItem(overrides) {
+                    return Object.assign({
+                        enabled: false,
+                        timerExpression: '',
+                        timerDesc: ''
+                    }, overrides || {});
+                }
 
                 function getDefaultNegativeTimerConfig() {
-                    return { timerExpression: '', timerDesc: '' };
+                    return {
+                        execute: getDefaultTimerItem({ enabled: true }),
+                        surplus: getDefaultTimerItem()
+                    };
+                }
+
+                function normalizeTimerItem(item, fallbackEnabled) {
+                    var source = item && typeof item === 'object' ? item : {};
+                    return {
+                        enabled: source.enabled != null
+                            ? !!source.enabled
+                            : !!fallbackEnabled,
+                        timerExpression: source.timerExpression != null
+                            ? String(source.timerExpression).trim()
+                            : '',
+                        timerDesc: source.timerDesc != null
+                            ? String(source.timerDesc).trim()
+                            : ''
+                    };
                 }
 
                 function loadNegativeTimerConfig() {
@@ -417,13 +589,23 @@
                         var raw = localStorage.getItem(NEGATIVE_TIMER_CONFIG_KEY);
                         if (!raw) return getDefaultNegativeTimerConfig();
                         var parsed = JSON.parse(raw);
+                        if (!parsed || typeof parsed !== 'object') {
+                            return getDefaultNegativeTimerConfig();
+                        }
+                        // 兼容旧版单定时器结构：{ timerExpression, timerDesc }
+                        if (!parsed.execute && (parsed.timerExpression != null || parsed.timerDesc != null)) {
+                            return {
+                                execute: normalizeTimerItem({
+                                    enabled: true,
+                                    timerExpression: parsed.timerExpression,
+                                    timerDesc: parsed.timerDesc
+                                }, true),
+                                surplus: getDefaultTimerItem()
+                            };
+                        }
                         return {
-                            timerExpression: parsed && parsed.timerExpression != null
-                                ? String(parsed.timerExpression).trim()
-                                : '',
-                            timerDesc: parsed && parsed.timerDesc != null
-                                ? String(parsed.timerDesc).trim()
-                                : ''
+                            execute: normalizeTimerItem(parsed.execute, true),
+                            surplus: normalizeTimerItem(parsed.surplus, false)
                         };
                     } catch (e) {
                         return getDefaultNegativeTimerConfig();
@@ -434,20 +616,38 @@
                     localStorage.setItem(NEGATIVE_TIMER_CONFIG_KEY, JSON.stringify(config));
                 }
 
+                function setNegativeTimerSwitch(btn, enabled) {
+                    var on = !!enabled;
+                    if (!btn) return;
+                    btn.classList.toggle('is-on', on);
+                    btn.setAttribute('aria-checked', on ? 'true' : 'false');
+                }
+
                 function fillNegativeTimerConfigForm(config) {
-                    var exprInput = document.getElementById('negativeTimerExpression');
-                    var descInput = document.getElementById('negativeTimerDesc');
-                    if (exprInput) exprInput.value = (config && config.timerExpression) || '';
-                    if (descInput) descInput.value = (config && config.timerDesc) || '';
+                    NEGATIVE_TIMER_DEFS.forEach(function(def) {
+                        var item = (config && config[def.key]) || getDefaultTimerItem();
+                        var btn = document.getElementById(def.enabledId);
+                        var exprInput = document.getElementById(def.expressionId);
+                        var descInput = document.getElementById(def.descId);
+                        setNegativeTimerSwitch(btn, item.enabled);
+                        if (exprInput) exprInput.value = item.timerExpression || '';
+                        if (descInput) descInput.value = item.timerDesc || '';
+                    });
                 }
 
                 function readNegativeTimerConfigForm() {
-                    var exprInput = document.getElementById('negativeTimerExpression');
-                    var descInput = document.getElementById('negativeTimerDesc');
-                    return {
-                        timerExpression: exprInput ? String(exprInput.value || '').trim() : '',
-                        timerDesc: descInput ? String(descInput.value || '').trim() : ''
-                    };
+                    var result = {};
+                    NEGATIVE_TIMER_DEFS.forEach(function(def) {
+                        var btn = document.getElementById(def.enabledId);
+                        var exprInput = document.getElementById(def.expressionId);
+                        var descInput = document.getElementById(def.descId);
+                        result[def.key] = {
+                            enabled: !!(btn && btn.classList.contains('is-on')),
+                            timerExpression: exprInput ? String(exprInput.value || '').trim() : '',
+                            timerDesc: descInput ? String(descInput.value || '').trim() : ''
+                        };
+                    });
+                    return result;
                 }
 
                 function openNegativeTimerConfigModal() {
@@ -475,6 +675,13 @@
                     if (e.target && e.target.id === 'negativeTimerConfigModal') {
                         closeNegativeTimerConfigModal();
                     }
+                });
+                NEGATIVE_TIMER_DEFS.forEach(function(def) {
+                    var btn = document.getElementById(def.enabledId);
+                    if (!btn) return;
+                    btn.addEventListener('click', function() {
+                        setNegativeTimerSwitch(btn, !btn.classList.contains('is-on'));
+                    });
                 });
 
                 // 默认按「初始」状态查询

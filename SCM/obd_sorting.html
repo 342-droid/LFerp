@@ -67,6 +67,147 @@
             color: #1890ff;
             font-weight: 600;
         }
+
+        .sorting-timer-config-modal .modal-content {
+            width: 95%;
+            max-width: 640px;
+            max-height: 88vh;
+            overflow: auto;
+            margin: 5% auto;
+        }
+
+        .sorting-timer-config-modal .config-modal-hint {
+            margin: 0 0 14px;
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .sorting-timer-block {
+            border: 1px solid #e8e8e8;
+            border-radius: 4px;
+            padding: 14px 14px 4px;
+            margin-bottom: 14px;
+            background: #fafafa;
+        }
+
+        .sorting-timer-block:last-child {
+            margin-bottom: 0;
+        }
+
+        .sorting-timer-block__head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .sorting-timer-block__title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            line-height: 22px;
+        }
+
+        .sorting-timer-switch-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .sorting-timer-switch-row__label {
+            font-size: 13px;
+            color: #606266;
+            line-height: 22px;
+        }
+
+        .sorting-timer-switch {
+            position: relative;
+            width: 56px;
+            height: 22px;
+            flex-shrink: 0;
+            border: 1px solid #dcdfe6;
+            padding: 0;
+            border-radius: 11px;
+            background: #dcdfe6;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        .sorting-timer-switch::before {
+            content: '禁用';
+            position: absolute;
+            top: 0;
+            right: 7px;
+            height: 20px;
+            line-height: 20px;
+            font-size: 12px;
+            color: #fff;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .sorting-timer-switch::after {
+            content: '';
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s;
+        }
+
+        .sorting-timer-switch.is-on {
+            background: #ff7019;
+            border-color: #ff7019;
+        }
+
+        .sorting-timer-switch.is-on::before {
+            content: '启用';
+            left: 7px;
+            right: auto;
+        }
+
+        .sorting-timer-switch.is-on::after {
+            transform: translateX(34px);
+        }
+
+        .sorting-timer-config-form .form-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .sorting-timer-config-form .form-group label {
+            width: 110px;
+            flex-shrink: 0;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .sorting-timer-config-form .form-group .input-wrapper {
+            flex: 1;
+        }
+
+        .sorting-timer-config-input {
+            width: 100%;
+            height: 32px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 0 8px;
+            box-sizing: border-box;
+            font-size: 13px;
+            background: #fff;
+        }
     </style>
 </head>
 <body>
@@ -175,6 +316,7 @@
                     </div>
                     <div class="form-actions">
                         <button type="button" class="btn btn-primary" id="searchBtn">查询</button>
+                        <button type="button" class="btn btn-secondary" id="btnSortingTimeoutTimerConfig">分拣超时定时器</button>
                     </div>
                 </form>
             </section>
@@ -257,6 +399,45 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" id="closeDetailModal">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="sortingTimeoutTimerConfigModal" class="modal sorting-timer-config-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">分拣超时定时器</div>
+                <span class="close" id="sortingTimeoutTimerConfigCloseBtn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p class="config-modal-hint">配置分拣超时定时任务的表达式、描述与启用状态。</p>
+                <div class="sorting-timer-config-form">
+                    <div class="sorting-timer-block" data-timer-key="timeout">
+                        <div class="sorting-timer-block__head">
+                            <div class="sorting-timer-block__title">分拣超时</div>
+                            <div class="sorting-timer-switch-row">
+                                <span class="sorting-timer-switch-row__label">状态</span>
+                                <button type="button" class="sorting-timer-switch" id="sortingTimeoutTimerEnabled" role="switch" aria-checked="false" aria-label="分拣超时状态开关"></button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>定时器表达式:</label>
+                            <div class="input-wrapper">
+                                <input type="text" id="sortingTimeoutTimerExpression" class="sorting-timer-config-input" placeholder="如 0 0/5 * * * ?">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>定时器描述:</label>
+                            <div class="input-wrapper">
+                                <input type="text" id="sortingTimeoutTimerDesc" class="sorting-timer-config-input" placeholder="如 每5分钟扫描分拣超时单据">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="sortingTimeoutTimerConfigCancelBtn">取消</button>
+                <button type="button" class="btn btn-primary" id="sortingTimeoutTimerConfigSaveBtn">保存</button>
             </div>
         </div>
     </div>
@@ -554,6 +735,140 @@
                 if (e.target === modal) {
                     modal.style.display = 'none';
                 }
+            });
+
+            var SORTING_TIMEOUT_TIMER_CONFIG_KEY = 'obd_sorting_timeout_timer_config';
+            var SORTING_TIMEOUT_TIMER_DEFS = [
+                {
+                    key: 'timeout',
+                    name: '分拣超时',
+                    enabledId: 'sortingTimeoutTimerEnabled',
+                    expressionId: 'sortingTimeoutTimerExpression',
+                    descId: 'sortingTimeoutTimerDesc'
+                }
+            ];
+
+            function getDefaultSortingTimeoutTimerItem(overrides) {
+                return Object.assign({
+                    enabled: false,
+                    timerExpression: '',
+                    timerDesc: ''
+                }, overrides || {});
+            }
+
+            function getDefaultSortingTimeoutTimerConfig() {
+                return {
+                    timeout: getDefaultSortingTimeoutTimerItem({ enabled: true })
+                };
+            }
+
+            function normalizeSortingTimeoutTimerItem(item, fallbackEnabled) {
+                var source = item && typeof item === 'object' ? item : {};
+                return {
+                    enabled: source.enabled != null
+                        ? !!source.enabled
+                        : !!fallbackEnabled,
+                    timerExpression: source.timerExpression != null
+                        ? String(source.timerExpression).trim()
+                        : '',
+                    timerDesc: source.timerDesc != null
+                        ? String(source.timerDesc).trim()
+                        : ''
+                };
+            }
+
+            function loadSortingTimeoutTimerConfig() {
+                try {
+                    var raw = localStorage.getItem(SORTING_TIMEOUT_TIMER_CONFIG_KEY);
+                    if (!raw) return getDefaultSortingTimeoutTimerConfig();
+                    var parsed = JSON.parse(raw);
+                    if (!parsed || typeof parsed !== 'object') {
+                        return getDefaultSortingTimeoutTimerConfig();
+                    }
+                    // 兼容扁平结构：{ timerExpression, timerDesc, enabled }
+                    if (!parsed.timeout && (parsed.timerExpression != null || parsed.timerDesc != null || parsed.enabled != null)) {
+                        return {
+                            timeout: normalizeSortingTimeoutTimerItem(parsed, true)
+                        };
+                    }
+                    return {
+                        timeout: normalizeSortingTimeoutTimerItem(parsed.timeout, true)
+                    };
+                } catch (e) {
+                    return getDefaultSortingTimeoutTimerConfig();
+                }
+            }
+
+            function saveSortingTimeoutTimerConfig(config) {
+                localStorage.setItem(SORTING_TIMEOUT_TIMER_CONFIG_KEY, JSON.stringify(config));
+            }
+
+            function setSortingTimeoutTimerSwitch(btn, enabled) {
+                var on = !!enabled;
+                if (!btn) return;
+                btn.classList.toggle('is-on', on);
+                btn.setAttribute('aria-checked', on ? 'true' : 'false');
+            }
+
+            function fillSortingTimeoutTimerConfigForm(config) {
+                SORTING_TIMEOUT_TIMER_DEFS.forEach(function(def) {
+                    var item = (config && config[def.key]) || getDefaultSortingTimeoutTimerItem();
+                    var btn = document.getElementById(def.enabledId);
+                    var exprInput = document.getElementById(def.expressionId);
+                    var descInput = document.getElementById(def.descId);
+                    setSortingTimeoutTimerSwitch(btn, item.enabled);
+                    if (exprInput) exprInput.value = item.timerExpression || '';
+                    if (descInput) descInput.value = item.timerDesc || '';
+                });
+            }
+
+            function readSortingTimeoutTimerConfigForm() {
+                var result = {};
+                SORTING_TIMEOUT_TIMER_DEFS.forEach(function(def) {
+                    var btn = document.getElementById(def.enabledId);
+                    var exprInput = document.getElementById(def.expressionId);
+                    var descInput = document.getElementById(def.descId);
+                    result[def.key] = {
+                        enabled: !!(btn && btn.classList.contains('is-on')),
+                        timerExpression: exprInput ? String(exprInput.value || '').trim() : '',
+                        timerDesc: descInput ? String(descInput.value || '').trim() : ''
+                    };
+                });
+                return result;
+            }
+
+            function openSortingTimeoutTimerConfigModal() {
+                fillSortingTimeoutTimerConfigForm(loadSortingTimeoutTimerConfig());
+                var modal = document.getElementById('sortingTimeoutTimerConfigModal');
+                if (modal) modal.style.display = 'block';
+            }
+
+            function closeSortingTimeoutTimerConfigModal() {
+                var modal = document.getElementById('sortingTimeoutTimerConfigModal');
+                if (modal) modal.style.display = 'none';
+            }
+
+            document.getElementById('btnSortingTimeoutTimerConfig').addEventListener('click', openSortingTimeoutTimerConfigModal);
+            document.getElementById('sortingTimeoutTimerConfigCloseBtn').addEventListener('click', closeSortingTimeoutTimerConfigModal);
+            document.getElementById('sortingTimeoutTimerConfigCancelBtn').addEventListener('click', closeSortingTimeoutTimerConfigModal);
+            document.getElementById('sortingTimeoutTimerConfigSaveBtn').addEventListener('click', function() {
+                saveSortingTimeoutTimerConfig(readSortingTimeoutTimerConfigForm());
+                closeSortingTimeoutTimerConfigModal();
+                if (typeof showToast === 'function') {
+                    showToast('分拣超时定时器配置已保存', 'success');
+                }
+            });
+            document.getElementById('sortingTimeoutTimerConfigModal').addEventListener('click', function(e) {
+                if (e.target && e.target.id === 'sortingTimeoutTimerConfigModal') {
+                    closeSortingTimeoutTimerConfigModal();
+                }
+            });
+            SORTING_TIMEOUT_TIMER_DEFS.forEach(function(def) {
+                var btn = document.getElementById(def.enabledId);
+                if (!btn) return;
+                btn.addEventListener('click', function() {
+                    setSortingTimeoutTimerSwitch(btn, !btn.classList.contains('is-on'));
+                });
             });
         });
     </script>
