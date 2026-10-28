@@ -1,10 +1,44 @@
 {
-  "latestSha": "41b86cac73410ed0eb475db87c0b2b003b7a77ff",
-  "total": 457,
+  "latestSha": "fb4c44127001a3b91c6268b8f965eb9b183a41c2",
+  "total": 458,
   "days": [
     {
       "date": "2026-10-28",
       "items": [
+        {
+          "sha": "fb4c441",
+          "type": "feat",
+          "text": "零售和代采订单导出补完成时间、BD 和退货数",
+          "author": "sisi",
+          "time": "11:58",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "导出新增退货数，只统计已经完成售后的退货数量，售后在途的不算"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "text": "导出新增订单完成时间、BD、退货数；未完成订单的完成时间为—，退货数只计已完成售后"
+            }
+          ]
+        },
         {
           "sha": "41b86ca",
           "type": "feat",
