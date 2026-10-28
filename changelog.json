@@ -1,10 +1,50 @@
 {
-  "latestSha": "4118124f3be4445a7415ff90639060405f4c2c3f",
-  "total": 459,
+  "latestSha": "1f9f853c666000493c2b2287ee85f278b07b3973",
+  "total": 460,
   "days": [
     {
       "date": "2026-10-28",
       "items": [
+        {
+          "sha": "1f9f853",
+          "type": "feat",
+          "text": "售后详情在订单信息里展示收货地址和物流",
+          "author": "sisi",
+          "time": "18:57",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_feedback.html",
+              "module": "冷丰售后",
+              "title": "意见反馈"
+            },
+            {
+              "file": "MDM/mdm_aftersale_refund.html",
+              "module": "冷丰售后",
+              "title": "退款单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_report.html",
+              "module": "冷丰售后",
+              "title": "举报管理"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "module": "冷丰售后",
+              "title": "售后单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "text": "退货退款在右侧订单信息的提货门店下展示售后收货地址和售后物流；待退货只显示收货地址，待收货、退款中、退款异常、已完成、已取消同时显示物流"
+            }
+          ]
+        },
         {
           "sha": "4118124",
           "type": "feat",
