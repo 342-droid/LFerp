@@ -1,11 +1,11 @@
 /**
- * SKU 库存：现货按配送仓；可售 / 预占按放单渠道。
+ * SKU 库存。
  *
- * 现货：SKU × 配送仓。仓储按仓维护；商品现货 = Σ 各仓现货。仓店表只展示这一列。
- * 可售：SKU × 放单渠道。代采页=代采可售，商城页=商城可售，各自独立。
- *       直播页不配可售，只读数按现货算出，用来卡本场配额。没有中央可售账本。
- * 预占：SKU × 放单渠道。与可售同一维度。剩余可售 = 本渠道可售 − 本渠道预占。
- *       履约只决定何时释放，不把预占再记到仓或门店。
+ * 快递：只配置本渠道可售件数，显示剩余可售。不取仓库现货，不按现货比例。
+ * 自提 / 配送：按售卖范围涉及的仓库分别配置。现货由仓库给出。
+ * 按现货比例时，可售上限 = 比例 ×（当前现货 + 本仓已售），
+ * 剩余可售 = 上限 − 已售 − 预占，且不超过当前现货。
+ * 已售先加回再乘，避免现货变少后重算把累计可售放大。
  */
 (function (global) {
   var WAREHOUSES = [
@@ -270,8 +270,300 @@
     };
   }
 
+  function usesWarehouse(mode) {
+    return mode === 'pickup' || mode === 'platform' || mode === '自提' || mode === '配送' || mode === '平台配送';
+  }
+
+  function sameProvince(a, b) {
+    var x = String(a || '');
+    var y = String(b || '');
+    return x.length >= 2 && y.length >= 2 && x.slice(0, 2) === y.slice(0, 2);
+  }
+
+  function scopeWarehouses(opts) {
+    opts = opts || {};
+    var scope = opts.saleScope || 'all';
+    var names = (opts.storeNames || []).filter(Boolean);
+    var ids = opts.regionIds || [];
+    if (scope === 'store') {
+      if (!names.length) return { list: [], emptyReason: 'store' };
+      var hit = {};
+      WAREHOUSES.forEach(function (wh) {
+        if ((wh.stores || []).some(function (name) { return names.indexOf(name) >= 0; })) hit[wh.id] = wh;
+      });
+      (opts.stores || []).forEach(function (store) {
+        if (!store || names.indexOf(store.name) < 0) return;
+        var listed = WAREHOUSES.some(function (wh) { return (wh.stores || []).indexOf(store.name) >= 0; });
+        if (listed) return;
+        WAREHOUSES.forEach(function (wh) {
+          if ((wh.regionIds || []).some(function (rid) { return sameProvince(rid, store.regionId); })) hit[wh.id] = wh;
+        });
+      });
+      var picked = WAREHOUSES.filter(function (wh) { return hit[wh.id]; });
+      return { list: picked, emptyReason: picked.length ? '' : 'unmapped' };
+    }
+    if (scope === 'region') {
+      if (!ids.length) return { list: [], emptyReason: 'region' };
+      var regions = WAREHOUSES.filter(function (wh) {
+        return (wh.regionIds || []).some(function (rid) {
+          return ids.some(function (id) { return sameProvince(rid, id); });
+        });
+      });
+      return { list: regions, emptyReason: regions.length ? '' : 'unmapped' };
+    }
+    return { list: WAREHOUSES.slice(), emptyReason: '' };
+  }
+
+  function ensureRowLedger(sku, row, idx) {
+    var h = hashSeed((sku && (sku.id || sku.barcode || sku.specValue)) || 'sku');
+    if (row.sold == null) row.sold = (h + idx * 5) % 6;
+    if (row.reserved == null) row.reserved = (h + idx * 3) % 4;
+    if (!row.sellableMode) row.sellableMode = normalizeSellableMode(sku && sku.sellableMode);
+    if (row.sellablePercent == null || row.sellablePercent === '') {
+      row.sellablePercent = sku && sku.sellablePercent != null && sku.sellablePercent !== '' ? sku.sellablePercent : '100';
+    }
+    if (row.sellableFixed == null) row.sellableFixed = '';
+    return row;
+  }
+
+  function quoteRow(row) {
+    var spot = Math.round(parseNum(row.spot));
+    var sold = Math.round(parseNum(row.sold));
+    var reserved = Math.round(parseNum(row.reserved));
+    var mode = normalizeSellableMode(row.sellableMode);
+    var cap;
+    if (mode === 'fixed') {
+      cap = Math.round(parseNum(row.sellableFixed));
+    } else {
+      var pctText = String(row.sellablePercent == null ? '' : row.sellablePercent).trim();
+      var pct = pctText === '' ? 100 : parseNum(pctText);
+      cap = Math.round(((spot + sold) * pct) / 100);
+    }
+    var remain = Math.max(0, cap - sold - reserved);
+    if (remain > spot) remain = spot;
+    return { spot: spot, sold: sold, reserved: reserved, cap: cap, remain: remain, mode: mode };
+  }
+
+  function warehouseQuote(sku, opts) {
+    var rows = ensureRows(sku);
+    var scoped = scopeWarehouses(opts);
+    var lines = [];
+    scoped.list.forEach(function (wh) {
+      var row = null;
+      var idx = 0;
+      var i;
+      for (i = 0; i < rows.length; i++) {
+        if (rows[i].warehouseId === wh.id) {
+          row = rows[i];
+          idx = i;
+          break;
+        }
+      }
+      if (!row) return;
+      ensureRowLedger(sku, row, idx);
+      var quote = quoteRow(row);
+      lines.push({
+        warehouseId: wh.id,
+        name: wh.name,
+        spot: quote.spot,
+        sold: quote.sold,
+        reserved: quote.reserved,
+        cap: quote.cap,
+        remain: quote.remain,
+        sellableMode: quote.mode,
+        sellablePercent: row.sellablePercent,
+        sellableFixed: row.sellableFixed == null ? '' : row.sellableFixed
+      });
+    });
+    var totals = lines.reduce(function (acc, line) {
+      acc.spot += line.spot;
+      acc.sold += line.sold;
+      acc.reserved += line.reserved;
+      acc.cap += line.cap;
+      acc.remain += line.remain;
+      return acc;
+    }, { spot: 0, sold: 0, reserved: 0, cap: 0, remain: 0 });
+    return { lines: lines, totals: totals, emptyReason: scoped.emptyReason };
+  }
+
+  function expressQuote(sku, opts) {
+    opts = opts || {};
+    var channel = normalizeChannel(opts.channel, opts);
+    var reserved = channelReservedOf(sku, channel);
+    if ((sku.sellableFixed == null || sku.sellableFixed === '') && !sku.expressSellableInited) {
+      sku.sellableFixed = String(Math.max(parseNum(sku.liveStock) + reserved, 30));
+    }
+    sku.expressSellableInited = true;
+    var cap = Math.round(parseNum(sku.sellableFixed));
+    var remain = Math.max(0, cap - reserved);
+    return { cap: cap, remain: remain, reserved: reserved, channel: channel };
+  }
+
+  function applyQuoteToSku(sku, opts) {
+    opts = opts || {};
+    if (!usesWarehouse(opts.deliveryMode)) {
+      var express = expressQuote(sku, opts);
+      sku.sellableStock = String(express.cap);
+      sku.remainStock = String(express.remain);
+      sku.reservedStock = String(express.reserved);
+      sku.spotStock = '';
+      return {
+        model: 'express',
+        express: express,
+        sellableTotal: express.cap,
+        remainTotal: express.remain,
+        reservedTotal: express.reserved,
+        spotTotal: 0,
+        sessionReservedTotal: sessionReservedOf(sku, opts.sessionId)
+      };
+    }
+    var pack = warehouseQuote(sku, opts);
+    sku.sellableStock = String(pack.totals.cap);
+    sku.remainStock = String(pack.totals.remain);
+    sku.reservedStock = String(pack.totals.reserved + pack.totals.sold);
+    sku.spotStock = String(pack.totals.spot);
+    return {
+      model: 'warehouse',
+      lines: pack.lines,
+      totals: pack.totals,
+      emptyReason: pack.emptyReason,
+      sellableTotal: pack.totals.cap,
+      remainTotal: pack.totals.remain,
+      reservedTotal: pack.totals.reserved,
+      spotTotal: pack.totals.spot,
+      sessionReservedTotal: sessionReservedOf(sku, opts.sessionId)
+    };
+  }
+
+  function readWarehouseFields(root, sku) {
+    if (!root || !sku) return;
+    var rows = ensureRows(sku);
+    root.querySelectorAll('[data-wh-field]').forEach(function (input) {
+      var id = input.getAttribute('data-wh-id');
+      var field = input.getAttribute('data-wh-field');
+      if (!id || !field) return;
+      var i;
+      for (i = 0; i < rows.length; i++) {
+        if (rows[i].warehouseId === id) {
+          rows[i][field] = input.value;
+          break;
+        }
+      }
+    });
+  }
+
+  function paintWarehouseQuote(root, sku, opts) {
+    if (!root || !sku) return null;
+    var pack = warehouseQuote(sku, opts);
+    pack.lines.forEach(function (line) {
+      var capEl = root.querySelector('[data-wh-cap="' + line.warehouseId + '"]');
+      var remainEl = root.querySelector('[data-wh-remain="' + line.warehouseId + '"]');
+      if (capEl) capEl.textContent = String(line.cap);
+      if (remainEl) remainEl.textContent = String(line.remain);
+    });
+    var totalSpot = root.querySelector('[data-wh-spot-total]');
+    var totalCap = root.querySelector('[data-wh-cap-total]');
+    var totalRemain = root.querySelector('[data-wh-remain-total]');
+    if (totalSpot) totalSpot.textContent = String(pack.totals.spot);
+    if (totalCap) totalCap.textContent = String(pack.totals.cap);
+    if (totalRemain) totalRemain.textContent = String(pack.totals.remain);
+    sku.sellableStock = String(pack.totals.cap);
+    sku.remainStock = String(pack.totals.remain);
+    sku.spotStock = String(pack.totals.spot);
+    return pack;
+  }
+
+  function emptyScopeText(reason) {
+    if (reason === 'store') return '请先选择售卖门店。选定后，每个涉及的仓库单独配置可售库存、现货库存、剩余可售。';
+    if (reason === 'region') return '请先选择售卖区域。选定后，每个涉及的仓库单独配置可售库存、现货库存、剩余可售。';
+    return '所选范围没有对应的配送仓，无法按仓库配置库存。';
+  }
+
+  function renderSellCell(line) {
+    var mode = line.sellableMode === 'fixed' ? 'fixed' : 'spot';
+    var id = escapeHtml(line.warehouseId);
+    var select =
+      '<select class="product-proxy-spec__input" data-wh-id="' + id + '" data-wh-field="sellableMode" aria-label="' + escapeHtml(line.name) + '可售库存配置方式">' +
+      '<option value="spot"' + (mode === 'spot' ? ' selected' : '') + '>按现货比例</option>' +
+      '<option value="fixed"' + (mode === 'fixed' ? ' selected' : '') + '>按具体数量</option>' +
+      '</select>';
+    var extra = mode === 'fixed'
+      ? '<input type="text" class="product-proxy-spec__input product-wh-config__qty" data-wh-id="' + id + '" data-wh-field="sellableFixed" inputmode="decimal" value="' + escapeHtml(line.sellableFixed) + '" placeholder="件数" aria-label="可售件数">'
+      : '<span class="product-wh-config__pct"><input type="text" class="product-proxy-spec__input" data-wh-id="' + id + '" data-wh-field="sellablePercent" inputmode="decimal" value="' + escapeHtml(line.sellablePercent) + '" aria-label="现货比例"><span>%</span></span>';
+    return (
+      '<div class="product-wh-config__sell">' +
+      select +
+      extra +
+      '<span class="product-wh-config__cap">上限 <strong data-wh-cap="' + id + '">' + line.cap + '</strong></span>' +
+      '</div>'
+    );
+  }
+
+  function renderWarehouseEditor(sum) {
+    if (!sum.lines || !sum.lines.length) {
+      return (
+        '<div class="product-proxy-spec__field product-proxy-spec__field--wh-stock" data-stock-editor="warehouse">' +
+        '<div class="mdm-biz-tip mdm-biz-tip--flush" role="note">' + emptyScopeText(sum.emptyReason) + '</div>' +
+        '</div>'
+      );
+    }
+    var body = sum.lines.map(function (line) {
+      return (
+        '<tr>' +
+        '<td>' + escapeHtml(line.name) + '</td>' +
+        '<td class="product-wh-config__num">' + line.spot + '</td>' +
+        '<td>' + renderSellCell(line) + '</td>' +
+        '<td class="product-wh-config__num"><strong data-wh-remain="' + escapeHtml(line.warehouseId) + '">' + line.remain + '</strong>' +
+        '<div class="product-wh-config__sub">已售 ' + line.sold + ' · 预占 ' + line.reserved + '</div></td>' +
+        '</tr>'
+      );
+    }).join('');
+    var totals = sum.totals || { spot: 0, cap: 0, remain: 0 };
+    return (
+      '<div class="product-proxy-spec__field product-proxy-spec__field--wh-stock" data-stock-editor="warehouse">' +
+      '<div class="mdm-biz-tip mdm-biz-tip--flush" role="note">自提、配送按仓库分别配置。<strong>按现货比例</strong>时，先把本仓已售加回现货再乘比例，得到可售上限；剩余可售再扣已售和预占，并且不超过当前现货。现货 100、比例 30% 时上限是 30；卖掉 10 件后现货剩 90，剩余可售是 20，不是 27。之后入库的现货按同一比例追加可售。</div>' +
+      '<div class="product-wh-config-scroll">' +
+      '<table class="product-wh-config">' +
+      '<thead><tr><th>仓库</th><th>现货库存</th><th>可售库存</th><th>剩余可售</th></tr></thead>' +
+      '<tbody>' + body + '</tbody>' +
+      '<tfoot><tr>' +
+      '<th>合计</th>' +
+      '<th class="product-wh-config__num" data-wh-spot-total>' + totals.spot + '</th>' +
+      '<th class="product-wh-config__num" data-wh-cap-total>' + totals.cap + '</th>' +
+      '<th class="product-wh-config__num" data-wh-remain-total>' + totals.remain + '</th>' +
+      '</tr></tfoot></table></div></div>'
+    );
+  }
+
+  function renderExpressEditor(sku, sum) {
+    var express = sum.express || { cap: 0, remain: 0, reserved: 0 };
+    return (
+      '<div class="product-proxy-spec__field" data-stock-editor="express">' +
+      '<label class="product-proxy-spec__label">可售库存</label>' +
+      '<input type="text" class="product-proxy-spec__input" data-field="sellableFixed" inputmode="decimal" value="' +
+      escapeHtml(sku.sellableFixed == null ? '' : sku.sellableFixed) +
+      '" placeholder="本渠道可售件数" aria-label="可售库存">' +
+      '<p class="product-proxy-spec__stock-tip">快递只配置可售件数，不取仓库现货。</p>' +
+      '</div>' +
+      '<div class="product-proxy-spec__field">' +
+      '<label class="product-proxy-spec__label">剩余可售</label>' +
+      '<input type="text" class="product-proxy-spec__input" data-remain-result value="' +
+      escapeHtml(String(express.remain)) +
+      '" readonly tabindex="-1" aria-label="剩余可售">' +
+      '<p class="product-proxy-spec__stock-tip">剩余可售 = 可售库存 − 本渠道预占（当前预占 ' + express.reserved + '）。</p>' +
+      '</div>'
+    );
+  }
+
+  function renderStockEditor(sku, opts) {
+    var sum = applyQuoteToSku(sku, opts || {});
+    if (sum.model === 'warehouse') return renderWarehouseEditor(sum);
+    return renderExpressEditor(sku, sum);
+  }
+
   function attachToSku(sku, opts) {
     if (!sku) return null;
+    if (opts && opts.deliveryMode) return applyQuoteToSku(sku, opts);
     sku.sellableMode = normalizeSellableMode(sku.sellableMode);
     if (sku.sellablePercent == null || sku.sellablePercent === '') sku.sellablePercent = '100';
     if (sku.sellableFixed == null) sku.sellableFixed = '';
@@ -470,6 +762,11 @@
     applyStoreScope: applyStoreScope,
     renderTable: renderTable,
     renderPanel: renderPanel,
+    renderStockEditor: renderStockEditor,
+    readWarehouseFields: readWarehouseFields,
+    paintWarehouseQuote: paintWarehouseQuote,
+    syncStock: applyQuoteToSku,
+    usesWarehouse: usesWarehouse,
     summaryText: summaryText,
     reservedChannelTotals: reservedChannelTotals,
     normalizeSellableMode: normalizeSellableMode,

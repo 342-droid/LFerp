@@ -1,7 +1,7 @@
 /**
  * 代采 / 商城商品列表 — 添加/编辑商品（完整表单）
  * channel: 'proxy'（快递/配送）| 'mall'（快递/自提）
- * 售卖规格：可售 / 预占同在放单渠道；仓店表现货按配送仓。
+ * 售卖规格：快递只配可售库存和剩余可售；自提/配送按仓库分别配置。
  */
 (function () {
   var pickerInstance = null;
@@ -120,8 +120,27 @@
     return isFinite(n) && n >= 0 ? n : 0;
   }
 
+  function selectedSaleStores() {
+    var stores = [];
+    if (!formState || formState.saleScope !== 'store') return stores;
+    Object.keys(formState.saleStores || {}).forEach(function (id) {
+      if (!formState.saleStores[id]) return;
+      var store = window.MdmProxyStorePicker && window.MdmProxyStorePicker.getStoreById(id);
+      if (store) stores.push(store);
+    });
+    return stores;
+  }
+
   function stockOpts(extra) {
-    return Object.assign({ channel: formChannel }, extra || {});
+    var stores = selectedSaleStores();
+    return Object.assign({
+      channel: formChannel,
+      deliveryMode: formState ? formState.deliveryMode : '',
+      saleScope: formState ? formState.saleScope || 'all' : 'all',
+      regionIds: formState ? Object.keys(formState.saleRegions || {}) : [],
+      storeNames: stores.map(function (store) { return store.name; }),
+      stores: stores
+    }, extra || {});
   }
 
   function cloneJson(obj) {
@@ -841,66 +860,10 @@
 
   function renderSkuStockFields(sku) {
     sku = ensureSkuStockFields(sku || {});
-    var mode = sku.sellableMode;
-    var modeOptions = SELLABLE_STOCK_MODES.map(function (opt) {
-      return (
-        '<option value="' +
-        escapeHtml(opt.value) +
-        '"' +
-        (mode === opt.value ? ' selected' : '') +
-        '>' +
-        escapeHtml(opt.label) +
-        '</option>'
-      );
-    }).join('');
-    var percentTip = parseStockNum(sku.sellablePercent) > 100 ? '当前按现货溢出可售。' : parseStockNum(sku.sellablePercent) < 100 ? '当前按现货打折可售。' : '100% 即取现货库存。';
-    return (
-      '<div class="product-proxy-spec__field product-proxy-spec__field--sellable" data-sellable-mode="' +
-      escapeHtml(mode) +
-      '">' +
-      '  <div class="product-proxy-spec__stock-head">' +
-      '    <span class="product-proxy-spec__label product-proxy-spec__stock-head-sellable">可售库存</span>' +
-      (mode === 'spot'
-        ? '<span class="product-proxy-spec__stock-head-gap" aria-hidden="true"></span>' +
-          '<span class="product-proxy-spec__label product-proxy-spec__stock-head-spot">现货库存</span>'
-        : '') +
-      '  </div>' +
-      '  <div class="product-proxy-spec__stock-row">' +
-      '    <select class="product-proxy-spec__input product-proxy-spec__stock-mode" data-field="sellableMode" aria-label="可售库存配置方式">' +
-      modeOptions +
-      '</select>' +
-      (mode === 'spot'
-        ? '<div class="product-proxy-spec__stock-pct">' +
-          '<input type="text" class="product-proxy-spec__input product-proxy-spec__stock-extra product-proxy-spec__stock-extra--percent" data-field="sellablePercent" inputmode="decimal" value="' +
-          escapeHtml(sku.sellablePercent) +
-          '" placeholder="100" aria-label="现货百分比">' +
-          '<span class="product-proxy-spec__stock-suffix">%</span>' +
-          '</div>' +
-          '<input type="text" class="product-proxy-spec__input product-proxy-spec__stock-extra product-proxy-spec__stock-extra--spot" data-field="spotStock" data-spot-result readonly tabindex="-1" value="' +
-          escapeHtml(sku.spotStock) +
-          '" aria-label="现货库存">'
-        : '') +
-      '    <input type="text" class="product-proxy-spec__input product-proxy-spec__stock-extra product-proxy-spec__stock-extra--fixed" data-field="sellableFixed" inputmode="decimal" value="' +
-      escapeHtml(sku.sellableFixed) +
-      '" placeholder="本渠道可售件数" aria-label="固定可售数量"' +
-      (mode === 'fixed' ? '' : ' hidden') +
-      '>' +
-      '  </div>' +
-      '  <p class="product-proxy-spec__stock-tip">' +
-      (mode === 'fixed'
-        ? '按本渠道填写可售件数，不是仓字段，也不与其它渠道加总。'
-        : '按现货合计的百分比计算本渠道可售。' + percentTip) +
-      '</p>' +
-      '</div>' +
-      '<div class="product-proxy-spec__field">' +
-      '  <label class="product-proxy-spec__label">剩余可售</label>' +
-      '  <input type="text" class="product-proxy-spec__input" data-remain-result value="' +
-      escapeHtml(sku.remainStock) +
-      '" readonly tabindex="-1" aria-label="剩余可售">' +
-      '  <p class="product-proxy-spec__stock-tip">本渠道可售 − 本渠道预占。</p>' +
-      '</div>' +
-      (mode === 'spot' ? renderWhStockPanel(sku) : '')
-    );
+    if (window.MdmSkuWhStock && typeof window.MdmSkuWhStock.renderStockEditor === 'function') {
+      return window.MdmSkuWhStock.renderStockEditor(sku, stockOpts());
+    }
+    return '';
   }
 
   function renderSpecField(label, field, value) {
@@ -1181,10 +1144,14 @@
       var id = panel.getAttribute('data-sku-id');
       var sku = poolMap[id];
       if (!sku) return;
+      if (window.MdmSkuWhStock && typeof window.MdmSkuWhStock.readWarehouseFields === 'function') {
+        window.MdmSkuWhStock.readWarehouseFields(panel, sku);
+      }
       panel.querySelectorAll('[data-field]').forEach(function (input) {
-        if (input.hidden) return;
+        if (input.hidden || input.hasAttribute('data-wh-field')) return;
         sku[input.getAttribute('data-field')] = input.value;
       });
+      if (panel.querySelector('[data-field="sellableFixed"]')) sku.expressSellableInited = true;
       ensureSkuStockFields(sku);
     });
     formState.skuPool = formState.skuPool.map(function (s) { return poolMap[s.id] || s; });
@@ -1332,30 +1299,32 @@
         });
       }
 
-      var sellableWrap = panel.querySelector('[data-sellable-mode]');
-      if (sellableWrap) {
-        function syncSellableResult() {
-          ensureSkuStockFields(sku);
-          var spotEl = panel.querySelector('[data-spot-result]');
-          if (spotEl) spotEl.value = sku.spotStock;
-          var remainEl = panel.querySelector('[data-remain-result]');
-          if (remainEl) remainEl.value = sku.remainStock;
-          refreshPanelWhStock(panel, sku);
-        }
-        var modeSelect = panel.querySelector('[data-field="sellableMode"]');
-        if (modeSelect) {
-          modeSelect.addEventListener('change', function () {
+      var stockEditor = panel.querySelector('[data-stock-editor]');
+      if (stockEditor) {
+        stockEditor.querySelectorAll('[data-wh-field="sellableMode"]').forEach(function (input) {
+          input.addEventListener('change', function () {
             readSpecPanelsFromDom(backdrop);
-            sku.sellableMode = normalizeSellableMode(modeSelect.value);
             refreshSpecList(backdrop);
           });
-        }
-        panel.querySelectorAll('[data-field="sellablePercent"], [data-field="sellableFixed"]').forEach(function (input) {
+        });
+        stockEditor.querySelectorAll('[data-wh-field="sellablePercent"], [data-wh-field="sellableFixed"]').forEach(function (input) {
           input.addEventListener('input', function () {
-            sku[input.getAttribute('data-field')] = input.value;
-            syncSellableResult();
+            if (window.MdmSkuWhStock) {
+              window.MdmSkuWhStock.readWarehouseFields(panel, sku);
+              window.MdmSkuWhStock.paintWarehouseQuote(panel, sku, stockOpts());
+            }
           });
         });
+        var expressFixed = stockEditor.querySelector('[data-field="sellableFixed"]');
+        if (expressFixed) {
+          expressFixed.addEventListener('input', function () {
+            sku.sellableFixed = expressFixed.value;
+            sku.expressSellableInited = true;
+            ensureSkuStockFields(sku);
+            var remainEl = panel.querySelector('[data-remain-result]');
+            if (remainEl) remainEl.value = sku.remainStock;
+          });
+        }
       }
     });
   }
@@ -1471,6 +1440,8 @@
           syncFreeShipRadios(backdrop);
         }
         syncInheritedSaleTime(backdrop, product);
+        readSpecPanelsFromDom(backdrop);
+        refreshSpecList(backdrop);
       });
     });
     backdrop.querySelectorAll('input[name="proxyFreeShip"]').forEach(function (radio) {
@@ -1515,7 +1486,8 @@
     backdrop.querySelectorAll('input[name="proxySaleScope"]').forEach(function (radio) {
       radio.addEventListener('change', function () {
         syncScopePanelsVisible();
-        refreshAllWhStock(backdrop);
+        readSpecPanelsFromDom(backdrop);
+        refreshSpecList(backdrop);
       });
     });
 
@@ -1531,6 +1503,8 @@
             formState.saleRegions = selected;
             formState.saleRegionSummary = summary;
             refreshRegionTags();
+            readSpecPanelsFromDom(backdrop);
+            refreshSpecList(backdrop);
           }
         });
       });
@@ -1547,7 +1521,8 @@
           onConfirm: function (selected) {
             formState.saleStores = selected;
             refreshStoreCount();
-            refreshAllWhStock(backdrop);
+            readSpecPanelsFromDom(backdrop);
+            refreshSpecList(backdrop);
           }
         });
       });

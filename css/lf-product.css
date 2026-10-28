@@ -6118,3 +6118,80 @@ body.proxy-library-drawer-open {
   width: 100%;
   max-width: 320px;
 }
+
+.product-wh-config-scroll {
+  overflow: auto;
+  max-height: 320px;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+}
+
+.product-wh-config {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.product-wh-config th,
+.product-wh-config td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #f0f0f0;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.product-wh-config thead th {
+  position: sticky;
+  top: 0;
+  background: #fafafa;
+  color: #666666;
+  font-weight: 500;
+  z-index: 1;
+}
+
+.product-wh-config tfoot th {
+  background: #fff;
+}
+
+.product-wh-config__num {
+  font-variant-numeric: tabular-nums;
+}
+
+.product-wh-config__sell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 280px;
+}
+
+.product-wh-config__sell select.product-proxy-spec__input {
+  width: 118px;
+  flex: 0 0 118px;
+}
+
+.product-wh-config__qty {
+  width: 72px;
+  flex: 0 0 72px;
+}
+
+.product-wh-config__pct {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+
+.product-wh-config__pct .product-proxy-spec__input {
+  width: 64px;
+}
+
+.product-wh-config__cap,
+.product-wh-config__sub {
+  color: #999999;
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.product-wh-config__sub {
+  margin-top: 2px;
+}
