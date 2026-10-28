@@ -1,10 +1,30 @@
 {
-  "latestSha": "1f9f853c666000493c2b2287ee85f278b07b3973",
-  "total": 460,
+  "latestSha": "cd3ae701926cf475249ad6204efbb2bbc85fbbe6",
+  "total": 461,
   "days": [
     {
       "date": "2026-10-28",
       "items": [
+        {
+          "sha": "cd3ae70",
+          "type": "feat",
+          "text": "售后详情左侧流程区保留收货地址和物流",
+          "author": "sisi",
+          "time": "19:21",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "text": "退货退款左侧流程区继续显示收货地址和物流卡片；右侧订单信息的提货门店下仍同步展示售后收货地址和售后物流"
+            }
+          ]
+        },
         {
           "sha": "1f9f853",
           "type": "feat",
