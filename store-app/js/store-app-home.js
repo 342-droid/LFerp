@@ -72,6 +72,10 @@
           window.location.href = 'onboarding.html';
           return;
         }
+        if (action === 'contracts') {
+          window.location.href = 'contracts.html';
+          return;
+        }
         if (action === 'orders') {
           goOrders();
           return;
@@ -135,6 +139,38 @@
     }
   }
 
+  function currentStoreName() {
+    var api = window.SaLivePromoSession;
+    var info = api && typeof api.identity === 'function' ? api.identity() : null;
+    return (info && info.storeName) || '冷丰生鲜超市';
+  }
+
+  /** 本店还有待签署，或还没有合同任务时，工作台显示红点。 */
+  function syncContractDot() {
+    var dot = document.getElementById('saContractDot');
+    if (!dot) return;
+    var storeName = currentStoreName();
+    var show = true;
+    try {
+      var data = JSON.parse(localStorage.getItem('lf_contract_proto_v1') || 'null');
+      var parties = {};
+      ((data && data.parties) || []).forEach(function (p) {
+        parties[p.id] = p;
+      });
+      var mine = ((data && data.tasks) || []).filter(function (t) {
+        if (!t || t.scene !== 'store') return false;
+        var party = parties[t.partyId];
+        return party && party.name === storeName && t.status !== 'cancelled' && t.status !== 'rejected' && t.status !== 'terminated' && t.status !== 'voided' && t.status !== 'voiding';
+      });
+      if (mine.length) {
+        show = mine.some(function (t) {
+          return t.status === 'sign_progress' || t.status === 'wait_auth';
+        });
+      }
+    } catch (e) {}
+    dot.hidden = !show;
+  }
+
   function syncLiveIdentityHeader() {
     var api = window.SaLivePromoSession;
     if (api && typeof api.applyUrlHints === 'function') api.applyUrlHints();
@@ -160,6 +196,7 @@
   bindActions();
   syncOnboardingDot();
   syncLiveIdentityHeader();
+  syncContractDot();
 
   if (window.LFScan && window.LFMockData) {
     window.LFScan.init(window.LFMockData, {

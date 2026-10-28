@@ -11,25 +11,19 @@
     });
   }
 
-  function statusText(status) {
-    if (status === 'sign_completed') return '已签署';
-    if (status === 'sign_progress' || status === 'wait_auth') return '待签署';
-    return status || '—';
-  }
-
-  function card(task, partyName) {
-    var pending = task.status === 'sign_progress' || task.status === 'wait_auth';
+  function card(task, tpl, partyName) {
+    var signed = tpl ? window.LfContract.isTemplateSigned(task, tpl.id) : task.status === 'sign_completed';
     var box = document.createElement('section');
     box.className = 'shop-h5-hero';
     var title = document.createElement('div');
     title.style.fontWeight = '700';
     title.style.marginBottom = '6px';
-    title.textContent = task.agreementNames || task.name;
+    title.textContent = (tpl && tpl.name) || task.agreementNames || task.name;
     var meta = document.createElement('div');
     meta.style.fontSize = '13px';
     meta.style.color = '#6b7280';
     meta.style.marginBottom = '12px';
-    meta.textContent = (partyName || '') + ' · ' + statusText(task.status);
+    meta.textContent = (partyName || '') + ' · ' + (signed ? '已签署' : '待签署');
     var actions = document.createElement('div');
     actions.className = 'shop-h5-foot-inner';
     var copy = document.createElement('button');
@@ -37,16 +31,16 @@
     copy.className = 'shop-h5-btn shop-h5-btn-outline';
     copy.textContent = '复制链接';
     copy.addEventListener('click', function () {
-      window.LfContract.copyText(task.signUrl || window.LfContract.htmlSignUrl(task)).then(function () {
-        meta.textContent = (partyName || '') + ' · 链接已复制';
+      window.LfContract.copyText(window.LfContract.fadadaSignUrl(task)).then(function () {
+        meta.textContent = (partyName || '') + ' · 本份链接已复制';
       });
     });
     var open = document.createElement('button');
     open.type = 'button';
     open.className = 'shop-h5-btn shop-h5-btn-primary shop-h5-btn-wide';
-    open.textContent = pending ? '去签署' : '查看合同';
+    open.textContent = signed ? '查看合同' : '去签署';
     open.addEventListener('click', function () {
-      location.href = window.LfContract.htmlSignUrl(task);
+      location.href = window.LfContract.fadadaSignUrl(task);
     });
     actions.appendChild(copy);
     actions.appendChild(open);
@@ -76,9 +70,9 @@
       rows = api.listStoreTasks('');
       note.textContent = '当前门店还没有待签署合同，下面是全部门店合作合同。';
     } else if (storeName) {
-      note.textContent = storeName + '的门店合作合同。审核通过后生成，可在此签署，也可把链接转发出去签。';
+      note.textContent = storeName + '的门店合作合同。每份单独签署，签完一份不会自动签上其他协议。';
     } else {
-      note.textContent = '门店入驻审核通过后生成合同。可在此签署，也可复制链接转发。';
+      note.textContent = '门店入驻审核通过后生成合同。每份单独签署，也可复制单份链接转发。';
     }
     list.appendChild(note);
     if (!rows.length) {
@@ -95,7 +89,14 @@
     });
     rows.forEach(function (task) {
       var party = api.findParty(task.partyId);
-      list.appendChild(card(task, party ? party.name : ''));
+      var tpls = api.taskTemplates(task);
+      if (!tpls.length) {
+        list.appendChild(card(task, null, party ? party.name : ''));
+        return;
+      }
+      tpls.forEach(function (tpl) {
+        list.appendChild(card(task, tpl, party ? party.name : ''));
+      });
     });
   }
 

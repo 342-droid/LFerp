@@ -40,17 +40,14 @@
     })(x);
   }
 
-  function absBdHtml(name) {
-    var u = page(name);
-    if (/^https?:/i.test(u)) return u.replace(/#.*$/, '');
-    var loc = window.location.pathname.replace(/[^/]+$/, '');
-    if (u.indexOf('/') === 0) return window.location.origin + u;
-    return window.location.origin + loc + u;
-  }
-
-  /** 对齐 getStoreCreateH5Url（mdm_bd_h5.html 为门店入驻页） */
+  /** 店主扫码注册与门店 App 注册是同一页：shop-h5 门店注册，店主自己填 */
   function getStoreCreateH5Url() {
-    var base = absBdHtml('mdm_bd_h5.html').replace(/\/$/, '');
+    var rel = window.wmsPath && wmsPath.page
+      ? wmsPath.page('shop-h5/h5/store/register.html')
+      : '../shop-h5/h5/store/register.html';
+    var a = document.createElement('a');
+    a.href = rel;
+    var base = a.href.replace(/#.*$/, '').split('?')[0];
     return base + '?bdId=' + encodeURIComponent(BD_EMPLOYEE_CODE) + '&channel=' + encodeURIComponent('bd_wechat_scan');
   }
 

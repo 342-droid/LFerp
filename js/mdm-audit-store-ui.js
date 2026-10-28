@@ -552,11 +552,13 @@
         var task = attachGeneratedContract(row);
         if (!task || !window.LfContract) return;
         var live = window.LfContract.findTask(task.id) || task;
-        var signed = live.status === 'sign_completed';
         var isSup = isSupplierAuditRow(row);
+        var progress = window.LfContract.signProgressLabel
+            ? window.LfContract.signProgressLabel(live)
+            : (live.status === 'sign_completed' ? '已签署' : '待签署');
         body.appendChild(el('div', 'supplier-detail-section-title', isSup ? '供应商合作' : '门店合作'));
         body.appendChild(detailRow('签署协议', live.agreementNames || row.contractName || live.name));
-        body.appendChild(detailRow('签署状态', signed ? '已签署' : '待签署'));
+        body.appendChild(detailRow('签署状态', progress));
         body.appendChild(detailRow('合同链接', live.signUrl || ''));
         var wrap = el('div', 'audit-contract-actions');
         wrap.style.margin = '8px 0 12px';
@@ -568,8 +570,8 @@
         });
         wrap.appendChild(btn);
         wrap.appendChild(el('p', 'audit-reason-hint', isSup
-            ? '可将链接转发给供应商，打开后阅读并确认签署。'
-            : '可将链接转发给门店。门店也可在门店 App 中签署。'));
+            ? '可将链接转发给供应商。每份协议单独确认签署，签完一份不会自动签上其他协议。'
+            : '可将链接转发给门店，门店也可在门店 App 中一份份签署。'));
         body.appendChild(wrap);
     }
 
