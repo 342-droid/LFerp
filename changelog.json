@@ -1,7 +1,56 @@
 {
-  "latestSha": "c3bc717c3d675a88d4af63683eee092a3e89e6bb",
-  "total": 462,
+  "latestSha": "90f9daa85d41fbf24e53fe4ce45da0659a5da49c",
+  "total": 463,
   "days": [
+    {
+      "date": "2026-10-29",
+      "items": [
+        {
+          "sha": "90f9daa",
+          "type": "feat",
+          "text": "快递不走仓库库存，自提和配送按仓配置可售",
+          "author": "sisi",
+          "time": "00:52",
+          "pages": [
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "module": "冷丰WMS",
+              "title": "直播排品编辑"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "module": "冷丰WMS",
+              "title": "编辑秒杀商品"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "text": "快递只填可售库存并显示剩余可售；自提按仓库分别配置现货、可售和剩余可售，按现货比例时已售先加回再乘"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "text": "快递只填可售库存并显示剩余可售；配送按仓库分别配置现货、可售和剩余可售，按现货比例时已售先加回再乘"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "text": "快递配送只填可售库存并显示剩余可售；自提按各配送仓分别配置，本场配额不超过剩余可售"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-10-28",
       "items": [
