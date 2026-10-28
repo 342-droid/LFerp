@@ -898,6 +898,7 @@
           var rowCls = idx % 2 === 1 ? ' product-proxy-table__row--alt' : '';
           return (
             '<tr class="product-proxy-table__row' + rowCls + '" data-code="' + item.code + '">' +
+            (window.MdmProductListBatch ? window.MdmProductListBatch.cell(item.code) : '') +
             '<td class="product-proxy-table__td product-proxy-table__td--name">' + item.name + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--code">' +
             '  <div class="product-proxy-code">' + item.code + '</div>' +
@@ -920,6 +921,9 @@
           );
         })
         .join('');
+    }
+    if (window.MdmProductListBatch) {
+      window.MdmProductListBatch.sync(pageItems.map(function (item) { return item.code; }));
     }
     renderPagination();
   }
@@ -1003,6 +1007,7 @@
   function bindEvents() {
     document.getElementById('proxyFilterQuery') &&
       document.getElementById('proxyFilterQuery').addEventListener('click', function () {
+        if (window.MdmProductListBatch) window.MdmProductListBatch.clear();
         refresh(true);
         if (typeof showToast === 'function') showToast('查询完成', 'success');
       });
@@ -1011,6 +1016,7 @@
       document.getElementById('proxyFilterReset').addEventListener('click', function () {
         var form = document.getElementById('proxyListFilterForm');
         if (form) form.reset();
+        if (window.MdmProductListBatch) window.MdmProductListBatch.clear();
         refresh(true);
       });
 
@@ -1131,6 +1137,20 @@
     state.filtered = ALL_PRODUCTS.slice();
     populateCategoryFilter();
     bindEvents();
+    if (window.MdmProductListBatch) {
+      window.MdmProductListBatch.mount({
+        channel: 'proxy',
+        root: document.getElementById('proxyProductBatch'),
+        checkAll: document.getElementById('proxyBatchCheckAll'),
+        tableBody: document.getElementById('proxyListTableBody'),
+        getProduct: getProduct,
+        isReadyForShelf: isProductReadyForShelf,
+        applyCategories: applyProductCategories,
+        persist: persistProducts,
+        rerender: function () { renderTable(); },
+        afterCategory: populateCategoryFilter
+      });
+    }
     renderTable();
   }
 

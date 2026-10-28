@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
-    <link rel="stylesheet" href="../css/lf-product.css?v=20260913-stock-fix3">
+    <link rel="stylesheet" href="../css/lf-product.css?v=20261028-product-batch5">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -77,10 +77,12 @@
                     <section class="erp-page__card product-table-card">
                         <div class="product-toolbar product-toolbar--proxy">
                             <button type="button" class="product-toolbar__add" id="mallAddFromLibrary">从商品库添加</button>
+                            <div class="product-batch" id="mallProductBatch"></div>
                         </div>
                         <div class="product-table-wrap">
                             <table class="product-table product-proxy-table">
                                 <colgroup>
+                                    <col class="product-proxy-table__col product-proxy-table__col--check order-live-table__check-col">
                                     <col class="product-proxy-table__col product-proxy-table__col--name">
                                     <col class="product-proxy-table__col product-proxy-table__col--code">
                                     <col class="product-proxy-table__col product-proxy-table__col--img">
@@ -97,6 +99,9 @@
                                 </colgroup>
                                 <thead>
                                     <tr>
+                                        <th class="product-proxy-table__th product-proxy-table__th--check order-live-table__check-col">
+                                            <input type="checkbox" id="mallBatchCheckAll" class="product-batch-check" aria-label="全选本页">
+                                        </th>
                                         <th class="product-proxy-table__th product-proxy-table__th--name">商品名称</th>
                                         <th class="product-proxy-table__th product-proxy-table__th--code">商品编码</th>
                                         <th class="product-proxy-table__th product-proxy-table__th--img">商品图片</th>
@@ -150,6 +155,7 @@
     <script src="../js/mdm-order-free-ship-store.js?v=20260920-proxy-express"></script>
     <script src="../js/mdm-product-proxy-form.js?v=20260916-fs-channel"></script>
     <script src="../js/mdm-product-proxy-library-drawer.js?v=20260911-lib-checkall"></script>
-    <script src="../js/mdm-product-mall-list.js?v=20260915-ship-config"></script>
+    <script src="../js/mdm-product-list-batch.js?v=20261028-product-batch5"></script>
+    <script src="../js/mdm-product-mall-list.js?v=20261028-product-batch5"></script>
 </body>
 </html>
