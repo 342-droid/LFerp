@@ -2587,7 +2587,7 @@
       '<h2 class="aftersale-detail-card__title">' +
       escapeHtml(title) +
       '</h2>' +
-      (detail.type === '退货退款' ? '' : renderMerchantAddrCard(detail.returnAddress, returnAddrTitle(detail))) +
+      renderMerchantAddrCard(detail.returnAddress, returnAddrTitle(detail)) +
       bodyHtml +
       actions +
       '</section>'
@@ -2609,7 +2609,7 @@
       '<h2 class="aftersale-detail-card__title">' +
       escapeHtml(title) +
       '</h2>' +
-      (type === '退货退款' ? '' : renderMerchantAddrCard(detail.returnAddress, returnAddrTitle(detail))) +
+      renderMerchantAddrCard(detail.returnAddress, returnAddrTitle(detail)) +
       '<div class="aftersale-return-ship aftersale-return-ship--waiting">' +
       '<div class="aftersale-return-ship__title">到店退货</div>' +
       '<div class="aftersale-return-ship__wait">' +
@@ -2773,8 +2773,8 @@
       '<h2 class="aftersale-detail-card__title">' +
       escapeHtml(title) +
       '</h2>' +
-      (type === '退货退款' ? '' : renderMerchantAddrCard(detail.returnAddress, addrTitle)) +
-      (type === '退货退款' && showsReturnLogistics(detail) ? '' : shipHtml) +
+      renderMerchantAddrCard(detail.returnAddress, addrTitle) +
+      shipHtml +
       actions +
       '</section>'
     );
@@ -3473,11 +3473,11 @@
     var status = detail.status;
     var ships = detail.shipments || {};
 
-    // 退货退款的收货地址、寄回物流在侧栏「订单信息 · 提货门店」下面展示，主栏不再重复
-    if (type === '退货退款') return '';
-
-    // 换货待退货、补货/换货专用面板由流程区承载，避免重复
-    if (type === '换货' && status === '待退货') {
+    // 退货/换货待退货、退货退款待收货、补货/换货专用面板由流程区承载，避免重复
+    if ((type === '退货退款' || type === '换货') && status === '待退货') {
+      return '';
+    }
+    if (type === '退货退款' && status === '待收货') {
       return '';
     }
     if (
