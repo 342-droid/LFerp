@@ -75,7 +75,8 @@
     var field = sw.parentElement;
     var input = field ? field.querySelector('.order-filter-field__input') : null;
     var prev = hidden ? hidden.value : '';
-    var isUserSwitch = sw.getAttribute('data-order-filter-switch') === 'user';
+    var switchKind = sw.getAttribute('data-order-filter-switch') || '';
+    var clearsOnSwitch = switchKind === 'user' || switchKind === 'order';
     if (labelEl) labelEl.textContent = text;
     if (hidden) hidden.value = value;
     if (controlKind && field) {
@@ -86,8 +87,8 @@
     if (input && (!controlKind || controlKind === 'input')) {
       input.placeholder = placeholder;
       input.setAttribute('aria-label', text);
-      /* 买家信息：切换下拉清空输入；重置时也清空 */
-      if (isUserSwitch && (value !== prev || (options && options.reset))) {
+      /* 买家信息、订单号/快递单号：切换下拉清空输入；重置时也清空 */
+      if (clearsOnSwitch && (value !== prev || (options && options.reset))) {
         input.value = '';
       }
     }
@@ -929,6 +930,10 @@
     var statusLabels = getSelectedOrderStatusLabels();
     var productInput = document.getElementById('qProductName');
     var productQ = productInput ? normalizeFilterText(productInput.value) : '';
+    var orderKeyEl = document.getElementById('qOrderKey');
+    var orderKey = orderKeyEl ? (orderKeyEl.value || 'orderNo') : 'orderNo';
+    var orderInput = document.getElementById('qOrderNo');
+    var orderQ = orderInput ? normalizeFilterText(orderInput.value) : '';
 
     var tbody = document.querySelector('.order-live-table tbody');
     if (!tbody) return;
@@ -988,6 +993,12 @@
       }
       if (show && productQ) {
         show = rowMatchesProductQuery(row, productQ);
+      }
+      /* 订单号包含匹配；快递单号与已关联包裹物流单号全等，对不上不出现 */
+      if (show && orderQ) {
+        show = orderKey === 'expressNo'
+          ? rowMatchesExpressNo(row, orderQ)
+          : rowMatchesOrderNo(row, orderQ);
       }
       /* 发起退货/退款：只看售后状态，不改订单状态列；与履约态同时勾选时为或关系 */
       if (show && statusLabels.length) {
@@ -1235,6 +1246,27 @@
   function getRetailProductQuery() {
     var input = document.getElementById('qProductName');
     return input ? normalizeFilterText(input.value) : '';
+  }
+
+  function rowMatchesOrderNo(row, orderQ) {
+    if (!orderQ) return true;
+    var id = normalizeFilterText(row && row.getAttribute('data-order-id'));
+    if (id.indexOf(orderQ) >= 0) return true;
+    var link = row.querySelector('.js-order-view');
+    return normalizeFilterText(link ? link.textContent : '').indexOf(orderQ) >= 0;
+  }
+
+  /** 快递单号去空格、忽略大小写后与包裹物流单号全等才命中。 */
+  function rowMatchesExpressNo(row, expressQ) {
+    if (!expressQ) return true;
+    var orderId = row && row.getAttribute('data-order-id');
+    if (!orderId || !window.OrderProxyExpress || typeof window.OrderProxyExpress.getShipments !== 'function') {
+      return false;
+    }
+    var shipments = window.OrderProxyExpress.getShipments(orderId) || [];
+    return shipments.some(function (shipment) {
+      return normalizeFilterText(shipment && shipment.trackingNo) === expressQ;
+    });
   }
 
   function rowMatchesProductQuery(row, productQ) {

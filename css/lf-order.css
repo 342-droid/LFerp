@@ -3099,6 +3099,11 @@ button.order-detail-refund-breakdown__row.is-link:focus-visible {
   gap: 10px;
 }
 
+.order-proxy-shipment.is-tracking-hit .order-proxy-goods-card,
+.order-proxy-shipment.is-tracking-hit .order-proxy-shipment__card {
+  border-color: #ff7019;
+}
+
 .order-proxy-shipment__head {
   display: flex;
   align-items: center;

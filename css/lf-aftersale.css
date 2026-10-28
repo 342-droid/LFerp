@@ -98,6 +98,14 @@
   white-space: nowrap;
 }
 
+/* 标签筛选项由业务标签组件注入，标签名与其它筛选项一样右对齐贴输入框 */
+#asTicketFilterGrid .bt-filter__label {
+  margin: 0;
+  text-align: right;
+  line-height: 32px;
+  white-space: nowrap;
+}
+
 .aftersale-filter-field__input,
 .aftersale-filter-field__select {
   width: 100%;

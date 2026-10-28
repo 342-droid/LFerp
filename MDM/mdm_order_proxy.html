@@ -56,8 +56,18 @@
                             </div>
                             <div class="order-filter-grid order-filter-grid--2">
                                 <div class="order-filter-field">
-                                    <label class="order-filter-field__label" for="qOrderNo">订单号</label>
-                                    <input class="order-filter-field__input" id="qOrderNo" type="text" placeholder="请输入订单号">
+                                    <!-- 订单号包含匹配；快递单号与已关联包裹物流单号全等。切换清空输入；重置回到订单号并清空。 -->
+                                    <div class="order-filter-switch" data-order-filter-switch="order">
+                                        <button type="button" class="order-filter-switch__trigger" aria-expanded="false" aria-haspopup="listbox">
+                                            <span class="order-filter-switch__text">订单号</span>
+                                        </button>
+                                        <div class="order-filter-switch__menu" hidden role="listbox">
+                                            <button type="button" class="order-filter-switch__item is-active" role="option" aria-selected="true" data-value="orderNo" data-placeholder="请输入订单号">订单号</button>
+                                            <button type="button" class="order-filter-switch__item" role="option" aria-selected="false" data-value="expressNo" data-placeholder="请输入快递单号">快递单号</button>
+                                        </div>
+                                        <input type="hidden" id="qOrderKey" name="qOrderKey" value="orderNo">
+                                    </div>
+                                    <input class="order-filter-field__input" id="qOrderNo" type="text" placeholder="请输入订单号" aria-label="订单号" autocomplete="off">
                                 </div>
                                 <div class="order-filter-field">
                                     <label class="order-filter-field__label" for="qProductName">商品名称</label>
@@ -814,11 +824,11 @@
     <script src="../js/order-platform-aftersale.js?v=20260921-share-weights"></script>
     <script src="../js/freight-refund-aftersale-store.js?v=20260826-refund-only"></script>
     <script src="../js/order-freight-refund.js?v=20260920-express-refund"></script>
-    <script src="../js/order-live-list.js?v=20261028-proxy-export-sync"></script>
+    <script src="../js/order-live-list.js?v=20261028-order-express-switch"></script>
     <script src="../js/order-proxy-list.js?v=20260916-freight-btn"></script>
     <script src="../js/logistics-tracking-no.js"></script>
     <script src="../js/vendor/xlsx.full.min.js"></script>
-    <script src="../js/order-proxy-express.js?v=20260916-access"></script>
+    <script src="../js/order-proxy-express.js?v=20261028-order-express-switch"></script>
     <script src="../js/mdm-order-free-ship-store.js?v=20260920-proxy-express"></script>
     <script src="../js/tms-logistics-rate-store.js?v=20260921-extras-per-rule"></script>
     <script src="../js/order-live-detail.js?v=20260926-proxy-cols"></script>
