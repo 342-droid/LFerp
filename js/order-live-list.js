@@ -1586,8 +1586,8 @@
     });
   }
 
-  var RETAIL_EXPORT_FIELDS_KEY = 'lfRetailOrderExportFieldsV10';
-  var PROXY_EXPORT_FIELDS_KEY = 'lfProxyOrderExportFieldsV6';
+  var RETAIL_EXPORT_FIELDS_KEY = 'lfRetailOrderExportFieldsV11';
+  var PROXY_EXPORT_FIELDS_KEY = 'lfProxyOrderExportFieldsV7';
   var RETAIL_CLEARING_EXPORT_FIELDS_KEY = 'lfRetailClearingExportFieldsV4';
   var PROXY_CLEARING_EXPORT_FIELDS_KEY = 'lfProxyClearingExportFieldsV4';
   var RETAIL_EXPORT_FIELDS = [
@@ -1620,6 +1620,7 @@
     { key: 'category', label: '商品类目', extra: true },
     { key: 'allocatedFreight', label: '分摊运费', extra: true },
     { key: 'refundAmount', label: '退款金额', extra: true },
+    { key: 'returnQty', label: '退货数', extra: true },
     { key: 'liveSession', label: '直播场次', extra: true },
     { key: 'address', label: '收货地址', extra: true },
     { key: 'aftersaleStatus', label: '售后状态', extra: true },
@@ -1654,8 +1655,11 @@
     { key: 'category', label: '商品类目', extra: true },
     { key: 'allocatedFreight', label: '分摊运费', extra: true },
     { key: 'refundAmount', label: '退款金额', extra: true },
+    { key: 'returnQty', label: '退货数', extra: true },
     { key: 'address', label: '收货地址', extra: true },
-    { key: 'aftersaleStatus', label: '售后状态', extra: true }
+    { key: 'aftersaleStatus', label: '售后状态', extra: true },
+    { key: 'finishTime', label: '订单完成时间', extra: true },
+    { key: 'bd', label: 'BD', extra: true }
   ];
   /** 清分明细导出：一行一个清分项；支付流水已去掉，对账用通道流水 */
   var CLEARING_EXPORT_FIELDS = [
@@ -1972,6 +1976,17 @@
     return st === '已完成' || st === '退款成功';
   }
 
+  /**
+   * 已完成的仅退款、退货退款才计入退货数，与售后明细「退货数」一致。
+   * 待审批、待退货、待收货、退款中、退款异常等在途不计入；运费退款、补货也不计。
+   */
+  function isCompletedGoodsReturn(item) {
+    if (!item || isFreightRefundAftersale(item)) return false;
+    if (item.type !== '仅退款' && item.type !== '退货退款') return false;
+    var st = item.status || '';
+    return st === '已完成' || st === '退款成功' || st === '退货成功';
+  }
+
   function aftersaleRefundCents(item) {
     if (!item) return 0;
     return Math.max(
@@ -2034,6 +2049,30 @@
       var leftover = allocateCents(orderRefund - assigned, goods.map(skuAmountCents));
       for (i = 0; i < n; i++) out[i] += leftover[i] || 0;
     }
+    return out;
+  }
+
+  /** 一行商品的退货数：只加总已完成售后的退货数量。 */
+  function resolveSkuReturnQty(goods, aftersales) {
+    var n = goods.length;
+    var out = [];
+    var i;
+    for (i = 0; i < n; i++) out.push(0);
+    if (!n) return out;
+    (aftersales || []).forEach(function (as) {
+      if (!isCompletedGoodsReturn(as)) return;
+      var qty = parseInt(as.returnQty, 10);
+      if (!qty || qty < 0) return;
+      var idx = -1;
+      for (i = 0; i < n; i++) {
+        if (goodsMatchesAftersale(goods[i], as)) {
+          idx = i;
+          break;
+        }
+      }
+      if (idx < 0 && n === 1) idx = 0;
+      if (idx >= 0) out[idx] += qty;
+    });
     return out;
   }
 
@@ -2174,6 +2213,7 @@
       });
     }
     var refundParts = resolveSkuRefundCents(goods, detail.aftersales, detail);
+    var returnQtyParts = resolveSkuReturnQty(goods, detail.aftersales);
     var aftersaleStatus = '';
     if (window.OrderLiveDetail && typeof window.OrderLiveDetail.getOrderAftersaleStatus === 'function') {
       aftersaleStatus = window.OrderLiveDetail.getOrderAftersaleStatus(
@@ -2220,7 +2260,8 @@
         allocatedFreight: centsToYuanText(freightParts[index] || 0),
         paidWithoutFreight: centsToYuanText(paidParts[index] || 0),
         paidWithFreight: centsToYuanText((paidParts[index] || 0) + (freightParts[index] || 0)),
-        refundAmount: centsToYuanText(refundParts[index] || 0)
+        refundAmount: centsToYuanText(refundParts[index] || 0),
+        returnQty: String(returnQtyParts[index] || 0)
       });
     });
   }
