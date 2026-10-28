@@ -1554,7 +1554,7 @@
     });
   }
 
-  var RETAIL_EXPORT_FIELDS_KEY = 'lfRetailOrderExportFieldsV9';
+  var RETAIL_EXPORT_FIELDS_KEY = 'lfRetailOrderExportFieldsV10';
   var PROXY_EXPORT_FIELDS_KEY = 'lfProxyOrderExportFieldsV6';
   var RETAIL_CLEARING_EXPORT_FIELDS_KEY = 'lfRetailClearingExportFieldsV4';
   var PROXY_CLEARING_EXPORT_FIELDS_KEY = 'lfProxyClearingExportFieldsV4';
@@ -1590,7 +1590,9 @@
     { key: 'refundAmount', label: '退款金额', extra: true },
     { key: 'liveSession', label: '直播场次', extra: true },
     { key: 'address', label: '收货地址', extra: true },
-    { key: 'aftersaleStatus', label: '售后状态', extra: true }
+    { key: 'aftersaleStatus', label: '售后状态', extra: true },
+    { key: 'finishTime', label: '订单完成时间', extra: true },
+    { key: 'bd', label: 'BD', extra: true }
   ];
   var PROXY_EXPORT_FIELDS = [
     { key: 'orderNo', label: '订单号' },
@@ -2003,6 +2005,32 @@
     return out;
   }
 
+  /** 仅交易成功 / 已完成写出完成时间；未完成、已关闭为「—」。 */
+  function resolveOrderFinishTime(row, detail) {
+    var progress = (detail && detail.progress) || {};
+    var status = String(progress.status || '').trim();
+    var completed = progress.outcome === 'success' || status === '已完成' || status === '交易成功';
+    if (!completed && row) {
+      var statusEl =
+        row.querySelector('.order-status-cell .order-tag') ||
+        row.querySelector('.order-tag:not(.order-tag--sale):not(.order-tag--scene)');
+      var text = statusEl ? statusEl.textContent.trim() : '';
+      completed = text === '已完成' || text === '交易成功';
+    }
+    if (!completed) return '—';
+    var time = String(progress.finishTime || '').trim();
+    if (!time || time === '-' || time === '—') return '—';
+    return time;
+  }
+
+  /** BD 取订单标记，与详情「订单标记 · BD」一致。 */
+  function resolveOrderBd(detail) {
+    var bd = detail && detail.tags ? detail.tags.bd : '';
+    bd = String(bd == null ? '' : bd).trim();
+    if (!bd || bd === '-' || bd === '—') return '—';
+    return bd;
+  }
+
   function resolveLiveSessionExport(row, detail) {
     var fromRow = row && row.getAttribute('data-live-session');
     fromRow = String(fromRow || '').trim();
@@ -2147,7 +2175,9 @@
       orderStatus: cellTextOf(cells, col.orderStatus),
       address: (detail.delivery && (detail.delivery.address || detail.delivery.homeAddress)) || '—',
       aftersaleStatus: aftersaleStatus || '—',
-      liveSession: resolveLiveSessionExport(row, detail)
+      liveSession: resolveLiveSessionExport(row, detail),
+      finishTime: resolveOrderFinishTime(row, detail),
+      bd: resolveOrderBd(detail)
     };
     return goods.map(function (item, index) {
       return Object.assign({}, base, {

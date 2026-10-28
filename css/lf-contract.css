@@ -412,6 +412,135 @@ body[data-ct-page] .table td:last-child {
   box-shadow: -8px 0 24px rgba(0, 0, 0, 0.12);
 }
 
+.ct-doc--with-side {
+  width: min(1180px, 100%);
+}
+
+.ct-doc__layout {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  padding: 0 16px 16px;
+}
+
+.ct-doc__side {
+  width: 320px;
+  flex-shrink: 0;
+  min-height: 0;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  overflow: auto;
+}
+
+.ct-doc__side[hidden] {
+  display: none;
+}
+
+.ct-doc__side-title {
+  padding: 14px 16px 8px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.ct-side-line {
+  display: flex;
+  gap: 12px;
+  padding: 7px 16px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.ct-side-line span {
+  flex: 0 0 64px;
+  color: #888;
+}
+
+.ct-side-line b {
+  flex: 1;
+  min-width: 0;
+  font-weight: 500;
+  color: #222;
+  word-break: break-all;
+}
+
+.ct-side-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: #d9d9d9;
+  vertical-align: 1px;
+}
+
+.ct-side-dot.is-ok { background: #52c41a; }
+.ct-side-dot.is-info { background: #1677ff; }
+.ct-side-dot.is-warn { background: #fa8c16; }
+.ct-side-dot.is-bad { background: #cf1322; }
+
+.ct-side-copy {
+  margin-left: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #1677ff;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.ct-side-sign {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.ct-side-sign__top,
+.ct-side-sign__who {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 16px;
+  font-size: 13px;
+}
+
+.ct-side-sign__top {
+  color: #8c8c8c;
+  font-weight: 500;
+}
+
+.ct-side-sign__top span:first-child {
+  color: #1677ff;
+  font-weight: 600;
+  padding-left: 8px;
+  border-left: 3px solid #1677ff;
+  line-height: 1;
+}
+
+.ct-side-sign__who em {
+  flex-shrink: 0;
+  font-style: normal;
+  color: #8c8c8c;
+}
+
+.ct-side-sign__who em.is-done {
+  color: #52c41a;
+}
+
+@media (max-width: 760px) {
+  .ct-doc__side {
+    width: 248px;
+  }
+
+  .ct-side-line span {
+    flex-basis: 56px;
+  }
+}
+
 .ct-doc__head {
   display: flex;
   align-items: flex-start;
@@ -461,6 +590,7 @@ body[data-ct-page] .table td:last-child {
 
 .ct-doc__tabs {
   display: flex;
+  flex-shrink: 0;
   gap: 8px;
   padding: 0 16px 12px;
   overflow-x: auto;
@@ -492,7 +622,9 @@ body[data-ct-page] .table td:last-child {
 
 .ct-doc__paper {
   flex: 1;
-  margin: 0 16px 16px;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
   padding: 28px 32px 48px;
   overflow: auto;
   background: #fff;
@@ -503,6 +635,93 @@ body[data-ct-page] .table td:last-child {
   font-size: 14px;
   line-height: 1.85;
   color: #222;
+}
+
+.ct-signline {
+  position: relative;
+  display: block;
+  min-height: 32px;
+}
+
+.ct-seal {
+  position: absolute;
+  right: 4px;
+  top: -28px;
+  width: 112px;
+  height: 112px;
+  transform: rotate(-8deg);
+  pointer-events: none;
+  line-height: 1;
+}
+
+.ct-seal svg {
+  display: block;
+  width: 112px;
+  height: 112px;
+}
+
+.ct-seal--next {
+  right: 124px;
+  top: -6px;
+  transform: rotate(7deg);
+}
+
+.ct-sign-name {
+  font-family: "Xingkai SC", "STXingkai", "KaiTi", "STKaiti", cursive;
+  font-size: 28px;
+  line-height: 1;
+  margin-left: 8px;
+  color: #1a1a1a;
+}
+
+.ct-sign-note {
+  margin-left: 8px;
+  color: #c41e1e;
+  font-size: 13px;
+}
+
+.ct-qr-pop {
+  position: fixed;
+  z-index: 6100;
+  width: 248px;
+}
+
+.ct-qr-pop__body {
+  position: relative;
+  padding-top: 8px;
+}
+
+.ct-qr-pop__caret {
+  position: absolute;
+  top: 1px;
+  z-index: 1;
+  width: 14px;
+  height: 14px;
+  background: #fff;
+  border: 1px solid rgba(31, 56, 88, 0.14);
+  transform: rotate(45deg);
+}
+
+.ct-qr-pop__card {
+  position: relative;
+  z-index: 2;
+  background: #fff;
+  border-radius: 8px;
+  padding: 14px;
+  box-shadow: 0 8px 24px rgba(31, 56, 88, 0.12);
+}
+
+#ctQrMount {
+  width: 220px;
+  height: 220px;
+  cursor: pointer;
+}
+
+#ctQrMount img,
+#ctQrMount canvas {
+  display: block;
+  width: 220px;
+  height: 220px;
 }
 
 @media (max-width: 1200px) {

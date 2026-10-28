@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="../css/basic-settings.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
-    <link rel="stylesheet" href="../css/lf-contract.css">
+    <link rel="stylesheet" href="../css/lf-contract.css?v=20261028-qr-arrow">
 </head>
 <body data-ct-page="task">
     <div id="sidebar-container"></div>
@@ -22,7 +22,7 @@
             <hr class="content-divider">
 
             <div class="mdm-biz-tip" role="note">
-                按<strong>门店合作、供应商合作、用户注册</strong>发起。门店入驻、供应商入驻在审核通过后自动生成待签署任务。<strong>复制链接</strong>转发给对方，打开即可阅读并确认签署；门店也可在门店 App 签署。用户在用户 APP / 小程序注册时勾选协议即完成签署。点合同名称或「查看合同」可阅读该任务里的全部协议正文。
+                按<strong>门店合作、供应商合作、用户注册</strong>发起。门店入驻、供应商入驻在审核通过后自动生成待签署任务。<strong>复制链接</strong>或下载<strong>二维码</strong>转发给对方，打开或扫码后进入<strong>法大大</strong>签署页。用户在用户 APP / 小程序注册时勾选协议即完成签署。点合同名称或「查看合同」可在本系统阅读正文；<strong>已完成</strong>的协议会显示双方已盖的章和署名。
             </div>
 
             <div class="ct-tabs" role="tablist">
@@ -30,8 +30,11 @@
                 <button type="button" class="ct-tabs__item" data-status="wait_auth" data-label="待对方授权">待对方授权</button>
                 <button type="button" class="ct-tabs__item" data-status="sign_progress" data-label="签署中">签署中</button>
                 <button type="button" class="ct-tabs__item" data-status="sign_completed" data-label="已完成">已完成</button>
-                <button type="button" class="ct-tabs__item" data-status="rejected" data-label="已拒签">已拒签</button>
+                <button type="button" class="ct-tabs__item" data-status="overdue" data-label="已逾期">已逾期</button>
                 <button type="button" class="ct-tabs__item" data-status="cancelled" data-label="已撤销">已撤销</button>
+                <button type="button" class="ct-tabs__item" data-status="terminated" data-label="已终止">已终止</button>
+                <button type="button" class="ct-tabs__item" data-status="voiding" data-label="作废中">作废中</button>
+                <button type="button" class="ct-tabs__item" data-status="voided" data-label="已作废">已作废</button>
             </div>
 
             <section class="search-section">
@@ -67,6 +70,7 @@
                                 <th>状态</th>
                                 <th>发起人</th>
                                 <th>发起时间</th>
+                                <th>签署截止时间</th>
                                 <th>完成时间</th>
                                 <th>操作</th>
                             </tr>
@@ -79,6 +83,7 @@
     </div>
     <script src="../js/common.js"></script>
     <script src="../js/contract-bodies.js?v=20261026-contract-read"></script>
-    <script src="../js/basic-settings-contract.js?v=20261026-sign-fill"></script>
+    <script src="../js/qrcode.min.js?v=20261028-qr-arrow"></script>
+    <script src="../js/basic-settings-contract.js?v=20261028-qr-arrow"></script>
 </body>
 </html>
