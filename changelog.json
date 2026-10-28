@@ -1,10 +1,78 @@
 {
-  "latestSha": "fb4c44127001a3b91c6268b8f965eb9b183a41c2",
-  "total": 458,
+  "latestSha": "4118124f3be4445a7415ff90639060405f4c2c3f",
+  "total": 459,
   "days": [
     {
       "date": "2026-10-28",
       "items": [
+        {
+          "sha": "4118124",
+          "type": "feat",
+          "text": "订单可按快递单号查询，售后筛选字段名右对齐",
+          "author": "sisi",
+          "time": "15:20",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_feedback.html",
+              "module": "冷丰售后",
+              "title": "意见反馈"
+            },
+            {
+              "file": "MDM/mdm_aftersale_refund.html",
+              "module": "冷丰售后",
+              "title": "退款单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_report.html",
+              "module": "冷丰售后",
+              "title": "举报管理"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "module": "冷丰售后",
+              "title": "售后单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_queue.html",
+              "module": "冷丰WMS",
+              "title": "排队记录"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "订单号与快递单号合并为下拉切换；按快递单号可找到订单，详情高亮对应包裹"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "text": "同步支持订单号/快递单号下拉切换查询，命中包裹在详情中高亮"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "text": "筛选区字段名右对齐，售后标签和会员标签与其他筛选项对齐"
+            }
+          ]
+        },
         {
           "sha": "fb4c441",
           "type": "feat",
