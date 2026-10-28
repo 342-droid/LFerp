@@ -1,10 +1,40 @@
 {
-  "latestSha": "cd3ae701926cf475249ad6204efbb2bbc85fbbe6",
-  "total": 461,
+  "latestSha": "c3bc717c3d675a88d4af63683eee092a3e89e6bb",
+  "total": 462,
   "days": [
     {
       "date": "2026-10-28",
       "items": [
+        {
+          "sha": "c3bc717",
+          "type": "feat",
+          "text": "商城商品和代采商品列表支持批量操作",
+          "author": "sisi",
+          "time": "22:11",
+          "pages": [
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "text": "序号左侧可勾选；批量可改类目、履约方式（快递/自提）、是否包邮、商品标签、售卖范围，并支持批量上下架"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "text": "序号左侧可勾选；批量可改类目、履约方式（快递/配送）、是否包邮、商品标签、售卖范围，并支持批量上下架"
+            }
+          ]
+        },
         {
           "sha": "cd3ae70",
           "type": "feat",
