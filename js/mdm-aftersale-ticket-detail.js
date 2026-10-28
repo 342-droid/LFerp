@@ -1348,7 +1348,10 @@
             : g0.restockQty || g0.applyQty || g0.refundQty || detail.summary.refundQty || 0;
         applyActualRestockQty(detail, Number(seedQty) || 0);
       }
-    } else if ((type === '退货退款' || type === '换货') && isPostAudit(status)) {
+    } else if (type === '换货' && isPostAudit(status)) {
+      detail.returnAddress = resolveReturnAddress(detail, detail.returnAddress);
+    } else if (type === '退货退款' && (isPostAudit(status) || status === '已取消')) {
+      /* 已取消不在审核后状态里，仍要保留售后退货地址 */
       detail.returnAddress = resolveReturnAddress(detail, detail.returnAddress);
     }
 
@@ -1422,11 +1425,15 @@
       }
     }
 
-    // 快递寄回物流：零售 / 代采均补演示数据（进入退款后流程面板收起，物流区仍要能展示）
+    // 快递寄回物流：零售 / 代采均补演示数据。待退货尚未寄出，不补物流。
     if (
       type === '退货退款' &&
       isExpressFulfillment(detail.deliveryMode) &&
-      (status === '退款中' || status === '待收货' || status === '已完成' || status === '退款异常')
+      (status === '退款中' ||
+        status === '待收货' ||
+        status === '已完成' ||
+        status === '退款异常' ||
+        status === '已取消')
     ) {
       if (!detail.shipments.returnShip) {
         detail.shipments.returnShip = makeShip(
@@ -2580,7 +2587,7 @@
       '<h2 class="aftersale-detail-card__title">' +
       escapeHtml(title) +
       '</h2>' +
-      renderMerchantAddrCard(detail.returnAddress, returnAddrTitle(detail)) +
+      (detail.type === '退货退款' ? '' : renderMerchantAddrCard(detail.returnAddress, returnAddrTitle(detail))) +
       bodyHtml +
       actions +
       '</section>'
@@ -2602,7 +2609,7 @@
       '<h2 class="aftersale-detail-card__title">' +
       escapeHtml(title) +
       '</h2>' +
-      renderMerchantAddrCard(detail.returnAddress, returnAddrTitle(detail)) +
+      (type === '退货退款' ? '' : renderMerchantAddrCard(detail.returnAddress, returnAddrTitle(detail))) +
       '<div class="aftersale-return-ship aftersale-return-ship--waiting">' +
       '<div class="aftersale-return-ship__title">到店退货</div>' +
       '<div class="aftersale-return-ship__wait">' +
@@ -2766,8 +2773,8 @@
       '<h2 class="aftersale-detail-card__title">' +
       escapeHtml(title) +
       '</h2>' +
-      renderMerchantAddrCard(detail.returnAddress, addrTitle) +
-      shipHtml +
+      (type === '退货退款' ? '' : renderMerchantAddrCard(detail.returnAddress, addrTitle)) +
+      (type === '退货退款' && showsReturnLogistics(detail) ? '' : shipHtml) +
       actions +
       '</section>'
     );
@@ -3165,6 +3172,97 @@
     return '';
   }
 
+  /**
+   * 退货退款：有售后退货地址 / 售后物流时，同步进右侧「订单信息」，放在提货门店下面。
+   * 售后收货地址：待退货、待收货、退款中、退款异常、已完成、已取消
+   * 售后物流信息：待收货、退款中、退款异常、已完成、已取消
+   * 待退货尚未寄出，只显示收货地址。
+   */
+  function showsReturnGoodsAddress(detail) {
+    if (!detail || detail.type !== '退货退款') return false;
+    return (
+      detail.status === '待退货' ||
+      detail.status === '待收货' ||
+      detail.status === '退款中' ||
+      detail.status === '退款异常' ||
+      detail.status === '已完成' ||
+      detail.status === '已取消'
+    );
+  }
+
+  function showsReturnLogistics(detail) {
+    if (!detail || detail.type !== '退货退款') return false;
+    return (
+      detail.status === '待收货' ||
+      detail.status === '退款中' ||
+      detail.status === '退款异常' ||
+      detail.status === '已完成' ||
+      detail.status === '已取消'
+    );
+  }
+
+  function renderAsideReturnAddress(detail) {
+    var addr = detail.returnAddress;
+    var body = '<div class="aftersale-logistics-block__empty">暂无退货地址</div>';
+    if (addr) {
+      var fullAddr = ((addr.region || '') + ' ' + (addr.detailAddress || '')).trim();
+      body =
+        '<div class="aftersale-aside-kv"><span>收货人</span><span>' +
+        escapeHtml(addr.receiverName || '-') +
+        '</span></div>' +
+        '<div class="aftersale-aside-kv"><span>联系电话</span><span>' +
+        escapeHtml(addr.receiverPhone || '-') +
+        '</span></div>' +
+        '<div class="aftersale-aside-kv aftersale-aside-kv--block"><span>收货地址</span><span>' +
+        escapeHtml(fullAddr || '-') +
+        '</span></div>';
+    }
+    return '<div class="aftersale-aside-subtitle">售后收货地址</div>' + body;
+  }
+
+  function renderAsideReturnLogistics(detail) {
+    var body;
+    if (!isExpressFulfillment(detail.deliveryMode)) {
+      var tip = isPickupFulfillment(detail.deliveryMode)
+        ? '到店退货，无需快递寄回'
+        : '门店退回仓库，无需快递寄回';
+      body =
+        '<div class="aftersale-aside-kv"><span>物流单号</span><span>—</span></div>' +
+        '<div class="aftersale-aside-kv aftersale-aside-kv--block"><span>说明</span><span>' +
+        escapeHtml(tip) +
+        '</span></div>';
+    } else {
+      var ship = detail.shipments && detail.shipments.returnShip;
+      if (!ship || !ship.trackingNo) {
+        body = '<div class="aftersale-logistics-block__empty">暂无物流信息</div>';
+      } else {
+        body =
+          '<div class="aftersale-aside-kv"><span>物流单号</span><span class="aftersale-logistics-no">' +
+          escapeHtml(ship.trackingNo) +
+          '</span></div>' +
+          '<div class="aftersale-aside-kv"><span>物流公司</span><span>' +
+          escapeHtml(ship.company || '-') +
+          '</span></div>' +
+          '<div class="aftersale-aside-kv"><span>物流状态</span><span>' +
+          escapeHtml(ship.status || '-') +
+          ' <button type="button" class="aftersale-track-link js-as-track" data-ship-key="returnShip">跟踪信息</button></span></div>' +
+          (ship.uploadedAt
+            ? '<div class="aftersale-aside-kv"><span>上传时间</span><span>' +
+              escapeHtml(ship.uploadedAt) +
+              '</span></div>'
+            : '');
+      }
+    }
+    return '<div class="aftersale-aside-subtitle">售后物流信息</div>' + body;
+  }
+
+  function renderAsideReturnInfo(detail) {
+    var html = '';
+    if (showsReturnGoodsAddress(detail)) html += renderAsideReturnAddress(detail);
+    if (showsReturnLogistics(detail)) html += renderAsideReturnLogistics(detail);
+    return html;
+  }
+
   function renderAside(detail) {
     var c = detail.customer;
     var o = detail.order;
@@ -3282,7 +3380,9 @@
       '</span></div>' +
       '<div class="aftersale-aside-kv"><span>提货门店</span><span>' +
       escapeHtml(o.store) +
-      '</span></div></div>' +
+      '</span></div>' +
+      renderAsideReturnInfo(detail) +
+      '</div>' +
       '<div><h3 class="aftersale-aside-section__title">采购供应商信息</h3>' +
       '<div class="aftersale-aside-kv"><span>供应商</span><span>' +
       escapeHtml(detail.supplier.name) +
@@ -3373,11 +3473,11 @@
     var status = detail.status;
     var ships = detail.shipments || {};
 
-    // 退货/换货待退货、退货退款待收货、补货/换货专用面板由流程区承载，避免重复
-    if ((type === '退货退款' || type === '换货') && status === '待退货') {
-      return '';
-    }
-    if (type === '退货退款' && status === '待收货') {
+    // 退货退款的收货地址、寄回物流在侧栏「订单信息 · 提货门店」下面展示，主栏不再重复
+    if (type === '退货退款') return '';
+
+    // 换货待退货、补货/换货专用面板由流程区承载，避免重复
+    if (type === '换货' && status === '待退货') {
       return '';
     }
     if (

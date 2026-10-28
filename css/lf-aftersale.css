@@ -1358,6 +1358,15 @@
   color: #303133;
 }
 
+.aftersale-aside-subtitle {
+  margin: 12px 0 8px;
+  padding-top: 10px;
+  border-top: 1px dashed #e4e7ed;
+  font-size: 13px;
+  font-weight: 600;
+  color: #303133;
+}
+
 .aftersale-aside-status {
   color: var(--color-primary, #ff7019);
   font-weight: 600;
