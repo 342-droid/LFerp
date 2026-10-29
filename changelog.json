@@ -1,10 +1,53 @@
 {
-  "latestSha": "90f9daa85d41fbf24e53fe4ce45da0659a5da49c",
-  "total": 463,
+  "latestSha": "18e1de44235a6f0f43edd68f17c51b7df4f4365c",
+  "total": 464,
   "days": [
     {
       "date": "2026-10-29",
       "items": [
+        {
+          "sha": "18e1de4",
+          "type": "feat",
+          "text": "自提和配送按配额基数计算可售上限",
+          "author": "sisi",
+          "time": "19:09",
+          "pages": [
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "module": "冷丰WMS",
+              "title": "直播排品编辑"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "module": "冷丰WMS",
+              "title": "编辑秒杀商品"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "text": "自提按仓库用配额基数算可售上限，核销和损耗不减基数；剩余可售不超过当前现货"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "text": "配送按仓库同一套计算，剩余可售下带出基数、预占、已售和已履约"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "text": "自提按仓库同一套计算；快递仍只配置可售件数和剩余可售"
+            }
+          ]
+        },
         {
           "sha": "90f9daa",
           "type": "feat",
