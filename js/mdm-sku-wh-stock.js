@@ -3,9 +3,9 @@
  *
  * 快递：只配置本渠道可售件数，显示剩余可售。不取仓库现货，不按现货比例。
  * 自提 / 配送：按售卖范围涉及的仓库分别配置。现货由仓库给出。
- * 按现货比例时，可售上限 = 比例 ×（当前现货 + 本仓已售），
- * 剩余可售 = 上限 − 已售 − 预占，且不超过当前现货。
- * 已售先加回再乘，避免现货变少后重算把累计可售放大。
+ * 按现货比例时，可售上限 = 配额基数 × 比例。基数只随应分配的入库增加。
+ * 已分配 = 预占 + 已售未出库 + 已履约。核销、损耗、领用不减基数。
+ * 剩余可售 = min(上限 − 已分配, 当前现货)，最小为 0。下单和付款不减现货。
  */
 (function (global) {
   var WAREHOUSES = [
@@ -318,6 +318,11 @@
     var h = hashSeed((sku && (sku.id || sku.barcode || sku.specValue)) || 'sku');
     if (row.sold == null) row.sold = (h + idx * 5) % 6;
     if (row.reserved == null) row.reserved = (h + idx * 3) % 4;
+    if (row.fulfilled == null) row.fulfilled = (h + idx * 7) % 5;
+    if (row.loss == null) row.loss = (h + idx * 2) % 4;
+    if (row.quotaBase == null) {
+      row.quotaBase = Math.round(parseNum(row.spot)) + Math.round(parseNum(row.fulfilled)) + Math.round(parseNum(row.loss));
+    }
     if (!row.sellableMode) row.sellableMode = normalizeSellableMode(sku && sku.sellableMode);
     if (row.sellablePercent == null || row.sellablePercent === '') {
       row.sellablePercent = sku && sku.sellablePercent != null && sku.sellablePercent !== '' ? sku.sellablePercent : '100';
@@ -330,6 +335,9 @@
     var spot = Math.round(parseNum(row.spot));
     var sold = Math.round(parseNum(row.sold));
     var reserved = Math.round(parseNum(row.reserved));
+    var fulfilled = Math.round(parseNum(row.fulfilled));
+    var quotaBase = Math.round(parseNum(row.quotaBase));
+    var allocated = reserved + sold + fulfilled;
     var mode = normalizeSellableMode(row.sellableMode);
     var cap;
     if (mode === 'fixed') {
@@ -337,11 +345,21 @@
     } else {
       var pctText = String(row.sellablePercent == null ? '' : row.sellablePercent).trim();
       var pct = pctText === '' ? 100 : parseNum(pctText);
-      cap = Math.round(((spot + sold) * pct) / 100);
+      cap = Math.round((quotaBase * pct) / 100);
     }
-    var remain = Math.max(0, cap - sold - reserved);
+    var remain = Math.max(0, cap - allocated);
     if (remain > spot) remain = spot;
-    return { spot: spot, sold: sold, reserved: reserved, cap: cap, remain: remain, mode: mode };
+    return {
+      spot: spot,
+      sold: sold,
+      reserved: reserved,
+      fulfilled: fulfilled,
+      quotaBase: quotaBase,
+      allocated: allocated,
+      cap: cap,
+      remain: remain,
+      mode: mode
+    };
   }
 
   function warehouseQuote(sku, opts) {
@@ -368,6 +386,9 @@
         spot: quote.spot,
         sold: quote.sold,
         reserved: quote.reserved,
+        fulfilled: quote.fulfilled,
+        quotaBase: quote.quotaBase,
+        allocated: quote.allocated,
         cap: quote.cap,
         remain: quote.remain,
         sellableMode: quote.mode,
@@ -379,10 +400,12 @@
       acc.spot += line.spot;
       acc.sold += line.sold;
       acc.reserved += line.reserved;
+      acc.fulfilled += line.fulfilled;
+      acc.allocated += line.allocated;
       acc.cap += line.cap;
       acc.remain += line.remain;
       return acc;
-    }, { spot: 0, sold: 0, reserved: 0, cap: 0, remain: 0 });
+    }, { spot: 0, sold: 0, reserved: 0, fulfilled: 0, allocated: 0, cap: 0, remain: 0 });
     return { lines: lines, totals: totals, emptyReason: scoped.emptyReason };
   }
 
@@ -420,7 +443,7 @@
     var pack = warehouseQuote(sku, opts);
     sku.sellableStock = String(pack.totals.cap);
     sku.remainStock = String(pack.totals.remain);
-    sku.reservedStock = String(pack.totals.reserved + pack.totals.sold);
+    sku.reservedStock = String(pack.totals.allocated || 0);
     sku.spotStock = String(pack.totals.spot);
     return {
       model: 'warehouse',
@@ -514,14 +537,14 @@
         '<td class="product-wh-config__num">' + line.spot + '</td>' +
         '<td>' + renderSellCell(line) + '</td>' +
         '<td class="product-wh-config__num"><strong data-wh-remain="' + escapeHtml(line.warehouseId) + '">' + line.remain + '</strong>' +
-        '<div class="product-wh-config__sub">已售 ' + line.sold + ' · 预占 ' + line.reserved + '</div></td>' +
+        '<div class="product-wh-config__sub">基数 ' + line.quotaBase + ' · 预占 ' + line.reserved + ' · 已售 ' + line.sold + ' · 已履约 ' + line.fulfilled + '</div></td>' +
         '</tr>'
       );
     }).join('');
     var totals = sum.totals || { spot: 0, cap: 0, remain: 0 };
     return (
       '<div class="product-proxy-spec__field product-proxy-spec__field--wh-stock" data-stock-editor="warehouse">' +
-      '<div class="mdm-biz-tip mdm-biz-tip--flush" role="note">自提、配送按仓库分别配置。<strong>按现货比例</strong>时，先把本仓已售加回现货再乘比例，得到可售上限；剩余可售再扣已售和预占，并且不超过当前现货。现货 100、比例 30% 时上限是 30；卖掉 10 件后现货剩 90，剩余可售是 20，不是 27。之后入库的现货按同一比例追加可售。</div>' +
+      '<div class="mdm-biz-tip mdm-biz-tip--flush" role="note">自提、配送按仓库分别配置。<strong>按现货比例</strong>时，可售上限 = 配额基数 × 比例。基数只随入库增加。下单记预占，付款转为已售，核销转为已履约，三笔都占已分配；核销、损耗、领用不减基数。剩余可售 = min(上限 − 已分配, 当前现货)。</div>' +
       '<div class="product-wh-config-scroll">' +
       '<table class="product-wh-config">' +
       '<thead><tr><th>仓库</th><th>现货库存</th><th>可售库存</th><th>剩余可售</th></tr></thead>' +
