@@ -3717,10 +3717,11 @@
                         td.innerHTML = window.MdmMemberBlacklist.buildMemberListActions(m.status || '正常');
                     } else {
                         var stNow = m.status || '正常';
+                        var oplogLink = '<a href="#" class="mdm-mem-oplog">操作日志</a>';
                         if (stNow === '注销' || stNow === '已注销' || stNow === '注销中' || stNow === '审核中') {
-                            td.innerHTML = '<a href="#" class="mdm-mem-detail">查看详情</a>';
+                            td.innerHTML = '<a href="#" class="mdm-mem-detail">查看详情</a>' + oplogLink;
                         } else if (stNow === '冻结') {
-                            td.innerHTML = '<a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-unfreeze">解冻</a>';
+                            td.innerHTML = '<a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-unfreeze">解冻</a>' + oplogLink;
                         } else {
                             var actions =
                                 '<a href="#" class="mdm-mem-detail">查看详情</a>' +
@@ -3734,7 +3735,7 @@
                             } else if (stNow === '黑名单') {
                                 actions += '<a href="#" class="mdm-mem-restore">恢复</a>';
                             }
-                            td.innerHTML = actions;
+                            td.innerHTML = actions + oplogLink;
                         }
                     }
                 } else {
@@ -3790,7 +3791,7 @@
             if (window.MdmMemberBlacklist && window.MdmMemberBlacklist.buildMemberListActions) {
                 cells[21].innerHTML = window.MdmMemberBlacklist.buildMemberListActions(status);
             } else if (status === '注销' || status === '注销中') {
-                cells[21].innerHTML = '<a href="#" class="mdm-mem-detail">查看详情</a>';
+                cells[21].innerHTML = '<a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-oplog">操作日志</a>';
             }
         }
 
@@ -3892,7 +3893,7 @@
                     td.appendChild(st2);
                 } else if (idx === 21) {
                     td.className = 'action-links';
-                    td.innerHTML = '<a href="#" class="mdm-mem-detail">查看详情</a>';
+                    td.innerHTML = '<a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-oplog">操作日志</a>';
                 } else {
                     td.textContent = val;
                 }
@@ -3997,11 +3998,25 @@
                             window.MdmMemberBlacklist.openUnfreezeFromMember(el.closest('tr'));
                         }
                     }
+                },
+                {
+                    selector: '.mdm-mem-oplog',
+                    handler: function (e, el) {
+                        e.preventDefault();
+                        if (!window.MdmMemberCOplog) return;
+                        var tr = el.closest('tr');
+                        var cells = tr ? tr.querySelectorAll('td:not(.lf-row-no-td)') : [];
+                        var memberId = cells[0] ? cells[0].textContent.replace(/\s+/g, ' ').trim() : '';
+                        var nickname = cells[1] ? cells[1].textContent.replace(/\s+/g, ' ').trim() : '';
+                        window.MdmMemberCOplog.open({ memberId: memberId, nickname: nickname });
+                    }
                 }
             ]
         });
         // 将 C 端已保存会员资料同步进列表（localStorage）
         syncCMemberRowsToTable();
+        /* 分页会克隆行，须在首次快照前记下会员基准 */
+        if (window.MdmMemberBatchAdjust) window.MdmMemberBatchAdjust.prepare();
         pm.init();
         if (window.MdmMemberBlacklist) {
             window.MdmMemberBlacklist.init();
@@ -4086,6 +4101,7 @@
             if (window.MdmMemberCUi && typeof window.MdmMemberCUi.fillCashRedpackColumn === 'function') {
                 window.MdmMemberCUi.fillCashRedpackColumn();
             }
+            if (window.MdmMemberBatchAdjust) window.MdmMemberBatchAdjust.prepare();
             var qBtn0 = document.getElementById('btnFilterQuery');
             if (qBtn0) qBtn0.click();
         } catch (eSt0) { /* ignore */ }

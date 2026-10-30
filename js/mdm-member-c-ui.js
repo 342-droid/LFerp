@@ -2166,6 +2166,8 @@
             onConfirm: function (_selected, stores) {
                 var store = stores && stores[0];
                 if (!store) return;
+                var prevLogs = listStoreBindLogs(member.id);
+                var oldStore = (prevLogs[0] && prevLogs[0].storeName) || '—';
                 appendStoreBindLog(member.id, {
                     type: '切换门店',
                     storeName: store.name,
@@ -2180,6 +2182,18 @@
                     refundCnt: '—',
                     inviter: '—'
                 });
+                if (window.MdmMemberCOplog) {
+                    window.MdmMemberCOplog.record({
+                        action: 'change-store',
+                        memberId: member.id,
+                        nickname: member.nickname,
+                        phone: member.phone,
+                        summary: '绑定门店改为「' + store.name + '」',
+                        changes: [
+                            { field: '绑定门店', oldValue: oldStore, newValue: store.name }
+                        ]
+                    });
+                }
                 showToast('已将绑定门店变更为「' + store.name + '」', 'success');
             }
         });
@@ -2503,13 +2517,6 @@
         rowMember.appendChild(memberCtrl);
         body.appendChild(rowMember);
 
-        var rowOp = el('div', 'erp-modal-field');
-        rowOp.appendChild(el('label', 'erp-modal-field__label', '操作人'));
-        var opCtrl = el('div', 'erp-modal-field__control');
-        opCtrl.appendChild(el('div', 'member-growth-adjust-member', operator));
-        rowOp.appendChild(opCtrl);
-        body.appendChild(rowOp);
-
         var rowType = el('div', 'erp-modal-field');
         var labType = el('label', 'erp-modal-field__label');
         labType.innerHTML = '<span class="erp-req">*</span>调整类型';
@@ -2619,6 +2626,21 @@
             };
 
             backdrop.remove();
+            if (window.MdmMemberCOplog) {
+                window.MdmMemberCOplog.record({
+                    action: 'growth',
+                    memberId: member.id,
+                    nickname: member.nickname,
+                    phone: member.phone,
+                    operator: operator,
+                    summary: (type === 'sub' ? '手工减少 ' : '手工增加 ') + amount + '，调整后 ' + afterValue,
+                    changes: [
+                        { field: '调整类型', oldValue: '—', newValue: type === 'sub' ? '手工减少' : '手工增加' },
+                        { field: '成长值', oldValue: String(remain), newValue: String(afterValue) },
+                        { field: '备注', oldValue: '—', newValue: remark }
+                    ]
+                });
+            }
             if (typeof showToast === 'function') {
                 showToast(type === 'sub' ? '已手工减少成长值' : '已手工增加成长值', 'success');
             } else {
@@ -2741,7 +2763,6 @@
         ta.maxLength = REMARK_MAX;
         ta.placeholder = '选填，最多 ' + REMARK_MAX + ' 字';
         remarkCtrl.appendChild(ta);
-        remarkCtrl.appendChild(el('div', 'pts-adjust-tip', '操作人：' + operator));
         rowRemark.appendChild(remarkCtrl);
         body.appendChild(rowRemark);
 
@@ -2776,6 +2797,21 @@
                     available: Math.max(0, after),
                     remark: remark || (dir === 'add' ? '手工增加积分' : '手工减少积分（FIFO）'),
                     operator: operator
+                });
+            }
+            if (window.MdmMemberCOplog) {
+                window.MdmMemberCOplog.record({
+                    action: 'points',
+                    memberId: member.id,
+                    nickname: member.nickname,
+                    phone: member.phone,
+                    operator: operator,
+                    summary: (dir === 'add' ? '增加 ' : '减少 ') + val + '，调整后 ' + after,
+                    changes: [
+                        { field: '调整类型', oldValue: '—', newValue: dir === 'add' ? '增加' : '减少' },
+                        { field: '积分', oldValue: String(available), newValue: String(Math.max(0, after)) },
+                        { field: '备注', oldValue: '—', newValue: remark || '—' }
+                    ]
                 });
             }
             backdrop.remove();
@@ -3026,6 +3062,20 @@
                             }
                             if (isFinite(latestStock)) {
                                 c.stock = String(Math.max(0, latestStock - qty));
+                            }
+                            if (window.MdmMemberCOplog) {
+                                window.MdmMemberCOplog.record({
+                                    action: 'coupon',
+                                    memberId: member.id,
+                                    nickname: member.nickname,
+                                    phone: member.phone,
+                                    operator: op.name,
+                                    summary: '发放「' + (c.label || '优惠券') + '」' + qty + ' 张',
+                                    changes: [
+                                        { field: '优惠券', oldValue: '—', newValue: c.label || '—' },
+                                        { field: '发放数量', oldValue: '—', newValue: String(qty) }
+                                    ]
+                                });
                             }
                             closeList();
                             showToast('发放成功', 'success');

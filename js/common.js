@@ -965,7 +965,7 @@ if (document.readyState === 'loading') {
         if (window.LfTableRowNo || document.getElementById('lf-table-row-no-js')) return;
         var s = document.createElement('script');
         s.id = 'lf-table-row-no-js';
-        s.src = assetUrl('js/lf-table-row-no.js') + '?v=20260825-wms-skip';
+        s.src = assetUrl('js/lf-table-row-no.js') + '?v=20261030-member-excel';
         s.async = false;
         (document.body || document.head).appendChild(s);
     }
