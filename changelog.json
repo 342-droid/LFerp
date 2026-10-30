@@ -1,10 +1,95 @@
 {
-  "latestSha": "c2cf70764c8548f8c54a5fc0eccdbb2adeafb296",
-  "total": 466,
+  "latestSha": "3dc64860dbd4f387421a3b15ccb84899d3bee7d5",
+  "total": 467,
   "days": [
     {
       "date": "2026-10-30",
       "items": [
+        {
+          "sha": "3dc6486",
+          "type": "feat",
+          "text": "会员管理支持按表格批量调整积分成长值并记录操作日志",
+          "author": "sisi",
+          "time": "18:01",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
+              "file": "MDM/mdm_member_points_detail.html",
+              "module": "冷丰WMS",
+              "title": "积分明细"
+            },
+            {
+              "file": "MDM/mdm_people_anchor.html",
+              "module": "冷丰WMS",
+              "title": "主播"
+            },
+            {
+              "file": "MDM/mdm_people_bd.html",
+              "module": "冷丰WMS",
+              "title": "BD推广员"
+            },
+            {
+              "file": "MDM/mdm_people_driver.html",
+              "module": "冷丰WMS",
+              "title": "司机"
+            },
+            {
+              "file": "MDM/mdm_people_purchaser.html",
+              "module": "冷丰WMS",
+              "title": "采购员"
+            },
+            {
+              "file": "MDM/mdm_super_admin_accounts.html",
+              "module": "冷丰WMS",
+              "title": "商户主体建档"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_member_c.html",
+              "text": "可上传表格按手机号批量增减积分和成长值；变更绑定门店、发券、调整积分、调整成长值、拉黑、冻结和批量调整成功后生成操作日志，可查看变更明细；调整弹窗不再显示操作人"
+            },
+            {
+              "file": "MDM/mdm_member_points_detail.html",
+              "text": "调整积分弹窗去掉操作人提示"
+            }
+          ]
+        },
         {
           "sha": "c2cf707",
           "type": "style",
@@ -15902,6 +15987,11 @@
               "file": "MDM/mdm_member_batch_tag_members.html",
               "module": "冷丰WMS",
               "title": "人群列表"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
             },
             {
               "file": "MDM/mdm_member_level.html",

@@ -116,6 +116,75 @@
     "status": "added",
     "date": "2026-10-17"
   },
+  "3dc6486|MDM/mdm_archive_carrier.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-30"
+  },
+  "3dc6486|MDM/mdm_archive_live_room.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-30"
+  },
+  "3dc6486|MDM/mdm_archive_store.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-30"
+  },
+  "3dc6486|MDM/mdm_archive_supplier.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-30"
+  },
+  "3dc6486|MDM/mdm_archive_warehouse.html": {
+    "before": "changelog-assets/3dc6486/MDM__mdm_archive_warehouse.html.before.jpg",
+    "after": "changelog-assets/3dc6486/MDM__mdm_archive_warehouse.html.after.jpg",
+    "regions": 8,
+    "status": "diff",
+    "date": "2026-10-30"
+  },
+  "3dc6486|MDM/mdm_audit_store_registration.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-30"
+  },
+  "3dc6486|MDM/mdm_member_c.html": {
+    "before": "changelog-assets/3dc6486/MDM__mdm_member_c.html.before.jpg",
+    "after": "changelog-assets/3dc6486/MDM__mdm_member_c.html.after.jpg",
+    "regions": 30,
+    "status": "diff",
+    "date": "2026-10-30"
+  },
+  "3dc6486|MDM/mdm_member_points_detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-30"
+  },
+  "3dc6486|MDM/mdm_people_anchor.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-30"
+  },
+  "3dc6486|MDM/mdm_people_bd.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-30"
+  },
+  "3dc6486|MDM/mdm_people_driver.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-30"
+  },
+  "3dc6486|MDM/mdm_people_purchaser.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-30"
+  },
+  "3dc6486|MDM/mdm_super_admin_accounts.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-30"
+  },
   "3f507cd|SCM/obd_outbound_exception.html": {
     "before": "changelog-assets/3f507cd/SCM__obd_outbound_exception.html.before.jpg",
     "after": "changelog-assets/3f507cd/SCM__obd_outbound_exception.html.after.jpg",
