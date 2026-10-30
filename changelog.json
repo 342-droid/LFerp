@@ -1,10 +1,30 @@
 {
-  "latestSha": "3dc64860dbd4f387421a3b15ccb84899d3bee7d5",
-  "total": 467,
+  "latestSha": "f7bea52a8ff8d475743136fb029ab237cc4326ac",
+  "total": 468,
   "days": [
     {
       "date": "2026-10-30",
       "items": [
+        {
+          "sha": "f7bea52",
+          "type": "feat",
+          "text": "完善会员批量调整积分和成长值的导入与操作日志",
+          "author": "sisi",
+          "time": "23:28",
+          "pages": [
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_member_c.html",
+              "text": "批量导入改为上传、预览、结果三步；成长值按列读取、最多2位小数，不足1按规则折算后入库；不写符号为增加、减少须加-；积分模板表头为必填正负整数，成长值模板表头为必填±2位小数；一次批量操作记一条日志，会员列显示共N位会员"
+            }
+          ]
+        },
         {
           "sha": "3dc6486",
           "type": "feat",

@@ -986,6 +986,11 @@
     "status": "diff",
     "date": "2026-10-28"
   },
+  "f7bea52|MDM/mdm_member_c.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-30"
+  },
   "f8cc997|MDM/mdm_settle_index.html": {
     "before": "changelog-assets/f8cc997/MDM__mdm_settle_index.html.before.jpg",
     "after": "changelog-assets/f8cc997/MDM__mdm_settle_index.html.after.jpg",
