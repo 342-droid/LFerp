@@ -421,6 +421,28 @@
     "status": "diff",
     "date": "2026-10-29"
   },
+  "92b9484|MDM/mdm_live_product_sched_edit.html": {
+    "before": "changelog-assets/92b9484/MDM__mdm_live_product_sched_edit.html.before.jpg",
+    "after": "changelog-assets/92b9484/MDM__mdm_live_product_sched_edit.html.after.jpg",
+    "regions": 10,
+    "status": "diff",
+    "date": "2026-10-30"
+  },
+  "92b9484|MDM/mdm_marketing_seckill_product.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-30"
+  },
+  "92b9484|MDM/mdm_product_mall.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-30"
+  },
+  "92b9484|MDM/mdm_product_proxy_list.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-30"
+  },
   "afbd5d8|MDM/mdm_audit_store_registration.html": {
     "regions": 0,
     "status": "diff",

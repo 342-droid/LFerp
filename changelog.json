@@ -1,7 +1,56 @@
 {
-  "latestSha": "18e1de44235a6f0f43edd68f17c51b7df4f4365c",
-  "total": 464,
+  "latestSha": "92b948472533204a8c719e870397a41f6b770a2e",
+  "total": 465,
   "days": [
+    {
+      "date": "2026-10-30",
+      "items": [
+        {
+          "sha": "92b9484",
+          "type": "feat",
+          "text": "自提和配送改为按现货或具体数量配置可售",
+          "author": "sisi",
+          "time": "14:30",
+          "pages": [
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "module": "冷丰WMS",
+              "title": "直播排品编辑"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "module": "冷丰WMS",
+              "title": "编辑秒杀商品"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "text": "自提不再分仓、不再按百分比；按现货库存只显示现货库存且该数就是剩余可售；按具体数量在选项右侧填可售数量并显示剩余可售，重新配置后本渠道预占清零"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "text": "配送按同一套规则，按现货库存跨渠道共用仓库现货，按具体数量只扣本渠道可售数量"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "text": "自提和快递按同一套可售规则，重新配置可售数量后本渠道预占清零，本场配额不超过剩余可售"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-10-29",
       "items": [
