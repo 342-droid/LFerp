@@ -239,6 +239,49 @@
         .form-group--datetime > label { white-space: nowrap; }
         #panelMemberList .search-section { overflow-x: hidden; }
         .proxy-store-picker-modal--single .proxy-store-picker__select-all { display: none; }
+        #panelMemberList .member-batch-bar { padding: 12px 16px 10px; }
+        .erp-modal--member-batch-excel { max-width: 640px; width: min(96vw, 640px); }
+        .member-batch-excel-tools { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; min-height: 32px; }
+        .member-batch-excel-upload { position: relative; display: inline-flex; cursor: pointer; }
+        .member-batch-excel-upload input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+        .member-batch-excel-upload.is-locked { cursor: not-allowed; opacity: 0.55; }
+        .member-batch-excel-tpl { border: 0; background: none; padding: 0; color: #ff7019; font-size: 13px; line-height: 32px; cursor: pointer; }
+        .member-batch-excel-tpl:hover { text-decoration: underline; }
+        .member-batch-excel-file { display: flex; align-items: center; gap: 8px; margin-top: 8px; min-height: 32px; font-size: 13px; color: #333; }
+        .member-batch-excel-file[hidden] { display: none !important; }
+        .member-batch-excel-file__remove { margin-left: 4px; border: 0; background: none; color: #999; font-size: 16px; line-height: 1; cursor: pointer; }
+        .member-batch-excel-result { margin-top: 10px; font-size: 13px; line-height: 1.5; color: #333; }
+        .member-batch-excel-result[hidden] { display: none !important; }
+        .member-batch-excel-ok { color: #1f8f4e; }
+        .member-batch-excel-bad { color: #c45656; }
+        .member-batch-excel-result ul { margin: 6px 0 0; padding-left: 18px; max-height: 160px; overflow: auto; color: #c45656; }
+        .mem-oplog-drawer { position: fixed; inset: 0; z-index: 2100; }
+        .mem-oplog-drawer[hidden],
+        .mem-oplog-detail[hidden] { display: none !important; }
+        .mem-oplog-drawer__mask { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.45); }
+        .mem-oplog-drawer__panel {
+            position: absolute; top: 0; right: 0; width: 72%; max-width: 1080px; height: 100%;
+            background: #fff; display: flex; flex-direction: column; box-shadow: -8px 0 24px rgba(0, 0, 0, 0.12);
+        }
+        .mem-oplog-drawer__header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 20px; border-bottom: 1px solid #ebeef5; font-size: 16px; font-weight: 600;
+        }
+        .mem-oplog-drawer__x { border: 0; background: none; font-size: 22px; color: #909399; cursor: pointer; line-height: 1; }
+        .mem-oplog-drawer__body { flex: 1; min-height: 0; overflow: auto; padding: 16px 20px; }
+        .mem-oplog-detail { z-index: 2200; }
+        .mem-oplog-detail .erp-modal { max-width: 760px; }
+        .mem-oplog-tag {
+            display: inline-block; min-width: 40px; padding: 0 8px; border-radius: 2px;
+            background: #f0f9eb; color: #67c23a; font-size: 12px; line-height: 22px;
+        }
+        .mem-oplog-link { border: 0; background: none; padding: 0; color: #ff7019; font-size: 13px; cursor: pointer; }
+        .mem-oplog-link:hover { text-decoration: underline; }
+        .mem-oplog-empty { padding: 28px 12px; text-align: center; color: #909399; }
+        .mem-oplog-detail-line { display: flex; gap: 16px; margin-bottom: 10px; font-size: 14px; line-height: 22px; }
+        .mem-oplog-detail-line span { width: 72px; flex: none; color: #909399; }
+        .mem-oplog-detail-title { margin: 18px 0 8px; font-size: 15px; font-weight: 600; }
+        .mem-oplog-change th, .mem-oplog-change td { text-align: center; }
     </style>
 </head>
 <body>
@@ -340,6 +383,7 @@
                 </section>
 
                 <section class="table-section">
+                    <div class="product-batch member-batch-bar" id="memberBatchBar"></div>
                     <div class="table-scroll-container">
                         <table class="table">
                             <thead>
@@ -391,7 +435,7 @@
                                     <td>2026-04-25 14:20:03</td>
                                     <td>2026-01-12 09:20:11</td>
                                     <td><span class="status active">正常</span></td>
-                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-change-store">变更绑定门店</a><a href="#" class="mdm-mem-coupon">发券</a><a href="#" class="mdm-mem-points">调整积分</a><a href="#" class="mdm-mem-growth">调整成长值</a><a href="#" class="mdm-mem-blacklist">拉黑</a><a href="#" class="mdm-mem-freeze">冻结</a></td>
+                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-change-store">变更绑定门店</a><a href="#" class="mdm-mem-coupon">发券</a><a href="#" class="mdm-mem-points">调整积分</a><a href="#" class="mdm-mem-growth">调整成长值</a><a href="#" class="mdm-mem-blacklist">拉黑</a><a href="#" class="mdm-mem-freeze">冻结</a><a href="#" class="mdm-mem-oplog">操作日志</a></td>
                                 </tr>
                                 <tr data-member-status="正常">
                                     <td>U10002</td>
@@ -415,7 +459,7 @@
                                     <td>2026-04-22 09:15:44</td>
                                     <td>2025-11-03 18:42:11</td>
                                     <td><span class="status active">正常</span></td>
-                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-change-store">变更绑定门店</a><a href="#" class="mdm-mem-coupon">发券</a><a href="#" class="mdm-mem-points">调整积分</a><a href="#" class="mdm-mem-growth">调整成长值</a><a href="#" class="mdm-mem-blacklist">拉黑</a><a href="#" class="mdm-mem-freeze">冻结</a></td>
+                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-change-store">变更绑定门店</a><a href="#" class="mdm-mem-coupon">发券</a><a href="#" class="mdm-mem-points">调整积分</a><a href="#" class="mdm-mem-growth">调整成长值</a><a href="#" class="mdm-mem-blacklist">拉黑</a><a href="#" class="mdm-mem-freeze">冻结</a><a href="#" class="mdm-mem-oplog">操作日志</a></td>
                                 </tr>
                                 <tr data-member-status="正常">
                                     <td>U10004</td>
@@ -439,7 +483,7 @@
                                     <td>2026-04-20 14:11:03</td>
                                     <td>2026-02-08 10:00:00</td>
                                     <td><span class="status active">正常</span></td>
-                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-change-store">变更绑定门店</a><a href="#" class="mdm-mem-coupon">发券</a><a href="#" class="mdm-mem-points">调整积分</a><a href="#" class="mdm-mem-growth">调整成长值</a><a href="#" class="mdm-mem-blacklist">拉黑</a><a href="#" class="mdm-mem-freeze">冻结</a></td>
+                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-change-store">变更绑定门店</a><a href="#" class="mdm-mem-coupon">发券</a><a href="#" class="mdm-mem-points">调整积分</a><a href="#" class="mdm-mem-growth">调整成长值</a><a href="#" class="mdm-mem-blacklist">拉黑</a><a href="#" class="mdm-mem-freeze">冻结</a><a href="#" class="mdm-mem-oplog">操作日志</a></td>
                                 </tr>
                                 <tr data-member-status="正常">
                                     <td>U10006</td>
@@ -463,7 +507,7 @@
                                     <td>2026-04-18 11:22:08</td>
                                     <td>2026-03-15 14:33:00</td>
                                     <td><span class="status active">正常</span></td>
-                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-change-store">变更绑定门店</a><a href="#" class="mdm-mem-coupon">发券</a><a href="#" class="mdm-mem-points">调整积分</a><a href="#" class="mdm-mem-growth">调整成长值</a><a href="#" class="mdm-mem-blacklist">拉黑</a><a href="#" class="mdm-mem-freeze">冻结</a></td>
+                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-change-store">变更绑定门店</a><a href="#" class="mdm-mem-coupon">发券</a><a href="#" class="mdm-mem-points">调整积分</a><a href="#" class="mdm-mem-growth">调整成长值</a><a href="#" class="mdm-mem-blacklist">拉黑</a><a href="#" class="mdm-mem-freeze">冻结</a><a href="#" class="mdm-mem-oplog">操作日志</a></td>
                                 </tr>
                                 <tr data-member-status="冻结">
                                     <td>U10010</td>
@@ -487,7 +531,7 @@
                                     <td>2026-03-12 16:08:00</td>
                                     <td>2025-12-08 11:20:00</td>
                                     <td><span class="status frozen">冻结</span></td>
-                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-unfreeze">解冻</a></td>
+                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-unfreeze">解冻</a><a href="#" class="mdm-mem-oplog">操作日志</a></td>
                                 </tr>
                                 <tr data-member-status="黑名单">
                                     <td>U10008</td>
@@ -511,7 +555,7 @@
                                     <td>—</td>
                                     <td>2025-08-20 11:00:00</td>
                                     <td><span class="status blacklist">黑名单</span></td>
-                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-change-store">变更绑定门店</a><a href="#" class="mdm-mem-coupon">发券</a><a href="#" class="mdm-mem-points">调整积分</a><a href="#" class="mdm-mem-growth">调整成长值</a><a href="#" class="mdm-mem-restore">恢复</a></td>
+                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-change-store">变更绑定门店</a><a href="#" class="mdm-mem-coupon">发券</a><a href="#" class="mdm-mem-points">调整积分</a><a href="#" class="mdm-mem-growth">调整成长值</a><a href="#" class="mdm-mem-restore">恢复</a><a href="#" class="mdm-mem-oplog">操作日志</a></td>
                                 </tr>
                                 <tr data-member-status="注销中">
                                     <td>U10012</td>
@@ -535,7 +579,7 @@
                                     <td>2026-07-28 18:10:22</td>
                                     <td>2026-07-01 08:10:00</td>
                                     <td><span class="status cancel-pending">注销中</span></td>
-                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a></td>
+                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-oplog">操作日志</a></td>
                                 </tr>
                                 <tr data-member-status="注销">
                                     <td>U10003</td>
@@ -559,7 +603,7 @@
                                     <td>—</td>
                                     <td>2025-06-01 12:00:00</td>
                                     <td><span class="status canceled">注销</span></td>
-                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a></td>
+                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-oplog">操作日志</a></td>
                                 </tr>
                                 <tr data-member-status="注销">
                                     <td>U10005</td>
@@ -583,7 +627,7 @@
                                     <td>—</td>
                                     <td>2025-09-09 16:20:00</td>
                                     <td><span class="status canceled">注销</span></td>
-                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a></td>
+                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-oplog">操作日志</a></td>
                                 </tr>
                                 <tr data-member-status="注销">
                                     <td>U10007</td>
@@ -607,7 +651,7 @@
                                     <td>—</td>
                                     <td>2025-10-18 09:40:00</td>
                                     <td><span class="status canceled">注销</span></td>
-                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a></td>
+                                    <td class="action-links"><a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-oplog">操作日志</a></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -752,7 +796,7 @@
             </div>
         </main>
     </div>
-    <script src="../js/common.js?v=20260924-prd-member"></script>
+    <script src="../js/common.js?v=20261030-member-excel"></script>
     <script id="pg-prd-float-js" src="../js/pg-prd-float.js?v=20260924-prd-all"></script>
     <script src="../js/pagination.js"></script>
     <script src="../js/form-utils.js"></script>
@@ -765,10 +809,13 @@
     <script src="../js/mdm-marketing-coupon-store.js"></script>
     <script src="../js/mdm-marketing-cash-redpack-store.js?v=20261016-hide-transfer"></script>
     <script src="../js/mdm-product-proxy-store-picker.js"></script>
-    <script src="../js/mdm-member-c-ui.js?v=20261016-member-cash-scene2"></script>
-    <script src="../js/mdm-member-blacklist.js?v=20261016-member-cols"></script>
+    <script src="../js/mdm-member-c-oplog.js?v=20261030-member-oplog"></script>
+    <script src="../js/mdm-member-c-ui.js?v=20261030-hide-operator"></script>
+    <script src="../js/mdm-member-blacklist.js?v=20261030-member-oplog"></script>
     <script src="../js/mdm-member-cancel.js"></script>
-    <script src="../js/mdm-erp-lists.js?v=20261016-member-cols"></script>
+    <script src="../js/vendor/xlsx.full.min.js"></script>
+    <script src="../js/mdm-member-batch-adjust.js?v=20261030-batch-tpl"></script>
+    <script src="../js/mdm-erp-lists.js?v=20261030-member-oplog"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         /* 先初始化注销数据，再进会员列表，便于同步注销/黑名单状态行 */

@@ -938,7 +938,6 @@
                 '  <label class="erp-modal-field__label" for="ptsAdjustRemark">备注</label>' +
                 '  <div class="erp-modal-field__control">' +
                 '    <textarea class="erp-input" id="ptsAdjustRemark" rows="3" maxlength="' + REMARK_MAX + '" placeholder="选填，最多 ' + REMARK_MAX + ' 字"></textarea>' +
-                '    <div class="pts-adjust-tip">操作人：' + escapeHtml(operator) + '</div>' +
                 '  </div>' +
                 '</div>';
             footer.innerHTML =
