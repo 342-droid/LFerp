@@ -4680,6 +4680,10 @@ body.product-add-drawer-open {
   grid-column: 1 / -1;
 }
 
+[data-stock-editor="warehouse"] {
+  display: contents;
+}
+
 .product-proxy-spec__field--wh-stock .mdm-biz-tip {
   margin-bottom: 8px;
 }

@@ -189,8 +189,8 @@
     var el = document.querySelector('.lf-live-edit-footer__tip');
     if (!el) return;
     el.textContent = currentDelivery() === 'pickup'
-      ? '自提按每个配送仓分别配置可售库存、现货库存、剩余可售。本场配额不超过各仓剩余可售合计。'
-      : '快递只配置可售库存并显示剩余可售，不取仓库现货。本场配额不超过剩余可售。';
+      ? '自提按现货库存时，现货库存就是剩余可售，各渠道共用。按具体数量只扣本渠道可售数量，重新配置可售数量后本渠道预占清零。本场配额不超过这个数。'
+      : '快递只配置可售库存并显示剩余可售，不取仓库现货。重新配置可售数量后本渠道预占清零。本场配额不超过剩余可售。';
   }
 
   function renderSellableStockField(sku) {
@@ -222,13 +222,7 @@
       modeOptions +
       '</select>' +
       (mode === 'spot'
-        ? '<div class="product-proxy-spec__stock-pct">' +
-          '<input type="text" class="product-proxy-spec__input product-proxy-spec__stock-extra product-proxy-spec__stock-extra--percent" data-field="sellablePercent" inputmode="decimal" value="' +
-          escapeHtml((sku && sku.sellablePercent) || '100') +
-          '" placeholder="100" aria-label="现货百分比">' +
-          '<span class="product-proxy-spec__stock-suffix">%</span>' +
-          '</div>' +
-          '<input type="text" class="product-proxy-spec__input product-proxy-spec__stock-extra product-proxy-spec__stock-extra--spot" data-field="spotStock" readonly tabindex="-1" value="' +
+        ? '<input type="text" class="product-proxy-spec__input product-proxy-spec__stock-extra product-proxy-spec__stock-extra--spot" data-field="spotStock" readonly tabindex="-1" value="' +
           escapeHtml((sku && sku.spotStock) || '0') +
           '" aria-label="现货库存">'
         : '') +
@@ -944,6 +938,8 @@
         }
         var remain = panel.querySelector('[data-remain-result]');
         if (remain) remain.value = sku.remainStock == null ? '' : sku.remainStock;
+        var reservedEl = panel.querySelector('[data-channel-reserved]');
+        if (reservedEl) reservedEl.textContent = sku.reservedStock == null ? '0' : String(sku.reservedStock);
         return;
       }
       if (whField !== 'sellablePercent' && whField !== 'sellableFixed') return;

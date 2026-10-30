@@ -1,11 +1,11 @@
 /**
  * SKU 库存。
  *
- * 快递：只配置本渠道可售件数，显示剩余可售。不取仓库现货，不按现货比例。
- * 自提 / 配送：按售卖范围涉及的仓库分别配置。现货由仓库给出。
- * 按现货比例时，可售上限 = 配额基数 × 比例。基数只随应分配的入库增加。
- * 已分配 = 预占 + 已售未出库 + 已履约。核销、损耗、领用不减基数。
- * 剩余可售 = min(上限 − 已分配, 当前现货)，最小为 0。下单和付款不减现货。
+ * 快递：只配置本渠道可售件数，显示剩余可售。不取仓库现货。
+ * 自提 / 配送：不按仓配置，页面也不列出各仓现货和共享可卖。可售在 SKU 上选一次。
+ * 按现货库存：售卖范围里的仓库全部按现货。同一 SKU 里同样选了按现货库存的商城、代采、直播共用这些仓库的现货。
+ * 按具体数量：不走仓库现货，按本渠道配置的可售数量扣本渠道预占。
+ * 本渠道预占从这次可售数量生效后起算；重新配置可售数量后，本渠道预占清零。
  */
 (function (global) {
   var WAREHOUSES = [
@@ -82,6 +82,70 @@
       return parseNum(base) + parseNum(value.presale);
     }
     return parseNum(value);
+  }
+
+  var SHARE_STORAGE_KEY = 'lf-sku-wh-share-v1';
+  var SHARE_CHANNELS = ['mall', 'proxy', 'live'];
+
+  function skuShareKey(sku) {
+    var code = sku && (sku.barcode || sku.internalCode || sku.id || sku.specValue);
+    return String(code || 'sku');
+  }
+
+  function readShareStore() {
+    try {
+      var raw = global.sessionStorage && global.sessionStorage.getItem(SHARE_STORAGE_KEY);
+      var data = raw ? JSON.parse(raw) : {};
+      return data && typeof data === 'object' ? data : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function writeShareStore(data) {
+    try {
+      if (global.sessionStorage) global.sessionStorage.setItem(SHARE_STORAGE_KEY, JSON.stringify(data));
+    } catch (e) {}
+  }
+
+  function channelOpenQty(entry) {
+    if (!entry) return 0;
+    return Math.round(parseNum(entry.reserved)) + Math.round(parseNum(entry.sold));
+  }
+
+  /** 同一条码、同一仓只有一份现货。只有按现货库存的渠道占用这份现货；按具体数量不占仓。 */
+  function touchSharedSpot(sku, row, channel, mode) {
+    var data = readShareStore();
+    var key = skuShareKey(sku);
+    if (!data[key]) data[key] = {};
+    var slot = data[key][row.warehouseId];
+    if (!slot) {
+      slot = data[key][row.warehouseId] = {
+        spot: Math.round(parseNum(row.spot)),
+        channels: {}
+      };
+    }
+    row.spot = slot.spot;
+    var ch = SHARE_CHANNELS.indexOf(channel) >= 0 ? channel : 'mall';
+    if (!slot.channels) slot.channels = {};
+    slot.channels[ch] = {
+      reserved: Math.round(parseNum(row.reserved)),
+      sold: Math.round(parseNum(row.sold)),
+      fulfilled: Math.round(parseNum(row.fulfilled)),
+      mode: mode === 'fixed' ? 'fixed' : 'spot'
+    };
+    SHARE_CHANNELS.forEach(function (name) {
+      if (slot.channels[name]) return;
+      var h = hashSeed(key + '|' + row.warehouseId + '|' + name);
+      slot.channels[name] = {
+        reserved: h % 2,
+        sold: (h >> 2) % 2,
+        fulfilled: 0,
+        mode: 'spot'
+      };
+    });
+    writeShareStore(data);
+    return slot;
   }
 
   function demoRows(skuKey) {
@@ -174,6 +238,46 @@
   function channelReservedOf(sku, channel) {
     var map = ensureChannelReserved(sku);
     return qtyOf(map[channel] != null ? map[channel] : 0);
+  }
+
+  /** 可售数量的比较键。空表示还没配置。 */
+  function configQtyKey(value) {
+    if (value == null || String(value).trim() === '') return '';
+    return String(Math.round(parseNum(value)));
+  }
+
+  /** 重新配置可售数量：本渠道预占从 0 再计，含直播本场已占。 */
+  function resetChannelReserved(sku, channel) {
+    var map = ensureChannelReserved(sku);
+    map[channel] = 0;
+    if (channel !== 'live' || !sku) return;
+    if (Array.isArray(sku.reservedDirectLive)) {
+      sku.reservedDirectLive.forEach(function (item) {
+        if (item && typeof item === 'object') item.qty = 0;
+      });
+      return;
+    }
+    sku.reservedDirectLive = [];
+  }
+
+  /**
+   * 本渠道预占只统计当前这次可售数量生效之后的占用。
+   * 第一次见到已有数量时，沿用这份数量生效后已经产生的预占。
+   * 数量相对上次生效值变化，或从空变成有数，都视为重新配置，本渠道预占清零。
+   * 还没填可售数量时，预占尚未开始，按 0。
+   */
+  function channelReservedSinceConfig(sku, channel) {
+    if (!sku) return 0;
+    var current = configQtyKey(sku.sellableFixed);
+    if (!sku.sellableFixedObserved) {
+      sku.sellableFixedObserved = true;
+      sku.sellableFixedApplied = current;
+    } else if (String(sku.sellableFixedApplied) !== current) {
+      resetChannelReserved(sku, channel);
+      sku.sellableFixedApplied = current;
+    }
+    if (current === '') return 0;
+    return channelReservedOf(sku, channel);
   }
 
   function sessionReservedOf(sku, sessionId) {
@@ -319,10 +423,6 @@
     if (row.sold == null) row.sold = (h + idx * 5) % 6;
     if (row.reserved == null) row.reserved = (h + idx * 3) % 4;
     if (row.fulfilled == null) row.fulfilled = (h + idx * 7) % 5;
-    if (row.loss == null) row.loss = (h + idx * 2) % 4;
-    if (row.quotaBase == null) {
-      row.quotaBase = Math.round(parseNum(row.spot)) + Math.round(parseNum(row.fulfilled)) + Math.round(parseNum(row.loss));
-    }
     if (!row.sellableMode) row.sellableMode = normalizeSellableMode(sku && sku.sellableMode);
     if (row.sellablePercent == null || row.sellablePercent === '') {
       row.sellablePercent = sku && sku.sellablePercent != null && sku.sellablePercent !== '' ? sku.sellablePercent : '100';
@@ -331,38 +431,37 @@
     return row;
   }
 
-  function quoteRow(row) {
-    var spot = Math.round(parseNum(row.spot));
-    var sold = Math.round(parseNum(row.sold));
-    var reserved = Math.round(parseNum(row.reserved));
-    var fulfilled = Math.round(parseNum(row.fulfilled));
-    var quotaBase = Math.round(parseNum(row.quotaBase));
-    var allocated = reserved + sold + fulfilled;
-    var mode = normalizeSellableMode(row.sellableMode);
-    var cap;
-    if (mode === 'fixed') {
-      cap = Math.round(parseNum(row.sellableFixed));
-    } else {
-      var pctText = String(row.sellablePercent == null ? '' : row.sellablePercent).trim();
-      var pct = pctText === '' ? 100 : parseNum(pctText);
-      cap = Math.round((quotaBase * pct) / 100);
-    }
-    var remain = Math.max(0, cap - allocated);
-    if (remain > spot) remain = spot;
+  function quoteRow(row, slot, channel) {
+    var spot = Math.round(parseNum(slot && slot.spot != null ? slot.spot : row.spot));
+    var mine = (slot && slot.channels && slot.channels[channel]) || row;
+    var sold = Math.round(parseNum(mine.sold));
+    var reserved = Math.round(parseNum(mine.reserved));
+    var fulfilled = Math.round(parseNum(mine.fulfilled));
+    var otherOpen = 0;
+    var channels = (slot && slot.channels) || {};
+    Object.keys(channels).forEach(function (name) {
+      if (name === channel) return;
+      if (channels[name] && channels[name].mode === 'fixed') return;
+      otherOpen += channelOpenQty(channels[name]);
+    });
+    var ownOpen = reserved + sold;
+    var free = Math.max(0, spot - ownOpen - otherOpen);
     return {
       spot: spot,
       sold: sold,
       reserved: reserved,
       fulfilled: fulfilled,
-      quotaBase: quotaBase,
-      allocated: allocated,
-      cap: cap,
-      remain: remain,
-      mode: mode
+      otherOpen: otherOpen,
+      ownOpen: ownOpen,
+      allocated: ownOpen + fulfilled,
+      free: free
     };
   }
 
   function warehouseQuote(sku, opts) {
+    opts = opts || {};
+    var channel = normalizeChannel(opts.channel, opts);
+    var mode = normalizeSellableMode(sku && sku.sellableMode);
     var rows = ensureRows(sku);
     var scoped = scopeWarehouses(opts);
     var lines = [];
@@ -379,7 +478,9 @@
       }
       if (!row) return;
       ensureRowLedger(sku, row, idx);
-      var quote = quoteRow(row);
+      row.sellableMode = mode;
+      var slot = touchSharedSpot(sku, row, channel, mode);
+      var quote = quoteRow(row, slot, channel);
       lines.push({
         warehouseId: wh.id,
         name: wh.name,
@@ -387,13 +488,10 @@
         sold: quote.sold,
         reserved: quote.reserved,
         fulfilled: quote.fulfilled,
-        quotaBase: quote.quotaBase,
+        otherOpen: quote.otherOpen,
+        ownOpen: quote.ownOpen,
         allocated: quote.allocated,
-        cap: quote.cap,
-        remain: quote.remain,
-        sellableMode: quote.mode,
-        sellablePercent: row.sellablePercent,
-        sellableFixed: row.sellableFixed == null ? '' : row.sellableFixed
+        free: quote.free
       });
     });
     var totals = lines.reduce(function (acc, line) {
@@ -401,22 +499,34 @@
       acc.sold += line.sold;
       acc.reserved += line.reserved;
       acc.fulfilled += line.fulfilled;
+      acc.otherOpen += line.otherOpen;
+      acc.ownOpen += line.ownOpen;
       acc.allocated += line.allocated;
-      acc.cap += line.cap;
-      acc.remain += line.remain;
+      acc.free += line.free;
       return acc;
-    }, { spot: 0, sold: 0, reserved: 0, fulfilled: 0, allocated: 0, cap: 0, remain: 0 });
-    return { lines: lines, totals: totals, emptyReason: scoped.emptyReason };
+    }, { spot: 0, sold: 0, reserved: 0, fulfilled: 0, otherOpen: 0, ownOpen: 0, allocated: 0, free: 0, cap: 0, remain: 0 });
+    if (mode === 'fixed') {
+      var channelReserved = channelReservedSinceConfig(sku, channel);
+      totals.channelReserved = channelReserved;
+      totals.cap = Math.round(parseNum(sku && sku.sellableFixed));
+      totals.remain = Math.max(0, totals.cap - channelReserved);
+    } else {
+      totals.channelReserved = totals.reserved;
+      totals.cap = totals.spot;
+      totals.remain = totals.free;
+    }
+    return { lines: lines, totals: totals, emptyReason: scoped.emptyReason, mode: mode };
   }
 
   function expressQuote(sku, opts) {
     opts = opts || {};
     var channel = normalizeChannel(opts.channel, opts);
-    var reserved = channelReservedOf(sku, channel);
     if ((sku.sellableFixed == null || sku.sellableFixed === '') && !sku.expressSellableInited) {
-      sku.sellableFixed = String(Math.max(parseNum(sku.liveStock) + reserved, 30));
+      var seedReserved = channelReservedOf(sku, channel);
+      sku.sellableFixed = String(Math.max(parseNum(sku.liveStock) + seedReserved, 30));
     }
     sku.expressSellableInited = true;
+    var reserved = channelReservedSinceConfig(sku, channel);
     var cap = Math.round(parseNum(sku.sellableFixed));
     var remain = Math.max(0, cap - reserved);
     return { cap: cap, remain: remain, reserved: reserved, channel: channel };
@@ -443,10 +553,11 @@
     var pack = warehouseQuote(sku, opts);
     sku.sellableStock = String(pack.totals.cap);
     sku.remainStock = String(pack.totals.remain);
-    sku.reservedStock = String(pack.totals.allocated || 0);
+    sku.reservedStock = String(pack.mode === 'fixed' ? (pack.totals.channelReserved || 0) : (pack.totals.allocated || 0));
     sku.spotStock = String(pack.totals.spot);
     return {
       model: 'warehouse',
+      mode: pack.mode,
       lines: pack.lines,
       totals: pack.totals,
       emptyReason: pack.emptyReason,
@@ -479,17 +590,17 @@
     if (!root || !sku) return null;
     var pack = warehouseQuote(sku, opts);
     pack.lines.forEach(function (line) {
-      var capEl = root.querySelector('[data-wh-cap="' + line.warehouseId + '"]');
-      var remainEl = root.querySelector('[data-wh-remain="' + line.warehouseId + '"]');
-      if (capEl) capEl.textContent = String(line.cap);
-      if (remainEl) remainEl.textContent = String(line.remain);
+      var freeEl = root.querySelector('[data-wh-free="' + line.warehouseId + '"]');
+      if (freeEl) freeEl.textContent = String(line.free);
     });
     var totalSpot = root.querySelector('[data-wh-spot-total]');
-    var totalCap = root.querySelector('[data-wh-cap-total]');
-    var totalRemain = root.querySelector('[data-wh-remain-total]');
+    var totalFree = root.querySelector('[data-wh-free-total]');
     if (totalSpot) totalSpot.textContent = String(pack.totals.spot);
-    if (totalCap) totalCap.textContent = String(pack.totals.cap);
-    if (totalRemain) totalRemain.textContent = String(pack.totals.remain);
+    if (totalFree) totalFree.textContent = String(pack.totals.free);
+    var remainEl = root.querySelector('[data-remain-result]');
+    var spotEl = root.querySelector('[data-spot-result]');
+    if (remainEl) remainEl.value = String(pack.totals.remain);
+    if (spotEl) spotEl.value = String(pack.mode === 'fixed' ? pack.totals.spot : pack.totals.remain);
     sku.sellableStock = String(pack.totals.cap);
     sku.remainStock = String(pack.totals.remain);
     sku.spotStock = String(pack.totals.spot);
@@ -497,65 +608,65 @@
   }
 
   function emptyScopeText(reason) {
-    if (reason === 'store') return '请先选择售卖门店。选定后，每个涉及的仓库单独配置可售库存、现货库存、剩余可售。';
-    if (reason === 'region') return '请先选择售卖区域。选定后，每个涉及的仓库单独配置可售库存、现货库存、剩余可售。';
-    return '所选范围没有对应的配送仓，无法按仓库配置库存。';
+    if (reason === 'store') return '请先选择售卖门店。选定后，按这些门店对应的仓库共用现货。';
+    if (reason === 'region') return '请先选择售卖区域。选定后，按这些区域对应的仓库共用现货。';
+    return '所选范围没有对应的配送仓。';
   }
 
-  function renderSellCell(line) {
-    var mode = line.sellableMode === 'fixed' ? 'fixed' : 'spot';
-    var id = escapeHtml(line.warehouseId);
+  function renderModeField(sku, sum) {
+    var mode = normalizeSellableMode((sku && sku.sellableMode) || (sum && sum.mode));
     var select =
-      '<select class="product-proxy-spec__input" data-wh-id="' + id + '" data-wh-field="sellableMode" aria-label="' + escapeHtml(line.name) + '可售库存配置方式">' +
-      '<option value="spot"' + (mode === 'spot' ? ' selected' : '') + '>按现货比例</option>' +
+      '<select class="product-proxy-spec__input" data-field="sellableMode" aria-label="可售库存配置方式">' +
+      '<option value="spot"' + (mode === 'spot' ? ' selected' : '') + '>按现货库存</option>' +
       '<option value="fixed"' + (mode === 'fixed' ? ' selected' : '') + '>按具体数量</option>' +
       '</select>';
-    var extra = mode === 'fixed'
-      ? '<input type="text" class="product-proxy-spec__input product-wh-config__qty" data-wh-id="' + id + '" data-wh-field="sellableFixed" inputmode="decimal" value="' + escapeHtml(line.sellableFixed) + '" placeholder="件数" aria-label="可售件数">'
-      : '<span class="product-wh-config__pct"><input type="text" class="product-proxy-spec__input" data-wh-id="' + id + '" data-wh-field="sellablePercent" inputmode="decimal" value="' + escapeHtml(line.sellablePercent) + '" aria-label="现货比例"><span>%</span></span>';
+    var tip = mode === 'fixed'
+      ? '按具体数量不走仓库现货，按本渠道配置的可售数量扣减。'
+      : '按现货库存后，同 SKU 里选了按现货库存的商城、代采、直播共用仓库现货。';
     return (
-      '<div class="product-wh-config__sell">' +
+      '<div class="product-proxy-spec__field">' +
+      '<label class="product-proxy-spec__label">可售库存</label>' +
       select +
-      extra +
-      '<span class="product-wh-config__cap">上限 <strong data-wh-cap="' + id + '">' + line.cap + '</strong></span>' +
+      '<p class="product-proxy-spec__stock-tip">' + tip + '</p>' +
       '</div>'
     );
   }
 
-  function renderWarehouseEditor(sum) {
-    if (!sum.lines || !sum.lines.length) {
-      return (
-        '<div class="product-proxy-spec__field product-proxy-spec__field--wh-stock" data-stock-editor="warehouse">' +
+  function renderFixedQtyField(sku) {
+    return (
+      '<div class="product-proxy-spec__field">' +
+      '<label class="product-proxy-spec__label">可售数量</label>' +
+      '<input type="text" class="product-proxy-spec__input" data-field="sellableFixed" inputmode="decimal" value="' +
+      escapeHtml(sku.sellableFixed == null ? '' : sku.sellableFixed) +
+      '" placeholder="请输入" aria-label="可售数量">' +
+      '</div>'
+    );
+  }
+
+  function renderWarehouseEditor(sku, sum) {
+    var totals = sum.totals || { spot: 0, free: 0, cap: 0, remain: 0 };
+    var fixed = normalizeSellableMode(sku && sku.sellableMode) === 'fixed';
+    var spotField = fixed
+      ? renderFixedQtyField(sku)
+      : '<div class="product-proxy-spec__field">' +
+        '<label class="product-proxy-spec__label">现货库存</label>' +
+        '<input type="text" class="product-proxy-spec__input" data-spot-result value="' + totals.remain + '" readonly tabindex="-1" aria-label="现货库存">' +
+        '<p class="product-proxy-spec__stock-tip">现货库存就是剩余可售。按现货库存的渠道共用后还能卖的数量，为 0 时不能下新单。</p>' +
+        '</div>';
+    var remainField = fixed
+      ? '<div class="product-proxy-spec__field">' +
+        '<label class="product-proxy-spec__label">剩余可售</label>' +
+        '<input type="text" class="product-proxy-spec__input" data-remain-result value="' + totals.remain + '" readonly tabindex="-1" aria-label="剩余可售">' +
+        '<p class="product-proxy-spec__stock-tip">剩余可售 = 可售数量 − 本渠道预占（当前预占 <span data-channel-reserved>' + (totals.channelReserved || 0) + '</span>）。预占从本次可售数量生效后起算，重新配置可售数量后清零。不取仓库现货。未填时为 0。</p>' +
+        '</div>'
+      : '';
+    var head = renderModeField(sku, sum) + spotField + remainField;
+    var empty = (!fixed && (!sum.lines || !sum.lines.length))
+      ? '<div class="product-proxy-spec__field product-proxy-spec__field--wh-stock">' +
         '<div class="mdm-biz-tip mdm-biz-tip--flush" role="note">' + emptyScopeText(sum.emptyReason) + '</div>' +
         '</div>'
-      );
-    }
-    var body = sum.lines.map(function (line) {
-      return (
-        '<tr>' +
-        '<td>' + escapeHtml(line.name) + '</td>' +
-        '<td class="product-wh-config__num">' + line.spot + '</td>' +
-        '<td>' + renderSellCell(line) + '</td>' +
-        '<td class="product-wh-config__num"><strong data-wh-remain="' + escapeHtml(line.warehouseId) + '">' + line.remain + '</strong>' +
-        '<div class="product-wh-config__sub">基数 ' + line.quotaBase + ' · 预占 ' + line.reserved + ' · 已售 ' + line.sold + ' · 已履约 ' + line.fulfilled + '</div></td>' +
-        '</tr>'
-      );
-    }).join('');
-    var totals = sum.totals || { spot: 0, cap: 0, remain: 0 };
-    return (
-      '<div class="product-proxy-spec__field product-proxy-spec__field--wh-stock" data-stock-editor="warehouse">' +
-      '<div class="mdm-biz-tip mdm-biz-tip--flush" role="note">自提、配送按仓库分别配置。<strong>按现货比例</strong>时，可售上限 = 配额基数 × 比例。基数只随入库增加。下单记预占，付款转为已售，核销转为已履约，三笔都占已分配；核销、损耗、领用不减基数。剩余可售 = min(上限 − 已分配, 当前现货)。</div>' +
-      '<div class="product-wh-config-scroll">' +
-      '<table class="product-wh-config">' +
-      '<thead><tr><th>仓库</th><th>现货库存</th><th>可售库存</th><th>剩余可售</th></tr></thead>' +
-      '<tbody>' + body + '</tbody>' +
-      '<tfoot><tr>' +
-      '<th>合计</th>' +
-      '<th class="product-wh-config__num" data-wh-spot-total>' + totals.spot + '</th>' +
-      '<th class="product-wh-config__num" data-wh-cap-total>' + totals.cap + '</th>' +
-      '<th class="product-wh-config__num" data-wh-remain-total>' + totals.remain + '</th>' +
-      '</tr></tfoot></table></div></div>'
-    );
+      : '';
+    return '<div data-stock-editor="warehouse">' + head + empty + '</div>';
   }
 
   function renderExpressEditor(sku, sum) {
@@ -573,14 +684,14 @@
       '<input type="text" class="product-proxy-spec__input" data-remain-result value="' +
       escapeHtml(String(express.remain)) +
       '" readonly tabindex="-1" aria-label="剩余可售">' +
-      '<p class="product-proxy-spec__stock-tip">剩余可售 = 可售库存 − 本渠道预占（当前预占 ' + express.reserved + '）。</p>' +
+      '<p class="product-proxy-spec__stock-tip">剩余可售 = 可售库存 − 本渠道预占（当前预占 <span data-channel-reserved>' + express.reserved + '</span>）。预占从本次可售数量生效后起算，重新配置后清零。</p>' +
       '</div>'
     );
   }
 
   function renderStockEditor(sku, opts) {
     var sum = applyQuoteToSku(sku, opts || {});
-    if (sum.model === 'warehouse') return renderWarehouseEditor(sum);
+    if (sum.model === 'warehouse') return renderWarehouseEditor(sku, sum);
     return renderExpressEditor(sku, sum);
   }
 
