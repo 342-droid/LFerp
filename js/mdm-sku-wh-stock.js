@@ -1,7 +1,7 @@
 /**
  * SKU 库存。
  *
- * 快递：只配置本渠道可售件数，显示剩余可售。不取仓库现货。
+ * 快递：配置本渠道可售库存，显示剩余可售。不取仓库现货。
  * 自提 / 配送：不按仓配置，页面也不列出各仓现货和共享可卖。可售在 SKU 上选一次。
  * 按现货库存：售卖范围里的仓库全部按现货。同一 SKU 里同样选了按现货库存的商城、代采、直播共用这些仓库的现货。
  * 按具体数量：不走仓库现货，按本渠道配置的可售数量扣本渠道预占。
@@ -651,13 +651,12 @@
       : '<div class="product-proxy-spec__field">' +
         '<label class="product-proxy-spec__label">现货库存</label>' +
         '<input type="text" class="product-proxy-spec__input" data-spot-result value="' + totals.remain + '" readonly tabindex="-1" aria-label="现货库存">' +
-        '<p class="product-proxy-spec__stock-tip">现货库存就是剩余可售。按现货库存的渠道共用后还能卖的数量，为 0 时不能下新单。</p>' +
         '</div>';
     var remainField = fixed
       ? '<div class="product-proxy-spec__field">' +
         '<label class="product-proxy-spec__label">剩余可售</label>' +
         '<input type="text" class="product-proxy-spec__input" data-remain-result value="' + totals.remain + '" readonly tabindex="-1" aria-label="剩余可售">' +
-        '<p class="product-proxy-spec__stock-tip">剩余可售 = 可售数量 − 本渠道预占（当前预占 <span data-channel-reserved>' + (totals.channelReserved || 0) + '</span>）。预占从本次可售数量生效后起算，重新配置可售数量后清零。不取仓库现货。未填时为 0。</p>' +
+        '<p class="product-proxy-spec__stock-tip">剩余可售 = 可售数量 − 本渠道预占（当前预占 <span data-channel-reserved>' + (totals.channelReserved || 0) + '</span>）。</p>' +
         '</div>'
       : '';
     var head = renderModeField(sku, sum) + spotField + remainField;
@@ -676,15 +675,14 @@
       '<label class="product-proxy-spec__label">可售库存</label>' +
       '<input type="text" class="product-proxy-spec__input" data-field="sellableFixed" inputmode="decimal" value="' +
       escapeHtml(sku.sellableFixed == null ? '' : sku.sellableFixed) +
-      '" placeholder="本渠道可售件数" aria-label="可售库存">' +
-      '<p class="product-proxy-spec__stock-tip">快递只配置可售件数，不取仓库现货。</p>' +
+      '" placeholder="本渠道可售库存" aria-label="可售库存">' +
       '</div>' +
       '<div class="product-proxy-spec__field">' +
       '<label class="product-proxy-spec__label">剩余可售</label>' +
       '<input type="text" class="product-proxy-spec__input" data-remain-result value="' +
       escapeHtml(String(express.remain)) +
       '" readonly tabindex="-1" aria-label="剩余可售">' +
-      '<p class="product-proxy-spec__stock-tip">剩余可售 = 可售库存 − 本渠道预占（当前预占 <span data-channel-reserved>' + express.reserved + '</span>）。预占从本次可售数量生效后起算，重新配置后清零。</p>' +
+      '<p class="product-proxy-spec__stock-tip">剩余可售 = 可售库存 − 本渠道预占（当前预占 <span data-channel-reserved>' + express.reserved + '</span>）。</p>' +
       '</div>'
     );
   }
