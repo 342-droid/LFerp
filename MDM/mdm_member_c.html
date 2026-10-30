@@ -240,21 +240,67 @@
         #panelMemberList .search-section { overflow-x: hidden; }
         .proxy-store-picker-modal--single .proxy-store-picker__select-all { display: none; }
         #panelMemberList .member-batch-bar { padding: 12px 16px 10px; }
-        .erp-modal--member-batch-excel { max-width: 640px; width: min(96vw, 640px); }
-        .member-batch-excel-tools { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; min-height: 32px; }
-        .member-batch-excel-upload { position: relative; display: inline-flex; cursor: pointer; }
-        .member-batch-excel-upload input { position: absolute; width: 1px; height: 1px; opacity: 0; }
-        .member-batch-excel-upload.is-locked { cursor: not-allowed; opacity: 0.55; }
-        .member-batch-excel-tpl { border: 0; background: none; padding: 0; color: #ff7019; font-size: 13px; line-height: 32px; cursor: pointer; }
-        .member-batch-excel-tpl:hover { text-decoration: underline; }
-        .member-batch-excel-file { display: flex; align-items: center; gap: 8px; margin-top: 8px; min-height: 32px; font-size: 13px; color: #333; }
-        .member-batch-excel-file[hidden] { display: none !important; }
-        .member-batch-excel-file__remove { margin-left: 4px; border: 0; background: none; color: #999; font-size: 16px; line-height: 1; cursor: pointer; }
-        .member-batch-excel-result { margin-top: 10px; font-size: 13px; line-height: 1.5; color: #333; }
-        .member-batch-excel-result[hidden] { display: none !important; }
-        .member-batch-excel-ok { color: #1f8f4e; }
-        .member-batch-excel-bad { color: #c45656; }
-        .member-batch-excel-result ul { margin: 6px 0 0; padding-left: 18px; max-height: 160px; overflow: auto; color: #c45656; }
+        .order-proxy-express-overlay { position: fixed; inset: 0; z-index: 2090; background: rgba(0, 0, 0, 0.45); display: flex; align-items: center; justify-content: center; padding: 24px; }
+        .order-proxy-upload-modal { width: 100%; max-width: 480px; max-height: calc(100vh - 48px); background: #fff; border-radius: 8px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15); display: flex; flex-direction: column; overflow: hidden; }
+        .order-proxy-upload-modal__head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #ebeef5; }
+        .order-proxy-upload-modal__title { margin: 0; font-size: 16px; font-weight: 600; color: #303133; }
+        .order-proxy-upload-modal__close { border: 0; background: none; font-size: 22px; line-height: 1; color: #909399; cursor: pointer; padding: 0 4px; }
+        .order-proxy-upload-modal__body { padding: 16px 20px; overflow: auto; }
+        .order-proxy-upload-modal__hint { margin: 0 0 16px; font-size: 13px; line-height: 1.6; color: #909399; }
+        .order-proxy-upload-modal__foot { display: flex; justify-content: flex-end; gap: 10px; padding: 12px 20px 16px; border-top: 1px solid #ebeef5; }
+        .order-proxy-batch-wizard { width: min(800px, 94vw); }
+        .order-proxy-batch-wizard .order-proxy-upload-modal__body { padding: 16px 24px 8px; }
+        .order-proxy-batch-wizard .order-proxy-upload-modal__hint { margin-bottom: 14px; }
+        .order-proxy-batch-wizard .order-proxy-upload-modal__foot { justify-content: flex-start; }
+        .order-proxy-batch-wizard .order-proxy-upload-modal__foot.is-split { justify-content: space-between; }
+        .order-proxy-batch-wizard .order-proxy-upload-modal__foot-right { display: flex; gap: 10px; }
+        .order-filter-btn { display: inline-flex; align-items: center; justify-content: center; gap: 4px; height: 32px; padding: 0 14px; border-radius: 4px; font-size: 13px; font-family: inherit; cursor: pointer; white-space: nowrap; }
+        .order-filter-btn--primary { border: 1px solid var(--color-primary, #ff7019); background: var(--color-primary, #ff7019); color: #ffffff; }
+        .order-filter-btn--default { border: 1px solid #dcdfe6; background: #ffffff; color: var(--color-text-secondary, #666666); }
+        .order-filter-btn--default:hover { border-color: var(--color-primary, #ff7019); color: var(--color-primary, #ff7019); }
+        .order-filter-btn--outline { border: 1px solid #ffd0b0; background: #fff4eb; color: #ff7019; }
+        .order-filter-btn--outline:hover { border-color: #ff7019; background: #ffeee0; }
+        .order-batch-wizard__steps { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 20px; padding: 10px 16px; background: #f5f7fa; border-radius: 8px; }
+        .order-batch-wizard__step { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #c0c4cc; font-weight: 400; }
+        .order-batch-wizard__step.is-current { color: #303133; font-weight: 600; }
+        .order-batch-wizard__step.is-done { color: #67c23a; font-weight: 500; }
+        .order-batch-wizard__dot { width: 16px; height: 16px; border: 2px solid currentColor; border-radius: 50%; box-sizing: border-box; flex-shrink: 0; }
+        .order-batch-wizard__step.is-current .order-batch-wizard__dot { border-width: 3px; }
+        .order-batch-wizard__step.is-done .order-batch-wizard__dot { display: none; }
+        .order-batch-wizard__check { display: none; width: 16px; height: 16px; flex-shrink: 0; }
+        .order-batch-wizard__step.is-done .order-batch-wizard__check { display: block; }
+        .order-batch-wizard__chevron { color: #c0c4cc; font-size: 12px; line-height: 1; }
+        .order-batch-wizard__drop { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 220px; padding: 32px 16px; border: 1px dashed #dcdfe6; border-radius: 6px; background: #fff; cursor: pointer; text-align: center; }
+        .order-batch-wizard__drop.is-dragover { border-color: #ff7019; background: #fff7f0; }
+        .order-batch-wizard__drop-icon { width: 48px; height: 48px; color: #ff7019; margin-bottom: 12px; }
+        .order-batch-wizard__drop-title { margin: 0 0 6px; font-size: 14px; font-weight: 500; color: #303133; }
+        .order-batch-wizard__drop-sub { margin: 0; font-size: 12px; color: #c0c4cc; }
+        .order-batch-wizard__drop-name { margin: 8px 0 0; font-size: 12px; color: #909399; }
+        .order-batch-wizard__tpl { display: block; margin: 14px auto 8px; border: 0; background: none; padding: 0; font-size: 13px; color: #ff7019; cursor: pointer; font-family: inherit; }
+        .order-batch-wizard__tpl:hover { text-decoration: underline; }
+        .order-batch-wizard__stats { display: flex; flex-wrap: wrap; gap: 16px 20px; margin-bottom: 12px; font-size: 13px; color: #303133; }
+        .order-batch-wizard__stat--ok { color: #67c23a; }
+        .order-batch-wizard__stat--err { color: #f56c6c; }
+        .order-batch-wizard__stat--warn { color: #e6a23c; }
+        .order-batch-wizard__toolbar { display: flex; align-items: center; margin-bottom: 10px; }
+        .order-batch-wizard__toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #606266; cursor: pointer; user-select: none; }
+        .order-batch-wizard__switch { position: relative; width: 36px; height: 20px; border-radius: 10px; background: #dcdfe6; transition: background 0.2s; flex-shrink: 0; }
+        .order-batch-wizard__switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15); transition: transform 0.2s; }
+        .order-batch-wizard__toggle.is-on .order-batch-wizard__switch { background: #ff7019; }
+        .order-batch-wizard__toggle.is-on .order-batch-wizard__switch::after { transform: translateX(16px); }
+        .order-batch-wizard__table-wrap { max-height: 280px; overflow: auto; border: 1px solid #ebeef5; border-radius: 4px; }
+        .order-batch-wizard__table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .order-batch-wizard__table th, .order-batch-wizard__table td { padding: 8px 10px; border-bottom: 1px solid #ebeef5; border-right: 1px solid #ebeef5; text-align: left; color: #303133; white-space: nowrap; }
+        .order-batch-wizard__table th:last-child, .order-batch-wizard__table td:last-child { border-right: 0; }
+        .order-batch-wizard__table th { position: sticky; top: 0; background: #f5f7fa; font-weight: 500; color: #606266; z-index: 1; }
+        .order-batch-wizard__table tbody tr:nth-child(even) { background: #fafafa; }
+        .order-batch-wizard__table tr.is-error { background: #fef0f0; }
+        .order-batch-wizard__table tr.is-warn { background: #fdf6ec; }
+        .order-batch-wizard__result { text-align: center; padding: 8px 0 16px; }
+        .order-batch-wizard__result-icon { width: 56px; height: 56px; margin: 8px auto 12px; border-radius: 50%; background: #ff7019; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; line-height: 1; }
+        .order-batch-wizard__result-icon.is-ok { background: #67c23a; }
+        .order-batch-wizard__result-title { margin: 0 0 16px; font-size: 18px; font-weight: 600; color: #303133; }
+        .order-batch-wizard__result-head { display: flex; justify-content: flex-start; margin-bottom: 8px; }
         .mem-oplog-drawer { position: fixed; inset: 0; z-index: 2100; }
         .mem-oplog-drawer[hidden],
         .mem-oplog-detail[hidden] { display: none !important; }
@@ -270,7 +316,8 @@
         .mem-oplog-drawer__x { border: 0; background: none; font-size: 22px; color: #909399; cursor: pointer; line-height: 1; }
         .mem-oplog-drawer__body { flex: 1; min-height: 0; overflow: auto; padding: 16px 20px; }
         .mem-oplog-detail { z-index: 2200; }
-        .mem-oplog-detail .erp-modal { max-width: 760px; }
+        .mem-oplog-detail .erp-modal { max-width: 960px; width: min(96vw, 960px); }
+        .mem-oplog-members th, .mem-oplog-members td { text-align: left; white-space: nowrap; }
         .mem-oplog-tag {
             display: inline-block; min-width: 40px; padding: 0 8px; border-radius: 2px;
             background: #f0f9eb; color: #67c23a; font-size: 12px; line-height: 22px;
@@ -809,12 +856,12 @@
     <script src="../js/mdm-marketing-coupon-store.js"></script>
     <script src="../js/mdm-marketing-cash-redpack-store.js?v=20261016-hide-transfer"></script>
     <script src="../js/mdm-product-proxy-store-picker.js"></script>
-    <script src="../js/mdm-member-c-oplog.js?v=20261030-member-oplog"></script>
+    <script src="../js/mdm-member-c-oplog.js?v=20261030-batch-log"></script>
     <script src="../js/mdm-member-c-ui.js?v=20261030-hide-operator"></script>
     <script src="../js/mdm-member-blacklist.js?v=20261030-member-oplog"></script>
     <script src="../js/mdm-member-cancel.js"></script>
     <script src="../js/vendor/xlsx.full.min.js"></script>
-    <script src="../js/mdm-member-batch-adjust.js?v=20261030-batch-tpl"></script>
+    <script src="../js/mdm-member-batch-adjust.js?v=20261030-batch-hdr-back"></script>
     <script src="../js/mdm-erp-lists.js?v=20261030-member-oplog"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function () {

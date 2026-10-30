@@ -1,6 +1,7 @@
 /**
  * 会员管理操作日志。
- * 变更绑定门店、发券、调整积分、调整成长值、拉黑、冻结、批量调整成功后各记一条。
+ * 单会员操作记一条，会员列写昵称（会员ID）。
+ * 一次批量导入只记一条，会员列写「共 N 位会员」，明细里列出每位会员。
  */
 (function (global) {
     var KEY = 'mdm_member_c_oplog_v1';
@@ -59,18 +60,35 @@
         } catch (e) { /* ignore */ }
     }
 
+    function normalizeMembers(list) {
+        return (list || []).map(function (m) {
+            if (!m || !m.memberId) return null;
+            return {
+                memberId: String(m.memberId),
+                nickname: m.nickname || '',
+                phone: m.phone || '',
+                summary: m.summary || '',
+                before: m.before == null || m.before === '' ? '—' : String(m.before),
+                after: m.after == null || m.after === '' ? '—' : String(m.after),
+                remark: m.remark || ''
+            };
+        }).filter(Boolean);
+    }
+
     function record(entry) {
         entry = entry || {};
-        if (!entry.memberId) return null;
+        var members = normalizeMembers(entry.members);
+        if (!entry.memberId && !members.length) return null;
         var action = entry.action || '';
         var row = {
             id: 'mlog-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
             time: entry.time || nowStr(),
             action: action,
             content: entry.content || ACTION[action] || action || '操作',
-            memberId: String(entry.memberId),
+            memberId: entry.memberId ? String(entry.memberId) : '',
             nickname: entry.nickname || '',
             phone: entry.phone || '',
+            members: members,
             operator: entry.operator || operatorName(),
             success: entry.success !== false,
             summary: entry.summary || '',
@@ -87,7 +105,10 @@
         var list = load();
         if (!state.memberId) return list;
         return list.filter(function (row) {
-            return String(row.memberId) === String(state.memberId);
+            if (String(row.memberId) === String(state.memberId)) return true;
+            return (row.members || []).some(function (m) {
+                return String(m.memberId) === String(state.memberId);
+            });
         });
     }
 
@@ -151,8 +172,26 @@
     }
 
     function memberText(row) {
+        if (row.members && row.members.length) return '共 ' + row.members.length + ' 位会员';
         var name = row.nickname || '—';
         return name + '（' + (row.memberId || '—') + '）';
+    }
+
+    function batchDetailHtml(row) {
+        var members = (row.members || []).slice();
+        if (state.memberId) {
+            members.sort(function (a, b) {
+                var ah = String(a.memberId) === String(state.memberId) ? 0 : 1;
+                var bh = String(b.memberId) === String(state.memberId) ? 0 : 1;
+                return ah - bh;
+            });
+        }
+        return '<table class="table mem-oplog-members"><thead><tr><th>会员</th><th>手机号</th><th>调整</th><th>变更前</th><th>变更后</th><th>备注</th></tr></thead><tbody>' +
+            members.map(function (m) {
+                var name = (m.nickname || '—') + '（' + m.memberId + '）';
+                return '<tr><td>' + escapeHtml(name) + '</td><td>' + escapeHtml(m.phone || '—') + '</td><td>' + escapeHtml(m.summary || '—') + '</td><td>' + escapeHtml(m.before) + '</td><td>' + escapeHtml(m.after) + '</td><td>' + escapeHtml(m.remark || '—') + '</td></tr>';
+            }).join('') +
+            '</tbody></table>';
     }
 
     function render() {
