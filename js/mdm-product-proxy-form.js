@@ -29,7 +29,7 @@
     { value: 'points', label: '纯积分兑换' },
     { value: 'points_cash', label: '积分+现金' }
   ];
-  /** 可售库存：按现货库存（百分比，100%=取现货，>100% 溢出）/ 按具体数量 */
+  /** 可售库存：按现货库存 / 按具体数量。自提、配送不按仓配置。 */
   var SELLABLE_STOCK_MODES = [
     { value: 'spot', label: '按现货库存' },
     { value: 'fixed', label: '按具体数量' }
@@ -157,9 +157,7 @@
     if (mode === 'fixed') {
       return Math.round(parseStockNum(sku.sellableFixed));
     }
-    var percent = parseStockNum(sku && sku.sellablePercent);
-    if (!percent) percent = 100;
-    return Math.round((spot * percent) / 100);
+    return Math.round(spot);
   }
 
   function ensureSkuStockFields(sku) {
@@ -1301,7 +1299,7 @@
 
       var stockEditor = panel.querySelector('[data-stock-editor]');
       if (stockEditor) {
-        stockEditor.querySelectorAll('[data-wh-field="sellableMode"]').forEach(function (input) {
+        stockEditor.querySelectorAll('[data-field="sellableMode"], [data-wh-field="sellableMode"]').forEach(function (input) {
           input.addEventListener('change', function () {
             readSpecPanelsFromDom(backdrop);
             refreshSpecList(backdrop);
@@ -1323,6 +1321,8 @@
             ensureSkuStockFields(sku);
             var remainEl = panel.querySelector('[data-remain-result]');
             if (remainEl) remainEl.value = sku.remainStock;
+            var reservedEl = panel.querySelector('[data-channel-reserved]');
+            if (reservedEl) reservedEl.textContent = sku.reservedStock == null ? '0' : String(sku.reservedStock);
           });
         }
       }
