@@ -1,10 +1,53 @@
 {
-  "latestSha": "92b948472533204a8c719e870397a41f6b770a2e",
-  "total": 465,
+  "latestSha": "c2cf70764c8548f8c54a5fc0eccdbb2adeafb296",
+  "total": 466,
   "days": [
     {
       "date": "2026-10-30",
       "items": [
+        {
+          "sha": "c2cf707",
+          "type": "style",
+          "text": "精简商品可售库存字段下的说明",
+          "author": "sisi",
+          "time": "15:02",
+          "pages": [
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "module": "冷丰WMS",
+              "title": "直播排品编辑"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "module": "冷丰WMS",
+              "title": "编辑秒杀商品"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "text": "编辑规格里，快递输入提示改为「本渠道可售库存」并去掉「不取仓库现货」；自提不再显示「现货库存就是剩余可售」；剩余可售只保留计算公式"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "text": "编辑规格里的配送和快递库存说明按同一套精简"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "text": "编辑规格里的自提和快递库存说明按同一套精简"
+            }
+          ]
+        },
         {
           "sha": "92b9484",
           "type": "feat",

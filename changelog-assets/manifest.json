@@ -878,6 +878,26 @@
     "status": "diff",
     "date": "2026-10-26"
   },
+  "c2cf707|MDM/mdm_live_product_sched_edit.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-30"
+  },
+  "c2cf707|MDM/mdm_marketing_seckill_product.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-30"
+  },
+  "c2cf707|MDM/mdm_product_mall.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-30"
+  },
+  "c2cf707|MDM/mdm_product_proxy_list.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-30"
+  },
   "c3bc717|MDM/mdm_product_mall.html": {
     "before": "changelog-assets/c3bc717/MDM__mdm_product_mall.html.before.jpg",
     "after": "changelog-assets/c3bc717/MDM__mdm_product_mall.html.after.jpg",
