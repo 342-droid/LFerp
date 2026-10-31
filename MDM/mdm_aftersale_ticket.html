@@ -60,6 +60,20 @@
                                     </select>
                                 </div>
                                 <div class="aftersale-filter-field aftersale-filter-field--extra">
+                                    <label class="aftersale-filter-field__label" for="asPickupStore">提货门店</label>
+                                    <input class="aftersale-filter-field__input" id="asPickupStore" type="text" placeholder="请输入提货门店" autocomplete="off">
+                                </div>
+                                <div class="aftersale-filter-field aftersale-filter-field--extra">
+                                    <label class="aftersale-filter-field__label" for="asSettleStatus">结算状态</label>
+                                    <select class="aftersale-filter-field__select" id="asSettleStatus">
+                                        <option value="">全部</option>
+                                        <option value="待结算">待结算</option>
+                                        <option value="待结款">待结款</option>
+                                        <option value="结款中">结款中</option>
+                                        <option value="已结款">已结款</option>
+                                    </select>
+                                </div>
+                                <div class="aftersale-filter-field aftersale-filter-field--extra">
                                     <label class="aftersale-filter-field__label" for="asStatus">售后状态</label>
                                     <select class="aftersale-filter-field__select" id="asStatus">
                                         <option value="">全部</option>
@@ -241,7 +255,7 @@
     <script src="../js/common.js"></script>
     <script src="../js/mdm-aftersale-reasons.js"></script>
     <script src="../js/freight-refund-aftersale-store.js?v=20260826-refund-only"></script>
-    <script src="../js/mdm-aftersale-ticket.js?v=20260826-refund-only"></script>
+    <script src="../js/mdm-aftersale-ticket.js?v=20261031-store-input"></script>
     <script src="../js/member-tag-projection.js?v=20260905-member-tag-projection"></script>
     <script src="../js/business-tag-prototype-store.js?v=20260905-product-tag-sync"></script>
     <script src="../js/business-tag-prototype-ui.js?v=20260905-product-tag-sync"></script>

@@ -488,6 +488,8 @@
       phone: (($('asUserPhone') || {}).value || '').trim(),
       productName: (($('asProductName') || {}).value || '').trim(),
       type: ($('asType') || {}).value || '',
+      store: (($('asPickupStore') || {}).value || '').trim(),
+      settleStatus: ($('asSettleStatus') || {}).value || '',
       status: ($('asStatus') || {}).value || '',
       refundExecStatus: ($('asRefundExecStatus') || {}).value || '',
       reason: ($('asReason') || {}).value || '',
@@ -530,6 +532,8 @@
       return false;
     }
     if (f.type && row.type !== f.type) return false;
+    if (f.store && String(row.store || '').indexOf(f.store) < 0) return false;
+    if (f.settleStatus && (row.settleStatus || '待结算') !== f.settleStatus) return false;
     if (f.status && row.status !== f.status) return false;
     if (f.refundExecStatus && row.refundExecStatus !== f.refundExecStatus) return false;
     if (f.reason && row.reason !== f.reason) return false;
