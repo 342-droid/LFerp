@@ -271,6 +271,8 @@
                 }).join('') +
                 '</tbody></table>'
             : '<div class="mem-oplog-empty">无字段变更</div>';
+        var detailTitle = row.members && row.members.length ? '会员明细' : '变更明细';
+        var detailHtml = row.members && row.members.length ? batchDetailHtml(row) : changeHtml;
         body.innerHTML =
             '<div class="mem-oplog-detail-line"><span>操作内容</span><strong>' + escapeHtml(row.content) + '</strong></div>' +
             '<div class="mem-oplog-detail-line"><span>操作时间</span><strong>' + escapeHtml(row.time) + '</strong></div>' +
@@ -279,8 +281,8 @@
             (row.summary
                 ? '<div class="mem-oplog-detail-line"><span>说明</span><strong>' + escapeHtml(row.summary) + '</strong></div>'
                 : '') +
-            '<div class="mem-oplog-detail-title">变更明细</div>' +
-            changeHtml;
+            '<div class="mem-oplog-detail-title">' + detailTitle + '</div>' +
+            detailHtml;
         backdrop.hidden = false;
     }
 
