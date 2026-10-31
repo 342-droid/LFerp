@@ -335,6 +335,13 @@
     "status": "diff",
     "date": "2026-10-28"
   },
+  "70c1b27|MDM/mdm_aftersale_ticket.html": {
+    "before": "changelog-assets/70c1b27/MDM__mdm_aftersale_ticket.html.before.jpg",
+    "after": "changelog-assets/70c1b27/MDM__mdm_aftersale_ticket.html.after.jpg",
+    "regions": 5,
+    "status": "diff",
+    "date": "2026-10-31"
+  },
   "90f9daa|MDM/mdm_live_product_sched_edit.html": {
     "before": "changelog-assets/90f9daa/MDM__mdm_live_product_sched_edit.html.before.jpg",
     "after": "changelog-assets/90f9daa/MDM__mdm_live_product_sched_edit.html.after.jpg",

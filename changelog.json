@@ -1,10 +1,30 @@
 {
-  "latestSha": "2e45adeaed821d3a3a2080c171c84a483d3004c9",
-  "total": 470,
+  "latestSha": "70c1b277a658ed053600452c83bc4340d4867488",
+  "total": 471,
   "days": [
     {
       "date": "2026-10-31",
       "items": [
+        {
+          "sha": "70c1b27",
+          "type": "feat",
+          "text": "售后单筛选增加提货门店和结算状态",
+          "author": "sisi",
+          "time": "17:07",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "module": "冷丰售后",
+              "title": "售后单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "text": "筛选区可按提货门店手输模糊查询，并按结算状态筛选待结算、待结款、结款中、已结款"
+            }
+          ]
+        },
         {
           "sha": "2e45ade",
           "type": "feat",
