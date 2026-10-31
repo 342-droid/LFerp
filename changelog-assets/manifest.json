@@ -87,6 +87,13 @@
     "status": "diff",
     "date": "2026-10-22"
   },
+  "2e45ade|MDM/mdm_settle_index.html": {
+    "before": "changelog-assets/2e45ade/MDM__mdm_settle_index.html.before.jpg",
+    "after": "changelog-assets/2e45ade/MDM__mdm_settle_index.html.after.jpg",
+    "regions": 10,
+    "status": "diff",
+    "date": "2026-10-31"
+  },
   "3dc6486|MDM/mdm_archive_carrier.html": {
     "regions": 0,
     "status": "diff",
@@ -845,6 +852,11 @@
     "regions": 0,
     "status": "diff",
     "date": "2026-10-28"
+  },
+  "ead1008|MDM/mdm_member_c.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-10-31"
   },
   "f7bea52|MDM/mdm_member_c.html": {
     "regions": 0,

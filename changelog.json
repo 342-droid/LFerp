@@ -1,7 +1,52 @@
 {
-  "latestSha": "f7bea52a8ff8d475743136fb029ab237cc4326ac",
-  "total": 468,
+  "latestSha": "2e45adeaed821d3a3a2080c171c84a483d3004c9",
+  "total": 470,
   "days": [
+    {
+      "date": "2026-10-31",
+      "items": [
+        {
+          "sha": "2e45ade",
+          "type": "feat",
+          "text": "结算单展示实际收付款账户并完善承运商结款信息",
+          "author": "sisi",
+          "time": "16:32",
+          "pages": [
+            {
+              "file": "MDM/mdm_settle_index.html",
+              "module": "冷丰结算",
+              "title": "结算中心"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_settle_index.html",
+              "text": "供应商、承运商、佣金和补偿结款展示付款账户名称与收款账户名称，收款户可以是绑定的其他汇付商户；承运商结算状态与供应商对齐，可按收款账户名称和收款基本账户筛选，详情显示收款时间，收付款记录显示汇付通道流水号，并去掉承运商单上的分佣字段"
+            }
+          ]
+        },
+        {
+          "sha": "ead1008",
+          "type": "feat",
+          "text": "批量操作日志详情列出每位会员的调整结果",
+          "author": "sisi",
+          "time": "16:32",
+          "pages": [
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_member_c.html",
+              "text": "批量调整的操作日志详情改为会员明细，列出每位会员的调整、变更前和变更后"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-10-30",
       "items": [
