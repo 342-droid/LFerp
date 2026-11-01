@@ -1,7 +1,64 @@
 {
-  "latestSha": "70c1b277a658ed053600452c83bc4340d4867488",
-  "total": 471,
+  "latestSha": "cc44b77dfa77b9c0396d87b7cf005c8c0e2f5ef3",
+  "total": 472,
   "days": [
+    {
+      "date": "2026-11-02",
+      "items": [
+        {
+          "sha": "cc44b77",
+          "type": "feat",
+          "text": "完善结算对账字段并打通异常转补偿闭环",
+          "author": "sisi",
+          "time": "00:14",
+          "pages": [
+            {
+              "file": "MDM/mdm_settle_index.html",
+              "module": "冷丰结算",
+              "title": "结算中心"
+            }
+          ],
+          "notes": [
+            {
+              "file": null,
+              "text": "清分台账: 异常单按代收待转/结算失败双单门控转结款"
+            },
+            {
+              "file": null,
+              "text": "通道流水号挂明细并可反查结款单"
+            },
+            {
+              "file": null,
+              "text": "供应商结算: 列表补收款账户与通道流水反查"
+            },
+            {
+              "file": null,
+              "text": "付款清单区块统一为收付款记录"
+            },
+            {
+              "file": null,
+              "text": "承运商结算: 加入结款单确认后迁入结款单据"
+            },
+            {
+              "file": null,
+              "text": "未配置账户重新执行不再自动补户"
+            },
+            {
+              "file": null,
+              "text": "佣金清算: 补齐收付款账户与通道流水反查，关联供应商结款单可跳转"
+            },
+            {
+              "file": null,
+              "text": "补偿结款: 关联异常单可回溯"
+            },
+            {
+              "file": null,
+              "text": "转结款写入待结款补偿单，人工结款后双边已结款"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-10-31",
       "items": [
