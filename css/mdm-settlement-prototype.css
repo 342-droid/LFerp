@@ -97,6 +97,7 @@
 .settle-exception-tip { position:relative; margin:12px 0; padding:14px 18px 12px 46px; background:#fff7e8; border:1px solid #ffd591; border-radius:6px; color:#8a5a12; line-height:1.75; }
 .settle-exception-tip::before { content:'!'; position:absolute; left:16px; top:16px; width:18px; height:18px; border-radius:50%; background:#fa8c16; color:#fff; font-size:13px; font-weight:700; line-height:18px; text-align:center; }
 .settle-exception-tip strong { display:block; margin-bottom:4px; color:#ad6800; font-size:14px; }
+.settle-exception-tip-lead { margin:0 0 8px; font-size:13px; }
 .settle-exception-tip ol { margin:0; padding-left:18px; }
 .settle-filter--exception { align-items:center; }
 .settle-filter--exception .settle-field { flex-direction:row; align-items:center; min-width:0; gap:8px; }
@@ -167,5 +168,83 @@
 .settle-selected-tags { margin:12px 0; display:flex; gap:8px; }
 .settle-selected-tags span { background:#ecf5ff; color:#4084c7; border:1px solid #cfe7ff; padding:5px 8px; border-radius:4px; }
 .settle-summary-row td { background:#f9fafb; font-weight:600; }
+
+/* 清分台账：三列筛选 + 宽表粘性序号/编号/主订单号 */
+.settle-ledger .settle-tabs { margin:0; }
+.settle-filter--ledger {
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:14px 18px;
+    align-items:center;
+}
+.settle-filter--ledger .settle-field {
+    flex-direction:row;
+    align-items:center;
+    gap:10px;
+    min-width:0;
+}
+.settle-filter--ledger .settle-field > span:first-child {
+    flex:none;
+    width:72px;
+    text-align:right;
+    white-space:nowrap;
+    color:#606266;
+    font-size:13px;
+}
+.settle-filter--ledger .settle-input,
+.settle-filter--ledger .settle-select {
+    flex:1;
+    min-width:0;
+    width:100%;
+    height:32px;
+}
+.settle-filter--ledger .settle-field--range { grid-column:1 / span 2; }
+.settle-filter--ledger .settle-range {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex:1;
+    min-width:0;
+}
+.settle-filter--ledger .settle-range .settle-input { flex:1; min-width:0; }
+.settle-range__sep { color:#c0c4cc; flex:none; }
+.settle-filter--ledger .settle-filter-actions {
+    grid-column:1 / -1;
+    justify-content:flex-end;
+    margin-left:0;
+    margin-top:2px;
+}
+.settle-ledger-filter-body.is-collapsed .settle-filter--ledger > .settle-field:nth-child(n+3) { display:none; }
+.settle-ledger-collapse { display:inline-flex; align-items:center; gap:4px; color:#f36b19; }
+.settle-ledger-collapse-ico { font-size:12px; line-height:1; }
+.settle-ledger .settle-toolbar .settle-btn { background:#fff; border:1px solid #d9d9d9; color:#333; height:32px; }
+.settle-exception-ops { gap:8px 18px; align-items:center; }
+.settle-exception-ops.is-single { display:block; }
+.settle-exception-ops.is-pair { display:flex; flex-wrap:nowrap; }
+.settle-exception-ops.is-grid { display:grid; grid-template-columns:repeat(2,max-content); }
+.settle-exception .settle-exception-tip { margin:12px 18px 0; }
+.settle-exception .settle-tabs + .settle-exception-tip { margin-top:14px; }
+.settle-exception .settle-table td.settle-op { min-width:168px; }
+.settle-ledger-table-wrap { max-width:100%; }
+.settle-ledger-table th,
+.settle-ledger-table td { max-width:220px; overflow:hidden; text-overflow:ellipsis; }
+.settle-ledger-sticky { position:sticky; background:#fff; z-index:2; }
+.settle-ledger-table thead .settle-ledger-sticky { background:#f8f9fb; z-index:3; }
+.settle-ledger-seq { left:0; min-width:64px; box-shadow:2px 0 0 #edf0f3; }
+.settle-ledger-id { left:64px; min-width:72px; box-shadow:2px 0 0 #edf0f3; }
+.settle-ledger-order { left:136px; min-width:180px; box-shadow:6px 0 8px rgba(23,32,49,.05); }
+.settle-ledger-table tr:hover .settle-ledger-sticky { background:#fffaf6; }
+.settle-ledger-pager { justify-content:flex-end; }
+.settle-ledger-pager .settle-pager-total { margin-right:auto; }
+@media(max-width:1100px) {
+    .settle-filter--ledger { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .settle-filter--ledger .settle-field--range { grid-column:1 / -1; }
+}
+@media(max-width:720px) {
+    .settle-filter--ledger { grid-template-columns:1fr; }
+    .settle-filter--ledger .settle-field { flex-direction:column; align-items:stretch; }
+    .settle-filter--ledger .settle-field > span:first-child { width:auto; text-align:left; }
+}
+
 @media(max-width:1000px) { .settle-description { grid-template-columns:repeat(2,minmax(0,1fr)); } .settle-form-two { grid-template-columns:1fr; } }
 @media(max-width:650px) { .settle-description { grid-template-columns:1fr; } .settle-form-row { grid-template-columns:1fr; gap:4px; } }
