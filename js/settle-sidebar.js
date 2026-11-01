@@ -1,4 +1,4 @@
-/* 结算侧栏：清分、策略、异常订单、供应商、承运商运费、佣金、补偿。 */
+/* 结算侧栏：清分、策略、清分台账（含异常单 Tab）、供应商、承运商运费、佣金、补偿。 */
 (function () {
     var wp = window.wmsPath || { page: function (f) { return f; }, asset: function (r) { return r; } };
     var currentPage = String(window.location.pathname.split('/').pop() || '').replace(/\.html$/i, '');
@@ -7,15 +7,20 @@
         return;
     }
     var names = {
-        summary: '清分汇总',
         policy: '策略管理',
-        exception: '异常订单',
+        summary: '清分汇总',
+        ledger: '清分台账',
         supplier: '供应商结算',
         carrier: '承运商结算',
         commission: '佣金清算',
         compensation: '补偿结款'
     };
-    var view = new URLSearchParams(window.location.search).get('view') || 'summary';
+    var params = new URLSearchParams(window.location.search);
+    var view = params.get('view') || 'summary';
+    if (view === 'exception') {
+        window.location.replace(wp.page('mdm_settle_index.html') + '?view=ledger&tab=exception');
+        return;
+    }
     if (!names[view]) view = 'summary';
     var items = Object.keys(names).map(function (key) {
         return '<li class="menu-item"><a class="menu-link' + (view === key ? ' active' : '') +
