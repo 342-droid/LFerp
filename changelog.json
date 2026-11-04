@@ -1,10 +1,44 @@
 {
-  "latestSha": "fb2951365adce4f7e50c2bc78c0bfcba8240f244",
-  "total": 473,
+  "latestSha": "90444d809d451f9dc9544c7577194f0d1162e529",
+  "total": 474,
   "days": [
     {
       "date": "2026-11-04",
       "items": [
+        {
+          "sha": "90444d8",
+          "type": "feat",
+          "text": "新增供应商结算门户并补齐版头组织切换",
+          "author": "sisi",
+          "time": "18:29",
+          "pages": [
+            {
+              "file": "MDM/mdm_settle_index.html",
+              "module": "冷丰结算",
+              "title": "结算中心"
+            },
+            {
+              "file": "MDM/mdm_settle_supplier_portal.html",
+              "module": "冷丰结算",
+              "title": "供应商结算"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_settle_supplier_portal.html",
+              "text": "独立门户含账户总览、清分台账、结款单；版头可切换供应商组织"
+            },
+            {
+              "file": null,
+              "text": "清分汇总: 恢复结算单元口径说明"
+            },
+            {
+              "file": null,
+              "text": "一级页签右侧增加组织切换"
+            }
+          ]
+        },
         {
           "sha": "fb29513",
           "type": "feat",
@@ -110,6 +144,11 @@
               "file": "MDM/mdm_settle_index.html",
               "module": "冷丰结算",
               "title": "结算中心"
+            },
+            {
+              "file": "MDM/mdm_settle_supplier_portal.html",
+              "module": "冷丰结算",
+              "title": "供应商结算"
             }
           ],
           "notes": [
@@ -122,12 +161,8 @@
               "text": "通道流水号挂明细并可反查结款单"
             },
             {
-              "file": null,
-              "text": "供应商结算: 列表补收款账户与通道流水反查"
-            },
-            {
-              "file": null,
-              "text": "付款清单区块统一为收付款记录"
+              "file": "MDM/mdm_settle_supplier_portal.html",
+              "text": "列表补收款账户与通道流水反查；付款清单区块统一为收付款记录"
             },
             {
               "file": null,
@@ -1686,6 +1721,11 @@
               "title": "结算中心"
             },
             {
+              "file": "MDM/mdm_settle_supplier_portal.html",
+              "module": "冷丰结算",
+              "title": "供应商结算"
+            },
+            {
               "file": "SCM/authz-2-guide.html",
               "module": "",
               "title": "菜单权限 2.0 使用说明"
@@ -2158,6 +2198,11 @@
               "file": "MDM/mdm_settle_index.html",
               "module": "冷丰结算",
               "title": "结算中心"
+            },
+            {
+              "file": "MDM/mdm_settle_supplier_portal.html",
+              "module": "冷丰结算",
+              "title": "供应商结算"
             },
             {
               "file": "MDM/mdm_super_admin_accounts.html",
@@ -4335,6 +4380,11 @@
               "file": "MDM/mdm_settle_index.html",
               "module": "冷丰结算",
               "title": "结算中心"
+            },
+            {
+              "file": "MDM/mdm_settle_supplier_portal.html",
+              "module": "冷丰结算",
+              "title": "供应商结算"
             }
           ],
           "notes": [
@@ -4478,6 +4528,11 @@
               "file": "MDM/mdm_settle_index.html",
               "module": "冷丰结算",
               "title": "结算中心"
+            },
+            {
+              "file": "MDM/mdm_settle_supplier_portal.html",
+              "module": "冷丰结算",
+              "title": "供应商结算"
             }
           ]
         }
