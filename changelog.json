@@ -1,10 +1,30 @@
 {
-  "latestSha": "90444d809d451f9dc9544c7577194f0d1162e529",
-  "total": 474,
+  "latestSha": "8b2556ff23ae77c9ff15376eea9f9456d9181c40",
+  "total": 475,
   "days": [
     {
       "date": "2026-11-04",
       "items": [
+        {
+          "sha": "8b2556f",
+          "type": "feat",
+          "text": "供应商门户按订单口径改账户总览并支持订单跟踪",
+          "author": "sisi",
+          "time": "22:28",
+          "pages": [
+            {
+              "file": "MDM/mdm_settle_supplier_portal.html",
+              "module": "冷丰结算",
+              "title": "供应商结算"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_settle_supplier_portal.html",
+              "text": "账户总览改为采购汇总与已到账；侧栏新增订单（零售/代采）可跟踪履约结款；近期结款动态列调整为时间/类型/金额/状态/关联结款单/交易流水"
+            }
+          ]
+        },
         {
           "sha": "90444d8",
           "type": "feat",

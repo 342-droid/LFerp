@@ -342,6 +342,13 @@
     "status": "diff",
     "date": "2026-10-31"
   },
+  "8b2556f|MDM/mdm_settle_supplier_portal.html": {
+    "before": "changelog-assets/8b2556f/MDM__mdm_settle_supplier_portal.html.before.jpg",
+    "after": "changelog-assets/8b2556f/MDM__mdm_settle_supplier_portal.html.after.jpg",
+    "regions": 5,
+    "status": "diff",
+    "date": "2026-11-04"
+  },
   "90444d8|MDM/mdm_settle_index.html": {
     "before": "changelog-assets/90444d8/MDM__mdm_settle_index.html.before.jpg",
     "after": "changelog-assets/90444d8/MDM__mdm_settle_index.html.after.jpg",
