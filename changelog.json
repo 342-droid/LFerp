@@ -1,10 +1,88 @@
 {
-  "latestSha": "8b2556ff23ae77c9ff15376eea9f9456d9181c40",
-  "total": 475,
+  "latestSha": "d512dfe1b8937a4dadce378dc7a56d57de4118f8",
+  "total": 476,
   "days": [
     {
       "date": "2026-11-04",
       "items": [
+        {
+          "sha": "d512dfe",
+          "type": "feat",
+          "text": "供应商订单改挂订单板块并复用平台列表详情",
+          "author": "sisi",
+          "time": "23:40",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_config.html",
+              "module": "冷丰订单",
+              "title": "包邮配置"
+            },
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "module": "冷丰订单",
+              "title": "订单截单"
+            },
+            {
+              "file": "MDM/mdm_order_freight_config.html",
+              "module": "冷丰订单",
+              "title": "运费配置"
+            },
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_queue.html",
+              "module": "冷丰WMS",
+              "title": "排队记录"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            },
+            {
+              "file": "MDM/mdm_order_sales.html",
+              "module": "冷丰WMS",
+              "title": "销售订单"
+            },
+            {
+              "file": "MDM/mdm_order_supplier.html",
+              "module": "冷丰订单",
+              "title": "供应商订单"
+            },
+            {
+              "file": "MDM/mdm_settle_supplier_portal.html",
+              "module": "冷丰结算",
+              "title": "供应商结算"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "供应商组织复用平台列表筛选与详情；列表操作仅「查看」；详情隐藏清分明细，售后支持确认收货/拒收与补货寄出"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "text": "同上，仅展示本商家供货单，列表操作仅「查看」"
+            },
+            {
+              "file": "MDM/mdm_settle_supplier_portal.html",
+              "text": "侧栏去掉订单入口，订单改从订单板块进入"
+            },
+            {
+              "file": null,
+              "text": "版头组织切换在订单页按组织刷新平台/供应商视角"
+            }
+          ]
+        },
         {
           "sha": "8b2556f",
           "type": "feat",
@@ -6414,6 +6492,11 @@
               "title": "销售订单"
             },
             {
+              "file": "MDM/mdm_order_supplier.html",
+              "module": "冷丰订单",
+              "title": "供应商订单"
+            },
+            {
               "file": "MDM/mdm_product_mall.html",
               "module": "冷丰WMS",
               "title": "商品列表"
@@ -6760,6 +6843,11 @@
               "file": "MDM/mdm_order_sales.html",
               "module": "冷丰WMS",
               "title": "销售订单"
+            },
+            {
+              "file": "MDM/mdm_order_supplier.html",
+              "module": "冷丰订单",
+              "title": "供应商订单"
             },
             {
               "file": "MDM/mdm_product_mall.html",
@@ -12479,6 +12567,11 @@
               "title": "销售订单"
             },
             {
+              "file": "MDM/mdm_order_supplier.html",
+              "module": "冷丰订单",
+              "title": "供应商订单"
+            },
+            {
               "file": "MDM/mdm_product_selection.html",
               "module": "冷丰WMS",
               "title": "选品库"
@@ -16050,6 +16143,11 @@
               "file": "MDM/mdm_order_sales.html",
               "module": "冷丰WMS",
               "title": "销售订单"
+            },
+            {
+              "file": "MDM/mdm_order_supplier.html",
+              "module": "冷丰订单",
+              "title": "供应商订单"
             },
             {
               "file": "MDM/mdm_settle_fee_config.html",
@@ -31604,6 +31702,11 @@
               "title": "销售订单"
             },
             {
+              "file": "MDM/mdm_order_supplier.html",
+              "module": "冷丰订单",
+              "title": "供应商订单"
+            },
+            {
               "file": "MDM/mdm_product_audit.html",
               "module": "冷丰WMS",
               "title": "商品详情"
@@ -33879,6 +33982,11 @@
               "title": "销售订单"
             },
             {
+              "file": "MDM/mdm_order_supplier.html",
+              "module": "冷丰订单",
+              "title": "供应商订单"
+            },
+            {
               "file": "user-app/h5/order-detail-pickup.html",
               "module": "",
               "title": "订单详情 · 用户 APP"
@@ -33961,6 +34069,11 @@
               "file": "MDM/mdm_order_sales.html",
               "module": "冷丰WMS",
               "title": "销售订单"
+            },
+            {
+              "file": "MDM/mdm_order_supplier.html",
+              "module": "冷丰订单",
+              "title": "供应商订单"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
