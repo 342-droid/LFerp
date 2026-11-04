@@ -3,7 +3,6 @@
     var wp = window.wmsPath || { page: function (f) { return f; }, asset: function (r) { return r; } };
     var names = {
         account: '账户总览',
-        orders: '订单',
         ledger: '清分台账',
         bills: '结款单'
     };

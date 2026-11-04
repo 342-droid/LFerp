@@ -1,4 +1,4 @@
-/* 订单专用侧栏：订单管理 / 排队记录 / 运费配置 / 包邮配置 / 订单截单 */
+/* 订单专用侧栏：主组织看平台菜单；供应商组织仅零售/代采（本方供货订单，复用同一套页面）。 */
 (function () {
   var wp = window.wmsPath || { page: function (f) { return f; }, asset: function (r) { return r; } };
   var pageHref = function (f) { return wp.page(f); };
@@ -13,22 +13,20 @@
       .pop() || '';
   }
 
+  function readOrgId() {
+    try {
+      return localStorage.getItem('lfCurrentOrgId') || localStorage.getItem('spSettleSupplierId') || 'org-platform';
+    } catch (e) {
+      return 'org-platform';
+    }
+  }
+
+  function isSupplierOrg() {
+    return String(readOrgId()).indexOf('sup-') === 0;
+  }
+
   var currentPage = pageBase(window.location.pathname.split('/').pop()) || 'mdm_order_retail';
-
-  var orderManageGroup = {
-    title: '订单管理',
-    items: [
-      { href: 'mdm_order_retail.html', text: '零售订单' },
-      { href: 'mdm_order_proxy.html', text: '代采订单' }
-    ]
-  };
-
-  var topLevelItems = [
-    { href: 'mdm_order_queue.html', text: '排队记录' },
-    { href: 'mdm_order_freight_config.html', text: '运费配置' },
-    { href: 'mdm_order_config.html', text: '包邮配置' },
-    { href: 'mdm_order_express_cutoff.html', text: '订单截单' }
-  ];
+  var supplierOrg = isSupplierOrg();
 
   var legacyPages = {
     mdm_order_live: 'mdm_order_retail.html',
@@ -40,6 +38,51 @@
     window.location.replace(pageHref(legacyPages[currentPage]));
     return;
   }
+
+  /* 旧供应商壳页 → 平台同构零售/代采页（由组织身份收窄数据） */
+  if (currentPage === 'mdm_order_supplier') {
+    var q = new URLSearchParams(window.location.search);
+    var target = q.get('type') === 'proxy' ? 'mdm_order_proxy.html' : 'mdm_order_retail.html';
+    var supplier = q.get('supplier') || readOrgId();
+    if (supplier && String(supplier).indexOf('sup-') === 0) {
+      try {
+        localStorage.setItem('lfCurrentOrgId', supplier);
+        localStorage.setItem('spSettleSupplierId', supplier);
+      } catch (e) { /* ignore */ }
+    }
+    window.location.replace(pageHref(target));
+    return;
+  }
+
+  /* 供应商不可进平台订单配置类页面 */
+  var platformOnlyPages = {
+    mdm_order_queue: 1,
+    mdm_order_freight_config: 1,
+    mdm_order_config: 1,
+    mdm_order_express_cutoff: 1,
+    mdm_order_sales: 1
+  };
+  if (supplierOrg && platformOnlyPages[currentPage]) {
+    window.location.replace(pageHref('mdm_order_retail.html'));
+    return;
+  }
+
+  var orderManageGroup = {
+    title: '订单管理',
+    items: [
+      { href: 'mdm_order_retail.html', text: '零售订单' },
+      { href: 'mdm_order_proxy.html', text: '代采订单' }
+    ]
+  };
+
+  var topLevelItems = supplierOrg
+    ? []
+    : [
+        { href: 'mdm_order_queue.html', text: '排队记录' },
+        { href: 'mdm_order_freight_config.html', text: '运费配置' },
+        { href: 'mdm_order_config.html', text: '包邮配置' },
+        { href: 'mdm_order_express_cutoff.html', text: '订单截单' }
+      ];
 
   function pageMatches(href) {
     return currentPage === pageBase(href);

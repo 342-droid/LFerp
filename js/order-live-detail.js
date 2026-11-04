@@ -1062,13 +1062,15 @@
         id: 'AS-9003-3',
         productName: '新鲜红颜草莓 香甜多汁 500g装',
         type: '补货',
-        status: '待审批',
+        /* 零售快递补货：供应商待寄出 */
+        status: '待发货',
         applyRestockQty: 1,
         actualRestockQty: '-'
       }],
       customer: { nickname: '赵金芝', phone: '18715449646', userId: '318605592681791502' },
       delivery: {
         type: 'EXPRESS',
+        deliveryMode: '快递',
         name: '杜建锋',
         phone: '18715449646',
         address: '萧山区经济开发区鸿兴路158号',
@@ -3265,7 +3267,54 @@
    * 订单运费退款仍属于仅退款，通过订单运费场景标识展示关联售后单。
    * 代采：退款额一级下挂二级小计/支付宝/微信/钱包；零售：退款额单列，不受钱包字段影响。
    */
-  function buildAftersalePanel(aftersales) {
+  function isSupplierOrderView() {
+    return !!(window.LFSupplierOrderView && window.LFSupplierOrderView.isActive());
+  }
+
+  function isExpressFulfillmentDetail(detail, row) {
+    if (isProxyOrderPage()) {
+      var fulfill = row && row.getAttribute('data-fulfillment-mode');
+      if (fulfill === 'express' || fulfill === 'store') return true;
+      if (fulfill === 'warehouse' || fulfill === 'delivery' || fulfill === 'platform') return false;
+    }
+    return isRetailExpressDetail(detail, row);
+  }
+
+  /** 供应商在售后明细上可点的动作（仅快递退回/补发落本商家时） */
+  function supplierAftersaleActionHtml(item, detail, row) {
+    if (!item || !isSupplierOrderView()) return '';
+    var express = isExpressFulfillmentDetail(detail, row);
+    var id = item.id || '';
+    var btns = [];
+    if (express && item.type === '退货退款' && item.status === '待收货') {
+      btns.push(
+        '<button type="button" class="order-detail-btn order-detail-btn--primary js-sup-as-receive" data-as-id="' +
+          escapeText(id) +
+          '">确认收货</button>'
+      );
+      btns.push(
+        '<button type="button" class="order-detail-btn js-sup-as-reject" data-as-id="' +
+          escapeText(id) +
+          '">拒收</button>'
+      );
+    } else if (express && item.type === '补货' && (item.status === '待发货' || item.status === '待寄出')) {
+      btns.push(
+        '<button type="button" class="order-detail-btn order-detail-btn--primary js-sup-as-restock-ship" data-as-id="' +
+          escapeText(id) +
+          '">上传补货快递单</button>'
+      );
+    } else if (express && item.type === '补货' && item.status === '待收货') {
+      btns.push('<span class="order-detail-supplier-ops__hint">补货在途，待用户签收</span>');
+    } else if (!express && (item.type === '退货退款' || item.type === '补货')) {
+      btns.push('<span class="order-detail-supplier-ops__hint">自提/配送由门店或仓库处理</span>');
+    } else if (item.type === '仅退款') {
+      btns.push('<span class="order-detail-supplier-ops__hint">仅退款无需收货</span>');
+    }
+    if (!btns.length) return '—';
+    return '<div class="order-detail-supplier-ops__btns">' + btns.join('') + '</div>';
+  }
+
+  function buildAftersalePanel(aftersales, detail, row) {
     var list = (Array.isArray(aftersales) ? aftersales : []).filter(function (a) {
       return a && (
         a.type === '仅退款' ||
@@ -3281,6 +3330,7 @@
     var hasRestock = list.some(function (a) {
       return a.type === '补货';
     });
+    var supplierOps = isSupplierOrderView();
     var walletSplit = isProxyWalletPayFeature();
 
     /* 代采有退款类时两级表头；零售保持退款额单列 */
@@ -3326,6 +3376,10 @@
       ]);
       bodyKeys = bodyKeys.concat(['applyRestockQty', 'actualRestockQty']);
     }
+    if (supplierOps) {
+      topCols.push({ key: 'supplierOps', label: '供应商操作', align: 'center', rowspan: headRows });
+      bodyKeys.push('supplierOps');
+    }
 
     var refundSubHeads = walletSplit
       ? [
@@ -3339,6 +3393,7 @@
     function cellHtml(item, key) {
       var isRefund = item.type === '仅退款' || item.type === '退货退款';
       var isRestock = item.type === '补货';
+      if (key === 'supplierOps') return supplierAftersaleActionHtml(item, detail, row);
       if (key === 'product') {
         if (isFreightRefundAftersale(item) && item.id) {
           var freightHref =
@@ -4134,6 +4189,10 @@
       pendingRowHtml +
       '<small>处理中金额不计入退款合计</small>' +
       '</span></span>';
+    var supplierView = window.LFSupplierOrderView && window.LFSupplierOrderView.isActive();
+    var footMerchantHtml = supplierView
+      ? ''
+      : '<span>商家实收 ' + amounts.merchant + '</span>';
     box.innerHTML =
       '<div class="order-detail-amount-row"><span>商品金额</span><span>' +
       amounts.goods +
@@ -4146,9 +4205,8 @@
       amounts.payable +
       '</span></div>' +
       paidHtml +
-      '<div class="order-detail-amount-foot"><span>商家实收 ' +
-      amounts.merchant +
-      '</span>' +
+      '<div class="order-detail-amount-foot">' +
+      footMerchantHtml +
       refundSummaryHtml +
       '</div>';
 
@@ -4490,15 +4548,42 @@
     return dl;
   }
 
+  function buildSupplierForwardOpsCard(detail, drawer) {
+    if (!isSupplierOrderView()) return null;
+    var row = drawer && drawer._sourceRow;
+    var status = (detail.progress && detail.progress.status) || '';
+    var express = isExpressFulfillmentDetail(detail, row);
+    if (!express || (status !== '待发货' && status !== '待接单')) return null;
+    var card = el('div', 'order-detail-card order-detail-supplier-ops');
+    var head = el('div', 'order-detail-card__head');
+    head.appendChild(el('h3', 'order-detail-card__title', '供应商履约'));
+    card.appendChild(head);
+    var body = el('div', 'order-detail-card-body');
+    body.innerHTML =
+      '<p class="order-detail-supplier-ops__desc">本单为快递直发/到店，需由本商家寄出并上传物流。</p>' +
+      '<div class="order-detail-supplier-ops__btns">' +
+      '<button type="button" class="order-detail-btn order-detail-btn--primary js-sup-order-ship">上传快递单</button>' +
+      '</div>';
+    card.appendChild(body);
+    return card;
+  }
+
   function buildDrawerContent(detail, drawer) {
     var layout = el('div', 'order-detail-layout');
     var state = drawer && drawer._pickupState;
     var goods = state ? state.goods : detail.goods;
     var logs = state ? state.logs : detail.logs;
     var progress = state ? state.progress : detail.progress;
-    var pickupMode = state && isPickupOrder(progress.status, detail, drawer && drawer._sourceRow);
+    /* 供应商不承担门店核销 */
+    var pickupMode =
+      state &&
+      isPickupOrder(progress.status, detail, drawer && drawer._sourceRow) &&
+      !isSupplierOrderView();
 
     var main = el('div', 'order-detail-main');
+
+    var supplierForward = buildSupplierForwardOpsCard(detail, drawer);
+    if (supplierForward) main.appendChild(supplierForward);
 
     var progressCard = el('div', 'order-detail-card');
     var progressHead = el('div', 'order-detail-progress-head');
@@ -4572,7 +4657,7 @@
       } else if (tab.id === 'payment') {
         panel.appendChild(buildPaymentPanel(payments));
       } else if (tab.id === 'aftersale') {
-        panel.appendChild(buildAftersalePanel(detail.aftersales));
+        panel.appendChild(buildAftersalePanel(detail.aftersales, detail, drawer && drawer._sourceRow));
       } else {
         panel.appendChild(buildEmptyState('暂无' + tab.label));
       }
@@ -4593,29 +4678,32 @@
     });
     main.appendChild(docCard);
 
-    var clearingCard = el('div', 'order-detail-card');
-    var clearingHead = el('div', 'order-detail-card__head');
-    clearingHead.appendChild(el('h3', 'order-detail-card__title', '清分明细'));
-    var hasSkuClearing =
-      !detail.clearingEmpty &&
-      detail.clearing &&
-      detail.clearing.skus &&
-      detail.clearing.skus.length;
-    if (hasSkuClearing) {
-      clearingHead.appendChild(
-        el('div', 'order-clearing-summary', clearingSummaryText(detail.clearing.summary))
-      );
-    } else {
-      var recalcBtn = el('button', 'order-detail-btn order-detail-btn--primary', '重算分佣');
-      recalcBtn.type = 'button';
-      recalcBtn.addEventListener('click', function () {
-        if (typeof showToast === 'function') showToast('重算分佣已提交（演示）', 'success');
-      });
-      clearingHead.appendChild(recalcBtn);
+    /* 供应商组织不展示清分明细（平台分佣/采购成本等） */
+    if (!(window.LFSupplierOrderView && window.LFSupplierOrderView.isActive())) {
+      var clearingCard = el('div', 'order-detail-card');
+      var clearingHead = el('div', 'order-detail-card__head');
+      clearingHead.appendChild(el('h3', 'order-detail-card__title', '清分明细'));
+      var hasSkuClearing =
+        !detail.clearingEmpty &&
+        detail.clearing &&
+        detail.clearing.skus &&
+        detail.clearing.skus.length;
+      if (hasSkuClearing) {
+        clearingHead.appendChild(
+          el('div', 'order-clearing-summary', clearingSummaryText(detail.clearing.summary))
+        );
+      } else {
+        var recalcBtn = el('button', 'order-detail-btn order-detail-btn--primary', '重算分佣');
+        recalcBtn.type = 'button';
+        recalcBtn.addEventListener('click', function () {
+          if (typeof showToast === 'function') showToast('重算分佣已提交（演示）', 'success');
+        });
+        clearingHead.appendChild(recalcBtn);
+      }
+      clearingCard.appendChild(clearingHead);
+      clearingCard.appendChild(buildClearingBody(detail));
+      main.appendChild(clearingCard);
     }
-    clearingCard.appendChild(clearingHead);
-    clearingCard.appendChild(buildClearingBody(detail));
-    main.appendChild(clearingCard);
 
     var logCard = el('div', 'order-detail-card');
     var logToggle = el('button', 'order-detail-log-toggle');
@@ -4749,10 +4837,12 @@
     var tagRows = {
       '渠道': detail.tags.channel,
       '支付渠道': detail.tags.payChannel,
-      'BD': detail.tags.bd,
-      '结算状态': detail.tags.settleStatus,
-      '分佣状态': detail.tags.commissionStatus
+      'BD': detail.tags.bd
     };
+    if (!(window.LFSupplierOrderView && window.LFSupplierOrderView.isActive())) {
+      tagRows['结算状态'] = detail.tags.settleStatus;
+      tagRows['分佣状态'] = detail.tags.commissionStatus;
+    }
     if (!isProxyOrderPage()) {
       tagRows['订单场景'] = detail.tags.orderScene || '直播';
       tagRows['营销类型'] = detail.tags.marketing;
@@ -4877,7 +4967,110 @@
     document.body.style.overflow = '';
   }
 
+  function findDetailAftersale(detail, asId) {
+    var list = (detail && detail.aftersales) || [];
+    for (var i = 0; i < list.length; i++) {
+      if (String(list[i].id) === String(asId)) return list[i];
+    }
+    return null;
+  }
+
+  function refreshSupplierDrawer(drawer) {
+    if (!drawer) return;
+    var orderId = drawer._orderId;
+    var row = drawer._sourceRow;
+    var detail = DETAILS[orderId] || fallbackDetail(orderId, row);
+    closeDrawer();
+    openDrawer(orderId, row);
+  }
+
+  function bindSupplierDetailActions(drawer, detail) {
+    if (!drawer || !detail) return;
+    drawer.addEventListener('click', function (e) {
+      var shipBtn = e.target.closest && e.target.closest('.js-sup-order-ship');
+      if (shipBtn) {
+        e.preventDefault();
+        if (window.OrderProxyExpress && typeof window.OrderProxyExpress.openUploadModal === 'function') {
+          window.OrderProxyExpress.openUploadModal(drawer._orderId, detail.goods || [], function () {
+            if (detail.progress) detail.progress.status = '待收货';
+            if (typeof showToast === 'function') showToast('快递单已上传，订单待收货（演示）', 'success');
+            refreshSupplierDrawer(drawer);
+          });
+        } else if (typeof showToast === 'function') {
+          showToast('请填写快递单号后寄出（演示）', 'success');
+        }
+        return;
+      }
+
+      var receiveBtn = e.target.closest && e.target.closest('.js-sup-as-receive');
+      if (receiveBtn) {
+        e.preventDefault();
+        var recvItem = findDetailAftersale(detail, receiveBtn.getAttribute('data-as-id'));
+        if (recvItem) {
+          recvItem.status = '退款中';
+          if (typeof showToast === 'function') {
+            showToast('已确认收货，系统将发起退款（演示）', 'success');
+          }
+          refreshSupplierDrawer(drawer);
+        }
+        return;
+      }
+
+      var rejectBtn = e.target.closest && e.target.closest('.js-sup-as-reject');
+      if (rejectBtn) {
+        e.preventDefault();
+        var rejectItem = findDetailAftersale(detail, rejectBtn.getAttribute('data-as-id'));
+        if (!rejectItem) return;
+        var way = window.prompt('拒收处理：输入 1=原路退回用户，2=重新寄回并填写物流单号', '1');
+        if (way === null) return;
+        if (String(way).trim() === '2') {
+          var no = window.prompt('请输入退回用户的物流单号', 'SF' + String(Date.now()).slice(-10));
+          if (!no) return;
+          rejectItem.rejectLogisticsNo = no;
+          rejectItem.status = '待退货';
+          if (typeof showToast === 'function') {
+            showToast('已拒收并登记退回物流 ' + no + '（演示）', 'warning');
+          }
+        } else {
+          rejectItem.status = '已拒绝';
+          if (typeof showToast === 'function') showToast('已拒收，原路退回用户（演示）', 'warning');
+        }
+        refreshSupplierDrawer(drawer);
+        return;
+      }
+
+      var restockBtn = e.target.closest && e.target.closest('.js-sup-as-restock-ship');
+      if (restockBtn) {
+        e.preventDefault();
+        var restockItem = findDetailAftersale(detail, restockBtn.getAttribute('data-as-id'));
+        if (!restockItem) return;
+        if (window.OrderProxyExpress && typeof window.OrderProxyExpress.openUploadModal === 'function') {
+          window.OrderProxyExpress.openUploadModal(drawer._orderId, detail.goods || [], function () {
+            restockItem.status = '待收货';
+            restockItem.actualRestockQty = restockItem.applyRestockQty || 1;
+            if (typeof showToast === 'function') showToast('补货快递单已上传（演示）', 'success');
+            refreshSupplierDrawer(drawer);
+          });
+        } else {
+          var shipNo = window.prompt('请输入补货快递单号', 'YT' + String(Date.now()).slice(-10));
+          if (!shipNo) return;
+          restockItem.restockLogisticsNo = shipNo;
+          restockItem.status = '待收货';
+          restockItem.actualRestockQty = restockItem.applyRestockQty || 1;
+          if (typeof showToast === 'function') showToast('补货已寄出 ' + shipNo + '（演示）', 'success');
+          refreshSupplierDrawer(drawer);
+        }
+      }
+    });
+  }
+
   function openDrawer(orderId, row) {
+    if (window.LFSupplierOrderView && window.LFSupplierOrderView.isActive()) {
+      if (!row || !window.LFSupplierOrderView.ownsRow(row)) {
+        if (typeof showToast === 'function') showToast('无权查看：非本商家供货订单', 'warning');
+        return;
+      }
+    }
     closeDrawer();
     var detail = DETAILS[orderId] || fallbackDetail(orderId, row);
     if (row) {
@@ -4949,7 +5142,7 @@
     header.appendChild(closeBtn);
     drawer.appendChild(header);
 
-    if (isPickupOrder(detail.progress.status, detail, row)) {
+    if (!isSupplierOrderView() && isPickupOrder(detail.progress.status, detail, row)) {
       drawer._pickupState = {
         goods: detail.goods.map(normalizeGood),
         logs: detail.logs.slice(),
@@ -4962,9 +5155,14 @@
     body.appendChild(buildDrawerContent(detail, drawer));
     drawer.appendChild(body);
 
-    if (drawer._pickupState && isPickupOrder(drawer._pickupState.progress.status, detail, row)) {
+    if (
+      drawer._pickupState &&
+      !isSupplierOrderView() &&
+      isPickupOrder(drawer._pickupState.progress.status, detail, row)
+    ) {
       bindPickupEvents(drawer);
     }
+    if (isSupplierOrderView()) bindSupplierDetailActions(drawer, detail);
 
     document.body.appendChild(backdrop);
     document.body.appendChild(drawer);
