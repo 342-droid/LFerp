@@ -2840,6 +2840,11 @@ button.order-detail-refund-breakdown__row.is-link:focus-visible {
   line-height: 1;
 }
 
+.order-clearing-sku__badge--freight {
+  background: #ecf5ff;
+  color: #409eff;
+}
+
 .order-clearing-sku__name {
   font-size: 13px;
   font-weight: 600;
