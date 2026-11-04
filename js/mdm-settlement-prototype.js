@@ -63,6 +63,7 @@
         ledgerAccountName: '',
         ledgerAccountNo: '',
         ledgerFlowNo: '',
+        supplierName: '',
         supplierAccountName: '',
         supplierAccountNo: '',
         supplierFlowNo: '',
@@ -204,12 +205,22 @@
         {seq:180,id:'ST_357556280438558720',supplier:'斯斯供应商商家',payee:'斯斯门店商家2',type:'门店',amount:'0.25',orders:'1',status:'已结款',posting:'已到账',related:'ST_357556279620669440',created:'2026-09-14 00:01',time:'2026-09-14 10:22'},
         {seq:179,id:'ST_357200111222333444',supplier:'斯斯供应商商家',payee:'野子文化',type:'门店',amount:'0.18',orders:'1',status:'结款失败',posting:'入账失败',related:'ST_357556279620669440',created:'2026-09-13 00:01',time:'2026-09-13 11:05'}
     ];
+    /* 清分汇总含佣金分佣方与承运商运费收款；承运商行对齐承运商结算单金额口径。 */
     var summaryDay = [
+        {seq:128,period:'2026-09-24',payee:'顺丰速运',type:'承运商',id:'SF',total:'128.60',settled:'0.00',pending:'128.60',blocked:'0.00',statements:'1',lines:'6'},
+        {seq:127,period:'2026-09-24',payee:'中通快递',type:'承运商',id:'ZTO',total:'86.40',settled:'0.00',pending:'0.00',blocked:'86.40',statements:'1',lines:'4'},
+        {seq:126,period:'2026-09-20',payee:'韵达快递',type:'承运商',id:'YD',total:'64.00',settled:'0.00',pending:'64.00',blocked:'0.00',statements:'1',lines:'3'},
+        {seq:125,period:'2026-09-18',payee:'顺丰速运',type:'承运商',id:'SF',total:'96.20',settled:'96.20',pending:'0.00',blocked:'0.00',statements:'1',lines:'5'},
+        {seq:124,period:'2026-09-16',payee:'申通快递',type:'承运商',id:'STO',total:'54.80',settled:'0.00',pending:'0.00',blocked:'54.80',statements:'1',lines:'3'},
         {seq:123,period:'2026-09-17',payee:'上海冷丰科技有限公司',type:'平台',id:'1',total:'0.02',settled:'0.00',pending:'0.00',blocked:'0.02',statements:'1',lines:'2'},
         {seq:122,period:'2026-09-14',payee:'斯斯门店商家2',type:'门店',id:'330159456409100288',total:'0.25',settled:'0.00',pending:'0.25',blocked:'0.00',statements:'1',lines:'1'},
         {seq:121,period:'2026-09-14',payee:'上海冷丰科技有限公司',type:'平台',id:'1',total:'0.24',settled:'0.00',pending:'0.24',blocked:'0.00',statements:'1',lines:'1'}
     ];
     var summaryMonth = [
+        {seq:30,period:'2026-09',payee:'顺丰速运',type:'承运商',id:'SF',total:'266.80',settled:'96.20',pending:'170.60',blocked:'0.00',statements:'3',lines:'13'},
+        {seq:29,period:'2026-09',payee:'中通快递',type:'承运商',id:'ZTO',total:'104.40',settled:'0.00',pending:'0.00',blocked:'104.40',statements:'2',lines:'5'},
+        {seq:28,period:'2026-09',payee:'韵达快递',type:'承运商',id:'YD',total:'64.00',settled:'0.00',pending:'64.00',blocked:'0.00',statements:'1',lines:'3'},
+        {seq:27,period:'2026-09',payee:'申通快递',type:'承运商',id:'STO',total:'54.80',settled:'0.00',pending:'0.00',blocked:'54.80',statements:'1',lines:'3'},
         {seq:26,period:'2026-09',payee:'上海冷丰科技有限公司',type:'BD扶商',id:'1',total:'0.01',settled:'0.00',pending:'0.00',blocked:'0.01',statements:'1',lines:'1'},
         {seq:25,period:'2026-09',payee:'斯斯门店商家2',type:'门店',id:'330159456409100288',total:'0.25',settled:'0.00',pending:'0.25',blocked:'0.00',statements:'1',lines:'1'},
         {seq:24,period:'2026-09',payee:'野子文化',type:'门店',id:'328707092338712576',total:'0.01',settled:'0.00',pending:'0.00',blocked:'0.01',statements:'1',lines:'1'},
@@ -324,8 +335,9 @@
         }
         return false;
     }
+    /* 主体≠户名、明细挂通道流水号的规则由数据与字段体现，页面不展示说明文案。 */
     function accountNote() {
-        return note('付款方、收款方是业务主体；收款账户名称、收款基本账户是实际汇付进件资料，多数商户绑定的是其他公司进件，户名可与收款方不一致。汇付按订单明细单笔划拨，通道流水号挂在订单明细/收付款记录上，结算单头不展示整单流水；可用通道流水号反查该明细落在哪张结算单。');
+        return '';
     }
     function button(label, act, id, kind) { return '<button type="button" class="settle-btn ' + (kind || 'link') + '" data-act="' + h(act) + '"' + (id ? ' data-id="' + h(id) + '"' : '') + '>' + h(label) + '</button>'; }
     /* 跨表溯源：跳到目标单据详情（view:docId） */
@@ -384,7 +396,7 @@
     function tabs(items) { return '<div class="settle-tabs">' + items.map(function(x){return '<button type="button" class="settle-tab' + (state.tab === x[0] ? ' active' : '') + '" data-act="tab" data-id="' + h(x[0]) + '">' + h(x[1]) + '</button>';}).join('') + '</div>'; }
     function filter(opts) {
         return '<div class="settle-card-body"><div class="settle-filter">' +
-            '<label class="settle-field"><span>关键词</span><input class="settle-input" id="settle-query" value="' + h(state.query) + '" placeholder="' + h(opts.placeholder || '编号 / 名称') + '"></label>' +
+            '<label class="settle-field"><span>关键词</span><input class="settle-input" id="settle-query" value="' + h(state.query) + '" placeholder="' + h(opts.placeholder || '请输入关键词') + '"></label>' +
             (opts.statuses ? '<label class="settle-field"><span>状态</span><select class="settle-select" id="settle-status"><option value="">全部状态</option>' + opts.statuses.map(function(x){return '<option value="' + h(x) + '"' + (state.status === x ? ' selected' : '') + '>' + h(x) + '</option>';}).join('') + '</select></label>' : '') +
             '<div class="settle-actions">' + button('查询','search','','primary') + button('重置','reset','','') + '</div></div></div>';
     }
@@ -398,14 +410,16 @@
     var LEDGER_CHANNELS = ['商城', '直播', '代采'];
     var LEDGER_ORDER_STATUSES = ['待发货', '待收货', '交易成功', '交易关闭'];
     var LEDGER_POSTING_STATUSES = ['待入账', '已入账', '入账失败'];
-    var LEDGER_PAYEE_TYPES = ['平台', '供应商', '门店', 'BD扶商', '直播运营商', '商户'];
+    var LEDGER_PAYEE_TYPES = ['平台', '供应商', '门店', 'BD扶商', '直播运营商', '商户', '承运商'];
     var ledgerSeed = [
-        {id:'1720', orderNo:'ORD-2610312477895', lineNo:'—', storeId:'325279987563245056', storeName:'德清乾元天恩冷鲜超市', orderType:'代采', channel:'代采', sku:'SKU00217', product:'运费验收-快递常温2.5kg', spec:'2.5kg', qty:1, orderStatus:'交易成功', aftersaleStatus:'—', reverseSettle:'是', purchase:'0.01', sales:'1.00', paid:'2.40', netPaid:'2.40', margin:'99.58%', payee:'上海冷丰科技有限公司', payeeType:'平台', account:'6666****6395', commissionMode:'按实付金额分佣', strategy:'未命中策略 (系统默认)', commissionable:'是', receivable:'1.40', received:'—', clearStatus:'已清分', settleStatus:'待结算', postingStatus:'待入账', exceptionType:'—', orderTime:'2026-10-31 18:17:16', clearTime:'—', settleTime:'—', postingTime:'—', remark:'—', billKind:'commission'},
-        {id:'1721', orderNo:'ORD-2610312477895', lineNo:'—', storeId:'325279987563245056', storeName:'德清乾元天恩冷鲜超市', orderType:'代采', channel:'代采', sku:'SKU00217', product:'运费验收-快递常温2.5kg', spec:'2.5kg', qty:1, orderStatus:'交易成功', aftersaleStatus:'—', reverseSettle:'否', purchase:'0.01', sales:'1.00', paid:'2.40', netPaid:'2.40', margin:'99.58%', payee:'上海恒业智汇贸易有限公司', payeeType:'供应商', account:'6666****8801', commissionMode:'—', strategy:'—', commissionable:'否', receivable:'0.01', received:'0.00', clearStatus:'已清分', settleStatus:'待结算', postingStatus:'待入账', exceptionType:'—', orderTime:'2026-10-31 18:17:16', clearTime:'—', settleTime:'—', postingTime:'—', remark:'—', billKind:'non_commission'},
-        {id:'1719', orderNo:'ORD-2610312466502', lineNo:'ORD-2610312466502-1', storeId:'330159456409100288', storeName:'斯斯门店商家2', orderType:'零售', channel:'商城', sku:'SKU00196', product:'火龙果', spec:'白心 / 袋', qty:2, orderStatus:'交易成功', aftersaleStatus:'—', reverseSettle:'否', purchase:'0.02', sales:'0.06', paid:'0.06', netPaid:'0.06', margin:'66.67%', payee:'斯斯供应商商家', payeeType:'供应商', account:'6666****8801', commissionMode:'按实付金额分佣', strategy:'商城默认分佣策略', commissionable:'是', receivable:'0.04', received:'0.00', clearStatus:'已清分', settleStatus:'待结款', postingStatus:'待入账', exceptionType:'—', orderTime:'2026-10-31 13:58:02', clearTime:'2026-10-31 14:01:10', settleTime:'—', postingTime:'—', remark:'—', billKind:'commission'},
-        {id:'1718', orderNo:'ORD-2610312466502', lineNo:'ORD-2610312466502-2', storeId:'330159456409100288', storeName:'斯斯门店商家2', orderType:'零售', channel:'商城', sku:'SKU00184', product:'白芭乐-快递-ss', spec:'100g / L', qty:1, orderStatus:'交易成功', aftersaleStatus:'售后中', reverseSettle:'是', purchase:'0.01', sales:'0.01', paid:'0.01', netPaid:'0.01', margin:'0.00%', payee:'上海冷丰科技有限公司', payeeType:'平台', account:'6666****6395', commissionMode:'按实付金额分佣', strategy:'商城默认分佣策略', commissionable:'是', receivable:'0.00', received:'0.00', clearStatus:'清分异常', settleStatus:'待结算', postingStatus:'待入账', exceptionType:'结算金额异常', orderTime:'2026-10-31 13:58:02', clearTime:'—', settleTime:'—', postingTime:'—', remark:'售后中，暂缓结款', billKind:'exception'},
-        {id:'1717', orderNo:'ORD-2610308891201', lineNo:'—', storeId:'328707092338712576', storeName:'野子文化', orderType:'零售', channel:'直播', sku:'SPU00142', product:'马群-莲藕-快递配送', spec:'粉糯莲藕 / 包', qty:1, orderStatus:'待收货', aftersaleStatus:'无售后', reverseSettle:'否', purchase:'0.02', sales:'0.10', paid:'0.10', netPaid:'0.10', margin:'80.00%', payee:'总部BDBD团队', payeeType:'BD扶商', account:'6666****2201', commissionMode:'按实付金额分佣', strategy:'直播默认结算策略', commissionable:'是', receivable:'0.02', received:'0.00', clearStatus:'待清分', settleStatus:'待结算', postingStatus:'待入账', exceptionType:'—', orderTime:'2026-10-30 21:16:44', clearTime:'—', settleTime:'—', postingTime:'—', remark:'—', billKind:'commission'},
-        {id:'1716', orderNo:'ORD-2610307754308', lineNo:'ORD-2610307754308-1', storeId:'319838916817453056', storeName:'南京马群枢纽供应商店', orderType:'代采', channel:'代采', sku:'SPU00204', product:'低糖养乐多', spec:'低糖芒果味 / 箱', qty:3, orderStatus:'交易成功', aftersaleStatus:'—', reverseSettle:'否', purchase:'1.50', sales:'3.00', paid:'3.00', netPaid:'2.90', margin:'48.28%', payee:'南京马群枢纽供应商', payeeType:'供应商', account:'6666****1100', commissionMode:'—', strategy:'—', commissionable:'否', receivable:'1.50', received:'1.50', clearStatus:'已清分', settleStatus:'已结款', postingStatus:'已入账', exceptionType:'—', orderTime:'2026-10-30 18:05:11', clearTime:'2026-10-30 18:10:00', settleTime:'2026-10-31 09:20:00', postingTime:'2026-10-31 09:21:05', remark:'—', billKind:'non_commission'}
+        {id:'1720', orderNo:'ORD-2610312477895', lineNo:'—', storeId:'325279987563245056', storeName:'德清乾元天恩冷鲜超市', orderType:'代采', channel:'代采', sku:'SKU00217', product:'运费验收-快递常温2.5kg', spec:'2.5kg', qty:1, orderStatus:'交易成功', aftersaleStatus:'—', reverseSettle:'是', purchase:'0.01', sales:'1.00', paid:'2.40', netPaid:'2.40', margin:'99.58%', payee:'上海冷丰科技有限公司', payeeType:'平台', account:'6666000202016395', accountNo:'6666000202016395', commissionMode:'按实付金额分佣', strategy:'未命中策略 (系统默认)', commissionable:'是', receivable:'1.40', received:'—', clearStatus:'已清分', settleStatus:'待结算', postingStatus:'待入账', exceptionType:'—', orderTime:'2026-10-31 18:17:16', clearTime:'—', settleTime:'—', postingTime:'—', remark:'—', billKind:'commission'},
+        {id:'1721', orderNo:'ORD-2610312477895', lineNo:'—', storeId:'325279987563245056', storeName:'德清乾元天恩冷鲜超市', orderType:'代采', channel:'代采', sku:'SKU00217', product:'运费验收-快递常温2.5kg', spec:'2.5kg', qty:1, orderStatus:'交易成功', aftersaleStatus:'—', reverseSettle:'否', purchase:'0.01', sales:'1.00', paid:'2.40', netPaid:'2.40', margin:'99.58%', payee:'上海恒业智汇贸易有限公司', payeeType:'供应商', account:'6666000218008801', accountNo:'6666000218008801', commissionMode:'—', strategy:'—', commissionable:'否', receivable:'0.01', received:'0.00', clearStatus:'已清分', settleStatus:'待结算', postingStatus:'待入账', exceptionType:'—', orderTime:'2026-10-31 18:17:16', clearTime:'—', settleTime:'—', postingTime:'—', remark:'—', billKind:'non_commission'},
+        /* 承运商运费清分：不参与商品分佣，平台结算账户 → 承运商基本账户 */
+        {id:'1722', orderNo:'ORD-3212689201599201', lineNo:'—', storeId:'ONS303445581212', storeName:'德清乾元天恩冷丰店', orderType:'零售', channel:'商城', sku:'FREIGHT', product:'订单运费', spec:'快递', qty:1, orderStatus:'待提货', aftersaleStatus:'无售后', reverseSettle:'否', purchase:'0.00', sales:'6.00', paid:'6.00', netPaid:'6.00', margin:'—', payee:'顺丰速运', payeeType:'承运商', account:'6666000219001100', accountNo:'6666000219001100', commissionMode:'运费全额结算', strategy:'承运商运费结算', commissionable:'否', receivable:'6.00', received:'0.00', clearStatus:'已清分', settleStatus:'待结算', postingStatus:'待入账', exceptionType:'—', orderTime:'2026-08-07 15:21:00', clearTime:'2026-08-07 15:21:05', settleTime:'—', postingTime:'—', remark:'运费不参与分佣', billKind:'non_commission'},
+        {id:'1719', orderNo:'ORD-2610312466502', lineNo:'ORD-2610312466502-1', storeId:'330159456409100288', storeName:'斯斯门店商家2', orderType:'零售', channel:'商城', sku:'SKU00196', product:'火龙果', spec:'白心 / 袋', qty:2, orderStatus:'交易成功', aftersaleStatus:'—', reverseSettle:'否', purchase:'0.02', sales:'0.06', paid:'0.06', netPaid:'0.06', margin:'66.67%', payee:'斯斯供应商商家', payeeType:'供应商', account:'6666000218008801', accountNo:'6666000218008801', commissionMode:'按实付金额分佣', strategy:'商城默认分佣策略', commissionable:'是', receivable:'0.04', received:'0.00', clearStatus:'已清分', settleStatus:'待结款', postingStatus:'待入账', exceptionType:'—', orderTime:'2026-10-31 13:58:02', clearTime:'2026-10-31 14:01:10', settleTime:'—', postingTime:'—', remark:'—', billKind:'commission'},
+        {id:'1718', orderNo:'ORD-2610312466502', lineNo:'ORD-2610312466502-2', storeId:'330159456409100288', storeName:'斯斯门店商家2', orderType:'零售', channel:'商城', sku:'SKU00184', product:'白芭乐-快递-ss', spec:'100g / L', qty:1, orderStatus:'交易成功', aftersaleStatus:'售后中', reverseSettle:'是', purchase:'0.01', sales:'0.01', paid:'0.01', netPaid:'0.01', margin:'0.00%', payee:'上海冷丰科技有限公司', payeeType:'平台', account:'6666000202016395', accountNo:'6666000202016395', commissionMode:'按实付金额分佣', strategy:'商城默认分佣策略', commissionable:'是', receivable:'0.00', received:'0.00', clearStatus:'清分异常', settleStatus:'待结算', postingStatus:'待入账', exceptionType:'结算金额异常', orderTime:'2026-10-31 13:58:02', clearTime:'—', settleTime:'—', postingTime:'—', remark:'售后中，暂缓结款', billKind:'exception'},
+        {id:'1717', orderNo:'ORD-2610308891201', lineNo:'—', storeId:'328707092338712576', storeName:'野子文化', orderType:'零售', channel:'直播', sku:'SPU00142', product:'马群-莲藕-快递配送', spec:'粉糯莲藕 / 包', qty:1, orderStatus:'待收货', aftersaleStatus:'无售后', reverseSettle:'否', purchase:'0.02', sales:'0.10', paid:'0.10', netPaid:'0.10', margin:'80.00%', payee:'总部BDBD团队', payeeType:'BD扶商', account:'6666000219002201', accountNo:'6666000219002201', commissionMode:'按实付金额分佣', strategy:'直播默认结算策略', commissionable:'是', receivable:'0.02', received:'0.00', clearStatus:'待清分', settleStatus:'待结算', postingStatus:'待入账', exceptionType:'—', orderTime:'2026-10-30 21:16:44', clearTime:'—', settleTime:'—', postingTime:'—', remark:'—', billKind:'commission'},
+        {id:'1716', orderNo:'ORD-2610307754308', lineNo:'ORD-2610307754308-1', storeId:'319838916817453056', storeName:'南京马群枢纽供应商店', orderType:'代采', channel:'代采', sku:'SPU00204', product:'低糖养乐多', spec:'低糖芒果味 / 箱', qty:3, orderStatus:'交易成功', aftersaleStatus:'—', reverseSettle:'否', purchase:'1.50', sales:'3.00', paid:'3.00', netPaid:'2.90', margin:'48.28%', payee:'南京马群枢纽供应商', payeeType:'供应商', account:'6666000219001108', accountNo:'6666000219001108', commissionMode:'—', strategy:'—', commissionable:'否', receivable:'1.50', received:'1.50', clearStatus:'已清分', settleStatus:'已结款', postingStatus:'已入账', exceptionType:'—', orderTime:'2026-10-30 18:05:11', clearTime:'2026-10-30 18:10:00', settleTime:'2026-10-31 09:20:00', postingTime:'2026-10-31 09:21:05', remark:'—', billKind:'non_commission'}
     ];
     var ledgerOrders = (function () {
         var list = [];
@@ -481,7 +495,8 @@
                 payee: payee.name,
                 payeeType: payee.type,
                 accountName: acc.name,
-                account: maskAccount(acc.no),
+                /* 清分台账「收款账户」展示完整商户号，中间段不打码 */
+                account: acc.no,
                 accountNo: acc.no,
                 commissionMode: kind === 'non_commission' ? '—' : '按实付金额分佣',
                 strategy: kind === 'non_commission' ? '—' : (i % 4 === 0 ? '未命中策略 (系统默认)' : (i % 2 === 0 ? '商城默认分佣策略' : '直播默认结算策略')),
@@ -504,10 +519,13 @@
         }
         var realSettleIds = supplierStatements.map(function (r) { return r.id; });
         list.forEach(function (row, idx) {
-            var acc = huifuAccount(row.payee, row.accountNo);
+            var hintNo = (row.accountNo && String(row.accountNo).indexOf('*') < 0) ? row.accountNo
+                : ((row.account && String(row.account).indexOf('*') < 0) ? row.account : '');
+            var acc = huifuAccount(row.payee, hintNo);
             if (!row.accountName) row.accountName = acc.name;
-            if (!row.accountNo) row.accountNo = acc.no;
-            if (!row.account || String(row.account).indexOf('*') < 0) row.account = maskAccount(row.accountNo);
+            row.accountNo = acc.no;
+            /* 清分台账「收款账户」展示完整商户号，中间段不打码 */
+            row.account = acc.no;
             if (!row.flowNo) row.flowNo = channelFlowNo(row.id, row.settleStatus, row.settleTime || row.postingTime);
             /* 异常行走异常单 Tab，不挂供应商结款单；其余仅关联真实存在的结款单 */
             if (row.billKind === 'exception') {
@@ -573,8 +591,8 @@
         var pages = Math.max(1, Math.ceil(rows.length / size));
         state.ledgerPage = Math.min(Math.max(1, state.ledgerPage || 1), pages);
         var visible = rows.slice((state.ledgerPage - 1) * size, state.ledgerPage * size);
-        /* 对账字段：收款账户名称/收款基本账户与收款方可不一致；发生转账后展示通道流水号并可溯源结款单 */
-        var head = ['序号', '编号', '主订单号', '子订单号', '门店ID', '门店名称', '订单类型', '订单渠道', '商品编码', '商品名称', '规格/单位', '商品数量', '订单状态', '售后状态', '是否反结算', '采购金额', '销售金额', '实付金额', '净实付金额', '毛利率', '收款方名称', '收款方类型', '收款账户名称', '收款基本账户', '分佣方式', '命中策略', '可分佣', '应收金额', '实收金额', '清分状态', '结算状态', '入账状态', '通道流水号', '关联结款单', '异常类型', '下单时间', '清分时间', '结算时间', '入账时间', '备注'];
+        /* 对账字段：收款账户名称/收款账户与收款方可不一致；发生转账后展示通道流水号并可溯源结款单 */
+        var head = ['序号', '编号', '主订单号', '子订单号', '门店ID', '门店名称', '订单类型', '订单渠道', '商品编码', '商品名称', '规格/单位', '商品数量', '订单状态', '售后状态', '是否反结算', '采购金额', '销售金额', '实付金额', '净实付金额', '毛利率', '收款方名称', '收款方类型', '收款账户名称', '收款账户', '分佣方式', '命中策略', '可分佣', '应收金额', '实收金额', '清分状态', '结算状态', '入账状态', '通道流水号', '关联结款单', '异常类型', '下单时间', '清分时间', '结算时间', '入账时间', '备注'];
         var tr = visible.map(function (x) {
             return '<tr>' +
                 '<td class="settle-ledger-sticky settle-ledger-seq">' + h(x.seq) + '</td>' +
@@ -600,7 +618,7 @@
                 '<td title="' + h(x.payee) + '">' + h(x.payee) + '</td>' +
                 '<td>' + h(x.payeeType) + '</td>' +
                 '<td title="' + h(x.accountName || '') + '">' + h(x.accountName || '—') + '</td>' +
-                '<td title="' + h(x.accountNo || x.account || '') + '">' + h(x.account || maskAccount(x.accountNo)) + '</td>' +
+                '<td title="' + h(x.accountNo || x.account || '') + '">' + h(x.accountNo || x.account || '—') + '</td>' +
                 '<td>' + h(x.commissionMode) + '</td>' +
                 '<td title="' + h(x.strategy) + '">' + h(x.strategy) + '</td>' +
                 '<td>' + h(x.commissionable) + '</td>' +
@@ -629,9 +647,9 @@
             ledgerInput('ledger-store', '门店名称', state.ledgerStore, '请输入门店名称') +
             ledgerInput('ledger-product', '商品名称', state.ledgerProduct, '请输入商品名称') +
             ledgerInput('ledger-payee', '收款方名称', state.ledgerPayee, '请输入收款方名称') +
-            ledgerInput('ledger-account-name', '收款账户名称', state.ledgerAccountName, '汇付户名，可与收款方不同') +
-            ledgerInput('ledger-account-no', '收款基本账户', state.ledgerAccountNo, '汇付商户号') +
-            ledgerInput('ledger-flow-no', '通道流水号', state.ledgerFlowNo, '订单明细划拨流水，可反查台账行') +
+            ledgerInput('ledger-account-name', '收款账户名称', state.ledgerAccountName, '请输入收款账户名称') +
+            ledgerInput('ledger-account-no', '收款账户', state.ledgerAccountNo, '请输入收款账户') +
+            ledgerInput('ledger-flow-no', '通道流水号', state.ledgerFlowNo, '请输入通道流水号') +
             ledgerSelect('ledger-clear-status', '清分状态', state.ledgerClearStatus, LEDGER_CLEAR_STATUSES) +
             ledgerSelect('ledger-settle-status', '结算状态', state.ledgerSettleStatus, LEDGER_SETTLE_STATUSES) +
             ledgerSelect('ledger-aftersale-status', '售后状态', state.ledgerAftersaleStatus, LEDGER_AFTERSALE_STATUSES) +
@@ -675,7 +693,7 @@
             '</tbody></table></div>' + footer + '</section>';
     }
     function exportLedger() {
-        var head = ['序号', '编号', '主订单号', '子订单号', '门店ID', '门店名称', '订单类型', '订单渠道', '商品编码', '商品名称', '规格/单位', '商品数量', '订单状态', '售后状态', '是否反结算', '采购金额', '销售金额', '实付金额', '净实付金额', '毛利率', '收款方名称', '收款方类型', '收款账户名称', '收款基本账户', '分佣方式', '命中策略', '可分佣', '应收金额', '实收金额', '清分状态', '结算状态', '入账状态', '通道流水号', '关联结款单', '异常类型', '下单时间', '清分时间', '结算时间', '入账时间', '备注'];
+        var head = ['序号', '编号', '主订单号', '子订单号', '门店ID', '门店名称', '订单类型', '订单渠道', '商品编码', '商品名称', '规格/单位', '商品数量', '订单状态', '售后状态', '是否反结算', '采购金额', '销售金额', '实付金额', '净实付金额', '毛利率', '收款方名称', '收款方类型', '收款账户名称', '收款账户', '分佣方式', '命中策略', '可分佣', '应收金额', '实收金额', '清分状态', '结算状态', '入账状态', '通道流水号', '关联结款单', '异常类型', '下单时间', '清分时间', '结算时间', '入账时间', '备注'];
         var data = [head].concat(ledgerRows().map(function (x) {
             return [x.seq, x.id, x.orderNo, x.lineNo, x.storeId, x.storeName, x.orderType, x.channel, x.sku, x.product, x.spec, x.qty, x.orderStatus, x.aftersaleStatus, x.reverseSettle, x.purchase, x.sales, x.paid, x.netPaid, x.margin, x.payee, x.payeeType, x.accountName || '', x.accountNo || x.account, x.commissionMode, x.strategy, x.commissionable, x.receivable, x.received, x.clearStatus, x.settleStatus, x.postingStatus, x.flowNo || '—', x.relatedSettle || '—', x.exceptionType, x.orderTime, x.clearTime, x.settleTime, x.postingTime, x.remark];
         }));
@@ -855,12 +873,12 @@
         }
         if (pages > 6) pageBtns += '<span class="settle-page-gap">...</span><button type="button" class="settle-page-btn" data-act="exception-page" data-id="' + pages + '">' + pages + '</button>';
         var filters = '<div class="settle-card-body"><div class="settle-filter settle-filter--exception">' +
-            '<label class="settle-field"><span>订单号</span><input class="settle-input" id="settle-query" value="' + h(state.query) + '" placeholder="订单号 / 异常单号 / 通道流水号"></label>' +
+            '<label class="settle-field"><span>订单号</span><input class="settle-input" id="settle-query" value="' + h(state.query) + '" placeholder="请输入订单号"></label>' +
             '<label class="settle-field"><span>收款方类型</span><select class="settle-select" id="exception-payee"><option value="">全部</option>' + EXCEPTION_PAYEE_TYPES.map(function (v) { return '<option value="' + h(v) + '"' + (state.exceptionPayee === v ? ' selected' : '') + '>' + h(v) + '</option>'; }).join('') + '</select></label>' +
             '<label class="settle-field"><span>处理状态</span><select class="settle-select" id="exception-status"><option value="">全部</option>' + EXCEPTION_STATUSES.map(function (v) { return '<option value="' + h(v) + '"' + (state.exceptionStatus === v ? ' selected' : '') + '>' + h(v) + '</option>'; }).join('') + '</select></label>' +
-            '<label class="settle-field"><span>收款账户名称</span><input class="settle-input" id="exception-account-name" value="' + h(state.exceptionAccountName) + '" placeholder="汇付户名"></label>' +
-            '<label class="settle-field"><span>收款基本账户</span><input class="settle-input" id="exception-account-no" value="' + h(state.exceptionAccountNo) + '" placeholder="汇付商户号"></label>' +
-            '<label class="settle-field"><span>通道流水号</span><input class="settle-input" id="exception-flow-no" value="' + h(state.exceptionFlowNo) + '" placeholder="转账后流水号"></label>' +
+            '<label class="settle-field"><span>收款账户名称</span><input class="settle-input" id="exception-account-name" value="' + h(state.exceptionAccountName) + '" placeholder="请输入收款账户名称"></label>' +
+            '<label class="settle-field"><span>收款账户</span><input class="settle-input" id="exception-account-no" value="' + h(state.exceptionAccountNo) + '" placeholder="请输入收款账户"></label>' +
+            '<label class="settle-field"><span>通道流水号</span><input class="settle-input" id="exception-flow-no" value="' + h(state.exceptionFlowNo) + '" placeholder="请输入通道流水号"></label>' +
             '<div class="settle-actions settle-filter-actions">' + button('查询', 'search', '', 'primary') + button('重置', 'reset', '', '') + '</div></div></div>';
         var footer = '<div class="settle-pager settle-ledger-pager"><span class="settle-pager-total">共 ' + rows.length + ' 条</span>' +
             '<select class="settle-select settle-page-size" id="exception-page-size" aria-label="每页条数"><option value="20"' + (size === 20 ? ' selected' : '') + '>20条/页</option><option value="50"' + (size === 50 ? ' selected' : '') + '>50条/页</option><option value="100"' + (size === 100 ? ' selected' : '') + '>100条/页</option></select>' +
@@ -868,7 +886,7 @@
             pageBtns +
             '<button type="button" class="settle-page-btn" data-act="exception-page" data-id="' + (state.exceptionPage + 1) + '"' + (state.exceptionPage === pages ? ' disabled' : '') + '>&gt;</button>' +
             '<span>前往</span><input class="settle-input settle-page-jump" id="exception-jump" inputmode="numeric" aria-label="前往页码" value="' + h(state.exceptionPage) + '"><span>页</span></div>';
-        var head = ['序号', '编号', '订单号', '订单行ID', '收款方名称', '收款方类型', '收款账户名称', '收款基本账户', '应付金额（元）', '命中策略', '结算渠道', '异常原因（全部）', '处理状态', '处理人', '处理时间', '处理备注', '关联处理单据', '通道流水号', '异常时间', '操作'];
+        var head = ['序号', '编号', '订单号', '订单行ID', '收款方名称', '收款方类型', '收款账户名称', '收款账户', '应付金额（元）', '命中策略', '结算渠道', '异常原因（全部）', '处理状态', '处理人', '处理时间', '处理备注', '关联处理单据', '通道流水号', '异常时间', '操作'];
         return exceptionTip() + filters +
             '<div class="settle-toolbar">' + button('导出列表', 'export-exception', '', '') + '</div>' +
             '<div class="settle-table-wrap"><table class="settle-table"><thead><tr>' +
@@ -981,7 +999,7 @@
         var abnormal = description([
             ['异常阶段', '清分异常'], ['异常类型', h(row.reason)], ['异常原因', h(row.reason)], ['异常处理状态', h(row.handleStatus)], ['异常处理时间', h(row.handleTime)], ['备注', h(row.remark)],
             ['处理人', h(row.handler)], ['异常时间', h(row.exceptionTime)],
-            ['收款账户名称', h(row.accountName || '—')], ['收款基本账户', h(row.accountNo || '—')],
+            ['收款账户名称', h(row.accountName || '—')], ['收款账户', h(row.accountNo || '—')],
             ['关联处理单据', row.relatedDoc && row.relatedDoc !== '—' ? (String(row.relatedDoc).indexOf('CST_') === 0 ? linkDoc(row.relatedDoc, 'compensation', row.relatedDoc) : h(row.relatedDoc)) : '—']
         ]);
         var payRec = table(['序号', '方向', '付款方', '收款方', '关联订单', '金额', '状态', '通道流水号', '时间'], [
@@ -999,7 +1017,7 @@
             '</div></div></div>';
     }
     function exportException() {
-        var head = ['序号', '编号', '订单号', '订单行ID', '收款方名称', '收款方类型', '收款账户名称', '收款基本账户', '应付金额（元）', '命中策略', '结算渠道', '异常原因（全部）', '处理状态', '处理人', '处理时间', '处理备注', '关联处理单据', '通道流水号', '异常时间'];
+        var head = ['序号', '编号', '订单号', '订单行ID', '收款方名称', '收款方类型', '收款账户名称', '收款账户', '应付金额（元）', '命中策略', '结算渠道', '异常原因（全部）', '处理状态', '处理人', '处理时间', '处理备注', '关联处理单据', '通道流水号', '异常时间'];
         var data = [head].concat(exceptionRows().map(function (x) {
             return [x.seq, x.id, x.orderNo, x.lineId, x.payee, x.payeeType, x.accountName, x.accountNo, x.amount, x.strategy, x.channel, x.reason, x.handleStatus, x.handler, x.handleTime, x.remark, x.relatedDoc, x.flowNo || '—', x.exceptionTime];
         }));
@@ -1015,18 +1033,19 @@
         var rows=(state.tab === 'month' ? summaryMonth : summaryDay).filter(function(x){return (!state.query||x.payee.includes(state.query)||x.id.includes(state.query))&&(!state.summaryType||x.type===state.summaryType)&&(!state.summaryFrom||x.period>=state.summaryFrom.slice(0,7))&&(!state.summaryTo||x.period<=state.summaryTo);});
         var tr=rows.map(function(x){return '<tr><td>'+h(x.seq||'')+'</td><td>'+h(x.period)+'</td><td>'+h(x.type)+'</td><td>'+h(x.payee)+'</td><td>'+h(x.id)+'</td><td class="money">'+cash(x.total)+'</td><td class="money">'+cash(x.settled)+'</td><td class="money">'+cash(x.pending)+'</td><td class="money">'+cash(x.blocked)+'</td><td>'+h(x.statements)+'</td><td>'+h(x.lines)+'</td></tr>';});
         var filterHtml='<div class="settle-card-body"><div class="settle-filter"><label class="settle-field"><span>统计时间</span><input type="date" class="settle-input" id="summary-from" value="'+h(state.summaryFrom||'')+'"></label><span>至</span><label class="settle-field"><span>&nbsp;</span><input type="date" class="settle-input" id="summary-to" value="'+h(state.summaryTo||'')+'"></label>'+
-            '<label class="settle-field"><span>收款方类型</span><select class="settle-select" id="summary-type"><option value="">全部</option>'+['供应商','门店','BD扶商','直播运营商','商户','平台'].map(function(v){return '<option'+(state.summaryType===v?' selected':'')+'>'+v+'</option>';}).join('')+'</select></label>'+
-            '<label class="settle-field"><span>收款方名称</span><input class="settle-input" id="settle-query" value="'+h(state.query)+'" placeholder="请输入收款方名称/ID"></label><div class="settle-actions">'+button('查询','search','','primary')+button('重置','reset')+'</div></div></div>';
-        return '<div class="settle-card-body">'+note('当前按佣金清算单（供应商 → 分佣方）统计：应收佣金为单据总金额；已结款、待处理、异常金额按单据状态与预检结果归类。账户余额、提现和退款流水不在本页口径内。')+'</div>'+tabs([['day','日汇总'],['month','月汇总']])+
+            '<label class="settle-field"><span>收款方类型</span><select class="settle-select" id="summary-type"><option value="">全部</option>'+['供应商','承运商','门店','BD扶商','直播运营商','商户','平台'].map(function(v){return '<option'+(state.summaryType===v?' selected':'')+'>'+v+'</option>';}).join('')+'</select></label>'+
+            '<label class="settle-field"><span>收款方名称</span><input class="settle-input" id="settle-query" value="'+h(state.query)+'" placeholder="请输入收款方名称"></label><div class="settle-actions">'+button('查询','search','','primary')+button('重置','reset')+'</div></div></div>';
+        return tabs([['day','日汇总'],['month','月汇总']])+
             '<section class="settle-card">'+filterHtml+'<div class="settle-toolbar">'+button('导出列表','export-summary')+'</div>'+
-            table(['序号',state.tab==='month'?'统计月份':'统计日期','收款方类型','收款方名称','收款方ID','应收佣金（元）','已结款金额（元）','待处理金额（元）','异常金额（元）','佣金单数','子订单数'],tr,'共 '+(state.tab==='month'?'26':'123')+' 条')+'</section>';
+            table(['序号',state.tab==='month'?'统计月份':'统计日期','收款方类型','收款方名称','收款方ID','应收金额（元）','已结款金额（元）','待处理金额（元）','异常金额（元）','单据数','明细数'],tr,'共 '+(state.tab==='month'?String(summaryMonth.length):String(summaryDay.length))+' 条')+'</section>';
     }
     function renderSupplier() {
         if (!['pending','statement'].includes(state.tab)) state.tab='pending';
         var pending=state.tab==='pending', all=pending?supplierPending:supplierStatements;
-        var rows=filtered(all,['id','supplier','payeeAccountName','payeeAccount']).filter(function(x){
-            var an=(state.supplierAccountName||'').trim(), ao=(state.supplierAccountNo||'').trim(), fn=(state.supplierFlowNo||'').trim();
+        var rows=filtered(all,['id']).filter(function(x){
+            var sn=(state.supplierName||'').trim(), an=(state.supplierAccountName||'').trim(), ao=(state.supplierAccountNo||'').trim(), fn=(state.supplierFlowNo||'').trim();
             return (!state.supplierDateFrom || x.created.slice(0,10)>=state.supplierDateFrom) && (!state.supplierDateTo || x.created.slice(0,10)<=state.supplierDateTo) && (state.status!=='异常'||x.blocked) &&
+                (!sn || String(x.supplier||'').indexOf(sn)>=0) &&
                 (!an || String(x.payeeAccountName||'').indexOf(an)>=0) && (!ao || String(x.payeeAccount||'').indexOf(ao)>=0) && billMatchesFlow(x, fn);
         });
         var pages=Math.max(1,Math.ceil(rows.length/20));state.supplierPage=Math.min(state.supplierPage,pages);
@@ -1036,16 +1055,18 @@
             var missing=x.id==='ST_358643443066482688';
             var payeeAcc=missing?{name:'—',no:'—'}:huifuAccount(x.supplier);
             return '<tr>'+(pending?'<td><input aria-label="选择 '+h(x.id)+'" type="checkbox" data-select-supplier="'+h(x.id)+'"'+(selected.includes(x.id)?' checked':'')+'></td>':'')+
-            '<td>'+h(x.seq)+'</td><td>'+button(x.id,'detail',x.id)+'</td><td>'+h(x.supplier)+'</td><td>'+h(PLATFORM_PAYER_NAME)+'</td><td>'+h(PLATFORM_PAYER_NO)+'</td><td>'+h(payeeAcc.name)+'</td><td>'+h(payeeAcc.no)+'</td><td class="money">'+cash(x.goods)+'</td><td class="money">'+cash(x.payable)+'</td><td class="money">'+cash(x.net)+'</td><td>'+h(x.orders)+'</td><td>'+tag(x.status)+'</td><td>'+h(x.created)+'</td><td>'+h(x.cycle)+'</td><td class="settle-actions">'+button('查看详情','detail',x.id)+(pending?(x.blocked?button('重新执行','retry',x.id):button('加入结款单','submit',x.id)):'')+'</td></tr>';});
+            /* 付款账户固定为平台冻结账户，列表不展示；详情仍展示 */
+            '<td>'+h(x.seq)+'</td><td>'+button(x.id,'detail',x.id)+'</td><td>'+h(x.supplier)+'</td><td>'+h(payeeAcc.name)+'</td><td>'+h(payeeAcc.no)+'</td><td class="money">'+cash(x.goods)+'</td><td class="money">'+cash(x.payable)+'</td><td class="money">'+cash(x.net)+'</td><td>'+h(x.orders)+'</td><td>'+tag(x.status)+'</td><td>'+h(x.created)+'</td><td>'+h(x.cycle)+'</td><td class="settle-actions">'+button('查看详情','detail',x.id)+(pending?(x.blocked?button('重新执行','retry',x.id):button('加入结款单','submit',x.id)):'')+'</td></tr>';});
         var search='<div class="settle-card-body"><div class="settle-filter">'+
             '<label class="settle-field"><span>结算单号</span><input class="settle-input" id="settle-query" value="'+h(state.query)+'" placeholder="请输入结算单号"></label>'+
-            '<label class="settle-field"><span>收款账户名称</span><input class="settle-input" id="supplier-account-name" value="'+h(state.supplierAccountName||'')+'" placeholder="汇付户名，可与供应商不同"></label>'+
-            '<label class="settle-field"><span>收款基本账户</span><input class="settle-input" id="supplier-account-no" value="'+h(state.supplierAccountNo||'')+'" placeholder="汇付商户号"></label>'+
-            '<label class="settle-field"><span>通道流水号</span><input class="settle-input" id="supplier-flow-no" value="'+h(state.supplierFlowNo||'')+'" placeholder="按明细流水反查结算单"></label>'+
+            '<label class="settle-field"><span>供应商名称</span><input class="settle-input" id="supplier-name" value="'+h(state.supplierName||'')+'" placeholder="请输入供应商名称"></label>'+
+            '<label class="settle-field"><span>收款账户名称</span><input class="settle-input" id="supplier-account-name" value="'+h(state.supplierAccountName||'')+'" placeholder="请输入收款账户名称"></label>'+
+            '<label class="settle-field"><span>收款账户</span><input class="settle-input" id="supplier-account-no" value="'+h(state.supplierAccountNo||'')+'" placeholder="请输入收款账户"></label>'+
+            '<label class="settle-field"><span>通道流水号</span><input class="settle-input" id="supplier-flow-no" value="'+h(state.supplierFlowNo||'')+'" placeholder="请输入通道流水号"></label>'+
             '<label class="settle-field"><span>结算状态</span><select class="settle-select" id="settle-status">'+statusOptions()+'</select></label>'+
             '<label class="settle-field"><span>创建时间</span><input aria-label="创建时间开始" type="date" class="settle-input" id="supplier-date-from" value="'+h(state.supplierDateFrom)+'"></label><span>至</span><label class="settle-field"><span>&nbsp;</span><input aria-label="创建时间结束" type="date" class="settle-input" id="supplier-date-to" value="'+h(state.supplierDateTo)+'"></label>'+
             '<div class="settle-actions">'+button('查询','search','','primary')+button('重置','reset')+'</div></div></div>';
-        var head=(pending?['□']:[]).concat(['序号','结算单号','供应商名称','付款账户名称','付款账户','收款账户名称','收款基本账户','货款合计（应收）','应付合计（服务费+佣金）','应付供应商净额','订单数','结算状态','创建时间','结算周期','操作']);
+        var head=(pending?['□']:[]).concat(['序号','结算单号','供应商名称','收款账户名称','收款账户','货款合计（应收）','应付合计（服务费+佣金）','应付供应商净额','订单数','结算状态','创建时间','结算周期','操作']);
         var footer='<span>共 '+rows.length+' 条</span><span>20条/页</span>'+
             '<button class="settle-btn" data-act="supplier-page" data-id="'+(state.supplierPage-1)+'"'+(state.supplierPage===1?' disabled':'')+'>上一页</button>'+
             Array.from({length:pages},function(_,i){return '<button class="settle-btn'+(state.supplierPage===i+1?' primary':'')+'" data-act="supplier-page" data-id="'+(i+1)+'" aria-label="第 '+(i+1)+' 页">'+(i+1)+'</button>';}).join('')+
@@ -1068,18 +1089,19 @@
         var pages=Math.max(1,Math.ceil(rows.length/20));state.carrierPage=Math.min(state.carrierPage,pages);
         var visibleRows=rows.slice((state.carrierPage-1)*20,state.carrierPage*20);
         var selected=state.carrierSelection;
+        /* 付款账户固定为平台冻结账户，列表不展示；详情仍展示 */
         var tr=visibleRows.map(function(x){return '<tr>'+(pending?'<td><input aria-label="选择 '+h(x.id)+'" type="checkbox" data-select-carrier="'+h(x.id)+'"'+(selected.includes(x.id)?' checked':'')+'></td>':'')+
-            '<td>'+h(x.seq)+'</td><td>'+button(x.id,'detail',x.id)+'</td><td>'+h(x.carrier)+'</td><td>'+h(x.carrierId)+'</td><td class="money">'+cash(x.freight)+'</td><td>'+h(x.orders)+'</td><td>'+h(PLATFORM_PAYER_NAME)+'</td><td>'+h(PLATFORM_PAYER_NO)+'</td><td>'+h(x.accountName||'—')+'</td><td>'+h(x.account||'—')+'</td><td>'+tag(x.blocked?'异常':x.status)+'</td><td>'+h(x.created)+'</td><td>'+h(x.cycle)+'</td><td class="settle-actions">'+button('查看详情','detail',x.id)+(pending?(x.blocked?button('重新执行','carrier-retry',x.id):button('加入结款单','carrier-submit',x.id)):(x.status==='结款失败'?button('重新执行','carrier-retry',x.id):''))+'</td></tr>';});
+            '<td>'+h(x.seq)+'</td><td>'+button(x.id,'detail',x.id)+'</td><td>'+h(x.carrier)+'</td><td>'+h(x.carrierId)+'</td><td class="money">'+cash(x.freight)+'</td><td>'+h(x.orders)+'</td><td>'+h(x.accountName||'—')+'</td><td>'+h(x.account||'—')+'</td><td>'+tag(x.blocked?'异常':x.status)+'</td><td>'+h(x.created)+'</td><td>'+h(x.cycle)+'</td><td class="settle-actions">'+button('查看详情','detail',x.id)+(pending?(x.blocked?button('重新执行','carrier-retry',x.id):button('加入结款单','carrier-submit',x.id)):(x.status==='结款失败'?button('重新执行','carrier-retry',x.id):''))+'</td></tr>';});
         var search='<div class="settle-card-body"><div class="settle-filter">'+
             '<label class="settle-field"><span>结算单号</span><input class="settle-input" id="settle-query" value="'+h(state.query)+'" placeholder="请输入结算单号"></label>'+
             '<label class="settle-field"><span>承运商</span><input class="settle-input" id="carrier-name" value="'+h(state.carrierName||'')+'" placeholder="请输入承运商名称"></label>'+
             '<label class="settle-field"><span>收款账户名称</span><input class="settle-input" id="carrier-account-name" value="'+h(state.carrierAccountName||'')+'" placeholder="请输入收款账户名称"></label>'+
-            '<label class="settle-field"><span>收款基本账户</span><input class="settle-input" id="carrier-account-no" value="'+h(state.carrierAccountNo||'')+'" placeholder="请输入收款基本账户"></label>'+
-            '<label class="settle-field"><span>通道流水号</span><input class="settle-input" id="carrier-flow-no" value="'+h(state.carrierFlowNo||'')+'" placeholder="按明细流水反查结算单"></label>'+
+            '<label class="settle-field"><span>收款账户</span><input class="settle-input" id="carrier-account-no" value="'+h(state.carrierAccountNo||'')+'" placeholder="请输入收款账户"></label>'+
+            '<label class="settle-field"><span>通道流水号</span><input class="settle-input" id="carrier-flow-no" value="'+h(state.carrierFlowNo||'')+'" placeholder="请输入通道流水号"></label>'+
             '<label class="settle-field"><span>结算状态</span><select class="settle-select" id="settle-status">'+statusOptions()+'</select></label>'+
             '<label class="settle-field"><span>创建时间</span><input aria-label="创建时间开始" type="date" class="settle-input" id="carrier-date-from" value="'+h(state.carrierDateFrom)+'"></label><span>至</span><label class="settle-field"><span>&nbsp;</span><input aria-label="创建时间结束" type="date" class="settle-input" id="carrier-date-to" value="'+h(state.carrierDateTo)+'"></label>'+
             '<div class="settle-actions">'+button('查询','search','','primary')+button('重置','reset')+'</div></div></div>';
-        var head=(pending?['□']:[]).concat(['序号','结算单号','承运商','承运商编码','应付运费','运单数','付款账户名称','付款账户','收款账户名称','收款基本账户','结算状态','创建时间','结算周期','操作']);
+        var head=(pending?['□']:[]).concat(['序号','结算单号','承运商','承运商编码','应付运费','运单数','收款账户名称','收款账户','结算状态','创建时间','结算周期','操作']);
         var footer='<span>共 '+rows.length+' 条</span>';
         return accountNote()+tabs([['pending','待处理单据'],['statement','结款单据']])+
             '<section class="settle-card">'+search+(pending?'<div class="settle-toolbar"><button type="button" class="settle-btn primary" data-act="carrier-batch"'+(selected.some(function(id){var row=carrierPending.find(function(x){return x.id===id;});return row&&!row.blocked;})?'':' disabled')+'>批量加入结款单</button></div>':'')+
@@ -1097,15 +1119,15 @@
             return '<tr><td>'+h(x.seq)+'</td><td>'+button(x.id,'detail',x.id)+'</td><td>'+h(x.supplier)+'</td><td>'+h(x.payee)+'</td><td>'+h(x.type)+'</td><td>'+h(payerAcc.name)+'</td><td>'+h(payerAcc.no)+'</td><td>'+h(payeeAcc.name)+'</td><td>'+h(payeeAcc.no)+'</td><td class="money">'+cash(x.amount)+'</td><td>'+h(x.orders)+'</td><td>'+tag(x.status)+'</td><td>'+h(x.posting)+'</td><td>'+linkDoc(x.related,'supplier',x.related)+'</td><td>'+h(x.created)+'</td><td>'+button('查看详情','detail',x.id)+'</td></tr>';});
         var filters='<div class="settle-card-body"><div class="settle-filter">'+
             '<label class="settle-field"><span>结款单号</span><input class="settle-input" id="settle-query" value="'+h(state.query)+'" placeholder="请输入结款单号"></label>'+
-            '<label class="settle-field"><span>收款方名称</span><input class="settle-input" id="commission-payee" value="'+h(state.commissionPayee||'')+'" placeholder="业务主体名称"></label>'+
+            '<label class="settle-field"><span>收款方名称</span><input class="settle-input" id="commission-payee" value="'+h(state.commissionPayee||'')+'" placeholder="请输入收款方名称"></label>'+
             '<label class="settle-field"><span>收款方类型</span><select class="settle-select" id="commission-type"><option value="">请选择</option>'+['门店','BD扶商','直播运营商','商户','平台'].map(function(v){return '<option'+(state.commissionType===v?' selected':'')+'>'+v+'</option>';}).join('')+'</select></label>'+
-            '<label class="settle-field"><span>收款账户名称</span><input class="settle-input" id="commission-account-name" value="'+h(state.commissionAccountName||'')+'" placeholder="汇付户名"></label>'+
-            '<label class="settle-field"><span>收款基本账户</span><input class="settle-input" id="commission-account-no" value="'+h(state.commissionAccountNo||'')+'" placeholder="汇付商户号"></label>'+
-            '<label class="settle-field"><span>通道流水号</span><input class="settle-input" id="commission-flow-no" value="'+h(state.commissionFlowNo||'')+'" placeholder="按明细流水反查结款单"></label>'+
+            '<label class="settle-field"><span>收款账户名称</span><input class="settle-input" id="commission-account-name" value="'+h(state.commissionAccountName||'')+'" placeholder="请输入收款账户名称"></label>'+
+            '<label class="settle-field"><span>收款账户</span><input class="settle-input" id="commission-account-no" value="'+h(state.commissionAccountNo||'')+'" placeholder="请输入收款账户"></label>'+
+            '<label class="settle-field"><span>通道流水号</span><input class="settle-input" id="commission-flow-no" value="'+h(state.commissionFlowNo||'')+'" placeholder="请输入通道流水号"></label>'+
             '<label class="settle-field"><span>清算状态</span><select class="settle-select" id="settle-status"><option value="">请选择</option>'+['待生成','待结款','已结款','部分结款','结款失败'].map(function(v){return '<option'+(state.status===v?' selected':'')+'>'+v+'</option>';}).join('')+'</select></label>'+
-            '<label class="settle-field"><span>关联供应商结款单</span><input class="settle-input" id="commission-related" value="'+h(state.commissionRelated||'')+'" placeholder="请输入供应商结款单"></label>'+
+            '<label class="settle-field"><span>关联供应商结款单</span><input class="settle-input" id="commission-related" value="'+h(state.commissionRelated||'')+'" placeholder="请输入关联供应商结款单"></label>'+
             '<div class="settle-actions">'+button('查询','search','','primary')+button('重置','reset')+'</div></div></div>';
-        return accountNote()+'<section class="settle-card">'+filters+table(['序号','结款单号','供应商名称','收款方名称','收款方类型','付款账户名称','付款账户','收款账户名称','收款基本账户','应收佣金（元）','子订单数量','清算状态','入账状态','关联供应商结款单','创建时间','操作'],tr,'共 182 条')+'</section>';
+        return accountNote()+'<section class="settle-card">'+filters+table(['序号','结款单号','供应商名称','收款方名称','收款方类型','付款账户名称','付款账户','收款账户名称','收款账户','应收佣金（元）','子订单数量','清算状态','入账状态','关联供应商结款单','创建时间','操作'],tr,'共 182 条')+'</section>';
     }
     function renderCompensation() {
         var rows=compensations.filter(function(x){
@@ -1121,13 +1143,13 @@
             '<label class="settle-field"><span>关联异常单号</span><input class="settle-input" id="compensation-related" value="'+h(state.compensationRelated||'')+'" placeholder="请输入关联异常单号"></label>'+
             '<label class="settle-field"><span>收款方名称</span><input class="settle-input" id="compensation-payee" value="'+h(state.compensationPayee||'')+'" placeholder="请输入收款方名称"></label>'+
             '<label class="settle-field"><span>收款方类型</span><select class="settle-select" id="compensation-type"><option value="">全部</option>'+['门店','供应商','商户','BD扶商','平台','直播运营商'].map(function(v){return '<option'+(state.compensationType===v?' selected':'')+'>'+v+'</option>';}).join('')+'</select></label>'+
-            '<label class="settle-field"><span>收款账户名称</span><input class="settle-input" id="compensation-account-name" value="'+h(state.compensationAccountName||'')+'" placeholder="汇付户名"></label>'+
-            '<label class="settle-field"><span>收款基本账户</span><input class="settle-input" id="compensation-account-no" value="'+h(state.compensationAccountNo||'')+'" placeholder="汇付商户号"></label>'+
-            '<label class="settle-field"><span>通道流水号</span><input class="settle-input" id="compensation-flow-no" value="'+h(state.compensationFlowNo||'')+'" placeholder="按明细流水反查结款单"></label>'+
+            '<label class="settle-field"><span>收款账户名称</span><input class="settle-input" id="compensation-account-name" value="'+h(state.compensationAccountName||'')+'" placeholder="请输入收款账户名称"></label>'+
+            '<label class="settle-field"><span>收款账户</span><input class="settle-input" id="compensation-account-no" value="'+h(state.compensationAccountNo||'')+'" placeholder="请输入收款账户"></label>'+
+            '<label class="settle-field"><span>通道流水号</span><input class="settle-input" id="compensation-flow-no" value="'+h(state.compensationFlowNo||'')+'" placeholder="请输入通道流水号"></label>'+
             (state.compensationExpanded?'<label class="settle-field"><span>结款状态</span><select class="settle-select" id="settle-status"><option value="">全部</option>'+['待结款','结款中','已结款','结款失败'].map(function(v){return '<option'+(state.status===v?' selected':'')+'>'+v+'</option>';}).join('')+'</select></label><label class="settle-field"><span>创建时间</span><input type="date" class="settle-input" id="compensation-from"></label>':'')+
             '<div class="settle-actions">'+button('查询','search','','primary')+button('重置','reset')+button(state.compensationExpanded?'收起':'展开','expand-compensation')+'</div></div></div>';
         return accountNote()+'<section class="settle-card">'+filters+'<div class="settle-toolbar">'+button('导出列表','export-compensation')+'</div>'+
-            table(['序号','结款单号','补偿类型','关联异常单号','补偿金额（元）','付款方名称','付款账户名称','付款账户','收款方名称','收款方类型','收款账户名称','收款基本账户','创建时间','结款状态','完成时间','操作'],tr,'共 7 条')+'</section>';
+            table(['序号','结款单号','补偿类型','关联异常单号','补偿金额（元）','付款方名称','付款账户名称','付款账户','收款方名称','收款方类型','收款账户名称','收款账户','创建时间','结款状态','完成时间','操作'],tr,'共 7 条')+'</section>';
     }
     function renderPolicy() {
         if (!state.tab) state.tab='retail';
@@ -1274,7 +1296,7 @@
     function renderPicker() {
         var cat=state.picker==='category', list=(cat?categories:products).filter(function(x){return !state.pickerQuery||x[0].includes(state.pickerQuery)||x[1].includes(state.pickerQuery);});
         var rows=list.map(function(x){return '<tr><td><input type="checkbox" data-select-picker="'+h(x[0])+'"'+(state.pickerSelected.includes(x[0])?' checked':'')+' aria-label="选择 '+h(x[1])+'"></td><td>'+h(x[0])+'</td><td>'+h(x[1])+'</td>'+(cat?'<td>0</td><td>'+h(x[2])+'</td>':'<td>'+cash(x[2])+'</td><td>'+h(x[3])+'</td><td>0</td><td>'+h(x[4])+'</td><td>—</td>')+'</tr>';});
-        var body='<div class="settle-filter"><label class="settle-field"><span>'+(cat?'商品分类ID / 名称':'搜索')+'</span><input class="settle-input" id="picker-query" value="'+h(state.pickerQuery)+'" placeholder="'+(cat?'商品分类ID / 名称':'商品ID / 名称')+'"></label>'+button('查询','picker-search','','primary')+'</div>'+note(cat?'已经参与分佣策略的商品，不支持重复参与；零售价少于1元的商品，不参与分佣':'已经参与分佣策略的商品，不支持重复参与')+
+        var body='<div class="settle-filter"><label class="settle-field"><span>'+(cat?'商品分类ID / 名称':'搜索')+'</span><input class="settle-input" id="picker-query" value="'+h(state.pickerQuery)+'" placeholder="'+(cat?'请输入商品分类ID / 名称':'请输入商品ID / 名称')+'"></label>'+button('查询','picker-search','','primary')+'</div>'+note(cat?'已经参与分佣策略的商品，不支持重复参与；零售价少于1元的商品，不参与分佣':'已经参与分佣策略的商品，不支持重复参与')+
             table(cat?['选择','分类编码','分类名称','排序','商品数']:['选择','商品ID','商品名称','购买价','商品分类','库存数','状态','关联活动'],rows,'共 '+(cat?'15':'155')+' 条');
         openModal(cat?'选择商品分类':'选择商品',body,true,button('取消','picker-cancel')+button('确定','picker-confirm','','primary'));
     }
@@ -1287,7 +1309,7 @@
         var row=policies.find(function(x){return x.id===state.bindingPolicy;})||policies[0];
         var body='<div class="settle-card-body">'+policyField('参与门店 *',policyRadio('bindingMode',state.bindingMode,['全部门店','指定门店']))+
             note('分佣门店同时存在于不同类型配置时，规则优先级：指定门店 > 全部门店')+
-            (state.bindingMode==='指定门店'?'<div class="settle-filter"><label class="settle-field"><span>门店名称 / ID</span><input class="settle-input" id="binding-query" placeholder="输入门店名称 / ID 搜索"></label>'+button('搜索','binding-search','','primary')+'</div>'+
+            (state.bindingMode==='指定门店'?'<div class="settle-filter"><label class="settle-field"><span>门店名称 / ID</span><input class="settle-input" id="binding-query" placeholder="请输入门店名称 / ID"></label>'+button('搜索','binding-search','','primary')+'</div>'+
             table(['选择所有行','门店ID','门店名称','手机号码'],[],'已选 '+(row.name==='乐事'?state.bindingSelected.length:row.stores)+' 个门店')+
             (state.bindingSelected.length?'<div class="settle-selected-tags">'+state.bindingSelected.map(function(x){return '<span>'+h(x)+'</span>';}).join('')+'</div>':''):'')+'</div>';
         overlay.innerHTML='<div class="settle-overlay" data-overlay="1"><div class="settle-drawer settle-binding-drawer" role="dialog" aria-modal="true"><div class="settle-dialog-head"><strong>绑定门店 - '+h(row.name)+'</strong>'+button('✕','close')+'</div><div class="settle-dialog-body">'+body+'</div><div class="settle-dialog-foot">'+button('取消','close')+button('保存','save-binding','','primary')+'</div></div></div>';
@@ -1312,7 +1334,7 @@
             var fields=[['结款单号',h(x.id)],['供应商名称',h(x.supplier)],['供应商编码',known?'330158197295816704':first?'319838916817453056':'—'],['单据类型','供应商销售结算单'],
                 ['供应商应收金额',money(x.goods)],['实收金额',money(x.goods)],['待结款金额',known?'¥0.04':first?'¥0.02':'—'],['单据来源','销售订单'],
                 ['结款状态',tag(first?'待生成':x.status)],['付款方','平台'],['付款账户名称',h(PLATFORM_PAYER_NAME)],['付款账户',h(PLATFORM_PAYER_NO)],
-                ['收款方',h(x.supplier)],['收款账户名称',h(payeeAcc.name)],['收款基本账户',h(payeeAcc.no)],
+                ['收款方',h(x.supplier)],['收款账户名称',h(payeeAcc.name)],['收款账户',h(payeeAcc.no)],
                 ['收款时间',known?'2026-09-06 15:07':'—'],['订单数',h(x.orders)],['结算周期',h(x.cycle)],['审核时间',known?'2026-09-03 18:21':first?'2026-09-17 00:01':'—'],['审核人',known||first?'系统':'—'],
                 ['创建时间',h(x.created)],['应付供应商净额',money(x.net)],['异常原因',first?'未配置供应商结算账户或结算主体':'—']];
             var basic='<div class="settle-description">'+fields.map(function(f){return '<div class="settle-description-item"><span>'+h(f[0])+'</span><strong>'+f[1]+'</strong></div>';}).join('')+'</div>';
@@ -1371,7 +1393,7 @@
                 card('基础信息',description([['结算单号',h(cf.id)],['承运商',h(cf.carrier)],['承运商编码',h(cf.carrierId)],['单据类型','承运商运费结算单'],
                     ['应付运费',cash(cf.freight)],['运单数',h(cf.orders)],['结算状态',tag(cf.blocked?'异常':cf.status)],['结算周期',h(cf.cycle)],
                     ['付款方','平台'],['付款账户名称',h(PLATFORM_PAYER_NAME)],['付款账户',h(PLATFORM_PAYER_NO)],['收款方',h(cf.carrier)],
-                    ['收款账户名称',h(cf.accountName||'—')],['收款基本账户',h(cf.account||'—')],['收款时间',h(cf.status==='已结款'?(cf.received||cf.posted||'—'):'—')],['收款账户类型','承运商基本账户'],
+                    ['收款账户名称',h(cf.accountName||'—')],['收款账户',h(cf.account||'—')],['收款时间',h(cf.status==='已结款'?(cf.received||cf.posted||'—'):'—')],['收款账户类型','承运商基本账户'],
                     ['资金流',h(cf.flow||'平台结算账户 → 承运商基本账户')],['异常原因',h(cf.reason||'—')],['创建时间',h(cf.created)],['入账时间',h(cf.posted||'—')]]))+
                 card('运费明细',table(['销售订单号','运单号','履约方式','承运商','运费','出账状态','通道流水号','异常'],lines))+
                 card('收付款记录',table(['序号','方向','付款方','付款账户名称','收款方','收款账户名称','关联订单','金额','状态','说明','通道流水号','时间'],payRows));
@@ -1394,7 +1416,7 @@
             });
             return back+'<div class="settle-detail-header"><h2>佣金结算单详情</h2></div>'+
                 card('基础信息',description([['结款单号',h(c.id)],['收款方名称',h(firstClearing?'平台':c.payee)],['收款方类型',h(c.type)],['结算状态',tag(c.status)],
-                    ['付款账户名称',h(payerAcc.name)],['付款账户',h(payerAcc.no)],['收款账户名称',h(payeeAcc.name)],['收款基本账户',h(payeeAcc.no)],
+                    ['付款账户名称',h(payerAcc.name)],['付款账户',h(payerAcc.no)],['收款账户名称',h(payeeAcc.name)],['收款账户',h(payeeAcc.no)],
                     ['应收佣金合计',cash(c.amount)],['资金来源供应商',h(c.supplier)],
                     ['关联供应商结款单',linkDoc(c.related,'supplier',c.related)],['创建时间',h(firstClearing?'2026-09-17T00:01:00':c.created)]]))+
                 card('应收佣金明细',table(['序号','销售订单号','商品','应收佣金','通道流水号'],lines,firstClearing?'累计（共 2 单） · 应收佣金合计 ¥0.02':''))+
@@ -1408,14 +1430,33 @@
             var pLines=p.lineFlows&&p.lineFlows.length?p.lineFlows:buildLineFlows(p.id,p.status,p.time||p.created,1,p.amount);
             var pFlow=(pLines[0]&&pLines[0].flowNo)||'—';
             var pOrder=(pLines[0]&&pLines[0].orderNo)||(firstComp?'333160760836358280':'—');
+            var payNo=p.id==='CST_374147882901274624'?'CI_374147810523611136':(firstComp?'CI_2076953749177061377':(p.status==='已结款'?'CI_'+String(p.id).replace(/\D/g,'').slice(-18):'—'));
+            /* 资金流水：线上现有板块（非走查增项）；汇付流水号→通道流水号，汇付备注→通道备注 */
+            var fundFailReason='结算账户异常：收款账户不存在、被冻结、禁用，无法结算';
+            var fundOrderNo=p.id==='CST_374147882901274624'?'ORD-2610282411003':(pOrder!=='—'?pOrder:'ORD-'+String(p.id).replace(/\D/g,'').slice(-13));
+            var fundLineId=p.id==='CST_374147882901274624'?'1247':((p.related&&String(p.related).split('_').pop())||'1247');
+            var fundCiBase=p.id==='CST_374147882901274624'?'CI_374146521806929920':payNo;
+            var fundPayeeLabel=p.payeeType||p.payee||'收款方';
+            var fundRowsDemo=p.status==='待结款'?[]:[
+                {time:'2026-10-29 18:49:07',action:'作废',path:'供应商 → '+fundPayeeLabel,orderNo:fundOrderNo,lineId:fundLineId,amount:p.amount,ciNo:fundCiBase,status:'已作废',flowNo:'—',remark:'—',reason:fundFailReason},
+                {time:'2026-10-29 18:49:28',action:'收回平台',path:'供应商 → 平台',orderNo:fundOrderNo,lineId:fundLineId,amount:p.amount,ciNo:fundCiBase,status:'成功',flowNo:channelFlowNo(p.id+'-r', '已结款', p.time||p.created),remark:fundOrderNo+'-'+fundLineId,reason:'—'},
+                {time:p.time||p.created||'2026-10-29 19:42:18',action:'补偿付款',path:(p.payer||'平台')+' → '+fundPayeeLabel,orderNo:fundOrderNo,lineId:fundLineId,amount:p.amount,ciNo:payNo,status:'成功',flowNo:pFlow!=='—'?pFlow:channelFlowNo(p.id+'-p','已结款',p.time||p.created),remark:fundOrderNo+'-'+fundLineId,reason:'—'}
+            ];
+            var fundHead=['时间','资金动作','付款方 → 收款方','订单号','订单行ID','金额','收付款单号','状态','通道流水号','通道备注','失败原因 / 作废原因'];
+            var fundTr=fundRowsDemo.map(function(r){
+                return '<tr><td>'+h(r.time)+'</td><td>'+tag(r.action)+'</td><td>'+h(r.path)+'</td><td>'+h(r.orderNo)+'</td><td>'+h(r.lineId)+'</td><td class="money">'+cash(r.amount)+'</td><td>'+h(r.ciNo)+'</td><td>'+tag(r.status)+'</td><td title="'+h(r.flowNo)+'">'+h(r.flowNo)+'</td><td title="'+h(r.remark)+'">'+h(r.remark)+'</td><td title="'+h(r.reason)+'">'+h(r.reason)+'</td></tr>';
+            });
             return back+'<div class="settle-detail-header"><h2>补偿结款单详情</h2></div>'+
                 card('基本信息',description([['结款单号',h(p.id)],['关联异常订单号',linkDoc(p.related,'exception',p.related)],['子订单号',h(pOrder)],['补偿原因',h(p.type)],
                     ['应补偿金额',cash(p.amount)],['实补金额',actual],['补偿状态',tag(p.status)],['创建人',firstComp?'1':'—'],
-                    ['收款方名称',h(p.payee)],['收款方类型',h(p.payeeType)],['收款账户名称',h(compPayee.name)],['收款基本账户',h(compPayee.no)],
+                    ['收款方名称',h(p.payee)],['收款方类型',h(p.payeeType)],['收款账户名称',h(compPayee.name)],['收款账户',h(compPayee.no)],
                     ['创建时间',h(p.created)]]))+
-                card('付款账户信息',description([['付款方名称',h(p.payer)],['付款账户名称',h(PLATFORM_PAYER_NAME)],['付款账户',h(p.payerAccount)],['帐户类型','异常佣金清算账户']]))+
-                card('付款信息',description([['付款单号',firstComp?'CI_2076953749177061377':'—'],['关联订单',h(pOrder)],['通道流水号',h(pFlow)],['应付金额',cash(p.amount)],['实付金额',actual],
-                    ['状态',tag(p.status)],['创建时间',h(p.created)],['入账时间',h(p.time)],['备注','单笔订单划拨，流水随订单明细']]));
+                /* 创建时可用余额：线上系统字段（非走查修补项），付款账户信息区展示 */
+                card('付款账户信息',description([['付款方名称',h(p.payer)],['付款账户名称',h(PLATFORM_PAYER_NAME)],['付款账户',h(p.payerAccount)],['帐户类型','异常佣金清算账户'],['创建时可用余额',p.availableBalance||'¥12,860.35']]))+
+                /* 付款信息：线上字段口径——无「关联订单」；流水字段名用「付款流水号」（非走查修补项） */
+                card('付款信息',description([['付款单号',h(payNo)],['付款流水号',h(pFlow)],['应付金额',cash(p.amount)],['实付金额',actual],
+                    ['状态',tag(p.status)],['创建时间',h(p.created)],['入账时间',h(p.time)],['备注',p.status==='已结款'?'—':'单笔订单划拨，流水随订单明细']]))+
+                card('资金流水',table(fundHead,fundTr));
         }
         var policy=policies.find(function(r){return r.id===id;});
         if(!policy){return back+note('未找到策略：'+h(id));}
@@ -1443,7 +1484,7 @@
         state.logKind=kind; state.logFilter=''; state.logResult='';state.policyLogId=id||'';
         var rows=kind==='general'?generalLogs:id==='POLICY_354560079879471104'?policyLogs:[];
         var title=kind==='general'?'结算通用配置 · 操作日志':'操作日志 · '+((policies.find(function(x){return x.id===id;})||policies[0]).name);
-        overlay.innerHTML='<div class="settle-overlay" data-overlay="1"><div class="settle-drawer" role="dialog" aria-modal="true"><div class="settle-dialog-head"><strong>'+h(title)+'</strong>'+button('✕','close')+'</div><div class="settle-dialog-body"><div class="settle-filter" style="margin-bottom:16px"><label class="settle-field"><span>操作内容</span><input class="settle-input" id="log-query" placeholder="输入操作内容"></label><label class="settle-field"><span>操作结果</span><select class="settle-select" id="log-result"><option value="">全部</option><option>成功</option><option>失败</option></select></label>'+button('查询','log-search','','primary')+button('重置','log-reset','','')+'</div><div id="log-table">'+logTable(rows,kind)+'</div></div></div></div>';
+        overlay.innerHTML='<div class="settle-overlay" data-overlay="1"><div class="settle-drawer" role="dialog" aria-modal="true"><div class="settle-dialog-head"><strong>'+h(title)+'</strong>'+button('✕','close')+'</div><div class="settle-dialog-body"><div class="settle-filter" style="margin-bottom:16px"><label class="settle-field"><span>操作内容</span><input class="settle-input" id="log-query" placeholder="请输入操作内容"></label><label class="settle-field"><span>操作结果</span><select class="settle-select" id="log-result"><option value="">全部</option><option>成功</option><option>失败</option></select></label>'+button('查询','log-search','','primary')+button('重置','log-reset','','')+'</div><div id="log-table">'+logTable(rows,kind)+'</div></div></div></div>';
     }
     function logTable(rows,kind) {
         var q=(state.logFilter||'').toLowerCase(), result=state.logResult||'';
@@ -1463,7 +1504,7 @@
     }
     function exportSummary() {
         var rows=state.tab==='month'?summaryMonth:summaryDay;
-        var data=[['统计日期/月份','收款方类型','收款方名称','收款方ID','应收佣金（元）','已结款金额（元）','待处理金额（元）','异常金额（元）','佣金单数','子订单数']].concat(rows.map(function(x){return [x.period,x.type,x.payee,x.id,x.total,x.settled,x.pending,x.blocked,x.statements,x.lines];}));
+        var data=[['统计日期/月份','收款方类型','收款方名称','收款方ID','应收金额（元）','已结款金额（元）','待处理金额（元）','异常金额（元）','单据数','明细数']].concat(rows.map(function(x){return [x.period,x.type,x.payee,x.id,x.total,x.settled,x.pending,x.blocked,x.statements,x.lines];}));
         var csv='\uFEFF'+data.map(function(row){return row.join(',');}).join('\r\n');
         var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='分佣汇总-'+(state.tab==='month'?'MONTHLY':'DAILY')+'-'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
     }
@@ -1531,6 +1572,7 @@
             if(state.view==='supplier'){
                 state.supplierDateFrom=(document.getElementById('supplier-date-from')||{}).value||'';
                 state.supplierDateTo=(document.getElementById('supplier-date-to')||{}).value||'';
+                state.supplierName=(document.getElementById('supplier-name')||{}).value||'';
                 state.supplierAccountName=(document.getElementById('supplier-account-name')||{}).value||'';
                 state.supplierAccountNo=(document.getElementById('supplier-account-no')||{}).value||'';
                 state.supplierFlowNo=(document.getElementById('supplier-flow-no')||{}).value||'';
@@ -1576,7 +1618,7 @@
         }
         if(act==='reset'){
             state.query='';state.status='';
-            state.supplierPage=1;state.supplierDateFrom='';state.supplierDateTo='';state.supplierAccountName='';state.supplierAccountNo='';state.supplierFlowNo='';
+            state.supplierPage=1;state.supplierDateFrom='';state.supplierDateTo='';state.supplierName='';state.supplierAccountName='';state.supplierAccountNo='';state.supplierFlowNo='';
             state.carrierPage=1;state.carrierDateFrom='';state.carrierDateTo='';state.carrierName='';state.carrierAccountName='';state.carrierAccountNo='';state.carrierFlowNo='';
             state.policyType='';state.policyStore='';state.summaryType='';state.summaryFrom='';state.summaryTo='';
             state.commissionType='';state.commissionRelated='';state.commissionPayee='';state.commissionAccountName='';state.commissionAccountNo='';state.commissionFlowNo='';

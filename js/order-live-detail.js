@@ -1382,9 +1382,10 @@
       storeCommissionRate: 0.01,
       clearingEmpty: false,
       clearing: {
-        summary: { skuCount: 1, itemCount: 4, pending: 0, cleared: 4, abnormal: 0 },
-        orderReceivable: '¥0.02',
-        orderClearedText: '4/4 已清分',
+        /* 商品分佣项 4 + 承运商运费清分项 1 */
+        summary: { skuCount: 1, freightCount: 1, itemCount: 5, pending: 0, cleared: 5, abnormal: 0 },
+        orderReceivable: '¥6.02',
+        orderClearedText: '5/5 已清分',
         orderAbnormal: 0,
         skus: [{
           name: '哈密瓜-自提',
@@ -1452,7 +1453,34 @@
               bookStatus: '待入账'
             }
           ]
-        }]
+        }],
+        /* 运费不参与商品分佣，单独清分至承运商基本账户（平台结算账户 → 承运商） */
+        freight: {
+          name: '订单运费',
+          carrier: '顺丰速运',
+          waybillNo: 'SF10992881001',
+          paid: '¥6.00',
+          receivable: '¥6.00',
+          clearedCount: 1,
+          totalCount: 1,
+          abnormalCount: 0,
+          rows: [
+            {
+              payee: '顺丰速运',
+              role: '承运商',
+              subRole: '运费结算',
+              account: '6666****1100',
+              method: '运费全额结算',
+              strategyDefault: false,
+              strategyName: '承运商运费结算',
+              receivable: '¥6.00',
+              received: '¥0.00',
+              clearStatus: '已清分',
+              settleStatus: '待结算',
+              bookStatus: '待入账'
+            }
+          ]
+        }
       }
     }
   };
@@ -4183,10 +4211,16 @@
 
   function clearingSummaryText(summary) {
     var s = summary || {};
+    var freightPart =
+      s.freightCount != null && Number(s.freightCount) > 0
+        ? ' · ' + s.freightCount + ' 运费'
+        : '';
     return (
       '共 ' +
       (s.skuCount != null ? s.skuCount : 0) +
-      ' SKU · ' +
+      ' SKU' +
+      freightPart +
+      ' · ' +
       (s.itemCount != null ? s.itemCount : 0) +
       ' 个清分项 · 待清分 ' +
       (s.pending != null ? s.pending : 0) +
@@ -4197,9 +4231,93 @@
     );
   }
 
+  function buildClearingRowsTable(rows) {
+    var tableWrap = el('div', 'order-clearing-table-wrap');
+    var table = el('table', 'order-clearing-table');
+    table.innerHTML =
+      '<colgroup>' +
+      '<col class="order-clearing-table__col order-clearing-table__col--payee">' +
+      '<col class="order-clearing-table__col order-clearing-table__col--account">' +
+      '<col class="order-clearing-table__col order-clearing-table__col--method">' +
+      '<col class="order-clearing-table__col order-clearing-table__col--strategy">' +
+      '<col class="order-clearing-table__col order-clearing-table__col--amount">' +
+      '<col class="order-clearing-table__col order-clearing-table__col--amount">' +
+      '<col class="order-clearing-table__col order-clearing-table__col--status">' +
+      '<col class="order-clearing-table__col order-clearing-table__col--book">' +
+      '</colgroup>' +
+      '<thead>' +
+      '<tr>' +
+      '<th rowspan="2">收款方</th>' +
+      '<th rowspan="2">账户</th>' +
+      '<th colspan="2" class="order-clearing-table__group">分佣规则</th>' +
+      '<th colspan="2" class="order-clearing-table__group">金额（元）</th>' +
+      '<th colspan="2" class="order-clearing-table__group">流转状态</th>' +
+      '</tr>' +
+      '<tr>' +
+      '<th>分佣方式</th><th>命中策略</th>' +
+      '<th>应收</th><th>实收</th>' +
+      '<th>清分 / 结算</th><th>入账 / 异常</th>' +
+      '</tr>' +
+      '</thead>';
+    var tbody = document.createElement('tbody');
+    (rows || []).forEach(function (row) {
+      var tr = document.createElement('tr');
+      var roleHtml = row.role
+        ? '<span class="order-clearing-payee__role">' + row.role + '</span>'
+        : '';
+      var subRoleHtml = row.subRole
+        ? '<span class="order-clearing-payee__sub">' + row.subRole + '</span>'
+        : '';
+      var strategyHtml =
+        '<div class="order-clearing-strategy">' +
+        (row.strategyDefault ? clearingTag('默认策略', 'warning-outline') : '') +
+        (row.strategyName ? clearingTag(row.strategyName, 'muted-outline') : '') +
+        '</div>';
+      tr.innerHTML =
+        '<td class="order-clearing-table__td--payee">' +
+        '<div class="order-clearing-payee">' +
+        '<div class="order-clearing-payee__name">' +
+        (row.payee || '—') +
+        '</div>' +
+        '<div class="order-clearing-payee__meta">' +
+        roleHtml +
+        subRoleHtml +
+        '</div>' +
+        '</div>' +
+        '</td>' +
+        '<td class="order-clearing-table__td--account">' +
+        (row.account || '—') +
+        '</td>' +
+        '<td class="order-clearing-table__td--method">' +
+        (row.method || '—') +
+        '</td>' +
+        '<td class="order-clearing-table__td--strategy">' +
+        strategyHtml +
+        '</td>' +
+        '<td class="order-clearing-table__td--amount">' +
+        (row.receivable || '¥0.00') +
+        '</td>' +
+        '<td class="order-clearing-table__td--amount">' +
+        (row.received || '¥0.00') +
+        '</td>' +
+        '<td class="order-clearing-table__td--status">' +
+        clearingTag(row.clearStatus || '待清分', row.clearStatus === '已清分' ? 'success' : 'muted') +
+        clearingTag(row.settleStatus || '待结算', 'muted') +
+        '</td>' +
+        '<td class="order-clearing-table__td--status">' +
+        clearingTag(row.bookStatus || '待入账', 'muted') +
+        '</td>';
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    tableWrap.appendChild(table);
+    return tableWrap;
+  }
+
   /**
    * SKU 维度清分明细（对齐订单详情截图：收款方/账户/分佣规则/金额/清分结算/入账）
    * 供应商采购成本 = 采购价 × 售卖系数 × 用户单品下单数量
+   * 运费单独一块：收款方类型=承运商，不参与商品分佣
    */
   function buildSkuClearingBody(clearing) {
     var wrap = el('div', 'order-detail-clearing order-detail-clearing--sku');
@@ -4229,91 +4347,7 @@
         '</span>' +
         '</div>';
       block.appendChild(head);
-
-      var tableWrap = el('div', 'order-clearing-table-wrap');
-      var table = el('table', 'order-clearing-table');
-      table.innerHTML =
-        '<colgroup>' +
-        '<col class="order-clearing-table__col order-clearing-table__col--payee">' +
-        '<col class="order-clearing-table__col order-clearing-table__col--account">' +
-        '<col class="order-clearing-table__col order-clearing-table__col--method">' +
-        '<col class="order-clearing-table__col order-clearing-table__col--strategy">' +
-        '<col class="order-clearing-table__col order-clearing-table__col--amount">' +
-        '<col class="order-clearing-table__col order-clearing-table__col--amount">' +
-        '<col class="order-clearing-table__col order-clearing-table__col--status">' +
-        '<col class="order-clearing-table__col order-clearing-table__col--book">' +
-        '</colgroup>' +
-        '<thead>' +
-        '<tr>' +
-        '<th rowspan="2">收款方</th>' +
-        '<th rowspan="2">账户</th>' +
-        '<th colspan="2" class="order-clearing-table__group">分佣规则</th>' +
-        '<th colspan="2" class="order-clearing-table__group">金额（元）</th>' +
-        '<th colspan="2" class="order-clearing-table__group">流转状态</th>' +
-        '</tr>' +
-        '<tr>' +
-        '<th>分佣方式</th><th>命中策略</th>' +
-        '<th>应收</th><th>实收</th>' +
-        '<th>清分 / 结算</th><th>入账 / 异常</th>' +
-        '</tr>' +
-        '</thead>';
-      var tbody = document.createElement('tbody');
-      (sku.rows || []).forEach(function (row) {
-        var tr = document.createElement('tr');
-        var roleHtml = row.role
-          ? '<span class="order-clearing-payee__role">' + row.role + '</span>'
-          : '';
-        var subRoleHtml = row.subRole
-          ? '<span class="order-clearing-payee__sub">' + row.subRole + '</span>'
-          : '';
-        var strategyHtml =
-          '<div class="order-clearing-strategy">' +
-          (row.strategyDefault
-            ? clearingTag('默认策略', 'warning-outline')
-            : '') +
-          (row.strategyName
-            ? clearingTag(row.strategyName, 'muted-outline')
-            : '') +
-          '</div>';
-        tr.innerHTML =
-          '<td class="order-clearing-table__td--payee">' +
-          '<div class="order-clearing-payee">' +
-          '<div class="order-clearing-payee__name">' +
-          (row.payee || '—') +
-          '</div>' +
-          '<div class="order-clearing-payee__meta">' +
-          roleHtml +
-          subRoleHtml +
-          '</div>' +
-          '</div>' +
-          '</td>' +
-          '<td class="order-clearing-table__td--account">' +
-          (row.account || '—') +
-          '</td>' +
-          '<td class="order-clearing-table__td--method">' +
-          (row.method || '—') +
-          '</td>' +
-          '<td class="order-clearing-table__td--strategy">' +
-          strategyHtml +
-          '</td>' +
-          '<td class="order-clearing-table__td--amount">' +
-          (row.receivable || '¥0.00') +
-          '</td>' +
-          '<td class="order-clearing-table__td--amount">' +
-          (row.received || '¥0.00') +
-          '</td>' +
-          '<td class="order-clearing-table__td--status">' +
-          clearingTag(row.clearStatus || '待清分', row.clearStatus === '已清分' ? 'success' : 'muted') +
-          clearingTag(row.settleStatus || '待结算', 'muted') +
-          '</td>' +
-          '<td class="order-clearing-table__td--status">' +
-          clearingTag(row.bookStatus || '待入账', 'muted') +
-          '</td>';
-        tbody.appendChild(tr);
-      });
-      table.appendChild(tbody);
-      tableWrap.appendChild(table);
-      block.appendChild(tableWrap);
+      block.appendChild(buildClearingRowsTable(sku.rows));
 
       var foot = el('div', 'order-clearing-sku__foot');
       foot.innerHTML =
@@ -4331,6 +4365,47 @@
       block.appendChild(foot);
       wrap.appendChild(block);
     });
+
+    var freight = clearing.freight;
+    if (freight && (freight.rows || []).length) {
+      var freightBlock = el('div', 'order-clearing-sku order-clearing-sku--freight');
+      var freightHead = el('div', 'order-clearing-sku__head');
+      freightHead.innerHTML =
+        '<div class="order-clearing-sku__title">' +
+        '<span class="order-clearing-sku__badge order-clearing-sku__badge--freight">运费</span>' +
+        '<span class="order-clearing-sku__name">' +
+        (freight.name || '订单运费') +
+        '</span>' +
+        '</div>' +
+        '<div class="order-clearing-sku__metrics">' +
+        '<span>承运商 <em>' +
+        (freight.carrier || '—') +
+        '</em></span>' +
+        (freight.waybillNo
+          ? '<span>运单号 <em>' + freight.waybillNo + '</em></span>'
+          : '') +
+        '<span>运费实付 <em>' +
+        (freight.paid || '¥0.00') +
+        '</em></span>' +
+        '</div>';
+      freightBlock.appendChild(freightHead);
+      freightBlock.appendChild(buildClearingRowsTable(freight.rows));
+      var freightFoot = el('div', 'order-clearing-sku__foot');
+      freightFoot.innerHTML =
+        '<span class="order-clearing-sku__foot-label">运费小计</span>' +
+        '<span>应收 <em>' +
+        (freight.receivable || '¥0.00') +
+        '</em></span>' +
+        '<span>' +
+        (freight.clearedCount != null ? freight.clearedCount : 0) +
+        '/' +
+        (freight.totalCount != null ? freight.totalCount : 0) +
+        ' 已清分 · ' +
+        (freight.abnormalCount != null ? freight.abnormalCount : 0) +
+        ' 异常</span>';
+      freightBlock.appendChild(freightFoot);
+      wrap.appendChild(freightBlock);
+    }
 
     var orderFoot = el('div', 'order-clearing-order-total');
     orderFoot.innerHTML =
