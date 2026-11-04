@@ -32,5 +32,9 @@
     host.innerHTML = '<aside class="sidebar" id="sidebar">' +
         '<div class="sidebar-header"><img src="' + wp.asset('image/冷丰图标.png') +
         '" alt="冷丰结算"><span>冷丰结算</span></div>' +
-        '<div class="settle-sidebar-caption">结算中心</div><ul class="sidebar-menu">' + items + '</ul></aside>';
+        '<div class="settle-sidebar-caption">结算中心</div><ul class="sidebar-menu">' + items + '</ul>' +
+        /* 入口跳转至独立供应商门户，不改动本页平台结算能力 */
+        '<div class="sp-sidebar-foot" style="padding:16px 22px 24px">' +
+        '<a style="color:#8b929d;font-size:12px;text-decoration:none" href="' +
+        wp.page('mdm_settle_supplier_portal.html') + '">供应商结算门户 →</a></div></aside>';
 })();
