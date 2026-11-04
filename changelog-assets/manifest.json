@@ -845,6 +845,38 @@
     "status": "diff",
     "date": "2026-10-30"
   },
+  "fb29513|MDM/mdm_aftersale_ticket_detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-04"
+  },
+  "fb29513|MDM/mdm_order_live.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-04"
+  },
+  "fb29513|MDM/mdm_order_proxy.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-04"
+  },
+  "fb29513|MDM/mdm_order_queue.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-04"
+  },
+  "fb29513|MDM/mdm_order_retail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-04"
+  },
+  "fb29513|MDM/mdm_settle_index.html": {
+    "before": "changelog-assets/fb29513/MDM__mdm_settle_index.html.before.jpg",
+    "after": "changelog-assets/fb29513/MDM__mdm_settle_index.html.after.jpg",
+    "regions": 15,
+    "status": "diff",
+    "date": "2026-11-04"
+  },
   "fb4c441|MDM/mdm_order_live.html": {
     "regions": 0,
     "status": "diff",

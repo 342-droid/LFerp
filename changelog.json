@@ -1,7 +1,101 @@
 {
-  "latestSha": "cc44b77dfa77b9c0396d87b7cf005c8c0e2f5ef3",
-  "total": 472,
+  "latestSha": "fb2951365adce4f7e50c2bc78c0bfcba8240f244",
+  "total": 473,
   "days": [
+    {
+      "date": "2026-11-04",
+      "items": [
+        {
+          "sha": "fb29513",
+          "type": "feat",
+          "text": "结算走查字段对齐并补齐承运商运费清分展示",
+          "author": "sisi",
+          "time": "11:10",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_queue.html",
+              "module": "冷丰WMS",
+              "title": "排队记录"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            },
+            {
+              "file": "MDM/mdm_settle_index.html",
+              "module": "冷丰结算",
+              "title": "结算中心"
+            }
+          ],
+          "notes": [
+            {
+              "file": null,
+              "text": "清分台账: 收款账户改为全号展示"
+            },
+            {
+              "file": null,
+              "text": "字段名统一为收款账户"
+            },
+            {
+              "file": null,
+              "text": "收款方类型含承运商"
+            },
+            {
+              "file": null,
+              "text": "清分汇总: 日/月汇总增加承运商运费收款行"
+            },
+            {
+              "file": null,
+              "text": "供应商结算: 保留供应商名称筛选"
+            },
+            {
+              "file": null,
+              "text": "列表不展示固定平台付款账户"
+            },
+            {
+              "file": null,
+              "text": "去掉页顶主体说明"
+            },
+            {
+              "file": null,
+              "text": "佣金清算: 对账筛选项与占位统一为请输入+字段名"
+            },
+            {
+              "file": null,
+              "text": "补偿结款: 详情补齐付款账户可用余额、付款流水号与资金流水"
+            },
+            {
+              "file": null,
+              "text": "列表对账字段对齐"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "订单详情清分明细增加承运商运费块与汇总口径"
+            },
+            {
+              "file": null,
+              "text": "补充结算走查标注截图说明 README"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-11-02",
       "items": [
