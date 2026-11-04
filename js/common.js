@@ -150,6 +150,8 @@ function loadHeader() {
                     <a href="${wp.page('authz-designer.html')}" class="${isAuthzDesignerPage ? 'active' : ''}">权限设计</a>
                     <a href="${wp.page('authz-2-guide.html')}" class="${isAuthz2Page ? 'active' : ''}">权限2.0</a>
                 </nav>
+
+                ${buildHeaderOrgSwitcherHtml(isMdmSettlePage && pageFile === 'mdm_settle_supplier_portal.html')}
                 
                 <div class="header-right">
                     <div class="user-menu" id="userMenu">
@@ -184,6 +186,8 @@ function loadHeader() {
                 activeTab.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'auto' });
             });
         }
+
+        initHeaderOrgSwitcher();
         
         // 添加调试信息
         console.log('Header loaded, sidebarToggle element:', document.getElementById('sidebarToggle'));
@@ -192,6 +196,157 @@ function loadHeader() {
         // 注意：不在这里调用初始化函数，避免重复绑定事件
         // initSidebar() 和 initUserMenu() 将在 initPage() 中统一调用
     }
+}
+
+/* 版头组织切换：一级页签右侧；供应商登录后展示供应商组织名称。 */
+var LF_PLATFORM_ORGS = [
+    { id: 'org-platform', name: '上海冷丰科技有限公司' }
+];
+var LF_SUPPLIER_ORGS = [
+    { id: 'sup-ss', name: '斯斯供应商商家' },
+    { id: 'sup-mq', name: '南京马群枢纽供应商' }
+];
+
+function getHeaderOrgMode() {
+    var path = window.location.pathname || '';
+    var pageFile = (path.split('/').pop() || '').toLowerCase().split('?')[0];
+    if (pageFile && !pageFile.endsWith('.html')) pageFile += '.html';
+    if (pageFile === 'mdm_settle_supplier_portal.html') return 'supplier';
+    return 'platform';
+}
+
+function getHeaderOrgList() {
+    return getHeaderOrgMode() === 'supplier' ? LF_SUPPLIER_ORGS.slice() : LF_PLATFORM_ORGS.slice();
+}
+
+function getHeaderOrgStorageKey() {
+    return getHeaderOrgMode() === 'supplier' ? 'spSettleSupplierId' : 'lfCurrentOrgId';
+}
+
+function getCurrentHeaderOrg() {
+    var list = getHeaderOrgList();
+    var key = getHeaderOrgStorageKey();
+    var saved = '';
+    try { saved = localStorage.getItem(key) || ''; } catch (e) { saved = ''; }
+    if (getHeaderOrgMode() === 'supplier') {
+        var params = new URLSearchParams(window.location.search);
+        saved = params.get('supplier') || saved;
+    }
+    return list.filter(function (o) { return o.id === saved; })[0] || list[0];
+}
+
+function setCurrentHeaderOrg(id) {
+    var list = getHeaderOrgList();
+    var org = list.filter(function (o) { return o.id === id; })[0] || list[0];
+    if (!org) return null;
+    try { localStorage.setItem(getHeaderOrgStorageKey(), org.id); } catch (e) { /* ignore */ }
+    window.dispatchEvent(new CustomEvent('lf-org-change', { detail: { org: org, mode: getHeaderOrgMode() } }));
+    return org;
+}
+
+function truncateOrgLabel(name, max) {
+    var s = String(name || '');
+    var n = max || 12;
+    if (s.length <= n) return s;
+    return s.slice(0, n) + '…';
+}
+
+function buildHeaderOrgSwitcherHtml(isSupplierPortal) {
+    var org = getCurrentHeaderOrg();
+    var label = truncateOrgLabel(org && org.name, isSupplierPortal ? 14 : 12);
+    var buildingIcon =
+        '<svg class="header-org__icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">' +
+        '<path fill="currentColor" d="M4 21V9l8-5 8 5v12h-5v-6H9v6H4zm2-2h1v-6h10v6h1V9.8l-6-3.75L6 9.8V19z"/></svg>';
+    return (
+        '<div class="header-org" id="headerOrg">' +
+        '<button type="button" class="header-org__trigger" id="headerOrgTrigger" aria-haspopup="listbox" aria-expanded="false">' +
+        buildingIcon +
+        '<span class="header-org__name" id="headerOrgName" title="' + String(org && org.name || '').replace(/"/g, '&quot;') + '">' + label + '</span>' +
+        '<span class="header-org__caret">▾</span>' +
+        '</button>' +
+        '<div class="header-org__dropdown" id="headerOrgDropdown" role="listbox" hidden>' +
+        '<div class="header-org__caption">' + buildingIcon + '<span>切换组织</span></div>' +
+        '<div class="header-org__list" id="headerOrgList"></div>' +
+        '</div></div>'
+    );
+}
+
+function renderHeaderOrgDropdownList() {
+    var listEl = document.getElementById('headerOrgList');
+    var nameEl = document.getElementById('headerOrgName');
+    var trigger = document.getElementById('headerOrgTrigger');
+    if (!listEl) return;
+    var current = getCurrentHeaderOrg();
+    var list = getHeaderOrgList();
+    if (nameEl && current) {
+        nameEl.textContent = truncateOrgLabel(current.name, getHeaderOrgMode() === 'supplier' ? 14 : 12);
+        nameEl.setAttribute('title', current.name);
+    }
+    if (trigger && current) trigger.setAttribute('title', current.name);
+    listEl.innerHTML = list.map(function (o) {
+        var active = current && o.id === current.id;
+        return (
+            '<button type="button" class="header-org__item' + (active ? ' is-active' : '') + '" data-org-id="' + o.id + '" role="option" aria-selected="' + (active ? 'true' : 'false') + '">' +
+            '<span class="header-org__item-name">' + o.name + '</span>' +
+            (active ? '<span class="header-org__check" aria-hidden="true">✓</span>' : '') +
+            '</button>'
+        );
+    }).join('');
+}
+
+function initHeaderOrgSwitcher() {
+    var root = document.getElementById('headerOrg');
+    var trigger = document.getElementById('headerOrgTrigger');
+    var dropdown = document.getElementById('headerOrgDropdown');
+    if (!root || !trigger || !dropdown) return;
+
+    renderHeaderOrgDropdownList();
+
+    function close() {
+        root.classList.remove('open');
+        dropdown.hidden = true;
+        trigger.setAttribute('aria-expanded', 'false');
+    }
+    function open() {
+        renderHeaderOrgDropdownList();
+        root.classList.add('open');
+        dropdown.hidden = false;
+        trigger.setAttribute('aria-expanded', 'true');
+    }
+
+    trigger.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (root.classList.contains('open')) close();
+        else open();
+    });
+
+    function pickOrg(id) {
+        var prev = getCurrentHeaderOrg();
+        var next = setCurrentHeaderOrg(id);
+        close();
+        renderHeaderOrgDropdownList();
+        if (getHeaderOrgMode() === 'supplier' && next && (!prev || prev.id !== next.id)) {
+            var params = new URLSearchParams(window.location.search);
+            params.set('supplier', next.id);
+            if (!params.get('view')) params.set('view', 'account');
+            location.search = '?' + params.toString();
+        }
+    }
+
+    dropdown.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-org-id]');
+        if (!btn) return;
+        e.preventDefault();
+        e.stopPropagation();
+        pickOrg(btn.getAttribute('data-org-id'));
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!root.contains(e.target)) close();
+    });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') close();
+    });
 }
 
 // [已废弃] loadSidebar() 已被 wms-sidebar.js 替代，不再需要

@@ -1,0 +1,89 @@
+/* 供应商结算门户：复用结算表格风格，补充账户卡片。 */
+.sp-sidebar-foot { padding: 16px 22px 24px; margin-top: auto; }
+.sp-sidebar-foot__link { color: #8b929d; font-size: 12px; text-decoration: none; }
+.sp-sidebar-foot__link:hover { color: #f36b19; }
+
+.sp-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 4px 0 12px;
+}
+.sp-toolbar__hint {
+    color: #8b929d;
+    font-size: 12px;
+}
+
+.sp-metric-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.sp-metric {
+    background: #fff;
+    border: 1px solid #eceef2;
+    border-radius: 6px;
+    padding: 16px 18px;
+    box-shadow: 0 1px 3px rgba(30, 40, 60, 0.04);
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.sp-metric:hover {
+    border-color: #f5c39a;
+    box-shadow: 0 2px 8px rgba(243, 107, 25, 0.08);
+}
+.sp-metric__label { color: #8b929d; font-size: 12px; margin-bottom: 8px; }
+.sp-metric__value {
+    font-size: 22px;
+    font-weight: 600;
+    color: #30333b;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+}
+.sp-metric__hint { margin-top: 8px; color: #a0a6b0; font-size: 12px; line-height: 1.4; }
+
+.sp-sub-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.sp-sub-metric {
+    background: #f8f9fb;
+    border: 1px solid #edf0f3;
+    border-radius: 6px;
+    padding: 12px 14px;
+}
+.sp-sub-metric__label { color: #8b929d; font-size: 12px; }
+.sp-sub-metric__value {
+    margin-top: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #394150;
+    font-variant-numeric: tabular-nums;
+}
+
+.sp-account-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px 28px;
+    padding: 14px 18px;
+    background: #fff;
+    border: 1px solid #eceef2;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    color: #606979;
+    font-size: 13px;
+}
+.sp-account-bar b { color: #30333b; font-weight: 500; }
+
+@media (max-width: 1100px) {
+    .sp-metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 650px) {
+    .sp-metric-grid,
+    .sp-sub-metrics { grid-template-columns: 1fr; }
+}

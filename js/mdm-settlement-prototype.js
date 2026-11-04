@@ -1035,7 +1035,8 @@
         var filterHtml='<div class="settle-card-body"><div class="settle-filter"><label class="settle-field"><span>统计时间</span><input type="date" class="settle-input" id="summary-from" value="'+h(state.summaryFrom||'')+'"></label><span>至</span><label class="settle-field"><span>&nbsp;</span><input type="date" class="settle-input" id="summary-to" value="'+h(state.summaryTo||'')+'"></label>'+
             '<label class="settle-field"><span>收款方类型</span><select class="settle-select" id="summary-type"><option value="">全部</option>'+['供应商','承运商','门店','BD扶商','直播运营商','商户','平台'].map(function(v){return '<option'+(state.summaryType===v?' selected':'')+'>'+v+'</option>';}).join('')+'</select></label>'+
             '<label class="settle-field"><span>收款方名称</span><input class="settle-input" id="settle-query" value="'+h(state.query)+'" placeholder="请输入收款方名称"></label><div class="settle-actions">'+button('查询','search','','primary')+button('重置','reset')+'</div></div></div>';
-        return tabs([['day','日汇总'],['month','月汇总']])+
+        /* 汇总口径说明：按收款方结算单元归集；含佣金分佣与承运商运费。 */
+        return '<div class="settle-card-body">'+note('当前按结算单元（收款方）统计：含佣金分佣方与承运商运费收款；应收金额为单据总金额；已结款、待处理、异常金额按单据状态与预检结果归类。账户余额、提现和退款流水不在本页口径内。')+'</div>'+tabs([['day','日汇总'],['month','月汇总']])+
             '<section class="settle-card">'+filterHtml+'<div class="settle-toolbar">'+button('导出列表','export-summary')+'</div>'+
             table(['序号',state.tab==='month'?'统计月份':'统计日期','收款方类型','收款方名称','收款方ID','应收金额（元）','已结款金额（元）','待处理金额（元）','异常金额（元）','单据数','明细数'],tr,'共 '+(state.tab==='month'?String(summaryMonth.length):String(summaryDay.length))+' 条')+'</section>';
     }
