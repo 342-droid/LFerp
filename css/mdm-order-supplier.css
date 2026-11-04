@@ -1,0 +1,29 @@
+/* 供应商组织在平台订单页上的轻量隐藏（data-org-view=supplier） */
+[data-org-view="supplier"] #orderRetailClearingExport,
+[data-org-view="supplier"] #orderProxyClearingExport,
+[data-org-view="supplier"] #orderRetailBatchUpload,
+[data-org-view="supplier"] #orderRetailBatchDelete,
+[data-org-view="supplier"] #orderRetailBatchRefund,
+[data-org-view="supplier"] #orderProxyBatchRefund {
+  display: none !important;
+}
+
+.order-detail-supplier-ops__desc {
+  margin: 0 0 12px;
+  color: #666;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.order-detail-supplier-ops__btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+
+.order-detail-supplier-ops__hint {
+  color: #999;
+  font-size: 12px;
+}

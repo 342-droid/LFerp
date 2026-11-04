@@ -1014,6 +1014,10 @@
         var matchAftersale = wantAftersale && rowHasReturnRefundAftersale(row);
         show = matchOrder || matchAftersale;
       }
+      /* 供应商组织：只保留本商家供货订单（平台页无 data-org-view，不受影响） */
+      if (show && window.LFSupplierOrderView && window.LFSupplierOrderView.isActive()) {
+        show = window.LFSupplierOrderView.ownsRow(row);
+      }
       row.setAttribute('data-query-match', show ? '1' : '0');
       row.hidden = !show;
       if (!show) {
@@ -1390,6 +1394,16 @@
 
     var orderId = row.getAttribute('data-order-id');
     var viewLink = cell.querySelector('.js-order-view');
+    /* 供应商组织：列表操作仅「查看」，发货/售后等进详情 */
+    if (window.LFSupplierOrderView && window.LFSupplierOrderView.isActive()) {
+      var supplierActions = document.createElement('div');
+      supplierActions.className = 'order-live-table__actions';
+      if (viewLink) supplierActions.appendChild(viewLink);
+      cell.innerHTML = '';
+      cell.appendChild(supplierActions);
+      cell.dataset.actionsNormalized = '1';
+      return;
+    }
     var verifyBtn = cell.querySelector('.js-order-verify');
     var uploadBtn = cell.querySelector('.js-retail-upload-express');
     var cancelBtn = cell.querySelector('.js-retail-cancel-order');
@@ -2623,7 +2637,10 @@
     }
 
     bindOrderExportButton('order');
-    bindOrderExportButton('clearing');
+    /* 供应商视角不提供清分明细导出 */
+    if (!(window.LFSupplierOrderView && window.LFSupplierOrderView.isActive())) {
+      bindOrderExportButton('clearing');
+    }
   }
 
   function canBatchRefundOrder(row) {
