@@ -404,6 +404,82 @@
     "status": "diff",
     "date": "2026-10-28"
   },
+  "679c60d|MDM/mdm_archive_carrier.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-05"
+  },
+  "679c60d|MDM/mdm_archive_live_room.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-05"
+  },
+  "679c60d|MDM/mdm_archive_store.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-05"
+  },
+  "679c60d|MDM/mdm_archive_supplier.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-05"
+  },
+  "679c60d|MDM/mdm_archive_warehouse.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-05"
+  },
+  "679c60d|MDM/mdm_audit_store_registration.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-05"
+  },
+  "679c60d|MDM/mdm_member_c.html": {
+    "before": "changelog-assets/679c60d/MDM__mdm_member_c.html.before.jpg",
+    "after": "changelog-assets/679c60d/MDM__mdm_member_c.html.after.jpg",
+    "regions": 27,
+    "status": "diff",
+    "date": "2026-11-05"
+  },
+  "679c60d|MDM/mdm_people_anchor.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-05"
+  },
+  "679c60d|MDM/mdm_people_bd.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-05"
+  },
+  "679c60d|MDM/mdm_people_driver.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-05"
+  },
+  "679c60d|MDM/mdm_people_purchaser.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-05"
+  },
+  "679c60d|MDM/mdm_settle_index.html": {
+    "before": "changelog-assets/679c60d/MDM__mdm_settle_index.html.before.jpg",
+    "after": "changelog-assets/679c60d/MDM__mdm_settle_index.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-11-05"
+  },
+  "679c60d|MDM/mdm_settle_supplier_portal.html": {
+    "before": "changelog-assets/679c60d/MDM__mdm_settle_supplier_portal.html.before.jpg",
+    "after": "changelog-assets/679c60d/MDM__mdm_settle_supplier_portal.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-11-05"
+  },
+  "679c60d|MDM/mdm_super_admin_accounts.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-05"
+  },
   "70c1b27|MDM/mdm_aftersale_ticket.html": {
     "before": "changelog-assets/70c1b27/MDM__mdm_aftersale_ticket.html.before.jpg",
     "after": "changelog-assets/70c1b27/MDM__mdm_aftersale_ticket.html.after.jpg",

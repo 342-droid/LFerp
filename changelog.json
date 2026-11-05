@@ -1,10 +1,104 @@
 {
-  "latestSha": "3e7993a47231dfd073c72efd43fb54c9119cc8ca",
-  "total": 478,
+  "latestSha": "679c60df345b664f357ac7a48afe30388fe8e03a",
+  "total": 479,
   "days": [
     {
       "date": "2026-11-05",
       "items": [
+        {
+          "sha": "679c60d",
+          "type": "feat",
+          "text": "结算改由组织切换进出门户并完善会员操作日志演示",
+          "author": "sisi",
+          "time": "16:33",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
+              "file": "MDM/mdm_people_anchor.html",
+              "module": "冷丰WMS",
+              "title": "主播"
+            },
+            {
+              "file": "MDM/mdm_people_bd.html",
+              "module": "冷丰WMS",
+              "title": "BD推广员"
+            },
+            {
+              "file": "MDM/mdm_people_driver.html",
+              "module": "冷丰WMS",
+              "title": "司机"
+            },
+            {
+              "file": "MDM/mdm_people_purchaser.html",
+              "module": "冷丰WMS",
+              "title": "采购员"
+            },
+            {
+              "file": "MDM/mdm_settle_index.html",
+              "module": "冷丰结算",
+              "title": "结算中心"
+            },
+            {
+              "file": "MDM/mdm_settle_supplier_portal.html",
+              "module": "冷丰结算",
+              "title": "供应商结算"
+            },
+            {
+              "file": "MDM/mdm_super_admin_accounts.html",
+              "module": "冷丰WMS",
+              "title": "商户主体建档"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_settle_supplier_portal.html",
+              "text": "清分汇总: 去掉「供应商结算门户」侧栏跳转，改由版头组织切换进入对应结算视角"
+            },
+            {
+              "file": "MDM/mdm_settle_supplier_portal.html",
+              "text": "去掉「返回平台结算中心」，主组织/供应商组织切换自动进出门户"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "text": "列表手机号改为完整展示；补充批量调整积分/成长值操作日志演示数据，详情手机号不打码"
+            }
+          ]
+        },
         {
           "sha": "3e7993a",
           "type": "feat",
