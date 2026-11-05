@@ -1356,7 +1356,7 @@
     }
 
     function buildSupplierAddBody() {
-        return createSupplierFormBundle().body;
+        return createSupplierFormBundle({ includeInboundWarehouse: true }).body;
     }
 
     function createCarrierFormBundle() {
