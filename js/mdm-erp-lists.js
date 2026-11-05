@@ -3581,12 +3581,6 @@
         var tbody = document.getElementById('tableBody');
         if (!tbody) return;
 
-        function maskPhone(phone) {
-            var s = String(phone || '').replace(/\D/g, '');
-            if (s.length < 7) return phone || '—';
-            return s.slice(0, 3) + '****' + s.slice(-4);
-        }
-
         function loadSyncedMembers() {
             var list = [];
             try {
@@ -3629,7 +3623,6 @@
                                 nickname: nick,
                                 avatarText: String(nick).charAt(0) || '会',
                                 phone: phone,
-                                phoneMasked: maskPhone(phone),
                                 gender: '未知',
                                 isMember: '是',
                                 level: levelName,
@@ -3666,7 +3659,8 @@
             if (m.phone) tr.setAttribute('data-phone-full', m.phone);
             tr.setAttribute('data-member-status', m.status || '正常');
 
-            var phoneShow = m.phoneMasked || maskPhone(m.phone) || m.phone || '—';
+            /* 会员管理列表展示完整手机号，不做打码 */
+            var phoneShow = m.phone || '—';
             var avatarText = m.avatarText || String(m.nickname || '会').charAt(0);
             var cells = [
                 m.id || C_MEMBER_ID,

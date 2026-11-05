@@ -145,7 +145,7 @@ function loadHeader() {
                     <a href="${wp.page('purchase_index.html')}" class="${isPurchasePage ? 'active' : ''}">采购</a>
                     <a href="${wp.page('index.html')}" class="${!isTmsPage && !isPurchasePage && !isBasicSettingsPage && !isAuthzDesignerPage && !isAuthz2Page && !isMdmPage && !isMobilePage ? 'active' : ''}">仓储</a>
                     <a href="${wp.page('TMS_index.html')}" class="${isTmsPage ? 'active' : ''}">物流</a>
-                    <a href="${wp.page('mdm_settle_index.html')}" class="${isMdmSettlePage ? 'active' : ''}">财务</a>
+                    <a href="${getSettleHomeForOrg(getCurrentHeaderOrg())}" class="${isMdmSettlePage ? 'active' : ''}">财务</a>
                     <a href="${wp.page('basic_settings_miniprogram_agreement.html')}" class="${isBasicSettingsPage ? 'active' : ''}">基础设置</a>
                     <a href="${wp.page('authz-designer.html')}" class="${isAuthzDesignerPage ? 'active' : ''}">权限设计</a>
                     <a href="${wp.page('authz-2-guide.html')}" class="${isAuthz2Page ? 'active' : ''}">权限2.0</a>
@@ -264,23 +264,38 @@ function getOrderHomeForOrg(org) {
     return wp.page(preferProxy ? 'mdm_order_proxy.html' : 'mdm_order_retail.html');
 }
 
+function getSettleHomeForOrg(org) {
+    var wp = window.wmsPath || { page: function (f) { return f; } };
+    if (org && isSupplierOrgId(org.id)) {
+        return wp.page('mdm_settle_supplier_portal.html') +
+            '?view=account&supplier=' + encodeURIComponent(org.id);
+    }
+    return wp.page('mdm_settle_index.html');
+}
+
 function resolveOrgSwitchNavigation(prev, next) {
     if (!next || (prev && prev.id === next.id)) return '';
     var path = window.location.pathname || '';
     var pageFile = (path.split('/').pop() || '').toLowerCase().split('?')[0];
     if (pageFile && !pageFile.endsWith('.html')) pageFile += '.html';
     var isOrderPage = pageFile.indexOf('mdm_order_') === 0;
+    var isSettlePage = pageFile.indexOf('mdm_settle_') === 0;
     var isSettleSupplier = pageFile === 'mdm_settle_supplier_portal.html';
     var nextIsSupplier = isSupplierOrgId(next.id);
+    var wp = window.wmsPath || { page: function (f) { return f; } };
 
-    if (isSettleSupplier) {
-        var params = new URLSearchParams(window.location.search);
+    /* 结算：版头组织切换 = 平台结算中心 ↔ 供应商结算门户 */
+    if (isSettlePage) {
         if (nextIsSupplier) {
-            params.set('supplier', next.id);
-            if (!params.get('view')) params.set('view', 'account');
-            return location.pathname + '?' + params.toString();
+            var stayView = 'account';
+            if (isSettleSupplier) {
+                var cur = new URLSearchParams(window.location.search).get('view');
+                if (cur === 'ledger' || cur === 'bills' || cur === 'account') stayView = cur;
+            }
+            return wp.page('mdm_settle_supplier_portal.html') +
+                '?view=' + stayView + '&supplier=' + encodeURIComponent(next.id);
         }
-        return (window.wmsPath || { page: function (f) { return f; } }).page('mdm_settle_index.html');
+        return wp.page('mdm_settle_index.html');
     }
     if (isOrderPage) {
         /* 供应商进配置类页时回零售；同构零售/代采页刷新即可切换数据范围 */

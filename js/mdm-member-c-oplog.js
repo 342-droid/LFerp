@@ -60,6 +60,94 @@
         } catch (e) { /* ignore */ }
     }
 
+    /* 演示：批量操作日志（一次导入一条，明细里展开每位会员）；v2 起手机号全量展示 */
+    function ensureDemoBatchLogs() {
+        var SEED_FLAG = 'mdm_member_c_oplog_batch_seed_v2';
+        try {
+            if (localStorage.getItem(SEED_FLAG) === '1') return;
+        } catch (e) { /* ignore */ }
+        var list = load().filter(function (row) {
+            return !(row && String(row.id || '').indexOf('mlog-demo-') === 0);
+        });
+        var demo = [
+            {
+                id: 'mlog-demo-bp-01',
+                time: '2026-11-04 16:28:12',
+                action: 'batch-points',
+                content: '批量调整积分',
+                memberId: '',
+                nickname: '',
+                phone: '',
+                operator: '演示运营',
+                success: true,
+                summary: '批量操作 · 双十一积分补偿.xlsx，成功 4 位',
+                changes: [],
+                members: [
+                    { memberId: 'U10001', nickname: '小程序用户A', phone: '13812342211', summary: '增加 200，调整后 3060', before: '2860', after: '3060', remark: '双十一客服补偿' },
+                    { memberId: 'U10002', nickname: 'APP会员B', phone: '13987659033', summary: '增加 150，调整后 5570', before: '5420', after: '5570', remark: '双十一客服补偿' },
+                    { memberId: 'U10004', nickname: '演示会员4', phone: '13712341004', summary: '增加 300，调整后 12100', before: '11800', after: '12100', remark: '双十一客服补偿' },
+                    { memberId: 'U10006', nickname: '演示会员6', phone: '13612346606', summary: '减少 50，调整后 130', before: '180', after: '130', remark: '误发冲正' }
+                ]
+            },
+            {
+                id: 'mlog-demo-bg-01',
+                time: '2026-11-03 10:05:41',
+                action: 'batch-growth',
+                content: '批量调整成长值',
+                memberId: '',
+                nickname: '',
+                phone: '',
+                operator: '演示运营',
+                success: true,
+                summary: '批量操作 · 成长值补录-11月.xlsx，成功 3 位',
+                changes: [],
+                members: [
+                    { memberId: 'U10001', nickname: '小程序用户A', phone: '13812342211', summary: '增加 80，调整后 208', before: '128', after: '208', remark: '线下活动补录' },
+                    { memberId: 'U10002', nickname: 'APP会员B', phone: '13987659033', summary: '增加 50，调整后 95', before: '45', after: '95', remark: '线下活动补录' },
+                    { memberId: 'U10004', nickname: '演示会员4', phone: '13712341004', summary: '增加 20，调整后 64', before: '44', after: '64', remark: '线下活动补录' }
+                ]
+            },
+            {
+                id: 'mlog-demo-bp-02',
+                time: '2026-10-28 14:16:03',
+                action: 'batch-points',
+                content: '批量调整积分',
+                memberId: '',
+                nickname: '',
+                phone: '',
+                operator: '张运营',
+                success: true,
+                summary: '批量操作 · 门店拉新积分.xlsx，成功 2 位',
+                changes: [],
+                members: [
+                    { memberId: 'U10006', nickname: '演示会员6', phone: '13612346606', summary: '增加 100，调整后 280', before: '180', after: '280', remark: '拉新奖励' },
+                    { memberId: 'U10001', nickname: '小程序用户A', phone: '13812342211', summary: '增加 100，调整后 2960', before: '2860', after: '2960', remark: '拉新奖励' }
+                ]
+            },
+            {
+                id: 'mlog-demo-bg-02',
+                time: '2026-10-21 09:42:55',
+                action: 'batch-growth',
+                content: '批量调整成长值',
+                memberId: '',
+                nickname: '',
+                phone: '',
+                operator: '李主管',
+                success: true,
+                summary: '批量操作 · 成长值扣减冲正.xlsx，成功 2 位',
+                changes: [],
+                members: [
+                    { memberId: 'U10002', nickname: 'APP会员B', phone: '13987659033', summary: '减少 10，调整后 35', before: '45', after: '35', remark: '重复发放冲正' },
+                    { memberId: 'U10004', nickname: '演示会员4', phone: '13712341004', summary: '减少 5，调整后 39', before: '44', after: '39', remark: '重复发放冲正' }
+                ]
+            }
+        ];
+        save(demo.concat(list));
+        try { localStorage.setItem(SEED_FLAG, '1'); } catch (e3) { /* ignore */ }
+    }
+
+    ensureDemoBatchLogs();
+
     function normalizeMembers(list) {
         return (list || []).map(function (m) {
             if (!m || !m.memberId) return null;

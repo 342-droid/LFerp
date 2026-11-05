@@ -18,12 +18,18 @@
     }).join('');
     var host = document.getElementById('sidebar-container');
     if (!host) return;
+    /* 回平台结算改由版头切回主组织，侧栏不再放返回链接 */
+    try {
+        var orgId = localStorage.getItem('lfCurrentOrgId') || '';
+        if (orgId && String(orgId).indexOf('sup-') !== 0) {
+            window.location.replace(wp.page('mdm_settle_index.html'));
+            return;
+        }
+    } catch (e) { /* ignore */ }
+
     host.innerHTML = '<aside class="sidebar" id="sidebar">' +
         '<div class="sidebar-header"><img src="' + wp.asset('image/冷丰图标.png') +
         '" alt="冷丰结算"><span>冷丰结算</span></div>' +
         '<div class="settle-sidebar-caption">供应商结算</div>' +
-        '<ul class="sidebar-menu">' + items + '</ul>' +
-        '<div class="sp-sidebar-foot">' +
-        '<a class="sp-sidebar-foot__link" href="' + wp.page('mdm_settle_index.html') + '">← 返回平台结算中心</a>' +
-        '</div></aside>';
+        '<ul class="sidebar-menu">' + items + '</ul></aside>';
 })();
