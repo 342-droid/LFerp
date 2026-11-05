@@ -7,6 +7,7 @@
 
   var PAGE_TABS = {
     'mdm_product_selection.html': '选品库',
+    'mdm_supplier_product.html': '供货关系',
     'mdm_product_category.html': '商品类目',
     'mdm_product_brand.html': '商品品牌',
     'mdm_product_mall.html': '商品列表',
