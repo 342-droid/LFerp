@@ -106,7 +106,7 @@ function loadHeader() {
         const isMdmLivePage = pageFile.startsWith('mdm_live_');
         const isMdmSettlePage = pageFile.startsWith('mdm_settle_');
         const isMdmBdPage = pageFile.startsWith('mdm_bd_');
-        const isMdmProductPage = pageFile.startsWith('mdm_product_');
+        const isMdmProductPage = pageFile.startsWith('mdm_product_') || pageFile === 'mdm_supplier_product.html';
         const isMdmMemberPage = pageFile.startsWith('mdm_member_');
         const isMdmBasePage =
             isMdmPage &&

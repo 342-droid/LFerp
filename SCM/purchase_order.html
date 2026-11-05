@@ -70,7 +70,7 @@
         }
 
         #addPoModal .detail-table-wrap .table {
-            min-width: 1320px;
+            min-width: 1440px;
         }
 
         #addPoModal .table th,
@@ -221,6 +221,57 @@
             box-sizing: border-box;
             resize: vertical;
             font-family: inherit;
+        }
+
+        .po-sales-dim-modal .modal-content {
+            max-width: 480px;
+        }
+
+        .po-sales-dim-hint {
+            margin: 0 0 14px;
+            font-size: 13px;
+            color: #888;
+            line-height: 1.6;
+        }
+
+        .po-sales-dim-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 40px;
+        }
+
+        .po-sales-dim-label {
+            width: 64px;
+            color: #666;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .po-sales-dim-row select {
+            width: 88px;
+            height: 32px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 0 8px;
+            font-size: 13px;
+            background: #fff;
+            box-sizing: border-box;
+        }
+
+        .po-sales-dim-row input[type="number"] {
+            width: 120px;
+            height: 32px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 0 8px;
+            font-size: 13px;
+            box-sizing: border-box;
+        }
+
+        .po-sales-dim-unit {
+            font-size: 13px;
+            color: #666;
         }
 
         .po-audit-hint {
@@ -690,6 +741,7 @@
                         <button type="button" class="btn po-batch-upload-btn" id="btnBatchUploadLogistics">批量上传物流单号</button>
                         <button type="button" class="btn btn-secondary" id="btnAudit">审核</button>
                         <button type="button" class="btn btn-secondary" id="btnReject">驳回</button>
+                        <button type="button" class="btn btn-secondary" id="btnSalesStatDim">销量统计维度</button>
                     </div>
                 </form>
             </section>
@@ -845,6 +897,7 @@
                                     <th>保质期</th>
                                     <th>商品分类</th>
                                     <th>采购员</th>
+                                    <th>推荐采购量</th>
                                     <th>采购量</th>
                                     <th>采购单价</th>
                                     <th>销售单价</th>
@@ -1013,6 +1066,32 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" id="logisticsTrackCloseFooterBtn">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="poSalesDimModal" class="modal detail-modal po-sales-dim-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">销量统计维度</div>
+                <span class="close" id="poSalesDimCloseBtn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p class="po-sales-dim-hint">在下拉框中选择年、月或日，再填写时长，例如 3 年、2 月、108 天。切换维度会清空已输入的时长。</p>
+                <div class="po-sales-dim-row">
+                    <label class="po-sales-dim-label" for="poSalesDimSelect">统计维度</label>
+                    <select id="poSalesDimSelect" aria-label="统计维度">
+                        <option value="year">年</option>
+                        <option value="month">月</option>
+                        <option value="day">日</option>
+                    </select>
+                    <input type="number" id="poSalesDimCount" min="1" max="9999" step="1" inputmode="numeric" aria-label="时长">
+                    <span class="po-sales-dim-unit" id="poSalesDimUnit">天</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="poSalesDimSaveBtn">保存</button>
+                <button type="button" class="btn btn-secondary" id="poSalesDimCancelBtn">取消</button>
             </div>
         </div>
     </div>
@@ -1451,7 +1530,8 @@
                         skuCategory: String(l.skuCategory || '').trim(),
                         suggestedUnitPrice: Number(l.suggestedUnitPrice) || 0,
                         saleUnitPrice: lineSalesUnitPrice(l),
-                        qtyUnit: String(l.qtyUnit || '件').trim() || '件'
+                        qtyUnit: String(l.qtyUnit || '件').trim() || '件',
+                        recommendedQty: Number(l.purchaseQty) || 0
                     };
                 }
             });
@@ -1540,6 +1620,7 @@
             shelfLife: '',
             skuCategory: '',
             qtyUnit: '',
+            recommendedQty: '',
             purchaseQty: 0,
             suggestedUnitPrice: 0,
             actualUnitPrice: 0,
@@ -1589,6 +1670,7 @@
         line.shelfLife = product.shelfLife || '';
         line.skuCategory = product.skuCategory;
         line.qtyUnit = product.qtyUnit || '件';
+        line.recommendedQty = Number(product.recommendedQty) > 0 ? Number(product.recommendedQty) : '';
         line.suggestedUnitPrice = toFixed2Number(product.suggestedUnitPrice);
         if (!(Number(line.actualUnitPrice) > 0)) {
             line.actualUnitPrice = line.suggestedUnitPrice;
@@ -1605,6 +1687,7 @@
         line.spec = '';
         line.shelfLife = '';
         line.qtyUnit = '';
+        line.recommendedQty = '';
         line.suggestedUnitPrice = 0;
         line.actualUnitPrice = 0;
         line.purchaseAmount = 0;
@@ -1616,7 +1699,7 @@
         var tbody = document.getElementById('addPoLinesTbody');
         if (!tbody) return;
         if (!addPoLines.length) {
-            tbody.innerHTML = '<tr><td colspan="16" style="text-align:center;color:#999;">暂无明细，请新增明细行</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="17" style="text-align:center;color:#999;">暂无明细，请新增明细行</td></tr>';
             renderAddAmountInfo();
             return;
         }
@@ -1631,6 +1714,7 @@
                 '<td><input type="text" class="add-po-line-input" data-field="shelfLife" value="' + escapeHtml(line.shelfLife || '—') + '" readonly></td>' +
                 '<td><input type="text" class="add-po-line-input" data-field="skuCategory" value="' + escapeHtml(line.skuCategory) + '" readonly></td>' +
                 '<td>' + renderLineBuyerSelect(line.buyer, addPoBuyerOptions) + '</td>' +
+                '<td><input type="text" class="add-po-line-input" data-field="recommendedQty" value="' + escapeHtml(line.recommendedQty === '' || line.recommendedQty == null ? '—' : String(line.recommendedQty)) + '" readonly></td>' +
                 '<td><input type="number" class="add-po-line-input" data-field="purchaseQty" min="0" step="1" value="' + escapeHtml(String(line.purchaseQty)) + '"></td>' +
                 '<td><input type="text" class="add-po-line-input" data-field="actualUnitPrice" value="' + escapeHtml(toFixed2Number(line.actualUnitPrice).toFixed(2)) + '" readonly></td>' +
                 '<td><input type="number" class="add-po-line-input" data-field="saleUnitPrice" min="0" step="0.01" value="' + escapeHtml(toFixed2Number(line.saleUnitPrice).toFixed(2)) + '"></td>' +
@@ -1677,6 +1761,7 @@
                 shelfLife: l.shelfLife || '',
                 skuCategory: l.skuCategory || '',
                 qtyUnit: l.qtyUnit || '件',
+                recommendedQty: Number(l.recommendedQty) > 0 ? Number(l.recommendedQty) : ((productMaster[l.skuCode] && Number(productMaster[l.skuCode].recommendedQty) > 0) ? Number(productMaster[l.skuCode].recommendedQty) : ''),
                 purchaseQty: Number(l.purchaseQty) || 0,
                 suggestedUnitPrice: Number(l.suggestedUnitPrice) || 0,
                 actualUnitPrice: Number(l.actualUnitPrice) || 0,
@@ -2231,6 +2316,7 @@
                 skuCategory: l.skuCategory,
                 qtyUnit: l.qtyUnit || '件',
                 buyer: getLineBuyer(l),
+                recommendedQty: Number(l.recommendedQty) || 0,
                 purchaseQty: Number(l.purchaseQty) || 0,
                 receivedQty: 0,
                 canceledQty: 0,
@@ -3272,6 +3358,112 @@
         if (e.target && e.target.id === 'logisticsConfirmModal') {
             closeLogisticsConfirmModal();
         }
+    });
+
+    var SALES_DIM_KEY = 'lf_po_sales_stat_dimension_v1';
+    var SALES_DIM_DEFAULT = { dimension: 'day', count: 108 };
+    var SALES_DIM_UNIT = { year: '年', month: '月', day: '天' };
+    var salesDimFilling = false;
+
+    function normalizeSalesDimCount(value, fallback) {
+        var num = Number(value);
+        if (!isFinite(num) || num < 1 || Math.floor(num) !== num) return fallback;
+        return num > 9999 ? 9999 : num;
+    }
+
+    function readSalesDim() {
+        try {
+            var raw = localStorage.getItem(SALES_DIM_KEY);
+            if (!raw) return Object.assign({}, SALES_DIM_DEFAULT);
+            var parsed = JSON.parse(raw) || {};
+            var dimension = parsed.dimension === 'year' || parsed.dimension === 'month' || parsed.dimension === 'day'
+                ? parsed.dimension
+                : SALES_DIM_DEFAULT.dimension;
+            var storedCount = parsed.count;
+            if (storedCount == null) {
+                storedCount = dimension === 'year' ? parsed.year : (dimension === 'month' ? parsed.month : parsed.day);
+            }
+            return {
+                dimension: dimension,
+                count: normalizeSalesDimCount(storedCount, SALES_DIM_DEFAULT.count)
+            };
+        } catch (e) {
+            return Object.assign({}, SALES_DIM_DEFAULT);
+        }
+    }
+
+    function salesDimSummary(config) {
+        return config.count + (SALES_DIM_UNIT[config.dimension] || '天');
+    }
+
+    function parseSalesDimCount(value) {
+        var text = String(value == null ? '' : value).trim();
+        if (!/^\d+$/.test(text)) return null;
+        var num = Number(text);
+        if (!isFinite(num) || num < 1 || num > 9999) return null;
+        return num;
+    }
+
+    function updateSalesDimUnit() {
+        var select = document.getElementById('poSalesDimSelect');
+        var unit = document.getElementById('poSalesDimUnit');
+        if (!select || !unit) return;
+        unit.textContent = SALES_DIM_UNIT[select.value] || '天';
+    }
+
+    function fillSalesDimForm(config) {
+        var select = document.getElementById('poSalesDimSelect');
+        var countEl = document.getElementById('poSalesDimCount');
+        salesDimFilling = true;
+        if (select) select.value = config.dimension;
+        if (countEl) countEl.value = config.count == null ? '' : String(config.count);
+        updateSalesDimUnit();
+        salesDimFilling = false;
+    }
+
+    function onSalesDimSelectChange() {
+        if (salesDimFilling) return;
+        var countEl = document.getElementById('poSalesDimCount');
+        if (countEl) countEl.value = '';
+        updateSalesDimUnit();
+    }
+
+    function openSalesDimModal() {
+        fillSalesDimForm(readSalesDim());
+        var modal = document.getElementById('poSalesDimModal');
+        if (modal) modal.style.display = 'block';
+    }
+
+    function closeSalesDimModal() {
+        var modal = document.getElementById('poSalesDimModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function saveSalesDim() {
+        var select = document.getElementById('poSalesDimSelect');
+        var count = parseSalesDimCount(document.getElementById('poSalesDimCount').value);
+        var dimension = select && select.value;
+        if ((dimension !== 'year' && dimension !== 'month' && dimension !== 'day') || count == null) {
+            if (typeof showToast === 'function') {
+                showToast('请选择统计维度，并填写 1 到 9999 的整数时长', 'error');
+            }
+            return;
+        }
+        var config = { dimension: dimension, count: count };
+        localStorage.setItem(SALES_DIM_KEY, JSON.stringify(config));
+        closeSalesDimModal();
+        if (typeof showToast === 'function') {
+            showToast('销量统计维度已保存：' + salesDimSummary(config), 'success');
+        }
+    }
+
+    document.getElementById('btnSalesStatDim').addEventListener('click', openSalesDimModal);
+    document.getElementById('poSalesDimSelect').addEventListener('change', onSalesDimSelectChange);
+    document.getElementById('poSalesDimCloseBtn').addEventListener('click', closeSalesDimModal);
+    document.getElementById('poSalesDimCancelBtn').addEventListener('click', closeSalesDimModal);
+    document.getElementById('poSalesDimSaveBtn').addEventListener('click', saveSalesDim);
+    document.getElementById('poSalesDimModal').addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'poSalesDimModal') closeSalesDimModal();
     });
 
     document.getElementById('poAuditCloseBtn').addEventListener('click', closePoAuditModal);
