@@ -1335,7 +1335,7 @@
       }
       /* 平台配送/自提无物流轨迹；仅快递补货完成时补演示物流 */
       if (status === '已完成' && !isNoTrackRestock(detail) && !detail.shipments.restockShip) {
-        detail.shipments.restockShip = makeShip('申通快递', 'STO' + String(detail.id).slice(-11), '运输中');
+        detail.shipments.restockShip = makeShip('申通快递', window.MdmAftersaleDemoTracking.forTicket(detail.id, type, status, '快递').restockShip, '运输中');
       }
       if (isNoTrackRestock(detail)) {
         detail.shipments.restockShip = null;
@@ -1431,7 +1431,7 @@
       if (!detail.shipments.returnShip) {
         detail.shipments.returnShip = makeShip(
           '顺丰速运',
-          'SF' + String(detail.id).slice(-12),
+          window.MdmAftersaleDemoTracking.forTicket(detail.id, type, status, '快递').returnShip,
           status === '待收货' ? '运输中' : '已签收'
         );
       }
@@ -1443,7 +1443,7 @@
         if (!detail.shipments.returnShip) {
           detail.shipments.returnShip = makeShip(
             '中通快递',
-            'ZT' + String(detail.id).slice(-12),
+            window.MdmAftersaleDemoTracking.forTicket(detail.id, type, status, '快递').returnShip,
             '已签收'
           );
         }
@@ -1451,7 +1451,7 @@
       if (status === '已完成' && !detail.shipments.exchangeOutShip) {
         detail.shipments.exchangeOutShip = makeShip(
           '圆通速递',
-          'YT' + String(detail.id).slice(-12),
+          window.MdmAftersaleDemoTracking.forTicket(detail.id, type, status, '快递').exchangeOutShip,
           '运输中'
         );
       }
