@@ -189,6 +189,53 @@ window.__PG_PRD_INDEX = {
         "user-app/h5/order-detail-pickup.html",
         "user-app/h5/live-room.html"
       ]
+    },
+    {
+      "id": "902-商品售卖范围选择门店后能点开看到已选择的门店【全局】",
+      "title": "【902】售卖范围门店查看",
+      "file": "902-商品售卖范围选择门店后能点开看到已选择的门店【全局】.md",
+      "pages": [
+        "MDM/mdm_product_mall.html",
+        "MDM/mdm_product_proxy_list.html",
+        "MDM/mdm_marketing_points_mall.html",
+        "MDM/mdm_marketing_points_mall_form.html",
+        "MDM/mdm_marketing_newcomer_zone.html",
+        "MDM/mdm_marketing_newcomer_zone_form.html",
+        "MDM/mdm_marketing_seckill.html",
+        "MDM/mdm_marketing_seckill_form.html",
+        "MDM/mdm_member_points_cash.html",
+        "MDM/mdm_member_points_cash_form.html",
+        "MDM/mdm_member_points_consume.html",
+        "MDM/mdm_member_points_consume_form.html"
+      ]
+    },
+    {
+      "id": "689-主体编辑操作日志，需要详细记录，如张三将门店简称从冷丰杭州总店变更为杭州总店",
+      "title": "【689】操作日志",
+      "file": "689-主体编辑操作日志，需要详细记录，如张三将门店简称从冷丰杭州总店变更为杭州总店.md",
+      "pages": [
+        "MDM/mdm_archive_store.html",
+        "MDM/mdm_archive_supplier.html",
+        "MDM/mdm_archive_warehouse.html",
+        "MDM/mdm_audit_cash_redpack.html",
+        "MDM/mdm_audit_cash_redpack_manual.html",
+        "MDM/mdm_audit_coupon.html",
+        "MDM/mdm_marketing_cash_redpack_tpl.html",
+        "MDM/mdm_marketing_coupon.html",
+        "MDM/mdm_marketing_seckill.html",
+        "MDM/mdm_marketing_template.html",
+        "MDM/mdm_member_points_cash.html",
+        "MDM/mdm_member_points_consume.html",
+        "MDM/mdm_member_points_rule.html",
+        "MDM/mdm_order_live.html",
+        "MDM/mdm_order_proxy.html",
+        "MDM/mdm_order_retail.html",
+        "MDM/mdm_party_all.html",
+        "MDM/mdm_settle_index.html",
+        "MDM/mdm_product_selection.html",
+        "MDM/mdm_product_category.html",
+        "MDM/mdm_product_mall_category.html"
+      ]
     }
   ]
 };
