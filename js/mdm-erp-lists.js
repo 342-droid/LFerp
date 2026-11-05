@@ -6,6 +6,47 @@
     var MDM_ENABLED_WAREHOUSE_CACHE_KEY = 'mdm_enabled_warehouse_options_v1';
     var MDM_BD_WAREHOUSE_BIND_KEY = 'mdm_bd_warehouse_bindings_v1';
 
+    var ARCHIVE_STATUS_KEY = 'mdm_archive_status_v1';
+    var STORE_WAREHOUSE_BIND_KEY = 'mdm_store_warehouse_bindings_v1';
+
+    function archiveStatus(kind, id, fallback) {
+        var map = readJsonStore(ARCHIVE_STATUS_KEY) || {};
+        return map[kind + ':' + id] || fallback;
+    }
+
+    function updateArchiveStatus(pm, row, column, status) {
+        var patch = {};
+        patch[column] = { value: status, isStatus: true };
+        pm.updateTableRow(row, patch);
+    }
+
+    function saveArchiveStatus(kind, id, status) {
+        var map = readJsonStore(ARCHIVE_STATUS_KEY) || {};
+        map[kind + ':' + id] = status;
+        try {
+            localStorage.setItem(ARCHIVE_STATUS_KEY, JSON.stringify(map));
+            return true;
+        } catch (error) {
+            showToast('档案状态保存失败，请重试', 'error');
+            return false;
+        }
+    }
+
+    function restoreArchiveStatuses(pm, kind, column) {
+        document.querySelectorAll('#tableBody tr').forEach(function (row) {
+            var id = row.cells[0] && row.cells[0].textContent.trim();
+            var status = archiveStatus(kind, id, '');
+            if (!row.cells[column]) return;
+            if (kind === 'store') {
+                var storedStatus = status || row.dataset.storeStatusSource || pm.getCellStatus(row, column);
+                row.dataset.storeStatusSource = storedStatus;
+                updateArchiveStatus(pm, row, column, normalizeStoreArchiveStatus(storedStatus));
+            } else if (status) {
+                updateArchiveStatus(pm, row, column, status);
+            }
+        });
+    }
+
     function readResourceArchiveCache() {
         try {
             var raw = localStorage.getItem(RESOURCE_ARCHIVE_CACHE_KEY);
@@ -192,7 +233,7 @@
                 id: code,
                 name: name,
                 typeLabel: typeLabel,
-                enabled: st === '启用'
+                enabled: archiveStatus('warehouse', code, st) === '启用'
             });
         });
         return list;
@@ -540,7 +581,7 @@
                 '未进件',
                 '未提交',
                 '—',
-                { value: '正常', isStatus: true },
+                { value: '已启用', isStatus: true },
                 archiveStorePage.getCurrentTimeStr()
             ]
         });
@@ -551,6 +592,9 @@
         row.setAttribute('data-biz-line', data.bizLine || '');
         row.setAttribute('data-brand-name', data.brandName || '');
         row.setAttribute('data-biz-lines', data.bizLines || '');
+        if (window.MdmOperationLog) window.MdmOperationLog.record('store', data.storeCode, '新增门店', null, {
+            '门店名称': name, '门店简称': data.shortName || name, '所属主体': data.subjectName
+        });
         row.setAttribute('data-latlng', '—');
         row.setAttribute('data-withdraw', '—');
         row.setAttribute('data-settle-cycle', '—');
@@ -614,12 +658,16 @@
         var id = String(storeId || '').trim();
         if (!id) return;
         var map = readStoreHoursMap();
+        var previous = map[id];
         if (!hours || !hours.start || !hours.end) {
             delete map[id];
         } else {
             map[id] = { start: hours.start, end: hours.end };
         }
         writeStoreHoursMap(map);
+        if (window.MdmOperationLog) window.MdmOperationLog.record('store', id, '调整营业时间',
+            { '营业时间': previous ? formatStoreHoursRange(previous.start, previous.end) : '跟随平台' },
+            { '营业时间': map[id] ? formatStoreHoursRange(map[id].start, map[id].end) : '跟随平台' });
     }
 
     function formatStoreHoursRange(start, end) {
@@ -1159,8 +1207,8 @@
             if (qBalance && balanceTxt !== qBalance) ok = false;
             if (qSplit === 'on' && splitTxt !== '开启' && splitTxt !== '已开通') ok = false;
             if (qSplit === 'off' && splitTxt !== '关闭' && splitTxt !== '未开通') ok = false;
-            if (qSt === 'normal' && stTxt !== '正常' && stTxt !== '已启用') ok = false;
-            if (qSt === 'stopped' && stTxt !== '停用' && stTxt !== '已禁用') ok = false;
+            if (qSt === 'normal' && stTxt !== '已启用') ok = false;
+            if (qSt === 'stopped' && stTxt !== '已冻结') ok = false;
             tr.style.display = ok ? '' : 'none';
         });
         pm.refreshPagination();
@@ -1336,9 +1384,10 @@
         return false;
     }
 
-    function isStoreDisabledStatus(txt) {
-        var s = String(txt || '').trim();
-        return s === '已禁用' || s === '停用' || s === '禁用';
+    function normalizeStoreArchiveStatus(status) {
+        if (['冻结', '已冻结', '已禁用', '停用', '禁用', '已停用'].indexOf(status) !== -1) return '已冻结';
+        if (['正常', '启用', '已启用'].indexOf(status) !== -1) return '已启用';
+        return status;
     }
 
     function refreshStoreNameDefaultBadge(tr, isDefault) {
@@ -1394,13 +1443,12 @@
                     DEFAULT_STORE_TIP.replace(/"/g, '&quot;') +
                     '">设为系统默认门店</a> ';
             }
-            if (isStoreDisabledStatus(meta.storeStatus)) {
-                html += '<a href="#" class="mdm-store-disable">启用</a>';
-            } else if (isDefault) {
-                html +=
-                    '<a href="#" class="mdm-store-disable is-locked" title="系统默认门店不允许禁用">禁用</a>';
-            } else {
-                html += '<a href="#" class="mdm-store-disable">禁用</a>';
+            if (meta.storeStatus === '已冻结') {
+                html += '<a href="#" class="mdm-store-disable">解冻</a>';
+            } else if (meta.storeStatus === '已启用') {
+                html += isDefault
+                    ? '<a href="#" class="mdm-store-disable is-locked" title="系统默认门店不允许冻结">冻结</a>'
+                    : '<a href="#" class="mdm-store-disable">冻结</a>';
             }
             actionTd.innerHTML = html.replace(/\s+$/, '');
         });
@@ -1422,6 +1470,8 @@
         var prev = readSystemDefaultStore();
         function doSet() {
             writeSystemDefaultStore(snapshotDefaultStore(meta));
+            if (window.MdmOperationLog) window.MdmOperationLog.record('store', meta.storeId, '设置系统默认门店',
+                { '默认门店': prev && prev.storeId }, { '默认门店': meta.storeId });
             refreshStoreArchiveActions();
             if (typeof showToast === 'function') showToast('已设为系统默认门店', 'success');
         }
@@ -1439,40 +1489,40 @@
 
     function toggleStoreDisable(tr, pm) {
         var meta = storeRowMeta(tr);
-        if (!meta) return;
-        var current = readSystemDefaultStore();
-        var isDefault = current && current.storeId === meta.storeId;
-        if (!isStoreDisabledStatus(meta.storeStatus) && isDefault) {
-            if (typeof showToast === 'function') showToast('系统默认门店不允许禁用', 'error');
-            return;
-        }
-        var next = isStoreDisabledStatus(meta.storeStatus) ? '正常' : '已禁用';
-        var patch = {};
-        patch[STORE_COL.status] = {
-            value: next,
-            isStatus: true,
-            statusClass: next === '正常' ? 'active' : 'inactive'
-        };
-        function apply() {
-            if (pm && typeof pm.updateTableRow === 'function') {
-                pm.updateTableRow(tr, patch);
-            } else {
-                var span = tr.querySelectorAll('td')[STORE_COL.status].querySelector('.status');
-                if (span) {
-                    span.textContent = next;
-                    span.className = 'status ' + (next === '正常' ? 'active' : 'inactive');
-                }
+        if (!meta || ['已启用', '已冻结'].indexOf(meta.storeStatus) === -1) return;
+        var freezing = meta.storeStatus === '已启用';
+        var verb = freezing ? '冻结' : '解冻';
+        var next = freezing ? '已冻结' : '已启用';
+        var source = tr.dataset.storeStatusSource || meta.storeStatus;
+        function canChange() {
+            var current = readSystemDefaultStore();
+            if (freezing && current && current.storeId === meta.storeId) {
+                window.MdmSubjectLf.showLfWarmConfirm(
+                    '门店「' + meta.name + '」（' + meta.storeId + '）是系统默认门店。请先切换系统默认门店，再重试。',
+                    null, false, '无法冻结门店');
+                return false;
             }
+            if (archiveStatus('store', meta.storeId, source) !== source) {
+                showToast('门店状态已变化，请刷新页面后重试', 'error');
+                return false;
+            }
+            return true;
+        }
+        if (!canChange()) return;
+        var message = verb + '门店「' + meta.name + '」（' + meta.storeId + '）？';
+        if (freezing) message += '\n冻结后停止新下单和支付，存量履约、售后及结算继续按原单据处理。';
+        window.MdmSubjectLf.showLfWarmConfirm(message, function (reason) {
+            // 沿用原禁用值，保留钱包对禁用记录的保证金解冻口径。
+            var storedStatus = freezing ? '已禁用' : '已启用';
+            if (!canChange() || !saveArchiveStatus('store', meta.storeId, storedStatus)) return;
+            tr.dataset.storeStatusSource = storedStatus;
+            updateArchiveStatus(pm, tr, STORE_COL.status, next);
+            if (window.MdmOperationLog) window.MdmOperationLog.record('store', meta.storeId,
+                verb + '门店', { '状态': meta.storeStatus }, { '状态': next, '原因': reason });
             refreshStoreArchiveActions();
-            if (typeof showToast === 'function') {
-                showToast(next === '正常' ? '门店已启用' : '门店已禁用', 'success');
-            }
-        }
-        if (next === '已禁用' && window.MdmSubjectLf && typeof window.MdmSubjectLf.showLfWarmConfirm === 'function') {
-            window.MdmSubjectLf.showLfWarmConfirm('确定禁用该门店？', apply);
-            return;
-        }
-        apply();
+            storeArchiveFilter(pm);
+            showToast(freezing ? '门店已冻结' : '门店已解冻', 'success');
+        }, true);
     }
 
     function bindSetDefaultStorePermissionToggle() {
@@ -1502,9 +1552,8 @@
                 required: true,
                 editDisabled: true,
                 options: [
-                    { value: '正常', text: '正常' },
-                    { value: '冻结', text: '冻结' },
-                    { value: '停用', text: '停用' }
+                    { value: '已启用', text: '已启用' },
+                    { value: '已冻结', text: '已冻结' }
                 ]
             }
         ];
@@ -1601,7 +1650,7 @@
                         editAddressText: row.getAttribute('data-address') || '',
                         editStoreOpStatus: c[STORE_COL.status].querySelector('.status')
                             ? c[STORE_COL.status].querySelector('.status').textContent.trim()
-                            : '正常'
+                            : '已启用'
                     };
                 },
                 onSave: function () {
@@ -1629,6 +1678,13 @@
         });
         archiveStorePage = pm;
         pm.init();
+        restoreArchiveStatuses(pm, 'store', STORE_COL.status);
+        var warehouseBindings = readJsonStore(STORE_WAREHOUSE_BIND_KEY) || {};
+        document.querySelectorAll('#tableBody tr').forEach(function (row) {
+            if (!row.cells[8]) return;
+            var warehouse = warehouseBindings[row.cells[0].textContent.trim()];
+            if (warehouse) row.cells[8].textContent = warehouse;
+        });
         seedStoreDemoBalancePayments();
         seedDemoStoreHours();
         refreshAllStoreHoursCells();
@@ -1902,6 +1958,47 @@
         }, 0);
     }
 
+    function inspectWarehouseBindings(row) {
+        var warehouseId = row.cells[0].textContent.trim();
+        var warehouseName = row.cells[2].textContent.trim();
+        var subjectName = row.cells[1].textContent.trim();
+        function matchesWarehouse(value) {
+            var parts = String(value || '').split('/').map(function (part) { return part.trim(); });
+            return parts.indexOf(warehouseId) !== -1 || parts.indexOf(warehouseName) !== -1 ||
+                parts.indexOf(subjectName) !== -1;
+        }
+        return fetch('mdm_archive_store.html', { cache: 'no-store' }).then(function (response) {
+            if (!response.ok) throw new Error('无法读取门店档案');
+            return response.text();
+        }).then(function (html) {
+            var archive = new DOMParser().parseFromString(html, 'text/html');
+            var table = archive.getElementById('tableBody');
+            if (!table) throw new Error('无法读取门店档案');
+            var stores = Object.assign({}, readJsonStore(STORE_WAREHOUSE_BIND_KEY));
+            table.querySelectorAll('tr').forEach(function (store) {
+                if (!store.cells[8]) return;
+                var id = store.cells[0].textContent.trim();
+                if (!Object.prototype.hasOwnProperty.call(stores, id)) {
+                    stores[id] = store.cells[8].textContent.trim();
+                }
+            });
+            var suppliers = readJsonStore('mdm_supplier_inbound_warehouse_bindings_v1') || {};
+            var bd = readBdWarehouseBindings();
+            return [
+                { label: '门店', ids: Object.keys(stores).filter(function (id) { return matchesWarehouse(stores[id]); }) },
+                { label: '供应商', ids: Object.keys(suppliers).filter(function (key) {
+                    return matchesWarehouse(suppliers[key]);
+                }).map(function (key) { return key.replace(/^(id|name):/, ''); }) },
+                { label: 'BD', ids: Object.keys(bd).filter(function (id) {
+                    return (bd[id].warehouseIds || []).indexOf(warehouseId) !== -1;
+                }) }
+            ].filter(function (group) { return group.ids.length; }).map(function (group) {
+                var ids = Array.from(new Set(group.ids));
+                return group.label + '（' + ids.length + '）' + '：' + ids.join('、');
+            }).join('\n');
+        });
+    }
+
     function initArchiveWarehouse() {
         var fields = [
             { id: 'whCode', label: '仓库编号', type: 'text', editDisabled: true },
@@ -1948,20 +2045,52 @@
                 }
             ],
             onDisableToggle: function (row, status, page) {
-                if (String(status).trim() === '停用') {
-                    page.updateTableRow(row, { 11: { value: '启用', isStatus: true } });
-                } else if (window.MdmSubjectLf && typeof MdmSubjectLf.showLfWarmConfirm === 'function') {
-                    MdmSubjectLf.showLfWarmConfirm('确定将此仓库设为停用？', function () {
-                        page.updateTableRow(row, { 11: { value: '停用', isStatus: true } });
-                        page.refreshDisableToggleLabel(row);
-                        cacheEnabledWarehouseOptionsFromTable();
-                    });
-                    return;
-                } else {
-                    page.updateTableRow(row, { 11: { value: '停用', isStatus: true } });
+                var id = row.cells[0].textContent.trim();
+                var name = row.cells[2].textContent.trim();
+                var archiveLabel = '仓库「' + name + '」（' + id + '）';
+                function showBlocked(message) {
+                    window.MdmSubjectLf.showLfWarmConfirm(archiveLabel + '\n' + message, null, false, '无法停用仓库');
                 }
-                page.refreshDisableToggleLabel(row);
-                cacheEnabledWarehouseOptionsFromTable();
+                if (status !== '启用' && status !== '停用') {
+                    showBlocked('当前档案状态无法核验，请刷新页面后重试。');
+                    return;
+                }
+                var next = status === '停用' ? '启用' : '停用';
+                function check(action) {
+                    if (archiveStatus('warehouse', id, status) !== status) {
+                        showToast('仓库状态已变化，请刷新页面后重试', 'error');
+                        return;
+                    }
+                    if (next === '启用') {
+                        action();
+                        return;
+                    }
+                    inspectWarehouseBindings(row).then(function (blocking) {
+                        if (blocking) {
+                            showBlocked('仍有有效关联，请先改绑或解除关联后重试。\n\n' + blocking);
+                        } else if (archiveStatus('warehouse', id, status) === status) {
+                            action();
+                        }
+                    }).catch(function () {
+                        showBlocked('未能完成关联检查。请通过本地预览服务重新打开页面后重试。');
+                    });
+                }
+                check(function () {
+                    var message = next + archiveLabel + '？';
+                    if (next === '停用') message += '\n停用后停止用于新业务，存量履约及售后继续使用原仓。';
+                    window.MdmSubjectLf.showLfWarmConfirm(message, function (reason) {
+                        check(function () {
+                            if (!saveArchiveStatus('warehouse', id, next)) return;
+                            updateArchiveStatus(page, row, 11, next);
+                            page.refreshDisableToggleLabel(row);
+                            cacheEnabledWarehouseOptionsFromTable();
+                            warehouseArchiveFilter(page);
+                            if (window.MdmOperationLog) window.MdmOperationLog.record('warehouse', id,
+                                next + '仓库', { '状态': status }, { '状态': next, '原因': reason });
+                            showToast('仓库已' + next, 'success');
+                        });
+                    }, true);
+                });
             },
             editModal: {
                 modalId: 'mdmArchWhEdit',
@@ -1997,6 +2126,7 @@
             }
         });
         pm.init();
+        restoreArchiveStatuses(pm, 'warehouse', 11);
         bindSimpleFilter(pm, {
             resetFields: ['qSubjectName', 'qResourceName', 'qWhType', 'qWhStatus'],
             filterFn: warehouseArchiveFilter
@@ -4269,6 +4399,8 @@
         appendArchiveStoreRow: appendArchiveStoreRow,
         initArchiveSupplier: initArchiveSupplier,
         initArchiveWarehouse: initArchiveWarehouse,
+        archiveStatus: archiveStatus,
+        ensureEnabledWarehouseOptions: ensureEnabledWarehouseOptions,
         initArchiveLiveRoom: initArchiveLiveRoom,
         initArchiveCarrier: initArchiveCarrier,
         initPeopleBd: initPeopleBd,

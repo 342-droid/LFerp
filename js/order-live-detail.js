@@ -4726,6 +4726,14 @@
       logBody.hidden = collapsed;
     });
     logCard.appendChild(logToggle);
+    if (window.MdmOperationLog) {
+      var queryLog = el('button', 'erp-btn', '查询操作日志');
+      queryLog.type = 'button';
+      queryLog.addEventListener('click', function () {
+        window.MdmOperationLog.open('订单', state ? state.logs : logs, { business: detail.displayId, types: isProxyOrderPage() ? ['订单已创建', '订单已支付', '订单已发货', '售后·已申请', '售后·已通过', '退款·已创建', '售后·已发起退款'] : ['订单已创建', '订单已支付', '订单已发货', '商品提货', '售后·已申请', '售后·已拒绝'] });
+      });
+      logCard.appendChild(queryLog);
+    }
     logCard.appendChild(logBody);
     main.appendChild(logCard);
 

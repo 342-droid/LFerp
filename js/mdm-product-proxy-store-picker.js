@@ -375,7 +375,193 @@
     refresh();
   }
 
+  function openSelectedItems(items, isRegion, trigger) {
+    var pageSize = 20;
+    var page = 1;
+    var title = isRegion ? '已选区域' : '已选门店（' + items.length + '个）';
+    var placeholder = isRegion ? '请输入区域名称' : '请输入门店名称';
+    var existing = document.querySelector('[data-selected-scope-view]');
+    if (existing) existing.remove();
+
+    var backdrop = document.createElement('div');
+    backdrop.className = 'erp-modal-backdrop lf-selected-scope-view-backdrop';
+    backdrop.setAttribute('data-selected-scope-view', '');
+    backdrop.innerHTML =
+      '<div class="erp-modal lf-selected-scope-view-modal" role="dialog" aria-modal="true" aria-labelledby="selectedScopeViewTitle">' +
+      '<div class="erp-modal__header">' +
+      '<h2 class="erp-modal__title" id="selectedScopeViewTitle">' +
+      escapeHtml(title) +
+      '</h2>' +
+      '<div class="erp-modal__header-actions">' +
+      '<button type="button" class="erp-modal__header-btn" data-close aria-label="关闭">&times;</button>' +
+      '</div></div>' +
+      '<div class="erp-modal__body">' +
+      '<div class="lf-selected-scope-view__search">' +
+      '<input class="erp-input" id="selectedScopeViewKeyword" placeholder="' +
+      escapeHtml(placeholder) +
+      '" autocomplete="off">' +
+      '</div>' +
+      '<div class="lf-selected-scope-view__list" id="selectedScopeViewList"></div>' +
+      (isRegion ? '' : '<div class="lf-selected-scope-view__pager" id="selectedScopeViewPager"></div>') +
+      '</div>' +
+      '<div class="erp-modal__footer">' +
+      '<button type="button" class="erp-btn erp-btn--primary" data-close>关闭</button>' +
+      '</div></div>';
+
+    function close() {
+      backdrop.remove();
+      if (trigger) trigger.focus();
+    }
+
+    function getFiltered() {
+      var kw = ((document.getElementById('selectedScopeViewKeyword') || {}).value || '').trim().toLowerCase();
+      return items.filter(function (item) {
+        if (!kw) return true;
+        var name = String(item.name || '').toLowerCase();
+        var extra = String(item.address || '').toLowerCase();
+        return name.indexOf(kw) >= 0 || extra.indexOf(kw) >= 0;
+      });
+    }
+
+    function renderPager(filtered) {
+      var pager = backdrop.querySelector('#selectedScopeViewPager');
+      if (!pager) return;
+      if (!filtered.length) {
+        pager.hidden = true;
+        pager.innerHTML = '';
+        return;
+      }
+      var maxPage = Math.max(1, Math.ceil(filtered.length / pageSize));
+      pager.hidden = false;
+      var nums = '';
+      var p;
+      for (p = 1; p <= maxPage; p++) {
+        nums +=
+          '<button type="button" class="erp-page-btn' +
+          (p === page ? ' is-active' : '') +
+          '" data-page="' +
+          p +
+          '">' +
+          p +
+          '</button>';
+      }
+      pager.innerHTML =
+        '<div class="erp-pagination lf-selected-scope-view__pagination">' +
+        '<span class="erp-pagination__total">共 ' +
+        filtered.length +
+        ' 条</span>' +
+        '<div class="erp-pagination__mid">' +
+        '<span class="erp-pagination__hint">' +
+        pageSize +
+        ' 条/页</span>' +
+        '<div class="erp-pagination__pages">' +
+        '<button type="button" class="erp-page-btn" data-page="' +
+        (page - 1) +
+        '" ' +
+        (page <= 1 ? 'disabled' : '') +
+        ' aria-label="上一页">‹</button>' +
+        nums +
+        '<button type="button" class="erp-page-btn" data-page="' +
+        (page + 1) +
+        '" ' +
+        (page >= maxPage ? 'disabled' : '') +
+        ' aria-label="下一页">›</button>' +
+        '</div></div></div>';
+    }
+
+    function renderList() {
+      var filtered = getFiltered();
+      var maxPage = Math.max(1, Math.ceil(filtered.length / pageSize) || 1);
+      if (page > maxPage) page = maxPage;
+      if (page < 1) page = 1;
+      var listEl = backdrop.querySelector('#selectedScopeViewList');
+      if (!listEl) return;
+      if (!filtered.length) {
+        listEl.innerHTML =
+          '<div class="lf-selected-scope-view__empty">' +
+          (items.length
+            ? '没有匹配的' + (isRegion ? '区域' : '门店')
+            : '暂无已选' + (isRegion ? '区域' : '门店')) +
+          '</div>';
+        renderPager(filtered);
+        return;
+      }
+      var slice = isRegion ? filtered : filtered.slice((page - 1) * pageSize, page * pageSize);
+      listEl.innerHTML = slice
+        .map(function (item) {
+          var sub = item.address
+            ? '<div class="lf-selected-scope-view__sub">' + escapeHtml(item.address) + '</div>'
+            : '';
+          return (
+            '<div class="lf-selected-scope-view__item"><div class="lf-selected-scope-view__name">' +
+            escapeHtml(item.name) +
+            '</div>' +
+            sub +
+            '</div>'
+          );
+        })
+        .join('');
+      renderPager(filtered);
+    }
+
+    backdrop.addEventListener('click', function (ev) {
+      if (ev.target === backdrop || ev.target.closest('[data-close]')) close();
+    });
+    backdrop.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Escape') {
+        ev.stopPropagation();
+        close();
+      }
+    });
+    var pagerHost = backdrop.querySelector('#selectedScopeViewPager');
+    if (pagerHost) {
+      pagerHost.addEventListener('click', function (ev) {
+        var btn = ev.target.closest('[data-page]');
+        if (!btn || btn.disabled) return;
+        var next = Number(btn.getAttribute('data-page'));
+        if (!next || next < 1) return;
+        page = next;
+        renderList();
+      });
+    }
+    document.body.appendChild(backdrop);
+    var input = backdrop.querySelector('#selectedScopeViewKeyword');
+    if (input) {
+      input.addEventListener('input', function () {
+        page = 1;
+        renderList();
+      });
+      setTimeout(function () {
+        input.focus();
+      }, 0);
+    }
+    renderList();
+  }
+
+  function bindSelectedSummary(element, selected) {
+    if (!element) return;
+    var ids = Object.keys(selected || {});
+    element.setAttribute('role', 'button');
+    element.setAttribute('aria-haspopup', 'dialog');
+    element.classList.add('is-store-view-trigger');
+    element.tabIndex = ids.length ? 0 : -1;
+    element.onclick = function () {
+      if (!ids.length || element.hidden) return;
+      var items = ids.map(function (id) {
+        return getStoreById(id) || { name: id };
+      });
+      openSelectedItems(items, false, element);
+    };
+    element.onkeydown = function (ev) {
+      if (ev.key !== 'Enter' && ev.key !== ' ') return;
+      ev.preventDefault();
+      element.click();
+    };
+  }
+
   window.MdmProxyStorePicker = {
+    openSelectedItems: openSelectedItems,
+    bindSelectedSummary: bindSelectedSummary,
     open: openStorePicker,
     cloneSelected: cloneSelected,
     count: selectedCount,

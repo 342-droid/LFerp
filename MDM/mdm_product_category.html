@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/lf-product.css">
+    <link rel="stylesheet" href="../css/mdm-operation-log.css">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -19,11 +20,15 @@
             <div class="product-page">
                 <div class="product-page-tabs" id="productPageTabs" aria-label="页面页签"></div>
                 <div class="product-page-body">
-                    <section class="erp-page__card" style="padding:24px;text-align:center;color:#999;">商品类目模块（开发中）</section>
+                    <section class="erp-page__card">
+                        <div class="product-toolbar"><button type="button" class="product-toolbar__ghost" style="margin-inline-start:auto" data-master-log="product-category" data-log-title="商品分类" data-log-types="新增分类,修改分类,删除分类">操作日志</button></div>
+                        <div class="product-empty">商品类目模块（开发中）</div>
+                    </section>
                 </div>
             </div>
         </main>
     </div>
+    <script src="../js/mdm-operation-log.js"></script>
     <script src="../js/common.js"></script>
     <script src="../js/product-page-tabs.js"></script>
 </body>

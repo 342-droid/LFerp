@@ -686,7 +686,7 @@
       '    <div class="product-proxy-sale-scope__tags" id="proxySaleScopeTags">' + renderSaleRegionSummary(state) + '</div>' +
       '  </div>' +
       '  <div class="product-proxy-sale-scope__store" id="proxySaleScopeStore"' + (isStore ? '' : ' hidden') + '>' +
-      '    <button type="button" class="product-proxy-sale-scope__pick" id="proxySaleScopeStorePickBtn">+ 选择门店</button>' +
+      '    <button type="button" class="product-proxy-sale-scope__pick" id="proxySaleScopeStorePickBtn">选择门店</button>' +
       '    <p class="product-proxy-sale-scope__store-count" id="proxySaleScopeStoreCount"' + (storeCount ? '' : ' hidden') + '>已选择 ' + storeCount + ' 个门店</p>' +
       '  </div>' +
       '</section>'
@@ -1472,7 +1472,10 @@
       var count = getSaleStoreCount(formState);
       storeCountEl.textContent = '已选择 ' + count + ' 个门店';
       storeCountEl.hidden = !count;
+      if (window.MdmProxyStorePicker) window.MdmProxyStorePicker.bindSelectedSummary(storeCountEl, formState.saleStores);
     }
+
+    refreshStoreCount();
 
     function syncScopePanelsVisible() {
       var scopeEl = backdrop.querySelector('input[name="proxySaleScope"]:checked');
@@ -1517,6 +1520,7 @@
           return;
         }
         window.MdmProxyStorePicker.open({
+          flatFilter: true,
           selected: formState.saleStores,
           onConfirm: function (selected) {
             formState.saleStores = selected;

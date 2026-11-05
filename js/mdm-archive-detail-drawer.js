@@ -2952,6 +2952,7 @@
             settleCycle: attr('data-settle-cycle', '—'),
             splitService: attr('data-split', '—'),
             storeStatus: cellStatus(c[14]),
+            storeStatusSource: tr.dataset.storeStatusSource || cellStatus(c[14]),
             createTime: cellPlain(c[15]),
             onboardChannelGuess: settleType !== '—' ? '支付宝/微信（演示）' : '—',
             hasRefrigerator: false,
@@ -2965,9 +2966,10 @@
     function storeHeroTags(store) {
         var tags = [];
         var st = store.storeStatus;
-        if (st === '正常') tags.push({ kind: 'orange', label: '门店正常' });
-        else if (st === '已禁用' || st === '停用') tags.push({ kind: 'gray', label: '已禁用' });
-        else if (st === '冻结') tags.push({ kind: 'gray', label: '冻结' });
+        if (st === '已启用' || st === '正常') tags.push({ kind: 'orange', label: '已启用' });
+        else if (['已冻结', '冻结', '已禁用', '停用'].indexOf(st) !== -1) {
+            tags.push({ kind: 'gray', label: '已冻结' });
+        }
         if (store.opStatus && store.opStatus !== '—') {
             tags.push({ kind: 'gray', label: store.opStatus });
         }
@@ -3984,7 +3986,7 @@
 
             var storeDisabled =
                 store &&
-                (store.storeStatus === '已禁用' || store.storeStatus === '停用');
+                (store.storeStatusSource === '已禁用' || store.storeStatusSource === '停用');
             function mkManualAdjustBtn(accountType) {
                 var btn = el('button', 'store-summary-bar__action-btn', '手动调账');
                 btn.type = 'button';
@@ -4000,7 +4002,7 @@
             unfreezeBtn.type = 'button';
             if (!storeDisabled) {
                 unfreezeBtn.disabled = true;
-                unfreezeBtn.title = '仅门店状态为「已禁用」时可解冻保证金';
+                unfreezeBtn.title = '仅符合保证金解冻条件的冻结门店可操作';
             } else if (!(Number(depositActual) > 0)) {
                 unfreezeBtn.disabled = true;
                 unfreezeBtn.title = '暂无保证金余额可解冻';
@@ -4008,7 +4010,7 @@
             unfreezeBtn.addEventListener('click', function () {
                 if (!storeDisabled) {
                     if (typeof showToast === 'function') {
-                        showToast('仅已禁用门店可解冻保证金', 'error');
+                        showToast('该门店不符合保证金解冻条件', 'error');
                     }
                     return;
                 }

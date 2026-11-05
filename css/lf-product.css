@@ -3581,6 +3581,81 @@ body.product-add-drawer-open {
   color: var(--color-primary, #ff7019);
 }
 
+/* 已选门店及区域只读弹窗 */
+.product-proxy-sale-scope__store-count.is-store-view-trigger:not([hidden]) {
+  width: fit-content;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.lf-selected-scope-view-backdrop {
+  z-index: 3820;
+}
+
+.lf-selected-scope-view-modal {
+  width: min(560px, 94vw);
+  max-width: none;
+}
+
+.lf-selected-scope-view__search {
+  margin-bottom: 12px;
+}
+
+.lf-selected-scope-view__search .erp-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.lf-selected-scope-view__list {
+  max-height: 360px;
+  overflow-y: auto;
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+}
+
+.lf-selected-scope-view__item {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.lf-selected-scope-view__item:last-child {
+  border-bottom: none;
+}
+
+.lf-selected-scope-view__name {
+  font-size: 13px;
+  color: #333;
+  line-height: 1.4;
+}
+
+.lf-selected-scope-view__sub {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.4;
+}
+
+.lf-selected-scope-view__empty {
+  text-align: center;
+  color: #999;
+  padding: 32px 12px;
+  font-size: 13px;
+}
+
+.lf-selected-scope-view__pager {
+  margin-top: 12px;
+}
+
+.lf-selected-scope-view__pagination {
+  padding-top: 0;
+}
+
+.lf-selected-scope-view__pagination .erp-page-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 /* 选择门店弹窗 */
 .proxy-store-picker-backdrop {
   z-index: 3810;

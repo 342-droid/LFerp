@@ -125,6 +125,7 @@
     if (countEl) {
       countEl.hidden = !count;
       countEl.textContent = '已选择 ' + count + ' 个门店';
+      if (window.MdmProxyStorePicker) window.MdmProxyStorePicker.bindSelectedSummary(countEl, formExtra.saleStores);
     }
   }
 
@@ -869,6 +870,7 @@
           return;
         }
         window.MdmProxyStorePicker.open({
+          flatFilter: true,
           selected: formExtra.saleStores,
           onConfirm: function (selected) {
             formExtra.saleStores = cloneMap(selected);

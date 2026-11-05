@@ -9,6 +9,26 @@
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css?v=20261020-biz-structure">
     <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
     <style>
+        .store-archive-table th.store-archive-actions,
+        .store-archive-table td.action-links {
+            position: sticky;
+            right: 0;
+            z-index: 10;
+            min-width: 120px;
+            background-color: white;
+            box-shadow: -2px 0 3px rgba(0,0,0,0.1);
+        }
+        .store-archive-table th.store-archive-actions {
+            z-index: 11;
+            background-color: #f5f5f5;
+        }
+        .main-content .table.store-archive-table td.bt-archive-col {
+            position: static !important;
+        }
+        .main-content .table.store-archive-table th.bt-archive-col {
+            right: auto !important;
+            z-index: 5 !important;
+        }
         .subject-name-link { color: #2196F3; text-decoration: none; font-weight: 600; }
         .subject-name-link:hover { text-decoration: underline; color: #1976D2; }
         .mdm-store-withdraw { color: #2196F3; text-decoration: none; cursor: pointer; }
@@ -197,6 +217,7 @@
         }
     </style>
     <link rel="stylesheet" href="../css/lf-business-tags.css?v=20260905-product-tag-sync">
+    <link rel="stylesheet" href="../css/mdm-operation-log.css">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -270,8 +291,8 @@
                         <label>门店状态</label>
                         <select id="qStoreStatus" style="height:36px;min-width:120px;border:1px solid #ddd;border-radius:3px;padding:0 8px;">
                             <option value="">全部</option>
-                            <option value="normal">正常</option>
-                            <option value="stopped">已禁用</option>
+                            <option value="normal">已启用</option>
+                            <option value="stopped">已冻结</option>
                         </select>
                     </div>
                     <div class="form-actions">
@@ -282,12 +303,13 @@
                         <button type="button" class="btn btn-secondary" id="btnFilterReset">重置</button>
                         <button type="button" class="btn btn-primary" id="btnFilterQuery">查询</button>
                         <button type="button" class="btn btn-primary" id="mdmArchiveStoreAddBtn">+ 新增门店</button>
+                        <button type="button" class="btn btn-secondary" data-master-log="store" data-log-title="门店档案" data-log-types="新增门店,编辑门店,冻结门店,解冻门店,启用门店,禁用门店,设置系统默认门店,调整营业时间">操作日志</button>
                     </div>
                 </form>
             </section>
             <section class="table-section">
                 <div class="table-scroll-container">
-                    <table class="table">
+                    <table class="table store-archive-table no-last-column-freeze">
                         <thead>
                             <tr>
                                 <th>门店编码</th>
@@ -306,7 +328,7 @@
                                 <th>结算类型</th>
                                 <th>门店状态</th>
                                 <th>创建时间</th>
-                                <th>操作</th>
+                                <th class="store-archive-actions">操作</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody">
@@ -326,13 +348,13 @@
                                 <td>—</td>
                                 <td>喻巧</td>
                                 <td>153****9562</td>
-                                <td>华东履约仓 / WH–SH–01</td>
+                                <td>主仓库 / WH001</td>
                                 <td>营业中</td>
                                 <td class="mdm-store-hours-td" data-store-hours-col></td>
                                 <td>进件成功</td>
                                 <td>已开通</td>
                                 <td>对公</td>
-                                <td><span class="status active">正常</span></td>
+                                <td><span class="status active">已启用</span></td>
                                 <td>2026-08-01 09:00:00</td>
                                 <td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td>
                             </tr>
@@ -358,7 +380,7 @@
                                 <td>未进件</td>
                                 <td>未提交</td>
                                 <td>—</td>
-                                <td><span class="status inactive">冻结</span></td>
+                                <td><span class="status inactive">已冻结</span></td>
                                 <td>2026-04-29T22:53:02</td>
                                 <td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td>
                             </tr>
@@ -384,7 +406,7 @@
                                 <td>进件成功</td>
                                 <td>已开通</td>
                                 <td>对公</td>
-                                <td><span class="status active">正常</span></td>
+                                <td><span class="status active">已启用</span></td>
                                 <td>2026-04-20 10:22:11</td>
                                 <td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td>
                             </tr>
@@ -410,11 +432,11 @@
                                 <td>进件中</td>
                                 <td>未提交</td>
                                 <td>对公</td>
-                                <td><span class="status active">正常</span></td>
+                                <td><span class="status active">已启用</span></td>
                                 <td>2026-04-19 15:01:44</td>
                                 <td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td>
                             </tr>
-                            <tr
+                            <tr data-store-status-source="已禁用"
                                 data-region="浙江省/杭州市/余杭区"
                                 data-address="文一西路969号"
                                 data-latlng="120.05,30.28"
@@ -436,7 +458,7 @@
                                 <td>未进件</td>
                                 <td>未提交</td>
                                 <td>—</td>
-                                <td><span class="status inactive">已禁用</span></td>
+                                <td><span class="status inactive">已冻结</span></td>
                                 <td>2026-04-18 09:33:02</td>
                                 <td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td>
                             </tr>
@@ -447,28 +469,29 @@
             </section>
         </main>
     </div>
+    <script src="../js/mdm-operation-log.js"></script>
     <script src="../js/common.js"></script>
     <script src="../js/pagination.js"></script>
     <script src="../js/form-utils.js"></script>
     <script src="../js/modal-manager.js"></script>
-    <script src="../js/page-manager.js"></script>
+    <script src="../js/page-manager.js?v=store-freeze-states"></script>
     <script src="../js/mdm-onboard-address.js?v=20260826-name-tip-wrap"></script>
     <script src="../js/mdm-store-region-cascader.js?v=20260909-store-code"></script>
     <script src="../js/mdm-store-code.js?v=20260909-store-code"></script>
     <script src="../js/mdm-store-site-slot.js?v=20260910-slot"></script>
-    <script src="../js/mdm-subject-pagemanager.js?v=20260826-name-tip-wrap"></script>
+    <script src="../js/mdm-subject-pagemanager.js?v=archive-disable-guard"></script>
     <script src="../js/mdm-unified-onboarding-ui.js?v=20260826-name-tip-wrap"></script>
     <script src="../js/store-biz-structure.js?v=20261021-internal"></script>
-    <script src="../js/mdm-resource-archive-forms.js?v=20261026-classify"></script>
+    <script src="../js/mdm-resource-archive-forms.js?v=20261105-operation-log"></script>
     <script src="../js/order-config-ui.js"></script>
     <script src="../js/store-account-config.js?v=20260810-sac1"></script>
     <script src="../js/store-wallet-demo.js?v=20260911-other-fmt"></script>
     <script src="../js/store-bind-card-demo.js?v=20260806-bank"></script>
     <script src="../store-app/js/store-app-biz-orders.js?v=20260928-comm-range"></script>
     <script src="../js/mdm-receive-address-store.js?v=20260909-store-code"></script>
-    <script src="../js/mdm-archive-detail-drawer.js?v=20261026-classify"></script>
+    <script src="../js/mdm-archive-detail-drawer.js?v=20261105-operation-log"></script>
     <script src="../js/mdm-system-default-store.js?v=20260827-sys-default"></script>
-    <script src="../js/mdm-erp-lists.js?v=20260910-slot"></script>
+    <script src="../js/mdm-erp-lists.js?v=store-freeze-states"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         MdmErpLists.initArchiveStore();

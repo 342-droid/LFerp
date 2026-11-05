@@ -568,83 +568,45 @@
         updateBdSelectOptions(selectEl, STORE_BIND_BD_ENUM, selectedName);
     }
 
-    /** 与仓库档案一致：仅「仓库类型=仓库」且启用中的仓库可作入库仓 */
-    var FALLBACK_INBOUND_WAREHOUSE_NAMES = ['主仓库', '前置仓-华东一号库演示超长名称'];
-
-    function collectEnabledWarehouseNamesFromRows(rows) {
-        var list = [];
-        var seen = {};
-        rows.forEach(function (tr) {
-            var c = tr.querySelectorAll('td');
-            if (c.length < 12) return;
-            var name = String((c[2].textContent || '').trim());
-            var warehouseType = String((c[3].textContent || '').trim());
-            if (!name || seen[name]) return;
-            /* 仓库类型为「门店」的不进入库仓库下拉 */
-            if (warehouseType !== '仓库') return;
-            var stNode = c[11].querySelector ? c[11].querySelector('.status') : null;
-            var statusText = String((stNode ? stNode.textContent : c[11].textContent) || '')
-                .replace(/\s+/g, '')
-                .trim();
-            if (statusText !== '启用' && statusText !== '启动') return;
-            seen[name] = true;
-            list.push(name);
-        });
-        return list;
-    }
-
-    function updateWarehouseSelectOptions(selectEl, names, selectedName) {
-        if (!selectEl) return;
-        var list = Array.isArray(names) ? names : [];
-        selectEl.innerHTML = '';
-        var placeholder = document.createElement('option');
-        placeholder.value = '';
-        placeholder.textContent = '请选择入库仓库';
-        selectEl.appendChild(placeholder);
-        list.forEach(function (name) {
-            var op = document.createElement('option');
-            op.value = name;
-            op.textContent = name;
-            selectEl.appendChild(op);
-        });
-        if (selectedName) {
-            selectEl.value = selectedName;
-            if (selectEl.value !== selectedName) {
-                selectOptionByLabelText(selectEl, selectedName);
+    function hydrateArchiveWarehouseSelect(selectEl, selectedName, placeholder) {
+        var original = document.createElement('option');
+        original.value = selectedName || '';
+        original.textContent = selectedName || placeholder;
+        selectEl.replaceChildren(original);
+        selectEl.disabled = true;
+        window.MdmErpLists.ensureEnabledWarehouseOptions(function (warehouses) {
+            selectEl.replaceChildren(new Option(placeholder, ''));
+            warehouses.filter(function (warehouse) { return warehouse.enabled; }).forEach(function (warehouse) {
+                var option = new Option(warehouse.name, warehouse.name);
+                option.dataset.warehouseId = warehouse.id;
+                selectEl.appendChild(option);
+            });
+            if (selectedName) {
+                selectEl.value = selectedName;
+                if (!selectEl.value) {
+                    selectEl.appendChild(original);
+                    selectEl.value = selectedName;
+                }
             }
-        }
+            selectEl.disabled = false;
+        });
     }
 
-    function resolveArchiveWarehousePageUrl() {
-        if (window.wmsPath && typeof window.wmsPath.page === 'function') {
-            return window.wmsPath.page('mdm_archive_warehouse.html');
+    function warehouseSelectionAvailable(selectEl, previous) {
+        if (selectEl.disabled) {
+            showToast('正在读取仓库档案，请稍后重试', 'error');
+            return false;
         }
-        return 'mdm_archive_warehouse.html';
+        var option = selectEl.selectedOptions[0];
+        if (!option || option.value === previous || !option.value) return true;
+        var id = option.dataset.warehouseId;
+        if (id && window.MdmErpLists.archiveStatus('warehouse', id, '启用') === '启用') return true;
+        showToast('所选仓库已停用，请重新选择', 'error');
+        return false;
     }
 
     function hydrateInboundWarehouseSelect(selectEl, selectedName) {
-        /* 先落演示兜底，避免 fetch 未完成或失败时下拉空白 */
-        updateWarehouseSelectOptions(selectEl, FALLBACK_INBOUND_WAREHOUSE_NAMES, selectedName);
-        if (typeof fetch !== 'function') return;
-        fetch(resolveArchiveWarehousePageUrl(), { cache: 'no-store' })
-            .then(function (res) {
-                if (!res || !res.ok) return '';
-                return res.text();
-            })
-            .then(function (html) {
-                if (!html) return [];
-                var parser = new DOMParser();
-                var doc = parser.parseFromString(html, 'text/html');
-                var rows = doc.querySelectorAll('#tableBody tr');
-                return collectEnabledWarehouseNamesFromRows(rows);
-            })
-            .then(function (list) {
-                var names = list && list.length ? list : FALLBACK_INBOUND_WAREHOUSE_NAMES;
-                updateWarehouseSelectOptions(selectEl, names, selectedName);
-            })
-            .catch(function () {
-                updateWarehouseSelectOptions(selectEl, FALLBACK_INBOUND_WAREHOUSE_NAMES, selectedName);
-            });
+        hydrateArchiveWarehouseSelect(selectEl, selectedName, '请选择入库仓库');
     }
 
     function attachWideModal(title, bodyEl, onConfirm) {
@@ -752,13 +714,6 @@
             }
         }
         return false;
-    }
-
-    function guessWarehouseSelectValue(whCellText) {
-        var s = String(whCellText || '');
-        if (/苏州|苏/.test(s)) return 'wh2';
-        if (/沪|上海|华东|SH|仓|履约/.test(s)) return 'wh1';
-        return '';
     }
 
     var STORE_SUBJECTS = [
@@ -924,14 +879,8 @@
         refs.storeTypeInp = txt('如社区生鲜店、团购自提点等', '');
         body.appendChild(formRow('门店类型', true, refs.storeTypeInp));
         mountStoreBizFields(body, refs);
-        refs.warehouseSel = sel(
-            [
-                { value: '', label: '请选择配送仓库' },
-                { value: 'wh1', label: '沪南一号仓' },
-                { value: 'wh2', label: '苏州合作仓' }
-            ],
-            ''
-        );
+        refs.warehouseSel = sel([], '');
+        refs.warehouseSel.setAttribute('data-required-msg', '请选择配送仓库');
         body.appendChild(formRow('配送仓库', true, refs.warehouseSel));
         var regionRow = document.createElement('div');
         regionRow.className = 'store-form__row';
@@ -1085,7 +1034,7 @@
                 refs.partnerSel.value = '';
             }
             refs.storeTypeInp.value = cellPlainText(c[4]);
-            refs.warehouseSel.value = guessWarehouseSelectValue(cellPlainText(c[8]));
+            hydrateArchiveWarehouseSelect(refs.warehouseSel, cellPlainText(c[8]), '请选择配送仓库');
             var regionVal = tr.getAttribute('data-region') || '';
             refs.regionInp.value = compactStoreRegion(regionVal);
             if (refs.regionCascader && typeof refs.regionCascader.setValue === 'function') {
@@ -1572,7 +1521,9 @@
         syncVenuePhotosFromOnboarding: syncVenuePhotosFromOnboarding,
         openStoreAdd: function () {
             var bundle = createStoreFormBundle({});
+            hydrateArchiveWarehouseSelect(bundle.refs.warehouseSel, '', '请选择配送仓库');
             attachWideModal('添加门店', bundle.body, function () {
+                if (!warehouseSelectionAvailable(bundle.refs.warehouseSel, '')) return false;
                 var refs = bundle.refs || {};
                 var name = refs.nameInp ? String(refs.nameInp.value || '').trim() : '';
                 var region = refs.regionInp ? String(refs.regionInp.value || '').trim() : '';
@@ -1592,6 +1543,9 @@
                 writeVenuePhotos('store', storeCode, collectVenuePhotosFromRefs(refs));
                 /* 演示：亦按名称索引，便于列表尚未落库时进件带入 */
                 if (name) writeVenuePhotos('store', 'name:' + name, collectVenuePhotosFromRefs(refs));
+                var bindings = readJsonStore('mdm_store_warehouse_bindings_v1');
+                bindings[storeCode] = selectedLabel(refs.warehouseSel);
+                writeJsonStore('mdm_store_warehouse_bindings_v1', bindings);
                 syncStoreReceiveFromForm(storeCode, name, refs);
                 var partnerMap = { franchise: '加盟店', joint: '联营店', direct: '直营店' };
                 var partnerValue = refs.partnerSel && refs.partnerSel.value;
@@ -1631,8 +1585,19 @@
             }
             var bundle = createStoreFormBundle({ initialVenuePhotos: initial, storeCode: storeId });
             bundle.fillFromArchiveRow(tr);
+            function storeSnapshot() {
+                return {
+                    '门店编码': cellPlainText(cells[0]),
+                    '配送仓库': cellPlainText(cells[8]),
+                    '门店简称': tr.getAttribute('data-short-name') || storeName,
+                    '所在地区': tr.getAttribute('data-region') || '',
+                    '详细地址': tr.getAttribute('data-address') || ''
+                };
+            }
+            var before = storeSnapshot();
             attachWideModal('编辑门店', bundle.body, function () {
                 var refs = bundle.refs || {};
+                if (!warehouseSelectionAvailable(refs.warehouseSel, before['配送仓库'])) return false;
                 var region = refs.regionInp ? String(refs.regionInp.value || '').trim() : '';
                 var nextCode = storeId;
                 var api = window.MdmStoreCode;
@@ -1667,12 +1632,20 @@
                     }
                 }
                 tr.setAttribute('data-short-name', nextShort || nextName || storeName);
+                var bindings = readJsonStore('mdm_store_warehouse_bindings_v1');
+                if (nextCode !== storeId) bindings[storeId] = '';
+                bindings[nextCode] = selectedLabel(refs.warehouseSel);
+                writeJsonStore('mdm_store_warehouse_bindings_v1', bindings);
+                cells[8].textContent = bindings[nextCode];
                 syncStoreReceiveFromForm(nextCode || storeId, nextName || storeName, refs);
+                if (window.MdmOperationLog) window.MdmOperationLog.record('store', nextCode || storeId,
+                    '编辑门店', before, storeSnapshot());
             });
         },
         openSupplierAdd: function () {
             var bundle = createSupplierFormBundle({ includeInboundWarehouse: true });
             attachWideModal('新增供应商', bundle.body, function () {
+                if (!warehouseSelectionAvailable(bundle.refs.inboundWarehouseSel, '')) return false;
                 var name =
                     bundle.refs && bundle.refs.nameInp
                         ? String(bundle.refs.nameInp.value || '').trim()
@@ -1702,7 +1675,13 @@
                 initialInboundWarehouse: inboundWarehouse
             });
             bundle.fillFromArchiveRow(tr);
+            var before = {
+                '供应商名称': bundle.refs.nameInp.value.trim(),
+                '供应商简称': bundle.refs.shortNameInp.value.trim(),
+                '入库仓库': bundle.refs.inboundWarehouseSel.value
+            };
             attachWideModal('编辑供应商', bundle.body, function () {
+                if (!warehouseSelectionAvailable(bundle.refs.inboundWarehouseSel, before['入库仓库'])) return false;
                 var nextName =
                     bundle.refs && bundle.refs.nameInp
                         ? String(bundle.refs.nameInp.value || '').trim()
@@ -1726,6 +1705,11 @@
                     nextName || supplierName,
                     selectedWarehouse
                 );
+                if (window.MdmOperationLog) window.MdmOperationLog.record('supplier', supplierId, '编辑供应商', before, {
+                    '供应商名称': nextName || supplierName,
+                    '供应商简称': nextShort,
+                    '入库仓库': selectedWarehouse
+                });
                 if (window.MdmSupplierArchiveStore) {
                     window.MdmSupplierArchiveStore.upsert({
                         id: supplierId,
@@ -1779,8 +1763,14 @@
             var warehouseId = cells[0] ? cellPlainText(cells[0]) : '';
             var bundle = createWarehouseFormBundle();
             bundle.fillFromArchiveRow(tr);
+            var before = { '仓库名称': bundle.refs.nameInp.value.trim() };
             attachWideModal('编辑仓库', bundle.body, function () {
                 seedWarehouseReceiveFromForm(warehouseId, bundle.refs);
+                var nextName = bundle.refs.nameInp.value.trim();
+                var nameCell = cells[2].querySelector('.subject-name-link') || cells[2];
+                nameCell.textContent = nextName;
+                if (window.MdmOperationLog) window.MdmOperationLog.record('warehouse', warehouseId, '修改仓库', before,
+                    { '仓库名称': nextName });
             });
         },
         close: removeArchiveFormModals

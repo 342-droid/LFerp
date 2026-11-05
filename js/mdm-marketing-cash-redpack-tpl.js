@@ -176,6 +176,7 @@
     var item = Store.getById(id);
     if (title) title.textContent = '操作日志' + (item ? ' · ' + (item.name || item.id) : '');
     var rows = Store.getLogs(id);
+    if (window.MdmOperationLog) { window.MdmOperationLog.open(item && item.name || '红包模板', rows, { business: id, marketing: true, types: ['保存草稿', '提交审核', '取消审核', '审核成功', '审核失败', '启用', '禁用'] }); return; }
     if (body) {
       body.innerHTML = rows.length
         ? rows

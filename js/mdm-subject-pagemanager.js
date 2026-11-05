@@ -10,11 +10,12 @@
             '<div id="lfMdmWarmConfirm" class="modal" style="display:none">' +
                 '<div class="modal-content" style="width:420px">' +
                 '<div class="modal-header">' +
-                '<h2 class="modal-title">温馨提示</h2>' +
+                '<h2 class="modal-title" id="lfMdmWarmTitle">温馨提示</h2>' +
                 '<span class="close" id="lfMdmWarmCloseX">&times;</span>' +
                 '</div>' +
                 '<div class="modal-body" style="padding:16px 20px;line-height:1.65;color:#333">' +
-                '<p id="lfMdmWarmMsg" style="margin:0;"></p>' +
+                '<p id="lfMdmWarmMsg" style="margin:0;white-space:pre-line"></p>' +
+                '<label id="lfMdmWarmReasonLabel" hidden>操作原因<textarea id="lfMdmWarmReason" class="form-control" rows="2" maxlength="200"></textarea></label>' +
                 '</div>' +
                 '<div class="modal-footer">' +
                 '<button type="button" class="btn btn-primary" id="lfMdmWarmOk">确定</button>' +
@@ -32,18 +33,32 @@
         });
     }
 
-    function showLfWarmConfirm(message, onOk) {
+    function showLfWarmConfirm(message, onOk, requireReason, blockedTitle) {
         ensureLfWarmConfirmModal();
         var modal = document.getElementById('lfMdmWarmConfirm');
         var okBtn = document.getElementById('lfMdmWarmOk');
         var msgEl = document.getElementById('lfMdmWarmMsg');
         if (!modal || !okBtn || !msgEl) return;
+        document.getElementById('lfMdmWarmTitle').textContent = blockedTitle || '温馨提示';
+        document.getElementById('lfMdmWarmCancel').hidden = Boolean(blockedTitle);
+        okBtn.textContent = blockedTitle ? '关闭' : '确定';
+        var reason = document.getElementById('lfMdmWarmReason');
+        document.getElementById('lfMdmWarmReasonLabel').hidden = !requireReason;
+        reason.value = '';
         msgEl.textContent = message;
         modal.style.display = 'block';
         okBtn.onclick = function () {
+            if (requireReason && !reason.value.trim()) {
+                showToast('请输入操作原因', 'error');
+                reason.focus();
+                return;
+            }
             modal.style.display = 'none';
             okBtn.onclick = null;
-            if (typeof onOk === 'function') onOk();
+            if (typeof onOk === 'function') {
+                if (requireReason) onOk(reason.value.trim());
+                else onOk();
+            }
         };
     }
 
@@ -1121,9 +1136,10 @@
         var typeVal = typeEl ? typeEl.value.trim() : spec.subjectTypeLabel;
         var nameEl = document.getElementById(fieldId(pfx, 'subjectName'));
         var contactEl = document.getElementById(fieldId(pfx, 'contactPerson'));
+        var subjectId = nextSubjectRowId(subjectIdPrefix, pm);
         pm.addTableRow({
             cells: [
-                nextSubjectRowId(subjectIdPrefix, pm),
+                subjectId,
                 nameEl ? nameEl.value.trim() : '',
                 dockVal,
                 typeVal || spec.subjectTypeLabel,
@@ -1134,6 +1150,11 @@
                 '当前用户',
                 { value: spec.defaultStatus || '正常', isStatus: true }
             ]
+        });
+        if (window.MdmOperationLog) window.MdmOperationLog.record('subject', subjectId, '新增商家主体', null, {
+            '主体名称': nameEl ? nameEl.value.trim() : '',
+            '主体类型': typeVal || spec.subjectTypeLabel,
+            '状态': spec.defaultStatus || '正常'
         });
         showToast(spec.pageLabel + '商家已保存', 'success');
         return true;
@@ -1480,11 +1501,15 @@
                 var kindSpec = kindByLabel[label] || kindByLabel['门店'];
                 if (status === '禁用' || status === '停用' || status === '冻结') {
                     pm.updateTableRow(row, { 9: { value: '开启', isStatus: true } });
+                    if (window.MdmOperationLog) window.MdmOperationLog.record('subject',
+                        row.cells[0].textContent.trim(), '启用商家主体', { '状态': status }, { '状态': '开启' });
                     pm.refreshDisableToggleLabel(row);
                     return;
                 }
                 showLfWarmConfirm(kindSpec.disableConfirmMessage, function () {
                     pm.updateTableRow(row, { 9: { value: '禁用', isStatus: true } });
+                    if (window.MdmOperationLog) window.MdmOperationLog.record('subject',
+                        row.cells[0].textContent.trim(), '禁用商家主体', { '状态': status }, { '状态': '禁用' });
                     pm.refreshDisableToggleLabel(row);
                 });
             },
