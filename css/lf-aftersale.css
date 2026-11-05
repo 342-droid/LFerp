@@ -2848,3 +2848,8 @@ a.aftersale-btn {
     text-align: left;
   }
 }
+
+.aftersale-order-query-type {
+  justify-self: end;
+  align-self: center;
+}

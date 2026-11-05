@@ -483,7 +483,8 @@
   function readFilters() {
     state.filters = {
       ticketNo: (($('asTicketNo') || {}).value || '').trim(),
-      orderNo: (($('asOrderNo') || {}).value || '').trim(),
+      orderQueryType: ($('asOrderQueryType') || {}).value || 'orderNo',
+      orderQuery: (($('asOrderNo') || {}).value || '').trim(),
       orderSource: ($('asOrderSource') || {}).value || '',
       phone: (($('asUserPhone') || {}).value || '').trim(),
       productName: (($('asProductName') || {}).value || '').trim(),
@@ -520,7 +521,20 @@
   function matchRow(row) {
     var f = state.filters;
     if (f.ticketNo && row.id.indexOf(f.ticketNo) < 0) return false;
-    if (f.orderNo && String(row.orderNo).indexOf(f.orderNo) < 0) return false;
+    if (f.orderQuery) {
+      if (f.orderQueryType === 'trackingNo') {
+        var shipments = row.shipments || {};
+        var numbers = [row.trackingNo, row.orderTrackingNo];
+        Object.keys(shipments).forEach(function (key) {
+          if (shipments[key]) numbers.push(shipments[key].trackingNo);
+        });
+        if (/^AS-(?:RT|PX)/.test(row.id) && window.MdmAftersaleDemoTracking) {
+          numbers = numbers.concat(Object.values(window.MdmAftersaleDemoTracking.forTicket(row.id, row.type, row.status, row.fulfillment)));
+        }
+        var query = f.orderQuery.toUpperCase();
+        if (!numbers.some(function (value) { return String(value || '').toUpperCase().indexOf(query) >= 0; })) return false;
+      } else if (String(row.orderNo).indexOf(f.orderQuery) < 0) return false;
+    }
     if (f.orderSource && row.orderSource !== f.orderSource) return false;
     if (f.phone && row.phone.indexOf(f.phone) < 0) return false;
     if (
@@ -737,6 +751,56 @@
     var jumpEl = $('asTicketJump');
     var tbody = $('asTicketTableBody');
 
+    var querySwitch = $('asOrderQuerySwitch');
+    var queryType = $('asOrderQueryType');
+    var queryInput = $('asOrderNo');
+    var queryTrigger = querySwitch.querySelector('.order-filter-switch__trigger');
+    var queryMenu = $('asOrderQueryMenu');
+    var queryOptions = queryMenu.querySelectorAll('button[data-value]');
+
+    function setOrderQueryOpen(open) {
+      queryMenu.hidden = !open;
+      querySwitch.classList.toggle('is-open', open);
+      queryTrigger.setAttribute('aria-expanded', String(open));
+    }
+
+    function selectOrderQuery(value) {
+      queryType.value = value;
+      queryOptions.forEach(function (option) {
+        var selected = option.dataset.value === value;
+        option.classList.toggle('is-active', selected);
+        option.setAttribute('aria-pressed', String(selected));
+        if (selected) queryTrigger.textContent = option.textContent;
+      });
+      queryInput.placeholder = '请输入' + queryTrigger.textContent;
+      queryInput.setAttribute('aria-label', queryTrigger.textContent);
+      queryInput.value = '';
+      setOrderQueryOpen(false);
+    }
+
+    queryTrigger.addEventListener('click', function () {
+      setOrderQueryOpen(queryMenu.hidden);
+    });
+    queryOptions.forEach(function (option) {
+      option.addEventListener('click', function () {
+        if (option.dataset.value !== queryType.value) selectOrderQuery(option.dataset.value);
+        setOrderQueryOpen(false);
+        queryTrigger.focus();
+      });
+    });
+    document.addEventListener('click', function (event) {
+      if (!querySwitch.contains(event.target)) setOrderQueryOpen(false);
+    });
+    querySwitch.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && !queryMenu.hidden) {
+        setOrderQueryOpen(false);
+        queryTrigger.focus();
+      }
+    });
+    querySwitch.addEventListener('focusout', function (event) {
+      if (!querySwitch.contains(event.relatedTarget)) setOrderQueryOpen(false);
+    });
+
     if (queryBtn) {
       queryBtn.addEventListener('click', function () {
         refresh(true);
@@ -747,6 +811,7 @@
       resetBtn.addEventListener('click', function () {
         var form = $('asTicketFilterForm');
         if (form) form.reset();
+        selectOrderQuery('orderNo');
         syncReasonFilterOptions(false);
         refresh(true);
       });
