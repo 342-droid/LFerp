@@ -1,10 +1,622 @@
 {
-  "latestSha": "b8aee14d31daf489b77f3b334b298cb604a859ed",
-  "total": 480,
+  "latestSha": "2066aecac590e0c05d28ef81e147cac9815c818e",
+  "total": 482,
   "days": [
     {
       "date": "2026-11-05",
       "items": [
+        {
+          "sha": "2066aec",
+          "type": "feat",
+          "text": "同步操作日志和售卖范围门店查看",
+          "author": "u ｌ",
+          "time": "17:46",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_audit_cash_redpack.html",
+              "module": "冷丰WMS",
+              "title": "现金红包审核"
+            },
+            {
+              "file": "MDM/mdm_audit_cash_redpack_manual.html",
+              "module": "冷丰WMS",
+              "title": "派发红包审核"
+            },
+            {
+              "file": "MDM/mdm_audit_coupon.html",
+              "module": "冷丰WMS",
+              "title": "优惠券审核"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_live_control.html",
+              "module": "冷丰WMS",
+              "title": "直播中控"
+            },
+            {
+              "file": "MDM/mdm_live_data.html",
+              "module": "冷丰WMS",
+              "title": "直播数据"
+            },
+            {
+              "file": "MDM/mdm_live_product_category.html",
+              "module": "冷丰WMS",
+              "title": "直播类目"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched.html",
+              "module": "冷丰WMS",
+              "title": "直播排品"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "module": "冷丰WMS",
+              "title": "直播排品编辑"
+            },
+            {
+              "file": "MDM/mdm_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间"
+            },
+            {
+              "file": "MDM/mdm_live_session.html",
+              "module": "冷丰WMS",
+              "title": "直播场次"
+            },
+            {
+              "file": "MDM/mdm_live_session_detail.html",
+              "module": "冷丰WMS",
+              "title": "直播场次详情"
+            },
+            {
+              "file": "MDM/mdm_live_session_form.html",
+              "module": "冷丰WMS",
+              "title": "直播场次编辑"
+            },
+            {
+              "file": "MDM/mdm_live_timeslot.html",
+              "module": "冷丰WMS",
+              "title": "直播时段"
+            },
+            {
+              "file": "MDM/mdm_marketing_cash_redpack_tpl.html",
+              "module": "冷丰WMS",
+              "title": "现金红包模版"
+            },
+            {
+              "file": "MDM/mdm_marketing_coupon.html",
+              "module": "冷丰WMS",
+              "title": "优惠券"
+            },
+            {
+              "file": "MDM/mdm_marketing_newcomer_zone.html",
+              "module": "冷丰WMS",
+              "title": "新人专区"
+            },
+            {
+              "file": "MDM/mdm_marketing_newcomer_zone_form.html",
+              "module": "冷丰WMS",
+              "title": "编辑新人专区商品"
+            },
+            {
+              "file": "MDM/mdm_marketing_points_mall.html",
+              "module": "冷丰WMS",
+              "title": "积分商城"
+            },
+            {
+              "file": "MDM/mdm_marketing_points_mall_form.html",
+              "module": "冷丰WMS",
+              "title": "编辑积分商品"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill.html",
+              "module": "冷丰WMS",
+              "title": "秒杀"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "module": "冷丰WMS",
+              "title": "秒杀活动"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "module": "冷丰WMS",
+              "title": "编辑秒杀商品"
+            },
+            {
+              "file": "MDM/mdm_marketing_template.html",
+              "module": "冷丰WMS",
+              "title": "模版配置"
+            },
+            {
+              "file": "MDM/mdm_member_batch_tag.html",
+              "module": "冷丰WMS",
+              "title": "批量打标签"
+            },
+            {
+              "file": "MDM/mdm_member_batch_tag_form.html",
+              "module": "冷丰WMS",
+              "title": "批量打标签"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
+              "file": "MDM/mdm_member_points_cash.html",
+              "module": "冷丰WMS",
+              "title": "积分抵现"
+            },
+            {
+              "file": "MDM/mdm_member_points_cash_form.html",
+              "module": "冷丰WMS",
+              "title": "积分抵现"
+            },
+            {
+              "file": "MDM/mdm_member_points_consume.html",
+              "module": "冷丰WMS",
+              "title": "消费送积分"
+            },
+            {
+              "file": "MDM/mdm_member_points_consume_form.html",
+              "module": "冷丰WMS",
+              "title": "消费送积分"
+            },
+            {
+              "file": "MDM/mdm_member_points_rule.html",
+              "module": "冷丰WMS",
+              "title": "积分规则"
+            },
+            {
+              "file": "MDM/mdm_member_segment.html",
+              "module": "冷丰WMS",
+              "title": "会员分群"
+            },
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            },
+            {
+              "file": "MDM/mdm_party_all.html",
+              "module": "冷丰WMS",
+              "title": "所有主体"
+            },
+            {
+              "file": "MDM/mdm_people_anchor.html",
+              "module": "冷丰WMS",
+              "title": "主播"
+            },
+            {
+              "file": "MDM/mdm_people_bd.html",
+              "module": "冷丰WMS",
+              "title": "BD推广员"
+            },
+            {
+              "file": "MDM/mdm_people_driver.html",
+              "module": "冷丰WMS",
+              "title": "司机"
+            },
+            {
+              "file": "MDM/mdm_people_purchaser.html",
+              "module": "冷丰WMS",
+              "title": "采购员"
+            },
+            {
+              "file": "MDM/mdm_product_audit.html",
+              "module": "冷丰WMS",
+              "title": "商品详情"
+            },
+            {
+              "file": "MDM/mdm_product_category.html",
+              "module": "冷丰WMS",
+              "title": "商品类目"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_mall_category.html",
+              "module": "冷丰WMS",
+              "title": "商城类目"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "module": "冷丰WMS",
+              "title": "选品库"
+            },
+            {
+              "file": "MDM/mdm_settle_index.html",
+              "module": "冷丰结算",
+              "title": "结算中心"
+            },
+            {
+              "file": "MDM/mdm_super_admin_accounts.html",
+              "module": "冷丰WMS",
+              "title": "商户主体建档"
+            }
+          ],
+          "global": true
+        },
+        {
+          "sha": "58da79b",
+          "type": "feat",
+          "text": "售后保障期与结算周期落地，丰银宝支持供应商视角",
+          "author": "sisi",
+          "time": "17:41",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_feedback.html",
+              "module": "冷丰售后",
+              "title": "意见反馈"
+            },
+            {
+              "file": "MDM/mdm_aftersale_guarantee.html",
+              "module": "冷丰售后",
+              "title": "售后保障期管理"
+            },
+            {
+              "file": "MDM/mdm_aftersale_refund.html",
+              "module": "冷丰售后",
+              "title": "退款单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_report.html",
+              "module": "冷丰售后",
+              "title": "举报管理"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "module": "冷丰售后",
+              "title": "售后单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_bd_stores.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 门店模块"
+            },
+            {
+              "file": "MDM/mdm_order_express_cutoff.html",
+              "module": "冷丰订单",
+              "title": "订单截单"
+            },
+            {
+              "file": "MDM/mdm_settle_index.html",
+              "module": "冷丰结算",
+              "title": "结算中心"
+            },
+            {
+              "file": "MDM/mdm_settle_supplier_portal.html",
+              "module": "冷丰结算",
+              "title": "供应商结算"
+            },
+            {
+              "file": "SCM/basic_settings_contract_config.html",
+              "module": "冷丰WMS",
+              "title": "接入配置"
+            },
+            {
+              "file": "SCM/basic_settings_contract_party.html",
+              "module": "冷丰WMS",
+              "title": "签署主体"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task.html",
+              "module": "冷丰WMS",
+              "title": "签署任务"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_detail.html",
+              "module": "冷丰WMS",
+              "title": "签署任务详情"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template.html",
+              "module": "冷丰WMS",
+              "title": "合同模板"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template_form.html",
+              "module": "冷丰WMS",
+              "title": "合同模板配置"
+            },
+            {
+              "file": "SCM/contract_sign.html",
+              "module": "",
+              "title": "合同"
+            },
+            {
+              "file": "SCM/mobile_index.html",
+              "module": "冷丰WMS",
+              "title": "移动端"
+            },
+            {
+              "file": "shop-h5/h5/store/contracts.html",
+              "module": "",
+              "title": "签署合同 · Shop H5"
+            },
+            {
+              "file": "store-app/h5/bank-cards.html",
+              "module": "",
+              "title": "银行卡 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/biz-center.html",
+              "module": "",
+              "title": "经营中心 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/biz-order-goods.html",
+              "module": "",
+              "title": "订单商品明细 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/contract-sign.html",
+              "module": "",
+              "title": "签署合同 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/contracts.html",
+              "module": "",
+              "title": "合同签署 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "丰银宝 · 工作台"
+            },
+            {
+              "file": "store-app/h5/live-promo.html",
+              "module": "",
+              "title": "直播推广 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/more.html",
+              "module": "",
+              "title": "更多 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/onboarding.html",
+              "module": "",
+              "title": "商户进件 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/order-aftersale-list.html",
+              "module": "",
+              "title": "退款/售后 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/order-detail.html",
+              "module": "",
+              "title": "核销详情 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/order-logistics.html",
+              "module": "",
+              "title": "订单跟踪 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/order-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/password-edit.html",
+              "module": "",
+              "title": "密码管理 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/password-forgot.html",
+              "module": "",
+              "title": "忘记密码 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/password.html",
+              "module": "",
+              "title": "密码管理 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/restock-aftersale-list.html",
+              "module": "",
+              "title": "退款/售后 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "module": "",
+              "title": "门店订单 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-orders.html",
+              "module": "",
+              "title": "供应订单 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-settle.html",
+              "module": "",
+              "title": "结算中心 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/verify.html",
+              "module": "",
+              "title": "门店核销 · 丰银宝"
+            },
+            {
+              "file": "store-app/index.html",
+              "module": "",
+              "title": "丰银宝"
+            },
+            {
+              "file": "user-app/h5/login-register.html",
+              "module": "",
+              "title": "账号注册 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "module": "",
+              "title": "进货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/store-bind-card-confirm.html",
+              "module": "",
+              "title": "确定卡号 · 丰银宝"
+            },
+            {
+              "file": "user-app/h5/store-bind-card-scan.html",
+              "module": "",
+              "title": "扫描银行卡 · 丰银宝"
+            },
+            {
+              "file": "user-app/h5/store-bind-card.html",
+              "module": "",
+              "title": "绑定银行卡 · 丰银宝"
+            },
+            {
+              "file": "user-app/h5/store-pay-password.html",
+              "module": "",
+              "title": "设置支付密码 · 丰银宝"
+            },
+            {
+              "file": "user-app/h5/store-recharge.html",
+              "module": "",
+              "title": "充值 · 丰银宝"
+            },
+            {
+              "file": "user-app/h5/store-wallet.html",
+              "module": "",
+              "title": "我的钱包 · 丰银宝"
+            },
+            {
+              "file": "user-app/h5/store-withdraw-records.html",
+              "module": "",
+              "title": "提现明细 · 丰银宝"
+            },
+            {
+              "file": "user-app/h5/store-withdraw.html",
+              "module": "",
+              "title": "提现 · 丰银宝"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_aftersale_guarantee.html",
+              "text": "新增平台兜底、类目默认与 SPU 覆盖配置页，挂在售后侧栏"
+            },
+            {
+              "file": "MDM/mdm_settle_index.html",
+              "text": "通用配置开放履约后/售后期起算；平台默认周期保存后跟随平台的供应商自动同步；清分台账展示按行可结算时点与入池状态"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "text": "新建/编辑必配起算节点与结算周期，默认可跟随平台"
+            },
+            {
+              "file": "store-app/h5/home.html",
+              "text": "门店 APP 更名丰银宝；首页左上角切换门店/供应商组织；供应商可看供应订单、结算中心与合同"
+            }
+          ]
+        },
         {
           "sha": "b8aee14",
           "type": "feat",
@@ -16,6 +628,11 @@
               "file": "MDM/mdm_aftersale_feedback.html",
               "module": "冷丰售后",
               "title": "意见反馈"
+            },
+            {
+              "file": "MDM/mdm_aftersale_guarantee.html",
+              "module": "冷丰售后",
+              "title": "售后保障期管理"
             },
             {
               "file": "MDM/mdm_aftersale_refund.html",
@@ -963,6 +1580,11 @@
               "title": "意见反馈"
             },
             {
+              "file": "MDM/mdm_aftersale_guarantee.html",
+              "module": "冷丰售后",
+              "title": "售后保障期管理"
+            },
+            {
               "file": "MDM/mdm_aftersale_refund.html",
               "module": "冷丰售后",
               "title": "退款单"
@@ -1001,6 +1623,11 @@
               "file": "MDM/mdm_aftersale_feedback.html",
               "module": "冷丰售后",
               "title": "意见反馈"
+            },
+            {
+              "file": "MDM/mdm_aftersale_guarantee.html",
+              "module": "冷丰售后",
+              "title": "售后保障期管理"
             },
             {
               "file": "MDM/mdm_aftersale_refund.html",
@@ -1182,17 +1809,17 @@
             {
               "file": "store-app/h5/contract-sign.html",
               "module": "",
-              "title": "签署合同 · 门店APP"
+              "title": "签署合同 · 丰银宝"
             },
             {
               "file": "store-app/h5/contracts.html",
               "module": "",
-              "title": "合同签署 · 门店APP"
+              "title": "合同签署 · 丰银宝"
             },
             {
               "file": "store-app/h5/home.html",
               "module": "",
-              "title": "门店APP · 工作台"
+              "title": "丰银宝 · 工作台"
             },
             {
               "file": "user-app/h5/login-register.html",
@@ -1238,16 +1865,20 @@
               "text": "每份协议单独列出，去签署进入法大大"
             },
             {
-              "file": "store-app/h5/home.html",
-              "text": "新增合同签署入口，本店还有待签署时显示红点"
+              "file": "store-app/h5/contracts.html",
+              "text": "门店APP · 工作台: 新增合同签署入口，本店还有待签署时显示红点"
             },
             {
               "file": "store-app/h5/contracts.html",
-              "text": "按份列出合同，去签署进入法大大"
+              "text": "合同签署 · 门店APP: 按份列出合同，去签署进入法大大"
+            },
+            {
+              "file": "shop-h5/h5/store/contracts.html",
+              "text": "签署合同 · 门店APP: 打开后进入法大大该任务的签署页"
             },
             {
               "file": "store-app/h5/contract-sign.html",
-              "text": "打开后进入法大大该任务的签署页"
+              "text": "签署合同 · 门店APP: 打开后进入法大大该任务的签署页"
             },
             {
               "file": "MDM/mdm_order_retail.html",
@@ -1330,12 +1961,17 @@
             {
               "file": "store-app/h5/contract-sign.html",
               "module": "",
-              "title": "签署合同 · 门店APP"
+              "title": "签署合同 · 丰银宝"
             },
             {
               "file": "store-app/h5/contracts.html",
               "module": "",
-              "title": "合同签署 · 门店APP"
+              "title": "合同签署 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "丰银宝 · 工作台"
             },
             {
               "file": "user-app/h5/change-password.html",
@@ -1578,22 +2214,27 @@
             {
               "file": "store-app/h5/contract-sign.html",
               "module": "",
-              "title": "签署合同 · 门店APP"
+              "title": "签署合同 · 丰银宝"
             },
             {
               "file": "store-app/h5/contracts.html",
               "module": "",
-              "title": "合同签署 · 门店APP"
+              "title": "合同签署 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "丰银宝 · 工作台"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "user-app/h5/cart.html",
@@ -2840,12 +3481,12 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "user-app/h5/cart.html",
@@ -4007,19 +4648,23 @@
             {
               "file": "store-app/h5/biz-center.html",
               "module": "",
-              "title": "经营中心 · 门店APP"
+              "title": "经营中心 · 丰银宝"
             },
             {
               "file": "store-app/h5/biz-order-goods.html",
               "module": "",
-              "title": "订单商品明细 · 门店APP"
+              "title": "订单商品明细 · 丰银宝"
             }
           ],
           "global": true,
           "notes": [
             {
               "file": "store-app/h5/biz-center.html",
-              "text": "下单日期看预到账、入账日期看实际到账，切换后下面订单一起变；今天、昨天、近7天、近1个月都有演示订单"
+              "text": "经营中心 · 门店APP: 下单日期看预到账、入账日期看实际到账，切换后下面订单一起变"
+            },
+            {
+              "file": null,
+              "text": "今天、昨天、近7天、近1个月都有演示订单"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -4051,7 +4696,7 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -4352,17 +4997,17 @@
             {
               "file": "store-app/h5/home.html",
               "module": "",
-              "title": "门店APP · 工作台"
+              "title": "丰银宝 · 工作台"
             },
             {
               "file": "store-app/h5/live-promo.html",
               "module": "",
-              "title": "直播推广 · 门店APP"
+              "title": "直播推广 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/account-cancel.html",
@@ -4906,17 +5551,17 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -5065,32 +5710,32 @@
             {
               "file": "store-app/h5/order-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/order-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -5187,15 +5832,39 @@
           "notes": [
             {
               "file": "store-app/h5/restock-order-detail.html",
-              "text": "点退款成功进入门店售后详情，不再打开不存在的用户APP文件"
+              "text": "订单详情 · 门店APP: 点退款成功进入门店售后详情，不再打开不存在的用户APP文件"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "text": "订单详情 · 门店APP: 点退款成功进入门店售后详情，不再打开不存在的用户APP文件"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "text": "订单详情 · 门店APP: 点退款成功进入门店售后详情，不再打开不存在的用户APP文件"
+            },
+            {
+              "file": "user-app/h5/order-refund-pickup-order.html",
+              "text": "订单详情 · 门店APP: 点退款成功进入门店售后详情，不再打开不存在的用户APP文件"
             },
             {
               "file": "store-app/h5/order-refund-detail.html",
-              "text": "补齐门店售后详情入口，旧文件名会转到新页"
+              "text": "售后详情 · 门店APP: 补齐门店售后详情入口，旧文件名会转到新页"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "text": "售后详情 · 门店APP: 补齐门店售后详情入口，旧文件名会转到新页"
             },
             {
               "file": "store-app/h5/order-aftersale-list.html",
-              "text": "新增门店售后列表，返回进货订单"
+              "text": "退款/售后 · 门店APP: 新增门店售后列表，返回进货订单"
+            },
+            {
+              "file": "store-app/h5/restock-aftersale-list.html",
+              "text": "退款/售后 · 门店APP: 新增门店售后列表，返回进货订单"
+            },
+            {
+              "file": "user-app/h5/order-aftersale-list.html",
+              "text": "退款/售后 · 门店APP: 新增门店售后列表，返回进货订单"
             }
           ]
         },
@@ -5209,22 +5878,22 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -5350,11 +6019,23 @@
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
-              "text": "售后消息条进入门店售后详情，不再跳用户APP"
+              "text": "订单详情 · 门店APP: 售后消息条进入门店售后详情，不再跳用户APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "text": "订单详情 · 门店APP: 售后消息条进入门店售后详情，不再跳用户APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "text": "订单详情 · 门店APP: 售后消息条进入门店售后详情，不再跳用户APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pickup-order.html",
+              "text": "订单详情 · 门店APP: 售后消息条进入门店售后详情，不再跳用户APP"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
-              "text": "从用户APP复制售后详情页，返回进货订单详情"
+              "text": "售后详情 · 门店APP: 从用户APP复制售后详情页，返回进货订单详情"
             },
             {
               "file": "user-app/h5/orders.html",
@@ -5430,7 +6111,7 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -5467,7 +6148,11 @@
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
-              "text": "运费报价按命中费率计增值"
+              "text": "订单详情 · 门店APP: 运费报价按命中费率计增值"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "text": "订单详情 · 门店APP: 运费报价按命中费率计增值"
             },
             {
               "file": "user-app/h5/restock.html",
@@ -5500,7 +6185,7 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -5537,7 +6222,11 @@
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
-              "text": "快递也可展示上楼"
+              "text": "订单详情 · 门店APP: 快递也可展示上楼"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "text": "订单详情 · 门店APP: 快递也可展示上楼"
             }
           ]
         }
@@ -5628,7 +6317,7 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -5688,12 +6377,12 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -5740,7 +6429,15 @@
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
-              "text": "进货详情快递运费同步展示"
+              "text": "订单详情 · 门店APP: 进货详情快递运费同步展示"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "text": "订单详情 · 门店APP: 进货详情快递运费同步展示"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "text": "订单详情 · 门店APP: 进货详情快递运费同步展示"
             },
             {
               "file": "MDM/mdm_order_proxy.html",
@@ -5790,22 +6487,22 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -5934,7 +6631,19 @@
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
-              "text": "进货详情运费净实付随退运费减少"
+              "text": "订单详情 · 门店APP: 进货详情运费净实付随退运费减少"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "text": "订单详情 · 门店APP: 进货详情运费净实付随退运费减少"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "text": "订单详情 · 门店APP: 进货详情运费净实付随退运费减少"
+            },
+            {
+              "file": "user-app/h5/order-refund-pickup-order.html",
+              "text": "订单详情 · 门店APP: 进货详情运费净实付随退运费减少"
             },
             {
               "file": "MDM/mdm_order_retail.html",
@@ -6005,22 +6714,22 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -6161,22 +6870,22 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -6345,32 +7054,32 @@
             {
               "file": "store-app/h5/home.html",
               "module": "",
-              "title": "门店APP · 工作台"
+              "title": "丰银宝 · 工作台"
             },
             {
               "file": "store-app/h5/live-promo.html",
               "module": "",
-              "title": "直播推广 · 门店APP"
+              "title": "直播推广 · 丰银宝"
             },
             {
               "file": "store-app/h5/order-detail.html",
               "module": "",
-              "title": "核销详情 · 门店APP"
+              "title": "核销详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/order-logistics.html",
               "module": "",
-              "title": "订单跟踪 · 门店APP"
+              "title": "订单跟踪 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/store-orders.html",
               "module": "",
-              "title": "门店订单 · 门店APP"
+              "title": "门店订单 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -6399,11 +7108,15 @@
             },
             {
               "file": "store-app/h5/store-orders.html",
-              "text": "卡片同步显示补货和退货退款；右下角售后信息验收开关叠在核销验收开关上面，可筛选三类售后"
+              "text": "门店订单 · 门店APP: 卡片同步显示补货和退货退款"
+            },
+            {
+              "file": null,
+              "text": "右下角售后信息验收开关叠在核销验收开关上面，可筛选三类售后"
             },
             {
               "file": "store-app/h5/order-detail.html",
-              "text": "商品行同步展示补货、退货退款信息"
+              "text": "核销详情 · 门店APP: 商品行同步展示补货、退货退款信息"
             }
           ]
         }
@@ -6457,22 +7170,22 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -6636,6 +7349,11 @@
               "title": "意见反馈"
             },
             {
+              "file": "MDM/mdm_aftersale_guarantee.html",
+              "module": "冷丰售后",
+              "title": "售后保障期管理"
+            },
+            {
               "file": "MDM/mdm_aftersale_refund.html",
               "module": "冷丰售后",
               "title": "退款单"
@@ -6766,22 +7484,22 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -6878,32 +7596,32 @@
             {
               "file": "store-app/h5/home.html",
               "module": "",
-              "title": "门店APP · 工作台"
+              "title": "丰银宝 · 工作台"
             },
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/store-orders.html",
               "module": "",
-              "title": "门店订单 · 门店APP"
+              "title": "门店订单 · 丰银宝"
             },
             {
               "file": "user-app/h5/cart.html",
@@ -7000,11 +7718,7 @@
           "notes": [
             {
               "file": "store-app/h5/restock-orders.html",
-              "text": "门店进货订单独立列表，不再跳进用户 APP"
-            },
-            {
-              "file": "store-app/h5/home.html",
-              "text": "进货订单详情 · 门店APP: 配送单展示支付运费并可展开类目，快递单免运费"
+              "text": "进货订单 · 门店APP: 门店进货订单独立列表，不再跳进用户 APP"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
@@ -7119,7 +7833,7 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -7543,22 +8257,22 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/cart.html",
@@ -7824,57 +8538,57 @@
             {
               "file": "store-app/h5/biz-center.html",
               "module": "",
-              "title": "经营中心 · 门店APP"
+              "title": "经营中心 · 丰银宝"
             },
             {
               "file": "store-app/h5/biz-order-goods.html",
               "module": "",
-              "title": "订单商品明细 · 门店APP"
+              "title": "订单商品明细 · 丰银宝"
             },
             {
               "file": "store-app/h5/home.html",
               "module": "",
-              "title": "门店APP · 工作台"
+              "title": "丰银宝 · 工作台"
             },
             {
               "file": "store-app/h5/live-promo.html",
               "module": "",
-              "title": "直播推广 · 门店APP"
+              "title": "直播推广 · 丰银宝"
             },
             {
               "file": "store-app/h5/order-detail.html",
               "module": "",
-              "title": "核销详情 · 门店APP"
+              "title": "核销详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/order-logistics.html",
               "module": "",
-              "title": "订单跟踪 · 门店APP"
+              "title": "订单跟踪 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/store-orders.html",
               "module": "",
-              "title": "门店订单 · 门店APP"
+              "title": "门店订单 · 丰银宝"
             },
             {
               "file": "user-app/h5/cart.html",
@@ -8027,11 +8741,15 @@
             },
             {
               "file": "store-app/h5/store-orders.html",
-              "text": "待核销可核销并展示现货直核；拆单显示关联单号"
+              "text": "门店订单 · 门店APP: 待核销可核销并展示现货直核"
+            },
+            {
+              "file": null,
+              "text": "拆单显示关联单号"
             },
             {
               "file": "store-app/h5/order-detail.html",
-              "text": "现货直核行标与待核销核销口径对齐"
+              "text": "核销详情 · 门店APP: 现货直核行标与待核销核销口径对齐"
             }
           ]
         },
@@ -8244,6 +8962,11 @@
               "file": "MDM/mdm_aftersale_feedback.html",
               "module": "冷丰售后",
               "title": "意见反馈"
+            },
+            {
+              "file": "MDM/mdm_aftersale_guarantee.html",
+              "module": "冷丰售后",
+              "title": "售后保障期管理"
             },
             {
               "file": "MDM/mdm_aftersale_refund.html",
@@ -8484,6 +9207,11 @@
               "title": "意见反馈"
             },
             {
+              "file": "MDM/mdm_aftersale_guarantee.html",
+              "module": "冷丰售后",
+              "title": "售后保障期管理"
+            },
+            {
               "file": "MDM/mdm_aftersale_refund.html",
               "module": "冷丰售后",
               "title": "退款单"
@@ -8720,22 +9448,22 @@
             {
               "file": "store-app/h5/biz-center.html",
               "module": "",
-              "title": "经营中心 · 门店APP"
+              "title": "经营中心 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -8765,27 +9493,27 @@
             {
               "file": "user-app/h5/store-pay-password.html",
               "module": "",
-              "title": "设置支付密码 · 门店 APP"
+              "title": "设置支付密码 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-recharge.html",
               "module": "",
-              "title": "充值 · 门店 APP"
+              "title": "充值 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-wallet.html",
               "module": "",
-              "title": "我的钱包 · 门店 APP"
+              "title": "我的钱包 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-withdraw-records.html",
               "module": "",
-              "title": "提现明细 · 门店 APP"
+              "title": "提现明细 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-withdraw.html",
               "module": "",
-              "title": "提现 · 门店 APP"
+              "title": "提现 · 丰银宝"
             }
           ],
           "global": true,
@@ -8812,7 +9540,7 @@
             },
             {
               "file": "user-app/h5/store-wallet.html",
-              "text": "其他账变类型展示格式与后台对齐"
+              "text": "我的钱包 · 门店 APP: 其他账变类型展示格式与后台对齐"
             },
             {
               "file": "MDM/mdm_order_retail.html",
@@ -8974,22 +9702,22 @@
             {
               "file": "store-app/h5/biz-center.html",
               "module": "",
-              "title": "经营中心 · 门店APP"
+              "title": "经营中心 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -9019,27 +9747,27 @@
             {
               "file": "user-app/h5/store-pay-password.html",
               "module": "",
-              "title": "设置支付密码 · 门店 APP"
+              "title": "设置支付密码 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-recharge.html",
               "module": "",
-              "title": "充值 · 门店 APP"
+              "title": "充值 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-wallet.html",
               "module": "",
-              "title": "我的钱包 · 门店 APP"
+              "title": "我的钱包 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-withdraw-records.html",
               "module": "",
-              "title": "提现明细 · 门店 APP"
+              "title": "提现明细 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-withdraw.html",
               "module": "",
-              "title": "提现 · 门店 APP"
+              "title": "提现 · 丰银宝"
             }
           ],
           "global": true,
@@ -9050,7 +9778,7 @@
             },
             {
               "file": "user-app/h5/store-wallet.html",
-              "text": "手动调账流水按划拨展示，账变类型「其他」含具体原因归入同一筛选项"
+              "text": "我的钱包 · 门店 APP: 手动调账流水按划拨展示，账变类型「其他」含具体原因归入同一筛选项"
             },
             {
               "file": "MDM/mdm_order_retail.html",
@@ -9282,7 +10010,7 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/account-cancel.html",
@@ -9489,17 +10217,17 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/cart.html",
@@ -9956,12 +10684,12 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -10034,22 +10762,22 @@
             {
               "file": "store-app/h5/biz-center.html",
               "module": "",
-              "title": "经营中心 · 门店APP"
+              "title": "经营中心 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -10084,46 +10812,50 @@
             {
               "file": "user-app/h5/store-bind-card.html",
               "module": "",
-              "title": "绑定银行卡 · 门店 APP"
+              "title": "绑定银行卡 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-pay-password.html",
               "module": "",
-              "title": "设置支付密码 · 门店 APP"
+              "title": "设置支付密码 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-recharge.html",
               "module": "",
-              "title": "充值 · 门店 APP"
+              "title": "充值 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-wallet.html",
               "module": "",
-              "title": "我的钱包 · 门店 APP"
+              "title": "我的钱包 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-withdraw-records.html",
               "module": "",
-              "title": "提现明细 · 门店 APP"
+              "title": "提现明细 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-withdraw.html",
               "module": "",
-              "title": "提现 · 门店 APP"
+              "title": "提现 · 丰银宝"
             }
           ],
           "notes": [
             {
               "file": "user-app/h5/store-wallet.html",
-              "text": "保证金增加「需补金额」，余额增加「在途」；入账即可提现"
+              "text": "我的钱包 · 门店 APP: 保证金增加「需补金额」，余额增加「在途」"
             },
             {
               "file": "user-app/h5/store-withdraw.html",
-              "text": "提现后资金计入在途，文案改为预计 T+1 到账"
+              "text": "入账即可提现"
+            },
+            {
+              "file": "user-app/h5/store-withdraw.html",
+              "text": "提现 · 门店 APP: 提现后资金计入在途，文案改为预计 T+1 到账"
             },
             {
               "file": "user-app/h5/store-recharge.html",
-              "text": "充值剩余计入可提现，不再进入待解冻"
+              "text": "充值 · 门店 APP: 充值剩余计入可提现，不再进入待解冻"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -10367,82 +11099,92 @@
             {
               "file": "store-app/h5/bank-cards.html",
               "module": "",
-              "title": "银行卡 · 门店APP"
+              "title": "银行卡 · 丰银宝"
             },
             {
               "file": "store-app/h5/biz-center.html",
               "module": "",
-              "title": "经营中心 · 门店APP"
+              "title": "经营中心 · 丰银宝"
             },
             {
               "file": "store-app/h5/biz-order-goods.html",
               "module": "",
-              "title": "订单商品明细 · 门店APP"
+              "title": "订单商品明细 · 丰银宝"
             },
             {
               "file": "store-app/h5/contract-sign.html",
               "module": "",
-              "title": "签署合同 · 门店APP"
+              "title": "签署合同 · 丰银宝"
             },
             {
               "file": "store-app/h5/contracts.html",
               "module": "",
-              "title": "合同签署 · 门店APP"
+              "title": "合同签署 · 丰银宝"
             },
             {
               "file": "store-app/h5/home.html",
               "module": "",
-              "title": "门店APP · 工作台"
+              "title": "丰银宝 · 工作台"
             },
             {
               "file": "store-app/h5/live-promo.html",
               "module": "",
-              "title": "直播推广 · 门店APP"
+              "title": "直播推广 · 丰银宝"
             },
             {
               "file": "store-app/h5/more.html",
               "module": "",
-              "title": "更多 · 门店APP"
+              "title": "更多 · 丰银宝"
             },
             {
               "file": "store-app/h5/onboarding.html",
               "module": "",
-              "title": "商户进件 · 门店APP"
+              "title": "商户进件 · 丰银宝"
             },
             {
               "file": "store-app/h5/order-detail.html",
               "module": "",
-              "title": "核销详情 · 门店APP"
+              "title": "核销详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/order-logistics.html",
               "module": "",
-              "title": "订单跟踪 · 门店APP"
+              "title": "订单跟踪 · 丰银宝"
             },
             {
               "file": "store-app/h5/password-edit.html",
               "module": "",
-              "title": "密码管理 · 门店APP"
+              "title": "密码管理 · 丰银宝"
             },
             {
               "file": "store-app/h5/password-forgot.html",
               "module": "",
-              "title": "忘记密码 · 门店APP"
+              "title": "忘记密码 · 丰银宝"
             },
             {
               "file": "store-app/h5/password.html",
               "module": "",
-              "title": "密码管理 · 门店APP"
+              "title": "密码管理 · 丰银宝"
             },
             {
               "file": "store-app/h5/store-orders.html",
               "module": "",
-              "title": "门店订单 · 门店APP"
+              "title": "门店订单 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-orders.html",
+              "module": "",
+              "title": "供应订单 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-settle.html",
+              "module": "",
+              "title": "结算中心 · 丰银宝"
             },
             {
               "file": "store-app/h5/verify.html",
               "module": "",
-              "title": "门店核销 · 门店APP"
+              "title": "门店核销 · 丰银宝"
             },
             {
               "file": "user-app/h5/cart.html",
@@ -10534,16 +11276,12 @@
               "text": "发券弹窗读取券模板并按会员发券场景过滤，确认发放数量后写入领券记录"
             },
             {
-              "file": "store-app/h5/home.html",
-              "text": "工作台 · 门店APP: 直播推广入口与分享绑店流程调整"
-            },
-            {
               "file": "store-app/h5/live-promo.html",
               "text": "工作台 · 门店APP: 直播推广入口与分享绑店流程调整"
             },
             {
               "file": "store-app/h5/live-promo.html",
-              "text": "补齐推广场次与分享样式"
+              "text": "直播推广 · 门店APP: 补齐推广场次与分享样式"
             },
             {
               "file": "user-app/h5/live-room.html",
@@ -10649,22 +11387,22 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -11728,17 +12466,17 @@
             {
               "file": "store-app/h5/live-promo.html",
               "module": "",
-              "title": "直播推广 · 门店APP"
+              "title": "直播推广 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "user-app/h5/cart.html",
@@ -11819,7 +12557,19 @@
           "notes": [
             {
               "file": "store-app/h5/live-promo.html",
-              "text": "列表封面宽对齐后超出裁下方、高度不够上下居中；海报限高用实际高度；分享卡片 5:4 同样裁切；PRD 写清列表封面规则"
+              "text": "直播推广 · 门店APP: 列表封面宽对齐后超出裁下方、高度不够上下居中"
+            },
+            {
+              "file": null,
+              "text": "海报限高用实际高度"
+            },
+            {
+              "file": null,
+              "text": "分享卡片 5:4 同样裁切"
+            },
+            {
+              "file": null,
+              "text": "PRD 写清列表封面规则"
             },
             {
               "file": "user-app/h5/live-room.html",
@@ -11913,37 +12663,37 @@
             {
               "file": "store-app/h5/home.html",
               "module": "",
-              "title": "门店APP · 工作台"
+              "title": "丰银宝 · 工作台"
             },
             {
               "file": "store-app/h5/live-promo.html",
               "module": "",
-              "title": "直播推广 · 门店APP"
+              "title": "直播推广 · 丰银宝"
             },
             {
               "file": "store-app/h5/order-detail.html",
               "module": "",
-              "title": "核销详情 · 门店APP"
+              "title": "核销详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/order-logistics.html",
               "module": "",
-              "title": "订单跟踪 · 门店APP"
+              "title": "订单跟踪 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "store-app/h5/store-orders.html",
               "module": "",
-              "title": "门店订单 · 门店APP"
+              "title": "门店订单 · 丰银宝"
             },
             {
               "file": "user-app/h5/cart.html",
@@ -12038,7 +12788,11 @@
             },
             {
               "file": "store-app/h5/live-promo.html",
-              "text": "新增本店可看场次列表、推广路径、生成海报和分享直播；已结束场次不展示分享按钮"
+              "text": "直播推广 · 门店APP: 新增本店可看场次列表、推广路径、生成海报和分享直播"
+            },
+            {
+              "file": null,
+              "text": "已结束场次不展示分享按钮"
             },
             {
               "file": "user-app/h5/home.html",
@@ -12933,7 +13687,7 @@
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "user-app/h5/orders.html",
@@ -13004,22 +13758,22 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -13130,7 +13884,7 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-detail.html",
@@ -13201,22 +13955,22 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -13597,12 +14351,12 @@
             {
               "file": "store-app/h5/onboarding.html",
               "module": "",
-              "title": "商户进件 · 门店APP"
+              "title": "商户进件 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/cart.html",
@@ -13737,42 +14491,42 @@
             {
               "file": "store-app/h5/biz-center.html",
               "module": "",
-              "title": "经营中心 · 门店APP"
+              "title": "经营中心 · 丰银宝"
             },
             {
               "file": "store-app/h5/biz-order-goods.html",
               "module": "",
-              "title": "订单商品明细 · 门店APP"
+              "title": "订单商品明细 · 丰银宝"
             },
             {
               "file": "store-app/h5/home.html",
               "module": "",
-              "title": "门店APP · 工作台"
+              "title": "丰银宝 · 工作台"
             },
             {
               "file": "store-app/h5/live-promo.html",
               "module": "",
-              "title": "直播推广 · 门店APP"
+              "title": "直播推广 · 丰银宝"
             },
             {
               "file": "store-app/h5/order-detail.html",
               "module": "",
-              "title": "核销详情 · 门店APP"
+              "title": "核销详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -13807,27 +14561,27 @@
             {
               "file": "user-app/h5/store-pay-password.html",
               "module": "",
-              "title": "设置支付密码 · 门店 APP"
+              "title": "设置支付密码 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-recharge.html",
               "module": "",
-              "title": "充值 · 门店 APP"
+              "title": "充值 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-wallet.html",
               "module": "",
-              "title": "我的钱包 · 门店 APP"
+              "title": "我的钱包 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-withdraw-records.html",
               "module": "",
-              "title": "提现明细 · 门店 APP"
+              "title": "提现明细 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-withdraw.html",
               "module": "",
-              "title": "提现 · 门店 APP"
+              "title": "提现 · 丰银宝"
             }
           ],
           "global": true,
@@ -13838,15 +14592,27 @@
             },
             {
               "file": "user-app/h5/store-wallet.html",
-              "text": "账户只显示余额账户/保证金账户；支付方式与付款方式统一为交易方；保证金补缴同时记余额支出和保证金划拨"
+              "text": "我的钱包 · 门店 APP: 账户只显示余额账户/保证金账户"
+            },
+            {
+              "file": null,
+              "text": "支付方式与付款方式统一为交易方"
+            },
+            {
+              "file": null,
+              "text": "保证金补缴同时记余额支出和保证金划拨"
             },
             {
               "file": "store-app/h5/biz-center.html",
-              "text": "订单状态对齐客户订单，页签改为待提货/待收货；日预估佣金按所得佣金汇总"
+              "text": "经营中心 · 门店APP: 订单状态对齐客户订单，页签改为待提货/待收货"
+            },
+            {
+              "file": null,
+              "text": "日预估佣金按所得佣金汇总"
             },
             {
               "file": "store-app/h5/biz-order-goods.html",
-              "text": "本单佣金改为所得佣金"
+              "text": "订单商品明细 · 门店APP: 本单佣金改为所得佣金"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -14228,37 +14994,37 @@
             {
               "file": "store-app/h5/contract-sign.html",
               "module": "",
-              "title": "签署合同 · 门店APP"
+              "title": "签署合同 · 丰银宝"
             },
             {
               "file": "store-app/h5/contracts.html",
               "module": "",
-              "title": "合同签署 · 门店APP"
+              "title": "合同签署 · 丰银宝"
             },
             {
               "file": "store-app/h5/home.html",
               "module": "",
-              "title": "门店APP · 工作台"
+              "title": "丰银宝 · 工作台"
             },
             {
               "file": "store-app/h5/live-promo.html",
               "module": "",
-              "title": "直播推广 · 门店APP"
+              "title": "直播推广 · 丰银宝"
             },
             {
               "file": "store-app/h5/order-detail.html",
               "module": "",
-              "title": "核销详情 · 门店APP"
+              "title": "核销详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/order-logistics.html",
               "module": "",
-              "title": "订单跟踪 · 门店APP"
+              "title": "订单跟踪 · 丰银宝"
             },
             {
               "file": "store-app/h5/store-orders.html",
               "module": "",
-              "title": "门店订单 · 门店APP"
+              "title": "门店订单 · 丰银宝"
             },
             {
               "file": "user-app/h5/account-cancel.html",
@@ -14369,8 +15135,8 @@
               "text": "自提门店整块可进入切换门店"
             },
             {
-              "file": "store-app/h5/home.html",
-              "text": "门店会员码改为推广二维码"
+              "file": null,
+              "text": "门店APP · 工作台: 门店会员码改为推广二维码"
             },
             {
               "file": "MDM/mdm_member_c.html",
@@ -14643,7 +15409,7 @@
             {
               "file": "store-app/h5/home.html",
               "module": "",
-              "title": "门店APP · 工作台"
+              "title": "丰银宝 · 工作台"
             }
           ],
           "notes": [
@@ -14663,17 +15429,17 @@
             {
               "file": "store-app/h5/order-detail.html",
               "module": "",
-              "title": "核销详情 · 门店APP"
+              "title": "核销详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/order-logistics.html",
               "module": "",
-              "title": "订单跟踪 · 门店APP"
+              "title": "订单跟踪 · 丰银宝"
             },
             {
               "file": "store-app/h5/store-orders.html",
               "module": "",
-              "title": "门店订单 · 门店APP"
+              "title": "门店订单 · 丰银宝"
             }
           ],
           "notes": [
@@ -14693,27 +15459,27 @@
             {
               "file": "store-app/h5/home.html",
               "module": "",
-              "title": "门店APP · 工作台"
+              "title": "丰银宝 · 工作台"
             },
             {
               "file": "store-app/h5/live-promo.html",
               "module": "",
-              "title": "直播推广 · 门店APP"
+              "title": "直播推广 · 丰银宝"
             },
             {
               "file": "store-app/h5/order-detail.html",
               "module": "",
-              "title": "核销详情 · 门店APP"
+              "title": "核销详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/order-logistics.html",
               "module": "",
-              "title": "订单跟踪 · 门店APP"
+              "title": "订单跟踪 · 丰银宝"
             },
             {
               "file": "store-app/h5/store-orders.html",
               "module": "",
-              "title": "门店订单 · 门店APP"
+              "title": "门店订单 · 丰银宝"
             }
           ],
           "notes": [
@@ -14741,17 +15507,17 @@
             {
               "file": "store-app/h5/order-detail.html",
               "module": "",
-              "title": "核销详情 · 门店APP"
+              "title": "核销详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/order-logistics.html",
               "module": "",
-              "title": "订单跟踪 · 门店APP"
+              "title": "订单跟踪 · 丰银宝"
             },
             {
               "file": "store-app/h5/store-orders.html",
               "module": "",
-              "title": "门店订单 · 门店APP"
+              "title": "门店订单 · 丰银宝"
             }
           ],
           "notes": [
@@ -14780,7 +15546,7 @@
             {
               "file": "store-app/h5/store-orders.html",
               "module": "",
-              "title": "门店订单 · 门店APP"
+              "title": "门店订单 · 丰银宝"
             }
           ],
           "notes": [
@@ -14800,27 +15566,27 @@
             {
               "file": "store-app/h5/home.html",
               "module": "",
-              "title": "门店APP · 工作台"
+              "title": "丰银宝 · 工作台"
             },
             {
               "file": "store-app/h5/live-promo.html",
               "module": "",
-              "title": "直播推广 · 门店APP"
+              "title": "直播推广 · 丰银宝"
             },
             {
               "file": "store-app/h5/order-detail.html",
               "module": "",
-              "title": "核销详情 · 门店APP"
+              "title": "核销详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/order-logistics.html",
               "module": "",
-              "title": "订单跟踪 · 门店APP"
+              "title": "订单跟踪 · 丰银宝"
             },
             {
               "file": "store-app/h5/store-orders.html",
               "module": "",
-              "title": "门店订单 · 门店APP"
+              "title": "门店订单 · 丰银宝"
             }
           ],
           "notes": [
@@ -14848,27 +15614,27 @@
             {
               "file": "store-app/h5/home.html",
               "module": "",
-              "title": "门店APP · 工作台"
+              "title": "丰银宝 · 工作台"
             },
             {
               "file": "store-app/h5/live-promo.html",
               "module": "",
-              "title": "直播推广 · 门店APP"
+              "title": "直播推广 · 丰银宝"
             },
             {
               "file": "store-app/h5/order-detail.html",
               "module": "",
-              "title": "核销详情 · 门店APP"
+              "title": "核销详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/order-logistics.html",
               "module": "",
-              "title": "订单跟踪 · 门店APP"
+              "title": "订单跟踪 · 丰银宝"
             },
             {
               "file": "store-app/h5/store-orders.html",
               "module": "",
-              "title": "门店订单 · 门店APP"
+              "title": "门店订单 · 丰银宝"
             }
           ],
           "notes": [
@@ -14896,41 +15662,45 @@
             {
               "file": "store-app/h5/home.html",
               "module": "",
-              "title": "门店APP · 工作台"
+              "title": "丰银宝 · 工作台"
             },
             {
               "file": "store-app/h5/live-promo.html",
               "module": "",
-              "title": "直播推广 · 门店APP"
+              "title": "直播推广 · 丰银宝"
             },
             {
               "file": "store-app/h5/order-detail.html",
               "module": "",
-              "title": "核销详情 · 门店APP"
+              "title": "核销详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/order-logistics.html",
               "module": "",
-              "title": "订单跟踪 · 门店APP"
+              "title": "订单跟踪 · 丰银宝"
             },
             {
               "file": "store-app/h5/store-orders.html",
               "module": "",
-              "title": "门店订单 · 门店APP"
+              "title": "门店订单 · 丰银宝"
             }
           ],
           "notes": [
             {
-              "file": "store-app/h5/home.html",
-              "text": "扫码核销打开扫码弹层并跳转核销详情；基础工具新增门店订单与排队码入口"
+              "file": "store-app/h5/order-detail.html",
+              "text": "门店APP · 工作台: 扫码核销打开扫码弹层并跳转核销详情"
             },
             {
               "file": "store-app/h5/store-orders.html",
-              "text": "新增订单列表与排队中管理，支持过号、叫号、标记完成及头像跳转核销"
+              "text": "基础工具新增门店订单与排队码入口"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "text": "门店订单 · 门店APP: 新增订单列表与排队中管理，支持过号、叫号、标记完成及头像跳转核销"
             },
             {
               "file": "store-app/h5/order-detail.html",
-              "text": "新增一码多订单勾选核销、部分提货数量确认与退款关闭确认弹窗"
+              "text": "核销详情 · 门店APP: 新增一码多订单勾选核销、部分提货数量确认与退款关闭确认弹窗"
             }
           ]
         },
@@ -15009,7 +15779,7 @@
             {
               "file": "store-app/h5/onboarding.html",
               "module": "",
-              "title": "商户进件 · 门店APP"
+              "title": "商户进件 · 丰银宝"
             }
           ],
           "global": true,
@@ -15044,7 +15814,7 @@
             },
             {
               "file": "store-app/h5/onboarding.html",
-              "text": "商户名称说明贴在输入框下方同宽换行"
+              "text": "商户进件 · 门店APP: 商户名称说明贴在输入框下方同宽换行"
             }
           ]
         },
@@ -15163,7 +15933,7 @@
             {
               "file": "store-app/h5/onboarding.html",
               "module": "",
-              "title": "商户进件 · 门店APP"
+              "title": "商户进件 · 丰银宝"
             }
           ],
           "global": true,
@@ -15206,7 +15976,7 @@
             },
             {
               "file": "store-app/h5/onboarding.html",
-              "text": "填写页与详情同步省市区加详细地址，商户名称说明在输入框右侧换行"
+              "text": "商户进件 · 门店APP: 填写页与详情同步省市区加详细地址，商户名称说明在输入框右侧换行"
             }
           ]
         },
@@ -15325,7 +16095,7 @@
             {
               "file": "store-app/h5/onboarding.html",
               "module": "",
-              "title": "商户进件 · 门店APP"
+              "title": "商户进件 · 丰银宝"
             }
           ],
           "global": true,
@@ -15368,7 +16138,7 @@
             },
             {
               "file": "store-app/h5/onboarding.html",
-              "text": "填写页与详情同步汇付字段、商户名称说明和长期有效"
+              "text": "商户进件 · 门店APP: 填写页与详情同步汇付字段、商户名称说明和长期有效"
             }
           ]
         },
@@ -15939,7 +16709,7 @@
             {
               "file": "store-app/h5/onboarding.html",
               "module": "",
-              "title": "商户进件 · 门店APP"
+              "title": "商户进件 · 丰银宝"
             }
           ],
           "notes": [
@@ -16113,6 +16883,11 @@
               "file": "MDM/mdm_aftersale_feedback.html",
               "module": "冷丰售后",
               "title": "意见反馈"
+            },
+            {
+              "file": "MDM/mdm_aftersale_guarantee.html",
+              "module": "冷丰售后",
+              "title": "售后保障期管理"
             },
             {
               "file": "MDM/mdm_aftersale_refund.html",
@@ -16834,12 +17609,12 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "user-app/h5/cart.html",
@@ -16904,42 +17679,42 @@
             {
               "file": "user-app/h5/store-bind-card-confirm.html",
               "module": "",
-              "title": "确定卡号 · 门店 APP"
+              "title": "确定卡号 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-bind-card-scan.html",
               "module": "",
-              "title": "扫描银行卡 · 门店 APP"
+              "title": "扫描银行卡 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-bind-card.html",
               "module": "",
-              "title": "绑定银行卡 · 门店 APP"
+              "title": "绑定银行卡 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-pay-password.html",
               "module": "",
-              "title": "设置支付密码 · 门店 APP"
+              "title": "设置支付密码 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-recharge.html",
               "module": "",
-              "title": "充值 · 门店 APP"
+              "title": "充值 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-wallet.html",
               "module": "",
-              "title": "我的钱包 · 门店 APP"
+              "title": "我的钱包 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-withdraw-records.html",
               "module": "",
-              "title": "提现明细 · 门店 APP"
+              "title": "提现明细 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-withdraw.html",
               "module": "",
-              "title": "提现 · 门店 APP"
+              "title": "提现 · 丰银宝"
             }
           ],
           "global": true,
@@ -17678,17 +18453,17 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -17870,12 +18645,12 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "user-app/h5/account-cancel.html",
@@ -18552,17 +19327,17 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/cart.html",
@@ -19889,42 +20664,42 @@
             {
               "file": "user-app/h5/store-bind-card-confirm.html",
               "module": "",
-              "title": "确定卡号 · 门店 APP"
+              "title": "确定卡号 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-bind-card-scan.html",
               "module": "",
-              "title": "扫描银行卡 · 门店 APP"
+              "title": "扫描银行卡 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-bind-card.html",
               "module": "",
-              "title": "绑定银行卡 · 门店 APP"
+              "title": "绑定银行卡 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-pay-password.html",
               "module": "",
-              "title": "设置支付密码 · 门店 APP"
+              "title": "设置支付密码 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-recharge.html",
               "module": "",
-              "title": "充值 · 门店 APP"
+              "title": "充值 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-wallet.html",
               "module": "",
-              "title": "我的钱包 · 门店 APP"
+              "title": "我的钱包 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-withdraw-records.html",
               "module": "",
-              "title": "提现明细 · 门店 APP"
+              "title": "提现明细 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-withdraw.html",
               "module": "",
-              "title": "提现 · 门店 APP"
+              "title": "提现 · 丰银宝"
             }
           ],
           "global": true,
@@ -20071,27 +20846,47 @@
             {
               "file": "store-app/h5/password-edit.html",
               "module": "",
-              "title": "密码管理 · 门店APP"
+              "title": "密码管理 · 丰银宝"
             },
             {
               "file": "store-app/h5/password-forgot.html",
               "module": "",
-              "title": "忘记密码 · 门店APP"
+              "title": "忘记密码 · 丰银宝"
             },
             {
               "file": "store-app/h5/password.html",
               "module": "",
-              "title": "密码管理 · 门店APP"
+              "title": "密码管理 · 丰银宝"
             }
           ],
           "notes": [
             {
               "file": "store-app/h5/password-forgot.html",
-              "text": "短信六位验证码页按设计还原；验证后仅设新密码与确定密码；登录密码深色全键盘与报错文案对齐"
+              "text": "忘记密码 · 门店APP: 短信六位验证码页按设计还原"
+            },
+            {
+              "file": null,
+              "text": "验证后仅设新密码与确定密码"
+            },
+            {
+              "file": null,
+              "text": "登录密码深色全键盘与报错文案对齐"
             },
             {
               "file": "store-app/h5/password-edit.html",
-              "text": "登录密码支持字母数字特殊字符键盘；选中显示光标，点其他区域取消高亮；支付密码焦点同理"
+              "text": "密码管理 · 门店APP: 登录密码支持字母数字特殊字符键盘"
+            },
+            {
+              "file": "store-app/h5/password.html",
+              "text": "密码管理 · 门店APP: 登录密码支持字母数字特殊字符键盘"
+            },
+            {
+              "file": null,
+              "text": "选中显示光标，点其他区域取消高亮"
+            },
+            {
+              "file": null,
+              "text": "支付密码焦点同理"
             },
             {
               "file": "MDM/mdm_archive_supplier.html",
@@ -20644,12 +21439,12 @@
             {
               "file": "store-app/h5/biz-center.html",
               "module": "",
-              "title": "经营中心 · 门店APP"
+              "title": "经营中心 · 丰银宝"
             },
             {
               "file": "store-app/h5/biz-order-goods.html",
               "module": "",
-              "title": "订单商品明细 · 门店APP"
+              "title": "订单商品明细 · 丰银宝"
             }
           ],
           "notes": [
@@ -20841,22 +21636,22 @@
             {
               "file": "store-app/h5/biz-center.html",
               "module": "",
-              "title": "经营中心 · 门店APP"
+              "title": "经营中心 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -20886,27 +21681,27 @@
             {
               "file": "user-app/h5/store-pay-password.html",
               "module": "",
-              "title": "设置支付密码 · 门店 APP"
+              "title": "设置支付密码 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-recharge.html",
               "module": "",
-              "title": "充值 · 门店 APP"
+              "title": "充值 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-wallet.html",
               "module": "",
-              "title": "我的钱包 · 门店 APP"
+              "title": "我的钱包 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-withdraw-records.html",
               "module": "",
-              "title": "提现明细 · 门店 APP"
+              "title": "提现明细 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-withdraw.html",
               "module": "",
-              "title": "提现 · 门店 APP"
+              "title": "提现 · 丰银宝"
             }
           ],
           "global": true,
@@ -20966,6 +21761,11 @@
               "file": "MDM/mdm_aftersale_feedback.html",
               "module": "冷丰售后",
               "title": "意见反馈"
+            },
+            {
+              "file": "MDM/mdm_aftersale_guarantee.html",
+              "module": "冷丰售后",
+              "title": "售后保障期管理"
             },
             {
               "file": "MDM/mdm_aftersale_refund.html",
@@ -21064,27 +21864,27 @@
             {
               "file": "store-app/h5/biz-center.html",
               "module": "",
-              "title": "经营中心 · 门店APP"
+              "title": "经营中心 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -21189,33 +21989,41 @@
             {
               "file": "user-app/h5/store-pay-password.html",
               "module": "",
-              "title": "设置支付密码 · 门店 APP"
+              "title": "设置支付密码 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-recharge.html",
               "module": "",
-              "title": "充值 · 门店 APP"
+              "title": "充值 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-wallet.html",
               "module": "",
-              "title": "我的钱包 · 门店 APP"
+              "title": "我的钱包 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-withdraw-records.html",
               "module": "",
-              "title": "提现明细 · 门店 APP"
+              "title": "提现明细 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-withdraw.html",
               "module": "",
-              "title": "提现 · 门店 APP"
+              "title": "提现 · 丰银宝"
             }
           ],
           "notes": [
             {
               "file": "user-app/h5/store-wallet.html",
-              "text": "账户明细按对手方与出款钱包展示，支出统一付款方式，支付流水改交易流水；售后赔付与保证金相关出账归入售后/责任类扣款；补齐进货支出与退款收入流水"
+              "text": "我的钱包 · 门店 APP: 账户明细按对手方与出款钱包展示，支出统一付款方式，支付流水改交易流水"
+            },
+            {
+              "file": null,
+              "text": "售后赔付与保证金相关出账归入售后/责任类扣款"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "text": "补齐进货支出与退款收入流水"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -21254,17 +22062,17 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -21413,27 +22221,27 @@
             {
               "file": "store-app/h5/biz-center.html",
               "module": "",
-              "title": "经营中心 · 门店APP"
+              "title": "经营中心 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -21558,33 +22366,37 @@
             {
               "file": "user-app/h5/store-pay-password.html",
               "module": "",
-              "title": "设置支付密码 · 门店 APP"
+              "title": "设置支付密码 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-recharge.html",
               "module": "",
-              "title": "充值 · 门店 APP"
+              "title": "充值 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-wallet.html",
               "module": "",
-              "title": "我的钱包 · 门店 APP"
+              "title": "我的钱包 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-withdraw-records.html",
               "module": "",
-              "title": "提现明细 · 门店 APP"
+              "title": "提现明细 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-withdraw.html",
               "module": "",
-              "title": "提现 · 门店 APP"
+              "title": "提现 · 丰银宝"
             }
           ],
           "notes": [
             {
               "file": "user-app/h5/store-wallet.html",
-              "text": "余额/保证金账户说明按货款与可提款规则更新；售后赔付等不扣货款，余额不足时保证金出账可扣本金"
+              "text": "我的钱包 · 门店 APP: 余额/保证金账户说明按货款与可提款规则更新"
+            },
+            {
+              "file": null,
+              "text": "售后赔付等不扣货款，余额不足时保证金出账可扣本金"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -21783,7 +22595,7 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -21963,12 +22775,12 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "user-app/h5/cart.html",
@@ -22254,22 +23066,22 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -22393,22 +23205,22 @@
             {
               "file": "store-app/h5/biz-center.html",
               "module": "",
-              "title": "经营中心 · 门店APP"
+              "title": "经营中心 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -22438,27 +23250,27 @@
             {
               "file": "user-app/h5/store-pay-password.html",
               "module": "",
-              "title": "设置支付密码 · 门店 APP"
+              "title": "设置支付密码 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-recharge.html",
               "module": "",
-              "title": "充值 · 门店 APP"
+              "title": "充值 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-wallet.html",
               "module": "",
-              "title": "我的钱包 · 门店 APP"
+              "title": "我的钱包 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-withdraw-records.html",
               "module": "",
-              "title": "提现明细 · 门店 APP"
+              "title": "提现明细 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-withdraw.html",
               "module": "",
-              "title": "提现 · 门店 APP"
+              "title": "提现 · 丰银宝"
             }
           ],
           "global": true,
@@ -22573,32 +23385,32 @@
             {
               "file": "store-app/h5/bank-cards.html",
               "module": "",
-              "title": "银行卡 · 门店APP"
+              "title": "银行卡 · 丰银宝"
             },
             {
               "file": "store-app/h5/biz-center.html",
               "module": "",
-              "title": "经营中心 · 门店APP"
+              "title": "经营中心 · 丰银宝"
             },
             {
               "file": "store-app/h5/biz-order-goods.html",
               "module": "",
-              "title": "订单商品明细 · 门店APP"
+              "title": "订单商品明细 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -22628,32 +23440,32 @@
             {
               "file": "user-app/h5/store-bind-card.html",
               "module": "",
-              "title": "绑定银行卡 · 门店 APP"
+              "title": "绑定银行卡 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-pay-password.html",
               "module": "",
-              "title": "设置支付密码 · 门店 APP"
+              "title": "设置支付密码 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-recharge.html",
               "module": "",
-              "title": "充值 · 门店 APP"
+              "title": "充值 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-wallet.html",
               "module": "",
-              "title": "我的钱包 · 门店 APP"
+              "title": "我的钱包 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-withdraw-records.html",
               "module": "",
-              "title": "提现明细 · 门店 APP"
+              "title": "提现明细 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-withdraw.html",
               "module": "",
-              "title": "提现 · 门店 APP"
+              "title": "提现 · 丰银宝"
             }
           ],
           "global": true,
@@ -22695,37 +23507,37 @@
             {
               "file": "store-app/h5/bank-cards.html",
               "module": "",
-              "title": "银行卡 · 门店APP"
+              "title": "银行卡 · 丰银宝"
             },
             {
               "file": "store-app/h5/biz-center.html",
               "module": "",
-              "title": "经营中心 · 门店APP"
+              "title": "经营中心 · 丰银宝"
             },
             {
               "file": "store-app/h5/onboarding.html",
               "module": "",
-              "title": "商户进件 · 门店APP"
+              "title": "商户进件 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-bind-card.html",
               "module": "",
-              "title": "绑定银行卡 · 门店 APP"
+              "title": "绑定银行卡 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-recharge.html",
               "module": "",
-              "title": "充值 · 门店 APP"
+              "title": "充值 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-wallet.html",
               "module": "",
-              "title": "我的钱包 · 门店 APP"
+              "title": "我的钱包 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-withdraw.html",
               "module": "",
-              "title": "提现 · 门店 APP"
+              "title": "提现 · 丰银宝"
             }
           ],
           "notes": [
@@ -22766,82 +23578,92 @@
             {
               "file": "store-app/h5/bank-cards.html",
               "module": "",
-              "title": "银行卡 · 门店APP"
+              "title": "银行卡 · 丰银宝"
             },
             {
               "file": "store-app/h5/biz-center.html",
               "module": "",
-              "title": "经营中心 · 门店APP"
+              "title": "经营中心 · 丰银宝"
             },
             {
               "file": "store-app/h5/biz-order-goods.html",
               "module": "",
-              "title": "订单商品明细 · 门店APP"
+              "title": "订单商品明细 · 丰银宝"
             },
             {
               "file": "store-app/h5/contract-sign.html",
               "module": "",
-              "title": "签署合同 · 门店APP"
+              "title": "签署合同 · 丰银宝"
             },
             {
               "file": "store-app/h5/contracts.html",
               "module": "",
-              "title": "合同签署 · 门店APP"
+              "title": "合同签署 · 丰银宝"
             },
             {
               "file": "store-app/h5/home.html",
               "module": "",
-              "title": "门店APP · 工作台"
+              "title": "丰银宝 · 工作台"
             },
             {
               "file": "store-app/h5/live-promo.html",
               "module": "",
-              "title": "直播推广 · 门店APP"
+              "title": "直播推广 · 丰银宝"
             },
             {
               "file": "store-app/h5/more.html",
               "module": "",
-              "title": "更多 · 门店APP"
+              "title": "更多 · 丰银宝"
             },
             {
               "file": "store-app/h5/onboarding.html",
               "module": "",
-              "title": "商户进件 · 门店APP"
+              "title": "商户进件 · 丰银宝"
             },
             {
               "file": "store-app/h5/order-detail.html",
               "module": "",
-              "title": "核销详情 · 门店APP"
+              "title": "核销详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/order-logistics.html",
               "module": "",
-              "title": "订单跟踪 · 门店APP"
+              "title": "订单跟踪 · 丰银宝"
             },
             {
               "file": "store-app/h5/password-edit.html",
               "module": "",
-              "title": "密码管理 · 门店APP"
+              "title": "密码管理 · 丰银宝"
             },
             {
               "file": "store-app/h5/password-forgot.html",
               "module": "",
-              "title": "忘记密码 · 门店APP"
+              "title": "忘记密码 · 丰银宝"
             },
             {
               "file": "store-app/h5/password.html",
               "module": "",
-              "title": "密码管理 · 门店APP"
+              "title": "密码管理 · 丰银宝"
             },
             {
               "file": "store-app/h5/store-orders.html",
               "module": "",
-              "title": "门店订单 · 门店APP"
+              "title": "门店订单 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-orders.html",
+              "module": "",
+              "title": "供应订单 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-settle.html",
+              "module": "",
+              "title": "结算中心 · 丰银宝"
             },
             {
               "file": "store-app/h5/verify.html",
               "module": "",
-              "title": "门店核销 · 门店APP"
+              "title": "门店核销 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -22851,22 +23673,22 @@
             {
               "file": "user-app/h5/store-bind-card-confirm.html",
               "module": "",
-              "title": "确定卡号 · 门店 APP"
+              "title": "确定卡号 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-bind-card-scan.html",
               "module": "",
-              "title": "扫描银行卡 · 门店 APP"
+              "title": "扫描银行卡 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-bind-card.html",
               "module": "",
-              "title": "绑定银行卡 · 门店 APP"
+              "title": "绑定银行卡 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-recharge.html",
               "module": "",
-              "title": "充值 · 门店 APP"
+              "title": "充值 · 丰银宝"
             }
           ],
           "notes": [
@@ -22907,7 +23729,7 @@
             {
               "file": "store-app/h5/bank-cards.html",
               "module": "",
-              "title": "银行卡 · 门店APP"
+              "title": "银行卡 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -22917,22 +23739,22 @@
             {
               "file": "user-app/h5/store-bind-card-confirm.html",
               "module": "",
-              "title": "确定卡号 · 门店 APP"
+              "title": "确定卡号 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-bind-card-scan.html",
               "module": "",
-              "title": "扫描银行卡 · 门店 APP"
+              "title": "扫描银行卡 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-bind-card.html",
               "module": "",
-              "title": "绑定银行卡 · 门店 APP"
+              "title": "绑定银行卡 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-recharge.html",
               "module": "",
-              "title": "充值 · 门店 APP"
+              "title": "充值 · 丰银宝"
             }
           ],
           "notes": [
@@ -22970,22 +23792,22 @@
             {
               "file": "store-app/h5/biz-center.html",
               "module": "",
-              "title": "经营中心 · 门店APP"
+              "title": "经营中心 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -23015,27 +23837,27 @@
             {
               "file": "user-app/h5/store-pay-password.html",
               "module": "",
-              "title": "设置支付密码 · 门店 APP"
+              "title": "设置支付密码 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-recharge.html",
               "module": "",
-              "title": "充值 · 门店 APP"
+              "title": "充值 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-wallet.html",
               "module": "",
-              "title": "我的钱包 · 门店 APP"
+              "title": "我的钱包 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-withdraw-records.html",
               "module": "",
-              "title": "提现明细 · 门店 APP"
+              "title": "提现明细 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-withdraw.html",
               "module": "",
-              "title": "提现 · 门店 APP"
+              "title": "提现 · 丰银宝"
             }
           ],
           "notes": [
@@ -23093,57 +23915,57 @@
             {
               "file": "store-app/h5/bank-cards.html",
               "module": "",
-              "title": "银行卡 · 门店APP"
+              "title": "银行卡 · 丰银宝"
             },
             {
               "file": "store-app/h5/biz-center.html",
               "module": "",
-              "title": "经营中心 · 门店APP"
+              "title": "经营中心 · 丰银宝"
             },
             {
               "file": "store-app/h5/biz-order-goods.html",
               "module": "",
-              "title": "订单商品明细 · 门店APP"
+              "title": "订单商品明细 · 丰银宝"
             },
             {
               "file": "store-app/h5/home.html",
               "module": "",
-              "title": "门店APP · 工作台"
+              "title": "丰银宝 · 工作台"
             },
             {
               "file": "store-app/h5/more.html",
               "module": "",
-              "title": "更多 · 门店APP"
+              "title": "更多 · 丰银宝"
             },
             {
               "file": "store-app/h5/password-edit.html",
               "module": "",
-              "title": "密码管理 · 门店APP"
+              "title": "密码管理 · 丰银宝"
             },
             {
               "file": "store-app/h5/password-forgot.html",
               "module": "",
-              "title": "忘记密码 · 门店APP"
+              "title": "忘记密码 · 丰银宝"
             },
             {
               "file": "store-app/h5/password.html",
               "module": "",
-              "title": "密码管理 · 门店APP"
+              "title": "密码管理 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -23173,32 +23995,32 @@
             {
               "file": "user-app/h5/store-bind-card.html",
               "module": "",
-              "title": "绑定银行卡 · 门店 APP"
+              "title": "绑定银行卡 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-pay-password.html",
               "module": "",
-              "title": "设置支付密码 · 门店 APP"
+              "title": "设置支付密码 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-recharge.html",
               "module": "",
-              "title": "充值 · 门店 APP"
+              "title": "充值 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-wallet.html",
               "module": "",
-              "title": "我的钱包 · 门店 APP"
+              "title": "我的钱包 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-withdraw-records.html",
               "module": "",
-              "title": "提现明细 · 门店 APP"
+              "title": "提现明细 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-withdraw.html",
               "module": "",
-              "title": "提现 · 门店 APP"
+              "title": "提现 · 丰银宝"
             }
           ],
           "notes": [
@@ -23507,12 +24329,12 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "user-app/h5/account-cancel.html",
@@ -23777,27 +24599,27 @@
             {
               "file": "store-app/h5/biz-center.html",
               "module": "",
-              "title": "经营中心 · 门店APP"
+              "title": "经营中心 · 丰银宝"
             },
             {
               "file": "store-app/h5/home.html",
               "module": "",
-              "title": "门店APP · 工作台"
+              "title": "丰银宝 · 工作台"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -23827,32 +24649,32 @@
             {
               "file": "user-app/h5/store-pay-password.html",
               "module": "",
-              "title": "设置支付密码 · 门店 APP"
+              "title": "设置支付密码 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-recharge.html",
               "module": "",
-              "title": "充值 · 门店 APP"
+              "title": "充值 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-wallet.html",
               "module": "",
-              "title": "我的钱包 · 门店 APP"
+              "title": "我的钱包 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-withdraw-records.html",
               "module": "",
-              "title": "提现明细 · 门店 APP"
+              "title": "提现明细 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-withdraw.html",
               "module": "",
-              "title": "提现 · 门店 APP"
+              "title": "提现 · 丰银宝"
             }
           ],
           "notes": [
             {
-              "file": "store-app/h5/home.html",
+              "file": "store-app/h5/biz-center.html",
               "text": "门店APP工作台: 门店钱包旁新增经营中心入口"
             },
             {
@@ -24286,27 +25108,27 @@
             {
               "file": "store-app/h5/biz-center.html",
               "module": "",
-              "title": "经营中心 · 门店APP"
+              "title": "经营中心 · 丰银宝"
             },
             {
               "file": "store-app/h5/home.html",
               "module": "",
-              "title": "门店APP · 工作台"
+              "title": "丰银宝 · 工作台"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -24336,27 +25158,27 @@
             {
               "file": "user-app/h5/store-pay-password.html",
               "module": "",
-              "title": "设置支付密码 · 门店 APP"
+              "title": "设置支付密码 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-recharge.html",
               "module": "",
-              "title": "充值 · 门店 APP"
+              "title": "充值 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-wallet.html",
               "module": "",
-              "title": "我的钱包 · 门店 APP"
+              "title": "我的钱包 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-withdraw-records.html",
               "module": "",
-              "title": "提现明细 · 门店 APP"
+              "title": "提现明细 · 丰银宝"
             },
             {
               "file": "user-app/h5/store-withdraw.html",
               "module": "",
-              "title": "提现 · 门店 APP"
+              "title": "提现 · 丰银宝"
             }
           ],
           "notes": [
@@ -24485,6 +25307,11 @@
               "title": "意见反馈"
             },
             {
+              "file": "MDM/mdm_aftersale_guarantee.html",
+              "module": "冷丰售后",
+              "title": "售后保障期管理"
+            },
+            {
               "file": "MDM/mdm_aftersale_refund.html",
               "module": "冷丰售后",
               "title": "退款单"
@@ -24527,17 +25354,17 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -24670,6 +25497,11 @@
               "title": "意见反馈"
             },
             {
+              "file": "MDM/mdm_aftersale_guarantee.html",
+              "module": "冷丰售后",
+              "title": "售后保障期管理"
+            },
+            {
               "file": "MDM/mdm_aftersale_refund.html",
               "module": "冷丰售后",
               "title": "退款单"
@@ -24692,17 +25524,17 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -24824,17 +25656,17 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -24958,17 +25790,17 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -25301,22 +26133,22 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/cart.html",
@@ -25730,22 +26562,22 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/account-cancel.html",
@@ -26052,17 +26884,17 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -26175,6 +27007,11 @@
               "title": "意见反馈"
             },
             {
+              "file": "MDM/mdm_aftersale_guarantee.html",
+              "module": "冷丰售后",
+              "title": "售后保障期管理"
+            },
+            {
               "file": "MDM/mdm_aftersale_refund.html",
               "module": "冷丰售后",
               "title": "退款单"
@@ -26207,17 +27044,17 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/cart.html",
@@ -26469,6 +27306,11 @@
               "title": "意见反馈"
             },
             {
+              "file": "MDM/mdm_aftersale_guarantee.html",
+              "module": "冷丰售后",
+              "title": "售后保障期管理"
+            },
+            {
               "file": "MDM/mdm_aftersale_refund.html",
               "module": "冷丰售后",
               "title": "退款单"
@@ -26491,17 +27333,17 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -26617,6 +27459,11 @@
               "title": "意见反馈"
             },
             {
+              "file": "MDM/mdm_aftersale_guarantee.html",
+              "module": "冷丰售后",
+              "title": "售后保障期管理"
+            },
+            {
               "file": "MDM/mdm_aftersale_refund.html",
               "module": "冷丰售后",
               "title": "退款单"
@@ -26658,7 +27505,7 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-detail.html",
@@ -26688,17 +27535,17 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -26816,102 +27663,112 @@
             {
               "file": "store-app/h5/bank-cards.html",
               "module": "",
-              "title": "银行卡 · 门店APP"
+              "title": "银行卡 · 丰银宝"
             },
             {
               "file": "store-app/h5/biz-center.html",
               "module": "",
-              "title": "经营中心 · 门店APP"
+              "title": "经营中心 · 丰银宝"
             },
             {
               "file": "store-app/h5/biz-order-goods.html",
               "module": "",
-              "title": "订单商品明细 · 门店APP"
+              "title": "订单商品明细 · 丰银宝"
             },
             {
               "file": "store-app/h5/contract-sign.html",
               "module": "",
-              "title": "签署合同 · 门店APP"
+              "title": "签署合同 · 丰银宝"
             },
             {
               "file": "store-app/h5/contracts.html",
               "module": "",
-              "title": "合同签署 · 门店APP"
+              "title": "合同签署 · 丰银宝"
             },
             {
               "file": "store-app/h5/home.html",
               "module": "",
-              "title": "门店APP · 工作台"
+              "title": "丰银宝 · 工作台"
             },
             {
               "file": "store-app/h5/live-promo.html",
               "module": "",
-              "title": "直播推广 · 门店APP"
+              "title": "直播推广 · 丰银宝"
             },
             {
               "file": "store-app/h5/more.html",
               "module": "",
-              "title": "更多 · 门店APP"
+              "title": "更多 · 丰银宝"
             },
             {
               "file": "store-app/h5/onboarding.html",
               "module": "",
-              "title": "商户进件 · 门店APP"
+              "title": "商户进件 · 丰银宝"
             },
             {
               "file": "store-app/h5/order-detail.html",
               "module": "",
-              "title": "核销详情 · 门店APP"
+              "title": "核销详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/order-logistics.html",
               "module": "",
-              "title": "订单跟踪 · 门店APP"
+              "title": "订单跟踪 · 丰银宝"
             },
             {
               "file": "store-app/h5/password-edit.html",
               "module": "",
-              "title": "密码管理 · 门店APP"
+              "title": "密码管理 · 丰银宝"
             },
             {
               "file": "store-app/h5/password-forgot.html",
               "module": "",
-              "title": "忘记密码 · 门店APP"
+              "title": "忘记密码 · 丰银宝"
             },
             {
               "file": "store-app/h5/password.html",
               "module": "",
-              "title": "密码管理 · 门店APP"
+              "title": "密码管理 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/store-orders.html",
               "module": "",
-              "title": "门店订单 · 门店APP"
+              "title": "门店订单 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-orders.html",
+              "module": "",
+              "title": "供应订单 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-settle.html",
+              "module": "",
+              "title": "结算中心 · 丰银宝"
             },
             {
               "file": "store-app/h5/verify.html",
               "module": "",
-              "title": "门店核销 · 门店APP"
+              "title": "门店核销 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -27215,12 +28072,12 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "user-app/h5/account-cancel.html",
@@ -27463,12 +28320,12 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "user-app/h5/cart.html",
@@ -27640,17 +28497,17 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -27762,6 +28619,11 @@
               "title": "意见反馈"
             },
             {
+              "file": "MDM/mdm_aftersale_guarantee.html",
+              "module": "冷丰售后",
+              "title": "售后保障期管理"
+            },
+            {
               "file": "MDM/mdm_aftersale_refund.html",
               "module": "冷丰售后",
               "title": "退款单"
@@ -27784,17 +28646,17 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -28121,92 +28983,102 @@
             {
               "file": "store-app/h5/bank-cards.html",
               "module": "",
-              "title": "银行卡 · 门店APP"
+              "title": "银行卡 · 丰银宝"
             },
             {
               "file": "store-app/h5/biz-center.html",
               "module": "",
-              "title": "经营中心 · 门店APP"
+              "title": "经营中心 · 丰银宝"
             },
             {
               "file": "store-app/h5/biz-order-goods.html",
               "module": "",
-              "title": "订单商品明细 · 门店APP"
+              "title": "订单商品明细 · 丰银宝"
             },
             {
               "file": "store-app/h5/contract-sign.html",
               "module": "",
-              "title": "签署合同 · 门店APP"
+              "title": "签署合同 · 丰银宝"
             },
             {
               "file": "store-app/h5/contracts.html",
               "module": "",
-              "title": "合同签署 · 门店APP"
+              "title": "合同签署 · 丰银宝"
             },
             {
               "file": "store-app/h5/home.html",
               "module": "",
-              "title": "门店APP · 工作台"
+              "title": "丰银宝 · 工作台"
             },
             {
               "file": "store-app/h5/live-promo.html",
               "module": "",
-              "title": "直播推广 · 门店APP"
+              "title": "直播推广 · 丰银宝"
             },
             {
               "file": "store-app/h5/more.html",
               "module": "",
-              "title": "更多 · 门店APP"
+              "title": "更多 · 丰银宝"
             },
             {
               "file": "store-app/h5/onboarding.html",
               "module": "",
-              "title": "商户进件 · 门店APP"
+              "title": "商户进件 · 丰银宝"
             },
             {
               "file": "store-app/h5/order-detail.html",
               "module": "",
-              "title": "核销详情 · 门店APP"
+              "title": "核销详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/order-logistics.html",
               "module": "",
-              "title": "订单跟踪 · 门店APP"
+              "title": "订单跟踪 · 丰银宝"
             },
             {
               "file": "store-app/h5/password-edit.html",
               "module": "",
-              "title": "密码管理 · 门店APP"
+              "title": "密码管理 · 丰银宝"
             },
             {
               "file": "store-app/h5/password-forgot.html",
               "module": "",
-              "title": "忘记密码 · 门店APP"
+              "title": "忘记密码 · 丰银宝"
             },
             {
               "file": "store-app/h5/password.html",
               "module": "",
-              "title": "密码管理 · 门店APP"
+              "title": "密码管理 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/store-orders.html",
               "module": "",
-              "title": "门店订单 · 门店APP"
+              "title": "门店订单 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-orders.html",
+              "module": "",
+              "title": "供应订单 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-settle.html",
+              "module": "",
+              "title": "结算中心 · 丰银宝"
             },
             {
               "file": "store-app/h5/verify.html",
               "module": "",
-              "title": "门店核销 · 门店APP"
+              "title": "门店核销 · 丰银宝"
             },
             {
               "file": "store-app/index.html",
               "module": "",
-              "title": "门店APP"
+              "title": "丰银宝"
             },
             {
               "file": "user-app/h5/order-detail-pickup.html",
@@ -28232,12 +29104,16 @@
           "global": true,
           "notes": [
             {
-              "file": "store-app/h5/home.html",
-              "text": "新增门店APP工作台——快捷核销（扫码/输码/待核销）与基础工具（门店会员码/门店订单/库存查询/商户进件）"
+              "file": "store-app/h5/onboarding.html",
+              "text": "门店APP · 工作台: 新增门店APP工作台——快捷核销（扫码/输码/待核销）与基础工具（门店会员码/门店订单/库存查询/商户进件）"
             },
             {
-              "file": "store-app/h5/home.html",
-              "text": "新增门店APP入口页"
+              "file": "store-app/h5/store-orders.html",
+              "text": "门店APP · 工作台: 新增门店APP工作台——快捷核销（扫码/输码/待核销）与基础工具（门店会员码/门店订单/库存查询/商户进件）"
+            },
+            {
+              "file": null,
+              "text": "门店APP: 新增门店APP入口页"
             },
             {
               "file": "user-app/h5/order-detail-pickup.html",
@@ -28457,12 +29333,12 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "user-app/h5/cart.html",
@@ -28703,17 +29579,17 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -29159,17 +30035,17 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -29283,6 +30159,11 @@
               "file": "MDM/mdm_aftersale_feedback.html",
               "module": "冷丰售后",
               "title": "意见反馈"
+            },
+            {
+              "file": "MDM/mdm_aftersale_guarantee.html",
+              "module": "冷丰售后",
+              "title": "售后保障期管理"
             },
             {
               "file": "MDM/mdm_aftersale_refund.html",
@@ -29498,17 +30379,17 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -29640,6 +30521,11 @@
               "title": "意见反馈"
             },
             {
+              "file": "MDM/mdm_aftersale_guarantee.html",
+              "module": "冷丰售后",
+              "title": "售后保障期管理"
+            },
+            {
               "file": "MDM/mdm_aftersale_refund.html",
               "module": "冷丰售后",
               "title": "退款单"
@@ -29662,17 +30548,17 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -29812,17 +30698,17 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -29974,12 +30860,12 @@
             {
               "file": "store-app/h5/order-logistics.html",
               "module": "",
-              "title": "订单跟踪 · 门店APP"
+              "title": "订单跟踪 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -30067,17 +30953,17 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -30187,17 +31073,17 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -30306,17 +31192,17 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -30425,17 +31311,17 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -30540,17 +31426,17 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -30730,17 +31616,17 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -30857,17 +31743,17 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -31032,17 +31918,17 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -31177,17 +32063,17 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -31458,6 +32344,11 @@
               "title": "意见反馈"
             },
             {
+              "file": "MDM/mdm_aftersale_guarantee.html",
+              "module": "冷丰售后",
+              "title": "售后保障期管理"
+            },
+            {
               "file": "MDM/mdm_aftersale_refund.html",
               "module": "冷丰售后",
               "title": "退款单"
@@ -31496,6 +32387,11 @@
               "file": "MDM/mdm_aftersale_feedback.html",
               "module": "冷丰售后",
               "title": "意见反馈"
+            },
+            {
+              "file": "MDM/mdm_aftersale_guarantee.html",
+              "module": "冷丰售后",
+              "title": "售后保障期管理"
             },
             {
               "file": "MDM/mdm_aftersale_refund.html",
@@ -32347,17 +33243,17 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -32474,17 +33370,17 @@
             {
               "file": "store-app/h5/restock-aftersale-list.html",
               "module": "",
-              "title": "退款/售后 · 门店APP"
+              "title": "退款/售后 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-refund-detail.html",
               "module": "",
-              "title": "售后详情 · 门店APP"
+              "title": "售后详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-aftersale-list.html",
@@ -32598,7 +33494,7 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -32695,17 +33591,17 @@
             {
               "file": "store-app/h5/order-logistics.html",
               "module": "",
-              "title": "订单跟踪 · 门店APP"
+              "title": "订单跟踪 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -32754,12 +33650,12 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-detail.html",
@@ -32873,12 +33769,12 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -33077,12 +33973,12 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "user-app/h5/forgot-password.html",
@@ -33620,12 +34516,12 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "user-app/h5/account-cancel.html",
@@ -34375,12 +35271,12 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "user-app/h5/order-detail-pickup.html",
@@ -34459,12 +35355,12 @@
             {
               "file": "store-app/h5/restock-order-detail.html",
               "module": "",
-              "title": "订单详情 · 门店APP"
+              "title": "订单详情 · 丰银宝"
             },
             {
               "file": "store-app/h5/restock-orders.html",
               "module": "",
-              "title": "进货订单 · 门店APP"
+              "title": "进货订单 · 丰银宝"
             },
             {
               "file": "user-app/h5/home.html",
@@ -37078,7 +37974,7 @@
             {
               "file": "store-app/h5/onboarding.html",
               "module": "",
-              "title": "商户进件 · 门店APP"
+              "title": "商户进件 · 丰银宝"
             }
           ]
         },
@@ -37462,7 +38358,7 @@
             {
               "file": "store-app/h5/onboarding.html",
               "module": "",
-              "title": "商户进件 · 门店APP"
+              "title": "商户进件 · 丰银宝"
             }
           ],
           "global": true
@@ -38272,7 +39168,7 @@
             {
               "file": "store-app/h5/onboarding.html",
               "module": "",
-              "title": "商户进件 · 门店APP"
+              "title": "商户进件 · 丰银宝"
             },
             {
               "file": "user-app/h5/restock.html",
