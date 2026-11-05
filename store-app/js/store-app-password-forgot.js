@@ -468,7 +468,7 @@
   function initSmsStep() {
     var pageTitle = isLogin ? '忘记登录密码' : '忘记支付密码';
     if (titleEl) titleEl.textContent = pageTitle;
-    document.title = pageTitle + ' · 门店APP';
+    document.title = pageTitle + ' · 丰银宝';
     if (navEl) navEl.classList.add('sa-pwd-nav--otp');
     if (stepSms) stepSms.hidden = false;
     if (stepReset) stepReset.hidden = true;
@@ -527,7 +527,7 @@
       return;
     }
     if (titleEl) titleEl.textContent = isLogin ? '重置登录密码' : '重置支付密码';
-    document.title = (titleEl ? titleEl.textContent : '重置密码') + ' · 门店APP';
+    document.title = (titleEl ? titleEl.textContent : '重置密码') + ' · 丰银宝';
     if (navEl) navEl.classList.remove('sa-pwd-nav--otp');
     if (stepSms) stepSms.hidden = true;
     if (stepReset) stepReset.hidden = false;

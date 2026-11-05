@@ -1,11 +1,16 @@
 /**
- * 门店 App 合同列表。一份协议一张卡片，确认签署只签当前这一份。
- * 当前登录门店还没有任务时，补一条待签署的加盟店合同，方便在 App 里走完签署。
+ * 丰银宝合同列表。一份协议一张卡片，确认签署只签当前这一份。
+ * 门店视角：门店合作合同；供应商视角：供应商入驻/结算合同。
  */
 (function () {
   var list = document.getElementById('saCtList');
+  var titleEl = document.querySelector('.sa-ct-nav__title');
+  var isSupplier = !!(window.FybOrg && window.FybOrg.isSupplier());
 
-  function storeName() {
+  function partyName() {
+    if (isSupplier && window.FybOrg) {
+      return window.FybOrg.current().name;
+    }
     var api = window.SaLivePromoSession;
     var info = api && typeof api.identity === 'function' ? api.identity() : null;
     return (info && info.storeName) || '冷丰生鲜超市';
@@ -13,8 +18,23 @@
 
   function ensureTask(name) {
     var api = window.LfContract;
-    var rows = api.listStoreTasks(name);
-    if (rows.length) return rows;
+    if (!api) return [];
+    if (isSupplier) {
+      var rows = api.listSupplierTasks ? api.listSupplierTasks(name) : [];
+      if (rows.length) return rows;
+      api.generateCoopTask({
+        scene: 'supplier',
+        bizRef: 'fyb-supplier:' + name,
+        name: name,
+        contact: '供应商联系人 13800000000',
+        address: '供应商注册地址',
+        initiator: '丰银宝·供应商',
+        status: 'sign_progress'
+      });
+      return api.listSupplierTasks(name);
+    }
+    var storeRows = api.listStoreTasks(name);
+    if (storeRows.length) return storeRows;
     api.generateCoopTask({
       scene: 'store',
       bizRef: 'store-app:' + name,
@@ -32,12 +52,14 @@
     var api = window.LfContract;
     var tpls = api.taskTemplates(task);
     if (!tpls.length) {
-      return [{
-        task: task,
-        tplId: '',
-        name: task.agreementNames || task.name,
-        signed: task.status === 'sign_completed'
-      }];
+      return [
+        {
+          task: task,
+          tplId: '',
+          name: task.agreementNames || task.name,
+          signed: task.status === 'sign_completed'
+        }
+      ];
     }
     return tpls.map(function (tpl) {
       return {
@@ -79,7 +101,9 @@
     list.innerHTML = '';
     var note = document.createElement('p');
     note.className = 'sa-ct-note';
-    var name = storeName();
+    var name = partyName();
+    if (titleEl) titleEl.textContent = isSupplier ? '供应商合同' : '合同签署';
+    document.title = (isSupplier ? '供应商合同' : '合同签署') + ' · 丰银宝';
     if (!window.LfContract) {
       note.textContent = '合同列表未加载';
       list.appendChild(note);
@@ -87,9 +111,13 @@
     }
     var docs = [];
     ensureTask(name).forEach(function (task) {
-      docsOf(task).forEach(function (doc) { docs.push(doc); });
+      docsOf(task).forEach(function (doc) {
+        docs.push(doc);
+      });
     });
-    note.textContent = name + '的门店合作合同。每份单独签署，签完一份不会自动签上其他协议。';
+    note.textContent = isSupplier
+      ? name + '的供应商合作合同。每份单独签署，签完一份不会自动签上其他协议。'
+      : name + '的门店合作合同。每份单独签署，签完一份不会自动签上其他协议。';
     list.appendChild(note);
     docs.sort(function (a, b) {
       return (a.signed ? 1 : 0) - (b.signed ? 1 : 0);

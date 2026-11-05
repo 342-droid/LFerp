@@ -1,5 +1,5 @@
 /**
- * 门店 APP · 商户进件
+ * 丰银宝 · 商户进件
  * - 填写页四步与 BD APP（mdm_bd_merchants）一致
  * - 审核链路与 PC 门店进件一致：BD → BD总监 → 财务 → 汇付 → 结果
  * - 门店仅进件 1 次；提交后写入 mdm_unified_onboarding_records_v1
@@ -50,7 +50,7 @@
     reqSeqId: 'REQ' + '20260315001',
     extMerId: 'EXT-MU20260315001',
     creator: '门店负责人',
-    channel: '门店 APP'
+    channel: '丰银宝'
   };
 
   var RECORD_KEY = 'storeapp::store::' + STORE.id;
@@ -1187,7 +1187,7 @@
       variant: 'store',
       merchantShortName: getDraftField('short_name') || STORE.shortName,
       subjectName: STORE.subjectName,
-      channel: '门店 APP',
+      channel: '丰银宝',
       createdBy: '门店负责人',
       fields: cloneObj(state.draft),
       submittedAt: null,
@@ -1215,7 +1215,7 @@
       merchantShortName: getDraftField('short_name') || STORE.shortName,
       subjectName: STORE.subjectName,
       settlementBodyType: STORE.settlementBodyType || '独立结算',
-      channel: '门店 APP',
+      channel: '丰银宝',
       createdBy: '门店负责人',
       fields: cloneObj(state.draft),
       submittedAt: now,
@@ -1426,7 +1426,7 @@
         variant: 'store',
         merchantShortName: STORE.shortName,
         subjectName: STORE.subjectName,
-        channel: '门店 APP',
+        channel: '丰银宝',
         createdBy: '门店负责人',
         fields: cloneObj(state.draft),
         submittedAt: Date.now() - 3600 * 1000,
@@ -1449,7 +1449,7 @@
         merchantShortName: STORE.shortName,
         subjectName: STORE.subjectName,
         settlementBodyType: STORE.settlementBodyType,
-        channel: '门店 APP',
+        channel: '丰银宝',
         createdBy: STORE.creator,
         fields: cloneObj(state.draft),
         submittedAt: Date.now() - 86400000,
@@ -1473,7 +1473,7 @@
         variant: 'store',
         merchantShortName: STORE.shortName,
         subjectName: STORE.subjectName,
-        channel: '门店 APP',
+        channel: '丰银宝',
         fields: cloneObj(state.draft),
         submittedAt: Date.now() - 86400000,
         auditStatus: '审核失败',
@@ -1495,7 +1495,7 @@
         variant: 'store',
         merchantShortName: STORE.shortName,
         subjectName: STORE.subjectName,
-        channel: '门店 APP',
+        channel: '丰银宝',
         createdBy: '门店负责人',
         fields: cloneObj(state.draft),
         submittedAt: Date.now() - 3600 * 1000,

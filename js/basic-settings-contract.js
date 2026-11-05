@@ -1904,6 +1904,17 @@
     });
   }
 
+  function listSupplierTasks(supplierName) {
+    var name = String(supplierName || '').trim();
+    return state.tasks.filter(function (t) {
+      if (t.scene !== 'supplier') return false;
+      if (taskIsClosed(t.status)) return false;
+      if (!name) return true;
+      var party = findParty(t.partyId);
+      return !!(party && party.name === name);
+    });
+  }
+
   function templatesOfScene(sceneId) {
     return state.templates.filter(function (t) {
       return t.scene === sceneId && t.status === 'on';
@@ -2001,6 +2012,7 @@
     generateCoopTask: generateCoopTask,
     signUserByRegister: signUserByRegister,
     listStoreTasks: listStoreTasks,
+    listSupplierTasks: listSupplierTasks,
     templatesOfScene: templatesOfScene,
     markTaskSigned: markTaskSigned,
     markTemplateSigned: markTemplateSigned,

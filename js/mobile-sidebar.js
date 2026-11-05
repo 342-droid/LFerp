@@ -21,7 +21,7 @@
         { href: 'mdm_bd_workbench.html', text: 'BD APP' },
         {
             href: 'store-app/h5/home.html',
-            text: '门店APP',
+            text: '丰银宝',
             match: /store-app\/h5\/|user-app\/h5\/(?:restock|checkout|product-detail)\.html/i
         },
         { href: 'shop-h5/h5/store/register.html', text: '门店H5' },

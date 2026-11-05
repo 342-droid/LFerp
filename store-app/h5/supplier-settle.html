@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>结算中心 · 丰银宝</title>
+  <link rel="stylesheet" href="../css/store-app.css?v=20261105-fyb-org">
+  <link rel="stylesheet" href="../css/store-app-supplier.css?v=20261105-fyb-org">
+</head>
+<body class="store-app-body">
+  <div class="sa-shell sa-sup-shell">
+    <div class="sa-sup">
+      <header class="sa-sup-nav">
+        <a href="home.html" class="sa-sup-nav__back" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <h1 class="sa-sup-nav__title">结算中心</h1>
+      </header>
+      <p class="sa-sup-nav__sub" id="saSupSettleOrg">—</p>
+      <div class="sa-sup-tabs" role="tablist">
+        <button type="button" class="sa-sup-tabs__btn is-active" data-tab="account">账户总览</button>
+        <button type="button" class="sa-sup-tabs__btn" data-tab="ledger">清分明细</button>
+        <button type="button" class="sa-sup-tabs__btn" data-tab="bills">结款单</button>
+      </div>
+      <div class="sa-sup-body" id="saSupSettleBody"></div>
+    </div>
+  </div>
+  <script src="../js/store-app-org.js?v=20261105-fyb-org"></script>
+  <script src="../js/store-app-supplier-settle.js?v=20261105-fyb-org"></script>
+</body>
+</html>

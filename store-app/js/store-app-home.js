@@ -38,71 +38,96 @@
     window.location.href = 'store-orders.html';
   }
 
+  function currentOrg() {
+    return (window.FybOrg && window.FybOrg.current()) || {
+      id: 'store-lengfeng',
+      role: 'store',
+      name: '冷丰生鲜超市',
+      short: '店'
+    };
+  }
+
+  function isSupplierMode() {
+    return !!(window.FybOrg && window.FybOrg.isSupplier());
+  }
+
   function bindActions() {
-    document.querySelectorAll('[data-sa-action]:not([data-sa-action="queueCode"]):not([data-sa-action="promoCode"])').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var action = btn.getAttribute('data-sa-action');
-        if (action === 'restock') {
-          goRestock();
-          return;
-        }
-        if (action === 'wallet') {
-          goWallet();
-          return;
-        }
-        if (action === 'bizCenter') {
-          goBizCenter();
-          return;
-        }
-        if (action === 'scan') {
-          if (window.LFScan && window.LFScan.open) {
-            window.LFScan.open();
+    document
+      .querySelectorAll(
+        '[data-sa-action]:not([data-sa-action="queueCode"]):not([data-sa-action="promoCode"])'
+      )
+      .forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var action = btn.getAttribute('data-sa-action');
+          if (action === 'restock') {
+            goRestock();
+            return;
           }
-          return;
-        }
-        if (action === 'code' || action === 'pending') {
-          goVerify();
-          return;
-        }
-        if (action === 'more') {
-          window.location.href = 'more.html';
-          return;
-        }
-        if (action === 'onboarding') {
-          window.location.href = 'onboarding.html';
-          return;
-        }
-        if (action === 'contracts') {
-          window.location.href = 'contracts.html';
-          return;
-        }
-        if (action === 'orders') {
-          goOrders();
-          return;
-        }
-        if (action === 'livePromo') {
-          var href =
-            window.SaLivePromoSession && window.SaLivePromoSession.livePromoHref
-              ? window.SaLivePromoSession.livePromoHref()
-              : 'live-promo.html';
-          window.location.href = href;
-          return;
-        }
-        var labels = {
-          aftersaleQuick: '售后',
-          memberCode: '门店会员码',
-          promoCode: '门店推广码',
-          livePromo: '直播推广',
-          orders: '客户订单',
-          receive: '收货',
-          inventory: '库存查询',
-          aftersale: '售后',
-          settings: '设置',
-          ai: 'AI'
-        };
-        toast((labels[action] || '功能') + '（演示）');
+          if (action === 'wallet') {
+            goWallet();
+            return;
+          }
+          if (action === 'bizCenter') {
+            goBizCenter();
+            return;
+          }
+          if (action === 'scan') {
+            if (window.LFScan && window.LFScan.open) {
+              window.LFScan.open();
+            }
+            return;
+          }
+          if (action === 'code' || action === 'pending') {
+            goVerify();
+            return;
+          }
+          if (action === 'more') {
+            window.location.href = 'more.html';
+            return;
+          }
+          if (action === 'onboarding') {
+            window.location.href = 'onboarding.html';
+            return;
+          }
+          if (action === 'contracts' || action === 'supplierContracts') {
+            window.location.href = 'contracts.html';
+            return;
+          }
+          if (action === 'orders') {
+            goOrders();
+            return;
+          }
+          if (action === 'supplierOrders') {
+            window.location.href = 'supplier-orders.html';
+            return;
+          }
+          if (action === 'supplierSettle') {
+            window.location.href = 'supplier-settle.html';
+            return;
+          }
+          if (action === 'livePromo') {
+            var href =
+              window.SaLivePromoSession && window.SaLivePromoSession.livePromoHref
+                ? window.SaLivePromoSession.livePromoHref()
+                : 'live-promo.html';
+            window.location.href = href;
+            return;
+          }
+          var labels = {
+            aftersaleQuick: '售后',
+            memberCode: '门店会员码',
+            promoCode: '门店推广码',
+            livePromo: '直播推广',
+            orders: '客户订单',
+            receive: '收货',
+            inventory: '库存查询',
+            aftersale: '售后',
+            settings: '设置',
+            ai: 'AI'
+          };
+          toast((labels[action] || '功能') + '（演示）');
+        });
       });
-    });
   }
 
   /** 未进件 / 草稿 / 驳回时显示红点；进件中或成功则隐藏 */
@@ -152,51 +177,121 @@
     var storeName = currentStoreName();
     var show = true;
     try {
-      var data = JSON.parse(localStorage.getItem('lf_contract_proto_v1') || 'null');
-      var parties = {};
-      ((data && data.parties) || []).forEach(function (p) {
-        parties[p.id] = p;
-      });
-      var mine = ((data && data.tasks) || []).filter(function (t) {
-        if (!t || t.scene !== 'store') return false;
-        var party = parties[t.partyId];
-        return party && party.name === storeName && t.status !== 'cancelled' && t.status !== 'rejected' && t.status !== 'terminated' && t.status !== 'voided' && t.status !== 'voiding';
-      });
-      if (mine.length) {
-        show = mine.some(function (t) {
-          return t.status === 'sign_progress' || t.status === 'wait_auth';
+      if (window.LfContract && window.LfContract.listStoreTasks) {
+        var rows = window.LfContract.listStoreTasks(storeName);
+        if (rows && rows.length) {
+          show = rows.some(function (t) {
+            return t.status === 'sign_progress' || t.status === 'wait_auth';
+          });
+        }
+      } else {
+        var data = JSON.parse(localStorage.getItem('lf_contract_proto_v1') || 'null');
+        var parties = {};
+        ((data && data.parties) || []).forEach(function (p) {
+          parties[p.id] = p;
         });
+        var mine = ((data && data.tasks) || []).filter(function (t) {
+          if (!t || t.scene !== 'store') return false;
+          var party = parties[t.partyId];
+          return (
+            party &&
+            party.name === storeName &&
+            t.status !== 'cancelled' &&
+            t.status !== 'rejected' &&
+            t.status !== 'terminated' &&
+            t.status !== 'voided' &&
+            t.status !== 'voiding'
+          );
+        });
+        if (mine.length) {
+          show = mine.some(function (t) {
+            return t.status === 'sign_progress' || t.status === 'wait_auth';
+          });
+        }
       }
     } catch (e) {}
     dot.hidden = !show;
   }
 
-  function syncLiveIdentityHeader() {
-    var api = window.SaLivePromoSession;
-    if (api && typeof api.applyUrlHints === 'function') api.applyUrlHints();
-    var info = api && typeof api.identity === 'function' ? api.identity() : null;
+  function syncSupplierContractDot() {
+    var dot = document.getElementById('saSupContractDot');
+    if (!dot) return;
+    var org = currentOrg();
+    var show = false;
+    try {
+      if (window.LfContract && window.LfContract.listSupplierTasks) {
+        var rows = window.LfContract.listSupplierTasks(org.name);
+        show = (rows || []).some(function (t) {
+          return t.status === 'sign_progress' || t.status === 'wait_auth';
+        });
+        if (!(rows && rows.length)) show = true;
+      }
+    } catch (e) {}
+    dot.hidden = !show;
+  }
+
+  function syncHeader() {
+    var org = currentOrg();
     var avatar = document.getElementById('saHomeAvatar');
     var nameEl = document.getElementById('saHomeStoreName');
     var roleEl = document.getElementById('saHomeRole');
-    if (!info) return;
-    if (avatar) avatar.textContent = (info.staffName || '店').slice(0, 1);
-    if (nameEl) nameEl.textContent = info.storeName || '门店';
+    if (avatar) avatar.textContent = org.short || org.name.slice(0, 1);
+    if (nameEl) nameEl.textContent = org.name;
     if (roleEl) {
-      if (info.role === 'bd') {
-        roleEl.hidden = false;
-        roleEl.textContent = 'BD · ' + info.staffName + ' · 已切到该店';
-      } else {
-        roleEl.hidden = true;
-        roleEl.textContent = '';
-      }
+      roleEl.hidden = false;
+      roleEl.textContent = org.role === 'supplier' ? '供应商 · 点击切换组织' : '门店 · 点击切换组织';
     }
-    if (api && typeof api.mountDemoPanel === 'function') api.mountDemoPanel();
+
+    /* 门店视角仍可叠加 BD 切店提示 */
+    if (org.role === 'store') {
+      var api = window.SaLivePromoSession;
+      if (api && typeof api.applyUrlHints === 'function') api.applyUrlHints();
+      var info = api && typeof api.identity === 'function' ? api.identity() : null;
+      if (info) {
+        if (avatar) avatar.textContent = (info.staffName || org.short || '店').slice(0, 1);
+        if (nameEl) nameEl.textContent = info.storeName || org.name;
+        if (roleEl && info.role === 'bd') {
+          roleEl.hidden = false;
+          roleEl.textContent = 'BD · ' + info.staffName + ' · 已切到该店';
+        }
+      }
+      if (api && typeof api.mountDemoPanel === 'function') api.mountDemoPanel();
+    }
+  }
+
+  function syncWorkspace() {
+    var storeWs = document.getElementById('saStoreWorkspace');
+    var supWs = document.getElementById('saSupplierWorkspace');
+    var supplier = isSupplierMode();
+    if (storeWs) storeWs.hidden = !!supplier;
+    if (supWs) supWs.hidden = !supplier;
+    document.body.setAttribute('data-fyb-role', supplier ? 'supplier' : 'store');
+    syncHeader();
+    if (supplier) syncSupplierContractDot();
+    else {
+      syncOnboardingDot();
+      syncContractDot();
+    }
+  }
+
+  function bindOrgSwitch() {
+    var btn = document.getElementById('saOrgSwitch');
+    if (!btn || !window.FybOrg) return;
+    btn.addEventListener('click', function () {
+      window.FybOrg.openSwitcher({
+        onSelect: function (next, prev) {
+          if (!prev || next.id !== prev.id) {
+            toast('已切换到' + (next.role === 'supplier' ? '供应商' : '门店') + '：' + next.name);
+          }
+          syncWorkspace();
+        }
+      });
+    });
   }
 
   bindActions();
-  syncOnboardingDot();
-  syncLiveIdentityHeader();
-  syncContractDot();
+  bindOrgSwitch();
+  syncWorkspace();
 
   if (window.LFScan && window.LFMockData) {
     window.LFScan.init(window.LFMockData, {
@@ -232,7 +327,7 @@
       qrMount: document.getElementById('promo-qr-code-mount'),
       avatarEl: document.getElementById('promo-qr-avatar'),
       nameEl: document.getElementById('promo-qr-store-name'),
-      qrUrl: store.promoCodeUrl || ('lengfeng-store:' + (store.storeId || 'ONS-CENTER-01')),
+      qrUrl: store.promoCodeUrl || 'lengfeng-store:' + (store.storeId || 'ONS-CENTER-01'),
       shareTitle: (store.companyName || '门店') + '推广码',
       shareText: '扫码进入' + (store.companyName || '门店'),
       downloadSuffix: '_门店推广码'
