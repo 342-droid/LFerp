@@ -65,28 +65,6 @@
     "status": "diff",
     "date": "2026-10-28"
   },
-  "258bdda|SCM/master_data_product_library.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-22"
-  },
-  "258bdda|SCM/master_data_supply.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-22"
-  },
-  "258bdda|SCM/negative_inventory.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-22"
-  },
-  "258bdda|SCM/obd_sorting.html": {
-    "before": "changelog-assets/258bdda/SCM__obd_sorting.html.before.jpg",
-    "after": "changelog-assets/258bdda/SCM__obd_sorting.html.after.jpg",
-    "regions": 1,
-    "status": "diff",
-    "date": "2026-10-22"
-  },
   "2e45ade|MDM/mdm_settle_index.html": {
     "before": "changelog-assets/2e45ade/MDM__mdm_settle_index.html.before.jpg",
     "after": "changelog-assets/2e45ade/MDM__mdm_settle_index.html.after.jpg",
@@ -516,28 +494,6 @@
     "regions": 1,
     "status": "diff",
     "date": "2026-10-27"
-  },
-  "afe20ce|MDM/mdm_aftersale_feedback.html": {
-    "before": "changelog-assets/afe20ce/MDM__mdm_aftersale_feedback.html.before.jpg",
-    "after": "changelog-assets/afe20ce/MDM__mdm_aftersale_feedback.html.after.jpg",
-    "regions": 1,
-    "status": "diff",
-    "date": "2026-10-22"
-  },
-  "b09e32e|SCM/master_data_product_category.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-22"
-  },
-  "b09e32e|SCM/master_data_product_library.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-22"
-  },
-  "b09e32e|SCM/master_data_supply.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-10-22"
   },
   "bebe0e1|MDM/mdm_archive_carrier.html": {
     "regions": 0,
