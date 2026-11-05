@@ -31,7 +31,8 @@
     icon: '任务管理',
     items: [
       { href: 'mdm_aftersale_ticket.html', text: '售后单' },
-      { href: 'mdm_aftersale_refund.html', text: '退款单' }
+      { href: 'mdm_aftersale_refund.html', text: '退款单' },
+      { href: 'mdm_aftersale_guarantee.html', text: '售后保障期管理' }
     ]
   };
 
@@ -113,6 +114,7 @@
   var PAGE_TABS = [
     { href: 'mdm_aftersale_ticket.html', text: '售后单' },
     { href: 'mdm_aftersale_refund.html', text: '退款单' },
+    { href: 'mdm_aftersale_guarantee.html', text: '售后保障期管理' },
     { href: 'mdm_aftersale_report.html', text: '举报管理' },
     { href: 'mdm_aftersale_feedback.html', text: '意见反馈' }
   ];

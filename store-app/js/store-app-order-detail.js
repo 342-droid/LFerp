@@ -46,7 +46,7 @@
 
   var titleEl = document.getElementById("detail-title");
   if (titleEl && isMultiUser) titleEl.textContent = "批量核销";
-  if (isMultiUser) document.title = "批量核销 · 门店APP";
+  if (isMultiUser) document.title = "批量核销 · 丰银宝";
 
   function getItemRefund(item) {
     if (!item) return null;

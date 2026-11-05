@@ -1,0 +1,214 @@
+/* 售后保障期管理 */
+.as-g-page {
+  padding: 0 0 28px;
+}
+
+.as-g-tabs {
+  display: flex;
+  gap: 0;
+  margin: 0 0 14px;
+  border-bottom: 1px solid #e8ebf0;
+}
+
+.as-g-tabs__btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 10px 18px;
+  font-size: 14px;
+  color: #606266;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.as-g-tabs__btn.is-active {
+  color: #ff7019;
+  font-weight: 600;
+  border-bottom-color: #ff7019;
+}
+
+.as-g-card {
+  background: #fff;
+  border: 1px solid #e8ebf0;
+  border-radius: 6px;
+  padding: 18px 20px 20px;
+  margin-bottom: 14px;
+}
+
+.as-g-card__title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #303133;
+  margin: 0 0 12px;
+}
+
+.as-g-platform-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.as-g-platform-row label {
+  font-size: 14px;
+  color: #606266;
+  min-width: 120px;
+  text-align: right;
+}
+
+.as-g-platform-row .erp-input {
+  width: 120px;
+  height: 36px;
+}
+
+.as-g-unit {
+  font-size: 14px;
+  color: #909399;
+}
+
+.as-g-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.as-g-table-wrap {
+  overflow: auto;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+}
+
+.as-g-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.as-g-table th,
+.as-g-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #ebeef5;
+  text-align: left;
+  color: #606266;
+  white-space: nowrap;
+}
+
+.as-g-table th {
+  background: #fafbfc;
+  color: #909399;
+  font-weight: 500;
+}
+
+.as-g-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.as-g-table .erp-input,
+.as-g-table .erp-select {
+  height: 32px;
+  min-width: 88px;
+}
+
+.as-g-ops {
+  display: flex;
+  gap: 8px;
+}
+
+.as-g-ops .erp-btn {
+  padding: 0 10px;
+  height: 28px;
+  font-size: 12px;
+}
+
+.as-g-tag {
+  display: inline-block;
+  padding: 0 8px;
+  height: 22px;
+  line-height: 22px;
+  border-radius: 3px;
+  font-size: 12px;
+  background: #f0f2f5;
+  color: #606266;
+}
+
+.as-g-tag--orange {
+  background: #fff7f0;
+  color: #ff7019;
+}
+
+.as-g-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.as-g-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 4000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.as-g-modal {
+  width: min(520px, 92vw);
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+}
+
+.as-g-modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid #eef0f3;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.as-g-modal__body {
+  padding: 18px;
+}
+
+.as-g-modal__foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 18px 16px;
+  border-top: 1px solid #eef0f3;
+}
+
+.as-g-field {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 14px;
+  gap: 10px;
+}
+
+.as-g-field label {
+  width: 108px;
+  flex-shrink: 0;
+  text-align: right;
+  line-height: 36px;
+  font-size: 14px;
+  color: #606266;
+}
+
+.as-g-field .erp-input,
+.as-g-field .erp-select {
+  flex: 1;
+  height: 36px;
+}
+
+.as-g-field__tip {
+  margin: 4px 0 0 118px;
+  font-size: 12px;
+  color: #909399;
+  line-height: 1.5;
+}

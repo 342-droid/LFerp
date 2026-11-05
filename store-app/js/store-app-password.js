@@ -138,7 +138,7 @@
     leadEl.textContent = leadText;
     leadEl.hidden = !leadText;
   }
-  document.title = (titleMap[sceneKey] || '密码管理') + ' · 门店APP';
+  document.title = (titleMap[sceneKey] || '密码管理') + ' · 丰银宝';
   if (forgotBtn) {
     forgotBtn.hidden = !(isLogin || (kind === 'pay' && mode === 'modify'));
   }

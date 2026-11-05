@@ -4768,7 +4768,7 @@
   }
 
   if (fromStoreApp) {
-    document.title = '进货 · 门店APP';
+    document.title = '进货 · 丰银宝';
     var backEl = document.querySelector('.ua-restock-back');
     if (backEl) {
       backEl.setAttribute('href', '../../store-app/h5/home.html');
