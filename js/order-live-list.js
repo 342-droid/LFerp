@@ -1394,11 +1394,33 @@
 
     var orderId = row.getAttribute('data-order-id');
     var viewLink = cell.querySelector('.js-order-view');
-    /* 供应商组织：列表操作仅「查看」，发货/售后等进详情 */
+    /* 供应商组织：可直接发货 / 处理售后（进详情），与 App 客户订单能力对齐 */
     if (window.LFSupplierOrderView && window.LFSupplierOrderView.isActive()) {
       var supplierActions = document.createElement('div');
       supplierActions.className = 'order-live-table__actions';
       if (viewLink) supplierActions.appendChild(viewLink);
+      var supplierExpress = (row.getAttribute('data-delivery-mode') || '') === 'express';
+      var supplierStatus = getRowOrderStatus(row);
+      if (supplierExpress && (supplierStatus === '待发货' || supplierStatus === '待接单')) {
+        supplierActions.appendChild(
+          createRetailActionButton('js-retail-upload-express', orderId, '发货')
+        );
+      }
+      var aftersaleCell = String(
+        row.getAttribute('data-as-status') ||
+          row.getAttribute('data-aftersale-status') ||
+          ''
+      ).trim();
+      if (!aftersaleCell && window.OrderLiveDetail && typeof window.OrderLiveDetail.getOrderAftersaleStatus === 'function') {
+        aftersaleCell = String(
+          window.OrderLiveDetail.getOrderAftersaleStatus(orderId, row) || ''
+        ).trim();
+      }
+      if (/待收货|待寄出|待发货|退款中|售后中|处理中/.test(aftersaleCell)) {
+        var asBtn = createRetailActionButton('js-order-view', orderId, '处理售后');
+        asBtn.classList.add('js-sup-handle-aftersale');
+        supplierActions.appendChild(asBtn);
+      }
       cell.innerHTML = '';
       cell.appendChild(supplierActions);
       cell.dataset.actionsNormalized = '1';

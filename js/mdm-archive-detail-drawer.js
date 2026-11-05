@@ -5458,30 +5458,37 @@
                 )
             );
         } else if (kind === 'prod') {
+            /* 占位：门店/承运商仍走空表；供应商详情见 panelSupplierProductStats */
             root.appendChild(
                 summaryBar([
                     '商品成交金额：¥—',
                     '商品退款金额：¥—',
-                    '商品数量：—',
-                    '未核销：—',
-                    '已核销：—',
+                    '商品销量：—',
+                    '待履约：—',
+                    '已履约：—',
                     '已过期：—',
                     '已退款：—',
                     '退款中：—'
                 ])
             );
-            root.appendChild(toolbarFilters(['商品名称', '商品类目'], true));
+            root.appendChild(toolbarFilters(['商品名称', '商品编码', '商品类目'], true));
             root.appendChild(
                 dataTable(
                     [
-                        '商品ID',
+                        '商品编码',
+                        '商品条形码',
                         '商品信息',
                         '商品类目',
+                        '售卖渠道',
                         '成交金额',
                         '退款金额',
-                        '商品数量',
-                        '未核销',
-                        '已核销',
+                        '销量',
+                        '待履约',
+                        '已履约',
+                        '自提待核销',
+                        '自提已核销',
+                        '快递在途',
+                        '快递已完成',
                         '已过期',
                         '已退款'
                     ],
@@ -5808,7 +5815,245 @@
         };
     }
 
-    function panelResourceBaseSupplier(r) {
+    function readSupplierSettleConfig(r) {
+        if (window.LFSettleCycleStore && window.LFSettleCycleStore.getSupplier) {
+            return window.LFSettleCycleStore.getSupplier(r && r.id, r && r.name);
+        }
+        return {
+            payMethod: 'goods_first',
+            followPlatform: true,
+            trigger: 'fulfill',
+            cycle: '1'
+        };
+    }
+
+    function syncSupplierSettleListCell(tr, r) {
+        if (!tr || !r) return;
+        var cells = tr.querySelectorAll('td');
+        if (cells.length < 12) return;
+        if (window.LFSettleCycleStore && window.LFSettleCycleStore.formatSupplierSettleSummary) {
+            cells[11].textContent = window.LFSettleCycleStore.formatSupplierSettleSummary(
+                r.id,
+                r.name
+            );
+        }
+    }
+
+    function buildSupplierSettleField(label, control) {
+        var row = el('div', 'supplier-settle-field');
+        row.appendChild(el('div', 'supplier-settle-field__label', label));
+        var body = el('div', 'supplier-settle-field__body');
+        body.appendChild(control);
+        row.appendChild(body);
+        return row;
+    }
+
+    function buildSupplierSettleRadios(name, items, selected) {
+        var wrap = el('div', 'supplier-settle-radios');
+        items.forEach(function (it) {
+            var lb = document.createElement('label');
+            lb.className = 'supplier-settle-radio';
+            var inp = document.createElement('input');
+            inp.type = 'radio';
+            inp.name = name;
+            inp.value = it[0];
+            if (selected === it[0]) inp.checked = true;
+            lb.appendChild(inp);
+            lb.appendChild(document.createTextNode(' ' + it[1]));
+            wrap.appendChild(lb);
+        });
+        return wrap;
+    }
+
+    function buildSupplierSettleSelect(options, value) {
+        var s = document.createElement('select');
+        s.className = 'erp-select supplier-settle-select';
+        (options || []).forEach(function (o) {
+            var op = document.createElement('option');
+            op.value = o.value;
+            op.textContent = o.label;
+            s.appendChild(op);
+        });
+        if (value != null) s.value = value;
+        return s;
+    }
+
+    /** 供应商详情：结算信息独立板块，放在基础信息下方；编辑后写入共享 store，编辑弹窗同源回显 */
+    function buildSupplierSettleSection(r, sourceTr) {
+        var card = el('div', 'supplier-settle-block');
+        var editBtn = mkBtn('编辑', false, true);
+        card.appendChild(sectionTitleWithAction('结算信息', editBtn));
+
+        var viewHost = el('div', 'supplier-settle-view');
+        var editHost = el('div', 'supplier-settle-edit');
+        editHost.style.display = 'none';
+        card.appendChild(viewHost);
+        card.appendChild(editHost);
+
+        var tip = el(
+            'p',
+            'erp-page__note mdm-detail-note supplier-settle-contract-tip',
+            '结算条款写入「资金清分结算合同」。变更后走结算补充协议：旧结算合同保留不整份作废；补充协议约定生效日与新旧条款衔接，已生成清分按旧条款，新入池按新条款。'
+        );
+        card.appendChild(tip);
+
+        function paintView() {
+            var sc = readSupplierSettleConfig(r);
+            var store = window.LFSettleCycleStore || {};
+            viewHost.innerHTML = '';
+            var grid = el('div', 'supplier-detail-grid');
+            grid.appendChild(
+                detailCell(
+                    '结款方式',
+                    store.payMethodLabel ? store.payMethodLabel(sc.payMethod) : '先货后款'
+                )
+            );
+            grid.appendChild(
+                detailCell(
+                    '结算配置策略',
+                    store.strategyLabel
+                        ? store.strategyLabel(sc.followPlatform)
+                        : sc.followPlatform === false
+                          ? '供应商独立配置'
+                          : '平台通用配置'
+                )
+            );
+            grid.appendChild(
+                detailCell(
+                    '结算起算节点',
+                    store.triggerLabel ? store.triggerLabel(sc.trigger) : sc.trigger || '—'
+                )
+            );
+            grid.appendChild(
+                detailCell(
+                    '结算周期',
+                    store.cycleLabel ? store.cycleLabel(sc.cycle) : sc.cycle || '—'
+                )
+            );
+            viewHost.appendChild(grid);
+        }
+
+        function paintEdit() {
+            var sc = readSupplierSettleConfig(r);
+            var store = window.LFSettleCycleStore || {};
+            var plat =
+                store.loadConfig && store.loadConfig()
+                    ? store.loadConfig()
+                    : { trigger: 'fulfill', cycle: '1' };
+            editHost.innerHTML = '';
+            var form = el('div', 'supplier-settle-form');
+            var uid = String(r.id || 'sup').replace(/\W/g, '');
+
+            var payRadios = buildSupplierSettleRadios(
+                'sup-settle-pay-' + uid,
+                [['goods_first', '先货后款']],
+                sc.payMethod || 'goods_first'
+            );
+            form.appendChild(buildSupplierSettleField('结款方式', payRadios));
+
+            var strategyRadios = buildSupplierSettleRadios(
+                'sup-settle-strategy-' + uid,
+                [
+                    ['inherit', '平台通用配置'],
+                    ['override', '供应商独立配置']
+                ],
+                sc.followPlatform === false ? 'override' : 'inherit'
+            );
+            form.appendChild(buildSupplierSettleField('结算配置策略', strategyRadios));
+
+            var triggerSel = buildSupplierSettleSelect(
+                [
+                    { value: 'fulfill', label: '订单履约确认后' },
+                    { value: 'aftersale', label: '售后期结束' }
+                ],
+                sc.trigger || plat.trigger || 'fulfill'
+            );
+            var triggerField = buildSupplierSettleField('结算起算节点', triggerSel);
+            form.appendChild(triggerField);
+
+            var cycleOpts = (store.CYCLE_OPTIONS || []).slice();
+            if (!cycleOpts.length) {
+                cycleOpts = [
+                    { value: '1', label: '1天' },
+                    { value: '7', label: '7天' },
+                    { value: '15', label: '15天' },
+                    { value: '30', label: '30天' },
+                    { value: 'month', label: '自然月1日' }
+                ];
+            }
+            var cycleSel = buildSupplierSettleSelect(cycleOpts, sc.cycle || plat.cycle || '1');
+            var cycleField = buildSupplierSettleField('结算周期', cycleSel);
+            form.appendChild(cycleField);
+
+            function applyStrategyVisibility() {
+                var checked = strategyRadios.querySelector('input:checked');
+                var inherit = !checked || checked.value !== 'override';
+                if (inherit) {
+                    triggerSel.value = plat.trigger || 'fulfill';
+                    cycleSel.value = plat.cycle || '1';
+                }
+                triggerField.style.display = inherit ? 'none' : '';
+                cycleField.style.display = inherit ? 'none' : '';
+                triggerSel.disabled = inherit;
+                cycleSel.disabled = inherit;
+            }
+            strategyRadios.querySelectorAll('input').forEach(function (inp) {
+                inp.addEventListener('change', applyStrategyVisibility);
+            });
+            applyStrategyVisibility();
+
+            var footer = el('div', 'supplier-settle-form-footer');
+            var btnCancel = mkBtn('取消', false);
+            var btnOk = mkBtn('保存', true);
+            btnCancel.addEventListener('click', function () {
+                editHost.style.display = 'none';
+                viewHost.style.display = '';
+                editBtn.style.display = '';
+            });
+            btnOk.addEventListener('click', function () {
+                var payChecked = payRadios.querySelector('input:checked');
+                var strategyChecked = strategyRadios.querySelector('input:checked');
+                var inherit = !strategyChecked || strategyChecked.value !== 'override';
+                if (!inherit && (!triggerSel.value || !cycleSel.value)) {
+                    if (typeof showToast === 'function') showToast('请完善结算起算节点与结算周期', 'error');
+                    return;
+                }
+                var payload = {
+                    payMethod: payChecked ? payChecked.value : 'goods_first',
+                    followPlatform: inherit,
+                    trigger: triggerSel.value || 'fulfill',
+                    cycle: cycleSel.value || '1'
+                };
+                if (store.saveSupplier) {
+                    store.saveSupplier(r.id, r.name, payload);
+                }
+                syncSupplierSettleListCell(sourceTr, r);
+                paintView();
+                editHost.style.display = 'none';
+                viewHost.style.display = '';
+                editBtn.style.display = '';
+                if (typeof showToast === 'function') {
+                    showToast('结算信息已保存；编辑供应商时将同步回显（演示）', 'success');
+                }
+            });
+            footer.appendChild(btnCancel);
+            footer.appendChild(btnOk);
+            form.appendChild(footer);
+            editHost.appendChild(form);
+        }
+
+        editBtn.addEventListener('click', function () {
+            paintEdit();
+            viewHost.style.display = 'none';
+            editHost.style.display = '';
+            editBtn.style.display = 'none';
+        });
+
+        paintView();
+        return card;
+    }
+
+    function panelResourceBaseSupplier(r, sourceTr) {
         var p = el('div', 'supplier-detail-tab');
         p.appendChild(sectionTitle('基础信息'));
         var grid = el('div', 'supplier-detail-grid');
@@ -5829,7 +6074,6 @@
         grid.appendChild(detailCell('手机号码', r.phone));
         grid.appendChild(detailCell('创建时间', r.createTime));
         grid.appendChild(detailCell('供应商品数量', r.productCount));
-        grid.appendChild(detailCell('结算信息', r.settleInfo));
         grid.appendChild(detailCell('可提现手机号', r.withdrawPhone));
         grid.appendChild(detailCell('配送方式', r.deliveryMode));
         grid.appendChild(detailCell('进件状态', archiveOnboardEnum({}, r.onboard)));
@@ -5837,6 +6081,8 @@
         grid.appendChild(detailCellTagged('供应商状态', r.status, true));
         appendArchiveVenuePhotoCells(grid, 'supplier', r.id, r.name);
         p.appendChild(grid);
+        /* 结算信息独立板块：放基础信息下方整宽展示，便于编辑与扫读 */
+        p.appendChild(buildSupplierSettleSection(r, sourceTr));
         appendSupplierReceiveSection(p, r);
         return p;
     }
@@ -6072,6 +6318,901 @@
         return panelCommProdPerf(tabKind === 'comm' ? 'comm' : tabKind === 'prod' ? 'prod' : 'perf');
     }
 
+    /**
+     * 供应商档案 · 清分明细（采购款）
+     * 命名取「清分」而非「结算」：对齐结算中心链路「清分 → 结算/结款 → 入账」；
+     * 供应商侧是订单行采购款入池明细（清分台账口径），不是门店分佣，也不是结款单汇总。
+     */
+    function listSupplierClearingDemo(r) {
+        var sid = String((r && r.id) || '').trim();
+        var sname = String((r && r.name) || '').trim();
+        var all = [
+            {
+                supplierId: 'SUP20188301',
+                supplier: '超管创建仓库042402',
+                orderNo: 'ORD-2610312466502',
+                lineNo: 'ORD-2610312466502-1',
+                orderType: '零售',
+                product: '火龙果',
+                qty: 2,
+                goods: '0.04',
+                deduct: '0.00',
+                net: '0.04',
+                clearStatus: '已清分',
+                settleStatus: '待结款',
+                postingStatus: '待入账',
+                settleAmount: '—',
+                related: 'ST_357556279620669440',
+                triggerNode: '订单履约确认后',
+                poolStatus: '已入池',
+                orderTime: '2026-10-31 13:58:02',
+                exception: '—'
+            },
+            {
+                supplierId: 'SUP20188301',
+                supplier: '超管创建仓库042402',
+                orderNo: 'ORD-261016200015',
+                lineNo: 'ORD-261016200015-2',
+                orderType: '零售',
+                product: '芒果干',
+                qty: 2,
+                goods: '0.80',
+                deduct: '0.16',
+                net: '0.64',
+                clearStatus: '已清分',
+                settleStatus: '结款中',
+                postingStatus: '待入账',
+                settleAmount: '—',
+                related: 'ST_2086759712106688514',
+                triggerNode: '订单履约确认后',
+                poolStatus: '已入池',
+                orderTime: '2026-10-16 09:10:00',
+                exception: '—'
+            },
+            {
+                supplierId: 'SUP20188301',
+                supplier: '超管创建仓库042402',
+                orderNo: 'ORD-261013200012',
+                lineNo: 'ORD-261013200012-1',
+                orderType: '零售',
+                product: '白芭乐-快递-ss',
+                qty: 1,
+                goods: '0.30',
+                deduct: '0.06',
+                net: '0.24',
+                clearStatus: '已清分',
+                settleStatus: '已结款',
+                postingStatus: '已入账',
+                settleAmount: '0.24',
+                related: 'ST_2088198765544431618',
+                triggerNode: '售后期结束',
+                poolStatus: '已入池',
+                orderTime: '2026-10-13 10:22:00',
+                exception: '—'
+            },
+            {
+                supplierId: 'SUP20188302',
+                supplier: '小牛供应链',
+                orderNo: 'ORD-2610307754308',
+                lineNo: 'ORD-2610307754308-1',
+                orderType: '代采',
+                product: '低糖养乐多',
+                qty: 3,
+                goods: '1.50',
+                deduct: '0.00',
+                net: '1.50',
+                clearStatus: '已清分',
+                settleStatus: '已结款',
+                postingStatus: '已入账',
+                settleAmount: '1.50',
+                related: 'ST_351310165011607552',
+                triggerNode: '订单履约确认后',
+                poolStatus: '已入池',
+                orderTime: '2026-10-30 18:05:11',
+                exception: '—'
+            },
+            {
+                supplierId: 'SUP20188302',
+                supplier: '小牛供应链',
+                orderNo: 'ORD-261008200001',
+                lineNo: 'ORD-261008200001-1',
+                orderType: '零售',
+                product: '马群-莲藕-快递配送',
+                qty: 5,
+                goods: '12.00',
+                deduct: '0.60',
+                net: '11.40',
+                clearStatus: '已清分',
+                settleStatus: '待结算',
+                postingStatus: '待入账',
+                settleAmount: '—',
+                related: '—',
+                triggerNode: '售后期结束',
+                poolStatus: '待入池',
+                orderTime: '2026-10-08 14:20:00',
+                exception: '—'
+            },
+            {
+                supplierId: 'SUP20188303',
+                supplier: '珠宝集采中心',
+                orderNo: 'ORD-2609104841852',
+                lineNo: '353852301770752223',
+                orderType: '零售',
+                product: '低糖养乐多',
+                qty: 1,
+                goods: '0.02',
+                deduct: '0.01',
+                net: '0.01',
+                clearStatus: '清分异常',
+                settleStatus: '待结算',
+                postingStatus: '待入账',
+                settleAmount: '—',
+                related: 'ST_358643443066482688',
+                triggerNode: '订单履约确认后',
+                poolStatus: '未入池',
+                orderTime: '2026-09-10 11:05:00',
+                exception: '未配置供应商结算账户或结算主体'
+            }
+        ];
+        var matched = all.filter(function (row) {
+            if (sid && row.supplierId === sid) return true;
+            if (sname && row.supplier === sname) return true;
+            return false;
+        });
+        return matched.length ? matched : all.filter(function (row) {
+            return row.supplierId === 'SUP20188301';
+        });
+    }
+
+    function settleStatusTagHtml(v) {
+        var text = String(v || '—');
+        var safe = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        if (/已结款|已入账|已清分|已入池/.test(text)) {
+            return { html: '<span class="status active">' + safe + '</span>' };
+        }
+        if (/异常|失败|未入池/.test(text)) {
+            return { html: '<span class="status inactive">' + safe + '</span>' };
+        }
+        return safe;
+    }
+
+    function panelSupplierClearingDetail(r) {
+        var root = el('div', 'supplier-detail-tab');
+        root.appendChild(sectionTitle('清分明细'));
+        root.appendChild(
+            el(
+                'p',
+                'erp-page__note mdm-detail-note',
+                '本页展示该供应商订单行的采购款清分明细（货款入池），与门店「佣金/分佣」无关。链路：清分 → 结算/结款 → 入账；结款单汇总请到结算中心「供应商结算」查看。'
+            )
+        );
+
+        var state = {
+            query: '',
+            clearStatus: '',
+            settleStatus: '',
+            poolStatus: ''
+        };
+        var summaryHost = el('div');
+        var tableHost = el('div');
+        var filterBar = el('div', 'store-ledger-filter');
+
+        function moneyText(v) {
+            if (v == null || v === '' || v === '—') return '—';
+            var n = Number(v);
+            if (isNaN(n)) return String(v);
+            return n.toFixed(2);
+        }
+
+        function sumField(rows, key) {
+            return rows.reduce(function (n, row) {
+                var v = Number(row[key]);
+                return n + (isNaN(v) ? 0 : v);
+            }, 0);
+        }
+
+        function filteredRows() {
+            return listSupplierClearingDemo(r).filter(function (row) {
+                if (state.clearStatus && row.clearStatus !== state.clearStatus) return false;
+                if (state.settleStatus && row.settleStatus !== state.settleStatus) return false;
+                if (state.poolStatus && row.poolStatus !== state.poolStatus) return false;
+                if (state.query) {
+                    var q = state.query.toLowerCase();
+                    var blob = (row.orderNo + ' ' + row.lineNo + ' ' + row.product).toLowerCase();
+                    if (blob.indexOf(q) < 0) return false;
+                }
+                return true;
+            });
+        }
+
+        function paintSummary(rows) {
+            summaryHost.innerHTML = '';
+            summaryHost.appendChild(
+                summaryBar([
+                    ['明细行数', String(rows.length) + ' 行'],
+                    ['采购款合计', moneyText(sumField(rows, 'goods'))],
+                    ['扣减合计', moneyText(sumField(rows, 'deduct'))],
+                    ['净额合计', moneyText(sumField(rows, 'net'))],
+                    [
+                        '已结款金额',
+                        moneyText(
+                            sumField(
+                                rows.filter(function (x) {
+                                    return x.settleStatus === '已结款' || x.settleAmount !== '—';
+                                }),
+                                'settleAmount'
+                            )
+                        )
+                    ]
+                ])
+            );
+        }
+
+        function paintTable(rows) {
+            tableHost.innerHTML = '';
+            if (!rows.length) {
+                tableHost.appendChild(emptyNote('暂无该供应商的采购款清分明细'));
+                return;
+            }
+            var headers = [
+                '订单号',
+                '子订单号',
+                '订单类型',
+                '商品',
+                '数量',
+                '采购款（货款）',
+                '扣减合计',
+                '净额',
+                '起算节点',
+                '入池状态',
+                '清分状态',
+                '结算状态',
+                '入账状态',
+                '结款金额',
+                '关联结款单',
+                '下单时间',
+                '异常说明'
+            ];
+            var bodyRows = rows.map(function (row) {
+                return [
+                    row.orderNo,
+                    row.lineNo,
+                    row.orderType,
+                    row.product,
+                    String(row.qty),
+                    moneyText(row.goods),
+                    moneyText(row.deduct),
+                    moneyText(row.net),
+                    row.triggerNode || '—',
+                    settleStatusTagHtml(row.poolStatus),
+                    settleStatusTagHtml(row.clearStatus),
+                    settleStatusTagHtml(row.settleStatus),
+                    settleStatusTagHtml(row.postingStatus),
+                    moneyText(row.settleAmount),
+                    row.related || '—',
+                    row.orderTime,
+                    row.exception || '—'
+                ];
+            });
+            tableHost.appendChild(dataTable(headers, bodyRows));
+        }
+
+        function render() {
+            var rows = filteredRows();
+            paintSummary(rows);
+            paintTable(rows);
+        }
+
+        function filterField(labelText, control) {
+            var grp = el('div', 'store-ledger-filter__field');
+            if (labelText) grp.appendChild(el('label', 'store-ledger-filter__label', labelText));
+            grp.appendChild(control);
+            return grp;
+        }
+
+        var qInp = document.createElement('input');
+        qInp.type = 'text';
+        qInp.className = 'store-ledger-filter__control';
+        qInp.placeholder = '订单号 / 商品';
+        qInp.style.minWidth = '180px';
+
+        var clearSel = document.createElement('select');
+        clearSel.className = 'store-ledger-filter__control';
+        [
+            ['', '全部'],
+            ['待清分', '待清分'],
+            ['已清分', '已清分'],
+            ['清分异常', '清分异常']
+        ].forEach(function (opt) {
+            var o = document.createElement('option');
+            o.value = opt[0];
+            o.textContent = opt[1];
+            clearSel.appendChild(o);
+        });
+
+        var settleSel = document.createElement('select');
+        settleSel.className = 'store-ledger-filter__control';
+        [
+            ['', '全部'],
+            ['待结算', '待结算'],
+            ['待结款', '待结款'],
+            ['结款中', '结款中'],
+            ['部分结款', '部分结款'],
+            ['已结款', '已结款'],
+            ['结款失败', '结款失败']
+        ].forEach(function (opt) {
+            var o = document.createElement('option');
+            o.value = opt[0];
+            o.textContent = opt[1];
+            settleSel.appendChild(o);
+        });
+
+        var poolSel = document.createElement('select');
+        poolSel.className = 'store-ledger-filter__control';
+        [
+            ['', '全部'],
+            ['待入池', '待入池'],
+            ['已入池', '已入池'],
+            ['未入池', '未入池']
+        ].forEach(function (opt) {
+            var o = document.createElement('option');
+            o.value = opt[0];
+            o.textContent = opt[1];
+            poolSel.appendChild(o);
+        });
+
+        var btnQuery = mkBtn('查询', true);
+        var btnReset = mkBtn('重置', false);
+        btnQuery.addEventListener('click', function () {
+            state.query = String(qInp.value || '').trim();
+            state.clearStatus = clearSel.value;
+            state.settleStatus = settleSel.value;
+            state.poolStatus = poolSel.value;
+            render();
+        });
+        btnReset.addEventListener('click', function () {
+            qInp.value = '';
+            clearSel.value = '';
+            settleSel.value = '';
+            poolSel.value = '';
+            state.query = '';
+            state.clearStatus = '';
+            state.settleStatus = '';
+            state.poolStatus = '';
+            render();
+        });
+
+        filterBar.appendChild(filterField('关键词', qInp));
+        filterBar.appendChild(filterField('清分状态', clearSel));
+        filterBar.appendChild(filterField('结算状态', settleSel));
+        filterBar.appendChild(filterField('入池状态', poolSel));
+        var actWrap = el('div', 'store-ledger-filter__actions');
+        actWrap.appendChild(btnQuery);
+        actWrap.appendChild(btnReset);
+        filterBar.appendChild(actWrap);
+
+        root.appendChild(filterBar);
+        root.appendChild(summaryHost);
+        root.appendChild(tableHost);
+        render();
+        return root;
+    }
+
+    /**
+     * 供应商商品销售演示行（对齐选品库：商品编码/条形码；对齐订单：自提核销 + 快递履约）
+     * pendingPickup=自提待核销；donePickup=自提已核销；
+     * expressTransit=快递待发货/待收货；expressDone=快递已完成/已签收
+     */
+    function listSupplierProductSalesDemo(r) {
+        var sid = String((r && r.id) || '').trim();
+        var all = [
+            {
+                supplierId: 'SUP20188301',
+                code: 'SPU00196',
+                barcode: '6901234567890',
+                name: '火龙果',
+                spec: '白心 / 袋',
+                category: '时令水果',
+                channel: '商城',
+                salesAmt: 1260.4,
+                refundAmt: 36.0,
+                qty: 420,
+                pendingPickup: 48,
+                donePickup: 210,
+                expressTransit: 62,
+                expressDone: 88,
+                expired: 6,
+                refunded: 12,
+                refunding: 4
+            },
+            {
+                supplierId: 'SUP20188301',
+                code: 'SPU00184',
+                barcode: '6901234567801',
+                name: '白芭乐-快递-ss',
+                spec: '100g / L',
+                category: '时令水果',
+                channel: '商城',
+                salesAmt: 880.0,
+                refundAmt: 48.5,
+                qty: 310,
+                pendingPickup: 0,
+                donePickup: 0,
+                expressTransit: 96,
+                expressDone: 190,
+                expired: 8,
+                refunded: 14,
+                refunding: 2
+            },
+            {
+                supplierId: 'SUP20188301',
+                code: 'SPU00204',
+                barcode: '6909876543210',
+                name: '低糖养乐多',
+                spec: '低糖芒果味 / 箱',
+                category: '酒水饮料',
+                channel: '代采',
+                salesAmt: 2560.0,
+                refundAmt: 120.0,
+                qty: 640,
+                pendingPickup: 80,
+                donePickup: 300,
+                expressTransit: 100,
+                expressDone: 140,
+                expired: 10,
+                refunded: 20,
+                refunding: 6
+            },
+            {
+                supplierId: 'SUP20188302',
+                code: 'SPU00090',
+                barcode: '6905555666677',
+                name: '东北大米 5kg',
+                spec: '5kg / 袋',
+                category: '粮油调味',
+                channel: '商城',
+                salesAmt: 4320.0,
+                refundAmt: 160.0,
+                qty: 180,
+                pendingPickup: 22,
+                donePickup: 70,
+                expressTransit: 38,
+                expressDone: 40,
+                expired: 4,
+                refunded: 6,
+                refunding: 0
+            },
+            {
+                supplierId: 'SUP20188302',
+                code: 'SKU00217',
+                barcode: '6901111222233',
+                name: '运费验收-快递常温2.5kg',
+                spec: '2.5kg',
+                category: '物流服务',
+                channel: '代采',
+                salesAmt: 96.0,
+                refundAmt: 0,
+                qty: 48,
+                pendingPickup: 0,
+                donePickup: 0,
+                expressTransit: 12,
+                expressDone: 36,
+                expired: 0,
+                refunded: 0,
+                refunding: 0
+            },
+            {
+                supplierId: 'SUP20188303',
+                code: 'SPU00085',
+                barcode: '6904444555566',
+                name: '圆茄 优质',
+                spec: '约500g',
+                category: '新鲜蔬菜',
+                channel: '直播',
+                salesAmt: 680.5,
+                refundAmt: 40.0,
+                qty: 260,
+                pendingPickup: 40,
+                donePickup: 120,
+                expressTransit: 50,
+                expressDone: 36,
+                expired: 8,
+                refunded: 10,
+                refunding: 2
+            }
+        ];
+        var matched = all.filter(function (row) {
+            return sid && row.supplierId === sid;
+        });
+        return matched.length ? matched : all.filter(function (row) {
+            return row.supplierId === 'SUP20188301';
+        });
+    }
+
+    function listSupplierPerfDemo(r) {
+        var sid = String((r && r.id) || '').trim();
+        var seed =
+            sid === 'SUP20188302'
+                ? [
+                      { date: '2026-10-31', channel: '商城', fulfill: '自提', orders: 36, sales: 980.2, refundOrders: 2, refundAmt: 28.0, purchaseNet: 420.5, cleared: 400.0, settled: 180.0 },
+                      { date: '2026-10-31', channel: '商城', fulfill: '快递', orders: 28, sales: 760.0, refundOrders: 1, refundAmt: 16.5, purchaseNet: 310.0, cleared: 290.0, settled: 120.0 },
+                      { date: '2026-10-30', channel: '代采', fulfill: '快递', orders: 18, sales: 1520.0, refundOrders: 0, refundAmt: 0, purchaseNet: 980.0, cleared: 980.0, settled: 980.0 },
+                      { date: '2026-10-29', channel: '商城', fulfill: '自提', orders: 22, sales: 640.0, refundOrders: 3, refundAmt: 42.0, purchaseNet: 260.0, cleared: 240.0, settled: 100.0 }
+                  ]
+                : sid === 'SUP20188303'
+                  ? [
+                        { date: '2026-10-28', channel: '直播', fulfill: '自提', orders: 40, sales: 520.0, refundOrders: 4, refundAmt: 36.0, purchaseNet: 210.0, cleared: 180.0, settled: 60.0 },
+                        { date: '2026-10-27', channel: '直播', fulfill: '快递', orders: 16, sales: 260.5, refundOrders: 1, refundAmt: 12.0, purchaseNet: 110.0, cleared: 90.0, settled: 40.0 }
+                    ]
+                  : [
+                        { date: '2026-10-31', channel: '商城', fulfill: '自提', orders: 52, sales: 1480.6, refundOrders: 3, refundAmt: 48.0, purchaseNet: 620.4, cleared: 580.0, settled: 240.0 },
+                        { date: '2026-10-31', channel: '商城', fulfill: '快递', orders: 44, sales: 1320.0, refundOrders: 2, refundAmt: 36.5, purchaseNet: 540.0, cleared: 500.0, settled: 210.0 },
+                        { date: '2026-10-30', channel: '代采', fulfill: '快递', orders: 20, sales: 1680.0, refundOrders: 1, refundAmt: 24.0, purchaseNet: 1100.0, cleared: 1100.0, settled: 860.0 },
+                        { date: '2026-10-30', channel: '商城', fulfill: '自提', orders: 30, sales: 860.0, refundOrders: 2, refundAmt: 30.0, purchaseNet: 360.0, cleared: 340.0, settled: 160.0 },
+                        { date: '2026-10-29', channel: '直播', fulfill: '快递', orders: 12, sales: 420.0, refundOrders: 0, refundAmt: 0, purchaseNet: 180.0, cleared: 160.0, settled: 80.0 }
+                    ];
+        return seed;
+    }
+
+    function moneyPlain2(n) {
+        var v = Number(n);
+        if (isNaN(v)) return '0.00';
+        return v.toFixed(2);
+    }
+
+    /** 供应商详情 · 商品统计：按选品库商品编码聚合，履约覆盖自提核销 + 快递签收 */
+    function panelSupplierProductStats(r) {
+        var root = el('div', 'supplier-detail-tab');
+        root.appendChild(sectionTitle('商品统计'));
+        root.appendChild(
+            el(
+                'p',
+                'erp-page__note mdm-detail-note',
+                '按选品库「商品编码 / 商品条形码」聚合销售域成交。待履约 = 自提待核销 + 快递在途（待发货/待收货）；已履约 = 自提已核销 + 快递已完成。不再使用商品ID。'
+            )
+        );
+
+        var state = { name: '', code: '', category: '', channel: '' };
+        var summaryHost = el('div');
+        var tableHost = el('div');
+        var filterBar = el('div', 'store-ledger-filter');
+
+        function pendingOf(row) {
+            return Number(row.pendingPickup || 0) + Number(row.expressTransit || 0);
+        }
+        function doneOf(row) {
+            return Number(row.donePickup || 0) + Number(row.expressDone || 0);
+        }
+
+        function filtered() {
+            return listSupplierProductSalesDemo(r).filter(function (row) {
+                if (state.name && String(row.name).indexOf(state.name) < 0) return false;
+                if (
+                    state.code &&
+                    String(row.code).indexOf(state.code) < 0 &&
+                    String(row.barcode).indexOf(state.code) < 0
+                ) {
+                    return false;
+                }
+                if (state.category && row.category !== state.category) return false;
+                if (state.channel && row.channel !== state.channel) return false;
+                return true;
+            });
+        }
+
+        function paint(rows) {
+            var sales = 0;
+            var refund = 0;
+            var qty = 0;
+            var pending = 0;
+            var done = 0;
+            var expired = 0;
+            var refunded = 0;
+            var refunding = 0;
+            rows.forEach(function (row) {
+                sales += Number(row.salesAmt) || 0;
+                refund += Number(row.refundAmt) || 0;
+                qty += Number(row.qty) || 0;
+                pending += pendingOf(row);
+                done += doneOf(row);
+                expired += Number(row.expired) || 0;
+                refunded += Number(row.refunded) || 0;
+                refunding += Number(row.refunding) || 0;
+            });
+            summaryHost.innerHTML = '';
+            summaryHost.appendChild(
+                summaryBar([
+                    ['商品成交金额', '¥' + moneyPlain2(sales)],
+                    ['商品退款金额', '¥' + moneyPlain2(refund)],
+                    ['商品销量', String(qty)],
+                    ['待履约', String(pending)],
+                    ['已履约', String(done)],
+                    ['已过期', String(expired)],
+                    ['已退款', String(refunded)],
+                    ['退款中', String(refunding)]
+                ])
+            );
+            tableHost.innerHTML = '';
+            if (!rows.length) {
+                tableHost.appendChild(emptyNote('暂无商品销售统计'));
+                return;
+            }
+            tableHost.appendChild(
+                dataTable(
+                    [
+                        '商品编码',
+                        '商品条形码',
+                        '商品信息',
+                        '商品类目',
+                        '售卖渠道',
+                        '成交金额',
+                        '退款金额',
+                        '销量',
+                        '待履约',
+                        '已履约',
+                        '自提待核销',
+                        '自提已核销',
+                        '快递在途',
+                        '快递已完成',
+                        '已过期',
+                        '已退款'
+                    ],
+                    rows.map(function (row) {
+                        return [
+                            row.code,
+                            row.barcode,
+                            row.name + (row.spec ? '（' + row.spec + '）' : ''),
+                            row.category,
+                            row.channel,
+                            moneyPlain2(row.salesAmt),
+                            moneyPlain2(row.refundAmt),
+                            String(row.qty),
+                            String(pendingOf(row)),
+                            String(doneOf(row)),
+                            String(row.pendingPickup || 0),
+                            String(row.donePickup || 0),
+                            String(row.expressTransit || 0),
+                            String(row.expressDone || 0),
+                            String(row.expired || 0),
+                            String(row.refunded || 0)
+                        ];
+                    })
+                )
+            );
+        }
+
+        function filterField(labelText, control) {
+            var grp = el('div', 'store-ledger-filter__field');
+            if (labelText) grp.appendChild(el('label', 'store-ledger-filter__label', labelText));
+            grp.appendChild(control);
+            return grp;
+        }
+
+        var nameInp = document.createElement('input');
+        nameInp.type = 'text';
+        nameInp.className = 'store-ledger-filter__control';
+        nameInp.placeholder = '商品名称';
+        nameInp.style.minWidth = '140px';
+
+        var codeInp = document.createElement('input');
+        codeInp.type = 'text';
+        codeInp.className = 'store-ledger-filter__control';
+        codeInp.placeholder = '商品编码 / 条形码';
+        codeInp.style.minWidth = '160px';
+
+        var catSel = document.createElement('select');
+        catSel.className = 'store-ledger-filter__control';
+        [['', '全部'], ['时令水果', '时令水果'], ['酒水饮料', '酒水饮料'], ['粮油调味', '粮油调味'], ['新鲜蔬菜', '新鲜蔬菜'], ['物流服务', '物流服务']].forEach(
+            function (opt) {
+                var o = document.createElement('option');
+                o.value = opt[0];
+                o.textContent = opt[1];
+                catSel.appendChild(o);
+            }
+        );
+
+        var chSel = document.createElement('select');
+        chSel.className = 'store-ledger-filter__control';
+        [['', '全部'], ['商城', '商城'], ['代采', '代采'], ['直播', '直播']].forEach(function (opt) {
+            var o = document.createElement('option');
+            o.value = opt[0];
+            o.textContent = opt[1];
+            chSel.appendChild(o);
+        });
+
+        var btnQuery = mkBtn('查询', true);
+        var btnReset = mkBtn('重置', false);
+        btnQuery.addEventListener('click', function () {
+            state.name = String(nameInp.value || '').trim();
+            state.code = String(codeInp.value || '').trim();
+            state.category = catSel.value;
+            state.channel = chSel.value;
+            paint(filtered());
+        });
+        btnReset.addEventListener('click', function () {
+            nameInp.value = '';
+            codeInp.value = '';
+            catSel.value = '';
+            chSel.value = '';
+            state = { name: '', code: '', category: '', channel: '' };
+            paint(filtered());
+        });
+
+        filterBar.appendChild(filterField('商品名称', nameInp));
+        filterBar.appendChild(filterField('编码/条码', codeInp));
+        filterBar.appendChild(filterField('商品类目', catSel));
+        filterBar.appendChild(filterField('售卖渠道', chSel));
+        var act = el('div', 'store-ledger-filter__actions');
+        act.appendChild(btnQuery);
+        act.appendChild(btnReset);
+        filterBar.appendChild(act);
+
+        root.appendChild(filterBar);
+        root.appendChild(summaryHost);
+        root.appendChild(tableHost);
+        paint(filtered());
+        return root;
+    }
+
+    /** 供应商详情 · 业绩报表：按日×渠道×履约方式，衔接订单成交与清分结款 */
+    function panelSupplierPerfReport(r) {
+        var root = el('div', 'supplier-detail-tab');
+        root.appendChild(sectionTitle('业绩报表'));
+        root.appendChild(
+            el(
+                'p',
+                'erp-page__note mdm-detail-note',
+                '按订单管理成交口径汇总：渠道（商城/代采/直播）× 履约方式（自提/快递）。采购净额/清分/结款与「清分明细」同源，便于对照销售业绩与结算进度。'
+            )
+        );
+
+        var state = { channel: '', fulfill: '', dateFrom: '', dateTo: '' };
+        var summaryHost = el('div');
+        var tableHost = el('div');
+        var filterBar = el('div', 'store-ledger-filter');
+
+        function filtered() {
+            return listSupplierPerfDemo(r).filter(function (row) {
+                if (state.channel && row.channel !== state.channel) return false;
+                if (state.fulfill && row.fulfill !== state.fulfill) return false;
+                if (state.dateFrom && row.date < state.dateFrom) return false;
+                if (state.dateTo && row.date > state.dateTo) return false;
+                return true;
+            });
+        }
+
+        function paint(rows) {
+            var orders = 0;
+            var sales = 0;
+            var refundOrders = 0;
+            var refundAmt = 0;
+            var purchaseNet = 0;
+            var cleared = 0;
+            var settled = 0;
+            rows.forEach(function (row) {
+                orders += Number(row.orders) || 0;
+                sales += Number(row.sales) || 0;
+                refundOrders += Number(row.refundOrders) || 0;
+                refundAmt += Number(row.refundAmt) || 0;
+                purchaseNet += Number(row.purchaseNet) || 0;
+                cleared += Number(row.cleared) || 0;
+                settled += Number(row.settled) || 0;
+            });
+            summaryHost.innerHTML = '';
+            summaryHost.appendChild(
+                summaryBar([
+                    ['成交订单数', String(orders)],
+                    ['成交金额', '¥' + moneyPlain2(sales)],
+                    ['退款订单数', String(refundOrders)],
+                    ['退款金额', '¥' + moneyPlain2(refundAmt)],
+                    ['采购净额', '¥' + moneyPlain2(purchaseNet)],
+                    ['已清分金额', '¥' + moneyPlain2(cleared)],
+                    ['已结款金额', '¥' + moneyPlain2(settled)]
+                ])
+            );
+            tableHost.innerHTML = '';
+            if (!rows.length) {
+                tableHost.appendChild(emptyNote('暂无业绩数据'));
+                return;
+            }
+            tableHost.appendChild(
+                dataTable(
+                    [
+                        '日期',
+                        '售卖渠道',
+                        '履约方式',
+                        '成交订单数',
+                        '成交金额',
+                        '退款订单数',
+                        '退款金额',
+                        '采购净额',
+                        '已清分金额',
+                        '已结款金额'
+                    ],
+                    rows.map(function (row) {
+                        return [
+                            row.date,
+                            row.channel,
+                            row.fulfill,
+                            String(row.orders),
+                            moneyPlain2(row.sales),
+                            String(row.refundOrders),
+                            moneyPlain2(row.refundAmt),
+                            moneyPlain2(row.purchaseNet),
+                            moneyPlain2(row.cleared),
+                            moneyPlain2(row.settled)
+                        ];
+                    })
+                )
+            );
+        }
+
+        function filterField(labelText, control) {
+            var grp = el('div', 'store-ledger-filter__field');
+            if (labelText) grp.appendChild(el('label', 'store-ledger-filter__label', labelText));
+            grp.appendChild(control);
+            return grp;
+        }
+
+        var chSel = document.createElement('select');
+        chSel.className = 'store-ledger-filter__control';
+        [['', '全部'], ['商城', '商城'], ['代采', '代采'], ['直播', '直播']].forEach(function (opt) {
+            var o = document.createElement('option');
+            o.value = opt[0];
+            o.textContent = opt[1];
+            chSel.appendChild(o);
+        });
+
+        var fulfillSel = document.createElement('select');
+        fulfillSel.className = 'store-ledger-filter__control';
+        [['', '全部'], ['自提', '自提'], ['快递', '快递']].forEach(function (opt) {
+            var o = document.createElement('option');
+            o.value = opt[0];
+            o.textContent = opt[1];
+            fulfillSel.appendChild(o);
+        });
+
+        var dateFrom = document.createElement('input');
+        dateFrom.type = 'date';
+        dateFrom.className = 'store-ledger-filter__control';
+        var dateTo = document.createElement('input');
+        dateTo.type = 'date';
+        dateTo.className = 'store-ledger-filter__control';
+
+        var btnQuery = mkBtn('查询', true);
+        var btnReset = mkBtn('重置', false);
+        btnQuery.addEventListener('click', function () {
+            state.channel = chSel.value;
+            state.fulfill = fulfillSel.value;
+            state.dateFrom = dateFrom.value || '';
+            state.dateTo = dateTo.value || '';
+            paint(filtered());
+        });
+        btnReset.addEventListener('click', function () {
+            chSel.value = '';
+            fulfillSel.value = '';
+            dateFrom.value = '';
+            dateTo.value = '';
+            state = { channel: '', fulfill: '', dateFrom: '', dateTo: '' };
+            paint(filtered());
+        });
+
+        filterBar.appendChild(filterField('售卖渠道', chSel));
+        filterBar.appendChild(filterField('履约方式', fulfillSel));
+        filterBar.appendChild(filterField('开始日期', dateFrom));
+        filterBar.appendChild(filterField('结束日期', dateTo));
+        var act = el('div', 'store-ledger-filter__actions');
+        act.appendChild(btnQuery);
+        act.appendChild(btnReset);
+        filterBar.appendChild(act);
+
+        root.appendChild(filterBar);
+        root.appendChild(summaryHost);
+        root.appendChild(tableHost);
+        paint(filtered());
+        return root;
+    }
+
     function openSupplier(tr) {
         var r = rowToSupplier(tr);
         if (!r) {
@@ -6087,14 +7228,14 @@
             heroTags: tags,
             metaLines: ['供应商ID：' + r.id + ' · 所属组织：' + r.subjectName],
             wideClass: 'store-drawer--supplier-wide',
-            tabIds: ['base', 'onboard', 'comm', 'prod', 'perf'],
-            tabLabels: ['基础信息', '进件信息', '分佣明细', '商品统计', '业绩报表'],
+            tabIds: ['base', 'onboard', 'clearing', 'prod', 'perf'],
+            tabLabels: ['基础信息', '进件信息', '清分明细', '商品统计', '业绩报表'],
             bodies: {
-                base: panelResourceBaseSupplier(r),
+                base: panelResourceBaseSupplier(r, tr),
                 onboard: panelSupplierOnboarding(r),
-                comm: panelResourceCommLike('comm'),
-                prod: panelResourceCommLike('prod'),
-                perf: panelResourceCommLike('perf')
+                clearing: panelSupplierClearingDetail(r),
+                prod: panelSupplierProductStats(r),
+                perf: panelSupplierPerfReport(r)
             }
         });
     }

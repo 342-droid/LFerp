@@ -51,13 +51,15 @@
   function docsOf(task) {
     var api = window.LfContract;
     var tpls = api.taskTemplates(task);
+    var isSup = !!(task && (task.kind === 'settle_supplement' || /结算信息变更补充协议/.test(task.name || '')));
     if (!tpls.length) {
       return [
         {
           task: task,
           tplId: '',
           name: task.agreementNames || task.name,
-          signed: task.status === 'sign_completed'
+          signed: task.status === 'sign_completed',
+          supplement: isSup
         }
       ];
     }
@@ -66,7 +68,8 @@
         task: task,
         tplId: tpl.id,
         name: tpl.name || tpl.id,
-        signed: api.isTemplateSigned(task, tpl.id)
+        signed: api.isTemplateSigned(task, tpl.id),
+        supplement: isSup || !!(tpl && tpl.kind === 'supplement')
       };
     });
   }
@@ -79,7 +82,8 @@
     title.textContent = doc.name;
     var meta = document.createElement('div');
     meta.className = 'sa-ct-card__meta ' + (doc.signed ? 'is-done' : 'is-wait');
-    meta.textContent = doc.signed ? '已签署' : '待签署';
+    meta.textContent =
+      (doc.supplement ? '结算变更补充协议 · ' : '') + (doc.signed ? '已签署' : '待签署');
     var actions = document.createElement('div');
     actions.className = 'sa-ct-actions';
     var open = document.createElement('button');
@@ -116,7 +120,8 @@
       });
     });
     note.textContent = isSupplier
-      ? name + '的供应商合作合同。每份单独签署，签完一份不会自动签上其他协议。'
+      ? name +
+        '的供应商合作合同与结算变更补充协议。入驻协议与补充协议分开签署；结算信息变更并确认发放后，补充协议会出现在待签列表。'
       : name + '的门店合作合同。每份单独签署，签完一份不会自动签上其他协议。';
     list.appendChild(note);
     docs.sort(function (a, b) {

@@ -1,35 +1,21 @@
-/* 丰银宝 · 供应商视角 · 结算中心 */
+/* 丰银宝 · 供应商结算中心
+ * PC：清分台账全量筛 / 供应商结算对账；App：本商家归集，时间+状态快捷，结款/清分详情可跳转 */
 (function () {
   if (!window.FybOrg || !window.FybOrg.ensureSupplierModeOrRedirect()) return;
+  if (!window.FybSupplierSettle || !window.FybSupplierFilters) return;
 
-  var LEDGER = [
-    { id: '1721', orderNo: 'ORD-2610312477895', product: '运费验收-快递常温2.5kg', net: '0.01', clearStatus: '已清分', settleStatus: '待结算', time: '2026-10-31 18:17', supplier: '斯斯供应商商家' },
-    { id: '1719', orderNo: 'ORD-2610312466502', product: '火龙果', net: '0.04', clearStatus: '已清分', settleStatus: '待结款', time: '2026-10-31 13:58', supplier: '斯斯供应商商家' },
-    { id: '1705', orderNo: 'ORD-261016200015', product: '芒果干', net: '0.64', clearStatus: '已清分', settleStatus: '结款中', time: '2026-10-16 09:10', supplier: '斯斯供应商商家' },
-    { id: '1708', orderNo: 'ORD-261013200012', product: '白芭乐-快递-ss', net: '0.24', clearStatus: '已清分', settleStatus: '已结款', time: '2026-10-13 10:22', supplier: '斯斯供应商商家' },
-    { id: '1716', orderNo: 'ORD-2610307754308', product: '低糖养乐多', net: '1.50', clearStatus: '已清分', settleStatus: '已结款', time: '2026-10-30 18:05', supplier: '南京马群枢纽供应商' },
-    { id: '1699', orderNo: 'ORD-261008200001', product: '马群-莲藕-快递配送', net: '11.40', clearStatus: '已清分', settleStatus: '待结算', time: '2026-10-08 14:20', supplier: '南京马群枢纽供应商' },
-    { id: '1690', orderNo: 'ORD-2609104841852', product: '低糖养乐多', net: '0.01', clearStatus: '清分异常', settleStatus: '待结算', time: '2026-09-10 11:05', supplier: '南京马群枢纽供应商' }
-  ];
-
-  var BILLS = [
-    { id: 'ST_357556279620669440', net: '0.01', orders: 1, status: '待结款', created: '2026-09-14 00:01', cycle: '2026-09-12', supplier: '斯斯供应商商家' },
-    { id: 'ST_353846837167284224', net: '0.04', orders: 2, status: '部分结款', created: '2026-09-03 18:21', cycle: '2026-09-03', supplier: '斯斯供应商商家' },
-    { id: 'ST_2088198765544431618', net: '0.24', orders: 1, status: '已结款', created: '2026-08-15 18:21', cycle: '2026-08-14', supplier: '斯斯供应商商家' },
-    { id: 'ST_2086759712106688514', net: '0.64', orders: 1, status: '结款中', created: '2026-08-10 18:21', cycle: '2026-08-10', supplier: '斯斯供应商商家' },
-    { id: 'ST_358643443066482688', net: '0.02', orders: 2, status: '待结款', created: '2026-09-17 00:01', cycle: '2026-09-10', supplier: '南京马群枢纽供应商' },
-    { id: 'ST_351310165011607552', net: '1.50', orders: 1, status: '已结款', created: '2026-08-27 18:21', cycle: '2026-08-27', supplier: '南京马群枢纽供应商' }
-  ];
-
-  var ACCOUNTS = {
-    'sup-ss': { accountName: '小牛供应链有限公司', accountNo: '6666000218008801' },
-    'sup-mq': { accountName: '南京冷链物流服务有限公司', accountNo: '6666000219001108' }
-  };
-
+  var F = window.FybSupplierFilters;
   var org = window.FybOrg.current();
-  var state = { tab: 'account' };
+  var initTab = new URLSearchParams(location.search).get('tab');
+  var state = {
+    tab: initTab === 'ledger' || initTab === 'bills' || initTab === 'account' ? initTab : 'account',
+    time: 'all',
+    clearStatus: '全部',
+    settleStatus: '全部',
+    billStatus: '全部'
+  };
   var orgEl = document.getElementById('saSupSettleOrg');
-  if (orgEl) orgEl.textContent = org.name;
+  if (orgEl) orgEl.textContent = org.name + ' · 按本商家订单归集';
 
   function money(v) {
     var n = Number(v);
@@ -37,25 +23,32 @@
   }
 
   function tagClass(status) {
-    if (/已结款/.test(status) && !/部分/.test(status)) return 'is-ok';
+    if (/已结款|已清分|已入账/.test(status) && !/部分|异常/.test(status)) return 'is-ok';
     if (/异常|失败/.test(status)) return 'is-bad';
     return 'is-wait';
   }
 
   function mineLedger() {
-    return LEDGER.filter(function (x) {
-      return x.supplier === org.name;
+    return window.FybSupplierSettle.listLedgerBySupplier(org.name).filter(function (x) {
+      if (state.clearStatus !== '全部' && x.clearStatus !== state.clearStatus) return false;
+      if (state.settleStatus !== '全部' && x.settleStatus !== state.settleStatus) return false;
+      return F.matchTime(x.time, state.time);
     });
   }
 
   function mineBills() {
-    return BILLS.filter(function (x) {
-      return x.supplier === org.name;
+    return window.FybSupplierSettle.listBillsBySupplier(org.name).filter(function (x) {
+      if (state.billStatus !== '全部' && x.status !== state.billStatus) return false;
+      return F.matchTime(x.created, state.time);
     });
   }
 
+  function allLedger() {
+    return window.FybSupplierSettle.listLedgerBySupplier(org.name);
+  }
+
   function renderAccount() {
-    var ledger = mineLedger();
+    var ledger = allLedger();
     var pending = 0;
     var settled = 0;
     ledger.forEach(function (x) {
@@ -63,7 +56,7 @@
       if (x.settleStatus === '已结款') settled += n;
       else pending += n;
     });
-    var acc = ACCOUNTS[org.id] || { accountName: '—', accountNo: '—' };
+    var acc = window.FybSupplierSettle.accounts[org.id] || { accountName: '—', accountNo: '—' };
     return (
       '<div class="sa-sup-summary">' +
       '<div class="sa-sup-summary__item"><span>待结算/在途</span><strong>' +
@@ -78,68 +71,148 @@
       acc.accountName +
       '<br>商户号 ' +
       acc.accountNo +
-      '<br>口径：按本商家订单归集，不展示平台共用汇付余额</div></article>' +
+      '</div></article>' +
       '<article class="sa-sup-card">' +
-      '<h3 class="sa-sup-card__name">结算说明</h3>' +
+      '<h3 class="sa-sup-card__name">结算信息</h3>' +
       '<div class="sa-sup-card__meta">起算节点与周期以供应商档案配置为准；平台改默认后，跟随平台的配置会自动同步。<br>已生成清分不变，新增清分按新配置。多商品按行分别入池。</div></article>'
     );
   }
 
+  function filterBar(kind) {
+    var html = F.timeRowHtml(state.time);
+    if (kind === 'ledger') {
+      html +=
+        '<div class="sa-sup-filter__l2" role="tablist" aria-label="清分状态">' +
+        ['全部']
+          .concat(F.CLEAR_STATUSES)
+          .map(function (s) {
+            return F.chip(s, state.clearStatus === s, 'data-clear');
+          })
+          .join('') +
+        '</div>';
+      html +=
+        '<div class="sa-sup-filter__l2" role="tablist" aria-label="结算状态">' +
+        ['全部']
+          .concat(F.SETTLE_STATUSES)
+          .map(function (s) {
+            return F.chip(s, state.settleStatus === s, 'data-settle');
+          })
+          .join('') +
+        '</div>';
+    } else if (kind === 'bills') {
+      html +=
+        '<div class="sa-sup-filter__l2" role="tablist" aria-label="结款状态">' +
+        ['全部']
+          .concat(F.BILL_STATUSES)
+          .map(function (s) {
+            return F.chip(s, state.billStatus === s, 'data-bill-status');
+          })
+          .join('') +
+        '</div>';
+    }
+    return '<div class="sa-sup-filter" id="saSupSettleFilter">' + html + '</div>';
+  }
+
   function renderLedger() {
     var list = mineLedger();
-    if (!list.length) return '<div class="sa-sup-empty">暂无清分明细</div>';
-    return list
-      .map(function (x) {
-        return (
-          '<article class="sa-sup-card">' +
-          '<div class="sa-sup-card__row"><div class="sa-sup-card__no">' +
-          x.orderNo +
-          '</div><span class="sa-sup-tag ' +
-          tagClass(x.settleStatus) +
-          '">' +
-          x.settleStatus +
-          '</span></div>' +
-          '<h3 class="sa-sup-card__name">' +
-          x.product +
-          '</h3>' +
-          '<div class="sa-sup-card__row"><div class="sa-sup-card__meta">清分 ' +
-          x.clearStatus +
-          ' · ' +
-          x.time +
-          '</div><div class="sa-sup-card__amt">' +
-          money(x.net) +
-          '</div></div></article>'
-        );
-      })
-      .join('');
+    var bar = filterBar('ledger');
+    if (!list.length) return bar + '<div class="sa-sup-empty">暂无清分明细</div>';
+    return (
+      bar +
+      list
+        .map(function (x) {
+          return (
+            '<article class="sa-sup-card sa-sup-card--tap" data-ledger-id="' +
+            x.id +
+            '">' +
+            '<div class="sa-sup-card__row"><div class="sa-sup-card__no">' +
+            '<a class="sa-sup-link" href="supplier-order-detail.html?orderNo=' +
+            encodeURIComponent(x.orderNo) +
+            '&from=settle" data-act="order">' +
+            x.orderNo +
+            '</a>' +
+            '</div><span class="sa-sup-tag ' +
+            tagClass(x.settleStatus) +
+            '">' +
+            x.settleStatus +
+            '</span></div>' +
+            '<h3 class="sa-sup-card__name">' +
+            x.product +
+            '</h3>' +
+            '<div class="sa-sup-card__row"><div class="sa-sup-card__meta">' +
+            (x.orderType || '') +
+            ' · 清分 ' +
+            x.clearStatus +
+            ' · 入账 ' +
+            (x.postingStatus || '—') +
+            '<br>' +
+            x.time +
+            ' · 清分单 ' +
+            x.id +
+            (x.billId
+              ? '<br>结款单 <a class="sa-sup-link" href="supplier-settle-bill-detail.html?id=' +
+                encodeURIComponent(x.billId) +
+                '" data-act="order">' +
+                x.billId +
+                '</a>'
+              : '') +
+            '</div><div class="sa-sup-card__amt">' +
+            money(x.net) +
+            '</div></div>' +
+            '<div class="sa-sup-card__actions"><button type="button" class="sa-sup-card__act" data-act="detail">查看详情</button></div>' +
+            '</article>'
+          );
+        })
+        .join('')
+    );
   }
 
   function renderBills() {
     var list = mineBills();
-    if (!list.length) return '<div class="sa-sup-empty">暂无结款单</div>';
-    return list
-      .map(function (x) {
-        return (
-          '<article class="sa-sup-card">' +
-          '<div class="sa-sup-card__row"><div class="sa-sup-card__no">' +
-          x.id +
-          '</div><span class="sa-sup-tag ' +
-          tagClass(x.status) +
-          '">' +
-          x.status +
-          '</span></div>' +
-          '<div class="sa-sup-card__row"><div class="sa-sup-card__meta">账期 ' +
-          x.cycle +
-          '<br>创建 ' +
-          x.created +
-          ' · ' +
-          x.orders +
-          ' 单</div><div class="sa-sup-card__amt">' +
-          money(x.net) +
-          '</div></div></article>'
-        );
-      })
-      .join('');
+    var bar = filterBar('bills');
+    if (!list.length) return bar + '<div class="sa-sup-empty">暂无结款单</div>';
+    return (
+      bar +
+      list
+        .map(function (x) {
+          return (
+            '<article class="sa-sup-card sa-sup-card--tap" data-bill-id="' +
+            x.id +
+            '">' +
+            '<div class="sa-sup-card__row"><div class="sa-sup-card__no">' +
+            x.id +
+            '</div><span class="sa-sup-tag ' +
+            tagClass(x.status) +
+            '">' +
+            x.status +
+            '</span></div>' +
+            '<div class="sa-sup-card__row"><div class="sa-sup-card__meta">账期 ' +
+            x.cycle +
+            '<br>创建 ' +
+            x.created +
+            ' · ' +
+            x.orders +
+            ' 单' +
+            (x.unpaid != null ? '<br>待结款 ' + money(x.unpaid) : '') +
+            '</div><div class="sa-sup-card__amt">' +
+            money(x.net) +
+            '</div></div>' +
+            '<div class="sa-sup-card__actions"><button type="button" class="sa-sup-card__act" data-act="bill-detail">结款详情</button></div>' +
+            '</article>'
+          );
+        })
+        .join('')
+    );
+  }
+
+  function goLedgerDetail(id) {
+    window.location.href =
+      'supplier-settle-ledger-detail.html?id=' + encodeURIComponent(id || '');
+  }
+
+  function goBillDetail(id) {
+    window.location.href =
+      'supplier-settle-bill-detail.html?id=' + encodeURIComponent(id || '');
   }
 
   function render() {
@@ -160,5 +233,51 @@
     render();
   });
 
+  document.getElementById('saSupSettleBody').addEventListener('click', function (e) {
+    var filterHost = e.target.closest('#saSupSettleFilter');
+    if (filterHost) {
+      var timeBtn = e.target.closest('[data-time]');
+      if (timeBtn) {
+        state.time = timeBtn.getAttribute('data-time');
+        render();
+        return;
+      }
+      var clearBtn = e.target.closest('[data-clear]');
+      if (clearBtn) {
+        state.clearStatus = clearBtn.getAttribute('data-clear');
+        render();
+        return;
+      }
+      var settleBtn = e.target.closest('[data-settle]');
+      if (settleBtn) {
+        state.settleStatus = settleBtn.getAttribute('data-settle');
+        render();
+        return;
+      }
+      var billStatusBtn = e.target.closest('[data-bill-status]');
+      if (billStatusBtn) {
+        state.billStatus = billStatusBtn.getAttribute('data-bill-status');
+        render();
+        return;
+      }
+      return;
+    }
+    var orderLink = e.target.closest('[data-act="order"]');
+    if (orderLink) return;
+    var billCard = e.target.closest('[data-bill-id]');
+    if (billCard) {
+      e.preventDefault();
+      goBillDetail(billCard.getAttribute('data-bill-id'));
+      return;
+    }
+    var card = e.target.closest('[data-ledger-id]');
+    if (!card) return;
+    e.preventDefault();
+    goLedgerDetail(card.getAttribute('data-ledger-id'));
+  });
+
+  document.querySelectorAll('.sa-sup-tabs__btn').forEach(function (b) {
+    b.classList.toggle('is-active', b.getAttribute('data-tab') === state.tab);
+  });
   render();
 })();
