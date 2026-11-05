@@ -120,6 +120,7 @@
       var n = storeCount();
       countEl.hidden = scope !== 'store' || !n;
       countEl.textContent = '已选择 ' + n + ' 个门店';
+      if (window.MdmProxyStorePicker) window.MdmProxyStorePicker.bindSelectedSummary(countEl, saleExtra.saleStores);
     }
   }
 

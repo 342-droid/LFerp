@@ -1501,7 +1501,10 @@
       var count = getSaleStoreCount(formState);
       storeCountEl.textContent = '已选择 ' + count + ' 个门店';
       storeCountEl.hidden = !count;
+      if (window.MdmProxyStorePicker) window.MdmProxyStorePicker.bindSelectedSummary(storeCountEl, formState.saleStores);
     }
+
+    refreshStoreCount();
 
     function syncScopePanelsVisible() {
       var scopeEl = backdrop.querySelector('input[name="proxySaleScope"]:checked');
