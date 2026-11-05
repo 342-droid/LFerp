@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/lf-product.css?v=20260923-spec-client-sort">
     <link rel="stylesheet" href="../css/lf-product-selection-tag.css?v=20260902-tag">
+    <link rel="stylesheet" href="../css/mdm-operation-log.css">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -74,6 +75,7 @@
                                     添加商品
                                 </button>
                             </div>
+                            <button type="button" class="product-toolbar__ghost" style="margin-inline-start:auto" data-master-log="product-selection" data-log-title="选品库" data-log-types="新增商品,编辑商品,启用商品,停用商品,审核通过,审核不通过,重新提交审核,删除商品">操作日志</button>
                         </div>
                         <div class="product-table-wrap">
                             <table class="product-table">
@@ -223,6 +225,7 @@
         </aside>
     </div>
 
+    <script src="../js/mdm-operation-log.js"></script>
     <script src="../js/common.js"></script>
     <script src="../js/product-page-tabs.js"></script>
     <script src="../js/mdm-product-catalog-store.js?v=20260913-dims"></script>

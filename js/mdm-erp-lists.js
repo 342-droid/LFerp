@@ -548,6 +548,9 @@
         row.setAttribute('data-region', data.region || '');
         row.setAttribute('data-address', data.address || '');
         row.setAttribute('data-short-name', data.shortName || name);
+        if (window.MdmOperationLog) window.MdmOperationLog.record('store', data.storeCode, '新增门店', null, {
+            '门店名称': name, '门店简称': data.shortName || name, '所属主体': data.subjectName
+        });
         row.setAttribute('data-latlng', '—');
         row.setAttribute('data-withdraw', '—');
         row.setAttribute('data-settle-cycle', '—');
@@ -611,12 +614,16 @@
         var id = String(storeId || '').trim();
         if (!id) return;
         var map = readStoreHoursMap();
+        var previous = map[id];
         if (!hours || !hours.start || !hours.end) {
             delete map[id];
         } else {
             map[id] = { start: hours.start, end: hours.end };
         }
         writeStoreHoursMap(map);
+        if (window.MdmOperationLog) window.MdmOperationLog.record('store', id, '调整营业时间',
+            { '营业时间': previous ? formatStoreHoursRange(previous.start, previous.end) : '跟随平台' },
+            { '营业时间': map[id] ? formatStoreHoursRange(map[id].start, map[id].end) : '跟随平台' });
     }
 
     function formatStoreHoursRange(start, end) {
@@ -1419,6 +1426,8 @@
         var prev = readSystemDefaultStore();
         function doSet() {
             writeSystemDefaultStore(snapshotDefaultStore(meta));
+            if (window.MdmOperationLog) window.MdmOperationLog.record('store', meta.storeId, '设置系统默认门店',
+                { '默认门店': prev && prev.storeId }, { '默认门店': meta.storeId });
             refreshStoreArchiveActions();
             if (typeof showToast === 'function') showToast('已设为系统默认门店', 'success');
         }
@@ -1460,6 +1469,8 @@
                     span.className = 'status ' + (next === '正常' ? 'active' : 'inactive');
                 }
             }
+            if (window.MdmOperationLog) window.MdmOperationLog.record('store', meta.storeId,
+                next === '正常' ? '启用门店' : '禁用门店', { '状态': meta.storeStatus }, { '状态': next });
             refreshStoreArchiveActions();
             if (typeof showToast === 'function') {
                 showToast(next === '正常' ? '门店已启用' : '门店已禁用', 'success');
@@ -1945,20 +1956,19 @@
                 }
             ],
             onDisableToggle: function (row, status, page) {
-                if (String(status).trim() === '停用') {
-                    page.updateTableRow(row, { 11: { value: '启用', isStatus: true } });
-                } else if (window.MdmSubjectLf && typeof MdmSubjectLf.showLfWarmConfirm === 'function') {
-                    MdmSubjectLf.showLfWarmConfirm('确定将此仓库设为停用？', function () {
-                        page.updateTableRow(row, { 11: { value: '停用', isStatus: true } });
-                        page.refreshDisableToggleLabel(row);
-                        cacheEnabledWarehouseOptionsFromTable();
-                    });
-                    return;
-                } else {
-                    page.updateTableRow(row, { 11: { value: '停用', isStatus: true } });
+                var next = String(status).trim() === '停用' ? '启用' : '停用';
+                function apply() {
+                    page.updateTableRow(row, { 11: { value: next, isStatus: true } });
+                    page.refreshDisableToggleLabel(row);
+                    cacheEnabledWarehouseOptionsFromTable();
+                    if (window.MdmOperationLog) window.MdmOperationLog.record('warehouse',
+                        row.cells[0].textContent.trim(), next + '仓库', { '状态': status }, { '状态': next });
                 }
-                page.refreshDisableToggleLabel(row);
-                cacheEnabledWarehouseOptionsFromTable();
+                if (next === '停用' && window.MdmSubjectLf && typeof MdmSubjectLf.showLfWarmConfirm === 'function') {
+                    MdmSubjectLf.showLfWarmConfirm('确定将此仓库设为停用？', apply);
+                    return;
+                }
+                apply();
             },
             editModal: {
                 modalId: 'mdmArchWhEdit',
