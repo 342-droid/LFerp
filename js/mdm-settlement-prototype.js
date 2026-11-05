@@ -207,24 +207,24 @@
     ];
     /* 清分汇总含佣金分佣方与承运商运费收款；承运商行对齐承运商结算单金额口径。 */
     var summaryDay = [
-        {seq:128,period:'2026-09-24',payee:'顺丰速运',type:'承运商',id:'SF',total:'128.60',settled:'0.00',pending:'128.60',blocked:'0.00',statements:'1',lines:'6'},
-        {seq:127,period:'2026-09-24',payee:'中通快递',type:'承运商',id:'ZTO',total:'86.40',settled:'0.00',pending:'0.00',blocked:'86.40',statements:'1',lines:'4'},
-        {seq:126,period:'2026-09-20',payee:'韵达快递',type:'承运商',id:'YD',total:'64.00',settled:'0.00',pending:'64.00',blocked:'0.00',statements:'1',lines:'3'},
-        {seq:125,period:'2026-09-18',payee:'顺丰速运',type:'承运商',id:'SF',total:'96.20',settled:'96.20',pending:'0.00',blocked:'0.00',statements:'1',lines:'5'},
-        {seq:124,period:'2026-09-16',payee:'申通快递',type:'承运商',id:'STO',total:'54.80',settled:'0.00',pending:'0.00',blocked:'54.80',statements:'1',lines:'3'},
-        {seq:123,period:'2026-09-17',payee:'上海冷丰科技有限公司',type:'平台',id:'1',total:'0.02',settled:'0.00',pending:'0.00',blocked:'0.02',statements:'1',lines:'2'},
-        {seq:122,period:'2026-09-14',payee:'斯斯门店商家2',type:'门店',id:'330159456409100288',total:'0.25',settled:'0.00',pending:'0.25',blocked:'0.00',statements:'1',lines:'1'},
-        {seq:121,period:'2026-09-14',payee:'上海冷丰科技有限公司',type:'平台',id:'1',total:'0.24',settled:'0.00',pending:'0.24',blocked:'0.00',statements:'1',lines:'1'}
+        {seq:128,period:'2026-09-24',payee:'顺丰速运',type:'承运商',id:'SF',total:'128.60',refund:'0.00',settled:'0.00',pending:'128.60',blocked:'0.00',statements:'1',lines:'6'},
+        {seq:127,period:'2026-09-24',payee:'中通快递',type:'承运商',id:'ZTO',total:'86.40',refund:'0.00',settled:'0.00',pending:'0.00',blocked:'86.40',statements:'1',lines:'4'},
+        {seq:126,period:'2026-09-20',payee:'韵达快递',type:'承运商',id:'YD',total:'64.00',refund:'0.00',settled:'0.00',pending:'64.00',blocked:'0.00',statements:'1',lines:'3'},
+        {seq:125,period:'2026-09-18',payee:'顺丰速运',type:'承运商',id:'SF',total:'96.20',refund:'2.40',settled:'96.20',pending:'0.00',blocked:'0.00',statements:'1',lines:'5'},
+        {seq:124,period:'2026-09-16',payee:'申通快递',type:'承运商',id:'STO',total:'54.80',refund:'0.00',settled:'0.00',pending:'0.00',blocked:'54.80',statements:'1',lines:'3'},
+        {seq:123,period:'2026-09-17',payee:'上海冷丰科技有限公司',type:'平台',id:'1',total:'0.02',refund:'0.01',settled:'0.00',pending:'0.00',blocked:'0.02',statements:'1',lines:'2'},
+        {seq:122,period:'2026-09-14',payee:'斯斯门店商家2',type:'门店',id:'330159456409100288',total:'0.25',refund:'0.04',settled:'0.00',pending:'0.25',blocked:'0.00',statements:'1',lines:'1'},
+        {seq:121,period:'2026-09-14',payee:'上海冷丰科技有限公司',type:'平台',id:'1',total:'0.24',refund:'0.00',settled:'0.00',pending:'0.24',blocked:'0.00',statements:'1',lines:'1'}
     ];
     var summaryMonth = [
-        {seq:30,period:'2026-09',payee:'顺丰速运',type:'承运商',id:'SF',total:'266.80',settled:'96.20',pending:'170.60',blocked:'0.00',statements:'3',lines:'13'},
-        {seq:29,period:'2026-09',payee:'中通快递',type:'承运商',id:'ZTO',total:'104.40',settled:'0.00',pending:'0.00',blocked:'104.40',statements:'2',lines:'5'},
-        {seq:28,period:'2026-09',payee:'韵达快递',type:'承运商',id:'YD',total:'64.00',settled:'0.00',pending:'64.00',blocked:'0.00',statements:'1',lines:'3'},
-        {seq:27,period:'2026-09',payee:'申通快递',type:'承运商',id:'STO',total:'54.80',settled:'0.00',pending:'0.00',blocked:'54.80',statements:'1',lines:'3'},
-        {seq:26,period:'2026-09',payee:'上海冷丰科技有限公司',type:'BD扶商',id:'1',total:'0.01',settled:'0.00',pending:'0.00',blocked:'0.01',statements:'1',lines:'1'},
-        {seq:25,period:'2026-09',payee:'斯斯门店商家2',type:'门店',id:'330159456409100288',total:'0.25',settled:'0.00',pending:'0.25',blocked:'0.00',statements:'1',lines:'1'},
-        {seq:24,period:'2026-09',payee:'野子文化',type:'门店',id:'328707092338712576',total:'0.01',settled:'0.00',pending:'0.00',blocked:'0.01',statements:'1',lines:'1'},
-        {seq:23,period:'2026-09',payee:'上海冷丰科技有限公司',type:'平台',id:'1',total:'1.87',settled:'0.29',pending:'0.24',blocked:'1.34',statements:'11',lines:'14'}
+        {seq:30,period:'2026-09',payee:'顺丰速运',type:'承运商',id:'SF',total:'266.80',refund:'2.40',settled:'96.20',pending:'170.60',blocked:'0.00',statements:'3',lines:'13'},
+        {seq:29,period:'2026-09',payee:'中通快递',type:'承运商',id:'ZTO',total:'104.40',refund:'0.00',settled:'0.00',pending:'0.00',blocked:'104.40',statements:'2',lines:'5'},
+        {seq:28,period:'2026-09',payee:'韵达快递',type:'承运商',id:'YD',total:'64.00',refund:'0.00',settled:'0.00',pending:'64.00',blocked:'0.00',statements:'1',lines:'3'},
+        {seq:27,period:'2026-09',payee:'申通快递',type:'承运商',id:'STO',total:'54.80',refund:'0.00',settled:'0.00',pending:'0.00',blocked:'54.80',statements:'1',lines:'3'},
+        {seq:26,period:'2026-09',payee:'上海冷丰科技有限公司',type:'BD扶商',id:'1',total:'0.01',refund:'0.00',settled:'0.00',pending:'0.00',blocked:'0.01',statements:'1',lines:'1'},
+        {seq:25,period:'2026-09',payee:'斯斯门店商家2',type:'门店',id:'330159456409100288',total:'0.25',refund:'0.04',settled:'0.00',pending:'0.25',blocked:'0.00',statements:'1',lines:'1'},
+        {seq:24,period:'2026-09',payee:'野子文化',type:'门店',id:'328707092338712576',total:'0.01',refund:'0.01',settled:'0.00',pending:'0.00',blocked:'0.01',statements:'1',lines:'1'},
+        {seq:23,period:'2026-09',payee:'上海冷丰科技有限公司',type:'平台',id:'1',total:'1.87',refund:'0.18',settled:'0.29',pending:'0.24',blocked:'1.34',statements:'11',lines:'14'}
     ];
     /* related = 异常单号 EX_*，与异常单闭环；不以供应商结款单号充当关联异常单 */
     var compensations = [
@@ -388,8 +388,14 @@
         }).join('');
     }
     function tag(v) { var cls = /已结款|已销账|已到账|已出账|启用|成功/.test(v) ? 'green' : /异常|失败|阻断/.test(v) ? 'red' : /待|部分/.test(v) ? 'orange' : ''; return '<span class="settle-tag ' + cls + '">' + h(v) + '</span>'; }
+    /* 金额列表头与 .money 单元格统一右对齐，避免「标题左、数值右」错位 */
+    function settleNumericHead(label) {
+        return /金额|净额|货款|运费|应收|应付|实收|实付|采购|销售|毛利/.test(String(label || ''));
+    }
     function table(head, rows, foot) {
-        return '<div class="settle-table-wrap"><table class="settle-table"><thead><tr>' + head.map(function(x){return '<th>' + h(x) + '</th>';}).join('') +
+        return '<div class="settle-table-wrap"><table class="settle-table"><thead><tr>' + head.map(function(x){
+            return '<th' + (settleNumericHead(x) ? ' class="money"' : '') + '>' + h(x) + '</th>';
+        }).join('') +
             '</tr></thead><tbody>' + (rows.length ? rows.join('') : '<tr><td colspan="' + head.length + '" class="settle-empty">暂无数据</td></tr>') +
             '</tbody></table></div>' + (foot ? '<div class="settle-table-footer">' + foot + '</div>' : '');
     }
@@ -704,13 +710,16 @@
             '<span>前往</span><input class="settle-input settle-page-jump" id="ledger-jump" inputmode="numeric" aria-label="前往页码" value="' + h(state.ledgerPage) + '"><span>页</span></div>';
         return '<section class="settle-card settle-ledger">' +
             tabs([['all', '全部'], ['commission', '分佣单'], ['exception', '异常单'], ['non_commission', '非分佣单']]) +
-            '<div class="settle-card-body" style="padding-bottom:0"><div class="settle-exception-tip" role="note"><strong>按行入池</strong>：可结算时点按商品行独立计算（履约确认 或 履约+售后保障期）。同单可部分行已入池、部分行待入池。平台改默认后<strong>已生成清分不变</strong>，新增清分按新配置。演示单 ORD-2610312466502：火龙果已入池，白芭乐售后期未满待入池。</div></div>' +
             filters +
             '<div class="settle-toolbar">' + button('导出列表', 'export-ledger', '', '') + '</div>' +
             '<div class="settle-table-wrap settle-ledger-table-wrap"><table class="settle-table settle-ledger-table"><thead><tr>' +
             head.map(function (x, idx) {
-                var cls = idx === 0 ? 'settle-ledger-sticky settle-ledger-seq' : (idx === 1 ? 'settle-ledger-sticky settle-ledger-id' : (idx === 2 ? 'settle-ledger-sticky settle-ledger-order' : ''));
-                return '<th' + (cls ? ' class="' + cls + '"' : '') + '>' + h(x) + '</th>';
+                var cls = [];
+                if (idx === 0) cls.push('settle-ledger-sticky', 'settle-ledger-seq');
+                else if (idx === 1) cls.push('settle-ledger-sticky', 'settle-ledger-id');
+                else if (idx === 2) cls.push('settle-ledger-sticky', 'settle-ledger-order');
+                if (settleNumericHead(x)) cls.push('money');
+                return '<th' + (cls.length ? ' class="' + cls.join(' ') + '"' : '') + '>' + h(x) + '</th>';
             }).join('') +
             '</tr></thead><tbody>' + (tr.length ? tr.join('') : '<tr><td colspan="' + head.length + '" class="settle-empty">暂无数据</td></tr>') +
             '</tbody></table></div>' + footer + '</section>';
@@ -913,7 +922,9 @@
         return exceptionTip() + filters +
             '<div class="settle-toolbar">' + button('导出列表', 'export-exception', '', '') + '</div>' +
             '<div class="settle-table-wrap"><table class="settle-table"><thead><tr>' +
-            head.map(function (x) { return '<th>' + h(x) + '</th>'; }).join('') +
+            head.map(function (x) {
+                return '<th' + (settleNumericHead(x) ? ' class="money"' : '') + '>' + h(x) + '</th>';
+            }).join('') +
             '</tr></thead><tbody>' + (tr.length ? tr.join('') : '<tr><td colspan="' + head.length + '" class="settle-empty">暂无数据</td></tr>') +
             '</tbody></table></div>' + footer;
     }
@@ -1054,14 +1065,13 @@
     function renderSummary() {
         if (!state.tab) state.tab='day';
         var rows=(state.tab === 'month' ? summaryMonth : summaryDay).filter(function(x){return (!state.query||x.payee.includes(state.query)||x.id.includes(state.query))&&(!state.summaryType||x.type===state.summaryType)&&(!state.summaryFrom||x.period>=state.summaryFrom.slice(0,7))&&(!state.summaryTo||x.period<=state.summaryTo);});
-        var tr=rows.map(function(x){return '<tr><td>'+h(x.seq||'')+'</td><td>'+h(x.period)+'</td><td>'+h(x.type)+'</td><td>'+h(x.payee)+'</td><td>'+h(x.id)+'</td><td class="money">'+cash(x.total)+'</td><td class="money">'+cash(x.settled)+'</td><td class="money">'+cash(x.pending)+'</td><td class="money">'+cash(x.blocked)+'</td><td>'+h(x.statements)+'</td><td>'+h(x.lines)+'</td></tr>';});
+        var tr=rows.map(function(x){return '<tr><td>'+h(x.seq||'')+'</td><td>'+h(x.period)+'</td><td>'+h(x.type)+'</td><td>'+h(x.payee)+'</td><td>'+h(x.id)+'</td><td class="money">'+cash(x.total)+'</td><td class="money">'+cash(x.refund)+'</td><td class="money">'+cash(x.settled)+'</td><td class="money">'+cash(x.pending)+'</td><td class="money">'+cash(x.blocked)+'</td><td>'+h(x.statements)+'</td><td>'+h(x.lines)+'</td></tr>';});
         var filterHtml='<div class="settle-card-body"><div class="settle-filter"><label class="settle-field"><span>统计时间</span><input type="date" class="settle-input" id="summary-from" value="'+h(state.summaryFrom||'')+'"></label><span>至</span><label class="settle-field"><span>&nbsp;</span><input type="date" class="settle-input" id="summary-to" value="'+h(state.summaryTo||'')+'"></label>'+
             '<label class="settle-field"><span>收款方类型</span><select class="settle-select" id="summary-type"><option value="">全部</option>'+['供应商','承运商','门店','BD扶商','直播运营商','商户','平台'].map(function(v){return '<option'+(state.summaryType===v?' selected':'')+'>'+v+'</option>';}).join('')+'</select></label>'+
             '<label class="settle-field"><span>收款方名称</span><input class="settle-input" id="settle-query" value="'+h(state.query)+'" placeholder="请输入收款方名称"></label><div class="settle-actions">'+button('查询','search','','primary')+button('重置','reset')+'</div></div></div>';
-        /* 汇总口径说明：按收款方结算单元归集；含佣金分佣与承运商运费。 */
-        return '<div class="settle-card-body">'+note('当前按结算单元（收款方）统计：含佣金分佣方与承运商运费收款；应收金额为单据总金额；已结款、待处理、异常金额按单据状态与预检结果归类。账户余额、提现和退款流水不在本页口径内。')+'</div>'+tabs([['day','日汇总'],['month','月汇总']])+
+        return tabs([['day','日汇总'],['month','月汇总']])+
             '<section class="settle-card">'+filterHtml+'<div class="settle-toolbar">'+button('导出列表','export-summary')+'</div>'+
-            table(['序号',state.tab==='month'?'统计月份':'统计日期','收款方类型','收款方名称','收款方ID','应收金额（元）','已结款金额（元）','待处理金额（元）','异常金额（元）','单据数','明细数'],tr,'共 '+(state.tab==='month'?String(summaryMonth.length):String(summaryDay.length))+' 条')+'</section>';
+            table(['序号',state.tab==='month'?'统计月份':'统计日期','收款方类型','收款方名称','收款方ID','应收金额（元）','退款金额（元）','已结款金额（元）','待处理金额（元）','异常金额（元）','单据数','明细数'],tr,'共 '+(state.tab==='month'?String(summaryMonth.length):String(summaryDay.length))+' 条')+'</section>';
     }
     function renderSupplier() {
         if (!['pending','statement'].includes(state.tab)) state.tab='pending';
@@ -1251,8 +1261,8 @@
             configLine('分佣基准',lockedCards(['按实付金额分佣','按销售金额分佣'],'按实付金额分佣'),'分佣基准为全局默认展示，下期支持切换；实际算分以各分佣策略明细的基准为准（代销按毛利、平台按实付）。') +
             configLine('佣金金额不足1分计',roundModeRadios(),'佣金不足 1 分时固定按四舍五入处理，本期不可变更。') +
             '</div><h3 class="settle-section-title" style="margin-top:28px">结算规则设置</h3><div class="settle-config-grid">' +
-            configLine('结算起算节点（平台默认）',triggerCards,'平台默认起算节点。供应商档案可单独选择「履约确认后 / 售后期结束」。履约确认：自提=全部核销，配送/直发=确认收货；售后期结束=履约确认 + 售后保障期（见售后 · 售后保障期管理）。多商品按行分别入池。') +
-            configLine('结算周期（平台默认）','系统每 <select class="settle-select settle-config-short" data-config="cycle">'+cycleOpts.map(function(x){return '<option value="'+x[0]+'"'+(config.cycle===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('')+'</select> 结算并出账一次','「N 天」自上次结算滚动；「自然月1日」每月固定 1 号结算。供应商档案必配周期；勾选跟随平台的供应商在此变更后自动同步。已生成清分不变，新增清分按新配置。') +
+            configLine('结算起算节点（平台默认）',triggerCards,'平台默认起算节点。供应商档案「结算配置策略」选供应商独立配置时可覆盖。履约确认：自提=全部核销，配送/直发=确认收货；售后期结束=履约确认 + 售后保障期（见售后 · 售后保障期管理）。多商品按行分别入池。') +
+            configLine('结算周期（平台默认）','系统每 <select class="settle-select settle-config-short" data-config="cycle">'+cycleOpts.map(function(x){return '<option value="'+x[0]+'"'+(config.cycle===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('')+'</select> 结算并出账一次','「N 天」自上次结算滚动；「自然月1日」每月固定 1 号结算。供应商档案「结算配置策略」选平台通用配置的，在此变更后自动同步。已生成清分不变，新增清分按新配置。') +
             configLine('结算单生成时间','<input class="settle-input settle-config-short" type="time" data-config="generate" value="'+h(config.generate)+'">','每日结算单生成时刻（如 09:30）。') +
             configLine('自动生成结款单',switcher('autoBill'),'开启后，财务未在规定时间内审核时系统自动生成付款单；关闭则需财务手动生成。') +
             configLine('结款执行时间','生成结款单后 <input class="settle-input settle-config-short" type="number" min="0" step="1" data-config="payHours" value="'+h(config.payHours)+'"> 小时内执行打款','0 = 生成结款单后立即执行；仅「自动生成结款单」开启时生效。') +
@@ -1535,7 +1545,7 @@
     }
     function exportSummary() {
         var rows=state.tab==='month'?summaryMonth:summaryDay;
-        var data=[['统计日期/月份','收款方类型','收款方名称','收款方ID','应收金额（元）','已结款金额（元）','待处理金额（元）','异常金额（元）','单据数','明细数']].concat(rows.map(function(x){return [x.period,x.type,x.payee,x.id,x.total,x.settled,x.pending,x.blocked,x.statements,x.lines];}));
+        var data=[['统计日期/月份','收款方类型','收款方名称','收款方ID','应收金额（元）','退款金额（元）','已结款金额（元）','待处理金额（元）','异常金额（元）','单据数','明细数']].concat(rows.map(function(x){return [x.period,x.type,x.payee,x.id,x.total,x.refund||'0.00',x.settled,x.pending,x.blocked,x.statements,x.lines];}));
         var csv='\uFEFF'+data.map(function(row){return row.join(',');}).join('\r\n');
         var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='分佣汇总-'+(state.tab==='month'?'MONTHLY':'DAILY')+'-'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
     }
@@ -1712,7 +1722,7 @@
         if(act==='general-log'){openLogs('general');return;}
         if(act==='policy-log'){openLogs('policy',id);return;}
         if(act==='switch'){config[id]=!config[id];render();return;}
-        if(act==='save-config'){readGeneralConfig();openModal('保存通用配置','确认保存当前结算通用配置？<br><br><span class="muted">平台默认变更后，勾选「跟随平台」的供应商将自动同步起算节点与周期；已生成的清分数据不变，新增清分按新配置计算。多商品订单按商品行分别进入可结算池。</span>',false,button('取消','close','','')+button('确认保存','confirm-save','','primary'));return;}
+        if(act==='save-config'){readGeneralConfig();openModal('保存通用配置','确认保存当前结算通用配置？<br><br><span class="muted">平台默认变更后，「结算配置策略」为平台通用配置的供应商将自动同步起算节点与周期；已生成的清分数据不变，新增清分按新配置计算。多商品订单按商品行分别进入可结算池。</span>',false,button('取消','close','','')+button('确认保存','confirm-save','','primary'));return;}
         if(act==='export-summary'){exportSummary();return;}
         if(act==='manual'){var x=compensations.find(function(r){return r.id===id;});if(!x){openModal('人工结款',note('未找到补偿结款单：'+h(id)));return;}openModal('人工结款','<div class="settle-policy-form">'+policyField('结款金额','<b>'+cash(x.amount)+'</b> <small>（默认清分待结算金额，不支持修改）</small>')+policyField('上传凭证','<input type="file" accept=".jpg,.jpeg,.png" multiple aria-label="上传凭证"><small>支持 JPG/JPEG/PNG，最多 3 张，单张 ≤ 10MB</small>')+policyField('备注','<textarea class="settle-input settle-textarea" id="compensation-manual-remark" maxlength="100" placeholder="选填，≤100 字"></textarea>')+'</div>',false,button('取消','close')+button('确定','confirm-compensation-manual',id,'primary'));return;}
         if(act==='retry'){openModal('重新执行','确认对单据 '+h(id)+' 重新执行？将重新校验供应商进件/账户，通过后即可加入结款单。',false,button('取消','close')+button('确认','confirm-supplier-retry',id,'primary'));return;}
@@ -1924,7 +1934,7 @@
             readGeneralConfig();
             if(window.LFSettleCycleStore) window.LFSettleCycleStore.saveConfig(config);
             overlay.innerHTML='';
-            if(typeof showToast==='function') showToast('通用配置已保存；跟随平台的供应商已同步','success');
+            if(typeof showToast==='function') showToast('通用配置已保存；平台通用配置策略的供应商已同步','success');
             render();
             return;
         }

@@ -934,6 +934,17 @@
             supplierId,
             onboardDisplay
         );
+        if (
+            cells[11] &&
+            window.LFSettleCycleStore &&
+            typeof window.LFSettleCycleStore.formatSupplierSettleSummary === 'function'
+        ) {
+            var supplierName = cells[2] ? cells[2].textContent.trim() : '';
+            cells[11].textContent = window.LFSettleCycleStore.formatSupplierSettleSummary(
+                supplierId,
+                supplierName
+            );
+        }
     }
 
     function syncAllSupplierArchiveRows() {
@@ -1876,17 +1887,7 @@
             ],
             filterFn: supplierArchiveFilter
         });
-        document.getElementById('mdmArchiveSupAddBtn') &&
-            document.getElementById('mdmArchiveSupAddBtn').addEventListener('click', function () {
-                if (
-                    window.MdmResourceArchiveForms &&
-                    typeof window.MdmResourceArchiveForms.openSupplierAdd === 'function'
-                ) {
-                    window.MdmResourceArchiveForms.openSupplierAdd();
-                } else if (typeof showToast === 'function') {
-                    showToast('表单模块未加载，请确认已引入 mdm-resource-archive-forms.js', 'error');
-                }
-            });
+        /* 供应商档案不再提供「新增」：须先在所有主体新增供应商商家，审核通过后在本页编辑 */
         setTimeout(function () {
             pm.decorateAllDetailLinkCells();
             syncAllSupplierArchiveRows();

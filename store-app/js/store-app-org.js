@@ -131,7 +131,9 @@
     });
 
     mask.appendChild(sheet);
-    document.body.appendChild(mask);
+    /* 挂到手机壳内，半遮罩与 App 同宽；无壳时退回 body */
+    var shell = document.querySelector('.sa-shell');
+    (shell || document.body).appendChild(mask);
     requestAnimationFrame(function () {
       mask.classList.add('is-open');
     });

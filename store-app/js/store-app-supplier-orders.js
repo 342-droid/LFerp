@@ -1,55 +1,93 @@
-/* 丰银宝 · 供应商视角 · 供应订单 */
+/* 丰银宝 · 供应商视角 · 客户订单
+ * PC：零售/代采分页 + 多条件；App：类型→状态→时间，状态枚举与 PC 一致，主操作前置 */
 (function () {
   if (!window.FybOrg || !window.FybOrg.ensureSupplierModeOrRedirect()) return;
+  if (!window.FybSupplierOrders || !window.FybSupplierFilters) return;
 
-  var ORDERS = [
-    { orderNo: 'ORD-2610312466502', lineNo: 'ORD-2610312466502-1', product: '火龙果', qty: 2, amount: '0.04', status: '待结款', type: '零售', time: '2026-10-31 13:58', supplier: '斯斯供应商商家' },
-    { orderNo: 'ORD-2610312477895', lineNo: '—', product: '运费验收-快递常温2.5kg', qty: 1, amount: '0.01', status: '待结算', type: '代采', time: '2026-10-31 18:17', supplier: '斯斯供应商商家' },
-    { orderNo: 'ORD-261016200015', lineNo: 'ORD-261016200015-2', product: '芒果干', qty: 2, amount: '0.64', status: '结款中', type: '零售', time: '2026-10-16 09:10', supplier: '斯斯供应商商家' },
-    { orderNo: 'ORD-261013200012', lineNo: 'ORD-261013200012-1', product: '白芭乐-快递-ss', qty: 1, amount: '0.24', status: '已结款', type: '零售', time: '2026-10-13 10:22', supplier: '斯斯供应商商家' },
-    { orderNo: 'ORD-2609033597216', lineNo: 'ORD-2609033597216-1', product: '火龙果', qty: 1, amount: '0.02', status: '部分结款', type: '零售', time: '2026-09-03 18:21', supplier: '斯斯供应商商家' },
-    { orderNo: 'ORD-2610307754308', lineNo: 'ORD-2610307754308-1', product: '低糖养乐多', qty: 3, amount: '1.50', status: '已结款', type: '代采', time: '2026-10-30 18:05', supplier: '南京马群枢纽供应商' },
-    { orderNo: 'ORD-261008200001', lineNo: 'ORD-261008200001-1', product: '马群-莲藕-快递配送', qty: 5, amount: '11.40', status: '待结算', type: '零售', time: '2026-10-08 14:20', supplier: '南京马群枢纽供应商' },
-    { orderNo: 'ORD-2609104841852', lineNo: '353852301770752223', product: '低糖养乐多', qty: 1, amount: '0.01', status: '清分异常', type: '零售', time: '2026-09-10 11:05', supplier: '南京马群枢纽供应商' }
+  var F = window.FybSupplierFilters;
+
+  /** 与 PC 零售订单状态筛选项对齐 */
+  var RETAIL_STATUSES = [
+    '待支付',
+    '待接单',
+    '待发货',
+    '待收货',
+    '待提货',
+    '待核销',
+    '交易成功',
+    '交易失败',
+    '发起退货/退款'
+  ];
+  /** 与 PC 代采订单状态筛选项对齐 */
+  var PROXY_STATUSES = [
+    '待支付',
+    '待接单',
+    '待发货',
+    '待收货',
+    '交易成功',
+    '交易失败',
+    '发起退货/退款'
   ];
 
-  var state = { filter: '全部' };
+  var state = { type: '零售', status: '全部', time: 'all' };
   var org = window.FybOrg.current();
   var orgEl = document.getElementById('saSupOrdersOrg');
-  if (orgEl) orgEl.textContent = org.name + ' · 仅看本供应商相关订单行';
+  if (orgEl) orgEl.textContent = org.name + ' · 本商家客户订单，可发货与处理售后';
 
   function tagClass(status) {
-    if (/已结款/.test(status) && !/部分/.test(status)) return 'is-ok';
+    if (/交易成功|已完成|已结款/.test(status) && !/部分|售后|退货/.test(status)) return 'is-ok';
     if (/异常|失败/.test(status)) return 'is-bad';
     return 'is-wait';
   }
 
+  function statusListForType(type) {
+    return type === '代采' ? PROXY_STATUSES : RETAIL_STATUSES;
+  }
+
+  function matchStatus(o, status) {
+    if (!status || status === '全部') return true;
+    if (status === '发起退货/退款') return !!o.aftersale;
+    return o.status === status;
+  }
+
   function rows() {
-    return ORDERS.filter(function (o) {
-      if (o.supplier !== org.name) return false;
-      if (state.filter === '全部') return true;
-      if (state.filter === '零售' || state.filter === '代采') return o.type === state.filter;
-      return o.status === state.filter;
+    return window.FybSupplierOrders.listBySupplier(org.name).filter(function (o) {
+      if (o.type !== state.type) return false;
+      if (!matchStatus(o, state.status)) return false;
+      return F.matchTime(o.time, state.time);
     });
   }
 
   function renderFilter() {
     var host = document.getElementById('saSupOrderFilter');
     if (!host) return;
-    var chips = ['全部', '零售', '代采', '待结算', '待结款', '已结款'];
-    host.innerHTML = chips
-      .map(function (c) {
-        return (
-          '<button type="button" class="sa-sup-filter__chip' +
-          (state.filter === c ? ' is-active' : '') +
-          '" data-filter="' +
-          c +
-          '">' +
-          c +
-          '</button>'
-        );
-      })
-      .join('');
+    var statuses = ['全部'].concat(statusListForType(state.type));
+    if (statuses.indexOf(state.status) < 0) state.status = '全部';
+    host.innerHTML =
+      '<div class="sa-sup-filter__l1" role="tablist" aria-label="订单类型">' +
+      F.chip('零售', state.type === '零售', 'data-type') +
+      F.chip('代采', state.type === '代采', 'data-type') +
+      '</div>' +
+      '<div class="sa-sup-filter__l2" role="tablist" aria-label="订单状态">' +
+      statuses
+        .map(function (s) {
+          return F.chip(s, state.status === s, 'data-status');
+        })
+        .join('') +
+      '</div>' +
+      F.timeRowHtml(state.time);
+  }
+
+  function actionHtml(o) {
+    var btns = [];
+    if (window.FybSupplierOrders.canShip(o)) {
+      btns.push('<button type="button" class="sa-sup-card__act sa-sup-card__act--primary" data-act="ship">发货</button>');
+    }
+    if (window.FybSupplierOrders.canHandleAftersale(o)) {
+      btns.push('<button type="button" class="sa-sup-card__act" data-act="aftersale">处理售后</button>');
+    }
+    btns.push('<button type="button" class="sa-sup-card__act" data-act="detail">详情</button>');
+    return '<div class="sa-sup-card__actions">' + btns.join('') + '</div>';
   }
 
   function renderList() {
@@ -63,7 +101,9 @@
     host.innerHTML = list
       .map(function (o) {
         return (
-          '<article class="sa-sup-card">' +
+          '<article class="sa-sup-card" data-order-no="' +
+          o.orderNo +
+          '">' +
           '<div class="sa-sup-card__row">' +
           '<div class="sa-sup-card__no">' +
           o.orderNo +
@@ -82,15 +122,29 @@
           '<div class="sa-sup-card__meta">' +
           o.type +
           ' · ' +
+          o.channel +
+          ' · ' +
+          o.fulfill +
+          '<br>' +
           o.time +
-          (o.lineNo && o.lineNo !== '—' ? '<br>行号 ' + o.lineNo : '') +
+          (o.settleStatus ? ' · 结算 ' + o.settleStatus : '') +
+          (o.aftersale
+            ? '<br>售后 ' + o.aftersale.type + ' · ' + o.aftersale.status
+            : '') +
           '</div>' +
           '<div class="sa-sup-card__amt">¥' +
           o.amount +
-          '</div></div></article>'
+          '</div></div>' +
+          actionHtml(o) +
+          '</article>'
         );
       })
       .join('');
+  }
+
+  function goDetail(orderNo) {
+    window.location.href =
+      'supplier-order-detail.html?orderNo=' + encodeURIComponent(orderNo || '');
   }
 
   function render() {
@@ -99,10 +153,70 @@
   }
 
   document.getElementById('saSupOrderFilter').addEventListener('click', function (e) {
-    var btn = e.target.closest('[data-filter]');
-    if (!btn) return;
-    state.filter = btn.getAttribute('data-filter');
+    var typeBtn = e.target.closest('[data-type]');
+    if (typeBtn) {
+      state.type = typeBtn.getAttribute('data-type');
+      state.status = '全部';
+      render();
+      return;
+    }
+    var statusBtn = e.target.closest('[data-status]');
+    if (statusBtn) {
+      state.status = statusBtn.getAttribute('data-status');
+      render();
+      return;
+    }
+    var timeBtn = e.target.closest('[data-time]');
+    if (!timeBtn) return;
+    state.time = timeBtn.getAttribute('data-time');
     render();
+  });
+
+  function confirmGoAftersale(orderNo) {
+    var exist = document.getElementById('saSupAsConfirm');
+    if (exist) exist.remove();
+    var shell = document.querySelector('.sa-shell') || document.body;
+    var mask = document.createElement('div');
+    mask.id = 'saSupAsConfirm';
+    mask.className = 'sa-sup-confirm-mask';
+    mask.innerHTML =
+      '<div class="sa-sup-confirm" role="dialog" aria-modal="true">' +
+      '<h3 class="sa-sup-confirm__title">处理售后</h3>' +
+      '<p class="sa-sup-confirm__msg">确认进入该订单售后处理？进入后可进行确认收货、拒收或补货发货。</p>' +
+      '<div class="sa-sup-confirm__actions">' +
+      '<button type="button" class="sa-sup-confirm__btn" data-c="cancel">取消</button>' +
+      '<button type="button" class="sa-sup-confirm__btn sa-sup-confirm__btn--primary" data-c="ok">确认处理</button>' +
+      '</div></div>';
+    shell.appendChild(mask);
+    requestAnimationFrame(function () {
+      mask.classList.add('is-open');
+    });
+    function close() {
+      mask.remove();
+    }
+    mask.addEventListener('click', function (ev) {
+      if (ev.target === mask) close();
+    });
+    mask.querySelector('[data-c="cancel"]').addEventListener('click', close);
+    mask.querySelector('[data-c="ok"]').addEventListener('click', function () {
+      close();
+      goDetail(orderNo);
+    });
+  }
+
+  document.getElementById('saSupOrderList').addEventListener('click', function (e) {
+    var card = e.target.closest('[data-order-no]');
+    if (!card) return;
+    var orderNo = card.getAttribute('data-order-no');
+    var actBtn = e.target.closest('[data-act]');
+    var act = actBtn ? actBtn.getAttribute('data-act') : 'detail';
+    if (act === 'aftersale') {
+      confirmGoAftersale(orderNo);
+      return;
+    }
+    if (act === 'ship' || act === 'detail') {
+      goDetail(orderNo);
+    }
   });
 
   render();

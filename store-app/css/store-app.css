@@ -153,9 +153,9 @@
   font-weight: 600;
 }
 
-/* 组织切换底部面板 */
+/* 组织切换底部面板：与 .sa-shell 同宽，不铺满浏览器视口 */
 .fyb-org-mask {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 5000;
   background: rgba(0, 0, 0, 0.45);
@@ -163,6 +163,8 @@
   align-items: flex-end;
   opacity: 0;
   transition: opacity 0.2s ease;
+  border-radius: inherit;
+  overflow: hidden;
 }
 
 .fyb-org-mask.is-open {

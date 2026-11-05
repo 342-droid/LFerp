@@ -10,7 +10,7 @@
 
   var STORE_PARTNER_TYPES = ['加盟店', '联营店', '直营店'];
 
-  var CATALOG_VERSION = 'real-20261026';
+  var CATALOG_VERSION = 'real-20261105-settle-sup';
 
   var SCENES = [
     { id: 'store', name: '门店合作', partyType: '门店', partyKind: 'corp', partyHint: '企业/个体户', fill: ['门店名称', '统一社会信用代码', '经营负责人', '门店地址', '联系电话'] },
@@ -23,9 +23,26 @@
     { id: 'STPL-ST-002', name: '冷丰加盟门店资金清分结算合同', scene: 'store' },
     { id: 'STPL-SUP-001', name: '冷丰平台供应商入驻合作协议', scene: 'supplier' },
     { id: 'STPL-SUP-002', name: '冷丰平台供应商资金清分结算合同', scene: 'supplier' },
+    { id: 'STPL-SUP-003', name: '冷丰平台供应商结算信息变更补充协议', scene: 'supplier' },
     { id: 'STPL-USER-001', name: '冷丰平台用户注册服务协议', scene: 'user' },
     { id: 'STPL-USER-002', name: '冷丰平台隐私政策', scene: 'user' }
   ];
+
+  /** 入驻默认签署不含补充协议；结算信息变更后单独下发 */
+  var SETTLE_SUPPLEMENT_TPL = {
+    id: 'TPL007',
+    name: '冷丰平台供应商结算信息变更补充协议',
+    scene: 'supplier',
+    kind: 'supplement',
+    remoteId: 'STPL-SUP-003',
+    remoteName: '冷丰平台供应商结算信息变更补充协议',
+    status: 'on',
+    autoStart: false,
+    signInOrder: true,
+    actors: null,
+    fill: ['供应商名称', '统一社会信用代码', '法定代表人', '注册地址', '联系电话', '结款方式', '结算配置策略', '结算起算节点', '结算周期'],
+    updatedAt: '2026-11-05 23:00'
+  };
 
   var TASK_STATUS = {
     wait_auth: { label: '待对方授权', cls: 'ct-tag--warn' },
@@ -83,6 +100,7 @@
         { id: 'TPL002', name: '冷丰加盟门店资金清分结算合同', scene: 'store', storePartnerType: '加盟店', storePartnerTypes: ['加盟店'], remoteId: 'STPL-ST-002', remoteName: '冷丰加盟门店资金清分结算合同', status: 'on', autoStart: true, signInOrder: true, actors: defaultActors('store'), fill: ['门店名称', '统一社会信用代码', '经营负责人', '门店地址', '联系电话'], updatedAt: '2026-10-26 22:40' },
         { id: 'TPL003', name: '冷丰平台供应商入驻合作协议', scene: 'supplier', remoteId: 'STPL-SUP-001', remoteName: '冷丰平台供应商入驻合作协议', status: 'on', autoStart: true, signInOrder: true, actors: defaultActors('supplier'), fill: ['供应商名称', '统一社会信用代码', '法定代表人', '注册地址', '联系电话'], updatedAt: '2026-10-26 22:40' },
         { id: 'TPL004', name: '冷丰平台供应商资金清分结算合同', scene: 'supplier', remoteId: 'STPL-SUP-002', remoteName: '冷丰平台供应商资金清分结算合同', status: 'on', autoStart: true, signInOrder: true, actors: defaultActors('supplier'), fill: ['供应商名称', '统一社会信用代码', '法定代表人', '注册地址', '联系电话'], updatedAt: '2026-10-26 22:40' },
+        Object.assign({}, SETTLE_SUPPLEMENT_TPL, { actors: defaultActors('supplier') }),
         { id: 'TPL005', name: '冷丰平台用户注册服务协议', scene: 'user', remoteId: 'STPL-USER-001', remoteName: '冷丰平台用户注册服务协议', status: 'on', autoStart: true, signInOrder: true, actors: defaultActors('user'), fill: ['手机号', '姓名'], updatedAt: '2026-10-26 22:40' },
         { id: 'TPL006', name: '冷丰平台隐私政策', scene: 'user', remoteId: 'STPL-USER-002', remoteName: '冷丰平台隐私政策', status: 'on', autoStart: true, signInOrder: true, actors: defaultActors('user'), fill: ['手机号', '姓名'], updatedAt: '2026-10-26 22:40' }
       ],
@@ -139,12 +157,26 @@
   }
 
   function migrateStoreContracts(data) {
-    if (data.catalogVersion === CATALOG_VERSION) return data;
-    var fresh = seed();
-    data.templates = fresh.templates;
-    data.parties = fresh.parties;
-    data.tasks = fresh.tasks;
-    data.catalogVersion = CATALOG_VERSION;
+    if (data.catalogVersion !== CATALOG_VERSION) {
+      var fresh = seed();
+      data.templates = fresh.templates;
+      data.parties = fresh.parties;
+      data.tasks = fresh.tasks;
+      data.catalogVersion = CATALOG_VERSION;
+      saveStore(data);
+    }
+    return ensureSettleSupplementTemplate(data);
+  }
+
+  /** 已落库环境补齐结算变更补充协议模板，不整包重置签署任务 */
+  function ensureSettleSupplementTemplate(data) {
+    if (!data || !Array.isArray(data.templates)) return data;
+    var has = data.templates.some(function (t) {
+      return t && (t.id === 'TPL007' || t.remoteId === 'STPL-SUP-003');
+    });
+    if (has) return data;
+    var row = Object.assign({}, SETTLE_SUPPLEMENT_TPL, { actors: defaultActors('supplier') });
+    data.templates.push(row);
     saveStore(data);
     return data;
   }
@@ -1467,9 +1499,82 @@
   function templatesForSign(sceneId, partnerType) {
     return state.templates.filter(function (t) {
       if (t.scene !== sceneId || t.status !== 'on') return false;
+      /* 入驻/默认发起：不含结算信息变更补充协议 */
+      if (t.kind === 'supplement') return false;
       if (sceneId !== 'store') return true;
       return partnerTypesOf(t).indexOf(partnerType || '加盟店') >= 0;
     });
+  }
+
+  function findSettleSupplementTpl() {
+    return state.templates.filter(function (t) {
+      return t && t.status === 'on' && (t.id === 'TPL007' || t.remoteId === 'STPL-SUP-003' || t.kind === 'supplement');
+    })[0] || null;
+  }
+
+  /**
+   * 供应商结算信息变更后：下发「结算信息变更补充协议」至供应商 App 待签。
+   * 同一供应商仅保留一条未关闭的补充协议任务（重复变更复用并刷新签署链接）。
+   */
+  function issueSupplierSettleSupplement(opts) {
+    opts = opts || {};
+    var partyName = String(opts.name || '').trim();
+    if (!partyName) return null;
+    ensureSettleSupplementTemplate(state);
+    var tpl = findSettleSupplementTpl();
+    if (!tpl) {
+      toast('未配置结算信息变更补充协议模板', 'error');
+      return null;
+    }
+    var bizRef = opts.bizRef || ('supplier-settle-sup:' + (opts.supplierId || partyName));
+    var existing = state.tasks.filter(function (t) {
+      return t && t.bizRef === bizRef && !taskIsClosed(t.status);
+    })[0];
+    if (existing) {
+      existing.status = 'sign_progress';
+      existing.finishedAt = '';
+      existing.signedTemplateIds = [];
+      existing.templateSignedAt = {};
+      existing.settleSnapshot = opts.settleSnapshot || existing.settleSnapshot || null;
+      existing.updatedAt = nowText();
+      existing.signUrl = fadadaSignUrl(existing);
+      saveStore(state);
+      return existing;
+    }
+    var party = upsertParty({
+      type: 'supplier',
+      name: partyName,
+      identNo: opts.identNo || '',
+      contact: opts.contact || '',
+      address: opts.address || '',
+      authStatus: 'done'
+    });
+    var createdAt = nowText();
+    var task = {
+      id: nextTaskId(),
+      name: party.name + ' · ' + tpl.name,
+      scene: 'supplier',
+      kind: 'settle_supplement',
+      templateId: tpl.id,
+      templateIds: [tpl.id],
+      agreementNames: tpl.name,
+      partyId: party.id,
+      status: 'sign_progress',
+      initiator: opts.initiator || '供应商档案·结算变更',
+      createdAt: createdAt,
+      deadline: addDaysText(createdAt, 7),
+      finishedAt: '',
+      fadadaTaskId: 'ST-SUP' + Date.now().toString().slice(-6),
+      signUrl: '',
+      bizRef: bizRef,
+      settleSnapshot: opts.settleSnapshot || null,
+      sms: true,
+      pushApp: true
+    };
+    task.signUrl = fadadaSignUrl(task);
+    state.tasks.unshift(task);
+    saveStore(state);
+    return task;
   }
 
   function readTaskTemplateIds() {
@@ -2010,6 +2115,7 @@
     htmlSceneUrl: function (sceneId) { return htmlPageUrl('scene=' + encodeURIComponent(sceneId || '')); },
     copyText: copyText,
     generateCoopTask: generateCoopTask,
+    issueSupplierSettleSupplement: issueSupplierSettleSupplement,
     signUserByRegister: signUserByRegister,
     listStoreTasks: listStoreTasks,
     listSupplierTasks: listSupplierTasks,

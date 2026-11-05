@@ -29,7 +29,10 @@
 .settle-table th { background:#f8f9fb; color:#596270; font-weight:600; }
 .settle-table tr:hover td { background:#fffaf6; }
 .settle-table td.wrap { white-space:normal; min-width:200px; max-width:380px; line-height:1.5; }
-.settle-table .money { font-variant-numeric:tabular-nums; text-align:right; }
+.settle-table .money,
+.settle-table th.money,
+.settle-table td.money { font-variant-numeric:tabular-nums; text-align:right; }
+.settle-grouped th.money { text-align:right; }
 .settle-table .muted { color:#9198a2; }
 .settle-table-footer { padding:12px 18px; display:flex; justify-content:flex-end; color:#7a8290; }
 .settle-tag { display:inline-block; padding:3px 8px; border-radius:3px; background:#f1f3f5; color:#5d6570; font-size:12px; }

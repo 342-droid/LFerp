@@ -647,6 +647,88 @@
             });
     }
 
+    /** 结算信息关键字段是否变更（结款方式 / 策略 / 起算 / 周期） */
+    function isSupplierSettleChanged(before, after) {
+        if (!before || !after) return !!after;
+        if (Boolean(before.followPlatform) !== Boolean(after.followPlatform)) return true;
+        if (String(before.payMethod || '') !== String(after.payMethod || '')) return true;
+        if (!after.followPlatform) {
+            if (String(before.trigger || '') !== String(after.trigger || '')) return true;
+            if (String(before.cycle || '') !== String(after.cycle || '')) return true;
+        }
+        return false;
+    }
+
+    function settleSummaryText(cfg) {
+        if (!cfg || !window.LFSettleCycleStore) return '—';
+        var S = window.LFSettleCycleStore;
+        var parts = [
+            S.payMethodLabel ? S.payMethodLabel(cfg.payMethod) : cfg.payMethod,
+            S.strategyLabel ? S.strategyLabel(cfg.followPlatform) : '',
+            cfg.followPlatform
+                ? '跟随平台'
+                : (S.triggerLabel ? S.triggerLabel(cfg.trigger) : cfg.trigger) +
+                  ' / ' +
+                  (S.cycleLabel ? S.cycleLabel(cfg.cycle) : cfg.cycle)
+        ];
+        return parts.filter(Boolean).join(' · ');
+    }
+
+    /**
+     * 结算信息变更后二次确认：是否发放结算信息变更补充协议；
+     * 确认后写入合同任务并推送供应商 App 待签。
+     */
+    function confirmIssueSettleSupplement(supplierId, supplierName, settleCfg) {
+        var exist = document.getElementById('mdmSettleSupConfirm');
+        if (exist) exist.remove();
+        var backdrop = document.createElement('div');
+        backdrop.id = 'mdmSettleSupConfirm';
+        backdrop.className = 'store-archive-modal-backdrop resource-archive-modal-backdrop';
+        backdrop.innerHTML =
+            '<div class="erp-modal" role="dialog" aria-modal="true" style="max-width:480px">' +
+            '<div class="erp-modal__header"><h2 class="erp-modal__title">发放结算信息补充协议</h2></div>' +
+            '<div class="erp-modal__body">' +
+            '<p style="margin:0 0 10px;line-height:1.6;color:#333">供应商 <strong>' +
+            String(supplierName || '') +
+            '</strong> 的结算信息已变更：</p>' +
+            '<p style="margin:0 0 12px;padding:10px 12px;background:#f7f8fa;border-radius:8px;font-size:13px;color:#666;line-height:1.5">' +
+            settleSummaryText(settleCfg) +
+            '</p>' +
+            '<p style="margin:0;line-height:1.6;color:#333">是否发放<strong>结算信息变更补充协议</strong>？确认后将自动下发至供应商 App，由供应商完成电子签署。</p>' +
+            '</div>' +
+            '<div class="erp-modal__footer">' +
+            '<button type="button" class="erp-btn" data-c="cancel">暂不发放</button>' +
+            '<button type="button" class="erp-btn erp-btn--primary" data-c="ok">确认发放</button>' +
+            '</div></div>';
+        document.body.appendChild(backdrop);
+        function close() {
+            backdrop.remove();
+        }
+        backdrop.addEventListener('click', function (ev) {
+            if (ev.target === backdrop) close();
+        });
+        backdrop.querySelector('[data-c="cancel"]').addEventListener('click', close);
+        backdrop.querySelector('[data-c="ok"]').addEventListener('click', function () {
+            close();
+            if (!window.LfContract || typeof window.LfContract.issueSupplierSettleSupplement !== 'function') {
+                if (typeof showToast === 'function') {
+                    showToast('合同模块未加载，无法下发补充协议（演示）', 'error');
+                }
+                return;
+            }
+            var task = window.LfContract.issueSupplierSettleSupplement({
+                supplierId: supplierId,
+                name: supplierName,
+                bizRef: 'supplier-settle-sup:' + (supplierId || supplierName),
+                settleSnapshot: settleCfg,
+                initiator: '供应商档案·结算变更'
+            });
+            if (task && typeof showToast === 'function') {
+                showToast('已下发结算信息补充协议，待供应商 App 签署（演示）', 'success');
+            }
+        });
+    }
+
     function attachWideModal(title, bodyEl, onConfirm) {
         removeArchiveFormModals();
         var backdrop = document.createElement('div');
@@ -1111,14 +1193,10 @@
         return createStoreFormBundle({ initialVenuePhotos: initialVenuePhotos || {} }).body;
     }
 
-    function createSupplierFormBundle(options) {
+    function createSupplierFormBundle(/* options */) {
         var refs = {};
         var body = document.createElement('div');
         var kind = 'supplier';
-        var includeInboundWarehouse = !!(options && options.includeInboundWarehouse);
-        var initialInboundWarehouse = String(
-            (options && options.initialInboundWarehouse) || ''
-        ).trim();
         refs.subjectSel = sel(SUP_SUBJECTS, '');
         body.appendChild(formRow('主体名称', true, refs.subjectSel));
         refs.nameInp = txt('请输入供应商名称', '');
@@ -1148,12 +1226,6 @@
         refs.detailTa = detailWrap.querySelector('textarea');
         body.appendChild(formRow('详细地址', true, detailWrap));
         body.appendChild(mapMockRow(false));
-        if (includeInboundWarehouse) {
-            refs.inboundWarehouseSel = sel([{ value: '', label: '请选择入库仓库' }], '');
-            refs.inboundWarehouseSel.setAttribute('data-required-msg', '请选择入库仓库');
-            body.appendChild(formRow('入库仓库', true, refs.inboundWarehouseSel));
-            hydrateInboundWarehouseSelect(refs.inboundWarehouseSel, initialInboundWarehouse);
-        }
         var supPhoneWrap = smsRow();
         refs.phoneInp = supPhoneWrap.querySelector('input');
         body.appendChild(formRow('手机号码', true, supPhoneWrap));
@@ -1161,24 +1233,44 @@
         body.appendChild(formRow('验证码', true, refs.verifyInp));
         refs.contactInp = txt('请输入联系人', '');
         body.appendChild(formRow('联系人', true, refs.contactInp));
+        var payMethodName = kind + '-pay';
+        refs.payMethodRow = radioGroup(
+            '结款方式',
+            true,
+            payMethodName,
+            [['goods_first', '先货后款']],
+            'goods_first'
+        );
+        body.appendChild(refs.payMethodRow);
         body.appendChild(
             radioGroup('结算类型', true, kind + '-settle', [['order', '订单结算']], 'order')
         );
-        body.appendChild(
-            radioGroup('配送方式', true, kind + '-deliver', [
-                ['unified', '统配'],
-                ['direct', '直配']
-            ], 'unified')
-        );
-        body.appendChild(
-            radioGroup('结款方式', true, kind + '-pay', [['goods_first', '先货后款']], 'goods_first')
-        );
 
-        /* 结算起算节点 + 周期：必配；默认可跟随平台通用配置 */
+        /* 结算配置策略 →（独立配置时）起算节点 + 周期 */
         var platCfg =
             window.LFSettleCycleStore && window.LFSettleCycleStore.loadConfig
                 ? window.LFSettleCycleStore.loadConfig()
                 : { trigger: 'fulfill', cycle: '1' };
+        var settleStrategyName = kind + '-settle-strategy';
+        /* 枚举：平台通用配置 | 供应商独立配置 */
+        refs.settleStrategyRow = radioGroup(
+            '结算配置策略',
+            true,
+            settleStrategyName,
+            [
+                ['inherit', '平台通用配置'],
+                ['override', '供应商独立配置']
+            ],
+            'inherit'
+        );
+        var strategyTip = document.createElement('div');
+        strategyTip.className = 'store-archive__coord-hint';
+        strategyTip.style.marginTop = '6px';
+        strategyTip.textContent =
+            '平台通用配置：起算节点与周期随结算中心「通用配置」同步，平台变更后自动生效（已生成清分不变）。独立配置：本供应商单独维护，不再随平台默认变更。';
+        refs.settleStrategyRow.querySelector('.store-form__control').appendChild(strategyTip);
+        body.appendChild(refs.settleStrategyRow);
+
         refs.settleTriggerSel = sel(
             [
                 { value: '', label: '请选择起算节点' },
@@ -1188,7 +1280,8 @@
             platCfg.trigger || 'fulfill'
         );
         refs.settleTriggerSel.setAttribute('data-required-msg', '请选择结算起算节点');
-        body.appendChild(formRow('结算起算节点', true, refs.settleTriggerSel));
+        refs.settleTriggerRow = formRow('结算起算节点', true, refs.settleTriggerSel);
+        body.appendChild(refs.settleTriggerRow);
         var cycleOpts = [{ value: '', label: '请选择结算周期' }].concat(
             (window.LFSettleCycleStore && window.LFSettleCycleStore.CYCLE_OPTIONS) || [
                 { value: '1', label: '1天' },
@@ -1200,48 +1293,50 @@
         );
         refs.settleCycleSel = sel(cycleOpts, platCfg.cycle || '1');
         refs.settleCycleSel.setAttribute('data-required-msg', '请选择结算周期');
-        body.appendChild(formRow('结算周期', true, refs.settleCycleSel));
-        var followRow = document.createElement('div');
-        followRow.className = 'store-form__row';
-        followRow.appendChild(sfLabel('跟随平台默认', false));
-        var followCtrl = document.createElement('div');
-        followCtrl.className = 'store-form__control';
-        var followLabel = document.createElement('label');
-        followLabel.className = 'store-check-label';
-        refs.settleFollowChk = document.createElement('input');
-        refs.settleFollowChk.type = 'checkbox';
-        refs.settleFollowChk.checked = true;
-        followLabel.appendChild(refs.settleFollowChk);
-        followLabel.appendChild(
-            document.createTextNode(' 平台改默认后自动同步本供应商起算节点与周期（已生成清分不变）')
-        );
-        followCtrl.appendChild(followLabel);
-        var followTip = document.createElement('div');
-        followTip.className = 'store-archive__coord-hint';
-        followTip.style.marginTop = '6px';
-        followTip.textContent =
-            '取消勾选后，本供应商独立配置，不再随平台默认变更。售后期结束起算依赖「售后 · 售后保障期管理」。';
-        followCtrl.appendChild(followTip);
-        followRow.appendChild(followCtrl);
-        body.appendChild(followRow);
+        refs.settleCycleRow = formRow('结算周期', true, refs.settleCycleSel);
+        body.appendChild(refs.settleCycleRow);
 
-        function applySettleFollowLock() {
-            var follow = !!(refs.settleFollowChk && refs.settleFollowChk.checked);
+        function readSettleStrategy() {
+            var checked = refs.settleStrategyRow.querySelector(
+                'input[name="' + settleStrategyName + '"]:checked'
+            );
+            return checked && checked.value === 'override' ? 'override' : 'inherit';
+        }
+
+        function setSettleStrategy(mode) {
+            var val = mode === 'override' ? 'override' : 'inherit';
+            var radios = refs.settleStrategyRow.querySelectorAll(
+                'input[name="' + settleStrategyName + '"]'
+            );
+            for (var i = 0; i < radios.length; i++) {
+                radios[i].checked = radios[i].value === val;
+            }
+        }
+
+        function applySettleStrategyUI() {
+            var inherit = readSettleStrategy() === 'inherit';
             var cfg =
                 window.LFSettleCycleStore && window.LFSettleCycleStore.loadConfig
                     ? window.LFSettleCycleStore.loadConfig()
                     : platCfg;
-            if (follow) {
+            if (inherit) {
                 refs.settleTriggerSel.value = cfg.trigger || 'fulfill';
                 refs.settleCycleSel.value = cfg.cycle || '1';
             }
-            refs.settleTriggerSel.disabled = follow;
-            refs.settleCycleSel.disabled = follow;
+            /* 隐藏时禁用，跳过必填校验 */
+            refs.settleTriggerSel.disabled = inherit;
+            refs.settleCycleSel.disabled = inherit;
+            refs.settleTriggerRow.style.display = inherit ? 'none' : '';
+            refs.settleCycleRow.style.display = inherit ? 'none' : '';
         }
-        if (refs.settleFollowChk) {
-            refs.settleFollowChk.addEventListener('change', applySettleFollowLock);
-            applySettleFollowLock();
+
+        var strategyRadios = refs.settleStrategyRow.querySelectorAll(
+            'input[name="' + settleStrategyName + '"]'
+        );
+        for (var si = 0; si < strategyRadios.length; si++) {
+            strategyRadios[si].addEventListener('change', applySettleStrategyUI);
         }
+        applySettleStrategyUI();
 
         function fillFromArchiveRow(tr) {
             var c = tr.querySelectorAll('td');
@@ -1265,18 +1360,36 @@
             var sname = cellPlainText(c[2]);
             if (window.LFSettleCycleStore && window.LFSettleCycleStore.getSupplier) {
                 var sc = window.LFSettleCycleStore.getSupplier(sid, sname);
-                refs.settleFollowChk.checked = sc.followPlatform !== false;
+                setSettleStrategy(sc.followPlatform === false ? 'override' : 'inherit');
                 refs.settleTriggerSel.value = sc.trigger || 'fulfill';
                 refs.settleCycleSel.value = sc.cycle || '1';
-                applySettleFollowLock();
+                setPayMethod(sc.payMethod || 'goods_first');
+                applySettleStrategyUI();
+            }
+        }
+
+        function readPayMethod() {
+            var checked = refs.payMethodRow.querySelector(
+                'input[name="' + payMethodName + '"]:checked'
+            );
+            return checked && checked.value === 'pay_first' ? 'pay_first' : 'goods_first';
+        }
+
+        function setPayMethod(mode) {
+            var val = mode === 'pay_first' ? 'pay_first' : 'goods_first';
+            var radios = refs.payMethodRow.querySelectorAll('input[name="' + payMethodName + '"]');
+            for (var pi = 0; pi < radios.length; pi++) {
+                radios[pi].checked = radios[pi].value === val;
             }
         }
 
         refs.readSettleCycle = function () {
+            var inherit = readSettleStrategy() === 'inherit';
             return {
                 trigger: refs.settleTriggerSel.value || 'fulfill',
                 cycle: refs.settleCycleSel.value || '1',
-                followPlatform: !!(refs.settleFollowChk && refs.settleFollowChk.checked)
+                followPlatform: inherit,
+                payMethod: readPayMethod()
             };
         };
 
@@ -1284,7 +1397,7 @@
     }
 
     function buildSupplierAddBody() {
-        return createSupplierFormBundle({ includeInboundWarehouse: true }).body;
+        return createSupplierFormBundle().body;
     }
 
     function createCarrierFormBundle() {
@@ -1671,19 +1784,12 @@
             });
         },
         openSupplierAdd: function () {
-            var bundle = createSupplierFormBundle({ includeInboundWarehouse: true });
+            var bundle = createSupplierFormBundle();
             attachWideModal('新增供应商', bundle.body, function () {
                 var name =
                     bundle.refs && bundle.refs.nameInp
                         ? String(bundle.refs.nameInp.value || '').trim()
                         : '';
-                var selectedWarehouse =
-                    bundle.refs && bundle.refs.inboundWarehouseSel
-                        ? String(bundle.refs.inboundWarehouseSel.value || '').trim()
-                        : '';
-                if (name) {
-                    saveSupplierInboundWarehouseBinding('', name, selectedWarehouse);
-                }
                 if (window.LFSettleCycleStore && bundle.refs && bundle.refs.readSettleCycle) {
                     if (bundle.refs.settleTriggerSel) bundle.refs.settleTriggerSel.disabled = false;
                     if (bundle.refs.settleCycleSel) bundle.refs.settleCycleSel.disabled = false;
@@ -1696,12 +1802,12 @@
             var cells = tr.querySelectorAll('td');
             var supplierId = cells[0] ? cellPlainText(cells[0]) : '';
             var supplierName = cells[2] ? cellPlainText(cells[2]) : '';
-            var inboundWarehouse = readSupplierInboundWarehouseBinding(supplierId, supplierName);
-            var bundle = createSupplierFormBundle({
-                includeInboundWarehouse: true,
-                initialInboundWarehouse: inboundWarehouse
-            });
+            var bundle = createSupplierFormBundle();
             bundle.fillFromArchiveRow(tr);
+            var settleBefore =
+                window.LFSettleCycleStore && window.LFSettleCycleStore.getSupplier
+                    ? window.LFSettleCycleStore.getSupplier(supplierId, supplierName)
+                    : null;
             attachWideModal('编辑供应商', bundle.body, function () {
                 var nextName =
                     bundle.refs && bundle.refs.nameInp
@@ -1711,21 +1817,12 @@
                     bundle.refs && bundle.refs.shortNameInp
                         ? String(bundle.refs.shortNameInp.value || '').trim()
                         : '';
-                var selectedWarehouse =
-                    bundle.refs && bundle.refs.inboundWarehouseSel
-                        ? String(bundle.refs.inboundWarehouseSel.value || '').trim()
-                        : '';
                 if (cells[2]) cells[2].textContent = nextName || supplierName;
                 if (cells[3]) {
                     cells[3].textContent = nextShort || '—';
                     cells[3].setAttribute('data-field', 'shortName');
                 }
                 tr.setAttribute('data-short-name', nextShort);
-                saveSupplierInboundWarehouseBinding(
-                    supplierId,
-                    nextName || supplierName,
-                    selectedWarehouse
-                );
                 if (window.MdmSupplierArchiveStore) {
                     window.MdmSupplierArchiveStore.upsert({
                         id: supplierId,
@@ -1733,15 +1830,36 @@
                         shortName: nextShort
                     });
                 }
+                var settleChanged = false;
+                var settleAfter = null;
                 if (window.LFSettleCycleStore && bundle.refs && bundle.refs.readSettleCycle) {
                     /* 禁用态 select 不进 required 校验，保存前临时启用以读值 */
                     if (bundle.refs.settleTriggerSel) bundle.refs.settleTriggerSel.disabled = false;
                     if (bundle.refs.settleCycleSel) bundle.refs.settleCycleSel.disabled = false;
+                    var nextSettle = bundle.refs.readSettleCycle();
+                    settleChanged = isSupplierSettleChanged(settleBefore, nextSettle);
                     window.LFSettleCycleStore.saveSupplier(
                         supplierId,
                         nextName || supplierName,
-                        bundle.refs.readSettleCycle()
+                        nextSettle
                     );
+                    settleAfter = window.LFSettleCycleStore.getSupplier(
+                        supplierId,
+                        nextName || supplierName
+                    );
+                    if (cells[11] && window.LFSettleCycleStore.formatSupplierSettleSummary) {
+                        cells[11].textContent = window.LFSettleCycleStore.formatSupplierSettleSummary(
+                            supplierId,
+                            nextName || supplierName
+                        );
+                    }
+                }
+                if (settleChanged) {
+                    var finalName = nextName || supplierName;
+                    var finalId = supplierId;
+                    setTimeout(function () {
+                        confirmIssueSettleSupplement(finalId, finalName, settleAfter);
+                    }, 80);
                 }
             });
         },

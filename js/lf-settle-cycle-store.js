@@ -1,6 +1,7 @@
 /**
  * 结算起算节点 / 平台默认周期 / 供应商覆盖（原型共享）
  * - 平台改默认后：标记「跟随平台」的供应商自动同步；已生成清分不变，新增按新配置。
+ * - 结款方式一并落在供应商结算配置里，详情与编辑表单共用。
  */
 (function (global) {
   var CFG_KEY = 'lf_settle_general_config_v1';
@@ -9,6 +10,16 @@
   var TRIGGER_LABELS = {
     fulfill: '订单履约确认后',
     aftersale: '售后期结束'
+  };
+
+  var PAY_METHOD_LABELS = {
+    goods_first: '先货后款',
+    pay_first: '先款后货'
+  };
+
+  var STRATEGY_LABELS = {
+    inherit: '平台通用配置',
+    override: '供应商独立配置'
   };
 
   var CYCLE_OPTIONS = [
@@ -91,6 +102,10 @@
     return 'name:' + String(name || '').trim();
   }
 
+  function normalizePayMethod(v) {
+    return v === 'pay_first' ? 'pay_first' : 'goods_first';
+  }
+
   function getSupplier(id, name) {
     var map = loadSupplierMap();
     var key = normalizeSupplierKey(id, name);
@@ -101,14 +116,21 @@
         key: key,
         trigger: cfg.trigger,
         cycle: cfg.cycle,
-        followPlatform: true
+        followPlatform: true,
+        payMethod: 'goods_first'
       };
     }
+    var follow = row.followPlatform !== false;
     return {
       key: key,
-      trigger: row.trigger === 'aftersale' ? 'aftersale' : 'fulfill',
-      cycle: row.cycle || cfg.cycle,
-      followPlatform: row.followPlatform !== false
+      trigger: follow
+        ? cfg.trigger
+        : row.trigger === 'aftersale'
+          ? 'aftersale'
+          : 'fulfill',
+      cycle: follow ? cfg.cycle : row.cycle || cfg.cycle,
+      followPlatform: follow,
+      payMethod: normalizePayMethod(row.payMethod)
     };
   }
 
@@ -117,15 +139,19 @@
     var key = normalizeSupplierKey(id, name);
     var cfg = loadConfig();
     var follow = !!(data && data.followPlatform);
+    var prev = map[key] || {};
     map[key] = {
       trigger: follow ? cfg.trigger : data && data.trigger === 'aftersale' ? 'aftersale' : 'fulfill',
       cycle: follow ? cfg.cycle : (data && data.cycle) || cfg.cycle,
       followPlatform: follow,
+      payMethod: normalizePayMethod(
+        data && data.payMethod != null ? data.payMethod : prev.payMethod
+      ),
       name: String(name || '').trim(),
       updatedAt: new Date().toISOString()
     };
     persistSupplierMap(map);
-    return map[key];
+    return getSupplier(id, name);
   }
 
   /** 平台默认变更后，同步所有「跟随平台」的供应商配置 */
@@ -156,17 +182,41 @@
     return TRIGGER_LABELS[value] || TRIGGER_LABELS.fulfill;
   }
 
+  function payMethodLabel(value) {
+    return PAY_METHOD_LABELS[normalizePayMethod(value)] || PAY_METHOD_LABELS.goods_first;
+  }
+
+  function strategyLabel(followPlatform) {
+    return followPlatform === false ? STRATEGY_LABELS.override : STRATEGY_LABELS.inherit;
+  }
+
+  /** 列表「结算信息」摘要：结款方式 / 策略 / 起算 / 周期 */
+  function formatSupplierSettleSummary(id, name) {
+    var sc = getSupplier(id, name);
+    return [
+      payMethodLabel(sc.payMethod),
+      strategyLabel(sc.followPlatform),
+      triggerLabel(sc.trigger),
+      cycleLabel(sc.cycle)
+    ].join(' / ');
+  }
+
   global.LFSettleCycleStore = {
     CFG_KEY: CFG_KEY,
     SUP_KEY: SUP_KEY,
     CYCLE_OPTIONS: CYCLE_OPTIONS,
     TRIGGER_LABELS: TRIGGER_LABELS,
+    PAY_METHOD_LABELS: PAY_METHOD_LABELS,
+    STRATEGY_LABELS: STRATEGY_LABELS,
     loadConfig: loadConfig,
     saveConfig: saveConfig,
     getSupplier: getSupplier,
     saveSupplier: saveSupplier,
     syncFollowers: syncFollowers,
     cycleLabel: cycleLabel,
-    triggerLabel: triggerLabel
+    triggerLabel: triggerLabel,
+    payMethodLabel: payMethodLabel,
+    strategyLabel: strategyLabel,
+    formatSupplierSettleSummary: formatSupplierSettleSummary
   };
 })(typeof window !== 'undefined' ? window : this);

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>丰银宝 · 工作台</title>
-  <link rel="stylesheet" href="../css/store-app.css?v=20261105-fyb-org">
+  <link rel="stylesheet" href="../css/store-app.css?v=20261105-org-shell">
   <link rel="stylesheet" href="../css/store-app-scan.css?v=20260826-scan-fit">
   <link rel="stylesheet" href="../css/store-app-qrcode.css?v=20260826-scan-fit">
 </head>
@@ -217,9 +217,8 @@
         </div>
 
         <div id="saSupplierWorkspace" hidden>
-          <div class="sa-fyb-tip" role="note">当前为<strong>供应商</strong>视角：可查看本商家订单、结算信息与已签/待签合同。</div>
           <section class="sa-card">
-            <h2 class="sa-card__title">供应商工具</h2>
+            <h2 class="sa-card__title">基础工具</h2>
             <div class="sa-tools">
               <button type="button" class="sa-tool" data-sa-action="supplierOrders">
                 <span class="sa-tool__icon sa-tool__icon--yellow">
@@ -228,7 +227,7 @@
                     <path d="M9 10h6M9 14h6M9 18h4"/>
                   </svg>
                 </span>
-                <span class="sa-tool__label">供应订单</span>
+                <span class="sa-tool__label">客户订单</span>
               </button>
               <button type="button" class="sa-tool" data-sa-action="supplierSettle">
                 <span class="sa-tool__icon sa-tool__icon--orange">
@@ -382,8 +381,9 @@
   <script src="../js/store-app-qrcode.js?v=20260826-cutoff"></script>
   <script src="../js/store-app-scan.js?v=20260826-cutoff"></script>
   <script src="../js/store-app-live-session.js?v=20260905-livepromo-bd"></script>
-  <script src="../js/store-app-org.js?v=20261105-fyb-org"></script>
-  <script src="../../js/basic-settings-contract.js?v=20261105-fyb-org"></script>
+  <script src="../js/store-app-org.js?v=20261105-org-shell"></script>
+  <script src="../../js/contract-bodies.js?v=20261105-settle-sup"></script>
+  <script src="../../js/basic-settings-contract.js?v=20261105-settle-sup"></script>
   <script src="../js/store-app-home.js?v=20261105-fyb-org"></script>
   <script src="../../js/pg-prd-float.js?v=20260924-prd-all"></script>
 </body>

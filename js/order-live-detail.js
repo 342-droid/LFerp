@@ -5006,13 +5006,19 @@
       if (receiveBtn) {
         e.preventDefault();
         var recvItem = findDetailAftersale(detail, receiveBtn.getAttribute('data-as-id'));
-        if (recvItem) {
-          recvItem.status = '退款中';
-          if (typeof showToast === 'function') {
-            showToast('已确认收货，系统将发起退款（演示）', 'success');
+        if (!recvItem) return;
+        confirmSupplierAftersaleAction({
+          title: '确认收货',
+          message: '确认已收到用户退回商品？确认后将继续退款流程，此操作不可撤销。',
+          okLabel: '确认收货',
+          onConfirm: function () {
+            recvItem.status = '退款中';
+            if (typeof showToast === 'function') {
+              showToast('已确认收货，系统将发起退款（演示）', 'success');
+            }
+            refreshSupplierDrawer(drawer);
           }
-          refreshSupplierDrawer(drawer);
-        }
+        });
         return;
       }
 
@@ -5021,21 +5027,28 @@
         e.preventDefault();
         var rejectItem = findDetailAftersale(detail, rejectBtn.getAttribute('data-as-id'));
         if (!rejectItem) return;
-        var way = window.prompt('拒收处理：输入 1=原路退回用户，2=重新寄回并填写物流单号', '1');
-        if (way === null) return;
-        if (String(way).trim() === '2') {
-          var no = window.prompt('请输入退回用户的物流单号', 'SF' + String(Date.now()).slice(-10));
-          if (!no) return;
-          rejectItem.rejectLogisticsNo = no;
-          rejectItem.status = '待退货';
-          if (typeof showToast === 'function') {
-            showToast('已拒收并登记退回物流 ' + no + '（演示）', 'warning');
+        confirmSupplierAftersaleAction({
+          title: '确认拒收',
+          message: '确认拒收该退货？拒收后需选择原路退回或重新寄回用户。',
+          okLabel: '确认拒收',
+          onConfirm: function () {
+            var way = window.prompt('拒收处理：输入 1=原路退回用户，2=重新寄回并填写物流单号', '1');
+            if (way === null) return;
+            if (String(way).trim() === '2') {
+              var no = window.prompt('请输入退回用户的物流单号', 'SF' + String(Date.now()).slice(-10));
+              if (!no) return;
+              rejectItem.rejectLogisticsNo = no;
+              rejectItem.status = '待退货';
+              if (typeof showToast === 'function') {
+                showToast('已拒收并登记退回物流 ' + no + '（演示）', 'warning');
+              }
+            } else {
+              rejectItem.status = '已拒绝';
+              if (typeof showToast === 'function') showToast('已拒收，原路退回用户（演示）', 'warning');
+            }
+            refreshSupplierDrawer(drawer);
           }
-        } else {
-          rejectItem.status = '已拒绝';
-          if (typeof showToast === 'function') showToast('已拒收，原路退回用户（演示）', 'warning');
-        }
-        refreshSupplierDrawer(drawer);
+        });
         return;
       }
 
@@ -5044,23 +5057,66 @@
         e.preventDefault();
         var restockItem = findDetailAftersale(detail, restockBtn.getAttribute('data-as-id'));
         if (!restockItem) return;
-        if (window.OrderProxyExpress && typeof window.OrderProxyExpress.openUploadModal === 'function') {
-          window.OrderProxyExpress.openUploadModal(drawer._orderId, detail.goods || [], function () {
-            restockItem.status = '待收货';
-            restockItem.actualRestockQty = restockItem.applyRestockQty || 1;
-            if (typeof showToast === 'function') showToast('补货快递单已上传（演示）', 'success');
-            refreshSupplierDrawer(drawer);
-          });
-        } else {
-          var shipNo = window.prompt('请输入补货快递单号', 'YT' + String(Date.now()).slice(-10));
-          if (!shipNo) return;
-          restockItem.restockLogisticsNo = shipNo;
-          restockItem.status = '待收货';
-          restockItem.actualRestockQty = restockItem.applyRestockQty || 1;
-          if (typeof showToast === 'function') showToast('补货已寄出 ' + shipNo + '（演示）', 'success');
-          refreshSupplierDrawer(drawer);
-        }
+        confirmSupplierAftersaleAction({
+          title: '确认补货发货',
+          message: '确认已备好补货商品并上传快递单？提交后售后状态将变为待用户收货。',
+          okLabel: '确认上传',
+          onConfirm: function () {
+            if (window.OrderProxyExpress && typeof window.OrderProxyExpress.openUploadModal === 'function') {
+              window.OrderProxyExpress.openUploadModal(drawer._orderId, detail.goods || [], function () {
+                restockItem.status = '待收货';
+                restockItem.actualRestockQty = restockItem.applyRestockQty || 1;
+                if (typeof showToast === 'function') showToast('补货快递单已上传（演示）', 'success');
+                refreshSupplierDrawer(drawer);
+              });
+            } else {
+              var shipNo = window.prompt('请输入补货快递单号', 'YT' + String(Date.now()).slice(-10));
+              if (!shipNo) return;
+              restockItem.restockLogisticsNo = shipNo;
+              restockItem.status = '待收货';
+              restockItem.actualRestockQty = restockItem.applyRestockQty || 1;
+              if (typeof showToast === 'function') showToast('补货已寄出 ' + shipNo + '（演示）', 'success');
+              refreshSupplierDrawer(drawer);
+            }
+          }
+        });
+        return;
       }
+    });
+  }
+
+  /** 供应商处理售后二次确认 */
+  function confirmSupplierAftersaleAction(opts) {
+    opts = opts || {};
+    var exist = document.getElementById('supAsConfirmBackdrop');
+    if (exist) exist.remove();
+    var backdrop = document.createElement('div');
+    backdrop.className = 'order-verify-confirm-backdrop';
+    backdrop.id = 'supAsConfirmBackdrop';
+    backdrop.innerHTML =
+      '<div class="order-verify-confirm" role="dialog" aria-modal="true">' +
+      '<h3 class="order-verify-confirm__title">' +
+      (opts.title || '确认操作') +
+      '</h3>' +
+      '<p class="order-verify-confirm__message">' +
+      (opts.message || '确认继续处理该售后？') +
+      '</p>' +
+      '<div class="order-verify-confirm__actions">' +
+      '<button type="button" class="order-detail-btn js-sup-as-confirm-cancel">取消</button>' +
+      '<button type="button" class="order-detail-btn order-detail-btn--primary js-sup-as-confirm-ok">' +
+      (opts.okLabel || '确认') +
+      '</button></div></div>';
+    document.body.appendChild(backdrop);
+    function close() {
+      backdrop.remove();
+    }
+    backdrop.addEventListener('click', function (ev) {
+      if (ev.target === backdrop) close();
+    });
+    backdrop.querySelector('.js-sup-as-confirm-cancel').addEventListener('click', close);
+    backdrop.querySelector('.js-sup-as-confirm-ok').addEventListener('click', function () {
+      close();
+      if (typeof opts.onConfirm === 'function') opts.onConfirm();
     });
   }
 
@@ -5199,6 +5255,18 @@
       var row = link.closest('tr');
       var orderId = link.getAttribute('data-order-id') || (row && row.getAttribute('data-order-id'));
       if (!orderId) return;
+      /* 供应商列表「处理售后」：进入详情前二次确认 */
+      if (link.classList.contains('js-sup-handle-aftersale')) {
+        confirmSupplierAftersaleAction({
+          title: '处理售后',
+          message: '确认进入该订单售后处理？进入后可进行确认收货、拒收或补货发货。',
+          okLabel: '确认处理',
+          onConfirm: function () {
+            openDrawer(orderId, row);
+          }
+        });
+        return;
+      }
       openDrawer(orderId, row);
     });
   }
