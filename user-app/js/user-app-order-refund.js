@@ -929,65 +929,7 @@
   ];
 
   /** 地址簿演示数据（勿用设计稿中的账号/地址） */
-  var ADDRESS_BOOK_GROUPS = [
-    {
-      id: 'ab-g1',
-      name: '林晓棠',
-      phone: '13856781234',
-      phoneDisplay: '138 5678 1234',
-      tags: ['家', '默认'],
-      addresses: [
-        {
-          id: 'ab-a1',
-          text: '浙江省杭州市西湖区文三路 西溪花园3幢2单元501室'
-        },
-        {
-          id: 'ab-a2',
-          text: '浙江省杭州市余杭区仓前街道 梦想小镇创业大街12号'
-        }
-      ]
-    },
-    {
-      id: 'ab-g2',
-      name: '周启明',
-      phone: '15022338866',
-      phoneDisplay: '150 2233 8866',
-      tags: ['公司'],
-      addresses: [
-        {
-          id: 'ab-a3',
-          text: '浙江省杭州市滨江区网商路 阿里中心4号楼'
-        },
-        {
-          id: 'ab-a4',
-          text: '浙江省杭州市拱墅区莫干山路 远洋国际中心B座'
-        },
-        {
-          id: 'ab-a5',
-          text: '浙江省宁波市鄞州区中山东路 和丰创意广场'
-        },
-        {
-          id: 'ab-a6',
-          text: '浙江省嘉兴市南湖区中环南路 科技城孵化园'
-        }
-      ]
-    },
-    {
-      id: 'ab-g3',
-      name: '何雨桐',
-      phone: '18699881200',
-      phoneDisplay: '186 9988 1200',
-      tags: ['父母'],
-      addresses: [
-        {
-          id: 'ab-a7',
-          text: '浙江省绍兴市越城区解放南路 镜湖新区公馆'
-        }
-      ]
-    }
-  ];
   var ADDRESS_BOOK_COLLAPSE_LIMIT = 2;
-  var ADDRESS_BOOK_STORAGE_KEY = 'ua_refund_address_book';
 
   function getDemoBuyerReceiveAddress() {
     return (
@@ -8397,35 +8339,11 @@
   }
 
   function loadAddressBookGroups() {
-    try {
-      var raw = sessionStorage.getItem(ADDRESS_BOOK_STORAGE_KEY);
-      if (raw) {
-        var parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length) return parsed;
-      }
-    } catch (e) {
-      /* ignore */
-    }
-    return ADDRESS_BOOK_GROUPS.map(function (g) {
-      return {
-        id: g.id,
-        name: g.name,
-        phone: g.phone,
-        phoneDisplay: g.phoneDisplay,
-        tags: (g.tags || []).slice(),
-        addresses: (g.addresses || []).map(function (a) {
-          return { id: a.id, text: a.text };
-        })
-      };
-    });
+    return window.MemberAddressBook.load(window.MemberAddressBook.activeMemberId());
   }
 
   function saveAddressBookGroups(groups) {
-    try {
-      sessionStorage.setItem(ADDRESS_BOOK_STORAGE_KEY, JSON.stringify(groups));
-    } catch (e) {
-      /* ignore */
-    }
+    window.MemberAddressBook.save(window.MemberAddressBook.activeMemberId(), groups);
   }
 
   function formatPhoneDisplay(phone) {
@@ -9579,6 +9497,12 @@
     if (backEl) backEl.setAttribute('href', backHref);
 
     var groups = loadAddressBookGroups();
+    window.addEventListener('storage', function (event) {
+      if (event.key !== window.MemberAddressBook.key(window.MemberAddressBook.activeMemberId())) return;
+      groups = loadAddressBookGroups();
+      ui.checked = {};
+      renderList();
+    });
     var ui = {
       keyword: '',
       batchMode: false,
@@ -9620,7 +9544,7 @@
             name: g.name,
             phone: g.phone,
             phoneDisplay: g.phoneDisplay || formatPhoneDisplay(g.phone),
-            tags: g.tags || [],
+            isDefault: !!g.isDefault,
             addresses: kw ? addrs : g.addresses || []
           };
         })
@@ -9672,7 +9596,7 @@
             name: g.name,
             phone: g.phone,
             phoneDisplay: g.phoneDisplay,
-            tags: g.tags || [],
+            isDefault: !!g.isDefault,
             addresses: (g.addresses || []).filter(function (a) {
               return ids.indexOf(a.id) < 0;
             })
@@ -9775,6 +9699,7 @@
             '<div class="ua-or-addrbook-card__head">' +
             '<div class="ua-or-addrbook-card__name">' +
             escapeHtml(group.name) +
+            (group.isDefault ? '<span class="ua-or-addrbook-card__default">默认</span>' : '') +
             '<span class="ua-or-addrbook-card__phone">' +
             escapeHtml(group.phoneDisplay || formatPhoneDisplay(group.phone)) +
             '</span>' +
@@ -9826,7 +9751,7 @@
             syncBatchFooter();
             return;
           }
-          selectAddress(group, addr);
+          if (addrFrom !== 'profile') selectAddress(group, addr);
         });
       });
 
@@ -10211,7 +10136,7 @@
       if (editGroup && editAddr) {
         if (nameEl) nameEl.value = editGroup.name || '';
         if (phoneEl) phoneEl.value = editGroup.phone || '';
-        var split = splitStoredAddress(editAddr.text);
+        var split = editAddr.region ? window.MemberAddressBook.addressParts(editAddr) : splitStoredAddress(editAddr.text);
         if (split.region) {
           state.region = split.region;
           if (regionValue) {
@@ -10623,11 +10548,18 @@
         }
 
         var groups = loadAddressBookGroups();
-        var full = state.region + ' ' + detail;
+        var full = window.MemberAddressBook.addressText(state.region, detail);
         var phoneDigits = phone.replace(/\D/g, '');
         var addrId = state.isEdit ? state.editAddrId : 'ab-a' + Date.now();
 
-        if (state.isEdit) {
+        var previousGroup = state.isEdit && groups.find(function (g) {
+          return (g.addresses || []).some(function (address) { return address.id === addrId; });
+        });
+        if (state.isEdit && !previousGroup) {
+          showToast('该地址已删除，请返回地址簿');
+          return;
+        }
+        if (previousGroup) {
           groups.forEach(function (g) {
             g.addresses = (g.addresses || []).filter(function (a) {
               return a.id !== state.editAddrId;
@@ -10643,17 +10575,18 @@
         });
         if (group) {
           group.addresses = group.addresses || [];
-          group.addresses.push({ id: addrId, text: full });
+          group.addresses.push({ id: addrId, text: full, region: state.region, detail: detail });
           group.phone = phone;
           group.phoneDisplay = formatPhoneDisplay(phone);
+          if (previousGroup && previousGroup.isDefault) group.isDefault = true;
         } else {
           groups.unshift({
-            id: 'ab-g' + Date.now(),
+            id: previousGroup ? previousGroup.id : 'ab-g' + Date.now(),
             name: name,
             phone: phone,
             phoneDisplay: formatPhoneDisplay(phone),
-            tags: [],
-            addresses: [{ id: addrId, text: full }]
+            isDefault: !!(previousGroup && previousGroup.isDefault),
+            addresses: [{ id: addrId, text: full, region: state.region, detail: detail }]
           });
         }
         saveAddressBookGroups(groups);

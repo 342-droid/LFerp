@@ -2316,7 +2316,7 @@
     if (id === 'supplier-huadong' || name === '华东冷链' || name === '华东冷链仓') {
       return '华东冷链供应商';
     }
-    return name;
+    return resolveCheckoutSupplierName(id, name) || name;
   }
 
   /**

@@ -4137,6 +4137,21 @@ body.ua-or-sheet-open {
   letter-spacing: 0.2px;
 }
 
+.ua-or-addrbook-card__default {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 0 6px;
+  height: 18px;
+  line-height: 18px;
+  border-radius: 3px;
+  background: #fff7f0;
+  border: 1px solid #ffd2b0;
+  color: #ff6a00;
+  font-size: 11px;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
 .ua-or-addrbook-row {
   display: flex;
   align-items: flex-start;
