@@ -268,6 +268,7 @@
           return;
         }
         window.MdmProxyStorePicker.open({
+          flatFilter: true,
           selected: saleExtra.saleStores,
           onConfirm: function (selected) {
             saleExtra.saleStores = cloneMap(selected);
