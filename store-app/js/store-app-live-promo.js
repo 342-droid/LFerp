@@ -456,20 +456,12 @@
     }
   }
 
-  /** 分享标题： 「店名」邀你观看「直播间名称」；无店名时仅「邀你观看「直播间名称」」 */
-  function buildShareTitle(storeName, liveName) {
-    var live = String(liveName || '').trim();
-    var store = String(storeName || '').trim();
-    if (!live) return store ? '「' + store + '」邀你观看直播' : '邀你观看直播';
-    if (!store) return '邀你观看「' + live + '」';
-    return '「' + store + '」邀你观看「' + live + '」';
-  }
-
+  /** 分享标题：直播场次名称｜门店名称（如「黑灯直播间｜某某门店」）；缺店名时仅场次名称 */
   function fillShare(sess, storeName) {
     var img = document.getElementById('shareCover');
     var title = document.getElementById('shareTitle');
     if (img) img.src = sess.cover;
-    if (title) title.textContent = buildShareTitle(storeName, sess && sess.name);
+    if (title) title.textContent = [sess && sess.name, storeName].filter(Boolean).join('｜');
   }
 
   function openShare(sess) {
