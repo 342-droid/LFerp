@@ -1,7 +1,849 @@
 {
-  "latestSha": "dd3ada9a53d8e2ee8537241f2fdc24e240f59dff",
-  "total": 484,
+  "latestSha": "b9f0d2c33ea0c2982b9add503de36b1e274d1da3",
+  "total": 498,
   "days": [
+    {
+      "date": "2026-11-06",
+      "items": [
+        {
+          "sha": "b9f0d2c",
+          "type": "chore",
+          "text": "本机预览任务在 macOS/Linux 走 preview-with-node",
+          "author": "u ｌ",
+          "time": "15:11",
+          "pages": [],
+          "notes": [
+            {
+              "file": null,
+              "text": "打开仓库时预览任务兼容无全局 node 的环境"
+            }
+          ]
+        },
+        {
+          "sha": "271dec9",
+          "type": "fix",
+          "text": "直播分享标题回退为场次名称加门店名",
+          "author": "u ｌ",
+          "time": "15:05",
+          "pages": [
+            {
+              "file": "store-app/h5/live-promo.html",
+              "module": "",
+              "title": "直播推广 · 丰银宝"
+            }
+          ],
+          "notes": [
+            {
+              "file": "store-app/h5/live-promo.html",
+              "text": "直播推广 · 门店 APP: 分享卡片标题改回「直播场次名称｜门店名称」"
+            },
+            {
+              "file": null,
+              "text": "【628】PRD 同步回退该分享文案说明"
+            }
+          ]
+        },
+        {
+          "sha": "0fb9ff8",
+          "type": "feat",
+          "text": "供应商档案支持别名并在购物车订单透出",
+          "author": "u ｌ",
+          "time": "15:05",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "store-app/h5/restock-aftersale-list.html",
+              "module": "",
+              "title": "退款/售后 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 丰银宝"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/category.html",
+              "module": "",
+              "title": "分类 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "module": "",
+              "title": "商城 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/newcomer-zone.html",
+              "module": "",
+              "title": "新人专区 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-aftersale-list.html",
+              "module": "",
+              "title": "退款/售后 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-detail.html",
+              "module": "",
+              "title": "退款详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/points-order-confirm.html",
+              "module": "",
+              "title": "确认兑换 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/product-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "module": "",
+              "title": "进货 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "text": "新增非必填「供应商别名」，列表与详情同步展示"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "text": "快递分组标题优先显示供应商别名"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "text": "供应商标题优先显示别名"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "text": "快递单供应商标题优先显示别名"
+            }
+          ]
+        },
+        {
+          "sha": "c619e5b",
+          "type": "fix",
+          "text": "售卖范围选门店改用扁平筛选并统一按钮文案",
+          "author": "u ｌ",
+          "time": "14:39",
+          "pages": [
+            {
+              "file": "MDM/mdm_marketing_newcomer_zone_form.html",
+              "module": "冷丰WMS",
+              "title": "编辑新人专区商品"
+            },
+            {
+              "file": "MDM/mdm_marketing_points_mall_form.html",
+              "module": "冷丰WMS",
+              "title": "编辑积分商品"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "module": "冷丰WMS",
+              "title": "秒杀活动"
+            },
+            {
+              "file": "MDM/mdm_member_points_cash_form.html",
+              "module": "冷丰WMS",
+              "title": "积分抵现"
+            },
+            {
+              "file": "MDM/mdm_member_points_consume_form.html",
+              "module": "冷丰WMS",
+              "title": "消费送积分"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            }
+          ],
+          "notes": [
+            {
+              "file": null,
+              "text": "商城商品: 选择门店弹窗启用扁平筛选，按钮文案改为「选择门店」"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "text": "同上"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "text": "售卖范围选门店启用扁平筛选"
+            },
+            {
+              "file": "MDM/mdm_marketing_points_mall_form.html",
+              "text": "售卖范围选门店启用扁平筛选"
+            },
+            {
+              "file": "MDM/mdm_marketing_newcomer_zone_form.html",
+              "text": "售卖范围选门店启用扁平筛选"
+            },
+            {
+              "file": "MDM/mdm_member_points_cash_form.html",
+              "text": "售卖范围选门店启用扁平筛选"
+            },
+            {
+              "file": "MDM/mdm_member_points_consume_form.html",
+              "text": "售卖范围选门店启用扁平筛选"
+            }
+          ]
+        },
+        {
+          "sha": "ee8a563",
+          "type": "chore",
+          "text": "回退统一操作日志至 11.4 前口径",
+          "author": "u ｌ",
+          "time": "14:37",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_audit_cash_redpack.html",
+              "module": "冷丰WMS",
+              "title": "现金红包审核"
+            },
+            {
+              "file": "MDM/mdm_audit_cash_redpack_manual.html",
+              "module": "冷丰WMS",
+              "title": "派发红包审核"
+            },
+            {
+              "file": "MDM/mdm_audit_coupon.html",
+              "module": "冷丰WMS",
+              "title": "优惠券审核"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_marketing_cash_redpack_tpl.html",
+              "module": "冷丰WMS",
+              "title": "现金红包模版"
+            },
+            {
+              "file": "MDM/mdm_marketing_coupon.html",
+              "module": "冷丰WMS",
+              "title": "优惠券"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill.html",
+              "module": "冷丰WMS",
+              "title": "秒杀"
+            },
+            {
+              "file": "MDM/mdm_marketing_template.html",
+              "module": "冷丰WMS",
+              "title": "模版配置"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
+              "file": "MDM/mdm_member_points_cash.html",
+              "module": "冷丰WMS",
+              "title": "积分抵现"
+            },
+            {
+              "file": "MDM/mdm_member_points_consume.html",
+              "module": "冷丰WMS",
+              "title": "消费送积分"
+            },
+            {
+              "file": "MDM/mdm_member_points_rule.html",
+              "module": "冷丰WMS",
+              "title": "积分规则"
+            },
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            },
+            {
+              "file": "MDM/mdm_party_all.html",
+              "module": "冷丰WMS",
+              "title": "所有主体"
+            },
+            {
+              "file": "MDM/mdm_people_anchor.html",
+              "module": "冷丰WMS",
+              "title": "主播"
+            },
+            {
+              "file": "MDM/mdm_people_bd.html",
+              "module": "冷丰WMS",
+              "title": "BD推广员"
+            },
+            {
+              "file": "MDM/mdm_people_driver.html",
+              "module": "冷丰WMS",
+              "title": "司机"
+            },
+            {
+              "file": "MDM/mdm_people_purchaser.html",
+              "module": "冷丰WMS",
+              "title": "采购员"
+            },
+            {
+              "file": "MDM/mdm_product_audit.html",
+              "module": "冷丰WMS",
+              "title": "商品详情"
+            },
+            {
+              "file": "MDM/mdm_product_category.html",
+              "module": "冷丰WMS",
+              "title": "商品类目"
+            },
+            {
+              "file": "MDM/mdm_product_mall_category.html",
+              "module": "冷丰WMS",
+              "title": "商城类目"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "module": "冷丰WMS",
+              "title": "选品库"
+            },
+            {
+              "file": "MDM/mdm_settle_index.html",
+              "module": "冷丰结算",
+              "title": "结算中心"
+            },
+            {
+              "file": "MDM/mdm_super_admin_accounts.html",
+              "module": "冷丰WMS",
+              "title": "商户主体建档"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "text": "所有主体、门店档案、供应商档案、仓库档案: 去掉统一操作日志入口与共用抽屉接入"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "text": "所有主体、门店档案、供应商档案、仓库档案: 去掉统一操作日志入口与共用抽屉接入"
+            },
+            {
+              "file": "MDM/mdm_party_all.html",
+              "text": "所有主体、门店档案、供应商档案、仓库档案: 去掉统一操作日志入口与共用抽屉接入"
+            },
+            {
+              "file": "MDM/mdm_product_category.html",
+              "text": "选品库、商品类目、商城类目: 去掉统一操作日志入口"
+            },
+            {
+              "file": "MDM/mdm_product_mall_category.html",
+              "text": "选品库、商品类目、商城类目: 去掉统一操作日志入口"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "text": "选品库、商品类目、商城类目: 去掉统一操作日志入口"
+            },
+            {
+              "file": "MDM/mdm_marketing_coupon.html",
+              "text": "模版配置、优惠券、秒杀、红包及审核相关页: 恢复统一接入前的日志实现"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill.html",
+              "text": "模版配置、优惠券、秒杀、红包及审核相关页: 恢复统一接入前的日志实现"
+            },
+            {
+              "file": "MDM/mdm_marketing_template.html",
+              "text": "模版配置、优惠券、秒杀、红包及审核相关页: 恢复统一接入前的日志实现"
+            },
+            {
+              "file": "MDM/mdm_member_points_cash.html",
+              "text": "积分规则、积分抵现、消费送积分、零售/代采/直播订单、结算策略管理: 去掉统一日志接入"
+            },
+            {
+              "file": "MDM/mdm_member_points_consume.html",
+              "text": "积分规则、积分抵现、消费送积分、零售/代采/直播订单、结算策略管理: 去掉统一日志接入"
+            },
+            {
+              "file": "MDM/mdm_member_points_rule.html",
+              "text": "积分规则、积分抵现、消费送积分、零售/代采/直播订单、结算策略管理: 去掉统一日志接入"
+            },
+            {
+              "file": null,
+              "text": "删除共用操作日志组件与【689】PRD"
+            }
+          ]
+        },
+        {
+          "sha": "d18690c",
+          "type": "feat",
+          "text": "会员收货地址保留是否默认并取消地址标签",
+          "author": "u ｌ",
+          "time": "14:35",
+          "pages": [
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
+              "file": "store-app/h5/restock-aftersale-list.html",
+              "module": "",
+              "title": "退款/售后 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 丰银宝"
+            },
+            {
+              "file": "user-app/h5/order-aftersale-list.html",
+              "module": "",
+              "title": "退款/售后 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-address-book.html",
+              "module": "",
+              "title": "地址簿 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-address-create.html",
+              "module": "",
+              "title": "新建寄件人地址 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-detail.html",
+              "module": "",
+              "title": "退款详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-exchange.html",
+              "module": "",
+              "title": "换货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-only.html",
+              "module": "",
+              "title": "仅退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pickup-edit.html",
+              "module": "",
+              "title": "修改上门取件信息 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pickup-order.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pre-ship.html",
+              "module": "",
+              "title": "仅退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-restock.html",
+              "module": "",
+              "title": "补货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return-goods.html",
+              "module": "",
+              "title": "退货商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return-ship.html",
+              "module": "",
+              "title": "预约寄件 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return.html",
+              "module": "",
+              "title": "退货退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-select.html",
+              "module": "",
+              "title": "选择服务类型 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/switch-address.html",
+              "module": "",
+              "title": "切换门店 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_member_c.html",
+              "text": "收货地址列表与弹窗保留是否默认，取消家/公司等地址标签"
+            },
+            {
+              "file": "user-app/h5/order-refund-address-book.html",
+              "text": "仅默认联系人展示默认标识，同步去掉地址标签"
+            },
+            {
+              "file": "user-app/h5/order-edit-address.html",
+              "text": "默认标识随地址数据展示"
+            },
+            {
+              "file": null,
+              "text": "补充【903】需求说明并挂到 PRD 索引"
+            }
+          ]
+        },
+        {
+          "sha": "b625f81",
+          "type": "feat",
+          "text": "直播分享标题改为店名邀你观看直播间",
+          "author": "u ｌ",
+          "time": "14:34",
+          "pages": [
+            {
+              "file": "store-app/h5/live-promo.html",
+              "module": "",
+              "title": "直播推广 · 丰银宝"
+            }
+          ],
+          "notes": [
+            {
+              "file": "store-app/h5/live-promo.html",
+              "text": "直播推广 · 门店 APP: 分享卡片标题改为「店名」邀你观看「直播间名称」，并去掉长标题验收示例"
+            },
+            {
+              "file": null,
+              "text": "【628】PRD 同步该文案并补充小程序自定义标题能力说明"
+            }
+          ]
+        },
+        {
+          "sha": "4defe20",
+          "type": "feat",
+          "text": "支持维护会员收货地址并同步客户端",
+          "author": "u ｌ",
+          "time": "11:09",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
+              "file": "MDM/mdm_resource_onboarding.html",
+              "module": "冷丰WMS",
+              "title": "支付进件"
+            },
+            {
+              "file": "store-app/h5/restock-aftersale-list.html",
+              "module": "",
+              "title": "退款/售后 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 丰银宝"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-aftersale-list.html",
+              "module": "",
+              "title": "退款/售后 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-edit-address.html",
+              "module": "",
+              "title": "修改地址 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-address-book.html",
+              "module": "",
+              "title": "地址簿 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-address-create.html",
+              "module": "",
+              "title": "新建寄件人地址 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-detail.html",
+              "module": "",
+              "title": "退款详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-exchange.html",
+              "module": "",
+              "title": "换货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-only.html",
+              "module": "",
+              "title": "仅退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pickup-edit.html",
+              "module": "",
+              "title": "修改上门取件信息 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pickup-order.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-pre-ship.html",
+              "module": "",
+              "title": "仅退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-restock.html",
+              "module": "",
+              "title": "补货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return-goods.html",
+              "module": "",
+              "title": "退货商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return-ship.html",
+              "module": "",
+              "title": "预约寄件 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-return.html",
+              "module": "",
+              "title": "退货退款 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-select.html",
+              "module": "",
+              "title": "选择服务类型 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/scan-store.html",
+              "module": "",
+              "title": "扫一扫 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/switch-address.html",
+              "module": "",
+              "title": "切换门店 · 用户 APP"
+            }
+          ]
+        },
+        {
+          "sha": "2b90216",
+          "type": "feat",
+          "text": "直播分享标题展示门店名称",
+          "author": "u ｌ",
+          "time": "10:52",
+          "pages": [
+            {
+              "file": "store-app/h5/live-promo.html",
+              "module": "",
+              "title": "直播推广 · 丰银宝"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-11-05",
       "items": [
@@ -969,6 +1811,65 @@
           ]
         },
         {
+          "sha": "e9d1ca3",
+          "type": "feat",
+          "text": "售后单支持按快递单号查询",
+          "author": "u ｌ",
+          "time": "17:35",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_feedback.html",
+              "module": "冷丰售后",
+              "title": "意见反馈"
+            },
+            {
+              "file": "MDM/mdm_aftersale_guarantee.html",
+              "module": "冷丰售后",
+              "title": "售后保障期管理"
+            },
+            {
+              "file": "MDM/mdm_aftersale_refund.html",
+              "module": "冷丰售后",
+              "title": "退款单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_report.html",
+              "module": "冷丰售后",
+              "title": "举报管理"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "module": "冷丰售后",
+              "title": "售后单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_queue.html",
+              "module": "冷丰WMS",
+              "title": "排队记录"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            }
+          ]
+        },
+        {
           "sha": "679c60d",
           "type": "feat",
           "text": "结算改由组织切换进出门户并完善会员操作日志演示",
@@ -1144,6 +2045,411 @@
             {
               "file": "SCM/purchase_order.html",
               "text": "采购单明细展示推荐采购量，并按年、月、日配置销量统计时长"
+            }
+          ]
+        },
+        {
+          "sha": "441f9d9",
+          "type": "feat",
+          "text": "统一操作日志查询和变更详情",
+          "author": "u ｌ",
+          "time": "14:41",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_audit_cash_redpack.html",
+              "module": "冷丰WMS",
+              "title": "现金红包审核"
+            },
+            {
+              "file": "MDM/mdm_audit_cash_redpack_manual.html",
+              "module": "冷丰WMS",
+              "title": "派发红包审核"
+            },
+            {
+              "file": "MDM/mdm_audit_coupon.html",
+              "module": "冷丰WMS",
+              "title": "优惠券审核"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_marketing_cash_redpack_tpl.html",
+              "module": "冷丰WMS",
+              "title": "现金红包模版"
+            },
+            {
+              "file": "MDM/mdm_marketing_coupon.html",
+              "module": "冷丰WMS",
+              "title": "优惠券"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill.html",
+              "module": "冷丰WMS",
+              "title": "秒杀"
+            },
+            {
+              "file": "MDM/mdm_marketing_template.html",
+              "module": "冷丰WMS",
+              "title": "模版配置"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
+              "file": "MDM/mdm_member_points_cash.html",
+              "module": "冷丰WMS",
+              "title": "积分抵现"
+            },
+            {
+              "file": "MDM/mdm_member_points_consume.html",
+              "module": "冷丰WMS",
+              "title": "消费送积分"
+            },
+            {
+              "file": "MDM/mdm_member_points_rule.html",
+              "module": "冷丰WMS",
+              "title": "积分规则"
+            },
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            },
+            {
+              "file": "MDM/mdm_party_all.html",
+              "module": "冷丰WMS",
+              "title": "所有主体"
+            },
+            {
+              "file": "MDM/mdm_people_anchor.html",
+              "module": "冷丰WMS",
+              "title": "主播"
+            },
+            {
+              "file": "MDM/mdm_people_bd.html",
+              "module": "冷丰WMS",
+              "title": "BD推广员"
+            },
+            {
+              "file": "MDM/mdm_people_driver.html",
+              "module": "冷丰WMS",
+              "title": "司机"
+            },
+            {
+              "file": "MDM/mdm_people_purchaser.html",
+              "module": "冷丰WMS",
+              "title": "采购员"
+            },
+            {
+              "file": "MDM/mdm_product_audit.html",
+              "module": "冷丰WMS",
+              "title": "商品详情"
+            },
+            {
+              "file": "MDM/mdm_product_category.html",
+              "module": "冷丰WMS",
+              "title": "商品类目"
+            },
+            {
+              "file": "MDM/mdm_product_mall_category.html",
+              "module": "冷丰WMS",
+              "title": "商城类目"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "module": "冷丰WMS",
+              "title": "选品库"
+            },
+            {
+              "file": "MDM/mdm_settle_index.html",
+              "module": "冷丰结算",
+              "title": "结算中心"
+            },
+            {
+              "file": "MDM/mdm_super_admin_accounts.html",
+              "module": "冷丰WMS",
+              "title": "商户主体建档"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "text": "所有主体、门店档案、供应商档案、仓库档案: 增加操作日志入口和变更详情"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "text": "所有主体、门店档案、供应商档案、仓库档案: 增加操作日志入口和变更详情"
+            },
+            {
+              "file": "MDM/mdm_party_all.html",
+              "text": "所有主体、门店档案、供应商档案、仓库档案: 增加操作日志入口和变更详情"
+            },
+            {
+              "file": "MDM/mdm_product_category.html",
+              "text": "选品库、商品类目、商城类目: 增加操作日志入口"
+            },
+            {
+              "file": "MDM/mdm_product_mall_category.html",
+              "text": "选品库、商品类目、商城类目: 增加操作日志入口"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "text": "选品库、商品类目、商城类目: 增加操作日志入口"
+            },
+            {
+              "file": "MDM/mdm_marketing_coupon.html",
+              "text": "模版配置、优惠券、秒杀活动及红包相关页面: 统一日志列表与详情，按 UAT 调整方法列和分页"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill.html",
+              "text": "模版配置、优惠券、秒杀活动及红包相关页面: 统一日志列表与详情，按 UAT 调整方法列和分页"
+            },
+            {
+              "file": "MDM/mdm_marketing_template.html",
+              "text": "模版配置、优惠券、秒杀活动及红包相关页面: 统一日志列表与详情，按 UAT 调整方法列和分页"
+            },
+            {
+              "file": "MDM/mdm_member_points_cash.html",
+              "text": "积分规则、积分抵现、消费送积分: 统一日志查询与变更详情"
+            },
+            {
+              "file": "MDM/mdm_member_points_consume.html",
+              "text": "积分规则、积分抵现、消费送积分: 统一日志查询与变更详情"
+            },
+            {
+              "file": "MDM/mdm_member_points_rule.html",
+              "text": "积分规则、积分抵现、消费送积分: 统一日志查询与变更详情"
+            },
+            {
+              "file": "MDM/mdm_order_live.html",
+              "text": "零售订单、代采订单、直播订单、结算策略管理: 接入统一日志查询"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "text": "零售订单、代采订单、直播订单、结算策略管理: 接入统一日志查询"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "零售订单、代采订单、直播订单、结算策略管理: 接入统一日志查询"
+            },
+            {
+              "file": null,
+              "text": "PRD: 更新 689 操作日志与 902 售卖范围门店查看"
+            }
+          ]
+        },
+        {
+          "sha": "00c38ed",
+          "type": "feat",
+          "text": "售卖范围支持查看已选门店",
+          "author": "u ｌ",
+          "time": "13:45",
+          "pages": [
+            {
+              "file": "MDM/mdm_live_control.html",
+              "module": "冷丰WMS",
+              "title": "直播中控"
+            },
+            {
+              "file": "MDM/mdm_live_data.html",
+              "module": "冷丰WMS",
+              "title": "直播数据"
+            },
+            {
+              "file": "MDM/mdm_live_product_category.html",
+              "module": "冷丰WMS",
+              "title": "直播类目"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched.html",
+              "module": "冷丰WMS",
+              "title": "直播排品"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "module": "冷丰WMS",
+              "title": "直播排品编辑"
+            },
+            {
+              "file": "MDM/mdm_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间"
+            },
+            {
+              "file": "MDM/mdm_live_session.html",
+              "module": "冷丰WMS",
+              "title": "直播场次"
+            },
+            {
+              "file": "MDM/mdm_live_session_detail.html",
+              "module": "冷丰WMS",
+              "title": "直播场次详情"
+            },
+            {
+              "file": "MDM/mdm_live_session_form.html",
+              "module": "冷丰WMS",
+              "title": "直播场次编辑"
+            },
+            {
+              "file": "MDM/mdm_live_timeslot.html",
+              "module": "冷丰WMS",
+              "title": "直播时段"
+            },
+            {
+              "file": "MDM/mdm_marketing_newcomer_zone.html",
+              "module": "冷丰WMS",
+              "title": "新人专区"
+            },
+            {
+              "file": "MDM/mdm_marketing_newcomer_zone_form.html",
+              "module": "冷丰WMS",
+              "title": "编辑新人专区商品"
+            },
+            {
+              "file": "MDM/mdm_marketing_points_mall.html",
+              "module": "冷丰WMS",
+              "title": "积分商城"
+            },
+            {
+              "file": "MDM/mdm_marketing_points_mall_form.html",
+              "module": "冷丰WMS",
+              "title": "编辑积分商品"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "module": "冷丰WMS",
+              "title": "秒杀活动"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "module": "冷丰WMS",
+              "title": "编辑秒杀商品"
+            },
+            {
+              "file": "MDM/mdm_member_batch_tag.html",
+              "module": "冷丰WMS",
+              "title": "批量打标签"
+            },
+            {
+              "file": "MDM/mdm_member_batch_tag_form.html",
+              "module": "冷丰WMS",
+              "title": "批量打标签"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
+              "file": "MDM/mdm_member_points_cash.html",
+              "module": "冷丰WMS",
+              "title": "积分抵现"
+            },
+            {
+              "file": "MDM/mdm_member_points_cash_form.html",
+              "module": "冷丰WMS",
+              "title": "积分抵现"
+            },
+            {
+              "file": "MDM/mdm_member_points_consume.html",
+              "module": "冷丰WMS",
+              "title": "消费送积分"
+            },
+            {
+              "file": "MDM/mdm_member_points_consume_form.html",
+              "module": "冷丰WMS",
+              "title": "消费送积分"
+            },
+            {
+              "file": "MDM/mdm_member_segment.html",
+              "module": "冷丰WMS",
+              "title": "会员分群"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "text": "编辑商品时可点击已选门店数量，搜索并分页查看名单"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "text": "编辑商品时可点击已选门店数量查看名单"
+            },
+            {
+              "file": "MDM/mdm_marketing_points_mall_form.html",
+              "text": "支持查看售卖范围内已选门店"
+            },
+            {
+              "file": "MDM/mdm_marketing_newcomer_zone_form.html",
+              "text": "支持查看售卖范围内已选门店"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "text": "支持查看售卖范围内已选门店"
+            },
+            {
+              "file": "MDM/mdm_member_points_cash.html",
+              "text": "支持查看售卖范围内已选门店"
+            },
+            {
+              "file": "MDM/mdm_member_points_consume.html",
+              "text": "支持查看售卖范围内已选门店"
+            },
+            {
+              "file": "MDM/mdm_live_session_detail.html",
+              "text": "已选门店弹窗支持按 Esc 关闭"
             }
           ]
         }
@@ -2748,6 +4054,54 @@
         },
         {
           "sha": "128a178",
+          "type": "feat",
+          "text": "零售和代采订单买家信息支持按用户ID精确筛选",
+          "author": "u ｌ",
+          "time": "15:28",
+          "pages": [
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "text": "买家信息下拉改为用户电话/用户昵称/用户ID，默认用户电话；用户ID须完整匹配；切换选项清空输入，重置回到用户电话"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "text": "买家信息下拉同样增加用户ID，精确匹配完整ID才出结果；切换清空输入，重置回到用户电话"
+            }
+          ]
+        },
+        {
+          "sha": "4356e5d",
+          "type": "chore",
+          "text": "加固本机预览服务启动",
+          "author": "u ｌ",
+          "time": "15:28",
+          "pages": [],
+          "notes": [
+            {
+              "file": null,
+              "text": "打开仓库时找不到 node 会回退启动预览；macOS 支持登录自启 5173 服务"
+            }
+          ]
+        },
+        {
+          "sha": "33e735d",
           "type": "feat",
           "text": "零售和代采订单买家信息支持按用户ID精确筛选",
           "author": "u ｌ",
@@ -32684,6 +34038,11 @@
               "file": "MDM/mdm_audit_store_registration.html",
               "module": "冷丰WMS",
               "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
             },
             {
               "file": "MDM/mdm_product_proxy_list.html",
