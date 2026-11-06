@@ -141,7 +141,7 @@
           name: group.name,
           phone: group.phone,
           phoneDisplay: displayPhone(group.phone || group.phoneDisplay),
-          isDefault: !!group.isDefault,
+          isDefault: !!addr.isDefault,
           text: addr.text
         });
       });
