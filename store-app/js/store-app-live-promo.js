@@ -340,6 +340,47 @@
     return url.href;
   }
 
+  function renderSessionCard(s) {
+    var badgeCls =
+      s.status === 'live'
+        ? ''
+        : s.status === 'upcoming'
+          ? ' sa-live-card__badge--upcoming'
+          : ' sa-live-card__badge--ended';
+    return (
+      '<article class="sa-live-card" data-id="' +
+      escapeHtml(s.id) +
+      '">' +
+      '<div class="sa-live-card__cover sa-cover-fit">' +
+      '<img src="' +
+      escapeHtml(s.cover) +
+      '" alt="">' +
+      '<span class="sa-live-card__badge' +
+      badgeCls +
+      '">' +
+      escapeHtml(badgeText(s.status)) +
+      '</span>' +
+      '</div>' +
+      '<div class="sa-live-card__body">' +
+      '<h2 class="sa-live-card__title">' +
+      escapeHtml(s.name) +
+      '</h2>' +
+      '<div class="sa-live-card__meta">' +
+      escapeHtml(displayTime(s)) +
+      '</div>' +
+      '<div class="sa-live-card__meta">主播 ' +
+      escapeHtml(s.anchorName || '—') +
+      '</div>' +
+      (s.status === 'ended'
+        ? ''
+        : '<div class="sa-live-card__actions">' +
+          '<button type="button" class="sa-live-card__btn" data-act="poster">生成海报</button>' +
+          '<button type="button" class="sa-live-card__btn sa-live-card__btn--primary" data-act="share">分享直播</button>' +
+          '</div>') +
+      '</div></article>'
+    );
+  }
+
   function renderList(tab) {
     var host = document.getElementById('livePromoList');
     var empty = document.getElementById('livePromoEmpty');
@@ -347,48 +388,7 @@
     syncIdentityUi();
     var info = storeInfo();
     var rows = listByTab(tab, info.storeId);
-    host.innerHTML = rows
-      .map(function (s) {
-        var badgeCls =
-          s.status === 'live'
-            ? ''
-            : s.status === 'upcoming'
-              ? ' sa-live-card__badge--upcoming'
-              : ' sa-live-card__badge--ended';
-        return (
-          '<article class="sa-live-card" data-id="' +
-          escapeHtml(s.id) +
-          '">' +
-          '<div class="sa-live-card__cover sa-cover-fit">' +
-          '<img src="' +
-          escapeHtml(s.cover) +
-          '" alt="">' +
-          '<span class="sa-live-card__badge' +
-          badgeCls +
-          '">' +
-          escapeHtml(badgeText(s.status)) +
-          '</span>' +
-          '</div>' +
-          '<div class="sa-live-card__body">' +
-          '<h2 class="sa-live-card__title">' +
-          escapeHtml(s.name) +
-          '</h2>' +
-          '<div class="sa-live-card__meta">' +
-          escapeHtml(displayTime(s)) +
-          '</div>' +
-          '<div class="sa-live-card__meta">主播 ' +
-          escapeHtml(s.anchorName || '—') +
-          '</div>' +
-          (s.status === 'ended'
-            ? ''
-            : '<div class="sa-live-card__actions">' +
-              '<button type="button" class="sa-live-card__btn" data-act="poster">生成海报</button>' +
-              '<button type="button" class="sa-live-card__btn sa-live-card__btn--primary" data-act="share">分享直播</button>' +
-              '</div>') +
-          '</div></article>'
-        );
-      })
-      .join('');
+    host.innerHTML = rows.map(renderSessionCard).join('');
     if (empty) empty.hidden = rows.length > 0;
     applyCoverFitAll(host);
   }
@@ -456,21 +456,28 @@
     }
   }
 
+  /** 分享标题： 「店名」邀你观看「直播间名称」；无店名时仅「邀你观看「直播间名称」」 */
+  function buildShareTitle(storeName, liveName) {
+    var live = String(liveName || '').trim();
+    var store = String(storeName || '').trim();
+    if (!live) return store ? '「' + store + '」邀你观看直播' : '邀你观看直播';
+    if (!store) return '邀你观看「' + live + '」';
+    return '「' + store + '」邀你观看「' + live + '」';
+  }
+
   function fillShare(sess, storeName) {
     var img = document.getElementById('shareCover');
     var title = document.getElementById('shareTitle');
     if (img) img.src = sess.cover;
-    if (title) title.textContent = [sess.name, storeName].filter(Boolean).join('｜');
+    if (title) title.textContent = buildShareTitle(storeName, sess && sess.name);
   }
 
-  function openShare(sess, exampleStore) {
-    var isExample = exampleStore !== undefined;
-    state.current = isExample ? null : sess;
-    fillShare(sess, isExample ? exampleStore : storeInfo().storeName);
-    document.getElementById('liveShareSheetTitle').textContent = isExample ? '长标题示例预览' : '分享直播';
+  function openShare(sess) {
+    state.current = sess;
+    fillShare(sess, storeInfo().storeName);
+    document.getElementById('liveShareSheetTitle').textContent = '分享直播';
     var el = document.getElementById('liveShare');
     if (el) {
-      el.classList.toggle('is-example', isExample);
       el.hidden = false;
       el.setAttribute('aria-hidden', 'false');
     }
@@ -518,14 +525,6 @@
         closePoster();
       });
     }
-    document.querySelectorAll('#liveShareExamples [data-example-store]').forEach(function (button) {
-      button.addEventListener('click', function () {
-        openShare({
-          name: '冷丰鲜选秋冬生鲜好物会员专享晚间直播专场',
-          cover: SESSIONS[0].cover
-        }, button.dataset.exampleStore);
-      });
-    });
     var share = document.getElementById('liveShare');
     if (share) {
       share.addEventListener('click', function (e) {

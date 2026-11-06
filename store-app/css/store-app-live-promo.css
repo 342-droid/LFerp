@@ -515,15 +515,6 @@
   padding: 16px 28px 8px;
 }
 
-#liveShare.is-example .sa-sheet__row {
-  display: none;
-}
-
-#liveShareExamples .sa-live-card__actions {
-  flex-wrap: wrap;
-  margin-top: 8px;
-}
-
 .sa-sheet__row--two {
   justify-content: center;
   gap: 56px;
