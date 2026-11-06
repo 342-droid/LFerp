@@ -1413,15 +1413,6 @@
             }
             var bundle = createStoreFormBundle({ initialVenuePhotos: initial, storeCode: storeId });
             bundle.fillFromArchiveRow(tr);
-            function storeSnapshot() {
-                return {
-                    '门店编码': cellPlainText(cells[0]),
-                    '门店简称': tr.getAttribute('data-short-name') || storeName,
-                    '所在地区': tr.getAttribute('data-region') || '',
-                    '详细地址': tr.getAttribute('data-address') || ''
-                };
-            }
-            var before = storeSnapshot();
             attachWideModal('编辑门店', bundle.body, function () {
                 var refs = bundle.refs || {};
                 var region = refs.regionInp ? String(refs.regionInp.value || '').trim() : '';
@@ -1458,8 +1449,6 @@
                 }
                 tr.setAttribute('data-short-name', nextShort || nextName || storeName);
                 syncStoreReceiveFromForm(nextCode || storeId, nextName || storeName, refs);
-                if (window.MdmOperationLog) window.MdmOperationLog.record('store', nextCode || storeId,
-                    '编辑门店', before, storeSnapshot());
             });
         },
         openSupplierAdd: function () {
@@ -1489,11 +1478,6 @@
                 initialInboundWarehouse: inboundWarehouse
             });
             bundle.fillFromArchiveRow(tr);
-            var before = {
-                '供应商名称': bundle.refs.nameInp.value.trim(),
-                '供应商简称': bundle.refs.shortNameInp.value.trim(),
-                '入库仓库': bundle.refs.inboundWarehouseSel.value
-            };
             attachWideModal('编辑供应商', bundle.body, function () {
                 var nextName =
                     bundle.refs && bundle.refs.nameInp
@@ -1518,11 +1502,6 @@
                     nextName || supplierName,
                     selectedWarehouse
                 );
-                if (window.MdmOperationLog) window.MdmOperationLog.record('supplier', supplierId, '编辑供应商', before, {
-                    '供应商名称': nextName || supplierName,
-                    '供应商简称': nextShort,
-                    '入库仓库': selectedWarehouse
-                });
                 if (window.MdmSupplierArchiveStore) {
                     window.MdmSupplierArchiveStore.upsert({
                         id: supplierId,
@@ -1566,14 +1545,8 @@
             var warehouseId = cells[0] ? cellPlainText(cells[0]) : '';
             var bundle = createWarehouseFormBundle();
             bundle.fillFromArchiveRow(tr);
-            var before = { '仓库名称': bundle.refs.nameInp.value.trim() };
             attachWideModal('编辑仓库', bundle.body, function () {
                 seedWarehouseReceiveFromForm(warehouseId, bundle.refs);
-                var nextName = bundle.refs.nameInp.value.trim();
-                var nameCell = cells[2].querySelector('.subject-name-link') || cells[2];
-                nameCell.textContent = nextName;
-                if (window.MdmOperationLog) window.MdmOperationLog.record('warehouse', warehouseId, '编辑仓库', before,
-                    { '仓库名称': nextName });
             });
         },
         close: removeArchiveFormModals

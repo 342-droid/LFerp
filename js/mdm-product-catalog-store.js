@@ -331,32 +331,10 @@
     return null;
   }
 
-  function productLogFields(item) {
-    return {
-      '商品名称': item.name,
-      '商品类目': item.category,
-      '商品采购价': item.price,
-      '销售渠道': item.channel,
-      '商品状态': ({ pending_sale: '待售卖', selling: '售卖中', stopped: '已停售' })[item.status] || item.status,
-      '审核状态': ({ pending: '待审核', passed: '审核通过', rejected: '审核未通过' })[item.audit] || item.audit,
-      '审核原因': item.rejectReason
-    };
-  }
-
-  function recordProductLog(action, item, before, deleted) {
-    if (!window.MdmOperationLog) return;
-    var fields = productLogFields(item);
-    if (deleted) {
-      Object.keys(fields).forEach(function (key) { fields[key] = null; });
-    }
-    window.MdmOperationLog.record('product-selection', item.code, action, before, fields);
-  }
-
   function updateAudit(code, audit, rejectReason) {
     if (!catalog.length) load();
     for (var i = 0; i < catalog.length; i++) {
       if (catalog[i].code !== code) continue;
-      var before = productLogFields(catalog[i]);
       catalog[i].audit = audit;
       if (audit === 'rejected') {
         catalog[i].status = 'pending_sale';
@@ -370,7 +348,6 @@
       }
       catalog[i] = normalizeItem(catalog[i]);
       persist();
-      recordProductLog(audit === 'passed' ? '审核通过' : '审核不通过', catalog[i], before);
       return catalog[i];
     }
     return null;
@@ -380,7 +357,6 @@
     if (!catalog.length) load();
     catalog.unshift(product);
     persist();
-    recordProductLog('新增商品', product, null);
     return product;
   }
 
@@ -388,15 +364,9 @@
     if (!catalog.length) load();
     for (var i = 0; i < catalog.length; i++) {
       if (catalog[i].code !== code) continue;
-      var previousStatus = catalog[i].status;
-      var before = productLogFields(catalog[i]);
       Object.assign(catalog[i], patch);
       catalog[i] = normalizeItem(catalog[i]);
       persist();
-      var action = previousStatus === catalog[i].status ? '编辑商品' :
-        catalog[i].status === 'stopped' ? '停用商品' :
-        previousStatus === 'stopped' ? '启用商品' : '编辑商品';
-      recordProductLog(action, catalog[i], before);
       return catalog[i];
     }
     return null;
@@ -483,14 +453,12 @@
 
   function removeProduct(code) {
     if (!catalog.length) load();
-    var removed = getByCode(code);
     var next = catalog.filter(function (item) {
       return !item || item.code !== code;
     });
     if (next.length === catalog.length) return false;
     catalog = next;
     persist();
-    if (removed) recordProductLog('删除商品', removed, productLogFields(removed), true);
     return true;
   }
 
@@ -499,12 +467,10 @@
     for (var i = 0; i < catalog.length; i++) {
       if (catalog[i].code !== code) continue;
       if (catalog[i].audit !== 'rejected') return catalog[i];
-      var before = productLogFields(catalog[i]);
       catalog[i].status = 'pending_sale';
       catalog[i].audit = 'pending';
       delete catalog[i].rejectReason;
       persist();
-      recordProductLog('重新提交审核', catalog[i], before);
       return catalog[i];
     }
     return null;

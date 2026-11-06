@@ -4563,14 +4563,6 @@
       logBody.hidden = collapsed;
     });
     logCard.appendChild(logToggle);
-    if (window.MdmOperationLog) {
-      var queryLog = el('button', 'erp-btn', '查询操作日志');
-      queryLog.type = 'button';
-      queryLog.addEventListener('click', function () {
-        window.MdmOperationLog.open('订单', state ? state.logs : logs, { business: detail.displayId });
-      });
-      logCard.appendChild(queryLog);
-    }
     logCard.appendChild(logBody);
     main.appendChild(logCard);
 

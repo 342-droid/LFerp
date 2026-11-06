@@ -1674,7 +1674,6 @@
   }
 
   function openLog(item) {
-    if (window.MdmOperationLog) { window.MdmOperationLog.fromStore(item.name || item.id, Store, item.id, FIELD_LABEL, VALUE_MAP, true); return; }
     logState.activityId = item.id;
     logState.activityName = item.name;
     logState.page = 1;

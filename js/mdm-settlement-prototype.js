@@ -696,7 +696,6 @@
         state.logKind=kind; state.logFilter=''; state.logResult='';state.policyLogId=id||'';
         var rows=kind==='general'?generalLogs:id==='POLICY_354560079879471104'?policyLogs:[];
         var title=kind==='general'?'结算通用配置 · 操作日志':'操作日志 · '+((policies.find(function(x){return x.id===id;})||policies[0]).name);
-    if (window.MdmOperationLog) { window.MdmOperationLog.open(kind === 'general' ? '结算通用配置' : ((policies.find(function (x) { return x.id === id; }) || {}).name || '结算策略'), rows, { business: id }); return; }
         overlay.innerHTML='<div class="settle-overlay" data-overlay="1"><div class="settle-drawer" role="dialog" aria-modal="true"><div class="settle-dialog-head"><strong>'+h(title)+'</strong>'+button('✕','close')+'</div><div class="settle-dialog-body"><div class="settle-filter" style="margin-bottom:16px"><label class="settle-field"><span>操作内容</span><input class="settle-input" id="log-query" placeholder="输入操作内容"></label><label class="settle-field"><span>操作结果</span><select class="settle-select" id="log-result"><option value="">全部</option><option>成功</option><option>失败</option></select></label>'+button('查询','log-search','','primary')+button('重置','log-reset','','')+'</div><div id="log-table">'+logTable(rows,kind)+'</div></div></div></div>';
     }
     function logTable(rows,kind) {

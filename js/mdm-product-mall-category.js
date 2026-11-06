@@ -65,14 +65,6 @@
     return 'mc-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
   }
 
-  function categoryLogFields(item) {
-    return { '类目名称': item.name, '类目状态': item.status === 'on_shelf' ? '已上架' : '已下架' };
-  }
-
-  function recordCategory(action, item, before, after) {
-    if (window.MdmOperationLog) window.MdmOperationLog.record('mall-category', item.id, action, before, after);
-  }
-
   function persist() {
     try {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(ALL));
@@ -335,17 +327,9 @@
       if (state.formMode === 'edit' && state.editingId) {
         var target = getById(state.editingId);
         if (target) {
-          var before = categoryLogFields(target);
-          var imageChanged = target.img !== state.formImg;
           target.name = name;
           target.img = state.formImg;
           persist();
-          var after = categoryLogFields(target);
-          if (imageChanged) {
-            before['类目图片'] = '原图片';
-            after['类目图片'] = '已更换';
-          }
-          recordCategory('编辑类目', target, before, after);
           renderTable();
           closeFormModal();
           if (typeof showToast === 'function') showToast('类目已更新', 'success');
@@ -353,17 +337,15 @@
         return;
       }
 
-      var created = {
+      ALL.unshift({
         id: genId(),
         name: name,
         img: state.formImg,
         productCount: 0,
         status: 'on_shelf',
         createdAt: nowStr()
-      };
-      ALL.unshift(created);
+      });
       persist();
-      recordCategory('新增类目', created, null, categoryLogFields(created));
       state.page = 1;
       renderTable();
       closeFormModal();
@@ -625,10 +607,8 @@
           return;
         }
         openWarmConfirmModal('确认下架类目「' + item.name + '」？', function () {
-          var before = categoryLogFields(item);
           item.status = 'off_shelf';
           persist();
-          recordCategory('下架类目', item, before, categoryLogFields(item));
           renderTable();
           if (typeof showToast === 'function') showToast('已下架', 'success');
         });
@@ -637,10 +617,8 @@
 
       if (action === 'on-shelf') {
         openWarmConfirmModal('确认上架类目「' + item.name + '」？', function () {
-          var before = categoryLogFields(item);
           item.status = 'on_shelf';
           persist();
-          recordCategory('上架类目', item, before, categoryLogFields(item));
           renderTable();
           if (typeof showToast === 'function') showToast('已上架', 'success');
         });
@@ -658,7 +636,6 @@
           });
           persist();
           renderTable();
-          recordCategory('删除类目', item, categoryLogFields(item), { '类目名称': null, '类目状态': null });
           if (typeof showToast === 'function') showToast('已删除', 'success');
         });
       }

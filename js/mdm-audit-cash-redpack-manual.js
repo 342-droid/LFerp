@@ -145,7 +145,6 @@
     var snap = (audit && audit.snapshot) || {};
     if (title) title.textContent = '操作日志' + (snap.name ? ' · ' + snap.name : '');
     var rows = (audit && audit.logs) || [];
-    if (window.MdmOperationLog) { window.MdmOperationLog.open(snap.name || '手动红包审核', rows, { business: id, marketing: true }); return; }
     if (body) {
       body.innerHTML = rows.length
         ? rows

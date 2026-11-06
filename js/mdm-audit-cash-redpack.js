@@ -160,7 +160,6 @@
     var item = Store.getById(id);
     if (title) title.textContent = '操作日志' + (item ? ' · ' + (item.name || item.id) : '');
     var rows = Store.getLogs(id);
-    if (window.MdmOperationLog) { window.MdmOperationLog.open(item && item.name || '红包模板', rows, { business: id, marketing: true }); return; }
     if (body) {
       body.innerHTML = rows.length
         ? rows

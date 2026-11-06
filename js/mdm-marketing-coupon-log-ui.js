@@ -178,7 +178,6 @@
     state.page = 1;
     var title = document.getElementById('tplLogTitle');
     var item = Store && Store.findById(couponId);
-    if (window.MdmOperationLog) { window.MdmOperationLog.fromStore(item && item.name || '优惠券', Store, couponId, FIELD_LABEL, VALUE_MAP, true); return; }
     if (title) title.textContent = '操作日志' + (item && item.name ? ' · ' + item.name : '');
     setHidden(document.getElementById('tplLogDrawer'), false);
     renderLogs();
