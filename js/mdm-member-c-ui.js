@@ -321,7 +321,7 @@
                         group.name,
                         address.text,
                         group.phone,
-                        group.isDefault ? '是' : '否',
+                        address.isDefault ? '是' : '否',
                         ''
                     ]);
                 });
@@ -412,7 +412,7 @@
             var defaultCheck = el('input');
             defaultCheck.type = 'checkbox';
             defaultCheck.id = 'memberAddressIsDefault';
-            defaultCheck.checked = !!(existing && existing.group.isDefault);
+            defaultCheck.checked = !!(existing && existing.address.isDefault);
             var defaultLabel = el('label', 'member-address-default-check');
             defaultLabel.setAttribute('for', 'memberAddressIsDefault');
             defaultLabel.append(defaultCheck, document.createTextNode(' 设为默认地址'));
@@ -449,11 +449,13 @@
                 var recipient = name.value.trim();
                 var number = phone.value;
                 var makeDefault = !!defaultCheck.checked;
+                var addressId = id || 'ab-a-' + crypto.randomUUID();
                 var address = {
-                    id: id || 'ab-a-' + crypto.randomUUID(),
+                    id: addressId,
                     region: region,
                     detail: detail.value.trim(),
-                    text: book.addressText(region, detail.value.trim())
+                    text: book.addressText(region, detail.value.trim()),
+                    isDefault: false
                 };
                 var keepGroupId = current ? current.group.id : null;
                 if (id) groups = removeAddress(groups, id);
@@ -462,11 +464,6 @@
                 });
                 if (group) {
                     group.addresses.push(address);
-                    if (makeDefault) {
-                        groups = book.setDefault(groups, group.id, true);
-                    } else if (keepGroupId && group.id === keepGroupId) {
-                        group.isDefault = false;
-                    }
                 } else {
                     var newGroupId = keepGroupId || ('ab-g-' + crypto.randomUUID());
                     groups.unshift({
@@ -474,11 +471,11 @@
                         name: recipient,
                         phone: number,
                         phoneDisplay: number.replace(/^(...)(....)(....)$/, '$1 $2 $3'),
-                        isDefault: false,
                         addresses: [address]
                     });
-                    if (makeDefault) groups = book.setDefault(groups, newGroupId, true);
                 }
+                /* 勾选则切换唯一默认；取消勾选则去掉本条默认，不顺延到其它地址 */
+                groups = book.setDefault(groups, addressId, makeDefault);
                 book.save(memberId, groups);
                 closeEditor();
                 render();

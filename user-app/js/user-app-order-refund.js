@@ -9569,7 +9569,9 @@
             name: g.name,
             phone: g.phone,
             phoneDisplay: g.phoneDisplay || formatPhoneDisplay(g.phone),
-            isDefault: !!g.isDefault,
+            isDefault: window.MemberAddressBook.groupHasDefault
+              ? window.MemberAddressBook.groupHasDefault(g)
+              : !!(g.isDefault || (g.addresses || []).some(function (a) { return a.isDefault; })),
             addresses: kw ? addrs : g.addresses || []
           };
         })
@@ -9621,7 +9623,6 @@
             name: g.name,
             phone: g.phone,
             phoneDisplay: g.phoneDisplay,
-            isDefault: !!g.isDefault,
             addresses: (g.addresses || []).filter(function (a) {
               return ids.indexOf(a.id) < 0;
             })
@@ -10577,13 +10578,19 @@
         var phoneDigits = phone.replace(/\D/g, '');
         var addrId = state.isEdit ? state.editAddrId : 'ab-a' + Date.now();
 
+        var previousAddress = null;
         var previousGroup = state.isEdit && groups.find(function (g) {
-          return (g.addresses || []).some(function (address) { return address.id === addrId; });
+          return (g.addresses || []).some(function (address) {
+            if (address.id !== addrId) return false;
+            previousAddress = address;
+            return true;
+          });
         });
         if (state.isEdit && !previousGroup) {
           showToast('该地址已删除，请返回地址簿');
           return;
         }
+        var keepDefault = !!(previousAddress && previousAddress.isDefault);
         if (previousGroup) {
           groups.forEach(function (g) {
             g.addresses = (g.addresses || []).filter(function (a) {
@@ -10598,21 +10605,29 @@
         var group = groups.find(function (g) {
           return g.name === name && String(g.phone).replace(/\D/g, '') === phoneDigits;
         });
+        var nextAddress = {
+          id: addrId,
+          text: full,
+          region: state.region,
+          detail: detail,
+          isDefault: keepDefault
+        };
         if (group) {
           group.addresses = group.addresses || [];
-          group.addresses.push({ id: addrId, text: full, region: state.region, detail: detail });
+          group.addresses.push(nextAddress);
           group.phone = phone;
           group.phoneDisplay = formatPhoneDisplay(phone);
-          if (previousGroup && previousGroup.isDefault) group.isDefault = true;
         } else {
           groups.unshift({
             id: previousGroup ? previousGroup.id : 'ab-g' + Date.now(),
             name: name,
             phone: phone,
             phoneDisplay: formatPhoneDisplay(phone),
-            isDefault: !!(previousGroup && previousGroup.isDefault),
-            addresses: [{ id: addrId, text: full, region: state.region, detail: detail }]
+            addresses: [nextAddress]
           });
+        }
+        if (keepDefault && window.MemberAddressBook.setDefault) {
+          groups = window.MemberAddressBook.setDefault(groups, addrId, true);
         }
         saveAddressBookGroups(groups);
         showToast(state.isEdit ? '地址已更新' : '地址已保存');

@@ -10,15 +10,16 @@
       name: '林晓棠',
       phone: '13856781234',
       phoneDisplay: '138 5678 1234',
-      isDefault: true,
       addresses: [
         {
           id: 'ab-a1',
-          text: '浙江省杭州市西湖区文三路 西溪花园3幢2单元501室'
+          text: '浙江省杭州市西湖区文三路 西溪花园3幢2单元501室',
+          isDefault: true
         },
         {
           id: 'ab-a2',
-          text: '浙江省杭州市余杭区仓前街道 梦想小镇创业大街12号'
+          text: '浙江省杭州市余杭区仓前街道 梦想小镇创业大街12号',
+          isDefault: false
         }
       ]
     },
@@ -27,23 +28,26 @@
       name: '周启明',
       phone: '15022338866',
       phoneDisplay: '150 2233 8866',
-      isDefault: false,
       addresses: [
         {
           id: 'ab-a3',
-          text: '浙江省杭州市滨江区网商路 阿里中心4号楼'
+          text: '浙江省杭州市滨江区网商路 阿里中心4号楼',
+          isDefault: false
         },
         {
           id: 'ab-a4',
-          text: '浙江省杭州市拱墅区莫干山路 远洋国际中心B座'
+          text: '浙江省杭州市拱墅区莫干山路 远洋国际中心B座',
+          isDefault: false
         },
         {
           id: 'ab-a5',
-          text: '浙江省宁波市鄞州区中山东路 和丰创意广场'
+          text: '浙江省宁波市鄞州区中山东路 和丰创意广场',
+          isDefault: false
         },
         {
           id: 'ab-a6',
-          text: '浙江省嘉兴市南湖区中环南路 科技城孵化园'
+          text: '浙江省嘉兴市南湖区中环南路 科技城孵化园',
+          isDefault: false
         }
       ]
     },
@@ -52,11 +56,11 @@
       name: '何雨桐',
       phone: '18699881200',
       phoneDisplay: '186 9988 1200',
-      isDefault: false,
       addresses: [
         {
           id: 'ab-a7',
-          text: '浙江省绍兴市越城区解放南路 镜湖新区公馆'
+          text: '浙江省绍兴市越城区解放南路 镜湖新区公馆',
+          isDefault: false
         }
       ]
     }
@@ -78,28 +82,60 @@
     return JSON.parse(JSON.stringify(value));
   }
 
-  /** 去掉家/公司等地址标签，仅保留是否默认。 */
+  function addressIsDefault(address) {
+    return !!(address && address.isDefault);
+  }
+
+  /** 分组是否含默认地址（兼容旧版 group.isDefault 展示）。 */
+  function groupHasDefault(group) {
+    if (!group) return false;
+    if ((group.addresses || []).some(addressIsDefault)) return true;
+    return !!group.isDefault;
+  }
+
+  /** 去掉家/公司等地址标签；默认标记落到单条地址上。 */
   function normalizeGroup(group) {
     var tags = Array.isArray(group && group.tags) ? group.tags : [];
-    var isDefault =
+    var groupDefault =
       group && Object.prototype.hasOwnProperty.call(group, 'isDefault')
         ? !!group.isDefault
         : tags.indexOf('默认') >= 0;
+    var addresses = Array.isArray(group && group.addresses) ? group.addresses : [];
+    var hasAddressDefault = addresses.some(function (address) {
+      return Object.prototype.hasOwnProperty.call(address || {}, 'isDefault') && !!address.isDefault;
+    });
+    var nextAddresses = addresses.map(function (address, index) {
+      var next = Object.assign({}, address || {});
+      if (Object.prototype.hasOwnProperty.call(next, 'isDefault')) {
+        next.isDefault = !!next.isDefault;
+      } else if (groupDefault && !hasAddressDefault && index === 0) {
+        /* 旧数据仅在分组上标记默认时，迁到该组第一条地址 */
+        next.isDefault = true;
+      } else {
+        next.isDefault = false;
+      }
+      return next;
+    });
     var next = Object.assign({}, group || {}, {
-      isDefault: isDefault,
-      addresses: Array.isArray(group && group.addresses) ? group.addresses : []
+      addresses: nextAddresses
     });
     delete next.tags;
+    delete next.isDefault;
     return next;
   }
 
+  /** 全地址簿仅允许一条默认收货地址。 */
   function ensureSingleDefault(groups) {
     var seen = false;
     return (groups || []).map(function (group) {
-      if (!group.isDefault) return group;
-      if (seen) return Object.assign({}, group, { isDefault: false });
-      seen = true;
-      return group;
+      return Object.assign({}, group, {
+        addresses: (group.addresses || []).map(function (address) {
+          if (!address.isDefault) return address;
+          if (seen) return Object.assign({}, address, { isDefault: false });
+          seen = true;
+          return Object.assign({}, address, { isDefault: true });
+        })
+      });
     });
   }
 
@@ -107,13 +143,17 @@
     return ensureSingleDefault((groups || []).map(normalizeGroup));
   }
 
-  function setDefault(groups, groupId, enabled) {
+  function setDefault(groups, addressId, enabled) {
     return (groups || []).map(function (group) {
-      if (enabled) {
-        return Object.assign({}, group, { isDefault: group.id === groupId });
-      }
-      if (group.id !== groupId) return group;
-      return Object.assign({}, group, { isDefault: false });
+      return Object.assign({}, group, {
+        addresses: (group.addresses || []).map(function (address) {
+          if (enabled) {
+            return Object.assign({}, address, { isDefault: address.id === addressId });
+          }
+          if (address.id !== addressId) return address;
+          return Object.assign({}, address, { isDefault: false });
+        })
+      });
     });
   }
 
@@ -170,6 +210,7 @@
     addressText: addressText,
     normalizeGroups: normalizeGroups,
     setDefault: setDefault,
+    groupHasDefault: groupHasDefault,
     isAddressLabelTag: function (tag) {
       return !!ADDRESS_LABEL_TAGS[String(tag || '')];
     }
