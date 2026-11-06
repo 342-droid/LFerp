@@ -48,7 +48,7 @@
     deliveryText: '预计2-3天送达'
   };
 
-  /** 商品透出供应商名：档案简称优先，无简称则用全称 */
+  /** 供应商展示名：档案别名优先，无别名则用全称（仅供应商标题，不改商品名称） */
   function getSupplierDisplayName(supplier) {
     if (
       window.MdmSupplierArchiveStore &&
@@ -57,7 +57,7 @@
       return window.MdmSupplierArchiveStore.getDisplayName(supplier);
     }
     if (!supplier) return '';
-    return String(supplier.shortName || supplier.name || '').trim();
+    return String(supplier.shortName || supplier.alias || supplier.name || '').trim();
   }
 
   var PRODUCTS = {
@@ -1212,7 +1212,9 @@
   function getCartItemMerchantInfo(item) {
     if (isPointsExchangeItem(item)) {
       var supplierId = item.supplierId || String(item.merchantId || '').replace(/^supplier:/, '') || '斯斯供应商商家';
-      var supplierName = item.supplierName || item.merchantName || supplierId;
+      var supplierNameRaw = item.supplierName || item.merchantName || supplierId;
+      var supplierName =
+        getSupplierDisplayName({ id: supplierId, name: supplierNameRaw }) || supplierNameRaw;
       var pointsFulfill = item.fulfillType === 'express' ? 'express' : 'pickup';
       if (pointsFulfill === 'express') {
         return {

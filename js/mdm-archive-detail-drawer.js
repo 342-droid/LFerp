@@ -5806,7 +5806,7 @@
         grid.appendChild(detailCell('供应商ID', r.id));
         grid.appendChild(detailCell('主体名称', r.subjectName));
         grid.appendChild(detailCell('供应商名称', r.name));
-        grid.appendChild(detailCell('供应商简称', r.shortName || '—'));
+        grid.appendChild(detailCell('供应商别名', r.shortName || '—'));
         grid.appendChild(detailCell('供应商类型', r.typeLabel));
         grid.appendChild(detailCell('供应商地址', r.region));
         var addr = el('div', 'supplier-detail-cell supplier-detail-cell--span4');

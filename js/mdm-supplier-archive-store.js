@@ -1,6 +1,7 @@
 /**
- * 供应商档案共享数据（门店/用户 APP 商品透出名称用）
- * 展示规则：有供应商简称则用简称，否则用供应商名称
+ * 供应商档案共享数据（用户 APP 供应商名称展示用）
+ * 展示规则：有「供应商别名」则用别名，否则用供应商名称
+ * 仅替换供应商标题，不改商品名称；字段仍存 shortName（兼容历史），写入时可传 alias
  */
 (function (global) {
   var STORAGE_KEY = 'mdm_supplier_archive_v1';
@@ -55,7 +56,9 @@
     return {
       id: String((item && item.id) || '').trim(),
       name: String((item && item.name) || '').trim(),
-      shortName: String((item && (item.shortName || item.short_name)) || '').trim()
+      shortName: String(
+        (item && (item.shortName || item.short_name || item.alias)) || ''
+      ).trim()
     };
   }
 
@@ -75,9 +78,9 @@
         return;
       }
       if (!existing.name && seed.name) existing.name = seed.name;
-      /* 档案未维护简称时，保留演示种子简称，便于 APP 透出 */
+      /* 档案未维护别名时，保留演示种子别名，便于 APP 透出 */
       if (!existing.shortName && seed.shortName) existing.shortName = seed.shortName;
-      /* 华东冷链供应商：清掉易与「华东冷链仓」混淆的旧简称 */
+      /* 华东冷链供应商：清掉易与「华东冷链仓」混淆的旧别名 */
       if (existing.id === 'supplier-huadong' && existing.shortName === '华东冷链') {
         existing.shortName = '';
       }
@@ -141,12 +144,14 @@
     return (id && findById(id)) || (name && findByName(name)) || null;
   }
 
-  /** 商品透出名称：简称优先，无简称则用全称 */
+  /** 供应商展示名：别名优先，无别名则用全称（不用于商品名称） */
   function getDisplayName(input) {
     var rec = resolveRecord(input);
     if (rec) return rec.shortName || rec.name || '';
     if (!input || typeof input === 'string') return String(input || '').trim();
-    var shortName = String(input.shortName || input.short_name || '').trim();
+    var shortName = String(
+      input.shortName || input.short_name || input.alias || ''
+    ).trim();
     var name = String(input.name || input.supplierName || '').trim();
     return shortName || name;
   }

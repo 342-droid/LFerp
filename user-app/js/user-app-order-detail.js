@@ -949,6 +949,7 @@
       payTotalEl.textContent = order.payLabel || '¥' + payable.toFixed(2);
     }
     applyOrderPayDisplay(order);
+    applyRetailExpressSupplierName(order);
     return order;
   }
 
@@ -1774,7 +1775,7 @@
           shopNameEl.getAttribute('data-supplier-name') ||
           '冷丰优选供应链';
         if (isOdDeliveryOrder(stored) && window.UaOrdersStore && window.UaOrdersStore.isWarehouseShopName) {
-          /* 配送单用仓名，不走供应商简称 */
+          /* 配送单用仓名，不走供应商别名 */
         } else if (
           window.MdmSupplierArchiveStore &&
           typeof window.MdmSupplierArchiveStore.getDisplayName === 'function'
@@ -1852,6 +1853,36 @@
     phone: '138****6688',
     addr: '浙江省杭州市萧山区建设一路88号'
   };
+
+  /** 零售快递：订单门店区展示供应商别名（有别名用别名，否则供应商名称） */
+  function applyRetailExpressSupplierName(order) {
+    if (isFromRestock() || isPickupFulfillment()) return;
+    var orderIsExpress =
+      !!(order && (order.fulfillType === 'express' || order.splitKind === 'express'));
+    if (order && !orderIsExpress) return;
+    if (!order && !isUserAppExpressHome() && !getParams().get('supplier')) return;
+    var shopNameEl = document.getElementById('orderShopName');
+    if (!shopNameEl) return;
+    var raw =
+      (order && (order.supplierName || order.merchantName)) ||
+      getParams().get('supplier') ||
+      shopNameEl.getAttribute('data-supplier-name') ||
+      '';
+    raw = String(raw || '').trim();
+    if (!raw) return;
+    var display = raw;
+    if (
+      window.MdmSupplierArchiveStore &&
+      typeof window.MdmSupplierArchiveStore.getDisplayName === 'function'
+    ) {
+      display = window.MdmSupplierArchiveStore.getDisplayName({
+        id: (order && (order.supplierId || order.merchantId)) || '',
+        name: raw
+      });
+    }
+    shopNameEl.setAttribute('data-supplier-name', raw);
+    shopNameEl.textContent = display || raw;
+  }
 
   /** 零售自提：订单门店 / 自提门店均为悠悠生鲜，不用「线上商城」 */
   function applyRetailPickupStore(status) {
@@ -2159,6 +2190,7 @@
     } else {
       config = applyUserAppExpressLayout(status, config);
       applyRetailPickupStore(status);
+      applyRetailExpressSupplierName(demoOrder);
     }
 
     config = applyClosedReason(config);
