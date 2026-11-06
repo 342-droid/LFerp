@@ -311,18 +311,30 @@
         }
 
         function render() {
-            var headers = ['收件人信息', '收件地址', '收件人联系方式', '操作'];
+            var headers = ['收件人信息', '收件地址', '收件人联系方式', '是否默认', '操作'];
             var rows = [];
             var records = [];
             book.load(memberId).forEach(function (group) {
                 group.addresses.forEach(function (address) {
                     records.push(address.id);
-                    rows.push([group.name, address.text, group.phone, '']);
+                    rows.push([
+                        group.name,
+                        address.text,
+                        group.phone,
+                        group.isDefault ? '是' : '否',
+                        ''
+                    ]);
                 });
             });
             var table = wrapTable(headers, rows, '');
             table.querySelectorAll('tbody tr').forEach(function (row, index) {
                 var id = records[index];
+                var defaultCell = row.children[3];
+                if (defaultCell && defaultCell.textContent === '是') {
+                    defaultCell.replaceChildren();
+                    var badge = el('span', 'member-address-default-tag', '默认');
+                    defaultCell.appendChild(badge);
+                }
                 var actions = row.lastElementChild;
                 actions.append(
                     button('编辑', 'erp-btn erp-btn--link', function () { openEditor(id); }),
@@ -397,6 +409,19 @@
             detailWrap.append(detail, counter);
             field(body, '详细地址').appendChild(detailWrap);
             detail.setAttribute('aria-label', '详细地址');
+            var defaultCheck = el('input');
+            defaultCheck.type = 'checkbox';
+            defaultCheck.id = 'memberAddressIsDefault';
+            defaultCheck.checked = !!(existing && existing.group.isDefault);
+            var defaultLabel = el('label', 'member-address-default-check');
+            defaultLabel.setAttribute('for', 'memberAddressIsDefault');
+            defaultLabel.append(defaultCheck, document.createTextNode(' 设为默认地址'));
+            var defaultRow = el('div', 'erp-modal-field');
+            var defaultCaption = el('label', 'erp-modal-field__label', '是否默认');
+            var defaultControl = el('div', 'erp-modal-field__control');
+            defaultControl.appendChild(defaultLabel);
+            defaultRow.append(defaultCaption, defaultControl);
+            body.appendChild(defaultRow);
             var submit = el('button', 'spec-manage-dialog__btn spec-manage-dialog__btn--primary', '保存');
             submit.type = 'submit';
             var error = el('p', 'member-address-dialog__error');
@@ -421,28 +446,39 @@
                     render();
                     return;
                 }
-                var tags = current ? (current.group.tags || []) : [];
                 var recipient = name.value.trim();
                 var number = phone.value;
+                var makeDefault = !!defaultCheck.checked;
                 var address = {
                     id: id || 'ab-a-' + crypto.randomUUID(),
                     region: region,
                     detail: detail.value.trim(),
                     text: book.addressText(region, detail.value.trim())
                 };
+                var keepGroupId = current ? current.group.id : null;
                 if (id) groups = removeAddress(groups, id);
                 var group = groups.find(function (item) {
-                    return item.name === recipient && item.phone === number && JSON.stringify(item.tags || []) === JSON.stringify(tags);
+                    return item.name === recipient && item.phone === number;
                 });
-                if (group) group.addresses.push(address);
-                else groups.unshift({
-                    id: 'ab-g-' + crypto.randomUUID(),
-                    name: recipient,
-                    phone: number,
-                    phoneDisplay: number.replace(/^(...)(....)(....)$/, '$1 $2 $3'),
-                    tags: tags,
-                    addresses: [address]
-                });
+                if (group) {
+                    group.addresses.push(address);
+                    if (makeDefault) {
+                        groups = book.setDefault(groups, group.id, true);
+                    } else if (keepGroupId && group.id === keepGroupId) {
+                        group.isDefault = false;
+                    }
+                } else {
+                    var newGroupId = keepGroupId || ('ab-g-' + crypto.randomUUID());
+                    groups.unshift({
+                        id: newGroupId,
+                        name: recipient,
+                        phone: number,
+                        phoneDisplay: number.replace(/^(...)(....)(....)$/, '$1 $2 $3'),
+                        isDefault: false,
+                        addresses: [address]
+                    });
+                    if (makeDefault) groups = book.setDefault(groups, newGroupId, true);
+                }
                 book.save(memberId, groups);
                 closeEditor();
                 render();

@@ -3,13 +3,14 @@
   'use strict';
 
   var DEMO_MEMBER_ID = 'UC10001';
+  var ADDRESS_LABEL_TAGS = { 家: true, 公司: true, 父母: true, 学校: true, 其他: true };
   var ADDRESS_BOOK_GROUPS = [
     {
       id: 'ab-g1',
       name: '林晓棠',
       phone: '13856781234',
       phoneDisplay: '138 5678 1234',
-      tags: ['家', '默认'],
+      isDefault: true,
       addresses: [
         {
           id: 'ab-a1',
@@ -26,7 +27,7 @@
       name: '周启明',
       phone: '15022338866',
       phoneDisplay: '150 2233 8866',
-      tags: ['公司'],
+      isDefault: false,
       addresses: [
         {
           id: 'ab-a3',
@@ -51,7 +52,7 @@
       name: '何雨桐',
       phone: '18699881200',
       phoneDisplay: '186 9988 1200',
-      tags: ['父母'],
+      isDefault: false,
       addresses: [
         {
           id: 'ab-a7',
@@ -73,28 +74,73 @@
     return 'lf_member_address_book_v1:' + memberId;
   }
 
+  function clone(value) {
+    return JSON.parse(JSON.stringify(value));
+  }
+
+  /** 去掉家/公司等地址标签，仅保留是否默认。 */
+  function normalizeGroup(group) {
+    var tags = Array.isArray(group && group.tags) ? group.tags : [];
+    var isDefault =
+      group && Object.prototype.hasOwnProperty.call(group, 'isDefault')
+        ? !!group.isDefault
+        : tags.indexOf('默认') >= 0;
+    var next = Object.assign({}, group || {}, {
+      isDefault: isDefault,
+      addresses: Array.isArray(group && group.addresses) ? group.addresses : []
+    });
+    delete next.tags;
+    return next;
+  }
+
+  function ensureSingleDefault(groups) {
+    var seen = false;
+    return (groups || []).map(function (group) {
+      if (!group.isDefault) return group;
+      if (seen) return Object.assign({}, group, { isDefault: false });
+      seen = true;
+      return group;
+    });
+  }
+
+  function normalizeGroups(groups) {
+    return ensureSingleDefault((groups || []).map(normalizeGroup));
+  }
+
+  function setDefault(groups, groupId, enabled) {
+    return (groups || []).map(function (group) {
+      if (enabled) {
+        return Object.assign({}, group, { isDefault: group.id === groupId });
+      }
+      if (group.id !== groupId) return group;
+      return Object.assign({}, group, { isDefault: false });
+    });
+  }
+
   function load(memberId) {
     if (!memberId) return [];
     try {
       var stored = JSON.parse(localStorage.getItem(key(memberId)));
-      if (Array.isArray(stored)) return stored;
+      if (Array.isArray(stored)) return normalizeGroups(stored);
       if (memberId === DEMO_MEMBER_ID) {
         var legacy = JSON.parse(sessionStorage.getItem('ua_refund_address_book'));
-        if (Array.isArray(legacy)) return legacy;
+        if (Array.isArray(legacy)) return normalizeGroups(legacy);
       }
     } catch (e) {
       // Fall back to the member's initial address book.
     }
-    return memberId === DEMO_MEMBER_ID ? JSON.parse(JSON.stringify(ADDRESS_BOOK_GROUPS)) : [];
+    return memberId === DEMO_MEMBER_ID ? normalizeGroups(clone(ADDRESS_BOOK_GROUPS)) : [];
   }
 
   function save(memberId, groups) {
     if (!memberId) return;
-    localStorage.setItem(key(memberId), JSON.stringify(groups));
+    localStorage.setItem(key(memberId), JSON.stringify(normalizeGroups(groups)));
   }
 
   function addressParts(address) {
-    if (address.region && address.detail) return { region: address.region.split(/\s*\/\s*|\s+/).join(' / '), detail: address.detail };
+    if (address.region && address.detail) {
+      return { region: address.region.split(/\s*\/\s*|\s+/).join(' / '), detail: address.detail };
+    }
     var raw = String(address.text || '').trim();
     var match = raw.match(/^(?:(.+?(?:省|自治区))\s*)?(.+?市)\s*([^区县]+[区县])\s*(.*)$/);
     if (!match) return { region: '', detail: raw };
@@ -103,9 +149,16 @@
   }
 
   function addressText(region, detail) {
-    return region.split(/\s*\/\s*|\s+/).filter(function (part) {
-      return part && part !== '市辖区';
-    }).join('') + ' ' + detail;
+    return (
+      region
+        .split(/\s*\/\s*|\s+/)
+        .filter(function (part) {
+          return part && part !== '市辖区';
+        })
+        .join('') +
+      ' ' +
+      detail
+    );
   }
 
   global.MemberAddressBook = {
@@ -114,6 +167,11 @@
     load: load,
     save: save,
     addressParts: addressParts,
-    addressText: addressText
+    addressText: addressText,
+    normalizeGroups: normalizeGroups,
+    setDefault: setDefault,
+    isAddressLabelTag: function (tag) {
+      return !!ADDRESS_LABEL_TAGS[String(tag || '')];
+    }
   };
 })(window);

@@ -75,17 +75,25 @@
     return { region: '', detail: raw };
   }
 
+  function enrichDefaultFlag(origin) {
+    var matched = flattenAddresses(loadGroups()).find(function (row) {
+      return isSameAsOrigin(row, origin);
+    });
+    origin.isDefault = !!(matched && matched.isDefault);
+    return origin;
+  }
+
   function readOrigin() {
     try {
       var raw = sessionStorage.getItem(ORIGIN_KEY);
       if (raw) {
         var parsed = JSON.parse(raw);
         if (parsed && parsed.text) {
-          return {
+          return enrichDefaultFlag({
             name: parsed.name || '',
             phone: displayPhone(parsed.phone),
             text: parsed.text
-          };
+          });
         }
       }
     } catch (e) {
@@ -98,17 +106,17 @@
       from = getParams().get('from') || '';
     }
     if (/from=restock\.html|restock\.html/.test(from)) {
-      return {
+      return enrichDefaultFlag({
         name: '张店长',
         phone: '13866886688',
         text: '浙江省杭州市萧山区建设一路88号 悠悠生鲜超市'
-      };
+      });
     }
-    return {
+    return enrichDefaultFlag({
       name: '武者',
       phone: '18142154215',
       text: '四川省成都市武侯区天府大道中段666号天府软件园A区'
-    };
+    });
   }
 
   function compactText(str) {
@@ -133,7 +141,7 @@
           name: group.name,
           phone: group.phone,
           phoneDisplay: displayPhone(group.phone || group.phoneDisplay),
-          tags: group.tags || [],
+          isDefault: !!group.isDefault,
           text: addr.text
         });
       });
@@ -154,7 +162,7 @@
       ' ' +
       escapeHtml(displayPhone(origin.phone)) +
       '</span>' +
-      '<span class="ua-oea-tag">默认</span>' +
+      (origin.isDefault ? '<span class="ua-oea-tag">默认</span>' : '') +
       '</div>';
   }
 
@@ -184,7 +192,9 @@
           escapeHtml(row.name) +
           ' ' +
           escapeHtml(displayPhone(row.phone || row.phoneDisplay)) +
-          '</span></div></div>' +
+          '</span>' +
+          (row.isDefault ? '<span class="ua-oea-tag">默认</span>' : '') +
+          '</div></div>' +
           '<button type="button" class="ua-oea-item__edit" data-edit="' +
           escapeHtml(row.addrId) +
           '" aria-label="编辑地址">' +

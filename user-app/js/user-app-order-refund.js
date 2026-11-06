@@ -9544,7 +9544,7 @@
             name: g.name,
             phone: g.phone,
             phoneDisplay: g.phoneDisplay || formatPhoneDisplay(g.phone),
-            tags: g.tags || [],
+            isDefault: !!g.isDefault,
             addresses: kw ? addrs : g.addresses || []
           };
         })
@@ -9596,7 +9596,7 @@
             name: g.name,
             phone: g.phone,
             phoneDisplay: g.phoneDisplay,
-            tags: g.tags || [],
+            isDefault: !!g.isDefault,
             addresses: (g.addresses || []).filter(function (a) {
               return ids.indexOf(a.id) < 0;
             })
@@ -9699,6 +9699,7 @@
             '<div class="ua-or-addrbook-card__head">' +
             '<div class="ua-or-addrbook-card__name">' +
             escapeHtml(group.name) +
+            (group.isDefault ? '<span class="ua-or-addrbook-card__default">默认</span>' : '') +
             '<span class="ua-or-addrbook-card__phone">' +
             escapeHtml(group.phoneDisplay || formatPhoneDisplay(group.phone)) +
             '</span>' +
@@ -10570,21 +10571,21 @@
         }
 
         var group = groups.find(function (g) {
-          return g.name === name && String(g.phone).replace(/\D/g, '') === phoneDigits &&
-            (!previousGroup || JSON.stringify(g.tags || []) === JSON.stringify(previousGroup.tags || []));
+          return g.name === name && String(g.phone).replace(/\D/g, '') === phoneDigits;
         });
         if (group) {
           group.addresses = group.addresses || [];
           group.addresses.push({ id: addrId, text: full, region: state.region, detail: detail });
           group.phone = phone;
           group.phoneDisplay = formatPhoneDisplay(phone);
+          if (previousGroup && previousGroup.isDefault) group.isDefault = true;
         } else {
           groups.unshift({
-            id: 'ab-g' + Date.now(),
+            id: previousGroup ? previousGroup.id : 'ab-g' + Date.now(),
             name: name,
             phone: phone,
             phoneDisplay: formatPhoneDisplay(phone),
-            tags: previousGroup ? (previousGroup.tags || []).slice() : [],
+            isDefault: !!(previousGroup && previousGroup.isDefault),
             addresses: [{ id: addrId, text: full, region: state.region, detail: detail }]
           });
         }
