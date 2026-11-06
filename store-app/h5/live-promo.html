@@ -6,7 +6,7 @@
   <title>直播推广 · 门店APP</title>
   <link rel="stylesheet" href="../css/store-app.css?v=20260905-livepromo-bd">
   <link rel="stylesheet" href="../css/store-app-qrcode.css?v=20260904-livepromo">
-  <link rel="stylesheet" href="../css/store-app-live-promo.css?v=20260905-flow-collapse">
+  <link rel="stylesheet" href="../css/store-app-live-promo.css?v=20261106-share-overflow">
 </head>
 <body class="store-app-body">
   <div class="sa-shell sa-live-shell">
@@ -48,6 +48,13 @@
         <div class="sa-live-who" id="livePromoWho"></div>
         <div id="livePromoEmpty" class="sa-live-empty" hidden>暂无本门店可看的直播场次</div>
         <div id="livePromoList"></div>
+        <details class="sa-live-flow" id="liveShareExamples">
+          <summary>长标题验收示例</summary>
+          <div class="sa-live-card__actions">
+            <button type="button" class="sa-live-card__btn" data-example-store="杭州总店">场次名称过长</button>
+            <button type="button" class="sa-live-card__btn" data-example-store="冷丰杭州西湖文三路社区生鲜旗舰门店">场次和门店名称都过长</button>
+          </div>
+        </details>
       </div>
     </div>
 
@@ -127,7 +134,7 @@
         </div>
       </div>
       <div class="sa-sheet">
-        <h3 class="sa-sheet__title">分享直播</h3>
+        <h3 class="sa-sheet__title" id="liveShareSheetTitle">分享直播</h3>
         <div class="sa-sheet__row sa-sheet__row--two">
           <button type="button" class="sa-sheet__item" data-share-act="wx">
             <span class="sa-sheet__ico sa-sheet__ico--wx" aria-hidden="true">
@@ -163,7 +170,7 @@
   <script src="../js/store-app-orders-mock.js?v=20260904-livepromo"></script>
   <script src="../js/store-app-toast.js?v=20260904-livepromo"></script>
   <script src="../js/store-app-live-session.js?v=20260905-livepromo-bd"></script>
-  <script src="../js/store-app-live-promo.js?v=20260905-flow-collapse"></script>
+  <script src="../js/store-app-live-promo.js?v=20261106-share-overflow"></script>
   <script src="../../js/pg-prd-float.js?v=20260924-prd-all"></script>
 </body>
 </html>

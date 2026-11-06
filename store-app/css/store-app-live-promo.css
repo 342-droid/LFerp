@@ -515,6 +515,15 @@
   padding: 16px 28px 8px;
 }
 
+#liveShare.is-example .sa-sheet__row {
+  display: none;
+}
+
+#liveShareExamples .sa-live-card__actions {
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
 .sa-sheet__row--two {
   justify-content: center;
   gap: 56px;
@@ -726,8 +735,12 @@
 }
 
 .sa-mpcard__title {
-  margin: 0;
-  padding: 0 12px 10px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  margin: 0 12px 10px;
   font-size: 17px;
   font-weight: 700;
   color: #1a1a1a;

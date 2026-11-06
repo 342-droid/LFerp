@@ -456,18 +456,21 @@
     }
   }
 
-  function fillShare(sess) {
+  function fillShare(sess, storeName) {
     var img = document.getElementById('shareCover');
     var title = document.getElementById('shareTitle');
     if (img) img.src = sess.cover;
-    if (title) title.textContent = sess.name;
+    if (title) title.textContent = [sess.name, storeName].filter(Boolean).join('｜');
   }
 
-  function openShare(sess) {
-    state.current = sess;
-    fillShare(sess);
+  function openShare(sess, exampleStore) {
+    var isExample = exampleStore !== undefined;
+    state.current = isExample ? null : sess;
+    fillShare(sess, isExample ? exampleStore : storeInfo().storeName);
+    document.getElementById('liveShareSheetTitle').textContent = isExample ? '长标题示例预览' : '分享直播';
     var el = document.getElementById('liveShare');
     if (el) {
+      el.classList.toggle('is-example', isExample);
       el.hidden = false;
       el.setAttribute('aria-hidden', 'false');
     }
@@ -515,6 +518,14 @@
         closePoster();
       });
     }
+    document.querySelectorAll('#liveShareExamples [data-example-store]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        openShare({
+          name: '冷丰鲜选秋冬生鲜好物会员专享晚间直播专场',
+          cover: SESSIONS[0].cover
+        }, button.dataset.exampleStore);
+      });
+    });
     var share = document.getElementById('liveShare');
     if (share) {
       share.addEventListener('click', function (e) {
