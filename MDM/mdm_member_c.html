@@ -10,6 +10,43 @@
     <link rel="stylesheet" href="../css/lf-product.css">
     <link rel="stylesheet" href="../css/mdm-member360-list.css">
     <style>
+        .member-address-dialog {
+            position: fixed;
+            inset: 0;
+            margin: auto;
+            width: min(860px, calc(100% - 48px));
+            height: fit-content;
+            max-height: calc(100% - 48px);
+            padding: 0;
+            border: 0;
+            background: transparent;
+            overflow: visible;
+        }
+
+        .member-address-dialog::backdrop {
+            background: rgba(0, 0, 0, .45);
+        }
+
+        .member-address-dialog .store-region__panel {
+            min-width: 0;
+            width: 100%;
+        }
+
+        .member-address-dialog .store-region__col {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .member-address-dialog .spec-manage-dialog__body:has(.store-region__panel[style*="flex"]) {
+            padding-bottom: 120px;
+        }
+
+        .member-address-dialog__error {
+            margin: 0;
+            color: #c53030;
+            text-align: right;
+        }
+
         .member-tab-panel { display: none; }
         .member-tab-panel.is-active { display: block; }
         .bl-member-card {
@@ -765,7 +802,9 @@
     <script src="../js/mdm-marketing-coupon-store.js"></script>
     <script src="../js/mdm-marketing-cash-redpack-store.js?v=20261016-hide-transfer"></script>
     <script src="../js/mdm-product-proxy-store-picker.js"></script>
-    <script src="../js/mdm-member-c-ui.js?v=20261016-member-cash-scene2"></script>
+    <script src="../js/member-address-book.js"></script>
+    <script src="../js/mdm-store-region-cascader.js"></script>
+    <script src="../js/mdm-member-c-ui.js?v=20261106-address-spec-style"></script>
     <script src="../js/mdm-member-blacklist.js?v=20261016-member-cols"></script>
     <script src="../js/mdm-member-cancel.js"></script>
     <script src="../js/mdm-erp-lists.js?v=20261016-member-cols"></script>

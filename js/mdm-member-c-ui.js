@@ -267,6 +267,197 @@
         return bar;
     }
 
+    function memberAddressPanel(memberId) {
+        var book = window.MemberAddressBook;
+        var panel = el('section');
+        var title = el('div', 'supplier-detail-section-title', '收货地址');
+        var list = el('div');
+        var editor = el('dialog', 'member-address-dialog');
+        editor.setAttribute('aria-labelledby', 'memberAddressDialogTitle');
+        var regionPicker;
+
+        function button(label, className, action) {
+            var control = el('button', className, label);
+            control.type = 'button';
+            control.addEventListener('click', action);
+            return control;
+        }
+
+        function closeEditor() {
+            if (regionPicker) regionPicker.destroy();
+            regionPicker = null;
+            if (editor.open) editor.close();
+            editor.replaceChildren();
+        }
+
+        editor.addEventListener('cancel', function (event) {
+            event.preventDefault();
+            closeEditor();
+        });
+
+        function findAddress(groups, id) {
+            for (var group of groups) {
+                var address = group.addresses.find(function (item) { return item.id === id; });
+                if (address) return { group: group, address: address };
+            }
+            return null;
+        }
+
+        function removeAddress(groups, id) {
+            return groups.filter(function (group) {
+                group.addresses = group.addresses.filter(function (item) { return item.id !== id; });
+                return group.addresses.length > 0;
+            });
+        }
+
+        function render() {
+            var headers = ['收件人信息', '收件地址', '收件人联系方式', '操作'];
+            var rows = [];
+            var records = [];
+            book.load(memberId).forEach(function (group) {
+                group.addresses.forEach(function (address) {
+                    records.push(address.id);
+                    rows.push([group.name, address.text, group.phone, '']);
+                });
+            });
+            var table = wrapTable(headers, rows, '');
+            table.querySelectorAll('tbody tr').forEach(function (row, index) {
+                var id = records[index];
+                var actions = row.lastElementChild;
+                actions.append(
+                    button('编辑', 'erp-btn erp-btn--link', function () { openEditor(id); }),
+                    button('删除', 'erp-btn erp-btn--link', function () {
+                        if (!window.confirm('确定删除这条收货地址？')) return;
+                        book.save(memberId, removeAddress(book.load(memberId), id));
+                        closeEditor();
+                        render();
+                    })
+                );
+            });
+            list.replaceChildren(table);
+            if (!rows.length) list.appendChild(el('p', '', '暂无收货地址'));
+        }
+
+        function field(form, label, input) {
+            var row = el('div', 'erp-modal-field');
+            var caption = el('label', 'erp-modal-field__label', label);
+            var control = el('div', 'erp-modal-field__control');
+            var required = el('span', 'erp-req', '*');
+            required.setAttribute('aria-hidden', 'true');
+            caption.prepend(required);
+            if (input) {
+                input.setAttribute('aria-label', label);
+                control.appendChild(input);
+            }
+            row.append(caption, control);
+            form.appendChild(row);
+            return control;
+        }
+
+        function openEditor(id) {
+            var existing = id && findAddress(book.load(memberId), id);
+            if (id && !existing) return render();
+            closeEditor();
+            var form = el('form', 'spec-manage-dialog');
+            var heading = el('h2', 'spec-manage-dialog__title', existing ? '编辑收货地址' : '新增收货地址');
+            heading.id = 'memberAddressDialogTitle';
+            var closeButton = button('×', 'spec-manage-dialog__close', closeEditor);
+            closeButton.setAttribute('aria-label', '关闭');
+            var header = el('header', 'spec-manage-dialog__header');
+            header.append(heading, closeButton);
+            var body = el('div', 'spec-manage-dialog__body');
+            var name = el('input', 'erp-input');
+            name.required = true;
+            name.value = existing ? existing.group.name : '';
+            field(body, '收件人', name);
+            var phone = el('input', 'erp-input');
+            phone.type = 'tel';
+            phone.required = true;
+            phone.pattern = '1[3-9][0-9]{9}';
+            phone.addEventListener('invalid', function () {
+                phone.setCustomValidity(phone.validity.valueMissing ? '请输入手机号' : '请输入有效的中国大陆 11 位手机号');
+            });
+            phone.addEventListener('input', function () { phone.setCustomValidity(''); });
+            phone.value = existing ? existing.group.phone : '';
+            field(body, '手机号码', phone);
+            var parts = existing ? book.addressParts(existing.address) : { region: '', detail: '' };
+            var regionHost = field(body, '收货地址');
+            regionPicker = window.MdmStoreRegionCascader.create(regionHost, parts.region);
+            regionHost.appendChild(regionPicker.wrap);
+            var detail = el('textarea', 'erp-input store-form__textarea');
+            detail.placeholder = '请输入详细地址';
+            detail.required = true;
+            detail.maxLength = 200;
+            detail.value = parts.detail;
+            var detailWrap = el('div', 'store-form__textarea-wrap');
+            var counter = el('div', 'store-form__counter');
+            function updateCount() { counter.textContent = detail.value.length + ' / 200'; }
+            updateCount();
+            detail.addEventListener('input', updateCount);
+            detailWrap.append(detail, counter);
+            field(body, '详细地址').appendChild(detailWrap);
+            detail.setAttribute('aria-label', '详细地址');
+            var submit = el('button', 'spec-manage-dialog__btn spec-manage-dialog__btn--primary', '保存');
+            submit.type = 'submit';
+            var error = el('p', 'member-address-dialog__error');
+            error.setAttribute('role', 'alert');
+            var actions = el('footer', 'spec-manage-dialog__footer');
+            actions.append(button('取消', 'spec-manage-dialog__btn', closeEditor), submit);
+            body.appendChild(error);
+            form.append(header, body, actions);
+
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+                var region = regionPicker.getValue();
+                if (!name.value.trim() || !region || !detail.value.trim()) {
+                    error.textContent = '请填写收件人、省市区和详细地址';
+                    return;
+                }
+                var groups = book.load(memberId);
+                var current = id && findAddress(groups, id);
+                if (id && !current) {
+                    showToast('该地址已删除，请刷新后重试', 'error');
+                    closeEditor();
+                    render();
+                    return;
+                }
+                var tags = current ? (current.group.tags || []) : [];
+                var recipient = name.value.trim();
+                var number = phone.value;
+                var address = {
+                    id: id || 'ab-a-' + crypto.randomUUID(),
+                    region: region,
+                    detail: detail.value.trim(),
+                    text: book.addressText(region, detail.value.trim())
+                };
+                if (id) groups = removeAddress(groups, id);
+                var group = groups.find(function (item) {
+                    return item.name === recipient && item.phone === number && JSON.stringify(item.tags || []) === JSON.stringify(tags);
+                });
+                if (group) group.addresses.push(address);
+                else groups.unshift({
+                    id: 'ab-g-' + crypto.randomUUID(),
+                    name: recipient,
+                    phone: number,
+                    phoneDisplay: number.replace(/^(...)(....)(....)$/, '$1 $2 $3'),
+                    tags: tags,
+                    addresses: [address]
+                });
+                book.save(memberId, groups);
+                closeEditor();
+                render();
+            });
+            editor.appendChild(form);
+            editor.showModal();
+            name.focus();
+        }
+
+        title.append(' ', button('新增收货地址', 'erp-btn erp-btn--primary', function () { openEditor(); }));
+        panel.append(title, editor, list);
+        render();
+        return panel;
+    }
+
     function panelMemberDetail(rec) {
         var root = el('div', 'member-drawer-panel');
         root.appendChild(el('div', 'supplier-detail-section-title', '基础信息'));
@@ -326,14 +517,7 @@
         settleNote.textContent = '结算进件与收款账户请到支付进件工作台维护（演示）。';
         root.appendChild(settleNote);
 
-        root.appendChild(el('div', 'supplier-detail-section-title', '收货地址'));
-        var addrHeaders = ['收件人信息', '收件地址', '收件人联系方式', '地址标签'];
-        var addrRows = [
-            ['张三', '上海市浦东新区张江路 88 号', '138****2211', '家'],
-            ['李四', '杭州市西湖区文三路 256 号', '139****8811', '公司']
-        ];
-        root.appendChild(wrapTable(addrHeaders, addrRows, ''));
-        root.appendChild(fakePaginationBar());
+        root.appendChild(memberAddressPanel(rec.id));
         return root;
     }
 
