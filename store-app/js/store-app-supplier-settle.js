@@ -10,12 +10,9 @@
   var state = {
     tab: initTab === 'ledger' || initTab === 'bills' || initTab === 'account' ? initTab : 'account',
     time: 'all',
-    clearStatus: '全部',
     settleStatus: '全部',
     billStatus: '全部'
   };
-  var orgEl = document.getElementById('saSupSettleOrg');
-  if (orgEl) orgEl.textContent = org.name + ' · 按本商家订单归集';
 
   function money(v) {
     var n = Number(v);
@@ -30,7 +27,6 @@
 
   function mineLedger() {
     return window.FybSupplierSettle.listLedgerBySupplier(org.name).filter(function (x) {
-      if (state.clearStatus !== '全部' && x.clearStatus !== state.clearStatus) return false;
       if (state.settleStatus !== '全部' && x.settleStatus !== state.settleStatus) return false;
       return F.matchTime(x.time, state.time);
     });
@@ -81,15 +77,6 @@
   function filterBar(kind) {
     var html = F.timeRowHtml(state.time);
     if (kind === 'ledger') {
-      html +=
-        '<div class="sa-sup-filter__l2" role="tablist" aria-label="清分状态">' +
-        ['全部']
-          .concat(F.CLEAR_STATUSES)
-          .map(function (s) {
-            return F.chip(s, state.clearStatus === s, 'data-clear');
-          })
-          .join('') +
-        '</div>';
       html +=
         '<div class="sa-sup-filter__l2" role="tablist" aria-label="结算状态">' +
         ['全部']
@@ -239,12 +226,6 @@
       var timeBtn = e.target.closest('[data-time]');
       if (timeBtn) {
         state.time = timeBtn.getAttribute('data-time');
-        render();
-        return;
-      }
-      var clearBtn = e.target.closest('[data-clear]');
-      if (clearBtn) {
-        state.clearStatus = clearBtn.getAttribute('data-clear');
         render();
         return;
       }

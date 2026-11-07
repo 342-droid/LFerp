@@ -349,6 +349,43 @@
   margin-top: 12px;
 }
 
+.sa-sup-od-goods {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.sa-sup-od-goods__img {
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: #f5f5f5;
+  flex-shrink: 0;
+}
+
+.sa-sup-od-goods__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.sa-sup-od-goods__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+
+.sa-sup-card__goods-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+  object-fit: cover;
+  background: #f5f5f5;
+  flex-shrink: 0;
+}
+
 .sa-sup-od-footer {
   flex-shrink: 0;
   display: flex;
@@ -437,4 +474,13 @@
 .sa-sup-confirm__btn--primary {
   background: #ff7019;
   color: #fff;
+}
+
+.sa-sup-refund-sheet {
+  max-width: 340px;
+}
+
+.sa-sup-refund-sheet .sa-sup-od-grid {
+  grid-template-columns: 1fr;
+}
 }

@@ -5910,7 +5910,7 @@
             );
             grid.appendChild(
                 detailCell(
-                    '结算配置策略',
+                    '结算策略',
                     store.strategyLabel
                         ? store.strategyLabel(sc.followPlatform)
                         : sc.followPlatform === false
@@ -5959,7 +5959,7 @@
                 ],
                 sc.followPlatform === false ? 'override' : 'inherit'
             );
-            form.appendChild(buildSupplierSettleField('结算配置策略', strategyRadios));
+            form.appendChild(buildSupplierSettleField('结算策略', strategyRadios));
 
             var triggerSel = buildSupplierSettleSelect(
                 [

@@ -2873,8 +2873,9 @@
     });
   }
 
-  function initRetailBatchExpressUpload() {
-    if (!document.body || document.body.getAttribute('data-order-page') !== 'retail') return;
+  function initBatchExpressUpload() {
+    var page = document.body ? document.body.getAttribute('data-order-page') : '';
+    if (page !== 'retail' && page !== 'proxy') return;
 
     function openBatch(mode) {
       if (!window.OrderProxyExpress || typeof window.OrderProxyExpress.openBatchUploadModal !== 'function') {
@@ -2899,18 +2900,30 @@
       });
     }
 
-    var batchBtn = document.getElementById('orderRetailBatchUpload');
-    if (batchBtn) {
-      batchBtn.addEventListener('click', function () {
-        openBatch('upload');
-      });
-    }
-    var deleteBtn = document.getElementById('orderRetailBatchDelete');
-    if (deleteBtn) {
-      deleteBtn.addEventListener('click', function () {
-        openBatch('delete');
-      });
-    }
+    var uploadIds =
+      page === 'proxy'
+        ? ['orderProxyBatchUpload']
+        : ['orderRetailBatchUpload'];
+    var deleteIds =
+      page === 'proxy'
+        ? ['orderProxyBatchDelete']
+        : ['orderRetailBatchDelete'];
+    uploadIds.forEach(function (id) {
+      var batchBtn = document.getElementById(id);
+      if (batchBtn) {
+        batchBtn.addEventListener('click', function () {
+          openBatch('upload');
+        });
+      }
+    });
+    deleteIds.forEach(function (id) {
+      var deleteBtn = document.getElementById(id);
+      if (deleteBtn) {
+        deleteBtn.addEventListener('click', function () {
+          openBatch('delete');
+        });
+      }
+    });
   }
 
   function padOrderDatePart(n) {
@@ -2965,7 +2978,7 @@
     initPagination();
     initVerifyPickup();
     initRetailExpressUpload();
-    initRetailBatchExpressUpload();
+    initBatchExpressUpload();
     initRetailBatchRefund();
     initRetailActionLayout();
     initRetailCancelAndRefund();

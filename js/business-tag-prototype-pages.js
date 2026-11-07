@@ -264,9 +264,20 @@
     window.addEventListener('business-tags:changed', refreshDecorations);
   }
 
+  function isSupplierOrgView() {
+    try {
+      var orgId = localStorage.getItem('lfCurrentOrgId') || localStorage.getItem('spSettleSupplierId') || '';
+      return String(orgId).indexOf('sup-') === 0;
+    } catch (e) {
+      return false;
+    }
+  }
+
   function mountAfterSaleDetail() {
     var body = document.getElementById('asDetailBody');
     if (!body) return;
+    /* 供应商不展示业务标签（售后/会员标签均为平台运营能力） */
+    if (isSupplierOrgView()) return;
     var saleEnabled = store.isModuleEnabled('AFTER_SALE_TAG');
     var memberEnabled = store.isModuleEnabled('MEMBER_TAG');
     if (!saleEnabled && !memberEnabled) return;

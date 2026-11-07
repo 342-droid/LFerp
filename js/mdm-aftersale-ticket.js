@@ -253,8 +253,9 @@
     var occurAt = '2026-07-14 ' + hour + ':' + minute + ':' + second;
     var applyAt = '2026-07-14 ' + hour + ':' + minute + ':' + pad(Math.max(0, parseInt(second, 10) - 1), 2);
     var idPrefix = opts.idPrefix || 'AS-335';
+    var ticketId = idPrefix + String(300000000000000 + i * 117 + day).slice(0, 15);
     return {
-      id: idPrefix + String(300000000000000 + i * 117 + day).slice(0, 15),
+      id: ticketId,
       source: SOURCES[i % SOURCES.length],
       type: type,
       status: status,
@@ -292,7 +293,13 @@
       applyTime: applyAt,
       updateTime:
         '2026-07-14 ' + hour + ':' + pad((parseInt(minute, 10) + 1) % 60) + ':' + pad((parseInt(second, 10) + 8) % 60),
-      orderNo: 'ORD-3212689' + pad(200000 + i, 7)
+      orderNo: 'ORD-3212689' + pad(200000 + i, 7),
+      supplierId:
+        opts.supplierId != null
+          ? opts.supplierId
+          : window.LFAftersaleSupplierView
+            ? window.LFAftersaleSupplierView.demoSupplierIdForKey(ticketId)
+            : ''
     };
   }
 
@@ -456,14 +463,25 @@
     );
   }
 
+  function isSupplierAftersaleView() {
+    return !!(window.LFAftersaleSupplierView && window.LFAftersaleSupplierView.isActive());
+  }
+
   function renderActionCell(row) {
+    var supplierView = isSupplierAftersaleView();
+    var canHandle =
+      supplierView &&
+      window.LFAftersaleSupplierView.canOperateTicket(row);
     var html =
       '<td class="aftersale-table__td aftersale-table__td--action">' +
       '<div class="aftersale-action">' +
       '<a href="#"' +
       detailLinkAttrs(row) +
       '>查看详情</a>';
-    if (row.status === '待审批') {
+    if (canHandle) {
+      html += '<a href="#"' + detailLinkAttrs(row) + '>处理售后</a>';
+    }
+    if (row.status === '待审批' && !supplierView) {
       html +=
         '<div class="aftersale-more">' +
         '<button type="button" class="aftersale-more__trigger js-as-more" aria-expanded="false" data-id="' +
@@ -562,6 +580,7 @@
     if (f.approveEnd && row.approveTime > f.approveEnd) return false;
     if (f.refundStart && row.updateTime < f.refundStart) return false;
     if (f.refundEnd && row.updateTime > f.refundEnd) return false;
+    if (isSupplierAftersaleView() && !window.LFAftersaleSupplierView.ownsRow(row)) return false;
     return true;
   }
 

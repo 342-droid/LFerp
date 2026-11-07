@@ -280,9 +280,32 @@ function resolveOrgSwitchNavigation(prev, next) {
     if (pageFile && !pageFile.endsWith('.html')) pageFile += '.html';
     var isOrderPage = pageFile.indexOf('mdm_order_') === 0;
     var isSettlePage = pageFile.indexOf('mdm_settle_') === 0;
+    var isAftersalePage = pageFile.indexOf('mdm_aftersale_') === 0;
     var isSettleSupplier = pageFile === 'mdm_settle_supplier_portal.html';
     var nextIsSupplier = isSupplierOrgId(next.id);
     var wp = window.wmsPath || { page: function (f) { return f; } };
+
+    /* 售后：供应商仅售后单/退款单；保障期与举报反馈为平台专属 */
+    if (isAftersalePage) {
+        var aftersalePlatformOnly = {
+            'mdm_aftersale_guarantee.html': 1,
+            'mdm_aftersale_report.html': 1,
+            'mdm_aftersale_feedback.html': 1
+        };
+        if (nextIsSupplier && aftersalePlatformOnly[pageFile]) {
+            return wp.page('mdm_aftersale_ticket.html');
+        }
+        if (
+            pageFile === 'mdm_aftersale_ticket.html' ||
+            pageFile === 'mdm_aftersale_ticket_detail.html' ||
+            pageFile === 'mdm_aftersale_refund.html'
+        ) {
+            var asStay = new URLSearchParams(location.search);
+            asStay.set('_org', next.id);
+            return location.pathname + '?' + asStay.toString();
+        }
+        return nextIsSupplier ? wp.page('mdm_aftersale_ticket.html') : wp.page('mdm_aftersale_ticket.html');
+    }
 
     /* 结算：版头组织切换 = 平台结算中心 ↔ 供应商结算门户 */
     if (isSettlePage) {

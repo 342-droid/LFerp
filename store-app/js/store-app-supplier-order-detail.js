@@ -128,26 +128,30 @@
       '</div></article>' +
       '<article class="sa-sup-card">' +
       '<h3 class="sa-sup-card__name">商品</h3>' +
+      '<div class="sa-sup-od-goods" style="margin-top:10px">' +
+      '<img class="sa-sup-od-goods__img" src="' +
+      (order.productImg || '../../user-app/assets/order-product-1.svg') +
+      '" alt="">' +
+      '<div class="sa-sup-od-goods__info">' +
+      '<div class="sa-sup-od-goods__name">' +
+      order.product +
+      '</div>' +
+      '<div class="sa-sup-card__meta">' +
+      (order.spec || '') +
+      ' ×' +
+      order.qty +
+      '</div>' +
       '<div class="sa-sup-card__meta">编码 ' +
       order.code +
       ' · 条码 ' +
       order.barcode +
-      (order.lineNo && order.lineNo !== '—' ? '<br>行号 ' + order.lineNo : '') +
       '</div>' +
-      '<div class="sa-sup-card__row" style="margin-top:8px">' +
-      '<div><strong>' +
-      order.product +
-      '</strong><div class="sa-sup-card__meta">' +
-      (order.spec || '') +
-      ' ×' +
-      order.qty +
+      '<div class="sa-sup-card__meta" style="margin-top:4px">采购款 ¥' +
+      order.purchase +
       '</div></div>' +
       '<div class="sa-sup-card__amt">¥' +
       order.amount +
-      '</div></div>' +
-      '<div class="sa-sup-card__meta" style="margin-top:6px">采购款 ¥' +
-      order.purchase +
-      '</div></article>' +
+      '</div></div></article>' +
       '<article class="sa-sup-card">' +
       '<h3 class="sa-sup-card__name">收货信息</h3>' +
       '<div class="sa-sup-od-grid">' +
@@ -173,15 +177,11 @@
       asHost.addEventListener('click', onAftersaleClick);
     }
 
+    /* 售后确认收货/拒收已在「售后处理」区内展示，底栏不再重复「处理售后」 */
     var actions = [];
     if (window.FybSupplierOrders.canShip(order)) {
       actions.push(
         '<button type="button" class="sa-sup-od-btn sa-sup-od-btn--primary" data-act="ship">发货 · 上传快递单</button>'
-      );
-    }
-    if (window.FybSupplierOrders.canHandleAftersale(order)) {
-      actions.push(
-        '<button type="button" class="sa-sup-od-btn" data-act="as">处理售后</button>'
       );
     }
     if (!actions.length) {
@@ -205,11 +205,6 @@
       order.status = '待收货';
       toast('已发货（演示）：' + no);
       render();
-      return;
-    }
-    if (act === 'as') {
-      var card = document.querySelector('.sa-sup-od-as');
-      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }
 

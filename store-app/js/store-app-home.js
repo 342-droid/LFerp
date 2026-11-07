@@ -105,6 +105,10 @@
             window.location.href = 'supplier-settle.html';
             return;
           }
+          if (action === 'supplierAftersale') {
+            window.location.href = 'supplier-aftersale.html';
+            return;
+          }
           if (action === 'livePromo') {
             var href =
               window.SaLivePromoSession && window.SaLivePromoSession.livePromoHref

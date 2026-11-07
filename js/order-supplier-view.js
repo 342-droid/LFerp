@@ -37,11 +37,10 @@
   }
 
   function hidePlatformOnlyChrome() {
+    /* 保留批量上传/删除快递单；隐藏清分导出与批量退款等平台专属能力 */
     [
       'orderRetailClearingExport',
       'orderProxyClearingExport',
-      'orderRetailBatchUpload',
-      'orderRetailBatchDelete',
       'orderRetailBatchRefund',
       'orderProxyBatchRefund'
     ].forEach(function (id) {
