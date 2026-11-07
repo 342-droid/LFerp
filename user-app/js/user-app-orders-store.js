@@ -118,6 +118,16 @@
     }
     var name = String(order.supplierName || '').trim();
     if (name === '华东冷链' || name === '华东冷链仓') return '华东冷链供应商';
+    if (
+      name &&
+      window.MdmSupplierArchiveStore &&
+      typeof window.MdmSupplierArchiveStore.getDisplayName === 'function'
+    ) {
+      name = window.MdmSupplierArchiveStore.getDisplayName({
+        id: order.supplierId || '',
+        name: name
+      });
+    }
     return name || '进货商城';
   }
 

@@ -1154,8 +1154,9 @@
         body.appendChild(formRow('主体名称', true, refs.subjectSel));
         refs.nameInp = txt('请输入供应商名称', '');
         body.appendChild(formRow('供应商名称', true, refs.nameInp));
-        refs.shortNameInp = txt('请输入供应商简称（商品透出优先展示）', '');
-        body.appendChild(formRow('供应商简称', false, refs.shortNameInp));
+        /* 供应商别名：非必填；仅影响 C 端供应商名称展示（购物车/确认订单/订单详情），不改商品名称 */
+        refs.shortNameInp = txt('请输入供应商别名（未填则前端显示供应商名称）', '');
+        body.appendChild(formRow('供应商别名', false, refs.shortNameInp));
         refs.typeSel = sel(
             [
                 { value: '', label: '请选择供应商类型' },
@@ -1773,12 +1774,23 @@
                     bundle.refs && bundle.refs.nameInp
                         ? String(bundle.refs.nameInp.value || '').trim()
                         : '';
+                var shortName =
+                    bundle.refs && bundle.refs.shortNameInp
+                        ? String(bundle.refs.shortNameInp.value || '').trim()
+                        : '';
                 var selectedWarehouse =
                     bundle.refs && bundle.refs.inboundWarehouseSel
                         ? String(bundle.refs.inboundWarehouseSel.value || '').trim()
                         : '';
                 if (name) {
                     saveSupplierInboundWarehouseBinding('', name, selectedWarehouse);
+                    if (window.MdmSupplierArchiveStore) {
+                        window.MdmSupplierArchiveStore.upsert({
+                            id: 'SUP' + Date.now(),
+                            name: name,
+                            shortName: shortName
+                        });
+                    }
                 }
                 if (window.LFSettleCycleStore && bundle.refs && bundle.refs.readSettleCycle) {
                     if (bundle.refs.settleTriggerSel) bundle.refs.settleTriggerSel.disabled = false;

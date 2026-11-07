@@ -74,32 +74,22 @@
     }
   ];
 
-  var SHIP_ADDRS = [
-    {
-      id: 'ship-1',
-      title: '绿城.西溪世纪中心 5-2-702',
-      sub: '刘一凡 15933452465',
-      regionLabel: '浙江省/杭州市/西湖区',
-      locateAddr: '浙江省杭州市西湖区绿城西溪世纪中心',
-      nearbyPickup: true
-    },
-    {
-      id: 'ship-2',
-      title: '西溪蓝保中心大楼 A座',
-      sub: '吴丹萍 17739589272',
-      regionLabel: '浙江省/杭州市/西湖区',
-      locateAddr: '浙江省杭州市西湖区西溪蓝保中心大楼',
-      nearbyPickup: false
-    },
-    {
-      id: 'ship-3',
-      title: '杭州溪印公寓 3幢',
-      sub: '张三 13800138000',
-      regionLabel: '浙江省/杭州市/西湖区',
-      locateAddr: '浙江省杭州市西湖区杭州溪印公寓',
-      nearbyPickup: false
-    }
-  ];
+  function shippingAddresses() {
+    var book = global.MemberAddressBook;
+    return book.load(book.activeMemberId()).flatMap(function (group) {
+      return group.addresses.map(function (address) {
+        var parts = book.addressParts(address);
+        return {
+          id: address.id,
+          title: parts.detail || address.text,
+          sub: group.name + ' ' + group.phone,
+          regionLabel: parts.region.replace(/\s*\/\s*/g, '/'),
+          locateAddr: address.text,
+          nearbyPickup: false
+        };
+      });
+    });
+  }
 
   var NEAR_ADDRS = [
     { id: 'near-1', title: '杭州溪印公寓', nearbyPickup: false },
@@ -559,11 +549,16 @@
       }
     }
 
+    window.addEventListener('storage', function (event) {
+      var book = global.MemberAddressBook;
+      if (event.key === book.key(book.activeMemberId())) renderMallLists();
+    });
+
     function renderMallLists() {
       var shipHost = $('saShipList');
       var nearHost = $('saNearList');
       if (shipHost) {
-        shipHost.innerHTML = SHIP_ADDRS.map(function (item) {
+        shipHost.innerHTML = shippingAddresses().map(function (item) {
           return (
             '<button type="button" class="ua-sa-ship-item" data-ship-id="' +
             escapeHtml(item.id) +
@@ -797,7 +792,7 @@
           }
           var ship = ev.target.closest('[data-ship-id]');
           if (ship) {
-            var shipItem = SHIP_ADDRS.find(function (a) {
+            var shipItem = shippingAddresses().find(function (a) {
               return a.id === ship.getAttribute('data-ship-id');
             });
             if (!shipItem) return;

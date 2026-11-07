@@ -726,8 +726,12 @@
 }
 
 .sa-mpcard__title {
-  margin: 0;
-  padding: 0 12px 10px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  margin: 0 12px 10px;
   font-size: 17px;
   font-weight: 700;
   color: #1a1a1a;

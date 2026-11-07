@@ -236,6 +236,19 @@
         "MDM/mdm_product_category.html",
         "MDM/mdm_product_mall_category.html"
       ]
+    },
+    {
+      "id": "903-PC-会员地址增删改",
+      "title": "【903】PC-会员地址增删改",
+      "file": "903-PC-会员地址增删改.md",
+      "pages": [
+        "MDM/mdm_member_c.html",
+        "user-app/h5/profile.html",
+        "user-app/h5/order-refund-address-book.html",
+        "user-app/h5/order-refund-address-create.html",
+        "user-app/h5/order-edit-address.html",
+        "user-app/h5/switch-address.html"
+      ]
     }
   ]
 }
