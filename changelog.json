@@ -1,10 +1,244 @@
 {
-  "latestSha": "867611e2fbb63efeb39bf5ba145e602ea952f6e5",
-  "total": 499,
+  "latestSha": "68a159f450ae3fade5720812dd0e777e5fa81095",
+  "total": 500,
   "days": [
     {
       "date": "2026-11-07",
       "items": [
+        {
+          "sha": "68a159f",
+          "type": "feat",
+          "text": "供应商 PC/App 开通售后管理并精简订单结算交互",
+          "author": "sisi",
+          "time": "23:56",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_feedback.html",
+              "module": "冷丰售后",
+              "title": "意见反馈"
+            },
+            {
+              "file": "MDM/mdm_aftersale_guarantee.html",
+              "module": "冷丰售后",
+              "title": "售后保障期管理"
+            },
+            {
+              "file": "MDM/mdm_aftersale_refund.html",
+              "module": "冷丰售后",
+              "title": "退款单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_report.html",
+              "module": "冷丰售后",
+              "title": "举报管理"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "module": "冷丰售后",
+              "title": "售后单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_bd_stores.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 门店模块"
+            },
+            {
+              "file": "MDM/mdm_order_live.html",
+              "module": "冷丰WMS",
+              "title": "直播订单"
+            },
+            {
+              "file": "MDM/mdm_order_proxy.html",
+              "module": "冷丰WMS",
+              "title": "代采订单"
+            },
+            {
+              "file": "MDM/mdm_order_retail.html",
+              "module": "冷丰WMS",
+              "title": "零售订单"
+            },
+            {
+              "file": "SCM/basic_settings_business_tags.html",
+              "module": "冷丰WMS",
+              "title": "标签管理"
+            },
+            {
+              "file": "SCM/basic_settings_contract_config.html",
+              "module": "冷丰WMS",
+              "title": "接入配置"
+            },
+            {
+              "file": "SCM/basic_settings_contract_party.html",
+              "module": "冷丰WMS",
+              "title": "签署主体"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task.html",
+              "module": "冷丰WMS",
+              "title": "签署任务"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_detail.html",
+              "module": "冷丰WMS",
+              "title": "签署任务详情"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template.html",
+              "module": "冷丰WMS",
+              "title": "合同模板"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template_form.html",
+              "module": "冷丰WMS",
+              "title": "合同模板配置"
+            },
+            {
+              "file": "SCM/contract_sign.html",
+              "module": "",
+              "title": "合同"
+            },
+            {
+              "file": "shop-h5/h5/store/contracts.html",
+              "module": "",
+              "title": "签署合同 · Shop H5"
+            },
+            {
+              "file": "store-app/h5/contract-sign.html",
+              "module": "",
+              "title": "签署合同 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/contracts.html",
+              "module": "",
+              "title": "合同签署 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "丰银宝 · 工作台"
+            },
+            {
+              "file": "store-app/h5/supplier-aftersale-detail.html",
+              "module": "",
+              "title": "售后详情 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-aftersale-logistics.html",
+              "module": "",
+              "title": "物流跟踪 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-aftersale.html",
+              "module": "",
+              "title": "售后管理 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-orders.html",
+              "module": "",
+              "title": "客户订单 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-settle-bill-detail.html",
+              "module": "",
+              "title": "结款详情 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-settle-ledger-detail.html",
+              "module": "",
+              "title": "清分明细 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-settle.html",
+              "module": "",
+              "title": "结算中心 · 丰银宝"
+            },
+            {
+              "file": "user-app/h5/login-register.html",
+              "module": "",
+              "title": "账号注册 · 用户 APP"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "text": "供应商组织仅看本商家单；快递退货可收货/拒收，快递补货可上传运单；配送自提只读"
+            },
+            {
+              "file": "MDM/mdm_aftersale_refund.html",
+              "text": "供应商仅看本商家退款"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "text": "供应商隐藏客户信息与业务标签；不透出操作范围说明文案"
+            },
+            {
+              "file": "store-app/h5/supplier-orders.html",
+              "text": "处理售后直接进订单详情；去掉组织副标题；列表展示商品主图"
+            },
+            {
+              "file": "store-app/h5/supplier-order-detail.html",
+              "text": "售后区内可收货/拒收；去掉底栏重复「处理售后」与行号；商品展示主图"
+            },
+            {
+              "file": "store-app/h5/supplier-aftersale.html",
+              "text": "新增售后单/退款单列表与详情、物流跟踪；处理售后直达售后详情"
+            },
+            {
+              "file": "store-app/h5/supplier-settle.html",
+              "text": "清分明细去掉清分状态筛选行；去掉组织副标题"
+            },
+            {
+              "file": null,
+              "text": "首页接入售后管理入口；PC 售后侧栏对供应商裁剪可见菜单"
+            }
+          ]
+        },
         {
           "sha": "867611e",
           "type": "feat",
@@ -1278,6 +1512,21 @@
               "title": "丰银宝 · 工作台"
             },
             {
+              "file": "store-app/h5/supplier-aftersale-detail.html",
+              "module": "",
+              "title": "售后详情 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-aftersale-logistics.html",
+              "module": "",
+              "title": "物流跟踪 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-aftersale.html",
+              "module": "",
+              "title": "售后管理 · 丰银宝"
+            },
+            {
               "file": "store-app/h5/supplier-order-detail.html",
               "module": "",
               "title": "订单详情 · 丰银宝"
@@ -1888,6 +2137,21 @@
               "file": "store-app/h5/store-orders.html",
               "module": "",
               "title": "门店订单 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-aftersale-detail.html",
+              "module": "",
+              "title": "售后详情 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-aftersale-logistics.html",
+              "module": "",
+              "title": "物流跟踪 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-aftersale.html",
+              "module": "",
+              "title": "售后管理 · 丰银宝"
             },
             {
               "file": "store-app/h5/supplier-order-detail.html",
@@ -17315,6 +17579,11 @@
               "file": "store-app/h5/store-orders.html",
               "module": "",
               "title": "门店订单 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-aftersale-logistics.html",
+              "module": "",
+              "title": "物流跟踪 · 丰银宝"
             }
           ],
           "notes": [
@@ -17518,6 +17787,16 @@
               "file": "store-app/h5/store-orders.html",
               "module": "",
               "title": "门店订单 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-aftersale-detail.html",
+              "module": "",
+              "title": "售后详情 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-aftersale-logistics.html",
+              "module": "",
+              "title": "物流跟踪 · 丰银宝"
             },
             {
               "file": "store-app/h5/supplier-order-detail.html",
@@ -32471,6 +32750,11 @@
               "title": "订单详情 · 丰银宝"
             },
             {
+              "file": "store-app/h5/supplier-aftersale-logistics.html",
+              "module": "",
+              "title": "物流跟踪 · 丰银宝"
+            },
+            {
               "file": "user-app/h5/checkout.html",
               "module": "",
               "title": "确认订单 · 用户 APP"
@@ -35210,6 +35494,11 @@
               "file": "store-app/h5/restock-orders.html",
               "module": "",
               "title": "进货订单 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-aftersale-logistics.html",
+              "module": "",
+              "title": "物流跟踪 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
