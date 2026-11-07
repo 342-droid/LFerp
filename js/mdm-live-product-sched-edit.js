@@ -654,6 +654,19 @@
     document.getElementById('pDesc').value = product.desc || '';
     document.getElementById('pArrival').value = product.arrivalTime || '';
     document.getElementById('pArrivalUnit').value = product.arrivalUnit || 'DAY';
+    var aftersaleEl = document.getElementById('pAftersaleDays');
+    if (aftersaleEl) {
+      var days =
+        product.aftersaleDays != null && product.aftersaleDays !== ''
+          ? product.aftersaleDays
+          : window.LFAftersaleGuaranteeStore
+            ? window.LFAftersaleGuaranteeStore.getProductDays(
+                window.LFAftersaleGuaranteeStore.load(),
+                goodsIdOf(product) || product.code || product.sku
+              )
+            : null;
+      aftersaleEl.value = days == null ? '' : String(days);
+    }
 
     var dm = normalizeDelivery(product.deliveryMode);
     var dmEl = document.querySelector('input[name="deliveryMode"][value="' + dm + '"]');
@@ -736,6 +749,12 @@
     var first = kept.filter(function (s) {
       return s.isDefault;
     })[0] || kept[0];
+    var aftersaleRaw = ((document.getElementById('pAftersaleDays') || {}).value || '').trim();
+    var aftersaleDays = null;
+    if (aftersaleRaw !== '') {
+      var aftersaleNum = Number(aftersaleRaw);
+      if (!isNaN(aftersaleNum) && aftersaleNum >= 0) aftersaleDays = Math.floor(aftersaleNum);
+    }
     Object.assign(product, {
       name: document.getElementById('pName').value.trim(),
       categoryId: catId,
@@ -743,6 +762,7 @@
       desc: document.getElementById('pDesc').value.trim(),
       arrivalTime: document.getElementById('pArrival').value.trim(),
       arrivalUnit: document.getElementById('pArrivalUnit').value,
+      aftersaleDays: aftersaleDays,
       deliveryMode: (document.querySelector('input[name="deliveryMode"]:checked') || {}).value || 'express',
       freeShip: ((document.querySelector('input[name="freeShip"]:checked') || {}).value || 'yes') === 'yes',
       displaySalesMode: (document.querySelector('input[name="displaySalesMode"]:checked') || {}).value || 'ACTUAL',
@@ -790,6 +810,12 @@
         return sum + (Number(s.liveStock) || 0);
       }, 0)
     });
+    if (window.LFAftersaleGuaranteeStore) {
+      window.LFAftersaleGuaranteeStore.syncProductDays(
+        goodsIdOf(product) || product.code || product.sku,
+        aftersaleDays
+      );
+    }
     persistLiveShipFlag(product);
   }
 

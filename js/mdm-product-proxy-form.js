@@ -587,6 +587,25 @@
         detail.deliveryMode || product.deliveryMode || product.fulfillmentMode
       ),
       freeShipTouched: detail.freeShip != null || product.freeShip != null,
+      aftersaleDays: (function () {
+        var raw =
+          detail.aftersaleDays != null
+            ? detail.aftersaleDays
+            : product.aftersaleDays != null
+              ? product.aftersaleDays
+              : null;
+        if (raw == null || raw === '') {
+          if (window.LFAftersaleGuaranteeStore && product.code) {
+            return window.LFAftersaleGuaranteeStore.getProductDays(
+              window.LFAftersaleGuaranteeStore.load(),
+              product.code
+            );
+          }
+          return null;
+        }
+        var n = Number(raw);
+        return isNaN(n) || n < 0 ? null : n;
+      })(),
       saleScope: detail.saleScope || 'all',
       saleRegions: detail.saleRegions ? cloneRegionSelected(detail.saleRegions) : {},
       saleRegionSummary: Array.isArray(detail.saleRegionSummary) ? detail.saleRegionSummary.slice() : [],
@@ -1030,6 +1049,16 @@
       '          <div class="product-proxy-form__control">' +
       '            <input class="product-proxy-form__input" id="proxyFormDisplaySales" type="text" value="' + escapeHtml(state.displaySales) + '" placeholder="请输入展示销量">' +
       '          </div>' +
+      '        </div>' +
+      '        <div class="product-proxy-form__field">' +
+      '          <label class="product-proxy-form__label" for="proxyFormAftersaleDays">售后期</label>' +
+      '          <div class="product-proxy-form__control product-proxy-form__aftersale-days">' +
+      '            <input class="product-proxy-form__input" id="proxyFormAftersaleDays" type="number" min="0" step="1" value="' +
+      escapeHtml(state.aftersaleDays == null ? '' : String(state.aftersaleDays)) +
+      '" placeholder="请输入售后期">' +
+      '            <span class="product-proxy-form__aftersale-days-unit">天</span>' +
+      '          </div>' +
+      '          <p class="product-proxy-form__hint" style="margin-top:6px">空则按类目默认，再无则用售后保障期平台兜底。</p>' +
       '        </div>' +
       '        <div class="product-proxy-form__field product-proxy-form__field--text-desc">' +
       '          <label class="product-proxy-form__label" for="proxyFormTextDesc">文字描述</label>' +
@@ -1591,6 +1620,12 @@
         priceMoney = parseFloat(defaultSkuItem.salePrice) || 0.01;
       }
     }
+    var aftersaleRaw = ((backdrop.querySelector('#proxyFormAftersaleDays') || {}).value || '').trim();
+    var aftersaleDays = null;
+    if (aftersaleRaw !== '') {
+      var aftersaleNum = Number(aftersaleRaw);
+      if (!isNaN(aftersaleNum) && aftersaleNum >= 0) aftersaleDays = Math.floor(aftersaleNum);
+    }
 
     return {
       name: (backdrop.querySelector('#proxyFormName') || {}).value.trim(),
@@ -1600,6 +1635,7 @@
       saleTimeMode: saleTimeMode,
       saleTimeStart: saleTimeStart,
       saleTimeEnd: saleTimeEnd,
+      aftersaleDays: aftersaleDays,
       deliveryMode: deliveryMode,
       fulfillmentMode: deliveryMode,
       freeShip: freeShip,
@@ -1624,6 +1660,7 @@
         saleTimeMode: saleTimeMode,
         saleTimeStart: saleTimeStart,
         saleTimeEnd: saleTimeEnd,
+        aftersaleDays: aftersaleDays,
         deliveryMode: deliveryMode,
         freeShip: freeShip,
         saleScope: scopeEl ? scopeEl.value : 'all',

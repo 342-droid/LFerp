@@ -81,6 +81,16 @@
                             </div>
                         </div>
                         <div class="pts-rule-field">
+                            <label class="pts-rule-field__label" for="pAftersaleDays">售后期</label>
+                            <div class="pts-rule-field__control">
+                                <div class="pts-rule-unit">
+                                    <input class="erp-input" id="pAftersaleDays" type="number" min="0" step="1" placeholder="请输入售后期">
+                                    <span class="pts-rule-unit__text">天</span>
+                                </div>
+                                <p class="pts-rule-tip">空则按类目默认，再无则用售后保障期平台兜底。</p>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field">
                             <label class="pts-rule-field__label">展示销量</label>
                             <div class="pts-rule-field__control">
                                 <div class="lf-live-radio-row">
@@ -159,7 +169,8 @@
     <script src="../js/common.js"></script>
     <script src="../js/mdm-product-catalog-store.js?v=20260913-dims"></script>
     <script src="../js/mdm-sku-wh-stock.js?v=20261030-hide-reserve-tip"></script>
+    <script src="../js/mdm-aftersale-guarantee-store.js?v=20261106-product"></script>
     <script src="../js/mdm-live-demo-data.js?v=20260905-session-persist"></script>
-    <script src="../js/mdm-live-product-sched-edit.js?v=20261030-reserved-reset"></script>
+    <script src="../js/mdm-live-product-sched-edit.js?v=20261106-aftersale"></script>
 </body>
 </html>

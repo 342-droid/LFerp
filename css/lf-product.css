@@ -2252,6 +2252,27 @@ body.product-add-drawer-open {
   cursor: pointer;
 }
 
+.product-proxy-form__aftersale-days {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.product-proxy-form__aftersale-days .product-proxy-form__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+}
+
+.product-proxy-form__aftersale-days-unit {
+  flex: 0 0 auto;
+  color: #666;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
 .product-proxy-form__sale-time-wrap {
   display: flex;
   align-items: flex-end;

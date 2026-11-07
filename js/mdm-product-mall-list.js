@@ -614,9 +614,13 @@
           original.deliveryMode = normalizeDeliveryMode(payload.deliveryMode || payload.fulfillmentMode);
           original.fulfillmentMode = original.deliveryMode;
           original.freeShip = payload.freeShip !== false;
+          original.aftersaleDays = payload.aftersaleDays;
           original.detail = payload.detail;
           original.detailEdited = true;
           if (payload.status === 'on_shelf') original.status = 'on_shelf';
+          if (window.LFAftersaleGuaranteeStore) {
+            window.LFAftersaleGuaranteeStore.syncProductDays(original.code, payload.aftersaleDays);
+          }
           persistProducts();
           renderTable();
           populateCategoryFilter();
@@ -651,12 +655,16 @@
           deliveryMode: normalizeDeliveryMode(payload.deliveryMode || payload.fulfillmentMode),
           fulfillmentMode: normalizeDeliveryMode(payload.deliveryMode || payload.fulfillmentMode),
           freeShip: payload.freeShip !== false,
+          aftersaleDays: payload.aftersaleDays,
           detail: payload.detail,
           detailEdited: true
         };
         ALL_PRODUCTS.unshift(newItem);
         applyProductCategories(newItem, payload.category_l3_ids, payload.category_paths);
         newItem.detailEdited = true;
+        if (window.LFAftersaleGuaranteeStore) {
+          window.LFAftersaleGuaranteeStore.syncProductDays(newItem.code, payload.aftersaleDays);
+        }
         persistProducts();
         applyFilters();
         renderTable();

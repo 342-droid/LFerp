@@ -10,7 +10,7 @@
 
   var STORE_PARTNER_TYPES = ['加盟店', '联营店', '直营店'];
 
-  var CATALOG_VERSION = 'real-20261105-settle-sup';
+  var CATALOG_VERSION = 'real-20261106-settle-sup-vis';
 
   var SCENES = [
     { id: 'store', name: '门店合作', partyType: '门店', partyKind: 'corp', partyHint: '企业/个体户', fill: ['门店名称', '统一社会信用代码', '经营负责人', '门店地址', '联系电话'] },
@@ -835,11 +835,24 @@
     if (!box) return;
     box.innerHTML = SCENES.map(function (s) {
       var list = state.templates.filter(function (t) { return t.scene === s.id && t.status === 'on'; });
-      return '<div class="ct-scene-card">' +
+      var names = list.map(function (t) {
+        var mark = t.kind === 'supplement' ? '（补充协议·非入驻默认签）' : '';
+        return '· ' + t.name + mark;
+      }).join('<br>');
+      return '<div class="ct-scene-card" data-scene="' + esc(s.id) + '" role="button" tabindex="0" title="点击筛选该场景模板">' +
         '<div class="ct-scene-card__name">' + esc(s.name) + '</div>' +
-        '<div class="ct-scene-card__meta">相对方：' + esc(s.partyType) + '（' + esc(s.partyHint) + '）<br>启用模板 <strong>' + list.length + '</strong> 份</div>' +
-        '</div>';
+        '<div class="ct-scene-card__meta">相对方：' + esc(s.partyType) + '（' + esc(s.partyHint) + '）<br>启用模板 <strong>' + list.length + '</strong> 份' +
+        (names ? '<div class="ct-scene-card__list">' + names + '</div>' : '') +
+        '</div></div>';
     }).join('');
+    box.querySelectorAll('.ct-scene-card[data-scene]').forEach(function (card) {
+      card.addEventListener('click', function () {
+        var sceneSel = document.getElementById('qTplScene');
+        if (!sceneSel) return;
+        sceneSel.value = card.getAttribute('data-scene') || '';
+        renderTemplateTable();
+      });
+    });
   }
 
   function renderTemplateTable() {
@@ -866,9 +879,12 @@
       var st = t.status === 'on'
         ? '<span class="ct-tag ct-tag--ok">启用</span>'
         : '<span class="ct-tag ct-tag--muted">停用</span>';
+      var kindTag = t.kind === 'supplement'
+        ? ' <span class="ct-tag ct-tag--info" title="结算信息变更后单独下发，不与入驻一并发起">补充协议</span>'
+        : '';
       var toggle = t.status === 'on' ? '停用' : '启用';
-      return '<tr data-id="' + esc(t.id) + '">' +
-        '<td><button type="button" class="ct-link" data-act="detail">' + esc(t.name) + '</button></td>' +
+      return '<tr data-id="' + esc(t.id) + '"' + (t.kind === 'supplement' ? ' class="ct-tpl-row--sup"' : '') + '>' +
+        '<td><button type="button" class="ct-link" data-act="detail">' + esc(t.name) + '</button>' + kindTag + '</td>' +
         '<td>' + esc(sceneOf(t.scene).name) + '</td>' +
         '<td>' + esc(partnerTypeLabel(t)) + '</td>' +
         '<td>' + esc(t.remoteId) + '<div class="ct-field-tip" style="margin:2px 0 0">' + esc(t.remoteName) + '</div></td>' +

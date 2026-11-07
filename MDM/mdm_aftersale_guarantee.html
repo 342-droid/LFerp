@@ -22,9 +22,9 @@
                 <div class="aftersale-page-tabs" id="aftersalePageTabs"></div>
                 <div class="aftersale-page-body as-g-page">
                     <div class="mdm-biz-tip" role="note">
-                        售后保障期用于计算「售后期结束」结算起算时点：履约确认时间 + 生效保障天数。
-                        生效优先级：<strong>SPU 覆盖</strong> &gt; <strong>类目默认</strong> &gt; <strong>平台兜底</strong>。不按 SKU 配置。
-                        多商品订单按<strong>商品行</strong>分别进入可结算池。
+                        售后期天数生效优先级：<strong>销售域商品售后期</strong>（商城 / 代采 / 直播排品，非必填） &gt; <strong>类目默认</strong> &gt; <strong>平台兜底</strong>。不按 SKU 配置。
+                        <strong>用户端</strong>：整单完成后按<strong>各商品自己的售后期</strong>判断申请入口是否置灰，与结算起算节点无关。
+                        <strong>结算</strong>：仅当起算节点选「售后期结束」时，才用整单履约确认 + 本单各商品售后期<strong>最大值</strong> + 结算周期生成结算单；若选「订单履约确认后」，则按整单完成日 + 结算周期，商品售后期不参与结算。
                     </div>
                     <div id="asGuaranteeApp"></div>
                 </div>
@@ -32,7 +32,7 @@
         </main>
     </div>
     <script src="../js/common.js"></script>
-    <script src="../js/mdm-aftersale-guarantee-store.js?v=20261105-g1"></script>
-    <script src="../js/mdm-aftersale-guarantee.js?v=20261105-g1"></script>
+    <script src="../js/mdm-aftersale-guarantee-store.js?v=20261107-trigger-split"></script>
+    <script src="../js/mdm-aftersale-guarantee.js?v=20261107-trigger-split"></script>
 </body>
 </html>

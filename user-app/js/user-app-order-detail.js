@@ -750,17 +750,28 @@
     if (modal) modal.hidden = true;
   }
 
-  /** 确认收货 → 交易完成（保留履约/入口参数） */
+  /** 确认收货 → 交易完成（保留履约/入口参数）；写入 completedAt 作为售后期起算 */
   function confirmReceiptOrder() {
     closeConfirmReceiptModal();
     var p = getParams();
+    var completedAt =
+      window.UaOrdersStore && typeof window.UaOrdersStore.nowText === 'function'
+        ? window.UaOrdersStore.nowText()
+        : '';
     if (isStoreAppPort() && window.LfAppShell && window.LfAppShell.restockDetailHref) {
       var recNo = p.get('orderNo') || '';
       if (recNo && window.UaOrdersStore && window.UaOrdersStore.updateStatus) {
-        window.UaOrdersStore.updateStatus(recNo, 'completed');
+        window.UaOrdersStore.updateStatus(recNo, 'completed', {
+          completedAt: completedAt
+        });
       }
       window.location.href = window.LfAppShell.restockDetailHref(recNo);
       return;
+    }
+    if (p.get('orderNo') && window.UaOrdersStore && window.UaOrdersStore.updateStatus) {
+      window.UaOrdersStore.updateStatus(p.get('orderNo'), 'completed', {
+        completedAt: completedAt
+      });
     }
     var href = 'order-detail.html?status=completed';
     if (p.get('from')) href += '&from=' + encodeURIComponent(p.get('from'));
@@ -769,6 +780,7 @@
     else if (!isFromRestock()) href += '&delivery=store';
     if (p.get('orderNo')) href += '&orderNo=' + encodeURIComponent(p.get('orderNo'));
     if (p.get('pointsItem')) href += '&pointsItem=' + encodeURIComponent(p.get('pointsItem'));
+    if (completedAt) href += '&completedAt=' + encodeURIComponent(completedAt);
     window.location.href = href;
   }
 
@@ -907,6 +919,28 @@
       el.setAttribute('data-item-index', String(idx));
       if (it.isPointsExchange) el.setAttribute('data-points-exchange', '1');
       else el.removeAttribute('data-points-exchange');
+      if (it.code || it.spuId || it.goodsId || it.sku) {
+        el.setAttribute(
+          'data-product-code',
+          String(it.code || it.spuId || it.goodsId || it.sku)
+        );
+      }
+      if (it.categoryId || it.category_l3_id) {
+        el.setAttribute('data-category-id', String(it.categoryId || it.category_l3_id));
+      }
+      if (it.aftersaleDays != null && it.aftersaleDays !== '') {
+        el.setAttribute('data-aftersale-days', String(it.aftersaleDays));
+      } else if (window.LFAftersaleGuaranteeStore) {
+        var resolved = window.LFAftersaleGuaranteeStore.resolveDays(
+          window.LFAftersaleGuaranteeStore.load(),
+          {
+            productKey: it.code || it.spuId || it.goodsId || it.sku || '',
+            categoryId: it.categoryId || it.category_l3_id || ''
+          }
+        );
+        el.setAttribute('data-aftersale-days', String(resolved));
+        it.aftersaleDays = resolved;
+      }
       var img = el.querySelector('.ua-od-item__img');
       if (img && it.img) img.setAttribute('src', resolveUaAsset(it.img));
       var nameEl = el.querySelector('.ua-od-item__name');
@@ -1033,17 +1067,173 @@
     window.alert(msg + '（演示）');
   }
 
+  function parseDemoDateMs(text) {
+    if (!text) return NaN;
+    var s = String(text).trim();
+    if (!s || s === '-') return NaN;
+    var ms = Date.parse(s.replace(/-/g, '/'));
+    if (!isNaN(ms)) return ms;
+    return Date.parse(s);
+  }
+
+  function readPositiveDays(v) {
+    if (v == null || v === '') return null;
+    var n = Number(v);
+    if (isNaN(n) || n < 0) return null;
+    return Math.floor(n);
+  }
+
+  /**
+   * C 端申请售后用的售后期天数（按商品）。
+   * 与结算起算无关：结算选「履约确认后」时不读售后期；选「售后期结束」时结算另取整单 max。
+   * 优先级：订单行快照 > DOM 商品属性 > 销售域商品配置 > 类目默认 > 平台兜底
+   */
+  function resolveItemAftersaleDays(itemIndex) {
+    var order = getStoredDemoOrder();
+    var orderItem =
+      order && Array.isArray(order.items) ? order.items[itemIndex] || null : null;
+    var fromOrder = readPositiveDays(orderItem && orderItem.aftersaleDays);
+    if (fromOrder != null) return fromOrder;
+
+    var itemEl = document.querySelector(
+      '.ua-od-item[data-item-index="' + String(itemIndex) + '"]'
+    );
+    var fromDom = readPositiveDays(itemEl && itemEl.getAttribute('data-aftersale-days'));
+    if (fromDom != null) return fromDom;
+
+    var store = window.LFAftersaleGuaranteeStore;
+    if (store && typeof store.resolveDays === 'function') {
+      var code =
+        (orderItem && (orderItem.code || orderItem.spuId || orderItem.goodsId || orderItem.sku)) ||
+        (itemEl &&
+          (itemEl.getAttribute('data-product-code') ||
+            itemEl.getAttribute('data-spu') ||
+            itemEl.getAttribute('data-goods-id'))) ||
+        '';
+      var catId =
+        (orderItem && (orderItem.categoryId || orderItem.category_l3_id)) ||
+        (itemEl && itemEl.getAttribute('data-category-id')) ||
+        '';
+      var productDays = readPositiveDays(orderItem && orderItem.aftersaleDays);
+      var days = store.resolveDays(store.load(), {
+        productKey: code,
+        productDays: productDays,
+        categoryId: catId
+      });
+      var n = readPositiveDays(days);
+      if (n != null) return n;
+      return readPositiveDays(store.load().platformDays) || 0;
+    }
+
+    /* 演示验收可临时覆盖；正式口径仍以后台售后期为准 */
+    var urlDays = readPositiveDays(getParams().get('aftersaleDays'));
+    if (urlDays != null) return urlDays;
+    return 0;
+  }
+
+  /** 把后台生效售后期写到商品行，供弹窗与置灰共用 */
+  function hydrateItemAftersaleDaysAttrs() {
+    var order = getStoredDemoOrder();
+    var store = window.LFAftersaleGuaranteeStore;
+    document.querySelectorAll('.ua-od-item').forEach(function (el, idx) {
+      var itemIndex = parseInt(el.getAttribute('data-item-index') || String(idx), 10);
+      var orderItem =
+        order && Array.isArray(order.items) ? order.items[itemIndex] || null : null;
+      if (orderItem) {
+        var code = orderItem.code || orderItem.spuId || orderItem.goodsId || orderItem.sku;
+        if (code) el.setAttribute('data-product-code', String(code));
+        if (orderItem.categoryId || orderItem.category_l3_id) {
+          el.setAttribute(
+            'data-category-id',
+            String(orderItem.categoryId || orderItem.category_l3_id)
+          );
+        }
+      }
+      var days = resolveItemAftersaleDays(itemIndex);
+      el.setAttribute('data-aftersale-days', String(days));
+      /* 无订单行快照时，把当前后台生效值回写到内存订单，便于后续跳转仍一致 */
+      if (orderItem && readPositiveDays(orderItem.aftersaleDays) == null && store) {
+        orderItem.aftersaleDays = days;
+      }
+    });
+  }
+
+  /**
+   * 订单完成时点：确认收货 / 核销完成时间。
+   * 演示：?aftersaleWithin=1 视为刚完成；?aftersaleExpire=1 视为早已过期。
+   */
+  function getOrderCompletedAtMs() {
+    var p = getParams();
+    if (p.get('aftersaleWithin') === '1') return Date.now();
+    if (p.get('aftersaleExpire') === '1') return Date.now() - 40 * 86400000;
+    if (p.get('completedAt')) {
+      var fromUrl = parseDemoDateMs(p.get('completedAt'));
+      if (!isNaN(fromUrl)) return fromUrl;
+    }
+    var order = getStoredDemoOrder();
+    if (order && order.completedAt) {
+      var fromOrder = parseDemoDateMs(order.completedAt);
+      if (!isNaN(fromOrder)) return fromOrder;
+    }
+    var payEl = document.getElementById('orderPayTimeValue');
+    var createdEl = document.getElementById('orderCreatedAtValue');
+    var fromDom = parseDemoDateMs(
+      (payEl && payEl.textContent) || (createdEl && createdEl.textContent) || ''
+    );
+    if (!isNaN(fromDom)) return fromDom;
+    if (order && (order.paidAt || order.createdAt)) {
+      var fromStore = parseDemoDateMs(order.paidAt || order.createdAt);
+      if (!isNaN(fromStore)) return fromStore;
+    }
+    /* 交易完成但无时间戳：演示按已过售后期处理 */
+    if (getStatus() === 'completed') return Date.now() - 40 * 86400000;
+    return NaN;
+  }
+
+  /** 售后期是否已结束（仅交易完成态生效） */
+  function isAftersaleWindowExpired(itemIndex) {
+    if (getStatus() !== 'completed') return false;
+    var completedAt = getOrderCompletedAtMs();
+    if (isNaN(completedAt)) return false;
+    var days = resolveItemAftersaleDays(itemIndex);
+    return Date.now() > completedAt + days * 86400000;
+  }
+
+  function openAftersaleExpireModal(itemIndex) {
+    var days = resolveItemAftersaleDays(itemIndex);
+    var textEl = document.getElementById('orderAftersaleExpireText');
+    if (textEl) {
+      textEl.textContent =
+        '订单完成后' +
+        days +
+        '天内可申请退款，现已超过' +
+        days +
+        '天，如有售后需求，请联系客服';
+    }
+    var modal = document.getElementById('orderAftersaleExpireModal');
+    if (modal) modal.hidden = false;
+  }
+
+  function closeAftersaleExpireModal() {
+    var modal = document.getElementById('orderAftersaleExpireModal');
+    if (modal) modal.hidden = true;
+  }
+
   function renderItemActions(mode) {
     var actionWraps = document.querySelectorAll('.ua-od-item__actions');
     if (!actionWraps.length) return;
 
-    function makeBtn(label, itemIndex, actionMode) {
+    function makeBtn(label, itemIndex, actionMode, expired) {
       return (
-        '<button type="button" class="ua-od-item__btn" data-item-action="' +
+        '<button type="button" class="ua-od-item__btn' +
+        (expired ? ' is-disabled' : '') +
+        '" data-item-action="' +
         (actionMode || (mode === 'aftersale' ? 'aftersale' : 'refund')) +
         '" data-item-index="' +
         itemIndex +
-        '">' +
+        '"' +
+        (expired ? ' aria-disabled="true" data-aftersale-expired="1"' : '') +
+        '>' +
         label +
         '</button>'
       );
@@ -1071,11 +1261,16 @@
         return;
       }
       if (mode === 'refund' || mode === 'refund_only') {
-        wrap.innerHTML = makeBtn('申请退款', itemIndex, 'refund');
+        wrap.innerHTML = makeBtn('申请退款', itemIndex, 'refund', false);
         return;
       }
       if (mode === 'aftersale') {
-        wrap.innerHTML = makeBtn('申请售后', itemIndex, 'aftersale');
+        wrap.innerHTML = makeBtn(
+          '申请售后',
+          itemIndex,
+          'aftersale',
+          isAftersaleWindowExpired(itemIndex)
+        );
         return;
       }
       wrap.innerHTML = '';
@@ -1354,6 +1549,10 @@
     /* 未勾选支持售后：C 端不展示入口，也不弹「暂不支持售后」 */
     if (isPointsExchangeOrderItem(itemIndex) && !isCEndPointsAftersaleOpen()) {
       return { ok: false, silent: true };
+    }
+    /* 交易完成后超过售后期：入口置灰，点击弹窗提示 */
+    if (actionMode === 'aftersale' && isAftersaleWindowExpired(itemIndex)) {
+      return { ok: false, aftersaleExpired: true };
     }
     var api = getAftersaleApi();
     var orderNo = typeof getDemoOrderNo === 'function' ? getDemoOrderNo() : '';
@@ -1986,6 +2185,10 @@
         var actionMode = btn.getAttribute('data-item-action') || 'refund';
         var check = canStartAftersaleForItem(itemIndex, actionMode);
         if (!check.ok) {
+          if (check.aftersaleExpired) {
+            openAftersaleExpireModal(itemIndex);
+            return;
+          }
           if (check.msg) window.alert(check.msg);
           return;
         }
@@ -2032,6 +2235,17 @@
       document.getElementById('orderConfirmReceiptConfirm').addEventListener(
         'click',
         confirmReceiptOrder
+      );
+
+    document.getElementById('orderAftersaleExpireOk') &&
+      document.getElementById('orderAftersaleExpireOk').addEventListener(
+        'click',
+        closeAftersaleExpireModal
+      );
+    document.getElementById('orderAftersaleExpireModalMask') &&
+      document.getElementById('orderAftersaleExpireModalMask').addEventListener(
+        'click',
+        closeAftersaleExpireModal
       );
   }
 
@@ -2212,6 +2426,7 @@
     var payNoRow = document.getElementById('orderPayNoRow');
     if (payNoRow) payNoRow.hidden = !config.showPayMethod;
 
+    hydrateItemAftersaleDaysAttrs();
     renderItemActions(canShowItemAftersale(status) ? config.itemActions : 'none');
     renderItemAftersaleBars();
     renderFooter(config.footer);

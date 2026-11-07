@@ -122,6 +122,13 @@ body[data-ct-page] .table td:last-child {
   border-radius: 4px;
   padding: 14px 16px;
   min-height: 92px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ct-scene-card:hover {
+  border-color: #ffb380;
+  box-shadow: 0 2px 8px rgba(255, 112, 25, 0.08);
 }
 
 .ct-scene-card__name {
@@ -140,6 +147,18 @@ body[data-ct-page] .table td:last-child {
 .ct-scene-card__meta strong {
   color: #ff7019;
   font-weight: 600;
+}
+
+.ct-scene-card__list {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed #eee;
+  color: #666;
+  line-height: 1.7;
+}
+
+.ct-tpl-row--sup td:first-child {
+  background: linear-gradient(90deg, #fff7f0 0%, transparent 72%);
 }
 
 .ct-empty {
