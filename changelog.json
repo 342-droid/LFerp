@@ -1,7 +1,236 @@
 {
-  "latestSha": "b9f0d2c33ea0c2982b9add503de36b1e274d1da3",
-  "total": 498,
+  "latestSha": "867611e2fbb63efeb39bf5ba145e602ea952f6e5",
+  "total": 499,
   "days": [
+    {
+      "date": "2026-11-07",
+      "items": [
+        {
+          "sha": "867611e",
+          "type": "feat",
+          "text": "售后期改到销售商品配置，并拆开履约与售后期两套结算起算",
+          "author": "sisi",
+          "time": "20:00",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_guarantee.html",
+              "module": "冷丰售后",
+              "title": "售后保障期管理"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_bd_stores.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 门店模块"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "module": "冷丰WMS",
+              "title": "直播排品编辑"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            },
+            {
+              "file": "MDM/mdm_settle_index.html",
+              "module": "冷丰结算",
+              "title": "结算中心"
+            },
+            {
+              "file": "SCM/basic_settings_contract_config.html",
+              "module": "冷丰WMS",
+              "title": "接入配置"
+            },
+            {
+              "file": "SCM/basic_settings_contract_party.html",
+              "module": "冷丰WMS",
+              "title": "签署主体"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task.html",
+              "module": "冷丰WMS",
+              "title": "签署任务"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_detail.html",
+              "module": "冷丰WMS",
+              "title": "签署任务详情"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template.html",
+              "module": "冷丰WMS",
+              "title": "合同模板"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template_form.html",
+              "module": "冷丰WMS",
+              "title": "合同模板配置"
+            },
+            {
+              "file": "SCM/contract_sign.html",
+              "module": "",
+              "title": "合同"
+            },
+            {
+              "file": "shop-h5/h5/store/contracts.html",
+              "module": "",
+              "title": "签署合同 · Shop H5"
+            },
+            {
+              "file": "store-app/h5/contract-sign.html",
+              "module": "",
+              "title": "签署合同 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/contracts.html",
+              "module": "",
+              "title": "合同签署 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "丰银宝 · 工作台"
+            },
+            {
+              "file": "store-app/h5/restock-aftersale-list.html",
+              "module": "",
+              "title": "退款/售后 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-settle.html",
+              "module": "",
+              "title": "结算中心 · 丰银宝"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-register.html",
+              "module": "",
+              "title": "账号注册 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/newcomer-zone.html",
+              "module": "",
+              "title": "新人专区 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-aftersale-list.html",
+              "module": "",
+              "title": "退款/售后 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-detail.html",
+              "module": "",
+              "title": "退款详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/points-order-confirm.html",
+              "module": "",
+              "title": "确认兑换 · 用户 APP"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_aftersale_guarantee.html",
+              "text": "仅保留平台兜底与类目默认；说明售后期与结算起算解耦"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "text": "商城商品编辑支持配置售后期（非必填）"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "text": "代采商品编辑支持配置售后期"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "text": "排品商品支持配置售后期"
+            },
+            {
+              "file": "MDM/mdm_settle_index.html",
+              "text": "履约确认后按完成日+周期出结算；售后期结束才取整单售后期最大值；字段去掉「平台默认」备注"
+            },
+            {
+              "file": "store-app/h5/supplier-settle.html",
+              "text": "结算信息说明对齐上述起算拆分"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "text": "按各商品售后期置灰申请入口并弹窗提示；与结算起算无关"
+            },
+            {
+              "file": null,
+              "text": "合同模板相关样式与结算补充协议控件微调"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-11-06",
       "items": [
@@ -1476,9 +1705,24 @@
               "title": "冷丰 MDM · BD 门店模块"
             },
             {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "module": "冷丰WMS",
+              "title": "直播排品编辑"
+            },
+            {
               "file": "MDM/mdm_order_express_cutoff.html",
               "module": "冷丰订单",
               "title": "订单截单"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
             },
             {
               "file": "MDM/mdm_settle_index.html",
@@ -1684,6 +1928,11 @@
               "file": "user-app/h5/login-register.html",
               "module": "",
               "title": "账号注册 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
             },
             {
               "file": "user-app/h5/restock.html",
