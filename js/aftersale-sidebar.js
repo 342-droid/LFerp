@@ -26,24 +26,41 @@
 
   var currentPage = pageBase(window.location.pathname.split('/').pop()) || 'mdm_aftersale_ticket';
 
+  function readOrgId() {
+    try {
+      return localStorage.getItem('lfCurrentOrgId') || localStorage.getItem('spSettleSupplierId') || '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  var supplierOrg = String(readOrgId()).indexOf('sup-') === 0;
+
   var manageGroup = {
     title: '售后管理',
     icon: '任务管理',
-    items: [
-      { href: 'mdm_aftersale_ticket.html', text: '售后单' },
-      { href: 'mdm_aftersale_refund.html', text: '退款单' },
-      { href: 'mdm_aftersale_guarantee.html', text: '售后保障期管理' }
-    ]
+    items: supplierOrg
+      ? [
+          { href: 'mdm_aftersale_ticket.html', text: '售后单' },
+          { href: 'mdm_aftersale_refund.html', text: '退款单' }
+        ]
+      : [
+          { href: 'mdm_aftersale_ticket.html', text: '售后单' },
+          { href: 'mdm_aftersale_refund.html', text: '退款单' },
+          { href: 'mdm_aftersale_guarantee.html', text: '售后保障期管理' }
+        ]
   };
 
-  var feedbackGroup = {
-    title: '举报与意见反馈',
-    icon: '任务管理',
-    items: [
-      { href: 'mdm_aftersale_report.html', text: '举报管理' },
-      { href: 'mdm_aftersale_feedback.html', text: '意见反馈' }
-    ]
-  };
+  var feedbackGroup = supplierOrg
+    ? null
+    : {
+        title: '举报与意见反馈',
+        icon: '任务管理',
+        items: [
+          { href: 'mdm_aftersale_report.html', text: '举报管理' },
+          { href: 'mdm_aftersale_feedback.html', text: '意见反馈' }
+        ]
+      };
 
   function pageMatches(href) {
     return currentPage === pageBase(href);
@@ -108,16 +125,21 @@
     '</div>' +
     '<ul class="sidebar-menu aftersale-sidebar-menu">' +
     renderGroup(manageGroup) +
-    renderGroup(feedbackGroup) +
+    (feedbackGroup ? renderGroup(feedbackGroup) : '') +
     '</ul></aside>';
 
-  var PAGE_TABS = [
-    { href: 'mdm_aftersale_ticket.html', text: '售后单' },
-    { href: 'mdm_aftersale_refund.html', text: '退款单' },
-    { href: 'mdm_aftersale_guarantee.html', text: '售后保障期管理' },
-    { href: 'mdm_aftersale_report.html', text: '举报管理' },
-    { href: 'mdm_aftersale_feedback.html', text: '意见反馈' }
-  ];
+  var PAGE_TABS = supplierOrg
+    ? [
+        { href: 'mdm_aftersale_ticket.html', text: '售后单' },
+        { href: 'mdm_aftersale_refund.html', text: '退款单' }
+      ]
+    : [
+        { href: 'mdm_aftersale_ticket.html', text: '售后单' },
+        { href: 'mdm_aftersale_refund.html', text: '退款单' },
+        { href: 'mdm_aftersale_guarantee.html', text: '售后保障期管理' },
+        { href: 'mdm_aftersale_report.html', text: '举报管理' },
+        { href: 'mdm_aftersale_feedback.html', text: '意见反馈' }
+      ];
 
   function mountPageTabs() {
     var host = document.getElementById('aftersalePageTabs');

@@ -33,6 +33,33 @@
   var GOODS_STATUS_OPTIONS = ['已收到货', '未收到货'];
   var SUPPLIER_RECEIVE_ADDR_KEY = 'mdm_supplier_receive_addr_v1';
   var DEMO_SUPPLIER_ID = 'SUP-DEMO-001';
+
+  function isSupplierAftersaleView() {
+    return !!(window.LFAftersaleSupplierView && window.LFAftersaleSupplierView.isActive());
+  }
+
+  function resolveDetailSupplierOrgId(detail) {
+    if (!detail) return '';
+    if (detail.supplierOrgId) return detail.supplierOrgId;
+    if (detail.supplier && detail.supplier.orgId) return detail.supplier.orgId;
+    if (window.LFAftersaleSupplierView) {
+      return window.LFAftersaleSupplierView.demoSupplierIdForKey(detail.id || '');
+    }
+    return '';
+  }
+
+  function supplierOwnsDetail(detail) {
+    if (!isSupplierAftersaleView()) return true;
+    return window.LFAftersaleSupplierView.ownsSupplierId(resolveDetailSupplierOrgId(detail));
+  }
+
+  function supplierReadonlyHint(text) {
+    return (
+      '<div class="aftersale-supplier-ops-hint" role="note">' +
+      escapeHtml(text || '配送/自提单售后由门店或仓库处理，供应商无需操作') +
+      '</div>'
+    );
+  }
   /** 售后寄回物流公司下拉（快递100常用热门，含扩展项） */
   var COURIERS = [
     '顺丰速运',
@@ -1701,9 +1728,15 @@
       },
       supplier: {
         id: DEMO_SUPPLIER_ID,
+        orgId: window.LFAftersaleSupplierView
+          ? window.LFAftersaleSupplierView.demoSupplierIdForKey(id)
+          : '',
         name: isDone ? '-' : '冷丰示范供应商',
         buyer: '-'
       },
+      supplierOrgId: window.LFAftersaleSupplierView
+        ? window.LFAftersaleSupplierView.demoSupplierIdForKey(id)
+        : '',
       returnAddress: null,
       refundTicket: null,
       userPickupActive: false,
@@ -2537,6 +2570,7 @@
   function renderDeliveryReturnPanel(detail) {
     var status = detail.status;
     var isExchange = detail.type === '换货';
+    var supplierView = isSupplierAftersaleView();
     var title =
       status === '待收货'
         ? (isExchange ? '换货处理 · 待收货' : '退货退款 · 待收货')
@@ -2558,10 +2592,11 @@
         '<div class="aftersale-return-ship__title">门店退回仓库</div>' +
         '<div class="aftersale-return-ship__wait">配送订单由门店退回仓库，无需填写物流单号。物流司机取货后，请操作「已取货」。</div>' +
         '</div>';
-      actions =
-        '<div class="aftersale-flow-card__actions">' +
-        '<button type="button" class="aftersale-btn aftersale-btn--primary" id="asDeliveryPicked">已取货</button>' +
-        '</div>';
+      actions = supplierView
+        ? ''
+        : '<div class="aftersale-flow-card__actions">' +
+          '<button type="button" class="aftersale-btn aftersale-btn--primary" id="asDeliveryPicked">已取货</button>' +
+          '</div>';
     } else {
       bodyHtml =
         '<div class="aftersale-return-ship aftersale-return-ship--waiting">' +
@@ -2574,12 +2609,13 @@
           ? '<br>取货时间：' + escapeHtml(detail.driverPickedAt)
           : '') +
         '</div></div>';
-      actions =
-        '<div class="aftersale-flow-card__actions">' +
-        '<button type="button" class="aftersale-btn aftersale-btn--primary" id="asWarehouseInbound">' +
-        escapeHtml(inboundLabel) +
-        '</button>' +
-        '</div>';
+      actions = supplierView
+        ? ''
+        : '<div class="aftersale-flow-card__actions">' +
+          '<button type="button" class="aftersale-btn aftersale-btn--primary" id="asWarehouseInbound">' +
+          escapeHtml(inboundLabel) +
+          '</button>' +
+          '</div>';
     }
 
     return (
@@ -2590,6 +2626,7 @@
       renderMerchantAddrCard(detail.returnAddress, returnAddrTitle(detail)) +
       bodyHtml +
       actions +
+      (supplierView ? supplierReadonlyHint('配送单退货由门店/仓库处理，供应商无需操作') : '') +
       '</section>'
     );
   }
@@ -2598,6 +2635,7 @@
   function renderPickupReturnPanel(detail) {
     var type = detail.type;
     var isExchange = type === '换货';
+    var supplierView = isSupplierAftersaleView();
     var title = isExchange ? '换货处理 · 退回门店' : '退货退款 · 退回门店';
     var tip = isExchange
       ? '自提换货由用户到提货门店退货，无需快递寄回。门店确认收货后进入换货到店环节。'
@@ -2615,10 +2653,13 @@
       '<div class="aftersale-return-ship__wait">' +
       escapeHtml(tip) +
       '</div></div>' +
-      '<div class="aftersale-flow-card__actions">' +
-      '<button type="button" class="aftersale-btn aftersale-btn--primary" id="asStoreReturnReceived">' +
-      escapeHtml(btnText) +
-      '</button></div></section>'
+      (supplierView
+        ? supplierReadonlyHint('自提单退货由门店处理，供应商无需操作')
+        : '<div class="aftersale-flow-card__actions">' +
+          '<button type="button" class="aftersale-btn aftersale-btn--primary" id="asStoreReturnReceived">' +
+          escapeHtml(btnText) +
+          '</button></div>') +
+      '</section>'
     );
   }
 
@@ -2738,34 +2779,41 @@
         '</div>';
     }
 
+    var supplierView = isSupplierAftersaleView();
     var actions = '';
     if (showUpload) {
       actions = '';
     } else if (awaitingReceive || hasShip) {
-      /* 退货退款·待收货 / 换货已寄回：确认或拒绝收货 */
-      var confirmId = type === '换货' ? 'asExchangeReceived' : 'asReturnReceived';
-      var confirmText = type === '退货退款' ? '确认收货并退款' : '确认收货';
-      actions =
-        '<div class="aftersale-flow-card__actions">' +
-        '<button type="button" class="aftersale-btn aftersale-btn--danger" id="asRejectReceive">拒绝收货</button>' +
-        '<button type="button" class="aftersale-btn aftersale-btn--primary" id="' +
-        confirmId +
-        '">' +
-        confirmText +
-        '</button></div>';
+      /* 退货退款·待收货 / 换货已寄回：确认或拒绝收货；供应商仅处理退货退款快递收货 */
+      if (supplierView && type === '换货') {
+        actions = supplierReadonlyHint('换货流程由平台处理，供应商暂无需操作');
+      } else {
+        var confirmId = type === '换货' ? 'asExchangeReceived' : 'asReturnReceived';
+        var confirmText = type === '退货退款' ? '确认收货并退款' : '确认收货';
+        actions =
+          '<div class="aftersale-flow-card__actions">' +
+          '<button type="button" class="aftersale-btn aftersale-btn--danger" id="asRejectReceive">拒绝收货</button>' +
+          '<button type="button" class="aftersale-btn aftersale-btn--primary" id="' +
+          confirmId +
+          '">' +
+          confirmText +
+          '</button></div>';
+      }
     } else if (activePickup) {
-      /* 揽收前：可取消寄件；上传需先取消 */
-      actions =
-        '<div class="aftersale-flow-card__actions">' +
-        '<button type="button" class="aftersale-btn aftersale-btn--ghost" id="asCancelShip">取消寄件</button>' +
-        '<button type="button" class="aftersale-btn aftersale-btn--primary" id="asShowShipUpload">上传物流单号</button>' +
-        '</div>';
+      /* 揽收前：可取消寄件；上传需先取消（供应商不代用户操作寄件） */
+      actions = supplierView
+        ? supplierReadonlyHint('等待用户寄回，供应商暂无需操作')
+        : '<div class="aftersale-flow-card__actions">' +
+          '<button type="button" class="aftersale-btn aftersale-btn--ghost" id="asCancelShip">取消寄件</button>' +
+          '<button type="button" class="aftersale-btn aftersale-btn--primary" id="asShowShipUpload">上传物流单号</button>' +
+          '</div>';
     } else if (canUpload) {
-      actions =
-        '<div class="aftersale-flow-card__actions">' +
-        '<button type="button" class="aftersale-btn aftersale-btn--ghost" id="asMockUserReship">模拟用户再次寄件</button>' +
-        '<button type="button" class="aftersale-btn aftersale-btn--primary" id="asShowShipUpload">上传物流单号</button>' +
-        '</div>';
+      actions = supplierView
+        ? supplierReadonlyHint('等待用户寄回，供应商暂无需操作')
+        : '<div class="aftersale-flow-card__actions">' +
+          '<button type="button" class="aftersale-btn aftersale-btn--ghost" id="asMockUserReship">模拟用户再次寄件</button>' +
+          '<button type="button" class="aftersale-btn aftersale-btn--primary" id="asShowShipUpload">上传物流单号</button>' +
+          '</div>';
     }
 
     return (
@@ -2852,15 +2900,19 @@
         '审核已通过，零售快递补货绕过仓储系统，直接与供应商对接补发；供应商寄回后后台上传物流并确认收货。上传物流满 10 天未确认将自动确认收货（实际补货数=申请数）。';
     }
 
+    var supplierView = isSupplierAftersaleView();
+    /* 供应商：配送/自提/采购指令补货只读；仅零售快递补货可上传发货物流 */
+    var supplierCanShip = supplierView && !noTrack && !withPo && !pickupRestock && !deliveryRestock;
+
     /* 平台配送 / 自提：去掉补货物流板块；仅快递补货展示物流 */
     var shipHtml = '';
-    if (!noTrack) {
+    if (!noTrack && (!supplierView || supplierCanShip || hasShip || done)) {
       var shipTitle = withPo ? '补货物流（采购回传）' : '补货物流';
       var showRestockUpload = !withPo && !!detail.showShipUploadForm;
       if (hasShip || done) {
         shipHtml = renderShipInfoCard(ship, shipTitle, 'restockShip');
-      } else if (showRestockUpload) {
-        /* 零售快递：后台上传补货物流 */
+      } else if (showRestockUpload && (!supplierView || supplierCanShip)) {
+        /* 零售快递：供应商/后台上传补货物流 */
         shipHtml =
           '<div class="aftersale-return-ship">' +
           '<div class="aftersale-return-ship__title">上传物流单号</div>' +
@@ -2869,7 +2921,7 @@
           '<button type="button" class="aftersale-btn aftersale-btn--ghost" id="asHideShipUpload">取消</button>' +
           '<button type="button" class="aftersale-btn aftersale-btn--primary" id="asSubmitRestockShip">提交</button>' +
           '</div></div>';
-      } else if (withPo) {
+      } else if (withPo && !supplierView) {
         shipHtml =
           '<div class="aftersale-return-ship aftersale-return-ship--waiting">' +
           '<div class="aftersale-return-ship__title">' +
@@ -2879,13 +2931,17 @@
           '<div class="aftersale-logistics-block__actions">' +
           '<button type="button" class="aftersale-btn aftersale-btn--ghost" id="asMockPurchaseShip">模拟采购回传物流</button>' +
           '</div></div>';
-      } else {
+      } else if (!withPo && (!supplierView || supplierCanShip)) {
         shipHtml =
           '<div class="aftersale-return-ship aftersale-return-ship--waiting">' +
           '<div class="aftersale-return-ship__title">' +
           escapeHtml(shipTitle) +
           '</div>' +
-          '<div class="aftersale-return-ship__wait">供应商寄回后，请上传补货物流信息</div>' +
+          '<div class="aftersale-return-ship__wait">' +
+          (supplierView
+            ? '请填写补货快递单号并寄出'
+            : '供应商寄回后，请上传补货物流信息') +
+          '</div>' +
           '<div class="aftersale-flow-card__actions" style="margin-top:12px">' +
           '<button type="button" class="aftersale-btn aftersale-btn--primary" id="asShowRestockShipUpload">上传物流信息</button>' +
           '</div></div>';
@@ -2893,7 +2949,19 @@
     }
 
     var actions = '';
-    if (!done && (noTrack || hasShip)) {
+    if (supplierView) {
+      if (done) {
+        actions = '';
+      } else if (supplierCanShip && hasShip) {
+        actions = supplierReadonlyHint('补货已寄出，待用户签收；确认收货由平台/用户侧完成');
+      } else if (!supplierCanShip) {
+        actions = supplierReadonlyHint(
+          pickupRestock || deliveryRestock
+            ? '配送/自提补货由门店或仓库处理，供应商无需操作'
+            : '本单补货走采购指令，供应商无需在此操作'
+        );
+      }
+    } else if (!done && (noTrack || hasShip)) {
       var extraDemo = '';
       /* 仅代采配送保留「门店入库反写」；零售自提核销反写已取消 */
       if (deliveryRestock) {
@@ -2921,7 +2989,7 @@
       '<p class="aftersale-flow-card__desc">' +
       escapeHtml(desc) +
       '</p>' +
-      (withPo ? renderPurchaseOrderCard(po) : '') +
+      (withPo && !supplierView ? renderPurchaseOrderCard(po) : '') +
       shipHtml +
       actions +
       '</section>'
@@ -3115,15 +3183,25 @@
             '<div class="aftersale-return-ship__wait">换货商品已到店，流程完成。</div></div>'
           : '';
     } else if (noTrackOut) {
-      outHtml =
-        '<div class="aftersale-return-ship aftersale-return-ship--waiting">' +
-        '<div class="aftersale-return-ship__title">换货到店</div>' +
-        '<div class="aftersale-return-ship__wait">无需填写快递单号，确认换货商品已到店即可完结。</div>' +
-        '<div class="aftersale-flow-card__actions" style="margin-top:12px">' +
-        '<button type="button" class="aftersale-btn aftersale-btn--primary" id="asExchangeArriveStore">模拟换货到店完成</button>' +
-        '</div></div>';
+      outHtml = isSupplierAftersaleView()
+        ? '<div class="aftersale-return-ship aftersale-return-ship--waiting">' +
+          '<div class="aftersale-return-ship__title">换货到店</div>' +
+          '<div class="aftersale-return-ship__wait">无需填写快递单号，确认换货商品已到店即可完结。</div></div>' +
+          supplierReadonlyHint('换货由门店/平台处理，供应商暂无需操作')
+        : '<div class="aftersale-return-ship aftersale-return-ship--waiting">' +
+          '<div class="aftersale-return-ship__title">换货到店</div>' +
+          '<div class="aftersale-return-ship__wait">无需填写快递单号，确认换货商品已到店即可完结。</div>' +
+          '<div class="aftersale-flow-card__actions" style="margin-top:12px">' +
+          '<button type="button" class="aftersale-btn aftersale-btn--primary" id="asExchangeArriveStore">模拟换货到店完成</button>' +
+          '</div></div>';
     } else if (hasOut) {
       outHtml = renderShipInfoCard(outShip, '供应商寄出物流（换出）', 'exchangeOutShip');
+    } else if (isSupplierAftersaleView()) {
+      outHtml =
+        '<div class="aftersale-return-ship aftersale-return-ship--waiting">' +
+        '<div class="aftersale-return-ship__title">供应商寄出物流（换出）</div>' +
+        '<div class="aftersale-return-ship__wait">换货寄出暂由平台处理</div></div>' +
+        supplierReadonlyHint('换货流程供应商暂无需操作');
     } else {
       outHtml =
         '<div class="aftersale-return-ship aftersale-return-ship--waiting">' +
@@ -3314,24 +3392,29 @@
     var expressNo = String((o && o.expressNo) || '').trim();
     var showExpressNo = isExpressFulfillment(detail.deliveryMode);
 
+    var supplierView = isSupplierAftersaleView();
+    var customerBlock = supplierView
+      ? ''
+      : '<div><h3 class="aftersale-aside-section__title">客户信息</h3>' +
+        '<div class="aftersale-aside-kv"><span>客户等级</span><span>' +
+        escapeHtml(c.level) +
+        '</span></div>' +
+        '<div class="aftersale-aside-kv"><span>购买次数</span><span>' +
+        escapeHtml(c.purchaseCount) +
+        '</span></div>' +
+        '<div class="aftersale-aside-kv"><span>售后次数</span><span>' +
+        escapeHtml(c.aftersaleCount) +
+        '</span></div>' +
+        '<div class="aftersale-aside-kv"><span>售后总金额</span><span>' +
+        escapeHtml(c.aftersaleAmount) +
+        '</span></div>' +
+        '<div class="aftersale-aside-kv"><span>售后总金额占比</span><span>' +
+        escapeHtml(c.aftersaleRatio) +
+        '</span></div></div>';
+
     return (
       '<aside class="aftersale-detail-aside">' +
-      '<div><h3 class="aftersale-aside-section__title">客户信息</h3>' +
-      '<div class="aftersale-aside-kv"><span>客户等级</span><span>' +
-      escapeHtml(c.level) +
-      '</span></div>' +
-      '<div class="aftersale-aside-kv"><span>购买次数</span><span>' +
-      escapeHtml(c.purchaseCount) +
-      '</span></div>' +
-      '<div class="aftersale-aside-kv"><span>售后次数</span><span>' +
-      escapeHtml(c.aftersaleCount) +
-      '</span></div>' +
-      '<div class="aftersale-aside-kv"><span>售后总金额</span><span>' +
-      escapeHtml(c.aftersaleAmount) +
-      '</span></div>' +
-      '<div class="aftersale-aside-kv"><span>售后总金额占比</span><span>' +
-      escapeHtml(c.aftersaleRatio) +
-      '</span></div></div>' +
+      customerBlock +
       '<div><h3 class="aftersale-aside-section__title">订单信息</h3>' +
       '<div class="aftersale-aside-kv"><span>订单号</span><a class="aftersale-link" data-original-order-link href="' +
       escapeHtml(originalOrderHref) +
@@ -3684,6 +3767,12 @@
   function renderFooter(detail) {
     var footer = $('asDetailFooter');
     if (!footer) return;
+    /* 供应商不审批售后 */
+    if (isSupplierAftersaleView()) {
+      footer.hidden = true;
+      footer.innerHTML = '';
+      return;
+    }
     if (isPending(detail.status)) {
       footer.hidden = false;
       footer.innerHTML =
@@ -3693,6 +3782,25 @@
       footer.hidden = true;
       footer.innerHTML = '';
     }
+  }
+
+  /** 供应商操作范围仍按快递退货收货 / 快递补货发货门控；不向界面透出范围说明文案 */
+  function renderSupplierBanner(detail) {
+    if (!isSupplierAftersaleView() || !detail) return '';
+    var express = isExpressFulfillment(detail.deliveryMode);
+    var tip = '';
+    if (detail.type === '退货退款' && express && detail.status === '待收货') {
+      tip = '快递退货已寄回，请确认收货或拒收。';
+    } else if (detail.type === '补货' && express && !hasPurchaseRestockOrder(detail)) {
+      tip =
+        detail.shipments && detail.shipments.restockShip && detail.shipments.restockShip.trackingNo
+          ? '补货快递已上传，待用户签收。'
+          : '请上传补货快递单并发货。';
+    } else if (!express && (detail.type === '退货退款' || detail.type === '补货')) {
+      tip = '本单为配送/自提履约，售后由门店或仓库处理。';
+    }
+    if (!tip) return '';
+    return '<div class="aftersale-supplier-banner" role="note">' + escapeHtml(tip) + '</div>';
   }
 
   function renderPage() {
@@ -3711,25 +3819,31 @@
         showToast(tip, 'success');
       }
     }
+    var supplierView = isSupplierAftersaleView();
     var pending = isPending(detail.status);
-    var editable = pending;
+    var editable = pending && !supplierView;
     var freightRefund = isFreightRefundDetail(detail);
     var main =
       '<div class="aftersale-detail-main">' +
+      renderSupplierBanner(detail) +
       renderStatusBanner(detail) +
       renderApply(detail) +
       (freightRefund ? renderFreightInfo(detail) : renderGoods(detail, editable)) +
-      (freightRefund ? '' : pending ? renderApproveOps(detail) : renderApprovalInfo(detail)) +
+      (freightRefund
+        ? ''
+        : pending && !supplierView
+          ? renderApproveOps(detail)
+          : renderApprovalInfo(detail)) +
       renderFlowPanel(detail) +
       renderRefundTicketCard(detail) +
       renderLogisticsSection(detail) +
-      (freightRefund ? '' : renderReasons(detail, pending)) +
+      (freightRefund || supplierView ? '' : renderReasons(detail, pending)) +
       '</div>';
     body.innerHTML = main + renderAside(detail);
     renderFooter(detail);
     bindShipFormAutoCourier();
     var page = $('asDetailPage');
-    if (page) page.classList.toggle('has-footer', pending);
+    if (page) page.classList.toggle('has-footer', pending && !supplierView);
     focusActiveEditor();
   }
 
@@ -5141,8 +5255,18 @@
 
   function init() {
     state.detail = buildDetail();
+    if (isSupplierAftersaleView() && !supplierOwnsDetail(state.detail)) {
+      var wp = window.wmsPath || {
+        page: function (f) {
+          return f;
+        }
+      };
+      if (typeof showToast === 'function') showToast('无权查看该售后单', 'error');
+      window.location.replace(wp.page('mdm_aftersale_ticket.html'));
+      return;
+    }
     state.approveType = state.detail.type;
-    if (needsReturnAddrTemplate(state.approveType)) ensureAddrState();
+    if (needsReturnAddrTemplate(state.approveType) && !isSupplierAftersaleView()) ensureAddrState();
     renderPage();
     bindEvents();
   }

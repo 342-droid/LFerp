@@ -1206,7 +1206,7 @@
             radioGroup('结算类型', true, kind + '-settle', [['order', '订单结算']], 'order')
         );
 
-        /* 结算配置策略 →（独立配置时）起算节点 + 周期 */
+        /* 结算策略 →（独立配置时）起算节点 + 周期 */
         var platCfg =
             window.LFSettleCycleStore && window.LFSettleCycleStore.loadConfig
                 ? window.LFSettleCycleStore.loadConfig()
@@ -1214,7 +1214,7 @@
         var settleStrategyName = kind + '-settle-strategy';
         /* 枚举：平台通用配置 | 供应商独立配置 */
         refs.settleStrategyRow = radioGroup(
-            '结算配置策略',
+            '结算策略',
             true,
             settleStrategyName,
             [

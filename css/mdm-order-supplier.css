@@ -1,8 +1,6 @@
-/* 供应商组织在平台订单页上的轻量隐藏（data-org-view=supplier） */
+/* 供应商组织：隐藏清分导出与批量退款；保留批量上传/删除快递单 */
 [data-org-view="supplier"] #orderRetailClearingExport,
 [data-org-view="supplier"] #orderProxyClearingExport,
-[data-org-view="supplier"] #orderRetailBatchUpload,
-[data-org-view="supplier"] #orderRetailBatchDelete,
 [data-org-view="supplier"] #orderRetailBatchRefund,
 [data-org-view="supplier"] #orderProxyBatchRefund {
   display: none !important;

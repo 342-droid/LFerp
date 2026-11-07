@@ -826,6 +826,32 @@
     }
   ];
 
+  var DEMO_IMGS = [
+    '../../user-app/assets/order-product-1.svg',
+    '../../user-app/assets/order-product-2.svg',
+    '../../user-app/assets/order-product-3.svg',
+    '../../user-app/assets/order-product-4.svg',
+    '../../user-app/assets/order-detail-cherry.svg',
+    '../../user-app/assets/order-detail-orange.svg',
+    '../../user-app/assets/restock/product-egg.svg',
+    '../../user-app/assets/restock/product-leaf.svg',
+    '../../user-app/assets/restock/product-tomato.svg',
+    '../../user-app/assets/restock/product-tea.svg'
+  ];
+
+  function hashStr(s) {
+    var h = 0;
+    var str = String(s || '');
+    for (var i = 0; i < str.length; i++) h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+    return Math.abs(h);
+  }
+
+  ORDERS.forEach(function (o) {
+    if (!o.productImg) {
+      o.productImg = DEMO_IMGS[hashStr(o.product || o.orderNo) % DEMO_IMGS.length];
+    }
+  });
+
   function listBySupplier(name) {
     return ORDERS.filter(function (o) {
       return o.supplier === name;

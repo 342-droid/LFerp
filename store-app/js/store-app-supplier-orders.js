@@ -31,8 +31,6 @@
 
   var state = { type: '零售', status: '全部', time: 'all' };
   var org = window.FybOrg.current();
-  var orgEl = document.getElementById('saSupOrdersOrg');
-  if (orgEl) orgEl.textContent = org.name + ' · 本商家客户订单，可发货与处理售后';
 
   function tagClass(status) {
     if (/交易成功|已完成|已结款/.test(status) && !/部分|售后|退货/.test(status)) return 'is-ok';
@@ -113,12 +111,16 @@
           '">' +
           o.status +
           '</span></div>' +
-          '<h3 class="sa-sup-card__name">' +
+          '<div class="sa-sup-card__row" style="align-items:flex-start">' +
+          '<img class="sa-sup-card__goods-thumb" src="' +
+          (o.productImg || '../../user-app/assets/order-product-1.svg') +
+          '" alt="">' +
+          '<div style="flex:1;min-width:0">' +
+          '<h3 class="sa-sup-card__name" style="margin:0 0 4px">' +
           o.product +
           ' ×' +
           o.qty +
           '</h3>' +
-          '<div class="sa-sup-card__row">' +
           '<div class="sa-sup-card__meta">' +
           o.type +
           ' · ' +
@@ -131,7 +133,7 @@
           (o.aftersale
             ? '<br>售后 ' + o.aftersale.type + ' · ' + o.aftersale.status
             : '') +
-          '</div>' +
+          '</div></div>' +
           '<div class="sa-sup-card__amt">¥' +
           o.amount +
           '</div></div>' +
@@ -172,49 +174,13 @@
     render();
   });
 
-  function confirmGoAftersale(orderNo) {
-    var exist = document.getElementById('saSupAsConfirm');
-    if (exist) exist.remove();
-    var shell = document.querySelector('.sa-shell') || document.body;
-    var mask = document.createElement('div');
-    mask.id = 'saSupAsConfirm';
-    mask.className = 'sa-sup-confirm-mask';
-    mask.innerHTML =
-      '<div class="sa-sup-confirm" role="dialog" aria-modal="true">' +
-      '<h3 class="sa-sup-confirm__title">处理售后</h3>' +
-      '<p class="sa-sup-confirm__msg">确认进入该订单售后处理？进入后可进行确认收货、拒收或补货发货。</p>' +
-      '<div class="sa-sup-confirm__actions">' +
-      '<button type="button" class="sa-sup-confirm__btn" data-c="cancel">取消</button>' +
-      '<button type="button" class="sa-sup-confirm__btn sa-sup-confirm__btn--primary" data-c="ok">确认处理</button>' +
-      '</div></div>';
-    shell.appendChild(mask);
-    requestAnimationFrame(function () {
-      mask.classList.add('is-open');
-    });
-    function close() {
-      mask.remove();
-    }
-    mask.addEventListener('click', function (ev) {
-      if (ev.target === mask) close();
-    });
-    mask.querySelector('[data-c="cancel"]').addEventListener('click', close);
-    mask.querySelector('[data-c="ok"]').addEventListener('click', function () {
-      close();
-      goDetail(orderNo);
-    });
-  }
-
   document.getElementById('saSupOrderList').addEventListener('click', function (e) {
     var card = e.target.closest('[data-order-no]');
     if (!card) return;
     var orderNo = card.getAttribute('data-order-no');
     var actBtn = e.target.closest('[data-act]');
     var act = actBtn ? actBtn.getAttribute('data-act') : 'detail';
-    if (act === 'aftersale') {
-      confirmGoAftersale(orderNo);
-      return;
-    }
-    if (act === 'ship' || act === 'detail') {
+    if (act === 'aftersale' || act === 'ship' || act === 'detail') {
       goDetail(orderNo);
     }
   });

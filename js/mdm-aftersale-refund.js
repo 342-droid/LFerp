@@ -131,8 +131,13 @@
     return '<span class="' + cls + '">' + escapeHtml(status) + '</span>';
   }
 
-  /** 线下付款且待退款：可上传付款凭证 */
+  function isSupplierAftersaleView() {
+    return !!(window.LFAftersaleSupplierView && window.LFAftersaleSupplierView.isActive());
+  }
+
+  /** 线下付款且待退款：可上传付款凭证（供应商只读，不可上传） */
   function canUploadVoucher(row) {
+    if (isSupplierAftersaleView()) return false;
     return (
       row.source === '售后单' &&
       row.method === '线下付款' &&
@@ -222,8 +227,9 @@
         refundTxn = 'FAIL' + pad(i, 10);
       }
 
+      var refundId = 'RF-' + String(340048510537699328 + i * 173);
       list.push({
-        id: 'RF-' + String(340048510537699328 + i * 173),
+        id: refundId,
         orderNo: 'ORD-2607' + pad(2500000 + (i % 999999), 7) + (i % 4 === 0 ? '-2' : ''),
         aftersaleId: aftersaleId,
         orderSource: orderSource,
@@ -245,10 +251,26 @@
         remark: remark,
         proofUrl: proofUrl,
         voucherUploaded: voucherUploaded,
-        offlineChannel: channel
+        offlineChannel: channel,
+        supplierId: window.LFAftersaleSupplierView
+          ? window.LFAftersaleSupplierView.demoSupplierIdForKey(aftersaleId || refundId)
+          : ''
       });
     }
     return list;
+  }
+
+  function ensureRowSupplierId(row) {
+    if (!row) return row;
+    if (row.supplierId) return row;
+    if (window.LFAftersaleSupplierView) {
+      row.supplierId = window.LFAftersaleSupplierView.demoSupplierIdForKey(
+        row.aftersaleId || row.orderNo || row.id || ''
+      );
+    } else {
+      row.supplierId = '';
+    }
+    return row;
   }
 
   function loadStoredDirectRefunds() {
@@ -267,6 +289,7 @@
       if (!exists) {
         row.source = normalizeRefundSource(row.source, 'batch');
         row.skipApproval = sourceSkipsApproval(row.source);
+        ensureRowSupplierId(row);
         ALL_ROWS.unshift(row);
       }
     });
@@ -292,36 +315,39 @@
           : record.status === '退款中' || record.refundExecStatus === '退款执行中'
             ? '退款执行中'
             : '待退款';
-      ALL_ROWS.unshift({
-        id: refundId,
-        orderNo: record.orderNo || '',
-        aftersaleId: record.id || '',
-        orderSource: record.orderSource || '代采',
-        method: '原路退回',
-        source: '退运费',
-        skipApproval: true,
-        reason: record.reason || '退运费',
-        desc: record.desc || '订单运费退款：按剩余可退运费原路退回，不改变商品售后状态。',
-        status: status,
-        cashAmount: amount,
-        actualPaid: status === '退款成功' ? amount : null,
-        payTxnNo: record.payTxnNo || 'PAY-' + String(record.orderNo || '').replace(/\D/g, '').slice(-12),
-        refundTxnNo: '',
-        channel: record.payChannel || '',
-        createdAt: record.applyTime || record.occurTime || nowStamp(),
-        updatedAt: record.updateTime || record.applyTime || nowStamp(),
-        completedAt: status === '退款成功' ? record.updateTime || record.applyTime || '' : '',
-        remark: '',
-        proofUrl: '',
-        voucherUploaded: false,
-        offlineChannel: ''
-      });
+      ALL_ROWS.unshift(
+        ensureRowSupplierId({
+          id: refundId,
+          orderNo: record.orderNo || '',
+          aftersaleId: record.id || '',
+          orderSource: record.orderSource || '代采',
+          method: '原路退回',
+          source: '退运费',
+          skipApproval: true,
+          reason: record.reason || '退运费',
+          desc: record.desc || '订单运费退款：按剩余可退运费原路退回，不改变商品售后状态。',
+          status: status,
+          cashAmount: amount,
+          actualPaid: status === '退款成功' ? amount : null,
+          payTxnNo: record.payTxnNo || 'PAY-' + String(record.orderNo || '').replace(/\D/g, '').slice(-12),
+          refundTxnNo: '',
+          channel: record.payChannel || '',
+          createdAt: record.applyTime || record.occurTime || nowStamp(),
+          updatedAt: record.updateTime || record.applyTime || nowStamp(),
+          completedAt: status === '退款成功' ? record.updateTime || record.applyTime || '' : '',
+          remark: '',
+          proofUrl: '',
+          voucherUploaded: false,
+          offlineChannel: ''
+        })
+      );
     });
   }
 
   var ALL_ROWS = buildDemoRows();
   loadStoredDirectRefunds();
   loadStoredFreightRefunds();
+  ALL_ROWS.forEach(ensureRowSupplierId);
 
   function queryParam(name) {
     var m = new RegExp('(?:\\?|&)' + name + '=([^&]*)').exec(window.location.search || '');
@@ -360,36 +386,39 @@
       }
     }
     if (!found) {
-      ALL_ROWS.unshift({
-        id: refundNo,
-        orderNo: orderNo || 'ORD-' + String(Date.now()).slice(-10),
-        aftersaleId: aftersaleId || '',
-        /* 售后详情跳转默认视为代采（钱包渠道可用）；零售跳转可带 orderSource=零售 */
-        orderSource: queryParam('orderSource') === '零售' ? '零售' : '代采',
-        method: method,
-        source: source,
-        skipApproval: queryParam('skipApproval') === '1' ? true : sourceSkipsApproval(source),
-        reason: queryParam('reason') || '',
-        status: status,
-        cashAmount: cash,
-        actualPaid: status === '退款成功' ? cash : null,
-        payTxnNo: 'PAY-' + String(Date.now()).slice(-15),
-        refundTxnNo: '',
-        channel: '',
-        createdAt: createdAt,
-        updatedAt: createdAt,
-        completedAt: status === '退款成功' ? createdAt : '',
-        remark: '',
-        proofUrl: '',
-        voucherUploaded: false,
-        offlineChannel: ''
-      });
+      ALL_ROWS.unshift(
+        ensureRowSupplierId({
+          id: refundNo,
+          orderNo: orderNo || 'ORD-' + String(Date.now()).slice(-10),
+          aftersaleId: aftersaleId || '',
+          /* 售后详情跳转默认视为代采（钱包渠道可用）；零售跳转可带 orderSource=零售 */
+          orderSource: queryParam('orderSource') === '零售' ? '零售' : '代采',
+          method: method,
+          source: source,
+          skipApproval: queryParam('skipApproval') === '1' ? true : sourceSkipsApproval(source),
+          reason: queryParam('reason') || '',
+          status: status,
+          cashAmount: cash,
+          actualPaid: status === '退款成功' ? cash : null,
+          payTxnNo: 'PAY-' + String(Date.now()).slice(-15),
+          refundTxnNo: '',
+          channel: '',
+          createdAt: createdAt,
+          updatedAt: createdAt,
+          completedAt: status === '退款成功' ? createdAt : '',
+          remark: '',
+          proofUrl: '',
+          voucherUploaded: false,
+          offlineChannel: ''
+        })
+      );
     } else {
       if (aftersaleId) found.aftersaleId = aftersaleId;
       if (orderNo) found.orderNo = orderNo;
       if (method) found.method = method;
       if (status) found.status = status;
       found.orderSource = queryParam('orderSource') === '零售' ? '零售' : found.orderSource || '代采';
+      ensureRowSupplierId(found);
       if (!isNaN(cash) && cashRaw !== '') found.cashAmount = cash;
       if (source) found.source = source;
       if (queryParam('reason')) found.reason = queryParam('reason');
@@ -433,6 +462,11 @@
     if (f.source && row.source !== f.source) return false;
     if (f.status && row.status !== f.status) return false;
     if (f.txnNo && String(row.refundTxnNo || '').indexOf(f.txnNo) < 0) return false;
+    /* 仅平台看全局；供应商只看本商家商品相关退款 */
+    if (isSupplierAftersaleView()) {
+      ensureRowSupplierId(row);
+      if (!row.supplierId || !window.LFAftersaleSupplierView.ownsRow(row)) return false;
+    }
     return true;
   }
 
