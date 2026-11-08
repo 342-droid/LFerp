@@ -1302,6 +1302,16 @@
     "status": "diff",
     "date": "2026-11-06"
   },
+  "4f1990b|store-app/h5/supplier-order-detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-08"
+  },
+  "4f1990b|store-app/h5/supplier-orders.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-08"
+  },
   "58da79b|MDM/mdm_aftersale_feedback.html": {
     "before": "changelog-assets/58da79b/MDM__mdm_aftersale_feedback.html.before.jpg",
     "after": "changelog-assets/58da79b/MDM__mdm_aftersale_feedback.html.after.jpg",

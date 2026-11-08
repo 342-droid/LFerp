@@ -1,10 +1,39 @@
 {
-  "latestSha": "7496a9721293c89378d12e859134b80f82f6ea3b",
-  "total": 501,
+  "latestSha": "4f1990ba93ea9be6548e58b5f4b69b7612a1465d",
+  "total": 502,
   "days": [
     {
       "date": "2026-11-08",
       "items": [
+        {
+          "sha": "4f1990b",
+          "type": "fix",
+          "text": "丰银宝发货结果跨页同步并去掉多余成功提示",
+          "author": "sisi",
+          "time": "22:47",
+          "pages": [
+            {
+              "file": "store-app/h5/supplier-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-orders.html",
+              "module": "",
+              "title": "客户订单 · 丰银宝"
+            }
+          ],
+          "notes": [
+            {
+              "file": "store-app/h5/supplier-orders.html",
+              "text": "列表发货后详情同步为待收货；去掉「已识别运单号」「已发货」类成功 toast"
+            },
+            {
+              "file": "store-app/h5/supplier-order-detail.html",
+              "text": "读取会话内发货结果，状态与物流与列表一致"
+            }
+          ]
+        },
         {
           "sha": "7496a97",
           "type": "feat",
