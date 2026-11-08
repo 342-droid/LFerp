@@ -276,7 +276,6 @@
       if (!trackingInput) return;
       trackingInput.value = no;
       applyCourierFromTracking();
-      toast('已识别运单号');
     }
 
     function openScanOverlay() {
@@ -398,17 +397,21 @@
         return;
       }
 
-      order.expressNo = trackingCheck.value;
-      order.courier = courier;
-      order.status = '待收货';
-      order.shippedGoods = pickedGoods;
-      closeSheet();
-      toast('已发货（演示）：' + courier + ' ' + trackingCheck.value);
-      if (typeof opts.onSaved === 'function') opts.onSaved(order, {
+      var payload = {
         goods: pickedGoods,
         courier: courier,
         trackingNo: trackingCheck.value
-      });
+      };
+      if (global.FybSupplierOrders && typeof global.FybSupplierOrders.applyShip === 'function') {
+        global.FybSupplierOrders.applyShip(order, payload);
+      } else {
+        order.expressNo = trackingCheck.value;
+        order.courier = courier;
+        order.status = '待收货';
+        order.shippedGoods = pickedGoods;
+      }
+      closeSheet();
+      if (typeof opts.onSaved === 'function') opts.onSaved(order, payload);
     });
   }
 

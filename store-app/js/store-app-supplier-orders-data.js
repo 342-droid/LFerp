@@ -872,6 +872,59 @@
     }
   });
 
+  /** 列表发货后跨页保留（详情重新加载脚本时仍可读到待收货） */
+  var SHIP_PATCH_KEY = 'fyb_supplier_order_ship_patches_v1';
+
+  function readShipPatches() {
+    try {
+      var raw = sessionStorage.getItem(SHIP_PATCH_KEY);
+      var parsed = raw ? JSON.parse(raw) : {};
+      return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function writeShipPatches(map) {
+    try {
+      sessionStorage.setItem(SHIP_PATCH_KEY, JSON.stringify(map || {}));
+    } catch (e) {}
+  }
+
+  function applyShipPatch(order, patch) {
+    if (!order || !patch) return order;
+    if (patch.status) order.status = patch.status;
+    if (patch.expressNo != null) order.expressNo = patch.expressNo;
+    if (patch.courier != null) order.courier = patch.courier;
+    if (patch.shippedGoods) order.shippedGoods = patch.shippedGoods;
+    return order;
+  }
+
+  function hydrateShipPatches() {
+    var map = readShipPatches();
+    ORDERS.forEach(function (o) {
+      if (o && o.orderNo && map[o.orderNo]) applyShipPatch(o, map[o.orderNo]);
+    });
+  }
+
+  hydrateShipPatches();
+
+  /** 发货成功：写内存 + sessionStorage，列表/详情共用 */
+  function applyShip(order, payload) {
+    if (!order || !order.orderNo) return null;
+    var patch = {
+      status: '待收货',
+      expressNo: payload && payload.trackingNo != null ? payload.trackingNo : order.expressNo,
+      courier: payload && payload.courier != null ? payload.courier : order.courier,
+      shippedGoods: payload && payload.goods ? payload.goods : order.shippedGoods || null
+    };
+    applyShipPatch(order, patch);
+    var map = readShipPatches();
+    map[order.orderNo] = patch;
+    writeShipPatches(map);
+    return order;
+  }
+
   function listBySupplier(name) {
     return ORDERS.filter(function (o) {
       return o.supplier === name;
@@ -937,6 +990,7 @@
     find: find,
     canShip: canShip,
     hasBlockingAftersale: hasBlockingAftersale,
-    canHandleAftersale: canHandleAftersale
+    canHandleAftersale: canHandleAftersale,
+    applyShip: applyShip
   };
 })(typeof window !== 'undefined' ? window : this);
