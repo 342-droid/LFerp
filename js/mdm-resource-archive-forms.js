@@ -580,9 +580,9 @@
                 var option = new Option(warehouse.name, warehouse.name);
                 option.dataset.warehouseId = warehouse.id;
                 selectEl.appendChild(option);
-            });
-            if (selectedName) {
-                selectEl.value = selectedName;
+        });
+        if (selectedName) {
+            selectEl.value = selectedName;
                 if (!selectEl.value) {
                     selectEl.appendChild(original);
                     selectEl.value = selectedName;
@@ -688,7 +688,7 @@
             if (task && typeof showToast === 'function') {
                 showToast('已下发结算信息补充协议，待供应商 App 签署（演示）', 'success');
             }
-        });
+            });
     }
 
     function attachWideModal(title, bodyEl, onConfirm) {

@@ -1394,7 +1394,7 @@
 
     var orderId = row.getAttribute('data-order-id');
     var viewLink = cell.querySelector('.js-order-view');
-    /* 供应商组织：可直接发货 / 处理售后（进详情），与 App 客户订单能力对齐 */
+    /* 供应商组织：列表可发货；售后统一在售后单处理，订单列表不放「处理售后」 */
     if (window.LFSupplierOrderView && window.LFSupplierOrderView.isActive()) {
       var supplierActions = document.createElement('div');
       supplierActions.className = 'order-live-table__actions';
@@ -1405,21 +1405,6 @@
         supplierActions.appendChild(
           createRetailActionButton('js-retail-upload-express', orderId, '发货')
         );
-      }
-      var aftersaleCell = String(
-        row.getAttribute('data-as-status') ||
-          row.getAttribute('data-aftersale-status') ||
-          ''
-      ).trim();
-      if (!aftersaleCell && window.OrderLiveDetail && typeof window.OrderLiveDetail.getOrderAftersaleStatus === 'function') {
-        aftersaleCell = String(
-          window.OrderLiveDetail.getOrderAftersaleStatus(orderId, row) || ''
-        ).trim();
-      }
-      if (/待收货|待寄出|待发货|退款中|售后中|处理中/.test(aftersaleCell)) {
-        var asBtn = createRetailActionButton('js-order-view', orderId, '处理售后');
-        asBtn.classList.add('js-sup-handle-aftersale');
-        supplierActions.appendChild(asBtn);
       }
       cell.innerHTML = '';
       cell.appendChild(supplierActions);

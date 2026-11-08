@@ -1,4 +1,4 @@
-/* 丰银宝 · 供应商售后详情：商品主图 + 可查看物流；快递退货收货/补货发货 */
+/* 丰银宝 · 供应商售后详情：字段不变，排版对齐用户 APP 退款/售后详情 */
 (function () {
   if (!window.FybOrg || !window.FybOrg.ensureSupplierModeOrRedirect()) return;
   if (!window.FybSupplierAftersale) return;
@@ -10,6 +10,11 @@
 
   var body = document.getElementById('saSupAsDetailBody');
   var footer = document.getElementById('saSupAsDetailFooter');
+
+  var TRUCK_SVG =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="8" width="13" height="9" rx="1"/><path d="M15 10h4l3 4v3h-7V10z"/><circle cx="7" cy="18" r="1.5"/><circle cx="18" cy="18" r="1.5"/></svg>';
+  var CHEV_SVG =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>';
 
   function escapeHtml(str) {
     return String(str == null ? '' : str)
@@ -36,13 +41,15 @@
     return escapeHtml(src || AS.defaultImg || '../../user-app/assets/order-product-1.svg');
   }
 
-  function kv(label, value) {
+  function infoRow(label, value, strong) {
     return (
-      '<div class="sa-sup-od-kv"><span>' +
-      label +
-      '</span><strong>' +
+      '<div class="sa-ua-info__row"><span class="sa-ua-info__label">' +
+      escapeHtml(label) +
+      '</span><span class="sa-ua-info__value' +
+      (strong ? ' sa-ua-info__value--strong' : '') +
+      '">' +
       (value == null || value === '' ? '—' : escapeHtml(value)) +
-      '</strong></div>'
+      '</span></div>'
     );
   }
 
@@ -97,57 +104,57 @@
       'supplier-aftersale-logistics.html?id=' + encodeURIComponent(ticket.id);
   }
 
-  function logisticsCardHtml() {
+  function logisticsHtml() {
     if (!ticket) return '';
     if (AS.hasTrackableLogistics(ticket)) {
       return (
-        '<button type="button" class="sa-as-logistics" id="saSupAsLogisticsBtn">' +
-        '<span class="sa-as-logistics__icon" aria-hidden="true">' +
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7h11v10H3V7zm11 3h4l3 3v4h-7V10z"/><circle cx="7" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/></svg>' +
+        '<section class="sa-ua-card">' +
+        '<button type="button" class="sa-ua-logistics" id="saSupAsLogisticsBtn">' +
+        '<span class="sa-ua-logistics__icon" aria-hidden="true">' +
+        TRUCK_SVG +
         '</span>' +
-        '<span class="sa-as-logistics__info">' +
-        '<div class="sa-as-logistics__status">' +
+        '<span class="sa-ua-logistics__info">' +
+        '<div class="sa-ua-logistics__status">' +
         escapeHtml(ticket.logisticsStatus || '运输中') +
         '</div>' +
-        '<div class="sa-as-logistics__text">' +
+        '<div class="sa-ua-logistics__text">' +
         escapeHtml(
           (ticket.courier ? ticket.courier + ' ' : '') +
             (ticket.logisticsText || ticket.trackingNo || '')
         ) +
         '</div></span>' +
-        '<span class="sa-as-logistics__link">查看物流</span></button>'
+        '<span class="sa-ua-logistics__link">查看物流</span>' +
+        '<span class="sa-ua-logistics__chev" aria-hidden="true">' +
+        CHEV_SVG +
+        '</span></button></section>'
       );
     }
-    if (ticket.fulfill !== '快递') {
-      return (
-        '<div class="sa-as-logistics is-disabled">' +
-        '<span class="sa-as-logistics__icon" aria-hidden="true">' +
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7h11v10H3V7zm11 3h4l3 3v4h-7V10z"/><circle cx="7" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/></svg>' +
-        '</span>' +
-        '<span class="sa-as-logistics__info">' +
-        '<div class="sa-as-logistics__status">无需快递物流</div>' +
-        '<div class="sa-as-logistics__text">' +
-        escapeHtml(ticket.tip || '配送/自提由门店或仓库处理') +
-        '</div></span></div>'
-      );
-    }
+    var statusText =
+      ticket.fulfill !== '快递' ? '无需快递物流' : '暂无物流信息';
+    var subText =
+      ticket.fulfill !== '快递'
+        ? ticket.tip || '配送/自提由门店或仓库处理'
+        : ticket.tip || '寄出后可查看物流轨迹';
     return (
-      '<div class="sa-as-logistics is-disabled">' +
-      '<span class="sa-as-logistics__icon" aria-hidden="true">' +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7h11v10H3V7zm11 3h4l3 3v4h-7V10z"/><circle cx="7" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/></svg>' +
+      '<section class="sa-ua-card">' +
+      '<div class="sa-ua-logistics is-static">' +
+      '<span class="sa-ua-logistics__icon" aria-hidden="true">' +
+      TRUCK_SVG +
       '</span>' +
-      '<span class="sa-as-logistics__info">' +
-      '<div class="sa-as-logistics__status">暂无物流信息</div>' +
-      '<div class="sa-as-logistics__text">' +
-      escapeHtml(ticket.tip || '寄出后可查看物流轨迹') +
-      '</div></span></div>'
+      '<span class="sa-ua-logistics__info">' +
+      '<div class="sa-ua-logistics__status">' +
+      escapeHtml(statusText) +
+      '</div>' +
+      '<div class="sa-ua-logistics__text">' +
+      escapeHtml(subText) +
+      '</div></span></div></section>'
     );
   }
 
   function render() {
     if (!body) return;
     if (!ticket) {
-      body.innerHTML = '<div class="sa-as-empty">未找到售后单，或无权查看</div>';
+      body.innerHTML = '<div class="sa-ua-empty">未找到售后单，或无权查看</div>';
       if (footer) {
         footer.hidden = true;
         footer.innerHTML = '';
@@ -158,48 +165,45 @@
     var canOps = AS.canOperate(ticket);
 
     body.innerHTML =
-      '<article class="sa-sup-card">' +
-      '<div class="sa-sup-card__row"><div class="sa-sup-card__no">' +
-      escapeHtml(ticket.id) +
-      '</div><span class="sa-sup-tag is-wait">' +
+      '<div class="sa-ua-detail__body">' +
+      '<section class="sa-ua-hero">' +
+      '<h2 class="sa-ua-hero__title">' +
       escapeHtml(ticket.type + ' · ' + ticket.status) +
-      '</span></div>' +
-      '<div class="sa-sup-od-grid">' +
-      kv('订单号', ticket.orderNo) +
-      kv('订单来源', ticket.orderSource) +
-      kv('履约方式', ticket.fulfill) +
-      kv('申请时间', ticket.applyTime) +
-      kv('售后原因', ticket.reason) +
-      '</div></article>' +
-      '<article class="sa-sup-card">' +
-      '<h3 class="sa-sup-card__name">商品</h3>' +
-      '<div class="sa-as-detail-product" style="margin-top:8px">' +
-      '<img class="sa-as-detail-product__img" src="' +
+      '</h2>' +
+      '<p class="sa-ua-hero__sub">' +
+      escapeHtml(ticket.tip || ticket.reason || '') +
+      '</p></section>' +
+      logisticsHtml() +
+      '<section class="sa-ua-card">' +
+      '<div class="sa-ua-info">' +
+      '<h3 class="sa-ua-info__title">售后信息</h3>' +
+      '<div class="sa-ua-item" style="border-bottom:1px solid #f5f5f5">' +
+      '<img class="sa-ua-item__img" src="' +
       productImg(ticket.productImg) +
       '" alt="">' +
-      '<div style="flex:1;min-width:0">' +
-      '<div class="sa-as-card__name">' +
+      '<div class="sa-ua-item__body">' +
+      '<div class="sa-ua-item__name">' +
       escapeHtml(ticket.product) +
       '</div>' +
-      '<div class="sa-as-card__spec">' +
+      '<div class="sa-ua-item__spec">' +
       escapeHtml(ticket.spec || '') +
       ' ×' +
       escapeHtml(ticket.qty) +
       '</div>' +
-      '<div class="sa-as-card__amount" style="margin-top:6px">¥ ' +
+      '<div class="sa-ua-item__meta">' +
+      '<div class="sa-ua-item__prices">' +
+      '<span class="sa-ua-item__paid"><em>金额</em>¥' +
       escapeHtml(ticket.amount) +
-      '</div></div></div></article>' +
-      '<article class="sa-sup-card">' +
-      '<h3 class="sa-sup-card__name">物流信息</h3>' +
-      '<div style="margin-top:8px">' +
-      logisticsCardHtml() +
-      '</div></article>' +
-      (ticket.refundId
-        ? '<article class="sa-sup-card"><h3 class="sa-sup-card__name">关联退款</h3>' +
-          '<div class="sa-sup-card__meta" style="margin-top:6px">' +
-          escapeHtml(ticket.refundId) +
-          '</div></article>'
-        : '');
+      '</span></div></div></div></div>' +
+      infoRow('售后单号', ticket.id) +
+      infoRow('订单号', ticket.orderNo) +
+      infoRow('订单来源', ticket.orderSource) +
+      infoRow('履约方式', ticket.fulfill) +
+      infoRow('申请时间', ticket.applyTime) +
+      infoRow('售后原因', ticket.reason) +
+      (ticket.refundId ? infoRow('关联退款', ticket.refundId) : '') +
+      infoRow('售后金额', '¥' + ticket.amount, true) +
+      '</div></section></div>';
 
     var logisticsBtn = document.getElementById('saSupAsLogisticsBtn');
     if (logisticsBtn) {
@@ -216,11 +220,11 @@
     footer.hidden = false;
     if (ticket.type === '退货退款' && ticket.status === '待收货') {
       footer.innerHTML =
-        '<button type="button" class="sa-sup-od-btn" data-as="reject">拒收</button>' +
-        '<button type="button" class="sa-sup-od-btn sa-sup-od-btn--primary" data-as="receive">确认收货</button>';
+        '<button type="button" class="sa-ua-footer__btn" data-as="reject">拒收</button>' +
+        '<button type="button" class="sa-ua-footer__btn sa-ua-footer__btn--primary" data-as="receive">确认收货</button>';
     } else if (ticket.type === '补货' && (ticket.status === '待寄出' || ticket.status === '待发货')) {
       footer.innerHTML =
-        '<button type="button" class="sa-sup-od-btn sa-sup-od-btn--primary" data-as="restock">上传补货快递单</button>';
+        '<button type="button" class="sa-ua-footer__btn sa-ua-footer__btn--primary sa-ua-footer__btn--single" data-as="restock">上传补货快递单</button>';
     } else {
       footer.hidden = true;
       footer.innerHTML = '';

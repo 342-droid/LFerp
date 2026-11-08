@@ -1,4 +1,4 @@
-/* 丰银宝 · 供应商客户订单详情：发货 / 处理售后 */
+/* 丰银宝 · 供应商客户订单详情：字段不变，排版对齐用户 APP 订单详情 */
 (function () {
   if (!window.FybOrg || !window.FybOrg.ensureSupplierModeOrRedirect()) return;
   if (!window.FybSupplierOrders) return;
@@ -16,172 +16,205 @@
     else back.setAttribute('href', 'supplier-orders.html');
   }
 
+  var PIN_SVG =
+    '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 00-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 00-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>';
+  var TRUCK_SVG =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="8" width="13" height="9" rx="1"/><path d="M15 10h4l3 4v3h-7V10z"/><circle cx="7" cy="18" r="1.5"/><circle cx="18" cy="18" r="1.5"/></svg>';
+  var SHOP_SVG =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 10l8-6 8 6v10a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1V10z"/></svg>';
+  var CHEV_SVG =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>';
+
   function toast(msg, type) {
     if (window.LFToast && window.LFToast.show) window.LFToast.show(msg);
     else if (typeof showToast === 'function') showToast(msg, type || 'info');
   }
 
-  function tagClass(status) {
-    if (/交易成功|已完成|已结款/.test(status) && !/部分|售后|退货/.test(status)) return 'is-ok';
-    if (/异常|失败/.test(status)) return 'is-bad';
-    return 'is-wait';
+  function escapeHtml(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
   }
 
-  function kv(label, value) {
+  function infoRow(label, value) {
     return (
-      '<div class="sa-sup-od-kv"><span>' +
-      label +
-      '</span><strong>' +
-      (value || '—') +
-      '</strong></div>'
+      '<div class="sa-ua-info__row"><span class="sa-ua-info__label">' +
+      escapeHtml(label) +
+      '</span><span class="sa-ua-info__value">' +
+      escapeHtml(value == null || value === '' ? '—' : value) +
+      '</span></div>'
     );
   }
 
-  function promptText(title, placeholder) {
-    var v = window.prompt(title, placeholder || '');
-    return v == null ? null : String(v).trim();
+  function aftersaleLead(as) {
+    if (!as) return '';
+    if (as.type === '补货') return '待补货发货';
+    if (/门店已寄回/.test(as.tip || '')) return '门店已寄回';
+    if (/用户已寄回/.test(as.tip || '')) return '用户已寄回';
+    if (as.tip) return String(as.tip).split(/[，,]/)[0];
+    return as.type || '售后处理';
   }
 
-  /** 售后处理二次确认 */
-  function confirmAftersale(opts, onOk) {
-    opts = opts || {};
-    var exist = document.getElementById('saSupAsConfirm');
-    if (exist) exist.remove();
-    var shell = document.querySelector('.sa-shell') || document.body;
-    var mask = document.createElement('div');
-    mask.id = 'saSupAsConfirm';
-    mask.className = 'sa-sup-confirm-mask';
-    mask.innerHTML =
-      '<div class="sa-sup-confirm" role="dialog" aria-modal="true">' +
-      '<h3 class="sa-sup-confirm__title">' +
-      (opts.title || '确认操作') +
-      '</h3>' +
-      '<p class="sa-sup-confirm__msg">' +
-      (opts.message || '确认继续处理该售后？') +
-      '</p>' +
-      '<div class="sa-sup-confirm__actions">' +
-      '<button type="button" class="sa-sup-confirm__btn" data-c="cancel">取消</button>' +
-      '<button type="button" class="sa-sup-confirm__btn sa-sup-confirm__btn--primary" data-c="ok">' +
-      (opts.okLabel || '确认') +
-      '</button></div></div>';
-    shell.appendChild(mask);
-    requestAnimationFrame(function () {
-      mask.classList.add('is-open');
-    });
-    function close() {
-      mask.remove();
+  function aftersaleLatestExpress(as) {
+    if (!as) return '';
+    return (
+      as.logisticsText ||
+      (as.courier && as.trackingNo
+        ? as.courier + ' ' + as.trackingNo
+        : as.trackingNo || as.logisticsStatus || '')
+    );
+  }
+
+  function bannerSub(o) {
+    if (o.aftersale) {
+      var lead = aftersaleLead(o.aftersale);
+      var latest = aftersaleLatestExpress(o.aftersale);
+      return latest ? lead + ' ' + latest : lead;
     }
-    mask.addEventListener('click', function (ev) {
-      if (ev.target === mask) close();
-    });
-    mask.querySelector('[data-c="cancel"]').addEventListener('click', close);
-    mask.querySelector('[data-c="ok"]').addEventListener('click', function () {
-      close();
-      if (typeof onOk === 'function') onOk();
-    });
+    if (o.expressNo) {
+      return (o.courier ? o.courier + ' ' : '物流单号 ') + o.expressNo;
+    }
+    return (o.type || '') + ' · ' + (o.fulfill || '');
   }
 
   function render() {
     if (!order) {
-      body.innerHTML = '<div class="sa-sup-empty">未找到订单，或无权查看</div>';
+      body.innerHTML = '<div class="sa-ua-empty">未找到订单，或无权查看</div>';
       footer.hidden = true;
       return;
     }
 
     var as = order.aftersale;
+    var img = order.productImg || '../../user-app/assets/order-product-1.svg';
+    var logisticsHtml = '';
+    if (order.expressNo) {
+      logisticsHtml =
+        '<section class="sa-ua-card">' +
+        '<div class="sa-ua-logistics is-static">' +
+        '<span class="sa-ua-logistics__icon" aria-hidden="true">' +
+        TRUCK_SVG +
+        '</span>' +
+        '<span class="sa-ua-logistics__info">' +
+        '<div class="sa-ua-logistics__status">' +
+        escapeHtml(order.courier || '物流单号') +
+        '</div>' +
+        '<div class="sa-ua-logistics__text">' +
+        escapeHtml(order.expressNo) +
+        '</div></span></div></section>';
+    }
+
     var asHtml = '';
     if (as) {
+      var asLead = aftersaleLead(as);
+      var asLatest = aftersaleLatestExpress(as);
       asHtml =
-        '<article class="sa-sup-card sa-sup-od-as">' +
-        '<div class="sa-sup-card__row"><h3 class="sa-sup-card__name" style="margin:0">售后处理</h3>' +
-        '<span class="sa-sup-tag ' +
-        tagClass(as.status) +
+        '<button type="button" class="sa-ua-as-panel" id="saSupOdAsPanel" data-as-detail="' +
+        escapeHtml(as.id || '') +
         '">' +
-        as.type +
-        ' · ' +
-        as.status +
+        '<div class="sa-ua-as-panel__head">' +
+        '<h3 class="sa-ua-as-panel__title">售后处理</h3>' +
+        '<span class="sa-ua-as-panel__tag">' +
+        escapeHtml(as.type + ' · ' + as.status) +
+        '</span>' +
+        '<span class="sa-ua-as-panel__chev" aria-hidden="true">' +
+        CHEV_SVG +
         '</span></div>' +
-        '<div class="sa-sup-card__meta">' +
-        (as.tip || '') +
-        '<br>售后单 ' +
-        as.id +
-        ' · 金额 ¥' +
-        as.amount +
-        '</div>' +
-        '<div class="sa-sup-od-as-actions" id="saSupOdAsActions"></div></article>';
+        '<p class="sa-ua-as-panel__tip"><strong class="sa-ua-as-panel__lead">' +
+        escapeHtml(asLead) +
+        '</strong>' +
+        (asLatest
+          ? '<span class="sa-ua-as-panel__express"> ' + escapeHtml(asLatest) + '</span>'
+          : '') +
+        '</p></button>';
     }
 
     body.innerHTML =
-      '<article class="sa-sup-card">' +
-      '<div class="sa-sup-card__row"><div class="sa-sup-card__no">' +
-      order.orderNo +
-      '</div><span class="sa-sup-tag ' +
-      tagClass(order.status) +
-      '">' +
-      order.status +
+      '<div class="sa-ua-detail__body">' +
+      '<section class="sa-ua-banner">' +
+      '<h2 class="sa-ua-banner__title">' +
+      escapeHtml(order.status) +
+      '</h2>' +
+      '<p class="sa-ua-banner__sub">' +
+      escapeHtml(bannerSub(order)) +
+      '</p></section>' +
+      '<section class="sa-ua-card">' +
+      '<div class="sa-ua-addr">' +
+      '<span class="sa-ua-addr__icon" aria-hidden="true">' +
+      PIN_SVG +
+      '</span>' +
+      '<div class="sa-ua-addr__body">' +
+      '<div class="sa-ua-addr__user"><span>' +
+      escapeHtml(order.buyer) +
+      '</span><span>' +
+      escapeHtml(order.phone) +
       '</span></div>' +
-      '<div class="sa-sup-od-grid">' +
-      kv('订单类型', order.type + ' · ' + order.channel) +
-      kv('履约方式', order.fulfill) +
-      kv('下单时间', order.time) +
-      kv('结算状态', order.settleStatus) +
-      '</div></article>' +
-      '<article class="sa-sup-card">' +
-      '<h3 class="sa-sup-card__name">商品</h3>' +
-      '<div class="sa-sup-od-goods" style="margin-top:10px">' +
-      '<img class="sa-sup-od-goods__img" src="' +
-      (order.productImg || '../../user-app/assets/order-product-1.svg') +
+      '<div class="sa-ua-addr__text">' +
+      escapeHtml(order.address) +
+      '</div></div></div></section>' +
+      logisticsHtml +
+      '<section class="sa-ua-card">' +
+      '<div class="sa-ua-shop__head">' +
+      '<span class="sa-ua-shop__icon" aria-hidden="true">' +
+      SHOP_SVG +
+      '</span>' +
+      '<span class="sa-ua-shop__name">' +
+      escapeHtml((order.channel || '') + (order.type ? ' · ' + order.type : '')) +
+      '</span></div>' +
+      '<article class="sa-ua-item">' +
+      '<img class="sa-ua-item__img" src="' +
+      escapeHtml(img) +
       '" alt="">' +
-      '<div class="sa-sup-od-goods__info">' +
-      '<div class="sa-sup-od-goods__name">' +
-      order.product +
+      '<div class="sa-ua-item__body">' +
+      '<div class="sa-ua-item__name">' +
+      escapeHtml(order.product) +
       '</div>' +
-      '<div class="sa-sup-card__meta">' +
-      (order.spec || '') +
-      ' ×' +
-      order.qty +
+      '<div class="sa-ua-item__spec">' +
+      escapeHtml(order.spec || '') +
       '</div>' +
-      '<div class="sa-sup-card__meta">编码 ' +
-      order.code +
+      '<div class="sa-ua-item__meta">' +
+      '<div class="sa-ua-item__prices">' +
+      '<span class="sa-ua-item__sale"><em>采购款</em>¥' +
+      escapeHtml(order.purchase) +
+      '</span>' +
+      '<span class="sa-ua-item__paid"><em>金额</em>¥' +
+      escapeHtml(order.amount) +
+      '</span></div>' +
+      '<span class="sa-ua-item__qty">×' +
+      escapeHtml(order.qty) +
+      '</span></div>' +
+      '<div class="sa-ua-item__extra">编码 ' +
+      escapeHtml(order.code) +
       ' · 条码 ' +
-      order.barcode +
-      '</div>' +
-      '<div class="sa-sup-card__meta" style="margin-top:4px">采购款 ¥' +
-      order.purchase +
-      '</div></div>' +
-      '<div class="sa-sup-card__amt">¥' +
-      order.amount +
+      escapeHtml(order.barcode) +
       '</div></div></article>' +
-      '<article class="sa-sup-card">' +
-      '<h3 class="sa-sup-card__name">收货信息</h3>' +
-      '<div class="sa-sup-od-grid">' +
-      kv('买家', order.buyer) +
-      kv('手机', order.phone) +
-      kv('地址', order.address) +
-      kv('物流单号', order.expressNo || '—') +
-      '</div></article>' +
-      asHtml;
+      asHtml +
+      '</section>' +
+      '<section class="sa-ua-card">' +
+      '<div class="sa-ua-info">' +
+      '<h3 class="sa-ua-info__title">订单信息</h3>' +
+      infoRow('订单号', order.orderNo) +
+      infoRow('订单类型', (order.type || '') + ' · ' + (order.channel || '')) +
+      infoRow('履约方式', order.fulfill) +
+      infoRow('下单时间', order.time) +
+      infoRow('结算状态', order.settleStatus) +
+      '</div></section></div>';
 
-    var asHost = document.getElementById('saSupOdAsActions');
-    if (asHost && as) {
-      if (as.type === '退货退款' && as.status === '待收货') {
-        asHost.innerHTML =
-          '<button type="button" class="sa-sup-od-btn sa-sup-od-btn--primary" data-as="receive">确认收货</button>' +
-          '<button type="button" class="sa-sup-od-btn" data-as="reject">拒收</button>';
-      } else if (as.type === '补货' && (as.status === '待寄出' || as.status === '待发货')) {
-        asHost.innerHTML =
-          '<button type="button" class="sa-sup-od-btn sa-sup-od-btn--primary" data-as="restock">上传补货快递单</button>';
-      } else {
-        asHost.innerHTML = '<span class="sa-sup-card__meta">当前售后无需本商家操作</span>';
-      }
-      asHost.addEventListener('click', onAftersaleClick);
+    var asPanel = document.getElementById('saSupOdAsPanel');
+    if (asPanel) {
+      asPanel.addEventListener('click', function () {
+        var tid = asPanel.getAttribute('data-as-detail') || (as && as.id) || '';
+        if (!tid) return;
+        window.location.href =
+          'supplier-aftersale-detail.html?id=' + encodeURIComponent(tid);
+      });
     }
 
-    /* 售后确认收货/拒收已在「售后处理」区内展示，底栏不再重复「处理售后」 */
     var actions = [];
     if (window.FybSupplierOrders.canShip(order)) {
       actions.push(
-        '<button type="button" class="sa-sup-od-btn sa-sup-od-btn--primary" data-act="ship">发货 · 上传快递单</button>'
+        '<button type="button" class="sa-ua-footer__btn sa-ua-footer__btn--primary sa-ua-footer__btn--single" data-act="ship">发货 · 上传快递单</button>'
       );
     }
     if (!actions.length) {
@@ -199,69 +232,15 @@
     if (!btn) return;
     var act = btn.getAttribute('data-act');
     if (act === 'ship') {
-      var no = promptText('请输入快递单号', order.expressNo || 'SF');
-      if (!no) return;
-      order.expressNo = no;
-      order.status = '待收货';
-      toast('已发货（演示）：' + no);
-      render();
-    }
-  }
-
-  function onAftersaleClick(e) {
-    var btn = e.target.closest('[data-as]');
-    if (!btn || !order.aftersale) return;
-    var act = btn.getAttribute('data-as');
-    if (act === 'receive') {
-      confirmAftersale(
-        {
-          title: '确认收货',
-          message: '确认已收到用户退回商品？确认后将继续退款流程，此操作不可撤销。',
-          okLabel: '确认收货'
-        },
-        function () {
-          order.aftersale.status = '已完成';
-          order.status = '交易成功';
-          order.aftersale.tip = '供应商已确认收货，退款流程继续（演示）';
-          toast('已确认收货（演示）');
+      if (!window.FybSupplierShip || typeof window.FybSupplierShip.open !== 'function') {
+        toast('发货组件未加载');
+        return;
+      }
+      window.FybSupplierShip.open(order, {
+        onSaved: function () {
           render();
         }
-      );
-      return;
-    }
-    if (act === 'reject') {
-      confirmAftersale(
-        {
-          title: '确认拒收',
-          message: '确认拒收该退货？拒收后需平台/客服介入处理。',
-          okLabel: '确认拒收'
-        },
-        function () {
-          order.aftersale.status = '已拒收';
-          order.aftersale.tip = '供应商已拒收，需平台/客服介入（演示）';
-          toast('已拒收（演示）');
-          render();
-        }
-      );
-      return;
-    }
-    if (act === 'restock') {
-      confirmAftersale(
-        {
-          title: '确认补货发货',
-          message: '确认已备好补货商品并上传快递单？提交后售后状态将变为待用户收货。',
-          okLabel: '确认上传'
-        },
-        function () {
-          var no = promptText('请输入补货快递单号', 'SF');
-          if (!no) return;
-          order.aftersale.status = '待收货';
-          order.aftersale.tip = '补货已寄出 ' + no + '，待用户签收';
-          order.expressNo = no;
-          toast('补货快递单已上传（演示）');
-          render();
-        }
-      );
+      });
     }
   }
 

@@ -5263,18 +5263,6 @@
       var row = link.closest('tr');
       var orderId = link.getAttribute('data-order-id') || (row && row.getAttribute('data-order-id'));
       if (!orderId) return;
-      /* 供应商列表「处理售后」：进入详情前二次确认 */
-      if (link.classList.contains('js-sup-handle-aftersale')) {
-        confirmSupplierAftersaleAction({
-          title: '处理售后',
-          message: '确认进入该订单售后处理？进入后可进行确认收货、拒收或补货发货。',
-          okLabel: '确认处理',
-          onConfirm: function () {
-            openDrawer(orderId, row);
-          }
-        });
-        return;
-      }
       openDrawer(orderId, row);
     });
   }

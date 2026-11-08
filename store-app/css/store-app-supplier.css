@@ -483,4 +483,417 @@
 .sa-sup-refund-sheet .sa-sup-od-grid {
   grid-template-columns: 1fr;
 }
+
+/* 上传快递单 · App 半屏（字段对齐 PC） */
+.sa-sup-ship-sheet {
+  position: absolute;
+  inset: 0;
+  z-index: 5400;
+  display: flex;
+  align-items: flex-end;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  border-radius: inherit;
+}
+
+.sa-sup-ship-sheet.is-open {
+  opacity: 1;
+}
+
+.sa-sup-ship-sheet__mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.sa-sup-ship-sheet__panel {
+  position: relative;
+  width: 100%;
+  max-height: min(86%, 640px);
+  background: #fff;
+  border-radius: 16px 16px 0 0;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.12);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.sa-sup-ship-sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 8px;
+  flex-shrink: 0;
+}
+
+.sa-sup-ship-sheet__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.sa-sup-ship-sheet__close {
+  border: 0;
+  background: none;
+  font-size: 24px;
+  line-height: 1;
+  color: #999;
+  padding: 0 2px;
+  cursor: pointer;
+}
+
+.sa-sup-ship-sheet__body {
+  overflow: auto;
+  padding: 4px 16px 12px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sa-sup-ship-field {
+  display: block;
+  width: 100%;
+  margin-bottom: 14px;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.sa-sup-ship-field__label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.sa-sup-ship-field__label {
+  display: block;
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.sa-sup-ship-field__label-row .sa-sup-ship-field__label {
+  margin-bottom: 0;
+}
+
+.sa-sup-ship-field__link {
+  border: 0;
+  background: none;
+  color: #ff7019;
+  font-size: 13px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.sa-sup-ship-goods {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #f7f8fa;
+  border-radius: 10px;
+}
+
+.sa-sup-ship-good {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  color: #222;
+  line-height: 1.4;
+}
+
+.sa-sup-ship-good__check {
+  margin-top: 2px;
+  width: 16px;
+  height: 16px;
+  accent-color: #ff7019;
+  flex-shrink: 0;
+}
+
+.sa-sup-ship-good__name {
+  flex: 1;
+  min-width: 0;
+}
+
+.sa-sup-ship-field--input,
+.sa-sup-ship-field--tap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 10px 10px 10px 12px;
+  background: #f7f8fa;
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+
+.sa-sup-ship-field--input .sa-sup-ship-field__label,
+.sa-sup-ship-field--tap .sa-sup-ship-field__label {
+  margin: 0;
+  width: 72px;
+  flex-shrink: 0;
+  color: #333;
+  font-size: 14px;
+}
+
+.sa-sup-ship-field__input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  font-size: 15px;
+  color: #1a1a1a;
+  outline: none;
+}
+
+.sa-sup-ship-field__input::placeholder {
+  color: #bbb;
+}
+
+.sa-sup-ship-field__scan {
+  flex-shrink: 0;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  min-width: 40px;
+  padding: 2px 4px;
+  border: 0;
+  background: transparent;
+  color: #ff7019;
+  cursor: pointer;
+}
+
+.sa-sup-ship-field__scan svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.sa-sup-ship-field__scan-txt {
+  font-size: 10px;
+  line-height: 1;
+  color: #ff7019;
+  white-space: nowrap;
+}
+
+.sa-sup-ship-field__value {
+  flex: 1;
+  min-width: 0;
+  text-align: right;
+  font-size: 15px;
+  color: #1a1a1a;
+}
+
+.sa-sup-ship-field__value--ph {
+  color: #bbb;
+}
+
+.sa-sup-ship-field__arrow {
+  width: 16px;
+  height: 16px;
+  color: #ccc;
+  flex-shrink: 0;
+}
+
+.sa-sup-ship-field__arrow svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.sa-sup-ship-sheet__foot {
+  display: flex;
+  gap: 10px;
+  padding: 10px 16px 14px;
+  border-top: 1px solid #eef0f3;
+  flex-shrink: 0;
+}
+
+.sa-sup-ship-sheet__btn {
+  flex: 1;
+  height: 44px;
+  border: 0;
+  border-radius: 10px;
+  background: #f2f3f5;
+  color: #333;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sa-sup-ship-sheet__btn--primary {
+  background: #ff7019;
+  color: #fff;
+}
+
+.sa-sup-ship-picker {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+}
+
+.sa-sup-ship-picker__mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.sa-sup-ship-picker__panel {
+  position: relative;
+  width: 100%;
+  max-height: 70%;
+  background: #fff;
+  border-radius: 16px 16px 0 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sa-sup-ship-picker__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 8px;
+}
+
+.sa-sup-ship-picker__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.sa-sup-ship-picker__close {
+  border: 0;
+  background: none;
+  font-size: 22px;
+  color: #999;
+  cursor: pointer;
+}
+
+.sa-sup-ship-picker__list {
+  overflow: auto;
+  padding: 0 8px 16px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sa-sup-ship-picker__item {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: #fff;
+  text-align: left;
+  padding: 14px 12px;
+  border-radius: 10px;
+  font-size: 15px;
+  color: #222;
+  cursor: pointer;
+}
+
+.sa-sup-ship-picker__item.is-active {
+  background: #fff7ed;
+  color: #ff7019;
+  font-weight: 600;
+}
+
+/* 物流单号 · 扫一扫（演示） */
+.sa-sup-ship-scan {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.sa-sup-ship-scan__mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.sa-sup-ship-scan__panel {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+  background: #1a1a1a;
+  color: #fff;
+  border-radius: 14px;
+  padding: 18px 16px 14px;
+  text-align: center;
+}
+
+.sa-sup-ship-scan__title {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.sa-sup-ship-scan__hint {
+  margin: 0 0 14px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.sa-sup-ship-scan__frame {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  margin: 0 auto 16px;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.sa-sup-ship-scan__line {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #ff7019, transparent);
+  animation: saSupShipScanLine 1.6s ease-in-out infinite;
+}
+
+@keyframes saSupShipScanLine {
+  0% {
+    top: 12%;
+  }
+  50% {
+    top: 78%;
+  }
+  100% {
+    top: 12%;
+  }
+}
+
+.sa-sup-ship-scan__simulate {
+  display: block;
+  width: 100%;
+  height: 42px;
+  border: 0;
+  border-radius: 10px;
+  background: #ff7019;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.sa-sup-ship-scan__cancel {
+  display: block;
+  width: 100%;
+  height: 40px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 14px;
+  cursor: pointer;
 }

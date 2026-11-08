@@ -81,9 +81,7 @@
     if (window.FybSupplierOrders.canShip(o)) {
       btns.push('<button type="button" class="sa-sup-card__act sa-sup-card__act--primary" data-act="ship">发货</button>');
     }
-    if (window.FybSupplierOrders.canHandleAftersale(o)) {
-      btns.push('<button type="button" class="sa-sup-card__act" data-act="aftersale">处理售后</button>');
-    }
+    /* 售后统一在售后管理/售后单处理，订单列表不放「处理售后」 */
     btns.push('<button type="button" class="sa-sup-card__act" data-act="detail">详情</button>');
     return '<div class="sa-sup-card__actions">' + btns.join('') + '</div>';
   }
@@ -174,15 +172,37 @@
     render();
   });
 
+  function openShip(orderNo) {
+    var order = window.FybSupplierOrders.find(orderNo, org.name);
+    if (!order) return;
+    if (!window.FybSupplierOrders.canShip(order)) {
+      if (window.LFToast && window.LFToast.show) window.LFToast.show('当前订单状态不可上传快递单');
+      render();
+      return;
+    }
+    if (!window.FybSupplierShip || typeof window.FybSupplierShip.open !== 'function') {
+      goDetail(orderNo);
+      return;
+    }
+    window.FybSupplierShip.open(order, {
+      onSaved: function () {
+        render();
+      }
+    });
+  }
+
   document.getElementById('saSupOrderList').addEventListener('click', function (e) {
     var card = e.target.closest('[data-order-no]');
     if (!card) return;
     var orderNo = card.getAttribute('data-order-no');
     var actBtn = e.target.closest('[data-act]');
     var act = actBtn ? actBtn.getAttribute('data-act') : 'detail';
-    if (act === 'aftersale' || act === 'ship' || act === 'detail') {
-      goDetail(orderNo);
+    if (act === 'ship') {
+      e.preventDefault();
+      openShip(orderNo);
+      return;
     }
+    goDetail(orderNo);
   });
 
   render();

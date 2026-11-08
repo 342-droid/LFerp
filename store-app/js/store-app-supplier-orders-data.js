@@ -24,7 +24,12 @@
       buyer: '斯斯门店商家2',
       phone: '138****2210',
       address: '浙江省杭州市西湖区文一西路 XX 号',
-      aftersale: null
+      aftersale: null,
+      /* 演示：一单多商品，上传快递单可选关联商品（对齐 PC） */
+      goods: [
+        { id: 'ORD-2610312466502-1', name: '火龙果 白心 / 袋 ×2' },
+        { id: 'ORD-2610312466502-2', name: '冰袋赠品 标准装 ×1' }
+      ]
     },
     {
       orderNo: 'ORD-2610312477895',
@@ -73,7 +78,11 @@
         type: '退货退款',
         status: '待收货',
         amount: '0.80',
-        tip: '用户已寄回，待供应商确认收货'
+        tip: '用户已寄回，待供应商确认收货',
+        courier: '顺丰速运',
+        trackingNo: 'SF261016200015',
+        logisticsStatus: '运输中',
+        logisticsText: '【杭州市】快件已到达杭州转运中心'
       }
     },
     {
@@ -394,7 +403,14 @@
       buyer: '野子文化',
       phone: '157****3322',
       address: '浙江省杭州市拱墅区',
-      aftersale: null
+      /* 演示：待发货但存在退货退款售后 → 不可发货 */
+      aftersale: {
+        id: 'AS-261105R004',
+        type: '退货退款',
+        status: '待审核',
+        amount: '0.30',
+        tip: '用户已申请退货退款，审核中不可发货'
+      }
     },
     {
       orderNo: 'ORD-261105R005',
@@ -519,7 +535,11 @@
         type: '退货退款',
         status: '待收货',
         amount: '0.30',
-        tip: '门店已寄回，待供应商确认收货'
+        tip: '门店已寄回，待供应商确认收货',
+        courier: '中通快递',
+        trackingNo: 'ZT261105P1001',
+        logisticsStatus: '派送中',
+        logisticsText: '【杭州市】快递员正在派送'
       }
     },
     {
@@ -867,8 +887,40 @@
     return null;
   }
 
+  /**
+   * 存在退货退款类售后则不可发货（与 PC canUploadRetailExpress 对齐）。
+   * 退货退款 / 仅退款一律拦截；补货不拦订单发货。
+   */
+  function hasBlockingAftersale(o) {
+    if (!o || !o.aftersale) return false;
+    var a = o.aftersale;
+    var type = String(a.type || '');
+    if (type === '补货') return false;
+    if (type === '退货退款' || type === '仅退款') return true;
+    /* 无明确 type 时，按售后状态文案兜底（对齐 PC RETURN_REFUND 状态） */
+    var s = String(a.status || a.tip || '').replace(/\s+/g, '');
+    if (!s) return false;
+    return [
+      '待审核',
+      '待审批',
+      '退货中',
+      '待退货',
+      '退款中',
+      '退款异常',
+      '退货成功',
+      '退款成功',
+      '待收货'
+    ].some(function (st) {
+      return s === st || s.indexOf(st) >= 0;
+    });
+  }
+
   function canShip(o) {
-    return !!(o && o.fulfill === '快递' && (o.status === '待发货' || o.status === '待接单'));
+    if (!o || o.fulfill !== '快递') return false;
+    if (o.status !== '待发货' && o.status !== '待接单') return false;
+    /* 存在退货退款类售后 → 不可发货 */
+    if (hasBlockingAftersale(o)) return false;
+    return true;
   }
 
   function canHandleAftersale(o) {
@@ -884,6 +936,7 @@
     listBySupplier: listBySupplier,
     find: find,
     canShip: canShip,
+    hasBlockingAftersale: hasBlockingAftersale,
     canHandleAftersale: canHandleAftersale
   };
 })(typeof window !== 'undefined' ? window : this);
