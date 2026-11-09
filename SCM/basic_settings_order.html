@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="../css/lf-settle-account-config.css?v=20260813-bs-store">
     <link rel="stylesheet" href="../css/lf-mdm-points-rule.css">
     <link rel="stylesheet" href="../css/basic-settings.css?v=20260814-hours-align">
+    <link rel="stylesheet" href="../css/mdm-oplog-drawer.css">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -30,6 +31,7 @@
                             <span class="sac-section__title">订单配置</span>
                         </div>
                         <div class="bs-section-head-actions" data-bs-actions="order">
+                            <button type="button" class="erp-btn" data-oplog-scene="orderConfig" data-oplog-name="平台订单配置">操作日志</button>
                             <button type="button" class="erp-btn" id="bsOrderEditBtn">修改</button>
                             <button type="button" class="erp-btn" id="bsOrderCancelBtn" hidden>取消</button>
                             <button type="button" class="erp-btn erp-btn--primary" id="bsOrderSaveBtn" hidden>保存</button>
@@ -174,5 +176,7 @@
     <script src="../js/store-account-config.js?v=20260810-sac1"></script>
     <script src="../js/store-wallet-demo.js?v=20260810-deposit-unfreeze6"></script>
     <script src="../js/basic-settings-order.js?v=20260815-sale-store-hours"></script>
+    <script src="../js/mdm-oplog-dict.js"></script>
+    <script src="../js/mdm-oplog-drawer.js"></script>
 </body>
 </html>

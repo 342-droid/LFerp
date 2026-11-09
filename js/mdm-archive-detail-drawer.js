@@ -5748,7 +5748,8 @@
                 'bankCards',
                 'prod',
                 'perf',
-                'orderCfg'
+                'orderCfg',
+                'oplog'
             ],
             tabLabels: [
                 '基础信息',
@@ -5760,7 +5761,8 @@
                 '银行卡',
                 '商品统计',
                 '业绩报表',
-                '订单配置'
+                '订单配置',
+                '操作日志'
             ],
             bodies: {
                 base: panelStoreBase(store),
@@ -5772,7 +5774,8 @@
                 bankCards: panelStoreBankCards(),
                 prod: panelCommProdPerf('prod'),
                 perf: panelCommProdPerf('perf'),
-                orderCfg: panelStoreOrderConfig(store)
+                orderCfg: panelStoreOrderConfig(store),
+                oplog: window.MdmOplog ? window.MdmOplog.renderStoreTab({ storeId: store.storeId, name: store.name }) : el('div', 'supplier-detail-tab', '暂无操作日志')
             }
         });
     }

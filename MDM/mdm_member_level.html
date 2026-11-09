@@ -426,6 +426,7 @@
             display: none;
         }
     </style>
+    <link rel="stylesheet" href="../css/mdm-oplog-drawer.css">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -461,6 +462,7 @@
                         <button type="button" class="btn btn-secondary" id="btnFilterReset">重置</button>
                         <button type="button" class="btn btn-primary" id="btnFilterQuery">查询</button>
                         <button type="button" class="btn btn-outline" id="btnAddLevel">新增等级</button>
+                        <button type="button" class="btn btn-secondary" data-oplog-scene="memberLevelPolicy">操作日志</button>
                     </div>
                 </form>
             </section>
@@ -495,5 +497,7 @@
     <script src="../js/mdm-product-catalog-store.js"></script>
     <script src="../js/mdm-member-level-data.js"></script>
     <script src="../js/mdm-member-level.js"></script>
+    <script src="../js/mdm-oplog-dict.js"></script>
+    <script src="../js/mdm-oplog-drawer.js"></script>
 </body>
 </html>
