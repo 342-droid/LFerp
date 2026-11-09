@@ -515,10 +515,7 @@
           return;
         }
         setPassword(phone, pwd);
-        if (window.LfContract && window.LfContract.signUserByRegister) {
-          window.LfContract.signUserByRegister(phone, phone);
-        }
-        showToast('注册成功，已签署用户协议和隐私政策');
+        showToast('注册成功，已同意用户协议和隐私政策');
         setTimeout(function () {
           completeLogin(phone, '冷丰用户');
         }, 400);

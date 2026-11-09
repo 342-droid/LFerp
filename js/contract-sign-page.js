@@ -1,5 +1,5 @@
 /**
- * 合同正文页：模板链接只供查阅。签署任务一次只确认当前这一份。
+ * 合同正文页：没有签署任务时只供查阅，不提供转发。签署任务一次只确认当前这一份。
  */
 (function () {
   var api = window.LfContract;
@@ -66,9 +66,10 @@
     footEl.innerHTML = '';
     var doc = docs[current];
     if (!task || !doc || !doc.tplId) {
-      footEl.appendChild(button('复制链接', true, function () { copyPage(doc); }));
+      footEl.hidden = true;
       return;
     }
+    footEl.hidden = false;
     var signed = api.isTemplateSigned(task, doc.tplId);
     footEl.appendChild(button('复制链接', false, function () { copyPage(doc); }));
     if (signed) {
@@ -118,6 +119,17 @@
     paintFoot();
   }
 
+  function readableTpl(id) {
+    var tpl = api.findTpl(id);
+    if (tpl) return tpl;
+    var docs = api.registerAgreements ? api.registerAgreements() : [];
+    var i;
+    for (i = 0; i < docs.length; i++) {
+      if (docs[i].id === id) return docs[i];
+    }
+    return null;
+  }
+
   if (!api) {
     if (paperEl) paperEl.textContent = '合同页面未加载完成';
     return;
@@ -125,7 +137,7 @@
 
   if (taskId) {
     task = api.findTask(taskId);
-    if (task && api.fadadaSignUrl) {
+    if (task && task.scene !== 'user' && task.signChannel !== 'checkbox' && api.fadadaSignUrl) {
       location.replace(api.fadadaSignUrl(task));
       return;
     }
@@ -137,11 +149,14 @@
     party = api.findParty(task.partyId);
     api.taskTemplates(task).forEach(function (tpl) { addDoc(tpl, true); });
   } else if (tplId) {
-    addDoc(api.findTpl(tplId), false);
-    setMeta('合同正文，供查阅转发');
+    addDoc(readableTpl(tplId), false);
+    setMeta(tplId === 'TPL005' || tplId === 'TPL006' ? '协议正文，供查阅' : '合同正文，供查阅');
+  } else if (sceneId === 'user') {
+    (api.registerAgreements ? api.registerAgreements() : []).forEach(function (tpl) { addDoc(tpl, false); });
+    setMeta('用户注册协议与隐私政策，供查阅');
   } else if (sceneId) {
     api.templatesOfScene(sceneId).forEach(function (tpl) { addDoc(tpl, false); });
-    setMeta(sceneId === 'user' ? '用户注册协议与隐私政策，供查阅' : '合同正文，供查阅转发');
+    setMeta('合同正文，供查阅');
   }
 
   if (!docs.length) {
