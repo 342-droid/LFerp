@@ -629,12 +629,17 @@
     });
   }
 
-  function openTaskContract(task) {
-    if (!task) return;
-    var url = fadadaPreviewUrl(task);
-    var opened = global.open(url, '_blank', 'noopener');
-    if (!opened) global.location.href = url;
-    toast('已打开法大大预览', 'success');
+  function openTaskContract(task, activeId) {
+    openTaskContractLocal(task, activeId);
+  }
+
+  function docContractBody(doc) {
+    var body = contractBodyOf({
+      id: (doc && (doc.bodyId || doc.id)) || '',
+      name: doc && doc.name,
+      remoteId: doc && doc.remoteId
+    });
+    return body || '这份文档的正文在法大大模板中，本系统不维护条款。';
   }
 
   function openTaskContractLocal(task, activeId) {
@@ -642,7 +647,7 @@
     var party = findParty(task.partyId);
     var tpls = taskTemplates(task);
     var docs = (tpls.length ? tpls : [{ id: task.templateId, name: task.name || '合同' }]).map(function (tpl) {
-      var body = fillContractParty(contractBodyOf(tpl), party);
+      var body = fillContractParty(docContractBody(tpl), party);
       var signed = isTemplateSigned(task, tpl.id);
       return {
         id: tpl.id,
@@ -731,11 +736,11 @@
     var party = opts.party;
     var shown = displayStatus(task);
     var statusMeta = TASK_STATUS[shown] || { label: shown || '—', cls: 'ct-tag--muted' };
-    var tpl = findTpl(doc && doc.id);
+    var tpl = findTpl(task.templateId);
     var orderLabel = tpl && tpl.signInOrder ? '顺序签署' : '无序签署';
     var sender = senderOfBody(doc && doc.body) || (state.config && state.config.corpName) || '—';
     var taskNo = task.fadadaTaskId || task.id || '';
-    var platformDone = task.status !== 'draft';
+    var platformDone = task.platformSign === 'signed' || task.status === 'sign_completed';
     var partyDone = !!(doc && doc.id && isTemplateSigned(task, doc.id));
     var partyDoneAt = partyDone ? ((task.templateSignedAt && task.templateSignedAt[doc.id]) || task.finishedAt || '') : '';
     var dotCls = shown === 'sign_completed' ? 'is-ok' : (shown === 'overdue' || shown === 'terminated' || shown === 'voided' ? 'is-bad' : (shown === 'sign_progress' || shown === 'voiding' ? 'is-info' : 'is-warn'));
@@ -749,7 +754,7 @@
       detailLine('截止时间', deadlineText(task)) +
       detailLine('定稿方式', '自动定稿') +
       detailLine('IP属地', '上海') +
-      signerCard(orderLabel, sender, signerState(platformDone, task), platformDone ? (task.createdAt || '') : '') +
+      signerCard(orderLabel, sender, platformDone ? '已签署' : (task.platformSign === 'failed' ? '自动签失败' : '待自动签'), platformDone ? (task.createdAt || '') : '') +
       signerCard(orderLabel, party ? party.name : '—', signerState(partyDone, task), partyDoneAt);
     side.hidden = false;
     dialog.classList.add('ct-doc--with-side');
