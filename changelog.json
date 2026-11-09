@@ -1,10 +1,104 @@
 {
-  "latestSha": "4e416f39a75f15861de670cc39ea760e734c806c",
-  "total": 504,
+  "latestSha": "7c0410c2a7dd7ba49816556f9b0441bdb6c28099",
+  "total": 505,
   "days": [
     {
       "date": "2026-11-09",
       "items": [
+        {
+          "sha": "7c0410c",
+          "type": "feat",
+          "text": "签署任务查看合同改为在本页阅读正文",
+          "author": "sisi",
+          "time": "16:57",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_bd_stores.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 门店模块"
+            },
+            {
+              "file": "SCM/basic_settings_contract_config.html",
+              "module": "冷丰WMS",
+              "title": "接入配置"
+            },
+            {
+              "file": "SCM/basic_settings_contract_party.html",
+              "module": "冷丰WMS",
+              "title": "签署主体"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task.html",
+              "module": "冷丰WMS",
+              "title": "签署任务"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_detail.html",
+              "module": "冷丰WMS",
+              "title": "签署任务详情"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template.html",
+              "module": "冷丰WMS",
+              "title": "合同模板"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template_form.html",
+              "module": "冷丰WMS",
+              "title": "合同模板配置"
+            },
+            {
+              "file": "SCM/contract_sign.html",
+              "module": "",
+              "title": "合同"
+            },
+            {
+              "file": "shop-h5/h5/store/contracts.html",
+              "module": "",
+              "title": "签署合同 · Shop H5"
+            },
+            {
+              "file": "store-app/h5/contract-sign.html",
+              "module": "",
+              "title": "签署合同 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/contracts.html",
+              "module": "",
+              "title": "合同签署 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "丰银宝 · 工作台"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/basic_settings_contract_task.html",
+              "text": "查看合同留在本页打开合同正文，并带入签约商户；平台方按待自动签、已签署、自动签失败显示"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_detail.html",
+              "text": "查看合同同样在本页阅读，平台签署状态与列表一致"
+            }
+          ]
+        },
         {
           "sha": "4e416f3",
           "type": "feat",
