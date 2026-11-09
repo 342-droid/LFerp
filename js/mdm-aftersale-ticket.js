@@ -521,9 +521,10 @@
     if (f.ticketNo && row.id.indexOf(f.ticketNo) < 0) return false;
     if (f.orderQuery) {
       if (f.orderQueryType === 'trackingNo') {
+        // 只查售后单自身的退货寄回、换货发出、补货发出单号，不含原订单发货单号
         var shipments = row.shipments || {};
-        var numbers = [row.trackingNo, row.orderTrackingNo];
-        Object.keys(shipments).forEach(function (key) {
+        var numbers = [];
+        ['returnShip', 'exchangeOutShip', 'restockShip'].forEach(function (key) {
           if (shipments[key]) numbers.push(shipments[key].trackingNo);
         });
         if (/^AS-(?:RT|PX)/.test(row.id) && window.MdmAftersaleDemoTracking) {
