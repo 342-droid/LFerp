@@ -1459,8 +1459,7 @@
             } else if (meta.storeStatus === '已启用') {
                 html += isDefault
                     ? '<a href="#" class="mdm-store-disable is-locked" title="系统默认门店不允许冻结">冻结</a>'
-                    : '<a href="#" class="mdm-store-disable">冻结</a>';
-            }
+                    : '<a href="#" class="mdm-store-disable">冻结</a>';            }
             actionTd.innerHTML = html.replace(/\s+$/, '');
         });
     }
@@ -1997,8 +1996,7 @@
                 var ids = Array.from(new Set(group.ids));
                 return group.label + '（' + ids.length + '）' + '：' + ids.join('、');
             }).join('\n');
-        });
-    }
+        });    }
 
     function initArchiveWarehouse() {
         var fields = [

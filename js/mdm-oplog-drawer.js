@@ -124,6 +124,15 @@
             var n = opts.resourceId || opts.resourceName ? 8 + Math.floor(rand() * 8) : 24 + Math.floor(rand() * 10);
             for (var i = 0; i < n; i++) list.push(makeLog(scene, opts));
             list.sort(function (a, b) { return a.timestamp < b.timestamp ? 1 : -1; });
+            if (scene === 'store') {
+                /* 【689】验收示例：张三将门店简称从冷丰杭州总店变更为杭州总店 */
+                var ex = makeLog('store', opts);
+                var nm = opts.resourceName || '冷丰杭州总店';
+                ex.action = 'store.update'; ex.actionLabel = '修改门店'; ex.operator = '张三'; ex.success = true; ex.errorMessage = '';
+                ex.resourceName = nm; if (list.length) ex.timestamp = list[0].timestamp;
+                ex.changes = [{ field: '门店简称', before: nm === '冷丰杭州总店' ? '冷丰杭州总店' : nm, after: nm === '冷丰杭州总店' ? '杭州总店' : nm.replace(/^冷丰/, '') + '（简）' }];
+                list.unshift(ex);
+            }
             cache[key] = list;
         }
         return cache[key];
