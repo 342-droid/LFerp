@@ -185,7 +185,7 @@
         var rows = window.LfContract.listStoreTasks(storeName);
         if (rows && rows.length) {
           show = rows.some(function (t) {
-            return t.status === 'sign_progress' || t.status === 'wait_auth';
+            return t.status === 'sign_progress';
           });
         }
       } else {
@@ -209,7 +209,7 @@
         });
         if (mine.length) {
           show = mine.some(function (t) {
-            return t.status === 'sign_progress' || t.status === 'wait_auth';
+            return t.status === 'sign_progress';
           });
         }
       }
@@ -226,7 +226,7 @@
       if (window.LfContract && window.LfContract.listSupplierTasks) {
         var rows = window.LfContract.listSupplierTasks(org.name);
         show = (rows || []).some(function (t) {
-          return t.status === 'sign_progress' || t.status === 'wait_auth';
+          return t.status === 'sign_progress';
         });
         if (!(rows && rows.length)) show = true;
       }

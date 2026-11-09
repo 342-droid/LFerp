@@ -24,7 +24,7 @@
             <hr class="content-divider">
 
             <div class="mdm-biz-tip" role="note">
-                业务场景对应现有合同。<strong>门店合作</strong>可多选适用合作类型，同一场景可以启用多份协议。切换场景会带出对应的法大大模板、签署方和控件。
+                绑定一份法大大签署任务模板。模板里的文档、参与方标识和签署顺序以法大大为准，本系统不能改。适用合作类型只决定哪类门店入驻时带出这一份模板。
             </div>
 
             <section class="pts-rule-card">
@@ -42,7 +42,7 @@
                                 <label class="pts-rule-check-label"><input type="checkbox" value="联营店"> 联营店</label>
                                 <label class="pts-rule-check-label"><input type="checkbox" value="直营店"> 直营店</label>
                             </div>
-                            <div class="ct-field-tip">可多选。门店合作类型命中其中任一项，发起该场景签署时就会带上这一份。同一场景的其他协议可以同时启用。</div>
+                            <div class="ct-field-tip">命中合作类型后，入驻只发起这一份签署模板，模板中的文档全部纳入同一条任务。</div>
                         </div>
                     </div>
                     <div class="pts-rule-field">
@@ -53,7 +53,7 @@
                         <div class="pts-rule-field__label"><span class="erp-req">*</span>法大大签署模板</div>
                         <div class="pts-rule-field__control">
                             <select class="erp-select" id="ctRemoteTpl"></select>
-                            <div class="ct-field-tip" id="ctRemoteTplTip">来自法大大「签署模板」查询，请先在开放平台做好控件和签章关键字。</div>
+                            <div class="ct-field-tip" id="ctRemoteTplTip">来自法大大签署任务模板。一份模板对应一条签署任务。</div>
                         </div>
                     </div>
                     <div class="pts-rule-field">
@@ -70,10 +70,17 @@
                         <div class="pts-rule-field__control">
                             <div class="ct-map-list">
                                 <label><input type="checkbox" id="ctAutoStart"> 创建后自动启动签署任务</label>
-                                <label><input type="checkbox" id="ctSignOrder"> 按签署方顺序签（先平台后相对方）</label>
+                                <label><input type="checkbox" id="ctSignOrder" disabled> 按签署方顺序签（以法大大模板为准，不可改）</label>
                             </div>
                         </div>
                     </div>
+                </div>
+            </section>
+
+            <section class="pts-rule-card">
+                <div class="pts-rule-card__title">模板文档</div>
+                <div class="pts-rule-card__body">
+                    <div class="ct-field-tip" id="ctDocList">选择法大大模板后显示其中的文档，发起时全部纳入同一条任务。</div>
                 </div>
             </section>
 
@@ -83,18 +90,16 @@
                     <table class="ct-actor-table">
                         <thead>
                             <tr>
+                                <th>参与方标识</th>
                                 <th>角色</th>
                                 <th>主体类型</th>
                                 <th>签署方式</th>
                                 <th>签章关键字</th>
-                                <th>操作</th>
                             </tr>
                         </thead>
                         <tbody id="ctActorBody"></tbody>
                     </table>
-                    <div class="ct-toolbar" style="margin-top:12px;">
-                        <button type="button" class="erp-btn" id="ctAddActor">添加签署方</button>
-                    </div>
+                    <div class="ct-field-tip">参与方标识必须与法大大模板一致，例如甲方、乙方。</div>
                 </div>
             </section>
 
@@ -105,7 +110,7 @@
                         <div class="pts-rule-field__label">从档案带出</div>
                         <div class="pts-rule-field__control">
                             <div class="ct-map-list" id="ctFillList"></div>
-                            <div class="ct-field-tip">发起签署时按勾选项从门店或供应商档案写入模板控件。</div>
+                            <div class="ct-field-tip">发起时按控件编码写入法大大，不能只按中文名填充。</div>
                         </div>
                     </div>
                 </div>
@@ -119,6 +124,6 @@
     </div>
     <script src="../js/common.js"></script>
     <script src="../js/contract-bodies.js?v=20261026-tpl-detail"></script>
-    <script src="../js/basic-settings-contract.js?v=20261109-no-user-scene"></script>
+    <script src="../js/basic-settings-contract.js?v=20261109-fdd-one-tpl"></script>
 </body>
 </html>
