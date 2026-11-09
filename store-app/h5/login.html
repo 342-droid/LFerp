@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>登录 · 门店APP</title>
+  <link rel="stylesheet" href="../css/store-app.css?v=20261109-857">
+  <style>
+    .sa-login { flex: 1; background: #fff; padding: 64px 28px 24px; display: flex; flex-direction: column; }
+    .sa-login h1 { font-size: 24px; font-weight: 600; color: var(--sa-text); margin-bottom: 8px; }
+    .sa-login .sa-login__sub { font-size: 13px; color: var(--sa-muted); margin-bottom: 36px; }
+    .sa-login__field { display: flex; align-items: center; border-bottom: 1px solid #eee; padding: 14px 0; }
+    .sa-login__field input { flex: 1; border: 0; outline: none; font-size: 16px; color: var(--sa-text); background: transparent; }
+    .sa-login__code { border: 0; background: none; color: var(--sa-orange-deep); font-size: 14px; }
+    .sa-login__err { min-height: 20px; margin-top: 12px; font-size: 13px; color: #e5484d; line-height: 1.5; }
+    .sa-login__btn { margin-top: 20px; border: 0; border-radius: 24px; background: var(--sa-orange); color: #fff; font-size: 16px; font-weight: 600; padding: 13px 0; }
+    .sa-login__tip { margin-top: 16px; font-size: 12px; color: #999; line-height: 1.6; }
+  </style>
+</head>
+<body class="store-app-body">
+  <div class="sa-shell">
+    <div class="sa-login">
+      <h1>手机号登录</h1>
+      <p class="sa-login__sub">登录后管理你名下的门店</p>
+      <label class="sa-login__field">
+        <input type="tel" id="saLoginPhone" maxlength="11" placeholder="请输入手机号">
+      </label>
+      <label class="sa-login__field">
+        <input type="text" id="saLoginCode" maxlength="6" placeholder="请输入验证码">
+        <button type="button" class="sa-login__code" id="saLoginSend">获取验证码</button>
+      </label>
+      <div class="sa-login__err" id="saLoginErr"></div>
+      <button type="button" class="sa-login__btn" id="saLoginBtn">登录</button>
+      <p class="sa-login__tip">【857 演示】旧手机号 13812348001 已不能管理任何门店，登录会提示未绑定门店；输入其他手机号可正常登录。演示验证码 123456。</p>
+    </div>
+  </div>
+  <script src="../js/store-app-toast.js?v=20260826-cutoff"></script>
+  <script>
+    (function () {
+      var KEY = 'sa_857_phone_change_v1';
+      var OLD_PHONE = '13812348001';
+      var phone = document.getElementById('saLoginPhone');
+      var code = document.getElementById('saLoginCode');
+      var err = document.getElementById('saLoginErr');
+      function state() {
+        try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; }
+      }
+      if (state().loggedOut) phone.value = OLD_PHONE;
+      document.getElementById('saLoginSend').addEventListener('click', function () {
+        if (window.LFToast) window.LFToast.show('验证码已发送（演示验证码：123456）');
+      });
+      document.getElementById('saLoginBtn').addEventListener('click', function () {
+        var p = phone.value.trim();
+        err.textContent = '';
+        if (!/^1\d{10}$/.test(p)) { err.textContent = '请输入正确的 11 位手机号'; return; }
+        if (code.value.trim() !== '123456') { err.textContent = '验证码错误或已过期'; return; }
+        if (p === OLD_PHONE && state().loggedOut) {
+          err.textContent = '该手机号未绑定门店，请联系 BD 或管理员';
+          return;
+        }
+        try { localStorage.removeItem(KEY); } catch (e) { /* ignore */ }
+        location.href = 'home.html';
+      });
+    })();
+  </script>
+  <script src="../../js/pg-prd-float.js?v=20260924-prd-all"></script>
+</body>
+</html>
