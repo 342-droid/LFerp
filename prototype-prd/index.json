@@ -264,6 +264,15 @@
         "user-app/h5/order-refund-return-ship.html",
         "user-app/h5/store-wallet.html"
       ]
+    },
+    {
+      "id": "759-商品销量",
+      "title": "【759】商品销量",
+      "file": "759-商品销量.md",
+      "pages": [
+        "MDM/mdm_product_mall.html",
+        "MDM/mdm_product_proxy_list.html"
+      ]
     }
   ]
 }

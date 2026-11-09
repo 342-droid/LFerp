@@ -573,7 +573,6 @@
     var result = {
       productName: product.name || '',
       summary: detail.summary || '',
-      displaySales: detail.displaySales != null ? String(detail.displaySales) : (detail.summary || ''),
       textDesc: detail.textDesc || '',
       etaCountdown: detail.etaCountdown != null
         ? String(detail.etaCountdown)
@@ -1042,12 +1041,6 @@
       '">' +
       escapeHtml(saleTimeSourceTipText(state.saleTimeSource || 'business')) +
       '</div>' +
-      '          </div>' +
-      '        </div>' +
-      '        <div class="product-proxy-form__field">' +
-      '          <label class="product-proxy-form__label" for="proxyFormDisplaySales">展示销量</label>' +
-      '          <div class="product-proxy-form__control">' +
-      '            <input class="product-proxy-form__input" id="proxyFormDisplaySales" type="text" value="' + escapeHtml(state.displaySales) + '" placeholder="请输入展示销量">' +
       '          </div>' +
       '        </div>' +
       '        <div class="product-proxy-form__field">' +
@@ -1652,8 +1645,6 @@
       pricePoints: pricePoints,
       linePrice: defaultSkuItem && defaultSkuItem.linePrice ? parseFloat(defaultSkuItem.linePrice) : null,
       detail: {
-        summary: (backdrop.querySelector('#proxyFormDisplaySales') || {}).value.trim(),
-        displaySales: (backdrop.querySelector('#proxyFormDisplaySales') || {}).value.trim(),
         textDesc: (backdrop.querySelector('#proxyFormTextDesc') || {}).value.trim(),
         etaCountdown: etaCountdown,
         etaCountdownUnit: etaCountdownUnit,
