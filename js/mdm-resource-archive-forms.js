@@ -542,6 +542,14 @@
             });
     }
 
+    function storeFullPhone(tr) {
+        var full = tr && tr.getAttribute('data-phone');
+        if (full) return full;
+        var td = tr && tr.querySelectorAll('td')[7];
+        var shown = td ? String(td.textContent || '').trim() : '';
+        return shown.replace('****', '0000');
+    }
+
     /* 【857】演示用验证码 */
     var STORE_PHONE_DEMO_CODE = '123456';
 
@@ -1003,7 +1011,8 @@
             if (c.length < 11) return;
             selectOptionByLabelText(refs.subjectSel, cellPlainText(c[1]));
             refs.contactInp.value = cellPlainText(c[6]);
-            if (refs.phoneInp) refs.phoneInp.value = cellPlainText(c[7]);
+            /* 【857】编辑弹窗显示完整手机号（列表仍脱敏）；演示数据无完整号时把 **** 补成 0000 */
+            if (refs.phoneInp) refs.phoneInp.value = storeFullPhone(tr);
             refs.originalPhone = refs.phoneInp ? String(refs.phoneInp.value || '').trim() : '';
             refs.verifyInp.value = '';
             if (refs.verifyRow) refs.verifyRow.style.display = 'none';
@@ -1543,10 +1552,10 @@
                     Array.prototype.forEach.call(tbody.querySelectorAll('tr'), function (row) {
                         if (row === tr || otherStore) return;
                         var tds = row.querySelectorAll('td');
-                        if (tds[7] && cellPlainText(tds[7]) === masked) otherStore = cellPlainText(tds[2]);
+                        if (tds[7] && storeFullPhone(row) === newPhone) otherStore = cellPlainText(tds[2]);
                     });
                 }
-                return { changed: true, masked: masked, otherStore: otherStore };
+                return { changed: true, phone: newPhone, masked: masked, otherStore: otherStore };
             }
             var phoneCheck = null;
             attachWideModal(
@@ -1559,16 +1568,17 @@
                     }
                     var pc = phoneCheck;
                     var msg =
-                        '确认将本门店的登录手机号由 ' + (refs.originalPhone || '—') + ' 更换为 ' + pc.masked +
+                        '确认将本门店的登录手机号由 ' + (refs.originalPhone || '—') + ' 更换为 ' + pc.phone +
                         '？更换后原手机号不能再登录管理本门店。';
                     if (pc.otherStore) {
                         msg += '\n该手机号已是门店【' + pc.otherStore + '】的登录手机号，保存后可同时管理这两家门店。';
                     }
                     showStorePhoneConfirm(msg, function () {
                         if (cells[7]) cells[7].textContent = pc.masked;
+                        tr.setAttribute('data-phone', pc.phone);
                         applyEdit();
                         removeArchiveFormModals();
-                        if (typeof showToast === 'function') showToast('已保存，本门店登录手机号已更换为 ' + pc.masked, 'success');
+                        if (typeof showToast === 'function') showToast('已保存，本门店登录手机号已更换为 ' + pc.phone, 'success');
                     });
                     return false;
                 },
