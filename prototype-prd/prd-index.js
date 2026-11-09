@@ -300,7 +300,9 @@ window.__PG_PRD_INDEX = {
       "title": "【857】门店档案手机号码可编辑",
       "file": "857-门店档案手机号码可编辑.md",
       "pages": [
-        "MDM/mdm_archive_store.html"
+        "MDM/mdm_archive_store.html",
+        "store-app/h5/home.html",
+        "store-app/h5/login.html"
       ]
     }
   ]
