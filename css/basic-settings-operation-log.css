@@ -1,0 +1,116 @@
+/* 基础设置 - 操作日志（全局梳理 + UAT 日志样式还原） */
+.oplog-page { padding: 12px 0 24px; color: #303133; font-size: 14px; }
+.oplog-tabs { display: flex; gap: 0; border-bottom: 1px solid #e4e7ed; margin-bottom: 16px; }
+.oplog-tabs button { border: none; background: none; padding: 10px 18px; font-size: 14px; color: #606266; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.oplog-tabs button.is-active { color: #ff7019; border-bottom-color: #ff7019; font-weight: 600; }
+.oplog-card { background: #fff; border: 1px solid #ebeef5; border-radius: 6px; padding: 16px; margin-bottom: 16px; }
+.oplog-tip { background: #fff7f0; border: 1px solid #ffd8bf; color: #8c4a1c; border-radius: 4px; padding: 10px 12px; margin-bottom: 14px; line-height: 1.7; font-size: 13px; }
+.oplog-tip strong { color: #d4500a; }
+
+/* 筛选区 */
+.oplog-filter { display: flex; flex-wrap: wrap; gap: 10px 12px; align-items: center; margin-bottom: 14px; }
+.oplog-filter label { display: inline-flex; align-items: center; gap: 6px; color: #606266; font-size: 13px; }
+.oplog-input, .oplog-select { height: 32px; border: 1px solid #dcdfe6; border-radius: 4px; padding: 0 10px; font-size: 13px; color: #303133; background: #fff; min-width: 150px; box-sizing: border-box; }
+.oplog-input:focus, .oplog-select:focus { outline: none; border-color: #ff7019; }
+.oplog-input--date { min-width: 190px; }
+.oplog-btn { height: 32px; padding: 0 15px; border-radius: 4px; border: 1px solid #dcdfe6; background: #fff; color: #606266; font-size: 13px; cursor: pointer; }
+.oplog-btn:hover { color: #ff7019; border-color: #ffc59e; background: #fff7f0; }
+.oplog-btn--primary { background: #ff7019; border-color: #ff7019; color: #fff; }
+.oplog-btn--primary:hover { background: #ff8a40; border-color: #ff8a40; color: #fff; }
+.oplog-link { border: none; background: none; color: #ff7019; cursor: pointer; padding: 0; font-size: 13px; }
+.oplog-link:hover { text-decoration: underline; }
+
+/* 表格 */
+.oplog-table-wrap { overflow-x: auto; }
+.oplog-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.oplog-table th { background: #f5f7fa; color: #606266; font-weight: 600; text-align: left; padding: 9px 10px; border-bottom: 1px solid #ebeef5; white-space: nowrap; }
+.oplog-table td { padding: 9px 10px; border-bottom: 1px solid #ebeef5; vertical-align: top; color: #303133; }
+.oplog-table tr:hover td { background: #fafafa; }
+.oplog-table .is-center { text-align: center; }
+.oplog-table .oplog-sub { display: block; color: #909399; font-size: 12px; margin-top: 2px; }
+.oplog-table--bordered th, .oplog-table--bordered td { border: 1px solid #ebeef5; }
+.oplog-empty { text-align: center; color: #909399; padding: 32px 0; }
+
+.oplog-tag { display: inline-block; padding: 0 8px; height: 22px; line-height: 20px; border-radius: 4px; font-size: 12px; border: 1px solid; white-space: nowrap; }
+.oplog-tag--success { color: #67c23a; background: #f0f9eb; border-color: #e1f3d8; }
+.oplog-tag--danger { color: #f56c6c; background: #fef0f0; border-color: #fde2e2; }
+.oplog-tag--info { color: #909399; background: #f4f4f5; border-color: #e9e9eb; }
+.oplog-tag--warning { color: #e6a23c; background: #fdf6ec; border-color: #faecd8; }
+.oplog-tag--primary { color: #ff7019; background: #fff3eb; border-color: #ffd8bf; }
+.oplog-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+
+/* 分页（UAT：total, prev, pager, next） */
+.oplog-pagination { display: flex; justify-content: flex-end; align-items: center; gap: 6px; margin-top: 14px; font-size: 13px; color: #606266; flex-wrap: wrap; }
+.oplog-pagination button { min-width: 30px; height: 28px; border: none; border-radius: 3px; background: #f4f4f5; color: #606266; cursor: pointer; font-size: 13px; padding: 0 6px; }
+.oplog-pagination button.is-active { background: #ff7019; color: #fff; }
+.oplog-pagination button:disabled { color: #c0c4cc; cursor: not-allowed; }
+.oplog-pagination .oplog-select { min-width: 96px; height: 28px; }
+
+/* 入口清单汇总 */
+.oplog-summary { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.oplog-summary__item { border: 1px solid #ebeef5; border-radius: 6px; padding: 10px 12px; background: #fcfcfd; cursor: pointer; }
+.oplog-summary__item.is-active { border-color: #ff7019; background: #fff7f0; }
+.oplog-summary__item strong { display: block; font-size: 13px; margin-bottom: 4px; }
+.oplog-summary__item span { color: #909399; font-size: 12px; line-height: 1.6; }
+.oplog-summary__item em { float: right; font-style: normal; color: #ff7019; font-weight: 600; }
+
+/* 抽屉 */
+.oplog-mask { position: fixed; inset: 0; background: rgba(0, 0, 0, .45); z-index: 2000; }
+.oplog-drawer { position: fixed; top: 0; right: 0; bottom: 0; background: #fff; z-index: 2001; display: flex; flex-direction: column; box-shadow: -4px 0 16px rgba(0, 0, 0, .12); max-width: 100vw; }
+.oplog-drawer__header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #ebeef5; }
+.oplog-drawer__title { font-size: 16px; font-weight: 600; color: #303133; }
+.oplog-drawer__close { border: none; background: none; font-size: 20px; color: #909399; cursor: pointer; line-height: 1; }
+.oplog-drawer__body { flex: 1; overflow: auto; padding: 16px 20px; }
+.oplog-drawer__note { font-size: 12px; color: #909399; margin-bottom: 10px; }
+
+/* 详情弹窗（UAT：居中 760px，top 6vh） */
+.oplog-dialog { position: fixed; top: 6vh; left: 50%; transform: translateX(-50%); width: 760px; max-width: calc(100vw - 32px); max-height: 88vh; background: #fff; border-radius: 6px; z-index: 2011; display: flex; flex-direction: column; box-shadow: 0 8px 24px rgba(0, 0, 0, .2); }
+.oplog-dialog + .oplog-mask, .oplog-mask--top { z-index: 2010; }
+.oplog-dialog__header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px 10px; font-size: 16px; font-weight: 600; }
+.oplog-dialog__body { padding: 6px 20px 10px; overflow: auto; }
+.oplog-dialog__footer { padding: 10px 20px 16px; text-align: right; }
+.oplog-detail-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+.oplog-detail-head strong { font-size: 15px; }
+.oplog-detail-head small { color: #909399; font-size: 12px; }
+.oplog-desc { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 14px; }
+.oplog-desc th, .oplog-desc td { border: 1px solid #ebeef5; padding: 8px 10px; text-align: left; }
+.oplog-desc th { background: #fafafa; color: #606266; font-weight: 500; width: 110px; white-space: nowrap; }
+.oplog-section-title { font-weight: 600; margin: 12px 0 8px; font-size: 14px; }
+.oplog-section-title span { color: #909399; font-weight: 400; font-size: 13px; }
+.oplog-group-title { color: #606266; font-size: 13px; margin: 8px 0 6px; }
+.oplog-before { color: #f56c6c; }
+.oplog-after { color: #67c23a; }
+.oplog-alert { background: #fef0f0; color: #f56c6c; border-radius: 4px; padding: 8px 12px; margin: 12px 0; font-size: 13px; }
+.oplog-collapse { border-top: 1px solid #ebeef5; border-bottom: 1px solid #ebeef5; margin-top: 14px; }
+.oplog-collapse summary { cursor: pointer; padding: 10px 0; font-weight: 500; list-style: none; }
+.oplog-collapse summary::after { content: '›'; float: right; transition: transform .2s; color: #909399; }
+.oplog-collapse[open] summary::after { transform: rotate(90deg); }
+.oplog-pre { background: #f5f7fa; border-radius: 4px; padding: 10px 12px; font-size: 12px; line-height: 1.6; white-space: pre-wrap; word-break: break-all; margin: 8px 0 12px; font-family: Menlo, Consolas, monospace; color: #303133; }
+.oplog-method { font-family: Menlo, Consolas, monospace; font-size: 12px; color: #606266; word-break: break-all; }
+
+/* 时间线（订单 / 售后 / 退款详情） */
+.oplog-detail-card { border: 1px solid #ebeef5; border-radius: 6px; margin-bottom: 12px; }
+.oplog-detail-card__head { padding: 10px 14px; border-bottom: 1px solid #ebeef5; font-weight: 600; display: flex; justify-content: space-between; cursor: pointer; }
+.oplog-detail-card__body { padding: 14px 14px 4px; }
+.oplog-timeline { list-style: none; margin: 0; padding: 0 0 0 4px; }
+.oplog-timeline li { position: relative; padding: 0 0 18px 22px; border-left: 2px solid #e4e7ed; }
+.oplog-timeline li:last-child { border-left-color: transparent; }
+.oplog-timeline li::before { content: ''; position: absolute; left: -7px; top: 2px; width: 12px; height: 12px; border-radius: 50%; background: #e4e7ed; border: 0; }
+.oplog-timeline li:first-child::before { background: #ff7019; }
+.oplog-timeline__time { color: #909399; font-size: 12px; margin-bottom: 4px; }
+.oplog-timeline__content span + span { margin-left: 6px; color: #606266; }
+.oplog-pickup { background: #fafafa; border-radius: 4px; padding: 8px 10px; margin-top: 6px; font-size: 12px; }
+.oplog-pickup__row { display: flex; gap: 8px; line-height: 1.8; }
+.oplog-pickup__row b { color: #909399; font-weight: 400; min-width: 56px; }
+
+@media (max-width: 900px) {
+    .oplog-drawer { width: 100vw !important; }
+}
+.oplog-table--catalog th:nth-child(1), .oplog-table--catalog td:nth-child(1) { width: 44px; }
+.oplog-table--catalog th:nth-child(2), .oplog-table--catalog td:nth-child(2) { min-width: 72px; white-space: nowrap; }
+.oplog-table--catalog th:nth-child(3), .oplog-table--catalog td:nth-child(3) { min-width: 150px; }
+.oplog-table--catalog th:nth-child(4), .oplog-table--catalog td:nth-child(4) { min-width: 170px; }
+.oplog-table--catalog th:nth-child(5), .oplog-table--catalog td:nth-child(5) { min-width: 150px; }
+.oplog-table--catalog th:nth-child(6), .oplog-table--catalog td:nth-child(6) { min-width: 150px; }
+.oplog-table--catalog th:nth-child(7), .oplog-table--catalog td:nth-child(7) { min-width: 260px; }
+.oplog-table--catalog th:last-child, .oplog-table--catalog td:last-child { white-space: nowrap; }
