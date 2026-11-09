@@ -1,7 +1,170 @@
 {
-  "latestSha": "4f1990ba93ea9be6548e58b5f4b69b7612a1465d",
-  "total": 502,
+  "latestSha": "86ded1534d8abf888dc4ab0f0571e89c5d33a76f",
+  "total": 503,
   "days": [
+    {
+      "date": "2026-11-09",
+      "items": [
+        {
+          "sha": "86ded15",
+          "type": "feat",
+          "text": "合同管理去掉用户注册，注册勾选协议即生效",
+          "author": "sisi",
+          "time": "11:42",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_bd_stores.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 门店模块"
+            },
+            {
+              "file": "SCM/basic_settings_contract_config.html",
+              "module": "冷丰WMS",
+              "title": "接入配置"
+            },
+            {
+              "file": "SCM/basic_settings_contract_party.html",
+              "module": "冷丰WMS",
+              "title": "签署主体"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task.html",
+              "module": "冷丰WMS",
+              "title": "签署任务"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_detail.html",
+              "module": "冷丰WMS",
+              "title": "签署任务详情"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template.html",
+              "module": "冷丰WMS",
+              "title": "合同模板"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template_form.html",
+              "module": "冷丰WMS",
+              "title": "合同模板配置"
+            },
+            {
+              "file": "SCM/contract_sign.html",
+              "module": "",
+              "title": "合同"
+            },
+            {
+              "file": "shop-h5/h5/store/contracts.html",
+              "module": "",
+              "title": "签署合同 · Shop H5"
+            },
+            {
+              "file": "store-app/h5/contract-sign.html",
+              "module": "",
+              "title": "签署合同 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/contracts.html",
+              "module": "",
+              "title": "合同签署 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "丰银宝 · 工作台"
+            },
+            {
+              "file": "user-app/h5/change-password.html",
+              "module": "",
+              "title": "修改密码 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/forgot-password.html",
+              "module": "",
+              "title": "找回密码 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-password.html",
+              "module": "",
+              "title": "账号密码登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-phone.html",
+              "module": "",
+              "title": "手机快速登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-register.html",
+              "module": "",
+              "title": "账号注册 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login.html",
+              "module": "",
+              "title": "登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/set-password.html",
+              "module": "",
+              "title": "设置密码 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/settings.html",
+              "module": "",
+              "title": "设置 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/basic_settings_contract_template.html",
+              "text": "只保留门店合作和供应商合作；模板不再复制链接，转发改到签署任务"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template_form.html",
+              "text": "发起签署时从门店或供应商档案写入商户信息"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "text": "列出该场景已同步的全部协议；自动触发默认勾选，结算补充协议改为变更确认后才下发"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task.html",
+              "text": "只保留门店和供应商的法大大签署"
+            },
+            {
+              "file": "SCM/basic_settings_contract_party.html",
+              "text": "去掉用户页签，只保留企业授权"
+            },
+            {
+              "file": "SCM/basic_settings_contract_config.html",
+              "text": "对接步骤不再包含用户个人授权"
+            },
+            {
+              "file": "user-app/h5/login-register.html",
+              "text": "勾选协议后直接生效，不再生成法大大签署任务"
+            },
+            {
+              "file": "SCM/contract_sign.html",
+              "text": "用户协议和隐私政策仍可打开查阅，查阅页不再提供复制链接"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-11-08",
       "items": [
@@ -341,11 +504,6 @@
               "file": "store-app/h5/supplier-settle.html",
               "module": "",
               "title": "结算中心 · 丰银宝"
-            },
-            {
-              "file": "user-app/h5/login-register.html",
-              "module": "",
-              "title": "账号注册 · 用户 APP"
             }
           ],
           "global": true,
@@ -525,11 +683,6 @@
               "file": "user-app/h5/live-room.html",
               "module": "",
               "title": "黑灯直播间 · 用户 APP"
-            },
-            {
-              "file": "user-app/h5/login-register.html",
-              "module": "",
-              "title": "账号注册 · 用户 APP"
             },
             {
               "file": "user-app/h5/newcomer-zone.html",
@@ -1695,11 +1848,6 @@
               "file": "store-app/h5/supplier-settle.html",
               "module": "",
               "title": "结算中心 · 丰银宝"
-            },
-            {
-              "file": "user-app/h5/login-register.html",
-              "module": "",
-              "title": "账号注册 · 用户 APP"
             }
           ],
           "global": true,
@@ -2332,11 +2480,6 @@
               "file": "store-app/index.html",
               "module": "",
               "title": "丰银宝"
-            },
-            {
-              "file": "user-app/h5/login-register.html",
-              "module": "",
-              "title": "账号注册 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-detail.html",
@@ -4081,11 +4224,6 @@
               "file": "store-app/h5/home.html",
               "module": "",
               "title": "丰银宝 · 工作台"
-            },
-            {
-              "file": "user-app/h5/login-register.html",
-              "module": "",
-              "title": "账号注册 · 用户 APP"
             }
           ],
           "notes": [
@@ -17299,11 +17437,6 @@
               "file": "user-app/h5/live-room.html",
               "module": "",
               "title": "黑灯直播间 · 用户 APP"
-            },
-            {
-              "file": "user-app/h5/login-register.html",
-              "module": "",
-              "title": "账号注册 · 用户 APP"
             },
             {
               "file": "user-app/h5/mall.html",
