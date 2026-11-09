@@ -573,7 +573,7 @@
       if (window.__PG_PRD_BODIES) return Promise.resolve(window.__PG_PRD_BODIES);
       return new Promise(function (resolve, reject) {
         var s = document.createElement('script');
-        s.src = 'prd-bodies.js?v=20261109-689b';
+        s.src = 'prd-bodies.js?v=20261109-689c';
         s.onload = function () {
           if (window.__PG_PRD_BODIES) resolve(window.__PG_PRD_BODIES);
           else reject(new Error('missing'));

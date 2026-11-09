@@ -70,3 +70,6 @@
 .mol-entry-bar { display: flex; justify-content: flex-end; margin: 10px 0; }
 
 @media (max-width: 900px) { .mol-drawer { width: 100vw; } }
+
+/* 【689】门店 / 仓库档案「禁用」「停用」暂不可点击 */
+.action-links a.is-disabled, .action-links a.is-disabled:hover { color: #c0c4cc !important; cursor: not-allowed; text-decoration: none; }

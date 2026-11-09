@@ -1391,9 +1391,11 @@
                     DEFAULT_STORE_TIP.replace(/"/g, '&quot;') +
                     '">设为系统默认门店</a> ';
             }
-            /* 【689】门店档案暂不支持禁用：仅保留已禁用门店的「启用」 */
+            /* 【689】门店档案暂不支持禁用：「禁用」置灰不可点击；历史已禁用门店仍可启用 */
             if (isStoreDisabledStatus(meta.storeStatus)) {
                 html += '<a href="#" class="mdm-store-disable">启用</a>';
+            } else {
+                html += '<a href="#" class="mdm-store-disable is-disabled" aria-disabled="true" title="暂不支持禁用">禁用</a>';
             }
             actionTd.innerHTML = html.replace(/\s+$/, '');
         });
@@ -1567,6 +1569,7 @@
                     selector: '.mdm-store-disable',
                     handler: function (e, el) {
                         e.preventDefault();
+                        if (el.classList.contains('is-disabled')) return;
                         toggleStoreDisable(el.closest('tr'), pm);
                     }
                 }
@@ -1895,15 +1898,15 @@
         }, 0);
     }
 
-    /* 【689】仓库档案暂不支持停用：隐藏「停用」，已停用的仓库仍可「启用」 */
+    /* 【689】仓库档案暂不支持停用：「停用」置灰不可点击，已停用的仓库仍可「启用」 */
     function hideWarehouseDisableLinks() {
         var tbody = document.getElementById('tableBody');
         if (!tbody) return;
         function sweep() {
             tbody.querySelectorAll('.mdm-disable-toggle').forEach(function (a) {
-                var hide = a.textContent.trim() === '停用';
-                a.hidden = hide;
-                a.style.display = hide ? 'none' : '';
+                var off = a.textContent.trim() === '停用';
+                if (a.classList.contains('is-disabled') !== off) a.classList.toggle('is-disabled', off);
+                if (off) { a.setAttribute('aria-disabled', 'true'); a.title = '暂不支持停用'; } else { a.removeAttribute('aria-disabled'); a.removeAttribute('title'); }
             });
         }
         sweep();
@@ -1957,6 +1960,7 @@
                 }
             ],
             onDisableToggle: function (row, status, page) {
+                if (String(status).trim() !== '停用') return; /* 【689】暂不支持停用 */
                 if (String(status).trim() === '停用') {
                     page.updateTableRow(row, { 11: { value: '启用', isStatus: true } });
                 } else if (window.MdmSubjectLf && typeof MdmSubjectLf.showLfWarmConfirm === 'function') {
