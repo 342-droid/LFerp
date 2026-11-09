@@ -251,6 +251,14 @@
         "MDM/mdm_member_level.html",
         "MDM/mdm_member_level_rule.html"
       ]
+    },
+    {
+      "id": "857-门店档案手机号码可编辑",
+      "title": "【857】门店档案手机号码可编辑",
+      "file": "857-门店档案手机号码可编辑.md",
+      "pages": [
+        "MDM/mdm_archive_store.html"
+      ]
     }
   ]
 }
