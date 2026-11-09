@@ -1476,6 +1476,8 @@
                 linkClass: 'subject-name-link'
             },
             onDisableToggle: function (row, status) {
+                /* 【689】所有主体暂不支持禁用：「禁用」置灰不可点击 */
+                if (status !== '禁用' && status !== '停用' && status !== '冻结') return;
                 var label = rowMerchantKind(row);
                 var kindSpec = kindByLabel[label] || kindByLabel['门店'];
                 if (status === '禁用' || status === '停用' || status === '冻结') {
@@ -1579,4 +1581,23 @@
         filterSubjectRows: filterSubjectRows,
         showLfWarmConfirm: showLfWarmConfirm
     };
+})();
+
+/* 【689】所有主体：「禁用」置灰不可点击（数据均为开启状态） */
+(function () {
+    if (!/mdm_party_all\.html$/.test(location.pathname)) return;
+    function init() {
+        var tbody = document.getElementById('tableBody');
+        if (!tbody) return;
+        function sweep() {
+            tbody.querySelectorAll('.mdm-disable-toggle').forEach(function (a) {
+                var off = a.textContent.trim() === '禁用';
+                if (a.classList.contains('is-disabled') !== off) a.classList.toggle('is-disabled', off);
+                if (off) { a.setAttribute('aria-disabled', 'true'); a.title = '暂不支持禁用'; } else { a.removeAttribute('aria-disabled'); a.removeAttribute('title'); }
+            });
+        }
+        sweep();
+        new MutationObserver(sweep).observe(tbody, { childList: true, subtree: true, characterData: true });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
