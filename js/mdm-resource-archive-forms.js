@@ -776,7 +776,7 @@
         refs.phoneTip = document.createElement('div');
         refs.phoneTip.style.cssText = 'display:none;margin-top:6px;font-size:12px;color:#d46b08;line-height:1.5;';
         refs.phoneTip.textContent =
-            '该手机号是门店端 App 的登录账号，修改后需使用新手机号登录，原手机号将无法登录。';
+            '仅修改本门店的登录手机号。保存后新手机号可登录门店端 App 管理本门店，原手机号不能再管理本门店。';
         var phoneCtl = document.createElement('div');
         phoneCtl.appendChild(phoneRowWrap);
         phoneCtl.appendChild(refs.phoneTip);
@@ -1453,26 +1453,26 @@
                         return false;
                     }
                     var masked = newPhone.slice(0, 3) + '****' + newPhone.slice(7);
-                    var used = false;
-                    var tbody = tr.parentNode;
-                    if (tbody) {
-                        Array.prototype.forEach.call(tbody.querySelectorAll('tr'), function (row) {
-                            if (row === tr) return;
-                            var pc = row.querySelectorAll('td')[7];
-                            if (pc && cellPlainText(pc) === masked) used = true;
-                        });
-                    }
-                    if (used) {
-                        toast('该手机号已是其他门店账号的登录手机号，请更换');
-                        return false;
-                    }
                     if (!String(refs.verifyInp.value || '').trim()) {
                         toast('请输入验证码');
                         return false;
                     }
+                    /* 统一用户体系：新号已是其他门店负责人时允许，保存后同时管理两家门店 */
+                    var otherStore = '';
+                    var tbody = tr.parentNode;
+                    if (tbody) {
+                        Array.prototype.forEach.call(tbody.querySelectorAll('tr'), function (row) {
+                            if (row === tr || otherStore) return;
+                            var tds = row.querySelectorAll('td');
+                            if (tds[7] && cellPlainText(tds[7]) === masked) otherStore = cellPlainText(tds[2]);
+                        });
+                    }
                     var ok = window.confirm(
-                        '确认将门店登录手机号由 ' + (refs.originalPhone || '—') + ' 更换为 ' + masked +
-                            '？\n更换后原手机号将无法登录门店端 App，已登录的设备需要重新登录。'
+                        '确认将本门店的登录手机号由 ' + (refs.originalPhone || '—') + ' 更换为 ' + masked +
+                            '？\n更换后原手机号不能再登录管理本门店。' +
+                            (otherStore
+                                ? '\n该手机号已是门店【' + otherStore + '】的登录手机号，保存后可同时管理这两家门店。'
+                                : '')
                     );
                     if (!ok) return false;
                     if (cells[7]) cells[7].textContent = masked;
