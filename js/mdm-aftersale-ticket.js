@@ -531,7 +531,8 @@
           numbers = numbers.concat(Object.values(window.MdmAftersaleDemoTracking.forTicket(row.id, row.type, row.status, row.fulfillment)));
         }
         var query = f.orderQuery.toUpperCase();
-        if (!numbers.some(function (value) { return String(value || '').toUpperCase().indexOf(query) >= 0; })) return false;
+        // 精确匹配（不模糊），忽略大小写
+        if (!numbers.some(function (value) { return String(value || '').toUpperCase() === query; })) return false;
       } else if (String(row.orderNo).indexOf(f.orderQuery) < 0) return false;
     }
     if (f.orderSource && row.orderSource !== f.orderSource) return false;
