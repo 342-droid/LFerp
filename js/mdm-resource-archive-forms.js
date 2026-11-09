@@ -915,9 +915,28 @@
         body.appendChild(formRow('联系人', true, refs.contactInp));
         var phoneRowWrap = smsRow();
         refs.phoneInp = phoneRowWrap.querySelector('input');
-        body.appendChild(formRow('手机号码', true, phoneRowWrap));
+        /* 【857】编辑时改号 = 门店端登录账号换绑手机号 */
+        refs.phoneTip = document.createElement('div');
+        refs.phoneTip.style.cssText = 'display:none;margin-top:6px;font-size:12px;color:#d46b08;line-height:1.5;';
+        refs.phoneTip.textContent =
+            '该手机号是门店端 App 的登录账号，修改后需使用新手机号登录，原手机号将无法登录。';
+        var phoneCtl = document.createElement('div');
+        phoneCtl.appendChild(phoneRowWrap);
+        phoneCtl.appendChild(refs.phoneTip);
+        body.appendChild(formRow('手机号码', true, phoneCtl));
         refs.verifyInp = txt('请输入验证码', '');
-        body.appendChild(formRow('验证码', true, refs.verifyInp));
+        refs.verifyRow = formRow('验证码', true, refs.verifyInp);
+        body.appendChild(refs.verifyRow);
+        refs.isPhoneChanged = function () {
+            if (refs.originalPhone == null) return false;
+            return String(refs.phoneInp.value || '').trim() !== refs.originalPhone;
+        };
+        refs.phoneInp.addEventListener('input', function () {
+            if (refs.originalPhone == null) return;
+            var changed = refs.isPhoneChanged();
+            refs.phoneTip.style.display = changed ? '' : 'none';
+            refs.verifyRow.style.display = changed ? '' : 'none';
+        });
         var nameWrap = document.createElement('div');
         nameWrap.className = 'store-form__input-count';
         var nameInp = txt('请输入门店名称', '');
@@ -1088,7 +1107,10 @@
             selectOptionByLabelText(refs.subjectSel, cellPlainText(c[1]));
             refs.contactInp.value = cellPlainText(c[6]);
             if (refs.phoneInp) refs.phoneInp.value = cellPlainText(c[7]);
+            refs.originalPhone = refs.phoneInp ? String(refs.phoneInp.value || '').trim() : '';
             refs.verifyInp.value = '';
+            if (refs.verifyRow) refs.verifyRow.style.display = 'none';
+            if (refs.phoneTip) refs.phoneTip.style.display = 'none';
             refs.nameInp.value = cellPlainText(c[2]);
             var storeCode = cellPlainText(c[0]);
             var mapped = window.MdmStoreSiteSlot && window.MdmStoreSiteSlot.getByStore(storeCode);
@@ -1736,6 +1758,45 @@
             var before = storeSnapshot();
             attachWideModal('编辑门店', bundle.body, function () {
                 var refs = bundle.refs || {};
+                /* 【857】手机号码变更 = 门店端登录账号换绑手机号 */
+                if (refs.isPhoneChanged && refs.isPhoneChanged()) {
+                    var newPhone = String(refs.phoneInp.value || '').trim();
+                    var toast = function (m) {
+                        if (typeof showToast === 'function') showToast(m, 'error');
+                    };
+                    if (!newPhone) {
+                        toast('请输入手机号码');
+                        return false;
+                    }
+                    if (!/^1\d{10}$/.test(newPhone)) {
+                        toast('请输入正确的 11 位手机号');
+                        return false;
+                    }
+                    var masked = newPhone.slice(0, 3) + '****' + newPhone.slice(7);
+                    var used = false;
+                    var tbody = tr.parentNode;
+                    if (tbody) {
+                        Array.prototype.forEach.call(tbody.querySelectorAll('tr'), function (row) {
+                            if (row === tr) return;
+                            var pc = row.querySelectorAll('td')[7];
+                            if (pc && cellPlainText(pc) === masked) used = true;
+                        });
+                    }
+                    if (used) {
+                        toast('该手机号已是其他门店账号的登录手机号，请更换');
+                        return false;
+                    }
+                    if (!String(refs.verifyInp.value || '').trim()) {
+                        toast('请输入验证码');
+                        return false;
+                    }
+                    var ok = window.confirm(
+                        '确认将门店登录手机号由 ' + (refs.originalPhone || '—') + ' 更换为 ' + masked +
+                            '？\n更换后原手机号将无法登录门店端 App，已登录的设备需要重新登录。'
+                    );
+                    if (!ok) return false;
+                    if (cells[7]) cells[7].textContent = masked;
+                }
                 if (!warehouseSelectionAvailable(refs.warehouseSel, before['配送仓库'])) return false;
                 var region = refs.regionInp ? String(refs.regionInp.value || '').trim() : '';
                 var nextCode = storeId;
