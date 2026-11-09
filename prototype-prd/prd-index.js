@@ -275,14 +275,24 @@ window.__PG_PRD_INDEX = {
       ]
     },
     {
-      "id": "689-主体编辑操作日志",
-      "title": "【689】主体编辑操作日志，需要详细记录，如张三将门店简称从冷丰杭州总店变更为杭州总店",
-      "file": "689-主体编辑操作日志.md",
+      "id": "689-操作日志优化",
+      "title": "【689】操作日志优化",
+      "file": "689-操作日志优化.md",
       "pages": [
         "MDM/mdm_archive_store.html",
         "MDM/mdm_archive_warehouse.html",
         "MDM/mdm_archive_supplier.html",
-        "MDM/mdm_party_all.html"
+        "MDM/mdm_party_all.html",
+        "MDM/mdm_product_selection.html",
+        "MDM/mdm_product_category.html",
+        "MDM/mdm_product_mall_category.html",
+        "MDM/mdm_live_session.html",
+        "MDM/mdm_order_freight_config.html",
+        "SCM/basic_settings_order.html",
+        "SCM/basic_settings_recommendation.html",
+        "SCM/basic_settings_miniprogram_agreement.html",
+        "MDM/mdm_member_level.html",
+        "MDM/mdm_member_level_rule.html"
       ]
     }
   ]
