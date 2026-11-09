@@ -12,8 +12,8 @@
   var paperEl = document.getElementById('saCtPaper');
   var footEl = document.getElementById('saCtFoot');
   var task = api && taskId ? api.findTask(taskId) : null;
-  if (task && api.fadadaSignUrl) {
-    location.replace(api.fadadaSignUrl(task));
+  if (task && api.fadadaEmbedUrl) {
+    location.replace(api.fadadaEmbedUrl(task));
     return;
   }
   var party = task && api.findParty(task.partyId);

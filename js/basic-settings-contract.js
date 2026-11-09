@@ -10,36 +10,85 @@
 
   var STORE_PARTNER_TYPES = ['加盟店', '联营店', '直营店'];
 
-  var CATALOG_VERSION = 'real-20261106-settle-sup-vis';
+  var CATALOG_VERSION = 'fdd-20261109-one-tpl';
 
   var SCENES = [
     { id: 'store', name: '门店合作', partyType: '门店', partyKind: 'corp', partyHint: '企业/个体户', fill: ['门店名称', '统一社会信用代码', '经营负责人', '门店地址', '联系电话'] },
     { id: 'supplier', name: '供应商合作', partyType: '供应商', partyKind: 'corp', partyHint: '企业/个体户', fill: ['供应商名称', '统一社会信用代码', '法定代表人', '注册地址', '联系电话'] }
   ];
 
-  var REMOTE_TEMPLATES = [
-    { id: 'STPL-ST-001', name: '冷丰品牌合作合同', scene: 'store' },
-    { id: 'STPL-ST-002', name: '冷丰加盟门店资金清分结算合同', scene: 'store' },
-    { id: 'STPL-SUP-001', name: '冷丰平台供应商入驻合作协议', scene: 'supplier' },
-    { id: 'STPL-SUP-002', name: '冷丰平台供应商资金清分结算合同', scene: 'supplier' },
-    { id: 'STPL-SUP-003', name: '冷丰平台供应商结算信息变更补充协议', scene: 'supplier' }
+  var FILL_CODES = {
+    '门店名称': 'store_name',
+    '统一社会信用代码': 'credit_code',
+    '经营负责人': 'manager_name',
+    '门店地址': 'store_address',
+    '联系电话': 'mobile',
+    '供应商名称': 'supplier_name',
+    '法定代表人': 'legal_person',
+    '注册地址': 'reg_address',
+    '结款方式': 'pay_method',
+    '结算策略': 'settle_strategy',
+    '结算起算节点': 'settle_trigger',
+    '结算周期': 'settle_cycle'
+  };
+
+  var SEALS = [
+    { id: 'SEAL-LF-001', name: '冷丰合同专用章' },
+    { id: 'SEAL-LF-002', name: '冷丰财务专用章' }
   ];
 
-  /** 入驻默认签署不含补充协议；结算信息变更后单独下发 */
-  var SETTLE_SUPPLEMENT_TPL = {
-    id: 'TPL007',
-    name: '冷丰平台供应商结算信息变更补充协议',
-    scene: 'supplier',
-    kind: 'supplement',
-    remoteId: 'STPL-SUP-003',
-    remoteName: '冷丰平台供应商结算信息变更补充协议',
-    status: 'on',
-    autoStart: false,
-    signInOrder: true,
-    actors: null,
-    fill: ['供应商名称', '统一社会信用代码', '法定代表人', '注册地址', '联系电话', '结款方式', '结算策略', '结算起算节点', '结算周期'],
-    updatedAt: '2026-11-05 23:00'
-  };
+  function corpActors(partyRole) {
+    return [
+      { actorId: '甲方', role: '平台方', actorType: 'corp', signMode: 'auto', keyword: '甲方签署' },
+      { actorId: '乙方', role: partyRole, actorType: 'corp', signMode: 'manual', keyword: '乙方签署' }
+    ];
+  }
+
+  /** 法大大一份签署任务模板。多份合同是这份模板里的文档，不能把多个模板合成一条任务。 */
+  var REMOTE_TEMPLATES = [
+    {
+      id: 'STPL-ST-JOIN', name: '冷丰加盟门店合作签署模板', scene: 'store', launch: 'auto', signInOrder: true,
+      partnerTypes: ['加盟店'], actors: corpActors('门店'),
+      fill: ['门店名称', '统一社会信用代码', '经营负责人', '门店地址', '联系电话'],
+      docs: [
+        { id: 'DOC-ST-BRAND', name: '冷丰品牌合作合同', bodyId: 'TPL001' },
+        { id: 'DOC-ST-CLEAR', name: '冷丰加盟门店资金清分结算合同', bodyId: 'TPL002' }
+      ]
+    },
+    {
+      id: 'STPL-ST-BRAND', name: '冷丰门店品牌合作签署模板', scene: 'store', launch: 'auto', signInOrder: true,
+      partnerTypes: ['联营店', '直营店'], actors: corpActors('门店'),
+      fill: ['门店名称', '统一社会信用代码', '经营负责人', '门店地址', '联系电话'],
+      docs: [
+        { id: 'DOC-ST-BRAND', name: '冷丰品牌合作合同', bodyId: 'TPL001' }
+      ]
+    },
+    {
+      id: 'STPL-SUP-IN', name: '冷丰平台供应商入驻签署模板', scene: 'supplier', launch: 'auto', signInOrder: true,
+      actors: corpActors('供应商'),
+      fill: ['供应商名称', '统一社会信用代码', '法定代表人', '注册地址', '联系电话'],
+      docs: [
+        { id: 'DOC-SUP-IN', name: '冷丰平台供应商入驻合作协议', bodyId: 'TPL003' },
+        { id: 'DOC-SUP-CLEAR', name: '冷丰平台供应商资金清分结算合同', bodyId: 'TPL004' }
+      ]
+    },
+    {
+      id: 'STPL-SUP-MAN', name: '冷丰平台供应商补充合作确认书', scene: 'supplier', launch: 'manual', signInOrder: false,
+      actors: corpActors('供应商'),
+      fill: ['供应商名称', '统一社会信用代码', '联系电话'],
+      docs: [
+        { id: 'DOC-SUP-MAN', name: '冷丰平台供应商补充合作确认书', bodyId: '' }
+      ]
+    },
+    {
+      id: 'STPL-SUP-003', name: '冷丰平台供应商结算信息变更补充协议', scene: 'supplier', launch: 'supplement', signInOrder: true,
+      actors: corpActors('供应商'),
+      fill: ['供应商名称', '统一社会信用代码', '法定代表人', '注册地址', '联系电话', '结款方式', '结算策略', '结算起算节点', '结算周期'],
+      docs: [
+        { id: 'DOC-SUP-SETTLE', name: '冷丰平台供应商结算信息变更补充协议', bodyId: 'TPL007' }
+      ]
+    }
+  ];
 
   var TASK_STATUS = {
     wait_auth: { label: '待对方授权', cls: 'ct-tag--warn' },
@@ -69,11 +118,30 @@
   }
 
   function defaultActors(sceneId) {
-    var scene = sceneOf(sceneId);
-    return [
-      { role: '平台方', actorType: 'corp', signMode: 'auto', keyword: '甲方签署' },
-      { role: scene.partyType, actorType: scene.partyKind === 'person' ? 'person' : 'corp', signMode: 'manual', keyword: '乙方签署' }
-    ];
+    return corpActors(sceneOf(sceneId).partyType);
+  }
+
+  function remoteOfId(remoteId) {
+    return REMOTE_TEMPLATES.filter(function (item) { return item.id === remoteId; })[0] || null;
+  }
+
+  function cloneRemote(remote) {
+    return {
+      name: remote.name,
+      scene: remote.scene,
+      remoteId: remote.id,
+      remoteName: remote.name,
+      status: 'on',
+      autoStart: remote.launch === 'auto',
+      kind: remote.launch === 'supplement' ? 'supplement' : '',
+      signInOrder: !!remote.signInOrder,
+      actors: (remote.actors || []).map(function (actor) { return Object.assign({}, actor); }),
+      docs: (remote.docs || []).map(function (doc) { return Object.assign({}, doc); }),
+      fill: (remote.fill || []).slice(),
+      storePartnerTypes: remote.partnerTypes ? remote.partnerTypes.slice() : [],
+      storePartnerType: remote.partnerTypes && remote.partnerTypes[0] ? remote.partnerTypes[0] : '',
+      updatedAt: '2026-11-09 13:40'
+    };
   }
 
   function seed() {
@@ -88,16 +156,18 @@
         corpName: '浙江冷丰供应链科技有限公司',
         corpIdentNo: '91330000MA2XXXXX1X',
         corpAuthStatus: 'done',
+        businessId: 'BIZ-LF-COOP-001',
+        sealId: 'SEAL-LF-001',
         sealName: '冷丰合同专用章',
         connectedAt: '2026-08-20 10:12:00'
       },
       catalogVersion: CATALOG_VERSION,
       templates: [
-        { id: 'TPL001', name: '冷丰品牌合作合同', scene: 'store', storePartnerType: '加盟店', storePartnerTypes: ['加盟店', '联营店', '直营店'], remoteId: 'STPL-ST-001', remoteName: '冷丰品牌合作合同', status: 'on', autoStart: true, signInOrder: true, actors: defaultActors('store'), fill: ['门店名称', '统一社会信用代码', '经营负责人', '门店地址', '联系电话'], updatedAt: '2026-10-26 22:40' },
-        { id: 'TPL002', name: '冷丰加盟门店资金清分结算合同', scene: 'store', storePartnerType: '加盟店', storePartnerTypes: ['加盟店'], remoteId: 'STPL-ST-002', remoteName: '冷丰加盟门店资金清分结算合同', status: 'on', autoStart: true, signInOrder: true, actors: defaultActors('store'), fill: ['门店名称', '统一社会信用代码', '经营负责人', '门店地址', '联系电话'], updatedAt: '2026-10-26 22:40' },
-        { id: 'TPL003', name: '冷丰平台供应商入驻合作协议', scene: 'supplier', remoteId: 'STPL-SUP-001', remoteName: '冷丰平台供应商入驻合作协议', status: 'on', autoStart: true, signInOrder: true, actors: defaultActors('supplier'), fill: ['供应商名称', '统一社会信用代码', '法定代表人', '注册地址', '联系电话'], updatedAt: '2026-10-26 22:40' },
-        { id: 'TPL004', name: '冷丰平台供应商资金清分结算合同', scene: 'supplier', remoteId: 'STPL-SUP-002', remoteName: '冷丰平台供应商资金清分结算合同', status: 'on', autoStart: true, signInOrder: true, actors: defaultActors('supplier'), fill: ['供应商名称', '统一社会信用代码', '法定代表人', '注册地址', '联系电话'], updatedAt: '2026-10-26 22:40' },
-        Object.assign({}, SETTLE_SUPPLEMENT_TPL, { actors: defaultActors('supplier') })
+        Object.assign({ id: 'TPL001' }, cloneRemote(remoteOfId('STPL-ST-JOIN'))),
+        Object.assign({ id: 'TPL002' }, cloneRemote(remoteOfId('STPL-ST-BRAND'))),
+        Object.assign({ id: 'TPL003' }, cloneRemote(remoteOfId('STPL-SUP-IN'))),
+        Object.assign({ id: 'TPL008' }, cloneRemote(remoteOfId('STPL-SUP-MAN'))),
+        Object.assign({ id: 'TPL007' }, cloneRemote(remoteOfId('STPL-SUP-003')))
       ],
       parties: [
         { id: 'P001', type: 'store', partnerDivision: '加盟店', name: '鲜丰水果文一西路店', identNo: '91330106MA2A11111A', contact: '周敏 138****2201', identStatus: 'done', authStatus: 'done', fadadaId: 'C-XF-001', authAt: '2026-08-18 11:20' },
@@ -110,14 +180,14 @@
         { id: 'P014', type: 'supplier', name: '华东辅料仓配', identNo: '91330100MA2H88888H', contact: '周宁 13500003333', identStatus: 'done', authStatus: 'done', fadadaId: 'C-HD-014', authAt: '2026-09-20 09:00' }
       ],
       tasks: [
-        { id: 'CT20260826001', name: '鲜丰水果文一西路店 · 冷丰品牌合作合同、冷丰加盟门店资金清分结算合同', scene: 'store', templateId: 'TPL001', templateIds: ['TPL001', 'TPL002'], storePartnerType: '加盟店', partyId: 'P001', status: 'sign_completed', initiator: '李泽峰', createdAt: '2026-08-18 14:02', deadline: '2026-08-25 14:02', finishedAt: '2026-08-18 16:20', fadadaTaskId: 'ST-88001', signUrl: 'https://uat-sign.fadada.com/task/ST-88001' },
-        { id: 'CT20260826002', name: '老城烧烤武林店 · 冷丰品牌合作合同', scene: 'store', templateId: 'TPL001', templateIds: ['TPL001'], storePartnerType: '联营店', partyId: 'P002', status: 'wait_auth', initiator: '李明', createdAt: '2026-08-25 10:16', deadline: '2026-09-01 10:16', finishedAt: '', fadadaTaskId: 'ST-88002', signUrl: '' },
-        { id: 'CT20260826003', name: '杭州鲜达供应链有限公司 · 冷丰平台供应商入驻合作协议、冷丰平台供应商资金清分结算合同', scene: 'supplier', templateId: 'TPL003', templateIds: ['TPL003', 'TPL004'], partyId: 'P003', status: 'sign_progress', initiator: '采购-周宁', createdAt: '2026-08-24 09:40', deadline: '2026-08-31 09:40', finishedAt: '', fadadaTaskId: 'ST-88003', signUrl: 'https://uat-sign.fadada.com/task/ST-88003' },
-        { id: 'CT20260826007', name: '宁波绿源食品有限公司 · 冷丰平台供应商入驻合作协议、冷丰平台供应商资金清分结算合同', scene: 'supplier', templateId: 'TPL003', templateIds: ['TPL003', 'TPL004'], partyId: 'P004', status: 'terminated', initiator: '采购-周宁', createdAt: '2026-08-20 16:30', deadline: '2026-08-27 16:30', finishedAt: '2026-08-21 10:02', fadadaTaskId: 'ST-88007', signUrl: '' },
-        { id: 'CT20261027001', name: '中心店01 · 冷丰品牌合作合同', scene: 'store', templateId: 'TPL001', templateIds: ['TPL001'], storePartnerType: '直营店', partyId: 'P011', status: 'wait_auth', initiator: '李泽峰', createdAt: '2026-10-26 09:30', deadline: '2026-11-10 09:30', finishedAt: '', fadadaTaskId: '', signUrl: '' },
-        { id: 'CT20261027002', name: '蒋村公交站店 · 冷丰品牌合作合同', scene: 'store', templateId: 'TPL001', templateIds: ['TPL001'], storePartnerType: '加盟店', partyId: 'P012', status: 'cancelled', initiator: '李明', createdAt: '2026-10-12 11:20', deadline: '2026-10-19 11:20', finishedAt: '2026-10-13 16:05', fadadaTaskId: 'ST-88012', signUrl: '' },
-        { id: 'CT20261027003', name: '西溪湿地南门店 · 冷丰品牌合作合同', scene: 'store', templateId: 'TPL001', templateIds: ['TPL001'], storePartnerType: '联营店', partyId: 'P013', status: 'voiding', initiator: '李泽峰', createdAt: '2026-10-08 14:10', deadline: '2026-10-15 14:10', finishedAt: '', fadadaTaskId: 'ST-88013', signUrl: '' },
-        { id: 'CT20261027004', name: '华东辅料仓配 · 冷丰平台供应商入驻合作协议', scene: 'supplier', templateId: 'TPL003', templateIds: ['TPL003'], partyId: 'P014', status: 'voided', initiator: '采购-周宁', createdAt: '2026-09-28 10:00', deadline: '2026-10-05 10:00', finishedAt: '2026-10-18 09:40', fadadaTaskId: 'ST-88014', signUrl: '' }
+        { id: 'CT20260826001', name: '鲜丰水果文一西路店 · 冷丰品牌合作合同、冷丰加盟门店资金清分结算合同', scene: 'store', templateId: 'TPL001', storePartnerType: '加盟店', partyId: 'P001', status: 'sign_completed', platformSign: 'signed', signedDocIds: ['DOC-ST-BRAND', 'DOC-ST-CLEAR'], initiator: '李泽峰', createdAt: '2026-08-18 14:02', deadline: '2026-08-25 14:02', finishedAt: '2026-08-18 16:20', fadadaTaskId: 'ST-88001', signUrl: '' },
+        { id: 'CT20260826002', name: '老城烧烤武林店 · 冷丰品牌合作合同', scene: 'store', templateId: 'TPL002', storePartnerType: '联营店', partyId: 'P002', status: 'sign_progress', platformSign: 'pending', signedDocIds: [], initiator: '李明', createdAt: '2026-08-25 10:16', deadline: '2026-09-01 10:16', finishedAt: '', fadadaTaskId: 'ST-88002', signUrl: '' },
+        { id: 'CT20260826003', name: '杭州鲜达供应链有限公司 · 冷丰平台供应商入驻合作协议、冷丰平台供应商资金清分结算合同', scene: 'supplier', templateId: 'TPL003', partyId: 'P003', status: 'sign_progress', platformSign: 'signed', signedDocIds: ['DOC-SUP-IN'], initiator: '采购-周宁', createdAt: '2026-08-24 09:40', deadline: '2026-11-30 09:40', finishedAt: '', fadadaTaskId: 'ST-88003', signUrl: '' },
+        { id: 'CT20260826007', name: '宁波绿源食品有限公司 · 冷丰平台供应商入驻合作协议、冷丰平台供应商资金清分结算合同', scene: 'supplier', templateId: 'TPL003', partyId: 'P004', status: 'terminated', platformSign: 'signed', signedDocIds: [], initiator: '采购-周宁', createdAt: '2026-08-20 16:30', deadline: '2026-08-27 16:30', finishedAt: '2026-08-21 10:02', fadadaTaskId: 'ST-88007', signUrl: '' },
+        { id: 'CT20261027001', name: '中心店01 · 冷丰品牌合作合同', scene: 'store', templateId: 'TPL002', storePartnerType: '直营店', partyId: 'P011', status: 'sign_progress', platformSign: 'failed', signedDocIds: [], initiator: '李泽峰', createdAt: '2026-10-26 09:30', deadline: '2026-11-16 09:30', finishedAt: '', fadadaTaskId: 'ST-88011', signUrl: '' },
+        { id: 'CT20261027002', name: '蒋村公交站店 · 冷丰品牌合作合同、冷丰加盟门店资金清分结算合同', scene: 'store', templateId: 'TPL001', storePartnerType: '加盟店', partyId: 'P012', status: 'cancelled', platformSign: 'pending', signedDocIds: [], initiator: '李明', createdAt: '2026-10-12 11:20', deadline: '2026-10-19 11:20', finishedAt: '2026-10-13 16:05', fadadaTaskId: 'ST-88012', signUrl: '' },
+        { id: 'CT20261027003', name: '西溪湿地南门店 · 冷丰品牌合作合同', scene: 'store', templateId: 'TPL002', storePartnerType: '联营店', partyId: 'P013', status: 'voiding', platformSign: 'signed', signedDocIds: ['DOC-ST-BRAND'], initiator: '李泽峰', createdAt: '2026-10-08 14:10', deadline: '2026-10-15 14:10', finishedAt: '', fadadaTaskId: 'ST-88013', signUrl: '', abolishTaskId: '' },
+        { id: 'CT20261027004', name: '华东辅料仓配 · 冷丰平台供应商入驻合作协议、冷丰平台供应商资金清分结算合同', scene: 'supplier', templateId: 'TPL003', partyId: 'P014', status: 'voided', platformSign: 'signed', signedDocIds: ['DOC-SUP-IN', 'DOC-SUP-CLEAR'], initiator: '采购-周宁', createdAt: '2026-09-28 10:00', deadline: '2026-10-05 10:00', finishedAt: '2026-10-18 09:40', fadadaTaskId: 'ST-88014', signUrl: '' }
       ]
     };
   }
@@ -200,8 +270,9 @@
       return t && (t.id === 'TPL007' || t.remoteId === 'STPL-SUP-003');
     });
     if (has) return data;
-    var row = Object.assign({}, SETTLE_SUPPLEMENT_TPL, { actors: defaultActors('supplier') });
-    data.templates.push(row);
+    var remote = remoteOfId('STPL-SUP-003');
+    if (!remote) return data;
+    data.templates.push(Object.assign({ id: 'TPL007' }, cloneRemote(remote)));
     saveStore(data);
     return data;
   }
@@ -546,15 +617,27 @@
 
   function openTemplateContract(tpl) {
     if (!tpl) return;
-    var body = contractBodyOf(tpl);
+    var docs = docsOfTpl(tpl);
+    var shown = docs.length ? docs : [{ name: tpl.name, bodyId: tpl.id }];
     openContractDocs({
       eyebrow: '合同模板 · ' + sceneOf(tpl.scene).name,
-      meta: tpl.scene === 'store' ? ('适用合作类型：' + partnerTypeLabel(tpl)) : '按模板原文展示',
-      docs: [{ name: tpl.name, body: body }]
+      meta: '模板正文，乙方留空，只供查阅',
+      docs: shown.map(function (doc) {
+        var body = contractBodyOf({ id: doc.bodyId, name: doc.name });
+        return { name: doc.name, body: body || '这份文档的正文在法大大模板中，本系统不维护条款。' };
+      })
     });
   }
 
-  function openTaskContract(task, activeId) {
+  function openTaskContract(task) {
+    if (!task) return;
+    var url = fadadaPreviewUrl(task);
+    var opened = global.open(url, '_blank', 'noopener');
+    if (!opened) global.location.href = url;
+    toast('已打开法大大预览', 'success');
+  }
+
+  function openTaskContractLocal(task, activeId) {
     if (!task) return;
     var party = findParty(task.partyId);
     var tpls = taskTemplates(task);
@@ -615,7 +698,7 @@
     if (shown === 'cancelled' || shown === 'terminated' || shown === 'voiding' || shown === 'voided') {
       return (TASK_STATUS[shown] || {}).label || '待签署';
     }
-    if (task && task.status === 'wait_auth') return '待授权';
+    if (task && task.platformSign === 'failed') return '自动签失败';
     return '待签署';
   }
 
@@ -718,12 +801,12 @@
     return at.getTime() < Date.now();
   }
 
-  /** 列表和筛选用的状态。待授权、签署中超过截止时间后显示已逾期。 */
+  /** 签署中超过法大大截止时间后，展示为已逾期。待对方授权不是法大大任务状态。 */
   function displayStatus(task) {
     if (!task) return '';
     var status = task.status === 'rejected' ? 'terminated' : (task.status || '');
-    if ((status === 'wait_auth' || status === 'sign_progress' || status === 'draft') && deadlinePassed(task)) return 'overdue';
-    if (status === 'draft') return 'wait_auth';
+    if (status === 'wait_auth' || status === 'draft') status = 'sign_progress';
+    if (status === 'sign_progress' && deadlinePassed(task)) return 'overdue';
     return status;
   }
 
@@ -753,6 +836,19 @@
 
   function findTpl(id) {
     return state.templates.filter(function (t) { return t.id === id; })[0];
+  }
+
+  function docsOfTpl(tpl) {
+    if (!tpl) return [];
+    if (Array.isArray(tpl.docs) && tpl.docs.length) return tpl.docs;
+    var remote = remoteOfId(tpl.remoteId);
+    return remote && remote.docs ? remote.docs : [];
+  }
+
+  function taskDocs(task) {
+    if (!task) return [];
+    if (Array.isArray(task.docs) && task.docs.length) return task.docs;
+    return docsOfTpl(findTpl(task.templateId));
   }
 
   function findTask(id) {
@@ -796,7 +892,10 @@
     setVal('ctCallbackUrl', cfg.callbackUrl);
     setVal('ctCorpName', cfg.corpName);
     setVal('ctCorpIdentNo', cfg.corpIdentNo);
-    setVal('ctSealName', cfg.sealName);
+    setVal('ctBusinessId', cfg.businessId);
+    fillSelect(document.getElementById('ctSealName'), SEALS.map(function (seal) {
+      return { value: seal.id, label: seal.name + '（' + seal.id + '）' };
+    }), cfg.sealId || SEALS[0].id);
     var authEl = document.getElementById('ctCorpAuth');
     if (authEl) authEl.innerHTML = tagHtml(AUTH_STATUS, cfg.corpAuthStatus);
     var conn = document.getElementById('ctConnected');
@@ -838,9 +937,16 @@
         state.config.openCorpId = document.getElementById('ctOpenCorpId').value;
         state.config.serverUrl = document.getElementById('ctServerUrl').value;
         state.config.callbackUrl = String(callback).trim();
+        var businessId = String((document.getElementById('ctBusinessId') || {}).value || '').trim();
+        var sealId = (document.getElementById('ctSealName') || {}).value || '';
+        var seal = SEALS.filter(function (item) { return item.id === sealId; })[0];
+        if (!businessId) return toast('请填写自动签场景码', 'error');
+        if (!seal) return toast('请选择法大大印章', 'error');
         state.config.corpName = String(corpName).trim();
         state.config.corpIdentNo = document.getElementById('ctCorpIdentNo').value;
-        state.config.sealName = document.getElementById('ctSealName').value;
+        state.config.businessId = businessId;
+        state.config.sealId = seal.id;
+        state.config.sealName = seal.name;
         saveStore(state);
         toast('接入配置已保存', 'success');
       });
@@ -861,12 +967,12 @@
     box.innerHTML = SCENES.map(function (s) {
       var list = state.templates.filter(function (t) { return t.scene === s.id && t.status === 'on'; });
       var names = list.map(function (t) {
-        var mark = t.kind === 'supplement' ? '（补充协议·非入驻默认签）' : '';
-        return '· ' + t.name + mark;
+        var mark = t.kind === 'supplement' ? '（补充协议，单独发起）' : '';
+        return '· ' + t.name + '（' + docsOfTpl(t).length + ' 份文档）' + mark;
       }).join('<br>');
       return '<div class="ct-scene-card" data-scene="' + esc(s.id) + '" role="button" tabindex="0" title="点击筛选该场景模板">' +
         '<div class="ct-scene-card__name">' + esc(s.name) + '</div>' +
-        '<div class="ct-scene-card__meta">相对方：' + esc(s.partyType) + '（' + esc(s.partyHint) + '）<br>启用模板 <strong>' + list.length + '</strong> 份' +
+        '<div class="ct-scene-card__meta">相对方：' + esc(s.partyType) + '（' + esc(s.partyHint) + '）<br>启用签署模板 <strong>' + list.length + '</strong> 份' +
         (names ? '<div class="ct-scene-card__list">' + names + '</div>' : '') +
         '</div></div>';
     }).join('');
@@ -894,7 +1000,7 @@
     var tb = document.getElementById('ctTplBody');
     if (!tb) return;
     if (!rows.length) {
-      tb.innerHTML = '<tr><td colspan="9" class="ct-empty">没有符合条件的合同模板</td></tr>';
+      tb.innerHTML = '<tr><td colspan="9" class="ct-empty">没有符合条件的签署模板</td></tr>';
       refreshRowNo();
       return;
     }
@@ -914,6 +1020,7 @@
         '<td>' + esc(sceneOf(t.scene).name) + '</td>' +
         '<td>' + esc(partnerTypeLabel(t)) + '</td>' +
         '<td>' + esc(t.remoteId) + '<div class="ct-field-tip" style="margin:2px 0 0">' + esc(t.remoteName) + '</div></td>' +
+        '<td>' + esc(docsOfTpl(t).map(function (doc) { return doc.name; }).join('、') || '—') + '</td>' +
         '<td>' + esc(actors) + '</td>' +
         '<td>' + st + '</td>' +
         '<td>' + esc(t.updatedAt) + '</td>' +
@@ -986,50 +1093,68 @@
   }
 
   function actorRowHtml(actor) {
-    actor = actor || { role: '', actorType: 'corp', signMode: 'manual', keyword: '' };
+    actor = actor || { actorId: '', role: '', actorType: 'corp', signMode: 'manual', keyword: '' };
     return '<tr>' +
-      '<td><input class="erp-input" data-k="role" value="' + esc(actor.role) + '" placeholder="如平台方 / 门店"></td>' +
-      '<td><select class="erp-select" data-k="actorType"><option value="corp"' + (actor.actorType === 'corp' ? ' selected' : '') + '>企业</option><option value="person"' + (actor.actorType === 'person' ? ' selected' : '') + '>个人</option></select></td>' +
-      '<td><select class="erp-select" data-k="signMode"><option value="auto"' + (actor.signMode === 'auto' ? ' selected' : '') + '>自动签（平台章）</option><option value="manual"' + (actor.signMode === 'manual' ? ' selected' : '') + '>手动签</option></select></td>' +
-      '<td><input class="erp-input" data-k="keyword" value="' + esc(actor.keyword) + '" placeholder="如乙方签署"></td>' +
-      '<td><button type="button" class="ct-link is-danger" data-act="del-actor">删除</button></td>' +
+      '<td>' + esc(actor.actorId || '—') + '</td>' +
+      '<td>' + esc(actor.role || '—') + '</td>' +
+      '<td>' + (actor.actorType === 'person' ? '个人' : '企业') + '</td>' +
+      '<td>' + (actor.signMode === 'auto' ? '自动签' : '手动签') + '</td>' +
+      '<td>' + esc(actor.keyword || '—') + '</td>' +
       '</tr>';
   }
 
-  function collectActors() {
-    var rows = document.querySelectorAll('#ctActorBody tr');
-    var out = [];
-    rows.forEach(function (tr) {
-      out.push({
-        role: (tr.querySelector('[data-k="role"]') || {}).value || '',
-        actorType: (tr.querySelector('[data-k="actorType"]') || {}).value || 'corp',
-        signMode: (tr.querySelector('[data-k="signMode"]') || {}).value || 'manual',
-        keyword: (tr.querySelector('[data-k="keyword"]') || {}).value || ''
-      });
-    });
-    return out;
-  }
-
-  function renderFillChecks(sceneId, selected) {
+  function renderFillChecks(fields) {
     var box = document.getElementById('ctFillList');
     if (!box) return;
-    var fields = sceneOf(sceneId).fill;
-    var sel = selected || fields.slice();
-    box.innerHTML = fields.map(function (f) {
-      var checked = sel.indexOf(f) >= 0 ? ' checked' : '';
-      return '<label><input type="checkbox" value="' + esc(f) + '"' + checked + '> ' + esc(f) + '</label>';
+    var list = fields || [];
+    if (!list.length) {
+      box.innerHTML = '<span class="ct-field-tip">该模板没有需要从档案填充的控件</span>';
+      return;
+    }
+    box.innerHTML = list.map(function (field) {
+      return '<div>' + esc(field) + ' → <code>' + esc(FILL_CODES[field] || field) + '</code></div>';
     }).join('');
+  }
+
+  function renderRemoteDocs(remote) {
+    var box = document.getElementById('ctDocList');
+    if (!box) return;
+    var docs = remote && remote.docs ? remote.docs : [];
+    box.innerHTML = docs.length
+      ? docs.map(function (doc) {
+        return '<div>' + esc(doc.name) + ' <span class="ct-field-tip">' + esc(doc.id) + '</span></div>';
+      }).join('')
+      : '<span class="ct-field-tip">该签署模板没有文档</span>';
+  }
+
+  function paintRemote(remoteId) {
+    var remote = remoteOfId(remoteId);
+    var actors = remote ? remote.actors : [];
+    var actorBody = document.getElementById('ctActorBody');
+    if (actorBody) actorBody.innerHTML = actors.map(actorRowHtml).join('');
+    renderFillChecks(remote ? remote.fill : []);
+    renderRemoteDocs(remote);
+    var order = document.getElementById('ctSignOrder');
+    if (order) {
+      order.checked = !!(remote && remote.signInOrder);
+      order.disabled = true;
+    }
+    var auto = document.getElementById('ctAutoStart');
+    if (auto && remote) {
+      auto.checked = remote.launch === 'auto';
+      auto.disabled = remote.launch === 'supplement';
+    }
   }
 
   function applySceneDefaults(sceneId, keepRemote) {
     var remoteSel = document.getElementById('ctRemoteTpl');
-    var options = REMOTE_TEMPLATES.filter(function (r) { return r.scene === sceneId; }).map(function (r) {
-      return { value: r.id, label: r.name + '（' + r.id + '）' };
+    var options = REMOTE_TEMPLATES.filter(function (item) { return item.scene === sceneId; }).map(function (item) {
+      return { value: item.id, label: item.name + '（' + item.id + '）' };
     });
     if (!options.length) options = [{ value: '', label: '该场景暂无法大大模板' }];
-    fillSelect(remoteSel, options, keepRemote || options[0].value);
-    document.getElementById('ctActorBody').innerHTML = defaultActors(sceneId).map(actorRowHtml).join('');
-    renderFillChecks(sceneId);
+    var next = keepRemote || options[0].value;
+    fillSelect(remoteSel, options, next);
+    paintRemote(next);
   }
 
   function initTemplateForm() {
@@ -1051,12 +1176,8 @@
     if (tpl && tpl.status === 'off') statusOff.checked = true;
     else statusOn.checked = true;
     applySceneDefaults(tpl ? tpl.scene : 'store', tpl ? tpl.remoteId : '');
-    if (tpl) {
-      document.getElementById('ctActorBody').innerHTML = (tpl.actors || defaultActors(tpl.scene)).map(actorRowHtml).join('');
-      renderFillChecks(tpl.scene, tpl.fill);
-      if (document.getElementById('ctRemoteTpl')) document.getElementById('ctRemoteTpl').value = tpl.remoteId;
-    }
-    writePartnerTypes(tpl ? partnerTypesOf(tpl) : STORE_PARTNER_TYPES.slice());
+    if (tpl && tpl.autoStart === false) document.getElementById('ctAutoStart').checked = false;
+    writePartnerTypes(tpl ? partnerTypesOf(tpl) : (remoteOfId(document.getElementById('ctRemoteTpl').value) || {}).partnerTypes || ['加盟店']);
     function syncPartnerTypeRow(sceneId) {
       var row = document.getElementById('ctPartnerTypeRow');
       if (row) row.style.display = sceneId === 'store' ? '' : 'none';
@@ -1066,6 +1187,8 @@
       var sceneId = this.value;
       syncPartnerTypeRow(sceneId);
       applySceneDefaults(sceneId);
+      var picked = remoteOfId(document.getElementById('ctRemoteTpl').value);
+      if (picked && picked.partnerTypes) writePartnerTypes(picked.partnerTypes);
       if (!tpl && !document.getElementById('ctTplName').value) {
         var remote = REMOTE_TEMPLATES.filter(function (r) { return r.scene === sceneId; })[0];
         document.getElementById('ctTplName').value = remote
@@ -1073,15 +1196,15 @@
           : sceneOf(sceneId).name + '合同';
       }
     });
-    document.getElementById('ctAddActor').addEventListener('click', function () {
-      document.getElementById('ctActorBody').insertAdjacentHTML('beforeend', actorRowHtml({ role: '', actorType: 'corp', signMode: 'manual', keyword: '' }));
-    });
-    document.getElementById('ctActorBody').addEventListener('click', function (e) {
-      var btn = e.target.closest('[data-act="del-actor"]');
-      if (!btn) return;
-      var trs = document.querySelectorAll('#ctActorBody tr');
-      if (trs.length <= 1) return toast('至少保留一个签署方', 'error');
-      btn.closest('tr').remove();
+    var addActor = document.getElementById('ctAddActor');
+    if (addActor) addActor.style.display = 'none';
+    document.getElementById('ctRemoteTpl').addEventListener('change', function () {
+      paintRemote(this.value);
+      var remote = remoteOfId(this.value);
+      if (remote && remote.partnerTypes) writePartnerTypes(remote.partnerTypes);
+      if (!document.getElementById('ctTplName').value || !tpl) {
+        document.getElementById('ctTplName').value = remote ? remote.name : '';
+      }
     });
     if (viewMode) {
       document.querySelectorAll('#ctTplScene, #ctTplName, #ctRemoteTpl, #ctTplOn, #ctTplOff, #ctAutoStart, #ctSignOrder').forEach(function (el) {
@@ -1090,8 +1213,6 @@
       document.querySelectorAll('#ctStorePartnerType input, #ctActorBody input, #ctActorBody select, #ctFillList input').forEach(function (el) {
         el.disabled = true;
       });
-      var addActor = document.getElementById('ctAddActor');
-      if (addActor) addActor.style.display = 'none';
       document.querySelectorAll('[data-act="del-actor"]').forEach(function (btn) { btn.style.display = 'none'; });
       var remoteSel = document.getElementById('ctRemoteTpl');
       var remote = REMOTE_TEMPLATES.filter(function (r) { return r.id === (tpl.remoteId || remoteSel.value); })[0];
@@ -1107,14 +1228,7 @@
       var tip = document.getElementById('ctRemoteTplTip');
       if (tip) tip.style.display = 'none';
       link.addEventListener('click', function () {
-        openTemplateContract({
-          id: tpl.id,
-          name: remote ? remote.name : (tpl.remoteName || tpl.name),
-          remoteId: tpl.remoteId,
-          remoteName: remote ? remote.name : tpl.remoteName,
-          scene: tpl.scene,
-          storePartnerTypes: partnerTypesOf(tpl)
-        });
+        openTemplateContract(tpl);
       });
       var saveBtn = document.getElementById('ctTplSave');
       if (saveBtn) {
@@ -1139,22 +1253,23 @@
       if (!remoteId) return toast('请选择法大大签署模板', 'error');
       var storePartnerTypes = scene === 'store' ? readPartnerTypes() : [];
       if (scene === 'store' && !storePartnerTypes.length) return toast('请选择适用合作类型', 'error');
-      var actors = collectActors();
-      if (!actors.length || actors.some(function (a) { return !String(a.role).trim(); })) {
-        return toast('请完整填写签署方角色', 'error');
+      var remote = remoteOfId(remoteId);
+      if (!remote || !remote.docs || !remote.docs.length) return toast('该签署模板没有文档，无法保存', 'error');
+      if ((remote.actors || []).some(function (actor) { return !actor.actorId; })) {
+        return toast('参与方标识与法大大模板不一致，无法保存', 'error');
       }
-      var fill = Array.prototype.map.call(document.querySelectorAll('#ctFillList input:checked'), function (el) { return el.value; });
-      var remote = REMOTE_TEMPLATES.filter(function (r) { return r.id === remoteId; })[0];
       var payload = {
         name: name,
         scene: scene,
         remoteId: remoteId,
-        remoteName: remote ? remote.name : remoteId,
+        remoteName: remote.name,
         status: document.getElementById('ctTplOn').checked ? 'on' : 'off',
-        autoStart: document.getElementById('ctAutoStart').checked,
-        signInOrder: document.getElementById('ctSignOrder').checked,
-        actors: actors,
-        fill: fill,
+        autoStart: remote.launch === 'supplement' ? false : document.getElementById('ctAutoStart').checked,
+        kind: remote.launch === 'supplement' ? 'supplement' : '',
+        signInOrder: !!remote.signInOrder,
+        actors: remote.actors.map(function (actor) { return Object.assign({}, actor); }),
+        docs: remote.docs.map(function (doc) { return Object.assign({}, doc); }),
+        fill: remote.fill.slice(),
         storePartnerTypes: storePartnerTypes,
         storePartnerType: storePartnerTypes[0] || '',
         updatedAt: nowText()
@@ -1241,7 +1356,7 @@
         p.fadadaId = '';
         p.authAt = '';
         saveStore(state);
-        toast('已解除授权，下次签署需重新授权', 'success');
+        toast('已解除授权。已发起的任务不受影响，下次要用企业身份识别时再重新授权', 'success');
       }
       renderPartyTable();
     });
@@ -1273,21 +1388,25 @@
     }
     tb.innerHTML = rows.map(function (t) {
       var party = findParty(t.partyId);
+      var shown = displayStatus(t);
       var ops = [
         '<button type="button" class="ct-link" data-act="read">查看合同</button>',
         '<button type="button" class="ct-link" data-act="view">任务详情</button>'
       ];
-      if (t.status === 'wait_auth') ops.push('<button type="button" class="ct-link" data-act="auth">去授权</button>');
-      if (t.status === 'sign_progress') ops.push('<button type="button" class="ct-link" data-act="urge">催签</button>');
-      if (!taskIsClosed(t.status) || t.status === 'sign_completed') {
+      if (shown === 'sign_progress') {
+        ops.push('<button type="button" class="ct-link" data-act="urge">催签</button>');
         ops.push('<button type="button" class="ct-link" data-act="copy">复制链接</button>');
         ops.push('<button type="button" class="ct-link" data-act="qr">二维码</button>');
-      }
-      if (t.status === 'sign_completed') ops.push('<button type="button" class="ct-link" data-act="download">下载</button>');
-      if (t.status === 'wait_auth' || t.status === 'sign_progress' || t.status === 'draft') {
         ops.push('<button type="button" class="ct-link is-danger" data-act="cancel">撤销</button>');
       }
-      if (t.status === 'cancelled' || t.status === 'terminated' || t.status === 'rejected' || t.status === 'voided') {
+      if (shown === 'overdue') ops.push('<button type="button" class="ct-link" data-act="postpone">延期</button>');
+      if (shown === 'sign_completed') {
+        ops.push('<button type="button" class="ct-link" data-act="copy">复制链接</button>');
+        ops.push('<button type="button" class="ct-link" data-act="qr">二维码</button>');
+        ops.push('<button type="button" class="ct-link" data-act="download">下载</button>');
+        ops.push('<button type="button" class="ct-link" data-act="abolish">发起作废</button>');
+      }
+      if (shown === 'cancelled' || shown === 'terminated' || shown === 'voided') {
         ops.push('<button type="button" class="ct-link" data-act="retry">重新发起</button>');
       }
       return '<tr data-id="' + esc(t.id) + '">' +
@@ -1325,7 +1444,7 @@
     task.signUrl = url;
     saveStore(state);
     copyText(url).then(function () {
-      toast('法大大签署链接已复制，可转发给对方', 'success');
+      toast('法大大签署短链已复制，一年内有效', 'success');
     });
   }
 
@@ -1421,15 +1540,57 @@
       return;
     }
     if (act === 'read') {
-      openTaskContract(task, '');
-      return;
-    }
-    if (act === 'auth') {
-      go('basic_settings_contract_party.html');
+      openTaskContract(task);
       return;
     }
     if (act === 'urge') {
+      if (displayStatus(task) !== 'sign_progress') return toast('已逾期的任务不能催签，请先延期', 'error');
       toast('已向对方发送催签通知（演示 urge）', 'success');
+      return;
+    }
+    if (act === 'postpone') {
+      task.deadline = addDaysText(nowText(), 7);
+      saveStore(state);
+      toast('已延期 7 天，任务回到签署中', 'success');
+      if (document.getElementById('ctTaskBody')) {
+        updateTaskTabs();
+        renderTaskTable();
+      }
+      return;
+    }
+    if (act === 'abolish') {
+      if (task.status !== 'sign_completed') return toast('只有已完成的任务可以发起作废', 'error');
+      if (!global.confirm('作废需原签署方再签一份解除协议。签完后原任务才变为已作废。确定发起？')) return;
+      var createdAt = nowText();
+      var abolish = {
+        id: nextTaskId(),
+        name: '解除协议 · ' + task.name,
+        scene: task.scene,
+        kind: 'abolish',
+        templateId: '',
+        docs: [{ id: 'DOC-ABOLISH', name: '解除协议', bodyId: '' }],
+        partyId: task.partyId,
+        status: 'sign_progress',
+        platformSign: 'pending',
+        signedDocIds: [],
+        initiator: '当前用户',
+        createdAt: createdAt,
+        deadline: addDaysText(createdAt, 7),
+        finishedAt: '',
+        fadadaTaskId: 'ST-ABO' + Date.now().toString().slice(-6),
+        signUrl: '',
+        originalTaskId: task.id
+      };
+      abolish.signUrl = fadadaSignUrl(abolish);
+      task.status = 'voiding';
+      task.abolishTaskId = abolish.id;
+      state.tasks.unshift(abolish);
+      saveStore(state);
+      toast('已发起作废。解除协议进入签署中，原任务变为作废中', 'success');
+      if (document.getElementById('ctTaskBody')) {
+        updateTaskTabs();
+        renderTaskTable();
+      }
       return;
     }
     if (act === 'copy') {
@@ -1441,7 +1602,8 @@
       return;
     }
     if (act === 'download') {
-      toast('已开始下载已签署文件（演示 getOwnerDownloadUrl）', 'success');
+      if (task.status !== 'sign_completed') return toast('签署完成后才可下载', 'error');
+      toast('已获取签署文档下载地址（演示 get-download-url）', 'success');
       return;
     }
     if (act === 'cancel') {
@@ -1510,14 +1672,18 @@
     }
   }
 
-  function taskTemplateIds(task) {
-    if (!task) return [];
-    if (Array.isArray(task.templateIds) && task.templateIds.length) return task.templateIds.slice();
-    return task.templateId ? [task.templateId] : [];
+  function taskDocIds(task) {
+    return taskDocs(task).map(function (doc) { return doc.id; });
   }
 
   function taskTemplates(task) {
-    return taskTemplateIds(task).map(findTpl).filter(Boolean);
+    var kind = '';
+    var tpl = task && findTpl(task.templateId);
+    if (tpl) kind = tpl.kind || '';
+    if (task && task.kind) kind = task.kind;
+    return taskDocs(task).map(function (doc) {
+      return { id: doc.id, name: doc.name, bodyId: doc.bodyId || '', kind: kind };
+    });
   }
 
   function isSettleConfirmTpl(tpl) {
@@ -1548,6 +1714,21 @@
     });
   }
 
+  function createBlockReason(tpl) {
+    var remote = tpl && remoteOfId(tpl.remoteId);
+    var docs = docsOfTpl(tpl);
+    var actors = (tpl && tpl.actors && tpl.actors.length) ? tpl.actors : (remote && remote.actors) || [];
+    if (!remote || !docs.length) return '该签署模板没有文档，任务未创建';
+    if (!actors.length || actors.some(function (actor) { return !actor.actorId; })) {
+      return '参与方标识与法大大模板不一致，任务未创建';
+    }
+    var needsAuto = actors.some(function (actor) { return actor.signMode === 'auto'; });
+    if (needsAuto && (!state.config.businessId || !state.config.sealId)) {
+      return '平台自动签未配置场景码或印章，任务未创建';
+    }
+    return '';
+  }
+
   function findSettleSupplementTpl() {
     return state.templates.filter(function (t) {
       return t && t.status === 'on' && (t.id === 'TPL007' || t.remoteId === 'STPL-SUP-003' || t.kind === 'supplement');
@@ -1555,8 +1736,8 @@
   }
 
   /**
-   * 供应商结算信息变更后：下发「结算信息变更补充协议」至供应商 App 待签。
-   * 同一供应商仅保留一条未关闭的补充协议任务（重复变更复用并刷新签署链接）。
+   * 供应商结算信息变更后下发补充协议。同一供应商只展示一条未关闭记录。
+   * 任务已提交后不能改控件，再次发放会撤销旧法大大任务并新建。
    */
   function issueSupplierSettleSupplement(opts) {
     opts = opts || {};
@@ -1568,18 +1749,30 @@
       toast('未配置结算信息变更补充协议模板', 'error');
       return null;
     }
+    var block = createBlockReason(tpl);
+    if (block) {
+      toast(block, 'error');
+      return null;
+    }
     var bizRef = opts.bizRef || ('supplier-settle-sup:' + (opts.supplierId || partyName));
     var existing = state.tasks.filter(function (t) {
       return t && t.bizRef === bizRef && !taskIsClosed(t.status);
     })[0];
     if (existing) {
+      var oldFadadaId = existing.fadadaTaskId;
       existing.status = 'sign_progress';
       existing.finishedAt = '';
-      existing.signedTemplateIds = [];
+      existing.signedDocIds = [];
       existing.templateSignedAt = {};
+      existing.platformSign = 'pending';
       existing.settleSnapshot = opts.settleSnapshot || existing.settleSnapshot || null;
       existing.updatedAt = nowText();
+      existing.deadline = addDaysText(nowText(), 7);
+      existing.replacedFadadaTaskId = oldFadadaId;
+      existing.fadadaTaskId = 'ST-SUP' + Date.now().toString().slice(-6);
+      existing.signUrl = '';
       existing.signUrl = fadadaSignUrl(existing);
+      existing.reissueNote = '已撤销法大大任务 ' + (oldFadadaId || '（无任务号）') + '，按新结算快照重新创建';
       saveStore(state);
       return existing;
     }
@@ -1598,10 +1791,11 @@
       scene: 'supplier',
       kind: 'settle_supplement',
       templateId: tpl.id,
-      templateIds: [tpl.id],
-      agreementNames: tpl.name,
+      agreementNames: docsOfTpl(tpl).map(function (doc) { return doc.name; }).join('、') || tpl.name,
       partyId: party.id,
       status: 'sign_progress',
+      platformSign: 'pending',
+      signedDocIds: [],
       initiator: opts.initiator || '供应商档案·结算变更',
       createdAt: createdAt,
       deadline: addDaysText(createdAt, 7),
@@ -1619,10 +1813,9 @@
     return task;
   }
 
-  function readTaskTemplateIds() {
-    return Array.prototype.map.call(document.querySelectorAll('#ctTaskTpl input:checked'), function (el) {
-      return el.value;
-    });
+  function readTaskTemplateId() {
+    var picked = document.querySelector('#ctTaskTpl input:checked');
+    return picked ? picked.value : '';
   }
 
   function fillPartyOptions(sceneId, selected) {
@@ -1634,27 +1827,37 @@
     })), selected || '');
   }
 
-  function fillTplOptions(sceneId, selectedIds) {
+  function paintTaskDocs(tpl) {
+    var box = document.getElementById('ctTaskDocs');
+    if (!box) return;
+    var docs = docsOfTpl(tpl);
+    box.textContent = docs.length
+      ? ('纳入本任务的文档：' + docs.map(function (doc) { return doc.name; }).join('、'))
+      : '该模板没有文档，不能发起';
+  }
+
+  function fillTplOptions(sceneId, selectedId) {
     var box = document.getElementById('ctTaskTpl');
     if (!box) return;
     var partnerType = sceneId === 'store' ? ((document.getElementById('ctTaskPartner') || {}).value || '加盟店') : '';
     var list = templatesForManual(sceneId, partnerType);
-    var selected = selectedIds && selectedIds.length
-      ? selectedIds
-      : list.filter(function (t) { return !isManualOnlyTpl(t) && !isSettleConfirmTpl(t); }).map(function (t) { return t.id; });
+    var fallback = list.filter(function (item) { return !isManualOnlyTpl(item) && !isSettleConfirmTpl(item); })[0];
+    var selected = selectedId || (fallback ? fallback.id : (list[0] && list[0].id));
     if (!list.length) {
-      box.innerHTML = '<span class="ct-field-tip">该场景暂无已启用的法大大协议</span>';
+      box.innerHTML = '<span class="ct-field-tip">该场景暂无已启用的法大大签署模板</span>';
+      paintTaskDocs(null);
       return;
     }
-    box.innerHTML = list.map(function (t) {
-      var checked = selected.indexOf(t.id) >= 0 ? ' checked' : '';
-      var tag = isSettleConfirmTpl(t)
+    box.innerHTML = list.map(function (item) {
+      var checked = item.id === selected ? ' checked' : '';
+      var tag = isSettleConfirmTpl(item)
         ? '<span class="ct-tag ct-tag--info">变更确认后触发</span>'
-        : (isManualOnlyTpl(t)
+        : (isManualOnlyTpl(item)
           ? '<span class="ct-tag ct-tag--muted">手动发起</span>'
           : '<span class="ct-tag ct-tag--ok">自动触发</span>');
-      return '<label class="pts-rule-check-label"><input type="checkbox" value="' + esc(t.id) + '"' + checked + '> ' + esc(t.name) + tag + '</label>';
+      return '<label class="pts-rule-check-label"><input type="radio" name="ctTaskTplPick" value="' + esc(item.id) + '"' + checked + '> ' + esc(item.name) + tag + '</label>';
     }).join('');
+    paintTaskDocs(findTpl(selected));
   }
 
   function updatePartyHint() {
@@ -1669,10 +1872,10 @@
     box.style.display = 'block';
     if (party.authStatus === 'done') {
       box.className = 'mdm-biz-tip';
-      box.innerHTML = '当前主体 <strong>已授权</strong>，可直接发起签署。法大大 ID：' + esc(party.fadadaId) + '。';
+      box.innerHTML = '当前主体 <strong>已授权</strong>，法大大 ID：' + esc(party.fadadaId) + '。授权用于识别企业，不是发起前置。';
     } else {
-      box.className = 'ct-warn-banner';
-      box.innerHTML = '当前主体尚未完成授权，提交时会先引导对方完成企业授权，任务进入「待对方授权」。也可先到「签署主体」发起授权。';
+      box.className = 'mdm-biz-tip';
+      box.innerHTML = '当前主体尚未企业授权，仍可发起。对方打开签署链接时在法大大完成实名。';
     }
   }
 
@@ -1682,7 +1885,8 @@
 
   function syncTaskName() {
     var party = currentTaskParty();
-    var names = readTaskTemplateIds().map(findTpl).filter(Boolean).map(function (t) { return t.name; });
+    var tpl = findTpl(readTaskTemplateId());
+    var names = docsOfTpl(tpl).map(function (doc) { return doc.name; });
     var input = document.getElementById('ctTaskName');
     if (!input || !party || !names.length) return;
     input.value = party.name + ' · ' + names.join('、');
@@ -1708,27 +1912,30 @@
       updatePartyHint();
       syncTaskName();
     }
-    refreshByScene(retry ? taskTemplateIds(retry) : null);
+    refreshByScene(retry ? retry.templateId : '');
     if (retry) {
       document.getElementById('ctTaskName').value = retry.name.replace(/（重新发起）$/, '') + '（重新发起）';
     }
     document.getElementById('ctTaskScene').addEventListener('change', function () {
       retry = null;
       document.getElementById('ctTaskName').value = '';
-      refreshByScene(null);
+      refreshByScene('');
     });
     if (partnerSel) {
       partnerSel.addEventListener('change', function () {
-        fillTplOptions(document.getElementById('ctTaskScene').value, null);
+        fillTplOptions(document.getElementById('ctTaskScene').value, '');
         syncTaskName();
       });
     }
-    document.getElementById('ctTaskTpl').addEventListener('change', syncTaskName);
+    document.getElementById('ctTaskTpl').addEventListener('change', function () {
+      paintTaskDocs(findTpl(readTaskTemplateId()));
+      syncTaskName();
+    });
     document.getElementById('ctTaskParty').addEventListener('change', function () {
       var party = findParty(this.value);
       if (party && party.partnerDivision && partnerSel && document.getElementById('ctTaskScene').value === 'store') {
         partnerSel.value = party.partnerDivision;
-        fillTplOptions('store', null);
+        fillTplOptions('store', '');
       }
       updatePartyHint();
       syncTaskName();
@@ -1738,12 +1945,13 @@
     });
     document.getElementById('ctTaskSave').addEventListener('click', function () {
       var scene = document.getElementById('ctTaskScene').value;
-      var templateIds = readTaskTemplateIds();
-      if (!templateIds.length) return toast('请至少勾选一份协议', 'error');
-      var agreementLabel = templateIds.map(function (tid) {
-        var item = findTpl(tid);
-        return item ? item.name : tid;
-      }).join('、');
+      var templateId = readTaskTemplateId();
+      var tpl = findTpl(templateId);
+      if (!tpl) return toast('请选择一份签署模板', 'error');
+      var block = createBlockReason(tpl);
+      if (block) return toast(block, 'error');
+      var docs = docsOfTpl(tpl);
+      var agreementLabel = docs.map(function (doc) { return doc.name; }).join('、');
       var partyId = document.getElementById('ctTaskParty').value;
       if (!partyId) return toast('请选择签署相对方', 'error');
       var party = findParty(partyId);
@@ -1753,39 +1961,37 @@
         document.getElementById('ctTaskName').value = name;
       }
       if (!name) return toast('请填写合同名称', 'error');
-      var picked = templateIds.map(findTpl).filter(Boolean);
-      var supplementOnly = picked.length && picked.every(function (t) { return t.kind === 'supplement'; });
       var sms = document.getElementById('ctTaskSms').checked;
       var deadlineInput = normalizeDeadline(document.getElementById('ctTaskDeadline').value);
-      var status = party && party.authStatus === 'done' ? 'sign_progress' : 'wait_auth';
       var createdAt = nowText();
       var createdTask = {
         id: nextTaskId(),
         name: name,
         scene: scene,
-        templateId: templateIds[0],
-        templateIds: templateIds,
+        templateId: tpl.id,
         agreementNames: agreementLabel,
         storePartnerType: scene === 'store' && partnerSel ? partnerSel.value : '',
         partyId: party.id,
-        status: status,
+        status: 'sign_progress',
+        platformSign: 'pending',
+        signedDocIds: [],
         initiator: '当前用户',
         createdAt: createdAt,
         deadline: deadlineInput || addDaysText(createdAt, 7),
         finishedAt: '',
-        fadadaTaskId: status === 'sign_progress' ? ('ST-' + Date.now().toString().slice(-5) + String(state.tasks.length).slice(-1)) : '',
+        fadadaTaskId: 'ST-' + Date.now().toString().slice(-6),
         signUrl: '',
-        sms: sms
+        sms: sms,
+        notifyType: sms ? ['start'] : []
       };
-      if (supplementOnly) {
+      if (tpl.kind === 'supplement') {
         createdTask.kind = 'settle_supplement';
         createdTask.pushApp = true;
       }
       createdTask.signUrl = fadadaSignUrl(createdTask);
       state.tasks.unshift(createdTask);
       saveStore(state);
-      if (status === 'wait_auth') toast('已创建 ' + templateIds.length + ' 份协议，等待相对方完成授权后再签署', 'success');
-      else toast('已发起 ' + templateIds.length + ' 份协议（演示）', 'success');
+      toast('已发起 1 条签署任务，包含 ' + docs.length + ' 份文档', 'success');
       go('basic_settings_contract_task.html');
     });
   }
@@ -1798,8 +2004,8 @@
       return;
     }
     var party = findParty(task.partyId);
-    var tpls = taskTemplates(task);
-    var tpl = tpls[0] || findTpl(task.templateId);
+    var tpl = findTpl(task.templateId);
+    var docs = taskDocs(task);
     var set = function (id, html) {
       var el = document.getElementById(id);
       if (el) el.innerHTML = html;
@@ -1809,55 +2015,59 @@
     set('ctKvId', esc(task.id));
     set('ctKvFdd', esc(task.fadadaTaskId || '尚未同步'));
     set('ctKvScene', esc(sceneOf(task.scene).name));
-    set('ctKvTpl', esc(tpls.length ? tpls.map(function (item) { return item.name; }).join('、') : '—'));
+    set('ctKvTpl', esc((tpl ? tpl.name : '—') + (docs.length ? '（' + docs.map(function (doc) { return doc.name; }).join('、') + '）' : '')));
     set('ctKvParty', esc(party ? party.name : '—'));
     set('ctKvInitiator', esc(task.initiator));
     set('ctKvCreated', esc(task.createdAt));
     set('ctKvDeadline', esc(deadlineText(task)));
     set('ctKvFinished', esc(task.finishedAt || '—'));
     var actors = (tpl && tpl.actors) ? tpl.actors : defaultActors(task.scene);
-    var actorHtml = actors.map(function (a, i) {
-      var isPlatform = i === 0;
-      var shown = displayStatus(task);
+    var shown = displayStatus(task);
+    var actorHtml = actors.map(function (actor) {
+      var isPlatform = actor.signMode === 'auto' || actor.actorId === '甲方';
       var st;
-      if (shown === 'sign_completed') st = tagHtml(TASK_STATUS, 'sign_completed');
-      else if (!isPlatform && (shown === 'cancelled' || shown === 'terminated' || shown === 'voided' || shown === 'voiding' || shown === 'overdue' || shown === 'wait_auth')) st = tagHtml(TASK_STATUS, shown);
-      else if (isPlatform && shown !== 'wait_auth') st = '<span class="ct-tag ct-tag--ok">已自动签署</span>';
-      else if (shown === 'wait_auth') st = tagHtml(TASK_STATUS, 'wait_auth');
-      else st = tagHtml(TASK_STATUS, 'sign_progress');
-      var who = isPlatform ? state.config.corpName : (party ? party.name : a.role);
-      var mode = a.signMode === 'auto' ? '自动签' : '手动签';
-      return '<tr><td>' + esc(a.role) + '</td><td>' + esc(who) + '</td><td>' + (a.actorType === 'person' ? '个人' : '企业') + '</td><td>' + mode + '</td><td>' + st + '</td></tr>';
+      if (isPlatform) {
+        if (task.platformSign === 'failed') st = '<span class="ct-tag ct-tag--danger">自动签失败</span>';
+        else if (task.platformSign === 'signed' || task.status === 'sign_completed') st = '<span class="ct-tag ct-tag--ok">已自动签署</span>';
+        else st = '<span class="ct-tag ct-tag--warn">待自动签</span>';
+      } else if (shown === 'sign_completed') st = tagHtml(TASK_STATUS, 'sign_completed');
+      else if (shown === 'cancelled' || shown === 'terminated' || shown === 'voided' || shown === 'voiding' || shown === 'overdue') st = tagHtml(TASK_STATUS, shown);
+      else st = '<span class="ct-tag ct-tag--info">待签署</span>';
+      var who = isPlatform ? state.config.corpName : (party ? party.name : actor.role);
+      var mode = actor.signMode === 'auto' ? '自动签' : '手动签';
+      return '<tr><td>' + esc((actor.actorId ? actor.actorId + ' · ' : '') + actor.role) + '</td><td>' + esc(who) + '</td><td>' + (actor.actorType === 'person' ? '个人' : '企业') + '</td><td>' + mode + '</td><td>' + st + '</td></tr>';
     }).join('');
     set('ctActorDetailBody', actorHtml);
-    var files = (tpls.length ? tpls : [{ name: '合同' }]).map(function (item) {
-      return { name: item.name, fileName: item.name + '.pdf', kind: '签署文件', tplId: item.id || '' };
-    });
-    files.push({ name: '签署完成报告', fileName: '签署完成报告.pdf', kind: '出证文件', onlyDone: true, tplId: '' });
-    set('ctFileList', files.filter(function (f) {
-      return !f.onlyDone || task.status === 'sign_completed';
-    }).map(function (f) {
+    var fileHtml = (docs.length ? docs : [{ id: '', name: '合同' }]).map(function (doc) {
+      var signed = doc.id && isTemplateSigned(task, doc.id);
       var canDl = task.status === 'sign_completed';
-      var readBtn = f.tplId
-        ? '<button type="button" class="ct-link" data-act="read" data-tpl="' + esc(f.tplId) + '">查看合同</button>'
-        : '';
-      return '<div class="ct-file-row"><div>' + esc(f.fileName) + '<div class="ct-field-tip">' + esc(f.kind) + '</div></div>' +
-        '<span class="ct-ops">' + readBtn +
+      return '<div class="ct-file-row"><div>' + esc(doc.name) + '.pdf<div class="ct-field-tip">' + (signed ? '已签' : '待签') + '</div></div>' +
+        '<span class="ct-ops"><button type="button" class="ct-link" data-act="read">查看合同</button>' +
         (canDl ? '<button type="button" class="ct-link" data-act="download">下载</button>' : '<span class="ct-tag ct-tag--muted">签署完成后可下载</span>') +
         '</span></div>';
-    }).join(''));
+    }).join('');
+    if (task.status === 'sign_completed') {
+      var evidence = task.evidenceStatus === 'pending'
+        ? '<span class="ct-tag ct-tag--warn">生成中</span>'
+        : (task.evidenceStatus === 'ready'
+          ? '<button type="button" class="ct-link" data-act="download">下载</button>'
+          : '<button type="button" class="ct-link" data-act="evidence">申请证据报告</button>');
+      fileHtml += '<div class="ct-file-row"><div>证据报告<div class="ct-field-tip">申请后等待生成，不随签署完成立即出具</div></div><span class="ct-ops">' + evidence + '</span></div>';
+    }
+    set('ctFileList', fileHtml);
     var logs = [
-      { t: task.createdAt, d: '创建签署任务' + (task.fadadaTaskId ? '，法大大任务号 ' + task.fadadaTaskId : '') }
+      { t: task.createdAt, d: '创建签署任务' + (task.fadadaTaskId ? '，法大大任务号 ' + task.fadadaTaskId : '') + '（回调 sign-task-start）' }
     ];
-    if (task.status !== 'draft') logs.push({ t: task.createdAt, d: party && party.authStatus === 'done' ? '相对方已授权，任务进入签署' : '等待相对方授权' });
-    if (task.status === 'sign_progress' || task.status === 'sign_completed') logs.push({ t: task.createdAt, d: '平台方已自动盖章' });
-    if (task.status === 'sign_completed') logs.push({ t: task.finishedAt, d: '全部签署完成，已回写业务状态（回调 sign_completed）' });
-    if (task.status === 'terminated' || task.status === 'rejected') logs.push({ t: task.finishedAt, d: '任务已终止（回调 task_terminated）' });
-    if (task.status === 'cancelled') logs.push({ t: task.finishedAt, d: '发起方撤销任务' });
-    if (task.status === 'voiding') logs.push({ t: task.createdAt, d: '已发起作废，等待确认' });
-    if (task.status === 'voided') logs.push({ t: task.finishedAt, d: '合同已作废' });
-    if (displayStatus(task) === 'overdue') logs.push({ t: deadlineText(task), d: '已过签署截止时间，任务逾期' });
-    if (task.status === 'wait_auth') logs.push({ t: task.createdAt, d: '已创建任务，待相对方完成授权后获取签署链接' });
+    if (task.platformSign === 'failed') logs.push({ t: task.createdAt, d: '平台自动签失败（回调 sign-task-sign-failed）' });
+    else if (task.platformSign === 'signed' || task.status === 'sign_completed') logs.push({ t: task.createdAt, d: '平台方自动签成功（回调 sign-task-signed）' });
+    else logs.push({ t: task.createdAt, d: '等待平台自动签回调，创建成功时不视为已签署' });
+    if (task.reissueNote) logs.push({ t: task.updatedAt || task.createdAt, d: task.reissueNote });
+    if (task.status === 'sign_completed') logs.push({ t: task.finishedAt, d: '全部文档签署完成（回调 sign-task-finished）' });
+    if (task.status === 'terminated' || task.status === 'rejected') logs.push({ t: task.finishedAt, d: '对方拒签，任务已终止（回调 sign-task-sign-rejected）' });
+    if (task.status === 'cancelled') logs.push({ t: task.finishedAt, d: '发起方撤销任务（回调 sign-task-canceled）' });
+    if (task.status === 'voiding') logs.push({ t: task.updatedAt || nowText(), d: '已发起作废，等待原签署方签署解除协议' + (task.abolishTaskId ? '（' + task.abolishTaskId + '）' : '') });
+    if (task.status === 'voided') logs.push({ t: task.finishedAt, d: '解除协议签署完成，原任务已作废（回调 sign-task-abolish）' });
+    if (shown === 'overdue') logs.push({ t: deadlineText(task), d: '超过截止时间，任务已逾期（回调 sign-task-expire）' });
     set('ctTimeline', logs.map(function (x) {
       return '<li><div class="ct-timeline__t">' + esc(x.t) + '</div>' + esc(x.d) + '</li>';
     }).join(''));
@@ -1872,15 +2082,27 @@
       if (act === 'download') {
         if (task.status !== 'sign_completed') return toast('签署完成后才可下载', 'error');
       }
+      var beforeStatus = task.status;
+      var beforeDeadline = task.deadline;
       handleTaskAct(act, task);
-      if (act === 'cancel') go('basic_settings_contract_task.html');
+      if (act === 'cancel' && task.status === 'cancelled') go('basic_settings_contract_task.html');
+      if (act === 'postpone' && task.deadline !== beforeDeadline) global.location.reload();
+      if (act === 'abolish' && task.status !== beforeStatus) global.location.reload();
     });
     var fileList = document.getElementById('ctFileList');
     if (fileList) {
       fileList.addEventListener('click', function (e) {
         var read = e.target.closest('[data-act="read"]');
         if (read) {
-          openTaskContract(task, read.getAttribute('data-tpl') || '');
+          openTaskContract(task);
+          return;
+        }
+        var evidence = e.target.closest('[data-act="evidence"]');
+        if (evidence) {
+          task.evidenceStatus = 'pending';
+          saveStore(state);
+          evidence.outerHTML = '<span class="ct-tag ct-tag--warn">生成中</span>';
+          toast('已申请证据报告，生成后由回调通知', 'success');
           return;
         }
         var btn = e.target.closest('[data-act="download"]');
@@ -1888,28 +2110,52 @@
         handleTaskAct('download', task);
       });
     }
+    var shownNow = displayStatus(task);
     var urge = document.querySelector('#ctDetailOps [data-act="urge"]');
     var copy = document.querySelector('#ctDetailOps [data-act="copy"]');
     var dl = document.querySelector('#ctDetailOps [data-act="download"]');
     var cancel = document.querySelector('#ctDetailOps [data-act="cancel"]');
-    if (urge) urge.style.display = task.status === 'sign_progress' ? '' : 'none';
-    if (copy) copy.style.display = taskIsClosed(task.status) && task.status !== 'sign_completed' ? 'none' : '';
+    var postpone = document.querySelector('#ctDetailOps [data-act="postpone"]');
+    var abolish = document.querySelector('#ctDetailOps [data-act="abolish"]');
+    if (urge) urge.style.display = shownNow === 'sign_progress' ? '' : 'none';
+    if (copy) copy.style.display = (shownNow === 'sign_progress' || shownNow === 'sign_completed') ? '' : 'none';
     if (dl) dl.style.display = task.status === 'sign_completed' ? '' : 'none';
-    if (cancel) cancel.style.display = (task.status === 'sign_progress' || task.status === 'wait_auth' || task.status === 'draft') ? '' : 'none';
+    if (cancel) cancel.style.display = shownNow === 'sign_progress' ? '' : 'none';
+    if (postpone) postpone.style.display = shownNow === 'overdue' ? '' : 'none';
+    if (abolish) abolish.style.display = task.status === 'sign_completed' ? '' : 'none';
   }
 
   function htmlPageUrl(query) {
     return global.location.origin + '/SCM/contract_sign.html?' + query;
   }
 
-  /** 对方打开的签署页是法大大任务页，不是本系统的签署交互页。 */
-  function fadadaSignUrl(task) {
+  function ensureFadadaTaskId(task) {
     if (!task) return '';
     if (!task.fadadaTaskId) {
       var digits = String(task.id || '').replace(/\D/g, '');
       task.fadadaTaskId = 'ST-' + (digits.slice(-6) || String(Date.now()).slice(-6));
     }
-    return 'https://uat-sign.fadada.com/task/' + encodeURIComponent(task.fadadaTaskId);
+    return task.fadadaTaskId;
+  }
+
+  /** 转发给对方、生成二维码用短链，一年有效。 */
+  function fadadaSignUrl(task) {
+    var taskId = ensureFadadaTaskId(task);
+    if (!taskId) return '';
+    return 'https://test.fddurl.cn/' + String(taskId).replace(/[^A-Za-z0-9]/g, '').slice(-8);
+  }
+
+  /** App 内打开时当场再取长链，不复用创建时存下的短链。 */
+  function fadadaEmbedUrl(task) {
+    var taskId = ensureFadadaTaskId(task);
+    if (!taskId) return '';
+    return 'https://uat-sign.fadada.com/connect/sign?signTaskId=' + encodeURIComponent(taskId) + '&ticket=' + Date.now();
+  }
+
+  function fadadaPreviewUrl(task) {
+    var taskId = ensureFadadaTaskId(task);
+    if (!taskId) return '';
+    return 'https://uat-sign.fadada.com/preview?signTaskId=' + encodeURIComponent(taskId);
   }
 
   function htmlSignUrl(task, tplId) {
@@ -1999,7 +2245,7 @@
       })[0];
       if (existing) {
         if (!existing.agreementNames) {
-          existing.agreementNames = taskTemplates(existing).map(function (t) { return t.name; }).join('、');
+          existing.agreementNames = taskDocs(existing).map(function (doc) { return doc.name; }).join('、');
         }
         var keptUrl = fadadaSignUrl(existing);
         if (existing.signUrl !== keptUrl) {
@@ -2010,8 +2256,13 @@
       }
     }
     var partnerType = scene === 'store' ? (opts.partnerType || '加盟店') : '';
-    var tpls = templatesForSign(scene, partnerType);
-    if (!tpls.length) return null;
+    var tpl = templatesForSign(scene, partnerType)[0];
+    if (!tpl) return null;
+    var block = createBlockReason(tpl);
+    if (block) {
+      toast(block, 'error');
+      return null;
+    }
     var party = upsertParty({
       type: scene,
       name: partyName,
@@ -2019,21 +2270,22 @@
       identNo: opts.identNo || '',
       contact: opts.contact || opts.phone || '',
       address: opts.address || '',
-      authStatus: 'done'
+      authStatus: opts.authStatus || 'none'
     });
-    var names = tpls.map(function (t) { return t.name; });
+    var names = docsOfTpl(tpl).map(function (doc) { return doc.name; });
     var status = opts.status || 'sign_progress';
     var createdAt = nowText();
     var task = {
       id: nextTaskId(),
       name: party.name + ' · ' + names.join('、'),
       scene: scene,
-      templateId: tpls[0].id,
-      templateIds: tpls.map(function (t) { return t.id; }),
+      templateId: tpl.id,
       agreementNames: names.join('、'),
       storePartnerType: partnerType,
       partyId: party.id,
       status: status,
+      platformSign: status === 'sign_completed' ? 'signed' : 'pending',
+      signedDocIds: status === 'sign_completed' ? docsOfTpl(tpl).map(function (doc) { return doc.id; }) : [],
       initiator: opts.initiator || '系统',
       createdAt: createdAt,
       deadline: addDaysText(createdAt, 7),
@@ -2041,7 +2293,8 @@
       fadadaTaskId: 'ST-' + Date.now().toString().slice(-6),
       signUrl: '',
       bizRef: bizRef,
-      sms: true
+      sms: true,
+      notifyType: ['start']
     };
     task.signUrl = fadadaSignUrl(task);
     state.tasks.unshift(task);
@@ -2101,12 +2354,10 @@
   }
 
   function signedTemplateIdsOf(task) {
-    var ids = taskTemplateIds(task);
+    var ids = taskDocIds(task);
     if (!task) return [];
-    if (task.status === 'sign_completed' && !(Array.isArray(task.signedTemplateIds) && task.signedTemplateIds.length)) {
-      return ids;
-    }
-    var signed = Array.isArray(task.signedTemplateIds) ? task.signedTemplateIds : [];
+    var signed = Array.isArray(task.signedDocIds) ? task.signedDocIds : [];
+    if (task.status === 'sign_completed' && !signed.length) return ids;
     return signed.filter(function (id) { return ids.indexOf(id) >= 0; });
   }
 
@@ -2117,7 +2368,7 @@
   /** 已签 1/2；全部签完才是已签署。 */
   function signProgressLabel(task) {
     if (!task) return '待签署';
-    var ids = taskTemplateIds(task);
+    var ids = taskDocIds(task);
     var signed = signedTemplateIdsOf(task);
     if (!ids.length) return task.status === 'sign_completed' ? '已签署' : '待签署';
     if (signed.length >= ids.length) return '已签署';
@@ -2129,12 +2380,12 @@
     var task = findTask(taskId);
     if (!task || !tplId) return null;
     if (taskIsClosed(task.status)) return task;
-    var ids = taskTemplateIds(task);
+    var ids = taskDocIds(task);
     if (ids.indexOf(tplId) < 0) return task;
     if (isTemplateSigned(task, tplId)) return task;
     var signed = signedTemplateIdsOf(task).slice();
     signed.push(tplId);
-    task.signedTemplateIds = signed;
+    task.signedDocIds = signed;
     task.templateSignedAt = task.templateSignedAt || {};
     task.templateSignedAt[tplId] = nowText();
     if (ids.every(function (id) { return signed.indexOf(id) >= 0; })) {
@@ -2156,7 +2407,7 @@
     var task = findTask(taskId);
     if (!task) return null;
     var pendingId = '';
-    taskTemplateIds(task).forEach(function (id) {
+    taskDocIds(task).forEach(function (id) {
       if (!pendingId && !isTemplateSigned(task, id)) pendingId = id;
     });
     if (!pendingId) return task;
@@ -2166,6 +2417,8 @@
   global.LfContract = {
     htmlSignUrl: htmlSignUrl,
     fadadaSignUrl: fadadaSignUrl,
+    fadadaEmbedUrl: fadadaEmbedUrl,
+    fadadaPreviewUrl: fadadaPreviewUrl,
     htmlTplUrl: htmlTplUrl,
     htmlSceneUrl: function (sceneId) { return htmlPageUrl('scene=' + encodeURIComponent(sceneId || '')); },
     copyText: copyText,

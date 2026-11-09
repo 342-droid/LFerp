@@ -91,7 +91,8 @@
     open.className = 'sa-ct-btn sa-ct-btn--primary';
     open.textContent = doc.signed ? '查看合同' : '去签署';
     open.addEventListener('click', function () {
-      location.href = window.LfContract.fadadaSignUrl(doc.task);
+      var api = window.LfContract;
+      location.href = doc.signed && api.fadadaPreviewUrl ? api.fadadaPreviewUrl(doc.task) : api.fadadaEmbedUrl(doc.task);
     });
     actions.appendChild(open);
     box.appendChild(title);

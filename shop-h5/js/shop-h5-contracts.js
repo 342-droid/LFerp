@@ -40,7 +40,8 @@
     open.className = 'shop-h5-btn shop-h5-btn-primary shop-h5-btn-wide';
     open.textContent = signed ? '查看合同' : '去签署';
     open.addEventListener('click', function () {
-      location.href = window.LfContract.fadadaSignUrl(task);
+      var api = window.LfContract;
+      location.href = signed && api.fadadaPreviewUrl ? api.fadadaPreviewUrl(task) : api.fadadaEmbedUrl(task);
     });
     actions.appendChild(copy);
     actions.appendChild(open);
