@@ -195,7 +195,7 @@
         b.className = 'erp-btn erp-btn--primary erp-btn--sms';
         b.textContent = '获取验证码';
         b.addEventListener('click', function () {
-            if (typeof showToast === 'function') showToast('验证码已发送（演示）', 'info');
+            if (typeof showToast === 'function') showToast('验证码已发送（演示验证码：123456）', 'info');
         });
         wrap.appendChild(i);
         wrap.appendChild(b);
@@ -691,7 +691,41 @@
             });
     }
 
-    function attachWideModal(title, bodyEl, onConfirm) {
+    /* 【857】演示用验证码 */
+    var STORE_PHONE_DEMO_CODE = '123456';
+
+    function showStorePhoneConfirm(message, onOk) {
+        var backdrop = document.createElement('div');
+        backdrop.className = 'erp-modal-backdrop mdm-people-warm-confirm-backdrop';
+        backdrop.setAttribute('data-mdm-archive-form', '1');
+        backdrop.style.zIndex = '3000';
+        var modal = document.createElement('div');
+        modal.className = 'erp-modal erp-modal--confirm';
+        modal.innerHTML =
+            '<div class="erp-modal__header"><h2 class="erp-modal__title">更换登录手机号</h2>' +
+            '<div class="erp-modal__header-actions"><button type="button" class="erp-modal__header-btn" data-act="x" aria-label="关闭">&times;</button></div></div>' +
+            '<div class="erp-modal__body"><div class="erp-modal-confirm__row"><div class="erp-modal-confirm__icon">!</div>' +
+            '<div class="erp-modal-confirm__msg" style="white-space:pre-line"></div></div></div>' +
+            '<div class="erp-modal__footer"><button type="button" class="erp-btn" data-act="cancel">取消</button>' +
+            '<button type="button" class="erp-btn erp-btn--primary" data-act="ok">确认</button></div>';
+        modal.querySelector('.erp-modal-confirm__msg').textContent = message;
+        backdrop.appendChild(modal);
+        function hide() {
+            backdrop.remove();
+        }
+        modal.querySelector('[data-act="x"]').addEventListener('click', hide);
+        modal.querySelector('[data-act="cancel"]').addEventListener('click', hide);
+        backdrop.addEventListener('click', function (e) {
+            if (e.target === backdrop) hide();
+        });
+        modal.querySelector('[data-act="ok"]').addEventListener('click', function () {
+            hide();
+            if (typeof onOk === 'function') onOk();
+        });
+        document.body.appendChild(backdrop);
+    }
+
+    function attachWideModal(title, bodyEl, onConfirm, beforeValidate) {
         removeArchiveFormModals();
         var backdrop = document.createElement('div');
         backdrop.className = 'store-archive-modal-backdrop resource-archive-modal-backdrop';
@@ -733,6 +767,7 @@
             backdrop.remove();
         });
         ok.addEventListener('click', function () {
+            if (typeof beforeValidate === 'function' && beforeValidate() === false) return;
             var requiredEls = bodyEl.querySelectorAll('[data-required-msg]');
             for (var i = 0; i < requiredEls.length; i++) {
                 var one = requiredEls[i];
@@ -1746,6 +1781,7 @@
             }
             var bundle = createStoreFormBundle({ initialVenuePhotos: initial, storeCode: storeId });
             bundle.fillFromArchiveRow(tr);
+<<<<<<< HEAD
             function storeSnapshot() {
                 return {
                     '门店编码': cellPlainText(cells[0]),
@@ -1798,6 +1834,10 @@
                     if (cells[7]) cells[7].textContent = masked;
                 }
                 if (!warehouseSelectionAvailable(refs.warehouseSel, before['配送仓库'])) return false;
+=======
+            var refs = bundle.refs || {};
+            function applyEdit() {
+>>>>>>> dd6e16c (fix: 【857】门店改手机号的校验与二次确认在原型中补齐)
                 var region = refs.regionInp ? String(refs.regionInp.value || '').trim() : '';
                 var nextCode = storeId;
                 var api = window.MdmStoreCode;
@@ -1838,9 +1878,82 @@
                 writeJsonStore('mdm_store_warehouse_bindings_v1', bindings);
                 cells[8].textContent = bindings[nextCode];
                 syncStoreReceiveFromForm(nextCode || storeId, nextName || storeName, refs);
+<<<<<<< HEAD
                 if (window.MdmOperationLog) window.MdmOperationLog.record('store', nextCode || storeId,
                     '编辑门店', before, storeSnapshot());
             });
+=======
+            }
+            /* 【857】手机号码变更：本门店登录挂靠从旧号用户换到新号用户，先于其他必填校验 */
+            function checkPhoneChange() {
+                if (!(refs.isPhoneChanged && refs.isPhoneChanged())) return { changed: false };
+                var toast = function (m) {
+                    if (typeof showToast === 'function') showToast(m, 'error');
+                };
+                var newPhone = String(refs.phoneInp.value || '').trim();
+                if (!newPhone) {
+                    toast('请输入手机号码');
+                    refs.phoneInp.focus();
+                    return null;
+                }
+                if (!/^1\d{10}$/.test(newPhone)) {
+                    toast('请输入正确的 11 位手机号');
+                    refs.phoneInp.focus();
+                    return null;
+                }
+                var code = String(refs.verifyInp.value || '').trim();
+                if (!code) {
+                    toast('请输入验证码');
+                    refs.verifyInp.focus();
+                    return null;
+                }
+                if (code !== STORE_PHONE_DEMO_CODE) {
+                    toast('验证码错误或已过期');
+                    refs.verifyInp.focus();
+                    return null;
+                }
+                var masked = newPhone.slice(0, 3) + '****' + newPhone.slice(7);
+                var otherStore = '';
+                var tbody = tr.parentNode;
+                if (tbody) {
+                    Array.prototype.forEach.call(tbody.querySelectorAll('tr'), function (row) {
+                        if (row === tr || otherStore) return;
+                        var tds = row.querySelectorAll('td');
+                        if (tds[7] && cellPlainText(tds[7]) === masked) otherStore = cellPlainText(tds[2]);
+                    });
+                }
+                return { changed: true, masked: masked, otherStore: otherStore };
+            }
+            var phoneCheck = null;
+            attachWideModal(
+                '编辑门店',
+                bundle.body,
+                function () {
+                    if (!phoneCheck || !phoneCheck.changed) {
+                        applyEdit();
+                        return;
+                    }
+                    var pc = phoneCheck;
+                    var msg =
+                        '确认将本门店的登录手机号由 ' + (refs.originalPhone || '—') + ' 更换为 ' + pc.masked +
+                        '？更换后原手机号不能再登录管理本门店。';
+                    if (pc.otherStore) {
+                        msg += '\n该手机号已是门店【' + pc.otherStore + '】的登录手机号，保存后可同时管理这两家门店。';
+                    }
+                    showStorePhoneConfirm(msg, function () {
+                        if (cells[7]) cells[7].textContent = pc.masked;
+                        applyEdit();
+                        removeArchiveFormModals();
+                        if (typeof showToast === 'function') showToast('已保存，本门店登录手机号已更换为 ' + pc.masked, 'success');
+                    });
+                    return false;
+                },
+                function () {
+                    phoneCheck = checkPhoneChange();
+                    return phoneCheck !== null;
+                }
+            );
+>>>>>>> dd6e16c (fix: 【857】门店改手机号的校验与二次确认在原型中补齐)
         },
         openSupplierAdd: function () {
             var bundle = createSupplierFormBundle({ includeInboundWarehouse: true });
