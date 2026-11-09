@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/lf-settle-freight.css">
+    <link rel="stylesheet" href="../css/mdm-oplog-drawer.css">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -69,6 +70,7 @@
                     <div class="sf-toolbar">
                         <div class="sf-toolbar__left">
                             <button type="button" class="sf-btn sf-btn--primary" id="sfAddBtn">+ 新增</button>
+                            <button type="button" class="sf-btn sf-btn--default" data-oplog-scene="shippingFee">操作日志</button>
                             <button type="button" class="sf-btn sf-btn--danger" id="sfDeleteBtn" disabled>
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 7h14"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 14h10l1-14"/><path d="M9 7V5h6v2"/></svg>
                                 删除
@@ -121,5 +123,7 @@
 
     <script src="../js/common.js"></script>
     <script src="../js/mdm-settle-freight-config.js"></script>
+    <script src="../js/mdm-oplog-dict.js"></script>
+    <script src="../js/mdm-oplog-drawer.js"></script>
 </body>
 </html>

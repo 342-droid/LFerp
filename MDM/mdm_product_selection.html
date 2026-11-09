@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/lf-product.css?v=20260923-spec-client-sort">
     <link rel="stylesheet" href="../css/lf-product-selection-tag.css?v=20260902-tag">
+    <link rel="stylesheet" href="../css/mdm-oplog-drawer.css">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -69,6 +70,7 @@
                                     <option value="stopped">已停售</option>
                                 </select>
                                 <button type="button" class="product-toolbar__ghost" id="productTagManageBtn">标签管理</button>
+                                <button type="button" class="product-toolbar__ghost" data-oplog-scene="product">操作日志</button>
                                 <button type="button" class="product-toolbar__add" id="productAddBtn">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
                                     添加商品
@@ -232,5 +234,7 @@
     <script src="../js/mdm-product-add-drawer.js?v=20260923-spec-client-help"></script>
     <script src="../js/mdm-product-selection.js?v=20260905-sellable"></script>
     <script src="../js/mdm-product-selection-tag.js?v=20260905-domain-owned-tag"></script>
+    <script src="../js/mdm-oplog-dict.js"></script>
+    <script src="../js/mdm-oplog-drawer.js"></script>
 </body>
 </html>

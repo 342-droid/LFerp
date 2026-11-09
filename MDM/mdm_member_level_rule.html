@@ -167,6 +167,7 @@
             cursor: not-allowed;
         }
     </style>
+    <link rel="stylesheet" href="../css/mdm-oplog-drawer.css">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -377,6 +378,7 @@
                 </div>
 
                 <div class="member-level-rule-actions">
+                    <button type="button" class="btn btn-secondary" data-oplog-scene="growthPolicy">操作日志</button>
                     <button type="button" class="btn btn-secondary" id="btnRuleReset">重置</button>
                     <button type="button" class="btn btn-primary" id="btnRuleSave">保存配置</button>
                 </div>
@@ -385,5 +387,7 @@
     </div>
     <script src="../js/common.js"></script>
     <script src="../js/mdm-member-level-rule.js"></script>
+    <script src="../js/mdm-oplog-dict.js"></script>
+    <script src="../js/mdm-oplog-drawer.js"></script>
 </body>
 </html>

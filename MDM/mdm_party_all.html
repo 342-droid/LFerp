@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/mdm-party-all.css">
+    <link rel="stylesheet" href="../css/mdm-oplog-drawer.css">
 </head>
 <body class="mdm-party-all-page">
     <div id="sidebar-container"></div>
@@ -50,6 +51,7 @@
                 <button type="button" class="pa-btn pa-btn--primary" id="mdmAddStoreMerchantBtn">+ 新增门店商家</button>
                 <button type="button" class="pa-btn pa-btn--primary" id="mdmAddSupMerchantBtn">+ 新增供应商商家</button>
                 <button type="button" class="pa-btn pa-btn--primary" id="mdmAddWhMerchantBtn">+ 新增仓库商家</button>
+                <button type="button" class="pa-btn pa-btn--ghost" data-oplog-scene="merchantSubject">操作日志</button>
             </div>
             <section class="table-section">
                 <div class="table-scroll-container">
@@ -98,5 +100,7 @@
         MdmSubjectLf.initUnified();
     });
     </script>
+    <script src="../js/mdm-oplog-dict.js"></script>
+    <script src="../js/mdm-oplog-drawer.js"></script>
 </body>
 </html>

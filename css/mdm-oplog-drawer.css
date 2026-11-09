@@ -1,0 +1,72 @@
+/* 操作日志（共用）：还原 UAT 通用业务日志抽屉、详情弹窗与门店详情日志页签 */
+.mol-mask { position: fixed; inset: 0; background: rgba(0, 0, 0, .45); z-index: 3000; }
+.mol-mask--top { z-index: 3010; }
+.mol-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 70%; max-width: 100vw; background: #fff; z-index: 3001; display: flex; flex-direction: column; box-shadow: -4px 0 16px rgba(0, 0, 0, .12); color: #303133; font-size: 14px; }
+.mol-drawer__head { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; }
+.mol-drawer__title { font-size: 16px; font-weight: 600; }
+.mol-close { border: none; background: none; font-size: 20px; line-height: 1; color: #909399; cursor: pointer; }
+.mol-close:hover { color: #ff7019; }
+.mol-drawer__body { flex: 1; overflow: auto; padding: 4px 20px 20px; }
+
+.mol-filter { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+.mol-select, .mol-input { height: 32px; min-width: 180px; padding: 0 10px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 13px; color: #303133; background: #fff; box-sizing: border-box; }
+.mol-select:focus, .mol-input:focus { outline: none; border-color: #ff7019; }
+.mol-input--date { min-width: 150px; }
+.mol-btn { height: 32px; padding: 0 15px; border: 1px solid #dcdfe6; border-radius: 4px; background: #fff; color: #606266; font-size: 13px; cursor: pointer; }
+.mol-btn:hover { color: #ff7019; border-color: #ffc59e; background: #fff7f0; }
+.mol-btn--primary { background: #ff7019; border-color: #ff7019; color: #fff; }
+.mol-btn--primary:hover { background: #ff8a40; border-color: #ff8a40; color: #fff; }
+.mol-link { border: none; background: none; padding: 0; color: #ff7019; font-size: 13px; cursor: pointer; }
+.mol-link:hover { text-decoration: underline; }
+
+.mol-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.mol-table th { background: #f5f7fa; color: #606266; font-weight: 600; text-align: left; padding: 9px 10px; border-bottom: 1px solid #ebeef5; white-space: nowrap; }
+.mol-table td { padding: 9px 10px; border-bottom: 1px solid #ebeef5; vertical-align: top; }
+.mol-table tr:hover td { background: #fafafa; }
+.mol-table .is-center { text-align: center; }
+.mol-table--bordered th, .mol-table--bordered td { border: 1px solid #ebeef5; }
+.mol-sub { display: block; color: #909399; font-size: 12px; margin-top: 2px; word-break: break-all; }
+.mol-method { font-family: Menlo, Consolas, monospace; font-size: 12px; color: #606266; word-break: break-all; }
+.mol-empty { text-align: center; color: #909399; padding: 32px 0; }
+
+.mol-tag { display: inline-block; height: 22px; line-height: 20px; padding: 0 8px; border: 1px solid; border-radius: 4px; font-size: 12px; white-space: nowrap; }
+.mol-tag--success { color: #67c23a; background: #f0f9eb; border-color: #e1f3d8; }
+.mol-tag--danger { color: #f56c6c; background: #fef0f0; border-color: #fde2e2; }
+
+.mol-pager { display: flex; justify-content: flex-end; align-items: center; gap: 6px; margin-top: 14px; font-size: 13px; color: #606266; }
+.mol-pager button { min-width: 30px; height: 28px; padding: 0 6px; border: none; border-radius: 3px; background: #f4f4f5; color: #606266; font-size: 13px; cursor: pointer; }
+.mol-pager button.is-active { background: #ff7019; color: #fff; }
+.mol-pager button:disabled { color: #c0c4cc; cursor: not-allowed; }
+
+.mol-dialog { position: fixed; top: 6vh; left: 50%; transform: translateX(-50%); width: 760px; max-width: calc(100vw - 32px); max-height: 88vh; background: #fff; border-radius: 6px; z-index: 3011; display: flex; flex-direction: column; box-shadow: 0 8px 24px rgba(0, 0, 0, .2); color: #303133; font-size: 14px; }
+.mol-dialog__head { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px 10px; font-size: 16px; font-weight: 600; }
+.mol-dialog__body { padding: 6px 20px 10px; overflow: auto; }
+.mol-dialog__foot { padding: 10px 20px 16px; text-align: right; }
+.mol-detail-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.mol-detail-head strong { font-size: 15px; }
+.mol-detail-head small { color: #909399; font-size: 12px; }
+.mol-desc { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 14px; }
+.mol-desc th, .mol-desc td { border: 1px solid #ebeef5; padding: 8px 10px; text-align: left; word-break: break-all; }
+.mol-desc th { width: 110px; background: #fafafa; color: #606266; font-weight: 500; white-space: nowrap; }
+.mol-section-title { margin: 12px 0 8px; font-weight: 600; }
+.mol-section-title span { color: #909399; font-weight: 400; font-size: 13px; }
+.mol-group-title { margin: 6px 0; color: #606266; font-size: 13px; }
+.mol-before { color: #f56c6c; }
+.mol-after { color: #67c23a; }
+.mol-alert { margin: 12px 0; padding: 8px 12px; border-radius: 4px; background: #fef0f0; color: #f56c6c; font-size: 13px; }
+.mol-collapse { margin-top: 14px; border-top: 1px solid #ebeef5; border-bottom: 1px solid #ebeef5; }
+.mol-collapse summary { padding: 10px 0; cursor: pointer; font-weight: 500; list-style: none; }
+.mol-collapse summary::-webkit-details-marker { display: none; }
+.mol-collapse summary::after { content: '›'; float: right; color: #909399; transition: transform .2s; }
+.mol-collapse[open] summary::after { transform: rotate(90deg); }
+.mol-pre { margin: 8px 0 12px; padding: 10px 12px; border-radius: 4px; background: #f5f7fa; font: 12px/1.6 Menlo, Consolas, monospace; white-space: pre-wrap; word-break: break-all; color: #303133; }
+
+/* 门店详情「操作日志」页签 */
+.mol-tab { padding: 4px 0; }
+
+/* 页面入口按钮（用于没有现成按钮样式的页面） */
+.mol-entry-btn { height: 32px; padding: 0 15px; border: 1px solid #dcdfe6; border-radius: 4px; background: #fff; color: #606266; font-size: 13px; cursor: pointer; }
+.mol-entry-btn:hover { color: #ff7019; border-color: #ffc59e; background: #fff7f0; }
+.mol-entry-bar { display: flex; justify-content: flex-end; margin: 10px 0; }
+
+@media (max-width: 900px) { .mol-drawer { width: 100vw; } }

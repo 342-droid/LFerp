@@ -589,6 +589,7 @@
       '<a href="' + escapeHtml(detailHref) + '">详情</a>' +
       (canEdit ? '<a href="' + escapeHtml(editHref) + '">编辑</a>' : '') +
       '<button type="button" data-act="promo">推广海报</button>' +
+      '<button type="button" data-oplog-scene="liveSession" data-oplog-id="' + escapeHtml(s.id) + '" data-oplog-name="' + escapeHtml(s.name || '') + '">操作日志</button>' +
       (s.status === 'upcoming'
         ? '<button type="button" class="is-danger" data-act="delete">删除</button>'
         : '');
