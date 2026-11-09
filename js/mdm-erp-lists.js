@@ -1391,13 +1391,9 @@
                     DEFAULT_STORE_TIP.replace(/"/g, '&quot;') +
                     '">设为系统默认门店</a> ';
             }
+            /* 【689】门店档案暂不支持禁用：仅保留已禁用门店的「启用」 */
             if (isStoreDisabledStatus(meta.storeStatus)) {
                 html += '<a href="#" class="mdm-store-disable">启用</a>';
-            } else if (isDefault) {
-                html +=
-                    '<a href="#" class="mdm-store-disable is-locked" title="系统默认门店不允许禁用">禁用</a>';
-            } else {
-                html += '<a href="#" class="mdm-store-disable">禁用</a>';
             }
             actionTd.innerHTML = html.replace(/\s+$/, '');
         });
@@ -1899,7 +1895,23 @@
         }, 0);
     }
 
+    /* 【689】仓库档案暂不支持停用：隐藏「停用」，已停用的仓库仍可「启用」 */
+    function hideWarehouseDisableLinks() {
+        var tbody = document.getElementById('tableBody');
+        if (!tbody) return;
+        function sweep() {
+            tbody.querySelectorAll('.mdm-disable-toggle').forEach(function (a) {
+                var hide = a.textContent.trim() === '停用';
+                a.hidden = hide;
+                a.style.display = hide ? 'none' : '';
+            });
+        }
+        sweep();
+        new MutationObserver(sweep).observe(tbody, { childList: true, subtree: true, characterData: true });
+    }
+
     function initArchiveWarehouse() {
+        setTimeout(hideWarehouseDisableLinks, 0);
         var fields = [
             { id: 'whCode', label: '仓库编号', type: 'text', editDisabled: true },
             { id: 'subjectName', label: '主体名称', type: 'text', editDisabled: true },

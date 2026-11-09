@@ -230,6 +230,17 @@
         "MDM/mdm_product_mall.html",
         "MDM/mdm_product_proxy_list.html"
       ]
+    },
+    {
+      "id": "689-主体编辑操作日志",
+      "title": "【689】主体编辑操作日志，需要详细记录，如张三将门店简称从冷丰杭州总店变更为杭州总店",
+      "file": "689-主体编辑操作日志.md",
+      "pages": [
+        "MDM/mdm_archive_store.html",
+        "MDM/mdm_archive_warehouse.html",
+        "MDM/mdm_archive_supplier.html",
+        "MDM/mdm_party_all.html"
+      ]
     }
   ]
 }
