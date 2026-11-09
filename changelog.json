@@ -1,10 +1,156 @@
 {
-  "latestSha": "86ded1534d8abf888dc4ab0f0571e89c5d33a76f",
-  "total": 503,
+  "latestSha": "4e416f39a75f15861de670cc39ea760e734c806c",
+  "total": 504,
   "days": [
     {
       "date": "2026-11-09",
       "items": [
+        {
+          "sha": "4e416f3",
+          "type": "feat",
+          "text": "合同签署改为一份法大大模板一条任务",
+          "author": "sisi",
+          "time": "14:39",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_bd_stores.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 门店模块"
+            },
+            {
+              "file": "SCM/basic_settings_contract_config.html",
+              "module": "冷丰WMS",
+              "title": "接入配置"
+            },
+            {
+              "file": "SCM/basic_settings_contract_party.html",
+              "module": "冷丰WMS",
+              "title": "签署主体"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task.html",
+              "module": "冷丰WMS",
+              "title": "签署任务"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_detail.html",
+              "module": "冷丰WMS",
+              "title": "签署任务详情"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template.html",
+              "module": "冷丰WMS",
+              "title": "合同模板"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template_form.html",
+              "module": "冷丰WMS",
+              "title": "合同模板配置"
+            },
+            {
+              "file": "SCM/contract_sign.html",
+              "module": "",
+              "title": "合同"
+            },
+            {
+              "file": "shop-h5/h5/store/contracts.html",
+              "module": "",
+              "title": "签署合同 · Shop H5"
+            },
+            {
+              "file": "store-app/h5/contract-sign.html",
+              "module": "",
+              "title": "签署合同 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/contracts.html",
+              "module": "",
+              "title": "合同签署 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "丰银宝 · 工作台"
+            }
+          ],
+          "notes": [
+            {
+              "file": "SCM/basic_settings_contract_template.html",
+              "text": "一份签署模板可含多份文档，加盟店与联营直营分开；模板正文只查阅"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template_form.html",
+              "text": "文档、参与方和签署顺序改为只读，适用门店类型仍可改"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "text": "一次只选一份模板，未授权主体提交后直接进入签署中"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task.html",
+              "text": "去掉待对方授权；已逾期只能延期；已完成可发起作废；复制的是一年短链"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_detail.html",
+              "text": "平台方显示待自动签或自动签失败；可申请证据报告；查看合同打开法大大预览"
+            },
+            {
+              "file": "SCM/basic_settings_contract_party.html",
+              "text": "未授权也能发起，解除授权不影响已经发出的任务"
+            },
+            {
+              "file": "SCM/basic_settings_contract_config.html",
+              "text": "增加自动签场景码和印章选择，并写明白名单与回调要求"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "text": "审核通过后按一份签署模板生成一条任务"
+            },
+            {
+              "file": null,
+              "text": "BD 门店模块: 终审通过后按门店类型带出对应的一份签署模板"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "text": "再次确认发放补充协议时，撤销旧的法大大任务并按新快照重建"
+            },
+            {
+              "file": "store-app/h5/contracts.html",
+              "text": "去签署改为打开法大大嵌入链接，已签后查看走预览"
+            },
+            {
+              "file": "store-app/h5/contract-sign.html",
+              "text": "打开合同改为法大大嵌入链接"
+            },
+            {
+              "file": "store-app/h5/home.html",
+              "text": "待签提醒只看还在签署中的合同"
+            },
+            {
+              "file": "shop-h5/h5/store/contracts.html",
+              "text": "去签署改为打开法大大嵌入链接"
+            },
+            {
+              "file": "SCM/contract_sign.html",
+              "text": "带签署任务打开时进入法大大短链"
+            }
+          ]
+        },
         {
           "sha": "86ded15",
           "type": "feat",
