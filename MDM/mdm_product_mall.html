@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
     <link rel="stylesheet" href="../css/lf-product.css?v=20260913-stock-fix3">
+    <link rel="stylesheet" href="../css/mdm-product-sales.css?v=759-r6">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -79,7 +80,7 @@
                             <button type="button" class="product-toolbar__add" id="mallAddFromLibrary">从商品库添加</button>
                         </div>
                         <div class="product-table-wrap">
-                            <table class="product-table product-proxy-table">
+                            <p class="product-sales-note">原型示例数据 · 点击销量查看成交及退款明细</p><table class="product-table product-proxy-table">
                                 <colgroup>
                                     <col class="product-proxy-table__col product-proxy-table__col--name">
                                     <col class="product-proxy-table__col product-proxy-table__col--code">
@@ -105,7 +106,7 @@
                                         <th class="product-proxy-table__th product-proxy-table__th--spec">规格</th>
                                         <th class="product-proxy-table__th product-proxy-table__th--sale">售价</th>
                                         <th class="product-proxy-table__th product-proxy-table__th--line">划线价</th>
-                                        <th class="product-proxy-table__th product-proxy-table__th--sales">销量</th>
+                                        <th class="product-proxy-table__th product-proxy-table__th--sales">销量 <button type="button" class="product-sales-help" aria-label="查看销量统计说明" aria-expanded="false" aria-controls="productSalesHelp">ⓘ</button></th>
                                         <th class="product-proxy-table__th product-proxy-table__th--fulfillment">履约方式</th>
                                         <th class="product-proxy-table__th product-proxy-table__th--sale-time">可售时间</th>
                                         <th class="product-proxy-table__th product-proxy-table__th--status">状态</th>
@@ -148,8 +149,10 @@
     <script src="../js/mdm-product-proxy-store-picker.js"></script>
     <script src="../js/mdm-sku-wh-stock.js?v=20260913-wh-spot-hide"></script>
     <script src="../js/mdm-order-free-ship-store.js?v=20260920-proxy-express"></script>
-    <script src="../js/mdm-product-proxy-form.js?v=20260916-fs-channel"></script>
+    <script src="../js/mdm-product-proxy-form.js?v=759-r4"></script>
     <script src="../js/mdm-product-proxy-library-drawer.js?v=20260911-lib-checkall"></script>
-    <script src="../js/mdm-product-mall-list.js?v=20260915-ship-config"></script>
+    <script src="../js/mdm-product-sales.js?v=759-r6"></script>
+    <script src="../js/mdm-product-mall-list.js?v=759-r5"></script>
+    <div id="productSalesHelp" class="product-sales-help-panel" role="tooltip" hidden>销量为当前渠道商品的累计净成交数量：支付成功商品数量减去退款成功商品数量。未支付、交易失败不计入；仅退运费或差价不扣减。点击销量数字查看明细。</div>
 </body>
 </html>

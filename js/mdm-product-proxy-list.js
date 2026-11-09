@@ -881,6 +881,7 @@
   }
 
   function renderTable() {
+    saveListState();
     var tbody = document.getElementById('proxyListTableBody');
     var emptyEl = document.getElementById('proxyListEmpty');
     if (!tbody) return;
@@ -911,7 +912,7 @@
             '<td class="product-proxy-table__td product-proxy-table__td--spec">' + item.spec + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--sale">' + renderSalePrice(item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--line">' + renderLinePrice(item) + '</td>' +
-            '<td class="product-proxy-table__td product-proxy-table__td--sales">' + item.sales + '</td>' +
+            '<td class="product-proxy-table__td product-proxy-table__td--sales">' + window.ProductSales.render('proxy', item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--fulfillment">' + renderDeliveryMode(item) + '</td>' +
             renderSaleTimeCell(item) +
             '<td class="product-proxy-table__td product-proxy-table__td--status">' + renderStatus(item.status) + '</td>' +
@@ -979,6 +980,44 @@
     readFiltersFromForm();
     applyFilters();
     renderTable();
+  }
+
+  /* 【759】列表筛选与页码保持：查看销量明细、进入编辑或刷新后回到列表，保留已查询的筛选条件、页码和每页条数（当前标签页内有效） */
+  var LIST_STATE_KEY = 'lferp:mdm-product-list:proxy';
+  var LIST_FILTER_FIELDS = { code: 'qProxyCode', name: 'qProxyName', mallCategory: 'qProxyMallCategory', tag: 'qProxyTag', status: 'qProxyStatus', deliveryMode: 'qProxyDelivery' };
+
+  function saveListState() {
+    try {
+      sessionStorage.setItem(LIST_STATE_KEY, JSON.stringify({
+        filters: state.filters,
+        page: state.page,
+        pageSize: state.pageSize
+      }));
+    } catch (e) {}
+  }
+
+  function restoreListState() {
+    var saved = null;
+    try {
+      saved = JSON.parse(sessionStorage.getItem(LIST_STATE_KEY) || 'null');
+    } catch (e) {}
+    if (!saved || typeof saved !== 'object') return false;
+    var filters = saved.filters || {};
+    Object.keys(LIST_FILTER_FIELDS).forEach(function (key) {
+      var value = filters[key] == null ? '' : String(filters[key]);
+      var el = document.getElementById(LIST_FILTER_FIELDS[key]);
+      if (el && el.tagName === 'SELECT' && value && !Array.prototype.some.call(el.options, function (opt) { return opt.value === value; })) value = '';
+      if (el) el.value = value;
+      state.filters[key] = value;
+    });
+    var size = parseInt(saved.pageSize, 10);
+    if ([20, 50, 100].indexOf(size) >= 0) {
+      state.pageSize = size;
+      var sizeEl = document.getElementById('proxyPageSize');
+      if (sizeEl) sizeEl.value = String(size);
+    }
+    state.page = parseInt(saved.page, 10) || 1;
+    return true;
   }
 
   function closeAllMoreMenus() {
@@ -1130,6 +1169,7 @@
     loadProducts();
     state.filtered = ALL_PRODUCTS.slice();
     populateCategoryFilter();
+    if (restoreListState()) applyFilters();
     bindEvents();
     renderTable();
   }

@@ -221,6 +221,15 @@
         "user-app/h5/order-edit-address.html",
         "user-app/h5/switch-address.html"
       ]
+    },
+    {
+      "id": "759-商品销量",
+      "title": "【759】商品销量",
+      "file": "759-商品销量.md",
+      "pages": [
+        "MDM/mdm_product_mall.html",
+        "MDM/mdm_product_proxy_list.html"
+      ]
     }
   ]
 }
