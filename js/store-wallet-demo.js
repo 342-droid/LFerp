@@ -13,8 +13,8 @@
  */
 (function (global) {
   var STORAGE_KEY = 'lf_store_wallet_demo_v27';
-  /* 演示商户（供应商简称）：收入·佣金结算的支付方式 / 支出·佣金回退的账户 */
-  var DEMO_MERCHANT_SHORT = '优鲜供应链';
+  /* 演示商户（供应商全称，展示时经档案取别名）：收入·佣金结算 / 支出·佣金回退 */
+  var DEMO_MERCHANT_SHORT = '冷丰优选供应链';
   /* 零售：售后/责任类扣款（余额账户付款）/ 佣金回退 —— 不扣货款，扣余额剩余层 */
   var NON_GOODS_BALANCE_EXPENSE = {
     售后赔付: true,
