@@ -131,7 +131,6 @@
         '    <span class="proxy-store-picker__store-name">' + escapeHtml(store.name) + '</span>' +
         '    <span class="proxy-store-picker__store-address">' + escapeHtml(store.address) + '</span>' +
         '  </span>' +
-        '  <span class="proxy-store-picker__store-customers">' + store.customerCount + ' 个客户</span>' +
         '</label>'
       );
     }).join('');

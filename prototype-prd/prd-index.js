@@ -197,12 +197,6 @@ window.__PG_PRD_INDEX = {
       "pages": [
         "MDM/mdm_product_mall.html",
         "MDM/mdm_product_proxy_list.html",
-        "MDM/mdm_marketing_points_mall.html",
-        "MDM/mdm_marketing_points_mall_form.html",
-        "MDM/mdm_marketing_newcomer_zone.html",
-        "MDM/mdm_marketing_newcomer_zone_form.html",
-        "MDM/mdm_marketing_seckill.html",
-        "MDM/mdm_marketing_seckill_form.html",
         "MDM/mdm_member_points_cash.html",
         "MDM/mdm_member_points_cash_form.html",
         "MDM/mdm_member_points_consume.html",

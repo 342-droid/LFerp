@@ -3875,13 +3875,6 @@ body.product-add-drawer-open {
   line-height: 1.4;
 }
 
-.proxy-store-picker__store-customers {
-  flex-shrink: 0;
-  font-size: 13px;
-  color: var(--color-primary, #ff7019);
-  white-space: nowrap;
-}
-
 .proxy-store-picker__empty {
   padding: 40px 16px;
   text-align: center;
