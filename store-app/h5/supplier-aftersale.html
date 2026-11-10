@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>售后管理 · 丰银宝</title>
+  <link rel="stylesheet" href="../css/store-app.css?v=20261105-org-shell">
+  <link rel="stylesheet" href="../css/store-app-supplier.css?v=20261107-sup-as">
+  <link rel="stylesheet" href="../css/store-app-supplier-aftersale.css?v=20261107-as-ui">
+</head>
+<body class="store-app-body">
+  <div class="sa-shell sa-sup-shell">
+    <div class="sa-sup sa-as-page">
+      <header class="sa-sup-nav">
+        <a href="home.html" class="sa-sup-nav__back" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <h1 class="sa-sup-nav__title">售后管理</h1>
+      </header>
+      <div class="sa-sup-tabs" role="tablist" id="saSupAsTabs">
+        <button type="button" class="sa-sup-tabs__btn is-active" data-tab="ticket">售后单</button>
+        <button type="button" class="sa-sup-tabs__btn" data-tab="refund">退款单</button>
+      </div>
+      <div class="sa-sup-body">
+        <div class="sa-as-filter" id="saSupAsFilter" aria-label="售后筛选"></div>
+        <div class="sa-as-list" id="saSupAsList"></div>
+      </div>
+    </div>
+  </div>
+  <script src="../js/store-app-org.js?v=20261105-org-shell"></script>
+  <script src="../js/store-app-supplier-filters.js?v=20261105-dual"></script>
+  <script src="../js/store-app-supplier-aftersale-data.js?v=20261107-as-ui"></script>
+  <script src="../js/store-app-supplier-aftersale.js?v=20261107-as-detail"></script>
+</body>
+</html>

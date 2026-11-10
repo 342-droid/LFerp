@@ -377,7 +377,7 @@
 
         var hoursEl = document.getElementById('uaDefaultPickupBizHours');
         if (hoursEl && window.UaSwitchAddress && typeof window.UaSwitchAddress.getStoreBizMeta === 'function') {
-          var storeId = (store && store.id) || (ctx && ctx.storeId) || 'ONS-CENTER-01';
+          var storeId = (store && store.id) || (ctx && ctx.storeId) || 'HGH00002';
           var biz = window.UaSwitchAddress.getStoreBizMeta(storeId);
           hoursEl.textContent = biz.hoursText;
           hoursEl.hidden = false;

@@ -1,4 +1,4 @@
-/* 门店 APP — 工作台首页 */
+/* 丰银宝 — 工作台首页 */
 :root {
   --sa-orange: #ff8a1a;
   --sa-orange-deep: #ff6a00;
@@ -64,6 +64,34 @@
   margin-bottom: 22px;
 }
 
+.sa-org-switch {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+
+.sa-org-switch__caret {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: #999;
+  display: inline-flex;
+  margin-left: -2px;
+}
+
+.sa-org-switch__caret svg {
+  width: 18px;
+  height: 18px;
+}
+
 .sa-avatar {
   width: 44px;
   height: 44px;
@@ -81,6 +109,8 @@
 .sa-header-text {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .sa-store-name {
@@ -92,6 +122,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  display: block;
 }
 
 .sa-header-role {
@@ -99,10 +130,205 @@
   font-size: 12px;
   color: #888;
   font-weight: 500;
+  display: block;
 }
 
 .sa-header-role[hidden] {
   display: none;
+}
+
+.sa-header.is-store-disabled .sa-avatar {
+  filter: grayscale(1);
+  opacity: 0.75;
+}
+
+.sa-header.is-store-disabled .sa-store-name {
+  color: #8c8c8c;
+}
+
+.sa-store-disabled-tag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #fff1f0;
+  border: 1px solid #ffa39e;
+  color: #cf1322;
+  font-size: 11px;
+  font-weight: 600;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.sa-store-disabled-banner {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fff2f0;
+  border: 1px solid #ffccc7;
+  color: #a8071a;
+  font-size: 12px;
+  line-height: 1.55;
+  font-weight: 500;
+}
+
+.sa-home.is-store-disabled #saStoreWorkspace .sa-quick,
+.sa-home.is-store-disabled #saStoreWorkspace .sa-card {
+  opacity: 0.72;
+}
+
+.sa-fyb-tip {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  background: #fff7f0;
+  border: 1px solid #ffe0c2;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #555;
+  line-height: 1.6;
+}
+
+.sa-fyb-tip strong {
+  color: #ff7019;
+  font-weight: 600;
+}
+
+/* 组织切换底部面板：与 .sa-shell 同宽，不铺满浏览器视口 */
+.fyb-org-mask {
+  position: absolute;
+  inset: 0;
+  z-index: 5000;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: flex-end;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  border-radius: inherit;
+  overflow: hidden;
+}
+
+.fyb-org-mask.is-open {
+  opacity: 1;
+}
+
+.fyb-org-sheet {
+  width: 100%;
+  max-height: 78vh;
+  background: #fff;
+  border-radius: 16px 16px 0 0;
+  padding: 8px 0 calc(12px + env(safe-area-inset-bottom, 0px));
+  transform: translateY(12px);
+  transition: transform 0.2s ease;
+}
+
+.fyb-org-mask.is-open .fyb-org-sheet {
+  transform: translateY(0);
+}
+
+.fyb-org-sheet__handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: #ddd;
+  margin: 4px auto 10px;
+}
+
+.fyb-org-sheet__title {
+  margin: 0;
+  padding: 0 20px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.fyb-org-sheet__tip {
+  margin: 6px 0 10px;
+  padding: 0 20px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.5;
+}
+
+.fyb-org-sheet__list {
+  list-style: none;
+  margin: 0;
+  padding: 0 12px;
+  max-height: 48vh;
+  overflow: auto;
+}
+
+.fyb-org-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  background: #f7f8fa;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.fyb-org-item.is-active {
+  background: #fff7f0;
+  box-shadow: inset 0 0 0 1px #ffd7b0;
+}
+
+.fyb-org-item__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #ff9a3d, #ff6a00);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.fyb-org-item__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fyb-org-item__main strong {
+  font-size: 15px;
+  color: #1a1a1a;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fyb-org-item__main em {
+  font-style: normal;
+  font-size: 12px;
+  color: #999;
+}
+
+.fyb-org-item__check {
+  color: #ff7019;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.fyb-org-sheet__cancel {
+  width: calc(100% - 24px);
+  margin: 8px 12px 0;
+  height: 44px;
+  border: 0;
+  border-radius: 12px;
+  background: #f2f3f5;
+  font-size: 15px;
+  color: #333;
+  cursor: pointer;
 }
 
 .sa-settings {

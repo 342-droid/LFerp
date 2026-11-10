@@ -13,11 +13,12 @@
   var SEARCH_EMPTY_HINT = '暂无匹配门店';
   var SCAN_PREFIX = 'lengfeng-store:';
 
+  /* id = 门店档案「门店编码」，与 MDM/mdm_archive_store.html 一一对应 */
   var CATALOG = [
     {
-      id: 'ONS-CENTER-01',
+      id: 'HGH00002',
       name: '中心店01',
-      homeName: '溪世纪中心店01',
+      homeName: '中心店01',
       addr: '杭州市西湖区绿城西溪世纪中心1号楼',
       leader: '店长: 喻巧 153****9562',
       dist: '距您: 0km',
@@ -26,36 +27,54 @@
       fallbackDefault: true
     },
     {
-      id: 'ONS-XIXI-SOUTH',
-      name: '西溪湿地南门店',
-      homeName: '西溪湿地南门店',
-      addr: '杭州市西湖区天目山路旁西溪湿地南门',
-      leader: '店长：王敏 138****2210',
+      id: 'BJS00001',
+      name: '测试通知',
+      homeName: '测试通知',
+      addr: '北京市东城区地下车库',
+      leader: '店长：夏利 178****4646',
       dist: '距您: 1.2km',
       hours: '08:00-22:00',
       avatar: '../assets/shop/review-avatar.svg'
     },
     {
-      id: 'ONS-JIANGCUN',
-      name: '蒋村公交站店',
-      homeName: '蒋村公交站店',
-      addr: '杭州市西湖区余杭塘路蒋村路口',
-      leader: '店长：李强 159****8831',
+      id: 'TSN00001',
+      name: '111',
+      homeName: '111',
+      addr: '天津市河东区长三角珠宝产业园A3栋',
+      leader: '店长：张三 138****2211',
       dist: '距您: 0.8km',
       hours: '08:00-22:00',
       avatar: '../assets/shop/live-avatar.svg'
     },
     {
-      id: 'ONS303445581201',
-      name: '冷丰生鲜超市',
-      homeName: '冷丰生鲜超市',
-      addr: '天津市河东区长三角珠宝产业园A3栋',
-      leader: '店长：张三 138****2211',
+      id: 'SHA00001',
+      name: 'DDD',
+      homeName: 'DDD',
+      addr: '上海市浦东新区张江路88号',
+      leader: '店长：李四 186****9001',
       dist: '距您: 2.0km',
       hours: '08:00-22:00',
       avatar: '../assets/shop/review-avatar.svg'
+    },
+    {
+      id: 'HGH00001',
+      name: '张三',
+      homeName: '张三',
+      addr: '杭州市余杭区文一西路969号',
+      leader: '店长：张三 —',
+      dist: '距您: 3.1km',
+      hours: '08:00-22:00',
+      avatar: '../assets/shop/live-avatar.svg'
     }
   ];
+
+  /* 旧演示 ID → 门店档案编码（兼容历史 localStorage / 链接） */
+  var LEGACY_ID_ALIAS = {
+    'ONS-CENTER-01': 'HGH00002',
+    'ONS-XIXI-SOUTH': 'BJS00001',
+    'ONS-JIANGCUN': 'TSN00001',
+    ONS303445581201: 'SHA00001'
+  };
 
   function $(id) {
     return document.getElementById(id);
@@ -90,11 +109,49 @@
 
   function getCatalogById(id) {
     var sid = String(id || '').trim();
+    if (LEGACY_ID_ALIAS[sid]) sid = LEGACY_ID_ALIAS[sid];
     var i;
     for (i = 0; i < CATALOG.length; i++) {
       if (CATALOG[i].id === sid) return CATALOG[i];
     }
     return null;
+  }
+
+  function readDisabledStoreMap() {
+    if (global.MdmArchiveEnableDisable && typeof global.MdmArchiveEnableDisable.readStoreDisabledMap === 'function') {
+      return global.MdmArchiveEnableDisable.readStoreDisabledMap() || {};
+    }
+    try {
+      var raw = localStorage.getItem('lferp_store_disabled_v1');
+      if (!raw) return {};
+      var data = JSON.parse(raw);
+      return data && typeof data === 'object' ? data : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function isStoreDisabled(store) {
+    if (!store) return false;
+    if (global.MdmArchiveEnableDisable && typeof global.MdmArchiveEnableDisable.isStoreDisabledByMeta === 'function') {
+      return !!global.MdmArchiveEnableDisable.isStoreDisabledByMeta({
+        id: store.id,
+        storeId: store.id,
+        name: store.name
+      });
+    }
+    var map = readDisabledStoreMap();
+    var id = String(store.id || '').trim();
+    var name = String(store.name || '').trim();
+    if (id && map[id] && map[id].disabled) return true;
+    if (name && map[name] && map[name].disabled) return true;
+    return false;
+  }
+
+  function filterEnabledStores(list) {
+    return (list || []).filter(function (s) {
+      return !isStoreDisabled(s);
+    });
   }
 
   function fallbackDefaultStore() {
@@ -176,8 +233,8 @@
     var demo = readDemo();
     var bind = emptyBind();
     var def = getSystemDefaultStore();
-    var south = getCatalogById('ONS-XIXI-SOUTH');
-    var jiang = getCatalogById('ONS-JIANGCUN');
+    var south = getCatalogById('BJS00001'); /* 测试通知 */
+    var jiang = getCatalogById('TSN00001'); /* 111 */
     if (demo.scannedCount === '1') {
       bind.scannedIds = [south.id];
       bind.visitAt[south.id] = Date.now();
@@ -207,37 +264,66 @@
     });
   }
 
+  function pickFirstEnabledStore(candidates, preferredId) {
+    var list = filterEnabledStores(candidates || []);
+    if (!list.length) return null;
+    if (preferredId) {
+      var i;
+      for (i = 0; i < list.length; i++) {
+        if (list[i].id === preferredId) return list[i];
+      }
+    }
+    return list[0];
+  }
+
   function resolveCurrentStore(bind) {
     var def = getSystemDefaultStore();
     var scanned = getNonDefaultScanned(bind);
-    if (scanned.length === 0) return def;
-    if (scanned.length === 1) return getCatalogById(scanned[0]) || def;
-    var latestId = scanned[0];
-    var latestAt = 0;
-    scanned.forEach(function (id) {
-      var at = Number((bind.visitAt && bind.visitAt[id]) || 0);
-      if (at >= latestAt) {
-        latestAt = at;
-        latestId = id;
+    var preferred = null;
+    if (scanned.length === 0) preferred = def;
+    else if (scanned.length === 1) preferred = getCatalogById(scanned[0]) || def;
+    else {
+      var latestId = scanned[0];
+      var latestAt = 0;
+      scanned.forEach(function (id) {
+        var at = Number((bind.visitAt && bind.visitAt[id]) || 0);
+        if (at >= latestAt) {
+          latestAt = at;
+          latestId = id;
+        }
+      });
+      if (bind.currentStoreId && scanned.indexOf(bind.currentStoreId) >= 0) {
+        preferred = getCatalogById(bind.currentStoreId) || getCatalogById(latestId) || def;
+      } else {
+        preferred = getCatalogById(latestId) || def;
       }
-    });
-    if (bind.currentStoreId && scanned.indexOf(bind.currentStoreId) >= 0) {
-      return getCatalogById(bind.currentStoreId) || getCatalogById(latestId) || def;
     }
-    return getCatalogById(latestId) || def;
+    if (preferred && !isStoreDisabled(preferred)) return preferred;
+    var pool = scanned
+      .map(getCatalogById)
+      .filter(Boolean)
+      .concat(def ? [def] : [])
+      .concat(CATALOG);
+    return pickFirstEnabledStore(pool) || preferred;
   }
 
   function resolveSwitchableStores(bind, current) {
     var curId = current && current.id;
-    return getNonDefaultScanned(bind)
-      .filter(function (id) {
-        return id !== curId;
-      })
-      .map(getCatalogById)
-      .filter(Boolean);
+    return filterEnabledStores(
+      getNonDefaultScanned(bind)
+        .filter(function (id) {
+          return id !== curId;
+        })
+        .map(getCatalogById)
+        .filter(Boolean)
+    );
   }
 
   function markVisited(storeId) {
+    var store = getCatalogById(storeId) || (isSystemDefaultId(storeId) ? getSystemDefaultStore() : null);
+    if (store && isStoreDisabled(store)) {
+      return readBind();
+    }
     var bind = readBind();
     var def = getSystemDefaultStore();
     if (storeId && (!def || storeId !== def.id) && bind.scannedIds.indexOf(storeId) < 0) {
@@ -265,8 +351,72 @@
     if (!sid) return false;
     var store = getCatalogById(sid) || (isSystemDefaultId(sid) ? getSystemDefaultStore() : null);
     if (!store) return false;
+    if (isStoreDisabled(store)) return false;
     markVisited(store.id);
     return true;
+  }
+
+  function disabledCopy(store) {
+    if (global.MdmArchiveEnableDisable && typeof global.MdmArchiveEnableDisable.userFacingDisabledCopy === 'function') {
+      return global.MdmArchiveEnableDisable.userFacingDisabledCopy(store && store.name);
+    }
+    var name = (store && store.name) || '该门店';
+    return {
+      title: '门店已暂停服务',
+      scan: '「' + name + '」目前已停用，暂时不能进入。请选择其他门店继续购物。',
+      switch: '「' + name + '」已停用，无法切换到这家店。',
+      current: '您当前所在的「' + name + '」已停用。请先切换到其他门店。'
+    };
+  }
+
+  function showDisabledToast(msg) {
+    var el = $('saToast');
+    if (!el) {
+      if (typeof showToast === 'function') showToast(msg || '该门店已停用，请选择其他门店', 'error');
+      return;
+    }
+    el.textContent = msg || '该门店已停用，请选择其他门店';
+    el.hidden = false;
+    clearTimeout(showDisabledToast._t);
+    showDisabledToast._t = setTimeout(function () {
+      el.hidden = true;
+    }, 2200);
+  }
+
+  function showDisabledNotice(store, kind) {
+    var copy = disabledCopy(store);
+    var message = kind === 'switch' ? copy.switch : copy.scan;
+    if (global.MdmArchiveEnableDisable && typeof global.MdmArchiveEnableDisable.showUserNotice === 'function') {
+      global.MdmArchiveEnableDisable.showUserNotice({
+        storeName: store && store.name,
+        title: copy.title,
+        message: message,
+        primaryText: kind === 'scan' ? '去选其他门店' : '我知道了',
+        secondaryText: kind === 'scan' ? '留在本页' : '',
+        onPrimary: function () {
+          if (kind === 'scan') {
+            global.location.href = 'switch-address.html?from=scan-store.html';
+          }
+        }
+      });
+      return;
+    }
+    showDisabledToast(message);
+  }
+
+  function ensureDisabledCurrentBanner(rawPreferred) {
+    var scroll = $('saScroll');
+    var old = document.getElementById('uaStoreDisabledBanner');
+    if (old) old.remove();
+    if (!rawPreferred || !isStoreDisabled(rawPreferred) || !scroll) return;
+    var ban = document.createElement('div');
+    ban.id = 'uaStoreDisabledBanner';
+    ban.className = 'ua-sa-block';
+    ban.innerHTML =
+      '<div style="margin:0 12px 12px;padding:10px 12px;border-radius:8px;background:#fff2f0;border:1px solid #ffccc7;color:#a8071a;font-size:13px;line-height:1.55">' +
+      escapeHtml(disabledCopy(rawPreferred).current) +
+      '</div>';
+    scroll.insertBefore(ban, scroll.firstChild);
   }
 
   function getBizHours(store) {
@@ -392,22 +542,70 @@
       '<option value="1">1 家</option>' +
       '<option value="2">大于 1 家</option>' +
       '</select></label>' +
+      '<label class="ua-rg-demo__row">模拟停用门店' +
+      '<select id="uaStoreDemoDisabled">' +
+      '<option value="">无</option>' +
+      CATALOG.map(function (s) {
+        return (
+          '<option value="' +
+          escapeHtml(s.id) +
+          '">' +
+          escapeHtml(s.id) +
+          ' · ' +
+          escapeHtml(s.name) +
+          '</option>'
+        );
+      }).join('') +
+      '</select></label>' +
+      '<p class="ua-rg-demo__hint" style="margin:0 0 8px;color:#999;font-size:10px;line-height:1.4">编码与门店档案一致；后台停用同名同编码门店后，此处也会拦截</p>' +
       '<button type="button" class="ua-rg-demo__apply" id="uaStoreDemoApply">应用并刷新</button>';
     document.body.appendChild(panel);
     var userSel = $('uaStoreDemoUser');
     var scanSel = $('uaStoreDemoScan');
+    var disabledSel = $('uaStoreDemoDisabled');
     if (userSel) userSel.value = demo.userMode || 'new';
     if (scanSel) scanSel.value = demo.scannedCount || '0';
+    if (disabledSel) disabledSel.value = demo.disabledStoreId || '';
     var apply = $('uaStoreDemoApply');
     if (apply) {
       apply.addEventListener('click', function () {
+        var disabledId = (disabledSel && disabledSel.value) || '';
         writeDemo({
           userMode: (userSel && userSel.value) || 'new',
-          scannedCount: (scanSel && scanSel.value) || '0'
+          scannedCount: (scanSel && scanSel.value) || '0',
+          disabledStoreId: disabledId
         });
+        applyDemoDisabledStore(disabledId);
         applyDemoToBind();
         global.location.reload();
       });
+    }
+  }
+
+  function applyDemoDisabledStore(disabledId) {
+    try {
+      localStorage.setItem('lferp_store_disabled_v1', JSON.stringify({}));
+    } catch (e) {
+      /* ignore */
+    }
+    if (!disabledId) return;
+    var store = getCatalogById(disabledId);
+    if (!store) return;
+    if (global.MdmArchiveEnableDisable && typeof global.MdmArchiveEnableDisable.setStoreDisabled === 'function') {
+      global.MdmArchiveEnableDisable.setStoreDisabled({
+        id: store.id,
+        name: store.name,
+        disabled: true
+      });
+      return;
+    }
+    var map = {};
+    map[store.id] = { id: store.id, name: store.name, disabled: true };
+    map[store.name] = map[store.id];
+    try {
+      localStorage.setItem('lferp_store_disabled_v1', JSON.stringify(map));
+    } catch (e2) {
+      /* ignore */
     }
   }
 
@@ -474,6 +672,12 @@
 
   function renderSwitchLists(keyword) {
     var bind = readBind();
+    var rawCurrent = null;
+    if (bind.currentStoreId) {
+      rawCurrent =
+        getCatalogById(bind.currentStoreId) ||
+        (isSystemDefaultId(bind.currentStoreId) ? getSystemDefaultStore() : null);
+    }
     var current = resolveCurrentStore(bind);
     var others = resolveSwitchableStores(bind, current);
     var q = String(keyword || '').trim();
@@ -483,8 +687,17 @@
     var curHost = $('saCurrentPickup');
     var otherHost = $('saSwitchablePickup');
     var emptyEl = $('saSwitchableEmpty');
+    ensureDisabledCurrentBanner(rawCurrent);
     if (curHost) {
-      curHost.innerHTML = current ? storeCardHtml(current, { asButton: false }) : '';
+      if (rawCurrent && isStoreDisabled(rawCurrent)) {
+        curHost.innerHTML =
+          storeCardHtml(rawCurrent, { asButton: false }) +
+          '<div style="margin-top:8px;font-size:12px;color:#a8071a;line-height:1.5">' +
+          escapeHtml(disabledCopy(rawCurrent).current) +
+          '</div>';
+      } else {
+        curHost.innerHTML = current ? storeCardHtml(current, { asButton: false }) : '';
+      }
     }
     if (otherHost) {
       otherHost.innerHTML = filtered
@@ -536,6 +749,11 @@
         if (!card) return;
         var id = card.getAttribute('data-select-pickup');
         if (!id) return;
+        var store = getCatalogById(id);
+        if (store && isStoreDisabled(store)) {
+          showDisabledNotice(store, 'switch');
+          return;
+        }
         markVisited(id);
         goHome();
       });
@@ -561,6 +779,10 @@
   function applyScannedStore(storeId, fromPage) {
     var store = getCatalogById(storeId) || (isSystemDefaultId(storeId) ? getSystemDefaultStore() : null);
     if (!store) return false;
+    if (isStoreDisabled(store)) {
+      showDisabledNotice(store, 'scan');
+      return false;
+    }
     markVisited(store.id);
     var from = fromPage || new URLSearchParams(global.location.search || '').get('from') || 'home.html';
     if (String(from).indexOf('switch-address') >= 0) {
@@ -596,7 +818,7 @@
     if (frame) {
       frame.addEventListener('click', function () {
         var sel = $('uaScanDemoStore');
-        var id = (sel && sel.value) || 'ONS-XIXI-SOUTH';
+        var id = (sel && sel.value) || 'BJS00001';
         applyScannedStore(id);
       });
     }
@@ -635,11 +857,11 @@
       '<button type="button" class="ua-rg-demo__apply" id="scanSimulateBtn">模拟扫码并进入</button>';
     document.body.appendChild(panel);
     var sel = $('uaScanDemoStore');
-    if (sel) sel.value = 'ONS-XIXI-SOUTH';
+    if (sel) sel.value = 'BJS00001';
     var simBtn = $('scanSimulateBtn');
     if (simBtn) {
       simBtn.addEventListener('click', function () {
-        applyScannedStore((sel && sel.value) || 'ONS-XIXI-SOUTH');
+        applyScannedStore((sel && sel.value) || 'BJS00001');
       });
     }
   }

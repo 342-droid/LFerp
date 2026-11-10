@@ -176,23 +176,38 @@
         return '';
     }
 
+    function isWarehouseRuntimeDisabled(meta) {
+        if (
+            window.MdmArchiveEnableDisable &&
+            typeof window.MdmArchiveEnableDisable.isWarehouseDisabledByMeta === 'function'
+        ) {
+            return !!window.MdmArchiveEnableDisable.isWarehouseDisabledByMeta(meta);
+        }
+        return false;
+    }
+
     function collectWarehouseOptionsFromRows(rows) {
         var list = [];
         rows.forEach(function (tr) {
             var c = tr.querySelectorAll('td');
             if (c.length < 12) return;
             var code = (c[0].textContent || '').trim();
+            var subject = (c[1].textContent || '').trim();
             var name = (c[2].textContent || '').trim();
             var warehouseType = (c[3].textContent || '').trim();
             var typeLabel = normalizeWarehouseTypeLabel((c[4].textContent || '').trim());
             var st = (c[11].querySelector('.status') || {}).textContent || c[11].textContent || '';
             st = String(st).trim();
             if (!code || !name || !typeLabel || warehouseType !== '仓库') return;
+            var enabled =
+                st === '启用' &&
+                !isWarehouseRuntimeDisabled({ id: code, code: code, name: name, subject: subject });
             list.push({
                 id: code,
+                subject: subject,
                 name: name,
                 typeLabel: typeLabel,
-                enabled: st === '启用'
+                enabled: enabled
             });
         });
         return list;
@@ -219,13 +234,21 @@
                 (one.typeLabel === '网格仓' || one.typeLabel === '中心仓')
             );
         }).map(function (one) {
-            var copied = {
+            var enabled =
+                one.enabled !== false &&
+                !isWarehouseRuntimeDisabled({
+                    id: one.id,
+                    code: one.id,
+                    name: one.name,
+                    subject: one.subject
+                });
+            return {
                 id: one.id,
+                subject: one.subject || '',
                 name: one.name,
                 typeLabel: one.typeLabel,
-                enabled: one.enabled !== false
+                enabled: enabled
             };
-            return copied;
         });
     }
 
@@ -1156,7 +1179,7 @@
             if (qBalance && balanceTxt !== qBalance) ok = false;
             if (qSplit === 'on' && splitTxt !== '开启' && splitTxt !== '已开通') ok = false;
             if (qSplit === 'off' && splitTxt !== '关闭' && splitTxt !== '未开通') ok = false;
-            if (qSt === 'normal' && stTxt !== '正常' && stTxt !== '已启用') ok = false;
+            if (qSt === 'normal' && stTxt !== '正常' && stTxt !== '已启用' && stTxt !== '启用') ok = false;
             if (qSt === 'stopped' && stTxt !== '停用' && stTxt !== '已禁用') ok = false;
             tr.style.display = ok ? '' : 'none';
         });
@@ -1391,11 +1414,11 @@
                     DEFAULT_STORE_TIP.replace(/"/g, '&quot;') +
                     '">设为系统默认门店</a> ';
             }
-            /* 【689】门店档案暂不支持禁用：「禁用」置灰不可点击；历史已禁用门店仍可启用 */
+            /* 门店档案停启用：启用中显示「停用」，停用中显示「启用」 */
             if (isStoreDisabledStatus(meta.storeStatus)) {
                 html += '<a href="#" class="mdm-store-disable">启用</a>';
             } else {
-                html += '<a href="#" class="mdm-store-disable is-disabled" aria-disabled="true" title="暂不支持禁用">禁用</a>';
+                html += '<a href="#" class="mdm-store-disable">停用</a>';
             }
             actionTd.innerHTML = html.replace(/\s+$/, '');
         });
@@ -1437,37 +1460,66 @@
         if (!meta) return;
         var current = readSystemDefaultStore();
         var isDefault = current && current.storeId === meta.storeId;
-        if (!isStoreDisabledStatus(meta.storeStatus) && isDefault) {
-            if (typeof showToast === 'function') showToast('系统默认门店不允许禁用', 'error');
+        var disabledNow = isStoreDisabledStatus(meta.storeStatus);
+        if (!disabledNow && isDefault) {
+            if (typeof showToast === 'function') showToast('系统默认门店不允许停用', 'error');
             return;
         }
-        var next = isStoreDisabledStatus(meta.storeStatus) ? '正常' : '已禁用';
+        var next = disabledNow ? '启用' : '停用';
         var patch = {};
         patch[STORE_COL.status] = {
             value: next,
             isStatus: true,
-            statusClass: next === '正常' ? 'active' : 'inactive'
+            statusClass: next === '启用' || next === '正常' ? 'active' : 'inactive'
         };
-        function apply() {
+        function apply(payload) {
             if (pm && typeof pm.updateTableRow === 'function') {
                 pm.updateTableRow(tr, patch);
             } else {
                 var span = tr.querySelectorAll('td')[STORE_COL.status].querySelector('.status');
                 if (span) {
                     span.textContent = next;
-                    span.className = 'status ' + (next === '正常' ? 'active' : 'inactive');
+                    span.className =
+                        'status ' + (next === '启用' || next === '正常' ? 'active' : 'inactive');
                 }
+            }
+            if (window.MdmArchiveEnableDisable && typeof window.MdmArchiveEnableDisable.setStoreDisabled === 'function') {
+                window.MdmArchiveEnableDisable.setStoreDisabled({
+                    id: meta.storeId,
+                    name: meta.name,
+                    disabled: next === '停用'
+                });
+            }
+            if (payload && payload.reason) {
+                tr.setAttribute('data-last-disable-reason', payload.reason);
             }
             refreshStoreArchiveActions();
             if (typeof showToast === 'function') {
-                showToast(next === '正常' ? '门店已启用' : '门店已禁用', 'success');
+                showToast(next === '启用' ? '门店已启用' : '门店已停用', 'success');
             }
         }
-        if (next === '已禁用' && window.MdmSubjectLf && typeof window.MdmSubjectLf.showLfWarmConfirm === 'function') {
-            window.MdmSubjectLf.showLfWarmConfirm('确定禁用该门店？', apply);
+        if (!window.MdmArchiveEnableDisable || typeof window.MdmArchiveEnableDisable.openDialog !== 'function') {
+            apply({});
             return;
         }
-        apply();
+        if (next === '启用') {
+            window.MdmArchiveEnableDisable.openDialog({
+                mode: 'enable',
+                entityType: 'store',
+                entityName: meta.name,
+                onConfirm: function () {
+                    apply({});
+                }
+            });
+            return;
+        }
+        window.MdmArchiveEnableDisable.openDialog({
+            mode: 'disable',
+            entityType: 'store',
+            entityName: meta.name,
+            precheck: window.MdmArchiveEnableDisable.buildStorePrecheck(tr),
+            onConfirm: apply
+        });
     }
 
     function bindSetDefaultStorePermissionToggle() {
@@ -1497,8 +1549,7 @@
                 required: true,
                 editDisabled: true,
                 options: [
-                    { value: '正常', text: '正常' },
-                    { value: '冻结', text: '冻结' },
+                    { value: '启用', text: '启用' },
                     { value: '停用', text: '停用' }
                 ]
             }
@@ -1898,23 +1949,7 @@
         }, 0);
     }
 
-    /* 【689】仓库档案暂不支持停用：「停用」置灰不可点击，已停用的仓库仍可「启用」 */
-    function hideWarehouseDisableLinks() {
-        var tbody = document.getElementById('tableBody');
-        if (!tbody) return;
-        function sweep() {
-            tbody.querySelectorAll('.mdm-disable-toggle').forEach(function (a) {
-                var off = a.textContent.trim() === '停用';
-                if (a.classList.contains('is-disabled') !== off) a.classList.toggle('is-disabled', off);
-                if (off) { a.setAttribute('aria-disabled', 'true'); a.title = '暂不支持停用'; } else { a.removeAttribute('aria-disabled'); a.removeAttribute('title'); }
-            });
-        }
-        sweep();
-        new MutationObserver(sweep).observe(tbody, { childList: true, subtree: true, characterData: true });
-    }
-
     function initArchiveWarehouse() {
-        setTimeout(hideWarehouseDisableLinks, 0);
         var fields = [
             { id: 'whCode', label: '仓库编号', type: 'text', editDisabled: true },
             { id: 'subjectName', label: '主体名称', type: 'text', editDisabled: true },
@@ -1960,21 +1995,62 @@
                 }
             ],
             onDisableToggle: function (row, status, page) {
-                if (String(status).trim() !== '停用') return; /* 【689】暂不支持停用 */
-                if (String(status).trim() === '停用') {
+                var st = String(status || '').trim();
+                var nameCell = row.querySelectorAll('td')[2];
+                var whName = nameCell ? nameCell.textContent.trim() : '该仓库';
+                var toEnable = st === '停用';
+                function persistWarehouseDisabled(disabled) {
+                    var api = window.MdmArchiveEnableDisable;
+                    if (!api || typeof api.setWarehouseDisabled !== 'function') return;
+                    var cells = row.querySelectorAll('td');
+                    api.setWarehouseDisabled({
+                        id: cells[0] ? cells[0].textContent.trim() : '',
+                        name: cells[2] ? cells[2].textContent.trim() : '',
+                        disabled: !!disabled
+                    });
+                }
+                function applyEnable() {
                     page.updateTableRow(row, { 11: { value: '启用', isStatus: true } });
-                } else if (window.MdmSubjectLf && typeof MdmSubjectLf.showLfWarmConfirm === 'function') {
-                    MdmSubjectLf.showLfWarmConfirm('确定将此仓库设为停用？', function () {
-                        page.updateTableRow(row, { 11: { value: '停用', isStatus: true } });
-                        page.refreshDisableToggleLabel(row);
-                        cacheEnabledWarehouseOptionsFromTable();
+                    page.refreshDisableToggleLabel(row);
+                    persistWarehouseDisabled(false);
+                    cacheEnabledWarehouseOptionsFromTable();
+                    if (typeof showToast === 'function') {
+                        showToast('仓库已启用，仓储侧已同步启用', 'success');
+                    }
+                }
+                function applyDisable(payload) {
+                    page.updateTableRow(row, { 11: { value: '停用', isStatus: true } });
+                    if (payload && payload.reason) {
+                        row.setAttribute('data-last-disable-reason', payload.reason);
+                    }
+                    page.refreshDisableToggleLabel(row);
+                    persistWarehouseDisabled(true);
+                    cacheEnabledWarehouseOptionsFromTable();
+                    if (typeof showToast === 'function') {
+                        showToast('仓库已停用，仓储侧已同步停用', 'success');
+                    }
+                }
+                if (!window.MdmArchiveEnableDisable || typeof window.MdmArchiveEnableDisable.openDialog !== 'function') {
+                    if (toEnable) applyEnable();
+                    else applyDisable({});
+                    return;
+                }
+                if (toEnable) {
+                    window.MdmArchiveEnableDisable.openDialog({
+                        mode: 'enable',
+                        entityType: 'warehouse',
+                        entityName: whName,
+                        onConfirm: applyEnable
                     });
                     return;
-                } else {
-                    page.updateTableRow(row, { 11: { value: '停用', isStatus: true } });
                 }
-                page.refreshDisableToggleLabel(row);
-                cacheEnabledWarehouseOptionsFromTable();
+                window.MdmArchiveEnableDisable.openDialog({
+                    mode: 'disable',
+                    entityType: 'warehouse',
+                    entityName: whName,
+                    precheck: window.MdmArchiveEnableDisable.buildWarehousePrecheck(row),
+                    onConfirm: applyDisable
+                });
             },
             editModal: {
                 modalId: 'mdmArchWhEdit',
@@ -2027,6 +2103,15 @@
             });
         setTimeout(function () {
             pm.decorateAllDetailLinkCells();
+            if (
+                window.MdmArchiveEnableDisable &&
+                typeof window.MdmArchiveEnableDisable.applyWarehouseDisabledToTable === 'function'
+            ) {
+                window.MdmArchiveEnableDisable.applyWarehouseDisabledToTable(
+                    document.getElementById('tableBody'),
+                    { codeCol: 0, nameCol: 2, statusCol: 11, pageManager: pm }
+                );
+            }
             document.querySelectorAll('#tableBody tr').forEach(function (tr) {
                 pm.refreshDisableToggleLabel(tr);
             });
@@ -2039,6 +2124,19 @@
             });
             seedWarehouseReceiveFromArchiveTable();
         }, 0);
+        window.addEventListener('storage', function (e) {
+            if (e.key !== 'lferp_warehouse_disabled_v1') return;
+            if (
+                window.MdmArchiveEnableDisable &&
+                typeof window.MdmArchiveEnableDisable.applyWarehouseDisabledToTable === 'function'
+            ) {
+                window.MdmArchiveEnableDisable.applyWarehouseDisabledToTable(
+                    document.getElementById('tableBody'),
+                    { codeCol: 0, nameCol: 2, statusCol: 11, pageManager: pm }
+                );
+            }
+            cacheEnabledWarehouseOptionsFromTable();
+        });
     }
 
     function initArchiveLiveRoom() {

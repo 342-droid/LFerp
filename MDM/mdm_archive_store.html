@@ -271,8 +271,8 @@
                         <label>门店状态</label>
                         <select id="qStoreStatus" style="height:36px;min-width:120px;border:1px solid #ddd;border-radius:3px;padding:0 8px;">
                             <option value="">全部</option>
-                            <option value="normal">正常</option>
-                            <option value="stopped">已禁用</option>
+                            <option value="normal">启用</option>
+                            <option value="stopped">停用</option>
                         </select>
                     </div>
                     <div class="form-actions">
@@ -319,6 +319,8 @@
                                 data-withdraw="153****9562"
                                 data-settle-cycle="自然周"
                                 data-split="已开通"
+                                data-disable-blocks="retail:2,proxy:1,aftersale:0,withdraw:0"
+                                data-disable-warns="pendingPay:1,bind:128,balance:326.50"
                             >
                                 <td>HGH00002</td>
                                 <td>冷丰</td>
@@ -345,6 +347,8 @@
                                 data-withdraw="—"
                                 data-settle-cycle="—"
                                 data-split="未开通"
+                                data-disable-blocks=""
+                                data-disable-warns="pendingPay:0,bind:12,balance:0"
                             >
                                 <td>BJS00001</td>
                                 <td>冷丰演示门店</td>
@@ -460,7 +464,7 @@
     <script src="../js/mdm-store-site-slot.js?v=20260910-slot"></script>
     <script src="../js/mdm-subject-pagemanager.js?v=20260826-name-tip-wrap"></script>
     <script src="../js/mdm-unified-onboarding-ui.js?v=20260826-name-tip-wrap"></script>
-    <script src="../js/mdm-resource-archive-forms.js?v=20261109-857d"></script>
+    <script src="../js/mdm-resource-archive-forms.js?v=20261110-wh-delivery-filter"></script>
     <script src="../js/order-config-ui.js"></script>
     <script src="../js/store-account-config.js?v=20260810-sac1"></script>
     <script src="../js/store-wallet-demo.js?v=20260911-other-fmt"></script>
@@ -469,7 +473,8 @@
     <script src="../js/mdm-receive-address-store.js?v=20260909-store-code"></script>
     <script src="../js/mdm-archive-detail-drawer.js?v=20260928-comm-range"></script>
     <script src="../js/mdm-system-default-store.js?v=20260827-sys-default"></script>
-    <script src="../js/mdm-erp-lists.js?v=20260910-slot"></script>
+    <script src="../js/mdm-archive-enable-disable.js?v=20261110-wh-delivery-filter"></script>
+    <script src="../js/mdm-erp-lists.js?v=20261110-wh-delivery-filter"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         MdmErpLists.initArchiveStore();

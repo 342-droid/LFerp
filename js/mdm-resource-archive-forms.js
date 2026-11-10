@@ -463,29 +463,66 @@
         updateBdSelectOptions(selectEl, STORE_BIND_BD_ENUM, selectedName);
     }
 
-    /** 与仓库档案一致：仅「仓库类型=仓库」且启用中的仓库可作入库仓 */
-    var FALLBACK_INBOUND_WAREHOUSE_NAMES = ['主仓库', '前置仓-华东一号库演示超长名称'];
+    /** 与仓库档案一致：仅「仓库类型=仓库」且启用中的仓库可选 */
+    var FALLBACK_DELIVERY_WAREHOUSES = [
+        { id: 'WH001', subject: '沪南一号仓', name: '主仓库' },
+        { id: 'WH304550231884821504', subject: '合作仓-苏州', name: '前置仓-华东一号库演示超长名称' },
+        { id: 'WH-ONS-88303', subject: '自建仓-杭州', name: '合作仓-苏州' }
+    ];
+    var FALLBACK_INBOUND_WAREHOUSE_NAMES = FALLBACK_DELIVERY_WAREHOUSES.map(function (one) {
+        return one.name;
+    });
 
-    function collectEnabledWarehouseNamesFromRows(rows) {
+    function isWarehouseRuntimeDisabled(meta) {
+        if (
+            global.MdmArchiveEnableDisable &&
+            typeof global.MdmArchiveEnableDisable.isWarehouseDisabledByMeta === 'function'
+        ) {
+            return !!global.MdmArchiveEnableDisable.isWarehouseDisabledByMeta(meta);
+        }
+        return false;
+    }
+
+    function collectEnabledWarehouseOptionsFromRows(rows) {
         var list = [];
         var seen = {};
         rows.forEach(function (tr) {
             var c = tr.querySelectorAll('td');
             if (c.length < 12) return;
+            var id = String((c[0].textContent || '').trim());
+            var subject = String((c[1].textContent || '').trim());
             var name = String((c[2].textContent || '').trim());
             var warehouseType = String((c[3].textContent || '').trim());
-            if (!name || seen[name]) return;
-            /* 仓库类型为「门店」的不进入库仓库下拉 */
+            if (!id || !name || seen[id]) return;
+            /* 仓库类型为「门店」的不进配送/入库仓下拉 */
             if (warehouseType !== '仓库') return;
             var stNode = c[11].querySelector ? c[11].querySelector('.status') : null;
             var statusText = String((stNode ? stNode.textContent : c[11].textContent) || '')
                 .replace(/\s+/g, '')
                 .trim();
             if (statusText !== '启用' && statusText !== '启动') return;
-            seen[name] = true;
-            list.push(name);
+            if (isWarehouseRuntimeDisabled({ id: id, code: id, name: name, subject: subject })) return;
+            seen[id] = true;
+            list.push({ id: id, subject: subject || name, name: name });
         });
         return list;
+    }
+
+    function collectEnabledWarehouseNamesFromRows(rows) {
+        return collectEnabledWarehouseOptionsFromRows(rows).map(function (one) {
+            return one.name;
+        });
+    }
+
+    function filterFallbackDeliveryWarehouses() {
+        return FALLBACK_DELIVERY_WAREHOUSES.filter(function (one) {
+            return !isWarehouseRuntimeDisabled({
+                id: one.id,
+                code: one.id,
+                name: one.name,
+                subject: one.subject
+            });
+        });
     }
 
     function updateWarehouseSelectOptions(selectEl, names, selectedName) {
@@ -507,7 +544,76 @@
             if (selectEl.value !== selectedName) {
                 selectOptionByLabelText(selectEl, selectedName);
             }
+            /* 停用仓不在可选列表：清空，强制改选启用仓 */
+            if (selectEl.value !== selectedName && !selectOptionByLabelText(selectEl, selectedName)) {
+                selectEl.value = '';
+            }
         }
+    }
+
+    function updateDeliveryWarehouseSelect(selectEl, options, selectedText) {
+        if (!selectEl) return;
+        var list = Array.isArray(options) ? options : [];
+        var prev = String(selectedText || '').trim();
+        selectEl.innerHTML = '';
+        var placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = '请选择配送仓库';
+        selectEl.appendChild(placeholder);
+        list.forEach(function (one) {
+            if (!one || !one.id) return;
+            var op = document.createElement('option');
+            op.value = one.id;
+            op.textContent = one.subject || one.name || one.id;
+            op.setAttribute('data-wh-name', one.name || '');
+            op.setAttribute('data-wh-subject', one.subject || '');
+            selectEl.appendChild(op);
+        });
+        if (!prev) {
+            selectEl.value = '';
+            return;
+        }
+        /* 按编号 / 主体名 / 仓库名回填；命不中说明已停用或不存在 → 置空 */
+        for (var i = 0; i < selectEl.options.length; i++) {
+            var opt = selectEl.options[i];
+            if (!opt.value) continue;
+            if (
+                opt.value === prev ||
+                opt.textContent === prev ||
+                opt.getAttribute('data-wh-name') === prev ||
+                opt.getAttribute('data-wh-subject') === prev ||
+                prev.indexOf(opt.textContent) >= 0 ||
+                prev.indexOf(opt.getAttribute('data-wh-name') || '') >= 0
+            ) {
+                selectEl.selectedIndex = i;
+                return;
+            }
+        }
+        selectEl.value = '';
+    }
+
+    function hydrateDeliveryWarehouseSelect(selectEl, selectedText) {
+        var fallback = filterFallbackDeliveryWarehouses();
+        updateDeliveryWarehouseSelect(selectEl, fallback, selectedText);
+        if (typeof fetch !== 'function') return;
+        fetch(resolveArchiveWarehousePageUrl(), { cache: 'no-store' })
+            .then(function (res) {
+                if (!res || !res.ok) return '';
+                return res.text();
+            })
+            .then(function (html) {
+                if (!html) return [];
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(html, 'text/html');
+                return collectEnabledWarehouseOptionsFromRows(doc.querySelectorAll('#tableBody tr'));
+            })
+            .then(function (list) {
+                var options = list && list.length ? list : fallback;
+                updateDeliveryWarehouseSelect(selectEl, options, selectedText);
+            })
+            .catch(function () {
+                updateDeliveryWarehouseSelect(selectEl, fallback, selectedText);
+            });
     }
 
     function resolveArchiveWarehousePageUrl() {
@@ -518,8 +624,14 @@
     }
 
     function hydrateInboundWarehouseSelect(selectEl, selectedName) {
-        /* 先落演示兜底，避免 fetch 未完成或失败时下拉空白 */
-        updateWarehouseSelectOptions(selectEl, FALLBACK_INBOUND_WAREHOUSE_NAMES, selectedName);
+        /* 先落演示兜底，避免 fetch 未完成或失败时下拉空白；已停用仓不进选项 */
+        updateWarehouseSelectOptions(
+            selectEl,
+            filterFallbackDeliveryWarehouses().map(function (one) {
+                return one.name;
+            }),
+            selectedName
+        );
         if (typeof fetch !== 'function') return;
         fetch(resolveArchiveWarehousePageUrl(), { cache: 'no-store' })
             .then(function (res) {
@@ -534,11 +646,25 @@
                 return collectEnabledWarehouseNamesFromRows(rows);
             })
             .then(function (list) {
-                var names = list && list.length ? list : FALLBACK_INBOUND_WAREHOUSE_NAMES;
+                var enabledNames = (list || []).filter(function (name) {
+                    return !isWarehouseRuntimeDisabled({ name: name });
+                });
+                var names =
+                    enabledNames.length
+                        ? enabledNames
+                        : filterFallbackDeliveryWarehouses().map(function (one) {
+                              return one.name;
+                          });
                 updateWarehouseSelectOptions(selectEl, names, selectedName);
             })
             .catch(function () {
-                updateWarehouseSelectOptions(selectEl, FALLBACK_INBOUND_WAREHOUSE_NAMES, selectedName);
+                updateWarehouseSelectOptions(
+                    selectEl,
+                    filterFallbackDeliveryWarehouses().map(function (one) {
+                        return one.name;
+                    }),
+                    selectedName
+                );
             });
     }
 
@@ -880,15 +1006,10 @@
         body.appendChild(formRow('门店合作类型', true, partnerSel));
         refs.storeTypeInp = txt('如社区生鲜店、团购自提点等', '');
         body.appendChild(formRow('门店类型', true, refs.storeTypeInp));
-        refs.warehouseSel = sel(
-            [
-                { value: '', label: '请选择配送仓库' },
-                { value: 'wh1', label: '沪南一号仓' },
-                { value: 'wh2', label: '苏州合作仓' }
-            ],
-            ''
-        );
+        refs.warehouseSel = sel([{ value: '', label: '请选择配送仓库' }], '');
+        refs.warehouseSel.setAttribute('data-required-msg', '请选择配送仓库');
         body.appendChild(formRow('配送仓库', true, refs.warehouseSel));
+        hydrateDeliveryWarehouseSelect(refs.warehouseSel, '');
         var regionRow = document.createElement('div');
         regionRow.className = 'store-form__row';
         regionRow.appendChild(sfLabel('门店地址', true));
@@ -1031,7 +1152,7 @@
             var pmap = { 加盟店: 'franchise', 合作店: 'partner', 同行店: 'peer', 生鲜店: 'fresh' };
             refs.partnerSel.value = pmap[cellPlainText(c[3])] || '';
             refs.storeTypeInp.value = cellPlainText(c[4]);
-            refs.warehouseSel.value = guessWarehouseSelectValue(cellPlainText(c[8]));
+            hydrateDeliveryWarehouseSelect(refs.warehouseSel, cellPlainText(c[8]));
             var regionVal = tr.getAttribute('data-region') || '';
             refs.regionInp.value = compactStoreRegion(regionVal);
             if (refs.regionCascader && typeof refs.regionCascader.setValue === 'function') {
