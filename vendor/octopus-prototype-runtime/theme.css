@@ -67,3 +67,55 @@
  --el-color-info-light-8: color-mix(in srgb, var(--el-color-info) 20%, var(--el-fill-color-blank));
  --el-color-info-light-9: color-mix(in srgb, var(--el-color-info) 10%, var(--el-fill-color-blank));
 }
+
+/* Message / Toast：默认浅底浅字对比不足，改为实色底白字，并抬高层级盖过弹窗 */
+.el-message {
+  z-index: 5000 !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+  font-weight: 500;
+}
+.el-message .el-message__content {
+  font-size: 14px;
+  line-height: 1.5;
+}
+.el-message--error {
+  --el-message-bg-color: #ff4d4f;
+  --el-message-border-color: #ff4d4f;
+  --el-message-text-color: #ffffff;
+  background-color: #ff4d4f !important;
+  border-color: #ff4d4f !important;
+}
+.el-message--success {
+  --el-message-bg-color: #52c41a;
+  --el-message-border-color: #52c41a;
+  --el-message-text-color: #ffffff;
+  background-color: #52c41a !important;
+  border-color: #52c41a !important;
+}
+.el-message--warning {
+  --el-message-bg-color: #e6a23c;
+  --el-message-border-color: #e6a23c;
+  --el-message-text-color: #ffffff;
+  background-color: #e6a23c !important;
+  border-color: #e6a23c !important;
+}
+.el-message--info,
+.el-message--primary {
+  --el-message-bg-color: #606266;
+  --el-message-border-color: #606266;
+  --el-message-text-color: #ffffff;
+  background-color: #606266 !important;
+  border-color: #606266 !important;
+}
+.el-message--error .el-message__content,
+.el-message--success .el-message__content,
+.el-message--warning .el-message__content,
+.el-message--info .el-message__content,
+.el-message--primary .el-message__content,
+.el-message .el-message-icon--error,
+.el-message .el-message-icon--success,
+.el-message .el-message-icon--warning,
+.el-message .el-message-icon--info,
+.el-message .el-message-icon--primary {
+  color: #ffffff !important;
+}
