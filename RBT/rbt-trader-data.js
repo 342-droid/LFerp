@@ -1,7 +1,7 @@
-/* RBF 贸易商管理演示数据。待入驻列表按审核状态过滤；审核通过后回写 H5 账号状态。 */
+/* RBT 贸易商管理演示数据。待入驻列表按审核状态过滤；审核通过后回写 H5 账号状态。 */
 (function () {
-    var KEY = 'rbf_trader_list_v3';
-    var H5_KEY = 'rbf_h5_trader_accounts_v1';
+    var KEY = 'rbt_trader_list_v3';
+    var H5_KEY = 'rbt_h5_trader_accounts_v1';
     var LICENSE_TYPES = ['商业保理公司', '融资租赁公司', '持牌金融机构', '地方金融组织'];
     var BIZ_SCOPES = ['保理', '融资租赁', '其他'];
 
@@ -314,7 +314,7 @@
         return updated;
     }
 
-    window.RbfTraderData = {
+    window.RbtTraderData = {
         licenseTypes: LICENSE_TYPES,
         bizScopes: BIZ_SCOPES,
         list: list,

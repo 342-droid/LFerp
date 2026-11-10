@@ -1,15 +1,15 @@
 /* 门店端无登录页：打开即进入门店；可切换门店。默认演示密码 123456。 */
 (function () {
     var DEMO_PASSWORD = '123456';
-    var SESSION_KEY = 'rbf_h5_store_session';
-    var PASSWORD_KEY = 'rbf_h5_store_passwords_v1';
+    var SESSION_KEY = 'rbt_h5_store_session';
+    var PASSWORD_KEY = 'rbt_h5_store_passwords_v1';
 
     function digits(value) {
         return String(value || '').replace(/\D/g, '');
     }
 
     function toast(message) {
-        var node = document.getElementById('rbfH5Toast');
+        var node = document.getElementById('rbtH5Toast');
         if (!node) return;
         node.textContent = message;
         node.classList.add('is-on');
@@ -45,7 +45,7 @@
     }
 
     function accounts() {
-        var stores = window.RbfStoreData && window.RbfStoreData.list ? window.RbfStoreData.list() : [];
+        var stores = window.RbtStoreData && window.RbtStoreData.list ? window.RbtStoreData.list() : [];
         var grouped = {};
         stores.forEach(function (store) {
             if (!store || store.enabled === false) return;
@@ -94,10 +94,10 @@
     }
 
     function showHome(account) {
-        var phone = document.getElementById('rbfH5Phone');
+        var phone = document.getElementById('rbtH5Phone');
         phone.classList.add('is-app');
         phone.classList.remove('is-pick');
-        if (window.RbfH5StoreApp) window.RbfH5StoreApp.open(account);
+        if (window.RbtH5StoreApp) window.RbtH5StoreApp.open(account);
     }
 
     function enter(account, withToast) {
@@ -132,22 +132,22 @@
     }
 
     function showPick() {
-        var phone = document.getElementById('rbfH5Phone');
-        var box = document.getElementById('rbfH5Pick');
-        var title = document.querySelector('.rbf-h5-phone__head h1');
-        var head = document.getElementById('rbfH5HeadText');
+        var phone = document.getElementById('rbtH5Phone');
+        var box = document.getElementById('rbtH5Pick');
+        var title = document.querySelector('.rbt-h5-phone__head h1');
+        var head = document.getElementById('rbtH5HeadText');
         var list = storeChoices();
         phone.classList.remove('is-app');
         phone.classList.add('is-pick');
-        if (window.RbfH5StoreApp) window.RbfH5StoreApp.close();
+        if (window.RbtH5StoreApp) window.RbtH5StoreApp.close();
         if (title) title.textContent = '门店端';
         if (head) head.textContent = '选择门店';
         box.innerHTML = list.length
-            ? '<p class="rbf-h5-tip">请选择要进入的门店。</p>' + list.map(function (item, index) {
+            ? '<p class="rbt-h5-tip">请选择要进入的门店。</p>' + list.map(function (item, index) {
                 return '<button type="button" data-pick="' + index + '"><strong>' + esc(item.name) + '</strong>' +
                     '<span>' + esc(item.code) + ' · ' + esc(item.bizLine || '—') + ' · ' + esc(item.roles.join('、')) + '</span></button>';
             }).join('')
-            : '<div class="rbf-h5-empty">暂无可选门店</div>';
+            : '<div class="rbt-h5-empty">暂无可选门店</div>';
         showPick._list = list;
     }
 
@@ -186,7 +186,7 @@
         showPick();
     }
 
-    document.getElementById('rbfH5Pick').addEventListener('click', function (event) {
+    document.getElementById('rbtH5Pick').addEventListener('click', function (event) {
         var button = event.target.closest('[data-pick]');
         if (!button) return;
         var account = (showPick._list || [])[Number(button.getAttribute('data-pick'))];
@@ -197,7 +197,7 @@
     if (boot) enter(boot, false);
     else showPick();
 
-    window.RbfH5StoreLogin = {
+    window.RbtH5StoreLogin = {
         logout: logout,
         changePassword: changePassword,
         toast: toast

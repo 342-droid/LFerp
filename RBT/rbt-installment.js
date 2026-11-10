@@ -1,11 +1,11 @@
-/* RBF 分期配置：查询、新增、编辑、启用禁用，产品编码弹出详情。 */
+/* RBT 分期配置：查询、新增、编辑、启用禁用，产品编码弹出详情。 */
 (function () {
     var Vue = OctopusPrototype.Vue;
     var ref = Vue.ref;
     var computed = Vue.computed;
     var ElMessage = OctopusPrototype.ElementPlus.ElMessage;
-    var KEY = 'rbf_installment_v3';
-    var PACKAGE_KEY = 'rbf_product_package_v1';
+    var KEY = 'rbt_installment_v3';
+    var PACKAGE_KEY = 'rbt_product_package_v1';
     var REPAY_CYCLES = ['日还'];
     var REPAY_METHODS = ['定额还', '比例还'];
 
@@ -578,8 +578,8 @@
 
             function openDetail(row) {
                 var current = findRow(row.code) || row;
-                if (!window.RbfInstallmentDetail) return;
-                window.RbfInstallmentDetail.open({
+                if (!window.RbtInstallmentDetail) return;
+                window.RbtInstallmentDetail.open({
                     code: current.code,
                     name: current.name,
                     status: current.enabled === false ? '禁用' : '启用',
@@ -922,7 +922,7 @@
                 refreshTable: refreshTable
             };
         }
-    }, '#rbfInstallmentApp', {
+    }, '#rbtInstallmentApp', {
         services: {},
         warehouse: { warehouseId: 'demo', warehouseCode: 'DEMO', warehouseName: '演示仓库' },
         permissions: [],

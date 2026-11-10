@@ -1,8 +1,8 @@
 /* 门店端登录后：选择商品包、勾选 SKU 并改数量、发布资金需求。需求按门店隔离。 */
 (function () {
-    var PACKAGE_KEY = 'rbf_product_package_v1';
-    var DEMAND_KEY = 'rbf_h5_fund_demand_v1';
-    var INSTALLMENT_KEY = 'rbf_installment_v3';
+    var PACKAGE_KEY = 'rbt_product_package_v1';
+    var DEMAND_KEY = 'rbt_h5_fund_demand_v1';
+    var INSTALLMENT_KEY = 'rbt_installment_v3';
     var SKUS = {
         SKU10001: { name: '库尔勒香梨 4kg', barcode: '6901234567001', unit: '箱', spec: '4kg', salePrice: '56.80' },
         SKU10002: { name: '精品黄瓜 2kg', barcode: '6901234567002', unit: '箱', spec: '2kg', salePrice: '22.80' },
@@ -38,7 +38,7 @@
     var CYCLE_ORDER = ['日还', '周还', '月还', '年还'];
 
     function toast(message) {
-        var node = document.getElementById('rbfH5Toast');
+        var node = document.getElementById('rbtH5Toast');
         if (!node) return;
         node.textContent = message;
         node.classList.add('is-on');
@@ -97,7 +97,7 @@
 
     function storeBizLine() {
         if (!account) return '';
-        var stores = window.RbfStoreData && window.RbfStoreData.list ? window.RbfStoreData.list() : [];
+        var stores = window.RbtStoreData && window.RbtStoreData.list ? window.RbtStoreData.list() : [];
         var line = '';
         stores.some(function (store) {
             if (store.code === account.code) {
@@ -191,8 +191,8 @@
     }
 
     function setHead(title) {
-        var head = document.getElementById('rbfH5HeadText');
-        var name = document.querySelector('.rbf-h5-phone__head h1');
+        var head = document.getElementById('rbtH5HeadText');
+        var name = document.querySelector('.rbt-h5-phone__head h1');
         if (name) name.textContent = account && account.name ? account.name : '门店端';
         if (head) head.textContent = title;
     }
@@ -589,34 +589,34 @@
     }
 
     function closePlanSheet() {
-        var sheet = document.getElementById('rbfH5Sheet');
+        var sheet = document.getElementById('rbtH5Sheet');
         if (!sheet) return;
         sheet.classList.remove('is-on');
         sheet.setAttribute('aria-hidden', 'true');
     }
 
     function openPlanSheet(schedule) {
-        var sheet = document.getElementById('rbfH5Sheet');
-        var body = document.getElementById('rbfH5SheetBody');
+        var sheet = document.getElementById('rbtH5Sheet');
+        var body = document.getElementById('rbtH5SheetBody');
         if (!sheet || !body || !schedule) return;
         body.innerHTML =
-            '<section class="rbf-h5-sheet__card">' +
-            '<div class="rbf-h5-sheet__total">¥ ' + esc(schedule.total) + '</div>' +
-            '<div class="rbf-h5-sheet__sub">含本金 <b>¥ ' + esc(schedule.principal) + '</b></div>' +
-            '<div class="rbf-h5-sheet__sub">利息 <b>¥ ' + esc(schedule.totalInterest) + '</b></div>' +
-            '<div class="rbf-h5-sheet__method">年化率 <b>' + esc(schedule.annualRate) + '%</b></div>' +
-            '<div class="rbf-h5-sheet__method">还款方式 <b>' + esc(schedule.method) + '</b></div>' +
-            '<div class="rbf-h5-sheet__sub">放款日 ' + esc(schedule.lendDate) +
+            '<section class="rbt-h5-sheet__card">' +
+            '<div class="rbt-h5-sheet__total">¥ ' + esc(schedule.total) + '</div>' +
+            '<div class="rbt-h5-sheet__sub">含本金 <b>¥ ' + esc(schedule.principal) + '</b></div>' +
+            '<div class="rbt-h5-sheet__sub">利息 <b>¥ ' + esc(schedule.totalInterest) + '</b></div>' +
+            '<div class="rbt-h5-sheet__method">年化率 <b>' + esc(schedule.annualRate) + '%</b></div>' +
+            '<div class="rbt-h5-sheet__method">还款方式 <b>' + esc(schedule.method) + '</b></div>' +
+            '<div class="rbt-h5-sheet__sub">放款日 ' + esc(schedule.lendDate) +
             '，首期按实际 ' + esc(schedule.firstDays) + ' 天计息</div>' +
             '</section>' +
-            '<section class="rbf-h5-sheet__card">' +
-            '<div class="rbf-h5-sheet__meta"><span>共' + esc(schedule.period) + '期</span>' +
+            '<section class="rbt-h5-sheet__card">' +
+            '<div class="rbt-h5-sheet__meta"><span>共' + esc(schedule.period) + '期</span>' +
             '<span>每' + esc(schedule.unit) + '还款金额(本金+利息)</span></div>' +
             schedule.rows.map(function (row) {
-                return '<div class="rbf-h5-sheet__item">' +
-                    '<div class="rbf-h5-sheet__item-top"><span>' + row.index + ' ' + esc(row.date) + '</span>' +
+                return '<div class="rbt-h5-sheet__item">' +
+                    '<div class="rbt-h5-sheet__item-top"><span>' + row.index + ' ' + esc(row.date) + '</span>' +
                     '<span>¥ ' + esc(row.amount) + '</span></div>' +
-                    '<div class="rbf-h5-sheet__item-sub">含本金 ¥ ' + esc(row.principal) +
+                    '<div class="rbt-h5-sheet__item-sub">含本金 ¥ ' + esc(row.principal) +
                     '  利息 ¥ ' + esc(row.interest) +
                     '  计息 ' + esc(row.days) + ' 天</div>' +
                     '</div>';
@@ -628,14 +628,14 @@
 
     /* 担保门店取带「担保门店」标签的准入门店，不含当前登录门店。一家担保门店只能担保一家门店。 */
     function guaranteeStores() {
-        var dataApi = window.RbfStoreData;
+        var dataApi = window.RbtStoreData;
         var tagApi = window.BusinessTagPrototypeStore;
         if (dataApi && typeof dataApi.ensureSeedTags === 'function') dataApi.ensureSeedTags();
         if (!dataApi || !tagApi || !account) return [];
         return dataApi.list().filter(function (store) {
             if (!store || store.enabled === false || store.code === account.code) return false;
-            var tags = tagApi.tagsFor('RBF_STORE', store.code) || [];
-            return tags.some(function (tag) { return tag.id === 'rbf-store-guarantee' || tag.name === '担保门店'; });
+            var tags = tagApi.tagsFor('RBT_STORE', store.code) || [];
+            return tags.some(function (tag) { return tag.id === 'rbt-store-guarantee' || tag.name === '担保门店'; });
         });
     }
 
@@ -654,12 +654,12 @@
         var names = (item.skus || []).map(skuQtyText).join('、') || '—';
         var guarantorNames = (item.guarantors || []).map(function (row) { return row.name; }).join('、') || '—';
         var cancel = withCancel && isActiveDemand(item)
-            ? '<button type="button" class="rbf-h5-cancel" data-cancel="' + esc(item.code) + '">取消</button>'
+            ? '<button type="button" class="rbt-h5-cancel" data-cancel="' + esc(item.code) + '">取消</button>'
             : '';
         var statusClass = item.status === '已完成' ? ' is-done' : (item.status === '已取消' ? ' is-off' : '');
-        return '<article class="rbf-h5-card">' +
-            '<div class="rbf-h5-card__top"><h2>' + esc(item.code) + '</h2>' +
-            '<span class="rbf-h5-status' + statusClass + '">' + esc(item.status) + '</span></div>' +
+        return '<article class="rbt-h5-card">' +
+            '<div class="rbt-h5-card__top"><h2>' + esc(item.code) + '</h2>' +
+            '<span class="rbt-h5-status' + statusClass + '">' + esc(item.status) + '</span></div>' +
             '<p>商品包：' + esc(item.packageName) + '（' + esc(item.packageCode) + '）</p>' +
             '<p>商品：' + esc(names) + '</p>' +
             '<p>担保门店：' + esc(guarantorNames) + '</p>' +
@@ -675,10 +675,10 @@
     }
 
     function render() {
-        var scroll = document.getElementById('rbfH5Scroll');
-        var buttons = document.querySelectorAll('#rbfH5Tabbar button');
+        var scroll = document.getElementById('rbtH5Scroll');
+        var buttons = document.querySelectorAll('#rbtH5Tabbar button');
         if (!scroll) return;
-        var createBar = document.getElementById('rbfH5Create');
+        var createBar = document.getElementById('rbtH5Create');
         if (createBar) createBar.hidden = !(tab === 'demands' && screen === 'list');
         buttons.forEach(function (button) {
             button.classList.toggle('is-on', button.getAttribute('data-tab') === tab);
@@ -687,21 +687,21 @@
             setHead(screen === 'password' ? '修改密码' : '我的');
             if (screen === 'password') {
                 scroll.innerHTML =
-                    '<div class="rbf-h5-bar"><button type="button" class="rbf-h5-back" data-back="mine">返回</button></div>' +
-                    '<section class="rbf-h5-card rbf-h5-mine">' +
-                    '<div class="rbf-h5-field"><label for="rbfH5OldPwd">原密码</label><input id="rbfH5OldPwd" type="password" maxlength="32" placeholder="请输入原密码"></div>' +
-                    '<div class="rbf-h5-field"><label for="rbfH5NewPwd">新密码</label><input id="rbfH5NewPwd" type="password" maxlength="32" placeholder="请输入新密码"></div>' +
-                    '<div class="rbf-h5-field"><label for="rbfH5ConfirmPwd">确认新密码</label><input id="rbfH5ConfirmPwd" type="password" maxlength="32" placeholder="请再次输入新密码"></div>' +
-                    '<p class="rbf-h5-tip">新密码至少 6 位。演示默认密码 123456。</p>' +
-                    '<button type="button" class="rbf-h5-primary rbf-h5-publish" data-save-password>保存</button>' +
+                    '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="mine">返回</button></div>' +
+                    '<section class="rbt-h5-card rbt-h5-mine">' +
+                    '<div class="rbt-h5-field"><label for="rbtH5OldPwd">原密码</label><input id="rbtH5OldPwd" type="password" maxlength="32" placeholder="请输入原密码"></div>' +
+                    '<div class="rbt-h5-field"><label for="rbtH5NewPwd">新密码</label><input id="rbtH5NewPwd" type="password" maxlength="32" placeholder="请输入新密码"></div>' +
+                    '<div class="rbt-h5-field"><label for="rbtH5ConfirmPwd">确认新密码</label><input id="rbtH5ConfirmPwd" type="password" maxlength="32" placeholder="请再次输入新密码"></div>' +
+                    '<p class="rbt-h5-tip">新密码至少 6 位。演示默认密码 123456。</p>' +
+                    '<button type="button" class="rbt-h5-primary rbt-h5-publish" data-save-password>保存</button>' +
                     '</section>';
                 return;
             }
-            scroll.innerHTML = '<section class="rbf-h5-card rbf-h5-mine"><h2>' + esc(account.name) + '</h2>' +
+            scroll.innerHTML = '<section class="rbt-h5-card rbt-h5-mine"><h2>' + esc(account.name) + '</h2>' +
                 '<p>门店编码：' + esc(account.code) + '\n登录身份：' + esc((account.roles || []).join('、')) +
                 '\n手机号：' + esc(account.phone) + '</p>' +
-                '<button type="button" class="rbf-h5-action" data-change-password>修改密码</button>' +
-                '<button type="button" class="rbf-h5-logout" data-logout>切换门店</button></section>';
+                '<button type="button" class="rbt-h5-action" data-change-password>修改密码</button>' +
+                '<button type="button" class="rbt-h5-logout" data-logout>切换门店</button></section>';
             return;
         }
         if (tab === 'plans') {
@@ -709,85 +709,85 @@
             var plans = storeDemands().filter(function (item) { return item.status !== '已取消'; });
             scroll.innerHTML = plans.length
                 ? plans.map(function (item) { return renderDemand(item, false); }).join('')
-                : '<div class="rbf-h5-empty">暂无还款计划</div>';
+                : '<div class="rbt-h5-empty">暂无还款计划</div>';
             return;
         }
         if (screen === 'packages') {
             setHead('选择商品包');
             var choices = packages();
-            scroll.innerHTML = '<div class="rbf-h5-bar"><button type="button" class="rbf-h5-back" data-back="list">返回</button></div>' +
+            scroll.innerHTML = '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="list">返回</button></div>' +
                 (choices.length ? choices.map(function (item) {
-                    return '<button type="button" class="rbf-h5-card" data-package="' + esc(item.code) + '" style="display:block;width:100%;text-align:left;cursor:pointer;">' +
+                    return '<button type="button" class="rbt-h5-card" data-package="' + esc(item.code) + '" style="display:block;width:100%;text-align:left;cursor:pointer;">' +
                         '<h2>' + esc(item.name) + '</h2><p>' + esc(item.code) + ' · ' + esc(item.bizLine) + ' · ' + item.skus.length + ' 个商品</p></button>';
-                }).join('') : '<div class="rbf-h5-empty">暂无本事业线的商品包</div>');
+                }).join('') : '<div class="rbt-h5-empty">暂无本事业线的商品包</div>');
             return;
         }
         if (screen === 'skus') {
             var pkg = findPackage(packageCode);
             setHead('勾选商品');
             if (!pkg) {
-                scroll.innerHTML = '<div class="rbf-h5-bar"><button type="button" class="rbf-h5-back" data-back="packages">返回</button></div><div class="rbf-h5-empty">商品包不存在</div>';
+                scroll.innerHTML = '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="packages">返回</button></div><div class="rbt-h5-empty">商品包不存在</div>';
                 return;
             }
             var lines = selectedLines(pkg);
             var allOn = pkg.skus.length > 0 && lines.length === pkg.skus.length;
             var pieceCount = lines.reduce(function (total, line) { return total + line.qty; }, 0);
-            scroll.innerHTML = '<div class="rbf-h5-bar"><button type="button" class="rbf-h5-back" data-back="packages">返回</button><span>' + esc(pkg.name) + '</span></div>' +
+            scroll.innerHTML = '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="packages">返回</button><span>' + esc(pkg.name) + '</span></div>' +
                 (pkg.skus.length
-                    ? '<label class="rbf-h5-check"><input type="checkbox" data-all ' + (allOn ? 'checked' : '') + '><span><strong>全选</strong><span>共 ' + pkg.skus.length + ' 个商品</span></span></label>' +
+                    ? '<label class="rbt-h5-check"><input type="checkbox" data-all ' + (allOn ? 'checked' : '') + '><span><strong>全选</strong><span>共 ' + pkg.skus.length + ' 个商品</span></span></label>' +
                         pkg.skus.map(function (line) {
                             var on = isPicked(line.code);
                             var qty = on ? qtyOf(line.code) : 1;
                             var lineAmount = money(Number(line.salePrice) * qty);
                             var image = line.image
-                                ? '<img class="rbf-h5-sku__img" src="' + esc(line.image) + '" alt="' + esc(line.name) + '">'
-                                : '<span class="rbf-h5-sku__img rbf-h5-sku__img--empty">暂无图片</span>';
+                                ? '<img class="rbt-h5-sku__img" src="' + esc(line.image) + '" alt="' + esc(line.name) + '">'
+                                : '<span class="rbt-h5-sku__img rbt-h5-sku__img--empty">暂无图片</span>';
                             var foot = on
-                                ? '<span class="rbf-h5-sku__foot"><span class="rbf-h5-sku__price">售价 ¥' + esc(lineAmount) + '</span>' +
-                                    '<div class="rbf-h5-qty" data-qty-box="' + esc(line.code) + '">' +
+                                ? '<span class="rbt-h5-sku__foot"><span class="rbt-h5-sku__price">售价 ¥' + esc(lineAmount) + '</span>' +
+                                    '<div class="rbt-h5-qty" data-qty-box="' + esc(line.code) + '">' +
                                     '<button type="button" data-qty-minus="' + esc(line.code) + '" aria-label="减少数量">−</button>' +
                                     '<input type="number" inputmode="numeric" min="1" max="' + QTY_MAX + '" value="' + qty + '" data-qty-input="' + esc(line.code) + '" aria-label="数量">' +
                                     '<button type="button" data-qty-plus="' + esc(line.code) + '" ' + (qty >= QTY_MAX ? 'disabled ' : '') + 'aria-label="增加数量">+</button>' +
                                     '</div></span>'
                                 : '';
-                            return '<div class="rbf-h5-check rbf-h5-sku">' +
+                            return '<div class="rbt-h5-check rbt-h5-sku">' +
                                 '<input type="checkbox" data-sku="' + esc(line.code) + '" ' + (on ? 'checked' : '') + '>' +
                                 image +
-                                '<span class="rbf-h5-sku__body"><strong>' + esc(line.name) + '</strong>' +
+                                '<span class="rbt-h5-sku__body"><strong>' + esc(line.name) + '</strong>' +
                                 '<span>商品条码 ' + esc(line.barcode) + '</span>' +
                                 '<span>商品单位 ' + esc(line.unit) + '</span>' +
                                 '<span>商品规格 ' + esc(line.spec) + '</span>' +
-                                '<span class="rbf-h5-sku__unit">单价 ¥' + esc(line.salePrice) + '</span>' +
+                                '<span class="rbt-h5-sku__unit">单价 ¥' + esc(line.salePrice) + '</span>' +
                                 foot + '</span></div>';
                         }).join('')
-                    : '<div class="rbf-h5-empty">该商品包暂无商品</div>') +
-                '<p class="rbf-h5-sum">已选 ' + lines.length + ' 种共 ' + pieceCount + ' 件，需求金额 <b>¥' + money(sumLines(lines)) + '</b></p>' +
-                '<p class="rbf-h5-section">担保门店</p>' +
+                    : '<div class="rbt-h5-empty">该商品包暂无商品</div>') +
+                '<p class="rbt-h5-sum">已选 ' + lines.length + ' 种共 ' + pieceCount + ' 件，需求金额 <b>¥' + money(sumLines(lines)) + '</b></p>' +
+                '<p class="rbt-h5-section">担保门店</p>' +
                 (function () {
                     var stores = guaranteeStores();
-                    if (!stores.length) return '<div class="rbf-h5-empty">暂无可选担保门店</div>';
+                    if (!stores.length) return '<div class="rbt-h5-empty">暂无可选担保门店</div>';
                     return stores.map(function (store) {
                         var on = guarantors.indexOf(store.code) >= 0;
-                        return '<label class="rbf-h5-check"><input type="checkbox" data-guarantor="' + esc(store.code) + '" ' + (on ? 'checked' : '') + '>' +
+                        return '<label class="rbt-h5-check"><input type="checkbox" data-guarantor="' + esc(store.code) + '" ' + (on ? 'checked' : '') + '>' +
                             '<span><strong>' + esc(store.name) + '</strong><span>' + esc(store.code) + '</span></span></label>';
                     }).join('');
                 })() +
-                '<button type="button" class="rbf-h5-primary rbf-h5-publish" data-next>下一步</button>';
+                '<button type="button" class="rbt-h5-primary rbt-h5-publish" data-next>下一步</button>';
             return;
         }
         if (screen === 'installment') {
             var instPkg = findPackage(packageCode);
             setHead('分期还款');
             if (!instPkg) {
-                scroll.innerHTML = '<div class="rbf-h5-bar"><button type="button" class="rbf-h5-back" data-back="skus">返回</button></div><div class="rbf-h5-empty">商品包不存在</div>';
+                scroll.innerHTML = '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="skus">返回</button></div><div class="rbt-h5-empty">商品包不存在</div>';
                 return;
             }
             var instLines = selectedLines(instPkg);
             var instAmount = sumLines(instLines);
             var plans = matchedInstallments(instPkg, instAmount);
             if (!plans.length) {
-                scroll.innerHTML = '<div class="rbf-h5-bar"><button type="button" class="rbf-h5-back" data-back="skus">返回</button></div>' +
-                    '<div class="rbf-h5-empty">暂无匹配的分期配置</div>';
+                scroll.innerHTML = '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="skus">返回</button></div>' +
+                    '<div class="rbt-h5-empty">暂无匹配的分期配置</div>';
                 return;
             }
             var currentPlan = ensureInstallmentChoice(plans);
@@ -795,32 +795,32 @@
             var periods = currentPlan ? currentPlan.periods : [];
             var schedule = currentPlan && repayPeriod ? buildRepayPlan(instAmount, currentPlan, repayPeriod) : null;
             var firstAmount = schedule && schedule.rows[0] ? schedule.rows[0].amount : '—';
-            scroll.innerHTML = '<div class="rbf-h5-bar"><button type="button" class="rbf-h5-back" data-back="skus">返回</button><span>' + esc(instPkg.name) + '</span></div>' +
-                '<section class="rbf-h5-inst">' +
-                '<div class="rbf-h5-inst__row"><span class="rbf-h5-inst__label">分期金额</span>' +
-                '<span class="rbf-h5-inst__amount">¥ ' + money(instAmount) + '</span></div>' +
-                '<div class="rbf-h5-inst__row"><span class="rbf-h5-inst__label">还款周期</span>' +
-                '<div class="rbf-h5-inst__chips">' + cycles.map(function (cycle) {
-                    return '<button type="button" class="rbf-h5-chip' + (cycle === repayCycle ? ' is-on' : '') + '" data-cycle="' + esc(cycle) + '">' + esc(cycle) + '</button>';
+            scroll.innerHTML = '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="skus">返回</button><span>' + esc(instPkg.name) + '</span></div>' +
+                '<section class="rbt-h5-inst">' +
+                '<div class="rbt-h5-inst__row"><span class="rbt-h5-inst__label">分期金额</span>' +
+                '<span class="rbt-h5-inst__amount">¥ ' + money(instAmount) + '</span></div>' +
+                '<div class="rbt-h5-inst__row"><span class="rbt-h5-inst__label">还款周期</span>' +
+                '<div class="rbt-h5-inst__chips">' + cycles.map(function (cycle) {
+                    return '<button type="button" class="rbt-h5-chip' + (cycle === repayCycle ? ' is-on' : '') + '" data-cycle="' + esc(cycle) + '">' + esc(cycle) + '</button>';
                 }).join('') + '</div></div>' +
                 (periods.length
-                    ? '<div class="rbf-h5-inst__row"><span class="rbf-h5-inst__label">分期期数</span>' +
-                      '<div class="rbf-h5-inst__chips">' + periods.map(function (period) {
-                          return '<button type="button" class="rbf-h5-chip' + (String(period) === String(repayPeriod) ? ' is-on' : '') + '" data-period="' + esc(period) + '">' + esc(period) + '期</button>';
+                    ? '<div class="rbt-h5-inst__row"><span class="rbt-h5-inst__label">分期期数</span>' +
+                      '<div class="rbt-h5-inst__chips">' + periods.map(function (period) {
+                          return '<button type="button" class="rbt-h5-chip' + (String(period) === String(repayPeriod) ? ' is-on' : '') + '" data-period="' + esc(period) + '">' + esc(period) + '期</button>';
                       }).join('') + '</div></div>'
                     : '') +
                 '</section>' +
                 (schedule
-                    ? '<button type="button" class="rbf-h5-inst__link" data-open-plan>首期还 ¥ ' + esc(firstAmount) + '<span>查看还款计划 ›</span></button>'
+                    ? '<button type="button" class="rbt-h5-inst__link" data-open-plan>首期还 ¥ ' + esc(firstAmount) + '<span>查看还款计划 ›</span></button>'
                     : '') +
-                '<button type="button" class="rbf-h5-primary rbf-h5-publish" style="margin-top:16px;" data-publish>发布</button>';
+                '<button type="button" class="rbt-h5-primary rbt-h5-publish" style="margin-top:16px;" data-publish>发布</button>';
             return;
         }
         setHead('需求列表');
         var rows = storeDemands();
         scroll.innerHTML = rows.length
             ? rows.map(function (item) { return renderDemand(item, true); }).join('')
-            : '<div class="rbf-h5-empty">暂无资金需求</div>';
+            : '<div class="rbt-h5-empty">暂无资金需求</div>';
     }
 
     function open(next) {
@@ -837,13 +837,13 @@
     function close() {
         account = null;
         closePlanSheet();
-        var scroll = document.getElementById('rbfH5Scroll');
+        var scroll = document.getElementById('rbtH5Scroll');
         if (scroll) scroll.innerHTML = '';
-        var createBar = document.getElementById('rbfH5Create');
+        var createBar = document.getElementById('rbtH5Create');
         if (createBar) createBar.hidden = true;
     }
 
-    document.getElementById('rbfH5Tabbar').addEventListener('click', function (event) {
+    document.getElementById('rbtH5Tabbar').addEventListener('click', function (event) {
         var button = event.target.closest('[data-tab]');
         if (!button || !account) return;
         tab = button.getAttribute('data-tab');
@@ -854,7 +854,7 @@
         render();
     });
 
-    document.getElementById('rbfH5App').addEventListener('click', function (event) {
+    document.getElementById('rbtH5App').addEventListener('click', function (event) {
         var create = event.target.closest('[data-create]');
         var back = event.target.closest('[data-back]');
         var pkgButton = event.target.closest('[data-package]');
@@ -873,10 +873,10 @@
             return;
         }
         if (savePassword) {
-            var oldPassword = String((document.getElementById('rbfH5OldPwd') || {}).value || '');
-            var nextPassword = String((document.getElementById('rbfH5NewPwd') || {}).value || '');
-            var confirmPassword = String((document.getElementById('rbfH5ConfirmPwd') || {}).value || '');
-            if (window.RbfH5StoreLogin && window.RbfH5StoreLogin.changePassword(account.phone, oldPassword, nextPassword, confirmPassword)) {
+            var oldPassword = String((document.getElementById('rbtH5OldPwd') || {}).value || '');
+            var nextPassword = String((document.getElementById('rbtH5NewPwd') || {}).value || '');
+            var confirmPassword = String((document.getElementById('rbtH5ConfirmPwd') || {}).value || '');
+            if (window.RbtH5StoreLogin && window.RbtH5StoreLogin.changePassword(account.phone, oldPassword, nextPassword, confirmPassword)) {
                 screen = 'mine';
                 render();
             }
@@ -991,7 +991,7 @@
             render();
             return;
         }
-        var skuCard = event.target.closest('.rbf-h5-sku');
+        var skuCard = event.target.closest('.rbt-h5-sku');
         if (skuCard && !event.target.closest('[data-qty-box]') && !event.target.closest('input[type="checkbox"]')) {
             var skuBox = skuCard.querySelector('[data-sku]');
             if (skuBox) {
@@ -1091,14 +1091,14 @@
             render();
             return;
         }
-        if (logout && window.RbfH5StoreLogin) window.RbfH5StoreLogin.logout();
+        if (logout && window.RbtH5StoreLogin) window.RbtH5StoreLogin.logout();
     });
 
-    document.getElementById('rbfH5Sheet').addEventListener('click', function (event) {
+    document.getElementById('rbtH5Sheet').addEventListener('click', function (event) {
         if (event.target.closest('[data-close-sheet]')) closePlanSheet();
     });
 
-    document.getElementById('rbfH5Scroll').addEventListener('change', function (event) {
+    document.getElementById('rbtH5Scroll').addEventListener('change', function (event) {
         var qtyInput = event.target.closest('[data-qty-input]');
         if (qtyInput) {
             setQty(qtyInput.getAttribute('data-qty-input'), qtyInput.value);
@@ -1151,5 +1151,5 @@
         }
     });
 
-    window.RbfH5StoreApp = { open: open, close: close };
+    window.RbtH5StoreApp = { open: open, close: close };
 })();

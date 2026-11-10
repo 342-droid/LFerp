@@ -1,4 +1,4 @@
-/* RBF 待入驻贸易商详情抽屉：主体、联系人、证照信息与证照图片。 */
+/* RBT 待入驻贸易商详情抽屉：主体、联系人、证照信息与证照图片。 */
 (function () {
     function esc(value) {
         return String(value == null || value === '' ? '—' : value)
@@ -22,9 +22,9 @@
         var body;
         if (src) {
             body =
-                '<button type="button" class="mdm-onboard-photo" data-rbf-trader-photo="' +
+                '<button type="button" class="mdm-onboard-photo" data-rbt-trader-photo="' +
                 esc(src) +
-                '" data-rbf-trader-photo-title="' +
+                '" data-rbt-trader-photo-title="' +
                 esc(label) +
                 '" title="点击放大查看"><img src="' +
                 esc(src) +
@@ -54,7 +54,7 @@
     }
 
     function closeLightbox() {
-        document.querySelectorAll('[data-rbf-trader-lightbox]').forEach(function (node) {
+        document.querySelectorAll('[data-rbt-trader-lightbox]').forEach(function (node) {
             node.remove();
         });
     }
@@ -64,12 +64,12 @@
         closeLightbox();
         var backdrop = document.createElement('div');
         backdrop.className = 'erp-modal-backdrop erp-modal-backdrop--over-drawer mdm-photo-lightbox';
-        backdrop.setAttribute('data-rbf-trader-lightbox', '1');
+        backdrop.setAttribute('data-rbt-trader-lightbox', '1');
         backdrop.innerHTML =
             '<div class="mdm-photo-lightbox__box">' +
             '<div class="mdm-photo-lightbox__head"><div class="mdm-photo-lightbox__title">' +
             esc(title || '查看照片') +
-            '</div><button type="button" class="erp-modal__header-btn" data-rbf-trader-lightbox-close aria-label="关闭">&times;</button></div>' +
+            '</div><button type="button" class="erp-modal__header-btn" data-rbt-trader-lightbox-close aria-label="关闭">&times;</button></div>' +
             '<img class="mdm-photo-lightbox__img" src="' +
             esc(src) +
             '" alt="' +
@@ -80,12 +80,12 @@
         backdrop.addEventListener('click', function (event) {
             if (event.target === backdrop) closeLightbox();
         });
-        backdrop.querySelector('[data-rbf-trader-lightbox-close]').addEventListener('click', closeLightbox);
+        backdrop.querySelector('[data-rbt-trader-lightbox-close]').addEventListener('click', closeLightbox);
     }
 
     function closeDrawer() {
         closeLightbox();
-        document.querySelectorAll('[data-rbf-trader-drawer]').forEach(function (node) {
+        document.querySelectorAll('[data-rbt-trader-drawer]').forEach(function (node) {
             node.remove();
         });
         document.removeEventListener('keydown', onDrawerKey);
@@ -93,7 +93,7 @@
 
     function onDrawerKey(event) {
         if (event.key === 'Escape') {
-            if (document.querySelector('[data-rbf-trader-lightbox]')) closeLightbox();
+            if (document.querySelector('[data-rbt-trader-lightbox]')) closeLightbox();
             else closeDrawer();
         }
     }
@@ -105,16 +105,16 @@
         var permit = row.permit || {};
         var backdrop = document.createElement('div');
         backdrop.className = 'store-drawer-backdrop';
-        backdrop.setAttribute('data-rbf-trader-drawer', '1');
+        backdrop.setAttribute('data-rbt-trader-drawer', '1');
         var drawer = document.createElement('aside');
         drawer.className = 'store-drawer store-drawer--interactive store-drawer--store-wide';
-        drawer.setAttribute('data-rbf-trader-drawer', '1');
+        drawer.setAttribute('data-rbt-trader-drawer', '1');
         drawer.setAttribute('role', 'dialog');
         drawer.setAttribute('aria-modal', 'true');
         drawer.setAttribute('aria-label', '贸易商详情');
         drawer.innerHTML =
             '<div class="store-drawer__header"><h2 class="store-drawer__title">贸易商详情</h2>' +
-            '<button type="button" class="store-drawer__close" data-rbf-drawer-close aria-label="关闭">&times;</button></div>' +
+            '<button type="button" class="store-drawer__close" data-rbt-drawer-close aria-label="关闭">&times;</button></div>' +
             '<div class="store-drawer__hero store-drawer__hero--elevated">' +
             '<div class="store-drawer__name-row"><span class="store-drawer__name">' +
             esc(row.subjectName) +
@@ -128,13 +128,13 @@
             ' · 业务范围：' +
             esc(row.bizScope) +
             '</div></div>' +
-            '<div class="store-drawer__body" id="rbfTraderBody"></div>';
+            '<div class="store-drawer__body" id="rbtTraderBody"></div>';
         document.body.appendChild(backdrop);
         document.body.appendChild(drawer);
         backdrop.addEventListener('click', closeDrawer);
-        drawer.querySelector('[data-rbf-drawer-close]').addEventListener('click', closeDrawer);
+        drawer.querySelector('[data-rbt-drawer-close]').addEventListener('click', closeDrawer);
         document.addEventListener('keydown', onDrawerKey);
-        var quotaApi = window.RbfTraderData && window.RbfTraderData.quotaOf;
+        var quotaApi = window.RbtTraderData && window.RbtTraderData.quotaOf;
         var quota = quotaApi ? quotaApi(row) : null;
         var money = function (value) {
             if (value === undefined || value === null || value === '') return '—';
@@ -155,7 +155,7 @@
                         cell('可用额度', money(quota && quota.available))
                 )
                 : '';
-        document.getElementById('rbfTraderBody').innerHTML =
+        document.getElementById('rbtTraderBody').innerHTML =
             section(
                 '基础信息',
                 cell('主体名称', row.subjectName) +
@@ -193,11 +193,11 @@
                     cell('有效期至', permit.expire)
             );
         drawer.addEventListener('click', function (event) {
-            var button = event.target.closest('[data-rbf-trader-photo]');
+            var button = event.target.closest('[data-rbt-trader-photo]');
             if (!button) return;
-            openLightbox(button.getAttribute('data-rbf-trader-photo'), button.getAttribute('data-rbf-trader-photo-title'));
+            openLightbox(button.getAttribute('data-rbt-trader-photo'), button.getAttribute('data-rbt-trader-photo-title'));
         });
     }
 
-    window.RbfTraderDetail = { open: open };
+    window.RbtTraderDetail = { open: open };
 })();

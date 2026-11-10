@@ -1,4 +1,4 @@
-/* RBF 门店详情：对齐门店档案的基础信息、进件信息，不含收货信息、运营评估、商户进件 */
+/* RBT 门店详情：对齐门店档案的基础信息、进件信息，不含收货信息、运营评估、商户进件 */
 (function () {
     function esc(value) {
         return String(value == null || value === '' ? '—' : value)
@@ -43,7 +43,7 @@
             '<div class="supplier-detail-cell"><div class="supplier-detail-cell__label">' +
             esc(label) +
             '</div><div class="supplier-detail-cell__body"><div class="' +
-            (ready ? 'rbf-photo-ready' : 'rbf-photo-empty') +
+            (ready ? 'rbt-photo-ready' : 'rbt-photo-empty') +
             '">' +
             (ready ? '已上传' : '未上传') +
             '</div></div></div>'
@@ -63,7 +63,7 @@
     function tagList(code) {
         var ui = window.BusinessTagPrototypeUI;
         if (!ui || typeof ui.chipsHtml !== 'function') return '—';
-        return ui.chipsHtml('RBF_STORE', code);
+        return ui.chipsHtml('RBT_STORE', code);
     }
 
     function basicPanel(store) {
@@ -83,9 +83,9 @@
                     cell('事业线', store.bizLine) +
                     cell('品牌名称', store.brandName) +
                     cell('业务线', store.bizLines) +
-                    cell('RBF等级', store.rbfLevel) +
+                    cell('RBT等级', store.rbtLevel) +
                     tagCell('状态', store.enabled === false ? '禁用' : '启用') +
-                    '<div class="supplier-detail-cell"><div class="supplier-detail-cell__label">门店标签</div><div class="supplier-detail-cell__body" id="rbfBaseTags"></div></div>' +
+                    '<div class="supplier-detail-cell"><div class="supplier-detail-cell__label">门店标签</div><div class="supplier-detail-cell__body" id="rbtBaseTags"></div></div>' +
                     cell('绑定BD', store.bd) +
                     cell('配送仓库', store.warehouse) +
                     cell('省市区', region) +
@@ -163,12 +163,12 @@
     }
 
     function paintTags(store) {
-        var host = document.getElementById('rbfDetailTags');
+        var host = document.getElementById('rbtDetailTags');
         if (host) host.innerHTML = tagList(store.code);
     }
 
     function closeDrawer() {
-        document.querySelectorAll('[data-rbf-store-drawer]').forEach(function (node) {
+        document.querySelectorAll('[data-rbt-store-drawer]').forEach(function (node) {
             node.remove();
         });
         document.removeEventListener('keydown', onDrawerKey);
@@ -184,7 +184,7 @@
     function onTagsChanged() {
         if (!openedStore) return;
         paintTags(openedStore);
-        var tagHost = document.getElementById('rbfBaseTags');
+        var tagHost = document.getElementById('rbtBaseTags');
         if (tagHost) tagHost.innerHTML = tagList(openedStore.code);
     }
 
@@ -194,29 +194,29 @@
         openedStore = store;
         var backdrop = document.createElement('div');
         backdrop.className = 'store-drawer-backdrop';
-        backdrop.setAttribute('data-rbf-store-drawer', '1');
+        backdrop.setAttribute('data-rbt-store-drawer', '1');
         var drawer = document.createElement('aside');
         drawer.className = 'store-drawer store-drawer--interactive store-drawer--store-wide';
-        drawer.setAttribute('data-rbf-store-drawer', '1');
+        drawer.setAttribute('data-rbt-store-drawer', '1');
         drawer.setAttribute('role', 'dialog');
         drawer.setAttribute('aria-modal', 'true');
         drawer.setAttribute('aria-label', '门店详情');
         drawer.innerHTML =
             '<div class="store-drawer__header"><h2 class="store-drawer__title">门店详情</h2>' +
-            '<button type="button" class="store-drawer__close" data-rbf-drawer-close aria-label="关闭">&times;</button></div>' +
-            '<div class="store-drawer__hero store-drawer__hero--elevated" id="rbfStoreHero"></div>' +
-            '<div class="store-drawer__tabs store-drawer__tabs--sticky" id="rbfStoreTabs"></div>' +
-            '<div class="store-drawer__body" id="rbfStoreBody"></div>';
+            '<button type="button" class="store-drawer__close" data-rbt-drawer-close aria-label="关闭">&times;</button></div>' +
+            '<div class="store-drawer__hero store-drawer__hero--elevated" id="rbtStoreHero"></div>' +
+            '<div class="store-drawer__tabs store-drawer__tabs--sticky" id="rbtStoreTabs"></div>' +
+            '<div class="store-drawer__body" id="rbtStoreBody"></div>';
         document.body.appendChild(backdrop);
         document.body.appendChild(drawer);
         backdrop.addEventListener('click', closeDrawer);
-        drawer.querySelector('[data-rbf-drawer-close]').addEventListener('click', closeDrawer);
+        drawer.querySelector('[data-rbt-drawer-close]').addEventListener('click', closeDrawer);
         document.addEventListener('keydown', onDrawerKey);
         window.addEventListener('business-tags:changed', onTagsChanged);
 
-        var hero = document.getElementById('rbfStoreHero');
-        var tabs = document.getElementById('rbfStoreTabs');
-        var body = document.getElementById('rbfStoreBody');
+        var hero = document.getElementById('rbtStoreHero');
+        var tabs = document.getElementById('rbtStoreTabs');
+        var body = document.getElementById('rbtStoreBody');
         var kind = statusKind(store.storeStatus);
         hero.innerHTML =
             '<div class="store-drawer__name-row"><span class="store-drawer__name">' +
@@ -227,15 +227,15 @@
             esc(store.storeStatus === '正常' ? '门店正常' : store.storeStatus) +
             '</span><span class="store-drawer__tag store-drawer__tag--gray">' +
             esc(store.opStatus) +
-            '</span><span class="store-drawer__tag store-drawer__tag--gray">RBF ' +
-            esc(store.rbfLevel) +
+            '</span><span class="store-drawer__tag store-drawer__tag--gray">RBT ' +
+            esc(store.rbtLevel) +
             '</span></div>' +
             '<div class="store-drawer__meta">门店编码：' +
             esc(store.code) +
             ' · 所属组织：' +
             esc(store.subjectName) +
             '</div>' +
-            '<div class="store-drawer__meta" id="rbfDetailTags"></div>';
+            '<div class="store-drawer__meta" id="rbtDetailTags"></div>';
         paintTags(store);
         var panels = {
             base: basicPanel(store),
@@ -249,7 +249,7 @@
                 button.classList.toggle('is-active', button.getAttribute('data-tab') === id);
             });
             body.innerHTML = panels[id];
-            var tagHost = document.getElementById('rbfBaseTags');
+            var tagHost = document.getElementById('rbtBaseTags');
             if (tagHost) tagHost.innerHTML = tagList(store.code);
         }
         tabs.addEventListener('click', function (event) {
@@ -260,5 +260,5 @@
         show('base');
     }
 
-    window.RbfStoreDetail = { open: open };
+    window.RbtStoreDetail = { open: open };
 })();

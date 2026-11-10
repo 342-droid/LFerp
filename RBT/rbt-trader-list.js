@@ -1,10 +1,10 @@
-/* RBF 贸易商管理：待入驻（待审核/已驳回）与已入驻（已审核）两套列表。 */
+/* RBT 贸易商管理：待入驻（待审核/已驳回）与已入驻（已审核）两套列表。 */
 (function () {
-    var dataApi = window.RbfTraderData;
+    var dataApi = window.RbtTraderData;
     var Vue = OctopusPrototype.Vue;
     var ref = Vue.ref;
     var ElMessage = OctopusPrototype.ElementPlus.ElMessage;
-    var CHANGE_EVENT = 'rbf-trader:changed';
+    var CHANGE_EVENT = 'rbt-trader:changed';
     var PENDING_STATUSES = ['待审核', '已驳回'];
     var SETTLED_STATUSES = ['已审核'];
 
@@ -207,7 +207,7 @@
             })[0];
         }
         if (!item && row && row.subjectName) item = row;
-        if (item && window.RbfTraderDetail) window.RbfTraderDetail.open(item);
+        if (item && window.RbtTraderDetail) window.RbtTraderDetail.open(item);
     }
 
     function notifyChanged() {
@@ -339,7 +339,7 @@
                     statusTagType: statusTagType
                 };
             }
-        }, '#rbfTraderPendingApp', {
+        }, '#rbtTraderPendingApp', {
             services: {},
             warehouse: { warehouseId: 'demo', warehouseCode: 'DEMO', warehouseName: '演示仓库' },
             permissions: [],
@@ -372,7 +372,7 @@
                     statusTagType: statusTagType
                 };
             }
-        }, '#rbfTraderSettledApp', {
+        }, '#rbtTraderSettledApp', {
             services: {},
             warehouse: { warehouseId: 'demo', warehouseCode: 'DEMO', warehouseName: '演示仓库' },
             permissions: [],
@@ -380,6 +380,6 @@
         });
     }
 
-    if (document.getElementById('rbfTraderPendingApp')) mountPending();
-    if (document.getElementById('rbfTraderSettledApp')) mountSettled();
+    if (document.getElementById('rbtTraderPendingApp')) mountPending();
+    if (document.getElementById('rbtTraderSettledApp')) mountSettled();
 })();

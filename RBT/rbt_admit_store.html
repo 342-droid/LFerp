@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>冷丰RBF - 门店管理</title>
+    <title>冷丰RBT - 门店管理</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
@@ -12,13 +12,13 @@
     <link rel="stylesheet" href="../vendor/octopus-prototype-runtime/theme.css">
     <style>
         [v-cloak] { display: none; }
-        .rbf-store-schema-host { min-height: 480px; }
+        .rbt-store-schema-host { min-height: 480px; }
     </style>
 </head>
 <body>
     <div id="sidebar-container"></div>
     <script src="../js/path-prefix.js"></script>
-    <script src="rbf-sidebar.js"></script>
+    <script src="rbt-sidebar.js"></script>
 
     <div id="header-container"></div>
 
@@ -27,7 +27,7 @@
             <div class="content-tabs"><button type="button" class="active">门店管理</button></div>
             <hr class="content-divider">
 
-            <div id="rbfStoreApp" class="rbf-store-schema-host" v-cloak>
+            <div id="rbtStoreApp" class="rbt-store-schema-host" v-cloak>
                 <vab-schema-table
                     ref="table"
                     :columns="columns"
@@ -110,13 +110,13 @@
         </main>
     </div>
 
-    <script src="rbf-fresh.js"></script>
+    <script src="rbt-fresh.js"></script>
     <script src="../js/common.js"></script>
     <script src="../js/business-tag-prototype-store.js"></script>
     <script src="../js/business-tag-prototype-ui.js"></script>
-    <script src="rbf-store-data.js"></script>
-    <script src="rbf-store-detail.js"></script>
+    <script src="rbt-store-data.js"></script>
+    <script src="rbt-store-detail.js"></script>
     <script src="../vendor/octopus-prototype-runtime/runtime.js"></script>
-    <script src="rbf-store-list.js"></script>
+    <script src="rbt-store-list.js"></script>
 </body>
 </html>

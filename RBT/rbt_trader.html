@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>冷丰RBF - 贸易商管理</title>
+    <title>冷丰RBT - 贸易商管理</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
@@ -11,17 +11,17 @@
     <link rel="stylesheet" href="../vendor/octopus-prototype-runtime/theme.css">
     <style>
         [v-cloak] { display: none; }
-        .rbf-trader-panel { display: none; }
-        .rbf-trader-panel.is-active { display: block; }
-        .rbf-trader-schema-host { min-height: 480px; }
-        .rbf-trader-money {
+        .rbt-trader-panel { display: none; }
+        .rbt-trader-panel.is-active { display: block; }
+        .rbt-trader-schema-host { min-height: 480px; }
+        .rbt-trader-money {
             display: flex;
             align-items: center;
             gap: 8px;
             width: 100%;
         }
-        .rbf-trader-money .el-input { flex: 1; min-width: 0; }
-        .rbf-trader-money__unit {
+        .rbt-trader-money .el-input { flex: 1; min-width: 0; }
+        .rbt-trader-money__unit {
             flex: none;
             color: #606266;
             font-size: 13px;
@@ -31,20 +31,20 @@
 <body>
     <div id="sidebar-container"></div>
     <script src="../js/path-prefix.js"></script>
-    <script src="rbf-sidebar.js"></script>
+    <script src="rbt-sidebar.js"></script>
 
     <div id="header-container"></div>
 
     <div class="container">
         <main class="main-content">
-            <div class="content-tabs" id="rbfTraderTabs">
+            <div class="content-tabs" id="rbtTraderTabs">
                 <button type="button" class="active" data-trader-tab="pending">待入驻贸易商</button>
                 <button type="button" data-trader-tab="settled">已入驻贸易商</button>
             </div>
             <hr class="content-divider">
 
-            <div class="rbf-trader-panel is-active" data-trader-panel="pending">
-                <div id="rbfTraderPendingApp" class="rbf-trader-schema-host" v-cloak>
+            <div class="rbt-trader-panel is-active" data-trader-panel="pending">
+                <div id="rbtTraderPendingApp" class="rbt-trader-schema-host" v-cloak>
                     <vab-schema-table
                         ref="table"
                         :columns="columns"
@@ -78,22 +78,22 @@
                         add-success-message="审核通过，已进入已入驻贸易商"
                         @saved="onAuditSaved">
                         <template #form-orderquota="{form}">
-                            <div class="rbf-trader-money">
+                            <div class="rbt-trader-money">
                                 <el-input
                                     :model-value="form.orderquota"
                                     placeholder="请输入接单总额度"
                                     clearable
                                     @input="onQuotaInput(form, $event)">
                                 </el-input>
-                                <span class="rbf-trader-money__unit">元</span>
+                                <span class="rbt-trader-money__unit">元</span>
                             </div>
                         </template>
                     </vab-schema-form-dialog>
                 </div>
             </div>
 
-            <div class="rbf-trader-panel" data-trader-panel="settled">
-                <div id="rbfTraderSettledApp" class="rbf-trader-schema-host" v-cloak>
+            <div class="rbt-trader-panel" data-trader-panel="settled">
+                <div id="rbtTraderSettledApp" class="rbt-trader-schema-host" v-cloak>
                     <vab-schema-table
                         ref="table"
                         :columns="columns"
@@ -115,15 +115,15 @@
         </main>
     </div>
 
-    <script src="rbf-fresh.js"></script>
+    <script src="rbt-fresh.js"></script>
     <script src="../js/common.js"></script>
-    <script src="rbf-trader-data.js"></script>
-    <script src="rbf-trader-detail.js"></script>
+    <script src="rbt-trader-data.js"></script>
+    <script src="rbt-trader-detail.js"></script>
     <script src="../vendor/octopus-prototype-runtime/runtime.js"></script>
-    <script src="rbf-trader-list.js"></script>
+    <script src="rbt-trader-list.js"></script>
     <script>
     (function () {
-        var tabs = document.getElementById('rbfTraderTabs');
+        var tabs = document.getElementById('rbtTraderTabs');
         if (!tabs) return;
         tabs.addEventListener('click', function (event) {
             var button = event.target.closest('button[data-trader-tab]');
@@ -135,7 +135,7 @@
             document.querySelectorAll('[data-trader-panel]').forEach(function (panel) {
                 panel.classList.toggle('is-active', panel.getAttribute('data-trader-panel') === key);
             });
-            window.dispatchEvent(new CustomEvent('rbf-trader:changed'));
+            window.dispatchEvent(new CustomEvent('rbt-trader:changed'));
         });
     })();
     </script>

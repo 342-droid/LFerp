@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>冷丰RBF-H5 - 贸易商端</title>
+    <title>冷丰RBT-H5 - 贸易商端</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <style>
-        .rbf-h5-store-stage {
+        .rbt-h5-store-stage {
             min-height: calc(100vh - 88px);
             display: flex;
             justify-content: center;
@@ -15,7 +15,7 @@
             padding: 16px 0 28px;
             background: #f5f5f5;
         }
-        .rbf-h5-phone {
+        .rbt-h5-phone {
             width: 393px;
             height: 851px;
             background: #fff;
@@ -27,56 +27,56 @@
             flex-direction: column;
             position: relative;
         }
-        .rbf-h5-phone__head {
+        .rbt-h5-phone__head {
             padding: 32px 24px 16px;
             background: #ff7019;
             color: #fff;
         }
-        .rbf-h5-phone__head h1 {
+        .rbt-h5-phone__head h1 {
             margin: 0;
             font-size: 26px;
             font-weight: 600;
         }
-        .rbf-h5-phone__head p {
+        .rbt-h5-phone__head p {
             margin: 8px 0 0;
             font-size: 14px;
             opacity: 0.92;
         }
-        .rbf-h5-phone__body {
+        .rbt-h5-phone__body {
             flex: 1;
             min-height: 0;
             padding: 20px 24px 24px;
             display: flex;
             flex-direction: column;
         }
-        .rbf-h5-phone.is-app .rbf-h5-phone__head { padding: 28px 16px 14px; }
-        .rbf-h5-phone.is-app .rbf-h5-phone__head h1 { font-size: 20px; }
-        .rbf-h5-phone.is-app .rbf-h5-phone__body { padding: 0; }
-        .rbf-h5-login-form,
-        .rbf-h5-register {
+        .rbt-h5-phone.is-app .rbt-h5-phone__head { padding: 28px 16px 14px; }
+        .rbt-h5-phone.is-app .rbt-h5-phone__head h1 { font-size: 20px; }
+        .rbt-h5-phone.is-app .rbt-h5-phone__body { padding: 0; }
+        .rbt-h5-login-form,
+        .rbt-h5-register {
             display: none;
             flex: 1;
             min-height: 0;
             overflow: auto;
         }
-        .rbf-h5-app {
+        .rbt-h5-app {
             display: none;
             flex: 1;
             min-height: 0;
             flex-direction: column;
             background: #f7f7f7;
         }
-        .rbf-h5-phone.is-login .rbf-h5-login-form,
-        .rbf-h5-phone.is-register .rbf-h5-register { display: block; }
-        .rbf-h5-phone.is-app .rbf-h5-app { display: flex; }
-        .rbf-h5-scroll { flex: 1; min-height: 0; overflow: auto; padding: 12px 12px 16px; }
-        .rbf-h5-tabbar {
+        .rbt-h5-phone.is-login .rbt-h5-login-form,
+        .rbt-h5-phone.is-register .rbt-h5-register { display: block; }
+        .rbt-h5-phone.is-app .rbt-h5-app { display: flex; }
+        .rbt-h5-scroll { flex: 1; min-height: 0; overflow: auto; padding: 12px 12px 16px; }
+        .rbt-h5-tabbar {
             flex: 0 0 56px;
             display: flex;
             border-top: 1px solid #eee;
             background: #fff;
         }
-        .rbf-h5-tabbar button {
+        .rbt-h5-tabbar button {
             flex: 1;
             border: 0;
             background: transparent;
@@ -84,22 +84,22 @@
             font-size: 14px;
             cursor: pointer;
         }
-        .rbf-h5-tabbar button.is-on { color: #ff7019; font-weight: 600; }
-        .rbf-h5-empty { padding: 48px 12px; text-align: center; color: #999; font-size: 14px; }
-        .rbf-h5-card {
+        .rbt-h5-tabbar button.is-on { color: #ff7019; font-weight: 600; }
+        .rbt-h5-empty { padding: 48px 12px; text-align: center; color: #999; font-size: 14px; }
+        .rbt-h5-card {
             margin-bottom: 10px;
             padding: 12px;
             border-radius: 10px;
             background: #fff;
             border: 1px solid #eee;
         }
-        .rbf-h5-bar {
+        .rbt-h5-bar {
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-bottom: 12px;
         }
-        .rbf-h5-back {
+        .rbt-h5-back {
             border: 0;
             background: transparent;
             color: #ff7019;
@@ -107,7 +107,7 @@
             cursor: pointer;
             padding: 0;
         }
-        .rbf-h5-primary {
+        .rbt-h5-primary {
             height: 40px;
             padding: 0 14px;
             border: 0;
@@ -117,8 +117,8 @@
             font-size: 14px;
             cursor: pointer;
         }
-        .rbf-h5-publish { width: 100%; height: 44px; }
-        .rbf-h5-login-tabs {
+        .rbt-h5-publish { width: 100%; height: 44px; }
+        .rbt-h5-login-tabs {
             display: flex;
             margin-bottom: 16px;
             border: 1px solid #ffe0cc;
@@ -126,7 +126,7 @@
             overflow: hidden;
             background: #fff7f2;
         }
-        .rbf-h5-login-tabs button {
+        .rbt-h5-login-tabs button {
             flex: 1;
             height: 40px;
             border: 0;
@@ -135,16 +135,16 @@
             font-size: 14px;
             cursor: pointer;
         }
-        .rbf-h5-login-tabs button.is-on {
+        .rbt-h5-login-tabs button.is-on {
             background: #ff7019;
             color: #fff;
             font-weight: 600;
         }
-        .rbf-h5-phone.is-pwd [data-mode-field="code"],
-        .rbf-h5-phone.is-pwd [data-mode-tip="code"] { display: none; }
-        .rbf-h5-phone:not(.is-pwd) [data-mode-field="password"],
-        .rbf-h5-phone:not(.is-pwd) [data-mode-tip="password"] { display: none; }
-        .rbf-h5-action {
+        .rbt-h5-phone.is-pwd [data-mode-field="code"],
+        .rbt-h5-phone.is-pwd [data-mode-tip="code"] { display: none; }
+        .rbt-h5-phone:not(.is-pwd) [data-mode-field="password"],
+        .rbt-h5-phone:not(.is-pwd) [data-mode-tip="password"] { display: none; }
+        .rbt-h5-action {
             width: 100%;
             margin-top: 12px;
             height: 44px;
@@ -155,25 +155,25 @@
             font-size: 15px;
             cursor: pointer;
         }
-        .rbf-h5-accounts { margin-top: 16px; }
-        .rbf-h5-accounts h2 {
+        .rbt-h5-accounts { margin-top: 16px; }
+        .rbt-h5-accounts h2 {
             margin: 0 0 8px;
             color: #333;
             font-size: 14px;
         }
-        .rbf-h5-account {
+        .rbt-h5-account {
             margin-bottom: 6px;
             padding: 6px 10px;
             border: 1px solid #f0f0f0;
             border-radius: 8px;
             background: #fafafa;
         }
-        .rbf-h5-account strong {
+        .rbt-h5-account strong {
             display: block;
             color: #222;
             font-size: 13px;
         }
-        .rbf-h5-account button {
+        .rbt-h5-account button {
             display: block;
             width: 100%;
             margin-top: 2px;
@@ -186,19 +186,19 @@
             text-align: left;
             cursor: pointer;
         }
-        .rbf-h5-account button b {
+        .rbt-h5-account button b {
             color: #ff7019;
             font-weight: 600;
         }
-        .rbf-h5-field { margin-bottom: 12px; }
-        .rbf-h5-field label {
+        .rbt-h5-field { margin-bottom: 12px; }
+        .rbt-h5-field label {
             display: block;
             margin-bottom: 8px;
             color: #333;
             font-size: 14px;
         }
-        .rbf-h5-field input,
-        .rbf-h5-field textarea {
+        .rbt-h5-field input,
+        .rbt-h5-field textarea {
             width: 100%;
             height: 44px;
             padding: 0 14px;
@@ -209,14 +209,14 @@
             background: #fff;
             color: #222;
         }
-        .rbf-h5-field textarea {
+        .rbt-h5-field textarea {
             height: 72px;
             padding: 8px 14px;
             resize: none;
             line-height: 1.5;
             font-family: inherit;
         }
-        .rbf-h5-field select {
+        .rbt-h5-field select {
             width: 100%;
             height: 44px;
             padding: 0 36px 0 14px;
@@ -228,16 +228,16 @@
             background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23999' d='M1 1l5 5 5-5'/%3E%3C/svg%3E") no-repeat right 14px center;
             appearance: none;
         }
-        .rbf-h5-field select.is-empty { color: #bbb; }
-        .rbf-h5-field input:focus,
-        .rbf-h5-field textarea:focus,
-        .rbf-h5-field select:focus {
+        .rbt-h5-field select.is-empty { color: #bbb; }
+        .rbt-h5-field input:focus,
+        .rbt-h5-field textarea:focus,
+        .rbt-h5-field select:focus {
             outline: none;
             border-color: #ff7019;
         }
-        .rbf-h5-code { display: flex; gap: 8px; }
-        .rbf-h5-code input { flex: 1; }
-        .rbf-h5-sms {
+        .rbt-h5-code { display: flex; gap: 8px; }
+        .rbt-h5-code input { flex: 1; }
+        .rbt-h5-sms {
             flex: 0 0 112px;
             height: 44px;
             border: 1px solid #ff7019;
@@ -247,18 +247,18 @@
             font-size: 14px;
             cursor: pointer;
         }
-        .rbf-h5-sms:disabled {
+        .rbt-h5-sms:disabled {
             border-color: #ddd;
             color: #999;
             cursor: not-allowed;
         }
-        .rbf-h5-tip {
+        .rbt-h5-tip {
             margin: 0 0 12px;
             color: #888;
             font-size: 12px;
             line-height: 1.6;
         }
-        .rbf-h5-login {
+        .rbt-h5-login {
             width: 100%;
             height: 46px;
             border: 0;
@@ -268,8 +268,8 @@
             font-size: 16px;
             cursor: pointer;
         }
-        .rbf-h5-switch,
-        .rbf-h5-back {
+        .rbt-h5-switch,
+        .rbt-h5-back {
             display: block;
             width: 100%;
             margin-top: 16px;
@@ -281,19 +281,19 @@
             text-align: center;
             cursor: pointer;
         }
-        .rbf-h5-back { margin: 0 0 16px; text-align: left; }
-        .rbf-h5-section {
+        .rbt-h5-back { margin: 0 0 16px; text-align: left; }
+        .rbt-h5-section {
             margin: 8px 0 8px;
             color: #222;
             font-size: 15px;
             font-weight: 600;
         }
-        .rbf-h5-upload {
+        .rbt-h5-upload {
             display: flex;
             gap: 8px;
             margin-bottom: 10px;
         }
-        .rbf-h5-upload__pick {
+        .rbt-h5-upload__pick {
             position: relative;
             flex: 1;
             min-height: 72px;
@@ -311,17 +311,17 @@
             cursor: pointer;
             word-break: break-all;
         }
-        .rbf-h5-upload__pick input {
+        .rbt-h5-upload__pick input {
             position: absolute;
             inset: 0;
             opacity: 0;
             cursor: pointer;
         }
-        .rbf-h5-upload__pick.is-done {
+        .rbt-h5-upload__pick.is-done {
             border-style: solid;
             border-color: #ff7019;
         }
-        .rbf-h5-upload__demo {
+        .rbt-h5-upload__demo {
             flex: 0 0 88px;
             border: 1px solid #ff7019;
             border-radius: 8px;
@@ -330,37 +330,37 @@
             font-size: 13px;
             cursor: pointer;
         }
-        .rbf-h5-ocr {
+        .rbt-h5-ocr {
             margin: 0 0 16px;
             padding: 12px;
             border: 1px solid #f0f0f0;
             border-radius: 8px;
             background: #fafafa;
         }
-        .rbf-h5-ocr[hidden] { display: none; }
-        .rbf-h5-ocr h2 {
+        .rbt-h5-ocr[hidden] { display: none; }
+        .rbt-h5-ocr h2 {
             margin: 0 0 10px;
             color: #ff7019;
             font-size: 13px;
             font-weight: 600;
         }
-        .rbf-h5-ocr .rbf-h5-field { margin-bottom: 8px; }
-        .rbf-h5-ocr .rbf-h5-field label { margin-bottom: 4px; font-size: 12px; color: #666; }
-        .rbf-h5-ocr input,
-        .rbf-h5-ocr textarea {
+        .rbt-h5-ocr .rbt-h5-field { margin-bottom: 8px; }
+        .rbt-h5-ocr .rbt-h5-field label { margin-bottom: 4px; font-size: 12px; color: #666; }
+        .rbt-h5-ocr input,
+        .rbt-h5-ocr textarea {
             height: 36px;
             font-size: 14px;
             background: #fff;
         }
-        .rbf-h5-mine h2 { margin: 8px 0 0; font-size: 22px; color: #222; }
-        .rbf-h5-mine p {
+        .rbt-h5-mine h2 { margin: 8px 0 0; font-size: 22px; color: #222; }
+        .rbt-h5-mine p {
             margin: 12px 0 0;
             color: #666;
             font-size: 14px;
             line-height: 1.8;
             white-space: pre-line;
         }
-        .rbf-h5-logout {
+        .rbt-h5-logout {
             width: 100%;
             margin-top: 24px;
             height: 44px;
@@ -371,7 +371,7 @@
             font-size: 15px;
             cursor: pointer;
         }
-        .rbf-h5-toast {
+        .rbt-h5-toast {
             position: absolute;
             top: 108px;
             left: 24px;
@@ -388,67 +388,67 @@
             transition: opacity 0.2s;
             z-index: 30;
         }
-        .rbf-h5-toast.is-on { opacity: 1; }
+        .rbt-h5-toast.is-on { opacity: 1; }
     </style>
 </head>
 <body>
     <div id="sidebar-container"></div>
     <script src="../js/path-prefix.js"></script>
-    <script src="rbf-h5-sidebar.js"></script>
+    <script src="rbt-h5-sidebar.js"></script>
     <div id="header-container"></div>
     <div class="container">
         <main class="main-content">
-            <div class="rbf-h5-store-stage">
-                <section class="rbf-h5-phone is-login" id="rbfH5Phone" aria-label="贸易商端">
-                    <div class="rbf-h5-toast" id="rbfH5Toast" role="status"></div>
-                    <div class="rbf-h5-phone__head">
+            <div class="rbt-h5-store-stage">
+                <section class="rbt-h5-phone is-login" id="rbtH5Phone" aria-label="贸易商端">
+                    <div class="rbt-h5-toast" id="rbtH5Toast" role="status"></div>
+                    <div class="rbt-h5-phone__head">
                         <h1>贸易商端</h1>
-                        <p id="rbfH5HeadText">验证码登录</p>
+                        <p id="rbtH5HeadText">验证码登录</p>
                     </div>
-                    <div class="rbf-h5-phone__body">
-                        <form class="rbf-h5-login-form" id="rbfH5LoginForm">
-                            <div class="rbf-h5-login-tabs" role="tablist">
+                    <div class="rbt-h5-phone__body">
+                        <form class="rbt-h5-login-form" id="rbtH5LoginForm">
+                            <div class="rbt-h5-login-tabs" role="tablist">
                                 <button type="button" data-login-mode="code" class="is-on">验证码登录</button>
                                 <button type="button" data-login-mode="password">密码登录</button>
                             </div>
-                            <div class="rbf-h5-field">
-                                <label for="rbfH5LoginPhone">手机号</label>
-                                <input id="rbfH5LoginPhone" data-phone="login" type="tel" inputmode="numeric" maxlength="11" placeholder="请输入手机号" autocomplete="tel">
+                            <div class="rbt-h5-field">
+                                <label for="rbtH5LoginPhone">手机号</label>
+                                <input id="rbtH5LoginPhone" data-phone="login" type="tel" inputmode="numeric" maxlength="11" placeholder="请输入手机号" autocomplete="tel">
                             </div>
-                            <div class="rbf-h5-field" data-mode-field="code">
-                                <label for="rbfH5LoginCode">验证码</label>
-                                <div class="rbf-h5-code">
-                                    <input id="rbfH5LoginCode" data-code="login" type="text" inputmode="numeric" maxlength="6" placeholder="请输入验证码" autocomplete="one-time-code">
-                                    <button type="button" class="rbf-h5-sms" data-sms="login">获取验证码</button>
+                            <div class="rbt-h5-field" data-mode-field="code">
+                                <label for="rbtH5LoginCode">验证码</label>
+                                <div class="rbt-h5-code">
+                                    <input id="rbtH5LoginCode" data-code="login" type="text" inputmode="numeric" maxlength="6" placeholder="请输入验证码" autocomplete="one-time-code">
+                                    <button type="button" class="rbt-h5-sms" data-sms="login">获取验证码</button>
                                 </div>
                             </div>
-                            <div class="rbf-h5-field" data-mode-field="password">
-                                <label for="rbfH5LoginPassword">密码</label>
-                                <input id="rbfH5LoginPassword" data-password="login" type="password" maxlength="32" placeholder="请输入密码" autocomplete="current-password">
+                            <div class="rbt-h5-field" data-mode-field="password">
+                                <label for="rbtH5LoginPassword">密码</label>
+                                <input id="rbtH5LoginPassword" data-password="login" type="password" maxlength="32" placeholder="请输入密码" autocomplete="current-password">
                             </div>
-                            <p class="rbf-h5-tip" data-mode-tip="code">演示验证码 123456。点击下方手机号可填入。注册提交后需等待审核通过方可登录。</p>
-                            <p class="rbf-h5-tip" data-mode-tip="password">演示密码 123456。点击下方手机号可填入。注册提交后需等待审核通过方可登录。</p>
-                            <button type="submit" class="rbf-h5-login">登录</button>
-                            <button type="button" class="rbf-h5-switch" data-go-register>没有账号，去注册</button>
-                            <section class="rbf-h5-accounts" id="rbfH5Accounts" aria-label="可登录账号"></section>
+                            <p class="rbt-h5-tip" data-mode-tip="code">演示验证码 123456。点击下方手机号可填入。注册提交后需等待审核通过方可登录。</p>
+                            <p class="rbt-h5-tip" data-mode-tip="password">演示密码 123456。点击下方手机号可填入。注册提交后需等待审核通过方可登录。</p>
+                            <button type="submit" class="rbt-h5-login">登录</button>
+                            <button type="button" class="rbt-h5-switch" data-go-register>没有账号，去注册</button>
+                            <section class="rbt-h5-accounts" id="rbtH5Accounts" aria-label="可登录账号"></section>
                         </form>
-                        <form class="rbf-h5-register" id="rbfH5RegisterForm">
-                            <button type="button" class="rbf-h5-back" data-go-login>返回登录</button>
-                            <div class="rbf-h5-section">联系人</div>
-                            <div class="rbf-h5-field">
-                                <label for="rbfH5RegPhone">手机号</label>
-                                <input id="rbfH5RegPhone" data-phone="register" type="tel" inputmode="numeric" maxlength="11" placeholder="请输入手机号" autocomplete="tel">
+                        <form class="rbt-h5-register" id="rbtH5RegisterForm">
+                            <button type="button" class="rbt-h5-back" data-go-login>返回登录</button>
+                            <div class="rbt-h5-section">联系人</div>
+                            <div class="rbt-h5-field">
+                                <label for="rbtH5RegPhone">手机号</label>
+                                <input id="rbtH5RegPhone" data-phone="register" type="tel" inputmode="numeric" maxlength="11" placeholder="请输入手机号" autocomplete="tel">
                             </div>
-                            <div class="rbf-h5-field">
-                                <label for="rbfH5RegCode">验证码</label>
-                                <div class="rbf-h5-code">
-                                    <input id="rbfH5RegCode" data-code="register" type="text" inputmode="numeric" maxlength="6" placeholder="请输入验证码" autocomplete="one-time-code">
-                                    <button type="button" class="rbf-h5-sms" data-sms="register">获取验证码</button>
+                            <div class="rbt-h5-field">
+                                <label for="rbtH5RegCode">验证码</label>
+                                <div class="rbt-h5-code">
+                                    <input id="rbtH5RegCode" data-code="register" type="text" inputmode="numeric" maxlength="6" placeholder="请输入验证码" autocomplete="one-time-code">
+                                    <button type="button" class="rbt-h5-sms" data-sms="register">获取验证码</button>
                                 </div>
                             </div>
-                            <div class="rbf-h5-field">
-                                <label for="rbfH5LicenseType">牌照类型</label>
-                                <select id="rbfH5LicenseType" data-license-type class="is-empty">
+                            <div class="rbt-h5-field">
+                                <label for="rbtH5LicenseType">牌照类型</label>
+                                <select id="rbtH5LicenseType" data-license-type class="is-empty">
                                     <option value="">请选择</option>
                                     <option>商业保理公司</option>
                                     <option>融资租赁公司</option>
@@ -456,57 +456,57 @@
                                     <option>地方金融组织</option>
                                 </select>
                             </div>
-                            <div class="rbf-h5-field">
-                                <label for="rbfH5BizScope">业务范围</label>
-                                <select id="rbfH5BizScope" data-biz-scope class="is-empty">
+                            <div class="rbt-h5-field">
+                                <label for="rbtH5BizScope">业务范围</label>
+                                <select id="rbtH5BizScope" data-biz-scope class="is-empty">
                                     <option value="">请选择</option>
                                     <option>保理</option>
                                     <option>融资租赁</option>
                                     <option>其他</option>
                                 </select>
                             </div>
-                            <div class="rbf-h5-section">营业执照</div>
-                            <div class="rbf-h5-upload">
-                                <label class="rbf-h5-upload__pick" data-upload="license">
+                            <div class="rbt-h5-section">营业执照</div>
+                            <div class="rbt-h5-upload">
+                                <label class="rbt-h5-upload__pick" data-upload="license">
                                     <span data-upload-text>上传营业执照</span>
                                     <input data-file="license" type="file" accept="image/*">
                                 </label>
-                                <button type="button" class="rbf-h5-upload__demo" data-demo="license">示例识别</button>
+                                <button type="button" class="rbt-h5-upload__demo" data-demo="license">示例识别</button>
                             </div>
-                            <div class="rbf-h5-ocr" data-ocr-result="license" hidden>
+                            <div class="rbt-h5-ocr" data-ocr-result="license" hidden>
                                 <h2>识别结果（示例）</h2>
-                                <div class="rbf-h5-field"><label>名称</label><input data-ocr="name" readonly></div>
-                                <div class="rbf-h5-field"><label>统一社会信用代码</label><input data-ocr="creditCode" readonly></div>
-                                <div class="rbf-h5-field"><label>类型</label><input data-ocr="type" readonly></div>
-                                <div class="rbf-h5-field"><label>法定代表人</label><input data-ocr="legal" readonly></div>
-                                <div class="rbf-h5-field"><label>注册资本</label><input data-ocr="capital" readonly></div>
-                                <div class="rbf-h5-field"><label>成立日期</label><input data-ocr="founded" readonly></div>
-                                <div class="rbf-h5-field"><label>住所</label><input data-ocr="address" readonly></div>
-                                <div class="rbf-h5-field"><label>经营范围</label><textarea data-ocr="scope" readonly></textarea></div>
+                                <div class="rbt-h5-field"><label>名称</label><input data-ocr="name" readonly></div>
+                                <div class="rbt-h5-field"><label>统一社会信用代码</label><input data-ocr="creditCode" readonly></div>
+                                <div class="rbt-h5-field"><label>类型</label><input data-ocr="type" readonly></div>
+                                <div class="rbt-h5-field"><label>法定代表人</label><input data-ocr="legal" readonly></div>
+                                <div class="rbt-h5-field"><label>注册资本</label><input data-ocr="capital" readonly></div>
+                                <div class="rbt-h5-field"><label>成立日期</label><input data-ocr="founded" readonly></div>
+                                <div class="rbt-h5-field"><label>住所</label><input data-ocr="address" readonly></div>
+                                <div class="rbt-h5-field"><label>经营范围</label><textarea data-ocr="scope" readonly></textarea></div>
                             </div>
-                            <div class="rbf-h5-section">经营许可证</div>
-                            <div class="rbf-h5-upload">
-                                <label class="rbf-h5-upload__pick" data-upload="permit">
+                            <div class="rbt-h5-section">经营许可证</div>
+                            <div class="rbt-h5-upload">
+                                <label class="rbt-h5-upload__pick" data-upload="permit">
                                     <span data-upload-text>上传经营许可证</span>
                                     <input data-file="permit" type="file" accept="image/*">
                                 </label>
-                                <button type="button" class="rbf-h5-upload__demo" data-demo="permit">示例识别</button>
+                                <button type="button" class="rbt-h5-upload__demo" data-demo="permit">示例识别</button>
                             </div>
-                            <div class="rbf-h5-ocr" data-ocr-result="permit" hidden>
+                            <div class="rbt-h5-ocr" data-ocr-result="permit" hidden>
                                 <h2>识别结果（示例）</h2>
-                                <div class="rbf-h5-field"><label>许可证编号</label><input data-ocr="no" readonly></div>
-                                <div class="rbf-h5-field"><label>经营者名称</label><input data-ocr="name" readonly></div>
-                                <div class="rbf-h5-field"><label>法定代表人</label><input data-ocr="legal" readonly></div>
-                                <div class="rbf-h5-field"><label>经营场所</label><input data-ocr="place" readonly></div>
-                                <div class="rbf-h5-field"><label>主体业态</label><input data-ocr="mode" readonly></div>
-                                <div class="rbf-h5-field"><label>经营项目</label><textarea data-ocr="items" readonly></textarea></div>
-                                <div class="rbf-h5-field"><label>有效期至</label><input data-ocr="expire" readonly></div>
+                                <div class="rbt-h5-field"><label>许可证编号</label><input data-ocr="no" readonly></div>
+                                <div class="rbt-h5-field"><label>经营者名称</label><input data-ocr="name" readonly></div>
+                                <div class="rbt-h5-field"><label>法定代表人</label><input data-ocr="legal" readonly></div>
+                                <div class="rbt-h5-field"><label>经营场所</label><input data-ocr="place" readonly></div>
+                                <div class="rbt-h5-field"><label>主体业态</label><input data-ocr="mode" readonly></div>
+                                <div class="rbt-h5-field"><label>经营项目</label><textarea data-ocr="items" readonly></textarea></div>
+                                <div class="rbt-h5-field"><label>有效期至</label><input data-ocr="expire" readonly></div>
                             </div>
-                            <button type="submit" class="rbf-h5-login">提交注册</button>
+                            <button type="submit" class="rbt-h5-login">提交注册</button>
                         </form>
-                        <div class="rbf-h5-app" id="rbfH5App">
-                            <div class="rbf-h5-scroll" id="rbfH5Scroll"></div>
-                            <nav class="rbf-h5-tabbar" id="rbfH5Tabbar">
+                        <div class="rbt-h5-app" id="rbtH5App">
+                            <div class="rbt-h5-scroll" id="rbtH5Scroll"></div>
+                            <nav class="rbt-h5-tabbar" id="rbtH5Tabbar">
                                 <button type="button" data-tab="hall">需求大厅</button>
                                 <button type="button" data-tab="assets">资产台账</button>
                                 <button type="button" data-tab="mine">我的</button>
@@ -517,9 +517,9 @@
             </div>
         </main>
     </div>
-    <script src="rbf-fresh.js"></script>
+    <script src="rbt-fresh.js"></script>
     <script src="../js/common.js"></script>
-    <script src="rbf-h5-trader-app.js"></script>
-    <script src="rbf-h5-trader-login.js"></script>
+    <script src="rbt-h5-trader-app.js"></script>
+    <script src="rbt-h5-trader-login.js"></script>
 </body>
 </html>

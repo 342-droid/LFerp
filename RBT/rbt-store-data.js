@@ -1,6 +1,6 @@
-/* RBF 门店列表演示数据。详情只带基础信息与进件信息，不含收货信息、运营评估、商户进件。 */
+/* RBT 门店列表演示数据。详情只带基础信息与进件信息，不含收货信息、运营评估、商户进件。 */
 (function () {
-    var KEY = 'rbf_store_list_v2';
+    var KEY = 'rbt_store_list_v2';
 
     function pad(n) {
         return n < 10 ? '0' + n : String(n);
@@ -108,7 +108,7 @@
                 settleType: '对公',
                 settleCycle: '自然周',
                 splitService: '已开通',
-                rbfLevel: 'A',
+                rbtLevel: 'A',
                 creator: '周经理',
                 createdAt: '2026-08-01 09:00:00',
                 updater: '喻巧',
@@ -135,7 +135,7 @@
                 opStatus: '休息中',
                 onboardStatus: '未进件',
                 storeStatus: '冻结',
-                rbfLevel: 'B',
+                rbtLevel: 'B',
                 creator: '李四',
                 createdAt: '2026-04-29 22:53:02',
                 updater: '李四',
@@ -166,7 +166,7 @@
                 settleType: '对公',
                 settleCycle: '自然周',
                 splitService: '开启',
-                rbfLevel: 'A',
+                rbtLevel: 'A',
                 creator: '张三',
                 createdAt: '2026-04-20 10:22:11',
                 updater: '公司11号',
@@ -197,7 +197,7 @@
                 settleType: '对公',
                 settleCycle: '自然月',
                 splitService: '关闭',
-                rbfLevel: 'C',
+                rbtLevel: 'C',
                 creator: '李四',
                 createdAt: '2026-04-19 15:01:44',
                 updater: '赵倩',
@@ -226,7 +226,7 @@
                 opStatus: '休息中',
                 onboardStatus: '未进件',
                 storeStatus: '已禁用',
-                rbfLevel: 'D',
+                rbtLevel: 'D',
                 creator: '张三',
                 createdAt: '2026-04-18 09:33:02',
                 updater: '张三',
@@ -451,7 +451,7 @@
         var store = row(
             Object.assign({}, source, {
                 archiveCode: source.code,
-                rbfLevel: input.rbfLevel,
+                rbtLevel: input.rbtLevel,
                 enabled: input.status !== '禁用',
                 creator: '用户名',
                 createdAt: createdAt,
@@ -517,7 +517,7 @@
             return false;
         });
         if (!target) return null;
-        ['name', 'rbfLevel', 'partnerType', 'storeType', 'contact', 'phone', 'legalName', 'legalPhone', 'warehouse', 'region', 'address', 'enabled'].forEach(function (key) {
+        ['name', 'rbtLevel', 'partnerType', 'storeType', 'contact', 'phone', 'legalName', 'legalPhone', 'warehouse', 'region', 'address', 'enabled'].forEach(function (key) {
             if (Object.prototype.hasOwnProperty.call(input, key)) target[key] = input[key];
         });
         target.updater = '用户名';
@@ -542,11 +542,11 @@
         var api = window.BusinessTagPrototypeStore;
         if (!api || typeof api.ensureDemoBinding !== 'function') return;
         ['ONS00001', 'ONS00002', 'ONS00003', 'ONS00004', 'ONS00005'].forEach(function (code, index) {
-            api.ensureDemoBinding('RBF_STORE', code, index);
+            api.ensureDemoBinding('RBT_STORE', code, index);
         });
     }
 
-    window.RbfStoreData = {
+    window.RbtStoreData = {
         levels: ['A', 'B', 'C', 'D'],
         partnerTypes: ['直营店', '加盟店', '联营店'],
         storeTypes: ['社区生鲜店', '团购自提点', '快闪零售', '社区便利店'],

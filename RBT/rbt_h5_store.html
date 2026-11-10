@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>冷丰RBF-H5 - 门店端</title>
+    <title>冷丰RBT-H5 - 门店端</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <style>
-        .rbf-h5-store-stage {
+        .rbt-h5-store-stage {
             min-height: calc(100vh - 88px);
             display: flex;
             justify-content: center;
@@ -15,7 +15,7 @@
             padding: 16px 0 28px;
             background: #f5f5f5;
         }
-        .rbf-h5-phone {
+        .rbt-h5-phone {
             width: 393px;
             height: 851px;
             background: #fff;
@@ -27,41 +27,41 @@
             flex-direction: column;
             position: relative;
         }
-        .rbf-h5-phone__head {
+        .rbt-h5-phone__head {
             padding: 32px 24px 16px;
             background: #ff7019;
             color: #fff;
         }
-        .rbf-h5-phone__head h1 {
+        .rbt-h5-phone__head h1 {
             margin: 0;
             font-size: 26px;
             font-weight: 600;
         }
-        .rbf-h5-phone__head p {
+        .rbt-h5-phone__head p {
             margin: 8px 0 0;
             font-size: 14px;
             opacity: 0.92;
         }
-        .rbf-h5-phone__body {
+        .rbt-h5-phone__body {
             flex: 1;
             min-height: 0;
             padding: 28px 24px 24px;
             display: flex;
             flex-direction: column;
         }
-        .rbf-h5-phone.is-app .rbf-h5-phone__head { padding: 28px 16px 14px; }
-        .rbf-h5-phone.is-app .rbf-h5-phone__head h1 { font-size: 20px; }
-        .rbf-h5-phone.is-app .rbf-h5-phone__body { padding: 0; }
-        .rbf-h5-field {
+        .rbt-h5-phone.is-app .rbt-h5-phone__head { padding: 28px 16px 14px; }
+        .rbt-h5-phone.is-app .rbt-h5-phone__head h1 { font-size: 20px; }
+        .rbt-h5-phone.is-app .rbt-h5-phone__body { padding: 0; }
+        .rbt-h5-field {
             margin-bottom: 12px;
         }
-        .rbf-h5-field label {
+        .rbt-h5-field label {
             display: block;
             margin-bottom: 8px;
             color: #333;
             font-size: 14px;
         }
-        .rbf-h5-field input {
+        .rbt-h5-field input {
             width: 100%;
             height: 44px;
             padding: 0 14px;
@@ -70,17 +70,17 @@
             font-size: 16px;
             box-sizing: border-box;
         }
-        .rbf-h5-field input:focus {
+        .rbt-h5-field input:focus {
             outline: none;
             border-color: #ff7019;
         }
-        .rbf-h5-tip {
+        .rbt-h5-tip {
             margin: 0 0 12px;
             color: #888;
             font-size: 12px;
             line-height: 1.6;
         }
-        .rbf-h5-action {
+        .rbt-h5-action {
             width: 100%;
             margin-top: 12px;
             height: 44px;
@@ -91,31 +91,31 @@
             font-size: 15px;
             cursor: pointer;
         }
-        .rbf-h5-app { display: none; flex: 1; min-height: 0; flex-direction: column; background: #f7f7f7; }
-        .rbf-h5-phone.is-app .rbf-h5-app { display: flex; }
-        .rbf-h5-phone.is-app .rbf-h5-pick { display: none; }
-        .rbf-h5-scroll { flex: 1; min-height: 0; overflow: auto; padding: 12px 12px 16px; }
-        .rbf-h5-create {
+        .rbt-h5-app { display: none; flex: 1; min-height: 0; flex-direction: column; background: #f7f7f7; }
+        .rbt-h5-phone.is-app .rbt-h5-app { display: flex; }
+        .rbt-h5-phone.is-app .rbt-h5-pick { display: none; }
+        .rbt-h5-scroll { flex: 1; min-height: 0; overflow: auto; padding: 12px 12px 16px; }
+        .rbt-h5-create {
             flex: none;
             padding: 12px 16px;
             background: #fff;
             border-top: 1px solid #eee;
         }
-        .rbf-h5-create[hidden] { display: none; }
-        .rbf-h5-create .rbf-h5-primary {
+        .rbt-h5-create[hidden] { display: none; }
+        .rbt-h5-create .rbt-h5-primary {
             display: block;
             width: 100%;
             height: 44px;
             margin: 0 auto;
             text-align: center;
         }
-        .rbf-h5-tabbar {
+        .rbt-h5-tabbar {
             flex: 0 0 56px;
             display: flex;
             border-top: 1px solid #eee;
             background: #fff;
         }
-        .rbf-h5-tabbar button {
+        .rbt-h5-tabbar button {
             flex: 1;
             border: 0;
             background: transparent;
@@ -123,14 +123,14 @@
             font-size: 14px;
             cursor: pointer;
         }
-        .rbf-h5-tabbar button.is-on { color: #ff7019; font-weight: 600; }
-        .rbf-h5-bar {
+        .rbt-h5-tabbar button.is-on { color: #ff7019; font-weight: 600; }
+        .rbt-h5-bar {
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-bottom: 12px;
         }
-        .rbf-h5-back, .rbf-h5-text-btn {
+        .rbt-h5-back, .rbt-h5-text-btn {
             border: 0;
             background: transparent;
             color: #ff7019;
@@ -138,7 +138,7 @@
             cursor: pointer;
             padding: 0;
         }
-        .rbf-h5-primary {
+        .rbt-h5-primary {
             height: 40px;
             padding: 0 14px;
             border: 0;
@@ -148,22 +148,22 @@
             font-size: 14px;
             cursor: pointer;
         }
-        .rbf-h5-card {
+        .rbt-h5-card {
             margin-bottom: 10px;
             padding: 12px;
             border-radius: 10px;
             background: #fff;
             border: 1px solid #eee;
         }
-        button.rbf-h5-card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
-        .rbf-h5-card.is-on { border-color: #ff7019; background: #fff7f2; }
-        .rbf-h5-card h2 { margin: 0; font-size: 16px; color: #222; }
-        .rbf-h5-card p { margin: 6px 0 0; color: #666; font-size: 13px; line-height: 1.6; }
-        .rbf-h5-card__top { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
-        .rbf-h5-status { flex: none; font-size: 12px; color: #ff7019; }
-        .rbf-h5-status.is-done { color: #52c41a; }
-        .rbf-h5-status.is-off { color: #999; }
-        .rbf-h5-cancel {
+        button.rbt-h5-card { width: 100%; font: inherit; text-align: left; cursor: pointer; }
+        .rbt-h5-card.is-on { border-color: #ff7019; background: #fff7f2; }
+        .rbt-h5-card h2 { margin: 0; font-size: 16px; color: #222; }
+        .rbt-h5-card p { margin: 6px 0 0; color: #666; font-size: 13px; line-height: 1.6; }
+        .rbt-h5-card__top { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+        .rbt-h5-status { flex: none; font-size: 12px; color: #ff7019; }
+        .rbt-h5-status.is-done { color: #52c41a; }
+        .rbt-h5-status.is-off { color: #999; }
+        .rbt-h5-cancel {
             margin-top: 8px;
             height: 32px;
             padding: 0 12px;
@@ -174,8 +174,8 @@
             font-size: 13px;
             cursor: pointer;
         }
-        .rbf-h5-empty { padding: 48px 12px; text-align: center; color: #999; font-size: 14px; }
-        .rbf-h5-check {
+        .rbt-h5-empty { padding: 48px 12px; text-align: center; color: #999; font-size: 14px; }
+        .rbt-h5-check {
             display: flex;
             align-items: flex-start;
             gap: 10px;
@@ -188,11 +188,11 @@
             text-align: left;
             cursor: pointer;
         }
-        .rbf-h5-check input { width: 18px; height: 18px; margin-top: 2px; accent-color: #ff7019; }
-        .rbf-h5-check strong { display: block; color: #222; font-size: 14px; }
-        .rbf-h5-check span { display: block; margin-top: 4px; color: #888; font-size: 12px; }
-        .rbf-h5-sku { align-items: flex-start; }
-        .rbf-h5-sku__img {
+        .rbt-h5-check input { width: 18px; height: 18px; margin-top: 2px; accent-color: #ff7019; }
+        .rbt-h5-check strong { display: block; color: #222; font-size: 14px; }
+        .rbt-h5-check span { display: block; margin-top: 4px; color: #888; font-size: 12px; }
+        .rbt-h5-sku { align-items: flex-start; }
+        .rbt-h5-sku__img {
             flex: none;
             width: 64px;
             height: 64px;
@@ -200,30 +200,30 @@
             border-radius: 8px;
             background: #f5f5f5;
         }
-        .rbf-h5-sku__img--empty {
+        .rbt-h5-sku__img--empty {
             display: flex;
             align-items: center;
             justify-content: center;
             color: #bbb;
             font-size: 12px;
         }
-        .rbf-h5-check .rbf-h5-sku__body { flex: 1; min-width: 0; margin-top: 0; }
-        .rbf-h5-check .rbf-h5-sku__unit { color: #666; font-size: 12px; }
-        .rbf-h5-check .rbf-h5-sku__price { color: #ff7019; font-size: 14px; font-weight: 600; }
-        .rbf-h5-sku__foot {
+        .rbt-h5-check .rbt-h5-sku__body { flex: 1; min-width: 0; margin-top: 0; }
+        .rbt-h5-check .rbt-h5-sku__unit { color: #666; font-size: 12px; }
+        .rbt-h5-check .rbt-h5-sku__price { color: #ff7019; font-size: 14px; font-weight: 600; }
+        .rbt-h5-sku__foot {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 8px;
             margin-top: 8px;
         }
-        .rbf-h5-sku__foot .rbf-h5-sku__price { margin-top: 0; }
-        .rbf-h5-qty {
+        .rbt-h5-sku__foot .rbt-h5-sku__price { margin-top: 0; }
+        .rbt-h5-qty {
             display: inline-flex;
             align-items: center;
             flex: none;
         }
-        .rbf-h5-qty button {
+        .rbt-h5-qty button {
             width: 28px;
             height: 28px;
             padding: 0;
@@ -235,13 +235,13 @@
             line-height: 1;
             cursor: pointer;
         }
-        .rbf-h5-qty button:disabled {
+        .rbt-h5-qty button:disabled {
             border-color: #eee;
             background: #f7f7f7;
             color: #bbb;
             cursor: not-allowed;
         }
-        .rbf-h5-qty input {
+        .rbt-h5-qty input {
             width: 44px;
             height: 28px;
             margin: 0 6px;
@@ -253,21 +253,21 @@
             color: #333;
             box-sizing: border-box;
         }
-        .rbf-h5-qty input:focus {
+        .rbt-h5-qty input:focus {
             outline: none;
             border-color: #ff7019;
         }
-        .rbf-h5-sum {
+        .rbt-h5-sum {
             margin: 4px 0 12px;
             color: #333;
             font-size: 14px;
         }
-        .rbf-h5-sum b { color: #ff7019; }
-        .rbf-h5-section { margin: 14px 0 8px; color: #222; font-size: 14px; font-weight: 600; }
-        .rbf-h5-publish { width: 100%; height: 44px; }
-        .rbf-h5-mine h2 { margin: 8px 0 0; font-size: 22px; }
-        .rbf-h5-mine p { margin: 12px 0 0; color: #666; font-size: 14px; line-height: 1.8; white-space: pre-line; }
-        .rbf-h5-logout {
+        .rbt-h5-sum b { color: #ff7019; }
+        .rbt-h5-section { margin: 14px 0 8px; color: #222; font-size: 14px; font-weight: 600; }
+        .rbt-h5-publish { width: 100%; height: 44px; }
+        .rbt-h5-mine h2 { margin: 8px 0 0; font-size: 22px; }
+        .rbt-h5-mine p { margin: 12px 0 0; color: #666; font-size: 14px; line-height: 1.8; white-space: pre-line; }
+        .rbt-h5-logout {
             width: 100%;
             margin-top: 24px;
             height: 44px;
@@ -278,7 +278,7 @@
             font-size: 15px;
             cursor: pointer;
         }
-        .rbf-h5-pick {
+        .rbt-h5-pick {
             display: none;
             flex: 1;
             min-height: 0;
@@ -286,12 +286,12 @@
             padding: 16px;
             background: #f7f7f7;
         }
-        .rbf-h5-phone.is-pick .rbf-h5-app { display: none; }
-        .rbf-h5-phone.is-pick .rbf-h5-pick { display: block; }
-        .rbf-h5-phone.is-pick .rbf-h5-phone__head { padding: 28px 16px 14px; }
-        .rbf-h5-phone.is-pick .rbf-h5-phone__head h1 { font-size: 20px; }
-        .rbf-h5-phone.is-pick .rbf-h5-phone__body { padding: 0; }
-        .rbf-h5-pick button {
+        .rbt-h5-phone.is-pick .rbt-h5-app { display: none; }
+        .rbt-h5-phone.is-pick .rbt-h5-pick { display: block; }
+        .rbt-h5-phone.is-pick .rbt-h5-phone__head { padding: 28px 16px 14px; }
+        .rbt-h5-phone.is-pick .rbt-h5-phone__head h1 { font-size: 20px; }
+        .rbt-h5-phone.is-pick .rbt-h5-phone__body { padding: 0; }
+        .rbt-h5-pick button {
             width: 100%;
             margin-bottom: 10px;
             padding: 12px 14px;
@@ -301,9 +301,9 @@
             text-align: left;
             cursor: pointer;
         }
-        .rbf-h5-pick button strong { display: block; color: #222; font-size: 15px; }
-        .rbf-h5-pick button span { color: #888; font-size: 12px; }
-        .rbf-h5-toast {
+        .rbt-h5-pick button strong { display: block; color: #222; font-size: 15px; }
+        .rbt-h5-pick button span { color: #888; font-size: 12px; }
+        .rbt-h5-toast {
             position: absolute;
             top: 108px;
             left: 24px;
@@ -320,15 +320,15 @@
             transition: opacity 0.2s;
             z-index: 30;
         }
-        .rbf-h5-toast.is-on { opacity: 1; }
-        .rbf-h5-inst {
+        .rbt-h5-toast.is-on { opacity: 1; }
+        .rbt-h5-inst {
             background: #fff;
             border-radius: 10px;
             border: 1px solid #eee;
             padding: 14px 12px;
             margin-bottom: 12px;
         }
-        .rbf-h5-inst__row {
+        .rbt-h5-inst__row {
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -336,21 +336,21 @@
             padding: 10px 0;
             border-bottom: 1px solid #f3f3f3;
         }
-        .rbf-h5-inst__row:last-child { border-bottom: 0; }
-        .rbf-h5-inst__label { color: #666; font-size: 14px; flex: none; }
-        .rbf-h5-inst__amount {
+        .rbt-h5-inst__row:last-child { border-bottom: 0; }
+        .rbt-h5-inst__label { color: #666; font-size: 14px; flex: none; }
+        .rbt-h5-inst__amount {
             color: #222;
             font-size: 22px;
             font-weight: 600;
             letter-spacing: 0.02em;
         }
-        .rbf-h5-inst__chips {
+        .rbt-h5-inst__chips {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
             justify-content: flex-end;
         }
-        .rbf-h5-chip {
+        .rbt-h5-chip {
             min-width: 64px;
             height: 32px;
             padding: 0 12px;
@@ -361,13 +361,13 @@
             font-size: 13px;
             cursor: pointer;
         }
-        .rbf-h5-chip.is-on {
+        .rbt-h5-chip.is-on {
             border-color: #ff7019;
             background: #fff7f2;
             color: #ff7019;
             font-weight: 600;
         }
-        .rbf-h5-inst__link {
+        .rbt-h5-inst__link {
             display: flex;
             width: 100%;
             align-items: center;
@@ -382,20 +382,20 @@
             font-weight: 600;
             cursor: pointer;
         }
-        .rbf-h5-inst__link span { color: #999; font-weight: 400; }
-        .rbf-h5-sheet {
+        .rbt-h5-inst__link span { color: #999; font-weight: 400; }
+        .rbt-h5-sheet {
             display: none;
             position: absolute;
             inset: 0;
             z-index: 40;
         }
-        .rbf-h5-sheet.is-on { display: block; }
-        .rbf-h5-sheet__mask {
+        .rbt-h5-sheet.is-on { display: block; }
+        .rbt-h5-sheet__mask {
             position: absolute;
             inset: 0;
             background: rgba(0, 0, 0, 0.45);
         }
-        .rbf-h5-sheet__panel {
+        .rbt-h5-sheet__panel {
             position: absolute;
             left: 0;
             right: 0;
@@ -408,19 +408,19 @@
             box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.12);
             overflow: hidden;
         }
-        .rbf-h5-sheet__head {
+        .rbt-h5-sheet__head {
             flex: none;
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 14px 16px 8px;
         }
-        .rbf-h5-sheet__head h2 {
+        .rbt-h5-sheet__head h2 {
             margin: 0;
             font-size: 16px;
             color: #222;
         }
-        .rbf-h5-sheet__close {
+        .rbt-h5-sheet__close {
             width: 28px;
             height: 28px;
             border: 0;
@@ -431,51 +431,51 @@
             line-height: 1;
             cursor: pointer;
         }
-        .rbf-h5-sheet__body {
+        .rbt-h5-sheet__body {
             flex: 1;
             min-height: 0;
             overflow: auto;
             padding: 0 12px 20px;
         }
-        .rbf-h5-sheet__card {
+        .rbt-h5-sheet__card {
             margin-bottom: 10px;
             padding: 12px;
             border-radius: 12px;
             background: #fff;
         }
-        .rbf-h5-sheet__total {
+        .rbt-h5-sheet__total {
             color: #222;
             font-size: 24px;
             font-weight: 700;
         }
-        .rbf-h5-sheet__sub {
+        .rbt-h5-sheet__sub {
             margin-top: 6px;
             color: #888;
             font-size: 12px;
             line-height: 1.7;
         }
-        .rbf-h5-sheet__sub b { color: #333; font-weight: 600; }
-        .rbf-h5-sheet__method {
+        .rbt-h5-sheet__sub b { color: #333; font-weight: 600; }
+        .rbt-h5-sheet__method {
             margin-top: 10px;
             padding-top: 10px;
             border-top: 1px solid #f3f3f3;
             color: #666;
             font-size: 13px;
         }
-        .rbf-h5-sheet__method b { color: #222; font-weight: 600; }
-        .rbf-h5-sheet__meta {
+        .rbt-h5-sheet__method b { color: #222; font-weight: 600; }
+        .rbt-h5-sheet__meta {
             display: flex;
             justify-content: space-between;
             margin-bottom: 8px;
             color: #888;
             font-size: 12px;
         }
-        .rbf-h5-sheet__item {
+        .rbt-h5-sheet__item {
             padding: 10px 0;
             border-top: 1px solid #f5f5f5;
         }
-        .rbf-h5-sheet__item:first-of-type { border-top: 0; }
-        .rbf-h5-sheet__item-top {
+        .rbt-h5-sheet__item:first-of-type { border-top: 0; }
+        .rbt-h5-sheet__item-top {
             display: flex;
             justify-content: space-between;
             gap: 8px;
@@ -483,7 +483,7 @@
             font-size: 14px;
             font-weight: 600;
         }
-        .rbf-h5-sheet__item-sub {
+        .rbt-h5-sheet__item-sub {
             margin-top: 4px;
             color: #888;
             font-size: 12px;
@@ -494,35 +494,35 @@
 <body>
     <div id="sidebar-container"></div>
     <script src="../js/path-prefix.js"></script>
-    <script src="rbf-h5-sidebar.js"></script>
+    <script src="rbt-h5-sidebar.js"></script>
     <div id="header-container"></div>
     <div class="container">
         <main class="main-content">
-            <div class="rbf-h5-store-stage">
-                <section class="rbf-h5-phone is-app" id="rbfH5Phone" aria-label="门店端">
-                    <div class="rbf-h5-toast" id="rbfH5Toast" role="status"></div>
-                    <div class="rbf-h5-sheet" id="rbfH5Sheet" aria-hidden="true">
-                        <div class="rbf-h5-sheet__mask" data-close-sheet></div>
-                        <div class="rbf-h5-sheet__panel" role="dialog" aria-modal="true" aria-labelledby="rbfH5SheetTitle">
-                            <div class="rbf-h5-sheet__head">
-                                <h2 id="rbfH5SheetTitle">还款计划</h2>
-                                <button type="button" class="rbf-h5-sheet__close" data-close-sheet aria-label="关闭">×</button>
+            <div class="rbt-h5-store-stage">
+                <section class="rbt-h5-phone is-app" id="rbtH5Phone" aria-label="门店端">
+                    <div class="rbt-h5-toast" id="rbtH5Toast" role="status"></div>
+                    <div class="rbt-h5-sheet" id="rbtH5Sheet" aria-hidden="true">
+                        <div class="rbt-h5-sheet__mask" data-close-sheet></div>
+                        <div class="rbt-h5-sheet__panel" role="dialog" aria-modal="true" aria-labelledby="rbtH5SheetTitle">
+                            <div class="rbt-h5-sheet__head">
+                                <h2 id="rbtH5SheetTitle">还款计划</h2>
+                                <button type="button" class="rbt-h5-sheet__close" data-close-sheet aria-label="关闭">×</button>
                             </div>
-                            <div class="rbf-h5-sheet__body" id="rbfH5SheetBody"></div>
+                            <div class="rbt-h5-sheet__body" id="rbtH5SheetBody"></div>
                         </div>
                     </div>
-                    <div class="rbf-h5-phone__head">
+                    <div class="rbt-h5-phone__head">
                         <h1>门店端</h1>
-                        <p id="rbfH5HeadText">需求列表</p>
+                        <p id="rbtH5HeadText">需求列表</p>
                     </div>
-                    <div class="rbf-h5-phone__body">
-                        <div class="rbf-h5-pick" id="rbfH5Pick" aria-label="选择门店"></div>
-                        <div class="rbf-h5-app" id="rbfH5App">
-                            <div class="rbf-h5-scroll" id="rbfH5Scroll"></div>
-                            <div class="rbf-h5-create" id="rbfH5Create" hidden>
-                                <button type="button" class="rbf-h5-primary" data-create>发布资金需求</button>
+                    <div class="rbt-h5-phone__body">
+                        <div class="rbt-h5-pick" id="rbtH5Pick" aria-label="选择门店"></div>
+                        <div class="rbt-h5-app" id="rbtH5App">
+                            <div class="rbt-h5-scroll" id="rbtH5Scroll"></div>
+                            <div class="rbt-h5-create" id="rbtH5Create" hidden>
+                                <button type="button" class="rbt-h5-primary" data-create>发布资金需求</button>
                             </div>
-                            <nav class="rbf-h5-tabbar" id="rbfH5Tabbar">
+                            <nav class="rbt-h5-tabbar" id="rbtH5Tabbar">
                                 <button type="button" data-tab="demands">需求列表</button>
                                 <button type="button" data-tab="plans">还款计划</button>
                                 <button type="button" data-tab="mine">我的</button>
@@ -533,11 +533,11 @@
             </div>
         </main>
     </div>
-    <script src="rbf-fresh.js"></script>
+    <script src="rbt-fresh.js"></script>
     <script src="../js/common.js"></script>
     <script src="../js/business-tag-prototype-store.js"></script>
-    <script src="rbf-store-data.js"></script>
-    <script src="rbf-h5-store-app.js"></script>
-    <script src="rbf-h5-store-login.js"></script>
+    <script src="rbt-store-data.js"></script>
+    <script src="rbt-h5-store-app.js"></script>
+    <script src="rbt-h5-store-login.js"></script>
 </body>
 </html>

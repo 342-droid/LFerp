@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>冷丰RBF - 商品包</title>
+    <title>冷丰RBT - 商品包</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
@@ -12,29 +12,29 @@
     <link rel="stylesheet" href="../vendor/octopus-prototype-runtime/theme.css">
     <style>
         [v-cloak] { display: none; }
-        .rbf-package-schema-host { min-height: 480px; }
-        .rbf-package-form .el-form-item { align-items: flex-start; }
-        .rbf-package-sku { width: 100%; min-width: 0; }
-        .rbf-package-sku__bar { margin-bottom: 8px; }
-        .rbf-package-sku .el-button.is-text { padding-left: 0; padding-right: 0; }
-        .rbf-package-sku__required::before { content: '*'; color: #f56c6c; margin-right: 4px; }
-        .rbf-package-sku__price { width: 100%; }
-        .rbf-sku-picker__query .el-input,
-        .rbf-sku-picker__query .el-select { width: 180px; }
-        .rbf-package-sku-table-wrap { width: 100%; overflow-x: auto; }
-        .rbf-package-sku-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        .rbf-package-sku-table th,
-        .rbf-package-sku-table td { border: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; white-space: nowrap; }
-        .rbf-package-sku-table th { background: #f7f8fa; font-weight: 600; color: #303133; }
-        .rbf-package-sku-table td.is-money,
-        .rbf-package-sku-table th.is-money { text-align: right; }
-        .rbf-package-sku-table td.is-empty { text-align: center; color: #909399; }
+        .rbt-package-schema-host { min-height: 480px; }
+        .rbt-package-form .el-form-item { align-items: flex-start; }
+        .rbt-package-sku { width: 100%; min-width: 0; }
+        .rbt-package-sku__bar { margin-bottom: 8px; }
+        .rbt-package-sku .el-button.is-text { padding-left: 0; padding-right: 0; }
+        .rbt-package-sku__required::before { content: '*'; color: #f56c6c; margin-right: 4px; }
+        .rbt-package-sku__price { width: 100%; }
+        .rbt-sku-picker__query .el-input,
+        .rbt-sku-picker__query .el-select { width: 180px; }
+        .rbt-package-sku-table-wrap { width: 100%; overflow-x: auto; }
+        .rbt-package-sku-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .rbt-package-sku-table th,
+        .rbt-package-sku-table td { border: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; white-space: nowrap; }
+        .rbt-package-sku-table th { background: #f7f8fa; font-weight: 600; color: #303133; }
+        .rbt-package-sku-table td.is-money,
+        .rbt-package-sku-table th.is-money { text-align: right; }
+        .rbt-package-sku-table td.is-empty { text-align: center; color: #909399; }
     </style>
 </head>
 <body>
     <div id="sidebar-container"></div>
     <script src="../js/path-prefix.js"></script>
-    <script src="rbf-sidebar.js"></script>
+    <script src="rbt-sidebar.js"></script>
 
     <div id="header-container"></div>
 
@@ -43,7 +43,7 @@
             <div class="content-tabs"><button type="button" class="active">商品包</button></div>
             <hr class="content-divider">
 
-            <div id="rbfPackageApp" class="rbf-package-schema-host" v-cloak>
+            <div id="rbtPackageApp" class="rbt-package-schema-host" v-cloak>
                 <vab-schema-table
                     ref="table"
                     :columns="columns"
@@ -83,7 +83,7 @@
                     ref="addDialog"
                     :title="dialogTitle"
                     dialog-width="1180px"
-                    form-class="rbf-package-form"
+                    form-class="rbt-package-form"
                     label-position="top"
                     label-width="120px"
                     :default-col-span="24"
@@ -96,8 +96,8 @@
                     edit-success-message="商品包已更新"
                     @saved="refreshTable">
                     <template #form-skus="{form}">
-                        <div class="rbf-package-sku">
-                            <div class="rbf-package-sku__bar">
+                        <div class="rbt-package-sku">
+                            <div class="rbt-package-sku__bar">
                                 <el-button type="primary" @click="openSkuPicker(form)">添加商品</el-button>
                             </div>
                             <el-table :data="form.skus || []" row-key="code" border empty-text="暂无商品">
@@ -123,9 +123,9 @@
                                     <template #default="{row}">{{ money(skuOf(row.code).purchasePrice) }}</template>
                                 </el-table-column>
                                 <el-table-column width="140">
-                                    <template #header><span class="rbf-package-sku__required">售价</span></template>
+                                    <template #header><span class="rbt-package-sku__required">售价</span></template>
                                     <template #default="{row}">
-                                        <el-input class="rbf-package-sku__price" v-model="row.salePrice" placeholder="请输入"></el-input>
+                                        <el-input class="rbt-package-sku__price" v-model="row.salePrice" placeholder="请输入"></el-input>
                                     </template>
                                 </el-table-column>
                                 <el-table-column label="操作" width="72">
@@ -148,7 +148,7 @@
                     @saved="refreshAfterBatch">
                 </vab-schema-form-dialog>
                 <el-dialog v-model="pickerOpen" title="添加商品" width="1080px" append-to-body :close-on-click-modal="false">
-                    <el-form class="rbf-sku-picker__query" inline @submit.prevent>
+                    <el-form class="rbt-sku-picker__query" inline @submit.prevent>
                         <el-form-item label="商品编码">
                             <el-input v-model="pickerQuery.code" placeholder="请输入" clearable></el-input>
                         </el-form-item>
@@ -188,12 +188,12 @@
         </main>
     </div>
 
-    <script src="rbf-fresh.js"></script>
+    <script src="rbt-fresh.js"></script>
     <script src="../js/common.js"></script>
     <script src="../js/business-tag-prototype-store.js"></script>
     <script src="../js/business-tag-prototype-ui.js"></script>
     <script src="../vendor/octopus-prototype-runtime/runtime.js"></script>
-    <script src="rbf-product-package-detail.js"></script>
-    <script src="rbf-product-package.js"></script>
+    <script src="rbt-product-package-detail.js"></script>
+    <script src="rbt-product-package.js"></script>
 </body>
 </html>

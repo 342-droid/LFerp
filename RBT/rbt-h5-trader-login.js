@@ -2,8 +2,8 @@
 (function () {
     var DEMO_CODE = '123456';
     var DEMO_PASSWORD = '123456';
-    var ACCOUNTS_KEY = 'rbf_h5_trader_accounts_v1';
-    var SESSION_KEY = 'rbf_h5_trader_session';
+    var ACCOUNTS_KEY = 'rbt_h5_trader_accounts_v1';
+    var SESSION_KEY = 'rbt_h5_trader_session';
     var LICENSE_SAMPLE = {
         name: '杭州鲜达贸易有限公司',
         creditCode: '91330106MA2H7K8X1A',
@@ -115,7 +115,7 @@
     }
 
     function toast(message) {
-        var node = document.getElementById('rbfH5Toast');
+        var node = document.getElementById('rbtH5Toast');
         if (!node) return;
         node.textContent = message;
         node.classList.add('is-on');
@@ -165,16 +165,16 @@
     }
 
     function renderAccounts() {
-        var box = document.getElementById('rbfH5Accounts');
+        var box = document.getElementById('rbtH5Accounts');
         if (!box) return;
         var list = loginableAccounts();
         box.innerHTML = '<h2>可登录账号</h2>' + (list.length ? list.map(function (item) {
             var name = (item.license && item.license.name) || '贸易商';
-            return '<div class="rbf-h5-account"><strong>' + esc(name) + '</strong>' +
+            return '<div class="rbt-h5-account"><strong>' + esc(name) + '</strong>' +
                 '<button type="button" data-fill-phone="' + esc(item.phone) + '">' +
                 esc(item.licenseType || '') + ' · ' + esc(item.bizScope || '') +
                 ' <b>' + esc(item.phone) + '</b></button></div>';
-        }).join('') : '<p class="rbf-h5-tip">暂无可登录账号</p>');
+        }).join('') : '<p class="rbt-h5-tip">暂无可登录账号</p>');
     }
 
     function isApproved(account) {
@@ -237,7 +237,7 @@
 
     function setLoginMode(mode) {
         loginMode = mode === 'password' ? 'password' : 'code';
-        var phone = document.getElementById('rbfH5Phone');
+        var phone = document.getElementById('rbtH5Phone');
         phone.classList.toggle('is-pwd', loginMode === 'password');
         document.querySelectorAll('[data-login-mode]').forEach(function (button) {
             button.classList.toggle('is-on', button.getAttribute('data-login-mode') === loginMode);
@@ -245,8 +245,8 @@
     }
 
     function setMode(mode) {
-        var phone = document.getElementById('rbfH5Phone');
-        var head = document.getElementById('rbfH5HeadText');
+        var phone = document.getElementById('rbtH5Phone');
+        var head = document.getElementById('rbtH5HeadText');
         phone.classList.remove('is-login', 'is-register', 'is-app');
         if (mode === 'register') phone.classList.add('is-register');
         else if (mode === 'app') phone.classList.add('is-app');
@@ -260,7 +260,7 @@
     function showHome(account) {
         currentAccount = account;
         setMode('app');
-        if (window.RbfH5TraderApp) window.RbfH5TraderApp.open(account);
+        if (window.RbtH5TraderApp) window.RbtH5TraderApp.open(account);
     }
 
     function changePassword(phone, oldPassword, nextPassword, confirmPassword) {
@@ -304,7 +304,7 @@
     function logout() {
         sessionStorage.removeItem(SESSION_KEY);
         currentAccount = null;
-        if (window.RbfH5TraderApp) window.RbfH5TraderApp.close();
+        if (window.RbtH5TraderApp) window.RbtH5TraderApp.close();
         resetSms('login');
         var code = document.querySelector('[data-code="login"]');
         var password = document.querySelector('[data-password="login"]');
@@ -415,12 +415,12 @@
         return data;
     }
 
-    document.getElementById('rbfH5Phone').addEventListener('click', function (event) {
+    document.getElementById('rbtH5Phone').addEventListener('click', function (event) {
         var modeBtn = event.target.closest('[data-login-mode]');
         if (modeBtn) {
             setLoginMode(modeBtn.getAttribute('data-login-mode'));
-            var head = document.getElementById('rbfH5HeadText');
-            if (document.getElementById('rbfH5Phone').classList.contains('is-login')) {
+            var head = document.getElementById('rbtH5HeadText');
+            if (document.getElementById('rbtH5Phone').classList.contains('is-login')) {
                 head.textContent = loginMode === 'password' ? '密码登录' : '验证码登录';
             }
             return;
@@ -451,14 +451,14 @@
         }
     });
 
-    document.getElementById('rbfH5Phone').addEventListener('input', function (event) {
+    document.getElementById('rbtH5Phone').addEventListener('input', function (event) {
         var input = event.target;
         if (input.hasAttribute('data-phone') || input.hasAttribute('data-code')) {
             input.value = digits(input.value);
         }
     });
 
-    document.getElementById('rbfH5Phone').addEventListener('change', function (event) {
+    document.getElementById('rbtH5Phone').addEventListener('change', function (event) {
         var select = event.target;
         if (select.hasAttribute('data-license-type') || select.hasAttribute('data-biz-scope')) {
             select.classList.toggle('is-empty', !select.value);
@@ -470,7 +470,7 @@
         applyOcr(input.getAttribute('data-file'), file.name);
     });
 
-    document.getElementById('rbfH5LoginForm').addEventListener('submit', function (event) {
+    document.getElementById('rbtH5LoginForm').addEventListener('submit', function (event) {
         event.preventDefault();
         var phone = digits(document.querySelector('[data-phone="login"]').value);
         if (phone.length !== 11) {
@@ -498,7 +498,7 @@
         toast('登录成功');
     });
 
-    document.getElementById('rbfH5RegisterForm').addEventListener('submit', function (event) {
+    document.getElementById('rbtH5RegisterForm').addEventListener('submit', function (event) {
         event.preventDefault();
         var phone = digits(document.querySelector('[data-phone="register"]').value);
         var code = digits(document.querySelector('[data-code="register"]').value);
@@ -553,7 +553,7 @@
     ensureDemoAccounts();
     renderAccounts();
 
-    window.RbfH5TraderLogin = {
+    window.RbtH5TraderLogin = {
         logout: logout,
         changePassword: changePassword,
         currentAccount: function () { return currentAccount; },

@@ -1,6 +1,6 @@
-/* RBF 门店列表：查询、新增准入门店、勾选后批量添加或移出标签，门店编码弹出详情。 */
+/* RBT 门店列表：查询、新增准入门店、勾选后批量添加或移出标签，门店编码弹出详情。 */
 (function () {
-    var dataApi = window.RbfStoreData;
+    var dataApi = window.RbtStoreData;
     var Vue = OctopusPrototype.Vue;
     var ref = Vue.ref;
     var ElMessage = OctopusPrototype.ElementPlus.ElMessage;
@@ -35,7 +35,7 @@
     function tagsOf(row) {
         var store = window.BusinessTagPrototypeStore;
         if (!store || typeof store.tagsFor !== 'function' || !row) return [];
-        return store.tagsFor('RBF_STORE', row.code) || [];
+        return store.tagsFor('RBT_STORE', row.code) || [];
     }
 
     if (dataApi && typeof dataApi.ensureSeedTags === 'function') dataApi.ensureSeedTags();
@@ -58,13 +58,13 @@
                 tags: 'cell-storeTags',
                 status: 'cell-enabled'
             };
-            var tagOptions = (window.BusinessTagPrototypeStore.listTags('RBF_STORE', false) || []).map(function (tag) {
+            var tagOptions = (window.BusinessTagPrototypeStore.listTags('RBT_STORE', false) || []).map(function (tag) {
                 return { label: tag.name, value: tag.id };
             });
             var columns = [
                 { dataIndex: 'code', title: '门店编码', minWidth: 140, fixed: 'left', search: { control: 'input' } },
                 { dataIndex: 'name', title: '门店名称', minWidth: 160, align: 'left', showOverflowTooltip: true, search: { control: 'input' } },
-                { dataIndex: 'rbfLevel', title: 'RBF等级', width: 100, search: { control: 'select', options: optionList(dataApi.levels) } },
+                { dataIndex: 'rbtLevel', title: 'RBT等级', width: 100, search: { control: 'select', options: optionList(dataApi.levels) } },
                 { dataIndex: 'enabled', title: '状态', width: 100 },
                 { dataIndex: 'contactQuery', title: '联系人姓名', hideInTable: true, search: { control: 'input' } },
                 { dataIndex: 'contactPhone', title: '联系人手机号', hideInTable: true, search: { control: 'input' } },
@@ -118,7 +118,7 @@
                         }
                     }
                 },
-                { field: 'rbfLevel', label: 'RBF等级', control: 'select', required: true, options: optionList(dataApi.levels), placeholder: '请选择' },
+                { field: 'rbtLevel', label: 'RBT等级', control: 'select', required: true, options: optionList(dataApi.levels), placeholder: '请选择' },
                 { field: 'status', label: '状态', control: 'select', required: true, defaultValue: '启用', options: optionList(['启用', '禁用']), placeholder: '请选择' },
                 { field: 'storeTags', label: '门店标签', control: 'select', multiple: true, defaultValue: [], colSpan: 24, options: tagOptions, placeholder: '可不选' },
                 lockedField('code', '门店编码'),
@@ -146,7 +146,7 @@
                     options: archiveOptions,
                     placeholder: '请选择门店档案中的门店'
                 },
-                { field: 'rbfLevel', label: 'RBF等级', control: 'select', required: true, options: optionList(dataApi.levels), placeholder: '请选择' },
+                { field: 'rbtLevel', label: 'RBT等级', control: 'select', required: true, options: optionList(dataApi.levels), placeholder: '请选择' },
                 { field: 'status', label: '状态', control: 'select', required: true, defaultValue: '启用', options: optionList(['启用', '禁用']), placeholder: '请选择' },
                 { field: 'storeTags', label: '门店标签', control: 'select', multiple: true, defaultValue: [], colSpan: 24, options: tagOptions, placeholder: '可不选' },
                 lockedField('code', '门店编码'),
@@ -172,13 +172,13 @@
                 var matched = dataApi.list().filter(function (row) {
                     if (!includesText(row.code, params.code)) return false;
                     if (!includesText(row.name, params.name)) return false;
-                    if (!blank(params.rbfLevel) && row.rbfLevel !== params.rbfLevel) return false;
+                    if (!blank(params.rbtLevel) && row.rbtLevel !== params.rbtLevel) return false;
                     if (!includesText(row.contact, params.contactQuery)) return false;
                     if (!includesText(row.phone, params.contactPhone)) return false;
                     if (!includesText(row.legalName, params.legalName)) return false;
                     if (!includesText(row.legalPhone, params.legalPhone)) return false;
                     if (!blank(params.tagQuery)) {
-                        var bound = window.BusinessTagPrototypeStore.getBinding('RBF_STORE', row.code) || [];
+                        var bound = window.BusinessTagPrototypeStore.getBinding('RBT_STORE', row.code) || [];
                         if (bound.indexOf(params.tagQuery) < 0) return false;
                     }
                     return true;
@@ -188,7 +188,7 @@
 
             function openDetail(row) {
                 var store = dataApi.get(row.code);
-                if (store && window.RbfStoreDetail) window.RbfStoreDetail.open(store);
+                if (store && window.RbtStoreDetail) window.RbtStoreDetail.open(store);
             }
 
             function openAdd() {
@@ -200,7 +200,7 @@
                 afterSave = 'edit';
                 var store = dataApi.get(row.code) || row;
                 var tags = window.BusinessTagPrototypeStore
-                    ? window.BusinessTagPrototypeStore.getBinding('RBF_STORE', store.code)
+                    ? window.BusinessTagPrototypeStore.getBinding('RBT_STORE', store.code)
                     : [];
                 editDialog.value && editDialog.value.showEdit(Object.assign({}, store, {
                     archiveCode: store.archiveCode || '',
@@ -211,7 +211,7 @@
 
             function openTags() {
                 if (window.BusinessTagPrototypeUI && typeof window.BusinessTagPrototypeUI.openManager === 'function') {
-                    window.BusinessTagPrototypeUI.openManager('RBF_STORE', '门店标签库');
+                    window.BusinessTagPrototypeUI.openManager('RBT_STORE', '门店标签库');
                 }
             }
 
@@ -240,11 +240,11 @@
                 var api = window.BusinessTagPrototypeStore;
                 var picked = values.storeTags || [];
                 batchCodes.forEach(function (code) {
-                    var current = api.getBinding('RBF_STORE', code);
+                    var current = api.getBinding('RBT_STORE', code);
                     var next = batchMode === 'remove'
                         ? current.filter(function (id) { return picked.indexOf(id) < 0; })
                         : current.concat(picked.filter(function (id) { return current.indexOf(id) < 0; }));
-                    api.saveBinding('RBF_STORE', code, next);
+                    api.saveBinding('RBT_STORE', code, next);
                 });
             }
 
@@ -253,8 +253,8 @@
                     ElMessage.error('请选择门店');
                     return false;
                 }
-                if (!values.rbfLevel) {
-                    ElMessage.error('请选择RBF等级');
+                if (!values.rbtLevel) {
+                    ElMessage.error('请选择RBT等级');
                     return false;
                 }
                 if (values.status !== '启用' && values.status !== '禁用') {
@@ -265,8 +265,8 @@
             }
 
             function beforeSubmitEdit(values) {
-                if (!values.rbfLevel) {
-                    ElMessage.error('请选择RBF等级');
+                if (!values.rbtLevel) {
+                    ElMessage.error('请选择RBT等级');
                     return false;
                 }
                 if (values.status !== '启用' && values.status !== '禁用') {
@@ -284,15 +284,15 @@
                 }
                 var tagIds = values.storeTags || [];
                 if (tagIds.length && window.BusinessTagPrototypeStore) {
-                    window.BusinessTagPrototypeStore.saveBinding('RBF_STORE', created.code, tagIds);
+                    window.BusinessTagPrototypeStore.saveBinding('RBT_STORE', created.code, tagIds);
                 }
                 return created;
             }
 
             function updateStore(values) {
-                var updated = dataApi.update({ code: values.code, rbfLevel: values.rbfLevel, enabled: values.status !== '禁用' });
+                var updated = dataApi.update({ code: values.code, rbtLevel: values.rbtLevel, enabled: values.status !== '禁用' });
                 if (window.BusinessTagPrototypeStore) {
-                    window.BusinessTagPrototypeStore.saveBinding('RBF_STORE', values.code, values.storeTags || []);
+                    window.BusinessTagPrototypeStore.saveBinding('RBT_STORE', values.code, values.storeTags || []);
                 }
                 return updated;
             }
@@ -343,7 +343,7 @@
                 refreshTable: refreshTable
             };
         }
-    }, '#rbfStoreApp', {
+    }, '#rbtStoreApp', {
         services: {},
         warehouse: { warehouseId: 'demo', warehouseCode: 'DEMO', warehouseName: '演示仓库' },
         permissions: [],

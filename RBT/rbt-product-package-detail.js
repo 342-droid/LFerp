@@ -1,4 +1,4 @@
-/* RBF 商品包详情：在当前页弹出，展示商品包资料和包含的 SKU。 */
+/* RBT 商品包详情：在当前页弹出，展示商品包资料和包含的 SKU。 */
 (function () {
     function esc(value) {
         return String(value == null || value === '' ? '—' : value)
@@ -39,18 +39,18 @@
                     '</td><td>' + esc(item.barcode) + '</td><td>' + esc(item.unit) + '</td><td>' + esc(item.spec) +
                     '</td><td class="is-money">' + esc(item.purchasePrice) + '</td><td class="is-money">' + esc(item.salePrice) + '</td></tr>';
             }).join('');
-        return '<div class="rbf-package-sku-table-wrap"><table class="rbf-package-sku-table"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>';
+        return '<div class="rbt-package-sku-table-wrap"><table class="rbt-package-sku-table"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>';
     }
 
     function paintTags(pkg) {
-        var hosts = [document.getElementById('rbfPackageHeroTags'), document.getElementById('rbfPackageBaseTags')];
+        var hosts = [document.getElementById('rbtPackageHeroTags'), document.getElementById('rbtPackageBaseTags')];
         hosts.forEach(function (host) {
             if (host) host.innerHTML = tagHtml(pkg.code);
         });
     }
 
     function closeDrawer() {
-        document.querySelectorAll('[data-rbf-package-drawer]').forEach(function (node) {
+        document.querySelectorAll('[data-rbt-package-drawer]').forEach(function (node) {
             node.remove();
         });
         document.removeEventListener('keydown', onDrawerKey);
@@ -74,27 +74,27 @@
         opened = pkg;
         var backdrop = document.createElement('div');
         backdrop.className = 'store-drawer-backdrop';
-        backdrop.setAttribute('data-rbf-package-drawer', '1');
+        backdrop.setAttribute('data-rbt-package-drawer', '1');
         var drawer = document.createElement('aside');
         drawer.className = 'store-drawer store-drawer--interactive store-drawer--store-wide';
-        drawer.setAttribute('data-rbf-package-drawer', '1');
+        drawer.setAttribute('data-rbt-package-drawer', '1');
         drawer.setAttribute('role', 'dialog');
         drawer.setAttribute('aria-modal', 'true');
         drawer.setAttribute('aria-label', '商品包详情');
         drawer.innerHTML =
             '<div class="store-drawer__header"><h2 class="store-drawer__title">商品包详情</h2>' +
-            '<button type="button" class="store-drawer__close" data-rbf-package-close aria-label="关闭">&times;</button></div>' +
+            '<button type="button" class="store-drawer__close" data-rbt-package-close aria-label="关闭">&times;</button></div>' +
             '<div class="store-drawer__hero store-drawer__hero--elevated">' +
             '<div class="store-drawer__name-row"><span class="store-drawer__name">' + esc(pkg.name) + '</span></div>' +
             '<div class="store-drawer__meta">商品包编码：' + esc(pkg.code) + '</div>' +
-            '<div class="store-drawer__meta" id="rbfPackageHeroTags"></div></div>' +
+            '<div class="store-drawer__meta" id="rbtPackageHeroTags"></div></div>' +
             '<div class="store-drawer__body"><div class="supplier-detail-tab">' +
             '<div class="supplier-detail-section-title">基础信息</div><div class="supplier-detail-grid">' +
             cell('商品包编码', pkg.code) +
             cell('商品包名称', pkg.name) +
             cell('事业线', pkg.bizLine) +
             cell('状态', pkg.enabled === false ? '禁用' : '启用') +
-            '<div class="supplier-detail-cell"><div class="supplier-detail-cell__label">商品包标签</div><div class="supplier-detail-cell__body" id="rbfPackageBaseTags"></div></div>' +
+            '<div class="supplier-detail-cell"><div class="supplier-detail-cell__label">商品包标签</div><div class="supplier-detail-cell__body" id="rbtPackageBaseTags"></div></div>' +
             cell('创建人', pkg.creator) +
             cell('创建时间', pkg.createdAt) +
             cell('更新人', pkg.updater) +
@@ -106,11 +106,11 @@
         document.body.appendChild(backdrop);
         document.body.appendChild(drawer);
         backdrop.addEventListener('click', closeDrawer);
-        drawer.querySelector('[data-rbf-package-close]').addEventListener('click', closeDrawer);
+        drawer.querySelector('[data-rbt-package-close]').addEventListener('click', closeDrawer);
         document.addEventListener('keydown', onDrawerKey);
         window.addEventListener('business-tags:changed', onTagsChanged);
         paintTags(pkg);
     }
 
-    window.RbfPackageDetail = { open: open };
+    window.RbtPackageDetail = { open: open };
 })();

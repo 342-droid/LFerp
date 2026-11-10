@@ -1,9 +1,9 @@
-/* RBF 商品包：按编码、名称、商品标签查询，可新增商品包、勾选后批量添加或移出标签。 */
+/* RBT 商品包：按编码、名称、商品标签查询，可新增商品包、勾选后批量添加或移出标签。 */
 (function () {
     var Vue = OctopusPrototype.Vue;
     var ref = Vue.ref;
     var ElMessage = OctopusPrototype.ElementPlus.ElMessage;
-    var KEY = 'rbf_product_package_v1';
+    var KEY = 'rbt_product_package_v1';
     var TAG_TYPE = 'PRODUCT_PACKAGE';
     /* 条码、单位、采购价与供货关系一致；规格从商品名称拆出。类目沿用商品模块已有类目。售价在加入商品包后手填。 */
     var SKUS = [
@@ -322,8 +322,8 @@
                     return false;
                 });
                 current = current || row;
-                if (window.RbfPackageDetail) {
-                    window.RbfPackageDetail.open(Object.assign({}, current, { skuItems: skuItems(current) }));
+                if (window.RbtPackageDetail) {
+                    window.RbtPackageDetail.open(Object.assign({}, current, { skuItems: skuItems(current) }));
                 }
             }
 
@@ -542,7 +542,7 @@
                 refreshTable: refreshTable
             };
         }
-    }, '#rbfPackageApp', {
+    }, '#rbtPackageApp', {
         services: {},
         warehouse: { warehouseId: 'demo', warehouseCode: 'DEMO', warehouseName: '演示仓库' },
         permissions: [],
