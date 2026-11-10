@@ -6569,7 +6569,7 @@
         grid.appendChild(detailCell('贸易商地址', r.region));
         grid.appendChild(detailCell('贸易商详细地址', r.detailAddr));
         grid.appendChild(detailCell('牌照类型', r.licenseType));
-        grid.appendChild(detailCell('负责人姓名', r.contact));
+        grid.appendChild(detailCell('联系人姓名', r.contact));
         grid.appendChild(detailCell('手机号码', r.phone));
         grid.appendChild(detailCell('业务范围', r.bizScope));
         grid.appendChild(detailCellTagged('进件状态', r.onboardStatus, true));

@@ -2093,7 +2093,7 @@
             { id: 'resName', label: '贸易商名称', type: 'text', required: true },
             { id: 'shortName', label: '贸易商简称', type: 'text' },
             { id: 'licenseType', label: '牌照类型', type: 'text' },
-            { id: 'contactName', label: '负责人姓名', type: 'text', required: true },
+            { id: 'contactName', label: '联系人姓名', type: 'text', required: true },
             { id: 'phone', label: '手机号码', type: 'text' },
             {
                 id: 'resStatus',
