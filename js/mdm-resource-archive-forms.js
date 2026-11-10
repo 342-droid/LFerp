@@ -1790,7 +1790,7 @@
             }
             var bundle = createStoreFormBundle({ initialVenuePhotos: initial, storeCode: storeId });
             bundle.fillFromArchiveRow(tr);
-<<<<<<< HEAD
+            var refs = bundle.refs || {};
             function storeSnapshot() {
                 return {
                     '门店编码': cellPlainText(cells[0]),
@@ -1801,52 +1801,8 @@
                 };
             }
             var before = storeSnapshot();
-            attachWideModal('编辑门店', bundle.body, function () {
-                var refs = bundle.refs || {};
-                /* 【857】手机号码变更 = 门店端登录账号换绑手机号 */
-                if (refs.isPhoneChanged && refs.isPhoneChanged()) {
-                    var newPhone = String(refs.phoneInp.value || '').trim();
-                    var toast = function (m) {
-                        if (typeof showToast === 'function') showToast(m, 'error');
-                    };
-                    if (!newPhone) {
-                        toast('请输入手机号码');
-                        return false;
-                    }
-                    if (!/^1\d{10}$/.test(newPhone)) {
-                        toast('请输入正确的 11 位手机号');
-                        return false;
-                    }
-                    var masked = newPhone.slice(0, 3) + '****' + newPhone.slice(7);
-                    if (!String(refs.verifyInp.value || '').trim()) {
-                        toast('请输入验证码');
-                        return false;
-                    }
-                    /* 统一用户体系：新号已是其他门店负责人时允许，保存后同时管理两家门店 */
-                    var otherStore = '';
-                    var tbody = tr.parentNode;
-                    if (tbody) {
-                        Array.prototype.forEach.call(tbody.querySelectorAll('tr'), function (row) {
-                            if (row === tr || otherStore) return;
-                            var tds = row.querySelectorAll('td');
-                            if (tds[7] && cellPlainText(tds[7]) === masked) otherStore = cellPlainText(tds[2]);
-                        });
-                    }
-                    var ok = window.confirm(
-                        '确认将本门店的登录手机号由 ' + (refs.originalPhone || '—') + ' 更换为 ' + masked +
-                            '？\n更换后原手机号不能再登录管理本门店。' +
-                            (otherStore
-                                ? '\n该手机号已是门店【' + otherStore + '】的登录手机号，保存后可同时管理这两家门店。'
-                                : '')
-                    );
-                    if (!ok) return false;
-                    if (cells[7]) cells[7].textContent = masked;
-                }
-                if (!warehouseSelectionAvailable(refs.warehouseSel, before['配送仓库'])) return false;
-=======
-            var refs = bundle.refs || {};
             function applyEdit() {
->>>>>>> dd6e16c (fix: 【857】门店改手机号的校验与二次确认在原型中补齐)
+                if (!warehouseSelectionAvailable(refs.warehouseSel, before['配送仓库'])) return false;
                 var region = refs.regionInp ? String(refs.regionInp.value || '').trim() : '';
                 var nextCode = storeId;
                 var api = window.MdmStoreCode;
@@ -1860,7 +1816,6 @@
                 if (cells[0] && nextCode) cells[0].textContent = nextCode;
                 if (region) tr.setAttribute('data-region', region);
                 if (refs.addressTa) tr.setAttribute('data-address', String(refs.addressTa.value || '').trim());
-                writeStoreBizAttrs(tr, refs);
                 writeVenuePhotos('store', nextCode || storeId, collectVenuePhotosFromRefs(refs));
                 if (storeName) {
                     writeVenuePhotos('store', 'name:' + storeName, collectVenuePhotosFromRefs(refs));
@@ -1887,11 +1842,9 @@
                 writeJsonStore('mdm_store_warehouse_bindings_v1', bindings);
                 cells[8].textContent = bindings[nextCode];
                 syncStoreReceiveFromForm(nextCode || storeId, nextName || storeName, refs);
-<<<<<<< HEAD
                 if (window.MdmOperationLog) window.MdmOperationLog.record('store', nextCode || storeId,
                     '编辑门店', before, storeSnapshot());
-            });
-=======
+                return true;
             }
             /* 【857】手机号码变更：本门店登录挂靠从旧号用户换到新号用户，先于其他必填校验 */
             function checkPhoneChange() {
@@ -1939,8 +1892,7 @@
                 bundle.body,
                 function () {
                     if (!phoneCheck || !phoneCheck.changed) {
-                        applyEdit();
-                        return;
+                        return applyEdit() !== false;
                     }
                     var pc = phoneCheck;
                     var msg =
@@ -1952,7 +1904,7 @@
                     showStorePhoneConfirm(msg, function () {
                         if (cells[7]) cells[7].textContent = pc.masked;
                         tr.setAttribute('data-phone', pc.phone);
-                        applyEdit();
+                        if (applyEdit() === false) return;
                         removeArchiveFormModals();
                         if (typeof showToast === 'function') showToast('已保存，本门店登录手机号已更换为 ' + pc.phone, 'success');
                     });
@@ -1963,8 +1915,8 @@
                     return phoneCheck !== null;
                 }
             );
->>>>>>> dd6e16c (fix: 【857】门店改手机号的校验与二次确认在原型中补齐)
         },
+
         openSupplierAdd: function () {
             var bundle = createSupplierFormBundle({ includeInboundWarehouse: true });
             attachWideModal('新增供应商', bundle.body, function () {
