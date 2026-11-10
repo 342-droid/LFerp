@@ -1063,7 +1063,7 @@
         refs.nameInp = txt('请输入供应商名称', '');
         body.appendChild(formRow('供应商名称', true, refs.nameInp));
         /* 供应商别名：仅 PC、由平台运营维护；写路径必填。
-           存量空别名不迁库，列表标待补；编辑预填名称。C 端：别名 || 名称。 */
+           存量空别名不迁库，列表空显示「-」；编辑预填名称。C 端：别名 || 名称。 */
         refs.shortNameInp = txt('请输入供应商别名', '');
         refs.shortNameInp.setAttribute('data-required-msg', '请输入供应商别名');
         body.appendChild(formRow('供应商别名', true, refs.shortNameInp));
@@ -1071,7 +1071,7 @@
         aliasTip.className = 'store-form__tip';
         aliasTip.style.cssText = 'margin:-4px 0 12px 168px;font-size:12px;color:#999;line-height:1.5;';
         aliasTip.textContent =
-            '必填，由平台运营维护，用于 C 端供应商标题。存量未填显示「待补」，编辑时若为空会按名称预填，可改成对外简称后保存。';
+            '必填，由平台运营维护，用于 C 端供应商标题。存量未填列表显示「-」，编辑时若为空会按名称预填，提示「请填写对外简称」。';
         body.appendChild(aliasTip);
         refs.typeSel = sel(
             [
@@ -1135,11 +1135,10 @@
             if (!shortName && tr.getAttribute('data-short-name')) {
                 shortName = String(tr.getAttribute('data-short-name') || '').trim();
             }
-            /* 历史空别名：预填供应商名称，便于直接保存或改成对外简称 */
+            /* 历史空别名：预填供应商名称，提示填写对外简称 */
             refs.shortNameInp.value = shortName || nameVal;
             if (!shortName && nameVal) {
-                aliasTip.textContent =
-                    '已按供应商名称预填，可改成对外简称后保存。保存前不可清空。';
+                aliasTip.textContent = '请填写对外简称';
             }
             refs.regionInp.value = cellPlainText(c[4]);
             if (refs.detailTa) refs.detailTa.value = cellPlainText(c[5]);
@@ -1658,15 +1657,7 @@
                 if (cells[2]) cells[2].textContent = nextName || supplierName;
                 if (cells[3]) {
                     cells[3].setAttribute('data-field', 'shortName');
-                    cells[3].textContent = nextShort || '—';
-                    if (!nextShort) {
-                        var pending = document.createElement('span');
-                        pending.className = 'status pending';
-                        pending.title = '待平台运营补填';
-                        pending.textContent = '待补';
-                        cells[3].appendChild(document.createTextNode(' '));
-                        cells[3].appendChild(pending);
-                    }
+                    cells[3].textContent = nextShort || '-';
                 }
                 tr.setAttribute('data-short-name', nextShort);
                 saveSupplierInboundWarehouseBinding(

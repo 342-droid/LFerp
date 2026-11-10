@@ -943,12 +943,29 @@
     );
   }
 
-  function getDemoSupplierName() {
+  /** 有别名用别名，否则供应商名称（历史页按最新别名） */
+  function resolveSupplierDisplayName(raw) {
+    var name = String(raw || '').trim();
+    if (!name) return name;
     try {
-      return (getParams().get('supplier') || '').trim() || '华东冷链供应商';
-    } catch (e) {
-      return '华东冷链供应商';
-    }
+      if (
+        window.MdmSupplierArchiveStore &&
+        typeof window.MdmSupplierArchiveStore.getDisplayName === 'function'
+      ) {
+        return (
+          window.MdmSupplierArchiveStore.getDisplayName({ name: name }) || name
+        );
+      }
+    } catch (e) {}
+    return name;
+  }
+
+  function getDemoSupplierName() {
+    var raw = '华东冷链供应商';
+    try {
+      raw = (getParams().get('supplier') || '').trim() || raw;
+    } catch (e) {}
+    return resolveSupplierDisplayName(raw) || raw;
   }
 
   function getDemoSupplierReturnAddress(supplierName) {
@@ -1622,6 +1639,7 @@
     },
     supplier: {
       tip: '平台已同意退货，请将商品寄回以下供应商地址，并在下方填写退货物流信息。',
+      /* name 在读取时用 getDemoSupplierName()，优先别名 */
       name: '华东冷链供应商 售后组',
       phone: '021-58901234',
       address: '上海市浦东新区外高桥保税区 冷链物流园A区12号'
@@ -3817,8 +3835,15 @@
     } else if (isWarehouseDelivery(delivery)) {
       info = RETURN_ADDRESSES.warehouse;
     } else {
-      /* 快递退货退回供应商 */
+      /* 快递退货退回供应商：名称优先别名 */
       info = RETURN_ADDRESSES.supplier;
+      var supplierName = getDemoSupplierName();
+      info = {
+        tip: info.tip,
+        name: supplierName + ' 售后组',
+        phone: info.phone,
+        address: info.address
+      };
     }
     return {
       summary: info.address,
@@ -10735,7 +10760,9 @@
             '">' +
             '<div class="ua-as-card__head">' +
             '<span class="ua-as-card__shop">' +
-            escapeHtml(rec.shopName || '冷丰优选供应链') +
+            escapeHtml(
+              resolveSupplierDisplayName(rec.shopName || '冷丰优选供应链')
+            ) +
             '</span>' +
             '<span class="ua-as-card__type">' +
             escapeHtml(typeLabel) +

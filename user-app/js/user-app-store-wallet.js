@@ -454,12 +454,32 @@
     return '平台';
   }
 
+  /** 佣金结算/回退的交易方：有别名用别名，否则供应商名称 */
+  function resolveSupplierPartyName(raw) {
+    var name = String(raw || '').trim();
+    if (!name) return name;
+    try {
+      if (
+        window.MdmSupplierArchiveStore &&
+        typeof window.MdmSupplierArchiveStore.getDisplayName === 'function'
+      ) {
+        return window.MdmSupplierArchiveStore.getDisplayName({ name: name }) || name;
+      }
+    } catch (e) {}
+    return name;
+  }
+
   /** 交易方：收入=资金来源，支出=资金去向 */
   function tradePartyLabel(item) {
     if (item && item.manualAdjust) return '平台基本户';
     var biz = mapLedgerBizType(item && item.type);
-    if (biz === '提现' || isExpenseLedger(item)) return fundDestLabel(item);
-    return fundSourceLabel(item);
+    var label =
+      biz === '提现' || isExpenseLedger(item) ? fundDestLabel(item) : fundSourceLabel(item);
+    var rawType = String((item && item.type) || '');
+    if (biz === '佣金结算' || biz === '佣金回退' || rawType.indexOf('佣金') >= 0) {
+      label = resolveSupplierPartyName(label);
+    }
+    return label;
   }
 
   /** 状态枚举与 MDM 一致：成功 / 处理中 / 失败；提现不可撤销 */

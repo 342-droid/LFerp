@@ -782,6 +782,36 @@
     };
   }
 
+  /** 商品流展示名：有别名用别名，无别名用供应商名称 */
+  function resolveProductStreamSupplierLabel(supplierId, supplierName) {
+    return applySupplierDisplayName({
+      id: supplierId || '',
+      name: supplierName || ''
+    }).name;
+  }
+
+  /** 首页静态商品卡补供应商名称（别名优先） */
+  function applyHomeProductSupplierLabels() {
+    document.querySelectorAll('.ua-restock-product').forEach(function (card) {
+      var body = card.querySelector('.ua-restock-product__body');
+      if (!body) return;
+      var label = resolveProductStreamSupplierLabel(
+        card.getAttribute('data-supplier-id'),
+        card.getAttribute('data-supplier-name')
+      );
+      if (!label) return;
+      var el = body.querySelector('.ua-restock-product__supplier');
+      if (!el) {
+        el = document.createElement('p');
+        el.className = 'ua-restock-product__supplier';
+        var spec = body.querySelector('.ua-restock-product__spec');
+        if (spec) body.insertBefore(el, spec);
+        else body.appendChild(el);
+      }
+      el.textContent = label;
+    });
+  }
+
   function resolveSupplier(payload) {
     var base = null;
     if (payload.supplierId && payload.supplierName) {
@@ -3995,7 +4025,8 @@
 
     if (expanded) {
       if (isCatItemCrossSpec(item)) {
-        return (
+        var crossSupplier = resolveSupplier({ spuId: item.id });
+      return (
           '<article class="ua-restock-cat-product ua-restock-cat-product--expanded ua-restock-cat-product--cross-spec' +
           (unsaleable ? ' is-unsaleable' : '') +
           '" data-id="' +
@@ -4009,6 +4040,9 @@
           '<h4 class="ua-restock-cat-product__spec-name">' +
           item.title +
           '</h4>' +
+          (crossSupplier && crossSupplier.name
+            ? '<p class="ua-restock-cat-product__supplier">' + crossSupplier.name + '</p>'
+            : '') +
           (item.attrs ? '<p class="ua-restock-cat-product__attrs">' + item.attrs + '</p>' : '') +
           '</div></div>' +
           renderCrossSpecExpandedPanel(item, loggedIn) +
@@ -4037,6 +4071,10 @@
         })
         .join('');
 
+      var expandedSupplier = resolveSupplier({
+        id: displaySpec && displaySpec.id,
+        spuId: item.id
+      });
       return (
         '<article class="ua-restock-cat-product ua-restock-cat-product--expanded' +
         (unsaleable ? ' is-unsaleable' : '') +
@@ -4051,6 +4089,9 @@
         '<h4 class="ua-restock-cat-product__spec-name">' +
         item.title +
         '</h4>' +
+        (expandedSupplier && expandedSupplier.name
+          ? '<p class="ua-restock-cat-product__supplier">' + expandedSupplier.name + '</p>'
+          : '') +
         '<ul class="ua-restock-cat-product__spec-list">' +
         specRows +
         '</ul>' +
@@ -4088,6 +4129,8 @@
         renderSpecAddBtn(item, displaySpec);
     }
 
+    var supplier = resolveSupplier({ id: displaySpec && displaySpec.id, spuId: item.id });
+    var supplierLabel = supplier && supplier.name ? supplier.name : '';
     return (
       '<article class="ua-restock-cat-product' +
       (unsaleable ? ' is-unsaleable' : '') +
@@ -4101,6 +4144,9 @@
       '<h4 class="ua-restock-cat-product__title">' +
       item.title +
       '</h4>' +
+      (supplierLabel
+        ? '<p class="ua-restock-cat-product__supplier">' + supplierLabel + '</p>'
+        : '') +
       (item.attrs ? '<p class="ua-restock-cat-product__attrs">' + item.attrs + '</p>' : '') +
       '<div class="ua-restock-cat-product__bottom">' +
       bottomHtml +
@@ -4797,6 +4843,7 @@
   bindHomeSpecSheetEvents();
   updatePriceVisibility();
   applyHomeBrowseSaleable();
+  applyHomeProductSupplierLabels();
   renderCart();
   renderMe();
   renderCategoryContent();

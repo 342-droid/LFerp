@@ -436,6 +436,8 @@
           (fresh.asFilter ? ' data-as-filter="' + escapeHtml(fresh.asFilter) + '"' : '') +
           ' data-order-no="' +
           escapeHtml(fresh.orderNo) +
+          '" data-supplier-id="' +
+          escapeHtml(fresh.supplierId || '') +
           '" data-supplier-name="' +
           escapeHtml(fresh.supplierName || '') +
           '" data-warehouse-name="' +

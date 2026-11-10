@@ -222,8 +222,19 @@
       "file": "904-供应商别名必填.md",
       "pages": [
         "MDM/mdm_archive_supplier.html",
-        "user-app/h5/cart.html",
-        "user-app/h5/order-detail.html"
+        "user-app/h5/restock.html",
+        "user-app/h5/checkout.html",
+        "user-app/h5/product-detail.html",
+        "store-app/h5/restock-orders.html",
+        "store-app/h5/restock-order-detail.html",
+        "store-app/h5/restock-aftersale-list.html",
+        "store-app/h5/restock-refund-detail.html",
+        "user-app/h5/order-refund-select.html",
+        "user-app/h5/order-refund-only.html",
+        "user-app/h5/order-refund-return.html",
+        "user-app/h5/order-refund-restock.html",
+        "user-app/h5/order-refund-return-ship.html",
+        "user-app/h5/store-wallet.html"
       ]
     },
     {
