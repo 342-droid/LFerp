@@ -62,11 +62,12 @@
         { href: 'mdm_party_all.html', text: '所有主体' }
     ];
 
-    /** 商家列表：对齐运营后台，仅门店/供应商/仓库档案 */
+    /** 商家列表：门店/供应商/仓库/贸易商档案 */
     const archiveItems = [
         { href: 'mdm_archive_store.html', text: '门店档案' },
         { href: 'mdm_archive_supplier.html', text: '供应商档案' },
-        { href: 'mdm_archive_warehouse.html', text: '仓库档案' }
+        { href: 'mdm_archive_warehouse.html', text: '仓库档案' },
+        { href: 'mdm_archive_trader.html', text: '贸易商档案' }
     ];
 
     const peopleItems = [
@@ -104,6 +105,10 @@
         { href: 'mdm_audit_store_registration.html#onboarding-review', text: '进件审核' }
     ];
 
+    const rbtAuditItems = [
+        { href: 'mdm_audit_rbt_demand.html', text: '需求单审核' }
+    ];
+
     const marketingAuditItems = [
         { href: 'mdm_audit_coupon.html', text: '优惠券' },
         { href: 'mdm_audit_cash_redpack.html', text: '现金红包' },
@@ -127,7 +132,8 @@
         isMemberPointsPage ||
         /^mdm_member_/i.test(currentPage);
     const isMarketingAuditPage = groupHasActive(marketingAuditItems);
-    const isAuditPage = groupHasActive(auditItems) || isMarketingAuditPage;
+    const isRbtAuditPage = groupHasActive(rbtAuditItems);
+    const isAuditPage = groupHasActive(auditItems) || isMarketingAuditPage || isRbtAuditPage;
 
     /**
      * 与 WMS wms-sidebar 一致：分组 + submenu + toggleSubmenu(this)
@@ -161,8 +167,9 @@
     if (isAuditPage) {
         /** 顶栏「审核中心」独立入口：仅在该模块页面展示侧栏审核菜单 */
         itemsHtml =
-            renderCollapsibleGroup('审核中心', '任务管理', auditItems, !isMarketingAuditPage) +
-            renderCollapsibleGroup('营销审核', '策略管理', marketingAuditItems, true);
+            renderCollapsibleGroup('审核中心', '任务管理', auditItems, !isMarketingAuditPage && !isRbtAuditPage) +
+            renderCollapsibleGroup('营销审核', '策略管理', marketingAuditItems, true) +
+            renderCollapsibleGroup('RBT审核', '策略管理', rbtAuditItems, true);
     } else if (isMemberPage) {
         /** 顶栏「会员」独立入口：分组均默认展开，便于一眼看到完整菜单 */
         itemsHtml =

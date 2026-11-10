@@ -24,9 +24,9 @@
         tag('store-delivery', '配送关注', '#1677ff', 1),
         tag('store-new', '新开门店', '', 1)
       ],
-      RBF_STORE: [
-        tag('rbf-store-guarantee', '担保门店', '#fa8c16', 0),
-        tag('rbf-store-demand', '需求门店', '#1677ff', 0)
+      RBT_STORE: [
+        tag('rbt-store-guarantee', '担保门店', '#fa8c16', 0),
+        tag('rbt-store-demand', '需求门店', '#1677ff', 0)
       ],
       AFTER_SALE: [
         tag('after-priority', '优先处理', '#ff4d4f', 6),
@@ -41,7 +41,7 @@
         TSN00001: ['store-delivery'],
         SHA00001: ['store-focus', 'store-new']
       },
-      RBF_STORE: {},
+      RBT_STORE: {},
       AFTER_SALE: {},
       PRODUCT_PACKAGE: {}
     }
@@ -97,7 +97,7 @@
     next.bindings = next.bindings || {};
     delete next.catalogs.CONSUMER;
     delete next.bindings.CONSUMER;
-    ['STORE', 'RBF_STORE', 'AFTER_SALE', 'PRODUCT_PACKAGE'].forEach(function (type) {
+    ['STORE', 'RBT_STORE', 'AFTER_SALE', 'PRODUCT_PACKAGE'].forEach(function (type) {
       if (!Array.isArray(next.catalogs[type])) next.catalogs[type] = clone(DEFAULTS.catalogs[type]);
       next.catalogs[type].forEach(function (item) {
         item.color = normalizeColor(item.color);
@@ -113,17 +113,17 @@
     return next;
   }
 
-  /* 担保门店、需求门店只属于 RBF。若本地已把它们写进门店档案标签库，改回重点门店、配送关注、新开门店。 */
+  /* 担保门店、需求门店只属于 RBT。若本地已把它们写进门店档案标签库，改回重点门店、配送关注、新开门店。 */
   function restoreArchiveStoreTags(next) {
-    var rbfIds = { 'store-guarantee': 'store-focus', 'store-demand': 'store-delivery' };
+    var rbtIds = { 'store-guarantee': 'store-focus', 'store-demand': 'store-delivery' };
     var catalog = next.catalogs.STORE || [];
     var bindings = next.bindings.STORE || {};
-    var hasRbf = catalog.some(function (item) { return rbfIds[item.id]; });
-    var bindingHasRbf = Object.keys(bindings).some(function (resourceId) {
-      return (bindings[resourceId] || []).some(function (id) { return rbfIds[id]; });
+    var hasRbt = catalog.some(function (item) { return rbtIds[item.id]; });
+    var bindingHasRbt = Object.keys(bindings).some(function (resourceId) {
+      return (bindings[resourceId] || []).some(function (id) { return rbtIds[id]; });
     });
-    if (!hasRbf && !bindingHasRbf) return;
-    var kept = catalog.filter(function (item) { return !rbfIds[item.id]; });
+    if (!hasRbt && !bindingHasRbt) return;
+    var kept = catalog.filter(function (item) { return !rbtIds[item.id]; });
     var merged = [];
     var seen = {};
     clone(DEFAULTS.catalogs.STORE).concat(kept).forEach(function (item) {
@@ -139,7 +139,7 @@
       }
       var nextIds = [];
       (bindings[resourceId] || []).forEach(function (id) {
-        var mapped = rbfIds[id] || id;
+        var mapped = rbtIds[id] || id;
         if (nextIds.indexOf(mapped) < 0 && merged.some(function (item) { return item.id === mapped; })) nextIds.push(mapped);
       });
       bindings[resourceId] = nextIds;
@@ -339,12 +339,12 @@
           : index % 4 === 2
             ? ['after-priority']
             : ['after-material'];
-    } else if (type === 'RBF_STORE') {
+    } else if (type === 'RBT_STORE') {
       demo = index % 3 === 0
-        ? ['rbf-store-guarantee']
+        ? ['rbt-store-guarantee']
         : index % 3 === 1
-          ? ['rbf-store-demand']
-          : ['rbf-store-guarantee', 'rbf-store-demand'];
+          ? ['rbt-store-demand']
+          : ['rbt-store-guarantee', 'rbt-store-demand'];
     } else if (type === 'STORE') {
       demo = index % 3 === 0
         ? ['store-focus']

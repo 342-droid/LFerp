@@ -1097,6 +1097,7 @@
         var idPrefixMap = {
             门店: 'STORE',
             供应商: 'SUP',
+            贸易商: 'TRD',
             仓库: 'WH',
             直播间: 'LIVE',
             承运商: 'CAR'
@@ -1157,7 +1158,7 @@
             '状态': spec.defaultStatus || '正常'
         });
         showToast(spec.pageLabel + '商家已保存', 'success');
-        return true;
+        return subjectId;
     }
 
     function init(spec) {
@@ -1336,7 +1337,7 @@
     function rowMerchantKind(tr) {
         var c = tr ? tr.querySelectorAll('td') : [];
         var t = c[3] ? c[3].textContent.trim() : '';
-        if (t === '供应商' || t === '仓库' || t === '门店') return t;
+        if (t === '供应商' || t === '贸易商' || t === '仓库' || t === '门店') return t;
         return '门店';
     }
 
@@ -1407,10 +1408,31 @@
                         return;
                     }
                 }
-                if (saveSubjectRowFromAddForm(mainPm, kindSpec) === false) return;
+                var pfx = kindSpec.fieldIdPrefix || '';
+                var nameBefore = (document.getElementById(fieldId(pfx, 'subjectName')) || {}).value || '';
+                var contactBefore = (document.getElementById(fieldId(pfx, 'contactPerson')) || {}).value || '';
+                var phoneBefore = (document.getElementById(fieldId(pfx, 'addPhone')) || {}).value || '';
+                var savedId = saveSubjectRowFromAddForm(mainPm, kindSpec);
+                if (savedId === false) return;
                 modal.style.display = 'none';
                 mainPm.decorateAllDetailLinkCells();
                 mainPm.refreshPagination();
+                if (
+                    kindSpec.subjectTypeLabel === '贸易商' &&
+                    window.MdmTraderArchiveStore &&
+                    typeof window.MdmTraderArchiveStore.addFromSubject === 'function'
+                ) {
+                    window.MdmTraderArchiveStore.addFromSubject({
+                        subjectId: typeof savedId === 'string' ? savedId : '',
+                        subjectName: String(nameBefore || '').trim(),
+                        contact: String(contactBefore || '').trim(),
+                        phone: String(phoneBefore || '').trim()
+                    });
+                    showToast('已写入贸易商档案，正在跳转…', 'success');
+                    setTimeout(function () {
+                        window.location.href = 'mdm_archive_trader.html';
+                    }, 600);
+                }
             });
         }
         modal.addEventListener('click', function (e) {
@@ -1419,7 +1441,7 @@
     }
 
     /**
-     * 所有主体：门店/供应商/仓库商家合并列表；三套新增按钮各自打开原表单字段
+     * 所有主体：门店/供应商/贸易商/仓库商家合并列表；各新增按钮各自打开原表单字段
      */
     function initUnified() {
         var kindByLabel = {
@@ -1450,6 +1472,19 @@
                 subjectIdPrefix: 'SUP',
                 disableConfirmMessage: '确定禁用此供应商吗？'
             },
+            贸易商: {
+                pageLabel: '贸易商',
+                subjectTypeLabel: '贸易商',
+                /* 创建需短信验证码；不收集登录账号；成功后写入贸易商档案 */
+                compactStoreSubjectForm: true,
+                enableSubjectOnboarding: true,
+                defaultStatus: '开启',
+                addModalId: 'mdmAllAddTrader',
+                triggerBtnId: 'mdmAddTraderMerchantBtn',
+                fieldIdPrefix: 'trd_',
+                subjectIdPrefix: 'TRD',
+                disableConfirmMessage: '确定禁用此贸易商吗？'
+            },
             仓库: {
                 pageLabel: '仓库',
                 subjectTypeLabel: '仓库',
@@ -1470,7 +1505,7 @@
         var detailFields = buildSubjectFields({
             pageLabel: '商家',
             subjectTypeLabel: '门店',
-            subjectTypeOptions: ['门店', '供应商', '仓库'],
+            subjectTypeOptions: ['门店', '供应商', '贸易商', '仓库'],
             bindColumnLabel: '绑定BD名称',
             contactPersonLabel: '联系人',
             statusOptions: [
@@ -1564,7 +1599,7 @@
 
         pm.init();
 
-        ['门店', '供应商', '仓库'].forEach(function (label) {
+        ['门店', '供应商', '贸易商', '仓库'].forEach(function (label) {
             mountKindAddModal(pm, kindByLabel[label]);
         });
 

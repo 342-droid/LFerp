@@ -1,5 +1,5 @@
 /**
- * 首页 index.html 位于项目根目录，mdm*.html 位于 MDM/，crm*.html 位于 CRM/，rbf*.html 位于 RBF/，其余业务页位于 SCM/；shop-h5/ 等为根目录下静态页。
+ * 首页 index.html 位于项目根目录，mdm*.html 位于 MDM/，crm*.html 位于 CRM/，rbt*.html 位于 RBT/，其余业务页位于 SCM/；shop-h5/ 等为根目录下静态页。
  * 本文件必须在 wms-sidebar / mdm-sidebar / common 等脚本之前加载。
  */
 (function () {
@@ -18,12 +18,12 @@
         var p = normPath(window.location.pathname || '');
         return /\/CRM\//i.test(p) || /\/CRM$/i.test(p);
     }
-    function inRbfFolder() {
+    function inRbtFolder() {
         var p = normPath(window.location.pathname || '');
-        return /\/RBF\//i.test(p) || /\/RBF$/i.test(p);
+        return /\/RBT\//i.test(p) || /\/RBT$/i.test(p);
     }
     function inSubModuleFolder() {
-        return inScmFolder() || inMdmFolder() || inCrmFolder() || inRbfFolder();
+        return inScmFolder() || inMdmFolder() || inCrmFolder() || inRbtFolder();
     }
     function page(filename) {
         filename = normPath(filename);
@@ -38,26 +38,26 @@
         }
         var m = /^mdm/i.test(filename);
         var c = /^crm/i.test(filename);
-        var r = /^rbf/i.test(filename);
+        var r = /^rbt/i.test(filename);
         if (inScmFolder()) {
             if (m) return '../MDM/' + filename;
             if (c) return '../CRM/' + filename;
-            if (r) return '../RBF/' + filename;
+            if (r) return '../RBT/' + filename;
             return filename;
         }
         if (inMdmFolder()) {
             if (m) return filename;
             if (c) return '../CRM/' + filename;
-            if (r) return '../RBF/' + filename;
+            if (r) return '../RBT/' + filename;
             return '../SCM/' + filename;
         }
         if (inCrmFolder()) {
             if (c) return filename;
             if (m) return '../MDM/' + filename;
-            if (r) return '../RBF/' + filename;
+            if (r) return '../RBT/' + filename;
             return '../SCM/' + filename;
         }
-        if (inRbfFolder()) {
+        if (inRbtFolder()) {
             if (r) return filename;
             if (m) return '../MDM/' + filename;
             if (c) return '../CRM/' + filename;
@@ -65,7 +65,7 @@
         }
         if (m) return 'MDM/' + filename;
         if (c) return 'CRM/' + filename;
-        if (r) return 'RBF/' + filename;
+        if (r) return 'RBT/' + filename;
         return 'SCM/' + filename;
     }
     function asset(relPath) {
@@ -77,7 +77,7 @@
         inScmFolder: inScmFolder,
         inMdmFolder: inMdmFolder,
         inCrmFolder: inCrmFolder,
-        inRbfFolder: inRbfFolder,
+        inRbtFolder: inRbtFolder,
         /** @deprecated 使用 inScmFolder */
         inFulfillmentFolder: inScmFolder,
         /** @deprecated 使用 inScmFolder */

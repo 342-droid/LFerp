@@ -1824,6 +1824,7 @@
     function resolveOnboardingKind(title, extraOpts) {
         if (extraOpts && extraOpts.onboardingKind) return extraOpts.onboardingKind;
         if (title === '供应商进件') return 'supplier';
+        if (title === '贸易商进件') return 'trader';
         if (title === '直播间进件') return 'liveRoom';
         if (title === '承运商进件') return 'carrier';
         if (title === '门店进件') return 'store';
@@ -7683,12 +7684,222 @@
         });
     }
 
+    function rowToTrader(tr) {
+        var c = tr.querySelectorAll('td');
+        if (c.length < 15) return null;
+        return {
+            id: cellPlain(c[0]),
+            subjectName: cellPlain(c[1]),
+            name: cellPlain(c[2]),
+            shortName: cellPlain(c[3]),
+            region: cellPlain(c[4]),
+            detailAddr: cellPlain(c[5]),
+            licenseType: cellPlain(c[6]),
+            contact: cellPlain(c[7]),
+            phone: cellPlain(c[8]),
+            onboardStatus: cellPlain(c[9]),
+            status: cellStatus(c[10]),
+            createdBy: cellPlain(c[11]),
+            createdAt: cellPlain(c[12]),
+            updatedBy: cellPlain(c[13]),
+            updatedAt: cellPlain(c[14])
+        };
+    }
+
+    function panelTraderBase(r) {
+        var p = el('div', 'supplier-detail-tab');
+        p.appendChild(sectionTitle('基础信息'));
+        var grid = el('div', 'supplier-detail-grid');
+        grid.appendChild(detailCell('贸易商ID', r.id));
+        grid.appendChild(detailCell('主体名称', r.subjectName));
+        grid.appendChild(detailCell('贸易商名称', r.name));
+        grid.appendChild(detailCell('贸易商简称', r.shortName));
+        grid.appendChild(detailCell('贸易商地址', r.region));
+        grid.appendChild(detailCell('贸易商详细地址', r.detailAddr));
+        grid.appendChild(detailCell('牌照类型', r.licenseType));
+        grid.appendChild(detailCell('联系人姓名', r.contact));
+        grid.appendChild(detailCell('手机号码', r.phone));
+        grid.appendChild(detailCell('业务范围', r.bizScope));
+        grid.appendChild(detailCellTagged('进件状态', r.onboardStatus, true));
+        grid.appendChild(detailCellTagged('贸易商状态', r.status, true));
+        grid.appendChild(detailCell('创建人', r.createdBy));
+        grid.appendChild(detailCell('创建时间', r.createdAt));
+        grid.appendChild(detailCell('更新人', r.updatedBy));
+        grid.appendChild(detailCell('更新时间', r.updatedAt));
+        p.appendChild(grid);
+        return p;
+    }
+
+    function panelTraderOnboarding(r) {
+        var recordKey = onboardRecordKey('trader', r.id);
+        var viewModel = {
+            id: r.id,
+            name: r.name,
+            shortName: r.shortName,
+            phone: r.phone,
+            detailAddress: r.detailAddr,
+            onboard: r.onboardStatus,
+            subjectName: r.subjectName
+        };
+        function freshDefaults() {
+            return resourceOnboardingDefaults(
+                r.shortName || r.name,
+                r.detailAddr,
+                r.phone,
+                r.id,
+                'trader'
+            );
+        }
+        var onboardingDefaults = freshDefaults();
+        var p = el('div', 'supplier-detail-tab');
+        p.appendChild(sectionTitle('进件信息'));
+        var onboardingWrap = el('div', 'supplier-onboard-detail-wrap');
+        function renderOnboardingInfo() {
+            var bind = getHuifuMerchantBind('trader', r.id);
+            var merchantNo = bind && bind.merchantNo ? bind.merchantNo : r.id ? 'HF-' + r.id : '—';
+            onboardingWrap.innerHTML = '';
+            var onboardingSummary = getOnboardingSummary(recordKey, onboardingDefaults);
+            onboardingSummary.recordKey = recordKey;
+            var view = buildOnboardViewFields({
+                recordKey: recordKey,
+                defaults: onboardingDefaults,
+                huifuMerchantNo: merchantNo,
+                bindKind: 'trader',
+                bindEntityId: r.id,
+                shortName: r.shortName || r.name,
+                merchantName: r.name,
+                contactMobile: r.phone,
+                onboardStatus: r.onboardStatus,
+                title: '贸易商进件',
+                subjectType: '贸易商'
+            });
+            var displayFields = ensureSupplierOnboardingFieldsForDisplay(view.fields, viewModel);
+            appendGroupedSupplierOnboardingDetail(onboardingWrap, displayFields, {
+                shortName: view.shortName || r.shortName || r.name,
+                merchantName: r.name,
+                placeName: r.shortName || r.name,
+                merchantNo: view.merchantNo || merchantNo,
+                payStatus: view.payStatus || '—',
+                onboardStatus: archiveOnboardEnum(onboardingSummary, r.onboardStatus)
+            });
+        }
+        renderOnboardingInfo();
+        p.appendChild(onboardingWrap);
+
+        p.appendChild(sectionTitle('贸易商进件'));
+        var onboard = el('div', 'store-onboard-section store-onboard-section--white');
+        var bar = el('div', 'erp-actions-row supplier-detail-onboard-actions');
+        var bindActions = null;
+        function refreshList() {
+            renderOnboardingInfo();
+            renderOnboardingTable();
+            if (bindActions && typeof bindActions.refresh === 'function') bindActions.refresh();
+        }
+        function openTraderOnboard(forceView) {
+            openOnboardResource('贸易商进件', r.shortName || r.name, freshDefaults(), recordKey, {
+                onboardingKind: 'trader',
+                traderId: r.id,
+                forceView: !!forceView,
+                onChange: refreshList
+            });
+        }
+        var go = mkBtn('去进件', true);
+        go.addEventListener('click', function () {
+            openTraderOnboard(false);
+        });
+        bar.appendChild(go);
+        bindActions = mountHuifuBindActions(bar, {
+            kind: 'trader',
+            entityId: r.id,
+            entityName: r.shortName || r.name,
+            onChange: refreshList
+        });
+        onboard.appendChild(bar);
+        var tableWrap = el('div');
+        function renderOnboardingTable() {
+            var bind = getHuifuMerchantBind('trader', r.id);
+            var onboardingSummary = getOnboardingSummary(recordKey, onboardingDefaults);
+            tableWrap.innerHTML = '';
+            tableWrap.appendChild(
+                dataTable(
+                    ONBOARD_LIST_HEADERS,
+                    buildEntityOnboardListRows(
+                        {
+                            kind: 'trader',
+                            entityId: r.id,
+                            merchantName: r.name,
+                            subjectType: '贸易商',
+                            groupName: r.subjectName,
+                            onboardStatus: onboardingSummary.auditStatus || onboardingSummary.status,
+                            fallbackMerchantNo: bind && bind.merchantNo ? bind.merchantNo : r.id ? 'HF-' + r.id : '—',
+                            contactMobile: r.phone,
+                            submitTime: formatTs(onboardingSummary.submittedAt),
+                            recordKey: recordKey,
+                            defaults: onboardingDefaults,
+                            title: '贸易商进件',
+                            shortName: r.shortName || r.name,
+                            openModal: function (forceView) {
+                                openTraderOnboard(forceView);
+                            }
+                        },
+                        refreshList
+                    )
+                )
+            );
+        }
+        renderOnboardingTable();
+        onboard.appendChild(tableWrap);
+        onboard.appendChild(
+            el(
+                'p',
+                'erp-page__note mdm-detail-note',
+                '无论是否已有汇付商户号，均可再次「去进件」或「绑定商户号」。进件审核流程：门店 → BD → 财务 → 汇付（审核操作在审核中心，MDM仅发起与保存）。'
+            )
+        );
+        p.appendChild(onboard);
+        return p;
+    }
+
+    function openTrader(tr) {
+        var r = rowToTrader(tr);
+        if (!r) {
+            if (typeof showToast === 'function') showToast('无法读取贸易商行数据', 'error');
+            return;
+        }
+        if (window.MdmTraderArchiveStore && typeof window.MdmTraderArchiveStore.get === 'function') {
+            var stored = window.MdmTraderArchiveStore.get(r.id);
+            if (stored) {
+                r.bizScope = stored.bizScope || '—';
+                r.license = stored.license || {};
+                r.permit = stored.permit || {};
+            }
+        }
+        var tags = [];
+        if (r.status === '正常') tags.push({ kind: 'orange', label: '正常' });
+        else tags.push({ kind: 'gray', label: r.status });
+        if (r.onboardStatus) tags.push({ kind: 'gray', label: r.onboardStatus });
+        attachDrawer({
+            title: '贸易商详情',
+            heroName: r.shortName && r.shortName !== '—' ? r.shortName : r.name,
+            heroTags: tags,
+            metaLines: ['贸易商ID：' + r.id + ' · 所属组织：' + r.subjectName],
+            wideClass: 'store-drawer--supplier-wide',
+            tabIds: ['base', 'onboard'],
+            tabLabels: ['基础信息', '进件信息'],
+            bodies: {
+                base: panelTraderBase(r),
+                onboard: panelTraderOnboarding(r)
+            }
+        });
+    }
+
     window.MdmArchiveDetailDrawer = {
         openStore: openStore,
         openSupplier: openSupplier,
         openLiveRoom: openLiveRoom,
         openCarrier: openCarrier,
         openWarehouse: openWarehouse,
+        openTrader: openTrader,
         openOnboardingDetail: openOnboardingDetailModal,
         getStoreReceiveInfo: getStoreReceiveInfo,
         getSupplierReceiveInfo: getSupplierReceiveInfo,
