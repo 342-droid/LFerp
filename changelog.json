@@ -1,7 +1,134 @@
 {
-  "latestSha": "7c0410c2a7dd7ba49816556f9b0441bdb6c28099",
-  "total": 505,
+  "latestSha": "cc561f28968a1bbc82b9add1d6c4bbe5098ec05c",
+  "total": 506,
   "days": [
+    {
+      "date": "2026-11-10",
+      "items": [
+        {
+          "sha": "cc561f2",
+          "type": "fix",
+          "text": "售卖范围选门店去掉客户数并收窄【902】范围",
+          "author": "u ｌ",
+          "time": "13:57",
+          "pages": [
+            {
+              "file": "MDM/mdm_live_session_detail.html",
+              "module": "冷丰WMS",
+              "title": "直播场次详情"
+            },
+            {
+              "file": "MDM/mdm_live_session_form.html",
+              "module": "冷丰WMS",
+              "title": "直播场次编辑"
+            },
+            {
+              "file": "MDM/mdm_marketing_newcomer_zone.html",
+              "module": "冷丰WMS",
+              "title": "新人专区"
+            },
+            {
+              "file": "MDM/mdm_marketing_newcomer_zone_form.html",
+              "module": "冷丰WMS",
+              "title": "编辑新人专区商品"
+            },
+            {
+              "file": "MDM/mdm_marketing_points_mall.html",
+              "module": "冷丰WMS",
+              "title": "积分商城"
+            },
+            {
+              "file": "MDM/mdm_marketing_points_mall_form.html",
+              "module": "冷丰WMS",
+              "title": "编辑积分商品"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "module": "冷丰WMS",
+              "title": "秒杀活动"
+            },
+            {
+              "file": "MDM/mdm_member_batch_tag.html",
+              "module": "冷丰WMS",
+              "title": "批量打标签"
+            },
+            {
+              "file": "MDM/mdm_member_batch_tag_form.html",
+              "module": "冷丰WMS",
+              "title": "批量打标签"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
+              "file": "MDM/mdm_member_points_cash.html",
+              "module": "冷丰WMS",
+              "title": "积分抵现"
+            },
+            {
+              "file": "MDM/mdm_member_points_cash_form.html",
+              "module": "冷丰WMS",
+              "title": "积分抵现"
+            },
+            {
+              "file": "MDM/mdm_member_points_consume.html",
+              "module": "冷丰WMS",
+              "title": "消费送积分"
+            },
+            {
+              "file": "MDM/mdm_member_points_consume_form.html",
+              "module": "冷丰WMS",
+              "title": "消费送积分"
+            },
+            {
+              "file": "MDM/mdm_member_segment.html",
+              "module": "冷丰WMS",
+              "title": "会员分群"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            },
+            {
+              "file": "prototype-prd/view.html",
+              "module": "",
+              "title": "PRD"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": null,
+              "text": "商城商品: 选择门店弹窗不再展示客户数"
+            },
+            {
+              "file": null,
+              "text": "代采商品: 同上"
+            },
+            {
+              "file": "MDM/mdm_member_points_cash.html",
+              "text": "同上"
+            },
+            {
+              "file": "MDM/mdm_member_points_consume.html",
+              "text": "同上"
+            },
+            {
+              "file": null,
+              "text": "【902】去掉积分商城、新人专区、营销活动范围说明，并同步 PRD 索引"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-11-09",
       "items": [
