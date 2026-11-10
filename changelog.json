@@ -1,10 +1,120 @@
 {
-  "latestSha": "cc561f28968a1bbc82b9add1d6c4bbe5098ec05c",
-  "total": 506,
+  "latestSha": "f78b32266df83e43262afbe1be9407d1da9fe321",
+  "total": 507,
   "days": [
     {
       "date": "2026-11-10",
       "items": [
+        {
+          "sha": "f78b322",
+          "type": "feat",
+          "text": "新增 RBF 模块，完善分期配置与门店管理原型",
+          "author": "342-droid",
+          "time": "15:05",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "module": "冷丰售后",
+              "title": "售后单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "module": "冷丰WMS",
+              "title": "选品库"
+            },
+            {
+              "file": "MDM/mdm_supplier_product.html",
+              "module": "冷丰WMS",
+              "title": "供货关系"
+            },
+            {
+              "file": "RBF/rbf_admit_store.html",
+              "module": "冷丰RBF",
+              "title": "门店管理"
+            },
+            {
+              "file": "RBF/rbf_h5_index.html",
+              "module": "冷丰RBF-H5",
+              "title": "首页"
+            },
+            {
+              "file": "RBF/rbf_h5_store.html",
+              "module": "冷丰RBF-H5",
+              "title": "门店端"
+            },
+            {
+              "file": "RBF/rbf_h5_trader.html",
+              "module": "冷丰RBF-H5",
+              "title": "贸易商端"
+            },
+            {
+              "file": "RBF/rbf_index.html",
+              "module": "冷丰RBF",
+              "title": "首页"
+            },
+            {
+              "file": "RBF/rbf_installment.html",
+              "module": "冷丰RBF",
+              "title": "分期配置"
+            },
+            {
+              "file": "RBF/rbf_product_package.html",
+              "module": "冷丰RBF",
+              "title": "商品包"
+            },
+            {
+              "file": "RBF/rbf_trader.html",
+              "module": "冷丰RBF",
+              "title": "贸易商管理"
+            },
+            {
+              "file": "SCM/basic_settings_business_tags.html",
+              "module": "冷丰WMS",
+              "title": "标签管理"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "RBF/rbf_admit_store.html",
+              "text": "侧栏与页签由门店列表更名为门店管理；支持准入、标签、启用禁用与详情"
+            },
+            {
+              "file": "RBF/rbf_product_package.html",
+              "text": "新增商品包配置列表与详情"
+            },
+            {
+              "file": "RBF/rbf_installment.html",
+              "text": "还款周期仅日还；还款方式支持定额还/比例还；倍率拆分门店与贸易商且不能低于1；比例还改为每期比例与直接倍率；去除手续费与罚息；商品包占用按商品包+还款周期+还款方式唯一"
+            },
+            {
+              "file": "RBF/rbf_trader.html",
+              "text": "新增贸易商列表、审核与详情"
+            },
+            {
+              "file": "RBF/rbf_h5_store.html",
+              "text": "门店端 · 用户 APP: 新增 RBF-H5 门店端资金需求发布与登录切换"
+            },
+            {
+              "file": "RBF/rbf_h5_trader.html",
+              "text": "贸易商端 · 用户 APP: 新增 RBF-H5 贸易商端入口与登录"
+            },
+            {
+              "file": null,
+              "text": "顶栏增加 RBF/RBF-H5；路径支持 RBF 目录；业务标签补充 RBF 门店与商品包类型；原型 Toast 改为实色底白字提高可读性"
+            }
+          ]
+        },
         {
           "sha": "cc561f2",
           "type": "fix",
@@ -3197,6 +3307,26 @@
               "file": "MDM/mdm_supplier_product.html",
               "module": "冷丰WMS",
               "title": "供货关系"
+            },
+            {
+              "file": "RBF/rbf_admit_store.html",
+              "module": "冷丰RBF",
+              "title": "门店管理"
+            },
+            {
+              "file": "RBF/rbf_installment.html",
+              "module": "冷丰RBF",
+              "title": "分期配置"
+            },
+            {
+              "file": "RBF/rbf_product_package.html",
+              "module": "冷丰RBF",
+              "title": "商品包"
+            },
+            {
+              "file": "RBF/rbf_trader.html",
+              "module": "冷丰RBF",
+              "title": "贸易商管理"
             },
             {
               "file": "SCM/purchase_order.html",
@@ -12745,6 +12875,21 @@
               "title": "商户主体建档"
             },
             {
+              "file": "RBF/rbf_admit_store.html",
+              "module": "冷丰RBF",
+              "title": "门店管理"
+            },
+            {
+              "file": "RBF/rbf_h5_store.html",
+              "module": "冷丰RBF-H5",
+              "title": "门店端"
+            },
+            {
+              "file": "RBF/rbf_product_package.html",
+              "module": "冷丰RBF",
+              "title": "商品包"
+            },
+            {
               "file": "SCM/basic_settings_business_tags.html",
               "module": "冷丰WMS",
               "title": "标签管理"
@@ -14464,6 +14609,16 @@
               "title": "选品库"
             },
             {
+              "file": "RBF/rbf_admit_store.html",
+              "module": "冷丰RBF",
+              "title": "门店管理"
+            },
+            {
+              "file": "RBF/rbf_product_package.html",
+              "module": "冷丰RBF",
+              "title": "商品包"
+            },
+            {
               "file": "SCM/basic_settings_business_tags.html",
               "module": "冷丰WMS",
               "title": "标签管理"
@@ -14510,6 +14665,16 @@
               "file": "MDM/mdm_product_selection.html",
               "module": "冷丰WMS",
               "title": "选品库"
+            },
+            {
+              "file": "RBF/rbf_admit_store.html",
+              "module": "冷丰RBF",
+              "title": "门店管理"
+            },
+            {
+              "file": "RBF/rbf_product_package.html",
+              "module": "冷丰RBF",
+              "title": "商品包"
             },
             {
               "file": "SCM/basic_settings_business_tags.html",
@@ -14714,6 +14879,21 @@
               "file": "MDM/mdm_product_selection.html",
               "module": "冷丰WMS",
               "title": "选品库"
+            },
+            {
+              "file": "RBF/rbf_admit_store.html",
+              "module": "冷丰RBF",
+              "title": "门店管理"
+            },
+            {
+              "file": "RBF/rbf_h5_store.html",
+              "module": "冷丰RBF-H5",
+              "title": "门店端"
+            },
+            {
+              "file": "RBF/rbf_product_package.html",
+              "module": "冷丰RBF",
+              "title": "商品包"
             },
             {
               "file": "SCM/basic_settings_business_tags.html",
