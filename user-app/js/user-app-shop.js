@@ -1,5 +1,6 @@
 (function (global) {
-  var CART_KEY = 'ua_shop_cart_v2';
+  var supplierAliasExample = new URLSearchParams(global.location.search).get('supplierAliasExample') === '1';
+  var CART_KEY = supplierAliasExample ? 'ua_supplier_alias_example_cart_v1' : 'ua_shop_cart_v2';
   var LIVE_CART_KEY = 'ua_live_cart_v1';
   var CHECKOUT_SNAPSHOT_KEY = 'ua_checkout_snapshot_v1';
   var CHECKOUT_TOAST_KEY = 'ua_checkout_sale_toast_v1';
@@ -58,6 +59,17 @@
     }
     if (!supplier) return '';
     return String(supplier.shortName || supplier.alias || supplier.name || '').trim();
+  }
+
+  if (supplierAliasExample) {
+    SUPPLIER_LENGFENG = Object.assign({}, SUPPLIER_LENGFENG, {
+      id: 'SUP20188301',
+      name: '超管创建仓库042402'
+    });
+    SUPPLIER_TEST = Object.assign({}, SUPPLIER_TEST, {
+      id: 'SUP20188302',
+      name: '小牛供应链'
+    });
   }
 
   var PRODUCTS = {
@@ -897,7 +909,8 @@
     '.ua-sale-time-demo--cart',
     '.ua-sk-demo--cart',
     '.ua-live-invite-demo',
-    '.ua-bl-demo'
+    '#uaBlDemo',
+    '#uaSupplierAliasDemo'
   ];
 
   function leftDemoSelectors() {
@@ -1149,6 +1162,15 @@
     card.hidden = false;
   }
 
+  if (supplierAliasExample) {
+    PRODUCTS['wonton-pork'].fulfillType = 'express';
+    PRODUCTS['wonton-pork'].supplier = {
+      id: 'SUP20188303',
+      name: '珠宝集采中心',
+      avatar: SUPPLIER_LENGFENG.avatar
+    };
+  }
+
   function readCart() {
     try {
       var raw = localStorage.getItem(CART_KEY);
@@ -1181,6 +1203,13 @@
         { id: 'dumpling', qty: 1, checked: true, source: 'mall' }
       ]
     };
+    if (supplierAliasExample) {
+      cart.items = [
+        { id: 'wonton-corn', qty: 1, checked: true, source: 'mall' },
+        { id: 'dumpling', qty: 1, checked: true, source: 'mall' },
+        { id: 'wonton-pork', qty: 1, checked: true, source: 'mall' }
+      ];
+    }
     normalizeCartItems(cart);
     writeCart(cart);
     return cart;
@@ -4561,6 +4590,22 @@
   }
 
   function initCartPage() {
+    var aliasPanel = document.createElement('div');
+    aliasPanel.id = 'uaSupplierAliasDemo';
+    aliasPanel.className = 'ua-bl-demo';
+    aliasPanel.innerHTML =
+      '<div class="ua-bl-demo__title">供应商别名验收开关</div>' +
+      '<p class="ua-bl-demo__hint">有别名显示别名，无别名显示供应商名称。示例为超管仓、小牛供应链、珠宝集采。</p>' +
+      '<label class="ua-bl-demo__row ua-bl-demo__row--master"><input type="checkbox" id="uaSupplierAliasDemoOn"' +
+      (supplierAliasExample ? ' checked' : '') + '> 启用别名示例</label>' +
+      '<button type="button" class="ua-bl-demo__apply" id="uaSupplierAliasDemoApply">应用并刷新</button>';
+    document.body.appendChild(aliasPanel);
+    aliasPanel.querySelector('#uaSupplierAliasDemoApply').addEventListener('click', function () {
+      var url = new URL(global.location.href);
+      if (aliasPanel.querySelector('#uaSupplierAliasDemoOn').checked) url.searchParams.set('supplierAliasExample', '1');
+      else url.searchParams.delete('supplierAliasExample');
+      global.location.href = url.href;
+    });
     ensureCart();
     renderCart();
     syncBadges();

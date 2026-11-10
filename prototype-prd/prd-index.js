@@ -243,6 +243,16 @@ window.__PG_PRD_INDEX = {
         "user-app/h5/order-edit-address.html",
         "user-app/h5/switch-address.html"
       ]
+    },
+    {
+      "id": "904-供应商别名必填",
+      "title": "【904】供应商别名必填",
+      "file": "904-供应商别名必填.md",
+      "pages": [
+        "MDM/mdm_archive_supplier.html",
+        "user-app/h5/cart.html",
+        "user-app/h5/order-detail.html"
+      ]
     }
   ]
 };
