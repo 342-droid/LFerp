@@ -5775,8 +5775,10 @@
             typeof window.MdmSupplierArchiveUi.resolveOnboardingDisplay === 'function'
                 ? window.MdmSupplierArchiveUi.resolveOnboardingDisplay(recordKey, onboardFallback)
                 : onboardFallback;
-        var shortName = cellPlain(c[3]);
-        if (shortName === '—' || shortName === '-') shortName = '';
+        var shortName = cellPlain(c[3])
+            .replace(/待补/g, '')
+            .replace(/[—\-]/g, ' ')
+            .trim();
         if (!shortName && tr.getAttribute('data-short-name')) {
             shortName = String(tr.getAttribute('data-short-name') || '').trim();
         }
