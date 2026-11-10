@@ -25,6 +25,40 @@
         return text || '—';
     }
 
+    function moneyText(value) {
+        if (value === undefined || value === null || value === '') return '—';
+        var num = Number(value);
+        if (!isFinite(num)) return '—';
+        return num.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' 元';
+    }
+
+    function quotaInputText(value) {
+        var text = String(value == null ? '' : value).replace(/[^\d.]/g, '');
+        var parts = text.split('.');
+        if (parts.length > 2) text = parts[0] + '.' + parts.slice(1).join('');
+        parts = text.split('.');
+        if (parts[1] && parts[1].length > 2) text = parts[0] + '.' + parts[1].slice(0, 2);
+        return text;
+    }
+
+    function parseQuota(values) {
+        var text = String(values.storequota == null ? '' : values.storequota).trim();
+        if (!text) {
+            ElMessage.error('请输入门店额度');
+            return false;
+        }
+        if (!/^\d+(\.\d{1,2})?$/.test(text)) {
+            ElMessage.error('门店额度仅支持数字，最多两位小数');
+            return false;
+        }
+        var amount = Number(text);
+        if (!(amount > 0)) {
+            ElMessage.error('门店额度须大于 0');
+            return false;
+        }
+        return amount;
+    }
+
     function paginate(list, params) {
         var pageNum = Number(params.pageNum) || 1;
         var pageSize = Number(params.pageSize) || 20;
@@ -51,12 +85,16 @@
             var batchMode = 'add';
             var batchCodes = [];
             var afterSave = 'add';
+            var occupiedVisible = ref(false);
+            var occupiedTitle = ref('已占用需求单');
+            var occupiedRows = ref([]);
             var slots = {
                 code: 'cell-code',
                 phone: 'cell-phone',
                 legalphone: 'cell-legalPhone',
                 tags: 'cell-storeTags',
-                status: 'cell-enabled'
+                status: 'cell-enabled',
+                occupied: 'cell-occupiedQuota'
             };
             var tagOptions = (window.BusinessTagPrototypeStore.listTags('RBT_STORE', false) || []).map(function (tag) {
                 return { label: tag.name, value: tag.id };
@@ -69,6 +107,39 @@
                 { dataIndex: 'contactQuery', title: '联系人姓名', hideInTable: true, search: { control: 'input' } },
                 { dataIndex: 'contactPhone', title: '联系人手机号', hideInTable: true, search: { control: 'input' } },
                 { dataIndex: 'storeTags', title: '门店标签', minWidth: 180, align: 'left' },
+                {
+                    dataIndex: 'storeQuota',
+                    title: '门店总额度',
+                    minWidth: 140,
+                    align: 'right',
+                    formatter: function (row) {
+                        return moneyText(dataApi.quotaOf(row).total);
+                    }
+                },
+                {
+                    dataIndex: 'occupiedQuota',
+                    title: '已占用',
+                    minWidth: 150,
+                    align: 'right'
+                },
+                {
+                    dataIndex: 'lockedQuota',
+                    title: '已成交',
+                    minWidth: 140,
+                    align: 'right',
+                    formatter: function (row) {
+                        return moneyText(dataApi.quotaOf(row).locked);
+                    }
+                },
+                {
+                    dataIndex: 'availableQuota',
+                    title: '可用额度',
+                    minWidth: 140,
+                    align: 'right',
+                    formatter: function (row) {
+                        return moneyText(dataApi.quotaOf(row).available);
+                    }
+                },
                 { dataIndex: 'partnerType', title: '门店合作类型', minWidth: 120 },
                 { dataIndex: 'storeType', title: '门店类型', minWidth: 120 },
                 { dataIndex: 'bizLine', title: '事业线', minWidth: 110 },
@@ -120,6 +191,14 @@
                 },
                 { field: 'rbtLevel', label: 'RBT等级', control: 'select', required: true, options: optionList(dataApi.levels), placeholder: '请选择' },
                 { field: 'status', label: '状态', control: 'select', required: true, defaultValue: '启用', options: optionList(['启用', '禁用']), placeholder: '请选择' },
+                {
+                    field: 'storequota',
+                    label: '门店额度',
+                    control: 'slot',
+                    requiredMark: true,
+                    required: true,
+                    colSpan: 24
+                },
                 { field: 'storeTags', label: '门店标签', control: 'select', multiple: true, defaultValue: [], colSpan: 24, options: tagOptions, placeholder: '可不选' },
                 lockedField('code', '门店编码'),
                 lockedField('name', '门店名称'),
@@ -148,6 +227,14 @@
                 },
                 { field: 'rbtLevel', label: 'RBT等级', control: 'select', required: true, options: optionList(dataApi.levels), placeholder: '请选择' },
                 { field: 'status', label: '状态', control: 'select', required: true, defaultValue: '启用', options: optionList(['启用', '禁用']), placeholder: '请选择' },
+                {
+                    field: 'storequota',
+                    label: '门店额度',
+                    control: 'slot',
+                    requiredMark: true,
+                    required: true,
+                    colSpan: 24
+                },
                 { field: 'storeTags', label: '门店标签', control: 'select', multiple: true, defaultValue: [], colSpan: 24, options: tagOptions, placeholder: '可不选' },
                 lockedField('code', '门店编码'),
                 lockedField('name', '门店名称'),
@@ -186,6 +273,26 @@
                 return Promise.resolve(paginate(matched, params));
             }
 
+            function occupiedText(row) {
+                return moneyText(dataApi.quotaOf(row).occupied);
+            }
+
+            function canOpenOccupied(row) {
+                var occupied = dataApi.quotaOf(row).occupied;
+                return Number(occupied) > 0;
+            }
+
+            function openOccupied(row) {
+                if (!row || !canOpenOccupied(row)) return;
+                var demandApi = window.RbtDemandData;
+                var rows = demandApi && typeof demandApi.listOccupyingDemands === 'function'
+                    ? demandApi.listOccupyingDemands(row.code)
+                    : [];
+                occupiedTitle.value = '已占用需求单 · ' + (row.name || row.code || '');
+                occupiedRows.value = rows || [];
+                occupiedVisible.value = true;
+            }
+
             function openDetail(row) {
                 var store = dataApi.get(row.code);
                 if (store && window.RbtStoreDetail) window.RbtStoreDetail.open(store);
@@ -196,16 +303,22 @@
                 addDialog.value && addDialog.value.showEdit();
             }
 
+            function onQuotaInput(form, value) {
+                form.storequota = quotaInputText(value);
+            }
+
             function openEdit(row) {
                 afterSave = 'edit';
                 var store = dataApi.get(row.code) || row;
                 var tags = window.BusinessTagPrototypeStore
                     ? window.BusinessTagPrototypeStore.getBinding('RBT_STORE', store.code)
                     : [];
+                var quota = dataApi.quotaOf(store);
                 editDialog.value && editDialog.value.showEdit(Object.assign({}, store, {
                     archiveCode: store.archiveCode || '',
                     status: store.enabled === false ? '禁用' : '启用',
-                    storeTags: tags
+                    storeTags: tags,
+                    storequota: quota.total > 0 ? String(quota.total) : ''
                 }));
             }
 
@@ -261,7 +374,9 @@
                     ElMessage.error('请选择状态');
                     return false;
                 }
-                return values;
+                var amount = parseQuota(values);
+                if (amount === false) return false;
+                return Object.assign({}, values, { storequota: amount });
             }
 
             function beforeSubmitEdit(values) {
@@ -273,11 +388,13 @@
                     ElMessage.error('请选择状态');
                     return false;
                 }
-                return values;
+                var amount = parseQuota(values);
+                if (amount === false) return false;
+                return Object.assign({}, values, { storequota: amount });
             }
 
             function addStore(values) {
-                var created = dataApi.addFromArchive(values);
+                var created = dataApi.addFromArchive(Object.assign({}, values, { storeQuota: values.storequota }));
                 if (!created || created.duplicate) {
                     ElMessage.error(created && created.duplicate ? '该门店已在准入列表中' : '请选择门店档案中的门店');
                     throw { __handledByPage: true };
@@ -290,7 +407,12 @@
             }
 
             function updateStore(values) {
-                var updated = dataApi.update({ code: values.code, rbtLevel: values.rbtLevel, enabled: values.status !== '禁用' });
+                var updated = dataApi.update({
+                    code: values.code,
+                    rbtLevel: values.rbtLevel,
+                    enabled: values.status !== '禁用',
+                    storeQuota: values.storequota
+                });
                 if (window.BusinessTagPrototypeStore) {
                     window.BusinessTagPrototypeStore.saveBinding('RBT_STORE', values.code, values.storeTags || []);
                 }
@@ -328,6 +450,12 @@
                 editFields: editFields,
                 requestRows: requestRows,
                 tagsOf: tagsOf,
+                occupiedVisible: occupiedVisible,
+                occupiedTitle: occupiedTitle,
+                occupiedRows: occupiedRows,
+                occupiedText: occupiedText,
+                canOpenOccupied: canOpenOccupied,
+                openOccupied: openOccupied,
                 openDetail: openDetail,
                 openAdd: openAdd,
                 openEdit: openEdit,
@@ -340,6 +468,7 @@
                 beforeSubmitEdit: beforeSubmitEdit,
                 addStore: addStore,
                 updateStore: updateStore,
+                onQuotaInput: onQuotaInput,
                 refreshTable: refreshTable
             };
         }

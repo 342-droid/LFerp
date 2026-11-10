@@ -263,7 +263,7 @@
         return isFinite(num) ? num : 0;
     }
 
-    /* 接单总额度 - 已占用(接单中) - 已成交锁定 = 可用额度 */
+    /* 接单总额度 - 已占用 - 已成交 = 可用额度 */
     function quotaOf(row) {
         var total = toAmount(row && row.orderQuota);
         var occupied = row && row.occupiedQuota != null ? toAmount(row.occupiedQuota) : 0;

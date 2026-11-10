@@ -1,7 +1,7 @@
-/* 门店端登录后：选择商品包、勾选 SKU 并改数量、发布资金需求。需求按门店隔离。 */
+/* 门店端登录后：选择商品包、勾选 SKU 并改数量、发布需求。需求按门店隔离。 */
 (function () {
     var PACKAGE_KEY = 'rbt_product_package_v1';
-    var DEMAND_KEY = 'rbt_h5_fund_demand_v1';
+    var DEMAND_KEY = 'rbt_h5_fund_demand_v2';
     var INSTALLMENT_KEY = 'rbt_installment_v3';
     var SKUS = {
         SKU10001: { name: '库尔勒香梨 4kg', barcode: '6901234567001', unit: '箱', spec: '4kg', salePrice: '56.80' },
@@ -23,19 +23,29 @@
         { code: 'SPB00003', name: '果蔬尝鲜包', bizLine: '纯私域', skus: [{ code: 'SKU10005', salePrice: '18.50' }, { code: 'SKU10006', salePrice: '49.90' }, { code: 'SKU10010', salePrice: '9.90' }] }
     ];
     var SEED_BIZ_LINE = { SPB00001: '餐饮', SPB00002: '康美', SPB00003: '纯私域' };
-    var DEMAND_STATUSES = ['待报价', '已报价', '待签署', '待还款', '已完成'];
-    var ACTIVE_DEMAND_STATUSES = ['待报价', '已报价', '待签署', '待还款'];
+    /* 主链路：待审核 → 待接单 → 待签署 → 待复核 → 支付中 → 已完成；旁路：已取消、已驳回 */
+    var DEMAND_STATUSES = ['待审核', '待接单', '待签署', '待复核', '支付中', '已完成'];
+    var ACTIVE_DEMAND_STATUSES = ['待审核', '待接单', '待签署', '待复核', '支付中'];
+    var CANCELABLE_DEMAND_STATUSES = ['待审核', '待接单'];
+    var CLOSED_DEMAND_STATUSES = ['已取消', '已驳回'];
+    var STATUS_MIGRATE = {
+        '已发布': '待审核',
+        '待报价': '待审核',
+        '已报价': '待接单',
+        '待还款': '支付中'
+    };
 
     var account = null;
-    var tab = 'demands';
     var screen = 'list';
     var packageCode = '';
     var pickedQty = {};
     var guarantors = [];
     var repayCycle = '';
+    var repayMethod = '';
     var repayPeriod = '';
     var QTY_MAX = 999;
-    var CYCLE_ORDER = ['日还', '周还', '月还', '年还'];
+    var CYCLE_ORDER = ['日付'];
+    var METHOD_ORDER = ['定额付', '比例付'];
 
     function toast(message) {
         var node = document.getElementById('rbtH5Toast');
@@ -147,13 +157,25 @@
         return !!(item && ACTIVE_DEMAND_STATUSES.indexOf(item.status) >= 0);
     }
 
+    function canCancelDemand(item) {
+        return !!(item && CANCELABLE_DEMAND_STATUSES.indexOf(item.status) >= 0);
+    }
+
     function demands() {
+        if (window.RbtDemandData && typeof window.RbtDemandData.list === 'function') {
+            return window.RbtDemandData.list();
+        }
         var list = readJson(DEMAND_KEY) || [];
         var changed = false;
         list.forEach(function (item) {
             if (!item) return;
-            if (item.status === '已发布' || (DEMAND_STATUSES.indexOf(item.status) < 0 && item.status !== '已取消')) {
-                item.status = '待报价';
+            if (STATUS_MIGRATE[item.status]) {
+                item.status = STATUS_MIGRATE[item.status];
+                changed = true;
+                return;
+            }
+            if (DEMAND_STATUSES.indexOf(item.status) < 0 && CLOSED_DEMAND_STATUSES.indexOf(item.status) < 0) {
+                item.status = '待审核';
                 changed = true;
             }
         });
@@ -162,6 +184,10 @@
     }
 
     function saveDemands(list) {
+        if (window.RbtDemandData && typeof window.RbtDemandData.save === 'function') {
+            window.RbtDemandData.save(list);
+            return;
+        }
         sessionStorage.setItem(DEMAND_KEY, JSON.stringify(list));
     }
 
@@ -170,15 +196,44 @@
         return demands().filter(function (item) { return item.storeCode === account.code; });
     }
 
-    /* 待报价、已报价、待签署、待还款为有效需求，同一时间只能有一条。已完成、已取消后可再发布。 */
-    function hasValidDemand() {
-        return storeDemands().some(isActiveDemand);
+    function accountQuota() {
+        var dataApi = window.RbtStoreData;
+        if (!dataApi || !account || typeof dataApi.get !== 'function' || typeof dataApi.quotaOf !== 'function') {
+            return null;
+        }
+        var store = dataApi.get(account.code);
+        if (!store) return null;
+        return dataApi.quotaOf(store);
     }
 
-    function blockDuplicateDemand() {
-        if (!hasValidDemand()) return false;
-        toast('同一时间仅允许存在一条有效的资金需求');
-        return true;
+    /* 有可用额度即可再发需求，不再限制同时仅一条有效需求。 */
+    function blockNoAvailableQuota() {
+        var quota = accountQuota();
+        if (!quota || !(quota.available > 0)) {
+            toast('可用额度不足，无法发布需求');
+            return true;
+        }
+        return false;
+    }
+
+    function storeAvailable(code) {
+        var dataApi = window.RbtStoreData;
+        if (!dataApi || typeof dataApi.get !== 'function' || typeof dataApi.quotaOf !== 'function') return 0;
+        var store = dataApi.get(code);
+        if (!store) return 0;
+        return dataApi.quotaOf(store).available;
+    }
+
+    function occupyDemandQuota(demand) {
+        if (window.RbtDemandData && typeof window.RbtDemandData.occupyDemandQuota === 'function') {
+            window.RbtDemandData.occupyDemandQuota(demand);
+        }
+    }
+
+    function releaseDemandQuota(demand) {
+        if (window.RbtDemandData && typeof window.RbtDemandData.releaseDemandQuota === 'function') {
+            window.RbtDemandData.releaseDemandQuota(demand);
+        }
     }
 
     function nextCode(list) {
@@ -255,28 +310,36 @@
 
     var DEMO_INSTALLMENTS = [
         {
-            code: 'FQ00001', name: '生鲜周转分期', repayCycle: '月还', periods: ['3', '6', '12'],
-            periodRates: { '3': '0.60', '6': '0.90', '12': '1.20' }, repayMethod: '等额本息',
+            code: 'FQ00001', name: '生鲜周转分期', repayCycle: '日付', periods: ['3', '6', '12'],
+            periodRates: {
+                '3': { store: '1.60', trader: '1.50' },
+                '6': { store: '1.90', trader: '1.80' },
+                '12': { store: '2.20', trader: '2.10' }
+            }, repayMethod: '定额付',
             amountMin: '20.00', amountMax: '50000', packages: ['周末生鲜包']
         },
         {
-            code: 'FQ00004', name: '生鲜周转周还', repayCycle: '周还', periods: ['4', '8', '12'],
-            periodRates: { '4': '0.40', '8': '0.70', '12': '1.00' }, repayMethod: '等额本息',
+            code: 'FQ00004', name: '生鲜周转比例付', repayCycle: '日付', periods: [],
+            periodRatio: '10.00', storeRate: '1.70', repayMethod: '比例付',
             amountMin: '20.00', amountMax: '50000', packages: ['周末生鲜包']
         },
         {
-            code: 'FQ00005', name: '生鲜周转日还', repayCycle: '日还', periods: ['7', '15', '30'],
-            periodRates: { '7': '0.30', '15': '0.45', '30': '0.60' }, repayMethod: '等额本息',
+            code: 'FQ00005', name: '生鲜周转日付', repayCycle: '日付', periods: ['7', '15', '30'],
+            periodRates: {
+                '7': { store: '1.30', trader: '1.20' },
+                '15': { store: '1.45', trader: '1.35' },
+                '30': { store: '1.60', trader: '1.50' }
+            }, repayMethod: '定额付',
             amountMin: '20.00', amountMax: '50000', packages: ['周末生鲜包']
         },
         {
-            code: 'FQ00002', name: '肉类备货分期', repayCycle: '周还', periods: ['6', '12'],
-            periodRates: { '6': '0.80', '12': '1.50' }, repayMethod: '等额本金',
+            code: 'FQ00002', name: '肉类备货分期', repayCycle: '日付', periods: [],
+            periodRatio: '8.00', storeRate: '1.80', repayMethod: '比例付',
             amountMin: '50.00', amountMax: '100000', packages: ['肉类组合包']
         },
         {
-            code: 'FQ00003', name: '果蔬短周期', repayCycle: '日还', periods: ['3'],
-            periodRates: { '3': '0.50' }, repayMethod: '等额本金',
+            code: 'FQ00003', name: '果蔬短周期', repayCycle: '日付', periods: ['3'],
+            periodRates: { '3': { store: '1.50', trader: '1.40' } }, repayMethod: '定额付',
             amountMin: '5.00', amountMax: '20000', packages: ['果蔬尝鲜包']
         }
     ];
@@ -290,7 +353,12 @@
 
     function normalizeInstallment(item) {
         if (!item) return null;
-        var periods = orderedPeriods(item.periods && item.periods.length ? item.periods : ['3', '6', '12']);
+        var repayMethod = item.repayMethod || '定额付';
+        if (repayMethod === '定额还' || repayMethod === '等额本息') repayMethod = '定额付';
+        if (repayMethod === '比例还' || repayMethod === '等额本金') repayMethod = '比例付';
+        var periods = repayMethod === '比例付'
+            ? orderedPeriods(item.periods || [])
+            : orderedPeriods(item.periods && item.periods.length ? item.periods : ['3', '6', '12']);
         var rates = item.periodRates && typeof item.periodRates === 'object' ? item.periodRates : {};
         var filled = {};
         periods.forEach(function (period) {
@@ -300,17 +368,36 @@
             }
             filled[period] = rate == null || rate === '' ? '1.00' : String(rate);
         });
+        var periodRatio = item.periodRatio;
+        if (repayMethod === '比例付' && (periodRatio == null || periodRatio === '')) periodRatio = '10.00';
         return {
             code: item.code || '',
             name: item.name || item.code || '',
-            repayCycle: item.repayCycle || '月还',
+            repayCycle: (function () {
+                var cycle = item.repayCycle || '日付';
+                if (cycle === '日还' || cycle === '周还' || cycle === '月还' || cycle === '年还') cycle = '日付';
+                return cycle;
+            })(),
             periods: periods,
             periodRates: filled,
-            repayMethod: item.repayMethod || '等额本息',
+            periodRatio: periodRatio == null || periodRatio === '' ? '' : String(periodRatio),
+            storeRate: item.storeRate == null || item.storeRate === '' ? '' : String(item.storeRate),
+            repayMethod: repayMethod,
             amountMin: item.amountMin,
             amountMax: item.amountMax,
             packages: Array.isArray(item.packages) ? item.packages.slice() : []
         };
+    }
+
+    function periodsFieldLabel(method) {
+        return method === '比例付' ? '结算比例' : '结算期数';
+    }
+
+    function periodRatioText(plan) {
+        if (!plan || plan.periodRatio == null || plan.periodRatio === '') return '—';
+        var num = Number(plan.periodRatio);
+        if (!isFinite(num)) return '—';
+        return num.toFixed(2) + '%';
     }
 
     /* 启用中的分期配置。适用商品包按商品包名称或编码匹配。刷新后没有缓存时用初始分期。 */
@@ -366,7 +453,7 @@
         });
     }
 
-    /* 所选商品包需已配置启用的分期，且所选商品售价合计落在其中一条分期的金额区间内。 */
+    /* 所选商品包需已配置启用的分期，且所选商品售价合计落在其中一条分期的货款区间内。 */
     function publishInstallmentError(pkg, lines) {
         var matched = enabledInstallments().filter(function (plan) {
             return installmentCoversPackage(plan, pkg);
@@ -374,14 +461,14 @@
         if (!matched.length) return '商品未关联分期配置';
         var amount = sumLines(lines);
         var covered = matched.some(function (plan) { return amountInPlan(plan, amount); });
-        if (!covered) return '售价不在分期配置的金额区间内';
+        if (!covered) return '售价不在分期配置的货款区间内';
         return '';
     }
 
     function clearInstallmentChoice() {
         repayCycle = '';
+        repayMethod = '';
         repayPeriod = '';
-        closePlanSheet();
     }
 
     function availableCycles(plans) {
@@ -392,10 +479,22 @@
         return CYCLE_ORDER.filter(function (cycle) { return seen[cycle]; });
     }
 
-    function planByCycle(plans, cycle) {
+    function availableMethods(plans, cycle) {
+        var seen = {};
+        plans.forEach(function (plan) {
+            if (plan.repayCycle === cycle && plan.repayMethod) seen[plan.repayMethod] = true;
+        });
+        var ordered = METHOD_ORDER.filter(function (method) { return seen[method]; });
+        Object.keys(seen).forEach(function (method) {
+            if (ordered.indexOf(method) < 0) ordered.push(method);
+        });
+        return ordered;
+    }
+
+    function planByCycleAndMethod(plans, cycle, method) {
         var found = null;
         plans.some(function (plan) {
-            if (plan.repayCycle === cycle) {
+            if (plan.repayCycle === cycle && plan.repayMethod === method) {
                 found = plan;
                 return true;
             }
@@ -411,9 +510,16 @@
             return null;
         }
         if (cycles.indexOf(repayCycle) < 0) {
-            repayCycle = cycles.indexOf('月还') >= 0 ? '月还' : cycles[0];
+            repayCycle = cycles.indexOf('日付') >= 0 ? '日付' : cycles[0];
         }
-        var plan = planByCycle(plans, repayCycle);
+        var methods = availableMethods(plans, repayCycle);
+        if (!methods.length) {
+            repayMethod = '';
+            repayPeriod = '';
+            return null;
+        }
+        if (methods.indexOf(repayMethod) < 0) repayMethod = methods[0];
+        var plan = planByCycleAndMethod(plans, repayCycle, repayMethod);
         var periods = plan ? plan.periods : [];
         if (!periods.length) {
             repayPeriod = '';
@@ -423,210 +529,36 @@
         return plan;
     }
 
-    function cycleUnit(cycle) {
-        if (cycle === '日还') return '日';
-        if (cycle === '周还') return '周';
-        if (cycle === '年还') return '年';
-        return '月';
-    }
-
-    function startOfDay(date) {
-        var d = new Date(date.getTime());
-        d.setHours(0, 0, 0, 0);
-        return d;
-    }
-
-    function formatDate(date) {
-        return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate());
-    }
-
-    /* 两个日期之间的日历天数；至少按 1 天计息。 */
-    function daysBetween(from, to) {
-        var ms = startOfDay(to).getTime() - startOfDay(from).getTime();
-        var days = Math.round(ms / 86400000);
-        return days > 0 ? days : 1;
-    }
-
-    function scheduleStartDate(cycle) {
-        var d = startOfDay(new Date());
-        if (cycle === '日还') {
-            d.setDate(d.getDate() + 1);
-            return d;
-        }
-        if (cycle === '周还') {
-            d.setDate(d.getDate() + 7);
-            return d;
-        }
-        if (cycle === '年还') {
-            d.setFullYear(d.getFullYear() + 1);
-            d.setMonth(0, 20);
-            return d;
-        }
-        d.setMonth(d.getMonth() + 1, 20);
-        return d;
-    }
-
-    function dueDateByIndex(start, cycle, index) {
-        var d = new Date(start.getTime());
-        if (cycle === '日还') d.setDate(d.getDate() + index);
-        else if (cycle === '周还') d.setDate(d.getDate() + index * 7);
-        else if (cycle === '年还') d.setFullYear(d.getFullYear() + index);
-        else d.setMonth(d.getMonth() + index);
-        return startOfDay(d);
-    }
-
     function roundMoney(value) {
         return Math.round(Number(value) * 100) / 100;
     }
 
-    function cyclePerYear(cycle) {
-        if (cycle === '日还') return 365;
-        if (cycle === '周还') return 52;
-        if (cycle === '年还') return 1;
-        return 12;
+    /* 门店倍率：定额付取当期倍率，比例付取直接门店倍率。 */
+    function storeRateOf(plan, period) {
+        if (!plan) return 1;
+        var rate;
+        if (plan.repayMethod === '比例付') rate = Number(plan.storeRate);
+        else rate = Number((plan.periodRates || {})[String(period)] || 0);
+        if (!isFinite(rate) || rate <= 0) return 1;
+        return rate;
     }
 
-    function annualRateText(plan, period) {
-        var raw = Number((plan.periodRates || {})[String(period)] || 0);
-        if (!isFinite(raw) || raw < 0) raw = 0;
-        return raw.toFixed(2);
+    /* 货款总金额 = 商品售价合计 × 门店倍率。 */
+    function payableAmount(principal, plan, period) {
+        var P = Number(principal);
+        if (!isFinite(P) || P <= 0) return null;
+        return roundMoney(P * storeRateOf(plan, period));
     }
 
-    /* 按日计息：利息 = 剩余本金 × 年化率 × 实际天数 / 365。 */
-    function interestByDays(balance, annualPct, days) {
-        return roundMoney(Number(balance) * Number(annualPct) / 100 * Number(days) / 365);
-    }
-
-    /* 按还款方式生成还款计划。首期从放款日计至首期还款日，按实际天数计息；后续各期按上一还款日到本期还款日的实际天数计息。 */
-    function buildRepayPlan(principal, plan, period) {
+    /* 定额付预估每日结算货款：货款总金额（已含门店倍率）÷ 结算期数。 */
+    function estimateDailyPay(principal, plan, period) {
         var n = Number(period);
-        var P = roundMoney(principal);
-        var annualPct = Number((plan.periodRates || {})[String(period)] || 0);
-        if (!isFinite(annualPct) || annualPct < 0) annualPct = 0;
-        var periodRate = annualPct / 100 / cyclePerYear(plan.repayCycle);
-        if (!isFinite(n) || n < 1 || !isFinite(P) || P <= 0) return null;
-        if (!isFinite(periodRate) || periodRate < 0) periodRate = 0;
-
-        var lendDate = startOfDay(new Date());
-        var firstDue = scheduleStartDate(plan.repayCycle);
-        var dues = [];
-        var i;
-        for (i = 0; i < n; i++) dues.push(dueDateByIndex(firstDue, plan.repayCycle, i));
-
-        var rows = [];
-        var totalInterest = 0;
-        var remaining = P;
-        var prevDate = lendDate;
-
-        if (plan.repayMethod === '等额本金') {
-            var principalEach = roundMoney(P / n);
-            for (i = 0; i < n; i++) {
-                var days = daysBetween(prevDate, dues[i]);
-                var interest = interestByDays(remaining, annualPct, days);
-                var principalPart = i === n - 1 ? roundMoney(remaining) : principalEach;
-                if (principalPart > remaining) principalPart = roundMoney(remaining);
-                var amount = roundMoney(principalPart + interest);
-                remaining = roundMoney(remaining - principalPart);
-                totalInterest = roundMoney(totalInterest + interest);
-                rows.push({
-                    index: i + 1,
-                    date: formatDate(dues[i]),
-                    days: days,
-                    amount: money(amount),
-                    principal: money(principalPart),
-                    interest: money(interest)
-                });
-                prevDate = dues[i];
-            }
-        } else {
-            var payment;
-            if (periodRate === 0) payment = roundMoney(P / n);
-            else {
-                var factor = Math.pow(1 + periodRate, n);
-                payment = roundMoney(P * periodRate * factor / (factor - 1));
-            }
-            for (i = 0; i < n; i++) {
-                var daysEq = daysBetween(prevDate, dues[i]);
-                var interestPart = interestByDays(remaining, annualPct, daysEq);
-                var principalPay;
-                var payAmount;
-                if (i === n - 1) {
-                    principalPay = roundMoney(remaining);
-                    payAmount = roundMoney(principalPay + interestPart);
-                } else {
-                    principalPay = roundMoney(payment - interestPart);
-                    if (principalPay < 0) principalPay = 0;
-                    if (principalPay > remaining) principalPay = roundMoney(remaining);
-                    payAmount = roundMoney(principalPay + interestPart);
-                }
-                remaining = roundMoney(remaining - principalPay);
-                totalInterest = roundMoney(totalInterest + interestPart);
-                rows.push({
-                    index: i + 1,
-                    date: formatDate(dues[i]),
-                    days: daysEq,
-                    amount: money(payAmount),
-                    principal: money(principalPay),
-                    interest: money(interestPart)
-                });
-                prevDate = dues[i];
-            }
-        }
-
-        return {
-            principal: money(P),
-            totalInterest: money(totalInterest),
-            total: money(roundMoney(P + totalInterest)),
-            method: plan.repayMethod === '等额本金' ? '等额本金' : '等额本息',
-            annualRate: annualRateText(plan, period),
-            lendDate: formatDate(lendDate),
-            firstDays: rows[0] ? rows[0].days : 0,
-            period: String(period),
-            cycle: plan.repayCycle,
-            unit: cycleUnit(plan.repayCycle),
-            rows: rows
-        };
+        var total = payableAmount(principal, plan, period);
+        if (!isFinite(n) || n < 1 || total == null) return null;
+        return money(roundMoney(total / n));
     }
 
-    function closePlanSheet() {
-        var sheet = document.getElementById('rbtH5Sheet');
-        if (!sheet) return;
-        sheet.classList.remove('is-on');
-        sheet.setAttribute('aria-hidden', 'true');
-    }
-
-    function openPlanSheet(schedule) {
-        var sheet = document.getElementById('rbtH5Sheet');
-        var body = document.getElementById('rbtH5SheetBody');
-        if (!sheet || !body || !schedule) return;
-        body.innerHTML =
-            '<section class="rbt-h5-sheet__card">' +
-            '<div class="rbt-h5-sheet__total">¥ ' + esc(schedule.total) + '</div>' +
-            '<div class="rbt-h5-sheet__sub">含本金 <b>¥ ' + esc(schedule.principal) + '</b></div>' +
-            '<div class="rbt-h5-sheet__sub">利息 <b>¥ ' + esc(schedule.totalInterest) + '</b></div>' +
-            '<div class="rbt-h5-sheet__method">年化率 <b>' + esc(schedule.annualRate) + '%</b></div>' +
-            '<div class="rbt-h5-sheet__method">还款方式 <b>' + esc(schedule.method) + '</b></div>' +
-            '<div class="rbt-h5-sheet__sub">放款日 ' + esc(schedule.lendDate) +
-            '，首期按实际 ' + esc(schedule.firstDays) + ' 天计息</div>' +
-            '</section>' +
-            '<section class="rbt-h5-sheet__card">' +
-            '<div class="rbt-h5-sheet__meta"><span>共' + esc(schedule.period) + '期</span>' +
-            '<span>每' + esc(schedule.unit) + '还款金额(本金+利息)</span></div>' +
-            schedule.rows.map(function (row) {
-                return '<div class="rbt-h5-sheet__item">' +
-                    '<div class="rbt-h5-sheet__item-top"><span>' + row.index + ' ' + esc(row.date) + '</span>' +
-                    '<span>¥ ' + esc(row.amount) + '</span></div>' +
-                    '<div class="rbt-h5-sheet__item-sub">含本金 ¥ ' + esc(row.principal) +
-                    '  利息 ¥ ' + esc(row.interest) +
-                    '  计息 ' + esc(row.days) + ' 天</div>' +
-                    '</div>';
-            }).join('') +
-            '</section>';
-        sheet.classList.add('is-on');
-        sheet.setAttribute('aria-hidden', 'false');
-    }
-
-    /* 担保门店取带「担保门店」标签的准入门店，不含当前登录门店。一家担保门店只能担保一家门店。 */
+    /* 担保门店取带「担保门店」标签的准入门店，不含当前登录门店。一家担保可给多家门店担保，以可用额度为限。 */
     function guaranteeStores() {
         var dataApi = window.RbtStoreData;
         var tagApi = window.BusinessTagPrototypeStore;
@@ -639,79 +571,40 @@
         });
     }
 
-    function guarantorUsedByOther(code) {
-        var used = false;
-        demands().some(function (item) {
-            if (!isActiveDemand(item) || item.storeCode === account.code) return false;
-            var hit = (item.guarantors || []).some(function (row) { return row.code === code; });
-            if (hit) used = true;
-            return hit;
-        });
-        return used;
-    }
-
     function renderDemand(item, withCancel) {
         var names = (item.skus || []).map(skuQtyText).join('、') || '—';
         var guarantorNames = (item.guarantors || []).map(function (row) { return row.name; }).join('、') || '—';
-        var cancel = withCancel && isActiveDemand(item)
+        var cancel = withCancel && canCancelDemand(item)
             ? '<button type="button" class="rbt-h5-cancel" data-cancel="' + esc(item.code) + '">取消</button>'
             : '';
-        var statusClass = item.status === '已完成' ? ' is-done' : (item.status === '已取消' ? ' is-off' : '');
+        var statusClass = item.status === '已完成'
+            ? ' is-done'
+            : (CLOSED_DEMAND_STATUSES.indexOf(item.status) >= 0 ? ' is-off' : '');
         return '<article class="rbt-h5-card">' +
             '<div class="rbt-h5-card__top"><h2>' + esc(item.code) + '</h2>' +
             '<span class="rbt-h5-status' + statusClass + '">' + esc(item.status) + '</span></div>' +
             '<p>商品包：' + esc(item.packageName) + '（' + esc(item.packageCode) + '）</p>' +
             '<p>商品：' + esc(names) + '</p>' +
             '<p>担保门店：' + esc(guarantorNames) + '</p>' +
-            '<p>需求金额：¥' + esc(item.amount) + '</p>' +
+            '<p>货款总金额：¥' + esc(item.amount) + '</p>' +
             (item.repayCycle
-                ? '<p>还款周期：' + esc(item.repayCycle) + ' · ' + esc(item.repayPeriod) + '期 · ' + esc(item.repayMethod || '') + '</p>' +
-                  '<p>年化率：' + esc(item.annualRate || '—') + '%</p>' +
-                  '<p>首期还款：¥' + esc(item.firstAmount || '—') + '</p>'
+                ? '<p>结算周期：' + esc(item.repayCycle) + '</p>' +
+                  '<p>结算方式：' + esc(item.repayMethod || '—') + '</p>' +
+                  (item.repayMethod === '比例付'
+                      ? '<p>结算比例：' + esc(item.repayPeriod || '—') + '</p>'
+                      : '<p>结算期数：' + esc(item.repayPeriod || '—') + '期</p>' +
+                        '<p>预估每日结算货款：¥' + esc(item.dailyAmount || item.firstAmount || '—') + '</p>')
                 : '') +
-            '<p>发布时间：' + esc(item.createdAt) + '</p>' +
+            '<p>创建时间：' + esc(item.createdAt) + '</p>' +
             cancel +
             '</article>';
     }
 
     function render() {
         var scroll = document.getElementById('rbtH5Scroll');
-        var buttons = document.querySelectorAll('#rbtH5Tabbar button');
         if (!scroll) return;
         var createBar = document.getElementById('rbtH5Create');
-        if (createBar) createBar.hidden = !(tab === 'demands' && screen === 'list');
-        buttons.forEach(function (button) {
-            button.classList.toggle('is-on', button.getAttribute('data-tab') === tab);
-        });
-        if (tab === 'mine') {
-            setHead(screen === 'password' ? '修改密码' : '我的');
-            if (screen === 'password') {
-                scroll.innerHTML =
-                    '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="mine">返回</button></div>' +
-                    '<section class="rbt-h5-card rbt-h5-mine">' +
-                    '<div class="rbt-h5-field"><label for="rbtH5OldPwd">原密码</label><input id="rbtH5OldPwd" type="password" maxlength="32" placeholder="请输入原密码"></div>' +
-                    '<div class="rbt-h5-field"><label for="rbtH5NewPwd">新密码</label><input id="rbtH5NewPwd" type="password" maxlength="32" placeholder="请输入新密码"></div>' +
-                    '<div class="rbt-h5-field"><label for="rbtH5ConfirmPwd">确认新密码</label><input id="rbtH5ConfirmPwd" type="password" maxlength="32" placeholder="请再次输入新密码"></div>' +
-                    '<p class="rbt-h5-tip">新密码至少 6 位。演示默认密码 123456。</p>' +
-                    '<button type="button" class="rbt-h5-primary rbt-h5-publish" data-save-password>保存</button>' +
-                    '</section>';
-                return;
-            }
-            scroll.innerHTML = '<section class="rbt-h5-card rbt-h5-mine"><h2>' + esc(account.name) + '</h2>' +
-                '<p>门店编码：' + esc(account.code) + '\n登录身份：' + esc((account.roles || []).join('、')) +
-                '\n手机号：' + esc(account.phone) + '</p>' +
-                '<button type="button" class="rbt-h5-action" data-change-password>修改密码</button>' +
-                '<button type="button" class="rbt-h5-logout" data-logout>切换门店</button></section>';
-            return;
-        }
-        if (tab === 'plans') {
-            setHead('还款计划');
-            var plans = storeDemands().filter(function (item) { return item.status !== '已取消'; });
-            scroll.innerHTML = plans.length
-                ? plans.map(function (item) { return renderDemand(item, false); }).join('')
-                : '<div class="rbt-h5-empty">暂无还款计划</div>';
-            return;
-        }
+        if (createBar) createBar.hidden = screen !== 'list';
         if (screen === 'packages') {
             setHead('选择商品包');
             var choices = packages();
@@ -768,8 +661,9 @@
                     if (!stores.length) return '<div class="rbt-h5-empty">暂无可选担保门店</div>';
                     return stores.map(function (store) {
                         var on = guarantors.indexOf(store.code) >= 0;
+                        var place = store.region || store.address || store.code;
                         return '<label class="rbt-h5-check"><input type="checkbox" data-guarantor="' + esc(store.code) + '" ' + (on ? 'checked' : '') + '>' +
-                            '<span><strong>' + esc(store.name) + '</strong><span>' + esc(store.code) + '</span></span></label>';
+                            '<span><strong>' + esc(store.name) + '</strong><span>' + esc(place) + '</span></span></label>';
                     }).join('');
                 })() +
                 '<button type="button" class="rbt-h5-primary rbt-h5-publish" data-next>下一步</button>';
@@ -777,7 +671,7 @@
         }
         if (screen === 'installment') {
             var instPkg = findPackage(packageCode);
-            setHead('分期还款');
+            setHead('结算');
             if (!instPkg) {
                 scroll.innerHTML = '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="skus">返回</button></div><div class="rbt-h5-empty">商品包不存在</div>';
                 return;
@@ -792,26 +686,48 @@
             }
             var currentPlan = ensureInstallmentChoice(plans);
             var cycles = availableCycles(plans);
+            var methods = availableMethods(plans, repayCycle);
             var periods = currentPlan ? currentPlan.periods : [];
-            var schedule = currentPlan && repayPeriod ? buildRepayPlan(instAmount, currentPlan, repayPeriod) : null;
-            var firstAmount = schedule && schedule.rows[0] ? schedule.rows[0].amount : '—';
-            scroll.innerHTML = '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="skus">返回</button><span>' + esc(instPkg.name) + '</span></div>' +
-                '<section class="rbt-h5-inst">' +
-                '<div class="rbt-h5-inst__row"><span class="rbt-h5-inst__label">分期金额</span>' +
-                '<span class="rbt-h5-inst__amount">¥ ' + money(instAmount) + '</span></div>' +
-                '<div class="rbt-h5-inst__row"><span class="rbt-h5-inst__label">还款周期</span>' +
-                '<div class="rbt-h5-inst__chips">' + cycles.map(function (cycle) {
-                    return '<button type="button" class="rbt-h5-chip' + (cycle === repayCycle ? ' is-on' : '') + '" data-cycle="' + esc(cycle) + '">' + esc(cycle) + '</button>';
-                }).join('') + '</div></div>' +
-                (periods.length
-                    ? '<div class="rbt-h5-inst__row"><span class="rbt-h5-inst__label">分期期数</span>' +
+            var isRatio = repayMethod === '比例付';
+            var amountWithRate = currentPlan
+                ? payableAmount(instAmount, currentPlan, isRatio ? '' : repayPeriod)
+                : null;
+            var showAmount = amountWithRate != null ? money(amountWithRate) : money(instAmount);
+            var dailyAmount = !isRatio && currentPlan && repayPeriod
+                ? estimateDailyPay(instAmount, currentPlan, repayPeriod)
+                : null;
+            var periodLabel = periodsFieldLabel(repayMethod);
+            var periodRow = isRatio
+                ? '<div class="rbt-h5-inst__row"><span class="rbt-h5-inst__label">' + esc(periodLabel) +
+                  '<span class="rbt-h5-help-wrap">' +
+                  '<button type="button" class="rbt-h5-help" data-ratio-help aria-label="结算比例说明" aria-expanded="false">?</button>' +
+                  '<span class="rbt-h5-help-tip" role="tooltip" hidden>根据每日经营流水总额，抽取固定比例用于支付货款</span>' +
+                  '</span></span>' +
+                  '<span class="rbt-h5-inst__amount">' + esc(periodRatioText(currentPlan)) + '</span></div>'
+                : (periods.length
+                    ? '<div class="rbt-h5-inst__row"><span class="rbt-h5-inst__label">' + esc(periodLabel) + '</span>' +
                       '<div class="rbt-h5-inst__chips">' + periods.map(function (period) {
                           return '<button type="button" class="rbt-h5-chip' + (String(period) === String(repayPeriod) ? ' is-on' : '') + '" data-period="' + esc(period) + '">' + esc(period) + '期</button>';
                       }).join('') + '</div></div>'
+                    : '');
+            scroll.innerHTML = '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="skus">返回</button><span>' + esc(instPkg.name) + '</span></div>' +
+                '<section class="rbt-h5-inst">' +
+                '<div class="rbt-h5-inst__row"><span class="rbt-h5-inst__label">货款总金额</span>' +
+                '<span class="rbt-h5-inst__amount">¥ ' + showAmount + '</span></div>' +
+                '<div class="rbt-h5-inst__row"><span class="rbt-h5-inst__label">结算周期</span>' +
+                '<div class="rbt-h5-inst__chips">' + cycles.map(function (cycle) {
+                    return '<button type="button" class="rbt-h5-chip' + (cycle === repayCycle ? ' is-on' : '') + '" data-cycle="' + esc(cycle) + '">' + esc(cycle) + '</button>';
+                }).join('') + '</div></div>' +
+                (methods.length
+                    ? '<div class="rbt-h5-inst__row"><span class="rbt-h5-inst__label">结算方式</span>' +
+                      '<div class="rbt-h5-inst__chips">' + methods.map(function (method) {
+                          return '<button type="button" class="rbt-h5-chip' + (method === repayMethod ? ' is-on' : '') + '" data-method="' + esc(method) + '">' + esc(method) + '</button>';
+                      }).join('') + '</div></div>'
                     : '') +
+                periodRow +
                 '</section>' +
-                (schedule
-                    ? '<button type="button" class="rbt-h5-inst__link" data-open-plan>首期还 ¥ ' + esc(firstAmount) + '<span>查看还款计划 ›</span></button>'
+                (dailyAmount
+                    ? '<div class="rbt-h5-inst__estimate">预估每日结算货款 <b>¥ ' + esc(dailyAmount) + '</b></div>'
                     : '') +
                 '<button type="button" class="rbt-h5-primary rbt-h5-publish" style="margin-top:16px;" data-publish>发布</button>';
             return;
@@ -820,12 +736,11 @@
         var rows = storeDemands();
         scroll.innerHTML = rows.length
             ? rows.map(function (item) { return renderDemand(item, true); }).join('')
-            : '<div class="rbt-h5-empty">暂无资金需求</div>';
+            : '<div class="rbt-h5-empty">暂无需求</div>';
     }
 
     function open(next) {
         account = next;
-        tab = 'demands';
         screen = 'list';
         packageCode = '';
         clearPicked();
@@ -836,23 +751,11 @@
 
     function close() {
         account = null;
-        closePlanSheet();
         var scroll = document.getElementById('rbtH5Scroll');
         if (scroll) scroll.innerHTML = '';
         var createBar = document.getElementById('rbtH5Create');
         if (createBar) createBar.hidden = true;
     }
-
-    document.getElementById('rbtH5Tabbar').addEventListener('click', function (event) {
-        var button = event.target.closest('[data-tab]');
-        if (!button || !account) return;
-        tab = button.getAttribute('data-tab');
-        if (tab === 'demands') screen = 'list';
-        else if (tab !== 'mine') screen = 'list';
-        else if (screen !== 'password') screen = 'mine';
-        closePlanSheet();
-        render();
-    });
 
     document.getElementById('rbtH5App').addEventListener('click', function (event) {
         var create = event.target.closest('[data-create]');
@@ -862,28 +765,37 @@
         var nextStep = event.target.closest('[data-next]');
         var publish = event.target.closest('[data-publish]');
         var cycleBtn = event.target.closest('[data-cycle]');
+        var methodBtn = event.target.closest('[data-method]');
         var periodBtn = event.target.closest('[data-period]');
-        var openPlan = event.target.closest('[data-open-plan]');
-        var logout = event.target.closest('[data-logout]');
-        var changePassword = event.target.closest('[data-change-password]');
-        var savePassword = event.target.closest('[data-save-password]');
-        if (changePassword) {
-            screen = 'password';
-            render();
-            return;
-        }
-        if (savePassword) {
-            var oldPassword = String((document.getElementById('rbtH5OldPwd') || {}).value || '');
-            var nextPassword = String((document.getElementById('rbtH5NewPwd') || {}).value || '');
-            var confirmPassword = String((document.getElementById('rbtH5ConfirmPwd') || {}).value || '');
-            if (window.RbtH5StoreLogin && window.RbtH5StoreLogin.changePassword(account.phone, oldPassword, nextPassword, confirmPassword)) {
-                screen = 'mine';
-                render();
+        var ratioHelp = event.target.closest('[data-ratio-help]');
+        var helpWraps = document.querySelectorAll('.rbt-h5-help-wrap');
+        if (ratioHelp) {
+            var wrap = ratioHelp.closest('.rbt-h5-help-wrap');
+            var tip = wrap && wrap.querySelector('.rbt-h5-help-tip');
+            var willOpen = tip && tip.hasAttribute('hidden');
+            Array.prototype.forEach.call(helpWraps, function (item) {
+                item.classList.remove('is-open');
+                var btn = item.querySelector('[data-ratio-help]');
+                var pop = item.querySelector('.rbt-h5-help-tip');
+                if (btn) btn.setAttribute('aria-expanded', 'false');
+                if (pop) pop.setAttribute('hidden', '');
+            });
+            if (willOpen && wrap && tip) {
+                wrap.classList.add('is-open');
+                tip.removeAttribute('hidden');
+                ratioHelp.setAttribute('aria-expanded', 'true');
             }
             return;
         }
+        Array.prototype.forEach.call(helpWraps, function (item) {
+            item.classList.remove('is-open');
+            var btn = item.querySelector('[data-ratio-help]');
+            var pop = item.querySelector('.rbt-h5-help-tip');
+            if (btn) btn.setAttribute('aria-expanded', 'false');
+            if (pop) pop.setAttribute('hidden', '');
+        });
         if (create) {
-            if (blockDuplicateDemand()) return;
+            if (blockNoAvailableQuota()) return;
             screen = 'packages';
             packageCode = '';
             clearPicked();
@@ -900,8 +812,6 @@
                 clearInstallmentChoice();
             }
             if (screen === 'skus') clearInstallmentChoice();
-            if (screen === 'mine') tab = 'mine';
-            closePlanSheet();
             render();
             return;
         }
@@ -916,33 +826,24 @@
         }
         if (cycleBtn) {
             repayCycle = cycleBtn.getAttribute('data-cycle') || '';
+            repayMethod = '';
             repayPeriod = '';
-            closePlanSheet();
+            render();
+            return;
+        }
+        if (methodBtn) {
+            repayMethod = methodBtn.getAttribute('data-method') || '';
+            repayPeriod = '';
             render();
             return;
         }
         if (periodBtn) {
             repayPeriod = periodBtn.getAttribute('data-period') || '';
-            closePlanSheet();
             render();
             return;
         }
-        if (openPlan) {
-            var planPkg = findPackage(packageCode);
-            var planLines = planPkg ? selectedLines(planPkg) : [];
-            var planAmount = sumLines(planLines);
-            var planList = planPkg ? matchedInstallments(planPkg, planAmount) : [];
-            var selectedPlan = ensureInstallmentChoice(planList);
-            var schedule = selectedPlan && repayPeriod ? buildRepayPlan(planAmount, selectedPlan, repayPeriod) : null;
-            if (!schedule) {
-                toast('请选择还款周期和期数');
-                return;
-            }
-            openPlanSheet(schedule);
-            return;
-        }
         if (nextStep) {
-            if (blockDuplicateDemand()) return;
+            if (blockNoAvailableQuota()) return;
             var nextPkg = findPackage(packageCode);
             var nextLines = nextPkg ? selectedLines(nextPkg) : [];
             if (!nextPkg) {
@@ -956,20 +857,6 @@
             var nextChosen = guaranteeStores().filter(function (store) { return guarantors.indexOf(store.code) >= 0; });
             if (!nextChosen.length) {
                 toast('请选择担保门店');
-                return;
-            }
-            var nextBlocked = null;
-            nextChosen.some(function (store) {
-                if (guarantorUsedByOther(store.code)) {
-                    nextBlocked = store;
-                    return true;
-                }
-                return false;
-            });
-            if (nextBlocked) {
-                guarantors = guarantors.filter(function (code) { return code !== nextBlocked.code; });
-                toast(nextBlocked.name + '门店已担保其他门店，请重新选择！');
-                render();
                 return;
             }
             var nextError = publishInstallmentError(nextPkg, nextLines);
@@ -1003,16 +890,34 @@
         if (cancel) {
             var code = cancel.getAttribute('data-cancel');
             var list = demands();
-            list.forEach(function (item) {
-                if (item.code === code && item.storeCode === account.code && item.status !== '已取消') item.status = '已取消';
+            var target = null;
+            list.some(function (item) {
+                if (item.code === code && item.storeCode === account.code) {
+                    target = item;
+                    return true;
+                }
+                return false;
             });
-            saveDemands(list);
+            if (!canCancelDemand(target)) {
+                toast('当前状态不允许取消');
+                return;
+            }
+            var cancelBy = (account.person || account.name || '门店').split('、')[0];
+            if (window.RbtDemandData && typeof window.RbtDemandData.setStatus === 'function') {
+                window.RbtDemandData.setStatus(code, '已取消', cancelBy);
+            } else {
+                target.status = '已取消';
+                target.updater = cancelBy;
+                target.updatedAt = nowText();
+                releaseDemandQuota(target);
+                saveDemands(list);
+            }
             toast('需求已取消');
             render();
             return;
         }
         if (publish) {
-            if (blockDuplicateDemand()) return;
+            if (blockNoAvailableQuota()) return;
             var pkg = findPackage(packageCode);
             var lines = pkg ? selectedLines(pkg) : [];
             if (!pkg) {
@@ -1028,38 +933,58 @@
                 toast('请选择担保门店');
                 return;
             }
-            var blocked = null;
-            chosen.some(function (store) {
-                if (guarantorUsedByOther(store.code)) {
-                    blocked = store;
-                    return true;
-                }
-                return false;
-            });
-            if (blocked) {
-                guarantors = guarantors.filter(function (code) { return code !== blocked.code; });
-                toast(blocked.name + '门店已担保其他门店，请重新选择！');
-                render();
-                return;
-            }
             var amountValue = sumLines(lines);
             var publishPlans = matchedInstallments(pkg, amountValue);
             var publishPlan = ensureInstallmentChoice(publishPlans);
             if (!publishPlan || !repayCycle) {
-                toast('请选择还款周期');
+                toast('请选择结算周期');
                 return;
             }
-            if (!repayPeriod) {
-                toast('请选择分期期数');
+            if (!repayMethod) {
+                toast('请选择结算方式');
                 return;
             }
-            var publishSchedule = buildRepayPlan(amountValue, publishPlan, repayPeriod);
-            if (!publishSchedule) {
-                toast('还款计划生成失败');
+            var isRatioPay = repayMethod === '比例付';
+            if (!isRatioPay && !repayPeriod) {
+                toast('请选择结算期数');
+                return;
+            }
+            if (isRatioPay && (!publishPlan.periodRatio || !isFinite(Number(publishPlan.periodRatio)))) {
+                toast('结算比例无效');
+                return;
+            }
+            var publishPayable = payableAmount(amountValue, publishPlan, isRatioPay ? '' : repayPeriod);
+            var publishDaily = isRatioPay ? null : estimateDailyPay(amountValue, publishPlan, repayPeriod);
+            if (publishPayable == null) {
+                toast('货款总金额计算失败');
+                return;
+            }
+            if (!isRatioPay && !publishDaily) {
+                toast('预估每日结算货款计算失败');
+                return;
+            }
+            var quota = accountQuota();
+            var available = quota ? quota.available : 0;
+            if (cents(publishPayable) > cents(available)) {
+                toast('货款总金额须小于等于可用额度');
+                return;
+            }
+            var shortGuarantor = null;
+            chosen.some(function (store) {
+                if (cents(publishPayable) > cents(storeAvailable(store.code))) {
+                    shortGuarantor = store;
+                    return true;
+                }
+                return false;
+            });
+            if (shortGuarantor) {
+                toast(shortGuarantor.name + '可用额度不足，无法作为担保门店');
                 return;
             }
             var all = demands();
-            all.unshift({
+            var publishAt = nowText();
+            var publisher = (account.person || account.name || '门店').split('、')[0];
+            var created = {
                 code: nextCode(all),
                 storeCode: account.code,
                 storeName: account.name,
@@ -1069,33 +994,35 @@
                     return { code: line.code, name: line.name, salePrice: line.salePrice, qty: line.qty };
                 }),
                 guarantors: chosen.map(function (store) { return { code: store.code, name: store.name }; }),
-                amount: money(amountValue),
+                amount: money(publishPayable),
                 installmentCode: publishPlan.code,
                 installmentName: publishPlan.name,
                 repayCycle: publishPlan.repayCycle,
                 repayMethod: publishPlan.repayMethod,
-                repayPeriod: String(repayPeriod),
-                annualRate: publishSchedule.annualRate,
-                firstAmount: publishSchedule.rows[0] ? publishSchedule.rows[0].amount : '',
-                repayTotal: publishSchedule.total,
-                status: '待报价',
-                createdAt: nowText()
-            });
+                repayPeriod: isRatioPay ? periodRatioText(publishPlan) : String(repayPeriod),
+                dailyAmount: publishDaily || '',
+                status: '待审核',
+                quotaHeld: false,
+                creator: publisher,
+                createdAt: publishAt,
+                updater: publisher,
+                updatedAt: publishAt
+            };
+            occupyDemandQuota(created);
+            all.unshift(created);
             saveDemands(all);
+            if (window.RbtDemandData && typeof window.RbtDemandData.createAuditForDemand === 'function') {
+                window.RbtDemandData.createAuditForDemand(created);
+            }
             screen = 'list';
             packageCode = '';
             clearPicked();
             guarantors = [];
             clearInstallmentChoice();
-            toast('资金需求已发布');
+            toast('需求已发布');
             render();
             return;
         }
-        if (logout && window.RbtH5StoreLogin) window.RbtH5StoreLogin.logout();
-    });
-
-    document.getElementById('rbtH5Sheet').addEventListener('click', function (event) {
-        if (event.target.closest('[data-close-sheet]')) closePlanSheet();
     });
 
     document.getElementById('rbtH5Scroll').addEventListener('change', function (event) {
@@ -1108,20 +1035,7 @@
         var guarantorBox = event.target.closest('[data-guarantor]');
         if (guarantorBox) {
             var gcode = guarantorBox.getAttribute('data-guarantor');
-            var gstore = null;
-            guaranteeStores().some(function (store) {
-                if (store.code === gcode) {
-                    gstore = store;
-                    return true;
-                }
-                return false;
-            });
             if (guarantorBox.checked) {
-                if (gstore && guarantorUsedByOther(gcode)) {
-                    guarantorBox.checked = false;
-                    toast(gstore.name + '门店已担保其他门店，请重新选择！');
-                    return;
-                }
                 if (guarantors.indexOf(gcode) < 0) guarantors.push(gcode);
             } else {
                 guarantors = guarantors.filter(function (code) { return code !== gcode; });

@@ -150,8 +150,8 @@
                 ? section(
                     '额度信息',
                     cell('接单总额度', money(quota && quota.total)) +
-                        cell('已占用（接单中）', money(quota && quota.occupied)) +
-                        cell('已成交锁定', money(quota && quota.locked)) +
+                        cell('已占用', money(quota && quota.occupied)) +
+                        cell('已成交', money(quota && quota.locked)) +
                         cell('可用额度', money(quota && quota.available))
                 )
                 : '';

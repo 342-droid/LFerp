@@ -1,4 +1,4 @@
-/* RBT-H5 模块侧栏 */
+/* RBT-移动端 模块侧栏 */
 (function () {
     const wp = window.wmsPath || { page: function (f) { return f; }, asset: function (r) { return r; } };
     const pageHref = function (f) { return wp.page(f); };
@@ -18,8 +18,8 @@
     sidebarContainer.innerHTML =
         '<aside class="sidebar" id="sidebar">' +
         '<div class="sidebar-header">' +
-        '<img src="' + assetHref('image/冷丰图标.png') + '" alt="冷丰RBT-H5">' +
-        '<span style="white-space:nowrap;font-size:16px;">冷丰RBT-H5</span>' +
+        '<img src="' + assetHref('image/冷丰图标.png') + '" alt="冷丰RBT-移动端">' +
+        '<span style="white-space:nowrap;font-size:16px;">冷丰RBT-移动端</span>' +
         '</div>' +
         '<ul class="sidebar-menu">' +
         '<li class="menu-item">' +

@@ -13,6 +13,23 @@
     <style>
         [v-cloak] { display: none; }
         .rbt-store-schema-host { min-height: 480px; }
+        .rbt-store-money {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+        }
+        .rbt-store-money .el-input { flex: 1; min-width: 0; }
+        .rbt-store-money__unit {
+            flex: none;
+            color: #606266;
+            font-size: 13px;
+        }
+        .rbt-occupied-link {
+            padding: 0;
+            height: auto;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -55,6 +72,16 @@
                     <template v-slot:[slots.legalphone]="{row}">
                         <biz-no :value="row.legalPhone"></biz-no>
                     </template>
+                    <template v-slot:[slots.occupied]="{row,elSize}">
+                        <el-button
+                            v-if="canOpenOccupied(row)"
+                            :size="elSize"
+                            class="rbt-occupied-link"
+                            text
+                            type="primary"
+                            @click="openOccupied(row)">{{ occupiedText(row) }}</el-button>
+                        <span v-else>{{ occupiedText(row) }}</span>
+                    </template>
                     <template v-slot:[slots.status]="{row,elSize}">
                         <el-tag :size="elSize" effect="light" :type="row.enabled === false ? 'danger' : 'success'">{{ row.enabled === false ? '禁用' : '启用' }}</el-tag>
                     </template>
@@ -80,6 +107,17 @@
                     :add-api="addStore"
                     add-success-message="准入门店已新增"
                     @saved="refreshTable">
+                    <template #form-storequota="{form}">
+                        <div class="rbt-store-money">
+                            <el-input
+                                :model-value="form.storequota"
+                                placeholder="请输入门店额度"
+                                clearable
+                                @input="onQuotaInput(form, $event)">
+                            </el-input>
+                            <span class="rbt-store-money__unit">元</span>
+                        </div>
+                    </template>
                 </vab-schema-form-dialog>
                 <vab-schema-form-dialog
                     ref="editDialog"
@@ -93,6 +131,17 @@
                     :edit-api="updateStore"
                     edit-success-message="门店已更新"
                     @saved="refreshTable">
+                    <template #form-storequota="{form}">
+                        <div class="rbt-store-money">
+                            <el-input
+                                :model-value="form.storequota"
+                                placeholder="请输入门店额度"
+                                clearable
+                                @input="onQuotaInput(form, $event)">
+                            </el-input>
+                            <span class="rbt-store-money__unit">元</span>
+                        </div>
+                    </template>
                 </vab-schema-form-dialog>
                 <vab-schema-form-dialog
                     ref="batchDialog"
@@ -106,6 +155,27 @@
                     :add-success-message="batchSuccessText"
                     @saved="refreshTable">
                 </vab-schema-form-dialog>
+                <el-dialog
+                    v-model="occupiedVisible"
+                    :title="occupiedTitle"
+                    width="920px"
+                    append-to-body
+                    destroy-on-close>
+                    <el-table :data="occupiedRows" border stripe empty-text="暂无占用中的需求单" max-height="480">
+                        <el-table-column prop="code" label="需求单号" min-width="120"></el-table-column>
+                        <el-table-column prop="occupyRole" label="占用角色" width="100"></el-table-column>
+                        <el-table-column prop="packageName" label="商品包" min-width="140" show-overflow-tooltip></el-table-column>
+                        <el-table-column label="货款总金额" min-width="120" align="right">
+                            <template #default="{ row }">¥{{ row.amount || '—' }}</template>
+                        </el-table-column>
+                        <el-table-column prop="status" label="状态" width="100"></el-table-column>
+                        <el-table-column prop="storeName" label="需求门店" min-width="140" show-overflow-tooltip></el-table-column>
+                        <el-table-column prop="createdAt" label="创建时间" min-width="170"></el-table-column>
+                    </el-table>
+                    <template #footer>
+                        <el-button @click="occupiedVisible = false">关闭</el-button>
+                    </template>
+                </el-dialog>
             </div>
         </main>
     </div>
@@ -115,6 +185,7 @@
     <script src="../js/business-tag-prototype-store.js"></script>
     <script src="../js/business-tag-prototype-ui.js"></script>
     <script src="rbt-store-data.js"></script>
+    <script src="rbt-demand-data.js"></script>
     <script src="rbt-store-detail.js"></script>
     <script src="../vendor/octopus-prototype-runtime/runtime.js"></script>
     <script src="rbt-store-list.js"></script>

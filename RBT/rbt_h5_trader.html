@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>冷丰RBT-H5 - 贸易商端</title>
+    <title>冷丰RBT-移动端 - 贸易商端</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <style>
@@ -52,8 +52,7 @@
         .rbt-h5-phone.is-app .rbt-h5-phone__head { padding: 28px 16px 14px; }
         .rbt-h5-phone.is-app .rbt-h5-phone__head h1 { font-size: 20px; }
         .rbt-h5-phone.is-app .rbt-h5-phone__body { padding: 0; }
-        .rbt-h5-login-form,
-        .rbt-h5-register {
+        .rbt-h5-login-form {
             display: none;
             flex: 1;
             min-height: 0;
@@ -66,8 +65,7 @@
             flex-direction: column;
             background: #f7f7f7;
         }
-        .rbt-h5-phone.is-login .rbt-h5-login-form,
-        .rbt-h5-phone.is-register .rbt-h5-register { display: block; }
+        .rbt-h5-phone.is-login .rbt-h5-login-form { display: block; }
         .rbt-h5-phone.is-app .rbt-h5-app { display: flex; }
         .rbt-h5-scroll { flex: 1; min-height: 0; overflow: auto; padding: 12px 12px 16px; }
         .rbt-h5-tabbar {
@@ -197,8 +195,7 @@
             color: #333;
             font-size: 14px;
         }
-        .rbt-h5-field input,
-        .rbt-h5-field textarea {
+        .rbt-h5-field input {
             width: 100%;
             height: 44px;
             padding: 0 14px;
@@ -209,29 +206,7 @@
             background: #fff;
             color: #222;
         }
-        .rbt-h5-field textarea {
-            height: 72px;
-            padding: 8px 14px;
-            resize: none;
-            line-height: 1.5;
-            font-family: inherit;
-        }
-        .rbt-h5-field select {
-            width: 100%;
-            height: 44px;
-            padding: 0 36px 0 14px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 16px;
-            box-sizing: border-box;
-            color: #222;
-            background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23999' d='M1 1l5 5 5-5'/%3E%3C/svg%3E") no-repeat right 14px center;
-            appearance: none;
-        }
-        .rbt-h5-field select.is-empty { color: #bbb; }
-        .rbt-h5-field input:focus,
-        .rbt-h5-field textarea:focus,
-        .rbt-h5-field select:focus {
+        .rbt-h5-field input:focus {
             outline: none;
             border-color: #ff7019;
         }
@@ -267,90 +242,6 @@
             color: #fff;
             font-size: 16px;
             cursor: pointer;
-        }
-        .rbt-h5-switch,
-        .rbt-h5-back {
-            display: block;
-            width: 100%;
-            margin-top: 16px;
-            padding: 0;
-            border: 0;
-            background: transparent;
-            color: #ff7019;
-            font-size: 14px;
-            text-align: center;
-            cursor: pointer;
-        }
-        .rbt-h5-back { margin: 0 0 16px; text-align: left; }
-        .rbt-h5-section {
-            margin: 8px 0 8px;
-            color: #222;
-            font-size: 15px;
-            font-weight: 600;
-        }
-        .rbt-h5-upload {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-        .rbt-h5-upload__pick {
-            position: relative;
-            flex: 1;
-            min-height: 72px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 8px 12px;
-            border: 1px dashed #ffb07a;
-            border-radius: 8px;
-            background: #fff7f2;
-            color: #ff7019;
-            font-size: 14px;
-            line-height: 1.4;
-            text-align: center;
-            cursor: pointer;
-            word-break: break-all;
-        }
-        .rbt-h5-upload__pick input {
-            position: absolute;
-            inset: 0;
-            opacity: 0;
-            cursor: pointer;
-        }
-        .rbt-h5-upload__pick.is-done {
-            border-style: solid;
-            border-color: #ff7019;
-        }
-        .rbt-h5-upload__demo {
-            flex: 0 0 88px;
-            border: 1px solid #ff7019;
-            border-radius: 8px;
-            background: #fff;
-            color: #ff7019;
-            font-size: 13px;
-            cursor: pointer;
-        }
-        .rbt-h5-ocr {
-            margin: 0 0 16px;
-            padding: 12px;
-            border: 1px solid #f0f0f0;
-            border-radius: 8px;
-            background: #fafafa;
-        }
-        .rbt-h5-ocr[hidden] { display: none; }
-        .rbt-h5-ocr h2 {
-            margin: 0 0 10px;
-            color: #ff7019;
-            font-size: 13px;
-            font-weight: 600;
-        }
-        .rbt-h5-ocr .rbt-h5-field { margin-bottom: 8px; }
-        .rbt-h5-ocr .rbt-h5-field label { margin-bottom: 4px; font-size: 12px; color: #666; }
-        .rbt-h5-ocr input,
-        .rbt-h5-ocr textarea {
-            height: 36px;
-            font-size: 14px;
-            background: #fff;
         }
         .rbt-h5-mine h2 { margin: 8px 0 0; font-size: 22px; color: #222; }
         .rbt-h5-mine p {
@@ -426,83 +317,10 @@
                                 <label for="rbtH5LoginPassword">密码</label>
                                 <input id="rbtH5LoginPassword" data-password="login" type="password" maxlength="32" placeholder="请输入密码" autocomplete="current-password">
                             </div>
-                            <p class="rbt-h5-tip" data-mode-tip="code">演示验证码 123456。点击下方手机号可填入。注册提交后需等待审核通过方可登录。</p>
-                            <p class="rbt-h5-tip" data-mode-tip="password">演示密码 123456。点击下方手机号可填入。注册提交后需等待审核通过方可登录。</p>
+                            <p class="rbt-h5-tip" data-mode-tip="code">演示验证码 123456。点击下方手机号可填入。</p>
+                            <p class="rbt-h5-tip" data-mode-tip="password">演示密码 123456。点击下方手机号可填入。</p>
                             <button type="submit" class="rbt-h5-login">登录</button>
-                            <button type="button" class="rbt-h5-switch" data-go-register>没有账号，去注册</button>
                             <section class="rbt-h5-accounts" id="rbtH5Accounts" aria-label="可登录账号"></section>
-                        </form>
-                        <form class="rbt-h5-register" id="rbtH5RegisterForm">
-                            <button type="button" class="rbt-h5-back" data-go-login>返回登录</button>
-                            <div class="rbt-h5-section">联系人</div>
-                            <div class="rbt-h5-field">
-                                <label for="rbtH5RegPhone">手机号</label>
-                                <input id="rbtH5RegPhone" data-phone="register" type="tel" inputmode="numeric" maxlength="11" placeholder="请输入手机号" autocomplete="tel">
-                            </div>
-                            <div class="rbt-h5-field">
-                                <label for="rbtH5RegCode">验证码</label>
-                                <div class="rbt-h5-code">
-                                    <input id="rbtH5RegCode" data-code="register" type="text" inputmode="numeric" maxlength="6" placeholder="请输入验证码" autocomplete="one-time-code">
-                                    <button type="button" class="rbt-h5-sms" data-sms="register">获取验证码</button>
-                                </div>
-                            </div>
-                            <div class="rbt-h5-field">
-                                <label for="rbtH5LicenseType">牌照类型</label>
-                                <select id="rbtH5LicenseType" data-license-type class="is-empty">
-                                    <option value="">请选择</option>
-                                    <option>商业保理公司</option>
-                                    <option>融资租赁公司</option>
-                                    <option>持牌金融机构</option>
-                                    <option>地方金融组织</option>
-                                </select>
-                            </div>
-                            <div class="rbt-h5-field">
-                                <label for="rbtH5BizScope">业务范围</label>
-                                <select id="rbtH5BizScope" data-biz-scope class="is-empty">
-                                    <option value="">请选择</option>
-                                    <option>保理</option>
-                                    <option>融资租赁</option>
-                                    <option>其他</option>
-                                </select>
-                            </div>
-                            <div class="rbt-h5-section">营业执照</div>
-                            <div class="rbt-h5-upload">
-                                <label class="rbt-h5-upload__pick" data-upload="license">
-                                    <span data-upload-text>上传营业执照</span>
-                                    <input data-file="license" type="file" accept="image/*">
-                                </label>
-                                <button type="button" class="rbt-h5-upload__demo" data-demo="license">示例识别</button>
-                            </div>
-                            <div class="rbt-h5-ocr" data-ocr-result="license" hidden>
-                                <h2>识别结果（示例）</h2>
-                                <div class="rbt-h5-field"><label>名称</label><input data-ocr="name" readonly></div>
-                                <div class="rbt-h5-field"><label>统一社会信用代码</label><input data-ocr="creditCode" readonly></div>
-                                <div class="rbt-h5-field"><label>类型</label><input data-ocr="type" readonly></div>
-                                <div class="rbt-h5-field"><label>法定代表人</label><input data-ocr="legal" readonly></div>
-                                <div class="rbt-h5-field"><label>注册资本</label><input data-ocr="capital" readonly></div>
-                                <div class="rbt-h5-field"><label>成立日期</label><input data-ocr="founded" readonly></div>
-                                <div class="rbt-h5-field"><label>住所</label><input data-ocr="address" readonly></div>
-                                <div class="rbt-h5-field"><label>经营范围</label><textarea data-ocr="scope" readonly></textarea></div>
-                            </div>
-                            <div class="rbt-h5-section">经营许可证</div>
-                            <div class="rbt-h5-upload">
-                                <label class="rbt-h5-upload__pick" data-upload="permit">
-                                    <span data-upload-text>上传经营许可证</span>
-                                    <input data-file="permit" type="file" accept="image/*">
-                                </label>
-                                <button type="button" class="rbt-h5-upload__demo" data-demo="permit">示例识别</button>
-                            </div>
-                            <div class="rbt-h5-ocr" data-ocr-result="permit" hidden>
-                                <h2>识别结果（示例）</h2>
-                                <div class="rbt-h5-field"><label>许可证编号</label><input data-ocr="no" readonly></div>
-                                <div class="rbt-h5-field"><label>经营者名称</label><input data-ocr="name" readonly></div>
-                                <div class="rbt-h5-field"><label>法定代表人</label><input data-ocr="legal" readonly></div>
-                                <div class="rbt-h5-field"><label>经营场所</label><input data-ocr="place" readonly></div>
-                                <div class="rbt-h5-field"><label>主体业态</label><input data-ocr="mode" readonly></div>
-                                <div class="rbt-h5-field"><label>经营项目</label><textarea data-ocr="items" readonly></textarea></div>
-                                <div class="rbt-h5-field"><label>有效期至</label><input data-ocr="expire" readonly></div>
-                            </div>
-                            <button type="submit" class="rbt-h5-login">提交注册</button>
                         </form>
                         <div class="rbt-h5-app" id="rbtH5App">
                             <div class="rbt-h5-scroll" id="rbtH5Scroll"></div>

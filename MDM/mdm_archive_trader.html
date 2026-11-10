@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 贸易商档案</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css?v=20261110-trader-norm">
+    <style>
+        /* 档案名称链接沿用商家列表蓝色，不另造色板 */
+        .subject-name-link { color: #2196F3; text-decoration: none; font-weight: 600; }
+        .subject-name-link:hover { text-decoration: underline; color: #1976D2; }
+        /* 名称、地址等长文本左对齐；省略后仍可用 title 看全文 */
+        .mdm-archive-trader .table th.mdm-col-text,
+        .mdm-archive-trader .table td.mdm-col-text { text-align: left; }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/mdm-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content mdm-archive-trader">
+            <div class="content-tabs"><button class="active">贸易商档案</button></div>
+            <hr class="content-divider">
+            <div class="content-title">业务伙伴 / 资源中心 / 贸易商档案</div>
+
+            <section class="search-section">
+                <form class="search-form" onsubmit="return false;">
+                    <div class="form-group">
+                        <label>主体名称</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="qSubjectName" placeholder="请输入主体名称"><span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>牌照类型</label>
+                        <select id="qTraderLicenseType">
+                            <option value="">全部</option>
+                            <option value="商业保理公司">商业保理公司</option>
+                            <option value="融资租赁公司">融资租赁公司</option>
+                            <option value="持牌金融机构">持牌金融机构</option>
+                            <option value="地方金融组织">地方金融组织</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>业务范围</label>
+                        <select id="qTraderBizScope">
+                            <option value="">全部</option>
+                            <option value="保理">保理</option>
+                            <option value="融资租赁">融资租赁</option>
+                            <option value="其他">其他</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>联系人姓名</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="qTraderContact" placeholder="请输入联系人姓名"><span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>联系人手机号</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="qTraderPhone" placeholder="请输入联系人手机号"><span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>贸易商名称</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="qResourceName" placeholder="请输入贸易商名称"><span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>进件状态</label>
+                        <select id="qTraderOnboardStatus">
+                            <option value="">全部</option>
+                            <option value="未进件">未进件</option>
+                            <option value="进件中">进件中</option>
+                            <option value="进件成功">进件成功</option>
+                            <option value="进件失败">进件失败</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>贸易商状态</label>
+                        <select id="qResStatus">
+                            <option value="">全部</option>
+                            <option value="normal">正常</option>
+                            <option value="frozen">冻结</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="btnFilterReset">重置</button>
+                        <button type="button" class="btn btn-primary" id="btnFilterQuery">查询</button>
+                        <button type="button" class="btn btn-primary" id="mdmArchiveTraderAddBtn">+ 新增贸易商</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>贸易商ID</th>
+                                <th class="mdm-col-text">主体名称</th>
+                                <th class="mdm-col-text">贸易商名称</th>
+                                <th class="mdm-col-text">贸易商简称</th>
+                                <th class="mdm-col-text">贸易商地址</th>
+                                <th class="mdm-col-text">贸易商详细地址</th>
+                                <th>牌照类型</th>
+                                <th>负责人姓名</th>
+                                <th>手机号码</th>
+                                <th>进件状态</th>
+                                <th>贸易商状态</th>
+                                <th>创建人</th>
+                                <th>创建时间</th>
+                                <th>更新人</th>
+                                <th>更新时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/modal-manager.js"></script>
+    <script src="../js/page-manager.js"></script>
+    <script src="../js/mdm-onboard-address.js?v=20260826-name-tip-wrap"></script>
+    <script src="../js/mdm-store-region-cascader.js?v=20260826-name-tip-wrap"></script>
+    <script src="../js/mdm-unified-onboarding-ui.js?v=20260826-name-tip-wrap"></script>
+    <script src="../js/mdm-trader-archive-store.js?v=20261110-trader-form"></script>
+    <script src="../js/mdm-resource-archive-forms.js?v=20261110-trader-no-cert"></script>
+    <script src="../js/mdm-archive-detail-drawer.js?v=20261110-trader-base-only"></script>
+    <script src="../js/mdm-erp-lists.js?v=20261110-trader-norm2"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        MdmErpLists.initArchiveTrader();
+    });
+    </script>
+</body>
+</html>

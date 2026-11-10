@@ -152,7 +152,7 @@ function loadHeader() {
                     <a href="${wp.page('authz-designer.html')}" class="${isAuthzDesignerPage ? 'active' : ''}">权限设计</a>
                     <a href="${wp.page('authz-2-guide.html')}" class="${isAuthz2Page ? 'active' : ''}">权限2.0</a>
                     <a href="${wp.page('rbt_index.html')}" class="${isRbtPage ? 'active' : ''}">RBT</a>
-                    <a href="${wp.page('rbt_h5_index.html')}" class="${isRbtH5Page ? 'active' : ''}">RBT-H5</a>
+                    <a href="${wp.page('rbt_h5_index.html')}" class="${isRbtH5Page ? 'active' : ''}">RBT-移动端</a>
                 </nav>
 
                 ${buildHeaderOrgSwitcherHtml()}

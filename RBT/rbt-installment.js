@@ -1,4 +1,4 @@
-/* RBT 分期配置：查询、新增、编辑、启用禁用，产品编码弹出详情。 */
+/* RBT 产品配置：查询、新增、编辑、启用禁用，产品编码弹出详情。 */
 (function () {
     var Vue = OctopusPrototype.Vue;
     var ref = Vue.ref;
@@ -6,8 +6,25 @@
     var ElMessage = OctopusPrototype.ElementPlus.ElMessage;
     var KEY = 'rbt_installment_v3';
     var PACKAGE_KEY = 'rbt_product_package_v1';
-    var REPAY_CYCLES = ['日还'];
-    var REPAY_METHODS = ['定额还', '比例还'];
+    var REPAY_CYCLES = ['日付'];
+    var REPAY_METHODS = ['定额付', '比例付'];
+
+    function migrateEnumLabels(item) {
+        if (!item) return false;
+        var changed = false;
+        var cycleMap = { '日还': '日付' };
+        var methodMap = { '定额还': '定额付', '比例还': '比例付' };
+        if (cycleMap[item.repayCycle]) {
+            item.repayCycle = cycleMap[item.repayCycle];
+            changed = true;
+        }
+        if (methodMap[item.repayMethod]) {
+            item.repayMethod = methodMap[item.repayMethod];
+            changed = true;
+        }
+        return changed;
+    }
+
 
     function blank(value) {
         return value === undefined || value === null || String(value).trim() === '';
@@ -37,8 +54,8 @@
             {
                 code: 'FQ00001',
                 name: '生鲜周转分期',
-                repayCycle: '日还',
-                repayMethod: '定额还',
+                repayCycle: '日付',
+                repayMethod: '定额付',
                 periods: ['3', '6', '12'],
                 periodRates: {
                     '3': { store: '1.60', trader: '1.50' },
@@ -56,8 +73,8 @@
             {
                 code: 'FQ00004',
                 name: '生鲜周转周还',
-                repayCycle: '日还',
-                repayMethod: '比例还',
+                repayCycle: '日付',
+                repayMethod: '比例付',
                 periodRatio: '10.00',
                 storeRate: '1.70',
                 traderRate: '1.60',
@@ -73,9 +90,9 @@
             },
             {
                 code: 'FQ00005',
-                name: '生鲜周转日还',
-                repayCycle: '日还',
-                repayMethod: '定额还',
+                name: '生鲜周转日付',
+                repayCycle: '日付',
+                repayMethod: '定额付',
                 periods: ['7', '15', '30'],
                 periodRates: {
                     '7': { store: '1.30', trader: '1.20' },
@@ -93,8 +110,8 @@
             {
                 code: 'FQ00002',
                 name: '肉类备货分期',
-                repayCycle: '日还',
-                repayMethod: '比例还',
+                repayCycle: '日付',
+                repayMethod: '比例付',
                 periodRatio: '8.00',
                 storeRate: '1.80',
                 traderRate: '1.70',
@@ -111,8 +128,8 @@
             {
                 code: 'FQ00003',
                 name: '果蔬短周期',
-                repayCycle: '日还',
-                repayMethod: '定额还',
+                repayCycle: '日付',
+                repayMethod: '定额付',
                 periods: ['3'],
                 periodRates: {
                     '3': { store: '1.50', trader: '1.40' }
@@ -166,7 +183,7 @@
         return !!(value && typeof value === 'object' && !Array.isArray(value) && ('store' in value || 'trader' in value));
     }
 
-    /* 旧单值倍率迁成门店/贸易商双值；旧费率区间仍先按期插值。 */
+    /* 旧单值结算系数迁成门店/贸易商双值；旧费率区间仍先按期插值。 */
     function normalizeRatePair(value) {
         if (isRatePair(value)) {
             return {
@@ -250,11 +267,12 @@
             });
             list.forEach(function (item) {
                 if (!item) return;
+                if (migrateEnumLabels(item)) changed = true;
                 if (blank(item.repayMethod) || REPAY_METHODS.indexOf(item.repayMethod) < 0) {
-                    item.repayMethod = '定额还';
+                    item.repayMethod = '定额付';
                     changed = true;
                 }
-                if (item.repayMethod === '比例还') {
+                if (item.repayMethod === '比例付') {
                     if (blank(item.periodRatio) || blank(item.storeRate) || blank(item.traderRate)) {
                         var firstPair = null;
                         var rates = item.periodRates && typeof item.periodRates === 'object' ? item.periodRates : {};
@@ -291,20 +309,20 @@
                     changed = true;
                 }
                 if (blank(item.repayCycle) || REPAY_CYCLES.indexOf(item.repayCycle) < 0) {
-                    item.repayCycle = '日还';
+                    item.repayCycle = '日付';
                     changed = true;
                 }
                 if (migratePeriodRates(item)) changed = true;
                 if (applyDemoAmountFloor(item)) changed = true;
             });
-            /* 同一商品包可挂多条分期，但同一还款周期+还款方式只能保留最早一条上的关联。 */
+            /* 同一商品包可挂多条分期，但同一结算周期+结算方式只能保留最早一条上的关联。 */
             var packageCycleMethodOwner = {};
             list.slice().sort(function (a, b) {
                 return String(a && a.code || '').localeCompare(String(b && b.code || ''));
             }).forEach(function (item) {
                 if (!item || !Array.isArray(item.packages)) return;
-                var cycle = item.repayCycle || '日还';
-                var method = item.repayMethod || '定额还';
+                var cycle = item.repayCycle || '日付';
+                var method = item.repayMethod || '定额付';
                 var next = [];
                 item.packages.forEach(function (name) {
                     if (!name) return;
@@ -369,7 +387,7 @@
     }
 
     function periodText(row) {
-        if (row && row.repayMethod === '比例还') {
+        if (row && row.repayMethod === '比例付') {
             if (blank(row.periodRatio) || !isFinite(Number(row.periodRatio))) return '—';
             return Number(row.periodRatio).toFixed(2) + '%';
         }
@@ -391,7 +409,7 @@
     }
 
     function rateText(row) {
-        if (row && row.repayMethod === '比例还') {
+        if (row && row.repayMethod === '比例付') {
             return ratePairText({ store: row.storeRate, trader: row.traderRate });
         }
         var periods = orderedPeriods(row && row.periods);
@@ -446,7 +464,7 @@
             var table = ref(null);
             var addDialog = ref(null);
             var dialogTitle = ref('新增分期');
-            var periodsFieldLabel = ref('可选期数');
+            var periodsFieldLabel = ref('结算期数');
             var afterSave = 'add';
             var slots = { code: 'cell-code', status: 'cell-enabled' };
             var cycleOptions = REPAY_CYCLES.map(function (name) { return { label: name, value: name }; });
@@ -455,9 +473,9 @@
             var packageOptions = [];
 
             function syncPeriodsLabel(method) {
-                periodsFieldLabel.value = method === '比例还' ? '每期比例' : '可选期数';
+                periodsFieldLabel.value = method === '比例付' ? '结算比例' : '结算期数';
             }
-            /* 商品包可被多条分期共用；冲突键为「商品包 + 还款周期 + 还款方式」。 */
+            /* 商品包可被多条分期共用；冲突键为「商品包 + 结算周期 + 结算方式」。 */
             function conflictPackages(exceptCode, repayCycle, repayMethod) {
                 var taken = {};
                 if (blank(repayCycle) || blank(repayMethod)) return taken;
@@ -485,11 +503,11 @@
                 { dataIndex: 'code', title: '产品编码', minWidth: 140, search: { control: 'input' } },
                 { dataIndex: 'name', title: '产品名称', minWidth: 160, align: 'left', showOverflowTooltip: true, search: { control: 'input' } },
                 { dataIndex: 'enabled', title: '状态', width: 100 },
-                { dataIndex: 'repayCycle', title: '还款周期', minWidth: 110, formatter: function (row) { return show(row.repayCycle); } },
-                { dataIndex: 'repayMethod', title: '还款方式', minWidth: 110, formatter: function (row) { return show(row.repayMethod); } },
-                { dataIndex: 'periods', title: '可选期数/每期比例', minWidth: 160, formatter: periodText },
-                { dataIndex: 'periodRates', title: '倍率', minWidth: 240, align: 'left', showOverflowTooltip: true, formatter: rateText },
-                { dataIndex: 'amountRange', title: '金额区间', minWidth: 220, formatter: amountText },
+                { dataIndex: 'repayCycle', title: '结算周期', minWidth: 110, formatter: function (row) { return show(row.repayCycle); } },
+                { dataIndex: 'repayMethod', title: '结算方式', minWidth: 120, formatter: function (row) { return show(row.repayMethod); } },
+                { dataIndex: 'periods', title: '结算期数/结算比例', minWidth: 160, formatter: periodText },
+                { dataIndex: 'periodRates', title: '结算系数', minWidth: 240, align: 'left', showOverflowTooltip: true, formatter: rateText },
+                { dataIndex: 'amountRange', title: '货款区间', minWidth: 220, formatter: amountText },
                 { dataIndex: 'packages', title: '适用商品包', minWidth: 200, align: 'left', showOverflowTooltip: true, formatter: packageText },
                 { dataIndex: 'creator', title: '创建人', minWidth: 100 },
                 { dataIndex: 'createdAt', title: '创建时间', minWidth: 170 },
@@ -500,14 +518,14 @@
                 return [
                     { field: 'name', label: '产品名称', required: true, placeholder: '请输入产品名称' },
                     { field: 'status', label: '状态', control: 'select', required: true, defaultValue: '启用', options: statusOptions, placeholder: '请选择' },
-                    { field: 'repayCycle', label: '还款周期', control: 'select', required: true, defaultValue: '日还', options: cycleOptions, placeholder: '请选择还款周期' },
+                    { field: 'repayCycle', label: '结算周期', control: 'select', required: true, defaultValue: '日付', options: cycleOptions, placeholder: '请选择结算周期' },
                     {
                         field: 'repayMethod',
-                        label: '还款方式',
+                        label: '结算方式',
                         control: 'select',
                         required: true,
                         options: repayOptions,
-                        placeholder: '请选择还款方式',
+                        placeholder: '请选择结算方式',
                         dependency: {
                             onChange: function (value) {
                                 syncPeriodsLabel(value);
@@ -515,8 +533,8 @@
                         }
                     },
                     { field: 'periods', label: periodsFieldLabel.value, control: 'slot', requiredMark: true },
-                    { field: 'ratepair', label: '倍率', control: 'slot', requiredMark: true },
-                    { field: 'amountpair', label: '金额区间', control: 'slot', requiredMark: true },
+                    { field: 'ratepair', label: '结算系数', control: 'slot', requiredMark: true },
+                    { field: 'amountpair', label: '货款区间', control: 'slot', requiredMark: true },
                     { field: 'packages', label: '适用商品包', control: 'select', multiple: true, required: true, defaultValue: [], options: packageOptions, placeholder: '请选择适用商品包' }
                 ];
             });
@@ -585,7 +603,7 @@
                     status: current.enabled === false ? '禁用' : '启用',
                     repayCycle: show(current.repayCycle),
                     repayMethod: show(current.repayMethod),
-                    periodsLabel: current.repayMethod === '比例还' ? '每期比例' : '可选期数',
+                    periodsLabel: current.repayMethod === '比例付' ? '结算比例' : '结算期数',
                     periods: periodText(current),
                     rateRange: rateText(current),
                     amountRange: amountText(current),
@@ -604,7 +622,7 @@
                 syncPackageOptions();
                 addDialog.value && addDialog.value.showEdit({
                     status: '启用',
-                    repayCycle: '日还',
+                    repayCycle: '日付',
                     repayMethod: '',
                     periodRatio: '',
                     storeRate: '',
@@ -626,8 +644,8 @@
                     code: current.code,
                     name: current.name,
                     status: current.enabled === false ? '禁用' : '启用',
-                    repayCycle: current.repayCycle || '日还',
-                    repayMethod: current.repayMethod || '定额还',
+                    repayCycle: current.repayCycle || '日付',
+                    repayMethod: current.repayMethod || '定额付',
                     periodRatio: current.periodRatio || '',
                     storeRate: current.storeRate || '',
                     traderRate: current.traderRate || '',
@@ -657,50 +675,50 @@
                     return false;
                 }
                 if (blank(values.repayCycle) || REPAY_CYCLES.indexOf(values.repayCycle) < 0) {
-                    ElMessage.error('请选择还款周期');
+                    ElMessage.error('请选择结算周期');
                     return false;
                 }
                 if (blank(values.repayMethod) || REPAY_METHODS.indexOf(values.repayMethod) < 0) {
-                    ElMessage.error('请选择还款方式');
+                    ElMessage.error('请选择结算方式');
                     return false;
                 }
-                if (values.repayMethod === '比例还') {
+                if (values.repayMethod === '比例付') {
                     if (blank(values.periodRatio)) {
-                        ElMessage.error('请输入每期比例');
+                        ElMessage.error('请输入结算比例');
                         return false;
                     }
                     if (!validDecimal(values.periodRatio)) {
-                        ElMessage.error('每期比例仅支持数字，最多两位小数');
+                        ElMessage.error('结算比例仅支持数字，最多两位小数');
                         return false;
                     }
                     if (Number(values.periodRatio) <= 0) {
-                        ElMessage.error('每期比例须大于0');
+                        ElMessage.error('结算比例须大于0');
                         return false;
                     }
                     if (blank(values.storeRate)) {
-                        ElMessage.error('请输入门店倍率');
+                        ElMessage.error('请输入门店结算系数');
                         return false;
                     }
                     if (blank(values.traderRate)) {
-                        ElMessage.error('请输入贸易商倍率');
+                        ElMessage.error('请输入贸易商结算系数');
                         return false;
                     }
                     if (!validDecimal(values.storeRate) || !validDecimal(values.traderRate)) {
-                        ElMessage.error('倍率仅支持数字，最多两位小数');
+                        ElMessage.error('结算系数仅支持数字，最多两位小数');
                         return false;
                     }
                     if (Number(values.storeRate) < 1 || Number(values.traderRate) < 1) {
-                        ElMessage.error('倍率不能低于1');
+                        ElMessage.error('结算系数不能低于1');
                         return false;
                     }
                     if (Number(values.traderRate) > Number(values.storeRate)) {
-                        ElMessage.error('贸易商倍率不能大于门店倍率');
+                        ElMessage.error('贸易商结算系数不能大于门店结算系数');
                         return false;
                     }
                 } else {
                     var periodTokens = parsePeriodTokens(values.periodsText != null ? values.periodsText : periodsDisplay(values.periods));
                     if (!periodTokens.length) {
-                        ElMessage.error('请输入可选期数');
+                        ElMessage.error('请输入结算期数');
                         return false;
                     }
                     var invalidToken = periodTokens.find(function (token) { return !isValidPeriod(token); });
@@ -726,7 +744,7 @@
                         return blank(pair.store);
                     });
                     if (missingStore) {
-                        ElMessage.error('请输入' + missingStore + '期门店倍率');
+                        ElMessage.error('请输入' + missingStore + '期门店结算系数');
                         return false;
                     }
                     var missingTrader = periods.find(function (period) {
@@ -734,7 +752,7 @@
                         return blank(pair.trader);
                     });
                     if (missingTrader) {
-                        ElMessage.error('请输入' + missingTrader + '期贸易商倍率');
+                        ElMessage.error('请输入' + missingTrader + '期贸易商结算系数');
                         return false;
                     }
                     var invalidPeriod = periods.find(function (period) {
@@ -742,7 +760,7 @@
                         return !validDecimal(pair.store) || !validDecimal(pair.trader);
                     });
                     if (invalidPeriod) {
-                        ElMessage.error('倍率仅支持数字，最多两位小数');
+                        ElMessage.error('结算系数仅支持数字，最多两位小数');
                         return false;
                     }
                     var rateBelowOne = periods.find(function (period) {
@@ -750,7 +768,7 @@
                         return Number(pair.store) < 1 || Number(pair.trader) < 1;
                     });
                     if (rateBelowOne) {
-                        ElMessage.error(rateBelowOne + '期倍率不能低于1');
+                        ElMessage.error(rateBelowOne + '期结算系数不能低于1');
                         return false;
                     }
                     var traderOverStore = periods.find(function (period) {
@@ -758,7 +776,7 @@
                         return Number(pair.trader) > Number(pair.store);
                     });
                     if (traderOverStore) {
-                        ElMessage.error(traderOverStore + '期贸易商倍率不能大于门店倍率');
+                        ElMessage.error(traderOverStore + '期贸易商结算系数不能大于门店结算系数');
                         return false;
                     }
                     values.periods = periods;
@@ -771,7 +789,7 @@
                         };
                     });
                 }
-                var amountError = pairError(values.amountMin, values.amountMax, '请输入金额区间', '金额仅支持数字，最多两位小数', '金额下限不能大于上限');
+                var amountError = pairError(values.amountMin, values.amountMax, '请输入货款区间', '金额仅支持数字，最多两位小数', '金额下限不能大于上限');
                 if (amountError) {
                     ElMessage.error(amountError);
                     return false;
@@ -792,7 +810,7 @@
                 values.packages = values.packages.filter(function (name, index) {
                     return name && values.packages.indexOf(name) === index;
                 });
-                if (values.repayMethod === '比例还') {
+                if (values.repayMethod === '比例付') {
                     values.periodRatio = Number(values.periodRatio).toFixed(2);
                     values.storeRate = Number(values.storeRate).toFixed(2);
                     values.traderRate = Number(values.traderRate).toFixed(2);

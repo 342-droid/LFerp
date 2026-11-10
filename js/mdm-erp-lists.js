@@ -996,6 +996,14 @@
             shortName = archiveShort || shortName;
             detailAddrIdx = SUPPLIER_COL.detailAddr;
             contactMobileIdx = SUPPLIER_COL.phone;
+        } else if (kind === 'trader') {
+            var traderShort = c[TRADER_COL.shortName]
+                ? c[TRADER_COL.shortName].textContent.trim()
+                : '';
+            if (traderShort === '—' || traderShort === '-') traderShort = '';
+            shortName = traderShort || shortName;
+            detailAddrIdx = TRADER_COL.detailAddr;
+            contactMobileIdx = TRADER_COL.phone;
         }
         var detailAddr = c[detailAddrIdx] ? c[detailAddrIdx].textContent.trim() : '';
         var contactMobile = c[contactMobileIdx]
@@ -1004,6 +1012,7 @@
         var title = '支付进件';
         if (kind === 'store') title = '门店进件';
         else if (kind === 'supplier') title = '供应商进件';
+        else if (kind === 'trader') title = '贸易商进件';
         else if (kind === 'liveRoom') title = '直播间进件';
         else if (kind === 'carrier') title = '承运商进件';
         var venue = { store_header_pic: '', store_indoor_pic: '', store_cashier_desk_pic: '' };
@@ -1058,6 +1067,7 @@
             }
             if (kind === 'supplier' && tr) syncSupplierArchiveRow(tr, payload);
             else if (kind === 'store' && tr) syncStoreArchiveRow(tr, payload);
+            else if (kind === 'trader' && tr) syncTraderArchiveRow(tr, payload);
         };
         window.MdmUnifiedOnboardingUi.openModal(modalOpts);
     }
@@ -1899,6 +1909,284 @@
                 detailAddrCol: SUPPLIER_COL.detailAddr,
                 contactMobileCol: SUPPLIER_COL.phone
             });
+        }, 0);
+    }
+
+    var TRADER_COL = {
+        name: 2,
+        shortName: 3,
+        region: 4,
+        detailAddr: 5,
+        licenseType: 6,
+        contact: 7,
+        phone: 8,
+        onboard: 9,
+        status: 10,
+        createdBy: 11,
+        createdAt: 12,
+        updatedBy: 13,
+        updatedAt: 14
+    };
+
+    function statusClassForTrader(status) {
+        return status === '冻结' || status === '停用' || status === '禁用' ? 'inactive' : 'active';
+    }
+
+    /** 进件状态 → mdm-detail-tag（与档案详情抽屉语义色一致） */
+    function traderOnboardTagHtml(text) {
+        var s = String(text || '未进件').trim() || '未进件';
+        var variant = 'neutral';
+        if (/进件成功/.test(s)) variant = 'success';
+        else if (/进件失败/.test(s)) variant = 'danger';
+        else if (/进件中|未进件/.test(s)) variant = 'warning';
+        return (
+            '<span class="mdm-detail-tag mdm-detail-tag--' +
+            variant +
+            '">' +
+            escapeHtml(s) +
+            '</span>'
+        );
+    }
+
+    function traderTextCell(value, extraAttrs) {
+        var text = value || '—';
+        return (
+            '<td class="mdm-col-text"' +
+            (extraAttrs || '') +
+            ' title="' +
+            escapeHtml(text) +
+            '">' +
+            escapeHtml(text) +
+            '</td>'
+        );
+    }
+
+    function renderTraderArchiveRows() {
+        var tbody = document.getElementById('tableBody');
+        if (!tbody || !window.MdmTraderArchiveStore) return;
+        var list = window.MdmTraderArchiveStore.list();
+        tbody.innerHTML = list
+            .map(function (item) {
+                var st = item.status || '正常';
+                return (
+                    '<tr data-trader-id="' +
+                    escapeHtml(item.id) +
+                    '" data-biz-scope="' +
+                    escapeHtml(item.bizScope || '') +
+                    '">' +
+                    '<td>' +
+                    escapeHtml(item.id) +
+                    '</td>' +
+                    traderTextCell(item.subjectName) +
+                    traderTextCell(item.name) +
+                    traderTextCell(item.shortName, ' data-field="shortName"') +
+                    traderTextCell(item.region) +
+                    traderTextCell(item.detailAddr) +
+                    '<td>' +
+                    escapeHtml(item.licenseType || '—') +
+                    '</td>' +
+                    '<td>' +
+                    escapeHtml(item.contact || '—') +
+                    '</td>' +
+                    '<td>' +
+                    escapeHtml(item.phone || '—') +
+                    '</td>' +
+                    '<td>' +
+                    traderOnboardTagHtml(item.onboardStatus || '未进件') +
+                    '</td>' +
+                    '<td><span class="status ' +
+                    statusClassForTrader(st) +
+                    '">' +
+                    escapeHtml(st) +
+                    '</span></td>' +
+                    '<td>' +
+                    escapeHtml(item.createdBy || '—') +
+                    '</td>' +
+                    '<td>' +
+                    escapeHtml(item.createdAt || '—') +
+                    '</td>' +
+                    '<td>' +
+                    escapeHtml(item.updatedBy || '—') +
+                    '</td>' +
+                    '<td>' +
+                    escapeHtml(item.updatedAt || '—') +
+                    '</td>' +
+                    '<td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td>' +
+                    '</tr>'
+                );
+            })
+            .join('');
+    }
+
+    function syncTraderArchiveRow(tr, payload) {
+        if (!tr) return;
+        var cells = tr.querySelectorAll('td');
+        if (cells.length < TRADER_COL.status + 1) return;
+        var traderId = cells[0].textContent.trim();
+        var recordKey = 'archive::trader::' + traderId;
+        var onboardFallback = cells[TRADER_COL.onboard].textContent.trim();
+        var onboardDisplay = resolveSupplierOnboardingDisplay(recordKey, onboardFallback);
+        if (payload && payload.status === 'submitted') onboardDisplay = '进件中';
+        if (payload === null) onboardDisplay = '未进件';
+        cells[TRADER_COL.onboard].innerHTML = traderOnboardTagHtml(onboardDisplay);
+        if (window.MdmTraderArchiveStore && typeof window.MdmTraderArchiveStore.update === 'function') {
+            window.MdmTraderArchiveStore.update({
+                id: traderId,
+                onboardStatus: onboardDisplay
+            });
+        }
+    }
+
+    function traderArchiveFilter(pm) {
+        var tbody = document.getElementById(pm.config.tableBodyId);
+        if (!tbody) return;
+        var qSub = (document.getElementById('qSubjectName') || {}).value.trim();
+        var qLicense = (document.getElementById('qTraderLicenseType') || {}).value.trim();
+        var qScope = (document.getElementById('qTraderBizScope') || {}).value.trim();
+        var qContact = (document.getElementById('qTraderContact') || {}).value.trim();
+        var qPhone = (document.getElementById('qTraderPhone') || {}).value.trim();
+        var qN = (document.getElementById('qResourceName') || {}).value.trim();
+        var qOn = (document.getElementById('qTraderOnboardStatus') || {}).value.trim();
+        var qSt = (document.getElementById('qResStatus') || {}).value.trim();
+        tbody.querySelectorAll('tr').forEach(function (tr) {
+            var cells = tr.querySelectorAll('td');
+            if (cells.length < 15) return;
+            var ok = true;
+            if (qSub && cells[1].textContent.trim().indexOf(qSub) === -1) ok = false;
+            if (qLicense && cells[TRADER_COL.licenseType].textContent.trim() !== qLicense) ok = false;
+            if (qScope && (tr.getAttribute('data-biz-scope') || '') !== qScope) ok = false;
+            if (qContact && cells[TRADER_COL.contact].textContent.trim().indexOf(qContact) === -1) ok = false;
+            if (qPhone) {
+                var phoneText = cells[TRADER_COL.phone].textContent.trim();
+                var phoneDigits = phoneText.replace(/\D/g, '');
+                var queryDigits = qPhone.replace(/\D/g, '');
+                var phoneHit =
+                    phoneText.indexOf(qPhone) !== -1 ||
+                    (queryDigits && phoneDigits.indexOf(queryDigits) !== -1);
+                if (!phoneHit) ok = false;
+            }
+            if (qN && cells[TRADER_COL.name].textContent.trim().indexOf(qN) === -1) ok = false;
+            if (qOn && cells[TRADER_COL.onboard].textContent.trim() !== qOn) ok = false;
+            var stText = cells[TRADER_COL.status].querySelector('.status')
+                ? cells[TRADER_COL.status].querySelector('.status').textContent.trim()
+                : cells[TRADER_COL.status].textContent.trim();
+            if (qSt === 'normal' && stText !== '正常') ok = false;
+            if (qSt === 'frozen' && stText !== '冻结') ok = false;
+            tr.style.display = ok ? '' : 'none';
+        });
+        pm.refreshPagination();
+    }
+
+    function escapeHtml(str) {
+        return String(str == null ? '' : str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function initArchiveTrader() {
+        renderTraderArchiveRows();
+        var fields = [
+            { id: 'resId', label: '贸易商ID', type: 'text', editDisabled: true, hiddenInAdd: true },
+            { id: 'subjectName', label: '主体名称', type: 'text', required: true, editDisabled: true },
+            { id: 'resName', label: '贸易商名称', type: 'text', required: true },
+            { id: 'shortName', label: '贸易商简称', type: 'text' },
+            { id: 'licenseType', label: '牌照类型', type: 'text' },
+            { id: 'contactName', label: '负责人姓名', type: 'text', required: true },
+            { id: 'phone', label: '手机号码', type: 'text' },
+            {
+                id: 'resStatus',
+                label: '贸易商状态',
+                type: 'select',
+                options: [
+                    { value: '正常', text: '正常' },
+                    { value: '冻结', text: '冻结' }
+                ]
+            }
+        ];
+        var pm = new PageManager({
+            entityName: '贸易商档案',
+            modalWidth: '640px',
+            checkboxColumn: false,
+            statusColumnIndex: TRADER_COL.status,
+            actionColumnMode: 'editOnboard',
+            fields: fields,
+            detailView: {
+                enabled: true,
+                columnIndex: TRADER_COL.name,
+                linkClass: 'subject-name-link',
+                onOpenDetail: function (row) {
+                    if (window.MdmArchiveDetailDrawer && typeof window.MdmArchiveDetailDrawer.openTrader === 'function') {
+                        window.MdmArchiveDetailDrawer.openTrader(row);
+                    } else if (typeof showToast === 'function') {
+                        showToast('详情抽屉未加载，请确认已引入 mdm-archive-detail-drawer.js', 'error');
+                    }
+                }
+            },
+            customRowActions: [
+                {
+                    selector: '.edit-btn',
+                    handler: function (e, el) {
+                        e.preventDefault();
+                        if (
+                            !window.MdmResourceArchiveForms ||
+                            typeof window.MdmResourceArchiveForms.openTraderEdit !== 'function'
+                        ) {
+                            showToast('表单模块未加载，请确认已引入 mdm-resource-archive-forms.js', 'error');
+                            return;
+                        }
+                        window.MdmResourceArchiveForms.openTraderEdit(el.closest('tr'), function () {
+                            renderTraderArchiveRows();
+                            pm.decorateAllDetailLinkCells();
+                            pm.refreshPagination();
+                        });
+                    }
+                },
+                {
+                    selector: '.mdm-onboard-btn',
+                    handler: function (e, el) {
+                        e.preventDefault();
+                        openArchiveOnboardingFromRow(el.closest('tr'), 'trader');
+                    }
+                }
+            ]
+        });
+        pm.init();
+        document.getElementById('mdmArchiveTraderAddBtn') &&
+            document.getElementById('mdmArchiveTraderAddBtn').addEventListener('click', function () {
+                if (
+                    !window.MdmResourceArchiveForms ||
+                    typeof window.MdmResourceArchiveForms.openTraderAdd !== 'function'
+                ) {
+                    showToast('表单模块未加载，请确认已引入 mdm-resource-archive-forms.js', 'error');
+                    return;
+                }
+                window.MdmResourceArchiveForms.openTraderAdd(function () {
+                    renderTraderArchiveRows();
+                    pm.decorateAllDetailLinkCells();
+                    pm.refreshPagination();
+                });
+            });
+        bindSimpleFilter(pm, {
+            resetFields: [
+                'qSubjectName',
+                'qTraderLicenseType',
+                'qTraderBizScope',
+                'qTraderContact',
+                'qTraderPhone',
+                'qResourceName',
+                'qTraderOnboardStatus',
+                'qResStatus'
+            ],
+            filterFn: traderArchiveFilter
+        });
+        setTimeout(function () {
+            pm.decorateAllDetailLinkCells();
+            document.querySelectorAll('#tableBody tr').forEach(function (tr) {
+                syncTraderArchiveRow(tr);
+            });
+            pm.refreshPagination();
         }, 0);
     }
 
@@ -4274,6 +4562,7 @@
         initArchiveStore: initArchiveStore,
         appendArchiveStoreRow: appendArchiveStoreRow,
         initArchiveSupplier: initArchiveSupplier,
+        initArchiveTrader: initArchiveTrader,
         initArchiveWarehouse: initArchiveWarehouse,
         initArchiveLiveRoom: initArchiveLiveRoom,
         initArchiveCarrier: initArchiveCarrier,

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>冷丰RBT - 分期配置</title>
+    <title>冷丰RBT - 产品配置</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
@@ -33,7 +33,7 @@
 
     <div class="container">
         <main class="main-content">
-            <div class="content-tabs"><button type="button" class="active">分期配置</button></div>
+            <div class="content-tabs"><button type="button" class="active">产品配置</button></div>
             <hr class="content-divider">
 
             <div id="rbtInstallmentApp" class="rbt-installment-schema-host" v-cloak>
@@ -75,7 +75,8 @@
                     edit-success-message="分期已更新"
                     @saved="refreshTable">
                     <template #form-periods="{form}">
-                        <div v-if="form.repayMethod === '比例还'" class="rbt-range">
+                        <div v-if="form.repayMethod === '比例付'" class="rbt-range">
+                            <span class="rbt-range__label">每日经营流水总额</span>
                             <el-input :model-value="form.periodRatio" placeholder="请输入" @input="onDecimal(form, 'periodRatio', $event)"></el-input>
                             <span class="rbt-range__unit">%</span>
                         </div>
@@ -86,26 +87,26 @@
                             @input="onPeriodsInput(form, $event)"></el-input>
                     </template>
                     <template #form-ratepair="{form}">
-                        <div v-if="form.repayMethod === '比例还'" class="rbt-period-rate-row">
+                        <div v-if="form.repayMethod === '比例付'" class="rbt-period-rate-row">
                             <div class="rbt-period-rate-row__pair">
-                                <span class="rbt-range__label">门店倍率</span>
+                                <span class="rbt-range__label">门店结算系数</span>
                                 <el-input :model-value="form.storeRate" placeholder="请输入" @input="onDecimal(form, 'storeRate', $event)"></el-input>
                             </div>
                             <div class="rbt-period-rate-row__pair">
-                                <span class="rbt-range__label">贸易商倍率</span>
+                                <span class="rbt-range__label">贸易商结算系数</span>
                                 <el-input :model-value="form.traderRate" placeholder="请输入" @input="onDecimal(form, 'traderRate', $event)"></el-input>
                             </div>
                         </div>
-                        <div v-else-if="!form.periods || !form.periods.length" class="rbt-period-rates__empty">请先填写可选期数</div>
+                        <div v-else-if="!form.periods || !form.periods.length" class="rbt-period-rates__empty">请先填写结算期数</div>
                         <div v-else class="rbt-period-rates">
                             <div v-for="period in orderedPeriods(form.periods)" :key="period" class="rbt-period-rate-row">
                                 <span class="rbt-period-rate-row__label">{{ period }}期</span>
                                 <div class="rbt-period-rate-row__pair">
-                                    <span class="rbt-range__label">门店倍率</span>
+                                    <span class="rbt-range__label">门店结算系数</span>
                                     <el-input :model-value="periodRateValue(form, period, 'store')" placeholder="请输入" @input="onPeriodRate(form, period, 'store', $event)"></el-input>
                                 </div>
                                 <div class="rbt-period-rate-row__pair">
-                                    <span class="rbt-range__label">贸易商倍率</span>
+                                    <span class="rbt-range__label">贸易商结算系数</span>
                                     <el-input :model-value="periodRateValue(form, period, 'trader')" placeholder="请输入" @input="onPeriodRate(form, period, 'trader', $event)"></el-input>
                                 </div>
                             </div>

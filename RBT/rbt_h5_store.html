@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>冷丰RBT-H5 - 门店端</title>
+    <title>冷丰RBT-移动端 - 门店端</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <style>
@@ -109,21 +109,6 @@
             margin: 0 auto;
             text-align: center;
         }
-        .rbt-h5-tabbar {
-            flex: 0 0 56px;
-            display: flex;
-            border-top: 1px solid #eee;
-            background: #fff;
-        }
-        .rbt-h5-tabbar button {
-            flex: 1;
-            border: 0;
-            background: transparent;
-            color: #666;
-            font-size: 14px;
-            cursor: pointer;
-        }
-        .rbt-h5-tabbar button.is-on { color: #ff7019; font-weight: 600; }
         .rbt-h5-bar {
             display: flex;
             align-items: center;
@@ -265,19 +250,6 @@
         .rbt-h5-sum b { color: #ff7019; }
         .rbt-h5-section { margin: 14px 0 8px; color: #222; font-size: 14px; font-weight: 600; }
         .rbt-h5-publish { width: 100%; height: 44px; }
-        .rbt-h5-mine h2 { margin: 8px 0 0; font-size: 22px; }
-        .rbt-h5-mine p { margin: 12px 0 0; color: #666; font-size: 14px; line-height: 1.8; white-space: pre-line; }
-        .rbt-h5-logout {
-            width: 100%;
-            margin-top: 24px;
-            height: 44px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            background: #fff;
-            color: #333;
-            font-size: 15px;
-            cursor: pointer;
-        }
         .rbt-h5-pick {
             display: none;
             flex: 1;
@@ -337,7 +309,66 @@
             border-bottom: 1px solid #f3f3f3;
         }
         .rbt-h5-inst__row:last-child { border-bottom: 0; }
-        .rbt-h5-inst__label { color: #666; font-size: 14px; flex: none; }
+        .rbt-h5-inst__label {
+            color: #666;
+            font-size: 14px;
+            flex: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .rbt-h5-help-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+        .rbt-h5-help {
+            width: 16px;
+            height: 16px;
+            padding: 0;
+            border: 1px solid #bbb;
+            border-radius: 50%;
+            background: #fff;
+            color: #888;
+            font-size: 11px;
+            line-height: 14px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .rbt-h5-help:active,
+        .rbt-h5-help-wrap.is-open .rbt-h5-help {
+            border-color: #ff7019;
+            color: #ff7019;
+        }
+        .rbt-h5-help-tip {
+            position: absolute;
+            left: 50%;
+            bottom: calc(100% + 8px);
+            transform: translateX(-50%);
+            z-index: 30;
+            width: max-content;
+            max-width: 200px;
+            padding: 8px 10px;
+            background: rgba(0, 0, 0, 0.82);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 1.5;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+            white-space: normal;
+            pointer-events: none;
+        }
+        .rbt-h5-help-tip[hidden] { display: none !important; }
+        .rbt-h5-help-tip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border: 5px solid transparent;
+            border-top-color: rgba(0, 0, 0, 0.82);
+        }
         .rbt-h5-inst__amount {
             color: #222;
             font-size: 22px;
@@ -367,127 +398,18 @@
             color: #ff7019;
             font-weight: 600;
         }
-        .rbt-h5-inst__link {
-            display: flex;
-            width: 100%;
-            align-items: center;
-            justify-content: space-between;
+        .rbt-h5-inst__estimate {
             margin-top: 10px;
             padding: 12px;
-            border: 0;
             border-radius: 10px;
             background: #fff7f2;
-            color: #ff7019;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .rbt-h5-inst__link span { color: #999; font-weight: 400; }
-        .rbt-h5-sheet {
-            display: none;
-            position: absolute;
-            inset: 0;
-            z-index: 40;
-        }
-        .rbt-h5-sheet.is-on { display: block; }
-        .rbt-h5-sheet__mask {
-            position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.45);
-        }
-        .rbt-h5-sheet__panel {
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            max-height: 78%;
-            display: flex;
-            flex-direction: column;
-            border-radius: 16px 16px 0 0;
-            background: #fff4ec;
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.12);
-            overflow: hidden;
-        }
-        .rbt-h5-sheet__head {
-            flex: none;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 14px 16px 8px;
-        }
-        .rbt-h5-sheet__head h2 {
-            margin: 0;
-            font-size: 16px;
-            color: #222;
-        }
-        .rbt-h5-sheet__close {
-            width: 28px;
-            height: 28px;
-            border: 0;
-            border-radius: 50%;
-            background: transparent;
-            color: #999;
-            font-size: 20px;
-            line-height: 1;
-            cursor: pointer;
-        }
-        .rbt-h5-sheet__body {
-            flex: 1;
-            min-height: 0;
-            overflow: auto;
-            padding: 0 12px 20px;
-        }
-        .rbt-h5-sheet__card {
-            margin-bottom: 10px;
-            padding: 12px;
-            border-radius: 12px;
-            background: #fff;
-        }
-        .rbt-h5-sheet__total {
-            color: #222;
-            font-size: 24px;
-            font-weight: 700;
-        }
-        .rbt-h5-sheet__sub {
-            margin-top: 6px;
-            color: #888;
-            font-size: 12px;
-            line-height: 1.7;
-        }
-        .rbt-h5-sheet__sub b { color: #333; font-weight: 600; }
-        .rbt-h5-sheet__method {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid #f3f3f3;
             color: #666;
-            font-size: 13px;
-        }
-        .rbt-h5-sheet__method b { color: #222; font-weight: 600; }
-        .rbt-h5-sheet__meta {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            color: #888;
-            font-size: 12px;
-        }
-        .rbt-h5-sheet__item {
-            padding: 10px 0;
-            border-top: 1px solid #f5f5f5;
-        }
-        .rbt-h5-sheet__item:first-of-type { border-top: 0; }
-        .rbt-h5-sheet__item-top {
-            display: flex;
-            justify-content: space-between;
-            gap: 8px;
-            color: #222;
             font-size: 14px;
-            font-weight: 600;
+            line-height: 1.5;
         }
-        .rbt-h5-sheet__item-sub {
-            margin-top: 4px;
-            color: #888;
-            font-size: 12px;
-            line-height: 1.6;
+        .rbt-h5-inst__estimate b {
+            color: #ff7019;
+            font-weight: 600;
         }
     </style>
 </head>
@@ -501,16 +423,6 @@
             <div class="rbt-h5-store-stage">
                 <section class="rbt-h5-phone is-app" id="rbtH5Phone" aria-label="门店端">
                     <div class="rbt-h5-toast" id="rbtH5Toast" role="status"></div>
-                    <div class="rbt-h5-sheet" id="rbtH5Sheet" aria-hidden="true">
-                        <div class="rbt-h5-sheet__mask" data-close-sheet></div>
-                        <div class="rbt-h5-sheet__panel" role="dialog" aria-modal="true" aria-labelledby="rbtH5SheetTitle">
-                            <div class="rbt-h5-sheet__head">
-                                <h2 id="rbtH5SheetTitle">还款计划</h2>
-                                <button type="button" class="rbt-h5-sheet__close" data-close-sheet aria-label="关闭">×</button>
-                            </div>
-                            <div class="rbt-h5-sheet__body" id="rbtH5SheetBody"></div>
-                        </div>
-                    </div>
                     <div class="rbt-h5-phone__head">
                         <h1>门店端</h1>
                         <p id="rbtH5HeadText">需求列表</p>
@@ -520,13 +432,8 @@
                         <div class="rbt-h5-app" id="rbtH5App">
                             <div class="rbt-h5-scroll" id="rbtH5Scroll"></div>
                             <div class="rbt-h5-create" id="rbtH5Create" hidden>
-                                <button type="button" class="rbt-h5-primary" data-create>发布资金需求</button>
+                                <button type="button" class="rbt-h5-primary" data-create>发布需求</button>
                             </div>
-                            <nav class="rbt-h5-tabbar" id="rbtH5Tabbar">
-                                <button type="button" data-tab="demands">需求列表</button>
-                                <button type="button" data-tab="plans">还款计划</button>
-                                <button type="button" data-tab="mine">我的</button>
-                            </nav>
                         </div>
                     </div>
                 </section>
@@ -537,6 +444,7 @@
     <script src="../js/common.js"></script>
     <script src="../js/business-tag-prototype-store.js"></script>
     <script src="rbt-store-data.js"></script>
+    <script src="rbt-demand-data.js"></script>
     <script src="rbt-h5-store-app.js"></script>
     <script src="rbt-h5-store-login.js"></script>
 </body>

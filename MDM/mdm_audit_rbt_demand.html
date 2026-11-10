@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 需求单审核</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
+    <style>
+        .rbt-aud-status { display: inline-block; min-width: 64px; padding: 2px 8px; border-radius: 4px; font-size: 12px; text-align: center; }
+        .rbt-aud-status.is-pending { background: #fff7e6; color: #d48806; }
+        .rbt-aud-status.is-pass { background: #f6ffed; color: #389e0d; }
+        .rbt-aud-status.is-reject { background: #fff1f0; color: #cf1322; }
+        .rbt-aud-status.is-cancel { background: #f5f5f5; color: #8c8c8c; }
+        .rbt-aud-ops a { margin-right: 10px; color: #1677ff; cursor: pointer; text-decoration: none; }
+        .rbt-aud-ops a:last-child { margin-right: 0; }
+        .rbt-aud-ops a.is-danger { color: #cf1322; }
+        .rbt-demand-table-wrap { width: 100%; overflow-x: auto; }
+        .rbt-demand-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .rbt-demand-table th,
+        .rbt-demand-table td { border: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; white-space: nowrap; }
+        .rbt-demand-table th { background: #f7f8fa; font-weight: 600; color: #303133; }
+        .rbt-demand-table td.is-money,
+        .rbt-demand-table th.is-money { text-align: right; }
+        .rbt-demand-table td.is-empty { text-align: center; color: #909399; }
+        .rbt-demand-empty {
+            padding: 16px 12px;
+            border: 1px dashed #e5e7eb;
+            border-radius: 6px;
+            color: #909399;
+            font-size: 13px;
+            text-align: center;
+            background: #fafafa;
+        }
+        .rbt-demand-contract-link {
+            border: 0;
+            padding: 0;
+            background: transparent;
+            color: #1677ff;
+            cursor: pointer;
+            font: inherit;
+            text-align: left;
+        }
+        .rbt-demand-contract-mask {
+            position: fixed;
+            inset: 0;
+            z-index: 2200;
+            background: rgba(0, 0, 0, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .rbt-demand-contract {
+            width: min(760px, 96vw);
+            max-height: min(86vh, 920px);
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.18);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .rbt-demand-contract__head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 18px 20px 14px;
+            border-bottom: 1px solid #ebeef5;
+        }
+        .rbt-demand-contract__eyebrow { color: #909399; font-size: 12px; margin-bottom: 4px; }
+        .rbt-demand-contract__title { font-size: 18px; font-weight: 600; color: #303133; line-height: 1.4; }
+        .rbt-demand-contract__meta { margin-top: 4px; color: #606266; font-size: 13px; }
+        .rbt-demand-contract__close {
+            border: 0;
+            background: transparent;
+            color: #909399;
+            font-size: 24px;
+            line-height: 1;
+            cursor: pointer;
+            padding: 0 2px;
+        }
+        .rbt-demand-contract__paper {
+            margin: 0;
+            padding: 20px 24px 28px;
+            overflow: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            font-size: 14px;
+            line-height: 1.75;
+            color: #303133;
+            background: #fafafa;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/mdm-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button type="button" class="active">需求单审核</button></div>
+            <hr class="content-divider">
+            <div class="content-title">审核中心 / RBT审核 / 需求单审核</div>
+
+            <div class="mdm-biz-tip" role="note">门店端<strong>发布需求</strong>成功后，需求单管理新增一条「待审核」数据，同时本页新增一条审核记录，可在此<strong>通过</strong>或<strong>驳回</strong>。</div>
+
+            <section class="search-section">
+                <form class="search-form" onsubmit="return false;">
+                    <div class="form-group">
+                        <label>需求单号:</label>
+                        <div class="input-wrapper">
+                            <input id="qDemandCode" placeholder="请输入需求单号" autocomplete="off">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>门店:</label>
+                        <div class="input-wrapper">
+                            <input id="qStore" placeholder="请输入门店名称或编码" autocomplete="off">
+                            <span class="clear-btn">×</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>审核状态:</label>
+                        <select id="qStatus">
+                            <option value="">全部</option>
+                            <option value="待审核">待审核</option>
+                            <option value="审核通过">审核通过</option>
+                            <option value="审核驳回">审核驳回</option>
+                            <option value="已取消">已取消</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="audFilterReset">重置</button>
+                        <button type="button" class="btn btn-primary" id="audFilterQuery">查询</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="table-section">
+                <div class="table-scroll-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>审核单号</th>
+                                <th>需求单号</th>
+                                <th>门店</th>
+                                <th>商品包</th>
+                                <th>货款总金额</th>
+                                <th>提交人</th>
+                                <th>提交时间</th>
+                                <th style="text-align:center;width:100px">审核状态</th>
+                                <th>审核人</th>
+                                <th>审核时间</th>
+                                <th style="width:180px">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="audTableBody"></tbody>
+                    </table>
+                </div>
+                <div id="pagination-container"></div>
+            </section>
+        </main>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script src="../js/pagination.js"></script>
+    <script src="../js/form-utils.js"></script>
+    <script src="../js/business-tag-prototype-store.js"></script>
+    <script src="../RBT/rbt-store-data.js"></script>
+    <script src="../RBT/rbt-demand-data.js"></script>
+    <script src="../RBT/rbt-demand-detail.js"></script>
+    <script src="../js/mdm-audit-rbt-demand.js"></script>
+</body>
+</html>

@@ -1,28 +1,9 @@
-/* 贸易商端验证码/密码登录与自助注册。证照 OCR 为原型示例，默认演示密码 123456。 */
+/* 贸易商端验证码/密码登录。默认演示密码 123456。 */
 (function () {
     var DEMO_CODE = '123456';
     var DEMO_PASSWORD = '123456';
     var ACCOUNTS_KEY = 'rbt_h5_trader_accounts_v1';
     var SESSION_KEY = 'rbt_h5_trader_session';
-    var LICENSE_SAMPLE = {
-        name: '杭州鲜达贸易有限公司',
-        creditCode: '91330106MA2H7K8X1A',
-        type: '有限责任公司（自然人投资或控股）',
-        legal: '周宁',
-        capital: '500万元人民币',
-        founded: '2021-06-18',
-        address: '浙江省杭州市西湖区文三路100号',
-        scope: '预包装食品批发；食用农产品批发'
-    };
-    var PERMIT_SAMPLE = {
-        no: 'JY13301061234567',
-        name: '杭州鲜达贸易有限公司',
-        legal: '周宁',
-        place: '浙江省杭州市西湖区文三路100号',
-        mode: '食品销售经营者',
-        items: '预包装食品销售（含冷藏冷冻食品）',
-        expire: '2029-06-17'
-    };
     var DEMO_ACCOUNTS = [
         {
             phone: '13800001001',
@@ -103,10 +84,9 @@
             }
         }
     ];
-    var sent = { login: '', register: '' };
-    var cooldown = { login: 0, register: 0 };
-    var timer = { login: 0, register: 0 };
-    var uploaded = { license: false, permit: false };
+    var sentLogin = '';
+    var cooldownLogin = 0;
+    var timerLogin = 0;
     var loginMode = 'code';
     var currentAccount = null;
 
@@ -160,8 +140,20 @@
         return readList().filter(function (item) { return item && item.phone === phone; })[0] || null;
     }
 
+    function isApproved(account) {
+        return !!(account && (account.status === '已审核' || account.status === '已通过'));
+    }
+
     function loginableAccounts() {
         return readList().filter(isApproved);
+    }
+
+    function esc(value) {
+        return String(value == null ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
     }
 
     function renderAccounts() {
@@ -177,21 +169,13 @@
         }).join('') : '<p class="rbt-h5-tip">暂无可登录账号</p>');
     }
 
-    function isApproved(account) {
-        return !!(account && (account.status === '已审核' || account.status === '已通过'));
-    }
-
-    function isPending(account) {
-        return !!(account && account.status === '待审核');
-    }
-
     function rejectLoginAccount(account) {
         if (!account) {
-            toast('该手机号未注册');
+            toast('该手机号不存在');
             return true;
         }
-        if (isPending(account)) {
-            toast('注册申请审核中，请等待审核');
+        if (account.status === '待审核') {
+            toast('账号审核中，暂不可登录');
             return true;
         }
         if (!isApproved(account)) {
@@ -227,14 +211,6 @@
         }
     }
 
-    function esc(value) {
-        return String(value == null ? '' : value)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;');
-    }
-
     function setLoginMode(mode) {
         loginMode = mode === 'password' ? 'password' : 'code';
         var phone = document.getElementById('rbtH5Phone');
@@ -242,19 +218,23 @@
         document.querySelectorAll('[data-login-mode]').forEach(function (button) {
             button.classList.toggle('is-on', button.getAttribute('data-login-mode') === loginMode);
         });
+        var head = document.getElementById('rbtH5HeadText');
+        if (phone.classList.contains('is-login') && head) {
+            head.textContent = loginMode === 'password' ? '密码登录' : '验证码登录';
+        }
     }
 
     function setMode(mode) {
         var phone = document.getElementById('rbtH5Phone');
         var head = document.getElementById('rbtH5HeadText');
-        phone.classList.remove('is-login', 'is-register', 'is-app');
-        if (mode === 'register') phone.classList.add('is-register');
-        else if (mode === 'app') phone.classList.add('is-app');
+        phone.classList.remove('is-login', 'is-app');
+        if (mode === 'app') phone.classList.add('is-app');
         else phone.classList.add('is-login');
-        if (mode === 'register') head.textContent = '注册账号';
-        else if (mode === 'app') head.textContent = '需求大厅';
-        else head.textContent = loginMode === 'password' ? '密码登录' : '验证码登录';
-        if (mode === 'login') setLoginMode(loginMode);
+        if (mode === 'app') head.textContent = '需求大厅';
+        else {
+            head.textContent = loginMode === 'password' ? '密码登录' : '验证码登录';
+            setLoginMode(loginMode);
+        }
     }
 
     function showHome(account) {
@@ -305,7 +285,7 @@
         sessionStorage.removeItem(SESSION_KEY);
         currentAccount = null;
         if (window.RbtH5TraderApp) window.RbtH5TraderApp.close();
-        resetSms('login');
+        resetSms();
         var code = document.querySelector('[data-code="login"]');
         var password = document.querySelector('[data-password="login"]');
         if (code) code.value = '';
@@ -313,55 +293,48 @@
         setMode('login');
     }
 
-    function startCooldown(kind, button) {
-        cooldown[kind] = 60;
+    function startCooldown(button) {
+        cooldownLogin = 60;
         button.disabled = true;
-        button.textContent = cooldown[kind] + 's';
-        clearInterval(timer[kind]);
-        timer[kind] = setInterval(function () {
-            cooldown[kind] -= 1;
-            if (cooldown[kind] <= 0) {
-                clearInterval(timer[kind]);
+        button.textContent = cooldownLogin + 's';
+        clearInterval(timerLogin);
+        timerLogin = setInterval(function () {
+            cooldownLogin -= 1;
+            if (cooldownLogin <= 0) {
+                clearInterval(timerLogin);
                 button.disabled = false;
                 button.textContent = '获取验证码';
                 return;
             }
-            button.textContent = cooldown[kind] + 's';
+            button.textContent = cooldownLogin + 's';
         }, 1000);
     }
 
-    function resetSms(kind) {
-        sent[kind] = '';
-        cooldown[kind] = 0;
-        clearInterval(timer[kind]);
-        var button = document.querySelector('[data-sms="' + kind + '"]');
+    function resetSms() {
+        sentLogin = '';
+        cooldownLogin = 0;
+        clearInterval(timerLogin);
+        var button = document.querySelector('[data-sms="login"]');
         if (!button) return;
         button.disabled = false;
         button.textContent = '获取验证码';
     }
 
-    function sendSms(kind) {
-        var input = document.querySelector('[data-phone="' + kind + '"]');
+    function sendSms() {
+        var input = document.querySelector('[data-phone="login"]');
         var phone = digits(input && input.value);
         if (phone.length !== 11) {
             toast('请输入11位手机号');
             return;
         }
-        var exists = findAccount(phone);
-        if (kind === 'login') {
-            if (rejectLoginAccount(exists)) return;
-        }
-        if (kind === 'register' && exists) {
-            toast(isPending(exists) ? '该手机号已提交注册' : '该手机号已注册');
-            return;
-        }
-        sent[kind] = phone;
-        startCooldown(kind, document.querySelector('[data-sms="' + kind + '"]'));
+        if (rejectLoginAccount(findAccount(phone))) return;
+        sentLogin = phone;
+        startCooldown(document.querySelector('[data-sms="login"]'));
         toast('验证码已发送，演示验证码 ' + DEMO_CODE);
     }
 
-    function checkCode(kind, phone, code) {
-        if (sent[kind] !== phone) {
+    function checkCode(phone, code) {
+        if (sentLogin !== phone) {
             toast('请先获取验证码');
             return false;
         }
@@ -376,78 +349,21 @@
         return true;
     }
 
-    function ocrRoot(kind) {
-        return document.querySelector('[data-ocr-result="' + kind + '"]');
-    }
-
-    function fillSample(kind, sample) {
-        var root = ocrRoot(kind);
-        if (!root) return;
-        Object.keys(sample).forEach(function (key) {
-            var input = root.querySelector('[data-ocr="' + key + '"]');
-            if (input) input.value = sample[key];
-        });
-    }
-
-    function applyOcr(kind, label) {
-        var box = document.querySelector('[data-upload="' + kind + '"]');
-        var result = document.querySelector('[data-ocr-result="' + kind + '"]');
-        var text = box && box.querySelector('[data-upload-text]');
-        if (text) text.textContent = '识别中…';
-        window.setTimeout(function () {
-            uploaded[kind] = true;
-            fillSample(kind, kind === 'license' ? LICENSE_SAMPLE : PERMIT_SAMPLE);
-            if (text) text.textContent = label || '已上传';
-            if (box) box.classList.add('is-done');
-            if (result) result.hidden = false;
-            toast(kind === 'license' ? '已识别营业执照' : '已识别经营许可证');
-            if (result && result.scrollIntoView) result.scrollIntoView({ block: 'nearest' });
-        }, 400);
-    }
-
-    function collect(kind, sample) {
-        var root = ocrRoot(kind);
-        var data = {};
-        Object.keys(sample).forEach(function (key) {
-            var input = root ? root.querySelector('[data-ocr="' + key + '"]') : null;
-            data[key] = input ? String(input.value || '').trim() : '';
-        });
-        return data;
-    }
-
     document.getElementById('rbtH5Phone').addEventListener('click', function (event) {
         var modeBtn = event.target.closest('[data-login-mode]');
         if (modeBtn) {
             setLoginMode(modeBtn.getAttribute('data-login-mode'));
-            var head = document.getElementById('rbtH5HeadText');
-            if (document.getElementById('rbtH5Phone').classList.contains('is-login')) {
-                head.textContent = loginMode === 'password' ? '密码登录' : '验证码登录';
-            }
             return;
         }
-        var sms = event.target.closest('[data-sms]');
+        var sms = event.target.closest('[data-sms="login"]');
         if (sms) {
-            sendSms(sms.getAttribute('data-sms'));
-            return;
-        }
-        var demo = event.target.closest('[data-demo]');
-        if (demo) {
-            var kind = demo.getAttribute('data-demo');
-            applyOcr(kind, kind === 'license' ? '已使用示例营业执照' : '已使用示例经营许可证');
+            sendSms();
             return;
         }
         var fill = event.target.closest('[data-fill-phone]');
         if (fill) {
             var loginPhone = document.querySelector('[data-phone="login"]');
             if (loginPhone) loginPhone.value = fill.getAttribute('data-fill-phone');
-            return;
-        }
-        if (event.target.closest('[data-go-register]')) {
-            setMode('register');
-            return;
-        }
-        if (event.target.closest('[data-go-login]')) {
-            setMode('login');
         }
     });
 
@@ -456,18 +372,6 @@
         if (input.hasAttribute('data-phone') || input.hasAttribute('data-code')) {
             input.value = digits(input.value);
         }
-    });
-
-    document.getElementById('rbtH5Phone').addEventListener('change', function (event) {
-        var select = event.target;
-        if (select.hasAttribute('data-license-type') || select.hasAttribute('data-biz-scope')) {
-            select.classList.toggle('is-empty', !select.value);
-        }
-        var input = event.target.closest('[data-file]');
-        if (!input) return;
-        var file = input.files && input.files[0];
-        if (!file) return;
-        applyOcr(input.getAttribute('data-file'), file.name);
     });
 
     document.getElementById('rbtH5LoginForm').addEventListener('submit', function (event) {
@@ -491,63 +395,11 @@
             }
         } else {
             var code = digits(document.querySelector('[data-code="login"]').value);
-            if (!checkCode('login', phone, code)) return;
+            if (!checkCode(phone, code)) return;
         }
         sessionStorage.setItem(SESSION_KEY, JSON.stringify(account));
         showHome(account);
         toast('登录成功');
-    });
-
-    document.getElementById('rbtH5RegisterForm').addEventListener('submit', function (event) {
-        event.preventDefault();
-        var phone = digits(document.querySelector('[data-phone="register"]').value);
-        var code = digits(document.querySelector('[data-code="register"]').value);
-        if (phone.length !== 11) {
-            toast('请输入11位手机号');
-            return;
-        }
-        var exists = findAccount(phone);
-        if (exists) {
-            toast(isPending(exists) ? '该手机号已提交注册' : '该手机号已注册');
-            return;
-        }
-        if (!checkCode('register', phone, code)) return;
-        var licenseType = document.querySelector('[data-license-type]').value;
-        var bizScope = document.querySelector('[data-biz-scope]').value;
-        if (!licenseType) {
-            toast('请选择牌照类型');
-            return;
-        }
-        if (!bizScope) {
-            toast('请选择业务范围');
-            return;
-        }
-        if (!uploaded.license) {
-            toast('请上传营业执照');
-            return;
-        }
-        if (!uploaded.permit) {
-            toast('请上传经营许可证');
-            return;
-        }
-        var account = {
-            phone: phone,
-            password: DEMO_PASSWORD,
-            status: '待审核',
-            licenseType: licenseType,
-            bizScope: bizScope,
-            license: collect('license', LICENSE_SAMPLE),
-            permit: collect('permit', PERMIT_SAMPLE)
-        };
-        var list = readList();
-        list.push(account);
-        writeList(list);
-        document.querySelector('[data-phone="login"]').value = phone;
-        document.querySelector('[data-code="login"]').value = '';
-        document.querySelector('[data-password="login"]').value = '';
-        resetSms('login');
-        setMode('login');
-        toast('注册申请已提交，请等待审核');
     });
 
     ensureDemoAccounts();

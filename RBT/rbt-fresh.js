@@ -2,10 +2,14 @@
 (function () {
     var KEYS = [
         'rbt_store_list_v2',
+        'rbt_store_list_v3',
+        'rbt_store_list_v4',
+        'rbt_store_list_v5',
         'rbt_product_package_v1',
         'rbt_installment_v2',
         'rbt_installment_v3',
         'rbt_h5_fund_demand_v1',
+        'rbt_h5_fund_demand_v2',
         'rbt_h5_store_session',
         'rbt_h5_store_passwords_v1',
         'rbt_h5_trader_accounts_v1',

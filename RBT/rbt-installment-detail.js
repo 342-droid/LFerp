@@ -64,11 +64,11 @@
             cell('产品编码', item.code) +
             cell('产品名称', item.name) +
             statusCell(item.status) +
-            cell('还款周期', item.repayCycle) +
-            cell('还款方式', item.repayMethod) +
-            cell(item.periodsLabel || '可选期数', item.periods) +
-            cell('倍率', item.rateRange) +
-            cell('金额区间', item.amountRange) +
+            cell('结算周期', item.repayCycle) +
+            cell('结算方式', item.repayMethod) +
+            cell(item.periodsLabel || '结算期数', item.periods) +
+            cell('结算系数', item.rateRange) +
+            cell('货款区间', item.amountRange) +
             cell('适用商品包', item.packages) +
             cell('创建人', item.creator) +
             cell('创建时间', item.createdAt) +

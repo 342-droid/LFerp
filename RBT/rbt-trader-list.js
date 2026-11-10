@@ -147,7 +147,7 @@
                 },
                 {
                     dataIndex: 'occupiedQuota',
-                    title: '已占用（接单中）',
+                    title: '已占用',
                     minWidth: 150,
                     align: 'right',
                     formatter: function (row) {
@@ -156,7 +156,7 @@
                 },
                 {
                     dataIndex: 'lockedQuota',
-                    title: '已成交锁定',
+                    title: '已成交',
                     minWidth: 140,
                     align: 'right',
                     formatter: function (row) {

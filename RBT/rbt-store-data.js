@@ -1,6 +1,41 @@
 /* RBT 门店列表演示数据。详情只带基础信息与进件信息，不含收货信息、运营评估、商户进件。 */
 (function () {
-    var KEY = 'rbt_store_list_v2';
+    var KEY = 'rbt_store_list_v5';
+
+    function toAmount(value) {
+        var num = Number(value);
+        return isFinite(num) ? num : 0;
+    }
+
+    /* 可用额度 = 门店总额度 - 已占用（已成交单独累计，不扣减可用） */
+    function quotaOf(row) {
+        var total = toAmount(row && row.storeQuota);
+        var occupied = row && row.occupiedQuota != null ? toAmount(row.occupiedQuota) : 0;
+        var locked = row && row.lockedQuota != null ? toAmount(row.lockedQuota) : 0;
+        return {
+            total: total,
+            occupied: occupied,
+            locked: locked,
+            available: Math.max(0, Number((total - occupied).toFixed(2)))
+        };
+    }
+
+    function applyQuota(row, total, occupied, locked) {
+        if (!row) return row;
+        row.storeQuota = toAmount(total);
+        row.occupiedQuota = toAmount(occupied);
+        row.lockedQuota = toAmount(locked);
+        return row;
+    }
+
+    function demoQuotaParts(total) {
+        var amount = toAmount(total);
+        return {
+            occupied: Number((amount * 0.2).toFixed(2)),
+            /* 已成交只累计需求单复核通过金额，演示补数不写成交 */
+            locked: 0
+        };
+    }
 
     function pad(n) {
         return n < 10 ? '0' + n : String(n);
@@ -87,8 +122,9 @@
             row({
                 code: 'ONS00001',
                 archiveCode: 'HGH00002',
-                name: '中心店01',
-                subjectName: '冷丰',
+                name: '西湖中心生鲜店',
+                shortName: '西湖中心店',
+                subjectName: '杭州冷丰餐饮管理有限公司',
                 partnerType: '直营店',
                 storeType: '社区生鲜店',
                 bizLine: '餐饮',
@@ -100,7 +136,7 @@
                 legalPhone: '13900001111',
                 warehouse: '华东履约仓 / WH–SH–01',
                 region: '浙江省/杭州市/西湖区',
-                address: '杭州市西湖区绿城西溪世纪中心1号楼',
+                address: '杭州市西湖区绿城西溪世纪中心1号楼1层',
                 latlng: '120.07, 30.28',
                 opStatus: '营业中',
                 onboardStatus: '进件成功',
@@ -109,6 +145,9 @@
                 settleCycle: '自然周',
                 splitService: '已开通',
                 rbtLevel: 'A',
+                storeQuota: 500000,
+                occupiedQuota: 80000,
+                lockedQuota: 0,
                 creator: '周经理',
                 createdAt: '2026-08-01 09:00:00',
                 updater: '喻巧',
@@ -118,8 +157,9 @@
             row({
                 code: 'ONS00002',
                 archiveCode: 'BJS00001',
-                name: '测试通知',
-                subjectName: '冷丰演示门店',
+                name: '东城和平里生鲜店',
+                shortName: '和平里店',
+                subjectName: '北京汉言商贸有限公司',
                 partnerType: '加盟店',
                 storeType: '社区生鲜店',
                 bizLine: '康美',
@@ -129,76 +169,92 @@
                 phone: '17812344646',
                 legalName: '夏利',
                 legalPhone: '17812344646',
-                warehouse: '华东履约仓 / WH–SH–01',
+                warehouse: '华北履约仓 / WH–BJ–01',
                 region: '北京市/市辖区/东城区',
-                address: '地下车库',
-                opStatus: '休息中',
-                onboardStatus: '未进件',
-                storeStatus: '冻结',
+                address: '北京市东城区和平里中街12号底商',
+                latlng: '116.42, 39.96',
+                opStatus: '营业中',
+                onboardStatus: '进件成功',
+                balancePay: '已开通',
+                settleType: '对公',
+                settleCycle: '自然周',
+                splitService: '已开通',
+                storeStatus: '正常',
                 rbtLevel: 'B',
-                creator: '李四',
+                storeQuota: 200000,
+                occupiedQuota: 30000,
+                lockedQuota: 0,
+                creator: '李敏',
                 createdAt: '2026-04-29 22:53:02',
-                updater: '李四',
-                updatedAt: '2026-05-02 11:08:20'
+                updater: '夏利',
+                updatedAt: '2026-05-02 11:08:20',
+                photos: true
             }),
             row({
                 code: 'ONS00003',
                 archiveCode: 'TSN00001',
-                name: '111',
+                name: '河东大桥道自提点',
                 shortName: '河东店',
-                subjectName: '冷丰演示门店',
+                subjectName: '天津冷丰特选商贸有限公司',
                 partnerType: '联营店',
                 storeType: '团购自提点',
                 bizLine: '纯私域',
                 brandName: '冷丰特选',
                 bizLines: '拉新、留存、私域直播-生鲜场',
-                contact: '张三',
+                contact: '周海',
                 phone: '13812342211',
                 legalName: '王敏',
                 legalPhone: '13600008821',
-                warehouse: '创建门店时选择的履约仓库',
+                warehouse: '华北履约仓 / WH–TJ–02',
                 region: '天津市/市辖区/河东区',
-                address: '长三角珠宝产业园A3栋',
+                address: '天津市河东区大桥道78号一层',
                 latlng: '117.25, 39.12',
-                bd: '公司11号',
+                bd: '刘洋',
                 onboardStatus: '进件成功',
                 balancePay: '已开通',
                 settleType: '对公',
                 settleCycle: '自然周',
                 splitService: '开启',
                 rbtLevel: 'A',
-                creator: '张三',
+                storeQuota: 300000,
+                occupiedQuota: 45000,
+                lockedQuota: 0,
+                creator: '刘洋',
                 createdAt: '2026-04-20 10:22:11',
-                updater: '公司11号',
+                updater: '周海',
                 updatedAt: '2026-06-01 09:12:00',
                 photos: true
             }),
             row({
                 code: 'ONS00004',
                 archiveCode: 'SHA00001',
-                name: 'DDD',
+                name: '五角场体验店',
                 shortName: '五角场店',
-                subjectName: '五角场体验店',
+                subjectName: '上海冷丰餐饮管理有限公司',
                 partnerType: '加盟店',
-                storeType: '快闪零售',
+                storeType: '社区生鲜店',
                 bizLine: '餐饮',
-                brandName: '冷丰食堂大钵刘',
+                brandName: '冷丰食堂',
                 bizLines: '外卖运营、商城',
-                contact: '李四',
+                contact: '赵倩',
                 phone: '18612349001',
                 legalName: '赵倩',
                 legalPhone: '13700006618',
-                warehouse: '沪东前置仓',
-                region: '上海市/市辖区/浦东新区',
-                address: '张江路88号',
-                latlng: '121.58, 31.20',
-                bd: '李四',
-                onboardStatus: '进件中',
+                warehouse: '沪东前置仓 / WH–SH–03',
+                region: '上海市/市辖区/杨浦区',
+                address: '上海市杨浦区翔殷路1128号国定路路口',
+                latlng: '121.52, 31.30',
+                bd: '李敏',
+                onboardStatus: '进件成功',
+                balancePay: '已开通',
                 settleType: '对公',
                 settleCycle: '自然月',
-                splitService: '关闭',
-                rbtLevel: 'C',
-                creator: '李四',
+                splitService: '已开通',
+                rbtLevel: 'B',
+                storeQuota: 180000,
+                occupiedQuota: 40000,
+                lockedQuota: 0,
+                creator: '李敏',
                 createdAt: '2026-04-19 15:01:44',
                 updater: '赵倩',
                 updatedAt: '2026-07-18 16:40:33',
@@ -207,30 +263,36 @@
             row({
                 code: 'ONS00005',
                 archiveCode: 'HGH00001',
-                name: '张三',
-                subjectName: '张江快闪店',
+                name: '余杭仓前便利店',
+                shortName: '仓前店',
+                subjectName: '杭州仓前零售有限公司',
                 partnerType: '加盟店',
                 storeType: '社区便利店',
                 bizLine: '集团内部',
-                brandName: '集团内部',
-                bizLines: '集团内部',
-                contact: '张三',
+                brandName: '冷丰优选',
+                bizLines: '到店零售',
+                contact: '陈晨',
                 phone: '13100002233',
-                legalName: '张三',
+                legalName: '陈晨',
                 legalPhone: '13100002233',
-                warehouse: '创建门店时选择的履约仓库',
+                warehouse: '华东履约仓 / WH–SH–01',
                 region: '浙江省/杭州市/余杭区',
-                address: '文一西路969号',
+                address: '杭州市余杭区文一西路969号西溪首座底商',
                 latlng: '120.05, 30.28',
-                bd: '张三',
-                opStatus: '休息中',
-                onboardStatus: '未进件',
-                storeStatus: '已禁用',
-                rbtLevel: 'D',
-                creator: '张三',
+                bd: '周经理',
+                opStatus: '营业中',
+                onboardStatus: '进件成功',
+                storeStatus: '正常',
+                enabled: true,
+                rbtLevel: 'C',
+                storeQuota: 120000,
+                occupiedQuota: 10000,
+                lockedQuota: 0,
+                creator: '周经理',
                 createdAt: '2026-04-18 09:33:02',
-                updater: '张三',
-                updatedAt: '2026-04-18 09:33:02'
+                updater: '陈晨',
+                updatedAt: '2026-08-08 09:33:02',
+                photos: true
             })
         ];
     }
@@ -254,8 +316,8 @@
     var ARCHIVE = [
         {
             code: 'HGH00002',
-            name: '中心店01',
-            subjectName: '冷丰',
+            name: '西湖中心生鲜店',
+            subjectName: '杭州冷丰餐饮管理有限公司',
             partnerType: '直营店',
             storeType: '社区生鲜店',
             bizLine: '餐饮',
@@ -264,11 +326,11 @@
             bd: '—',
             contact: '喻巧',
             phone: '153****9562',
-            legalName: '—',
-            legalPhone: '—',
+            legalName: '陈立',
+            legalPhone: '139****1111',
             warehouse: '华东履约仓 / WH–SH–01',
             region: '浙江省/杭州市/西湖区',
-            address: '杭州市西湖区绿城西溪世纪中心1号楼',
+            address: '杭州市西湖区绿城西溪世纪中心1号楼1层',
             latlng: '120.07, 30.28',
             opStatus: '营业中',
             onboardStatus: '进件成功',
@@ -282,8 +344,8 @@
         },
         {
             code: 'BJS00001',
-            name: '测试通知',
-            subjectName: '冷丰演示门店',
+            name: '东城和平里生鲜店',
+            subjectName: '北京汉言商贸有限公司',
             partnerType: '加盟店',
             storeType: '社区生鲜店',
             bizLine: '康美',
@@ -292,39 +354,39 @@
             bd: '—',
             contact: '夏利',
             phone: '178****4646',
-            legalName: '—',
-            legalPhone: '—',
-            warehouse: '华东履约仓 / WH–SH–01',
+            legalName: '夏利',
+            legalPhone: '178****4646',
+            warehouse: '华北履约仓 / WH–BJ–01',
             region: '北京市/市辖区/东城区',
-            address: '地下车库',
-            latlng: '—',
-            opStatus: '休息中',
-            onboardStatus: '未进件',
-            balancePay: '未提交',
-            settleType: '—',
-            settleCycle: '—',
-            splitService: '未开通',
-            storeStatus: '冻结',
-            withdrawPhone: '—',
-            photos: false
+            address: '北京市东城区和平里中街12号底商',
+            latlng: '116.42, 39.96',
+            opStatus: '营业中',
+            onboardStatus: '进件成功',
+            balancePay: '已开通',
+            settleType: '对公',
+            settleCycle: '自然周',
+            splitService: '已开通',
+            storeStatus: '正常',
+            withdrawPhone: '178****4646',
+            photos: true
         },
         {
             code: 'TSN00001',
-            name: '111',
-            subjectName: '冷丰演示门店',
+            name: '河东大桥道自提点',
+            subjectName: '天津冷丰特选商贸有限公司',
             partnerType: '联营店',
             storeType: '团购自提点',
             bizLine: '纯私域',
             brandName: '冷丰特选',
             bizLines: '拉新、留存、私域直播-生鲜场',
-            bd: '公司11号',
-            contact: '张三',
+            bd: '刘洋',
+            contact: '周海',
             phone: '138****2211',
-            legalName: '—',
-            legalPhone: '—',
-            warehouse: '创建门店时选择的履约仓库',
+            legalName: '王敏',
+            legalPhone: '136****8821',
+            warehouse: '华北履约仓 / WH–TJ–02',
             region: '天津市/市辖区/河东区',
-            address: '长三角珠宝产业园A3栋',
+            address: '天津市河东区大桥道78号一层',
             latlng: '117.25, 39.12',
             opStatus: '营业中',
             onboardStatus: '进件成功',
@@ -338,59 +400,59 @@
         },
         {
             code: 'SHA00001',
-            name: 'DDD',
-            subjectName: '五角场体验店',
+            name: '五角场体验店',
+            subjectName: '上海冷丰餐饮管理有限公司',
             partnerType: '加盟店',
-            storeType: '快闪零售',
+            storeType: '社区生鲜店',
             bizLine: '餐饮',
-            brandName: '冷丰食堂大钵刘',
+            brandName: '冷丰食堂',
             bizLines: '外卖运营、商城',
-            bd: '李四',
-            contact: '李四',
+            bd: '李敏',
+            contact: '赵倩',
             phone: '186****9001',
-            legalName: '—',
-            legalPhone: '—',
-            warehouse: '沪东前置仓',
-            region: '上海市/市辖区/浦东新区',
-            address: '张江路88号',
-            latlng: '121.58, 31.20',
+            legalName: '赵倩',
+            legalPhone: '137****6618',
+            warehouse: '沪东前置仓 / WH–SH–03',
+            region: '上海市/市辖区/杨浦区',
+            address: '上海市杨浦区翔殷路1128号国定路路口',
+            latlng: '121.52, 31.30',
             opStatus: '营业中',
-            onboardStatus: '进件中',
-            balancePay: '未提交',
+            onboardStatus: '进件成功',
+            balancePay: '已开通',
             settleType: '对公',
             settleCycle: '自然月',
-            splitService: '关闭',
+            splitService: '已开通',
             storeStatus: '正常',
             withdrawPhone: '186****9001',
             photos: true
         },
         {
             code: 'HGH00001',
-            name: '张三',
-            subjectName: '张江快闪店',
+            name: '余杭仓前便利店',
+            subjectName: '杭州仓前零售有限公司',
             partnerType: '加盟店',
             storeType: '社区便利店',
             bizLine: '集团内部',
-            brandName: '集团内部',
-            bizLines: '集团内部',
-            bd: '张三',
-            contact: '张三',
-            phone: '—',
-            legalName: '—',
-            legalPhone: '—',
-            warehouse: '创建门店时选择的履约仓库',
+            brandName: '冷丰优选',
+            bizLines: '到店零售',
+            bd: '周经理',
+            contact: '陈晨',
+            phone: '131****2233',
+            legalName: '陈晨',
+            legalPhone: '131****2233',
+            warehouse: '华东履约仓 / WH–SH–01',
             region: '浙江省/杭州市/余杭区',
-            address: '文一西路969号',
+            address: '杭州市余杭区文一西路969号西溪首座底商',
             latlng: '120.05, 30.28',
-            opStatus: '休息中',
-            onboardStatus: '未进件',
-            balancePay: '未提交',
-            settleType: '—',
-            settleCycle: '—',
+            opStatus: '营业中',
+            onboardStatus: '进件成功',
+            balancePay: '已开通',
+            settleType: '对公',
+            settleCycle: '自然周',
             splitService: '关闭',
-            storeStatus: '已禁用',
-            withdrawPhone: '—',
-            photos: false
+            storeStatus: '正常',
+            withdrawPhone: '131****2233',
+            photos: true
         }
     ];
 
@@ -431,6 +493,17 @@
                 item.bizLines = source.bizLines || '';
                 changed = true;
             }
+            /* 旧数据缺占用时补演示占用；已成交缺省为 0，只由需求复核通过累加 */
+            if (item.storeQuota != null && item.storeQuota !== '' && (item.occupiedQuota == null || item.lockedQuota == null)) {
+                var parts = demoQuotaParts(item.storeQuota);
+                applyQuota(
+                    item,
+                    item.storeQuota,
+                    item.occupiedQuota == null ? parts.occupied : item.occupiedQuota,
+                    item.lockedQuota == null ? 0 : item.lockedQuota
+                );
+                changed = true;
+            }
         });
         if (changed) write(current);
         return current;
@@ -459,6 +532,7 @@
                 updatedAt: createdAt
             })
         );
+        applyQuota(store, input.storeQuota, 0, 0);
         items.unshift(store);
         write(items);
         return store;
@@ -520,6 +594,14 @@
         ['name', 'rbtLevel', 'partnerType', 'storeType', 'contact', 'phone', 'legalName', 'legalPhone', 'warehouse', 'region', 'address', 'enabled'].forEach(function (key) {
             if (Object.prototype.hasOwnProperty.call(input, key)) target[key] = input[key];
         });
+        if (Object.prototype.hasOwnProperty.call(input, 'storeQuota')) {
+            applyQuota(
+                target,
+                input.storeQuota,
+                target.occupiedQuota != null ? target.occupiedQuota : 0,
+                target.lockedQuota != null ? target.lockedQuota : 0
+            );
+        }
         target.updater = '用户名';
         target.updatedAt = nowText();
         write(items);
@@ -538,15 +620,80 @@
         return found;
     }
 
+    /* 增减已占用额度，结果不小于 0。 */
+    function adjustOccupied(code, delta) {
+        var items = list();
+        var target = null;
+        items.some(function (item) {
+            if (item.code === code) {
+                target = item;
+                return true;
+            }
+            return false;
+        });
+        if (!target) return null;
+        var next = toAmount(target.occupiedQuota) + toAmount(delta);
+        if (next < 0) next = 0;
+        applyQuota(
+            target,
+            target.storeQuota,
+            Number(next.toFixed(2)),
+            target.lockedQuota != null ? target.lockedQuota : 0
+        );
+        target.updater = '用户名';
+        target.updatedAt = nowText();
+        write(items);
+        return target;
+    }
+
+    /* 增减已成交金额，结果不小于 0。 */
+    function adjustLocked(code, delta) {
+        var items = list();
+        var target = null;
+        items.some(function (item) {
+            if (item.code === code) {
+                target = item;
+                return true;
+            }
+            return false;
+        });
+        if (!target) return null;
+        var next = toAmount(target.lockedQuota) + toAmount(delta);
+        if (next < 0) next = 0;
+        applyQuota(
+            target,
+            target.storeQuota,
+            target.occupiedQuota != null ? target.occupiedQuota : 0,
+            Number(next.toFixed(2))
+        );
+        target.updater = '用户名';
+        target.updatedAt = nowText();
+        write(items);
+        return target;
+    }
+
+    /* 担保门店标签：和平里/河东/五角场/仓前；西湖中心店作需求门店也可担保他人场景外使用。 */
     function ensureSeedTags() {
         var api = window.BusinessTagPrototypeStore;
-        if (!api || typeof api.ensureDemoBinding !== 'function') return;
-        ['ONS00001', 'ONS00002', 'ONS00003', 'ONS00004', 'ONS00005'].forEach(function (code, index) {
-            api.ensureDemoBinding('RBT_STORE', code, index);
+        if (!api) return;
+        var seedTags = {
+            ONS00001: ['rbt-store-demand'],
+            ONS00002: ['rbt-store-guarantee'],
+            ONS00003: ['rbt-store-guarantee', 'rbt-store-demand'],
+            ONS00004: ['rbt-store-guarantee'],
+            ONS00005: ['rbt-store-guarantee']
+        };
+        Object.keys(seedTags).forEach(function (code, index) {
+            if (typeof api.saveBinding === 'function') {
+                api.saveBinding('RBT_STORE', code, seedTags[code]);
+            } else if (typeof api.ensureDemoBinding === 'function') {
+                api.ensureDemoBinding('RBT_STORE', code, index);
+            }
         });
     }
 
     window.RbtStoreData = {
+        KEY: KEY,
         levels: ['A', 'B', 'C', 'D'],
         partnerTypes: ['直营店', '加盟店', '联营店'],
         storeTypes: ['社区生鲜店', '团购自提点', '快闪零售', '社区便利店'],
@@ -561,6 +708,11 @@
         archiveByCode: archiveByCode,
         update: update,
         get: get,
-        ensureSeedTags: ensureSeedTags
+        adjustOccupied: adjustOccupied,
+        adjustLocked: adjustLocked,
+        ensureSeedTags: ensureSeedTags,
+        quotaOf: quotaOf,
+        applyQuota: applyQuota,
+        saveList: write
     };
 })();

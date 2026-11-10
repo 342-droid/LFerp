@@ -66,10 +66,33 @@
         return ui.chipsHtml('RBT_STORE', code);
     }
 
+    function money(value) {
+        if (value === undefined || value === null || value === '') return '—';
+        var num = Number(value);
+        if (!isFinite(num)) return '—';
+        return num.toLocaleString('zh-CN', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }) + ' 元';
+    }
+
+    function quotaSection(store) {
+        var quotaApi = window.RbtStoreData && window.RbtStoreData.quotaOf;
+        var quota = quotaApi ? quotaApi(store) : null;
+        return section(
+            '额度信息',
+            cell('门店总额度', money(quota && quota.total)) +
+                cell('已占用', money(quota && quota.occupied)) +
+                cell('已成交', money(quota && quota.locked)) +
+                cell('可用额度', money(quota && quota.available))
+        );
+    }
+
     function basicPanel(store) {
         var region = String(store.region || '').replace(/\//g, ' / ');
         return (
             '<div class="supplier-detail-tab">' +
+            quotaSection(store) +
             section(
                 '基础信息',
                 cell('门店编码', store.code) +

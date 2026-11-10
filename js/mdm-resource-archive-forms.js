@@ -1200,6 +1200,155 @@
         return createSupplierFormBundle({ includeInboundWarehouse: true }).body;
     }
 
+    var TRADER_LICENSE_TYPES = ['商业保理公司', '融资租赁公司', '持牌金融机构', '地方金融组织'];
+    var TRADER_BIZ_SCOPES = ['保理', '融资租赁', '其他'];
+
+    function traderOptions(placeholder, values) {
+        return [{ value: '', label: placeholder }].concat(
+            values.map(function (value) {
+                return { value: value, label: value };
+            })
+        );
+    }
+
+    function markRequired(el, message) {
+        if (!el) return;
+        el.setAttribute('data-required-msg', message);
+    }
+
+    function createTraderFormBundle() {
+        var refs = {};
+        var body = document.createElement('div');
+        var subjects = [{ value: '', label: '请选择主体名称' }];
+        if (window.MdmTraderArchiveStore && typeof window.MdmTraderArchiveStore.list === 'function') {
+            window.MdmTraderArchiveStore.list().forEach(function (item) {
+                var name = String((item && item.subjectName) || '').trim();
+                if (!name || name === '—') return;
+                if (subjects.some(function (opt) { return opt.label === name; })) return;
+                subjects.push({ value: name, label: name });
+            });
+        }
+        body.appendChild(sectionTitle('基础信息'));
+        refs.subjectSel = sel(subjects, '');
+        markRequired(refs.subjectSel, '请选择主体名称');
+        body.appendChild(formRow('主体名称', true, refs.subjectSel));
+        refs.nameInp = txt('请输入贸易商名称', '');
+        markRequired(refs.nameInp, '请输入贸易商名称');
+        body.appendChild(formRow('贸易商名称', true, refs.nameInp));
+        refs.shortNameInp = txt('请输入贸易商简称', '');
+        body.appendChild(formRow('贸易商简称', false, refs.shortNameInp));
+        refs.licenseSel = sel(traderOptions('请选择牌照类型', TRADER_LICENSE_TYPES), '');
+        markRequired(refs.licenseSel, '请选择牌照类型');
+        body.appendChild(formRow('牌照类型', true, refs.licenseSel));
+        refs.scopeSel = sel(traderOptions('请选择业务范围', TRADER_BIZ_SCOPES), '');
+        markRequired(refs.scopeSel, '请选择业务范围');
+        body.appendChild(formRow('业务范围', true, refs.scopeSel));
+        refs.regionInp = txt('省 / 市 / 区', '');
+        markRequired(refs.regionInp, '请输入贸易商地址');
+        body.appendChild(formRow('贸易商地址', true, refs.regionInp));
+        var detailWrap = txtAreaWithCount('请输入详细地址', 200, '');
+        refs.detailTa = detailWrap.querySelector('textarea');
+        markRequired(refs.detailTa, '请输入详细地址');
+        body.appendChild(formRow('详细地址', true, detailWrap));
+        body.appendChild(mapMockRow(false));
+        var phoneWrap = smsRow();
+        refs.phoneInp = phoneWrap.querySelector('input');
+        markRequired(refs.phoneInp, '请输入手机号码');
+        body.appendChild(formRow('手机号码', true, phoneWrap));
+        refs.verifyInp = txt('请输入验证码', '');
+        markRequired(refs.verifyInp, '请输入验证码');
+        body.appendChild(formRow('验证码', true, refs.verifyInp));
+        refs.contactInp = txt('请输入联系人姓名', '');
+        markRequired(refs.contactInp, '请输入联系人姓名');
+        body.appendChild(formRow('联系人姓名', true, refs.contactInp));
+        body.appendChild(
+            radioGroup('贸易商状态', true, 'trader-status-' + Date.now(), [
+                ['正常', '正常'],
+                ['冻结', '冻结']
+            ], '正常')
+        );
+        refs.statusName = body.querySelector('input[type="radio"]').name;
+
+        function dashToEmpty(value) {
+            var text = String(value || '').trim();
+            return text === '—' || text === '-' ? '' : text;
+        }
+
+        function ensureSubjectOption(label) {
+            var name = dashToEmpty(label);
+            if (!name) return;
+            var exists = false;
+            for (var i = 0; i < refs.subjectSel.options.length; i++) {
+                if (refs.subjectSel.options[i].text.trim() === name) exists = true;
+            }
+            if (!exists) {
+                var op = document.createElement('option');
+                op.value = name;
+                op.textContent = name;
+                refs.subjectSel.appendChild(op);
+            }
+            selectOptionByLabelText(refs.subjectSel, name);
+        }
+
+        function fillFromArchiveRow(tr) {
+            var c = tr.querySelectorAll('td');
+            var id = tr.getAttribute('data-trader-id') || cellPlainText(c[0]);
+            var stored = window.MdmTraderArchiveStore && window.MdmTraderArchiveStore.get
+                ? window.MdmTraderArchiveStore.get(id)
+                : null;
+            ensureSubjectOption((stored && stored.subjectName) || cellPlainText(c[1]));
+            refs.nameInp.value = dashToEmpty((stored && stored.name) || cellPlainText(c[2]));
+            refs.shortNameInp.value = dashToEmpty((stored && stored.shortName) || cellPlainText(c[3]));
+            refs.licenseSel.value = dashToEmpty((stored && stored.licenseType) || cellPlainText(c[6]));
+            refs.scopeSel.value = dashToEmpty(stored && stored.bizScope);
+            refs.regionInp.value = dashToEmpty((stored && stored.region) || cellPlainText(c[4]));
+            if (refs.detailTa) refs.detailTa.value = dashToEmpty((stored && stored.detailAddr) || cellPlainText(c[5]));
+            if (refs.phoneInp) refs.phoneInp.value = dashToEmpty((stored && stored.phone) || cellPlainText(c[8]));
+            refs.contactInp.value = dashToEmpty((stored && stored.contact) || cellPlainText(c[7]));
+            var status = dashToEmpty((stored && stored.status) || (c[10] && cellPlainText(c[10]))) || '正常';
+            body.querySelectorAll('input[name="' + refs.statusName + '"]').forEach(function (inp) {
+                inp.checked = inp.value === status;
+            });
+        }
+
+        function collect() {
+            var statusEl = body.querySelector('input[name="' + refs.statusName + '"]:checked');
+            return {
+                subjectName: refs.subjectSel.options[refs.subjectSel.selectedIndex]
+                    ? refs.subjectSel.options[refs.subjectSel.selectedIndex].text.trim()
+                    : '',
+                name: refs.nameInp.value.trim(),
+                shortName: refs.shortNameInp.value.trim(),
+                licenseType: refs.licenseSel.value.trim(),
+                bizScope: refs.scopeSel.value.trim(),
+                region: refs.regionInp.value.trim(),
+                detailAddr: refs.detailTa ? refs.detailTa.value.trim() : '',
+                phone: refs.phoneInp ? refs.phoneInp.value.trim() : '',
+                contact: refs.contactInp.value.trim(),
+                status: statusEl ? statusEl.value : '正常'
+            };
+        }
+
+        function validate() {
+            var raw = refs.phoneInp ? String(refs.phoneInp.value || '').trim() : '';
+            var digits = raw.replace(/\D/g, '');
+            if (raw.indexOf('*') === -1 && digits.length !== 11) {
+                if (typeof showToast === 'function') showToast('请输入11位手机号码', 'error');
+                if (refs.phoneInp) refs.phoneInp.focus();
+                return false;
+            }
+            var code = refs.verifyInp ? refs.verifyInp.value.replace(/\D/g, '') : '';
+            if (code.length !== 6) {
+                if (typeof showToast === 'function') showToast('请输入6位数字验证码', 'error');
+                if (refs.verifyInp) refs.verifyInp.focus();
+                return false;
+            }
+            return true;
+        }
+
+        return { body: body, refs: refs, fillFromArchiveRow: fillFromArchiveRow, collect: collect, validate: validate };
+    }
+
     function createCarrierFormBundle() {
         var refs = {};
         var body = document.createElement('div');
@@ -1581,6 +1730,43 @@
                 }
                 tr.setAttribute('data-short-name', nextShort || nextName || storeName);
                 syncStoreReceiveFromForm(nextCode || storeId, nextName || storeName, refs);
+            });
+        },
+        openTraderAdd: function (onSaved) {
+            var bundle = createTraderFormBundle();
+            attachWideModal('新增贸易商', bundle.body, function () {
+                if (!bundle.validate()) return false;
+                var payload = bundle.collect();
+                if (!window.MdmTraderArchiveStore || typeof window.MdmTraderArchiveStore.add !== 'function') {
+                    if (typeof showToast === 'function') showToast('贸易商档案存储未加载', 'error');
+                    return false;
+                }
+                var created = window.MdmTraderArchiveStore.add(payload);
+                if (!created) {
+                    if (typeof showToast === 'function') showToast('新增失败，请检查必填项', 'error');
+                    return false;
+                }
+                if (typeof onSaved === 'function') onSaved(created);
+            });
+        },
+        openTraderEdit: function (tr, onSaved) {
+            if (!tr) return;
+            var bundle = createTraderFormBundle();
+            bundle.fillFromArchiveRow(tr);
+            attachWideModal('编辑贸易商', bundle.body, function () {
+                if (!bundle.validate()) return false;
+                var payload = bundle.collect();
+                var id = tr.getAttribute('data-trader-id') || (tr.querySelector('td') && tr.querySelector('td').textContent.trim());
+                if (!window.MdmTraderArchiveStore || typeof window.MdmTraderArchiveStore.update !== 'function') {
+                    if (typeof showToast === 'function') showToast('贸易商档案存储未加载', 'error');
+                    return false;
+                }
+                var updated = window.MdmTraderArchiveStore.update(Object.assign({ id: id }, payload));
+                if (!updated) {
+                    if (typeof showToast === 'function') showToast('保存失败', 'error');
+                    return false;
+                }
+                if (typeof onSaved === 'function') onSaved(updated);
             });
         },
         openSupplierAdd: function () {
