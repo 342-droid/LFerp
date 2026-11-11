@@ -186,6 +186,9 @@
         showPick();
     }
 
+    var switchStore = document.getElementById('rbtH5SwitchStore');
+    if (switchStore) switchStore.addEventListener('click', logout);
+
     document.getElementById('rbtH5Pick').addEventListener('click', function (event) {
         var button = event.target.closest('[data-pick]');
         if (!button) return;

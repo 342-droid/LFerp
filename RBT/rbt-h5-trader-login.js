@@ -144,8 +144,57 @@
         return !!(account && (account.status === '已审核' || account.status === '已通过'));
     }
 
+    /* 档案手机号是脱敏的，用前 3 位和后 4 位对上贸易商端账号 */
+    function phoneMark(phone) {
+        var raw = String(phone || '').trim();
+        var head = raw.match(/^(\d{3})/);
+        var tail = raw.match(/(\d{4})$/);
+        if (head && tail) return head[1] + tail[1];
+        var nums = digits(raw);
+        if (nums.length >= 7) return nums.slice(0, 3) + nums.slice(-4);
+        return '';
+    }
+
+    function archiveList() {
+        if (window.MdmTraderArchiveStore && typeof window.MdmTraderArchiveStore.list === 'function') {
+            return window.MdmTraderArchiveStore.list() || [];
+        }
+        return [];
+    }
+
+    function archiveOf(account) {
+        if (!account) return null;
+        var name = (account.license && account.license.name) || '';
+        var mark = phoneMark(account.phone);
+        var list = archiveList();
+        var named = list.filter(function (row) {
+            if (!row || !name) return false;
+            return row.name === name || row.subjectName === name || (row.license && row.license.name === name);
+        });
+        if (mark) {
+            var both = named.filter(function (row) { return phoneMark(row.phone) === mark; });
+            if (both.length) return both[0];
+            var byPhone = list.filter(function (row) { return row && phoneMark(row.phone) === mark; });
+            if (byPhone.length === 1) return byPhone[0];
+        }
+        return named[0] || null;
+    }
+
+    /* 空字符串表示可登录；否则是拦截文案 */
+    function archiveLoginBlock(account) {
+        var row = archiveOf(account);
+        if (!row) return '未在贸易商档案中，无法登录';
+        if (String(row.status || '').trim() === '正常') return '';
+        if (String(row.status || '').trim() === '冻结') return '该贸易商已冻结，无法登录';
+        return '贸易商状态非正常，无法登录';
+    }
+
+    function canLogin(account) {
+        return isApproved(account) && !archiveLoginBlock(account);
+    }
+
     function loginableAccounts() {
-        return readList().filter(isApproved);
+        return readList().filter(canLogin);
     }
 
     function esc(value) {
@@ -180,6 +229,11 @@
         }
         if (!isApproved(account)) {
             toast('账号未通过审核，无法登录');
+            return true;
+        }
+        var archiveBlock = archiveLoginBlock(account);
+        if (archiveBlock) {
+            toast(archiveBlock);
             return true;
         }
         return false;
@@ -230,7 +284,7 @@
         phone.classList.remove('is-login', 'is-app');
         if (mode === 'app') phone.classList.add('is-app');
         else phone.classList.add('is-login');
-        if (mode === 'app') head.textContent = '需求大厅';
+        if (mode === 'app') head.textContent = '首页';
         else {
             head.textContent = loginMode === 'password' ? '密码登录' : '验证码登录';
             setLoginMode(loginMode);
@@ -414,9 +468,13 @@
 
     var current = readSession();
     var currentSaved = current && current.phone ? findAccount(current.phone) : null;
-    if (currentSaved && isApproved(currentSaved)) showHome(currentSaved);
+    if (currentSaved && canLogin(currentSaved)) showHome(currentSaved);
     else {
-        if (current) sessionStorage.removeItem(SESSION_KEY);
+        if (current) {
+            sessionStorage.removeItem(SESSION_KEY);
+            var blocked = currentSaved ? archiveLoginBlock(currentSaved) : '';
+            if (blocked) toast(blocked);
+        }
         setMode('login');
     }
 })();

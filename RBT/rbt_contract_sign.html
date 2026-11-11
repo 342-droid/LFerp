@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰RBT - 合同签署</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        .rbt-sign-page { width: 100%; padding-bottom: 24px; }
+        .rbt-sign-back {
+            margin: 0 0 12px;
+            border: 0;
+            background: transparent;
+            color: #ff7019;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 0;
+        }
+        .rbt-sign-card {
+            margin-bottom: 12px;
+            padding: 16px;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            background: #fff;
+        }
+        .rbt-sign-card h2 { margin: 0 0 8px; font-size: 16px; color: #222; }
+        .rbt-sign-card p { margin: 6px 0 0; color: #666; font-size: 14px; line-height: 1.6; }
+        .rbt-sign-party {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 0;
+            border-top: 1px solid #f2f2f2;
+            font-size: 14px;
+        }
+        .rbt-sign-party b { display: block; color: #222; }
+        .rbt-sign-party span { color: #666; }
+        .rbt-sign-party em { flex: none; font-style: normal; color: #ff7019; }
+        .rbt-sign-party em.is-done { color: #52c41a; }
+        .rbt-sign-tip { margin: 0; color: #888; font-size: 14px; line-height: 1.6; }
+        .rbt-sign-empty { padding: 32px 12px; text-align: center; color: #999; }
+        .rbt-sign-submit { display: none; }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="rbt-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button type="button" class="active">合同签署</button></div>
+            <hr class="content-divider">
+            <div class="rbt-sign-page">
+                <button type="button" class="rbt-sign-back" id="rbtSignBack">返回需求单管理</button>
+                <div id="rbtSignBody"></div>
+            </div>
+        </main>
+    </div>
+    <script src="rbt-fresh.js"></script>
+    <script src="../js/common.js"></script>
+    <script src="rbt-store-data.js"></script>
+    <script src="rbt-demand-data.js"></script>
+    <script src="rbt-contract-sign.js"></script>
+    <script>
+        (function () {
+            var params = new URLSearchParams(window.location.search);
+            var code = params.get('code') || '';
+            var body = document.getElementById('rbtSignBody');
+            var item = window.RbtDemandData && window.RbtDemandData.get(code);
+            if (body) {
+                body.innerHTML = window.RbtContractSign
+                    ? window.RbtContractSign.render(item, null)
+                    : '<div class="rbt-sign-empty">合同签署页不可用</div>';
+            }
+            document.getElementById('rbtSignBack').addEventListener('click', function () {
+                window.location.href = 'rbt_demand.html';
+            });
+        })();
+    </script>
+</body>
+</html>

@@ -149,28 +149,33 @@
         return item && item.status === '待签署' ? '待签署' : '已签署';
     }
 
+    function agreementPartyLine(party) {
+        var name = party && party.name ? party.name : (party && party.role === 'trader' ? '待接单' : '—');
+        var extra = party && party.code && party.role !== 'trader' && party.role !== 'supply' ? '（' + party.code + '）' : '';
+        var state = party && party.signedAt ? '已签署 ' + party.signedAt : (party && party.role === 'trader' && !party.name ? '待接单' : '待签署');
+        return (party && party.roleLabel ? party.roleLabel : '签署方') + '：' + name + extra + '，' + state;
+    }
+
     function contractBody(item, contract) {
-        var guarantorNames = (item.guarantors || []).map(function (row) {
-            return row && row.name ? row.name : '';
-        }).filter(Boolean).join('、') || '无';
         var skuLines = (item.skus || []).map(function (row, index) {
             var qty = Number(row && row.qty);
             if (!isFinite(qty) || qty < 1) qty = 1;
             return (index + 1) + '. ' + show(row && row.name) + '（' + show(row && row.code) + '）×' + qty +
                 '，售价 ' + money(row && row.salePrice);
         }).join('\n') || '无';
+        var parties = (contract && contract.parties || []).map(agreementPartyLine);
         var signed = resolveSignStatus(item, contract) === '已签署';
         return [
-            contract.name || '货款分期合作合同',
+            contract.name || '协议',
             '',
-            '合同编号：' + show(contract.code),
+            (contract.type === 'guarantee' ? '协议编号：' : '合同编号：') + show(contract.code),
             '关联需求单：' + show(item.code),
             '签署状态：' + resolveSignStatus(item, contract),
             '',
-            '甲方（门店）：' + show(item.storeName) + '（' + show(item.storeCode) + '）',
-            '担保门店：' + guarantorNames,
+            '签署方：'
+        ].concat(parties.length ? parties : ['无']).concat([
+            '',
             '商品包：' + show(item.packageName) + '（' + show(item.packageCode) + '）',
-            '产品：' + show(item.installmentName) + '（' + show(item.installmentCode) + '）',
             '货款总金额：' + money(item.amount),
             '结算周期：' + show(item.repayCycle),
             '结算方式：' + show(item.repayMethod),
@@ -180,12 +185,13 @@
             '商品明细：',
             skuLines,
             '',
-            '双方确认按上述条件执行货款分期结算。',
-            signed ? '本合同已完成签署。' : '本合同待各方签署后生效。',
+            signed
+                ? (contract.type === 'guarantee' ? '本协议已完成签署。' : '本合同已完成签署。')
+                : (contract.type === 'guarantee' ? '本协议待双方签署后生效。' : '本合同待双方签署后生效。'),
             '',
             '创建人：' + show(item.creator),
             '创建时间：' + show(item.createdAt)
-        ].filter(function (line, index, arr) {
+        ]).filter(function (line, index, arr) {
             return !(line === '' && arr[index - 1] === '');
         }).join('\n');
     }
@@ -226,27 +232,47 @@
         document.addEventListener('keydown', onPreviewKey);
     }
 
+    function agreementContracts(item) {
+        var api = window.RbtDemandData;
+        if (!canShowContract(item) || !api || typeof api.signContracts !== 'function') return [];
+        return api.signContracts(item);
+    }
+
     function contractSection(item) {
-        var contract = item && item.contract;
-        var showValue = canShowContract(item) && contract && contract.code;
-        var inner = showValue
-            ? '<div class="supplier-detail-grid">' +
-                cell(
-                    '合同编号',
-                    '<button type="button" class="rbt-demand-contract-link" data-rbt-demand-contract-open>' +
-                        esc(contract.code) +
-                        '</button>'
-                ) +
-                cell(
-                    '合同名称',
-                    '<button type="button" class="rbt-demand-contract-link" data-rbt-demand-contract-open>' +
-                        esc(contract.name) +
-                        '</button>'
-                ) +
-                statusCell('签署状态', resolveSignStatus(item, contract)) +
-                '</div>'
+        var contracts = agreementContracts(item);
+        var head = '<tr><th>协议</th><th>编号</th><th>签署方</th><th>签署状态</th></tr>';
+        var body = contracts.map(function (contract) {
+            var parties = (contract.parties || []).map(function (party) {
+                var name = party.name || (party.role === 'trader' ? '待接单' : '—');
+                return esc(party.roleLabel) + ' ' + esc(name);
+            }).join('、');
+            return '<tr><td><button type="button" class="rbt-demand-contract-link" data-rbt-demand-contract-open="' + esc(contract.key) + '">' +
+                esc(contract.name) + '</button></td><td>' + esc(contract.code) + '</td><td>' + parties +
+                '</td><td>' + esc(contract.signStatus || '待签署') + '</td></tr>';
+        }).join('');
+        var inner = contracts.length
+            ? '<div class="rbt-demand-table-wrap"><table class="rbt-demand-table"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>'
             : '<div class="rbt-demand-empty">暂无关联合同</div>';
         return '<div class="supplier-detail-section-title">关联合同</div>' + inner;
+    }
+
+    function voucherSection(item) {
+        var voucher = item && item.guaranteeDeposit;
+        var title = '<div class="supplier-detail-section-title">担保金缴纳凭证</div>';
+        if (!voucher || !voucher.voucherData) {
+            return title + '<div class="rbt-demand-empty">暂无担保金缴纳凭证</div>';
+        }
+        var isImage = String(voucher.voucherType || '').indexOf('image/') === 0 || /^data:image\//.test(String(voucher.voucherData || ''));
+        var preview = isImage
+            ? '<img src="' + esc(voucher.voucherData) + '" alt="担保金缴纳凭证" style="display:block;max-width:280px;margin-top:8px;border:1px solid #eee;border-radius:6px;">'
+            : '<div style="margin-top:8px;"><a href="' + esc(voucher.voucherData) + '" target="_blank" rel="noopener">查看凭证</a></div>';
+        return title +
+            '<div class="supplier-detail-grid">' +
+            textCell('缴纳状态', voucher.paid ? '已缴纳' : '未缴纳') +
+            textCell('凭证文件', voucher.voucherName) +
+            textCell('上传人', voucher.uploadedBy) +
+            textCell('上传时间', voucher.uploadedAt) +
+            '</div>' + preview;
     }
 
     function closeDrawer() {
@@ -292,6 +318,8 @@
             '<div class="supplier-detail-section-title">基础信息</div><div class="supplier-detail-grid">' +
             textCell('需求单号', item.code) +
             statusCell('状态', item.status) +
+            textCell('接单贸易商', item.traderName) +
+            textCell('接单时间', item.acceptedAt) +
             textCell('门店', show(item.storeName) + '（' + show(item.storeCode) + '）') +
             textCell('商品包', show(item.packageName) + '（' + show(item.packageCode) + '）') +
             textCell('货款总金额', money(item.amount)) +
@@ -310,14 +338,25 @@
             '<div class="supplier-detail-section-title">商品明细</div>' +
             skuTable(item.skus) +
             contractSection(item) +
+            voucherSection(item) +
             '</div></div>';
         document.body.appendChild(backdrop);
         document.body.appendChild(drawer);
         backdrop.addEventListener('click', closeDrawer);
         drawer.querySelector('[data-rbt-demand-close]').addEventListener('click', closeDrawer);
+        var agreements = agreementContracts(item);
         drawer.querySelectorAll('[data-rbt-demand-contract-open]').forEach(function (btn) {
             btn.addEventListener('click', function () {
-                openPreview(item, item.contract);
+                var key = btn.getAttribute('data-rbt-demand-contract-open');
+                var found = null;
+                agreements.some(function (row) {
+                    if (row.key === key) {
+                        found = row;
+                        return true;
+                    }
+                    return false;
+                });
+                if (found) openPreview(item, found);
             });
         });
         document.addEventListener('keydown', onDrawerKey);

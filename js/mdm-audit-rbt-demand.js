@@ -4,6 +4,8 @@
     var pageSize = 20;
     var currentPage = 1;
     var filtered = [];
+    var reviewAuditId = '';
+    var reviewFile = null;
 
     function blank(value) {
         return value == null || String(value).trim() === '';
@@ -92,7 +94,7 @@
         var start = (currentPage - 1) * pageSize;
         var rows = filtered.slice(start, start + pageSize);
         if (!rows.length) {
-            body.innerHTML = '<tr><td colspan="11" style="text-align:center;color:#909399;padding:28px 12px;">暂无审核记录</td></tr>';
+            body.innerHTML = '<tr><td colspan="12" style="text-align:center;color:#909399;padding:28px 12px;">暂无审核记录</td></tr>';
             renderPagination();
             return;
         }
@@ -103,9 +105,11 @@
                 ops += '<a href="#" data-act="approve" data-id="' + row.id + '">通过</a>' +
                     '<a href="#" class="is-danger" data-act="reject" data-id="' + row.id + '">驳回</a>';
             }
+            var stage = row.stage === '复核' ? '复核' : '初审';
             return '<tr>' +
                 '<td>' + show(row.id) + '</td>' +
                 '<td>' + show(row.demandCode) + '</td>' +
+                '<td style="text-align:center;"><span class="rbt-aud-stage' + (stage === '复核' ? ' is-review' : '') + '">' + stage + '</span></td>' +
                 '<td>' + show(row.storeName) + '<div style="color:#909399;font-size:12px;">' + show(row.storeCode) + '</div></td>' +
                 '<td>' + show(row.packageName) + '</td>' +
                 '<td>' + money(row.amount) + '</td>' +
@@ -138,10 +142,150 @@
         toast('需求单 ' + demand.code + ' / ' + demand.status, 'info');
     }
 
+    function auditStage(audit) {
+        return audit && audit.stage === '复核' ? '复核' : '初审';
+    }
+
+    function contractsOf(demand) {
+        if (!demand || typeof dataApi.signContracts !== 'function') return [];
+        return dataApi.signContracts(demand) || [];
+    }
+
+    function closeReview() {
+        var mask = document.getElementById('rbtReviewMask');
+        if (!mask) return;
+        mask.hidden = true;
+        mask.style.display = 'none';
+        reviewAuditId = '';
+    }
+
+    function openReview(id) {
+        var audit = dataApi.getAudit(id);
+        var demand = audit ? dataApi.get(audit.demandCode) : null;
+        if (!audit || audit.status !== '待审核' || auditStage(audit) !== '复核' || !demand) {
+            toast('当前状态不可审核', 'error');
+            return;
+        }
+        reviewAuditId = id;
+        reviewFile = null;
+        var title = document.getElementById('rbtReviewTitle');
+        if (title) title.textContent = demand.code + ' · ' + (demand.storeName || '');
+        var host = document.getElementById('rbtReviewContracts');
+        var contracts = contractsOf(demand);
+        if (host) {
+            /* 原型演示：复核弹窗里的合同状态固定展示已签署，不写入 PRD。正式逻辑按各合同实时签署状态展示。 */
+            var rows = contracts.map(function (contract) {
+                return '<div>' + show(contract.name) + '（' + show(contract.code) + '）：已签署</div>';
+            }).join('');
+            host.innerHTML = (rows || '<div>暂无合同</div>') +
+                '<div class="rbt-review-note">合同已全部签署完成。</div>';
+        }
+        document.querySelectorAll('input[name="rbtDeposit"]').forEach(function (node) { node.checked = false; });
+        var file = document.getElementById('rbtReviewFile');
+        if (file) file.value = '';
+        var fileName = document.getElementById('rbtReviewFileName');
+        if (fileName) fileName.textContent = '支持图片或 PDF，通过复核时必须上传。';
+        var preview = document.getElementById('rbtReviewPreview');
+        if (preview) preview.innerHTML = '';
+        var opinion = document.getElementById('rbtReviewOpinion');
+        if (opinion) opinion.value = '';
+        var mask = document.getElementById('rbtReviewMask');
+        if (mask) {
+            mask.hidden = false;
+            mask.style.display = 'flex';
+        }
+    }
+
+    function depositPaid() {
+        var picked = document.querySelector('input[name="rbtDeposit"]:checked');
+        return picked ? picked.value : '';
+    }
+
+    function passReview() {
+        var audit = dataApi.getAudit(reviewAuditId);
+        var demand = audit ? dataApi.get(audit.demandCode) : null;
+        if (!audit || !demand) {
+            toast('审核记录不存在', 'error');
+            return;
+        }
+        if (depositPaid() !== 'yes') {
+            toast(depositPaid() === 'no' ? '需求门店担保金未缴纳，不能通过复核' : '请确认需求门店担保金是否缴纳', 'error');
+            return;
+        }
+        if (!reviewFile || !reviewFile.data) {
+            toast('请上传需求门店的担保金缴纳凭证', 'error');
+            return;
+        }
+        var result = dataApi.approveAudit(reviewAuditId, '王丽', {
+            depositPaid: true,
+            voucherName: reviewFile.name,
+            voucherType: reviewFile.type,
+            voucherData: reviewFile.data
+        });
+        if (!result) {
+            toast('审核失败', 'error');
+            return;
+        }
+        closeReview();
+        toast('已通过，需求单进入支付中');
+        renderTable();
+    }
+
+    function rejectReview() {
+        var opinion = (document.getElementById('rbtReviewOpinion') || {}).value || '';
+        if (!String(opinion).trim()) {
+            toast('驳回原因必填', 'error');
+            return;
+        }
+        var result = dataApi.rejectAudit(reviewAuditId, opinion, '王丽');
+        if (!result) {
+            toast('驳回失败', 'error');
+            return;
+        }
+        closeReview();
+        toast('已驳回，已释放相关门店占用额度');
+        renderTable();
+    }
+
+    function readReviewFile(file) {
+        if (!file) {
+            reviewFile = null;
+            return;
+        }
+        if (file.size > 800 * 1024) {
+            reviewFile = null;
+            toast('凭证文件请控制在 800KB 以内', 'error');
+            var input = document.getElementById('rbtReviewFile');
+            if (input) input.value = '';
+            return;
+        }
+        var reader = new FileReader();
+        reader.onload = function () {
+            reviewFile = {
+                name: file.name || '缴纳凭证',
+                type: file.type || '',
+                data: String(reader.result || '')
+            };
+            var fileName = document.getElementById('rbtReviewFileName');
+            if (fileName) fileName.textContent = '已选择：' + reviewFile.name;
+            var preview = document.getElementById('rbtReviewPreview');
+            if (preview) {
+                preview.innerHTML = String(reviewFile.type).indexOf('image/') === 0
+                    ? '<img src="' + reviewFile.data + '" alt="担保金缴纳凭证">'
+                    : '';
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+
     function approve(id) {
         var audit = dataApi.getAudit(id);
         if (!audit || audit.status !== '待审核') {
             toast('当前状态不可审核', 'error');
+            return;
+        }
+        if (auditStage(audit) === '复核') {
+            openReview(id);
             return;
         }
         var ok = window.confirm('确认通过需求单「' + audit.demandCode + '」？通过后需求状态变为「待接单」。');
@@ -159,6 +303,10 @@
         var audit = dataApi.getAudit(id);
         if (!audit || audit.status !== '待审核') {
             toast('当前状态不可审核', 'error');
+            return;
+        }
+        if (auditStage(audit) === '复核') {
+            openReview(id);
             return;
         }
         var opinion = window.prompt('请输入驳回原因（必填）', '');
@@ -215,6 +363,25 @@
                 var input = btn.parentElement && btn.parentElement.querySelector('input');
                 if (input) input.value = '';
             });
+        });
+        var mask = document.getElementById('rbtReviewMask');
+        if (mask) {
+            mask.addEventListener('click', function (event) {
+                if (event.target === mask || event.target.closest('[data-review-close]')) closeReview();
+            });
+        }
+        var passBtn = document.getElementById('rbtReviewPass');
+        var rejectBtn = document.getElementById('rbtReviewReject');
+        var fileInput = document.getElementById('rbtReviewFile');
+        if (passBtn) passBtn.addEventListener('click', passReview);
+        if (rejectBtn) rejectBtn.addEventListener('click', rejectReview);
+        if (fileInput) {
+            fileInput.addEventListener('change', function () {
+                readReviewFile(fileInput.files && fileInput.files[0]);
+            });
+        }
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && reviewAuditId) closeReview();
         });
         document.addEventListener('visibilitychange', function () {
             if (document.visibilityState === 'visible') renderTable();

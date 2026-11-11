@@ -10,7 +10,6 @@
     const isProductPackage = currentPage === 'rbt_product_package';
     const isInstallment = currentPage === 'rbt_installment';
     const isDemand = currentPage === 'rbt_demand';
-    const isTrader = currentPage === 'rbt_trader';
 
     const sidebarContainer = document.getElementById('sidebar-container');
     if (!sidebarContainer) {
@@ -52,12 +51,6 @@
         '<a href="' + pageHref('rbt_demand.html') + '" class="menu-link' + (isDemand ? ' active' : '') + '">' +
         '<img src="' + assetHref('image/基础信息.svg') + '" alt="" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
         '<span>需求单管理</span>' +
-        '</a>' +
-        '</li>' +
-        '<li class="menu-item">' +
-        '<a href="' + pageHref('rbt_trader.html') + '" class="menu-link' + (isTrader ? ' active' : '') + '">' +
-        '<img src="' + assetHref('image/基础信息.svg') + '" alt="" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
-        '<span>贸易商管理</span>' +
         '</a>' +
         '</li>' +
         '</ul>' +

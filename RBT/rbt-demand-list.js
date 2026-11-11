@@ -27,6 +27,14 @@
         return blank(value) ? '—' : String(value);
     }
 
+    function esc(value) {
+        return String(value == null ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
     function guarantorText(row) {
         var names = (row.guarantors || []).map(function (item) { return item && item.name; }).filter(Boolean);
         return names.length ? names.join('、') : '—';
@@ -91,7 +99,10 @@
             }
 
             function refreshTable() {
-                table.value && table.value.refresh && table.value.refresh();
+                var tableVm = table.value;
+                if (!tableVm) return;
+                if (typeof tableVm.reload === 'function') tableVm.reload();
+                else if (typeof tableVm.fetchData === 'function') tableVm.fetchData();
             }
 
             function openDetail(row) {
@@ -103,6 +114,117 @@
 
             function canGoAudit(row) {
                 return !!(row && (row.status === '待审核' || row.status === '待复核'));
+            }
+
+            function canGoSign(row) {
+                return !!(row && row.status === '待签署');
+            }
+
+            function closeSign() {
+                document.querySelectorAll('[data-rbt-sign-modal]').forEach(function (node) {
+                    node.remove();
+                });
+                document.removeEventListener('keydown', onSignKey);
+            }
+
+            function onSignKey(event) {
+                if (event.key !== 'Escape') return;
+                event.stopPropagation();
+                closeSign();
+            }
+
+            var supplyActor = { role: 'supply', name: '冷丰供应链' };
+
+            function signBody(item) {
+                return window.RbtContractSign
+                    ? window.RbtContractSign.render(item, supplyActor)
+                    : '<div class="rbt-sign-empty">合同签署不可用</div>';
+            }
+
+            /* 原型演示：一次把三份合同的各方都标成已签署，需求进入待复核。 */
+            function signAllDemo(code) {
+                var rows = dataApi.list();
+                var target = null;
+                rows.some(function (row) {
+                    if (row && row.code === code) {
+                        target = row;
+                        return true;
+                    }
+                    return false;
+                });
+                if (!target || target.status !== '待签署') return null;
+                var now = dataApi.nowText();
+                var signed = {};
+                target.signings = target.signings || [];
+                target.signings.forEach(function (row) {
+                    if (row && row.key) signed[row.key] = true;
+                });
+                dataApi.signContracts(target).forEach(function (contract) {
+                    (contract.parties || []).forEach(function (party) {
+                        if (!party || signed[party.key]) return;
+                        target.signings.push({
+                            key: party.key,
+                            role: party.role,
+                            code: party.code || '',
+                            name: party.name || '',
+                            contractKey: contract.key,
+                            signedAt: now
+                        });
+                    });
+                });
+                dataApi.save(rows);
+                return dataApi.setStatus(code, '待复核', '冷丰供应链');
+            }
+
+            /* 待签署在当前页弹出。冷丰供应链在此确认采购合同，门店和贸易商在各自端签署。 */
+            function goSign(row) {
+                if (!canGoSign(row) || !row.code) return;
+                var item = dataApi.get(row.code) || row;
+                closeSign();
+                var mask = document.createElement('div');
+                mask.className = 'rbt-demand-contract-mask';
+                mask.setAttribute('data-rbt-sign-modal', '1');
+                mask.innerHTML =
+                    '<div class="rbt-demand-contract rbt-sign-modal" role="dialog" aria-modal="true" aria-label="合同签署">' +
+                    '<div class="rbt-demand-contract__head">' +
+                    '<div><div class="rbt-demand-contract__eyebrow">合同签署</div>' +
+                    '<div class="rbt-demand-contract__title">' + esc(item.code) + '</div></div>' +
+                    '<span class="rbt-sign-modal__tools">' +
+                    '<button type="button" class="rbt-sign-demo" data-rbt-sign-all>一键签署</button>' +
+                    '<button type="button" class="rbt-demand-contract__close" data-rbt-sign-close aria-label="关闭">&times;</button></span></div>' +
+                    '<div class="rbt-sign-modal__body">' + signBody(item) + '</div></div>';
+                document.body.appendChild(mask);
+                mask.addEventListener('click', function (event) {
+                    var signAll = event.target.closest('[data-rbt-sign-all]');
+                    if (signAll) {
+                        var saved = signAllDemo(row.code);
+                        if (saved) {
+                            var nextBody = mask.querySelector('.rbt-sign-modal__body');
+                            if (nextBody) nextBody.innerHTML = signBody(saved);
+                            signAll.hidden = true;
+                            refreshTable();
+                        }
+                        return;
+                    }
+                    var confirm = event.target.closest('[data-confirm-sign]');
+                    if (confirm) {
+                        var result = dataApi.signDemand(
+                            confirm.getAttribute('data-confirm-sign'),
+                            supplyActor,
+                            confirm.getAttribute('data-contract-key')
+                        );
+                        if (result && result.ok) {
+                            var fresh = dataApi.get(row.code) || item;
+                            var body = mask.querySelector('.rbt-sign-modal__body');
+                            if (body) body.innerHTML = signBody(fresh);
+                            refreshTable();
+                        }
+                        return;
+                    }
+                    if (event.target === mask) closeSign();
+                });
+                mask.querySelector('[data-rbt-sign-close]').addEventListener('click', closeSign);
+                document.addEventListener('keydown', onSignKey);
             }
 
             function goAudit(row) {
@@ -129,6 +251,8 @@
                 openDetail: openDetail,
                 canGoAudit: canGoAudit,
                 goAudit: goAudit,
+                canGoSign: canGoSign,
+                goSign: goSign,
                 refreshTable: refreshTable
             };
         }
