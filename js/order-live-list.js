@@ -2860,7 +2860,8 @@
 
   function initBatchExpressUpload() {
     var page = document.body ? document.body.getAttribute('data-order-page') : '';
-    if (page !== 'retail' && page !== 'proxy') return;
+    /* 代采订单平台、供应商都不提供批量上传/删除快递单，只保留零售 */
+    if (page !== 'retail') return;
 
     function openBatch(mode) {
       if (!window.OrderProxyExpress || typeof window.OrderProxyExpress.openBatchUploadModal !== 'function') {
@@ -2885,14 +2886,8 @@
       });
     }
 
-    var uploadIds =
-      page === 'proxy'
-        ? ['orderProxyBatchUpload']
-        : ['orderRetailBatchUpload'];
-    var deleteIds =
-      page === 'proxy'
-        ? ['orderProxyBatchDelete']
-        : ['orderRetailBatchDelete'];
+    var uploadIds = ['orderRetailBatchUpload'];
+    var deleteIds = ['orderRetailBatchDelete'];
     uploadIds.forEach(function (id) {
       var batchBtn = document.getElementById(id);
       if (batchBtn) {

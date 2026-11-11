@@ -1,4 +1,4 @@
-/* 供应商组织：隐藏清分导出与批量退款；保留批量上传/删除快递单 */
+/* 供应商组织：隐藏清分导出与批量退款。零售保留批量上传/删除快递单；代采列表不提供这两项 */
 [data-org-view="supplier"] #orderRetailClearingExport,
 [data-org-view="supplier"] #orderProxyClearingExport,
 [data-org-view="supplier"] #orderRetailBatchRefund,
