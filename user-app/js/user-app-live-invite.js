@@ -2,9 +2,9 @@
  * C 端 · 门店/店员直播分享
  * - URL 二维码（非微信官方小程序码）统一解析；小程序入口与 App 扫一扫互通演示
  * - 门店会员关系与当前自提门店分离：多店并存、同店幂等、不重置首次绑定时间
- * - 场次可用性先校验；需会员身份的权限在入会后复验
+ * - 场次删除/失效/缺失/无权：按门店规则绑切后进直播首页并 toast，不进异常场次、无独立拦截页
  * - 停用分享门店：按用户已有关系分支回退/保留，不新增停用店会员关系（仅直播分享入口）
- * - App 唤起/下载/安装后自动恢复：桥接页为演示；自动恢复标为外部依赖未完成
+ * - App 唤起/下载桥接为演示；未安装展示国内应用市场下载原型
  */
 (function (global) {
   'use strict';
@@ -23,7 +23,12 @@
   var TIP_SHARE_DISABLED_KEEP = '分享门店已停业，已保留当前门店';
   var TIP_NO_ENTRY = '暂无法进入，请稍后再试';
   var TIP_OPEN_FAIL = '未能打开 App。已安装请重试，未安装请下载安装。';
+  var TIP_SESSION_GONE = '该直播已失效，为您展示其他直播';
+  var TIP_UNRECOGNIZED = '未识别到有效直播信息，请重新扫码';
+  var TIP_NO_WATCH = '暂无法观看本场直播，为您展示其他直播';
+  var TIP_NETWORK = '加载失败，请稍后重新扫码';
   var LIVE_HOME = 'home.html';
+  var SCAN_PAGE = 'scan-store.html';
 
   var LEGACY_ID_ALIAS = {
     'ONS-CENTER-01': 'HGH00002',
@@ -508,6 +513,7 @@
     var invitePhone = params.get('invitePhone') || '';
     var sessionId = params.get('sessionId') || '';
     var ch = params.get('ch') || params.get('channel') || '';
+    var source = params.get('source') || '';
     if (!storeId && !sessionId) return null;
     return {
       storeId: resolveStoreId(storeId),
@@ -516,6 +522,7 @@
       invitePhone: invitePhone,
       sessionId: sessionId,
       ch: ch === 'app' ? 'app' : ch === 'mp' ? 'mp' : ch || 'mp',
+      source: source === 'scan' ? 'scan' : '',
       capturedAt: Date.now()
     };
   }
@@ -602,7 +609,8 @@
     var base = SESSION_CATALOG[sid] || {
       id: sid,
       name: sid || '未知场次',
-      status: sid ? 'live' : 'deleted',
+      /* 目录外场次按失效处理，进首页 toast，不进异常场次 */
+      status: sid ? 'invalid' : 'deleted',
       liveType: 'OFFICIAL',
       storeIds: [],
       cover: '../assets/shop/live-hero.svg',
@@ -618,15 +626,30 @@
     return sess;
   }
 
-  function sessionBlockReason(sess) {
-    if (!sess || !sess.id) return { code: 'deleted', message: '直播场次不存在或已删除', retryable: false };
-    if (sess.status === 'deleted') return { code: 'deleted', message: '直播场次已删除', retryable: false };
-    if (sess.status === 'invalid') return { code: 'invalid', message: '直播场次已失效', retryable: false };
-    if (sess.status === 'ended') return { code: 'ended', message: '直播场次已结束', retryable: false };
-    if (sess.forceDenyBeforeMember) {
-      return { code: 'no_permission', message: '暂无该场次观看权限', retryable: false };
+  /** 场次已删除 / 链接失效 / 已结束：进首页 toast，不进原场次 */
+  function isSessionGone(sess) {
+    if (!sess || !sess.id) return true;
+    return sess.status === 'deleted' || sess.status === 'invalid' || sess.status === 'ended';
+  }
+
+  function isKnownShareStore(storeId) {
+    var sid = resolveStoreId(storeId);
+    if (!sid) return false;
+    if (STORE_META[sid]) return true;
+    if (global.UaStoreSwitch && Array.isArray(global.UaStoreSwitch.CATALOG)) {
+      for (var i = 0; i < global.UaStoreSwitch.CATALOG.length; i++) {
+        if (global.UaStoreSwitch.CATALOG[i].id === sid) return true;
+      }
     }
-    return null;
+    return false;
+  }
+
+  function isFromScan(payload) {
+    var params = new URLSearchParams(global.location.search || '');
+    if (params.get('source') === 'scan') return true;
+    var from = params.get('from') || '';
+    if (from.indexOf('scan') >= 0) return true;
+    return !!(payload && payload.source === 'scan');
   }
 
   function storeInScope(sess, storeId) {
@@ -644,10 +667,72 @@
 
   function watchAllowed(sess, storeId, afterMember) {
     if (!sess) return false;
+    if (sess.forceDenyBeforeMember) return false;
     if (!storeInScope(sess, storeId)) return false;
     if (sess.forceDenyAfterMember && afterMember) return false;
     if (sess.needMemberWatch && afterMember && !hasMembership(storeId)) return false;
     return true;
+  }
+
+  function goLiveHome(toastMsg) {
+    if (toastMsg) queueToast(toastMsg);
+    global.location.replace(appendToUrl(LIVE_HOME));
+  }
+
+  /** 无有效当前店时走现有选店流程 */
+  function goCurrentLiveHomeOrSelect(toastMsg) {
+    if (toastMsg) queueToast(toastMsg);
+    var cur = currentPickupId();
+    if (cur && !isStoreDisabled(cur)) {
+      global.location.replace(appendToUrl(LIVE_HOME));
+      return;
+    }
+    var enabled = enabledMemberStoreIds();
+    if (enabled.length) {
+      global.location.replace('switch-address.html?from=' + encodeURIComponent(LIVE_HOME));
+      return;
+    }
+    if (isDefaultStoreAvailable()) {
+      global.location.replace(appendToUrl(LIVE_HOME));
+      return;
+    }
+    global.location.replace('switch-address.html?from=' + encodeURIComponent(LIVE_HOME));
+  }
+
+  function handleNetworkFail(payload) {
+    if (isFromScan(payload)) {
+      queueToast(TIP_NETWORK);
+      var from = new URLSearchParams(global.location.search || '').get('from') || LIVE_HOME;
+      global.location.replace(SCAN_PAGE + '?from=' + encodeURIComponent(from));
+      return { ok: false, code: 'network', toScan: true };
+    }
+    /* 外部分享链接：保留原页，提示重试，不自动跳扫码页 */
+    showToast(TIP_NETWORK);
+    renderNetworkRetry();
+    return { ok: false, code: 'network', retryable: true };
+  }
+
+  function renderNetworkRetry() {
+    var host = document.getElementById('liveShareView');
+    if (!host) return;
+    host.innerHTML =
+      '<div class="ua-live-share-card">' +
+      '<h1 class="ua-live-share-card__title">加载失败</h1>' +
+      '<p class="ua-live-share-card__desc">' +
+      escapeHtml(TIP_NETWORK) +
+      '</p>' +
+      '<div class="ua-live-share-card__actions">' +
+      '<button type="button" class="ua-live-share-card__btn ua-live-share-card__btn--primary" id="uaLiveShareRetry">重试</button>' +
+      '</div>' +
+      '<p class="ua-live-share-card__note">外部分享进入时保留本页；校验完成前不绑定、不切店。</p>' +
+      '</div>';
+    var retry = document.getElementById('uaLiveShareRetry');
+    if (retry) {
+      retry.addEventListener('click', function () {
+        clearProgress();
+        runShareFlow({ force: true });
+      });
+    }
   }
 
   function seedMembershipDemo() {
@@ -754,59 +839,37 @@
     return appendToUrl('live-room.html?sessionId=' + encodeURIComponent(payload.sessionId));
   }
 
-  function writeBlock(info) {
-    writeJson(BLOCK_KEY, info || {});
-  }
-
-  function showBlockPage(info) {
-    writeBlock(info);
-    var path = String(global.location.pathname || '');
-    if (path.indexOf('live-share') >= 0) {
-      renderShareBlock(info);
-      return;
-    }
-    global.location.replace(
-      'live-share.html?view=block&reason=' + encodeURIComponent(info.code || 'blocked')
-    );
-  }
-
-  function renderShareBlock(info) {
-    var host = document.getElementById('liveShareView');
-    if (!host) return;
-    var retryable = !!(info && info.retryable);
-    host.innerHTML =
-      '<div class="ua-live-share-card">' +
-      '<h1 class="ua-live-share-card__title">' +
-      escapeHtml((info && info.title) || '无法进入直播') +
-      '</h1>' +
-      '<p class="ua-live-share-card__desc">' +
-      escapeHtml((info && info.message) || '当前分享不可用') +
-      '</p>' +
-      '<div class="ua-live-share-card__actions">' +
-      (retryable
-        ? '<button type="button" class="ua-live-share-card__btn ua-live-share-card__btn--primary" id="uaLiveShareRetry">重试</button>'
-        : '') +
-      '<a class="ua-live-share-card__btn" href="' +
-      LIVE_HOME +
-      '">返回直播首页</a>' +
-      '</div>' +
-      '<p class="ua-live-share-card__note">临时拦截：不新增会员关系、不切换自提门店；已有关系与当前店保持不变。</p>' +
-      '</div>';
-    var retry = document.getElementById('uaLiveShareRetry');
-    if (retry) {
-      retry.addEventListener('click', function () {
-        clearProgress();
-        runShareFlow({ force: true });
-      });
-    }
-  }
-
   function escapeHtml(str) {
     return String(str == null ? '' : str)
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
+  }
+
+  /**
+   * 异常场次/缺信息：能识别分享门店则按规则绑切；否则不绑不切。
+   * 最终进直播首页并 toast，不进入异常场次；绑定不代表获得观看权限。
+   */
+  function resolveStoreForShare(payload, progress) {
+    if (isKnownShareStore(payload && payload.storeId)) {
+      if (isStoreDisabled(payload.storeId)) {
+        return resolveStoreWhenShareDisabled(payload, progress);
+      }
+      return resolveStoreWhenShareEnabled(payload, progress);
+    }
+    progress.membershipDone = true;
+    progress.pickupDone = true;
+    return { ok: true, storeId: currentPickupId() || '', skippedBind: true };
+  }
+
+  function redirectNeedLogin(options) {
+    var next = 'live-share.html' + (global.location.search || '');
+    if (String(global.location.pathname || '').indexOf('live-room') >= 0) {
+      next = 'live-room.html' + (global.location.search || '');
+    }
+    global.location.replace(appendToUrl('login.html?next=' + encodeURIComponent(next)));
+    return { ok: false, code: 'need_login' };
   }
 
   function applyUpcomingUi(sess) {
@@ -936,49 +999,32 @@
   }
 
   /**
-   * 主流程：场次可用性 →（登录）→ 入会/切店 → 以最终门店复验分发与观看权限 → 进原场次
+   * 主流程：（登录）→ 入会/切店 → 场次可用且有权则进原场次；
+   * 删除/失效/缺失/无权等：绑切后进直播首页 toast，无独立拦截页。
    */
   function runShareFlow(options) {
     options = options || {};
     var payload = options.payload || captureFromUrl() || readSessionPayload();
-    if (!payload || !payload.storeId || !payload.sessionId) {
+    var demo = getDemo();
+
+    if (demo.network === 'fail') {
+      /* 校验完成前不绑定、不切店 */
+      return handleNetworkFail(payload);
+    }
+
+    if (!payload || (!payload.storeId && !payload.sessionId)) {
+      goCurrentLiveHomeOrSelect(TIP_UNRECOGNIZED);
       return { ok: false, code: 'no_payload' };
     }
+
     writePayload(payload);
-
-    var demo = getDemo();
-    if (demo.network === 'fail') {
-      showBlockPage({
-        code: 'network',
-        title: '网络异常',
-        message: '网络失败，请重试',
-        retryable: true
-      });
-      return { ok: false, code: 'network', retryable: true };
-    }
-
-    var sess = resolveSession(payload);
-    var early = sessionBlockReason(sess);
-    if (early) {
-      showBlockPage({
-        code: early.code,
-        title: '无法进入该场直播',
-        message: early.message,
-        retryable: false
-      });
-      return { ok: false, code: early.code };
-    }
 
     if (!isLoggedIn()) {
       if (options.skipLoginGate) return { ok: false, code: 'need_login', deferred: true };
-      var next = 'live-share.html' + (global.location.search || '');
-      if (String(global.location.pathname || '').indexOf('live-room') >= 0) {
-        next = 'live-room.html' + (global.location.search || '');
-      }
-      global.location.replace(appendToUrl('login.html?next=' + encodeURIComponent(next)));
-      return { ok: false, code: 'need_login' };
+      return redirectNeedLogin(options);
     }
 
+    var sess = resolveSession(payload);
     var progress = readProgress();
     var sig = payloadSig(payload, sess);
     if (!progress || progress.sig !== sig) {
@@ -987,11 +1033,7 @@
       progress.sessionChecked = true;
     }
 
-    var shareDisabled = isStoreDisabled(payload.storeId);
-    var storeResult = shareDisabled
-      ? resolveStoreWhenShareDisabled(payload, progress)
-      : resolveStoreWhenShareEnabled(payload, progress);
-
+    var storeResult = resolveStoreForShare(payload, progress);
     writeProgress(progress);
 
     if (!storeResult.ok) {
@@ -1000,21 +1042,31 @@
         global.location.replace(storeResult.selectHref);
         return storeResult;
       }
-      showBlockPage({
-        code: storeResult.code || 'no_entry',
-        title: '暂无法进入',
-        message: storeResult.message || TIP_NO_ENTRY,
-        retryable: false
-      });
+      queueToast(storeResult.message || TIP_NO_ENTRY);
+      goCurrentLiveHomeOrSelect('');
       return storeResult;
     }
 
     var finalStore = storeResult.storeId;
-    var afterMember = true;
-    if (!watchAllowed(sess, finalStore, afterMember)) {
-      queueToast('当前门店无权观看该场次，已为你打开直播首页');
-      writeProgress(Object.assign({}, progress, { entered: false, accessDenied: true }));
-      global.location.replace(appendToUrl(LIVE_HOME));
+    var finishHome = function (tip) {
+      writeProgress(Object.assign({}, progress, { entered: false }));
+      if (storeResult.skippedBind) goCurrentLiveHomeOrSelect(tip);
+      else goLiveHome(tip);
+    };
+
+    /* 分享信息缺失或无法识别分享门店 */
+    if (!payload.sessionId || !payload.storeId || !isKnownShareStore(payload.storeId)) {
+      finishHome(TIP_UNRECOGNIZED);
+      return { ok: false, code: 'unrecognized', storeId: finalStore };
+    }
+
+    if (isSessionGone(sess)) {
+      finishHome(TIP_SESSION_GONE);
+      return { ok: false, code: 'session_gone', storeId: finalStore };
+    }
+
+    if (!watchAllowed(sess, finalStore || currentPickupId(), true)) {
+      finishHome(TIP_NO_WATCH);
       return { ok: false, code: 'no_access_final', storeId: finalStore };
     }
 
@@ -1103,10 +1155,10 @@
       '<label class="ua-rg-demo__row">会员关系<select id="uaLiveInviteMember"><option value="none">未绑定</option><option value="same">已绑同店</option><option value="other">已绑他店</option></select></label>' +
       '<label class="ua-rg-demo__row">场次<select id="uaLiveInviteSession"><option value="from_payload">跟分享</option><option value="sess-live-01">直播中</option><option value="sess-up-01">未开始</option><option value="sess-end-01">已结束</option><option value="sess-deleted-01">已删除</option><option value="sess-invalid-01">已失效</option><option value="sess-deny-01">无权(入会后)</option></select></label>' +
       '<label class="ua-rg-demo__row">权限<select id="uaLiveInviteAccess"><option value="ok">通过</option><option value="no_scope">分发不符</option><option value="no_permission">无权(先拦)</option></select></label>' +
-      '<label class="ua-rg-demo__row">网络<select id="uaLiveInviteNet"><option value="ok">正常</option><option value="fail">失败可重试</option></select></label>' +
+      '<label class="ua-rg-demo__row">网络<select id="uaLiveInviteNet"><option value="ok">正常</option><option value="fail">失败回扫码</option></select></label>' +
       '<label class="ua-rg-demo__row">默认店<select id="uaLiveInviteDef"><option value="yes">可用</option><option value="no">不可用</option></select></label>' +
       '<label class="ua-rg-demo__row">App已装<select id="uaLiveInviteApp"><option value="yes">已安装</option><option value="no">未安装</option></select></label>' +
-      '<p class="ua-rg-demo__hint" style="margin:0 0 6px;color:#999;font-size:10px;line-height:1.35">码为 URL 二维码，非微信官方小程序码；安装后自动恢复未完成</p>' +
+      '<p class="ua-rg-demo__hint" style="margin:0 0 6px;color:#999;font-size:10px;line-height:1.35">码为 URL 二维码；异常场次绑切后进直播首页 toast；未安装可验下载原型</p>' +
       '<button type="button" class="ua-rg-demo__apply" id="uaLiveInviteApply">应用并刷新</button>';
     document.body.appendChild(panel);
     var map = {
@@ -1165,23 +1217,13 @@
     mountDemoPanel();
     var payload = readSessionPayload();
     var params = new URLSearchParams(global.location.search || '');
+    /* 旧拦截页入口取消：统一走首页 toast 口径 */
     if (params.get('view') === 'block') {
-      var block = readJson(BLOCK_KEY, {
-        code: params.get('reason') || 'blocked',
-        title: '无法进入该场直播',
-        message: '分享目标不可用',
-        retryable: false
-      });
-      renderShareBlock(block);
+      goCurrentLiveHomeOrSelect(TIP_SESSION_GONE);
       return;
     }
-    if (!payload || !payload.storeId) {
-      renderShareBlock({
-        code: 'no_payload',
-        title: '分享无效',
-        message: '未识别到有效的直播分享信息',
-        retryable: false
-      });
+    if (!payload || (!payload.storeId && !payload.sessionId)) {
+      goCurrentLiveHomeOrSelect(TIP_UNRECOGNIZED);
       return;
     }
 
@@ -1214,6 +1256,11 @@
     if (!host) return;
     var demo = getDemo();
     var installed = demo.appInstalled !== 'no';
+    /* 验收开关为未安装时，直接展示下载原型 */
+    if (!installed) {
+      renderAppDownload(host, payload);
+      return;
+    }
     host.innerHTML =
       '<div class="ua-live-share-card">' +
       '<h1 class="ua-live-share-card__title">冷丰鲜选直播分享</h1>' +
@@ -1223,8 +1270,7 @@
       '<button type="button" class="ua-live-share-card__btn" id="uaDownloadAppBtn">下载 App</button>' +
       '</div>' +
       '<p class="ua-live-share-card__note" id="uaOpenAppTip" hidden></p>' +
-      '<p class="ua-live-share-card__note">补救：返回本页再点「打开 App」，或在 App 内重新扫描原分享码。<br>「安装后首次打开自动恢复」依赖原生与国内应用市场，当前原型未完成，不能用本地缓存代替。</p>' +
-      '<p class="ua-live-share-card__note">安卓下载为中国境内应用市场演示入口，不使用 Google Play。</p>' +
+      '<p class="ua-live-share-card__note">一次唤起失败不直接判定未安装。可返回本页再打开，或在 App 内重新扫描原分享码。</p>' +
       '</div>';
 
     var tip = document.getElementById('uaOpenAppTip');
@@ -1232,23 +1278,11 @@
     var dlBtn = document.getElementById('uaDownloadAppBtn');
     if (openBtn) {
       openBtn.addEventListener('click', function () {
-        /* 一次唤起失败不能直接判定未安装 */
-        if (!installed) {
-          if (tip) {
-            tip.hidden = false;
-            tip.textContent = TIP_OPEN_FAIL;
-          } else {
-            showToast(TIP_OPEN_FAIL);
-          }
-          return;
-        }
-        /* 演示：已安装则带参进入 App 内流程 */
-        var url = buildShareUrl(
-          Object.assign({}, payload, { ch: 'app' })
-        ).replace('live-share.html', 'live-share.html');
+        var url = buildShareUrl(Object.assign({}, payload, { ch: 'app' }));
         try {
           var u = new URL(url);
           u.searchParams.set('client', 'app');
+          if (payload.source === 'scan') u.searchParams.set('source', 'scan');
           global.location.href = u.pathname + u.search;
         } catch (e) {
           runShareFlow({ payload: Object.assign({}, payload, { ch: 'app' }) });
@@ -1257,7 +1291,45 @@
     }
     if (dlBtn) {
       dlBtn.addEventListener('click', function () {
-        showToast('演示：跳转国内应用市场下载（非 Google Play）。安装后自动恢复未完成。');
+        renderAppDownload(host, payload);
+      });
+    }
+  }
+
+  /** 未安装：国内应用市场下载原型（演示） */
+  function renderAppDownload(host, payload) {
+    if (!host) return;
+    host.innerHTML =
+      '<div class="ua-live-share-card">' +
+      '<h1 class="ua-live-share-card__title">下载冷丰 APP</h1>' +
+      '<p class="ua-live-share-card__desc">尚未安装冷丰 APP。请前往应用市场下载安装后，返回本页打开，或在 App 内重新扫描原分享码。</p>' +
+      '<div class="ua-live-share-card__actions">' +
+      '<button type="button" class="ua-live-share-card__btn ua-live-share-card__btn--primary" id="uaMarketIos">App Store</button>' +
+      '<button type="button" class="ua-live-share-card__btn ua-live-share-card__btn--primary" id="uaMarketAndroid">应用市场</button>' +
+      '</div>' +
+      '<div class="ua-live-share-card__actions" style="margin-top:8px">' +
+      '<button type="button" class="ua-live-share-card__btn" id="uaBackBridge">已安装，返回打开</button>' +
+      '</div>' +
+      '<p class="ua-live-share-card__note">演示：跳转中国境内应用商店页。安装完成后请返回本页继续，或打开 App 后重新扫码。</p>' +
+      '</div>';
+
+    var ios = document.getElementById('uaMarketIos');
+    var and = document.getElementById('uaMarketAndroid');
+    var back = document.getElementById('uaBackBridge');
+    if (ios) {
+      ios.addEventListener('click', function () {
+        showToast('演示：跳转 App Store 下载冷丰');
+      });
+    }
+    if (and) {
+      and.addEventListener('click', function () {
+        showToast('演示：跳转国内安卓应用市场下载冷丰');
+      });
+    }
+    if (back) {
+      back.addEventListener('click', function () {
+        setDemo({ appInstalled: 'yes' });
+        renderAppBridge(host, payload);
       });
     }
   }
@@ -1327,6 +1399,10 @@
     resolveStoreId: resolveStoreId,
     SESSION_CATALOG: SESSION_CATALOG,
     TIP_OPEN_FAIL: TIP_OPEN_FAIL,
+    TIP_SESSION_GONE: TIP_SESSION_GONE,
+    TIP_UNRECOGNIZED: TIP_UNRECOGNIZED,
+    TIP_NO_WATCH: TIP_NO_WATCH,
+    TIP_NETWORK: TIP_NETWORK,
     TIP_SHARE_DISABLED_DEFAULT: TIP_SHARE_DISABLED_DEFAULT,
     TIP_SHARE_DISABLED_KEEP: TIP_SHARE_DISABLED_KEEP,
     DISABLED_TIP: TIP_SHARE_DISABLED_DEFAULT

@@ -460,7 +460,7 @@
       liveEl.classList.toggle('is-upcoming', sess.status === 'upcoming');
       liveEl.classList.toggle('is-ended', sess.status === 'ended');
     }
-    /* 操作提示放底栏标题下整行展示（App 文案较长，不挤在码旁） */
+    /* 分享文案写在海报卡内底部，保存/分享一并带出 */
     if (qrTip) qrTip.textContent = posterScanTip(kind);
     if (qrMount) {
       qrMount.innerHTML = '';
