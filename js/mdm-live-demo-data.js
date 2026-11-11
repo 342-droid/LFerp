@@ -587,6 +587,28 @@
     );
   }
 
+  /** 未开始场次：直播类目券匹配提示验收用（新+旧类目并集券 CT10005） */
+  function liveCategoryTipCouponTemplate(suffix) {
+    return {
+      id: 'tpl-cat-tip-' + suffix,
+      type: 'COUPON',
+      typeName: '优惠券',
+      planId: 'tpl-cat-tip-' + suffix,
+      activityId: 'act-cat-tip-' + suffix,
+      templateId: 'CT10005',
+      poolId: 'CT10005',
+      name: '新+旧类目并集券',
+      deliveredCount: 0,
+      issuedQty: 0,
+      roundCount: 0,
+      quotaTotal: 100,
+      released: false,
+      releasedQty: null,
+      activeWindowId: null,
+      stock: 100
+    };
+  }
+
   sessions.push(
     minimalSession({
       id: 'sess-ert',
@@ -620,6 +642,145 @@
       endAt: '2026-08-27 22:00:00',
       actualStartAt: '2026-08-27 20:00:00',
       anchorName: '夜场主播'
+    }),
+    minimalSession({
+      id: 'sess-cat-tip-empty',
+      name: '类目券提示·未排品',
+      roomName: '冷丰生鲜晚间专场',
+      status: 'upcoming',
+      startAt: '2026-11-12 19:00:00',
+      endAt: '2026-11-12 21:00:00',
+      anchorName: '小丰主播',
+      intro: '未开始示例：已绑新+旧类目并集券，本场暂无排品 → 场次/排品提示，开播与发券拦截。',
+      remark: '验收场景1：暂未排品',
+      templates: [liveCategoryTipCouponTemplate('empty')],
+      pushUrl: 'rtmp://push.demo.lengfeng.com/live/sess-cat-tip-empty?txSecret=****',
+      playUrl: 'https://play.demo.lengfeng.com/live/sess-cat-tip-empty.m3u8',
+      createdAt: '2026-11-11 13:10:00'
+    }),
+    minimalSession({
+      id: 'sess-cat-tip-nocat',
+      name: '类目券提示·未关联类目',
+      roomName: '冷丰生鲜晚间专场',
+      status: 'upcoming',
+      startAt: '2026-11-12 19:30:00',
+      endAt: '2026-11-12 21:30:00',
+      anchorName: '小丰主播',
+      intro: '未开始示例：已绑并集券且已加排品，但商品未关联直播类目 → 仍提示并拦截。',
+      remark: '验收场景2：有排品未关联类目',
+      templates: [liveCategoryTipCouponTemplate('nocat')],
+      pushUrl: 'rtmp://push.demo.lengfeng.com/live/sess-cat-tip-nocat?txSecret=****',
+      playUrl: 'https://play.demo.lengfeng.com/live/sess-cat-tip-nocat.m3u8',
+      createdAt: '2026-11-11 13:11:00'
+    }),
+    minimalSession({
+      id: 'sess-cat-tip-ok',
+      name: '类目券提示·已匹配类目',
+      roomName: '冷丰生鲜晚间专场',
+      status: 'upcoming',
+      startAt: '2026-11-12 20:00:00',
+      endAt: '2026-11-12 22:00:00',
+      anchorName: '小丰主播',
+      intro: '未开始示例：已绑并集券，且至少 1 个排品命中所选直播类目 → 无提示，可开播发券。',
+      remark: '验收场景3：已关联匹配类目',
+      templates: [liveCategoryTipCouponTemplate('ok')],
+      pushUrl: 'rtmp://push.demo.lengfeng.com/live/sess-cat-tip-ok?txSecret=****',
+      playUrl: 'https://play.demo.lengfeng.com/live/sess-cat-tip-ok.m3u8',
+      createdAt: '2026-11-11 13:12:00'
+    }),
+    minimalSession({
+      id: 'sess-cat-tip-bag',
+      name: '类目券提示·福袋送券无排品',
+      roomName: '冷丰生鲜晚间专场',
+      status: 'upcoming',
+      startAt: '2026-11-13 19:00:00',
+      endAt: '2026-11-13 21:00:00',
+      anchorName: '小丰主播',
+      intro: '未开始示例：福袋奖品为新+旧类目并集券，本场暂无排品 → 提示，开播与发券拦截。',
+      remark: '验收：福袋送券·无排品',
+      templates: [
+        {
+          id: 'tpl-cat-tip-bag',
+          type: 'FORTUNE_BAG',
+          typeName: '福袋',
+          planId: 'tpl-cat-tip-bag',
+          activityId: 'act-cat-tip-bag',
+          templateId: 'BT10005',
+          name: '类目券福袋',
+          deliveredCount: 0,
+          issuedQty: 0,
+          roundCount: 0,
+          quotaTotal: 50,
+          released: false,
+          releasedQty: null,
+          activeWindowId: null,
+          stock: 50
+        }
+      ],
+      pushUrl: 'rtmp://push.demo.lengfeng.com/live/sess-cat-tip-bag?txSecret=****',
+      playUrl: 'https://play.demo.lengfeng.com/live/sess-cat-tip-bag.m3u8',
+      createdAt: '2026-11-11 13:20:00'
+    }),
+    minimalSession({
+      id: 'sess-cat-tip-sign',
+      name: '类目券提示·签到送券无排品',
+      roomName: '冷丰生鲜晚间专场',
+      status: 'upcoming',
+      startAt: '2026-11-13 19:30:00',
+      endAt: '2026-11-13 21:30:00',
+      anchorName: '小丰主播',
+      intro: '未开始示例：签到奖励含新+旧类目并集券，本场暂无排品 → 提示，开播与发券拦截。',
+      remark: '验收：签到送券·无排品',
+      templates: [
+        {
+          id: 'tpl-cat-tip-sign',
+          type: 'SIGN_IN',
+          typeName: '签到',
+          planId: 'tpl-cat-tip-sign',
+          activityId: 'act-cat-tip-sign',
+          templateId: 'ST10004',
+          name: '类目券签到',
+          deliveredCount: 0,
+          issuedQty: 0,
+          roundCount: 0,
+          interrupted: false,
+          activeWindowId: null,
+          stock: null
+        }
+      ],
+      pushUrl: 'rtmp://push.demo.lengfeng.com/live/sess-cat-tip-sign?txSecret=****',
+      playUrl: 'https://play.demo.lengfeng.com/live/sess-cat-tip-sign.m3u8',
+      createdAt: '2026-11-11 13:21:00'
+    }),
+    minimalSession({
+      id: 'sess-cat-tip-task',
+      name: '类目券提示·观看送券无排品',
+      roomName: '冷丰生鲜晚间专场',
+      status: 'upcoming',
+      startAt: '2026-11-13 20:00:00',
+      endAt: '2026-11-13 22:00:00',
+      anchorName: '小丰主播',
+      intro: '未开始示例：观看奖励含新+旧类目并集券，本场暂无排品 → 提示，开播与发券拦截。',
+      remark: '验收：观看奖励送券·无排品',
+      templates: [
+        {
+          id: 'tpl-cat-tip-task',
+          type: 'TASK',
+          typeName: '观看奖励',
+          planId: 'tpl-cat-tip-task',
+          activityId: 'act-cat-tip-task',
+          templateId: 'WT10004',
+          name: '类目券观看奖励',
+          delivered: false,
+          interrupted: false,
+          deliveredCount: 0,
+          activeWindowId: null,
+          stock: null
+        }
+      ],
+      pushUrl: 'rtmp://push.demo.lengfeng.com/live/sess-cat-tip-task?txSecret=****',
+      playUrl: 'https://play.demo.lengfeng.com/live/sess-cat-tip-task.m3u8',
+      createdAt: '2026-11-11 13:22:00'
     })
   );
 
@@ -628,7 +789,8 @@
     { id: 'lcat-002', name: '肉禽蛋奶', sort: 2, enabled: true },
     { id: 'lcat-003', name: '水产海鲜', sort: 3, enabled: true },
     { id: 'lcat-004', name: '粮油干货', sort: 4, enabled: false },
-    { id: 'lcat-005', name: '爆款秒杀', sort: 5, enabled: true }
+    { id: 'lcat-005', name: '爆款秒杀', sort: 5, enabled: true },
+    { id: 'lcat-006', name: '新直播类目', sort: 6, enabled: true }
   ];
 
   function normalizeSchedStatus(st) {
@@ -1136,6 +1298,96 @@
       }
     ],
     'sess-004': [],
+    'sess-cat-tip-empty': [],
+    'sess-cat-tip-bag': [],
+    'sess-cat-tip-sign': [],
+    'sess-cat-tip-task': [],
+    'sess-cat-tip-nocat': [
+      {
+        id: 'lp-cat-tip-nocat-1',
+        sessionId: 'sess-cat-tip-nocat',
+        sku: 'LF-TIP-90001',
+        name: '待关联类目示例商品',
+        category: '',
+        categoryId: '',
+        spec: '1份',
+        price: 9.9,
+        marketPrice: 12.9,
+        stock: 100,
+        status: 'draft',
+        liveStatus: 'off_shelf',
+        inCart: false,
+        saleMode: 'preview',
+        explaining: false,
+        pinned: false,
+        cartSort: 1,
+        addedAt: '2026-11-11 13:11:00',
+        img: '',
+        desc: '已加入本场排品，尚未关联直播类目。',
+        arrivalTime: '1',
+        arrivalUnit: 'DAY',
+        deliveryMode: 'pickup',
+        images: [],
+        detailImages: [],
+        displaySalesMode: 'ACTUAL',
+        displaySales: '',
+        purchaseLimitType: 'NONE',
+        purchaseLimit: '',
+        skus: [
+          makeSku({
+            id: 'sku-cat-tip-nocat-1',
+            specName: '1份',
+            price: 9.9,
+            marketPrice: 12.9,
+            stock: 100,
+            unit: '份'
+          })
+        ]
+      }
+    ],
+    'sess-cat-tip-ok': [
+      {
+        id: 'lp-cat-tip-ok-1',
+        sessionId: 'sess-cat-tip-ok',
+        sku: 'LF-TIP-90002',
+        name: '时令果蔬匹配示例',
+        category: '时令果蔬',
+        categoryId: 'lcat-001',
+        spec: '1份',
+        price: 15.9,
+        marketPrice: 19.9,
+        stock: 200,
+        status: 'enabled',
+        liveStatus: 'off_shelf',
+        inCart: false,
+        saleMode: 'preview',
+        explaining: false,
+        pinned: false,
+        cartSort: 1,
+        addedAt: '2026-11-11 13:12:00',
+        img: '',
+        desc: '已关联券所选直播类目（时令果蔬）。',
+        arrivalTime: '1',
+        arrivalUnit: 'DAY',
+        deliveryMode: 'pickup',
+        images: [],
+        detailImages: [],
+        displaySalesMode: 'ACTUAL',
+        displaySales: '',
+        purchaseLimitType: 'NONE',
+        purchaseLimit: '',
+        skus: [
+          makeSku({
+            id: 'sku-cat-tip-ok-1',
+            specName: '1份',
+            price: 15.9,
+            marketPrice: 19.9,
+            stock: 200,
+            unit: '份'
+          })
+        ]
+      }
+    ],
     'sess-ert': [
       {
         id: 'lp-ert-124',
@@ -1405,6 +1657,120 @@
         orderGmv: 0
       }),
       products: []
+    },
+    'sess-cat-tip-empty': {
+      metrics: buildMetrics({
+        duration: '00:00:00',
+        viewers: 0,
+        commentUsers: 0,
+        interactRate: '0%',
+        danmuCount: 0,
+        danmuUsers: 0,
+        avgStay: '00:00',
+        goodsClickUsers: 0,
+        totalViewers: 0,
+        salesQty: 0,
+        dealUsers: 0,
+        dealConvertRate: '0%',
+        dealAmount: 0,
+        orderGmv: 0
+      }),
+      products: []
+    },
+    'sess-cat-tip-nocat': {
+      metrics: buildMetrics({
+        duration: '00:00:00',
+        viewers: 0,
+        commentUsers: 0,
+        interactRate: '0%',
+        danmuCount: 0,
+        danmuUsers: 0,
+        avgStay: '00:00',
+        goodsClickUsers: 0,
+        totalViewers: 0,
+        salesQty: 0,
+        dealUsers: 0,
+        dealConvertRate: '0%',
+        dealAmount: 0,
+        orderGmv: 0
+      }),
+      products: []
+    },
+    'sess-cat-tip-ok': {
+      metrics: buildMetrics({
+        duration: '00:00:00',
+        viewers: 0,
+        commentUsers: 0,
+        interactRate: '0%',
+        danmuCount: 0,
+        danmuUsers: 0,
+        avgStay: '00:00',
+        goodsClickUsers: 0,
+        totalViewers: 0,
+        salesQty: 0,
+        dealUsers: 0,
+        dealConvertRate: '0%',
+        dealAmount: 0,
+        orderGmv: 0
+      }),
+      products: []
+    },
+    'sess-cat-tip-bag': {
+      metrics: buildMetrics({
+        duration: '00:00:00',
+        viewers: 0,
+        commentUsers: 0,
+        interactRate: '0%',
+        danmuCount: 0,
+        danmuUsers: 0,
+        avgStay: '00:00',
+        goodsClickUsers: 0,
+        totalViewers: 0,
+        salesQty: 0,
+        dealUsers: 0,
+        dealConvertRate: '0%',
+        dealAmount: 0,
+        orderGmv: 0
+      }),
+      products: []
+    },
+    'sess-cat-tip-sign': {
+      metrics: buildMetrics({
+        duration: '00:00:00',
+        viewers: 0,
+        commentUsers: 0,
+        interactRate: '0%',
+        danmuCount: 0,
+        danmuUsers: 0,
+        avgStay: '00:00',
+        goodsClickUsers: 0,
+        totalViewers: 0,
+        salesQty: 0,
+        dealUsers: 0,
+        dealConvertRate: '0%',
+        dealAmount: 0,
+        orderGmv: 0
+      }),
+      products: []
+    },
+    'sess-cat-tip-task': {
+      metrics: buildMetrics({
+        duration: '00:00:00',
+        viewers: 0,
+        commentUsers: 0,
+        interactRate: '0%',
+        danmuCount: 0,
+        danmuUsers: 0,
+        avgStay: '00:00',
+        goodsClickUsers: 0,
+        totalViewers: 0,
+        salesQty: 0,
+        dealUsers: 0,
+        dealConvertRate: '0%',
+        dealAmount: 0,
+        orderGmv: 0
+      }),
+      products: []
     }
   };
 
@@ -1586,6 +1952,78 @@
       watchRecords: []
     },
     'sess-004': {
+      viewers: 0,
+      totalViews: 0,
+      peakViewers: 0,
+      likes: 0,
+      orderCount: 0,
+      orderGmv: 0,
+      salesAmount: 0,
+      recentOrders: [],
+      chatMessages: [],
+      watchRecords: []
+    },
+    'sess-cat-tip-empty': {
+      viewers: 0,
+      totalViews: 0,
+      peakViewers: 0,
+      likes: 0,
+      orderCount: 0,
+      orderGmv: 0,
+      salesAmount: 0,
+      recentOrders: [],
+      chatMessages: [],
+      watchRecords: []
+    },
+    'sess-cat-tip-nocat': {
+      viewers: 0,
+      totalViews: 0,
+      peakViewers: 0,
+      likes: 0,
+      orderCount: 0,
+      orderGmv: 0,
+      salesAmount: 0,
+      recentOrders: [],
+      chatMessages: [],
+      watchRecords: []
+    },
+    'sess-cat-tip-ok': {
+      viewers: 0,
+      totalViews: 0,
+      peakViewers: 0,
+      likes: 0,
+      orderCount: 0,
+      orderGmv: 0,
+      salesAmount: 0,
+      recentOrders: [],
+      chatMessages: [],
+      watchRecords: []
+    },
+    'sess-cat-tip-bag': {
+      viewers: 0,
+      totalViews: 0,
+      peakViewers: 0,
+      likes: 0,
+      orderCount: 0,
+      orderGmv: 0,
+      salesAmount: 0,
+      recentOrders: [],
+      chatMessages: [],
+      watchRecords: []
+    },
+    'sess-cat-tip-sign': {
+      viewers: 0,
+      totalViews: 0,
+      peakViewers: 0,
+      likes: 0,
+      orderCount: 0,
+      orderGmv: 0,
+      salesAmount: 0,
+      recentOrders: [],
+      chatMessages: [],
+      watchRecords: []
+    },
+    'sess-cat-tip-task': {
       viewers: 0,
       totalViews: 0,
       peakViewers: 0,
@@ -1779,6 +2217,14 @@
       stock: 80,
       prizeType: 'POINTS',
       pointsAmount: 10
+    },
+    {
+      id: 'BT10005',
+      name: '类目券福袋',
+      status: 'enabled',
+      stock: 500,
+      prizeType: 'COUPON',
+      prizeCouponId: 'CT10005'
     }
   ];
 
@@ -2084,6 +2530,17 @@
         { rewardType: 'POINTS', pointsAmount: 2 },
         { rewardType: 'NONE' }
       ]
+    },
+    {
+      id: 'ST10004',
+      name: '类目券签到',
+      status: 'enabled',
+      totalRounds: 3,
+      rewards: [
+        { rewardType: 'POINTS', pointsAmount: 5 },
+        { rewardType: 'COUPON', prizeCouponId: 'CT10005' },
+        { rewardType: 'POINTS', pointsAmount: 15 }
+      ]
     }
   ];
 
@@ -2127,6 +2584,15 @@
       status: 'disabled',
       milestones: [
         { threshold: 8, rewardType: 'POINTS', pointsAmount: 8 }
+      ]
+    },
+    {
+      id: 'WT10004',
+      name: '类目券观看奖励',
+      status: 'enabled',
+      milestones: [
+        { threshold: 5, rewardType: 'POINTS', pointsAmount: 5 },
+        { threshold: 10, rewardType: 'COUPON', prizeCouponId: 'CT10005' }
       ]
     }
   ];
@@ -2720,7 +3186,7 @@
   }
 
   var SESSIONS_LS_KEY = 'lf_mdm_live_sessions_v1';
-  var SESSIONS_SEED_REV = 3;
+  var SESSIONS_SEED_REV = 5;
 
   function cloneSessionForStore(sess) {
     var copy;

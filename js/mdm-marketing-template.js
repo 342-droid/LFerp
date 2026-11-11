@@ -1067,6 +1067,10 @@
       html += radio('fCatSrc', 'MALL', edit.coupon.categorySource, '商城类目', locked);
       html += radio('fCatSrc', 'LIVE', edit.coupon.categorySource, '直播类目', locked);
       html += '</div>';
+      if (edit.coupon.categorySource === 'LIVE') {
+        html +=
+          '<div class="mkt-tpl-inline-tip" role="note">类目下可无商品。请在「优惠券」审核启用；场次仅可选已启用且含直播发券的券。</div>';
+      }
       var cats = Store.categoriesOf(edit.coupon.categorySource);
       html += '<div class="mkt-tpl-cats">';
       cats.forEach(function (c) {

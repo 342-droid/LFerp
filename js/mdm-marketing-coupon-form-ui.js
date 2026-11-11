@@ -180,6 +180,10 @@
       html += radio('fCatSrc', 'MALL', model.categorySource, '商城类目', locked);
       html += radio('fCatSrc', 'LIVE', model.categorySource, '直播类目', locked);
       html += '</div>';
+      if (model.categorySource === 'LIVE') {
+        html +=
+          '<div class="mkt-tpl-inline-tip" role="note">类目下可无商品。启用且含「直播发券」后可绑场；本场无匹配排品时提示，并拦截开播/发券。</div>';
+      }
       var cats = Store.categoriesOf(model.categorySource);
       html += '<div class="pts-rule-check-row mkt-cp-cats">';
       cats.forEach(function (c) {

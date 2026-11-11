@@ -401,16 +401,123 @@
     }
   }
 
+  function resolveCouponById(id) {
+    var store = window.MdmMarketingCouponStore;
+    if (!store || !id) return null;
+    if (typeof store.resolveCouponTemplate === 'function') return store.resolveCouponTemplate(id);
+    if (typeof store.findById === 'function') return store.findById(id) || null;
+    return null;
+  }
+
+  function couponForTemplate(tpl) {
+    if (!tpl) return null;
+    return resolveCouponById(tpl.poolId || tpl.templateId || tpl.id);
+  }
+
+  /** 场次绑定项关联的直播类目券（含福袋/签到/观看奖励奖品券） */
+  function prizeCouponIdsOfBoundTemplate(tpl) {
+    var ids = [];
+    if (!tpl) return ids;
+    if (tpl.type === 'COUPON') {
+      ids.push(tpl.poolId || tpl.templateId || tpl.id);
+      return ids;
+    }
+    if (tpl.type === 'FORTUNE_BAG' && Demo.findBagTemplate) {
+      var bag = Demo.findBagTemplate(tpl.templateId || tpl.poolId || tpl.id);
+      if (bag && bag.prizeType === 'COUPON' && bag.prizeCouponId) ids.push(bag.prizeCouponId);
+      return ids;
+    }
+    if (tpl.type === 'SIGN_IN' && Demo.findSignTemplate) {
+      var sign = Demo.findSignTemplate(tpl.templateId || tpl.poolId || tpl.id);
+      ((sign && sign.rewards) || []).forEach(function (rw) {
+        if (rw && rw.rewardType === 'COUPON' && rw.prizeCouponId) ids.push(rw.prizeCouponId);
+      });
+      return ids;
+    }
+    if (tpl.type === 'TASK' && Demo.findTaskTemplate) {
+      var task = Demo.findTaskTemplate(tpl.templateId || tpl.poolId || tpl.id);
+      ((task && task.milestones) || []).forEach(function (ms) {
+        if (ms && ms.rewardType === 'COUPON' && ms.prizeCouponId) ids.push(ms.prizeCouponId);
+      });
+    }
+    return ids;
+  }
+
+  function templateLiveMismatch(tpl, sess) {
+    if (!tpl) return null;
+    var store = window.MdmMarketingCouponStore;
+    if (!store || typeof store.liveCategoryMismatchOf !== 'function') return null;
+    var sessionId = (sess && sess.id) || editingId || '';
+    var products =
+      sessionId && Demo.productsBySession ? Demo.productsBySession[sessionId] || [] : [];
+    var couponIds = prizeCouponIdsOfBoundTemplate(tpl);
+    var i;
+    for (i = 0; i < couponIds.length; i++) {
+      var coupon = resolveCouponById(couponIds[i]);
+      if (!coupon) continue;
+      var issue = store.liveCategoryMismatchOf(coupon, products);
+      if (!issue) continue;
+      if (!issue.couponName && tpl.name) issue.couponName = tpl.name;
+      return issue;
+    }
+    return null;
+  }
+
+  function sessionCouponIssues(sess) {
+    var templates = boundTemplates;
+    if (sess && String(sess.id) !== String(editingId || '')) {
+      templates = sess.templates || [];
+    }
+    var seen = {};
+    var issues = [];
+    (templates || []).forEach(function (tpl) {
+      var issue = templateLiveMismatch(tpl, sess);
+      if (!issue) return;
+      var key = String(issue.couponId || issue.couponName || '');
+      if (key && seen[key]) return;
+      if (key) seen[key] = true;
+      issues.push(issue);
+    });
+    return issues;
+  }
+
+  function renderTemplateMatchNotice(sess) {
+    var notice = document.getElementById('fTemplateMatchNotice');
+    if (!notice) return;
+    var issues = sessionCouponIssues(sess);
+    var store = window.MdmMarketingCouponStore;
+    if (!issues.length) {
+      notice.hidden = true;
+      notice.innerHTML = '';
+      return;
+    }
+    notice.hidden = false;
+    notice.innerHTML =
+      '<strong>直播优惠券待补齐商品</strong><br>' +
+      issues
+        .map(function (item) {
+          var tip =
+            store && typeof store.formatLiveCategoryMismatchTip === 'function'
+              ? store.formatLiveCategoryMismatchTip(item)
+              : '「' + item.couponName + '」暂无匹配排品，请补品或解绑';
+          return escapeHtml(tip);
+        })
+        .join('<br>');
+  }
+
   function renderTemplates() {
     var box = document.getElementById('fTemplateList');
     if (!box) return;
+    var sess = editingId ? findSession(editingId) : null;
     if (!boundTemplates.length) {
       box.innerHTML = '<div class="lf-live-template-empty">当前未绑定营销模板（可为空）</div>';
+      renderTemplateMatchNotice(sess);
       return;
     }
     var canUnbind = !templatesLocked();
     box.innerHTML = boundTemplates
       .map(function (t) {
+        var mismatch = templateLiveMismatch(t, sess);
         var meta =
           t.stock != null && t.stock !== ''
             ? '<span class="lf-live-template-tag__meta">发放 ' + escapeHtml(String(t.stock)) + '</span>'
@@ -419,7 +526,7 @@
           ? '<button type="button" class="lf-live-template-tag__remove" data-act="unbind" aria-label="解绑">×</button>'
           : '';
         return (
-          '<div class="lf-live-template-tag" data-id="' +
+          '<div class="lf-live-template-tag' + (mismatch ? ' is-mismatch' : '') + '" data-id="' +
           escapeHtml(t.id) +
           '">' +
           '<span class="lf-live-template-tag__type">' +
@@ -434,6 +541,7 @@
         );
       })
       .join('');
+    renderTemplateMatchNotice(sess);
   }
 
   /** 还能绑定的红包个数：模版剩余个数，再扣掉其他场次和本页已经绑定的发放数量 */
@@ -498,8 +606,14 @@
     var list = (Demo.marketingTemplatePool || []).filter(function (t) {
       return t.type === type;
     });
-    if (type === 'COUPON' && window.MdmMarketingCouponStore && typeof window.MdmMarketingCouponStore.listSelectable === 'function') {
-      list = window.MdmMarketingCouponStore.listSelectable('LIVE').map(function (c) {
+    if (type === 'COUPON' && window.MdmMarketingCouponStore) {
+      var bindable =
+        typeof window.MdmMarketingCouponStore.listLiveBindableCoupons === 'function'
+          ? window.MdmMarketingCouponStore.listLiveBindableCoupons()
+          : typeof window.MdmMarketingCouponStore.listSelectable === 'function'
+            ? window.MdmMarketingCouponStore.listSelectable('LIVE')
+            : [];
+      list = bindable.map(function (c) {
         return { id: c.id, type: 'COUPON', typeName: '优惠券', name: c.name, stock: c.totalStock };
       });
     }
@@ -512,7 +626,8 @@
     }
     if (type === 'COUPON' && !list.length) {
       nameEl.disabled = true;
-      nameEl.innerHTML = '<option value="">暂无已启用且发放场景含「直播发券」的优惠券</option>';
+      nameEl.innerHTML =
+        '<option value="">暂无可用券：需在优惠券中审核通过并启用，且发放场景含「直播发券」</option>';
       if (stockRow) stockRow.hidden = true;
       applyFieldLocks();
       return;

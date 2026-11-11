@@ -39,7 +39,8 @@
     { id: 'lcat-002', name: '肉禽蛋奶', source: 'LIVE' },
     { id: 'lcat-003', name: '水产海鲜', source: 'LIVE' },
     { id: 'lcat-004', name: '粮油干货', source: 'LIVE' },
-    { id: 'lcat-005', name: '爆款秒杀', source: 'LIVE' }
+    { id: 'lcat-005', name: '爆款秒杀', source: 'LIVE' },
+    { id: 'lcat-006', name: '新直播类目', source: 'LIVE' }
   ];
 
   var PRODUCTS = [
