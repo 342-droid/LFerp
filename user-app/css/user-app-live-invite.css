@@ -59,18 +59,48 @@
   overflow: auto;
 }
 
+/* —— 直播邀请落地页 —— */
 .ua-live-share-page {
-  background: #f5f5f5;
+  position: relative;
   min-height: 100vh;
+  background: #fff8f2;
+  overflow: hidden;
+}
+
+.ua-live-share-page::before,
+.ua-live-share-page::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 50%;
+  filter: blur(2px);
+}
+
+.ua-live-share-page::before {
+  width: 280px;
+  height: 220px;
+  top: -40px;
+  left: -80px;
+  background: radial-gradient(ellipse at center, rgba(255, 176, 120, 0.45), rgba(255, 176, 120, 0) 70%);
+}
+
+.ua-live-share-page::after {
+  width: 320px;
+  height: 260px;
+  top: 180px;
+  right: -120px;
+  background: radial-gradient(ellipse at center, rgba(255, 196, 150, 0.4), rgba(255, 196, 150, 0) 72%);
 }
 
 .ua-live-share-nav {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   height: 44px;
   padding: 0 12px;
-  background: #fff;
-  border-bottom: 1px solid #eee;
+  background: transparent;
 }
 
 .ua-live-share-nav__back {
@@ -79,7 +109,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #333;
+  color: #222;
 }
 
 .ua-live-share-nav__back svg {
@@ -91,18 +121,263 @@
   flex: 1;
   margin: 0;
   text-align: center;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
+  color: #1f1f1f;
   padding-right: 32px;
 }
 
 .ua-live-share-view {
-  padding: 24px 16px 40px;
+  position: relative;
+  z-index: 1;
+  padding: 8px 20px 36px;
 }
 
-.ua-live-share-card {
+/* 品牌与标题区 */
+.ua-live-invite {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.ua-live-invite__logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(255, 112, 25, 0.28);
+  display: block;
+}
+
+.ua-live-invite__brand {
+  margin: 12px 0 0;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: #b0b0b0;
+  font-weight: 500;
+}
+
+.ua-live-invite__headline {
+  margin: 18px 0 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+}
+
+.ua-live-invite__headline em {
+  font-style: normal;
+  color: #ff7019;
+}
+
+.ua-live-invite__sub {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: #9a9a9a;
+  line-height: 1.5;
+}
+
+/* 封面卡 */
+.ua-live-invite__cover {
+  position: relative;
+  width: 100%;
+  margin-top: 22px;
+  border-radius: 18px;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  background: #f0e4d8;
+  box-shadow: 0 10px 28px rgba(180, 110, 60, 0.12);
+}
+
+.ua-live-invite__cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 72%;
+  display: block;
+  transform: scale(1.04);
+}
+
+.ua-live-invite__badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 10px 0 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ff8a3d, #ff7019);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgba(255, 112, 25, 0.35);
+}
+
+.ua-live-invite__badge svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* 保留条 */
+.ua-live-invite__keep {
+  width: 100%;
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  border-radius: 999px;
+  background: #fff1e6;
+  color: #ff7019;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.ua-live-invite__keep svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* 按钮 */
+.ua-live-invite__actions {
+  width: 100%;
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ua-live-invite__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  height: 48px;
+  border-radius: 999px;
+  border: 1.5px solid #ff7019;
   background: #fff;
-  border-radius: 12px;
+  color: #ff7019;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.ua-live-invite__btn--primary {
+  background: #ff7019;
+  border-color: #ff7019;
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(255, 112, 25, 0.28);
+}
+
+.ua-live-invite__btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.ua-live-invite__hint {
+  margin: 14px 0 0;
+  font-size: 12px;
+  color: #b0b0b0;
+  line-height: 1.5;
+}
+
+.ua-live-invite__tip {
+  margin: 8px 0 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #c4c4c4;
+  line-height: 1.5;
+}
+
+.ua-live-invite__tip svg {
+  width: 14px;
+  height: 14px;
+  margin-top: 1px;
+  flex-shrink: 0;
+  color: #d0d0d0;
+}
+
+.ua-live-invite__rescue {
+  margin: 18px 0 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 13px;
+  color: #ff7019;
+  text-decoration: none;
+  font-weight: 500;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.ua-live-invite__rescue svg {
+  width: 14px;
+  height: 14px;
+}
+
+.ua-live-invite__markets {
+  width: 100%;
+  margin-top: 10px;
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ua-live-invite__markets.is-open {
+  display: flex;
+}
+
+.ua-live-invite__fail {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #e07020;
+  min-height: 0;
+}
+
+.ua-live-invite__fail:empty {
+  display: none;
+}
+
+/* 微信中间页沿用同一视觉，文案区略紧凑 */
+.ua-live-invite--wechat .ua-live-invite__actions {
+  margin-top: 22px;
+}
+
+.ua-live-invite--wechat .ua-live-invite__guide {
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 168, 110, 0.35);
+  text-align: left;
+  font-size: 13px;
+  line-height: 1.65;
+  color: #666;
+}
+
+.ua-live-invite--wechat .ua-live-invite__guide strong {
+  color: #ff7019;
+}
+
+/* 兼容旧 class（识别中等轻量态） */
+.ua-live-share-card {
+  background: rgba(255, 255, 255, 0.78);
+  border-radius: 16px;
   padding: 20px 16px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
 }
@@ -119,33 +394,6 @@
   font-size: 14px;
   line-height: 1.6;
   color: #555;
-}
-
-.ua-live-share-card__actions {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 14px;
-}
-
-.ua-live-share-card__btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 42px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  background: #fff;
-  color: #333;
-  font-size: 15px;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.ua-live-share-card__btn--primary {
-  background: #ff7019;
-  border-color: #ff7019;
-  color: #fff;
 }
 
 .ua-live-share-card__note {
