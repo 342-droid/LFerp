@@ -183,6 +183,91 @@
     return null;
   }
 
+  function resolveCouponById(id) {
+    var store = window.MdmMarketingCouponStore;
+    if (!store || !id) return null;
+    if (typeof store.resolveCouponTemplate === 'function') return store.resolveCouponTemplate(id);
+    return store.findById ? store.findById(id) : null;
+  }
+
+  function mismatchTipText(issue) {
+    var store = window.MdmMarketingCouponStore;
+    if (store && typeof store.formatLiveCategoryMismatchTip === 'function') {
+      return store.formatLiveCategoryMismatchTip(issue);
+    }
+    return '优惠券「' + (issue.couponName || issue.name || '优惠券') + '」当前场次缺少适用商品';
+  }
+
+  function prizeCouponIdsOfPlan(plan) {
+    var ids = [];
+    if (!plan) return ids;
+    if (plan.type === 'COUPON') {
+      ids.push(plan.poolId || plan.templateId || plan.id);
+      return ids;
+    }
+    if (plan.type === 'FORTUNE_BAG') {
+      var bag = bagTemplateOf(plan);
+      if (bag && bag.prizeType === 'COUPON' && bag.prizeCouponId) ids.push(bag.prizeCouponId);
+      return ids;
+    }
+    if (plan.type === 'SIGN_IN') {
+      var sign = signTemplateOf(plan);
+      ((sign && sign.rewards) || []).forEach(function (rw) {
+        if (rw && rw.rewardType === 'COUPON' && rw.prizeCouponId) ids.push(rw.prizeCouponId);
+      });
+      return ids;
+    }
+    if (plan.type === 'TASK') {
+      var task = taskTemplateOf(plan);
+      ((task && task.milestones) || []).forEach(function (ms) {
+        if (ms && ms.rewardType === 'COUPON' && ms.prizeCouponId) ids.push(ms.prizeCouponId);
+      });
+    }
+    return ids;
+  }
+
+  function planCouponMatchIssues(plan, sess) {
+    var store = window.MdmMarketingCouponStore;
+    if (!plan || !sess || !store || typeof store.liveCategoryMismatchOf !== 'function') return [];
+    var products = productsOf(sess.id);
+    var seen = {};
+    return prizeCouponIdsOfPlan(plan)
+      .map(function (id) {
+        var sid = String(id || '');
+        if (!sid || seen[sid]) return null;
+        seen[sid] = true;
+        var coupon = resolveCouponById(sid);
+        if (!coupon) return null;
+        return store.liveCategoryMismatchOf(coupon, products);
+      })
+      .filter(Boolean);
+  }
+
+  function liveCouponIssues(sess) {
+    if (!sess) return [];
+    var issues = [];
+    (sess.templates || []).forEach(function (tpl) {
+      planCouponMatchIssues(tpl, sess).forEach(function (issue) {
+        issues.push(issue);
+      });
+    });
+    return issues;
+  }
+
+  function startLiveBlockMessage(issues) {
+    return issues.map(mismatchTipText).join('；');
+  }
+
+  function startLiveFixHref(sess) {
+    if (!sess || !sess.id) return wp.page('mdm_live_session.html');
+    return (
+      wp.page('mdm_live_product_sched.html') +
+      '?sessionId=' +
+      encodeURIComponent(sess.id) +
+      '&from=control'
+    );
+  }
+
   function productsOf(id) {
     if (!id) return [];
     if (!Demo.productsBySession[id]) Demo.productsBySession[id] = [];
@@ -4301,8 +4386,14 @@
       var k = String(addCouponUi.keyword || '').trim().toLowerCase();
       var source = Demo.couponTemplates || [];
       var CS = window.MdmMarketingCouponStore;
-      if (CS && typeof CS.listSelectable === 'function') {
-        source = CS.listSelectable('LIVE').map(function (item) {
+      if (CS) {
+        var bindable =
+          typeof CS.listLiveBindableCoupons === 'function'
+            ? CS.listLiveBindableCoupons()
+            : typeof CS.listSelectable === 'function'
+              ? CS.listSelectable('LIVE')
+              : [];
+        source = bindable.map(function (item) {
           return CS.toLivePickerItem(item);
         });
       }
@@ -4455,6 +4546,11 @@
     var qty = Math.floor(Number((document.getElementById('addCouponStock') || {}).value || addCouponUi.stock || 0));
     if (!qty || qty < 1) return toast('请填写发券库存', 'warning');
     if (qty > tpl.stock) return toast('发券库存不能大于券模板剩余库存（' + tpl.stock + '）', 'warning');
+    var draftPlan = { type: 'COUPON', templateId: tpl.id, poolId: tpl.id, name: tpl.name };
+    var matchIssues = planCouponMatchIssues(draftPlan, sess);
+    if (matchIssues.length) {
+      toast(mismatchTipText(matchIssues[0]) + '（仍可添加，开闸发券时将拦截）', 'warning');
+    }
     if (!Demo.deductCouponStock(tpl.id, qty)) return toast('预扣库存失败，请重试', 'warning');
     if (!sess.templates) sess.templates = [];
     var planId = Demo.nextCouponPlanId();
@@ -4478,6 +4574,26 @@
     closeAddCouponModal();
     toast('已添加「' + tpl.name + '」，预扣库存 ' + qty + ' 张');
     renderWelfareDrawer();
+  }
+
+  function tipPrizeCouponMismatchOnAdd(planLike, sess, label) {
+    var issues = planCouponMatchIssues(planLike, sess);
+    if (!issues.length) return;
+    toast(
+      mismatchTipText(issues[0]) +
+        '（' +
+        (label || '活动') +
+        '仍可添加；开闸发券时将拦截）',
+      'warning'
+    );
+  }
+
+  function blockDeliverIfCouponMismatch(plan, sess) {
+    var issues = planCouponMatchIssues(plan, sess);
+    if (!issues.length) return false;
+    var body = String(startLiveBlockMessage(issues) || '').replace(/[。．.]+$/g, '');
+    toast('无法发券：' + body + '。请先添加适用商品，或更换/移除该活动', 'warning');
+    return true;
   }
 
   function filteredBagTemplates() {
@@ -4572,6 +4688,7 @@
     var qty = Math.floor(Number((document.getElementById('addBagStock') || {}).value || addBagUi.stock || 0));
     if (!qty || qty < 1) return toast('请填写福袋库存', 'warning');
     if (qty > tpl.stock) return toast('福袋库存不能大于模板剩余库存（' + tpl.stock + '）', 'warning');
+    tipPrizeCouponMismatchOnAdd({ type: 'FORTUNE_BAG', templateId: tpl.id }, sess, '福袋');
     if (!Demo.deductBagStock(tpl.id, qty)) return toast('预扣库存失败，请重试', 'warning');
     if (!sess.templates) sess.templates = [];
     var planId = Demo.nextBagPlanId();
@@ -4667,6 +4784,7 @@
     if (!tpl) return toast('请先选择签到活动', 'warning');
     if (tpl.status !== 'enabled') return toast('仅能添加启用中的签到模板', 'warning');
     if (tpl.usesCash && cashRedpackClosed()) return toast(cashClosedTip(), 'warning');
+    tipPrizeCouponMismatchOnAdd({ type: 'SIGN_IN', templateId: tpl.id }, sess, '签到');
     if (!sess.templates) sess.templates = [];
     var planId = Demo.nextSignPlanId();
     sess.templates.push({
@@ -4758,6 +4876,7 @@
     if (!tpl) return toast('请先选择观看奖励活动', 'warning');
     if (tpl.status !== 'enabled') return toast('仅能添加启用中的观看奖励模板', 'warning');
     if (tpl.usesCash && cashRedpackClosed()) return toast(cashClosedTip(), 'warning');
+    tipPrizeCouponMismatchOnAdd({ type: 'TASK', templateId: tpl.id }, sess, '观看奖励');
     if (!sess.templates) sess.templates = [];
     var planId = Demo.nextTaskPlanId();
     sess.templates.push({
@@ -5004,6 +5123,7 @@
       if (plan.released) return toast('直播已结束，剩余库存已释放，不能再次发放', 'warning');
       var nextBlock = couponIssueBlockedReason(plan);
       if (nextBlock) return toast(nextBlock, 'warning');
+      if (blockDeliverIfCouponMismatch(plan, findSession(sessionId))) return;
       if (toastFillRequired()) return;
       var couponDur = requiredPositiveInt(welfareUi.duration);
       var couponQty = requiredPositiveInt(welfareUi.quantity);
@@ -5059,6 +5179,7 @@
       if (planUsesCash(plan) && cashRedpackClosed()) return toast(cashClosedTip(), 'warning');
       var bagCashBlock = planCashIssueBlock(plan);
       if (bagCashBlock) return toast(bagCashBlock, 'warning');
+      if (blockDeliverIfCouponMismatch(plan, findSession(sessionId))) return;
       if (String(live.prizeType || '').toUpperCase() === 'POINTS') {
         var ptsOn = true;
         try {
@@ -5110,6 +5231,7 @@
       if (!plan) return toast('请先选择签到活动', 'warning');
       if (plan.interrupted) return toast('该签到活动已中断，不能再次发放', 'warning');
       if (plan.activeWindowId) return toast('上一轮签到进行中，结束后可发放下一轮', 'warning');
+      if (blockDeliverIfCouponMismatch(plan, findSession(sessionId))) return;
       var liveSign = liveSignFields(plan);
       if (liveSign.totalRounds > 0 && liveSign.roundsUsed >= liveSign.totalRounds) {
         return toast('已完成全部轮次发放', 'warning');
@@ -5134,6 +5256,7 @@
       if (!plan) return toast('请先选择观看奖励活动', 'warning');
       if (plan.interrupted) return toast('该观看奖励活动已中断，不能再次发放', 'warning');
       if (plan.delivered) return toast('本活动已发放，不能重复发放', 'warning');
+      if (blockDeliverIfCouponMismatch(plan, findSession(sessionId))) return;
       var others = incompleteTaskPlans(welfarePlanIdOf(plan));
       if (others.length) {
         confirmDanmuAction(
@@ -6513,6 +6636,20 @@
         var sess = findSession(sessionId);
         if (!sess) return;
         if (sess.status === 'ended') return toastEndedLock();
+        var couponIssues = liveCouponIssues(sess);
+        if (couponIssues.length) {
+          var blockMsg = '无法开始直播：' + startLiveBlockMessage(couponIssues);
+          toast(blockMsg, 'warning');
+          if (
+            window.confirm(
+              blockMsg +
+                '\n\n可前往「直播排品」添加适用商品，或返回场次编辑移除问题优惠券。\n是否打开本场排品页？'
+            )
+          ) {
+            window.location.href = startLiveFixHref(sess);
+          }
+          return;
+        }
         sess.status = 'live';
         stampActualStart(sess);
         processScheduled();

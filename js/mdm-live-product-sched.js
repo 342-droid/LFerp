@@ -354,6 +354,81 @@
       '</span></span>';
   }
 
+  function collectSessionCouponMatchIssues(sess) {
+    var store = window.MdmMarketingCouponStore;
+    if (!sess || !store || typeof store.liveCategoryMismatchOf !== 'function') return [];
+    var products = productsOf(sess.id);
+    var issues = [];
+    var seen = {};
+    function pushCoupon(id, fallbackName) {
+      var sid = String(id || '');
+      if (!sid || seen[sid]) return;
+      seen[sid] = true;
+      var coupon =
+        typeof store.resolveCouponTemplate === 'function'
+          ? store.resolveCouponTemplate(sid)
+          : store.findById
+            ? store.findById(sid)
+            : null;
+      if (!coupon) return;
+      var issue = store.liveCategoryMismatchOf(coupon, products);
+      if (!issue) return;
+      if (!issue.couponName && fallbackName) issue.couponName = fallbackName;
+      issues.push(issue);
+    }
+    (sess.templates || []).forEach(function (tpl) {
+      if (!tpl) return;
+      if (tpl.type === 'COUPON') {
+        pushCoupon(tpl.poolId || tpl.templateId || tpl.id, tpl.name);
+        return;
+      }
+      if (tpl.type === 'FORTUNE_BAG' && Demo.findBagTemplate) {
+        var bag = Demo.findBagTemplate(tpl.templateId);
+        if (bag && bag.prizeType === 'COUPON') pushCoupon(bag.prizeCouponId, bag.name);
+        return;
+      }
+      if (tpl.type === 'SIGN_IN' && Demo.findSignTemplate) {
+        var sign = Demo.findSignTemplate(tpl.templateId);
+        ((sign && sign.rewards) || []).forEach(function (rw) {
+          if (rw && rw.rewardType === 'COUPON') pushCoupon(rw.prizeCouponId, sign.name);
+        });
+        return;
+      }
+      if (tpl.type === 'TASK' && Demo.findTaskTemplate) {
+        var task = Demo.findTaskTemplate(tpl.templateId);
+        ((task && task.milestones) || []).forEach(function (ms) {
+          if (ms && ms.rewardType === 'COUPON') pushCoupon(ms.prizeCouponId, task.name);
+        });
+      }
+    });
+    return issues;
+  }
+
+  function renderCouponMatchNotice(sess) {
+    var notice = document.getElementById('liveSchedCouponMatchNotice');
+    if (!notice) return;
+    var store = window.MdmMarketingCouponStore;
+    var issues = collectSessionCouponMatchIssues(sess);
+    if (!issues.length) {
+      notice.hidden = true;
+      notice.innerHTML = '';
+      return;
+    }
+    notice.hidden = false;
+    notice.innerHTML =
+      '<strong>本场优惠券类目待补齐</strong><br>' +
+      issues
+        .map(function (item) {
+          var tip =
+            store && typeof store.formatLiveCategoryMismatchTip === 'function'
+              ? store.formatLiveCategoryMismatchTip(item)
+              : '「' + escapeHtml(item.couponName) + '」暂无匹配排品，请补品或解绑';
+          return escapeHtml(tip);
+        })
+        .join('<br>') +
+      '<br><span style="color:#8c8c8c">在排品编辑中关联正确直播类目后，提示自动消失。</span>';
+  }
+
   function skuCells(sku) {
     return (
       '<td>' +
@@ -408,7 +483,9 @@
 
     empty.hidden = true;
     panel.hidden = false;
-    renderMeta(findSession(sessionId));
+    var sess = findSession(sessionId);
+    renderMeta(sess);
+    renderCouponMatchNotice(sess);
 
     var rows = productsOf(sessionId);
     renderPagination(rows.length);

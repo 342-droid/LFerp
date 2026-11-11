@@ -290,6 +290,22 @@ window.__PG_PRD_INDEX = {
         "store-app/h5/home.html",
         "user-app/h5/scan-store.html"
       ]
+    },
+    {
+      "id": "直播优惠券",
+      "title": "【直播优惠券】",
+      "file": "直播优惠券.md",
+      "pages": [
+        "MDM/mdm_marketing_coupon.html",
+        "MDM/mdm_marketing_coupon_form.html",
+        "MDM/mdm_marketing_template.html",
+        "MDM/mdm_live_session.html",
+        "MDM/mdm_live_session_form.html",
+        "MDM/mdm_live_session_detail.html",
+        "MDM/mdm_live_product_sched.html",
+        "MDM/mdm_live_product_sched_edit.html",
+        "MDM/mdm_live_control.html"
+      ]
     }
   ]
 };

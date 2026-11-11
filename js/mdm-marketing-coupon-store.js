@@ -80,7 +80,8 @@
     { id: 'lcat-002', name: '肉禽蛋奶', source: 'LIVE' },
     { id: 'lcat-003', name: '水产海鲜', source: 'LIVE' },
     { id: 'lcat-004', name: '粮油干货', source: 'LIVE' },
-    { id: 'lcat-005', name: '爆款秒杀', source: 'LIVE' }
+    { id: 'lcat-005', name: '爆款秒杀', source: 'LIVE' },
+    { id: 'lcat-006', name: '新直播类目', source: 'LIVE' }
   ];
   var PRODUCT_IMGS = [
     '../user-app/assets/restock/product-leaf.svg',
@@ -443,6 +444,55 @@
         updatedAt: '2026-08-12 08:00:00',
         submittedAt: '2026-08-12 08:00:00',
         config: couponCfg({ couponType: 'FULL_MINUS', threshold: 59, denomination: 10, perUserLimit: 2 })
+      },
+      {
+        id: 'CT10004',
+        name: '新类目预配置券',
+        status: 'ACTIVE',
+        applicableChannel: 'LIVE_ONLY',
+        issueSceneMode: 'SPECIFIC',
+        issueScenes: ['LIVE'],
+        totalStock: 500,
+        remark: '演示新直播类目可先配置，场次开播前校验本场商品',
+        createdAt: '2026-11-11 10:00:00',
+        updatedAt: '2026-11-11 10:00:00',
+        submittedAt: '2026-11-11 10:00:00',
+        config: couponCfg({
+          couponType: 'FULL_MINUS',
+          threshold: 49,
+          denomination: 5,
+          itemScope: 'CATEGORY',
+          productScopeJson: JSON.stringify({
+            type: 'CATEGORY',
+            items: [{ id: 'lcat-006', name: '新直播类目', source: 'LIVE' }]
+          })
+        })
+      },
+      {
+        id: 'CT10005',
+        name: '新+旧类目并集券',
+        status: 'ACTIVE',
+        applicableChannel: 'LIVE_ONLY',
+        issueSceneMode: 'SPECIFIC',
+        issueScenes: ['LIVE'],
+        totalStock: 800,
+        remark: '演示新直播类目+已有直播类目并集：无排品/未关联类目提示拦截，命中任一即可',
+        createdAt: '2026-11-11 13:00:00',
+        updatedAt: '2026-11-11 13:00:00',
+        submittedAt: '2026-11-11 13:00:00',
+        config: couponCfg({
+          couponType: 'FULL_MINUS',
+          threshold: 39,
+          denomination: 6,
+          itemScope: 'CATEGORY',
+          productScopeJson: JSON.stringify({
+            type: 'CATEGORY',
+            items: [
+              { id: 'lcat-006', name: '新直播类目', source: 'LIVE' },
+              { id: 'lcat-001', name: '时令果蔬', source: 'LIVE' }
+            ]
+          })
+        })
       }
     ];
   }
@@ -952,6 +1002,84 @@
     return [];
   }
 
+  /** 券模板中「指定类目」且归属直播的类目（按类目 ID 规则，不展开为商品快照） */
+  function liveCategoryItemsOf(item) {
+    return categoryItemsOf(item).filter(function (c) {
+      return c && c.source === 'LIVE';
+    });
+  }
+
+  /**
+   * 本场排品是否命中任一所选直播类目（并集；只比 categoryId）。
+   * 不要求上架、进小黄车或可售；商品删除或改类目后重新计算即可。
+   */
+  function sessionHasLiveCategoryMatch(products, categories) {
+    if (!categories || !categories.length) return true;
+    var ids = {};
+    categories.forEach(function (c) {
+      if (c && c.id != null && c.id !== '') ids[String(c.id)] = true;
+    });
+    return (products || []).some(function (p) {
+      if (!p) return false;
+      return !!ids[String(p.categoryId || '')];
+    });
+  }
+
+  /**
+   * 场次已绑定的指定直播类目券：本场排品未命中任一所选类目时返回问题对象。
+   * 非类目券 / 仅商城类目 / 全部商品：不视为本场商品匹配问题。
+   */
+  function liveCategoryMismatchOf(coupon, products) {
+    if (!coupon) return null;
+    var cats = liveCategoryItemsOf(coupon);
+    if (!cats.length) return null;
+    if (sessionHasLiveCategoryMatch(products, cats)) return null;
+    return {
+      couponId: coupon.id || '',
+      couponName: coupon.name || '优惠券',
+      categories: cats,
+      categoryNames: cats.map(function (c) {
+        return c.name || c.id || '';
+      })
+    };
+  }
+
+  function formatLiveCategoryMismatchTip(issue) {
+    if (!issue) return '';
+    var names = (issue.categoryNames || []).filter(Boolean).join('、') || '所选直播类目';
+    return (
+      '「' +
+      (issue.couponName || '优惠券') +
+      '」适用「' +
+      names +
+      '」暂无匹配排品，请补品或解绑'
+    );
+  }
+
+  /**
+   * 场次 / 中控可选券：审核通过并启用，且发放场景含直播发券（或全部场景）。
+   * 营销「模版配置」页已不再维护优惠券；券模板以本优惠券库为准。
+   */
+  function listLiveBindableCoupons() {
+    return listSelectable('LIVE');
+  }
+
+  /** 场次绑定 / 中控发券：优先独立优惠券库，其次营销模板库中的优惠券模板（兼容历史绑定 ID） */
+  function resolveCouponTemplate(id) {
+    var sid = String(id || '');
+    if (!sid) return null;
+    var found = findById(sid);
+    if (found) return found;
+    var TS = global.MdmMarketingTemplateStore;
+    if (TS && typeof TS.findById === 'function') {
+      var tpl = TS.findById(sid);
+      if (tpl && (tpl.activityType === 'COUPON' || (tpl.config && tpl.config.activityType === 'COUPON'))) {
+        return tpl;
+      }
+    }
+    return null;
+  }
+
   function scopeText(item) {
     var cfg = (item && item.config) || {};
     var scope = cfg.itemScope || 'ALL';
@@ -1371,6 +1499,12 @@
     groupGoodsOf: groupGoodsOf,
     groupSkuItems: groupSkuItems,
     categoryItemsOf: categoryItemsOf,
+    liveCategoryItemsOf: liveCategoryItemsOf,
+    sessionHasLiveCategoryMatch: sessionHasLiveCategoryMatch,
+    liveCategoryMismatchOf: liveCategoryMismatchOf,
+    formatLiveCategoryMismatchTip: formatLiveCategoryMismatchTip,
+    listLiveBindableCoupons: listLiveBindableCoupons,
+    resolveCouponTemplate: resolveCouponTemplate,
     validPeriodText: validPeriodText,
     collectLimitText: collectLimitText,
     matchesScene: matchesScene,
