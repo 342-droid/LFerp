@@ -1232,14 +1232,7 @@
     var host = document.getElementById('liveShareView');
 
     if (ch === 'app' && client === 'wechat') {
-      if (host) {
-        host.innerHTML =
-          '<div class="ua-live-share-card">' +
-          '<h1 class="ua-live-share-card__title">打开冷丰 APP</h1>' +
-          '<p class="ua-live-share-card__desc">请点击右上角 ···，选择「在浏览器中打开」，以继续直播分享流程。</p>' +
-          '<p class="ua-live-share-card__note">微信内无法直接唤起；分享信息已保留。此页为 App 分享码中间页（演示）。</p>' +
-          '</div>';
-      }
+      renderWechatBridge(host, payload);
       return;
     }
 
@@ -1252,67 +1245,122 @@
     runShareFlow({ payload: payload });
   }
 
+  function inviteCoverUrl() {
+    /* 邀请页统一用设计稿封面，保证浏览器桥接视觉一致 */
+    return '../assets/live/invite-cover.jpg';
+  }
+
+  function inviteShellHtml(opts) {
+    opts = opts || {};
+    var cover = opts.cover || '../assets/live/invite-cover.jpg';
+    var modeClass = opts.modeClass || '';
+    var extra = opts.extraHtml || '';
+    var actions = opts.actionsHtml || '';
+    return (
+      '<div class="ua-live-invite ' +
+      modeClass +
+      '">' +
+      '<img class="ua-live-invite__logo" src="../assets/live/app-logo.svg" alt="冷丰">' +
+      '<p class="ua-live-invite__brand">— 冷丰 APP —</p>' +
+      '<h2 class="ua-live-invite__headline">邀请你观看<em>精彩直播</em></h2>' +
+      '<p class="ua-live-invite__sub">精彩内容，打开冷丰 APP 继续观看</p>' +
+      '<div class="ua-live-invite__cover">' +
+      '<img src="' +
+      cover +
+      '" alt="直播分享">' +
+      '<span class="ua-live-invite__badge">' +
+      '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 6.5v11l9-5.5-9-5.5z"/></svg>' +
+      '直播分享</span>' +
+      '</div>' +
+      '<div class="ua-live-invite__keep">' +
+      '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+      '<circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.8"/>' +
+      '<path d="M7.5 12.2l3 3 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '</svg>' +
+      '已为你保留本次直播邀请</div>' +
+      extra +
+      '<div class="ua-live-invite__actions">' +
+      actions +
+      '</div>' +
+      '</div>'
+    );
+  }
+
+  function renderWechatBridge(host, payload) {
+    if (!host) return;
+    host.innerHTML = inviteShellHtml({
+      modeClass: 'ua-live-invite--wechat',
+      cover: inviteCoverUrl(),
+      extraHtml:
+        '<div class="ua-live-invite__guide">请点击右上角 <strong>···</strong>，选择<strong>「在浏览器中打开」</strong>，以继续直播分享流程。微信内无法直接唤起，分享信息已保留。</div>',
+      actionsHtml:
+        '<p class="ua-live-invite__hint">打开浏览器后可继续「打开冷丰 APP」或下载安装</p>'
+    });
+  }
+
+  function bindOpenApp(btn, payload, failEl) {
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      var demo = getDemo();
+      if (demo.appInstalled === 'no') {
+        if (failEl) failEl.textContent = TIP_OPEN_FAIL;
+        showToast(TIP_OPEN_FAIL);
+        return;
+      }
+      if (failEl) failEl.textContent = '';
+      var url = buildShareUrl(Object.assign({}, payload, { ch: 'app' }));
+      try {
+        var u = new URL(url, global.location.href);
+        u.searchParams.set('client', 'app');
+        if (payload.source === 'scan') u.searchParams.set('source', 'scan');
+        global.location.href = u.pathname + u.search;
+      } catch (e) {
+        runShareFlow({ payload: Object.assign({}, payload, { ch: 'app' }) });
+      }
+    });
+  }
+
   function renderAppBridge(host, payload) {
     if (!host) return;
     var demo = getDemo();
-    var installed = demo.appInstalled !== 'no';
-    /* 验收开关为未安装时，直接展示下载原型 */
-    if (!installed) {
-      renderAppDownload(host, payload);
-      return;
-    }
-    host.innerHTML =
-      '<div class="ua-live-share-card">' +
-      '<h1 class="ua-live-share-card__title">冷丰鲜选直播分享</h1>' +
-      '<p class="ua-live-share-card__desc">绑定分享门店并进入对应直播场次。请使用冷丰 APP 打开。</p>' +
-      '<div class="ua-live-share-card__actions">' +
-      '<button type="button" class="ua-live-share-card__btn ua-live-share-card__btn--primary" id="uaOpenAppBtn">打开 App</button>' +
-      '<button type="button" class="ua-live-share-card__btn" id="uaDownloadAppBtn">下载 App</button>' +
-      '</div>' +
-      '<p class="ua-live-share-card__note" id="uaOpenAppTip" hidden></p>' +
-      '<p class="ua-live-share-card__note">一次唤起失败不直接判定未安装。可返回本页再打开，或在 App 内重新扫描原分享码。</p>' +
-      '</div>';
+    var preferDownload = demo.appInstalled === 'no';
+    host.innerHTML = inviteShellHtml({
+      cover: inviteCoverUrl(),
+      actionsHtml:
+        '<button type="button" class="ua-live-invite__btn ua-live-invite__btn--primary" id="uaOpenAppBtn">打开冷丰 APP →</button>' +
+        '<button type="button" class="ua-live-invite__btn" id="uaDownloadAppBtn">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">' +
+        '<path d="M12 4v10"/><path d="M8 10l4 4 4-4"/><path d="M5 18h14"/>' +
+        '</svg>下载冷丰 APP</button>' +
+        '<div class="ua-live-invite__markets' +
+        (preferDownload ? ' is-open' : '') +
+        '" id="uaInviteMarkets">' +
+        '<button type="button" class="ua-live-invite__btn ua-live-invite__btn--primary" id="uaMarketIos">App Store</button>' +
+        '<button type="button" class="ua-live-invite__btn ua-live-invite__btn--primary" id="uaMarketAndroid">国内应用市场</button>' +
+        '<button type="button" class="ua-live-invite__btn" id="uaBackBridge">已安装，返回打开</button>' +
+        '</div>' +
+        '<p class="ua-live-invite__fail" id="uaOpenAppTip"></p>' +
+        '<p class="ua-live-invite__hint">尚未安装？前往应用商店下载</p>' +
+        '<p class="ua-live-invite__tip">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">' +
+        '<circle cx="12" cy="12" r="9"/><path d="M12 10v6"/><circle cx="12" cy="7.5" r="1" fill="currentColor" stroke="none"/>' +
+        '</svg>安装完成后，返回此页面继续打开</p>' +
+        '<button type="button" class="ua-live-invite__rescue" id="uaRescueScan">无法打开？在 App 内重新扫码' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>' +
+        '</button>'
+    });
 
-    var tip = document.getElementById('uaOpenAppTip');
-    var openBtn = document.getElementById('uaOpenAppBtn');
+    var failEl = document.getElementById('uaOpenAppTip');
+    bindOpenApp(document.getElementById('uaOpenAppBtn'), payload, failEl);
+
+    var markets = document.getElementById('uaInviteMarkets');
     var dlBtn = document.getElementById('uaDownloadAppBtn');
-    if (openBtn) {
-      openBtn.addEventListener('click', function () {
-        var url = buildShareUrl(Object.assign({}, payload, { ch: 'app' }));
-        try {
-          var u = new URL(url);
-          u.searchParams.set('client', 'app');
-          if (payload.source === 'scan') u.searchParams.set('source', 'scan');
-          global.location.href = u.pathname + u.search;
-        } catch (e) {
-          runShareFlow({ payload: Object.assign({}, payload, { ch: 'app' }) });
-        }
-      });
-    }
-    if (dlBtn) {
+    if (dlBtn && markets) {
       dlBtn.addEventListener('click', function () {
-        renderAppDownload(host, payload);
+        markets.classList.add('is-open');
+        markets.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       });
     }
-  }
-
-  /** 未安装：国内应用市场下载原型（演示） */
-  function renderAppDownload(host, payload) {
-    if (!host) return;
-    host.innerHTML =
-      '<div class="ua-live-share-card">' +
-      '<h1 class="ua-live-share-card__title">下载冷丰 APP</h1>' +
-      '<p class="ua-live-share-card__desc">尚未安装冷丰 APP。请前往应用市场下载安装后，返回本页打开，或在 App 内重新扫描原分享码。</p>' +
-      '<div class="ua-live-share-card__actions">' +
-      '<button type="button" class="ua-live-share-card__btn ua-live-share-card__btn--primary" id="uaMarketIos">App Store</button>' +
-      '<button type="button" class="ua-live-share-card__btn ua-live-share-card__btn--primary" id="uaMarketAndroid">应用市场</button>' +
-      '</div>' +
-      '<div class="ua-live-share-card__actions" style="margin-top:8px">' +
-      '<button type="button" class="ua-live-share-card__btn" id="uaBackBridge">已安装，返回打开</button>' +
-      '</div>' +
-      '<p class="ua-live-share-card__note">演示：跳转中国境内应用商店页。安装完成后请返回本页继续，或打开 App 后重新扫码。</p>' +
-      '</div>';
-
     var ios = document.getElementById('uaMarketIos');
     var and = document.getElementById('uaMarketAndroid');
     var back = document.getElementById('uaBackBridge');
@@ -1329,9 +1377,23 @@
     if (back) {
       back.addEventListener('click', function () {
         setDemo({ appInstalled: 'yes' });
-        renderAppBridge(host, payload);
+        if (markets) markets.classList.remove('is-open');
+        if (failEl) failEl.textContent = '';
+        showToast('已切换为已安装，可继续打开');
       });
     }
+    var rescue = document.getElementById('uaRescueScan');
+    if (rescue) {
+      rescue.addEventListener('click', function () {
+        global.location.href = SCAN_PAGE + '?from=live-share.html';
+      });
+    }
+  }
+
+  /** 兼容旧入口：未安装下载原型并入邀请页市场区 */
+  function renderAppDownload(host, payload) {
+    setDemo({ appInstalled: 'no' });
+    renderAppBridge(host, payload);
   }
 
   function init() {
