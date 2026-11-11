@@ -1069,7 +1069,7 @@
       html += '</div>';
       if (edit.coupon.categorySource === 'LIVE') {
         html +=
-          '<div class="mkt-tpl-inline-tip" role="note">类目下可无商品。请在「优惠券」审核启用；场次仅可选已启用且含直播发券的券。</div>';
+          '<div class="mkt-tpl-inline-tip" role="note">类目暂时没商品也能先建。请到「优惠券」审核启用；直播场次只能选已启用且勾了「直播发券」的券。</div>';
       }
       var cats = Store.categoriesOf(edit.coupon.categorySource);
       html += '<div class="mkt-tpl-cats">';

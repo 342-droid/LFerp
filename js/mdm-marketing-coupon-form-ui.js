@@ -182,7 +182,7 @@
       html += '</div>';
       if (model.categorySource === 'LIVE') {
         html +=
-          '<div class="mkt-tpl-inline-tip" role="note">类目下可无商品。启用且含「直播发券」后可绑场；本场无匹配排品时提示，并拦截开播/发券。</div>';
+          '<div class="mkt-tpl-inline-tip" role="note">类目暂时没商品也能先建。启用并勾选「直播发券」后可绑到直播场次；本场商品类目对不上时会提示，且不能开播、发券。</div>';
       }
       var cats = Store.categoriesOf(model.categorySource);
       html += '<div class="pts-rule-check-row mkt-cp-cats">';
