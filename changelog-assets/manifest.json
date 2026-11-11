@@ -1,4 +1,96 @@
 {
+  "0028f53|store-app/h5/live-promo.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-11"
+  },
+  "0028f53|user-app/h5/cart.html": {
+    "before": "changelog-assets/0028f53/user-app__h5__cart.html.before.jpg",
+    "after": "changelog-assets/0028f53/user-app__h5__cart.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-11-11"
+  },
+  "0028f53|user-app/h5/home.html": {
+    "before": "changelog-assets/0028f53/user-app__h5__home.html.before.jpg",
+    "after": "changelog-assets/0028f53/user-app__h5__home.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-11-11"
+  },
+  "0028f53|user-app/h5/live-room.html": {
+    "before": "changelog-assets/0028f53/user-app__h5__live-room.html.before.jpg",
+    "after": "changelog-assets/0028f53/user-app__h5__live-room.html.after.jpg",
+    "regions": 4,
+    "status": "diff",
+    "date": "2026-11-11"
+  },
+  "0028f53|user-app/h5/live-share.html": {
+    "after": "changelog-assets/0028f53/user-app__h5__live-share.html.after.jpg",
+    "status": "added",
+    "date": "2026-11-11"
+  },
+  "0028f53|user-app/h5/login-password.html": {
+    "before": "changelog-assets/0028f53/user-app__h5__login-password.html.before.jpg",
+    "after": "changelog-assets/0028f53/user-app__h5__login-password.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-11-11"
+  },
+  "0028f53|user-app/h5/login-phone.html": {
+    "before": "changelog-assets/0028f53/user-app__h5__login-phone.html.before.jpg",
+    "after": "changelog-assets/0028f53/user-app__h5__login-phone.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-11-11"
+  },
+  "0028f53|user-app/h5/login-register.html": {
+    "before": "changelog-assets/0028f53/user-app__h5__login-register.html.before.jpg",
+    "after": "changelog-assets/0028f53/user-app__h5__login-register.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-11-11"
+  },
+  "0028f53|user-app/h5/login-wechat.html": {
+    "before": "changelog-assets/0028f53/user-app__h5__login-wechat.html.before.jpg",
+    "after": "changelog-assets/0028f53/user-app__h5__login-wechat.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-11-11"
+  },
+  "0028f53|user-app/h5/login.html": {
+    "before": "changelog-assets/0028f53/user-app__h5__login.html.before.jpg",
+    "after": "changelog-assets/0028f53/user-app__h5__login.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-11-11"
+  },
+  "0028f53|user-app/h5/orders.html": {
+    "before": "changelog-assets/0028f53/user-app__h5__orders.html.before.jpg",
+    "after": "changelog-assets/0028f53/user-app__h5__orders.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-11-11"
+  },
+  "0028f53|user-app/h5/profile.html": {
+    "before": "changelog-assets/0028f53/user-app__h5__profile.html.before.jpg",
+    "after": "changelog-assets/0028f53/user-app__h5__profile.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-11-11"
+  },
+  "0028f53|user-app/h5/scan-store.html": {
+    "before": "changelog-assets/0028f53/user-app__h5__scan-store.html.before.jpg",
+    "after": "changelog-assets/0028f53/user-app__h5__scan-store.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-11-11"
+  },
+  "0028f53|user-app/h5/switch-address.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-11"
+  },
   "00c38ed|MDM/mdm_live_control.html": {
     "regions": 0,
     "status": "diff",
@@ -1901,6 +1993,98 @@
     "regions": 0,
     "status": "diff",
     "date": "2026-11-10"
+  },
+  "59ff877|store-app/h5/live-promo.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-11"
+  },
+  "59ff877|user-app/h5/cart.html": {
+    "before": "changelog-assets/59ff877/user-app__h5__cart.html.before.jpg",
+    "after": "changelog-assets/59ff877/user-app__h5__cart.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-11-11"
+  },
+  "59ff877|user-app/h5/home.html": {
+    "before": "changelog-assets/59ff877/user-app__h5__home.html.before.jpg",
+    "after": "changelog-assets/59ff877/user-app__h5__home.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-11-11"
+  },
+  "59ff877|user-app/h5/live-room.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-11"
+  },
+  "59ff877|user-app/h5/live-share.html": {
+    "before": "changelog-assets/59ff877/user-app__h5__live-share.html.before.jpg",
+    "after": "changelog-assets/59ff877/user-app__h5__live-share.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-11-11"
+  },
+  "59ff877|user-app/h5/login-password.html": {
+    "before": "changelog-assets/59ff877/user-app__h5__login-password.html.before.jpg",
+    "after": "changelog-assets/59ff877/user-app__h5__login-password.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-11-11"
+  },
+  "59ff877|user-app/h5/login-phone.html": {
+    "before": "changelog-assets/59ff877/user-app__h5__login-phone.html.before.jpg",
+    "after": "changelog-assets/59ff877/user-app__h5__login-phone.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-11-11"
+  },
+  "59ff877|user-app/h5/login-register.html": {
+    "before": "changelog-assets/59ff877/user-app__h5__login-register.html.before.jpg",
+    "after": "changelog-assets/59ff877/user-app__h5__login-register.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-11-11"
+  },
+  "59ff877|user-app/h5/login-wechat.html": {
+    "before": "changelog-assets/59ff877/user-app__h5__login-wechat.html.before.jpg",
+    "after": "changelog-assets/59ff877/user-app__h5__login-wechat.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-11-11"
+  },
+  "59ff877|user-app/h5/login.html": {
+    "before": "changelog-assets/59ff877/user-app__h5__login.html.before.jpg",
+    "after": "changelog-assets/59ff877/user-app__h5__login.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-11-11"
+  },
+  "59ff877|user-app/h5/orders.html": {
+    "before": "changelog-assets/59ff877/user-app__h5__orders.html.before.jpg",
+    "after": "changelog-assets/59ff877/user-app__h5__orders.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-11-11"
+  },
+  "59ff877|user-app/h5/profile.html": {
+    "before": "changelog-assets/59ff877/user-app__h5__profile.html.before.jpg",
+    "after": "changelog-assets/59ff877/user-app__h5__profile.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-11-11"
+  },
+  "59ff877|user-app/h5/scan-store.html": {
+    "before": "changelog-assets/59ff877/user-app__h5__scan-store.html.before.jpg",
+    "after": "changelog-assets/59ff877/user-app__h5__scan-store.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-11-11"
+  },
+  "59ff877|user-app/h5/switch-address.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-11"
   },
   "5b2e3af|SCM/basic_settings_business_tags.html": {
     "before": "changelog-assets/5b2e3af/SCM__basic_settings_business_tags.html.before.jpg",

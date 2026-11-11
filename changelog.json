@@ -1,10 +1,208 @@
 {
-  "latestSha": "f071e7b8ba1a8fc4020a3f864f0f4eb121f6841e",
-  "total": 534,
+  "latestSha": "59ff877213728f38a4de66df180c8ced69cc39e2",
+  "total": 536,
   "days": [
     {
       "date": "2026-11-11",
       "items": [
+        {
+          "sha": "59ff877",
+          "type": "feat",
+          "text": "直播分享异常改走首页 toast，并补齐未安装下载原型",
+          "author": "u ｌ",
+          "time": "17:06",
+          "pages": [
+            {
+              "file": "store-app/h5/live-promo.html",
+              "module": "",
+              "title": "直播推广 · 丰银宝"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-share.html",
+              "module": "",
+              "title": "直播分享 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-password.html",
+              "module": "",
+              "title": "账号密码登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-phone.html",
+              "module": "",
+              "title": "手机快速登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-register.html",
+              "module": "",
+              "title": "账号注册 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-wechat.html",
+              "module": "",
+              "title": "微信授权登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login.html",
+              "module": "",
+              "title": "登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/scan-store.html",
+              "module": "",
+              "title": "扫一扫 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/switch-address.html",
+              "module": "",
+              "title": "切换门店 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "user-app/h5/live-share.html",
+              "text": "场次失效/缺失/无权取消拦截页，按门店规则处理后进直播首页并提示；网络失败扫码来源回扫一扫，外链可重试；未安装展示应用市场下载页"
+            },
+            {
+              "file": "user-app/h5/scan-store.html",
+              "text": "扫直播码标记来源，便于网络失败回扫码页"
+            },
+            {
+              "file": "store-app/h5/live-promo.html",
+              "text": "分享文案改回海报内底部整行，App 文案为「打开冷丰app扫一扫，看直播」"
+            },
+            {
+              "file": null,
+              "text": "同步【门店直播分享二维码】与【628】异常口径，剔除本期不做与 Google Play 相关表述"
+            }
+          ]
+        },
+        {
+          "sha": "0028f53",
+          "type": "feat",
+          "text": "门店直播海报支持小程序与 App 两套分享码",
+          "author": "u ｌ",
+          "time": "16:40",
+          "pages": [
+            {
+              "file": "store-app/h5/live-promo.html",
+              "module": "",
+              "title": "直播推广 · 丰银宝"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-share.html",
+              "module": "",
+              "title": "直播分享 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-password.html",
+              "module": "",
+              "title": "账号密码登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-phone.html",
+              "module": "",
+              "title": "手机快速登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-register.html",
+              "module": "",
+              "title": "账号注册 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login-wechat.html",
+              "module": "",
+              "title": "微信授权登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/login.html",
+              "module": "",
+              "title": "登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/scan-store.html",
+              "module": "",
+              "title": "扫一扫 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/switch-address.html",
+              "module": "",
+              "title": "切换门店 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "store-app/h5/live-promo.html",
+              "text": "生成海报可切换小程序/App 海报；底栏提示「微信扫一扫，看直播」「打开冷丰app扫一扫，看直播」"
+            },
+            {
+              "file": "user-app/h5/live-share.html",
+              "text": "新增落地页，区分小程序/App 扫码与唤起流程"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "text": "功能服务新增扫一扫入口"
+            },
+            {
+              "file": "user-app/h5/scan-store.html",
+              "text": "统一识别门店推广码与直播分享码"
+            },
+            {
+              "file": null,
+              "text": "新增并挂载【门店直播分享二维码】PRD，同步底栏提示文案"
+            }
+          ]
+        },
         {
           "sha": "f071e7b",
           "type": "docs",
@@ -4120,6 +4318,11 @@
               "title": "黑灯直播间 · 用户 APP"
             },
             {
+              "file": "user-app/h5/live-share.html",
+              "module": "",
+              "title": "直播分享 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/order-aftersale-list.html",
               "module": "",
               "title": "退款/售后 · 用户 APP"
@@ -7981,6 +8184,11 @@
               "title": "黑灯直播间 · 用户 APP"
             },
             {
+              "file": "user-app/h5/live-share.html",
+              "module": "",
+              "title": "直播分享 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/login-password.html",
               "module": "",
               "title": "账号密码登录 · 用户 APP"
@@ -8919,6 +9127,11 @@
               "title": "黑灯直播间 · 用户 APP"
             },
             {
+              "file": "user-app/h5/live-share.html",
+              "module": "",
+              "title": "直播分享 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/profile.html",
               "module": "",
               "title": "我的 · 用户 APP"
@@ -9128,6 +9341,11 @@
               "file": "user-app/h5/live-room.html",
               "module": "",
               "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-share.html",
+              "module": "",
+              "title": "直播分享 · 用户 APP"
             },
             {
               "file": "user-app/h5/mall.html",
@@ -9708,6 +9926,11 @@
               "file": "user-app/h5/live-room.html",
               "module": "",
               "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-share.html",
+              "module": "",
+              "title": "直播分享 · 用户 APP"
             },
             {
               "file": "user-app/h5/profile.html",
@@ -16341,6 +16564,11 @@
               "title": "黑灯直播间 · 用户 APP"
             },
             {
+              "file": "user-app/h5/live-share.html",
+              "module": "",
+              "title": "直播分享 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/login-password.html",
               "module": "",
               "title": "账号密码登录 · 用户 APP"
@@ -16374,6 +16602,11 @@
               "file": "user-app/h5/profile.html",
               "module": "",
               "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/scan-store.html",
+              "module": "",
+              "title": "扫一扫 · 用户 APP"
             }
           ],
           "global": true,
@@ -17683,6 +17916,11 @@
               "title": "黑灯直播间 · 用户 APP"
             },
             {
+              "file": "user-app/h5/live-share.html",
+              "module": "",
+              "title": "直播分享 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/login-password.html",
               "module": "",
               "title": "账号密码登录 · 用户 APP"
@@ -17731,6 +17969,11 @@
               "file": "user-app/h5/profile.html",
               "module": "",
               "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/scan-store.html",
+              "module": "",
+              "title": "扫一扫 · 用户 APP"
             },
             {
               "file": "user-app/h5/set-password.html",
@@ -17898,6 +18141,11 @@
               "file": "user-app/h5/live-room.html",
               "module": "",
               "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-share.html",
+              "module": "",
+              "title": "直播分享 · 用户 APP"
             },
             {
               "file": "user-app/h5/login-password.html",
@@ -20274,6 +20522,11 @@
               "file": "user-app/h5/live-room.html",
               "module": "",
               "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-share.html",
+              "module": "",
+              "title": "直播分享 · 用户 APP"
             },
             {
               "file": "user-app/h5/mall.html",
@@ -23656,6 +23909,11 @@
               "title": "黑灯直播间 · 用户 APP"
             },
             {
+              "file": "user-app/h5/live-share.html",
+              "module": "",
+              "title": "直播分享 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/mall.html",
               "module": "",
               "title": "商城 · 用户 APP"
@@ -24160,6 +24418,11 @@
               "title": "黑灯直播间 · 用户 APP"
             },
             {
+              "file": "user-app/h5/live-share.html",
+              "module": "",
+              "title": "直播分享 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/mall.html",
               "module": "",
               "title": "商城 · 用户 APP"
@@ -24367,6 +24630,11 @@
               "file": "user-app/h5/live-room.html",
               "module": "",
               "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-share.html",
+              "module": "",
+              "title": "直播分享 · 用户 APP"
             },
             {
               "file": "user-app/h5/mall.html",
@@ -28160,6 +28428,11 @@
               "file": "user-app/h5/live-room.html",
               "module": "",
               "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-share.html",
+              "module": "",
+              "title": "直播分享 · 用户 APP"
             },
             {
               "file": "user-app/h5/login-password.html",
