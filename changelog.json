@@ -1,10 +1,91 @@
 {
-  "latestSha": "59ff877213728f38a4de66df180c8ced69cc39e2",
-  "total": 536,
+  "latestSha": "cc88efdb6d73fb9636d2d0dca1d088a309015634",
+  "total": 537,
   "days": [
     {
       "date": "2026-11-11",
       "items": [
+        {
+          "sha": "cc88efd",
+          "type": "feat",
+          "text": "需求签署完成后进入复核，并补齐门店端与贸易商端接单签署",
+          "author": "342-droid",
+          "time": "17:40",
+          "pages": [
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "module": "冷丰WMS",
+              "title": "需求单审核"
+            },
+            {
+              "file": "RBT/rbt_admit_store.html",
+              "module": "冷丰RBT",
+              "title": "门店管理"
+            },
+            {
+              "file": "RBT/rbt_contract_sign.html",
+              "module": "冷丰RBT",
+              "title": "合同签署"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_index.html",
+              "module": "冷丰RBT-移动端",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
+            },
+            {
+              "file": "RBT/rbt_product_package.html",
+              "module": "冷丰RBT",
+              "title": "商品包"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_demand.html",
+              "text": "待签署改为弹窗查看担保协议、销售合同和采购合同，冷丰供应链可确认采购合同；全部签完进入待复核；详情可查看担保金缴纳凭证；原型可一键签署"
+            },
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "text": "需求进入待复核后新增一条复核待审核；复核时按实时签署状态核对合同、确认担保金是否缴纳并上传凭证，通过后需求进入支付中"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "text": "首页仅 RBT 进入需求列表；列表只显示本店为需求门店或担保门店的单据；待签署可去签署，仅需求门店可取消；原型可切换门店"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "作为丰银宝贸易商端模块，首页只保留需求大厅；待接单与已接单可切换并显示条数；接单后待签署可签署销售合同和采购合同"
+            },
+            {
+              "file": null,
+              "text": "去掉 RBT 贸易商管理，贸易商改在业务伙伴档案维护；补充移动端、整体流程和复核单据方案文档"
+            }
+          ]
+        },
         {
           "sha": "59ff877",
           "type": "feat",
@@ -631,6 +712,11 @@
               "title": "门店管理"
             },
             {
+              "file": "RBT/rbt_contract_sign.html",
+              "module": "冷丰RBT",
+              "title": "合同签署"
+            },
+            {
               "file": "RBT/rbt_demand.html",
               "module": "冷丰RBT",
               "title": "需求单管理"
@@ -664,11 +750,6 @@
               "file": "RBT/rbt_product_package.html",
               "module": "冷丰RBT",
               "title": "商品包"
-            },
-            {
-              "file": "RBT/rbt_trader.html",
-              "module": "冷丰RBT",
-              "title": "贸易商管理"
             }
           ],
           "global": true,
@@ -1136,6 +1217,11 @@
               "title": "门店管理"
             },
             {
+              "file": "RBT/rbt_contract_sign.html",
+              "module": "冷丰RBT",
+              "title": "合同签署"
+            },
+            {
               "file": "RBT/rbt_demand.html",
               "module": "冷丰RBT",
               "title": "需求单管理"
@@ -1171,11 +1257,6 @@
               "title": "商品包"
             },
             {
-              "file": "RBT/rbt_trader.html",
-              "module": "冷丰RBT",
-              "title": "贸易商管理"
-            },
-            {
               "file": "SCM/basic_settings_business_tags.html",
               "module": "冷丰WMS",
               "title": "标签管理"
@@ -1204,8 +1285,8 @@
               "text": "分期配置: 页面标题、脚本与路径改为 RBT 命名"
             },
             {
-              "file": "RBT/rbt_trader.html",
-              "text": "页面标题、脚本与路径改为 RBT 命名"
+              "file": null,
+              "text": "贸易商管理: 页面标题、脚本与路径改为 RBT 命名"
             },
             {
               "file": "RBT/rbt_h5_store.html",
@@ -1280,11 +1361,6 @@
               "title": "商品包"
             },
             {
-              "file": "RBT/rbt_trader.html",
-              "module": "冷丰RBT",
-              "title": "贸易商管理"
-            },
-            {
               "file": "SCM/basic_settings_business_tags.html",
               "module": "冷丰WMS",
               "title": "标签管理"
@@ -1325,8 +1401,8 @@
               "text": "商品包占用按商品包+还款周期+还款方式唯一"
             },
             {
-              "file": "RBT/rbt_trader.html",
-              "text": "新增贸易商列表、审核与详情"
+              "file": null,
+              "text": "贸易商管理: 新增贸易商列表、审核与详情"
             },
             {
               "file": "RBT/rbt_h5_store.html",
@@ -5710,11 +5786,6 @@
               "file": "RBT/rbt_product_package.html",
               "module": "冷丰RBT",
               "title": "商品包"
-            },
-            {
-              "file": "RBT/rbt_trader.html",
-              "module": "冷丰RBT",
-              "title": "贸易商管理"
             },
             {
               "file": "SCM/purchase_order.html",
