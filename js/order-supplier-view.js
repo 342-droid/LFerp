@@ -37,7 +37,7 @@
   }
 
   function hidePlatformOnlyChrome() {
-    /* 保留批量上传/删除快递单；隐藏清分导出与批量退款等平台专属能力 */
+    /* 零售仍保留批量上传/删除快递单。代采列表不提供这两项。隐藏清分导出与批量退款等平台专属能力 */
     [
       'orderRetailClearingExport',
       'orderProxyClearingExport',
