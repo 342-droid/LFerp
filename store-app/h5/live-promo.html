@@ -6,7 +6,7 @@
   <title>直播推广 · 丰银宝</title>
   <link rel="stylesheet" href="../css/store-app.css?v=20260905-livepromo-bd">
   <link rel="stylesheet" href="../css/store-app-qrcode.css?v=20260904-livepromo">
-  <link rel="stylesheet" href="../css/store-app-live-promo.css?v=20261111-app-tip">
+  <link rel="stylesheet" href="../css/store-app-live-promo.css?v=20261111-tip-in-poster">
 </head>
 <body class="store-app-body">
   <div class="sa-shell sa-live-shell">
@@ -81,14 +81,14 @@
                 </div>
                 <div class="sa-poster-card__qr" id="posterQr" aria-hidden="true"></div>
               </div>
+              <!-- 分享文案在海报内底部整行，保存/分享一并带出 -->
+              <p class="sa-poster-card__tip" id="posterQrTip">微信扫一扫，看直播</p>
             </div>
           </div>
         </div>
       </div>
       <div class="sa-sheet">
         <h3 class="sa-sheet__title" id="posterSheetTitle">分享小程序海报</h3>
-        <!-- App 长提示放底栏整行展示，不挤在海报码旁 -->
-        <p class="sa-sheet__tip" id="posterQrTip">微信扫一扫，看直播</p>
         <div class="sa-sheet__row">
           <button type="button" class="sa-sheet__item" data-poster-act="wx">
             <span class="sa-sheet__ico sa-sheet__ico--wx" aria-hidden="true">
@@ -173,8 +173,8 @@
   <script src="../js/store-app-orders-mock.js?v=20260904-livepromo"></script>
   <script src="../js/store-app-toast.js?v=20260904-livepromo"></script>
   <script src="../js/store-app-live-session.js?v=20260905-livepromo-bd"></script>
-  <script src="../../user-app/js/user-app-live-invite.js?v=20261111-live-share"></script>
-  <script src="../js/store-app-live-promo.js?v=20261111-app-tip"></script>
+  <script src="../../user-app/js/user-app-live-invite.js?v=20261111-ex-home"></script>
+  <script src="../js/store-app-live-promo.js?v=20261111-tip-in-poster"></script>
   <script src="../../js/pg-prd-float.js?v=20260924-prd-all"></script>
 </body>
 </html>

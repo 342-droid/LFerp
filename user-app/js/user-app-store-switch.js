@@ -574,6 +574,8 @@
       try {
         var u = new URL(href, global.location.href);
         u.searchParams.set('client', 'app');
+        /* 标记来自扫一扫，网络失败时回扫码页 */
+        u.searchParams.set('source', 'scan');
         global.location.href = u.pathname + u.search + u.hash;
         return true;
       } catch (e) {
@@ -581,7 +583,9 @@
       }
     }
     if (typeof global.UaLiveInvite.runShareFlow === 'function') {
-      global.UaLiveInvite.runShareFlow({ payload: payload });
+      global.UaLiveInvite.runShareFlow({
+        payload: Object.assign({}, payload, { source: 'scan' })
+      });
       return true;
     }
     return false;
