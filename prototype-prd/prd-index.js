@@ -278,14 +278,17 @@ window.__PG_PRD_INDEX = {
       ]
     },
     {
-      "id": "门店档案和仓库档案停启用功能",
-      "title": "【门店档案和仓库档案停启用功能】",
-      "file": "门店档案和仓库档案停启用功能.md",
+      "id": "940-门店与仓库档案停启用",
+      "title": "【940】门店与仓库档案停启用",
+      "file": "940-门店与仓库档案停启用.md",
       "pages": [
         "MDM/mdm_archive_store.html",
         "MDM/mdm_archive_warehouse.html",
         "user-app/h5/switch-address.html",
-        "user-app/h5/home.html"
+        "user-app/h5/home.html",
+        "SCM/warehouse.html",
+        "store-app/h5/home.html",
+        "user-app/h5/scan-store.html"
       ]
     }
   ]
