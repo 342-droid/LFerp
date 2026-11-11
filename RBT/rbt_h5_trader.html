@@ -68,21 +68,90 @@
         .rbt-h5-phone.is-login .rbt-h5-login-form { display: block; }
         .rbt-h5-phone.is-app .rbt-h5-app { display: flex; }
         .rbt-h5-scroll { flex: 1; min-height: 0; overflow: auto; padding: 12px 12px 16px; }
-        .rbt-h5-tabbar {
-            flex: 0 0 56px;
-            display: flex;
-            border-top: 1px solid #eee;
-            background: #fff;
+        .rbt-h5-phone.is-home .rbt-h5-phone__head { display: none; }
+        .rbt-h5-scroll.is-home {
+            padding: 0 0 20px;
+            background: linear-gradient(180deg, #fff6ee 0%, #f4f6fb 240px, #f4f6fb 100%);
         }
-        .rbt-h5-tabbar button {
+        .rbt-h5-home__bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 22px 16px 8px;
+        }
+        .rbt-h5-home__avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #ff7019;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: none;
+        }
+        .rbt-h5-home__name {
             flex: 1;
+            min-width: 0;
+            color: #222;
+            font-size: 18px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .rbt-h5-home__tools {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: #8a8f99;
+            flex: none;
+        }
+        .rbt-h5-home__card {
+            margin: 16px 12px 0;
+            padding: 16px 8px 18px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(31, 35, 41, 0.04);
+        }
+        .rbt-h5-home__card h2 {
+            margin: 0 8px 16px;
+            color: #222;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        .rbt-h5-home__grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            row-gap: 18px;
+        }
+        .rbt-h5-tool {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            color: #333;
+            font-size: 12px;
+            line-height: 1.2;
+        }
+        button.rbt-h5-tool {
             border: 0;
             background: transparent;
-            color: #666;
-            font-size: 14px;
+            padding: 0;
             cursor: pointer;
+            font: inherit;
         }
-        .rbt-h5-tabbar button.is-on { color: #ff7019; font-weight: 600; }
+        .rbt-h5-tool__icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         .rbt-h5-empty { padding: 48px 12px; text-align: center; color: #999; font-size: 14px; }
         .rbt-h5-card {
             margin-bottom: 10px;
@@ -91,11 +160,95 @@
             background: #fff;
             border: 1px solid #eee;
         }
+        .rbt-h5-card h2 { margin: 0; font-size: 16px; color: #222; }
+        .rbt-h5-card p { margin: 6px 0 0; color: #666; font-size: 13px; line-height: 1.6; }
+        .rbt-h5-card__top { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+        .rbt-h5-status { flex: none; font-size: 12px; color: #ff7019; }
+        .rbt-h5-status.is-done { color: #52c41a; }
+        .rbt-h5-accept,
+        .rbt-sign-submit {
+            display: block;
+            width: 100%;
+            margin-top: 10px;
+            height: 36px;
+            border: 0;
+            border-radius: 8px;
+            background: #ff7019;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .rbt-sign-card {
+            margin-bottom: 10px;
+            padding: 12px;
+            border-radius: 10px;
+            background: #fff;
+            border: 1px solid #eee;
+        }
+        .rbt-sign-card h2 { margin: 0 0 8px; font-size: 16px; color: #222; }
+        .rbt-sign-card p { margin: 6px 0 0; color: #666; font-size: 13px; line-height: 1.6; }
+        .rbt-sign-party {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 10px 0;
+            border-top: 1px solid #f2f2f2;
+            font-size: 13px;
+        }
+        .rbt-sign-party b { display: block; color: #222; font-size: 13px; }
+        .rbt-sign-party span { color: #666; }
+        .rbt-sign-party em { flex: none; font-style: normal; color: #ff7019; }
+        .rbt-sign-party em.is-done { color: #52c41a; }
+        .rbt-sign-tip { margin: 4px 0 0; color: #888; font-size: 13px; line-height: 1.6; }
+        .rbt-sign-empty { padding: 24px 12px; text-align: center; color: #999; font-size: 14px; }
         .rbt-h5-bar {
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-bottom: 12px;
+        }
+        .rbt-h5-hall-tabs {
+            display: flex;
+            margin: 0 0 12px;
+            border: 1px solid #ffe0cc;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fff7f2;
+        }
+        .rbt-h5-hall-tabs button {
+            flex: 1;
+            height: 36px;
+            border: 0;
+            background: transparent;
+            color: #888;
+            font-size: 14px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .rbt-h5-hall-tabs button.is-on {
+            background: #ff7019;
+            color: #fff;
+            font-weight: 600;
+        }
+        .rbt-h5-hall-tabs em {
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            border-radius: 9px;
+            background: #ff7019;
+            color: #fff;
+            font-style: normal;
+            font-size: 12px;
+            line-height: 18px;
+            font-weight: 600;
+            text-align: center;
+        }
+        .rbt-h5-hall-tabs button.is-on em {
+            background: #fff;
+            color: #ff7019;
         }
         .rbt-h5-back {
             border: 0;
@@ -324,11 +477,6 @@
                         </form>
                         <div class="rbt-h5-app" id="rbtH5App">
                             <div class="rbt-h5-scroll" id="rbtH5Scroll"></div>
-                            <nav class="rbt-h5-tabbar" id="rbtH5Tabbar">
-                                <button type="button" data-tab="hall">需求大厅</button>
-                                <button type="button" data-tab="assets">资产台账</button>
-                                <button type="button" data-tab="mine">我的</button>
-                            </nav>
                         </div>
                     </div>
                 </section>
@@ -337,6 +485,9 @@
     </div>
     <script src="rbt-fresh.js"></script>
     <script src="../js/common.js"></script>
+    <script src="../js/mdm-trader-archive-store.js"></script>
+    <script src="rbt-demand-data.js"></script>
+    <script src="rbt-contract-sign.js"></script>
     <script src="rbt-h5-trader-app.js"></script>
     <script src="rbt-h5-trader-login.js"></script>
 </body>

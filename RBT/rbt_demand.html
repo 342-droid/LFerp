@@ -83,6 +83,23 @@
             color: #606266;
             font-size: 13px;
         }
+        .rbt-sign-modal__tools {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: none;
+        }
+        .rbt-sign-demo {
+            height: 32px;
+            padding: 0 12px;
+            border: 1px solid #ff7019;
+            border-radius: 4px;
+            background: #fff7f2;
+            color: #ff7019;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .rbt-sign-demo:hover { background: #ff7019; color: #fff; }
         .rbt-demand-contract__close {
             border: 0;
             background: transparent;
@@ -105,6 +122,46 @@
             color: #303133;
             background: #fafafa;
         }
+        .rbt-sign-modal__body {
+            padding: 16px 20px 20px;
+            overflow: auto;
+            background: #fafafa;
+        }
+        .rbt-sign-card {
+            margin-bottom: 12px;
+            padding: 16px;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            background: #fff;
+        }
+        .rbt-sign-card h2 { margin: 0 0 8px; font-size: 16px; color: #222; }
+        .rbt-sign-card p { margin: 6px 0 0; color: #666; font-size: 14px; line-height: 1.6; }
+        .rbt-sign-party {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 0;
+            border-top: 1px solid #f2f2f2;
+            font-size: 14px;
+        }
+        .rbt-sign-party b { display: block; color: #222; }
+        .rbt-sign-party span { color: #666; }
+        .rbt-sign-party em { flex: none; font-style: normal; color: #ff7019; }
+        .rbt-sign-party em.is-done { color: #52c41a; }
+        .rbt-sign-tip { margin: 0; color: #888; font-size: 14px; line-height: 1.6; }
+        .rbt-sign-empty { padding: 32px 12px; text-align: center; color: #999; }
+        .rbt-sign-modal .rbt-sign-submit {
+            display: inline-block;
+            margin-top: 8px;
+            height: 32px;
+            padding: 0 16px;
+            border: 0;
+            border-radius: 4px;
+            background: #ff7019;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -126,7 +183,7 @@
                     :request="requestRows"
                     row-key="code"
                     search-label-width="112px"
-                    action-column-width="100"
+                    action-column-width="120"
                     :default-page-size="20"
                     :auto-format-time="false">
                     <template v-slot:[slots.code]="{row}">
@@ -137,6 +194,7 @@
                     </template>
                     <template #actions="{row,elSize}">
                         <el-button v-if="canGoAudit(row)" :size="elSize" text type="primary" @click="goAudit(row)">去审核</el-button>
+                        <el-button v-if="canGoSign(row)" :size="elSize" text type="primary" @click="goSign(row)">去签署</el-button>
                     </template>
                 </vab-schema-table>
             </div>
@@ -149,6 +207,7 @@
     <script src="rbt-store-data.js"></script>
     <script src="rbt-demand-data.js"></script>
     <script src="rbt-demand-detail.js"></script>
+    <script src="rbt-contract-sign.js"></script>
     <script src="rbt-demand-list.js"></script>
 </body>
 </html>

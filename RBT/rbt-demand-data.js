@@ -303,8 +303,98 @@
                 createdAt: '2026-11-04 15:50:02',
                 updater: '王丽',
                 updatedAt: '2026-11-04 16:12:55'
+            },
+            {
+                code: 'XQ00010',
+                storeCode: 'ONS00005',
+                storeName: '余杭仓前便利店',
+                packageCode: 'SPB00003',
+                packageName: '果蔬尝鲜包',
+                skus: [
+                    { code: 'SKU10005', name: '云南小番茄 1kg', salePrice: '18.50', qty: 30 },
+                    { code: 'SKU10006', name: '新西兰奇异果 12粒', salePrice: '49.90', qty: 10 }
+                ],
+                guarantors: [{ code: 'ONS00001', name: '西湖中心生鲜店' }],
+                amount: '1054.00',
+                installmentCode: 'FQ00003',
+                installmentName: '果蔬短周期',
+                repayCycle: '日付',
+                repayMethod: '定额付',
+                repayPeriod: '3',
+                dailyAmount: '351.33',
+                status: '待接单',
+                creator: '周海',
+                createdAt: '2026-11-11 09:12:08',
+                updater: '王丽',
+                updatedAt: '2026-11-11 09:40:16'
+            },
+            {
+                code: 'XQ00011',
+                storeCode: 'ONS00002',
+                storeName: '东城和平里生鲜店',
+                packageCode: 'SPB00001',
+                packageName: '周末生鲜包',
+                skus: [
+                    { code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 15 },
+                    { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 20 }
+                ],
+                guarantors: [{ code: 'ONS00004', name: '五角场体验店' }],
+                amount: '1308.00',
+                installmentCode: 'FQ00001',
+                installmentName: '生鲜周转分期',
+                repayCycle: '日付',
+                repayMethod: '定额付',
+                repayPeriod: '6',
+                dailyAmount: '218.00',
+                status: '待接单',
+                creator: '夏利',
+                createdAt: '2026-11-11 10:26:41',
+                updater: '王丽',
+                updatedAt: '2026-11-11 10:48:03'
+            },
+            {
+                code: 'XQ00012',
+                storeCode: 'ONS00004',
+                storeName: '五角场体验店',
+                packageCode: 'SPB00002',
+                packageName: '肉类组合包',
+                skus: [
+                    { code: 'SKU10003', name: '冷鲜牛腩 1kg', salePrice: '78.00', qty: 8 },
+                    { code: 'SKU10011', name: '冷鲜猪里脊 1kg', salePrice: '52.80', qty: 12 }
+                ],
+                guarantors: [{ code: 'ONS00005', name: '余杭仓前便利店' }],
+                amount: '1257.60',
+                installmentCode: 'FQ00002',
+                installmentName: '肉类备货分期',
+                repayCycle: '日付',
+                repayMethod: '比例付',
+                repayPeriod: '8.00%',
+                dailyAmount: '',
+                status: '待接单',
+                creator: '赵倩',
+                createdAt: '2026-11-11 11:05:27',
+                updater: '王丽',
+                updatedAt: '2026-11-11 11:22:19'
             }
         ];
+    }
+
+    /* 已有会话缺演示中的待接单时补上，避免大厅被接空后没有可看的单。已存在的单不改状态。 */
+    function ensurePendingSeed() {
+        var current = readRaw();
+        if (!current || !current.length) return;
+        var codes = {};
+        current.forEach(function (item) {
+            if (item && item.code) codes[item.code] = true;
+        });
+        var added = false;
+        seed().forEach(function (item) {
+            if (!item || item.status !== '待接单' || codes[item.code]) return;
+            current.push(item);
+            codes[item.code] = true;
+            added = true;
+        });
+        if (added) write(current);
     }
 
     function readRaw() {
@@ -329,6 +419,7 @@
     }
 
     function list() {
+        ensurePendingSeed();
         var current = readRaw();
         var seeded = false;
         if (!current || !current.length) {
@@ -527,6 +618,184 @@
         return target;
     }
 
+    /* 仅待接单可接。成功后进入待签署，并记下接单贸易商；已被接单则拒绝。 */
+    function acceptDemand(code, trader) {
+        var rows = list();
+        var target = null;
+        rows.some(function (item) {
+            if (item && item.code === code) {
+                target = item;
+                return true;
+            }
+            return false;
+        });
+        if (!target) return { ok: false, reason: 'missing' };
+        if (target.status !== '待接单' || target.traderName) {
+            return { ok: false, reason: 'taken', demand: target };
+        }
+        var name = (trader && (trader.name || trader.traderName)) || '贸易商';
+        target.traderName = name;
+        target.traderPhone = (trader && trader.phone) || '';
+        target.acceptedAt = nowText();
+        write(rows);
+        var saved = setStatus(code, '待签署', name);
+        if (!saved) return { ok: false, reason: 'missing' };
+        return { ok: true, demand: saved };
+    }
+
+    function partyKey(contractKey, role, code, name) {
+        if (role === 'trader') return contractKey + ':trader:' + (name || '');
+        if (role === 'supply') return contractKey + ':supply';
+        return contractKey + ':' + role + ':' + (code || '');
+    }
+
+    function signedMap(item) {
+        var signed = {};
+        (item && item.signings || []).forEach(function (row) {
+            if (row && row.key) signed[row.key] = row.signedAt || '';
+        });
+        return signed;
+    }
+
+    function bindParty(party, contractKey, signed) {
+        party.key = partyKey(contractKey, party.role, party.code, party.name);
+        party.signedAt = signed[party.key] || '';
+        return party;
+    }
+
+    /* 三份文件：担保协议（每家担保门店与需求门店）、销售合同（需求门店与贸易商）、采购合同（贸易商与冷丰供应链）。 */
+    function signContracts(item) {
+        if (!item) return [];
+        var signed = signedMap(item);
+        var seq = String(item.code || '').replace(/\D/g, '') || '00001';
+        var contracts = [];
+        var guarantors = (item.guarantors || []).filter(function (row) { return row && row.code; });
+        guarantors.forEach(function (row, index) {
+            var key = 'guarantee:' + row.code;
+            contracts.push({
+                key: key,
+                type: 'guarantee',
+                name: '担保协议',
+                code: 'DB' + seq + (guarantors.length > 1 ? '-' + (index + 1) : ''),
+                parties: [
+                    bindParty({ role: 'guarantor', roleLabel: '担保门店', code: row.code, name: row.name || row.code }, key, signed),
+                    bindParty({ role: 'store', roleLabel: '需求门店', code: item.storeCode || '', name: item.storeName || '需求门店' }, key, signed)
+                ]
+            });
+        });
+        contracts.push({
+            key: 'sale',
+            type: 'sale',
+            name: '销售合同',
+            code: 'XS' + seq,
+            parties: [
+                bindParty({ role: 'store', roleLabel: '需求门店', code: item.storeCode || '', name: item.storeName || '需求门店' }, 'sale', signed),
+                bindParty({ role: 'trader', roleLabel: '贸易商', code: '', name: item.traderName || '' }, 'sale', signed)
+            ]
+        });
+        contracts.push({
+            key: 'purchase',
+            type: 'purchase',
+            name: '采购合同',
+            code: 'CG' + seq,
+            parties: [
+                bindParty({ role: 'trader', roleLabel: '贸易商', code: '', name: item.traderName || '' }, 'purchase', signed),
+                bindParty({ role: 'supply', roleLabel: '冷丰供应链', code: 'supply', name: '冷丰供应链' }, 'purchase', signed)
+            ]
+        });
+        contracts.forEach(function (contract) {
+            contract.signStatus = contract.parties.every(function (party) { return !!party.signedAt; }) ? '已签署' : '待签署';
+        });
+        return contracts;
+    }
+
+    function signParties(item) {
+        var list = [];
+        signContracts(item).forEach(function (contract) {
+            (contract.parties || []).forEach(function (party) { list.push(party); });
+        });
+        return list;
+    }
+
+    function partyMatchesActor(party, actor) {
+        if (!party || !actor) return false;
+        if (party.role === 'trader') return actor.role === 'trader' && !!party.name && party.name === (actor.name || '');
+        if (party.role === 'supply') return actor.role === 'supply';
+        if (actor.role === 'trader' || actor.role === 'supply') return false;
+        return !!actor.code && party.code === actor.code && (party.role === 'store' || party.role === 'guarantor');
+    }
+
+    function matchParty(item, actor) {
+        var found = null;
+        signParties(item).some(function (party) {
+            if (partyMatchesActor(party, actor)) {
+                found = party;
+                return true;
+            }
+            return false;
+        });
+        return found;
+    }
+
+    function contractsDone(item) {
+        return signContracts(item).every(function (contract) {
+            return (contract.parties || []).every(function (party) { return !!party.signedAt; });
+        });
+    }
+
+    /* 当前签署方确认其中一份协议。三份协议的各方都签完后，需求进入待复核。 */
+    function signDemand(code, actor, contractKey) {
+        var rows = list();
+        var target = null;
+        rows.some(function (item) {
+            if (item && item.code === code) {
+                target = item;
+                return true;
+            }
+            return false;
+        });
+        if (!target) return { ok: false, reason: 'missing' };
+        if (target.status !== '待签署') return { ok: false, reason: 'status', demand: target };
+        var contract = null;
+        signContracts(target).some(function (row) {
+            if (row.key === contractKey) {
+                contract = row;
+                return true;
+            }
+            return false;
+        });
+        var mine = null;
+        if (contract) {
+            contract.parties.some(function (party) {
+                if (partyMatchesActor(party, actor)) {
+                    mine = party;
+                    return true;
+                }
+                return false;
+            });
+        }
+        if (!mine) return { ok: false, reason: 'party', demand: target };
+        if (mine.signedAt) return { ok: false, reason: 'signed', demand: target };
+        target.signings = target.signings || [];
+        target.signings.push({
+            key: mine.key,
+            role: mine.role,
+            code: mine.code || '',
+            name: mine.name || '',
+            contractKey: contractKey,
+            signedAt: nowText()
+        });
+        var done = contractsDone(target);
+        if (!done) {
+            touchAudit(target, mine.name || '签署');
+            write(rows);
+            return { ok: true, done: false, demand: target };
+        }
+        write(rows);
+        var saved = setStatus(code, '待复核', mine.name || '签署');
+        return { ok: true, done: true, demand: saved || target };
+    }
+
     /* ---------- 审核中心 · 需求单审核 ---------- */
     var AUDIT_KEY = 'rbt_demand_audit_v1';
     var AUDIT_STATUSES = ['待审核', '审核通过', '审核驳回', '已取消'];
@@ -581,20 +850,60 @@
             status: status,
             auditor: status === '待审核' ? '' : (demand.updater || '王丽'),
             auditedAt: status === '待审核' ? '' : (demand.updatedAt || ''),
-            opinion: status === '审核驳回' ? (demand.rejectReason || '不符合放款条件') : ''
+            opinion: status === '审核驳回' ? (demand.rejectReason || '不符合放款条件') : '',
+            stage: '初审'
         };
     }
 
-    function findAuditByDemand(list, demandCode) {
+    function auditStage(item) {
+        return item && item.stage === '复核' ? '复核' : '初审';
+    }
+
+    /* 同一需求单可能有初审、复核两条。未指定环节时取初审。 */
+    function findAuditByDemand(list, demandCode, stage) {
+        var primary = null;
+        var fallback = null;
+        (list || []).some(function (item) {
+            if (!item || item.demandCode !== demandCode) return false;
+            if (stage && auditStage(item) === stage) {
+                primary = item;
+                return true;
+            }
+            if (!stage && auditStage(item) === '初审') {
+                primary = item;
+                return true;
+            }
+            if (!fallback) fallback = item;
+            return false;
+        });
+        return primary || (stage ? null : fallback);
+    }
+
+    function findAuditById(list, id) {
         var found = null;
         (list || []).some(function (item) {
-            if (item && item.demandCode === demandCode) {
+            if (item && item.id === id) {
                 found = item;
                 return true;
             }
             return false;
         });
         return found;
+    }
+
+    function ensureReviewAudit(demand, rows) {
+        var review = findAuditByDemand(rows, demand.code, '复核');
+        if (review) return review;
+        var created = buildAuditFromDemand(demand, rows);
+        created.stage = '复核';
+        created.status = '待审核';
+        created.submitter = demand.updater || demand.creator || '系统';
+        created.submittedAt = nowText();
+        created.auditor = '';
+        created.auditedAt = '';
+        created.opinion = '';
+        rows.unshift(created);
+        return created;
     }
 
     /* 门店发布成功：写入一条待审核记录。 */
@@ -633,24 +942,41 @@
     function syncAuditByDemand(demand, operator) {
         if (!demand || !demand.code) return null;
         var rows = readAuditsRaw() || [];
-        var target = findAuditByDemand(rows, demand.code);
+        var target = findAuditByDemand(rows, demand.code, '初审');
         if (!target) {
             target = buildAuditFromDemand(demand, rows);
+            target.stage = '初审';
             rows.unshift(target);
         }
-        var nextStatus = auditStatusFromDemand(demand);
-        target.status = nextStatus;
         target.storeName = demand.storeName || target.storeName;
         target.amount = demand.amount || target.amount;
-        if (nextStatus === '待审核') {
+        if (demand.status === '待审核') {
+            target.status = '待审核';
             target.auditor = '';
             target.auditedAt = '';
             target.opinion = '';
-        } else {
+        } else if (demand.status === '已取消' && target.status === '待审核') {
+            target.status = '已取消';
+            target.auditor = operator || demand.updater || '王丽';
+            target.auditedAt = demand.updatedAt || nowText();
+        } else if (demand.status === '已驳回' && target.status === '待审核') {
+            target.status = '审核驳回';
+            target.auditor = operator || demand.updater || '王丽';
+            target.auditedAt = demand.updatedAt || nowText();
+            target.opinion = demand.rejectReason || target.opinion || '不符合放款条件';
+        } else if (target.status === '待审核') {
+            target.status = '审核通过';
             target.auditor = operator || demand.updater || target.auditor || '王丽';
             target.auditedAt = demand.updatedAt || nowText();
-            if (nextStatus === '审核驳回' && demand.rejectReason) {
-                target.opinion = demand.rejectReason;
+        }
+        if (demand.status === '待复核') ensureReviewAudit(demand, rows);
+        if (demand.status === '已驳回') {
+            var review = findAuditByDemand(rows, demand.code, '复核');
+            if (review && review.status === '待审核') {
+                review.status = '审核驳回';
+                review.auditor = operator || demand.updater || '王丽';
+                review.auditedAt = demand.updatedAt || nowText();
+                review.opinion = demand.rejectReason || review.opinion || '不符合放款条件';
             }
         }
         writeAudits(rows);
@@ -668,20 +994,28 @@
         }
         demands.forEach(function (demand) {
             if (!demand || !demand.code) return;
-            var existing = findAuditByDemand(rows, demand.code);
+            var existing = findAuditByDemand(rows, demand.code, '初审');
             if (!existing) {
-                rows.push(buildAuditFromDemand(demand, rows));
+                existing = buildAuditFromDemand(demand, rows);
+                rows.push(existing);
                 changed = true;
-                return;
             }
             var expected = auditStatusFromDemand(demand);
-            if (existing.status === '待审核' && expected !== '待审核') {
+            if (!existing.stage) {
+                existing.stage = '初审';
+                changed = true;
+            }
+            if (existing.status === '待审核' && expected !== '待审核' && auditStage(existing) === '初审') {
                 existing.status = expected;
                 existing.auditor = demand.updater || existing.auditor || '王丽';
                 existing.auditedAt = demand.updatedAt || nowText();
                 if (expected === '审核驳回' && !existing.opinion) {
                     existing.opinion = demand.rejectReason || '不符合放款条件';
                 }
+                changed = true;
+            }
+            if (demand.status === '待复核' && !findAuditByDemand(rows, demand.code, '复核')) {
+                ensureReviewAudit(demand, rows);
                 changed = true;
             }
         });
@@ -710,21 +1044,66 @@
         return found;
     }
 
-    function approveAudit(id, operator) {
+    function approveAudit(id, operator, extra) {
         var target = getAudit(id);
         if (!target || target.status !== '待审核') return null;
         var who = operator || '王丽';
+        if (auditStage(target) === '复核') return approveReviewAudit(target, who, extra);
         var demand = setStatus(target.demandCode, '待接单', who);
         if (!demand) return null;
+        return patchAudit(id, function (row) {
+            row.status = '审核通过';
+            row.auditor = who;
+            row.auditedAt = nowText();
+            row.opinion = '';
+        });
+    }
+
+    function patchAudit(id, mutate) {
         var rows = readAuditsRaw() || [];
-        target = findAuditByDemand(rows, demand.code);
-        if (!target) return null;
-        target.status = '审核通过';
-        target.auditor = who;
-        target.auditedAt = nowText();
-        target.opinion = '';
+        var current = findAuditById(rows, id);
+        if (!current) return null;
+        mutate(current);
         writeAudits(rows);
-        return target;
+        return current;
+    }
+
+    function saveGuaranteeVoucher(code, voucher, operator) {
+        var rows = list();
+        var demand = null;
+        rows.some(function (item) {
+            if (item && item.code === code) {
+                demand = item;
+                return true;
+            }
+            return false;
+        });
+        if (!demand) return null;
+        demand.guaranteeDeposit = {
+            paid: true,
+            voucherName: voucher.voucherName || '缴纳凭证',
+            voucherType: voucher.voucherType || '',
+            voucherData: voucher.voucherData || '',
+            uploadedAt: nowText(),
+            uploadedBy: operator || '王丽'
+        };
+        write(rows);
+        return demand;
+    }
+
+    /* 原型演示：复核通过不拦截合同签署状态，弹窗固定展示已签署，不写入 PRD。正式规则按各合同实时签署状态核对，未全部签署不能通过。 */
+    function approveReviewAudit(target, who, extra) {
+        var demand = get(target.demandCode);
+        if (!demand || demand.status !== '待复核') return null;
+        if (!extra || extra.depositPaid !== true || !extra.voucherData) return null;
+        if (!saveGuaranteeVoucher(demand.code, extra, who)) return null;
+        if (!setStatus(demand.code, '支付中', who)) return null;
+        return patchAudit(target.id, function (row) {
+            row.status = '审核通过';
+            row.auditor = who;
+            row.auditedAt = nowText();
+            row.opinion = '';
+        });
     }
 
     function rejectAudit(id, opinion, operator) {
@@ -745,15 +1124,12 @@
         demand.rejectReason = reason;
         write(demandRows);
         if (!setStatus(target.demandCode, '已驳回', who)) return null;
-        var rows = readAuditsRaw() || [];
-        target = findAuditByDemand(rows, demand.code);
-        if (!target) return null;
-        target.status = '审核驳回';
-        target.auditor = who;
-        target.auditedAt = nowText();
-        target.opinion = reason;
-        writeAudits(rows);
-        return target;
+        return patchAudit(id, function (row) {
+            row.status = '审核驳回';
+            row.auditor = who;
+            row.auditedAt = nowText();
+            row.opinion = reason;
+        });
     }
 
     window.RbtDemandData = {
@@ -780,6 +1156,11 @@
         lockDemandDeal: lockDemandDeal,
         rebuildStoreDealAmounts: rebuildStoreDealAmounts,
         setStatus: setStatus,
+        acceptDemand: acceptDemand,
+        signContracts: signContracts,
+        signParties: signParties,
+        matchParty: matchParty,
+        signDemand: signDemand,
         listAudits: listAudits,
         getAudit: getAudit,
         createAuditForDemand: createAuditForDemand,

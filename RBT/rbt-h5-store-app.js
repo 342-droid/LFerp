@@ -36,7 +36,8 @@
     };
 
     var account = null;
-    var screen = 'list';
+    var screen = 'home';
+    var signCode = '';
     var packageCode = '';
     var pickedQty = {};
     var guarantors = [];
@@ -191,9 +192,16 @@
         sessionStorage.setItem(DEMAND_KEY, JSON.stringify(list));
     }
 
+    /* 列表只保留当前门店作为需求门店，或作为担保门店的单据。 */
     function storeDemands() {
         if (!account) return [];
-        return demands().filter(function (item) { return item.storeCode === account.code; });
+        return demands().filter(function (item) {
+            if (!item) return false;
+            if (item.storeCode === account.code) return true;
+            return (item.guarantors || []).some(function (row) {
+                return row && row.code === account.code;
+            });
+        });
     }
 
     function accountQuota() {
@@ -574,8 +582,14 @@
     function renderDemand(item, withCancel) {
         var names = (item.skus || []).map(skuQtyText).join('、') || '—';
         var guarantorNames = (item.guarantors || []).map(function (row) { return row.name; }).join('、') || '—';
-        var cancel = withCancel && canCancelDemand(item)
+        var cancel = withCancel && canCancelDemand(item) && item.storeCode === account.code
             ? '<button type="button" class="rbt-h5-cancel" data-cancel="' + esc(item.code) + '">取消</button>'
+            : '';
+        var sign = item.status === '待签署'
+            ? '<button type="button" class="rbt-h5-sign" data-sign="' + esc(item.code) + '">去签署</button>'
+            : '';
+        var storeLine = item.status === '待签署' || item.storeCode !== account.code
+            ? '<p>需求门店：' + esc(item.storeName || '—') + '</p>'
             : '';
         var statusClass = item.status === '已完成'
             ? ' is-done'
@@ -583,6 +597,7 @@
         return '<article class="rbt-h5-card">' +
             '<div class="rbt-h5-card__top"><h2>' + esc(item.code) + '</h2>' +
             '<span class="rbt-h5-status' + statusClass + '">' + esc(item.status) + '</span></div>' +
+            storeLine +
             '<p>商品包：' + esc(item.packageName) + '（' + esc(item.packageCode) + '）</p>' +
             '<p>商品：' + esc(names) + '</p>' +
             '<p>担保门店：' + esc(guarantorNames) + '</p>' +
@@ -596,15 +611,91 @@
                         '<p>预估每日结算货款：¥' + esc(item.dailyAmount || item.firstAmount || '—') + '</p>')
                 : '') +
             '<p>创建时间：' + esc(item.createdAt) + '</p>' +
+            sign +
             cancel +
             '</article>';
+    }
+
+    function toolIcon(svg, background) {
+        return '<span class="rbt-h5-tool__icon" style="background:' + background + '">' + svg + '</span>';
+    }
+
+    function svgIcon(paths) {
+        return '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" aria-hidden="true">' + paths + '</svg>';
+    }
+
+    /* 首页菜单对齐丰银宝门店首页。除 RBT 外只展示，不跳转。 */
+    function renderStoreHome() {
+        var storeName = account && account.name ? account.name : '门店';
+        var mark = storeName.slice(0, 1);
+        var gold = 'linear-gradient(180deg,#ffd15c,#ffb020)';
+        var red = 'linear-gradient(180deg,#ff7a59,#ff4d4f)';
+        var orange = 'linear-gradient(180deg,#ff9a45,#ff7019)';
+        var blue = 'linear-gradient(180deg,#5b9bff,#3b7cff)';
+        var member = svgIcon('<rect x="4" y="4" width="6" height="6" rx="1" fill="#fff"/><rect x="14" y="4" width="6" height="6" rx="1" fill="#fff"/><rect x="4" y="14" width="6" height="6" rx="1" fill="#fff"/><rect x="14" y="14" width="3" height="3" rx=".5" fill="#fff"/><rect x="18" y="14" width="2" height="2" fill="#fff"/><rect x="14" y="18" width="2" height="2" fill="#fff"/><rect x="17" y="17" width="3" height="3" rx=".5" fill="#fff"/>');
+        var live = svgIcon('<rect x="3" y="6" width="18" height="12" rx="2" stroke="#fff" stroke-width="1.8"/><path d="M10 9.5v5l4.5-2.5L10 9.5z" fill="#fff"/>');
+        var order = svgIcon('<rect x="6" y="3.5" width="12" height="17" rx="2" stroke="#fff" stroke-width="1.8"/><path d="M9 8h6M9 12h6M9 16h4" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>');
+        var receive = svgIcon('<path d="M4 7.5l8-3.5 8 3.5v9.2c0 .7-.4 1.3-1 1.6l-7 3.2-7-3.2c-.6-.3-1-.9-1-1.6V7.5z" stroke="#fff" stroke-width="1.6"/><path d="M8.5 12.2l2.2 2.2 4.8-5" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>');
+        var purchase = svgIcon('<path d="M6 7h13l-1.4 8.2a2 2 0 0 1-2 1.6H9.2a2 2 0 0 1-2-1.6L6 7z" stroke="#fff" stroke-width="1.6"/><path d="M9 7L8 4H4" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><circle cx="10" cy="19" r="1.2" fill="#fff"/><circle cx="16" cy="19" r="1.2" fill="#fff"/>');
+        var wallet = svgIcon('<rect x="3" y="6" width="18" height="13" rx="2" stroke="#fff" stroke-width="1.6"/><path d="M3 10h18" stroke="#fff" stroke-width="1.6"/><circle cx="16.5" cy="14.5" r="1.2" fill="#fff"/>');
+        var biz = svgIcon('<path d="M8 9.5c0-2.2 1.6-4 4-4s4 1.8 4 4c0 1.4-.6 2.5-1.6 3.2-.6.4-1 .9-1.1 1.6h-2.6c-.1-.7-.5-1.2-1.1-1.6C8.6 12 8 10.9 8 9.5z" stroke="#fff" stroke-width="1.5"/><path d="M9 16.5h6M10.2 19h3.6" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>');
+        var stock = svgIcon('<path d="M4 9.5L12 5l8 4.5v8L12 22l-8-4.5v-8z" stroke="#fff" stroke-width="1.6"/><circle cx="15.5" cy="15.5" r="2.2" stroke="#fff" stroke-width="1.4"/><path d="M17.2 17.2L19 19" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>');
+        var aftersale = svgIcon('<path d="M7 8H5.5A2.5 2.5 0 0 0 3 10.5V17a2 2 0 0 0 2 2h8" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><path d="M7 8l2.2-2.2M7 8l2.2 2.2" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><rect x="9" y="8" width="12" height="10" rx="2" stroke="#fff" stroke-width="1.6"/>');
+        var onboard = svgIcon('<rect x="5" y="3.5" width="12" height="16" rx="2" stroke="#fff" stroke-width="1.6"/><path d="M8 8h6M8 12h4" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/><path d="M14 15.5l1.4 1.4 3-3.2" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>');
+        var rbt = svgIcon('<rect x="4" y="4" width="6.2" height="6.2" rx="1.2" fill="#fff"/><rect x="13.8" y="4" width="6.2" height="6.2" rx="1.2" fill="#fff" opacity=".7"/><rect x="4" y="13.8" width="6.2" height="6.2" rx="1.2" fill="#fff" opacity=".7"/><rect x="13.8" y="13.8" width="6.2" height="6.2" rx="1.2" fill="#fff" opacity=".7"/>');
+        var scan = svgIcon('<path d="M4 8V5.5A1.5 1.5 0 0 1 5.5 4H8M16 4h2.5A1.5 1.5 0 0 1 20 5.5V8M20 16v2.5a1.5 1.5 0 0 1-1.5 1.5H16M8 20H5.5A1.5 1.5 0 0 1 4 18.5V16M8 12h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>');
+        var bag = svgIcon('<path d="M6.8 8.2h10.4l-.9 11a1.4 1.4 0 0 1-1.4 1.3H9.1a1.4 1.4 0 0 1-1.4-1.3l-.9-11z" stroke="currentColor" stroke-width="1.6"/><path d="M9.2 8.2V6.6A2.8 2.8 0 0 1 12 3.8a2.8 2.8 0 0 1 2.8 2.8v1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="17.4" cy="5.6" r="2.1" fill="#ff8a3d"/>');
+        var bell = svgIcon('<path d="M6 16.5h12l-1.2-1.6V10a4.8 4.8 0 1 0-9.6 0v4.9L6 16.5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 16.5a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>');
+        var gear = svgIcon('<path fill="currentColor" d="M19.4 13.1c.1-.4.1-.7.1-1.1s0-.7-.1-1.1l1.7-1.3a.5.5 0 0 0 .1-.6l-1.6-2.8a.5.5 0 0 0-.6-.2l-2 .8a6.2 6.2 0 0 0-1.9-1.1l-.3-2.1a.5.5 0 0 0-.5-.4h-3.2a.5.5 0 0 0-.5.4l-.3 2.1c-.7.3-1.3.7-1.9 1.1l-2-.8a.5.5 0 0 0-.6.2L2.8 9a.5.5 0 0 0 .1.6l1.7 1.3c-.1.4-.1.7-.1 1.1s0 .7.1 1.1L2.9 14.4a.5.5 0 0 0-.1.6l1.6 2.8c.1.2.4.3.6.2l2-.8c.6.4 1.2.8 1.9 1.1l.3 2.1c0 .2.2.4.5.4h3.2c.3 0 .5-.2.5-.4l.3-2.1c.7-.3 1.3-.7 1.9-1.1l2 .8c.2.1.5 0 .6-.2l1.6-2.8a.5.5 0 0 0-.1-.6l-1.7-1.3zM12 15.2a3.2 3.2 0 1 1 0-6.4 3.2 3.2 0 0 1 0 6.4z"/>');
+        function shown(icon, label) {
+            return '<div class="rbt-h5-tool">' + icon + '<span>' + label + '</span></div>';
+        }
+        return '<div class="rbt-h5-home">' +
+            '<header class="rbt-h5-home__bar">' +
+            '<span class="rbt-h5-home__avatar">' + esc(mark) + '</span>' +
+            '<strong class="rbt-h5-home__name">' + esc(storeName) + '</strong>' +
+            '<span class="rbt-h5-home__tools">' + bell + gear + '</span>' +
+            '</header>' +
+            '<div class="rbt-h5-home__quick">' +
+            '<div class="rbt-h5-home__quick-item"><span class="rbt-h5-home__quick-icon">' + scan + '</span><span>扫码核销</span></div>' +
+            '<div class="rbt-h5-home__quick-item"><span class="rbt-h5-home__quick-icon">' + bag + '</span><span>售后</span></div>' +
+            '</div>' +
+            '<section class="rbt-h5-home__card">' +
+            '<h2>基础工具</h2>' +
+            '<div class="rbt-h5-home__grid">' +
+            shown(toolIcon(member, gold), '门店会员码') +
+            shown(toolIcon(live, red), '直播推广') +
+            shown(toolIcon(order, gold), '客户订单') +
+            shown(toolIcon(receive, orange), '收货') +
+            shown(toolIcon(purchase, red), '进货') +
+            shown(toolIcon(wallet, orange), '门店钱包') +
+            shown(toolIcon(biz, orange), '经营中心') +
+            shown(toolIcon(stock, blue), '库存查询') +
+            shown(toolIcon(aftersale, blue), '售后') +
+            shown(toolIcon(onboard, blue), '商户进件') +
+            '<button type="button" class="rbt-h5-tool" data-entry="rbt">' + toolIcon(rbt, orange) + '<span>RBT</span></button>' +
+            '</div></section></div>';
+    }
+
+    function syncHomeChrome() {
+        var phone = document.getElementById('rbtH5Phone');
+        var scroll = document.getElementById('rbtH5Scroll');
+        var on = screen === 'home';
+        if (phone) phone.classList.toggle('is-home', on);
+        if (scroll) scroll.classList.toggle('is-home', on);
     }
 
     function render() {
         var scroll = document.getElementById('rbtH5Scroll');
         if (!scroll) return;
+        syncHomeChrome();
         var createBar = document.getElementById('rbtH5Create');
         if (createBar) createBar.hidden = screen !== 'list';
+        if (screen === 'home') {
+            setHead('首页');
+            scroll.innerHTML = renderStoreHome();
+            return;
+        }
         if (screen === 'packages') {
             setHead('选择商品包');
             var choices = packages();
@@ -732,16 +823,26 @@
                 '<button type="button" class="rbt-h5-primary rbt-h5-publish" style="margin-top:16px;" data-publish>发布</button>';
             return;
         }
+        if (screen === 'sign') {
+            setHead('合同签署');
+            var signing = window.RbtDemandData && window.RbtDemandData.get(signCode);
+            scroll.innerHTML = '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="list">返回</button></div>' +
+                (window.RbtContractSign
+                    ? window.RbtContractSign.render(signing, { role: 'store', code: account && account.code, name: account && account.name })
+                    : '<div class="rbt-h5-empty">合同签署页不可用</div>');
+            return;
+        }
         setHead('需求列表');
         var rows = storeDemands();
-        scroll.innerHTML = rows.length
-            ? rows.map(function (item) { return renderDemand(item, true); }).join('')
-            : '<div class="rbt-h5-empty">暂无需求</div>';
+        scroll.innerHTML = '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="home">返回</button></div>' +
+            (rows.length
+                ? rows.map(function (item) { return renderDemand(item, true); }).join('')
+                : '<div class="rbt-h5-empty">暂无需求</div>');
     }
 
     function open(next) {
         account = next;
-        screen = 'list';
+        screen = 'home';
         packageCode = '';
         clearPicked();
         guarantors = [];
@@ -751,17 +852,26 @@
 
     function close() {
         account = null;
+        screen = 'home';
+        var phone = document.getElementById('rbtH5Phone');
         var scroll = document.getElementById('rbtH5Scroll');
-        if (scroll) scroll.innerHTML = '';
+        if (phone) phone.classList.remove('is-home');
+        if (scroll) {
+            scroll.classList.remove('is-home');
+            scroll.innerHTML = '';
+        }
         var createBar = document.getElementById('rbtH5Create');
         if (createBar) createBar.hidden = true;
     }
 
     document.getElementById('rbtH5App').addEventListener('click', function (event) {
+        var entry = event.target.closest('[data-entry]');
         var create = event.target.closest('[data-create]');
         var back = event.target.closest('[data-back]');
         var pkgButton = event.target.closest('[data-package]');
         var cancel = event.target.closest('[data-cancel]');
+        var sign = event.target.closest('[data-sign]');
+        var confirmSign = event.target.closest('[data-confirm-sign]');
         var nextStep = event.target.closest('[data-next]');
         var publish = event.target.closest('[data-publish]');
         var cycleBtn = event.target.closest('[data-cycle]');
@@ -794,6 +904,11 @@
             if (btn) btn.setAttribute('aria-expanded', 'false');
             if (pop) pop.setAttribute('hidden', '');
         });
+        if (entry && entry.getAttribute('data-entry') === 'rbt') {
+            screen = 'list';
+            render();
+            return;
+        }
         if (create) {
             if (blockNoAvailableQuota()) return;
             screen = 'packages';
@@ -885,6 +1000,25 @@
                 skuBox.checked = !skuBox.checked;
                 skuBox.dispatchEvent(new Event('change', { bubbles: true }));
             }
+            return;
+        }
+        if (confirmSign) {
+            var signedCode = confirmSign.getAttribute('data-confirm-sign');
+            var signApi = window.RbtDemandData;
+            var signResult = signApi && typeof signApi.signDemand === 'function'
+                ? signApi.signDemand(signedCode, { role: 'store', code: account && account.code, name: account && account.name }, confirmSign.getAttribute('data-contract-key'))
+                : { ok: false };
+            if (signResult && signResult.ok && signResult.done) toast('各方已完成签署，需求进入待复核');
+            else if (signResult && signResult.ok) toast('签署成功');
+            else if (signResult && signResult.reason === 'signed') toast('你已签署');
+            else toast('当前不能签署');
+            render();
+            return;
+        }
+        if (sign) {
+            signCode = sign.getAttribute('data-sign') || '';
+            screen = 'sign';
+            render();
             return;
         }
         if (cancel) {

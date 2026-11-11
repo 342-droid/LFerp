@@ -53,6 +53,7 @@
             justify-content: center;
             padding: 24px;
         }
+        .rbt-demand-contract-mask[hidden] { display: none !important; }
         .rbt-demand-contract {
             width: min(760px, 96vw);
             max-height: min(86vh, 920px);
@@ -95,6 +96,20 @@
             color: #303133;
             background: #fafafa;
         }
+        .rbt-review-body { padding: 16px 20px 8px; overflow: auto; }
+        .rbt-review-body h3 { margin: 16px 0 8px; font-size: 14px; color: #303133; }
+        .rbt-review-body h3:first-of-type { margin-top: 12px; }
+        .rbt-review-check { display: flex; gap: 18px; margin: 4px 0 8px; font-size: 14px; color: #303133; }
+        .rbt-review-check label { display: inline-flex; align-items: center; gap: 6px; }
+        .rbt-review-file { margin-top: 4px; font-size: 13px; }
+        .rbt-review-note { margin-top: 6px; color: #909399; font-size: 12px; }
+        .rbt-review-preview { margin-top: 8px; }
+        .rbt-review-preview img { display: block; max-width: 240px; border: 1px solid #eee; border-radius: 6px; }
+        .rbt-review-opinion { width: 100%; min-height: 72px; margin-top: 6px; padding: 8px 10px; border: 1px solid #dcdfe6; border-radius: 4px; font: inherit; resize: vertical; }
+        .rbt-review-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 20px 16px; border-top: 1px solid #ebeef5; }
+        .rbt-review-foot .is-danger { background: #fff; color: #cf1322; border: 1px solid #ffccc7; }
+        .rbt-aud-stage { display: inline-block; min-width: 40px; padding: 2px 8px; border-radius: 4px; font-size: 12px; text-align: center; background: #f0f5ff; color: #1d39c4; }
+        .rbt-aud-stage.is-review { background: #fff7e6; color: #d48806; }
     </style>
 </head>
 <body>
@@ -108,7 +123,7 @@
             <hr class="content-divider">
             <div class="content-title">审核中心 / RBT审核 / 需求单审核</div>
 
-            <div class="mdm-biz-tip" role="note">门店端<strong>发布需求</strong>成功后，需求单管理新增一条「待审核」数据，同时本页新增一条审核记录，可在此<strong>通过</strong>或<strong>驳回</strong>。</div>
+            <div class="mdm-biz-tip" role="note">门店端<strong>发布需求</strong>后，本页新增一条「初审」待审核。需求进入<strong>待复核</strong>后，再新增一条「复核」待审核。复核时需核对合同是否全部签署、需求门店担保金是否缴纳，并上传缴纳凭证。</div>
 
             <section class="search-section">
                 <form class="search-form" onsubmit="return false;">
@@ -150,6 +165,7 @@
                             <tr>
                                 <th>审核单号</th>
                                 <th>需求单号</th>
+                                <th>审核环节</th>
                                 <th>门店</th>
                                 <th>商品包</th>
                                 <th>货款总金额</th>
@@ -167,6 +183,39 @@
                 <div id="pagination-container"></div>
             </section>
         </main>
+    </div>
+
+    <div class="rbt-demand-contract-mask" id="rbtReviewMask" hidden>
+        <div class="rbt-demand-contract" role="dialog" aria-modal="true" aria-label="复核审核">
+            <div class="rbt-demand-contract__head">
+                <div>
+                    <div class="rbt-demand-contract__eyebrow">复核审核</div>
+                    <div class="rbt-demand-contract__title" id="rbtReviewTitle">需求单</div>
+                    <div class="rbt-demand-contract__meta">请核对以下事项后再通过</div>
+                </div>
+                <button type="button" class="rbt-demand-contract__close" data-review-close aria-label="关闭">&times;</button>
+            </div>
+            <div class="rbt-review-body">
+                <h3>1. 合同是否全部签署完成</h3>
+                <div id="rbtReviewContracts"></div>
+                <h3>2. 需求门店担保金是否缴纳</h3>
+                <div class="rbt-review-check">
+                    <label><input type="radio" name="rbtDeposit" value="yes"> 已缴纳</label>
+                    <label><input type="radio" name="rbtDeposit" value="no"> 未缴纳</label>
+                </div>
+                <h3>3. 上传需求门店的担保金缴纳凭证</h3>
+                <input class="rbt-review-file" id="rbtReviewFile" type="file" accept="image/*,.pdf">
+                <div class="rbt-review-note" id="rbtReviewFileName">支持图片或 PDF，通过复核时必须上传。</div>
+                <div class="rbt-review-preview" id="rbtReviewPreview"></div>
+                <h3>驳回原因</h3>
+                <textarea class="rbt-review-opinion" id="rbtReviewOpinion" placeholder="驳回时必填"></textarea>
+            </div>
+            <div class="rbt-review-foot">
+                <button type="button" class="btn btn-secondary" data-review-close>取消</button>
+                <button type="button" class="btn is-danger" id="rbtReviewReject">驳回</button>
+                <button type="button" class="btn btn-primary" id="rbtReviewPass">通过</button>
+            </div>
+        </div>
     </div>
 
     <script src="../js/common.js"></script>

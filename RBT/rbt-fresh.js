@@ -13,10 +13,7 @@
         'rbt_h5_store_session',
         'rbt_h5_store_passwords_v1',
         'rbt_h5_trader_accounts_v1',
-        'rbt_h5_trader_session',
-        'rbt_trader_list_v1',
-        'rbt_trader_list_v2',
-        'rbt_trader_list_v3'
+        'rbt_h5_trader_session'
     ];
     var nav = window.performance && performance.getEntriesByType
         ? performance.getEntriesByType('navigation')[0]

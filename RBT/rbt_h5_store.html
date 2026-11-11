@@ -10,10 +10,22 @@
         .rbt-h5-store-stage {
             min-height: calc(100vh - 88px);
             display: flex;
-            justify-content: center;
-            align-items: flex-start;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
             padding: 16px 0 28px;
             background: #f5f5f5;
+        }
+        .rbt-h5-switch {
+            margin: 0 0 12px;
+            height: 32px;
+            padding: 0 14px;
+            border: 1px solid #ff7019;
+            border-radius: 16px;
+            background: #fff;
+            color: #ff7019;
+            font-size: 13px;
+            cursor: pointer;
         }
         .rbt-h5-phone {
             width: 393px;
@@ -95,6 +107,105 @@
         .rbt-h5-phone.is-app .rbt-h5-app { display: flex; }
         .rbt-h5-phone.is-app .rbt-h5-pick { display: none; }
         .rbt-h5-scroll { flex: 1; min-height: 0; overflow: auto; padding: 12px 12px 16px; }
+        .rbt-h5-phone.is-home .rbt-h5-phone__head { display: none; }
+        .rbt-h5-scroll.is-home {
+            padding: 0 0 20px;
+            background: linear-gradient(180deg, #fff6ee 0%, #f4f6fb 240px, #f4f6fb 100%);
+        }
+        .rbt-h5-home__bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 22px 16px 6px;
+        }
+        .rbt-h5-home__avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #ff7019;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: none;
+        }
+        .rbt-h5-home__name {
+            flex: 1;
+            min-width: 0;
+            color: #222;
+            font-size: 18px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .rbt-h5-home__tools {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: #8a8f99;
+            flex: none;
+        }
+        .rbt-h5-home__quick {
+            display: flex;
+            justify-content: space-evenly;
+            padding: 18px 28px 16px;
+        }
+        .rbt-h5-home__quick-item,
+        .rbt-h5-tool {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            color: #333;
+            font-size: 12px;
+            line-height: 1.2;
+        }
+        .rbt-h5-home__quick-item { color: #4a4a4a; font-size: 13px; gap: 8px; }
+        .rbt-h5-home__quick-icon {
+            width: 28px;
+            height: 28px;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .rbt-h5-home__card {
+            margin: 0 12px;
+            padding: 16px 8px 18px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(31, 35, 41, 0.04);
+        }
+        .rbt-h5-home__card h2 {
+            margin: 0 8px 16px;
+            color: #222;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        .rbt-h5-home__grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            row-gap: 18px;
+        }
+        button.rbt-h5-tool {
+            border: 0;
+            background: transparent;
+            padding: 0;
+            cursor: pointer;
+            font: inherit;
+        }
+        .rbt-h5-tool__icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         .rbt-h5-create {
             flex: none;
             padding: 12px 16px;
@@ -159,6 +270,42 @@
             font-size: 13px;
             cursor: pointer;
         }
+        .rbt-h5-sign,
+        .rbt-sign-submit {
+            display: block;
+            width: 100%;
+            margin-top: 10px;
+            height: 36px;
+            border: 0;
+            border-radius: 8px;
+            background: #ff7019;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .rbt-sign-card {
+            margin-bottom: 10px;
+            padding: 12px;
+            border-radius: 10px;
+            background: #fff;
+            border: 1px solid #eee;
+        }
+        .rbt-sign-card h2 { margin: 0 0 8px; font-size: 16px; color: #222; }
+        .rbt-sign-card p { margin: 6px 0 0; color: #666; font-size: 13px; line-height: 1.6; }
+        .rbt-sign-party {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 10px 0;
+            border-top: 1px solid #f2f2f2;
+            font-size: 13px;
+        }
+        .rbt-sign-party b { display: block; color: #222; font-size: 13px; }
+        .rbt-sign-party span { color: #666; }
+        .rbt-sign-party em { flex: none; font-style: normal; color: #ff7019; }
+        .rbt-sign-party em.is-done { color: #52c41a; }
+        .rbt-sign-tip { margin: 4px 0 0; color: #888; font-size: 13px; line-height: 1.6; }
+        .rbt-sign-empty { padding: 24px 12px; text-align: center; color: #999; font-size: 14px; }
         .rbt-h5-empty { padding: 48px 12px; text-align: center; color: #999; font-size: 14px; }
         .rbt-h5-check {
             display: flex;
@@ -421,11 +568,12 @@
     <div class="container">
         <main class="main-content">
             <div class="rbt-h5-store-stage">
+                <button type="button" class="rbt-h5-switch" id="rbtH5SwitchStore">切换门店</button>
                 <section class="rbt-h5-phone is-app" id="rbtH5Phone" aria-label="门店端">
                     <div class="rbt-h5-toast" id="rbtH5Toast" role="status"></div>
                     <div class="rbt-h5-phone__head">
                         <h1>门店端</h1>
-                        <p id="rbtH5HeadText">需求列表</p>
+                        <p id="rbtH5HeadText">首页</p>
                     </div>
                     <div class="rbt-h5-phone__body">
                         <div class="rbt-h5-pick" id="rbtH5Pick" aria-label="选择门店"></div>
@@ -445,6 +593,7 @@
     <script src="../js/business-tag-prototype-store.js"></script>
     <script src="rbt-store-data.js"></script>
     <script src="rbt-demand-data.js"></script>
+    <script src="rbt-contract-sign.js"></script>
     <script src="rbt-h5-store-app.js"></script>
     <script src="rbt-h5-store-login.js"></script>
 </body>
