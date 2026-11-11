@@ -53,3 +53,108 @@
   right: 8px;
   bottom: 16px;
 }
+
+.ua-live-invite-demo {
+  max-height: 70vh;
+  overflow: auto;
+}
+
+.ua-live-share-page {
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+.ua-live-share-nav {
+  display: flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 12px;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+}
+
+.ua-live-share-nav__back {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+}
+
+.ua-live-share-nav__back svg {
+  width: 20px;
+  height: 20px;
+}
+
+.ua-live-share-nav__title {
+  flex: 1;
+  margin: 0;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  padding-right: 32px;
+}
+
+.ua-live-share-view {
+  padding: 24px 16px 40px;
+}
+
+.ua-live-share-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.ua-live-share-card__title {
+  margin: 0 0 10px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #222;
+}
+
+.ua-live-share-card__desc {
+  margin: 0 0 16px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #555;
+}
+
+.ua-live-share-card__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.ua-live-share-card__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #333;
+  font-size: 15px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.ua-live-share-card__btn--primary {
+  background: #ff7019;
+  border-color: #ff7019;
+  color: #fff;
+}
+
+.ua-live-share-card__note {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: #999;
+}
+
+.ua-live-room__live.is-upcoming {
+  background: rgba(0, 0, 0, 0.55);
+}

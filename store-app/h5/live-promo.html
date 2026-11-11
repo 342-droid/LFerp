@@ -6,7 +6,7 @@
   <title>直播推广 · 丰银宝</title>
   <link rel="stylesheet" href="../css/store-app.css?v=20260905-livepromo-bd">
   <link rel="stylesheet" href="../css/store-app-qrcode.css?v=20260904-livepromo">
-  <link rel="stylesheet" href="../css/store-app-live-promo.css?v=20261106-no-title-examples">
+  <link rel="stylesheet" href="../css/store-app-live-promo.css?v=20261111-app-tip">
 </head>
 <body class="store-app-body">
   <div class="sa-shell sa-live-shell">
@@ -38,11 +38,11 @@
             </span>
           </button>
           <ol class="sa-live-flow__steps" id="liveFlowSteps">
-            <li>店长/员工/BD 分享指定场次到微信群<small>链接和海报均携带当前门店、当前推广人账号</small></li>
-            <li>用户点击小程序链接或识别海报</li>
-            <li>进入冷丰鲜选小程序</li>
-            <li>注册登录后自动绑定分享门店<small>门店停业则绑定系统默认门店</small></li>
-            <li>进入该场直播页</li>
+            <li>店长/员工分享指定场次<small>生成海报含小程序海报与 App 海报两套 URL 码；BD 入口保留不扩展</small></li>
+            <li>用户扫对应海报码或打开链接<small>小程序码进小程序流程；App 码经微信中间页/浏览器唤起（均为 URL 码，非官方小程序码）</small></li>
+            <li>未登录先登录/注册，登录后继续原分享流程</li>
+            <li>场次可用则入会并切换自提门店<small>分享店停用时按用户已有关系回退/保留，不新增停用店会员</small></li>
+            <li>以最终当前门店校验分发与观看权限后进入原分享场次</li>
           </ol>
         </div>
         <div class="sa-live-who" id="livePromoWho"></div>
@@ -54,31 +54,41 @@
     <div id="livePoster" class="sa-overlay" hidden aria-hidden="true" role="dialog" aria-labelledby="posterTitle">
       <div class="sa-overlay__mask" data-poster-close></div>
       <div class="sa-overlay__stage">
-        <div class="sa-poster-card">
-          <div class="sa-poster-card__cover">
-            <img id="posterCover" alt="">
+        <div class="sa-poster-preview">
+          <div class="sa-poster-tabs" role="tablist" aria-label="海报类型">
+            <button type="button" class="sa-poster-tabs__btn is-active" data-poster-kind="mp" role="tab" aria-selected="true">小程序海报</button>
+            <button type="button" class="sa-poster-tabs__btn" data-poster-kind="app" role="tab" aria-selected="false">App 海报</button>
           </div>
-          <div class="sa-poster-card__body">
-            <div class="sa-poster-card__head">
-              <span class="sa-poster-card__tag" id="posterLiveBadge">未开始</span>
-              <h2 class="sa-poster-card__title" id="posterTitle"></h2>
+          <div class="sa-poster-card" id="livePosterCard">
+            <div class="sa-poster-card__cover">
+              <img id="posterCover" alt="">
             </div>
-            <div class="sa-poster-card__time" id="posterTime"></div>
-            <div class="sa-poster-card__brand">
-              <div class="sa-poster-card__logo">
-                <img src="../../user-app/assets/restock/tab-home-logo.svg" alt="">
+            <div class="sa-poster-card__body">
+              <div class="sa-poster-card__head">
+                <span class="sa-poster-card__tag" id="posterLiveBadge">未开始</span>
+                <h2 class="sa-poster-card__title" id="posterTitle"></h2>
               </div>
-              <div class="sa-poster-card__brand-text">
-                <div class="sa-poster-card__brand-name">冷丰鲜选</div>
-                <div class="sa-poster-card__slogan">游九州风物，集万家鲜香，看冷丰直播</div>
+              <div class="sa-poster-card__time" id="posterTime"></div>
+              <div class="sa-poster-card__foot">
+                <div class="sa-poster-card__brand">
+                  <div class="sa-poster-card__logo">
+                    <img src="../../user-app/assets/restock/tab-home-logo.svg" alt="">
+                  </div>
+                  <div class="sa-poster-card__brand-text">
+                    <div class="sa-poster-card__brand-name">冷丰鲜选</div>
+                    <div class="sa-poster-card__slogan">游九州风物，集万家鲜香，看冷丰直播</div>
+                  </div>
+                </div>
+                <div class="sa-poster-card__qr" id="posterQr" aria-hidden="true"></div>
               </div>
-              <div class="sa-poster-card__qr" id="posterQr"></div>
             </div>
           </div>
         </div>
       </div>
       <div class="sa-sheet">
-        <h3 class="sa-sheet__title">分享海报</h3>
+        <h3 class="sa-sheet__title" id="posterSheetTitle">分享小程序海报</h3>
+        <!-- App 长提示放底栏整行展示，不挤在海报码旁 -->
+        <p class="sa-sheet__tip" id="posterQrTip">微信扫一扫，看直播</p>
         <div class="sa-sheet__row">
           <button type="button" class="sa-sheet__item" data-poster-act="wx">
             <span class="sa-sheet__ico sa-sheet__ico--wx" aria-hidden="true">
@@ -163,7 +173,8 @@
   <script src="../js/store-app-orders-mock.js?v=20260904-livepromo"></script>
   <script src="../js/store-app-toast.js?v=20260904-livepromo"></script>
   <script src="../js/store-app-live-session.js?v=20260905-livepromo-bd"></script>
-  <script src="../js/store-app-live-promo.js?v=20261106-no-title-examples"></script>
+  <script src="../../user-app/js/user-app-live-invite.js?v=20261111-live-share"></script>
+  <script src="../js/store-app-live-promo.js?v=20261111-app-tip"></script>
   <script src="../../js/pg-prd-float.js?v=20260924-prd-all"></script>
 </body>
 </html>
