@@ -764,19 +764,52 @@
   function parseScanPayload(raw) {
     var text = String(raw || '').trim();
     if (!text) return null;
-    if (text.indexOf(SCAN_PREFIX) === 0) return text.slice(SCAN_PREFIX.length);
+    /* 直播分享 URL 码（非官方小程序码）优先交给直播分享流程 */
+    if (global.UaLiveInvite && typeof global.UaLiveInvite.parseSharePayloadText === 'function') {
+      var live = global.UaLiveInvite.parseSharePayloadText(text);
+      if (live && live.sessionId && live.storeId) {
+        return { type: 'live_share', payload: live };
+      }
+    }
+    if (text.indexOf(SCAN_PREFIX) === 0) {
+      return { type: 'store', storeId: text.slice(SCAN_PREFIX.length) };
+    }
     try {
       var url = new URL(text, global.location.href);
       var sid = url.searchParams.get('storeId') || url.searchParams.get('store');
-      if (sid) return sid;
+      if (sid && !url.searchParams.get('sessionId')) return { type: 'store', storeId: sid };
     } catch (e) {
       /* ignore */
     }
-    if (getCatalogById(text) || isSystemDefaultId(text)) return text;
+    if (getCatalogById(text) || isSystemDefaultId(text)) return { type: 'store', storeId: text };
     return null;
   }
 
+  function applyLiveShareScan(payload) {
+    if (!payload || !global.UaLiveInvite) return false;
+    if (typeof global.UaLiveInvite.buildShareUrl === 'function') {
+      var href = global.UaLiveInvite.buildShareUrl(payload);
+      try {
+        var u = new URL(href, global.location.href);
+        u.searchParams.set('client', 'app');
+        global.location.href = u.pathname + u.search + u.hash;
+        return true;
+      } catch (e) {
+        /* fall through */
+      }
+    }
+    if (typeof global.UaLiveInvite.runShareFlow === 'function') {
+      global.UaLiveInvite.runShareFlow({ payload: payload });
+      return true;
+    }
+    return false;
+  }
+
   function applyScannedStore(storeId, fromPage) {
+    if (storeId && typeof storeId === 'object') {
+      if (storeId.type === 'live_share') return applyLiveShareScan(storeId.payload);
+      storeId = storeId.storeId || storeId;
+    }
     var store = getCatalogById(storeId) || (isSystemDefaultId(storeId) ? getSystemDefaultStore() : null);
     if (!store) return false;
     if (isStoreDisabled(store)) {
@@ -793,12 +826,30 @@
     return true;
   }
 
+  function resolveScanReturnHref() {
+    var from = new URLSearchParams(global.location.search || '').get('from');
+    if (!from) return 'home.html';
+    try {
+      var decoded = decodeURIComponent(from);
+      /* 仅允许同站相对页，避免外链；未识别码前退出不绑店、不切店 */
+      if (!decoded || /^(https?:|javascript:|\/\/)/i.test(decoded)) return 'home.html';
+      return decoded;
+    } catch (e) {
+      return 'home.html';
+    }
+  }
+
   function initScanPage() {
     ensureBindSeeded();
     var back = $('scanBack');
     if (back) {
-      var from = new URLSearchParams(global.location.search || '').get('from');
-      back.setAttribute('href', from ? decodeURIComponent(from) : 'home.html');
+      var returnHref = resolveScanReturnHref();
+      back.setAttribute('href', returnHref);
+      back.addEventListener('click', function (e) {
+        /* 识别二维码前退出：只返回进入页，不触发扫码结果处理 */
+        e.preventDefault();
+        global.location.href = returnHref;
+      });
     }
     var album = $('scanAlbumBtn');
     if (album) {
@@ -814,14 +865,6 @@
       });
     }
 
-    var frame = $('scanFrame');
-    if (frame) {
-      frame.addEventListener('click', function () {
-        var sel = $('uaScanDemoStore');
-        var id = (sel && sel.value) || 'BJS00001';
-        applyScannedStore(id);
-      });
-    }
     mountScanDemo();
   }
 
@@ -844,25 +887,74 @@
     var options = CATALOG.map(function (s) {
       var tag = s.fallbackDefault ? '（系统默认）' : '';
       return (
-        '<option value="' + escapeHtml(s.id) + '">' + escapeHtml(s.name) + tag + '</option>'
+        '<option value="store:' +
+        escapeHtml(s.id) +
+        '">' +
+        escapeHtml(s.name) +
+        tag +
+        '</option>'
       );
     }).join('');
+    var liveMp =
+      global.UaLiveInvite && typeof global.UaLiveInvite.buildShareUrl === 'function'
+        ? global.UaLiveInvite.buildShareUrl({
+            ch: 'mp',
+            sessionId: 'sess-live-01',
+            storeId: 'HGH00002',
+            staffId: 'STAFF-001',
+            inviteName: '牛店长',
+            invitePhone: '13812348001'
+          })
+        : 'live-share.html?ch=mp&sessionId=sess-live-01&storeId=HGH00002&staffId=STAFF-001&inviteName=牛店长&invitePhone=13812348001';
+    var liveApp =
+      global.UaLiveInvite && typeof global.UaLiveInvite.buildShareUrl === 'function'
+        ? global.UaLiveInvite.buildShareUrl({
+            ch: 'app',
+            sessionId: 'sess-live-01',
+            storeId: 'HGH00002',
+            staffId: 'STAFF-001',
+            inviteName: '牛店长',
+            invitePhone: '13812348001'
+          })
+        : 'live-share.html?ch=app&sessionId=sess-live-01&storeId=HGH00002&staffId=STAFF-001&inviteName=牛店长&invitePhone=13812348001';
     panel.innerHTML =
       '<div class="ua-rg-demo__title">扫码验收开关</div>' +
       '<label class="ua-rg-demo__row">模拟扫到' +
       '<select id="uaScanDemoStore">' +
       options +
+      '<option value="live-mp">直播分享·小程序URL码</option>' +
+      '<option value="live-app">直播分享·App URL码</option>' +
       '</select></label>' +
-      '<p class="ua-rg-demo__hint" style="margin:0 0 8px;color:#999;font-size:10px;line-height:1.4">点取景框或下方按钮识别门店推广码</p>' +
+      '<p class="ua-rg-demo__hint" style="margin:0 0 8px;color:#999;font-size:10px;line-height:1.4">门店推广码或直播分享 URL 码（非官方小程序码）。点取景框/按钮按所选内容真实解析。</p>' +
       '<button type="button" class="ua-rg-demo__apply" id="scanSimulateBtn">模拟扫码并进入</button>';
     document.body.appendChild(panel);
     var sel = $('uaScanDemoStore');
-    if (sel) sel.value = 'BJS00001';
+    if (sel) sel.value = 'store:BJS00001';
+    function runScan() {
+      var val = (sel && sel.value) || 'store:BJS00001';
+      if (val === 'live-mp') {
+        applyScannedStore(parseScanPayload(liveMp));
+        return;
+      }
+      if (val === 'live-app') {
+        applyScannedStore(parseScanPayload(liveApp));
+        return;
+      }
+      if (val.indexOf('store:') === 0) {
+        applyScannedStore(val.slice(6));
+        return;
+      }
+      applyScannedStore(val);
+    }
+    var frame = $('scanFrame');
+    if (frame) {
+      frame.onclick = function () {
+        runScan();
+      };
+    }
     var simBtn = $('scanSimulateBtn');
     if (simBtn) {
-      simBtn.addEventListener('click', function () {
-        applyScannedStore((sel && sel.value) || 'BJS00001');
-      });
+      simBtn.addEventListener('click', runScan);
     }
   }
 

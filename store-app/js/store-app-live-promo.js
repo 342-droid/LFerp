@@ -329,9 +329,21 @@
     return info.storeName + ' · ' + info.staffName + ' ' + phone;
   }
 
-  function buildShareUrl(sess) {
+  function buildShareUrl(sess, channel) {
     var info = storeInfo();
-    var url = new URL('../../user-app/h5/live-room.html', location.href);
+    var ch = channel === 'app' ? 'app' : 'mp';
+    if (window.UaLiveInvite && typeof window.UaLiveInvite.buildShareUrl === 'function') {
+      return window.UaLiveInvite.buildShareUrl({
+        ch: ch,
+        sessionId: sess.id,
+        storeId: info.storeId,
+        staffId: info.staffId,
+        inviteName: info.staffName,
+        invitePhone: info.staffPhone
+      });
+    }
+    var url = new URL('../../user-app/h5/live-share.html', location.href);
+    url.searchParams.set('ch', ch);
     url.searchParams.set('sessionId', sess.id);
     url.searchParams.set('storeId', info.storeId);
     url.searchParams.set('staffId', info.staffId);
@@ -410,37 +422,72 @@
     return null;
   }
 
-  var state = { tab: 'live', current: null };
+  var state = { tab: 'live', current: null, posterKind: 'mp' };
 
-  function fillPoster(sess) {
+  function posterKindLabel(kind) {
+    return kind === 'app' ? 'App 海报' : '小程序海报';
+  }
+
+  function syncPosterKindTabs() {
+    var kind = state.posterKind === 'app' ? 'app' : 'mp';
+    document.querySelectorAll('[data-poster-kind]').forEach(function (btn) {
+      var on = btn.getAttribute('data-poster-kind') === kind;
+      btn.classList.toggle('is-active', on);
+      btn.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    var sheetTitle = document.getElementById('posterSheetTitle');
+    if (sheetTitle) sheetTitle.textContent = kind === 'app' ? '分享 App 海报' : '分享小程序海报';
+  }
+
+  function posterScanTip(kind) {
+    return kind === 'app' ? '打开冷丰app扫一扫，看直播' : '微信扫一扫，看直播';
+  }
+
+  function fillPoster(sess, kind) {
+    kind = kind === 'app' ? 'app' : 'mp';
+    state.posterKind = kind;
     var img = document.getElementById('posterCover');
     var title = document.getElementById('posterTitle');
     var timeEl = document.getElementById('posterTime');
     var liveEl = document.getElementById('posterLiveBadge');
+    var qrTip = document.getElementById('posterQrTip');
     var qrMount = document.getElementById('posterQr');
     if (img) img.src = sess.cover;
     if (title) title.textContent = sess.name;
     if (timeEl) timeEl.textContent = posterTime(sess);
-    if (liveEl) liveEl.textContent = badgeText(sess.status);
+    if (liveEl) {
+      liveEl.textContent = badgeText(sess.status);
+      liveEl.classList.toggle('is-upcoming', sess.status === 'upcoming');
+      liveEl.classList.toggle('is-ended', sess.status === 'ended');
+    }
+    /* 操作提示放底栏标题下整行展示（App 文案较长，不挤在码旁） */
+    if (qrTip) qrTip.textContent = posterScanTip(kind);
     if (qrMount) {
       qrMount.innerHTML = '';
-      var url = buildShareUrl(sess);
+      /* 两套海报各用独立 URL 码：ch=mp / ch=app；均为 URL 二维码，非微信官方小程序码 */
+      var url = buildShareUrl(sess, kind);
+      qrMount.setAttribute(
+        'title',
+        (kind === 'app' ? 'App URL 二维码' : '小程序 URL 二维码（非官方小程序码）') + '\n' + url
+      );
       if (window.QRCode) {
         new window.QRCode(qrMount, {
           text: url,
-          width: 72,
-          height: 72,
+          width: 68,
+          height: 68,
           colorDark: '#111111',
           colorLight: '#ffffff',
           correctLevel: window.QRCode.CorrectLevel.M
         });
       }
     }
+    syncPosterKindTabs();
   }
 
   function openPoster(sess) {
     state.current = sess;
-    fillPoster(sess);
+    /* 默认小程序海报 */
+    fillPoster(sess, 'mp');
     var el = document.getElementById('livePoster');
     if (el) {
       el.hidden = false;
@@ -508,12 +555,18 @@
     if (poster) {
       poster.addEventListener('click', function (e) {
         if (e.target.closest('[data-poster-close]')) closePoster();
+        var kindTab = e.target.closest('[data-poster-kind]');
+        if (kindTab && state.current) {
+          fillPoster(state.current, kindTab.getAttribute('data-poster-kind') || 'mp');
+          return;
+        }
         var act = e.target.closest('[data-poster-act]');
         if (!act || !state.current) return;
         var kind = act.getAttribute('data-poster-act');
-        if (kind === 'wx') toast('已将海报分享给微信好友（' + shareHint() + '）');
-        else if (kind === 'moment') toast('已将海报分享到朋友圈（' + shareHint() + '）');
-        else if (kind === 'download') toast('海报已保存到相册（演示）');
+        var posterName = posterKindLabel(state.posterKind);
+        if (kind === 'wx') toast('已将' + posterName + '分享给微信好友（' + shareHint() + '）');
+        else if (kind === 'moment') toast('已将' + posterName + '分享到朋友圈（' + shareHint() + '）');
+        else if (kind === 'download') toast(posterName + '已保存到相册（演示）');
         closePoster();
       });
     }

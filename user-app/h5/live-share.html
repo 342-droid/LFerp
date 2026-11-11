@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>直播分享 · 用户 APP</title>
+  <link rel="stylesheet" href="../css/user-app-shell.css">
+  <link rel="stylesheet" href="../css/user-app-register-gift.css">
+  <link rel="stylesheet" href="../css/user-app-live-invite.css?v=20261111-share">
+</head>
+<body class="user-app-body">
+  <div class="ua-mobile-shell ua-live-share-page">
+    <header class="ua-live-share-nav">
+      <a href="home.html" class="ua-live-share-nav__back" aria-label="返回">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg>
+      </a>
+      <h1 class="ua-live-share-nav__title">直播分享</h1>
+    </header>
+    <div id="liveShareView" class="ua-live-share-view">
+      <div class="ua-live-share-card">
+        <p class="ua-live-share-card__desc">正在识别分享信息…</p>
+        <p class="ua-live-share-card__note">本页识别的是 URL 二维码，不是微信官方小程序码。</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/user-app-blacklist-guard.js"></script>
+  <script src="../../js/mdm-system-default-store.js?v=20260827-sys-default"></script>
+  <script src="../../js/mdm-archive-enable-disable.js?v=20261110-store-wh-ed2"></script>
+  <script src="../js/user-app-switch-address.js?v=20260827-sys-default"></script>
+  <script src="../js/user-app-store-switch.js?v=20261111-live-share"></script>
+  <script src="../js/user-app-live-invite.js?v=20261111-live-share"></script>
+  <script src="../../js/pg-prd-float.js?v=20260924-prd-all"></script>
+</body>
+</html>
