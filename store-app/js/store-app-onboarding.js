@@ -152,15 +152,33 @@
 
   function makeDraft(fromRecord) {
     var fields = (fromRecord && fromRecord.fields) || {};
+    var entry =
+      (window.MdmEntryMaterials &&
+        window.MdmEntryMaterials.lookupForOnboarding({
+          onboardingKind: 'store',
+          merchantShortNameDefault: STORE.name
+        })) ||
+      {};
+    var eLic = entry.license_info || {};
+    var eLegal = entry.legal_info || {};
+    var eCard = entry.card_info || {};
+    function pickSaved(saved, fromEntry, demo) {
+      if (saved != null && String(saved).trim() !== '') return saved;
+      if (fromEntry != null && String(fromEntry).trim() !== '') return fromEntry;
+      return demo;
+    }
     var licAddr = splitOnboardAddress(
-      (fields.license_info && fields.license_info.address) || STORE.registeredAddress,
-      fields.license_info && fields.license_info.region,
-      fields.license_info && fields.license_info.address_detail
+      pickSaved(fields.license_info && fields.license_info.address, '', STORE.registeredAddress),
+      pickSaved(fields.license_info && fields.license_info.region, eLic.region, ''),
+      pickSaved(fields.license_info && fields.license_info.address_detail, eLic.address_detail, '')
     );
+    if (!licAddr.detail && eLic.address_detail && !(fields.license_info && fields.license_info.address_detail)) {
+      licAddr = splitOnboardAddress(eLic.address_detail, eLic.region || licAddr.region, eLic.address_detail);
+    }
     var legalAddr = splitOnboardAddress(
-      (fields.legal_info && fields.legal_info.legal_addr) || STORE.legalAddr || STORE.registeredAddress,
-      fields.legal_info && fields.legal_info.legal_region,
-      fields.legal_info && fields.legal_info.legal_addr_detail
+      pickSaved(fields.legal_info && fields.legal_info.legal_addr, '', STORE.legalAddr || STORE.registeredAddress),
+      pickSaved(fields.legal_info && fields.legal_info.legal_region, eLegal.legal_region, ''),
+      pickSaved(fields.legal_info && fields.legal_info.legal_addr_detail, eLegal.legal_addr_detail, '')
     );
     var base = {
       bind_type: '门店',
@@ -174,39 +192,42 @@
       contact_email: fields.contact_email || 'store@lf-demo.com',
       contact_name: fields.contact_name || STORE.contactName || STORE.legalPerson,
       license_info: {
-        name: (fields.license_info && fields.license_info.name) || STORE.licenseName,
-        code: (fields.license_info && fields.license_info.code) || STORE.registrationCode,
-        start_date: (fields.license_info && fields.license_info.start_date) || STORE.licenseValidFrom,
-        valid_date: (fields.license_info && fields.license_info.valid_date) || STORE.licenseValidTo,
-        found_date:
-          (fields.license_info && fields.license_info.found_date) ||
-          (fields.license_info && fields.license_info.start_date) ||
-          STORE.licenseValidFrom,
+        name: pickSaved(fields.license_info && fields.license_info.name, eLic.name, STORE.licenseName),
+        code: pickSaved(fields.license_info && fields.license_info.code, eLic.code, STORE.registrationCode),
+        start_date: pickSaved(fields.license_info && fields.license_info.start_date, eLic.start_date, STORE.licenseValidFrom),
+        valid_date: pickSaved(fields.license_info && fields.license_info.valid_date, eLic.valid_date, STORE.licenseValidTo),
+        found_date: pickSaved(
+          (fields.license_info && fields.license_info.found_date) || (fields.license_info && fields.license_info.start_date),
+          eLic.found_date || eLic.start_date,
+          STORE.licenseValidFrom
+        ),
         region: licAddr.region,
         address_detail: licAddr.detail,
         address: licAddr.full
       },
       legal_info: {
         cert_type: '身份证',
-        legal_name: (fields.legal_info && fields.legal_info.legal_name) || STORE.legalPerson,
-        id_no: (fields.legal_info && fields.legal_info.id_no) || STORE.idNumber,
-        id_start_date: (fields.legal_info && fields.legal_info.id_start_date) || STORE.idValidFrom,
-        id_valid_date: (fields.legal_info && fields.legal_info.id_valid_date) || STORE.idValidTo,
+        legal_name: pickSaved(fields.legal_info && fields.legal_info.legal_name, eLegal.legal_name, STORE.legalPerson),
+        id_no: pickSaved(fields.legal_info && fields.legal_info.id_no, eLegal.id_no, STORE.idNumber),
+        id_start_date: pickSaved(fields.legal_info && fields.legal_info.id_start_date, eLegal.id_start_date, STORE.idValidFrom),
+        id_valid_date: pickSaved(fields.legal_info && fields.legal_info.id_valid_date, eLegal.id_valid_date, STORE.idValidTo),
         legal_region: legalAddr.region,
         legal_addr_detail: legalAddr.detail,
         legal_addr: legalAddr.full
       },
       card_info: {
-        account_name: (fields.card_info && fields.card_info.account_name) || STORE.settlementAccountName,
-        card_no: (fields.card_info && fields.card_info.card_no) || STORE.bankAccount,
-        bank_name: (fields.card_info && fields.card_info.bank_name) || STORE.bankName,
-        bank_branch: (fields.card_info && fields.card_info.bank_branch) || STORE.branchName
+        account_name: pickSaved(fields.card_info && fields.card_info.account_name, eCard.account_name, STORE.settlementAccountName),
+        card_no: pickSaved(fields.card_info && fields.card_info.card_no, eCard.card_no, STORE.bankAccount),
+        bank_name: pickSaved(fields.card_info && fields.card_info.bank_name, eCard.bank_name, STORE.bankName),
+        bank_branch: pickSaved(fields.card_info && fields.card_info.bank_branch, eCard.bank_branch, STORE.branchName)
       },
-      /* 执照/法人：门店档案已有，演示默认已带出（与 BD 一致） */
-      license_pic: fields.license_pic != null ? fields.license_pic : true,
-      legal_cert_front_pic: fields.legal_cert_front_pic != null ? fields.legal_cert_front_pic : true,
-      legal_cert_back_pic: fields.legal_cert_back_pic != null ? fields.legal_cert_back_pic : true,
-      open_license_pic: fields.open_license_pic != null ? fields.open_license_pic : '',
+      /* 已保存的进件优先；否则带入驻资料。法人实名电话不写入法人手机号。 */
+      license_pic: fields.license_pic != null ? fields.license_pic : entry.license_pic != null ? entry.license_pic : true,
+      legal_cert_front_pic:
+        fields.legal_cert_front_pic != null ? fields.legal_cert_front_pic : entry.legal_cert_front_pic != null ? entry.legal_cert_front_pic : true,
+      legal_cert_back_pic:
+        fields.legal_cert_back_pic != null ? fields.legal_cert_back_pic : entry.legal_cert_back_pic != null ? entry.legal_cert_back_pic : true,
+      open_license_pic: fields.open_license_pic != null ? fields.open_license_pic : entry.open_license_pic != null ? entry.open_license_pic : '',
       store_header_pic: fields.store_header_pic || '',
       store_indoor_pic: fields.store_indoor_pic || '',
       store_cashier_desk_pic: fields.store_cashier_desk_pic || ''

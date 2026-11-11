@@ -94,6 +94,110 @@
   }
 
   /**
+   * 演示里多数门店按标准保证金 2000 视作已缴。
+   * 下面这几家余额低于平台应保有，用来在列表和营销选店里看到「未放开」。
+   * 门店在账户配置里改过应保有，或调过保证金余额后，以保存值为准。
+   */
+  var DEFAULT_PAID = 2000;
+  var SHORT_BALANCE = {
+    HGH00002: 800,
+    中心店01: 800,
+    'st-001': 0,
+    振宁十足: 0,
+    'st-002': 500,
+    萧山万达店: 500
+  };
+
+  function walletSnap() {
+    try {
+      if (global.StoreWalletDemo && typeof global.StoreWalletDemo.snapshot === 'function') {
+        return global.StoreWalletDemo.snapshot();
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    return null;
+  }
+
+  function isWalletStore(storeId, storeName) {
+    var snap = walletSnap();
+    if (!snap || !snap.storeName) return false;
+    var name = String(storeName || '').trim();
+    var id = String(storeId || '').trim();
+    return snap.storeName === name || snap.storeName === id;
+  }
+
+  function lookupOverride(storeId, storeName) {
+    var id = String(storeId || '').trim();
+    var name = String(storeName || '').trim();
+    var byId = id ? getStoreOverride(id) : null;
+    if (byId) return byId;
+    if (name && name !== id) return getStoreOverride(name);
+    return null;
+  }
+
+  function depositRequiredOf(storeId, storeName) {
+    var rule = resolve(storeId);
+    var name = String(storeName || '').trim();
+    var id = String(storeId || '').trim();
+    if (rule.depositSource !== 'store' && name && name !== id) {
+      var byName = resolve(name);
+      if (byName.depositSource === 'store') rule = byName;
+    }
+    if (rule.depositSource === 'store') {
+      return { required: rule.depositRequired, source: 'store' };
+    }
+    if (isWalletStore(id, name)) {
+      var snap = walletSnap();
+      if (snap && snap.depositRequired != null) {
+        return { required: round2(snap.depositRequired), source: 'store' };
+      }
+    }
+    return { required: rule.depositRequired, source: 'platform' };
+  }
+
+  function depositActualOf(storeId, storeName) {
+    var ov = lookupOverride(storeId, storeName);
+    if (ov && ov.depositActual != null && ov.depositActual !== '') return round2(ov.depositActual);
+    var id = String(storeId || '').trim();
+    var name = String(storeName || '').trim();
+    if (isWalletStore(id, name)) return round2(walletSnap().depositActual);
+    if (SHORT_BALANCE[id] != null) return SHORT_BALANCE[id];
+    if (name && SHORT_BALANCE[name] != null) return SHORT_BALANCE[name];
+    return DEFAULT_PAID;
+  }
+
+  /** 保证金余额达到应保有（含等于）即放开低利润下单和营销选店 */
+  function depositStatus(storeId, storeName) {
+    var req = depositRequiredOf(storeId, storeName);
+    var actual = depositActualOf(storeId, storeName);
+    var gap = round2(Math.max(0, req.required - actual));
+    return {
+      depositRequired: req.required,
+      depositActual: actual,
+      depositGap: gap,
+      released: actual + 0.001 >= req.required,
+      depositSource: req.source
+    };
+  }
+
+  function adjustDeposit(storeId, storeName, delta) {
+    var before = depositStatus(storeId, storeName);
+    var next = round2(before.depositActual + Number(delta || 0));
+    if (next < -0.001) {
+      return {
+        ok: false,
+        message: '保证金不足，出账失败（当前保证金¥' + before.depositActual.toFixed(2) + '）',
+        status: before
+      };
+    }
+    if (next < 0) next = 0;
+    var id = String(storeId || storeName || '').trim();
+    saveStoreOverride(id, { depositActual: next });
+    return { ok: true, status: depositStatus(storeId, storeName) };
+  }
+
+  /**
    * 解析生效规则：门店个性化 > 平台通用
    */
   function resolve(storeId) {
@@ -131,6 +235,9 @@
     saveStoreOverride: saveStoreOverride,
     clearStoreOverrideField: clearStoreOverrideField,
     resolve: resolve,
-    loadAll: loadAll
+    loadAll: loadAll,
+    isWalletStore: isWalletStore,
+    depositStatus: depositStatus,
+    adjustDeposit: adjustDeposit
   };
 })(typeof window !== 'undefined' ? window : this);

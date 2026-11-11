@@ -1523,6 +1523,25 @@
             saveNormalized(item);
             backdrop.remove();
             render();
+            if (item.auditStatus === '审核成功' && window.LfContract && (item.kind === 'store' || item.kind === 'supplier')) {
+                var fields = item.fields || {};
+                var partyName = String(item.merchantName || '').trim();
+                if (partyName && partyName !== '—') {
+                    window.LfContract.generateCoopTask({
+                        scene: item.kind,
+                        trigger: 'onboard',
+                        bizRef: 'onboard:' + (item.key || partyName),
+                        name: partyName,
+                        partnerType: item.kind === 'store' ? (fields.partner_division || fields.partnerDivision || '加盟店') : '',
+                        bizLine: fields.biz_line || fields.bizLine || '',
+                        brandName: fields.brand_name || fields.brandName || '',
+                        contact: fields.legal_mobile_no || fields.contact_mobile_no || '',
+                        phone: fields.legal_mobile_no || '',
+                        initiator: '进件成功',
+                        status: 'sign_progress'
+                    });
+                }
+            }
             showToast(item.auditStatus === '审核成功' ? '进件审核已完成' : '已流转下一审核节点', 'success');
         });
         footer.appendChild(cancel);

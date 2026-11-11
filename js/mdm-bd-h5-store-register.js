@@ -348,7 +348,8 @@
       boundBd: rec.boundBd || '',
       bizLine: rec.bizLine || '',
       brandName: rec.brandName || '',
-      bizLines: window.StoreBizStructure ? window.StoreBizStructure.normalizeBiz(rec.bizLines) : []
+      bizLines: window.StoreBizStructure ? window.StoreBizStructure.normalizeBiz(rec.bizLines) : [],
+      entryMaterials: rec.entryMaterials || null
     };
     if (!st0.selectedPoiId && st0.regionCascade && st0.detailAddress) {
       st0.selectedPoiId = 'legacy';
@@ -425,6 +426,7 @@
       privateCommerceFamiliarity: st.privateCommerceFamiliarity,
       surroundingCommunityNote: st.surroundingCommunityNote,
       confidenceReach1000: st.confidenceReach1000,
+      entryMaterials: st.entryMaterials || rec.entryMaterials,
       videoStorefrontIntroUrl: st.vidF || rec.videoStorefrontIntroUrl || undefined,
       videoInteriorIntroUrl: st.vidI || rec.videoInteriorIntroUrl || undefined,
       videoStorefrontIntroDone: !!(st.vidF || rec.videoStorefrontIntroDone),
@@ -739,6 +741,7 @@
           ? secAddr() +
             secFacade() +
             secContact() +
+            (window.MdmEntryMaterials ? window.MdmEntryMaterials.h5Section() : '') +
             secFranchiseMedia() +
             secFranchiseOps() +
             secFranchiseSpecial() +
@@ -758,6 +761,10 @@
       root.innerHTML = html;
 
       bindFormEvents();
+      if (window.MdmEntryMaterials) {
+        var entrySaved = st.entryMaterials || window.MdmEntryMaterials.load('store', st.name);
+        if (entrySaved) window.MdmEntryMaterials.fill(window.MdmEntryMaterials.h5Root(root) || root, entrySaved);
+      }
     }
 
     function secBuilding() {
@@ -1300,6 +1307,11 @@
       if (el('f_phone')) st.contactPhone = el('f_phone').value;
       if (el('f_code')) st.verifyCode = el('f_code').value;
       if (el('f_cname')) st.contactName = el('f_cname').value;
+      if (window.MdmEntryMaterials) {
+        var entryRoot = window.MdmEntryMaterials.h5Root(document);
+        st.entryMaterials = window.MdmEntryMaterials.read(entryRoot);
+        if ((st.name || '').trim()) window.MdmEntryMaterials.save('store', st.name, st.entryMaterials);
+      }
       if (el('f_area')) st.storeArea = el('f_area').value;
       if (el('f_floor')) st.storeFloors = el('f_floor').value;
       if (el('f_h500')) st.householdsWithin500m = el('f_h500').value;
@@ -1460,6 +1472,13 @@
       if (!st.name.trim()) {
         bdToast('请填写门店名称');
         return false;
+      }
+      if (window.MdmEntryMaterials) {
+        var entryErr = window.MdmEntryMaterials.validate(window.MdmEntryMaterials.h5Root(document));
+        if (entryErr) {
+          bdToast(entryErr);
+          return false;
+        }
       }
       /* 店长扫码注册不填事业线 / 品牌 / 业务线，仅 BD 添加、编辑必填 */
       if (isBdApp) {

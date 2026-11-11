@@ -356,6 +356,37 @@
         return wrap;
     }
 
+    function entryKindOf(row) {
+        return isSupplierAuditRow(row) ? 'supplier' : 'store';
+    }
+
+    function entryNameOf(row) {
+        return String((row && (row.storeName || row.subjectName)) || '').trim();
+    }
+
+    function appendEntryMaterials(body, row) {
+        if (!window.MdmEntryMaterials) return;
+        var saved = (row && row.entryMaterials) || window.MdmEntryMaterials.load(entryKindOf(row), entryNameOf(row));
+        window.MdmEntryMaterials.mount(body, { skin: 'audit', value: saved || null });
+    }
+
+    function rememberEntryMaterials(body, row) {
+        var box = body && body.querySelector('[data-entry-materials]');
+        if (!box || !window.MdmEntryMaterials) return;
+        row.entryMaterials = window.MdmEntryMaterials.read(box);
+    }
+
+    function captureEntryMaterials(body, row) {
+        var box = body && body.querySelector('[data-entry-materials]');
+        if (!box || !window.MdmEntryMaterials) return '';
+        var err = window.MdmEntryMaterials.validate(box);
+        if (err) return err;
+        var data = window.MdmEntryMaterials.read(box);
+        row.entryMaterials = data;
+        window.MdmEntryMaterials.save(entryKindOf(row), entryNameOf(row), data);
+        return '';
+    }
+
     /** 供应商入驻：字段与「新增供应商商家」一致（主体名称 / 主体类型 / 联系人 / 手机号码） */
     function appendSupplierRegistrationFields(body, row) {
         body.appendChild(el('div', 'supplier-detail-section-title', '供应商商家字段'));
@@ -363,6 +394,7 @@
         body.appendChild(detailRow('主体类型', row.subjectType || '供应商'));
         body.appendChild(detailRow('联系人', row.contact, 'contact', row));
         body.appendChild(detailRow('手机号码', row.phone, 'phone', row));
+        appendEntryMaterials(body, row);
     }
 
     function appendSupplierEditableFields(body, row) {
@@ -373,6 +405,7 @@
         var phoneInp = textInput('请输入手机号码', row.phone);
         phoneInp.type = 'tel';
         body.appendChild(editRow('手机号码', phoneInp, 'phone', row));
+        appendEntryMaterials(body, row);
     }
 
     function appendRegistrationFields(body, row) {
@@ -430,6 +463,7 @@
             body.appendChild(detailRow('已合作其他平台情况', row.otherPlatformsCooperation));
             body.appendChild(detailRow('近三天上播及销量截图', mediaGrid(row.broadcastSalesScreenshots)));
         }
+        appendEntryMaterials(body, row);
     }
 
     function formatAuditNow() {
@@ -534,6 +568,9 @@
             bizRef: 'audit:' + row.id,
             name: auditPartyName(row),
             partnerType: isSup ? '' : (displayPartnerDivision(row.partnerDivision) || '加盟店'),
+            bizLine: isSup ? '' : (row.bizLine || ''),
+            brandName: isSup ? '' : (row.brandName || ''),
+            trigger: 'audit',
             contact: [row.contact, row.phone].filter(Boolean).join(' '),
             phone: row.phone || '',
             address: row.address || '',
@@ -875,6 +912,7 @@
                 onPartnerChange(partnerSel);
             });
         }
+        appendEntryMaterials(body, row);
     }
 
     var AUDIT_ROWS = [
@@ -1371,6 +1409,11 @@
                 });
                 var approve = mkBtn('审核通过', true);
                 approve.addEventListener('click', function () {
+                    var entryErr = captureEntryMaterials(body, row);
+                    if (entryErr) {
+                        showToast(entryErr, 'error');
+                        return;
+                    }
                     var task = approveAudit(row, readOpinion(body));
                     backdrop.remove();
                     onDone();
@@ -1398,6 +1441,11 @@
                 });
                 var approve2 = mkBtn('审核通过', true);
                 approve2.addEventListener('click', function () {
+                    var entryErr = captureEntryMaterials(body, row);
+                    if (entryErr) {
+                        showToast(entryErr, 'error');
+                        return;
+                    }
                     var task = approveAudit(row, readOpinion(body));
                     backdrop.remove();
                     onDone();
@@ -1422,8 +1470,9 @@
             footer.innerHTML = '';
             body.appendChild(detailRow('当前状态', '编辑资料'));
 
-            function partnerChangeHandler(partnerSel) {
-                var patch = readEditableFromBody(body);
+                function partnerChangeHandler(partnerSel) {
+                    rememberEntryMaterials(body, row);
+                    var patch = readEditableFromBody(body);
                 applyEditableToRow(row, patch);
                 row.partnerDivision = partnerSel.value;
                 while (body.children.length > 1) {
@@ -1441,6 +1490,11 @@
             });
             var save = mkBtn('保存资料', false);
             save.addEventListener('click', function () {
+                var entryErr = captureEntryMaterials(body, row);
+                if (entryErr) {
+                    showToast(entryErr, 'error');
+                    return;
+                }
                 var vals = readEditableFromBody(body);
                 if (!validateAuditEdit(vals, row)) return;
                 applyEditableToRow(row, vals);

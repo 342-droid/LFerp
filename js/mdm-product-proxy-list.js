@@ -13,6 +13,7 @@
       specCount: 3,
       priceType: 'money',
       priceMoney: 28.8,
+      purchasePrice: 26,
       linePrice: 35,
       sales: 0,
       status: 'draft',
@@ -44,6 +45,7 @@
       specCount: 1,
       priceType: 'money',
       priceMoney: 0.01,
+      purchasePrice: 0.004,
       linePrice: null,
       sales: 0,
       status: 'draft',
@@ -888,6 +890,16 @@
     );
   }
 
+  function renderMarginCell(item) {
+    var purchase = item.purchasePrice;
+    if (purchase == null || purchase === '') {
+      var seed = SEED.filter(function (row) { return row.code === item.code; })[0];
+      purchase = seed ? seed.purchasePrice : '';
+    }
+    if (!window.LfLowMargin) return '<span class="product-proxy-dash">—</span>';
+    return window.LfLowMargin.listCell({ purchasePrice: purchase, priceMoney: item.priceMoney });
+  }
+
   function renderTable() {
     saveListState();
     var tbody = document.getElementById('proxyListTableBody');
@@ -920,6 +932,7 @@
             '<td class="product-proxy-table__td product-proxy-table__td--category">' + renderCategoryCell(item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--spec">' + item.spec + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--sale">' + renderSalePrice(item) + '</td>' +
+            '<td class="product-proxy-table__td product-proxy-table__td--margin">' + renderMarginCell(item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--line">' + renderLinePrice(item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--sales">' + window.ProductSales.render('proxy', item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--fulfillment">' + renderDeliveryMode(item) + '</td>' +

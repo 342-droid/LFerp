@@ -1351,6 +1351,7 @@
         });
         var st = document.getElementById(fieldId(kindSpec.fieldIdPrefix, 'subjectType'));
         if (st) st.value = kindSpec.subjectTypeLabel;
+        if (kindSpec.entryRoot && window.MdmEntryMaterials) window.MdmEntryMaterials.fill(kindSpec.entryRoot, {});
         modal.style.display = 'block';
     }
 
@@ -1383,6 +1384,13 @@
         }
         var modal = document.getElementById(modalId);
         if (!modal) return;
+        if (
+            (kindSpec.subjectTypeLabel === '门店' || kindSpec.subjectTypeLabel === '供应商') &&
+            window.MdmEntryMaterials
+        ) {
+            var entryHost = modal.querySelector('.modal-body') || modal.querySelector('.modal-form') || modal;
+            kindSpec.entryRoot = window.MdmEntryMaterials.mount(entryHost, { skin: 'pc' });
+        }
         var closeBtn = modal.querySelector('.close');
         if (closeBtn) {
             closeBtn.addEventListener('click', function () {
@@ -1408,10 +1416,24 @@
                         return;
                     }
                 }
+                if (kindSpec.entryRoot && window.MdmEntryMaterials) {
+                    var entryErr = window.MdmEntryMaterials.validate(kindSpec.entryRoot);
+                    if (entryErr) {
+                        showToast(entryErr, 'error');
+                        return;
+                    }
+                }
                 var pfx = kindSpec.fieldIdPrefix || '';
                 var nameBefore = (document.getElementById(fieldId(pfx, 'subjectName')) || {}).value || '';
                 var contactBefore = (document.getElementById(fieldId(pfx, 'contactPerson')) || {}).value || '';
                 var phoneBefore = (document.getElementById(fieldId(pfx, 'addPhone')) || {}).value || '';
+                if (kindSpec.entryRoot && window.MdmEntryMaterials && String(nameBefore).trim()) {
+                    window.MdmEntryMaterials.save(
+                        kindSpec.subjectTypeLabel === '供应商' ? 'supplier' : 'store',
+                        String(nameBefore).trim(),
+                        window.MdmEntryMaterials.read(kindSpec.entryRoot)
+                    );
+                }
                 var savedId = saveSubjectRowFromAddForm(mainPm, kindSpec);
                 if (savedId === false) return;
                 modal.style.display = 'none';

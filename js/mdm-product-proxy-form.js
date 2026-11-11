@@ -493,7 +493,9 @@
       barcode: index === 0 ? '147852369' : '',
       specValue: specValue,
       baseUnit: '个',
-      purchasePrice: index === 0 ? '0.01' : '8.00',
+      purchasePrice: index === 0
+        ? String(product.purchasePrice != null && product.purchasePrice !== '' ? product.purchasePrice : '0.01')
+        : '8.00',
       saleRatio: '1.000',
       saleUnit: saleUnit,
       limitConfig: 'none',
@@ -767,6 +769,44 @@
     );
   }
 
+  function renderMarginField(sku) {
+    var api = window.LfLowMargin;
+    var rate = api
+      ? api.marginOf({
+          purchasePrice: sku.purchasePrice,
+          salePrice: sku.salePrice,
+          saleRatio: sku.saleRatio
+        })
+      : null;
+    var low = !!(api && api.isBelow(rate));
+    return (
+      '<div class="product-proxy-spec__field" data-margin-field>' +
+      '  <label class="product-proxy-spec__label">毛利率</label>' +
+      '  <div data-margin-text style="display:flex;align-items:center;min-height:32px;font-size:13px;' +
+      (low ? 'color:#d4380d;font-weight:600' : '') +
+      '">' +
+      (api ? api.formatPercent(rate) : '—') +
+      (low ? ' · 未放开门店不可下单' : '') +
+      '</div>' +
+      '  <p style="margin:4px 0 0;font-size:12px;color:#999;line-height:1.4">按（售卖价 - 采购价 × 售卖系数）/ 售卖价计算，低于门店档案里的低利润门槛则标记不可下单。</p>' +
+      '</div>'
+    );
+  }
+
+  function refreshMarginField(panel) {
+    var box = panel.querySelector('[data-margin-text]');
+    if (!box || !window.LfLowMargin) return;
+    var rate = window.LfLowMargin.marginOf({
+      purchasePrice: (panel.querySelector('[data-field="purchasePrice"]') || {}).value,
+      salePrice: (panel.querySelector('[data-field="salePrice"]') || {}).value,
+      saleRatio: (panel.querySelector('[data-field="saleRatio"]') || {}).value
+    });
+    var low = window.LfLowMargin.isBelow(rate);
+    box.textContent = window.LfLowMargin.formatPercent(rate) + (low ? ' · 未放开门店不可下单' : '');
+    box.style.color = low ? '#d4380d' : '';
+    box.style.fontWeight = low ? '600' : '';
+  }
+
   function renderPriceFieldsByExchange(sku) {
     var mode = normalizePointExchange(sku.pointExchange);
     var html = '';
@@ -830,6 +870,7 @@
       renderLimitConfigField(sku) +
       renderPointExchangeFields(sku) +
       renderPriceFieldsByExchange(sku) +
+      renderMarginField(sku) +
       renderSpecField('起售量', 'minQty', sku.minQty) +
       renderSkuStockFields(sku) +
       '    </div>' +
@@ -1298,6 +1339,12 @@
         };
         input.addEventListener('input', handler);
         input.addEventListener('change', handler);
+      });
+
+      panel.querySelectorAll('[data-field="purchasePrice"], [data-field="salePrice"], [data-field="saleRatio"]').forEach(function (input) {
+        var refresh = function () { refreshMarginField(panel); };
+        input.addEventListener('input', refresh);
+        input.addEventListener('change', refresh);
       });
 
       // 积分兑换切换：重绘规格卡，露出对应字段

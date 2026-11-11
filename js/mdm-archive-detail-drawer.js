@@ -3963,9 +3963,14 @@
                     : null;
             var rule = resolveRule();
 
-            var depositActual = snap ? snap.depositActual : 2000;
-            var depositRequired = snap ? snap.depositRequired : 2000;
-            var depositGap = snap ? snap.depositGap : 0;
+            var account =
+                window.StoreAccountConfig &&
+                typeof window.StoreAccountConfig.depositStatus === 'function'
+                    ? window.StoreAccountConfig.depositStatus(store && store.storeId, store && store.name)
+                    : null;
+            var depositActual = account ? account.depositActual : snap ? snap.depositActual : 2000;
+            var depositRequired = account ? account.depositRequired : snap ? snap.depositRequired : 2000;
+            var depositGap = account ? account.depositGap : snap ? snap.depositGap : 0;
             var available = snap ? snap.available : 0;
             var goodsQuota = snap ? snap.goodsQuota : 0;
             var goodsPaid = snap ? snap.goodsQuotaPaid : goodsQuota;
@@ -3995,7 +4000,7 @@
                     openManualAdjustModal(accountType, money, function () {
                         render();
                         refreshOpenStoreLedgerPanel();
-                    });
+                    }, store);
                 });
                 return btn;
             }
@@ -4025,6 +4030,21 @@
                         if (typeof showToast === 'function') showToast('解冻能力未就绪', 'error');
                         return;
                     }
+                    var ownDeposit =
+                        window.StoreAccountConfig &&
+                        typeof window.StoreAccountConfig.isWalletStore === 'function' &&
+                        !window.StoreAccountConfig.isWalletStore(store && store.storeId, store && store.name);
+                    if (ownDeposit && typeof window.StoreAccountConfig.saveStoreOverride === 'function') {
+                        window.StoreAccountConfig.saveStoreOverride(store.storeId, { depositActual: 0 });
+                        if (typeof showToast === 'function') {
+                            showToast('已解冻本店保证金 ' + money(depositActual), 'success');
+                        }
+                        render();
+                        if (window.MdmErpLists && typeof window.MdmErpLists.repaintStoreCommerce === 'function') {
+                            window.MdmErpLists.repaintStoreCommerce();
+                        }
+                        return;
+                    }
                     var result = window.StoreWalletDemo.unfreezeDeposit(depositActual, {
                         remark: '门店档案·已禁用门店解冻保证金至可提现'
                     });
@@ -4041,6 +4061,9 @@
                         );
                     }
                     render();
+                    if (window.MdmErpLists && typeof window.MdmErpLists.repaintStoreCommerce === 'function') {
+                        window.MdmErpLists.repaintStoreCommerce();
+                    }
                 }, { okText: '确认解冻' });
             });
 
@@ -4369,7 +4392,7 @@
         return { node: wrap };
     }
 
-    function openManualAdjustModal(presetAccount, moneyFn, onDone) {
+    function openManualAdjustModal(presetAccount, moneyFn, onDone, store) {
         closeManualAdjustModal();
         var money =
             typeof moneyFn === 'function'
@@ -4582,6 +4605,35 @@
                 if (typeof showToast === 'function') showToast('请写明具体调账原因', 'error');
                 return;
             }
+            var ownDeposit =
+                acctNow === '保证金账户' &&
+                store &&
+                window.StoreAccountConfig &&
+                typeof window.StoreAccountConfig.isWalletStore === 'function' &&
+                !window.StoreAccountConfig.isWalletStore(store.storeId, store.name) &&
+                typeof window.StoreAccountConfig.adjustDeposit === 'function';
+            if (ownDeposit) {
+                var adjusted = window.StoreAccountConfig.adjustDeposit(
+                    store.storeId,
+                    store.name,
+                    dirNow === '减少' ? -amt : amt
+                );
+                if (!adjusted || !adjusted.ok) {
+                    if (typeof showToast === 'function') {
+                        showToast((adjusted && adjusted.message) || '调账失败', 'error');
+                    }
+                    return;
+                }
+                shut(true);
+                if (typeof showToast === 'function') {
+                    showToast('已' + dirNow + money(amt) + '（保证金账户）', 'success');
+                }
+                if (window.MdmErpLists && typeof window.MdmErpLists.repaintStoreCommerce === 'function') {
+                    window.MdmErpLists.repaintStoreCommerce();
+                }
+                if (typeof onDone === 'function') onDone();
+                return;
+            }
             if (
                 !window.StoreWalletDemo ||
                 typeof window.StoreWalletDemo.applyManualAdjust !== 'function'
@@ -4609,6 +4661,9 @@
                     'success'
                 );
             }
+            if (acctNow === '保证金账户' && window.MdmErpLists && typeof window.MdmErpLists.repaintStoreCommerce === 'function') {
+                window.MdmErpLists.repaintStoreCommerce();
+            }
             if (typeof onDone === 'function') onDone();
         });
 
@@ -4635,7 +4690,16 @@
             window.StoreAccountConfig && typeof window.StoreAccountConfig.resolve === 'function'
                 ? window.StoreAccountConfig.resolve(store && store.storeId)
                 : null;
-        var depositRequired = snap ? snap.depositRequired : 2000;
+        var depositState =
+            window.StoreAccountConfig &&
+            typeof window.StoreAccountConfig.depositStatus === 'function'
+                ? window.StoreAccountConfig.depositStatus(store && store.storeId, store && store.name)
+                : null;
+        var depositRequired = depositState
+            ? depositState.depositRequired
+            : snap
+              ? snap.depositRequired
+              : 2000;
         var goodsRequired =
             snap && snap.goodsQuotaRequired != null
                 ? snap.goodsQuotaRequired
@@ -4643,7 +4707,7 @@
                   ? rule.goodsQuotaRequired
                   : 8000;
         var goodsPaid = snap ? snap.goodsQuotaPaid : 0;
-        var depSource = rule && rule.depositSource === 'store' ? '本店个性化' : '平台通用';
+        var depSource = depositState && depositState.depositSource === 'store' ? '本店个性化' : '平台通用';
         var goodsSource = rule && rule.goodsSource === 'store' ? '本店个性化' : '平台通用';
 
         var backdrop = el(
@@ -4678,7 +4742,17 @@
         depInput.value = String(depositRequired);
         depCtrl.appendChild(depInput);
         depCtrl.appendChild(el('span', 'store-account-cfg__unit', '元'));
-        depCtrl.appendChild(el('span', 'store-account-cfg__meta', '当前来源：' + depSource));
+        depCtrl.appendChild(
+            el(
+                'span',
+                'store-account-cfg__meta',
+                '当前来源：' +
+                    depSource +
+                    '；余额 ' +
+                    money(depositState ? depositState.depositActual : snap ? snap.depositActual : 0) +
+                    (depositState && depositState.released ? '，已达到应保有' : '，未达到应保有')
+            )
+        );
         depRow.appendChild(depCtrl);
         body.appendChild(depRow);
 
@@ -4749,16 +4823,22 @@
                     goodsQuotaRequired: goodsV
                 });
             }
-            var depResult =
-                window.StoreWalletDemo &&
-                typeof window.StoreWalletDemo.applyStoreDepositRequired === 'function'
-                    ? window.StoreWalletDemo.applyStoreDepositRequired(depV)
-                    : { ok: false, message: '钱包能力未就绪' };
-            if (!depResult.ok) {
-                if (typeof showToast === 'function') {
-                    showToast(depResult.message || '应保有重置失败', 'error');
+            var walletStore =
+                window.StoreAccountConfig &&
+                typeof window.StoreAccountConfig.isWalletStore === 'function' &&
+                window.StoreAccountConfig.isWalletStore(store && store.storeId, store && store.name);
+            if (walletStore) {
+                var depResult =
+                    window.StoreWalletDemo &&
+                    typeof window.StoreWalletDemo.applyStoreDepositRequired === 'function'
+                        ? window.StoreWalletDemo.applyStoreDepositRequired(depV)
+                        : { ok: false, message: '钱包能力未就绪' };
+                if (!depResult.ok) {
+                    if (typeof showToast === 'function') {
+                        showToast(depResult.message || '应保有重置失败', 'error');
+                    }
+                    return;
                 }
-                return;
             }
             var goodsResult =
                 window.StoreWalletDemo &&
@@ -4772,14 +4852,24 @@
                 return;
             }
             shut();
+            var after =
+                window.StoreAccountConfig &&
+                typeof window.StoreAccountConfig.depositStatus === 'function'
+                    ? window.StoreAccountConfig.depositStatus(store.storeId, store.name)
+                    : null;
             if (typeof showToast === 'function') {
                 showToast(
-                    '已重置：保证金需补 ' +
-                        money(depResult.needFill) +
+                    '已重置：保证金' +
+                        (after && after.released
+                            ? '已达到应保有，已放开'
+                            : '未达应保有，需补 ' + money(after ? after.depositGap : 0)) +
                         '，货款需补足 ' +
                         money(goodsResult.needFill),
                     'success'
                 );
+            }
+            if (window.MdmErpLists && typeof window.MdmErpLists.repaintStoreCommerce === 'function') {
+                window.MdmErpLists.repaintStoreCommerce();
             }
             if (typeof onDone === 'function') onDone();
         });
@@ -5742,6 +5832,7 @@
             tabIds: [
                 'base',
                 'onboard',
+                'contract',
                 'cust',
                 'commission',
                 'comm',
@@ -5755,6 +5846,7 @@
             tabLabels: [
                 '基础信息',
                 '进件信息',
+                '合同信息',
                 '绑定客户',
                 '佣金明细',
                 '账户信息',
@@ -5768,6 +5860,7 @@
             bodies: {
                 base: panelStoreBase(store),
                 onboard: panelStoreOnboarding(store),
+                contract: panelArchiveContracts('store', store.name),
                 cust: panelStoreCustomers(),
                 commission: panelStoreCommission(store),
                 comm: panelStoreAccount(store),
@@ -7219,6 +7312,13 @@
         return root;
     }
 
+    function panelArchiveContracts(scene, name) {
+        if (window.LfContract && typeof window.LfContract.renderPartyTaskPanel === 'function') {
+            return window.LfContract.renderPartyTaskPanel(scene, name);
+        }
+        return el('div', 'supplier-detail-tab', '合同模块未加载');
+    }
+
     function openSupplier(tr) {
         var r = rowToSupplier(tr);
         if (!r) {
@@ -7234,11 +7334,12 @@
             heroTags: tags,
             metaLines: ['供应商ID：' + r.id + ' · 所属组织：' + r.subjectName],
             wideClass: 'store-drawer--supplier-wide',
-            tabIds: ['base', 'onboard', 'clearing', 'prod', 'perf'],
-            tabLabels: ['基础信息', '进件信息', '清分明细', '商品统计', '业绩报表'],
+            tabIds: ['base', 'onboard', 'contract', 'clearing', 'prod', 'perf'],
+            tabLabels: ['基础信息', '进件信息', '合同信息', '清分明细', '商品统计', '业绩报表'],
             bodies: {
                 base: panelResourceBaseSupplier(r, tr),
                 onboard: panelSupplierOnboarding(r),
+                contract: panelArchiveContracts('supplier', r.name),
                 clearing: panelSupplierClearingDetail(r),
                 prod: panelSupplierProductStats(r),
                 perf: panelSupplierPerfReport(r)

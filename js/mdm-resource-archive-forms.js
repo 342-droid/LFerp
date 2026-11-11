@@ -1198,9 +1198,14 @@
                 );
             }
             syncPartner();
+            if (refs.entryMaterials && window.MdmEntryMaterials) {
+                var savedEntry = window.MdmEntryMaterials.load('store', refs.nameInp.value);
+                if (savedEntry) window.MdmEntryMaterials.fill(refs.entryMaterials, savedEntry);
+            }
         }
 
         bindStoreCodeField(refs, { storeCode: opts.storeCode || '' });
+        if (window.MdmEntryMaterials) refs.entryMaterials = window.MdmEntryMaterials.mount(body, { skin: 'pc' });
         return { body: body, fillFromArchiveRow: fillFromArchiveRow, refs: refs };
     }
 
@@ -1407,6 +1412,10 @@
                 setPayMethod(sc.payMethod || 'goods_first');
                 applySettleStrategyUI();
             }
+            if (refs.entryMaterials && window.MdmEntryMaterials && refs.nameInp) {
+                var savedSupplierEntry = window.MdmEntryMaterials.load('supplier', refs.nameInp.value);
+                if (savedSupplierEntry) window.MdmEntryMaterials.fill(refs.entryMaterials, savedSupplierEntry);
+            }
         }
 
         function readPayMethod() {
@@ -1434,6 +1443,7 @@
             };
         };
 
+        if (window.MdmEntryMaterials) refs.entryMaterials = window.MdmEntryMaterials.mount(body, { skin: 'pc' });
         return { body: body, fillFromArchiveRow: fillFromArchiveRow, refs: refs };
     }
 
@@ -1877,6 +1887,13 @@
             var bundle = createStoreFormBundle({});
             hydrateArchiveWarehouseSelect(bundle.refs.warehouseSel, '', '请选择配送仓库');
             attachWideModal('添加门店', bundle.body, function () {
+                var entryErr = window.MdmEntryMaterials && bundle.refs.entryMaterials
+                    ? window.MdmEntryMaterials.validate(bundle.refs.entryMaterials)
+                    : '';
+                if (entryErr) {
+                    if (typeof showToast === 'function') showToast(entryErr, 'error');
+                    return false;
+                }
                 if (!warehouseSelectionAvailable(bundle.refs.warehouseSel, '')) return false;
                 var refs = bundle.refs || {};
                 var name = refs.nameInp ? String(refs.nameInp.value || '').trim() : '';
@@ -1897,6 +1914,9 @@
                 writeVenuePhotos('store', storeCode, collectVenuePhotosFromRefs(refs));
                 /* 演示：亦按名称索引，便于列表尚未落库时进件带入 */
                 if (name) writeVenuePhotos('store', 'name:' + name, collectVenuePhotosFromRefs(refs));
+                if (name && window.MdmEntryMaterials && refs.entryMaterials) {
+                    window.MdmEntryMaterials.save('store', name, window.MdmEntryMaterials.read(refs.entryMaterials));
+                }
                 var bindings = readJsonStore('mdm_store_warehouse_bindings_v1');
                 bindings[storeCode] = selectedLabel(refs.warehouseSel);
                 writeJsonStore('mdm_store_warehouse_bindings_v1', bindings);
@@ -1951,6 +1971,13 @@
             }
             var before = storeSnapshot();
             function applyEdit() {
+                var entryErr = window.MdmEntryMaterials && refs.entryMaterials
+                    ? window.MdmEntryMaterials.validate(refs.entryMaterials)
+                    : '';
+                if (entryErr) {
+                    if (typeof showToast === 'function') showToast(entryErr, 'error');
+                    return false;
+                }
                 if (!warehouseSelectionAvailable(refs.warehouseSel, before['配送仓库'])) return false;
                 var region = refs.regionInp ? String(refs.regionInp.value || '').trim() : '';
                 var nextCode = storeId;
@@ -1971,6 +1998,9 @@
                 }
                 var nextName =
                     refs.nameInp ? String(refs.nameInp.value || '').trim() : storeName;
+                if (nextName && window.MdmEntryMaterials && refs.entryMaterials) {
+                    window.MdmEntryMaterials.save('store', nextName, window.MdmEntryMaterials.read(refs.entryMaterials));
+                }
                 var nextShort = nextName;
                 if (window.MdmStoreSiteSlot) {
                     var mapped = window.MdmStoreSiteSlot.getByStore(nextCode || storeId);
@@ -2105,6 +2135,13 @@
         openSupplierAdd: function () {
             var bundle = createSupplierFormBundle({ includeInboundWarehouse: true });
             attachWideModal('新增供应商', bundle.body, function () {
+                var entryErr = window.MdmEntryMaterials && bundle.refs.entryMaterials
+                    ? window.MdmEntryMaterials.validate(bundle.refs.entryMaterials)
+                    : '';
+                if (entryErr) {
+                    if (typeof showToast === 'function') showToast(entryErr, 'error');
+                    return false;
+                }
                 if (!warehouseSelectionAvailable(bundle.refs.inboundWarehouseSel, '')) return false;
                 var name =
                     bundle.refs && bundle.refs.nameInp
@@ -2119,6 +2156,9 @@
                         ? String(bundle.refs.inboundWarehouseSel.value || '').trim()
                         : '';
                 if (name) {
+                    if (window.MdmEntryMaterials && bundle.refs.entryMaterials) {
+                        window.MdmEntryMaterials.save('supplier', name, window.MdmEntryMaterials.read(bundle.refs.entryMaterials));
+                    }
                     saveSupplierInboundWarehouseBinding('', name, selectedWarehouse);
                     if (window.MdmSupplierArchiveStore) {
                         window.MdmSupplierArchiveStore.upsert({
@@ -2158,6 +2198,13 @@
                     ? window.LFSettleCycleStore.getSupplier(supplierId, supplierName)
                     : null;
             attachWideModal('编辑供应商', bundle.body, function () {
+                var entryErr = window.MdmEntryMaterials && bundle.refs.entryMaterials
+                    ? window.MdmEntryMaterials.validate(bundle.refs.entryMaterials)
+                    : '';
+                if (entryErr) {
+                    if (typeof showToast === 'function') showToast(entryErr, 'error');
+                    return false;
+                }
                 if (!warehouseSelectionAvailable(bundle.refs.inboundWarehouseSel, before['入库仓库'])) {
                     return false;
                 }
@@ -2165,6 +2212,13 @@
                     bundle.refs && bundle.refs.nameInp
                         ? String(bundle.refs.nameInp.value || '').trim()
                         : supplierName;
+                if (nextName && window.MdmEntryMaterials && bundle.refs.entryMaterials) {
+                    window.MdmEntryMaterials.save(
+                        'supplier',
+                        nextName,
+                        window.MdmEntryMaterials.read(bundle.refs.entryMaterials)
+                    );
+                }
                 var nextShort =
                     bundle.refs && bundle.refs.shortNameInp
                         ? String(bundle.refs.shortNameInp.value || '').trim()

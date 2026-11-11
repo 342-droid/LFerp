@@ -13,6 +13,7 @@
       specCount: 1,
       priceType: 'money',
       priceMoney: 0.06,
+      purchasePrice: 0.055,
       linePrice: 1,
       sales: 0,
       status: 'on_shelf',
@@ -31,6 +32,7 @@
       specCount: 1,
       priceType: 'money',
       priceMoney: 0.06,
+      purchasePrice: 0.02,
       linePrice: 1,
       sales: 0,
       status: 'on_shelf',
@@ -923,6 +925,16 @@
     );
   }
 
+  function renderMarginCell(item) {
+    var purchase = item.purchasePrice;
+    if (purchase == null || purchase === '') {
+      var seed = SEED.filter(function (row) { return row.code === item.code; })[0];
+      purchase = seed ? seed.purchasePrice : '';
+    }
+    if (!window.LfLowMargin) return '<span class="product-proxy-dash">—</span>';
+    return window.LfLowMargin.listCell({ purchasePrice: purchase, priceMoney: item.priceMoney });
+  }
+
   function renderTable() {
     saveListState();
     var tbody = document.getElementById('mallListTableBody');
@@ -955,6 +967,7 @@
             '<td class="product-proxy-table__td product-proxy-table__td--category">' + renderCategoryCell(item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--spec">' + item.spec + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--sale">' + renderSalePrice(item) + '</td>' +
+            '<td class="product-proxy-table__td product-proxy-table__td--margin">' + renderMarginCell(item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--line">' + renderLinePrice(item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--sales">' + window.ProductSales.render('mall', item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--fulfillment">' + renderDeliveryMode(item) + '</td>' +

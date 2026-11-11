@@ -607,6 +607,7 @@
         syncStoreReceiveFromArchiveRow(row);
         refreshAllStoreHoursCells();
         refreshStoreArchiveActions();
+        paintArchiveContractColumn('store');
         return row;
     }
 
@@ -1092,6 +1093,10 @@
                 };
             }
         }
+        var onboardText = '';
+        if (kind === 'supplier' && c[SUPPLIER_COL.onboard]) {
+            onboardText = c[SUPPLIER_COL.onboard].textContent.trim();
+        }
         var recordKey = 'archive::' + kind + '::' + recordId;
         var modalOpts = {
             title: title,
@@ -1107,7 +1112,8 @@
                 store_cashier_desk_pic: venue.store_cashier_desk_pic || ''
             },
             recordKey: recordKey,
-            variant: kind === 'store' ? 'store' : 'resource'
+            variant: kind === 'store' ? 'store' : 'resource',
+            lockLicenseCode: kind === 'supplier' && onboardText === '进件成功'
         };
         modalOpts.onRecordChange = function (payload) {
             if (
@@ -1193,6 +1199,55 @@
         return !s || s === '—' || s === '--' || s === '-' || s === '添加';
     }
 
+    function paintArchiveContractColumn(scene) {
+        var tbody = document.getElementById('tableBody');
+        var table = tbody && tbody.closest('table');
+        if (!tbody || !table || !window.LfContract || typeof window.LfContract.partyContractStatus !== 'function') return;
+        var head = table.querySelector('thead tr');
+        if (head && !head.querySelector('[data-contract-head]')) {
+            var actionHead = head.lastElementChild;
+            var labels = scene === 'store' ? ['合同签署状态', '低利润与活动'] : ['合同签署状态'];
+            labels.forEach(function (label) {
+                var th = document.createElement('th');
+                th.setAttribute('data-contract-head', label);
+                th.textContent = label;
+                head.insertBefore(th, actionHead);
+            });
+        }
+        var nameIndex = scene === 'supplier' ? SUPPLIER_COL.name : 2;
+        tbody.querySelectorAll('tr').forEach(function (tr) {
+            if (tr.querySelector('td[colspan]')) return;
+            var cells = tr.children;
+            var shifted = cells[0] && /^\d+$/.test(String(cells[0].textContent || '').trim());
+            var nameCell = cells[nameIndex + (shifted ? 1 : 0)];
+            var link = nameCell && nameCell.querySelector('a');
+            var name = link ? link.textContent.trim() : (nameCell ? nameCell.textContent.trim() : '');
+            var label = window.LfContract.partyContractStatus(scene, name);
+            tr.setAttribute('data-contract-status', label);
+            var cell = tr.querySelector('td[data-contract-col]');
+            var action = tr.lastElementChild;
+            if (!cell) {
+                cell = document.createElement('td');
+                cell.setAttribute('data-contract-col', '1');
+                tr.insertBefore(cell, action);
+            }
+            cell.textContent = label;
+            if (scene === 'store' && typeof window.LfContract.storeCommerceLabel === 'function') {
+                var codeCell = cells[shifted ? 1 : 0];
+                var code = codeCell ? String(codeCell.textContent || '').trim() : '';
+                var gate = window.LfContract.storeCommerceLabel(name, code);
+                var gateCell = tr.querySelector('td[data-commerce-col]');
+                if (!gateCell) {
+                    gateCell = document.createElement('td');
+                    gateCell.setAttribute('data-commerce-col', '1');
+                    tr.insertBefore(gateCell, tr.lastElementChild);
+                }
+                gateCell.textContent = gate.text;
+                gateCell.title = gate.title;
+            }
+        });
+    }
+
     function storeArchiveFilter(pm) {
         var tbody = document.getElementById(pm.config.tableBodyId);
         if (!tbody) return;
@@ -1201,11 +1256,13 @@
         var qStore = (document.getElementById('qStoreName') || {}).value.trim();
         var qOp = (document.getElementById('qStoreOpStatus') || {}).value.trim();
         var qOnboard = (document.getElementById('qStoreOnboardStatus') || {}).value.trim();
+        var qContract = (document.getElementById('qStoreContractStatus') || {}).value.trim();
         var qBalance = (document.getElementById('qStoreBalancePay') || {}).value.trim();
         var qSplit = (document.getElementById('qStoreSplit') || {}).value.trim();
         var qSt = (document.getElementById('qStoreStatus') || {}).value.trim();
         /* 运营状态：营业中 / 休息中（超过营业时间自动休息，与 C 端一致） */
         var opMap = { '1': '营业中', '2': '休息中' };
+        paintArchiveContractColumn('store');
         tbody.querySelectorAll('tr').forEach(function (tr) {
             var cells = tr.querySelectorAll('td');
             if (cells.length < STORE_COL.status + 1) return;
@@ -1225,6 +1282,7 @@
             if (qStore && sn.indexOf(qStore) === -1) ok = false;
             if (qOp && opTxt !== opMap[qOp]) ok = false;
             if (qOnboard && onboardTxt !== qOnboard) ok = false;
+            if (qContract && tr.getAttribute('data-contract-status') !== qContract) ok = false;
             if (qBalance && balanceTxt !== qBalance) ok = false;
             if (qSplit === 'on' && splitTxt !== '开启' && splitTxt !== '已开通') ok = false;
             if (qSplit === 'off' && splitTxt !== '关闭' && splitTxt !== '未开通') ok = false;
@@ -1263,9 +1321,11 @@
         var qSub = (document.getElementById('qSubjectName') || {}).value.trim();
         var qRes = (document.getElementById('qResourceName') || {}).value.trim();
         var qOnboard = (document.getElementById('qSupOnboardStatus') || {}).value.trim();
+        var qContract = (document.getElementById('qSupContractStatus') || {}).value.trim();
         var qBalance = (document.getElementById('qSupBalancePay') || {}).value.trim();
         var qSt = (document.getElementById('qResStatus') || {}).value.trim();
         var statusMap = { normal: '正常', frozen: '冻结' };
+        paintArchiveContractColumn('supplier');
         tbody.querySelectorAll('tr').forEach(function (tr) {
             var cells = tr.querySelectorAll('td');
             if (cells.length < SUPPLIER_COL.status + 1) return;
@@ -1273,6 +1333,7 @@
             if (qSub && cells[1].textContent.trim().indexOf(qSub) === -1) ok = false;
             if (qRes && cells[2].textContent.trim().indexOf(qRes) === -1) ok = false;
             if (qOnboard && cells[SUPPLIER_COL.onboard].textContent.trim() !== qOnboard) ok = false;
+            if (qContract && tr.getAttribute('data-contract-status') !== qContract) ok = false;
             if (qBalance && cells[SUPPLIER_COL.balancePay].textContent.trim() !== qBalance) ok = false;
             if (qSt && statusMap[qSt]) {
                 var stTxt = (cells[SUPPLIER_COL.status].querySelector('.status') || {}).textContent || '';
@@ -1712,6 +1773,7 @@
         syncAllStoreArchiveRows();
         bindSetDefaultStorePermissionToggle();
         refreshStoreArchiveActions();
+        paintArchiveContractColumn('store');
         window.addEventListener('storage', function (e) {
             if (
                 e.key === 'mdm_unified_onboarding_records_v1' ||
@@ -1730,6 +1792,7 @@
                 'qStoreName',
                 'qStoreOpStatus',
                 'qStoreOnboardStatus',
+                'qStoreContractStatus',
                 'qStoreBalancePay',
                 'qStoreSplit',
                 'qStoreStatus'
@@ -1933,6 +1996,7 @@
         ensureDemoSupplierSubmitConfirmDraft();
         seedSupplierDemoBalancePayments();
         syncAllSupplierArchiveRows();
+        paintArchiveContractColumn('supplier');
         window.addEventListener('storage', function (e) {
             if (
                 e.key === 'mdm_unified_onboarding_records_v1' ||
@@ -1947,6 +2011,7 @@
                 'qSubjectName',
                 'qResourceName',
                 'qSupOnboardStatus',
+                'qSupContractStatus',
                 'qSupBalancePay',
                 'qResStatus'
             ],
@@ -4685,6 +4750,7 @@
     window.MdmErpLists = {
         initArchiveStore: initArchiveStore,
         appendArchiveStoreRow: appendArchiveStoreRow,
+        repaintStoreCommerce: function () { paintArchiveContractColumn('store'); },
         initArchiveSupplier: initArchiveSupplier,
         initArchiveTrader: initArchiveTrader,
         initArchiveWarehouse: initArchiveWarehouse,

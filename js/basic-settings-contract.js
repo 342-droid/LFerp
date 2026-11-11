@@ -133,6 +133,7 @@
       remoteName: remote.name,
       status: 'on',
       autoStart: remote.launch === 'auto',
+      autoStartOnboard: false,
       kind: remote.launch === 'supplement' ? 'supplement' : '',
       signInOrder: !!remote.signInOrder,
       actors: (remote.actors || []).map(function (actor) { return Object.assign({}, actor); }),
@@ -140,6 +141,8 @@
       fill: (remote.fill || []).slice(),
       storePartnerTypes: remote.partnerTypes ? remote.partnerTypes.slice() : [],
       storePartnerType: remote.partnerTypes && remote.partnerTypes[0] ? remote.partnerTypes[0] : '',
+      bizLines: [],
+      brandNames: [],
       updatedAt: '2026-11-09 13:40'
     };
   }
@@ -222,6 +225,21 @@
     return types.length ? types.join('、') : '—';
   }
 
+  function scopeExtraLabel(tpl) {
+    if (!tpl || tpl.scene !== 'store') return '';
+    var bits = [];
+    var lines = nameList(tpl.bizLines);
+    var brands = nameList(tpl.brandNames);
+    if (lines.length) bits.push(lines.join('、'));
+    if (brands.length) bits.push(brands.join('、'));
+    var launch = [];
+    if (tpl.autoStart !== false && tpl.kind !== 'supplement') launch.push('入驻审核后');
+    if (tpl.autoStartOnboard) launch.push('进件成功后');
+    if (!launch.length && tpl.kind !== 'supplement') launch.push('手动发起');
+    if (launch.length) bits.push(launch.join('、'));
+    return bits.length ? '<div class="ct-field-tip" style="margin:2px 0 0">' + esc(bits.join(' · ')) + '</div>' : '';
+  }
+
   function readPartnerTypes() {
     return Array.prototype.map.call(document.querySelectorAll('#ctStorePartnerType input:checked'), function (el) {
       return el.value;
@@ -233,6 +251,58 @@
     document.querySelectorAll('#ctStorePartnerType input').forEach(function (el) {
       el.checked = set.indexOf(el.value) >= 0;
     });
+  }
+
+  function readChecked(boxId) {
+    return Array.prototype.map.call(document.querySelectorAll('#' + boxId + ' input:checked'), function (el) {
+      return el.value;
+    });
+  }
+
+  function writeChecked(boxId, values) {
+    var set = values || [];
+    document.querySelectorAll('#' + boxId + ' input').forEach(function (el) {
+      el.checked = set.indexOf(el.value) >= 0;
+    });
+  }
+
+  function nameList(value) {
+    if (!Array.isArray(value)) return [];
+    return value.map(function (item) { return String(item || '').trim(); }).filter(Boolean);
+  }
+
+  function renderBizLineChecks() {
+    var box = document.getElementById('ctBizLine');
+    if (!box) return;
+    var lines = window.StoreBizStructure ? window.StoreBizStructure.lines() : [];
+    box.innerHTML = lines.length
+      ? lines.map(function (line) {
+        return '<label class="pts-rule-check-label"><input type="checkbox" value="' + esc(line) + '"> ' + esc(line) + '</label>';
+      }).join('')
+      : '<span class="ct-field-tip">没有事业线枚举</span>';
+  }
+
+  function renderBrandChecks() {
+    var box = document.getElementById('ctBrandName');
+    if (!box || !window.StoreBizStructure) return;
+    var picked = readChecked('ctBizLine');
+    var prev = readChecked('ctBrandName');
+    var lines = picked.length ? picked : window.StoreBizStructure.lines();
+    var brands = [];
+    lines.forEach(function (line) {
+      window.StoreBizStructure.brands(line).forEach(function (name) {
+        if (brands.indexOf(name) < 0) brands.push(name);
+      });
+    });
+    box.innerHTML = brands.map(function (name) {
+      return '<label class="pts-rule-check-label"><input type="checkbox" value="' + esc(name) + '"> ' + esc(name) + '</label>';
+    }).join('');
+    writeChecked('ctBrandName', prev);
+  }
+
+  function scopeHit(selected, value) {
+    if (!selected || !selected.length) return true;
+    return selected.indexOf(String(value || '').trim()) >= 0;
   }
 
   function migrateStoreContracts(data) {
@@ -1023,7 +1093,7 @@
       return '<tr data-id="' + esc(t.id) + '"' + (t.kind === 'supplement' ? ' class="ct-tpl-row--sup"' : '') + '>' +
         '<td><button type="button" class="ct-link" data-act="detail">' + esc(t.name) + '</button>' + kindTag + '</td>' +
         '<td>' + esc(sceneOf(t.scene).name) + '</td>' +
-        '<td>' + esc(partnerTypeLabel(t)) + '</td>' +
+        '<td>' + esc(partnerTypeLabel(t)) + scopeExtraLabel(t) + '</td>' +
         '<td>' + esc(t.remoteId) + '<div class="ct-field-tip" style="margin:2px 0 0">' + esc(t.remoteName) + '</div></td>' +
         '<td>' + esc(docsOfTpl(t).map(function (doc) { return doc.name; }).join('、') || '—') + '</td>' +
         '<td>' + esc(actors) + '</td>' +
@@ -1145,9 +1215,15 @@
       order.disabled = true;
     }
     var auto = document.getElementById('ctAutoStart');
+    var onboard = document.getElementById('ctAutoStartOnboard');
+    var supplement = !!(remote && remote.launch === 'supplement');
     if (auto && remote) {
       auto.checked = remote.launch === 'auto';
-      auto.disabled = remote.launch === 'supplement';
+      auto.disabled = supplement;
+    }
+    if (onboard && remote) {
+      if (supplement) onboard.checked = false;
+      onboard.disabled = supplement;
     }
   }
 
@@ -1175,6 +1251,8 @@
     }), tpl ? tpl.scene : 'store');
     document.getElementById('ctTplName').value = tpl ? tpl.name : '';
     document.getElementById('ctAutoStart').checked = tpl ? !!tpl.autoStart : true;
+    var onboardBox = document.getElementById('ctAutoStartOnboard');
+    if (onboardBox) onboardBox.checked = tpl ? !!tpl.autoStartOnboard : false;
     document.getElementById('ctSignOrder').checked = tpl ? !!tpl.signInOrder : true;
     var statusOn = document.getElementById('ctTplOn');
     var statusOff = document.getElementById('ctTplOff');
@@ -1182,10 +1260,25 @@
     else statusOn.checked = true;
     applySceneDefaults(tpl ? tpl.scene : 'store', tpl ? tpl.remoteId : '');
     if (tpl && tpl.autoStart === false) document.getElementById('ctAutoStart').checked = false;
+    if (onboardBox && tpl) onboardBox.checked = !!tpl.autoStartOnboard;
+    renderBizLineChecks();
+    writeChecked('ctBizLine', tpl ? nameList(tpl.bizLines) : []);
+    renderBrandChecks();
+    writeChecked('ctBrandName', tpl ? nameList(tpl.brandNames) : []);
+    var bizBox = document.getElementById('ctBizLine');
+    if (bizBox && !bizBox.getAttribute('data-bound')) {
+      bizBox.setAttribute('data-bound', '1');
+      bizBox.addEventListener('change', renderBrandChecks);
+    }
     writePartnerTypes(tpl ? partnerTypesOf(tpl) : (remoteOfId(document.getElementById('ctRemoteTpl').value) || {}).partnerTypes || ['加盟店']);
     function syncPartnerTypeRow(sceneId) {
       var row = document.getElementById('ctPartnerTypeRow');
-      if (row) row.style.display = sceneId === 'store' ? '' : 'none';
+      var bizRow = document.getElementById('ctBizLineRow');
+      var brandRow = document.getElementById('ctBrandRow');
+      var show = sceneId === 'store';
+      if (row) row.style.display = show ? '' : 'none';
+      if (bizRow) bizRow.style.display = show ? '' : 'none';
+      if (brandRow) brandRow.style.display = show ? '' : 'none';
     }
     syncPartnerTypeRow(tpl ? tpl.scene : 'store');
     document.getElementById('ctTplScene').addEventListener('change', function () {
@@ -1212,10 +1305,10 @@
       }
     });
     if (viewMode) {
-      document.querySelectorAll('#ctTplScene, #ctTplName, #ctRemoteTpl, #ctTplOn, #ctTplOff, #ctAutoStart, #ctSignOrder').forEach(function (el) {
+      document.querySelectorAll('#ctTplScene, #ctTplName, #ctRemoteTpl, #ctTplOn, #ctTplOff, #ctAutoStart, #ctAutoStartOnboard, #ctSignOrder').forEach(function (el) {
         el.disabled = true;
       });
-      document.querySelectorAll('#ctStorePartnerType input, #ctActorBody input, #ctActorBody select, #ctFillList input').forEach(function (el) {
+      document.querySelectorAll('#ctStorePartnerType input, #ctBizLine input, #ctBrandName input, #ctActorBody input, #ctActorBody select, #ctFillList input').forEach(function (el) {
         el.disabled = true;
       });
       document.querySelectorAll('[data-act="del-actor"]').forEach(function (btn) { btn.style.display = 'none'; });
@@ -1270,6 +1363,7 @@
         remoteName: remote.name,
         status: document.getElementById('ctTplOn').checked ? 'on' : 'off',
         autoStart: remote.launch === 'supplement' ? false : document.getElementById('ctAutoStart').checked,
+        autoStartOnboard: remote.launch === 'supplement' ? false : !!(document.getElementById('ctAutoStartOnboard') || {}).checked,
         kind: remote.launch === 'supplement' ? 'supplement' : '',
         signInOrder: !!remote.signInOrder,
         actors: remote.actors.map(function (actor) { return Object.assign({}, actor); }),
@@ -1277,6 +1371,8 @@
         fill: remote.fill.slice(),
         storePartnerTypes: storePartnerTypes,
         storePartnerType: storePartnerTypes[0] || '',
+        bizLines: scene === 'store' ? readChecked('ctBizLine') : [],
+        brandNames: scene === 'store' ? readChecked('ctBrandName') : [],
         updatedAt: nowText()
       };
       if (tpl) Object.assign(tpl, payload);
@@ -1393,27 +1489,6 @@
     }
     tb.innerHTML = rows.map(function (t) {
       var party = findParty(t.partyId);
-      var shown = displayStatus(t);
-      var ops = [
-        '<button type="button" class="ct-link" data-act="read">查看合同</button>',
-        '<button type="button" class="ct-link" data-act="view">任务详情</button>'
-      ];
-      if (shown === 'sign_progress') {
-        ops.push('<button type="button" class="ct-link" data-act="urge">催签</button>');
-        ops.push('<button type="button" class="ct-link" data-act="copy">复制链接</button>');
-        ops.push('<button type="button" class="ct-link" data-act="qr">二维码</button>');
-        ops.push('<button type="button" class="ct-link is-danger" data-act="cancel">撤销</button>');
-      }
-      if (shown === 'overdue') ops.push('<button type="button" class="ct-link" data-act="postpone">延期</button>');
-      if (shown === 'sign_completed') {
-        ops.push('<button type="button" class="ct-link" data-act="copy">复制链接</button>');
-        ops.push('<button type="button" class="ct-link" data-act="qr">二维码</button>');
-        ops.push('<button type="button" class="ct-link" data-act="download">下载</button>');
-        ops.push('<button type="button" class="ct-link" data-act="abolish">发起作废</button>');
-      }
-      if (shown === 'cancelled' || shown === 'terminated' || shown === 'voided') {
-        ops.push('<button type="button" class="ct-link" data-act="retry">重新发起</button>');
-      }
       return '<tr data-id="' + esc(t.id) + '">' +
         '<td><button type="button" class="ct-link" data-act="view">' + esc(t.id) + '</button></td>' +
         '<td><button type="button" class="ct-link" data-act="read">' + esc(t.name) + '</button></td>' +
@@ -1424,9 +1499,34 @@
         '<td>' + esc(t.createdAt) + '</td>' +
         '<td>' + esc(deadlineText(t)) + '</td>' +
         '<td>' + esc(t.finishedAt || '—') + '</td>' +
-        '<td class="erp-actions-cell"><span class="ct-ops">' + ops.join('') + '</span></td></tr>';
+        '<td class="erp-actions-cell"><span class="ct-ops">' + taskOpsHtml(t) + '</span></td></tr>';
     }).join('');
     refreshRowNo();
+  }
+
+  function taskOpsHtml(task) {
+    var shown = displayStatus(task);
+    var ops = [
+      '<button type="button" class="ct-link" data-act="read">查看合同</button>',
+      '<button type="button" class="ct-link" data-act="view">任务详情</button>'
+    ];
+    if (shown === 'sign_progress') {
+      ops.push('<button type="button" class="ct-link" data-act="urge">催签</button>');
+      ops.push('<button type="button" class="ct-link" data-act="copy">复制链接</button>');
+      ops.push('<button type="button" class="ct-link" data-act="qr">二维码</button>');
+      ops.push('<button type="button" class="ct-link is-danger" data-act="cancel">撤销</button>');
+    }
+    if (shown === 'overdue') ops.push('<button type="button" class="ct-link" data-act="postpone">延期</button>');
+    if (shown === 'sign_completed') {
+      ops.push('<button type="button" class="ct-link" data-act="copy">复制链接</button>');
+      ops.push('<button type="button" class="ct-link" data-act="qr">二维码</button>');
+      ops.push('<button type="button" class="ct-link" data-act="download">下载</button>');
+      ops.push('<button type="button" class="ct-link" data-act="abolish">发起作废</button>');
+    }
+    if (shown === 'cancelled' || shown === 'terminated' || shown === 'voided') {
+      ops.push('<button type="button" class="ct-link" data-act="retry">重新发起</button>');
+    }
+    return ops.join('');
   }
 
   function updateTaskTabs() {
@@ -1695,18 +1795,26 @@
     return !!(tpl && tpl.kind === 'supplement');
   }
 
-  /* 未设自动触发、且不是结算变更确认后下发的协议，才在发起页手动勾选。 */
+  /* 未设任何自动触发、且不是结算变更确认后下发的协议，才在发起页标成手动发起。 */
   function isManualOnlyTpl(tpl) {
-    return !!(tpl && tpl.autoStart === false && !isSettleConfirmTpl(tpl));
+    return !!(tpl && tpl.autoStart === false && !tpl.autoStartOnboard && !isSettleConfirmTpl(tpl));
   }
 
-  /* 入驻审核通过后自动发起：已启用且设了自动触发的协议。 */
-  function templatesForSign(sceneId, partnerType) {
+  /* 入驻审核通过，或进件成功，按模板上的发起规则各取一份。 */
+  function templatesForSign(sceneId, partnerType, extra) {
+    extra = extra || {};
+    var trigger = extra.trigger || 'audit';
     return state.templates.filter(function (t) {
       if (t.scene !== sceneId || t.status !== 'on') return false;
-      if (isManualOnlyTpl(t) || isSettleConfirmTpl(t)) return false;
+      if (isSettleConfirmTpl(t)) return false;
+      if (trigger === 'onboard') {
+        if (!t.autoStartOnboard) return false;
+      } else if (t.autoStart === false) return false;
       if (sceneId !== 'store') return true;
-      return partnerTypesOf(t).indexOf(partnerType || '加盟店') >= 0;
+      if (partnerTypesOf(t).indexOf(partnerType || '加盟店') < 0) return false;
+      if (!scopeHit(nameList(t.bizLines), extra.bizLine)) return false;
+      if (!scopeHit(nameList(t.brandNames), extra.brandName)) return false;
+      return true;
     });
   }
 
@@ -1841,6 +1949,14 @@
       : '该模板没有文档，不能发起';
   }
 
+  function launchTagHtml(item) {
+    var tags = [];
+    if (item && item.autoStart !== false) tags.push('<span class="ct-tag ct-tag--ok">入驻审核后</span>');
+    if (item && item.autoStartOnboard) tags.push('<span class="ct-tag ct-tag--ok">进件成功后</span>');
+    if (!tags.length) tags.push('<span class="ct-tag ct-tag--muted">手动发起</span>');
+    return tags.join('');
+  }
+
   function fillTplOptions(sceneId, selectedId) {
     var box = document.getElementById('ctTaskTpl');
     if (!box) return;
@@ -1857,9 +1973,7 @@
       var checked = item.id === selected ? ' checked' : '';
       var tag = isSettleConfirmTpl(item)
         ? '<span class="ct-tag ct-tag--info">变更确认后触发</span>'
-        : (isManualOnlyTpl(item)
-          ? '<span class="ct-tag ct-tag--muted">手动发起</span>'
-          : '<span class="ct-tag ct-tag--ok">自动触发</span>');
+        : launchTagHtml(item);
       return '<label class="pts-rule-check-label"><input type="radio" name="ctTaskTplPick" value="' + esc(item.id) + '"' + checked + '> ' + esc(item.name) + tag + '</label>';
     }).join('');
     paintTaskDocs(findTpl(selected));
@@ -2237,7 +2351,7 @@
     return party;
   }
 
-  /* 入驻审核通过：按场景带出已启用协议，生成一条法大大签署任务。用户注册不进合同管理。 */
+  /* 入驻审核通过或进件成功：按场景和发起规则带出已启用协议，生成一条法大大签署任务。用户注册不进合同管理。 */
   function generateCoopTask(opts) {
     opts = opts || {};
     var scene = opts.scene;
@@ -2261,7 +2375,11 @@
       }
     }
     var partnerType = scene === 'store' ? (opts.partnerType || '加盟店') : '';
-    var tpl = templatesForSign(scene, partnerType)[0];
+    var tpl = templatesForSign(scene, partnerType, {
+      trigger: opts.trigger || 'audit',
+      bizLine: opts.bizLine || '',
+      brandName: opts.brandName || ''
+    })[0];
     if (!tpl) return null;
     var block = createBlockReason(tpl);
     if (block) {
@@ -2419,6 +2537,73 @@
     return markTemplateSigned(taskId, pendingId);
   }
 
+  function partyTasks(scene, name) {
+    var partyName = String(name || '').trim();
+    return state.tasks.filter(function (task) {
+      if (isUserContractRecord(task) || task.scene !== scene) return false;
+      var party = findParty(task.partyId);
+      return !!(party && party.name === partyName);
+    }).sort(function (a, b) {
+      return String(b.createdAt || '').localeCompare(String(a.createdAt || ''));
+    });
+  }
+
+  function partyContractStatus(scene, name) {
+    var list = partyTasks(scene, name);
+    if (!list.length) return '未发起';
+    return (TASK_STATUS[displayStatus(list[0])] || {}).label || '未发起';
+  }
+
+  function storeContractCompleted(name) {
+    return partyTasks('store', name).some(function (task) {
+      return displayStatus(task) === 'sign_completed';
+    });
+  }
+
+  function storeCommerceLabel(name, storeId) {
+    var ref = name && typeof name === 'object' ? name : { name: name, storeId: storeId };
+    if (window.LfLowMargin && typeof window.LfLowMargin.commerceLabel === 'function') {
+      return window.LfLowMargin.commerceLabel(ref);
+    }
+    return { text: '未放开', title: '保证金余额未达到应保有金额。' };
+  }
+
+  function renderPartyTaskPanel(scene, name) {
+    var wrap = document.createElement('div');
+    wrap.className = 'supplier-detail-tab';
+    var note = document.createElement('p');
+    note.className = 'erp-page__note mdm-detail-note';
+    var gate = scene === 'store' ? storeCommerceLabel(name) : null;
+    note.textContent = '列出推送给「' + (name || '—') + '」的签署任务。查看、催签、延期、撤销、下载、作废与合同管理的签署任务相同。'
+      + (gate ? '低利润商品与营销活动：' + gate.text + '。' + gate.title : '');
+    wrap.appendChild(note);
+    var table = document.createElement('table');
+    table.className = 'table';
+    var tasks = partyTasks(scene, name);
+    var body = tasks.length
+      ? tasks.map(function (task) {
+        var shown = displayStatus(task);
+        var meta = TASK_STATUS[shown] || { label: shown || '—' };
+        return '<tr data-id="' + esc(task.id) + '">' +
+          '<td>' + esc(task.id) + '</td>' +
+          '<td>' + esc(task.name) + '</td>' +
+          '<td>' + esc(meta.label) + '</td>' +
+          '<td>' + esc(task.createdAt || '—') + '</td>' +
+          '<td class="erp-actions-cell"><span class="ct-ops">' + taskOpsHtml(task) + '</span></td>' +
+          '</tr>';
+      }).join('')
+      : '<tr><td colspan="5">还没有推送签署任务</td></tr>';
+    table.innerHTML = '<thead><tr><th>任务编号</th><th>合同</th><th>任务状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody>' + body + '</tbody>';
+    table.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-act]');
+      if (!btn) return;
+      var row = btn.closest('tr');
+      handleTaskAct(btn.getAttribute('data-act'), findTask(row && row.getAttribute('data-id')), btn);
+    });
+    wrap.appendChild(table);
+    return wrap;
+  }
+
   global.LfContract = {
     htmlSignUrl: htmlSignUrl,
     fadadaSignUrl: fadadaSignUrl,
@@ -2440,6 +2625,10 @@
     findTask: findTask,
     findParty: findParty,
     findTpl: findTpl,
+    partyContractStatus: partyContractStatus,
+    storeContractCompleted: storeContractCompleted,
+    storeCommerceLabel: storeCommerceLabel,
+    renderPartyTaskPanel: renderPartyTaskPanel,
     registerAgreements: registerAgreements,
     taskTemplates: taskTemplates,
     contractBodyOf: contractBodyOf,

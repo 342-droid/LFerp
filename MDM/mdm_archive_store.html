@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>冷丰WMS - 门店档案</title>
     <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/lf-contract.css?v=20261112-contract-push">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css?v=20261020-biz-structure">
     <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
@@ -230,6 +231,10 @@
             <hr class="content-divider">
             <div class="content-title">业务伙伴 / 资源中心 / 门店档案</div>
             <div class="mdm-biz-tip" role="note">门店编码由系统按所选城市自动生成，格式为 <strong>3 位城市码 + 5 位顺序码</strong>（如 SHA00023）。一经分配不得重复使用，门店注销后顺序码不回收。</div>
+            <div class="mdm-biz-tip" role="note">低利润门槛：毛利率低于
+                <input id="lowMarginThreshold" type="number" min="0" max="100" step="0.1" value="10" aria-label="低利润毛利率门槛" style="width:72px;height:28px;margin:0 4px;padding:0 8px;border:1px solid #f0d2bc;border-radius:4px;">%
+                的商品，<strong>未放开</strong>门店的客户不能下单；营销活动也不能选择未放开的门店。保证金余额达到该店账户配置里的<strong>保证金应保有</strong>后，改为<strong>已放开</strong>。应保有可按门店单独设置，未单独设置时用平台通用金额。
+            </div>
 
             <section class="search-section">
                 <form class="search-form">
@@ -267,6 +272,20 @@
                             <option value="进件中">进件中</option>
                             <option value="进件成功">进件成功</option>
                             <option value="进件失败">进件失败</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>合同签署状态</label>
+                        <select id="qStoreContractStatus" style="height:36px;min-width:120px;border:1px solid #ddd;border-radius:3px;padding:0 8px;">
+                            <option value="">全部</option>
+                            <option value="未发起">未发起</option>
+                            <option value="签署中">签署中</option>
+                            <option value="已完成">已完成</option>
+                            <option value="已逾期">已逾期</option>
+                            <option value="已撤销">已撤销</option>
+                            <option value="已终止">已终止</option>
+                            <option value="作废中">作废中</option>
+                            <option value="已作废">已作废</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -356,6 +375,32 @@
                                 <td>对公</td>
                                 <td><span class="status active">已启用</span></td>
                                 <td>2026-08-01 09:00:00</td>
+                                <td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td>
+                            </tr>
+                            <tr
+                                data-region="浙江省/杭州市/余杭区"
+                                data-address="杭州市余杭区文一西路969号"
+                                data-latlng="120.02,30.28"
+                                data-withdraw="138****2201"
+                                data-settle-cycle="自然周"
+                                data-split="已开通"
+                            >
+                                <td>HGH00001</td>
+                                <td>杭州鲜丰水果有限公司</td>
+                                <td><a href="#" class="subject-name-link">鲜丰水果文一西路店</a></td>
+                                <td>加盟店</td>
+                                <td>社区生鲜店</td>
+                                <td>李泽峰</td>
+                                <td>周敏</td>
+                                <td>138****2201</td>
+                                <td>主仓库 / WH001</td>
+                                <td>营业中</td>
+                                <td class="mdm-store-hours-td" data-store-hours-col></td>
+                                <td>进件成功</td>
+                                <td>已开通</td>
+                                <td>对公</td>
+                                <td><span class="status active">已启用</span></td>
+                                <td>2026-08-18 16:20:00</td>
                                 <td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td>
                             </tr>
                             <tr
@@ -479,18 +524,22 @@
     <script src="../js/mdm-store-code.js?v=20260909-store-code"></script>
     <script src="../js/mdm-store-site-slot.js?v=20260910-slot"></script>
     <script src="../js/mdm-subject-pagemanager.js?v=archive-disable-guard"></script>
-    <script src="../js/mdm-unified-onboarding-ui.js?v=20260826-name-tip-wrap"></script>
+    <script src="../js/mdm-entry-materials.js?v=20261112-entry-materials"></script>
+    <script src="../js/mdm-unified-onboarding-ui.js?v=20261112-contract-push"></script>
     <script src="../js/store-biz-structure.js?v=20261021-internal"></script>
-    <script src="../js/mdm-resource-archive-forms.js?v=20261109-857d"></script>
+    <script src="../js/mdm-resource-archive-forms.js?v=20261112-entry-materials"></script>
     <script src="../js/order-config-ui.js"></script>
-    <script src="../js/store-account-config.js?v=20260810-sac1"></script>
+    <script src="../js/store-account-config.js?v=20261112-deposit-gate"></script>
     <script src="../js/store-wallet-demo.js?v=20260911-other-fmt"></script>
     <script src="../js/store-bind-card-demo.js?v=20260806-bank"></script>
     <script src="../store-app/js/store-app-biz-orders.js?v=20260928-comm-range"></script>
     <script src="../js/mdm-receive-address-store.js?v=20260909-store-code"></script>
-    <script src="../js/mdm-archive-detail-drawer.js?v=20261105-operation-log"></script>
+    <script src="../js/contract-bodies.js?v=20261026-tpl-detail"></script>
+    <script src="../js/mdm-low-margin-gate.js?v=20261112-deposit-gate"></script>
+    <script src="../js/basic-settings-contract.js?v=20261112-deposit-gate"></script>
+    <script src="../js/mdm-archive-detail-drawer.js?v=20261112-deposit-gate"></script>
     <script src="../js/mdm-system-default-store.js?v=20260827-sys-default"></script>
-    <script src="../js/mdm-erp-lists.js?v=store-freeze-states"></script>
+    <script src="../js/mdm-erp-lists.js?v=20261112-deposit-gate"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         MdmErpLists.initArchiveStore();

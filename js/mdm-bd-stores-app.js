@@ -611,6 +611,19 @@
             fieldBlock('老板 / 负责人联系电话', archiveText(store.contactPhone), 'contactPhone', store)
         )
       );
+      if (window.MdmEntryMaterials) {
+        var entryData = store.entryMaterials || window.MdmEntryMaterials.load('store', store.name);
+        parts.push(
+          archiveCard(
+            '📄',
+            '入驻证照与结算',
+            '营业执照、法人身份证、法人实名电话、结算信息。进件会默认带入除实名电话外的字段。',
+            window.MdmEntryMaterials.summaryBlocks(entryData, function (label, value) {
+              return fieldBlock(label, archiveText(value));
+            })
+          )
+        );
+      }
 
       if (fr) {
         parts.push(
@@ -1326,6 +1339,9 @@
       bizRef: 'bd-store:' + store.id,
       name: store.name,
       partnerType: normalizePartnerDivision(store.partnerDivision) || '加盟店',
+      bizLine: store.bizLine || '',
+      brandName: store.brandName || '',
+      trigger: 'audit',
       contact: store.contact || '',
       address: store.detailAddress || store.address || '',
       initiator: '门店入驻审核',
@@ -1344,6 +1360,16 @@
     var store = getStore(route.id);
     var ta = qs('#bdApproveTa');
     if (!store) return;
+    if (window.MdmEntryMaterials) {
+      var entryData = store.entryMaterials || window.MdmEntryMaterials.load('store', store.name);
+      var holder = document.createElement('div');
+      var entryRoot = window.MdmEntryMaterials.mount(holder, { skin: 'pc', value: entryData || null });
+      var entryErr = window.MdmEntryMaterials.validate(entryRoot);
+      if (entryErr) {
+        window.bdToast && window.bdToast(entryErr);
+        return;
+      }
+    }
     var remark = ta ? ta.value.trim().slice(0, 100) : '';
     var at = fmtTs();
     if (!store.auditHistory) store.auditHistory = [];

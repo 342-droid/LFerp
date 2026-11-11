@@ -108,6 +108,7 @@
       shortName: '黑猪肉玉米云吞',
       spec: '12',
       price: 12,
+      purchasePrice: 11.2,
       livePrice: 6,
       liveStock: 66,
       liveSpecs: [{ label: '12', price: 6 }],
@@ -1954,13 +1955,35 @@
     return false;
   }
 
+  function lowMarginBlock(product) {
+    if (!window.LfLowMargin || !product || product.purchasePrice == null || product.purchasePrice === '') return '';
+    var storeName = STORE.name;
+    var storeId = STORE.id;
+    if (window.UaStoreSwitch && typeof window.UaStoreSwitch.resolveCurrentStore === 'function') {
+      var current = window.UaStoreSwitch.resolveCurrentStore();
+      if (current && current.name) storeName = current.name;
+      if (current && current.id) storeId = current.id;
+    }
+    return window.LfLowMargin.orderBlock({
+      storeName: storeName,
+      storeId: storeId,
+      purchasePrice: product.purchasePrice,
+      salePrice: product.price
+    });
+  }
+
   function addToCart(id, qty, opts) {
     opts = opts || {};
     var addQty = qty || 1;
     var p = resolveLiveProduct(id) || PRODUCTS[id];
     if (p && !isProductSaleableNow(p)) {
       if (!opts.silent) showToast(unsaleableLabel());
-      return ensureCart();
+      return null;
+    }
+    var marginMsg = lowMarginBlock(p);
+    if (marginMsg) {
+      if (!opts.silent) showToast(marginMsg);
+      return null;
     }
     var price = opts.price != null ? opts.price : p ? p.price : 0;
     var spec = opts.spec != null ? opts.spec : p ? p.spec : '';
@@ -3492,7 +3515,7 @@
     if (!prod || !guardProductSaleable(prod)) return;
     var specs = mallProductSpecs(prod);
     function finish(spec, qty) {
-      addToCart(id, qty || 1, { spec: spec });
+      if (addToCart(id, qty || 1, { spec: spec }) == null) return;
       showToast('已加入购物车');
       if (typeof after === 'function') after();
     }
@@ -3748,9 +3771,12 @@
           var item = findItem(cart, p.id);
           var qty = item && item.qty ? item.qty : 0;
           var unsaleable = !isProductSaleableNow(p);
+          var marginMsg = lowMarginBlock(p);
+          var blocked = unsaleable || !!marginMsg;
+          var blockLabel = unsaleable ? unsaleableLabel() : '低利润不可下单';
           return (
             '<article class="ua-cat-item' +
-            (unsaleable ? ' is-unsaleable' : '') +
+            (blocked ? ' is-unsaleable' : '') +
             '" data-goods-id="' +
             p.id +
             '">' +
@@ -3760,8 +3786,8 @@
             '" alt="' +
             (p.shortName || p.name) +
             '">' +
-            (unsaleable
-              ? '<span class="ua-sale-unsaleable-badge">' + unsaleableLabel() + '</span>'
+            (blocked
+              ? '<span class="ua-sale-unsaleable-badge">' + blockLabel + '</span>'
               : '') +
             (p.watermark
               ? '<span class="ua-shop-watermark ua-shop-watermark--sm">生产验证商品<br>请勿下单</span>'
@@ -3775,9 +3801,9 @@
             '<span class="ua-cat-item__price">' +
             formatCatPrice(p.price) +
             '</span>' +
-            (unsaleable
+            (blocked
               ? '<button type="button" class="ua-cat-item__add is-unsaleable" disabled aria-label="' +
-                unsaleableLabel() +
+                blockLabel +
                 '">' +
                 cartIconSvg +
                 '</button>'
@@ -4397,7 +4423,7 @@
     function addCurrentToCart() {
       if (!guardProductSaleable(product)) return;
       if (global.UaSeckill && !global.UaSeckill.guardPurchase(product, selectedSpec)) return;
-      addToCart(product.id, 1, { spec: selectedSpec });
+      if (addToCart(product.id, 1, { spec: selectedSpec }) == null) return;
       syncBadges();
       showToast('已加入购物车');
     }
@@ -4468,7 +4494,7 @@
           if (!guardProductSaleable(product)) return;
           if (global.UaSeckill && !global.UaSeckill.guardPurchase(product, selectedSpec)) return;
           if (intent === 'cart') {
-            addToCart(product.id, qty, { spec: selectedSpec });
+            if (addToCart(product.id, qty, { spec: selectedSpec }) == null) return;
             syncBadges();
             showToast('已加入购物车');
           } else if (intent === 'buy') {
@@ -4477,6 +4503,7 @@
               return;
             }
             var cart = addToCart(product.id, qty, { spec: selectedSpec });
+            if (!cart) return;
             (cart.items || []).forEach(function (it) {
               it.checked = it.id === product.id;
             });

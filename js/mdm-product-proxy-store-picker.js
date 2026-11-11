@@ -38,6 +38,7 @@
   ];
 
   var STORES = [
+    { id: 'st-xf', name: '鲜丰水果文一西路店', address: '杭州市余杭区文一西路969号', regionId: '330000', customerCount: 6 },
     { id: 'st-001', name: '振宁十足', address: '盈丰街道振宁路898号', regionId: '330000', customerCount: 0 },
     { id: 'st-002', name: '萧山万达店', address: '北干街道金城路987号萧山万达广场', regionId: '330000', customerCount: 3 },
     { id: 'st-003', name: '西湖文三路店', address: '文三路478号华星时代广场', regionId: '330000', customerCount: 12 },
@@ -116,20 +117,29 @@
     }).join('');
   }
 
-  function renderStoreRows(stores, selected, single) {
+  function lockReason(store) {
+    if (window.StoreAccountConfig && typeof window.StoreAccountConfig.depositStatus === 'function') {
+      var state = window.StoreAccountConfig.depositStatus(store && store.id, store && store.name);
+      return '保证金 ¥' + Number(state.depositActual || 0).toFixed(2) + '，未达应保有 ¥' + Number(state.depositRequired || 0).toFixed(2);
+    }
+    return '保证金未达应保有，不能参加营销活动';
+  }
+
+  function renderStoreRows(stores, selected, single, isLocked) {
     if (!stores.length) {
       return '<div class="proxy-store-picker__empty">暂无匹配门店</div>';
     }
     var inputType = single ? 'radio' : 'checkbox';
     var nameAttr = single ? ' name="proxyStorePickerSingle"' : '';
     return stores.map(function (store) {
-      var checked = !!selected[store.id];
+      var locked = typeof isLocked === 'function' && isLocked(store);
+      var checked = !locked && !!selected[store.id];
       return (
-        '<label class="proxy-store-picker__row' + (checked ? ' is-checked' : '') + '" data-store-id="' + store.id + '">' +
-        '  <input type="' + inputType + '" class="proxy-store-picker__check" data-store-id="' + store.id + '"' + nameAttr + (checked ? ' checked' : '') + '>' +
+        '<label class="proxy-store-picker__row' + (checked ? ' is-checked' : '') + (locked ? ' is-locked' : '') + '" data-store-id="' + store.id + '"' + (locked ? ' style="opacity:.55"' : '') + '>' +
+        '  <input type="' + inputType + '" class="proxy-store-picker__check" data-store-id="' + store.id + '"' + nameAttr + (checked ? ' checked' : '') + (locked ? ' disabled' : '') + '>' +
         '  <span class="proxy-store-picker__row-main">' +
-        '    <span class="proxy-store-picker__store-name">' + escapeHtml(store.name) + '</span>' +
-        '    <span class="proxy-store-picker__store-address">' + escapeHtml(store.address) + '</span>' +
+        '    <span class="proxy-store-picker__store-name">' + escapeHtml(store.name) + (locked ? ' · 未放开' : '') + '</span>' +
+        '    <span class="proxy-store-picker__store-address">' + escapeHtml(locked ? lockReason(store) : store.address) + '</span>' +
         '  </span>' +
         '</label>'
       );
@@ -177,6 +187,14 @@
       }
       return getStoreById(id);
     }
+
+    function storeLocked(store) {
+      return !!(options.commerceGate && window.LfLowMargin && store && !window.LfLowMargin.released({ name: store.name, storeId: store.id }));
+    }
+
+    Object.keys(selected).forEach(function (id) {
+      if (storeLocked(getStoreFromCatalog(id))) delete selected[id];
+    });
 
     function filterCatalog(regionId, keyword) {
       var kw = String(keyword || '').trim().toLowerCase();
@@ -288,14 +306,15 @@
       var listEl = backdrop.querySelector('#proxyStorePickerList');
       var visibleStores = getVisibleStores();
       if (regionsEl) regionsEl.innerHTML = renderRegionList(state.regionId);
-      if (listEl) listEl.innerHTML = renderStoreRows(visibleStores, selected, single);
+      if (listEl) listEl.innerHTML = renderStoreRows(visibleStores, selected, single, storeLocked);
       var regionSelect = backdrop.querySelector('#proxyStorePickerRegionSelect');
       if (regionSelect) regionSelect.value = state.regionId;
-      updateSelectAllState(backdrop, visibleStores, selected);
+      updateSelectAllState(backdrop, visibleStores.filter(function (store) { return !storeLocked(store); }), selected);
       updateCounts(backdrop, selected);
     }
 
     function toggleStore(id, checked) {
+      if (storeLocked(getStoreFromCatalog(id))) return;
       if (single) {
         selected = {};
         if (checked) selected[id] = true;
@@ -309,6 +328,10 @@
 
     function toggleAllVisible(checked) {
       getVisibleStores().forEach(function (store) {
+        if (storeLocked(store)) {
+          delete selected[store.id];
+          return;
+        }
         if (checked) selected[store.id] = true;
         else delete selected[store.id];
       });
@@ -321,6 +344,9 @@
     backdrop.querySelector('[data-store-close]').addEventListener('click', close);
     backdrop.querySelector('[data-store-cancel]').addEventListener('click', close);
     backdrop.querySelector('[data-store-ok]').addEventListener('click', function () {
+      Object.keys(selected).forEach(function (id) {
+        if (storeLocked(getStoreFromCatalog(id))) delete selected[id];
+      });
       var ids = Object.keys(selected);
       if (single && !ids.length) {
         if (typeof showToast === 'function') showToast('请选择门店', 'error');
@@ -369,6 +395,15 @@
         refresh();
       }
     });
+
+    if (options.commerceGate) {
+      var note = document.createElement('p');
+      note.setAttribute('role', 'note');
+      note.style.cssText = 'margin:0 16px 8px;padding:8px 10px;background:#fff7f2;border:1px solid #f0d2bc;border-radius:6px;font-size:12px;line-height:1.5;color:#666';
+      note.textContent = '未放开的门店不能参加本活动。保证金余额达到该店账户配置里的应保有金额后才会放开。';
+      var pickerBody = backdrop.querySelector('.erp-modal__body');
+      if (pickerBody) pickerBody.insertBefore(note, pickerBody.firstChild);
+    }
 
     document.body.appendChild(backdrop);
     refresh();

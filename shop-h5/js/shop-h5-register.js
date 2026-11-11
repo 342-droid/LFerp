@@ -464,6 +464,10 @@
     var f = collectPayloadFromForm();
     if (!f.storeSubject) return toastLines('请填写门店主体', '', true), false;
     if (!$('name').value.trim()) return toastLines('请填写门店名称', '', true), false;
+    if (window.MdmEntryMaterials) {
+      var entryErr = window.MdmEntryMaterials.validate(window.MdmEntryMaterials.h5Root(document));
+      if (entryErr) return toastLines(entryErr, '', true), false;
+    }
     if (!f.boundBd || !String(f.boundBd).trim() || f.boundBd === '—')
       return toastLines('请填写绑定 BD', '', true), false;
     if (!f.warehouse || !String(f.warehouse).trim() || f.warehouse === '—')
@@ -551,6 +555,10 @@
     $('confidenceReach1000').value = s.confidenceReach1000 || '';
     $('specialCircumstancesNote').value = s.specialCircumstancesNote || '';
     $('otherPlatformsCooperation').value = s.otherPlatformsCooperation || '';
+    if (window.MdmEntryMaterials) {
+      var entrySaved = s.entryMaterials || window.MdmEntryMaterials.load('store', s.name);
+      if (entrySaved) window.MdmEntryMaterials.fill(window.MdmEntryMaterials.h5Root(document), entrySaved);
+    }
     syncWarehouseHint();
     togglePolicyPanels();
     if (state.selectedPoiId === 'legacy') {
@@ -606,7 +614,26 @@
     if (btn) btn.setAttribute('aria-expanded', 'true');
   }
 
+  function mountShopEntryMaterials() {
+    if (!window.MdmEntryMaterials || document.querySelector('[data-entry-materials-wrap]')) return;
+    var anchor = document.getElementById('contactName');
+    var section = anchor && anchor.closest ? anchor.closest('section') : null;
+    if (!section || !section.parentNode) return;
+    var holder = document.createElement('div');
+    holder.innerHTML = window.MdmEntryMaterials.h5Section();
+    while (holder.firstChild) section.parentNode.insertBefore(holder.firstChild, section.nextSibling);
+  }
+
+  function currentShopEntry() {
+    if (!window.MdmEntryMaterials) return null;
+    var data = window.MdmEntryMaterials.read(window.MdmEntryMaterials.h5Root(document));
+    var name = document.getElementById('name');
+    if (name && name.value.trim()) window.MdmEntryMaterials.save('store', name.value.trim(), data);
+    return data;
+  }
+
   function init() {
+    mountShopEntryMaterials();
     var params = new URLSearchParams(location.search);
     var storeIdRaw = (params.get('storeId') || '').trim();
     var bdFromUrl =
@@ -758,6 +785,7 @@
       var f = collectPayloadFromForm();
       var bd = f.boundBd || bdFromUrl || '当前 BD';
       var bdDisplay = resolveBdDisplayName(bd);
+      var entryMaterials = currentShopEntry();
 
       if (state.mode === 'create') {
         var newId = nextId();
@@ -795,6 +823,7 @@
           confidenceReach1000: f.confidenceReach1000,
           specialCircumstancesNote: f.specialCircumstancesNote,
           otherPlatformsCooperation: f.otherPlatformsCooperation,
+          entryMaterials: entryMaterials,
         });
         toast('已提交：门店注册申请已提交，请等待审核');
         var q = { status: 'pending', storeName: f.name, bdId: bd, storeId: String(newId) };
@@ -838,6 +867,7 @@
           confidenceReach1000: f.confidenceReach1000,
           specialCircumstancesNote: f.specialCircumstancesNote,
           otherPlatformsCooperation: f.otherPlatformsCooperation,
+          entryMaterials: entryMaterials,
           phase: prev.phase === 'draft' ? 'awaiting_bd' : prev.phase === 'awaiting_bd' ? 'awaiting_bd' : prev.phase,
         })
       );
