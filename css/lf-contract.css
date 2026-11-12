@@ -743,6 +743,106 @@ body[data-ct-page] .table td:last-child {
   height: 220px;
 }
 
+.ct-qr-pop.is-above .ct-qr-pop__body {
+  padding-top: 0;
+  padding-bottom: 8px;
+}
+
+.ct-qr-pop.is-above .ct-qr-pop__caret {
+  top: auto;
+  bottom: 1px;
+}
+
+.ct-qr-actors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.ct-qr-actors button {
+  border: 1px solid #dcdfe6;
+  background: #fff;
+  border-radius: 4px;
+  padding: 2px 8px;
+  color: #606266;
+  font-size: 12px;
+  line-height: 20px;
+  cursor: pointer;
+}
+
+.ct-qr-actors button.is-on {
+  border-color: #ff7019;
+  background: #fff7f0;
+  color: #ff7019;
+}
+
+.ct-qr-pop__caption {
+  margin-top: 8px;
+  color: #606266;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.ct-actor-pop {
+  width: 380px;
+}
+
+.ct-actor-pop__title {
+  margin-bottom: 8px;
+  color: #1f2933;
+  font-weight: 600;
+}
+
+.ct-actor-link {
+  padding: 8px 0;
+  border-top: 1px solid #eef0f2;
+}
+
+.ct-actor-link__who {
+  margin-bottom: 4px;
+  color: #303133;
+  font-size: 13px;
+}
+
+.ct-actor-link__who .ct-field-tip {
+  margin-left: 6px;
+}
+
+.ct-actor-link__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ct-actor-link__url {
+  flex: 1;
+  min-width: 0;
+  color: #606266;
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.ct-actor-link__copy {
+  display: inline-flex;
+  flex: 0 0 28px;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #2196f3;
+  cursor: pointer;
+}
+
+.ct-actor-link__copy:hover {
+  background: #f0f7ff;
+}
+
 @media (max-width: 1200px) {
   .ct-scene-grid,
   .ct-steps {
