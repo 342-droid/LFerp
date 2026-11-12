@@ -4936,6 +4936,81 @@
     "status": "diff",
     "date": "2026-11-05"
   },
+  "eab94a7|MDM/mdm_aftersale_ticket.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-12"
+  },
+  "eab94a7|MDM/mdm_aftersale_ticket_detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-12"
+  },
+  "eab94a7|MDM/mdm_archive_store.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-12"
+  },
+  "eab94a7|MDM/mdm_audit_rbt_demand.html": {
+    "before": "changelog-assets/eab94a7/MDM__mdm_audit_rbt_demand.html.before.jpg",
+    "after": "changelog-assets/eab94a7/MDM__mdm_audit_rbt_demand.html.after.jpg",
+    "regions": 36,
+    "status": "diff",
+    "date": "2026-11-12"
+  },
+  "eab94a7|MDM/mdm_product_selection.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-12"
+  },
+  "eab94a7|RBT/rbt_admit_store.html": {
+    "before": "changelog-assets/eab94a7/RBT__rbt_admit_store.html.before.jpg",
+    "after": "changelog-assets/eab94a7/RBT__rbt_admit_store.html.after.jpg",
+    "regions": 5,
+    "status": "diff",
+    "date": "2026-11-12"
+  },
+  "eab94a7|RBT/rbt_contract_sign.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-12"
+  },
+  "eab94a7|RBT/rbt_demand.html": {
+    "before": "changelog-assets/eab94a7/RBT__rbt_demand.html.before.jpg",
+    "after": "changelog-assets/eab94a7/RBT__rbt_demand.html.after.jpg",
+    "regions": 77,
+    "status": "diff",
+    "date": "2026-11-12"
+  },
+  "eab94a7|RBT/rbt_h5_store.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-12"
+  },
+  "eab94a7|RBT/rbt_h5_trader.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-12"
+  },
+  "eab94a7|RBT/rbt_installment.html": {
+    "before": "changelog-assets/eab94a7/RBT__rbt_installment.html.before.jpg",
+    "after": "changelog-assets/eab94a7/RBT__rbt_installment.html.after.jpg",
+    "regions": 21,
+    "status": "diff",
+    "date": "2026-11-12"
+  },
+  "eab94a7|RBT/rbt_product_package.html": {
+    "before": "changelog-assets/eab94a7/RBT__rbt_product_package.html.before.jpg",
+    "after": "changelog-assets/eab94a7/RBT__rbt_product_package.html.after.jpg",
+    "regions": 21,
+    "status": "diff",
+    "date": "2026-11-12"
+  },
+  "eab94a7|SCM/basic_settings_business_tags.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-12"
+  },
   "ead1008|MDM/mdm_member_c.html": {
     "regions": 0,
     "status": "diff",

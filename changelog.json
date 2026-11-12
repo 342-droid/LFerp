@@ -1,10 +1,118 @@
 {
-  "latestSha": "651fab337d38dcf9ac9e933a19dcfeb88b651fba",
-  "total": 540,
+  "latestSha": "eab94a7b6c137bb1dffe95eb9ccc177c5c353c2a",
+  "total": 541,
   "days": [
     {
       "date": "2026-11-12",
       "items": [
+        {
+          "sha": "eab94a7",
+          "type": "feat",
+          "text": "初审按本单维护结算比例，列表改为查看详情",
+          "author": "342-droid",
+          "time": "18:01",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "module": "冷丰售后",
+              "title": "售后单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "module": "冷丰WMS",
+              "title": "需求单审核"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "module": "冷丰WMS",
+              "title": "选品库"
+            },
+            {
+              "file": "RBT/rbt_admit_store.html",
+              "module": "冷丰RBT",
+              "title": "门店管理"
+            },
+            {
+              "file": "RBT/rbt_contract_sign.html",
+              "module": "冷丰RBT",
+              "title": "合同签署"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
+            },
+            {
+              "file": "RBT/rbt_product_package.html",
+              "module": "冷丰RBT",
+              "title": "商品包"
+            },
+            {
+              "file": "SCM/basic_settings_business_tags.html",
+              "module": "冷丰WMS",
+              "title": "标签管理"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "text": "初审通过时按渠道填写兜底利率，商品类目可选择后添加并记到该需求单；作废后已通过的审核单不变，待审核按驳回并记录「需求已作废」"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "text": "列表有结算比例时显示「查看详情」，点击弹出各渠道兜底利率和商品类目；详情用表格按渠道展示，同一渠道多个类目占多行"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "text": "发布不再写入结算比例；需求卡片只在初审维护后展示结算比例"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "需求卡片只在初审维护后展示结算比例"
+            },
+            {
+              "file": "RBT/rbt_contract_sign.html",
+              "text": "合同按渠道写出该渠道的兜底利率和商品类目"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "text": "去掉定额付，结算周期统一为日结"
+            },
+            {
+              "file": "RBT/rbt_product_package.html",
+              "text": "详情增加操作记录页签"
+            },
+            {
+              "file": "RBT/rbt_admit_store.html",
+              "text": "门店标签变更写入操作记录"
+            }
+          ]
+        },
         {
           "sha": "651fab3",
           "type": "feat",
