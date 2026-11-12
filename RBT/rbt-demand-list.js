@@ -35,21 +35,10 @@
             .replace(/"/g, '&quot;');
     }
 
-    function guarantorText(row) {
-        var names = (row.guarantors || []).map(function (item) { return item && item.name; }).filter(Boolean);
-        return names.length ? names.join('、') : '—';
-    }
-
-    function periodText(row) {
-        if (row.repayMethod === '比例付') return show(row.repayPeriod);
-        if (blank(row.repayPeriod)) return '—';
-        return String(row.repayPeriod).indexOf('期') >= 0 ? String(row.repayPeriod) : String(row.repayPeriod) + '期';
-    }
-
     function statusType(status) {
         if (status === '已完成') return 'success';
-        if (status === '已取消' || status === '已驳回') return 'info';
-        if (status === '待审核' || status === '待复核') return 'warning';
+        if (status === '已作废' || status === '已取消' || status === '已驳回') return 'info';
+        if (status === '待审核' || status === '待复核' || status === '待确认签约') return 'warning';
         if (status === '支付中') return 'danger';
         return '';
     }
@@ -57,7 +46,7 @@
     OctopusPrototype.mount({
         setup: function () {
             var table = ref(null);
-            var slots = { code: 'cell-code', status: 'cell-status' };
+            var slots = { code: 'cell-code', status: 'cell-status', repayperiod: 'cell-repayPeriod' };
             var statusOptions = (dataApi.STATUSES || []).concat(dataApi.CLOSED_STATUSES || []).map(function (name) {
                 return { label: name, value: name };
             });
@@ -66,15 +55,12 @@
                 { dataIndex: 'code', title: '需求单号', minWidth: 130, search: { control: 'input' } },
                 { dataIndex: 'storeName', title: '门店', minWidth: 150, align: 'left', showOverflowTooltip: true, search: { control: 'input' } },
                 { dataIndex: 'packageName', title: '商品包', minWidth: 140, align: 'left', showOverflowTooltip: true, search: { control: 'input' } },
-                { dataIndex: 'amount', title: '货款总金额', minWidth: 120, formatter: function (row) { return blank(row.amount) ? '—' : ('¥' + row.amount); } },
+                { dataIndex: 'goodsAmount', title: '商品金额', minWidth: 120, formatter: function (row) { return blank(row.goodsAmount) ? '—' : ('¥' + row.goodsAmount); } },
+                { dataIndex: 'serviceFee', title: '联营服务费', minWidth: 120, formatter: function (row) { return blank(row.serviceFee) ? '—' : ('¥' + row.serviceFee); } },
+                { dataIndex: 'amount', title: '总金额', minWidth: 120, formatter: function (row) { return blank(row.amount) ? '—' : ('¥' + row.amount); } },
                 { dataIndex: 'repayCycle', title: '结算周期', minWidth: 100, formatter: function (row) { return show(row.repayCycle); } },
                 { dataIndex: 'repayMethod', title: '结算方式', minWidth: 100, formatter: function (row) { return show(row.repayMethod); } },
-                { dataIndex: 'repayPeriod', title: '结算期数/比例', minWidth: 130, formatter: periodText },
-                { dataIndex: 'dailyAmount', title: '预估每日结算货款', minWidth: 150, formatter: function (row) {
-                    if (row.repayMethod === '比例付') return '—';
-                    return blank(row.dailyAmount) ? '—' : ('¥' + row.dailyAmount);
-                } },
-                { dataIndex: 'guarantors', title: '担保门店', minWidth: 160, align: 'left', showOverflowTooltip: true, formatter: guarantorText },
+                { dataIndex: 'repayPeriod', title: '结算比例', minWidth: 120, align: 'left' },
                 {
                     dataIndex: 'status',
                     title: '状态',
@@ -105,6 +91,52 @@
                 else if (typeof tableVm.fetchData === 'function') tableVm.fetchData();
             }
 
+            function hasRatio(row) {
+                var ratioApi = window.RbtSettleRatio;
+                if (!row || row.repayMethod !== '比例付' || !ratioApi || typeof ratioApi.viewOf !== 'function') return false;
+                var view = ratioApi.viewOf(row);
+                return !!(view && view.length);
+            }
+
+            function closeRatio() {
+                document.querySelectorAll('[data-rbt-ratio-modal]').forEach(function (node) {
+                    node.remove();
+                });
+                document.removeEventListener('keydown', onRatioKey);
+            }
+
+            function onRatioKey(event) {
+                if (event.key !== 'Escape') return;
+                event.stopPropagation();
+                closeRatio();
+            }
+
+            function openRatio(row) {
+                if (!hasRatio(row)) return;
+                var item = dataApi.get(row && row.code) || row;
+                var ratioApi = window.RbtSettleRatio;
+                var html = ratioApi && typeof ratioApi.tableHtml === 'function' ? ratioApi.tableHtml(item) : '';
+                if (!html) return;
+                closeRatio();
+                var mask = document.createElement('div');
+                mask.className = 'rbt-demand-contract-mask';
+                mask.setAttribute('data-rbt-ratio-modal', '1');
+                mask.innerHTML =
+                    '<div class="rbt-demand-contract rbt-ratio-dialog" role="dialog" aria-modal="true" aria-label="结算比例详情">' +
+                    '<div class="rbt-demand-contract__head">' +
+                    '<div><div class="rbt-demand-contract__eyebrow">结算比例</div>' +
+                    '<div class="rbt-demand-contract__title">' + esc(item.code) + '</div>' +
+                    '<div class="rbt-demand-contract__meta">' + esc(item.storeName || '') + '</div></div>' +
+                    '<button type="button" class="rbt-demand-contract__close" data-rbt-ratio-close aria-label="关闭">&times;</button></div>' +
+                    '<div class="rbt-ratio-dialog__body">' + html + '</div></div>';
+                document.body.appendChild(mask);
+                mask.addEventListener('click', function (event) {
+                    if (event.target === mask) closeRatio();
+                });
+                mask.querySelector('[data-rbt-ratio-close]').addEventListener('click', closeRatio);
+                document.addEventListener('keydown', onRatioKey);
+            }
+
             function openDetail(row) {
                 var item = dataApi.get(row && row.code) || row;
                 if (window.RbtDemandDetail && typeof window.RbtDemandDetail.open === 'function') {
@@ -118,6 +150,16 @@
 
             function canGoSign(row) {
                 return !!(row && row.status === '待签署');
+            }
+
+            function canVoid(row) {
+                return !!(dataApi.canVoidDemand && dataApi.canVoidDemand(row));
+            }
+
+            function voidDemand(row) {
+                if (!canVoid(row) || !row.code) return;
+                if (!window.confirm('确认作废「' + row.code + '」？作废后释放占用额度。')) return;
+                if (dataApi.voidDemand(row.code, '平台')) refreshTable();
             }
 
             function closeSign() {
@@ -141,7 +183,7 @@
                     : '<div class="rbt-sign-empty">合同签署不可用</div>';
             }
 
-            /* 原型演示：一次把三份合同的各方都标成已签署，需求进入待复核。 */
+            /* 原型演示：一次把销售合同和采购合同的各方都标成已签署，需求进入待复核。 */
             function signAllDemo(code) {
                 var rows = dataApi.list();
                 var target = null;
@@ -248,11 +290,15 @@
                 columns: columns,
                 requestRows: requestRows,
                 statusType: statusType,
+                hasRatio: hasRatio,
+                openRatio: openRatio,
                 openDetail: openDetail,
                 canGoAudit: canGoAudit,
                 goAudit: goAudit,
                 canGoSign: canGoSign,
                 goSign: goSign,
+                canVoid: canVoid,
+                voidDemand: voidDemand,
                 refreshTable: refreshTable
             };
         }

@@ -24,10 +24,7 @@
         tag('store-delivery', '配送关注', '#1677ff', 1),
         tag('store-new', '新开门店', '', 1)
       ],
-      RBT_STORE: [
-        tag('rbt-store-guarantee', '担保门店', '#fa8c16', 0),
-        tag('rbt-store-demand', '需求门店', '#1677ff', 0)
-      ],
+      RBT_STORE: [],
       AFTER_SALE: [
         tag('after-priority', '优先处理', '#ff4d4f', 6),
         tag('after-follow', '重点跟进', '#fa8c16', 8),
@@ -110,7 +107,33 @@
     });
     restoreArchiveStoreTags(next);
     repairStoreDemoBindings(next);
+    clearRbtStoreDemo(next);
     return next;
+  }
+
+  /* 准入门店不再预置「担保门店 / 需求门店」。本地已写入的示例标签和打标一并去掉，手动新增的标签保留。 */
+  function clearRbtStoreDemo(next) {
+    var demoIds = { 'rbt-store-guarantee': true, 'rbt-store-demand': true };
+    var catalog = next.catalogs.RBT_STORE || [];
+    var bindings = next.bindings.RBT_STORE || {};
+    var hadDemo = catalog.some(function (item) { return demoIds[item.id]; });
+    Object.keys(bindings).some(function (resourceId) {
+      if ((bindings[resourceId] || []).some(function (id) { return demoIds[id]; })) hadDemo = true;
+      return hadDemo;
+    });
+    if (!hadDemo) return;
+    next.catalogs.RBT_STORE = catalog.filter(function (item) { return !demoIds[item.id]; });
+    Object.keys(bindings).forEach(function (resourceId) {
+      var nextIds = (bindings[resourceId] || []).filter(function (id) { return !demoIds[id]; });
+      if (nextIds.length) bindings[resourceId] = nextIds;
+      else delete bindings[resourceId];
+    });
+    next.catalogs.RBT_STORE.forEach(function (item) {
+      item.usage = Object.keys(bindings).filter(function (resourceId) {
+        return (bindings[resourceId] || []).indexOf(item.id) >= 0;
+      }).length;
+    });
+    next.__rbtStoreDemoCleared = true;
   }
 
   /* 担保门店、需求门店只属于 RBT。若本地已把它们写进门店档案标签库，改回重点门店、配送关注、新开门店。 */
@@ -180,9 +203,10 @@
     try {
       var raw = localStorage.getItem(STORAGE_KEY);
       var data = normalize(raw ? JSON.parse(raw) : clone(DEFAULTS));
-      if (data.__archiveStoreTagsRestored || data.__storeDemoRepairPending) {
+      if (data.__archiveStoreTagsRestored || data.__storeDemoRepairPending || data.__rbtStoreDemoCleared) {
         delete data.__archiveStoreTagsRestored;
         delete data.__storeDemoRepairPending;
+        delete data.__rbtStoreDemoCleared;
         write(data);
       }
       return data;
@@ -339,12 +363,6 @@
           : index % 4 === 2
             ? ['after-priority']
             : ['after-material'];
-    } else if (type === 'RBT_STORE') {
-      demo = index % 3 === 0
-        ? ['rbt-store-guarantee']
-        : index % 3 === 1
-          ? ['rbt-store-demand']
-          : ['rbt-store-guarantee', 'rbt-store-demand'];
     } else if (type === 'STORE') {
       demo = index % 3 === 0
         ? ['store-focus']

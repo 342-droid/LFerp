@@ -1,4 +1,4 @@
-/* RBT 门店详情：对齐门店档案的基础信息、进件信息，不含收货信息、运营评估、商户进件 */
+/* RBT 门店详情：基础信息、进件信息、操作记录。不含收货信息、运营评估、商户进件 */
 (function () {
     function esc(value) {
         return String(value == null || value === '' ? '—' : value)
@@ -185,6 +185,27 @@
         );
     }
 
+    function logPanel(store) {
+        var latest = window.RbtStoreData && typeof window.RbtStoreData.get === 'function'
+            ? window.RbtStoreData.get(store.code) || store
+            : store;
+        var logs = latest.logs || [];
+        var rows = logs.length
+            ? logs.map(function (item) {
+                return (
+                    '<tr><td>' + esc(item.content) + '</td><td class="rbt-store-log__who">' +
+                    esc(item.operator) + '</td><td class="rbt-store-log__time">' +
+                    esc(item.time) + '</td></tr>'
+                );
+            }).join('')
+            : '<tr><td colspan="3" class="rbt-store-log__empty">暂无操作记录</td></tr>';
+        return (
+            '<div class="supplier-detail-tab"><table class="rbt-store-log"><thead><tr>' +
+            '<th>变更内容</th><th class="rbt-store-log__who">变更人</th><th class="rbt-store-log__time">变更时间</th>' +
+            '</tr></thead><tbody>' + rows + '</tbody></table></div>'
+        );
+    }
+
     function paintTags(store) {
         var host = document.getElementById('rbtDetailTags');
         if (host) host.innerHTML = tagList(store.code);
@@ -266,12 +287,13 @@
         };
         tabs.innerHTML =
             '<button type="button" class="store-drawer__tab is-active" data-tab="base">基础信息</button>' +
-            '<button type="button" class="store-drawer__tab" data-tab="onboard">进件信息</button>';
+            '<button type="button" class="store-drawer__tab" data-tab="onboard">进件信息</button>' +
+            '<button type="button" class="store-drawer__tab" data-tab="logs">操作记录</button>';
         function show(id) {
             tabs.querySelectorAll('.store-drawer__tab').forEach(function (button) {
                 button.classList.toggle('is-active', button.getAttribute('data-tab') === id);
             });
-            body.innerHTML = panels[id];
+            body.innerHTML = id === 'logs' ? logPanel(store) : panels[id];
             var tagHost = document.getElementById('rbtBaseTags');
             if (tagHost) tagHost.innerHTML = tagList(store.code);
         }

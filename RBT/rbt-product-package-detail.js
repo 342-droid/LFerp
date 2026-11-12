@@ -1,4 +1,4 @@
-/* RBT 商品包详情：在当前页弹出，展示商品包资料和包含的 SKU。 */
+/* RBT 商品包详情：基础信息、包含 SKU、操作记录。 */
 (function () {
     function esc(value) {
         return String(value == null || value === '' ? '—' : value)
@@ -68,6 +68,47 @@
         if (opened) paintTags(opened);
     }
 
+    function logPanel(pkg) {
+        var latest = window.RbtPackageData && typeof window.RbtPackageData.get === 'function'
+            ? window.RbtPackageData.get(pkg.code) || pkg
+            : pkg;
+        var logs = latest.logs || [];
+        var rows = logs.length
+            ? logs.map(function (item) {
+                return (
+                    '<tr><td>' + esc(item.content) + '</td><td class="rbt-store-log__who">' +
+                    esc(item.operator) + '</td><td class="rbt-store-log__time">' +
+                    esc(item.time) + '</td></tr>'
+                );
+            }).join('')
+            : '<tr><td colspan="3" class="rbt-store-log__empty">暂无操作记录</td></tr>';
+        return (
+            '<div class="supplier-detail-tab"><table class="rbt-store-log"><thead><tr>' +
+            '<th>变更内容</th><th class="rbt-store-log__who">变更人</th><th class="rbt-store-log__time">变更时间</th>' +
+            '</tr></thead><tbody>' + rows + '</tbody></table></div>'
+        );
+    }
+
+    function basePanel(pkg) {
+        return (
+            '<div class="supplier-detail-tab">' +
+            '<div class="supplier-detail-section-title">基础信息</div><div class="supplier-detail-grid">' +
+            cell('商品包编码', pkg.code) +
+            cell('商品包名称', pkg.name) +
+            cell('门店', pkg.storeText) +
+            cell('状态', pkg.enabled === false ? '禁用' : '启用') +
+            '<div class="supplier-detail-cell"><div class="supplier-detail-cell__label">商品包标签</div><div class="supplier-detail-cell__body" id="rbtPackageBaseTags"></div></div>' +
+            cell('创建人', pkg.creator) +
+            cell('创建时间', pkg.createdAt) +
+            cell('更新人', pkg.updater) +
+            cell('更新时间', pkg.updatedAt) +
+            '</div>' +
+            '<div class="supplier-detail-section-title">包含SKU</div>' +
+            skuTable(pkg.skuItems) +
+            '</div>'
+        );
+    }
+
     function open(pkg) {
         if (!pkg) return;
         closeDrawer();
@@ -88,28 +129,31 @@
             '<div class="store-drawer__name-row"><span class="store-drawer__name">' + esc(pkg.name) + '</span></div>' +
             '<div class="store-drawer__meta">商品包编码：' + esc(pkg.code) + '</div>' +
             '<div class="store-drawer__meta" id="rbtPackageHeroTags"></div></div>' +
-            '<div class="store-drawer__body"><div class="supplier-detail-tab">' +
-            '<div class="supplier-detail-section-title">基础信息</div><div class="supplier-detail-grid">' +
-            cell('商品包编码', pkg.code) +
-            cell('商品包名称', pkg.name) +
-            cell('事业线', pkg.bizLine) +
-            cell('状态', pkg.enabled === false ? '禁用' : '启用') +
-            '<div class="supplier-detail-cell"><div class="supplier-detail-cell__label">商品包标签</div><div class="supplier-detail-cell__body" id="rbtPackageBaseTags"></div></div>' +
-            cell('创建人', pkg.creator) +
-            cell('创建时间', pkg.createdAt) +
-            cell('更新人', pkg.updater) +
-            cell('更新时间', pkg.updatedAt) +
-            '</div>' +
-            '<div class="supplier-detail-section-title">包含SKU</div>' +
-            skuTable(pkg.skuItems) +
-            '</div></div>';
+            '<div class="store-drawer__tabs store-drawer__tabs--sticky" id="rbtPackageTabs">' +
+            '<button type="button" class="store-drawer__tab is-active" data-tab="base">基础信息</button>' +
+            '<button type="button" class="store-drawer__tab" data-tab="logs">操作记录</button></div>' +
+            '<div class="store-drawer__body" id="rbtPackageBody"></div>';
         document.body.appendChild(backdrop);
         document.body.appendChild(drawer);
         backdrop.addEventListener('click', closeDrawer);
         drawer.querySelector('[data-rbt-package-close]').addEventListener('click', closeDrawer);
         document.addEventListener('keydown', onDrawerKey);
         window.addEventListener('business-tags:changed', onTagsChanged);
-        paintTags(pkg);
+        var tabs = document.getElementById('rbtPackageTabs');
+        var body = document.getElementById('rbtPackageBody');
+        function show(id) {
+            tabs.querySelectorAll('.store-drawer__tab').forEach(function (button) {
+                button.classList.toggle('is-active', button.getAttribute('data-tab') === id);
+            });
+            body.innerHTML = id === 'logs' ? logPanel(pkg) : basePanel(pkg);
+            if (id !== 'logs') paintTags(pkg);
+        }
+        tabs.addEventListener('click', function (event) {
+            var button = event.target.closest('[data-tab]');
+            if (!button) return;
+            show(button.getAttribute('data-tab'));
+        });
+        show('base');
     }
 
     window.RbtPackageDetail = { open: open };

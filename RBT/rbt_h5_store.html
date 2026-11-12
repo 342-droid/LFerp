@@ -395,7 +395,6 @@
             font-size: 14px;
         }
         .rbt-h5-sum b { color: #ff7019; }
-        .rbt-h5-section { margin: 14px 0 8px; color: #222; font-size: 14px; font-weight: 600; }
         .rbt-h5-publish { width: 100%; height: 44px; }
         .rbt-h5-pick {
             display: none;
@@ -522,6 +521,34 @@
             font-weight: 600;
             letter-spacing: 0.02em;
         }
+        .rbt-h5-inst__row--muted {
+            padding: 3px 0;
+            border-bottom: 0;
+        }
+        .rbt-h5-inst__row--muted .rbt-h5-inst__label {
+            color: #b0b0b0;
+            font-size: 13px;
+        }
+        .rbt-h5-inst__row--muted .rbt-h5-inst__amount {
+            color: #b0b0b0;
+            font-size: 14px;
+            font-weight: 400;
+        }
+        .rbt-h5-inst__row--total {
+            margin-top: 4px;
+            padding-top: 12px;
+            border-top: 1px solid #f0f0f0;
+        }
+        .rbt-h5-inst__row--total .rbt-h5-inst__label {
+            color: #222;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .rbt-h5-inst__row--total .rbt-h5-inst__amount {
+            color: #ff7019;
+            font-size: 26px;
+            font-weight: 700;
+        }
         .rbt-h5-inst__chips {
             display: flex;
             flex-wrap: wrap;
@@ -592,6 +619,7 @@
     <script src="../js/common.js"></script>
     <script src="../js/business-tag-prototype-store.js"></script>
     <script src="rbt-store-data.js"></script>
+    <script src="rbt-settle-ratio.js"></script>
     <script src="rbt-demand-data.js"></script>
     <script src="rbt-contract-sign.js"></script>
     <script src="rbt-h5-store-app.js"></script>

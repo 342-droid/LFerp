@@ -72,8 +72,6 @@
         return store.tagsFor('RBT_STORE', row.code) || [];
     }
 
-    if (dataApi && typeof dataApi.ensureSeedTags === 'function') dataApi.ensureSeedTags();
-
     OctopusPrototype.mount({
         setup: function () {
             var table = ref(null);
@@ -349,6 +347,31 @@
                 return values;
             }
 
+            function tagNames(ids) {
+                var tags = window.BusinessTagPrototypeStore.listTags('RBT_STORE', true) || [];
+                var names = (ids || []).map(function (id) {
+                    var found = null;
+                    tags.some(function (tag) {
+                        if (tag.id === id) {
+                            found = tag;
+                            return true;
+                        }
+                        return false;
+                    });
+                    return found ? found.name : id;
+                });
+                return names.length ? names.join('、') : '无';
+            }
+
+            function sameTagIds(left, right) {
+                return (left || []).slice().sort().join('\n') === (right || []).slice().sort().join('\n');
+            }
+
+            function logTagChange(code, before, after) {
+                if (!dataApi || typeof dataApi.appendLog !== 'function' || sameTagIds(before, after)) return;
+                dataApi.appendLog(code, '门店标签：' + tagNames(before) + ' → ' + tagNames(after));
+            }
+
             function applyBatchTags(values) {
                 var api = window.BusinessTagPrototypeStore;
                 var picked = values.storeTags || [];
@@ -358,6 +381,7 @@
                         ? current.filter(function (id) { return picked.indexOf(id) < 0; })
                         : current.concat(picked.filter(function (id) { return current.indexOf(id) < 0; }));
                     api.saveBinding('RBT_STORE', code, next);
+                    logTagChange(code, current, next);
                 });
             }
 
@@ -402,11 +426,15 @@
                 var tagIds = values.storeTags || [];
                 if (tagIds.length && window.BusinessTagPrototypeStore) {
                     window.BusinessTagPrototypeStore.saveBinding('RBT_STORE', created.code, tagIds);
+                    logTagChange(created.code, [], tagIds);
                 }
                 return created;
             }
 
             function updateStore(values) {
+                var beforeTags = window.BusinessTagPrototypeStore
+                    ? window.BusinessTagPrototypeStore.getBinding('RBT_STORE', values.code)
+                    : [];
                 var updated = dataApi.update({
                     code: values.code,
                     rbtLevel: values.rbtLevel,
@@ -414,7 +442,9 @@
                     storeQuota: values.storequota
                 });
                 if (window.BusinessTagPrototypeStore) {
-                    window.BusinessTagPrototypeStore.saveBinding('RBT_STORE', values.code, values.storeTags || []);
+                    var nextTags = values.storeTags || [];
+                    window.BusinessTagPrototypeStore.saveBinding('RBT_STORE', values.code, nextTags);
+                    logTagChange(values.code, beforeTags, nextTags);
                 }
                 return updated;
             }

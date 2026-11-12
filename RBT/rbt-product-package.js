@@ -21,9 +21,18 @@
         { code: 'SKU10012', name: '海南贝贝南瓜 2kg', barcode: '6901234567012', unit: '箱', spec: '2kg', category: '新鲜蔬菜', purchasePrice: 18.4 }
     ];
     var CATEGORIES = ['新鲜蔬菜', '时令水果', '粮油调味', '肉禽蛋品'];
-    /* 与门店事业线同一套枚举：餐饮、康美、纯私域、集团内部。一个商品包只挂一条事业线。 */
-    var BIZ_LINES = ['餐饮', '康美', '纯私域', '集团内部'];
-    var SEED_BIZ_LINE = { SPB00001: '餐饮', SPB00002: '康美', SPB00003: '纯私域' };
+    /* 旧数据按事业线挂商品包。转成门店时，挂到该事业线下的全部门店。 */
+    var BIZ_LINE_STORES = {
+        '餐饮': ['ONS00001', 'ONS00004'],
+        '康美': ['ONS00002'],
+        '纯私域': ['ONS00003'],
+        '集团内部': ['ONS00005']
+    };
+    var SEED_STORES = {
+        SPB00001: ['ONS00001', 'ONS00004'],
+        SPB00002: ['ONS00002'],
+        SPB00003: ['ONS00003']
+    };
     /* 旧数据只存了商品编码。这几条是已保存的演示售价，新加入的商品不套用。 */
     var LEGACY_SALE = {
         SKU10001: '56.80',
@@ -61,9 +70,9 @@
 
     function seed() {
         return [
-            { code: 'SPB00001', name: '周末生鲜包', bizLine: '餐饮', skus: [{ code: 'SKU10001', salePrice: '56.80' }, { code: 'SKU10002', salePrice: '22.80' }], creator: '王丽', createdAt: '2026-08-02 10:12:00', updater: '王丽', updatedAt: '2026-08-12 09:20:00' },
-            { code: 'SPB00002', name: '肉类组合包', bizLine: '康美', skus: [{ code: 'SKU10003', salePrice: '78.00' }, { code: 'SKU10011', salePrice: '52.80' }], creator: '张宁', createdAt: '2026-08-04 14:30:00', updater: '张宁', updatedAt: '2026-08-14 16:05:00' },
-            { code: 'SPB00003', name: '果蔬尝鲜包', bizLine: '纯私域', skus: [{ code: 'SKU10005', salePrice: '18.50' }, { code: 'SKU10006', salePrice: '49.90' }, { code: 'SKU10010', salePrice: '9.90' }], creator: '李萌', createdAt: '2026-08-06 11:08:00', updater: '李萌', updatedAt: '2026-08-16 13:40:00' }
+            { code: 'SPB00001', name: '周末生鲜包', storeCodes: ['ONS00001', 'ONS00004'], skus: [{ code: 'SKU10001', salePrice: '56.80' }, { code: 'SKU10002', salePrice: '22.80' }], creator: '王丽', createdAt: '2026-08-02 10:12:00', updater: '王丽', updatedAt: '2026-08-12 09:20:00' },
+            { code: 'SPB00002', name: '肉类组合包', storeCodes: ['ONS00002'], skus: [{ code: 'SKU10003', salePrice: '78.00' }, { code: 'SKU10011', salePrice: '52.80' }], creator: '张宁', createdAt: '2026-08-04 14:30:00', updater: '张宁', updatedAt: '2026-08-14 16:05:00' },
+            { code: 'SPB00003', name: '果蔬尝鲜包', storeCodes: ['ONS00003'], skus: [{ code: 'SKU10005', salePrice: '18.50' }, { code: 'SKU10006', salePrice: '49.90' }, { code: 'SKU10010', salePrice: '9.90' }], creator: '李萌', createdAt: '2026-08-06 11:08:00', updater: '李萌', updatedAt: '2026-08-16 13:40:00' }
         ];
     }
 
@@ -75,14 +84,12 @@
                 list = seed();
                 sessionStorage.setItem(KEY, JSON.stringify(list));
             }
-            var filled = false;
+            var changed = false;
             list.forEach(function (item) {
-                if (item && !item.bizLine && SEED_BIZ_LINE[item.code]) {
-                    item.bizLine = SEED_BIZ_LINE[item.code];
-                    filled = true;
-                }
+                if (ensureStores(item)) changed = true;
+                if (ensureLogs(item)) changed = true;
             });
-            if (filled) sessionStorage.setItem(KEY, JSON.stringify(list));
+            if (changed) sessionStorage.setItem(KEY, JSON.stringify(list));
             return list;
         } catch (e) {
             return seed();
@@ -152,6 +159,81 @@
         };
     }
 
+    function admitStores() {
+        var api = window.RbtStoreData;
+        if (!api || typeof api.list !== 'function') return [];
+        return api.list() || [];
+    }
+
+    function codesFromBizLine(line) {
+        var matched = admitStores().filter(function (store) {
+            return store && store.bizLine === line && store.code;
+        }).map(function (store) { return store.code; });
+        if (matched.length) return matched;
+        return (BIZ_LINE_STORES[line] || []).slice();
+    }
+
+    /* 没有门店数组时，把旧的事业线转成该事业线下的门店。已经保存过的门店多选不再改写。 */
+    function ensureStores(item) {
+        if (!item) return false;
+        if (Array.isArray(item.storeCodes)) {
+            if (!item.bizLine) return false;
+            delete item.bizLine;
+            return true;
+        }
+        item.storeCodes = item.bizLine
+            ? codesFromBizLine(item.bizLine)
+            : (SEED_STORES[item.code] || []).slice();
+        delete item.bizLine;
+        return true;
+    }
+
+    function storeName(code) {
+        var name = '';
+        admitStores().some(function (store) {
+            if (store && store.code === code) {
+                name = store.name || code;
+                return true;
+            }
+            return false;
+        });
+        return name || code || '';
+    }
+
+    function pushLog(item, content, operator, time) {
+        if (!item || !content) return;
+        if (!Array.isArray(item.logs)) item.logs = [];
+        item.logs.unshift({
+            time: time || nowText(),
+            operator: operator || '用户名',
+            content: content
+        });
+    }
+
+    /* 旧数据没有操作记录时，补一条新增记录。之后的变更只追加真实差异。 */
+    function ensureLogs(item) {
+        if (!item || Array.isArray(item.logs)) return false;
+        item.logs = [{
+            time: item.createdAt || item.updatedAt || '',
+            operator: item.creator || '用户名',
+            content: '新增商品包'
+        }];
+        return true;
+    }
+
+    function storeText(row) {
+        var codes = row && Array.isArray(row.storeCodes) ? row.storeCodes : [];
+        if (!codes.length) return '—';
+        return codes.map(storeName).filter(Boolean).join('、');
+    }
+
+    function storeChoices() {
+        return admitStores().filter(function (store) { return store && store.code; }).map(function (store) {
+            var name = store.name || store.code;
+            return { label: name + '（' + store.code + '）', value: store.code };
+        });
+    }
+
     function skuText(row) {
         var lines = normalizeSkus(row.skus);
         if (!lines.length) return '—';
@@ -159,6 +241,75 @@
             var found = findSku(line.code);
             return found ? found.code + ' ' + found.name : line.code;
         }).join('、');
+    }
+
+    function storeLogText(codes) {
+        var text = storeText({ storeCodes: codes || [] });
+        return text === '—' ? '无' : text;
+    }
+
+    function sameCodes(left, right) {
+        return (left || []).slice().sort().join('\n') === (right || []).slice().sort().join('\n');
+    }
+
+    function skuLogText(lines) {
+        var normalized = normalizeSkus(lines);
+        if (!normalized.length) return '无';
+        return normalized.map(function (line) {
+            var found = findSku(line.code);
+            var price = validSale(line.salePrice) ? Number(line.salePrice).toFixed(2) : '无售价';
+            return line.code + ' ' + (found ? found.name : line.code) + ' ¥' + price;
+        }).join('、');
+    }
+
+    function tagNames(ids) {
+        var store = window.BusinessTagPrototypeStore;
+        var tags = store ? store.listTags(TAG_TYPE, true) || [] : [];
+        var names = (ids || []).map(function (id) {
+            var found = null;
+            tags.some(function (tag) {
+                if (tag.id === id) {
+                    found = tag;
+                    return true;
+                }
+                return false;
+            });
+            return found ? found.name : id;
+        });
+        return names.length ? names.join('、') : '无';
+    }
+
+    function findPackage(code) {
+        var found = null;
+        read().some(function (item) {
+            if (item && item.code === code) {
+                found = item;
+                return true;
+            }
+            return false;
+        });
+        return found;
+    }
+
+    function appendLog(code, content, operator) {
+        var items = read();
+        var target = null;
+        items.some(function (item) {
+            if (item.code === code) {
+                target = item;
+                return true;
+            }
+            return false;
+        });
+        if (!target || !content) return null;
+        ensureLogs(target);
+        var changedAt = nowText();
+        var who = operator || '用户名';
+        target.updater = who;
+        target.updatedAt = changedAt;
+        pushLog(target, content, who, changedAt);
+        write(items);
+        return target;
     }
 
     function tagOptions() {
@@ -177,6 +328,7 @@
 
     var packageTagOptions = tagOptions();
 
+    window.RbtPackageData = { get: findPackage };
     OctopusPrototype.mount({
         setup: function () {
             var reactive = Vue.reactive;
@@ -197,10 +349,14 @@
             var pickerForm = null;
             var afterSave = 'add';
             var slots = { code: 'cell-code', tags: 'cell-packageTags', status: 'cell-enabled' };
+            var storeOptions = storeChoices();
+            var statusOptions = [{ label: '启用', value: '启用' }, { label: '禁用', value: '禁用' }];
             var columns = [
                 { dataIndex: 'code', title: '商品包编码', minWidth: 140, search: { control: 'input' } },
                 { dataIndex: 'name', title: '商品包名称', minWidth: 180, align: 'left', showOverflowTooltip: true, search: { control: 'input' } },
-                { dataIndex: 'bizLine', title: '事业线', minWidth: 110 },
+                { dataIndex: 'storeQuery', title: '门店', hideInTable: true, search: { control: 'select', options: storeOptions, placeholder: '请选择' } },
+                { dataIndex: 'statusQuery', title: '状态', hideInTable: true, search: { control: 'select', options: statusOptions, placeholder: '请选择' } },
+                { dataIndex: 'storeText', title: '门店', minWidth: 220, align: 'left', showOverflowTooltip: true, formatter: storeText },
                 { dataIndex: 'enabled', title: '状态', width: 100 },
                 { dataIndex: 'tagQuery', title: '商品标签', hideInTable: true, search: { control: 'select', options: packageTagOptions, placeholder: '请选择' } },
                 { dataIndex: 'packageTags', title: '商品包标签', minWidth: 180, align: 'left' },
@@ -210,10 +366,9 @@
                 { dataIndex: 'updater', title: '更新人', minWidth: 100 },
                 { dataIndex: 'updatedAt', title: '更新时间', minWidth: 170 }
             ];
-            var bizLineOptions = BIZ_LINES.map(function (name) { return { label: name, value: name }; });
             var addFields = [
                 { field: 'name', label: '商品包名称', required: true, placeholder: '请输入商品包名称' },
-                { field: 'bizLine', label: '事业线', control: 'select', required: true, options: bizLineOptions, placeholder: '请选择事业线' },
+                { field: 'storeCodes', label: '门店', control: 'select', multiple: true, required: true, defaultValue: [], options: storeOptions, placeholder: '请选择门店' },
                 { field: 'status', label: '状态', control: 'select', required: true, defaultValue: '启用', options: [{ label: '启用', value: '启用' }, { label: '禁用', value: '禁用' }], placeholder: '请选择' },
                 { field: 'packageTags', label: '商品包标签', control: 'select', multiple: true, defaultValue: [], options: packageTagOptions, placeholder: '可不选' },
                 { field: 'skus', label: '包含SKU', control: 'slot', defaultValue: [] }
@@ -226,6 +381,14 @@
                 var matched = read().filter(function (row) {
                     if (!includesText(row.code, params.code)) return false;
                     if (!includesText(row.name, params.name)) return false;
+                    if (!blank(params.storeQuery)) {
+                        var codes = Array.isArray(row.storeCodes) ? row.storeCodes : [];
+                        if (codes.indexOf(params.storeQuery) < 0) return false;
+                    }
+                    if (!blank(params.statusQuery)) {
+                        var status = row.enabled === false ? '禁用' : '启用';
+                        if (status !== params.statusQuery) return false;
+                    }
                     if (!blank(params.tagQuery)) {
                         var bound = (window.BusinessTagPrototypeStore.getBinding(TAG_TYPE, row.code) || []);
                         if (bound.indexOf(params.tagQuery) < 0) return false;
@@ -323,7 +486,10 @@
                 });
                 current = current || row;
                 if (window.RbtPackageDetail) {
-                    window.RbtPackageDetail.open(Object.assign({}, current, { skuItems: skuItems(current) }));
+                    window.RbtPackageDetail.open(Object.assign({}, current, {
+                        skuItems: skuItems(current),
+                        storeText: storeText(current)
+                    }));
                 }
             }
 
@@ -346,7 +512,7 @@
                 addDialog.value && addDialog.value.showEdit({
                     code: row.code,
                     name: row.name,
-                    bizLine: row.bizLine || '',
+                    storeCodes: Array.isArray(row.storeCodes) ? row.storeCodes.slice() : [],
                     status: row.enabled === false ? '禁用' : '启用',
                     packageTags: tags,
                     skus: normalizeSkus(row.skus)
@@ -384,7 +550,9 @@
                     var next = batchMode === 'remove'
                         ? current.filter(function (id) { return picked.indexOf(id) < 0; })
                         : current.concat(picked.filter(function (id) { return current.indexOf(id) < 0; }));
+                    if (sameCodes(current, next)) return;
                     api.saveBinding(TAG_TYPE, code, next);
+                    appendLog(code, '商品包标签：' + tagNames(current) + ' → ' + tagNames(next));
                 });
                 return true;
             }
@@ -404,10 +572,12 @@
                     ElMessage.error('请输入商品包名称');
                     return false;
                 }
-                if (blank(values.bizLine)) {
-                    ElMessage.error('请选择事业线');
+                var storeCodes = Array.isArray(values.storeCodes) ? values.storeCodes.filter(Boolean) : [];
+                if (!storeCodes.length) {
+                    ElMessage.error('请选择门店');
                     return false;
                 }
+                values.storeCodes = storeCodes;
                 if (values.status !== '启用' && values.status !== '禁用') {
                     ElMessage.error('请选择状态');
                     return false;
@@ -429,7 +599,7 @@
                 var created = {
                     code: nextCode(items),
                     name: String(values.name || '').trim(),
-                    bizLine: values.bizLine,
+                    storeCodes: (values.storeCodes || []).slice(),
                     skus: values.skus || [],
                     enabled: values.status !== '禁用',
                     creator: '用户名',
@@ -437,11 +607,14 @@
                     updater: '用户名',
                     updatedAt: createdAt
                 };
+                pushLog(created, '新增商品包', '用户名', createdAt);
                 items.unshift(created);
                 write(items);
+                var tagIds = values.packageTags || [];
                 if (window.BusinessTagPrototypeStore) {
-                    window.BusinessTagPrototypeStore.saveBinding(TAG_TYPE, created.code, values.packageTags || []);
+                    window.BusinessTagPrototypeStore.saveBinding(TAG_TYPE, created.code, tagIds);
                 }
+                if (tagIds.length) appendLog(created.code, '商品包标签：无 → ' + tagNames(tagIds));
                 return created;
             }
 
@@ -456,15 +629,44 @@
                     return false;
                 });
                 if (!target) return null;
-                target.name = String(values.name || '').trim();
-                target.bizLine = values.bizLine;
-                target.skus = values.skus || [];
-                target.enabled = values.status !== '禁用';
-                target.updater = '用户名';
-                target.updatedAt = nowText();
-                write(items);
-                if (window.BusinessTagPrototypeStore) {
-                    window.BusinessTagPrototypeStore.saveBinding(TAG_TYPE, values.code, values.packageTags || []);
+                ensureLogs(target);
+                var changes = [];
+                var nextName = String(values.name || '').trim();
+                if (nextName !== String(target.name || '').trim()) {
+                    changes.push('商品包名称：' + (target.name || '无') + ' → ' + (nextName || '无'));
+                    target.name = nextName;
+                }
+                var nextStores = (values.storeCodes || []).slice();
+                if (!sameCodes(target.storeCodes, nextStores)) {
+                    changes.push('门店：' + storeLogText(target.storeCodes) + ' → ' + storeLogText(nextStores));
+                    target.storeCodes = nextStores;
+                }
+                var nextEnabled = values.status !== '禁用';
+                if ((target.enabled === false) !== (nextEnabled === false)) {
+                    changes.push('状态：' + (target.enabled === false ? '禁用' : '启用') + ' → ' + (nextEnabled ? '启用' : '禁用'));
+                    target.enabled = nextEnabled;
+                }
+                var nextSkus = values.skus || [];
+                if (skuLogText(target.skus) !== skuLogText(nextSkus)) {
+                    changes.push('包含SKU：' + skuLogText(target.skus) + ' → ' + skuLogText(nextSkus));
+                    target.skus = nextSkus;
+                }
+                delete target.bizLine;
+                var beforeTags = window.BusinessTagPrototypeStore
+                    ? window.BusinessTagPrototypeStore.getBinding(TAG_TYPE, values.code)
+                    : [];
+                var nextTags = values.packageTags || [];
+                var tagChanged = !sameCodes(beforeTags, nextTags);
+                if (changes.length) {
+                    var changedAt = nowText();
+                    target.updater = '用户名';
+                    target.updatedAt = changedAt;
+                    pushLog(target, changes.join('；'), '用户名', changedAt);
+                    write(items);
+                }
+                if (window.BusinessTagPrototypeStore && tagChanged) {
+                    window.BusinessTagPrototypeStore.saveBinding(TAG_TYPE, values.code, nextTags);
+                    appendLog(values.code, '商品包标签：' + tagNames(beforeTags) + ' → ' + tagNames(nextTags));
                 }
                 return target;
             }
@@ -480,10 +682,13 @@
                     return false;
                 });
                 if (!target) return;
+                ensureLogs(target);
                 var enabled = target.enabled === false;
+                var changedAt = nowText();
                 target.enabled = enabled;
                 target.updater = '用户名';
-                target.updatedAt = nowText();
+                target.updatedAt = changedAt;
+                pushLog(target, '状态：' + (enabled ? '禁用 → 启用' : '启用 → 禁用'), '用户名', changedAt);
                 write(items);
                 ElMessage.success(enabled ? '已启用' : '已禁用');
                 table.value && table.value.fetchData();

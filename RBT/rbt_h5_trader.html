@@ -165,6 +165,19 @@
         .rbt-h5-card__top { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
         .rbt-h5-status { flex: none; font-size: 12px; color: #ff7019; }
         .rbt-h5-status.is-done { color: #52c41a; }
+        .rbt-h5-status.is-off { color: #999; }
+        .rbt-h5-withdraw {
+            display: block;
+            width: 100%;
+            margin-top: 8px;
+            height: 36px;
+            border: 1px solid #ff7019;
+            border-radius: 8px;
+            background: #fff;
+            color: #ff7019;
+            font-size: 14px;
+            cursor: pointer;
+        }
         .rbt-h5-accept,
         .rbt-sign-submit {
             display: block;
@@ -486,6 +499,7 @@
     <script src="rbt-fresh.js"></script>
     <script src="../js/common.js"></script>
     <script src="../js/mdm-trader-archive-store.js"></script>
+    <script src="rbt-settle-ratio.js"></script>
     <script src="rbt-demand-data.js"></script>
     <script src="rbt-contract-sign.js"></script>
     <script src="rbt-h5-trader-app.js"></script>
