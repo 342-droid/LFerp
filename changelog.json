@@ -1,10 +1,113 @@
 {
-  "latestSha": "eab94a7b6c137bb1dffe95eb9ccc177c5c353c2a",
-  "total": 541,
+  "latestSha": "05497175b260db0f9772160e432a10e002331583",
+  "total": 542,
   "days": [
     {
       "date": "2026-11-12",
       "items": [
+        {
+          "sha": "0549717",
+          "type": "feat",
+          "text": "门店档案操作列对齐，签署链接按角色分开",
+          "author": "sisi",
+          "time": "18:04",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_bd_stores.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 门店模块"
+            },
+            {
+              "file": "SCM/basic_settings_contract_config.html",
+              "module": "冷丰WMS",
+              "title": "接入配置"
+            },
+            {
+              "file": "SCM/basic_settings_contract_party.html",
+              "module": "冷丰WMS",
+              "title": "签署主体"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task.html",
+              "module": "冷丰WMS",
+              "title": "签署任务"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_detail.html",
+              "module": "冷丰WMS",
+              "title": "签署任务详情"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template.html",
+              "module": "冷丰WMS",
+              "title": "合同模板"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template_form.html",
+              "module": "冷丰WMS",
+              "title": "合同模板配置"
+            },
+            {
+              "file": "SCM/contract_sign.html",
+              "module": "",
+              "title": "合同"
+            },
+            {
+              "file": "shop-h5/h5/store/contracts.html",
+              "module": "",
+              "title": "签署合同 · Shop H5"
+            },
+            {
+              "file": "store-app/h5/contract-sign.html",
+              "module": "",
+              "title": "签署合同 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/contracts.html",
+              "module": "",
+              "title": "合同签署 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "丰银宝 · 工作台"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "text": "操作列链接左对齐并撑满整行，不再缩成贴在行顶的一块"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task.html",
+              "text": "复制链接和二维码按甲方、乙方分别给出专属短链；复制改为链接右侧的图标"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_detail.html",
+              "text": "签署方进度里每个角色可单独复制自己的专属链接"
+            }
+          ]
+        },
         {
           "sha": "eab94a7",
           "type": "feat",
