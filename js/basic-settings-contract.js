@@ -393,11 +393,10 @@
     });
     data.tasks.forEach(function (task) {
       if (!task || isUserContractRecord(task)) return;
-      var url = fadadaSignUrl(task);
-      if (task.signUrl !== url) {
-        task.signUrl = url;
-        changed = true;
-      }
+      var before = task.signUrl;
+      var beforeMap = JSON.stringify(task.actorSignUrls || {});
+      syncTaskSignUrls(task);
+      if (task.signUrl !== before || JSON.stringify(task.actorSignUrls || {}) !== beforeMap) changed = true;
     });
     if (changed) saveStore(data);
     return data;
@@ -1482,6 +1481,7 @@
     var tb = document.getElementById('ctTaskBody');
     if (!tb) return;
     closeTaskQr();
+    closeActorLinkPop();
     if (!rows.length) {
       tb.innerHTML = '<tr><td colspan="10" class="ct-empty">没有符合条件的签署任务</td></tr>';
       refreshRowNo();
@@ -1544,12 +1544,64 @@
     if (pop) pop.remove();
   }
 
-  function copyTaskLink(task) {
-    var url = fadadaSignUrl(task);
-    task.signUrl = url;
+  function closeActorLinkPop() {
+    var pop = document.getElementById('ctActorLinkPop');
+    if (pop) pop.remove();
+  }
+
+  function copyActorLink(task, actorId) {
+    var actors = taskActors(task);
+    var actor = actors.filter(function (item) { return item.actorId === actorId; })[0] || { actorId: actorId, role: '' };
+    syncTaskSignUrls(task);
     saveStore(state);
+    var url = fadadaSignUrl(task, actor.actorId);
     copyText(url).then(function () {
-      toast('法大大签署短链已复制，一年内有效', 'success');
+      toast('已复制「' + actor.actorId + ' · ' + (actor.role || '签署方') + '」的专属签署短链，一年内有效', 'success');
+    });
+  }
+
+  function openActorLinkPop(anchor, task) {
+    var existing = document.getElementById('ctActorLinkPop');
+    if (existing && existing.getAttribute('data-task') === task.id) {
+      closeActorLinkPop();
+      return;
+    }
+    closeTaskQr();
+    closeActorLinkPop();
+    ensureOverlayBound();
+    syncTaskSignUrls(task);
+    saveStore(state);
+    var actors = taskActors(task);
+    var pop = document.createElement('div');
+    pop.id = 'ctActorLinkPop';
+    pop.className = 'ct-qr-pop ct-actor-pop';
+    pop.setAttribute('data-task', task.id);
+    pop.setAttribute('role', 'dialog');
+    pop.setAttribute('aria-label', '按角色复制专属链接');
+    pop.innerHTML =
+      '<div class="ct-qr-pop__body">' +
+      '<i class="ct-qr-pop__caret"></i>' +
+      '<div class="ct-qr-pop__card">' +
+      '<div class="ct-actor-pop__title">按角色复制专属链接</div>' +
+      actors.map(function (actor) {
+        return '<div class="ct-actor-link">' +
+          '<div class="ct-actor-link__who"><strong>' + esc(actor.actorId) + '</strong> · ' + esc(actor.role || '签署方') +
+          '<span class="ct-field-tip"> · ' + (actor.signMode === 'auto' ? '自动签' : '手动签') + '</span></div>' +
+          '<div class="ct-actor-link__row">' +
+          '<code class="ct-actor-link__url">' + esc(fadadaSignUrl(task, actor.actorId)) + '</code>' +
+          '<button type="button" class="ct-actor-link__copy" data-copy-actor="' + esc(actor.actorId) + '" aria-label="复制">' +
+          '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>' +
+          '</button></div></div>';
+      }).join('') +
+      '</div></div>';
+    pop._qrAnchor = anchor;
+    document.body.appendChild(pop);
+    placeTaskQr(pop, anchor, true);
+    pop.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-copy-actor]');
+      if (!btn) return;
+      e.stopPropagation();
+      copyActorLink(task, btn.getAttribute('data-copy-actor'));
     });
   }
 
@@ -1561,7 +1613,9 @@
     }
     var link = document.createElement('a');
     link.href = canvas.toDataURL('image/png');
-    link.download = '签署链接-' + task.id + '.png';
+    var mount = document.getElementById('ctQrMount');
+    var actorId = mount ? (mount.getAttribute('data-actor') || '') : '';
+    link.download = '签署链接-' + task.id + (actorId ? '-' + actorId : '') + '.png';
     link.addEventListener('click', function (e) { e.stopPropagation(); });
     document.body.appendChild(link);
     link.click();
@@ -1583,6 +1637,9 @@
     }
     var left = rect.left + rect.width / 2 - width / 2;
     var top = rect.bottom + 6;
+    var above = top + height > global.innerHeight - 8 && rect.top - height - 6 > 8;
+    if (above) top = rect.top - height - 6;
+    pop.classList.toggle('is-above', above);
     var maxLeft = Math.max(8, global.innerWidth - width - 8);
     if (left > maxLeft) left = maxLeft;
     if (left < 8) left = 8;
@@ -1596,33 +1653,15 @@
     }
   }
 
-  function openTaskQr(anchor, task) {
-    var existing = document.getElementById('ctQrPop');
-    if (existing && existing.getAttribute('data-task') === task.id) {
-      closeTaskQr();
-      return;
-    }
-    closeTaskQr();
-    if (!global.QRCode) {
-      toast('二维码组件未加载', 'error');
-      return;
-    }
-    var url = fadadaSignUrl(task);
-    task.signUrl = url;
-    saveStore(state);
-    var pop = document.createElement('div');
-    pop.id = 'ctQrPop';
-    pop.className = 'ct-qr-pop';
-    pop.setAttribute('data-task', task.id);
-    pop.setAttribute('role', 'dialog');
-    pop.setAttribute('aria-label', '签署二维码');
-    pop.innerHTML =
-      '<div class="ct-qr-pop__body">' +
-      '<i class="ct-qr-pop__caret"></i>' +
-      '<div class="ct-qr-pop__card"><div id="ctQrMount"></div></div></div>';
-    pop._qrAnchor = anchor;
-    document.body.appendChild(pop);
+  function paintTaskQr(task, actorId) {
     var mount = document.getElementById('ctQrMount');
+    var caption = document.getElementById('ctQrCaption');
+    if (!mount || !global.QRCode) return;
+    var actors = taskActors(task);
+    var actor = actors.filter(function (item) { return item.actorId === actorId; })[0] || counterpartyActor(task);
+    var url = fadadaSignUrl(task, actor.actorId);
+    mount.innerHTML = '';
+    mount.setAttribute('data-actor', actor.actorId);
     new global.QRCode(mount, {
       text: url,
       width: 220,
@@ -1632,8 +1671,59 @@
       correctLevel: global.QRCode.CorrectLevel.M
     });
     mount.removeAttribute('title');
+    if (caption) caption.textContent = actor.actorId + ' · ' + (actor.role || '签署方') + ' 的专属签署码';
+    document.querySelectorAll('#ctQrActors button').forEach(function (btn) {
+      btn.classList.toggle('is-on', btn.getAttribute('data-qr-actor') === actor.actorId);
+    });
+  }
+
+  function openTaskQr(anchor, task) {
+    var existing = document.getElementById('ctQrPop');
+    if (existing && existing.getAttribute('data-task') === task.id) {
+      closeTaskQr();
+      return;
+    }
+    closeTaskQr();
+    closeActorLinkPop();
+    ensureOverlayBound();
+    if (!global.QRCode) {
+      toast('二维码组件未加载', 'error');
+      return;
+    }
+    syncTaskSignUrls(task);
+    saveStore(state);
+    var actors = taskActors(task);
+    var current = counterpartyActor(task).actorId;
+    var pop = document.createElement('div');
+    pop.id = 'ctQrPop';
+    pop.className = 'ct-qr-pop';
+    pop.setAttribute('data-task', task.id);
+    pop.setAttribute('role', 'dialog');
+    pop.setAttribute('aria-label', '签署二维码');
+    pop.innerHTML =
+      '<div class="ct-qr-pop__body">' +
+      '<i class="ct-qr-pop__caret"></i>' +
+      '<div class="ct-qr-pop__card">' +
+      '<div class="ct-qr-actors" id="ctQrActors">' +
+      actors.map(function (actor) {
+        return '<button type="button" data-qr-actor="' + esc(actor.actorId) + '">' + esc(actor.actorId) + '</button>';
+      }).join('') +
+      '</div>' +
+      '<div id="ctQrMount"></div>' +
+      '<div class="ct-qr-pop__caption" id="ctQrCaption"></div>' +
+      '</div></div>';
+    pop._qrAnchor = anchor;
+    document.body.appendChild(pop);
+    paintTaskQr(task, current);
     placeTaskQr(pop, anchor, true);
     pop.addEventListener('click', function (e) {
+      var actorBtn = e.target.closest('[data-qr-actor]');
+      if (actorBtn) {
+        e.stopPropagation();
+        paintTaskQr(task, actorBtn.getAttribute('data-qr-actor'));
+        placeTaskQr(pop, anchor);
+        return;
+      }
       if (e.target.closest('#ctQrMount')) downloadTaskQr(task);
     });
   }
@@ -1686,7 +1776,7 @@
         signUrl: '',
         originalTaskId: task.id
       };
-      abolish.signUrl = fadadaSignUrl(abolish);
+      syncTaskSignUrls(abolish);
       task.status = 'voiding';
       task.abolishTaskId = abolish.id;
       state.tasks.unshift(abolish);
@@ -1699,7 +1789,7 @@
       return;
     }
     if (act === 'copy') {
-      copyTaskLink(task);
+      openActorLinkPop(btn, task);
       return;
     }
     if (act === 'qr') {
@@ -1757,24 +1847,34 @@
       if (!btn) return;
       handleTaskAct(btn.getAttribute('data-act'), findTask(btn.closest('tr').getAttribute('data-id')), btn);
     });
-    if (!document.body.getAttribute('data-ct-qr-bound')) {
-      document.body.setAttribute('data-ct-qr-bound', '1');
-      document.addEventListener('click', function (e) {
-        var pop = document.getElementById('ctQrPop');
-        if (!pop) return;
-        if (pop.contains(e.target)) return;
-        if (e.target.closest && e.target.closest('[data-act="qr"]')) return;
+    ensureOverlayBound();
+  }
+
+  function ensureOverlayBound() {
+    if (document.body.getAttribute('data-ct-qr-bound')) return;
+    document.body.setAttribute('data-ct-qr-bound', '1');
+    document.addEventListener('click', function (e) {
+      var qr = document.getElementById('ctQrPop');
+      var linkPop = document.getElementById('ctActorLinkPop');
+      if (qr && !qr.contains(e.target) && !(e.target.closest && e.target.closest('[data-act="qr"]'))) closeTaskQr();
+      if (linkPop && !linkPop.contains(e.target) && !(e.target.closest && e.target.closest('[data-act="copy"]'))) closeActorLinkPop();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
         closeTaskQr();
-      });
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') closeTaskQr();
-      });
-      document.addEventListener('scroll', function () {
-        var pop = document.getElementById('ctQrPop');
-        if (pop && pop._qrAnchor) placeTaskQr(pop, pop._qrAnchor);
-      }, true);
-      global.addEventListener('resize', closeTaskQr);
-    }
+        closeActorLinkPop();
+      }
+    });
+    document.addEventListener('scroll', function () {
+      var qr = document.getElementById('ctQrPop');
+      var linkPop = document.getElementById('ctActorLinkPop');
+      if (qr && qr._qrAnchor) placeTaskQr(qr, qr._qrAnchor);
+      if (linkPop && linkPop._qrAnchor) placeTaskQr(linkPop, linkPop._qrAnchor);
+    }, true);
+    global.addEventListener('resize', function () {
+      closeTaskQr();
+      closeActorLinkPop();
+    });
   }
 
   function taskDocIds(task) {
@@ -1884,7 +1984,7 @@
       existing.replacedFadadaTaskId = oldFadadaId;
       existing.fadadaTaskId = 'ST-SUP' + Date.now().toString().slice(-6);
       existing.signUrl = '';
-      existing.signUrl = fadadaSignUrl(existing);
+      syncTaskSignUrls(existing);
       existing.reissueNote = '已撤销法大大任务 ' + (oldFadadaId || '（无任务号）') + '，按新结算快照重新创建';
       saveStore(state);
       return existing;
@@ -1920,7 +2020,7 @@
       sms: true,
       pushApp: true
     };
-    task.signUrl = fadadaSignUrl(task);
+    syncTaskSignUrls(task);
     state.tasks.unshift(task);
     saveStore(state);
     return task;
@@ -2107,7 +2207,7 @@
         createdTask.kind = 'settle_supplement';
         createdTask.pushApp = true;
       }
-      createdTask.signUrl = fadadaSignUrl(createdTask);
+      syncTaskSignUrls(createdTask);
       state.tasks.unshift(createdTask);
       saveStore(state);
       toast('已发起 1 条签署任务，包含 ' + docs.length + ' 份文档', 'success');
@@ -2154,9 +2254,21 @@
       else st = '<span class="ct-tag ct-tag--info">待签署</span>';
       var who = isPlatform ? state.config.corpName : (party ? party.name : actor.role);
       var mode = actor.signMode === 'auto' ? '自动签' : '手动签';
-      return '<tr><td>' + esc((actor.actorId ? actor.actorId + ' · ' : '') + actor.role) + '</td><td>' + esc(who) + '</td><td>' + (actor.actorType === 'person' ? '个人' : '企业') + '</td><td>' + mode + '</td><td>' + st + '</td></tr>';
+      var canCopy = shown === 'sign_progress' || shown === 'sign_completed';
+      var linkCell = canCopy
+        ? '<button type="button" class="ct-link" data-copy-actor="' + esc(actor.actorId) + '">复制</button>'
+        : '—';
+      return '<tr><td>' + esc((actor.actorId ? actor.actorId + ' · ' : '') + actor.role) + '</td><td>' + esc(who) + '</td><td>' + (actor.actorType === 'person' ? '个人' : '企业') + '</td><td>' + mode + '</td><td>' + st + '</td><td>' + linkCell + '</td></tr>';
     }).join('');
     set('ctActorDetailBody', actorHtml);
+    var actorBody = document.getElementById('ctActorDetailBody');
+    if (actorBody) {
+      actorBody.addEventListener('click', function (e) {
+        var copyBtn = e.target.closest('[data-copy-actor]');
+        if (!copyBtn) return;
+        copyActorLink(task, copyBtn.getAttribute('data-copy-actor'));
+      });
+    }
     var fileHtml = (docs.length ? docs : [{ id: '', name: '合同' }]).map(function (doc) {
       var signed = doc.id && isTemplateSigned(task, doc.id);
       var canDl = task.status === 'sign_completed';
@@ -2203,7 +2315,7 @@
       }
       var beforeStatus = task.status;
       var beforeDeadline = task.deadline;
-      handleTaskAct(act, task);
+      handleTaskAct(act, task, btn);
       if (act === 'cancel' && task.status === 'cancelled') go('basic_settings_contract_task.html');
       if (act === 'postpone' && task.deadline !== beforeDeadline) global.location.reload();
       if (act === 'abolish' && task.status !== beforeStatus) global.location.reload();
@@ -2257,18 +2369,58 @@
     return task.fadadaTaskId;
   }
 
-  /** 转发给对方、生成二维码用短链，一年有效。 */
-  function fadadaSignUrl(task) {
-    var taskId = ensureFadadaTaskId(task);
-    if (!taskId) return '';
-    return 'https://test.fddurl.cn/' + String(taskId).replace(/[^A-Za-z0-9]/g, '').slice(-8);
+  function taskActors(task) {
+    if (!task) return [];
+    var tpl = findTpl(task.templateId);
+    var source = (tpl && tpl.actors && tpl.actors.length) ? tpl.actors : defaultActors(task.scene);
+    return source.map(function (actor) { return Object.assign({}, actor); });
   }
 
-  /** App 内打开时当场再取长链，不复用创建时存下的短链。 */
-  function fadadaEmbedUrl(task) {
+  function counterpartyActor(task) {
+    var actors = taskActors(task);
+    return actors.filter(function (actor) { return actor.signMode !== 'auto'; })[0]
+      || actors[actors.length - 1]
+      || { actorId: '乙方', role: '签署方', actorType: 'corp', signMode: 'manual' };
+  }
+
+  function actorUrlToken(actorId) {
+    var text = String(actorId || '');
+    var n = 2166136261;
+    var i;
+    for (i = 0; i < text.length; i++) {
+      n ^= text.charCodeAt(i);
+      n = Math.imul(n, 16777619);
+    }
+    return (n >>> 0).toString(36).slice(0, 4);
+  }
+
+  /** 法大大 sign-task/actor/get-url：每个参与方一条专属短链，一年有效。不传角色时取手动签署的对方。 */
+  function fadadaSignUrl(task, actorId) {
     var taskId = ensureFadadaTaskId(task);
     if (!taskId) return '';
-    return 'https://uat-sign.fadada.com/connect/sign?signTaskId=' + encodeURIComponent(taskId) + '&ticket=' + Date.now();
+    var actor = actorId || counterpartyActor(task).actorId;
+    var base = String(taskId).replace(/[^A-Za-z0-9]/g, '').slice(-8);
+    return 'https://test.fddurl.cn/' + base + actorUrlToken(actor);
+  }
+
+  function syncTaskSignUrls(task) {
+    if (!task || isUserContractRecord(task)) return;
+    var map = {};
+    taskActors(task).forEach(function (actor) {
+      if (!actor.actorId) return;
+      map[actor.actorId] = fadadaSignUrl(task, actor.actorId);
+    });
+    task.actorSignUrls = map;
+    var party = counterpartyActor(task);
+    task.signUrl = map[party.actorId] || fadadaSignUrl(task, party.actorId);
+  }
+
+  /** App 内打开时按当前签署角色当场再取嵌入链接，不复用短链。 */
+  function fadadaEmbedUrl(task, actorId) {
+    var taskId = ensureFadadaTaskId(task);
+    if (!taskId) return '';
+    var actor = actorId || counterpartyActor(task).actorId;
+    return 'https://uat-sign.fadada.com/connect/sign?signTaskId=' + encodeURIComponent(taskId) + '&actorId=' + encodeURIComponent(actor) + '&ticket=' + Date.now();
   }
 
   function fadadaPreviewUrl(task) {
@@ -2367,8 +2519,8 @@
           existing.agreementNames = taskDocs(existing).map(function (doc) { return doc.name; }).join('、');
         }
         var keptUrl = fadadaSignUrl(existing);
-        if (existing.signUrl !== keptUrl) {
-          existing.signUrl = keptUrl;
+        if (existing.signUrl !== keptUrl || !existing.actorSignUrls) {
+          syncTaskSignUrls(existing);
           saveStore(state);
         }
         return existing;
@@ -2419,7 +2571,7 @@
       sms: true,
       notifyType: ['start']
     };
-    task.signUrl = fadadaSignUrl(task);
+    syncTaskSignUrls(task);
     state.tasks.unshift(task);
     saveStore(state);
     return task;

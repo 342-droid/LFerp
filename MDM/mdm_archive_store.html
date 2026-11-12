@@ -10,18 +10,35 @@
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css?v=20261020-biz-structure">
     <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
     <style>
-        .store-archive-table th.store-archive-actions,
-        .store-archive-table td.action-links {
+        /* 操作列加在 td 上的 .action-links 全局是 display:flex，会把单元格收成一块贴在行顶的线框。这里拉回整行高度，链接左对齐。 */
+        .main-content .table.store-archive-table th.store-archive-actions,
+        .main-content .table.store-archive-table td.action-links {
             position: sticky;
             right: 0;
             z-index: 10;
-            min-width: 120px;
-            background-color: white;
+            min-width: 280px;
+            background-color: #fff;
             box-shadow: -2px 0 3px rgba(0,0,0,0.1);
+            display: table-cell !important;
+            vertical-align: middle;
+            white-space: nowrap;
+            text-align: left;
+            overflow: visible;
+            height: auto;
         }
-        .store-archive-table th.store-archive-actions {
-            z-index: 11;
+        .main-content .table.store-archive-table th.store-archive-actions {
+            z-index: 13;
+            top: 0;
             background-color: #f5f5f5;
+        }
+        .main-content .table.store-archive-table td.action-links a {
+            display: inline;
+            margin-right: 10px;
+            line-height: inherit;
+            vertical-align: baseline;
+        }
+        .main-content .table.store-archive-table td.action-links a:last-child {
+            margin-right: 0;
         }
         .main-content .table.store-archive-table td.bt-archive-col {
             position: static !important;
