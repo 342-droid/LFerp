@@ -6,6 +6,8 @@
     var filtered = [];
     var reviewAuditId = '';
     var reviewFile = null;
+    var passAuditId = '';
+    var passDraft = null;
 
     function blank(value) {
         return value == null || String(value).trim() === '';
@@ -29,7 +31,6 @@
     function statusClass(status) {
         if (status === '审核通过') return 'is-pass';
         if (status === '审核驳回') return 'is-reject';
-        if (status === '已取消') return 'is-cancel';
         return 'is-pending';
     }
 
@@ -94,7 +95,7 @@
         var start = (currentPage - 1) * pageSize;
         var rows = filtered.slice(start, start + pageSize);
         if (!rows.length) {
-            body.innerHTML = '<tr><td colspan="12" style="text-align:center;color:#909399;padding:28px 12px;">暂无审核记录</td></tr>';
+            body.innerHTML = '<tr><td colspan="14" style="text-align:center;color:#909399;padding:28px 12px;">暂无审核记录</td></tr>';
             renderPagination();
             return;
         }
@@ -112,6 +113,8 @@
                 '<td style="text-align:center;"><span class="rbt-aud-stage' + (stage === '复核' ? ' is-review' : '') + '">' + stage + '</span></td>' +
                 '<td>' + show(row.storeName) + '<div style="color:#909399;font-size:12px;">' + show(row.storeCode) + '</div></td>' +
                 '<td>' + show(row.packageName) + '</td>' +
+                '<td>' + money(row.goodsAmount) + '</td>' +
+                '<td>' + money(row.serviceFee) + '</td>' +
                 '<td>' + money(row.amount) + '</td>' +
                 '<td>' + show(row.submitter) + '</td>' +
                 '<td>' + show(row.submittedAt) + '</td>' +
@@ -288,14 +291,153 @@
             openReview(id);
             return;
         }
-        var ok = window.confirm('确认通过需求单「' + audit.demandCode + '」？通过后需求状态变为「待接单」。');
-        if (!ok) return;
-        var result = dataApi.approveAudit(id, '王丽');
+        openPass(id);
+    }
+
+    function closePass() {
+        var mask = document.getElementById('rbtPassMask');
+        if (mask) {
+            mask.hidden = true;
+            mask.style.display = 'none';
+        }
+        passAuditId = '';
+    }
+
+    function escAttr(value) {
+        return String(value == null ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/</g, '&lt;');
+    }
+
+    function emptyPassDraft() {
+        var ratioApi = window.RbtSettleRatio;
+        var draft = {};
+        (ratioApi ? ratioApi.CHANNELS : []).forEach(function (channel) {
+            draft[channel] = { fallback: '', rows: [] };
+        });
+        return draft;
+    }
+
+    function syncPassDraft() {
+        var ratioApi = window.RbtSettleRatio;
+        if (!passDraft || !ratioApi) return;
+        ratioApi.CHANNELS.forEach(function (channel) {
+            var fallback = document.querySelector('[data-pass-fallback="' + channel + '"]');
+            if (fallback) passDraft[channel].fallback = fallback.value;
+            document.querySelectorAll('[data-pass-row="' + channel + '"]').forEach(function (input) {
+                var index = Number(input.getAttribute('data-index'));
+                if (passDraft[channel].rows[index]) passDraft[channel].rows[index].ratio = input.value;
+            });
+        });
+    }
+
+    function renderPassForm() {
+        var ratioApi = window.RbtSettleRatio;
+        var host = document.getElementById('rbtPassForm');
+        if (!host || !ratioApi || !passDraft) return;
+        var options = '<option value="">请选择类目</option>' + ratioApi.categoryOptions().map(function (name) {
+            return '<option value="' + escAttr(name) + '">' + escAttr(name) + '</option>';
+        }).join('');
+        host.innerHTML = ratioApi.CHANNELS.map(function (channel) {
+            var item = passDraft[channel];
+            var rows = item.rows.map(function (row, index) {
+                return '<div class="rbt-pass-field"><span class="rbt-pass-label">' + escAttr(row.category) + '</span><input data-pass-row="' + escAttr(channel) + '" data-index="' + index + '" value="' + escAttr(row.ratio) + '" inputmode="decimal" placeholder="请输入"><span>%</span><button type="button" class="rbt-pass-del" data-pass-del="' + escAttr(channel) + '" data-index="' + index + '">删除</button></div>';
+            }).join('');
+            return '<div class="rbt-pass-channel"><h3>' + escAttr(channel) + '</h3>' +
+                '<div class="rbt-pass-field"><span class="rbt-pass-label">兜底利率</span><input data-pass-fallback="' + escAttr(channel) + '" value="' + escAttr(item.fallback) + '" inputmode="decimal" placeholder="请输入"><span>%</span></div>' +
+                '<div class="rbt-pass-field"><span class="rbt-pass-label">商品类目</span><select data-pass-pick="' + escAttr(channel) + '">' + options + '</select><input data-pass-new="' + escAttr(channel) + '" inputmode="decimal" placeholder="请输入"><span>%</span><button type="button" class="btn btn-secondary" data-pass-add="' + escAttr(channel) + '">添加</button></div>' +
+                rows +
+                '<div class="rbt-review-note">需要按类目区分时再添加。未添加的类目使用兜底利率。</div></div>';
+        }).join('');
+    }
+
+    function addPassCategory(channel) {
+        var ratioApi = window.RbtSettleRatio;
+        syncPassDraft();
+        var pick = document.querySelector('[data-pass-pick="' + channel + '"]');
+        var ratioInput = document.querySelector('[data-pass-new="' + channel + '"]');
+        var category = pick ? pick.value : '';
+        var ratio = ratioApi ? ratioApi.parseRatio(ratioInput && ratioInput.value) : '';
+        if (!category) {
+            toast('请选择商品类目', 'error');
+            return;
+        }
+        if (passDraft[channel].rows.some(function (row) { return row.category === category; })) {
+            toast('该渠道已添加「' + category + '」', 'error');
+            return;
+        }
+        if (!ratio) {
+            toast('类目结算比例须大于 0 且不超过 100', 'error');
+            return;
+        }
+        passDraft[channel].rows.push({ category: category, ratio: ratio });
+        renderPassForm();
+    }
+
+    function removePassCategory(channel, index) {
+        syncPassDraft();
+        if (passDraft[channel]) passDraft[channel].rows.splice(index, 1);
+        renderPassForm();
+    }
+
+    function openPass(id) {
+        var audit = dataApi.getAudit(id);
+        var demand = audit ? dataApi.get(audit.demandCode) : null;
+        if (!audit || audit.status !== '待审核' || auditStage(audit) !== '初审' || !demand) {
+            toast('当前状态不可审核', 'error');
+            return;
+        }
+        passAuditId = id;
+        passDraft = emptyPassDraft();
+        var title = document.getElementById('rbtPassTitle');
+        if (title) title.textContent = demand.code + ' · ' + (demand.storeName || '');
+        renderPassForm();
+        var mask = document.getElementById('rbtPassMask');
+        if (mask) {
+            mask.hidden = false;
+            mask.style.display = 'flex';
+        }
+    }
+
+    function collectPassRatios() {
+        var ratioApi = window.RbtSettleRatio;
+        if (!ratioApi || !passDraft) return null;
+        syncPassDraft();
+        var invalid = false;
+        var list = ratioApi.CHANNELS.map(function (channel) {
+            var item = passDraft[channel];
+            var fallback = ratioApi.parseRatio(item.fallback);
+            if (String(item.fallback || '').trim() && !fallback) invalid = true;
+            if (!fallback) invalid = true;
+            var rows = [];
+            item.rows.forEach(function (row) {
+                var ratio = ratioApi.parseRatio(row.ratio);
+                if (!row.category || !ratio) {
+                    invalid = true;
+                    return;
+                }
+                rows.push({ category: row.category, ratio: ratio });
+            });
+            return { channel: channel, fallback: fallback, rows: rows };
+        });
+        if (invalid) return null;
+        return ratioApi.normalize(list);
+    }
+
+    function confirmPass() {
+        var settleRatios = collectPassRatios();
+        if (!settleRatios) {
+            toast('每个渠道都要填写兜底利率；已填的类目比例须大于 0 且不超过 100', 'error');
+            return;
+        }
+        var result = dataApi.approveAudit(passAuditId, '王丽', { settleRatios: settleRatios });
         if (!result) {
             toast('审核失败', 'error');
             return;
         }
-        toast('已通过，需求单进入待接单');
+        closePass();
+        toast('已通过，结算比例已记到需求单');
         renderTable();
     }
 
@@ -380,8 +522,27 @@
                 readReviewFile(fileInput.files && fileInput.files[0]);
             });
         }
+        var passMask = document.getElementById('rbtPassMask');
+        if (passMask) {
+            passMask.addEventListener('click', function (event) {
+                if (event.target === passMask || event.target.closest('[data-pass-close]')) closePass();
+            });
+        }
+        var passConfirm = document.getElementById('rbtPassConfirm');
+        if (passConfirm) passConfirm.addEventListener('click', confirmPass);
+        var passForm = document.getElementById('rbtPassForm');
+        if (passForm) {
+            passForm.addEventListener('click', function (event) {
+                var add = event.target.closest('[data-pass-add]');
+                var del = event.target.closest('[data-pass-del]');
+                if (add) addPassCategory(add.getAttribute('data-pass-add'));
+                if (del) removePassCategory(del.getAttribute('data-pass-del'), Number(del.getAttribute('data-index')));
+            });
+        }
         document.addEventListener('keydown', function (event) {
-            if (event.key === 'Escape' && reviewAuditId) closeReview();
+            if (event.key !== 'Escape') return;
+            if (passAuditId) closePass();
+            else if (reviewAuditId) closeReview();
         });
         document.addEventListener('visibilitychange', function () {
             if (document.visibilityState === 'visible') renderTable();

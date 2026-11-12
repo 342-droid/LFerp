@@ -1,4 +1,4 @@
-/* RBT 分期详情：在当前页弹出，展示分期产品资料。 */
+/* RBT 产品详情：在当前页弹出，展示产品资料。 */
 (function () {
     function esc(value) {
         return String(value == null || value === '' ? '—' : value)
@@ -52,9 +52,9 @@
         drawer.setAttribute('data-rbt-installment-drawer', '1');
         drawer.setAttribute('role', 'dialog');
         drawer.setAttribute('aria-modal', 'true');
-        drawer.setAttribute('aria-label', '分期详情');
+        drawer.setAttribute('aria-label', '产品详情');
         drawer.innerHTML =
-            '<div class="store-drawer__header"><h2 class="store-drawer__title">分期详情</h2>' +
+            '<div class="store-drawer__header"><h2 class="store-drawer__title">产品详情</h2>' +
             '<button type="button" class="store-drawer__close" data-rbt-installment-close aria-label="关闭">&times;</button></div>' +
             '<div class="store-drawer__hero store-drawer__hero--elevated">' +
             '<div class="store-drawer__name-row"><span class="store-drawer__name">' + esc(item.name) + '</span></div>' +
@@ -66,7 +66,6 @@
             statusCell(item.status) +
             cell('结算周期', item.repayCycle) +
             cell('结算方式', item.repayMethod) +
-            cell(item.periodsLabel || '结算期数', item.periods) +
             cell('结算系数', item.rateRange) +
             cell('货款区间', item.amountRange) +
             cell('适用商品包', item.packages) +

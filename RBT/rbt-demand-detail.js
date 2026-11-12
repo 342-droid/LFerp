@@ -1,4 +1,4 @@
-/* RBT 需求单详情：在当前页弹出，展示需求基础信息、门店额度、担保门店、商品明细与关联合同。 */
+/* RBT 需求单详情：在当前页弹出，展示需求基础信息、门店额度、商品明细与关联合同。 */
 (function () {
     function esc(value) {
         return String(value == null || value === '' ? '—' : value)
@@ -28,8 +28,8 @@
 
     function statusKind(status) {
         if (status === '已完成' || status === '已签署') return 'success';
-        if (status === '已取消' || status === '已驳回') return 'neutral';
-        if (status === '待审核' || status === '待复核' || status === '待签署') return 'warning';
+        if (status === '已作废' || status === '已取消' || status === '已驳回') return 'neutral';
+        if (status === '待审核' || status === '待复核' || status === '待确认签约' || status === '待签署') return 'warning';
         if (status === '支付中') return 'danger';
         return 'neutral';
     }
@@ -79,16 +79,22 @@
 
     function periodValue(item) {
         if (!item) return '—';
-        if (item.repayMethod === '比例付') return show(item.repayPeriod);
+        var ratioApi = window.RbtSettleRatio;
+        if (item.repayMethod === '比例付') {
+            var lines = ratioApi && typeof ratioApi.textLines === 'function' ? ratioApi.textLines(item) : '';
+            return lines || '—';
+        }
         if (blank(item.repayPeriod)) return '—';
         return String(item.repayPeriod).indexOf('期') >= 0
             ? String(item.repayPeriod)
             : String(item.repayPeriod) + '期';
     }
 
-    function dailyValue(item) {
-        if (!item || item.repayMethod === '比例付') return '—';
-        return money(item.dailyAmount);
+    function settleRatioSection(item) {
+        var ratioApi = window.RbtSettleRatio;
+        var html = ratioApi && typeof ratioApi.tableHtml === 'function' ? ratioApi.tableHtml(item) : '';
+        if (!html) return '';
+        return '<div class="supplier-detail-section-title">结算比例</div>' + html;
     }
 
     function storeQuotaSection(item) {
@@ -101,21 +107,6 @@
             textCell('可用额度', money(quota.available)) +
             '</div>'
         );
-    }
-
-    function guarantorTable(items) {
-        var head = '<tr><th>门店编码</th><th>门店名称</th><th class="is-money">总额度</th><th class="is-money">已占用</th><th class="is-money">可用额度</th></tr>';
-        var body = !items || !items.length
-            ? '<tr><td class="is-empty" colspan="5">暂无担保门店</td></tr>'
-            : items.map(function (item) {
-                var store = storeByCode(item && item.code);
-                var quota = quotaOf(store);
-                return '<tr><td>' + esc(item && item.code) + '</td><td>' + esc(item && item.name) +
-                    '</td><td class="is-money">' + esc(money(quota.total)) +
-                    '</td><td class="is-money">' + esc(money(quota.occupied)) +
-                    '</td><td class="is-money">' + esc(money(quota.available)) + '</td></tr>';
-            }).join('');
-        return '<div class="rbt-demand-table-wrap"><table class="rbt-demand-table"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>';
     }
 
     function skuTable(items) {
@@ -133,6 +124,7 @@
     }
 
     function canShowContract(item) {
+        if (item && item.contractsVoided) return true;
         var api = window.RbtDemandData;
         if (api && typeof api.hasContractStatus === 'function') {
             return api.hasContractStatus(item && item.status);
@@ -149,10 +141,11 @@
         return item && item.status === '待签署' ? '待签署' : '已签署';
     }
 
-    function agreementPartyLine(party) {
+    function agreementPartyLine(party, contract) {
         var name = party && party.name ? party.name : (party && party.role === 'trader' ? '待接单' : '—');
         var extra = party && party.code && party.role !== 'trader' && party.role !== 'supply' ? '（' + party.code + '）' : '';
         var state = party && party.signedAt ? '已签署 ' + party.signedAt : (party && party.role === 'trader' && !party.name ? '待接单' : '待签署');
+        if (contract && contract.signStatus === '已作废') state = '已作废';
         return (party && party.roleLabel ? party.roleLabel : '签署方') + '：' + name + extra + '，' + state;
     }
 
@@ -163,12 +156,14 @@
             return (index + 1) + '. ' + show(row && row.name) + '（' + show(row && row.code) + '）×' + qty +
                 '，售价 ' + money(row && row.salePrice);
         }).join('\n') || '无';
-        var parties = (contract && contract.parties || []).map(agreementPartyLine);
+        var parties = (contract && contract.parties || []).map(function (party) {
+            return agreementPartyLine(party, contract);
+        });
         var signed = resolveSignStatus(item, contract) === '已签署';
         return [
             contract.name || '协议',
             '',
-            (contract.type === 'guarantee' ? '协议编号：' : '合同编号：') + show(contract.code),
+            '合同编号：' + show(contract.code),
             '关联需求单：' + show(item.code),
             '签署状态：' + resolveSignStatus(item, contract),
             '',
@@ -176,18 +171,19 @@
         ].concat(parties.length ? parties : ['无']).concat([
             '',
             '商品包：' + show(item.packageName) + '（' + show(item.packageCode) + '）',
-            '货款总金额：' + money(item.amount),
+            '商品金额：' + money(item.goodsAmount),
+            '联营服务费：' + money(item.serviceFee),
+            '总金额：' + money(item.amount),
             '结算周期：' + show(item.repayCycle),
             '结算方式：' + show(item.repayMethod),
-            periodLabel(item) + '：' + periodValue(item),
-            item.repayMethod === '比例付' ? '' : ('预估每日结算货款：' + dailyValue(item)),
+            periodLabel(item) + '：' + (String(periodValue(item)).indexOf('\n') >= 0 ? '\n' + periodValue(item) : periodValue(item)),
             '',
             '商品明细：',
             skuLines,
             '',
-            signed
-                ? (contract.type === 'guarantee' ? '本协议已完成签署。' : '本合同已完成签署。')
-                : (contract.type === 'guarantee' ? '本协议待双方签署后生效。' : '本合同待双方签署后生效。'),
+            resolveSignStatus(item, contract) === '已作废'
+                ? '本合同已作废。'
+                : (signed ? '本合同已完成签署。' : '本合同待双方签署后生效。'),
             '',
             '创建人：' + show(item.creator),
             '创建时间：' + show(item.createdAt)
@@ -322,19 +318,19 @@
             textCell('接单时间', item.acceptedAt) +
             textCell('门店', show(item.storeName) + '（' + show(item.storeCode) + '）') +
             textCell('商品包', show(item.packageName) + '（' + show(item.packageCode) + '）') +
-            textCell('货款总金额', money(item.amount)) +
+            textCell('商品金额', money(item.goodsAmount)) +
+            textCell('联营服务费', money(item.serviceFee)) +
+            textCell('总金额', money(item.amount)) +
             textCell('产品', show(item.installmentName) + '（' + show(item.installmentCode) + '）') +
             textCell('结算周期', item.repayCycle) +
             textCell('结算方式', item.repayMethod) +
-            textCell(periodLabel(item), periodValue(item)) +
-            textCell('预估每日结算货款', dailyValue(item)) +
+            (item.repayMethod === '比例付' && item.settleRatios && item.settleRatios.length ? '' : textCell(periodLabel(item), periodValue(item))) +
             textCell('创建人', item.creator) +
             textCell('创建时间', item.createdAt) +
             textCell('更新人', item.updater) +
             textCell('更新时间', item.updatedAt) +
             '</div>' +
-            '<div class="supplier-detail-section-title">担保门店</div>' +
-            guarantorTable(item.guarantors) +
+            settleRatioSection(item) +
             '<div class="supplier-detail-section-title">商品明细</div>' +
             skuTable(item.skus) +
             contractSection(item) +

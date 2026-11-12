@@ -29,6 +29,19 @@
         .rbt-package-sku-table td.is-money,
         .rbt-package-sku-table th.is-money { text-align: right; }
         .rbt-package-sku-table td.is-empty { text-align: center; color: #909399; }
+        .rbt-store-log { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .rbt-store-log th,
+        .rbt-store-log td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #ebeef5;
+            text-align: left;
+            vertical-align: top;
+            line-height: 1.5;
+        }
+        .rbt-store-log th { color: #909399; font-weight: 500; background: #fafafa; }
+        .rbt-store-log__who { width: 120px; white-space: nowrap; }
+        .rbt-store-log__time { width: 180px; white-space: nowrap; color: #606266; }
+        .rbt-store-log__empty { text-align: center; color: #909399; padding: 28px 12px; }
     </style>
 </head>
 <body>
@@ -193,6 +206,7 @@
     <script src="../js/business-tag-prototype-store.js"></script>
     <script src="../js/business-tag-prototype-ui.js"></script>
     <script src="../vendor/octopus-prototype-runtime/runtime.js"></script>
+    <script src="rbt-store-data.js"></script>
     <script src="rbt-product-package-detail.js"></script>
     <script src="rbt-product-package.js"></script>
 </body>

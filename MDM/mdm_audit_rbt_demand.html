@@ -108,6 +108,16 @@
         .rbt-review-opinion { width: 100%; min-height: 72px; margin-top: 6px; padding: 8px 10px; border: 1px solid #dcdfe6; border-radius: 4px; font: inherit; resize: vertical; }
         .rbt-review-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 20px 16px; border-top: 1px solid #ebeef5; }
         .rbt-review-foot .is-danger { background: #fff; color: #cf1322; border: 1px solid #ffccc7; }
+        .rbt-pass-channel { margin-top: 14px; padding-top: 12px; border-top: 1px solid #f0f0f0; }
+        .rbt-pass-channel:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+        .rbt-pass-channel h3 { margin: 0 0 8px; }
+        .rbt-pass-field { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+        .rbt-pass-field input,
+        .rbt-pass-field select { height: 36px; border: 1px solid #dcdfe6; border-radius: 4px; padding: 0 10px; font: inherit; font-size: 13px; background: #fff; }
+        .rbt-pass-field input { width: 120px; }
+        .rbt-pass-field select { width: 160px; }
+        .rbt-pass-label { width: 88px; text-align: right; color: #333; font-size: 13px; }
+        .rbt-pass-del { border: 0; background: transparent; color: #cf1322; cursor: pointer; font-size: 13px; padding: 0; }
         .rbt-aud-stage { display: inline-block; min-width: 40px; padding: 2px 8px; border-radius: 4px; font-size: 12px; text-align: center; background: #f0f5ff; color: #1d39c4; }
         .rbt-aud-stage.is-review { background: #fff7e6; color: #d48806; }
     </style>
@@ -148,7 +158,6 @@
                             <option value="待审核">待审核</option>
                             <option value="审核通过">审核通过</option>
                             <option value="审核驳回">审核驳回</option>
-                            <option value="已取消">已取消</option>
                         </select>
                     </div>
                     <div class="form-actions">
@@ -168,7 +177,9 @@
                                 <th>审核环节</th>
                                 <th>门店</th>
                                 <th>商品包</th>
-                                <th>货款总金额</th>
+                                <th>商品金额</th>
+                                <th>联营服务费</th>
+                                <th>总金额</th>
                                 <th>提交人</th>
                                 <th>提交时间</th>
                                 <th style="text-align:center;width:100px">审核状态</th>
@@ -218,11 +229,31 @@
         </div>
     </div>
 
+    <div class="rbt-demand-contract-mask" id="rbtPassMask" hidden>
+        <div class="rbt-demand-contract" role="dialog" aria-modal="true" aria-label="初审通过">
+            <div class="rbt-demand-contract__head">
+                <div>
+                    <div class="rbt-demand-contract__eyebrow">初审通过</div>
+                    <div class="rbt-demand-contract__title" id="rbtPassTitle">需求单</div>
+                    <div class="rbt-demand-contract__meta">按本单维护各渠道结算比例。通过后记到这张需求单，状态变为待接单。</div>
+                </div>
+                <button type="button" class="rbt-demand-contract__close" data-pass-close aria-label="关闭">&times;</button>
+            </div>
+            <div class="rbt-review-body" id="rbtPassForm"></div>
+            <div class="rbt-review-foot">
+                <button type="button" class="btn btn-secondary" data-pass-close>取消</button>
+                <button type="button" class="btn btn-primary" id="rbtPassConfirm">通过</button>
+            </div>
+        </div>
+    </div>
+
     <script src="../js/common.js"></script>
     <script src="../js/pagination.js"></script>
     <script src="../js/form-utils.js"></script>
     <script src="../js/business-tag-prototype-store.js"></script>
+    <script src="../js/mdm-product-catalog-store.js"></script>
     <script src="../RBT/rbt-store-data.js"></script>
+    <script src="../RBT/rbt-settle-ratio.js"></script>
     <script src="../RBT/rbt-demand-data.js"></script>
     <script src="../RBT/rbt-demand-detail.js"></script>
     <script src="../js/mdm-audit-rbt-demand.js"></script>

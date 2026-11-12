@@ -66,24 +66,29 @@
 
     function renderHallCard(item, accepted) {
         var status = accepted ? (item.status || '已接单') : '待接单';
-        var statusClass = status === '已完成' ? ' is-done' : '';
+        var statusClass = status === '已完成' ? ' is-done' : (status === '已作废' || status === '已驳回' ? ' is-off' : '');
         return '<article class="rbt-h5-card">' +
             '<div class="rbt-h5-card__top"><h2>' + esc(item.code) + '</h2>' +
             '<span class="rbt-h5-status' + statusClass + '">' + esc(status) + '</span></div>' +
             '<p>门店：' + esc(item.storeName || '—') + '</p>' +
             '<p>商品包：' + esc(item.packageName || '—') + '（' + esc(item.packageCode || '—') + '）</p>' +
             '<p>商品：' + esc(skuText(item)) + '</p>' +
-            '<p>货款总金额：¥' + esc(item.amount || '—') + '</p>' +
+            '<p>商品金额：¥' + esc(item.goodsAmount || '—') + '</p>' +
+            '<p>联营服务费：¥' + esc(item.serviceFee || '—') + '</p>' +
+            '<p>总金额：¥' + esc(item.amount || '—') + '</p>' +
             (item.repayCycle
                 ? '<p>结算周期：' + esc(item.repayCycle) + '</p>' +
                   '<p>结算方式：' + esc(item.repayMethod || '—') + '</p>' +
                   (item.repayMethod === '比例付'
-                      ? '<p>结算比例：' + esc(item.repayPeriod || '—') + '</p>'
-                      : '<p>结算期数：' + esc(item.repayPeriod || '—') + '期</p>' +
-                        '<p>预估每日结算货款：¥' + esc(item.dailyAmount || item.firstAmount || '—') + '</p>')
+                      ? ((window.RbtSettleRatio && RbtSettleRatio.textOf(item)) ? '<p>结算比例：' + esc(RbtSettleRatio.textOf(item)) + '</p>' : '')
+                      : '<p>结算期数：' + esc(item.repayPeriod || '—') + '期</p>')
                 : '') +
             '<p>创建时间：' + esc(item.createdAt || '—') + '</p>' +
             (accepted ? '<p>接单时间：' + esc(item.acceptedAt || '—') + '</p>' : '') +
+            (accepted && item.status === '待确认签约'
+                ? '<button type="button" class="rbt-h5-accept" data-confirm-deal="' + esc(item.code) + '">确认签约</button>' +
+                  '<button type="button" class="rbt-h5-withdraw" data-withdraw="' + esc(item.code) + '">撤回接单</button>'
+                : '') +
             (accepted && item.status === '待签署'
                 ? '<button type="button" class="rbt-h5-accept" data-sign="' + esc(item.code) + '">去签署</button>'
                 : '') +
@@ -211,6 +216,8 @@
         var entry = event.target.closest('[data-entry]');
         var hallTab = event.target.closest('[data-hall-tab]');
         var accept = event.target.closest('[data-accept]');
+        var confirmDeal = event.target.closest('[data-confirm-deal]');
+        var withdraw = event.target.closest('[data-withdraw]');
         var sign = event.target.closest('[data-sign]');
         var confirmSign = event.target.closest('[data-confirm-sign]');
         var changePassword = event.target.closest('[data-change-password]');
@@ -247,6 +254,30 @@
             tab = 'hall';
             screen = 'hall';
             hallFilter = 'pending';
+            render();
+            return;
+        }
+        if (confirmDeal) {
+            var dealCode = confirmDeal.getAttribute('data-confirm-deal');
+            if (!window.confirm('确认签约「' + dealCode + '」？确认后生成销售合同和采购合同，进入签署。')) return;
+            var dealApi = window.RbtDemandData;
+            var dealResult = dealApi && typeof dealApi.confirmSigning === 'function'
+                ? dealApi.confirmSigning(dealCode, { name: traderName(), phone: account && account.phone })
+                : { ok: false };
+            if (dealResult && dealResult.ok) toast('已确认签约，可以去签署');
+            else toast('当前不能确认签约');
+            render();
+            return;
+        }
+        if (withdraw) {
+            var withdrawCode = withdraw.getAttribute('data-withdraw');
+            if (!window.confirm('确认撤回接单「' + withdrawCode + '」？撤回后需求回到待接单。')) return;
+            var withdrawApi = window.RbtDemandData;
+            var withdrawResult = withdrawApi && typeof withdrawApi.withdrawAccept === 'function'
+                ? withdrawApi.withdrawAccept(withdrawCode, { name: traderName(), phone: account && account.phone })
+                : { ok: false };
+            if (withdrawResult && withdrawResult.ok) toast('已撤回接单');
+            else toast('当前不能撤回');
             render();
             return;
         }

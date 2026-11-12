@@ -1,4 +1,4 @@
-/* 合同签署：担保协议、销售合同、采购合同由各自双方确认。 */
+/* 合同签署：销售合同、采购合同由各自双方确认。 */
 (function () {
     function esc(value) {
         return String(value == null ? '' : value)
@@ -18,7 +18,11 @@
 
     function periodLine(item) {
         if (!item) return '';
-        if (item.repayMethod === '比例付') return '结算比例：' + show(item.repayPeriod);
+        if (item.repayMethod === '比例付') {
+            var ratioApi = window.RbtSettleRatio;
+            var ratioText = ratioApi && typeof ratioApi.textLines === 'function' ? ratioApi.textLines(item) : '';
+            return ratioText ? '结算比例：\n' + ratioText : '';
+        }
         if (!item.repayPeriod) return '';
         var text = String(item.repayPeriod).indexOf('期') >= 0 ? String(item.repayPeriod) : String(item.repayPeriod) + '期';
         return '结算期数：' + text;
@@ -29,7 +33,7 @@
         if (party.role === 'trader') return actor.role === 'trader' && !!party.name && party.name === (actor.name || '');
         if (party.role === 'supply') return actor.role === 'supply';
         if (actor.role === 'trader' || actor.role === 'supply') return false;
-        return !!actor.code && party.code === actor.code && (party.role === 'store' || party.role === 'guarantor');
+        return !!actor.code && party.code === actor.code && party.role === 'store';
     }
 
     function partyName(party) {
@@ -67,7 +71,7 @@
                 : '';
             return '<section class="rbt-sign-card">' +
                 '<h2>' + esc(contract.name) + '</h2>' +
-                '<p>' + (contract.type === 'guarantee' ? '协议编号' : '合同编号') + '：' + esc(contract.code) + '</p>' +
+                '<p>合同编号：' + esc(contract.code) + '</p>' +
                 rows + action +
                 '</section>';
         }).join('');
@@ -79,17 +83,17 @@
         } else if (actor && actorParties.length && !pending) {
             tip = '<p class="rbt-sign-tip">你已签署，待其他方完成签署。</p>';
         } else if (!actor) {
-            tip = '<p class="rbt-sign-tip">担保协议由担保门店与需求门店签署，销售合同由需求门店与贸易商签署，采购合同由贸易商与冷丰供应链签署。</p>';
+            tip = '<p class="rbt-sign-tip">销售合同由需求门店与贸易商签署，采购合同由贸易商与冷丰供应链签署。</p>';
         }
-        var daily = item.repayMethod === '比例付' || !item.dailyAmount ? '' : '<p>预估每日结算货款：' + money(item.dailyAmount) + '</p>';
         return '<section class="rbt-sign-card">' +
             '<h2>需求单 ' + esc(item.code) + '</h2>' +
             '<p>需求门店：' + esc(show(item.storeName)) + '（' + esc(show(item.storeCode)) + '）</p>' +
-            '<p>货款总金额：' + money(item.amount) + '</p>' +
+            '<p>商品金额：' + money(item.goodsAmount) + '</p>' +
+            '<p>联营服务费：' + money(item.serviceFee) + '</p>' +
+            '<p>总金额：' + money(item.amount) + '</p>' +
             '<p>结算周期：' + esc(show(item.repayCycle)) + '</p>' +
             '<p>结算方式：' + esc(show(item.repayMethod)) + '</p>' +
             (periodLine(item) ? '<p>' + esc(periodLine(item)) + '</p>' : '') +
-            daily +
             '</section>' +
             cards +
             (tip ? '<section class="rbt-sign-card">' + tip + '</section>' : '');

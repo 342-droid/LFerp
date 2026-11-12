@@ -18,21 +18,32 @@
         SKU10012: { name: '海南贝贝南瓜 2kg', barcode: '6901234567012', unit: '箱', spec: '2kg', salePrice: '24.90' }
     };
     var SEED_PACKAGES = [
-        { code: 'SPB00001', name: '周末生鲜包', bizLine: '餐饮', skus: [{ code: 'SKU10001', salePrice: '56.80' }, { code: 'SKU10002', salePrice: '22.80' }] },
-        { code: 'SPB00002', name: '肉类组合包', bizLine: '康美', skus: [{ code: 'SKU10003', salePrice: '78.00' }, { code: 'SKU10011', salePrice: '52.80' }] },
-        { code: 'SPB00003', name: '果蔬尝鲜包', bizLine: '纯私域', skus: [{ code: 'SKU10005', salePrice: '18.50' }, { code: 'SKU10006', salePrice: '49.90' }, { code: 'SKU10010', salePrice: '9.90' }] }
+        { code: 'SPB00001', name: '周末生鲜包', storeCodes: ['ONS00001', 'ONS00004'], skus: [{ code: 'SKU10001', salePrice: '56.80' }, { code: 'SKU10002', salePrice: '22.80' }] },
+        { code: 'SPB00002', name: '肉类组合包', storeCodes: ['ONS00002'], skus: [{ code: 'SKU10003', salePrice: '78.00' }, { code: 'SKU10011', salePrice: '52.80' }] },
+        { code: 'SPB00003', name: '果蔬尝鲜包', storeCodes: ['ONS00003'], skus: [{ code: 'SKU10005', salePrice: '18.50' }, { code: 'SKU10006', salePrice: '49.90' }, { code: 'SKU10010', salePrice: '9.90' }] }
     ];
-    var SEED_BIZ_LINE = { SPB00001: '餐饮', SPB00002: '康美', SPB00003: '纯私域' };
-    /* 主链路：待审核 → 待接单 → 待签署 → 待复核 → 支付中 → 已完成；旁路：已取消、已驳回 */
-    var DEMAND_STATUSES = ['待审核', '待接单', '待签署', '待复核', '支付中', '已完成'];
-    var ACTIVE_DEMAND_STATUSES = ['待审核', '待接单', '待签署', '待复核', '支付中'];
-    var CANCELABLE_DEMAND_STATUSES = ['待审核', '待接单'];
-    var CLOSED_DEMAND_STATUSES = ['已取消', '已驳回'];
+    var BIZ_LINE_STORES = {
+        '餐饮': ['ONS00001', 'ONS00004'],
+        '康美': ['ONS00002'],
+        '纯私域': ['ONS00003'],
+        '集团内部': ['ONS00005']
+    };
+    var SEED_STORES = {
+        SPB00001: ['ONS00001', 'ONS00004'],
+        SPB00002: ['ONS00002'],
+        SPB00003: ['ONS00003']
+    };
+    /* 主链路：待审核 → 待接单 → 待确认签约 → 待签署 → 待复核 → 支付中 → 已完成；旁路：已作废、已驳回 */
+    var DEMAND_STATUSES = ['待审核', '待接单', '待确认签约', '待签署', '待复核', '支付中', '已完成'];
+    var ACTIVE_DEMAND_STATUSES = ['待审核', '待接单', '待确认签约', '待签署', '待复核', '支付中'];
+    var CANCELABLE_DEMAND_STATUSES = ['待审核'];
+    var CLOSED_DEMAND_STATUSES = ['已作废', '已驳回'];
     var STATUS_MIGRATE = {
         '已发布': '待审核',
         '待报价': '待审核',
         '已报价': '待接单',
-        '待还款': '支付中'
+        '待还款': '支付中',
+        '已取消': '已作废'
     };
 
     var account = null;
@@ -40,13 +51,12 @@
     var signCode = '';
     var packageCode = '';
     var pickedQty = {};
-    var guarantors = [];
     var repayCycle = '';
     var repayMethod = '';
     var repayPeriod = '';
     var QTY_MAX = 999;
-    var CYCLE_ORDER = ['日付'];
-    var METHOD_ORDER = ['定额付', '比例付'];
+    var CYCLE_ORDER = ['日结'];
+    var METHOD_ORDER = ['比例付'];
 
     function toast(message) {
         var node = document.getElementById('rbtH5Toast');
@@ -106,37 +116,44 @@
         };
     }
 
-    function storeBizLine() {
-        if (!account) return '';
+    function codesFromBizLine(line) {
         var stores = window.RbtStoreData && window.RbtStoreData.list ? window.RbtStoreData.list() : [];
-        var line = '';
-        stores.some(function (store) {
-            if (store.code === account.code) {
-                line = store.bizLine || '';
-                return true;
-            }
-            return false;
-        });
-        return line || account.bizLine || '';
+        var matched = stores.filter(function (store) {
+            return store && store.bizLine === line && store.code;
+        }).map(function (store) { return store.code; });
+        if (matched.length) return matched;
+        return (BIZ_LINE_STORES[line] || []).slice();
+    }
+
+    function ensureStores(item) {
+        if (!item) return false;
+        if (Array.isArray(item.storeCodes)) {
+            if (!item.bizLine) return false;
+            delete item.bizLine;
+            return true;
+        }
+        item.storeCodes = item.bizLine
+            ? codesFromBizLine(item.bizLine)
+            : (SEED_STORES[item.code] || []).slice();
+        delete item.bizLine;
+        return true;
     }
 
     function packages() {
         var list = readJson(PACKAGE_KEY);
         var source = list && list.length ? list : SEED_PACKAGES.slice();
-        var filled = false;
+        var changed = false;
         source.forEach(function (item) {
-            if (item && !item.bizLine && SEED_BIZ_LINE[item.code]) {
-                item.bizLine = SEED_BIZ_LINE[item.code];
-                filled = true;
-            }
+            if (ensureStores(item)) changed = true;
         });
-        if (filled && list && list.length) sessionStorage.setItem(PACKAGE_KEY, JSON.stringify(source));
-        var line = storeBizLine();
-        return source.filter(function (item) { return item.enabled !== false && item.bizLine === line; }).map(function (item) {
+        if (changed && list && list.length) sessionStorage.setItem(PACKAGE_KEY, JSON.stringify(source));
+        var storeCode = account && account.code;
+        return source.filter(function (item) {
+            return item.enabled !== false && storeCode && (item.storeCodes || []).indexOf(storeCode) >= 0;
+        }).map(function (item) {
             return {
                 code: item.code,
                 name: item.name || item.code,
-                bizLine: item.bizLine || '',
                 skus: (item.skus || []).map(skuLine).filter(function (line) { return line.code; })
             };
         });
@@ -192,15 +209,11 @@
         sessionStorage.setItem(DEMAND_KEY, JSON.stringify(list));
     }
 
-    /* 列表只保留当前门店作为需求门店，或作为担保门店的单据。 */
+    /* 列表只保留当前门店作为需求门店的单据。 */
     function storeDemands() {
         if (!account) return [];
         return demands().filter(function (item) {
-            if (!item) return false;
-            if (item.storeCode === account.code) return true;
-            return (item.guarantors || []).some(function (row) {
-                return row && row.code === account.code;
-            });
+            return item && item.storeCode === account.code;
         });
     }
 
@@ -222,14 +235,6 @@
             return true;
         }
         return false;
-    }
-
-    function storeAvailable(code) {
-        var dataApi = window.RbtStoreData;
-        if (!dataApi || typeof dataApi.get !== 'function' || typeof dataApi.quotaOf !== 'function') return 0;
-        var store = dataApi.get(code);
-        if (!store) return 0;
-        return dataApi.quotaOf(store).available;
     }
 
     function occupyDemandQuota(demand) {
@@ -318,36 +323,28 @@
 
     var DEMO_INSTALLMENTS = [
         {
-            code: 'FQ00001', name: '生鲜周转分期', repayCycle: '日付', periods: ['3', '6', '12'],
-            periodRates: {
-                '3': { store: '1.60', trader: '1.50' },
-                '6': { store: '1.90', trader: '1.80' },
-                '12': { store: '2.20', trader: '2.10' }
-            }, repayMethod: '定额付',
+            code: 'FQ00001', name: '生鲜周转分期', repayCycle: '日结', periods: [],
+            periodRatio: '10.00', storeRate: '1.60', repayMethod: '比例付',
             amountMin: '20.00', amountMax: '50000', packages: ['周末生鲜包']
         },
         {
-            code: 'FQ00004', name: '生鲜周转比例付', repayCycle: '日付', periods: [],
+            code: 'FQ00004', name: '生鲜周转比例付', repayCycle: '日结', periods: [],
             periodRatio: '10.00', storeRate: '1.70', repayMethod: '比例付',
             amountMin: '20.00', amountMax: '50000', packages: ['周末生鲜包']
         },
         {
-            code: 'FQ00005', name: '生鲜周转日付', repayCycle: '日付', periods: ['7', '15', '30'],
-            periodRates: {
-                '7': { store: '1.30', trader: '1.20' },
-                '15': { store: '1.45', trader: '1.35' },
-                '30': { store: '1.60', trader: '1.50' }
-            }, repayMethod: '定额付',
+            code: 'FQ00005', name: '生鲜周转日结', repayCycle: '日结', periods: [],
+            periodRatio: '10.00', storeRate: '1.30', repayMethod: '比例付',
             amountMin: '20.00', amountMax: '50000', packages: ['周末生鲜包']
         },
         {
-            code: 'FQ00002', name: '肉类备货分期', repayCycle: '日付', periods: [],
+            code: 'FQ00002', name: '肉类备货分期', repayCycle: '日结', periods: [],
             periodRatio: '8.00', storeRate: '1.80', repayMethod: '比例付',
             amountMin: '50.00', amountMax: '100000', packages: ['肉类组合包']
         },
         {
-            code: 'FQ00003', name: '果蔬短周期', repayCycle: '日付', periods: ['3'],
-            periodRates: { '3': { store: '1.50', trader: '1.40' } }, repayMethod: '定额付',
+            code: 'FQ00003', name: '果蔬短周期', repayCycle: '日结', periods: [],
+            periodRatio: '10.00', storeRate: '1.50', repayMethod: '比例付',
             amountMin: '5.00', amountMax: '20000', packages: ['果蔬尝鲜包']
         }
     ];
@@ -361,12 +358,12 @@
 
     function normalizeInstallment(item) {
         if (!item) return null;
-        var repayMethod = item.repayMethod || '定额付';
-        if (repayMethod === '定额还' || repayMethod === '等额本息') repayMethod = '定额付';
+        var sourceMethod = item.repayMethod || '比例付';
+        var repayMethod = sourceMethod;
+        if (repayMethod === '定额付' || repayMethod === '定额还' || repayMethod === '等额本息') repayMethod = '比例付';
         if (repayMethod === '比例还' || repayMethod === '等额本金') repayMethod = '比例付';
-        var periods = repayMethod === '比例付'
-            ? orderedPeriods(item.periods || [])
-            : orderedPeriods(item.periods && item.periods.length ? item.periods : ['3', '6', '12']);
+        var sourcePeriods = orderedPeriods(item.periods || []);
+        var periods = repayMethod === '比例付' ? [] : sourcePeriods;
         var rates = item.periodRates && typeof item.periodRates === 'object' ? item.periodRates : {};
         var filled = {};
         periods.forEach(function (period) {
@@ -382,14 +379,22 @@
             code: item.code || '',
             name: item.name || item.code || '',
             repayCycle: (function () {
-                var cycle = item.repayCycle || '日付';
-                if (cycle === '日还' || cycle === '周还' || cycle === '月还' || cycle === '年还') cycle = '日付';
+                var cycle = item.repayCycle || '日结';
+                if (cycle === '日还' || cycle === '周还' || cycle === '月还' || cycle === '年还' || cycle === '日付') cycle = '日结';
                 return cycle;
             })(),
             periods: periods,
             periodRates: filled,
             periodRatio: periodRatio == null || periodRatio === '' ? '' : String(periodRatio),
-            storeRate: item.storeRate == null || item.storeRate === '' ? '' : String(item.storeRate),
+            storeRate: (function () {
+                if (item.storeRate != null && item.storeRate !== '') return String(item.storeRate);
+                if (repayMethod !== '比例付') return '';
+                var first = sourcePeriods.length ? rates[sourcePeriods[0]] : null;
+                if (first && typeof first === 'object' && !Array.isArray(first)) {
+                    first = first.store != null && first.store !== '' ? first.store : first.trader;
+                }
+                return first == null || first === '' ? '' : String(first);
+            })(),
             repayMethod: repayMethod,
             amountMin: item.amountMin,
             amountMax: item.amountMax,
@@ -434,9 +439,18 @@
         };
         list.forEach(function (item) {
             var next = item && floors[item.code] && floors[item.code][String(item.amountMin)];
-            if (!next) return;
-            item.amountMin = next;
-            changed = true;
+            if (next) {
+                item.amountMin = next;
+                changed = true;
+            }
+            if (item && (item.repayCycle === '日付' || item.repayCycle === '日还' || item.repayCycle === '周还' || item.repayCycle === '月还' || item.repayCycle === '年还' || !item.repayCycle)) {
+                item.repayCycle = '日结';
+                changed = true;
+            }
+            if (item && item.name === '生鲜周转日付') {
+                item.name = '生鲜周转日结';
+                changed = true;
+            }
         });
         if (changed) sessionStorage.setItem(INSTALLMENT_KEY, JSON.stringify(list));
         return list.filter(function (item) { return item && item.enabled !== false; }).map(normalizeInstallment).filter(Boolean);
@@ -466,10 +480,10 @@
         var matched = enabledInstallments().filter(function (plan) {
             return installmentCoversPackage(plan, pkg);
         });
-        if (!matched.length) return '商品未关联分期配置';
+        if (!matched.length) return '商品未关联产品配置';
         var amount = sumLines(lines);
         var covered = matched.some(function (plan) { return amountInPlan(plan, amount); });
-        if (!covered) return '售价不在分期配置的货款区间内';
+        if (!covered) return '售价不在产品配置的货款区间内';
         return '';
     }
 
@@ -492,11 +506,7 @@
         plans.forEach(function (plan) {
             if (plan.repayCycle === cycle && plan.repayMethod) seen[plan.repayMethod] = true;
         });
-        var ordered = METHOD_ORDER.filter(function (method) { return seen[method]; });
-        Object.keys(seen).forEach(function (method) {
-            if (ordered.indexOf(method) < 0) ordered.push(method);
-        });
-        return ordered;
+        return METHOD_ORDER.filter(function (method) { return seen[method]; });
     }
 
     function planByCycleAndMethod(plans, cycle, method) {
@@ -518,7 +528,7 @@
             return null;
         }
         if (cycles.indexOf(repayCycle) < 0) {
-            repayCycle = cycles.indexOf('日付') >= 0 ? '日付' : cycles[0];
+            repayCycle = cycles.indexOf('日结') >= 0 ? '日结' : cycles[0];
         }
         var methods = availableMethods(plans, repayCycle);
         if (!methods.length) {
@@ -551,14 +561,14 @@
         return rate;
     }
 
-    /* 货款总金额 = 商品售价合计 × 门店倍率。 */
+    /* 总金额 = 商品售价合计 × 门店倍率。 */
     function payableAmount(principal, plan, period) {
         var P = Number(principal);
         if (!isFinite(P) || P <= 0) return null;
         return roundMoney(P * storeRateOf(plan, period));
     }
 
-    /* 定额付预估每日结算货款：货款总金额（已含门店倍率）÷ 结算期数。 */
+    /* 定额付预估每日结算货款：总金额（已含门店倍率）÷ 结算期数。 */
     function estimateDailyPay(principal, plan, period) {
         var n = Number(period);
         var total = payableAmount(principal, plan, period);
@@ -566,22 +576,8 @@
         return money(roundMoney(total / n));
     }
 
-    /* 担保门店取带「担保门店」标签的准入门店，不含当前登录门店。一家担保可给多家门店担保，以可用额度为限。 */
-    function guaranteeStores() {
-        var dataApi = window.RbtStoreData;
-        var tagApi = window.BusinessTagPrototypeStore;
-        if (dataApi && typeof dataApi.ensureSeedTags === 'function') dataApi.ensureSeedTags();
-        if (!dataApi || !tagApi || !account) return [];
-        return dataApi.list().filter(function (store) {
-            if (!store || store.enabled === false || store.code === account.code) return false;
-            var tags = tagApi.tagsFor('RBT_STORE', store.code) || [];
-            return tags.some(function (tag) { return tag.id === 'rbt-store-guarantee' || tag.name === '担保门店'; });
-        });
-    }
-
     function renderDemand(item, withCancel) {
         var names = (item.skus || []).map(skuQtyText).join('、') || '—';
-        var guarantorNames = (item.guarantors || []).map(function (row) { return row.name; }).join('、') || '—';
         var cancel = withCancel && canCancelDemand(item) && item.storeCode === account.code
             ? '<button type="button" class="rbt-h5-cancel" data-cancel="' + esc(item.code) + '">取消</button>'
             : '';
@@ -600,15 +596,15 @@
             storeLine +
             '<p>商品包：' + esc(item.packageName) + '（' + esc(item.packageCode) + '）</p>' +
             '<p>商品：' + esc(names) + '</p>' +
-            '<p>担保门店：' + esc(guarantorNames) + '</p>' +
-            '<p>货款总金额：¥' + esc(item.amount) + '</p>' +
+            '<p>商品金额：¥' + esc(item.goodsAmount || '—') + '</p>' +
+            '<p>联营服务费：¥' + esc(item.serviceFee || '—') + '</p>' +
+            '<p>总金额：¥' + esc(item.amount || '—') + '</p>' +
             (item.repayCycle
                 ? '<p>结算周期：' + esc(item.repayCycle) + '</p>' +
                   '<p>结算方式：' + esc(item.repayMethod || '—') + '</p>' +
                   (item.repayMethod === '比例付'
-                      ? '<p>结算比例：' + esc(item.repayPeriod || '—') + '</p>'
-                      : '<p>结算期数：' + esc(item.repayPeriod || '—') + '期</p>' +
-                        '<p>预估每日结算货款：¥' + esc(item.dailyAmount || item.firstAmount || '—') + '</p>')
+                      ? ((window.RbtSettleRatio && RbtSettleRatio.textOf(item)) ? '<p>结算比例：' + esc(RbtSettleRatio.textOf(item)) + '</p>' : '')
+                      : '<p>结算期数：' + esc(item.repayPeriod || '—') + '期</p>')
                 : '') +
             '<p>创建时间：' + esc(item.createdAt) + '</p>' +
             sign +
@@ -702,8 +698,8 @@
             scroll.innerHTML = '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="list">返回</button></div>' +
                 (choices.length ? choices.map(function (item) {
                     return '<button type="button" class="rbt-h5-card" data-package="' + esc(item.code) + '" style="display:block;width:100%;text-align:left;cursor:pointer;">' +
-                        '<h2>' + esc(item.name) + '</h2><p>' + esc(item.code) + ' · ' + esc(item.bizLine) + ' · ' + item.skus.length + ' 个商品</p></button>';
-                }).join('') : '<div class="rbt-h5-empty">暂无本事业线的商品包</div>');
+                        '<h2>' + esc(item.name) + '</h2><p>' + esc(item.code) + ' · ' + item.skus.length + ' 个商品</p></button>';
+                }).join('') : '<div class="rbt-h5-empty">暂无本门店的商品包</div>');
             return;
         }
         if (screen === 'skus') {
@@ -746,17 +742,6 @@
                         }).join('')
                     : '<div class="rbt-h5-empty">该商品包暂无商品</div>') +
                 '<p class="rbt-h5-sum">已选 ' + lines.length + ' 种共 ' + pieceCount + ' 件，需求金额 <b>¥' + money(sumLines(lines)) + '</b></p>' +
-                '<p class="rbt-h5-section">担保门店</p>' +
-                (function () {
-                    var stores = guaranteeStores();
-                    if (!stores.length) return '<div class="rbt-h5-empty">暂无可选担保门店</div>';
-                    return stores.map(function (store) {
-                        var on = guarantors.indexOf(store.code) >= 0;
-                        var place = store.region || store.address || store.code;
-                        return '<label class="rbt-h5-check"><input type="checkbox" data-guarantor="' + esc(store.code) + '" ' + (on ? 'checked' : '') + '>' +
-                            '<span><strong>' + esc(store.name) + '</strong><span>' + esc(place) + '</span></span></label>';
-                    }).join('');
-                })() +
                 '<button type="button" class="rbt-h5-primary rbt-h5-publish" data-next>下一步</button>';
             return;
         }
@@ -772,7 +757,7 @@
             var plans = matchedInstallments(instPkg, instAmount);
             if (!plans.length) {
                 scroll.innerHTML = '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="skus">返回</button></div>' +
-                    '<div class="rbt-h5-empty">暂无匹配的分期配置</div>';
+                    '<div class="rbt-h5-empty">暂无匹配的产品配置</div>';
                 return;
             }
             var currentPlan = ensureInstallmentChoice(plans);
@@ -784,17 +769,11 @@
                 ? payableAmount(instAmount, currentPlan, isRatio ? '' : repayPeriod)
                 : null;
             var showAmount = amountWithRate != null ? money(amountWithRate) : money(instAmount);
-            var dailyAmount = !isRatio && currentPlan && repayPeriod
-                ? estimateDailyPay(instAmount, currentPlan, repayPeriod)
-                : null;
+            var goodsAmount = money(instAmount);
+            var serviceFee = money(Number(showAmount) - Number(goodsAmount));
             var periodLabel = periodsFieldLabel(repayMethod);
             var periodRow = isRatio
-                ? '<div class="rbt-h5-inst__row"><span class="rbt-h5-inst__label">' + esc(periodLabel) +
-                  '<span class="rbt-h5-help-wrap">' +
-                  '<button type="button" class="rbt-h5-help" data-ratio-help aria-label="结算比例说明" aria-expanded="false">?</button>' +
-                  '<span class="rbt-h5-help-tip" role="tooltip" hidden>根据每日经营流水总额，抽取固定比例用于支付货款</span>' +
-                  '</span></span>' +
-                  '<span class="rbt-h5-inst__amount">' + esc(periodRatioText(currentPlan)) + '</span></div>'
+                ? ''
                 : (periods.length
                     ? '<div class="rbt-h5-inst__row"><span class="rbt-h5-inst__label">' + esc(periodLabel) + '</span>' +
                       '<div class="rbt-h5-inst__chips">' + periods.map(function (period) {
@@ -803,7 +782,11 @@
                     : '');
             scroll.innerHTML = '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="skus">返回</button><span>' + esc(instPkg.name) + '</span></div>' +
                 '<section class="rbt-h5-inst">' +
-                '<div class="rbt-h5-inst__row"><span class="rbt-h5-inst__label">货款总金额</span>' +
+                '<div class="rbt-h5-inst__row rbt-h5-inst__row--muted"><span class="rbt-h5-inst__label">商品金额</span>' +
+                '<span class="rbt-h5-inst__amount">¥ ' + goodsAmount + '</span></div>' +
+                '<div class="rbt-h5-inst__row rbt-h5-inst__row--muted"><span class="rbt-h5-inst__label">联营服务费</span>' +
+                '<span class="rbt-h5-inst__amount">¥ ' + serviceFee + '</span></div>' +
+                '<div class="rbt-h5-inst__row rbt-h5-inst__row--total"><span class="rbt-h5-inst__label">总金额</span>' +
                 '<span class="rbt-h5-inst__amount">¥ ' + showAmount + '</span></div>' +
                 '<div class="rbt-h5-inst__row"><span class="rbt-h5-inst__label">结算周期</span>' +
                 '<div class="rbt-h5-inst__chips">' + cycles.map(function (cycle) {
@@ -817,9 +800,6 @@
                     : '') +
                 periodRow +
                 '</section>' +
-                (dailyAmount
-                    ? '<div class="rbt-h5-inst__estimate">预估每日结算货款 <b>¥ ' + esc(dailyAmount) + '</b></div>'
-                    : '') +
                 '<button type="button" class="rbt-h5-primary rbt-h5-publish" style="margin-top:16px;" data-publish>发布</button>';
             return;
         }
@@ -845,7 +825,6 @@
         screen = 'home';
         packageCode = '';
         clearPicked();
-        guarantors = [];
         clearInstallmentChoice();
         render();
     }
@@ -914,7 +893,6 @@
             screen = 'packages';
             packageCode = '';
             clearPicked();
-            guarantors = [];
             clearInstallmentChoice();
             render();
             return;
@@ -923,7 +901,6 @@
             screen = back.getAttribute('data-back');
             if (screen === 'packages') {
                 clearPicked();
-                guarantors = [];
                 clearInstallmentChoice();
             }
             if (screen === 'skus') clearInstallmentChoice();
@@ -933,7 +910,6 @@
         if (pkgButton) {
             packageCode = pkgButton.getAttribute('data-package');
             clearPicked();
-            guarantors = [];
             clearInstallmentChoice();
             screen = 'skus';
             render();
@@ -967,11 +943,6 @@
             }
             if (!nextLines.length) {
                 toast('请勾选商品');
-                return;
-            }
-            var nextChosen = guaranteeStores().filter(function (store) { return guarantors.indexOf(store.code) >= 0; });
-            if (!nextChosen.length) {
-                toast('请选择担保门店');
                 return;
             }
             var nextError = publishInstallmentError(nextPkg, nextLines);
@@ -1038,15 +1009,15 @@
             }
             var cancelBy = (account.person || account.name || '门店').split('、')[0];
             if (window.RbtDemandData && typeof window.RbtDemandData.setStatus === 'function') {
-                window.RbtDemandData.setStatus(code, '已取消', cancelBy);
+                window.RbtDemandData.setStatus(code, '已作废', cancelBy);
             } else {
-                target.status = '已取消';
+                target.status = '已作废';
                 target.updater = cancelBy;
                 target.updatedAt = nowText();
                 releaseDemandQuota(target);
                 saveDemands(list);
             }
-            toast('需求已取消');
+            toast('需求已作废');
             render();
             return;
         }
@@ -1060,11 +1031,6 @@
             }
             if (!lines.length) {
                 toast('请勾选商品');
-                return;
-            }
-            var chosen = guaranteeStores().filter(function (store) { return guarantors.indexOf(store.code) >= 0; });
-            if (!chosen.length) {
-                toast('请选择担保门店');
                 return;
             }
             var amountValue = sumLines(lines);
@@ -1083,36 +1049,16 @@
                 toast('请选择结算期数');
                 return;
             }
-            if (isRatioPay && (!publishPlan.periodRatio || !isFinite(Number(publishPlan.periodRatio)))) {
-                toast('结算比例无效');
-                return;
-            }
             var publishPayable = payableAmount(amountValue, publishPlan, isRatioPay ? '' : repayPeriod);
             var publishDaily = isRatioPay ? null : estimateDailyPay(amountValue, publishPlan, repayPeriod);
             if (publishPayable == null) {
-                toast('货款总金额计算失败');
-                return;
-            }
-            if (!isRatioPay && !publishDaily) {
-                toast('预估每日结算货款计算失败');
+                toast('总金额计算失败');
                 return;
             }
             var quota = accountQuota();
             var available = quota ? quota.available : 0;
             if (cents(publishPayable) > cents(available)) {
-                toast('货款总金额须小于等于可用额度');
-                return;
-            }
-            var shortGuarantor = null;
-            chosen.some(function (store) {
-                if (cents(publishPayable) > cents(storeAvailable(store.code))) {
-                    shortGuarantor = store;
-                    return true;
-                }
-                return false;
-            });
-            if (shortGuarantor) {
-                toast(shortGuarantor.name + '可用额度不足，无法作为担保门店');
+                toast('总金额须小于等于可用额度');
                 return;
             }
             var all = demands();
@@ -1127,13 +1073,14 @@
                 skus: lines.map(function (line) {
                     return { code: line.code, name: line.name, salePrice: line.salePrice, qty: line.qty };
                 }),
-                guarantors: chosen.map(function (store) { return { code: store.code, name: store.name }; }),
+                goodsAmount: money(amountValue),
+                serviceFee: money(Number(money(publishPayable)) - Number(money(amountValue))),
                 amount: money(publishPayable),
                 installmentCode: publishPlan.code,
                 installmentName: publishPlan.name,
                 repayCycle: publishPlan.repayCycle,
                 repayMethod: publishPlan.repayMethod,
-                repayPeriod: isRatioPay ? periodRatioText(publishPlan) : String(repayPeriod),
+                repayPeriod: isRatioPay ? '' : String(repayPeriod),
                 dailyAmount: publishDaily || '',
                 status: '待审核',
                 quotaHeld: false,
@@ -1151,7 +1098,6 @@
             screen = 'list';
             packageCode = '';
             clearPicked();
-            guarantors = [];
             clearInstallmentChoice();
             toast('需求已发布');
             render();
@@ -1164,16 +1110,6 @@
         if (qtyInput) {
             setQty(qtyInput.getAttribute('data-qty-input'), qtyInput.value);
             render();
-            return;
-        }
-        var guarantorBox = event.target.closest('[data-guarantor]');
-        if (guarantorBox) {
-            var gcode = guarantorBox.getAttribute('data-guarantor');
-            if (guarantorBox.checked) {
-                if (guarantors.indexOf(gcode) < 0) guarantors.push(gcode);
-            } else {
-                guarantors = guarantors.filter(function (code) { return code !== gcode; });
-            }
             return;
         }
         var all = event.target.closest('[data-all]');

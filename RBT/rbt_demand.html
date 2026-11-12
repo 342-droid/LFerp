@@ -110,6 +110,8 @@
             padding: 0 2px;
         }
         .rbt-demand-contract__close:hover { color: #303133; }
+        .rbt-ratio-dialog { width: min(840px, 96vw); }
+        .rbt-ratio-dialog__body { padding: 16px 20px 20px; overflow: auto; }
         .rbt-demand-contract__paper {
             margin: 0;
             padding: 20px 24px 28px;
@@ -183,11 +185,15 @@
                     :request="requestRows"
                     row-key="code"
                     search-label-width="112px"
-                    action-column-width="120"
+                    action-column-width="168"
                     :default-page-size="20"
                     :auto-format-time="false">
                     <template v-slot:[slots.code]="{row}">
                         <doc-no-link :value="row.code" @open="openDetail(row)"></doc-no-link>
+                    </template>
+                    <template v-slot:[slots.repayperiod]="{row,elSize}">
+                        <el-button v-if="hasRatio(row)" :size="elSize" text type="primary" @click="openRatio(row)">查看详情</el-button>
+                        <span v-else>—</span>
                     </template>
                     <template v-slot:[slots.status]="{row,elSize}">
                         <el-tag :size="elSize" effect="light" :type="statusType(row.status)">{{ row.status || '—' }}</el-tag>
@@ -195,6 +201,7 @@
                     <template #actions="{row,elSize}">
                         <el-button v-if="canGoAudit(row)" :size="elSize" text type="primary" @click="goAudit(row)">去审核</el-button>
                         <el-button v-if="canGoSign(row)" :size="elSize" text type="primary" @click="goSign(row)">去签署</el-button>
+                        <el-button v-if="canVoid(row)" :size="elSize" text type="danger" @click="voidDemand(row)">作废</el-button>
                     </template>
                 </vab-schema-table>
             </div>
@@ -205,6 +212,7 @@
     <script src="../js/common.js"></script>
     <script src="../vendor/octopus-prototype-runtime/runtime.js"></script>
     <script src="rbt-store-data.js"></script>
+    <script src="rbt-settle-ratio.js"></script>
     <script src="rbt-demand-data.js"></script>
     <script src="rbt-demand-detail.js"></script>
     <script src="rbt-contract-sign.js"></script>

@@ -1,4 +1,4 @@
-/* RBT 门店列表演示数据。详情只带基础信息与进件信息，不含收货信息、运营评估、商户进件。 */
+/* RBT 门店列表演示数据。详情含基础信息、进件信息、操作记录，不含收货信息、运营评估、商户进件。 */
 (function () {
     var KEY = 'rbt_store_list_v5';
 
@@ -39,6 +39,67 @@
 
     function pad(n) {
         return n < 10 ? '0' + n : String(n);
+    }
+
+    var FIELD_LABELS = {
+        name: '门店名称',
+        rbtLevel: 'RBT等级',
+        partnerType: '门店合作类型',
+        storeType: '门店类型',
+        contact: '联系人',
+        phone: '联系人手机号',
+        legalName: '法人姓名',
+        legalPhone: '法人手机号',
+        warehouse: '配送仓库',
+        region: '省市区',
+        address: '详细地址',
+        enabled: '状态',
+        storeQuota: '门店总额度',
+        occupiedQuota: '已占用',
+        lockedQuota: '已成交'
+    };
+
+    function formatMoney(value) {
+        return toAmount(value).toLocaleString('zh-CN', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }) + ' 元';
+    }
+
+    function showField(key, value) {
+        if (key === 'enabled') return value === false ? '禁用' : '启用';
+        if (key === 'storeQuota' || key === 'occupiedQuota' || key === 'lockedQuota') return formatMoney(value);
+        if (value == null || value === '') return '空';
+        return String(value);
+    }
+
+    function sameField(key, before, after) {
+        if (key === 'enabled') return (before === false) === (after === false);
+        if (key === 'storeQuota' || key === 'occupiedQuota' || key === 'lockedQuota') {
+            return toAmount(before) === toAmount(after);
+        }
+        return String(before == null ? '' : before) === String(after == null ? '' : after);
+    }
+
+    function pushLog(store, content, operator, time) {
+        if (!store || !content) return;
+        if (!Array.isArray(store.logs)) store.logs = [];
+        store.logs.unshift({
+            time: time || nowText(),
+            operator: operator || '用户名',
+            content: content
+        });
+    }
+
+    /* 旧数据没有操作记录时，补一条准入记录。之后的变更只追加真实差异。 */
+    function ensureLogs(item) {
+        if (Array.isArray(item.logs)) return false;
+        item.logs = [{
+            time: item.createdAt || item.updatedAt || '',
+            operator: item.creator || '用户名',
+            content: '新增准入门店'
+        }];
+        return true;
     }
 
     function nowText() {
@@ -493,6 +554,7 @@
                 item.bizLines = source.bizLines || '';
                 changed = true;
             }
+            if (ensureLogs(item)) changed = true;
             /* 旧数据缺占用时补演示占用；已成交缺省为 0，只由需求复核通过累加 */
             if (item.storeQuota != null && item.storeQuota !== '' && (item.occupiedQuota == null || item.lockedQuota == null)) {
                 var parts = demoQuotaParts(item.storeQuota);
@@ -533,6 +595,7 @@
             })
         );
         applyQuota(store, input.storeQuota, 0, 0);
+        pushLog(store, '新增准入门店', '用户名', createdAt);
         items.unshift(store);
         write(items);
         return store;
@@ -575,6 +638,7 @@
                 updatedAt: createdAt
             })
         );
+        pushLog(store, '新增准入门店', '用户名', createdAt);
         items.unshift(store);
         write(items);
         return store;
@@ -591,10 +655,15 @@
             return false;
         });
         if (!target) return null;
+        var changes = [];
         ['name', 'rbtLevel', 'partnerType', 'storeType', 'contact', 'phone', 'legalName', 'legalPhone', 'warehouse', 'region', 'address', 'enabled'].forEach(function (key) {
-            if (Object.prototype.hasOwnProperty.call(input, key)) target[key] = input[key];
+            if (!Object.prototype.hasOwnProperty.call(input, key)) return;
+            if (sameField(key, target[key], input[key])) return;
+            changes.push(FIELD_LABELS[key] + '：' + showField(key, target[key]) + ' → ' + showField(key, input[key]));
+            target[key] = input[key];
         });
-        if (Object.prototype.hasOwnProperty.call(input, 'storeQuota')) {
+        if (Object.prototype.hasOwnProperty.call(input, 'storeQuota') && !sameField('storeQuota', target.storeQuota, input.storeQuota)) {
+            changes.push('门店总额度：' + showField('storeQuota', target.storeQuota) + ' → ' + showField('storeQuota', input.storeQuota));
             applyQuota(
                 target,
                 input.storeQuota,
@@ -602,8 +671,31 @@
                 target.lockedQuota != null ? target.lockedQuota : 0
             );
         }
+        if (!changes.length) return target;
+        var changedAt = nowText();
         target.updater = '用户名';
-        target.updatedAt = nowText();
+        target.updatedAt = changedAt;
+        pushLog(target, changes.join('；'), '用户名', changedAt);
+        write(items);
+        return target;
+    }
+
+    function appendLog(code, content, operator) {
+        var items = list();
+        var target = null;
+        items.some(function (item) {
+            if (item.code === code) {
+                target = item;
+                return true;
+            }
+            return false;
+        });
+        if (!target || !content) return null;
+        var changedAt = nowText();
+        var who = operator || '用户名';
+        target.updater = who;
+        target.updatedAt = changedAt;
+        pushLog(target, content, who, changedAt);
         write(items);
         return target;
     }
@@ -620,8 +712,8 @@
         return found;
     }
 
-    /* 增减已占用额度，结果不小于 0。 */
-    function adjustOccupied(code, delta) {
+    /* 增减已占用额度，结果不小于 0。金额有变化时写入操作记录。 */
+    function adjustOccupied(code, delta, operator) {
         var items = list();
         var target = null;
         items.some(function (item) {
@@ -632,22 +724,28 @@
             return false;
         });
         if (!target) return null;
-        var next = toAmount(target.occupiedQuota) + toAmount(delta);
+        var before = toAmount(target.occupiedQuota);
+        var next = before + toAmount(delta);
         if (next < 0) next = 0;
+        next = Number(next.toFixed(2));
+        if (next === before) return target;
         applyQuota(
             target,
             target.storeQuota,
-            Number(next.toFixed(2)),
+            next,
             target.lockedQuota != null ? target.lockedQuota : 0
         );
-        target.updater = '用户名';
-        target.updatedAt = nowText();
+        var changedAt = nowText();
+        var who = operator || '用户名';
+        target.updater = who;
+        target.updatedAt = changedAt;
+        pushLog(target, '已占用：' + showField('occupiedQuota', before) + ' → ' + showField('occupiedQuota', next), who, changedAt);
         write(items);
         return target;
     }
 
-    /* 增减已成交金额，结果不小于 0。 */
-    function adjustLocked(code, delta) {
+    /* 增减已成交金额，结果不小于 0。金额有变化时写入操作记录。 */
+    function adjustLocked(code, delta, operator) {
         var items = list();
         var target = null;
         items.some(function (item) {
@@ -658,38 +756,24 @@
             return false;
         });
         if (!target) return null;
-        var next = toAmount(target.lockedQuota) + toAmount(delta);
+        var before = toAmount(target.lockedQuota);
+        var next = before + toAmount(delta);
         if (next < 0) next = 0;
+        next = Number(next.toFixed(2));
+        if (next === before) return target;
         applyQuota(
             target,
             target.storeQuota,
             target.occupiedQuota != null ? target.occupiedQuota : 0,
-            Number(next.toFixed(2))
+            next
         );
-        target.updater = '用户名';
-        target.updatedAt = nowText();
+        var changedAt = nowText();
+        var who = operator || '用户名';
+        target.updater = who;
+        target.updatedAt = changedAt;
+        pushLog(target, '已成交：' + showField('lockedQuota', before) + ' → ' + showField('lockedQuota', next), who, changedAt);
         write(items);
         return target;
-    }
-
-    /* 担保门店标签：和平里/河东/五角场/仓前；西湖中心店作需求门店也可担保他人场景外使用。 */
-    function ensureSeedTags() {
-        var api = window.BusinessTagPrototypeStore;
-        if (!api) return;
-        var seedTags = {
-            ONS00001: ['rbt-store-demand'],
-            ONS00002: ['rbt-store-guarantee'],
-            ONS00003: ['rbt-store-guarantee', 'rbt-store-demand'],
-            ONS00004: ['rbt-store-guarantee'],
-            ONS00005: ['rbt-store-guarantee']
-        };
-        Object.keys(seedTags).forEach(function (code, index) {
-            if (typeof api.saveBinding === 'function') {
-                api.saveBinding('RBT_STORE', code, seedTags[code]);
-            } else if (typeof api.ensureDemoBinding === 'function') {
-                api.ensureDemoBinding('RBT_STORE', code, index);
-            }
-        });
     }
 
     window.RbtStoreData = {
@@ -710,7 +794,7 @@
         get: get,
         adjustOccupied: adjustOccupied,
         adjustLocked: adjustLocked,
-        ensureSeedTags: ensureSeedTags,
+        appendLog: appendLog,
         quotaOf: quotaOf,
         applyQuota: applyQuota,
         saveList: write

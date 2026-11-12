@@ -16,17 +16,20 @@
         item.updatedAt = nowText();
         return item;
     }
-    var DEMAND_STATUSES = ['待审核', '待接单', '待签署', '待复核', '支付中', '已完成'];
-    var CLOSED_STATUSES = ['已取消', '已驳回'];
-    /* 进入这些状态时释放需求门店与担保门店的已占用额度 */
-    var RELEASE_STATUSES = ['已取消', '已驳回', '已完成'];
+    var DEMAND_STATUSES = ['待审核', '待接单', '待确认签约', '待签署', '待复核', '支付中', '已完成'];
+    var CLOSED_STATUSES = ['已作废', '已驳回'];
+    /* 支付中之前，平台可在需求单列表作废 */
+    var VOIDABLE_STATUSES = ['待审核', '待接单', '待确认签约', '待签署', '待复核'];
+    /* 进入这些状态时释放需求门店的已占用额度 */
+    var RELEASE_STATUSES = ['已作废', '已驳回', '已完成'];
     /* 待签署及之后才有关联合同 */
     var CONTRACT_STATUSES = ['待签署', '待复核', '支付中', '已完成'];
     var STATUS_MIGRATE = {
         '已发布': '待审核',
         '待报价': '待审核',
         '已报价': '待接单',
-        '待还款': '支付中'
+        '待还款': '支付中',
+        '已取消': '已作废'
     };
 
     function hasContractStatus(status) {
@@ -49,9 +52,23 @@
         };
     }
 
-    /* 待签署及之后补合同；更早或旁路状态清空合同。 */
+    /* 待签署及之后补合同。已作废且曾经生成过合同的，保留并标成已作废。 */
     function ensureContract(item) {
         if (!item) return false;
+        if (item.status === '已作废') {
+            if (!item.contractsVoided) {
+                if (item.contract) {
+                    delete item.contract;
+                    return true;
+                }
+                return false;
+            }
+            if (item.contract && item.contract.signStatus !== '已作废') {
+                item.contract.signStatus = '已作废';
+                return true;
+            }
+            return false;
+        }
         if (!hasContractStatus(item.status)) {
             if (item.contract) {
                 delete item.contract;
@@ -79,58 +96,6 @@
     function seed() {
         return [
             {
-                code: 'XQ00001',
-                storeCode: 'ONS00001',
-                storeName: '西湖中心生鲜店',
-                packageCode: 'SPB00001',
-                packageName: '周末生鲜包',
-                skus: [
-                    { code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 20 },
-                    { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 30 }
-                ],
-                guarantors: [
-                    { code: 'ONS00002', name: '东城和平里生鲜店' },
-                    { code: 'ONS00004', name: '五角场体验店' }
-                ],
-                amount: '2860.80',
-                installmentCode: 'FQ00001',
-                installmentName: '生鲜周转分期',
-                repayCycle: '日付',
-                repayMethod: '定额付',
-                repayPeriod: '6',
-                dailyAmount: '476.80',
-                status: '待审核',
-                creator: '喻巧',
-                createdAt: '2026-11-10 09:18:22',
-                updater: '喻巧',
-                updatedAt: '2026-11-10 09:18:22'
-            },
-            {
-                code: 'XQ00002',
-                storeCode: 'ONS00003',
-                storeName: '河东大桥道自提点',
-                packageCode: 'SPB00003',
-                packageName: '果蔬尝鲜包',
-                skus: [
-                    { code: 'SKU10005', name: '云南小番茄 1kg', salePrice: '18.50', qty: 40 },
-                    { code: 'SKU10006', name: '新西兰奇异果 12粒', salePrice: '49.90', qty: 15 },
-                    { code: 'SKU10010', name: '福建空心菜 400g', salePrice: '9.90', qty: 50 }
-                ],
-                guarantors: [{ code: 'ONS00005', name: '余杭仓前便利店' }],
-                amount: '2227.50',
-                installmentCode: 'FQ00003',
-                installmentName: '果蔬短周期',
-                repayCycle: '日付',
-                repayMethod: '定额付',
-                repayPeriod: '3',
-                dailyAmount: '742.50',
-                status: '待审核',
-                creator: '周海',
-                createdAt: '2026-11-10 10:05:41',
-                updater: '周海',
-                updatedAt: '2026-11-10 10:05:41'
-            },
-            {
                 code: 'XQ00003',
                 storeCode: 'ONS00001',
                 storeName: '西湖中心生鲜店',
@@ -140,11 +105,10 @@
                     { code: 'SKU10003', name: '冷鲜牛腩 1kg', salePrice: '78.00', qty: 25 },
                     { code: 'SKU10011', name: '冷鲜猪里脊 1kg', salePrice: '52.80', qty: 20 }
                 ],
-                guarantors: [{ code: 'ONS00003', name: '河东大桥道自提点' }],
                 amount: '5364.00',
                 installmentCode: 'FQ00002',
                 installmentName: '肉类备货分期',
-                repayCycle: '日付',
+                repayCycle: '日结',
                 repayMethod: '比例付',
                 repayPeriod: '8.00%',
                 dailyAmount: '',
@@ -153,108 +117,6 @@
                 createdAt: '2026-11-09 16:42:10',
                 updater: '王丽',
                 updatedAt: '2026-11-09 17:10:08'
-            },
-            {
-                code: 'XQ00004',
-                storeCode: 'ONS00004',
-                storeName: '五角场体验店',
-                packageCode: 'SPB00001',
-                packageName: '周末生鲜包',
-                skus: [
-                    { code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 12 },
-                    { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 18 }
-                ],
-                guarantors: [{ code: 'ONS00002', name: '东城和平里生鲜店' }],
-                amount: '1747.20',
-                installmentCode: 'FQ00001',
-                installmentName: '生鲜周转分期',
-                repayCycle: '日付',
-                repayMethod: '定额付',
-                repayPeriod: '12',
-                dailyAmount: '145.60',
-                status: '待签署',
-                contract: { code: 'HT00004', name: '生鲜周转分期合作合同', signStatus: '待签署' },
-                creator: '赵倩',
-                createdAt: '2026-11-08 14:20:05',
-                updater: '李敏',
-                updatedAt: '2026-11-08 15:02:33'
-            },
-            {
-                code: 'XQ00005',
-                storeCode: 'ONS00002',
-                storeName: '东城和平里生鲜店',
-                packageCode: 'SPB00001',
-                packageName: '周末生鲜包',
-                skus: [
-                    { code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 8 },
-                    { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 10 }
-                ],
-                guarantors: [{ code: 'ONS00004', name: '五角场体验店' }],
-                amount: '1139.20',
-                installmentCode: 'FQ00001',
-                installmentName: '生鲜周转分期',
-                repayCycle: '日付',
-                repayMethod: '定额付',
-                repayPeriod: '3',
-                dailyAmount: '379.73',
-                status: '待复核',
-                contract: { code: 'HT00005', name: '生鲜周转分期合作合同', signStatus: '已签署' },
-                creator: '夏利',
-                createdAt: '2026-11-07 11:33:48',
-                updater: '王丽',
-                updatedAt: '2026-11-07 16:20:11'
-            },
-            {
-                code: 'XQ00006',
-                storeCode: 'ONS00005',
-                storeName: '余杭仓前便利店',
-                packageCode: 'SPB00003',
-                packageName: '果蔬尝鲜包',
-                skus: [
-                    { code: 'SKU10005', name: '云南小番茄 1kg', salePrice: '18.50', qty: 20 },
-                    { code: 'SKU10006', name: '新西兰奇异果 12粒', salePrice: '49.90', qty: 8 }
-                ],
-                guarantors: [{ code: 'ONS00001', name: '西湖中心生鲜店' }],
-                amount: '1149.60',
-                installmentCode: 'FQ00003',
-                installmentName: '果蔬短周期',
-                repayCycle: '日付',
-                repayMethod: '定额付',
-                repayPeriod: '3',
-                dailyAmount: '383.20',
-                status: '支付中',
-                dealLocked: true,
-                contract: { code: 'HT00006', name: '果蔬短周期合作合同', signStatus: '已签署' },
-                creator: '陈晨',
-                createdAt: '2026-11-06 09:12:30',
-                updater: '王丽',
-                updatedAt: '2026-11-06 14:45:02'
-            },
-            {
-                code: 'XQ00007',
-                storeCode: 'ONS00001',
-                storeName: '西湖中心生鲜店',
-                packageCode: 'SPB00001',
-                packageName: '周末生鲜包',
-                skus: [
-                    { code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 15 },
-                    { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 20 }
-                ],
-                guarantors: [{ code: 'ONS00003', name: '河东大桥道自提点' }],
-                amount: '2088.00',
-                installmentCode: 'FQ00001',
-                installmentName: '生鲜周转分期',
-                repayCycle: '日付',
-                repayMethod: '定额付',
-                repayPeriod: '6',
-                dailyAmount: '348.00',
-                status: '已完成',
-                dealLocked: true,
-                contract: { code: 'HT00007', name: '生鲜周转分期合作合同', signStatus: '已签署' },
-                creator: '喻巧',
-                createdAt: '2026-11-01 18:05:16',
-                updater: '王丽',
-                updatedAt: '2026-11-05 10:18:40'
             },
             {
                 code: 'XQ00008',
@@ -266,91 +128,18 @@
                     { code: 'SKU10003', name: '冷鲜牛腩 1kg', salePrice: '78.00', qty: 10 },
                     { code: 'SKU10011', name: '冷鲜猪里脊 1kg', salePrice: '52.80', qty: 10 }
                 ],
-                guarantors: [{ code: 'ONS00005', name: '余杭仓前便利店' }],
                 amount: '2354.40',
                 installmentCode: 'FQ00002',
                 installmentName: '肉类备货分期',
-                repayCycle: '日付',
+                repayCycle: '日结',
                 repayMethod: '比例付',
                 repayPeriod: '8.00%',
                 dailyAmount: '',
-                status: '已取消',
+                status: '已作废',
                 creator: '赵倩',
                 createdAt: '2026-11-03 13:27:09',
                 updater: '赵倩',
                 updatedAt: '2026-11-03 13:40:21'
-            },
-            {
-                code: 'XQ00009',
-                storeCode: 'ONS00003',
-                storeName: '河东大桥道自提点',
-                packageCode: 'SPB00001',
-                packageName: '周末生鲜包',
-                skus: [
-                    { code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 6 },
-                    { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 8 }
-                ],
-                guarantors: [{ code: 'ONS00002', name: '东城和平里生鲜店' }],
-                amount: '854.40',
-                installmentCode: 'FQ00001',
-                installmentName: '生鲜周转分期',
-                repayCycle: '日付',
-                repayMethod: '定额付',
-                repayPeriod: '3',
-                dailyAmount: '284.80',
-                status: '已驳回',
-                creator: '周海',
-                createdAt: '2026-11-04 15:50:02',
-                updater: '王丽',
-                updatedAt: '2026-11-04 16:12:55'
-            },
-            {
-                code: 'XQ00010',
-                storeCode: 'ONS00005',
-                storeName: '余杭仓前便利店',
-                packageCode: 'SPB00003',
-                packageName: '果蔬尝鲜包',
-                skus: [
-                    { code: 'SKU10005', name: '云南小番茄 1kg', salePrice: '18.50', qty: 30 },
-                    { code: 'SKU10006', name: '新西兰奇异果 12粒', salePrice: '49.90', qty: 10 }
-                ],
-                guarantors: [{ code: 'ONS00001', name: '西湖中心生鲜店' }],
-                amount: '1054.00',
-                installmentCode: 'FQ00003',
-                installmentName: '果蔬短周期',
-                repayCycle: '日付',
-                repayMethod: '定额付',
-                repayPeriod: '3',
-                dailyAmount: '351.33',
-                status: '待接单',
-                creator: '周海',
-                createdAt: '2026-11-11 09:12:08',
-                updater: '王丽',
-                updatedAt: '2026-11-11 09:40:16'
-            },
-            {
-                code: 'XQ00011',
-                storeCode: 'ONS00002',
-                storeName: '东城和平里生鲜店',
-                packageCode: 'SPB00001',
-                packageName: '周末生鲜包',
-                skus: [
-                    { code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 15 },
-                    { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 20 }
-                ],
-                guarantors: [{ code: 'ONS00004', name: '五角场体验店' }],
-                amount: '1308.00',
-                installmentCode: 'FQ00001',
-                installmentName: '生鲜周转分期',
-                repayCycle: '日付',
-                repayMethod: '定额付',
-                repayPeriod: '6',
-                dailyAmount: '218.00',
-                status: '待接单',
-                creator: '夏利',
-                createdAt: '2026-11-11 10:26:41',
-                updater: '王丽',
-                updatedAt: '2026-11-11 10:48:03'
             },
             {
                 code: 'XQ00012',
@@ -362,11 +151,10 @@
                     { code: 'SKU10003', name: '冷鲜牛腩 1kg', salePrice: '78.00', qty: 8 },
                     { code: 'SKU10011', name: '冷鲜猪里脊 1kg', salePrice: '52.80', qty: 12 }
                 ],
-                guarantors: [{ code: 'ONS00005', name: '余杭仓前便利店' }],
-                amount: '1257.60',
+                amount: '2263.68',
                 installmentCode: 'FQ00002',
                 installmentName: '肉类备货分期',
-                repayCycle: '日付',
+                repayCycle: '日结',
                 repayMethod: '比例付',
                 repayPeriod: '8.00%',
                 dailyAmount: '',
@@ -376,10 +164,138 @@
                 updater: '王丽',
                 updatedAt: '2026-11-11 11:22:19'
             }
+        ].concat(extraStoreSeeds());
+    }
+
+    /* 待复核演示单：销售合同、采购合同的各方都已签署。 */
+    function signedRows(storeCode, storeName, traderName, signedAt) {
+        return [
+            { key: 'sale:store:' + storeCode, role: 'store', code: storeCode, name: storeName, contractKey: 'sale', signedAt: signedAt },
+            { key: 'sale:trader:' + traderName, role: 'trader', code: '', name: traderName, contractKey: 'sale', signedAt: signedAt },
+            { key: 'purchase:trader:' + traderName, role: 'trader', code: '', name: traderName, contractKey: 'purchase', signedAt: signedAt },
+            { key: 'purchase:supply', role: 'supply', code: 'supply', name: '冷丰供应链', contractKey: 'purchase', signedAt: signedAt }
         ];
     }
 
-    /* 已有会话缺演示中的待接单时补上，避免大厅被接空后没有可看的单。已存在的单不改状态。 */
+    /* 每家门店另加 2 条日结比例付。商品包按该店已关联的包；余杭未关联商品包，演示挂周末生鲜包。 */
+    function extraStoreSeeds() {
+        var fresh = { code: 'SPB00001', name: '周末生鲜包' };
+        var meat = { code: 'SPB00002', name: '肉类组合包' };
+        var veg = { code: 'SPB00003', name: '果蔬尝鲜包' };
+        var freshPlan = { installmentCode: 'FQ00001', installmentName: '生鲜周转分期', repayPeriod: '10.00%' };
+        var meatPlan = { installmentCode: 'FQ00002', installmentName: '肉类备货分期', repayPeriod: '8.00%' };
+        var vegPlan = { installmentCode: 'FQ00003', installmentName: '果蔬短周期', repayPeriod: '10.00%' };
+        var xianDa = { traderName: '杭州鲜达贸易有限公司', traderPhone: '13800001001' };
+        var lengLian = { traderName: '上海冷链融资租赁有限公司', traderPhone: '13800001002' };
+        var haiFeng = { traderName: '宁波海丰商业保理有限公司', traderPhone: '13800001003' };
+        return [
+            rowSeed({
+                code: 'XQ00013', storeCode: 'ONS00001', storeName: '西湖中心生鲜店',
+                pkg: fresh, plan: freshPlan, status: '待审核',
+                skus: [{ code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 6 }, { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 4 }],
+                amount: '691.20', creator: '喻巧', createdAt: '2026-11-10 09:18:22', updater: '喻巧', updatedAt: '2026-11-10 09:18:22'
+            }),
+            rowSeed(Object.assign({
+                code: 'XQ00014', storeCode: 'ONS00001', storeName: '西湖中心生鲜店',
+                pkg: fresh, plan: freshPlan, status: '待确认签约',
+                skus: [{ code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 12 }, { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 10 }],
+                amount: '1455.36', creator: '喻巧', createdAt: '2026-11-08 14:06:33', updater: '杭州鲜达贸易有限公司', updatedAt: '2026-11-08 15:20:11',
+                acceptedAt: '2026-11-08 15:20:11'
+            }, xianDa)),
+            rowSeed({
+                code: 'XQ00015', storeCode: 'ONS00002', storeName: '东城和平里生鲜店',
+                pkg: meat, plan: meatPlan, status: '待接单',
+                skus: [{ code: 'SKU10003', name: '冷鲜牛腩 1kg', salePrice: '78.00', qty: 6 }, { code: 'SKU10011', name: '冷鲜猪里脊 1kg', salePrice: '52.80', qty: 4 }],
+                amount: '1222.56', creator: '夏利', createdAt: '2026-11-11 10:12:40', updater: '王丽', updatedAt: '2026-11-11 10:40:18'
+            }),
+            rowSeed(Object.assign({
+                code: 'XQ00016', storeCode: 'ONS00002', storeName: '东城和平里生鲜店',
+                pkg: meat, plan: meatPlan, status: '待复核',
+                skus: [{ code: 'SKU10003', name: '冷鲜牛腩 1kg', salePrice: '78.00', qty: 15 }, { code: 'SKU10011', name: '冷鲜猪里脊 1kg', salePrice: '52.80', qty: 10 }],
+                amount: '3056.40', creator: '夏利', createdAt: '2026-11-06 11:22:09', updater: '王丽', updatedAt: '2026-11-07 09:30:12',
+                acceptedAt: '2026-11-06 13:05:44',
+                signings: signedRows('ONS00002', '东城和平里生鲜店', '上海冷链融资租赁有限公司', '2026-11-07 09:12:40')
+            }, lengLian)),
+            rowSeed({
+                code: 'XQ00017', storeCode: 'ONS00003', storeName: '河东大桥道自提点',
+                pkg: veg, plan: vegPlan, status: '待审核',
+                skus: [
+                    { code: 'SKU10005', name: '云南小番茄 1kg', salePrice: '18.50', qty: 8 },
+                    { code: 'SKU10006', name: '新西兰奇异果 12粒', salePrice: '49.90', qty: 4 },
+                    { code: 'SKU10010', name: '福建空心菜 400g', salePrice: '9.90', qty: 6 }
+                ],
+                amount: '610.50', creator: '周海', createdAt: '2026-11-12 08:46:15', updater: '周海', updatedAt: '2026-11-12 08:46:15'
+            }),
+            rowSeed({
+                code: 'XQ00018', storeCode: 'ONS00003', storeName: '河东大桥道自提点',
+                pkg: veg, plan: vegPlan, status: '已驳回', rejectReason: '门店近期流水不足',
+                skus: [
+                    { code: 'SKU10005', name: '云南小番茄 1kg', salePrice: '18.50', qty: 4 },
+                    { code: 'SKU10006', name: '新西兰奇异果 12粒', salePrice: '49.90', qty: 2 },
+                    { code: 'SKU10010', name: '福建空心菜 400g', salePrice: '9.90', qty: 3 }
+                ],
+                amount: '305.25', creator: '周海', createdAt: '2026-11-04 16:18:40', updater: '王丽', updatedAt: '2026-11-04 17:02:11'
+            }),
+            rowSeed(Object.assign({
+                code: 'XQ00019', storeCode: 'ONS00004', storeName: '五角场体验店',
+                pkg: fresh, plan: freshPlan, status: '待签署',
+                skus: [{ code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 8 }, { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 6 }],
+                amount: '945.92', creator: '赵倩', createdAt: '2026-11-09 09:40:18', updater: '宁波海丰商业保理有限公司', updatedAt: '2026-11-09 11:15:36',
+                acceptedAt: '2026-11-09 11:15:36'
+            }, haiFeng)),
+            rowSeed(Object.assign({
+                code: 'XQ00020', storeCode: 'ONS00004', storeName: '五角场体验店',
+                pkg: fresh, plan: freshPlan, status: '待复核',
+                skus: [{ code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 20 }, { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 12 }],
+                amount: '2255.36', creator: '赵倩', createdAt: '2026-11-05 10:08:27', updater: '王丽', updatedAt: '2026-11-06 16:48:20',
+                acceptedAt: '2026-11-05 14:22:03',
+                signings: signedRows('ONS00004', '五角场体验店', '杭州鲜达贸易有限公司', '2026-11-06 16:20:08')
+            }, xianDa)),
+            rowSeed({
+                code: 'XQ00021', storeCode: 'ONS00005', storeName: '余杭仓前便利店',
+                pkg: fresh, plan: freshPlan, status: '待接单',
+                skus: [{ code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 5 }, { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 5 }],
+                amount: '636.80', creator: '陈晨', createdAt: '2026-11-11 15:33:41', updater: '王丽', updatedAt: '2026-11-11 16:01:09'
+            }),
+            rowSeed({
+                code: 'XQ00022', storeCode: 'ONS00005', storeName: '余杭仓前便利店',
+                pkg: fresh, plan: freshPlan, status: '已作废',
+                skus: [{ code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 3 }, { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 2 }],
+                amount: '345.60', creator: '陈晨', createdAt: '2026-11-02 13:12:55', updater: '陈晨', updatedAt: '2026-11-02 13:40:18'
+            })
+        ];
+    }
+
+    function rowSeed(spec) {
+        var row = {
+            code: spec.code,
+            storeCode: spec.storeCode,
+            storeName: spec.storeName,
+            packageCode: spec.pkg.code,
+            packageName: spec.pkg.name,
+            skus: spec.skus,
+            amount: spec.amount,
+            installmentCode: spec.plan.installmentCode,
+            installmentName: spec.plan.installmentName,
+            repayCycle: '日结',
+            repayMethod: '比例付',
+            repayPeriod: spec.plan.repayPeriod,
+            dailyAmount: '',
+            status: spec.status,
+            creator: spec.creator,
+            createdAt: spec.createdAt,
+            updater: spec.updater,
+            updatedAt: spec.updatedAt
+        };
+        if (spec.traderName) row.traderName = spec.traderName;
+        if (spec.traderPhone) row.traderPhone = spec.traderPhone;
+        if (spec.acceptedAt) row.acceptedAt = spec.acceptedAt;
+        if (spec.signings) row.signings = spec.signings;
+        if (spec.rejectReason) row.rejectReason = spec.rejectReason;
+        return row;
+    }
+
+    /* 会话里缺的演示需求补上。已存在的单不改状态、不覆盖。 */
     function ensurePendingSeed() {
         var current = readRaw();
         if (!current || !current.length) return;
@@ -389,12 +305,54 @@
         });
         var added = false;
         seed().forEach(function (item) {
-            if (!item || item.status !== '待接单' || codes[item.code]) return;
+            if (!item || !item.code || codes[item.code]) return;
             current.push(item);
             codes[item.code] = true;
             added = true;
         });
         if (added) write(current);
+    }
+
+    function centsOf(value) {
+        var text = String(value == null ? '' : value).replace(/^¥/, '').replace(/,/g, '');
+        var num = Number(text);
+        if (!isFinite(num)) return 0;
+        return Math.round(num * 100);
+    }
+
+    function fromCents(cents) {
+        var sign = cents < 0 ? '-' : '';
+        var abs = Math.abs(Math.round(cents));
+        return sign + Math.floor(abs / 100) + '.' + String(abs % 100).padStart(2, '0');
+    }
+
+    /* 商品金额 = 售价×数量；总金额沿用 amount；联营服务费 = 总金额 − 商品金额。 */
+    function ensureAmountParts(item) {
+        var goods = 0;
+        (item.skus || []).forEach(function (sku) {
+            var qty = Number(sku && sku.qty);
+            if (!isFinite(qty) || qty < 0) qty = 0;
+            goods += centsOf(sku && sku.salePrice) * qty;
+        });
+        goods = Math.round(goods);
+        var total = centsOf(item.amount);
+        var goodsText = fromCents(goods);
+        var feeText = fromCents(total - goods);
+        var totalText = fromCents(total);
+        var changed = false;
+        if (item.goodsAmount !== goodsText) {
+            item.goodsAmount = goodsText;
+            changed = true;
+        }
+        if (item.serviceFee !== feeText) {
+            item.serviceFee = feeText;
+            changed = true;
+        }
+        if (String(item.amount == null ? '' : item.amount) !== totalText) {
+            item.amount = totalText;
+            changed = true;
+        }
+        return changed;
     }
 
     function readRaw() {
@@ -418,6 +376,33 @@
         return '待审核';
     }
 
+    /* 初审已通过。这些需求单上应能看到结算比例。 */
+    function passedFirstAudit(status) {
+        return status === '待接单' || status === '待确认签约' || status === '待签署' || status === '待复核' || status === '支付中' || status === '已完成';
+    }
+
+    /* 演示数据当初写在产品上的比例。初审已通过、单上还没有渠道比例时，用它补三个渠道的兜底利率。 */
+    function legacyRatioIndex() {
+        var byCode = {};
+        var byPlan = {};
+        seed().forEach(function (item) {
+            var ratio = window.RbtSettleRatio ? RbtSettleRatio.parseRatio(item.repayPeriod) : '';
+            if (!ratio) return;
+            if (item.code) byCode[item.code] = ratio;
+            if (item.installmentCode && !byPlan[item.installmentCode]) byPlan[item.installmentCode] = ratio;
+        });
+        return { byCode: byCode, byPlan: byPlan };
+    }
+
+    function legacyAuditedRatio(item, index) {
+        var api = window.RbtSettleRatio;
+        if (!api || !item) return '';
+        var own = api.parseRatio(item.repayPeriod);
+        if (own) return own;
+        if (index.byCode[item.code]) return index.byCode[item.code];
+        return index.byPlan[item.installmentCode] || '';
+    }
+
     function list() {
         ensurePendingSeed();
         var current = readRaw();
@@ -428,6 +413,7 @@
             seeded = true;
         }
         var changed = false;
+        var legacyRatios = legacyRatioIndex();
         var rows = current.map(function (item) {
             if (!item) return null;
             var next = normalizeStatus(item.status);
@@ -456,9 +442,59 @@
                 item.updatedAt = item.createdAt;
                 changed = true;
             }
+            if (item.guarantors) {
+                delete item.guarantors;
+                changed = true;
+            }
+            if (Array.isArray(item.signings)) {
+                var signings = item.signings.filter(function (row) {
+                    return row && String(row.key || '').indexOf('guarantee:') !== 0;
+                });
+                if (signings.length !== item.signings.length) {
+                    item.signings = signings;
+                    changed = true;
+                }
+            }
+            if (item.repayMethod === '比例付' && passedFirstAudit(item.status) && !(item.settleRatios && item.settleRatios.length)) {
+                var legacy = legacyAuditedRatio(item, legacyRatios);
+                var filled = legacy && window.RbtSettleRatio.normalize(window.RbtSettleRatio.CHANNELS.map(function (channel) {
+                    return { channel: channel, fallback: legacy, rows: [] };
+                }));
+                if (filled) {
+                    item.settleRatios = filled;
+                    changed = true;
+                }
+            }
+            if (item.repayMethod === '比例付' && !(item.settleRatios && item.settleRatios.length) && item.repayPeriod) {
+                item.repayPeriod = '';
+                changed = true;
+            }
+            if (item.repayCycle === '日付' || item.repayCycle === '日还') {
+                item.repayCycle = '日结';
+                changed = true;
+            }
+            /* 接单后、确认签约前还没有合同。未签署的 XQ00014 从待签署收回这一步。 */
+            if (item.code === 'XQ00014' && item.status === '待签署' && !(item.signings && item.signings.length)) {
+                item.status = '待确认签约';
+                changed = true;
+            }
+            /* 早期演示把 XQ00012 的商品金额写成了总金额，按肉类 1.80 系数补回。 */
+            if (item.code === 'XQ00012' && String(item.amount) === '1257.60') {
+                item.amount = '2263.68';
+                changed = true;
+            }
+            if (ensureAmountParts(item)) changed = true;
             if (ensureContract(item)) changed = true;
             return item;
-        }).filter(Boolean);
+        }).filter(function (item) {
+            if (!item) return false;
+            var method = item.repayMethod;
+            if (method === '定额付' || method === '定额还' || method === '等额本息') {
+                changed = true;
+                return false;
+            }
+            return true;
+        });
         if (changed) write(rows);
         if (seeded || changed) rebuildStoreDealAmounts();
         return rows;
@@ -476,7 +512,7 @@
         return found;
     }
 
-    /* 未释放占用的进行中需求（已取消 / 已驳回 / 已完成除外）。 */
+    /* 未释放占用的进行中需求（已作废 / 已驳回 / 已完成除外）。 */
     function holdsOccupiedQuota(demand) {
         if (!demand) return false;
         if (RELEASE_STATUSES.indexOf(demand.status) >= 0) return false;
@@ -484,19 +520,11 @@
         return true;
     }
 
-    function demandInvolvesStore(demand, storeCode) {
-        if (!demand || !storeCode) return false;
-        if (demand.storeCode === storeCode) return true;
-        return (demand.guarantors || []).some(function (row) {
-            return row && row.code === storeCode;
-        });
-    }
-
-    /* 某门店当前占用额度所关联的需求单（本店作为需求门店或担保门店）。 */
+    /* 某门店当前占用额度所关联的需求单（本店作为需求门店）。 */
     function listOccupyingDemands(storeCode) {
         if (!storeCode) return [];
         return list().filter(function (demand) {
-            return holdsOccupiedQuota(demand) && demandInvolvesStore(demand, storeCode);
+            return holdsOccupiedQuota(demand) && demand && demand.storeCode === storeCode;
         }).map(function (demand) {
             return {
                 code: demand.code,
@@ -504,59 +532,47 @@
                 storeName: demand.storeName,
                 packageCode: demand.packageCode,
                 packageName: demand.packageName,
+                goodsAmount: demand.goodsAmount,
+                serviceFee: demand.serviceFee,
                 amount: demand.amount,
                 status: demand.status,
                 repayCycle: demand.repayCycle,
                 repayMethod: demand.repayMethod,
                 repayPeriod: demand.repayPeriod,
                 creator: demand.creator,
-                createdAt: demand.createdAt,
-                occupyRole: demand.storeCode === storeCode ? '需求门店' : '担保门店'
+                createdAt: demand.createdAt
             };
         });
     }
 
     function demandStoreCodes(demand) {
-        var codes = [];
-        var seen = {};
-        function push(code) {
-            if (!code || seen[code]) return;
-            seen[code] = true;
-            codes.push(code);
-        }
-        if (demand) {
-            push(demand.storeCode);
-            (demand.guarantors || []).forEach(function (row) {
-                push(row && row.code);
-            });
-        }
-        return codes;
+        return demand && demand.storeCode ? [demand.storeCode] : [];
     }
 
-    function adjustStoresOccupied(codes, delta) {
+    function adjustStoresOccupied(codes, delta, operator) {
         var storeApi = window.RbtStoreData;
         if (!storeApi || typeof storeApi.adjustOccupied !== 'function') return;
         var amount = Number(delta) || 0;
         if (!amount) return;
         (codes || []).forEach(function (code) {
-            storeApi.adjustOccupied(code, amount);
+            storeApi.adjustOccupied(code, amount, operator);
         });
     }
 
-    /* 发布成功：需求门店 + 担保门店同步增加已占用。 */
+    /* 发布成功：需求门店增加已占用。 */
     function occupyDemandQuota(demand) {
         if (!demand || demand.quotaHeld) return demand;
         var amount = Number(demand.amount) || 0;
-        if (amount > 0) adjustStoresOccupied(demandStoreCodes(demand), amount);
+        if (amount > 0) adjustStoresOccupied(demandStoreCodes(demand), amount, demand.updater || demand.creator || '用户名');
         demand.quotaHeld = true;
         return demand;
     }
 
-    /* 已取消 / 已驳回 / 已完成：释放需求门店与担保门店已占用。 */
+    /* 已作废 / 已驳回 / 已完成：释放需求门店已占用。 */
     function releaseDemandQuota(demand) {
         if (!demand || !demand.quotaHeld) return demand;
         var amount = Number(demand.amount) || 0;
-        if (amount > 0) adjustStoresOccupied(demandStoreCodes(demand), -Math.abs(amount));
+        if (amount > 0) adjustStoresOccupied(demandStoreCodes(demand), -Math.abs(amount), demand.updater || demand.creator || '用户名');
         demand.quotaHeld = false;
         return demand;
     }
@@ -567,7 +583,7 @@
         var storeApi = window.RbtStoreData;
         var amount = Number(demand.amount) || 0;
         if (amount > 0 && demand.storeCode && storeApi && typeof storeApi.adjustLocked === 'function') {
-            storeApi.adjustLocked(demand.storeCode, amount);
+            storeApi.adjustLocked(demand.storeCode, amount, demand.updater || demand.creator || '用户名');
         }
         demand.dealLocked = true;
         return demand;
@@ -608,6 +624,9 @@
         });
         if (!target) return null;
         var prev = target.status;
+        if (status === '已作废' && prev !== '已作废' && (hasContractStatus(prev) || (target.signings && target.signings.length) || (target.contract && target.contract.code))) {
+            target.contractsVoided = true;
+        }
         target.status = status;
         touchAudit(target, operator || '王丽');
         if (prev === '待复核' && status === '支付中') lockDemandDeal(target);
@@ -618,29 +637,81 @@
         return target;
     }
 
-    /* 仅待接单可接。成功后进入待签署，并记下接单贸易商；已被接单则拒绝。 */
-    function acceptDemand(code, trader) {
-        var rows = list();
+    function traderNameOf(trader) {
+        return (trader && (trader.name || trader.traderName)) || '';
+    }
+
+    function findDemand(rows, code) {
         var target = null;
-        rows.some(function (item) {
+        (rows || []).some(function (item) {
             if (item && item.code === code) {
                 target = item;
                 return true;
             }
             return false;
         });
+        return target;
+    }
+
+    /* 仅待接单可接。成功后进入待确认签约，此时还不生成合同。 */
+    function acceptDemand(code, trader) {
+        var rows = list();
+        var target = findDemand(rows, code);
         if (!target) return { ok: false, reason: 'missing' };
         if (target.status !== '待接单' || target.traderName) {
             return { ok: false, reason: 'taken', demand: target };
         }
-        var name = (trader && (trader.name || trader.traderName)) || '贸易商';
+        var name = traderNameOf(trader) || '贸易商';
         target.traderName = name;
         target.traderPhone = (trader && trader.phone) || '';
         target.acceptedAt = nowText();
         write(rows);
+        var saved = setStatus(code, '待确认签约', name);
+        if (!saved) return { ok: false, reason: 'missing' };
+        return { ok: true, demand: saved };
+    }
+
+    /* 待确认签约由接单贸易商确认。确认后进入待签署，并生成销售合同、采购合同。 */
+    function confirmSigning(code, trader) {
+        var rows = list();
+        var target = findDemand(rows, code);
+        if (!target) return { ok: false, reason: 'missing' };
+        if (target.status !== '待确认签约') return { ok: false, reason: 'status', demand: target };
+        var name = traderNameOf(trader);
+        if (!name || target.traderName !== name) return { ok: false, reason: 'trader', demand: target };
         var saved = setStatus(code, '待签署', name);
         if (!saved) return { ok: false, reason: 'missing' };
         return { ok: true, demand: saved };
+    }
+
+    /* 确认签约前可撤回。清空接单贸易商，需求回到待接单。 */
+    function withdrawAccept(code, trader) {
+        var rows = list();
+        var target = findDemand(rows, code);
+        if (!target) return { ok: false, reason: 'missing' };
+        if (target.status !== '待确认签约') return { ok: false, reason: 'status', demand: target };
+        var name = traderNameOf(trader);
+        if (!name || target.traderName !== name) return { ok: false, reason: 'trader', demand: target };
+        target.traderName = '';
+        target.traderPhone = '';
+        target.acceptedAt = '';
+        write(rows);
+        var saved = setStatus(code, '待接单', name);
+        if (!saved) return { ok: false, reason: 'missing' };
+        return { ok: true, demand: saved };
+    }
+
+    function canVoidDemand(demand) {
+        return !!(demand && VOIDABLE_STATUSES.indexOf(demand.status) >= 0);
+    }
+
+    /* 支付中之前由平台作废。已产生的审核单、合同在 setStatus 里同步作废。 */
+    function voidDemand(code, operator) {
+        var rows = list();
+        var target = findDemand(rows, code);
+        if (!target) return null;
+        if (!canVoidDemand(target)) return null;
+        return setStatus(code, '已作废', operator || '平台');
     }
 
     function partyKey(contractKey, role, code, name) {
@@ -663,26 +734,13 @@
         return party;
     }
 
-    /* 三份文件：担保协议（每家担保门店与需求门店）、销售合同（需求门店与贸易商）、采购合同（贸易商与冷丰供应链）。 */
+    /* 两份文件：销售合同（需求门店与贸易商）、采购合同（贸易商与冷丰供应链）。 */
     function signContracts(item) {
         if (!item) return [];
+        if (item.status === '已作废' && !item.contractsVoided) return [];
         var signed = signedMap(item);
         var seq = String(item.code || '').replace(/\D/g, '') || '00001';
         var contracts = [];
-        var guarantors = (item.guarantors || []).filter(function (row) { return row && row.code; });
-        guarantors.forEach(function (row, index) {
-            var key = 'guarantee:' + row.code;
-            contracts.push({
-                key: key,
-                type: 'guarantee',
-                name: '担保协议',
-                code: 'DB' + seq + (guarantors.length > 1 ? '-' + (index + 1) : ''),
-                parties: [
-                    bindParty({ role: 'guarantor', roleLabel: '担保门店', code: row.code, name: row.name || row.code }, key, signed),
-                    bindParty({ role: 'store', roleLabel: '需求门店', code: item.storeCode || '', name: item.storeName || '需求门店' }, key, signed)
-                ]
-            });
-        });
         contracts.push({
             key: 'sale',
             type: 'sale',
@@ -703,7 +761,12 @@
                 bindParty({ role: 'supply', roleLabel: '冷丰供应链', code: 'supply', name: '冷丰供应链' }, 'purchase', signed)
             ]
         });
+        var voided = item.status === '已作废' && item.contractsVoided;
         contracts.forEach(function (contract) {
+            if (voided) {
+                contract.signStatus = '已作废';
+                return;
+            }
             contract.signStatus = contract.parties.every(function (party) { return !!party.signedAt; }) ? '已签署' : '待签署';
         });
         return contracts;
@@ -722,7 +785,7 @@
         if (party.role === 'trader') return actor.role === 'trader' && !!party.name && party.name === (actor.name || '');
         if (party.role === 'supply') return actor.role === 'supply';
         if (actor.role === 'trader' || actor.role === 'supply') return false;
-        return !!actor.code && party.code === actor.code && (party.role === 'store' || party.role === 'guarantor');
+        return !!actor.code && party.code === actor.code && party.role === 'store';
     }
 
     function matchParty(item, actor) {
@@ -743,7 +806,7 @@
         });
     }
 
-    /* 当前签署方确认其中一份协议。三份协议的各方都签完后，需求进入待复核。 */
+    /* 当前签署方确认其中一份合同。销售合同和采购合同的各方都签完后，需求进入待复核。 */
     function signDemand(code, actor, contractKey) {
         var rows = list();
         var target = null;
@@ -798,7 +861,7 @@
 
     /* ---------- 审核中心 · 需求单审核 ---------- */
     var AUDIT_KEY = 'rbt_demand_audit_v1';
-    var AUDIT_STATUSES = ['待审核', '审核通过', '审核驳回', '已取消'];
+    var AUDIT_STATUSES = ['待审核', '审核通过', '审核驳回'];
 
     function readAuditsRaw() {
         try {
@@ -818,7 +881,7 @@
     function auditStatusFromDemand(demand) {
         if (!demand) return '待审核';
         if (demand.status === '待审核') return '待审核';
-        if (demand.status === '已取消') return '已取消';
+        if (demand.status === '已作废' || demand.status === '已取消') return '审核驳回';
         if (demand.status === '已驳回') return '审核驳回';
         return '审核通过';
     }
@@ -841,6 +904,8 @@
             storeName: demand.storeName || '',
             packageCode: demand.packageCode || '',
             packageName: demand.packageName || '',
+            goodsAmount: demand.goodsAmount || '',
+            serviceFee: demand.serviceFee || '',
             amount: demand.amount || '',
             repayCycle: demand.repayCycle || '',
             repayMethod: demand.repayMethod || '',
@@ -850,7 +915,9 @@
             status: status,
             auditor: status === '待审核' ? '' : (demand.updater || '王丽'),
             auditedAt: status === '待审核' ? '' : (demand.updatedAt || ''),
-            opinion: status === '审核驳回' ? (demand.rejectReason || '不符合放款条件') : '',
+            opinion: status === '审核驳回'
+                ? ((demand.status === '已作废' || demand.status === '已取消') ? (demand.rejectReason || '需求已作废') : (demand.rejectReason || '不符合放款条件'))
+                : '',
             stage: '初审'
         };
     }
@@ -916,6 +983,8 @@
             exists.storeName = demand.storeName || exists.storeName;
             exists.packageCode = demand.packageCode || exists.packageCode;
             exists.packageName = demand.packageName || exists.packageName;
+            exists.goodsAmount = demand.goodsAmount || exists.goodsAmount || '';
+            exists.serviceFee = demand.serviceFee || exists.serviceFee || '';
             exists.amount = demand.amount || exists.amount;
             exists.repayCycle = demand.repayCycle || exists.repayCycle;
             exists.repayMethod = demand.repayMethod || exists.repayMethod;
@@ -939,6 +1008,26 @@
         return created;
     }
 
+    /* 需求作废后：审核通过的不动；待审核按驳回，意见记「需求已作废」。 */
+    function voidRelatedAudits(rows, demand, operator) {
+        var who = operator || (demand && demand.updater) || '平台';
+        var when = nowText();
+        var changed = false;
+        (rows || []).forEach(function (row) {
+            if (!row || !demand || row.demandCode !== demand.code) return;
+            if (row.status !== '待审核' && row.status !== '已作废' && row.status !== '已取消') return;
+            var pending = row.status === '待审核';
+            row.status = '审核驳回';
+            changed = true;
+            if (pending || !row.auditor) {
+                row.auditor = who;
+                row.auditedAt = when;
+            }
+            if (pending || !row.opinion) row.opinion = '需求已作废';
+        });
+        return changed;
+    }
+
     function syncAuditByDemand(demand, operator) {
         if (!demand || !demand.code) return null;
         var rows = readAuditsRaw() || [];
@@ -949,16 +1038,16 @@
             rows.unshift(target);
         }
         target.storeName = demand.storeName || target.storeName;
+        target.goodsAmount = demand.goodsAmount || target.goodsAmount || '';
+        target.serviceFee = demand.serviceFee || target.serviceFee || '';
         target.amount = demand.amount || target.amount;
         if (demand.status === '待审核') {
             target.status = '待审核';
             target.auditor = '';
             target.auditedAt = '';
             target.opinion = '';
-        } else if (demand.status === '已取消' && target.status === '待审核') {
-            target.status = '已取消';
-            target.auditor = operator || demand.updater || '王丽';
-            target.auditedAt = demand.updatedAt || nowText();
+        } else if (demand.status === '已作废' || demand.status === '已取消') {
+            voidRelatedAudits(rows, demand, operator);
         } else if (demand.status === '已驳回' && target.status === '待审核') {
             target.status = '审核驳回';
             target.auditor = operator || demand.updater || '王丽';
@@ -1005,7 +1094,8 @@
                 existing.stage = '初审';
                 changed = true;
             }
-            if (existing.status === '待审核' && expected !== '待审核' && auditStage(existing) === '初审') {
+            var demandVoided = demand.status === '已作废' || demand.status === '已取消';
+            if (!demandVoided && existing.status === '待审核' && expected !== '待审核' && auditStage(existing) === '初审') {
                 existing.status = expected;
                 existing.auditor = demand.updater || existing.auditor || '王丽';
                 existing.auditedAt = demand.updatedAt || nowText();
@@ -1014,10 +1104,33 @@
                 }
                 changed = true;
             }
+            if (auditStage(existing) === '初审' && existing.status === '审核通过' && demand.settleRatios && demand.settleRatios.length && !(existing.settleRatios && existing.settleRatios.length)) {
+                existing.settleRatios = demand.settleRatios;
+                changed = true;
+            }
             if (demand.status === '待复核' && !findAuditByDemand(rows, demand.code, '复核')) {
                 ensureReviewAudit(demand, rows);
                 changed = true;
             }
+            if ((demand.status === '已作废' || demand.status === '已取消') && voidRelatedAudits(rows, demand, demand.updater || '平台')) {
+                changed = true;
+            }
+            rows.forEach(function (row) {
+                if (!row || row.demandCode !== demand.code) return;
+                if (row.status === '已作废' || row.status === '已取消') {
+                    row.status = '审核驳回';
+                    if (!row.opinion) row.opinion = '需求已作废';
+                    changed = true;
+                }
+                var goods = demand.goodsAmount || '';
+                var fee = demand.serviceFee || '';
+                var total = demand.amount || row.amount;
+                if (row.goodsAmount === goods && row.serviceFee === fee && row.amount === total) return;
+                row.goodsAmount = goods;
+                row.serviceFee = fee;
+                row.amount = total;
+                changed = true;
+            });
         });
         if (changed) {
             rows.sort(function (a, b) {
@@ -1049,6 +1162,21 @@
         if (!target || target.status !== '待审核') return null;
         var who = operator || '王丽';
         if (auditStage(target) === '复核') return approveReviewAudit(target, who, extra);
+        var ratioApi = window.RbtSettleRatio;
+        var settleRatios = ratioApi && typeof ratioApi.normalize === 'function' ? ratioApi.normalize(extra && extra.settleRatios) : null;
+        if (!settleRatios) return null;
+        var demandRows = list();
+        var pending = null;
+        demandRows.some(function (item) {
+            if (item && item.code === target.demandCode) {
+                pending = item;
+                return true;
+            }
+            return false;
+        });
+        if (!pending) return null;
+        pending.settleRatios = settleRatios;
+        write(demandRows);
         var demand = setStatus(target.demandCode, '待接单', who);
         if (!demand) return null;
         return patchAudit(id, function (row) {
@@ -1056,6 +1184,7 @@
             row.auditor = who;
             row.auditedAt = nowText();
             row.opinion = '';
+            row.settleRatios = settleRatios;
         });
     }
 
@@ -1157,6 +1286,10 @@
         rebuildStoreDealAmounts: rebuildStoreDealAmounts,
         setStatus: setStatus,
         acceptDemand: acceptDemand,
+        confirmSigning: confirmSigning,
+        withdrawAccept: withdrawAccept,
+        canVoidDemand: canVoidDemand,
+        voidDemand: voidDemand,
         signContracts: signContracts,
         signParties: signParties,
         matchParty: matchParty,
