@@ -597,7 +597,7 @@
             '<p>商品包：' + esc(item.packageName) + '（' + esc(item.packageCode) + '）</p>' +
             '<p>商品：' + esc(names) + '</p>' +
             '<p>商品金额：¥' + esc(item.goodsAmount || '—') + '</p>' +
-            '<p>联营服务费：¥' + esc(item.serviceFee || '—') + '</p>' +
+            '<p>服务费：¥' + esc(item.serviceFee || '—') + '</p>' +
             '<p>总金额：¥' + esc(item.amount || '—') + '</p>' +
             (item.repayCycle
                 ? '<p>结算周期：' + esc(item.repayCycle) + '</p>' +
@@ -784,7 +784,7 @@
                 '<section class="rbt-h5-inst">' +
                 '<div class="rbt-h5-inst__row rbt-h5-inst__row--muted"><span class="rbt-h5-inst__label">商品金额</span>' +
                 '<span class="rbt-h5-inst__amount">¥ ' + goodsAmount + '</span></div>' +
-                '<div class="rbt-h5-inst__row rbt-h5-inst__row--muted"><span class="rbt-h5-inst__label">联营服务费</span>' +
+                '<div class="rbt-h5-inst__row rbt-h5-inst__row--muted"><span class="rbt-h5-inst__label">服务费</span>' +
                 '<span class="rbt-h5-inst__amount">¥ ' + serviceFee + '</span></div>' +
                 '<div class="rbt-h5-inst__row rbt-h5-inst__row--total"><span class="rbt-h5-inst__label">总金额</span>' +
                 '<span class="rbt-h5-inst__amount">¥ ' + showAmount + '</span></div>' +
@@ -1087,7 +1087,8 @@
                 creator: publisher,
                 createdAt: publishAt,
                 updater: publisher,
-                updatedAt: publishAt
+                updatedAt: publishAt,
+                logs: [{ time: publishAt, operator: publisher, content: '发布需求单' }]
             };
             occupyDemandQuota(created);
             all.unshift(created);

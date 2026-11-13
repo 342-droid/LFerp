@@ -76,6 +76,36 @@
             pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
     }
 
+    function pushLog(item, content, operator, time) {
+        if (!item || !content) return;
+        if (!Array.isArray(item.logs)) item.logs = [];
+        item.logs.unshift({
+            time: time || nowText(),
+            operator: operator || '用户名',
+            content: content
+        });
+    }
+
+    /* 旧数据没有操作记录时，补一条新增记录。之后的变更只追加真实差异。 */
+    function ensureLogs(item) {
+        if (!item || Array.isArray(item.logs)) return false;
+        item.logs = [{
+            time: item.createdAt || item.updatedAt || '',
+            operator: item.creator || '用户名',
+            content: '新增产品'
+        }];
+        return true;
+    }
+
+    function packagesLogText(row) {
+        var names = row && Array.isArray(row.packages) ? row.packages.filter(Boolean) : [];
+        return names.length ? names.join('、') : '无';
+    }
+
+    function samePackages(left, right) {
+        return (left || []).slice().sort().join('\n') === (right || []).slice().sort().join('\n');
+    }
+
     function seed() {
         return [
             {
@@ -336,6 +366,7 @@
                 }
                 if (migratePeriodRates(item)) changed = true;
                 if (applyDemoAmountFloor(item)) changed = true;
+                if (ensureLogs(item)) changed = true;
             });
             /* 同一商品包可挂多条分期，但同一结算周期+结算方式只能保留最早一条上的关联。 */
             var packageCycleMethodOwner = {};
@@ -470,6 +501,20 @@
         });
         form.periodRates = next;
     }
+
+    window.RbtInstallmentData = {
+        get: function (code) {
+            var found = null;
+            read().some(function (item) {
+                if (item && item.code === code) {
+                    found = item;
+                    return true;
+                }
+                return false;
+            });
+            return found;
+        }
+    };
 
     OctopusPrototype.mount({
         setup: function () {
@@ -625,7 +670,8 @@
                     creator: show(current.creator),
                     createdAt: show(current.createdAt),
                     updater: show(current.updater),
-                    updatedAt: show(current.updatedAt)
+                    updatedAt: show(current.updatedAt),
+                    logs: current.logs || []
                 });
             }
 
@@ -768,6 +814,7 @@
                     updater: '用户名',
                     updatedAt: createdAt
                 };
+                pushLog(created, '新增产品', '用户名', createdAt);
                 items.unshift(created);
                 write(items);
                 return created;
@@ -784,11 +831,28 @@
                     return false;
                 });
                 if (!target) return null;
-                target.name = values.name;
-                target.repayCycle = values.repayCycle;
-                target.repayMethod = values.repayMethod;
-                target.storeRate = values.storeRate || '';
-                target.traderRate = values.traderRate || '';
+                ensureLogs(target);
+                var changes = [];
+                var nextName = String(values.name || '').trim();
+                if (nextName !== String(target.name || '').trim()) {
+                    changes.push('产品名称：' + (target.name || '无') + ' → ' + (nextName || '无'));
+                    target.name = nextName;
+                }
+                if ((values.repayCycle || '') !== (target.repayCycle || '')) {
+                    changes.push('结算周期：' + (target.repayCycle || '无') + ' → ' + (values.repayCycle || '无'));
+                    target.repayCycle = values.repayCycle;
+                }
+                if ((values.repayMethod || '') !== (target.repayMethod || '')) {
+                    changes.push('结算方式：' + (target.repayMethod || '无') + ' → ' + (values.repayMethod || '无'));
+                    target.repayMethod = values.repayMethod;
+                }
+                var nextStoreRate = values.storeRate || '';
+                var nextTraderRate = values.traderRate || '';
+                if (nextStoreRate !== (target.storeRate || '') || nextTraderRate !== (target.traderRate || '')) {
+                    changes.push('结算系数：' + rateText(target) + ' → ' + ratePairText({ store: nextStoreRate, trader: nextTraderRate }));
+                    target.storeRate = nextStoreRate;
+                    target.traderRate = nextTraderRate;
+                }
                 target.periods = values.periods || [];
                 target.periodRates = cloneRates(values.periodRates);
                 delete target.feeRule;
@@ -796,16 +860,31 @@
                 delete target.penaltyRule;
                 delete target.penaltyRate;
                 delete target.penaltyAsPercent;
-                target.amountMin = values.amountMin;
-                target.amountMax = values.amountMax;
-                target.packages = values.packages || [];
-                target.enabled = values.status !== '禁用';
-                target.updater = '用户名';
-                target.updatedAt = nowText();
+                if ((values.amountMin || '') !== (target.amountMin || '') || (values.amountMax || '') !== (target.amountMax || '')) {
+                    changes.push('货款区间：' + amountText(target) + ' → ' + moneyText(values.amountMin) + '元–' + moneyText(values.amountMax) + '元');
+                    target.amountMin = values.amountMin;
+                    target.amountMax = values.amountMax;
+                }
+                var nextPackages = values.packages || [];
+                if (!samePackages(target.packages, nextPackages)) {
+                    changes.push('适用商品包：' + packagesLogText(target) + ' → ' + packagesLogText({ packages: nextPackages }));
+                    target.packages = nextPackages;
+                }
+                var nextEnabled = values.status !== '禁用';
+                if ((target.enabled === false) !== (nextEnabled === false)) {
+                    changes.push('状态：' + (target.enabled === false ? '禁用' : '启用') + ' → ' + (nextEnabled ? '启用' : '禁用'));
+                    target.enabled = nextEnabled;
+                }
                 delete target.rateMin;
                 delete target.rateMax;
                 delete target.rateRange;
-                write(items);
+                if (changes.length) {
+                    var changedAt = nowText();
+                    target.updater = '用户名';
+                    target.updatedAt = changedAt;
+                    pushLog(target, changes.join('；'), '用户名', changedAt);
+                    write(items);
+                }
                 return target;
             }
 
@@ -820,10 +899,13 @@
                     return false;
                 });
                 if (!target) return;
+                ensureLogs(target);
                 var enabled = target.enabled === false;
+                var changedAt = nowText();
                 target.enabled = enabled;
                 target.updater = '用户名';
-                target.updatedAt = nowText();
+                target.updatedAt = changedAt;
+                pushLog(target, '状态：' + (enabled ? '禁用 → 启用' : '启用 → 禁用'), '用户名', changedAt);
                 write(items);
                 ElMessage.success(enabled ? '已启用' : '已禁用');
                 table.value && table.value.fetchData();

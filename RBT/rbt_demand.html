@@ -12,6 +12,40 @@
     <style>
         [v-cloak] { display: none; }
         .rbt-demand-schema-host { min-height: 480px; }
+        .rbt-demand-schema-host .el-table .rbt-demand-ops {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: nowrap;
+            white-space: nowrap;
+        }
+        .rbt-demand-schema-host .el-table .rbt-demand-ops .el-button {
+            margin: 0;
+            padding: 0;
+            height: auto;
+            min-height: 0;
+            font-size: 13px;
+        }
+        .rbt-demand-schema-host .el-table .rbt-demand-ops .el-button + .el-button { margin-left: 0; }
+        .rbt-demand-schema-host .el-table .rbt-demand-ops .el-button.is-disabled,
+        .rbt-demand-schema-host .el-table .rbt-demand-ops .el-button.is-disabled:hover {
+            color: #c0c4cc;
+            background: transparent;
+            cursor: not-allowed;
+        }
+        .rbt-store-log { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .rbt-store-log th,
+        .rbt-store-log td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #ebeef5;
+            text-align: left;
+            vertical-align: top;
+            line-height: 1.5;
+        }
+        .rbt-store-log th { color: #909399; font-weight: 500; background: #fafafa; }
+        .rbt-store-log__who { width: 120px; white-space: nowrap; }
+        .rbt-store-log__time { width: 180px; white-space: nowrap; color: #606266; }
+        .rbt-store-log__empty { text-align: center; color: #909399; padding: 28px 12px; }
         .rbt-demand-table-wrap { width: 100%; overflow-x: auto; }
         .rbt-demand-table { width: 100%; border-collapse: collapse; font-size: 13px; }
         .rbt-demand-table th,
@@ -112,6 +146,8 @@
         .rbt-demand-contract__close:hover { color: #303133; }
         .rbt-ratio-dialog { width: min(840px, 96vw); }
         .rbt-ratio-dialog__body { padding: 16px 20px 20px; overflow: auto; }
+        .rbt-review-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 20px 16px; border-top: 1px solid #ebeef5; }
+        .supplier-detail-section-title .rbt-demand-contract-link { margin-left: 12px; font-weight: 400; font-size: 13px; }
         .rbt-demand-contract__paper {
             margin: 0;
             padding: 20px 24px 28px;
@@ -192,16 +228,21 @@
                         <doc-no-link :value="row.code" @open="openDetail(row)"></doc-no-link>
                     </template>
                     <template v-slot:[slots.repayperiod]="{row,elSize}">
-                        <el-button v-if="hasRatio(row)" :size="elSize" text type="primary" @click="openRatio(row)">查看详情</el-button>
+                        <div v-if="hasRatio(row) || canEditRatio(row)" class="rbt-demand-ops">
+                            <el-button v-if="hasRatio(row)" :size="elSize" text type="primary" @click="openRatio(row)">详情</el-button>
+                            <el-button v-if="canEditRatio(row)" :size="elSize" text type="primary" @click="openEditRatio(row)">改比例</el-button>
+                        </div>
                         <span v-else>—</span>
                     </template>
                     <template v-slot:[slots.status]="{row,elSize}">
                         <el-tag :size="elSize" effect="light" :type="statusType(row.status)">{{ row.status || '—' }}</el-tag>
                     </template>
                     <template #actions="{row,elSize}">
-                        <el-button v-if="canGoAudit(row)" :size="elSize" text type="primary" @click="goAudit(row)">去审核</el-button>
-                        <el-button v-if="canGoSign(row)" :size="elSize" text type="primary" @click="goSign(row)">去签署</el-button>
-                        <el-button v-if="canVoid(row)" :size="elSize" text type="danger" @click="voidDemand(row)">作废</el-button>
+                        <div class="rbt-demand-ops">
+                            <el-button :size="elSize" text type="primary" :disabled="!canGoAudit(row)" @click="goAudit(row)">审核</el-button>
+                            <el-button :size="elSize" text type="primary" :disabled="!canGoSign(row)" @click="goSign(row)">签署</el-button>
+                            <el-button :size="elSize" text type="danger" :disabled="!canVoid(row)" @click="voidDemand(row)">作废</el-button>
+                        </div>
                     </template>
                 </vab-schema-table>
             </div>
@@ -211,10 +252,13 @@
     <script src="rbt-fresh.js"></script>
     <script src="../js/common.js"></script>
     <script src="../vendor/octopus-prototype-runtime/runtime.js"></script>
+    <script src="../js/mdm-product-catalog-store.js"></script>
     <script src="rbt-store-data.js"></script>
     <script src="rbt-settle-ratio.js"></script>
     <script src="rbt-demand-data.js"></script>
+    <script src="rbt-trade-docs.js"></script>
     <script src="rbt-demand-detail.js"></script>
+    <script src="rbt-trade-detail.js"></script>
     <script src="rbt-contract-sign.js"></script>
     <script src="rbt-demand-list.js"></script>
 </body>

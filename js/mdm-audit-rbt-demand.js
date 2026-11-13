@@ -303,82 +303,14 @@
         passAuditId = '';
     }
 
-    function escAttr(value) {
-        return String(value == null ? '' : value)
-            .replace(/&/g, '&amp;')
-            .replace(/"/g, '&quot;')
-            .replace(/</g, '&lt;');
-    }
-
-    function emptyPassDraft() {
-        var ratioApi = window.RbtSettleRatio;
-        var draft = {};
-        (ratioApi ? ratioApi.CHANNELS : []).forEach(function (channel) {
-            draft[channel] = { fallback: '', rows: [] };
-        });
-        return draft;
-    }
-
-    function syncPassDraft() {
-        var ratioApi = window.RbtSettleRatio;
-        if (!passDraft || !ratioApi) return;
-        ratioApi.CHANNELS.forEach(function (channel) {
-            var fallback = document.querySelector('[data-pass-fallback="' + channel + '"]');
-            if (fallback) passDraft[channel].fallback = fallback.value;
-            document.querySelectorAll('[data-pass-row="' + channel + '"]').forEach(function (input) {
-                var index = Number(input.getAttribute('data-index'));
-                if (passDraft[channel].rows[index]) passDraft[channel].rows[index].ratio = input.value;
-            });
-        });
+    function passFormHost() {
+        return document.getElementById('rbtPassForm');
     }
 
     function renderPassForm() {
         var ratioApi = window.RbtSettleRatio;
-        var host = document.getElementById('rbtPassForm');
-        if (!host || !ratioApi || !passDraft) return;
-        var options = '<option value="">请选择类目</option>' + ratioApi.categoryOptions().map(function (name) {
-            return '<option value="' + escAttr(name) + '">' + escAttr(name) + '</option>';
-        }).join('');
-        host.innerHTML = ratioApi.CHANNELS.map(function (channel) {
-            var item = passDraft[channel];
-            var rows = item.rows.map(function (row, index) {
-                return '<div class="rbt-pass-field"><span class="rbt-pass-label">' + escAttr(row.category) + '</span><input data-pass-row="' + escAttr(channel) + '" data-index="' + index + '" value="' + escAttr(row.ratio) + '" inputmode="decimal" placeholder="请输入"><span>%</span><button type="button" class="rbt-pass-del" data-pass-del="' + escAttr(channel) + '" data-index="' + index + '">删除</button></div>';
-            }).join('');
-            return '<div class="rbt-pass-channel"><h3>' + escAttr(channel) + '</h3>' +
-                '<div class="rbt-pass-field"><span class="rbt-pass-label">兜底利率</span><input data-pass-fallback="' + escAttr(channel) + '" value="' + escAttr(item.fallback) + '" inputmode="decimal" placeholder="请输入"><span>%</span></div>' +
-                '<div class="rbt-pass-field"><span class="rbt-pass-label">商品类目</span><select data-pass-pick="' + escAttr(channel) + '">' + options + '</select><input data-pass-new="' + escAttr(channel) + '" inputmode="decimal" placeholder="请输入"><span>%</span><button type="button" class="btn btn-secondary" data-pass-add="' + escAttr(channel) + '">添加</button></div>' +
-                rows +
-                '<div class="rbt-review-note">需要按类目区分时再添加。未添加的类目使用兜底利率。</div></div>';
-        }).join('');
-    }
-
-    function addPassCategory(channel) {
-        var ratioApi = window.RbtSettleRatio;
-        syncPassDraft();
-        var pick = document.querySelector('[data-pass-pick="' + channel + '"]');
-        var ratioInput = document.querySelector('[data-pass-new="' + channel + '"]');
-        var category = pick ? pick.value : '';
-        var ratio = ratioApi ? ratioApi.parseRatio(ratioInput && ratioInput.value) : '';
-        if (!category) {
-            toast('请选择商品类目', 'error');
-            return;
-        }
-        if (passDraft[channel].rows.some(function (row) { return row.category === category; })) {
-            toast('该渠道已添加「' + category + '」', 'error');
-            return;
-        }
-        if (!ratio) {
-            toast('类目结算比例须大于 0 且不超过 100', 'error');
-            return;
-        }
-        passDraft[channel].rows.push({ category: category, ratio: ratio });
-        renderPassForm();
-    }
-
-    function removePassCategory(channel, index) {
-        syncPassDraft();
-        if (passDraft[channel]) passDraft[channel].rows.splice(index, 1);
-        renderPassForm();
+        if (!ratioApi || !passDraft) return;
+        ratioApi.renderEditor(passFormHost(), passDraft);
     }
 
     function openPass(id) {
@@ -389,7 +321,7 @@
             return;
         }
         passAuditId = id;
-        passDraft = emptyPassDraft();
+        passDraft = window.RbtSettleRatio ? window.RbtSettleRatio.emptyDraft() : {};
         var title = document.getElementById('rbtPassTitle');
         if (title) title.textContent = demand.code + ' · ' + (demand.storeName || '');
         renderPassForm();
@@ -403,32 +335,13 @@
     function collectPassRatios() {
         var ratioApi = window.RbtSettleRatio;
         if (!ratioApi || !passDraft) return null;
-        syncPassDraft();
-        var invalid = false;
-        var list = ratioApi.CHANNELS.map(function (channel) {
-            var item = passDraft[channel];
-            var fallback = ratioApi.parseRatio(item.fallback);
-            if (String(item.fallback || '').trim() && !fallback) invalid = true;
-            if (!fallback) invalid = true;
-            var rows = [];
-            item.rows.forEach(function (row) {
-                var ratio = ratioApi.parseRatio(row.ratio);
-                if (!row.category || !ratio) {
-                    invalid = true;
-                    return;
-                }
-                rows.push({ category: row.category, ratio: ratio });
-            });
-            return { channel: channel, fallback: fallback, rows: rows };
-        });
-        if (invalid) return null;
-        return ratioApi.normalize(list);
+        return ratioApi.collectEditor(passFormHost(), passDraft);
     }
 
     function confirmPass() {
         var settleRatios = collectPassRatios();
         if (!settleRatios) {
-            toast('每个渠道都要填写兜底利率；已填的类目比例须大于 0 且不超过 100', 'error');
+            toast('每个渠道都要填写默认比例；已填的类目比例须大于 0 且不超过 100', 'error');
             return;
         }
         var result = dataApi.approveAudit(passAuditId, '王丽', { settleRatios: settleRatios });
@@ -531,13 +444,8 @@
         var passConfirm = document.getElementById('rbtPassConfirm');
         if (passConfirm) passConfirm.addEventListener('click', confirmPass);
         var passForm = document.getElementById('rbtPassForm');
-        if (passForm) {
-            passForm.addEventListener('click', function (event) {
-                var add = event.target.closest('[data-pass-add]');
-                var del = event.target.closest('[data-pass-del]');
-                if (add) addPassCategory(add.getAttribute('data-pass-add'));
-                if (del) removePassCategory(del.getAttribute('data-pass-del'), Number(del.getAttribute('data-index')));
-            });
+        if (passForm && window.RbtSettleRatio) {
+            window.RbtSettleRatio.bindEditor(passForm, function () { return passDraft; }, toast);
         }
         document.addEventListener('keydown', function (event) {
             if (event.key !== 'Escape') return;

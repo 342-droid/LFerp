@@ -16,6 +16,41 @@
         item.updatedAt = nowText();
         return item;
     }
+
+    function pushLog(item, content, operator, time) {
+        if (!item || !content) return;
+        if (!Array.isArray(item.logs)) item.logs = [];
+        item.logs.unshift({
+            time: time || nowText(),
+            operator: operator || item.updater || item.creator || '系统',
+            content: content
+        });
+    }
+
+    /* 旧数据没有操作记录时，补一条发布记录。之后的变更只追加真实差异。 */
+    function ensureLogs(item) {
+        if (!item || Array.isArray(item.logs)) return false;
+        item.logs = [{
+            time: item.createdAt || item.updatedAt || '',
+            operator: item.creator || '门店',
+            content: '发布需求单'
+        }];
+        return true;
+    }
+
+    function statusLogText(prev, next) {
+        if (!prev || !next || prev === next) return '';
+        if (prev === '待审核' && next === '待接单') return '初审通过，状态：待审核 → 待接单';
+        if (next === '已驳回') return '审核驳回，状态：' + prev + ' → 已驳回';
+        if (next === '已作废') return '作废，状态：' + prev + ' → 已作废';
+        if (prev === '待接单' && next === '待确认签约') return '接单，状态：待接单 → 待确认签约';
+        if (prev === '待确认签约' && next === '待接单') return '撤回接单，状态：待确认签约 → 待接单';
+        if (prev === '待确认签约' && next === '待签署') return '确认签约，状态：待确认签约 → 待签署';
+        if (prev === '待签署' && next === '待复核') return '合同签署完成，状态：待签署 → 待复核';
+        if (prev === '待复核' && next === '支付中') return '复核通过，状态：待复核 → 支付中';
+        if (next === '已完成') return '需求完成，状态：' + prev + ' → 已完成';
+        return '状态：' + prev + ' → ' + next;
+    }
     var DEMAND_STATUSES = ['待审核', '待接单', '待确认签约', '待签署', '待复核', '支付中', '已完成'];
     var CLOSED_STATUSES = ['已作废', '已驳回'];
     /* 支付中之前，平台可在需求单列表作废 */
@@ -262,7 +297,24 @@
                 pkg: fresh, plan: freshPlan, status: '已作废',
                 skus: [{ code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 3 }, { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 2 }],
                 amount: '345.60', creator: '陈晨', createdAt: '2026-11-02 13:12:55', updater: '陈晨', updatedAt: '2026-11-02 13:40:18'
-            })
+            }),
+            rowSeed(Object.assign({
+                code: 'XQ00024', storeCode: 'ONS00001', storeName: '西湖中心生鲜店',
+                pkg: fresh, plan: freshPlan, status: '支付中',
+                skus: [{ code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 10 }, { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 8 }],
+                amount: '1200.64', creator: '喻巧', createdAt: '2026-11-10 11:08:16', updater: '王丽', updatedAt: '2026-11-12 17:20:08',
+                acceptedAt: '2026-11-10 15:42:30',
+                dealLocked: true,
+                signings: signedRows('ONS00001', '西湖中心生鲜店', '杭州鲜达贸易有限公司', '2026-11-11 10:18:44'),
+                guaranteeDeposit: {
+                    paid: true,
+                    voucherType: 'application/pdf',
+                    voucherName: '担保金缴纳凭证.pdf',
+                    voucherData: '#',
+                    uploadedAt: '2026-11-12 17:20:08',
+                    uploadedBy: '王丽'
+                }
+            }, xianDa))
         ];
     }
 
@@ -292,6 +344,8 @@
         if (spec.acceptedAt) row.acceptedAt = spec.acceptedAt;
         if (spec.signings) row.signings = spec.signings;
         if (spec.rejectReason) row.rejectReason = spec.rejectReason;
+        if (spec.dealLocked) row.dealLocked = true;
+        if (spec.guaranteeDeposit) row.guaranteeDeposit = spec.guaranteeDeposit;
         return row;
     }
 
@@ -326,7 +380,7 @@
         return sign + Math.floor(abs / 100) + '.' + String(abs % 100).padStart(2, '0');
     }
 
-    /* 商品金额 = 售价×数量；总金额沿用 amount；联营服务费 = 总金额 − 商品金额。 */
+    /* 商品金额 = 售价×数量；总金额沿用 amount；服务费 = 总金额 − 商品金额。 */
     function ensureAmountParts(item) {
         var goods = 0;
         (item.skus || []).forEach(function (sku) {
@@ -381,7 +435,7 @@
         return status === '待接单' || status === '待确认签约' || status === '待签署' || status === '待复核' || status === '支付中' || status === '已完成';
     }
 
-    /* 演示数据当初写在产品上的比例。初审已通过、单上还没有渠道比例时，用它补三个渠道的兜底利率。 */
+    /* 演示数据当初写在产品上的比例。初审已通过、单上还没有渠道比例时，用它补三个渠道的默认比例。 */
     function legacyRatioIndex() {
         var byCode = {};
         var byPlan = {};
@@ -485,6 +539,7 @@
             }
             if (ensureAmountParts(item)) changed = true;
             if (ensureContract(item)) changed = true;
+            if (ensureLogs(item)) changed = true;
             return item;
         }).filter(function (item) {
             if (!item) return false;
@@ -495,7 +550,18 @@
             }
             return true;
         });
-        if (changed) write(rows);
+        var tradeMade = false;
+        if (window.RbtTradeDocs && typeof window.RbtTradeDocs.ensureForPassedDemands === 'function') {
+            var madeDocs = window.RbtTradeDocs.ensureForPassedDemands(rows);
+            (madeDocs || []).forEach(function (result) {
+                var item = result && result.demandCode ? findDemand(rows, result.demandCode) : null;
+                if (!item) return;
+                ensureLogs(item);
+                pushLog(item, '生成冷丰销售单、贸易商销售单、供应链采购单、门店采购单', item.updater || '系统', item.updatedAt);
+                tradeMade = true;
+            });
+        }
+        if (changed || tradeMade) write(rows);
         if (seeded || changed) rebuildStoreDealAmounts();
         return rows;
     }
@@ -629,7 +695,18 @@
         }
         target.status = status;
         touchAudit(target, operator || '王丽');
-        if (prev === '待复核' && status === '支付中') lockDemandDeal(target);
+        ensureLogs(target);
+        var statusLog = statusLogText(prev, status);
+        if (statusLog) pushLog(target, statusLog, target.updater, target.updatedAt);
+        if (prev === '待复核' && status === '支付中') {
+            lockDemandDeal(target);
+            if (window.RbtTradeDocs && typeof window.RbtTradeDocs.ensureForDemand === 'function') {
+                var madeDocs = window.RbtTradeDocs.ensureForDemand(target, operator);
+                if (madeDocs && madeDocs.created) {
+                    pushLog(target, '生成冷丰销售单、贸易商销售单、供应链采购单、门店采购单', target.updater, target.updatedAt);
+                }
+            }
+        }
         if (RELEASE_STATUSES.indexOf(status) >= 0) releaseDemandQuota(target);
         ensureContract(target);
         write(rows);
@@ -851,6 +928,8 @@
         var done = contractsDone(target);
         if (!done) {
             touchAudit(target, mine.name || '签署');
+            ensureLogs(target);
+            pushLog(target, '签署' + (contract.name || '合同'), mine.name || '签署', target.updatedAt);
             write(rows);
             return { ok: true, done: false, demand: target };
         }
@@ -1235,6 +1314,34 @@
         });
     }
 
+    /* 待接单到支付中可改本单结算比例，不改需求状态。 */
+    function canEditSettleRatios(item) {
+        var ratioApi = window.RbtSettleRatio;
+        if (ratioApi && typeof ratioApi.canEdit === 'function') return ratioApi.canEdit(item);
+        return !!(item && ['待接单', '待确认签约', '待签署', '待复核', '支付中'].indexOf(item.status) >= 0);
+    }
+
+    function updateSettleRatios(code, ratioList, operator) {
+        var ratioApi = window.RbtSettleRatio;
+        var settleRatios = ratioApi && typeof ratioApi.normalize === 'function' ? ratioApi.normalize(ratioList) : null;
+        if (!settleRatios) return null;
+        var rows = list();
+        var target = findDemand(rows, code);
+        if (!target || !canEditSettleRatios(target)) return null;
+        target.settleRatios = settleRatios;
+        touchAudit(target, operator || '王丽');
+        ensureLogs(target);
+        pushLog(target, '修改结算比例', target.updater, target.updatedAt);
+        write(rows);
+        var audits = readAuditsRaw() || [];
+        var first = findAuditByDemand(audits, code, '初审');
+        if (first) {
+            first.settleRatios = settleRatios;
+            writeAudits(audits);
+        }
+        return target;
+    }
+
     function rejectAudit(id, opinion, operator) {
         var target = getAudit(id);
         if (!target || target.status !== '待审核') return null;
@@ -1300,6 +1407,8 @@
         syncAuditByDemand: syncAuditByDemand,
         ensureAuditsSynced: ensureAuditsSynced,
         approveAudit: approveAudit,
-        rejectAudit: rejectAudit
+        rejectAudit: rejectAudit,
+        canEditSettleRatios: canEditSettleRatios,
+        updateSettleRatios: updateSettleRatios
     };
 })();
