@@ -921,6 +921,16 @@
             }
         ];
 
+        if (spec.subjectTypeLabel === '供应商') {
+            fields.push({
+                id: fieldId(pfx, 'supplierAlias'),
+                label: '供应商别名',
+                type: 'text',
+                required: true,
+                placeholder: '请输入供应商别名'
+            });
+        }
+
         if (showBindBd) {
             fields.push({
                 id: fieldId(pfx, 'dockPerson'),
@@ -1068,6 +1078,9 @@
             },
             { id: fieldId(pfx, 'addPhone'), message: '请输入手机号码', required: true }
         ];
+        if (spec.subjectTypeLabel === '供应商') {
+            list.push({ id: fieldId(pfx, 'supplierAlias'), message: '请输入供应商别名', required: true });
+        }
         if (!omitSmsAndLogin) {
             list.push({ id: fieldId(pfx, 'smsCode'), message: '请输入6位数字验证码', required: true });
         }
@@ -1121,9 +1134,32 @@
         var typeVal = typeEl ? typeEl.value.trim() : spec.subjectTypeLabel;
         var nameEl = document.getElementById(fieldId(pfx, 'subjectName'));
         var contactEl = document.getElementById(fieldId(pfx, 'contactPerson'));
+        var supplierAliasEl = document.getElementById(fieldId(pfx, 'supplierAlias'));
+        var supplierAlias = supplierAliasEl ? supplierAliasEl.value.trim() : '';
+        if (spec.subjectTypeLabel === '供应商' && !supplierAlias) {
+            showToast('请输入供应商别名');
+            if (supplierAliasEl) supplierAliasEl.focus();
+            return false;
+        }
+        var subjectId = nextSubjectRowId(subjectIdPrefix, pm);
+        if (spec.subjectTypeLabel === '供应商') {
+            if (!window.MdmSupplierArchiveStore) {
+                showToast('供应商档案数据未加载，请刷新页面后重试');
+                return false;
+            }
+            var saved = window.MdmSupplierArchiveStore.upsert({
+                id: subjectId,
+                name: nameEl ? nameEl.value.trim() : '',
+                shortName: supplierAlias
+            });
+            if (!saved.ok) {
+                showToast(saved.message);
+                return false;
+            }
+        }
         pm.addTableRow({
             cells: [
-                nextSubjectRowId(subjectIdPrefix, pm),
+                subjectId,
                 nameEl ? nameEl.value.trim() : '',
                 dockVal,
                 typeVal || spec.subjectTypeLabel,

@@ -234,7 +234,8 @@ window.__PG_PRD_INDEX = {
         "user-app/h5/order-refund-return.html",
         "user-app/h5/order-refund-restock.html",
         "user-app/h5/order-refund-return-ship.html",
-        "user-app/h5/store-wallet.html"
+        "user-app/h5/store-wallet.html",
+        "MDM/mdm_party_all.html"
       ]
     },
     {
