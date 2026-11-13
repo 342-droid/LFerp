@@ -47,6 +47,7 @@
         if (blank(item.periodRatio)) item.periodRatio = '10.00';
         if (blank(item.storeRate)) item.storeRate = pair.store || '1.50';
         if (blank(item.traderRate)) item.traderRate = pair.trader || pair.store || '1.40';
+        if (blank(item.providerRate)) item.providerRate = pair.provider || defaultProviderRate(item.traderRate, item.storeRate);
         item.periods = [];
         item.periodRates = {};
         return true;
@@ -115,7 +116,8 @@
                 repayMethod: '比例付',
                 periodRatio: '10.00',
                 storeRate: '1.60',
-                traderRate: '1.50',
+                traderRate: '1.20',
+                providerRate: '1.05',
                 periods: [],
                 periodRates: {},
                 amountMin: '20.00',
@@ -133,7 +135,8 @@
                 repayMethod: '比例付',
                 periodRatio: '10.00',
                 storeRate: '1.70',
-                traderRate: '1.60',
+                traderRate: '1.30',
+                providerRate: '1.05',
                 periods: [],
                 periodRates: {},
                 amountMin: '20.00',
@@ -151,7 +154,8 @@
                 repayMethod: '比例付',
                 periodRatio: '10.00',
                 storeRate: '1.30',
-                traderRate: '1.20',
+                traderRate: '1.10',
+                providerRate: '1.02',
                 periods: [],
                 periodRates: {},
                 amountMin: '20.00',
@@ -169,7 +173,8 @@
                 repayMethod: '比例付',
                 periodRatio: '8.00',
                 storeRate: '1.80',
-                traderRate: '1.70',
+                traderRate: '1.40',
+                providerRate: '1.08',
                 periods: [],
                 periodRates: {},
                 amountMin: '50.00',
@@ -187,7 +192,8 @@
                 repayMethod: '比例付',
                 periodRatio: '10.00',
                 storeRate: '1.50',
-                traderRate: '1.40',
+                traderRate: '1.20',
+                providerRate: '1.04',
                 periods: [],
                 periodRates: {},
                 amountMin: '5.00',
@@ -232,24 +238,88 @@
     }
 
     function emptyRatePair() {
-        return { store: '', trader: '' };
+        return { store: '', trader: '', provider: '' };
     }
 
     function isRatePair(value) {
-        return !!(value && typeof value === 'object' && !Array.isArray(value) && ('store' in value || 'trader' in value));
+        return !!(value && typeof value === 'object' && !Array.isArray(value) &&
+            ('store' in value || 'trader' in value || 'provider' in value));
     }
 
-    /* 旧单值结算系数迁成门店/贸易商双值；旧费率区间仍先按期插值。 */
+    function rateCents(value) {
+        var amount = Number(value);
+        if (!isFinite(amount)) return NaN;
+        return Math.round(amount * 100);
+    }
+
+    /* 服务商系数是 1 加计提比例。1.00 表示不从冷丰差额计提。 */
+    function defaultProviderRate() {
+        return '1.00';
+    }
+
+    /* 示例系数按分账关系重写。只改仍停在旧示例上的记录，门店系数不动。 */
+    var DEMO_RATE_FIX = {
+        FQ00001: { store: '1.60', trader: '1.20', provider: '1.05', previous: [['1.50', '1.40'], ['1.00', '0.60']] },
+        FQ00004: { store: '1.70', trader: '1.30', provider: '1.05', previous: [['1.60', '1.50'], ['1.00', '0.70']] },
+        FQ00005: { store: '1.30', trader: '1.10', provider: '1.02', previous: [['1.20', '1.10'], ['0.80', '0.50']] },
+        FQ00002: { store: '1.80', trader: '1.40', provider: '1.08', previous: [['1.70', '1.60'], ['1.10', '0.70']] },
+        FQ00003: { store: '1.50', trader: '1.20', provider: '1.04', previous: [['1.40', '1.30'], ['0.90', '0.60']] }
+    };
+
+    function migrateRateSum(item) {
+        var demo = DEMO_RATE_FIX[item.code];
+        if (demo && String(item.storeRate) === demo.store) {
+            var trader = String(item.traderRate || '');
+            var provider = String(item.providerRate || '');
+            var hit = blank(item.providerRate) || demo.previous.some(function (pair) {
+                return pair[0] === trader && pair[1] === provider;
+            });
+            if (hit && (trader !== demo.trader || provider !== demo.provider)) {
+                item.traderRate = demo.trader;
+                item.providerRate = demo.provider;
+                return true;
+            }
+        }
+        if (blank(item.providerRate)) {
+            item.providerRate = defaultProviderRate();
+            return true;
+        }
+        return false;
+    }
+
+    /* 按商品金额 10000 试算三方分账，方便配置时对照。 */
+    function ratePreview(form) {
+        var rule = '门店实付 = 商品金额 × 门店结算系数；贸易商所得 = 商品金额 × 贸易商结算系数；差额归冷丰，服务商按系数超出 1 的部分从冷丰差额计提。';
+        if (!form || !validDecimal(form.storeRate) || !validDecimal(form.traderRate) || !validDecimal(form.providerRate)) return rule;
+        var goods = 10000;
+        var storePay = goods * Number(form.storeRate);
+        var traderPay = goods * Number(form.traderRate);
+        var gap = storePay - traderPay;
+        var providerPay = goods * (Number(form.providerRate) - 1);
+        var lengfeng = gap - providerPay;
+        function yuan(value) {
+            return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        return '按商品金额 10,000 元试算：门店实付 ' + yuan(storePay) +
+            '，贸易商所得 ' + yuan(traderPay) +
+            '，冷丰差额 ' + yuan(gap) +
+            '，服务商计提 ' + yuan(providerPay) +
+            '，冷丰实得 ' + yuan(lengfeng) + '。';
+    }
+
+    /* 旧单值结算系数迁成门店/贸易商/服务商；旧费率区间仍先按期插值。 */
     function normalizeRatePair(value) {
         if (isRatePair(value)) {
-            return {
-                store: value.store == null ? '' : String(value.store),
-                trader: value.trader == null ? '' : String(value.trader)
-            };
+            var store = value.store == null ? '' : String(value.store);
+            var trader = value.trader == null ? '' : String(value.trader);
+            var provider = value.provider == null || value.provider === ''
+                ? defaultProviderRate(trader, store)
+                : String(value.provider);
+            return { store: store, trader: trader, provider: provider };
         }
         if (value == null || value === '') return emptyRatePair();
         var text = String(value);
-        return { store: text, trader: text };
+        return { store: text, trader: text, provider: defaultProviderRate(text, text) };
     }
 
     function migratePeriodRates(item) {
@@ -269,7 +339,7 @@
                 } else if (isFinite(max)) {
                     text = Number(max).toFixed(2);
                 }
-                rates[period] = { store: text, trader: text };
+                rates[period] = { store: text, trader: text, provider: defaultProviderRate(text, text) };
             });
             item.periodRates = rates;
             delete item.rateMin;
@@ -282,7 +352,7 @@
             var current = item.periodRates[period];
             var pair = normalizeRatePair(current);
             next[period] = pair;
-            if (!isRatePair(current) || String(current.store || '') !== pair.store || String(current.trader || '') !== pair.trader) {
+            if (!isRatePair(current) || String(current.store || '') !== pair.store || String(current.trader || '') !== pair.trader || String(current.provider || '') !== pair.provider) {
                 changed = true;
             }
         });
@@ -340,6 +410,7 @@
                         item.periodRates = {};
                         changed = true;
                     }
+                    if (migrateRateSum(item)) changed = true;
                 }
                 if (item.feeRule != null || item.feeRate != null) {
                     delete item.feeRule;
@@ -439,21 +510,30 @@
         return show(value);
     }
 
+    function sameMoney(left, right) {
+        if (String(left || '') === String(right || '')) return true;
+        var a = Number(left);
+        var b = Number(right);
+        return isFinite(a) && isFinite(b) && a.toFixed(2) === b.toFixed(2);
+    }
+
     function moneyText(value) {
         var amount = Number(String(value).replace(/,/g, ''));
         if (!isFinite(amount)) return '';
         return amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
+    function ratePart(value) {
+        return !blank(value) && isFinite(Number(value)) ? Number(value).toFixed(2) : '—';
+    }
+
     function ratePairText(pair) {
-        var store = pair && !blank(pair.store) && isFinite(Number(pair.store)) ? Number(pair.store).toFixed(2) : '—';
-        var trader = pair && !blank(pair.trader) && isFinite(Number(pair.trader)) ? Number(pair.trader).toFixed(2) : '—';
-        return '门店' + store + ' / 贸易商' + trader;
+        return '门店' + ratePart(pair && pair.store) + ' / 贸易商' + ratePart(pair && pair.trader) + ' / 服务商' + ratePart(pair && pair.provider);
     }
 
     function rateText(row) {
         if (row && row.repayMethod === '比例付') {
-            return ratePairText({ store: row.storeRate, trader: row.traderRate });
+            return ratePairText({ store: row.storeRate, trader: row.traderRate, provider: row.providerRate });
         }
         var periods = orderedPeriods(row && row.periods);
         var rates = row && row.periodRates && typeof row.periodRates === 'object' ? row.periodRates : {};
@@ -562,7 +642,7 @@
                 { dataIndex: 'enabled', title: '状态', width: 100 },
                 { dataIndex: 'repayCycle', title: '结算周期', minWidth: 110, formatter: function (row) { return show(row.repayCycle); } },
                 { dataIndex: 'repayMethod', title: '结算方式', minWidth: 120, formatter: function (row) { return show(row.repayMethod); } },
-                { dataIndex: 'periodRates', title: '结算系数', minWidth: 240, align: 'left', showOverflowTooltip: true, formatter: rateText },
+                { dataIndex: 'periodRates', title: '结算系数', minWidth: 360, align: 'left', showOverflowTooltip: true, formatter: rateText },
                 { dataIndex: 'amountRange', title: '货款区间', minWidth: 220, formatter: amountText },
                 { dataIndex: 'packages', title: '适用商品包', minWidth: 200, align: 'left', showOverflowTooltip: true, formatter: packageText },
                 { dataIndex: 'creator', title: '创建人', minWidth: 100 },
@@ -686,6 +766,7 @@
                     periodRatio: '',
                     storeRate: '',
                     traderRate: '',
+                    providerRate: '',
                     periodsText: '',
                     periods: [],
                     periodRates: {}
@@ -707,6 +788,7 @@
                     periodRatio: current.periodRatio || '',
                     storeRate: current.storeRate || '',
                     traderRate: current.traderRate || '',
+                    providerRate: current.providerRate || '',
                     periodsText: periodsDisplay(periods),
                     periods: periods,
                     periodRates: cloneRates(current.periodRates),
@@ -749,16 +831,33 @@
                         ElMessage.error('请输入贸易商结算系数');
                         return false;
                     }
-                    if (!validDecimal(values.storeRate) || !validDecimal(values.traderRate)) {
+                    if (blank(values.providerRate)) {
+                        ElMessage.error('请输入服务商结算系数');
+                        return false;
+                    }
+                    if (!validDecimal(values.storeRate) || !validDecimal(values.traderRate) || !validDecimal(values.providerRate)) {
                         ElMessage.error('结算系数仅支持数字，最多两位小数');
                         return false;
                     }
-                    if (Number(values.storeRate) < 1 || Number(values.traderRate) < 1) {
-                        ElMessage.error('结算系数不能低于1');
+                    if (Number(values.storeRate) < 1) {
+                        ElMessage.error('门店结算系数不能低于1');
                         return false;
                     }
-                    if (Number(values.traderRate) > Number(values.storeRate)) {
+                    if (Number(values.traderRate) < 1) {
+                        ElMessage.error('贸易商结算系数不能低于1');
+                        return false;
+                    }
+                    if (Number(values.providerRate) < 1) {
+                        ElMessage.error('服务商结算系数不能低于1');
+                        return false;
+                    }
+                    if (rateCents(values.traderRate) > rateCents(values.storeRate)) {
                         ElMessage.error('贸易商结算系数不能大于门店结算系数');
+                        return false;
+                    }
+                    /* 服务商计提 = 商品金额 × (服务商系数 - 1)，不能超过冷丰差额 = 商品金额 × (门店系数 - 贸易商系数)。 */
+                    if (rateCents(values.providerRate) - 100 > rateCents(values.storeRate) - rateCents(values.traderRate)) {
+                        ElMessage.error('服务商计提不能超过冷丰差额');
                         return false;
                     }
                 }
@@ -785,6 +884,7 @@
                 });
                 values.storeRate = Number(values.storeRate).toFixed(2);
                 values.traderRate = Number(values.traderRate).toFixed(2);
+                values.providerRate = Number(values.providerRate).toFixed(2);
                 values.periods = [];
                 values.periodRates = {};
                 values.amountMin = Number(values.amountMin).toFixed(2);
@@ -803,6 +903,7 @@
                     periodRatio: values.periodRatio || '',
                     storeRate: values.storeRate || '',
                     traderRate: values.traderRate || '',
+                    providerRate: values.providerRate || '',
                     periods: values.periods || [],
                     periodRates: cloneRates(values.periodRates),
                     amountMin: values.amountMin,
@@ -848,10 +949,12 @@
                 }
                 var nextStoreRate = values.storeRate || '';
                 var nextTraderRate = values.traderRate || '';
-                if (nextStoreRate !== (target.storeRate || '') || nextTraderRate !== (target.traderRate || '')) {
-                    changes.push('结算系数：' + rateText(target) + ' → ' + ratePairText({ store: nextStoreRate, trader: nextTraderRate }));
+                var nextProviderRate = values.providerRate || '';
+                if (nextStoreRate !== (target.storeRate || '') || nextTraderRate !== (target.traderRate || '') || nextProviderRate !== (target.providerRate || '')) {
+                    changes.push('结算系数：' + rateText(target) + ' → ' + ratePairText({ store: nextStoreRate, trader: nextTraderRate, provider: nextProviderRate }));
                     target.storeRate = nextStoreRate;
                     target.traderRate = nextTraderRate;
+                    target.providerRate = nextProviderRate;
                 }
                 target.periods = values.periods || [];
                 target.periodRates = cloneRates(values.periodRates);
@@ -860,7 +963,7 @@
                 delete target.penaltyRule;
                 delete target.penaltyRate;
                 delete target.penaltyAsPercent;
-                if ((values.amountMin || '') !== (target.amountMin || '') || (values.amountMax || '') !== (target.amountMax || '')) {
+                if (!sameMoney(values.amountMin, target.amountMin) || !sameMoney(values.amountMax, target.amountMax)) {
                     changes.push('货款区间：' + amountText(target) + ' → ' + moneyText(values.amountMin) + '元–' + moneyText(values.amountMax) + '元');
                     target.amountMin = values.amountMin;
                     target.amountMax = values.amountMax;
@@ -936,6 +1039,7 @@
                 openEdit: openEdit,
                 toggleEnabled: toggleEnabled,
                 beforeSubmit: beforeSubmit,
+                ratePreview: ratePreview,
                 addInstallment: addInstallment,
                 updateInstallment: updateInstallment,
                 refreshTable: refreshTable

@@ -20,8 +20,9 @@
         .rbt-period-rate-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .rbt-period-rate-row .el-input { width: 120px; flex: 0 0 120px; }
         .rbt-period-rate-row__label { color: #606266; white-space: nowrap; min-width: 42px; }
-        .rbt-period-rate-row__pair { display: flex; align-items: center; gap: 8px; }
+        .rbt-period-rate-row__pair { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
         .rbt-period-rates__empty { color: #909399; font-size: 13px; line-height: 32px; }
+        .rbt-rate-tip { width: 100%; margin: 6px 0 0; color: #909399; font-size: 12px; line-height: 1.6; }
         .rbt-store-log { width: 100%; border-collapse: collapse; font-size: 13px; }
         .rbt-store-log th,
         .rbt-store-log td {
@@ -76,7 +77,7 @@
                 <vab-schema-form-dialog
                     ref="addDialog"
                     :title="dialogTitle"
-                    dialog-width="720px"
+                    dialog-width="1080px"
                     label-width="120px"
                     :default-col-span="24"
                     :fields="addFields"
@@ -97,7 +98,12 @@
                                 <span class="rbt-range__label">贸易商结算系数</span>
                                 <el-input :model-value="form.traderRate" placeholder="请输入" @input="onDecimal(form, 'traderRate', $event)"></el-input>
                             </div>
+                            <div class="rbt-period-rate-row__pair">
+                                <span class="rbt-range__label">服务商结算系数</span>
+                                <el-input :model-value="form.providerRate" placeholder="请输入" @input="onDecimal(form, 'providerRate', $event)"></el-input>
+                            </div>
                         </div>
+                        <p class="rbt-rate-tip">{{ ratePreview(form) }}</p>
                     </template>
                     <template #form-amountpair="{form}">
                         <div class="rbt-range">

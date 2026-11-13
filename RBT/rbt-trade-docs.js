@@ -1,19 +1,11 @@
 /* 需求复核通过后生成的 RBT 采购单、销售单、入库单。方案一：两段买卖各有采购+销售。 */
 (function () {
     var KEY = 'rbt_trade_docs_v1';
-    var INSTALLMENT_KEY = 'rbt_installment_v3';
     var LF_SUPPLY = { code: 'LF-SUPPLY', name: '冷丰供应链' };
     var SALE_LF = '冷丰销售';
     var SALE_TR = '贸易商销售';
     var PO_GY = '供应链采购';
     var PO_MD = '门店采购';
-    var DEFAULT_STORE_RATES = {
-        FQ00001: 1.6,
-        FQ00002: 1.8,
-        FQ00003: 1.5,
-        FQ00004: 1.7,
-        FQ00005: 1.3
-    };
 
     function blank(value) {
         return value == null || String(value).trim() === '';
@@ -220,6 +212,38 @@
         if (setField(row, 'shipperName', LF_SUPPLY.name)) changed = true;
         if (setField(row, 'deliveryMode', '采购直送')) changed = true;
         if (nextStatus && setField(row, 'status', nextStatus)) changed = true;
+        if (setField(row, 'priceKind', 'goods')) changed = true;
+        if (setField(row, 'priceLabel', '商品售价')) changed = true;
+        if (alignLinesToSalePrice(row)) changed = true;
+        return changed;
+    }
+
+    function alignLinesToSalePrice(row) {
+        if (!row || !Array.isArray(row.lines) || !row.lines.length) return false;
+        var changed = false;
+        var headerCents = 0;
+        var nextLines = row.lines.map(function (line) {
+            var qty = Number(line && line.qty);
+            if (!isFinite(qty) || qty < 0) qty = 0;
+            var saleCents = centsOf(line && line.salePrice);
+            var amountCents = saleCents * qty;
+            headerCents += amountCents;
+            var next = {
+                code: line && line.code || '',
+                name: line && line.name || '',
+                qty: qty,
+                salePrice: fromCents(saleCents),
+                amount: fromCents(amountCents)
+            };
+            if (line && Object.prototype.hasOwnProperty.call(line, 'unitPrice')) changed = true;
+            if (!line || line.code !== next.code || line.name !== next.name || Number(line.qty) !== next.qty
+                || line.salePrice !== next.salePrice || line.amount !== next.amount) {
+                changed = true;
+            }
+            return next;
+        });
+        if (changed) row.lines = nextLines;
+        if (setField(row, 'amount', fromCents(headerCents))) changed = true;
         return changed;
     }
 
@@ -231,6 +255,9 @@
         });
         (store.purchases || []).forEach(function (row) {
             if (enrichTradeDoc(row, inboundFinished(store, row && row.demandCode))) changed = true;
+        });
+        (store.inbounds || []).forEach(function (row) {
+            if (alignLinesToSalePrice(row)) changed = true;
         });
         return changed;
     }
@@ -245,29 +272,6 @@
         };
     }
 
-    function storeRateOf(demand) {
-        var code = demand && demand.installmentCode;
-        try {
-            var raw = sessionStorage.getItem(INSTALLMENT_KEY);
-            var list = raw ? JSON.parse(raw) : null;
-            if (Array.isArray(list)) {
-                var found = null;
-                list.some(function (row) {
-                    if (row && row.code === code) {
-                        found = row;
-                        return true;
-                    }
-                    return false;
-                });
-                if (found && !blank(found.storeRate)) {
-                    var fromPlan = Number(found.storeRate);
-                    if (isFinite(fromPlan) && fromPlan > 0) return fromPlan;
-                }
-            }
-        } catch (e) {}
-        return DEFAULT_STORE_RATES[code] || 1;
-    }
-
     function goodsCentsOf(demand) {
         if (demand && !blank(demand.goodsAmount)) return centsOf(demand.goodsAmount);
         var goods = 0;
@@ -279,19 +283,17 @@
         return Math.round(goods);
     }
 
-    function buildLines(skus, unitRate, headerCents) {
+    function buildLines(skus, headerCents) {
         var lines = (skus || []).map(function (sku) {
             var qty = Number(sku && sku.qty);
             if (!isFinite(qty) || qty < 0) qty = 0;
             var saleCents = centsOf(sku && sku.salePrice);
-            var unitCents = Math.round(saleCents * unitRate);
             return {
                 code: sku && sku.code || '',
                 name: sku && sku.name || '',
                 qty: qty,
                 salePrice: fromCents(saleCents),
-                unitPrice: fromCents(unitCents),
-                amountCents: unitCents * qty
+                amountCents: saleCents * qty
             };
         });
         var sum = lines.reduce(function (total, line) { return total + line.amountCents; }, 0);
@@ -304,7 +306,6 @@
                 name: line.name,
                 qty: line.qty,
                 salePrice: line.salePrice,
-                unitPrice: line.unitPrice,
                 amount: fromCents(line.amountCents)
             };
         });
@@ -344,13 +345,9 @@
         var traderName = demand.traderName || '接单贸易商';
         var storeName = demand.storeName || '需求门店';
         var storeCode = demand.storeCode || '';
-        var rate = storeRateOf(demand);
         var goodsCents = goodsCentsOf(demand);
-        var totalCents = centsOf(demand.amount);
-        var goodsLines = buildLines(demand.skus, 1, goodsCents);
-        var settleLines = buildLines(demand.skus, rate, totalCents);
+        var goodsLines = buildLines(demand.skus, goodsCents);
         var goodsAmount = fromCents(goodsCents);
-        var settleAmount = fromCents(totalCents);
         var lfParties = dropshipFields(storeCode, storeName, traderName);
         var storeParties = dropshipFields(storeCode, storeName, storeName);
         var lfSale = Object.assign({
@@ -367,7 +364,6 @@
             sellerName: LF_SUPPLY.name,
             priceKind: 'goods',
             priceLabel: '商品售价',
-            storeRate: rate.toFixed(2),
             amount: goodsAmount,
             status: '已完成',
             peerCode: codes.gyPo,
@@ -390,7 +386,6 @@
             sellerName: LF_SUPPLY.name,
             priceKind: 'goods',
             priceLabel: '商品售价',
-            storeRate: rate.toFixed(2),
             amount: goodsAmount,
             status: '已完成',
             peerCode: codes.lfSale,
@@ -411,14 +406,13 @@
             buyerName: storeName,
             sellerCode: '',
             sellerName: traderName,
-            priceKind: 'settle',
-            priceLabel: '结算售价',
-            storeRate: rate.toFixed(2),
-            amount: settleAmount,
+            priceKind: 'goods',
+            priceLabel: '商品售价',
+            amount: goodsAmount,
             status: '待收货',
             peerCode: codes.mdPo,
             inboundCode: codes.inbound,
-            lines: settleLines,
+            lines: goodsLines,
             createdAt: when,
             creator: who
         }, storeParties);
@@ -434,14 +428,13 @@
             buyerName: storeName,
             sellerCode: '',
             sellerName: traderName,
-            priceKind: 'settle',
-            priceLabel: '结算售价',
-            storeRate: rate.toFixed(2),
-            amount: settleAmount,
+            priceKind: 'goods',
+            priceLabel: '商品售价',
+            amount: goodsAmount,
             status: '待收货',
             peerCode: codes.trSale,
             inboundCode: codes.inbound,
-            lines: settleLines,
+            lines: goodsLines,
             createdAt: when,
             creator: who
         }, storeParties);
@@ -457,9 +450,9 @@
             supplier: traderName,
             buyerName: storeName,
             sellerName: traderName,
-            amount: settleAmount,
+            amount: goodsAmount,
             status: '待收货',
-            lines: settleLines,
+            lines: goodsLines,
             createdAt: when,
             creator: who
         };
