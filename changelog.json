@@ -1,10 +1,211 @@
 {
-  "latestSha": "e54b0e69f8cc83fa6540a03a7b65e402c0999c7a",
-  "total": 548,
+  "latestSha": "daba4f70123cf39bb850039912af555760203100",
+  "total": 549,
   "days": [
     {
       "date": "2026-11-13",
       "items": [
+        {
+          "sha": "daba4f7",
+          "type": "feat",
+          "text": "补齐履约与门店还款演示，并调整合同控件和类目保障期",
+          "author": "sisi",
+          "time": "18:32",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_guarantee.html",
+              "module": "冷丰售后",
+              "title": "售后保障期管理"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "module": "冷丰WMS",
+              "title": "需求单审核"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_bd_stores.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 门店模块"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "module": "冷丰WMS",
+              "title": "直播排品编辑"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            },
+            {
+              "file": "MDM/mdm_settle_index.html",
+              "module": "冷丰结算",
+              "title": "结算中心"
+            },
+            {
+              "file": "RBT/rbt_admit_store.html",
+              "module": "冷丰RBT",
+              "title": "门店管理"
+            },
+            {
+              "file": "RBT/rbt_contract_sign.html",
+              "module": "冷丰RBT",
+              "title": "合同签署"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
+              "file": "RBT/rbt_product_package.html",
+              "module": "冷丰RBT",
+              "title": "商品包"
+            },
+            {
+              "file": "RBT/rbt_purchase.html",
+              "module": "冷丰RBT",
+              "title": "采购单"
+            },
+            {
+              "file": "RBT/rbt_sales.html",
+              "module": "冷丰RBT",
+              "title": "销售单"
+            },
+            {
+              "file": "SCM/basic_settings_contract_config.html",
+              "module": "冷丰WMS",
+              "title": "接入配置"
+            },
+            {
+              "file": "SCM/basic_settings_contract_party.html",
+              "module": "冷丰WMS",
+              "title": "签署主体"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task.html",
+              "module": "冷丰WMS",
+              "title": "签署任务"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_detail.html",
+              "module": "冷丰WMS",
+              "title": "签署任务详情"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template.html",
+              "module": "冷丰WMS",
+              "title": "合同模板"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template_form.html",
+              "module": "冷丰WMS",
+              "title": "合同模板配置"
+            },
+            {
+              "file": "SCM/contract_sign.html",
+              "module": "",
+              "title": "合同"
+            },
+            {
+              "file": "shop-h5/h5/store/contracts.html",
+              "module": "",
+              "title": "签署合同 · Shop H5"
+            },
+            {
+              "file": "store-app/h5/contract-sign.html",
+              "module": "",
+              "title": "签署合同 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/contracts.html",
+              "module": "",
+              "title": "合同签署 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "丰银宝 · 工作台"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_performance.html",
+              "text": "新增履约列表，查看支付中和已完成需求的履行事实"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "text": "还款页改为橙色风格，返回放到门店名左侧；已还款可按验收开关看每日明细"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "首页增加收款入口，查看支付中和已完成需求的到账情况"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template_form.html",
+              "text": "控件按合同文档和参与方展示平台关联字段，去掉参与方标识提示"
+            },
+            {
+              "file": "MDM/mdm_aftersale_guarantee.html",
+              "text": "类目保障期先点修改再编辑，保存后才生效"
+            }
+          ]
+        },
         {
           "sha": "e54b0e6",
           "type": "feat",
@@ -41,6 +242,11 @@
               "file": "RBT/rbt_h5_trader.html",
               "module": "冷丰RBT-移动端",
               "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
             },
             {
               "file": "RBT/rbt_purchase.html",
@@ -108,6 +314,11 @@
               "file": "RBT/rbt_h5_trader.html",
               "module": "冷丰RBT-移动端",
               "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
             },
             {
               "file": "RBT/rbt_purchase.html",
@@ -413,6 +624,11 @@
               "title": "产品配置"
             },
             {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
               "file": "RBT/rbt_product_package.html",
               "module": "冷丰RBT",
               "title": "商品包"
@@ -636,6 +852,11 @@
               "file": "RBT/rbt_installment.html",
               "module": "冷丰RBT",
               "title": "产品配置"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
             },
             {
               "file": "RBT/rbt_product_package.html",
@@ -1264,6 +1485,11 @@
               "file": "RBT/rbt_installment.html",
               "module": "冷丰RBT",
               "title": "产品配置"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
             },
             {
               "file": "RBT/rbt_product_package.html",
@@ -1973,6 +2199,11 @@
               "title": "产品配置"
             },
             {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
               "file": "RBT/rbt_product_package.html",
               "module": "冷丰RBT",
               "title": "商品包"
@@ -2488,6 +2719,11 @@
               "title": "产品配置"
             },
             {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
               "file": "RBT/rbt_product_package.html",
               "module": "冷丰RBT",
               "title": "商品包"
@@ -2600,6 +2836,11 @@
               "file": "RBT/rbt_installment.html",
               "module": "冷丰RBT",
               "title": "产品配置"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
             },
             {
               "file": "RBT/rbt_product_package.html",
@@ -7057,6 +7298,11 @@
               "file": "RBT/rbt_installment.html",
               "module": "冷丰RBT",
               "title": "产品配置"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
             },
             {
               "file": "RBT/rbt_product_package.html",
