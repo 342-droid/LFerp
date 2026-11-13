@@ -6538,23 +6538,24 @@
 
     function rowToTrader(tr) {
         var c = tr.querySelectorAll('td');
-        if (c.length < 15) return null;
+        if (c.length < 16) return null;
         return {
             id: cellPlain(c[0]),
             subjectName: cellPlain(c[1]),
-            name: cellPlain(c[2]),
-            shortName: cellPlain(c[3]),
-            region: cellPlain(c[4]),
-            detailAddr: cellPlain(c[5]),
-            licenseType: cellPlain(c[6]),
-            contact: cellPlain(c[7]),
-            phone: cellPlain(c[8]),
-            onboardStatus: cellPlain(c[9]),
-            status: cellStatus(c[10]),
-            createdBy: cellPlain(c[11]),
-            createdAt: cellPlain(c[12]),
-            updatedBy: cellPlain(c[13]),
-            updatedAt: cellPlain(c[14])
+            subjectType: cellPlain(c[2]) || '贸易商',
+            name: cellPlain(c[3]),
+            shortName: cellPlain(c[4]),
+            region: cellPlain(c[5]),
+            detailAddr: cellPlain(c[6]),
+            licenseType: cellPlain(c[7]),
+            contact: cellPlain(c[8]),
+            phone: cellPlain(c[9]),
+            onboardStatus: cellPlain(c[10]),
+            status: cellStatus(c[11]),
+            createdBy: cellPlain(c[12]),
+            createdAt: cellPlain(c[13]),
+            updatedBy: cellPlain(c[14]),
+            updatedAt: cellPlain(c[15])
         };
     }
 
@@ -6564,6 +6565,7 @@
         var grid = el('div', 'supplier-detail-grid');
         grid.appendChild(detailCell('贸易商ID', r.id));
         grid.appendChild(detailCell('主体名称', r.subjectName));
+        grid.appendChild(detailCell('主体类型', r.subjectType || '贸易商'));
         grid.appendChild(detailCell('贸易商名称', r.name));
         grid.appendChild(detailCell('贸易商简称', r.shortName));
         grid.appendChild(detailCell('贸易商地址', r.region));
@@ -6623,7 +6625,7 @@
                 contactMobile: r.phone,
                 onboardStatus: r.onboardStatus,
                 title: '贸易商进件',
-                subjectType: '贸易商'
+                subjectType: r.subjectType || '贸易商'
             });
             var displayFields = ensureSupplierOnboardingFieldsForDisplay(view.fields, viewModel);
             appendGroupedSupplierOnboardingDetail(onboardingWrap, displayFields, {
@@ -6680,7 +6682,7 @@
                             kind: 'trader',
                             entityId: r.id,
                             merchantName: r.name,
-                            subjectType: '贸易商',
+                            subjectType: r.subjectType || '贸易商',
                             groupName: r.subjectName,
                             onboardStatus: onboardingSummary.auditStatus || onboardingSummary.status,
                             fallbackMerchantNo: bind && bind.merchantNo ? bind.merchantNo : r.id ? 'HF-' + r.id : '—',
@@ -6722,6 +6724,7 @@
             var stored = window.MdmTraderArchiveStore.get(r.id);
             if (stored) {
                 r.bizScope = stored.bizScope || '—';
+                r.subjectType = stored.subjectType || r.subjectType || '贸易商';
                 r.license = stored.license || {};
                 r.permit = stored.permit || {};
             }

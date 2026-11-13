@@ -1913,19 +1913,20 @@
     }
 
     var TRADER_COL = {
-        name: 2,
-        shortName: 3,
-        region: 4,
-        detailAddr: 5,
-        licenseType: 6,
-        contact: 7,
-        phone: 8,
-        onboard: 9,
-        status: 10,
-        createdBy: 11,
-        createdAt: 12,
-        updatedBy: 13,
-        updatedAt: 14
+        subjectType: 2,
+        name: 3,
+        shortName: 4,
+        region: 5,
+        detailAddr: 6,
+        licenseType: 7,
+        contact: 8,
+        phone: 9,
+        onboard: 10,
+        status: 11,
+        createdBy: 12,
+        createdAt: 13,
+        updatedBy: 14,
+        updatedAt: 15
     };
 
     function statusClassForTrader(status) {
@@ -1978,6 +1979,9 @@
                     escapeHtml(item.id) +
                     '</td>' +
                     traderTextCell(item.subjectName) +
+                    '<td>' +
+                    escapeHtml(item.subjectType || '贸易商') +
+                    '</td>' +
                     traderTextCell(item.name) +
                     traderTextCell(item.shortName, ' data-field="shortName"') +
                     traderTextCell(item.region) +
@@ -2041,6 +2045,7 @@
         var tbody = document.getElementById(pm.config.tableBodyId);
         if (!tbody) return;
         var qSub = (document.getElementById('qSubjectName') || {}).value.trim();
+        var qType = (document.getElementById('qTraderSubjectType') || {}).value.trim();
         var qLicense = (document.getElementById('qTraderLicenseType') || {}).value.trim();
         var qScope = (document.getElementById('qTraderBizScope') || {}).value.trim();
         var qContact = (document.getElementById('qTraderContact') || {}).value.trim();
@@ -2050,9 +2055,10 @@
         var qSt = (document.getElementById('qResStatus') || {}).value.trim();
         tbody.querySelectorAll('tr').forEach(function (tr) {
             var cells = tr.querySelectorAll('td');
-            if (cells.length < 15) return;
+            if (cells.length < TRADER_COL.updatedAt + 1) return;
             var ok = true;
             if (qSub && cells[1].textContent.trim().indexOf(qSub) === -1) ok = false;
+            if (qType && cells[TRADER_COL.subjectType].textContent.trim() !== qType) ok = false;
             if (qLicense && cells[TRADER_COL.licenseType].textContent.trim() !== qLicense) ok = false;
             if (qScope && (tr.getAttribute('data-biz-scope') || '') !== qScope) ok = false;
             if (qContact && cells[TRADER_COL.contact].textContent.trim().indexOf(qContact) === -1) ok = false;
@@ -2090,6 +2096,16 @@
         var fields = [
             { id: 'resId', label: '贸易商ID', type: 'text', editDisabled: true, hiddenInAdd: true },
             { id: 'subjectName', label: '主体名称', type: 'text', required: true, editDisabled: true },
+            {
+                id: 'subjectType',
+                label: '主体类型',
+                type: 'select',
+                required: true,
+                options: [
+                    { value: '贸易商', text: '贸易商' },
+                    { value: '服务商', text: '服务商' }
+                ]
+            },
             { id: 'resName', label: '贸易商名称', type: 'text', required: true },
             { id: 'shortName', label: '贸易商简称', type: 'text' },
             { id: 'licenseType', label: '牌照类型', type: 'text' },
@@ -2171,6 +2187,7 @@
         bindSimpleFilter(pm, {
             resetFields: [
                 'qSubjectName',
+                'qTraderSubjectType',
                 'qTraderLicenseType',
                 'qTraderBizScope',
                 'qTraderContact',
