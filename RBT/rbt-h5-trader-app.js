@@ -74,7 +74,7 @@
             '<p>商品包：' + esc(item.packageName || '—') + '（' + esc(item.packageCode || '—') + '）</p>' +
             '<p>商品：' + esc(skuText(item)) + '</p>' +
             '<p>商品金额：¥' + esc(item.goodsAmount || '—') + '</p>' +
-            '<p>联营服务费：¥' + esc(item.serviceFee || '—') + '</p>' +
+            '<p>服务费：¥' + esc(item.serviceFee || '—') + '</p>' +
             '<p>总金额：¥' + esc(item.amount || '—') + '</p>' +
             (item.repayCycle
                 ? '<p>结算周期：' + esc(item.repayCycle) + '</p>' +

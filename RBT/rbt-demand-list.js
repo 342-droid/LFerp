@@ -56,11 +56,11 @@
                 { dataIndex: 'storeName', title: '门店', minWidth: 150, align: 'left', showOverflowTooltip: true, search: { control: 'input' } },
                 { dataIndex: 'packageName', title: '商品包', minWidth: 140, align: 'left', showOverflowTooltip: true, search: { control: 'input' } },
                 { dataIndex: 'goodsAmount', title: '商品金额', minWidth: 120, formatter: function (row) { return blank(row.goodsAmount) ? '—' : ('¥' + row.goodsAmount); } },
-                { dataIndex: 'serviceFee', title: '联营服务费', minWidth: 120, formatter: function (row) { return blank(row.serviceFee) ? '—' : ('¥' + row.serviceFee); } },
+                { dataIndex: 'serviceFee', title: '服务费', minWidth: 120, formatter: function (row) { return blank(row.serviceFee) ? '—' : ('¥' + row.serviceFee); } },
                 { dataIndex: 'amount', title: '总金额', minWidth: 120, formatter: function (row) { return blank(row.amount) ? '—' : ('¥' + row.amount); } },
                 { dataIndex: 'repayCycle', title: '结算周期', minWidth: 100, formatter: function (row) { return show(row.repayCycle); } },
                 { dataIndex: 'repayMethod', title: '结算方式', minWidth: 100, formatter: function (row) { return show(row.repayMethod); } },
-                { dataIndex: 'repayPeriod', title: '结算比例', minWidth: 120, align: 'left' },
+                { dataIndex: 'repayPeriod', title: '结算比例', minWidth: 140, align: 'left' },
                 {
                     dataIndex: 'status',
                     title: '状态',
@@ -111,6 +111,28 @@
                 closeRatio();
             }
 
+            function canEditRatio(row) {
+                var item = dataApi.get(row && row.code) || row;
+                var ratioApi = window.RbtSettleRatio;
+                return !!(ratioApi && typeof ratioApi.canEdit === 'function' && ratioApi.canEdit(item));
+            }
+
+            function afterRatioSaved(saved) {
+                refreshTable();
+                if (saved && window.RbtDemandDetail && typeof window.RbtDemandDetail.open === 'function') {
+                    var drawer = document.querySelector('[data-rbt-demand-drawer]');
+                    if (drawer) window.RbtDemandDetail.open(saved);
+                }
+            }
+
+            function openEditRatio(row) {
+                var item = dataApi.get(row && row.code) || row;
+                var ratioApi = window.RbtSettleRatio;
+                if (!ratioApi || typeof ratioApi.openEditor !== 'function') return;
+                closeRatio();
+                ratioApi.openEditor(item, { onSaved: afterRatioSaved });
+            }
+
             function openRatio(row) {
                 if (!hasRatio(row)) return;
                 var item = dataApi.get(row && row.code) || row;
@@ -118,6 +140,7 @@
                 var html = ratioApi && typeof ratioApi.tableHtml === 'function' ? ratioApi.tableHtml(item) : '';
                 if (!html) return;
                 closeRatio();
+                var editable = canEditRatio(item);
                 var mask = document.createElement('div');
                 mask.className = 'rbt-demand-contract-mask';
                 mask.setAttribute('data-rbt-ratio-modal', '1');
@@ -128,10 +151,15 @@
                     '<div class="rbt-demand-contract__title">' + esc(item.code) + '</div>' +
                     '<div class="rbt-demand-contract__meta">' + esc(item.storeName || '') + '</div></div>' +
                     '<button type="button" class="rbt-demand-contract__close" data-rbt-ratio-close aria-label="关闭">&times;</button></div>' +
-                    '<div class="rbt-ratio-dialog__body">' + html + '</div></div>';
+                    '<div class="rbt-ratio-dialog__body">' + html + '</div>' +
+                    (editable
+                        ? '<div class="rbt-review-foot"><button type="button" class="btn btn-primary" data-rbt-ratio-edit>修改结算比例</button></div>'
+                        : '') +
+                    '</div>';
                 document.body.appendChild(mask);
                 mask.addEventListener('click', function (event) {
                     if (event.target === mask) closeRatio();
+                    if (event.target.closest('[data-rbt-ratio-edit]')) openEditRatio(item);
                 });
                 mask.querySelector('[data-rbt-ratio-close]').addEventListener('click', closeRatio);
                 document.addEventListener('keydown', onRatioKey);
@@ -291,7 +319,9 @@
                 requestRows: requestRows,
                 statusType: statusType,
                 hasRatio: hasRatio,
+                canEditRatio: canEditRatio,
                 openRatio: openRatio,
+                openEditRatio: openEditRatio,
                 openDetail: openDetail,
                 canGoAudit: canGoAudit,
                 goAudit: goAudit,

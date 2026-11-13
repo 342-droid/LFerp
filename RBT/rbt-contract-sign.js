@@ -89,7 +89,7 @@
             '<h2>需求单 ' + esc(item.code) + '</h2>' +
             '<p>需求门店：' + esc(show(item.storeName)) + '（' + esc(show(item.storeCode)) + '）</p>' +
             '<p>商品金额：' + money(item.goodsAmount) + '</p>' +
-            '<p>联营服务费：' + money(item.serviceFee) + '</p>' +
+            '<p>服务费：' + money(item.serviceFee) + '</p>' +
             '<p>总金额：' + money(item.amount) + '</p>' +
             '<p>结算周期：' + esc(show(item.repayCycle)) + '</p>' +
             '<p>结算方式：' + esc(show(item.repayMethod)) + '</p>' +

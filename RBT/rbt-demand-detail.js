@@ -94,7 +94,10 @@
         var ratioApi = window.RbtSettleRatio;
         var html = ratioApi && typeof ratioApi.tableHtml === 'function' ? ratioApi.tableHtml(item) : '';
         if (!html) return '';
-        return '<div class="supplier-detail-section-title">结算比例</div>' + html;
+        var edit = window.RbtSettleRatio && typeof window.RbtSettleRatio.canEdit === 'function' && window.RbtSettleRatio.canEdit(item)
+            ? '<button type="button" class="rbt-demand-contract-link" data-rbt-ratio-edit>修改结算比例</button>'
+            : '';
+        return '<div class="supplier-detail-section-title">结算比例' + edit + '</div>' + html;
     }
 
     function storeQuotaSection(item) {
@@ -172,7 +175,7 @@
             '',
             '商品包：' + show(item.packageName) + '（' + show(item.packageCode) + '）',
             '商品金额：' + money(item.goodsAmount),
-            '联营服务费：' + money(item.serviceFee),
+            '服务费：' + money(item.serviceFee),
             '总金额：' + money(item.amount),
             '结算周期：' + show(item.repayCycle),
             '结算方式：' + show(item.repayMethod),
@@ -271,6 +274,120 @@
             '</div>' + preview;
     }
 
+    function relatedDocsSection(item) {
+        var api = window.RbtTradeDocs;
+        var docs = api && typeof api.docsOfDemand === 'function' ? api.docsOfDemand(item && item.code) : [];
+        if ((!docs || !docs.length) && item && item.status !== '支付中' && item.status !== '已完成') return '';
+        var title = '<div class="supplier-detail-section-title">关联购销单</div>';
+        if (!docs || !docs.length) {
+            return title + '<div class="rbt-demand-empty">暂无关联购销单</div>';
+        }
+        var head = '<tr><th>单据</th><th>单号</th><th>买方</th><th>卖方</th><th class="is-money">金额</th><th>状态</th></tr>';
+        var body = docs.map(function (row) {
+            var name = row.docType || '购销单';
+            return '<tr><td>' + esc(name) + '</td><td><button type="button" class="rbt-demand-contract-link" data-rbt-trade-open="' +
+                esc(row.code) + '">' + esc(row.code) + '</button></td><td>' +
+                esc(row.buyerName || row.receivePlace) + '</td><td>' +
+                esc(row.sellerName || row.supplier) + '</td><td class="is-money">' +
+                money(row.amount) + '</td><td>' + esc(row.status) + '</td></tr>';
+        }).join('');
+        return title + '<div class="rbt-demand-table-wrap"><table class="rbt-demand-table"><thead>' + head +
+            '</thead><tbody>' + body + '</tbody></table></div>';
+    }
+
+    function logPanel(item) {
+        var latest = window.RbtDemandData && typeof window.RbtDemandData.get === 'function'
+            ? window.RbtDemandData.get(item.code) || item
+            : item;
+        var logs = latest.logs || [];
+        var rows = logs.length
+            ? logs.map(function (row) {
+                return (
+                    '<tr><td>' + esc(row.content) + '</td><td class="rbt-store-log__who">' +
+                    esc(row.operator) + '</td><td class="rbt-store-log__time">' +
+                    esc(row.time) + '</td></tr>'
+                );
+            }).join('')
+            : '<tr><td colspan="3" class="rbt-store-log__empty">暂无操作记录</td></tr>';
+        return (
+            '<div class="supplier-detail-tab"><table class="rbt-store-log"><thead><tr>' +
+            '<th>变更内容</th><th class="rbt-store-log__who">变更人</th><th class="rbt-store-log__time">变更时间</th>' +
+            '</tr></thead><tbody>' + rows + '</tbody></table></div>'
+        );
+    }
+
+    function basePanel(item) {
+        return (
+            '<div class="supplier-detail-tab">' +
+            storeQuotaSection(item) +
+            '<div class="supplier-detail-section-title">基础信息</div><div class="supplier-detail-grid">' +
+            textCell('需求单号', item.code) +
+            statusCell('状态', item.status) +
+            textCell('接单贸易商', item.traderName) +
+            textCell('接单时间', item.acceptedAt) +
+            textCell('门店', show(item.storeName) + '（' + show(item.storeCode) + '）') +
+            textCell('商品包', show(item.packageName) + '（' + show(item.packageCode) + '）') +
+            textCell('商品金额', money(item.goodsAmount)) +
+            textCell('服务费', money(item.serviceFee)) +
+            textCell('总金额', money(item.amount)) +
+            textCell('产品', show(item.installmentName) + '（' + show(item.installmentCode) + '）') +
+            textCell('结算周期', item.repayCycle) +
+            textCell('结算方式', item.repayMethod) +
+            (item.repayMethod === '比例付' && item.settleRatios && item.settleRatios.length ? '' : textCell(periodLabel(item), periodValue(item))) +
+            textCell('创建人', item.creator) +
+            textCell('创建时间', item.createdAt) +
+            textCell('更新人', item.updater) +
+            textCell('更新时间', item.updatedAt) +
+            '</div>' +
+            settleRatioSection(item) +
+            '<div class="supplier-detail-section-title">商品明细</div>' +
+            skuTable(item.skus) +
+            contractSection(item) +
+            voucherSection(item) +
+            relatedDocsSection(item) +
+            '</div>'
+        );
+    }
+
+    function bindBaseEvents(drawer, item) {
+        var editRatio = drawer.querySelector('[data-rbt-ratio-edit]');
+        if (editRatio) {
+            editRatio.addEventListener('click', function () {
+                var ratioApi = window.RbtSettleRatio;
+                if (!ratioApi || typeof ratioApi.openEditor !== 'function') return;
+                ratioApi.openEditor(item, {
+                    onSaved: function (saved) {
+                        open(saved);
+                    }
+                });
+            });
+        }
+        var agreements = agreementContracts(item);
+        drawer.querySelectorAll('[data-rbt-demand-contract-open]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var key = btn.getAttribute('data-rbt-demand-contract-open');
+                var found = null;
+                agreements.some(function (row) {
+                    if (row.key === key) {
+                        found = row;
+                        return true;
+                    }
+                    return false;
+                });
+                if (found) openPreview(item, found);
+            });
+        });
+        drawer.querySelectorAll('[data-rbt-trade-open]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var code = btn.getAttribute('data-rbt-trade-open');
+                var tradeApi = window.RbtTradeDetail;
+                if (!tradeApi || typeof tradeApi.openByCode !== 'function') return;
+                closeDrawer();
+                tradeApi.openByCode(code);
+            });
+        });
+    }
+
     function closeDrawer() {
         closePreview();
         document.querySelectorAll('[data-rbt-demand-drawer]').forEach(function (node) {
@@ -309,53 +426,30 @@
             '<span class="mdm-detail-tag mdm-detail-tag--' + statusKind(item.status) + '">' + esc(item.status || '—') + '</span></div>' +
             '<div class="store-drawer__meta">门店：' + esc(item.storeName) + '（' + esc(item.storeCode) + '）</div>' +
             '<div class="store-drawer__meta">商品包：' + esc(item.packageName) + '（' + esc(item.packageCode) + '）</div></div>' +
-            '<div class="store-drawer__body"><div class="supplier-detail-tab">' +
-            storeQuotaSection(item) +
-            '<div class="supplier-detail-section-title">基础信息</div><div class="supplier-detail-grid">' +
-            textCell('需求单号', item.code) +
-            statusCell('状态', item.status) +
-            textCell('接单贸易商', item.traderName) +
-            textCell('接单时间', item.acceptedAt) +
-            textCell('门店', show(item.storeName) + '（' + show(item.storeCode) + '）') +
-            textCell('商品包', show(item.packageName) + '（' + show(item.packageCode) + '）') +
-            textCell('商品金额', money(item.goodsAmount)) +
-            textCell('联营服务费', money(item.serviceFee)) +
-            textCell('总金额', money(item.amount)) +
-            textCell('产品', show(item.installmentName) + '（' + show(item.installmentCode) + '）') +
-            textCell('结算周期', item.repayCycle) +
-            textCell('结算方式', item.repayMethod) +
-            (item.repayMethod === '比例付' && item.settleRatios && item.settleRatios.length ? '' : textCell(periodLabel(item), periodValue(item))) +
-            textCell('创建人', item.creator) +
-            textCell('创建时间', item.createdAt) +
-            textCell('更新人', item.updater) +
-            textCell('更新时间', item.updatedAt) +
-            '</div>' +
-            settleRatioSection(item) +
-            '<div class="supplier-detail-section-title">商品明细</div>' +
-            skuTable(item.skus) +
-            contractSection(item) +
-            voucherSection(item) +
-            '</div></div>';
+            '<div class="store-drawer__tabs store-drawer__tabs--sticky" id="rbtDemandTabs">' +
+            '<button type="button" class="store-drawer__tab is-active" data-tab="base">基础信息</button>' +
+            '<button type="button" class="store-drawer__tab" data-tab="logs">操作记录</button></div>' +
+            '<div class="store-drawer__body" id="rbtDemandBody"></div>';
         document.body.appendChild(backdrop);
         document.body.appendChild(drawer);
         backdrop.addEventListener('click', closeDrawer);
         drawer.querySelector('[data-rbt-demand-close]').addEventListener('click', closeDrawer);
-        var agreements = agreementContracts(item);
-        drawer.querySelectorAll('[data-rbt-demand-contract-open]').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                var key = btn.getAttribute('data-rbt-demand-contract-open');
-                var found = null;
-                agreements.some(function (row) {
-                    if (row.key === key) {
-                        found = row;
-                        return true;
-                    }
-                    return false;
-                });
-                if (found) openPreview(item, found);
-            });
-        });
         document.addEventListener('keydown', onDrawerKey);
+        var tabs = document.getElementById('rbtDemandTabs');
+        var body = document.getElementById('rbtDemandBody');
+        function show(id) {
+            tabs.querySelectorAll('.store-drawer__tab').forEach(function (button) {
+                button.classList.toggle('is-active', button.getAttribute('data-tab') === id);
+            });
+            body.innerHTML = id === 'logs' ? logPanel(item) : basePanel(item);
+            if (id !== 'logs') bindBaseEvents(drawer, item);
+        }
+        tabs.addEventListener('click', function (event) {
+            var button = event.target.closest('[data-tab]');
+            if (!button) return;
+            show(button.getAttribute('data-tab'));
+        });
+        show('base');
     }
 
     window.RbtDemandDetail = { open: open, close: closeDrawer };
