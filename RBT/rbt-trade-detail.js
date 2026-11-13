@@ -68,15 +68,14 @@
     }
 
     function skuTable(lines) {
-        var head = '<tr><th>商品编码</th><th>商品名称</th><th class="is-money">商品售价</th><th class="is-money">成交单价</th><th>数量</th><th class="is-money">金额</th></tr>';
+        var head = '<tr><th>商品编码</th><th>商品名称</th><th class="is-money">商品售价</th><th>数量</th><th class="is-money">金额</th></tr>';
         if (!lines || !lines.length) {
             return '<div class="rbt-demand-table-wrap"><table class="rbt-demand-table"><thead>' + head +
-                '</thead><tbody><tr><td class="is-empty" colspan="6">暂无商品</td></tr></tbody></table></div>';
+                '</thead><tbody><tr><td class="is-empty" colspan="5">暂无商品</td></tr></tbody></table></div>';
         }
         var body = lines.map(function (line) {
             return '<tr><td>' + esc(line.code) + '</td><td>' + esc(line.name) +
                 '</td><td class="is-money">' + esc(line.salePrice) +
-                '</td><td class="is-money">' + esc(line.unitPrice) +
                 '</td><td>' + esc(line.qty) +
                 '</td><td class="is-money">' + esc(line.amount) + '</td></tr>';
         }).join('');
