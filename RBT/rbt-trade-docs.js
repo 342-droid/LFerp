@@ -7,10 +7,6 @@
     var PO_GY = '供应链采购';
     var PO_MD = '门店采购';
 
-    function blank(value) {
-        return value == null || String(value).trim() === '';
-    }
-
     function centsOf(value) {
         var num = Number(String(value == null ? '' : value).replace(/[¥,\s]/g, ''));
         if (!isFinite(num)) return 0;
@@ -214,35 +210,93 @@
         if (nextStatus && setField(row, 'status', nextStatus)) changed = true;
         if (setField(row, 'priceKind', 'goods')) changed = true;
         if (setField(row, 'priceLabel', '商品售价')) changed = true;
-        if (alignLinesToSalePrice(row)) changed = true;
+        if (repriceLines(row)) changed = true;
         return changed;
     }
 
-    function alignLinesToSalePrice(row) {
+    function priceBasisOf(row) {
+        if (!row) return 'origin';
+        if (row.kind === 'inbound' || row.docType === PO_MD) return 'store';
+        if (row.docType === SALE_TR) return 'trader';
+        return 'origin';
+    }
+
+    function demandRecord(code) {
+        if (!code) return null;
+        try {
+            var raw = sessionStorage.getItem('rbt_h5_fund_demand_v2');
+            var parsed = raw ? JSON.parse(raw) : null;
+            var rows = parsed && Array.isArray(parsed.rows) ? parsed.rows : (Array.isArray(parsed) ? parsed : []);
+            var found = null;
+            rows.some(function (row) {
+                if (row && row.code === code) {
+                    found = row;
+                    return true;
+                }
+                return false;
+            });
+            return found;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function ratesOf(row) {
+        if (!window.RbtDemandData || typeof window.RbtDemandData.settlementRates !== 'function') return null;
+        var demand = demandRecord(row && row.demandCode);
+        var code = (demand && demand.installmentCode) || (row && row.installmentCode) || '';
+        return window.RbtDemandData.settlementRates({ installmentCode: code });
+    }
+
+    function rateOfBasis(basis, rates) {
+        if (!rates) return '';
+        if (basis === 'store') return rates.store || '';
+        if (basis === 'trader') return rates.trader || '';
+        return '';
+    }
+
+    /* 商品售价按系数四舍五入到分。系数为空时保持原始售价。 */
+    function ratedUnitCents(originCents, rate) {
+        var hundred = Math.round(Number(rate) * 100);
+        if (!isFinite(hundred) || hundred <= 0) return originCents;
+        return Math.round(originCents * hundred / 100);
+    }
+
+    function repriceLines(row) {
         if (!row || !Array.isArray(row.lines) || !row.lines.length) return false;
+        var basis = priceBasisOf(row);
+        var rate = rateOfBasis(basis, ratesOf(row));
         var changed = false;
         var headerCents = 0;
         var nextLines = row.lines.map(function (line) {
             var qty = Number(line && line.qty);
             if (!isFinite(qty) || qty < 0) qty = 0;
-            var saleCents = centsOf(line && line.salePrice);
+            var storedOrigin = line && line.originPrice != null && String(line.originPrice).trim() !== '';
+            var alreadyRated = row.priceBasis === basis && basis !== 'origin' && !storedOrigin;
+            var originCents = storedOrigin || !alreadyRated
+                ? centsOf(storedOrigin ? line.originPrice : (line && line.salePrice))
+                : null;
+            var saleCents = originCents == null ? centsOf(line && line.salePrice) : ratedUnitCents(originCents, rate);
             var amountCents = saleCents * qty;
             headerCents += amountCents;
             var next = {
                 code: line && line.code || '',
                 name: line && line.name || '',
                 qty: qty,
+                originPrice: originCents == null ? '' : fromCents(originCents),
                 salePrice: fromCents(saleCents),
                 amount: fromCents(amountCents)
             };
             if (line && Object.prototype.hasOwnProperty.call(line, 'unitPrice')) changed = true;
             if (!line || line.code !== next.code || line.name !== next.name || Number(line.qty) !== next.qty
+                || String(line.originPrice || '') !== next.originPrice
                 || line.salePrice !== next.salePrice || line.amount !== next.amount) {
                 changed = true;
             }
             return next;
         });
         if (changed) row.lines = nextLines;
+        if (setField(row, 'priceBasis', basis)) changed = true;
         if (setField(row, 'amount', fromCents(headerCents))) changed = true;
         return changed;
     }
@@ -257,7 +311,7 @@
             if (enrichTradeDoc(row, inboundFinished(store, row && row.demandCode))) changed = true;
         });
         (store.inbounds || []).forEach(function (row) {
-            if (alignLinesToSalePrice(row)) changed = true;
+            if (repriceLines(row)) changed = true;
         });
         return changed;
     }
@@ -272,43 +326,27 @@
         };
     }
 
-    function goodsCentsOf(demand) {
-        if (demand && !blank(demand.goodsAmount)) return centsOf(demand.goodsAmount);
-        var goods = 0;
-        (demand && demand.skus || []).forEach(function (sku) {
+    function buildPricedLines(skus, rate) {
+        return (skus || []).map(function (sku) {
             var qty = Number(sku && sku.qty);
             if (!isFinite(qty) || qty < 0) qty = 0;
-            goods += centsOf(sku && sku.salePrice) * qty;
-        });
-        return Math.round(goods);
-    }
-
-    function buildLines(skus, headerCents) {
-        var lines = (skus || []).map(function (sku) {
-            var qty = Number(sku && sku.qty);
-            if (!isFinite(qty) || qty < 0) qty = 0;
-            var saleCents = centsOf(sku && sku.salePrice);
+            var originCents = centsOf(sku && sku.salePrice);
+            var saleCents = ratedUnitCents(originCents, rate);
             return {
                 code: sku && sku.code || '',
                 name: sku && sku.name || '',
                 qty: qty,
+                originPrice: fromCents(originCents),
                 salePrice: fromCents(saleCents),
-                amountCents: saleCents * qty
+                amount: fromCents(saleCents * qty)
             };
         });
-        var sum = lines.reduce(function (total, line) { return total + line.amountCents; }, 0);
-        if (lines.length && headerCents != null) {
-            lines[lines.length - 1].amountCents += Number(headerCents) - sum;
-        }
-        return lines.map(function (line) {
-            return {
-                code: line.code,
-                name: line.name,
-                qty: line.qty,
-                salePrice: line.salePrice,
-                amount: fromCents(line.amountCents)
-            };
-        });
+    }
+
+    function linesAmount(lines) {
+        return fromCents((lines || []).reduce(function (total, line) {
+            return total + centsOf(line && line.amount);
+        }, 0));
     }
 
     function canGenerate(demand) {
@@ -345,9 +383,14 @@
         var traderName = demand.traderName || '接单贸易商';
         var storeName = demand.storeName || '需求门店';
         var storeCode = demand.storeCode || '';
-        var goodsCents = goodsCentsOf(demand);
-        var goodsLines = buildLines(demand.skus, goodsCents);
-        var goodsAmount = fromCents(goodsCents);
+        var rates = window.RbtDemandData && typeof window.RbtDemandData.settlementRates === 'function'
+            ? window.RbtDemandData.settlementRates(demand)
+            : null;
+        var originLines = buildPricedLines(demand.skus, '');
+        var traderLines = buildPricedLines(demand.skus, rates && rates.trader);
+        var storeLines = buildPricedLines(demand.skus, rates && rates.store);
+        var inboundLines = buildPricedLines(demand.skus, rates && rates.store);
+        var installmentCode = demand.installmentCode || '';
         var lfParties = dropshipFields(storeCode, storeName, traderName);
         var storeParties = dropshipFields(storeCode, storeName, storeName);
         var lfSale = Object.assign({
@@ -362,13 +405,15 @@
             buyerName: traderName,
             sellerCode: LF_SUPPLY.code,
             sellerName: LF_SUPPLY.name,
+            installmentCode: installmentCode,
             priceKind: 'goods',
+            priceBasis: 'origin',
             priceLabel: '商品售价',
-            amount: goodsAmount,
+            amount: linesAmount(originLines),
             status: '已完成',
             peerCode: codes.gyPo,
             inboundCode: '',
-            lines: goodsLines,
+            lines: originLines,
             createdAt: when,
             creator: who
         }, lfParties);
@@ -384,13 +429,15 @@
             buyerName: traderName,
             sellerCode: LF_SUPPLY.code,
             sellerName: LF_SUPPLY.name,
+            installmentCode: installmentCode,
             priceKind: 'goods',
+            priceBasis: 'origin',
             priceLabel: '商品售价',
-            amount: goodsAmount,
+            amount: linesAmount(originLines),
             status: '已完成',
             peerCode: codes.lfSale,
             inboundCode: '',
-            lines: goodsLines,
+            lines: buildPricedLines(demand.skus, ''),
             createdAt: when,
             creator: who
         }, lfParties);
@@ -406,13 +453,15 @@
             buyerName: storeName,
             sellerCode: '',
             sellerName: traderName,
+            installmentCode: installmentCode,
             priceKind: 'goods',
+            priceBasis: 'trader',
             priceLabel: '商品售价',
-            amount: goodsAmount,
+            amount: linesAmount(traderLines),
             status: '待收货',
             peerCode: codes.mdPo,
             inboundCode: codes.inbound,
-            lines: goodsLines,
+            lines: traderLines,
             createdAt: when,
             creator: who
         }, storeParties);
@@ -428,13 +477,15 @@
             buyerName: storeName,
             sellerCode: '',
             sellerName: traderName,
+            installmentCode: installmentCode,
             priceKind: 'goods',
+            priceBasis: 'store',
             priceLabel: '商品售价',
-            amount: goodsAmount,
+            amount: linesAmount(storeLines),
             status: '待收货',
             peerCode: codes.trSale,
             inboundCode: codes.inbound,
-            lines: goodsLines,
+            lines: storeLines,
             createdAt: when,
             creator: who
         }, storeParties);
@@ -450,9 +501,11 @@
             supplier: traderName,
             buyerName: storeName,
             sellerName: traderName,
-            amount: goodsAmount,
+            installmentCode: installmentCode,
+            priceBasis: 'store',
+            amount: linesAmount(inboundLines),
             status: '待收货',
-            lines: goodsLines,
+            lines: inboundLines,
             createdAt: when,
             creator: who
         };

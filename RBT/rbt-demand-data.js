@@ -445,6 +445,10 @@
         FQ00005: { store: '1.30', trader: '1.10', provider: '1.02' }
     };
 
+    function settlementRates(item) {
+        return productRates(item && item.installmentCode);
+    }
+
     function productRates(code) {
         var stored = null;
         try {
@@ -1520,6 +1524,7 @@
         rejectAudit: rejectAudit,
         canEditSettleRatios: canEditSettleRatios,
         updateSettleRatios: updateSettleRatios,
-        receivables: receivables
+        receivables: receivables,
+        settlementRates: settlementRates
     };
 })();
