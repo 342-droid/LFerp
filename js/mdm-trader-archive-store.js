@@ -46,6 +46,7 @@
         row.createdAt = createdAt;
         row.updatedBy = row.updatedBy || row.createdBy || '系统';
         row.updatedAt = row.updatedAt || createdAt;
+        row.subjectType = row.subjectType === '服务商' ? '服务商' : '贸易商';
         return row;
     }
 
@@ -55,6 +56,7 @@
                 id: 'TRD20190001',
                 subjectId: 'TRD-SUB-001',
                 subjectName: '杭州鲜达贸易有限公司',
+                subjectType: '贸易商',
                 name: '杭州鲜达贸易有限公司',
                 shortName: '鲜达贸易',
                 region: '浙江省/杭州市/西湖区',
@@ -95,6 +97,7 @@
                 id: 'TRD20190002',
                 subjectId: 'TRD-SUB-002',
                 subjectName: '上海冷链融资租赁有限公司',
+                subjectType: '贸易商',
                 name: '上海冷链融资租赁有限公司',
                 shortName: '冷链租赁',
                 region: '上海市/浦东新区',
@@ -135,6 +138,7 @@
                 id: 'TRD20190003',
                 subjectId: 'TRD-SUB-003',
                 subjectName: '宁波海丰商业保理有限公司',
+                subjectType: '服务商',
                 name: '宁波海丰商业保理有限公司',
                 shortName: '海丰保理',
                 region: '浙江省/宁波市/鄞州区',
@@ -186,6 +190,7 @@
                 seedById[item.id] = item;
             });
             list = list.map(function (item) {
+                var hadType = !!(item && String(item.subjectType || '').trim());
                 var before = JSON.stringify(item);
                 var after = normalize(item);
                 var base = seedById[after.id];
@@ -193,6 +198,7 @@
                     if (!after.bizScope) after.bizScope = base.bizScope;
                     if (!after.license || !after.license.name) after.license = base.license;
                     if (!after.permit || !after.permit.no) after.permit = base.permit;
+                    if (!hadType && base.subjectType) after.subjectType = base.subjectType;
                 }
                 if (JSON.stringify(after) !== before) changed = true;
                 return after;
@@ -245,6 +251,7 @@
             id: nextId(list),
             subjectId: subjectId,
             subjectName: subjectName,
+            subjectType: String((payload && payload.subjectType) || '').trim() === '服务商' ? '服务商' : '贸易商',
             name: name,
             shortName: shortName,
             region: String((payload && payload.region) || '').trim() || '—',
@@ -269,7 +276,7 @@
 
     /**
      * 所有主体新增贸易商商家成功后写入档案
-     * @param {{subjectName:string,contact:string,phone:string,subjectId?:string}} payload
+     * @param {{subjectName:string,subjectType?:string,contact:string,phone:string,subjectId?:string}} payload
      */
     function addFromSubject(payload) {
         return add(payload);

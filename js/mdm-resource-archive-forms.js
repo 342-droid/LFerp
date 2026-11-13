@@ -1483,6 +1483,9 @@
         refs.subjectSel = sel(subjects, '');
         markRequired(refs.subjectSel, '请选择主体名称');
         body.appendChild(formRow('主体名称', true, refs.subjectSel));
+        refs.subjectTypeSel = sel(traderOptions('请选择主体类型', ['贸易商', '服务商']), '贸易商');
+        markRequired(refs.subjectTypeSel, '请选择主体类型');
+        body.appendChild(formRow('主体类型', true, refs.subjectTypeSel));
         refs.nameInp = txt('请输入贸易商名称', '');
         markRequired(refs.nameInp, '请输入贸易商名称');
         body.appendChild(formRow('贸易商名称', true, refs.nameInp));
@@ -1548,15 +1551,17 @@
                 ? window.MdmTraderArchiveStore.get(id)
                 : null;
             ensureSubjectOption((stored && stored.subjectName) || cellPlainText(c[1]));
-            refs.nameInp.value = dashToEmpty((stored && stored.name) || cellPlainText(c[2]));
-            refs.shortNameInp.value = dashToEmpty((stored && stored.shortName) || cellPlainText(c[3]));
-            refs.licenseSel.value = dashToEmpty((stored && stored.licenseType) || cellPlainText(c[6]));
+            var subjectType = dashToEmpty((stored && stored.subjectType) || cellPlainText(c[2])) || '贸易商';
+            refs.subjectTypeSel.value = subjectType === '服务商' ? '服务商' : '贸易商';
+            refs.nameInp.value = dashToEmpty((stored && stored.name) || cellPlainText(c[3]));
+            refs.shortNameInp.value = dashToEmpty((stored && stored.shortName) || cellPlainText(c[4]));
+            refs.licenseSel.value = dashToEmpty((stored && stored.licenseType) || cellPlainText(c[7]));
             refs.scopeSel.value = dashToEmpty(stored && stored.bizScope);
-            refs.regionInp.value = dashToEmpty((stored && stored.region) || cellPlainText(c[4]));
-            if (refs.detailTa) refs.detailTa.value = dashToEmpty((stored && stored.detailAddr) || cellPlainText(c[5]));
-            if (refs.phoneInp) refs.phoneInp.value = dashToEmpty((stored && stored.phone) || cellPlainText(c[8]));
-            refs.contactInp.value = dashToEmpty((stored && stored.contact) || cellPlainText(c[7]));
-            var status = dashToEmpty((stored && stored.status) || (c[10] && cellPlainText(c[10]))) || '正常';
+            refs.regionInp.value = dashToEmpty((stored && stored.region) || cellPlainText(c[5]));
+            if (refs.detailTa) refs.detailTa.value = dashToEmpty((stored && stored.detailAddr) || cellPlainText(c[6]));
+            if (refs.phoneInp) refs.phoneInp.value = dashToEmpty((stored && stored.phone) || cellPlainText(c[9]));
+            refs.contactInp.value = dashToEmpty((stored && stored.contact) || cellPlainText(c[8]));
+            var status = dashToEmpty((stored && stored.status) || (c[11] && cellPlainText(c[11]))) || '正常';
             body.querySelectorAll('input[name="' + refs.statusName + '"]').forEach(function (inp) {
                 inp.checked = inp.value === status;
             });
@@ -1568,6 +1573,7 @@
                 subjectName: refs.subjectSel.options[refs.subjectSel.selectedIndex]
                     ? refs.subjectSel.options[refs.subjectSel.selectedIndex].text.trim()
                     : '',
+                subjectType: refs.subjectTypeSel.value === '服务商' ? '服务商' : '贸易商',
                 name: refs.nameInp.value.trim(),
                 shortName: refs.shortNameInp.value.trim(),
                 licenseType: refs.licenseSel.value.trim(),

@@ -64,18 +64,49 @@
         }).filter(Boolean).join('、') || '—';
     }
 
+    function centsOf(value) {
+        var text = String(value == null ? '' : value).replace(/^¥/, '').replace(/,/g, '');
+        if (!text || text === '—') return null;
+        var num = Number(text);
+        if (!isFinite(num)) return null;
+        return Math.round(num * 100);
+    }
+
+    function fromCents(cents) {
+        var sign = cents < 0 ? '-' : '';
+        var abs = Math.abs(Math.round(cents));
+        return sign + Math.floor(abs / 100) + '.' + String(abs % 100).padStart(2, '0');
+    }
+
+    /* 大厅总金额用需求单的贸易商应收，服务费按这个总金额减商品金额。 */
+    function hallAmounts(item) {
+        var goods = item && item.goodsAmount ? String(item.goodsAmount) : '';
+        var api = window.RbtDemandData;
+        var pack = api && typeof api.receivables === 'function' ? api.receivables(item) : null;
+        var total = pack && pack.trader ? String(pack.trader) : '';
+        var goodsCents = centsOf(goods);
+        var totalCents = centsOf(total);
+        var fee = goodsCents == null || totalCents == null ? '' : fromCents(totalCents - goodsCents);
+        return {
+            goods: goods || '—',
+            fee: fee || '—',
+            total: total || '—'
+        };
+    }
+
     function renderHallCard(item, accepted) {
         var status = accepted ? (item.status || '已接单') : '待接单';
         var statusClass = status === '已完成' ? ' is-done' : (status === '已作废' || status === '已驳回' ? ' is-off' : '');
+        var amounts = hallAmounts(item);
         return '<article class="rbt-h5-card">' +
             '<div class="rbt-h5-card__top"><h2>' + esc(item.code) + '</h2>' +
             '<span class="rbt-h5-status' + statusClass + '">' + esc(status) + '</span></div>' +
             '<p>门店：' + esc(item.storeName || '—') + '</p>' +
             '<p>商品包：' + esc(item.packageName || '—') + '（' + esc(item.packageCode || '—') + '）</p>' +
             '<p>商品：' + esc(skuText(item)) + '</p>' +
-            '<p>商品金额：¥' + esc(item.goodsAmount || '—') + '</p>' +
-            '<p>服务费：¥' + esc(item.serviceFee || '—') + '</p>' +
-            '<p>总金额：¥' + esc(item.amount || '—') + '</p>' +
+            '<p>商品金额：¥' + esc(amounts.goods) + '</p>' +
+            '<p>服务费：¥' + esc(amounts.fee) + '</p>' +
+            '<p>总金额：¥' + esc(amounts.total) + '</p>' +
             (item.repayCycle
                 ? '<p>结算周期：' + esc(item.repayCycle) + '</p>' +
                   '<p>结算方式：' + esc(item.repayMethod || '—') + '</p>' +
