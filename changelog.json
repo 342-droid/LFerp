@@ -1,10 +1,62 @@
 {
-  "latestSha": "0f0709cae46a9bf1db37f0e5c057317e8223d28d",
-  "total": 544,
+  "latestSha": "6e5f51a31003de8ba5035612202312389eb00c44",
+  "total": 545,
   "days": [
     {
       "date": "2026-11-13",
       "items": [
+        {
+          "sha": "6e5f51a",
+          "type": "feat",
+          "text": "产品配置增加服务商结算系数，购销单按商品售价出单",
+          "author": "342-droid",
+          "time": "16:41",
+          "pages": [
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "module": "冷丰WMS",
+              "title": "需求单审核"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
+            },
+            {
+              "file": "RBT/rbt_purchase.html",
+              "module": "冷丰RBT",
+              "title": "采购单"
+            },
+            {
+              "file": "RBT/rbt_sales.html",
+              "module": "冷丰RBT",
+              "title": "销售单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_installment.html",
+              "text": "结算系数新增服务商结算系数，并按商品金额试算门店实付、贸易商所得、冷丰差额和服务商计提；服务商计提不能超过冷丰差额"
+            },
+            {
+              "file": "RBT/rbt_sales.html",
+              "text": "上下游销售单金额改为商品售价合计；明细去掉成交单价"
+            },
+            {
+              "file": "RBT/rbt_purchase.html",
+              "text": "上下游采购单金额改为商品售价合计；明细去掉成交单价"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "text": "复核通过后生成的购销单金额改为商品售价合计"
+            }
+          ]
+        },
         {
           "sha": "0f0709c",
           "type": "feat",
