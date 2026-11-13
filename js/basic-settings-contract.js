@@ -53,6 +53,49 @@
       docs: [
         { id: 'DOC-ST-BRAND', name: '冷丰品牌合作合同', bodyId: 'TPL001' },
         { id: 'DOC-ST-CLEAR', name: '冷丰加盟门店资金清分结算合同', bodyId: 'TPL002' }
+      ],
+      /* 法大大签署模板详情：文档 → 角色 → 控件。签署顺序按 orderNo。 */
+      controls: [
+        {
+          docId: '21111219',
+          docName: '冷丰品牌合作合同_副本.docx',
+          actors: [
+            {
+              actorId: '门店', actorType: 'corp', orderNo: 1, permissions: ['operator_sign'], identName: '杭州万达店',
+              fields: [
+                { fieldId: '4753638504', fieldName: '签名1', fieldType: 'person_sign', pageNo: 2 },
+                { fieldId: '6268297093', fieldName: '签署日期2', fieldType: 'date_sign', pageNo: 2 }
+              ]
+            },
+            {
+              actorId: '平台方', actorType: 'corp', orderNo: 2, permissions: ['sign'], identName: '冷丰合同测试',
+              fields: [
+                { fieldId: '3137903264', fieldName: '印章1', fieldType: 'corp_seal', pageNo: 2 },
+                { fieldId: '2487032433', fieldName: '签署日期1', fieldType: 'date_sign', pageNo: 2 }
+              ]
+            }
+          ]
+        },
+        {
+          docId: '6180616',
+          docName: '冷丰品牌_副本.docx',
+          actors: [
+            {
+              actorId: '门店', actorType: 'corp', orderNo: 1, permissions: ['operator_sign'], identName: '杭州万达店',
+              fields: [
+                { fieldId: '1982514207', fieldName: '签名2', fieldType: 'person_sign', pageNo: 2 },
+                { fieldId: '6448609846', fieldName: '签署日期3', fieldType: 'date_sign', pageNo: 2 }
+              ]
+            },
+            {
+              actorId: '平台方', actorType: 'corp', orderNo: 2, permissions: ['sign'], identName: '冷丰合同测试',
+              fields: [
+                { fieldId: '4934640989', fieldName: '印章3', fieldType: 'corp_seal', pageNo: 2 },
+                { fieldId: '8029769827', fieldName: '签署日期4', fieldType: 'date_sign', pageNo: 2 }
+              ]
+            }
+          ]
+        }
       ]
     },
     {
@@ -1177,17 +1220,150 @@
       '</tr>';
   }
 
-  function renderFillChecks(fields) {
+  var FIELD_TYPE_LABEL = {
+    corp_seal: '企业印章',
+    person_sign: '个人签名',
+    date_sign: '签署日期',
+    text_single_line: '单行文本',
+    text_multi_line: '多行文本'
+  };
+
+  function fieldTypeLabel(type) {
+    return FIELD_TYPE_LABEL[type] || type || '—';
+  }
+
+  function sortedControlActors(actors) {
+    return (actors || []).slice().sort(function (a, b) {
+      var left = a && a.orderNo != null ? Number(a.orderNo) : 99;
+      var right = b && b.orderNo != null ? Number(b.orderNo) : 99;
+      return left - right;
+    });
+  }
+
+  /* 没有法大大控件明细时，把档案填充字段挂到参与方下，仍按文档、参与方、字段三级展示。 */
+  function controlTree(remote) {
+    if (!remote) return [];
+    if (remote.controls && remote.controls.length) return remote.controls;
+    var actors = remote.actors || [];
+    var party = null;
+    actors.forEach(function (actor) {
+      if (!party && actor.role !== '平台方' && actor.actorId !== '甲方') party = actor;
+    });
+    party = party || actors[0];
+    var fields = (remote.fill || []).map(function (name) {
+      return {
+        fieldId: FILL_CODES[name] || name,
+        fieldName: name,
+        fieldType: 'text_single_line',
+        pageNo: null
+      };
+    });
+    return (remote.docs || []).map(function (doc) {
+      return {
+        docId: doc.id,
+        docName: doc.name,
+        actors: party ? [{
+          actorId: party.actorId,
+          actorType: party.actorType || 'corp',
+          orderNo: null,
+          permissions: party.signMode === 'auto' ? ['sign'] : ['operator_sign'],
+          identName: '',
+          fields: fields
+        }] : []
+      };
+    });
+  }
+
+  /* 控件上的参与方对齐签署方标识。门店、平台方是角色，这里显示甲方、乙方。 */
+  function participantLabel(actor, remote) {
+    if (!actor) return '—';
+    var actors = (remote && remote.actors) || [];
+    var id = actor.actorId || '';
+    var matched = null;
+    actors.forEach(function (item) {
+      if (matched || !item || !item.actorId) return;
+      if (item.actorId === id) matched = item;
+    });
+    if (!matched) {
+      actors.forEach(function (item) {
+        if (matched || !item || !item.role) return;
+        if (item.role === id || item.role === actor.role) matched = item;
+      });
+    }
+    if (matched && matched.actorId) return matched.actorId;
+    if (id === '平台方') return '甲方';
+    if (id === '门店' || id === '供应商') return '乙方';
+    return id || '—';
+  }
+
+  /* 签名、印章、签署日期不从档案取值。文本控件取平台档案字段。 */
+  function platformFieldOf(field) {
+    if (!field) return '—';
+    if (field.platformField) return field.platformField;
+    if (field.fieldType === 'text_single_line' || field.fieldType === 'text_multi_line') {
+      return field.fieldName || '—';
+    }
+    return '—';
+  }
+
+  function controlFieldCells(field) {
+    if (!field) {
+      return '<td class="ct-ctrl-muted" colspan="3">该参与方在本文档没有控件字段</td>';
+    }
+    return '<td>' + esc(field.fieldName || '—') + '</td>' +
+      '<td>' + esc(fieldTypeLabel(field.fieldType)) + '</td>' +
+      '<td>' + esc(platformFieldOf(field)) + '</td>';
+  }
+
+  function renderControlTree(remote) {
     var box = document.getElementById('ctFillList');
+    var tip = document.getElementById('ctFillTip');
     if (!box) return;
-    var list = fields || [];
-    if (!list.length) {
-      box.innerHTML = '<span class="ct-field-tip">该模板没有需要从档案填充的控件</span>';
+    var fromApi = !!(remote && remote.controls && remote.controls.length);
+    if (tip) {
+      tip.hidden = fromApi;
+      tip.textContent = fromApi
+        ? ''
+        : '该模板尚未返回逐份文档的签署控件。档案填充字段挂在参与方下，发起时按平台关联字段写入。';
+    }
+    var docs = controlTree(remote);
+    if (!docs.length) {
+      box.innerHTML = '<div class="ct-field-tip">该模板没有控件字段</div>';
       return;
     }
-    box.innerHTML = list.map(function (field) {
-      return '<div>' + esc(field) + ' → <code>' + esc(FILL_CODES[field] || field) + '</code></div>';
+    var body = docs.map(function (doc) {
+      var actors = sortedControlActors(doc.actors);
+      var lines = [];
+      if (!actors.length) {
+        lines.push({ actor: null, field: null, actorSpan: 1 });
+      } else {
+        actors.forEach(function (actor) {
+          var fields = actor.fields && actor.fields.length ? actor.fields : [null];
+          fields.forEach(function (field, index) {
+            lines.push({ actor: actor, field: field, actorSpan: index === 0 ? fields.length : 0 });
+          });
+        });
+      }
+      return lines.map(function (line, index) {
+        var docCell = index === 0
+          ? '<td class="ct-ctrl-span" rowspan="' + lines.length + '">' +
+            '<div class="ct-ctrl-strong">' + esc(doc.docName || '—') + '</div>' +
+            '<div class="ct-ctrl-meta">' + esc(doc.docId || '—') + '</div></td>'
+          : '';
+        var partyCell = line.actorSpan
+          ? '<td class="ct-ctrl-span" rowspan="' + line.actorSpan + '">' +
+            esc(line.actor ? participantLabel(line.actor, remote) : '—') +
+            '</td>'
+          : '';
+        var fieldCells = line.actor
+          ? controlFieldCells(line.field)
+          : '<td class="ct-ctrl-muted" colspan="3">该文档没有参与方控件</td>';
+        return '<tr>' + docCell + partyCell + fieldCells + '</tr>';
+      }).join('');
     }).join('');
+    box.innerHTML = '<table class="ct-ctrl-table"><thead><tr>' +
+      '<th>合同文档</th><th>参与方</th><th>控件名称</th><th>控件类型</th><th>平台关联字段</th>' +
+      '</tr></thead><tbody>' + body + '</tbody></table>';
   }
 
   function renderRemoteDocs(remote) {
@@ -1206,7 +1382,7 @@
     var actors = remote ? remote.actors : [];
     var actorBody = document.getElementById('ctActorBody');
     if (actorBody) actorBody.innerHTML = actors.map(actorRowHtml).join('');
-    renderFillChecks(remote ? remote.fill : []);
+    renderControlTree(remote);
     renderRemoteDocs(remote);
     var order = document.getElementById('ctSignOrder');
     if (order) {
