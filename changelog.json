@@ -1,10 +1,239 @@
 {
-  "latestSha": "6e5f51a31003de8ba5035612202312389eb00c44",
-  "total": 545,
+  "latestSha": "e54b0e69f8cc83fa6540a03a7b65e402c0999c7a",
+  "total": 548,
   "days": [
     {
       "date": "2026-11-13",
       "items": [
+        {
+          "sha": "e54b0e6",
+          "type": "feat",
+          "text": "购销单按买卖双方分别计算商品售价",
+          "author": "342-droid",
+          "time": "18:00",
+          "pages": [
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "module": "冷丰WMS",
+              "title": "需求单审核"
+            },
+            {
+              "file": "RBT/rbt_admit_store.html",
+              "module": "冷丰RBT",
+              "title": "门店管理"
+            },
+            {
+              "file": "RBT/rbt_contract_sign.html",
+              "module": "冷丰RBT",
+              "title": "合同签署"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_purchase.html",
+              "module": "冷丰RBT",
+              "title": "采购单"
+            },
+            {
+              "file": "RBT/rbt_sales.html",
+              "module": "冷丰RBT",
+              "title": "销售单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_purchase.html",
+              "text": "供应链采购仍用商品原始售价；门店采购的商品售价改为原始售价乘门店结算系数"
+            },
+            {
+              "file": "RBT/rbt_sales.html",
+              "text": "冷丰销售仍用商品原始售价；贸易商销售的商品售价改为原始售价乘贸易商结算系数"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "text": "详情里关联购销单的金额按各单据自己的售价合计显示"
+            },
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "text": "复核通过后生成的四张购销单按上述售价规则计价"
+            }
+          ]
+        },
+        {
+          "sha": "87564a3",
+          "type": "feat",
+          "text": "初审确认服务商，需求单展示三方应收",
+          "author": "342-droid",
+          "time": "17:31",
+          "pages": [
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "module": "冷丰WMS",
+              "title": "需求单审核"
+            },
+            {
+              "file": "RBT/rbt_admit_store.html",
+              "module": "冷丰RBT",
+              "title": "门店管理"
+            },
+            {
+              "file": "RBT/rbt_contract_sign.html",
+              "module": "冷丰RBT",
+              "title": "合同签署"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_purchase.html",
+              "module": "冷丰RBT",
+              "title": "采购单"
+            },
+            {
+              "file": "RBT/rbt_sales.html",
+              "module": "冷丰RBT",
+              "title": "销售单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "text": "初审通过先确认是否有服务商，选「是」才从主体类型为服务商的档案里选择；详情金额改为表格；补了一条待审核初审单"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "text": "列表增加贸易商、服务商、接单时间和三方应收，可按贸易商、服务商查询；详情金额单独成表"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "需求大厅总金额改为贸易商应收，服务费按总金额减商品金额"
+            }
+          ]
+        },
+        {
+          "sha": "39b88fe",
+          "type": "feat",
+          "text": "新增贸易商时主体类型可选贸易商或服务商",
+          "author": "342-droid",
+          "time": "16:51",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_trader.html",
+              "module": "冷丰WMS",
+              "title": "贸易商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "module": "冷丰WMS",
+              "title": "需求单审核"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
+              "file": "MDM/mdm_party_all.html",
+              "module": "冷丰WMS",
+              "title": "所有主体"
+            },
+            {
+              "file": "MDM/mdm_people_anchor.html",
+              "module": "冷丰WMS",
+              "title": "主播"
+            },
+            {
+              "file": "MDM/mdm_people_bd.html",
+              "module": "冷丰WMS",
+              "title": "BD推广员"
+            },
+            {
+              "file": "MDM/mdm_people_driver.html",
+              "module": "冷丰WMS",
+              "title": "司机"
+            },
+            {
+              "file": "MDM/mdm_people_purchaser.html",
+              "module": "冷丰WMS",
+              "title": "采购员"
+            },
+            {
+              "file": "MDM/mdm_super_admin_accounts.html",
+              "module": "冷丰WMS",
+              "title": "商户主体建档"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_party_all.html",
+              "text": "新增贸易商商家时主体类型改为可选，只能选贸易商或服务商；选服务商时禁用确认改为服务商"
+            },
+            {
+              "file": "MDM/mdm_archive_trader.html",
+              "text": "查询、列表、新增编辑和详情增加主体类型；示例中宁波海丰商业保理有限公司为服务商"
+            }
+          ]
+        },
         {
           "sha": "6e5f51a",
           "type": "feat",
