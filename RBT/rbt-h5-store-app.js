@@ -47,7 +47,10 @@
     };
 
     var account = null;
-    var screen = 'home';
+    var screen = 'list';
+    var tab = 'home';
+    var repayFilter = 'pending';
+    var billCode = '';
     var signCode = '';
     var packageCode = '';
     var pickedQty = {};
@@ -673,6 +676,222 @@
             '</div></section></div>';
     }
 
+    function ratioText(item) {
+        var api = window.RbtSettleRatio;
+        if (item && item.repayMethod === '比例付' && api && typeof api.textOf === 'function') {
+            return api.textOf(item) || '—';
+        }
+        return item && item.repayPeriod ? String(item.repayPeriod) : '—';
+    }
+
+    var REPAY_DEMO_KEY = 'rbt_h5_store_repay_demo_v1';
+    var REPAY_DEMO_SCENES = [
+        { id: 'pending', label: '待还款 · 无每日明细' },
+        { id: 'repaid-empty', label: '已还款 · 无每日明细' },
+        { id: 'repaid-days', label: '已还款 · 有每日明细' }
+    ];
+    /* 演示日数据：已发生日期的营业流水 × 该渠道结算比例。不把总金额拆成每日本金，也不预造未发生的日期。 */
+    var REPAY_DEMO_DAYS = [
+        { date: '2026-11-07', channel: 'POS', turnover: 860 },
+        { date: '2026-11-08', channel: '直播', turnover: 420 },
+        { date: '2026-11-09', channel: '商城', turnover: 310 },
+        { date: '2026-11-10', channel: 'POS', turnover: 980 },
+        { date: '2026-11-11', channel: '直播', turnover: 560 },
+        { date: '2026-11-12', channel: '商城', turnover: 240 }
+    ];
+
+    function readRepayDemo() {
+        try {
+            var id = localStorage.getItem(REPAY_DEMO_KEY);
+            if (REPAY_DEMO_SCENES.some(function (scene) { return scene.id === id; })) return id;
+        } catch (e) {}
+        return 'repaid-days';
+    }
+
+    function channelRatio(item, channel) {
+        var list = item && item.settleRatios || [];
+        var fallback = 0;
+        var i;
+        for (i = 0; i < list.length; i++) {
+            var value = Number(String(list[i].fallback || '').replace('%', ''));
+            if (!isFinite(value) || value <= 0) continue;
+            if (!fallback) fallback = value;
+            if (list[i].channel === channel) return value;
+        }
+        return fallback || 10;
+    }
+
+    function repayDayRows(item) {
+        return REPAY_DEMO_DAYS.map(function (row) {
+            var ratio = channelRatio(item, row.channel);
+            var due = (Math.round(row.turnover * ratio) / 100).toFixed(2);
+            return {
+                date: row.date,
+                channel: row.channel,
+                turnover: row.turnover.toFixed(2),
+                ratio: ratio.toFixed(2) + '%',
+                due: due,
+                actual: due
+            };
+        });
+    }
+
+    function sumDayField(days, field) {
+        return (days || []).reduce(function (total, row) {
+            return total + Number(row[field] || 0);
+        }, 0);
+    }
+
+    function repayAnchorCode() {
+        var found = '';
+        storeDemands().some(function (item) {
+            if (item && item.status === '支付中') {
+                found = item.code;
+                return true;
+            }
+            return false;
+        });
+        return found;
+    }
+
+    /* 验收场景只改还款页看到的状态和每日明细，需求单列表仍是原状态。 */
+    function repayView(item) {
+        var scene = readRepayDemo();
+        if (!item || scene === 'pending' || item.code !== repayAnchorCode()) return item;
+        var view = {};
+        Object.keys(item).forEach(function (key) { view[key] = item[key]; });
+        view.status = '已完成';
+        view._demoRepaid = true;
+        if (scene === 'repaid-days') view._days = repayDayRows(item);
+        return view;
+    }
+
+    function repayViews() {
+        return storeDemands().map(repayView);
+    }
+
+    function repayDemands(done) {
+        return repayViews().filter(function (item) {
+            return item && item.status === (done ? '已完成' : '支付中');
+        });
+    }
+
+    function syncTabbar() {
+        var bar = document.getElementById('rbtH5Tabbar');
+        if (!bar) return;
+        var show = screen === 'list' || screen === 'repay' || screen === 'mine';
+        bar.hidden = !show;
+        Array.prototype.forEach.call(bar.querySelectorAll('[data-tab]'), function (btn) {
+            btn.classList.toggle('is-on', show && btn.getAttribute('data-tab') === tab);
+        });
+    }
+
+    /* 待还款=支付中，已还款=已完成。比例付不预造应履行金额，也不写剩余天数和逾期。 */
+    function renderRepay() {
+        var done = repayFilter === 'done';
+        var rows = repayDemands(done);
+        var daySum = 0;
+        var hasDays = false;
+        rows.forEach(function (item) {
+            if (!item._days || !item._days.length) return;
+            hasDays = true;
+            daySum += sumDayField(item._days, 'actual');
+        });
+        setHead('还款');
+        return '<div class="rbt-repay-hero">' +
+            '<div class="rbt-repay-switch" role="tablist">' +
+            '<button type="button" data-repay-view="pending"' + (done ? '' : ' class="is-on"') + '>待还款</button>' +
+            '<button type="button" data-repay-view="done"' + (done ? ' class="is-on"' : '') + '>已还款</button>' +
+            '</div>' +
+            '<p class="rbt-repay-hero__label">' + (done ? '实际履行' : '应履行') + '</p>' +
+            '<p class="rbt-repay-hero__amt">' + (hasDays ? ('¥' + money(daySum)) : (done ? '未产生' : '未计算')) + '</p>' +
+            '<button type="button" class="rbt-repay-go" data-bill-first ' + (rows.length ? '' : 'disabled') + '>账单明细</button>' +
+            '<p class="rbt-repay-hero__note">' + (hasDays
+                ? '已产生的日结按当日营业流水乘结算比例计算，未发生的日期不预造。'
+                : (done
+                    ? '已完成只表示需求状态。完成依据待确认，实际履行未产生。'
+                    : '支付中表示复核已通过。比例付不预造固定金额，起算待确认。')) + '</p>' +
+            '</div>' +
+            (rows.length ? rows.map(function (item) {
+                var side = item._days && item._days.length
+                    ? ('实际履行 ¥' + money(sumDayField(item._days, 'actual')) + ' · ' + item._days.length + '日')
+                    : (done ? '实际履行未产生' : '应履行未计算');
+                return '<button type="button" class="rbt-repay-row" data-bill="' + esc(item.code) + '">' +
+                    '<span><span class="rbt-repay-row__title">' + esc(item.code) + '</span>' +
+                    '<span class="rbt-repay-row__sub">总金额 ¥' + esc(item.amount || '—') + ' · ' + esc(item.repayCycle || '—') + ' ' + esc(item.repayMethod || '—') + '</span></span>' +
+                    '<span class="rbt-repay-row__side' + (done ? ' is-done' : '') + '"><b>' + esc(item.status) + '</b><span>' +
+                    esc(side) + '</span></span></button>';
+            }).join('') : '<div class="rbt-h5-empty">' + (done ? '暂无已完成的合作' : '暂无支付中的合作') + '</div>');
+    }
+
+    function renderDayList(days) {
+        return days.slice().reverse().map(function (day) {
+            return '<div class="rbt-bill__day">' +
+                '<span class="rbt-bill__day-date">' + esc(String(day.date).slice(5)) + '</span>' +
+                '<span class="rbt-bill__day-body"><b>实际履行 ¥' + esc(money(day.actual)) + '</b>' +
+                '<span>' + esc(day.channel) + '营业流水 ¥' + esc(money(day.turnover)) + ' · 比例 ' + esc(day.ratio) + '</span></span></div>';
+        }).join('');
+    }
+
+    function renderBill(item) {
+        var done = item.status === '已完成';
+        var days = item._days || [];
+        var dueSum = days.length ? money(sumDayField(days, 'due')) : '';
+        var actSum = days.length ? money(sumDayField(days, 'actual')) : '';
+        setHead('账单明细');
+        var lines = days.length
+            ? [
+                ['履约计划', '已按日产生'],
+                ['结算比例', ratioText(item)],
+                ['计算来源依据', '获准营业事实'],
+                ['应履行', '¥' + dueSum],
+                ['可结算', '¥' + dueSum],
+                ['实际履行', '¥' + actSum],
+                ['原结算关联', '未生成'],
+                ['差异事实', dueSum === actSum ? '未登记' : '应履行与实际履行不一致']
+            ]
+            : [
+                ['履约计划', done ? '需求已完成，完成依据待确认' : '未激活'],
+                ['结算比例', ratioText(item)],
+                ['计算来源依据', '无获准营业事实'],
+                ['应履行', done ? '完成依据待确认' : '未产生'],
+                ['可结算', '未产生'],
+                ['实际履行', '未产生'],
+                ['原结算关联', '未生成'],
+                ['差异事实', done ? '未登记' : '源数据缺失，不记成零']
+            ];
+        return '<section class="rbt-bill__head">' +
+            '<div class="rbt-bill__top"><span class="rbt-bill__code">' + esc(item.code) + '</span><span class="rbt-bill__tag">' + esc(item.status || '—') + '</span></div>' +
+            '<p class="rbt-bill__label">总金额</p>' +
+            '<p class="rbt-bill__amt">' + esc(item.amount || '—') + '</p>' +
+            '<div class="rbt-bill__stats">' +
+            '<div><span>结算周期</span><b>' + esc(item.repayCycle || '—') + '</b></div>' +
+            '<div><span>结算方式</span><b>' + esc(item.repayMethod || '—') + '</b></div>' +
+            '</div>' +
+            '<div class="rbt-bill__trader"><span>接单贸易商</span><b>' + esc(item.traderName || '—') + '</b></div>' +
+            '</section>' +
+            '<section class="rbt-bill__sheet"><h3>账单明细</h3>' +
+            lines.map(function (line) {
+                return '<div class="rbt-bill__line"><span>' + esc(line[0]) + '</span><b>' + esc(line[1]) + '</b></div>';
+            }).join('') +
+            '</section>' +
+            '<section class="rbt-bill__sheet"><h3>每日明细</h3>' +
+            (days.length
+                ? renderDayList(days)
+                : ('<p class="rbt-bill__empty">' + (done
+                    ? '暂无每日明细。完成依据待确认，不补造每日金额。'
+                    : '暂无每日明细。履约计划未激活，比例付不预造每日金额。') + '</p>')) +
+            '</section>';
+    }
+
+    function renderMine() {
+        setHead('我的');
+        return '<section class="rbt-h5-card"><h2>' + esc(account && account.name ? account.name : '门店') + '</h2>' +
+            '<p>门店编码：' + esc(account && account.code) + '</p>' +
+            '<p>手机号：' + esc(account && account.phone) + '</p>' +
+            '<button type="button" class="rbt-h5-action" data-switch-store>切换门店</button></section>';
+    }
+
     function syncHomeChrome() {
         var phone = document.getElementById('rbtH5Phone');
         var scroll = document.getElementById('rbtH5Scroll');
@@ -681,10 +900,42 @@
         if (scroll) scroll.classList.toggle('is-home', on);
     }
 
+    /* 返回放在门店名左侧。首页、还款、我的没有上一级。 */
+    function backTarget() {
+        if (screen === 'bill') return 'repay';
+        if (screen === 'packages' || screen === 'sign') return 'list';
+        if (screen === 'skus') return 'packages';
+        if (screen === 'installment') return 'skus';
+        return '';
+    }
+
+    function syncHeadBack() {
+        var btn = document.getElementById('rbtH5HeadBack');
+        if (!btn) return;
+        btn.classList.toggle('is-on', !!(account && backTarget()));
+    }
+
+    function goBack(target) {
+        if (target === 'repay') {
+            tab = 'repay';
+            screen = 'repay';
+        } else if (target) {
+            screen = target;
+            if (screen === 'packages') {
+                clearPicked();
+                clearInstallmentChoice();
+            }
+            if (screen === 'skus') clearInstallmentChoice();
+        }
+        render();
+    }
+
     function render() {
         var scroll = document.getElementById('rbtH5Scroll');
         if (!scroll) return;
         syncHomeChrome();
+        syncTabbar();
+        syncHeadBack();
         var createBar = document.getElementById('rbtH5Create');
         if (createBar) createBar.hidden = screen !== 'list';
         if (screen === 'home') {
@@ -695,8 +946,7 @@
         if (screen === 'packages') {
             setHead('选择商品包');
             var choices = packages();
-            scroll.innerHTML = '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="list">返回</button></div>' +
-                (choices.length ? choices.map(function (item) {
+            scroll.innerHTML = (choices.length ? choices.map(function (item) {
                     return '<button type="button" class="rbt-h5-card" data-package="' + esc(item.code) + '" style="display:block;width:100%;text-align:left;cursor:pointer;">' +
                         '<h2>' + esc(item.name) + '</h2><p>' + esc(item.code) + ' · ' + item.skus.length + ' 个商品</p></button>';
                 }).join('') : '<div class="rbt-h5-empty">暂无本门店的商品包</div>');
@@ -706,13 +956,13 @@
             var pkg = findPackage(packageCode);
             setHead('勾选商品');
             if (!pkg) {
-                scroll.innerHTML = '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="packages">返回</button></div><div class="rbt-h5-empty">商品包不存在</div>';
+                scroll.innerHTML = '<div class="rbt-h5-empty">商品包不存在</div>';
                 return;
             }
             var lines = selectedLines(pkg);
             var allOn = pkg.skus.length > 0 && lines.length === pkg.skus.length;
             var pieceCount = lines.reduce(function (total, line) { return total + line.qty; }, 0);
-            scroll.innerHTML = '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="packages">返回</button><span>' + esc(pkg.name) + '</span></div>' +
+            scroll.innerHTML = '<p class="rbt-h5-step-name">' + esc(pkg.name) + '</p>' +
                 (pkg.skus.length
                     ? '<label class="rbt-h5-check"><input type="checkbox" data-all ' + (allOn ? 'checked' : '') + '><span><strong>全选</strong><span>共 ' + pkg.skus.length + ' 个商品</span></span></label>' +
                         pkg.skus.map(function (line) {
@@ -749,15 +999,14 @@
             var instPkg = findPackage(packageCode);
             setHead('结算');
             if (!instPkg) {
-                scroll.innerHTML = '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="skus">返回</button></div><div class="rbt-h5-empty">商品包不存在</div>';
+                scroll.innerHTML = '<div class="rbt-h5-empty">商品包不存在</div>';
                 return;
             }
             var instLines = selectedLines(instPkg);
             var instAmount = sumLines(instLines);
             var plans = matchedInstallments(instPkg, instAmount);
             if (!plans.length) {
-                scroll.innerHTML = '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="skus">返回</button></div>' +
-                    '<div class="rbt-h5-empty">暂无匹配的产品配置</div>';
+                scroll.innerHTML = '<div class="rbt-h5-empty">暂无匹配的产品配置</div>';
                 return;
             }
             var currentPlan = ensureInstallmentChoice(plans);
@@ -780,7 +1029,7 @@
                           return '<button type="button" class="rbt-h5-chip' + (String(period) === String(repayPeriod) ? ' is-on' : '') + '" data-period="' + esc(period) + '">' + esc(period) + '期</button>';
                       }).join('') + '</div></div>'
                     : '');
-            scroll.innerHTML = '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="skus">返回</button><span>' + esc(instPkg.name) + '</span></div>' +
+            scroll.innerHTML = '<p class="rbt-h5-step-name">' + esc(instPkg.name) + '</p>' +
                 '<section class="rbt-h5-inst">' +
                 '<div class="rbt-h5-inst__row rbt-h5-inst__row--muted"><span class="rbt-h5-inst__label">商品金额</span>' +
                 '<span class="rbt-h5-inst__amount">¥ ' + goodsAmount + '</span></div>' +
@@ -806,23 +1055,45 @@
         if (screen === 'sign') {
             setHead('合同签署');
             var signing = window.RbtDemandData && window.RbtDemandData.get(signCode);
-            scroll.innerHTML = '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="list">返回</button></div>' +
+            scroll.innerHTML = '' +
                 (window.RbtContractSign
                     ? window.RbtContractSign.render(signing, { role: 'store', code: account && account.code, name: account && account.name })
                     : '<div class="rbt-h5-empty">合同签署页不可用</div>');
             return;
         }
-        setHead('需求列表');
+        if (screen === 'bill') {
+            var bill = repayViews().filter(function (item) { return item.code === billCode; })[0];
+            scroll.innerHTML = bill
+                ? renderBill(bill)
+                : '<div class="rbt-h5-empty">账单不存在</div>';
+            return;
+        }
+        if (tab === 'mine') {
+            scroll.innerHTML = renderMine();
+            return;
+        }
+        if (tab === 'repay') {
+            scroll.innerHTML = renderRepay();
+            return;
+        }
+        setHead('首页');
         var rows = storeDemands();
-        scroll.innerHTML = '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="home">返回</button></div>' +
-            (rows.length
-                ? rows.map(function (item) { return renderDemand(item, true); }).join('')
-                : '<div class="rbt-h5-empty">暂无需求</div>');
+        scroll.innerHTML = rows.length
+            ? rows.map(function (item) { return renderDemand(item, true); }).join('')
+            : '<div class="rbt-h5-empty">暂无需求</div>';
     }
 
     function open(next) {
         account = next;
-        screen = 'home';
+        if (readRepayDemo() === 'pending') {
+            tab = 'home';
+            screen = 'list';
+            repayFilter = 'pending';
+        } else {
+            tab = 'repay';
+            screen = 'repay';
+            repayFilter = 'done';
+        }
         packageCode = '';
         clearPicked();
         clearInstallmentChoice();
@@ -831,9 +1102,14 @@
 
     function close() {
         account = null;
-        screen = 'home';
+        tab = 'home';
+        screen = 'list';
+        var tabbar = document.getElementById('rbtH5Tabbar');
+        if (tabbar) tabbar.hidden = true;
         var phone = document.getElementById('rbtH5Phone');
         var scroll = document.getElementById('rbtH5Scroll');
+        var headBack = document.getElementById('rbtH5HeadBack');
+        if (headBack) headBack.classList.remove('is-on');
         if (phone) phone.classList.remove('is-home');
         if (scroll) {
             scroll.classList.remove('is-home');
@@ -843,7 +1119,57 @@
         if (createBar) createBar.hidden = true;
     }
 
+    var headBackBtn = document.getElementById('rbtH5HeadBack');
+    if (headBackBtn) {
+        headBackBtn.addEventListener('click', function () {
+            var target = backTarget();
+            if (target) goBack(target);
+        });
+    }
+
     document.getElementById('rbtH5App').addEventListener('click', function (event) {
+        var tabBtn = event.target.closest('[data-tab]');
+        var repayView = event.target.closest('[data-repay-view]');
+        var billBtn = event.target.closest('[data-bill]');
+        var billFirst = event.target.closest('[data-bill-first]');
+        var backRepay = event.target.closest('[data-back-repay]');
+        var switchStore = event.target.closest('[data-switch-store]');
+        if (tabBtn) {
+            tab = tabBtn.getAttribute('data-tab') || 'home';
+            screen = tab === 'repay' ? 'repay' : (tab === 'mine' ? 'mine' : 'list');
+            render();
+            return;
+        }
+        if (repayView) {
+            repayFilter = repayView.getAttribute('data-repay-view') === 'done' ? 'done' : 'pending';
+            tab = 'repay';
+            screen = 'repay';
+            render();
+            return;
+        }
+        if (billFirst || billBtn) {
+            var code = billBtn ? billBtn.getAttribute('data-bill') : '';
+            if (!code) {
+                var first = repayDemands(repayFilter === 'done')[0];
+                code = first ? first.code : '';
+            }
+            if (!code) return;
+            billCode = code;
+            tab = 'repay';
+            screen = 'bill';
+            render();
+            return;
+        }
+        if (backRepay) {
+            tab = 'repay';
+            screen = 'repay';
+            render();
+            return;
+        }
+        if (switchStore && window.RbtH5StoreLogin) {
+            window.RbtH5StoreLogin.logout();
+            return;
+        }
         var entry = event.target.closest('[data-entry]');
         var create = event.target.closest('[data-create]');
         var back = event.target.closest('[data-back]');
@@ -1135,6 +1461,33 @@
             render();
         }
     });
+
+    function mountRepayDemo() {
+        if (document.getElementById('rbtRepayDemo')) return;
+        var current = readRepayDemo();
+        var panel = document.createElement('div');
+        panel.id = 'rbtRepayDemo';
+        panel.className = 'rbt-repay-demo';
+        panel.innerHTML =
+            '<div class="rbt-repay-demo__title">还款验收开关</div>' +
+            '<label class="rbt-repay-demo__row">场景' +
+            '<select id="rbtRepayDemoScene">' +
+            REPAY_DEMO_SCENES.map(function (scene) {
+                return '<option value="' + scene.id + '"' + (scene.id === current ? ' selected' : '') + '>' + scene.label + '</option>';
+            }).join('') +
+            '</select></label>' +
+            '<p class="rbt-repay-demo__hint">已还款的每日明细按营业流水和结算比例生成。只影响还款页，不改需求单状态。</p>' +
+            '<button type="button" class="rbt-repay-demo__apply" id="rbtRepayDemoApply">应用并刷新</button>';
+        document.body.appendChild(panel);
+        document.getElementById('rbtRepayDemoApply').addEventListener('click', function () {
+            var select = document.getElementById('rbtRepayDemoScene');
+            var next = select ? select.value : current;
+            try { localStorage.setItem(REPAY_DEMO_KEY, next); } catch (e) {}
+            window.location.reload();
+        });
+    }
+
+    mountRepayDemo();
 
     window.RbtH5StoreApp = { open: open, close: close };
 })();

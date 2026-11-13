@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="../css/lf-mdm-edit-page.css">
     <link rel="stylesheet" href="../css/lf-mdm-points-rule.css">
     <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
-    <link rel="stylesheet" href="../css/lf-contract.css">
+    <link rel="stylesheet" href="../css/lf-contract.css?v=20261113-ctrl-compact">
 </head>
 <body data-ct-page="template-form">
     <div id="sidebar-container"></div>
@@ -114,20 +114,14 @@
                         </thead>
                         <tbody id="ctActorBody"></tbody>
                     </table>
-                    <div class="ct-field-tip">参与方标识必须与法大大模板一致，例如甲方、乙方。</div>
                 </div>
             </section>
 
             <section class="pts-rule-card">
                 <div class="pts-rule-card__title">控件填充字段</div>
                 <div class="pts-rule-card__body">
-                    <div class="pts-rule-field">
-                        <div class="pts-rule-field__label">从档案带出</div>
-                        <div class="pts-rule-field__control">
-                            <div class="ct-map-list" id="ctFillList"></div>
-                            <div class="ct-field-tip">发起时按控件编码写入法大大，不能只按中文名填充。</div>
-                        </div>
-                    </div>
+                    <div class="ct-field-tip" id="ctFillTip" hidden></div>
+                    <div id="ctFillList"></div>
                 </div>
             </section>
 
@@ -140,6 +134,6 @@
     <script src="../js/common.js"></script>
     <script src="../js/store-biz-structure.js?v=20261021-internal"></script>
     <script src="../js/contract-bodies.js?v=20261026-tpl-detail"></script>
-    <script src="../js/basic-settings-contract.js?v=20261112-contract-push"></script>
+    <script src="../js/basic-settings-contract.js?v=20261113-ctrl-map"></script>
 </body>
 </html>

@@ -5,6 +5,8 @@
     var screen = 'home';
     var hallFilter = 'pending';
     var signCode = '';
+    var collectFilter = 'pending';
+    var collectCode = '';
 
     function esc(value) {
         return String(value == null ? '' : value)
@@ -154,7 +156,75 @@
             '<button type="button" class="rbt-h5-tool" data-entry="hall">' +
             '<span class="rbt-h5-tool__icon" style="background:' + orange + '">' + hall + '</span>' +
             '<span>需求大厅</span></button>' +
+            '<button type="button" class="rbt-h5-tool" data-entry="collect">' +
+            '<span class="rbt-h5-tool__icon" style="background:' + orange + '">' + hall + '</span>' +
+            '<span>收款</span></button>' +
             '</div></section></div>';
+    }
+
+    function ratioText(item) {
+        var api = window.RbtSettleRatio;
+        if (item && item.repayMethod === '比例付' && api && typeof api.textOf === 'function') {
+            return api.textOf(item) || '—';
+        }
+        return item && item.repayPeriod ? String(item.repayPeriod) : '—';
+    }
+
+    function collectDemands(done) {
+        return acceptedDemands().filter(function (item) {
+            return item && item.status === (done ? '已完成' : '支付中');
+        });
+    }
+
+    /* 贸易商收款看实际资方到账。支付中没有到账，已完成也不补到账。 */
+    function renderCollect() {
+        var done = collectFilter === 'done';
+        var rows = collectDemands(done);
+        setHead('收款');
+        return '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="home">返回</button></div>' +
+            '<div class="rbt-repay-hero">' +
+            '<div class="rbt-repay-switch" role="tablist">' +
+            '<button type="button" data-collect-view="pending"' + (done ? '' : ' class="is-on"') + '>待收款</button>' +
+            '<button type="button" data-collect-view="done"' + (done ? ' class="is-on"' : '') + '>已收款</button>' +
+            '</div>' +
+            '<p class="rbt-repay-hero__label">实际资方到账</p>' +
+            '<p class="rbt-repay-hero__amt">未产生</p>' +
+            '<button type="button" class="rbt-repay-go" data-collect-first ' + (rows.length ? '' : 'disabled') + '>账单明细</button>' +
+            '<p class="rbt-repay-hero__note">' + (done
+                ? '已完成只表示需求状态。实际资方到账未产生。'
+                : '支付中表示复核已通过。应履行未计算，不能记成已收款。') + '</p>' +
+            '</div>' +
+            (rows.length ? rows.map(function (item) {
+                return '<button type="button" class="rbt-repay-row" data-collect="' + esc(item.code) + '">' +
+                    '<span><span class="rbt-repay-row__title">' + esc(item.code) + '</span>' +
+                    '<span class="rbt-repay-row__sub">' + esc(item.storeName || '—') + ' · 总金额 ¥' + esc(item.amount || '—') + '</span></span>' +
+                    '<span class="rbt-repay-row__side' + (done ? ' is-done' : '') + '"><b>' + esc(item.status) + '</b><span>到账未产生</span></span></button>';
+            }).join('') : '<div class="rbt-h5-empty">' + (done ? '暂无已完成的合作' : '暂无支付中的合作') + '</div>');
+    }
+
+    function renderCollectBill(item) {
+        var done = item.status === '已完成';
+        setHead('账单明细');
+        var lines = [
+            ['门店', (item.storeName || '—') + '（' + (item.storeCode || '—') + '）'],
+            ['结算周期', item.repayCycle || '—'],
+            ['结算方式', item.repayMethod || '—'],
+            ['结算比例', ratioText(item)],
+            ['应履行', done ? '完成依据待确认' : '未产生'],
+            ['可结算', '未产生'],
+            ['实际资方到账', '未产生'],
+            ['原结算关联', '未生成']
+        ];
+        return '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="collect">返回</button></div>' +
+            '<section class="rbt-bill__head">' +
+            '<div class="rbt-bill__top"><span class="rbt-bill__code">' + esc(item.code) + '</span><span class="rbt-bill__tag">' + esc(item.status || '—') + '</span></div>' +
+            '<p class="rbt-bill__label">总金额</p>' +
+            '<p class="rbt-bill__amt">' + esc(item.amount || '—') + '</p></section>' +
+            '<section class="rbt-bill__sheet"><h3>账单明细</h3>' +
+            lines.map(function (line) {
+                return '<div class="rbt-bill__line"><span>' + esc(line[0]) + '</span><b>' + esc(line[1]) + '</b></div>';
+            }).join('') +
+            '</section>';
     }
 
     function render() {
@@ -168,6 +238,17 @@
                 (window.RbtContractSign
                     ? window.RbtContractSign.render(signing, { role: 'trader', name: traderName(), phone: account.phone })
                     : '<div class="rbt-h5-empty">合同签署页不可用</div>');
+            return;
+        }
+        if (tab === 'hall' && screen === 'collect-bill') {
+            var collectBill = acceptedDemands().filter(function (item) { return item.code === collectCode; })[0];
+            scroll.innerHTML = collectBill
+                ? renderCollectBill(collectBill)
+                : '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="collect">返回</button></div><div class="rbt-h5-empty">账单不存在</div>';
+            return;
+        }
+        if (tab === 'hall' && screen === 'collect') {
+            scroll.innerHTML = renderCollect();
             return;
         }
         if (tab === 'hall' && screen === 'home') {
@@ -288,6 +369,13 @@
             render();
             return;
         }
+        if (entry && entry.getAttribute('data-entry') === 'collect') {
+            tab = 'hall';
+            screen = 'collect';
+            collectFilter = 'pending';
+            render();
+            return;
+        }
         if (confirmDeal) {
             var dealCode = confirmDeal.getAttribute('data-confirm-deal');
             if (!window.confirm('确认签约「' + dealCode + '」？确认后生成销售合同和采购合同，进入签署。')) return;
@@ -341,10 +429,34 @@
             }
             return;
         }
+        var collectView = event.target.closest('[data-collect-view]');
+        var collectBtn = event.target.closest('[data-collect]');
+        var collectFirst = event.target.closest('[data-collect-first]');
+        if (collectView) {
+            collectFilter = collectView.getAttribute('data-collect-view') === 'done' ? 'done' : 'pending';
+            tab = 'hall';
+            screen = 'collect';
+            render();
+            return;
+        }
+        if (collectFirst || collectBtn) {
+            var collectId = collectBtn ? collectBtn.getAttribute('data-collect') : '';
+            if (!collectId) {
+                var collectRow = collectDemands(collectFilter === 'done')[0];
+                collectId = collectRow ? collectRow.code : '';
+            }
+            if (!collectId) return;
+            collectCode = collectId;
+            tab = 'hall';
+            screen = 'collect-bill';
+            render();
+            return;
+        }
         if (back) {
             screen = back.getAttribute('data-back') || 'mine';
             if (screen === 'hall') hallFilter = 'accepted';
-            tab = screen === 'home' || screen === 'hall' ? 'hall' : 'mine';
+            if (screen === 'collect') collectFilter = collectFilter || 'pending';
+            tab = screen === 'home' || screen === 'hall' || screen === 'collect' ? 'hall' : 'mine';
             render();
             return;
         }

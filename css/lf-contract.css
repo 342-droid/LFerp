@@ -294,6 +294,55 @@ body[data-ct-page] .table td:last-child {
   height: 32px;
 }
 
+.ct-ctrl-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.ct-ctrl-table th,
+.ct-ctrl-table td {
+  border: 1px solid #eee;
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.ct-ctrl-table th {
+  background: #fafafa;
+  font-weight: 600;
+  color: #606266;
+  white-space: nowrap;
+}
+
+.ct-ctrl-table td.ct-ctrl-span {
+  vertical-align: top;
+  background: #fcfcfc;
+  width: 18%;
+}
+
+.ct-ctrl-strong {
+  font-weight: 600;
+  color: #303133;
+  line-height: 1.4;
+}
+
+.ct-ctrl-meta,
+.ct-ctrl-muted {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 400;
+  color: #999;
+  line-height: 1.4;
+}
+
+.ct-ctrl-table code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  color: #303133;
+}
+
 .ct-map-list {
   display: flex;
   flex-direction: column;

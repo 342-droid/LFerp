@@ -320,6 +320,21 @@
                     uploadedAt: '2026-11-12 17:20:08',
                     uploadedBy: '王丽'
                 }
+            }, xianDa)),
+            /* 复核已通过，供履约页引用。比例付不预造逐期金额，也不记还款。 */
+            rowSeed(Object.assign({
+                code: 'XQ00023', storeCode: 'ONS00001', storeName: '西湖中心生鲜店',
+                pkg: fresh, plan: freshPlan, status: '支付中',
+                skus: [{ code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 8 }, { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 6 }],
+                amount: '591.20', creator: '喻巧', createdAt: '2026-11-06 09:16:40', updater: '王丽', updatedAt: '2026-11-09 10:28:16',
+                acceptedAt: '2026-11-06 14:02:18',
+                signings: signedRows('ONS00001', '西湖中心生鲜店', '杭州鲜达贸易有限公司', '2026-11-08 11:26:33'),
+                guaranteeDeposit: {
+                    paid: true,
+                    voucherName: '缴纳凭证',
+                    uploadedAt: '2026-11-09 10:28:16',
+                    uploadedBy: '王丽'
+                }
             }, xianDa))
         ];
     }

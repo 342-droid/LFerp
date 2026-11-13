@@ -70,7 +70,8 @@
     if (typeof saved.platformDays === 'number' && saved.platformDays >= 0) {
       out.platformDays = saved.platformDays;
     }
-    if (Array.isArray(saved.categories) && saved.categories.length) {
+    /* 空数组也要认：用户移除全部类目并保存后，不能再退回默认 9 条。 */
+    if (Array.isArray(saved.categories)) {
       out.categories = saved.categories;
     }
     out.products =

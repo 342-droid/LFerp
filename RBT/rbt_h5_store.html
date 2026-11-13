@@ -61,8 +61,36 @@
             display: flex;
             flex-direction: column;
         }
-        .rbt-h5-phone.is-app .rbt-h5-phone__head { padding: 28px 16px 14px; }
-        .rbt-h5-phone.is-app .rbt-h5-phone__head h1 { font-size: 20px; }
+        .rbt-h5-phone.is-app .rbt-h5-phone__head {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            padding: 28px 16px 14px;
+        }
+        .rbt-h5-phone.is-app .rbt-h5-phone__head h1 {
+            flex: 1;
+            min-width: 0;
+            font-size: 20px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .rbt-h5-phone.is-app .rbt-h5-phone__head p { display: none; }
+        .rbt-h5-head-back {
+            flex: none;
+            width: 28px;
+            height: 28px;
+            margin-left: -4px;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: #fff;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .rbt-h5-phone.is-app .rbt-h5-head-back.is-on { display: flex; }
         .rbt-h5-phone.is-app .rbt-h5-phone__body { padding: 0; }
         .rbt-h5-field {
             margin-bottom: 12px;
@@ -219,6 +247,12 @@
             height: 44px;
             margin: 0 auto;
             text-align: center;
+        }
+        .rbt-h5-step-name {
+            margin: 0 0 12px;
+            color: #222;
+            font-size: 15px;
+            font-weight: 600;
         }
         .rbt-h5-bar {
             display: flex;
@@ -585,6 +619,163 @@
             color: #ff7019;
             font-weight: 600;
         }
+        .rbt-h5-tabbar {
+            flex: none;
+            display: flex;
+            height: 54px;
+            border-top: 1px solid #eee;
+            background: #fff;
+        }
+        .rbt-h5-tabbar[hidden] { display: none; }
+        .rbt-h5-tabbar button {
+            flex: 1;
+            border: 0;
+            background: transparent;
+            color: #999;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .rbt-h5-tabbar button.is-on { color: #ff7019; font-weight: 600; }
+        .rbt-repay-switch {
+            display: flex;
+            margin: 0 0 18px;
+            padding: 3px;
+            border-radius: 8px;
+            background: #f2f3f5;
+        }
+        .rbt-repay-switch button {
+            flex: 1;
+            height: 32px;
+            border: 0;
+            border-radius: 6px;
+            background: transparent;
+            color: #666;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .rbt-repay-switch button.is-on { background: #fff; color: #222; font-weight: 600; }
+        .rbt-repay-hero { padding: 8px 8px 18px; text-align: center; }
+        .rbt-repay-hero__label { margin: 0; color: #888; font-size: 14px; }
+        .rbt-repay-hero__amt {
+            margin: 8px 0 16px;
+            color: #ff7019;
+            font-size: 36px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        .rbt-repay-go {
+            display: block;
+            width: 100%;
+            height: 44px;
+            border: 0;
+            border-radius: 6px;
+            background: #ff7019;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .rbt-repay-go:disabled { background: #c9cdd4; cursor: default; }
+        .rbt-repay-hero__note { margin: 12px 0 0; color: #999; font-size: 12px; line-height: 1.6; }
+        .rbt-repay-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            width: 100%;
+            margin: 0 0 8px;
+            padding: 14px 12px;
+            border: 0;
+            border-radius: 10px;
+            background: #fff;
+            text-align: left;
+            cursor: pointer;
+            font: inherit;
+        }
+        .rbt-repay-row__title { display: block; color: #222; font-size: 15px; font-weight: 600; }
+        .rbt-repay-row__sub { display: block; margin-top: 6px; color: #888; font-size: 12px; }
+        .rbt-repay-row__side { text-align: right; }
+        .rbt-repay-row__side b { display: block; color: #222; font-size: 14px; font-weight: 600; }
+        .rbt-repay-row__side span { display: block; margin-top: 6px; color: #999; font-size: 12px; }
+        .rbt-repay-row__side.is-done b { color: #52c41a; }
+        .rbt-bill__back { margin-bottom: 8px; }
+        .rbt-bill__head {
+            margin: -12px -12px 12px;
+            padding: 8px 16px 16px;
+            background: #ff7019;
+            color: #fff;
+        }
+        .rbt-bill__top { display: flex; justify-content: space-between; align-items: center; }
+        .rbt-bill__code { font-size: 16px; font-weight: 600; }
+        .rbt-bill__tag {
+            padding: 2px 10px;
+            border-radius: 12px;
+            background: rgba(255,255,255,.2);
+            font-size: 12px;
+        }
+        .rbt-bill__label { margin: 18px 0 0; text-align: center; font-size: 13px; opacity: .9; }
+        .rbt-bill__amt { margin: 6px 0 14px; text-align: center; font-size: 32px; font-weight: 700; }
+        .rbt-bill__stats { display: flex; gap: 8px; }
+        .rbt-bill__stats div { flex: 1; min-width: 0; text-align: center; }
+        .rbt-bill__stats span { display: block; font-size: 12px; opacity: .85; }
+        .rbt-bill__stats b { display: block; margin-top: 4px; font-size: 13px; font-weight: 600; }
+        .rbt-bill__trader {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            margin-top: 14px;
+            font-size: 13px;
+        }
+        .rbt-bill__trader span { flex: none; opacity: .9; }
+        .rbt-bill__trader b { flex: 1; min-width: 0; font-weight: 600; text-align: right; overflow-wrap: break-word; }
+        .rbt-bill__sheet { padding: 4px 0 12px; }
+        .rbt-bill__sheet h3 { margin: 0 0 8px; font-size: 15px; color: #222; }
+        .rbt-bill__line {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 11px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 13px;
+        }
+        .rbt-bill__line span { flex: none; color: #888; white-space: nowrap; }
+        .rbt-bill__line b { flex: 1; min-width: 0; color: #222; font-weight: 600; text-align: right; overflow-wrap: break-word; }
+        .rbt-bill__empty { margin: 0; color: #888; font-size: 13px; line-height: 1.6; }
+        .rbt-bill__day {
+            display: flex;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .rbt-bill__day-date { flex: none; width: 52px; color: #222; font-size: 13px; font-weight: 600; }
+        .rbt-bill__day-body { flex: 1; min-width: 0; text-align: right; }
+        .rbt-bill__day-body b { display: block; color: #222; font-size: 14px; }
+        .rbt-bill__day-body span { display: block; margin-top: 4px; color: #888; font-size: 12px; line-height: 1.4; }
+        .rbt-repay-demo {
+            position: fixed;
+            right: 16px;
+            bottom: 16px;
+            z-index: 80;
+            width: 248px;
+            padding: 12px;
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+        .rbt-repay-demo__title { margin-bottom: 8px; font-size: 13px; font-weight: 600; }
+        .rbt-repay-demo__row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 12px; }
+        .rbt-repay-demo__row select { flex: 1; min-width: 0; height: 28px; font-size: 12px; }
+        .rbt-repay-demo__hint { margin: 0 0 8px; color: #999; font-size: 11px; line-height: 1.45; }
+        .rbt-repay-demo__apply {
+            width: 100%;
+            height: 32px;
+            border: 0;
+            border-radius: 6px;
+            background: #ff7019;
+            color: #fff;
+            font-size: 13px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -599,6 +790,9 @@
                 <section class="rbt-h5-phone is-app" id="rbtH5Phone" aria-label="门店端">
                     <div class="rbt-h5-toast" id="rbtH5Toast" role="status"></div>
                     <div class="rbt-h5-phone__head">
+                        <button type="button" class="rbt-h5-head-back" id="rbtH5HeadBack" aria-label="返回">
+                            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </button>
                         <h1>门店端</h1>
                         <p id="rbtH5HeadText">首页</p>
                     </div>
@@ -609,6 +803,11 @@
                             <div class="rbt-h5-create" id="rbtH5Create" hidden>
                                 <button type="button" class="rbt-h5-primary" data-create>发布需求</button>
                             </div>
+                            <nav class="rbt-h5-tabbar" id="rbtH5Tabbar" hidden>
+                                <button type="button" data-tab="home">首页</button>
+                                <button type="button" data-tab="repay">还款</button>
+                                <button type="button" data-tab="mine">我的</button>
+                            </nav>
                         </div>
                     </div>
                 </section>
