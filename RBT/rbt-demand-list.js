@@ -27,6 +27,12 @@
         return blank(value) ? '—' : String(value);
     }
 
+    function receivableText(row, key) {
+        var pack = dataApi && typeof dataApi.receivables === 'function' ? dataApi.receivables(row) : null;
+        var value = pack && pack[key];
+        return blank(value) ? '—' : ('¥' + value);
+    }
+
     function esc(value) {
         return String(value == null ? '' : value)
             .replace(/&/g, '&amp;')
@@ -55,9 +61,15 @@
                 { dataIndex: 'code', title: '需求单号', minWidth: 130, search: { control: 'input' } },
                 { dataIndex: 'storeName', title: '门店', minWidth: 150, align: 'left', showOverflowTooltip: true, search: { control: 'input' } },
                 { dataIndex: 'packageName', title: '商品包', minWidth: 140, align: 'left', showOverflowTooltip: true, search: { control: 'input' } },
+                { dataIndex: 'traderName', title: '贸易商', minWidth: 180, align: 'left', showOverflowTooltip: true, search: { control: 'input' }, formatter: function (row) { return show(row.traderName); } },
+                { dataIndex: 'providerName', title: '服务商', minWidth: 180, align: 'left', showOverflowTooltip: true, search: { control: 'input' }, formatter: function (row) { return show(row.providerName); } },
+                { dataIndex: 'acceptedAt', title: '接单时间', minWidth: 170, formatter: function (row) { return show(row.acceptedAt); } },
                 { dataIndex: 'goodsAmount', title: '商品金额', minWidth: 120, formatter: function (row) { return blank(row.goodsAmount) ? '—' : ('¥' + row.goodsAmount); } },
                 { dataIndex: 'serviceFee', title: '服务费', minWidth: 120, formatter: function (row) { return blank(row.serviceFee) ? '—' : ('¥' + row.serviceFee); } },
                 { dataIndex: 'amount', title: '总金额', minWidth: 120, formatter: function (row) { return blank(row.amount) ? '—' : ('¥' + row.amount); } },
+                { dataIndex: 'traderReceivable', title: '贸易商应收', minWidth: 130, formatter: function (row) { return receivableText(row, 'trader'); } },
+                { dataIndex: 'lengfengReceivable', title: '冷丰应收', minWidth: 120, formatter: function (row) { return receivableText(row, 'lengfeng'); } },
+                { dataIndex: 'providerReceivable', title: '服务商应收', minWidth: 130, formatter: function (row) { return receivableText(row, 'provider'); } },
                 { dataIndex: 'repayCycle', title: '结算周期', minWidth: 100, formatter: function (row) { return show(row.repayCycle); } },
                 { dataIndex: 'repayMethod', title: '结算方式', minWidth: 100, formatter: function (row) { return show(row.repayMethod); } },
                 { dataIndex: 'repayPeriod', title: '结算比例', minWidth: 140, align: 'left' },
@@ -78,6 +90,8 @@
                     if (!includesText(row.code, params.code)) return false;
                     if (!includesText(row.storeName, params.storeName) && !includesText(row.storeCode, params.storeName)) return false;
                     if (!includesText(row.packageName, params.packageName) && !includesText(row.packageCode, params.packageName)) return false;
+                    if (!includesText(row.traderName, params.traderName)) return false;
+                    if (!includesText(row.providerName, params.providerName) && !includesText(row.providerId, params.providerName)) return false;
                     if (!blank(params.status) && row.status !== params.status) return false;
                     return true;
                 });

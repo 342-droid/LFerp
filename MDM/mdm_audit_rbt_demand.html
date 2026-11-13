@@ -116,6 +116,8 @@
         .rbt-pass-field select { height: 36px; border: 1px solid #dcdfe6; border-radius: 4px; padding: 0 10px; font: inherit; font-size: 13px; background: #fff; }
         .rbt-pass-field input { width: 120px; }
         .rbt-pass-field select { width: 160px; }
+        .rbt-pass-provider { margin-bottom: 4px; }
+        .rbt-pass-provider select { width: 320px; max-width: 100%; }
         .rbt-pass-label { width: 88px; text-align: right; color: #333; font-size: 13px; }
         .rbt-pass-del { border: 0; background: transparent; color: #cf1322; cursor: pointer; font-size: 13px; padding: 0; }
         .rbt-aud-stage { display: inline-block; min-width: 40px; padding: 2px 8px; border-radius: 4px; font-size: 12px; text-align: center; background: #f0f5ff; color: #1d39c4; }
@@ -235,11 +237,25 @@
                 <div>
                     <div class="rbt-demand-contract__eyebrow">初审通过</div>
                     <div class="rbt-demand-contract__title" id="rbtPassTitle">需求单</div>
-                    <div class="rbt-demand-contract__meta">按本单维护各渠道结算比例。通过后记到这张需求单，状态变为待接单。</div>
+                    <div class="rbt-demand-contract__meta">先确认是否有服务商。选「是」后再选择服务商，并按本单维护各渠道结算比例。通过后记到这张需求单，状态变为待接单。</div>
                 </div>
                 <button type="button" class="rbt-demand-contract__close" data-pass-close aria-label="关闭">&times;</button>
             </div>
-            <div class="rbt-review-body" id="rbtPassForm"></div>
+            <div class="rbt-review-body">
+                <h3><span style="color:#cf1322">*</span>是否有服务商</h3>
+                <div class="rbt-review-check" id="rbtPassHasProvider">
+                    <label><input type="radio" name="rbtHasProvider" value="yes"> 是</label>
+                    <label><input type="radio" name="rbtHasProvider" value="no"> 否</label>
+                </div>
+                <div id="rbtPassProviderWrap" hidden>
+                    <div class="rbt-pass-field rbt-pass-provider">
+                        <span class="rbt-pass-label"><span style="color:#cf1322">*</span>服务商</span>
+                        <select id="rbtPassProvider"></select>
+                    </div>
+                    <p class="rbt-review-note" id="rbtPassProviderNote">仅可选择贸易商档案中主体类型为服务商的档案。</p>
+                </div>
+                <div id="rbtPassForm"></div>
+            </div>
             <div class="rbt-review-foot">
                 <button type="button" class="btn btn-secondary" data-pass-close>取消</button>
                 <button type="button" class="btn btn-primary" id="rbtPassConfirm">通过</button>
@@ -252,6 +268,7 @@
     <script src="../js/form-utils.js"></script>
     <script src="../js/business-tag-prototype-store.js"></script>
     <script src="../js/mdm-product-catalog-store.js"></script>
+    <script src="../js/mdm-trader-archive-store.js?v=20261113-subject-type"></script>
     <script src="../RBT/rbt-store-data.js"></script>
     <script src="../RBT/rbt-settle-ratio.js"></script>
     <script src="../RBT/rbt-demand-data.js"></script>

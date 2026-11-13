@@ -16,6 +16,12 @@
         return blank(value) ? '—' : String(value);
     }
 
+    function receivableOf(item, key) {
+        var api = window.RbtDemandData;
+        var pack = api && typeof api.receivables === 'function' ? api.receivables(item) : null;
+        return pack && pack[key];
+    }
+
     function money(value) {
         if (blank(value) && value !== 0) return '—';
         var num = Number(String(value).replace(/^¥/, ''));
@@ -123,6 +129,23 @@
                     '</td><td class="is-money">' + esc(money(item && item.salePrice)) +
                     '</td><td class="is-money">' + esc(qty) + '</td></tr>';
             }).join('');
+        return '<div class="rbt-demand-table-wrap"><table class="rbt-demand-table"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>';
+    }
+
+    function amountTable(item) {
+        var cells = [
+            money(item && item.goodsAmount),
+            money(item && item.serviceFee),
+            money(item && item.amount),
+            money(receivableOf(item, 'trader')),
+            money(receivableOf(item, 'lengfeng')),
+            money(receivableOf(item, 'provider'))
+        ];
+        var head = '<tr><th class="is-money">商品金额</th><th class="is-money">服务费</th><th class="is-money">总金额</th>' +
+            '<th class="is-money">贸易商应收</th><th class="is-money">冷丰应收</th><th class="is-money">服务商应收</th></tr>';
+        var body = '<tr>' + cells.map(function (value) {
+            return '<td class="is-money">' + esc(value) + '</td>';
+        }).join('') + '</tr>';
         return '<div class="rbt-demand-table-wrap"><table class="rbt-demand-table"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>';
     }
 
@@ -323,13 +346,11 @@
             '<div class="supplier-detail-section-title">基础信息</div><div class="supplier-detail-grid">' +
             textCell('需求单号', item.code) +
             statusCell('状态', item.status) +
-            textCell('接单贸易商', item.traderName) +
+            textCell('接单贸易商', item.traderName || '—') +
+            textCell('服务商', item.providerName || '—') +
             textCell('接单时间', item.acceptedAt) +
             textCell('门店', show(item.storeName) + '（' + show(item.storeCode) + '）') +
             textCell('商品包', show(item.packageName) + '（' + show(item.packageCode) + '）') +
-            textCell('商品金额', money(item.goodsAmount)) +
-            textCell('服务费', money(item.serviceFee)) +
-            textCell('总金额', money(item.amount)) +
             textCell('产品', show(item.installmentName) + '（' + show(item.installmentCode) + '）') +
             textCell('结算周期', item.repayCycle) +
             textCell('结算方式', item.repayMethod) +
@@ -339,6 +360,8 @@
             textCell('更新人', item.updater) +
             textCell('更新时间', item.updatedAt) +
             '</div>' +
+            '<div class="supplier-detail-section-title">金额信息</div>' +
+            amountTable(item) +
             settleRatioSection(item) +
             '<div class="supplier-detail-section-title">商品明细</div>' +
             skuTable(item.skus) +

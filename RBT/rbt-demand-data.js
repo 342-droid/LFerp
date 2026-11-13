@@ -225,6 +225,12 @@
         var haiFeng = { traderName: '宁波海丰商业保理有限公司', traderPhone: '13800001003' };
         return [
             rowSeed({
+                code: 'XQ00025', storeCode: 'ONS00005', storeName: '余杭仓前便利店',
+                pkg: fresh, plan: freshPlan, status: '待审核',
+                skus: [{ code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 2 }, { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 2 }],
+                amount: '254.72', creator: '陈晨', createdAt: '2026-11-13 17:10:00', updater: '陈晨', updatedAt: '2026-11-13 17:10:00'
+            }),
+            rowSeed({
                 code: 'XQ00013', storeCode: 'ONS00001', storeName: '西湖中心生鲜店',
                 pkg: fresh, plan: freshPlan, status: '待审核',
                 skus: [{ code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 6 }, { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 4 }],
@@ -428,6 +434,90 @@
         if (STATUS_MIGRATE[status]) return STATUS_MIGRATE[status];
         if (DEMAND_STATUSES.indexOf(status) >= 0 || CLOSED_STATUSES.indexOf(status) >= 0) return status;
         return '待审核';
+    }
+
+    /* 产品配置里的三方结算系数。会话里改过的优先，没有再回落到演示产品。 */
+    var PRODUCT_RATES = {
+        FQ00001: { store: '1.60', trader: '1.20', provider: '1.05' },
+        FQ00002: { store: '1.80', trader: '1.40', provider: '1.08' },
+        FQ00003: { store: '1.50', trader: '1.20', provider: '1.04' },
+        FQ00004: { store: '1.70', trader: '1.30', provider: '1.05' },
+        FQ00005: { store: '1.30', trader: '1.10', provider: '1.02' }
+    };
+
+    function productRates(code) {
+        var stored = null;
+        try {
+            var raw = sessionStorage.getItem('rbt_installment_v3');
+            var list = raw ? JSON.parse(raw) : null;
+            if (Array.isArray(list)) {
+                list.some(function (item) {
+                    if (item && item.code === code) {
+                        stored = item;
+                        return true;
+                    }
+                    return false;
+                });
+            }
+        } catch (e) {
+            stored = null;
+        }
+        var fallback = PRODUCT_RATES[code] || null;
+        function pick(field) {
+            var live = stored && stored[field];
+            if (live != null && String(live).trim() !== '') return String(live).trim();
+            return fallback ? fallback[field === 'storeRate' ? 'store' : field === 'traderRate' ? 'trader' : 'provider'] : '';
+        }
+        var store = pick('storeRate');
+        var trader = pick('traderRate');
+        var provider = pick('providerRate');
+        if (!store || !trader || !provider) return null;
+        return { store: store, trader: trader, provider: provider };
+    }
+
+    function confirmedHasProvider(item) {
+        if (!item || item.hasProvider === false) return false;
+        if (item.hasProvider === true) return true;
+        return !!(String(item.providerId || '').trim() || String(item.providerName || '').trim());
+    }
+
+    /* 待审核仍按产品配置计提服务商。初审通过后只在确认有服务商时计提，没有则这部分留在冷丰。 */
+    function includeProviderReceivable(item) {
+        if (!item) return false;
+        if (item.status === '待审核') return true;
+        if (passedFirstAudit(item.status) || item.hasProvider === true || item.hasProvider === false) {
+            return confirmedHasProvider(item);
+        }
+        return true;
+    }
+
+    function rateShare(goodsCents, rate) {
+        var num = Number(rate);
+        if (!isFinite(num)) return null;
+        return Math.round(goodsCents * Math.round(num * 100) / 100);
+    }
+
+    function receivables(item) {
+        var empty = { trader: '', lengfeng: '', provider: '' };
+        if (!item || item.repayMethod !== '比例付') return empty;
+        var rates = productRates(item.installmentCode);
+        if (!rates) return empty;
+        var goods = centsOf(item.goodsAmount);
+        var storePay = rateShare(goods, rates.store);
+        var traderPay = rateShare(goods, rates.trader);
+        if (storePay == null || traderPay == null) return empty;
+        var providerPay = 0;
+        if (includeProviderReceivable(item)) {
+            var accrued = rateShare(goods, rates.provider);
+            if (accrued == null) return empty;
+            providerPay = accrued - goods;
+        }
+        var lengfeng = storePay - traderPay - providerPay;
+        return {
+            trader: fromCents(traderPay),
+            lengfeng: fromCents(lengfeng),
+            provider: fromCents(providerPay)
+        };
     }
 
     /* 初审已通过。这些需求单上应能看到结算比例。 */
@@ -1244,6 +1334,11 @@
         var ratioApi = window.RbtSettleRatio;
         var settleRatios = ratioApi && typeof ratioApi.normalize === 'function' ? ratioApi.normalize(extra && extra.settleRatios) : null;
         if (!settleRatios) return null;
+        if (!extra || (extra.hasProvider !== true && extra.hasProvider !== false)) return null;
+        var provider = extra.provider;
+        var providerId = provider && String(provider.id || '').trim();
+        var providerName = provider && String(provider.name || '').trim();
+        if (extra.hasProvider && (!providerId || !providerName)) return null;
         var demandRows = list();
         var pending = null;
         demandRows.some(function (item) {
@@ -1255,6 +1350,18 @@
         });
         if (!pending) return null;
         pending.settleRatios = settleRatios;
+        pending.hasProvider = extra.hasProvider === true;
+        if (pending.hasProvider) {
+            pending.providerId = providerId;
+            pending.providerName = providerName;
+            pending.providerSubjectName = String(provider.subjectName || '').trim();
+        } else {
+            pending.providerId = '';
+            pending.providerName = '';
+            pending.providerSubjectName = '';
+        }
+        ensureLogs(pending);
+        pushLog(pending, pending.hasProvider ? ('指定服务商：' + providerName) : '确认无服务商', who);
         write(demandRows);
         var demand = setStatus(target.demandCode, '待接单', who);
         if (!demand) return null;
@@ -1264,6 +1371,9 @@
             row.auditedAt = nowText();
             row.opinion = '';
             row.settleRatios = settleRatios;
+            row.hasProvider = pending.hasProvider;
+            row.providerId = pending.providerId;
+            row.providerName = pending.providerName;
         });
     }
 
@@ -1409,6 +1519,7 @@
         approveAudit: approveAudit,
         rejectAudit: rejectAudit,
         canEditSettleRatios: canEditSettleRatios,
-        updateSettleRatios: updateSettleRatios
+        updateSettleRatios: updateSettleRatios,
+        receivables: receivables
     };
 })();

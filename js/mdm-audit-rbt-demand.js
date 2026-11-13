@@ -313,6 +313,86 @@
         ratioApi.renderEditor(passFormHost(), passDraft);
     }
 
+    function escAttr(value) {
+        return String(value == null ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    /* 下拉只列贸易商档案里主体类型为服务商的记录。 */
+    function listServiceProviders() {
+        var store = window.MdmTraderArchiveStore;
+        if (!store || typeof store.list !== 'function') return [];
+        return store.list().filter(function (item) {
+            return !!(item && item.subjectType === '服务商');
+        });
+    }
+
+    function providerLabel(item) {
+        var name = String((item && (item.name || item.subjectName)) || '').trim();
+        return name || (item && item.id) || '';
+    }
+
+    function fillPassProvider() {
+        var select = document.getElementById('rbtPassProvider');
+        if (!select) return;
+        var list = listServiceProviders();
+        select.innerHTML = '<option value="">请选择服务商</option>' + list.map(function (item) {
+            return '<option value="' + escAttr(item.id) + '">' + escAttr(providerLabel(item)) + '</option>';
+        }).join('');
+        var note = document.getElementById('rbtPassProviderNote');
+        if (note) {
+            note.textContent = list.length
+                ? '仅可选择贸易商档案中主体类型为服务商的档案。'
+                : '贸易商档案中暂无主体类型为服务商的档案，请改选「否」，或先维护服务商档案。';
+        }
+    }
+
+    function hasProviderChoice() {
+        var checked = document.querySelector('input[name="rbtHasProvider"]:checked');
+        return checked ? checked.value : '';
+    }
+
+    /* 只有确认为「是」时才展示并要求选择服务商。 */
+    function syncPassProviderVisibility() {
+        var wrap = document.getElementById('rbtPassProviderWrap');
+        var yes = hasProviderChoice() === 'yes';
+        if (wrap) wrap.hidden = !yes;
+        if (!yes) {
+            var select = document.getElementById('rbtPassProvider');
+            if (select) select.value = '';
+        }
+    }
+
+    function resetPassProviderChoice() {
+        document.querySelectorAll('input[name="rbtHasProvider"]').forEach(function (node) {
+            node.checked = false;
+        });
+        syncPassProviderVisibility();
+    }
+
+    function selectedProvider() {
+        var select = document.getElementById('rbtPassProvider');
+        var id = select ? String(select.value || '').trim() : '';
+        if (!id) return null;
+        var found = null;
+        listServiceProviders().some(function (item) {
+            if (item.id === id) {
+                found = item;
+                return true;
+            }
+            return false;
+        });
+        if (!found) return null;
+        return {
+            id: found.id,
+            name: providerLabel(found),
+            subjectName: String(found.subjectName || '').trim()
+        };
+    }
+
     function openPass(id) {
         var audit = dataApi.getAudit(id);
         var demand = audit ? dataApi.get(audit.demandCode) : null;
@@ -324,6 +404,8 @@
         passDraft = window.RbtSettleRatio ? window.RbtSettleRatio.emptyDraft() : {};
         var title = document.getElementById('rbtPassTitle');
         if (title) title.textContent = demand.code + ' · ' + (demand.storeName || '');
+        fillPassProvider();
+        resetPassProviderChoice();
         renderPassForm();
         var mask = document.getElementById('rbtPassMask');
         if (mask) {
@@ -339,18 +421,37 @@
     }
 
     function confirmPass() {
+        var choice = hasProviderChoice();
+        if (choice !== 'yes' && choice !== 'no') {
+            toast('请确认是否有服务商', 'error');
+            return;
+        }
+        var provider = null;
+        if (choice === 'yes') {
+            provider = selectedProvider();
+            if (!provider) {
+                toast(listServiceProviders().length ? '请选择服务商' : '贸易商档案中暂无服务商', 'error');
+                var select = document.getElementById('rbtPassProvider');
+                if (select) select.focus();
+                return;
+            }
+        }
         var settleRatios = collectPassRatios();
         if (!settleRatios) {
             toast('每个渠道都要填写默认比例；已填的类目比例须大于 0 且不超过 100', 'error');
             return;
         }
-        var result = dataApi.approveAudit(passAuditId, '王丽', { settleRatios: settleRatios });
+        var result = dataApi.approveAudit(passAuditId, '王丽', {
+            settleRatios: settleRatios,
+            hasProvider: choice === 'yes',
+            provider: provider
+        });
         if (!result) {
             toast('审核失败', 'error');
             return;
         }
         closePass();
-        toast('已通过，结算比例已记到需求单');
+        toast(choice === 'yes' ? '已通过，服务商和结算比例已记到需求单' : '已通过，结算比例已记到需求单');
         renderTable();
     }
 
@@ -443,6 +544,9 @@
         }
         var passConfirm = document.getElementById('rbtPassConfirm');
         if (passConfirm) passConfirm.addEventListener('click', confirmPass);
+        document.querySelectorAll('input[name="rbtHasProvider"]').forEach(function (node) {
+            node.addEventListener('change', syncPassProviderVisibility);
+        });
         var passForm = document.getElementById('rbtPassForm');
         if (passForm && window.RbtSettleRatio) {
             window.RbtSettleRatio.bindEditor(passForm, function () { return passDraft; }, toast);
