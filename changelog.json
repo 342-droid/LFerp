@@ -1,7 +1,119 @@
 {
-  "latestSha": "05497175b260db0f9772160e432a10e002331583",
-  "total": 542,
+  "latestSha": "c60e410803ebabcc20df6c867c7747465c6a7037",
+  "total": 543,
   "days": [
+    {
+      "date": "2026-11-13",
+      "items": [
+        {
+          "sha": "c60e410",
+          "type": "feat",
+          "text": "需求复核通过后生成采购单和销售单",
+          "author": "342-droid",
+          "time": "14:59",
+          "pages": [
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "module": "冷丰WMS",
+              "title": "需求单审核"
+            },
+            {
+              "file": "RBT/rbt_admit_store.html",
+              "module": "冷丰RBT",
+              "title": "门店管理"
+            },
+            {
+              "file": "RBT/rbt_contract_sign.html",
+              "module": "冷丰RBT",
+              "title": "合同签署"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_index.html",
+              "module": "冷丰RBT-移动端",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
+            },
+            {
+              "file": "RBT/rbt_product_package.html",
+              "module": "冷丰RBT",
+              "title": "商品包"
+            },
+            {
+              "file": "RBT/rbt_purchase.html",
+              "module": "冷丰RBT",
+              "title": "采购单"
+            },
+            {
+              "file": "RBT/rbt_sales.html",
+              "module": "冷丰RBT",
+              "title": "销售单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_purchase.html",
+              "text": "新增列表和详情；复核通过生成供应链采购、门店采购，单号以 PO 开头；展示买方、卖方、付款方、收货方、实际发货方；供应链采购生成即为已完成，门店采购待收货；门店采购同步下发 WMS 采购入库，关联单号为需求单号，只允许全量收货"
+            },
+            {
+              "file": "RBT/rbt_sales.html",
+              "text": "新增列表和详情；复核通过生成冷丰销售、贸易商销售，单号以 SO 开头；冷丰销售生成即为已完成，贸易商销售待收货；入库完结后贸易商销售改为已完成"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "text": "复核通过后详情展示关联购销单；联营服务费改为服务费；详情增加操作记录；待接单到支付中可改结算比例；操作列固定显示审核、签署、作废，不可用时置灰"
+            },
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "text": "列表联营服务费改为服务费；初审「兜底利率」改为「默认比例」；复核通过后生成四张购销单"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "text": "详情增加操作记录页签"
+            },
+            {
+              "file": "RBT/rbt_admit_store.html",
+              "text": "已占用弹窗联营服务费改为服务费"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "text": "列表和发布页联营服务费改为服务费"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "需求卡片联营服务费改为服务费"
+            },
+            {
+              "file": "RBT/rbt_contract_sign.html",
+              "text": "摘要联营服务费改为服务费"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-11-12",
       "items": [
@@ -174,6 +286,16 @@
               "file": "RBT/rbt_product_package.html",
               "module": "冷丰RBT",
               "title": "商品包"
+            },
+            {
+              "file": "RBT/rbt_purchase.html",
+              "module": "冷丰RBT",
+              "title": "采购单"
+            },
+            {
+              "file": "RBT/rbt_sales.html",
+              "module": "冷丰RBT",
+              "title": "销售单"
             },
             {
               "file": "SCM/basic_settings_business_tags.html",
@@ -792,6 +914,16 @@
               "file": "RBT/rbt_product_package.html",
               "module": "冷丰RBT",
               "title": "商品包"
+            },
+            {
+              "file": "RBT/rbt_purchase.html",
+              "module": "冷丰RBT",
+              "title": "采购单"
+            },
+            {
+              "file": "RBT/rbt_sales.html",
+              "module": "冷丰RBT",
+              "title": "销售单"
             }
           ],
           "notes": [
@@ -1489,6 +1621,16 @@
               "file": "RBT/rbt_product_package.html",
               "module": "冷丰RBT",
               "title": "商品包"
+            },
+            {
+              "file": "RBT/rbt_purchase.html",
+              "module": "冷丰RBT",
+              "title": "采购单"
+            },
+            {
+              "file": "RBT/rbt_sales.html",
+              "module": "冷丰RBT",
+              "title": "销售单"
             }
           ],
           "global": true,
@@ -1996,6 +2138,16 @@
               "title": "商品包"
             },
             {
+              "file": "RBT/rbt_purchase.html",
+              "module": "冷丰RBT",
+              "title": "采购单"
+            },
+            {
+              "file": "RBT/rbt_sales.html",
+              "module": "冷丰RBT",
+              "title": "销售单"
+            },
+            {
               "file": "SCM/basic_settings_business_tags.html",
               "module": "冷丰WMS",
               "title": "标签管理"
@@ -2098,6 +2250,16 @@
               "file": "RBT/rbt_product_package.html",
               "module": "冷丰RBT",
               "title": "商品包"
+            },
+            {
+              "file": "RBT/rbt_purchase.html",
+              "module": "冷丰RBT",
+              "title": "采购单"
+            },
+            {
+              "file": "RBT/rbt_sales.html",
+              "module": "冷丰RBT",
+              "title": "销售单"
             },
             {
               "file": "SCM/basic_settings_business_tags.html",
@@ -6547,6 +6709,16 @@
               "title": "商品包"
             },
             {
+              "file": "RBT/rbt_purchase.html",
+              "module": "冷丰RBT",
+              "title": "采购单"
+            },
+            {
+              "file": "RBT/rbt_sales.html",
+              "module": "冷丰RBT",
+              "title": "销售单"
+            },
+            {
               "file": "SCM/purchase_order.html",
               "module": "冷丰采购",
               "title": "采购单"
@@ -6557,6 +6729,10 @@
             {
               "file": "MDM/mdm_supplier_product.html",
               "text": "供货关系接入商品侧栏，可编辑最小起订量和采购周期"
+            },
+            {
+              "file": "RBT/rbt_purchase.html",
+              "text": "采购单明细展示推荐采购量，并按年、月、日配置销量统计时长"
             },
             {
               "file": "SCM/purchase_order.html",
