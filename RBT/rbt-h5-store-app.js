@@ -33,16 +33,18 @@
         SPB00002: ['ONS00002'],
         SPB00003: ['ONS00003']
     };
-    /* 主链路：待审核 → 待接单 → 待确认签约 → 待签署 → 待复核 → 支付中 → 已完成；旁路：已作废、已驳回 */
-    var DEMAND_STATUSES = ['待审核', '待接单', '待确认签约', '待签署', '待复核', '支付中', '已完成'];
-    var ACTIVE_DEMAND_STATUSES = ['待审核', '待接单', '待确认签约', '待签署', '待复核', '支付中'];
+    /* 主链路：待审核 → 待接单 → 待确认签约 → 待签署 → 待付款 → 待复核 → 还款中 → 已完成；撤回后待重新确认；旁路：已作废、已驳回 */
+    var DEMAND_STATUSES = ['待审核', '待接单', '待确认签约', '待重新确认', '待签署', '待付款', '待复核', '还款中', '已完成'];
+    var ACTIVE_DEMAND_STATUSES = ['待审核', '待接单', '待确认签约', '待重新确认', '待签署', '待付款', '待复核', '还款中'];
     var CANCELABLE_DEMAND_STATUSES = ['待审核'];
     var CLOSED_DEMAND_STATUSES = ['已作废', '已驳回'];
     var STATUS_MIGRATE = {
         '已发布': '待审核',
         '待报价': '待审核',
         '已报价': '待接单',
-        '待还款': '支付中',
+        '待还款': '还款中',
+        '支付中': '还款中',
+        '待支付': '待付款',
         '已取消': '已作废'
     };
 
@@ -745,7 +747,7 @@
     function repayAnchorCode() {
         var found = '';
         storeDemands().some(function (item) {
-            if (item && item.status === '支付中') {
+            if (item && item.status === '还款中') {
                 found = item.code;
                 return true;
             }
@@ -772,7 +774,7 @@
 
     function repayDemands(done) {
         return repayViews().filter(function (item) {
-            return item && item.status === (done ? '已完成' : '支付中');
+            return item && item.status === (done ? '已完成' : '还款中');
         });
     }
 
@@ -786,7 +788,7 @@
         });
     }
 
-    /* 待还款=支付中，已还款=已完成。比例付不预造应履行金额，也不写剩余天数和逾期。 */
+    /* 待还款=还款中，已还款=已完成。比例付不预造应履行金额，也不写剩余天数和逾期。 */
     function renderRepay() {
         var done = repayFilter === 'done';
         var rows = repayDemands(done);
@@ -810,7 +812,7 @@
                 ? '已产生的日结按当日营业流水乘结算比例计算，未发生的日期不预造。'
                 : (done
                     ? '已完成只表示需求状态。完成依据待确认，实际履行未产生。'
-                    : '支付中表示复核已通过。比例付不预造固定金额，起算待确认。')) + '</p>' +
+                    : '还款中表示复核已通过，门店按日还款。比例付不预造固定金额，起算待确认。')) + '</p>' +
             '</div>' +
             (rows.length ? rows.map(function (item) {
                 var side = item._days && item._days.length
@@ -821,7 +823,7 @@
                     '<span class="rbt-repay-row__sub">总金额 ¥' + esc(item.amount || '—') + ' · ' + esc(item.repayCycle || '—') + ' ' + esc(item.repayMethod || '—') + '</span></span>' +
                     '<span class="rbt-repay-row__side' + (done ? ' is-done' : '') + '"><b>' + esc(item.status) + '</b><span>' +
                     esc(side) + '</span></span></button>';
-            }).join('') : '<div class="rbt-h5-empty">' + (done ? '暂无已完成的合作' : '暂无支付中的合作') + '</div>');
+            }).join('') : '<div class="rbt-h5-empty">' + (done ? '暂无已完成的合作' : '暂无还款中的合作') + '</div>');
     }
 
     function renderDayList(days) {
@@ -1305,7 +1307,7 @@
             var signResult = signApi && typeof signApi.signDemand === 'function'
                 ? signApi.signDemand(signedCode, { role: 'store', code: account && account.code, name: account && account.name }, confirmSign.getAttribute('data-contract-key'))
                 : { ok: false };
-            if (signResult && signResult.ok && signResult.done) toast('各方已完成签署，需求进入待复核');
+            if (signResult && signResult.ok && signResult.done) toast('各方已完成签署，待贸易商付款');
             else if (signResult && signResult.ok) toast('签署成功');
             else if (signResult && signResult.reason === 'signed') toast('你已签署');
             else toast('当前不能签署');

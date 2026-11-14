@@ -3,7 +3,7 @@
     var Vue = OctopusPrototype.Vue;
     var ref = Vue.ref;
     var dataApi = window.RbtDemandData;
-    var LIVE_STATUSES = ['支付中', '已完成'];
+    var LIVE_STATUSES = ['还款中', '已完成'];
 
     function blank(value) {
         return value == null || String(value).trim() === '';
@@ -42,13 +42,13 @@
 
     function statusType(status) {
         if (status === '已完成') return 'success';
-        if (status === '支付中') return 'danger';
+        if (status === '还款中') return 'danger';
         return '';
     }
 
     function statusKind(status) {
         if (status === '已完成') return 'success';
-        if (status === '支付中') return 'danger';
+        if (status === '还款中') return 'danger';
         return 'neutral';
     }
 
@@ -74,7 +74,7 @@
     }
 
     function factRows(row) {
-        var missing = row && row.status === '支付中';
+        var missing = row && row.status === '还款中';
         var facts = [
             ['有正营收但权益不足', '未登记'],
             ['负毛利导致商业不分', '未登记'],

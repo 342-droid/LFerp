@@ -149,6 +149,10 @@
             (accepted && item.status === '待签署'
                 ? '<button type="button" class="rbt-h5-accept" data-sign="' + esc(item.code) + '">去签署</button>'
                 : '') +
+            (accepted && item.status === '待付款'
+                ? '<button type="button" class="rbt-h5-accept" data-pay-online="' + esc(item.code) + '">在线支付</button>' +
+                  '<button type="button" class="rbt-h5-withdraw" data-pay-offline="' + esc(item.code) + '">线下支付</button>'
+                : '') +
             (accepted ? '' : '<button type="button" class="rbt-h5-accept" data-accept="' + esc(item.code) + '">接单</button>') +
             '</article>';
     }
@@ -196,11 +200,11 @@
 
     function collectDemands(done) {
         return acceptedDemands().filter(function (item) {
-            return item && item.status === (done ? '已完成' : '支付中');
+            return item && item.status === (done ? '已完成' : '还款中');
         });
     }
 
-    /* 贸易商收款看实际资方到账。支付中没有到账，已完成也不补到账。 */
+    /* 贸易商收款看实际资方到账。还款中没有到账，已完成也不补到账。 */
     function renderCollect() {
         var done = collectFilter === 'done';
         var rows = collectDemands(done);
@@ -216,14 +220,14 @@
             '<button type="button" class="rbt-repay-go" data-collect-first ' + (rows.length ? '' : 'disabled') + '>账单明细</button>' +
             '<p class="rbt-repay-hero__note">' + (done
                 ? '已完成只表示需求状态。实际资方到账未产生。'
-                : '支付中表示复核已通过。应履行未计算，不能记成已收款。') + '</p>' +
+                : '还款中表示复核已通过，门店按日还款。应履行未计算，不能记成已收款。') + '</p>' +
             '</div>' +
             (rows.length ? rows.map(function (item) {
                 return '<button type="button" class="rbt-repay-row" data-collect="' + esc(item.code) + '">' +
                     '<span><span class="rbt-repay-row__title">' + esc(item.code) + '</span>' +
                     '<span class="rbt-repay-row__sub">' + esc(item.storeName || '—') + ' · 总金额 ¥' + esc(item.amount || '—') + '</span></span>' +
                     '<span class="rbt-repay-row__side' + (done ? ' is-done' : '') + '"><b>' + esc(item.status) + '</b><span>到账未产生</span></span></button>';
-            }).join('') : '<div class="rbt-h5-empty">' + (done ? '暂无已完成的合作' : '暂无支付中的合作') + '</div>');
+            }).join('') : '<div class="rbt-h5-empty">' + (done ? '暂无已完成的合作' : '暂无还款中的合作') + '</div>');
     }
 
     function renderCollectBill(item) {
@@ -258,10 +262,19 @@
         if (tab === 'hall' && screen === 'sign') {
             setHead('合同签署');
             var signing = window.RbtDemandData && window.RbtDemandData.get(signCode);
+            var payActions = signing && signing.status === '待付款'
+                ? '<section class="rbt-sign-card">' +
+                  '<h2>支付</h2>' +
+                  '<p>合同已签署，请选择支付方式。</p>' +
+                  '<button type="button" class="rbt-h5-accept" data-pay-online="' + esc(signing.code) + '">在线支付</button>' +
+                  '<button type="button" class="rbt-h5-withdraw" data-pay-offline="' + esc(signing.code) + '">线下支付</button>' +
+                  '</section>'
+                : '';
             scroll.innerHTML = '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="hall">返回</button></div>' +
                 (window.RbtContractSign
                     ? window.RbtContractSign.render(signing, { role: 'trader', name: traderName(), phone: account.phone })
-                    : '<div class="rbt-h5-empty">合同签署页不可用</div>');
+                    : '<div class="rbt-h5-empty">合同签署页不可用</div>') +
+                payActions;
             return;
         }
         if (tab === 'hall' && screen === 'collect-bill') {
@@ -348,6 +361,50 @@
         }
     }
 
+    function finishPay(code, method) {
+        var api = window.RbtDemandData;
+        var result = api && typeof api.payDemand === 'function'
+            ? api.payDemand(code, method, { name: traderName(), phone: account && account.phone })
+            : { ok: false };
+        if (result && result.ok) toast(method === 'offline' ? '已确认线下支付，需求进入待复核' : '支付完成，需求进入待复核');
+        else toast('当前不能支付');
+        render();
+    }
+
+    function closeOfflinePay() {
+        document.querySelectorAll('[data-pay-dialog]').forEach(function (node) {
+            node.remove();
+        });
+    }
+
+    /* 线下支付先确认。取消不改状态。 */
+    function openOfflinePay(code) {
+        var phone = document.getElementById('rbtH5Phone');
+        if (!phone) return;
+        closeOfflinePay();
+        var mask = document.createElement('div');
+        mask.className = 'rbt-h5-pay-mask';
+        mask.setAttribute('data-pay-dialog', '1');
+        mask.innerHTML =
+            '<div class="rbt-h5-pay-dialog" role="dialog" aria-modal="true">' +
+            '<p>请进行线下打款，相关信息请联系平台处理</p>' +
+            '<div class="rbt-h5-pay-dialog__actions">' +
+            '<button type="button" data-pay-cancel>取消</button>' +
+            '<button type="button" data-pay-ok>确认</button>' +
+            '</div></div>';
+        phone.appendChild(mask);
+        mask.addEventListener('click', function (event) {
+            if (event.target.closest('[data-pay-cancel]')) {
+                closeOfflinePay();
+                return;
+            }
+            if (event.target.closest('[data-pay-ok]')) {
+                closeOfflinePay();
+                finishPay(code, 'offline');
+            }
+        });
+    }
+
     document.getElementById('rbtH5App').addEventListener('click', function (event) {
         var entry = event.target.closest('[data-entry]');
         var hallTab = event.target.closest('[data-hall-tab]');
@@ -356,17 +413,27 @@
         var withdraw = event.target.closest('[data-withdraw]');
         var sign = event.target.closest('[data-sign]');
         var confirmSign = event.target.closest('[data-confirm-sign]');
+        var payOnline = event.target.closest('[data-pay-online]');
+        var payOffline = event.target.closest('[data-pay-offline]');
         var changePassword = event.target.closest('[data-change-password]');
         var savePassword = event.target.closest('[data-save-password]');
         var back = event.target.closest('[data-back]');
         var logout = event.target.closest('[data-logout]');
+        if (payOnline) {
+            finishPay(payOnline.getAttribute('data-pay-online'), 'online');
+            return;
+        }
+        if (payOffline) {
+            openOfflinePay(payOffline.getAttribute('data-pay-offline'));
+            return;
+        }
         if (confirmSign) {
             var signedCode = confirmSign.getAttribute('data-confirm-sign');
             var signApi = window.RbtDemandData;
             var signResult = signApi && typeof signApi.signDemand === 'function'
                 ? signApi.signDemand(signedCode, { role: 'trader', name: traderName(), phone: account && account.phone }, confirmSign.getAttribute('data-contract-key'))
                 : { ok: false };
-            if (signResult && signResult.ok && signResult.done) toast('各方已完成签署，需求进入待复核');
+            if (signResult && signResult.ok && signResult.done) toast('各方已完成签署，请选择支付方式');
             else if (signResult && signResult.ok) toast('签署成功');
             else if (signResult && signResult.reason === 'signed') toast('你已签署');
             else toast('当前不能签署');
@@ -414,12 +481,12 @@
         }
         if (withdraw) {
             var withdrawCode = withdraw.getAttribute('data-withdraw');
-            if (!window.confirm('确认撤回接单「' + withdrawCode + '」？撤回后需求回到待接单。')) return;
+            if (!window.confirm('确认撤回接单「' + withdrawCode + '」？撤回后需平台重新确认，确认前不能再次接单。')) return;
             var withdrawApi = window.RbtDemandData;
             var withdrawResult = withdrawApi && typeof withdrawApi.withdrawAccept === 'function'
                 ? withdrawApi.withdrawAccept(withdrawCode, { name: traderName(), phone: account && account.phone })
                 : { ok: false };
-            if (withdrawResult && withdrawResult.ok) toast('已撤回接单');
+            if (withdrawResult && withdrawResult.ok) toast('已撤回接单，待平台重新确认');
             else toast('当前不能撤回');
             render();
             return;

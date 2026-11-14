@@ -44,8 +44,8 @@
     function statusType(status) {
         if (status === '已完成') return 'success';
         if (status === '已作废' || status === '已取消' || status === '已驳回') return 'info';
-        if (status === '待审核' || status === '待复核' || status === '待确认签约') return 'warning';
-        if (status === '支付中') return 'danger';
+        if (status === '待审核' || status === '待复核' || status === '待确认签约' || status === '待重新确认' || status === '待付款') return 'warning';
+        if (status === '还款中') return 'danger';
         return '';
     }
 
@@ -198,10 +198,21 @@
                 return !!(dataApi.canVoidDemand && dataApi.canVoidDemand(row));
             }
 
+            function canRepublish(row) {
+                return !!(dataApi.canRepublishDemand && dataApi.canRepublishDemand(row));
+            }
+
             function voidDemand(row) {
                 if (!canVoid(row) || !row.code) return;
                 if (!window.confirm('确认作废「' + row.code + '」？作废后释放占用额度。')) return;
                 if (dataApi.voidDemand(row.code, '平台')) refreshTable();
+            }
+
+            /* 待重新确认由平台重新发布，回到待接单后贸易商才可以再接。 */
+            function republishDemand(row) {
+                if (!canRepublish(row) || !row.code) return;
+                if (!window.confirm('确认重新发布「' + row.code + '」？发布后需求回到待接单，可被贸易商继续接单。')) return;
+                if (dataApi.republishDemand(row.code, '平台')) refreshTable();
             }
 
             function closeSign() {
@@ -225,7 +236,7 @@
                     : '<div class="rbt-sign-empty">合同签署不可用</div>';
             }
 
-            /* 原型演示：一次把销售合同和采购合同的各方都标成已签署，需求进入待复核。 */
+            /* 原型演示：一次把销售合同和采购合同的各方都标成已签署，需求进入待付款。 */
             function signAllDemo(code) {
                 var rows = dataApi.list();
                 var target = null;
@@ -257,7 +268,7 @@
                     });
                 });
                 dataApi.save(rows);
-                return dataApi.setStatus(code, '待复核', '冷丰供应链');
+                return dataApi.setStatus(code, '待付款', '冷丰供应链');
             }
 
             /* 待签署在当前页弹出。冷丰供应链在此确认采购合同，门店和贸易商在各自端签署。 */
@@ -343,6 +354,8 @@
                 goSign: goSign,
                 canVoid: canVoid,
                 voidDemand: voidDemand,
+                canRepublish: canRepublish,
+                republishDemand: republishDemand,
                 refreshTable: refreshTable
             };
         }

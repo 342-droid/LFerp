@@ -35,7 +35,7 @@
         '<li class="menu-item">' +
         '<a href="' + pageHref('rbt_admit_store.html') + '" class="menu-link' + (isAdmitStore ? ' active' : '') + '">' +
         '<img src="' + assetHref('image/基础信息.svg') + '" alt="" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
-        '<span>门店管理</span>' +
+        '<span>门店准入管理</span>' +
         '</a>' +
         '</li>' +
         '<li class="menu-item">' +
