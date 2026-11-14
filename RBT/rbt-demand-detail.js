@@ -35,8 +35,8 @@
     function statusKind(status) {
         if (status === '已完成' || status === '已签署') return 'success';
         if (status === '已作废' || status === '已取消' || status === '已驳回') return 'neutral';
-        if (status === '待审核' || status === '待复核' || status === '待确认签约' || status === '待签署') return 'warning';
-        if (status === '支付中') return 'danger';
+        if (status === '待审核' || status === '待复核' || status === '待确认签约' || status === '待重新确认' || status === '待签署' || status === '待付款') return 'warning';
+        if (status === '还款中') return 'danger';
         return 'neutral';
     }
 
@@ -155,7 +155,7 @@
         if (api && typeof api.hasContractStatus === 'function') {
             return api.hasContractStatus(item && item.status);
         }
-        return ['待签署', '待复核', '支付中', '已完成'].indexOf(item && item.status) >= 0;
+        return ['待签署', '待付款', '待复核', '还款中', '已完成'].indexOf(item && item.status) >= 0;
     }
 
     function resolveSignStatus(item, contract) {
@@ -300,7 +300,7 @@
     function relatedDocsSection(item) {
         var api = window.RbtTradeDocs;
         var docs = api && typeof api.docsOfDemand === 'function' ? api.docsOfDemand(item && item.code) : [];
-        if ((!docs || !docs.length) && item && item.status !== '支付中' && item.status !== '已完成') return '';
+        if ((!docs || !docs.length) && item && item.status !== '还款中' && item.status !== '已完成') return '';
         var title = '<div class="supplier-detail-section-title">关联购销单</div>';
         if (!docs || !docs.length) {
             return title + '<div class="rbt-demand-empty">暂无关联购销单</div>';

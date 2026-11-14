@@ -178,6 +178,51 @@
             font-size: 14px;
             cursor: pointer;
         }
+        .rbt-h5-pay-mask {
+            position: absolute;
+            inset: 0;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: rgba(0, 0, 0, 0.45);
+        }
+        .rbt-h5-pay-dialog {
+            width: 100%;
+            padding: 20px 16px 16px;
+            border-radius: 12px;
+            background: #fff;
+        }
+        .rbt-h5-pay-dialog p {
+            margin: 0;
+            color: #222;
+            font-size: 15px;
+            line-height: 1.6;
+            text-align: center;
+        }
+        .rbt-h5-pay-dialog__actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .rbt-h5-pay-dialog__actions button {
+            flex: 1;
+            height: 36px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .rbt-h5-pay-dialog__actions [data-pay-cancel] {
+            border: 1px solid #ddd;
+            background: #fff;
+            color: #666;
+        }
+        .rbt-h5-pay-dialog__actions [data-pay-ok] {
+            border: 0;
+            background: #ff7019;
+            color: #fff;
+        }
         .rbt-h5-accept,
         .rbt-sign-submit {
             display: block;

@@ -350,7 +350,7 @@
     }
 
     function canGenerate(demand) {
-        return !!(demand && (demand.status === '支付中' || demand.status === '已完成') && demand.traderName);
+        return !!(demand && (demand.status === '还款中' || demand.status === '已完成') && demand.traderName);
     }
 
     function findByDemand(store, demandCode) {

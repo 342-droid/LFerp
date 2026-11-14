@@ -221,7 +221,7 @@
                     :request="requestRows"
                     row-key="code"
                     search-label-width="112px"
-                    action-column-width="168"
+                    action-column-width="248"
                     :default-page-size="20"
                     :auto-format-time="false">
                     <template v-slot:[slots.code]="{row}">
@@ -241,6 +241,7 @@
                         <div class="rbt-demand-ops">
                             <el-button :size="elSize" text type="primary" :disabled="!canGoAudit(row)" @click="goAudit(row)">审核</el-button>
                             <el-button :size="elSize" text type="primary" :disabled="!canGoSign(row)" @click="goSign(row)">签署</el-button>
+                            <el-button :size="elSize" text type="primary" :disabled="!canRepublish(row)" @click="republishDemand(row)">重新发布</el-button>
                             <el-button :size="elSize" text type="danger" :disabled="!canVoid(row)" @click="voidDemand(row)">作废</el-button>
                         </div>
                     </template>
