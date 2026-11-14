@@ -1095,6 +1095,7 @@
         var idPrefixMap = {
             门店: 'STORE',
             供应商: 'SUP',
+            贸易商: 'TRD',
             仓库: 'WH',
             直播间: 'LIVE',
             承运商: 'CAR'
@@ -1132,6 +1133,12 @@
         }
         var typeEl = document.getElementById(fieldId(pfx, 'subjectType'));
         var typeVal = typeEl ? typeEl.value.trim() : spec.subjectTypeLabel;
+        var allowedTypes = Array.isArray(spec.subjectTypeOptions) ? spec.subjectTypeOptions : null;
+        if (allowedTypes && allowedTypes.indexOf(typeVal) === -1) {
+            showToast('请选择主体类型');
+            if (typeEl) typeEl.focus();
+            return false;
+        }
         var nameEl = document.getElementById(fieldId(pfx, 'subjectName'));
         var contactEl = document.getElementById(fieldId(pfx, 'contactPerson'));
         var supplierAliasEl = document.getElementById(fieldId(pfx, 'supplierAlias'));
@@ -1172,7 +1179,7 @@
             ]
         });
         showToast(spec.pageLabel + '商家已保存', 'success');
-        return true;
+        return subjectId;
     }
 
     function init(spec) {
@@ -1351,7 +1358,8 @@
     function rowMerchantKind(tr) {
         var c = tr ? tr.querySelectorAll('td') : [];
         var t = c[3] ? c[3].textContent.trim() : '';
-        if (t === '供应商' || t === '仓库' || t === '门店') return t;
+        if (t === '服务商') return '贸易商';
+        if (t === '供应商' || t === '贸易商' || t === '仓库' || t === '门店') return t;
         return '门店';
     }
 
@@ -1422,10 +1430,33 @@
                         return;
                     }
                 }
-                if (saveSubjectRowFromAddForm(mainPm, kindSpec) === false) return;
+                var pfx = kindSpec.fieldIdPrefix || '';
+                var nameBefore = (document.getElementById(fieldId(pfx, 'subjectName')) || {}).value || '';
+                var contactBefore = (document.getElementById(fieldId(pfx, 'contactPerson')) || {}).value || '';
+                var phoneBefore = (document.getElementById(fieldId(pfx, 'addPhone')) || {}).value || '';
+                var typeBefore = (document.getElementById(fieldId(pfx, 'subjectType')) || {}).value || '';
+                var savedId = saveSubjectRowFromAddForm(mainPm, kindSpec);
+                if (savedId === false) return;
                 modal.style.display = 'none';
                 mainPm.decorateAllDetailLinkCells();
                 mainPm.refreshPagination();
+                if (
+                    kindSpec.subjectTypeLabel === '贸易商' &&
+                    window.MdmTraderArchiveStore &&
+                    typeof window.MdmTraderArchiveStore.addFromSubject === 'function'
+                ) {
+                    window.MdmTraderArchiveStore.addFromSubject({
+                        subjectId: typeof savedId === 'string' ? savedId : '',
+                        subjectName: String(nameBefore || '').trim(),
+                        subjectType: String(typeBefore || '').trim() || kindSpec.subjectTypeLabel,
+                        contact: String(contactBefore || '').trim(),
+                        phone: String(phoneBefore || '').trim()
+                    });
+                    showToast('已写入贸易商档案，正在跳转…', 'success');
+                    setTimeout(function () {
+                        window.location.href = 'mdm_archive_trader.html';
+                    }, 600);
+                }
             });
         }
         modal.addEventListener('click', function (e) {
@@ -1434,7 +1465,7 @@
     }
 
     /**
-     * 所有主体：门店/供应商/仓库商家合并列表；三套新增按钮各自打开原表单字段
+     * 所有主体：门店/供应商/贸易商/仓库商家合并列表；各新增按钮各自打开原表单字段
      */
     function initUnified() {
         var kindByLabel = {
@@ -1465,6 +1496,21 @@
                 subjectIdPrefix: 'SUP',
                 disableConfirmMessage: '确定禁用此供应商吗？'
             },
+            贸易商: {
+                pageLabel: '贸易商',
+                subjectTypeLabel: '贸易商',
+                /* 新增时可选，只允许贸易商、服务商 */
+                subjectTypeOptions: ['贸易商', '服务商'],
+                /* 创建需短信验证码；不收集登录账号；成功后写入贸易商档案 */
+                compactStoreSubjectForm: true,
+                enableSubjectOnboarding: true,
+                defaultStatus: '开启',
+                addModalId: 'mdmAllAddTrader',
+                triggerBtnId: 'mdmAddTraderMerchantBtn',
+                fieldIdPrefix: 'trd_',
+                subjectIdPrefix: 'TRD',
+                disableConfirmMessage: '确定禁用此贸易商吗？'
+            },
             仓库: {
                 pageLabel: '仓库',
                 subjectTypeLabel: '仓库',
@@ -1485,7 +1531,7 @@
         var detailFields = buildSubjectFields({
             pageLabel: '商家',
             subjectTypeLabel: '门店',
-            subjectTypeOptions: ['门店', '供应商', '仓库'],
+            subjectTypeOptions: ['门店', '供应商', '贸易商', '仓库'],
             bindColumnLabel: '绑定BD名称',
             contactPersonLabel: '联系人',
             statusOptions: [
@@ -1514,6 +1560,8 @@
             onDisableToggle: function (row, status) {
                 /* 【689】所有主体暂不支持禁用：「禁用」置灰不可点击 */
                 if (status !== '禁用' && status !== '停用' && status !== '冻结') return;
+                var cells = row ? row.querySelectorAll('td') : [];
+                var shownType = cells[3] ? cells[3].textContent.trim() : '';
                 var label = rowMerchantKind(row);
                 var kindSpec = kindByLabel[label] || kindByLabel['门店'];
                 if (status === '禁用' || status === '停用' || status === '冻结') {
@@ -1521,7 +1569,9 @@
                     pm.refreshDisableToggleLabel(row);
                     return;
                 }
-                showLfWarmConfirm(kindSpec.disableConfirmMessage, function () {
+                var disableMessage =
+                    shownType === '服务商' ? '确定禁用此服务商吗？' : kindSpec.disableConfirmMessage;
+                showLfWarmConfirm(disableMessage, function () {
                     pm.updateTableRow(row, { 9: { value: '禁用', isStatus: true } });
                     pm.refreshDisableToggleLabel(row);
                 });
@@ -1536,7 +1586,8 @@
                     activeKind = kindByLabel[rowMerchantKind(row)] || kindByLabel['门店'];
                     var c = row.querySelectorAll('td');
                     var titleEl = document.querySelector('#' + editModalId + ' .modal-title');
-                    if (titleEl) titleEl.textContent = activeKind.pageLabel + '详情';
+                    var shownType = c[3] ? c[3].textContent.trim() : '';
+                    if (titleEl) titleEl.textContent = (shownType || activeKind.pageLabel) + '详情';
                     return {
                         editSubjectId: c[0].textContent.trim(),
                         editSubjectName: c[1].textContent.trim(),
@@ -1577,7 +1628,7 @@
 
         pm.init();
 
-        ['门店', '供应商', '仓库'].forEach(function (label) {
+        ['门店', '供应商', '贸易商', '仓库'].forEach(function (label) {
             mountKindAddModal(pm, kindByLabel[label]);
         });
 

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰RBT - 履约</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
+    <link rel="stylesheet" href="../vendor/octopus-prototype-runtime/runtime.css">
+    <link rel="stylesheet" href="../vendor/octopus-prototype-runtime/theme.css">
+    <style>
+        [v-cloak] { display: none; }
+        .rbt-perf-host { min-height: 480px; }
+        .rbt-perf-tip { margin: 0 0 12px; }
+        .rbt-perf-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .rbt-perf-table th,
+        .rbt-perf-table td { border: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; vertical-align: top; }
+        .rbt-perf-table th { background: #f7f8fa; font-weight: 600; color: #303133; white-space: nowrap; }
+        .rbt-perf-note { margin: 0 0 10px; color: #606266; font-size: 13px; line-height: 1.7; }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="rbt-sidebar.js"></script>
+
+    <div id="header-container"></div>
+
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button type="button" class="active">履约</button></div>
+            <hr class="content-divider">
+
+            <div id="rbtPerfApp" class="rbt-perf-host" v-cloak>
+                <div class="mdm-biz-tip rbt-perf-tip" role="note">
+                    只列出复核通过、状态为<strong>支付中</strong>或<strong>已完成</strong>的需求。支付中表示复核已通过。比例付按获准的营业来源逐期计算，本页不预造未来固定金额。起算、舍入、退款跨期和完成条件待确认。本金、利息、罚息不是本页字段。有正营收但权益不足、负毛利导致商业不分、确零营收、源数据缺失、未到结算日、执行在途各自单独记录。
+                </div>
+                <vab-schema-table
+                    ref="table"
+                    :columns="columns"
+                    :request="requestRows"
+                    row-key="code"
+                    search-label-width="112px"
+                    action-column-width="88"
+                    :default-page-size="20"
+                    :auto-format-time="false">
+                    <template v-slot:[slots.code]="{row}">
+                        <doc-no-link :value="row.code" @open="openDetail(row)"></doc-no-link>
+                    </template>
+                    <template v-slot:[slots.status]="{row,elSize}">
+                        <el-tag :size="elSize" effect="light" :type="statusType(row.status)">{{ row.status || '—' }}</el-tag>
+                    </template>
+                    <template #actions="{row,elSize}">
+                        <el-button :size="elSize" text type="primary" @click="openDetail(row)">查看</el-button>
+                    </template>
+                </vab-schema-table>
+            </div>
+        </main>
+    </div>
+
+    <script src="rbt-fresh.js"></script>
+    <script src="../js/common.js"></script>
+    <script src="../vendor/octopus-prototype-runtime/runtime.js"></script>
+    <script src="rbt-store-data.js"></script>
+    <script src="rbt-settle-ratio.js"></script>
+    <script src="rbt-demand-data.js"></script>
+    <script src="rbt-performance.js"></script>
+</body>
+</html>

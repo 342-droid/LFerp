@@ -24,11 +24,13 @@
         tag('store-delivery', '配送关注', '#1677ff', 1),
         tag('store-new', '新开门店', '', 1)
       ],
+      RBT_STORE: [],
       AFTER_SALE: [
         tag('after-priority', '优先处理', '#ff4d4f', 6),
         tag('after-follow', '重点跟进', '#fa8c16', 8),
         tag('after-material', '待补资料', '', 4)
-      ]
+      ],
+      PRODUCT_PACKAGE: []
     },
     bindings: {
       STORE: {
@@ -36,7 +38,9 @@
         TSN00001: ['store-delivery'],
         SHA00001: ['store-focus', 'store-new']
       },
-      AFTER_SALE: {}
+      RBT_STORE: {},
+      AFTER_SALE: {},
+      PRODUCT_PACKAGE: {}
     }
   };
 
@@ -90,7 +94,7 @@
     next.bindings = next.bindings || {};
     delete next.catalogs.CONSUMER;
     delete next.bindings.CONSUMER;
-    ['STORE', 'AFTER_SALE'].forEach(function (type) {
+    ['STORE', 'RBT_STORE', 'AFTER_SALE', 'PRODUCT_PACKAGE'].forEach(function (type) {
       if (!Array.isArray(next.catalogs[type])) next.catalogs[type] = clone(DEFAULTS.catalogs[type]);
       next.catalogs[type].forEach(function (item) {
         item.color = normalizeColor(item.color);
@@ -101,13 +105,111 @@
         window.MdmStoreCode.migrateMapKeys(next.bindings.STORE);
       }
     });
+    restoreArchiveStoreTags(next);
+    repairStoreDemoBindings(next);
+    clearRbtStoreDemo(next);
     return next;
+  }
+
+  /* 准入门店不再预置「担保门店 / 需求门店」。本地已写入的示例标签和打标一并去掉，手动新增的标签保留。 */
+  function clearRbtStoreDemo(next) {
+    var demoIds = { 'rbt-store-guarantee': true, 'rbt-store-demand': true };
+    var catalog = next.catalogs.RBT_STORE || [];
+    var bindings = next.bindings.RBT_STORE || {};
+    var hadDemo = catalog.some(function (item) { return demoIds[item.id]; });
+    Object.keys(bindings).some(function (resourceId) {
+      if ((bindings[resourceId] || []).some(function (id) { return demoIds[id]; })) hadDemo = true;
+      return hadDemo;
+    });
+    if (!hadDemo) return;
+    next.catalogs.RBT_STORE = catalog.filter(function (item) { return !demoIds[item.id]; });
+    Object.keys(bindings).forEach(function (resourceId) {
+      var nextIds = (bindings[resourceId] || []).filter(function (id) { return !demoIds[id]; });
+      if (nextIds.length) bindings[resourceId] = nextIds;
+      else delete bindings[resourceId];
+    });
+    next.catalogs.RBT_STORE.forEach(function (item) {
+      item.usage = Object.keys(bindings).filter(function (resourceId) {
+        return (bindings[resourceId] || []).indexOf(item.id) >= 0;
+      }).length;
+    });
+    next.__rbtStoreDemoCleared = true;
+  }
+
+  /* 担保门店、需求门店只属于 RBT。若本地已把它们写进门店档案标签库，改回重点门店、配送关注、新开门店。 */
+  function restoreArchiveStoreTags(next) {
+    var rbtIds = { 'store-guarantee': 'store-focus', 'store-demand': 'store-delivery' };
+    var catalog = next.catalogs.STORE || [];
+    var bindings = next.bindings.STORE || {};
+    var hasRbt = catalog.some(function (item) { return rbtIds[item.id]; });
+    var bindingHasRbt = Object.keys(bindings).some(function (resourceId) {
+      return (bindings[resourceId] || []).some(function (id) { return rbtIds[id]; });
+    });
+    if (!hasRbt && !bindingHasRbt) return;
+    var kept = catalog.filter(function (item) { return !rbtIds[item.id]; });
+    var merged = [];
+    var seen = {};
+    clone(DEFAULTS.catalogs.STORE).concat(kept).forEach(function (item) {
+      if (seen[item.id]) return;
+      seen[item.id] = true;
+      merged.push(item);
+    });
+    next.catalogs.STORE = merged;
+    Object.keys(bindings).forEach(function (resourceId) {
+      if (/^ONS\d+$/.test(resourceId)) {
+        delete bindings[resourceId];
+        return;
+      }
+      var nextIds = [];
+      (bindings[resourceId] || []).forEach(function (id) {
+        var mapped = rbtIds[id] || id;
+        if (nextIds.indexOf(mapped) < 0 && merged.some(function (item) { return item.id === mapped; })) nextIds.push(mapped);
+      });
+      bindings[resourceId] = nextIds;
+    });
+    merged.forEach(function (item) {
+      item.usage = Object.keys(bindings).filter(function (resourceId) {
+        return (bindings[resourceId] || []).indexOf(item.id) >= 0;
+      }).length;
+    });
+    Object.keys(DEFAULTS.bindings.STORE).forEach(function (code) {
+      bindings[code] = clone(DEFAULTS.bindings.STORE[code]);
+    });
+    next.__archiveStoreTagsRestored = true;
+  }
+
+  /* 拆分之后，被清空的档案示例绑定重新交给页面按原规则补。只处理一次。 */
+  function repairStoreDemoBindings(next) {
+    if (next.__storeDemoRepaired) return;
+    var names = (next.catalogs.STORE || []).map(function (item) { return item.name; });
+    if (names.indexOf('重点门店') < 0 || names.indexOf('担保门店') >= 0) return;
+    var bindings = next.bindings.STORE || {};
+    Object.keys(DEFAULTS.bindings.STORE).forEach(function (code) {
+      bindings[code] = clone(DEFAULTS.bindings.STORE[code]);
+    });
+    Object.keys(bindings).forEach(function (code) {
+      if (!bindings[code] || !bindings[code].length) delete bindings[code];
+    });
+    (next.catalogs.STORE || []).forEach(function (item) {
+      item.usage = Object.keys(bindings).filter(function (resourceId) {
+        return (bindings[resourceId] || []).indexOf(item.id) >= 0;
+      }).length;
+    });
+    next.__storeDemoRepaired = true;
+    next.__storeDemoRepairPending = true;
   }
 
   function read() {
     try {
       var raw = localStorage.getItem(STORAGE_KEY);
-      return normalize(raw ? JSON.parse(raw) : clone(DEFAULTS));
+      var data = normalize(raw ? JSON.parse(raw) : clone(DEFAULTS));
+      if (data.__archiveStoreTagsRestored || data.__storeDemoRepairPending || data.__rbtStoreDemoCleared) {
+        delete data.__archiveStoreTagsRestored;
+        delete data.__storeDemoRepairPending;
+        delete data.__rbtStoreDemoCleared;
+        write(data);
+      }
+      return data;
     } catch (e) {
       return normalize(clone(DEFAULTS));
     }
@@ -261,12 +363,14 @@
           : index % 4 === 2
             ? ['after-priority']
             : ['after-material'];
-    } else {
+    } else if (type === 'STORE') {
       demo = index % 3 === 0
         ? ['store-focus']
         : index % 3 === 1
           ? ['store-delivery']
           : ['store-focus', 'store-new'];
+    } else {
+      return [];
     }
     saveBinding(type, id, demo);
     return demo;

@@ -1,0 +1,34 @@
+[v-cloak] { display: none; }
+.rbt-demand-schema-host { min-height: 480px; }
+.rbt-demand-table-wrap { width: 100%; overflow-x: auto; }
+.rbt-demand-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.rbt-demand-table th,
+.rbt-demand-table td {
+    border: 1px solid #e5e7eb;
+    padding: 8px 10px;
+    text-align: left;
+    white-space: nowrap;
+}
+.rbt-demand-table th { background: #f7f8fa; font-weight: 600; color: #303133; }
+.rbt-demand-table td.is-money,
+.rbt-demand-table th.is-money { text-align: right; }
+.rbt-demand-table td.is-empty { text-align: center; color: #909399; }
+.rbt-demand-empty {
+    padding: 16px 12px;
+    border: 1px dashed #e5e7eb;
+    border-radius: 6px;
+    color: #909399;
+    font-size: 13px;
+    text-align: center;
+    background: #fafafa;
+}
+.rbt-demand-contract-link {
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: #1677ff;
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+}
+.rbt-demand-contract-link:hover { text-decoration: underline; }

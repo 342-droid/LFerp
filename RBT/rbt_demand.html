@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰RBT - 需求单管理</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../vendor/octopus-prototype-runtime/runtime.css">
+    <link rel="stylesheet" href="../vendor/octopus-prototype-runtime/theme.css">
+    <style>
+        [v-cloak] { display: none; }
+        .rbt-demand-schema-host { min-height: 480px; }
+        .rbt-demand-schema-host .el-table .rbt-demand-ops {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: nowrap;
+            white-space: nowrap;
+        }
+        .rbt-demand-schema-host .el-table .rbt-demand-ops .el-button {
+            margin: 0;
+            padding: 0;
+            height: auto;
+            min-height: 0;
+            font-size: 13px;
+        }
+        .rbt-demand-schema-host .el-table .rbt-demand-ops .el-button + .el-button { margin-left: 0; }
+        .rbt-demand-schema-host .el-table .rbt-demand-ops .el-button.is-disabled,
+        .rbt-demand-schema-host .el-table .rbt-demand-ops .el-button.is-disabled:hover {
+            color: #c0c4cc;
+            background: transparent;
+            cursor: not-allowed;
+        }
+        .rbt-store-log { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .rbt-store-log th,
+        .rbt-store-log td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #ebeef5;
+            text-align: left;
+            vertical-align: top;
+            line-height: 1.5;
+        }
+        .rbt-store-log th { color: #909399; font-weight: 500; background: #fafafa; }
+        .rbt-store-log__who { width: 120px; white-space: nowrap; }
+        .rbt-store-log__time { width: 180px; white-space: nowrap; color: #606266; }
+        .rbt-store-log__empty { text-align: center; color: #909399; padding: 28px 12px; }
+        .rbt-demand-table-wrap { width: 100%; overflow-x: auto; }
+        .rbt-demand-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .rbt-demand-table th,
+        .rbt-demand-table td { border: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; white-space: nowrap; }
+        .rbt-demand-table th { background: #f7f8fa; font-weight: 600; color: #303133; }
+        .rbt-demand-table td.is-money,
+        .rbt-demand-table th.is-money { text-align: right; }
+        .rbt-demand-table td.is-empty { text-align: center; color: #909399; }
+        .rbt-demand-empty {
+            padding: 16px 12px;
+            border: 1px dashed #e5e7eb;
+            border-radius: 6px;
+            color: #909399;
+            font-size: 13px;
+            text-align: center;
+            background: #fafafa;
+        }
+        .rbt-demand-contract-link {
+            border: 0;
+            padding: 0;
+            background: transparent;
+            color: #1677ff;
+            cursor: pointer;
+            font: inherit;
+            text-align: left;
+        }
+        .rbt-demand-contract-link:hover { text-decoration: underline; }
+        .rbt-demand-contract-mask {
+            position: fixed;
+            inset: 0;
+            z-index: 2200;
+            background: rgba(0, 0, 0, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .rbt-demand-contract {
+            width: min(760px, 96vw);
+            max-height: min(86vh, 920px);
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.18);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .rbt-demand-contract__head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 18px 20px 14px;
+            border-bottom: 1px solid #ebeef5;
+        }
+        .rbt-demand-contract__eyebrow {
+            color: #909399;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+        .rbt-demand-contract__title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #303133;
+            line-height: 1.4;
+        }
+        .rbt-demand-contract__meta {
+            margin-top: 4px;
+            color: #606266;
+            font-size: 13px;
+        }
+        .rbt-sign-modal__tools {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: none;
+        }
+        .rbt-sign-demo {
+            height: 32px;
+            padding: 0 12px;
+            border: 1px solid #ff7019;
+            border-radius: 4px;
+            background: #fff7f2;
+            color: #ff7019;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .rbt-sign-demo:hover { background: #ff7019; color: #fff; }
+        .rbt-demand-contract__close {
+            border: 0;
+            background: transparent;
+            color: #909399;
+            font-size: 24px;
+            line-height: 1;
+            cursor: pointer;
+            padding: 0 2px;
+        }
+        .rbt-demand-contract__close:hover { color: #303133; }
+        .rbt-ratio-dialog { width: min(840px, 96vw); }
+        .rbt-ratio-dialog__body { padding: 16px 20px 20px; overflow: auto; }
+        .rbt-review-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 20px 16px; border-top: 1px solid #ebeef5; }
+        .supplier-detail-section-title .rbt-demand-contract-link { margin-left: 12px; font-weight: 400; font-size: 13px; }
+        .rbt-demand-contract__paper {
+            margin: 0;
+            padding: 20px 24px 28px;
+            overflow: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            font-size: 14px;
+            line-height: 1.75;
+            color: #303133;
+            background: #fafafa;
+        }
+        .rbt-sign-modal__body {
+            padding: 16px 20px 20px;
+            overflow: auto;
+            background: #fafafa;
+        }
+        .rbt-sign-card {
+            margin-bottom: 12px;
+            padding: 16px;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            background: #fff;
+        }
+        .rbt-sign-card h2 { margin: 0 0 8px; font-size: 16px; color: #222; }
+        .rbt-sign-card p { margin: 6px 0 0; color: #666; font-size: 14px; line-height: 1.6; }
+        .rbt-sign-party {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 0;
+            border-top: 1px solid #f2f2f2;
+            font-size: 14px;
+        }
+        .rbt-sign-party b { display: block; color: #222; }
+        .rbt-sign-party span { color: #666; }
+        .rbt-sign-party em { flex: none; font-style: normal; color: #ff7019; }
+        .rbt-sign-party em.is-done { color: #52c41a; }
+        .rbt-sign-tip { margin: 0; color: #888; font-size: 14px; line-height: 1.6; }
+        .rbt-sign-empty { padding: 32px 12px; text-align: center; color: #999; }
+        .rbt-sign-modal .rbt-sign-submit {
+            display: inline-block;
+            margin-top: 8px;
+            height: 32px;
+            padding: 0 16px;
+            border: 0;
+            border-radius: 4px;
+            background: #ff7019;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="rbt-sidebar.js"></script>
+
+    <div id="header-container"></div>
+
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button type="button" class="active">需求单管理</button></div>
+            <hr class="content-divider">
+
+            <div id="rbtDemandApp" class="rbt-demand-schema-host" v-cloak>
+                <vab-schema-table
+                    ref="table"
+                    :columns="columns"
+                    :request="requestRows"
+                    row-key="code"
+                    search-label-width="112px"
+                    action-column-width="168"
+                    :default-page-size="20"
+                    :auto-format-time="false">
+                    <template v-slot:[slots.code]="{row}">
+                        <doc-no-link :value="row.code" @open="openDetail(row)"></doc-no-link>
+                    </template>
+                    <template v-slot:[slots.repayperiod]="{row,elSize}">
+                        <div v-if="hasRatio(row) || canEditRatio(row)" class="rbt-demand-ops">
+                            <el-button v-if="hasRatio(row)" :size="elSize" text type="primary" @click="openRatio(row)">详情</el-button>
+                            <el-button v-if="canEditRatio(row)" :size="elSize" text type="primary" @click="openEditRatio(row)">改比例</el-button>
+                        </div>
+                        <span v-else>—</span>
+                    </template>
+                    <template v-slot:[slots.status]="{row,elSize}">
+                        <el-tag :size="elSize" effect="light" :type="statusType(row.status)">{{ row.status || '—' }}</el-tag>
+                    </template>
+                    <template #actions="{row,elSize}">
+                        <div class="rbt-demand-ops">
+                            <el-button :size="elSize" text type="primary" :disabled="!canGoAudit(row)" @click="goAudit(row)">审核</el-button>
+                            <el-button :size="elSize" text type="primary" :disabled="!canGoSign(row)" @click="goSign(row)">签署</el-button>
+                            <el-button :size="elSize" text type="danger" :disabled="!canVoid(row)" @click="voidDemand(row)">作废</el-button>
+                        </div>
+                    </template>
+                </vab-schema-table>
+            </div>
+        </main>
+    </div>
+
+    <script src="rbt-fresh.js"></script>
+    <script src="../js/common.js"></script>
+    <script src="../vendor/octopus-prototype-runtime/runtime.js"></script>
+    <script src="../js/mdm-product-catalog-store.js"></script>
+    <script src="rbt-store-data.js"></script>
+    <script src="rbt-settle-ratio.js"></script>
+    <script src="rbt-demand-data.js"></script>
+    <script src="rbt-trade-docs.js"></script>
+    <script src="rbt-demand-detail.js"></script>
+    <script src="rbt-trade-detail.js"></script>
+    <script src="rbt-contract-sign.js"></script>
+    <script src="rbt-demand-list.js"></script>
+</body>
+</html>

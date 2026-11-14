@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰RBT-移动端 - 贸易商端</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <style>
+        .rbt-h5-store-stage {
+            min-height: calc(100vh - 88px);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 16px 0 28px;
+            background: #f5f5f5;
+        }
+        .rbt-h5-phone {
+            width: 393px;
+            height: 851px;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .rbt-h5-phone__head {
+            padding: 32px 24px 16px;
+            background: #ff7019;
+            color: #fff;
+        }
+        .rbt-h5-phone__head h1 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 600;
+        }
+        .rbt-h5-phone__head p {
+            margin: 8px 0 0;
+            font-size: 14px;
+            opacity: 0.92;
+        }
+        .rbt-h5-phone__body {
+            flex: 1;
+            min-height: 0;
+            padding: 20px 24px 24px;
+            display: flex;
+            flex-direction: column;
+        }
+        .rbt-h5-phone.is-app .rbt-h5-phone__head { padding: 28px 16px 14px; }
+        .rbt-h5-phone.is-app .rbt-h5-phone__head h1 { font-size: 20px; }
+        .rbt-h5-phone.is-app .rbt-h5-phone__body { padding: 0; }
+        .rbt-h5-login-form {
+            display: none;
+            flex: 1;
+            min-height: 0;
+            overflow: auto;
+        }
+        .rbt-h5-app {
+            display: none;
+            flex: 1;
+            min-height: 0;
+            flex-direction: column;
+            background: #f7f7f7;
+        }
+        .rbt-h5-phone.is-login .rbt-h5-login-form { display: block; }
+        .rbt-h5-phone.is-app .rbt-h5-app { display: flex; }
+        .rbt-h5-scroll { flex: 1; min-height: 0; overflow: auto; padding: 12px 12px 16px; }
+        .rbt-h5-phone.is-home .rbt-h5-phone__head { display: none; }
+        .rbt-h5-scroll.is-home {
+            padding: 0 0 20px;
+            background: linear-gradient(180deg, #fff6ee 0%, #f4f6fb 240px, #f4f6fb 100%);
+        }
+        .rbt-h5-home__bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 22px 16px 8px;
+        }
+        .rbt-h5-home__avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #ff7019;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: none;
+        }
+        .rbt-h5-home__name {
+            flex: 1;
+            min-width: 0;
+            color: #222;
+            font-size: 18px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .rbt-h5-home__tools {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: #8a8f99;
+            flex: none;
+        }
+        .rbt-h5-home__card {
+            margin: 16px 12px 0;
+            padding: 16px 8px 18px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(31, 35, 41, 0.04);
+        }
+        .rbt-h5-home__card h2 {
+            margin: 0 8px 16px;
+            color: #222;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        .rbt-h5-home__grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            row-gap: 18px;
+        }
+        .rbt-h5-tool {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            color: #333;
+            font-size: 12px;
+            line-height: 1.2;
+        }
+        button.rbt-h5-tool {
+            border: 0;
+            background: transparent;
+            padding: 0;
+            cursor: pointer;
+            font: inherit;
+        }
+        .rbt-h5-tool__icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .rbt-h5-empty { padding: 48px 12px; text-align: center; color: #999; font-size: 14px; }
+        .rbt-h5-card {
+            margin-bottom: 10px;
+            padding: 12px;
+            border-radius: 10px;
+            background: #fff;
+            border: 1px solid #eee;
+        }
+        .rbt-h5-card h2 { margin: 0; font-size: 16px; color: #222; }
+        .rbt-h5-card p { margin: 6px 0 0; color: #666; font-size: 13px; line-height: 1.6; }
+        .rbt-h5-card__top { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+        .rbt-h5-status { flex: none; font-size: 12px; color: #ff7019; }
+        .rbt-h5-status.is-done { color: #52c41a; }
+        .rbt-h5-status.is-off { color: #999; }
+        .rbt-h5-withdraw {
+            display: block;
+            width: 100%;
+            margin-top: 8px;
+            height: 36px;
+            border: 1px solid #ff7019;
+            border-radius: 8px;
+            background: #fff;
+            color: #ff7019;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .rbt-h5-accept,
+        .rbt-sign-submit {
+            display: block;
+            width: 100%;
+            margin-top: 10px;
+            height: 36px;
+            border: 0;
+            border-radius: 8px;
+            background: #ff7019;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .rbt-sign-card {
+            margin-bottom: 10px;
+            padding: 12px;
+            border-radius: 10px;
+            background: #fff;
+            border: 1px solid #eee;
+        }
+        .rbt-sign-card h2 { margin: 0 0 8px; font-size: 16px; color: #222; }
+        .rbt-sign-card p { margin: 6px 0 0; color: #666; font-size: 13px; line-height: 1.6; }
+        .rbt-sign-party {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 10px 0;
+            border-top: 1px solid #f2f2f2;
+            font-size: 13px;
+        }
+        .rbt-sign-party b { display: block; color: #222; font-size: 13px; }
+        .rbt-sign-party span { color: #666; }
+        .rbt-sign-party em { flex: none; font-style: normal; color: #ff7019; }
+        .rbt-sign-party em.is-done { color: #52c41a; }
+        .rbt-sign-tip { margin: 4px 0 0; color: #888; font-size: 13px; line-height: 1.6; }
+        .rbt-sign-empty { padding: 24px 12px; text-align: center; color: #999; font-size: 14px; }
+        .rbt-h5-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .rbt-h5-hall-tabs {
+            display: flex;
+            margin: 0 0 12px;
+            border: 1px solid #ffe0cc;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fff7f2;
+        }
+        .rbt-h5-hall-tabs button {
+            flex: 1;
+            height: 36px;
+            border: 0;
+            background: transparent;
+            color: #888;
+            font-size: 14px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .rbt-h5-hall-tabs button.is-on {
+            background: #ff7019;
+            color: #fff;
+            font-weight: 600;
+        }
+        .rbt-h5-hall-tabs em {
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            border-radius: 9px;
+            background: #ff7019;
+            color: #fff;
+            font-style: normal;
+            font-size: 12px;
+            line-height: 18px;
+            font-weight: 600;
+            text-align: center;
+        }
+        .rbt-h5-hall-tabs button.is-on em {
+            background: #fff;
+            color: #ff7019;
+        }
+        .rbt-h5-back {
+            border: 0;
+            background: transparent;
+            color: #ff7019;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 0;
+        }
+        .rbt-h5-primary {
+            height: 40px;
+            padding: 0 14px;
+            border: 0;
+            border-radius: 8px;
+            background: #ff7019;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .rbt-h5-publish { width: 100%; height: 44px; }
+        .rbt-h5-login-tabs {
+            display: flex;
+            margin-bottom: 16px;
+            border: 1px solid #ffe0cc;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fff7f2;
+        }
+        .rbt-h5-login-tabs button {
+            flex: 1;
+            height: 40px;
+            border: 0;
+            background: transparent;
+            color: #888;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .rbt-h5-login-tabs button.is-on {
+            background: #ff7019;
+            color: #fff;
+            font-weight: 600;
+        }
+        .rbt-h5-phone.is-pwd [data-mode-field="code"],
+        .rbt-h5-phone.is-pwd [data-mode-tip="code"] { display: none; }
+        .rbt-h5-phone:not(.is-pwd) [data-mode-field="password"],
+        .rbt-h5-phone:not(.is-pwd) [data-mode-tip="password"] { display: none; }
+        .rbt-h5-action {
+            width: 100%;
+            margin-top: 12px;
+            height: 44px;
+            border: 1px solid #ff7019;
+            border-radius: 8px;
+            background: #fff;
+            color: #ff7019;
+            font-size: 15px;
+            cursor: pointer;
+        }
+        .rbt-h5-accounts { margin-top: 16px; }
+        .rbt-h5-accounts h2 {
+            margin: 0 0 8px;
+            color: #333;
+            font-size: 14px;
+        }
+        .rbt-h5-account {
+            margin-bottom: 6px;
+            padding: 6px 10px;
+            border: 1px solid #f0f0f0;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        .rbt-h5-account strong {
+            display: block;
+            color: #222;
+            font-size: 13px;
+        }
+        .rbt-h5-account button {
+            display: block;
+            width: 100%;
+            margin-top: 2px;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: #555;
+            font-size: 13px;
+            line-height: 1.5;
+            text-align: left;
+            cursor: pointer;
+        }
+        .rbt-h5-account button b {
+            color: #ff7019;
+            font-weight: 600;
+        }
+        .rbt-h5-field { margin-bottom: 12px; }
+        .rbt-h5-field label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
+        }
+        .rbt-h5-field input {
+            width: 100%;
+            height: 44px;
+            padding: 0 14px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+            background: #fff;
+            color: #222;
+        }
+        .rbt-h5-field input:focus {
+            outline: none;
+            border-color: #ff7019;
+        }
+        .rbt-h5-code { display: flex; gap: 8px; }
+        .rbt-h5-code input { flex: 1; }
+        .rbt-h5-sms {
+            flex: 0 0 112px;
+            height: 44px;
+            border: 1px solid #ff7019;
+            border-radius: 8px;
+            background: #fff;
+            color: #ff7019;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .rbt-h5-sms:disabled {
+            border-color: #ddd;
+            color: #999;
+            cursor: not-allowed;
+        }
+        .rbt-h5-tip {
+            margin: 0 0 12px;
+            color: #888;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+        .rbt-h5-login {
+            width: 100%;
+            height: 46px;
+            border: 0;
+            border-radius: 8px;
+            background: #ff7019;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .rbt-h5-mine h2 { margin: 8px 0 0; font-size: 22px; color: #222; }
+        .rbt-h5-mine p {
+            margin: 12px 0 0;
+            color: #666;
+            font-size: 14px;
+            line-height: 1.8;
+            white-space: pre-line;
+        }
+        .rbt-h5-logout {
+            width: 100%;
+            margin-top: 24px;
+            height: 44px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: #fff;
+            color: #333;
+            font-size: 15px;
+            cursor: pointer;
+        }
+        .rbt-h5-toast {
+            position: absolute;
+            top: 108px;
+            left: 24px;
+            right: 24px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.78);
+            color: #fff;
+            font-size: 14px;
+            line-height: 1.5;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            z-index: 30;
+        }
+        .rbt-h5-toast.is-on { opacity: 1; }
+        .rbt-repay-switch {
+            display: flex;
+            margin: 0 0 18px;
+            padding: 3px;
+            border-radius: 8px;
+            background: #f2f3f5;
+        }
+        .rbt-repay-switch button {
+            flex: 1;
+            height: 32px;
+            border: 0;
+            border-radius: 6px;
+            background: transparent;
+            color: #666;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .rbt-repay-switch button.is-on { background: #fff; color: #222; font-weight: 600; }
+        .rbt-repay-hero { padding: 8px 8px 18px; text-align: center; }
+        .rbt-repay-hero__label { margin: 0; color: #888; font-size: 14px; }
+        .rbt-repay-hero__amt {
+            margin: 8px 0 16px;
+            color: #ff7019;
+            font-size: 36px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        .rbt-repay-go {
+            display: block;
+            width: 100%;
+            height: 44px;
+            border: 0;
+            border-radius: 6px;
+            background: #1677ff;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .rbt-repay-go:disabled { background: #c9cdd4; cursor: default; }
+        .rbt-repay-hero__note { margin: 12px 0 0; color: #999; font-size: 12px; line-height: 1.6; }
+        .rbt-repay-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            width: 100%;
+            margin: 0 0 8px;
+            padding: 14px 12px;
+            border: 0;
+            border-radius: 10px;
+            background: #fff;
+            text-align: left;
+            cursor: pointer;
+            font: inherit;
+        }
+        .rbt-repay-row__title { display: block; color: #222; font-size: 15px; font-weight: 600; }
+        .rbt-repay-row__sub { display: block; margin-top: 6px; color: #888; font-size: 12px; }
+        .rbt-repay-row__side { text-align: right; white-space: nowrap; }
+        .rbt-repay-row__side b { display: block; color: #222; font-size: 14px; font-weight: 600; }
+        .rbt-repay-row__side span { display: block; margin-top: 6px; color: #999; font-size: 12px; }
+        .rbt-repay-row__side.is-done b { color: #52c41a; }
+        .rbt-bill__head {
+            margin: 0 -12px 12px;
+            padding: 8px 16px 16px;
+            background: #1677ff;
+            color: #fff;
+        }
+        .rbt-bill__top { display: flex; justify-content: space-between; align-items: center; }
+        .rbt-bill__code { font-size: 16px; font-weight: 600; }
+        .rbt-bill__tag {
+            padding: 2px 10px;
+            border-radius: 12px;
+            background: rgba(255,255,255,.2);
+            font-size: 12px;
+        }
+        .rbt-bill__label { margin: 18px 0 0; text-align: center; font-size: 13px; opacity: .9; }
+        .rbt-bill__amt { margin: 6px 0 14px; text-align: center; font-size: 32px; font-weight: 700; }
+        .rbt-bill__sheet { padding: 4px 0 12px; }
+        .rbt-bill__sheet h3 { margin: 0 0 8px; font-size: 15px; color: #222; }
+        .rbt-bill__line {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 11px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 13px;
+        }
+        .rbt-bill__line span { flex: none; color: #888; white-space: nowrap; }
+        .rbt-bill__line b { flex: 1; min-width: 0; color: #222; font-weight: 600; text-align: right; overflow-wrap: break-word; }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="rbt-h5-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="rbt-h5-store-stage">
+                <section class="rbt-h5-phone is-login" id="rbtH5Phone" aria-label="贸易商端">
+                    <div class="rbt-h5-toast" id="rbtH5Toast" role="status"></div>
+                    <div class="rbt-h5-phone__head">
+                        <h1>贸易商端</h1>
+                        <p id="rbtH5HeadText">验证码登录</p>
+                    </div>
+                    <div class="rbt-h5-phone__body">
+                        <form class="rbt-h5-login-form" id="rbtH5LoginForm">
+                            <div class="rbt-h5-login-tabs" role="tablist">
+                                <button type="button" data-login-mode="code" class="is-on">验证码登录</button>
+                                <button type="button" data-login-mode="password">密码登录</button>
+                            </div>
+                            <div class="rbt-h5-field">
+                                <label for="rbtH5LoginPhone">手机号</label>
+                                <input id="rbtH5LoginPhone" data-phone="login" type="tel" inputmode="numeric" maxlength="11" placeholder="请输入手机号" autocomplete="tel">
+                            </div>
+                            <div class="rbt-h5-field" data-mode-field="code">
+                                <label for="rbtH5LoginCode">验证码</label>
+                                <div class="rbt-h5-code">
+                                    <input id="rbtH5LoginCode" data-code="login" type="text" inputmode="numeric" maxlength="6" placeholder="请输入验证码" autocomplete="one-time-code">
+                                    <button type="button" class="rbt-h5-sms" data-sms="login">获取验证码</button>
+                                </div>
+                            </div>
+                            <div class="rbt-h5-field" data-mode-field="password">
+                                <label for="rbtH5LoginPassword">密码</label>
+                                <input id="rbtH5LoginPassword" data-password="login" type="password" maxlength="32" placeholder="请输入密码" autocomplete="current-password">
+                            </div>
+                            <p class="rbt-h5-tip" data-mode-tip="code">演示验证码 123456。点击下方手机号可填入。</p>
+                            <p class="rbt-h5-tip" data-mode-tip="password">演示密码 123456。点击下方手机号可填入。</p>
+                            <button type="submit" class="rbt-h5-login">登录</button>
+                            <section class="rbt-h5-accounts" id="rbtH5Accounts" aria-label="可登录账号"></section>
+                        </form>
+                        <div class="rbt-h5-app" id="rbtH5App">
+                            <div class="rbt-h5-scroll" id="rbtH5Scroll"></div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+    <script src="rbt-fresh.js"></script>
+    <script src="../js/common.js"></script>
+    <script src="../js/mdm-trader-archive-store.js"></script>
+    <script src="rbt-settle-ratio.js"></script>
+    <script src="rbt-demand-data.js"></script>
+    <script src="rbt-contract-sign.js"></script>
+    <script src="rbt-h5-trader-app.js"></script>
+    <script src="rbt-h5-trader-login.js"></script>
+</body>
+</html>
