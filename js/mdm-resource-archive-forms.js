@@ -710,7 +710,7 @@
         var modal = document.createElement('div');
         modal.className = 'erp-modal erp-modal--confirm';
         modal.innerHTML =
-            '<div class="erp-modal__header"><h2 class="erp-modal__title">更换登录手机号</h2>' +
+            '<div class="erp-modal__header"><h2 class="erp-modal__title">更换门店店长</h2>' +
             '<div class="erp-modal__header-actions"><button type="button" class="erp-modal__header-btn" data-act="x" aria-label="关闭">&times;</button></div></div>' +
             '<div class="erp-modal__body"><div class="erp-modal-confirm__row"><div class="erp-modal-confirm__icon">!</div>' +
             '<div class="erp-modal-confirm__msg" style="white-space:pre-line"></div></div></div>' +
@@ -958,15 +958,16 @@
         body.appendChild(formRow('联系人', true, refs.contactInp));
         var phoneRowWrap = smsRow();
         refs.phoneInp = phoneRowWrap.querySelector('input');
-        /* 【857】编辑时改号 = 门店端登录账号换绑手机号 */
+        /* 【857】编辑手机号用于指定接任店长，不修改个人账号手机号 */
         refs.phoneTip = document.createElement('div');
         refs.phoneTip.style.cssText = 'display:none;margin-top:6px;font-size:12px;color:#d46b08;line-height:1.5;';
         refs.phoneTip.textContent =
-            '仅修改本门店的登录手机号。保存后新手机号可登录门店端 App 管理本门店，原手机号不能再管理本门店。';
+            '更换管店人：新手机号用于查找接任店长账号，只交接本门店的店长权限。门店 ID、历史代采单及下单人不变；双方个人零售订单、积分和其他组织权限不受影响。同一人换手机号请通过个人账号换号流程处理。';
         var phoneCtl = document.createElement('div');
         phoneCtl.appendChild(phoneRowWrap);
         phoneCtl.appendChild(refs.phoneTip);
-        body.appendChild(formRow('手机号码', true, phoneCtl));
+        refs.phoneFormRow = formRow('手机号码', true, phoneCtl);
+        body.appendChild(refs.phoneFormRow);
         refs.verifyInp = txt('请输入验证码', '');
         refs.verifyRow = formRow('验证码', true, refs.verifyInp);
         body.appendChild(refs.verifyRow);
@@ -977,7 +978,7 @@
         refs.phoneInp.addEventListener('input', function () {
             if (refs.originalPhone == null) return;
             var changed = refs.isPhoneChanged();
-            refs.phoneTip.style.display = changed ? '' : 'none';
+            refs.phoneTip.style.display = '';
             refs.verifyRow.style.display = changed ? '' : 'none';
         });
         var nameWrap = document.createElement('div');
@@ -1152,9 +1153,14 @@
             /* 【857】编辑弹窗显示完整手机号（列表仍脱敏）；演示数据无完整号时把 **** 补成 0000 */
             if (refs.phoneInp) refs.phoneInp.value = storeFullPhone(tr);
             refs.originalPhone = refs.phoneInp ? String(refs.phoneInp.value || '').trim() : '';
+            refs.phoneInp.placeholder = '请输入接任店长的手机号';
+            refs.phoneInp.setAttribute('aria-label', '店长手机号');
+            var phoneLabel = refs.phoneFormRow.querySelector('label');
+            if (phoneLabel) phoneLabel.innerHTML = '<span style="color:#ff4d4f">*</span> 店长手机号';
+            refs.phoneTip.style.color = '#666';
             refs.verifyInp.value = '';
             if (refs.verifyRow) refs.verifyRow.style.display = 'none';
-            if (refs.phoneTip) refs.phoneTip.style.display = 'none';
+            if (refs.phoneTip) refs.phoneTip.style.display = '';
             refs.nameInp.value = cellPlainText(c[2]);
             var storeCode = cellPlainText(c[0]);
             var mapped = window.MdmStoreSiteSlot && window.MdmStoreSiteSlot.getByStore(storeCode);
@@ -2081,8 +2087,8 @@
                     }
                     var pc = phoneCheck;
                     var msg =
-                        '确认将本门店的登录手机号由 ' + (refs.originalPhone || '—') + ' 更换为 ' + pc.phone +
-                        '？更换后原手机号不能再登录管理本门店。';
+                        '确认更换门店【' + (refs.nameInp.value || storeName) + '】的店长？\n原店长账号：' + (refs.originalPhone || '—') + '\n接任店长账号：' + pc.phone +
+                        '\n仅解除原用户在本门店的店长权限，并授予接任用户；不改写双方个人账号手机号。\n门店 ID 不变，历史代采单仍归属本门店、保留原下单人，新店长按店长权限查看及处理。双方个人零售订单、积分及其他门店、组织权限不变。';
                     if (pc.otherStore) {
                         msg += '\n该手机号已是门店【' + pc.otherStore + '】的登录手机号，保存后可同时管理这两家门店。';
                     }
@@ -2091,7 +2097,7 @@
                         tr.setAttribute('data-phone', pc.phone);
                         if (applyEdit() === false) return;
                         removeArchiveFormModals();
-                        if (typeof showToast === 'function') showToast('已保存，本门店登录手机号已更换为 ' + pc.phone, 'success');
+                        if (typeof showToast === 'function') showToast('已保存，本门店店长已更换，接任账号：' + pc.phone, 'success');
                     });
                     return false;
                 },

@@ -3,7 +3,7 @@
  * - 旧账号名下还有其他门店：弹窗告知已不能管理该门店 → 切换到名下其他门店
  * - 旧账号名下没有其他门店：弹窗告知 → 退出登录，回到登录页
  * - 旧账号当前选中的不是被改号的门店：不打断，只是切换门店列表里不再有该门店
- * 演示状态存在 localStorage，右下角「857 改号演示」可切换场景。
+ * 演示状态存在 localStorage，右下角「857 店长交接演示」可切换场景。
  */
 (function (global) {
   var KEY = 'sa_857_phone_change_v1';
@@ -109,11 +109,11 @@
   function handlePending() {
     var st = read();
     var msg =
-      '门店【' + CHANGED_STORE + '】的登录手机号已由管理员更换，你的账号已不能管理该门店。';
+      '门店【' + CHANGED_STORE + '】的店长已由管理员更换，你已不再拥有该门店的店长权限。个人零售订单、积分及其他组织权限不受影响。';
     if (st.pending === 'multi') {
-      showDialog('门店登录手机号已更换', msg + '你还可以继续管理名下其他门店。', '切换门店', showSwitchSheet);
+      showDialog('门店店长权限已变更', msg + '你还可以继续管理名下其他门店。', '切换门店', showSwitchSheet);
     } else if (st.pending === 'single') {
-      showDialog('门店登录手机号已更换', msg + '当前账号下没有可管理的门店，请重新登录。', '重新登录', function () {
+      showDialog('门店店长权限已变更', msg + '当前账号下没有可管理的门店，请重新登录。', '重新登录', function () {
         st.pending = '';
         st.loggedOut = true;
         write(st);
@@ -123,30 +123,24 @@
   }
 
   function mountDemo() {
-    var chip = document.createElement('button');
-    chip.type = 'button';
-    chip.className = 'sa857-demo';
-    chip.textContent = '857 改号演示';
     var panel = document.createElement('div');
-    panel.className = 'sa857-demo-panel';
-    panel.hidden = true;
+    panel.className = 'sa-lp-demo';
+    panel.id = 'sa857DemoPanel';
+    panel.style.bottom = '150px';
     panel.innerHTML =
-      '<b>模拟 PC 更换本门店登录手机号</b>' +
-      '<p>当前登录 ' + OLD_PHONE + '，正在管理【' + CHANGED_STORE + '】。选择场景后会刷新页面，相当于 App 下一次请求时收到改号结果。</p>' +
-      '<button type="button" data-s="multi">名下还有其他门店</button>' +
-      '<button type="button" data-s="single">名下只有这一家门店</button>' +
-      '<button type="button" data-s="reset">恢复初始状态</button>';
-    chip.addEventListener('click', function () {
-      panel.hidden = !panel.hidden;
-    });
-    panel.addEventListener('click', function (e) {
-      var s = e.target && e.target.getAttribute('data-s');
-      if (!s) return;
-      write(s === 'reset' ? {} : { pending: s });
+      '<div class="sa-lp-demo__title">店长交接验收开关</div>' +
+      '<label class="sa-lp-demo__row">交接场景<select aria-label="交接场景">' +
+      '<option value="multi">名下还有其他门店</option>' +
+      '<option value="single">名下只有这一家门店</option>' +
+      '<option value="reset">恢复初始状态</option></select></label>' +
+      '<p class="sa-lp-demo__hint">当前账号 ' + OLD_PHONE + '。模拟【' + CHANGED_STORE + '】更换店长后，原店长收到权限变更提示。</p>' +
+      '<button type="button" class="sa-lp-demo__apply">应用并刷新</button>';
+    panel.querySelector('button').addEventListener('click', function () {
+      var scenario = panel.querySelector('select').value;
+      write(scenario === 'reset' ? {} : { pending: scenario });
       location.reload();
     });
-    shell().appendChild(chip);
-    shell().appendChild(panel);
+    document.body.appendChild(panel);
   }
 
   injectStyle();
