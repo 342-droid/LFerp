@@ -827,6 +827,23 @@
         return (trader && (trader.name || trader.traderName)) || '';
     }
 
+    /* 档案主体类型为服务商的账号不能接单。对不上档案时仍按贸易商处理。 */
+    function traderIsProvider(trader) {
+        var name = traderNameOf(trader);
+        var api = window.MdmTraderArchiveStore;
+        if (!name || !api || typeof api.list !== 'function') return false;
+        var matched = false;
+        (api.list() || []).some(function (row) {
+            if (!row) return false;
+            if (row.name === name || row.subjectName === name || (row.license && row.license.name === name)) {
+                matched = row.subjectType === '服务商';
+                return true;
+            }
+            return false;
+        });
+        return matched;
+    }
+
     function findDemand(rows, code) {
         var target = null;
         (rows || []).some(function (item) {
@@ -844,6 +861,7 @@
         var rows = list();
         var target = findDemand(rows, code);
         if (!target) return { ok: false, reason: 'missing' };
+        if (traderIsProvider(trader)) return { ok: false, reason: 'provider', demand: target };
         if (target.status !== '待接单' || target.traderName) {
             return { ok: false, reason: 'taken', demand: target };
         }

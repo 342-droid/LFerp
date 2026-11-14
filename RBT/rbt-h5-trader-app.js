@@ -30,6 +30,28 @@
         return (license && license.name) || '贸易商';
     }
 
+    /* 主体类型以贸易商档案为准。服务商不能看需求大厅，也不能接单。 */
+    function archiveRow() {
+        var name = traderName();
+        var api = window.MdmTraderArchiveStore;
+        if (!name || !api || typeof api.list !== 'function') return null;
+        var found = null;
+        (api.list() || []).some(function (row) {
+            if (!row) return false;
+            if (row.name === name || row.subjectName === name || (row.license && row.license.name === name)) {
+                found = row;
+                return true;
+            }
+            return false;
+        });
+        return found;
+    }
+
+    function isServiceProvider() {
+        var row = archiveRow();
+        return !!(row && row.subjectType === '服务商');
+    }
+
     function toast(message) {
         if (window.RbtH5TraderLogin && window.RbtH5TraderLogin.toast) {
             window.RbtH5TraderLogin.toast(message);
@@ -43,6 +65,7 @@
     }
 
     function pendingDemands() {
+        if (isServiceProvider()) return [];
         return demandRows().filter(function (item) {
             return item && item.status === '待接单' && !item.traderName;
         }).sort(function (a, b) {
@@ -51,6 +74,7 @@
     }
 
     function acceptedDemands() {
+        if (isServiceProvider()) return [];
         var name = traderName();
         return demandRows().filter(function (item) {
             return item && item.traderName && item.traderName === name;
@@ -401,6 +425,10 @@
             return;
         }
         if (accept) {
+            if (isServiceProvider()) {
+                toast('服务商不能接单');
+                return;
+            }
             var code = accept.getAttribute('data-accept');
             if (!window.confirm('确认接单「' + code + '」？一笔需求单只能由一个贸易商接单。')) return;
             var api = window.RbtDemandData;
@@ -408,6 +436,7 @@
                 ? api.acceptDemand(code, { name: traderName(), phone: account && account.phone })
                 : { ok: false, reason: 'missing' };
             if (result && result.ok) toast('接单成功');
+            else if (result && result.reason === 'provider') toast('服务商不能接单');
             else if (result && result.reason === 'missing') toast('需求单不存在');
             else toast('该需求单已被接单');
             render();
