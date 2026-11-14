@@ -1707,7 +1707,7 @@
                         '确认将本门店的登录手机号由 ' + (refs.originalPhone || '—') + ' 更换为 ' + pc.phone +
                         '？更换后原手机号不能再登录管理本门店。';
                     if (pc.otherStore) {
-                        msg += '\n该手机号已是门店【' + pc.otherStore + '】的登录手机号，保存后可同时管理这两家门店。';
+                        msg += '\n该手机号已是门店【' + pc.otherStore + '】的登录手机号，保存后，新手机号对应的用户可管理当前门店及其原有门店；其他门店的手机号、资料和权限保持不变。';
                     }
                     showStorePhoneConfirm(msg, function () {
                         if (cells[7]) cells[7].textContent = pc.masked;
