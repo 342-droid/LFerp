@@ -962,7 +962,7 @@
         refs.phoneTip = document.createElement('div');
         refs.phoneTip.style.cssText = 'display:none;margin-top:6px;font-size:12px;color:#d46b08;line-height:1.5;';
         refs.phoneTip.textContent =
-            '更换管店人：新手机号用于查找接任店长账号，只交接本门店的店长权限。门店 ID、历史代采单及下单人不变；双方个人零售订单、积分和其他组织权限不受影响。同一人换手机号请通过个人账号换号流程处理。';
+            '仅更换本店店长，订单、个人资产及其他组织权限不变。';
         var phoneCtl = document.createElement('div');
         phoneCtl.appendChild(phoneRowWrap);
         phoneCtl.appendChild(refs.phoneTip);
