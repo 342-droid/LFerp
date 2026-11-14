@@ -1,10 +1,54 @@
 {
-  "latestSha": "d5432280e3de9cb6b5518929ac0eb75e423db3a8",
-  "total": 550,
+  "latestSha": "4d0908e1d7a9628824de21b356a96c6be0788c48",
+  "total": 551,
   "days": [
     {
       "date": "2026-11-14",
       "items": [
+        {
+          "sha": "4d0908e",
+          "type": "fix",
+          "text": "clarify store manager handover prototype and unify demo panel",
+          "author": "u ｌ",
+          "time": "11:59",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_trader.html",
+              "module": "冷丰WMS",
+              "title": "贸易商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "丰银宝 · 工作台"
+            }
+          ]
+        },
         {
           "sha": "d543228",
           "type": "feat",

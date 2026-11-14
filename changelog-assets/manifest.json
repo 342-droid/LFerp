@@ -1447,6 +1447,43 @@
     "status": "added",
     "date": "2026-11-09"
   },
+  "4d0908e|MDM/mdm_archive_carrier.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-14"
+  },
+  "4d0908e|MDM/mdm_archive_live_room.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-14"
+  },
+  "4d0908e|MDM/mdm_archive_store.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-14"
+  },
+  "4d0908e|MDM/mdm_archive_supplier.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-14"
+  },
+  "4d0908e|MDM/mdm_archive_trader.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-14"
+  },
+  "4d0908e|MDM/mdm_archive_warehouse.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-14"
+  },
+  "4d0908e|store-app/h5/home.html": {
+    "before": "changelog-assets/4d0908e/store-app__h5__home.html.before.jpg",
+    "after": "changelog-assets/4d0908e/store-app__h5__home.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-11-14"
+  },
   "4defe20|MDM/mdm_archive_carrier.html": {
     "regions": 0,
     "status": "diff",
