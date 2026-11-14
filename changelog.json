@@ -1,7 +1,76 @@
 {
-  "latestSha": "daba4f70123cf39bb850039912af555760203100",
-  "total": 549,
+  "latestSha": "d5432280e3de9cb6b5518929ac0eb75e423db3a8",
+  "total": 550,
   "days": [
+    {
+      "date": "2026-11-14",
+      "items": [
+        {
+          "sha": "d543228",
+          "type": "feat",
+          "text": "服务商登录后需求大厅无数据且不能接单",
+          "author": "342-droid",
+          "time": "10:08",
+          "pages": [
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "module": "冷丰WMS",
+              "title": "需求单审核"
+            },
+            {
+              "file": "RBT/rbt_admit_store.html",
+              "module": "冷丰RBT",
+              "title": "门店管理"
+            },
+            {
+              "file": "RBT/rbt_contract_sign.html",
+              "module": "冷丰RBT",
+              "title": "合同签署"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
+              "file": "RBT/rbt_purchase.html",
+              "module": "冷丰RBT",
+              "title": "采购单"
+            },
+            {
+              "file": "RBT/rbt_sales.html",
+              "module": "冷丰RBT",
+              "title": "销售单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "主体类型为服务商时待接单和已接单都是空态，也不能接单；贸易商可看全部待接单和自己已接的需求"
+            },
+            {
+              "file": null,
+              "text": "RBT 文档版本记录只保留 V1.0"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-11-13",
       "items": [
