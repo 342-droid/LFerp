@@ -1,10 +1,105 @@
 {
-  "latestSha": "45b0005d7e23b9203625c81417a7ce7db97eb72d",
-  "total": 552,
+  "latestSha": "698e7bbf43a9d3c3bb1122339e10abb0e2d7c698",
+  "total": 553,
   "days": [
     {
       "date": "2026-11-14",
       "items": [
+        {
+          "sha": "698e7bb",
+          "type": "feat",
+          "text": "完善需求撤回、贸易商付款和门店还款，菜单改为门店准入管理",
+          "author": "342-droid",
+          "time": "17:27",
+          "pages": [
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "module": "冷丰WMS",
+              "title": "需求单审核"
+            },
+            {
+              "file": "RBT/rbt_admit_store.html",
+              "module": "冷丰RBT",
+              "title": "门店准入管理"
+            },
+            {
+              "file": "RBT/rbt_contract_sign.html",
+              "module": "冷丰RBT",
+              "title": "合同签署"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
+              "file": "RBT/rbt_product_package.html",
+              "module": "冷丰RBT",
+              "title": "商品包"
+            },
+            {
+              "file": "RBT/rbt_purchase.html",
+              "module": "冷丰RBT",
+              "title": "采购单"
+            },
+            {
+              "file": "RBT/rbt_sales.html",
+              "module": "冷丰RBT",
+              "title": "销售单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_demand.html",
+              "text": "撤回接单后进入待重新确认，可作废或重新发布；合同签完进入待付款，贸易商支付后才到待复核；原支付中改为还款中"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "撤回接单后不回到待接单；待付款可在线支付，或确认线下打款后进入待复核，取消则保持待付款"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "text": "撤回后的待重新确认只展示状态；还款页改为还款中，并说明是门店按日还款"
+            },
+            {
+              "file": "RBT/rbt_admit_store.html",
+              "text": "左侧菜单和页签由门店管理改为门店准入管理"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "text": "只列出还款中和已完成，说明改为门店按日还款"
+            },
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "text": "复核通过后提示需求进入还款中"
+            }
+          ]
+        },
         {
           "sha": "45b0005",
           "type": "docs",
@@ -103,7 +198,7 @@
             {
               "file": "RBT/rbt_admit_store.html",
               "module": "冷丰RBT",
-              "title": "门店管理"
+              "title": "门店准入管理"
             },
             {
               "file": "RBT/rbt_contract_sign.html",
@@ -217,7 +312,7 @@
             {
               "file": "RBT/rbt_admit_store.html",
               "module": "冷丰RBT",
-              "title": "门店管理"
+              "title": "门店准入管理"
             },
             {
               "file": "RBT/rbt_contract_sign.html",
@@ -373,7 +468,7 @@
             {
               "file": "RBT/rbt_admit_store.html",
               "module": "冷丰RBT",
-              "title": "门店管理"
+              "title": "门店准入管理"
             },
             {
               "file": "RBT/rbt_contract_sign.html",
@@ -445,7 +540,7 @@
             {
               "file": "RBT/rbt_admit_store.html",
               "module": "冷丰RBT",
-              "title": "门店管理"
+              "title": "门店准入管理"
             },
             {
               "file": "RBT/rbt_contract_sign.html",
@@ -738,7 +833,7 @@
             {
               "file": "RBT/rbt_admit_store.html",
               "module": "冷丰RBT",
-              "title": "门店管理"
+              "title": "门店准入管理"
             },
             {
               "file": "RBT/rbt_contract_sign.html",
@@ -818,8 +913,8 @@
               "text": "详情增加操作记录页签"
             },
             {
-              "file": "RBT/rbt_admit_store.html",
-              "text": "已占用弹窗联营服务费改为服务费"
+              "file": null,
+              "text": "门店管理: 已占用弹窗联营服务费改为服务费"
             },
             {
               "file": "RBT/rbt_h5_store.html",
@@ -978,7 +1073,7 @@
             {
               "file": "RBT/rbt_admit_store.html",
               "module": "冷丰RBT",
-              "title": "门店管理"
+              "title": "门店准入管理"
             },
             {
               "file": "RBT/rbt_contract_sign.html",
@@ -1061,8 +1156,8 @@
               "text": "详情增加操作记录页签"
             },
             {
-              "file": "RBT/rbt_admit_store.html",
-              "text": "门店标签变更写入操作记录"
+              "file": null,
+              "text": "门店管理: 门店标签变更写入操作记录"
             }
           ]
         },
@@ -1601,7 +1696,7 @@
             {
               "file": "RBT/rbt_admit_store.html",
               "module": "冷丰RBT",
-              "title": "门店管理"
+              "title": "门店准入管理"
             },
             {
               "file": "RBT/rbt_contract_sign.html",
@@ -2313,7 +2408,7 @@
             {
               "file": "RBT/rbt_admit_store.html",
               "module": "冷丰RBT",
-              "title": "门店管理"
+              "title": "门店准入管理"
             },
             {
               "file": "RBT/rbt_contract_sign.html",
@@ -2390,8 +2485,8 @@
               "text": "审核中心增加需求单审核；从去审核进入时不默认带审核状态"
             },
             {
-              "file": "RBT/rbt_admit_store.html",
-              "text": "列表展示门店额度，已占用可打开对应需求单"
+              "file": null,
+              "text": "门店管理: 列表展示门店额度，已占用可打开对应需求单"
             },
             {
               "file": "RBT/rbt_h5_store.html",
@@ -2833,7 +2928,7 @@
             {
               "file": "RBT/rbt_admit_store.html",
               "module": "冷丰RBT",
-              "title": "门店管理"
+              "title": "门店准入管理"
             },
             {
               "file": "RBT/rbt_contract_sign.html",
@@ -2907,8 +3002,8 @@
               "text": "标题与侧栏品牌改为冷丰RBT"
             },
             {
-              "file": "RBT/rbt_admit_store.html",
-              "text": "等级字段、提示文案与页面路径改为 RBT"
+              "file": null,
+              "text": "门店管理: 等级字段、提示文案与页面路径改为 RBT"
             },
             {
               "file": "RBT/rbt_product_package.html",
@@ -2972,7 +3067,7 @@
             {
               "file": "RBT/rbt_admit_store.html",
               "module": "冷丰RBT",
-              "title": "门店管理"
+              "title": "门店准入管理"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -3018,8 +3113,12 @@
           "global": true,
           "notes": [
             {
-              "file": "RBT/rbt_admit_store.html",
-              "text": "侧栏与页签由门店列表更名为门店管理；支持准入、标签、启用禁用与详情"
+              "file": null,
+              "text": "门店管理: 侧栏与页签由门店列表更名为门店管理"
+            },
+            {
+              "file": null,
+              "text": "支持准入、标签、启用禁用与详情"
             },
             {
               "file": "RBT/rbt_product_package.html",
@@ -7439,7 +7538,7 @@
             {
               "file": "RBT/rbt_admit_store.html",
               "module": "冷丰RBT",
-              "title": "门店管理"
+              "title": "门店准入管理"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -17099,7 +17198,7 @@
             {
               "file": "RBT/rbt_admit_store.html",
               "module": "冷丰RBT",
-              "title": "门店管理"
+              "title": "门店准入管理"
             },
             {
               "file": "RBT/rbt_h5_store.html",
@@ -18858,7 +18957,7 @@
             {
               "file": "RBT/rbt_admit_store.html",
               "module": "冷丰RBT",
-              "title": "门店管理"
+              "title": "门店准入管理"
             },
             {
               "file": "RBT/rbt_product_package.html",
@@ -18916,7 +19015,7 @@
             {
               "file": "RBT/rbt_admit_store.html",
               "module": "冷丰RBT",
-              "title": "门店管理"
+              "title": "门店准入管理"
             },
             {
               "file": "RBT/rbt_product_package.html",
@@ -19135,7 +19234,7 @@
             {
               "file": "RBT/rbt_admit_store.html",
               "module": "冷丰RBT",
-              "title": "门店管理"
+              "title": "门店准入管理"
             },
             {
               "file": "RBT/rbt_h5_store.html",
