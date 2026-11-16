@@ -1,9 +1,9 @@
 /**
- * 【857】PC 门店档案更换了本门店的登录手机号后，门店 APP 上旧账号的处理（演示）
- * - 旧账号名下还有其他门店：弹窗告知已不能管理该门店 → 切换到名下其他门店
- * - 旧账号名下没有其他门店：弹窗告知 → 退出登录，回到登录页
- * - 旧账号当前选中的不是被改号的门店：不打断，只是切换门店列表里不再有该门店
- * 演示状态存在 localStorage，右下角「857 店长交接演示」可切换场景。
+ * 【857】PC 完成「门店主体 ID ↔ 店长 ID」重绑后，门店 APP 上原店长的处理（演示）
+ * - 名下还有其他门店：提示本店店长已更换 → 切换到名下其他门店
+ * - 名下没有其他门店：提示后退出登录，回到登录页
+ * - 当前选中的不是被交接门店：不打断；切店列表按最新绑定展示
+ * 演示状态存在 localStorage，右下角「店长交接验收开关」可切换场景。
  */
 (function (global) {
   var KEY = 'sa_857_phone_change_v1';
@@ -109,7 +109,7 @@
   function handlePending() {
     var st = read();
     var msg =
-      '门店【' + CHANGED_STORE + '】的店长已由管理员更换，你已不再拥有该门店的店长权限。个人零售订单、积分及其他组织权限不受影响。';
+      '门店【' + CHANGED_STORE + '】已重新绑定店长（主体 ID ↔ 店长 ID），你已不再是该门店的店长。';
     if (st.pending === 'multi') {
       showDialog('门店店长权限已变更', msg + '你还可以继续管理名下其他门店。', '切换门店', showSwitchSheet);
     } else if (st.pending === 'single') {
@@ -133,7 +133,7 @@
       '<option value="multi">名下还有其他门店</option>' +
       '<option value="single">名下只有这一家门店</option>' +
       '<option value="reset">恢复初始状态</option></select></label>' +
-      '<p class="sa-lp-demo__hint">当前账号 ' + OLD_PHONE + '。模拟【' + CHANGED_STORE + '】更换店长后，原店长收到权限变更提示。</p>' +
+      '<p class="sa-lp-demo__hint">当前账号 ' + OLD_PHONE + '。模拟【' + CHANGED_STORE + '】重绑主体与店长后，原店长收到权限变更提示。</p>' +
       '<button type="button" class="sa-lp-demo__apply">应用并刷新</button>';
     panel.querySelector('button').addEventListener('click', function () {
       var scenario = panel.querySelector('select').value;

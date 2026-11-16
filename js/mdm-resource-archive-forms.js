@@ -958,11 +958,11 @@
         body.appendChild(formRow('联系人', true, refs.contactInp));
         var phoneRowWrap = smsRow();
         refs.phoneInp = phoneRowWrap.querySelector('input');
-        /* 【857】编辑手机号用于指定接任店长，不修改个人账号手机号 */
+        /* 【857】店长手机号用于查找接任用户，实际重绑「门店主体 ID ↔ 店长 ID」 */
         refs.phoneTip = document.createElement('div');
         refs.phoneTip.style.cssText = 'display:none;margin-top:6px;font-size:12px;color:#d46b08;line-height:1.5;';
         refs.phoneTip.textContent =
-            '仅更换本店店长，订单、个人资产及其他组织权限不变。';
+            '将按该手机号查找接任用户，并重新绑定本店主体 ID 与店长 ID。';
         var phoneCtl = document.createElement('div');
         phoneCtl.appendChild(phoneRowWrap);
         phoneCtl.appendChild(refs.phoneTip);
@@ -2037,7 +2037,7 @@
                     '编辑门店', before, storeSnapshot());
                 return true;
             }
-            /* 【857】手机号码变更：本门店登录挂靠从旧号用户换到新号用户，先于其他必填校验 */
+            /* 【857】店长手机号变更：重绑本店主体 ID ↔ 店长 ID，先于其他必填校验 */
             function checkPhoneChange() {
                 if (!(refs.isPhoneChanged && refs.isPhoneChanged())) return { changed: false };
                 var toast = function (m) {
@@ -2086,18 +2086,27 @@
                         return applyEdit() !== false;
                     }
                     var pc = phoneCheck;
+                    var subjectId = cellPlainText(cells[1]) || (refs.subjectSel && selectedLabel(refs.subjectSel)) || '—';
+                    var storeCode = cellPlainText(cells[0]) || storeId || '—';
                     var msg =
-                        '确认更换门店【' + (refs.nameInp.value || storeName) + '】的店长？\n原店长账号：' + (refs.originalPhone || '—') + '\n接任店长账号：' + pc.phone +
-                        '\n仅解除原用户在本门店的店长权限，并授予接任用户；不改写双方个人账号手机号。\n门店 ID 不变，历史代采单仍归属本门店、保留原下单人，新店长按店长权限查看及处理。双方个人零售订单、积分及其他门店、组织权限不变。';
+                        '确认更换门店【' + (refs.nameInp.value || storeName) + '】的店长？\n' +
+                        '门店主体：' + subjectId + '（ID 不变）\n' +
+                        '门店编码：' + storeCode + '\n' +
+                        '原店长：' + (refs.originalPhone || '—') + '\n' +
+                        '接任店长：' + pc.phone + '\n' +
+                        '实际操作：解除本店主体 ID 与原店长 ID 的绑定，建立本店主体 ID 与接任店长 ID 的绑定。\n' +
+                        '手机号仅用于查找接任用户；代采单仍归属本门店主体，新店长按店长权限查看及处理。';
                     if (pc.otherStore) {
-                        msg += '\n该手机号已是门店【' + pc.otherStore + '】的登录手机号，保存后可同时管理这两家门店。';
+                        msg += '\n该手机号已是门店【' + pc.otherStore + '】的店长登录号，保存后接任用户可同时管理本店及其原有门店。';
                     }
                     showStorePhoneConfirm(msg, function () {
                         if (cells[7]) cells[7].textContent = pc.masked;
                         tr.setAttribute('data-phone', pc.phone);
                         if (applyEdit() === false) return;
                         removeArchiveFormModals();
-                        if (typeof showToast === 'function') showToast('已保存，本门店店长已更换，接任账号：' + pc.phone, 'success');
+                        if (typeof showToast === 'function') {
+                            showToast('已保存：本店主体已重新绑定店长，接任账号 ' + pc.phone, 'success');
+                        }
                     });
                     return false;
                 },
