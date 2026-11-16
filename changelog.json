@@ -1,7 +1,75 @@
 {
-  "latestSha": "698e7bbf43a9d3c3bb1122339e10abb0e2d7c698",
-  "total": 553,
+  "latestSha": "a5eeb9288b4d445748a84c802898a04f969636e6",
+  "total": 554,
   "days": [
+    {
+      "date": "2026-11-16",
+      "items": [
+        {
+          "sha": "a5eeb92",
+          "type": "docs",
+          "text": "【857】明确门店档案改号为主体与店长重绑",
+          "author": "u ｌ",
+          "time": "14:17",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_trader.html",
+              "module": "冷丰WMS",
+              "title": "贸易商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "prototype-prd/view.html",
+              "module": "",
+              "title": "PRD"
+            },
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "丰银宝 · 工作台"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "text": "编辑提示与二次确认改为「主体 ID ↔ 店长 ID」重绑说明"
+            },
+            {
+              "file": null,
+              "text": "首页 · 门店 APP: 原店长提示改为按最新绑定校验的文案"
+            },
+            {
+              "file": null,
+              "text": "【857】PRD 去掉排除清单表述，刷新正文缓存"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-11-14",
       "items": [

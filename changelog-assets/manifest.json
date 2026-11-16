@@ -4322,6 +4322,48 @@
     "status": "diff",
     "date": "2026-11-09"
   },
+  "a5eeb92|MDM/mdm_archive_carrier.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-16"
+  },
+  "a5eeb92|MDM/mdm_archive_live_room.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-16"
+  },
+  "a5eeb92|MDM/mdm_archive_store.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-16"
+  },
+  "a5eeb92|MDM/mdm_archive_supplier.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-16"
+  },
+  "a5eeb92|MDM/mdm_archive_trader.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-16"
+  },
+  "a5eeb92|MDM/mdm_archive_warehouse.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-16"
+  },
+  "a5eeb92|prototype-prd/view.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-16"
+  },
+  "a5eeb92|store-app/h5/home.html": {
+    "before": "changelog-assets/a5eeb92/store-app__h5__home.html.before.jpg",
+    "after": "changelog-assets/a5eeb92/store-app__h5__home.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-11-16"
+  },
   "adcfc6c|prototype-prd/view.html": {
     "regions": 0,
     "status": "diff",
