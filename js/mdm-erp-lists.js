@@ -554,6 +554,7 @@
     };
     var archiveStorePage = null;
     var archiveSupplierPage = null;
+    var archiveWarehousePage = null;
 
     function escapeStoreCell(s) {
         return String(s || '')
@@ -645,6 +646,30 @@
             archiveSupplierPage.decorateAllDetailLinkCells();
         }
         return tr;
+    }
+
+    function appendArchiveWarehouseRow(data) {
+        if (!archiveWarehousePage || !data || !data.id) return null;
+        var digits = String(data.phone || '').replace(/\D/g, '');
+        var phone = digits.length === 11 ? digits.slice(0, 3) + '****' + digits.slice(7) : (data.phone || '—');
+        var row = archiveWarehousePage.addTableRow({
+            cells: [
+                escapeStoreCell(data.id),
+                escapeStoreCell(data.subjectName || '—'),
+                '<a href="#" class="subject-name-link">' + escapeStoreCell(data.name || '新仓库') + '</a>',
+                escapeStoreCell(data.kind || '仓库'),
+                escapeStoreCell(data.level || '—'),
+                escapeStoreCell(data.admin || '—'),
+                escapeStoreCell(phone),
+                escapeStoreCell(phone),
+                escapeStoreCell(data.location || '—'),
+                escapeStoreCell(data.area || '—'),
+                archiveWarehousePage.getCurrentTimeStr(),
+                { value: '启用', isStatus: true }
+            ]
+        });
+        if (row) archiveWarehousePage.refreshDisableToggleLabel(row);
+        return row;
     }
 
     function loadPlatformBusinessHoursForStore() {
@@ -2554,6 +2579,12 @@
             }
         });
         pm.init();
+        archiveWarehousePage = pm;
+        if (window.MdmResourceArchiveForms && typeof window.MdmResourceArchiveForms.takeFirstWarehouses === 'function') {
+            window.MdmResourceArchiveForms.takeFirstWarehouses().forEach(function (row) {
+                appendArchiveWarehouseRow(row);
+            });
+        }
         restoreArchiveStatuses(pm, 'warehouse', 11);
         bindSimpleFilter(pm, {
             resetFields: ['qSubjectName', 'qResourceName', 'qWhType', 'qWhStatus'],
@@ -4826,6 +4857,7 @@
         initArchiveStore: initArchiveStore,
         appendArchiveStoreRow: appendArchiveStoreRow,
         appendArchiveSupplierRow: appendArchiveSupplierRow,
+        appendArchiveWarehouseRow: appendArchiveWarehouseRow,
         repaintStoreCommerce: function () { paintArchiveContractColumn('store'); },
         initArchiveSupplier: initArchiveSupplier,
         initArchiveTrader: initArchiveTrader,

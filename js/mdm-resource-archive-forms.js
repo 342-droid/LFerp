@@ -748,43 +748,75 @@
         document.body.appendChild(backdrop);
     }
 
-    function attachWideModal(title, bodyEl, onConfirm, beforeValidate) {
+    function mountEntryMaterials(body, refs) {
+        if (!window.MdmEntryMaterials || !body || !refs) return;
+        refs.entryMaterials = window.MdmEntryMaterials.mount(body, { skin: 'pc', role: 'subject' });
+    }
+
+    function hydrateArchiveMaterials(refs, kind, name) {
+        if (!refs || !refs.entryMaterials || !window.MdmEntryMaterials || !name) return;
+        var data = window.MdmEntryMaterials.loadForArchive(kind, name);
+        if (data) window.MdmEntryMaterials.fill(refs.entryMaterials, data);
+    }
+
+    function persistArchiveMaterials(refs, kind, name) {
+        if (!refs || !refs.entryMaterials || !window.MdmEntryMaterials || !name) return;
+        window.MdmEntryMaterials.saveForArchive(kind, name, window.MdmEntryMaterials.read(refs.entryMaterials));
+    }
+
+    function fieldHidden(el) {
+        if (!el) return true;
+        var node = el;
+        while (node && node !== document.body) {
+            if (node.classList && node.classList.contains('subj-wiz__sink')) return true;
+            if (node.style && node.style.display === 'none') return true;
+            node = node.parentNode;
+        }
+        return false;
+    }
+
+    function attachWideModal(title, bodyEl, onConfirm, beforeValidate, dressKind) {
         removeArchiveFormModals();
         var backdrop = document.createElement('div');
         backdrop.className = 'store-archive-modal-backdrop resource-archive-modal-backdrop';
         backdrop.setAttribute('data-mdm-archive-form', '1');
+        var useDrawer = dressKind && window.MdmSubjectAddWizard && typeof window.MdmSubjectAddWizard.dress === 'function';
+        if (useDrawer) backdrop.classList.add('subj-wiz-backdrop');
         var modal = document.createElement('div');
-        modal.className = 'erp-modal erp-modal--store-wide';
+        modal.className = useDrawer ? 'modal-content subj-wiz' : 'erp-modal erp-modal--store-wide';
         var head = document.createElement('div');
-        head.className = 'erp-modal__header';
+        head.className = useDrawer ? 'modal-header' : 'erp-modal__header';
         var h2 = document.createElement('h2');
-        h2.className = 'erp-modal__title';
+        h2.className = useDrawer ? 'modal-title' : 'erp-modal__title';
         h2.textContent = title;
         head.appendChild(h2);
-        var ha = document.createElement('div');
-        ha.className = 'erp-modal__header-actions';
         var bx = document.createElement('button');
         bx.type = 'button';
-        bx.className = 'erp-modal__header-btn';
+        bx.className = useDrawer ? 'close' : 'erp-modal__header-btn';
         bx.innerHTML = '&times;';
         bx.setAttribute('aria-label', '关闭');
         bx.addEventListener('click', function () {
             backdrop.remove();
         });
-        ha.appendChild(bx);
-        head.appendChild(ha);
+        if (useDrawer) head.appendChild(bx);
+        else {
+            var ha = document.createElement('div');
+            ha.className = 'erp-modal__header-actions';
+            ha.appendChild(bx);
+            head.appendChild(ha);
+        }
         var bw = document.createElement('div');
-        bw.className = 'erp-modal__body';
+        bw.className = useDrawer ? 'modal-form' : 'erp-modal__body';
         bw.appendChild(bodyEl);
         var foot = document.createElement('div');
-        foot.className = 'erp-modal__footer';
+        foot.className = useDrawer ? 'modal-footer' : 'erp-modal__footer';
         var bc = document.createElement('button');
         bc.type = 'button';
-        bc.className = 'erp-btn';
+        bc.className = useDrawer ? 'btn btn-secondary' : 'erp-btn';
         bc.textContent = '取消';
         var ok = document.createElement('button');
         ok.type = 'button';
-        ok.className = 'erp-btn erp-btn--primary';
+        ok.className = useDrawer ? 'btn btn-primary' : 'erp-btn erp-btn--primary';
         ok.textContent = '确定';
         bc.addEventListener('click', function () {
             backdrop.remove();
@@ -794,9 +826,8 @@
             var requiredEls = bodyEl.querySelectorAll('[data-required-msg]');
             for (var i = 0; i < requiredEls.length; i++) {
                 var one = requiredEls[i];
-                if (one && one.disabled) continue;
-                var val = '';
-                if (one && typeof one.value === 'string') val = one.value.trim();
+                if (!one || one.disabled || fieldHidden(one)) continue;
+                var val = typeof one.value === 'string' ? one.value.trim() : '';
                 if (!val) {
                     if (typeof showToast === 'function') {
                         showToast(one.getAttribute('data-required-msg') || '请完善必填项', 'error');
@@ -808,19 +839,29 @@
             var uploadReq = bodyEl.querySelectorAll('[data-upload-required-msg]');
             for (var u = 0; u < uploadReq.length; u++) {
                 var upEl = uploadReq[u];
+                if (fieldHidden(upEl)) continue;
                 if (upEl.getAttribute('data-upload-state') !== '1') {
                     if (typeof showToast === 'function') {
-                        showToast(
-                            upEl.getAttribute('data-upload-required-msg') || '请上传必填照片',
-                            'error'
-                        );
+                        showToast(upEl.getAttribute('data-upload-required-msg') || '请上传必填照片', 'error');
                     }
+                    return;
+                }
+            }
+            if (bodyEl.querySelector('[data-entry-materials]') && window.MdmEntryMaterials) {
+                var entryErr = window.MdmEntryMaterials.validate(bodyEl.querySelector('[data-entry-materials]'));
+                if (entryErr) {
+                    if (typeof showToast === 'function') showToast(entryErr, 'error');
                     return;
                 }
             }
             if (typeof onConfirm === 'function') {
                 var shouldContinue = onConfirm();
                 if (shouldContinue === false) return;
+                backdrop.remove();
+                if (typeof showToast === 'function') {
+                    showToast(typeof shouldContinue === 'string' ? shouldContinue : '已提交（演示）', 'success');
+                }
+                return;
             }
             backdrop.remove();
             if (typeof showToast === 'function') showToast('已提交（演示）', 'success');
@@ -835,6 +876,7 @@
             if (ev.target === backdrop) backdrop.remove();
         });
         document.body.appendChild(backdrop);
+        if (useDrawer) window.MdmSubjectAddWizard.dress(backdrop, dressKind, { keepTitle: true, archive: true });
     }
 
     function cellPlainText(td) {
@@ -1224,14 +1266,11 @@
                 );
             }
             syncPartner();
-            if (refs.entryMaterials && window.MdmEntryMaterials) {
-                var savedEntry = window.MdmEntryMaterials.load('store', refs.nameInp.value);
-                if (savedEntry) window.MdmEntryMaterials.fill(refs.entryMaterials, savedEntry);
-            }
+            hydrateArchiveMaterials(refs, 'store', refs.nameInp.value);
         }
 
         bindStoreCodeField(refs, { storeCode: opts.storeCode || '' });
-        if (window.MdmEntryMaterials) refs.entryMaterials = window.MdmEntryMaterials.mount(body, { skin: 'pc' });
+        mountEntryMaterials(body, refs);
         return { body: body, fillFromArchiveRow: fillFromArchiveRow, refs: refs };
     }
 
@@ -1443,10 +1482,7 @@
                 setPayMethod(sc.payMethod || 'goods_first');
                 applySettleStrategyUI();
             }
-            if (refs.entryMaterials && window.MdmEntryMaterials && refs.nameInp) {
-                var savedSupplierEntry = window.MdmEntryMaterials.load('supplier', refs.nameInp.value);
-                if (savedSupplierEntry) window.MdmEntryMaterials.fill(refs.entryMaterials, savedSupplierEntry);
-            }
+            hydrateArchiveMaterials(refs, 'supplier', refs.nameInp ? refs.nameInp.value : '');
         }
 
         function readPayMethod() {
@@ -1474,7 +1510,7 @@
             };
         };
 
-        if (window.MdmEntryMaterials) refs.entryMaterials = window.MdmEntryMaterials.mount(body, { skin: 'pc' });
+        mountEntryMaterials(body, refs);
         return { body: body, fillFromArchiveRow: fillFromArchiveRow, refs: refs };
     }
 
@@ -1596,6 +1632,7 @@
             body.querySelectorAll('input[name="' + refs.statusName + '"]').forEach(function (inp) {
                 inp.checked = inp.value === status;
             });
+            hydrateArchiveMaterials(refs, 'trader', refs.nameInp.value);
         }
 
         function collect() {
@@ -1634,6 +1671,7 @@
             return true;
         }
 
+        mountEntryMaterials(body, refs);
         return { body: body, refs: refs, fillFromArchiveRow: fillFromArchiveRow, collect: collect, validate: validate };
     }
 
@@ -1814,6 +1852,7 @@
         var nameInp = txt('请输入仓库名称', '');
         refs.nameInp = nameInp;
         nameInp.maxLength = 100;
+        nameInp.setAttribute('data-required-msg', '请输入仓库名称');
         var nc = document.createElement('span');
         nc.className = 'store-form__counter';
         nc.textContent = '0 / 100';
@@ -1834,6 +1873,7 @@
             ],
             ''
         );
+        refs.typeSel.setAttribute('data-required-msg', '请选择仓库级别');
         body.appendChild(formRow('仓库级别', true, refs.typeSel));
         function syncWarehouseLevelDisabled() {
             var kind = String((refs.kindInp && refs.kindInp.value) || '').trim();
@@ -1843,6 +1883,7 @@
         }
         syncWarehouseLevelDisabled();
         refs.adminInp = txt('请输入仓库管理员名称', '');
+        refs.adminInp.setAttribute('data-required-msg', '请输入仓库管理员');
         body.appendChild(formRow('仓库管理员', true, refs.adminInp));
         var phoneRowWrap = smsRow();
         refs.phoneInp = phoneRowWrap.querySelector('input');
@@ -1907,8 +1948,10 @@
                 var num = parseFloat(String(a9).replace(/[^\d.]/g, ''));
                 refs.areaInp.value = !isNaN(num) ? String(num) : '';
             }
+            hydrateArchiveMaterials(refs, 'warehouse', refs.nameInp.value);
         }
 
+        mountEntryMaterials(body, refs);
         return { body: body, fillFromArchiveRow: fillFromArchiveRow, refs: refs };
     }
 
@@ -1918,6 +1961,7 @@
 
     var FIRST_STORE_KEY = 'lf_first_store_archives_v1';
     var FIRST_SUPPLIER_KEY = 'lf_first_supplier_archives_v1';
+    var FIRST_WAREHOUSE_KEY = 'lf_first_warehouse_archives_v1';
 
     function readQueue(key) {
         try {
@@ -1959,7 +2003,16 @@
         tip.className = 'mdm-biz-tip';
         tip.setAttribute('role', 'note');
         var where = kind === 'supplier' ? '供应商档案' : '门店档案';
-        tip.innerHTML = '以下为<strong>首个档案</strong>，和主体一起提交入驻审核。包含档案原有字段，以及<strong>营业执照、法人身份证、法人实名电话、整套结算信息</strong>。创建后只在' + where + '查看和编辑，主体详情不再展示这些字段。进件自动带入已有字段，法人实名电话不写入进件。联系人、手机取上方主体信息。';
+        tip.innerHTML = '以下为<strong>首个' + (kind === 'supplier' ? '供应商' : '门店') + '</strong>，和主体一起提交。这里只填这家实际业务自己的信息，创建后只在' + where + '查看和编辑。联系人、手机取上方主体信息。营业执照、法人身份证、法人实名电话、整套结算信息写在下方主体资料里，保存后可在主体详情修改，并默认同步到这一家。';
+        return tip;
+    }
+
+    function businessOnlyBanner(kind) {
+        var tip = document.createElement('div');
+        tip.className = 'mdm-biz-tip';
+        tip.setAttribute('role', 'note');
+        var who = kind === 'supplier' ? '供应商' : '门店';
+        tip.innerHTML = '这里只填这家<strong>' + who + '</strong>自己的信息。营业执照、法人身份证、法人实名电话、整套结算信息在主体详情维护，本页不填写。';
         return tip;
     }
 
@@ -2012,13 +2065,20 @@
         if (kind === 'supplier') {
             refs.shortNameInp.value = subject.alias || refs.shortNameInp.value || subject.name || '';
         }
+        if (kind === 'trader' && refs.subjectTypeSel) {
+            refs.subjectTypeSel.value = subject.subjectType === '服务商' ? '服务商' : '贸易商';
+        }
     }
 
-    function saveEntryBoth(kind, subjectName, archiveName, root) {
+    function saveSubjectMaterials(subject, kind, archiveName, root) {
         if (!window.MdmEntryMaterials || !root) return;
         var data = window.MdmEntryMaterials.read(root);
+        var id = subject && subject.id ? String(subject.id).trim() : '';
+        if (id && typeof window.MdmEntryMaterials.saveSubject === 'function') {
+            window.MdmEntryMaterials.saveSubject(id, data);
+            window.MdmEntryMaterials.bindFirst(id, kind, archiveName);
+        }
         if (archiveName) window.MdmEntryMaterials.save(kind, archiveName, data);
-        if (subjectName && subjectName !== archiveName) window.MdmEntryMaterials.save(kind, subjectName, data);
     }
 
     function commitFirstStore(subject, bundle) {
@@ -2033,7 +2093,7 @@
         if (refs.codeInp) refs.codeInp.value = storeCode;
         writeVenuePhotos('store', storeCode, collectVenuePhotosFromRefs(refs));
         if (name) writeVenuePhotos('store', 'name:' + name, collectVenuePhotosFromRefs(refs));
-        saveEntryBoth('store', subject.name, name, refs.entryMaterials);
+        saveSubjectMaterials(subject, 'store', name, refs.entryMaterials);
         var bindings = readJsonStore('mdm_store_warehouse_bindings_v1');
         bindings[storeCode] = selectedLabel(refs.warehouseSel);
         writeJsonStore('mdm_store_warehouse_bindings_v1', bindings);
@@ -2075,7 +2135,7 @@
         var shortName = refs.shortNameInp ? String(refs.shortNameInp.value || '').trim() : '';
         var typeMap = { brand: '品牌商', agent: '代理商', person: '个人' };
         var typeValue = refs.typeSel ? refs.typeSel.value : '';
-        saveEntryBoth('supplier', subject.name, name, refs.entryMaterials);
+        saveSubjectMaterials(subject, 'supplier', name, refs.entryMaterials);
         var warehouse = refs.inboundWarehouseSel ? String(refs.inboundWarehouseSel.value || '').trim() : '';
         saveSupplierInboundWarehouseBinding('', name, warehouse);
         var id = 'SUP' + Date.now();
@@ -2106,7 +2166,73 @@
         return true;
     }
 
+    function commitFirstWarehouse(subject, bundle) {
+        var refs = bundle.refs || {};
+        copySubjectIntoArchive('warehouse', subject, refs);
+        var name = refs.nameInp ? String(refs.nameInp.value || '').trim() : '';
+        saveSubjectMaterials(subject, 'warehouse', name, refs.entryMaterials);
+        var id = 'WH' + Date.now();
+        seedWarehouseReceiveFromForm(id, refs);
+        var levelMap = { grid: '网格仓', center: '中心仓' };
+        var levelValue = refs.typeSel ? refs.typeSel.value : '';
+        var region = refs.regionInp ? String(refs.regionInp.value || '').trim() : '';
+        var detail = refs.detailTa ? String(refs.detailTa.value || '').trim() : '';
+        var areaNum = refs.areaInp ? String(refs.areaInp.value || '').trim() : '';
+        var row = {
+            id: id,
+            subjectName: subject.name || '—',
+            name: name,
+            kind: '仓库',
+            level: levelMap[levelValue] || levelValue || '—',
+            admin: refs.adminInp ? String(refs.adminInp.value || '').trim() : '',
+            phone: subject.phone || '',
+            location: [region, detail].filter(Boolean).join(' ') || '—',
+            area: areaNum ? areaNum + ' m²' : '—'
+        };
+        var appended = window.MdmErpLists && typeof window.MdmErpLists.appendArchiveWarehouseRow === 'function'
+            ? window.MdmErpLists.appendArchiveWarehouseRow(row)
+            : null;
+        if (!appended) pushQueue(FIRST_WAREHOUSE_KEY, row);
+        return true;
+    }
+
+    function commitFirstTrader(subject, bundle) {
+        var refs = bundle.refs || {};
+        copySubjectIntoArchive('trader', subject, refs);
+        var traderName = refs.nameInp ? String(refs.nameInp.value || '').trim() : '';
+        saveSubjectMaterials(subject, 'trader', traderName, refs.entryMaterials);
+        if (!bundle.collect) return false;
+        var payload = bundle.collect();
+        payload.subjectId = subject.id || '';
+        payload.subjectName = subject.name || payload.subjectName;
+        payload.subjectType = subject.subjectType === '服务商' ? '服务商' : '贸易商';
+        payload.contact = subject.contact || payload.contact;
+        payload.phone = subject.phone || payload.phone;
+        if (!window.MdmTraderArchiveStore || typeof window.MdmTraderArchiveStore.add !== 'function') {
+            if (typeof showToast === 'function') showToast('贸易商档案存储未加载', 'error');
+            return false;
+        }
+        var created = window.MdmTraderArchiveStore.add(payload);
+        if (!created) {
+            if (typeof showToast === 'function') showToast('贸易商档案未写入，请检查必填项', 'error');
+            return false;
+        }
+        return true;
+    }
+
     function buildFirstArchive(kind) {
+        if (kind === 'warehouse') {
+            var warehouseBundle = createWarehouseFormBundle();
+            hideLabeledRows(warehouseBundle.body, ['主体名称', '手机号码', '验证码']);
+            warehouseBundle.kind = kind;
+            return warehouseBundle;
+        }
+        if (kind === 'trader') {
+            var traderBundle = createTraderFormBundle();
+            hideLabeledRows(traderBundle.body, ['主体名称', '主体类型', '手机号码', '验证码', '联系人姓名']);
+            traderBundle.kind = kind;
+            return traderBundle;
+        }
         var bundle = kind === 'supplier'
             ? createSupplierFormBundle({ includeInboundWarehouse: true })
             : createStoreFormBundle({});
@@ -2122,29 +2248,85 @@
         return bundle;
     }
 
+    var ENTRY_AUDIT_KEY = 'lf_entry_audit_queue_v1';
+    var ENTRY_AUDIT_TIP = '已提交入驻审核，审核全部通过后发起合同签署';
+
+    function entryAuditNow() {
+        var d = new Date();
+        var p = function (n) { return String(n).padStart(2, '0'); };
+        return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+    }
+
+    /* 门店、供应商、贸易商新建后进入入驻审核。仓库不进审核、不签合同。 */
+    function enqueueEntryAudit(opts) {
+        opts = opts || {};
+        var typeMap = { store: '门店', supplier: '供应商', trader: '贸易商' };
+        var subjectType = opts.subjectType || typeMap[opts.kind] || '';
+        if (opts.kind === 'warehouse' || subjectType === '仓库') return null;
+        if (subjectType !== '门店' && subjectType !== '供应商' && subjectType !== '贸易商' && subjectType !== '服务商') {
+            return null;
+        }
+        var prefix = subjectType === '供应商' ? 'WF-SUP-' : (subjectType === '门店' ? 'WF-STORE-' : 'WF-TRD-');
+        var list = [];
+        try {
+            list = JSON.parse(localStorage.getItem(ENTRY_AUDIT_KEY) || '[]');
+        } catch (e) {
+            list = [];
+        }
+        if (!Array.isArray(list)) list = [];
+        var row = {
+            id: prefix + Date.now(),
+            source: opts.source || 'PC 创建',
+            subjectName: String(opts.subjectName || '').trim() || '—',
+            subjectType: subjectType === '服务商' ? '服务商' : subjectType,
+            storeName: String(opts.storeName || opts.subjectName || '').trim() || '—',
+            shortName: String(opts.shortName || '').trim(),
+            bd: String(opts.bd || '').trim() || '—',
+            contact: String(opts.contact || '').trim(),
+            phone: String(opts.phone || '').trim(),
+            partnerDivision: opts.partnerDivision || '',
+            bizLine: opts.bizLine || '',
+            brandName: opts.brandName || '',
+            address: opts.address || '',
+            auditStatus: '待审核',
+            mdmStatus: '未生成',
+            createdBy: '当前用户',
+            submittedAt: entryAuditNow(),
+            auditLogs: [],
+            fromCreate: true
+        };
+        list.unshift(row);
+        try {
+            localStorage.setItem(ENTRY_AUDIT_KEY, JSON.stringify(list));
+        } catch (e2) {}
+        return row;
+    }
+
     global.MdmResourceArchiveForms = {
         readVenuePhotos: readVenuePhotos,
+        enqueueEntryAudit: enqueueEntryAudit,
+        entryAuditTip: ENTRY_AUDIT_TIP,
         buildFirstArchive: buildFirstArchive,
         validateFirstArchive: validateFirstArchive,
         commitFirstArchive: function (kind, subject, bundle) {
             if (kind === 'supplier') return commitFirstSupplier(subject, bundle);
+            if (kind === 'warehouse') return commitFirstWarehouse(subject, bundle);
+            if (kind === 'trader') return commitFirstTrader(subject, bundle);
             return commitFirstStore(subject, bundle);
         },
         takeFirstStores: function () { return takeQueue(FIRST_STORE_KEY); },
         takeFirstSuppliers: function () { return takeQueue(FIRST_SUPPLIER_KEY); },
+        takeFirstWarehouses: function () { return takeQueue(FIRST_WAREHOUSE_KEY); },
         writeVenuePhotos: writeVenuePhotos,
         syncVenuePhotosFromOnboarding: syncVenuePhotosFromOnboarding,
         openStoreAdd: function () {
             var bundle = createStoreFormBundle({});
             hydrateArchiveWarehouseSelect(bundle.refs.warehouseSel, '', '请选择配送仓库');
+            if (bundle.refs.partnerSel && !bundle.refs.partnerSel.value) {
+                bundle.refs.partnerSel.value = 'franchise';
+                bundle.refs.partnerSel.dispatchEvent(new Event('change'));
+            }
             attachWideModal('添加门店', bundle.body, function () {
-                var entryErr = window.MdmEntryMaterials && bundle.refs.entryMaterials
-                    ? window.MdmEntryMaterials.validate(bundle.refs.entryMaterials)
-                    : '';
-                if (entryErr) {
-                    if (typeof showToast === 'function') showToast(entryErr, 'error');
-                    return false;
-                }
                 if (!warehouseSelectionAvailable(bundle.refs.warehouseSel, '')) return false;
                 var refs = bundle.refs || {};
                 var name = refs.nameInp ? String(refs.nameInp.value || '').trim() : '';
@@ -2165,9 +2347,6 @@
                 writeVenuePhotos('store', storeCode, collectVenuePhotosFromRefs(refs));
                 /* 演示：亦按名称索引，便于列表尚未落库时进件带入 */
                 if (name) writeVenuePhotos('store', 'name:' + name, collectVenuePhotosFromRefs(refs));
-                if (name && window.MdmEntryMaterials && refs.entryMaterials) {
-                    window.MdmEntryMaterials.save('store', name, window.MdmEntryMaterials.read(refs.entryMaterials));
-                }
                 var bindings = readJsonStore('mdm_store_warehouse_bindings_v1');
                 bindings[storeCode] = selectedLabel(refs.warehouseSel);
                 writeJsonStore('mdm_store_warehouse_bindings_v1', bindings);
@@ -2197,7 +2376,23 @@
                         bizLines: refs.bizHidden ? refs.bizHidden.value : ''
                     });
                 }
-            });
+                persistArchiveMaterials(refs, 'store', name);
+                enqueueEntryAudit({
+                    kind: 'store',
+                    source: 'PC 创建门店',
+                    subjectName: selectedLabel(refs.subjectSel),
+                    storeName: name,
+                    shortName: name,
+                    bd: selectedLabel(refs.bindBdSel),
+                    contact: refs.contactInp ? String(refs.contactInp.value || '').trim() : '',
+                    phone: refs.phoneInp ? String(refs.phoneInp.value || '').trim() : '',
+                    partnerDivision: partnerLabel,
+                    bizLine: refs.bizLineSel ? refs.bizLineSel.value : '',
+                    brandName: refs.brandSel ? refs.brandSel.value : '',
+                    address: refs.addressTa ? String(refs.addressTa.value || '').trim() : ''
+                });
+                return ENTRY_AUDIT_TIP;
+            }, null, '门店');
         },
         openStoreEdit: function (tr) {
             if (!tr) return;
@@ -2208,7 +2403,10 @@
             if (!initial.store_header_pic && storeName) {
                 initial = readVenuePhotos('store', 'name:' + storeName);
             }
-            var bundle = createStoreFormBundle({ initialVenuePhotos: initial, storeCode: storeId });
+            var bundle = createStoreFormBundle({
+                initialVenuePhotos: initial,
+                storeCode: storeId
+            });
             bundle.fillFromArchiveRow(tr);
             var refs = bundle.refs || {};
             function storeSnapshot() {
@@ -2222,13 +2420,6 @@
             }
             var before = storeSnapshot();
             function applyEdit() {
-                var entryErr = window.MdmEntryMaterials && refs.entryMaterials
-                    ? window.MdmEntryMaterials.validate(refs.entryMaterials)
-                    : '';
-                if (entryErr) {
-                    if (typeof showToast === 'function') showToast(entryErr, 'error');
-                    return false;
-                }
                 if (!warehouseSelectionAvailable(refs.warehouseSel, before['配送仓库'])) return false;
                 var region = refs.regionInp ? String(refs.regionInp.value || '').trim() : '';
                 var nextCode = storeId;
@@ -2249,9 +2440,6 @@
                 }
                 var nextName =
                     refs.nameInp ? String(refs.nameInp.value || '').trim() : storeName;
-                if (nextName && window.MdmEntryMaterials && refs.entryMaterials) {
-                    window.MdmEntryMaterials.save('store', nextName, window.MdmEntryMaterials.read(refs.entryMaterials));
-                }
                 var nextShort = nextName;
                 if (window.MdmStoreSiteSlot) {
                     var mapped = window.MdmStoreSiteSlot.getByStore(nextCode || storeId);
@@ -2274,6 +2462,7 @@
                 syncStoreReceiveFromForm(nextCode || storeId, nextName || storeName, refs);
                 if (window.MdmOperationLog) window.MdmOperationLog.record('store', nextCode || storeId,
                     '编辑门店', before, storeSnapshot());
+                persistArchiveMaterials(refs, 'store', nextName || storeName);
                 return true;
             }
             /* 【857】店长手机号变更：重绑本店主体 ID ↔ 店长 ID，先于其他必填校验 */
@@ -2352,7 +2541,8 @@
                 function () {
                     phoneCheck = checkPhoneChange();
                     return phoneCheck !== null;
-                }
+                },
+                '门店'
             );
         },
         openTraderAdd: function (onSaved) {
@@ -2370,7 +2560,20 @@
                     return false;
                 }
                 if (typeof onSaved === 'function') onSaved(created);
-            });
+                persistArchiveMaterials(bundle.refs, 'trader', payload.name);
+                enqueueEntryAudit({
+                    kind: 'trader',
+                    source: 'PC 创建贸易商',
+                    subjectName: payload.subjectName,
+                    subjectType: payload.subjectType,
+                    storeName: payload.name,
+                    shortName: payload.shortName,
+                    contact: payload.contact,
+                    phone: payload.phone,
+                    address: payload.detailAddr || ''
+                });
+                return ENTRY_AUDIT_TIP;
+            }, null, '贸易商');
         },
         openTraderEdit: function (tr, onSaved) {
             if (!tr) return;
@@ -2390,18 +2593,12 @@
                     return false;
                 }
                 if (typeof onSaved === 'function') onSaved(updated);
-            });
+                persistArchiveMaterials(bundle.refs, 'trader', payload.name);
+            }, null, '贸易商');
         },
         openSupplierAdd: function () {
             var bundle = createSupplierFormBundle({ includeInboundWarehouse: true });
             attachWideModal('新增供应商', bundle.body, function () {
-                var entryErr = window.MdmEntryMaterials && bundle.refs.entryMaterials
-                    ? window.MdmEntryMaterials.validate(bundle.refs.entryMaterials)
-                    : '';
-                if (entryErr) {
-                    if (typeof showToast === 'function') showToast(entryErr, 'error');
-                    return false;
-                }
                 if (!warehouseSelectionAvailable(bundle.refs.inboundWarehouseSel, '')) return false;
                 var name =
                     bundle.refs && bundle.refs.nameInp
@@ -2417,9 +2614,6 @@
                         : '';
                 var supplierId = 'SUP' + Date.now();
                 if (name) {
-                    if (window.MdmEntryMaterials && bundle.refs.entryMaterials) {
-                        window.MdmEntryMaterials.save('supplier', name, window.MdmEntryMaterials.read(bundle.refs.entryMaterials));
-                    }
                     saveSupplierInboundWarehouseBinding(supplierId, name, selectedWarehouse);
                     if (window.MdmSupplierArchiveStore) {
                         window.MdmSupplierArchiveStore.upsert({
@@ -2451,7 +2645,19 @@
                 if (window.MdmErpLists && typeof window.MdmErpLists.appendArchiveSupplierRow === 'function') {
                     window.MdmErpLists.appendArchiveSupplierRow(row);
                 }
-            });
+                persistArchiveMaterials(bundle.refs, 'supplier', name);
+                enqueueEntryAudit({
+                    kind: 'supplier',
+                    source: 'PC 创建供应商',
+                    subjectName: selectedLabel(bundle.refs.subjectSel),
+                    storeName: name,
+                    shortName: shortName,
+                    contact: bundle.refs.contactInp ? String(bundle.refs.contactInp.value || '').trim() : '',
+                    phone: bundle.refs.phoneInp ? String(bundle.refs.phoneInp.value || '').trim() : '',
+                    address: bundle.refs.detailTa ? String(bundle.refs.detailTa.value || '').trim() : ''
+                });
+                return ENTRY_AUDIT_TIP;
+            }, null, '供应商');
         },
         openSupplierEdit: function (tr) {
             if (!tr) return;
@@ -2476,13 +2682,6 @@
                     ? window.LFSettleCycleStore.getSupplier(supplierId, supplierName)
                     : null;
             attachWideModal('编辑供应商', bundle.body, function () {
-                var entryErr = window.MdmEntryMaterials && bundle.refs.entryMaterials
-                    ? window.MdmEntryMaterials.validate(bundle.refs.entryMaterials)
-                    : '';
-                if (entryErr) {
-                    if (typeof showToast === 'function') showToast(entryErr, 'error');
-                    return false;
-                }
                 if (!warehouseSelectionAvailable(bundle.refs.inboundWarehouseSel, before['入库仓库'])) {
                     return false;
                 }
@@ -2490,13 +2689,6 @@
                     bundle.refs && bundle.refs.nameInp
                         ? String(bundle.refs.nameInp.value || '').trim()
                         : supplierName;
-                if (nextName && window.MdmEntryMaterials && bundle.refs.entryMaterials) {
-                    window.MdmEntryMaterials.save(
-                        'supplier',
-                        nextName,
-                        window.MdmEntryMaterials.read(bundle.refs.entryMaterials)
-                    );
-                }
                 var nextShort =
                     bundle.refs && bundle.refs.shortNameInp
                         ? String(bundle.refs.shortNameInp.value || '').trim()
@@ -2561,7 +2753,8 @@
                         confirmIssueSettleSupplement(finalId, finalName, settleAfter);
                     }, 80);
                 }
-            });
+                persistArchiveMaterials(bundle.refs, 'supplier', nextName || supplierName);
+            }, null, '供应商');
         },
         openLiveRoomAdd: function () {
             attachWideModal('新增直播间', buildLiveRoomAddBody());
@@ -2589,7 +2782,8 @@
                         ? String(bundle.refs.nameInp.value || '').trim()
                         : '';
                 seedWarehouseReceiveFromForm(name || 'NEW-WH-' + String(Date.now()).slice(-6), bundle.refs);
-            });
+                persistArchiveMaterials(bundle.refs, 'warehouse', name);
+            }, null, '仓库');
         },
         openWarehouseEdit: function (tr) {
             if (!tr) return;
@@ -2605,7 +2799,8 @@
                 nameCell.textContent = nextName;
                 if (window.MdmOperationLog) window.MdmOperationLog.record('warehouse', warehouseId, '修改仓库', before,
                     { '仓库名称': nextName });
-            });
+                persistArchiveMaterials(bundle.refs, 'warehouse', nextName);
+            }, null, '仓库');
         },
         close: removeArchiveFormModals
     };
