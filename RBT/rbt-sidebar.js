@@ -12,6 +12,7 @@
     const isDemand = currentPage === 'rbt_demand';
     const isTrade = currentPage === 'rbt_trade' || currentPage === 'rbt_purchase' || currentPage === 'rbt_sales';
     const isPerformance = currentPage === 'rbt_performance';
+    const isDailyFulfill = currentPage === 'rbt_daily_fulfill';
 
     const sidebarContainer = document.getElementById('sidebar-container');
     if (!sidebarContainer) {
@@ -65,6 +66,12 @@
         '<a href="' + pageHref('rbt_performance.html') + '" class="menu-link' + (isPerformance ? ' active' : '') + '">' +
         '<img src="' + assetHref('image/基础信息.svg') + '" alt="" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
         '<span>履约</span>' +
+        '</a>' +
+        '</li>' +
+        '<li class="menu-item">' +
+        '<a href="' + pageHref('rbt_daily_fulfill.html') + '" class="menu-link' + (isDailyFulfill ? ' active' : '') + '">' +
+        '<img src="' + assetHref('image/基础信息.svg') + '" alt="" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
+        '<span>每日履行</span>' +
         '</a>' +
         '</li>' +
         '</ul>' +

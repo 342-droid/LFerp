@@ -6,7 +6,7 @@
     var hallFilter = 'pending';
     var signCode = '';
     var signSummaryOpen = false;
-    var collectFilter = 'pending';
+    var collectFilter = 'open';
     var collectCode = '';
 
     function esc(value) {
@@ -229,60 +229,177 @@
         return item && item.repayPeriod ? String(item.repayPeriod) : '—';
     }
 
-    function collectDemands(done) {
+    function phaseLabel(status) {
+        if (status === '门店付款中' || status === '还款中') return '履约中';
+        return status || '—';
+    }
+
+    function yuan(value) {
+        if (value == null || value === '' || value === '—') return '—';
+        return '¥' + value;
+    }
+
+    /* 已结款与履约详情同一套拆分：已发生日期的实际履行，按三方应收占比拆给贸易商。 */
+    function traderSettled(item) {
+        var daily = window.RbtDailyFulfill;
+        var api = window.RbtDemandData;
+        var days = daily && typeof daily.daysOf === 'function' ? daily.daysOf(item) : [];
+        var pack = api && typeof api.receivables === 'function' ? api.receivables(item) : null;
+        var empty = { total: '', shares: [] };
+        if (!pack || !days.length) return empty;
+        var keys = ['trader', 'lengfeng', 'provider'];
+        var cents = {};
+        var totalCents = 0;
+        keys.forEach(function (key) {
+            cents[key] = Math.max(0, centsOf(pack[key]) || 0);
+            totalCents += cents[key];
+        });
+        if (!totalCents) return empty;
+        var pool = 0;
+        days.forEach(function (row) { pool += Math.round((Number(row.actual) || 0) * 100); });
+        if (!pool) return { total: '0.00', shares: [] };
+        var largest = 'trader';
+        keys.forEach(function (key) {
+            if (cents[key] >= cents[largest]) largest = key;
+        });
+        var traderTotal;
+        if (largest === 'trader') {
+            var used = 0;
+            keys.forEach(function (key) {
+                if (key === 'trader') return;
+                used += Math.floor(pool * cents[key] / totalCents);
+            });
+            traderTotal = pool - used;
+        } else {
+            traderTotal = Math.floor(pool * cents.trader / totalCents);
+        }
+        var shares = [];
+        var usedDay = 0;
+        days.forEach(function (row, index) {
+            var part;
+            if (index === days.length - 1) part = traderTotal - usedDay;
+            else {
+                var dayPool = Math.round((Number(row.actual) || 0) * 100);
+                part = pool ? Math.floor(dayPool * traderTotal / pool) : 0;
+                usedDay += part;
+            }
+            shares.push({ date: row.date, channel: row.channel, amount: (part / 100).toFixed(2) });
+        });
+        return { total: (traderTotal / 100).toFixed(2), shares: shares };
+    }
+
+    var TRADER_ACCOUNTS = {
+        '杭州鲜达贸易有限公司': { accountName: '杭州鲜达贸易有限公司', accountNo: '6230610210001001007' },
+        '上海冷链融资租赁有限公司': { accountName: '上海冷链融资租赁有限公司', accountNo: '6217920210001002008' }
+    };
+
+    function fundOf(item) {
+        var amounts = hallAmounts(item);
+        var settled = traderSettled(item);
+        return {
+            receivable: amounts.total,
+            goods: amounts.goods,
+            fee: amounts.fee,
+            settled: settled.total,
+            shares: settled.shares,
+            account: TRADER_ACCOUNTS[item && item.traderName] || TRADER_ACCOUNTS[traderName()] || null
+        };
+    }
+
+    function closedBid(item) {
+        return item && (item.status === '已完成' || item.status === '已作废' || item.status === '已驳回');
+    }
+
+    function collectDemands(closed) {
         return acceptedDemands().filter(function (item) {
-            return item && item.status === (done ? '已完成' : '门店付款中');
+            return closed ? closedBid(item) : !closedBid(item);
         });
     }
 
-    /* 贸易商收款看实际资方到账。门店付款中没有到账，已完成也不补到账。 */
+    function sumMoney(rows, field) {
+        var total = 0;
+        var any = false;
+        rows.forEach(function (row) {
+            var cents = centsOf(row[field]);
+            if (cents == null) return;
+            any = true;
+            total += cents;
+        });
+        return any ? fromCents(total) : '';
+    }
+
     function renderCollect() {
-        var done = collectFilter === 'done';
-        var rows = collectDemands(done);
+        var closed = collectFilter === 'closed';
+        var rows = collectDemands(closed);
+        var funds = rows.map(function (item) { return fundOf(item); });
+        var receivable = sumMoney(funds, 'receivable');
+        var settled = sumMoney(funds, 'settled');
         setHead('收款');
         return '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="home">返回</button></div>' +
-            '<div class="rbt-repay-hero">' +
-            '<div class="rbt-repay-switch" role="tablist">' +
-            '<button type="button" data-collect-view="pending"' + (done ? '' : ' class="is-on"') + '>待收款</button>' +
-            '<button type="button" data-collect-view="done"' + (done ? ' class="is-on"' : '') + '>已收款</button>' +
+            '<div class="rbt-fund">' +
+            '<div class="rbt-fund__tabs" role="tablist">' +
+            '<button type="button" data-collect-view="open"' + (closed ? '' : ' class="is-on"') + '>跟进中</button>' +
+            '<button type="button" data-collect-view="closed"' + (closed ? ' class="is-on"' : '') + '>已结束</button>' +
             '</div>' +
-            '<p class="rbt-repay-hero__label">实际资方到账</p>' +
-            '<p class="rbt-repay-hero__amt">未产生</p>' +
-            '<button type="button" class="rbt-repay-go" data-collect-first ' + (rows.length ? '' : 'disabled') + '>账单明细</button>' +
-            '<p class="rbt-repay-hero__note">' + (done
-                ? '已完成只表示需求状态。实际资方到账未产生。'
-                : '门店付款中表示贸易商已付款，门店按日还款。应履行未计算，不能记成已收款。') + '</p>' +
+            '<div class="rbt-fund__summary">' +
+            '<div><span>笔数</span><b>' + rows.length + '</b></div>' +
+            '<div><span>贸易商应收</span><b>' + esc(receivable ? yuan(receivable) : '—') + '</b></div>' +
+            '<div><span>已结款</span><b>' + esc(settled ? yuan(settled) : '未产生') + '</b></div>' +
             '</div>' +
+            '<p class="rbt-fund__note">一笔已接单一张。贸易商应收在商品金额和结算系数确定后就有。已结款要等当天营业流水发生，按实际履行拆给贸易商。未发生的日期不算。</p>' +
             (rows.length ? rows.map(function (item) {
-                return '<button type="button" class="rbt-repay-row" data-collect="' + esc(item.code) + '">' +
-                    '<span><span class="rbt-repay-row__title">' + esc(item.code) + '</span>' +
-                    '<span class="rbt-repay-row__sub">' + esc(item.storeName || '—') + ' · 总金额 ¥' + esc(item.amount || '—') + '</span></span>' +
-                    '<span class="rbt-repay-row__side' + (done ? ' is-done' : '') + '"><b>' + esc(item.status) + '</b><span>到账未产生</span></span></button>';
-            }).join('') : '<div class="rbt-h5-empty">' + (done ? '暂无已完成的合作' : '暂无门店付款中的合作') + '</div>');
+                var fund = fundOf(item);
+                var tagClass = item.status === '已完成' ? ' is-done' : (item.status === '已作废' || item.status === '已驳回' ? ' is-off' : '');
+                return '<button type="button" class="rbt-fund-card" data-collect="' + esc(item.code) + '">' +
+                    '<div class="rbt-fund-card__top"><strong>' + esc(item.code) + '</strong>' +
+                    '<span class="rbt-fund-card__tag' + tagClass + '">' + esc(phaseLabel(item.status)) + '</span></div>' +
+                    '<p class="rbt-fund-card__store">' + esc(item.storeName || '—') + '</p>' +
+                    '<div class="rbt-fund-card__metrics">' +
+                    '<div><span>贸易商应收</span><b>' + esc(yuan(fund.receivable)) + '</b></div>' +
+                    '<div><span>已结款</span><b>' + esc(fund.settled ? yuan(fund.settled) : '未产生') + '</b></div>' +
+                    '</div></button>';
+            }).join('') : '<div class="rbt-h5-empty">' + (closed ? '暂无已结束的接单' : '暂无跟进中的接单') + '</div>') +
+            '</div>';
     }
 
     function renderCollectBill(item) {
-        var done = item.status === '已完成';
-        setHead('账单明细');
+        var fund = fundOf(item);
+        var account = fund.account || { accountName: '—', accountNo: '—' };
+        setHead('资金明细');
         var lines = [
             ['门店', (item.storeName || '—') + '（' + (item.storeCode || '—') + '）'],
+            ['商品金额', yuan(fund.goods)],
+            ['服务费', yuan(fund.fee)],
             ['结算周期', item.repayCycle || '—'],
             ['结算方式', item.repayMethod || '—'],
             ['结算比例', ratioText(item)],
-            ['应履行', done ? '完成依据待确认' : '未产生'],
-            ['可结算', '未产生'],
-            ['实际资方到账', '未产生'],
-            ['原结算关联', '未生成']
+            ['收款账户名称', account.accountName || '—'],
+            ['收款账户', account.accountNo || '—']
         ];
+        var tagClass = item.status === '已完成' ? ' is-done' : (item.status === '已作废' || item.status === '已驳回' ? ' is-off' : '');
+        var shares = fund.shares.slice().reverse();
         return '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="collect">返回</button></div>' +
-            '<section class="rbt-bill__head">' +
-            '<div class="rbt-bill__top"><span class="rbt-bill__code">' + esc(item.code) + '</span><span class="rbt-bill__tag">' + esc(item.status || '—') + '</span></div>' +
-            '<p class="rbt-bill__label">总金额</p>' +
-            '<p class="rbt-bill__amt">' + esc(item.amount || '—') + '</p></section>' +
-            '<section class="rbt-bill__sheet"><h3>账单明细</h3>' +
+            '<section class="rbt-fund-detail">' +
+            '<div class="rbt-fund-detail__head">' +
+            '<div class="rbt-fund-card__top"><strong>' + esc(item.code) + '</strong>' +
+            '<span class="rbt-fund-card__tag' + tagClass + '">' + esc(phaseLabel(item.status)) + '</span></div>' +
+            '<div class="rbt-fund-detail__metrics">' +
+            '<div><span>贸易商应收</span><b>' + esc(yuan(fund.receivable)) + '</b></div>' +
+            '<div><span>已结款</span><b>' + esc(fund.settled ? yuan(fund.settled) : '未产生') + '</b></div>' +
+            '</div></div>' +
+            '<p class="rbt-fund__note">已结款是这笔接单里，已发生日期的实际履行拆给贸易商的金额。没有营业流水时不预造。</p>' +
+            '<section class="rbt-bill__sheet">' +
             lines.map(function (line) {
                 return '<div class="rbt-bill__line"><span>' + esc(line[0]) + '</span><b>' + esc(line[1]) + '</b></div>';
             }).join('') +
+            '</section>' +
+            '<h3>结款明细</h3>' +
+            (shares.length
+                ? shares.map(function (row) {
+                    return '<div class="rbt-fund-day"><div><b>' + esc(String(row.date).slice(5)) + ' · ' + esc(row.channel) + '</b>' +
+                        '<span>已结款 ' + esc(yuan(row.amount)) + '</span></div></div>';
+                }).join('')
+                : '<p class="rbt-fund__note">暂无结款明细。还没有已发生的营业流水。</p>') +
             '</section>';
     }
 
@@ -728,7 +845,7 @@
         if (entry && entry.getAttribute('data-entry') === 'collect') {
             tab = 'hall';
             screen = 'collect';
-            collectFilter = 'pending';
+            collectFilter = 'open';
             render();
             return;
         }
@@ -775,20 +892,15 @@
         }
         var collectView = event.target.closest('[data-collect-view]');
         var collectBtn = event.target.closest('[data-collect]');
-        var collectFirst = event.target.closest('[data-collect-first]');
         if (collectView) {
-            collectFilter = collectView.getAttribute('data-collect-view') === 'done' ? 'done' : 'pending';
+            collectFilter = collectView.getAttribute('data-collect-view') === 'closed' ? 'closed' : 'open';
             tab = 'hall';
             screen = 'collect';
             render();
             return;
         }
-        if (collectFirst || collectBtn) {
-            var collectId = collectBtn ? collectBtn.getAttribute('data-collect') : '';
-            if (!collectId) {
-                var collectRow = collectDemands(collectFilter === 'done')[0];
-                collectId = collectRow ? collectRow.code : '';
-            }
+        if (collectBtn) {
+            var collectId = collectBtn.getAttribute('data-collect') || '';
             if (!collectId) return;
             collectCode = collectId;
             tab = 'hall';
@@ -799,7 +911,7 @@
         if (back) {
             screen = back.getAttribute('data-back') || 'mine';
             if (screen === 'hall') hallFilter = 'accepted';
-            if (screen === 'collect') collectFilter = collectFilter || 'pending';
+            if (screen === 'collect') collectFilter = collectFilter === 'closed' ? 'closed' : 'open';
             tab = screen === 'home' || screen === 'hall' || screen === 'collect' ? 'hall' : 'mine';
             render();
             return;

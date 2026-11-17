@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰RBT - 每日履行</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../vendor/octopus-prototype-runtime/runtime.css">
+    <link rel="stylesheet" href="../vendor/octopus-prototype-runtime/theme.css">
+    <style>
+        [v-cloak] { display: none; }
+        .rbt-daily-host { min-height: 480px; }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="rbt-sidebar.js"></script>
+
+    <div id="header-container"></div>
+
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button type="button" class="active">每日履行</button></div>
+            <hr class="content-divider">
+
+            <div id="rbtDailyApp" class="rbt-daily-host" v-cloak>
+                <vab-schema-table
+                    ref="table"
+                    :columns="columns"
+                    :request="requestRows"
+                    row-key="id"
+                    search-label-width="96px"
+                    action-column-width="88"
+                    :default-page-size="20"
+                    :auto-format-time="false">
+                    <template v-slot:[slots.demandCode]="{row}">
+                        <doc-no-link :value="row.demandCode" @open="openDemand(row)"></doc-no-link>
+                    </template>
+                    <template #actions="{row,elSize}">
+                        <el-button :size="elSize" text type="primary" @click="openDemand(row)">查看</el-button>
+                    </template>
+                </vab-schema-table>
+            </div>
+        </main>
+    </div>
+
+    <script src="rbt-fresh.js"></script>
+    <script src="../js/common.js"></script>
+    <script src="../vendor/octopus-prototype-runtime/runtime.js"></script>
+    <script src="rbt-store-data.js"></script>
+    <script src="rbt-settle-ratio.js"></script>
+    <script src="rbt-demand-data.js"></script>
+    <script src="rbt-demand-detail.js"></script>
+    <script src="rbt-daily-fulfill.js"></script>
+    <script src="rbt-daily-fulfill-page.js"></script>
+</body>
+</html>

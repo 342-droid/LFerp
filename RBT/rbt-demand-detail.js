@@ -68,13 +68,13 @@
         return cell(label, esc(value));
     }
 
-    function statusCell(label, value) {
+    function statusCell(label, value, text) {
         return cell(
             label,
             '<span class="mdm-detail-tag mdm-detail-tag--' +
                 statusKind(value) +
                 '">' +
-                esc(value || '—') +
+                esc(text || value || '—') +
                 '</span>'
         );
     }
@@ -132,21 +132,101 @@
         return '<div class="rbt-demand-table-wrap"><table class="rbt-demand-table"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>';
     }
 
-    function amountTable(item) {
+    function amountTable(item, performance) {
+        var settled = performance ? settledOf(item) : null;
+        var roles = [
+            ['贸易商', 'trader'],
+            ['冷丰', 'lengfeng'],
+            ['服务商', 'provider']
+        ];
         var cells = [
             money(item && item.goodsAmount),
             money(item && item.serviceFee),
-            money(item && item.amount),
-            money(receivableOf(item, 'trader')),
-            money(receivableOf(item, 'lengfeng')),
-            money(receivableOf(item, 'provider'))
+            money(item && item.amount)
         ];
-        var head = '<tr><th class="is-money">商品金额</th><th class="is-money">服务费</th><th class="is-money">总金额</th>' +
-            '<th class="is-money">贸易商应收</th><th class="is-money">冷丰应收</th><th class="is-money">服务商应收</th></tr>';
+        var head = '<tr><th class="is-money">商品金额</th><th class="is-money">服务费</th><th class="is-money">总金额</th>';
+        roles.forEach(function (role) {
+            head += '<th class="is-money">' + role[0] + '应收</th>';
+            cells.push(money(receivableOf(item, role[1])));
+            if (settled) {
+                head += '<th class="is-money">' + role[0] + '已结款</th>';
+                cells.push(money(settled[role[1]]));
+            }
+        });
+        head += '</tr>';
         var body = '<tr>' + cells.map(function (value) {
             return '<td class="is-money">' + esc(value) + '</td>';
         }).join('') + '</tr>';
         return '<div class="rbt-demand-table-wrap"><table class="rbt-demand-table"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>';
+    }
+
+    /* 收款方是主体。收款账户名称、收款账户用已有进件户，没有指定服务商时这三列留空。 */
+    var PAYEE_ACCOUNTS = {
+        '杭州鲜达贸易有限公司': { party: '杭州鲜达贸易有限公司', accountName: '杭州鲜达贸易有限公司', accountNo: '6230610210001001007' },
+        '上海冷链融资租赁有限公司': { party: '上海冷链融资租赁有限公司', accountName: '上海冷链融资租赁有限公司', accountNo: '6217920210001002008' }
+    };
+    var LENGFENG_ACCOUNT = { party: '上海冷丰科技有限公司', accountName: '上海冷丰科技有限公司', accountNo: '6666000202016395' };
+
+    function payeeAccount(name, fallback) {
+        var key = String(name || '').trim();
+        if (key && PAYEE_ACCOUNTS[key]) return PAYEE_ACCOUNTS[key];
+        return fallback || { party: '', accountName: '', accountNo: '' };
+    }
+
+    function settledOf(item) {
+        var pack = {
+            trader: Number(receivableOf(item, 'trader')) || 0,
+            lengfeng: Number(receivableOf(item, 'lengfeng')) || 0,
+            provider: Number(receivableOf(item, 'provider')) || 0
+        };
+        var days = window.RbtDailyFulfill && typeof window.RbtDailyFulfill.daysOf === 'function'
+            ? window.RbtDailyFulfill.daysOf(item)
+            : [];
+        var pool = (days || []).reduce(function (total, row) {
+            return total + (Number(row.actual) || 0);
+        }, 0);
+        var keys = ['trader', 'lengfeng', 'provider'];
+        var cents = {};
+        var totalCents = 0;
+        keys.forEach(function (key) {
+            cents[key] = Math.max(0, Math.round(pack[key] * 100));
+            totalCents += cents[key];
+        });
+        var poolCents = Math.max(0, Math.round(pool * 100));
+        var out = { trader: '0.00', lengfeng: '0.00', provider: '0.00' };
+        if (!totalCents || !poolCents) return out;
+        var largest = 'trader';
+        keys.forEach(function (key) {
+            if (cents[key] >= cents[largest]) largest = key;
+        });
+        var used = 0;
+        keys.forEach(function (key) {
+            if (key === largest) return;
+            var part = Math.floor(poolCents * cents[key] / totalCents);
+            used += part;
+            out[key] = (part / 100).toFixed(2);
+        });
+        out[largest] = ((poolCents - used) / 100).toFixed(2);
+        return out;
+    }
+
+    function payeesOf(item) {
+        return [
+            payeeAccount(item && item.traderName),
+            LENGFENG_ACCOUNT,
+            payeeAccount(item && item.providerName)
+        ];
+    }
+    function payeeSection(item) {
+        var body = payeesOf(item).map(function (account, index) {
+            var role = ['贸易商', '冷丰', '服务商'][index];
+            return '<tr><td>' + esc(role) + '</td><td>' + esc(account.party) + '</td><td>' + esc(account.accountName) +
+                '</td><td>' + esc(account.accountNo) + '</td></tr>';
+        }).join('');
+        return '<div class="supplier-detail-section-title">收款账户</div>' +
+            '<div class="rbt-demand-table-wrap"><table class="rbt-demand-table"><thead><tr>' +
+            '<th>角色</th><th>收款方名称</th><th>收款账户名称</th><th>收款账户</th>' +
+            '</tr></thead><tbody>' + body + '</tbody></table></div>';
     }
 
     function canShowContract(item) {
@@ -369,13 +449,52 @@
         );
     }
 
-    function basePanel(item) {
+    function displayStatus(item, performance) {
+        var status = item && item.status;
+        if (performance && window.RbtDailyFulfill && typeof window.RbtDailyFulfill.phaseLabel === 'function') {
+            return window.RbtDailyFulfill.phaseLabel(status);
+        }
+        return status || '—';
+    }
+
+    function dailyPanel(item) {
+        var api = window.RbtDailyFulfill;
+        var rows = api && typeof api.daysOf === 'function' ? api.daysOf(item).slice() : [];
+        rows.sort(function (a, b) {
+            if (a.date !== b.date) return a.date < b.date ? 1 : -1;
+            return String(a.channel) < String(b.channel) ? -1 : 1;
+        });
+        var body = rows.length
+            ? rows.map(function (row) {
+                return (
+                    '<tr><td>' + esc(row.date) + '</td><td>' + esc(row.channel) +
+                    '</td><td class="is-money">¥' + esc(row.turnover) +
+                    '</td><td class="is-money">¥' + esc(row.commission) +
+                    '</td><td>' + esc(row.ratio) +
+                    '</td><td class="is-money">¥' + esc(row.due) +
+                    '</td><td class="is-money">¥' + esc(row.actual) + '</td></tr>'
+                );
+            }).join('')
+            : '<tr><td class="is-empty" colspan="7">暂无已发生的每日履行。</td></tr>';
+        return (
+            '<div class="supplier-detail-tab">' +
+            '<p class="rbt-daily-note">本单已经发生的每日履行。一行是一天、一个渠道。应履行 = 所得佣金 × 该渠道结算比例。未发生的日期不出现。' +
+            '<a class="rbt-daily-note__more" href="rbt_daily_fulfill.html">全部门店每日履行</a></p>' +
+            '<div class="rbt-demand-table-wrap"><table class="rbt-demand-table"><thead><tr>' +
+            '<th>日期</th><th>渠道</th><th class="is-money">营业流水</th><th class="is-money">所得佣金</th><th>结算比例</th>' +
+            '<th class="is-money">应履行</th><th class="is-money">实际履行</th>' +
+            '</tr></thead><tbody>' + body + '</tbody></table></div></div>'
+        );
+    }
+
+    function basePanel(item, performance) {
+        var statusText = displayStatus(item, performance);
         return (
             '<div class="supplier-detail-tab">' +
             storeQuotaSection(item) +
             '<div class="supplier-detail-section-title">基础信息</div><div class="supplier-detail-grid">' +
             textCell('需求单号', item.code) +
-            statusCell('状态', item.status) +
+            statusCell('状态', item.status, statusText) +
             textCell('接单贸易商', item.traderName || '—') +
             textCell('服务商', item.providerName || '—') +
             textCell('接单时间', item.acceptedAt) +
@@ -393,7 +512,8 @@
             textCell('更新时间', item.updatedAt) +
             '</div>' +
             '<div class="supplier-detail-section-title">金额信息</div>' +
-            amountTable(item) +
+            amountTable(item, performance) +
+            (performance ? payeeSection(item) : '') +
             settleRatioSection(item) +
             '<div class="supplier-detail-section-title">商品明细</div>' +
             skuTable(item.skus) +
@@ -404,7 +524,7 @@
         );
     }
 
-    function bindBaseEvents(drawer, item) {
+    function bindBaseEvents(drawer, item, options) {
         var editRatio = drawer.querySelector('[data-rbt-ratio-edit]');
         if (editRatio) {
             editRatio.addEventListener('click', function () {
@@ -412,7 +532,10 @@
                 if (!ratioApi || typeof ratioApi.openEditor !== 'function') return;
                 ratioApi.openEditor(item, {
                     onSaved: function (saved) {
-                        open(saved, { keepAudit: true });
+                        open(saved, {
+                            keepAudit: true,
+                            performance: !!(options && options.performance)
+                        });
                     }
                 });
             });
@@ -504,6 +627,9 @@
         if (!(options && options.keepAudit)) {
             auditSession = options && options.audit ? options.audit : null;
         }
+        var performance = !!(options && options.performance);
+        var title = performance ? '履约详情' : '需求单详情';
+        var statusText = displayStatus(item, performance);
         closeDrawer();
         var backdrop = document.createElement('div');
         backdrop.className = 'store-drawer-backdrop';
@@ -513,17 +639,18 @@
         drawer.setAttribute('data-rbt-demand-drawer', '1');
         drawer.setAttribute('role', 'dialog');
         drawer.setAttribute('aria-modal', 'true');
-        drawer.setAttribute('aria-label', '需求单详情');
+        drawer.setAttribute('aria-label', title);
         drawer.innerHTML =
-            '<div class="store-drawer__header"><h2 class="store-drawer__title">需求单详情</h2>' +
+            '<div class="store-drawer__header"><h2 class="store-drawer__title">' + esc(title) + '</h2>' +
             '<button type="button" class="store-drawer__close" data-rbt-demand-close aria-label="关闭">&times;</button></div>' +
             '<div class="store-drawer__hero store-drawer__hero--elevated">' +
             '<div class="store-drawer__name-row"><span class="store-drawer__name">' + esc(item.code) + '</span>' +
-            '<span class="mdm-detail-tag mdm-detail-tag--' + statusKind(item.status) + '">' + esc(item.status || '—') + '</span></div>' +
+            '<span class="mdm-detail-tag mdm-detail-tag--' + statusKind(item.status) + '">' + esc(statusText) + '</span></div>' +
             '<div class="store-drawer__meta">门店：' + esc(item.storeName) + '（' + esc(item.storeCode) + '）</div>' +
             '<div class="store-drawer__meta">商品包：' + esc(item.packageName) + '（' + esc(item.packageCode) + '）</div></div>' +
             '<div class="store-drawer__tabs store-drawer__tabs--sticky" id="rbtDemandTabs">' +
             '<button type="button" class="store-drawer__tab is-active" data-tab="base">基础信息</button>' +
+            (performance ? '<button type="button" class="store-drawer__tab" data-tab="daily">每日履行</button>' : '') +
             '<button type="button" class="store-drawer__tab" data-tab="logs">操作记录</button></div>' +
             '<div class="store-drawer__body" id="rbtDemandBody"></div>' +
             (auditSession ? auditFooter() : '');
@@ -538,8 +665,12 @@
             tabs.querySelectorAll('.store-drawer__tab').forEach(function (button) {
                 button.classList.toggle('is-active', button.getAttribute('data-tab') === id);
             });
-            body.innerHTML = id === 'logs' ? logPanel(item) : basePanel(item);
-            if (id !== 'logs') bindBaseEvents(drawer, item);
+            if (id === 'logs') body.innerHTML = logPanel(item);
+            else if (id === 'daily') body.innerHTML = dailyPanel(item);
+            else {
+                body.innerHTML = basePanel(item, performance);
+                bindBaseEvents(drawer, item, options);
+            }
         }
         tabs.addEventListener('click', function (event) {
             var button = event.target.closest('[data-tab]');
@@ -550,5 +681,5 @@
         if (auditSession) bindAuditFooter(drawer);
     }
 
-    window.RbtDemandDetail = { open: open, close: closeDrawer };
+    window.RbtDemandDetail = { open: open, close: closeDrawer, payeesOf: payeesOf };
 })();
