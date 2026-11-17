@@ -2967,7 +2967,7 @@
     function storeHeroTags(store) {
         var tags = [];
         var st = store.storeStatus;
-        if (st === '已启用' || st === '正常') tags.push({ kind: 'orange', label: '已启用' });
+        if (st === '已启用' || st === '正常') tags.push({ kind: 'green', label: '已启用' });
         else if (['已冻结', '冻结', '已禁用', '停用'].indexOf(st) !== -1) {
             tags.push({ kind: 'gray', label: '已冻结' });
         }
@@ -2977,19 +2977,23 @@
         return tags;
     }
 
-    function appendEntryMaterialsSection(panel, kind, name) {
+    /* 详情只读展示。证照与结算的修改走右上角「编辑」，详情里不再放保存按钮。 */
+    function appendEntryMaterialsSection(panel, kind, businessName) {
         panel.appendChild(sectionTitle('证照与结算'));
-        var note = el('div', 'mdm-biz-tip');
-        note.setAttribute('role', 'note');
-        note.innerHTML = '营业执照、法人身份证、法人实名电话、整套结算信息属于档案信息。入驻审核后在这里查看，修改走档案编辑。进件自动带入已有字段，法人实名电话不写入进件。';
-        panel.appendChild(note);
+        var materials = window.MdmEntryMaterials;
+        var saved = null;
+        if (materials) {
+            saved = typeof materials.loadForArchive === 'function'
+                ? materials.loadForArchive(kind, businessName)
+                : materials.load(kind, businessName);
+        }
         var grid = el('div', 'supplier-detail-grid');
-        var data = window.MdmEntryMaterials && name ? window.MdmEntryMaterials.load(kind, name) : null;
-        if (!data || !window.MdmEntryMaterials || typeof window.MdmEntryMaterials.pairs !== 'function') {
+        var rows = materials && typeof materials.pairs === 'function' ? materials.pairs(saved) : [];
+        if (!rows.length) {
             grid.appendChild(detailCell('证照与结算', '未填写'));
         } else {
-            window.MdmEntryMaterials.pairs(data).forEach(function (item) {
-                grid.appendChild(detailCell(item.label, item.value));
+            rows.forEach(function (pair) {
+                grid.appendChild(detailCell(pair.label, pair.value));
             });
         }
         panel.appendChild(grid);
@@ -5736,6 +5740,117 @@
         return cell;
     }
 
+    function rowDetailActions(tr, shut) {
+        if (!tr) return [];
+        var actions = [];
+        var edit = tr.querySelector('.edit-btn');
+        if (edit) {
+            actions.push({
+                label: '编辑',
+                onClick: function () {
+                    shut();
+                    edit.click();
+                }
+            });
+        }
+        var onboard = tr.querySelector('.mdm-onboard-btn');
+        if (onboard) {
+            actions.push({
+                label: '去进件',
+                primary: true,
+                onClick: function () {
+                    shut();
+                    onboard.click();
+                }
+            });
+        }
+        return actions;
+    }
+
+    function foldLabel(node) {
+        if (!node) return '';
+        var title = node.classList && node.classList.contains('supplier-detail-section-title')
+            ? node
+            : node.querySelector('.supplier-detail-section-title');
+        return title ? String(title.textContent || '').replace(/\s+/g, ' ').trim() : '';
+    }
+
+    function isFoldHead(node) {
+        return !!(node && node.classList && (
+            node.classList.contains('supplier-detail-section-title') ||
+            node.classList.contains('supplier-detail-section-head')
+        ));
+    }
+
+    function paintDetailRail(rail, folds) {
+        rail.innerHTML = '';
+        if (!folds.length) {
+            rail.style.display = 'none';
+            return;
+        }
+        rail.style.display = '';
+        folds.forEach(function (item, index) {
+            var btn = el('button', 'store-drawer__anchor' + (index === 0 ? ' is-active' : ''), item.label);
+            btn.type = 'button';
+            btn.addEventListener('click', function () {
+                item.fold.classList.add('is-open');
+                item.fold.scrollIntoView({ block: 'start' });
+                rail.querySelectorAll('.store-drawer__anchor').forEach(function (node) {
+                    node.classList.remove('is-active');
+                });
+                btn.classList.add('is-active');
+            });
+            rail.appendChild(btn);
+        });
+    }
+
+    function dressDetailFolds(bodyHost, rail) {
+        var host = bodyHost.querySelector(':scope > .supplier-detail-tab') || bodyHost;
+        var existing = host.querySelectorAll(':scope > .mdm-fold');
+        if (existing.length) {
+            paintDetailRail(rail, Array.prototype.map.call(existing, function (fold) {
+                return { label: fold.getAttribute('data-fold') || '内容', fold: fold };
+            }));
+            return;
+        }
+        var children = Array.prototype.slice.call(host.childNodes).filter(function (node) {
+            return node.nodeType === 1;
+        });
+        var folds = [];
+        var index = 0;
+        while (index < children.length) {
+            if (!isFoldHead(children[index])) {
+                index += 1;
+                continue;
+            }
+            var label = foldLabel(children[index]) || '内容';
+            var fold = el('section', 'mdm-fold is-open');
+            fold.setAttribute('data-fold', label);
+            var bar = el('button', 'mdm-fold__bar');
+            bar.type = 'button';
+            bar.appendChild(el('span', 'mdm-fold__name', label));
+            bar.appendChild(el('span', 'mdm-fold__sub', ''));
+            bar.appendChild(el('span', 'mdm-fold__chevron'));
+            var box = el('div', 'mdm-fold__body');
+            (function (foldEl) {
+                bar.addEventListener('click', function () {
+                    foldEl.classList.toggle('is-open');
+                });
+            })(fold);
+            host.insertBefore(fold, children[index]);
+            fold.appendChild(bar);
+            fold.appendChild(box);
+            box.appendChild(children[index]);
+            index += 1;
+            while (index < children.length && !isFoldHead(children[index])) {
+                box.appendChild(children[index]);
+                index += 1;
+            }
+            folds.push({ label: label, fold: fold });
+        }
+        paintDetailRail(rail, folds);
+    }
+
     function attachDrawer(opts) {
         removeArchiveDrawers();
         var backdrop = el('div', 'store-drawer-backdrop');
@@ -5763,6 +5878,7 @@
         header.appendChild(btnClose);
 
         var hero = el('div', 'store-drawer__hero store-drawer__hero--elevated');
+        var heroMain = el('div', 'store-drawer__hero-main');
         var nameRow = el('div', 'store-drawer__name-row');
         nameRow.appendChild(el('span', 'store-drawer__name', opts.heroName));
         (opts.heroTags || []).forEach(function (t) {
@@ -5773,13 +5889,26 @@
         if (opts.storeHoursStoreId) {
             mountStoreHeroBusinessHours(nameRow, opts.storeHoursStoreId);
         }
-        hero.appendChild(nameRow);
+        heroMain.appendChild(nameRow);
         (opts.metaLines || []).forEach(function (line) {
-            hero.appendChild(el('div', 'store-drawer__meta', line));
+            heroMain.appendChild(el('div', 'store-drawer__meta', line));
         });
+        hero.appendChild(heroMain);
+        var actions = el('div', 'store-drawer__actions');
+        (opts.actions || rowDetailActions(opts.sourceRow, shut)).forEach(function (act) {
+            var btn = el('button', 'store-drawer__action' + (act.primary ? ' is-primary' : ''), act.label);
+            btn.type = 'button';
+            btn.addEventListener('click', function () {
+                if (typeof act.onClick === 'function') act.onClick(shut);
+            });
+            actions.appendChild(btn);
+        });
+        if (actions.childNodes.length) hero.appendChild(actions);
 
         var tabsWrap = el('div', 'store-drawer__tabs store-drawer__tabs--sticky');
         var bodyHost = el('div', 'store-drawer__body');
+        var rail = el('nav', 'store-drawer__rail');
+        rail.setAttribute('aria-label', '内容目录');
 
         var tabIds = opts.tabIds;
         var tabLabels = opts.tabLabels;
@@ -5797,6 +5926,7 @@
                 body.refreshStoreLedger();
             }
             bodyHost.appendChild(body);
+            dressDetailFolds(bodyHost, rail);
             bodyHost.scrollTop = 0;
         }
 
@@ -5812,10 +5942,15 @@
             tabs.push(t);
         });
 
+        var layout = el('div', 'store-drawer__layout');
+        var main = el('div', 'store-drawer__main');
+        main.appendChild(tabsWrap);
+        main.appendChild(bodyHost);
+        layout.appendChild(main);
+        layout.appendChild(rail);
         drawer.appendChild(header);
         drawer.appendChild(hero);
-        drawer.appendChild(tabsWrap);
-        drawer.appendChild(bodyHost);
+        drawer.appendChild(layout);
 
         if (opts.withFooter !== false) {
             var footer = el('div', 'store-drawer__footer');
@@ -5849,6 +5984,7 @@
             title: '门店详情',
             heroName: store.name,
             heroTags: store.detailTags,
+            sourceRow: tr,
             storeHoursStoreId: store.storeId,
             metaLines: ['门店编码：' + store.storeId + ' · 所属组织：' + store.orgId],
             wideClass: 'store-drawer--store-wide',
@@ -5950,229 +6086,50 @@
         };
     }
 
-    function syncSupplierSettleListCell(tr, r) {
-        if (!tr || !r) return;
-        var cells = tr.querySelectorAll('td');
-        if (cells.length < 12) return;
-        if (window.LFSettleCycleStore && window.LFSettleCycleStore.formatSupplierSettleSummary) {
-            cells[11].textContent = window.LFSettleCycleStore.formatSupplierSettleSummary(
-                r.id,
-                r.name
-            );
-        }
-    }
-
-    function buildSupplierSettleField(label, control) {
-        var row = el('div', 'supplier-settle-field');
-        row.appendChild(el('div', 'supplier-settle-field__label', label));
-        var body = el('div', 'supplier-settle-field__body');
-        body.appendChild(control);
-        row.appendChild(body);
-        return row;
-    }
-
-    function buildSupplierSettleRadios(name, items, selected) {
-        var wrap = el('div', 'supplier-settle-radios');
-        items.forEach(function (it) {
-            var lb = document.createElement('label');
-            lb.className = 'supplier-settle-radio';
-            var inp = document.createElement('input');
-            inp.type = 'radio';
-            inp.name = name;
-            inp.value = it[0];
-            if (selected === it[0]) inp.checked = true;
-            lb.appendChild(inp);
-            lb.appendChild(document.createTextNode(' ' + it[1]));
-            wrap.appendChild(lb);
-        });
-        return wrap;
-    }
-
-    function buildSupplierSettleSelect(options, value) {
-        var s = document.createElement('select');
-        s.className = 'erp-select supplier-settle-select';
-        (options || []).forEach(function (o) {
-            var op = document.createElement('option');
-            op.value = o.value;
-            op.textContent = o.label;
-            s.appendChild(op);
-        });
-        if (value != null) s.value = value;
-        return s;
-    }
-
-    /** 供应商详情：结算信息独立板块，放在基础信息下方；编辑后写入共享 store，编辑弹窗同源回显 */
-    function buildSupplierSettleSection(r, sourceTr) {
+    /** 供应商详情：结算信息只读。结款方式、结算策略在右上角「编辑」里修改。 */
+    function buildSupplierSettleSection(r) {
         var card = el('div', 'supplier-settle-block');
-        var editBtn = mkBtn('编辑', false, true);
-        card.appendChild(sectionTitleWithAction('结算信息', editBtn));
+        card.appendChild(sectionTitle('结算信息'));
 
         var viewHost = el('div', 'supplier-settle-view');
-        var editHost = el('div', 'supplier-settle-edit');
-        editHost.style.display = 'none';
         card.appendChild(viewHost);
-        card.appendChild(editHost);
-
-        var tip = el(
+        var sc = readSupplierSettleConfig(r);
+        var store = window.LFSettleCycleStore || {};
+        var grid = el('div', 'supplier-detail-grid');
+        grid.appendChild(
+            detailCell(
+                '结款方式',
+                store.payMethodLabel ? store.payMethodLabel(sc.payMethod) : '先货后款'
+            )
+        );
+        grid.appendChild(
+            detailCell(
+                '结算策略',
+                store.strategyLabel
+                    ? store.strategyLabel(sc.followPlatform)
+                    : sc.followPlatform === false
+                      ? '供应商独立配置'
+                      : '平台通用配置'
+            )
+        );
+        grid.appendChild(
+            detailCell(
+                '结算起算节点',
+                store.triggerLabel ? store.triggerLabel(sc.trigger) : sc.trigger || '—'
+            )
+        );
+        grid.appendChild(
+            detailCell(
+                '结算周期',
+                store.cycleLabel ? store.cycleLabel(sc.cycle) : sc.cycle || '—'
+            )
+        );
+        viewHost.appendChild(grid);
+        card.appendChild(el(
             'p',
             'erp-page__note mdm-detail-note supplier-settle-contract-tip',
             '结算条款写入「资金清分结算合同」。变更后走结算补充协议：旧结算合同保留不整份作废；补充协议约定生效日与新旧条款衔接，已生成清分按旧条款，新入池按新条款。'
-        );
-        card.appendChild(tip);
-
-        function paintView() {
-            var sc = readSupplierSettleConfig(r);
-            var store = window.LFSettleCycleStore || {};
-            viewHost.innerHTML = '';
-            var grid = el('div', 'supplier-detail-grid');
-            grid.appendChild(
-                detailCell(
-                    '结款方式',
-                    store.payMethodLabel ? store.payMethodLabel(sc.payMethod) : '先货后款'
-                )
-            );
-            grid.appendChild(
-                detailCell(
-                    '结算策略',
-                    store.strategyLabel
-                        ? store.strategyLabel(sc.followPlatform)
-                        : sc.followPlatform === false
-                          ? '供应商独立配置'
-                          : '平台通用配置'
-                )
-            );
-            grid.appendChild(
-                detailCell(
-                    '结算起算节点',
-                    store.triggerLabel ? store.triggerLabel(sc.trigger) : sc.trigger || '—'
-                )
-            );
-            grid.appendChild(
-                detailCell(
-                    '结算周期',
-                    store.cycleLabel ? store.cycleLabel(sc.cycle) : sc.cycle || '—'
-                )
-            );
-            viewHost.appendChild(grid);
-        }
-
-        function paintEdit() {
-            var sc = readSupplierSettleConfig(r);
-            var store = window.LFSettleCycleStore || {};
-            var plat =
-                store.loadConfig && store.loadConfig()
-                    ? store.loadConfig()
-                    : { trigger: 'fulfill', cycle: '1' };
-            editHost.innerHTML = '';
-            var form = el('div', 'supplier-settle-form');
-            var uid = String(r.id || 'sup').replace(/\W/g, '');
-
-            var payRadios = buildSupplierSettleRadios(
-                'sup-settle-pay-' + uid,
-                [['goods_first', '先货后款']],
-                sc.payMethod || 'goods_first'
-            );
-            form.appendChild(buildSupplierSettleField('结款方式', payRadios));
-
-            var strategyRadios = buildSupplierSettleRadios(
-                'sup-settle-strategy-' + uid,
-                [
-                    ['inherit', '平台通用配置'],
-                    ['override', '供应商独立配置']
-                ],
-                sc.followPlatform === false ? 'override' : 'inherit'
-            );
-            form.appendChild(buildSupplierSettleField('结算策略', strategyRadios));
-
-            var triggerSel = buildSupplierSettleSelect(
-                [
-                    { value: 'fulfill', label: '订单履约确认后' },
-                    { value: 'aftersale', label: '售后期结束' }
-                ],
-                sc.trigger || plat.trigger || 'fulfill'
-            );
-            var triggerField = buildSupplierSettleField('结算起算节点', triggerSel);
-            form.appendChild(triggerField);
-
-            var cycleOpts = (store.CYCLE_OPTIONS || []).slice();
-            if (!cycleOpts.length) {
-                cycleOpts = [
-                    { value: '1', label: '1天' },
-                    { value: '7', label: '7天' },
-                    { value: '15', label: '15天' },
-                    { value: '30', label: '30天' },
-                    { value: 'month', label: '自然月1日' }
-                ];
-            }
-            var cycleSel = buildSupplierSettleSelect(cycleOpts, sc.cycle || plat.cycle || '1');
-            var cycleField = buildSupplierSettleField('结算周期', cycleSel);
-            form.appendChild(cycleField);
-
-            function applyStrategyVisibility() {
-                var checked = strategyRadios.querySelector('input:checked');
-                var inherit = !checked || checked.value !== 'override';
-                if (inherit) {
-                    triggerSel.value = plat.trigger || 'fulfill';
-                    cycleSel.value = plat.cycle || '1';
-                }
-                triggerField.style.display = inherit ? 'none' : '';
-                cycleField.style.display = inherit ? 'none' : '';
-                triggerSel.disabled = inherit;
-                cycleSel.disabled = inherit;
-            }
-            strategyRadios.querySelectorAll('input').forEach(function (inp) {
-                inp.addEventListener('change', applyStrategyVisibility);
-            });
-            applyStrategyVisibility();
-
-            var footer = el('div', 'supplier-settle-form-footer');
-            var btnCancel = mkBtn('取消', false);
-            var btnOk = mkBtn('保存', true);
-            btnCancel.addEventListener('click', function () {
-                editHost.style.display = 'none';
-                viewHost.style.display = '';
-                editBtn.style.display = '';
-            });
-            btnOk.addEventListener('click', function () {
-                var payChecked = payRadios.querySelector('input:checked');
-                var strategyChecked = strategyRadios.querySelector('input:checked');
-                var inherit = !strategyChecked || strategyChecked.value !== 'override';
-                if (!inherit && (!triggerSel.value || !cycleSel.value)) {
-                    if (typeof showToast === 'function') showToast('请完善结算起算节点与结算周期', 'error');
-                    return;
-                }
-                var payload = {
-                    payMethod: payChecked ? payChecked.value : 'goods_first',
-                    followPlatform: inherit,
-                    trigger: triggerSel.value || 'fulfill',
-                    cycle: cycleSel.value || '1'
-                };
-                if (store.saveSupplier) {
-                    store.saveSupplier(r.id, r.name, payload);
-                }
-                syncSupplierSettleListCell(sourceTr, r);
-                paintView();
-                editHost.style.display = 'none';
-                viewHost.style.display = '';
-                editBtn.style.display = '';
-                if (typeof showToast === 'function') {
-                    showToast('结算信息已保存；编辑供应商时将同步回显（演示）', 'success');
-                }
-            });
-            footer.appendChild(btnCancel);
-            footer.appendChild(btnOk);
-            form.appendChild(footer);
-            editHost.appendChild(form);
-        }
-
-        editBtn.addEventListener('click', function () {
-            paintEdit();
-            viewHost.style.display = 'none';
-            editHost.style.display = '';
-            editBtn.style.display = 'none';
-        });
-
-        paintView();
+        ));
         return card;
     }
 
@@ -6205,8 +6162,7 @@
         appendArchiveVenuePhotoCells(grid, 'supplier', r.id, r.name);
         p.appendChild(grid);
         appendEntryMaterialsSection(p, 'supplier', r.name);
-        /* 结算信息独立板块：放基础信息下方整宽展示，便于编辑与扫读 */
-        p.appendChild(buildSupplierSettleSection(r, sourceTr));
+        p.appendChild(buildSupplierSettleSection(r));
         appendSupplierReceiveSection(p, r);
         return p;
     }
@@ -7351,12 +7307,13 @@
             return;
         }
         var tags = [];
-        if (r.status === '正常') tags.push({ kind: 'orange', label: '正常' });
+        if (r.status === '正常') tags.push({ kind: 'green', label: '正常' });
         else tags.push({ kind: 'gray', label: r.status });
         attachDrawer({
             title: '供应商详情',
             heroName: r.shortName || r.name,
             heroTags: tags,
+            sourceRow: tr,
             metaLines: ['供应商ID：' + r.id + ' · 所属组织：' + r.subjectName],
             wideClass: 'store-drawer--supplier-wide',
             tabIds: ['base', 'onboard', 'contract', 'clearing', 'prod', 'perf'],
@@ -7519,7 +7476,7 @@
             return;
         }
         var tags = [];
-        if (r.status === '启用') tags.push({ kind: 'orange', label: '启用' });
+        if (r.status === '启用') tags.push({ kind: 'green', label: '启用' });
         else tags.push({ kind: 'gray', label: r.status });
         attachDrawer({
             title: '直播间详情',
@@ -7670,7 +7627,7 @@
             return;
         }
         var tags = [];
-        if (r.status === '正常') tags.push({ kind: 'orange', label: '正常' });
+        if (r.status === '正常') tags.push({ kind: 'green', label: '正常' });
         else tags.push({ kind: 'gray', label: r.status });
         attachDrawer({
             title: '承运商详情',
@@ -7743,6 +7700,7 @@
         grid.appendChild(detailCell('创建时间', r.createTime));
         grid.appendChild(detailCellTagged('状态', r.status, true));
         p.appendChild(grid);
+        appendEntryMaterialsSection(p, 'warehouse', r.name);
         appendWarehouseReceiveSection(p, r);
         return p;
     }
@@ -7791,12 +7749,13 @@
             return;
         }
         var tags = [];
-        if (r.status === '启用') tags.push({ kind: 'orange', label: '启用' });
+        if (r.status === '启用') tags.push({ kind: 'green', label: '启用' });
         else tags.push({ kind: 'gray', label: r.status });
         attachDrawer({
             title: '仓库详情',
             heroName: r.name,
             heroTags: tags,
+            sourceRow: tr,
             metaLines: ['仓库编号：' + r.code + ' · 所属组织：' + r.subjectName],
             wideClass: 'store-drawer--supplier-wide',
             tabIds: ['base', 'stock', 'inout', 'ops'],
@@ -7855,6 +7814,7 @@
         grid.appendChild(detailCell('更新人', r.updatedBy));
         grid.appendChild(detailCell('更新时间', r.updatedAt));
         p.appendChild(grid);
+        appendEntryMaterialsSection(p, 'trader', r.name);
         return p;
     }
 
@@ -8004,13 +7964,14 @@
             }
         }
         var tags = [];
-        if (r.status === '正常') tags.push({ kind: 'orange', label: '正常' });
+        if (r.status === '正常') tags.push({ kind: 'green', label: '正常' });
         else tags.push({ kind: 'gray', label: r.status });
         if (r.onboardStatus) tags.push({ kind: 'gray', label: r.onboardStatus });
         attachDrawer({
             title: '贸易商详情',
             heroName: r.shortName && r.shortName !== '—' ? r.shortName : r.name,
             heroTags: tags,
+            sourceRow: tr,
             metaLines: ['贸易商ID：' + r.id + ' · 所属组织：' + r.subjectName],
             wideClass: 'store-drawer--supplier-wide',
             tabIds: ['base', 'onboard'],

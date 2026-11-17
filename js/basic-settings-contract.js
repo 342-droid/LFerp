@@ -14,7 +14,8 @@
 
   var SCENES = [
     { id: 'store', name: '门店合作', partyType: '门店', partyKind: 'corp', partyHint: '企业/个体户', fill: ['门店名称', '统一社会信用代码', '经营负责人', '门店地址', '联系电话'] },
-    { id: 'supplier', name: '供应商合作', partyType: '供应商', partyKind: 'corp', partyHint: '企业/个体户', fill: ['供应商名称', '统一社会信用代码', '法定代表人', '注册地址', '联系电话'] }
+    { id: 'supplier', name: '供应商合作', partyType: '供应商', partyKind: 'corp', partyHint: '企业/个体户', fill: ['供应商名称', '统一社会信用代码', '法定代表人', '注册地址', '联系电话'] },
+    { id: 'trader', name: '贸易商合作', partyType: '贸易商', partyKind: 'corp', partyHint: '企业/个体户', fill: ['贸易商名称', '统一社会信用代码', '法定代表人', '注册地址', '联系电话'] }
   ];
 
   var FILL_CODES = {
@@ -24,6 +25,7 @@
     '门店地址': 'store_address',
     '联系电话': 'mobile',
     '供应商名称': 'supplier_name',
+    '贸易商名称': 'trader_name',
     '法定代表人': 'legal_person',
     '注册地址': 'reg_address',
     '结款方式': 'pay_method',
@@ -130,6 +132,14 @@
       docs: [
         { id: 'DOC-SUP-SETTLE', name: '冷丰平台供应商结算信息变更补充协议', bodyId: 'TPL007' }
       ]
+    },
+    {
+      id: 'STPL-TRD-IN', name: '冷丰平台贸易商入驻签署模板', scene: 'trader', launch: 'auto', signInOrder: true,
+      actors: corpActors('贸易商'),
+      fill: ['贸易商名称', '统一社会信用代码', '法定代表人', '注册地址', '联系电话'],
+      docs: [
+        { id: 'DOC-TRD-IN', name: '冷丰平台贸易商入驻合作协议', bodyId: 'TPL009' }
+      ]
     }
   ];
 
@@ -213,7 +223,8 @@
         Object.assign({ id: 'TPL002' }, cloneRemote(remoteOfId('STPL-ST-BRAND'))),
         Object.assign({ id: 'TPL003' }, cloneRemote(remoteOfId('STPL-SUP-IN'))),
         Object.assign({ id: 'TPL008' }, cloneRemote(remoteOfId('STPL-SUP-MAN'))),
-        Object.assign({ id: 'TPL007' }, cloneRemote(remoteOfId('STPL-SUP-003')))
+        Object.assign({ id: 'TPL007' }, cloneRemote(remoteOfId('STPL-SUP-003'))),
+        Object.assign({ id: 'TPL009' }, cloneRemote(remoteOfId('STPL-TRD-IN')))
       ],
       parties: [
         { id: 'P001', type: 'store', partnerDivision: '加盟店', name: '鲜丰水果文一西路店', identNo: '91330106MA2A11111A', contact: '周敏 138****2201', identStatus: 'done', authStatus: 'done', fadadaId: 'C-XF-001', authAt: '2026-08-18 11:20' },
@@ -414,7 +425,7 @@
       data.catalogVersion = CATALOG_VERSION;
       saveStore(data);
     }
-    return stripUserRegisterScene(ensureSettleSupplementTemplate(data));
+    return stripUserRegisterScene(ensureTraderCoopTemplate(ensureSettleSupplementTemplate(data)));
   }
 
   /** 用户注册已不走合同管理：清掉历史模板、主体和签署任务，不影响门店、供应商数据。 */
@@ -443,6 +454,20 @@
     var remote = remoteOfId('STPL-SUP-003');
     if (!remote) return data;
     data.templates.push(Object.assign({ id: 'TPL007' }, cloneRemote(remote)));
+    saveStore(data);
+    return data;
+  }
+
+  /** 贸易商入驻审核通过后要能匹配到合作协议。只补模板，不重置已有签署任务。 */
+  function ensureTraderCoopTemplate(data) {
+    if (!data || !Array.isArray(data.templates)) return data;
+    var has = data.templates.some(function (t) {
+      return t && (t.id === 'TPL009' || t.remoteId === 'STPL-TRD-IN');
+    });
+    if (has) return data;
+    var remote = remoteOfId('STPL-TRD-IN');
+    if (!remote) return data;
+    data.templates.push(Object.assign({ id: 'TPL009' }, cloneRemote(remote)));
     saveStore(data);
     return data;
   }

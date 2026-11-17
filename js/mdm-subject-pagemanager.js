@@ -387,6 +387,7 @@
         window.MdmUnifiedOnboardingUi.openModal({
             title: meta.title,
             merchantShortNameDefault: shortName,
+            subjectId: meta.row.id,
             fieldDefaults: defaults,
             recordKey: meta.recordKey,
             variant: kind === 'store' ? 'store' : 'resource',
@@ -754,6 +755,348 @@
         document.body.appendChild(backdrop);
     }
 
+    function merchantDetailTitle(kind) {
+        var map = {
+            门店: '门店详情',
+            供应商: '供应商详情',
+            仓库: '仓库详情',
+            贸易商: '贸易商详情'
+        };
+        return map[kind] || ((kind || '商家') + '详情');
+    }
+
+    function merchantDetailCell(label, value) {
+        var cell = subjectDrawerNode('div');
+        var lab = subjectDrawerNode('div', 'mdm-detail-grid__label', label);
+        var val = subjectDrawerNode('div', 'mdm-detail-grid__value', value || '—');
+        cell.appendChild(lab);
+        cell.appendChild(val);
+        return cell;
+    }
+
+    function merchantDetailFold(label, sub, body) {
+        var fold = subjectDrawerNode('section', 'mdm-fold is-open');
+        fold.setAttribute('data-fold', label);
+        var bar = subjectDrawerNode('button', 'mdm-fold__bar');
+        bar.type = 'button';
+        bar.appendChild(subjectDrawerNode('span', 'mdm-fold__name', label));
+        bar.appendChild(subjectDrawerNode('span', 'mdm-fold__sub', sub || ''));
+        bar.appendChild(subjectDrawerNode('span', 'mdm-fold__chevron'));
+        var box = subjectDrawerNode('div', 'mdm-fold__body');
+        box.appendChild(body);
+        bar.addEventListener('click', function () {
+            fold.classList.toggle('is-open');
+        });
+        fold.appendChild(bar);
+        fold.appendChild(box);
+        return fold;
+    }
+
+    function openMerchantDetailDrawer(tr) {
+        if (!tr) return;
+        var info = subjectRowCells(tr);
+        var kind = info.subjectType === '服务商' ? '贸易商' : info.subjectType;
+        var materialsKind = kind === '供应商' ? 'supplier' : kind === '仓库' ? 'warehouse' : kind === '贸易商' ? 'trader' : 'store';
+        removeSubjectDrawers();
+
+        var backdrop = subjectDrawerNode('div', 'store-drawer-backdrop');
+        backdrop.setAttribute('data-mdm-subject-drawer', '1');
+        var drawer = subjectDrawerNode('aside', 'store-drawer store-drawer--interactive store-drawer--store-wide');
+        drawer.setAttribute('data-mdm-subject-drawer', '1');
+
+        var header = subjectDrawerNode('div', 'store-drawer__header');
+        header.appendChild(subjectDrawerNode('h2', 'store-drawer__title', merchantDetailTitle(kind)));
+        var btnClose = subjectDrawerNode('button', 'store-drawer__close');
+        btnClose.type = 'button';
+        btnClose.setAttribute('aria-label', '关闭');
+        btnClose.innerHTML = '&times;';
+        header.appendChild(btnClose);
+
+        function shut() {
+            document.removeEventListener('keydown', onKey);
+            backdrop.remove();
+            drawer.remove();
+        }
+        function onKey(ev) {
+            if (ev.key === 'Escape') shut();
+        }
+        document.addEventListener('keydown', onKey);
+        btnClose.addEventListener('click', shut);
+
+        var hero = subjectDrawerNode('div', 'store-drawer__hero store-drawer__hero--elevated');
+        var heroMain = subjectDrawerNode('div', 'store-drawer__hero-main');
+        var nameRow = subjectDrawerNode('div', 'store-drawer__name-row');
+        nameRow.appendChild(subjectDrawerNode('span', 'store-drawer__name', info.shortName || '—'));
+        nameRow.appendChild(subjectDrawerNode('span', 'store-drawer__tag store-drawer__tag--green', kind || '商家'));
+        if (info.rowStatus) {
+            var statusKind = info.rowStatus === '开启' ? 'green' : 'gray';
+            nameRow.appendChild(subjectDrawerNode('span', 'store-drawer__tag store-drawer__tag--' + statusKind, info.rowStatus));
+        }
+        heroMain.appendChild(nameRow);
+        heroMain.appendChild(subjectDrawerNode('div', 'store-drawer__meta', '商家ID：' + (info.id || '—') + ' · 主体类型：' + (kind || '—')));
+        hero.appendChild(heroMain);
+        var actions = subjectDrawerNode('div', 'store-drawer__actions');
+        var editBtn = subjectDrawerNode('button', 'store-drawer__action', '编辑');
+        editBtn.type = 'button';
+        editBtn.addEventListener('click', function () {
+            shut();
+            openSubjectDetailDrawer(tr);
+        });
+        var goBtn = subjectDrawerNode('button', 'store-drawer__action is-primary', '去进件');
+        goBtn.type = 'button';
+        goBtn.addEventListener('click', function () {
+            shut();
+            openSubjectOnboardingFromRow(tr, kind, {});
+        });
+        actions.appendChild(editBtn);
+        actions.appendChild(goBtn);
+        hero.appendChild(actions);
+
+        var tabs = subjectDrawerNode('div', 'store-drawer__tabs store-drawer__tabs--sticky');
+        var tab = subjectDrawerNode('button', 'store-drawer__tab is-active', '基础信息');
+        tab.type = 'button';
+        tabs.appendChild(tab);
+
+        var grid = subjectDrawerNode('div', 'mdm-detail-grid');
+        [
+            ['商家名称', info.shortName],
+            ['主体类型', kind],
+            ['绑定BD', info.groupName],
+            ['联系人', info.contactName],
+            ['手机号码', info.contactMobile],
+            ['登录账号', info.loginAccount],
+            ['创建时间', info.createTime],
+            ['最后操作人', info.lastOperator],
+            ['状态', info.rowStatus]
+        ].forEach(function (pair) {
+            grid.appendChild(merchantDetailCell(pair[0], pair[1]));
+        });
+
+        var materialBody = subjectDrawerNode('div');
+        var materials = window.MdmEntryMaterials;
+        var saved = null;
+        if (materials && info.id && typeof materials.ensureDemoSubject === 'function') {
+            saved = materials.ensureDemoSubject(info.id, info.shortName);
+        }
+        if (!saved && materials && info.id && typeof materials.loadSubject === 'function') saved = materials.loadSubject(info.id);
+        if (!saved && materials && typeof materials.loadForArchive === 'function') {
+            var first = typeof materials.firstOf === 'function' ? materials.firstOf(info.id) : null;
+            if (first && first.name) saved = materials.loadForArchive(first.kind || materialsKind, first.name);
+        }
+        var matGrid = subjectDrawerNode('div', 'mdm-detail-grid');
+        var pairs = materials && typeof materials.pairs === 'function' ? materials.pairs(saved) : [];
+        pairs.forEach(function (pair) {
+            matGrid.appendChild(merchantDetailCell(pair.label, pair.value));
+        });
+        materialBody.appendChild(matGrid);
+
+        var panel = subjectDrawerNode('div', 'supplier-detail-tab');
+        panel.appendChild(merchantDetailFold('商家信息', '名称、类型、联系人与状态', grid));
+        panel.appendChild(merchantDetailFold('证照与结算', '营业执照、法人身份证、法人实名电话、整套结算信息', materialBody));
+
+        var bodyHost = subjectDrawerNode('div', 'store-drawer__body');
+        bodyHost.appendChild(panel);
+        var rail = subjectDrawerNode('nav', 'store-drawer__rail');
+        rail.setAttribute('aria-label', '内容目录');
+        panel.querySelectorAll(':scope > .mdm-fold').forEach(function (fold, index) {
+            var anchor = subjectDrawerNode('button', 'store-drawer__anchor' + (index === 0 ? ' is-active' : ''), fold.getAttribute('data-fold'));
+            anchor.type = 'button';
+            anchor.addEventListener('click', function () {
+                fold.classList.add('is-open');
+                fold.scrollIntoView({ block: 'start' });
+                rail.querySelectorAll('.store-drawer__anchor').forEach(function (node) {
+                    node.classList.remove('is-active');
+                });
+                anchor.classList.add('is-active');
+            });
+            rail.appendChild(anchor);
+        });
+
+        var layout = subjectDrawerNode('div', 'store-drawer__layout');
+        var main = subjectDrawerNode('div', 'store-drawer__main');
+        main.appendChild(tabs);
+        main.appendChild(bodyHost);
+        layout.appendChild(main);
+        layout.appendChild(rail);
+
+        drawer.appendChild(header);
+        drawer.appendChild(hero);
+        drawer.appendChild(layout);
+        backdrop.addEventListener('click', shut);
+        drawer.addEventListener('click', function (ev) { ev.stopPropagation(); });
+        document.body.appendChild(backdrop);
+        document.body.appendChild(drawer);
+    }
+
+    function paintSubjectDetailLinks() {
+        document.querySelectorAll('#tableBody .action-links').forEach(function (cell) {
+            if (cell.querySelector('.mdm-subject-detail')) return;
+            var link = document.createElement('a');
+            link.href = '#';
+            link.className = 'mdm-subject-detail';
+            link.textContent = '编辑';
+            link.style.marginRight = '8px';
+            cell.insertBefore(link, cell.firstChild);
+        });
+    }
+
+    function removeSubjectDrawers() {
+        document.querySelectorAll('[data-mdm-subject-drawer]').forEach(function (node) {
+            node.remove();
+        });
+    }
+
+    function subjectDrawerNode(tag, className, text) {
+        var node = document.createElement(tag);
+        if (className) node.className = className;
+        if (text != null) node.textContent = text;
+        return node;
+    }
+
+    function openSubjectDetailDrawer(tr) {
+        if (!tr) return;
+        var info = subjectRowCells(tr);
+        var kind = info.subjectType === '服务商' ? '贸易商' : info.subjectType;
+        var materialsKind = kind === '供应商' ? 'supplier' : kind === '仓库' ? 'warehouse' : kind === '贸易商' ? 'trader' : 'store';
+        var hasMaterials = kind === '门店' || kind === '供应商' || kind === '仓库' || kind === '贸易商';
+        var materials = window.MdmEntryMaterials;
+        removeSubjectDrawers();
+
+        var backdrop = subjectDrawerNode('div', 'store-drawer-backdrop');
+        backdrop.setAttribute('data-mdm-subject-drawer', '1');
+        var drawer = subjectDrawerNode('aside', 'store-drawer store-drawer--interactive store-drawer--store-wide');
+        drawer.setAttribute('data-mdm-subject-drawer', '1');
+
+        var header = subjectDrawerNode('div', 'store-drawer__header');
+        header.appendChild(subjectDrawerNode('h2', 'store-drawer__title', '编辑' + (kind || '') + '商家'));
+        var btnClose = subjectDrawerNode('button', 'store-drawer__close');
+        btnClose.type = 'button';
+        btnClose.setAttribute('aria-label', '关闭');
+        btnClose.innerHTML = '&times;';
+        header.appendChild(btnClose);
+
+        var hero = subjectDrawerNode('div', 'store-drawer__hero store-drawer__hero--elevated');
+        var nameRow = subjectDrawerNode('div', 'store-drawer__name-row');
+        nameRow.appendChild(subjectDrawerNode('span', 'store-drawer__name', info.shortName || '—'));
+        nameRow.appendChild(subjectDrawerNode('span', 'store-drawer__tag store-drawer__tag--orange', kind || '主体'));
+        if (info.rowStatus) {
+            nameRow.appendChild(subjectDrawerNode('span', 'store-drawer__tag store-drawer__tag--gray', info.rowStatus));
+        }
+        hero.appendChild(nameRow);
+        hero.appendChild(subjectDrawerNode('div', 'store-drawer__meta', '主体ID：' + (info.id || '—') + ' · 所属组织：' + (info.groupName || '—')));
+
+        var body = subjectDrawerNode('div', 'store-drawer__body');
+        var basicTitle = subjectDrawerNode('div', 'supplier-detail-section-title', '主体信息');
+        body.appendChild(basicTitle);
+        if (hasMaterials) {
+            var caution = subjectDrawerNode('div', 'mdm-biz-tip');
+            caution.setAttribute('role', 'note');
+            caution.innerHTML = '所填信息为合同签约的控件填充字段，<strong>请谨慎填写</strong>！';
+            body.appendChild(caution);
+        }
+        var grid = subjectDrawerNode('div', 'supplier-detail-grid');
+        [
+            ['主体ID', info.id],
+            ['主体名称', info.shortName],
+            ['主体类型', kind],
+            ['联系人', info.contactName],
+            ['手机号', info.contactMobile],
+            ['登录账号', info.loginAccount],
+            ['创建时间', info.createTime],
+            ['状态', info.rowStatus]
+        ].forEach(function (pair) {
+            var cell = subjectDrawerNode('div', 'supplier-detail-cell');
+            cell.appendChild(subjectDrawerNode('div', 'supplier-detail-cell__label', pair[0]));
+            cell.appendChild(subjectDrawerNode('div', 'supplier-detail-cell__body', pair[1] || '—'));
+            grid.appendChild(cell);
+        });
+        body.appendChild(grid);
+
+        var go = document.createElement('button');
+        go.type = 'button';
+        go.className = 'btn btn-primary';
+        go.textContent = '去进件';
+        go.style.margin = '4px 0 8px';
+        body.appendChild(go);
+
+        var materialsRoot = null;
+        if (hasMaterials && materials && typeof materials.mount === 'function') {
+            var saved = materials.loadSubject ? materials.loadSubject(info.id) : null;
+            var bound = materials.firstOf ? materials.firstOf(info.id) : null;
+            if (!saved && bound) saved = materials.load(bound.kind, bound.name);
+            if (!saved) saved = materials.load(materialsKind, info.shortName);
+            materialsRoot = materials.mount(body, { skin: 'pc', role: 'subject' });
+            if (saved) materials.fill(materialsRoot, saved);
+        } else {
+            var skipTip = subjectDrawerNode('div', 'mdm-biz-tip');
+            skipTip.setAttribute('role', 'note');
+            skipTip.style.marginTop = '16px';
+            skipTip.innerHTML = '仓库、贸易商不维护营业执照、法人身份证、法人实名电话和整套结算信息。';
+            body.appendChild(skipTip);
+        }
+
+        var footer = subjectDrawerNode('div', 'store-drawer__footer');
+        var back = document.createElement('button');
+        back.type = 'button';
+        back.className = 'erp-btn';
+        back.textContent = '关闭';
+        footer.appendChild(back);
+        var saveBtn = null;
+        if (materialsRoot) {
+            saveBtn = document.createElement('button');
+            saveBtn.type = 'button';
+            saveBtn.className = 'erp-btn erp-btn--primary';
+            saveBtn.textContent = '保存';
+            footer.appendChild(saveBtn);
+        }
+
+        function shut() {
+            document.removeEventListener('keydown', onKey);
+            backdrop.remove();
+            drawer.remove();
+        }
+        function onKey(ev) {
+            if (ev.key === 'Escape') shut();
+        }
+        document.addEventListener('keydown', onKey);
+        btnClose.addEventListener('click', shut);
+        back.addEventListener('click', shut);
+        backdrop.addEventListener('click', shut);
+        drawer.addEventListener('click', function (ev) { ev.stopPropagation(); });
+        go.addEventListener('click', function () {
+            shut();
+            openSubjectOnboardingFromRow(tr, kind, {});
+        });
+        if (saveBtn) {
+            saveBtn.addEventListener('click', function () {
+                var err = materials.validate(materialsRoot);
+                if (err) {
+                    showToast(err, 'error');
+                    return;
+                }
+                var payload = materials.read(materialsRoot);
+                materials.saveSubject(info.id, payload);
+                var current = materials.firstOf(info.id);
+                var targetKind = current && current.kind ? current.kind : materialsKind;
+                var targetName = current && current.name ? current.name : info.shortName;
+                if (!current) materials.bindFirst(info.id, targetKind, targetName);
+                if (targetName) materials.save(targetKind, targetName, payload);
+                var kindLabel = { supplier: '供应商', warehouse: '仓库', trader: '贸易商' }[targetKind] || '门店';
+                showToast(
+                    '已保存，并同步到第一家' + kindLabel + '「' + (targetName || '—') + '」',
+                    'success'
+                );
+            });
+        }
+
+        drawer.appendChild(header);
+        drawer.appendChild(hero);
+        drawer.appendChild(body);
+        drawer.appendChild(footer);
+        document.body.appendChild(backdrop);
+        document.body.appendChild(drawer);
+    }
+
     function renderSubjectDetailOnboardingBlock(pm, spec, editModalId) {
         var row = pm.currentEditRow;
         if (!row) return;
@@ -799,7 +1142,7 @@
             '<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;font-size:12px;color:#334155">' +
             basicHtml +
             '</div>' +
-            '<div class="mdm-biz-tip" role="note" style="margin:14px 0 10px">档案信息（门店或供应商原字段，以及营业执照、法人身份证、法人实名电话、整套结算信息）只在对应档案查看和编辑。这里只保留主体自身字段。去进件时自动带入档案里已有的字段，法人实名电话不写入进件。</div>' +
+            '<div class="mdm-biz-tip" role="note" style="margin:14px 0 10px">营业执照、法人身份证、法人实名电话、整套结算信息在操作栏「编辑」里修改，并默认同步到第一家门店、供应商、仓库或贸易商。去进件带入第一家已同步的字段，法人实名电话不写入进件。</div>' +
             '<div style="font-size:14px;font-weight:700;color:#0f172a;margin:14px 0 10px">主体进件</div>' +
             '<div style="margin:0 0 10px"><button type="button" class="btn btn-primary" data-subject-go-onboard>去进件</button></div>' +
             '<div class="table-scroll-container"><table class="table"><thead><tr>' +
@@ -1366,11 +1709,20 @@
         return '门店';
     }
 
+    function archiveKindOf(label) {
+        if (label === '供应商') return 'supplier';
+        if (label === '仓库') return 'warehouse';
+        if (label === '贸易商') return 'trader';
+        if (label === '门店') return 'store';
+        return '';
+    }
+
     function openKindAddModal(modalId, kindSpec) {
         var modal = document.getElementById(modalId);
         if (!modal) return;
         modal.querySelectorAll('input, select, textarea').forEach(function (el) {
             if (el.disabled) return;
+            if (el.type === 'radio' || el.type === 'checkbox' || el.type === 'file') return;
             if (el.tagName === 'SELECT') el.selectedIndex = 0;
             else el.value = '';
         });
@@ -1383,7 +1735,14 @@
             if (kindSpec.archiveBundle.refs.entryMaterials && window.MdmEntryMaterials) {
                 window.MdmEntryMaterials.fill(kindSpec.archiveBundle.refs.entryMaterials, {});
             }
+            var statusName = kindSpec.archiveBundle.refs.statusName;
+            if (statusName) {
+                modal.querySelectorAll('input[name="' + statusName + '"]').forEach(function (inp) {
+                    inp.checked = inp.value === '正常';
+                });
+            }
         }
+        if (typeof modal.__subjWizReset === 'function') modal.__subjWizReset();
         modal.style.display = 'block';
     }
 
@@ -1417,7 +1776,8 @@
         var modal = document.getElementById(modalId);
         if (!modal) return;
         var formHost = modal.querySelector('.modal-form') || modal.querySelector('.modal-body') || modal;
-        if (kindSpec.subjectTypeLabel === '门店' || kindSpec.subjectTypeLabel === '供应商') {
+        var archiveKind = archiveKindOf(kindSpec.subjectTypeLabel);
+        if (archiveKind) {
             var content = modal.querySelector('.modal-content');
             if (content) content.style.width = '960px';
             if (formHost) {
@@ -1425,9 +1785,7 @@
                 formHost.style.overflow = 'auto';
             }
             if (window.MdmResourceArchiveForms && typeof window.MdmResourceArchiveForms.buildFirstArchive === 'function') {
-                kindSpec.archiveBundle = window.MdmResourceArchiveForms.buildFirstArchive(
-                    kindSpec.subjectTypeLabel === '供应商' ? 'supplier' : 'store'
-                );
+                kindSpec.archiveBundle = window.MdmResourceArchiveForms.buildFirstArchive(archiveKind);
                 formHost.appendChild(kindSpec.archiveBundle.body);
                 var subjectNameInput = document.getElementById(fieldId(kindSpec.fieldIdPrefix, 'subjectName'));
                 if (subjectNameInput && kindSpec.archiveBundle.refs.nameInp) {
@@ -1435,6 +1793,7 @@
                         var archiveName = kindSpec.archiveBundle.refs.nameInp;
                         if (archiveName.getAttribute('data-user-edited') === '1') return;
                         archiveName.value = subjectNameInput.value;
+                        archiveName.dispatchEvent(new Event('input', { bubbles: true }));
                     });
                     kindSpec.archiveBundle.refs.nameInp.addEventListener('input', function () {
                         if (document.activeElement === kindSpec.archiveBundle.refs.nameInp) {
@@ -1442,7 +1801,7 @@
                         }
                     });
                 }
-            } else if (window.MdmEntryMaterials) {
+            } else if ((archiveKind === 'store' || archiveKind === 'supplier') && window.MdmEntryMaterials) {
                 kindSpec.entryRoot = window.MdmEntryMaterials.mount(formHost, { skin: 'pc' });
             }
         }
@@ -1502,23 +1861,49 @@
                 if (savedId === false) return;
                 if (kindSpec.archiveBundle && window.MdmResourceArchiveForms) {
                     var committed = window.MdmResourceArchiveForms.commitFirstArchive(
-                        kindSpec.subjectTypeLabel === '供应商' ? 'supplier' : 'store',
+                        archiveKind,
                         {
+                            id: typeof savedId === 'string' ? savedId : '',
                             name: String(nameBefore || '').trim(),
                             contact: String(contactBefore || '').trim(),
                             phone: String(phoneBefore || '').trim(),
                             bd: String(bdBefore || '').trim(),
-                            alias: String(aliasBefore || '').trim()
+                            alias: String(aliasBefore || '').trim(),
+                            subjectType: String(typeBefore || '').trim() || kindSpec.subjectTypeLabel
                         },
                         kindSpec.archiveBundle
                     );
                     if (committed === false) return;
-                    showToast('已提交首个档案，之后在档案中查看和编辑', 'success');
+                    var archiveRefs = kindSpec.archiveBundle.refs || {};
+                    var bizName = archiveRefs.nameInp ? String(archiveRefs.nameInp.value || '').trim() : '';
+                    if (archiveKind !== 'warehouse' && window.MdmResourceArchiveForms.enqueueEntryAudit) {
+                        var partnerMap = { franchise: '加盟店', joint: '联营店', direct: '直营店' };
+                        var partnerValue = archiveRefs.partnerSel ? archiveRefs.partnerSel.value : '';
+                        window.MdmResourceArchiveForms.enqueueEntryAudit({
+                            kind: archiveKind,
+                            source: 'PC 创建主体',
+                            subjectName: String(nameBefore || '').trim(),
+                            subjectType: String(typeBefore || '').trim() || kindSpec.subjectTypeLabel,
+                            storeName: bizName || String(nameBefore || '').trim(),
+                            bd: String(bdBefore || '').trim(),
+                            contact: String(contactBefore || '').trim(),
+                            phone: String(phoneBefore || '').trim(),
+                            partnerDivision: partnerMap[partnerValue] || partnerValue || '',
+                            bizLine: archiveRefs.bizLineSel ? archiveRefs.bizLineSel.value : '',
+                            brandName: archiveRefs.brandSel ? archiveRefs.brandSel.value : ''
+                        });
+                    }
+                    var archiveTip = archiveKind === 'warehouse'
+                        ? '已提交首个仓库档案，可在仓库档案查看'
+                        : '已提交入驻审核，审核全部通过后发起合同签署';
+                    showToast(archiveTip, 'success');
                 }
                 modal.style.display = 'none';
                 mainPm.decorateAllDetailLinkCells();
+                paintSubjectDetailLinks();
                 mainPm.refreshPagination();
                 if (
+                    !kindSpec.archiveBundle &&
                     kindSpec.subjectTypeLabel === '贸易商' &&
                     window.MdmTraderArchiveStore &&
                     typeof window.MdmTraderArchiveStore.addFromSubject === 'function'
@@ -1540,6 +1925,16 @@
         modal.addEventListener('click', function (e) {
             if (e.target === modal) modal.style.display = 'none';
         });
+        if (window.MdmSubjectAddWizard && typeof window.MdmSubjectAddWizard.dress === 'function') {
+            window.MdmSubjectAddWizard.dress(modal, kindSpec.subjectTypeLabel);
+        }
+        if (typeof initCustomSelect === 'function') {
+            modal.querySelectorAll('.custom-select > input[id]').forEach(function (input) {
+                if (document.getElementById(input.id + 'Dropdown')) {
+                    initCustomSelect(input.id, input.id + 'Dropdown');
+                }
+            });
+        }
     }
 
     /**
@@ -1633,7 +2028,10 @@
             detailView: {
                 enabled: true,
                 columnIndex: 1,
-                linkClass: 'subject-name-link'
+                linkClass: 'subject-name-link',
+                onOpenDetail: function (row) {
+                    openMerchantDetailDrawer(row);
+                }
             },
             onDisableToggle: function (row, status) {
                 var cells = row ? row.querySelectorAll('td') : [];
@@ -1706,6 +2104,7 @@
             }
         });
 
+        paintSubjectDetailLinks();
         pm.init();
 
         ['门店', '供应商', '贸易商', '仓库'].forEach(function (label) {
@@ -1730,10 +2129,16 @@
             if (t && t.classList && t.classList.contains('mdm-sms-dummy-btn')) {
                 showToast('验证码已发送（演示）', 'info');
             }
+            var detailLink = t && t.closest ? t.closest('.mdm-subject-detail') : null;
+            if (detailLink) {
+                e.preventDefault();
+                openSubjectDetailDrawer(detailLink.closest('tr'));
+            }
         });
 
         setTimeout(function () {
             pm.decorateAllDetailLinkCells();
+            paintSubjectDetailLinks();
             document.querySelectorAll('#tableBody tr').forEach(function (tr) {
                 pm.refreshDisableToggleLabel(tr);
             });

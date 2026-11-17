@@ -1,0 +1,400 @@
+/* 新增主体、档案新增/编辑：从右侧滑出的分步抽屉 */
+.modal:has(.modal-content.subj-wiz) {
+    overflow: hidden;
+}
+
+.modal-content.subj-wiz {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(920px, 100vw) !important;
+    max-width: 100vw;
+    margin: 0;
+    padding: 18px 28px 16px;
+    border: none;
+    border-radius: 0;
+    box-shadow: -8px 0 32px rgba(15, 23, 42, 0.16);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+    background: #fff;
+    animation: subj-wiz-in 0.22s ease;
+}
+
+.subj-wiz-backdrop {
+    justify-content: flex-end !important;
+    align-items: stretch !important;
+    padding: 0 !important;
+}
+
+.subj-wiz-backdrop .modal-content.subj-wiz {
+    position: relative;
+    height: 100%;
+    max-height: 100%;
+}
+
+@keyframes subj-wiz-in {
+    from { transform: translateX(24px); opacity: 0.6; }
+    to { transform: none; opacity: 1; }
+}
+
+.subj-wiz .modal-header {
+    margin-bottom: 4px;
+}
+
+.subj-wiz .modal-title {
+    border-bottom: none;
+    padding: 2px 0 10px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.subj-wiz .close {
+    top: 8px;
+    font-size: 22px;
+    font-weight: 400;
+    color: #8c8c8c;
+}
+
+.subj-wiz .modal-form {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    flex: 1;
+    min-height: 0;
+    gap: 0;
+    overflow: hidden;
+    max-height: none !important;
+}
+
+.subj-wiz__stepper {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 6px 4px 16px;
+    flex: 0 0 auto;
+}
+
+.subj-wiz__step {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    color: #bfbfbf;
+    font-size: 14px;
+    cursor: default;
+    white-space: nowrap;
+}
+
+.subj-wiz__step.is-done {
+    color: #595959;
+    cursor: pointer;
+}
+
+.subj-wiz__step.is-active {
+    color: #ff7019;
+    font-weight: 600;
+}
+
+.subj-wiz__num {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1px solid #d9d9d9;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: #bfbfbf;
+    background: #fff;
+    flex-shrink: 0;
+}
+
+.subj-wiz__step.is-active .subj-wiz__num {
+    background: #ff7019;
+    border-color: #ff7019;
+    color: #fff;
+}
+
+.subj-wiz__step.is-done .subj-wiz__num {
+    border-color: #ff7019;
+    color: #ff7019;
+}
+
+.subj-wiz__line {
+    flex: 1;
+    height: 1px;
+    background: #f0f0f0;
+    margin: 0 12px;
+    min-width: 16px;
+}
+
+.subj-wiz__scroll {
+    overflow: auto;
+    flex: 1 1 auto;
+    align-self: stretch;
+    width: 100%;
+    max-width: 100%;
+    min-height: 0;
+    box-sizing: border-box;
+    padding: 4px 4px 12px;
+}
+
+.subj-wiz__panel {
+    display: none;
+}
+
+.subj-wiz__panel.is-on {
+    display: block;
+    padding-bottom: 12px;
+}
+
+.subj-wiz__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 28px;
+    row-gap: 16px;
+    align-items: start;
+}
+
+.subj-wiz__span {
+    grid-column: 1 / -1;
+}
+
+.subj-wiz__sec {
+    grid-column: 1 / -1;
+    margin: 4px 0 0;
+    padding-left: 10px;
+    border-left: 3px solid #1677ff;
+    font-size: 15px;
+    font-weight: 650;
+    color: #1f1f1f;
+    line-height: 1.2;
+}
+
+.subj-wiz__grid > .modal-form-group,
+.subj-wiz__grid > .store-form__row {
+    width: auto;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+}
+
+.subj-wiz .store-form__label,
+.subj-wiz .modal-form-group > label {
+    width: auto !important;
+    flex: none;
+    line-height: 1.4;
+    margin: 0;
+    padding: 0;
+    font-size: 13px;
+    font-weight: 400;
+    color: #333;
+    text-align: left;
+}
+
+.subj-wiz .store-form__req {
+    color: #ff4d4f;
+    margin-right: 2px;
+}
+
+.subj-wiz .erp-input,
+.subj-wiz .erp-select,
+.subj-wiz .modal-form-group input,
+.subj-wiz .modal-form-group textarea,
+.subj-wiz .store-form__control textarea {
+    width: 100%;
+    box-sizing: border-box;
+    height: 36px;
+    border: 1px solid #e6e6e6;
+    border-radius: 6px;
+    background: #fff;
+    padding: 6px 12px;
+}
+
+.subj-wiz textarea,
+.subj-wiz .store-form__control textarea {
+    height: auto;
+    min-height: 72px;
+}
+
+.subj-wiz__subject-bar.modal-form-group {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    background: #fff7f0;
+    border: 1px solid #ffd8bf;
+    border-radius: 8px;
+    padding: 10px 16px;
+}
+
+.subj-wiz__subject-bar > label {
+    margin: 0;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.subj-wiz__subject-bar .input-wrapper,
+.subj-wiz__subject-bar .custom-select {
+    flex: 1;
+}
+
+.subj-wiz__subject-bar input {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    height: 32px;
+    color: #ff7019;
+    font-weight: 600;
+    padding-left: 0;
+}
+
+.subj-wiz__subject-bar input::placeholder {
+    color: #ff7019;
+    font-weight: 600;
+}
+
+.subj-wiz__subject-bar.is-error {
+    border-color: #ff4d4f;
+}
+
+.subj-wiz .is-error .erp-input,
+.subj-wiz .is-error .erp-select,
+.subj-wiz .is-error input,
+.subj-wiz .is-error textarea,
+.subj-wiz .is-error .custom-select input {
+    border-color: #ffbb96 !important;
+    background: #fffaf6;
+}
+
+.subj-wiz__err {
+    color: #ff4d4f;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.subj-wiz__pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.subj-wiz__pill {
+    border: 1px solid transparent;
+    background: transparent;
+    color: #595959;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.subj-wiz__pill.is-on {
+    background: #fff7f0;
+    color: #ff7019;
+    border-color: #ff7019;
+}
+
+.subj-wiz__hint {
+    margin: 6px 0 0;
+    font-size: 12px;
+    color: #999;
+    line-height: 1.5;
+}
+
+.subj-wiz .erp-select.subj-wiz__sr,
+.subj-wiz select.subj-wiz__sr {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    pointer-events: none;
+}
+
+.subj-wiz .store-form__input-count {
+    position: relative;
+}
+
+.subj-wiz .store-form__input-count .erp-input {
+    padding-right: 56px;
+}
+
+.subj-wiz .store-form__input-count .store-form__counter {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #bfbfbf;
+    pointer-events: none;
+}
+
+.subj-wiz .mdm-sms-dummy-btn {
+    height: 36px;
+    flex-shrink: 0;
+    border-radius: 6px;
+    white-space: nowrap;
+    background: #fff;
+    border: 1px solid #d9d9d9;
+    color: #333;
+    font-weight: 400;
+}
+
+.subj-wiz__sink {
+    display: none !important;
+}
+
+.subj-wiz .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin: 0;
+    padding-top: 14px;
+    border-top: 1px solid #f0f0f0;
+    flex-shrink: 0;
+}
+
+.subj-wiz .modal-footer .btn,
+.subj-wiz__next,
+.subj-wiz__prev {
+    min-width: 88px;
+    height: 36px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.subj-wiz .modal-footer .btn-secondary,
+.subj-wiz__prev {
+    background: #fff;
+    border: 1px solid #d9d9d9;
+    color: #333;
+}
+
+.subj-wiz__next {
+    background: #ff7019;
+    border: 1px solid #ff7019;
+    color: #fff;
+}
+
+.subj-wiz__next:hover {
+    background: #e85f10;
+}
+
+.subj-wiz .store-form__section,
+.subj-wiz .mdm-biz-tip {
+    margin-top: 0;
+}

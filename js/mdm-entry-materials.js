@@ -1,10 +1,11 @@
 /**
- * 入驻资料：新增门店 / 新增供应商商家时必填。
- * 营业执照、法人身份证、结算信息与进件字段一致；法人实名电话只留在入驻资料，不写入进件。
- * 之后打开进件时，用这里已保存的值作为默认值，进件里仍可修改。
+ * 主体资料：营业执照、法人身份证、法人实名电话、整套结算信息跟着主体。
+ * 主体详情可查看、可编辑；保存后默认同步到第一家门店或供应商，供进件带入。
+ * 法人实名电话不写入进件。后建的门店、供应商不再收集这四套。
  */
 (function (global) {
     var STORAGE_KEY = 'lf_entry_materials_v1';
+    var FIRST_BIZ_KEY = 'lf_subject_first_biz_v1';
 
     var TEXT_FIELDS = [
         { key: 'licenseName', label: '商户名称', group: 'license' },
@@ -76,6 +77,68 @@
         return one ? Object.assign(emptyRecord(), one) : null;
     }
 
+    function readFirstMap() {
+        try {
+            return JSON.parse(localStorage.getItem(FIRST_BIZ_KEY) || '{}') || {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function writeFirstMap(map) {
+        try {
+            localStorage.setItem(FIRST_BIZ_KEY, JSON.stringify(map || {}));
+        } catch (e) {}
+    }
+
+    function saveSubject(id, data) {
+        id = String(id || '').trim();
+        if (!id) return;
+        var map = readMap();
+        map['subject::' + id] = Object.assign(emptyRecord(), data || {});
+        writeMap(map);
+    }
+
+    function loadSubject(id) {
+        id = String(id || '').trim();
+        if (!id) return null;
+        var one = readMap()['subject::' + id];
+        return one ? Object.assign(emptyRecord(), one) : null;
+    }
+
+    function normalizeKind(kind) {
+        if (kind === 'supplier' || kind === 'warehouse' || kind === 'trader') return kind;
+        return 'store';
+    }
+
+    function bindFirst(id, kind, name) {
+        id = String(id || '').trim();
+        name = String(name || '').trim();
+        if (!id || !name) return;
+        var map = readFirstMap();
+        map[id] = { kind: normalizeKind(kind), name: name };
+        writeFirstMap(map);
+    }
+
+    function firstOf(id) {
+        id = String(id || '').trim();
+        if (!id) return null;
+        return readFirstMap()[id] || null;
+    }
+
+    function subjectIdForBusiness(kind, name) {
+        kind = normalizeKind(kind);
+        name = String(name || '').trim();
+        if (!name) return '';
+        var map = readFirstMap();
+        var id;
+        for (id in map) {
+            if (!Object.prototype.hasOwnProperty.call(map, id)) continue;
+            if (map[id] && map[id].kind === kind && map[id].name === name) return id;
+        }
+        return '';
+    }
+
     function toOnboardingDefaults(data) {
         data = Object.assign(emptyRecord(), data || {});
         return {
@@ -112,9 +175,21 @@
 
     function lookupForOnboarding(opts) {
         opts = opts || {};
+        if (opts.subjectId) {
+            var owned = loadSubject(opts.subjectId);
+            if (owned) return toOnboardingDefaults(owned);
+        }
         var name = String(opts.merchantShortNameDefault || opts.name || '').trim();
         if (!name) return null;
-        var kind = opts.onboardingKind === 'supplier' ? 'supplier' : 'store';
+        var kind = normalizeKind(opts.onboardingKind);
+        var ownerId = subjectIdForBusiness(kind, name);
+        if (!ownerId && (kind === 'store' || kind === 'supplier')) {
+            ownerId = subjectIdForBusiness(kind === 'store' ? 'supplier' : 'store', name);
+        }
+        if (ownerId) {
+            var fromOwner = loadSubject(ownerId);
+            if (fromOwner) return toOnboardingDefaults(fromOwner);
+        }
         var found = load(kind, name) || load(kind === 'store' ? 'supplier' : 'store', name);
         return found ? toOnboardingDefaults(found) : null;
     }
@@ -221,14 +296,9 @@
         var skin = options.skin || 'pc';
         var root = el('div', '');
         root.setAttribute('data-entry-materials', '1');
-        var intro = el('div', 'mdm-biz-tip');
-        intro.setAttribute('role', 'note');
-        intro.innerHTML = '以下属于<strong>档案信息</strong>：营业执照、法人身份证、法人实名电话、整套结算信息。入驻审核后只在档案查看和编辑。进件自动带入已有字段，进件中可以修改。<strong>法人实名电话</strong>不写入进件。';
-        intro.style.cssText = 'margin:8px 0;font-size:12px;color:#666;line-height:1.5;';
-        root.appendChild(intro);
         appendGroup(root, '营业执照', 'license', skin);
         appendGroup(root, '法人身份证', 'legal', skin);
-        appendGroup(root, '法人实名电话', 'phone', skin, '进件没有这一项。请填写法人实名认证所用手机号。');
+        appendGroup(root, '法人实名电话', 'phone', skin);
         appendGroup(root, '结算信息', 'settle', skin);
         if (options.editable === false) {
             root.querySelectorAll('input, button').forEach(function (node) { node.disabled = true; });
@@ -303,16 +373,43 @@
             return html + '</section>';
         }
         return '<div data-entry-materials-wrap="1">' +
-            '<p style="margin:12px 0 0;font-size:12px;color:#666;line-height:1.5">营业执照、法人身份证和结算信息会带入后续进件，进件中可以修改。法人实名电话只保存在入驻资料。</p>' +
+            '<p style="margin:12px 0 0;font-size:12px;color:#666;line-height:1.5">营业执照、法人身份证、法人实名电话和结算信息属于主体，会同步到第一家门店。进件带入执照、身份证和结算，法人实名电话不写入进件。</p>' +
             group('营业执照', 'license') +
             group('法人身份证', 'legal') +
-            group('法人实名电话', 'phone', '进件没有这一项。请填写法人实名认证所用手机号。') +
+            group('法人实名电话', 'phone') +
             group('结算信息', 'settle') +
             '</div>';
     }
 
     function h5Root(doc) {
         return (doc || document).querySelector('[data-entry-materials-wrap]');
+    }
+
+    function loadForArchive(kind, name) {
+        kind = normalizeKind(kind);
+        name = String(name || '').trim();
+        if (!name) return null;
+        var own = load(kind, name);
+        if (own) return own;
+        var sid = subjectIdForBusiness(kind, name);
+        if (!sid) return null;
+        var first = firstOf(sid);
+        if (first && (first.kind !== kind || first.name !== name)) return null;
+        return loadSubject(sid);
+    }
+
+    function saveForArchive(kind, name, data) {
+        kind = normalizeKind(kind);
+        name = String(name || '').trim();
+        if (!name) return;
+        save(kind, name, data);
+        var sid = subjectIdForBusiness(kind, name);
+        if (!sid) return;
+        var first = firstOf(sid);
+        if (!first || (first.kind === kind && first.name === name)) {
+            saveSubject(sid, data);
+            if (!first) bindFirst(sid, kind, name);
+        }
     }
 
     function pairs(data) {
@@ -323,6 +420,64 @@
             return { label: field.label.replace('上传', ''), value: data[field.key] ? '已上传' : '未上传' };
         }));
     }
+
+    /** 列表里的演示主体没有落过证照。缺记录时补一份，已有资料不覆盖。 */
+    var DEMO_SUBJECTS = {
+        'STORE-SUB-001': { name: '冷丰演示门店', person: '张三', phone: '13800002211', code: '91330106MA2DEMO001', idNo: '330106198803151234', region: '浙江省 / 杭州市 / 西湖区', addr: '杭州市西湖区文一西路88号', bank: '中国工商银行', branch: '杭州文一支行', card: '6222021202002211001' },
+        'STORE-SUB-002': { name: '五角场体验店', person: '李四', phone: '18800007765', code: '91310110MA2DEMO002', idNo: '310110198506082226', region: '上海市 / 市辖区 / 杨浦区', addr: '上海市杨浦区淞沪路8号', bank: '中国建设银行', branch: '上海五角场支行', card: '6217001210007765002' },
+        'STORE-SUB-003': { name: '张江快闪店', person: '陈晨', phone: '18600009001', code: '91310115MA2DEMO003', idNo: '310115199203193315', region: '上海市 / 市辖区 / 浦东新区', addr: '上海市浦东新区祖冲之路2288号', bank: '招商银行', branch: '上海张江支行', card: '6214830210009001003' },
+        'SUP-SUB-001': { name: '小牛供应链', person: '牛强', phone: '15900007788', code: '91330100MA2DEMO011', idNo: '330102197911220018', region: '浙江省 / 杭州市 / 滨江区', addr: '杭州市滨江区网商路599号', bank: '中国农业银行', branch: '杭州滨江支行', card: '6228480320007788004' },
+        'SUP-SUB-002': { name: '珠宝集采中心', person: '钱多多', phone: '17700009271', code: '91310101MA2DEMO012', idNo: '310101198207074422', region: '上海市 / 市辖区 / 黄浦区', addr: '上海市黄浦区南京东路100号', bank: '中国银行', branch: '上海南京东路支行', card: '6216610210009271005' },
+        'SUP-SUB-003': { name: '华东辅料仓配', person: '刘洋', phone: '17600000317', code: '91320500MA2DEMO013', idNo: '320506198912013317', region: '江苏省 / 苏州市 / 工业园区', addr: '苏州市工业园区星湖街328号', bank: '交通银行', branch: '苏州工业园区支行', card: '6222620210000317006' },
+        'TRD-SUB-001': { name: '杭州鲜达贸易有限公司', person: '周宁', phone: '13800001001', code: '91330106MA2DEMO021', idNo: '330106198401156618', region: '浙江省 / 杭州市 / 拱墅区', addr: '杭州市拱墅区湖州街88号', bank: '杭州银行', branch: '杭州拱墅支行', card: '6230610210001001007' },
+        'TRD-SUB-002': { name: '上海冷链融资租赁有限公司', person: '李航', phone: '13800001002', code: '91310115MA2DEMO022', idNo: '310115198708229901', region: '上海市 / 市辖区 / 浦东新区', addr: '上海市浦东新区世纪大道100号', bank: '浦发银行', branch: '上海陆家嘴支行', card: '6217920210001002008' },
+        'WH-SUB-001': { name: '沪南一号仓', person: '周仓', phone: '13700000098', code: '91310112MA2DEMO031', idNo: '310112198005053311', region: '上海市 / 市辖区 / 闵行区', addr: '上海市闵行区沪南路2000号', bank: '中国工商银行', branch: '上海闵行支行', card: '6222021002000098009' },
+        'WH-SUB-002': { name: '合作仓-苏州', person: '孙杰', phone: '13300000000', code: '91320505MA2DEMO032', idNo: '320505198603174420', region: '江苏省 / 苏州市 / 虎丘区', addr: '苏州市虎丘区狮山路18号', bank: '中国建设银行', branch: '苏州狮山路支行', card: '6217001002000000010' },
+        'WH-SUB-003': { name: '自建仓-杭州', person: '王敏', phone: '13800002210', code: '91330108MA2DEMO033', idNo: '330108199105286628', region: '浙江省 / 杭州市 / 余杭区', addr: '杭州市余杭区仓前街道文一西路1500号', bank: '浙商银行', branch: '杭州余杭支行', card: '6210190210002210011' }
+    };
+
+    function demoRecord(spec, name) {
+        spec = spec || {};
+        var merchant = spec.name || name || '';
+        return Object.assign(emptyRecord(), {
+            licenseName: merchant,
+            licenseCode: spec.code || '',
+            licenseStart: '2020-01-01',
+            licenseValid: '长期有效',
+            licenseFound: '2018-06-18',
+            licenseRegion: spec.region || '',
+            licenseAddress: spec.addr || '',
+            licensePic: true,
+            legalName: spec.person || '',
+            legalIdNo: spec.idNo || '',
+            legalIdStart: '2019-03-01',
+            legalIdValid: '2039-03-01',
+            legalRegion: spec.region || '',
+            legalAddress: spec.addr || '',
+            legalFront: true,
+            legalBack: true,
+            legalRealnamePhone: spec.phone || '',
+            accountName: merchant,
+            cardNo: spec.card || '',
+            bankName: spec.bank || '',
+            bankBranch: spec.branch || '',
+            openLicensePic: true
+        });
+    }
+
+    function ensureDemoSubject(id, name) {
+        id = String(id || '').trim();
+        var spec = DEMO_SUBJECTS[id];
+        if (!id || !spec) return loadSubject(id);
+        var current = loadSubject(id);
+        if (current && String(current.licenseName || '').trim()) return current;
+        saveSubject(id, demoRecord(spec, name));
+        return loadSubject(id);
+    }
+
+    Object.keys(DEMO_SUBJECTS).forEach(function (id) {
+        ensureDemoSubject(id, DEMO_SUBJECTS[id].name);
+    });
 
     function summaryBlocks(data, render) {
         data = Object.assign(emptyRecord(), data || {});
@@ -345,6 +500,14 @@
     global.MdmEntryMaterials = {
         save: save,
         load: load,
+        saveSubject: saveSubject,
+        loadSubject: loadSubject,
+        ensureDemoSubject: ensureDemoSubject,
+        bindFirst: bindFirst,
+        firstOf: firstOf,
+        subjectIdForBusiness: subjectIdForBusiness,
+        loadForArchive: loadForArchive,
+        saveForArchive: saveForArchive,
         mount: mount,
         read: read,
         fill: fill,
