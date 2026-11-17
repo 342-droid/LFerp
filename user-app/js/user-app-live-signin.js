@@ -109,6 +109,7 @@
 
   function signIn() {
     if (done() || readDemo() === 'none') return;
+    if (global.UAShop && typeof global.UAShop.blockLiveMarketing === 'function' && global.UAShop.blockLiveMarketing()) return;
     if (readDemo() === 'points') {
       writeClaim({ kind: 'points', amount: 0, at: clockNow() });
       render();

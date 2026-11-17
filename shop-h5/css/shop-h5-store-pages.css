@@ -687,3 +687,165 @@
   font-weight: 400;
   color: #9ca3af;
 }
+
+/* 证件照与进件同一套：左文案，右四角相框，点击查看大图 */
+.bd-license-photo-card {
+  min-height: 164px;
+  margin: 0 0 12px;
+  padding: 24px 16px 20px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  background: #fff;
+  border-radius: 16px;
+}
+
+.bd-license-photo-copy {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.bd-license-photo-copy h3 {
+  margin: 0 0 12px;
+  font-size: 20px;
+  line-height: 1.2;
+  color: #222;
+  font-weight: 800;
+}
+
+.bd-license-photo-copy p {
+  margin: 0;
+  color: #707070;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.bd-license-photo-copy i {
+  margin-right: 4px;
+  color: #df2638;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.bd-license-photo-frame {
+  position: relative;
+  width: 174px;
+  height: auto;
+  flex: 0 0 174px;
+  margin-top: 4px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.bd-license-shot {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 111px;
+  box-sizing: border-box;
+  padding: 9px 10px 10px;
+}
+
+.bd-id-photo-frame {
+  width: 176px;
+  height: auto;
+  flex-basis: 176px;
+}
+
+.bd-id-photo-frame .bd-license-shot {
+  height: 112px;
+}
+
+.bd-open-license-frame {
+  width: 190px;
+  height: auto;
+  flex-basis: 190px;
+}
+
+.bd-open-license-frame .bd-license-shot {
+  height: 125px;
+}
+
+.bd-license-photo-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  background: #eadfc9;
+  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.16);
+}
+
+.bd-license-shot .corner {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-color: #2b8cf0;
+  border-style: solid;
+  z-index: 2;
+}
+
+.bd-license-photo-frame .tl { top: 0; left: 0; border-width: 4px 0 0 4px; }
+.bd-license-photo-frame .tr { top: 0; right: 0; border-width: 4px 4px 0 0; }
+.bd-license-photo-frame .bl { bottom: 0; left: 0; border-width: 0 0 4px 4px; }
+.bd-license-photo-frame .br { right: 0; bottom: 0; border-width: 0 4px 4px 0; }
+
+.bd-license-view {
+  position: static;
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  text-align: center;
+  color: #2d94e5;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.mdm-photo-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 3200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.mdm-photo-lightbox__box {
+  max-width: min(920px, calc(100vw - 32px));
+  background: #111;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.mdm-photo-lightbox__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  color: #fff;
+}
+
+.mdm-photo-lightbox__head .erp-modal__header-btn {
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.mdm-photo-lightbox__img {
+  display: block;
+  max-width: min(920px, calc(100vw - 32px));
+  max-height: calc(100vh - 96px);
+  object-fit: contain;
+  background: #000;
+}

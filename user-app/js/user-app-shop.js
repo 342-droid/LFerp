@@ -894,6 +894,7 @@
 
   var liveLeftDemoTimer = 0;
   var LIVE_LEFT_DEMO_SELECTORS = [
+    '.ua-live-mkt-demo',
     '.ua-live-sw-demo',
     '.ua-watch-reward-demo',
     '.ua-live-bag-demo',
@@ -3155,6 +3156,77 @@
     showToast._t = setTimeout(function () {
       el.hidden = true;
     }, 1600);
+  }
+
+  var LIVE_MARKETING_DENY = '当前门店不支持';
+  var LIVE_MARKETING_DEMO_KEY = 'ua_live_marketing_store_demo_v1';
+
+  function currentLiveStoreRef() {
+    try {
+      var api = window.UaStoreSwitch;
+      if (api) {
+        var current = null;
+        if (typeof api.readBind === 'function' && typeof api.resolveCurrentStore === 'function') {
+          var bind = api.readBind();
+          if (bind) current = api.resolveCurrentStore(bind);
+        }
+        if (!current && typeof api.getSystemDefaultStore === 'function') current = api.getSystemDefaultStore();
+        if (current && (current.name || current.id)) {
+          return { storeId: current.id || '', name: current.name || current.homeName || '' };
+        }
+      }
+    } catch (e) {}
+    return { storeId: STORE.id, name: STORE.name };
+  }
+
+  /** 营销选店限制开启且当前门店未同时满足合同已签署、保证金达到应保有。 */
+  function marketingLiveDenied() {
+    try {
+      var demo = localStorage.getItem(LIVE_MARKETING_DEMO_KEY);
+      if (demo === 'allow') return false;
+      if (demo === 'deny') return true;
+    } catch (e) {}
+    if (!window.LfLowMargin || typeof window.LfLowMargin.marketingReleased !== 'function') return false;
+    return !window.LfLowMargin.marketingReleased(currentLiveStoreRef());
+  }
+
+  function blockLiveMarketing() {
+    if (!marketingLiveDenied()) return false;
+    showToast(LIVE_MARKETING_DENY);
+    return true;
+  }
+
+  function mountLiveMarketingDemo() {
+    if (!document.querySelector('.ua-live-room') || document.getElementById('uaLiveMktDemo')) return;
+    var mode = 'follow';
+    try {
+      var saved = localStorage.getItem(LIVE_MARKETING_DEMO_KEY);
+      if (saved === 'allow' || saved === 'deny') mode = saved;
+    } catch (e) {}
+    var panel = document.createElement('div');
+    panel.className = 'ua-live-goods-demo ua-live-mkt-demo';
+    panel.id = 'uaLiveMktDemo';
+    panel.innerHTML =
+      '<div class="ua-live-goods-demo__title">营销参与验收开关</div>' +
+      '<label class="ua-live-goods-demo__row">参与状态' +
+      '<select id="uaLiveMktDemoMode">' +
+      '<option value="follow"' + (mode === 'follow' ? ' selected' : '') + '>跟随门店</option>' +
+      '<option value="deny"' + (mode === 'deny' ? ' selected' : '') + '>当前门店不支持</option>' +
+      '<option value="allow"' + (mode === 'allow' ? ' selected' : '') + '>当前门店支持</option>' +
+      '</select></label>' +
+      '<button type="button" class="ua-live-goods-demo__apply" id="uaLiveMktDemoApply">应用并刷新</button>';
+    document.body.appendChild(panel);
+    var apply = document.getElementById('uaLiveMktDemoApply');
+    if (!apply) return;
+    apply.addEventListener('click', function () {
+      var sel = document.getElementById('uaLiveMktDemoMode');
+      var next = sel ? sel.value : 'follow';
+      try {
+        if (next === 'allow' || next === 'deny') localStorage.setItem(LIVE_MARKETING_DEMO_KEY, next);
+        else localStorage.removeItem(LIVE_MARKETING_DEMO_KEY);
+      } catch (err) {}
+      window.location.reload();
+    });
   }
 
   var MALL_CATEGORIES = [
@@ -6009,6 +6081,7 @@
 
     document.getElementById('liveCouponBtn') &&
       document.getElementById('liveCouponBtn').addEventListener('click', function () {
+        if (blockLiveMarketing()) return;
         showToast('暂无可用优惠券');
       });
     document.getElementById('liveOrderBtn') &&
@@ -6083,6 +6156,7 @@
     mountLiveQuickCommentDemo();
     mountLiveSensitiveDemo();
     layoutLiveRoomLeftDemos();
+    mountLiveMarketingDemo();
     scheduleLiveRoomLeftDemos();
     setTimeout(layoutLiveRoomLeftDemos, 300);
     if (window.MutationObserver && document.body) {
@@ -6148,6 +6222,8 @@
     initHomePage: initHomePage,
     initLiveRoomPage: initLiveRoomPage,
     scheduleLiveRoomLeftDemos: scheduleLiveRoomLeftDemos,
+    marketingLiveDenied: marketingLiveDenied,
+    blockLiveMarketing: blockLiveMarketing,
     initMallPage: initMallPage,
     initCategoryPage: initCategoryPage,
     initCartPage: initCartPage,

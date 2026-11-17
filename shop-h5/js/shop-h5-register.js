@@ -315,7 +315,6 @@
     $('storeTypeRow').classList.toggle('shop-h5-hidden', !policy);
     var fr = usesFranchiseMaterials(v);
     $('blockFranchise').classList.toggle('shop-h5-hidden', !fr);
-    $('blockPeer').classList.add('shop-h5-hidden');
   }
 
   function refreshPoiList() {
@@ -420,7 +419,6 @@
   function collectPayloadFromForm() {
     var partnerDivision = $('partnerDivision').value;
     var isFranchiseOrPartner = usesFranchiseMaterials(partnerDivision);
-    var isPeerStore = partnerDivision === '同行店';
     var nameOut = $('name').value.trim() || '未命名门店';
     var warehouse = $('warehouse').value.trim() || getDefaultWarehouseForBd($('boundBd').value);
     return {
@@ -454,9 +452,7 @@
       surroundingCommunityNote: $('surroundingCommunityNote').value.trim(),
       confidenceReach1000: $('confidenceReach1000').value.trim(),
       specialCircumstancesNote: $('specialCircumstancesNote').value.trim(),
-      otherPlatformsCooperation: $('otherPlatformsCooperation').value.trim(),
       isFranchiseOrPartner: isFranchiseOrPartner,
-      isPeerStore: isPeerStore,
     };
   }
 
@@ -554,7 +550,6 @@
     $('surroundingCommunityNote').value = s.surroundingCommunityNote || '';
     $('confidenceReach1000').value = s.confidenceReach1000 || '';
     $('specialCircumstancesNote').value = s.specialCircumstancesNote || '';
-    $('otherPlatformsCooperation').value = s.otherPlatformsCooperation || '';
     if (window.MdmEntryMaterials) {
       var entrySaved = s.entryMaterials || window.MdmEntryMaterials.load('store', s.name);
       if (entrySaved) window.MdmEntryMaterials.fill(window.MdmEntryMaterials.h5Root(document), entrySaved);
@@ -616,11 +611,11 @@
 
   function mountShopEntryMaterials() {
     if (!window.MdmEntryMaterials || document.querySelector('[data-entry-materials-wrap]')) return;
-    var anchor = document.getElementById('contactName');
+    var anchor = document.getElementById('storeSubject');
     var section = anchor && anchor.closest ? anchor.closest('section') : null;
     if (!section || !section.parentNode) return;
     var holder = document.createElement('div');
-    holder.innerHTML = window.MdmEntryMaterials.h5Section();
+    holder.innerHTML = window.MdmEntryMaterials.h5Section('shop');
     while (holder.firstChild) section.parentNode.insertBefore(holder.firstChild, section.nextSibling);
   }
 
@@ -720,23 +715,6 @@
       this.value = '';
     };
 
-    $('btnBroadcastPick').onclick = function () {
-      $('broadcastFiles').click();
-    };
-    $('broadcastFiles').onchange = function () {
-      var old = state.broadcastUrls.length;
-      state.broadcastUrls = mergePhotos(state.broadcastUrls, this.files, MAX_BROADCAST);
-      $('broadcastCount').textContent = String(state.broadcastUrls.length);
-      renderPhotoGrid('broadcastGrid', state.broadcastUrls, function rem(ix) {
-        revokeUrls([state.broadcastUrls[ix]]);
-        state.broadcastUrls.splice(ix, 1);
-        $('broadcastCount').textContent = String(state.broadcastUrls.length);
-        renderPhotoGrid('broadcastGrid', state.broadcastUrls, rem);
-      });
-      toast(state.broadcastUrls.length > old ? '已添加图片' : '已达上限');
-      this.value = '';
-    };
-
     $('btnVideoStorefront').onclick = function () {
       $('videoStorefrontFile').click();
     };
@@ -822,7 +800,6 @@
           surroundingCommunityNote: f.surroundingCommunityNote,
           confidenceReach1000: f.confidenceReach1000,
           specialCircumstancesNote: f.specialCircumstancesNote,
-          otherPlatformsCooperation: f.otherPlatformsCooperation,
           entryMaterials: entryMaterials,
         });
         toast('已提交：门店注册申请已提交，请等待审核');
@@ -866,7 +843,6 @@
           surroundingCommunityNote: f.surroundingCommunityNote,
           confidenceReach1000: f.confidenceReach1000,
           specialCircumstancesNote: f.specialCircumstancesNote,
-          otherPlatformsCooperation: f.otherPlatformsCooperation,
           entryMaterials: entryMaterials,
           phase: prev.phase === 'draft' ? 'awaiting_bd' : prev.phase === 'awaiting_bd' ? 'awaiting_bd' : prev.phase,
         })

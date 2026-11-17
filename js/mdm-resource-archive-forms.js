@@ -978,7 +978,8 @@
                 }
                 return;
             }
-            refs.codeInp.value = region ? api.peekNextCode(region) : '';
+            /* 新建不预占编码。入驻审核通过后才分配。 */
+            refs.codeInp.value = '';
             refs.codeInp.removeAttribute('data-reallocated');
         }
         refs.refreshStoreCode = refresh;
@@ -1003,12 +1004,14 @@
         refs.subjectSel.setAttribute('data-required-msg', '请选择主体名称');
         body.appendChild(formRow('主体名称', true, refs.subjectSel));
         var codeWrap = document.createElement('div');
-        refs.codeInp = txt('选择门店地址后由系统自动生成', opts.storeCode || '');
+        refs.codeInp = txt('入驻审核通过后生成', opts.storeCode || '');
         refs.codeInp.readOnly = true;
         refs.codeInp.style.background = '#f5f5f5';
         var codeTip = document.createElement('div');
         codeTip.style.cssText = 'margin-top:6px;font-size:12px;color:#999;line-height:1.5;';
-        codeTip.textContent = '8 位编码：3 位城市码（IATA）+ 5 位顺序码；按城市自动生成，注销后不回收。';
+        codeTip.textContent = opts.storeCode
+            ? '8 位编码：3 位城市码（IATA）+ 5 位顺序码；按城市生成，注销后不回收。'
+            : '入驻审核通过后按城市生成，注销后不回收。';
         codeWrap.appendChild(refs.codeInp);
         codeWrap.appendChild(codeTip);
         body.appendChild(formRow('门店编码', false, codeWrap));
@@ -1185,24 +1188,10 @@
         franchise.appendChild(franchiseSpecialCollapse.wrap);
         body.appendChild(franchise);
 
-        var peer = document.createElement('div');
-        peer.style.display = 'none';
-        /* 已合作其他平台情况、近三天上播及销量截图：默认可折叠收起 */
-        var peerCollapse = makeFormCollapse('同行店补充资料', true);
-        peerCollapse.body.appendChild(
-            formRow('已合作其他平台情况', false, txtAreaWithCount('目前门店已合作的其他平台情况', 500, ''))
-        );
-        peerCollapse.body.appendChild(
-            formRow('近三天上播及销量截图', false, uploadMock('+ 上传经营截图', '最多 6 张'))
-        );
-        peer.appendChild(peerCollapse.wrap);
-        body.appendChild(peer);
-
         function syncPartner() {
             var v = partnerSel.value;
             var franchiseLike = v === 'franchise' || v === 'joint' || v === 'direct';
             franchise.style.display = franchiseLike ? '' : 'none';
-            peer.style.display = 'none';
         }
         partnerSel.addEventListener('change', syncPartner);
         syncPartner();
@@ -2114,43 +2103,8 @@
         var name = refs.nameInp ? String(refs.nameInp.value || '').trim() : '';
         var region = refs.regionInp ? String(refs.regionInp.value || '').trim() : '';
         if (!warehouseSelectionAvailable(refs.warehouseSel, '')) return false;
-        var api = window.MdmStoreCode;
-        var storeCode = api && typeof api.allocateNextCode === 'function' ? api.allocateNextCode(region) : '';
-        if (!storeCode) storeCode = 'NEW' + Date.now().toString().slice(-8);
-        if (refs.codeInp) refs.codeInp.value = storeCode;
-        writeVenuePhotos('store', storeCode, collectVenuePhotosFromRefs(refs));
         if (name) writeVenuePhotos('store', 'name:' + name, collectVenuePhotosFromRefs(refs));
         saveSubjectMaterials(subject, 'store', name, refs.entryMaterials);
-        var bindings = readJsonStore('mdm_store_warehouse_bindings_v1');
-        bindings[storeCode] = selectedLabel(refs.warehouseSel);
-        writeJsonStore('mdm_store_warehouse_bindings_v1', bindings);
-        syncStoreReceiveFromForm(storeCode, name, refs);
-        var partnerMap = { franchise: '加盟店', joint: '联营店', direct: '直营店' };
-        var partnerValue = refs.partnerSel && refs.partnerSel.value;
-        var row = {
-            storeCode: storeCode,
-            subjectName: subject.name || '—',
-            name: name,
-            shortName: name,
-            partner: partnerMap[partnerValue] || partnerValue || '—',
-            storeType: refs.storeTypeInp ? String(refs.storeTypeInp.value || '').trim() : '—',
-            bindBd: subject.bd || selectedLabel(refs.bindBdSel) || '—',
-            contact: subject.contact || '—',
-            phone: subject.phone || '—',
-            warehouse: selectedLabel(refs.warehouseSel) || '—',
-            region: region,
-            address: refs.addressTa ? String(refs.addressTa.value || '').trim() : '',
-            bizLine: refs.bizLineSel ? refs.bizLineSel.value : '',
-            brandName: refs.brandSel ? refs.brandSel.value : '',
-            bizLines: refs.bizHidden ? refs.bizHidden.value : ''
-        };
-        if (window.MdmStoreSiteSlot) {
-            window.MdmStoreSiteSlot.syncFromStore({ storeCode: storeCode, storeName: name, source: 'store' });
-        }
-        var appended = window.MdmErpLists && typeof window.MdmErpLists.appendArchiveStoreRow === 'function'
-            ? window.MdmErpLists.appendArchiveStoreRow(row)
-            : null;
-        if (!appended) pushQueue(FIRST_STORE_KEY, row);
         return true;
     }
 
@@ -2315,6 +2269,10 @@
             bizLine: opts.bizLine || '',
             brandName: opts.brandName || '',
             address: opts.address || '',
+            region: opts.region || '',
+            storeType: opts.storeType || '',
+            warehouse: opts.warehouse || '',
+            bizLines: opts.bizLines || '',
             auditStatus: '待审核',
             mdmStatus: '未生成',
             createdBy: '当前用户',
@@ -2358,51 +2316,14 @@
                 var refs = bundle.refs || {};
                 var name = refs.nameInp ? String(refs.nameInp.value || '').trim() : '';
                 var region = refs.regionInp ? String(refs.regionInp.value || '').trim() : '';
-                var api = window.MdmStoreCode;
                 if (!region) {
-                    if (typeof showToast === 'function') showToast('请选择门店地址以生成门店编码', 'error');
+                    if (typeof showToast === 'function') showToast('请选择门店地址', 'error');
                     return false;
                 }
-                var storeCode = api && typeof api.allocateNextCode === 'function' ? api.allocateNextCode(region) : '';
-                if (!storeCode) {
-                    if (typeof showToast === 'function') {
-                        showToast('所选城市暂无城市码，请联系 IT 分配后再建店', 'error');
-                    }
-                    return false;
-                }
-                if (refs.codeInp) refs.codeInp.value = storeCode;
-                writeVenuePhotos('store', storeCode, collectVenuePhotosFromRefs(refs));
-                /* 演示：亦按名称索引，便于列表尚未落库时进件带入 */
                 if (name) writeVenuePhotos('store', 'name:' + name, collectVenuePhotosFromRefs(refs));
-                var bindings = readJsonStore('mdm_store_warehouse_bindings_v1');
-                bindings[storeCode] = selectedLabel(refs.warehouseSel);
-                writeJsonStore('mdm_store_warehouse_bindings_v1', bindings);
-                syncStoreReceiveFromForm(storeCode, name, refs);
                 var partnerMap = { franchise: '加盟店', joint: '联营店', direct: '直营店' };
                 var partnerValue = refs.partnerSel && refs.partnerSel.value;
                 var partnerLabel = partnerMap[partnerValue] || partnerValue || '—';
-                if (window.MdmStoreSiteSlot) {
-                    window.MdmStoreSiteSlot.syncFromStore({ storeCode: storeCode, storeName: name, source: 'store' });
-                }
-                if (window.MdmErpLists && typeof window.MdmErpLists.appendArchiveStoreRow === 'function') {
-                    window.MdmErpLists.appendArchiveStoreRow({
-                        storeCode: storeCode,
-                        subjectName: selectedLabel(refs.subjectSel) || '—',
-                        name: name,
-                        shortName: name,
-                        partner: partnerLabel,
-                        storeType: refs.storeTypeInp ? String(refs.storeTypeInp.value || '').trim() : '—',
-                        bindBd: selectedLabel(refs.bindBdSel) || '—',
-                        contact: refs.contactInp ? String(refs.contactInp.value || '').trim() : '—',
-                        phone: refs.phoneInp ? String(refs.phoneInp.value || '').trim() : '—',
-                        warehouse: selectedLabel(refs.warehouseSel) || '—',
-                        region: region,
-                        address: refs.addressTa ? String(refs.addressTa.value || '').trim() : '',
-                        bizLine: refs.bizLineSel ? refs.bizLineSel.value : '',
-                        brandName: refs.brandSel ? refs.brandSel.value : '',
-                        bizLines: refs.bizHidden ? refs.bizHidden.value : ''
-                    });
-                }
                 persistArchiveMaterials(refs, 'store', name);
                 enqueueEntryAudit({
                     kind: 'store',
@@ -2414,8 +2335,12 @@
                     contact: refs.contactInp ? String(refs.contactInp.value || '').trim() : '',
                     phone: refs.phoneInp ? String(refs.phoneInp.value || '').trim() : '',
                     partnerDivision: partnerLabel,
+                    storeType: refs.storeTypeInp ? String(refs.storeTypeInp.value || '').trim() : '',
+                    warehouse: selectedLabel(refs.warehouseSel),
                     bizLine: refs.bizLineSel ? refs.bizLineSel.value : '',
                     brandName: refs.brandSel ? refs.brandSel.value : '',
+                    bizLines: refs.bizHidden ? refs.bizHidden.value : '',
+                    region: region,
                     address: refs.addressTa ? String(refs.addressTa.value || '').trim() : ''
                 });
                 return ENTRY_AUDIT_TIP;

@@ -2917,7 +2917,6 @@
             partner === '直营店' ||
             partner === '合作店' ||
             partner === '生鲜店';
-        var isPeer = partner === '同行店';
         var settleType = cellPlain(c[13]);
         function attr(key, fallback) {
             var v = tr.getAttribute(key);
@@ -2959,8 +2958,7 @@
             hasRefrigerator: false,
             hasFreezer: false,
             detailTags: [],
-            isFranchiseOrPartner: isFP,
-            isPeerStore: isPeer
+            isFranchiseOrPartner: isFP
         };
     }
 
@@ -3071,10 +3069,6 @@
             grid.appendChild(detailCell('拉到1000人信心说明', '—'));
             grid.appendChild(detailCell('特殊情况说明', '—'));
             grid.appendChild(detailCell('特殊情况配图', '—'));
-        }
-        if (store.isPeerStore) {
-            grid.appendChild(detailCell('已合作其他平台情况', '—'));
-            grid.appendChild(detailCell('近三天上播及销量截图', '—'));
         }
 
         grid.appendChild(detailCell('创建时间', store.createTime));

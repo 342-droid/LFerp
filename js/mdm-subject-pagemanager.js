@@ -1899,8 +1899,14 @@
                             contact: String(contactBefore || '').trim(),
                             phone: String(phoneBefore || '').trim(),
                             partnerDivision: partnerMap[partnerValue] || partnerValue || '',
+                            storeType: archiveRefs.storeTypeInp ? String(archiveRefs.storeTypeInp.value || '').trim() : '',
+                            warehouse: archiveRefs.warehouseSel ? (archiveRefs.warehouseSel.options[archiveRefs.warehouseSel.selectedIndex] || {}).text || '' : '',
                             bizLine: archiveRefs.bizLineSel ? archiveRefs.bizLineSel.value : '',
-                            brandName: archiveRefs.brandSel ? archiveRefs.brandSel.value : ''
+                            brandName: archiveRefs.brandSel ? archiveRefs.brandSel.value : '',
+                            bizLines: archiveRefs.bizHidden ? archiveRefs.bizHidden.value : '',
+                            region: archiveRefs.regionInp ? String(archiveRefs.regionInp.value || '').trim() : '',
+                            address: archiveRefs.addressTa ? String(archiveRefs.addressTa.value || '').trim() : '',
+                            shortName: bizName || String(nameBefore || '').trim()
                         });
                     }
                     var archiveTip = archiveKind === 'warehouse'

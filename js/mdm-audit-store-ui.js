@@ -472,7 +472,6 @@
             return;
         }
         var isFranchiseOrPartner = isFranchiseOrPartnerRow(row);
-        var isPeerStore = row.partnerDivision === '同行店';
 
         body.appendChild(el('div', 'supplier-detail-section-title', '主体字段'));
         body.appendChild(detailRow('主体名称', row.subjectName, 'subjectName', row));
@@ -481,6 +480,10 @@
         appendEntryMaterials(body, row, opts);
 
         body.appendChild(el('div', 'supplier-detail-section-title', '门店档案字段'));
+        if (row.auditStatus === '审核成功') {
+            assignStoreCode(row);
+            body.appendChild(detailRow('门店编码', row.storeCode || '—'));
+        }
         body.appendChild(detailRow('入驻方名称', row.storeName, 'storeName', row));
         body.appendChild(detailRow('门店简称', row.shortName));
         body.appendChild(detailRow('门店合作类型', displayPartnerDivision(row.partnerDivision), 'partnerDivision', row));
@@ -515,12 +518,6 @@
             body.appendChild(detailRow('拉到1000人信心说明', row.confidenceReach1000));
             body.appendChild(detailRow('特殊情况说明', row.specialCircumstancesNote));
             body.appendChild(detailRow('特殊情况配图', mediaGrid(row.specialCircumstancesPhotos)));
-        }
-
-        if (isPeerStore) {
-            body.appendChild(el('div', 'supplier-detail-section-title', '同行店补充资料'));
-            body.appendChild(detailRow('已合作其他平台情况', row.otherPlatformsCooperation));
-            body.appendChild(detailRow('近三天上播及销量截图', mediaGrid(row.broadcastSalesScreenshots)));
         }
     }
 
@@ -695,6 +692,7 @@
         if (row.auditStatus === '待总监审核') {
             row.auditStatus = '审核成功';
             row.mdmStatus = '已生成主体与门店档案';
+            assignStoreCode(row);
             persistQueuedAudit(row);
             return attachGeneratedContract(row);
         }
@@ -715,6 +713,49 @@
         row.auditStatus = isSingleStepAudit(row) ? '待审核' : '待总监审核';
         row.mdmStatus = '未生成';
         persistQueuedAudit(row);
+    }
+
+    var APPROVED_STORE_KEY = 'lf_first_store_archives_v1';
+
+    function assignStoreCode(row) {
+        if (!row || isSupplierAuditRow(row) || isTraderAuditRow(row) || row.subjectType === '仓库') return '';
+        if (row.auditStatus !== '审核成功') return row.storeCode || '';
+        if (!row.storeCode) {
+            var api = window.MdmStoreCode;
+            var code = api && typeof api.allocateNextCode === 'function' ? api.allocateNextCode(row.region || '') : '';
+            if (code) row.storeCode = code;
+        }
+        if (row.storeCode && row.fromCreate && !row.archiveQueued) queueApprovedStore(row);
+        return row.storeCode || '';
+    }
+
+    function queueApprovedStore(row) {
+        row.archiveQueued = true;
+        var bizLines = row.bizLines;
+        if (Array.isArray(bizLines)) bizLines = bizLines.join('、');
+        var payload = {
+            storeCode: row.storeCode,
+            subjectName: row.subjectName || '—',
+            name: row.storeName || row.subjectName || '新门店',
+            shortName: row.shortName || row.storeName || '',
+            partner: row.partnerDivision || '—',
+            storeType: row.storeType || '—',
+            bindBd: row.bd || '—',
+            contact: row.contact || '—',
+            phone: row.phone || '—',
+            warehouse: row.warehouse || '—',
+            region: row.region || '',
+            address: row.address || '',
+            bizLine: row.bizLine || '',
+            brandName: row.brandName || '',
+            bizLines: bizLines || ''
+        };
+        try {
+            var list = JSON.parse(localStorage.getItem(APPROVED_STORE_KEY) || '[]');
+            if (!Array.isArray(list)) list = [];
+            list.unshift(payload);
+            localStorage.setItem(APPROVED_STORE_KEY, JSON.stringify(list));
+        } catch (e) {}
     }
 
     function bizDisplay(value) {
@@ -843,7 +884,6 @@
         }
 
         var isFranchiseOrPartner = isFranchiseOrPartnerRow(row);
-        var isPeerStore = row.partnerDivision === '同行店';
 
         body.appendChild(el('div', 'supplier-detail-section-title', '主体字段'));
         body.appendChild(editRow('主体名称', textInput('请输入主体名称', row.subjectName), 'subjectName', row));
@@ -961,19 +1001,6 @@
                 editRow('特殊情况说明', textareaInput('', row.specialCircumstancesNote, 3), 'specialCircumstancesNote', row)
             );
             body.appendChild(detailRow('特殊情况配图', mediaGrid(row.specialCircumstancesPhotos)));
-        }
-
-        if (isPeerStore) {
-            body.appendChild(el('div', 'supplier-detail-section-title', '同行店补充资料'));
-            body.appendChild(
-                editRow(
-                    '已合作其他平台情况',
-                    textareaInput('', row.otherPlatformsCooperation, 3),
-                    'otherPlatformsCooperation',
-                    row
-                )
-            );
-            body.appendChild(detailRow('近三天上播及销量截图', mediaGrid(row.broadcastSalesScreenshots)));
         }
 
         if (typeof onPartnerChange === 'function') {

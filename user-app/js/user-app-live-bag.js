@@ -853,6 +853,7 @@
 
   function openFx() {
     if (!showEntry() || opening) return;
+    if (global.UAShop && typeof global.UAShop.blockLiveMarketing === 'function' && global.UAShop.blockLiveMarketing()) return;
     var mode = readDemo();
     if (mode !== 'miss') {
       var denied = conditionBlock(bagClaimOpts());
@@ -885,6 +886,10 @@
   function confirmOpen() {
     var fx = document.getElementById('uaBagFx');
     if (!fx || fx.hidden || fx.classList.contains('is-open') || fx.classList.contains('is-lost')) return;
+    if (global.UAShop && typeof global.UAShop.blockLiveMarketing === 'function' && global.UAShop.blockLiveMarketing()) {
+      closeFx();
+      return;
+    }
     var mode = readDemo();
     if (mode !== 'miss') {
       var denied = conditionBlock(bagClaimOpts());

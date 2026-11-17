@@ -246,6 +246,7 @@
     var name = document.getElementById('uaRainName');
     var amt = document.getElementById('uaRainAmt');
     if (!rain || !issue) return;
+    if (global.UAShop && typeof global.UAShop.blockLiveMarketing === 'function' && global.UAShop.blockLiveMarketing()) return;
     var denied = conditionDenied(issue);
     if (denied) {
       if (global.UaLiveBagCash.showLimitTip) global.UaLiveBagCash.showLimitTip(denied);
@@ -272,6 +273,7 @@
 
   function claim(issue) {
     if (opening || !issue || isClaimed(issue.id)) return;
+    if (global.UAShop && typeof global.UAShop.blockLiveMarketing === 'function' && global.UAShop.blockLiveMarketing()) return;
     opening = true;
     shownId = issue.id;
     var rain = document.getElementById('uaRain');
