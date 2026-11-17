@@ -387,10 +387,23 @@
         return String((row && (row.storeName || row.subjectName)) || '').trim();
     }
 
-    function appendEntryMaterials(body, row) {
-        if (!window.MdmEntryMaterials) return;
-        var saved = (row && row.entryMaterials) || window.MdmEntryMaterials.load(entryKindOf(row), entryNameOf(row));
-        window.MdmEntryMaterials.mount(body, { skin: 'audit', value: saved || null });
+    function savedEntryMaterials(row) {
+        var api = window.MdmEntryMaterials;
+        if (!api) return null;
+        var saved = (row && row.entryMaterials) || api.load(entryKindOf(row), entryNameOf(row));
+        if (!saved && typeof api.loadBySubjectName === 'function') saved = api.loadBySubjectName(row && row.subjectName);
+        return saved || null;
+    }
+
+    function appendEntryMaterials(body, row, opts) {
+        var api = window.MdmEntryMaterials;
+        if (!api) return;
+        var saved = savedEntryMaterials(row);
+        if (opts && opts.view && typeof api.mountView === 'function') {
+            api.mountView(body, saved);
+            return;
+        }
+        api.mount(body, { skin: 'audit', value: saved || null });
     }
 
     function rememberEntryMaterials(body, row) {
@@ -401,53 +414,61 @@
 
     function captureEntryMaterials(body, row) {
         var box = body && body.querySelector('[data-entry-materials]');
-        if (!box || !window.MdmEntryMaterials) return '';
-        var err = window.MdmEntryMaterials.validate(box);
+        var api = window.MdmEntryMaterials;
+        if (!box || !api) return '';
+        if (box.getAttribute('data-entry-materials-view') === '1') {
+            var saved = savedEntryMaterials(row);
+            var viewErr = typeof api.validateRecord === 'function' ? api.validateRecord(saved) : '';
+            if (viewErr) return viewErr;
+            row.entryMaterials = saved;
+            return '';
+        }
+        var err = api.validate(box);
         if (err) return err;
-        var data = window.MdmEntryMaterials.read(box);
+        var data = api.read(box);
         row.entryMaterials = data;
-        window.MdmEntryMaterials.save(entryKindOf(row), entryNameOf(row), data);
+        api.save(entryKindOf(row), entryNameOf(row), data);
         return '';
     }
 
     /** 供应商入驻：字段与「新增供应商商家」一致（主体名称 / 主体类型 / 联系人 / 手机号码） */
-    function appendTraderRegistrationFields(body, row) {
+    function appendTraderRegistrationFields(body, row, opts) {
         body.appendChild(el('div', 'supplier-detail-section-title', '贸易商商家字段'));
         body.appendChild(detailRow('主体名称', row.subjectName, 'subjectName', row));
         body.appendChild(detailRow('主体类型', row.subjectType || '贸易商'));
+        appendEntryMaterials(body, row, opts);
         body.appendChild(detailRow('入驻方名称', row.storeName));
         body.appendChild(detailRow('联系人', row.contact, 'contact', row));
         body.appendChild(detailRow('手机号码', row.phone, 'phone', row));
-        appendEntryMaterials(body, row);
     }
 
-    function appendSupplierRegistrationFields(body, row) {
+    function appendSupplierRegistrationFields(body, row, opts) {
         body.appendChild(el('div', 'supplier-detail-section-title', '供应商商家字段'));
         body.appendChild(detailRow('主体名称', row.subjectName, 'subjectName', row));
         body.appendChild(detailRow('主体类型', row.subjectType || '供应商'));
+        appendEntryMaterials(body, row, opts);
         body.appendChild(detailRow('联系人', row.contact, 'contact', row));
         body.appendChild(detailRow('手机号码', row.phone, 'phone', row));
-        appendEntryMaterials(body, row);
     }
 
     function appendSupplierEditableFields(body, row) {
         body.appendChild(el('div', 'supplier-detail-section-title', '供应商商家字段'));
         body.appendChild(editRow('主体名称', textInput('请输入主体名称', row.subjectName), 'subjectName', row));
         body.appendChild(detailRow('主体类型', row.subjectType || '供应商'));
+        appendEntryMaterials(body, row);
         body.appendChild(editRow('联系人', textInput('请输入联系人', row.contact), 'contact', row));
         var phoneInp = textInput('请输入手机号码', row.phone);
         phoneInp.type = 'tel';
         body.appendChild(editRow('手机号码', phoneInp, 'phone', row));
-        appendEntryMaterials(body, row);
     }
 
-    function appendRegistrationFields(body, row) {
+    function appendRegistrationFields(body, row, opts) {
         if (isSupplierAuditRow(row)) {
-            appendSupplierRegistrationFields(body, row);
+            appendSupplierRegistrationFields(body, row, opts);
             return;
         }
         if (isTraderAuditRow(row)) {
-            appendTraderRegistrationFields(body, row);
+            appendTraderRegistrationFields(body, row, opts);
             return;
         }
         var isFranchiseOrPartner = isFranchiseOrPartnerRow(row);
@@ -457,6 +478,7 @@
         body.appendChild(detailRow('主体名称', row.subjectName, 'subjectName', row));
         body.appendChild(detailRow('绑定BD', row.bd, 'bd', row));
         body.appendChild(detailRow('主体类型', row.subjectType || '门店'));
+        appendEntryMaterials(body, row, opts);
 
         body.appendChild(el('div', 'supplier-detail-section-title', '门店档案字段'));
         body.appendChild(detailRow('入驻方名称', row.storeName, 'storeName', row));
@@ -500,7 +522,6 @@
             body.appendChild(detailRow('已合作其他平台情况', row.otherPlatformsCooperation));
             body.appendChild(detailRow('近三天上播及销量截图', mediaGrid(row.broadcastSalesScreenshots)));
         }
-        appendEntryMaterials(body, row);
     }
 
     function formatAuditNow() {
@@ -828,6 +849,7 @@
         body.appendChild(editRow('主体名称', textInput('请输入主体名称', row.subjectName), 'subjectName', row));
         body.appendChild(editRow('绑定BD', textInput('请输入绑定BD', row.bd), 'bd', row));
         body.appendChild(detailRow('主体类型', row.subjectType || '门店'));
+        appendEntryMaterials(body, row);
 
         body.appendChild(el('div', 'supplier-detail-section-title', '门店档案字段'));
         var storeNameInp = textInput('请输入门店名称', row.storeName);
@@ -959,7 +981,6 @@
                 onPartnerChange(partnerSel);
             });
         }
-        appendEntryMaterials(body, row);
     }
 
     var AUDIT_ROWS = [

@@ -7,8 +7,7 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/lf-contract.css?v=20261112-contract-push">
     <link rel="stylesheet" href="../css/components.css">
-    <link rel="stylesheet" href="../css/lf-mdm-from-master.css?v=20261117-detail-rail">
-    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css?v=20261117-em-grid">
     <link rel="stylesheet" href="../css/lf-subject-add-wizard.css?v=20261117-archive-drawer">
     <style>
         /* 操作列加在 td 上的 .action-links 全局是 display:flex，会把单元格收成一块贴在行顶的线框。这里拉回整行高度，链接左对齐。 */
@@ -248,11 +247,6 @@
             <div class="content-tabs"><button class="active">门店档案</button></div>
             <hr class="content-divider">
             <div class="content-title">业务伙伴 / 资源中心 / 门店档案</div>
-            <div class="mdm-biz-tip" role="note">门店编码由系统按所选城市自动生成，格式为 <strong>3 位城市码 + 5 位顺序码</strong>（如 SHA00023）。一经分配不得重复使用，门店注销后顺序码不回收。</div>
-            <div class="mdm-biz-tip" role="note">低利润门槛：毛利率低于
-                <input id="lowMarginThreshold" type="number" min="0" max="100" step="0.1" value="10" aria-label="低利润毛利率门槛" style="width:72px;height:28px;margin:0 4px;padding:0 8px;border:1px solid #f0d2bc;border-radius:4px;">%
-                的商品，<strong>未放开</strong>门店的客户不能下单；营销活动也不能选择未放开的门店。是否限制在基础设置 / 门店配置的<strong>低利润与营销</strong>里开关，默认开启。开启时，门店合作<strong>合同已签署</strong>，且保证金余额达到该店账户配置里的<strong>保证金应保有</strong>，才改为<strong>已放开</strong>。关闭后全部门店都是已放开。应保有可按门店单独设置，未单独设置时用平台通用金额。
-            </div>
 
             <section class="search-section">
                 <form class="search-form">
@@ -542,7 +536,7 @@
     <script src="../js/mdm-store-code.js?v=20260909-store-code"></script>
     <script src="../js/mdm-store-site-slot.js?v=20260910-slot"></script>
     <script src="../js/mdm-subject-pagemanager.js?v=archive-disable-guard"></script>
-    <script src="../js/mdm-entry-materials.js?v=20261117-archive-materials"></script>
+    <script src="../js/mdm-entry-materials.js?v=20261117-em-grid"></script>
     <script src="../js/mdm-subject-add-wizard.js?v=20261117-archive-drawer-2"></script>
     <script src="../js/mdm-unified-onboarding-ui.js?v=20261112-contract-push"></script>
     <script src="../js/store-biz-structure.js?v=20261021-internal"></script>
@@ -554,9 +548,9 @@
     <script src="../store-app/js/store-app-biz-orders.js?v=20260928-comm-range"></script>
     <script src="../js/mdm-receive-address-store.js?v=20260909-store-code"></script>
     <script src="../js/contract-bodies.js?v=20261026-tpl-detail"></script>
-    <script src="../js/mdm-low-margin-gate.js?v=20261116-restrict"></script>
+    <script src="../js/mdm-low-margin-gate.js?v=20261117-restrict-scheme"></script>
     <script src="../js/basic-settings-contract.js?v=20261117-entry-audit"></script>
-    <script src="../js/mdm-archive-detail-drawer.js?v=20261117-detail-readonly"></script>
+    <script src="../js/mdm-archive-detail-drawer.js?v=20261117-em-grid"></script>
     <script src="../js/mdm-system-default-store.js?v=20260827-sys-default"></script>
     <script src="../js/mdm-erp-lists.js?v=20261116-archive-add"></script>
     <script>

@@ -2993,6 +2993,15 @@
             grid.appendChild(detailCell('证照与结算', '未填写'));
         } else {
             rows.forEach(function (pair) {
+                if (pair.photo && materials && typeof materials.viewPhoto === 'function') {
+                    var cell = el('div', 'supplier-detail-cell');
+                    cell.appendChild(el('div', 'supplier-detail-cell__label', pair.label));
+                    var body = el('div', 'supplier-detail-cell__body');
+                    body.appendChild(materials.viewPhoto(pair.label, pair.uploaded));
+                    cell.appendChild(body);
+                    grid.appendChild(cell);
+                    return;
+                }
                 grid.appendChild(detailCell(pair.label, pair.value));
             });
         }
