@@ -7780,7 +7780,7 @@
             shortName: cellPlain(c[4]),
             region: cellPlain(c[5]),
             detailAddr: cellPlain(c[6]),
-            licenseType: cellPlain(c[7]),
+            boundProvider: cellPlain(c[7]),
             contact: cellPlain(c[8]),
             phone: cellPlain(c[9]),
             onboardStatus: cellPlain(c[10]),
@@ -7803,10 +7803,9 @@
         grid.appendChild(detailCell('贸易商简称', r.shortName));
         grid.appendChild(detailCell('贸易商地址', r.region));
         grid.appendChild(detailCell('贸易商详细地址', r.detailAddr));
-        grid.appendChild(detailCell('牌照类型', r.licenseType));
+        grid.appendChild(detailCell('绑定服务商', r.boundProvider || '冷丰'));
         grid.appendChild(detailCell('联系人姓名', r.contact));
         grid.appendChild(detailCell('手机号码', r.phone));
-        grid.appendChild(detailCell('业务范围', r.bizScope));
         grid.appendChild(detailCellTagged('进件状态', r.onboardStatus, true));
         grid.appendChild(detailCellTagged('贸易商状态', r.status, true));
         grid.appendChild(detailCell('创建人', r.createdBy));
@@ -7819,7 +7818,9 @@
     }
 
     function panelTraderOnboarding(r) {
-        var recordKey = onboardRecordKey('trader', r.id);
+        var archiveKind = r.archiveKind === 'provider' ? 'provider' : 'trader';
+        var onboardTitle = archiveKind === 'provider' ? '服务商进件' : '贸易商进件';
+        var recordKey = onboardRecordKey(archiveKind, r.id);
         var viewModel = {
             id: r.id,
             name: r.name,
@@ -7835,7 +7836,7 @@
                 r.detailAddr,
                 r.phone,
                 r.id,
-                'trader'
+                archiveKind
             );
         }
         var onboardingDefaults = freshDefaults();
@@ -7843,7 +7844,7 @@
         p.appendChild(sectionTitle('进件信息'));
         var onboardingWrap = el('div', 'supplier-onboard-detail-wrap');
         function renderOnboardingInfo() {
-            var bind = getHuifuMerchantBind('trader', r.id);
+            var bind = getHuifuMerchantBind(archiveKind, r.id);
             var merchantNo = bind && bind.merchantNo ? bind.merchantNo : r.id ? 'HF-' + r.id : '—';
             onboardingWrap.innerHTML = '';
             var onboardingSummary = getOnboardingSummary(recordKey, onboardingDefaults);
@@ -7852,14 +7853,14 @@
                 recordKey: recordKey,
                 defaults: onboardingDefaults,
                 huifuMerchantNo: merchantNo,
-                bindKind: 'trader',
+                bindKind: archiveKind,
                 bindEntityId: r.id,
                 shortName: r.shortName || r.name,
                 merchantName: r.name,
                 contactMobile: r.phone,
                 onboardStatus: r.onboardStatus,
-                title: '贸易商进件',
-                subjectType: r.subjectType || '贸易商'
+                title: onboardTitle,
+                subjectType: r.subjectType || (archiveKind === 'provider' ? '服务商' : '贸易商')
             });
             var displayFields = ensureSupplierOnboardingFieldsForDisplay(view.fields, viewModel);
             appendGroupedSupplierOnboardingDetail(onboardingWrap, displayFields, {
@@ -7874,7 +7875,7 @@
         renderOnboardingInfo();
         p.appendChild(onboardingWrap);
 
-        p.appendChild(sectionTitle('贸易商进件'));
+        p.appendChild(sectionTitle(onboardTitle));
         var onboard = el('div', 'store-onboard-section store-onboard-section--white');
         var bar = el('div', 'erp-actions-row supplier-detail-onboard-actions');
         var bindActions = null;
@@ -7884,8 +7885,8 @@
             if (bindActions && typeof bindActions.refresh === 'function') bindActions.refresh();
         }
         function openTraderOnboard(forceView) {
-            openOnboardResource('贸易商进件', r.shortName || r.name, freshDefaults(), recordKey, {
-                onboardingKind: 'trader',
+            openOnboardResource(onboardTitle, r.shortName || r.name, freshDefaults(), recordKey, {
+                onboardingKind: archiveKind,
                 traderId: r.id,
                 forceView: !!forceView,
                 onChange: refreshList
@@ -7897,7 +7898,7 @@
         });
         bar.appendChild(go);
         bindActions = mountHuifuBindActions(bar, {
-            kind: 'trader',
+            kind: archiveKind,
             entityId: r.id,
             entityName: r.shortName || r.name,
             onChange: refreshList
@@ -7905,7 +7906,7 @@
         onboard.appendChild(bar);
         var tableWrap = el('div');
         function renderOnboardingTable() {
-            var bind = getHuifuMerchantBind('trader', r.id);
+            var bind = getHuifuMerchantBind(archiveKind, r.id);
             var onboardingSummary = getOnboardingSummary(recordKey, onboardingDefaults);
             tableWrap.innerHTML = '';
             tableWrap.appendChild(
@@ -7913,7 +7914,7 @@
                     ONBOARD_LIST_HEADERS,
                     buildEntityOnboardListRows(
                         {
-                            kind: 'trader',
+                            kind: archiveKind,
                             entityId: r.id,
                             merchantName: r.name,
                             subjectType: r.subjectType || '贸易商',
@@ -7924,7 +7925,7 @@
                             submitTime: formatTs(onboardingSummary.submittedAt),
                             recordKey: recordKey,
                             defaults: onboardingDefaults,
-                            title: '贸易商进件',
+                            title: onboardTitle,
                             shortName: r.shortName || r.name,
                             openModal: function (forceView) {
                                 openTraderOnboard(forceView);
@@ -7957,12 +7958,13 @@
         if (window.MdmTraderArchiveStore && typeof window.MdmTraderArchiveStore.get === 'function') {
             var stored = window.MdmTraderArchiveStore.get(r.id);
             if (stored) {
-                r.bizScope = stored.bizScope || '—';
-                r.subjectType = stored.subjectType || r.subjectType || '贸易商';
+                r.boundProvider = stored.boundProvider || r.boundProvider || '冷丰';
+                r.subjectType = '贸易商';
                 r.license = stored.license || {};
                 r.permit = stored.permit || {};
             }
         }
+        r.archiveKind = 'trader';
         var tags = [];
         if (r.status === '正常') tags.push({ kind: 'green', label: '正常' });
         else tags.push({ kind: 'gray', label: r.status });
@@ -7983,6 +7985,69 @@
         });
     }
 
+    function panelProviderBase(r) {
+        var p = el('div', 'supplier-detail-tab');
+        p.appendChild(sectionTitle('基础信息'));
+        var grid = el('div', 'supplier-detail-grid');
+        grid.appendChild(detailCell('服务商ID', r.id));
+        grid.appendChild(detailCell('主体名称', r.subjectName));
+        grid.appendChild(detailCell('主体类型', '服务商'));
+        grid.appendChild(detailCell('服务商名称', r.name));
+        grid.appendChild(detailCell('服务商简称', r.shortName));
+        grid.appendChild(detailCell('服务商地址', r.region));
+        grid.appendChild(detailCell('服务商详细地址', r.detailAddr));
+        grid.appendChild(detailCell('服务商类型', r.providerType));
+        grid.appendChild(detailCell('联系人姓名', r.contact));
+        grid.appendChild(detailCell('手机号码', r.phone));
+        grid.appendChild(detailCellTagged('进件状态', r.onboardStatus, true));
+        grid.appendChild(detailCellTagged('服务商状态', r.status, true));
+        grid.appendChild(detailCell('创建人', r.createdBy));
+        grid.appendChild(detailCell('创建时间', r.createdAt));
+        grid.appendChild(detailCell('更新人', r.updatedBy));
+        grid.appendChild(detailCell('更新时间', r.updatedAt));
+        p.appendChild(grid);
+        return p;
+    }
+
+    function openProvider(tr) {
+        var r = rowToTrader(tr);
+        if (!r) {
+            if (typeof showToast === 'function') showToast('无法读取服务商行数据', 'error');
+            return;
+        }
+        r.providerType = r.boundProvider;
+        r.subjectType = '服务商';
+        r.archiveKind = 'provider';
+        if (window.MdmProviderArchiveStore && typeof window.MdmProviderArchiveStore.get === 'function') {
+            var stored = window.MdmProviderArchiveStore.get(r.id);
+            if (stored) {
+                r.providerType = stored.providerType || r.providerType || '—';
+                r.subjectType = '服务商';
+                r.name = stored.name || r.name;
+                r.shortName = stored.shortName || r.shortName;
+                r.license = stored.license || {};
+                r.permit = stored.permit || {};
+            }
+        }
+        var tags = [];
+        if (r.status === '正常') tags.push({ kind: 'orange', label: '正常' });
+        else tags.push({ kind: 'gray', label: r.status });
+        if (r.onboardStatus) tags.push({ kind: 'gray', label: r.onboardStatus });
+        attachDrawer({
+            title: '服务商详情',
+            heroName: r.shortName && r.shortName !== '—' ? r.shortName : r.name,
+            heroTags: tags,
+            metaLines: ['服务商ID：' + r.id + ' · 所属组织：' + r.subjectName],
+            wideClass: 'store-drawer--supplier-wide',
+            tabIds: ['base', 'onboard'],
+            tabLabels: ['基础信息', '进件信息'],
+            bodies: {
+                base: panelProviderBase(r),
+                onboard: panelTraderOnboarding(r)
+            }
+        });
+    }
+
     window.MdmArchiveDetailDrawer = {
         openStore: openStore,
         openSupplier: openSupplier,
@@ -7990,6 +8055,7 @@
         openCarrier: openCarrier,
         openWarehouse: openWarehouse,
         openTrader: openTrader,
+        openProvider: openProvider,
         openOnboardingDetail: openOnboardingDetailModal,
         getStoreReceiveInfo: getStoreReceiveInfo,
         getSupplierReceiveInfo: getSupplierReceiveInfo,

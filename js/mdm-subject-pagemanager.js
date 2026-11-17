@@ -1437,6 +1437,7 @@
             门店: 'STORE',
             供应商: 'SUP',
             贸易商: 'TRD',
+            服务商: 'PRV',
             仓库: 'WH',
             直播间: 'LIVE',
             承运商: 'CAR'
@@ -1704,7 +1705,7 @@
     function rowMerchantKind(tr) {
         var c = tr ? tr.querySelectorAll('td') : [];
         var t = c[3] ? c[3].textContent.trim() : '';
-        if (t === '服务商') return '贸易商';
+        if (t === '服务商') return '服务商';
         if (t === '供应商' || t === '贸易商' || t === '仓库' || t === '门店') return t;
         return '门店';
     }
@@ -1919,6 +1920,22 @@
                     setTimeout(function () {
                         window.location.href = 'mdm_archive_trader.html';
                     }, 600);
+                } else if (
+                    kindSpec.subjectTypeLabel === '服务商' &&
+                    window.MdmProviderArchiveStore &&
+                    typeof window.MdmProviderArchiveStore.addFromSubject === 'function'
+                ) {
+                    window.MdmProviderArchiveStore.addFromSubject({
+                        subjectId: typeof savedId === 'string' ? savedId : '',
+                        subjectName: String(nameBefore || '').trim(),
+                        subjectType: '服务商',
+                        contact: String(contactBefore || '').trim(),
+                        phone: String(phoneBefore || '').trim()
+                    });
+                    showToast('已写入服务商档案，正在跳转…', 'success');
+                    setTimeout(function () {
+                        window.location.href = 'mdm_archive_provider.html';
+                    }, 600);
                 }
             });
         }
@@ -1972,9 +1989,7 @@
             贸易商: {
                 pageLabel: '贸易商',
                 subjectTypeLabel: '贸易商',
-                /* 新增时可选，只允许贸易商、服务商 */
-                subjectTypeOptions: ['贸易商', '服务商'],
-                /* 创建需短信验证码；不收集登录账号；成功后写入贸易商档案 */
+                /* 主体类型锁定为贸易商，不可改 */
                 compactStoreSubjectForm: true,
                 enableSubjectOnboarding: true,
                 defaultStatus: '开启',
@@ -1983,6 +1998,19 @@
                 fieldIdPrefix: 'trd_',
                 subjectIdPrefix: 'TRD',
                 disableConfirmMessage: '确定禁用此贸易商吗？'
+            },
+            服务商: {
+                pageLabel: '服务商',
+                subjectTypeLabel: '服务商',
+                /* 主体类型锁定为服务商，不可改；成功后写入服务商档案 */
+                compactStoreSubjectForm: true,
+                enableSubjectOnboarding: true,
+                defaultStatus: '开启',
+                addModalId: 'mdmAllAddProvider',
+                triggerBtnId: 'mdmAddProviderMerchantBtn',
+                fieldIdPrefix: 'prv_',
+                subjectIdPrefix: 'PRV',
+                disableConfirmMessage: '确定禁用此服务商吗？'
             },
             仓库: {
                 pageLabel: '仓库',
@@ -2004,7 +2032,7 @@
         var detailFields = buildSubjectFields({
             pageLabel: '商家',
             subjectTypeLabel: '门店',
-            subjectTypeOptions: ['门店', '供应商', '贸易商', '仓库'],
+            subjectTypeOptions: ['门店', '供应商', '贸易商', '服务商', '仓库'],
             bindColumnLabel: '绑定BD名称',
             contactPersonLabel: '联系人',
             statusOptions: [
@@ -2107,7 +2135,7 @@
         paintSubjectDetailLinks();
         pm.init();
 
-        ['门店', '供应商', '贸易商', '仓库'].forEach(function (label) {
+        ['门店', '供应商', '贸易商', '服务商', '仓库'].forEach(function (label) {
             mountKindAddModal(pm, kindByLabel[label]);
         });
 

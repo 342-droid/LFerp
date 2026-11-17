@@ -28,11 +28,18 @@
         return row;
     }
 
+    /* 需求次数为正整数。缺省或非法时按 1。 */
+    function demandLimitOf(row) {
+        var num = parseInt(row && row.demandLimit, 10);
+        if (!isFinite(num) || num < 1) return 1;
+        return num;
+    }
+
     function demoQuotaParts(total) {
         var amount = toAmount(total);
         return {
             occupied: Number((amount * 0.2).toFixed(2)),
-            /* 已成交只累计需求单复核通过金额，演示补数不写成交 */
+            /* 已成交只累计贸易商付款完成后的需求金额，演示补数不写成交 */
             locked: 0
         };
     }
@@ -56,7 +63,9 @@
         enabled: '状态',
         storeQuota: '门店总额度',
         occupiedQuota: '已占用',
-        lockedQuota: '已成交'
+        lockedQuota: '已成交',
+        demandLimit: '需求次数',
+        depositPaid: '保证金是否缴纳'
     };
 
     function formatMoney(value) {
@@ -555,7 +564,7 @@
                 changed = true;
             }
             if (ensureLogs(item)) changed = true;
-            /* 旧数据缺占用时补演示占用；已成交缺省为 0，只由需求复核通过累加 */
+            /* 旧数据缺占用时补演示占用；已成交缺省为 0，只由贸易商付款完成累加 */
             if (item.storeQuota != null && item.storeQuota !== '' && (item.occupiedQuota == null || item.lockedQuota == null)) {
                 var parts = demoQuotaParts(item.storeQuota);
                 applyQuota(
@@ -564,6 +573,10 @@
                     item.occupiedQuota == null ? parts.occupied : item.occupiedQuota,
                     item.lockedQuota == null ? 0 : item.lockedQuota
                 );
+                changed = true;
+            }
+            if (demandLimitOf(item) !== Number(item.demandLimit)) {
+                item.demandLimit = demandLimitOf(item);
                 changed = true;
             }
         });
@@ -595,6 +608,9 @@
             })
         );
         applyQuota(store, input.storeQuota, 0, 0);
+        store.demandLimit = demandLimitOf({ demandLimit: input.demandLimit });
+        store.depositPaid = input.depositPaid === true;
+        store.depositVoucher = store.depositPaid && input.depositVoucher && input.depositVoucher.data ? input.depositVoucher : null;
         pushLog(store, '新增准入门店', '用户名', createdAt);
         items.unshift(store);
         write(items);
@@ -670,6 +686,25 @@
                 target.occupiedQuota != null ? target.occupiedQuota : 0,
                 target.lockedQuota != null ? target.lockedQuota : 0
             );
+        }
+        if (Object.prototype.hasOwnProperty.call(input, 'demandLimit') && demandLimitOf(target) !== demandLimitOf({ demandLimit: input.demandLimit })) {
+            var nextLimit = demandLimitOf({ demandLimit: input.demandLimit });
+            changes.push('需求次数：' + demandLimitOf(target) + ' → ' + nextLimit);
+            target.demandLimit = nextLimit;
+        }
+        if (Object.prototype.hasOwnProperty.call(input, 'depositPaid')) {
+            var nextPaid = input.depositPaid === true;
+            var prevPaid = target.depositPaid === true ? true : target.depositPaid === false ? false : null;
+            var nextVoucher = nextPaid && input.depositVoucher && input.depositVoucher.data ? input.depositVoucher : null;
+            var prevData = target.depositVoucher && target.depositVoucher.data || '';
+            var nextData = nextVoucher ? nextVoucher.data : '';
+            if (prevPaid !== nextPaid || prevData !== nextData) {
+                changes.push('保证金是否缴纳：' + (prevPaid === true ? '是' : prevPaid === false ? '否' : '空') + ' → ' + (nextPaid ? '是' : '否'));
+                if (nextVoucher) changes.push('上传保证金缴纳凭证：' + (nextVoucher.name || '缴纳凭证'));
+                else if (prevData) changes.push('清空保证金缴纳凭证');
+                target.depositPaid = nextPaid;
+                target.depositVoucher = nextVoucher;
+            }
         }
         if (!changes.length) return target;
         var changedAt = nowText();
@@ -796,6 +831,8 @@
         adjustLocked: adjustLocked,
         appendLog: appendLog,
         quotaOf: quotaOf,
+        demandLimitOf: demandLimitOf,
+        nowText: nowText,
         applyQuota: applyQuota,
         saveList: write
     };

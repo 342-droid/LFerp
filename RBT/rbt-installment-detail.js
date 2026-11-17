@@ -78,8 +78,17 @@
             cell('创建时间', item.createdAt) +
             cell('更新人', item.updater) +
             cell('更新时间', item.updatedAt) +
-            '</div></div>'
+            '</div>' + ratioSection(item) + '</div>'
         );
+    }
+
+    function ratioSection(item) {
+        var api = window.RbtSettleRatio;
+        var html = api && item.repayMethod === '比例付' && item.settleRatios && item.settleRatios.length && typeof api.renderHtml === 'function'
+            ? api.renderHtml({ repayMethod: '比例付', settleRatios: item.settleRatios, skus: [], hideCategories: true })
+            : '';
+        if (!html) return '';
+        return '<div class="supplier-detail-section-title">渠道结算比例</div>' + html;
     }
 
     function open(item) {

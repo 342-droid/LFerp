@@ -10,8 +10,7 @@
     const isProductPackage = currentPage === 'rbt_product_package';
     const isInstallment = currentPage === 'rbt_installment';
     const isDemand = currentPage === 'rbt_demand';
-    const isPurchase = currentPage === 'rbt_purchase';
-    const isSales = currentPage === 'rbt_sales';
+    const isTrade = currentPage === 'rbt_trade' || currentPage === 'rbt_purchase' || currentPage === 'rbt_sales';
     const isPerformance = currentPage === 'rbt_performance';
 
     const sidebarContainer = document.getElementById('sidebar-container');
@@ -57,15 +56,9 @@
         '</a>' +
         '</li>' +
         '<li class="menu-item">' +
-        '<a href="' + pageHref('rbt_purchase.html') + '" class="menu-link' + (isPurchase ? ' active' : '') + '">' +
+        '<a href="' + pageHref('rbt_trade.html') + '" class="menu-link' + (isTrade ? ' active' : '') + '">' +
         '<img src="' + assetHref('image/基础信息.svg') + '" alt="" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
-        '<span>采购单</span>' +
-        '</a>' +
-        '</li>' +
-        '<li class="menu-item">' +
-        '<a href="' + pageHref('rbt_sales.html') + '" class="menu-link' + (isSales ? ' active' : '') + '">' +
-        '<img src="' + assetHref('image/基础信息.svg') + '" alt="" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
-        '<span>销售单</span>' +
+        '<span>交易单</span>' +
         '</a>' +
         '</li>' +
         '<li class="menu-item">' +
