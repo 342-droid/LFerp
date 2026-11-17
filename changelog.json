@@ -1,10 +1,101 @@
 {
-  "latestSha": "4f8cc29e47ee6ce5fb24a08ec78e5bb8b3c9d81d",
-  "total": 560,
+  "latestSha": "294a814eb5f6e0b5e55d7d1fcf3f5e3d9b9da533",
+  "total": 561,
   "days": [
     {
       "date": "2026-11-18",
       "items": [
+        {
+          "sha": "294a814",
+          "type": "feat",
+          "text": "履约补每日履行和收款对照，门店与贸易商分开跟进资金",
+          "author": "sisi",
+          "time": "01:59",
+          "pages": [
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "module": "冷丰WMS",
+              "title": "需求单审核"
+            },
+            {
+              "file": "RBT/rbt_admit_store.html",
+              "module": "冷丰RBT",
+              "title": "门店准入管理"
+            },
+            {
+              "file": "RBT/rbt_contract_sign.html",
+              "module": "冷丰RBT",
+              "title": "合同签署"
+            },
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日履行"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
+              "file": "RBT/rbt_product_package.html",
+              "module": "冷丰RBT",
+              "title": "商品包"
+            },
+            {
+              "file": "RBT/rbt_trade.html",
+              "module": "冷丰RBT",
+              "title": "交易单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_performance.html",
+              "text": "履约详情增加每日履行页签、所得佣金，以及贸易商、冷丰、服务商的应收和已结款对照；列表可按贸易商、服务商、收款账户名称、收款账户筛选"
+            },
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "text": "新增全部门店已发生的每日履行列表"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "text": "按连续未履行天数和履行覆盖率显示履约风险等级和异常提醒"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "text": "履约页改为预计履行和应履约；每日履行与基础信息用页签切换"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "收款改为按每笔已接单跟进贸易商应收和已结款，不再沿用门店履约布局"
+            }
+          ]
+        },
         {
           "sha": "4f8cc29",
           "type": "feat",
@@ -653,6 +744,11 @@
               "title": "合同签署"
             },
             {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日履行"
+            },
+            {
               "file": "RBT/rbt_demand.html",
               "module": "冷丰RBT",
               "title": "需求单管理"
@@ -666,6 +762,11 @@
               "file": "RBT/rbt_h5_trader.html",
               "module": "冷丰RBT-移动端",
               "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
             },
             {
               "file": "RBT/rbt_installment.html",
@@ -1025,6 +1126,11 @@
               "file": "RBT/rbt_contract_sign.html",
               "module": "冷丰RBT",
               "title": "合同签署"
+            },
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日履行"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -1596,6 +1702,11 @@
               "title": "合同签署"
             },
             {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日履行"
+            },
+            {
               "file": "RBT/rbt_demand.html",
               "module": "冷丰RBT",
               "title": "需求单管理"
@@ -1789,6 +1900,11 @@
               "title": "合同签署"
             },
             {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日履行"
+            },
+            {
               "file": "RBT/rbt_demand.html",
               "module": "冷丰RBT",
               "title": "需求单管理"
@@ -1802,6 +1918,11 @@
               "file": "RBT/rbt_h5_trader.html",
               "module": "冷丰RBT-移动端",
               "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
             },
             {
               "file": "RBT/rbt_performance.html",
@@ -1896,6 +2017,11 @@
               "file": "RBT/rbt_contract_sign.html",
               "module": "冷丰RBT",
               "title": "合同签署"
+            },
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日履行"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -2049,6 +2175,11 @@
               "title": "合同签署"
             },
             {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日履行"
+            },
+            {
               "file": "RBT/rbt_demand.html",
               "module": "冷丰RBT",
               "title": "需求单管理"
@@ -2062,6 +2193,11 @@
               "file": "RBT/rbt_h5_trader.html",
               "module": "冷丰RBT-移动端",
               "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
             },
             {
               "file": "RBT/rbt_performance.html",
@@ -2124,6 +2260,11 @@
               "title": "合同签署"
             },
             {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日履行"
+            },
+            {
               "file": "RBT/rbt_demand.html",
               "module": "冷丰RBT",
               "title": "需求单管理"
@@ -2137,6 +2278,11 @@
               "file": "RBT/rbt_h5_trader.html",
               "module": "冷丰RBT-移动端",
               "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
             },
             {
               "file": "RBT/rbt_performance.html",
@@ -2420,6 +2566,11 @@
               "title": "合同签署"
             },
             {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日履行"
+            },
+            {
               "file": "RBT/rbt_demand.html",
               "module": "冷丰RBT",
               "title": "需求单管理"
@@ -2693,6 +2844,11 @@
               "title": "合同签署"
             },
             {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日履行"
+            },
+            {
               "file": "RBT/rbt_demand.html",
               "module": "冷丰RBT",
               "title": "需求单管理"
@@ -2706,6 +2862,11 @@
               "file": "RBT/rbt_h5_trader.html",
               "module": "冷丰RBT-移动端",
               "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
             },
             {
               "file": "RBT/rbt_installment.html",
@@ -3314,6 +3475,11 @@
               "file": "RBT/rbt_contract_sign.html",
               "module": "冷丰RBT",
               "title": "合同签署"
+            },
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日履行"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -4033,6 +4199,11 @@
               "title": "合同签署"
             },
             {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日履行"
+            },
+            {
               "file": "RBT/rbt_demand.html",
               "module": "冷丰RBT",
               "title": "需求单管理"
@@ -4578,6 +4749,11 @@
               "title": "合同签署"
             },
             {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日履行"
+            },
+            {
               "file": "RBT/rbt_demand.html",
               "module": "冷丰RBT",
               "title": "需求单管理"
@@ -4705,6 +4881,11 @@
               "file": "RBT/rbt_admit_store.html",
               "module": "冷丰RBT",
               "title": "门店准入管理"
+            },
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日履行"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -9306,6 +9487,11 @@
               "file": "RBT/rbt_admit_store.html",
               "module": "冷丰RBT",
               "title": "门店准入管理"
+            },
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日履行"
             },
             {
               "file": "RBT/rbt_demand.html",
