@@ -1,8 +1,7 @@
 /**
- * 低利润门槛
- * 毛利率 = (售卖价 - 采购价 × 售卖系数) / 售卖价。
- * 低于门槛的商品，要同时满足「门店合作合同已签署」和「保证金余额达到该店应保有」才能下单，营销活动才能选这家店。
- * 少一条就是未放开。这项在门店配置「低利润与营销」里可关，关闭后两条都不看。
+ * 合同未完成限制
+ * 指定商品购买、营销选店各自开关。开启后都要同时满足「门店合作合同已签署」和「保证金余额达到该店应保有」。
+ * 指定商品范围：利润率、标签、类目至少配一项，命中任一已配置条件即纳入限制购买范围。
  * 应保有按门店账户配置，未单独配置时用平台通用金额。余额达到应保有（含等于）才算保证金这一条通过。
  */
 (function (global) {
@@ -52,8 +51,31 @@
         return text.replace(/\.0$/, '') + '%';
     }
 
+    function restrictConfig() {
+        try {
+            var raw = localStorage.getItem(RESTRICT_STORAGE_KEY);
+            if (!raw) return null;
+            var parsed = JSON.parse(raw);
+            return parsed && typeof parsed === 'object' ? parsed : null;
+        } catch (err) {
+            return null;
+        }
+    }
+
+    /** 未单独保存过利润比例时，仍用原来的门槛；明确留空则不按利润拦截。 */
+    function configuredProfit() {
+        var parsed = restrictConfig();
+        if (!parsed || !Object.prototype.hasOwnProperty.call(parsed, 'profitBelow')) return threshold();
+        if (parsed.profitBelow == null || parsed.profitBelow === '') return null;
+        var num = Number(parsed.profitBelow);
+        if (!isFinite(num) || num < 0 || num > 100) return null;
+        return Math.round(num * 10) / 10;
+    }
+
     function isBelow(rate) {
-        return rate != null && isFinite(rate) && rate < threshold();
+        var limit = configuredProfit();
+        if (limit == null) return false;
+        return rate != null && isFinite(rate) && rate < limit;
     }
 
     function storeRef(ref) {
@@ -120,38 +142,52 @@
         });
     }
 
-    function commerceRestrictOn() {
-        try {
-            var raw = localStorage.getItem(RESTRICT_STORAGE_KEY);
-            if (!raw) return true;
-            var parsed = JSON.parse(raw);
-            return !parsed || parsed.commerceGate !== 'off';
-        } catch (err) {
-            return true;
-        }
+    function flagOn(key) {
+        var parsed = restrictConfig();
+        if (!parsed) return true;
+        if (parsed[key] === 'off') return false;
+        if (parsed[key] === 'on') return true;
+        return parsed.commerceGate !== 'off';
     }
 
-    function gateState(ref) {
+    function productPurchaseOn() {
+        return flagOn('productPurchaseGate');
+    }
+
+    function marketingStoreOn() {
+        return flagOn('marketingStoreGate');
+    }
+
+    function namedRows(list) {
+        var seen = {};
+        return (Array.isArray(list) ? list : [])
+            .map(function (row) {
+                var id = String((row && (row.id || row.name)) || '').trim();
+                var name = String((row && row.name) || id).trim();
+                if (!id || seen[id]) return null;
+                seen[id] = true;
+                return { id: id, name: name || id };
+            })
+            .filter(Boolean);
+    }
+
+    function conditions(ref) {
         var key = storeRef(ref);
         var deposit = depositState(key);
         var signed = contractSigned(key);
-        var enforce = commerceRestrictOn();
+        var known = !!(key.storeId || key.name);
         return {
             key: key,
             deposit: deposit,
             signed: signed,
-            enforce: enforce,
-            released: !!(key.storeId || key.name) && (!enforce || (!!deposit.released && signed))
+            known: known,
+            ok: known && !!deposit.released && signed
         };
     }
 
-    function released(ref) {
-        return gateState(ref).released;
-    }
-
-    function blockReason(ref) {
-        var state = gateState(ref);
-        if (state.released) return '';
+    function unmetReason(ref) {
+        var state = conditions(ref);
+        if (!state.known || state.ok) return '';
         var why = [];
         if (!state.signed) why.push('门店合作合同未完成');
         if (!state.deposit.released) {
@@ -165,43 +201,92 @@
         return why.join('；');
     }
 
-    function commerceLabel(ref) {
-        var state = gateState(ref);
-        if (!state.enforce) {
-            return {
-                text: '已放开',
-                title: '门店配置已关闭低利润与营销门槛。低利润商品可以下单，营销活动可以选择本店。'
-            };
+    function released(ref) {
+        var state = conditions(ref);
+        return state.known && (!productPurchaseOn() || state.ok);
+    }
+
+    function marketingReleased(ref) {
+        var state = conditions(ref);
+        return state.known && (!marketingStoreOn() || state.ok);
+    }
+
+    function blockReason(ref) {
+        if (!marketingStoreOn()) return '';
+        return unmetReason(ref);
+    }
+
+    function matchRestricted(opts) {
+        opts = opts || {};
+        var parsed = restrictConfig() || {};
+        var reasons = [];
+        var limit = configuredProfit();
+        var rate = marginOf(opts);
+        if (limit != null && rate != null && isFinite(rate) && rate < limit) {
+            reasons.push('商品利润率 ' + formatPercent(rate) + '，低于 ' + formatPercent(limit));
         }
+        var tags = namedRows(parsed.blockedTags);
+        var productTags = []
+            .concat(opts.tags || [], opts.productTags || [])
+            .map(function (tag) {
+                return String(tag && tag.name ? tag.name : tag || '').trim();
+            })
+            .filter(Boolean);
+        if (tags.length && productTags.length) {
+            var hitTags = tags
+                .filter(function (row) {
+                    return productTags.indexOf(row.name) >= 0 || productTags.indexOf(row.id) >= 0;
+                })
+                .map(function (row) {
+                    return row.name;
+                });
+            if (hitTags.length) reasons.push('商品标签「' + hitTags.join('、') + '」');
+        }
+        var cats = namedRows(parsed.blockedCategories);
+        var category = String(opts.category || opts.categoryName || '').trim();
+        if (cats.length && category) {
+            var hitCat = cats.some(function (row) {
+                return row.name === category || category.indexOf(row.name) >= 0;
+            });
+            if (hitCat) reasons.push('商品类目「' + category + '」');
+        }
+        return reasons;
+    }
+
+    function commerceLabel(ref) {
+        var state = conditions(ref);
+        var productOn = productPurchaseOn();
+        var marketingOn = marketingStoreOn();
         var bits = [
             state.signed ? '合同已签署' : '合同未完成',
             state.deposit.released
                 ? '保证金余额 ' + money(state.deposit.depositActual) + '，已达到应保有 ' + money(state.deposit.depositRequired)
                 : '保证金余额 ' + money(state.deposit.depositActual) + '，未达到应保有 ' + money(state.deposit.depositRequired)
         ];
-        var line = '毛利率低于 ' + formatPercent(threshold()) + ' 的商品';
-        if (!state.released) {
-            return {
-                text: '未放开',
-                title: bits.join('。') + '。' + line + '，本店客户不能下单；营销活动不能选择本店。合同已签署且保证金达到应保有后改为已放开。'
-            };
-        }
+        var parts = [];
+        if (!productOn) parts.push('指定商品可正常购买');
+        else if (state.ok) parts.push('指定商品购买已放开');
+        else parts.push('指定商品购买未放开');
+        if (!marketingOn) parts.push('门店可正常参与营销活动');
+        else if (state.ok) parts.push('营销选店已放开');
+        else parts.push('营销选店未放开');
+        var blocked = (productOn && !state.ok) || (marketingOn && !state.ok);
         return {
-            text: '已放开',
-            title: bits.join('。') + '。低利润商品可以下单，营销活动可以选择本店。'
+            text: blocked ? '未放开' : '已放开',
+            title: bits.join('，') + '。' + parts.join('；') + '。'
         };
     }
 
     function orderBlock(opts) {
         opts = opts || {};
-        var rate = marginOf(opts);
-        if (!isBelow(rate) || !commerceRestrictOn()) return '';
+        if (!productPurchaseOn()) return '';
+        var reasons = matchRestricted(opts);
+        if (!reasons.length) return '';
         var ref = { name: opts.storeName, storeId: opts.storeId };
-        var state = gateState(ref);
-        if (state.released) return '';
-        var why = blockReason(ref) || '合同未完成或保证金未达到应保有';
-        return '毛利率 ' + formatPercent(rate) + '，低于门槛 ' + formatPercent(threshold()) +
-            '。' + why + '，不能下单。';
+        var state = conditions(ref);
+        if (!state.known || state.ok) return '';
+        var why = unmetReason(ref) || '合同未完成或保证金未达到应保有';
+        return reasons.join('；') + '。' + why + '，不能购买。';
     }
 
     function listCell(item) {
@@ -211,9 +296,9 @@
             saleRatio: item && item.saleRatio
         });
         if (rate == null) return '<span class="product-proxy-dash">—</span>';
-        var low = isBelow(rate);
-        return '<span' + (low ? ' style="color:#d4380d;font-weight:600" title="低于门槛，未放开门店不可下单"' : '') + '>' +
-            formatPercent(rate) + (low ? ' · 不可下单' : '') + '</span>';
+        var low = productPurchaseOn() && isBelow(rate);
+        return '<span' + (low ? ' style="color:#d4380d;font-weight:600" title="商品利润率低于已配置阈值，未放开门店不可购买"' : '') + '>' +
+            formatPercent(rate) + (low ? ' · 不可购买' : '') + '</span>';
     }
 
     function bindConfig(input) {
@@ -244,7 +329,10 @@
         formatPercent: formatPercent,
         isBelow: isBelow,
         released: released,
-        commerceRestrictOn: commerceRestrictOn,
+        marketingReleased: marketingReleased,
+        productPurchaseOn: productPurchaseOn,
+        marketingStoreOn: marketingStoreOn,
+        commerceRestrictOn: productPurchaseOn,
         blockReason: blockReason,
         commerceLabel: commerceLabel,
         orderBlock: orderBlock,

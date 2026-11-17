@@ -188,7 +188,12 @@
     }
 
     function storeLocked(store) {
-      return !!(options.commerceGate && window.LfLowMargin && store && !window.LfLowMargin.released({ name: store.name, storeId: store.id }));
+      if (!options.commerceGate || !window.LfLowMargin || !store) return false;
+      if (typeof window.LfLowMargin.marketingStoreOn === 'function' && !window.LfLowMargin.marketingStoreOn()) return false;
+      if (typeof window.LfLowMargin.marketingReleased === 'function') {
+        return !window.LfLowMargin.marketingReleased({ name: store.name, storeId: store.id });
+      }
+      return !window.LfLowMargin.released({ name: store.name, storeId: store.id });
     }
 
     Object.keys(selected).forEach(function (id) {
@@ -399,9 +404,9 @@
       var note = document.createElement('p');
       note.setAttribute('role', 'note');
       note.style.cssText = 'margin:0 16px 8px;padding:8px 10px;background:#fff7f2;border:1px solid #f0d2bc;border-radius:6px;font-size:12px;line-height:1.5;color:#666';
-      note.textContent = window.LfLowMargin && typeof window.LfLowMargin.commerceRestrictOn === 'function' && !window.LfLowMargin.commerceRestrictOn()
-        ? '门店配置已关闭低利润与营销门槛，全部门店都可以参加本活动。'
-        : '未放开的门店不能参加本活动。合同已签署，且保证金余额达到该店账户配置里的应保有金额，才会放开。';
+      note.textContent = window.LfLowMargin && typeof window.LfLowMargin.marketingStoreOn === 'function' && !window.LfLowMargin.marketingStoreOn()
+        ? '关闭后，不校验合同签署状态及保证金余额，门店可正常参与营销活动。'
+        : '开启后，门店参与营销活动选店需同时满足合同已签署、保证金余额达到应保有金额。';
       var pickerBody = backdrop.querySelector('.erp-modal__body');
       if (pickerBody) pickerBody.insertBefore(note, pickerBody.firstChild);
     }

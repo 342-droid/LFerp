@@ -93,6 +93,134 @@
     cursor: default;
 }
 
+.bs-gate,
+.bs-low-margin {
+    margin-top: 6px;
+}
+
+.bs-low-margin__title {
+    margin: 8px 0 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1f1f1f;
+    line-height: 1.4;
+}
+
+.bs-low-margin__sub {
+    margin: -6px 0 4px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #333;
+}
+
+.bs-low-margin__tip {
+    margin: 0 0 14px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #999;
+}
+
+.bs-gate-note {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #999;
+}
+
+.bs-gate-note__lead {
+    margin: 0;
+}
+
+.bs-gate-note__list {
+    margin: 4px 0 0;
+    padding-left: 18px;
+}
+
+.bs-gate-note__list li {
+    margin: 0;
+}
+
+.bs-low-margin__profit {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+    font-size: 13px;
+    color: #333;
+    white-space: nowrap;
+}
+
+.bs-low-margin__profit .erp-input {
+    width: 120px;
+}
+
+.bs-low-margin__picks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.bs-low-margin__picks:empty,
+.bs-low-margin__empty {
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: #999;
+    line-height: 36px;
+}
+
+.bs-low-margin__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    padding: 0 8px 0 10px;
+    border-radius: 4px;
+    background: #fff7f0;
+    color: #ff7019;
+    font-size: 13px;
+}
+
+.bs-low-margin__chip [data-pick-remove] {
+    border: none;
+    background: transparent;
+    color: #ff7019;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    font-size: 14px;
+}
+
+.bs-restrict-intro {
+    margin: 0 0 16px;
+}
+
+.bs-store-config .store-order-config__hint ul {
+    margin: 4px 0 0;
+    padding-left: 18px;
+}
+
+.bs-low-margin__pick-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 36px;
+}
+
+.bs-low-margin__pick-row .bs-low-margin__picks,
+.bs-low-margin__pick-row .bs-low-margin__empty {
+    margin-bottom: 0;
+}
+
+.bs-store-config .sac-section:not(.is-editing) .bs-low-margin__chip [data-pick-remove] {
+    display: none;
+}
+
+.bs-store-config .sac-section:not(.is-editing) .bs-low-margin__chip {
+    padding-right: 10px;
+}
+
 .bs-store-config .erp-input,
 .bs-store-config .erp-select {
     border: none;

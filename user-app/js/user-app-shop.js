@@ -1956,7 +1956,7 @@
   }
 
   function lowMarginBlock(product) {
-    if (!window.LfLowMargin || !product || product.purchasePrice == null || product.purchasePrice === '') return '';
+    if (!window.LfLowMargin || !product) return '';
     var storeName = STORE.name;
     var storeId = STORE.id;
     if (window.UaStoreSwitch && typeof window.UaStoreSwitch.resolveCurrentStore === 'function') {
@@ -1968,7 +1968,9 @@
       storeName: storeName,
       storeId: storeId,
       purchasePrice: product.purchasePrice,
-      salePrice: product.price
+      salePrice: product.price,
+      category: product.category,
+      productTags: product.productTags || product.tags || []
     });
   }
 

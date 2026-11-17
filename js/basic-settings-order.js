@@ -6,8 +6,19 @@
   var ORDER_STORAGE_KEY = 'lf_basic_settings_order_config';
   var HOURS_STORAGE_KEY = 'lf_basic_settings_business_hours';
   var RESTRICT_STORAGE_KEY = 'lf_store_contract_restrict_v1';
-  var RESTRICT_DEFAULTS = { commissionHold: 'on', commerceGate: 'on' };
-  var RESTRICT_FIELDS = ['commissionHold', 'commerceGate'];
+  var RESTRICT_DEFAULTS = {
+    commissionHold: 'on',
+    productPurchaseGate: 'on',
+    marketingStoreGate: 'on'
+  };
+  var FALLBACK_TAGS = [
+    { id: '冷丰溯源', name: '冷丰溯源' },
+    { id: '冷丰优选', name: '冷丰优选' },
+    { id: '牛牛专用', name: '牛牛专用' },
+    { id: '蔬菜水果', name: '蔬菜水果' },
+    { id: '优选商品', name: '优选商品' },
+    { id: '天天平价', name: '天天平价' }
+  ];
   var ORDER_DEFAULTS = { storeQueue: 'on', pendingShipmentVerify: 'on' };
   var HOURS_DEFAULTS = {
     start: '08:00',
@@ -559,48 +570,439 @@
     setSectionEditing(section, false);
   }
 
+  function normalizeNameRows(list) {
+    var seen = {};
+    return (Array.isArray(list) ? list : [])
+      .map(function (row) {
+        var id = String((row && (row.id || row.name)) || '').trim();
+        var name = String((row && row.name) || id).trim();
+        if (!id || seen[id]) return null;
+        seen[id] = true;
+        return { id: id, name: name || id };
+      })
+      .filter(Boolean);
+  }
+
+  function defaultProfitBelow() {
+    try {
+      var stored = normalizeProfitBelow(localStorage.getItem('lf_low_margin_threshold_v1'));
+      if (stored != null) return stored;
+    } catch (e) {}
+    return 10;
+  }
+
+  function normalizeProfitBelow(value) {
+    if (value == null || value === '') return null;
+    var num = Number(value);
+    if (!isFinite(num) || num < 0 || num > 100) return null;
+    return Math.round(num * 10) / 10;
+  }
+
+  function storedProfitBelow(parsed) {
+    if (!parsed || !Object.prototype.hasOwnProperty.call(parsed, 'profitBelow')) {
+      return defaultProfitBelow();
+    }
+    return normalizeProfitBelow(parsed.profitBelow);
+  }
+
+  function restrictFlag(parsed, key) {
+    if (parsed && (parsed[key] === 'on' || parsed[key] === 'off')) return parsed[key];
+    if (parsed && parsed.commerceGate === 'off') return 'off';
+    return 'on';
+  }
+
   function loadRestrictSettings() {
+    var base = {
+      commissionHold: 'on',
+      productPurchaseGate: 'on',
+      marketingStoreGate: 'on',
+      profitBelow: defaultProfitBelow(),
+      blockedTags: [],
+      blockedCategories: []
+    };
     try {
       var raw = localStorage.getItem(RESTRICT_STORAGE_KEY);
-      if (!raw) return Object.assign({}, RESTRICT_DEFAULTS);
+      if (!raw) return base;
       var parsed = JSON.parse(raw);
       return {
         commissionHold: parsed && parsed.commissionHold === 'off' ? 'off' : 'on',
-        commerceGate: parsed && parsed.commerceGate === 'off' ? 'off' : 'on'
+        productPurchaseGate: restrictFlag(parsed, 'productPurchaseGate'),
+        marketingStoreGate: restrictFlag(parsed, 'marketingStoreGate'),
+        profitBelow: storedProfitBelow(parsed),
+        blockedTags: normalizeNameRows(parsed && parsed.blockedTags),
+        blockedCategories: normalizeNameRows(parsed && parsed.blockedCategories)
       };
     } catch (e) {
-      return Object.assign({}, RESTRICT_DEFAULTS);
+      return base;
     }
+  }
+
+  function getCatalogTags() {
+    var map = {};
+    function add(list) {
+      (list || []).forEach(function (row) {
+        var id = String((row && (row.id || row.name)) || '').trim();
+        var name = String((row && row.name) || id).trim();
+        if (!id || map[id]) return;
+        map[id] = { id: id, name: name || id };
+      });
+    }
+    if (
+      window.MdmProductSelectionTagStore &&
+      typeof window.MdmProductSelectionTagStore.getEnabled === 'function'
+    ) {
+      add(window.MdmProductSelectionTagStore.getEnabled());
+    }
+    add(FALLBACK_TAGS);
+    return Object.keys(map).map(function (id) {
+      return map[id];
+    });
+  }
+
+  var lowMarginTags = [];
+  var lowMarginCategories = [];
+
+  function renderNamePicks(hostId, rows, emptyText) {
+    var host = $(hostId);
+    if (!host) return;
+    var list = normalizeNameRows(rows);
+    if (!list.length) {
+      host.innerHTML = '<span class="bs-low-margin__empty">' + escapeHtml(emptyText) + '</span>';
+      return;
+    }
+    host.innerHTML = list
+      .map(function (row) {
+        return (
+          '<span class="bs-low-margin__chip" data-id="' +
+          escapeHtml(row.id) +
+          '"><span>' +
+          escapeHtml(row.name) +
+          '</span><span data-pick-remove role="button" aria-label="移除">×</span></span>'
+        );
+      })
+      .join('');
+  }
+
+  function fillLowMarginForm(data, editing) {
+    data = data || loadRestrictSettings();
+    lowMarginTags = normalizeNameRows(data.blockedTags);
+    lowMarginCategories = normalizeNameRows(data.blockedCategories);
+    var input = $('bsLowMarginProfit');
+    if (input) input.value = data.profitBelow == null ? '' : String(data.profitBelow);
+    renderNamePicks('bsLowMarginTags', lowMarginTags, '未选择');
+    renderNamePicks('bsLowMarginCategories', lowMarginCategories, '未选择');
+    var section = $('bsRestrictSection');
+    var isEditing =
+      editing != null ? !!editing : !!(section && section.classList.contains('is-editing'));
+    if (!isEditing && section) {
+      section.querySelectorAll('.bs-restrict-scope input, .bs-restrict-scope button').forEach(function (el) {
+        el.disabled = true;
+      });
+    }
+  }
+
+  function readLowMarginForm() {
+    var input = $('bsLowMarginProfit');
+    return {
+      profitBelow: input ? input.value : '',
+      blockedTags: normalizeNameRows(lowMarginTags),
+      blockedCategories: normalizeNameRows(lowMarginCategories)
+    };
+  }
+
+  function restrictCheckedOn(name) {
+    var root = $('bsRestrictConfigRoot');
+    if (!root) return true;
+    var checked = root.querySelector('input[name="' + name + '"]:checked');
+    return !checked || checked.value !== 'off';
+  }
+
+  function restrictNoteHtml(name, on) {
+    function bullets(lead, items) {
+      return (
+        lead +
+        '<ul>' +
+        items.map(function (item) { return '<li>' + item + '</li>'; }).join('') +
+        '</ul>'
+      );
+    }
+    if (name === 'basicRestrict_commissionHold') {
+      return on
+        ? '开启：门店合同未签署时，该店分佣由平台代收；合同签署完成后，自动生成补偿结款单。'
+        : '关闭：不代收该店分佣，合同签署完成后也不生成补偿结款单。';
+    }
+    if (name === 'basicRestrict_productPurchaseGate') {
+      return on
+        ? bullets('开启：指定商品购买需同时满足以下条件：', ['合同已签署', '保证金余额达到应保有金额'])
+        : '关闭：不校验合同签署状态及保证金余额，指定商品可正常购买。';
+    }
+    return on
+      ? bullets('开启：门店参与营销活动选店需同时满足以下条件：', ['合同已签署', '保证金余额达到应保有金额'])
+      : '关闭：不校验合同签署状态及保证金余额，门店可正常参与营销活动。';
+  }
+
+  function syncRestrictNotes() {
+    var root = $('bsRestrictConfigRoot');
+    if (!root) return;
+    root.querySelectorAll('[data-restrict-note]').forEach(function (note) {
+      var name = note.getAttribute('data-restrict-note');
+      note.innerHTML = restrictNoteHtml(name, restrictCheckedOn(name));
+    });
+    var scope = root.querySelector('.bs-restrict-scope');
+    if (scope) scope.hidden = !restrictCheckedOn('basicRestrict_productPurchaseGate');
+  }
+
+  function validateLowMargin(form, gateOn) {
+    if (!gateOn) return '';
+    var raw = String(form.profitBelow == null ? '' : form.profitBelow).trim();
+    var profit = normalizeProfitBelow(raw);
+    if (raw !== '' && profit == null) return '商品利润率请填写 0–100 的比例';
+    if (profit == null && !form.blockedTags.length && !form.blockedCategories.length) {
+      return '指定商品范围请至少配置一项：商品利润率、商品标签或商品类目';
+    }
+    return '';
+  }
+
+  function openNamePicker(title, catalog, selectedRows, onOk) {
+    if (!catalog.length) {
+      toast('暂无可选项', 'error');
+      return;
+    }
+    var selectedMap = {};
+    normalizeNameRows(selectedRows).forEach(function (row) {
+      selectedMap[row.id] = true;
+    });
+    var backdrop = document.createElement('div');
+    backdrop.className = 'pts-rule-pick-backdrop';
+    backdrop.innerHTML =
+      '<div class="pts-rule-pick-modal" role="dialog" aria-modal="true">' +
+      '  <div class="pts-rule-pick-modal__header">' +
+      '    <h3 class="pts-rule-pick-modal__title">' +
+      escapeHtml(title) +
+      '</h3>' +
+      '    <button type="button" class="pts-rule-pick-modal__close" data-pick-close aria-label="关闭">&times;</button>' +
+      '  </div>' +
+      '  <div class="pts-rule-pick-modal__body">' +
+      '    <input class="erp-input pts-rule-pick-filter" type="text" placeholder="输入名称筛选" data-pick-filter>' +
+      '    <div class="pts-rule-pick-list" data-pick-list></div>' +
+      '  </div>' +
+      '  <div class="pts-rule-pick-modal__footer">' +
+      '    <button type="button" class="erp-btn" data-pick-close>取消</button>' +
+      '    <button type="button" class="erp-btn erp-btn--primary" data-pick-ok>确定</button>' +
+      '  </div>' +
+      '</div>';
+    var listEl = backdrop.querySelector('[data-pick-list]');
+    var filterEl = backdrop.querySelector('[data-pick-filter]');
+    function renderList(keyword) {
+      var kw = String(keyword || '').trim().toLowerCase();
+      var filtered = catalog.filter(function (it) {
+        if (!kw) return true;
+        return String(it.name).toLowerCase().indexOf(kw) !== -1;
+      });
+      if (!filtered.length) {
+        listEl.innerHTML = '<div class="pts-rule-pick-empty">无匹配项</div>';
+        return;
+      }
+      listEl.innerHTML = filtered
+        .map(function (it) {
+          return (
+            '<label class="pts-rule-pick-item">' +
+            '<input type="checkbox" value="' +
+            escapeHtml(it.id) +
+            '"' +
+            (selectedMap[it.id] ? ' checked' : '') +
+            '>' +
+            '<span>' +
+            escapeHtml(it.name) +
+            '</span></label>'
+          );
+        })
+        .join('');
+    }
+    renderList('');
+    filterEl.addEventListener('input', function () {
+      renderList(filterEl.value);
+    });
+    listEl.addEventListener('change', function (ev) {
+      var input = ev.target;
+      if (!input || input.type !== 'checkbox') return;
+      if (input.checked) selectedMap[input.value] = true;
+      else delete selectedMap[input.value];
+    });
+    function close() {
+      backdrop.remove();
+    }
+    backdrop.addEventListener('click', function (ev) {
+      if (ev.target === backdrop) close();
+    });
+    backdrop.querySelectorAll('[data-pick-close]').forEach(function (btn) {
+      btn.addEventListener('click', close);
+    });
+    backdrop.querySelector('[data-pick-ok]').addEventListener('click', function () {
+      onOk(
+        catalog.filter(function (it) {
+          return !!selectedMap[it.id];
+        })
+      );
+      close();
+    });
+    document.body.appendChild(backdrop);
+    filterEl.focus();
+  }
+
+  function bindLowMarginActions() {
+    var tagHost = $('bsLowMarginTags');
+    var catHost = $('bsLowMarginCategories');
+    function onRemove(ev, kind) {
+      var section = $('bsRestrictSection');
+      if (!section || !section.classList.contains('is-editing')) return;
+      var btn = ev.target.closest('[data-pick-remove]');
+      if (!btn) return;
+      ev.stopPropagation();
+      var chip = btn.closest('.bs-low-margin__chip');
+      var id = chip ? chip.getAttribute('data-id') : '';
+      if (kind === 'tag') {
+        lowMarginTags = lowMarginTags.filter(function (row) {
+          return row.id !== id;
+        });
+        renderNamePicks('bsLowMarginTags', lowMarginTags, '未选择');
+      } else {
+        lowMarginCategories = lowMarginCategories.filter(function (row) {
+          return row.id !== id;
+        });
+        renderNamePicks('bsLowMarginCategories', lowMarginCategories, '未选择');
+      }
+    }
+    if (tagHost && !tagHost._bsLowBound) {
+      tagHost._bsLowBound = true;
+      tagHost.addEventListener('click', function (ev) {
+        onRemove(ev, 'tag');
+      });
+    }
+    if (catHost && !catHost._bsLowBound) {
+      catHost._bsLowBound = true;
+      catHost.addEventListener('click', function (ev) {
+        onRemove(ev, 'category');
+      });
+    }
+    var tagBtn = $('bsLowMarginTagAdd');
+    var catBtn = $('bsLowMarginCategoryAdd');
+    if (tagBtn && !tagBtn._bsLowBound) {
+      tagBtn._bsLowBound = true;
+      tagBtn.addEventListener('click', function (ev) {
+        ev.stopPropagation();
+        if (ev.target.closest('[data-pick-remove]')) return;
+        var section = $('bsRestrictSection');
+        if (!section || !section.classList.contains('is-editing')) return;
+        openNamePicker('选择商品标签', getCatalogTags(), lowMarginTags, function (rows) {
+          lowMarginTags = normalizeNameRows(rows);
+          renderNamePicks('bsLowMarginTags', lowMarginTags, '未选择');
+        });
+      });
+    }
+    if (catBtn && !catBtn._bsLowBound) {
+      catBtn._bsLowBound = true;
+      catBtn.addEventListener('click', function (ev) {
+        ev.stopPropagation();
+        if (ev.target.closest('[data-pick-remove]')) return;
+        var section = $('bsRestrictSection');
+        if (!section || !section.classList.contains('is-editing')) return;
+        openNamePicker('选择商品类目', getCatalogCategories(), lowMarginCategories, function (rows) {
+          lowMarginCategories = normalizeNameRows(rows);
+          renderNamePicks('bsLowMarginCategories', lowMarginCategories, '未选择');
+        });
+      });
+    }
+  }
+
+  function restrictSwitch(label, name, on) {
+    return (
+      '<div class="store-order-config__item">' +
+      '  <div class="store-order-config__label"><span class="store-order-config__required">*</span>' +
+      label +
+      '</div>' +
+      '  <div class="store-order-config__control">' +
+      '    <div class="store-order-config__radios">' +
+      '      <label class="store-order-config__radio"><input type="radio" name="' +
+      name +
+      '" value="on"' +
+      (on ? ' checked' : '') +
+      '>开启</label>' +
+      '      <label class="store-order-config__radio"><input type="radio" name="' +
+      name +
+      '" value="off"' +
+      (on ? '' : ' checked') +
+      '>关闭</label>' +
+      '    </div>' +
+      '    <div class="store-order-config__hint" data-restrict-note="' +
+      name +
+      '"></div>' +
+      '  </div>' +
+      '</div>'
+    );
+  }
+
+  function readRestrictSwitches() {
+    function val(name) {
+      return restrictCheckedOn(name) ? 'on' : 'off';
+    }
+    return {
+      commissionHold: val('basicRestrict_commissionHold'),
+      productPurchaseGate: val('basicRestrict_productPurchaseGate'),
+      marketingStoreGate: val('basicRestrict_marketingStoreGate')
+    };
   }
 
   function mountRestrictConfig() {
     var root = $('bsRestrictConfigRoot');
-    var ui = window.OrderConfigUi;
-    if (!root || !ui) return null;
-    root.innerHTML = '';
+    if (!root) return null;
     var settings = loadRestrictSettings();
-    ui.appendOrderConfigItem({
-      root: root,
-      fieldKey: 'commissionHold',
-      label: '分佣代收',
-      settings: settings,
-      namePrefix: 'basicRestrict',
-      nameSuffix: '',
-      required: true,
-      onHint: '开启：门店合作合同未完成时，该店分佣由平台代收；签署完成后自动生成补偿结款单。',
-      warnTip: '关闭：不代收该店分佣，签署完成后也不生成这类补偿结款单。'
+    root.innerHTML =
+      '<p class="sac-tip bs-restrict-intro">配置门店合同未签署或保证金未达标时的业务限制规则。</p>' +
+      restrictSwitch('分佣代收', 'basicRestrict_commissionHold', settings.commissionHold !== 'off') +
+      restrictSwitch('指定商品购买限制', 'basicRestrict_productPurchaseGate', settings.productPurchaseGate !== 'off') +
+      '<div class="bs-restrict-scope">' +
+      '  <div class="sac-field">' +
+      '    <div class="sac-field__label">商品利润率</div>' +
+      '    <div class="sac-field__control">' +
+      '      <div class="bs-low-margin__profit">' +
+      '        <span>低于</span>' +
+      '        <input id="bsLowMarginProfit" class="erp-input" type="number" min="0" max="100" step="0.1" placeholder="请输入">' +
+      '        <span>%</span>' +
+      '      </div>' +
+      '      <div class="sac-tip">以下条件至少配置一项，可多项同时配置。商品满足任一已配置条件时，纳入限制购买范围。</div>' +
+      '    </div>' +
+      '  </div>' +
+      '  <div class="sac-field">' +
+      '    <div class="sac-field__label">商品标签</div>' +
+      '    <div class="sac-field__control">' +
+      '      <div class="bs-low-margin__pick-row">' +
+      '        <div class="bs-low-margin__picks" id="bsLowMarginTags"></div>' +
+      '        <button type="button" class="erp-btn" id="bsLowMarginTagAdd">选择</button>' +
+      '      </div>' +
+      '      <div class="sac-tip">可多选。</div>' +
+      '    </div>' +
+      '  </div>' +
+      '  <div class="sac-field">' +
+      '    <div class="sac-field__label">商品类目</div>' +
+      '    <div class="sac-field__control">' +
+      '      <div class="bs-low-margin__pick-row">' +
+      '        <div class="bs-low-margin__picks" id="bsLowMarginCategories"></div>' +
+      '        <button type="button" class="erp-btn" id="bsLowMarginCategoryAdd">选择</button>' +
+      '      </div>' +
+      '      <div class="sac-tip">可多选。</div>' +
+      '    </div>' +
+      '  </div>' +
+      '</div>' +
+      restrictSwitch('营销选店限制', 'basicRestrict_marketingStoreGate', settings.marketingStoreGate !== 'off');
+    fillLowMarginForm(settings, false);
+    bindLowMarginActions();
+    root.querySelectorAll('input[type="radio"]').forEach(function (input) {
+      if (input._bsRestrictBound) return;
+      input._bsRestrictBound = true;
+      input.addEventListener('change', syncRestrictNotes);
     });
-    ui.appendOrderConfigItem({
-      root: root,
-      fieldKey: 'commerceGate',
-      label: '低利润与营销',
-      settings: settings,
-      namePrefix: 'basicRestrict',
-      nameSuffix: '',
-      required: true,
-      onHint: '开启：低利润商品能不能下单、营销能不能选这家店，须同时满足合同已签署、保证金余额达到应保有。',
-      warnTip: '关闭：不看合同是否已完成，也不看保证金是否达到应保有。低利润商品可以下单，营销活动可以选店。'
-    });
+    syncRestrictNotes();
     return root;
   }
 
@@ -717,34 +1119,69 @@
       cancelId: 'bsRestrictCancelBtn',
       saveId: 'bsRestrictSaveBtn',
       takeSnapshot: function () {
-        if (!restrictRoot || !window.OrderConfigUi) return loadRestrictSettings();
-        return window.OrderConfigUi.readOrderConfigValues(
-          restrictRoot,
-          'basicRestrict',
-          '',
-          RESTRICT_FIELDS
-        );
+        var saved = loadRestrictSettings();
+        if (!restrictRoot) return saved;
+        var switches = readRestrictSwitches();
+        var low = readLowMarginForm();
+        return {
+          commissionHold: switches.commissionHold,
+          productPurchaseGate: switches.productPurchaseGate,
+          marketingStoreGate: switches.marketingStoreGate,
+          profitBelow: low.profitBelow,
+          blockedTags: low.blockedTags.map(function (row) {
+            return Object.assign({}, row);
+          }),
+          blockedCategories: low.blockedCategories.map(function (row) {
+            return Object.assign({}, row);
+          })
+        };
       },
       restoreSnapshot: function (data) {
         if (!restrictRoot || !data) return;
-        RESTRICT_FIELDS.forEach(function (key) {
-          var name = 'basicRestrict_' + key;
-          var val = data[key] === 'off' ? 'off' : 'on';
-          restrictRoot.querySelectorAll('input[name="' + name + '"]').forEach(function (r) {
+        [
+          ['basicRestrict_commissionHold', 'commissionHold'],
+          ['basicRestrict_productPurchaseGate', 'productPurchaseGate'],
+          ['basicRestrict_marketingStoreGate', 'marketingStoreGate']
+        ].forEach(function (pair) {
+          var val = data[pair[1]] === 'off' ? 'off' : 'on';
+          restrictRoot.querySelectorAll('input[name="' + pair[0] + '"]').forEach(function (r) {
             r.checked = r.value === val;
             r.dispatchEvent(new Event('change', { bubbles: true }));
           });
         });
+        fillLowMarginForm(data, true);
       },
       onSave: function () {
-        if (!restrictRoot || !window.OrderConfigUi) return false;
-        var data = window.OrderConfigUi.readOrderConfigValues(
-          restrictRoot,
-          'basicRestrict',
-          '',
-          RESTRICT_FIELDS
-        );
+        if (!restrictRoot) return false;
+        var switches = readRestrictSwitches();
+        var low = readLowMarginForm();
+        var gateOn = switches.productPurchaseGate !== 'off';
+        var err = validateLowMargin(low, gateOn);
+        if (err) {
+          toast(err, 'error');
+          return false;
+        }
+        var data = {
+          commissionHold: switches.commissionHold,
+          productPurchaseGate: switches.productPurchaseGate,
+          marketingStoreGate: switches.marketingStoreGate,
+          profitBelow: normalizeProfitBelow(low.profitBelow),
+          blockedTags: low.blockedTags,
+          blockedCategories: low.blockedCategories
+        };
         localStorage.setItem(RESTRICT_STORAGE_KEY, JSON.stringify(data));
+        try {
+          if (data.profitBelow == null) localStorage.removeItem('lf_low_margin_threshold_v1');
+          else localStorage.setItem('lf_low_margin_threshold_v1', String(data.profitBelow));
+        } catch (e) {}
+        if (
+          data.profitBelow != null &&
+          window.LfLowMargin &&
+          typeof window.LfLowMargin.setThreshold === 'function'
+        ) {
+          window.LfLowMargin.setThreshold(data.profitBelow);
+        }
+        fillLowMarginForm(data, false);
         toast('合同未完成限制已保存', 'success');
         return true;
       }
@@ -756,8 +1193,22 @@
     commissionHoldOn: function () {
       return loadRestrictSettings().commissionHold !== 'off';
     },
+    productPurchaseOn: function () {
+      return loadRestrictSettings().productPurchaseGate !== 'off';
+    },
+    marketingStoreOn: function () {
+      return loadRestrictSettings().marketingStoreGate !== 'off';
+    },
     commerceGateOn: function () {
-      return loadRestrictSettings().commerceGate !== 'off';
+      return loadRestrictSettings().productPurchaseGate !== 'off';
+    },
+    lowMargin: function () {
+      var saved = loadRestrictSettings();
+      return {
+        profitBelow: saved.profitBelow,
+        blockedTags: saved.blockedTags.slice(),
+        blockedCategories: saved.blockedCategories.slice()
+      };
     }
   };
 

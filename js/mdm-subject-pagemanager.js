@@ -886,6 +886,15 @@
         var matGrid = subjectDrawerNode('div', 'mdm-detail-grid');
         var pairs = materials && typeof materials.pairs === 'function' ? materials.pairs(saved) : [];
         pairs.forEach(function (pair) {
+            if (pair.photo && materials && typeof materials.viewPhoto === 'function') {
+                var cell = subjectDrawerNode('div');
+                cell.appendChild(subjectDrawerNode('div', 'mdm-detail-grid__label', pair.label));
+                var val = subjectDrawerNode('div', 'mdm-detail-grid__value');
+                val.appendChild(materials.viewPhoto(pair.label, pair.uploaded));
+                cell.appendChild(val);
+                matGrid.appendChild(cell);
+                return;
+            }
             matGrid.appendChild(merchantDetailCell(pair.label, pair.value));
         });
         materialBody.appendChild(matGrid);
@@ -930,13 +939,24 @@
 
     function paintSubjectDetailLinks() {
         document.querySelectorAll('#tableBody .action-links').forEach(function (cell) {
-            if (cell.querySelector('.mdm-subject-detail')) return;
-            var link = document.createElement('a');
-            link.href = '#';
-            link.className = 'mdm-subject-detail';
-            link.textContent = '编辑';
-            link.style.marginRight = '8px';
-            cell.insertBefore(link, cell.firstChild);
+            if (!cell.querySelector('.mdm-subject-detail')) {
+                var link = document.createElement('a');
+                link.href = '#';
+                link.className = 'mdm-subject-detail';
+                link.textContent = '编辑';
+                link.style.marginRight = '8px';
+                cell.insertBefore(link, cell.firstChild);
+            }
+            if (!cell.querySelector('.mdm-subject-onboard')) {
+                var go = document.createElement('a');
+                go.href = '#';
+                go.className = 'mdm-subject-onboard';
+                go.textContent = '去进件';
+                go.style.marginRight = '8px';
+                var toggle = cell.querySelector('.mdm-disable-toggle');
+                if (toggle) cell.insertBefore(go, toggle);
+                else cell.appendChild(go);
+            }
         });
     }
 
@@ -1012,13 +1032,6 @@
         });
         body.appendChild(grid);
 
-        var go = document.createElement('button');
-        go.type = 'button';
-        go.className = 'btn btn-primary';
-        go.textContent = '去进件';
-        go.style.margin = '4px 0 8px';
-        body.appendChild(go);
-
         var materialsRoot = null;
         if (hasMaterials && materials && typeof materials.mount === 'function') {
             var saved = materials.loadSubject ? materials.loadSubject(info.id) : null;
@@ -1063,10 +1076,6 @@
         back.addEventListener('click', shut);
         backdrop.addEventListener('click', shut);
         drawer.addEventListener('click', function (ev) { ev.stopPropagation(); });
-        go.addEventListener('click', function () {
-            shut();
-            openSubjectOnboardingFromRow(tr, kind, {});
-        });
         if (saveBtn) {
             saveBtn.addEventListener('click', function () {
                 var err = materials.validate(materialsRoot);
@@ -2133,6 +2142,13 @@
             if (detailLink) {
                 e.preventDefault();
                 openSubjectDetailDrawer(detailLink.closest('tr'));
+                return;
+            }
+            var onboardLink = t && t.closest ? t.closest('.mdm-subject-onboard') : null;
+            if (onboardLink) {
+                e.preventDefault();
+                var onboardRow = onboardLink.closest('tr');
+                openSubjectOnboardingFromRow(onboardRow, rowMerchantKind(onboardRow), {});
             }
         });
 
