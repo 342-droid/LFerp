@@ -407,22 +407,23 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 8px 4px;
-  font-size: 14px;
+  padding: 10px 4px 8px;
+  font-size: 13px;
   color: #71727a;
 }
 
 .sa-biz-day__head strong {
   font-weight: 600;
   color: #1f2024;
-  font-size: 14px;
+  font-size: 15px;
 }
 
+/* 订单卡：对齐图1 */
 .sa-biz-order {
-  margin-bottom: 8px;
-  padding: 12px;
+  margin-bottom: 10px;
+  padding: 14px 12px;
   background: #fff;
-  border-radius: 8px;
+  border-radius: 10px;
   border-bottom: 0;
 }
 
@@ -430,21 +431,28 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .sa-biz-order__avatar {
-  width: 35px;
-  height: 35px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: linear-gradient(145deg, #ffb36b, #ff6501);
   color: #fff;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.sa-biz-order__avatar--img {
+  background-size: cover;
+  background-position: center;
+  color: transparent;
 }
 
 .sa-biz-order__nick {
@@ -489,21 +497,26 @@
 
 .sa-biz-kv {
   display: grid;
-  grid-template-columns: 56px 1fr;
+  grid-template-columns: 64px 1fr;
   row-gap: 12px;
-  column-gap: 40px;
+  column-gap: 24px;
   font-size: 14px;
   line-height: 20px;
 }
 
 .sa-biz-kv__k {
-  color: #71727a;
+  color: #8a8f9c;
+  font-weight: 400;
 }
 
 .sa-biz-kv__v {
   color: #1f2024;
   font-weight: 500;
   word-break: break-all;
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
 .sa-biz-kv__v--ship {
@@ -514,6 +527,60 @@
 .sa-biz-kv__v.is-accent,
 .sa-biz-kv__v--accent {
   color: #ff6501;
+}
+
+.sa-biz-goods-link {
+  color: #4174f9;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.sa-biz-goods-link:active {
+  opacity: 0.85;
+}
+
+.sa-biz-copy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  width: 18px;
+  height: 18px;
+  border: 0;
+  background: transparent;
+  color: #c4a35a;
+  cursor: pointer;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.sa-biz-copy svg {
+  display: block;
+}
+
+.sa-biz-settle {
+  font-weight: 500;
+}
+
+.sa-biz-settle.is-settle-wait {
+  color: #ff6501;
+}
+
+.sa-biz-settle.is-settling {
+  color: #4174f9;
+}
+
+.sa-biz-settle.is-settled {
+  color: #45c74a;
+}
+
+.sa-biz-settle.is-settle-fail {
+  color: #f62b57;
+}
+
+.sa-biz-settle.is-settle-cancel {
+  color: #8a8f9c;
 }
 
 .sa-biz-empty {

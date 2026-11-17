@@ -193,6 +193,29 @@
     );
   }
 
+  /** 图1：复制为图标，紧贴字段值 */
+  function copyBtn(text) {
+    if (!text || text === '-' || text === '—') return '';
+    return (
+      '<button type="button" class="sa-biz-copy" data-copy="' +
+      esc(text) +
+      '" aria-label="复制">' +
+      '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">' +
+      '<path fill="currentColor" d="M8 4h9a2 2 0 012 2v11h-2V6H8V4zm-3 4h9a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V10a2 2 0 012-2zm0 2v10h9V10H5z"/>' +
+      '</svg></button>'
+    );
+  }
+
+  function dash(v) {
+    return v && String(v) !== '-' ? String(v) : '—';
+  }
+
+  /** 图1 日期：2026.07.17 */
+  function formatDayDot(day) {
+    if (!day || day === '未入账') return day || '—';
+    return String(day).replace(/-/g, '.');
+  }
+
   function settleStatusClass(status) {
     var s = String(status || '');
     if (s === '已结算') return 'is-settled';
@@ -213,18 +236,30 @@
     return '';
   }
 
+  function avatarHtml(o) {
+    if (o.avatar) {
+      return (
+        '<span class="sa-biz-order__avatar sa-biz-order__avatar--img" style="background-image:url(\'' +
+        esc(o.avatar) +
+        '\')"></span>'
+      );
+    }
+    return (
+      '<span class="sa-biz-order__avatar">' + esc((o.nick || '?').charAt(0)) + '</span>'
+    );
+  }
+
   function renderOrder(o) {
     var fulfill = fulfillOf(o);
     var settleTime =
-      o.settleStatus === '已结算' ? o.creditTime || o.settleTime || '-' : '-';
+      o.settleStatus === '已结算' ? o.creditTime || o.settleTime || '' : '';
+    var goodsLabel = o.goods || '—';
     return (
       '<article class="sa-biz-order" data-order-id="' +
       esc(o.id) +
       '">' +
       '<div class="sa-biz-order__head">' +
-      '<span class="sa-biz-order__avatar">' +
-      esc((o.nick || '?').charAt(0)) +
-      '</span>' +
+      avatarHtml(o) +
       '<span class="sa-biz-order__nick">' +
       esc(o.nick) +
       '</span>' +
@@ -235,30 +270,16 @@
       '</span>' +
       '</div>' +
       '<div class="sa-biz-kv">' +
-      kvRow(
-        '订单编号',
-        esc(o.id) +
-          '<button type="button" class="sa-biz-copy" data-copy="' +
-          esc(o.id) +
-          '" aria-label="复制">复制</button>'
-      ) +
-      kvRow('联系人', esc(o.contact || o.nick || '-')) +
-      kvRow(
-        '联系电话',
-        esc(o.phone || '-') +
-          (o.phone
-            ? '<button type="button" class="sa-biz-copy" data-copy="' +
-              esc(o.phone) +
-              '" aria-label="复制">复制</button>'
-            : '')
-      ) +
-      kvRow('履约方式', esc(o.shipMode || '-')) +
+      kvRow('订单编号', esc(o.id) + copyBtn(o.id)) +
+      kvRow('联系人', esc(o.contact || o.nick || '—')) +
+      kvRow('联系电话', esc(o.phone || '—') + copyBtn(o.phone)) +
+      kvRow('履约方式', esc(o.shipMode || '—')) +
       kvRow(
         '购买商品',
         '<a class="sa-biz-goods-link" href="biz-order-goods.html?id=' +
           encodeURIComponent(o.id) +
           '">' +
-          esc(o.goods) +
+          esc(goodsLabel) +
           ' ›</a>'
       ) +
       kvRow('实付金额', esc(money(o.paid)) + '元') +
@@ -272,11 +293,11 @@
           esc(o.settleStatus || '—') +
           '</span>'
       ) +
-      kvRow('支付时间', esc(o.payTime || '-')) +
-      kvRow('配送时间', esc(o.deliveryTime || '-')) +
-      kvRow('完结时间', esc(o.finishTime || '-')) +
-      kvRow('结算时间', esc(settleTime)) +
-      kvRow('备注', esc(o.remark || '-')) +
+      kvRow('支付时间', esc(dash(o.payTime))) +
+      kvRow('配送时间', esc(dash(o.deliveryTime))) +
+      kvRow('完结时间', esc(dash(o.finishTime))) +
+      kvRow('结算时间', esc(dash(settleTime))) +
+      kvRow('备注', esc(o.remark || '—')) +
       '</div></article>'
     );
   }
@@ -341,7 +362,7 @@
           '<section class="sa-biz-day">' +
           '<div class="sa-biz-day__head">' +
           '<strong>' +
-          esc(g.day) +
+          esc(formatDayDot(g.day)) +
           '</strong>' +
           '<span>预估佣金 ¥' +
           money(dayAmt) +
@@ -547,6 +568,9 @@
     var withdraw = $('bizWithdrawBtn');
     if (withdraw) {
       withdraw.addEventListener('click', function () {
+        if (window.StoreAppBizSession && window.StoreAppBizSession.isBd && window.StoreAppBizSession.isBd()) {
+          return;
+        }
         window.location.href = '../../user-app/h5/store-wallet.html?from=biz-commission';
       });
     }
@@ -581,12 +605,26 @@
   }
 
   function init() {
+    /* BD 不开放佣金明细：会话层会重定向到总览 */
+    if (
+      window.StoreAppBizSession &&
+      window.StoreAppBizSession.isBd &&
+      window.StoreAppBizSession.isBd()
+    ) {
+      if (typeof window.StoreAppBizSession.boot === 'function') {
+        window.StoreAppBizSession.boot({ toast: toast });
+      }
+      return;
+    }
     applyQuery();
     var snap =
       window.StoreWalletDemo && typeof window.StoreWalletDemo.snapshot === 'function'
         ? window.StoreWalletDemo.snapshot()
         : null;
     state.withdrawable = snap && snap.withdrawable != null ? snap.withdrawable : 0;
+    if (window.StoreAppBizSession && typeof window.StoreAppBizSession.boot === 'function') {
+      window.StoreAppBizSession.boot({ toast: toast });
+    }
     bind();
     syncTabs();
     setEyeUi();

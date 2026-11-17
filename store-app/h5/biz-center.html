@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>经营参谋 · 丰银宝</title>
-  <link rel="stylesheet" href="../css/store-app.css?v=20261117-rpt21">
-  <link rel="stylesheet" href="../css/store-app-biz-report.css?v=20261117-rpt21">
+  <link rel="stylesheet" href="../css/store-app.css?v=20261117-rpt28">
+  <link rel="stylesheet" href="../css/store-app-biz-report.css?v=20261117-rpt28">
 </head>
 <body class="store-app-body">
   <div class="sa-shell sa-rpt-shell">
@@ -159,6 +159,79 @@
           </div>
         </section>
 
+        <!-- 售后：快递到家 / 到店自提 -->
+        <section class="sa-rpt-card" id="rptAftersaleCard" aria-label="售后情况">
+          <div class="sa-rpt-card__hd">
+            <h2 class="sa-rpt-card__title">
+              售后情况
+              <button type="button" class="sa-rpt-help" data-tip="aftersale" aria-label="售后说明">?</button>
+            </h2>
+            <button type="button" class="sa-rpt-picker" id="rptAsRangeBtn" data-range-target="ops" aria-haspopup="dialog">
+              <span id="rptAsRangeLabel">今日</span>
+              <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2.5 3.5L5 6.5 7.5 3.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+          <div class="sa-rpt-metrics">
+            <div class="sa-rpt-metric">
+              <div class="sa-rpt-metric__t">售后笔数</div>
+              <div class="sa-rpt-metric__v" id="rptAsTotalCnt">0</div>
+            </div>
+            <div class="sa-rpt-metric">
+              <div class="sa-rpt-metric__t">售后金额(元)</div>
+              <div class="sa-rpt-metric__v" id="rptAsTotalAmt">0</div>
+            </div>
+            <div class="sa-rpt-metric">
+              <div class="sa-rpt-metric__t">售后占比</div>
+              <div class="sa-rpt-metric__v" id="rptAsRate">—</div>
+            </div>
+          </div>
+          <div class="sa-rpt-metrics" style="margin-top:12px">
+            <div class="sa-rpt-metric">
+              <div class="sa-rpt-metric__t">快递到家</div>
+              <div class="sa-rpt-metric__v" id="rptAsExpressCnt">0</div>
+              <div class="sa-rpt-metric__foot" id="rptAsExpressAmt"></div>
+            </div>
+            <div class="sa-rpt-metric">
+              <div class="sa-rpt-metric__t">到店自提</div>
+              <div class="sa-rpt-metric__v" id="rptAsPickupCnt">0</div>
+              <div class="sa-rpt-metric__foot" id="rptAsPickupAmt"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 商品销售：自提／核销 -->
+        <section class="sa-rpt-card" id="rptPickupSalesCard" aria-label="自提销售">
+          <div class="sa-rpt-card__hd">
+            <h2 class="sa-rpt-card__title">
+              自提销售
+              <button type="button" class="sa-rpt-help" data-tip="pickup-sales" aria-label="自提销售说明">?</button>
+            </h2>
+            <button type="button" class="sa-rpt-picker" id="rptPkRangeBtn" data-range-target="ops" aria-haspopup="dialog">
+              <span id="rptPkRangeLabel">今日</span>
+              <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2.5 3.5L5 6.5 7.5 3.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+          <div class="sa-rpt-metrics">
+            <div class="sa-rpt-metric">
+              <div class="sa-rpt-metric__t">自提订单(单)</div>
+              <div class="sa-rpt-metric__v" id="rptPkOrders">0</div>
+            </div>
+            <div class="sa-rpt-metric">
+              <div class="sa-rpt-metric__t">已核销(笔)</div>
+              <div class="sa-rpt-metric__v" id="rptPkVerify">0</div>
+            </div>
+            <div class="sa-rpt-metric">
+              <div class="sa-rpt-metric__t">待核销(笔)</div>
+              <div class="sa-rpt-metric__v" id="rptPkPending">0</div>
+            </div>
+            <div class="sa-rpt-metric">
+              <div class="sa-rpt-metric__t">自提营业额(元)</div>
+              <div class="sa-rpt-metric__v" id="rptPkPaid">0</div>
+            </div>
+          </div>
+          <div class="sa-rpt-rank" id="rptPkRank" style="margin-top:12px" aria-label="自提商品排行"></div>
+        </section>
+
         <!-- ③ RBT：仅有业务时展示 -->
         <section class="sa-rpt-card" id="rptRbtCard" hidden>
           <div class="sa-rpt-card__hd">
@@ -240,13 +313,16 @@
       </div>
     </div>
 
-    <div class="sa-rpt-sheet" id="rptRangeSheet" hidden>
+    <div class="sa-rpt-sheet sa-rpt-sheet--time" id="rptRangeSheet" hidden>
       <div class="sa-rpt-sheet__panel" role="dialog" aria-modal="true" aria-labelledby="rptRangeSheetTitle">
         <div class="sa-rpt-sheet__hd">
+          <button type="button" class="sa-rpt-sheet__back" id="rptRangeBack" hidden aria-label="返回">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 6l-6 6 6 6"/></svg>
+          </button>
           <strong id="rptRangeSheetTitle">选择时间</strong>
           <button type="button" class="sa-rpt-sheet__close" data-close-range aria-label="关闭">×</button>
         </div>
-        <div class="sa-rpt-range" id="rptRangeOptions" role="listbox"></div>
+        <div class="sa-rpt-range" id="rptRangeOptions" role="listbox" aria-label="时间范围"></div>
         <div class="sa-rpt-custom" id="rptCustom" hidden>
           <p class="sa-rpt-custom__hint">选择起止日期后点击确定</p>
           <div class="sa-rpt-custom__row">
@@ -260,6 +336,7 @@
               <input type="date" id="rptCustomEnd">
             </label>
           </div>
+          <p class="sa-rpt-custom__err" id="rptCustomErr" hidden></p>
           <button type="button" class="sa-rpt-custom__btn" id="rptCustomApply">确定</button>
         </div>
       </div>
@@ -267,7 +344,8 @@
   </div>
 
   <script src="../../js/store-wallet-demo.js"></script>
-  <script src="../js/store-app-biz-report-data.js?v=20261117-rpt21"></script>
-  <script src="../js/store-app-biz-report.js?v=20261117-rpt21"></script>
+  <script src="../js/store-app-biz-report-data.js?v=20261117-bd1"></script>
+  <script src="../js/store-app-biz-session.js?v=20261117-bd1"></script>
+  <script src="../js/store-app-biz-report.js?v=20261117-bd1"></script>
 </body>
 </html>

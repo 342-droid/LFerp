@@ -23,18 +23,18 @@
   };
 
   var OPS_RANGES = [
-    { id: 'today', name: '今日' },
-    { id: 'yesterday', name: '昨天' },
-    { id: '7d', name: '近七天' },
-    { id: 'month', name: '本月' },
-    { id: 'custom', name: '自定义' }
+    { id: 'today', name: '今日', desc: '当天' },
+    { id: 'yesterday', name: '昨天', desc: '昨天全天' },
+    { id: '7d', name: '近七天', desc: '含今天共 7 天' },
+    { id: 'month', name: '本月', desc: '本自然月' },
+    { id: 'custom', name: '自定义', desc: '自选起止日期' }
   ];
 
   var CUST_RANGES = [
-    { id: '7d', name: '近七天' },
-    { id: '30d', name: '近30天' },
-    { id: 'month', name: '本月' },
-    { id: 'custom', name: '自定义' }
+    { id: '7d', name: '近七天', desc: '含今天共 7 天' },
+    { id: '30d', name: '近30天', desc: '含今天共 30 天' },
+    { id: 'month', name: '本月', desc: '本自然月' },
+    { id: 'custom', name: '自定义', desc: '自选起止日期' }
   ];
 
   function $(id) {
@@ -94,12 +94,20 @@
   }
 
   function qs(params) {
-    return Object.keys(params)
+    var merged = Object.assign({}, params || {});
+    if (window.StoreAppBizSession && typeof window.StoreAppBizSession.qsParams === 'function') {
+      merged = Object.assign({}, window.StoreAppBizSession.qsParams(), merged);
+      /* 经营参谋内部 from=report 优先；BD 下钻保留 role/storeId，from 用 bd-app */
+      if (params && params.from === 'report' && merged.role === 'bd') {
+        merged.from = 'bd-app';
+      }
+    }
+    return Object.keys(merged)
       .filter(function (k) {
-        return params[k] != null && params[k] !== '';
+        return merged[k] != null && merged[k] !== '';
       })
       .map(function (k) {
-        return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+        return encodeURIComponent(k) + '=' + encodeURIComponent(merged[k]);
       })
       .join('&');
   }
@@ -312,13 +320,17 @@
     return target === 'cust' ? state.custCustom : state.custom;
   }
 
+  function opsRangeText() {
+    return state.range === 'custom' && state.custom.start
+      ? state.custom.start.slice(5) + '~' + (state.custom.end || '').slice(5)
+      : RANGE_LABEL[state.range] || '今日';
+  }
+
   function syncRangeLabels() {
-    if ($('rptRangeLabel')) {
-      $('rptRangeLabel').textContent =
-        state.range === 'custom' && state.custom.start
-          ? state.custom.start.slice(5) + '~' + (state.custom.end || '').slice(5)
-          : RANGE_LABEL[state.range] || '今日';
-    }
+    var opsTxt = opsRangeText();
+    if ($('rptRangeLabel')) $('rptRangeLabel').textContent = opsTxt;
+    if ($('rptAsRangeLabel')) $('rptAsRangeLabel').textContent = opsTxt;
+    if ($('rptPkRangeLabel')) $('rptPkRangeLabel').textContent = opsTxt;
     if ($('rptCustRangeLabel')) {
       $('rptCustRangeLabel').textContent =
         state.custRange === 'custom' && state.custCustom.start
@@ -327,8 +339,77 @@
     }
   }
 
+  function renderPickupRank(list) {
+    var host = $('rptPkRank');
+    if (!host) return;
+    if (!list || !list.length) {
+      host.innerHTML = '<div class="sa-rpt-empty">本时段暂无自提商品</div>';
+      return;
+    }
+    host.innerHTML = list
+      .map(function (g, i) {
+        return (
+          '<div class="sa-rpt-rank__row">' +
+          '<span class="sa-rpt-rank__idx' +
+          (i < 3 ? ' is-top' : '') +
+          '">' +
+          (i + 1) +
+          '</span>' +
+          '<div class="sa-rpt-rank__main"><div class="sa-rpt-rank__name">' +
+          (g.name || '—') +
+          '</div><div class="sa-rpt-rank__meta">销量 ' +
+          (g.qty || 0) +
+          ' · 核销 ' +
+          (g.verify || 0) +
+          '</div></div>' +
+          '<div class="sa-rpt-rank__val">¥' +
+          fmtSnap(g.paid) +
+          '</div></div>'
+        );
+      })
+      .join('');
+  }
+
+  function rangeSheetTitleBase() {
+    return state.rangeTarget === 'cust' ? '顾客分析时间' : '选择时间';
+  }
+
+  function showRangePresetView() {
+    var sheet = $('rptRangeSheet');
+    var custom = $('rptCustom');
+    var back = $('rptRangeBack');
+    var err = $('rptCustomErr');
+    if (sheet) sheet.classList.remove('is-custom');
+    if (custom) custom.hidden = true;
+    if (back) back.hidden = true;
+    if (err) {
+      err.hidden = true;
+      err.textContent = '';
+    }
+    if ($('rptRangeSheetTitle')) $('rptRangeSheetTitle').textContent = rangeSheetTitleBase();
+  }
+
+  function showRangeCustomView() {
+    var sheet = $('rptRangeSheet');
+    var custom = $('rptCustom');
+    var back = $('rptRangeBack');
+    var curCustom = currentCustom(state.rangeTarget);
+    var today = (D() && D().DEMO_TODAY) || '';
+    if (sheet) sheet.classList.add('is-custom');
+    if (custom) custom.hidden = false;
+    if (back) back.hidden = false;
+    if ($('rptRangeSheetTitle')) $('rptRangeSheetTitle').textContent = '自定义时间';
+    if ($('rptCustomStart')) $('rptCustomStart').value = curCustom.start || today;
+    if ($('rptCustomEnd')) $('rptCustomEnd').value = curCustom.end || today;
+    if ($('rptCustomErr')) {
+      $('rptCustomErr').hidden = true;
+      $('rptCustomErr').textContent = '';
+    }
+  }
+
   function closeRangeSheet() {
     var sheet = $('rptRangeSheet');
+    showRangePresetView();
     if (sheet) sheet.hidden = true;
   }
 
@@ -336,12 +417,11 @@
     state.rangeTarget = target || 'ops';
     var sheet = $('rptRangeSheet');
     var list = $('rptRangeOptions');
-    var custom = $('rptCustom');
     if (!sheet || !list) return;
     var opts = state.rangeTarget === 'cust' ? CUST_RANGES : OPS_RANGES;
     var cur = currentRangeValue(state.rangeTarget);
-    var curCustom = currentCustom(state.rangeTarget);
-    $('rptRangeSheetTitle').textContent = state.rangeTarget === 'cust' ? '顾客分析时间' : '经营概览时间';
+    showRangePresetView();
+    /* 今日／昨日／近七天／本月：沿用原 pill；仅「自定义」进起止子页新样式 */
     list.innerHTML = opts
       .map(function (o) {
         return (
@@ -355,20 +435,13 @@
         );
       })
       .join('');
-    if (custom) {
-      custom.hidden = cur !== 'custom';
-      if ($('rptCustomStart')) $('rptCustomStart').value = curCustom.start || (D() && D().DEMO_TODAY) || '';
-      if ($('rptCustomEnd')) $('rptCustomEnd').value = curCustom.end || (D() && D().DEMO_TODAY) || '';
-    }
     sheet.hidden = false;
   }
 
   function applyPickedRange(id) {
     var target = state.rangeTarget;
     if (id === 'custom') {
-      var custom = $('rptCustom');
-      if (custom) custom.hidden = false;
-      listActive('custom');
+      showRangeCustomView();
       return;
     }
     if (target === 'cust') {
@@ -379,14 +452,6 @@
     closeRangeSheet();
     syncRangeLabels();
     render();
-  }
-
-  function listActive(id) {
-    var list = $('rptRangeOptions');
-    if (!list) return;
-    list.querySelectorAll('[data-pick-range]').forEach(function (btn) {
-      btn.classList.toggle('is-active', btn.getAttribute('data-pick-range') === id);
-    });
   }
 
   function render() {
@@ -461,6 +526,32 @@
       $('rptAsOf').textContent = '数据截至 ' + nowLabel;
     }
 
+    if (D().buildAftersaleSummary) {
+      var as = D().buildAftersaleSummary(state.range, state.custom);
+      if ($('rptAsTotalCnt')) $('rptAsTotalCnt').textContent = fmtSnap(as.totalCount);
+      if ($('rptAsTotalAmt')) $('rptAsTotalAmt').textContent = fmtSnap(as.totalAmount);
+      if ($('rptAsRate')) {
+        $('rptAsRate').textContent = as.totalCount ? as.refundRate + '%' : '—';
+      }
+      if ($('rptAsExpressCnt')) $('rptAsExpressCnt').textContent = fmtSnap(as.expressCount);
+      if ($('rptAsExpressAmt')) {
+        $('rptAsExpressAmt').textContent = '金额 ¥' + fmtSnap(as.expressAmount);
+      }
+      if ($('rptAsPickupCnt')) $('rptAsPickupCnt').textContent = fmtSnap(as.pickupCount);
+      if ($('rptAsPickupAmt')) {
+        $('rptAsPickupAmt').textContent = '金额 ¥' + fmtSnap(as.pickupAmount);
+      }
+    }
+
+    if (D().buildPickupSales) {
+      var pk = D().buildPickupSales(state.range, state.custom);
+      if ($('rptPkOrders')) $('rptPkOrders').textContent = fmtSnap(pk.pickupOrderCount);
+      if ($('rptPkVerify')) $('rptPkVerify').textContent = fmtSnap(pk.verifyCount);
+      if ($('rptPkPending')) $('rptPkPending').textContent = fmtSnap(pk.pendingVerify);
+      if ($('rptPkPaid')) $('rptPkPaid').textContent = fmtSnap(pk.pickupPaidAmount);
+      renderPickupRank(pk.topGoods);
+    }
+
     var rbt = D().buildStoreRbt ? D().buildStoreRbt() : { hasRbt: false };
     var rbtCard = $('rptRbtCard');
     if (rbtCard) rbtCard.hidden = !rbt.hasRbt;
@@ -495,6 +586,10 @@
           closeRangeSheet();
           return;
         }
+        if (e.target.closest('#rptRangeBack')) {
+          showRangePresetView();
+          return;
+        }
         var pick = e.target.closest('[data-pick-range]');
         if (pick) {
           applyPickedRange(pick.getAttribute('data-pick-range'));
@@ -507,12 +602,23 @@
       apply.addEventListener('click', function () {
         var start = ($('rptCustomStart') && $('rptCustomStart').value) || '';
         var end = ($('rptCustomEnd') && $('rptCustomEnd').value) || '';
+        var err = $('rptCustomErr');
         if (!start || !end) {
-          toast('请选择起止日期');
+          if (err) {
+            err.hidden = false;
+            err.textContent = '请选择完整的起止日期';
+          } else {
+            toast('请选择起止日期');
+          }
           return;
         }
         if (start > end) {
-          toast('开始日期不能晚于结束日期');
+          if (err) {
+            err.hidden = false;
+            err.textContent = '开始日期不能晚于结束日期';
+          } else {
+            toast('开始日期不能晚于结束日期');
+          }
           return;
         }
         if (state.rangeTarget === 'cust') {
@@ -556,12 +662,35 @@
         if (key === 'rbt') showSheet('RBT 说明', tips.rbt || '');
         if (key === 'credited') showSheet('实际入账佣金', tips.credited || '');
         if (key === 'pending') showSheet('待结算佣金', (ov.commission && ov.commission.pendingSettleHint) || '');
+        if (key === 'aftersale') {
+          showSheet(
+            '售后情况',
+            tips.aftersale ||
+              '按履约方式拆分售后：快递到家与到店自提。自提订单由本店核销，售后与门店关联更强，请优先关注。'
+          );
+        }
+        if (key === 'pickup-sales') {
+          showSheet(
+            '自提销售',
+            tips['pickup-sales'] ||
+              '统计到店自提订单的成交、已核销与待核销，并列出自提商品排行，便于门店安排备货与核销。'
+          );
+        }
       });
     });
 
     document.querySelectorAll('[data-drill]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var drill = btn.getAttribute('data-drill');
+        var isBd =
+          window.StoreAppBizSession &&
+          window.StoreAppBizSession.isBd &&
+          window.StoreAppBizSession.isBd();
+        /* BD 仅开放营业额／顾客分析／RBT；佣金与进货相关下钻关闭 */
+        if (isBd && (drill === 'pending' || drill === 'credited' || drill === 'orders')) {
+          toast('BD 视角只看营业额、顾客分析与 RBT');
+          return;
+        }
         if (drill === 'pending') {
           window.location.href = commissionUrl({ dim: 'order', settleStatus: '待结算' });
           return;
@@ -571,10 +700,25 @@
           return;
         }
         if (drill === 'rbt') {
-          window.location.href = 'biz-rbt.html';
+          var rbtHref = 'biz-rbt.html';
+          if (window.StoreAppBizSession && window.StoreAppBizSession.appendQs) {
+            rbtHref = window.StoreAppBizSession.appendQs(rbtHref);
+          }
+          window.location.href = rbtHref;
           return;
         }
-        if (drill === 'paid' || drill === 'orders') {
+        if (drill === 'paid') {
+          /* 营业额 → 业务线下级页（直播／商城已有；POS 预留） */
+          window.location.href =
+            'biz-revenue.html?' +
+            qs({
+              range: state.range,
+              start: state.custom.start,
+              end: state.custom.end
+            });
+          return;
+        }
+        if (drill === 'orders') {
           window.location.href =
             'biz-commission.html?from=report&dim=order&' +
             qs({
@@ -617,9 +761,13 @@
       state.custom = { start: today, end: today };
       state.custCustom = { start: today, end: today };
     }
+    if (window.StoreAppBizSession && typeof window.StoreAppBizSession.boot === 'function') {
+      window.StoreAppBizSession.boot({ toast: toast });
+    }
     bind();
     syncRangeLabels();
     render();
+    if (D() && D().mountRbtDemoPanel) D().mountRbtDemoPanel();
   }
 
   if (document.readyState === 'loading') {

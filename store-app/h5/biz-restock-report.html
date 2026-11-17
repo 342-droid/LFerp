@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>进货概况 · 丰银宝</title>
-  <link rel="stylesheet" href="../css/store-app.css?v=20261117-rpt21">
-  <link rel="stylesheet" href="../css/store-app-biz-report.css?v=20261117-rpt21">
+  <link rel="stylesheet" href="../css/store-app.css?v=20261117-rpt26">
+  <link rel="stylesheet" href="../css/store-app-biz-report.css?v=20261117-rpt26">
 </head>
 <body class="store-app-body">
   <div class="sa-shell sa-rpt-shell">
@@ -26,22 +26,7 @@
           <button type="button" class="sa-rpt-chip" data-range="yesterday">昨天</button>
           <button type="button" class="sa-rpt-chip" data-range="7d">近七天</button>
           <button type="button" class="sa-rpt-chip" data-range="month">本月</button>
-          <button type="button" class="sa-rpt-chip" data-range="custom">自定义</button>
-        </div>
-        <div class="sa-rpt-custom" id="rrCustom" hidden>
-          <p class="sa-rpt-custom__hint">选择起止日期后点击确定</p>
-          <div class="sa-rpt-custom__row">
-            <label class="sa-rpt-custom__field">
-              <span>开始日期</span>
-              <input type="date" id="rrCustomStart">
-            </label>
-            <span class="sa-rpt-custom__sep">至</span>
-            <label class="sa-rpt-custom__field">
-              <span>结束日期</span>
-              <input type="date" id="rrCustomEnd">
-            </label>
-          </div>
-          <button type="button" class="sa-rpt-custom__btn" id="rrCustomApply">确定</button>
+          <button type="button" class="sa-rpt-chip" data-range="custom" id="rrCustomChip">自定义</button>
         </div>
 
         <!-- 橙卡：实际支出＝支付−退款，店长一眼看净支出 -->
@@ -120,9 +105,34 @@
       </div>
     </div>
     <div class="sa-rpt-toast" id="rrToast" hidden></div>
+    <div class="sa-rpt-sheet sa-rpt-sheet--time is-custom" id="rrTimeSheet" hidden>
+      <div class="sa-rpt-sheet__panel" role="dialog" aria-modal="true" aria-labelledby="rrTimeSheetTitle">
+        <div class="sa-rpt-sheet__hd">
+          <strong id="rrTimeSheetTitle">自定义时间</strong>
+          <button type="button" class="sa-rpt-sheet__close" data-close-rr-time aria-label="关闭">×</button>
+        </div>
+        <div class="sa-rpt-custom" id="rrCustom">
+          <p class="sa-rpt-custom__hint">选择起止日期后点击确定</p>
+          <div class="sa-rpt-custom__row">
+            <label class="sa-rpt-custom__field">
+              <span>开始日期</span>
+              <input type="date" id="rrCustomStart">
+            </label>
+            <span class="sa-rpt-custom__sep">至</span>
+            <label class="sa-rpt-custom__field">
+              <span>结束日期</span>
+              <input type="date" id="rrCustomEnd">
+            </label>
+          </div>
+          <p class="sa-rpt-custom__err" id="rrCustomErr" hidden></p>
+          <button type="button" class="sa-rpt-custom__btn" id="rrCustomApply">确定</button>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <script src="../js/store-app-biz-report-data.js?v=20261117-rpt21"></script>
-  <script src="../js/store-app-biz-restock-report.js?v=20261117-rpt21"></script>
+  <script src="../js/store-app-biz-report-data.js?v=20261117-bd1"></script>
+  <script src="../js/store-app-biz-session.js?v=20261117-bd1"></script>
+  <script src="../js/store-app-biz-restock-report.js?v=20261117-bd1"></script>
 </body>
 </html>

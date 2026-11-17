@@ -294,8 +294,79 @@
   color: var(--rpt-primary);
 }
 
-#rptRangeSheet .sa-rpt-custom {
-  margin-top: 12px;
+/* 时间 Sheet：对齐 11.4 前钱包 ua-sw-time（列表 → 自定义子页） */
+.sa-rpt-sheet--time .sa-rpt-sheet__panel {
+  padding: 0 0 calc(8px + env(safe-area-inset-bottom, 0px));
+  max-height: 72%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.sa-rpt-sheet--time .sa-rpt-sheet__hd {
+  position: relative;
+  margin: 0;
+  padding: 14px 16px 10px;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sa-rpt-sheet--time .sa-rpt-sheet__hd strong {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.sa-rpt-sheet__back {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border: 0;
+  background: none;
+  color: #333;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.sa-rpt-sheet__back[hidden] {
+  display: none !important;
+}
+
+.sa-rpt-sheet__back svg {
+  width: 20px;
+  height: 20px;
+}
+
+.sa-rpt-sheet--time .sa-rpt-sheet__close {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.sa-rpt-time-list {
+  padding: 4px 0 12px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+/* 预设 pill 保留原样；进自定义子页时隐藏 */
+.sa-rpt-sheet--time .sa-rpt-range {
+  padding: 4px 16px 12px;
+  margin: 0;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sa-rpt-sheet.is-custom .sa-rpt-range,
+.sa-rpt-sheet.is-custom .sa-rpt-time-list {
+  display: none;
 }
 
 /* 经营概览 2×2 */
@@ -772,13 +843,12 @@
   color: var(--rpt-primary);
 }
 
-/* 自定义区间：对齐 C 端钱包 ua-sw-time-custom */
+/* 自定义起止：对齐钱包 ua-sw-time-custom（11.4 前已有） */
 .sa-rpt-custom {
   display: block;
-  margin: 0 0 8px;
-  padding: 12px;
+  padding: 8px 16px calc(16px + env(safe-area-inset-bottom, 0px));
   background: #fff;
-  border-radius: 12px;
+  flex-shrink: 0;
 }
 
 .sa-rpt-custom[hidden] {
@@ -786,7 +856,7 @@
 }
 
 .sa-rpt-custom__hint {
-  margin: 0 0 12px;
+  margin: 0 0 14px;
   font-size: 12px;
   color: #999;
 }
@@ -820,7 +890,7 @@
   background: transparent;
   font-size: 15px;
   font-weight: 600;
-  color: var(--rpt-text);
+  color: #222;
   font-family: inherit;
   padding: 0;
   min-height: 22px;
@@ -840,15 +910,25 @@
   flex-shrink: 0;
 }
 
+.sa-rpt-custom__err {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: #e54d42;
+}
+
+.sa-rpt-custom__err[hidden] {
+  display: none !important;
+}
+
 .sa-rpt-custom__btn {
   display: block;
   width: 100%;
-  margin-top: 14px;
+  margin-top: 18px;
   height: 44px;
   padding: 0 16px;
   border: 0;
   border-radius: 22px;
-  background: var(--rpt-primary);
+  background: #ff7a00;
   color: #fff;
   font-size: 15px;
   font-weight: 600;
@@ -856,7 +936,7 @@
 }
 
 .sa-rpt-custom__btn:active {
-  opacity: 0.92;
+  background: #e86e00;
 }
 
 .sa-rpt-hero {
@@ -1089,6 +1169,104 @@
 .sa-rpt-entry__arrow {
   color: var(--rpt-muted);
   font-size: 20px;
+}
+
+/* 营业额 · 业务线拆分 */
+.sa-rpt-bizlines {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sa-rpt-bizline {
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--rpt-cell);
+}
+
+.sa-rpt-bizline.is-coming {
+  background: #f7f8fa;
+}
+
+.sa-rpt-bizline__hd {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sa-rpt-bizline__name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--rpt-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sa-rpt-bizline__badge {
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 500;
+  color: #8a8f9c;
+  background: #eef0f4;
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+
+.sa-rpt-bizline__meta {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--rpt-muted);
+}
+
+.sa-rpt-bizline__amt {
+  font-family: var(--rpt-din);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--rpt-text);
+  line-height: 1.2;
+}
+
+.sa-rpt-bizline__soon {
+  font-size: 13px;
+  color: #a0a4b0;
+  flex-shrink: 0;
+}
+
+.sa-rpt-bizline__kids {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed #e4e7ee;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sa-rpt-bizline__kid {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.sa-rpt-bizline__kid-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sa-rpt-bizline__kid-name {
+  font-size: 13px;
+  color: var(--rpt-text);
+  font-weight: 500;
+}
+
+.sa-rpt-bizline__plat {
+  font-size: 11px;
+  color: var(--rpt-muted);
 }
 
 .sa-rpt-empty {

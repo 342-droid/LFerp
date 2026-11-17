@@ -1406,7 +1406,7 @@
         overview:
           '本区从营业额角度看本店经营。\n· 按顾客支付成功时间统计。\n· 点卡片右上角可切换时间，只影响经营概览与经营趋势，不影响上方佣金。\n· 佣金与经营是两套数字，请勿相加当作「收入」。',
         'overview-metrics':
-          '营业额＝顾客实际支付金额。\n订单数＝支付成功的主订单数。\n核销数＝到店自提且已核销的笔数。\n客单价＝营业额÷主订单数。',
+          '营业额＝门店实际营业额，即顾客在本店实际付了多少钱。点营业额可按已开通来源查看。\n订单数＝支付成功的主订单数。\n核销数＝到店自提且已核销的笔数。\n客单价＝营业额÷主订单数。',
         credited: '本月／年度佣金按佣金入账成功时间统计，表示已记入门店收益，不等于已提现到银行卡。',
         withdrawable: '当前可提现余额来自门店钱包，不随历史日期筛选变化。',
         members: '会员数：本店会员人数。',
@@ -1418,29 +1418,119 @@
           '流失会员：连续30天未在本店支付成功的会员。\n再次在本店支付成功后，不再计为流失。',
         rbt:
           'RBT 表示本店联营采购的付款账单进度。\n· 约定付款：约定需要付清的总额。\n· 累计实付：已成功按日扣款的合计。\n· 剩余应付＝约定付款−累计实付。\n· 状态「付款中」＝仍在按日付款。\n· 预计回本周期：按本店投入与付款进度估算的天数；暂无法估算时显示「不适用」。\n本卡为当前进度，不随上方时间筛选变化。点指标可查看付款账单。',
-        pickupMerchant: '到店自提统一由本店核销。'
+        pickupMerchant: '到店自提统一由本店核销。',
+        aftersale:
+          '售后按履约方式拆开看：\n· 快递到家：顾客收货后的退款／售后。\n· 到店自提：顾客到店核销相关的售后，与本店关联更强，请优先关注商品与核销问题。\n售后金额按退款成功时间统计，随本卡片右上角时间变化。',
+        'pickup-sales':
+          '自提销售只统计到店自提订单：\n· 自提订单＝支付成功的自提单数。\n· 已核销＝到店完成核销的笔数。\n· 待核销＝已支付尚未核销。\n· 下方排行按自提商品成交额排序，便于备货。'
       }
     };
   }
 
-  /** 单店 RBT 演示：默认有业务；URL ?rbt=0 可隐藏 */
-  function buildStoreRbt() {
+  /** 验收开关：paying 付款中｜none 无RBT｜done 已完成付款；URL ?rbt=0|none|done|paying 可覆盖 */
+  var RBT_DEMO_KEY = 'sa_biz_rbt_demo_v1';
+
+  function readRbtDemoMode() {
     var q = typeof location !== 'undefined' ? location.search || '' : '';
-    var forceOff = /(?:\?|&)rbt=0(?:&|$)/.test(q);
-    var forceOn = /(?:\?|&)rbt=1(?:&|$)/.test(q);
-    var has = forceOn || (!forceOff && true);
-    if (!has) {
-      return { hasRbt: false };
+    if (/(?:\?|&)rbt=(?:0|none)(?:&|$)/.test(q)) return 'none';
+    if (/(?:\?|&)rbt=(?:done|finished|2)(?:&|$)/.test(q)) return 'done';
+    if (/(?:\?|&)rbt=(?:1|paying|on)(?:&|$)/.test(q)) return 'paying';
+    try {
+      var v = localStorage.getItem(RBT_DEMO_KEY);
+      if (v === 'none' || v === 'done' || v === 'paying') return v;
+    } catch (e) { /* ignore */ }
+    return 'paying';
+  }
+
+  function writeRbtDemoMode(mode) {
+    var next = mode === 'none' || mode === 'done' ? mode : 'paying';
+    try {
+      localStorage.setItem(RBT_DEMO_KEY, next);
+    } catch (e) { /* ignore */ }
+    return next;
+  }
+
+  function buildStoreRbt() {
+    var mode = readRbtDemoMode();
+    if (mode === 'none') {
+      return { hasRbt: false, demoMode: 'none' };
+    }
+    if (mode === 'done') {
+      return {
+        hasRbt: true,
+        demoMode: 'done',
+        agreedPay: 48000,
+        actualPay: 48000,
+        remainPay: 0,
+        status: '已完成付款',
+        paybackCycle: '已回本',
+        dailyRows: [
+          { d: '10-28', m: '日结付款', a: 980 },
+          { d: '10-20', m: '日结付款', a: 1200 },
+          { d: '10-12', m: '日结付款', a: 1560 },
+          { d: '09-30', m: '日结付款', a: 2100 },
+          { d: '09-15', m: '结清尾款', a: 42160 }
+        ]
+      };
     }
     return {
       hasRbt: true,
+      demoMode: 'paying',
       agreedPay: 48000,
       /* 累计实付／剩余应付可带小数：千分位逗号 + 小数点 */
       actualPay: 12360.5,
       remainPay: 35639.5,
       status: '付款中',
-      paybackCycle: '约 86 天'
+      paybackCycle: '约 86 天',
+      dailyRows: [
+        { d: '11-16', m: '日结付款', a: 420.5 },
+        { d: '11-15', m: '日结付款', a: 386.0 },
+        { d: '11-14', m: '日结付款', a: 512.3 },
+        { d: '11-13', m: '日结付款', a: 298.0 },
+        { d: '11-12', m: '日结付款', a: 176.2 }
+      ]
     };
+  }
+
+  /** 侧边「RBT验收开关」；业务态锁死时仍可切换 */
+  function mountRbtDemoPanel(opts) {
+    if (typeof document === 'undefined') return;
+    if (document.getElementById('saRbtDemoPanel')) return;
+    var o = opts || {};
+    var panel = document.createElement('div');
+    panel.id = 'saRbtDemoPanel';
+    panel.className = 'sa-lp-demo sa-lp-demo--rbt';
+    panel.setAttribute('aria-label', 'RBT验收开关');
+    var cur = readRbtDemoMode();
+    panel.innerHTML =
+      '<div class="sa-lp-demo__title">RBT验收开关</div>' +
+      '<label class="sa-lp-demo__row">RBT状态' +
+      '<select id="saRbtDemoMode" aria-label="RBT状态">' +
+      '<option value="paying">付款中</option>' +
+      '<option value="none">无RBT模块</option>' +
+      '<option value="done">已完成付款</option>' +
+      '</select></label>' +
+      '<button type="button" class="sa-lp-demo__apply" id="saRbtDemoApply">应用并刷新</button>';
+    document.body.appendChild(panel);
+    var sel = document.getElementById('saRbtDemoMode');
+    if (sel) sel.value = cur;
+    var apply = document.getElementById('saRbtDemoApply');
+    if (apply) {
+      apply.addEventListener('click', function () {
+        var next = (sel && sel.value) || 'paying';
+        writeRbtDemoMode(next);
+        if (typeof o.onApply === 'function') {
+          o.onApply(next);
+          return;
+        }
+        /* 无 RBT 时若在账单页，回总览验收隐藏卡 */
+        if (next === 'none' && /biz-rbt\.html/i.test(location.pathname || '')) {
+          location.href = 'biz-center.html';
+          return;
+        }
+        location.reload();
+      });
+    }
   }
 
   function buildTrend(range, custom, metric) {
@@ -1625,7 +1715,82 @@
     list.sort(function (a, b) {
       return b.paid - a.paid;
     });
-    return { dim: dim || 'bizType', totalPaid: round2(totalPaid), items: list };
+    return { dim: dim || 'bizType', totalPaid: round2(totalPaid), items: list, label: bounds.label };
+  }
+
+  /**
+   * 营业额下级：按业务线拆分本店支付成功金额。
+   * 已有：直播、商城；未来：POS（堂食／外卖平台／团购核销平台）。
+   */
+  function buildBizLineRevenue(range, custom) {
+    var bounds = resolveRange(range, custom);
+    var comp = buildComposition(range, custom, 'channel');
+    var byName = {};
+    (comp.items || []).forEach(function (x) {
+      byName[x.name] = x;
+    });
+
+    function activeLine(id, name) {
+      var item = byName[name];
+      return {
+        id: id,
+        name: name,
+        status: 'active',
+        paid: item ? item.paid : 0,
+        mainOrderCount: item ? item.mainOrderCount : 0,
+        share: item ? item.share : 0,
+        children: null
+      };
+    }
+
+    var live = activeLine('live', '直播');
+    var mall = activeLine('mall', '商城');
+    var activePaid = round2(live.paid + mall.paid);
+    if (activePaid > 0) {
+      live.share = round2((live.paid / activePaid) * 100);
+      mall.share = round2((mall.paid / activePaid) * 100);
+    }
+
+    var pos = {
+      id: 'pos',
+      name: 'POS',
+      status: 'coming',
+      paid: null,
+      mainOrderCount: null,
+      share: null,
+      tip: '即将开通，暂未获取',
+      children: [
+        {
+          id: 'pos-dine',
+          name: '堂食',
+          status: 'coming',
+          paid: null,
+          platforms: []
+        },
+        {
+          id: 'pos-takeout',
+          name: '外卖',
+          status: 'coming',
+          paid: null,
+          platforms: ['京东', '美团', '淘闪']
+        },
+        {
+          id: 'pos-group',
+          name: '团购核销',
+          status: 'coming',
+          paid: null,
+          platforms: ['大众', '美团', '抖音']
+        }
+      ]
+    };
+
+    return {
+      range: range,
+      label: bounds.label,
+      totalPaid: activePaid,
+      note: '门店实际营业额：顾客在本店实际付了多少钱，按已开通来源分开看。',
+      lines: [live, mall, pos]
+    };
   }
 
   function buildGoodsRank(range, custom, sortBy) {
@@ -1934,13 +2099,15 @@
       merchantSubject: r.merchantSubject,
       supplierName: r.supplierName,
       goods: firstGoods
-        ? firstGoods + (goodsCount > 1 ? ' 共' + goodsCount + '件商品' : '')
+        ? firstGoods.replace(/\s+/g, '') + (goodsCount > 0 ? ' 共' + goodsCount + '件' : '')
         : (r.goodsItems || [])
             .map(function (g) {
               return g.name + ' * ' + g.qty;
             })
             .join('；'),
+      goodsCount: goodsCount,
       goodsThumb: (r.goodsItems && r.goodsItems[0] && r.goodsItems[0].img) || '',
+      avatar: r.avatar || '',
       paid: r.paid,
       goodsPaid: r.goodsPaid,
       freightPaid: r.freightPaid,
@@ -1959,7 +2126,6 @@
       commissionRefundStatus: r.commissionRefundStatus || '',
       commissionRefundTime: r.commissionRefundTime || '',
       relatedCommissionId: r.relatedCommissionId || '',
-      goodsCount: goodsCount,
       payTime: r.payTime,
       orderTime: r.orderTime,
       deliveryTime: r.fulfillMode === '自提' ? '-' : '-',
@@ -1982,8 +2148,227 @@
     };
   }
 
+  /**
+   * BD 关联门店经营总览（演示）
+   * 预警白话给 BD；AL 编号仅内部注释（Q-AL-01～08，一期不做 06/07）
+   */
+  var BD_STORES = [
+    {
+      id: 'STORE-YY',
+      name: '悠悠生鲜超市',
+      area: '江北',
+      paid7d: 18620,
+      pendingSettle: 1280.5,
+      rbtStatus: '付款中',
+      alerts: []
+    },
+    {
+      id: 'STORE-BJ',
+      name: '滨江鲜选店',
+      area: '滨江',
+      paid7d: 6420,
+      pendingSettle: 860,
+      rbtStatus: '付款中',
+      /* AL-01 GMV 下降；AL-08 售后集中（须写明履约类型） */
+      alerts: [
+        {
+          code: 'AL-01',
+          level: 'warn',
+          title: '营业额下降',
+          tip: '近两周营业额较前两周下降超过 20%，建议协助门店盘点引流与主推品。'
+        },
+        {
+          code: 'AL-08',
+          level: 'warn',
+          title: '自提售后偏多',
+          tip: '近 7 天到店自提售后笔数／金额偏高（相对快递到家），建议协助门店核对到店商品与核销。'
+        }
+      ]
+    },
+    {
+      id: 'STORE-CN',
+      name: '城南生鲜店',
+      area: '城南',
+      paid7d: 0,
+      pendingSettle: 120,
+      rbtStatus: '无',
+      idleDays: 8,
+      /* AL-02 连续无成交：页内须写出连续天数 */
+      alerts: [
+        {
+          code: 'AL-02',
+          level: 'danger',
+          title: '连续 8 天无成交',
+          tip: '已连续 8 天无顾客支付成功订单，请尽快上门了解是否停业或断货。',
+          idleDays: 8
+        }
+      ]
+    },
+    {
+      id: 'STORE-HP',
+      name: '湖畔优选店',
+      area: '西湖',
+      paid7d: 11280,
+      pendingSettle: 2460,
+      rbtStatus: '付款中',
+      /* 日结扣款金额不固定，预警看回本周期是否明显拉长（演示阈值：较约定延长 ≥30 天） */
+      alerts: [
+        {
+          code: 'AL-03',
+          level: 'warn',
+          title: '预计回本周期延长超 30 天',
+          tip: '按近期日均实付估算，预计回本约 86 天，较约定进度延长超过 30 天，建议协助门店提升联营销售与日结实付。'
+        }
+      ]
+    }
+  ];
+
+  function getBdStoreById(storeId) {
+    var id = String(storeId || '').trim();
+    for (var i = 0; i < BD_STORES.length; i++) {
+      if (BD_STORES[i].id === id) return BD_STORES[i];
+    }
+    return BD_STORES[0];
+  }
+
+  /**
+   * 售后情况：按履约方式拆「快递到家 / 到店自提」
+   * 自提售后与门店关联更强，页内单独成列便于门店／BD 关注
+   */
+  function buildAftersaleSummary(range, custom) {
+    var bounds = resolveRange(range, custom);
+    var rows = SUB_ORDERS.filter(function (r) {
+      return Number(r.refund) > 0 && inTimeRange(r.refundTime || r.payTime, bounds);
+    });
+    var express = { count: 0, amount: 0 };
+    var pickup = { count: 0, amount: 0 };
+    rows.forEach(function (r) {
+      var amt = round2(Number(r.refund) || 0);
+      if (r.fulfillMode === '自提') {
+        pickup.count += 1;
+        pickup.amount = round2(pickup.amount + amt);
+      } else {
+        express.count += 1;
+        express.amount = round2(express.amount + amt);
+      }
+    });
+    var paidRows = sumPaidInRange(bounds);
+    var paidAmt = paidRows.reduce(function (s, r) {
+      return s + (Number(r.paid) || 0);
+    }, 0);
+    var refundAmt = round2(express.amount + pickup.amount);
+    return {
+      label: bounds.label,
+      totalCount: rows.length,
+      totalAmount: refundAmt,
+      expressCount: express.count,
+      expressAmount: express.amount,
+      pickupCount: pickup.count,
+      pickupAmount: pickup.amount,
+      refundRate: paidAmt > 0 ? round2((refundAmt / paidAmt) * 100) : 0
+    };
+  }
+
+  /**
+   * 商品销售（自提／核销）：到店自提成交与已核销
+   */
+  function buildPickupSales(range, custom) {
+    var bounds = resolveRange(range, custom);
+    var pickupPaid = SUB_ORDERS.filter(function (r) {
+      return r.fulfillMode === '自提' && inTimeRange(r.payTime, bounds);
+    });
+    var verified = pickupPaid.filter(function (r) {
+      return r.settleStatus === '已结算';
+    });
+    var paidAmt = round2(
+      pickupPaid.reduce(function (s, r) {
+        return s + (Number(r.paid) || 0);
+      }, 0)
+    );
+    var goodsMap = {};
+    pickupPaid.forEach(function (r) {
+      var items = r.goodsItems || [];
+      if (!items.length) {
+        items = [{ name: '自提商品', qty: 1, paid: Number(r.paid) || 0 }];
+      }
+      items.forEach(function (g) {
+        var name = g.name || '商品';
+        if (!goodsMap[name]) goodsMap[name] = { name: name, qty: 0, paid: 0, verify: 0 };
+        goodsMap[name].qty += Number(g.qty) || 1;
+        goodsMap[name].paid = round2(goodsMap[name].paid + (Number(g.paid) || 0));
+        if (r.settleStatus === '已结算') goodsMap[name].verify += Number(g.qty) || 1;
+      });
+    });
+    var topGoods = Object.keys(goodsMap)
+      .map(function (k) {
+        return goodsMap[k];
+      })
+      .sort(function (a, b) {
+        return b.paid - a.paid;
+      })
+      .slice(0, 5);
+    return {
+      label: bounds.label,
+      pickupOrderCount: pickupPaid.length,
+      verifyCount: verified.length,
+      pickupPaidAmount: paidAmt,
+      pendingVerify: Math.max(0, pickupPaid.length - verified.length),
+      topGoods: topGoods
+    };
+  }
+
+  function buildBdPortfolio(filter) {
+    var f = filter || 'all';
+    var list = BD_STORES.map(function (s) {
+      return {
+        id: s.id,
+        name: s.name,
+        area: s.area,
+        paid7d: s.paid7d,
+        pendingSettle: s.pendingSettle,
+        rbtStatus: s.rbtStatus,
+        idleDays: s.idleDays || 0,
+        alertCount: (s.alerts || []).length,
+        alerts: (s.alerts || []).slice(),
+        hasAlert: !!(s.alerts && s.alerts.length)
+      };
+    });
+    if (f === 'alert') {
+      list = list.filter(function (s) {
+        return s.hasAlert;
+      });
+    }
+    var alertStores = BD_STORES.filter(function (s) {
+      return s.alerts && s.alerts.length;
+    }).length;
+    var alertItems = [];
+    BD_STORES.forEach(function (s) {
+      (s.alerts || []).forEach(function (a) {
+        alertItems.push({
+          storeId: s.id,
+          storeName: s.name,
+          code: a.code,
+          level: a.level,
+          title: a.title,
+          tip: a.tip
+        });
+      });
+    });
+    return {
+      storeCount: BD_STORES.length,
+      alertStoreCount: alertStores,
+      alertCount: alertItems.length,
+      stores: list,
+      alerts: alertItems,
+      asOf: UPDATED_AT
+    };
+  }
+
   global.StoreAppBizReportData = {
     STORE: STORE,
+    BD_STORES: BD_STORES,
+    getBdStoreById: getBdStoreById,
+    buildBdPortfolio: buildBdPortfolio,
     DEMO_TODAY: DEMO_TODAY,
     UPDATED_AT: UPDATED_AT,
     listSubOrders: function () {
@@ -2004,10 +2389,17 @@
     buildOverview: buildOverview,
     buildTrend: buildTrend,
     buildComposition: buildComposition,
+    buildBizLineRevenue: buildBizLineRevenue,
     buildGoodsRank: buildGoodsRank,
     buildCustomers: buildCustomers,
+    buildAftersaleSummary: buildAftersaleSummary,
+    buildPickupSales: buildPickupSales,
     buildRestock: buildRestock,
     buildStoreRbt: buildStoreRbt,
+    readRbtDemoMode: readRbtDemoMode,
+    writeRbtDemoMode: writeRbtDemoMode,
+    mountRbtDemoPanel: mountRbtDemoPanel,
+    RBT_DEMO_KEY: RBT_DEMO_KEY,
     filterSubOrders: filterSubOrders,
     /**
      * 知识库 + 产品确认口径（知页结算文档 / 门店钱包 PRD / 本轮确认）

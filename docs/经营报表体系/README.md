@@ -1,6 +1,6 @@
 # 经营报表体系 · 文档索引
 
-按 PRD 第十二节交付物，本目录先落 **产品文档 1 / 3 / 10**，本轮不做页面原型与菜单改代码。
+按经营报表体系交付物，本目录落 **产品文档 1 / 3 / 10** 及单店样式说明；门店端「经营参谋」可点原型与功能 PRD 见 `prototype-prd/门店经营参谋.md`。
 
 ## 本轮文档
 
@@ -18,11 +18,21 @@
 |---|---|
 | [经营中心佣金日期口径-禅道粘贴.html](../经营中心佣金日期口径-禅道粘贴.html) | 门店佣金五态、下单日 vs 入账日、回退时间等；指标字典直接引用 |
 
-门店经营参谋现网原型（仅参考，本轮不改）：
+门店／BD 经营参谋可点原型与 PRD（含角色对照）：
 
+- PRD：[prototype-prd/门店经营参谋.md](../../prototype-prd/门店经营参谋.md)（v2 · 门店 APP＋BD APP）
 - `store-app/h5/biz-center.html`（经营总览）
+- `store-app/h5/biz-revenue.html`（营业额 · 业务线）
 - `store-app/h5/biz-commission.html`（佣金明细）
 - `store-app/h5/biz-restock-report.html`（进货概况）
+- `store-app/h5/biz-rbt.html`（RBT 付款账单）
+
+BD 视角（工作台入口 → 多店 → 单店）：
+
+- `MDM/mdm_bd_workbench.html`（工作台宫格「经营参谋」）
+- `store-app/h5/biz-bd-home.html`（多店总览）
+- `store-app/h5/biz-bd-alerts.html`（经营提醒）
+- 单店下钻示例：`store-app/h5/biz-center.html?role=bd&storeId=STORE-BJ&from=bd-app`
 
 ## 后续轮次（本目录暂不写）
 
@@ -44,6 +54,8 @@
 
 | 版本 | 日期 | 说明 |
 |---|---|---|
+| v1.12 | 2026-11-17 | 挂接 BD 经营参谋多店总览／经营提醒预览链接 |
+| v1.11 | 2026-11-17 | 挂接门店经营参谋 PRD（prototype-prd） |
 | v1.10 | 2026-11-17 | 新增 05 单店经营报表样式与参数＋样式稿 |
 | v1.9 | 2026-11-16 | 新增 04 已确认口径复核包（流程图＋需求逻辑） |
 | v1.8 | 2026-11-16 | P3a 业务细则；JV-09 跟回本表；SET-06 按周期设计看板 |

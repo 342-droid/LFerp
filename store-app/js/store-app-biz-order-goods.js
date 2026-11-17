@@ -124,7 +124,14 @@
     var root = document.getElementById('ogRoot');
     var back = document.getElementById('ogBack');
     if (back && params.get('from') !== 'orders') {
-      back.setAttribute('href', 'biz-commission.html');
+      var href = 'biz-commission.html';
+      if (window.StoreAppBizSession && typeof window.StoreAppBizSession.appendQs === 'function') {
+        href = window.StoreAppBizSession.appendQs(href);
+      }
+      back.setAttribute('href', href);
+    }
+    if (window.StoreAppBizSession && typeof window.StoreAppBizSession.boot === 'function') {
+      window.StoreAppBizSession.boot();
     }
     var order = findOrder(id);
     if (!root) return;

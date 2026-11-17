@@ -681,3 +681,11 @@
   font-size: 11px;
   cursor: pointer;
 }
+
+/* 经营参谋 · RBT 验收：贴右侧，避开底栏 */
+.sa-lp-demo--rbt {
+  left: auto;
+  right: 8px;
+  bottom: 72px;
+  width: 210px;
+}

@@ -260,9 +260,21 @@
     });
   }
 
-  function syncCustom() {
-    var custom = $('rrCustom');
-    if (custom) custom.hidden = state.range !== 'custom';
+  function openCustomSheet() {
+    var sheet = $('rrTimeSheet');
+    var today = (D() && D().DEMO_TODAY) || '';
+    if ($('rrCustomStart')) $('rrCustomStart').value = state.custom.start || today;
+    if ($('rrCustomEnd')) $('rrCustomEnd').value = state.custom.end || today;
+    if ($('rrCustomErr')) {
+      $('rrCustomErr').hidden = true;
+      $('rrCustomErr').textContent = '';
+    }
+    if (sheet) sheet.hidden = false;
+  }
+
+  function closeCustomSheet() {
+    var sheet = $('rrTimeSheet');
+    if (sheet) sheet.hidden = true;
   }
 
   function bind() {
@@ -271,28 +283,54 @@
       range.addEventListener('click', function (e) {
         var btn = e.target.closest('[data-range]');
         if (!btn) return;
-        state.range = btn.getAttribute('data-range');
+        var next = btn.getAttribute('data-range');
+        if (next === 'custom') {
+          openCustomSheet();
+          return;
+        }
+        state.range = next;
         setActive(range, 'data-range', state.range);
-        syncCustom();
-        if (state.range !== 'custom') render();
+        render();
       });
     }
+
+    var sheet = $('rrTimeSheet');
+    if (sheet) {
+      sheet.addEventListener('click', function (e) {
+        if (e.target === sheet || e.target.closest('[data-close-rr-time]')) {
+          closeCustomSheet();
+        }
+      });
+    }
+
     var apply = $('rrCustomApply');
     if (apply) {
       apply.addEventListener('click', function () {
-        state.custom.start = ($('rrCustomStart') && $('rrCustomStart').value) || '';
-        state.custom.end = ($('rrCustomEnd') && $('rrCustomEnd').value) || '';
-        if (!state.custom.start || !state.custom.end) {
-          toast('请选择起止日期');
+        var start = ($('rrCustomStart') && $('rrCustomStart').value) || '';
+        var end = ($('rrCustomEnd') && $('rrCustomEnd').value) || '';
+        var err = $('rrCustomErr');
+        if (!start || !end) {
+          if (err) {
+            err.hidden = false;
+            err.textContent = '请选择完整的起止日期';
+          } else {
+            toast('请选择起止日期');
+          }
           return;
         }
-        if (state.custom.start > state.custom.end) {
-          toast('开始日期不能晚于结束日期');
+        if (start > end) {
+          if (err) {
+            err.hidden = false;
+            err.textContent = '开始日期不能晚于结束日期';
+          } else {
+            toast('开始日期不能晚于结束日期');
+          }
           return;
         }
+        state.custom = { start: start, end: end };
         state.range = 'custom';
         setActive($('rrRange'), 'data-range', 'custom');
-        syncCustom();
+        closeCustomSheet();
         render();
       });
     }
@@ -306,9 +344,21 @@
     }
     var params = new URLSearchParams(location.search);
     if (params.get('range')) state.range = params.get('range');
+    if (params.get('start')) state.custom.start = params.get('start');
+    if (params.get('end')) state.custom.end = params.get('end');
+    if (window.StoreAppBizSession && typeof window.StoreAppBizSession.boot === 'function') {
+      window.StoreAppBizSession.boot();
+    }
+    /* BD 不开放进货概况：会话层会重定向到总览 */
+    if (
+      window.StoreAppBizSession &&
+      window.StoreAppBizSession.isBd &&
+      window.StoreAppBizSession.isBd()
+    ) {
+      return;
+    }
     bind();
     setActive($('rrRange'), 'data-range', state.range);
-    syncCustom();
     render();
   }
 
