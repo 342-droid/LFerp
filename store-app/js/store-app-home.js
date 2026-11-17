@@ -25,6 +25,10 @@
   }
 
   function goBizCenter() {
+    if (isSupplierMode()) {
+      window.location.href = 'biz-supplier-home.html';
+      return;
+    }
     var api = window.SaLivePromoSession;
     var info = api && typeof api.identity === 'function' ? api.identity() : null;
     /* BD 切店后：进该店经营参谋下钻（顶栏店名，返回多店）；店长/员工：本店总览 */
@@ -111,6 +115,10 @@
           }
           if (action === 'orders') {
             goOrders();
+            return;
+          }
+          if (action === 'supplierBiz') {
+            window.location.href = 'biz-supplier-home.html';
             return;
           }
           if (action === 'supplierOrders') {
@@ -328,6 +336,19 @@
     if (storeWs) storeWs.hidden = !!supplier;
     if (supWs) supWs.hidden = !supplier;
     document.body.setAttribute('data-fyb-role', supplier ? 'supplier' : 'store');
+    /* 供应商基础工具已有经营参谋；底栏 Tab 取消，避免跳进门店视角 */
+    var tabbar = document.querySelector('.sa-tabbar');
+    if (tabbar) tabbar.classList.toggle('sa-tabbar--no-biz', !!supplier);
+    document.querySelectorAll('[data-tab-biz], #saTabBiz').forEach(function (el) {
+      el.hidden = !!supplier;
+      if (supplier) {
+        el.setAttribute('aria-hidden', 'true');
+        el.style.display = 'none';
+      } else {
+        el.removeAttribute('aria-hidden');
+        el.style.display = '';
+      }
+    });
     syncHeader();
     if (supplier) syncSupplierContractDot();
     else {

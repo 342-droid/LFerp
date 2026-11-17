@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>丰银宝 · 工作台</title>
-  <link rel="stylesheet" href="../css/store-app.css?v=20261110-store-disabled">
+  <link rel="stylesheet" href="../css/store-app.css?v=20261117-sup-tab3">
   <link rel="stylesheet" href="../css/store-app-scan.css?v=20260826-scan-fit">
   <link rel="stylesheet" href="../css/store-app-qrcode.css?v=20260826-scan-fit">
 </head>
@@ -220,6 +220,16 @@
           <section class="sa-card">
             <h2 class="sa-card__title">基础工具</h2>
             <div class="sa-tools">
+              <button type="button" class="sa-tool" data-sa-action="supplierBiz">
+                <span class="sa-tool__icon sa-tool__icon--orange">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M4 19h16"/>
+                    <path d="M6 19V10l4-2.5L14 11l4-3v11"/>
+                    <path d="M10 19v-5h4v5"/>
+                  </svg>
+                </span>
+                <span class="sa-tool__label">经营参谋</span>
+              </button>
               <button type="button" class="sa-tool" data-sa-action="supplierOrders">
                 <span class="sa-tool__icon sa-tool__icon--yellow">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -275,7 +285,7 @@
           </svg>
           <span>AI</span>
         </button>
-        <button type="button" class="sa-tab" data-sa-action="bizCenter">
+        <button type="button" class="sa-tab" data-sa-action="bizCenter" data-tab-biz id="saTabBiz">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 4h14v3H5V4zm2 5h3v11H7V9zm5 0h3v8h-3V9zm5 0h3v11h-3V9z"/></svg>
           <span>经营参谋</span>
         </button>
@@ -399,7 +409,7 @@
   <script src="../js/store-app-org.js?v=20261105-org-shell"></script>
   <script src="../../js/contract-bodies.js?v=20261105-settle-sup"></script>
   <script src="../../js/basic-settings-contract.js?v=20261109-fdd-one-tpl"></script>
-  <script src="../js/store-app-home.js?v=20261117-biz-split"></script>
+  <script src="../js/store-app-home.js?v=20261117-sup-tab3"></script>
   <script src="../js/store-app-phone-change.js?v=20261116-857-bind"></script>
   <script src="../../js/pg-prd-float.js?v=20260924-prd-all"></script>
 </body>
