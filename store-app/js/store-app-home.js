@@ -25,7 +25,23 @@
   }
 
   function goBizCenter() {
-    window.location.href = 'biz-center.html';
+    var api = window.SaLivePromoSession;
+    var info = api && typeof api.identity === 'function' ? api.identity() : null;
+    /* BD 切店后：进该店经营参谋下钻（顶栏店名，返回多店）；店长/员工：本店总览 */
+    if (info && info.role === 'bd') {
+      var map = {
+        HGH00002: 'STORE-YY',
+        BJS00001: 'STORE-BJ',
+        TSN00001: 'STORE-CN',
+        SHA00001: 'STORE-HP',
+        HGH00001: 'STORE-YY'
+      };
+      var sid = map[info.storeId] || 'STORE-YY';
+      window.location.href =
+        'biz-center.html?role=bd&from=bd-app&storeId=' + encodeURIComponent(sid);
+      return;
+    }
+    window.location.href = 'biz-center.html?from=store-app';
   }
 
   function goVerify(mode) {

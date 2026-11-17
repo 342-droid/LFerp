@@ -93,7 +93,6 @@
     if ($('bdAsOf')) $('bdAsOf').textContent = '关联门店经营 · 数据截至 ' + (data.asOf || '—');
     if ($('bdStoreCnt')) $('bdStoreCnt').textContent = String(data.storeCount || 0);
     if ($('bdAlertStoreCnt')) $('bdAlertStoreCnt').textContent = String(data.alertStoreCount || 0);
-    if ($('bdAlertCnt')) $('bdAlertCnt').textContent = String(data.alertCount || 0);
     var entry = $('bdAlertEntry');
     var hint = $('bdAlertLinkHint');
     if (hint) {

@@ -42,6 +42,28 @@
     });
   }
 
+  var bizBtn = document.getElementById('moreBizCenter');
+  if (bizBtn) {
+    bizBtn.addEventListener('click', function () {
+      var api = window.SaLivePromoSession;
+      var info = api && typeof api.identity === 'function' ? api.identity() : null;
+      if (info && info.role === 'bd') {
+        var map = {
+          HGH00002: 'STORE-YY',
+          BJS00001: 'STORE-BJ',
+          TSN00001: 'STORE-CN',
+          SHA00001: 'STORE-HP',
+          HGH00001: 'STORE-YY'
+        };
+        var sid = map[info.storeId] || 'STORE-YY';
+        window.location.href =
+          'biz-center.html?role=bd&from=bd-app&storeId=' + encodeURIComponent(sid);
+        return;
+      }
+      window.location.href = 'biz-center.html?from=store-app';
+    });
+  }
+
   var grid = document.getElementById('moreGrid');
   if (grid) {
     grid.addEventListener('click', function (e) {

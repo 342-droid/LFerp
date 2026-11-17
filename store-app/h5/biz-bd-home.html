@@ -39,27 +39,24 @@
       font-size: 12px;
       color: #71727a;
     }
-    .sa-bd-sum {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin: 10px 12px 0;
+    .sa-bd-chip-em {
+      display: inline-block;
+      min-width: 16px;
+      margin-left: 4px;
+      padding: 0 5px;
+      border-radius: 8px;
+      background: rgba(255, 101, 1, 0.12);
+      color: #ff6501;
+      font-size: 11px;
+      font-style: normal;
+      font-weight: 600;
+      line-height: 16px;
+      vertical-align: 1px;
     }
-    .sa-bd-sum__cell {
+    .sa-rpt-chip.is-active .sa-bd-chip-em {
       background: #fff;
-      border-radius: 10px;
-      padding: 12px 10px;
-      text-align: center;
+      color: #ff6501;
     }
-    .sa-bd-sum__t { font-size: 11px; color: #71727a; }
-    .sa-bd-sum__v {
-      margin-top: 4px;
-      font-size: 20px;
-      font-weight: 700;
-      font-family: "DIN Alternate", "Helvetica Neue", sans-serif;
-      color: #1f2024;
-    }
-    .sa-bd-sum__v.is-warn { color: #ff6501; }
     .sa-bd-card {
       display: block;
       margin: 0 12px 10px;
@@ -175,20 +172,6 @@
       </header>
       <div class="sa-rpt-scroll">
         <p class="sa-bd-sub" id="bdAsOf">关联门店经营 · 数据截至 —</p>
-        <div class="sa-bd-sum" aria-label="汇总">
-          <div class="sa-bd-sum__cell">
-            <div class="sa-bd-sum__t">关联门店</div>
-            <div class="sa-bd-sum__v" id="bdStoreCnt">0</div>
-          </div>
-          <div class="sa-bd-sum__cell">
-            <div class="sa-bd-sum__t">有预警门店</div>
-            <div class="sa-bd-sum__v is-warn" id="bdAlertStoreCnt">0</div>
-          </div>
-          <div class="sa-bd-sum__cell">
-            <div class="sa-bd-sum__t">提醒</div>
-            <div class="sa-bd-sum__v is-warn" id="bdAlertCnt">0</div>
-          </div>
-        </div>
 
         <a class="sa-bd-link" id="bdAlertEntry" href="biz-bd-alerts.html?from=bd-app&role=bd">
           <div class="sa-bd-link__main">
@@ -200,8 +183,8 @@
 
         <div class="sa-bd-sec-title">关联门店</div>
         <div class="sa-rpt-chips" id="bdFilter" role="tablist" style="margin:0 12px 10px">
-          <button type="button" class="sa-rpt-chip is-active" data-filter="all">全部</button>
-          <button type="button" class="sa-rpt-chip" data-filter="alert">有预警</button>
+          <button type="button" class="sa-rpt-chip is-active" data-filter="all">全部<em class="sa-bd-chip-em" id="bdStoreCnt">0</em></button>
+          <button type="button" class="sa-rpt-chip" data-filter="alert">有预警<em class="sa-bd-chip-em" id="bdAlertStoreCnt">0</em></button>
         </div>
 
         <div id="bdStoreList"></div>
@@ -209,6 +192,6 @@
     </div>
   </div>
   <script src="../js/store-app-biz-report-data.js?v=20261117-bd1"></script>
-  <script src="../js/store-app-biz-bd.js?v=20261117-bd1"></script>
+  <script src="../js/store-app-biz-bd.js?v=20261117-bd3"></script>
 </body>
 </html>

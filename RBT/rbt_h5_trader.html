@@ -534,6 +534,57 @@
         }
         .rbt-bill__line span { flex: none; color: #888; white-space: nowrap; }
         .rbt-bill__line b { flex: 1; min-width: 0; color: #222; font-weight: 600; text-align: right; overflow-wrap: break-word; }
+        .rbt-biz-sec { margin-top: 12px; padding: 12px; border-radius: 10px; background: #fff; border: 1px solid #eee; }
+        .rbt-biz-sec h3 { margin: 0 0 10px; font-size: 15px; color: #222; font-weight: 700; }
+        .rbt-biz-chips { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+        .rbt-biz-chip {
+          border: 1px solid #ffe0cc; background: #fff7f2; color: #666;
+          border-radius: 16px; padding: 4px 12px; font-size: 12px; cursor: pointer;
+        }
+        .rbt-biz-chip.is-on { background: #ff7019; border-color: #ff7019; color: #fff; }
+        .rbt-biz-grid {
+          display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+        }
+        .rbt-biz-cell {
+          padding: 10px; border-radius: 8px; background: #f7f8fa;
+        }
+        .rbt-biz-cell span { display: block; font-size: 11px; color: #888; }
+        .rbt-biz-cell b { display: block; margin-top: 4px; font-size: 16px; color: #222; font-weight: 700; }
+        .rbt-biz-cell.is-wide { grid-column: 1 / -1; }
+        .rbt-biz-trend {
+          display: flex; align-items: flex-end; gap: 4px; height: 48px; margin-top: 10px;
+        }
+        .rbt-biz-trend i {
+          flex: 1; display: block; border-radius: 3px 3px 0 0; background: #ffb07a; min-height: 4px;
+        }
+        .rbt-biz-empty {
+          padding: 14px 10px; border-radius: 8px; background: #f7f8fa; color: #888; font-size: 13px; line-height: 1.5;
+        }
+        .rbt-biz-daily { margin-top: 10px; }
+        .rbt-biz-daily__row {
+          display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0;
+          font-size: 13px; color: #666;
+        }
+        .rbt-biz-daily__row b { color: #222; }
+        .rbt-biz-more {
+          display: block; width: 100%; margin-top: 8px; padding: 10px 0;
+          border: 0; background: transparent; color: #ff7019;
+          font-size: 13px; font-weight: 600; cursor: pointer; text-align: center;
+        }
+        .rbt-biz-hint { margin: 8px 0 0; font-size: 12px; color: #999; line-height: 1.45; }
+        .rbt-store-card {
+          display: block; width: 100%; text-align: left; margin-bottom: 10px; padding: 12px;
+          border-radius: 10px; background: #fff; border: 1px solid #eee; cursor: pointer; font: inherit;
+        }
+        .rbt-store-card__hd { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .rbt-store-card__hd strong { font-size: 15px; color: #222; }
+        .rbt-store-card__hd span { font-size: 12px; color: #ff7019; }
+        .rbt-store-card__metrics {
+          display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px;
+        }
+        .rbt-store-card__metrics div span { display: block; font-size: 11px; color: #888; }
+        .rbt-store-card__metrics div b { display: block; margin-top: 2px; font-size: 14px; color: #222; }
+        .rbt-store-card__foot { margin-top: 8px; font-size: 12px; color: #ff7019; }
     </style>
 </head>
 <body>
@@ -589,6 +640,7 @@
     <script src="../js/mdm-trader-archive-store.js"></script>
     <script src="rbt-settle-ratio.js"></script>
     <script src="rbt-demand-data.js"></script>
+    <script src="rbt-trader-store-biz.js"></script>
     <script src="rbt-contract-sign.js"></script>
     <script src="rbt-h5-trader-app.js"></script>
     <script src="rbt-h5-trader-login.js"></script>

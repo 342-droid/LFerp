@@ -60,21 +60,26 @@
 
   function applyUrl() {
     var params = pageParams();
-    var patch = {};
     var from = params.get('from');
     var role = params.get('role');
     var storeId = params.get('storeId');
-    if (from === 'bd-app' || role === 'bd') {
-      patch.role = 'bd';
-      patch.from = from === 'bd-app' ? 'bd-app' : 'bd-app';
-    }
-    if (storeId) patch.storeId = storeId;
-    if (Object.keys(patch).length) {
+    /* 仅 URL 显式带 BD 入口时进入 BD 下钻；否则强制本店视角，避免 localStorage 残留把店长带进 BD 壳 */
+    var isBdEntry = from === 'bd-app' || role === 'bd';
+    if (isBdEntry) {
+      var patch = { role: 'bd', from: 'bd-app' };
+      if (storeId) patch.storeId = storeId;
       var next = normalize(Object.assign(readRaw() || {}, patch));
       writeRaw(next);
       return next;
     }
-    return normalize(readRaw() || {});
+    var def = defaultStore();
+    var storeSess = normalize({
+      role: 'store',
+      from: 'store-app',
+      storeId: def.id
+    });
+    writeRaw(storeSess);
+    return storeSess;
   }
 
   function read() {
@@ -161,9 +166,25 @@
   /**
    * BD 顶栏 + 底栏回退 + 链接透传 query
    */
+  function clearBdChrome() {
+    document.documentElement.classList.remove('sa-biz-bd', 'sa-biz-bd--no-tabbar');
+    document.body.classList.remove('sa-biz-bd', 'sa-biz-bd--no-tabbar');
+    var bar = document.getElementById('saBizBdBar');
+    if (bar && bar.parentNode) bar.parentNode.removeChild(bar);
+    var tip = document.getElementById('saBizBdAlertTip');
+    if (tip && tip.parentNode) tip.parentNode.removeChild(tip);
+    document.querySelectorAll('.sa-rpt-tabbar, .sa-biz-tabbar').forEach(function (el) {
+      el.hidden = false;
+      el.removeAttribute('aria-hidden');
+    });
+  }
+
   function applyChrome(opts) {
     opts = opts || {};
-    if (!isBd()) return;
+    if (!isBd()) {
+      clearBdChrome();
+      return;
+    }
 
     document.documentElement.classList.add('sa-biz-bd');
     document.body.classList.add('sa-biz-bd');
