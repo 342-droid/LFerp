@@ -1,6 +1,7 @@
-/* 初审通过时按需求单维护结算比例：渠道 + 商品类目，每个渠道一条默认比例。 */
+/* 产品配置维护 POS、直播、商城的默认比例。POS 下可再加堂食、外卖、团购，各自单独比例。需求单上仍可再按商品类目改比例。 */
 (function () {
     var CHANNELS = ['POS', '直播', '商城'];
+    var POS_SUBS = ['堂食', '外卖', '团购'];
     var CATEGORIES = ['新鲜蔬菜', '时令水果', '粮油调味', '肉禽蛋品'];
     var SKU_CATEGORY = {
         SKU10001: '时令水果',
@@ -115,6 +116,17 @@
     function renderHtml(item) {
         var view = viewOf(item);
         if (!view) return '';
+        ensureStyle();
+        if (item && item.hideCategories) {
+            var plain = (item.settleRatios || []).map(function (channel) {
+                var subs = (channel.subs || []).map(function (sub) {
+                    return esc(sub.name) + ' ' + esc(sub.ratio) + '%';
+                }).join('；');
+                var ratio = esc(channel.fallback) + '%' + (subs ? '；' + subs : '');
+                return '<tr><td>' + esc(channel.channel) + '</td><td>' + ratio + '</td></tr>';
+            }).join('');
+            return '<table class="rbt-ratio"><thead><tr><th>渠道</th><th>结算比例</th></tr></thead><tbody>' + plain + '</tbody></table>';
+        }
         var body = view.map(function (channel) {
             var cats = channel.categories.map(function (cat) {
                 return '<span class="rbt-ratio__cat"><b>' + esc(cat.name) + '</b>' + esc(cat.ratio) + '%</span>';
@@ -165,13 +177,13 @@
                 seen[category] = true;
                 rows.push({ category: category, ratio: ratio });
             });
-            next.push({ channel: channel, fallback: fallback, rows: rows });
+            next.push({ channel: channel, fallback: fallback, rows: rows, subs: copySubs(channel, found && found.subs) });
             return true;
         });
         return ok ? next : null;
     }
 
-    /* 只有初审维护过才有结算比例。发布时不带。 */
+    /* 发布需求时从产品配置抄到需求单。没有这份比例时不展示。 */
     function textOf(item) {
         if (!item || item.repayMethod !== '比例付') return '';
         if (!item.settleRatios || !item.settleRatios.length) return '';
@@ -185,11 +197,14 @@
             (channel.rows || []).forEach(function (row) {
                 parts.push(row.category + ' ' + row.ratio + '%');
             });
+            (channel.subs || []).forEach(function (sub) {
+                parts.push(sub.name + ' ' + sub.ratio + '%');
+            });
             return channel.channel + ' ' + parts.join('，');
         }).join('；');
     }
 
-    var EDITABLE_STATUSES = ['待接单', '待确认签约', '待签署', '待付款', '待复核', '还款中'];
+    var EDITABLE_STATUSES = ['待接单', '待确认签约', '待签署', '待付款', '待复核', '付款中'];
 
     function canEdit(item) {
         return !!(item && EDITABLE_STATUSES.indexOf(item.status) >= 0);
@@ -198,7 +213,7 @@
     function emptyDraft() {
         var draft = {};
         CHANNELS.forEach(function (channel) {
-            draft[channel] = { fallback: '', rows: [] };
+            draft[channel] = { fallback: '', rows: [], subs: [] };
         });
         return draft;
     }
@@ -211,7 +226,8 @@
                 fallback: channel.fallback || '',
                 rows: (channel.rows || []).map(function (row) {
                     return { category: row.category, ratio: row.ratio };
-                })
+                }),
+                subs: channel.channel === 'POS' ? copySubs('POS', channel.subs) : []
             };
         });
         return draft;
@@ -276,6 +292,29 @@
         renderEditor(host, draft);
     }
 
+    /* 产品配置表单直接改草稿，不经过审核弹窗里的输入框。 */
+    function collectDraft(draft) {
+        if (!draft) return null;
+        var invalid = false;
+        var list = CHANNELS.map(function (channel) {
+            var item = draft[channel] || { fallback: '', rows: [] };
+            var fallback = parseRatio(item.fallback);
+            if (!fallback) invalid = true;
+            var rows = [];
+            (item.rows || []).forEach(function (row) {
+                var ratio = parseRatio(row && row.ratio);
+                if (!row || !row.category || !ratio) {
+                    invalid = true;
+                    return;
+                }
+                rows.push({ category: row.category, ratio: ratio });
+            });
+            return { channel: channel, fallback: fallback, rows: rows, subs: takenSubs(channel, item.subs, function () { invalid = true; }) };
+        });
+        if (invalid) return null;
+        return normalize(list);
+    }
+
     function collectEditor(host, draft) {
         if (!draft) return null;
         syncEditor(host, draft);
@@ -294,10 +333,42 @@
                 }
                 rows.push({ category: row.category, ratio: ratio });
             });
-            return { channel: channel, fallback: fallback, rows: rows };
+            return { channel: channel, fallback: fallback, rows: rows, subs: takenSubs(channel, item.subs, function () { invalid = true; }) };
         });
         if (invalid) return null;
         return normalize(list);
+    }
+
+    /* POS 二级渠道只收堂食、外卖、团购。同一名称只留一条，比例不合法的丢掉。 */
+    function copySubs(channel, list) {
+        if (channel !== 'POS' || !Array.isArray(list)) return [];
+        var seen = {};
+        var subs = [];
+        list.forEach(function (row) {
+            var name = String(row && row.name || '').trim();
+            var ratio = parseRatio(row && row.ratio);
+            if (POS_SUBS.indexOf(name) < 0 || !ratio || seen[name]) return;
+            seen[name] = true;
+            subs.push({ name: name, ratio: ratio });
+        });
+        return subs;
+    }
+
+    function takenSubs(channel, list, onInvalid) {
+        if (channel !== 'POS') return [];
+        var seen = {};
+        var subs = [];
+        (list || []).forEach(function (row) {
+            var name = String(row && row.name || '').trim();
+            var ratio = parseRatio(row && row.ratio);
+            if (POS_SUBS.indexOf(name) < 0 || !ratio || seen[name]) {
+                if (onInvalid) onInvalid();
+                return;
+            }
+            seen[name] = true;
+            subs.push({ name: name, ratio: ratio });
+        });
+        return subs;
     }
 
     function bindEditor(host, getDraft, toastFn) {
@@ -426,6 +497,7 @@
 
     window.RbtSettleRatio = {
         CHANNELS: CHANNELS.slice(),
+        POS_SUBS: POS_SUBS.slice(),
         CATEGORIES: CATEGORIES.slice(),
         EDITABLE_STATUSES: EDITABLE_STATUSES.slice(),
         parseRatio: parseRatio,
@@ -441,6 +513,7 @@
         emptyDraft: emptyDraft,
         draftFrom: draftFrom,
         renderEditor: renderEditor,
+        collectDraft: collectDraft,
         collectEditor: collectEditor,
         bindEditor: bindEditor,
         openEditor: openEditor,

@@ -36,7 +36,7 @@
         if (status === '已完成' || status === '已签署') return 'success';
         if (status === '已作废' || status === '已取消' || status === '已驳回') return 'neutral';
         if (status === '待审核' || status === '待复核' || status === '待确认签约' || status === '待重新确认' || status === '待签署' || status === '待付款') return 'warning';
-        if (status === '还款中') return 'danger';
+        if (status === '付款中') return 'danger';
         return 'neutral';
     }
 
@@ -155,7 +155,7 @@
         if (api && typeof api.hasContractStatus === 'function') {
             return api.hasContractStatus(item && item.status);
         }
-        return ['待签署', '待付款', '待复核', '还款中', '已完成'].indexOf(item && item.status) >= 0;
+        return ['待签署', '待付款', '待复核', '付款中', '已完成'].indexOf(item && item.status) >= 0;
     }
 
     function resolveSignStatus(item, contract) {
@@ -278,15 +278,45 @@
         return '<div class="supplier-detail-section-title">关联合同</div>' + inner;
     }
 
+    function depositView(item) {
+        var storeApi = window.RbtStoreData;
+        var store = storeApi && item && typeof storeApi.get === 'function' ? storeApi.get(item.storeCode) : null;
+        if (store && (store.depositPaid === true || store.depositPaid === false)) {
+            if (store.depositPaid !== true) return { paid: false };
+            var file = store.depositVoucher || {};
+            return {
+                paid: true,
+                voucherName: file.name || '缴纳凭证',
+                voucherType: file.type || '',
+                voucherData: file.data || '',
+                uploadedBy: file.uploadedBy || '',
+                uploadedAt: file.uploadedAt || ''
+            };
+        }
+        return item && item.guaranteeDeposit;
+    }
+
     function voucherSection(item) {
-        var voucher = item && item.guaranteeDeposit;
-        var title = '<div class="supplier-detail-section-title">担保金缴纳凭证</div>';
-        if (!voucher || !voucher.voucherData) {
-            return title + '<div class="rbt-demand-empty">暂无担保金缴纳凭证</div>';
+        var voucher = depositView(item);
+        var title = '<div class="supplier-detail-section-title">保证金缴纳凭证</div>';
+        if (voucher && voucher.paid === false) {
+            return title + '<div class="supplier-detail-grid">' + textCell('缴纳状态', '未缴纳') + '</div>';
+        }
+        if (!voucher || (!voucher.voucherData && !voucher.auto)) {
+            return title + '<div class="rbt-demand-empty">暂无保证金缴纳凭证</div>';
+        }
+        if (voucher.auto && !voucher.voucherData) {
+            return title +
+                '<div class="supplier-detail-grid">' +
+                textCell('缴纳状态', '已缴纳') +
+                textCell('凭证文件', voucher.voucherName || '系统自动审核') +
+                textCell('上传人', voucher.uploadedBy || '系统') +
+                textCell('上传时间', voucher.uploadedAt) +
+                '</div>';
         }
         var isImage = String(voucher.voucherType || '').indexOf('image/') === 0 || /^data:image\//.test(String(voucher.voucherData || ''));
         var preview = isImage
-            ? '<img src="' + esc(voucher.voucherData) + '" alt="担保金缴纳凭证" style="display:block;max-width:280px;margin-top:8px;border:1px solid #eee;border-radius:6px;">'
+            ? '<img src="' + esc(voucher.voucherData) + '" alt="保证金缴纳凭证" style="display:block;max-width:280px;margin-top:8px;border:1px solid #eee;border-radius:6px;">'
             : '<div style="margin-top:8px;"><a href="' + esc(voucher.voucherData) + '" target="_blank" rel="noopener">查看凭证</a></div>';
         return title +
             '<div class="supplier-detail-grid">' +
@@ -300,18 +330,18 @@
     function relatedDocsSection(item) {
         var api = window.RbtTradeDocs;
         var docs = api && typeof api.docsOfDemand === 'function' ? api.docsOfDemand(item && item.code) : [];
-        if ((!docs || !docs.length) && item && item.status !== '还款中' && item.status !== '已完成') return '';
-        var title = '<div class="supplier-detail-section-title">关联购销单</div>';
+        if ((!docs || !docs.length) && item && item.status !== '付款中' && item.status !== '已完成') return '';
+        var title = '<div class="supplier-detail-section-title">关联交易单</div>';
         if (!docs || !docs.length) {
-            return title + '<div class="rbt-demand-empty">暂无关联购销单</div>';
+            return title + '<div class="rbt-demand-empty">暂无关联交易单</div>';
         }
-        var head = '<tr><th>单据</th><th>单号</th><th>买方</th><th>卖方</th><th class="is-money">金额</th><th>状态</th></tr>';
+        var head = '<tr><th>单号</th><th>买方</th><th>卖方</th><th>收货方</th><th class="is-money">总金额</th><th>状态</th></tr>';
         var body = docs.map(function (row) {
-            var name = row.docType || '购销单';
-            return '<tr><td>' + esc(name) + '</td><td><button type="button" class="rbt-demand-contract-link" data-rbt-trade-open="' +
+            return '<tr><td><button type="button" class="rbt-demand-contract-link" data-rbt-trade-open="' +
                 esc(row.code) + '">' + esc(row.code) + '</button></td><td>' +
-                esc(row.buyerName || row.receivePlace) + '</td><td>' +
-                esc(row.sellerName || row.supplier) + '</td><td class="is-money">' +
+                esc(row.buyerName || '—') + '</td><td>' +
+                esc(row.sellerName || '—') + '</td><td>' +
+                esc(row.receiveName || '—') + '</td><td class="is-money">' +
                 money(row.amount) + '</td><td>' + esc(row.status) + '</td></tr>';
         }).join('');
         return title + '<div class="rbt-demand-table-wrap"><table class="rbt-demand-table"><thead>' + head +
@@ -349,6 +379,8 @@
             textCell('接单贸易商', item.traderName || '—') +
             textCell('服务商', item.providerName || '—') +
             textCell('接单时间', item.acceptedAt) +
+            textCell('备注', item.remark || '—') +
+            textCell('撤回原因', item.withdrawReason || '—') +
             textCell('门店', show(item.storeName) + '（' + show(item.storeCode) + '）') +
             textCell('商品包', show(item.packageName) + '（' + show(item.packageCode) + '）') +
             textCell('产品', show(item.installmentName) + '（' + show(item.installmentCode) + '）') +
@@ -380,7 +412,7 @@
                 if (!ratioApi || typeof ratioApi.openEditor !== 'function') return;
                 ratioApi.openEditor(item, {
                     onSaved: function (saved) {
-                        open(saved);
+                        open(saved, { keepAudit: true });
                     }
                 });
             });
@@ -429,8 +461,49 @@
         }
     }
 
-    function open(item) {
+    var auditSession = null;
+
+    function auditFooter() {
+        return (
+            '<div class="store-drawer__footer rbt-audit-foot">' +
+            '<label class="rbt-audit-foot__reason">驳回原因<textarea data-rbt-audit-opinion placeholder="驳回时必填"></textarea></label>' +
+            '<div class="rbt-audit-foot__actions">' +
+            '<button type="button" class="btn is-danger" data-rbt-audit-reject>审核驳回</button>' +
+            '<button type="button" class="btn btn-primary" data-rbt-audit-pass>审核通过</button>' +
+            '</div></div>'
+        );
+    }
+
+    function bindAuditFooter(drawer) {
+        if (!auditSession) return;
+        var passBtn = drawer.querySelector('[data-rbt-audit-pass]');
+        var rejectBtn = drawer.querySelector('[data-rbt-audit-reject]');
+        if (passBtn) {
+            passBtn.addEventListener('click', function () {
+                var done = auditSession.onPass && auditSession.onPass();
+                if (done !== false) closeDrawer();
+            });
+        }
+        if (rejectBtn) {
+            rejectBtn.addEventListener('click', function () {
+                var opinionNode = drawer.querySelector('[data-rbt-audit-opinion]');
+                var opinion = opinionNode ? String(opinionNode.value || '').trim() : '';
+                if (!opinion) {
+                    if (typeof window.showToast === 'function') window.showToast('驳回原因必填', 'error');
+                    else window.alert('驳回原因必填');
+                    return;
+                }
+                var done = auditSession.onReject && auditSession.onReject(opinion);
+                if (done !== false) closeDrawer();
+            });
+        }
+    }
+
+    function open(item, options) {
         if (!item) return;
+        if (!(options && options.keepAudit)) {
+            auditSession = options && options.audit ? options.audit : null;
+        }
         closeDrawer();
         var backdrop = document.createElement('div');
         backdrop.className = 'store-drawer-backdrop';
@@ -452,7 +525,8 @@
             '<div class="store-drawer__tabs store-drawer__tabs--sticky" id="rbtDemandTabs">' +
             '<button type="button" class="store-drawer__tab is-active" data-tab="base">基础信息</button>' +
             '<button type="button" class="store-drawer__tab" data-tab="logs">操作记录</button></div>' +
-            '<div class="store-drawer__body" id="rbtDemandBody"></div>';
+            '<div class="store-drawer__body" id="rbtDemandBody"></div>' +
+            (auditSession ? auditFooter() : '');
         document.body.appendChild(backdrop);
         document.body.appendChild(drawer);
         backdrop.addEventListener('click', closeDrawer);
@@ -473,6 +547,7 @@
             show(button.getAttribute('data-tab'));
         });
         show('base');
+        if (auditSession) bindAuditFooter(drawer);
     }
 
     window.RbtDemandDetail = { open: open, close: closeDrawer };

@@ -122,6 +122,13 @@
         .rbt-pass-del { border: 0; background: transparent; color: #cf1322; cursor: pointer; font-size: 13px; padding: 0; }
         .rbt-aud-stage { display: inline-block; min-width: 40px; padding: 2px 8px; border-radius: 4px; font-size: 12px; text-align: center; background: #f0f5ff; color: #1d39c4; }
         .rbt-aud-stage.is-review { background: #fff7e6; color: #d48806; }
+        .rbt-audit-foot { flex-direction: column; align-items: stretch; gap: 12px; }
+        .rbt-audit-foot__actions { display: flex; justify-content: flex-end; gap: 8px; }
+        .rbt-audit-foot__reason { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #303133; }
+        .rbt-audit-foot textarea { width: 100%; min-height: 64px; padding: 8px 10px; border: 1px solid #dcdfe6; border-radius: 4px; font: inherit; resize: vertical; }
+        .rbt-audit-foot .is-danger { background: #fff; color: #cf1322; border: 1px solid #ffccc7; }
+        .rbt-audit-review h3 { margin: 12px 0 8px; font-size: 14px; color: #303133; }
+        .rbt-audit-review h3:first-child { margin-top: 0; }
     </style>
 </head>
 <body>
@@ -135,7 +142,7 @@
             <hr class="content-divider">
             <div class="content-title">审核中心 / RBT审核 / 需求单审核</div>
 
-            <div class="mdm-biz-tip" role="note">门店端<strong>发布需求</strong>后，本页新增一条「初审」待审核。需求进入<strong>待复核</strong>后，再新增一条「复核」待审核。复核时需核对合同是否全部签署、需求门店担保金是否缴纳，并上传缴纳凭证。</div>
+            <div class="mdm-biz-tip" role="note">门店端<strong>发布需求</strong>后，本页新增一条「初审」待审核。需求进入<strong>待复核</strong>后，再新增一条「复核」待审核。点<strong>审核</strong>打开需求单详情，在底部通过或驳回。各渠道结算比例在产品配置维护，门店发布需求时就记到该需求单。复核时需核对合同是否全部签署、需求门店担保金是否缴纳，并上传缴纳凭证。</div>
 
             <section class="search-section">
                 <form class="search-form" onsubmit="return false;">
@@ -198,77 +205,14 @@
         </main>
     </div>
 
-    <div class="rbt-demand-contract-mask" id="rbtReviewMask" hidden>
-        <div class="rbt-demand-contract" role="dialog" aria-modal="true" aria-label="复核审核">
-            <div class="rbt-demand-contract__head">
-                <div>
-                    <div class="rbt-demand-contract__eyebrow">复核审核</div>
-                    <div class="rbt-demand-contract__title" id="rbtReviewTitle">需求单</div>
-                    <div class="rbt-demand-contract__meta">请核对以下事项后再通过</div>
-                </div>
-                <button type="button" class="rbt-demand-contract__close" data-review-close aria-label="关闭">&times;</button>
-            </div>
-            <div class="rbt-review-body">
-                <h3>1. 合同是否全部签署完成</h3>
-                <div id="rbtReviewContracts"></div>
-                <h3>2. 需求门店担保金是否缴纳</h3>
-                <div class="rbt-review-check">
-                    <label><input type="radio" name="rbtDeposit" value="yes"> 已缴纳</label>
-                    <label><input type="radio" name="rbtDeposit" value="no"> 未缴纳</label>
-                </div>
-                <h3>3. 上传需求门店的担保金缴纳凭证</h3>
-                <input class="rbt-review-file" id="rbtReviewFile" type="file" accept="image/*,.pdf">
-                <div class="rbt-review-note" id="rbtReviewFileName">支持图片或 PDF，通过复核时必须上传。</div>
-                <div class="rbt-review-preview" id="rbtReviewPreview"></div>
-                <h3>驳回原因</h3>
-                <textarea class="rbt-review-opinion" id="rbtReviewOpinion" placeholder="驳回时必填"></textarea>
-            </div>
-            <div class="rbt-review-foot">
-                <button type="button" class="btn btn-secondary" data-review-close>取消</button>
-                <button type="button" class="btn is-danger" id="rbtReviewReject">驳回</button>
-                <button type="button" class="btn btn-primary" id="rbtReviewPass">通过</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="rbt-demand-contract-mask" id="rbtPassMask" hidden>
-        <div class="rbt-demand-contract" role="dialog" aria-modal="true" aria-label="初审通过">
-            <div class="rbt-demand-contract__head">
-                <div>
-                    <div class="rbt-demand-contract__eyebrow">初审通过</div>
-                    <div class="rbt-demand-contract__title" id="rbtPassTitle">需求单</div>
-                    <div class="rbt-demand-contract__meta">先确认是否有服务商。选「是」后再选择服务商，并按本单维护各渠道结算比例。通过后记到这张需求单，状态变为待接单。</div>
-                </div>
-                <button type="button" class="rbt-demand-contract__close" data-pass-close aria-label="关闭">&times;</button>
-            </div>
-            <div class="rbt-review-body">
-                <h3><span style="color:#cf1322">*</span>是否有服务商</h3>
-                <div class="rbt-review-check" id="rbtPassHasProvider">
-                    <label><input type="radio" name="rbtHasProvider" value="yes"> 是</label>
-                    <label><input type="radio" name="rbtHasProvider" value="no"> 否</label>
-                </div>
-                <div id="rbtPassProviderWrap" hidden>
-                    <div class="rbt-pass-field rbt-pass-provider">
-                        <span class="rbt-pass-label"><span style="color:#cf1322">*</span>服务商</span>
-                        <select id="rbtPassProvider"></select>
-                    </div>
-                    <p class="rbt-review-note" id="rbtPassProviderNote">仅可选择贸易商档案中主体类型为服务商的档案。</p>
-                </div>
-                <div id="rbtPassForm"></div>
-            </div>
-            <div class="rbt-review-foot">
-                <button type="button" class="btn btn-secondary" data-pass-close>取消</button>
-                <button type="button" class="btn btn-primary" id="rbtPassConfirm">通过</button>
-            </div>
-        </div>
-    </div>
-
     <script src="../js/common.js"></script>
     <script src="../js/pagination.js"></script>
     <script src="../js/form-utils.js"></script>
     <script src="../js/business-tag-prototype-store.js"></script>
     <script src="../js/mdm-product-catalog-store.js"></script>
-    <script src="../js/mdm-trader-archive-store.js?v=20261113-subject-type"></script>
+    <script src="../js/mdm-provider-archive-store.js?v=20261117-provider"></script>
+    <script src="../js/mdm-trader-archive-store.js?v=20261117-provider"></script>
+    <script src="../RBT/rbt-installment.js"></script>
     <script src="../RBT/rbt-store-data.js"></script>
     <script src="../RBT/rbt-settle-ratio.js"></script>
     <script src="../RBT/rbt-demand-data.js"></script>

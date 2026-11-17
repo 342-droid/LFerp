@@ -62,12 +62,13 @@
         { href: 'mdm_party_all.html', text: '所有主体' }
     ];
 
-    /** 商家列表：门店/供应商/仓库/贸易商档案 */
+    /** 商家列表：门店/供应商/仓库/贸易商/服务商档案 */
     const archiveItems = [
         { href: 'mdm_archive_store.html', text: '门店档案' },
         { href: 'mdm_archive_supplier.html', text: '供应商档案' },
         { href: 'mdm_archive_warehouse.html', text: '仓库档案' },
-        { href: 'mdm_archive_trader.html', text: '贸易商档案' }
+        { href: 'mdm_archive_trader.html', text: '贸易商档案' },
+        { href: 'mdm_archive_provider.html', text: '服务商档案' }
     ];
 
     const peopleItems = [

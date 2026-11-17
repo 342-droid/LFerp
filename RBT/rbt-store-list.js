@@ -59,6 +59,19 @@
         return amount;
     }
 
+    function parseDemandLimit(values) {
+        var text = String(values.demandlimit == null ? '' : values.demandlimit).trim();
+        if (!text) {
+            ElMessage.error('请输入需求次数');
+            return false;
+        }
+        if (!/^[1-9]\d*$/.test(text)) {
+            ElMessage.error('需求次数须为大于 0 的整数');
+            return false;
+        }
+        return Number(text);
+    }
+
     function paginate(list, params) {
         var pageNum = Number(params.pageNum) || 1;
         var pageSize = Number(params.pageSize) || 20;
@@ -104,7 +117,7 @@
                 { dataIndex: 'enabled', title: '状态', width: 100 },
                 { dataIndex: 'contactQuery', title: '联系人姓名', hideInTable: true, search: { control: 'input' } },
                 { dataIndex: 'contactPhone', title: '联系人手机号', hideInTable: true, search: { control: 'input' } },
-                { dataIndex: 'storeTags', title: '门店标签', minWidth: 180, align: 'left' },
+                { dataIndex: 'storeTags', title: 'RBT标签', minWidth: 180, align: 'left' },
                 {
                     dataIndex: 'storeQuota',
                     title: '门店总额度',
@@ -138,6 +151,25 @@
                         return moneyText(dataApi.quotaOf(row).available);
                     }
                 },
+                {
+                    dataIndex: 'demandLimit',
+                    title: '需求次数',
+                    width: 100,
+                    align: 'right',
+                    formatter: function (row) {
+                        return String(dataApi.demandLimitOf(row));
+                    }
+                },
+                {
+                    dataIndex: 'depositPaid',
+                    title: '保证金',
+                    width: 100,
+                    formatter: function (row) {
+                        if (row.depositPaid === true) return '已缴纳';
+                        if (row.depositPaid === false) return '未缴纳';
+                        return '—';
+                    }
+                },
                 { dataIndex: 'partnerType', title: '门店合作类型', minWidth: 120 },
                 { dataIndex: 'storeType', title: '门店类型', minWidth: 120 },
                 { dataIndex: 'bizLine', title: '事业线', minWidth: 110 },
@@ -147,7 +179,7 @@
                 { dataIndex: 'phone', title: '联系人手机号', minWidth: 150 },
                 { dataIndex: 'legalName', title: '法人姓名', minWidth: 100, search: { control: 'input' } },
                 { dataIndex: 'legalPhone', title: '法人手机号', minWidth: 150, search: { control: 'input' } },
-                { dataIndex: 'tagQuery', title: '门店标签', hideInTable: true, search: { control: 'select', options: tagOptions, placeholder: '请选择' } },
+                { dataIndex: 'tagQuery', title: 'RBT标签', hideInTable: true, search: { control: 'select', options: tagOptions, placeholder: '请选择' } },
                 { dataIndex: 'warehouse', title: '配送仓库', minWidth: 140, align: 'left', showOverflowTooltip: true },
                 { dataIndex: 'region', title: '省市区', minWidth: 180, align: 'left', showOverflowTooltip: true, formatter: regionText },
                 { dataIndex: 'address', title: '详细地址', minWidth: 200, align: 'left', showOverflowTooltip: true },
@@ -197,7 +229,31 @@
                     required: true,
                     colSpan: 24
                 },
-                { field: 'storeTags', label: '门店标签', control: 'select', multiple: true, defaultValue: [], colSpan: 24, options: tagOptions, placeholder: '可不选' },
+                {
+                    field: 'demandlimit',
+                    label: '需求次数',
+                    control: 'slot',
+                    requiredMark: true,
+                    required: true,
+                    defaultValue: '1',
+                    colSpan: 12
+                },
+                {
+                    field: 'depositpaid',
+                    label: '保证金是否缴纳',
+                    control: 'slot',
+                    requiredMark: true,
+                    defaultValue: '',
+                    colSpan: 24
+                },
+                {
+                    field: 'depositvoucher',
+                    label: '缴纳凭证',
+                    control: 'slot',
+                    defaultValue: null,
+                    colSpan: 24
+                },
+                { field: 'storeTags', label: 'RBT标签', control: 'select', multiple: true, defaultValue: [], colSpan: 24, options: tagOptions, placeholder: '可不选' },
                 lockedField('code', '门店编码'),
                 lockedField('name', '门店名称'),
                 lockedField('partnerType', '门店合作类型'),
@@ -233,7 +289,31 @@
                     required: true,
                     colSpan: 24
                 },
-                { field: 'storeTags', label: '门店标签', control: 'select', multiple: true, defaultValue: [], colSpan: 24, options: tagOptions, placeholder: '可不选' },
+                {
+                    field: 'demandlimit',
+                    label: '需求次数',
+                    control: 'slot',
+                    requiredMark: true,
+                    required: true,
+                    defaultValue: '1',
+                    colSpan: 12
+                },
+                {
+                    field: 'depositpaid',
+                    label: '保证金是否缴纳',
+                    control: 'slot',
+                    requiredMark: true,
+                    defaultValue: '',
+                    colSpan: 24
+                },
+                {
+                    field: 'depositvoucher',
+                    label: '缴纳凭证',
+                    control: 'slot',
+                    defaultValue: null,
+                    colSpan: 24
+                },
+                { field: 'storeTags', label: 'RBT标签', control: 'select', multiple: true, defaultValue: [], colSpan: 24, options: tagOptions, placeholder: '可不选' },
                 lockedField('code', '门店编码'),
                 lockedField('name', '门店名称'),
                 lockedField('partnerType', '门店合作类型'),
@@ -250,7 +330,7 @@
                 lockedField('address', '详细地址', { colSpan: 24 })
             ];
             var batchFields = [
-                { field: 'storeTags', label: '门店标签', control: 'select', multiple: true, required: true, defaultValue: [], options: tagOptions, placeholder: '请选择标签' }
+                { field: 'storeTags', label: 'RBT标签', control: 'select', multiple: true, required: true, defaultValue: [], options: tagOptions, placeholder: '请选择标签' }
             ];
 
             function requestRows(params) {
@@ -305,6 +385,56 @@
                 form.storequota = quotaInputText(value);
             }
 
+            function onDemandLimitInput(form, value) {
+                form.demandlimit = String(value == null ? '' : value).replace(/\D/g, '').replace(/^0+/, '');
+            }
+
+            function depositFileText(form) {
+                var file = form && form.depositvoucher;
+                return file && file.name ? '已选择：' + file.name : '支持图片或 PDF，不超过 800KB';
+            }
+
+            function onDepositFile(form, event) {
+                var input = event && event.target;
+                var file = input && input.files && input.files[0];
+                if (!file) {
+                    form.depositvoucher = null;
+                    return;
+                }
+                if (file.size > 800 * 1024) {
+                    ElMessage.error('凭证文件请控制在 800KB 以内');
+                    input.value = '';
+                    form.depositvoucher = null;
+                    return;
+                }
+                var reader = new FileReader();
+                reader.onload = function () {
+                    form.depositvoucher = {
+                        name: file.name || '缴纳凭证',
+                        type: file.type || '',
+                        data: String(reader.result || ''),
+                        uploadedAt: dataApi.nowText ? dataApi.nowText() : '',
+                        uploadedBy: '用户名'
+                    };
+                };
+                reader.readAsDataURL(file);
+            }
+
+            function parseDeposit(values) {
+                if (values.depositpaid !== '是' && values.depositpaid !== '否') {
+                    ElMessage.error('请选择保证金是否缴纳');
+                    return false;
+                }
+                if (values.depositpaid === '是' && !(values.depositvoucher && values.depositvoucher.data)) {
+                    ElMessage.error('请上传保证金缴纳凭证');
+                    return false;
+                }
+                return {
+                    depositPaid: values.depositpaid === '是',
+                    depositVoucher: values.depositpaid === '是' ? values.depositvoucher : null
+                };
+            }
+
             function openEdit(row) {
                 afterSave = 'edit';
                 var store = dataApi.get(row.code) || row;
@@ -316,7 +446,10 @@
                     archiveCode: store.archiveCode || '',
                     status: store.enabled === false ? '禁用' : '启用',
                     storeTags: tags,
-                    storequota: quota.total > 0 ? String(quota.total) : ''
+                    storequota: quota.total > 0 ? String(quota.total) : '',
+                    demandlimit: String(dataApi.demandLimitOf(store)),
+                    depositpaid: store.depositPaid === true ? '是' : store.depositPaid === false ? '否' : '',
+                    depositvoucher: store.depositPaid === true && store.depositVoucher && store.depositVoucher.data ? store.depositVoucher : null
                 }));
             }
 
@@ -341,7 +474,7 @@
             function beforeSubmitBatch(values) {
                 var picked = values.storeTags || [];
                 if (!picked.length) {
-                    ElMessage.error('请选择门店标签');
+                    ElMessage.error('请选择RBT标签');
                     return false;
                 }
                 return values;
@@ -369,7 +502,7 @@
 
             function logTagChange(code, before, after) {
                 if (!dataApi || typeof dataApi.appendLog !== 'function' || sameTagIds(before, after)) return;
-                dataApi.appendLog(code, '门店标签：' + tagNames(before) + ' → ' + tagNames(after));
+                dataApi.appendLog(code, 'RBT标签：' + tagNames(before) + ' → ' + tagNames(after));
             }
 
             function applyBatchTags(values) {
@@ -400,7 +533,11 @@
                 }
                 var amount = parseQuota(values);
                 if (amount === false) return false;
-                return Object.assign({}, values, { storequota: amount });
+                var demandLimit = parseDemandLimit(values);
+                if (demandLimit === false) return false;
+                var deposit = parseDeposit(values);
+                if (deposit === false) return false;
+                return Object.assign({}, values, { storequota: amount, demandlimit: demandLimit }, deposit);
             }
 
             function beforeSubmitEdit(values) {
@@ -414,11 +551,20 @@
                 }
                 var amount = parseQuota(values);
                 if (amount === false) return false;
-                return Object.assign({}, values, { storequota: amount });
+                var demandLimit = parseDemandLimit(values);
+                if (demandLimit === false) return false;
+                var deposit = parseDeposit(values);
+                if (deposit === false) return false;
+                return Object.assign({}, values, { storequota: amount, demandlimit: demandLimit }, deposit);
             }
 
             function addStore(values) {
-                var created = dataApi.addFromArchive(Object.assign({}, values, { storeQuota: values.storequota }));
+                var created = dataApi.addFromArchive(Object.assign({}, values, {
+                    storeQuota: values.storequota,
+                    demandLimit: values.demandlimit,
+                    depositPaid: values.depositPaid,
+                    depositVoucher: values.depositVoucher
+                }));
                 if (!created || created.duplicate) {
                     ElMessage.error(created && created.duplicate ? '该门店已在准入列表中' : '请选择门店档案中的门店');
                     throw { __handledByPage: true };
@@ -439,7 +585,10 @@
                     code: values.code,
                     rbtLevel: values.rbtLevel,
                     enabled: values.status !== '禁用',
-                    storeQuota: values.storequota
+                    storeQuota: values.storequota,
+                    demandLimit: values.demandlimit,
+                    depositPaid: values.depositPaid,
+                    depositVoucher: values.depositVoucher
                 });
                 if (window.BusinessTagPrototypeStore) {
                     var nextTags = values.storeTags || [];
@@ -499,6 +648,9 @@
                 addStore: addStore,
                 updateStore: updateStore,
                 onQuotaInput: onQuotaInput,
+                onDemandLimitInput: onDemandLimitInput,
+                depositFileText: depositFileText,
+                onDepositFile: onDepositFile,
                 refreshTable: refreshTable
             };
         }

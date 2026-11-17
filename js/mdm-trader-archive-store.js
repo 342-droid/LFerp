@@ -46,7 +46,9 @@
         row.createdAt = createdAt;
         row.updatedBy = row.updatedBy || row.createdBy || '系统';
         row.updatedAt = row.updatedAt || createdAt;
-        row.subjectType = row.subjectType === '服务商' ? '服务商' : '贸易商';
+        row.subjectType = '贸易商';
+        var bound = String(row.boundProvider || '').trim();
+        row.boundProvider = bound && bound !== '—' ? bound : '冷丰';
         return row;
     }
 
@@ -61,8 +63,7 @@
                 shortName: '鲜达贸易',
                 region: '浙江省/杭州市/西湖区',
                 detailAddr: '文三路100号',
-                licenseType: '商业保理公司',
-                bizScope: '保理',
+                boundProvider: '冷丰',
                 contact: '周宁',
                 phone: '138****1001',
                 onboardStatus: '进件成功',
@@ -102,8 +103,7 @@
                 shortName: '冷链租赁',
                 region: '上海市/浦东新区',
                 detailAddr: '张杨路188号',
-                licenseType: '融资租赁公司',
-                bizScope: '融资租赁',
+                boundProvider: '冷丰',
                 contact: '李航',
                 phone: '138****1002',
                 onboardStatus: '进件中',
@@ -134,47 +134,6 @@
                 updatedBy: '系统',
                 updatedAt: '2026-11-07 15:11:09'
             },
-            {
-                id: 'TRD20190003',
-                subjectId: 'TRD-SUB-003',
-                subjectName: '宁波海丰商业保理有限公司',
-                subjectType: '服务商',
-                name: '宁波海丰商业保理有限公司',
-                shortName: '海丰保理',
-                region: '浙江省/宁波市/鄞州区',
-                detailAddr: '中山东路666号',
-                licenseType: '持牌金融机构',
-                bizScope: '其他',
-                contact: '陈可',
-                phone: '138****1003',
-                onboardStatus: '未进件',
-                status: '正常',
-                license: {
-                    name: '宁波海丰商业保理有限公司',
-                    creditCode: '91330212MA2XXXXX1B',
-                    type: '有限责任公司',
-                    legal: '陈可',
-                    capital: '800万元人民币',
-                    founded: '2020-08-08',
-                    address: '浙江省宁波市鄞州区中山东路666号',
-                    scope: '商业保理',
-                    image: ''
-                },
-                permit: {
-                    no: '',
-                    name: '',
-                    legal: '',
-                    place: '',
-                    mode: '',
-                    items: '',
-                    expire: '',
-                    image: ''
-                },
-                createdBy: '系统',
-                createdAt: '2026-11-06 09:45:33',
-                updatedBy: '系统',
-                updatedAt: '2026-11-06 09:45:33'
-            }
         ].map(normalize);
     }
 
@@ -185,21 +144,24 @@
             list = seed();
             changed = true;
         } else {
-            var seedById = {};
-            seed().forEach(function (item) {
-                seedById[item.id] = item;
+            var kept = [];
+            var moved = [];
+            list.forEach(function (item) {
+                if (item && item.subjectType === '服务商') moved.push(item);
+                else kept.push(item);
             });
-            list = list.map(function (item) {
-                var hadType = !!(item && String(item.subjectType || '').trim());
+            if (moved.length) {
+                var providerApi = window.MdmProviderArchiveStore;
+                if (providerApi && typeof providerApi.importFromTrader === 'function') {
+                    providerApi.importFromTrader(moved);
+                    changed = true;
+                } else {
+                    kept = kept.concat(moved);
+                }
+            }
+            list = kept.map(function (item) {
                 var before = JSON.stringify(item);
                 var after = normalize(item);
-                var base = seedById[after.id];
-                if (base) {
-                    if (!after.bizScope) after.bizScope = base.bizScope;
-                    if (!after.license || !after.license.name) after.license = base.license;
-                    if (!after.permit || !after.permit.no) after.permit = base.permit;
-                    if (!hadType && base.subjectType) after.subjectType = base.subjectType;
-                }
                 if (JSON.stringify(after) !== before) changed = true;
                 return after;
             });
@@ -247,17 +209,17 @@
         var stamp = nowText();
         var shortName = String((payload && payload.shortName) || '').trim();
         if (!shortName) shortName = name.length > 6 ? name.slice(0, 6) : name;
+        var boundProvider = String((payload && payload.boundProvider) || '').trim();
         var row = normalize({
             id: nextId(list),
             subjectId: subjectId,
             subjectName: subjectName,
-            subjectType: String((payload && payload.subjectType) || '').trim() === '服务商' ? '服务商' : '贸易商',
+            subjectType: '贸易商',
             name: name,
             shortName: shortName,
             region: String((payload && payload.region) || '').trim() || '—',
             detailAddr: String((payload && payload.detailAddr) || '').trim() || '—',
-            licenseType: String((payload && payload.licenseType) || '').trim() || '商业保理公司',
-            bizScope: String((payload && payload.bizScope) || '').trim() || '—',
+            boundProvider: boundProvider && boundProvider !== '—' ? boundProvider : '冷丰',
             contact: String((payload && payload.contact) || '').trim() || '—',
             phone: maskPhone((payload && payload.phone) || ''),
             license: (payload && payload.license) || {},

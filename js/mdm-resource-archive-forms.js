@@ -1452,7 +1452,6 @@
     }
 
     var TRADER_LICENSE_TYPES = ['商业保理公司', '融资租赁公司', '持牌金融机构', '地方金融组织'];
-    var TRADER_BIZ_SCOPES = ['保理', '融资租赁', '其他'];
 
     function traderOptions(placeholder, values) {
         return [{ value: '', label: placeholder }].concat(
@@ -1462,17 +1461,35 @@
         );
     }
 
+    function providerBindOptions() {
+        var opts = [{ value: '', label: '请选择绑定服务商' }];
+        var seen = {};
+        var api = window.MdmProviderArchiveStore;
+        if (api && typeof api.list === 'function') {
+            api.list().forEach(function (item) {
+                var name = String((item && (item.name || item.subjectName)) || '').trim();
+                if (!name || name === '—' || seen[name]) return;
+                seen[name] = true;
+                opts.push({ value: name, label: name });
+            });
+        }
+        return opts;
+    }
+
     function markRequired(el, message) {
         if (!el) return;
         el.setAttribute('data-required-msg', message);
     }
 
-    function createTraderFormBundle() {
+    function createTraderFormBundle(mode) {
+        var isProvider = mode === 'provider';
+        var noun = isProvider ? '服务商' : '贸易商';
         var refs = {};
         var body = document.createElement('div');
         var subjects = [{ value: '', label: '请选择主体名称' }];
-        if (window.MdmTraderArchiveStore && typeof window.MdmTraderArchiveStore.list === 'function') {
-            window.MdmTraderArchiveStore.list().forEach(function (item) {
+        var archiveApi = isProvider ? window.MdmProviderArchiveStore : window.MdmTraderArchiveStore;
+        if (archiveApi && typeof archiveApi.list === 'function') {
+            archiveApi.list().forEach(function (item) {
                 var name = String((item && item.subjectName) || '').trim();
                 if (!name || name === '—') return;
                 if (subjects.some(function (opt) { return opt.label === name; })) return;
@@ -1483,23 +1500,29 @@
         refs.subjectSel = sel(subjects, '');
         markRequired(refs.subjectSel, '请选择主体名称');
         body.appendChild(formRow('主体名称', true, refs.subjectSel));
-        refs.subjectTypeSel = sel(traderOptions('请选择主体类型', ['贸易商', '服务商']), '贸易商');
-        markRequired(refs.subjectTypeSel, '请选择主体类型');
-        body.appendChild(formRow('主体类型', true, refs.subjectTypeSel));
-        refs.nameInp = txt('请输入贸易商名称', '');
-        markRequired(refs.nameInp, '请输入贸易商名称');
-        body.appendChild(formRow('贸易商名称', true, refs.nameInp));
-        refs.shortNameInp = txt('请输入贸易商简称', '');
-        body.appendChild(formRow('贸易商简称', false, refs.shortNameInp));
-        refs.licenseSel = sel(traderOptions('请选择牌照类型', TRADER_LICENSE_TYPES), '');
-        markRequired(refs.licenseSel, '请选择牌照类型');
-        body.appendChild(formRow('牌照类型', true, refs.licenseSel));
-        refs.scopeSel = sel(traderOptions('请选择业务范围', TRADER_BIZ_SCOPES), '');
-        markRequired(refs.scopeSel, '请选择业务范围');
-        body.appendChild(formRow('业务范围', true, refs.scopeSel));
+        refs.subjectTypeInp = txt('', noun);
+        refs.subjectTypeInp.value = noun;
+        refs.subjectTypeInp.disabled = true;
+        body.appendChild(formRow('主体类型', true, refs.subjectTypeInp));
+        refs.nameInp = txt('请输入' + noun + '名称', '');
+        markRequired(refs.nameInp, '请输入' + noun + '名称');
+        body.appendChild(formRow(noun + '名称', true, refs.nameInp));
+        refs.shortNameInp = txt('请输入' + noun + '简称', '');
+        body.appendChild(formRow(noun + '简称', false, refs.shortNameInp));
+        if (isProvider) {
+            refs.providerTypeSel = sel(traderOptions('请选择服务商类型', TRADER_LICENSE_TYPES), '');
+            markRequired(refs.providerTypeSel, '请选择服务商类型');
+            body.appendChild(formRow('服务商类型', true, refs.providerTypeSel));
+        } else {
+            var bindOpts = providerBindOptions();
+            var defaultBind = bindOpts.some(function (opt) { return opt.value === '冷丰'; }) ? '冷丰' : '';
+            refs.boundSel = sel(bindOpts, defaultBind);
+            markRequired(refs.boundSel, '请选择绑定服务商');
+            body.appendChild(formRow('绑定服务商', true, refs.boundSel));
+        }
         refs.regionInp = txt('省 / 市 / 区', '');
-        markRequired(refs.regionInp, '请输入贸易商地址');
-        body.appendChild(formRow('贸易商地址', true, refs.regionInp));
+        markRequired(refs.regionInp, '请输入' + noun + '地址');
+        body.appendChild(formRow(noun + '地址', true, refs.regionInp));
         var detailWrap = txtAreaWithCount('请输入详细地址', 200, '');
         refs.detailTa = detailWrap.querySelector('textarea');
         markRequired(refs.detailTa, '请输入详细地址');
@@ -1516,7 +1539,7 @@
         markRequired(refs.contactInp, '请输入联系人姓名');
         body.appendChild(formRow('联系人姓名', true, refs.contactInp));
         body.appendChild(
-            radioGroup('贸易商状态', true, 'trader-status-' + Date.now(), [
+            radioGroup(noun + '状态', true, (isProvider ? 'provider' : 'trader') + '-status-' + Date.now(), [
                 ['正常', '正常'],
                 ['冻结', '冻结']
             ], '正常')
@@ -1546,17 +1569,21 @@
 
         function fillFromArchiveRow(tr) {
             var c = tr.querySelectorAll('td');
-            var id = tr.getAttribute('data-trader-id') || cellPlainText(c[0]);
-            var stored = window.MdmTraderArchiveStore && window.MdmTraderArchiveStore.get
-                ? window.MdmTraderArchiveStore.get(id)
-                : null;
+            var id =
+                tr.getAttribute(isProvider ? 'data-provider-id' : 'data-trader-id') || cellPlainText(c[0]);
+            var stored = archiveApi && archiveApi.get ? archiveApi.get(id) : null;
             ensureSubjectOption((stored && stored.subjectName) || cellPlainText(c[1]));
-            var subjectType = dashToEmpty((stored && stored.subjectType) || cellPlainText(c[2])) || '贸易商';
-            refs.subjectTypeSel.value = subjectType === '服务商' ? '服务商' : '贸易商';
+            refs.subjectTypeInp.value = noun;
             refs.nameInp.value = dashToEmpty((stored && stored.name) || cellPlainText(c[3]));
             refs.shortNameInp.value = dashToEmpty((stored && stored.shortName) || cellPlainText(c[4]));
-            refs.licenseSel.value = dashToEmpty((stored && stored.licenseType) || cellPlainText(c[7]));
-            refs.scopeSel.value = dashToEmpty(stored && stored.bizScope);
+            if (refs.providerTypeSel) {
+                refs.providerTypeSel.value = dashToEmpty((stored && stored.providerType) || cellPlainText(c[7]));
+            }
+            if (refs.boundSel) {
+                var bound = dashToEmpty((stored && stored.boundProvider) || cellPlainText(c[7]));
+                refs.boundSel.value = bound;
+                if (refs.boundSel.value !== bound) refs.boundSel.value = '';
+            }
             refs.regionInp.value = dashToEmpty((stored && stored.region) || cellPlainText(c[5]));
             if (refs.detailTa) refs.detailTa.value = dashToEmpty((stored && stored.detailAddr) || cellPlainText(c[6]));
             if (refs.phoneInp) refs.phoneInp.value = dashToEmpty((stored && stored.phone) || cellPlainText(c[9]));
@@ -1573,11 +1600,11 @@
                 subjectName: refs.subjectSel.options[refs.subjectSel.selectedIndex]
                     ? refs.subjectSel.options[refs.subjectSel.selectedIndex].text.trim()
                     : '',
-                subjectType: refs.subjectTypeSel.value === '服务商' ? '服务商' : '贸易商',
+                subjectType: noun,
                 name: refs.nameInp.value.trim(),
                 shortName: refs.shortNameInp.value.trim(),
-                licenseType: refs.licenseSel.value.trim(),
-                bizScope: refs.scopeSel.value.trim(),
+                providerType: refs.providerTypeSel ? refs.providerTypeSel.value.trim() : '',
+                boundProvider: refs.boundSel ? refs.boundSel.value.trim() : '',
                 region: refs.regionInp.value.trim(),
                 detailAddr: refs.detailTa ? refs.detailTa.value.trim() : '',
                 phone: refs.phoneInp ? refs.phoneInp.value.trim() : '',
@@ -2131,6 +2158,43 @@
                     return false;
                 }
                 var updated = window.MdmTraderArchiveStore.update(Object.assign({ id: id }, payload));
+                if (!updated) {
+                    if (typeof showToast === 'function') showToast('保存失败', 'error');
+                    return false;
+                }
+                if (typeof onSaved === 'function') onSaved(updated);
+            });
+        },
+        openProviderAdd: function (onSaved) {
+            var bundle = createTraderFormBundle('provider');
+            attachWideModal('新增服务商', bundle.body, function () {
+                if (!bundle.validate()) return false;
+                var payload = bundle.collect();
+                if (!window.MdmProviderArchiveStore || typeof window.MdmProviderArchiveStore.add !== 'function') {
+                    if (typeof showToast === 'function') showToast('服务商档案存储未加载', 'error');
+                    return false;
+                }
+                var created = window.MdmProviderArchiveStore.add(payload);
+                if (!created) {
+                    if (typeof showToast === 'function') showToast('新增失败，请检查必填项', 'error');
+                    return false;
+                }
+                if (typeof onSaved === 'function') onSaved(created);
+            });
+        },
+        openProviderEdit: function (tr, onSaved) {
+            if (!tr) return;
+            var bundle = createTraderFormBundle('provider');
+            bundle.fillFromArchiveRow(tr);
+            attachWideModal('编辑服务商', bundle.body, function () {
+                if (!bundle.validate()) return false;
+                var payload = bundle.collect();
+                var id = tr.getAttribute('data-provider-id') || (tr.querySelector('td') && tr.querySelector('td').textContent.trim());
+                if (!window.MdmProviderArchiveStore || typeof window.MdmProviderArchiveStore.update !== 'function') {
+                    if (typeof showToast === 'function') showToast('服务商档案存储未加载', 'error');
+                    return false;
+                }
+                var updated = window.MdmProviderArchiveStore.update(Object.assign({ id: id }, payload));
                 if (!updated) {
                     if (typeof showToast === 'function') showToast('保存失败', 'error');
                     return false;

@@ -2,6 +2,7 @@
 (function () {
     var Vue = OctopusPrototype.Vue;
     var ref = Vue.ref;
+    var ElMessage = OctopusPrototype.ElementPlus ? OctopusPrototype.ElementPlus.ElMessage : null;
     var dataApi = window.RbtDemandData;
 
     function blank(value) {
@@ -45,7 +46,7 @@
         if (status === '已完成') return 'success';
         if (status === '已作废' || status === '已取消' || status === '已驳回') return 'info';
         if (status === '待审核' || status === '待复核' || status === '待确认签约' || status === '待重新确认' || status === '待付款') return 'warning';
-        if (status === '还款中') return 'danger';
+        if (status === '付款中') return 'danger';
         return '';
     }
 
@@ -79,6 +80,8 @@
                     minWidth: 110,
                     search: { control: 'select', options: statusOptions, placeholder: '请选择状态' }
                 },
+                { dataIndex: 'remark', title: '备注', minWidth: 180, align: 'left', showOverflowTooltip: true, formatter: function (row) { return show(row.remark); } },
+                { dataIndex: 'withdrawReason', title: '撤回原因', minWidth: 160, align: 'left', showOverflowTooltip: true, formatter: function (row) { return show(row.withdrawReason); } },
                 { dataIndex: 'creator', title: '创建人', minWidth: 100 },
                 { dataIndex: 'createdAt', title: '创建时间', minWidth: 170 },
                 { dataIndex: 'updater', title: '更新人', minWidth: 100 },
@@ -332,10 +335,130 @@
                 window.location.href = url + joiner + 'demandCode=' + encodeURIComponent(row.code);
             }
 
+            var AUDIT_AUTO_KEY = 'rbt_audit_auto_v1';
+            var auditOpen = ref(false);
+            var auditForm = ref({ first: '是', review: '是' });
+
+            function readAuditAuto() {
+                try {
+                    var raw = sessionStorage.getItem(AUDIT_AUTO_KEY);
+                    if (!raw) return { first: true, review: true };
+                    var data = JSON.parse(raw);
+                    return { first: !data || data.first !== false, review: !data || data.review !== false };
+                } catch (e) {
+                    return { first: true, review: true };
+                }
+            }
+
+            function openAuditConfig() {
+                var data = readAuditAuto();
+                auditForm.value = { first: data.first ? '是' : '否', review: data.review ? '是' : '否' };
+                auditOpen.value = true;
+            }
+
+            function saveAuditConfig() {
+                var first = auditForm.value.first;
+                var review = auditForm.value.review;
+                if ((first !== '是' && first !== '否') || (review !== '是' && review !== '否')) {
+                    if (ElMessage) ElMessage.error('请选择初审和复核是否自动审核');
+                    return;
+                }
+                sessionStorage.setItem(AUDIT_AUTO_KEY, JSON.stringify({ first: first === '是', review: review === '是' }));
+                auditOpen.value = false;
+                if (ElMessage) ElMessage.success('审核配置已保存');
+            }
+
+            var ACCEPT_TIMEOUT_KEY = 'rbt_accept_timeout_v1';
+            var acceptOpen = ref(false);
+            var acceptForm = ref({ minutes: '' });
+
+            function readAcceptMinutes() {
+                try {
+                    var raw = sessionStorage.getItem(ACCEPT_TIMEOUT_KEY);
+                    if (!raw) return '';
+                    var data = JSON.parse(raw);
+                    var minutes = Number(data && data.minutes);
+                    if (!isFinite(minutes) || minutes <= 0 || Math.floor(minutes) !== minutes) return '';
+                    return String(minutes);
+                } catch (e) {
+                    return '';
+                }
+            }
+
+            function openAcceptTimeout() {
+                acceptForm.value = { minutes: readAcceptMinutes() };
+                acceptOpen.value = true;
+            }
+
+            function onAcceptMinutes(value) {
+                acceptForm.value.minutes = String(value == null ? '' : value).replace(/[^\d]/g, '').replace(/^0+(\d)/, '$1');
+            }
+
+            function saveAcceptTimeout() {
+                var text = String(acceptForm.value.minutes || '').trim();
+                var minutes = Number(text);
+                if (!/^\d+$/.test(text) || minutes <= 0) {
+                    if (ElMessage) ElMessage.error('请填写大于 0 的整数分钟');
+                    return;
+                }
+                sessionStorage.setItem(ACCEPT_TIMEOUT_KEY, JSON.stringify({ minutes: minutes }));
+                acceptOpen.value = false;
+                if (ElMessage) ElMessage.success('接单时间配置已保存');
+                refreshTable();
+            }
+
+            var reasonOpen = ref(false);
+            var reasonList = ref([]);
+            var reasonDraft = ref('');
+
+            function openWithdrawReasons() {
+                var api = window.RbtDemandData;
+                reasonList.value = api && typeof api.withdrawReasons === 'function' ? api.withdrawReasons().slice() : [];
+                reasonDraft.value = '';
+                reasonOpen.value = true;
+            }
+
+            function addWithdrawReason() {
+                var text = String(reasonDraft.value || '').trim();
+                if (!text) {
+                    if (ElMessage) ElMessage.error('请填写撤回原因');
+                    return;
+                }
+                if (text.length > 30) {
+                    if (ElMessage) ElMessage.error('撤回原因不超过 30 个字');
+                    return;
+                }
+                if (reasonList.value.indexOf(text) >= 0) {
+                    if (ElMessage) ElMessage.error('该原因已存在');
+                    return;
+                }
+                reasonList.value = reasonList.value.concat([text]);
+                reasonDraft.value = '';
+            }
+
+            function removeWithdrawReason(index) {
+                reasonList.value = reasonList.value.filter(function (_, itemIndex) { return itemIndex !== index; });
+            }
+
+            function saveWithdrawReasonConfig() {
+                var draft = String(reasonDraft.value || '').trim();
+                if (draft.length > 30) {
+                    if (ElMessage) ElMessage.error('撤回原因不超过 30 个字');
+                    return;
+                }
+                var next = reasonList.value.slice();
+                if (draft && next.indexOf(draft) < 0) next.push(draft);
+                var api = window.RbtDemandData;
+                if (api && typeof api.saveWithdrawReasons === 'function') api.saveWithdrawReasons(next);
+                reasonOpen.value = false;
+                if (ElMessage) ElMessage.success('撤回原因已保存');
+            }
+
             document.addEventListener('visibilitychange', function () {
                 if (document.visibilityState === 'visible') refreshTable();
             });
             window.addEventListener('focus', refreshTable);
+            window.setInterval(refreshTable, 30000);
 
             return {
                 table: table,
@@ -356,7 +479,23 @@
                 voidDemand: voidDemand,
                 canRepublish: canRepublish,
                 republishDemand: republishDemand,
-                refreshTable: refreshTable
+                refreshTable: refreshTable,
+                auditOpen: auditOpen,
+                auditForm: auditForm,
+                openAuditConfig: openAuditConfig,
+                saveAuditConfig: saveAuditConfig,
+                acceptOpen: acceptOpen,
+                acceptForm: acceptForm,
+                openAcceptTimeout: openAcceptTimeout,
+                onAcceptMinutes: onAcceptMinutes,
+                saveAcceptTimeout: saveAcceptTimeout,
+                reasonOpen: reasonOpen,
+                reasonList: reasonList,
+                reasonDraft: reasonDraft,
+                openWithdrawReasons: openWithdrawReasons,
+                addWithdrawReason: addWithdrawReason,
+                removeWithdrawReason: removeWithdrawReason,
+                saveWithdrawReasonConfig: saveWithdrawReasonConfig
             };
         }
     }, '#rbtDemandApp', {

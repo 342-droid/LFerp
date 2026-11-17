@@ -1,11 +1,10 @@
-/* 需求复核通过后生成的 RBT 采购单、销售单、入库单。方案一：两段买卖各有采购+销售。 */
+/* 需求复核通过后生成三张交易单，不再生成采购单、销售单和入库单。 */
 (function () {
-    var KEY = 'rbt_trade_docs_v1';
+    var KEY = 'rbt_trade_docs_v2';
     var LF_SUPPLY = { code: 'LF-SUPPLY', name: '冷丰供应链' };
-    var SALE_LF = '冷丰销售';
-    var SALE_TR = '贸易商销售';
-    var PO_GY = '供应链采购';
-    var PO_MD = '门店采购';
+    var DOC_UP = '上游交易';
+    var DOC_DOWN = '下游交易';
+    var DOC_FEE = '冷丰服务费';
 
     function centsOf(value) {
         var num = Number(String(value == null ? '' : value).replace(/[¥,\s]/g, ''));
@@ -14,7 +13,9 @@
     }
 
     function fromCents(cents) {
-        return (Number(cents || 0) / 100).toFixed(2);
+        var sign = cents < 0 ? '-' : '';
+        var abs = Math.abs(Math.round(cents));
+        return sign + (abs / 100).toFixed(2);
     }
 
     function nowText() {
@@ -27,7 +28,50 @@
     }
 
     function emptyStore() {
-        return { sales: [], purchases: [], inbounds: [] };
+        return { trades: [] };
+    }
+
+    /* 已生成的单据若把服务费记在字段上，改成明细里的一行。 */
+    function migrateFeeLine(row) {
+        if (!row || !Array.isArray(row.lines)) return false;
+        var storedAsField = row.serviceFee != null || row.lines.some(function (line) {
+            return line && line.serviceFee != null;
+        });
+        if (!storedAsField) return false;
+        if (row.docType === DOC_UP) {
+            row.lines = row.lines.filter(function (line) { return !isFeeLine(line); }).map(function (line) {
+                var amount = line.goodsAmount != null ? line.goodsAmount : line.amount;
+                return { code: line.code || '', name: line.name || '', qty: line.qty, salePrice: line.salePrice, amount: amount };
+            });
+        } else if (row.docType === DOC_FEE) {
+            var gap = 0;
+            row.lines.forEach(function (line) {
+                if (!line || isFeeLine(line)) {
+                    gap += centsOf(line && line.amount);
+                    return;
+                }
+                gap += line.serviceFee != null ? centsOf(line.serviceFee) : centsOf(line.amount);
+            });
+            row.lines = [feeLine(gap)];
+        } else {
+            var goods = [];
+            var fee = 0;
+            row.lines.forEach(function (line) {
+                if (!line) return;
+                if (isFeeLine(line)) {
+                    fee += centsOf(line.amount);
+                    return;
+                }
+                fee += centsOf(line.serviceFee);
+                var amount = line.goodsAmount != null ? line.goodsAmount : fromCents(centsOf(line.salePrice) * Number(line.qty || 0));
+                goods.push({ code: line.code || '', name: line.name || '', qty: line.qty, salePrice: line.salePrice, amount: amount });
+            });
+            row.lines = goods.concat([feeLine(fee)]);
+        }
+        delete row.serviceFee;
+        row.goodsAmount = sumField(row.lines.filter(function (line) { return !isFeeLine(line); }), 'amount');
+        row.amount = sumField(row.lines, 'amount');
+        return true;
     }
 
     function readStore() {
@@ -35,14 +79,12 @@
             var raw = sessionStorage.getItem(KEY);
             if (raw == null) return emptyStore();
             var data = JSON.parse(raw);
-            if (!data || typeof data !== 'object') return emptyStore();
-            var store = {
-                sales: Array.isArray(data.sales) ? data.sales : [],
-                purchases: Array.isArray(data.purchases) ? data.purchases : [],
-                inbounds: Array.isArray(data.inbounds) ? data.inbounds : []
-            };
-            var changed = migrateLegacyCodes(store);
-            if (enrichTradeDocs(store)) changed = true;
+            var trades = data && Array.isArray(data.trades) ? data.trades : [];
+            var changed = false;
+            trades.forEach(function (row) {
+                if (migrateFeeLine(row)) changed = true;
+            });
+            var store = { trades: trades };
             if (changed) writeStore(store);
             return store;
         } catch (e) {
@@ -54,330 +96,138 @@
         sessionStorage.setItem(KEY, JSON.stringify(store || emptyStore()));
     }
 
-    function seqOf(demandCode) {
-        var digits = String(demandCode || '').replace(/\D/g, '');
-        if (!digits) digits = '0';
-        return ('00000' + digits).slice(-5);
-    }
-
     function pad5(num) {
         return ('00000' + Number(num || 0)).slice(-5);
     }
 
-    function maxSeq(rows, prefix) {
+    function nextCodes(store) {
         var max = 0;
-        var re = new RegExp('^' + prefix + '(\\d+)$', 'i');
-        (rows || []).forEach(function (row) {
-            var matched = String((row && row.code) || '').match(re);
+        (store.trades || []).forEach(function (row) {
+            var matched = String((row && row.code) || '').match(/^JY(\d+)$/i);
             if (matched) max = Math.max(max, Number(matched[1]));
         });
-        return max;
-    }
-
-    function codesOf(store, demandCode) {
-        var so = maxSeq(store && store.sales, 'SO');
-        var po = maxSeq(store && store.purchases, 'PO');
         return {
-            lfSale: 'SO' + pad5(so + 1),
-            trSale: 'SO' + pad5(so + 2),
-            gyPo: 'PO' + pad5(po + 1),
-            mdPo: 'PO' + pad5(po + 2),
-            inbound: 'IBD' + seqOf(demandCode)
+            up: 'JY' + pad5(max + 1),
+            down: 'JY' + pad5(max + 2),
+            fee: 'JY' + pad5(max + 3)
         };
     }
 
-    function isLegacySaleCode(code) {
-        return /^(LFXS|MYXS)/i.test(String(code || ''));
-    }
-
-    function isLegacyPurchaseCode(code) {
-        return /^(GYCG|MDCG)/i.test(String(code || ''));
-    }
-
-    function pickType(rows, docType) {
-        var found = null;
-        (rows || []).some(function (row) {
-            if (row && row.docType === docType) {
-                found = row;
-                return true;
-            }
-            return false;
-        });
-        return found;
-    }
-
-    function migrateLegacyCodes(store) {
-        var hasLegacy = (store.sales || []).some(function (row) { return isLegacySaleCode(row && row.code); })
-            || (store.purchases || []).some(function (row) { return isLegacyPurchaseCode(row && row.code); });
-        if (!hasLegacy) return false;
-        var groups = {};
-        function add(row, bucket) {
-            if (!row || !row.demandCode) return;
-            if (!groups[row.demandCode]) {
-                groups[row.demandCode] = { sales: [], purchases: [], inbounds: [], at: row.createdAt || '' };
-            }
-            groups[row.demandCode][bucket].push(row);
-            if (row.createdAt && (!groups[row.demandCode].at || row.createdAt < groups[row.demandCode].at)) {
-                groups[row.demandCode].at = row.createdAt;
-            }
-        }
-        (store.sales || []).forEach(function (row) { add(row, 'sales'); });
-        (store.purchases || []).forEach(function (row) { add(row, 'purchases'); });
-        (store.inbounds || []).forEach(function (row) { add(row, 'inbounds'); });
-        var demandCodes = Object.keys(groups).sort(function (a, b) {
-            if (groups[a].at !== groups[b].at) return groups[a].at < groups[b].at ? -1 : 1;
-            return a.localeCompare(b);
-        });
-        var so = 0;
-        var po = 0;
-        demandCodes.forEach(function (demandCode) {
-            var group = groups[demandCode];
-            var lfSale = pickType(group.sales, SALE_LF);
-            var trSale = pickType(group.sales, SALE_TR);
-            var gyPo = pickType(group.purchases, PO_GY);
-            var mdPo = pickType(group.purchases, PO_MD);
-            var inbound = group.inbounds[0] || null;
-            if (lfSale) {
-                so += 1;
-                lfSale.code = 'SO' + pad5(so);
-            }
-            if (trSale) {
-                so += 1;
-                trSale.code = 'SO' + pad5(so);
-            }
-            if (gyPo) {
-                po += 1;
-                gyPo.code = 'PO' + pad5(po);
-            }
-            if (mdPo) {
-                po += 1;
-                mdPo.code = 'PO' + pad5(po);
-            }
-            if (lfSale && gyPo) {
-                lfSale.peerCode = gyPo.code;
-                gyPo.peerCode = lfSale.code;
-            }
-            if (trSale && mdPo) {
-                trSale.peerCode = mdPo.code;
-                mdPo.peerCode = trSale.code;
-            }
-            if (inbound && mdPo) {
-                inbound.sourceCode = mdPo.code;
-                mdPo.inboundCode = inbound.code;
-                if (trSale) trSale.inboundCode = inbound.code;
-            }
-        });
-        return true;
-    }
-
-    function inboundFinished(store, demandCode) {
-        var done = false;
-        (store && store.inbounds || []).some(function (row) {
-            if (row && row.demandCode === demandCode && row.status === '已完成') {
-                done = true;
-                return true;
-            }
-            return false;
-        });
-        return done;
-    }
-
-    function setField(row, key, value) {
-        if (!row) return false;
-        if (row[key] === value) return false;
-        row[key] = value;
-        return true;
-    }
-
-    function enrichTradeDoc(row, received) {
-        if (!row || row.kind === 'inbound') return false;
-        var storeName = row.storeName || row.receiveName || '';
-        var storeCode = row.storeCode || row.receiveCode || '';
-        var traderName = row.traderName || '';
-        var payor = (row.docType === SALE_LF || row.docType === PO_GY)
-            ? (traderName || row.buyerName || '')
-            : (storeName || row.buyerName || '');
-        var nextStatus = row.status;
-        if (row.docType === SALE_LF || row.docType === PO_GY) {
-            nextStatus = '已完成';
-        }
-        var changed = false;
-        if (setField(row, 'payorName', payor)) changed = true;
-        if (setField(row, 'receiveCode', storeCode)) changed = true;
-        if (setField(row, 'receiveName', storeName)) changed = true;
-        if (setField(row, 'shipperName', LF_SUPPLY.name)) changed = true;
-        if (setField(row, 'deliveryMode', '采购直送')) changed = true;
-        if (nextStatus && setField(row, 'status', nextStatus)) changed = true;
-        if (setField(row, 'priceKind', 'goods')) changed = true;
-        if (setField(row, 'priceLabel', '商品售价')) changed = true;
-        if (repriceLines(row)) changed = true;
-        return changed;
-    }
-
-    function priceBasisOf(row) {
-        if (!row) return 'origin';
-        if (row.kind === 'inbound' || row.docType === PO_MD) return 'store';
-        if (row.docType === SALE_TR) return 'trader';
-        return 'origin';
-    }
-
-    function demandRecord(code) {
-        if (!code) return null;
-        try {
-            var raw = sessionStorage.getItem('rbt_h5_fund_demand_v2');
-            var parsed = raw ? JSON.parse(raw) : null;
-            var rows = parsed && Array.isArray(parsed.rows) ? parsed.rows : (Array.isArray(parsed) ? parsed : []);
-            var found = null;
-            rows.some(function (row) {
-                if (row && row.code === code) {
-                    found = row;
-                    return true;
-                }
-                return false;
-            });
-            return found;
-        } catch (error) {
-            return null;
-        }
-    }
-
-    function ratesOf(row) {
-        if (!window.RbtDemandData || typeof window.RbtDemandData.settlementRates !== 'function') return null;
-        var demand = demandRecord(row && row.demandCode);
-        var code = (demand && demand.installmentCode) || (row && row.installmentCode) || '';
-        return window.RbtDemandData.settlementRates({ installmentCode: code });
-    }
-
-    function rateOfBasis(basis, rates) {
-        if (!rates) return '';
-        if (basis === 'store') return rates.store || '';
-        if (basis === 'trader') return rates.trader || '';
-        return '';
-    }
-
-    /* 商品售价按系数四舍五入到分。系数为空时保持原始售价。 */
+    /* 单价按系数四舍五入到分。系数无效时保持原始售价。 */
     function ratedUnitCents(originCents, rate) {
         var hundred = Math.round(Number(rate) * 100);
         if (!isFinite(hundred) || hundred <= 0) return originCents;
         return Math.round(originCents * hundred / 100);
     }
 
-    function repriceLines(row) {
-        if (!row || !Array.isArray(row.lines) || !row.lines.length) return false;
-        var basis = priceBasisOf(row);
-        var rate = rateOfBasis(basis, ratesOf(row));
-        var changed = false;
-        var headerCents = 0;
-        var nextLines = row.lines.map(function (line) {
-            var qty = Number(line && line.qty);
+    function sumField(lines, field) {
+        return fromCents((lines || []).reduce(function (total, line) {
+            return total + centsOf(line && line[field]);
+        }, 0));
+    }
+
+    function isFeeLine(line) {
+        return !!(line && line.name === '服务费');
+    }
+
+    function goodsLine(sku) {
+        var qty = Number(sku && sku.qty);
+        if (!isFinite(qty) || qty < 0) qty = 0;
+        var originCents = centsOf(sku && sku.salePrice);
+        return {
+            code: sku && sku.code || '',
+            name: sku && sku.name || '',
+            qty: qty,
+            salePrice: fromCents(originCents),
+            amount: fromCents(originCents * qty)
+        };
+    }
+
+    /* 服务费是商品明细中的一行，不是单据字段。数量按 1，售价即这笔差额。 */
+    function feeLine(cents) {
+        var amount = fromCents(cents);
+        return { code: '', name: '服务费', qty: 1, salePrice: amount, amount: amount };
+    }
+
+    function feeCentsOf(skus, mode, rates) {
+        var total = 0;
+        (skus || []).forEach(function (sku) {
+            var qty = Number(sku && sku.qty);
             if (!isFinite(qty) || qty < 0) qty = 0;
-            var storedOrigin = line && line.originPrice != null && String(line.originPrice).trim() !== '';
-            var alreadyRated = row.priceBasis === basis && basis !== 'origin' && !storedOrigin;
-            var originCents = storedOrigin || !alreadyRated
-                ? centsOf(storedOrigin ? line.originPrice : (line && line.salePrice))
-                : null;
-            var saleCents = originCents == null ? centsOf(line && line.salePrice) : ratedUnitCents(originCents, rate);
-            var amountCents = saleCents * qty;
-            headerCents += amountCents;
-            var next = {
-                code: line && line.code || '',
-                name: line && line.name || '',
-                qty: qty,
-                originPrice: originCents == null ? '' : fromCents(originCents),
-                salePrice: fromCents(saleCents),
-                amount: fromCents(amountCents)
-            };
-            if (line && Object.prototype.hasOwnProperty.call(line, 'unitPrice')) changed = true;
-            if (!line || line.code !== next.code || line.name !== next.name || Number(line.qty) !== next.qty
-                || String(line.originPrice || '') !== next.originPrice
-                || line.salePrice !== next.salePrice || line.amount !== next.amount) {
-                changed = true;
-            }
-            return next;
+            var originCents = centsOf(sku && sku.salePrice);
+            var traderUnit = rates ? ratedUnitCents(originCents, rates.trader) : originCents;
+            var storeUnit = rates ? ratedUnitCents(originCents, rates.store) : originCents;
+            var feeUnit = 0;
+            if (mode === 'trader') feeUnit = traderUnit - originCents;
+            if (mode === 'gap') feeUnit = storeUnit - traderUnit;
+            if (feeUnit > 0) total += feeUnit * qty;
         });
-        if (changed) row.lines = nextLines;
-        if (setField(row, 'priceBasis', basis)) changed = true;
-        if (setField(row, 'amount', fromCents(headerCents))) changed = true;
-        return changed;
+        return total;
     }
 
-    function enrichTradeDocs(store) {
-        if (!store) return false;
-        var changed = false;
-        (store.sales || []).forEach(function (row) {
-            if (enrichTradeDoc(row, inboundFinished(store, row && row.demandCode))) changed = true;
-        });
-        (store.purchases || []).forEach(function (row) {
-            if (enrichTradeDoc(row, inboundFinished(store, row && row.demandCode))) changed = true;
-        });
-        (store.inbounds || []).forEach(function (row) {
-            if (repriceLines(row)) changed = true;
-        });
-        return changed;
+    function buildLines(skus, mode, rates) {
+        if (mode === 'gap') return [feeLine(feeCentsOf(skus, 'gap', rates))];
+        var lines = (skus || []).map(goodsLine);
+        if (mode === 'trader') lines.push(feeLine(feeCentsOf(skus, 'trader', rates)));
+        return lines;
     }
 
-    function dropshipFields(storeCode, storeName, payorName) {
+    function partyFields(storeCode, storeName, payorName, shipperName) {
         return {
             payorName: payorName,
             receiveCode: storeCode || '',
             receiveName: storeName || '',
-            shipperName: LF_SUPPLY.name,
-            deliveryMode: '采购直送'
+            shipperName: shipperName || ''
         };
     }
 
-    function buildPricedLines(skus, rate) {
-        return (skus || []).map(function (sku) {
-            var qty = Number(sku && sku.qty);
-            if (!isFinite(qty) || qty < 0) qty = 0;
-            var originCents = centsOf(sku && sku.salePrice);
-            var saleCents = ratedUnitCents(originCents, rate);
-            return {
-                code: sku && sku.code || '',
-                name: sku && sku.name || '',
-                qty: qty,
-                originPrice: fromCents(originCents),
-                salePrice: fromCents(saleCents),
-                amount: fromCents(saleCents * qty)
-            };
-        });
-    }
-
-    function linesAmount(lines) {
-        return fromCents((lines || []).reduce(function (total, line) {
-            return total + centsOf(line && line.amount);
-        }, 0));
+    function makeDoc(spec, lines) {
+        return {
+            code: spec.code,
+            kind: 'trade',
+            docType: spec.docType,
+            demandCode: spec.demandCode,
+            storeCode: spec.storeCode,
+            storeName: spec.storeName,
+            traderName: spec.traderName,
+            buyerCode: spec.buyerCode || '',
+            buyerName: spec.buyerName,
+            sellerCode: spec.sellerCode || '',
+            sellerName: spec.sellerName,
+            payorName: spec.payorName,
+            receiveCode: spec.receiveCode || '',
+            receiveName: spec.receiveName || '',
+            shipperName: spec.shipperName || '',
+            goodsAmount: sumField(lines.filter(function (line) { return !isFeeLine(line); }), 'amount'),
+            amount: sumField(lines, 'amount'),
+            status: '已完成',
+            lines: lines,
+            createdAt: spec.createdAt,
+            creator: spec.creator
+        };
     }
 
     function canGenerate(demand) {
-        return !!(demand && (demand.status === '还款中' || demand.status === '已完成') && demand.traderName);
+        return !!(demand && (demand.status === '付款中' || demand.status === '已完成') && demand.traderName);
     }
 
-    function findByDemand(store, demandCode) {
-        var found = { lfSale: null, trSale: null, gyPo: null, mdPo: null, inbound: null };
-        if (!demandCode) return found;
-        (store.sales || []).forEach(function (row) {
+    function docsOf(store, demandCode) {
+        var found = { up: null, down: null, fee: null };
+        (store.trades || []).forEach(function (row) {
             if (!row || row.demandCode !== demandCode) return;
-            if (row.docType === SALE_LF) found.lfSale = row;
-            if (row.docType === SALE_TR) found.trSale = row;
-        });
-        (store.purchases || []).forEach(function (row) {
-            if (!row || row.demandCode !== demandCode) return;
-            if (row.docType === PO_GY) found.gyPo = row;
-            if (row.docType === PO_MD) found.mdPo = row;
-        });
-        (store.inbounds || []).forEach(function (row) {
-            if (row && row.demandCode === demandCode && !found.inbound) found.inbound = row;
+            if (row.docType === DOC_UP) found.up = row;
+            if (row.docType === DOC_DOWN) found.down = row;
+            if (row.docType === DOC_FEE) found.fee = row;
         });
         return found;
     }
 
     function hasSet(found) {
-        return !!(found && found.lfSale && found.trSale && found.gyPo && found.mdPo);
+        return !!(found && found.up && found.down && found.fee);
     }
 
     function buildSet(demand, operator, store) {
-        var codes = codesOf(store, demand.code);
+        var codes = nextCodes(store);
         var when = demand.updatedAt || nowText();
         var who = operator || demand.updater || '王丽';
         var traderName = demand.traderName || '接单贸易商';
@@ -386,149 +236,50 @@
         var rates = window.RbtDemandData && typeof window.RbtDemandData.settlementRates === 'function'
             ? window.RbtDemandData.settlementRates(demand)
             : null;
-        var originLines = buildPricedLines(demand.skus, '');
-        var traderLines = buildPricedLines(demand.skus, rates && rates.trader);
-        var storeLines = buildPricedLines(demand.skus, rates && rates.store);
-        var inboundLines = buildPricedLines(demand.skus, rates && rates.store);
-        var installmentCode = demand.installmentCode || '';
-        var lfParties = dropshipFields(storeCode, storeName, traderName);
-        var storeParties = dropshipFields(storeCode, storeName, storeName);
-        var lfSale = Object.assign({
-            code: codes.lfSale,
-            kind: 'sales',
-            docType: SALE_LF,
+        var base = {
             demandCode: demand.code,
             storeCode: storeCode,
             storeName: storeName,
             traderName: traderName,
-            buyerCode: '',
-            buyerName: traderName,
-            sellerCode: LF_SUPPLY.code,
-            sellerName: LF_SUPPLY.name,
-            installmentCode: installmentCode,
-            priceKind: 'goods',
-            priceBasis: 'origin',
-            priceLabel: '商品售价',
-            amount: linesAmount(originLines),
-            status: '已完成',
-            peerCode: codes.gyPo,
-            inboundCode: '',
-            lines: originLines,
-            createdAt: when,
-            creator: who
-        }, lfParties);
-        var gyPo = Object.assign({
-            code: codes.gyPo,
-            kind: 'purchase',
-            docType: PO_GY,
-            demandCode: demand.code,
-            storeCode: storeCode,
-            storeName: storeName,
-            traderName: traderName,
-            buyerCode: '',
-            buyerName: traderName,
-            sellerCode: LF_SUPPLY.code,
-            sellerName: LF_SUPPLY.name,
-            installmentCode: installmentCode,
-            priceKind: 'goods',
-            priceBasis: 'origin',
-            priceLabel: '商品售价',
-            amount: linesAmount(originLines),
-            status: '已完成',
-            peerCode: codes.lfSale,
-            inboundCode: '',
-            lines: buildPricedLines(demand.skus, ''),
-            createdAt: when,
-            creator: who
-        }, lfParties);
-        var trSale = Object.assign({
-            code: codes.trSale,
-            kind: 'sales',
-            docType: SALE_TR,
-            demandCode: demand.code,
-            storeCode: storeCode,
-            storeName: storeName,
-            traderName: traderName,
-            buyerCode: storeCode,
-            buyerName: storeName,
-            sellerCode: '',
-            sellerName: traderName,
-            installmentCode: installmentCode,
-            priceKind: 'goods',
-            priceBasis: 'trader',
-            priceLabel: '商品售价',
-            amount: linesAmount(traderLines),
-            status: '待收货',
-            peerCode: codes.mdPo,
-            inboundCode: codes.inbound,
-            lines: traderLines,
-            createdAt: when,
-            creator: who
-        }, storeParties);
-        var mdPo = Object.assign({
-            code: codes.mdPo,
-            kind: 'purchase',
-            docType: PO_MD,
-            demandCode: demand.code,
-            storeCode: storeCode,
-            storeName: storeName,
-            traderName: traderName,
-            buyerCode: storeCode,
-            buyerName: storeName,
-            sellerCode: '',
-            sellerName: traderName,
-            installmentCode: installmentCode,
-            priceKind: 'goods',
-            priceBasis: 'store',
-            priceLabel: '商品售价',
-            amount: linesAmount(storeLines),
-            status: '待收货',
-            peerCode: codes.trSale,
-            inboundCode: codes.inbound,
-            lines: storeLines,
-            createdAt: when,
-            creator: who
-        }, storeParties);
-        var inbound = {
-            code: codes.inbound,
-            kind: 'inbound',
-            docType: '采购入库',
-            demandCode: demand.code,
-            sourceCode: codes.mdPo,
-            orderType: '采购入库',
-            bizType: '采购直送',
-            receivePlace: storeName,
-            supplier: traderName,
-            buyerName: storeName,
-            sellerName: traderName,
-            installmentCode: installmentCode,
-            priceBasis: 'store',
-            amount: linesAmount(inboundLines),
-            status: '待收货',
-            lines: inboundLines,
             createdAt: when,
             creator: who
         };
+        var upParties = partyFields(storeCode, storeName, traderName, LF_SUPPLY.name);
+        var downParties = partyFields(storeCode, storeName, storeName, LF_SUPPLY.name);
+        var feeParties = partyFields(storeCode, storeName, storeName, '');
         return {
-            lfSale: lfSale,
-            trSale: trSale,
-            gyPo: gyPo,
-            mdPo: mdPo,
-            inbound: inbound
+            up: makeDoc(Object.assign({}, base, upParties, {
+                code: codes.up,
+                docType: DOC_UP,
+                buyerName: traderName,
+                sellerCode: LF_SUPPLY.code,
+                sellerName: LF_SUPPLY.name
+            }), buildLines(demand.skus, 'origin', rates)),
+            down: makeDoc(Object.assign({}, base, downParties, {
+                code: codes.down,
+                docType: DOC_DOWN,
+                buyerCode: storeCode,
+                buyerName: storeName,
+                sellerName: traderName
+            }), buildLines(demand.skus, 'trader', rates)),
+            fee: makeDoc(Object.assign({}, base, feeParties, {
+                code: codes.fee,
+                docType: DOC_FEE,
+                buyerCode: storeCode,
+                buyerName: storeName,
+                sellerCode: LF_SUPPLY.code,
+                sellerName: LF_SUPPLY.name
+            }), buildLines(demand.skus, 'gap', rates))
         };
     }
 
     function ensureForDemand(demand, operator) {
         if (!canGenerate(demand)) return null;
         var store = readStore();
-        var found = findByDemand(store, demand.code);
-        if (hasSet(found)) {
-            return { created: false, demandCode: demand.code, set: found };
-        }
+        var found = docsOf(store, demand.code);
+        if (hasSet(found)) return { created: false, demandCode: demand.code, set: found };
         var set = buildSet(demand, operator, store);
-        store.sales.push(set.lfSale, set.trSale);
-        store.purchases.push(set.gyPo, set.mdPo);
-        store.inbounds.push(set.inbound);
+        store.trades.push(set.up, set.down, set.fee);
         writeStore(store);
         return { created: true, demandCode: demand.code, set: set };
     }
@@ -551,23 +302,16 @@
         });
     }
 
-    function listSales() {
+    function listTrades() {
         if (window.RbtDemandData && typeof window.RbtDemandData.list === 'function') {
             ensureForPassedDemands(window.RbtDemandData.list());
         }
-        return sortRows(readStore().sales);
+        return sortRows(readStore().trades);
     }
 
-    function listPurchases() {
-        if (window.RbtDemandData && typeof window.RbtDemandData.list === 'function') {
-            ensureForPassedDemands(window.RbtDemandData.list());
-        }
-        return sortRows(readStore().purchases);
-    }
-
-    function getSale(code) {
+    function getTrade(code) {
         var found = null;
-        readStore().sales.some(function (row) {
+        readStore().trades.some(function (row) {
             if (row && row.code === code) {
                 found = row;
                 return true;
@@ -575,58 +319,22 @@
             return false;
         });
         return found;
-    }
-
-    function getPurchase(code) {
-        var found = null;
-        readStore().purchases.some(function (row) {
-            if (row && row.code === code) {
-                found = row;
-                return true;
-            }
-            return false;
-        });
-        return found;
-    }
-
-    function getInbound(code) {
-        var found = null;
-        readStore().inbounds.some(function (row) {
-            if (row && row.code === code) {
-                found = row;
-                return true;
-            }
-            return false;
-        });
-        return found;
-    }
-
-    function getByCode(code) {
-        return getSale(code) || getPurchase(code) || getInbound(code);
     }
 
     function docsOfDemand(demandCode) {
-        var found = findByDemand(readStore(), demandCode);
-        var rows = [];
-        [found.lfSale, found.gyPo, found.trSale, found.mdPo].forEach(function (row) {
-            if (row) rows.push(row);
-        });
-        return rows;
+        var found = docsOf(readStore(), demandCode);
+        return [found.up, found.down, found.fee].filter(Boolean);
     }
 
     window.RbtTradeDocs = {
         KEY: KEY,
         LF_SUPPLY: LF_SUPPLY,
-        SALE_LF: SALE_LF,
-        SALE_TR: SALE_TR,
-        PO_GY: PO_GY,
-        PO_MD: PO_MD,
-        listSales: listSales,
-        listPurchases: listPurchases,
-        getSale: getSale,
-        getPurchase: getPurchase,
-        getInbound: getInbound,
-        getByCode: getByCode,
+        DOC_UP: DOC_UP,
+        DOC_DOWN: DOC_DOWN,
+        DOC_FEE: DOC_FEE,
+        listTrades: listTrades,
+        getTrade: getTrade,
+        getByCode: getTrade,
         docsOfDemand: docsOfDemand,
         ensureForDemand: ensureForDemand,
         ensureForPassedDemands: ensureForPassedDemands
