@@ -1,10 +1,95 @@
 {
-  "latestSha": "306d4ddefbac1c8a3bd4cce921cfa41959163503",
-  "total": 556,
+  "latestSha": "89b0a32f4d343e465a29351e063152c1f7686140",
+  "total": 558,
   "days": [
     {
       "date": "2026-11-17",
       "items": [
+        {
+          "sha": "89b0a32",
+          "type": "feat",
+          "text": "去掉需求复核，支付完成后进入门店付款中",
+          "author": "342-droid",
+          "time": "18:51",
+          "pages": [
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "module": "冷丰WMS",
+              "title": "需求单审核"
+            },
+            {
+              "file": "RBT/rbt_admit_store.html",
+              "module": "冷丰RBT",
+              "title": "门店准入管理"
+            },
+            {
+              "file": "RBT/rbt_contract_sign.html",
+              "module": "冷丰RBT",
+              "title": "合同签署"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
+              "file": "RBT/rbt_product_package.html",
+              "module": "冷丰RBT",
+              "title": "商品包"
+            },
+            {
+              "file": "RBT/rbt_trade.html",
+              "module": "冷丰RBT",
+              "title": "交易单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_demand.html",
+              "text": "去掉复核；贸易商支付完成后直接进入门店付款中，并锁定已成交、生成三张交易单；审核配置只保留初审自动审核"
+            },
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "text": "去掉审核环节和复核单，只保留初审"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "text": "只列出门店付款中或已完成的需求"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "text": "待还款对应门店付款中，说明改为门店付款中"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "支付完成提示改为进入门店付款中"
+            },
+            {
+              "file": "RBT/rbt_trade.html",
+              "text": "改为贸易商支付完成、进入门店付款中后生成"
+            }
+          ]
+        },
         {
           "sha": "306d4dd",
           "type": "feat",
@@ -21,6 +106,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -215,6 +305,202 @@
           ]
         },
         {
+          "sha": "788921b",
+          "type": "feat",
+          "text": "复核后改为三张交易单，并补齐接单审核和门店准入",
+          "author": "342-droid",
+          "time": "18:28",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_trader.html",
+              "module": "冷丰WMS",
+              "title": "贸易商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "module": "冷丰WMS",
+              "title": "需求单审核"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
+              "file": "MDM/mdm_party_all.html",
+              "module": "冷丰WMS",
+              "title": "所有主体"
+            },
+            {
+              "file": "MDM/mdm_people_anchor.html",
+              "module": "冷丰WMS",
+              "title": "主播"
+            },
+            {
+              "file": "MDM/mdm_people_bd.html",
+              "module": "冷丰WMS",
+              "title": "BD推广员"
+            },
+            {
+              "file": "MDM/mdm_people_driver.html",
+              "module": "冷丰WMS",
+              "title": "司机"
+            },
+            {
+              "file": "MDM/mdm_people_purchaser.html",
+              "module": "冷丰WMS",
+              "title": "采购员"
+            },
+            {
+              "file": "MDM/mdm_super_admin_accounts.html",
+              "module": "冷丰WMS",
+              "title": "商户主体建档"
+            },
+            {
+              "file": "RBT/rbt_admit_store.html",
+              "module": "冷丰RBT",
+              "title": "门店准入管理"
+            },
+            {
+              "file": "RBT/rbt_contract_sign.html",
+              "module": "冷丰RBT",
+              "title": "合同签署"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
+              "file": "RBT/rbt_product_package.html",
+              "module": "冷丰RBT",
+              "title": "商品包"
+            },
+            {
+              "file": "RBT/rbt_purchase.html",
+              "module": "冷丰RBT",
+              "title": "交易单"
+            },
+            {
+              "file": "RBT/rbt_sales.html",
+              "module": "冷丰RBT",
+              "title": "交易单"
+            },
+            {
+              "file": "RBT/rbt_trade.html",
+              "module": "冷丰RBT",
+              "title": "交易单"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "text": "发布和需求列表只展示商品金额；发布不能超过门店需求次数；发布时就把产品渠道比例记到需求单"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "需求大厅统一卡片并展示总金额、商品金额和服务费，去掉结算比例；接单和确认签约增加确认弹窗；撤回接单必须填写原因；确认签署前校验余额，不足则拦截"
+            },
+            {
+              "file": "RBT/rbt_admit_store.html",
+              "text": "门店标签改为RBT标签；占用额度按商品金额；新增需求次数；新增时选择保证金是否缴纳，选是必须上传凭证"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "text": "增加测算；结算比例去掉商品类目，POS可配置堂食、外卖、团购"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "text": "增加审核配置、接单时间配置和撤回原因配置；超时自动回到待接单并记备注；详情展示保证金凭证；关联交易单只显示总金额"
+            },
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "text": "初审和复核都只打开需求详情后通过或驳回；复核通过后生成三张交易单"
+            },
+            {
+              "file": "RBT/rbt_purchase.html",
+              "text": "采购单和销售单合并为上游交易、下游交易和冷丰服务费；服务费作为商品明细一行；去掉单据和商品金额，金额改为总金额"
+            },
+            {
+              "file": "MDM/mdm_archive_trader.html",
+              "text": "去掉牌照类型和业务范围，新增必填绑定服务商"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "text": "新增服务商档案，比贸易商多一个服务商类型"
+            },
+            {
+              "file": "MDM/mdm_party_all.html",
+              "text": "新增服务商商家，主体类型默认服务商且不可改"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "text": "还款中更名为付款中"
+            }
+          ]
+        },
+        {
           "sha": "7ab46fe",
           "type": "feat",
           "text": "创建主体时同步提交档案，门店合同限制改为可配置",
@@ -230,6 +516,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -597,6 +888,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -710,14 +1006,9 @@
               "title": "商品包"
             },
             {
-              "file": "RBT/rbt_purchase.html",
+              "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
-              "title": "采购单"
-            },
-            {
-              "file": "RBT/rbt_sales.html",
-              "module": "冷丰RBT",
-              "title": "销售单"
+              "title": "交易单"
             }
           ],
           "notes": [
@@ -765,6 +1056,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -807,6 +1103,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -883,14 +1184,9 @@
               "title": "履约"
             },
             {
-              "file": "RBT/rbt_purchase.html",
+              "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
-              "title": "采购单"
-            },
-            {
-              "file": "RBT/rbt_sales.html",
-              "module": "冷丰RBT",
-              "title": "销售单"
+              "title": "交易单"
             }
           ],
           "notes": [
@@ -1012,14 +1308,9 @@
               "title": "商品包"
             },
             {
-              "file": "RBT/rbt_purchase.html",
+              "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
-              "title": "采购单"
-            },
-            {
-              "file": "RBT/rbt_sales.html",
-              "module": "冷丰RBT",
-              "title": "销售单"
+              "title": "交易单"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -1153,24 +1444,27 @@
               "title": "履约"
             },
             {
-              "file": "RBT/rbt_purchase.html",
+              "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
-              "title": "采购单"
-            },
-            {
-              "file": "RBT/rbt_sales.html",
-              "module": "冷丰RBT",
-              "title": "销售单"
+              "title": "交易单"
             }
           ],
           "notes": [
             {
-              "file": "RBT/rbt_purchase.html",
-              "text": "供应链采购仍用商品原始售价；门店采购的商品售价改为原始售价乘门店结算系数"
+              "file": null,
+              "text": "采购单: 供应链采购仍用商品原始售价"
             },
             {
-              "file": "RBT/rbt_sales.html",
-              "text": "冷丰销售仍用商品原始售价；贸易商销售的商品售价改为原始售价乘贸易商结算系数"
+              "file": null,
+              "text": "门店采购的商品售价改为原始售价乘门店结算系数"
+            },
+            {
+              "file": null,
+              "text": "销售单: 冷丰销售仍用商品原始售价"
+            },
+            {
+              "file": null,
+              "text": "贸易商销售的商品售价改为原始售价乘贸易商结算系数"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -1225,14 +1519,9 @@
               "title": "履约"
             },
             {
-              "file": "RBT/rbt_purchase.html",
+              "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
-              "title": "采购单"
-            },
-            {
-              "file": "RBT/rbt_sales.html",
-              "module": "冷丰RBT",
-              "title": "销售单"
+              "title": "交易单"
             }
           ],
           "notes": [
@@ -1266,6 +1555,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -1372,14 +1666,9 @@
               "title": "产品配置"
             },
             {
-              "file": "RBT/rbt_purchase.html",
+              "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
-              "title": "采购单"
-            },
-            {
-              "file": "RBT/rbt_sales.html",
-              "module": "冷丰RBT",
-              "title": "销售单"
+              "title": "交易单"
             }
           ],
           "notes": [
@@ -1388,12 +1677,20 @@
               "text": "结算系数新增服务商结算系数，并按商品金额试算门店实付、贸易商所得、冷丰差额和服务商计提；服务商计提不能超过冷丰差额"
             },
             {
-              "file": "RBT/rbt_sales.html",
-              "text": "上下游销售单金额改为商品售价合计；明细去掉成交单价"
+              "file": null,
+              "text": "销售单: 上下游销售单金额改为商品售价合计"
             },
             {
-              "file": "RBT/rbt_purchase.html",
-              "text": "上下游采购单金额改为商品售价合计；明细去掉成交单价"
+              "file": null,
+              "text": "明细去掉成交单价"
+            },
+            {
+              "file": null,
+              "text": "采购单: 上下游采购单金额改为商品售价合计"
+            },
+            {
+              "file": null,
+              "text": "明细去掉成交单价"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -1540,22 +1837,55 @@
             {
               "file": "RBT/rbt_purchase.html",
               "module": "冷丰RBT",
-              "title": "采购单"
+              "title": "交易单"
             },
             {
               "file": "RBT/rbt_sales.html",
               "module": "冷丰RBT",
-              "title": "销售单"
+              "title": "交易单"
+            },
+            {
+              "file": "RBT/rbt_trade.html",
+              "module": "冷丰RBT",
+              "title": "交易单"
             }
           ],
           "notes": [
             {
-              "file": "RBT/rbt_purchase.html",
-              "text": "新增列表和详情；复核通过生成供应链采购、门店采购，单号以 PO 开头；展示买方、卖方、付款方、收货方、实际发货方；供应链采购生成即为已完成，门店采购待收货；门店采购同步下发 WMS 采购入库，关联单号为需求单号，只允许全量收货"
+              "file": null,
+              "text": "采购单: 新增列表和详情"
             },
             {
-              "file": "RBT/rbt_sales.html",
-              "text": "新增列表和详情；复核通过生成冷丰销售、贸易商销售，单号以 SO 开头；冷丰销售生成即为已完成，贸易商销售待收货；入库完结后贸易商销售改为已完成"
+              "file": null,
+              "text": "复核通过生成供应链采购、门店采购，单号以 PO 开头"
+            },
+            {
+              "file": null,
+              "text": "展示买方、卖方、付款方、收货方、实际发货方"
+            },
+            {
+              "file": null,
+              "text": "供应链采购生成即为已完成，门店采购待收货"
+            },
+            {
+              "file": null,
+              "text": "门店采购同步下发 WMS 采购入库，关联单号为需求单号，只允许全量收货"
+            },
+            {
+              "file": null,
+              "text": "销售单: 新增列表和详情"
+            },
+            {
+              "file": null,
+              "text": "复核通过生成冷丰销售、贸易商销售，单号以 SO 开头"
+            },
+            {
+              "file": null,
+              "text": "冷丰销售生成即为已完成，贸易商销售待收货"
+            },
+            {
+              "file": null,
+              "text": "入库完结后贸易商销售改为已完成"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -1768,14 +2098,9 @@
               "title": "商品包"
             },
             {
-              "file": "RBT/rbt_purchase.html",
+              "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
-              "title": "采购单"
-            },
-            {
-              "file": "RBT/rbt_sales.html",
-              "module": "冷丰RBT",
-              "title": "销售单"
+              "title": "交易单"
             },
             {
               "file": "SCM/basic_settings_business_tags.html",
@@ -1834,6 +2159,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -2401,14 +2731,9 @@
               "title": "商品包"
             },
             {
-              "file": "RBT/rbt_purchase.html",
+              "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
-              "title": "采购单"
-            },
-            {
-              "file": "RBT/rbt_sales.html",
-              "module": "冷丰RBT",
-              "title": "销售单"
+              "title": "交易单"
             }
           ],
           "notes": [
@@ -2918,6 +3243,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -2996,6 +3326,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -3113,14 +3448,9 @@
               "title": "商品包"
             },
             {
-              "file": "RBT/rbt_purchase.html",
+              "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
-              "title": "采购单"
-            },
-            {
-              "file": "RBT/rbt_sales.html",
-              "module": "冷丰RBT",
-              "title": "销售单"
+              "title": "交易单"
             }
           ],
           "global": true,
@@ -3183,6 +3513,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -3251,6 +3586,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -3479,6 +3819,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -3648,14 +3993,9 @@
               "title": "商品包"
             },
             {
-              "file": "RBT/rbt_purchase.html",
+              "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
-              "title": "采购单"
-            },
-            {
-              "file": "RBT/rbt_sales.html",
-              "module": "冷丰RBT",
-              "title": "销售单"
+              "title": "交易单"
             },
             {
               "file": "SCM/basic_settings_business_tags.html",
@@ -3767,14 +4107,9 @@
               "title": "商品包"
             },
             {
-              "file": "RBT/rbt_purchase.html",
+              "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
-              "title": "采购单"
-            },
-            {
-              "file": "RBT/rbt_sales.html",
-              "module": "冷丰RBT",
-              "title": "销售单"
+              "title": "交易单"
             },
             {
               "file": "SCM/basic_settings_business_tags.html",
@@ -4082,6 +4417,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -4139,6 +4479,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -4240,6 +4585,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -4297,6 +4647,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -4396,6 +4751,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -4544,6 +4904,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -5411,6 +5776,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -5565,6 +5935,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -6192,6 +6567,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -6427,6 +6807,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -6814,6 +7199,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -7017,6 +7407,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -7069,6 +7464,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -7321,6 +7721,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -7636,6 +8041,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -8114,6 +8524,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -8288,14 +8703,9 @@
               "title": "商品包"
             },
             {
-              "file": "RBT/rbt_purchase.html",
+              "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
-              "title": "采购单"
-            },
-            {
-              "file": "RBT/rbt_sales.html",
-              "module": "冷丰RBT",
-              "title": "销售单"
+              "title": "交易单"
             },
             {
               "file": "SCM/purchase_order.html",
@@ -8308,10 +8718,6 @@
             {
               "file": "MDM/mdm_supplier_product.html",
               "text": "供货关系接入商品侧栏，可编辑最小起订量和采购周期"
-            },
-            {
-              "file": "RBT/rbt_purchase.html",
-              "text": "采购单明细展示推荐采购量，并按年、月、日配置销量统计时长"
             },
             {
               "file": "SCM/purchase_order.html",
@@ -8335,6 +8741,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -9138,6 +9549,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -9984,6 +10400,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -11106,6 +11527,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -12631,6 +13057,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -17368,6 +17799,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -17565,6 +18001,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -17846,6 +18287,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -18775,6 +19221,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -20210,6 +20661,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -20877,6 +21333,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -20920,6 +21381,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -21036,6 +21502,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -22541,6 +23012,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -22782,6 +23258,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -23311,6 +23792,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -23461,6 +23947,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -23963,6 +24454,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -24128,6 +24624,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -24608,6 +25109,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -24762,6 +25268,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -25935,6 +26446,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -27674,6 +28190,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -27895,6 +28416,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -28021,6 +28547,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -28926,6 +29457,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -29014,6 +29550,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -29112,6 +29653,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -29213,6 +29759,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -29353,6 +29904,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -29516,6 +30072,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -29639,6 +30200,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -29703,6 +30269,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -29751,6 +30322,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -29819,6 +30395,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -30107,6 +30688,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -31480,6 +32066,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -31608,6 +32199,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -32131,6 +32727,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -32403,6 +33004,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -33104,6 +33710,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -33337,6 +33948,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -34249,6 +34865,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -34671,6 +35292,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -36147,6 +36773,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -37874,6 +38505,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -38339,6 +38975,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -40801,6 +41442,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -42593,6 +43239,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -42811,6 +43462,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -43210,6 +43866,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -43603,6 +44264,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -43918,6 +44584,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -44515,6 +45186,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -44567,6 +45243,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -44695,6 +45376,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -44808,6 +45494,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -44941,6 +45632,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -44999,6 +45695,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -45055,6 +45756,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -45150,6 +45856,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -45204,6 +45915,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -45256,6 +45972,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -45462,6 +46183,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -45510,6 +46236,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -45786,6 +46517,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -45873,6 +46609,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -46034,6 +46775,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -46155,6 +46901,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -46375,6 +47126,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -46591,6 +47347,11 @@
               "title": "直播间档案"
             },
             {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
               "file": "MDM/mdm_archive_store.html",
               "module": "冷丰WMS",
               "title": "门店档案"
@@ -46718,6 +47479,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
@@ -47089,6 +47855,11 @@
               "file": "MDM/mdm_archive_live_room.html",
               "module": "冷丰WMS",
               "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
             },
             {
               "file": "MDM/mdm_archive_store.html",
