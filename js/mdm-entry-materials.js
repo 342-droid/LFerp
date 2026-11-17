@@ -514,6 +514,10 @@
         root.querySelectorAll('[data-em-upload]').forEach(function (btn) {
             var on = !!data[btn.getAttribute('data-em-upload')];
             btn.setAttribute('data-upload-state', on ? '1' : '');
+            if (btn.classList.contains('bd-license-photo-frame')) {
+                btn.setAttribute('data-upload-state', '1');
+                return;
+            }
             if (btn.classList.contains('onboard-upload--click')) {
                 btn.textContent = on ? '已上传' : '点击上传';
                 return;
@@ -545,35 +549,75 @@
             label + '</label>' + inner + '</div>';
     }
 
-    function h5Section() {
+    function h5Section(skin) {
+        var shop = skin === 'shop';
         function input(field) {
             var type = field.type || (field.key === 'legalRealnamePhone' ? 'tel' : 'text');
-            return '<input class="h5-input erp-input" style="width:100%;height:40px;box-sizing:border-box" data-em="' + field.key +
-                '" type="' + type + '" placeholder="' + (field.placeholder || ('请输入' + field.label)) + '">';
+            var placeholder = field.placeholder || ('请输入' + field.label);
+            if (shop) {
+                return '<input class="shop-h5-input" data-em="' + field.key + '" type="' + type + '" placeholder="' + placeholder + '">';
+            }
+            return '<input class="h5-input" data-em="' + field.key + '" type="' + type + '" placeholder="' + placeholder + '">';
+        }
+        function photoMeta(field) {
+            if (field.key === 'legalFront') {
+                return { title: '人像面', desc: '上传法人身份证人像面', card: 'bd-license-photo-card bd-id-photo-card', frame: 'bd-license-photo-frame bd-id-photo-frame' };
+            }
+            if (field.key === 'legalBack') {
+                return { title: '国徽面', desc: '上传法人身份证国徽面', card: 'bd-license-photo-card bd-id-photo-card', frame: 'bd-license-photo-frame bd-id-photo-frame' };
+            }
+            if (field.key === 'openLicensePic') {
+                return { title: '开户许可证', desc: '上传开户许可证', card: 'bd-license-photo-card bd-open-license-card', frame: 'bd-license-photo-frame bd-open-license-frame' };
+            }
+            return { title: '营业执照', desc: '上传营业执照', card: 'bd-license-photo-card', frame: 'bd-license-photo-frame' };
         }
         function upload(field) {
-            return '<button type="button" class="store-upload-box onboard-upload--click" data-em-upload="' + field.key +
-                '" data-em-label="' + field.label + '" data-upload-required-msg="请' + field.label +
-                '" style="width:100%;height:120px;border:1px dashed #d9d9d9;background:#fafafa;border-radius:8px;color:#64748b">点击上传</button>' +
-                '<div class="store-upload-box__cap">' + field.label + '</div>';
+            var meta = photoMeta(field);
+            var src = demoPhoto(meta.title);
+            return '<div class="' + meta.card + '"><div class="bd-license-photo-copy"><h3>' + meta.title +
+                '</h3><p><i>*</i> ' + meta.desc + '</p></div>' +
+                '<button type="button" class="' + meta.frame + '" data-em-upload="' + field.key +
+                '" data-em-upload-managed="1" data-em-label="' + field.label +
+                '" data-upload-required-msg="请' + field.label + '" data-upload-state="1">' +
+                '<span class="bd-license-shot">' +
+                '<span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>' +
+                '<img src="' + src + '" alt="' + meta.title + '">' +
+                '</span>' +
+                '<span class="bd-license-view">查看图片</span></button></div>';
         }
-        function group(title, groupName, note) {
-            var html = '<section class="h5-sec" data-entry-materials="1" style="margin-top:12px"><h3 style="margin:0 0 8px;font-size:15px">' + title + '</h3>';
-            if (note) html += '<p style="margin:0 0 8px;font-size:12px;color:#888;line-height:1.5">' + note + '</p>';
+        function shopField(label, inner, required, tip) {
+            return '<div class="shop-h5-field"><div class="shop-h5-field-hd"><span' + (required ? ' class="shop-h5-req"' : '') + '>' +
+                label + '</span></div>' + inner +
+                (tip ? '<p class="shop-h5-tip-box" style="margin-top:8px">' + tip + '</p>' : '') + '</div>';
+        }
+        function bdField(label, inner, tip) {
+            return '<div class="h5-field"><div class="h5-labrow"><label class="h5-lab"><span class="req">*</span>' +
+                label + '</label></div>' + inner +
+                (tip ? '<p class="h5-sec-s" style="margin-top:6px">' + tip + '</p>' : '') + '</div>';
+        }
+        function group(title, groupName, icon, sub) {
+            var html = shop
+                ? '<section class="shop-h5-section" data-entry-materials="1"><div class="shop-h5-sec-head"><div class="shop-h5-sec-icon">' +
+                    icon + '</div><div class="shop-h5-sec-titles"><h3>' + title + '</h3><p>' + sub + '</p></div></div>'
+                : '<section class="h5-sec" data-entry-materials="1"><div class="h5-sec-head"><span class="h5-sec-ic">■</span><div><h3 class="h5-sec-t">' +
+                    title + '</h3><p class="h5-sec-s">' + sub + '</p></div></div><div class="h5-sec-body">';
             UPLOADS.forEach(function (field) {
-                if (field.group === groupName) html += h5Field(field.label.replace('上传', ''), upload(field));
+                if (field.group !== groupName) return;
+                html += upload(field);
             });
             TEXT_FIELDS.forEach(function (field) {
-                if (field.group === groupName) html += h5Field(field.label, input(field));
+                if (field.group !== groupName) return;
+                html += shop
+                    ? shopField(field.label, input(field), true, field.tip)
+                    : bdField(field.label, input(field), field.tip);
             });
-            return html + '</section>';
+            return html + (shop ? '</section>' : '</div></section>');
         }
         return '<div data-entry-materials-wrap="1">' +
-            '<p style="margin:12px 0 0;font-size:12px;color:#666;line-height:1.5">营业执照、法人身份证、法人实名电话和结算信息属于主体，会同步到第一家门店。进件带入执照、身份证和结算，法人实名电话不写入进件。</p>' +
-            group('营业执照', 'license') +
-            group('法人身份证', 'legal') +
-            group('法人实名电话', 'phone') +
-            group('结算信息', 'settle') +
+            group('营业执照', 'license', '📄', '证照照片、名称与有效期') +
+            group('法人身份证', 'legal', '🪪', '证件照片与身份信息') +
+            group('法人实名电话', 'phone', '📞', '与证件实名一致的手机号') +
+            group('结算信息', 'settle', '🏦', '开户许可证与收款账户') +
             '</div>';
     }
 
@@ -692,6 +736,20 @@
         ensureDemoSubject(id, DEMO_SUBJECTS[id].name);
     });
 
+    function groupSummary(data, groupName, render) {
+        data = Object.assign(emptyRecord(), data || {});
+        var lines = [];
+        UPLOADS.forEach(function (field) {
+            if (field.group !== groupName) return;
+            lines.push(render(field.label.replace('上传', ''), data[field.key] ? '已上传' : ''));
+        });
+        TEXT_FIELDS.forEach(function (field) {
+            if (field.group !== groupName) return;
+            lines.push(render(field.label, data[field.key] || ''));
+        });
+        return lines.join('');
+    }
+
     function summaryBlocks(data, render) {
         data = Object.assign(emptyRecord(), data || {});
         var lines = TEXT_FIELDS.map(function (field) {
@@ -763,6 +821,13 @@
     }
 
     document.addEventListener('click', function (event) {
+        var frame = event.target && event.target.closest ? event.target.closest('.bd-license-photo-frame[data-em-upload]') : null;
+        if (frame) {
+            frame.setAttribute('data-upload-state', '1');
+            var img = frame.querySelector('img');
+            openPhotoLightbox(img && img.src, frame.getAttribute('data-em-label') || '证照');
+            return;
+        }
         var btn = event.target && event.target.closest ? event.target.closest('[data-em-upload]') : null;
         if (!btn || btn.disabled || btn.getAttribute('data-em-upload-managed') === '1') return;
         var on = btn.getAttribute('data-upload-state') !== '1';
@@ -798,6 +863,7 @@
         lookupForOnboarding: lookupForOnboarding,
         fillEmptyOnboarding: fillEmptyOnboarding,
         summaryBlocks: summaryBlocks,
+        groupSummary: groupSummary,
         pairs: pairs
     };
 })(window);

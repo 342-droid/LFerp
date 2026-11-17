@@ -660,10 +660,6 @@
     function isFP() {
       return usesFranchiseMaterials(st.partnerDivision);
     }
-    function isPeer() {
-      return st.partnerDivision === '同行店';
-    }
-
     function poiListHtml() {
       var list = filterPois(st.mapQuery);
       if (!String(st.mapQuery).trim()) {
@@ -735,17 +731,16 @@
         '</p></div>' +
         '<div class="h5-sections">' +
         secBuilding() +
+        (window.MdmEntryMaterials ? window.MdmEntryMaterials.h5Section() : '') +
         secDelivery() +
         (!policyOn() ? '<div class="h5-dash-hint">请先选择「门店合作类型」，系统将展示对应的资料项。</div>' : '') +
         (policyOn()
           ? secAddr() +
             secFacade() +
             secContact() +
-            (window.MdmEntryMaterials ? window.MdmEntryMaterials.h5Section() : '') +
             secFranchiseMedia() +
             secFranchiseOps() +
             secFranchiseSpecial() +
-            secPeer() +
             secCompany()
           : '') +
         '</div>' +
@@ -1181,27 +1176,6 @@
         '<input type="file" accept="image/*" multiple class="h5-hidden" id="f_specph" />' +
         '<button type="button" class="bd-btn bd-btn-outline" id="f_specbtn">上传图片</button>' +
         '<div class="h5-thumb-grid" id="th_spec"></div></div>'
-      );
-    }
-
-    function secPeer() {
-      if (!isPeer()) return '';
-      return (
-        '<section class="h5-sec h5-sec--collapsible is-collapsed">' +
-        secHeadToggle('☰', '同行店补充资料', '请如实填写以下资料') +
-        '<div class="h5-sec-body">' +
-        field(
-          '合作平台现状：说明目前门店已合作的其他平台情况。',
-          false,
-          '<textarea class="h5-ta" id="f_plat" placeholder="如实填写美团、多多买菜、其他团购或直播平台等"></textarea>'
-        ) +
-        '<div class="h5-field"><div class="h5-labrow"><label class="h5-lab">经营数据截图：需提供手机后台截图，包含前三天的上播数据及销量明细。</label><span class="h5-hint-r">最多 ' +
-        MAX_BR +
-        ' 张</span></div>' +
-        '<input type="file" accept="image/*" multiple class="h5-hidden" id="f_broad" />' +
-        '<button type="button" class="bd-btn bd-btn-outline" id="f_broadbtn">上传经营截图</button>' +
-        '<div class="h5-thumb-grid" id="th_broad"></div></div>' +
-        '</div></section>'
       );
     }
 

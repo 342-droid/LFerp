@@ -386,7 +386,13 @@
           '</h3>' +
           '<p style="margin:6px 0 0;font-size:10px;color:var(--bd-muted);font-variant-numeric:tabular-nums">门店编号 ' +
           escapeHtml(store.merchantUid || '') +
-          '</p></div>' +
+          '</p>' +
+          (store.phase === 'approved' && ensureStoreCode(store)
+            ? '<p style="margin:4px 0 0;font-size:10px;color:var(--bd-muted);font-variant-numeric:tabular-nums">门店编码 ' +
+              escapeHtml(store.storeCode) +
+              '</p>'
+            : '') +
+          '</div>' +
           '<span class="bd-store-badge" style="' +
           badgeClass(d) +
           '">' +
@@ -531,10 +537,8 @@
       div === '联营店' ||
       div === '直营店' ||
       div === '合作店' ||
-      div === '同行店' ||
       div === '生鲜店';
     var fr = div === '加盟店' || div === '联营店' || div === '直营店' || div === '合作店' || div === '生鲜店';
-    var peer = div === '同行店';
     var parts = [];
 
     parts.push(
@@ -543,6 +547,9 @@
         '基础信息',
         '名称与负责 BD',
         fieldBlock('门店主体', archiveText(store.storeSubject), 'storeSubject', store) +
+          (store.phase === 'approved'
+            ? fieldBlock('门店编码', '<span style="font-family:monospace;font-size:12px">' + archiveText(ensureStoreCode(store)) + '</span>')
+            : '') +
           fieldBlock('门店名称', archiveText(store.name), 'name', store) +
           fieldBlock('门店简称', archiveText(store.shortName)) +
           fieldBlock('绑定 BD', archiveText(store.boundBd), 'boundBd', store) +
@@ -550,6 +557,27 @@
           fieldBlock('审核通过时间', archiveText(store.approvedAt))
       )
     );
+
+    if (window.MdmEntryMaterials && typeof window.MdmEntryMaterials.groupSummary === 'function') {
+      var entryData = store.entryMaterials || window.MdmEntryMaterials.load('store', store.name);
+      [
+        ['📄', '营业执照', '证照照片、名称与有效期', 'license'],
+        ['🪪', '法人身份证', '证件照片与身份信息', 'legal'],
+        ['📞', '法人实名电话', '与证件实名一致的手机号', 'phone'],
+        ['🏦', '结算信息', '开户许可证与收款账户', 'settle']
+      ].forEach(function (group) {
+        parts.push(
+          archiveCard(
+            group[0],
+            group[1],
+            group[2],
+            window.MdmEntryMaterials.groupSummary(entryData, group[3], function (label, value) {
+              return fieldBlock(label, archiveText(value));
+            })
+          )
+        );
+      });
+    }
 
     var whStyle = store.warehouseNeedsAttention ? ' style="color:var(--bd-destructive);font-weight:700"' : '';
     parts.push(
@@ -611,19 +639,6 @@
             fieldBlock('老板 / 负责人联系电话', archiveText(store.contactPhone), 'contactPhone', store)
         )
       );
-      if (window.MdmEntryMaterials) {
-        var entryData = store.entryMaterials || window.MdmEntryMaterials.load('store', store.name);
-        parts.push(
-          archiveCard(
-            '📄',
-            '入驻证照与结算',
-            '营业执照、法人身份证、法人实名电话、结算信息。进件会默认带入除实名电话外的字段。',
-            window.MdmEntryMaterials.summaryBlocks(entryData, function (label, value) {
-              return fieldBlock(label, archiveText(value));
-            })
-          )
-        );
-      }
 
       if (fr) {
         parts.push(
@@ -667,17 +682,6 @@
           )
         );
       }
-      if (peer) {
-        parts.push(
-          archiveCard(
-            '📋',
-            '同行店补充资料',
-            '请如实填写以下资料',
-            fieldBlock('合作平台现状：说明目前门店已合作的其他平台情况。', archiveText(store.otherPlatformsCooperation)) +
-              fieldBlock('经营数据截图：需提供手机后台截图，包含前三天的上播数据及销量明细。', '—')
-          )
-        );
-      }
     }
 
     var tail = appendAgreement ? agreementSectionHTML(store, false) : '';
@@ -697,7 +701,6 @@
       div === '联营店' ||
       div === '直营店' ||
       div === '合作店' ||
-      div === '同行店' ||
       div === '生鲜店';
     var fr = div === '加盟店' || div === '联营店' || div === '直营店' || div === '合作店' || div === '生鲜店';
     var common = {
@@ -896,6 +899,11 @@
       '<div><span style="color:var(--bd-muted);font-size:12px">创建时间：</span><span style="font-weight:600;font-variant-numeric:tabular-nums">' +
       escapeHtml(created) +
       '</span></div>' +
+      (store.phase === 'approved' && ensureStoreCode(store)
+        ? '<div><span style="color:var(--bd-muted);font-size:12px">门店编码：</span><span style="font-weight:700;font-family:monospace">' +
+          escapeHtml(store.storeCode) +
+          '</span></div>'
+        : '') +
       '<div><div style="font-size:11px;font-weight:600;color:var(--bd-muted);margin-bottom:8px">当前状态</div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
       '<button type="button" data-open-history="' +
@@ -1388,6 +1396,7 @@
     } else if (store.phase === 'awaiting_leader') {
       store.phase = 'approved';
       store.approvedAt = at;
+      ensureStoreCode(store);
       store.companyAgreementStatus = '待签署';
       store.companyAgreementName = agreementTitle(store.partnerDivision);
       store.companyAgreementGeneratedAt = at;
@@ -1423,6 +1432,15 @@
     else if (h.indexOf('workspace/') === 0) route = { name: 'workspace', id: Number(h.split('/')[1]) };
     else if (h.indexOf('audit/') === 0) route = { name: 'audit', id: Number(h.split('/')[1]) };
     else if (h.indexOf('history/') === 0) route = { name: 'history', id: Number(h.split('/')[1]) };
+  }
+
+  function ensureStoreCode(store) {
+    if (!store || store.phase !== 'approved') return '';
+    if (store.storeCode) return store.storeCode;
+    var api = window.MdmStoreCode;
+    var code = api && typeof api.allocateNextCode === 'function' ? api.allocateNextCode(store.regionCascade || '') : '';
+    if (code) store.storeCode = code;
+    return store.storeCode || '';
   }
 
   function normalizePartnerDivision(v) {
@@ -1477,7 +1495,11 @@
           var o = JSON.parse(raw);
           if (Array.isArray(o) && o.length) {
             stores = JSON.parse(JSON.stringify(o));
-            if (migrateFreshPartner(stores)) {
+            var coded = false;
+            stores.forEach(function (s) {
+              if (s.phase === 'approved' && !s.storeCode && ensureStoreCode(s)) coded = true;
+            });
+            if (migrateFreshPartner(stores) || coded) {
               try {
                 sessionStorage.setItem('lf_bd_stores_v1', JSON.stringify(stores));
               } catch (e2) {}
@@ -1490,6 +1512,9 @@
       }
       stores = JSON.parse(JSON.stringify(Array.isArray(data) ? data : []));
       migrateFreshPartner(stores);
+      stores.forEach(function (s) {
+        ensureStoreCode(s);
+      });
       parseHash();
       mount();
       window.addEventListener('hashchange', function () {
