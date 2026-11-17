@@ -3,122 +3,271 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>经营中心 · 丰银宝</title>
-  <link rel="stylesheet" href="../css/store-app.css?v=20260803-biz">
-  <link rel="stylesheet" href="../css/store-app-biz-center.css?v=20260928-comm-dim">
+  <title>经营参谋 · 丰银宝</title>
+  <link rel="stylesheet" href="../css/store-app.css?v=20261117-rpt21">
+  <link rel="stylesheet" href="../css/store-app-biz-report.css?v=20261117-rpt21">
 </head>
 <body class="store-app-body">
-  <div class="sa-shell sa-biz-shell">
-    <div class="sa-biz">
-      <header class="sa-biz-nav">
-        <a href="home.html" class="sa-biz-nav__back" aria-label="返回">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg>
-        </a>
-        <h1 class="sa-biz-nav__title">经营中心</h1>
-      </header>
+  <div class="sa-shell sa-rpt-shell">
+    <div class="sa-rpt">
+      <div class="sa-rpt-scroll">
+        <div class="sa-rpt-topline" role="tablist">
+          <span class="sa-rpt-topline__tab is-active">总览</span>
+          <a class="sa-rpt-topline__tab" href="biz-commission.html?from=report">佣金明细</a>
+          <i class="sa-rpt-topline__ink is-overview" aria-hidden="true"></i>
+        </div>
 
-      <div class="sa-biz-scroll">
-        <section class="sa-biz-summary">
-          <div class="sa-biz-summary__top">
-            <div class="sa-biz-summary__balance">
-              <div class="sa-biz-summary__label">
-                可提现账户余额 (元)
-                <button type="button" class="sa-biz-eye" id="bizEyeBtn" aria-label="显示/隐藏余额" aria-pressed="false" title="显示/隐藏余额">
-                  <svg id="bizEyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
-                    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/>
-                    <circle cx="12" cy="12" r="2.5"/>
-                  </svg>
-                </button>
+        <!-- ① 佣金橙卡：字段对齐设计稿四格 -->
+        <section class="sa-rpt-snap" aria-label="佣金快照">
+          <button type="button" class="sa-rpt-snap__cell" data-drill="pending">
+            <div class="sa-rpt-snap__t">待结佣金(元)</div>
+            <div class="sa-rpt-snap__v" id="rptPendingSettle">0</div>
+            <div class="sa-rpt-snap__s" id="rptPendingDelta">较昨日 —</div>
+          </button>
+          <i class="sa-rpt-snap__div" aria-hidden="true"></i>
+          <button type="button" class="sa-rpt-snap__cell" data-drill="credited">
+            <div class="sa-rpt-snap__t">本月佣金(元)</div>
+            <div class="sa-rpt-snap__v" id="rptMonthComm">0</div>
+            <div class="sa-rpt-snap__s" id="rptMonthDelta">较上月 —</div>
+          </button>
+          <i class="sa-rpt-snap__div" aria-hidden="true"></i>
+          <button type="button" class="sa-rpt-snap__cell" data-drill="credited">
+            <div class="sa-rpt-snap__t">年度佣金(元)</div>
+            <div class="sa-rpt-snap__v" id="rptYearComm">0</div>
+            <div class="sa-rpt-snap__s" id="rptYearDelta">较去年 —</div>
+          </button>
+          <i class="sa-rpt-snap__div" aria-hidden="true"></i>
+          <button type="button" class="sa-rpt-snap__cell" data-tip="members">
+            <div class="sa-rpt-snap__t">会员数(人)</div>
+            <div class="sa-rpt-snap__v" id="rptMembers">0</div>
+            <div class="sa-rpt-snap__s" id="rptMembersDelta">较昨日 —</div>
+          </button>
+        </section>
+
+        <p class="sa-rpt-asof sa-rpt-asof--page" id="rptAsOf">数据截至 —</p>
+
+        <!-- ② 经营概览：右上角时间筛选 -->
+        <section class="sa-rpt-card">
+          <div class="sa-rpt-card__hd">
+            <h2 class="sa-rpt-card__title">
+              经营概览
+              <button type="button" class="sa-rpt-help" data-tip="overview-metrics" aria-label="指标说明">?</button>
+            </h2>
+            <button type="button" class="sa-rpt-picker" id="rptOpsRangeBtn" data-range-target="ops" aria-haspopup="dialog">
+              <span id="rptRangeLabel">今日</span>
+              <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2.5 3.5L5 6.5 7.5 3.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+          <div class="sa-rpt-metrics">
+            <button type="button" class="sa-rpt-metric" data-drill="paid">
+              <div class="sa-rpt-metric__t">营业额(元)</div>
+              <div class="sa-rpt-metric__v" id="rptPaid">0</div>
+              <div class="sa-rpt-metric__foot" id="rptPaidCmp"></div>
+            </button>
+            <button type="button" class="sa-rpt-metric" data-drill="orders">
+              <div class="sa-rpt-metric__t">订单数(单)</div>
+              <div class="sa-rpt-metric__v" id="rptMainCnt">0</div>
+              <div class="sa-rpt-metric__foot" id="rptOrdersCmp"></div>
+            </button>
+            <button type="button" class="sa-rpt-metric" data-drill="orders">
+              <div class="sa-rpt-metric__t">核销数(笔)</div>
+              <div class="sa-rpt-metric__v" id="rptVerify">0</div>
+              <div class="sa-rpt-metric__foot" id="rptVerifyCmp"></div>
+            </button>
+            <button type="button" class="sa-rpt-metric" data-drill="orders">
+              <div class="sa-rpt-metric__t">客单价(元)</div>
+              <div class="sa-rpt-metric__v" id="rptAov">—</div>
+              <div class="sa-rpt-metric__foot" id="rptAovCmp"></div>
+            </button>
+          </div>
+        </section>
+
+        <!-- 经营趋势：跟随经营概览时间 -->
+        <section class="sa-rpt-card">
+          <div class="sa-rpt-card__hd">
+            <h2 class="sa-rpt-card__title">
+              经营趋势
+              <button type="button" class="sa-rpt-help" data-tip="overview" aria-label="指标说明">?</button>
+            </h2>
+            <div class="sa-rpt-seg" id="rptTrendSeg">
+              <button type="button" class="sa-rpt-seg__btn is-active" data-metric="paid">营业额</button>
+              <button type="button" class="sa-rpt-seg__btn" data-metric="orders">订单数</button>
+              <button type="button" class="sa-rpt-seg__btn" data-metric="newCustomers">新客数</button>
+              <button type="button" class="sa-rpt-seg__btn" data-metric="verify">核销数</button>
+            </div>
+          </div>
+          <div class="sa-rpt-chart-wrap">
+            <div class="sa-rpt-chart-y" id="rptTrendY" aria-hidden="true"></div>
+            <svg class="sa-rpt-chart" id="rptTrendSvg" viewBox="0 0 289 112" aria-hidden="true"></svg>
+          </div>
+        </section>
+
+        <!-- 顾客分析：右上角独立时间 -->
+        <section class="sa-rpt-card sa-rpt-card--cust">
+          <div class="sa-rpt-card__hd">
+            <h2 class="sa-rpt-card__title">
+              顾客分析
+              <button type="button" class="sa-rpt-help" data-tip="customers" aria-label="指标说明">?</button>
+            </h2>
+            <button type="button" class="sa-rpt-picker" id="rptCustRangeBtn" data-range-target="cust" aria-haspopup="dialog">
+              <span id="rptCustRangeLabel">近30天</span>
+              <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2.5 3.5L5 6.5 7.5 3.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+          <div class="sa-rpt-cust">
+            <div class="sa-rpt-donut-wrap">
+              <svg id="rptDonutSvg" viewBox="0 0 120 120" aria-hidden="true"></svg>
+              <div class="sa-rpt-donut-center" id="rptDonutCenter"></div>
+            </div>
+            <div class="sa-rpt-cust__pair">
+              <div class="sa-rpt-cust__col sa-rpt-cust__col--new">
+                <div class="sa-rpt-cust__row">
+                  <i class="sa-rpt-cust__dot sa-rpt-cust__dot--new" aria-hidden="true"></i>
+                  <span>新客下单</span>
+                  <strong id="rptCustNew">0</strong>
+                </div>
+                <div class="sa-rpt-cust__sub" id="rptCustNewShare">占比 —</div>
+                <div class="sa-rpt-cust__delta" id="rptCustNewDelta"></div>
               </div>
-              <div class="sa-biz-summary__amount" id="bizWithdrawAmount">0.00</div>
+              <div class="sa-rpt-cust__col sa-rpt-cust__col--old">
+                <div class="sa-rpt-cust__row">
+                  <i class="sa-rpt-cust__dot sa-rpt-cust__dot--old" aria-hidden="true"></i>
+                  <span>老客下单</span>
+                  <strong id="rptCustOld">0</strong>
+                </div>
+                <div class="sa-rpt-cust__sub" id="rptCustOldShare">占比 —</div>
+                <div class="sa-rpt-cust__delta" id="rptCustOldDelta"></div>
+              </div>
             </div>
-            <button type="button" class="sa-biz-summary__withdraw" id="bizWithdrawBtn">去提现 &gt;</button>
-          </div>
-
-          <div class="sa-biz-dim" id="bizDimTabs" role="tablist">
-            <button type="button" class="sa-biz-dim__btn is-active" data-dim="order">下单日期</button>
-            <button type="button" class="sa-biz-dim__btn" data-dim="credit">入账日期</button>
-          </div>
-          <div class="sa-biz-dim__hint" id="bizDimHint">预到账佣金</div>
-
-          <div class="sa-biz-summary__total" id="bizTotalLine">
-            累计预到账佣金 <em>0.00</em>元 <em>0</em>单
-          </div>
-
-          <div class="sa-biz-summary__grid" id="bizPeriodGrid">
-            <div class="sa-biz-summary__cell">
-              <div class="sa-biz-summary__cell-t" data-title="today">今日预到账</div>
-              <div class="sa-biz-summary__cell-v"><span data-k="todayAmt">0.00</span>元</div>
-              <div class="sa-biz-summary__cell-c"><span data-k="todayCnt">0</span>单</div>
-            </div>
-            <div class="sa-biz-summary__cell">
-              <div class="sa-biz-summary__cell-t" data-title="yest">昨日预到账</div>
-              <div class="sa-biz-summary__cell-v"><span data-k="yestAmt">0.00</span>元</div>
-              <div class="sa-biz-summary__cell-c"><span data-k="yestCnt">0</span>单</div>
-            </div>
-            <div class="sa-biz-summary__cell">
-              <div class="sa-biz-summary__cell-t" data-title="week">本周预到账</div>
-              <div class="sa-biz-summary__cell-v"><span data-k="weekAmt">0.00</span>元</div>
-              <div class="sa-biz-summary__cell-c"><span data-k="weekCnt">0</span>单</div>
-            </div>
-            <div class="sa-biz-summary__cell">
-              <div class="sa-biz-summary__cell-t" data-title="month">本月预到账</div>
-              <div class="sa-biz-summary__cell-v"><span data-k="monthAmt">0.00</span>元</div>
-              <div class="sa-biz-summary__cell-c"><span data-k="monthCnt">0</span>单</div>
+            <div class="sa-rpt-cust__board">
+              <button type="button" class="sa-rpt-cust__board-cell" data-tip="repurchase">
+                <div class="sa-rpt-cust__board-t">复购率 <span class="sa-rpt-help-inline">?</span></div>
+                <div class="sa-rpt-cust__board-v" id="rptRepurchaseRate">—</div>
+                <div class="sa-rpt-cust__delta" id="rptRepurchaseRateDelta"></div>
+              </button>
+              <button type="button" class="sa-rpt-cust__board-cell" data-tip="repurchase">
+                <div class="sa-rpt-cust__board-t">复购人数</div>
+                <div class="sa-rpt-cust__board-v" id="rptRepurchaseUsers">—</div>
+                <div class="sa-rpt-cust__delta" id="rptRepurchaseUsersDelta"></div>
+              </button>
+              <button type="button" class="sa-rpt-cust__board-cell" data-tip="lost">
+                <div class="sa-rpt-cust__board-t">流失会员 <span class="sa-rpt-help-inline">?</span></div>
+                <div class="sa-rpt-cust__board-v" id="rptLostMembers">—</div>
+                <div class="sa-rpt-cust__delta" id="rptLostMembersDelta"></div>
+              </button>
             </div>
           </div>
         </section>
 
-        <section class="sa-biz-filter">
-          <div class="sa-biz-range" id="bizRangeTabs" role="tablist">
-            <button type="button" class="sa-biz-range__btn" data-range="today">今天</button>
-            <button type="button" class="sa-biz-range__btn" data-range="yesterday">昨天</button>
-            <button type="button" class="sa-biz-range__btn" data-range="7d">近7天</button>
-            <button type="button" class="sa-biz-range__btn is-active" data-range="30d">近1个月</button>
+        <!-- ③ RBT：仅有业务时展示 -->
+        <section class="sa-rpt-card" id="rptRbtCard" hidden>
+          <div class="sa-rpt-card__hd">
+            <h2 class="sa-rpt-card__title">
+              RBT
+              <button type="button" class="sa-rpt-help" data-tip="rbt" aria-label="RBT 说明">?</button>
+            </h2>
+            <span class="sa-rpt-picker sa-rpt-picker--static">当前</span>
           </div>
-
-          <div class="sa-biz-search">
-            <button type="button" class="sa-biz-search__type" id="bizSearchTypeBtn">
-              <span id="bizSearchTypeLabel">手机号</span>
-              <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 4.5L6 7.5 9 4.5"/></svg>
+          <div class="sa-rpt-metrics">
+            <button type="button" class="sa-rpt-metric" data-drill="rbt">
+              <div class="sa-rpt-metric__t">约定付款(元)</div>
+              <div class="sa-rpt-metric__v" id="rptRbtAgreed">—</div>
             </button>
-            <input
-              type="search"
-              class="sa-biz-search__input"
-              id="bizSearchInput"
-              placeholder="联系人电话/订单编号/会员码/用户昵称/商品"
-              autocomplete="off"
-            >
-            <button type="button" class="sa-biz-search__go" id="bizSearchBtn" aria-label="搜索">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="6.5"/>
-                <path d="M16 16l4.5 4.5" stroke-linecap="round"/>
-              </svg>
+            <button type="button" class="sa-rpt-metric" data-drill="rbt">
+              <div class="sa-rpt-metric__t">累计实付(元)</div>
+              <div class="sa-rpt-metric__v" id="rptRbtPaid">—</div>
+            </button>
+            <button type="button" class="sa-rpt-metric" data-drill="rbt">
+              <div class="sa-rpt-metric__t">剩余应付(元)</div>
+              <div class="sa-rpt-metric__v" id="rptRbtRemain">—</div>
+            </button>
+            <button type="button" class="sa-rpt-metric" data-drill="rbt">
+              <div class="sa-rpt-metric__t">状态</div>
+              <div class="sa-rpt-metric__v sa-rpt-metric__v--text" id="rptRbtStatus">—</div>
             </button>
           </div>
-          <div class="sa-biz-search-menu" id="bizSearchTypeMenu" hidden>
-            <button type="button" data-type="phone">手机号</button>
-            <button type="button" data-type="order">订单编号</button>
-            <button type="button" data-type="code">会员码</button>
-            <button type="button" data-type="nick">用户昵称</button>
-            <button type="button" data-type="goods">商品</button>
+          <div class="sa-rpt-metrics" style="margin-top:12px">
+            <button type="button" class="sa-rpt-metric" data-drill="rbt" style="grid-column:1/-1">
+              <div class="sa-rpt-metric__t">预计回本周期</div>
+              <div class="sa-rpt-metric__v sa-rpt-metric__v--text" id="rptRbtCycle">—</div>
+            </button>
           </div>
+          <a class="sa-rpt-card__link" href="biz-rbt.html">查看付款账单 ›</a>
         </section>
 
-        <section class="sa-biz-ordertabs" id="bizOrderTabs" role="tablist">
-          <button type="button" class="sa-biz-ordertabs__btn is-active" data-status="all">全部订单</button>
-          <button type="button" class="sa-biz-ordertabs__btn" data-status="pending_ship">待发货</button>
-          <button type="button" class="sa-biz-ordertabs__btn" data-status="pending_pickup">待提货/待收货</button>
-          <button type="button" class="sa-biz-ordertabs__btn" data-status="done">已完成</button>
-        </section>
+        <a class="sa-rpt-entry" href="biz-restock-report.html">
+          <div>
+            <div class="sa-rpt-entry__title">进货概况</div>
+            <div class="sa-rpt-entry__desc">实际支出、退款与商品排行</div>
+          </div>
+          <span class="sa-rpt-entry__arrow">›</span>
+        </a>
+      </div>
 
-        <div id="bizOrderList" class="sa-biz-list"></div>
+      <nav class="sa-rpt-tabbar" aria-label="丰银宝导航">
+        <a href="home.html" class="sa-rpt-tab">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 10.5L12 4l8 6.5V20a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1v-9.5z"/></svg>
+          <span>工作台</span>
+        </a>
+        <button type="button" class="sa-rpt-tab" data-sa-toast="AI助手演示中">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M5 16.5c0-4.1 3.1-7.5 7-7.5s7 3.4 7 7.5c0 1.4-.4 2.7-1.1 3.8L19 22l-3.2-1.2A7.3 7.3 0 0112 21.5c-3.9 0-7-3.4-7-5z"/>
+          </svg>
+          <span>AI</span>
+        </button>
+        <span class="sa-rpt-tab is-active">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 4h14v3H5V4zm2 5h3v11H7V9zm5 0h3v8h-3V9zm5 0h3v11h-3V9z"/></svg>
+          <span>经营参谋</span>
+        </span>
+        <a href="more.html" class="sa-rpt-tab">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="8" r="3.5"/>
+            <path d="M5.5 19.5c1.2-3.2 3.5-4.8 6.5-4.8s5.3 1.6 6.5 4.8"/>
+          </svg>
+          <span>更多</span>
+        </a>
+      </nav>
+    </div>
+
+    <div class="sa-rpt-toast" id="rptToast" hidden></div>
+    <div class="sa-rpt-sheet" id="rptSheet" hidden>
+      <div class="sa-rpt-sheet__panel" role="dialog" aria-modal="true">
+        <div class="sa-rpt-sheet__hd">
+          <strong id="rptSheetTitle">说明</strong>
+          <button type="button" class="sa-rpt-sheet__close" data-close-sheet aria-label="关闭">×</button>
+        </div>
+        <div id="rptSheetBody" class="sa-rpt-sheet__body"></div>
+      </div>
+    </div>
+
+    <div class="sa-rpt-sheet" id="rptRangeSheet" hidden>
+      <div class="sa-rpt-sheet__panel" role="dialog" aria-modal="true" aria-labelledby="rptRangeSheetTitle">
+        <div class="sa-rpt-sheet__hd">
+          <strong id="rptRangeSheetTitle">选择时间</strong>
+          <button type="button" class="sa-rpt-sheet__close" data-close-range aria-label="关闭">×</button>
+        </div>
+        <div class="sa-rpt-range" id="rptRangeOptions" role="listbox"></div>
+        <div class="sa-rpt-custom" id="rptCustom" hidden>
+          <p class="sa-rpt-custom__hint">选择起止日期后点击确定</p>
+          <div class="sa-rpt-custom__row">
+            <label class="sa-rpt-custom__field">
+              <span>开始日期</span>
+              <input type="date" id="rptCustomStart">
+            </label>
+            <span class="sa-rpt-custom__sep">至</span>
+            <label class="sa-rpt-custom__field">
+              <span>结束日期</span>
+              <input type="date" id="rptCustomEnd">
+            </label>
+          </div>
+          <button type="button" class="sa-rpt-custom__btn" id="rptCustomApply">确定</button>
+        </div>
       </div>
     </div>
   </div>
 
   <script src="../../js/store-wallet-demo.js"></script>
-  <script src="../js/store-app-biz-orders.js?v=20260928-comm-range"></script>
-  <script src="../js/store-app-biz-center.js?v=20260928-comm-range"></script>
+  <script src="../js/store-app-biz-report-data.js?v=20261117-rpt21"></script>
+  <script src="../js/store-app-biz-report.js?v=20261117-rpt21"></script>
 </body>
 </html>

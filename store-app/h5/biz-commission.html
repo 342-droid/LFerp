@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>佣金明细 · 丰银宝</title>
+  <link rel="stylesheet" href="../css/store-app.css?v=20261117-rpt21">
+  <link rel="stylesheet" href="../css/store-app-biz-report.css?v=20261117-rpt21">
+  <link rel="stylesheet" href="../css/store-app-biz-commission.css?v=20261117-rpt21">
+</head>
+<body class="store-app-body">
+  <div class="sa-shell sa-biz-shell">
+    <div class="sa-biz">
+      <div class="sa-biz-scroll">
+        <div class="sa-biz-topline" role="tablist">
+          <a class="sa-biz-topline__tab" href="biz-center.html">总览</a>
+          <span class="sa-biz-topline__tab is-active">佣金明细</span>
+          <i class="sa-biz-topline__ink" aria-hidden="true"></i>
+        </div>
+
+        <div class="sa-biz-mode" id="bizDimTabs" role="tablist">
+          <button type="button" class="sa-biz-mode__btn is-active" data-dim="order">下单日期</button>
+          <button type="button" class="sa-biz-mode__btn" data-dim="credit">入账日期</button>
+          <button type="button" class="sa-biz-mode__btn" data-dim="pay" hidden>支付时间</button>
+        </div>
+
+        <section class="sa-biz-summary">
+          <div class="sa-biz-summary__top">
+            <div class="sa-biz-summary__balance">
+              <div class="sa-biz-summary__label">
+                可提现账户余额（元）
+                <button type="button" class="sa-biz-eye" id="bizEyeBtn" aria-label="显示/隐藏余额" aria-pressed="false">
+                  <svg id="bizEyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
+                    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/>
+                    <circle cx="12" cy="12" r="2.5"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="sa-biz-summary__amount" id="bizWithdrawAmount">0.00</div>
+            </div>
+            <button type="button" class="sa-biz-summary__withdraw" id="bizWithdrawBtn">去提现</button>
+          </div>
+          <div class="sa-biz-summary__extra" id="bizExtraLabel">实际到账佣金</div>
+          <div class="sa-biz-summary__total" id="bizTotalLine">
+            累计实际到账佣金 <em>0.00</em> 元 <em>0</em>单
+          </div>
+        </section>
+
+        <section class="sa-biz-period" id="bizPeriodStrip" aria-label="分时段预估">
+          <div class="sa-biz-period__cell">
+            <div class="sa-biz-period__t">今日预到账</div>
+            <div class="sa-biz-period__v" id="bizPeriodToday">0</div>
+            <div class="sa-biz-period__s" id="bizPeriodTodayCnt">0单</div>
+          </div>
+          <div class="sa-biz-period__cell">
+            <div class="sa-biz-period__t">昨日预到账</div>
+            <div class="sa-biz-period__v" id="bizPeriodYday">0</div>
+            <div class="sa-biz-period__s" id="bizPeriodYdayCnt">0单</div>
+          </div>
+          <div class="sa-biz-period__cell">
+            <div class="sa-biz-period__t">本周预到账</div>
+            <div class="sa-biz-period__v" id="bizPeriodWeek">0</div>
+            <div class="sa-biz-period__s" id="bizPeriodWeekCnt">0单</div>
+          </div>
+          <div class="sa-biz-period__cell">
+            <div class="sa-biz-period__t">本月预到账</div>
+            <div class="sa-biz-period__v" id="bizPeriodMonth">0</div>
+            <div class="sa-biz-period__s" id="bizPeriodMonthCnt">0单</div>
+          </div>
+        </section>
+
+        <section class="sa-biz-filter">
+          <div class="sa-biz-range" id="bizRangeTabs" role="tablist">
+            <button type="button" class="sa-biz-range__btn" data-range="today">今天</button>
+            <button type="button" class="sa-biz-range__btn" data-range="yesterday">昨天</button>
+            <button type="button" class="sa-biz-range__btn" data-range="7d">近七天</button>
+            <button type="button" class="sa-biz-range__btn is-active" data-range="30d">近一个月</button>
+          </div>
+
+          <div class="sa-biz-search">
+            <button type="button" class="sa-biz-search__go" id="bizSearchBtn" aria-label="搜索">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="6.5"/>
+                <path d="M16 16l4.5 4.5" stroke-linecap="round"/>
+              </svg>
+            </button>
+            <button type="button" class="sa-biz-search__type" id="bizSearchTypeBtn" hidden>
+              <span id="bizSearchTypeLabel">综合</span>
+            </button>
+            <input
+              type="search"
+              class="sa-biz-search__input"
+              id="bizSearchInput"
+              placeholder="联系人电话/订单编号/会员码/用户昵称/商品"
+              autocomplete="off"
+            >
+          </div>
+          <div class="sa-biz-search-menu" id="bizSearchTypeMenu" hidden>
+            <button type="button" data-type="all">综合</button>
+            <button type="button" data-type="order">订单编号</button>
+            <button type="button" data-type="phone">手机号</button>
+            <button type="button" data-type="nick">用户昵称</button>
+            <button type="button" data-type="goods">商品</button>
+          </div>
+
+          <div class="sa-biz-ordertabs" id="bizOrderTabs" role="tablist">
+            <button type="button" class="sa-biz-ordertabs__btn is-active" data-status="all">全部</button>
+            <button type="button" class="sa-biz-ordertabs__btn" data-status="待发货">待发货</button>
+            <button type="button" class="sa-biz-ordertabs__btn" data-status="待履约">待自提/待收货</button>
+            <button type="button" class="sa-biz-ordertabs__btn" data-status="已完成">已完成</button>
+          </div>
+        </section>
+
+        <div id="bizOrderList" class="sa-biz-list"></div>
+      </div>
+
+      <nav class="sa-rpt-tabbar" aria-label="丰银宝导航">
+        <a href="home.html" class="sa-rpt-tab">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 10.5L12 4l8 6.5V20a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1v-9.5z"/></svg>
+          <span>工作台</span>
+        </a>
+        <button type="button" class="sa-rpt-tab" id="commAiBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M5 16.5c0-4.1 3.1-7.5 7-7.5s7 3.4 7 7.5c0 1.4-.4 2.7-1.1 3.8L19 22l-3.2-1.2A7.3 7.3 0 0112 21.5c-3.9 0-7-3.4-7-5z"/>
+          </svg>
+          <span>AI</span>
+        </button>
+        <span class="sa-rpt-tab is-active">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 4h14v3H5V4zm2 5h3v11H7V9zm5 0h3v8h-3V9zm5 0h3v11h-3V9z"/></svg>
+          <span>经营参谋</span>
+        </span>
+        <a href="more.html" class="sa-rpt-tab">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="8" r="3.5"/>
+            <path d="M5.5 19.5c1.2-3.2 3.5-4.8 6.5-4.8s5.3 1.6 6.5 4.8"/>
+          </svg>
+          <span>更多</span>
+        </a>
+      </nav>
+    </div>
+  </div>
+
+  <script src="../../js/store-wallet-demo.js"></script>
+  <script src="../js/store-app-biz-report-data.js?v=20261117-rpt21"></script>
+  <script src="../js/store-app-biz-orders.js?v=20260928-comm-range"></script>
+  <script src="../js/store-app-biz-commission.js?v=20261117-rpt21"></script>
+</body>
+</html>

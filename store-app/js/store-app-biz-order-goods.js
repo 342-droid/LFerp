@@ -107,12 +107,26 @@
     return html;
   }
 
+  function findOrder(id) {
+    if (window.StoreAppBizReportData && typeof StoreAppBizReportData.listCommissionOrders === 'function') {
+      var list = StoreAppBizReportData.listCommissionOrders();
+      for (var i = 0; i < list.length; i++) {
+        if (String(list[i].id) === String(id)) return list[i];
+      }
+    }
+    var api = window.StoreAppBizOrders;
+    return api && typeof api.getById === 'function' ? api.getById(id) : null;
+  }
+
   function init() {
     var params = new URLSearchParams(window.location.search);
     var id = params.get('id') || '';
     var root = document.getElementById('ogRoot');
-    var api = window.StoreAppBizOrders;
-    var order = api && typeof api.getById === 'function' ? api.getById(id) : null;
+    var back = document.getElementById('ogBack');
+    if (back && params.get('from') !== 'orders') {
+      back.setAttribute('href', 'biz-commission.html');
+    }
+    var order = findOrder(id);
     if (!root) return;
     if (!order) {
       root.innerHTML = '<div class="sa-og-empty">订单不存在或已失效</div>';

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>进货概况 · 丰银宝</title>
+  <link rel="stylesheet" href="../css/store-app.css?v=20261117-rpt21">
+  <link rel="stylesheet" href="../css/store-app-biz-report.css?v=20261117-rpt21">
+</head>
+<body class="store-app-body">
+  <div class="sa-shell sa-rpt-shell">
+    <div class="sa-rpt">
+      <header class="sa-rpt-nav">
+        <a href="biz-center.html" class="sa-rpt-nav__back" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <h1 class="sa-rpt-nav__title">进货概况</h1>
+        <a class="sa-rpt-nav__link" href="restock-orders.html">订单明细</a>
+      </header>
+
+      <div class="sa-rpt-scroll">
+        <p class="sa-rpt-asof sa-rpt-asof--page">更新于 <span id="rrUpdated">—</span></p>
+
+        <div class="sa-rpt-chips" id="rrRange" role="tablist">
+          <button type="button" class="sa-rpt-chip is-active" data-range="today">今天</button>
+          <button type="button" class="sa-rpt-chip" data-range="yesterday">昨天</button>
+          <button type="button" class="sa-rpt-chip" data-range="7d">近七天</button>
+          <button type="button" class="sa-rpt-chip" data-range="month">本月</button>
+          <button type="button" class="sa-rpt-chip" data-range="custom">自定义</button>
+        </div>
+        <div class="sa-rpt-custom" id="rrCustom" hidden>
+          <p class="sa-rpt-custom__hint">选择起止日期后点击确定</p>
+          <div class="sa-rpt-custom__row">
+            <label class="sa-rpt-custom__field">
+              <span>开始日期</span>
+              <input type="date" id="rrCustomStart">
+            </label>
+            <span class="sa-rpt-custom__sep">至</span>
+            <label class="sa-rpt-custom__field">
+              <span>结束日期</span>
+              <input type="date" id="rrCustomEnd">
+            </label>
+          </div>
+          <button type="button" class="sa-rpt-custom__btn" id="rrCustomApply">确定</button>
+        </div>
+
+        <!-- 橙卡：实际支出＝支付−退款，店长一眼看净支出 -->
+        <section class="sa-rpt-hero" aria-label="门店实际进货支出">
+          <div class="sa-rpt-hero__label">实际支出（元）</div>
+          <div class="sa-rpt-hero__amount" id="rrNetPaid">0.00</div>
+          <p class="sa-rpt-hero__hint" id="rrNetHint">实际支出＝进货支出−本期退款</p>
+          <div class="sa-rpt-hero__split sa-rpt-hero__split--3">
+            <div class="sa-rpt-hero__split-cell">
+              <div class="sa-rpt-hero__split-t">进货支出</div>
+              <div class="sa-rpt-hero__split-v" id="rrPaid">0.00</div>
+            </div>
+            <i class="sa-rpt-hero__split-div" aria-hidden="true"></i>
+            <div class="sa-rpt-hero__split-cell">
+              <div class="sa-rpt-hero__split-t">本期退款</div>
+              <div class="sa-rpt-hero__split-v" id="rrRefundHero">0.00</div>
+            </div>
+            <i class="sa-rpt-hero__split-div" aria-hidden="true"></i>
+            <div class="sa-rpt-hero__split-cell">
+              <div class="sa-rpt-hero__split-t">进货订单</div>
+              <div class="sa-rpt-hero__split-v" id="rrOrderCnt">0</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 进货退款明细 -->
+        <section class="sa-rpt-card">
+          <div class="sa-rpt-card__hd">
+            <h2 class="sa-rpt-card__title">进货退款</h2>
+            <span class="sa-rpt-picker sa-rpt-picker--static">按退款成功时间</span>
+          </div>
+          <div class="sa-rpt-metrics sa-rpt-metrics--3">
+            <div class="sa-rpt-metric sa-rpt-metric--static">
+              <div class="sa-rpt-metric__t">退款合计(元)</div>
+              <div class="sa-rpt-metric__v" id="rrRefund">0.00</div>
+            </div>
+            <div class="sa-rpt-metric sa-rpt-metric--static">
+              <div class="sa-rpt-metric__t">退货款(元)</div>
+              <div class="sa-rpt-metric__v" id="rrRefundGoods">0.00</div>
+            </div>
+            <div class="sa-rpt-metric sa-rpt-metric--static">
+              <div class="sa-rpt-metric__t">退运费(元)</div>
+              <div class="sa-rpt-metric__v" id="rrRefundFreight">0.00</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 进货趋势 -->
+        <section class="sa-rpt-card">
+          <div class="sa-rpt-card__hd">
+            <h2 class="sa-rpt-card__title">进货趋势</h2>
+            <span class="sa-rpt-picker sa-rpt-picker--static">进货支出</span>
+          </div>
+          <div class="sa-rpt-chart-wrap">
+            <div class="sa-rpt-chart-y" id="rrTrendY" aria-hidden="true"></div>
+            <svg class="sa-rpt-chart" id="rrTrendSvg" viewBox="0 0 289 112" aria-hidden="true"></svg>
+          </div>
+        </section>
+
+        <!-- 商品排行 -->
+        <section class="sa-rpt-card">
+          <div class="sa-rpt-card__hd">
+            <h2 class="sa-rpt-card__title">进货商品排行</h2>
+          </div>
+          <div class="sa-rpt-rank" id="rrGoodsRank"></div>
+        </section>
+
+        <!-- 进货订单 -->
+        <section class="sa-rpt-card">
+          <div class="sa-rpt-card__hd">
+            <h2 class="sa-rpt-card__title">进货订单</h2>
+            <a class="sa-rpt-card__extra" href="restock-orders.html">全部明细 ›</a>
+          </div>
+          <div class="sa-rpt-olist" id="rrOrderList"></div>
+        </section>
+      </div>
+    </div>
+    <div class="sa-rpt-toast" id="rrToast" hidden></div>
+  </div>
+
+  <script src="../js/store-app-biz-report-data.js?v=20261117-rpt21"></script>
+  <script src="../js/store-app-biz-restock-report.js?v=20261117-rpt21"></script>
+</body>
+</html>
