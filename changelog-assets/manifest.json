@@ -1066,6 +1066,179 @@
     "status": "diff",
     "date": "2026-11-09"
   },
+  "306d4dd|MDM/mdm_archive_carrier.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|MDM/mdm_archive_live_room.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|MDM/mdm_archive_store.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|MDM/mdm_archive_supplier.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|MDM/mdm_archive_trader.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|MDM/mdm_archive_warehouse.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|MDM/mdm_audit_store_registration.html": {
+    "before": "changelog-assets/306d4dd/MDM__mdm_audit_store_registration.html.before.jpg",
+    "after": "changelog-assets/306d4dd/MDM__mdm_audit_store_registration.html.after.jpg",
+    "regions": 4,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|MDM/mdm_bd_h5.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|MDM/mdm_bd_merchants.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|MDM/mdm_bd_store_form.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|MDM/mdm_bd_stores.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|MDM/mdm_member_c.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|MDM/mdm_party_all.html": {
+    "before": "changelog-assets/306d4dd/MDM__mdm_party_all.html.before.jpg",
+    "after": "changelog-assets/306d4dd/MDM__mdm_party_all.html.after.jpg",
+    "regions": 22,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|MDM/mdm_people_anchor.html": {
+    "before": "changelog-assets/306d4dd/MDM__mdm_people_anchor.html.before.jpg",
+    "after": "changelog-assets/306d4dd/MDM__mdm_people_anchor.html.after.jpg",
+    "regions": 8,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|MDM/mdm_people_bd.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|MDM/mdm_people_driver.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|MDM/mdm_people_purchaser.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|MDM/mdm_resource_onboarding.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|MDM/mdm_super_admin_accounts.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|SCM/basic_settings_contract_config.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|SCM/basic_settings_contract_party.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|SCM/basic_settings_contract_task.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|SCM/basic_settings_contract_task_detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|SCM/basic_settings_contract_task_form.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|SCM/basic_settings_contract_template.html": {
+    "before": "changelog-assets/306d4dd/SCM__basic_settings_contract_template.html.before.jpg",
+    "after": "changelog-assets/306d4dd/SCM__basic_settings_contract_template.html.after.jpg",
+    "regions": 5,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|SCM/basic_settings_contract_template_form.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|SCM/contract_sign.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|shop-h5/h5/store/contracts.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|shop-h5/h5/store/register.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|store-app/h5/contract-sign.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|store-app/h5/contracts.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|store-app/h5/home.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
+  "306d4dd|store-app/h5/onboarding.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-17"
+  },
   "39b88fe|MDM/mdm_archive_carrier.html": {
     "regions": 0,
     "status": "diff",
