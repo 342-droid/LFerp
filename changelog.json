@@ -1,10 +1,413 @@
 {
-  "latestSha": "89b0a32f4d343e465a29351e063152c1f7686140",
-  "total": 558,
+  "latestSha": "e420222f591ed36b7859bdd00fd74b7ff28bcb18",
+  "total": 559,
   "days": [
     {
       "date": "2026-11-17",
       "items": [
+        {
+          "sha": "e420222",
+          "type": "feat",
+          "text": "合同未完成限制拆成购买和选店，证照编辑改为上传框",
+          "author": "sisi",
+          "time": "23:26",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_trader.html",
+              "module": "冷丰WMS",
+              "title": "贸易商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_bd_h5.html",
+              "module": "",
+              "title": "冷丰 MDM · 门店扫码 H5"
+            },
+            {
+              "file": "MDM/mdm_bd_merchants.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 商户模块"
+            },
+            {
+              "file": "MDM/mdm_bd_store_form.html",
+              "module": "",
+              "title": "冷丰 MDM · 添加 / 编辑门店"
+            },
+            {
+              "file": "MDM/mdm_bd_stores.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 门店模块"
+            },
+            {
+              "file": "MDM/mdm_live_session_detail.html",
+              "module": "冷丰WMS",
+              "title": "直播场次详情"
+            },
+            {
+              "file": "MDM/mdm_live_session_form.html",
+              "module": "冷丰WMS",
+              "title": "直播场次编辑"
+            },
+            {
+              "file": "MDM/mdm_marketing_newcomer_zone.html",
+              "module": "冷丰WMS",
+              "title": "新人专区"
+            },
+            {
+              "file": "MDM/mdm_marketing_newcomer_zone_form.html",
+              "module": "冷丰WMS",
+              "title": "编辑新人专区商品"
+            },
+            {
+              "file": "MDM/mdm_marketing_points_mall.html",
+              "module": "冷丰WMS",
+              "title": "积分商城"
+            },
+            {
+              "file": "MDM/mdm_marketing_points_mall_form.html",
+              "module": "冷丰WMS",
+              "title": "编辑积分商品"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "module": "冷丰WMS",
+              "title": "秒杀活动"
+            },
+            {
+              "file": "MDM/mdm_member_batch_tag.html",
+              "module": "冷丰WMS",
+              "title": "批量打标签"
+            },
+            {
+              "file": "MDM/mdm_member_batch_tag_form.html",
+              "module": "冷丰WMS",
+              "title": "批量打标签"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
+              "file": "MDM/mdm_member_points_cash.html",
+              "module": "冷丰WMS",
+              "title": "积分抵现"
+            },
+            {
+              "file": "MDM/mdm_member_points_cash_form.html",
+              "module": "冷丰WMS",
+              "title": "积分抵现"
+            },
+            {
+              "file": "MDM/mdm_member_points_consume.html",
+              "module": "冷丰WMS",
+              "title": "消费送积分"
+            },
+            {
+              "file": "MDM/mdm_member_points_consume_form.html",
+              "module": "冷丰WMS",
+              "title": "消费送积分"
+            },
+            {
+              "file": "MDM/mdm_member_segment.html",
+              "module": "冷丰WMS",
+              "title": "会员分群"
+            },
+            {
+              "file": "MDM/mdm_party_all.html",
+              "module": "冷丰WMS",
+              "title": "所有主体"
+            },
+            {
+              "file": "MDM/mdm_people_anchor.html",
+              "module": "冷丰WMS",
+              "title": "主播"
+            },
+            {
+              "file": "MDM/mdm_people_bd.html",
+              "module": "冷丰WMS",
+              "title": "BD推广员"
+            },
+            {
+              "file": "MDM/mdm_people_driver.html",
+              "module": "冷丰WMS",
+              "title": "司机"
+            },
+            {
+              "file": "MDM/mdm_people_purchaser.html",
+              "module": "冷丰WMS",
+              "title": "采购员"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            },
+            {
+              "file": "MDM/mdm_resource_onboarding.html",
+              "module": "冷丰WMS",
+              "title": "支付进件"
+            },
+            {
+              "file": "MDM/mdm_super_admin_accounts.html",
+              "module": "冷丰WMS",
+              "title": "商户主体建档"
+            },
+            {
+              "file": "SCM/basic_settings_business_tags.html",
+              "module": "冷丰WMS",
+              "title": "标签管理"
+            },
+            {
+              "file": "SCM/basic_settings_contract_config.html",
+              "module": "冷丰WMS",
+              "title": "接入配置"
+            },
+            {
+              "file": "SCM/basic_settings_contract_party.html",
+              "module": "冷丰WMS",
+              "title": "签署主体"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task.html",
+              "module": "冷丰WMS",
+              "title": "签署任务"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_detail.html",
+              "module": "冷丰WMS",
+              "title": "签署任务详情"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template.html",
+              "module": "冷丰WMS",
+              "title": "合同模板"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template_form.html",
+              "module": "冷丰WMS",
+              "title": "合同模板配置"
+            },
+            {
+              "file": "SCM/basic_settings_cooperation.html",
+              "module": "冷丰WMS",
+              "title": "合作管理"
+            },
+            {
+              "file": "SCM/basic_settings_file_center.html",
+              "module": "冷丰WMS",
+              "title": "文件中心"
+            },
+            {
+              "file": "SCM/basic_settings_material.html",
+              "module": "冷丰WMS",
+              "title": "素材列表"
+            },
+            {
+              "file": "SCM/basic_settings_material_type.html",
+              "module": "冷丰WMS",
+              "title": "素材类型"
+            },
+            {
+              "file": "SCM/basic_settings_member.html",
+              "module": "冷丰WMS",
+              "title": "会员配置"
+            },
+            {
+              "file": "SCM/basic_settings_miniprogram_agreement.html",
+              "module": "冷丰WMS",
+              "title": "小程序协议"
+            },
+            {
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
+            },
+            {
+              "file": "SCM/basic_settings_recommendation.html",
+              "module": "冷丰WMS",
+              "title": "推荐位配置"
+            },
+            {
+              "file": "SCM/basic_settings_system.html",
+              "module": "冷丰WMS",
+              "title": "系统管理"
+            },
+            {
+              "file": "shop-h5/h5/store/register.html",
+              "module": "",
+              "title": "门店注册 · Shop H5"
+            },
+            {
+              "file": "store-app/h5/onboarding.html",
+              "module": "",
+              "title": "商户进件 · 丰银宝"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/category.html",
+              "module": "",
+              "title": "分类 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "module": "",
+              "title": "商城 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "SCM/basic_settings_order.html",
+              "text": "合同未完成限制拆成分佣代收、指定商品购买限制、营销选店限制；购买限制开启后可配利润率、标签和类目，至少配一项"
+            },
+            {
+              "file": "MDM/mdm_party_all.html",
+              "text": "编辑商家去掉去进件，操作栏在编辑和禁用之间增加去进件；证照编辑改为标签在上的两列，照片用虚线上传框"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "text": "证照与结算的编辑改为标签在上的两列，照片用虚线上传框"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "text": "证照与结算的编辑改为标签在上的两列，照片用虚线上传框"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "text": "证照与结算的编辑改为标签在上的两列，照片用虚线上传框"
+            },
+            {
+              "file": "MDM/mdm_archive_trader.html",
+              "text": "证照与结算的编辑改为标签在上的两列，照片用虚线上传框"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "text": "证照资料可按主体名称带出已保存内容"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_form.html",
+              "text": "选店说明改为按营销选店限制判断合同和保证金"
+            },
+            {
+              "file": "MDM/mdm_marketing_points_mall_form.html",
+              "text": "选店说明改为按营销选店限制判断合同和保证金"
+            },
+            {
+              "file": "MDM/mdm_marketing_newcomer_zone_form.html",
+              "text": "选店说明改为按营销选店限制判断合同和保证金"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "text": "低于已配置利润率的商品标记为不可购买"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "text": "低于已配置利润率的商品标记为不可购买"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "text": "命中利润率、标签或类目的指定商品，合同或保证金未达标时不能购买"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "text": "命中利润率、标签或类目的指定商品，合同或保证金未达标时不能购买"
+            },
+            {
+              "file": "user-app/h5/category.html",
+              "text": "命中利润率、标签或类目的指定商品，合同或保证金未达标时不能购买"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "text": "命中利润率、标签或类目的指定商品，合同或保证金未达标时不能购买"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "text": "命中利润率、标签或类目的指定商品，合同或保证金未达标时不能购买"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "text": "命中利润率、标签或类目的指定商品，合同或保证金未达标时不能购买"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "text": "命中利润率、标签或类目的指定商品，合同或保证金未达标时不能购买"
+            }
+          ]
+        },
         {
           "sha": "89b0a32",
           "type": "feat",
@@ -20445,6 +20848,11 @@
               "title": "标签管理"
             },
             {
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
+            },
+            {
               "file": "SCM/basic_settings_system.html",
               "module": "冷丰WMS",
               "title": "系统管理"
@@ -21108,6 +21516,11 @@
               "file": "MDM/mdm_product_selection.html",
               "module": "冷丰WMS",
               "title": "选品库"
+            },
+            {
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
             },
             {
               "file": "SCM/purchase_store_demand_summary.html",
@@ -21959,6 +22372,11 @@
               "title": "选品库"
             },
             {
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
+            },
+            {
               "file": "SCM/purchase_store_demand_summary.html",
               "module": "冷丰采购",
               "title": "门店订货汇总"
@@ -21997,6 +22415,11 @@
               "file": "MDM/mdm_product_selection.html",
               "module": "冷丰WMS",
               "title": "选品库"
+            },
+            {
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
             },
             {
               "file": "SCM/purchase_store_demand_summary.html",
@@ -22134,6 +22557,11 @@
               "file": "MDM/mdm_product_selection.html",
               "module": "冷丰WMS",
               "title": "选品库"
+            },
+            {
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
             },
             {
               "file": "SCM/purchase_store_demand_summary.html",
