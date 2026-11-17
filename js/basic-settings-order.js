@@ -1,10 +1,13 @@
 /**
- * 基础设置 · 门店配置 — 订单配置 / 账户配置（各板块独立保存）
+ * 基础设置 · 门店配置 — 订单配置 / 账户配置 / 合同未完成限制（各板块独立保存）
  * 标题行右侧：默认「修改」；编辑中「取消 / 保存」
  */
 (function () {
   var ORDER_STORAGE_KEY = 'lf_basic_settings_order_config';
   var HOURS_STORAGE_KEY = 'lf_basic_settings_business_hours';
+  var RESTRICT_STORAGE_KEY = 'lf_store_contract_restrict_v1';
+  var RESTRICT_DEFAULTS = { commissionHold: 'on', commerceGate: 'on' };
+  var RESTRICT_FIELDS = ['commissionHold', 'commerceGate'];
   var ORDER_DEFAULTS = { storeQueue: 'on', pendingShipmentVerify: 'on' };
   var HOURS_DEFAULTS = {
     start: '08:00',
@@ -556,11 +559,58 @@
     setSectionEditing(section, false);
   }
 
+  function loadRestrictSettings() {
+    try {
+      var raw = localStorage.getItem(RESTRICT_STORAGE_KEY);
+      if (!raw) return Object.assign({}, RESTRICT_DEFAULTS);
+      var parsed = JSON.parse(raw);
+      return {
+        commissionHold: parsed && parsed.commissionHold === 'off' ? 'off' : 'on',
+        commerceGate: parsed && parsed.commerceGate === 'off' ? 'off' : 'on'
+      };
+    } catch (e) {
+      return Object.assign({}, RESTRICT_DEFAULTS);
+    }
+  }
+
+  function mountRestrictConfig() {
+    var root = $('bsRestrictConfigRoot');
+    var ui = window.OrderConfigUi;
+    if (!root || !ui) return null;
+    root.innerHTML = '';
+    var settings = loadRestrictSettings();
+    ui.appendOrderConfigItem({
+      root: root,
+      fieldKey: 'commissionHold',
+      label: '分佣代收',
+      settings: settings,
+      namePrefix: 'basicRestrict',
+      nameSuffix: '',
+      required: true,
+      onHint: '开启：门店合作合同未完成时，该店分佣由平台代收；签署完成后自动生成补偿结款单。',
+      warnTip: '关闭：不代收该店分佣，签署完成后也不生成这类补偿结款单。'
+    });
+    ui.appendOrderConfigItem({
+      root: root,
+      fieldKey: 'commerceGate',
+      label: '低利润与营销',
+      settings: settings,
+      namePrefix: 'basicRestrict',
+      nameSuffix: '',
+      required: true,
+      onHint: '开启：低利润商品能不能下单、营销能不能选这家店，须同时满足合同已签署、保证金余额达到应保有。',
+      warnTip: '关闭：不看合同是否已完成，也不看保证金是否达到应保有。低利润商品可以下单，营销活动可以选店。'
+    });
+    return root;
+  }
+
   function bind() {
     var orderRoot = mountOrderConfig();
+    var restrictRoot = mountRestrictConfig();
     bindCollapse('bsOrderSection', 'bsOrderSectionToggle');
     bindCollapse('bsAccountSection', 'bsAccountSectionToggle');
     bindCollapse('bsHoursSection', 'bsHoursSectionToggle');
+    bindCollapse('bsRestrictSection', 'bsRestrictSectionToggle');
 
     bindSectionEditMode({
       sectionId: 'bsOrderSection',
@@ -660,7 +710,56 @@
         return true;
       }
     });
+
+    bindSectionEditMode({
+      sectionId: 'bsRestrictSection',
+      editId: 'bsRestrictEditBtn',
+      cancelId: 'bsRestrictCancelBtn',
+      saveId: 'bsRestrictSaveBtn',
+      takeSnapshot: function () {
+        if (!restrictRoot || !window.OrderConfigUi) return loadRestrictSettings();
+        return window.OrderConfigUi.readOrderConfigValues(
+          restrictRoot,
+          'basicRestrict',
+          '',
+          RESTRICT_FIELDS
+        );
+      },
+      restoreSnapshot: function (data) {
+        if (!restrictRoot || !data) return;
+        RESTRICT_FIELDS.forEach(function (key) {
+          var name = 'basicRestrict_' + key;
+          var val = data[key] === 'off' ? 'off' : 'on';
+          restrictRoot.querySelectorAll('input[name="' + name + '"]').forEach(function (r) {
+            r.checked = r.value === val;
+            r.dispatchEvent(new Event('change', { bubbles: true }));
+          });
+        });
+      },
+      onSave: function () {
+        if (!restrictRoot || !window.OrderConfigUi) return false;
+        var data = window.OrderConfigUi.readOrderConfigValues(
+          restrictRoot,
+          'basicRestrict',
+          '',
+          RESTRICT_FIELDS
+        );
+        localStorage.setItem(RESTRICT_STORAGE_KEY, JSON.stringify(data));
+        toast('合同未完成限制已保存', 'success');
+        return true;
+      }
+    });
   }
+
+  window.LfStoreContractRestrict = {
+    load: loadRestrictSettings,
+    commissionHoldOn: function () {
+      return loadRestrictSettings().commissionHold !== 'off';
+    },
+    commerceGateOn: function () {
+      return loadRestrictSettings().commerceGate !== 'off';
+    }
+  };
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', bind);

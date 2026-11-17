@@ -221,7 +221,9 @@
         var skin = options.skin || 'pc';
         var root = el('div', '');
         root.setAttribute('data-entry-materials', '1');
-        var intro = el('div', '', '营业执照、法人身份证和结算信息会在之后的进件里默认带入，进件中可以修改。法人实名电话只保存在入驻资料。');
+        var intro = el('div', 'mdm-biz-tip');
+        intro.setAttribute('role', 'note');
+        intro.innerHTML = '以下属于<strong>档案信息</strong>：营业执照、法人身份证、法人实名电话、整套结算信息。入驻审核后只在档案查看和编辑。进件自动带入已有字段，进件中可以修改。<strong>法人实名电话</strong>不写入进件。';
         intro.style.cssText = 'margin:8px 0;font-size:12px;color:#666;line-height:1.5;';
         root.appendChild(intro);
         appendGroup(root, '营业执照', 'license', skin);
@@ -313,6 +315,15 @@
         return (doc || document).querySelector('[data-entry-materials-wrap]');
     }
 
+    function pairs(data) {
+        data = Object.assign(emptyRecord(), data || {});
+        return TEXT_FIELDS.map(function (field) {
+            return { label: field.label, value: data[field.key] || '未填写' };
+        }).concat(UPLOADS.map(function (field) {
+            return { label: field.label.replace('上传', ''), value: data[field.key] ? '已上传' : '未上传' };
+        }));
+    }
+
     function summaryBlocks(data, render) {
         data = Object.assign(emptyRecord(), data || {});
         var lines = TEXT_FIELDS.map(function (field) {
@@ -343,6 +354,7 @@
         toOnboardingDefaults: toOnboardingDefaults,
         lookupForOnboarding: lookupForOnboarding,
         fillEmptyOnboarding: fillEmptyOnboarding,
-        summaryBlocks: summaryBlocks
+        summaryBlocks: summaryBlocks,
+        pairs: pairs
     };
 })(window);

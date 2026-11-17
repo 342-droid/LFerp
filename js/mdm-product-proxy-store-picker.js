@@ -118,11 +118,10 @@
   }
 
   function lockReason(store) {
-    if (window.StoreAccountConfig && typeof window.StoreAccountConfig.depositStatus === 'function') {
-      var state = window.StoreAccountConfig.depositStatus(store && store.id, store && store.name);
-      return '保证金 ¥' + Number(state.depositActual || 0).toFixed(2) + '，未达应保有 ¥' + Number(state.depositRequired || 0).toFixed(2);
+    if (window.LfLowMargin && typeof window.LfLowMargin.blockReason === 'function') {
+      return window.LfLowMargin.blockReason({ name: store && store.name, storeId: store && store.id }) || '合同未完成或保证金未达到应保有';
     }
-    return '保证金未达应保有，不能参加营销活动';
+    return '合同未完成或保证金未达到应保有，不能参加营销活动';
   }
 
   function renderStoreRows(stores, selected, single, isLocked) {
@@ -400,7 +399,9 @@
       var note = document.createElement('p');
       note.setAttribute('role', 'note');
       note.style.cssText = 'margin:0 16px 8px;padding:8px 10px;background:#fff7f2;border:1px solid #f0d2bc;border-radius:6px;font-size:12px;line-height:1.5;color:#666';
-      note.textContent = '未放开的门店不能参加本活动。保证金余额达到该店账户配置里的应保有金额后才会放开。';
+      note.textContent = window.LfLowMargin && typeof window.LfLowMargin.commerceRestrictOn === 'function' && !window.LfLowMargin.commerceRestrictOn()
+        ? '门店配置已关闭低利润与营销门槛，全部门店都可以参加本活动。'
+        : '未放开的门店不能参加本活动。合同已签署，且保证金余额达到该店账户配置里的应保有金额，才会放开。';
       var pickerBody = backdrop.querySelector('.erp-modal__body');
       if (pickerBody) pickerBody.insertBefore(note, pickerBody.firstChild);
     }

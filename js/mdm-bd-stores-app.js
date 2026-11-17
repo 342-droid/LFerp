@@ -1448,7 +1448,7 @@
           if (tpl.scene !== 'store' || tpl.status !== 'on') return false;
           var types = Array.isArray(tpl.storePartnerTypes) ? tpl.storePartnerTypes.slice() : [];
           if (!types.length && tpl.storePartnerType) types = String(tpl.storePartnerType).split(/[、,，]/);
-          return types.indexOf(type) >= 0;
+          return types.indexOf('全部') >= 0 || types.indexOf(type) >= 0;
         }).map(function (tpl) { return tpl.name; });
         if (names.length) return names.join('、');
       }

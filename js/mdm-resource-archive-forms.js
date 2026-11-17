@@ -568,27 +568,41 @@
         updateBdSelectOptions(selectEl, STORE_BIND_BD_ENUM, selectedName);
     }
 
-    function hydrateArchiveWarehouseSelect(selectEl, selectedName, placeholder) {
-        var original = document.createElement('option');
-        original.value = selectedName || '';
-        original.textContent = selectedName || placeholder;
-        selectEl.replaceChildren(original);
-        selectEl.disabled = true;
-        window.MdmErpLists.ensureEnabledWarehouseOptions(function (warehouses) {
-            selectEl.replaceChildren(new Option(placeholder, ''));
-            warehouses.filter(function (warehouse) { return warehouse.enabled; }).forEach(function (warehouse) {
-                var option = new Option(warehouse.name, warehouse.name);
-                option.dataset.warehouseId = warehouse.id;
-                selectEl.appendChild(option);
+    function fillWarehouseOptions(selectEl, warehouses, selectedName, placeholder) {
+        selectEl.replaceChildren(new Option(placeholder, ''));
+        (warehouses || []).forEach(function (warehouse) {
+            if (!warehouse || warehouse.enabled === false) return;
+            var option = new Option(warehouse.name, warehouse.name);
+            if (warehouse.id) option.dataset.warehouseId = warehouse.id;
+            selectEl.appendChild(option);
         });
         if (selectedName) {
             selectEl.value = selectedName;
-                if (!selectEl.value) {
-                    selectEl.appendChild(original);
-                    selectEl.value = selectedName;
-                }
+            if (!selectEl.value) {
+                selectEl.appendChild(new Option(selectedName, selectedName));
+                selectEl.value = selectedName;
             }
-            selectEl.disabled = false;
+        }
+        selectEl.disabled = false;
+    }
+
+    function hydrateArchiveWarehouseSelect(selectEl, selectedName, placeholder) {
+        var fallback = [
+            { name: '沪南一号仓', id: 'WH001', enabled: true },
+            { name: '合作仓-苏州', id: 'WH002', enabled: true }
+        ];
+        selectEl.disabled = true;
+        if (!window.MdmErpLists || typeof window.MdmErpLists.ensureEnabledWarehouseOptions !== 'function') {
+            fillWarehouseOptions(selectEl, fallback, selectedName, placeholder);
+            return;
+        }
+        window.MdmErpLists.ensureEnabledWarehouseOptions(function (warehouses) {
+            fillWarehouseOptions(
+                selectEl,
+                warehouses && warehouses.length ? warehouses : fallback,
+                selectedName,
+                placeholder
+            );
         });
     }
 
@@ -600,7 +614,8 @@
         var option = selectEl.selectedOptions[0];
         if (!option || option.value === previous || !option.value) return true;
         var id = option.dataset.warehouseId;
-        if (id && window.MdmErpLists.archiveStatus('warehouse', id, '启用') === '启用') return true;
+        if (!id || !window.MdmErpLists || typeof window.MdmErpLists.archiveStatus !== 'function') return true;
+        if (window.MdmErpLists.archiveStatus('warehouse', id, '启用') === '启用') return true;
         showToast('所选仓库已停用，请重新选择', 'error');
         return false;
     }
@@ -943,6 +958,7 @@
         var body = document.createElement('div');
         body.appendChild(sectionTitle('基础信息'));
         refs.subjectSel = sel(STORE_SUBJECTS, '');
+        refs.subjectSel.setAttribute('data-required-msg', '请选择主体名称');
         body.appendChild(formRow('主体名称', true, refs.subjectSel));
         var codeWrap = document.createElement('div');
         refs.codeInp = txt('选择门店地址后由系统自动生成', opts.storeCode || '');
@@ -986,6 +1002,7 @@
         var nameInp = txt('请输入门店名称', '');
         refs.nameInp = nameInp;
         nameInp.maxLength = 50;
+        nameInp.setAttribute('data-required-msg', '请输入门店名称');
         var nc = document.createElement('span');
         nc.className = 'store-form__counter';
         nc.textContent = '0 / 50';
@@ -1020,8 +1037,10 @@
             ''
         );
         refs.partnerSel = partnerSel;
+        partnerSel.setAttribute('data-required-msg', '请选择门店合作类型');
         body.appendChild(formRow('门店合作类型', true, partnerSel));
         refs.storeTypeInp = txt('如社区生鲜店、团购自提点等', '');
+        refs.storeTypeInp.setAttribute('data-required-msg', '请输入门店类型');
         body.appendChild(formRow('门店类型', true, refs.storeTypeInp));
         mountStoreBizFields(body, refs);
         refs.warehouseSel = sel([], '');
@@ -1054,6 +1073,7 @@
         body.appendChild(regionRow);
         var addressWrap = txtAreaWithCount('请输入详细地址，输入后将自动在地图上定位', 200, '');
         refs.addressTa = addressWrap.querySelector('textarea');
+        if (refs.addressTa) refs.addressTa.setAttribute('data-required-msg', '请输入详细地址');
         body.appendChild(formRow('详细地址', true, addressWrap));
         body.appendChild(mapMockRow(false));
         appendStoreHeaderPhotoField(body, refs, {
@@ -1228,8 +1248,10 @@
             (options && options.initialInboundWarehouse) || ''
         ).trim();
         refs.subjectSel = sel(SUP_SUBJECTS, '');
+        refs.subjectSel.setAttribute('data-required-msg', '请选择主体名称');
         body.appendChild(formRow('主体名称', true, refs.subjectSel));
         refs.nameInp = txt('请输入供应商名称', '');
+        refs.nameInp.setAttribute('data-required-msg', '请输入供应商名称');
         body.appendChild(formRow('供应商名称', true, refs.nameInp));
         /* 供应商别名：仅 PC、由平台运营维护；写路径必填。
            存量空别名不迁库，列表空显示「-」；编辑预填名称。C 端：别名 || 名称。 */
@@ -1251,6 +1273,7 @@
             ],
             ''
         );
+        refs.typeSel.setAttribute('data-required-msg', '请选择供应商类型');
         body.appendChild(formRow('供应商类型', true, refs.typeSel));
         var regRow = document.createElement('div');
         regRow.className = 'store-form__row';
@@ -1258,11 +1281,13 @@
         var regC = document.createElement('div');
         regC.className = 'store-form__control';
         refs.regionInp = txt('省 / 市 / 区（级联示意）', '');
+        refs.regionInp.setAttribute('data-required-msg', '请填写供应商地址');
         regC.appendChild(refs.regionInp);
         regRow.appendChild(regC);
         body.appendChild(regRow);
         var detailWrap = txtAreaWithCount('请输入详细地址，输入后将自动在地图上定位', 200, '');
         refs.detailTa = detailWrap.querySelector('textarea');
+        if (refs.detailTa) refs.detailTa.setAttribute('data-required-msg', '请输入详细地址');
         body.appendChild(formRow('详细地址', true, detailWrap));
         body.appendChild(mapMockRow(false));
         if (includeInboundWarehouse) {
@@ -1891,8 +1916,222 @@
         return createWarehouseFormBundle().body;
     }
 
+    var FIRST_STORE_KEY = 'lf_first_store_archives_v1';
+    var FIRST_SUPPLIER_KEY = 'lf_first_supplier_archives_v1';
+
+    function readQueue(key) {
+        try {
+            var list = JSON.parse(localStorage.getItem(key) || '[]');
+            return Array.isArray(list) ? list : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function pushQueue(key, row) {
+        var list = readQueue(key);
+        list.unshift(row);
+        try { localStorage.setItem(key, JSON.stringify(list)); } catch (e) {}
+    }
+
+    function takeQueue(key) {
+        var list = readQueue(key);
+        try { localStorage.removeItem(key); } catch (e) {}
+        return list;
+    }
+
+    function hideLabeledRows(body, labels) {
+        Array.prototype.forEach.call(body.querySelectorAll('.store-form__row'), function (row) {
+            var lab = row.querySelector('.store-form__label');
+            var text = lab ? lab.textContent.replace(/\*/g, '').trim() : '';
+            if (labels.indexOf(text) < 0) return;
+            row.style.display = 'none';
+            row.querySelectorAll('[data-required-msg]').forEach(function (el) {
+                el.removeAttribute('data-required-msg');
+            });
+            var next = row.nextElementSibling;
+            if (next && next.classList && next.classList.contains('store-form__tip')) next.style.display = 'none';
+        });
+    }
+
+    function firstArchiveBanner(kind) {
+        var tip = document.createElement('div');
+        tip.className = 'mdm-biz-tip';
+        tip.setAttribute('role', 'note');
+        var where = kind === 'supplier' ? '供应商档案' : '门店档案';
+        tip.innerHTML = '以下为<strong>首个档案</strong>，和主体一起提交入驻审核。包含档案原有字段，以及<strong>营业执照、法人身份证、法人实名电话、整套结算信息</strong>。创建后只在' + where + '查看和编辑，主体详情不再展示这些字段。进件自动带入已有字段，法人实名电话不写入进件。联系人、手机取上方主体信息。';
+        return tip;
+    }
+
+    function ensureOption(sel, text) {
+        var value = String(text || '').trim();
+        if (!sel || !value) return;
+        var found = false;
+        Array.prototype.forEach.call(sel.options, function (opt) {
+            if (opt.value === value || opt.textContent === value) found = true;
+        });
+        if (!found) sel.appendChild(new Option(value, value));
+        sel.value = value;
+    }
+
+    function validateFirstArchive(bundle) {
+        if (!bundle || !bundle.body) return '档案信息未加载';
+        var nodes = bundle.body.querySelectorAll('[data-required-msg]');
+        var i;
+        for (i = 0; i < nodes.length; i++) {
+            var one = nodes[i];
+            var row = one.closest ? one.closest('.store-form__row') : null;
+            if (row && row.style.display === 'none') continue;
+            if (one.disabled) continue;
+            if (!String(one.value || '').trim()) return one.getAttribute('data-required-msg') || '请完善档案信息';
+        }
+        if (bundle.refs && bundle.refs.entryMaterials && window.MdmEntryMaterials) {
+            var entryErr = window.MdmEntryMaterials.validate(bundle.refs.entryMaterials);
+            if (entryErr) return entryErr;
+        }
+        var uploads = bundle.body.querySelectorAll('[data-upload-required-msg]');
+        for (i = 0; i < uploads.length; i++) {
+            var up = uploads[i];
+            var upRow = up.closest ? up.closest('.store-form__row') : null;
+            if (upRow && upRow.style.display === 'none') continue;
+            if (up.getAttribute('data-upload-state') !== '1') {
+                return up.getAttribute('data-upload-required-msg') || '请上传必填照片';
+            }
+        }
+        var warehouse = bundle.refs && (bundle.refs.warehouseSel || bundle.refs.inboundWarehouseSel);
+        if (warehouse && warehouse.disabled) return '正在读取仓库档案，请稍后重试';
+        return '';
+    }
+
+    function copySubjectIntoArchive(kind, subject, refs) {
+        subject = subject || {};
+        if (refs.contactInp) refs.contactInp.value = subject.contact || refs.contactInp.value || '';
+        if (refs.phoneInp) refs.phoneInp.value = subject.phone || refs.phoneInp.value || '';
+        if (refs.nameInp && !String(refs.nameInp.value || '').trim()) refs.nameInp.value = subject.name || '';
+        if (kind === 'store') ensureOption(refs.bindBdSel, subject.bd);
+        if (kind === 'supplier') {
+            refs.shortNameInp.value = subject.alias || refs.shortNameInp.value || subject.name || '';
+        }
+    }
+
+    function saveEntryBoth(kind, subjectName, archiveName, root) {
+        if (!window.MdmEntryMaterials || !root) return;
+        var data = window.MdmEntryMaterials.read(root);
+        if (archiveName) window.MdmEntryMaterials.save(kind, archiveName, data);
+        if (subjectName && subjectName !== archiveName) window.MdmEntryMaterials.save(kind, subjectName, data);
+    }
+
+    function commitFirstStore(subject, bundle) {
+        var refs = bundle.refs || {};
+        copySubjectIntoArchive('store', subject, refs);
+        var name = refs.nameInp ? String(refs.nameInp.value || '').trim() : '';
+        var region = refs.regionInp ? String(refs.regionInp.value || '').trim() : '';
+        if (!warehouseSelectionAvailable(refs.warehouseSel, '')) return false;
+        var api = window.MdmStoreCode;
+        var storeCode = api && typeof api.allocateNextCode === 'function' ? api.allocateNextCode(region) : '';
+        if (!storeCode) storeCode = 'NEW' + Date.now().toString().slice(-8);
+        if (refs.codeInp) refs.codeInp.value = storeCode;
+        writeVenuePhotos('store', storeCode, collectVenuePhotosFromRefs(refs));
+        if (name) writeVenuePhotos('store', 'name:' + name, collectVenuePhotosFromRefs(refs));
+        saveEntryBoth('store', subject.name, name, refs.entryMaterials);
+        var bindings = readJsonStore('mdm_store_warehouse_bindings_v1');
+        bindings[storeCode] = selectedLabel(refs.warehouseSel);
+        writeJsonStore('mdm_store_warehouse_bindings_v1', bindings);
+        syncStoreReceiveFromForm(storeCode, name, refs);
+        var partnerMap = { franchise: '加盟店', joint: '联营店', direct: '直营店' };
+        var partnerValue = refs.partnerSel && refs.partnerSel.value;
+        var row = {
+            storeCode: storeCode,
+            subjectName: subject.name || '—',
+            name: name,
+            shortName: name,
+            partner: partnerMap[partnerValue] || partnerValue || '—',
+            storeType: refs.storeTypeInp ? String(refs.storeTypeInp.value || '').trim() : '—',
+            bindBd: subject.bd || selectedLabel(refs.bindBdSel) || '—',
+            contact: subject.contact || '—',
+            phone: subject.phone || '—',
+            warehouse: selectedLabel(refs.warehouseSel) || '—',
+            region: region,
+            address: refs.addressTa ? String(refs.addressTa.value || '').trim() : '',
+            bizLine: refs.bizLineSel ? refs.bizLineSel.value : '',
+            brandName: refs.brandSel ? refs.brandSel.value : '',
+            bizLines: refs.bizHidden ? refs.bizHidden.value : ''
+        };
+        if (window.MdmStoreSiteSlot) {
+            window.MdmStoreSiteSlot.syncFromStore({ storeCode: storeCode, storeName: name, source: 'store' });
+        }
+        var appended = window.MdmErpLists && typeof window.MdmErpLists.appendArchiveStoreRow === 'function'
+            ? window.MdmErpLists.appendArchiveStoreRow(row)
+            : null;
+        if (!appended) pushQueue(FIRST_STORE_KEY, row);
+        return true;
+    }
+
+    function commitFirstSupplier(subject, bundle) {
+        var refs = bundle.refs || {};
+        copySubjectIntoArchive('supplier', subject, refs);
+        if (refs.inboundWarehouseSel && !warehouseSelectionAvailable(refs.inboundWarehouseSel, '')) return false;
+        var name = refs.nameInp ? String(refs.nameInp.value || '').trim() : '';
+        var shortName = refs.shortNameInp ? String(refs.shortNameInp.value || '').trim() : '';
+        var typeMap = { brand: '品牌商', agent: '代理商', person: '个人' };
+        var typeValue = refs.typeSel ? refs.typeSel.value : '';
+        saveEntryBoth('supplier', subject.name, name, refs.entryMaterials);
+        var warehouse = refs.inboundWarehouseSel ? String(refs.inboundWarehouseSel.value || '').trim() : '';
+        saveSupplierInboundWarehouseBinding('', name, warehouse);
+        var id = 'SUP' + Date.now();
+        if (window.MdmSupplierArchiveStore) {
+            window.MdmSupplierArchiveStore.upsert({ id: id, name: name, shortName: shortName });
+        }
+        if (window.LFSettleCycleStore && refs.readSettleCycle) {
+            if (refs.settleTriggerSel) refs.settleTriggerSel.disabled = false;
+            if (refs.settleCycleSel) refs.settleCycleSel.disabled = false;
+            window.LFSettleCycleStore.saveSupplier(id, name, refs.readSettleCycle());
+        }
+        var row = {
+            id: id,
+            subjectName: subject.name || '—',
+            name: name,
+            shortName: shortName || '-',
+            region: refs.regionInp ? String(refs.regionInp.value || '').trim() : '',
+            detail: refs.detailTa ? String(refs.detailTa.value || '').trim() : '',
+            typeLabel: typeMap[typeValue] || typeValue || '—',
+            contact: subject.contact || '—',
+            phone: subject.phone || '—',
+            warehouse: warehouse
+        };
+        var appended = window.MdmErpLists && typeof window.MdmErpLists.appendArchiveSupplierRow === 'function'
+            ? window.MdmErpLists.appendArchiveSupplierRow(row)
+            : null;
+        if (!appended) pushQueue(FIRST_SUPPLIER_KEY, row);
+        return true;
+    }
+
+    function buildFirstArchive(kind) {
+        var bundle = kind === 'supplier'
+            ? createSupplierFormBundle({ includeInboundWarehouse: true })
+            : createStoreFormBundle({});
+        if (kind !== 'supplier' && bundle.refs.warehouseSel) {
+            hydrateArchiveWarehouseSelect(bundle.refs.warehouseSel, '', '请选择配送仓库');
+        }
+        var hide = kind === 'supplier'
+            ? ['主体名称', '供应商别名', '手机号码', '验证码', '联系人']
+            : ['主体名称', '联系人', '手机号码', '验证码', '绑定BD'];
+        hideLabeledRows(bundle.body, hide);
+        bundle.body.insertBefore(firstArchiveBanner(kind), bundle.body.firstChild);
+        bundle.kind = kind;
+        return bundle;
+    }
+
     global.MdmResourceArchiveForms = {
         readVenuePhotos: readVenuePhotos,
+        buildFirstArchive: buildFirstArchive,
+        validateFirstArchive: validateFirstArchive,
+        commitFirstArchive: function (kind, subject, bundle) {
+            if (kind === 'supplier') return commitFirstSupplier(subject, bundle);
+            return commitFirstStore(subject, bundle);
+        },
+        takeFirstStores: function () { return takeQueue(FIRST_STORE_KEY); },
+        takeFirstSuppliers: function () { return takeQueue(FIRST_SUPPLIER_KEY); },
         writeVenuePhotos: writeVenuePhotos,
         syncVenuePhotosFromOnboarding: syncVenuePhotosFromOnboarding,
         openStoreAdd: function () {
@@ -2176,14 +2415,15 @@
                     bundle.refs && bundle.refs.inboundWarehouseSel
                         ? String(bundle.refs.inboundWarehouseSel.value || '').trim()
                         : '';
+                var supplierId = 'SUP' + Date.now();
                 if (name) {
                     if (window.MdmEntryMaterials && bundle.refs.entryMaterials) {
                         window.MdmEntryMaterials.save('supplier', name, window.MdmEntryMaterials.read(bundle.refs.entryMaterials));
                     }
-                    saveSupplierInboundWarehouseBinding('', name, selectedWarehouse);
+                    saveSupplierInboundWarehouseBinding(supplierId, name, selectedWarehouse);
                     if (window.MdmSupplierArchiveStore) {
                         window.MdmSupplierArchiveStore.upsert({
-                            id: 'SUP' + Date.now(),
+                            id: supplierId,
                             name: name,
                             shortName: shortName
                         });
@@ -2192,7 +2432,24 @@
                 if (window.LFSettleCycleStore && bundle.refs && bundle.refs.readSettleCycle) {
                     if (bundle.refs.settleTriggerSel) bundle.refs.settleTriggerSel.disabled = false;
                     if (bundle.refs.settleCycleSel) bundle.refs.settleCycleSel.disabled = false;
-                    window.LFSettleCycleStore.saveSupplier('', name, bundle.refs.readSettleCycle());
+                    window.LFSettleCycleStore.saveSupplier(supplierId, name, bundle.refs.readSettleCycle());
+                }
+                var typeMap = { brand: '品牌商', agent: '代理商', person: '个人' };
+                var typeValue = bundle.refs && bundle.refs.typeSel ? bundle.refs.typeSel.value : '';
+                var row = {
+                    id: supplierId,
+                    subjectName: selectedLabel(bundle.refs.subjectSel) || '—',
+                    name: name,
+                    shortName: shortName || '-',
+                    region: bundle.refs.regionInp ? String(bundle.refs.regionInp.value || '').trim() : '',
+                    detail: bundle.refs.detailTa ? String(bundle.refs.detailTa.value || '').trim() : '',
+                    typeLabel: typeMap[typeValue] || typeValue || '—',
+                    contact: bundle.refs.contactInp ? String(bundle.refs.contactInp.value || '').trim() : '—',
+                    phone: bundle.refs.phoneInp ? String(bundle.refs.phoneInp.value || '').trim() : '—',
+                    warehouse: selectedWarehouse
+                };
+                if (window.MdmErpLists && typeof window.MdmErpLists.appendArchiveSupplierRow === 'function') {
+                    window.MdmErpLists.appendArchiveSupplierRow(row);
                 }
             });
         },

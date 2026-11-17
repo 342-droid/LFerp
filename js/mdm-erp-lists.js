@@ -553,6 +553,7 @@
         createTime: 15
     };
     var archiveStorePage = null;
+    var archiveSupplierPage = null;
 
     function escapeStoreCell(s) {
         return String(s || '')
@@ -609,6 +610,41 @@
         refreshStoreArchiveActions();
         paintArchiveContractColumn('store');
         return row;
+    }
+
+    function appendArchiveSupplierRow(data) {
+        var tbody = document.getElementById('tableBody');
+        if (!tbody || !data || !data.name) return null;
+        if (tbody.querySelector('tr td') && tbody.textContent.indexOf(data.id) >= 0) return null;
+        var tr = document.createElement('tr');
+        tr.setAttribute('data-short-name', data.shortName || '');
+        function td(html) {
+            return '<td>' + html + '</td>';
+        }
+        tr.innerHTML =
+            td(data.id || '') +
+            td(data.subjectName || '—') +
+            '<td><a href="#" class="subject-name-link">' + (data.name || '') + '</a></td>' +
+            td(data.shortName || '-') +
+            td(data.region || '—') +
+            td(data.detail || '—') +
+            td(data.typeLabel || '—') +
+            td(data.contact || '—') +
+            td(data.phone || '—') +
+            td(new Date().toISOString().slice(0, 16).replace('T', ' ')) +
+            td('0') +
+            td('对公/订单结算/先货后款') +
+            td(data.phone || '—') +
+            td('统配') +
+            td('未进件') +
+            td('未提交') +
+            '<td><span class="status active">正常</span></td>' +
+            '<td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td>';
+        tbody.insertBefore(tr, tbody.firstChild);
+        if (archiveSupplierPage && typeof archiveSupplierPage.decorateAllDetailLinkCells === 'function') {
+            archiveSupplierPage.decorateAllDetailLinkCells();
+        }
+        return tr;
     }
 
     function loadPlatformBusinessHoursForStore() {
@@ -1759,6 +1795,11 @@
         });
         archiveStorePage = pm;
         pm.init();
+        if (window.MdmResourceArchiveForms && typeof window.MdmResourceArchiveForms.takeFirstStores === 'function') {
+            window.MdmResourceArchiveForms.takeFirstStores().forEach(function (row) {
+                appendArchiveStoreRow(row);
+            });
+        }
         restoreArchiveStatuses(pm, 'store', STORE_COL.status);
         var warehouseBindings = readJsonStore(STORE_WAREHOUSE_BIND_KEY) || {};
         document.querySelectorAll('#tableBody tr').forEach(function (row) {
@@ -2017,8 +2058,25 @@
             ],
             filterFn: supplierArchiveFilter
         });
-        /* 供应商档案不再提供「新增」：须先在所有主体新增供应商商家，审核通过后在本页编辑 */
+        archiveSupplierPage = pm;
+        /* 档案处新增仍要关联已有主体，并提交原档案字段和证照、法人、结算信息 */
+        document.getElementById('mdmArchiveSupAddBtn') &&
+            document.getElementById('mdmArchiveSupAddBtn').addEventListener('click', function () {
+                if (
+                    window.MdmResourceArchiveForms &&
+                    typeof window.MdmResourceArchiveForms.openSupplierAdd === 'function'
+                ) {
+                    window.MdmResourceArchiveForms.openSupplierAdd();
+                } else if (typeof showToast === 'function') {
+                    showToast('表单模块未加载，请确认已引入 mdm-resource-archive-forms.js', 'error');
+                }
+            });
         setTimeout(function () {
+            if (window.MdmResourceArchiveForms && typeof window.MdmResourceArchiveForms.takeFirstSuppliers === 'function') {
+                window.MdmResourceArchiveForms.takeFirstSuppliers().forEach(function (row) {
+                    appendArchiveSupplierRow(row);
+                });
+            }
             pm.decorateAllDetailLinkCells();
             syncAllSupplierArchiveRows();
             if (window.MdmSupplierArchiveStore) {
@@ -4767,6 +4825,7 @@
     window.MdmErpLists = {
         initArchiveStore: initArchiveStore,
         appendArchiveStoreRow: appendArchiveStoreRow,
+        appendArchiveSupplierRow: appendArchiveSupplierRow,
         repaintStoreCommerce: function () { paintArchiveContractColumn('store'); },
         initArchiveSupplier: initArchiveSupplier,
         initArchiveTrader: initArchiveTrader,

@@ -776,7 +776,6 @@
         block.style.display = '';
         var meta = getSubjectRecordMeta(row, spec.pageLabel);
         var rec = readSubjectRecord(meta) || {};
-        var f = rec.fields || {};
         var rowInfo = subjectRowCells(row);
         var basicItems = [
             ['主体ID', rowInfo.id || '—'],
@@ -800,23 +799,7 @@
             '<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;font-size:12px;color:#334155">' +
             basicHtml +
             '</div>' +
-            '<div style="font-size:14px;font-weight:700;color:#0f172a;margin:14px 0 10px">进件信息</div>' +
-            '<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;font-size:12px;color:#334155">' +
-            '<div>商户简称：' + (f.short_name || '—') + '</div>' +
-            '<div>小票名称：' + (f.receipt_name || '—') + '</div>' +
-            '<div>实际经营地址：' + (f.detail_addr || '—') + '</div>' +
-            '<div>法人手机号：' + (f.legal_mobile_no || '—') + '</div>' +
-            '<div>管理员手机号：' + (f.contact_mobile_no || '—') + '</div>' +
-            '<div>管理员邮箱：' + (f.contact_email || '—') + '</div>' +
-            '<div>银行卡信息：' + cardInfoText(f.card_info) + '</div>' +
-            '<div>营业执照(F07)：' + uploadText(f.license_pic) + '</div>' +
-            '<div>身份证人像面(F02)：' + uploadText(f.legal_cert_front_pic) + '</div>' +
-            '<div>身份证国徽面(F03)：' + uploadText(f.legal_cert_back_pic) + '</div>' +
-            '<div>开户许可证：' + uploadText(f.open_license_pic) + '</div>' +
-            '<div>门头照(F22)：' + uploadText(f.store_header_pic) + '</div>' +
-            '<div>内景照(F24)：' + uploadText(f.store_indoor_pic) + '</div>' +
-            '<div>收银台照(F105)：' + uploadText(f.store_cashier_desk_pic) + '</div>' +
-            '</div>' +
+            '<div class="mdm-biz-tip" role="note" style="margin:14px 0 10px">档案信息（门店或供应商原字段，以及营业执照、法人身份证、法人实名电话、整套结算信息）只在对应档案查看和编辑。这里只保留主体自身字段。去进件时自动带入档案里已有的字段，法人实名电话不写入进件。</div>' +
             '<div style="font-size:14px;font-weight:700;color:#0f172a;margin:14px 0 10px">主体进件</div>' +
             '<div style="margin:0 0 10px"><button type="button" class="btn btn-primary" data-subject-go-onboard>去进件</button></div>' +
             '<div class="table-scroll-container"><table class="table"><thead><tr>' +
@@ -1394,6 +1377,13 @@
         var st = document.getElementById(fieldId(kindSpec.fieldIdPrefix, 'subjectType'));
         if (st) st.value = kindSpec.subjectTypeLabel;
         if (kindSpec.entryRoot && window.MdmEntryMaterials) window.MdmEntryMaterials.fill(kindSpec.entryRoot, {});
+        if (kindSpec.archiveBundle && kindSpec.archiveBundle.refs) {
+            var archiveName = kindSpec.archiveBundle.refs.nameInp;
+            if (archiveName) archiveName.removeAttribute('data-user-edited');
+            if (kindSpec.archiveBundle.refs.entryMaterials && window.MdmEntryMaterials) {
+                window.MdmEntryMaterials.fill(kindSpec.archiveBundle.refs.entryMaterials, {});
+            }
+        }
         modal.style.display = 'block';
     }
 
@@ -1426,12 +1416,35 @@
         }
         var modal = document.getElementById(modalId);
         if (!modal) return;
-        if (
-            (kindSpec.subjectTypeLabel === '门店' || kindSpec.subjectTypeLabel === '供应商') &&
-            window.MdmEntryMaterials
-        ) {
-            var entryHost = modal.querySelector('.modal-body') || modal.querySelector('.modal-form') || modal;
-            kindSpec.entryRoot = window.MdmEntryMaterials.mount(entryHost, { skin: 'pc' });
+        var formHost = modal.querySelector('.modal-form') || modal.querySelector('.modal-body') || modal;
+        if (kindSpec.subjectTypeLabel === '门店' || kindSpec.subjectTypeLabel === '供应商') {
+            var content = modal.querySelector('.modal-content');
+            if (content) content.style.width = '960px';
+            if (formHost) {
+                formHost.style.maxHeight = '72vh';
+                formHost.style.overflow = 'auto';
+            }
+            if (window.MdmResourceArchiveForms && typeof window.MdmResourceArchiveForms.buildFirstArchive === 'function') {
+                kindSpec.archiveBundle = window.MdmResourceArchiveForms.buildFirstArchive(
+                    kindSpec.subjectTypeLabel === '供应商' ? 'supplier' : 'store'
+                );
+                formHost.appendChild(kindSpec.archiveBundle.body);
+                var subjectNameInput = document.getElementById(fieldId(kindSpec.fieldIdPrefix, 'subjectName'));
+                if (subjectNameInput && kindSpec.archiveBundle.refs.nameInp) {
+                    subjectNameInput.addEventListener('input', function () {
+                        var archiveName = kindSpec.archiveBundle.refs.nameInp;
+                        if (archiveName.getAttribute('data-user-edited') === '1') return;
+                        archiveName.value = subjectNameInput.value;
+                    });
+                    kindSpec.archiveBundle.refs.nameInp.addEventListener('input', function () {
+                        if (document.activeElement === kindSpec.archiveBundle.refs.nameInp) {
+                            kindSpec.archiveBundle.refs.nameInp.setAttribute('data-user-edited', '1');
+                        }
+                    });
+                }
+            } else if (window.MdmEntryMaterials) {
+                kindSpec.entryRoot = window.MdmEntryMaterials.mount(formHost, { skin: 'pc' });
+            }
         }
         var closeBtn = modal.querySelector('.close');
         if (closeBtn) {
@@ -1458,7 +1471,13 @@
                         return;
                     }
                 }
-                if (kindSpec.entryRoot && window.MdmEntryMaterials) {
+                if (kindSpec.archiveBundle && window.MdmResourceArchiveForms) {
+                    var archiveErr = window.MdmResourceArchiveForms.validateFirstArchive(kindSpec.archiveBundle);
+                    if (archiveErr) {
+                        showToast(archiveErr, 'error');
+                        return;
+                    }
+                } else if (kindSpec.entryRoot && window.MdmEntryMaterials) {
                     var entryErr = window.MdmEntryMaterials.validate(kindSpec.entryRoot);
                     if (entryErr) {
                         showToast(entryErr, 'error');
@@ -1470,7 +1489,9 @@
                 var contactBefore = (document.getElementById(fieldId(pfx, 'contactPerson')) || {}).value || '';
                 var phoneBefore = (document.getElementById(fieldId(pfx, 'addPhone')) || {}).value || '';
                 var typeBefore = (document.getElementById(fieldId(pfx, 'subjectType')) || {}).value || '';
-                if (kindSpec.entryRoot && window.MdmEntryMaterials && String(nameBefore).trim()) {
+                var bdBefore = (document.getElementById(fieldId(pfx, 'dockPerson')) || {}).value || '';
+                var aliasBefore = (document.getElementById(fieldId(pfx, 'supplierAlias')) || {}).value || '';
+                if (!kindSpec.archiveBundle && kindSpec.entryRoot && window.MdmEntryMaterials && String(nameBefore).trim()) {
                     window.MdmEntryMaterials.save(
                         kindSpec.subjectTypeLabel === '供应商' ? 'supplier' : 'store',
                         String(nameBefore).trim(),
@@ -1479,6 +1500,21 @@
                 }
                 var savedId = saveSubjectRowFromAddForm(mainPm, kindSpec);
                 if (savedId === false) return;
+                if (kindSpec.archiveBundle && window.MdmResourceArchiveForms) {
+                    var committed = window.MdmResourceArchiveForms.commitFirstArchive(
+                        kindSpec.subjectTypeLabel === '供应商' ? 'supplier' : 'store',
+                        {
+                            name: String(nameBefore || '').trim(),
+                            contact: String(contactBefore || '').trim(),
+                            phone: String(phoneBefore || '').trim(),
+                            bd: String(bdBefore || '').trim(),
+                            alias: String(aliasBefore || '').trim()
+                        },
+                        kindSpec.archiveBundle
+                    );
+                    if (committed === false) return;
+                    showToast('已提交首个档案，之后在档案中查看和编辑', 'success');
+                }
                 modal.style.display = 'none';
                 mainPm.decorateAllDetailLinkCells();
                 mainPm.refreshPagination();

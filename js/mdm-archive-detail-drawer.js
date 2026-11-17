@@ -2977,6 +2977,24 @@
         return tags;
     }
 
+    function appendEntryMaterialsSection(panel, kind, name) {
+        panel.appendChild(sectionTitle('证照与结算'));
+        var note = el('div', 'mdm-biz-tip');
+        note.setAttribute('role', 'note');
+        note.innerHTML = '营业执照、法人身份证、法人实名电话、整套结算信息属于档案信息。入驻审核后在这里查看，修改走档案编辑。进件自动带入已有字段，法人实名电话不写入进件。';
+        panel.appendChild(note);
+        var grid = el('div', 'supplier-detail-grid');
+        var data = window.MdmEntryMaterials && name ? window.MdmEntryMaterials.load(kind, name) : null;
+        if (!data || !window.MdmEntryMaterials || typeof window.MdmEntryMaterials.pairs !== 'function') {
+            grid.appendChild(detailCell('证照与结算', '未填写'));
+        } else {
+            window.MdmEntryMaterials.pairs(data).forEach(function (item) {
+                grid.appendChild(detailCell(item.label, item.value));
+            });
+        }
+        panel.appendChild(grid);
+    }
+
     function panelStoreBase(store) {
         var p = el('div', 'supplier-detail-tab');
         p.appendChild(sectionTitle('基础信息'));
@@ -3048,6 +3066,7 @@
 
         grid.appendChild(detailCell('创建时间', store.createTime));
         p.appendChild(grid);
+        appendEntryMaterialsSection(p, 'store', store.name);
 
         appendStoreReceiveSection(p, store);
         return p;
@@ -4857,12 +4876,17 @@
                 typeof window.StoreAccountConfig.depositStatus === 'function'
                     ? window.StoreAccountConfig.depositStatus(store.storeId, store.name)
                     : null;
+            var commerce =
+                window.LfLowMargin && typeof window.LfLowMargin.commerceLabel === 'function'
+                    ? window.LfLowMargin.commerceLabel({ storeId: store.storeId, name: store.name })
+                    : null;
             if (typeof showToast === 'function') {
                 showToast(
                     '已重置：保证金' +
                         (after && after.released
-                            ? '已达到应保有，已放开'
+                            ? '已达到应保有'
                             : '未达应保有，需补 ' + money(after ? after.depositGap : 0)) +
+                        (commerce && commerce.text === '已放开' ? '，低利润与活动已放开' : '，低利润与活动仍未放开') +
                         '，货款需补足 ' +
                         money(goodsResult.needFill),
                     'success'
@@ -6180,6 +6204,7 @@
         grid.appendChild(detailCellTagged('供应商状态', r.status, true));
         appendArchiveVenuePhotoCells(grid, 'supplier', r.id, r.name);
         p.appendChild(grid);
+        appendEntryMaterialsSection(p, 'supplier', r.name);
         /* 结算信息独立板块：放基础信息下方整宽展示，便于编辑与扫读 */
         p.appendChild(buildSupplierSettleSection(r, sourceTr));
         appendSupplierReceiveSection(p, r);

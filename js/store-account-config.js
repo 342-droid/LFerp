@@ -167,7 +167,7 @@
     return DEFAULT_PAID;
   }
 
-  /** 保证金余额达到应保有（含等于）即放开低利润下单和营销选店 */
+  /** 只比较保证金余额和应保有。低利润下单、营销选店还要合同已签署，见 mdm-low-margin-gate.js。 */
   function depositStatus(storeId, storeName) {
     var req = depositRequiredOf(storeId, storeName);
     var actual = depositActualOf(storeId, storeName);
