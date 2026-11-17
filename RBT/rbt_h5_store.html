@@ -675,16 +675,25 @@
             cursor: pointer;
         }
         .rbt-repay-go:disabled { background: #c9cdd4; cursor: default; }
-        .rbt-repay-hero__note { margin: 12px 0 0; color: #999; font-size: 12px; line-height: 1.6; }
+        .rbt-repay-split { display: flex; gap: 12px; margin: 4px 0 14px; text-align: center; }
+        .rbt-repay-split div { flex: 1; min-width: 0; }
+        .rbt-repay-split span { display: block; color: #888; font-size: 12px; }
+        .rbt-repay-split b { display: block; margin-top: 4px; color: #ff7019; font-size: 22px; font-weight: 700; }
+        .rbt-repay-card {
+            margin: 0 0 10px;
+            border-radius: 10px;
+            background: #fff;
+            overflow: hidden;
+        }
         .rbt-repay-row {
             display: flex;
             justify-content: space-between;
             gap: 12px;
             width: 100%;
-            margin: 0 0 8px;
+            margin: 0;
             padding: 14px 12px;
             border: 0;
-            border-radius: 10px;
+            border-radius: 0;
             background: #fff;
             text-align: left;
             cursor: pointer;
@@ -696,6 +705,8 @@
         .rbt-repay-row__side b { display: block; color: #222; font-size: 14px; font-weight: 600; }
         .rbt-repay-row__side span { display: block; margin-top: 6px; color: #999; font-size: 12px; }
         .rbt-repay-row__side.is-done b { color: #52c41a; }
+        .rbt-repay-days { padding: 0 12px 6px; }
+        .rbt-repay-days .rbt-bill__day { padding: 8px 0; border-top: 1px solid #f2f3f5; }
         .rbt-bill__back { margin-bottom: 8px; }
         .rbt-bill__head {
             margin: -12px -12px 12px;
@@ -728,7 +739,22 @@
         .rbt-bill__trader span { flex: none; opacity: .9; }
         .rbt-bill__trader b { flex: 1; min-width: 0; font-weight: 600; text-align: right; overflow-wrap: break-word; }
         .rbt-bill__sheet { padding: 4px 0 12px; }
-        .rbt-bill__sheet h3 { margin: 0 0 8px; font-size: 15px; color: #222; }
+        .rbt-bill-tabs {
+            display: flex;
+            margin: 12px 0 0;
+            border-bottom: 1px solid #eee;
+        }
+        .rbt-bill-tabs button {
+            flex: 1;
+            height: 40px;
+            border: 0;
+            border-bottom: 2px solid transparent;
+            background: transparent;
+            color: #666;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .rbt-bill-tabs button.is-on { color: #ff7019; border-bottom-color: #ff7019; font-weight: 600; }
         .rbt-bill__line {
             display: flex;
             justify-content: space-between;
@@ -805,7 +831,7 @@
                             </div>
                             <nav class="rbt-h5-tabbar" id="rbtH5Tabbar" hidden>
                                 <button type="button" data-tab="home">首页</button>
-                                <button type="button" data-tab="repay">还款</button>
+                                <button type="button" data-tab="repay">履约</button>
                                 <button type="button" data-tab="mine">我的</button>
                             </nav>
                         </div>

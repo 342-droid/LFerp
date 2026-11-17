@@ -53,6 +53,7 @@
     var tab = 'home';
     var repayFilter = 'pending';
     var billCode = '';
+    var billTab = 'base';
     var signCode = '';
     var packageCode = '';
     var pickedQty = {};
@@ -597,13 +598,20 @@
             : (CLOSED_DEMAND_STATUSES.indexOf(item.status) >= 0 ? ' is-off' : '');
         return '<article class="rbt-h5-card">' +
             '<div class="rbt-h5-card__top"><h2>' + esc(item.code) + '</h2>' +
-            '<span class="rbt-h5-status' + statusClass + '">' + esc(item.status) + '</span></div>' +
+            '<span class="rbt-h5-status' + statusClass + '">' + esc(phaseLabel(item.status)) + '</span></div>' +
             storeLine +
             '<p>商品包：' + esc(item.packageName) + '（' + esc(item.packageCode) + '）</p>' +
             '<p>商品：' + esc(names) + '</p>' +
             '<p>商品金额：¥' + esc(item.goodsAmount || '—') + '</p>' +
             '<p>服务费：¥' + esc(item.serviceFee || '—') + '</p>' +
             '<p>总金额：¥' + esc(item.amount || '—') + '</p>' +
+            (function () {
+                var view = repayView(item);
+                var split = fulfillSplit(view && view._days);
+                var hasDays = view && view._days && view._days.length;
+                return '<p>预计履行：' + esc(hasDays ? ('¥' + money(split.estimate) + '。结算单未确定，售后还可能改金额，只是预估。') : '未计算。还没有营业流水。') + '</p>' +
+                    '<p>应履约：' + esc(hasDays ? ('¥' + money(split.due) + '。结算单已确定，尚未结款。') : '未产生。结算单未确定。') + '</p>';
+            })() +
             (item.repayCycle
                 ? '<p>结算周期：' + esc(item.repayCycle) + '</p>' +
                   '<p>结算方式：' + esc(item.repayMethod || '—') + '</p>' +
@@ -688,11 +696,11 @@
 
     var REPAY_DEMO_KEY = 'rbt_h5_store_repay_demo_v1';
     var REPAY_DEMO_SCENES = [
-        { id: 'pending', label: '待还款 · 无每日明细' },
-        { id: 'repaid-empty', label: '已还款 · 无每日明细' },
-        { id: 'repaid-days', label: '已还款 · 有每日明细' }
+        { id: 'pending', label: '履约中 · 无每日履行' },
+        { id: 'repaid-empty', label: '已完成 · 无每日履行' },
+        { id: 'repaid-days', label: '已完成 · 有每日履行' }
     ];
-    /* 演示日数据：已发生日期的营业流水 × 该渠道结算比例。不把总金额拆成每日本金，也不预造未发生的日期。 */
+    /* 演示日数据：金额 = 所得佣金 × 该渠道结算比例。所得佣金按当日营业流水的 10% 演示。结算单未确定时记预计履行，确定后未结款记应履约。 */
     var REPAY_DEMO_DAYS = [
         { date: '2026-11-07', channel: 'POS', turnover: 860 },
         { date: '2026-11-08', channel: '直播', turnover: 420 },
@@ -724,18 +732,43 @@
     }
 
     function repayDayRows(item) {
-        return REPAY_DEMO_DAYS.map(function (row) {
+        return markFulfillDays(REPAY_DEMO_DAYS.map(function (row) {
             var ratio = channelRatio(item, row.channel);
-            var due = (Math.round(row.turnover * ratio) / 100).toFixed(2);
+            var commission = Math.round(row.turnover * 10) / 100;
+            var due = (Math.round(commission * ratio) / 100).toFixed(2);
             return {
                 date: row.date,
                 channel: row.channel,
                 turnover: row.turnover.toFixed(2),
+                commission: commission.toFixed(2),
                 ratio: ratio.toFixed(2) + '%',
                 due: due,
                 actual: due
             };
+        }));
+    }
+
+    /* 日结结算单在营业日的次日确定。演示当前日取最近一个已发生营业日的次日，所以最近一天结算单还没确定，售后仍可能改金额，只记预计履行。更早的日期结算单已确定、尚未结款，记应履约。 */
+    function markFulfillDays(rows) {
+        var latest = '';
+        rows.forEach(function (row) {
+            if (row.date > latest) latest = row.date;
         });
+        return rows.map(function (row) {
+            row.stage = row.date === latest ? 'estimate' : 'due';
+            return row;
+        });
+    }
+
+    function fulfillSplit(days) {
+        var estimate = 0;
+        var due = 0;
+        (days || []).forEach(function (row) {
+            var amount = Number(row.due) || 0;
+            if (row.stage === 'due') due += amount;
+            else estimate += amount;
+        });
+        return { estimate: estimate, due: due };
     }
 
     function sumDayField(days, field) {
@@ -756,15 +789,21 @@
         return found;
     }
 
-    /* 验收场景只改还款页看到的状态和每日明细，需求单列表仍是原状态。 */
+    /* 验收场景只改还款页看到的状态。待还款带已发生的每日履行；已还款在「有每日明细」时同样带上。 */
     function repayView(item) {
+        if (!item) return item;
         var scene = readRepayDemo();
-        if (!item || scene === 'pending' || item.code !== repayAnchorCode()) return item;
         var view = {};
         Object.keys(item).forEach(function (key) { view[key] = item[key]; });
-        view.status = '已完成';
-        view._demoRepaid = true;
-        if (scene === 'repaid-days') view._days = repayDayRows(item);
+        if (scene !== 'pending' && item.code === repayAnchorCode()) {
+            view.status = '已完成';
+            view._demoRepaid = true;
+        }
+        var withDays = item.repayMethod === '比例付' && (
+            (view.status === '还款中' && scene !== 'pending') ||
+            (view._demoRepaid && scene === 'repaid-days')
+        );
+        if (withDays) view._days = repayDayRows(item);
         return view;
     }
 
@@ -788,102 +827,115 @@
         });
     }
 
-    /* 待还款=还款中，已还款=已完成。比例付不预造应履行金额，也不写剩余天数和逾期。 */
+    /* 履约中=还款中，已完成=已完成。页面用履约字段，不改存档状态。 */
+    function phaseLabel(status) {
+        if (status === '还款中') return '履约中';
+        return status || '—';
+    }
+
     function renderRepay() {
         var done = repayFilter === 'done';
         var rows = repayDemands(done);
-        var daySum = 0;
+        var estimateSum = 0;
+        var dueSum = 0;
         var hasDays = false;
         rows.forEach(function (item) {
             if (!item._days || !item._days.length) return;
             hasDays = true;
-            daySum += sumDayField(item._days, 'actual');
+            var split = fulfillSplit(item._days);
+            estimateSum += split.estimate;
+            dueSum += split.due;
         });
-        setHead('还款');
+        setHead('履约');
         return '<div class="rbt-repay-hero">' +
             '<div class="rbt-repay-switch" role="tablist">' +
-            '<button type="button" data-repay-view="pending"' + (done ? '' : ' class="is-on"') + '>待还款</button>' +
-            '<button type="button" data-repay-view="done"' + (done ? ' class="is-on"' : '') + '>已还款</button>' +
+            '<button type="button" data-repay-view="pending"' + (done ? '' : ' class="is-on"') + '>履约中</button>' +
+            '<button type="button" data-repay-view="done"' + (done ? ' class="is-on"' : '') + '>已完成</button>' +
             '</div>' +
-            '<p class="rbt-repay-hero__label">' + (done ? '实际履行' : '应履行') + '</p>' +
-            '<p class="rbt-repay-hero__amt">' + (hasDays ? ('¥' + money(daySum)) : (done ? '未产生' : '未计算')) + '</p>' +
-            '<button type="button" class="rbt-repay-go" data-bill-first ' + (rows.length ? '' : 'disabled') + '>账单明细</button>' +
+            '<div class="rbt-repay-split">' +
+            '<div><span>预计履行</span><b>' + (hasDays ? ('¥' + money(estimateSum)) : '未计算') + '</b></div>' +
+            '<div><span>应履约</span><b>' + (hasDays ? ('¥' + money(dueSum)) : '未产生') + '</b></div>' +
+            '</div>' +
+            '<button type="button" class="rbt-repay-go" data-bill-first ' + (rows.length ? '' : 'disabled') + '>履约详情</button>' +
             '<p class="rbt-repay-hero__note">' + (hasDays
-                ? '已产生的日结按当日营业流水乘结算比例计算，未发生的日期不预造。'
+                ? '预计履行是结算单还没确定的预估，售后还可能改金额。应履约是结算单已确定、尚未结款。未发生的日期不算。'
                 : (done
-                    ? '已完成只表示需求状态。完成依据待确认，实际履行未产生。'
-                    : '还款中表示复核已通过，门店按日还款。比例付不预造固定金额，起算待确认。')) + '</p>' +
+                    ? '已完成只表示需求状态。还没有可跟的每日金额。'
+                    : '履约中表示复核已通过。还没有营业流水，预计履行未计算，应履约未产生。')) + '</p>' +
             '</div>' +
             (rows.length ? rows.map(function (item) {
-                var side = item._days && item._days.length
-                    ? ('实际履行 ¥' + money(sumDayField(item._days, 'actual')) + ' · ' + item._days.length + '日')
-                    : (done ? '实际履行未产生' : '应履行未计算');
-                return '<button type="button" class="rbt-repay-row" data-bill="' + esc(item.code) + '">' +
+                var days = item._days || [];
+                var split = fulfillSplit(days);
+                var side = days.length
+                    ? ('预计履行 ¥' + money(split.estimate) + ' · 应履约 ¥' + money(split.due))
+                    : (done ? '每日金额未产生' : '预计履行未计算');
+                return '<section class="rbt-repay-card">' +
+                    '<button type="button" class="rbt-repay-row" data-bill="' + esc(item.code) + '">' +
                     '<span><span class="rbt-repay-row__title">' + esc(item.code) + '</span>' +
                     '<span class="rbt-repay-row__sub">总金额 ¥' + esc(item.amount || '—') + ' · ' + esc(item.repayCycle || '—') + ' ' + esc(item.repayMethod || '—') + '</span></span>' +
-                    '<span class="rbt-repay-row__side' + (done ? ' is-done' : '') + '"><b>' + esc(item.status) + '</b><span>' +
-                    esc(side) + '</span></span></button>';
-            }).join('') : '<div class="rbt-h5-empty">' + (done ? '暂无已完成的合作' : '暂无还款中的合作') + '</div>');
+                    '<span class="rbt-repay-row__side' + (done ? ' is-done' : '') + '"><b>' + esc(phaseLabel(item.status)) + '</b><span>' +
+                    esc(side) + '</span></span></button>' +
+                    (days.length ? ('<div class="rbt-repay-days">' + renderDayList(days) + '</div>') : '') +
+                    '</section>';
+            }).join('') : '<div class="rbt-h5-empty">' + (done ? '暂无已完成的合作' : '暂无履约中的合作') + '</div>');
     }
 
     function renderDayList(days) {
         return days.slice().reverse().map(function (day) {
             return '<div class="rbt-bill__day">' +
                 '<span class="rbt-bill__day-date">' + esc(String(day.date).slice(5)) + '</span>' +
-                '<span class="rbt-bill__day-body"><b>实际履行 ¥' + esc(money(day.actual)) + '</b>' +
-                '<span>' + esc(day.channel) + '营业流水 ¥' + esc(money(day.turnover)) + ' · 比例 ' + esc(day.ratio) + '</span></span></div>';
+                '<span class="rbt-bill__day-body"><b>' + (day.stage === 'due' ? '应履约' : '预计履行') + ' ¥' + esc(money(day.due)) + '</b>' +
+                '<span>' + esc(day.channel) + ' · 营业流水 ¥' + esc(money(day.turnover)) + ' · 所得佣金 ¥' + esc(money(day.commission)) + ' · 结算比例 ' + esc(day.ratio) + '</span></span></div>';
         }).join('');
     }
 
     function renderBill(item) {
         var done = item.status === '已完成';
         var days = item._days || [];
-        var dueSum = days.length ? money(sumDayField(days, 'due')) : '';
-        var actSum = days.length ? money(sumDayField(days, 'actual')) : '';
-        setHead('账单明细');
+        var split = fulfillSplit(days);
+        setHead('履约详情');
         var lines = days.length
             ? [
                 ['履约计划', '已按日产生'],
                 ['结算比例', ratioText(item)],
-                ['计算来源依据', '获准营业事实'],
-                ['应履行', '¥' + dueSum],
-                ['可结算', '¥' + dueSum],
-                ['实际履行', '¥' + actSum],
-                ['原结算关联', '未生成'],
-                ['差异事实', dueSum === actSum ? '未登记' : '应履行与实际履行不一致']
+                ['计算来源', '获准营业事实'],
+                ['预计履行', '¥' + money(split.estimate)],
+                ['应履约', '¥' + money(split.due)]
             ]
             : [
                 ['履约计划', done ? '需求已完成，完成依据待确认' : '未激活'],
                 ['结算比例', ratioText(item)],
-                ['计算来源依据', '无获准营业事实'],
-                ['应履行', done ? '完成依据待确认' : '未产生'],
-                ['可结算', '未产生'],
-                ['实际履行', '未产生'],
-                ['原结算关联', '未生成'],
-                ['差异事实', done ? '未登记' : '源数据缺失，不记成零']
+                ['计算来源', '无获准营业事实'],
+                ['预计履行', '未计算'],
+                ['应履约', '未产生']
             ];
         return '<section class="rbt-bill__head">' +
-            '<div class="rbt-bill__top"><span class="rbt-bill__code">' + esc(item.code) + '</span><span class="rbt-bill__tag">' + esc(item.status || '—') + '</span></div>' +
+            '<div class="rbt-bill__top"><span class="rbt-bill__code">' + esc(item.code) + '</span><span class="rbt-bill__tag">' + esc(phaseLabel(item.status)) + '</span></div>' +
             '<p class="rbt-bill__label">总金额</p>' +
             '<p class="rbt-bill__amt">' + esc(item.amount || '—') + '</p>' +
             '<div class="rbt-bill__stats">' +
             '<div><span>结算周期</span><b>' + esc(item.repayCycle || '—') + '</b></div>' +
             '<div><span>结算方式</span><b>' + esc(item.repayMethod || '—') + '</b></div>' +
             '</div>' +
-            '<div class="rbt-bill__trader"><span>接单贸易商</span><b>' + esc(item.traderName || '—') + '</b></div>' +
+            '<div class="rbt-bill__trader"><span>贸易商</span><b>' + esc(item.traderName || '—') + '</b></div>' +
             '</section>' +
-            '<section class="rbt-bill__sheet"><h3>账单明细</h3>' +
-            lines.map(function (line) {
-                return '<div class="rbt-bill__line"><span>' + esc(line[0]) + '</span><b>' + esc(line[1]) + '</b></div>';
-            }).join('') +
-            '</section>' +
-            '<section class="rbt-bill__sheet"><h3>每日明细</h3>' +
-            (days.length
-                ? renderDayList(days)
-                : ('<p class="rbt-bill__empty">' + (done
-                    ? '暂无每日明细。完成依据待确认，不补造每日金额。'
-                    : '暂无每日明细。履约计划未激活，比例付不预造每日金额。') + '</p>')) +
-            '</section>';
+            '<div class="rbt-bill-tabs" role="tablist">' +
+            '<button type="button" data-bill-tab="base"' + (billTab === 'daily' ? '' : ' class="is-on"') + '>基础信息</button>' +
+            '<button type="button" data-bill-tab="daily"' + (billTab === 'daily' ? ' class="is-on"' : '') + '>每日履行</button>' +
+            '</div>' +
+            (billTab === 'daily'
+                ? ('<section class="rbt-bill__sheet">' +
+                    (days.length
+                        ? renderDayList(days)
+                        : ('<p class="rbt-bill__empty">' + (done
+                            ? '暂无每日履行。完成依据待确认，不补造每日金额。'
+                            : '暂无每日履行。履约计划未激活，比例付不预造每日金额。') + '</p>')) +
+                    '</section>')
+                : ('<section class="rbt-bill__sheet">' +
+                    lines.map(function (line) {
+                        return '<div class="rbt-bill__line"><span>' + esc(line[0]) + '</span><b>' + esc(line[1]) + '</b></div>';
+                    }).join('') +
+                    '</section>'));
     }
 
     function renderMine() {
@@ -1067,7 +1119,7 @@
             var bill = repayViews().filter(function (item) { return item.code === billCode; })[0];
             scroll.innerHTML = bill
                 ? renderBill(bill)
-                : '<div class="rbt-h5-empty">账单不存在</div>';
+                : '<div class="rbt-h5-empty">履约详情不存在</div>';
             return;
         }
         if (tab === 'mine') {
@@ -1132,6 +1184,7 @@
     document.getElementById('rbtH5App').addEventListener('click', function (event) {
         var tabBtn = event.target.closest('[data-tab]');
         var repayView = event.target.closest('[data-repay-view]');
+        var billTabBtn = event.target.closest('[data-bill-tab]');
         var billBtn = event.target.closest('[data-bill]');
         var billFirst = event.target.closest('[data-bill-first]');
         var backRepay = event.target.closest('[data-back-repay]');
@@ -1149,6 +1202,11 @@
             render();
             return;
         }
+        if (billTabBtn) {
+            billTab = billTabBtn.getAttribute('data-bill-tab') === 'daily' ? 'daily' : 'base';
+            render();
+            return;
+        }
         if (billFirst || billBtn) {
             var code = billBtn ? billBtn.getAttribute('data-bill') : '';
             if (!code) {
@@ -1157,6 +1215,7 @@
             }
             if (!code) return;
             billCode = code;
+            billTab = 'base';
             tab = 'repay';
             screen = 'bill';
             render();
@@ -1471,14 +1530,14 @@
         panel.id = 'rbtRepayDemo';
         panel.className = 'rbt-repay-demo';
         panel.innerHTML =
-            '<div class="rbt-repay-demo__title">还款验收开关</div>' +
+            '<div class="rbt-repay-demo__title">履约验收开关</div>' +
             '<label class="rbt-repay-demo__row">场景' +
             '<select id="rbtRepayDemoScene">' +
             REPAY_DEMO_SCENES.map(function (scene) {
                 return '<option value="' + scene.id + '"' + (scene.id === current ? ' selected' : '') + '>' + scene.label + '</option>';
             }).join('') +
             '</select></label>' +
-            '<p class="rbt-repay-demo__hint">已还款的每日明细按营业流水和结算比例生成。只影响还款页，不改需求单状态。</p>' +
+            '<p class="rbt-repay-demo__hint">履约中、已完成的每日履行按所得佣金乘结算比例生成。切到无每日履行时这两档不列出。只影响履约页，不改需求单状态。</p>' +
             '<button type="button" class="rbt-repay-demo__apply" id="rbtRepayDemoApply">应用并刷新</button>';
         document.body.appendChild(panel);
         document.getElementById('rbtRepayDemoApply').addEventListener('click', function () {

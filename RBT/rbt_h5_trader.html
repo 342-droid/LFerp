@@ -579,6 +579,45 @@
         }
         .rbt-bill__line span { flex: none; color: #888; white-space: nowrap; }
         .rbt-bill__line b { flex: 1; min-width: 0; color: #222; font-weight: 600; text-align: right; overflow-wrap: break-word; }
+        .rbt-fund { padding: 0 0 12px; }
+        .rbt-fund__tabs { display: flex; margin: 0 0 12px; border-bottom: 1px solid #eee; }
+        .rbt-fund__tabs button {
+            flex: 1; height: 40px; border: 0; border-bottom: 2px solid transparent;
+            background: transparent; color: #666; font-size: 14px; cursor: pointer;
+        }
+        .rbt-fund__tabs button.is-on { color: #ff7019; border-bottom-color: #ff7019; font-weight: 600; }
+        .rbt-fund__summary {
+            display: flex; gap: 8px; margin: 0 0 8px; padding: 14px 12px;
+            border-radius: 12px; background: #fff; border: 1px solid #f0f0f0;
+        }
+        .rbt-fund__summary div { flex: 1; min-width: 0; }
+        .rbt-fund__summary span { display: block; color: #888; font-size: 12px; }
+        .rbt-fund__summary b { display: block; margin-top: 6px; color: #222; font-size: 16px; font-weight: 700; overflow-wrap: anywhere; }
+        .rbt-fund__note { margin: 0 0 12px; color: #999; font-size: 12px; line-height: 1.6; }
+        .rbt-fund-card {
+            display: block; width: 100%; margin: 0 0 10px; padding: 14px 12px; border: 1px solid #f0f0f0;
+            border-radius: 12px; background: #fff; text-align: left; cursor: pointer;
+        }
+        .rbt-fund-card__top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .rbt-fund-card__top strong { color: #222; font-size: 16px; }
+        .rbt-fund-card__tag { flex: none; padding: 0 8px; border-radius: 4px; background: #fff7e6; color: #d46b08; font-size: 12px; line-height: 22px; }
+        .rbt-fund-card__tag.is-done { background: #f6ffed; color: #389e0d; }
+        .rbt-fund-card__tag.is-off { background: #f5f5f5; color: #999; }
+        .rbt-fund-card__store { margin: 6px 0 10px; color: #888; font-size: 12px; }
+        .rbt-fund-card__metrics { display: flex; gap: 8px; }
+        .rbt-fund-card__metrics div { flex: 1; min-width: 0; }
+        .rbt-fund-card__metrics span { display: block; color: #888; font-size: 12px; }
+        .rbt-fund-card__metrics b { display: block; margin-top: 4px; color: #222; font-size: 15px; }
+        .rbt-fund-detail { padding: 4px 0 12px; }
+        .rbt-fund-detail__head { padding: 16px 14px; border-radius: 12px; background: #fff; border: 1px solid #f0f0f0; }
+        .rbt-fund-detail__metrics { display: flex; gap: 12px; margin-top: 14px; }
+        .rbt-fund-detail__metrics div { flex: 1; min-width: 0; }
+        .rbt-fund-detail__metrics span { display: block; color: #888; font-size: 12px; }
+        .rbt-fund-detail__metrics b { display: block; margin-top: 6px; color: #222; font-size: 22px; font-weight: 700; }
+        .rbt-fund-detail h3 { margin: 16px 0 8px; font-size: 15px; color: #222; }
+        .rbt-fund-day { display: flex; gap: 8px; padding: 10px 0; border-top: 1px solid #f2f3f5; }
+        .rbt-fund-day b { display: block; color: #222; font-size: 14px; }
+        .rbt-fund-day span { display: block; margin-top: 4px; color: #888; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -634,6 +673,7 @@
     <script src="../js/mdm-trader-archive-store.js"></script>
     <script src="rbt-settle-ratio.js"></script>
     <script src="rbt-demand-data.js"></script>
+    <script src="rbt-daily-fulfill.js"></script>
     <script src="rbt-contract-sign.js"></script>
     <script src="rbt-h5-trader-app.js"></script>
     <script src="rbt-h5-trader-login.js"></script>
