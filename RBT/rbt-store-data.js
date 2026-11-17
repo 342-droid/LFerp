@@ -39,7 +39,7 @@
         var amount = toAmount(total);
         return {
             occupied: Number((amount * 0.2).toFixed(2)),
-            /* 已成交只累计需求单复核通过金额，演示补数不写成交 */
+            /* 已成交只累计贸易商付款完成后的需求金额，演示补数不写成交 */
             locked: 0
         };
     }
@@ -564,7 +564,7 @@
                 changed = true;
             }
             if (ensureLogs(item)) changed = true;
-            /* 旧数据缺占用时补演示占用；已成交缺省为 0，只由需求复核通过累加 */
+            /* 旧数据缺占用时补演示占用；已成交缺省为 0，只由贸易商付款完成累加 */
             if (item.storeQuota != null && item.storeQuota !== '' && (item.occupiedQuota == null || item.lockedQuota == null)) {
                 var parts = demoQuotaParts(item.storeQuota);
                 applyQuota(

@@ -45,8 +45,8 @@
     function statusType(status) {
         if (status === '已完成') return 'success';
         if (status === '已作废' || status === '已取消' || status === '已驳回') return 'info';
-        if (status === '待审核' || status === '待复核' || status === '待确认签约' || status === '待重新确认' || status === '待付款') return 'warning';
-        if (status === '付款中') return 'danger';
+        if (status === '待审核' || status === '待确认签约' || status === '待重新确认' || status === '待付款') return 'warning';
+        if (status === '门店付款中') return 'danger';
         return '';
     }
 
@@ -190,7 +190,7 @@
             }
 
             function canGoAudit(row) {
-                return !!(row && (row.status === '待审核' || row.status === '待复核'));
+                return !!(row && row.status === '待审核');
             }
 
             function canGoSign(row) {
@@ -337,33 +337,32 @@
 
             var AUDIT_AUTO_KEY = 'rbt_audit_auto_v1';
             var auditOpen = ref(false);
-            var auditForm = ref({ first: '是', review: '是' });
+            var auditForm = ref({ first: '是' });
 
             function readAuditAuto() {
                 try {
                     var raw = sessionStorage.getItem(AUDIT_AUTO_KEY);
-                    if (!raw) return { first: true, review: true };
+                    if (!raw) return { first: true };
                     var data = JSON.parse(raw);
-                    return { first: !data || data.first !== false, review: !data || data.review !== false };
+                    return { first: !data || data.first !== false };
                 } catch (e) {
-                    return { first: true, review: true };
+                    return { first: true };
                 }
             }
 
             function openAuditConfig() {
                 var data = readAuditAuto();
-                auditForm.value = { first: data.first ? '是' : '否', review: data.review ? '是' : '否' };
+                auditForm.value = { first: data.first ? '是' : '否' };
                 auditOpen.value = true;
             }
 
             function saveAuditConfig() {
                 var first = auditForm.value.first;
-                var review = auditForm.value.review;
-                if ((first !== '是' && first !== '否') || (review !== '是' && review !== '否')) {
-                    if (ElMessage) ElMessage.error('请选择初审和复核是否自动审核');
+                if (first !== '是' && first !== '否') {
+                    if (ElMessage) ElMessage.error('请选择初审是否自动审核');
                     return;
                 }
-                sessionStorage.setItem(AUDIT_AUTO_KEY, JSON.stringify({ first: first === '是', review: review === '是' }));
+                sessionStorage.setItem(AUDIT_AUTO_KEY, JSON.stringify({ first: first === '是' }));
                 auditOpen.value = false;
                 if (ElMessage) ElMessage.success('审核配置已保存');
             }

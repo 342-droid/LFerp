@@ -33,18 +33,19 @@
         SPB00002: ['ONS00002'],
         SPB00003: ['ONS00003']
     };
-    /* 主链路：待审核 → 待接单 → 待确认签约 → 待签署 → 待付款 → 待复核 → 付款中 → 已完成；撤回后待重新确认；旁路：已作废、已驳回 */
-    var DEMAND_STATUSES = ['待审核', '待接单', '待确认签约', '待重新确认', '待签署', '待付款', '待复核', '付款中', '已完成'];
-    var ACTIVE_DEMAND_STATUSES = ['待审核', '待接单', '待确认签约', '待重新确认', '待签署', '待付款', '待复核', '付款中'];
+    /* 主链路：待审核 → 待接单 → 待确认签约 → 待签署 → 待付款 → 门店付款中 → 已完成；撤回后待重新确认；旁路：已作废、已驳回 */
+    var DEMAND_STATUSES = ['待审核', '待接单', '待确认签约', '待重新确认', '待签署', '待付款', '门店付款中', '已完成'];
+    var ACTIVE_DEMAND_STATUSES = ['待审核', '待接单', '待确认签约', '待重新确认', '待签署', '待付款', '门店付款中'];
     var CANCELABLE_DEMAND_STATUSES = ['待审核'];
     var CLOSED_DEMAND_STATUSES = ['已作废', '已驳回'];
     var STATUS_MIGRATE = {
         '已发布': '待审核',
         '待报价': '待审核',
         '已报价': '待接单',
-        '待还款': '付款中',
-        '支付中': '付款中',
-        '还款中': '付款中',
+        '待还款': '门店付款中',
+        '支付中': '门店付款中',
+        '还款中': '门店付款中',
+        '付款中': '门店付款中',
         '待支付': '待付款',
         '已取消': '已作废'
     };
@@ -862,7 +863,7 @@
     function repayAnchorCode() {
         var found = '';
         storeDemands().some(function (item) {
-            if (item && item.status === '付款中') {
+            if (item && item.status === '门店付款中') {
                 found = item.code;
                 return true;
             }
@@ -889,7 +890,7 @@
 
     function repayDemands(done) {
         return repayViews().filter(function (item) {
-            return item && item.status === (done ? '已完成' : '付款中');
+            return item && item.status === (done ? '已完成' : '门店付款中');
         });
     }
 
@@ -903,7 +904,7 @@
         });
     }
 
-    /* 待还款=付款中，已还款=已完成。比例付不预造应履行金额，也不写剩余天数和逾期。 */
+    /* 待还款=门店付款中，已还款=已完成。比例付不预造应履行金额，也不写剩余天数和逾期。 */
     function renderRepay() {
         var done = repayFilter === 'done';
         var rows = repayDemands(done);
@@ -927,7 +928,7 @@
                 ? '已产生的日结按当日营业流水乘结算比例计算，未发生的日期不预造。'
                 : (done
                     ? '已完成只表示需求状态。完成依据待确认，实际履行未产生。'
-                    : '付款中表示复核已通过，门店按日还款。比例付不预造固定金额，起算待确认。')) + '</p>' +
+                    : '门店付款中表示贸易商已付款，门店按日还款。比例付不预造固定金额，起算待确认。')) + '</p>' +
             '</div>' +
             (rows.length ? rows.map(function (item) {
                 var side = item._days && item._days.length
@@ -938,7 +939,7 @@
                     '<span class="rbt-repay-row__sub">总金额 ¥' + esc(item.amount || '—') + ' · ' + esc(item.repayCycle || '—') + ' ' + esc(item.repayMethod || '—') + '</span></span>' +
                     '<span class="rbt-repay-row__side' + (done ? ' is-done' : '') + '"><b>' + esc(item.status) + '</b><span>' +
                     esc(side) + '</span></span></button>';
-            }).join('') : '<div class="rbt-h5-empty">' + (done ? '暂无已完成的合作' : '暂无付款中的合作') + '</div>');
+            }).join('') : '<div class="rbt-h5-empty">' + (done ? '暂无已完成的合作' : '暂无门店付款中的合作') + '</div>');
     }
 
     function renderDayList(days) {

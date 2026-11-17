@@ -204,7 +204,7 @@
         }).join('；');
     }
 
-    var EDITABLE_STATUSES = ['待接单', '待确认签约', '待签署', '待付款', '待复核', '付款中'];
+    var EDITABLE_STATUSES = ['待接单', '待确认签约', '待签署', '待付款', '门店付款中'];
 
     function canEdit(item) {
         return !!(item && EDITABLE_STATUSES.indexOf(item.status) >= 0);

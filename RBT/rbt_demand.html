@@ -269,14 +269,7 @@
                             <el-radio label="否">否</el-radio>
                         </el-radio-group>
                     </div>
-                    <div class="rbt-audit-row">
-                        <span class="rbt-audit-row__label">复核自动审核</span>
-                        <el-radio-group v-model="auditForm.review">
-                            <el-radio label="是">是</el-radio>
-                            <el-radio label="否">否</el-radio>
-                        </el-radio-group>
-                    </div>
-                    <p class="rbt-audit-tip">选「是」后，需求进入该环节由系统自动审核通过。没保存过时，初审和复核都是「是」。已经待审核、待复核的单据不补审。保证金在门店准入缴纳，复核不再上传凭证。</p>
+                    <p class="rbt-audit-tip">选「是」后，需求发布进入初审时由系统自动审核通过。没保存过时，初审是「是」。已经待审核的单据不补审。支付完成后直接进入门店付款中，不再复核。</p>
                     <template #footer>
                         <el-button @click="auditOpen = false">取消</el-button>
                         <el-button type="primary" @click="saveAuditConfig">保存</el-button>

@@ -231,11 +231,11 @@
 
     function collectDemands(done) {
         return acceptedDemands().filter(function (item) {
-            return item && item.status === (done ? '已完成' : '付款中');
+            return item && item.status === (done ? '已完成' : '门店付款中');
         });
     }
 
-    /* 贸易商收款看实际资方到账。付款中没有到账，已完成也不补到账。 */
+    /* 贸易商收款看实际资方到账。门店付款中没有到账，已完成也不补到账。 */
     function renderCollect() {
         var done = collectFilter === 'done';
         var rows = collectDemands(done);
@@ -251,14 +251,14 @@
             '<button type="button" class="rbt-repay-go" data-collect-first ' + (rows.length ? '' : 'disabled') + '>账单明细</button>' +
             '<p class="rbt-repay-hero__note">' + (done
                 ? '已完成只表示需求状态。实际资方到账未产生。'
-                : '付款中表示复核已通过，门店按日还款。应履行未计算，不能记成已收款。') + '</p>' +
+                : '门店付款中表示贸易商已付款，门店按日还款。应履行未计算，不能记成已收款。') + '</p>' +
             '</div>' +
             (rows.length ? rows.map(function (item) {
                 return '<button type="button" class="rbt-repay-row" data-collect="' + esc(item.code) + '">' +
                     '<span><span class="rbt-repay-row__title">' + esc(item.code) + '</span>' +
                     '<span class="rbt-repay-row__sub">' + esc(item.storeName || '—') + ' · 总金额 ¥' + esc(item.amount || '—') + '</span></span>' +
                     '<span class="rbt-repay-row__side' + (done ? ' is-done' : '') + '"><b>' + esc(item.status) + '</b><span>到账未产生</span></span></button>';
-            }).join('') : '<div class="rbt-h5-empty">' + (done ? '暂无已完成的合作' : '暂无付款中的合作') + '</div>');
+            }).join('') : '<div class="rbt-h5-empty">' + (done ? '暂无已完成的合作' : '暂无门店付款中的合作') + '</div>');
     }
 
     function renderCollectBill(item) {
@@ -604,7 +604,7 @@
         var result = api && typeof api.payDemand === 'function'
             ? api.payDemand(code, method, { name: traderName(), phone: account && account.phone })
             : { ok: false };
-        if (result && result.ok) toast(method === 'offline' ? '已确认线下支付，需求进入待复核' : '支付完成，需求进入待复核');
+        if (result && result.ok) toast(method === 'offline' ? '已确认线下支付，需求进入门店付款中' : '支付完成，需求进入门店付款中');
         else toast('当前不能支付');
         render();
     }

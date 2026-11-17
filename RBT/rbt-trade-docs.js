@@ -1,4 +1,4 @@
-/* 需求复核通过后生成三张交易单，不再生成采购单、销售单和入库单。 */
+/* 贸易商付款完成、进入门店付款中后生成三张交易单，不再生成采购单、销售单和入库单。 */
 (function () {
     var KEY = 'rbt_trade_docs_v2';
     var LF_SUPPLY = { code: 'LF-SUPPLY', name: '冷丰供应链' };
@@ -208,7 +208,7 @@
     }
 
     function canGenerate(demand) {
-        return !!(demand && (demand.status === '付款中' || demand.status === '已完成') && demand.traderName);
+        return !!(demand && (demand.status === '门店付款中' || demand.status === '已完成') && demand.traderName);
     }
 
     function docsOf(store, demandCode) {

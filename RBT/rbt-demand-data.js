@@ -54,30 +54,31 @@
         if (prev === '待重新确认' && next === '待接单') return '重新发布，状态：待重新确认 → 待接单';
         if (prev === '待确认签约' && next === '待签署') return '确认签约，状态：待确认签约 → 待签署';
         if (prev === '待签署' && next === '待付款') return '合同签署完成，状态：待签署 → 待付款';
-        if (prev === '待付款' && next === '待复核') {
-            return (item && item.payMethod === 'offline' ? '线下支付' : '在线支付') + '，状态：待付款 → 待复核';
+        if (prev === '待付款' && next === '门店付款中') {
+            return (item && item.payMethod === 'offline' ? '线下支付' : '在线支付') + '，状态：待付款 → 门店付款中';
         }
-        if (prev === '待复核' && next === '付款中') return '复核通过，状态：待复核 → 付款中';
         if (next === '已完成') return '需求完成，状态：' + prev + ' → 已完成';
         return '状态：' + prev + ' → ' + next;
     }
-    /* 待付款：合同签完，等贸易商付款。付款中：复核通过后，门店按日还款。 */
-    var DEMAND_STATUSES = ['待审核', '待接单', '待确认签约', '待重新确认', '待签署', '待付款', '待复核', '付款中', '已完成'];
+    /* 待付款：合同签完，等贸易商付款。门店付款中：贸易商付款完成后，门店按日还款。 */
+    var DEMAND_STATUSES = ['待审核', '待接单', '待确认签约', '待重新确认', '待签署', '待付款', '门店付款中', '已完成'];
     var CLOSED_STATUSES = ['已作废', '已驳回'];
-    /* 付款中之前，平台可在需求单列表作废。撤回接单后的待重新确认也可作废。 */
-    var VOIDABLE_STATUSES = ['待审核', '待接单', '待确认签约', '待重新确认', '待签署', '待付款', '待复核'];
+    /* 门店付款中之前，平台可在需求单列表作废。撤回接单后的待重新确认也可作废。 */
+    var VOIDABLE_STATUSES = ['待审核', '待接单', '待确认签约', '待重新确认', '待签署', '待付款'];
     /* 进入这些状态时释放需求门店的已占用额度 */
     var RELEASE_STATUSES = ['已作废', '已驳回', '已完成'];
     /* 待签署及之后才有关联合同 */
-    var CONTRACT_STATUSES = ['待签署', '待付款', '待复核', '付款中', '已完成'];
+    var CONTRACT_STATUSES = ['待签署', '待付款', '门店付款中', '已完成'];
     var STATUS_MIGRATE = {
         '已发布': '待审核',
         '待报价': '待审核',
         '已报价': '待接单',
-        '待还款': '付款中',
-        '支付中': '付款中',
-        '还款中': '付款中',
+        '待还款': '门店付款中',
+        '支付中': '门店付款中',
+        '还款中': '门店付款中',
+        '付款中': '门店付款中',
         '待支付': '待付款',
+        '待复核': '门店付款中',
         '已取消': '已作废'
     };
 
@@ -85,7 +86,7 @@
         return CONTRACT_STATUSES.indexOf(status) >= 0;
     }
 
-    /* 待签署仍为待签署；进入待复核及之后视为已签署。 */
+    /* 待签署仍为待签署；进入待付款及之后视为已签署。 */
     function contractSignStatus(status) {
         if (status === '待签署') return '待签署';
         if (hasContractStatus(status)) return '已签署';
@@ -216,7 +217,7 @@
         ].concat(extraStoreSeeds());
     }
 
-    /* 待复核演示单：销售合同、采购合同的各方都已签署。 */
+    /* 门店付款中演示单：销售合同、采购合同的各方都已签署，贸易商已付款。 */
     function signedRows(storeCode, storeName, traderName, signedAt) {
         return [
             { key: 'sale:store:' + storeCode, role: 'store', code: storeCode, name: storeName, contractKey: 'sale', signedAt: signedAt },
@@ -265,7 +266,7 @@
             }),
             rowSeed(Object.assign({
                 code: 'XQ00016', storeCode: 'ONS00002', storeName: '东城和平里生鲜店',
-                pkg: meat, plan: meatPlan, status: '待复核',
+                pkg: meat, plan: meatPlan, status: '门店付款中',
                 skus: [{ code: 'SKU10003', name: '冷鲜牛腩 1kg', salePrice: '78.00', qty: 15 }, { code: 'SKU10011', name: '冷鲜猪里脊 1kg', salePrice: '52.80', qty: 10 }],
                 amount: '3056.40', creator: '夏利', createdAt: '2026-11-06 11:22:09', updater: '王丽', updatedAt: '2026-11-07 09:30:12',
                 acceptedAt: '2026-11-06 13:05:44',
@@ -300,7 +301,7 @@
             }, haiFeng)),
             rowSeed(Object.assign({
                 code: 'XQ00020', storeCode: 'ONS00004', storeName: '五角场体验店',
-                pkg: fresh, plan: freshPlan, status: '待复核',
+                pkg: fresh, plan: freshPlan, status: '门店付款中',
                 skus: [{ code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 20 }, { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 12 }],
                 amount: '2255.36', creator: '赵倩', createdAt: '2026-11-05 10:08:27', updater: '王丽', updatedAt: '2026-11-06 16:48:20',
                 acceptedAt: '2026-11-05 14:22:03',
@@ -320,7 +321,7 @@
             }),
             rowSeed(Object.assign({
                 code: 'XQ00024', storeCode: 'ONS00001', storeName: '西湖中心生鲜店',
-                pkg: fresh, plan: freshPlan, status: '付款中',
+                pkg: fresh, plan: freshPlan, status: '门店付款中',
                 skus: [{ code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 10 }, { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 8 }],
                 amount: '1200.64', creator: '喻巧', createdAt: '2026-11-10 11:08:16', updater: '王丽', updatedAt: '2026-11-12 17:20:08',
                 acceptedAt: '2026-11-10 15:42:30',
@@ -335,10 +336,10 @@
                     uploadedBy: '王丽'
                 }
             }, xianDa)),
-            /* 复核已通过，供履约页引用。比例付不预造逐期金额，也不记还款。 */
+            /* 门店付款中演示，供履约页引用。比例付不预造逐期金额，也不记还款。 */
             rowSeed(Object.assign({
                 code: 'XQ00023', storeCode: 'ONS00001', storeName: '西湖中心生鲜店',
-                pkg: fresh, plan: freshPlan, status: '付款中',
+                pkg: fresh, plan: freshPlan, status: '门店付款中',
                 skus: [{ code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 8 }, { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 6 }],
                 amount: '591.20', creator: '喻巧', createdAt: '2026-11-06 09:16:40', updater: '王丽', updatedAt: '2026-11-09 10:28:16',
                 acceptedAt: '2026-11-06 14:02:18',
@@ -555,7 +556,7 @@
 
     /* 初审已通过。这些需求单上应能看到结算比例。 */
     function passedFirstAudit(status) {
-        return status === '待接单' || status === '待确认签约' || status === '待重新确认' || status === '待签署' || status === '待付款' || status === '待复核' || status === '付款中' || status === '已完成';
+        return status === '待接单' || status === '待确认签约' || status === '待重新确认' || status === '待签署' || status === '待付款' || status === '门店付款中' || status === '已完成';
     }
 
     /* 演示数据当初写在产品上的比例。初审已通过、单上还没有渠道比例时，用它补三个渠道的默认比例。 */
@@ -686,8 +687,8 @@
                 item.status = next;
                 changed = true;
             }
-            /* 付款中/已完成视为已复核通过，用于重算已成交 */
-            if ((item.status === '付款中' || item.status === '已完成') && !item.dealLocked) {
+            /* 门店付款中/已完成表示贸易商已付款，用于重算已成交 */
+            if ((item.status === '门店付款中' || item.status === '已完成') && !item.dealLocked) {
                 item.dealLocked = true;
                 changed = true;
             }
@@ -867,7 +868,7 @@
         return demand;
     }
 
-    /* 复核成功：仅给需求门店累加已成交（不扣可用额度）。 */
+    /* 贸易商付款完成：仅给需求门店累加已成交（不扣可用额度）。 */
     function lockDemandDeal(demand) {
         if (!demand || demand.dealLocked) return demand;
         var storeApi = window.RbtStoreData;
@@ -879,7 +880,7 @@
         return demand;
     }
 
-    /* 按「已复核通过」的需求单重算各门店已成交，避免演示假数据混入。 */
+    /* 按已进入门店付款中或已完成的需求单重算各门店已成交，避免演示假数据混入。 */
     function rebuildStoreDealAmounts() {
         var storeApi = window.RbtStoreData;
         if (!storeApi || typeof storeApi.list !== 'function' || typeof storeApi.applyQuota !== 'function') return;
@@ -922,7 +923,7 @@
         ensureLogs(target);
         var statusLog = statusLogText(prev, status, target);
         if (statusLog) pushLog(target, statusLog, target.updater, target.updatedAt);
-        if (prev === '待复核' && status === '付款中') {
+        if (status === '门店付款中' && prev !== '门店付款中') {
             lockDemandDeal(target);
             if (window.RbtTradeDocs && typeof window.RbtTradeDocs.ensureForDemand === 'function') {
                 var madeDocs = window.RbtTradeDocs.ensureForDemand(target, operator);
@@ -1090,7 +1091,7 @@
         return !!(demand && VOIDABLE_STATUSES.indexOf(demand.status) >= 0);
     }
 
-    /* 付款中之前由平台作废。已产生的审核单、合同在 setStatus 里同步作废。 */
+    /* 门店付款中之前由平台作废。已产生的审核单、合同在 setStatus 里同步作废。 */
     function voidDemand(code, operator) {
         var rows = list();
         var target = findDemand(rows, code);
@@ -1191,7 +1192,7 @@
         });
     }
 
-    /* 当前签署方确认其中一份合同。各方都签完后进入待付款，等贸易商支付后才到待复核。 */
+    /* 当前签署方确认其中一份合同。各方都签完后进入待付款，等贸易商支付后进入门店付款中。 */
     function signDemand(code, actor, contractKey) {
         var rows = list();
         var target = null;
@@ -1250,7 +1251,7 @@
         return { ok: true, done: true, demand: saved || target };
     }
 
-    /* 合同签完后由接单贸易商支付。在线支付直接完成；线下支付需先确认。完成后进入待复核。 */
+    /* 合同签完后由接单贸易商支付。在线支付直接完成；线下支付需先确认。完成后进入门店付款中，不再复核。 */
     function payDemand(code, method, trader) {
         var rows = list();
         var target = findDemand(rows, code);
@@ -1261,13 +1262,8 @@
         target.payMethod = method === 'offline' ? 'offline' : 'online';
         target.paidAt = nowText();
         write(rows);
-        var saved = setStatus(code, '待复核', name);
+        var saved = setStatus(code, '门店付款中', name);
         if (!saved) return { ok: false, reason: 'missing' };
-        if (readAuditAuto().review) {
-            var review = findAuditByDemand(readAuditsRaw() || [], saved.code, '复核');
-            if (review && review.status === '待审核') approveReviewAudit(review, '系统');
-            saved = get(saved.code) || saved;
-        }
         return { ok: true, demand: saved };
     }
 
@@ -1275,15 +1271,15 @@
     var AUDIT_KEY = 'rbt_demand_audit_v1';
     var AUDIT_AUTO_KEY = 'rbt_audit_auto_v1';
 
-    /* 需求单管理里的审核配置。没保存过时，初审和复核都自动审核。 */
+    /* 需求单管理里的审核配置。没保存过时，初审自动审核。 */
     function readAuditAuto() {
         try {
             var raw = sessionStorage.getItem(AUDIT_AUTO_KEY);
-            if (!raw) return { first: true, review: true };
+            if (!raw) return { first: true };
             var data = JSON.parse(raw);
-            return { first: !data || data.first !== false, review: !data || data.review !== false };
+            return { first: !data || data.first !== false };
         } catch (e) {
-            return { first: true, review: true };
+            return { first: true };
         }
     }
     var AUDIT_STATUSES = ['待审核', '审核通过', '审核驳回'];
@@ -1348,10 +1344,10 @@
     }
 
     function auditStage(item) {
-        return item && item.stage === '复核' ? '复核' : '初审';
+        return '初审';
     }
 
-    /* 同一需求单可能有初审、复核两条。未指定环节时取初审。 */
+    /* 同一需求只保留初审。未指定环节时取初审。 */
     function findAuditByDemand(list, demandCode, stage) {
         var primary = null;
         var fallback = null;
@@ -1383,25 +1379,15 @@
         return found;
     }
 
-    function ensureReviewAudit(demand, rows) {
-        var review = findAuditByDemand(rows, demand.code, '复核');
-        if (review) return review;
-        var created = buildAuditFromDemand(demand, rows);
-        created.stage = '复核';
-        created.status = '待审核';
-        created.submitter = demand.updater || demand.creator || '系统';
-        created.submittedAt = nowText();
-        created.auditor = '';
-        created.auditedAt = '';
-        created.opinion = '';
-        rows.unshift(created);
-        return created;
+    function dropReviewAudits(rows) {
+        var kept = (rows || []).filter(function (row) { return !row || row.stage !== '复核'; });
+        return { rows: kept, dropped: kept.length !== (rows || []).length };
     }
 
     /* 门店发布成功：写入一条待审核记录。 */
     function createAuditForDemand(demand) {
         if (!demand || !demand.code) return null;
-        var rows = readAuditsRaw() || [];
+        var rows = dropReviewAudits(readAuditsRaw() || []).rows;
         var exists = findAuditByDemand(rows, demand.code);
         if (exists) {
             exists.storeCode = demand.storeCode || exists.storeCode;
@@ -1485,16 +1471,8 @@
             target.auditor = operator || demand.updater || target.auditor || '王丽';
             target.auditedAt = demand.updatedAt || nowText();
         }
-        if (demand.status === '待复核') ensureReviewAudit(demand, rows);
-        if (demand.status === '已驳回') {
-            var review = findAuditByDemand(rows, demand.code, '复核');
-            if (review && review.status === '待审核') {
-                review.status = '审核驳回';
-                review.auditor = operator || demand.updater || '王丽';
-                review.auditedAt = demand.updatedAt || nowText();
-                review.opinion = demand.rejectReason || review.opinion || '不符合放款条件';
-            }
-        }
+        var cleaned = dropReviewAudits(rows);
+        rows = cleaned.rows;
         writeAudits(rows);
         return target;
     }
@@ -1508,6 +1486,9 @@
             rows = [];
             changed = true;
         }
+        var cleaned = dropReviewAudits(rows);
+        rows = cleaned.rows;
+        if (cleaned.dropped) changed = true;
         demands.forEach(function (demand) {
             if (!demand || !demand.code) return;
             var existing = findAuditByDemand(rows, demand.code, '初审');
@@ -1533,10 +1514,6 @@
             }
             if (auditStage(existing) === '初审' && existing.status === '审核通过' && demand.settleRatios && demand.settleRatios.length && !(existing.settleRatios && existing.settleRatios.length)) {
                 existing.settleRatios = demand.settleRatios;
-                changed = true;
-            }
-            if (demand.status === '待复核' && !findAuditByDemand(rows, demand.code, '复核')) {
-                ensureReviewAudit(demand, rows);
                 changed = true;
             }
             if ((demand.status === '已作废' || demand.status === '已取消') && voidRelatedAudits(rows, demand, demand.updater || '平台')) {
@@ -1588,7 +1565,6 @@
         var target = getAudit(id);
         if (!target || target.status !== '待审核') return null;
         var who = operator || '王丽';
-        if (auditStage(target) === '复核') return approveReviewAudit(target, who, extra);
         var demandRows = list();
         var pending = null;
         demandRows.some(function (item) {
@@ -1658,24 +1634,11 @@
         return current;
     }
 
-    /* 复核通过只改状态。保证金在门店准入缴纳，不在这里确认或上传。 */
-    function approveReviewAudit(target, who) {
-        var demand = get(target.demandCode);
-        if (!demand || demand.status !== '待复核') return null;
-        if (!setStatus(demand.code, '付款中', who)) return null;
-        return patchAudit(target.id, function (row) {
-            row.status = '审核通过';
-            row.auditor = who;
-            row.auditedAt = nowText();
-            row.opinion = '';
-        });
-    }
-
-    /* 待接单到付款中可改本单结算比例，不改需求状态。 */
+    /* 待接单到门店付款中可改本单结算比例，不改需求状态。 */
     function canEditSettleRatios(item) {
         var ratioApi = window.RbtSettleRatio;
         if (ratioApi && typeof ratioApi.canEdit === 'function') return ratioApi.canEdit(item);
-        return !!(item && ['待接单', '待确认签约', '待签署', '待付款', '待复核', '付款中'].indexOf(item.status) >= 0);
+        return !!(item && ['待接单', '待确认签约', '待签署', '待付款', '门店付款中'].indexOf(item.status) >= 0);
     }
 
     function updateSettleRatios(code, ratioList, operator) {

@@ -91,7 +91,7 @@
         var start = (currentPage - 1) * pageSize;
         var rows = filtered.slice(start, start + pageSize);
         if (!rows.length) {
-            body.innerHTML = '<tr><td colspan="14" style="text-align:center;color:#909399;padding:28px 12px;">暂无审核记录</td></tr>';
+            body.innerHTML = '<tr><td colspan="13" style="text-align:center;color:#909399;padding:28px 12px;">暂无审核记录</td></tr>';
             renderPagination();
             return;
         }
@@ -101,11 +101,9 @@
             if (pending) {
                 ops += '<a href="#" data-act="audit" data-id="' + row.id + '">审核</a>';
             }
-            var stage = row.stage === '复核' ? '复核' : '初审';
             return '<tr>' +
                 '<td>' + show(row.id) + '</td>' +
                 '<td>' + show(row.demandCode) + '</td>' +
-                '<td style="text-align:center;"><span class="rbt-aud-stage' + (stage === '复核' ? ' is-review' : '') + '">' + stage + '</span></td>' +
                 '<td>' + show(row.storeName) + '<div style="color:#909399;font-size:12px;">' + show(row.storeCode) + '</div></td>' +
                 '<td>' + show(row.packageName) + '</td>' +
                 '<td>' + money(row.goodsAmount) + '</td>' +
@@ -140,27 +138,6 @@
         toast('需求单 ' + demand.code + ' / ' + demand.status, 'info');
     }
 
-    function auditStage(audit) {
-        return audit && audit.stage === '复核' ? '复核' : '初审';
-    }
-
-    function passReview(id) {
-        var audit = dataApi.getAudit(id);
-        var demand = audit ? dataApi.get(audit.demandCode) : null;
-        if (!audit || !demand) {
-            toast('审核记录不存在', 'error');
-            return false;
-        }
-        var result = dataApi.approveAudit(id, '王丽');
-        if (!result) {
-            toast('审核失败', 'error');
-            return false;
-        }
-        toast('已通过，需求单进入付款中');
-        renderTable();
-        return true;
-    }
-
     function openAudit(id) {
         var audit = dataApi.getAudit(id);
         var demand = audit ? dataApi.get(audit.demandCode) : null;
@@ -172,12 +149,11 @@
             toast('需求单详情打不开', 'error');
             return;
         }
-        var stage = auditStage(audit);
         window.RbtDemandDetail.open(demand, {
             audit: {
-                stage: stage,
+                stage: '初审',
                 onPass: function () {
-                    return stage === '复核' ? passReview(id) : passFirst(id);
+                    return passFirst(id);
                 },
                 onReject: function (opinion) {
                     return rejectAudit(id, opinion);
