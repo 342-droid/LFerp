@@ -1,10 +1,30 @@
 {
-  "latestSha": "9edc2ddab350e54d0a49896d600da48a5706ee0f",
-  "total": 563,
+  "latestSha": "367a0516732fedfa3c4ea5e8f3dabddc97fc025c",
+  "total": 564,
   "days": [
     {
       "date": "2026-11-18",
       "items": [
+        {
+          "sha": "367a051",
+          "type": "docs",
+          "text": "【857】门店档案手机号码可编辑 PRD 按交接规则重写",
+          "author": "u ｌ",
+          "time": "14:13",
+          "pages": [
+            {
+              "file": "prototype-prd/view.html",
+              "module": "",
+              "title": "PRD"
+            }
+          ],
+          "notes": [
+            {
+              "file": null,
+              "text": "【857】门店档案手机号码可编辑: 按运营口径重写交接规则、编辑与快捷入口、二次确认及 App 表现说明"
+            }
+          ]
+        },
         {
           "sha": "9edc2dd",
           "type": "feat",
