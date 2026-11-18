@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
-    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
     <link rel="stylesheet" href="../css/lf-mdm-ops-cockpit.css">
 </head>
 <body>
@@ -19,18 +18,40 @@
         <main class="main-content">
             <div class="content-tabs"><button class="active">全景总览</button></div>
             <hr class="content-divider">
-            <div class="content-title">经营驾驶舱 · 全景总览</div>
+            <div class="content-title">全景总览</div>
             <section class="table-section" style="padding-top:0;" data-ck-overview>
-                <div class="mdm-biz-tip" role="note" style="margin-bottom:12px;">
-                    首屏只汇总<strong>消费者交易 GMV</strong>（直播／商城；POS 待接入）。<strong>RBT</strong>仅作独立「联营与回收」摘要，禁止与 GMV 相加。
-                    <strong>财务确认收入</strong>分列；履约主指标按 <strong>SKU 件数</strong>。未接入数据展示「待接入／未获取」，不为 0。
-                </div>
                 <div class="ops-ck">
                     <div class="ops-ck__meta" data-ck-meta></div>
                     <div class="ops-ck__filters" data-ck-filters></div>
 
-                    <h3 class="ops-ck-section-title">核心经营指标</h3>
-                    <div class="ops-ck-kpi-grid" data-ck-kpis></div>
+                    <div class="ops-ck-tip" role="note" data-ck-board-tip>
+                        看板按当前筛选主体口径汇总；待接入数据不计 0，展示为「待接入」。
+                    </div>
+
+                    <!-- 核心指标：主指标＋副卡＋展开更多 -->
+                    <div class="ops-ck-board">
+                        <div class="ops-ck-board__head">
+                            <h3 class="ops-ck-board__title">核心指标</h3>
+                        </div>
+                        <div class="ops-ck-hero" data-ck-hero></div>
+                        <div class="ops-ck-sec-grid" data-ck-secondary></div>
+                        <button type="button" class="ops-ck-more-toggle" data-ck-more-toggle>
+                            展开更多指标
+                            <span class="ops-ck-more-toggle__icon" aria-hidden="true">▾</span>
+                        </button>
+                        <div class="ops-ck-more-kpis" data-ck-more-kpis hidden></div>
+                    </div>
+
+                    <!-- 模块对比：一眼看出哪块最好 -->
+                    <div class="ops-ck-card ops-ck-card--soft">
+                        <div class="ops-ck-card__head">
+                            <h3 class="ops-ck-card__title">模块经营对比</h3>
+                        </div>
+                        <p class="ops-ck-note" style="margin-bottom:12px;">
+                            对比零售／代采／POS／联营等业务模块（按贡献排序）；订单分账属收益清分，见下方「收益构成」。
+                        </p>
+                        <div data-ck-modules></div>
+                    </div>
 
                     <div class="ops-ck-row">
                         <div class="ops-ck-card">
@@ -40,31 +61,41 @@
                             </div>
                             <div class="ops-ck-trend" data-ck-trend></div>
                         </div>
-                        <div class="ops-ck-card">
+                        <div class="ops-ck-card" data-ck-comp-card>
                             <div class="ops-ck-card__head">
-                                <h3 class="ops-ck-card__title">业务线构成（消费者交易）</h3>
+                                <h3 class="ops-ck-card__title" data-ck-comp-title>构成分析</h3>
                             </div>
-                            <p class="ops-ck-note" style="margin-bottom:12px;">RBT 不计入本构成。POS 待接入时不算进合计占比。</p>
-                            <div class="ops-ck-bars" data-ck-line-mix></div>
+                            <div class="ops-ck-comp-tabs" data-ck-comp-tabs></div>
+                            <p class="ops-ck-note" data-ck-comp-note style="margin-bottom:12px;"></p>
+                            <div class="ops-ck-donut-panel" data-ck-donut-panel></div>
+                            <div class="ops-ck-comp-seg" data-ck-comp-seg></div>
+                            <div class="ops-ck-mix-table-wrap" data-ck-mix-table></div>
                         </div>
+                    </div>
+
+                    <div class="ops-ck-card" data-ck-bill-card>
+                        <div class="ops-ck-card__head">
+                            <h3 class="ops-ck-card__title">营业额分账账单</h3>
+                        </div>
+                        <p class="ops-ck-note" data-ck-bill-note style="margin-bottom:12px;"></p>
+                        <div class="ops-ck-bill-check" data-ck-bill-check></div>
+                        <div class="ops-ck-bill" data-ck-bill></div>
                     </div>
 
                     <div class="ops-ck-card ops-ck-card--soft">
                         <div class="ops-ck-card__head">
-                            <h3 class="ops-ck-card__title">联营与回收（RBT · 独立摘要）</h3>
-                            <a class="ops-ck-card__action" data-ck-rbt-link href="mdm_ops_rbt_recoup.html">进入 RBT 专题 ›</a>
+                            <h3 class="ops-ck-card__title">联营与回收（RBT）</h3>
                         </div>
                         <p class="ops-ck-note" data-ck-rbt-note style="margin-bottom:12px;"></p>
                         <div class="ops-ck-rbt" data-ck-rbt></div>
                     </div>
 
-                    <h3 class="ops-ck-section-title">经营对象排行（分列，不可混排）</h3>
+                    <h3 class="ops-ck-section-title" data-ck-rank-title>经营对象排行</h3>
                     <div class="ops-ck-rank-grid" data-ck-ranks></div>
 
                     <div class="ops-ck-card ops-ck-card--soft">
                         <div class="ops-ck-card__head">
                             <h3 class="ops-ck-card__title">风险与预警</h3>
-                            <a class="ops-ck-card__action" href="mdm_ops_alert.html">进入预警 ›</a>
                         </div>
                         <div class="ops-ck-alert-list" data-ck-alerts></div>
                     </div>
