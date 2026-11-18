@@ -14,6 +14,8 @@
     const isSales = currentPage === 'rbt_sales';
     const isPerformance = currentPage === 'rbt_performance';
     const isDailyFulfill = currentPage === 'rbt_daily_fulfill';
+    const isRiskConfig = currentPage === 'rbt_risk_config';
+    const isRiskAbnormal = currentPage === 'rbt_risk_abnormal';
 
     const sidebarContainer = document.getElementById('sidebar-container');
     if (!sidebarContainer) {
@@ -79,6 +81,18 @@
         '<a href="' + pageHref('rbt_daily_fulfill.html') + '" class="menu-link' + (isDailyFulfill ? ' active' : '') + '">' +
         '<img src="' + assetHref('image/基础信息.svg') + '" alt="" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
         '<span>每日履行</span>' +
+        '</a>' +
+        '</li>' +
+        '<li class="menu-item">' +
+        '<a href="' + pageHref('rbt_risk_config.html') + '" class="menu-link' + (isRiskConfig ? ' active' : '') + '">' +
+        '<img src="' + assetHref('image/基础信息.svg') + '" alt="" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
+        '<span>风控配置</span>' +
+        '</a>' +
+        '</li>' +
+        '<li class="menu-item">' +
+        '<a href="' + pageHref('rbt_risk_abnormal.html') + '" class="menu-link' + (isRiskAbnormal ? ' active' : '') + '">' +
+        '<img src="' + assetHref('image/基础信息.svg') + '" alt="" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
+        '<span>异常履约数据</span>' +
         '</a>' +
         '</li>' +
         '</ul>' +

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰RBT - 异常履约数据</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
+    <link rel="stylesheet" href="../vendor/octopus-prototype-runtime/runtime.css">
+    <link rel="stylesheet" href="../vendor/octopus-prototype-runtime/theme.css">
+    <style>
+        [v-cloak] { display: none; }
+        .rbt-abnormal-host { min-height: 480px; }
+        .rbt-abnormal-tip { margin: 0 0 12px; }
+        .rbt-abnormal-host .el-table .el-table-fixed-column--left,
+        .rbt-abnormal-host .el-table .el-table-fixed-column--right {
+            position: static !important;
+            left: auto !important;
+            right: auto !important;
+            box-shadow: none !important;
+        }
+        .rbt-abnormal-host .el-table__fixed-right-patch { display: none !important; }
+        .rbt-risk-tag { display: inline-block; padding: 0 8px; border-radius: 4px; line-height: 22px; font-size: 12px; }
+        .rbt-risk-tag.is-关注 { color: #d48806; background: #fffbe6; }
+        .rbt-risk-tag.is-预警 { color: #d46b08; background: #fff7e6; }
+        .rbt-risk-tag.is-异常 { color: #cf1322; background: #fff1f0; }
+        .rbt-risk-link { border: 0; padding: 0; background: transparent; color: #155bd4; cursor: pointer; font: inherit; }
+        .rbt-handle { position: fixed; inset: 0; z-index: 2200; }
+        .rbt-handle[hidden] { display: none; }
+        .rbt-handle__mask { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.45); }
+        .rbt-handle__panel {
+            position: absolute; top: 0; right: 0; bottom: 0; width: min(520px, 100%);
+            background: #fff; display: flex; flex-direction: column;
+            box-shadow: -8px 0 24px rgba(0, 0, 0, 0.12);
+        }
+        .rbt-handle__head { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid #eee; }
+        .rbt-handle__head h2 { margin: 0; font-size: 16px; }
+        .rbt-handle__close { border: 0; background: transparent; font-size: 22px; line-height: 1; cursor: pointer; color: #909399; }
+        .rbt-handle__body { flex: 1; overflow: auto; padding: 16px; }
+        .rbt-handle__fact { width: 100%; border-collapse: collapse; font-size: 13px; margin: 0 0 16px; }
+        .rbt-handle__fact th,
+        .rbt-handle__fact td { border: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; vertical-align: top; }
+        .rbt-handle__fact th { width: 120px; background: #f7f8fa; color: #606266; font-weight: 500; }
+        .rbt-handle__field { margin: 0 0 14px; }
+        .rbt-handle__field label { display: block; margin: 0 0 6px; font-size: 13px; color: #303133; }
+        .rbt-handle__field .erp-input,
+        .rbt-handle__field .erp-select { width: 100%; height: 36px; box-sizing: border-box; }
+        .rbt-handle__field textarea.erp-input { height: auto; min-height: 88px; padding: 8px 10px; line-height: 1.5; }
+        .rbt-handle__foot { display: flex; gap: 10px; padding: 12px 16px; border-top: 1px solid #eee; }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="rbt-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button type="button" class="active">异常履约数据</button></div>
+            <hr class="content-divider">
+            <div class="mdm-biz-tip rbt-abnormal-tip" role="note">
+                只列出履约风险等级不是<strong>正常</strong>的需求。当前台账按每日履行里已经发生的应履行和实际履行计算。持续未履行样例用来看规则落到哪一档，<strong>不改</strong>每日履行的实际履行。阈值在<a href="rbt_risk_config.html">风控配置</a>里改。处理只做记录，不拦截新建需求。
+            </div>
+            <div id="rbtAbnormalApp" class="rbt-abnormal-host" v-cloak>
+                <vab-schema-table
+                    ref="table"
+                    :columns="columns"
+                    :request="requestRows"
+                    row-key="id"
+                    data-lf-row-no="off"
+                    search-label-width="110px"
+                    action-column-width="72"
+                    :default-page-size="20"
+                    :auto-format-time="false">
+                    <template #cell-demand="{row}">
+                        <button type="button" class="rbt-risk-link" @click="openDemand(row)">{{ row.demandCode || '—' }}</button>
+                    </template>
+                    <template #cell-grade="{row}">
+                        <span :class="'rbt-risk-tag is-' + row.grade">{{ row.grade }}</span>
+                    </template>
+                    <template #actions="{row,elSize}">
+                        <el-button :size="elSize" text type="primary" @click="openHandle(row)">处理</el-button>
+                    </template>
+                </vab-schema-table>
+            </div>
+        </main>
+    </div>
+
+    <div class="rbt-handle" id="rbtHandle" hidden>
+        <div class="rbt-handle__mask" id="rbtHandleMask"></div>
+        <aside class="rbt-handle__panel" role="dialog" aria-modal="true" aria-labelledby="rbtHandleTitle">
+            <div class="rbt-handle__head">
+                <h2 id="rbtHandleTitle">处理异常履约</h2>
+                <button type="button" class="rbt-handle__close" id="rbtHandleClose" aria-label="关闭">&times;</button>
+            </div>
+            <div class="rbt-handle__body">
+                <table class="rbt-handle__fact">
+                    <tbody id="rbtHandleFact"></tbody>
+                </table>
+                <div class="rbt-handle__field">
+                    <label for="rbtHandleStatus">处理状态</label>
+                    <select class="erp-select" id="rbtHandleStatus"></select>
+                </div>
+                <div class="rbt-handle__field">
+                    <label for="rbtHandleNote">处理说明</label>
+                    <textarea class="erp-input" id="rbtHandleNote" placeholder="选填，例如已电话核对营业流水"></textarea>
+                </div>
+            </div>
+            <div class="rbt-handle__foot">
+                <button type="button" class="btn btn-primary" id="rbtHandleSave">保存</button>
+                <button type="button" class="btn btn-secondary" id="rbtHandleCancel">取消</button>
+            </div>
+        </aside>
+    </div>
+
+    <script src="rbt-fresh.js"></script>
+    <script src="../js/common.js"></script>
+    <script src="../vendor/octopus-prototype-runtime/runtime.js"></script>
+    <script src="rbt-store-data.js"></script>
+    <script src="rbt-settle-ratio.js"></script>
+    <script src="rbt-demand-data.js"></script>
+    <script src="rbt-demand-detail.js"></script>
+    <script src="rbt-daily-fulfill.js"></script>
+    <script src="rbt-risk.js"></script>
+    <script src="rbt-risk-abnormal.js"></script>
+</body>
+</html>

@@ -49,8 +49,37 @@
             display: flex;
             flex-direction: column;
         }
-        .rbt-h5-phone.is-app .rbt-h5-phone__head { padding: 28px 16px 14px; }
-        .rbt-h5-phone.is-app .rbt-h5-phone__head h1 { font-size: 20px; }
+        .rbt-h5-phone.is-app .rbt-h5-phone__head {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            padding: 28px 16px 14px;
+        }
+        .rbt-h5-phone.is-app .rbt-h5-phone__head h1 {
+            flex: 1;
+            min-width: 0;
+            margin: 0;
+            font-size: 20px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .rbt-h5-phone.is-app .rbt-h5-phone__head p { display: none; }
+        .rbt-h5-head-back {
+            flex: none;
+            width: 28px;
+            height: 28px;
+            margin-left: -4px;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: #fff;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .rbt-h5-phone.is-app .rbt-h5-head-back.is-on { display: flex; }
         .rbt-h5-phone.is-app .rbt-h5-phone__body { padding: 0; }
         .rbt-h5-login-form {
             display: none;
@@ -631,6 +660,9 @@
                 <section class="rbt-h5-phone is-login" id="rbtH5Phone" aria-label="贸易商端">
                     <div class="rbt-h5-toast" id="rbtH5Toast" role="status"></div>
                     <div class="rbt-h5-phone__head">
+                        <button type="button" class="rbt-h5-head-back" id="rbtH5HeadBack" aria-label="返回">
+                            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </button>
                         <h1>贸易商端</h1>
                         <p id="rbtH5HeadText">验证码登录</p>
                     </div>

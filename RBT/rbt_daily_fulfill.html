@@ -12,6 +12,15 @@
     <style>
         [v-cloak] { display: none; }
         .rbt-daily-host { min-height: 480px; }
+        /* 列多时横向滚动。固定列会盖住应履行、实际履行，这里改回正常排列。 */
+        .rbt-daily-host .el-table .el-table-fixed-column--left,
+        .rbt-daily-host .el-table .el-table-fixed-column--right {
+            position: static !important;
+            left: auto !important;
+            right: auto !important;
+            box-shadow: none !important;
+        }
+        .rbt-daily-host .el-table__fixed-right-patch { display: none !important; }
     </style>
 </head>
 <body>
@@ -32,8 +41,9 @@
                     :columns="columns"
                     :request="requestRows"
                     row-key="id"
+                    data-lf-row-no="off"
                     search-label-width="96px"
-                    action-column-width="88"
+                    action-column-width="72"
                     :default-page-size="20"
                     :auto-format-time="false">
                     <template v-slot:[slots.demandCode]="{row}">

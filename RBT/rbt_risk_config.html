@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰RBT - 风控配置</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-mdm-edit-page.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
+    <link rel="stylesheet" href="../css/lf-mdm-points-rule.css">
+    <style>
+        .rbt-risk-config-tip { margin: 0 0 12px; }
+        .rbt-risk-error { margin: 0 0 12px; color: #cf1322; font-size: 13px; }
+        .rbt-risk-grade { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .rbt-risk-grade th,
+        .rbt-risk-grade td { border: 1px solid #e5e7eb; padding: 10px 12px; text-align: left; vertical-align: middle; }
+        .rbt-risk-grade th { background: #f7f8fa; font-weight: 600; color: #303133; white-space: nowrap; }
+        .rbt-risk-grade__unit { display: flex; align-items: center; gap: 8px; }
+        .rbt-risk-grade__unit .erp-input { width: 120px; height: 36px; flex: none; }
+        .rbt-risk-grade textarea.erp-input { width: 100%; min-width: 240px; height: auto; min-height: 72px; padding: 8px 10px; line-height: 1.5; resize: vertical; box-sizing: border-box; }
+        .rbt-risk-grade__plain { color: #909399; }
+        .rbt-risk-tag { display: inline-block; padding: 0 8px; border-radius: 4px; line-height: 22px; font-size: 12px; }
+        .rbt-risk-tag.is-正常 { color: #389e0d; background: #f6ffed; }
+        .rbt-risk-tag.is-关注 { color: #d48806; background: #fffbe6; }
+        .rbt-risk-tag.is-预警 { color: #d46b08; background: #fff7e6; }
+        .rbt-risk-tag.is-异常 { color: #cf1322; background: #fff1f0; }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="rbt-sidebar.js"></script>
+    <div id="header-container"></div>
+    <div class="container">
+        <main class="main-content mdm-edit-page">
+            <div class="content-tabs"><button type="button" class="active">风控配置</button></div>
+            <hr class="content-divider">
+
+            <div class="mdm-biz-tip rbt-risk-config-tip" role="note">
+                只按<strong>已发生日期</strong>评级。当日实际履行低于应履行，记为未履行。两个条件同时满足时取更重的等级。保存后，<a href="rbt_risk_abnormal.html">异常履约数据</a>和首页履约风险按这套规则重算。未发生的日期不参与。
+            </div>
+            <p class="rbt-risk-error" id="rbtRiskError" hidden></p>
+
+            <form id="rbtRiskConfigForm">
+                <div class="pts-rule-card">
+                    <div class="pts-rule-card__title">评级开关</div>
+                    <div class="pts-rule-card__body">
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label">风控评级</label>
+                            <div class="pts-rule-field__control">
+                                <div class="pts-rule-check-row">
+                                    <label class="pts-rule-check-label">
+                                        <input type="checkbox" id="rbtRiskEnabled" checked> 开启
+                                    </label>
+                                </div>
+                                <div class="pts-rule-tip">关闭后不再产生关注、预警、异常，异常履约数据为空。每日履行里的金额不变。</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pts-rule-card">
+                    <div class="pts-rule-card__title">履约风险等级</div>
+                    <div class="pts-rule-card__body">
+                        <div class="pts-rule-tip" style="margin-top:0;margin-bottom:10px;">两个条件满足一个就记入该等级，同时满足时取更重的等级。天数按关注、预警、异常递增，覆盖率按关注、预警、异常递减。正常不用单独配置。</div>
+                        <table class="rbt-risk-grade">
+                            <thead>
+                                <tr>
+                                    <th>履约风险等级</th>
+                                    <th>连续未履行天数</th>
+                                    <th>履行覆盖率</th>
+                                    <th>异常提醒</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="rbt-risk-tag is-正常">正常</span></td>
+                                    <td class="rbt-risk-grade__plain" colspan="2">未达到关注的天数，且覆盖率未低于关注</td>
+                                    <td class="rbt-risk-grade__plain">不提醒</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="rbt-risk-tag is-关注">关注</span></td>
+                                    <td>
+                                        <div class="rbt-risk-grade__unit">
+                                            <input class="erp-input" id="watchStreak" type="number" min="1" step="1" inputmode="numeric" aria-label="关注连续未履行天数">
+                                            <span>天</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="rbt-risk-grade__unit">
+                                            <input class="erp-input" id="watchCover" type="number" min="1" max="100" step="1" inputmode="numeric" aria-label="关注履行覆盖率">
+                                            <span>% 以下</span>
+                                        </div>
+                                    </td>
+                                    <td><textarea class="erp-input" id="watchAlert" aria-label="关注异常提醒"></textarea></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="rbt-risk-tag is-预警">预警</span></td>
+                                    <td>
+                                        <div class="rbt-risk-grade__unit">
+                                            <input class="erp-input" id="warnStreak" type="number" min="1" step="1" inputmode="numeric" aria-label="预警连续未履行天数">
+                                            <span>天</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="rbt-risk-grade__unit">
+                                            <input class="erp-input" id="warnCover" type="number" min="1" max="100" step="1" inputmode="numeric" aria-label="预警履行覆盖率">
+                                            <span>% 以下</span>
+                                        </div>
+                                    </td>
+                                    <td><textarea class="erp-input" id="warnAlert" aria-label="预警异常提醒"></textarea></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="rbt-risk-tag is-异常">异常</span></td>
+                                    <td>
+                                        <div class="rbt-risk-grade__unit">
+                                            <input class="erp-input" id="badStreak" type="number" min="1" step="1" inputmode="numeric" aria-label="异常连续未履行天数">
+                                            <span>天</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="rbt-risk-grade__unit">
+                                            <input class="erp-input" id="badCover" type="number" min="1" max="100" step="1" inputmode="numeric" aria-label="异常履行覆盖率">
+                                            <span>% 以下</span>
+                                        </div>
+                                    </td>
+                                    <td><textarea class="erp-input" id="badAlert" aria-label="异常等级提醒"></textarea></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="mdm-edit-page__footer">
+                    <button type="button" class="btn btn-secondary" id="rbtRiskCancel">取消</button>
+                    <button type="button" class="btn btn-secondary" id="rbtRiskReset">重置</button>
+                    <button type="button" class="btn btn-primary" id="rbtRiskSave">保存配置</button>
+                </div>
+            </form>
+        </main>
+    </div>
+
+    <script src="rbt-fresh.js"></script>
+    <script src="../js/common.js"></script>
+    <script src="rbt-risk.js"></script>
+    <script src="rbt-risk-config.js"></script>
+</body>
+</html>

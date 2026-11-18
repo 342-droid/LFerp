@@ -29,14 +29,14 @@
             var table = ref(null);
             var slots = { demandCode: 'cell-demandCode' };
             var columns = [
-                { dataIndex: 'date', title: '日期', minWidth: 120, search: { control: 'input', placeholder: '如 2026-11-10' } },
-                { dataIndex: 'storeName', title: '门店', minWidth: 160, align: 'left', search: { control: 'input' } },
-                { dataIndex: 'storeCode', title: '门店编码', minWidth: 120 },
-                { dataIndex: 'demandCode', title: '需求单号', minWidth: 140, search: { control: 'input' } },
+                { dataIndex: 'date', title: '日期', minWidth: 108, search: { control: 'input', placeholder: '如 2026-11-10' } },
+                { dataIndex: 'storeName', title: '门店', minWidth: 132, align: 'left', showOverflowTooltip: true, search: { control: 'input' } },
+                { dataIndex: 'storeCode', title: '门店编码', minWidth: 108 },
+                { dataIndex: 'demandCode', title: '需求单号', minWidth: 120, search: { control: 'input' } },
                 {
                     dataIndex: 'channel',
                     title: '渠道',
-                    minWidth: 100,
+                    minWidth: 80,
                     search: {
                         control: 'select',
                         options: [
@@ -47,12 +47,12 @@
                         placeholder: '请选择渠道'
                     }
                 },
-                { dataIndex: 'turnover', title: '营业流水', minWidth: 120, formatter: function (row) { return yuan(row.turnover); } },
-                { dataIndex: 'commission', title: '所得佣金', minWidth: 120, formatter: function (row) { return yuan(row.commission); } },
-                { dataIndex: 'ratio', title: '结算比例', minWidth: 110 },
-                { dataIndex: 'due', title: '应履行', minWidth: 120, formatter: function (row) { return yuan(row.due); } },
-                { dataIndex: 'actual', title: '实际履行', minWidth: 120, formatter: function (row) { return yuan(row.actual); } },
-                { dataIndex: 'source', title: '计算来源', minWidth: 140 }
+                { dataIndex: 'turnover', title: '营业流水', minWidth: 88, formatter: function (row) { return yuan(row.turnover); } },
+                { dataIndex: 'commission', title: '所得佣金', minWidth: 88, formatter: function (row) { return yuan(row.commission); } },
+                { dataIndex: 'ratio', title: '结算比例', minWidth: 92 },
+                { dataIndex: 'due', title: '应履行', minWidth: 92, formatter: function (row) { return yuan(row.due); } },
+                { dataIndex: 'actual', title: '实际履行', minWidth: 96, formatter: function (row) { return yuan(row.actual); } },
+                { dataIndex: 'source', title: '计算来源', minWidth: 112, showOverflowTooltip: true }
             ];
 
             function requestRows(params) {
