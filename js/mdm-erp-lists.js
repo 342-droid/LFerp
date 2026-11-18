@@ -1581,6 +1581,8 @@
             var onboard = actionTd.querySelector('.mdm-onboard-btn');
             var html = '';
             if (edit) html += '<a href="#" class="edit-btn">编辑</a> ';
+            /* 【857】操作列独立入口：更换手机号 = 店长交接 */
+            html += '<a href="#" class="mdm-store-phone-change">更换手机号</a> ';
             if (onboard) html += '<a href="#" class="mdm-onboard-btn">去进件</a> ';
             if (perm && canRowSetAsDefault(meta) && !isDefault) {
                 html +=
@@ -1734,6 +1736,20 @@
                             typeof window.MdmResourceArchiveForms.openStoreEdit === 'function'
                         ) {
                             window.MdmResourceArchiveForms.openStoreEdit(el.closest('tr'));
+                        } else if (typeof showToast === 'function') {
+                            showToast('表单模块未加载，请确认已引入 mdm-resource-archive-forms.js', 'error');
+                        }
+                    }
+                },
+                {
+                    selector: '.mdm-store-phone-change',
+                    handler: function (e, el) {
+                        e.preventDefault();
+                        if (
+                            window.MdmResourceArchiveForms &&
+                            typeof window.MdmResourceArchiveForms.openStorePhoneChange === 'function'
+                        ) {
+                            window.MdmResourceArchiveForms.openStorePhoneChange(el.closest('tr'));
                         } else if (typeof showToast === 'function') {
                             showToast('表单模块未加载，请确认已引入 mdm-resource-archive-forms.js', 'error');
                         }

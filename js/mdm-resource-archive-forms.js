@@ -1023,7 +1023,7 @@
         refs.phoneTip = document.createElement('div');
         refs.phoneTip.style.cssText = 'display:none;margin-top:6px;font-size:12px;color:#d46b08;line-height:1.5;';
         refs.phoneTip.textContent =
-            '将按该手机号查找接任用户，并重新绑定本店主体 ID 与店长 ID。';
+            '确认后，接任店长可登录并管理本店，原店长不再拥有本店管理权限。';
         var phoneCtl = document.createElement('div');
         phoneCtl.appendChild(phoneRowWrap);
         phoneCtl.appendChild(refs.phoneTip);
@@ -1202,16 +1202,30 @@
             selectOptionByLabelText(refs.subjectSel, cellPlainText(c[1]));
             refs.contactInp.value = cellPlainText(c[6]);
             /* 【857】编辑弹窗显示完整手机号（列表仍脱敏）；演示数据无完整号时把 **** 补成 0000 */
-            if (refs.phoneInp) refs.phoneInp.value = storeFullPhone(tr);
-            refs.originalPhone = refs.phoneInp ? String(refs.phoneInp.value || '').trim() : '';
-            refs.phoneInp.placeholder = '请输入接任店长的手机号';
-            refs.phoneInp.setAttribute('aria-label', '店长手机号');
-            var phoneLabel = refs.phoneFormRow.querySelector('label');
-            if (phoneLabel) phoneLabel.innerHTML = '<span style="color:#ff4d4f">*</span> 店长手机号';
-            refs.phoneTip.style.color = '#666';
-            refs.verifyInp.value = '';
+            /* 编辑页联系手机号 = 店长交接；改号即更换本店店长 */
+            var fullPhone = storeFullPhone(tr);
+            if (refs.phoneInp) {
+                refs.phoneInp.value = fullPhone;
+                refs.phoneInp.placeholder = '请输入联系手机号';
+                refs.phoneInp.setAttribute('aria-label', '联系手机号');
+                refs.phoneInp.setAttribute('data-required-msg', '请输入联系手机号');
+            }
+            refs.originalPhone = fullPhone;
+            var phoneLabel = refs.phoneFormRow && refs.phoneFormRow.querySelector('label');
+            if (phoneLabel) phoneLabel.innerHTML = '<span style="color:#ff4d4f">*</span> 联系手机号';
+            if (refs.verifyInp) {
+                refs.verifyInp.value = '';
+                refs.verifyInp.setAttribute('data-required-msg', '请输入验证码');
+            }
             if (refs.verifyRow) refs.verifyRow.style.display = 'none';
-            if (refs.phoneTip) refs.phoneTip.style.display = '';
+            if (refs.phoneTip) {
+                refs.phoneTip.style.display = '';
+                refs.phoneTip.style.color = '#d46b08';
+                refs.phoneTip.textContent =
+                    '确认后，接任店长可登录并管理本店，原店长不再拥有本店管理权限。';
+            }
+            var smsBtn = refs.phoneFormRow && refs.phoneFormRow.querySelector('.erp-btn--sms');
+            if (smsBtn) smsBtn.style.display = '';
             refs.nameInp.value = cellPlainText(c[2]);
             var storeCode = cellPlainText(c[0]);
             var mapped = window.MdmStoreSiteSlot && window.MdmStoreSiteSlot.getByStore(storeCode);
@@ -2346,6 +2360,138 @@
                 return ENTRY_AUDIT_TIP;
             }, null, '门店');
         },
+        /* 【857】操作列「更换手机号」：快捷更换本门店店长 */
+        openStorePhoneChange: function (tr) {
+            if (!tr) return;
+            var cells = tr.querySelectorAll('td');
+            var storeId = cells[0] ? cellPlainText(cells[0]) : '';
+            var subjectId = cells[1] ? cellPlainText(cells[1]) : '—';
+            var storeName = cells[2] ? cellPlainText(cells[2]) : '';
+            var originalPhone = storeFullPhone(tr);
+            var body = document.createElement('div');
+            body.appendChild(sectionTitle('接任店长信息'));
+            var info = document.createElement('div');
+            info.className = 'mdm-biz-tip mdm-biz-tip--flush';
+            info.setAttribute('role', 'note');
+            info.innerHTML =
+                '门店：<strong>' +
+                (storeName || '—') +
+                '</strong>（' +
+                (storeId || '—') +
+                '）';
+            body.appendChild(info);
+            var phoneRowWrap = smsRow();
+            var phoneInp = phoneRowWrap.querySelector('input');
+            phoneInp.value = originalPhone;
+            phoneInp.placeholder = '请输入接任店长手机号';
+            phoneInp.setAttribute('aria-label', '接任店长手机号');
+            phoneInp.setAttribute('data-required-msg', '请输入接任店长手机号');
+            var phoneTip = document.createElement('div');
+            phoneTip.style.cssText = 'margin-top:6px;font-size:12px;color:#666;line-height:1.5;';
+            phoneTip.textContent =
+                '确认后，接任店长可登录并管理本店，原店长不再拥有本店管理权限。';
+            var phoneCtl = document.createElement('div');
+            phoneCtl.appendChild(phoneRowWrap);
+            phoneCtl.appendChild(phoneTip);
+            body.appendChild(formRow('接任店长手机号', true, phoneCtl));
+            var verifyInp = txt('请输入验证码', '');
+            verifyInp.setAttribute('data-required-msg', '请输入验证码');
+            var verifyRow = formRow('验证码', true, verifyInp);
+            body.appendChild(verifyRow);
+            function isPhoneChanged() {
+                return String(phoneInp.value || '').trim() !== originalPhone;
+            }
+            function syncVerifyVisibility() {
+                verifyRow.style.display = isPhoneChanged() ? '' : 'none';
+            }
+            syncVerifyVisibility();
+            phoneInp.addEventListener('input', syncVerifyVisibility);
+            function validatePhoneChange() {
+                var toast = function (m) {
+                    if (typeof showToast === 'function') showToast(m, 'error');
+                };
+                if (!isPhoneChanged()) {
+                    toast('接任店长手机号未变更');
+                    return null;
+                }
+                var newPhone = String(phoneInp.value || '').trim();
+                if (!newPhone) {
+                    toast('请输入接任店长手机号');
+                    phoneInp.focus();
+                    return null;
+                }
+                if (!/^1\d{10}$/.test(newPhone)) {
+                    toast('请输入正确的 11 位手机号');
+                    phoneInp.focus();
+                    return null;
+                }
+                var code = String(verifyInp.value || '').trim();
+                if (!code) {
+                    toast('请输入验证码');
+                    verifyInp.focus();
+                    return null;
+                }
+                if (code !== STORE_PHONE_DEMO_CODE) {
+                    toast('验证码错误或已过期');
+                    verifyInp.focus();
+                    return null;
+                }
+                var masked = newPhone.slice(0, 3) + '****' + newPhone.slice(7);
+                var otherStore = '';
+                var tbody = tr.parentNode;
+                if (tbody) {
+                    Array.prototype.forEach.call(tbody.querySelectorAll('tr'), function (row) {
+                        if (row === tr || otherStore) return;
+                        var tds = row.querySelectorAll('td');
+                        if (tds[7] && storeFullPhone(row) === newPhone) otherStore = cellPlainText(tds[2]);
+                    });
+                }
+                return { phone: newPhone, masked: masked, otherStore: otherStore };
+            }
+            var pending = null;
+            attachWideModal(
+                '更换门店店长',
+                body,
+                function () {
+                    if (!pending) return false;
+                    var pc = pending;
+                    var msg =
+                        '确认更换门店【' + storeName + '】的店长？\n' +
+                        '门店：' + (storeName || '—') + '（' + (storeId || '—') + '）\n' +
+                        '原店长：' + (originalPhone || '—') + '\n' +
+                        '接任店长：' + pc.phone + '\n' +
+                        '确认后，接任店长可登录并管理本店，原店长不再拥有本店管理权限。';
+                    if (pc.otherStore) {
+                        msg +=
+                            '\n该手机号已是门店【' +
+                            pc.otherStore +
+                            '】的店长登录号，保存后接任店长可同时管理本店及其原有门店。';
+                    }
+                    showStorePhoneConfirm(msg, function () {
+                        if (cells[7]) cells[7].textContent = pc.masked;
+                        tr.setAttribute('data-phone', pc.phone);
+                        if (window.MdmOperationLog) {
+                            window.MdmOperationLog.record(
+                                'store',
+                                storeId,
+                                '更换门店店长',
+                                { 原店长手机号: originalPhone },
+                                { 接任店长手机号: pc.phone, 主体: subjectId }
+                            );
+                        }
+                        removeArchiveFormModals();
+                        if (typeof showToast === 'function') {
+                            showToast('已更换门店店长，接任店长可使用 ' + pc.phone + ' 登录并管理本店', 'success');
+                        }
+                    });
+                    return false;
+                },
+                function () {
+                    pending = validatePhoneChange();
+                    return pending !== null;
+                }
+            );
+        },
         openStoreEdit: function (tr) {
             if (!tr) return;
             var cells = tr.querySelectorAll('td');
@@ -2474,8 +2620,7 @@
                         '门店编码：' + storeCode + '\n' +
                         '原店长：' + (refs.originalPhone || '—') + '\n' +
                         '接任店长：' + pc.phone + '\n' +
-                        '实际操作：解除本店主体 ID 与原店长 ID 的绑定，建立本店主体 ID 与接任店长 ID 的绑定。\n' +
-                        '手机号仅用于查找接任用户；代采单仍归属本门店主体，新店长按店长权限查看及处理。';
+                        '确认后，接任店长可登录并管理本店，原店长不再拥有本店管理权限。';
                     if (pc.otherStore) {
                         msg += '\n该手机号已是门店【' + pc.otherStore + '】的店长登录号，保存后接任用户可同时管理本店及其原有门店。';
                     }
@@ -2485,7 +2630,7 @@
                         if (applyEdit() === false) return;
                         removeArchiveFormModals();
                         if (typeof showToast === 'function') {
-                            showToast('已保存：本店主体已重新绑定店长，接任账号 ' + pc.phone, 'success');
+                            showToast('已更换门店店长，接任店长可使用 ' + pc.phone + ' 登录并管理本店', 'success');
                         }
                     });
                     return false;

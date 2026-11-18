@@ -452,7 +452,14 @@
                 if (item.materials) node = take(function (n) { return n.hasAttribute && n.hasAttribute('data-entry-materials'); });
                 else if (item.map) node = take(function (n) { return !!n.querySelector('.store-archive__map-mock'); });
                 else if (item.collapse) node = take(function (n) { return labelOf(n) === item.collapse; });
-                else if (item.label) node = take(function (n) { return labelOf(n) === item.label; });
+                else if (item.label) {
+                    node = take(function (n) {
+                        var lab = labelOf(n);
+                        if (lab === item.label) return true;
+                        if (item.label === '手机号码' && (lab === '联系手机号' || lab === '店长手机号')) return true;
+                        return false;
+                    });
+                }
                 if (!node) return;
                 if (item.span) node.classList.add('subj-wiz__span');
                 if (item.bar) node.classList.add('subj-wiz__subject-bar');
