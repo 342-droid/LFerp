@@ -20,10 +20,35 @@
     function setHead(text) {
         var head = document.getElementById('rbtH5HeadText');
         var title = document.querySelector('.rbt-h5-phone__head h1');
-        if (title) {
-            title.textContent = screen === 'hall' ? '需求大厅' : (screen === 'sign' ? '合同签署' : '贸易商端');
+        var phone = document.getElementById('rbtH5Phone');
+        if (phone && phone.classList.contains('is-app')) {
+            if (title) title.textContent = text || '收款';
         }
-        if (head) head.textContent = text;
+        if (head) head.textContent = text || '';
+    }
+
+    /* 二级回到基础工具，三级回到上一级。首页和我的没有上一级。 */
+    function backTarget() {
+        if (!account) return '';
+        if (screen === 'collect-bill') return 'collect';
+        if (screen === 'sign') return 'hall';
+        if (screen === 'password') return 'mine';
+        if (screen === 'collect' || screen === 'hall') return 'home';
+        return '';
+    }
+
+    function syncHeadBack() {
+        var btn = document.getElementById('rbtH5HeadBack');
+        if (!btn) return;
+        btn.classList.toggle('is-on', !!backTarget());
+    }
+
+    function goBack(target) {
+        screen = target || 'home';
+        if (screen === 'hall') hallFilter = 'accepted';
+        if (screen === 'collect') collectFilter = collectFilter === 'closed' ? 'closed' : 'open';
+        tab = screen === 'mine' || screen === 'password' ? 'mine' : 'hall';
+        render();
     }
 
     function svgIcon(paths) {
@@ -335,18 +360,17 @@
         var receivable = sumMoney(funds, 'receivable');
         var settled = sumMoney(funds, 'settled');
         setHead('收款');
-        return '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="home">返回</button></div>' +
-            '<div class="rbt-fund">' +
+        return '<div class="rbt-fund">' +
             '<div class="rbt-fund__tabs" role="tablist">' +
             '<button type="button" data-collect-view="open"' + (closed ? '' : ' class="is-on"') + '>跟进中</button>' +
             '<button type="button" data-collect-view="closed"' + (closed ? ' class="is-on"' : '') + '>已结束</button>' +
             '</div>' +
             '<div class="rbt-fund__summary">' +
             '<div><span>笔数</span><b>' + rows.length + '</b></div>' +
-            '<div><span>贸易商应收</span><b>' + esc(receivable ? yuan(receivable) : '—') + '</b></div>' +
+            '<div><span>应收</span><b>' + esc(receivable ? yuan(receivable) : '—') + '</b></div>' +
             '<div><span>已结款</span><b>' + esc(settled ? yuan(settled) : '未产生') + '</b></div>' +
             '</div>' +
-            '<p class="rbt-fund__note">一笔已接单一张。贸易商应收在商品金额和结算系数确定后就有。已结款要等当天营业流水发生，按实际履行拆给贸易商。未发生的日期不算。</p>' +
+            '<p class="rbt-fund__note">一笔已接单一张。应收在商品金额和结算系数确定后就有。已结款要等当天营业流水发生，按实际履行拆给贸易商。未发生的日期不算。</p>' +
             (rows.length ? rows.map(function (item) {
                 var fund = fundOf(item);
                 var tagClass = item.status === '已完成' ? ' is-done' : (item.status === '已作废' || item.status === '已驳回' ? ' is-off' : '');
@@ -355,7 +379,7 @@
                     '<span class="rbt-fund-card__tag' + tagClass + '">' + esc(phaseLabel(item.status)) + '</span></div>' +
                     '<p class="rbt-fund-card__store">' + esc(item.storeName || '—') + '</p>' +
                     '<div class="rbt-fund-card__metrics">' +
-                    '<div><span>贸易商应收</span><b>' + esc(yuan(fund.receivable)) + '</b></div>' +
+                    '<div><span>应收</span><b>' + esc(yuan(fund.receivable)) + '</b></div>' +
                     '<div><span>已结款</span><b>' + esc(fund.settled ? yuan(fund.settled) : '未产生') + '</b></div>' +
                     '</div></button>';
             }).join('') : '<div class="rbt-h5-empty">' + (closed ? '暂无已结束的接单' : '暂无跟进中的接单') + '</div>') +
@@ -378,13 +402,12 @@
         ];
         var tagClass = item.status === '已完成' ? ' is-done' : (item.status === '已作废' || item.status === '已驳回' ? ' is-off' : '');
         var shares = fund.shares.slice().reverse();
-        return '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="collect">返回</button></div>' +
-            '<section class="rbt-fund-detail">' +
+        return '<section class="rbt-fund-detail">' +
             '<div class="rbt-fund-detail__head">' +
             '<div class="rbt-fund-card__top"><strong>' + esc(item.code) + '</strong>' +
             '<span class="rbt-fund-card__tag' + tagClass + '">' + esc(phaseLabel(item.status)) + '</span></div>' +
             '<div class="rbt-fund-detail__metrics">' +
-            '<div><span>贸易商应收</span><b>' + esc(yuan(fund.receivable)) + '</b></div>' +
+            '<div><span>应收</span><b>' + esc(yuan(fund.receivable)) + '</b></div>' +
             '<div><span>已结款</span><b>' + esc(fund.settled ? yuan(fund.settled) : '未产生') + '</b></div>' +
             '</div></div>' +
             '<p class="rbt-fund__note">已结款是这笔接单里，已发生日期的实际履行拆给贸易商的金额。没有营业流水时不预造。</p>' +
@@ -407,6 +430,7 @@
         var scroll = document.getElementById('rbtH5Scroll');
         if (!scroll || !account) return;
         syncHomeChrome();
+        syncHeadBack();
         if (tab === 'hall' && screen === 'sign') {
             setHead('合同签署');
             var signing = window.RbtDemandData && window.RbtDemandData.get(signCode);
@@ -429,10 +453,11 @@
             return;
         }
         if (tab === 'hall' && screen === 'collect-bill') {
+            setHead('资金明细');
             var collectBill = acceptedDemands().filter(function (item) { return item.code === collectCode; })[0];
             scroll.innerHTML = collectBill
                 ? renderCollectBill(collectBill)
-                : '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="collect">返回</button></div><div class="rbt-h5-empty">账单不存在</div>';
+                : '<div class="rbt-h5-empty">账单不存在</div>';
             return;
         }
         if (tab === 'hall' && screen === 'collect') {
@@ -448,7 +473,6 @@
             setHead(screen === 'password' ? '修改密码' : '我的');
             if (screen === 'password') {
                 scroll.innerHTML =
-                    '<div class="rbt-h5-bar"><button type="button" class="rbt-h5-back" data-back="mine">返回</button></div>' +
                     '<section class="rbt-h5-card rbt-h5-mine">' +
                     '<div class="rbt-h5-field"><label for="rbtH5OldPwd">原密码</label><input id="rbtH5OldPwd" type="password" maxlength="32" placeholder="请输入原密码"></div>' +
                     '<div class="rbt-h5-field"><label for="rbtH5NewPwd">新密码</label><input id="rbtH5NewPwd" type="password" maxlength="32" placeholder="请输入新密码"></div>' +
@@ -504,6 +528,10 @@
         screen = 'home';
         var phone = document.getElementById('rbtH5Phone');
         var scroll = document.getElementById('rbtH5Scroll');
+        var title = document.querySelector('.rbt-h5-phone__head h1');
+        var headBack = document.getElementById('rbtH5HeadBack');
+        if (title) title.textContent = '贸易商端';
+        if (headBack) headBack.classList.remove('is-on');
         if (phone) phone.classList.remove('is-home', 'is-hall', 'is-sign');
         if (scroll) {
             scroll.classList.remove('is-home');
@@ -716,6 +744,14 @@
         phone.appendChild(mask);
     }
 
+    var headBackBtn = document.getElementById('rbtH5HeadBack');
+    if (headBackBtn) {
+        headBackBtn.addEventListener('click', function () {
+            var target = backTarget();
+            if (target) goBack(target);
+        });
+    }
+
     function finishPay(code, method) {
         var api = window.RbtDemandData;
         var result = api && typeof api.payDemand === 'function'
@@ -757,21 +793,6 @@
                 closeOfflinePay();
                 finishPay(code, 'offline');
             }
-        });
-    }
-
-    var headBack = document.getElementById('rbtH5HeadBack');
-        if (headBack) {
-        headBack.addEventListener('click', function () {
-            if (screen === 'sign') {
-                screen = 'hall';
-                hallFilter = 'accepted';
-                render();
-                return;
-            }
-            if (screen !== 'hall') return;
-            screen = 'home';
-            render();
         });
     }
 
@@ -909,11 +930,7 @@
             return;
         }
         if (back) {
-            screen = back.getAttribute('data-back') || 'mine';
-            if (screen === 'hall') hallFilter = 'accepted';
-            if (screen === 'collect') collectFilter = collectFilter === 'closed' ? 'closed' : 'open';
-            tab = screen === 'home' || screen === 'hall' || screen === 'collect' ? 'hall' : 'mine';
-            render();
+            goBack(back.getAttribute('data-back') || 'home');
             return;
         }
         if (logout && window.RbtH5TraderLogin) window.RbtH5TraderLogin.logout();
