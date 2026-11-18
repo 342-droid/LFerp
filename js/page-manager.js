@@ -48,6 +48,7 @@ class PageManager {
         const v = String(value ?? '').trim();
         return (
             v === '启用' ||
+            v === '已启用' ||
             v === '正常' ||
             v === '在岗' ||
             v === '开启' ||

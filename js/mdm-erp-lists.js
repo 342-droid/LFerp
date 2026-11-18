@@ -6,6 +6,47 @@
     var MDM_ENABLED_WAREHOUSE_CACHE_KEY = 'mdm_enabled_warehouse_options_v1';
     var MDM_BD_WAREHOUSE_BIND_KEY = 'mdm_bd_warehouse_bindings_v1';
 
+    var ARCHIVE_STATUS_KEY = 'mdm_archive_status_v1';
+    var STORE_WAREHOUSE_BIND_KEY = 'mdm_store_warehouse_bindings_v1';
+
+    function archiveStatus(kind, id, fallback) {
+        var map = readJsonStore(ARCHIVE_STATUS_KEY) || {};
+        return map[kind + ':' + id] || fallback;
+    }
+
+    function updateArchiveStatus(pm, row, column, status) {
+        var patch = {};
+        patch[column] = { value: status, isStatus: true };
+        pm.updateTableRow(row, patch);
+    }
+
+    function saveArchiveStatus(kind, id, status) {
+        var map = readJsonStore(ARCHIVE_STATUS_KEY) || {};
+        map[kind + ':' + id] = status;
+        try {
+            localStorage.setItem(ARCHIVE_STATUS_KEY, JSON.stringify(map));
+            return true;
+        } catch (error) {
+            showToast('档案状态保存失败，请重试', 'error');
+            return false;
+        }
+    }
+
+    function restoreArchiveStatuses(pm, kind, column) {
+        document.querySelectorAll('#tableBody tr').forEach(function (row) {
+            var id = row.cells[0] && row.cells[0].textContent.trim();
+            var status = archiveStatus(kind, id, '');
+            if (!row.cells[column]) return;
+            if (kind === 'store') {
+                var storedStatus = status || row.dataset.storeStatusSource || pm.getCellStatus(row, column);
+                row.dataset.storeStatusSource = storedStatus;
+                updateArchiveStatus(pm, row, column, normalizeStoreArchiveStatus(storedStatus));
+            } else if (status) {
+                updateArchiveStatus(pm, row, column, status);
+            }
+        });
+    }
+
     function readResourceArchiveCache() {
         try {
             var raw = localStorage.getItem(RESOURCE_ARCHIVE_CACHE_KEY);
@@ -176,38 +217,23 @@
         return '';
     }
 
-    function isWarehouseRuntimeDisabled(meta) {
-        if (
-            window.MdmArchiveEnableDisable &&
-            typeof window.MdmArchiveEnableDisable.isWarehouseDisabledByMeta === 'function'
-        ) {
-            return !!window.MdmArchiveEnableDisable.isWarehouseDisabledByMeta(meta);
-        }
-        return false;
-    }
-
     function collectWarehouseOptionsFromRows(rows) {
         var list = [];
         rows.forEach(function (tr) {
             var c = tr.querySelectorAll('td');
             if (c.length < 12) return;
             var code = (c[0].textContent || '').trim();
-            var subject = (c[1].textContent || '').trim();
             var name = (c[2].textContent || '').trim();
             var warehouseType = (c[3].textContent || '').trim();
             var typeLabel = normalizeWarehouseTypeLabel((c[4].textContent || '').trim());
             var st = (c[11].querySelector('.status') || {}).textContent || c[11].textContent || '';
             st = String(st).trim();
             if (!code || !name || !typeLabel || warehouseType !== '仓库') return;
-            var enabled =
-                st === '启用' &&
-                !isWarehouseRuntimeDisabled({ id: code, code: code, name: name, subject: subject });
             list.push({
                 id: code,
-                subject: subject,
                 name: name,
                 typeLabel: typeLabel,
-                enabled: enabled
+                enabled: archiveStatus('warehouse', code, st) === '启用'
             });
         });
         return list;
@@ -234,21 +260,13 @@
                 (one.typeLabel === '网格仓' || one.typeLabel === '中心仓')
             );
         }).map(function (one) {
-            var enabled =
-                one.enabled !== false &&
-                !isWarehouseRuntimeDisabled({
-                    id: one.id,
-                    code: one.id,
-                    name: one.name,
-                    subject: one.subject
-                });
-            return {
+            var copied = {
                 id: one.id,
-                subject: one.subject || '',
                 name: one.name,
                 typeLabel: one.typeLabel,
-                enabled: enabled
+                enabled: one.enabled !== false
             };
+            return copied;
         });
     }
 
@@ -535,6 +553,8 @@
         createTime: 15
     };
     var archiveStorePage = null;
+    var archiveSupplierPage = null;
+    var archiveWarehousePage = null;
 
     function escapeStoreCell(s) {
         return String(s || '')
@@ -563,7 +583,7 @@
                 '未进件',
                 '未提交',
                 '—',
-                { value: '正常', isStatus: true },
+                { value: '已启用', isStatus: true },
                 archiveStorePage.getCurrentTimeStr()
             ]
         });
@@ -571,6 +591,12 @@
         row.setAttribute('data-region', data.region || '');
         row.setAttribute('data-address', data.address || '');
         row.setAttribute('data-short-name', data.shortName || name);
+        row.setAttribute('data-biz-line', data.bizLine || '');
+        row.setAttribute('data-brand-name', data.brandName || '');
+        row.setAttribute('data-biz-lines', data.bizLines || '');
+        if (window.MdmOperationLog) window.MdmOperationLog.record('store', data.storeCode, '新增门店', null, {
+            '门店名称': name, '门店简称': data.shortName || name, '所属主体': data.subjectName
+        });
         row.setAttribute('data-latlng', '—');
         row.setAttribute('data-withdraw', '—');
         row.setAttribute('data-settle-cycle', '—');
@@ -583,6 +609,66 @@
         syncStoreReceiveFromArchiveRow(row);
         refreshAllStoreHoursCells();
         refreshStoreArchiveActions();
+        paintArchiveContractColumn('store');
+        return row;
+    }
+
+    function appendArchiveSupplierRow(data) {
+        var tbody = document.getElementById('tableBody');
+        if (!tbody || !data || !data.name) return null;
+        if (tbody.querySelector('tr td') && tbody.textContent.indexOf(data.id) >= 0) return null;
+        var tr = document.createElement('tr');
+        tr.setAttribute('data-short-name', data.shortName || '');
+        function td(html) {
+            return '<td>' + html + '</td>';
+        }
+        tr.innerHTML =
+            td(data.id || '') +
+            td(data.subjectName || '—') +
+            '<td><a href="#" class="subject-name-link">' + (data.name || '') + '</a></td>' +
+            td(data.shortName || '-') +
+            td(data.region || '—') +
+            td(data.detail || '—') +
+            td(data.typeLabel || '—') +
+            td(data.contact || '—') +
+            td(data.phone || '—') +
+            td(new Date().toISOString().slice(0, 16).replace('T', ' ')) +
+            td('0') +
+            td('对公/订单结算/先货后款') +
+            td(data.phone || '—') +
+            td('统配') +
+            td('未进件') +
+            td('未提交') +
+            '<td><span class="status active">正常</span></td>' +
+            '<td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td>';
+        tbody.insertBefore(tr, tbody.firstChild);
+        if (archiveSupplierPage && typeof archiveSupplierPage.decorateAllDetailLinkCells === 'function') {
+            archiveSupplierPage.decorateAllDetailLinkCells();
+        }
+        return tr;
+    }
+
+    function appendArchiveWarehouseRow(data) {
+        if (!archiveWarehousePage || !data || !data.id) return null;
+        var digits = String(data.phone || '').replace(/\D/g, '');
+        var phone = digits.length === 11 ? digits.slice(0, 3) + '****' + digits.slice(7) : (data.phone || '—');
+        var row = archiveWarehousePage.addTableRow({
+            cells: [
+                escapeStoreCell(data.id),
+                escapeStoreCell(data.subjectName || '—'),
+                '<a href="#" class="subject-name-link">' + escapeStoreCell(data.name || '新仓库') + '</a>',
+                escapeStoreCell(data.kind || '仓库'),
+                escapeStoreCell(data.level || '—'),
+                escapeStoreCell(data.admin || '—'),
+                escapeStoreCell(phone),
+                escapeStoreCell(phone),
+                escapeStoreCell(data.location || '—'),
+                escapeStoreCell(data.area || '—'),
+                archiveWarehousePage.getCurrentTimeStr(),
+                { value: '启用', isStatus: true }
+            ]
+        });
+        if (row) archiveWarehousePage.refreshDisableToggleLabel(row);
         return row;
     }
 
@@ -634,12 +720,16 @@
         var id = String(storeId || '').trim();
         if (!id) return;
         var map = readStoreHoursMap();
+        var previous = map[id];
         if (!hours || !hours.start || !hours.end) {
             delete map[id];
         } else {
             map[id] = { start: hours.start, end: hours.end };
         }
         writeStoreHoursMap(map);
+        if (window.MdmOperationLog) window.MdmOperationLog.record('store', id, '调整营业时间',
+            { '营业时间': previous ? formatStoreHoursRange(previous.start, previous.end) : '跟随平台' },
+            { '营业时间': map[id] ? formatStoreHoursRange(map[id].start, map[id].end) : '跟随平台' });
     }
 
     function formatStoreHoursRange(start, end) {
@@ -954,6 +1044,17 @@
             supplierId,
             onboardDisplay
         );
+        if (
+            cells[11] &&
+            window.LFSettleCycleStore &&
+            typeof window.LFSettleCycleStore.formatSupplierSettleSummary === 'function'
+        ) {
+            var supplierName = cells[2] ? cells[2].textContent.trim() : '';
+            cells[11].textContent = window.LFSettleCycleStore.formatSupplierSettleSummary(
+                supplierId,
+                supplierName
+            );
+        }
     }
 
     function syncAllSupplierArchiveRows() {
@@ -1016,7 +1117,7 @@
             shortName = archiveShort || shortName;
             detailAddrIdx = SUPPLIER_COL.detailAddr;
             contactMobileIdx = SUPPLIER_COL.phone;
-        } else if (kind === 'trader') {
+        } else if (kind === 'trader' || kind === 'provider') {
             var traderShort = c[TRADER_COL.shortName]
                 ? c[TRADER_COL.shortName].textContent.trim()
                 : '';
@@ -1033,6 +1134,7 @@
         if (kind === 'store') title = '门店进件';
         else if (kind === 'supplier') title = '供应商进件';
         else if (kind === 'trader') title = '贸易商进件';
+        else if (kind === 'provider') title = '服务商进件';
         else if (kind === 'liveRoom') title = '直播间进件';
         else if (kind === 'carrier') title = '承运商进件';
         var venue = { store_header_pic: '', store_indoor_pic: '', store_cashier_desk_pic: '' };
@@ -1053,6 +1155,10 @@
                 };
             }
         }
+        var onboardText = '';
+        if (kind === 'supplier' && c[SUPPLIER_COL.onboard]) {
+            onboardText = c[SUPPLIER_COL.onboard].textContent.trim();
+        }
         var recordKey = 'archive::' + kind + '::' + recordId;
         var modalOpts = {
             title: title,
@@ -1068,7 +1174,8 @@
                 store_cashier_desk_pic: venue.store_cashier_desk_pic || ''
             },
             recordKey: recordKey,
-            variant: kind === 'store' ? 'store' : 'resource'
+            variant: kind === 'store' ? 'store' : 'resource',
+            lockLicenseCode: kind === 'supplier' && onboardText === '进件成功'
         };
         modalOpts.onRecordChange = function (payload) {
             if (
@@ -1088,6 +1195,7 @@
             if (kind === 'supplier' && tr) syncSupplierArchiveRow(tr, payload);
             else if (kind === 'store' && tr) syncStoreArchiveRow(tr, payload);
             else if (kind === 'trader' && tr) syncTraderArchiveRow(tr, payload);
+            else if (kind === 'provider' && tr) syncProviderArchiveRow(tr, payload);
         };
         window.MdmUnifiedOnboardingUi.openModal(modalOpts);
     }
@@ -1154,6 +1262,55 @@
         return !s || s === '—' || s === '--' || s === '-' || s === '添加';
     }
 
+    function paintArchiveContractColumn(scene) {
+        var tbody = document.getElementById('tableBody');
+        var table = tbody && tbody.closest('table');
+        if (!tbody || !table || !window.LfContract || typeof window.LfContract.partyContractStatus !== 'function') return;
+        var head = table.querySelector('thead tr');
+        if (head && !head.querySelector('[data-contract-head]')) {
+            var actionHead = head.lastElementChild;
+            var labels = scene === 'store' ? ['合同签署状态', '低利润与活动'] : ['合同签署状态'];
+            labels.forEach(function (label) {
+                var th = document.createElement('th');
+                th.setAttribute('data-contract-head', label);
+                th.textContent = label;
+                head.insertBefore(th, actionHead);
+            });
+        }
+        var nameIndex = scene === 'supplier' ? SUPPLIER_COL.name : 2;
+        tbody.querySelectorAll('tr').forEach(function (tr) {
+            if (tr.querySelector('td[colspan]')) return;
+            var cells = tr.children;
+            var shifted = cells[0] && /^\d+$/.test(String(cells[0].textContent || '').trim());
+            var nameCell = cells[nameIndex + (shifted ? 1 : 0)];
+            var link = nameCell && nameCell.querySelector('a');
+            var name = link ? link.textContent.trim() : (nameCell ? nameCell.textContent.trim() : '');
+            var label = window.LfContract.partyContractStatus(scene, name);
+            tr.setAttribute('data-contract-status', label);
+            var cell = tr.querySelector('td[data-contract-col]');
+            var action = tr.lastElementChild;
+            if (!cell) {
+                cell = document.createElement('td');
+                cell.setAttribute('data-contract-col', '1');
+                tr.insertBefore(cell, action);
+            }
+            cell.textContent = label;
+            if (scene === 'store' && typeof window.LfContract.storeCommerceLabel === 'function') {
+                var codeCell = cells[shifted ? 1 : 0];
+                var code = codeCell ? String(codeCell.textContent || '').trim() : '';
+                var gate = window.LfContract.storeCommerceLabel(name, code);
+                var gateCell = tr.querySelector('td[data-commerce-col]');
+                if (!gateCell) {
+                    gateCell = document.createElement('td');
+                    gateCell.setAttribute('data-commerce-col', '1');
+                    tr.insertBefore(gateCell, tr.lastElementChild);
+                }
+                gateCell.textContent = gate.text;
+                gateCell.title = gate.title;
+            }
+        });
+    }
+
     function storeArchiveFilter(pm) {
         var tbody = document.getElementById(pm.config.tableBodyId);
         if (!tbody) return;
@@ -1162,11 +1319,13 @@
         var qStore = (document.getElementById('qStoreName') || {}).value.trim();
         var qOp = (document.getElementById('qStoreOpStatus') || {}).value.trim();
         var qOnboard = (document.getElementById('qStoreOnboardStatus') || {}).value.trim();
+        var qContract = (document.getElementById('qStoreContractStatus') || {}).value.trim();
         var qBalance = (document.getElementById('qStoreBalancePay') || {}).value.trim();
         var qSplit = (document.getElementById('qStoreSplit') || {}).value.trim();
         var qSt = (document.getElementById('qStoreStatus') || {}).value.trim();
         /* 运营状态：营业中 / 休息中（超过营业时间自动休息，与 C 端一致） */
         var opMap = { '1': '营业中', '2': '休息中' };
+        paintArchiveContractColumn('store');
         tbody.querySelectorAll('tr').forEach(function (tr) {
             var cells = tr.querySelectorAll('td');
             if (cells.length < STORE_COL.status + 1) return;
@@ -1186,11 +1345,12 @@
             if (qStore && sn.indexOf(qStore) === -1) ok = false;
             if (qOp && opTxt !== opMap[qOp]) ok = false;
             if (qOnboard && onboardTxt !== qOnboard) ok = false;
+            if (qContract && tr.getAttribute('data-contract-status') !== qContract) ok = false;
             if (qBalance && balanceTxt !== qBalance) ok = false;
             if (qSplit === 'on' && splitTxt !== '开启' && splitTxt !== '已开通') ok = false;
             if (qSplit === 'off' && splitTxt !== '关闭' && splitTxt !== '未开通') ok = false;
-            if (qSt === 'normal' && stTxt !== '正常' && stTxt !== '已启用' && stTxt !== '启用') ok = false;
-            if (qSt === 'stopped' && stTxt !== '停用' && stTxt !== '已禁用') ok = false;
+            if (qSt === 'normal' && stTxt !== '已启用') ok = false;
+            if (qSt === 'stopped' && stTxt !== '已冻结') ok = false;
             tr.style.display = ok ? '' : 'none';
         });
         pm.refreshPagination();
@@ -1224,9 +1384,11 @@
         var qSub = (document.getElementById('qSubjectName') || {}).value.trim();
         var qRes = (document.getElementById('qResourceName') || {}).value.trim();
         var qOnboard = (document.getElementById('qSupOnboardStatus') || {}).value.trim();
+        var qContract = (document.getElementById('qSupContractStatus') || {}).value.trim();
         var qBalance = (document.getElementById('qSupBalancePay') || {}).value.trim();
         var qSt = (document.getElementById('qResStatus') || {}).value.trim();
         var statusMap = { normal: '正常', frozen: '冻结' };
+        paintArchiveContractColumn('supplier');
         tbody.querySelectorAll('tr').forEach(function (tr) {
             var cells = tr.querySelectorAll('td');
             if (cells.length < SUPPLIER_COL.status + 1) return;
@@ -1234,6 +1396,7 @@
             if (qSub && cells[1].textContent.trim().indexOf(qSub) === -1) ok = false;
             if (qRes && cells[2].textContent.trim().indexOf(qRes) === -1) ok = false;
             if (qOnboard && cells[SUPPLIER_COL.onboard].textContent.trim() !== qOnboard) ok = false;
+            if (qContract && tr.getAttribute('data-contract-status') !== qContract) ok = false;
             if (qBalance && cells[SUPPLIER_COL.balancePay].textContent.trim() !== qBalance) ok = false;
             if (qSt && statusMap[qSt]) {
                 var stTxt = (cells[SUPPLIER_COL.status].querySelector('.status') || {}).textContent || '';
@@ -1366,9 +1529,10 @@
         return false;
     }
 
-    function isStoreDisabledStatus(txt) {
-        var s = String(txt || '').trim();
-        return s === '已禁用' || s === '停用' || s === '禁用';
+    function normalizeStoreArchiveStatus(status) {
+        if (['冻结', '已冻结', '已禁用', '停用', '禁用', '已停用'].indexOf(status) !== -1) return '已冻结';
+        if (['正常', '启用', '已启用'].indexOf(status) !== -1) return '已启用';
+        return status;
     }
 
     function refreshStoreNameDefaultBadge(tr, isDefault) {
@@ -1417,6 +1581,8 @@
             var onboard = actionTd.querySelector('.mdm-onboard-btn');
             var html = '';
             if (edit) html += '<a href="#" class="edit-btn">编辑</a> ';
+            /* 【857】操作列独立入口：更换手机号 = 店长交接 / 主体↔店长重绑 */
+            html += '<a href="#" class="mdm-store-phone-change">更换手机号</a> ';
             if (onboard) html += '<a href="#" class="mdm-onboard-btn">去进件</a> ';
             if (perm && canRowSetAsDefault(meta) && !isDefault) {
                 html +=
@@ -1424,11 +1590,12 @@
                     DEFAULT_STORE_TIP.replace(/"/g, '&quot;') +
                     '">设为系统默认门店</a> ';
             }
-            /* 门店档案停启用：启用中显示「停用」，停用中显示「启用」 */
-            if (isStoreDisabledStatus(meta.storeStatus)) {
-                html += '<a href="#" class="mdm-store-disable">启用</a>';
-            } else {
-                html += '<a href="#" class="mdm-store-disable">停用</a>';
+            if (meta.storeStatus === '已冻结') {
+                html += '<a href="#" class="mdm-store-disable">解冻</a>';
+            } else if (meta.storeStatus === '已启用') {
+                html += isDefault
+                    ? '<a href="#" class="mdm-store-disable is-locked" title="系统默认门店不允许冻结">冻结</a>'
+                    : '<a href="#" class="mdm-store-disable">冻结</a>';
             }
             actionTd.innerHTML = html.replace(/\s+$/, '');
         });
@@ -1450,6 +1617,8 @@
         var prev = readSystemDefaultStore();
         function doSet() {
             writeSystemDefaultStore(snapshotDefaultStore(meta));
+            if (window.MdmOperationLog) window.MdmOperationLog.record('store', meta.storeId, '设置系统默认门店',
+                { '默认门店': prev && prev.storeId }, { '默认门店': meta.storeId });
             refreshStoreArchiveActions();
             if (typeof showToast === 'function') showToast('已设为系统默认门店', 'success');
         }
@@ -1467,69 +1636,40 @@
 
     function toggleStoreDisable(tr, pm) {
         var meta = storeRowMeta(tr);
-        if (!meta) return;
-        var current = readSystemDefaultStore();
-        var isDefault = current && current.storeId === meta.storeId;
-        var disabledNow = isStoreDisabledStatus(meta.storeStatus);
-        if (!disabledNow && isDefault) {
-            if (typeof showToast === 'function') showToast('系统默认门店不允许停用', 'error');
-            return;
+        if (!meta || ['已启用', '已冻结'].indexOf(meta.storeStatus) === -1) return;
+        var freezing = meta.storeStatus === '已启用';
+        var verb = freezing ? '冻结' : '解冻';
+        var next = freezing ? '已冻结' : '已启用';
+        var source = tr.dataset.storeStatusSource || meta.storeStatus;
+        function canChange() {
+            var current = readSystemDefaultStore();
+            if (freezing && current && current.storeId === meta.storeId) {
+                window.MdmSubjectLf.showLfWarmConfirm(
+                    '门店「' + meta.name + '」（' + meta.storeId + '）是系统默认门店。请先切换系统默认门店，再重试。',
+                    null, false, '无法冻结门店');
+                return false;
+            }
+            if (archiveStatus('store', meta.storeId, source) !== source) {
+                showToast('门店状态已变化，请刷新页面后重试', 'error');
+                return false;
+            }
+            return true;
         }
-        var next = disabledNow ? '启用' : '停用';
-        var patch = {};
-        patch[STORE_COL.status] = {
-            value: next,
-            isStatus: true,
-            statusClass: next === '启用' || next === '正常' ? 'active' : 'inactive'
-        };
-        function apply(payload) {
-            if (pm && typeof pm.updateTableRow === 'function') {
-                pm.updateTableRow(tr, patch);
-            } else {
-                var span = tr.querySelectorAll('td')[STORE_COL.status].querySelector('.status');
-                if (span) {
-                    span.textContent = next;
-                    span.className =
-                        'status ' + (next === '启用' || next === '正常' ? 'active' : 'inactive');
-                }
-            }
-            if (window.MdmArchiveEnableDisable && typeof window.MdmArchiveEnableDisable.setStoreDisabled === 'function') {
-                window.MdmArchiveEnableDisable.setStoreDisabled({
-                    id: meta.storeId,
-                    name: meta.name,
-                    disabled: next === '停用'
-                });
-            }
-            if (payload && payload.reason) {
-                tr.setAttribute('data-last-disable-reason', payload.reason);
-            }
+        if (!canChange()) return;
+        var message = verb + '门店「' + meta.name + '」（' + meta.storeId + '）？';
+        if (freezing) message += '\n冻结后停止新下单和支付，存量履约、售后及结算继续按原单据处理。';
+        window.MdmSubjectLf.showLfWarmConfirm(message, function (reason) {
+            // 沿用原禁用值，保留钱包对禁用记录的保证金解冻口径。
+            var storedStatus = freezing ? '已禁用' : '已启用';
+            if (!canChange() || !saveArchiveStatus('store', meta.storeId, storedStatus)) return;
+            tr.dataset.storeStatusSource = storedStatus;
+            updateArchiveStatus(pm, tr, STORE_COL.status, next);
+            if (window.MdmOperationLog) window.MdmOperationLog.record('store', meta.storeId,
+                verb + '门店', { '状态': meta.storeStatus }, { '状态': next, '原因': reason });
             refreshStoreArchiveActions();
-            if (typeof showToast === 'function') {
-                showToast(next === '启用' ? '门店已启用' : '门店已停用', 'success');
-            }
-        }
-        if (!window.MdmArchiveEnableDisable || typeof window.MdmArchiveEnableDisable.openDialog !== 'function') {
-            apply({});
-            return;
-        }
-        if (next === '启用') {
-            window.MdmArchiveEnableDisable.openDialog({
-                mode: 'enable',
-                entityType: 'store',
-                entityName: meta.name,
-                onConfirm: function () {
-                    apply({});
-                }
-            });
-            return;
-        }
-        window.MdmArchiveEnableDisable.openDialog({
-            mode: 'disable',
-            entityType: 'store',
-            entityName: meta.name,
-            precheck: window.MdmArchiveEnableDisable.buildStorePrecheck(tr),
-            onConfirm: apply
-        });
+            storeArchiveFilter(pm);
+            showToast(freezing ? '门店已冻结' : '门店已解冻', 'success');
+        }, true);
     }
 
     function bindSetDefaultStorePermissionToggle() {
@@ -1559,8 +1699,8 @@
                 required: true,
                 editDisabled: true,
                 options: [
-                    { value: '启用', text: '启用' },
-                    { value: '停用', text: '停用' }
+                    { value: '已启用', text: '已启用' },
+                    { value: '已冻结', text: '已冻结' }
                 ]
             }
         ];
@@ -1603,6 +1743,20 @@
                     }
                 },
                 {
+                    selector: '.mdm-store-phone-change',
+                    handler: function (e, el) {
+                        e.preventDefault();
+                        if (
+                            window.MdmResourceArchiveForms &&
+                            typeof window.MdmResourceArchiveForms.openStorePhoneChange === 'function'
+                        ) {
+                            window.MdmResourceArchiveForms.openStorePhoneChange(el.closest('tr'));
+                        } else if (typeof showToast === 'function') {
+                            showToast('表单模块未加载，请确认已引入 mdm-resource-archive-forms.js', 'error');
+                        }
+                    }
+                },
+                {
                     selector: '.mdm-store-withdraw',
                     handler: function (e, el) {
                         e.preventDefault();
@@ -1630,7 +1784,6 @@
                     selector: '.mdm-store-disable',
                     handler: function (e, el) {
                         e.preventDefault();
-                        if (el.classList.contains('is-disabled')) return;
                         toggleStoreDisable(el.closest('tr'), pm);
                     }
                 }
@@ -1658,7 +1811,7 @@
                         editAddressText: row.getAttribute('data-address') || '',
                         editStoreOpStatus: c[STORE_COL.status].querySelector('.status')
                             ? c[STORE_COL.status].querySelector('.status').textContent.trim()
-                            : '正常'
+                            : '已启用'
                     };
                 },
                 onSave: function () {
@@ -1686,6 +1839,18 @@
         });
         archiveStorePage = pm;
         pm.init();
+        if (window.MdmResourceArchiveForms && typeof window.MdmResourceArchiveForms.takeFirstStores === 'function') {
+            window.MdmResourceArchiveForms.takeFirstStores().forEach(function (row) {
+                appendArchiveStoreRow(row);
+            });
+        }
+        restoreArchiveStatuses(pm, 'store', STORE_COL.status);
+        var warehouseBindings = readJsonStore(STORE_WAREHOUSE_BIND_KEY) || {};
+        document.querySelectorAll('#tableBody tr').forEach(function (row) {
+            if (!row.cells[8]) return;
+            var warehouse = warehouseBindings[row.cells[0].textContent.trim()];
+            if (warehouse) row.cells[8].textContent = warehouse;
+        });
         seedStoreDemoBalancePayments();
         seedDemoStoreHours();
         refreshAllStoreHoursCells();
@@ -1693,6 +1858,7 @@
         syncAllStoreArchiveRows();
         bindSetDefaultStorePermissionToggle();
         refreshStoreArchiveActions();
+        paintArchiveContractColumn('store');
         window.addEventListener('storage', function (e) {
             if (
                 e.key === 'mdm_unified_onboarding_records_v1' ||
@@ -1711,6 +1877,7 @@
                 'qStoreName',
                 'qStoreOpStatus',
                 'qStoreOnboardStatus',
+                'qStoreContractStatus',
                 'qStoreBalancePay',
                 'qStoreSplit',
                 'qStoreStatus'
@@ -1914,6 +2081,7 @@
         ensureDemoSupplierSubmitConfirmDraft();
         seedSupplierDemoBalancePayments();
         syncAllSupplierArchiveRows();
+        paintArchiveContractColumn('supplier');
         window.addEventListener('storage', function (e) {
             if (
                 e.key === 'mdm_unified_onboarding_records_v1' ||
@@ -1928,11 +2096,14 @@
                 'qSubjectName',
                 'qResourceName',
                 'qSupOnboardStatus',
+                'qSupContractStatus',
                 'qSupBalancePay',
                 'qResStatus'
             ],
             filterFn: supplierArchiveFilter
         });
+        archiveSupplierPage = pm;
+        /* 档案处新增仍要关联已有主体，并提交原档案字段和证照、法人、结算信息 */
         document.getElementById('mdmArchiveSupAddBtn') &&
             document.getElementById('mdmArchiveSupAddBtn').addEventListener('click', function () {
                 if (
@@ -1945,6 +2116,11 @@
                 }
             });
         setTimeout(function () {
+            if (window.MdmResourceArchiveForms && typeof window.MdmResourceArchiveForms.takeFirstSuppliers === 'function') {
+                window.MdmResourceArchiveForms.takeFirstSuppliers().forEach(function (row) {
+                    appendArchiveSupplierRow(row);
+                });
+            }
             pm.decorateAllDetailLinkCells();
             syncAllSupplierArchiveRows();
             if (window.MdmSupplierArchiveStore) {
@@ -1959,13 +2135,54 @@
         }, 0);
     }
 
+    function inspectWarehouseBindings(row) {
+        var warehouseId = row.cells[0].textContent.trim();
+        var warehouseName = row.cells[2].textContent.trim();
+        var subjectName = row.cells[1].textContent.trim();
+        function matchesWarehouse(value) {
+            var parts = String(value || '').split('/').map(function (part) { return part.trim(); });
+            return parts.indexOf(warehouseId) !== -1 || parts.indexOf(warehouseName) !== -1 ||
+                parts.indexOf(subjectName) !== -1;
+        }
+        return fetch('mdm_archive_store.html', { cache: 'no-store' }).then(function (response) {
+            if (!response.ok) throw new Error('无法读取门店档案');
+            return response.text();
+        }).then(function (html) {
+            var archive = new DOMParser().parseFromString(html, 'text/html');
+            var table = archive.getElementById('tableBody');
+            if (!table) throw new Error('无法读取门店档案');
+            var stores = Object.assign({}, readJsonStore(STORE_WAREHOUSE_BIND_KEY));
+            table.querySelectorAll('tr').forEach(function (store) {
+                if (!store.cells[8]) return;
+                var id = store.cells[0].textContent.trim();
+                if (!Object.prototype.hasOwnProperty.call(stores, id)) {
+                    stores[id] = store.cells[8].textContent.trim();
+                }
+            });
+            var suppliers = readJsonStore('mdm_supplier_inbound_warehouse_bindings_v1') || {};
+            var bd = readBdWarehouseBindings();
+            return [
+                { label: '门店', ids: Object.keys(stores).filter(function (id) { return matchesWarehouse(stores[id]); }) },
+                { label: '供应商', ids: Object.keys(suppliers).filter(function (key) {
+                    return matchesWarehouse(suppliers[key]);
+                }).map(function (key) { return key.replace(/^(id|name):/, ''); }) },
+                { label: 'BD', ids: Object.keys(bd).filter(function (id) {
+                    return (bd[id].warehouseIds || []).indexOf(warehouseId) !== -1;
+                }) }
+            ].filter(function (group) { return group.ids.length; }).map(function (group) {
+                var ids = Array.from(new Set(group.ids));
+                return group.label + '（' + ids.length + '）' + '：' + ids.join('、');
+            }).join('\n');
+        });
+    }
+
     var TRADER_COL = {
         subjectType: 2,
         name: 3,
         shortName: 4,
         region: 5,
         detailAddr: 6,
-        licenseType: 7,
+        boundProvider: 7,
         contact: 8,
         phone: 9,
         onboard: 10,
@@ -2019,8 +2236,6 @@
                 return (
                     '<tr data-trader-id="' +
                     escapeHtml(item.id) +
-                    '" data-biz-scope="' +
-                    escapeHtml(item.bizScope || '') +
                     '">' +
                     '<td>' +
                     escapeHtml(item.id) +
@@ -2034,7 +2249,7 @@
                     traderTextCell(item.region) +
                     traderTextCell(item.detailAddr) +
                     '<td>' +
-                    escapeHtml(item.licenseType || '—') +
+                    escapeHtml(item.boundProvider || '冷丰') +
                     '</td>' +
                     '<td>' +
                     escapeHtml(item.contact || '—') +
@@ -2088,13 +2303,31 @@
         }
     }
 
+    function syncProviderArchiveRow(tr, payload) {
+        if (!tr) return;
+        var cells = tr.querySelectorAll('td');
+        if (cells.length < TRADER_COL.status + 1) return;
+        var providerId = cells[0].textContent.trim();
+        var recordKey = 'archive::provider::' + providerId;
+        var onboardFallback = cells[TRADER_COL.onboard].textContent.trim();
+        var onboardDisplay = resolveSupplierOnboardingDisplay(recordKey, onboardFallback);
+        if (payload && payload.status === 'submitted') onboardDisplay = '进件中';
+        if (payload === null) onboardDisplay = '未进件';
+        cells[TRADER_COL.onboard].innerHTML = traderOnboardTagHtml(onboardDisplay);
+        if (window.MdmProviderArchiveStore && typeof window.MdmProviderArchiveStore.update === 'function') {
+            window.MdmProviderArchiveStore.update({
+                id: providerId,
+                onboardStatus: onboardDisplay
+            });
+        }
+    }
+
     function traderArchiveFilter(pm) {
         var tbody = document.getElementById(pm.config.tableBodyId);
         if (!tbody) return;
         var qSub = (document.getElementById('qSubjectName') || {}).value.trim();
         var qType = (document.getElementById('qTraderSubjectType') || {}).value.trim();
-        var qLicense = (document.getElementById('qTraderLicenseType') || {}).value.trim();
-        var qScope = (document.getElementById('qTraderBizScope') || {}).value.trim();
+        var qBound = (document.getElementById('qTraderBoundProvider') || {}).value.trim();
         var qContact = (document.getElementById('qTraderContact') || {}).value.trim();
         var qPhone = (document.getElementById('qTraderPhone') || {}).value.trim();
         var qN = (document.getElementById('qResourceName') || {}).value.trim();
@@ -2106,8 +2339,7 @@
             var ok = true;
             if (qSub && cells[1].textContent.trim().indexOf(qSub) === -1) ok = false;
             if (qType && cells[TRADER_COL.subjectType].textContent.trim() !== qType) ok = false;
-            if (qLicense && cells[TRADER_COL.licenseType].textContent.trim() !== qLicense) ok = false;
-            if (qScope && (tr.getAttribute('data-biz-scope') || '') !== qScope) ok = false;
+            if (qBound && cells[TRADER_COL.boundProvider].textContent.trim().indexOf(qBound) === -1) ok = false;
             if (qContact && cells[TRADER_COL.contact].textContent.trim().indexOf(qContact) === -1) ok = false;
             if (qPhone) {
                 var phoneText = cells[TRADER_COL.phone].textContent.trim();
@@ -2148,15 +2380,13 @@
                 label: '主体类型',
                 type: 'select',
                 required: true,
-                options: [
-                    { value: '贸易商', text: '贸易商' },
-                    { value: '服务商', text: '服务商' }
-                ]
+                disabled: true,
+                options: [{ value: '贸易商', text: '贸易商' }]
             },
             { id: 'resName', label: '贸易商名称', type: 'text', required: true },
             { id: 'shortName', label: '贸易商简称', type: 'text' },
-            { id: 'licenseType', label: '牌照类型', type: 'text' },
-            { id: 'contactName', label: '负责人姓名', type: 'text', required: true },
+            { id: 'boundProvider', label: '绑定服务商', type: 'text', required: true },
+            { id: 'contactName', label: '联系人姓名', type: 'text', required: true },
             { id: 'phone', label: '手机号码', type: 'text' },
             {
                 id: 'resStatus',
@@ -2235,8 +2465,7 @@
             resetFields: [
                 'qSubjectName',
                 'qTraderSubjectType',
-                'qTraderLicenseType',
-                'qTraderBizScope',
+                'qTraderBoundProvider',
                 'qTraderContact',
                 'qTraderPhone',
                 'qResourceName',
@@ -2249,6 +2478,214 @@
             pm.decorateAllDetailLinkCells();
             document.querySelectorAll('#tableBody tr').forEach(function (tr) {
                 syncTraderArchiveRow(tr);
+            });
+            pm.refreshPagination();
+        }, 0);
+    }
+
+    function renderProviderArchiveRows() {
+        var tbody = document.getElementById('tableBody');
+        if (!tbody || !window.MdmProviderArchiveStore) return;
+        var list = window.MdmProviderArchiveStore.list();
+        tbody.innerHTML = list
+            .map(function (item) {
+                var st = item.status || '正常';
+                return (
+                    '<tr data-provider-id="' +
+                    escapeHtml(item.id) +
+                    '">' +
+                    '<td>' +
+                    escapeHtml(item.id) +
+                    '</td>' +
+                    traderTextCell(item.subjectName) +
+                    '<td>' +
+                    escapeHtml(item.subjectType || '服务商') +
+                    '</td>' +
+                    traderTextCell(item.name) +
+                    traderTextCell(item.shortName, ' data-field="shortName"') +
+                    traderTextCell(item.region) +
+                    traderTextCell(item.detailAddr) +
+                    '<td>' +
+                    escapeHtml(item.providerType || '—') +
+                    '</td>' +
+                    '<td>' +
+                    escapeHtml(item.contact || '—') +
+                    '</td>' +
+                    '<td>' +
+                    escapeHtml(item.phone || '—') +
+                    '</td>' +
+                    '<td>' +
+                    traderOnboardTagHtml(item.onboardStatus || '未进件') +
+                    '</td>' +
+                    '<td><span class="status ' +
+                    statusClassForTrader(st) +
+                    '">' +
+                    escapeHtml(st) +
+                    '</span></td>' +
+                    '<td>' +
+                    escapeHtml(item.createdBy || '—') +
+                    '</td>' +
+                    '<td>' +
+                    escapeHtml(item.createdAt || '—') +
+                    '</td>' +
+                    '<td>' +
+                    escapeHtml(item.updatedBy || '—') +
+                    '</td>' +
+                    '<td>' +
+                    escapeHtml(item.updatedAt || '—') +
+                    '</td>' +
+                    '<td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td>' +
+                    '</tr>'
+                );
+            })
+            .join('');
+    }
+
+    function providerArchiveFilter(pm) {
+        var tbody = document.getElementById(pm.config.tableBodyId);
+        if (!tbody) return;
+        var qSub = (document.getElementById('qSubjectName') || {}).value.trim();
+        var qType = (document.getElementById('qProviderType') || {}).value.trim();
+        var qContact = (document.getElementById('qProviderContact') || {}).value.trim();
+        var qPhone = (document.getElementById('qProviderPhone') || {}).value.trim();
+        var qN = (document.getElementById('qResourceName') || {}).value.trim();
+        var qOn = (document.getElementById('qProviderOnboardStatus') || {}).value.trim();
+        var qSt = (document.getElementById('qResStatus') || {}).value.trim();
+        tbody.querySelectorAll('tr').forEach(function (tr) {
+            var cells = tr.querySelectorAll('td');
+            if (cells.length < TRADER_COL.updatedAt + 1) return;
+            var ok = true;
+            if (qSub && cells[1].textContent.trim().indexOf(qSub) === -1) ok = false;
+            if (qType && cells[TRADER_COL.boundProvider].textContent.trim() !== qType) ok = false;
+            if (qContact && cells[TRADER_COL.contact].textContent.trim().indexOf(qContact) === -1) ok = false;
+            if (qPhone) {
+                var phoneText = cells[TRADER_COL.phone].textContent.trim();
+                var phoneDigits = phoneText.replace(/\D/g, '');
+                var queryDigits = qPhone.replace(/\D/g, '');
+                var phoneHit =
+                    phoneText.indexOf(qPhone) !== -1 ||
+                    (queryDigits && phoneDigits.indexOf(queryDigits) !== -1);
+                if (!phoneHit) ok = false;
+            }
+            if (qN && cells[TRADER_COL.name].textContent.trim().indexOf(qN) === -1) ok = false;
+            if (qOn && cells[TRADER_COL.onboard].textContent.trim() !== qOn) ok = false;
+            var stText = cells[TRADER_COL.status].querySelector('.status')
+                ? cells[TRADER_COL.status].querySelector('.status').textContent.trim()
+                : cells[TRADER_COL.status].textContent.trim();
+            if (qSt === 'normal' && stText !== '正常') ok = false;
+            if (qSt === 'frozen' && stText !== '冻结') ok = false;
+            tr.style.display = ok ? '' : 'none';
+        });
+        pm.refreshPagination();
+    }
+
+    function initArchiveProvider() {
+        renderProviderArchiveRows();
+        var fields = [
+            { id: 'resId', label: '服务商ID', type: 'text', editDisabled: true, hiddenInAdd: true },
+            { id: 'subjectName', label: '主体名称', type: 'text', required: true, editDisabled: true },
+            {
+                id: 'subjectType',
+                label: '主体类型',
+                type: 'select',
+                required: true,
+                disabled: true,
+                options: [{ value: '服务商', text: '服务商' }]
+            },
+            { id: 'resName', label: '服务商名称', type: 'text', required: true },
+            { id: 'shortName', label: '服务商简称', type: 'text' },
+            { id: 'providerType', label: '服务商类型', type: 'text', required: true },
+            { id: 'contactName', label: '联系人姓名', type: 'text', required: true },
+            { id: 'phone', label: '手机号码', type: 'text' },
+            {
+                id: 'resStatus',
+                label: '服务商状态',
+                type: 'select',
+                options: [
+                    { value: '正常', text: '正常' },
+                    { value: '冻结', text: '冻结' }
+                ]
+            }
+        ];
+        var pm = new PageManager({
+            entityName: '服务商档案',
+            modalWidth: '640px',
+            checkboxColumn: false,
+            statusColumnIndex: TRADER_COL.status,
+            actionColumnMode: 'editOnboard',
+            fields: fields,
+            detailView: {
+                enabled: true,
+                columnIndex: TRADER_COL.name,
+                linkClass: 'subject-name-link',
+                onOpenDetail: function (row) {
+                    if (window.MdmArchiveDetailDrawer && typeof window.MdmArchiveDetailDrawer.openProvider === 'function') {
+                        window.MdmArchiveDetailDrawer.openProvider(row);
+                    } else if (typeof showToast === 'function') {
+                        showToast('详情抽屉未加载，请确认已引入 mdm-archive-detail-drawer.js', 'error');
+                    }
+                }
+            },
+            customRowActions: [
+                {
+                    selector: '.edit-btn',
+                    handler: function (e, el) {
+                        e.preventDefault();
+                        if (
+                            !window.MdmResourceArchiveForms ||
+                            typeof window.MdmResourceArchiveForms.openProviderEdit !== 'function'
+                        ) {
+                            showToast('表单模块未加载，请确认已引入 mdm-resource-archive-forms.js', 'error');
+                            return;
+                        }
+                        window.MdmResourceArchiveForms.openProviderEdit(el.closest('tr'), function () {
+                            renderProviderArchiveRows();
+                            pm.decorateAllDetailLinkCells();
+                            pm.refreshPagination();
+                        });
+                    }
+                },
+                {
+                    selector: '.mdm-onboard-btn',
+                    handler: function (e, el) {
+                        e.preventDefault();
+                        openArchiveOnboardingFromRow(el.closest('tr'), 'provider');
+                    }
+                }
+            ]
+        });
+        pm.init();
+        document.getElementById('mdmArchiveProviderAddBtn') &&
+            document.getElementById('mdmArchiveProviderAddBtn').addEventListener('click', function () {
+                if (
+                    !window.MdmResourceArchiveForms ||
+                    typeof window.MdmResourceArchiveForms.openProviderAdd !== 'function'
+                ) {
+                    showToast('表单模块未加载，请确认已引入 mdm-resource-archive-forms.js', 'error');
+                    return;
+                }
+                window.MdmResourceArchiveForms.openProviderAdd(function () {
+                    renderProviderArchiveRows();
+                    pm.decorateAllDetailLinkCells();
+                    pm.refreshPagination();
+                });
+            });
+        bindSimpleFilter(pm, {
+            resetFields: [
+                'qSubjectName',
+                'qProviderType',
+                'qProviderContact',
+                'qProviderPhone',
+                'qResourceName',
+                'qProviderOnboardStatus',
+                'qResStatus'
+            ],
+            filterFn: providerArchiveFilter
+        });
+        setTimeout(function () {
+            pm.decorateAllDetailLinkCells();
+            document.querySelectorAll('#tableBody tr').forEach(function (tr) {
+                syncProviderArchiveRow(tr);
             });
             pm.refreshPagination();
         }, 0);
@@ -2300,61 +2737,51 @@
                 }
             ],
             onDisableToggle: function (row, status, page) {
-                var st = String(status || '').trim();
-                var nameCell = row.querySelectorAll('td')[2];
-                var whName = nameCell ? nameCell.textContent.trim() : '该仓库';
-                var toEnable = st === '停用';
-                function persistWarehouseDisabled(disabled) {
-                    var api = window.MdmArchiveEnableDisable;
-                    if (!api || typeof api.setWarehouseDisabled !== 'function') return;
-                    var cells = row.querySelectorAll('td');
-                    api.setWarehouseDisabled({
-                        id: cells[0] ? cells[0].textContent.trim() : '',
-                        name: cells[2] ? cells[2].textContent.trim() : '',
-                        disabled: !!disabled
-                    });
+                var id = row.cells[0].textContent.trim();
+                var name = row.cells[2].textContent.trim();
+                var archiveLabel = '仓库「' + name + '」（' + id + '）';
+                function showBlocked(message) {
+                    window.MdmSubjectLf.showLfWarmConfirm(archiveLabel + '\n' + message, null, false, '无法停用仓库');
                 }
-                function applyEnable() {
-                    page.updateTableRow(row, { 11: { value: '启用', isStatus: true } });
-                    page.refreshDisableToggleLabel(row);
-                    persistWarehouseDisabled(false);
-                    cacheEnabledWarehouseOptionsFromTable();
-                    if (typeof showToast === 'function') {
-                        showToast('仓库已启用，仓储侧已同步启用', 'success');
-                    }
-                }
-                function applyDisable(payload) {
-                    page.updateTableRow(row, { 11: { value: '停用', isStatus: true } });
-                    if (payload && payload.reason) {
-                        row.setAttribute('data-last-disable-reason', payload.reason);
-                    }
-                    page.refreshDisableToggleLabel(row);
-                    persistWarehouseDisabled(true);
-                    cacheEnabledWarehouseOptionsFromTable();
-                    if (typeof showToast === 'function') {
-                        showToast('仓库已停用，仓储侧已同步停用', 'success');
-                    }
-                }
-                if (!window.MdmArchiveEnableDisable || typeof window.MdmArchiveEnableDisable.openDialog !== 'function') {
-                    if (toEnable) applyEnable();
-                    else applyDisable({});
+                if (status !== '启用' && status !== '停用') {
+                    showBlocked('当前档案状态无法核验，请刷新页面后重试。');
                     return;
                 }
-                if (toEnable) {
-                    window.MdmArchiveEnableDisable.openDialog({
-                        mode: 'enable',
-                        entityType: 'warehouse',
-                        entityName: whName,
-                        onConfirm: applyEnable
+                var next = status === '停用' ? '启用' : '停用';
+                function check(action) {
+                    if (archiveStatus('warehouse', id, status) !== status) {
+                        showToast('仓库状态已变化，请刷新页面后重试', 'error');
+                        return;
+                    }
+                    if (next === '启用') {
+                        action();
+                        return;
+                    }
+                    inspectWarehouseBindings(row).then(function (blocking) {
+                        if (blocking) {
+                            showBlocked('仍有有效关联，请先改绑或解除关联后重试。\n\n' + blocking);
+                        } else if (archiveStatus('warehouse', id, status) === status) {
+                            action();
+                        }
+                    }).catch(function () {
+                        showBlocked('未能完成关联检查。请通过本地预览服务重新打开页面后重试。');
                     });
-                    return;
                 }
-                window.MdmArchiveEnableDisable.openDialog({
-                    mode: 'disable',
-                    entityType: 'warehouse',
-                    entityName: whName,
-                    precheck: window.MdmArchiveEnableDisable.buildWarehousePrecheck(row),
-                    onConfirm: applyDisable
+                check(function () {
+                    var message = next + archiveLabel + '？';
+                    if (next === '停用') message += '\n停用后停止用于新业务，存量履约及售后继续使用原仓。';
+                    window.MdmSubjectLf.showLfWarmConfirm(message, function (reason) {
+                        check(function () {
+                            if (!saveArchiveStatus('warehouse', id, next)) return;
+                            updateArchiveStatus(page, row, 11, next);
+                            page.refreshDisableToggleLabel(row);
+                            cacheEnabledWarehouseOptionsFromTable();
+                            warehouseArchiveFilter(page);
+                            if (window.MdmOperationLog) window.MdmOperationLog.record('warehouse', id,
+                                next + '仓库', { '状态': status }, { '状态': next, '原因': reason });
+                            showToast('仓库已' + next, 'success');
+                        });
+                    }, true);
                 });
             },
             editModal: {
@@ -2391,6 +2818,13 @@
             }
         });
         pm.init();
+        archiveWarehousePage = pm;
+        if (window.MdmResourceArchiveForms && typeof window.MdmResourceArchiveForms.takeFirstWarehouses === 'function') {
+            window.MdmResourceArchiveForms.takeFirstWarehouses().forEach(function (row) {
+                appendArchiveWarehouseRow(row);
+            });
+        }
+        restoreArchiveStatuses(pm, 'warehouse', 11);
         bindSimpleFilter(pm, {
             resetFields: ['qSubjectName', 'qResourceName', 'qWhType', 'qWhStatus'],
             filterFn: warehouseArchiveFilter
@@ -2408,15 +2842,6 @@
             });
         setTimeout(function () {
             pm.decorateAllDetailLinkCells();
-            if (
-                window.MdmArchiveEnableDisable &&
-                typeof window.MdmArchiveEnableDisable.applyWarehouseDisabledToTable === 'function'
-            ) {
-                window.MdmArchiveEnableDisable.applyWarehouseDisabledToTable(
-                    document.getElementById('tableBody'),
-                    { codeCol: 0, nameCol: 2, statusCol: 11, pageManager: pm }
-                );
-            }
             document.querySelectorAll('#tableBody tr').forEach(function (tr) {
                 pm.refreshDisableToggleLabel(tr);
             });
@@ -2429,19 +2854,6 @@
             });
             seedWarehouseReceiveFromArchiveTable();
         }, 0);
-        window.addEventListener('storage', function (e) {
-            if (e.key !== 'lferp_warehouse_disabled_v1') return;
-            if (
-                window.MdmArchiveEnableDisable &&
-                typeof window.MdmArchiveEnableDisable.applyWarehouseDisabledToTable === 'function'
-            ) {
-                window.MdmArchiveEnableDisable.applyWarehouseDisabledToTable(
-                    document.getElementById('tableBody'),
-                    { codeCol: 0, nameCol: 2, statusCol: 11, pageManager: pm }
-                );
-            }
-            cacheEnabledWarehouseOptionsFromTable();
-        });
     }
 
     function initArchiveLiveRoom() {
@@ -3997,12 +4409,6 @@
         var tbody = document.getElementById('tableBody');
         if (!tbody) return;
 
-        function maskPhone(phone) {
-            var s = String(phone || '').replace(/\D/g, '');
-            if (s.length < 7) return phone || '—';
-            return s.slice(0, 3) + '****' + s.slice(-4);
-        }
-
         function loadSyncedMembers() {
             var list = [];
             try {
@@ -4045,7 +4451,6 @@
                                 nickname: nick,
                                 avatarText: String(nick).charAt(0) || '会',
                                 phone: phone,
-                                phoneMasked: maskPhone(phone),
                                 gender: '未知',
                                 isMember: '是',
                                 level: levelName,
@@ -4082,7 +4487,8 @@
             if (m.phone) tr.setAttribute('data-phone-full', m.phone);
             tr.setAttribute('data-member-status', m.status || '正常');
 
-            var phoneShow = m.phoneMasked || maskPhone(m.phone) || m.phone || '—';
+            /* 会员管理列表展示完整手机号，不做打码 */
+            var phoneShow = m.phone || '—';
             var avatarText = m.avatarText || String(m.nickname || '会').charAt(0);
             var cells = [
                 m.id || C_MEMBER_ID,
@@ -4133,10 +4539,11 @@
                         td.innerHTML = window.MdmMemberBlacklist.buildMemberListActions(m.status || '正常');
                     } else {
                         var stNow = m.status || '正常';
+                        var oplogLink = '<a href="#" class="mdm-mem-oplog">操作日志</a>';
                         if (stNow === '注销' || stNow === '已注销' || stNow === '注销中' || stNow === '审核中') {
-                            td.innerHTML = '<a href="#" class="mdm-mem-detail">查看详情</a>';
+                            td.innerHTML = '<a href="#" class="mdm-mem-detail">查看详情</a>' + oplogLink;
                         } else if (stNow === '冻结') {
-                            td.innerHTML = '<a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-unfreeze">解冻</a>';
+                            td.innerHTML = '<a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-unfreeze">解冻</a>' + oplogLink;
                         } else {
                             var actions =
                                 '<a href="#" class="mdm-mem-detail">查看详情</a>' +
@@ -4150,7 +4557,7 @@
                             } else if (stNow === '黑名单') {
                                 actions += '<a href="#" class="mdm-mem-restore">恢复</a>';
                             }
-                            td.innerHTML = actions;
+                            td.innerHTML = actions + oplogLink;
                         }
                     }
                 } else {
@@ -4206,7 +4613,7 @@
             if (window.MdmMemberBlacklist && window.MdmMemberBlacklist.buildMemberListActions) {
                 cells[21].innerHTML = window.MdmMemberBlacklist.buildMemberListActions(status);
             } else if (status === '注销' || status === '注销中') {
-                cells[21].innerHTML = '<a href="#" class="mdm-mem-detail">查看详情</a>';
+                cells[21].innerHTML = '<a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-oplog">操作日志</a>';
             }
         }
 
@@ -4308,7 +4715,7 @@
                     td.appendChild(st2);
                 } else if (idx === 21) {
                     td.className = 'action-links';
-                    td.innerHTML = '<a href="#" class="mdm-mem-detail">查看详情</a>';
+                    td.innerHTML = '<a href="#" class="mdm-mem-detail">查看详情</a><a href="#" class="mdm-mem-oplog">操作日志</a>';
                 } else {
                     td.textContent = val;
                 }
@@ -4413,11 +4820,25 @@
                             window.MdmMemberBlacklist.openUnfreezeFromMember(el.closest('tr'));
                         }
                     }
+                },
+                {
+                    selector: '.mdm-mem-oplog',
+                    handler: function (e, el) {
+                        e.preventDefault();
+                        if (!window.MdmMemberCOplog) return;
+                        var tr = el.closest('tr');
+                        var cells = tr ? tr.querySelectorAll('td:not(.lf-row-no-td)') : [];
+                        var memberId = cells[0] ? cells[0].textContent.replace(/\s+/g, ' ').trim() : '';
+                        var nickname = cells[1] ? cells[1].textContent.replace(/\s+/g, ' ').trim() : '';
+                        window.MdmMemberCOplog.open({ memberId: memberId, nickname: nickname });
+                    }
                 }
             ]
         });
         // 将 C 端已保存会员资料同步进列表（localStorage）
         syncCMemberRowsToTable();
+        /* 分页会克隆行，须在首次快照前记下会员基准 */
+        if (window.MdmMemberBatchAdjust) window.MdmMemberBatchAdjust.prepare();
         pm.init();
         if (window.MdmMemberBlacklist) {
             window.MdmMemberBlacklist.init();
@@ -4502,6 +4923,7 @@
             if (window.MdmMemberCUi && typeof window.MdmMemberCUi.fillCashRedpackColumn === 'function') {
                 window.MdmMemberCUi.fillCashRedpackColumn();
             }
+            if (window.MdmMemberBatchAdjust) window.MdmMemberBatchAdjust.prepare();
             var qBtn0 = document.getElementById('btnFilterQuery');
             if (qBtn0) qBtn0.click();
         } catch (eSt0) { /* ignore */ }
@@ -4673,9 +5095,15 @@
     window.MdmErpLists = {
         initArchiveStore: initArchiveStore,
         appendArchiveStoreRow: appendArchiveStoreRow,
+        appendArchiveSupplierRow: appendArchiveSupplierRow,
+        appendArchiveWarehouseRow: appendArchiveWarehouseRow,
+        repaintStoreCommerce: function () { paintArchiveContractColumn('store'); },
         initArchiveSupplier: initArchiveSupplier,
         initArchiveTrader: initArchiveTrader,
+        initArchiveProvider: initArchiveProvider,
         initArchiveWarehouse: initArchiveWarehouse,
+        archiveStatus: archiveStatus,
+        ensureEnabledWarehouseOptions: ensureEnabledWarehouseOptions,
         initArchiveLiveRoom: initArchiveLiveRoom,
         initArchiveCarrier: initArchiveCarrier,
         initPeopleBd: initPeopleBd,

@@ -14,7 +14,8 @@
 
   var SCENES = [
     { id: 'store', name: '门店合作', partyType: '门店', partyKind: 'corp', partyHint: '企业/个体户', fill: ['门店名称', '统一社会信用代码', '经营负责人', '门店地址', '联系电话'] },
-    { id: 'supplier', name: '供应商合作', partyType: '供应商', partyKind: 'corp', partyHint: '企业/个体户', fill: ['供应商名称', '统一社会信用代码', '法定代表人', '注册地址', '联系电话'] }
+    { id: 'supplier', name: '供应商合作', partyType: '供应商', partyKind: 'corp', partyHint: '企业/个体户', fill: ['供应商名称', '统一社会信用代码', '法定代表人', '注册地址', '联系电话'] },
+    { id: 'trader', name: '贸易商合作', partyType: '贸易商', partyKind: 'corp', partyHint: '企业/个体户', fill: ['贸易商名称', '统一社会信用代码', '法定代表人', '注册地址', '联系电话'] }
   ];
 
   var FILL_CODES = {
@@ -24,6 +25,7 @@
     '门店地址': 'store_address',
     '联系电话': 'mobile',
     '供应商名称': 'supplier_name',
+    '贸易商名称': 'trader_name',
     '法定代表人': 'legal_person',
     '注册地址': 'reg_address',
     '结款方式': 'pay_method',
@@ -130,6 +132,14 @@
       docs: [
         { id: 'DOC-SUP-SETTLE', name: '冷丰平台供应商结算信息变更补充协议', bodyId: 'TPL007' }
       ]
+    },
+    {
+      id: 'STPL-TRD-IN', name: '冷丰平台贸易商入驻签署模板', scene: 'trader', launch: 'auto', signInOrder: true,
+      actors: corpActors('贸易商'),
+      fill: ['贸易商名称', '统一社会信用代码', '法定代表人', '注册地址', '联系电话'],
+      docs: [
+        { id: 'DOC-TRD-IN', name: '冷丰平台贸易商入驻合作协议', bodyId: 'TPL009' }
+      ]
     }
   ];
 
@@ -213,7 +223,8 @@
         Object.assign({ id: 'TPL002' }, cloneRemote(remoteOfId('STPL-ST-BRAND'))),
         Object.assign({ id: 'TPL003' }, cloneRemote(remoteOfId('STPL-SUP-IN'))),
         Object.assign({ id: 'TPL008' }, cloneRemote(remoteOfId('STPL-SUP-MAN'))),
-        Object.assign({ id: 'TPL007' }, cloneRemote(remoteOfId('STPL-SUP-003')))
+        Object.assign({ id: 'TPL007' }, cloneRemote(remoteOfId('STPL-SUP-003'))),
+        Object.assign({ id: 'TPL009' }, cloneRemote(remoteOfId('STPL-TRD-IN')))
       ],
       parties: [
         { id: 'P001', type: 'store', partnerDivision: '加盟店', name: '鲜丰水果文一西路店', identNo: '91330106MA2A11111A', contact: '周敏 138****2201', identStatus: 'done', authStatus: 'done', fadadaId: 'C-XF-001', authAt: '2026-08-18 11:20' },
@@ -259,6 +270,8 @@
     if (!tpl) return [];
     var raw = Array.isArray(tpl.storePartnerTypes) ? tpl.storePartnerTypes.slice() : [];
     if (!raw.length && tpl.storePartnerType) raw = String(tpl.storePartnerType).split(/[、,，]/);
+    raw = raw.map(function (item) { return String(item || '').trim(); }).filter(Boolean);
+    if (raw.indexOf(SCOPE_ALL) >= 0) return [SCOPE_ALL];
     return STORE_PARTNER_TYPES.filter(function (t) { return raw.indexOf(t) >= 0; });
   }
 
@@ -284,9 +297,11 @@
   }
 
   function readPartnerTypes() {
-    return Array.prototype.map.call(document.querySelectorAll('#ctStorePartnerType input:checked'), function (el) {
+    var picked = Array.prototype.map.call(document.querySelectorAll('#ctStorePartnerType input:checked'), function (el) {
       return el.value;
     });
+    if (picked.indexOf(SCOPE_ALL) >= 0) return [SCOPE_ALL];
+    return picked.filter(function (item) { return STORE_PARTNER_TYPES.indexOf(item) >= 0; });
   }
 
   function writePartnerTypes(types) {
@@ -314,21 +329,57 @@
     return value.map(function (item) { return String(item || '').trim(); }).filter(Boolean);
   }
 
+  var SCOPE_ALL = '全部';
+
+  function checkLabel(value) {
+    return '<label class="pts-rule-check-label"><input type="checkbox" value="' + esc(value) + '"> ' + esc(value) + '</label>';
+  }
+
+  function scopeChoice(list) {
+    var names = nameList(list);
+    if (!names.length || names.indexOf(SCOPE_ALL) >= 0) return [SCOPE_ALL];
+    return names;
+  }
+
+  function readScope(boxId) {
+    var picked = readChecked(boxId);
+    if (picked.indexOf(SCOPE_ALL) >= 0) return [SCOPE_ALL];
+    return picked;
+  }
+
+  function applyExclusiveAll(box, target) {
+    if (!box || !target || target.type !== 'checkbox') return;
+    var inputs = box.querySelectorAll('input[type="checkbox"]');
+    if (target.value === SCOPE_ALL) {
+      if (target.checked) {
+        inputs.forEach(function (el) {
+          if (el !== target) el.checked = false;
+        });
+      }
+      return;
+    }
+    if (target.checked) {
+      inputs.forEach(function (el) {
+        if (el.value === SCOPE_ALL) el.checked = false;
+      });
+    }
+  }
+
   function renderBizLineChecks() {
     var box = document.getElementById('ctBizLine');
     if (!box) return;
+    var prev = readChecked('ctBizLine');
     var lines = window.StoreBizStructure ? window.StoreBizStructure.lines() : [];
     box.innerHTML = lines.length
-      ? lines.map(function (line) {
-        return '<label class="pts-rule-check-label"><input type="checkbox" value="' + esc(line) + '"> ' + esc(line) + '</label>';
-      }).join('')
+      ? checkLabel(SCOPE_ALL) + lines.map(checkLabel).join('')
       : '<span class="ct-field-tip">没有事业线枚举</span>';
+    writeChecked('ctBizLine', prev);
   }
 
   function renderBrandChecks() {
     var box = document.getElementById('ctBrandName');
     if (!box || !window.StoreBizStructure) return;
-    var picked = readChecked('ctBizLine');
+    var picked = readChecked('ctBizLine').filter(function (line) { return line && line !== SCOPE_ALL; });
     var prev = readChecked('ctBrandName');
     var lines = picked.length ? picked : window.StoreBizStructure.lines();
     var brands = [];
@@ -337,14 +388,31 @@
         if (brands.indexOf(name) < 0) brands.push(name);
       });
     });
-    box.innerHTML = brands.map(function (name) {
-      return '<label class="pts-rule-check-label"><input type="checkbox" value="' + esc(name) + '"> ' + esc(name) + '</label>';
-    }).join('');
+    box.innerHTML = checkLabel(SCOPE_ALL) + brands.map(checkLabel).join('');
     writeChecked('ctBrandName', prev);
   }
 
+  function paintTplName(sceneId, preferred) {
+    var sel = document.getElementById('ctTplName');
+    if (!sel) return;
+    var names = [];
+    REMOTE_TEMPLATES.forEach(function (item) {
+      if (sceneId && item.scene !== sceneId) return;
+      if (item.name && names.indexOf(item.name) < 0) names.push(item.name);
+    });
+    var current = preferred != null ? preferred : sel.value;
+    if (current && current !== SCOPE_ALL && names.indexOf(current) < 0) names.push(current);
+    var options = [{ value: SCOPE_ALL, label: SCOPE_ALL }].concat(names.map(function (name) {
+      return { value: name, label: name };
+    }));
+    var next = current && options.some(function (item) { return item.value === current; })
+      ? current
+      : (names[0] || SCOPE_ALL);
+    fillSelect(sel, options, next);
+  }
+
   function scopeHit(selected, value) {
-    if (!selected || !selected.length) return true;
+    if (!selected || !selected.length || selected.indexOf(SCOPE_ALL) >= 0) return true;
     return selected.indexOf(String(value || '').trim()) >= 0;
   }
 
@@ -357,7 +425,7 @@
       data.catalogVersion = CATALOG_VERSION;
       saveStore(data);
     }
-    return stripUserRegisterScene(ensureSettleSupplementTemplate(data));
+    return stripUserRegisterScene(ensureTraderCoopTemplate(ensureSettleSupplementTemplate(data)));
   }
 
   /** 用户注册已不走合同管理：清掉历史模板、主体和签署任务，不影响门店、供应商数据。 */
@@ -386,6 +454,20 @@
     var remote = remoteOfId('STPL-SUP-003');
     if (!remote) return data;
     data.templates.push(Object.assign({ id: 'TPL007' }, cloneRemote(remote)));
+    saveStore(data);
+    return data;
+  }
+
+  /** 贸易商入驻审核通过后要能匹配到合作协议。只补模板，不重置已有签署任务。 */
+  function ensureTraderCoopTemplate(data) {
+    if (!data || !Array.isArray(data.templates)) return data;
+    var has = data.templates.some(function (t) {
+      return t && (t.id === 'TPL009' || t.remoteId === 'STPL-TRD-IN');
+    });
+    if (has) return data;
+    var remote = remoteOfId('STPL-TRD-IN');
+    if (!remote) return data;
+    data.templates.push(Object.assign({ id: 'TPL009' }, cloneRemote(remote)));
     saveStore(data);
     return data;
   }
@@ -1400,6 +1482,14 @@
       if (supplement) onboard.checked = false;
       onboard.disabled = supplement;
     }
+    var launchReq = document.getElementById('ctLaunchReq');
+    var launchTip = document.getElementById('ctLaunchTip');
+    if (launchReq) launchReq.hidden = supplement;
+    if (launchTip) {
+      launchTip.textContent = supplement
+        ? '补充协议在结算信息变更确认后发起，不在这里勾选。'
+        : '入驻审核后、进件成功后至少选一项。';
+    }
   }
 
   function applySceneDefaults(sceneId, keepRemote) {
@@ -1424,7 +1514,6 @@
     fillSelect(document.getElementById('ctTplScene'), SCENES.map(function (s) {
       return { value: s.id, label: s.name };
     }), tpl ? tpl.scene : 'store');
-    document.getElementById('ctTplName').value = tpl ? tpl.name : '';
     document.getElementById('ctAutoStart').checked = tpl ? !!tpl.autoStart : true;
     var onboardBox = document.getElementById('ctAutoStartOnboard');
     if (onboardBox) onboardBox.checked = tpl ? !!tpl.autoStartOnboard : false;
@@ -1434,18 +1523,36 @@
     if (tpl && tpl.status === 'off') statusOff.checked = true;
     else statusOn.checked = true;
     applySceneDefaults(tpl ? tpl.scene : 'store', tpl ? tpl.remoteId : '');
+    paintTplName(tpl ? tpl.scene : 'store', tpl ? tpl.name : '');
     if (tpl && tpl.autoStart === false) document.getElementById('ctAutoStart').checked = false;
     if (onboardBox && tpl) onboardBox.checked = !!tpl.autoStartOnboard;
     renderBizLineChecks();
-    writeChecked('ctBizLine', tpl ? nameList(tpl.bizLines) : []);
+    writeChecked('ctBizLine', scopeChoice(tpl ? tpl.bizLines : []));
     renderBrandChecks();
-    writeChecked('ctBrandName', tpl ? nameList(tpl.brandNames) : []);
+    writeChecked('ctBrandName', scopeChoice(tpl ? tpl.brandNames : []));
     var bizBox = document.getElementById('ctBizLine');
+    var brandBox = document.getElementById('ctBrandName');
     if (bizBox && !bizBox.getAttribute('data-bound')) {
       bizBox.setAttribute('data-bound', '1');
-      bizBox.addEventListener('change', renderBrandChecks);
+      bizBox.addEventListener('change', function (e) {
+        applyExclusiveAll(bizBox, e.target);
+        renderBrandChecks();
+      });
+    }
+    if (brandBox && !brandBox.getAttribute('data-bound')) {
+      brandBox.setAttribute('data-bound', '1');
+      brandBox.addEventListener('change', function (e) {
+        applyExclusiveAll(brandBox, e.target);
+      });
     }
     writePartnerTypes(tpl ? partnerTypesOf(tpl) : (remoteOfId(document.getElementById('ctRemoteTpl').value) || {}).partnerTypes || ['加盟店']);
+    var partnerBox = document.getElementById('ctStorePartnerType');
+    if (partnerBox && !partnerBox.getAttribute('data-bound')) {
+      partnerBox.setAttribute('data-bound', '1');
+      partnerBox.addEventListener('change', function (e) {
+        applyExclusiveAll(partnerBox, e.target);
+      });
+    }
     function syncPartnerTypeRow(sceneId) {
       var row = document.getElementById('ctPartnerTypeRow');
       var bizRow = document.getElementById('ctBizLineRow');
@@ -1460,14 +1567,9 @@
       var sceneId = this.value;
       syncPartnerTypeRow(sceneId);
       applySceneDefaults(sceneId);
+      paintTplName(sceneId, tpl ? document.getElementById('ctTplName').value : '');
       var picked = remoteOfId(document.getElementById('ctRemoteTpl').value);
       if (picked && picked.partnerTypes) writePartnerTypes(picked.partnerTypes);
-      if (!tpl && !document.getElementById('ctTplName').value) {
-        var remote = REMOTE_TEMPLATES.filter(function (r) { return r.scene === sceneId; })[0];
-        document.getElementById('ctTplName').value = remote
-          ? remote.name.replace(/（.*）/, '')
-          : sceneOf(sceneId).name + '合同';
-      }
     });
     var addActor = document.getElementById('ctAddActor');
     if (addActor) addActor.style.display = 'none';
@@ -1475,9 +1577,7 @@
       paintRemote(this.value);
       var remote = remoteOfId(this.value);
       if (remote && remote.partnerTypes) writePartnerTypes(remote.partnerTypes);
-      if (!document.getElementById('ctTplName').value || !tpl) {
-        document.getElementById('ctTplName').value = remote ? remote.name : '';
-      }
+      if (!tpl) paintTplName(document.getElementById('ctTplScene').value, remote ? remote.name : '');
     });
     if (viewMode) {
       document.querySelectorAll('#ctTplScene, #ctTplName, #ctRemoteTpl, #ctTplOn, #ctTplOff, #ctAutoStart, #ctAutoStartOnboard, #ctSignOrder').forEach(function (el) {
@@ -1526,7 +1626,15 @@
       if (!remoteId) return toast('请选择法大大签署模板', 'error');
       var storePartnerTypes = scene === 'store' ? readPartnerTypes() : [];
       if (scene === 'store' && !storePartnerTypes.length) return toast('请选择适用合作类型', 'error');
+      var bizLines = scene === 'store' ? readScope('ctBizLine') : [];
+      var brandNames = scene === 'store' ? readScope('ctBrandName') : [];
+      if (scene === 'store' && !bizLines.length) return toast('请选择事业线', 'error');
+      if (scene === 'store' && !brandNames.length) return toast('请选择品牌名称', 'error');
       var remote = remoteOfId(remoteId);
+      if (remote && remote.launch !== 'supplement') {
+        var launchOn = document.getElementById('ctAutoStart').checked || !!(document.getElementById('ctAutoStartOnboard') || {}).checked;
+        if (!launchOn) return toast('请选择发起规则', 'error');
+      }
       if (!remote || !remote.docs || !remote.docs.length) return toast('该签署模板没有文档，无法保存', 'error');
       if ((remote.actors || []).some(function (actor) { return !actor.actorId; })) {
         return toast('参与方标识与法大大模板不一致，无法保存', 'error');
@@ -1546,8 +1654,8 @@
         fill: remote.fill.slice(),
         storePartnerTypes: storePartnerTypes,
         storePartnerType: storePartnerTypes[0] || '',
-        bizLines: scene === 'store' ? readChecked('ctBizLine') : [],
-        brandNames: scene === 'store' ? readChecked('ctBrandName') : [],
+        bizLines: bizLines,
+        brandNames: brandNames,
         updatedAt: nowText()
       };
       if (tpl) Object.assign(tpl, payload);
@@ -2087,7 +2195,8 @@
         if (!t.autoStartOnboard) return false;
       } else if (t.autoStart === false) return false;
       if (sceneId !== 'store') return true;
-      if (partnerTypesOf(t).indexOf(partnerType || '加盟店') < 0) return false;
+      var partnerTypes = partnerTypesOf(t);
+      if (partnerTypes.indexOf(SCOPE_ALL) < 0 && partnerTypes.indexOf(partnerType || '加盟店') < 0) return false;
       if (!scopeHit(nameList(t.bizLines), extra.bizLine)) return false;
       if (!scopeHit(nameList(t.brandNames), extra.brandName)) return false;
       return true;
@@ -2099,7 +2208,8 @@
     return state.templates.filter(function (t) {
       if (t.scene !== sceneId || t.status !== 'on') return false;
       if (sceneId !== 'store') return true;
-      return partnerTypesOf(t).indexOf(partnerType || '加盟店') >= 0;
+      var partnerTypes = partnerTypesOf(t);
+      return partnerTypes.indexOf(SCOPE_ALL) >= 0 || partnerTypes.indexOf(partnerType || '加盟店') >= 0;
     });
   }
 
@@ -2893,7 +3003,7 @@
     if (window.LfLowMargin && typeof window.LfLowMargin.commerceLabel === 'function') {
       return window.LfLowMargin.commerceLabel(ref);
     }
-    return { text: '未放开', title: '保证金余额未达到应保有金额。' };
+    return { text: '未放开', title: '门店合作合同未完成，或保证金余额未达到应保有金额。' };
   }
 
   function renderPartyTaskPanel(scene, name) {

@@ -382,6 +382,111 @@
         return mapRow;
     }
 
+    function mountStoreBizFields(body, refs) {
+        var api = window.StoreBizStructure;
+        if (!api) return;
+        refs.bizLineSel = sel(
+            [{ value: '', label: '请选择事业线' }].concat(
+                api.lines().map(function (n) {
+                    return { value: n, label: n };
+                })
+            ),
+            ''
+        );
+        refs.bizLineSel.setAttribute('data-required-msg', '请选择事业线');
+        body.appendChild(formRow('事业线', true, refs.bizLineSel));
+
+        refs.brandSel = sel([{ value: '', label: '请先选择事业线' }], '');
+        refs.brandSel.setAttribute('data-required-msg', '请选择品牌名称');
+        refs.brandSel.disabled = true;
+        body.appendChild(formRow('品牌名称', true, refs.brandSel));
+
+        var wrap = document.createElement('div');
+        refs.bizChecks = document.createElement('div');
+        refs.bizChecks.className = 'store-form__checks';
+        refs.bizHidden = document.createElement('input');
+        refs.bizHidden.type = 'hidden';
+        refs.bizHidden.setAttribute('data-required-msg', '请选择业务线');
+        var tip = document.createElement('div');
+        tip.className = 'store-form__field-tip';
+        tip.textContent = '请先选择事业线和品牌名称。业务线可多选，选项随品牌变化。';
+        wrap.appendChild(refs.bizChecks);
+        wrap.appendChild(refs.bizHidden);
+        wrap.appendChild(tip);
+        body.appendChild(formRow('业务线', true, wrap));
+
+        function selectedBiz() {
+            return Array.prototype.map.call(refs.bizChecks.querySelectorAll('input:checked'), function (el) {
+                return el.value;
+            });
+        }
+        function syncHidden() {
+            refs.bizHidden.value = api.formatBiz(selectedBiz());
+        }
+        function paintBiz(keep) {
+            var opts = api.bizLines(refs.bizLineSel.value, refs.brandSel.value);
+            var keepSet = keep || [];
+            refs.bizChecks.innerHTML = '';
+            if (!opts.length) {
+                tip.textContent = refs.bizLineSel.value
+                    ? '请先选择品牌名称。业务线可多选。'
+                    : '请先选择事业线和品牌名称。业务线可多选，选项随品牌变化。';
+                syncHidden();
+                return;
+            }
+            tip.textContent = '可多选。更换品牌后，不在该品牌下的业务线会取消勾选。';
+            opts.forEach(function (name) {
+                var lab = document.createElement('label');
+                lab.className = 'store-form__check';
+                var cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.value = name;
+                if (keepSet.indexOf(name) >= 0) cb.checked = true;
+                cb.addEventListener('change', syncHidden);
+                lab.appendChild(cb);
+                lab.appendChild(document.createTextNode(name));
+                refs.bizChecks.appendChild(lab);
+            });
+            syncHidden();
+        }
+        function paintBrands(keepBrand, keepBiz) {
+            var brandList = api.brands(refs.bizLineSel.value);
+            var cur = keepBrand || '';
+            refs.brandSel.innerHTML = '';
+            var ph = document.createElement('option');
+            ph.value = '';
+            ph.textContent = brandList.length ? '请选择品牌名称' : '请先选择事业线';
+            refs.brandSel.appendChild(ph);
+            brandList.forEach(function (n) {
+                var op = document.createElement('option');
+                op.value = n;
+                op.textContent = n;
+                refs.brandSel.appendChild(op);
+            });
+            refs.brandSel.disabled = !brandList.length;
+            refs.brandSel.value = brandList.indexOf(cur) >= 0 ? cur : '';
+            paintBiz(refs.brandSel.value ? keepBiz : []);
+        }
+        refs.bizLineSel.addEventListener('change', function () {
+            paintBrands('', []);
+        });
+        refs.brandSel.addEventListener('change', function () {
+            paintBiz([]);
+        });
+        refs.setBizStructure = function (line, brand, biz) {
+            refs.bizLineSel.value = api.lines().indexOf(line) >= 0 ? line : '';
+            paintBrands(brand, api.normalizeBiz(biz));
+        };
+        paintBrands('', []);
+    }
+
+    function writeStoreBizAttrs(tr, refs) {
+        if (!tr || !refs) return;
+        tr.setAttribute('data-biz-line', refs.bizLineSel ? refs.bizLineSel.value : '');
+        tr.setAttribute('data-brand-name', refs.brandSel ? refs.brandSel.value : '');
+        tr.setAttribute('data-biz-lines', refs.bizHidden ? refs.bizHidden.value : '');
+    }
+
     function yesNoSelect(placeholder) {
         return sel(
             [
@@ -463,208 +568,141 @@
         updateBdSelectOptions(selectEl, STORE_BIND_BD_ENUM, selectedName);
     }
 
-    /** 与仓库档案一致：仅「仓库类型=仓库」且启用中的仓库可选 */
-    var FALLBACK_DELIVERY_WAREHOUSES = [
-        { id: 'WH001', subject: '沪南一号仓', name: '主仓库' },
-        { id: 'WH304550231884821504', subject: '合作仓-苏州', name: '前置仓-华东一号库演示超长名称' },
-        { id: 'WH-ONS-88303', subject: '自建仓-杭州', name: '合作仓-苏州' }
-    ];
-    var FALLBACK_INBOUND_WAREHOUSE_NAMES = FALLBACK_DELIVERY_WAREHOUSES.map(function (one) {
-        return one.name;
-    });
+    function fillWarehouseOptions(selectEl, warehouses, selectedName, placeholder) {
+        selectEl.replaceChildren(new Option(placeholder, ''));
+        (warehouses || []).forEach(function (warehouse) {
+            if (!warehouse || warehouse.enabled === false) return;
+            var option = new Option(warehouse.name, warehouse.name);
+            if (warehouse.id) option.dataset.warehouseId = warehouse.id;
+            selectEl.appendChild(option);
+        });
+        if (selectedName) {
+            selectEl.value = selectedName;
+            if (!selectEl.value) {
+                selectEl.appendChild(new Option(selectedName, selectedName));
+                selectEl.value = selectedName;
+            }
+        }
+        selectEl.disabled = false;
+    }
 
-    function isWarehouseRuntimeDisabled(meta) {
-        if (
-            global.MdmArchiveEnableDisable &&
-            typeof global.MdmArchiveEnableDisable.isWarehouseDisabledByMeta === 'function'
-        ) {
-            return !!global.MdmArchiveEnableDisable.isWarehouseDisabledByMeta(meta);
+    function hydrateArchiveWarehouseSelect(selectEl, selectedName, placeholder) {
+        var fallback = [
+            { name: '沪南一号仓', id: 'WH001', enabled: true },
+            { name: '合作仓-苏州', id: 'WH002', enabled: true }
+        ];
+        selectEl.disabled = true;
+        if (!window.MdmErpLists || typeof window.MdmErpLists.ensureEnabledWarehouseOptions !== 'function') {
+            fillWarehouseOptions(selectEl, fallback, selectedName, placeholder);
+            return;
+        }
+        window.MdmErpLists.ensureEnabledWarehouseOptions(function (warehouses) {
+            fillWarehouseOptions(
+                selectEl,
+                warehouses && warehouses.length ? warehouses : fallback,
+                selectedName,
+                placeholder
+            );
+        });
+    }
+
+    function warehouseSelectionAvailable(selectEl, previous) {
+        if (selectEl.disabled) {
+            showToast('正在读取仓库档案，请稍后重试', 'error');
+            return false;
+        }
+        var option = selectEl.selectedOptions[0];
+        if (!option || option.value === previous || !option.value) return true;
+        var id = option.dataset.warehouseId;
+        if (!id || !window.MdmErpLists || typeof window.MdmErpLists.archiveStatus !== 'function') return true;
+        if (window.MdmErpLists.archiveStatus('warehouse', id, '启用') === '启用') return true;
+        showToast('所选仓库已停用，请重新选择', 'error');
+        return false;
+    }
+
+    function hydrateInboundWarehouseSelect(selectEl, selectedName) {
+        hydrateArchiveWarehouseSelect(selectEl, selectedName, '请选择入库仓库');
+    }
+
+    /** 结算信息关键字段是否变更（结款方式 / 策略 / 起算 / 周期） */
+    function isSupplierSettleChanged(before, after) {
+        if (!before || !after) return !!after;
+        if (Boolean(before.followPlatform) !== Boolean(after.followPlatform)) return true;
+        if (String(before.payMethod || '') !== String(after.payMethod || '')) return true;
+        if (!after.followPlatform) {
+            if (String(before.trigger || '') !== String(after.trigger || '')) return true;
+            if (String(before.cycle || '') !== String(after.cycle || '')) return true;
         }
         return false;
     }
 
-    function collectEnabledWarehouseOptionsFromRows(rows) {
-        var list = [];
-        var seen = {};
-        rows.forEach(function (tr) {
-            var c = tr.querySelectorAll('td');
-            if (c.length < 12) return;
-            var id = String((c[0].textContent || '').trim());
-            var subject = String((c[1].textContent || '').trim());
-            var name = String((c[2].textContent || '').trim());
-            var warehouseType = String((c[3].textContent || '').trim());
-            if (!id || !name || seen[id]) return;
-            /* 仓库类型为「门店」的不进配送/入库仓下拉 */
-            if (warehouseType !== '仓库') return;
-            var stNode = c[11].querySelector ? c[11].querySelector('.status') : null;
-            var statusText = String((stNode ? stNode.textContent : c[11].textContent) || '')
-                .replace(/\s+/g, '')
-                .trim();
-            if (statusText !== '启用' && statusText !== '启动') return;
-            if (isWarehouseRuntimeDisabled({ id: id, code: id, name: name, subject: subject })) return;
-            seen[id] = true;
-            list.push({ id: id, subject: subject || name, name: name });
-        });
-        return list;
+    function settleSummaryText(cfg) {
+        if (!cfg || !window.LFSettleCycleStore) return '—';
+        var S = window.LFSettleCycleStore;
+        var parts = [
+            S.payMethodLabel ? S.payMethodLabel(cfg.payMethod) : cfg.payMethod,
+            S.strategyLabel ? S.strategyLabel(cfg.followPlatform) : '',
+            cfg.followPlatform
+                ? '跟随平台'
+                : (S.triggerLabel ? S.triggerLabel(cfg.trigger) : cfg.trigger) +
+                  ' / ' +
+                  (S.cycleLabel ? S.cycleLabel(cfg.cycle) : cfg.cycle)
+        ];
+        return parts.filter(Boolean).join(' · ');
     }
 
-    function collectEnabledWarehouseNamesFromRows(rows) {
-        return collectEnabledWarehouseOptionsFromRows(rows).map(function (one) {
-            return one.name;
-        });
-    }
-
-    function filterFallbackDeliveryWarehouses() {
-        return FALLBACK_DELIVERY_WAREHOUSES.filter(function (one) {
-            return !isWarehouseRuntimeDisabled({
-                id: one.id,
-                code: one.id,
-                name: one.name,
-                subject: one.subject
-            });
-        });
-    }
-
-    function updateWarehouseSelectOptions(selectEl, names, selectedName) {
-        if (!selectEl) return;
-        var list = Array.isArray(names) ? names : [];
-        selectEl.innerHTML = '';
-        var placeholder = document.createElement('option');
-        placeholder.value = '';
-        placeholder.textContent = '请选择入库仓库';
-        selectEl.appendChild(placeholder);
-        list.forEach(function (name) {
-            var op = document.createElement('option');
-            op.value = name;
-            op.textContent = name;
-            selectEl.appendChild(op);
-        });
-        if (selectedName) {
-            selectEl.value = selectedName;
-            if (selectEl.value !== selectedName) {
-                selectOptionByLabelText(selectEl, selectedName);
-            }
-            /* 停用仓不在可选列表：清空，强制改选启用仓 */
-            if (selectEl.value !== selectedName && !selectOptionByLabelText(selectEl, selectedName)) {
-                selectEl.value = '';
-            }
+    /**
+     * 结算信息变更后二次确认：是否发放结算信息变更补充协议；
+     * 确认后写入合同任务并推送供应商 App 待签。
+     */
+    function confirmIssueSettleSupplement(supplierId, supplierName, settleCfg) {
+        var exist = document.getElementById('mdmSettleSupConfirm');
+        if (exist) exist.remove();
+        var backdrop = document.createElement('div');
+        backdrop.id = 'mdmSettleSupConfirm';
+        backdrop.className = 'store-archive-modal-backdrop resource-archive-modal-backdrop';
+        backdrop.innerHTML =
+            '<div class="erp-modal" role="dialog" aria-modal="true" style="max-width:480px">' +
+            '<div class="erp-modal__header"><h2 class="erp-modal__title">发放结算信息补充协议</h2></div>' +
+            '<div class="erp-modal__body">' +
+            '<p style="margin:0 0 10px;line-height:1.6;color:#333">供应商 <strong>' +
+            String(supplierName || '') +
+            '</strong> 的结算信息已变更：</p>' +
+            '<p style="margin:0 0 12px;padding:10px 12px;background:#f7f8fa;border-radius:8px;font-size:13px;color:#666;line-height:1.5">' +
+            settleSummaryText(settleCfg) +
+            '</p>' +
+            '<p style="margin:0;line-height:1.6;color:#333">是否发放<strong>结算信息变更补充协议</strong>？确认后将自动下发至供应商 App，由供应商完成电子签署。</p>' +
+            '</div>' +
+            '<div class="erp-modal__footer">' +
+            '<button type="button" class="erp-btn" data-c="cancel">暂不发放</button>' +
+            '<button type="button" class="erp-btn erp-btn--primary" data-c="ok">确认发放</button>' +
+            '</div></div>';
+        document.body.appendChild(backdrop);
+        function close() {
+            backdrop.remove();
         }
-    }
-
-    function updateDeliveryWarehouseSelect(selectEl, options, selectedText) {
-        if (!selectEl) return;
-        var list = Array.isArray(options) ? options : [];
-        var prev = String(selectedText || '').trim();
-        selectEl.innerHTML = '';
-        var placeholder = document.createElement('option');
-        placeholder.value = '';
-        placeholder.textContent = '请选择配送仓库';
-        selectEl.appendChild(placeholder);
-        list.forEach(function (one) {
-            if (!one || !one.id) return;
-            var op = document.createElement('option');
-            op.value = one.id;
-            op.textContent = one.subject || one.name || one.id;
-            op.setAttribute('data-wh-name', one.name || '');
-            op.setAttribute('data-wh-subject', one.subject || '');
-            selectEl.appendChild(op);
+        backdrop.addEventListener('click', function (ev) {
+            if (ev.target === backdrop) close();
         });
-        if (!prev) {
-            selectEl.value = '';
-            return;
-        }
-        /* 按编号 / 主体名 / 仓库名回填；命不中说明已停用或不存在 → 置空 */
-        for (var i = 0; i < selectEl.options.length; i++) {
-            var opt = selectEl.options[i];
-            if (!opt.value) continue;
-            if (
-                opt.value === prev ||
-                opt.textContent === prev ||
-                opt.getAttribute('data-wh-name') === prev ||
-                opt.getAttribute('data-wh-subject') === prev ||
-                prev.indexOf(opt.textContent) >= 0 ||
-                prev.indexOf(opt.getAttribute('data-wh-name') || '') >= 0
-            ) {
-                selectEl.selectedIndex = i;
+        backdrop.querySelector('[data-c="cancel"]').addEventListener('click', close);
+        backdrop.querySelector('[data-c="ok"]').addEventListener('click', function () {
+            close();
+            if (!window.LfContract || typeof window.LfContract.issueSupplierSettleSupplement !== 'function') {
+                if (typeof showToast === 'function') {
+                    showToast('合同模块未加载，无法下发补充协议（演示）', 'error');
+                }
                 return;
             }
-        }
-        selectEl.value = '';
-    }
-
-    function hydrateDeliveryWarehouseSelect(selectEl, selectedText) {
-        var fallback = filterFallbackDeliveryWarehouses();
-        updateDeliveryWarehouseSelect(selectEl, fallback, selectedText);
-        if (typeof fetch !== 'function') return;
-        fetch(resolveArchiveWarehousePageUrl(), { cache: 'no-store' })
-            .then(function (res) {
-                if (!res || !res.ok) return '';
-                return res.text();
-            })
-            .then(function (html) {
-                if (!html) return [];
-                var parser = new DOMParser();
-                var doc = parser.parseFromString(html, 'text/html');
-                return collectEnabledWarehouseOptionsFromRows(doc.querySelectorAll('#tableBody tr'));
-            })
-            .then(function (list) {
-                var options = list && list.length ? list : fallback;
-                updateDeliveryWarehouseSelect(selectEl, options, selectedText);
-            })
-            .catch(function () {
-                updateDeliveryWarehouseSelect(selectEl, fallback, selectedText);
+            var task = window.LfContract.issueSupplierSettleSupplement({
+                supplierId: supplierId,
+                name: supplierName,
+                bizRef: 'supplier-settle-sup:' + (supplierId || supplierName),
+                settleSnapshot: settleCfg,
+                initiator: '供应商档案·结算变更'
             });
-    }
-
-    function resolveArchiveWarehousePageUrl() {
-        if (window.wmsPath && typeof window.wmsPath.page === 'function') {
-            return window.wmsPath.page('mdm_archive_warehouse.html');
-        }
-        return 'mdm_archive_warehouse.html';
-    }
-
-    function hydrateInboundWarehouseSelect(selectEl, selectedName) {
-        /* 先落演示兜底，避免 fetch 未完成或失败时下拉空白；已停用仓不进选项 */
-        updateWarehouseSelectOptions(
-            selectEl,
-            filterFallbackDeliveryWarehouses().map(function (one) {
-                return one.name;
-            }),
-            selectedName
-        );
-        if (typeof fetch !== 'function') return;
-        fetch(resolveArchiveWarehousePageUrl(), { cache: 'no-store' })
-            .then(function (res) {
-                if (!res || !res.ok) return '';
-                return res.text();
-            })
-            .then(function (html) {
-                if (!html) return [];
-                var parser = new DOMParser();
-                var doc = parser.parseFromString(html, 'text/html');
-                var rows = doc.querySelectorAll('#tableBody tr');
-                return collectEnabledWarehouseNamesFromRows(rows);
-            })
-            .then(function (list) {
-                var enabledNames = (list || []).filter(function (name) {
-                    return !isWarehouseRuntimeDisabled({ name: name });
-                });
-                var names =
-                    enabledNames.length
-                        ? enabledNames
-                        : filterFallbackDeliveryWarehouses().map(function (one) {
-                              return one.name;
-                          });
-                updateWarehouseSelectOptions(selectEl, names, selectedName);
-            })
-            .catch(function () {
-                updateWarehouseSelectOptions(
-                    selectEl,
-                    filterFallbackDeliveryWarehouses().map(function (one) {
-                        return one.name;
-                    }),
-                    selectedName
-                );
+            if (task && typeof showToast === 'function') {
+                showToast('已下发结算信息补充协议，待供应商 App 签署（演示）', 'success');
+            }
             });
     }
 
@@ -710,43 +748,75 @@
         document.body.appendChild(backdrop);
     }
 
-    function attachWideModal(title, bodyEl, onConfirm, beforeValidate) {
+    function mountEntryMaterials(body, refs) {
+        if (!window.MdmEntryMaterials || !body || !refs) return;
+        refs.entryMaterials = window.MdmEntryMaterials.mount(body, { skin: 'pc', role: 'subject' });
+    }
+
+    function hydrateArchiveMaterials(refs, kind, name) {
+        if (!refs || !refs.entryMaterials || !window.MdmEntryMaterials || !name) return;
+        var data = window.MdmEntryMaterials.loadForArchive(kind, name);
+        if (data) window.MdmEntryMaterials.fill(refs.entryMaterials, data);
+    }
+
+    function persistArchiveMaterials(refs, kind, name) {
+        if (!refs || !refs.entryMaterials || !window.MdmEntryMaterials || !name) return;
+        window.MdmEntryMaterials.saveForArchive(kind, name, window.MdmEntryMaterials.read(refs.entryMaterials));
+    }
+
+    function fieldHidden(el) {
+        if (!el) return true;
+        var node = el;
+        while (node && node !== document.body) {
+            if (node.classList && node.classList.contains('subj-wiz__sink')) return true;
+            if (node.style && node.style.display === 'none') return true;
+            node = node.parentNode;
+        }
+        return false;
+    }
+
+    function attachWideModal(title, bodyEl, onConfirm, beforeValidate, dressKind) {
         removeArchiveFormModals();
         var backdrop = document.createElement('div');
         backdrop.className = 'store-archive-modal-backdrop resource-archive-modal-backdrop';
         backdrop.setAttribute('data-mdm-archive-form', '1');
+        var useDrawer = dressKind && window.MdmSubjectAddWizard && typeof window.MdmSubjectAddWizard.dress === 'function';
+        if (useDrawer) backdrop.classList.add('subj-wiz-backdrop');
         var modal = document.createElement('div');
-        modal.className = 'erp-modal erp-modal--store-wide';
+        modal.className = useDrawer ? 'modal-content subj-wiz' : 'erp-modal erp-modal--store-wide';
         var head = document.createElement('div');
-        head.className = 'erp-modal__header';
+        head.className = useDrawer ? 'modal-header' : 'erp-modal__header';
         var h2 = document.createElement('h2');
-        h2.className = 'erp-modal__title';
+        h2.className = useDrawer ? 'modal-title' : 'erp-modal__title';
         h2.textContent = title;
         head.appendChild(h2);
-        var ha = document.createElement('div');
-        ha.className = 'erp-modal__header-actions';
         var bx = document.createElement('button');
         bx.type = 'button';
-        bx.className = 'erp-modal__header-btn';
+        bx.className = useDrawer ? 'close' : 'erp-modal__header-btn';
         bx.innerHTML = '&times;';
         bx.setAttribute('aria-label', '关闭');
         bx.addEventListener('click', function () {
             backdrop.remove();
         });
-        ha.appendChild(bx);
-        head.appendChild(ha);
+        if (useDrawer) head.appendChild(bx);
+        else {
+            var ha = document.createElement('div');
+            ha.className = 'erp-modal__header-actions';
+            ha.appendChild(bx);
+            head.appendChild(ha);
+        }
         var bw = document.createElement('div');
-        bw.className = 'erp-modal__body';
+        bw.className = useDrawer ? 'modal-form' : 'erp-modal__body';
         bw.appendChild(bodyEl);
         var foot = document.createElement('div');
-        foot.className = 'erp-modal__footer';
+        foot.className = useDrawer ? 'modal-footer' : 'erp-modal__footer';
         var bc = document.createElement('button');
         bc.type = 'button';
-        bc.className = 'erp-btn';
+        bc.className = useDrawer ? 'btn btn-secondary' : 'erp-btn';
         bc.textContent = '取消';
         var ok = document.createElement('button');
         ok.type = 'button';
-        ok.className = 'erp-btn erp-btn--primary';
+        ok.className = useDrawer ? 'btn btn-primary' : 'erp-btn erp-btn--primary';
         ok.textContent = '确定';
         bc.addEventListener('click', function () {
             backdrop.remove();
@@ -756,8 +826,8 @@
             var requiredEls = bodyEl.querySelectorAll('[data-required-msg]');
             for (var i = 0; i < requiredEls.length; i++) {
                 var one = requiredEls[i];
-                var val = '';
-                if (one && typeof one.value === 'string') val = one.value.trim();
+                if (!one || one.disabled || fieldHidden(one)) continue;
+                var val = typeof one.value === 'string' ? one.value.trim() : '';
                 if (!val) {
                     if (typeof showToast === 'function') {
                         showToast(one.getAttribute('data-required-msg') || '请完善必填项', 'error');
@@ -769,19 +839,29 @@
             var uploadReq = bodyEl.querySelectorAll('[data-upload-required-msg]');
             for (var u = 0; u < uploadReq.length; u++) {
                 var upEl = uploadReq[u];
+                if (fieldHidden(upEl)) continue;
                 if (upEl.getAttribute('data-upload-state') !== '1') {
                     if (typeof showToast === 'function') {
-                        showToast(
-                            upEl.getAttribute('data-upload-required-msg') || '请上传必填照片',
-                            'error'
-                        );
+                        showToast(upEl.getAttribute('data-upload-required-msg') || '请上传必填照片', 'error');
                     }
+                    return;
+                }
+            }
+            if (bodyEl.querySelector('[data-entry-materials]') && window.MdmEntryMaterials) {
+                var entryErr = window.MdmEntryMaterials.validate(bodyEl.querySelector('[data-entry-materials]'));
+                if (entryErr) {
+                    if (typeof showToast === 'function') showToast(entryErr, 'error');
                     return;
                 }
             }
             if (typeof onConfirm === 'function') {
                 var shouldContinue = onConfirm();
                 if (shouldContinue === false) return;
+                backdrop.remove();
+                if (typeof showToast === 'function') {
+                    showToast(typeof shouldContinue === 'string' ? shouldContinue : '已提交（演示）', 'success');
+                }
+                return;
             }
             backdrop.remove();
             if (typeof showToast === 'function') showToast('已提交（演示）', 'success');
@@ -796,6 +876,7 @@
             if (ev.target === backdrop) backdrop.remove();
         });
         document.body.appendChild(backdrop);
+        if (useDrawer) window.MdmSubjectAddWizard.dress(backdrop, dressKind, { keepTitle: true, archive: true });
     }
 
     function cellPlainText(td) {
@@ -815,13 +896,6 @@
             }
         }
         return false;
-    }
-
-    function guessWarehouseSelectValue(whCellText) {
-        var s = String(whCellText || '');
-        if (/苏州|苏/.test(s)) return 'wh2';
-        if (/沪|上海|华东|SH|仓|履约/.test(s)) return 'wh1';
-        return '';
     }
 
     var STORE_SUBJECTS = [
@@ -904,7 +978,8 @@
                 }
                 return;
             }
-            refs.codeInp.value = region ? api.peekNextCode(region) : '';
+            /* 新建不预占编码。入驻审核通过后才分配。 */
+            refs.codeInp.value = '';
             refs.codeInp.removeAttribute('data-reallocated');
         }
         refs.refreshStoreCode = refresh;
@@ -926,14 +1001,17 @@
         var body = document.createElement('div');
         body.appendChild(sectionTitle('基础信息'));
         refs.subjectSel = sel(STORE_SUBJECTS, '');
+        refs.subjectSel.setAttribute('data-required-msg', '请选择主体名称');
         body.appendChild(formRow('主体名称', true, refs.subjectSel));
         var codeWrap = document.createElement('div');
-        refs.codeInp = txt('选择门店地址后由系统自动生成', opts.storeCode || '');
+        refs.codeInp = txt('入驻审核通过后生成', opts.storeCode || '');
         refs.codeInp.readOnly = true;
         refs.codeInp.style.background = '#f5f5f5';
         var codeTip = document.createElement('div');
         codeTip.style.cssText = 'margin-top:6px;font-size:12px;color:#999;line-height:1.5;';
-        codeTip.textContent = '8 位编码：3 位城市码（IATA）+ 5 位顺序码；按城市自动生成，注销后不回收。';
+        codeTip.textContent = opts.storeCode
+            ? '8 位编码：3 位城市码（IATA）+ 5 位顺序码；按城市生成，注销后不回收。'
+            : '入驻审核通过后按城市生成，注销后不回收。';
         codeWrap.appendChild(refs.codeInp);
         codeWrap.appendChild(codeTip);
         body.appendChild(formRow('门店编码', false, codeWrap));
@@ -945,7 +1023,7 @@
         refs.phoneTip = document.createElement('div');
         refs.phoneTip.style.cssText = 'display:none;margin-top:6px;font-size:12px;color:#d46b08;line-height:1.5;';
         refs.phoneTip.textContent =
-            '将按该手机号查找接任用户，并重新绑定本店主体 ID 与店长 ID。';
+            '确认后，接任店长可登录并管理本店，原店长不再拥有本店管理权限。';
         var phoneCtl = document.createElement('div');
         phoneCtl.appendChild(phoneRowWrap);
         phoneCtl.appendChild(refs.phoneTip);
@@ -969,6 +1047,7 @@
         var nameInp = txt('请输入门店名称', '');
         refs.nameInp = nameInp;
         nameInp.maxLength = 50;
+        nameInp.setAttribute('data-required-msg', '请输入门店名称');
         var nc = document.createElement('span');
         nc.className = 'store-form__counter';
         nc.textContent = '0 / 50';
@@ -997,20 +1076,21 @@
             [
                 { value: '', label: '请选择门店合作类型' },
                 { value: 'franchise', label: '加盟店' },
-                { value: 'partner', label: '合作店' },
-                { value: 'peer', label: '同行店' },
-                { value: 'fresh', label: '生鲜店' }
+                { value: 'joint', label: '联营店' },
+                { value: 'direct', label: '直营店' }
             ],
             ''
         );
         refs.partnerSel = partnerSel;
+        partnerSel.setAttribute('data-required-msg', '请选择门店合作类型');
         body.appendChild(formRow('门店合作类型', true, partnerSel));
         refs.storeTypeInp = txt('如社区生鲜店、团购自提点等', '');
+        refs.storeTypeInp.setAttribute('data-required-msg', '请输入门店类型');
         body.appendChild(formRow('门店类型', true, refs.storeTypeInp));
-        refs.warehouseSel = sel([{ value: '', label: '请选择配送仓库' }], '');
+        mountStoreBizFields(body, refs);
+        refs.warehouseSel = sel([], '');
         refs.warehouseSel.setAttribute('data-required-msg', '请选择配送仓库');
         body.appendChild(formRow('配送仓库', true, refs.warehouseSel));
-        hydrateDeliveryWarehouseSelect(refs.warehouseSel, '');
         var regionRow = document.createElement('div');
         regionRow.className = 'store-form__row';
         regionRow.appendChild(sfLabel('门店地址', true));
@@ -1038,6 +1118,7 @@
         body.appendChild(regionRow);
         var addressWrap = txtAreaWithCount('请输入详细地址，输入后将自动在地图上定位', 200, '');
         refs.addressTa = addressWrap.querySelector('textarea');
+        if (refs.addressTa) refs.addressTa.setAttribute('data-required-msg', '请输入详细地址');
         body.appendChild(formRow('详细地址', true, addressWrap));
         body.appendChild(mapMockRow(false));
         appendStoreHeaderPhotoField(body, refs, {
@@ -1051,7 +1132,7 @@
 
         var franchise = document.createElement('div');
         franchise.style.display = 'none';
-        franchise.appendChild(sectionHint('加盟店 / 合作店补充资料'));
+        franchise.appendChild(sectionHint('加盟店资料'));
         franchise.appendChild(formRow('门店面积', true, txt('请输入门店面积（㎡）', '')));
         franchise.appendChild(formRow('门店楼层', true, txt('请输入门店楼层', '')));
         franchise.appendChild(formRow('店门口口述视频', false, uploadMock('+ 上传店门口视频', '店前两分钟口述视频')));
@@ -1099,7 +1180,7 @@
 
         var franchiseSpecialCollapse = makeFormCollapse('特殊情况说明', true);
         franchiseSpecialCollapse.body.appendChild(
-            formRow('特殊情况说明', false, txtAreaWithCount('如涉及区域保护、特殊沟通，请填写说明', 500, ''))
+            formRow('特殊情况说明', false, txtAreaWithCount('选填，供审核人员查阅', 500, ''))
         );
         franchiseSpecialCollapse.body.appendChild(
             formRow('特殊情况配图', false, uploadMock('+ 上传特殊情况配图', '最多 6 张'))
@@ -1107,23 +1188,10 @@
         franchise.appendChild(franchiseSpecialCollapse.wrap);
         body.appendChild(franchise);
 
-        var peer = document.createElement('div');
-        peer.style.display = 'none';
-        /* 已合作其他平台情况、近三天上播及销量截图：默认可折叠收起 */
-        var peerCollapse = makeFormCollapse('同行店补充资料', true);
-        peerCollapse.body.appendChild(
-            formRow('已合作其他平台情况', false, txtAreaWithCount('目前门店已合作的其他平台情况', 500, ''))
-        );
-        peerCollapse.body.appendChild(
-            formRow('近三天上播及销量截图', false, uploadMock('+ 上传经营截图', '最多 6 张'))
-        );
-        peer.appendChild(peerCollapse.wrap);
-        body.appendChild(peer);
-
         function syncPartner() {
             var v = partnerSel.value;
-            franchise.style.display = v === 'franchise' || v === 'partner' || v === 'fresh' ? '' : 'none';
-            peer.style.display = v === 'peer' ? '' : 'none';
+            var franchiseLike = v === 'franchise' || v === 'joint' || v === 'direct';
+            franchise.style.display = franchiseLike ? '' : 'none';
         }
         partnerSel.addEventListener('change', syncPartner);
         syncPartner();
@@ -1133,17 +1201,30 @@
             if (c.length < 11) return;
             selectOptionByLabelText(refs.subjectSel, cellPlainText(c[1]));
             refs.contactInp.value = cellPlainText(c[6]);
-            /* 【857】编辑弹窗显示完整手机号（列表仍脱敏）；演示数据无完整号时把 **** 补成 0000 */
-            if (refs.phoneInp) refs.phoneInp.value = storeFullPhone(tr);
-            refs.originalPhone = refs.phoneInp ? String(refs.phoneInp.value || '').trim() : '';
-            refs.phoneInp.placeholder = '请输入接任店长的手机号';
-            refs.phoneInp.setAttribute('aria-label', '店长手机号');
-            var phoneLabel = refs.phoneFormRow.querySelector('label');
-            if (phoneLabel) phoneLabel.innerHTML = '<span style="color:#ff4d4f">*</span> 店长手机号';
-            refs.phoneTip.style.color = '#666';
-            refs.verifyInp.value = '';
+            /* 编辑页联系手机号 = 店长交接入口：改号即重绑「主体 ID ↔ 店长 ID」 */
+            var fullPhone = storeFullPhone(tr);
+            if (refs.phoneInp) {
+                refs.phoneInp.value = fullPhone;
+                refs.phoneInp.placeholder = '请输入联系手机号';
+                refs.phoneInp.setAttribute('aria-label', '联系手机号');
+                refs.phoneInp.setAttribute('data-required-msg', '请输入联系手机号');
+            }
+            refs.originalPhone = fullPhone;
+            var phoneLabel = refs.phoneFormRow && refs.phoneFormRow.querySelector('label');
+            if (phoneLabel) phoneLabel.innerHTML = '<span style="color:#ff4d4f">*</span> 联系手机号';
+            if (refs.verifyInp) {
+                refs.verifyInp.value = '';
+                refs.verifyInp.setAttribute('data-required-msg', '请输入验证码');
+            }
             if (refs.verifyRow) refs.verifyRow.style.display = 'none';
-            if (refs.phoneTip) refs.phoneTip.style.display = '';
+            if (refs.phoneTip) {
+                refs.phoneTip.style.display = '';
+                refs.phoneTip.style.color = '#d46b08';
+                refs.phoneTip.textContent =
+                    '确认后，接任店长可登录并管理本店，原店长不再拥有本店管理权限。';
+            }
+            var smsBtn = refs.phoneFormRow && refs.phoneFormRow.querySelector('.erp-btn--sms');
+            if (smsBtn) smsBtn.style.display = '';
             refs.nameInp.value = cellPlainText(c[2]);
             var storeCode = cellPlainText(c[0]);
             var mapped = window.MdmStoreSiteSlot && window.MdmStoreSiteSlot.getByStore(storeCode);
@@ -1155,10 +1236,23 @@
             var bindBdName = cellPlainText(c[5]);
             if (bindBdName === '—') bindBdName = '';
             hydrateBdSelectFromPeoplePage(refs.bindBdSel, bindBdName);
-            var pmap = { 加盟店: 'franchise', 合作店: 'partner', 同行店: 'peer', 生鲜店: 'fresh' };
-            refs.partnerSel.value = pmap[cellPlainText(c[3])] || '';
+            var partnerLabel = cellPlainText(c[3]);
+            if (partnerLabel === '生鲜店' || partnerLabel === '同行店') partnerLabel = '加盟店';
+            if (partnerLabel === '合作店') partnerLabel = '联营店';
+            var pmap = { 加盟店: 'franchise', 联营店: 'joint', 直营店: 'direct' };
+            if (pmap[partnerLabel]) {
+                refs.partnerSel.value = pmap[partnerLabel];
+            } else if (partnerLabel && partnerLabel !== '—') {
+                var legacyOpt = document.createElement('option');
+                legacyOpt.value = partnerLabel;
+                legacyOpt.textContent = partnerLabel;
+                refs.partnerSel.appendChild(legacyOpt);
+                refs.partnerSel.value = partnerLabel;
+            } else {
+                refs.partnerSel.value = '';
+            }
             refs.storeTypeInp.value = cellPlainText(c[4]);
-            hydrateDeliveryWarehouseSelect(refs.warehouseSel, cellPlainText(c[8]));
+            hydrateArchiveWarehouseSelect(refs.warehouseSel, cellPlainText(c[8]), '请选择配送仓库');
             var regionVal = tr.getAttribute('data-region') || '';
             refs.regionInp.value = compactStoreRegion(regionVal);
             if (refs.regionCascader && typeof refs.regionCascader.setValue === 'function') {
@@ -1166,10 +1260,19 @@
             }
             if (refs.addressTa) refs.addressTa.value = tr.getAttribute('data-address') || '';
             if (typeof refs.captureOriginalRegion === 'function') refs.captureOriginalRegion();
+            if (typeof refs.setBizStructure === 'function') {
+                refs.setBizStructure(
+                    tr.getAttribute('data-biz-line') || '',
+                    tr.getAttribute('data-brand-name') || '',
+                    tr.getAttribute('data-biz-lines') || ''
+                );
+            }
             syncPartner();
+            hydrateArchiveMaterials(refs, 'store', refs.nameInp.value);
         }
 
         bindStoreCodeField(refs, { storeCode: opts.storeCode || '' });
+        mountEntryMaterials(body, refs);
         return { body: body, fillFromArchiveRow: fillFromArchiveRow, refs: refs };
     }
 
@@ -1186,8 +1289,10 @@
             (options && options.initialInboundWarehouse) || ''
         ).trim();
         refs.subjectSel = sel(SUP_SUBJECTS, '');
+        refs.subjectSel.setAttribute('data-required-msg', '请选择主体名称');
         body.appendChild(formRow('主体名称', true, refs.subjectSel));
         refs.nameInp = txt('请输入供应商名称', '');
+        refs.nameInp.setAttribute('data-required-msg', '请输入供应商名称');
         body.appendChild(formRow('供应商名称', true, refs.nameInp));
         /* 供应商别名：仅 PC、由平台运营维护；写路径必填。
            存量空别名不迁库，列表空显示「-」；编辑预填名称。C 端：别名 || 名称。 */
@@ -1209,6 +1314,7 @@
             ],
             ''
         );
+        refs.typeSel.setAttribute('data-required-msg', '请选择供应商类型');
         body.appendChild(formRow('供应商类型', true, refs.typeSel));
         var regRow = document.createElement('div');
         regRow.className = 'store-form__row';
@@ -1216,11 +1322,13 @@
         var regC = document.createElement('div');
         regC.className = 'store-form__control';
         refs.regionInp = txt('省 / 市 / 区（级联示意）', '');
+        refs.regionInp.setAttribute('data-required-msg', '请填写供应商地址');
         regC.appendChild(refs.regionInp);
         regRow.appendChild(regC);
         body.appendChild(regRow);
         var detailWrap = txtAreaWithCount('请输入详细地址，输入后将自动在地图上定位', 200, '');
         refs.detailTa = detailWrap.querySelector('textarea');
+        if (refs.detailTa) refs.detailTa.setAttribute('data-required-msg', '请输入详细地址');
         body.appendChild(formRow('详细地址', true, detailWrap));
         body.appendChild(mapMockRow(false));
         if (includeInboundWarehouse) {
@@ -1236,18 +1344,110 @@
         body.appendChild(formRow('验证码', true, refs.verifyInp));
         refs.contactInp = txt('请输入联系人', '');
         body.appendChild(formRow('联系人', true, refs.contactInp));
+        var payMethodName = kind + '-pay';
+        refs.payMethodRow = radioGroup(
+            '结款方式',
+            true,
+            payMethodName,
+            [['goods_first', '先货后款']],
+            'goods_first'
+        );
+        body.appendChild(refs.payMethodRow);
         body.appendChild(
             radioGroup('结算类型', true, kind + '-settle', [['order', '订单结算']], 'order')
         );
-        body.appendChild(
-            radioGroup('配送方式', true, kind + '-deliver', [
-                ['unified', '统配'],
-                ['direct', '直配']
-            ], 'unified')
+
+        /* 结算策略 →（独立配置时）起算节点 + 周期 */
+        var platCfg =
+            window.LFSettleCycleStore && window.LFSettleCycleStore.loadConfig
+                ? window.LFSettleCycleStore.loadConfig()
+                : { trigger: 'fulfill', cycle: '1' };
+        var settleStrategyName = kind + '-settle-strategy';
+        /* 枚举：平台通用配置 | 供应商独立配置 */
+        refs.settleStrategyRow = radioGroup(
+            '结算策略',
+            true,
+            settleStrategyName,
+            [
+                ['inherit', '平台通用配置'],
+                ['override', '供应商独立配置']
+            ],
+            'inherit'
         );
-        body.appendChild(
-            radioGroup('结款方式', true, kind + '-pay', [['goods_first', '先货后款']], 'goods_first')
+        var strategyTip = document.createElement('div');
+        strategyTip.className = 'store-archive__coord-hint';
+        strategyTip.style.marginTop = '6px';
+        strategyTip.textContent =
+            '平台通用配置：起算节点与周期随结算中心「通用配置」同步，平台变更后自动生效（已生成清分不变）。独立配置：本供应商单独维护，不再随平台默认变更。';
+        refs.settleStrategyRow.querySelector('.store-form__control').appendChild(strategyTip);
+        body.appendChild(refs.settleStrategyRow);
+
+        refs.settleTriggerSel = sel(
+            [
+                { value: '', label: '请选择起算节点' },
+                { value: 'fulfill', label: '订单履约确认后' },
+                { value: 'aftersale', label: '售后期结束' }
+            ],
+            platCfg.trigger || 'fulfill'
         );
+        refs.settleTriggerSel.setAttribute('data-required-msg', '请选择结算起算节点');
+        refs.settleTriggerRow = formRow('结算起算节点', true, refs.settleTriggerSel);
+        body.appendChild(refs.settleTriggerRow);
+        var cycleOpts = [{ value: '', label: '请选择结算周期' }].concat(
+            (window.LFSettleCycleStore && window.LFSettleCycleStore.CYCLE_OPTIONS) || [
+                { value: '1', label: '1天' },
+                { value: '7', label: '7天' },
+                { value: '15', label: '15天' },
+                { value: '30', label: '30天' },
+                { value: 'month', label: '自然月1日' }
+            ]
+        );
+        refs.settleCycleSel = sel(cycleOpts, platCfg.cycle || '1');
+        refs.settleCycleSel.setAttribute('data-required-msg', '请选择结算周期');
+        refs.settleCycleRow = formRow('结算周期', true, refs.settleCycleSel);
+        body.appendChild(refs.settleCycleRow);
+
+        function readSettleStrategy() {
+            var checked = refs.settleStrategyRow.querySelector(
+                'input[name="' + settleStrategyName + '"]:checked'
+            );
+            return checked && checked.value === 'override' ? 'override' : 'inherit';
+        }
+
+        function setSettleStrategy(mode) {
+            var val = mode === 'override' ? 'override' : 'inherit';
+            var radios = refs.settleStrategyRow.querySelectorAll(
+                'input[name="' + settleStrategyName + '"]'
+            );
+            for (var i = 0; i < radios.length; i++) {
+                radios[i].checked = radios[i].value === val;
+            }
+        }
+
+        function applySettleStrategyUI() {
+            var inherit = readSettleStrategy() === 'inherit';
+            var cfg =
+                window.LFSettleCycleStore && window.LFSettleCycleStore.loadConfig
+                    ? window.LFSettleCycleStore.loadConfig()
+                    : platCfg;
+            if (inherit) {
+                refs.settleTriggerSel.value = cfg.trigger || 'fulfill';
+                refs.settleCycleSel.value = cfg.cycle || '1';
+            }
+            /* 隐藏时禁用，跳过必填校验 */
+            refs.settleTriggerSel.disabled = inherit;
+            refs.settleCycleSel.disabled = inherit;
+            refs.settleTriggerRow.style.display = inherit ? 'none' : '';
+            refs.settleCycleRow.style.display = inherit ? 'none' : '';
+        }
+
+        var strategyRadios = refs.settleStrategyRow.querySelectorAll(
+            'input[name="' + settleStrategyName + '"]'
+        );
+        for (var si = 0; si < strategyRadios.length; si++) {
+            strategyRadios[si].addEventListener('change', applySettleStrategyUI);
+        }
+        applySettleStrategyUI();
 
         function fillFromArchiveRow(tr) {
             var c = tr.querySelectorAll('td');
@@ -1274,8 +1474,45 @@
             refs.contactInp.value = cellPlainText(c[7]);
             if (refs.phoneInp) refs.phoneInp.value = cellPlainText(c[8]);
             refs.verifyInp.value = '';
+            var sid = cellPlainText(c[0]);
+            var sname = cellPlainText(c[2]);
+            if (window.LFSettleCycleStore && window.LFSettleCycleStore.getSupplier) {
+                var sc = window.LFSettleCycleStore.getSupplier(sid, sname);
+                setSettleStrategy(sc.followPlatform === false ? 'override' : 'inherit');
+                refs.settleTriggerSel.value = sc.trigger || 'fulfill';
+                refs.settleCycleSel.value = sc.cycle || '1';
+                setPayMethod(sc.payMethod || 'goods_first');
+                applySettleStrategyUI();
+            }
+            hydrateArchiveMaterials(refs, 'supplier', refs.nameInp ? refs.nameInp.value : '');
         }
 
+        function readPayMethod() {
+            var checked = refs.payMethodRow.querySelector(
+                'input[name="' + payMethodName + '"]:checked'
+            );
+            return checked && checked.value === 'pay_first' ? 'pay_first' : 'goods_first';
+        }
+
+        function setPayMethod(mode) {
+            var val = mode === 'pay_first' ? 'pay_first' : 'goods_first';
+            var radios = refs.payMethodRow.querySelectorAll('input[name="' + payMethodName + '"]');
+            for (var pi = 0; pi < radios.length; pi++) {
+                radios[pi].checked = radios[pi].value === val;
+            }
+        }
+
+        refs.readSettleCycle = function () {
+            var inherit = readSettleStrategy() === 'inherit';
+            return {
+                trigger: refs.settleTriggerSel.value || 'fulfill',
+                cycle: refs.settleCycleSel.value || '1',
+                followPlatform: inherit,
+                payMethod: readPayMethod()
+            };
+        };
+
+        mountEntryMaterials(body, refs);
         return { body: body, fillFromArchiveRow: fillFromArchiveRow, refs: refs };
     }
 
@@ -1284,7 +1521,6 @@
     }
 
     var TRADER_LICENSE_TYPES = ['商业保理公司', '融资租赁公司', '持牌金融机构', '地方金融组织'];
-    var TRADER_BIZ_SCOPES = ['保理', '融资租赁', '其他'];
 
     function traderOptions(placeholder, values) {
         return [{ value: '', label: placeholder }].concat(
@@ -1294,17 +1530,35 @@
         );
     }
 
+    function providerBindOptions() {
+        var opts = [{ value: '', label: '请选择绑定服务商' }];
+        var seen = {};
+        var api = window.MdmProviderArchiveStore;
+        if (api && typeof api.list === 'function') {
+            api.list().forEach(function (item) {
+                var name = String((item && (item.name || item.subjectName)) || '').trim();
+                if (!name || name === '—' || seen[name]) return;
+                seen[name] = true;
+                opts.push({ value: name, label: name });
+            });
+        }
+        return opts;
+    }
+
     function markRequired(el, message) {
         if (!el) return;
         el.setAttribute('data-required-msg', message);
     }
 
-    function createTraderFormBundle() {
+    function createTraderFormBundle(mode) {
+        var isProvider = mode === 'provider';
+        var noun = isProvider ? '服务商' : '贸易商';
         var refs = {};
         var body = document.createElement('div');
         var subjects = [{ value: '', label: '请选择主体名称' }];
-        if (window.MdmTraderArchiveStore && typeof window.MdmTraderArchiveStore.list === 'function') {
-            window.MdmTraderArchiveStore.list().forEach(function (item) {
+        var archiveApi = isProvider ? window.MdmProviderArchiveStore : window.MdmTraderArchiveStore;
+        if (archiveApi && typeof archiveApi.list === 'function') {
+            archiveApi.list().forEach(function (item) {
                 var name = String((item && item.subjectName) || '').trim();
                 if (!name || name === '—') return;
                 if (subjects.some(function (opt) { return opt.label === name; })) return;
@@ -1315,23 +1569,29 @@
         refs.subjectSel = sel(subjects, '');
         markRequired(refs.subjectSel, '请选择主体名称');
         body.appendChild(formRow('主体名称', true, refs.subjectSel));
-        refs.subjectTypeSel = sel(traderOptions('请选择主体类型', ['贸易商', '服务商']), '贸易商');
-        markRequired(refs.subjectTypeSel, '请选择主体类型');
-        body.appendChild(formRow('主体类型', true, refs.subjectTypeSel));
-        refs.nameInp = txt('请输入贸易商名称', '');
-        markRequired(refs.nameInp, '请输入贸易商名称');
-        body.appendChild(formRow('贸易商名称', true, refs.nameInp));
-        refs.shortNameInp = txt('请输入贸易商简称', '');
-        body.appendChild(formRow('贸易商简称', false, refs.shortNameInp));
-        refs.licenseSel = sel(traderOptions('请选择牌照类型', TRADER_LICENSE_TYPES), '');
-        markRequired(refs.licenseSel, '请选择牌照类型');
-        body.appendChild(formRow('牌照类型', true, refs.licenseSel));
-        refs.scopeSel = sel(traderOptions('请选择业务范围', TRADER_BIZ_SCOPES), '');
-        markRequired(refs.scopeSel, '请选择业务范围');
-        body.appendChild(formRow('业务范围', true, refs.scopeSel));
+        refs.subjectTypeInp = txt('', noun);
+        refs.subjectTypeInp.value = noun;
+        refs.subjectTypeInp.disabled = true;
+        body.appendChild(formRow('主体类型', true, refs.subjectTypeInp));
+        refs.nameInp = txt('请输入' + noun + '名称', '');
+        markRequired(refs.nameInp, '请输入' + noun + '名称');
+        body.appendChild(formRow(noun + '名称', true, refs.nameInp));
+        refs.shortNameInp = txt('请输入' + noun + '简称', '');
+        body.appendChild(formRow(noun + '简称', false, refs.shortNameInp));
+        if (isProvider) {
+            refs.providerTypeSel = sel(traderOptions('请选择服务商类型', TRADER_LICENSE_TYPES), '');
+            markRequired(refs.providerTypeSel, '请选择服务商类型');
+            body.appendChild(formRow('服务商类型', true, refs.providerTypeSel));
+        } else {
+            var bindOpts = providerBindOptions();
+            var defaultBind = bindOpts.some(function (opt) { return opt.value === '冷丰'; }) ? '冷丰' : '';
+            refs.boundSel = sel(bindOpts, defaultBind);
+            markRequired(refs.boundSel, '请选择绑定服务商');
+            body.appendChild(formRow('绑定服务商', true, refs.boundSel));
+        }
         refs.regionInp = txt('省 / 市 / 区', '');
-        markRequired(refs.regionInp, '请输入贸易商地址');
-        body.appendChild(formRow('贸易商地址', true, refs.regionInp));
+        markRequired(refs.regionInp, '请输入' + noun + '地址');
+        body.appendChild(formRow(noun + '地址', true, refs.regionInp));
         var detailWrap = txtAreaWithCount('请输入详细地址', 200, '');
         refs.detailTa = detailWrap.querySelector('textarea');
         markRequired(refs.detailTa, '请输入详细地址');
@@ -1348,7 +1608,7 @@
         markRequired(refs.contactInp, '请输入联系人姓名');
         body.appendChild(formRow('联系人姓名', true, refs.contactInp));
         body.appendChild(
-            radioGroup('贸易商状态', true, 'trader-status-' + Date.now(), [
+            radioGroup(noun + '状态', true, (isProvider ? 'provider' : 'trader') + '-status-' + Date.now(), [
                 ['正常', '正常'],
                 ['冻结', '冻结']
             ], '正常')
@@ -1378,17 +1638,21 @@
 
         function fillFromArchiveRow(tr) {
             var c = tr.querySelectorAll('td');
-            var id = tr.getAttribute('data-trader-id') || cellPlainText(c[0]);
-            var stored = window.MdmTraderArchiveStore && window.MdmTraderArchiveStore.get
-                ? window.MdmTraderArchiveStore.get(id)
-                : null;
+            var id =
+                tr.getAttribute(isProvider ? 'data-provider-id' : 'data-trader-id') || cellPlainText(c[0]);
+            var stored = archiveApi && archiveApi.get ? archiveApi.get(id) : null;
             ensureSubjectOption((stored && stored.subjectName) || cellPlainText(c[1]));
-            var subjectType = dashToEmpty((stored && stored.subjectType) || cellPlainText(c[2])) || '贸易商';
-            refs.subjectTypeSel.value = subjectType === '服务商' ? '服务商' : '贸易商';
+            refs.subjectTypeInp.value = noun;
             refs.nameInp.value = dashToEmpty((stored && stored.name) || cellPlainText(c[3]));
             refs.shortNameInp.value = dashToEmpty((stored && stored.shortName) || cellPlainText(c[4]));
-            refs.licenseSel.value = dashToEmpty((stored && stored.licenseType) || cellPlainText(c[7]));
-            refs.scopeSel.value = dashToEmpty(stored && stored.bizScope);
+            if (refs.providerTypeSel) {
+                refs.providerTypeSel.value = dashToEmpty((stored && stored.providerType) || cellPlainText(c[7]));
+            }
+            if (refs.boundSel) {
+                var bound = dashToEmpty((stored && stored.boundProvider) || cellPlainText(c[7]));
+                refs.boundSel.value = bound;
+                if (refs.boundSel.value !== bound) refs.boundSel.value = '';
+            }
             refs.regionInp.value = dashToEmpty((stored && stored.region) || cellPlainText(c[5]));
             if (refs.detailTa) refs.detailTa.value = dashToEmpty((stored && stored.detailAddr) || cellPlainText(c[6]));
             if (refs.phoneInp) refs.phoneInp.value = dashToEmpty((stored && stored.phone) || cellPlainText(c[9]));
@@ -1397,6 +1661,7 @@
             body.querySelectorAll('input[name="' + refs.statusName + '"]').forEach(function (inp) {
                 inp.checked = inp.value === status;
             });
+            hydrateArchiveMaterials(refs, 'trader', refs.nameInp.value);
         }
 
         function collect() {
@@ -1405,11 +1670,11 @@
                 subjectName: refs.subjectSel.options[refs.subjectSel.selectedIndex]
                     ? refs.subjectSel.options[refs.subjectSel.selectedIndex].text.trim()
                     : '',
-                subjectType: refs.subjectTypeSel.value === '服务商' ? '服务商' : '贸易商',
+                subjectType: noun,
                 name: refs.nameInp.value.trim(),
                 shortName: refs.shortNameInp.value.trim(),
-                licenseType: refs.licenseSel.value.trim(),
-                bizScope: refs.scopeSel.value.trim(),
+                providerType: refs.providerTypeSel ? refs.providerTypeSel.value.trim() : '',
+                boundProvider: refs.boundSel ? refs.boundSel.value.trim() : '',
                 region: refs.regionInp.value.trim(),
                 detailAddr: refs.detailTa ? refs.detailTa.value.trim() : '',
                 phone: refs.phoneInp ? refs.phoneInp.value.trim() : '',
@@ -1435,6 +1700,7 @@
             return true;
         }
 
+        mountEntryMaterials(body, refs);
         return { body: body, refs: refs, fillFromArchiveRow: fillFromArchiveRow, collect: collect, validate: validate };
     }
 
@@ -1615,6 +1881,7 @@
         var nameInp = txt('请输入仓库名称', '');
         refs.nameInp = nameInp;
         nameInp.maxLength = 100;
+        nameInp.setAttribute('data-required-msg', '请输入仓库名称');
         var nc = document.createElement('span');
         nc.className = 'store-form__counter';
         nc.textContent = '0 / 100';
@@ -1635,6 +1902,7 @@
             ],
             ''
         );
+        refs.typeSel.setAttribute('data-required-msg', '请选择仓库级别');
         body.appendChild(formRow('仓库级别', true, refs.typeSel));
         function syncWarehouseLevelDisabled() {
             var kind = String((refs.kindInp && refs.kindInp.value) || '').trim();
@@ -1644,6 +1912,7 @@
         }
         syncWarehouseLevelDisabled();
         refs.adminInp = txt('请输入仓库管理员名称', '');
+        refs.adminInp.setAttribute('data-required-msg', '请输入仓库管理员');
         body.appendChild(formRow('仓库管理员', true, refs.adminInp));
         var phoneRowWrap = smsRow();
         refs.phoneInp = phoneRowWrap.querySelector('input');
@@ -1708,8 +1977,10 @@
                 var num = parseFloat(String(a9).replace(/[^\d.]/g, ''));
                 refs.areaInp.value = !isNaN(num) ? String(num) : '';
             }
+            hydrateArchiveMaterials(refs, 'warehouse', refs.nameInp.value);
         }
 
+        mountEntryMaterials(body, refs);
         return { body: body, fillFromArchiveRow: fillFromArchiveRow, refs: refs };
     }
 
@@ -1717,68 +1988,551 @@
         return createWarehouseFormBundle().body;
     }
 
+    var FIRST_STORE_KEY = 'lf_first_store_archives_v1';
+    var FIRST_SUPPLIER_KEY = 'lf_first_supplier_archives_v1';
+    var FIRST_WAREHOUSE_KEY = 'lf_first_warehouse_archives_v1';
+
+    function readQueue(key) {
+        try {
+            var list = JSON.parse(localStorage.getItem(key) || '[]');
+            return Array.isArray(list) ? list : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function pushQueue(key, row) {
+        var list = readQueue(key);
+        list.unshift(row);
+        try { localStorage.setItem(key, JSON.stringify(list)); } catch (e) {}
+    }
+
+    function takeQueue(key) {
+        var list = readQueue(key);
+        try { localStorage.removeItem(key); } catch (e) {}
+        return list;
+    }
+
+    function hideLabeledRows(body, labels) {
+        Array.prototype.forEach.call(body.querySelectorAll('.store-form__row'), function (row) {
+            var lab = row.querySelector('.store-form__label');
+            var text = lab ? lab.textContent.replace(/\*/g, '').trim() : '';
+            if (labels.indexOf(text) < 0) return;
+            row.style.display = 'none';
+            row.querySelectorAll('[data-required-msg]').forEach(function (el) {
+                el.removeAttribute('data-required-msg');
+            });
+            var next = row.nextElementSibling;
+            if (next && next.classList && next.classList.contains('store-form__tip')) next.style.display = 'none';
+        });
+    }
+
+    function firstArchiveBanner(kind) {
+        var tip = document.createElement('div');
+        tip.className = 'mdm-biz-tip';
+        tip.setAttribute('role', 'note');
+        var where = kind === 'supplier' ? '供应商档案' : '门店档案';
+        tip.innerHTML = '以下为<strong>首个' + (kind === 'supplier' ? '供应商' : '门店') + '</strong>，和主体一起提交。这里只填这家实际业务自己的信息，创建后只在' + where + '查看和编辑。联系人、手机取上方主体信息。营业执照、法人身份证、法人实名电话、整套结算信息写在下方主体资料里，保存后可在主体详情修改，并默认同步到这一家。';
+        return tip;
+    }
+
+    function businessOnlyBanner(kind) {
+        var tip = document.createElement('div');
+        tip.className = 'mdm-biz-tip';
+        tip.setAttribute('role', 'note');
+        var who = kind === 'supplier' ? '供应商' : '门店';
+        tip.innerHTML = '这里只填这家<strong>' + who + '</strong>自己的信息。营业执照、法人身份证、法人实名电话、整套结算信息在主体详情维护，本页不填写。';
+        return tip;
+    }
+
+    function ensureOption(sel, text) {
+        var value = String(text || '').trim();
+        if (!sel || !value) return;
+        var found = false;
+        Array.prototype.forEach.call(sel.options, function (opt) {
+            if (opt.value === value || opt.textContent === value) found = true;
+        });
+        if (!found) sel.appendChild(new Option(value, value));
+        sel.value = value;
+    }
+
+    function validateFirstArchive(bundle) {
+        if (!bundle || !bundle.body) return '档案信息未加载';
+        var nodes = bundle.body.querySelectorAll('[data-required-msg]');
+        var i;
+        for (i = 0; i < nodes.length; i++) {
+            var one = nodes[i];
+            var row = one.closest ? one.closest('.store-form__row') : null;
+            if (row && row.style.display === 'none') continue;
+            if (one.disabled) continue;
+            if (!String(one.value || '').trim()) return one.getAttribute('data-required-msg') || '请完善档案信息';
+        }
+        if (bundle.refs && bundle.refs.entryMaterials && window.MdmEntryMaterials) {
+            var entryErr = window.MdmEntryMaterials.validate(bundle.refs.entryMaterials);
+            if (entryErr) return entryErr;
+        }
+        var uploads = bundle.body.querySelectorAll('[data-upload-required-msg]');
+        for (i = 0; i < uploads.length; i++) {
+            var up = uploads[i];
+            var upRow = up.closest ? up.closest('.store-form__row') : null;
+            if (upRow && upRow.style.display === 'none') continue;
+            if (up.getAttribute('data-upload-state') !== '1') {
+                return up.getAttribute('data-upload-required-msg') || '请上传必填照片';
+            }
+        }
+        var warehouse = bundle.refs && (bundle.refs.warehouseSel || bundle.refs.inboundWarehouseSel);
+        if (warehouse && warehouse.disabled) return '正在读取仓库档案，请稍后重试';
+        return '';
+    }
+
+    function copySubjectIntoArchive(kind, subject, refs) {
+        subject = subject || {};
+        if (refs.contactInp) refs.contactInp.value = subject.contact || refs.contactInp.value || '';
+        if (refs.phoneInp) refs.phoneInp.value = subject.phone || refs.phoneInp.value || '';
+        if (refs.nameInp && !String(refs.nameInp.value || '').trim()) refs.nameInp.value = subject.name || '';
+        if (kind === 'store') ensureOption(refs.bindBdSel, subject.bd);
+        if (kind === 'supplier') {
+            refs.shortNameInp.value = subject.alias || refs.shortNameInp.value || subject.name || '';
+        }
+        if (kind === 'trader' && refs.subjectTypeSel) {
+            refs.subjectTypeSel.value = subject.subjectType === '服务商' ? '服务商' : '贸易商';
+        }
+    }
+
+    function saveSubjectMaterials(subject, kind, archiveName, root) {
+        if (!window.MdmEntryMaterials || !root) return;
+        var data = window.MdmEntryMaterials.read(root);
+        var id = subject && subject.id ? String(subject.id).trim() : '';
+        if (id && typeof window.MdmEntryMaterials.saveSubject === 'function') {
+            window.MdmEntryMaterials.saveSubject(id, data);
+            window.MdmEntryMaterials.bindFirst(id, kind, archiveName);
+        }
+        if (archiveName) window.MdmEntryMaterials.save(kind, archiveName, data);
+    }
+
+    function commitFirstStore(subject, bundle) {
+        var refs = bundle.refs || {};
+        copySubjectIntoArchive('store', subject, refs);
+        var name = refs.nameInp ? String(refs.nameInp.value || '').trim() : '';
+        var region = refs.regionInp ? String(refs.regionInp.value || '').trim() : '';
+        if (!warehouseSelectionAvailable(refs.warehouseSel, '')) return false;
+        if (name) writeVenuePhotos('store', 'name:' + name, collectVenuePhotosFromRefs(refs));
+        saveSubjectMaterials(subject, 'store', name, refs.entryMaterials);
+        return true;
+    }
+
+    function commitFirstSupplier(subject, bundle) {
+        var refs = bundle.refs || {};
+        copySubjectIntoArchive('supplier', subject, refs);
+        if (refs.inboundWarehouseSel && !warehouseSelectionAvailable(refs.inboundWarehouseSel, '')) return false;
+        var name = refs.nameInp ? String(refs.nameInp.value || '').trim() : '';
+        var shortName = refs.shortNameInp ? String(refs.shortNameInp.value || '').trim() : '';
+        var typeMap = { brand: '品牌商', agent: '代理商', person: '个人' };
+        var typeValue = refs.typeSel ? refs.typeSel.value : '';
+        saveSubjectMaterials(subject, 'supplier', name, refs.entryMaterials);
+        var warehouse = refs.inboundWarehouseSel ? String(refs.inboundWarehouseSel.value || '').trim() : '';
+        saveSupplierInboundWarehouseBinding('', name, warehouse);
+        var id = 'SUP' + Date.now();
+        if (window.MdmSupplierArchiveStore) {
+            window.MdmSupplierArchiveStore.upsert({ id: id, name: name, shortName: shortName });
+        }
+        if (window.LFSettleCycleStore && refs.readSettleCycle) {
+            if (refs.settleTriggerSel) refs.settleTriggerSel.disabled = false;
+            if (refs.settleCycleSel) refs.settleCycleSel.disabled = false;
+            window.LFSettleCycleStore.saveSupplier(id, name, refs.readSettleCycle());
+        }
+        var row = {
+            id: id,
+            subjectName: subject.name || '—',
+            name: name,
+            shortName: shortName || '-',
+            region: refs.regionInp ? String(refs.regionInp.value || '').trim() : '',
+            detail: refs.detailTa ? String(refs.detailTa.value || '').trim() : '',
+            typeLabel: typeMap[typeValue] || typeValue || '—',
+            contact: subject.contact || '—',
+            phone: subject.phone || '—',
+            warehouse: warehouse
+        };
+        var appended = window.MdmErpLists && typeof window.MdmErpLists.appendArchiveSupplierRow === 'function'
+            ? window.MdmErpLists.appendArchiveSupplierRow(row)
+            : null;
+        if (!appended) pushQueue(FIRST_SUPPLIER_KEY, row);
+        return true;
+    }
+
+    function commitFirstWarehouse(subject, bundle) {
+        var refs = bundle.refs || {};
+        copySubjectIntoArchive('warehouse', subject, refs);
+        var name = refs.nameInp ? String(refs.nameInp.value || '').trim() : '';
+        saveSubjectMaterials(subject, 'warehouse', name, refs.entryMaterials);
+        var id = 'WH' + Date.now();
+        seedWarehouseReceiveFromForm(id, refs);
+        var levelMap = { grid: '网格仓', center: '中心仓' };
+        var levelValue = refs.typeSel ? refs.typeSel.value : '';
+        var region = refs.regionInp ? String(refs.regionInp.value || '').trim() : '';
+        var detail = refs.detailTa ? String(refs.detailTa.value || '').trim() : '';
+        var areaNum = refs.areaInp ? String(refs.areaInp.value || '').trim() : '';
+        var row = {
+            id: id,
+            subjectName: subject.name || '—',
+            name: name,
+            kind: '仓库',
+            level: levelMap[levelValue] || levelValue || '—',
+            admin: refs.adminInp ? String(refs.adminInp.value || '').trim() : '',
+            phone: subject.phone || '',
+            location: [region, detail].filter(Boolean).join(' ') || '—',
+            area: areaNum ? areaNum + ' m²' : '—'
+        };
+        var appended = window.MdmErpLists && typeof window.MdmErpLists.appendArchiveWarehouseRow === 'function'
+            ? window.MdmErpLists.appendArchiveWarehouseRow(row)
+            : null;
+        if (!appended) pushQueue(FIRST_WAREHOUSE_KEY, row);
+        return true;
+    }
+
+    function commitFirstTrader(subject, bundle) {
+        var refs = bundle.refs || {};
+        copySubjectIntoArchive('trader', subject, refs);
+        var traderName = refs.nameInp ? String(refs.nameInp.value || '').trim() : '';
+        saveSubjectMaterials(subject, 'trader', traderName, refs.entryMaterials);
+        if (!bundle.collect) return false;
+        var payload = bundle.collect();
+        payload.subjectId = subject.id || '';
+        payload.subjectName = subject.name || payload.subjectName;
+        payload.subjectType = subject.subjectType === '服务商' ? '服务商' : '贸易商';
+        payload.contact = subject.contact || payload.contact;
+        payload.phone = subject.phone || payload.phone;
+        if (!window.MdmTraderArchiveStore || typeof window.MdmTraderArchiveStore.add !== 'function') {
+            if (typeof showToast === 'function') showToast('贸易商档案存储未加载', 'error');
+            return false;
+        }
+        var created = window.MdmTraderArchiveStore.add(payload);
+        if (!created) {
+            if (typeof showToast === 'function') showToast('贸易商档案未写入，请检查必填项', 'error');
+            return false;
+        }
+        return true;
+    }
+
+    function buildFirstArchive(kind) {
+        if (kind === 'warehouse') {
+            var warehouseBundle = createWarehouseFormBundle();
+            hideLabeledRows(warehouseBundle.body, ['主体名称', '手机号码', '验证码']);
+            warehouseBundle.kind = kind;
+            return warehouseBundle;
+        }
+        if (kind === 'trader') {
+            var traderBundle = createTraderFormBundle();
+            hideLabeledRows(traderBundle.body, ['主体名称', '主体类型', '手机号码', '验证码', '联系人姓名']);
+            traderBundle.kind = kind;
+            return traderBundle;
+        }
+        var bundle = kind === 'supplier'
+            ? createSupplierFormBundle({ includeInboundWarehouse: true })
+            : createStoreFormBundle({});
+        if (kind !== 'supplier' && bundle.refs.warehouseSel) {
+            hydrateArchiveWarehouseSelect(bundle.refs.warehouseSel, '', '请选择配送仓库');
+        }
+        var hide = kind === 'supplier'
+            ? ['主体名称', '供应商别名', '手机号码', '验证码', '联系人']
+            : ['主体名称', '联系人', '手机号码', '验证码', '绑定BD'];
+        hideLabeledRows(bundle.body, hide);
+        bundle.body.insertBefore(firstArchiveBanner(kind), bundle.body.firstChild);
+        bundle.kind = kind;
+        return bundle;
+    }
+
+    var ENTRY_AUDIT_KEY = 'lf_entry_audit_queue_v1';
+    var ENTRY_AUDIT_TIP = '已提交入驻审核，审核全部通过后发起合同签署';
+
+    function entryAuditNow() {
+        var d = new Date();
+        var p = function (n) { return String(n).padStart(2, '0'); };
+        return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+    }
+
+    /* 门店、供应商、贸易商新建后进入入驻审核。仓库不进审核、不签合同。 */
+    function enqueueEntryAudit(opts) {
+        opts = opts || {};
+        var typeMap = { store: '门店', supplier: '供应商', trader: '贸易商' };
+        var subjectType = opts.subjectType || typeMap[opts.kind] || '';
+        if (opts.kind === 'warehouse' || subjectType === '仓库') return null;
+        if (subjectType !== '门店' && subjectType !== '供应商' && subjectType !== '贸易商' && subjectType !== '服务商') {
+            return null;
+        }
+        var prefix = subjectType === '供应商' ? 'WF-SUP-' : (subjectType === '门店' ? 'WF-STORE-' : 'WF-TRD-');
+        var list = [];
+        try {
+            list = JSON.parse(localStorage.getItem(ENTRY_AUDIT_KEY) || '[]');
+        } catch (e) {
+            list = [];
+        }
+        if (!Array.isArray(list)) list = [];
+        var row = {
+            id: prefix + Date.now(),
+            source: opts.source || 'PC 创建',
+            subjectName: String(opts.subjectName || '').trim() || '—',
+            subjectType: subjectType === '服务商' ? '服务商' : subjectType,
+            storeName: String(opts.storeName || opts.subjectName || '').trim() || '—',
+            shortName: String(opts.shortName || '').trim(),
+            bd: String(opts.bd || '').trim() || '—',
+            contact: String(opts.contact || '').trim(),
+            phone: String(opts.phone || '').trim(),
+            partnerDivision: opts.partnerDivision || '',
+            bizLine: opts.bizLine || '',
+            brandName: opts.brandName || '',
+            address: opts.address || '',
+            region: opts.region || '',
+            storeType: opts.storeType || '',
+            warehouse: opts.warehouse || '',
+            bizLines: opts.bizLines || '',
+            auditStatus: '待审核',
+            mdmStatus: '未生成',
+            createdBy: '当前用户',
+            submittedAt: entryAuditNow(),
+            auditLogs: [],
+            fromCreate: true
+        };
+        list.unshift(row);
+        try {
+            localStorage.setItem(ENTRY_AUDIT_KEY, JSON.stringify(list));
+        } catch (e2) {}
+        return row;
+    }
+
     global.MdmResourceArchiveForms = {
         readVenuePhotos: readVenuePhotos,
+        enqueueEntryAudit: enqueueEntryAudit,
+        entryAuditTip: ENTRY_AUDIT_TIP,
+        buildFirstArchive: buildFirstArchive,
+        validateFirstArchive: validateFirstArchive,
+        commitFirstArchive: function (kind, subject, bundle) {
+            if (kind === 'supplier') return commitFirstSupplier(subject, bundle);
+            if (kind === 'warehouse') return commitFirstWarehouse(subject, bundle);
+            if (kind === 'trader') return commitFirstTrader(subject, bundle);
+            return commitFirstStore(subject, bundle);
+        },
+        takeFirstStores: function () { return takeQueue(FIRST_STORE_KEY); },
+        takeFirstSuppliers: function () { return takeQueue(FIRST_SUPPLIER_KEY); },
+        takeFirstWarehouses: function () { return takeQueue(FIRST_WAREHOUSE_KEY); },
         writeVenuePhotos: writeVenuePhotos,
         syncVenuePhotosFromOnboarding: syncVenuePhotosFromOnboarding,
         openStoreAdd: function () {
             var bundle = createStoreFormBundle({});
+            hydrateArchiveWarehouseSelect(bundle.refs.warehouseSel, '', '请选择配送仓库');
+            if (bundle.refs.partnerSel && !bundle.refs.partnerSel.value) {
+                bundle.refs.partnerSel.value = 'franchise';
+                bundle.refs.partnerSel.dispatchEvent(new Event('change'));
+            }
             attachWideModal('添加门店', bundle.body, function () {
+                if (!warehouseSelectionAvailable(bundle.refs.warehouseSel, '')) return false;
                 var refs = bundle.refs || {};
                 var name = refs.nameInp ? String(refs.nameInp.value || '').trim() : '';
                 var region = refs.regionInp ? String(refs.regionInp.value || '').trim() : '';
-                var api = window.MdmStoreCode;
                 if (!region) {
-                    if (typeof showToast === 'function') showToast('请选择门店地址以生成门店编码', 'error');
+                    if (typeof showToast === 'function') showToast('请选择门店地址', 'error');
                     return false;
                 }
-                var storeCode = api && typeof api.allocateNextCode === 'function' ? api.allocateNextCode(region) : '';
-                if (!storeCode) {
-                    if (typeof showToast === 'function') {
-                        showToast('所选城市暂无城市码，请联系 IT 分配后再建店', 'error');
-                    }
-                    return false;
-                }
-                if (refs.codeInp) refs.codeInp.value = storeCode;
-                writeVenuePhotos('store', storeCode, collectVenuePhotosFromRefs(refs));
-                /* 演示：亦按名称索引，便于列表尚未落库时进件带入 */
                 if (name) writeVenuePhotos('store', 'name:' + name, collectVenuePhotosFromRefs(refs));
-                syncStoreReceiveFromForm(storeCode, name, refs);
-                var partnerMap = { franchise: '加盟店', partner: '合作店', peer: '同行店', fresh: '生鲜店' };
-                if (window.MdmStoreSiteSlot) {
-                    window.MdmStoreSiteSlot.syncFromStore({ storeCode: storeCode, storeName: name, source: 'store' });
+                var partnerMap = { franchise: '加盟店', joint: '联营店', direct: '直营店' };
+                var partnerValue = refs.partnerSel && refs.partnerSel.value;
+                var partnerLabel = partnerMap[partnerValue] || partnerValue || '—';
+                persistArchiveMaterials(refs, 'store', name);
+                enqueueEntryAudit({
+                    kind: 'store',
+                    source: 'PC 创建门店',
+                    subjectName: selectedLabel(refs.subjectSel),
+                    storeName: name,
+                    shortName: name,
+                    bd: selectedLabel(refs.bindBdSel),
+                    contact: refs.contactInp ? String(refs.contactInp.value || '').trim() : '',
+                    phone: refs.phoneInp ? String(refs.phoneInp.value || '').trim() : '',
+                    partnerDivision: partnerLabel,
+                    storeType: refs.storeTypeInp ? String(refs.storeTypeInp.value || '').trim() : '',
+                    warehouse: selectedLabel(refs.warehouseSel),
+                    bizLine: refs.bizLineSel ? refs.bizLineSel.value : '',
+                    brandName: refs.brandSel ? refs.brandSel.value : '',
+                    bizLines: refs.bizHidden ? refs.bizHidden.value : '',
+                    region: region,
+                    address: refs.addressTa ? String(refs.addressTa.value || '').trim() : ''
+                });
+                return ENTRY_AUDIT_TIP;
+            }, null, '门店');
+        },
+        /* 【857】操作列「更换手机号」：快捷更换本门店店长 */
+        openStorePhoneChange: function (tr) {
+            if (!tr) return;
+            var cells = tr.querySelectorAll('td');
+            var storeId = cells[0] ? cellPlainText(cells[0]) : '';
+            var subjectId = cells[1] ? cellPlainText(cells[1]) : '—';
+            var storeName = cells[2] ? cellPlainText(cells[2]) : '';
+            var originalPhone = storeFullPhone(tr);
+            var body = document.createElement('div');
+            body.appendChild(sectionTitle('接任店长信息'));
+            var info = document.createElement('div');
+            info.className = 'mdm-biz-tip mdm-biz-tip--flush';
+            info.setAttribute('role', 'note');
+            info.innerHTML =
+                '门店：<strong>' +
+                (storeName || '—') +
+                '</strong>（' +
+                (storeId || '—') +
+                '）';
+            body.appendChild(info);
+            var phoneRowWrap = smsRow();
+            var phoneInp = phoneRowWrap.querySelector('input');
+            phoneInp.value = originalPhone;
+            phoneInp.placeholder = '请输入接任店长手机号';
+            phoneInp.setAttribute('aria-label', '接任店长手机号');
+            phoneInp.setAttribute('data-required-msg', '请输入接任店长手机号');
+            var phoneTip = document.createElement('div');
+            phoneTip.style.cssText = 'margin-top:6px;font-size:12px;color:#666;line-height:1.5;';
+            phoneTip.textContent =
+                '确认后，接任店长可登录并管理本店，原店长不再拥有本店管理权限。';
+            var phoneCtl = document.createElement('div');
+            phoneCtl.appendChild(phoneRowWrap);
+            phoneCtl.appendChild(phoneTip);
+            body.appendChild(formRow('接任店长手机号', true, phoneCtl));
+            var verifyInp = txt('请输入验证码', '');
+            verifyInp.setAttribute('data-required-msg', '请输入验证码');
+            var verifyRow = formRow('验证码', true, verifyInp);
+            body.appendChild(verifyRow);
+            function isPhoneChanged() {
+                return String(phoneInp.value || '').trim() !== originalPhone;
+            }
+            function syncVerifyVisibility() {
+                verifyRow.style.display = isPhoneChanged() ? '' : 'none';
+            }
+            syncVerifyVisibility();
+            phoneInp.addEventListener('input', syncVerifyVisibility);
+            function validatePhoneChange() {
+                var toast = function (m) {
+                    if (typeof showToast === 'function') showToast(m, 'error');
+                };
+                if (!isPhoneChanged()) {
+                    toast('接任店长手机号未变更');
+                    return null;
                 }
-                if (window.MdmErpLists && typeof window.MdmErpLists.appendArchiveStoreRow === 'function') {
-                    window.MdmErpLists.appendArchiveStoreRow({
-                        storeCode: storeCode,
-                        subjectName: selectedLabel(refs.subjectSel) || '—',
-                        name: name,
-                        shortName: name,
-                        partner: partnerMap[refs.partnerSel && refs.partnerSel.value] || '—',
-                        storeType: refs.storeTypeInp ? String(refs.storeTypeInp.value || '').trim() : '—',
-                        bindBd: selectedLabel(refs.bindBdSel) || '—',
-                        contact: refs.contactInp ? String(refs.contactInp.value || '').trim() : '—',
-                        phone: refs.phoneInp ? String(refs.phoneInp.value || '').trim() : '—',
-                        warehouse: selectedLabel(refs.warehouseSel) || '—',
-                        region: region,
-                        address: refs.addressTa ? String(refs.addressTa.value || '').trim() : ''
+                var newPhone = String(phoneInp.value || '').trim();
+                if (!newPhone) {
+                    toast('请输入接任店长手机号');
+                    phoneInp.focus();
+                    return null;
+                }
+                if (!/^1\d{10}$/.test(newPhone)) {
+                    toast('请输入正确的 11 位手机号');
+                    phoneInp.focus();
+                    return null;
+                }
+                var code = String(verifyInp.value || '').trim();
+                if (!code) {
+                    toast('请输入验证码');
+                    verifyInp.focus();
+                    return null;
+                }
+                if (code !== STORE_PHONE_DEMO_CODE) {
+                    toast('验证码错误或已过期');
+                    verifyInp.focus();
+                    return null;
+                }
+                var masked = newPhone.slice(0, 3) + '****' + newPhone.slice(7);
+                var otherStore = '';
+                var tbody = tr.parentNode;
+                if (tbody) {
+                    Array.prototype.forEach.call(tbody.querySelectorAll('tr'), function (row) {
+                        if (row === tr || otherStore) return;
+                        var tds = row.querySelectorAll('td');
+                        if (tds[7] && storeFullPhone(row) === newPhone) otherStore = cellPlainText(tds[2]);
                     });
                 }
-            });
+                return { phone: newPhone, masked: masked, otherStore: otherStore };
+            }
+            var pending = null;
+            attachWideModal(
+                '更换门店店长',
+                body,
+                function () {
+                    if (!pending) return false;
+                    var pc = pending;
+                    var msg =
+                        '确认更换门店【' + storeName + '】的店长？\n' +
+                        '门店：' + (storeName || '—') + '（' + (storeId || '—') + '）\n' +
+                        '原店长：' + (originalPhone || '—') + '\n' +
+                        '接任店长：' + pc.phone + '\n' +
+                        '确认后，接任店长可登录并管理本店，原店长不再拥有本店管理权限。';
+                    if (pc.otherStore) {
+                        msg +=
+                            '\n该手机号已是门店【' +
+                            pc.otherStore +
+                            '】的店长登录号，保存后接任店长可同时管理本店及其原有门店。';
+                    }
+                    showStorePhoneConfirm(msg, function () {
+                        if (cells[7]) cells[7].textContent = pc.masked;
+                        tr.setAttribute('data-phone', pc.phone);
+                        if (window.MdmOperationLog) {
+                            window.MdmOperationLog.record(
+                                'store',
+                                storeId,
+                                '更换门店店长',
+                                { 原店长手机号: originalPhone },
+                                { 接任店长手机号: pc.phone, 主体: subjectId }
+                            );
+                        }
+                        removeArchiveFormModals();
+                        if (typeof showToast === 'function') {
+                            showToast('已更换门店店长，接任店长可使用 ' + pc.phone + ' 登录并管理本店', 'success');
+                        }
+                    });
+                    return false;
+                },
+                function () {
+                    pending = validatePhoneChange();
+                    return pending !== null;
+                }
+            );
         },
         openStoreEdit: function (tr) {
             if (!tr) return;
             var cells = tr.querySelectorAll('td');
             var storeId = cells[0] ? cellPlainText(cells[0]) : '';
+            var subjectId = cells[1] ? cellPlainText(cells[1]) : '—';
             var storeName = cells[2] ? cellPlainText(cells[2]) : '';
+            var originalPhone = storeFullPhone(tr);
             var initial = readVenuePhotos('store', storeId);
             if (!initial.store_header_pic && storeName) {
                 initial = readVenuePhotos('store', 'name:' + storeName);
             }
-            var bundle = createStoreFormBundle({ initialVenuePhotos: initial, storeCode: storeId });
+            var bundle = createStoreFormBundle({
+                initialVenuePhotos: initial,
+                storeCode: storeId
+            });
             bundle.fillFromArchiveRow(tr);
             var refs = bundle.refs || {};
-            function applyEdit() {
+            var pendingHandover = null;
+            function storeSnapshot() {
+                return {
+                    '门店编码': cellPlainText(cells[0]),
+                    '配送仓库': cellPlainText(cells[8]),
+                    '门店简称': tr.getAttribute('data-short-name') || storeName,
+                    '所在地区': tr.getAttribute('data-region') || '',
+                    '详细地址': tr.getAttribute('data-address') || '',
+                    '联系手机号': tr.getAttribute('data-phone') || originalPhone || ''
+                };
+            }
+            var before = storeSnapshot();
+            function findOtherStoreByPhone(newPhone) {
+                var otherStore = '';
+                var tbody = tr.parentNode;
+                if (!tbody) return otherStore;
+                Array.prototype.forEach.call(tbody.querySelectorAll('tr'), function (row) {
+                    if (row === tr || otherStore) return;
+                    var tds = row.querySelectorAll('td');
+                    if (tds[7] && storeFullPhone(row) === newPhone) otherStore = cellPlainText(tds[2]);
+                });
+                return otherStore;
+            }
+            function applyEdit(handover) {
+                if (!warehouseSelectionAvailable(refs.warehouseSel, before['配送仓库'])) return false;
                 var region = refs.regionInp ? String(refs.regionInp.value || '').trim() : '';
                 var nextCode = storeId;
                 var api = window.MdmStoreCode;
@@ -1798,6 +2552,8 @@
                 }
                 var nextName =
                     refs.nameInp ? String(refs.nameInp.value || '').trim() : storeName;
+                var nextContact = refs.contactInp ? String(refs.contactInp.value || '').trim() : '';
+                var nextPhone = refs.phoneInp ? String(refs.phoneInp.value || '').trim() : '';
                 var nextShort = nextName;
                 if (window.MdmStoreSiteSlot) {
                     var mapped = window.MdmStoreSiteSlot.getByStore(nextCode || storeId);
@@ -1812,86 +2568,118 @@
                     }
                 }
                 tr.setAttribute('data-short-name', nextShort || nextName || storeName);
+                if (cells[2]) {
+                    var nameLink = cells[2].querySelector('.subject-name-link');
+                    if (nameLink) nameLink.textContent = nextName || storeName;
+                    else cells[2].textContent = nextName || storeName;
+                }
+                if (cells[6]) cells[6].textContent = nextContact || '—';
+                if (nextPhone) {
+                    tr.setAttribute('data-phone', nextPhone);
+                    if (cells[7]) {
+                        cells[7].textContent = /^1\d{10}$/.test(nextPhone)
+                            ? nextPhone.slice(0, 3) + '****' + nextPhone.slice(7)
+                            : nextPhone;
+                    }
+                }
+                var bindings = readJsonStore('mdm_store_warehouse_bindings_v1');
+                if (nextCode !== storeId) bindings[storeId] = '';
+                bindings[nextCode] = selectedLabel(refs.warehouseSel);
+                writeJsonStore('mdm_store_warehouse_bindings_v1', bindings);
+                cells[8].textContent = bindings[nextCode];
                 syncStoreReceiveFromForm(nextCode || storeId, nextName || storeName, refs);
+                if (window.MdmOperationLog) {
+                    window.MdmOperationLog.record(
+                        'store',
+                        nextCode || storeId,
+                        handover ? '编辑门店（店长交接）' : '编辑门店',
+                        before,
+                        storeSnapshot()
+                    );
+                    if (handover) {
+                        window.MdmOperationLog.record(
+                            'store',
+                            nextCode || storeId,
+                            '更换门店店长',
+                            { 原店长手机号: originalPhone, 主体: subjectId },
+                            { 接任店长手机号: nextPhone, 主体: subjectId }
+                        );
+                    }
+                }
+                persistArchiveMaterials(refs, 'store', nextName || storeName);
+                return true;
             }
-            /* 【857】店长手机号变更：重绑本店主体 ID ↔ 店长 ID，先于其他必填校验 */
-            function checkPhoneChange() {
-                if (!(refs.isPhoneChanged && refs.isPhoneChanged())) return { changed: false };
-                var toast = function (m) {
-                    if (typeof showToast === 'function') showToast(m, 'error');
-                };
-                var newPhone = String(refs.phoneInp.value || '').trim();
-                if (!newPhone) {
-                    toast('请输入手机号码');
-                    refs.phoneInp.focus();
-                    return null;
-                }
-                if (!/^1\d{10}$/.test(newPhone)) {
-                    toast('请输入正确的 11 位手机号');
-                    refs.phoneInp.focus();
-                    return null;
-                }
-                var code = String(refs.verifyInp.value || '').trim();
-                if (!code) {
-                    toast('请输入验证码');
-                    refs.verifyInp.focus();
-                    return null;
-                }
-                if (code !== STORE_PHONE_DEMO_CODE) {
-                    toast('验证码错误或已过期');
-                    refs.verifyInp.focus();
-                    return null;
-                }
-                var masked = newPhone.slice(0, 3) + '****' + newPhone.slice(7);
-                var otherStore = '';
-                var tbody = tr.parentNode;
-                if (tbody) {
-                    Array.prototype.forEach.call(tbody.querySelectorAll('tr'), function (row) {
-                        if (row === tr || otherStore) return;
-                        var tds = row.querySelectorAll('td');
-                        if (tds[7] && storeFullPhone(row) === newPhone) otherStore = cellPlainText(tds[2]);
-                    });
-                }
-                return { changed: true, phone: newPhone, masked: masked, otherStore: otherStore };
-            }
-            var phoneCheck = null;
             attachWideModal(
                 '编辑门店',
                 bundle.body,
                 function () {
-                    if (!phoneCheck || !phoneCheck.changed) {
-                        applyEdit();
-                        return;
-                    }
-                    var pc = phoneCheck;
-                    var subjectId = cellPlainText(cells[1]) || (refs.subjectSel && selectedLabel(refs.subjectSel)) || '—';
-                    var storeCode = cellPlainText(cells[0]) || storeId || '—';
-                    var msg =
-                        '确认更换门店【' + (refs.nameInp.value || storeName) + '】的店长？\n' +
-                        '门店主体：' + subjectId + '（ID 不变）\n' +
-                        '门店编码：' + storeCode + '\n' +
-                        '原店长：' + (refs.originalPhone || '—') + '\n' +
-                        '接任店长：' + pc.phone + '\n' +
-                        '实际操作：解除本店主体 ID 与原店长 ID 的绑定，建立本店主体 ID 与接任店长 ID 的绑定。\n' +
-                        '手机号仅用于查找接任用户；代采单仍归属本门店主体，新店长按店长权限查看及处理。';
-                    if (pc.otherStore) {
-                        msg += '\n该手机号已是门店【' + pc.otherStore + '】的店长登录号，保存后接任用户可同时管理本店及其原有门店。';
-                    }
-                    showStorePhoneConfirm(msg, function () {
-                        if (cells[7]) cells[7].textContent = pc.masked;
-                        tr.setAttribute('data-phone', pc.phone);
-                        applyEdit();
-                        removeArchiveFormModals();
-                        if (typeof showToast === 'function') {
-                            showToast('已保存：本店主体已重新绑定店长，接任账号 ' + pc.phone, 'success');
+                    if (pendingHandover) {
+                        var pc = pendingHandover;
+                        var msg =
+                            '确认更换门店【' + storeName + '】的店长？\n' +
+                            '门店：' + (storeName || '—') + '（' + (storeId || '—') + '）\n' +
+                            '原店长：' + (originalPhone || '—') + '\n' +
+                            '接任店长：' + pc.phone + '\n' +
+                            '确认后，接任店长可登录并管理本店，原店长不再拥有本店管理权限。';
+                        if (pc.otherStore) {
+                            msg +=
+                                '\n该手机号已是门店【' +
+                                pc.otherStore +
+                                '】的店长登录号，保存后接任店长可同时管理本店及其原有门店。';
                         }
-                    });
-                    return false;
+                        showStorePhoneConfirm(msg, function () {
+                            if (applyEdit(true) === false) return;
+                            removeArchiveFormModals();
+                            if (typeof showToast === 'function') {
+                                showToast(
+                                    '已更换门店店长，接任店长可使用 ' + pc.phone + ' 登录并管理本店',
+                                    'success'
+                                );
+                            }
+                        });
+                        return false;
+                    }
+                    return applyEdit(false) !== false;
                 },
                 function () {
-                    phoneCheck = checkPhoneChange();
-                    return phoneCheck !== null;
-                }
+                    var toast = function (m) {
+                        if (typeof showToast === 'function') showToast(m, 'error');
+                    };
+                    pendingHandover = null;
+                    var phone = refs.phoneInp ? String(refs.phoneInp.value || '').trim() : '';
+                    if (!phone) {
+                        toast('请输入联系手机号');
+                        if (refs.phoneInp) refs.phoneInp.focus();
+                        return false;
+                    }
+                    if (!/^1\d{10}$/.test(phone)) {
+                        toast('请输入正确的 11 位联系手机号');
+                        if (refs.phoneInp) refs.phoneInp.focus();
+                        return false;
+                    }
+                    var changed = typeof refs.isPhoneChanged === 'function'
+                        ? refs.isPhoneChanged()
+                        : phone !== originalPhone;
+                    if (!changed) return true;
+                    if (refs.verifyRow) refs.verifyRow.style.display = '';
+                    var code = refs.verifyInp ? String(refs.verifyInp.value || '').trim() : '';
+                    if (!code) {
+                        toast('更换门店店长需填写验证码');
+                        if (refs.verifyInp) refs.verifyInp.focus();
+                        return false;
+                    }
+                    if (code !== STORE_PHONE_DEMO_CODE) {
+                        toast('验证码错误或已过期');
+                        if (refs.verifyInp) refs.verifyInp.focus();
+                        return false;
+                    }
+                    pendingHandover = {
+                        phone: phone,
+                        otherStore: findOtherStoreByPhone(phone)
+                    };
+                    return true;
+                },
+                '门店'
             );
         },
         openTraderAdd: function (onSaved) {
@@ -1909,7 +2697,20 @@
                     return false;
                 }
                 if (typeof onSaved === 'function') onSaved(created);
-            });
+                persistArchiveMaterials(bundle.refs, 'trader', payload.name);
+                enqueueEntryAudit({
+                    kind: 'trader',
+                    source: 'PC 创建贸易商',
+                    subjectName: payload.subjectName,
+                    subjectType: payload.subjectType,
+                    storeName: payload.name,
+                    shortName: payload.shortName,
+                    contact: payload.contact,
+                    phone: payload.phone,
+                    address: payload.detailAddr || ''
+                });
+                return ENTRY_AUDIT_TIP;
+            }, null, '贸易商');
         },
         openTraderEdit: function (tr, onSaved) {
             if (!tr) return;
@@ -1929,11 +2730,50 @@
                     return false;
                 }
                 if (typeof onSaved === 'function') onSaved(updated);
+                persistArchiveMaterials(bundle.refs, 'trader', payload.name);
+            }, null, '贸易商');
+        },
+        openProviderAdd: function (onSaved) {
+            var bundle = createTraderFormBundle('provider');
+            attachWideModal('新增服务商', bundle.body, function () {
+                if (!bundle.validate()) return false;
+                var payload = bundle.collect();
+                if (!window.MdmProviderArchiveStore || typeof window.MdmProviderArchiveStore.add !== 'function') {
+                    if (typeof showToast === 'function') showToast('服务商档案存储未加载', 'error');
+                    return false;
+                }
+                var created = window.MdmProviderArchiveStore.add(payload);
+                if (!created) {
+                    if (typeof showToast === 'function') showToast('新增失败，请检查必填项', 'error');
+                    return false;
+                }
+                if (typeof onSaved === 'function') onSaved(created);
+            });
+        },
+        openProviderEdit: function (tr, onSaved) {
+            if (!tr) return;
+            var bundle = createTraderFormBundle('provider');
+            bundle.fillFromArchiveRow(tr);
+            attachWideModal('编辑服务商', bundle.body, function () {
+                if (!bundle.validate()) return false;
+                var payload = bundle.collect();
+                var id = tr.getAttribute('data-provider-id') || (tr.querySelector('td') && tr.querySelector('td').textContent.trim());
+                if (!window.MdmProviderArchiveStore || typeof window.MdmProviderArchiveStore.update !== 'function') {
+                    if (typeof showToast === 'function') showToast('服务商档案存储未加载', 'error');
+                    return false;
+                }
+                var updated = window.MdmProviderArchiveStore.update(Object.assign({ id: id }, payload));
+                if (!updated) {
+                    if (typeof showToast === 'function') showToast('保存失败', 'error');
+                    return false;
+                }
+                if (typeof onSaved === 'function') onSaved(updated);
             });
         },
         openSupplierAdd: function () {
             var bundle = createSupplierFormBundle({ includeInboundWarehouse: true });
             attachWideModal('新增供应商', bundle.body, function () {
+                if (!warehouseSelectionAvailable(bundle.refs.inboundWarehouseSel, '')) return false;
                 var name =
                     bundle.refs && bundle.refs.nameInp
                         ? String(bundle.refs.nameInp.value || '').trim()
@@ -1946,17 +2786,52 @@
                     bundle.refs && bundle.refs.inboundWarehouseSel
                         ? String(bundle.refs.inboundWarehouseSel.value || '').trim()
                         : '';
+                var supplierId = 'SUP' + Date.now();
                 if (name) {
-                    saveSupplierInboundWarehouseBinding('', name, selectedWarehouse);
+                    saveSupplierInboundWarehouseBinding(supplierId, name, selectedWarehouse);
                     if (window.MdmSupplierArchiveStore) {
                         window.MdmSupplierArchiveStore.upsert({
-                            id: 'SUP' + Date.now(),
+                            id: supplierId,
                             name: name,
                             shortName: shortName
                         });
                     }
                 }
-            });
+                if (window.LFSettleCycleStore && bundle.refs && bundle.refs.readSettleCycle) {
+                    if (bundle.refs.settleTriggerSel) bundle.refs.settleTriggerSel.disabled = false;
+                    if (bundle.refs.settleCycleSel) bundle.refs.settleCycleSel.disabled = false;
+                    window.LFSettleCycleStore.saveSupplier(supplierId, name, bundle.refs.readSettleCycle());
+                }
+                var typeMap = { brand: '品牌商', agent: '代理商', person: '个人' };
+                var typeValue = bundle.refs && bundle.refs.typeSel ? bundle.refs.typeSel.value : '';
+                var row = {
+                    id: supplierId,
+                    subjectName: selectedLabel(bundle.refs.subjectSel) || '—',
+                    name: name,
+                    shortName: shortName || '-',
+                    region: bundle.refs.regionInp ? String(bundle.refs.regionInp.value || '').trim() : '',
+                    detail: bundle.refs.detailTa ? String(bundle.refs.detailTa.value || '').trim() : '',
+                    typeLabel: typeMap[typeValue] || typeValue || '—',
+                    contact: bundle.refs.contactInp ? String(bundle.refs.contactInp.value || '').trim() : '—',
+                    phone: bundle.refs.phoneInp ? String(bundle.refs.phoneInp.value || '').trim() : '—',
+                    warehouse: selectedWarehouse
+                };
+                if (window.MdmErpLists && typeof window.MdmErpLists.appendArchiveSupplierRow === 'function') {
+                    window.MdmErpLists.appendArchiveSupplierRow(row);
+                }
+                persistArchiveMaterials(bundle.refs, 'supplier', name);
+                enqueueEntryAudit({
+                    kind: 'supplier',
+                    source: 'PC 创建供应商',
+                    subjectName: selectedLabel(bundle.refs.subjectSel),
+                    storeName: name,
+                    shortName: shortName,
+                    contact: bundle.refs.contactInp ? String(bundle.refs.contactInp.value || '').trim() : '',
+                    phone: bundle.refs.phoneInp ? String(bundle.refs.phoneInp.value || '').trim() : '',
+                    address: bundle.refs.detailTa ? String(bundle.refs.detailTa.value || '').trim() : ''
+                });
+                return ENTRY_AUDIT_TIP;
+            }, null, '供应商');
         },
         openSupplierEdit: function (tr) {
             if (!tr) return;
@@ -1969,7 +2844,21 @@
                 initialInboundWarehouse: inboundWarehouse
             });
             bundle.fillFromArchiveRow(tr);
+            var before = {
+                '供应商名称': bundle.refs.nameInp.value.trim(),
+                '供应商简称': bundle.refs.shortNameInp.value.trim(),
+                '入库仓库': bundle.refs.inboundWarehouseSel
+                    ? bundle.refs.inboundWarehouseSel.value
+                    : ''
+            };
+            var settleBefore =
+                window.LFSettleCycleStore && window.LFSettleCycleStore.getSupplier
+                    ? window.LFSettleCycleStore.getSupplier(supplierId, supplierName)
+                    : null;
             attachWideModal('编辑供应商', bundle.body, function () {
+                if (!warehouseSelectionAvailable(bundle.refs.inboundWarehouseSel, before['入库仓库'])) {
+                    return false;
+                }
                 var nextName =
                     bundle.refs && bundle.refs.nameInp
                         ? String(bundle.refs.nameInp.value || '').trim()
@@ -1993,6 +2882,13 @@
                     nextName || supplierName,
                     selectedWarehouse
                 );
+                if (window.MdmOperationLog) {
+                    window.MdmOperationLog.record('supplier', supplierId, '编辑供应商', before, {
+                        '供应商名称': nextName || supplierName,
+                        '供应商简称': nextShort,
+                        '入库仓库': selectedWarehouse
+                    });
+                }
                 if (window.MdmSupplierArchiveStore) {
                     window.MdmSupplierArchiveStore.upsert({
                         id: supplierId,
@@ -2000,7 +2896,39 @@
                         shortName: nextShort
                     });
                 }
-            });
+                var settleChanged = false;
+                var settleAfter = null;
+                if (window.LFSettleCycleStore && bundle.refs && bundle.refs.readSettleCycle) {
+                    /* 禁用态 select 不进 required 校验，保存前临时启用以读值 */
+                    if (bundle.refs.settleTriggerSel) bundle.refs.settleTriggerSel.disabled = false;
+                    if (bundle.refs.settleCycleSel) bundle.refs.settleCycleSel.disabled = false;
+                    var nextSettle = bundle.refs.readSettleCycle();
+                    settleChanged = isSupplierSettleChanged(settleBefore, nextSettle);
+                    window.LFSettleCycleStore.saveSupplier(
+                        supplierId,
+                        nextName || supplierName,
+                        nextSettle
+                    );
+                    settleAfter = window.LFSettleCycleStore.getSupplier(
+                        supplierId,
+                        nextName || supplierName
+                    );
+                    if (cells[11] && window.LFSettleCycleStore.formatSupplierSettleSummary) {
+                        cells[11].textContent = window.LFSettleCycleStore.formatSupplierSettleSummary(
+                            supplierId,
+                            nextName || supplierName
+                        );
+                    }
+                }
+                if (settleChanged) {
+                    var finalName = nextName || supplierName;
+                    var finalId = supplierId;
+                    setTimeout(function () {
+                        confirmIssueSettleSupplement(finalId, finalName, settleAfter);
+                    }, 80);
+                }
+                persistArchiveMaterials(bundle.refs, 'supplier', nextName || supplierName);
+            }, null, '供应商');
         },
         openLiveRoomAdd: function () {
             attachWideModal('新增直播间', buildLiveRoomAddBody());
@@ -2028,7 +2956,8 @@
                         ? String(bundle.refs.nameInp.value || '').trim()
                         : '';
                 seedWarehouseReceiveFromForm(name || 'NEW-WH-' + String(Date.now()).slice(-6), bundle.refs);
-            });
+                persistArchiveMaterials(bundle.refs, 'warehouse', name);
+            }, null, '仓库');
         },
         openWarehouseEdit: function (tr) {
             if (!tr) return;
@@ -2036,9 +2965,16 @@
             var warehouseId = cells[0] ? cellPlainText(cells[0]) : '';
             var bundle = createWarehouseFormBundle();
             bundle.fillFromArchiveRow(tr);
+            var before = { '仓库名称': bundle.refs.nameInp.value.trim() };
             attachWideModal('编辑仓库', bundle.body, function () {
                 seedWarehouseReceiveFromForm(warehouseId, bundle.refs);
-            });
+                var nextName = bundle.refs.nameInp.value.trim();
+                var nameCell = cells[2].querySelector('.subject-name-link') || cells[2];
+                nameCell.textContent = nextName;
+                if (window.MdmOperationLog) window.MdmOperationLog.record('warehouse', warehouseId, '修改仓库', before,
+                    { '仓库名称': nextName });
+                persistArchiveMaterials(bundle.refs, 'warehouse', nextName);
+            }, null, '仓库');
         },
         close: removeArchiveFormModals
     };

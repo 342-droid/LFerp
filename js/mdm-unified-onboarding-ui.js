@@ -255,6 +255,23 @@
 
     function buildDefaultFields(opts, existingRecord) {
         var defaults = copyObj((opts && opts.fieldDefaults) || {});
+        if (window.MdmEntryMaterials && typeof window.MdmEntryMaterials.lookupForOnboarding === 'function') {
+            var fromEntry = window.MdmEntryMaterials.lookupForOnboarding(opts);
+            if (fromEntry && window.MdmEntryMaterials.fillEmptyOnboarding) {
+                defaults = window.MdmEntryMaterials.fillEmptyOnboarding(
+                    Object.assign(defaults, {
+                        license_info: Object.assign({}, fromEntry.license_info || {}, defaults.license_info || {}),
+                        legal_info: Object.assign({}, fromEntry.legal_info || {}, defaults.legal_info || {}),
+                        card_info: Object.assign({}, fromEntry.card_info || {}, defaults.card_info || {})
+                    }),
+                    (opts && opts.onboardingKind) || 'store',
+                    (opts && opts.merchantShortNameDefault) || ''
+                );
+                ['license_pic', 'legal_cert_front_pic', 'legal_cert_back_pic', 'open_license_pic'].forEach(function (key) {
+                    if (!defaults[key] && fromEntry[key]) defaults[key] = fromEntry[key];
+                });
+            }
+        }
         var existing = existingRecord && existingRecord.fields ? existingRecord.fields : {};
         var cardDef = defaults.card_info || {};
         var cardExisting = existing.card_info || {};
@@ -990,6 +1007,10 @@
         }
         body.addEventListener('input', syncLinkedOnboardFields);
         body.addEventListener('change', syncLinkedOnboardFields);
+        if (opts.lockLicenseCode && inputMap['license_info.code']) {
+            inputMap['license_info.code'].readOnly = true;
+            inputMap['license_info.code'].title = '营业执照证照编号审核通过后不可修改';
+        }
 
         function getInputVal(key) {
             if (key === 'legal_info.id_valid_date' || key === 'license_info.valid_date') {

@@ -1074,6 +1074,31 @@
   box-sizing: border-box;
 }
 
+.store-form__checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  padding-top: 4px;
+}
+
+.store-form__check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--color-text, #333);
+  cursor: pointer;
+}
+
+.store-form__field-tip {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.5;
+}
+
 /* 与「基础信息」板块标题同款：左侧蓝条，无卡片边框 */
 .store-form__collapse {
   margin: 0 0 14px;
@@ -1444,6 +1469,66 @@
 }
 
 .store-receive-card--editing,
+/* RBT 需求单详情 · 门店经营 / 本笔联营回收 */
+[data-rbt-store-biz-host] {
+  margin-top: var(--space-lg);
+}
+
+.rbt-demand-biz-chips {
+  flex-wrap: wrap;
+}
+
+.rbt-demand-biz-chip {
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background: #fff;
+  color: #606266;
+  font-size: 12px;
+  line-height: 26px;
+  cursor: pointer;
+}
+
+.rbt-demand-biz-chip:hover {
+  border-color: #1677ff;
+  color: #1677ff;
+}
+
+.rbt-demand-biz-chip.is-active {
+  border-color: #1677ff;
+  background: #e8f3ff;
+  color: #1677ff;
+  font-weight: 500;
+}
+
+.rbt-demand-biz-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.rbt-demand-biz-metric {
+  padding: 10px 12px;
+  background: #f7f9fc;
+  border-radius: 6px;
+}
+
+.rbt-demand-biz-metric__label {
+  font-size: 12px;
+  color: #909399;
+  margin-bottom: 4px;
+}
+
+.rbt-demand-biz-metric__value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #303133;
+  font-variant-numeric: tabular-nums;
+  word-break: break-all;
+}
+
 .store-receive-list {
   overflow: visible;
 }
@@ -1505,6 +1590,64 @@
 
 .store-drawer--supplier-wide {
   width: min(1180px, 98vw);
+}
+
+/* 供应商详情：结算信息在基础信息下方整宽展示 */
+.supplier-settle-block .supplier-detail-section-head {
+  margin-top: var(--space-lg);
+}
+
+.supplier-settle-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 24px;
+}
+
+.supplier-settle-field__label {
+  font-size: 12px;
+  color: #8c8c8c;
+  margin-bottom: 6px;
+}
+
+.supplier-settle-radios {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  font-size: 13px;
+  color: #333;
+}
+
+.supplier-settle-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.supplier-settle-select {
+  width: 100%;
+  max-width: 320px;
+  height: 36px;
+}
+
+.supplier-settle-form-footer {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.supplier-settle-contract-tip {
+  margin: 12px 0 0;
+}
+
+@media (max-width: 720px) {
+  .supplier-settle-form {
+    grid-template-columns: 1fr;
+  }
 }
 
 .store-drawer--store-wide {
@@ -2092,6 +2235,176 @@
   color: var(--color-text-muted);
   border-color: var(--color-border);
   background: #fafafa;
+}
+
+.store-drawer__tag--green {
+  color: #389e0d;
+  border-color: #b7eb8f;
+  background: #f6ffed;
+}
+
+.store-drawer__hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.store-drawer__hero-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.store-drawer__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.store-drawer__action {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 4px;
+  border: 1px solid #ff7019;
+  background: #fff;
+  color: #ff7019;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.store-drawer__action.is-primary {
+  background: #ff7019;
+  color: #fff;
+}
+
+.store-drawer__layout {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.store-drawer__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.store-drawer__rail {
+  width: 132px;
+  flex-shrink: 0;
+  border-left: 1px solid #f0f0f0;
+  padding: 8px 0;
+  overflow: auto;
+  background: #fff;
+}
+
+.store-drawer__anchor {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-left: 2px solid transparent;
+  background: transparent;
+  padding: 10px 12px;
+  text-align: left;
+  color: #595959;
+  font-size: 13px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.store-drawer__anchor.is-active {
+  color: #ff7019;
+  background: #fff7f0;
+  border-left-color: #ff7019;
+}
+
+.mdm-fold {
+  margin: 0 16px 12px;
+  border: 1px solid #ffe7d6;
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.mdm-fold__bar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: #fff7f0;
+  padding: 10px 14px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.mdm-fold__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #262626;
+  white-space: nowrap;
+}
+
+.mdm-fold__sub {
+  flex: 1;
+  min-width: 0;
+  color: #8c8c8c;
+  font-size: 12px;
+}
+
+.mdm-fold__chevron {
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid #8c8c8c;
+  border-bottom: 1.5px solid #8c8c8c;
+  transform: rotate(45deg);
+  flex-shrink: 0;
+}
+
+.mdm-fold.is-open .mdm-fold__chevron {
+  transform: rotate(-135deg);
+  margin-top: 4px;
+}
+
+.mdm-fold__body {
+  display: none;
+  padding: 14px 16px 16px;
+}
+
+.mdm-fold.is-open .mdm-fold__body {
+  display: block;
+}
+
+.mdm-fold .supplier-detail-section-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.mdm-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px 24px;
+}
+
+.mdm-detail-grid__label {
+  color: #8c8c8c;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.mdm-detail-grid__value {
+  color: #262626;
+  font-size: 14px;
+  word-break: break-all;
 }
 
 .store-drawer__meta {
@@ -3133,6 +3446,115 @@ select.store-ledger-filter__control {
   cursor: pointer;
   font-size: 13px;
   color: var(--color-text-muted);
+}
+
+/* 证照编辑：标签在上，字段两列，照片为虚线加号框 */
+.em-edit__title {
+  margin: 18px 0 12px;
+  font-size: 16px;
+  font-weight: 650;
+  color: #1f1f1f;
+  line-height: 1.3;
+}
+
+.em-edit:first-child .em-edit__title {
+  margin-top: 2px;
+}
+
+.em-edit__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 28px;
+  row-gap: 18px;
+  align-items: start;
+}
+
+.em-field {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  min-width: 0;
+}
+
+.em-field--full {
+  grid-column: 1 / -1;
+}
+
+.em-field__label {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #333;
+  text-align: left;
+}
+
+.subj-wiz .em-field .erp-input,
+.em-field .erp-input {
+  width: 100%;
+  height: 36px;
+  box-sizing: border-box;
+  border: 1px solid #f0d3b4;
+  border-radius: 6px;
+  background: #fff;
+  color: #333;
+}
+
+.em-field .erp-input::placeholder {
+  color: #c4b5a4;
+}
+
+.subj-wiz .em-field .unified-onboard-id-valid-ctrl .erp-input,
+.em-field .unified-onboard-id-valid-ctrl .erp-input {
+  width: auto;
+  flex: 1 1 160px;
+}
+
+.em-photo {
+  cursor: pointer;
+}
+
+.em-photo__box {
+  width: 188px;
+  height: 104px;
+  box-sizing: border-box;
+  border: 1px dashed #e8c9a6;
+  border-radius: 6px;
+  background: #fff6ec;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #c9b8a6;
+  font-size: 28px;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.em-photo__box.is-done {
+  font-size: 13px;
+  font-weight: 400;
+  color: #8a8178;
+  background: #fff;
+}
+
+.em-photo__hint {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #98a2b3;
+}
+
+.em-photo__hint a {
+  color: #1677ff;
+  text-decoration: none;
+}
+
+.em-tip {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #98a2b3;
 }
 
 .store-form__row--ocr {

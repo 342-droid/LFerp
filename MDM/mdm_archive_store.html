@@ -5,10 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>冷丰WMS - 门店档案</title>
     <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/lf-contract.css?v=20261112-contract-push">
     <link rel="stylesheet" href="../css/components.css">
-    <link rel="stylesheet" href="../css/lf-mdm-from-master.css?v=20260928-comm-dim">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css?v=20261117-em-grid">
+    <link rel="stylesheet" href="../css/lf-subject-add-wizard.css?v=20261117-archive-drawer">
     <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
     <style>
+        /* 操作列加在 td 上的 .action-links 全局是 display:flex，会把单元格收成一块贴在行顶的线框。这里拉回整行高度，链接左对齐。 */
+        .main-content .table.store-archive-table th.store-archive-actions,
+        .main-content .table.store-archive-table td.action-links {
+            position: sticky;
+            right: 0;
+            z-index: 10;
+            min-width: 360px;
+            background-color: #fff;
+            box-shadow: -2px 0 3px rgba(0,0,0,0.1);
+            display: table-cell !important;
+            vertical-align: middle;
+            white-space: nowrap;
+            text-align: left;
+            overflow: visible;
+            height: auto;
+        }
+        .main-content .table.store-archive-table th.store-archive-actions {
+            z-index: 13;
+            top: 0;
+            background-color: #f5f5f5;
+        }
+        .main-content .table.store-archive-table td.action-links a {
+            display: inline;
+            margin-right: 10px;
+            line-height: inherit;
+            vertical-align: baseline;
+        }
+        .main-content .table.store-archive-table td.action-links a:last-child {
+            margin-right: 0;
+        }
+        .main-content .table.store-archive-table td.bt-archive-col {
+            position: static !important;
+        }
+        .main-content .table.store-archive-table th.bt-archive-col {
+            right: auto !important;
+            z-index: 5 !important;
+        }
         .subject-name-link { color: #2196F3; text-decoration: none; font-weight: 600; }
         .subject-name-link:hover { text-decoration: underline; color: #1976D2; }
         .mdm-store-withdraw { color: #2196F3; text-decoration: none; cursor: pointer; }
@@ -209,7 +248,6 @@
             <div class="content-tabs"><button class="active">门店档案</button></div>
             <hr class="content-divider">
             <div class="content-title">业务伙伴 / 资源中心 / 门店档案</div>
-            <div class="mdm-biz-tip" role="note">门店编码由系统按所选城市自动生成，格式为 <strong>3 位城市码 + 5 位顺序码</strong>（如 SHA00023）。一经分配不得重复使用，门店注销后顺序码不回收。</div>
 
             <section class="search-section">
                 <form class="search-form">
@@ -250,6 +288,20 @@
                         </select>
                     </div>
                     <div class="form-group">
+                        <label>合同签署状态</label>
+                        <select id="qStoreContractStatus" style="height:36px;min-width:120px;border:1px solid #ddd;border-radius:3px;padding:0 8px;">
+                            <option value="">全部</option>
+                            <option value="未发起">未发起</option>
+                            <option value="签署中">签署中</option>
+                            <option value="已完成">已完成</option>
+                            <option value="已逾期">已逾期</option>
+                            <option value="已撤销">已撤销</option>
+                            <option value="已终止">已终止</option>
+                            <option value="作废中">作废中</option>
+                            <option value="已作废">已作废</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label>余额支付</label>
                         <select id="qStoreBalancePay" style="height:36px;min-width:120px;border:1px solid #ddd;border-radius:3px;padding:0 8px;">
                             <option value="">全部</option>
@@ -271,8 +323,8 @@
                         <label>门店状态</label>
                         <select id="qStoreStatus" style="height:36px;min-width:120px;border:1px solid #ddd;border-radius:3px;padding:0 8px;">
                             <option value="">全部</option>
-                            <option value="normal">启用</option>
-                            <option value="stopped">停用</option>
+                            <option value="normal">已启用</option>
+                            <option value="stopped">已冻结</option>
                         </select>
                     </div>
                     <div class="form-actions">
@@ -289,7 +341,7 @@
             </section>
             <section class="table-section">
                 <div class="table-scroll-container">
-                    <table class="table">
+                    <table class="table store-archive-table no-last-column-freeze">
                         <thead>
                             <tr>
                                 <th>门店编码</th>
@@ -308,7 +360,7 @@
                                 <th>结算类型</th>
                                 <th>门店状态</th>
                                 <th>创建时间</th>
-                                <th>操作</th>
+                                <th class="store-archive-actions">操作</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody">
@@ -316,11 +368,10 @@
                                 data-region="浙江省/杭州市/西湖区"
                                 data-address="杭州市西湖区绿城西溪世纪中心1号楼"
                                 data-latlng="120.07,30.28"
+                                data-phone="15312349562"
                                 data-withdraw="153****9562"
                                 data-settle-cycle="自然周"
                                 data-split="已开通"
-                                data-disable-blocks="retail:2,proxy:1,aftersale:0,withdraw:0"
-                                data-disable-warns="pendingPay:1,bind:128,balance:326.50"
                             >
                                 <td>HGH00002</td>
                                 <td>冷丰</td>
@@ -330,25 +381,51 @@
                                 <td>—</td>
                                 <td>喻巧</td>
                                 <td>153****9562</td>
-                                <td>华东履约仓 / WH–SH–01</td>
+                                <td>主仓库 / WH001</td>
                                 <td>营业中</td>
                                 <td class="mdm-store-hours-td" data-store-hours-col></td>
                                 <td>进件成功</td>
                                 <td>已开通</td>
                                 <td>对公</td>
-                                <td><span class="status active">正常</span></td>
+                                <td><span class="status active">已启用</span></td>
                                 <td>2026-08-01 09:00:00</td>
+                                <td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td>
+                            </tr>
+                            <tr
+                                data-region="浙江省/杭州市/余杭区"
+                                data-address="杭州市余杭区文一西路969号"
+                                data-latlng="120.02,30.28"
+                                data-phone="13856782201"
+                                data-withdraw="138****2201"
+                                data-settle-cycle="自然周"
+                                data-split="已开通"
+                            >
+                                <td>HGH00001</td>
+                                <td>杭州鲜丰水果有限公司</td>
+                                <td><a href="#" class="subject-name-link">鲜丰水果文一西路店</a></td>
+                                <td>加盟店</td>
+                                <td>社区生鲜店</td>
+                                <td>李泽峰</td>
+                                <td>周敏</td>
+                                <td>138****2201</td>
+                                <td>主仓库 / WH001</td>
+                                <td>营业中</td>
+                                <td class="mdm-store-hours-td" data-store-hours-col></td>
+                                <td>进件成功</td>
+                                <td>已开通</td>
+                                <td>对公</td>
+                                <td><span class="status active">已启用</span></td>
+                                <td>2026-08-18 16:20:00</td>
                                 <td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td>
                             </tr>
                             <tr
                                 data-region="北京市/市辖区/东城区"
                                 data-address="地下车库"
                                 data-latlng="—"
+                                data-phone="17812344646"
                                 data-withdraw="—"
                                 data-settle-cycle="—"
                                 data-split="未开通"
-                                data-disable-blocks=""
-                                data-disable-warns="pendingPay:0,bind:12,balance:0"
                             >
                                 <td>BJS00001</td>
                                 <td>冷丰演示门店</td>
@@ -364,7 +441,7 @@
                                 <td>未进件</td>
                                 <td>未提交</td>
                                 <td>—</td>
-                                <td><span class="status active">正常</span></td>
+                                <td><span class="status inactive">已冻结</span></td>
                                 <td>2026-04-29T22:53:02</td>
                                 <td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td>
                             </tr>
@@ -372,6 +449,7 @@
                                 data-region="天津市/市辖区/河东区"
                                 data-address="长三角珠宝产业园A3栋"
                                 data-latlng="117.25,39.12"
+                                data-phone="13812342211"
                                 data-withdraw="138****2211"
                                 data-settle-cycle="自然周"
                                 data-split="开启"
@@ -379,7 +457,7 @@
                                 <td>TSN00001</td>
                                 <td>冷丰演示门店</td>
                                 <td><a href="#" class="subject-name-link">111</a></td>
-                                <td>合作店</td>
+                                <td>联营店</td>
                                 <td>团购自提点</td>
                                 <td>公司11号</td>
                                 <td>张三</td>
@@ -390,7 +468,7 @@
                                 <td>进件成功</td>
                                 <td>已开通</td>
                                 <td>对公</td>
-                                <td><span class="status active">正常</span></td>
+                                <td><span class="status active">已启用</span></td>
                                 <td>2026-04-20 10:22:11</td>
                                 <td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td>
                             </tr>
@@ -398,6 +476,7 @@
                                 data-region="上海市/市辖区/浦东新区"
                                 data-address="张江路88号"
                                 data-latlng="121.58,31.20"
+                                data-phone="18612349001"
                                 data-withdraw="186****9001"
                                 data-settle-cycle="自然月"
                                 data-split="关闭"
@@ -405,7 +484,7 @@
                                 <td>SHA00001</td>
                                 <td>五角场体验店</td>
                                 <td><a href="#" class="subject-name-link">DDD</a></td>
-                                <td>同行店</td>
+                                <td>加盟店</td>
                                 <td>快闪零售</td>
                                 <td>李四</td>
                                 <td>李四</td>
@@ -416,11 +495,11 @@
                                 <td>进件中</td>
                                 <td>未提交</td>
                                 <td>对公</td>
-                                <td><span class="status active">正常</span></td>
+                                <td><span class="status active">已启用</span></td>
                                 <td>2026-04-19 15:01:44</td>
                                 <td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td>
                             </tr>
-                            <tr
+                            <tr data-store-status-source="已禁用"
                                 data-region="浙江省/杭州市/余杭区"
                                 data-address="文一西路969号"
                                 data-latlng="120.05,30.28"
@@ -431,7 +510,7 @@
                                 <td>HGH00001</td>
                                 <td>张江快闪店</td>
                                 <td><a href="#" class="subject-name-link">张三</a></td>
-                                <td>生鲜店</td>
+                                <td>加盟店</td>
                                 <td>社区便利店</td>
                                 <td>张三</td>
                                 <td>张三</td>
@@ -442,7 +521,7 @@
                                 <td>未进件</td>
                                 <td>未提交</td>
                                 <td>—</td>
-                                <td><span class="status active">正常</span></td>
+                                <td><span class="status inactive">已冻结</span></td>
                                 <td>2026-04-18 09:33:02</td>
                                 <td class="action-links"><a href="#" class="edit-btn">编辑</a> <a href="#" class="mdm-onboard-btn">去进件</a></td>
                             </tr>
@@ -457,24 +536,29 @@
     <script src="../js/pagination.js"></script>
     <script src="../js/form-utils.js"></script>
     <script src="../js/modal-manager.js"></script>
-    <script src="../js/page-manager.js"></script>
+    <script src="../js/page-manager.js?v=store-freeze-states"></script>
     <script src="../js/mdm-onboard-address.js?v=20260826-name-tip-wrap"></script>
     <script src="../js/mdm-store-region-cascader.js?v=20260909-store-code"></script>
     <script src="../js/mdm-store-code.js?v=20260909-store-code"></script>
     <script src="../js/mdm-store-site-slot.js?v=20260910-slot"></script>
-    <script src="../js/mdm-subject-pagemanager.js?v=20260826-name-tip-wrap"></script>
-    <script src="../js/mdm-unified-onboarding-ui.js?v=20260826-name-tip-wrap"></script>
-    <script src="../js/mdm-resource-archive-forms.js?v=20261116-857-bind"></script>
+    <script src="../js/mdm-subject-pagemanager.js?v=archive-disable-guard"></script>
+    <script src="../js/mdm-entry-materials.js?v=20261117-em-grid"></script>
+    <script src="../js/mdm-subject-add-wizard.js?v=20261118-phone-handover"></script>
+    <script src="../js/mdm-unified-onboarding-ui.js?v=20261112-contract-push"></script>
+    <script src="../js/store-biz-structure.js?v=20261021-internal"></script>
+    <script src="../js/mdm-resource-archive-forms.js?v=20261118-ops-copy"></script>
     <script src="../js/order-config-ui.js"></script>
-    <script src="../js/store-account-config.js?v=20260810-sac1"></script>
+    <script src="../js/store-account-config.js?v=20261112-deposit-gate"></script>
     <script src="../js/store-wallet-demo.js?v=20260911-other-fmt"></script>
     <script src="../js/store-bind-card-demo.js?v=20260806-bank"></script>
     <script src="../store-app/js/store-app-biz-orders.js?v=20260928-comm-range"></script>
     <script src="../js/mdm-receive-address-store.js?v=20260909-store-code"></script>
-    <script src="../js/mdm-archive-detail-drawer.js?v=20260928-comm-range"></script>
+    <script src="../js/contract-bodies.js?v=20261026-tpl-detail"></script>
+    <script src="../js/mdm-low-margin-gate.js?v=20261117-restrict-scheme"></script>
+    <script src="../js/basic-settings-contract.js?v=20261117-entry-audit"></script>
+    <script src="../js/mdm-archive-detail-drawer.js?v=20261118-no-peer"></script>
     <script src="../js/mdm-system-default-store.js?v=20260827-sys-default"></script>
-    <script src="../js/mdm-archive-enable-disable.js?v=20261110-wh-delivery-filter"></script>
-    <script src="../js/mdm-erp-lists.js?v=20261110-wh-delivery-filter"></script>
+    <script src="../js/mdm-erp-lists.js?v=20261118-857-op-phone"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         MdmErpLists.initArchiveStore();
