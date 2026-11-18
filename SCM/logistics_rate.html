@@ -290,6 +290,7 @@
             margin-left: 10px;
         }
     </style>
+<link rel="stylesheet" href="../css/logistics-native.css">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -308,7 +309,8 @@
 
             <div class="content-title">物流费率表</div>
 
-            <section class="search-section">
+            <div class="lf-fee-note">按订单渠道、履约方式、始发仓及目的区域匹配费率。零售门店自提：客户应收为 0，平台应结按结算折扣及服务项目独立计算。</div>
+<section class="search-section">
                 <form class="search-form" id="rateSearch">
                     <div class="form-group">
                         <label style="width: 70px;">始发地:</label>
@@ -323,7 +325,7 @@
                         <label style="width: 70px;">承运商:</label>
                         <select id="qCarrier">
                             <option value="">请选择</option>
-                            <option>SF 顺丰速运</option>
+                            <option>LFPT 冷丰平台</option><option>SF 顺丰速运</option>
                             <option>ZTO 中通快递</option>
                             <option>YTO 圆通速递</option>
                         </select>
@@ -426,7 +428,15 @@
                                 <th>操作</th>
                             </tr>
                         </thead>
-                        <tbody id="tableBody">
+                        <tbody id="tableBody"><tr data-native-fee-id="FREIGHT-RETAIL" data-fee-version="1" data-extra="否" data-extras="[]" data-upstairs="否" data-tiers='{"tiers":[{"start":"0","end":"∞","firstWeight":"20","firstPrice":"35","cont":"1"}]}'>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W001 南京仓</td><td>LFPT 冷丰平台</td><td>零售订单</td><td>平台配送</td><td>重量计费</td><td>常温</td><td>全国</td><td></td><td></td><td>1</td><td>-</td><td class="rate-fee-cell">首重20KG ¥35，续重¥1/KG</td><td class="rate-extra-cell">否</td><td class="rate-upstairs-cell">否</td><td>0.80</td><td>0.70</td><td><span class="status active">启用</span></td><td>2026-04-20 10:12:00</td><td>李四</td><td>2026-04-20 10:12:00</td><td>李四</td><td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td></tr><tr data-native-fee-id="FREIGHT-PROXY" data-fee-version="1" data-extra="否" data-extras="[]" data-upstairs="否" data-tiers='{"tiers":[{"start":"0","end":"∞","firstWeight":"20","firstPrice":"35","cont":"1"}]}'>
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td><td>W001 南京仓</td><td>LFPT 冷丰平台</td><td>代采订单</td><td>平台配送</td><td>重量计费</td><td>常温</td><td>全国</td><td></td><td></td><td>1</td><td>-</td><td class="rate-fee-cell">首重20KG ¥35，续重¥1/KG</td><td class="rate-extra-cell">否</td><td class="rate-upstairs-cell">否</td><td>0.80</td><td>0.70</td><td><span class="status active">启用</span></td><td>2026-04-20 10:12:00</td><td>李四</td><td>2026-04-20 10:12:00</td><td>李四</td><td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td></tr>
                             <tr data-extra="否" data-extras="[]" data-upstairs="否" data-tiers='{"tiers":[{"start":"0","end":"100","firstWeight":"25","firstPrice":"77","cont":"0.71"},{"start":"100","end":"∞","firstWeight":"25","firstPrice":"77","cont":"1.3"}]}'>
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
                                 <td>W001 南京仓</td>
@@ -612,7 +622,7 @@
                                 <td class="rate-upstairs-cell"><span class="rate-rule-empty">否</span></td>
                                 <td>1.00</td>
                                 <td>0.98</td>
-                                <td><span class="status active">启用</span></td>
+                                <td><span class="status inactive">禁用</span></td>
                                 <td>2026-05-06 11:20:00</td>
                                 <td>李四</td>
                                 <td>2026-05-06 11:20:00</td>
@@ -721,7 +731,7 @@
                 <span class="close" id="modalClose">&times;</span>
             </div>
             <form class="modal-form">
-                <div class="modal-section-title">基础信息</div>
+                <div class="modal-section-title">基础信息</div><div class="lf-fee-note" id="feeCustomerBasis">请选择渠道与履约方式</div>
                 <div class="modal-form-group">
                     <label>始发地 <span style="color: red;">*</span></label>
                     <select id="origin">
@@ -735,7 +745,7 @@
                     <label>承运商 <span style="color: red;">*</span></label>
                     <select id="carrier">
                         <option value="">请选择</option>
-                        <option>SF 顺丰速运</option>
+                        <option>LFPT 冷丰平台</option><option>SF 顺丰速运</option>
                         <option>ZTO 中通快递</option>
                         <option>YTO 圆通速递</option>
                     </select>
@@ -1030,7 +1040,9 @@
         </div>
     </div>
 
-    <script src="../js/common.js"></script>
+    <script src="../js/logistics-fee-core.js"></script>
+<script src="../js/logistics-native.js"></script>
+<script src="../js/common.js"></script>
     <script src="../js/pagination.js"></script>
     <script src="../js/form-utils.js"></script>
 <script src="../js/region-cascader.js"></script>
@@ -1038,6 +1050,7 @@
     <script src="../js/page-manager.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            window.LfNativeFreight.restoreRates();
             function setSelectByText(selectId, text) {
                 const sel = document.getElementById(selectId);
                 if (!sel) return;
@@ -2211,6 +2224,7 @@
                         const upstairsConfig = collectUpstairsConfig();
                         const operator = getRateOperatorName();
                         const now = page.getCurrentTimeStr();
+                        if (page.currentEditRow) { page.currentEditRow.dataset.feeVersion = String(Number(page.currentEditRow.dataset.feeVersion || 1) + 1); }
                         if (page.currentEditRow) {
                             page.updateTableRow(page.currentEditRow, {
                                 [RATE_COL.origin]: data.origin,
@@ -2264,7 +2278,8 @@
                             writeRowUpstairs(row, data.upstairsFee, upstairsConfig);
                             writeRowEnabled(row, data.isEnabled);
                         }
-                        showToast('物流费率已保存', 'success');
+                        window.LfNativeFreight.captureRates();
+                        showToast('物流费率已保存，历史费用快照保持不变', 'success');
                         page.currentEditRow = null;
                     }
                 },
@@ -2272,6 +2287,7 @@
             });
 
             page.init();
+            window.LfNativeFreight.initRates();
 
             bindDecimalInput(document.getElementById('ratioLeft'));
             bindDecimalInput(document.getElementById('ratioRight'));

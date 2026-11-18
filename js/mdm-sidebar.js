@@ -67,7 +67,8 @@
         { href: 'mdm_archive_store.html', text: '门店档案' },
         { href: 'mdm_archive_supplier.html', text: '供应商档案' },
         { href: 'mdm_archive_warehouse.html', text: '仓库档案' },
-        { href: 'mdm_archive_trader.html', text: '贸易商档案' }
+        { href: 'mdm_archive_trader.html', text: '贸易商档案' },
+        { href: 'mdm_archive_provider.html', text: '服务商档案' }
     ];
 
     const peopleItems = [
@@ -115,6 +116,44 @@
         { href: 'mdm_audit_cash_redpack_manual.html', text: '派发红包' }
     ];
 
+    /** 经营驾驶舱 · 全景 */
+    const opsOverviewItems = [
+        { href: 'mdm_ops_biz_overview.html', text: '全景总览' }
+    ];
+    /** 销售经营 */
+    const opsSalesItems = [
+        { href: 'mdm_ops_sales_live.html', text: '直播经营' },
+        { href: 'mdm_ops_sales_mall.html', text: '商城经营' },
+        { href: 'mdm_ops_sales_pos.html', text: 'POS经营' },
+        { href: 'mdm_ops_sales_store.html', text: '门店经营' },
+        { href: 'mdm_ops_sales_goods.html', text: '商品经营' },
+        { href: 'mdm_ops_sales_customer.html', text: '顾客经营' }
+    ];
+    /** RBT 联营 */
+    const opsRbtItems = [
+        { href: 'mdm_ops_rbt_demand.html', text: '需求与接单' },
+        { href: 'mdm_ops_rbt_recoup.html', text: '联营投入与回收' },
+        { href: 'mdm_ops_rbt_trader.html', text: '贸易商经营' }
+    ];
+    /** 供货与履约 */
+    const opsSupplyItems = [
+        { href: 'mdm_ops_supply_supplier.html', text: '供应商经营' },
+        { href: 'mdm_ops_supply_warehouse.html', text: '仓库经营' },
+        { href: 'mdm_ops_supply_fulfill.html', text: '履约时效' }
+    ];
+    /** 结算与资金 */
+    const opsSettleItems = [
+        { href: 'mdm_ops_settle_finance.html', text: '财务确认收入' },
+        { href: 'mdm_ops_settle_ar.html', text: '应收与到账' },
+        { href: 'mdm_ops_settle_deduct.html', text: '扣费与回收' },
+        { href: 'mdm_ops_settle_diff.html', text: '对账差异' }
+    ];
+    /** 售后／预警 */
+    const opsRiskItems = [
+        { href: 'mdm_ops_aftersale.html', text: '售后分析' },
+        { href: 'mdm_ops_alert.html', text: '经营预警' }
+    ];
+
     function groupHasActive(items) {
         return items.some(function (item) { return hrefMatchesCurrentPage(item.href); });
     }
@@ -131,6 +170,20 @@
         isMemberSystemPage ||
         isMemberPointsPage ||
         /^mdm_member_/i.test(currentPage);
+    const isOpsOverviewPage = groupHasActive(opsOverviewItems);
+    const isOpsSalesPage = groupHasActive(opsSalesItems);
+    const isOpsRbtPage = groupHasActive(opsRbtItems);
+    const isOpsSupplyPage = groupHasActive(opsSupplyItems);
+    const isOpsSettlePage = groupHasActive(opsSettleItems);
+    const isOpsRiskPage = groupHasActive(opsRiskItems);
+    const isOpsPage =
+        isOpsOverviewPage ||
+        isOpsSalesPage ||
+        isOpsRbtPage ||
+        isOpsSupplyPage ||
+        isOpsSettlePage ||
+        isOpsRiskPage ||
+        /^mdm_ops_/i.test(currentPage);
     const isMarketingAuditPage = groupHasActive(marketingAuditItems);
     const isRbtAuditPage = groupHasActive(rbtAuditItems);
     const isAuditPage = groupHasActive(auditItems) || isMarketingAuditPage || isRbtAuditPage;
@@ -176,6 +229,15 @@
             renderCollapsibleGroup('会员360', '基础信息', member360Items, true) +
             renderCollapsibleGroup('会员体系', '策略管理', memberSystemItems, true) +
             renderCollapsibleGroup('积分管理', '任务管理', memberPointsItems, true);
+    } else if (isOpsPage) {
+        /** 顶栏「经营」：平台经营驾驶舱 */
+        itemsHtml =
+            renderCollapsibleGroup('全景总览', '策略管理', opsOverviewItems, isOpsOverviewPage || (!isOpsSalesPage && !isOpsRbtPage && !isOpsSupplyPage && !isOpsSettlePage && !isOpsRiskPage)) +
+            renderCollapsibleGroup('销售经营', '策略管理', opsSalesItems, isOpsSalesPage) +
+            renderCollapsibleGroup('RBT联营经营', '策略管理', opsRbtItems, isOpsRbtPage) +
+            renderCollapsibleGroup('供货与履约', '任务管理', opsSupplyItems, isOpsSupplyPage) +
+            renderCollapsibleGroup('结算与资金', '任务管理', opsSettleItems, isOpsSettlePage) +
+            renderCollapsibleGroup('售后与预警', '权限管理', opsRiskItems, isOpsRiskPage);
     } else {
         itemsHtml =
             renderCollapsibleGroup('商家主体', '基础信息', partyItems, isPartyPage) +
@@ -188,7 +250,7 @@
         return;
     }
 
-    var sidebarTitle = isMemberPage ? '冷丰会员' : '冷丰MDM';
+    var sidebarTitle = isMemberPage ? '冷丰会员' : isOpsPage ? '经营驾驶舱' : '冷丰MDM';
 
     sidebarContainer.innerHTML =
         '<aside class="sidebar" id="sidebar">' +

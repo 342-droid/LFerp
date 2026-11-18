@@ -4540,6 +4540,10 @@
     }
     clearingCard.appendChild(clearingHead);
     clearingCard.appendChild(buildClearingBody(detail));
+    if (window.LfNativeFreight && detail.freightSnapshot) {
+      var freightBlock = el("div", "order-detail-clearing", window.LfNativeFreight.clearingHtml(detail.freightSnapshot));
+      clearingCard.appendChild(freightBlock);
+    }
     main.appendChild(clearingCard);
 
     var logCard = el('div', 'order-detail-card');
@@ -4805,6 +4809,7 @@
   function openDrawer(orderId, row) {
     closeDrawer();
     var detail = DETAILS[orderId] || fallbackDetail(orderId, row);
+    if (window.LfNativeFreight) detail = window.LfNativeFreight.decorateOrder(detail, orderId);
     if (row) {
       detail.listPayNo = readListPayNo(row, detail);
       var sceneEl = row.querySelector('.order-scene');

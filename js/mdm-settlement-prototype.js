@@ -148,6 +148,13 @@
         {seq:2,id:'CF_360166011',carrier:'顺丰速运',carrierId:'SF',account:'6666000219001100',freight:'96.20',orders:5,status:'已结款',created:'2026-09-18 09:30',cycle:'2026-09-17',posted:'2026-09-18 11:06',flow:'平台结算账户 → 承运商基本账户'},
         {seq:1,id:'CF_360155008',carrier:'申通快递',carrierId:'STO',account:'6666000219002200',freight:'54.80',orders:3,status:'结款失败',created:'2026-09-16 09:30',cycle:'2026-09-15',posted:'',flow:'平台结算账户 → 承运商基本账户',reason:'收款账户校验失败'}
     ];
+    if (window.LfNativeFreight) {
+      var nativeFreightSnapshots;
+      try { nativeFreightSnapshots = window.LfNativeFreight.snapshots(); } catch (_) { nativeFreightSnapshots = []; }
+      nativeFreightSnapshots.forEach(function(g,i){
+        carrierPending.unshift({seq:100+i,id:'CF_'+g.id,carrier:'冷丰平台（承运商角色）',carrierId:'LFPT',account:'6666****6395',freight:(g.payable/100).toFixed(2),orders:1,status:'待提交',created:'2026-11-13 10:00',cycle:'按原结算策略',blocked:false,reason:'',nativeSnapshot:g});
+      });
+    }
     var commissions = [
         {seq:182,id:'ST_358643444144418816',supplier:'南京马群枢纽供应商',payee:'上海冷丰科技有限公司',type:'平台',amount:'0.02',orders:'2',status:'待生成',posting:'',related:'ST_358643443066482688',created:'2026-09-17 00:01'},
         {seq:181,id:'ST_357556280904126464',supplier:'斯斯供应商商家',payee:'上海冷丰科技有限公司',type:'平台',amount:'0.24',orders:'1',status:'待生成',posting:'已到账',related:'ST_357556279620669440',created:'2026-09-14 00:01'},
@@ -630,10 +637,10 @@
         if (state.view==='carrier') {
             var cf=carrierPending.concat(carrierStatements).find(function(r){return r.id===id;}) || carrierPending[0];
             var prefix=cf.carrierId||'SF';
-            var mode='快递';
+            var mode=cf.nativeSnapshot?'平台配送':'快递';
             var bad=!!cf.blocked||cf.status==='结款失败';
             var lines=[
-                '<tr><td>ORD-2609241001</td><td>'+prefix+'10992881001</td><td>'+h(mode)+'</td><td>'+h(cf.carrier)+'</td><td class="money">'+cash(cf.freight)+'</td><td>'+tag(bad?'异常':'已出账')+'</td><td>'+h(cf.reason||'—')+'</td></tr>'
+                '<tr><td>'+h(cf.nativeSnapshot?cf.nativeSnapshot.main.id:'ORD-2609241001')+'</td><td>'+h(cf.nativeSnapshot?cf.nativeSnapshot.id:prefix+'10992881001')+'</td><td>'+h(mode)+'</td><td>'+h(cf.carrier)+'</td><td class="money">'+cash(cf.freight)+'</td><td>'+tag(bad?'异常':'已出账')+'</td><td>'+h(cf.reason||'—')+'</td></tr>'
             ];
             var payRows=cf.status==='已结款'
                 ? ['<tr><td>1</td><td>付款</td><td>平台结算账户</td><td>'+h(cf.carrier)+'基本账户</td><td class="money">'+cash(cf.freight)+'</td><td>'+tag('已到账')+'</td><td>运费结算，不分佣</td><td>'+h(cf.posted)+'</td></tr>']
@@ -646,7 +653,8 @@
                     ['付款方','平台结算账户'],['付款账户','6666000202016395'],['收款方',h(cf.carrier)],['收款账户',h(cf.account||'—')],['收款账户类型','承运商基本账户'],
                     ['资金流',h(cf.flow||'平台结算账户 → 承运商基本账户')],['到账后分佣','不分佣'],['关联供应商结算单','无，独立结算'],
                     ['异常原因',h(cf.reason||'—')],['创建时间',h(cf.created)],['入账时间',h(cf.posted||'—')]]))+
-                card('运费明细',table(['销售订单号','运单号','履约方式','承运商','运费','出账状态','异常'],lines))+
+                (cf.nativeSnapshot ? card('履约运费明细',window.LfNativeFreight.clearingHtml(cf.nativeSnapshot)) : '')+
+                card('运费明细',table(['销售订单号',cf.nativeSnapshot?'履约订单号':'运单号','履约方式','承运商','运费','出账状态','异常'],lines))+
                 card('收付款记录',table(['序号','方向','付款方','收款方','金额','状态','说明','时间'],payRows));
         }
         if (state.view==='commission') {

@@ -118,6 +118,149 @@
         );
     }
 
+    function bizApi() {
+        return window.RbtTraderStoreBiz || null;
+    }
+
+    function storeBizMetric(label, valueHtml) {
+        return (
+            '<div class="rbt-demand-biz-metric"><div class="rbt-demand-biz-metric__label">' +
+            esc(label) +
+            '</div><div class="rbt-demand-biz-metric__value">' +
+            valueHtml +
+            '</div></div>'
+        );
+    }
+
+    function storeBizSection(item, rangeId) {
+        var api = bizApi();
+        var range = rangeId || '30d';
+        var options = (api && api.RANGE_OPTIONS) || [
+            { id: '30d', label: '近30天' },
+            { id: '90d', label: '近90天' },
+            { id: '12m', label: '近12个月' }
+        ];
+        var chips = options
+            .map(function (opt) {
+                return (
+                    '<button type="button" class="rbt-demand-biz-chip' +
+                    (opt.id === range ? ' is-active' : '') +
+                    '" data-rbt-biz-range="' +
+                    esc(opt.id) +
+                    '">' +
+                    esc(opt.label) +
+                    '</button>'
+                );
+            })
+            .join('');
+        var head =
+            '<div class="supplier-detail-section-head">' +
+            '<div class="supplier-detail-section-title">门店经营概览</div>' +
+            '<div class="supplier-detail-section-head__actions rbt-demand-biz-chips">' +
+            chips +
+            '</div></div>';
+
+        if (!api || typeof api.buildStoreOverview !== 'function') {
+            return (
+                head +
+                '<div class="rbt-demand-empty">经营数据组件未加载</div>'
+            );
+        }
+
+        var ready =
+            typeof api.overviewReadyForDemand === 'function'
+                ? api.overviewReadyForDemand(item)
+                : false;
+        var ov = api.buildStoreOverview(item && item.storeCode, range, {
+            ready: ready,
+            storeName: item && item.storeName
+        });
+        if (!ov.ready) {
+            return (
+                head +
+                '<div class="rbt-demand-empty">' +
+                esc(ov.tip || '签署完成前暂无可查看经营概览') +
+                '</div>'
+            );
+        }
+        var moneyFn = typeof api.money === 'function' ? api.money : function (n) {
+            return money(n).replace(/^¥/, '');
+        };
+        return (
+            head +
+            '<div class="rbt-demand-biz-grid" data-rbt-biz-grid>' +
+            storeBizMetric('支付成交', '¥' + esc(moneyFn(ov.paid))) +
+            storeBizMetric('退款', '¥' + esc(moneyFn(ov.refund))) +
+            storeBizMetric('净成交', '¥' + esc(moneyFn(ov.net))) +
+            storeBizMetric('订单数', esc(ov.orders == null ? '—' : ov.orders)) +
+            storeBizMetric('客单价', ov.aov == null ? '—' : '¥' + esc(moneyFn(ov.aov))) +
+            storeBizMetric('活跃天数', esc(ov.activeDays == null ? '—' : ov.activeDays)) +
+            '</div>'
+        );
+    }
+
+    function jvDailyTable(rows) {
+        if (!rows || !rows.length) {
+            return '<div class="rbt-demand-empty">暂无每日还款明细</div>';
+        }
+        var head = '<tr><th>日期</th><th class="is-money">回款金额</th></tr>';
+        var api = bizApi();
+        var moneyFn = api && typeof api.money === 'function' ? api.money : function (n) {
+            return String(n);
+        };
+        var body = rows
+            .map(function (row) {
+                return (
+                    '<tr><td>' +
+                    esc(row.d) +
+                    '</td><td class="is-money">¥' +
+                    esc(moneyFn(row.a)) +
+                    '</td></tr>'
+                );
+            })
+            .join('');
+        return (
+            '<div class="rbt-demand-table-wrap" data-rbt-jv-daily-table style="display:none;margin-top:10px;">' +
+            '<table class="rbt-demand-table"><thead>' +
+            head +
+            '</thead><tbody>' +
+            body +
+            '</tbody></table></div>'
+        );
+    }
+
+    function jvRecoupSection(item) {
+        var api = bizApi();
+        if (!api || typeof api.buildDemandJv !== 'function') return '';
+        var jv = api.buildDemandJv(item);
+        if (!jv || !jv.show) return '';
+        var title =
+            '<div class="supplier-detail-section-title">本笔联营回收</div>';
+        if (!jv.started) {
+            return (
+                title +
+                '<div class="rbt-demand-empty">' +
+                esc(jv.tip || '本笔尚未开始日结付款') +
+                '</div>'
+            );
+        }
+        var moneyFn = typeof api.money === 'function' ? api.money : function (n) {
+            return String(n);
+        };
+        return (
+            title +
+            '<div class="rbt-demand-biz-grid">' +
+            storeBizMetric('约定回收', '¥' + esc(moneyFn(jv.agreed))) +
+            storeBizMetric('已回收', '¥' + esc(moneyFn(jv.actual))) +
+            storeBizMetric('剩余', '¥' + esc(moneyFn(jv.remain))) +
+            storeBizMetric('状态', esc(jv.status || '—')) +
+            storeBizMetric('预估', esc(jv.estLabel || '—')) +
+            '</div>' +
+            '<button type="button" class="rbt-demand-contract-link" data-rbt-jv-daily-toggle style="margin-top:10px;">查看每日还款</button>' +
+            jvDailyTable(jv.dailyRows)
+        );
+    }
+
     function skuTable(items) {
         var head = '<tr><th>商品编码</th><th>商品名称</th><th class="is-money">售价</th><th class="is-money">数量</th></tr>';
         var body = !items || !items.length
@@ -339,10 +482,14 @@
         );
     }
 
-    function basePanel(item) {
+    function basePanel(item, bizRange) {
         return (
             '<div class="supplier-detail-tab">' +
             storeQuotaSection(item) +
+            '<div data-rbt-store-biz-host>' +
+            storeBizSection(item, bizRange || '30d') +
+            '</div>' +
+            jvRecoupSection(item) +
             '<div class="supplier-detail-section-title">基础信息</div><div class="supplier-detail-grid">' +
             textCell('需求单号', item.code) +
             statusCell('状态', item.status) +
@@ -409,6 +556,26 @@
                 tradeApi.openByCode(code);
             });
         });
+        if (!drawer.__rbtBizBound) {
+            drawer.__rbtBizBound = true;
+            drawer.addEventListener('click', function (event) {
+                var rangeBtn = event.target.closest('[data-rbt-biz-range]');
+                if (rangeBtn && drawer.contains(rangeBtn)) {
+                    var range = rangeBtn.getAttribute('data-rbt-biz-range') || '30d';
+                    var host = drawer.querySelector('[data-rbt-store-biz-host]');
+                    if (host) host.innerHTML = storeBizSection(item, range);
+                    return;
+                }
+                var dailyToggle = event.target.closest('[data-rbt-jv-daily-toggle]');
+                if (dailyToggle && drawer.contains(dailyToggle)) {
+                    var dailyTable = drawer.querySelector('[data-rbt-jv-daily-table]');
+                    if (!dailyTable) return;
+                    var opened = dailyTable.style.display !== 'none';
+                    dailyTable.style.display = opened ? 'none' : 'block';
+                    dailyToggle.textContent = opened ? '查看每日还款' : '收起每日还款';
+                }
+            });
+        }
     }
 
     function closeDrawer() {
