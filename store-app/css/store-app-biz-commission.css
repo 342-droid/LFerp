@@ -250,11 +250,26 @@
   padding: 12px 12px 0;
 }
 
+.sa-biz-filter__meta {
+  margin: -4px 0 8px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #71727a;
+}
+
+.sa-biz-filter__meta--muted {
+  margin-top: -4px;
+  color: #acadb6;
+}
+
 .sa-biz-range {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   margin-bottom: 12px;
-  justify-content: space-between;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .sa-biz-range__btn {

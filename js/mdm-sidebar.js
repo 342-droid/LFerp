@@ -50,6 +50,10 @@
         if (!samePath && hrefBase === 'mdm_member_points_cash' && currentPage === 'mdm_member_points_cash_form') {
             samePath = true;
         }
+        // 单店经营详情归属「门店经营比较」
+        if (!samePath && hrefBase === 'mdm_data_biz_stores' && currentPage === 'mdm_data_biz_store_detail') {
+            samePath = true;
+        }
         if (!samePath) return false;
         var curHash = String(window.location.hash || '').replace(/^#/, '');
         if (!hash) {
@@ -101,6 +105,14 @@
         { href: 'mdm_member_points_detail.html', text: '积分明细' }
     ];
 
+    /** 平台数据中心 · 经营数据（运营数据另议） */
+    const dataBizItems = [
+        { href: 'mdm_data_biz_overview.html', text: '经营总览' },
+        { href: 'mdm_data_biz_retail.html', text: '零售经营' },
+        { href: 'mdm_data_biz_proxy.html', text: '代采经营' },
+        { href: 'mdm_data_biz_stores.html', text: '门店经营比较' }
+    ];
+
     const auditItems = [
         { href: 'mdm_audit_store_registration.html', text: '入驻审核' },
         { href: 'mdm_audit_store_registration.html#onboarding-review', text: '进件审核' }
@@ -132,6 +144,9 @@
         isMemberSystemPage ||
         isMemberPointsPage ||
         /^mdm_member_/i.test(currentPage);
+    const isDataBizPage =
+        groupHasActive(dataBizItems) ||
+        /^mdm_data_biz_/i.test(currentPage);
     const isMarketingAuditPage = groupHasActive(marketingAuditItems);
     const isRbtAuditPage = groupHasActive(rbtAuditItems);
     const isAuditPage = groupHasActive(auditItems) || isMarketingAuditPage || isRbtAuditPage;
@@ -177,6 +192,9 @@
             renderCollapsibleGroup('会员360', '基础信息', member360Items, true) +
             renderCollapsibleGroup('会员体系', '策略管理', memberSystemItems, true) +
             renderCollapsibleGroup('积分管理', '任务管理', memberPointsItems, true);
+    } else if (isDataBizPage) {
+        /** 顶栏「数据中心」：本期仅经营数据 */
+        itemsHtml = renderCollapsibleGroup('经营数据', '策略管理', dataBizItems, true);
     } else {
         itemsHtml =
             renderCollapsibleGroup('商家主体', '基础信息', partyItems, isPartyPage) +
@@ -189,7 +207,11 @@
         return;
     }
 
-    var sidebarTitle = isMemberPage ? '冷丰会员' : '冷丰MDM';
+    var sidebarTitle = isMemberPage
+        ? '冷丰会员'
+        : isDataBizPage
+          ? '平台数据中心'
+          : '冷丰MDM';
 
     sidebarContainer.innerHTML =
         '<aside class="sidebar" id="sidebar">' +

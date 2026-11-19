@@ -4,24 +4,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>佣金明细 · 丰银宝</title>
-  <link rel="stylesheet" href="../css/store-app.css?v=20261117-rpt27">
-  <link rel="stylesheet" href="../css/store-app-biz-report.css?v=20261117-rpt27">
-  <link rel="stylesheet" href="../css/store-app-biz-commission.css?v=20261117-rpt27">
+  <!-- UI：等价于 Time Machine 本地快照 2026-11-19-123921（佣金 HTML/CSS 自 11:05 未改；挂载需本机密码，改用 Cursor Local History 5a14de00/4iyL.html + store-app-biz-commission.css） -->
+  <link rel="stylesheet" href="../css/store-app.css?v=20261119-fix2">
+  <link rel="stylesheet" href="../css/store-app-biz-report.css?v=20261119-fix2">
+  <link rel="stylesheet" href="../css/store-app-biz-commission.css?v=20261119-fix2">
 </head>
 <body class="store-app-body">
   <div class="sa-shell sa-biz-shell">
     <div class="sa-biz">
       <div class="sa-biz-scroll">
         <div class="sa-biz-topline" role="tablist">
-          <a class="sa-biz-topline__tab" href="biz-center.html">总览</a>
+          <a class="sa-biz-topline__tab" id="bizBackOverview" href="biz-center.html">总览</a>
           <span class="sa-biz-topline__tab is-active">佣金明细</span>
           <i class="sa-biz-topline__ink" aria-hidden="true"></i>
         </div>
 
-        <div class="sa-biz-mode" id="bizDimTabs" role="tablist">
-          <button type="button" class="sa-biz-mode__btn is-active" data-dim="order">下单日期</button>
-          <button type="button" class="sa-biz-mode__btn" data-dim="credit">入账日期</button>
-          <button type="button" class="sa-biz-mode__btn" data-dim="pay" hidden>支付时间</button>
+        <div class="sa-biz-mode" id="bizDimTabs" role="tablist" aria-label="统计维度" style="width:220px">
+          <button type="button" class="sa-biz-mode__btn is-active" data-dim="pay">按支付时间</button>
+          <button type="button" class="sa-biz-mode__btn" data-dim="settle">按结算时间</button>
         </div>
 
         <section class="sa-biz-summary">
@@ -40,42 +40,45 @@
             </div>
             <button type="button" class="sa-biz-summary__withdraw" id="bizWithdrawBtn">去提现</button>
           </div>
-          <div class="sa-biz-summary__extra" id="bizExtraLabel">实际到账佣金</div>
+          <div class="sa-biz-summary__extra" id="bizExtraLabel">所选期间佣金</div>
           <div class="sa-biz-summary__total" id="bizTotalLine">
-            累计实际到账佣金 <em>0.00</em> 元 <em>0</em>单
+            所选期间佣金 <em>0.00</em> 元 <em>0</em>单
           </div>
         </section>
 
-        <section class="sa-biz-period" id="bizPeriodStrip" aria-label="分时段预估">
+        <section class="sa-biz-period" id="bizPeriodStrip" aria-label="分时段预估佣金">
           <div class="sa-biz-period__cell">
-            <div class="sa-biz-period__t">今日预到账</div>
+            <div class="sa-biz-period__t">今日预估</div>
             <div class="sa-biz-period__v" id="bizPeriodToday">0</div>
             <div class="sa-biz-period__s" id="bizPeriodTodayCnt">0单</div>
           </div>
           <div class="sa-biz-period__cell">
-            <div class="sa-biz-period__t">昨日预到账</div>
+            <div class="sa-biz-period__t">昨日预估</div>
             <div class="sa-biz-period__v" id="bizPeriodYday">0</div>
             <div class="sa-biz-period__s" id="bizPeriodYdayCnt">0单</div>
           </div>
           <div class="sa-biz-period__cell">
-            <div class="sa-biz-period__t">本周预到账</div>
+            <div class="sa-biz-period__t">近7天预估</div>
             <div class="sa-biz-period__v" id="bizPeriodWeek">0</div>
             <div class="sa-biz-period__s" id="bizPeriodWeekCnt">0单</div>
           </div>
           <div class="sa-biz-period__cell">
-            <div class="sa-biz-period__t">本月预到账</div>
+            <div class="sa-biz-period__t">近30天预估</div>
             <div class="sa-biz-period__v" id="bizPeriodMonth">0</div>
             <div class="sa-biz-period__s" id="bizPeriodMonthCnt">0单</div>
           </div>
         </section>
 
         <section class="sa-biz-filter">
-          <div class="sa-biz-range" id="bizRangeTabs" role="tablist">
-            <button type="button" class="sa-biz-range__btn" data-range="today">今天</button>
-            <button type="button" class="sa-biz-range__btn" data-range="yesterday">昨天</button>
-            <button type="button" class="sa-biz-range__btn" data-range="7d">近七天</button>
-            <button type="button" class="sa-biz-range__btn is-active" data-range="30d">近一个月</button>
+          <div class="sa-biz-range" id="bizRangeTabs" role="tablist" aria-label="统计周期">
+            <button type="button" class="sa-biz-range__btn is-active" data-range="today">今日</button>
+            <button type="button" class="sa-biz-range__btn" data-range="yesterday">昨日</button>
+            <button type="button" class="sa-biz-range__btn" data-range="7d">近7天</button>
+            <button type="button" class="sa-biz-range__btn" data-range="30d">近30天</button>
+            <button type="button" class="sa-biz-range__btn" data-range="custom">自定义</button>
           </div>
+          <p class="sa-biz-filter__meta" id="bizPeriodCaption">统计周期 —</p>
+          <p class="sa-biz-filter__meta sa-biz-filter__meta--muted" id="bizAsOf">数据更新至 —</p>
 
           <div class="sa-biz-search">
             <button type="button" class="sa-biz-search__go" id="bizSearchBtn" aria-label="搜索">
@@ -125,10 +128,10 @@
           </svg>
           <span>AI</span>
         </button>
-        <span class="sa-rpt-tab is-active">
+        <a href="biz-center.html" class="sa-rpt-tab is-active" id="commDcTab">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 4h14v3H5V4zm2 5h3v11H7V9zm5 0h3v8h-3V9zm5 0h3v11h-3V9z"/></svg>
-          <span>经营参谋</span>
-        </span>
+          <span>数据中心</span>
+        </a>
         <a href="more.html" class="sa-rpt-tab">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <circle cx="12" cy="8" r="3.5"/>
@@ -138,12 +141,27 @@
         </a>
       </nav>
     </div>
+
+    <div class="sa-rpt-sheet sa-rpt-sheet--time" id="bizRangeSheet" hidden>
+      <div class="sa-rpt-sheet__panel" role="dialog">
+        <div class="sa-rpt-sheet__hd"><strong>自定义日期</strong><button type="button" class="sa-rpt-sheet__close" data-close-range>×</button></div>
+        <div class="sa-rpt-custom" id="bizCustom">
+          <div class="sa-rpt-custom__row">
+            <label class="sa-rpt-custom__field"><span>开始</span><input type="date" id="bizCustomStart"></label>
+            <span class="sa-rpt-custom__sep">至</span>
+            <label class="sa-rpt-custom__field"><span>结束</span><input type="date" id="bizCustomEnd"></label>
+          </div>
+          <p class="sa-rpt-custom__err" id="bizCustomErr" hidden></p>
+          <button type="button" class="sa-rpt-custom__btn" id="bizCustomApply">确定</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="../../js/store-wallet-demo.js"></script>
-  <script src="../js/store-app-biz-report-data.js?v=20261117-bd1"></script>
+  <script src="../js/store-app-biz-datacenter-data.js?v=20261119-fix6"></script>
   <script src="../js/store-app-biz-session.js?v=20261117-bd2"></script>
-  <script src="../js/store-app-biz-orders.js?v=20260928-comm-range"></script>
-  <script src="../js/store-app-biz-commission.js?v=20261117-bd1"></script>
+  <script src="../js/store-app-biz-datacenter-state.js?v=20261119-fix6"></script>
+  <script src="../js/store-app-biz-datacenter-commission.js?v=20261119-fix6"></script>
 </body>
 </html>

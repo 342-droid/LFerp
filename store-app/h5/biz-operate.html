@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>运营数据 · 丰银宝</title>
+  <link rel="stylesheet" href="../css/store-app.css?v=20261119-fix6">
+  <link rel="stylesheet" href="../css/store-app-biz-report.css?v=20261119-fix6">
+  <link rel="stylesheet" href="../css/store-app-biz-datacenter.css?v=20261119-fix6">
+</head>
+<body class="store-app-body">
+  <div class="sa-shell sa-rpt-shell">
+    <div class="sa-rpt sa-dc-page">
+      <div class="sa-dc-topbar">
+        <header class="sa-rpt-nav">
+          <a href="biz-center.html" class="sa-rpt-nav__back" id="opBack" aria-label="返回总览">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg>
+          </a>
+          <h1 class="sa-rpt-nav__title">运营数据</h1>
+          <button type="button" class="sa-dc-help" data-tip="glossary" aria-label="指标说明">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+              <circle cx="12" cy="12" r="9"/>
+              <path d="M12 11v5" stroke-linecap="round"/>
+              <circle cx="12" cy="8" r="1" fill="currentColor" stroke="none"/>
+            </svg>
+          </button>
+        </header>
+        <div class="sa-dc-ranges" id="opRanges" role="tablist" aria-label="统计周期"></div>
+        <p class="sa-dc-period" id="opPeriod">统计 —</p>
+        <div class="sa-dc-mtabs" role="tablist" aria-label="运营模块" id="opTabs">
+          <button type="button" class="sa-dc-mtabs__btn is-active" data-tab="customers" role="tab" aria-selected="true">购买客户</button>
+          <button type="button" class="sa-dc-mtabs__btn" data-tab="freq" role="tab" aria-selected="false">购买频次</button>
+          <button type="button" class="sa-dc-mtabs__btn" data-tab="source" role="tab" aria-selected="false">来源表现</button>
+        </div>
+      </div>
+
+      <div class="sa-rpt-scroll">
+        <p class="sa-dc-asof" id="opAsOf">数据截至 —</p>
+
+        <section class="sa-dc-panel" id="panel-customers" role="tabpanel">
+          <div class="sa-dc-block">
+            <div class="sa-dc-grid sa-dc-grid--2">
+              <div class="sa-dc-metric"><div class="sa-dc-metric__t">支付人数（人）</div><div class="sa-dc-metric__v" id="opPayUsers">0</div></div>
+              <div class="sa-dc-metric"><div class="sa-dc-metric__t">首购客户数（人）</div><div class="sa-dc-metric__v" id="opFirst">0</div></div>
+              <div class="sa-dc-metric"><div class="sa-dc-metric__t">老客户数（人）</div><div class="sa-dc-metric__v" id="opOld">0</div></div>
+              <div class="sa-dc-metric"><div class="sa-dc-metric__t">老客户占比</div><div class="sa-dc-metric__v" id="opOldShare">—</div></div>
+            </div>
+            <div class="sa-dc-chart" style="margin-top:14px">
+              <div class="sa-dc-chart__meta">
+                <div class="sa-dc-chip" id="opCustTrendSeg">
+                  <button type="button" class="sa-dc-chip__btn is-active" data-metric="payUsers">支付人数</button>
+                  <button type="button" class="sa-dc-chip__btn" data-metric="first">首购</button>
+                  <button type="button" class="sa-dc-chip__btn" data-metric="old">老客</button>
+                </div>
+                <button type="button" class="sa-dc-data-toggle" id="opCustDataBtn" hidden>查看数据</button>
+              </div>
+              <div class="sa-dc-chart-wrap" id="opCustTrendWrap">
+                <div class="sa-dc-chart-y" id="opCustTrendY"></div>
+                <svg id="opCustTrendSvg" viewBox="0 0 289 88"></svg>
+              </div>
+              <div class="sa-dc-chart-x" id="opCustTrendX"></div>
+              <div class="sa-dc-data-table" id="opCustTrendTable" hidden></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="sa-dc-panel" id="panel-freq" role="tabpanel" hidden>
+          <div class="sa-dc-block">
+            <div class="sa-dc-grid sa-dc-grid--3">
+              <div class="sa-dc-metric"><div class="sa-dc-metric__t">购买2次及以上（人）</div><div class="sa-dc-metric__v sa-dc-metric__v--sm" id="opMulti">0</div></div>
+              <div class="sa-dc-metric"><div class="sa-dc-metric__t">多次购买占比</div><div class="sa-dc-metric__v" id="opMultiShare">—</div></div>
+              <div class="sa-dc-metric"><div class="sa-dc-metric__t">人均购买次数（次）</div><div class="sa-dc-metric__v" id="opAvgOrders">—</div></div>
+            </div>
+            <div class="sa-dc-bars" id="opFreqBars" style="margin-top:14px"></div>
+          </div>
+        </section>
+
+        <section class="sa-dc-panel" id="panel-source" role="tabpanel" hidden>
+          <div class="sa-dc-block">
+            <div id="opSourceCards"></div>
+          </div>
+        </section>
+      </div>
+    </div>
+    <div class="sa-rpt-sheet sa-rpt-sheet--tip" id="opSheet" hidden>
+      <div class="sa-rpt-sheet__panel" role="dialog" aria-modal="true">
+        <div class="sa-rpt-sheet__hd"><strong id="opSheetTitle">指标说明</strong><button type="button" class="sa-rpt-sheet__close" data-close-sheet aria-label="关闭">×</button></div>
+        <div class="sa-rpt-sheet__body" id="opSheetBody"></div>
+      </div>
+    </div>
+    <div class="sa-rpt-sheet sa-rpt-sheet--time" id="opRangeSheet" hidden>
+      <div class="sa-rpt-sheet__panel" role="dialog">
+        <div class="sa-rpt-sheet__hd"><strong>自定义日期</strong><button type="button" class="sa-rpt-sheet__close" data-close-range>×</button></div>
+        <div class="sa-rpt-custom" id="opCustom">
+          <div class="sa-rpt-custom__row">
+            <label class="sa-rpt-custom__field"><span>开始</span><input type="date" id="opCustomStart"></label>
+            <span class="sa-rpt-custom__sep">至</span>
+            <label class="sa-rpt-custom__field"><span>结束</span><input type="date" id="opCustomEnd"></label>
+          </div>
+          <p class="sa-rpt-custom__err" id="opCustomErr" hidden></p>
+          <button type="button" class="sa-rpt-custom__btn" id="opCustomApply">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="../js/store-app-biz-datacenter-data.js?v=20261119-fix6"></script>
+  <script src="../js/store-app-biz-session.js?v=20261117-bd2"></script>
+  <script src="../js/store-app-biz-datacenter-state.js?v=20261119-fix6"></script>
+  <script src="../js/store-app-biz-datacenter-operate.js?v=20261119-fix6"></script>
+</body>
+</html>
