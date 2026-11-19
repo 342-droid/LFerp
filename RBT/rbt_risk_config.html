@@ -50,10 +50,9 @@
                         <div class="pts-rule-field">
                             <label class="pts-rule-field__label">风控评级</label>
                             <div class="pts-rule-field__control">
-                                <div class="pts-rule-check-row">
-                                    <label class="pts-rule-check-label">
-                                        <input type="checkbox" id="rbtRiskEnabled" checked> 开启
-                                    </label>
+                                <div class="pts-rule-switch-row">
+                                    <button type="button" class="pts-rule-switch is-on" id="rbtRiskEnabled" aria-pressed="true" aria-label="风险评级"></button>
+                                    <span class="pts-rule-switch__text" id="rbtRiskEnabledText">开</span>
                                 </div>
                                 <div class="pts-rule-tip">关闭后不再产生关注、预警、异常，异常履约数据为空。每日履行里的金额不变。</div>
                             </div>
