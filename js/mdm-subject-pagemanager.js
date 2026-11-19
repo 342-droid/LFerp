@@ -1277,7 +1277,7 @@
                 label: '供应商别名',
                 type: 'text',
                 required: true,
-                placeholder: '请输入供应商别名'
+                placeholder: '最多20个字符（10个汉字）'
             });
         }
 
@@ -1498,6 +1498,14 @@
             showToast('请输入供应商别名');
             if (supplierAliasEl) supplierAliasEl.focus();
             return false;
+        }
+        if (spec.subjectTypeLabel === '供应商' && window.MdmSupplierArchiveStore) {
+            var aliasError = window.MdmSupplierArchiveStore.validateAlias(supplierAlias);
+            if (aliasError) {
+                showToast(aliasError);
+                if (supplierAliasEl) supplierAliasEl.focus();
+                return false;
+            }
         }
         var subjectId = nextSubjectRowId(subjectIdPrefix, pm);
         if (spec.subjectTypeLabel === '供应商') {

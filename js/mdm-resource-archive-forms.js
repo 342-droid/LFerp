@@ -823,6 +823,15 @@
         });
         ok.addEventListener('click', function () {
             if (typeof beforeValidate === 'function' && beforeValidate() === false) return;
+            var aliasInput = bodyEl.querySelector('[data-supplier-alias]');
+            if (aliasInput && window.MdmSupplierArchiveStore) {
+                var aliasError = window.MdmSupplierArchiveStore.validateAlias(aliasInput.value);
+                if (aliasError) {
+                    if (typeof showToast === 'function') showToast(aliasError, 'error');
+                    aliasInput.focus();
+                    return;
+                }
+            }
             var requiredEls = bodyEl.querySelectorAll('[data-required-msg]');
             for (var i = 0; i < requiredEls.length; i++) {
                 var one = requiredEls[i];
@@ -1296,14 +1305,15 @@
         body.appendChild(formRow('供应商名称', true, refs.nameInp));
         /* 供应商别名：仅 PC、由平台运营维护；写路径必填。
            存量空别名不迁库，列表空显示「-」；编辑预填名称。C 端：别名 || 名称。 */
-        refs.shortNameInp = txt('请输入供应商别名', '');
+        refs.shortNameInp = txt('最多20个字符（10个汉字）', '');
+        refs.shortNameInp.setAttribute('data-supplier-alias', '1');
         refs.shortNameInp.setAttribute('data-required-msg', '请输入供应商别名');
         body.appendChild(formRow('供应商别名', true, refs.shortNameInp));
         var aliasTip = document.createElement('div');
         aliasTip.className = 'store-form__tip';
         aliasTip.style.cssText = 'margin:-4px 0 12px 168px;font-size:12px;color:#999;line-height:1.5;';
         aliasTip.textContent =
-            '必填，由平台运营维护，用于 C 端供应商标题。存量未填列表显示「-」，编辑时若为空会按名称预填，提示「请填写对外简称」。';
+            '必填，最多20个字符（10个汉字），汉字计2、英文/数字计1。由平台运营维护，用于 C 端供应商标题。存量未填列表显示「-」，编辑时若为空会按名称预填，提示「请填写对外简称」。';
         body.appendChild(aliasTip);
         refs.typeSel = sel(
             [
@@ -2058,6 +2068,11 @@
 
     function validateFirstArchive(bundle) {
         if (!bundle || !bundle.body) return '档案信息未加载';
+        var aliasInput = bundle.body.querySelector('[data-supplier-alias]');
+        if (aliasInput && window.MdmSupplierArchiveStore) {
+            var aliasError = window.MdmSupplierArchiveStore.validateAlias(aliasInput.value);
+            if (aliasError) return aliasError;
+        }
         var nodes = bundle.body.querySelectorAll('[data-required-msg]');
         var i;
         for (i = 0; i < nodes.length; i++) {
