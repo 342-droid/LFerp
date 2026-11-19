@@ -3003,7 +3003,7 @@
     if (window.LfLowMargin && typeof window.LfLowMargin.commerceLabel === 'function') {
       return window.LfLowMargin.commerceLabel(ref);
     }
-    return { text: '营销受限', title: '门店合作合同未完成，或保证金余额未达到应保有金额。' };
+    return { text: '受限', title: '分佣代收、指定商品不可购买、营销受限' };
   }
 
   function renderPartyTaskPanel(scene, name) {

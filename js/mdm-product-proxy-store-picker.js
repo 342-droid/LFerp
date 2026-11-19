@@ -137,7 +137,7 @@
         '<label class="proxy-store-picker__row' + (checked ? ' is-checked' : '') + (locked ? ' is-locked' : '') + '" data-store-id="' + store.id + '"' + (locked ? ' style="opacity:.55"' : '') + '>' +
         '  <input type="' + inputType + '" class="proxy-store-picker__check" data-store-id="' + store.id + '"' + nameAttr + (checked ? ' checked' : '') + (locked ? ' disabled' : '') + '>' +
         '  <span class="proxy-store-picker__row-main">' +
-        '    <span class="proxy-store-picker__store-name">' + escapeHtml(store.name) + (locked ? ' · 营销受限' : '') + '</span>' +
+        '    <span class="proxy-store-picker__store-name">' + escapeHtml(store.name) + (locked ? ' · 受限' : '') + '</span>' +
         '    <span class="proxy-store-picker__store-address">' + escapeHtml(locked ? lockReason(store) : store.address) + '</span>' +
         '  </span>' +
         '</label>'

@@ -158,6 +158,13 @@
         return flagOn('marketingStoreGate');
     }
 
+    /** 分佣代收只认自己的开关。没单独保存过时默认开启，不跟购买、营销的旧总开关绑在一起。 */
+    function commissionHoldOn() {
+        var parsed = restrictConfig();
+        if (!parsed) return true;
+        return parsed.commissionHold !== 'off';
+    }
+
     function namedRows(list) {
         var seen = {};
         return (Array.isArray(list) ? list : [])
@@ -253,22 +260,25 @@
         return reasons;
     }
 
+    /** 当前开着的限制。受限门店悬停都看这一套，不按单店再拆。 */
+    function restrictionContent() {
+        var items = [];
+        if (commissionHoldOn()) items.push('分佣代收');
+        if (productPurchaseOn()) items.push('指定商品不可购买');
+        if (marketingStoreOn()) items.push('营销受限');
+        return items;
+    }
+
     function commerceLabel(ref) {
         var state = conditions(ref);
-        var marketingOn = marketingStoreOn();
-        var bits = [
-            state.signed ? '合同已签署' : '合同未完成',
-            state.deposit.released
-                ? '保证金余额 ' + money(state.deposit.depositActual) + '，已达到应保有 ' + money(state.deposit.depositRequired)
-                : '保证金余额 ' + money(state.deposit.depositActual) + '，未达到应保有 ' + money(state.deposit.depositRequired)
-        ];
-        var restricted = marketingOn && !state.ok;
-        var marketing = !marketingOn
-            ? '营销选店限制未开启，门店可正常参与营销活动'
-            : (state.ok ? '合同和保证金已满足，可参与营销活动' : '营销选店未放开');
+        /* 格子只写正常或受限。开着的规则对所有受限门店相同，不在单元格里逐项罗列。 */
+        var restricted =
+            (commissionHoldOn() && !state.signed) ||
+            ((productPurchaseOn() || marketingStoreOn()) && !state.ok);
+        var items = restrictionContent();
         return {
-            text: restricted ? '营销受限' : '正常',
-            title: bits.join('，') + '。' + marketing + '。'
+            text: restricted ? '受限' : '正常',
+            title: restricted ? (items.join('、') || '受限') : ''
         };
     }
 
