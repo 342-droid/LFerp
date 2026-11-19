@@ -582,6 +582,15 @@
                     ok = false;
                     return;
                 }
+                var aliasInput = node.querySelector('[data-supplier-alias], input[id$="supplierAlias"]');
+                if (aliasInput && !aliasInput.disabled && global.MdmSupplierArchiveStore) {
+                    var aliasError = global.MdmSupplierArchiveStore.validateAlias(aliasInput.value);
+                    if (aliasError) {
+                        mark(node, aliasError);
+                        ok = false;
+                        return;
+                    }
+                }
                 var phone = node.querySelector('input[id$="addPhone"]');
                 if (phone) {
                     var digits = String(phone.value || '').replace(/\D/g, '');

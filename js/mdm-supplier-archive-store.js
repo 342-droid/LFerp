@@ -157,6 +157,16 @@
     return shortName || name;
   }
 
+  /** ASCII 计 1，汉字及其他非 ASCII 字符计 2；校验去除首尾空格后的别名。 */
+  function validateAlias(value) {
+    var alias = String(value || '').trim();
+    if (!alias) return '请输入供应商别名';
+    var length = Array.from(alias).reduce(function (total, ch) {
+      return total + (ch.codePointAt(0) <= 127 ? 1 : 2);
+    }, 0);
+    return length > 20 ? '供应商别名最多20个字符（10个汉字）' : '';
+  }
+
   function upsert(item) {
     var next = normalize(item);
     if (!next.id && !next.name) return { ok: false, message: '缺少供应商标识' };
@@ -219,6 +229,7 @@
     findById: findById,
     findByName: findByName,
     getDisplayName: getDisplayName,
+    validateAlias: validateAlias,
     upsert: upsert,
     syncFromArchiveTable: syncFromArchiveTable,
     reload: load
