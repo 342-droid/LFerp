@@ -110,7 +110,6 @@ function loadHeader() {
         const isMdmBdPage = pageFile.startsWith('mdm_bd_');
         const isMdmProductPage = pageFile.startsWith('mdm_product_');
         const isMdmMemberPage = pageFile.startsWith('mdm_member_');
-        const isMdmOpsPage = pageFile.startsWith('mdm_ops_');
         const isMdmBasePage =
             isMdmPage &&
             !isMdmAuditPage &&
@@ -125,8 +124,7 @@ function loadHeader() {
             !isMdmWorkbenchPage &&
             !isMdmBdPage &&
             !isMdmProductPage &&
-            !isMdmMemberPage &&
-            !isMdmOpsPage;
+            !isMdmMemberPage;
         // 直接使用 header HTML 内容，避免 fetch 问题
         const headerHtml = `
             <!-- 顶部导航栏组件 -->
@@ -140,7 +138,6 @@ function loadHeader() {
                     <a href="${wp.page('mdm_workbench.html')}" class="${isMdmWorkbenchPage ? 'active' : ''}">工作台</a>
                     <a href="${wp.page('mdm_party_store.html')}" class="${isMdmDataCenterPage ? 'active' : ''}">业务伙伴</a>
                     <a href="${wp.page('mdm_member_c.html')}" class="${isMdmMemberPage ? 'active' : ''}">会员</a>
-                    <a href="${wp.page('mdm_ops_biz_overview.html')}" class="${isMdmOpsPage ? 'active' : ''}">经营</a>
                     <a href="${wp.page('mdm_product_selection.html')}" class="${isMdmProductPage ? 'active' : ''}">商品</a>
                     <a href="${wp.page('mdm_audit_store_registration.html')}" class="${isMdmAuditPage ? 'active' : ''}">审核中心</a>
                     <a href="${wp.page('mdm_order_retail.html')}" class="${isMdmOrderPage ? 'active' : ''}">订单</a>
