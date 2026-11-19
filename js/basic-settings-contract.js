@@ -3003,7 +3003,7 @@
     if (window.LfLowMargin && typeof window.LfLowMargin.commerceLabel === 'function') {
       return window.LfLowMargin.commerceLabel(ref);
     }
-    return { text: '未放开', title: '门店合作合同未完成，或保证金余额未达到应保有金额。' };
+    return { text: '营销受限', title: '门店合作合同未完成，或保证金余额未达到应保有金额。' };
   }
 
   function renderPartyTaskPanel(scene, name) {
@@ -3013,7 +3013,7 @@
     note.className = 'erp-page__note mdm-detail-note';
     var gate = scene === 'store' ? storeCommerceLabel(name) : null;
     note.textContent = '列出推送给「' + (name || '—') + '」的签署任务。查看、催签、延期、撤销、下载、作废与合同管理的签署任务相同。'
-      + (gate ? '低利润商品与营销活动：' + gate.text + '。' + gate.title : '');
+      + (gate ? '经营限制状态：' + gate.text + '。' + gate.title : '');
     wrap.appendChild(note);
     var table = document.createElement('table');
     table.className = 'table';

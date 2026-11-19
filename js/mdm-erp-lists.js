@@ -1267,7 +1267,7 @@
         var head = table.querySelector('thead tr');
         if (head && !head.querySelector('[data-contract-head]')) {
             var actionHead = head.lastElementChild;
-            var labels = scene === 'store' ? ['合同签署状态', '低利润与活动'] : ['合同签署状态'];
+            var labels = scene === 'store' ? ['合同签署状态', '经营限制状态'] : ['合同签署状态'];
             labels.forEach(function (label) {
                 var th = document.createElement('th');
                 th.setAttribute('data-contract-head', label);

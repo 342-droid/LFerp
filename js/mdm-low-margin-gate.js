@@ -255,7 +255,6 @@
 
     function commerceLabel(ref) {
         var state = conditions(ref);
-        var productOn = productPurchaseOn();
         var marketingOn = marketingStoreOn();
         var bits = [
             state.signed ? '合同已签署' : '合同未完成',
@@ -263,17 +262,13 @@
                 ? '保证金余额 ' + money(state.deposit.depositActual) + '，已达到应保有 ' + money(state.deposit.depositRequired)
                 : '保证金余额 ' + money(state.deposit.depositActual) + '，未达到应保有 ' + money(state.deposit.depositRequired)
         ];
-        var parts = [];
-        if (!productOn) parts.push('指定商品可正常购买');
-        else if (state.ok) parts.push('指定商品购买已放开');
-        else parts.push('指定商品购买未放开');
-        if (!marketingOn) parts.push('门店可正常参与营销活动');
-        else if (state.ok) parts.push('营销选店已放开');
-        else parts.push('营销选店未放开');
-        var blocked = (productOn && !state.ok) || (marketingOn && !state.ok);
+        var restricted = marketingOn && !state.ok;
+        var marketing = !marketingOn
+            ? '营销选店限制未开启，门店可正常参与营销活动'
+            : (state.ok ? '合同和保证金已满足，可参与营销活动' : '营销选店未放开');
         return {
-            text: blocked ? '未放开' : '已放开',
-            title: bits.join('，') + '。' + parts.join('；') + '。'
+            text: restricted ? '营销受限' : '正常',
+            title: bits.join('，') + '。' + marketing + '。'
         };
     }
 

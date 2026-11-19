@@ -14,8 +14,16 @@
         node.textContent = message;
     }
 
+    function setEnabled(on) {
+        var btn = document.getElementById('rbtRiskEnabled');
+        var text = document.getElementById('rbtRiskEnabledText');
+        btn.classList.toggle('is-on', !!on);
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        if (text) text.textContent = on ? '开' : '关';
+    }
+
     function readForm() {
-        var cfg = { enabled: document.getElementById('rbtRiskEnabled').checked };
+        var cfg = { enabled: document.getElementById('rbtRiskEnabled').getAttribute('aria-pressed') === 'true' };
         fields.forEach(function (key) {
             cfg[key] = document.getElementById(key).value.trim();
         });
@@ -23,13 +31,17 @@
     }
 
     function fillForm(cfg) {
-        document.getElementById('rbtRiskEnabled').checked = cfg.enabled !== false;
+        setEnabled(cfg.enabled !== false);
         fields.forEach(function (key) {
             document.getElementById(key).value = cfg[key] == null ? '' : cfg[key];
         });
     }
 
     fillForm(api.readConfig());
+    document.getElementById('rbtRiskEnabled').addEventListener('click', function () {
+        setEnabled(this.getAttribute('aria-pressed') !== 'true');
+        showError('');
+    });
     document.getElementById('rbtRiskConfigForm').addEventListener('input', function () {
         showError('');
     });
