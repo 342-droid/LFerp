@@ -1305,6 +1305,7 @@
                 }
                 gateCell.textContent = gate.text;
                 gateCell.title = gate.title;
+                tr.setAttribute('data-commerce-status', gate.text);
             }
         });
     }
@@ -1318,6 +1319,7 @@
         var qOp = (document.getElementById('qStoreOpStatus') || {}).value.trim();
         var qOnboard = (document.getElementById('qStoreOnboardStatus') || {}).value.trim();
         var qContract = (document.getElementById('qStoreContractStatus') || {}).value.trim();
+        var qCommerce = (document.getElementById('qStoreCommerceStatus') || {}).value.trim();
         var qBalance = (document.getElementById('qStoreBalancePay') || {}).value.trim();
         var qSplit = (document.getElementById('qStoreSplit') || {}).value.trim();
         var qSt = (document.getElementById('qStoreStatus') || {}).value.trim();
@@ -1344,6 +1346,7 @@
             if (qOp && opTxt !== opMap[qOp]) ok = false;
             if (qOnboard && onboardTxt !== qOnboard) ok = false;
             if (qContract && tr.getAttribute('data-contract-status') !== qContract) ok = false;
+            if (qCommerce && tr.getAttribute('data-commerce-status') !== qCommerce) ok = false;
             if (qBalance && balanceTxt !== qBalance) ok = false;
             if (qSplit === 'on' && splitTxt !== '开启' && splitTxt !== '已开通') ok = false;
             if (qSplit === 'off' && splitTxt !== '关闭' && splitTxt !== '未开通') ok = false;
@@ -1859,6 +1862,7 @@
                 'qStoreOpStatus',
                 'qStoreOnboardStatus',
                 'qStoreContractStatus',
+                'qStoreCommerceStatus',
                 'qStoreBalancePay',
                 'qStoreSplit',
                 'qStoreStatus'
