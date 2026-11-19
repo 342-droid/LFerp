@@ -98,9 +98,10 @@
 
     function settleRatioSection(item) {
         var ratioApi = window.RbtSettleRatio;
+        if (ratioApi && typeof ratioApi.ensureDialogChrome === 'function') ratioApi.ensureDialogChrome();
         var html = ratioApi && typeof ratioApi.tableHtml === 'function' ? ratioApi.tableHtml(item) : '';
         if (!html) return '';
-        var edit = window.RbtSettleRatio && typeof window.RbtSettleRatio.canEdit === 'function' && window.RbtSettleRatio.canEdit(item)
+        var edit = ratioApi && typeof ratioApi.canEdit === 'function' && ratioApi.canEdit(item)
             ? '<button type="button" class="rbt-demand-contract-link" data-rbt-ratio-edit>修改结算比例</button>'
             : '';
         return '<div class="supplier-detail-section-title">结算比例' + edit + '</div>' + html;
@@ -305,6 +306,210 @@
         document.removeEventListener('keydown', onPreviewKey);
     }
 
+    function cnDate(raw) {
+        var matched = String(raw || '').match(/(\d{4})-(\d{2})-(\d{2})/);
+        return matched ? (matched[1] + '年' + matched[2] + '月' + matched[3] + '日') : '';
+    }
+
+    function sealMark(name, index) {
+        var uid = 'rbtSealArc' + index + String(Math.random()).slice(2, 8);
+        return '<span class="ct-seal' + (index > 1 ? ' ct-seal--next' : '') + '" aria-label="已盖章">' +
+            '<svg viewBox="0 0 120 120" width="112" height="112">' +
+            '<circle cx="60" cy="60" r="56" fill="rgba(255,255,255,0.55)" stroke="#c41e1e" stroke-width="3"/>' +
+            '<circle cx="60" cy="60" r="51" fill="none" stroke="#c41e1e" stroke-width="1"/>' +
+            '<defs><path id="' + uid + '" d="M14,66 A46,46 0 0,1 106,66"/></defs>' +
+            '<text fill="#c41e1e" font-size="10" font-weight="700">' +
+            '<textPath href="#' + uid + '" startOffset="50%" text-anchor="middle">' + esc(name) + '</textPath></text>' +
+            '<text x="60" y="66" text-anchor="middle" fill="#c41e1e" font-size="18">★</text>' +
+            '<text x="60" y="86" text-anchor="middle" fill="#c41e1e" font-size="13" font-weight="700">合同专用章</text>' +
+            '</svg></span>';
+    }
+
+    function sealPaper(text, seal) {
+        var lines = String(text || '').split('\n');
+        var inPage = false;
+        var dateSlot = 0;
+        var sealIndex = 0;
+        return lines.map(function (raw) {
+            var trimmed = raw.trim();
+            if (trimmed.indexOf('以下无正文') >= 0) inPage = true;
+            if (inPage && trimmed.indexOf('附件') === 0) inPage = false;
+            if (!inPage || trimmed.indexOf('以下无正文') >= 0) return esc(raw);
+            if (/甲方/.test(trimmed) && /盖章/.test(trimmed)) {
+                sealIndex += 1;
+                return '<span class="ct-signline">' + esc(raw) + (seal.partyA ? sealMark(seal.partyA, sealIndex) : '') + '</span>';
+            }
+            if (/乙方/.test(trimmed) && /盖章|签字/.test(trimmed)) {
+                var shown = raw;
+                if (seal.partyB && /：\s*[_＿\s　]*$/.test(trimmed)) {
+                    shown = raw.replace(/：\s*[_＿\s　]*$/, '：' + seal.partyB);
+                }
+                sealIndex += 1;
+                return '<span class="ct-signline">' + esc(shown) + (seal.partyB ? sealMark(seal.partyB, sealIndex) : '') + '</span>';
+            }
+            if (/^日期/.test(trimmed)) {
+                dateSlot += 1;
+                var date = dateSlot === 1 ? seal.dateA : seal.dateB;
+                var filled = date && /年/.test(trimmed) ? raw.replace(/：.*/, '：' + date) : raw;
+                return esc(filled);
+            }
+            return esc(raw);
+        }).join('\n');
+    }
+
+    function contractReadBody(item, contract) {
+        var api = window.LfContract;
+        var tplId = contract && contract.key === 'purchase' ? 'TPL004' : 'TPL001';
+        var tplName = contract && contract.key === 'purchase' ? '冷丰平台供应商资金清分结算合同' : '冷丰品牌合作合同';
+        var party = null;
+        (contract && contract.parties || []).some(function (row) {
+            if (row && row.role !== 'supply' && row.role !== 'trader' && row.name) {
+                party = row;
+                return true;
+            }
+            return false;
+        });
+        if (!party) {
+            (contract && contract.parties || []).some(function (row) {
+                if (row && row.role !== 'supply' && row.name) {
+                    party = row;
+                    return true;
+                }
+                return false;
+            });
+        }
+        var body = api && typeof api.contractBodyOf === 'function'
+            ? api.contractBodyOf({ id: tplId, name: tplName })
+            : '';
+        if (body && api && typeof api.fillContractParty === 'function' && party) {
+            body = api.fillContractParty(body, { name: party.name, contact: '', identNo: '', address: item.storeName || '' });
+        }
+        if (!body) body = contractBody(item, contract);
+        var signed = resolveSignStatus(item, contract) === '已签署';
+        var partyA = (String(body || '').match(/甲方(?:（[^）]*）)?：\s*([^\n_＿]+)/) || [])[1];
+        partyA = partyA ? partyA.trim() : (contract && contract.key === 'purchase' ? '上海冷丰德本信息科技有限公司' : '上海冷丰道善信息科技有限公司');
+        var partyB = party && party.name ? party.name : '';
+        var signedAt = '';
+        (contract && contract.parties || []).some(function (row) {
+            if (row && row.signedAt) {
+                signedAt = row.signedAt;
+                return true;
+            }
+            return false;
+        });
+        return {
+            body: body,
+            seal: signed ? {
+                partyA: partyA,
+                partyB: partyB,
+                dateA: cnDate(item.createdAt),
+                dateB: cnDate(signedAt || item.updatedAt)
+            } : null
+        };
+    }
+
+    function sideLine(label, value, extra) {
+        return '<div class="ct-side-line"><span>' + esc(label) + '</span><b>' + esc(value || '—') + (extra || '') + '</b></div>';
+    }
+
+    function signerCard(name, stateLabel, doneAt) {
+        var done = stateLabel === '已签署';
+        return '<section class="ct-side-sign">' +
+            '<div class="ct-side-sign__top"><span>签署</span><span>顺序签署</span></div>' +
+            '<div class="ct-side-sign__who"><span>' + esc(name || '—') + '</span>' +
+            '<em class="' + (done ? 'is-done' : '') + '">' + esc(stateLabel) + '</em></div>' +
+            sideLine('完成时间', doneAt || '—') +
+            sideLine('IP属地', '上海') +
+            '</section>';
+    }
+
+    function contractSide(item, contract) {
+        var status = resolveSignStatus(item, contract);
+        var dot = status === '已签署' ? 'is-ok' : (status === '已作废' ? 'is-bad' : 'is-warn');
+        var parties = contract.parties || [];
+        var cards = parties.map(function (party) {
+            var state = party.signedAt ? '已签署' : (status === '已作废' ? '已作废' : '待签署');
+            return signerCard(party.name || party.roleLabel, state, party.signedAt || '');
+        }).join('');
+        return sideLine('主题', contract.name) +
+            '<div class="ct-side-line"><span>状态</span><b><i class="ct-side-dot ' + dot + '"></i>' + esc(status) + '</b></div>' +
+            sideLine('合同编号', contract.code, '<button type="button" class="ct-side-copy" data-rbt-copy="' + esc(contract.code) + '">复制</button>') +
+            sideLine('发件人', '上海冷丰道善信息科技有限公司') +
+            sideLine('创建者', item.creator) +
+            sideLine('发起时间', item.createdAt) +
+            sideLine('关联需求', item.code) +
+            sideLine('定稿方式', '自动定稿') +
+            cards;
+    }
+
+    function closeContractRead() {
+        document.querySelectorAll('[data-rbt-contract-read]').forEach(function (node) {
+            node.remove();
+        });
+        document.removeEventListener('keydown', onContractReadKey);
+    }
+
+    function onContractReadKey(event) {
+        if (event.key !== 'Escape') return;
+        event.stopPropagation();
+        closeContractRead();
+    }
+
+    function openContractRead(item, contract, contracts) {
+        if (!item || !contract) return;
+        closeContractRead();
+        var docs = (contracts && contracts.length ? contracts : [contract]);
+        var mask = document.createElement('div');
+        mask.className = 'ct-doc-mask';
+        mask.setAttribute('data-rbt-contract-read', '1');
+        mask.innerHTML =
+            '<div class="ct-doc ct-doc--with-side" role="dialog" aria-modal="true" aria-label="查看合同">' +
+            '<div class="ct-doc__head"><div><div class="ct-doc__eyebrow" data-rbt-read-eyebrow></div>' +
+            '<div class="ct-doc__title" data-rbt-read-title></div><div class="ct-doc__meta" data-rbt-read-meta></div></div>' +
+            '<button type="button" class="ct-doc__close" data-rbt-read-close>关闭</button></div>' +
+            '<div class="ct-doc__tabs" data-rbt-read-tabs></div>' +
+            '<div class="ct-doc__layout"><div class="ct-doc__paper" data-rbt-read-paper></div>' +
+            '<aside class="ct-doc__side"><div class="ct-doc__side-title">详情</div><div data-rbt-read-side></div></aside></div></div>';
+        document.body.appendChild(mask);
+        var index = 0;
+        docs.some(function (row, i) {
+            if (row.key === contract.key) {
+                index = i;
+                return true;
+            }
+            return false;
+        });
+        function show(i) {
+            index = i;
+            var current = docs[i] || contract;
+            var paper = contractReadBody(item, current);
+            mask.querySelector('[data-rbt-read-eyebrow]').textContent = '签署任务 · ' + current.code;
+            mask.querySelector('[data-rbt-read-title]').textContent = current.name || '合同';
+            mask.querySelector('[data-rbt-read-meta]').textContent = [item.storeName, resolveSignStatus(item, current)].filter(Boolean).join(' · ');
+            var tabs = mask.querySelector('[data-rbt-read-tabs]');
+            tabs.innerHTML = docs.length > 1 ? docs.map(function (row, n) {
+                return '<button type="button" class="ct-doc__tab' + (n === i ? ' is-active' : '') + '" data-rbt-read-tab="' + n + '">' + esc(row.name) + '</button>';
+            }).join('') : '';
+            var sheet = mask.querySelector('[data-rbt-read-paper]');
+            sheet.innerHTML = paper.seal ? sealPaper(paper.body, paper.seal) : esc(paper.body);
+            sheet.scrollTop = 0;
+            mask.querySelector('[data-rbt-read-side]').innerHTML = contractSide(item, current);
+        }
+        mask.addEventListener('click', function (event) {
+            if (event.target === mask || event.target.closest('[data-rbt-read-close]')) closeContractRead();
+            var tab = event.target.closest('[data-rbt-read-tab]');
+            if (tab) show(Number(tab.getAttribute('data-rbt-read-tab')) || 0);
+            var copy = event.target.closest('[data-rbt-copy]');
+            if (copy && navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(copy.getAttribute('data-rbt-copy') || '').then(function () {
+                    if (typeof window.showToast === 'function') window.showToast('合同编号已复制', 'success');
+                });
+            }
+        });
+        document.addEventListener('keydown', onContractReadKey);
+        show(index);
+    }
+
     function onPreviewKey(event) {
         if (event.key === 'Escape') {
             event.stopPropagation();
@@ -340,7 +545,7 @@
         return api.signContracts(item);
     }
 
-    function contractSection(item) {
+    function contractSection(item, performance) {
         var contracts = agreementContracts(item);
         var head = '<tr><th>协议</th><th>编号</th><th>签署方</th><th>签署状态</th></tr>';
         var body = contracts.map(function (contract) {
@@ -348,8 +553,13 @@
                 var name = party.name || (party.role === 'trader' ? '待接单' : '—');
                 return esc(party.roleLabel) + ' ' + esc(name);
             }).join('、');
-            return '<tr><td><button type="button" class="rbt-demand-contract-link" data-rbt-demand-contract-open="' + esc(contract.key) + '">' +
-                esc(contract.name) + '</button></td><td>' + esc(contract.code) + '</td><td>' + parties +
+            var nameCell = performance
+                ? esc(contract.name)
+                : '<button type="button" class="rbt-demand-contract-link" data-rbt-demand-contract-open="' + esc(contract.key) + '">' + esc(contract.name) + '</button>';
+            var codeCell = performance
+                ? '<button type="button" class="rbt-demand-contract-link" data-rbt-demand-contract-read="' + esc(contract.key) + '">' + esc(contract.code) + '</button>'
+                : esc(contract.code);
+            return '<tr><td>' + nameCell + '</td><td>' + codeCell + '</td><td>' + parties +
                 '</td><td>' + esc(contract.signStatus || '待签署') + '</td></tr>';
         }).join('');
         var inner = contracts.length
@@ -464,27 +674,77 @@
             if (a.date !== b.date) return a.date < b.date ? 1 : -1;
             return String(a.channel) < String(b.channel) ? -1 : 1;
         });
+        var shares = api && typeof api.payeeSplit === 'function' ? api.payeeSplit(item) : [];
+        var shareByKey = {};
+        shares.forEach(function (share) {
+            shareByKey[share.date + ':' + share.channel] = share;
+        });
+        var partyCents = { trader: 0, lengfeng: 0, provider: 0 };
         var body = rows.length
             ? rows.map(function (row) {
+                var share = shareByKey[row.date + ':' + row.channel] || { trader: '0.00', lengfeng: '0.00', provider: '0.00' };
+                partyCents.trader += Math.round((Number(share.trader) || 0) * 100);
+                partyCents.lengfeng += Math.round((Number(share.lengfeng) || 0) * 100);
+                partyCents.provider += Math.round((Number(share.provider) || 0) * 100);
                 return (
                     '<tr><td>' + esc(row.date) + '</td><td>' + esc(row.channel) +
                     '</td><td class="is-money">¥' + esc(row.turnover) +
                     '</td><td class="is-money">¥' + esc(row.commission) +
                     '</td><td>' + esc(row.ratio) +
                     '</td><td class="is-money">¥' + esc(row.due) +
-                    '</td><td class="is-money">¥' + esc(row.actual) + '</td></tr>'
+                    '</td><td class="is-money">¥' + esc(row.actual) +
+                    '</td><td class="is-money">¥' + esc(share.trader) +
+                    '</td><td class="is-money">¥' + esc(share.lengfeng) +
+                    '</td><td class="is-money">¥' + esc(share.provider) + '</td></tr>'
                 );
             }).join('')
-            : '<tr><td class="is-empty" colspan="7">暂无已发生的每日履行。</td></tr>';
+            : '<tr><td class="is-empty" colspan="10">暂无已发生的每日履行。</td></tr>';
         return (
             '<div class="supplier-detail-tab">' +
-            '<p class="rbt-daily-note">本单已经发生的每日履行。一行是一天、一个渠道。应履行 = 所得佣金 × 该渠道结算比例。未发生的日期不出现。' +
+            '<p class="rbt-daily-note">本单已经发生的每日履行。一行是一天、一个渠道。应履行 = 所得佣金 × 该渠道结算比例。当日实际履行按贸易商、冷丰、服务商应收占比拆成三方收款，三笔之和等于当日实际履行。没有服务商时，服务商收款为 0。未发生的日期不出现。' +
             '<a class="rbt-daily-note__more" href="rbt_daily_fulfill.html">全部门店每日履行</a></p>' +
+            dailySummary(rows, partyCents) +
+            '<div class="supplier-detail-section-title">每日明细</div>' +
             '<div class="rbt-demand-table-wrap"><table class="rbt-demand-table"><thead><tr>' +
             '<th>日期</th><th>渠道</th><th class="is-money">营业流水</th><th class="is-money">所得佣金</th><th>结算比例</th>' +
             '<th class="is-money">应履行</th><th class="is-money">实际履行</th>' +
+            '<th class="is-money">贸易商收款</th><th class="is-money">冷丰收款</th><th class="is-money">服务商收款</th>' +
             '</tr></thead><tbody>' + body + '</tbody></table></div></div>'
         );
+    }
+
+    /* 履行汇总与履约列表、首页同一口径：只加总已经发生的日期。 */
+    function dailySummary(rows, partyCents) {
+        var risk = window.RbtRisk;
+        var fact = risk && typeof risk.assessDays === 'function'
+            ? risk.assessDays(rows)
+            : { due: '0.00', actual: '0.00', gap: '0.00', cover: '—', grade: '—' };
+        var grades = { '正常': 1, '关注': 1, '预警': 1, '异常': 1 };
+        var grade = fact.grade && grades[fact.grade]
+            ? '<span class="rbt-risk-tag is-' + fact.grade + '">' + esc(fact.grade) + '</span>'
+            : esc(fact.grade || '—');
+        var cells = [
+            money(fact.due),
+            money(fact.actual),
+            money(fact.gap),
+            fact.cover || '—',
+            null,
+            money(partyCents.trader / 100),
+            money(partyCents.lengfeng / 100),
+            money(partyCents.provider / 100)
+        ];
+        var titles = ['应履行', '已履行金额', '未履行差额', '履行覆盖率', '履约风险等级', '贸易商收款', '冷丰收款', '服务商收款'];
+        var head = '<tr>' + titles.map(function (title, index) {
+            return '<th' + (index === 3 || index === 4 ? '' : ' class="is-money"') + '>' + title + '</th>';
+        }).join('') + '</tr>';
+        var body = '<tr>' + cells.map(function (value, index) {
+            if (index === 4) return '<td>' + grade + '</td>';
+            var moneyCell = index !== 3;
+            return '<td' + (moneyCell ? ' class="is-money"' : '') + '>' + esc(value) + '</td>';
+        }).join('') + '</tr>';
+        return '<div class="supplier-detail-section-title">履行汇总</div>' +
+            '<div class="rbt-demand-table-wrap"><table class="rbt-demand-table"><thead>' + head +
+            '</thead><tbody>' + body + '</tbody></table></div>';
     }
 
     function basePanel(item, performance) {
@@ -517,7 +777,7 @@
             settleRatioSection(item) +
             '<div class="supplier-detail-section-title">商品明细</div>' +
             skuTable(item.skus) +
-            contractSection(item) +
+            contractSection(item, performance) +
             voucherSection(item) +
             relatedDocsSection(item) +
             '</div>'
@@ -541,18 +801,27 @@
             });
         }
         var agreements = agreementContracts(item);
+        function contractByKey(key) {
+            var found = null;
+            agreements.some(function (row) {
+                if (row.key === key) {
+                    found = row;
+                    return true;
+                }
+                return false;
+            });
+            return found;
+        }
         drawer.querySelectorAll('[data-rbt-demand-contract-open]').forEach(function (btn) {
             btn.addEventListener('click', function () {
-                var key = btn.getAttribute('data-rbt-demand-contract-open');
-                var found = null;
-                agreements.some(function (row) {
-                    if (row.key === key) {
-                        found = row;
-                        return true;
-                    }
-                    return false;
-                });
+                var found = contractByKey(btn.getAttribute('data-rbt-demand-contract-open'));
                 if (found) openPreview(item, found);
+            });
+        });
+        drawer.querySelectorAll('[data-rbt-demand-contract-read]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var found = contractByKey(btn.getAttribute('data-rbt-demand-contract-read'));
+                if (found) openContractRead(item, found, agreements);
             });
         });
         drawer.querySelectorAll('[data-rbt-trade-open]').forEach(function (btn) {
@@ -567,6 +836,7 @@
     }
 
     function closeDrawer() {
+        closeContractRead();
         closePreview();
         document.querySelectorAll('[data-rbt-demand-drawer]').forEach(function (node) {
             node.remove();
@@ -575,13 +845,16 @@
     }
 
     function onDrawerKey(event) {
-        if (event.key === 'Escape') {
-            if (document.querySelector('[data-rbt-demand-contract-preview]')) {
-                closePreview();
-                return;
-            }
-            closeDrawer();
+        if (event.key !== 'Escape') return;
+        if (document.querySelector('[data-rbt-contract-read]')) {
+            closeContractRead();
+            return;
         }
+        if (document.querySelector('[data-rbt-demand-contract-preview]')) {
+            closePreview();
+            return;
+        }
+        closeDrawer();
     }
 
     var auditSession = null;
@@ -651,7 +924,8 @@
             '<div class="store-drawer__tabs store-drawer__tabs--sticky" id="rbtDemandTabs">' +
             '<button type="button" class="store-drawer__tab is-active" data-tab="base">基础信息</button>' +
             (performance ? '<button type="button" class="store-drawer__tab" data-tab="daily">每日履行</button>' : '') +
-            '<button type="button" class="store-drawer__tab" data-tab="logs">操作记录</button></div>' +
+            (performance ? '' : '<button type="button" class="store-drawer__tab" data-tab="logs">操作记录</button>') +
+            '</div>' +
             '<div class="store-drawer__body" id="rbtDemandBody"></div>' +
             (auditSession ? auditFooter() : '');
         document.body.appendChild(backdrop);

@@ -384,6 +384,14 @@
         });
     }
 
+    function statusText(item) {
+        var daily = window.RbtDailyFulfill;
+        if (daily && typeof daily.phaseLabel === 'function' && item && (item.status === '还款中' || item.status === '已完成')) {
+            return daily.phaseLabel(item.status);
+        }
+        return (item && item.status) || '';
+    }
+
     function toast(message, type) {
         if (typeof window.showToast === 'function') {
             window.showToast(message, type || 'success');
@@ -423,7 +431,7 @@
             '<div class="rbt-demand-contract__head">' +
             '<div><div class="rbt-demand-contract__eyebrow">修改结算比例</div>' +
             '<div class="rbt-demand-contract__title">' + esc(demand.code) + '</div>' +
-            '<div class="rbt-demand-contract__meta">' + esc(demand.storeName || '') + ' · ' + esc(demand.status || '') + '</div></div>' +
+            '<div class="rbt-demand-contract__meta">' + esc(demand.storeName || '') + ' · ' + esc(statusText(demand)) + '</div></div>' +
             '<button type="button" class="rbt-demand-contract__close" data-rbt-ratio-edit-close aria-label="关闭">&times;</button></div>' +
             '<div class="rbt-ratio-dialog__body rbt-review-body" data-rbt-ratio-edit-form></div>' +
             '<div class="rbt-review-foot"><button type="button" class="btn btn-secondary" data-rbt-ratio-edit-close>取消</button>' +
@@ -474,7 +482,30 @@
         return names;
     }
 
+    function ensureDialogChrome() {
+        if (document.getElementById('rbt-ratio-dialog-style')) return;
+        var style = document.createElement('style');
+        style.id = 'rbt-ratio-dialog-style';
+        style.textContent = [
+            '.rbt-demand-contract-link{border:0;padding:0;background:transparent;color:#1677ff;cursor:pointer;font:inherit;text-align:left;}',
+            '.rbt-demand-contract-link:hover{text-decoration:underline;}',
+            '.rbt-demand-contract-mask{position:fixed;inset:0;z-index:2400;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:24px;}',
+            '.rbt-demand-contract{width:min(760px,96vw);max-height:min(86vh,920px);background:#fff;border-radius:10px;box-shadow:0 16px 48px rgba(0,0,0,.18);display:flex;flex-direction:column;overflow:hidden;}',
+            '.rbt-demand-contract__head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:18px 20px 14px;border-bottom:1px solid #ebeef5;}',
+            '.rbt-demand-contract__eyebrow{color:#909399;font-size:12px;margin-bottom:4px;}',
+            '.rbt-demand-contract__title{font-size:18px;font-weight:600;color:#303133;line-height:1.4;}',
+            '.rbt-demand-contract__meta{margin-top:4px;color:#606266;font-size:13px;}',
+            '.rbt-demand-contract__close{border:0;background:transparent;color:#909399;font-size:24px;line-height:1;cursor:pointer;padding:0 2px;}',
+            '.rbt-demand-contract__close:hover{color:#303133;}',
+            '.rbt-ratio-dialog{width:min(840px,96vw);}',
+            '.rbt-ratio-dialog__body{padding:16px 20px 20px;overflow:auto;}',
+            '.supplier-detail-section-title .rbt-demand-contract-link{margin-left:12px;font-weight:400;font-size:13px;}'
+        ].join('');
+        document.head.appendChild(style);
+    }
+
     function ensureEditorStyle() {
+        ensureDialogChrome();
         if (document.getElementById('rbt-ratio-editor-style')) return;
         var style = document.createElement('style');
         style.id = 'rbt-ratio-editor-style';
@@ -489,8 +520,7 @@
             '.rbt-pass-label{width:88px;text-align:right;color:#333;font-size:13px;}',
             '.rbt-pass-del{border:0;background:transparent;color:#cf1322;cursor:pointer;font-size:13px;padding:0;}',
             '.rbt-review-note{margin-top:6px;color:#909399;font-size:12px;}',
-            '.rbt-review-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 20px 16px;border-top:1px solid #ebeef5;}',
-            '.supplier-detail-section-title .rbt-demand-contract-link{margin-left:12px;font-weight:400;font-size:13px;}'
+            '.rbt-review-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 20px 16px;border-top:1px solid #ebeef5;}'
         ].join('');
         document.head.appendChild(style);
     }
@@ -518,6 +548,7 @@
         bindEditor: bindEditor,
         openEditor: openEditor,
         closeEditor: closeEditor,
+        ensureDialogChrome: ensureDialogChrome,
         renderHtml: function (item) {
             ensureStyle();
             return renderHtml(item);
