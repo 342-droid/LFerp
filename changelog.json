@@ -1,7 +1,102 @@
 {
-  "latestSha": "0787f9ea6ddc293c0c96d503c4538ded7b3da987",
-  "total": 567,
+  "latestSha": "5eba22d87b1a9781b3f0839d3b95cc98202852d5",
+  "total": 568,
   "days": [
+    {
+      "date": "2026-11-20",
+      "items": [
+        {
+          "sha": "5eba22d",
+          "type": "feat",
+          "text": "履约补上履行金额和风险等级，每日履行改成一张明细表",
+          "author": "sisi",
+          "time": "01:46",
+          "pages": [
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "module": "冷丰WMS",
+              "title": "需求单审核"
+            },
+            {
+              "file": "RBT/rbt_contract_sign.html",
+              "module": "冷丰RBT",
+              "title": "合同签署"
+            },
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日履行"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常履约数据"
+            },
+            {
+              "file": "RBT/rbt_trade.html",
+              "module": "冷丰RBT",
+              "title": "交易单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_index.html",
+              "text": "去掉履约风险等级规则表，等级卡片、当前履约中、异常提醒和持续未履行样例恢复显示"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "text": "列表增加已履行金额、未履行差额、履行覆盖率和履约风险等级；履约详情可改结算比例，点合同编号从右侧看合同，每日履行去掉操作记录并列出三方收款，上方增加履行汇总"
+            },
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "text": "每日金额和各方结款合成一张表；查看打开当天该渠道的履行明细，需求单号进入需求单详情，操作列增加履约详情"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "每日已结款改为和履约详情同一套三方拆分"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "text": "修改结算比例时，履约中的需求显示履约中"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "text": "从本页打开履约详情可以查看合同，正常等级补上对应颜色"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-11-19",
       "items": [
@@ -251,6 +346,21 @@
               "file": "MDM/mdm_super_admin_accounts.html",
               "module": "冷丰WMS",
               "title": "商户主体建档"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常履约数据"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -545,6 +655,21 @@
               "file": "MDM/mdm_super_admin_accounts.html",
               "module": "冷丰WMS",
               "title": "商户主体建档"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常履约数据"
             },
             {
               "file": "RBT/rbt_risk_config.html",
@@ -1849,6 +1974,21 @@
               "title": "商户主体建档"
             },
             {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常履约数据"
+            },
+            {
               "file": "SCM/basic_settings_contract_config.html",
               "module": "冷丰WMS",
               "title": "接入配置"
@@ -2352,6 +2492,21 @@
               "file": "MDM/mdm_super_admin_accounts.html",
               "module": "冷丰WMS",
               "title": "商户主体建档"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常履约数据"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -3706,6 +3861,21 @@
               "title": "冷丰 MDM · BD 门店模块"
             },
             {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常履约数据"
+            },
+            {
               "file": "SCM/basic_settings_contract_config.html",
               "module": "冷丰WMS",
               "title": "接入配置"
@@ -4100,6 +4270,21 @@
               "file": "MDM/mdm_super_admin_accounts.html",
               "module": "冷丰WMS",
               "title": "商户主体建档"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常履约数据"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -7165,6 +7350,21 @@
               "title": "冷丰 MDM · BD 门店模块"
             },
             {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常履约数据"
+            },
+            {
               "file": "SCM/basic_settings_contract_config.html",
               "module": "冷丰WMS",
               "title": "接入配置"
@@ -7262,6 +7462,21 @@
               "file": "MDM/mdm_bd_stores.html",
               "module": "",
               "title": "冷丰 MDM · BD 门店模块"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常履约数据"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -7413,6 +7628,21 @@
               "file": "MDM/mdm_bd_stores.html",
               "module": "",
               "title": "冷丰 MDM · BD 门店模块"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常履约数据"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -7818,6 +8048,21 @@
               "title": "所有主体"
             },
             {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常履约数据"
+            },
+            {
               "file": "SCM/basic_settings_business_tags.html",
               "module": "冷丰WMS",
               "title": "标签管理"
@@ -8010,6 +8255,21 @@
               "file": "MDM/mdm_settle_index.html",
               "module": "冷丰结算",
               "title": "结算中心"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常履约数据"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -9387,6 +9647,21 @@
               "title": "商户主体建档"
             },
             {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常履约数据"
+            },
+            {
               "file": "SCM/basic_settings_contract_config.html",
               "module": "冷丰WMS",
               "title": "接入配置"
@@ -9937,6 +10212,21 @@
               "file": "MDM/mdm_settle_supplier_portal.html",
               "module": "冷丰结算",
               "title": "供应商结算"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常履约数据"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -11898,6 +12188,21 @@
               "title": "零售订单"
             },
             {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常履约数据"
+            },
+            {
               "file": "SCM/basic_settings_contract_config.html",
               "module": "冷丰WMS",
               "title": "接入配置"
@@ -12053,6 +12358,21 @@
               "file": "MDM/mdm_bd_stores.html",
               "module": "",
               "title": "冷丰 MDM · BD 门店模块"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常履约数据"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -12316,6 +12636,21 @@
               "file": "MDM/mdm_super_admin_accounts.html",
               "module": "冷丰WMS",
               "title": "商户主体建档"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常履约数据"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -25319,6 +25654,21 @@
               "file": "MDM/mdm_super_admin_accounts.html",
               "module": "冷丰WMS",
               "title": "商户主体建档"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常履约数据"
             },
             {
               "file": "SCM/basic_settings_business_tags.html",
