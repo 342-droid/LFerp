@@ -240,50 +240,14 @@
     /* 已结款与履约详情同一套拆分：已发生日期的实际履行，按三方应收占比拆给贸易商。 */
     function traderSettled(item) {
         var daily = window.RbtDailyFulfill;
-        var api = window.RbtDemandData;
-        var days = daily && typeof daily.daysOf === 'function' ? daily.daysOf(item) : [];
-        var pack = api && typeof api.receivables === 'function' ? api.receivables(item) : null;
-        var empty = { total: '', shares: [] };
-        if (!pack || !days.length) return empty;
-        var keys = ['trader', 'lengfeng', 'provider'];
-        var cents = {};
+        var rows = daily && typeof daily.payeeSplit === 'function' ? daily.payeeSplit(item) : [];
+        if (!rows.length) return { total: '', shares: [] };
         var totalCents = 0;
-        keys.forEach(function (key) {
-            cents[key] = Math.max(0, centsOf(pack[key]) || 0);
-            totalCents += cents[key];
+        var shares = rows.map(function (row) {
+            totalCents += Math.round(Number(row.trader) * 100);
+            return { date: row.date, channel: row.channel, amount: row.trader };
         });
-        if (!totalCents) return empty;
-        var pool = 0;
-        days.forEach(function (row) { pool += Math.round((Number(row.actual) || 0) * 100); });
-        if (!pool) return { total: '0.00', shares: [] };
-        var largest = 'trader';
-        keys.forEach(function (key) {
-            if (cents[key] >= cents[largest]) largest = key;
-        });
-        var traderTotal;
-        if (largest === 'trader') {
-            var used = 0;
-            keys.forEach(function (key) {
-                if (key === 'trader') return;
-                used += Math.floor(pool * cents[key] / totalCents);
-            });
-            traderTotal = pool - used;
-        } else {
-            traderTotal = Math.floor(pool * cents.trader / totalCents);
-        }
-        var shares = [];
-        var usedDay = 0;
-        days.forEach(function (row, index) {
-            var part;
-            if (index === days.length - 1) part = traderTotal - usedDay;
-            else {
-                var dayPool = Math.round((Number(row.actual) || 0) * 100);
-                part = pool ? Math.floor(dayPool * traderTotal / pool) : 0;
-                usedDay += part;
-            }
-            shares.push({ date: row.date, channel: row.channel, amount: (part / 100).toFixed(2) });
-        });
-        return { total: (traderTotal / 100).toFixed(2), shares: shares };
+        return { total: (totalCents / 100).toFixed(2), shares: shares };
     }
 
     var TRADER_ACCOUNTS = {

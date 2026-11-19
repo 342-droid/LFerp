@@ -35,10 +35,35 @@
         return '';
     }
 
+    function yuan(value) {
+        return blank(value) ? '—' : ('¥' + value);
+    }
+
+    /* 与首页履约风险同一口径：已发生日期的实际履行合计、应履行减实际履行、覆盖率和等级。 */
+    function withRisk(row) {
+        var days = dailyApi && typeof dailyApi.daysOf === 'function' ? dailyApi.daysOf(row) : [];
+        var fact = window.RbtRisk && typeof window.RbtRisk.assessDays === 'function'
+            ? window.RbtRisk.assessDays(days)
+            : { actual: '', gap: '', cover: '—', grade: '—' };
+        return Object.assign({}, row, {
+            fulfilledAmount: fact.actual,
+            fulfillGap: fact.gap,
+            fulfillCover: fact.cover,
+            riskGrade: fact.grade
+        });
+    }
+
     OctopusPrototype.mount({
         setup: function () {
             var table = ref(null);
-            var slots = { code: 'cell-code', status: 'cell-status' };
+            /* 页内模板会把 v-slot 表达式转成小写，风险等级的键用 riskgrade。 */
+            var slots = { code: 'cell-code', status: 'cell-status', riskgrade: 'cell-riskGrade' };
+            var gradeOptions = [
+                { label: '正常', value: '正常' },
+                { label: '关注', value: '关注' },
+                { label: '预警', value: '预警' },
+                { label: '异常', value: '异常' }
+            ];
 
             var columns = [
                 { dataIndex: 'code', title: '需求单号', minWidth: 140, search: { control: 'input' } },
@@ -49,6 +74,15 @@
                 { dataIndex: 'accountNameQuery', title: '收款账户名称', hideInTable: true, search: { control: 'input' } },
                 { dataIndex: 'accountNoQuery', title: '收款账户', hideInTable: true, search: { control: 'input' } },
                 { dataIndex: 'amount', title: '总金额', minWidth: 120, formatter: function (row) { return blank(row.amount) ? '—' : ('¥' + row.amount); } },
+                { dataIndex: 'fulfilledAmount', title: '已履行金额', minWidth: 120, align: 'right', formatter: function (row) { return yuan(row.fulfilledAmount); } },
+                { dataIndex: 'fulfillGap', title: '未履行差额', minWidth: 120, align: 'right', formatter: function (row) { return yuan(row.fulfillGap); } },
+                { dataIndex: 'fulfillCover', title: '履行覆盖率', minWidth: 110 },
+                {
+                    dataIndex: 'riskGrade',
+                    title: '履约风险等级',
+                    minWidth: 120,
+                    search: { control: 'select', options: gradeOptions, placeholder: '请选择' }
+                },
                 { dataIndex: 'repayCycle', title: '结算周期', minWidth: 100, formatter: function (row) { return show(row.repayCycle); } },
                 { dataIndex: 'repayMethod', title: '结算方式', minWidth: 100, formatter: function (row) { return show(row.repayMethod); } },
                 {
@@ -87,6 +121,9 @@
                     if (!payeeHit(row, 'accountName', params.accountNameQuery)) return false;
                     if (!payeeHit(row, 'accountNo', params.accountNoQuery)) return false;
                     if (!blank(params.status) && row.status !== params.status) return false;
+                    return true;
+                }).map(withRisk).filter(function (row) {
+                    if (!blank(params.riskGrade) && row.riskGrade !== params.riskGrade) return false;
                     return true;
                 });
                 return Promise.resolve(paginate(matched, params));

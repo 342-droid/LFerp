@@ -97,12 +97,129 @@
         }, 0);
     }
 
+    function cents(value) {
+        var num = Number(value);
+        if (!isFinite(num)) return 0;
+        return Math.round(num * 100);
+    }
+
+    /* 当日实际履行按贸易商、冷丰、服务商应收占比拆成三方收款。各日之和等于履约详情里的已结款，一行三笔之和等于当日实际履行。 */
+    function payeeSplit(item) {
+        var days = daysOf(item);
+        var keys = ['trader', 'lengfeng', 'provider'];
+        var api = global.RbtDemandData;
+        var pack = api && typeof api.receivables === 'function' ? api.receivables(item) : null;
+        var weights = {};
+        var weightTotal = 0;
+        keys.forEach(function (key) {
+            weights[key] = Math.max(0, cents(pack && pack[key]));
+            weightTotal += weights[key];
+        });
+        var actuals = days.map(function (row) { return Math.max(0, cents(row.actual)); });
+        var pool = actuals.reduce(function (sum, value) { return sum + value; }, 0);
+        var shares = { trader: 0, lengfeng: 0, provider: 0 };
+        if (weightTotal && pool) {
+            var largest = keys[0];
+            keys.forEach(function (key) {
+                if (weights[key] >= weights[largest]) largest = key;
+            });
+            var used = 0;
+            keys.forEach(function (key) {
+                if (key === largest) return;
+                shares[key] = Math.floor(pool * weights[key] / weightTotal);
+                used += shares[key];
+            });
+            shares[largest] = pool - used;
+        }
+        var remaining = { trader: shares.trader, lengfeng: shares.lengfeng, provider: shares.provider };
+        return days.map(function (row, index) {
+            var actual = actuals[index];
+            var parts = { trader: 0, lengfeng: 0, provider: 0 };
+            if (weightTotal && pool && index === days.length - 1) {
+                keys.forEach(function (key) { parts[key] = remaining[key]; });
+            } else if (weightTotal && pool) {
+                var assigned = 0;
+                keys.forEach(function (key) {
+                    var raw = Math.floor(actual * shares[key] / pool);
+                    if (raw > remaining[key]) raw = remaining[key];
+                    parts[key] = raw;
+                    assigned += raw;
+                });
+                var short = actual - assigned;
+                var order = keys.slice().sort(function (a, b) {
+                    return shares[b] - shares[a] || weights[b] - weights[a];
+                });
+                var guard = 0;
+                while (short > 0 && guard < actual + 5) {
+                    var progressed = false;
+                    var i;
+                    for (i = 0; i < order.length && short > 0; i++) {
+                        var key = order[i];
+                        if (remaining[key] - parts[key] <= 0) continue;
+                        parts[key] += 1;
+                        short -= 1;
+                        progressed = true;
+                    }
+                    guard += 1;
+                    if (!progressed) break;
+                }
+                keys.forEach(function (key) { remaining[key] -= parts[key]; });
+            }
+            return {
+                date: row.date,
+                channel: row.channel,
+                trader: (parts.trader / 100).toFixed(2),
+                lengfeng: (parts.lengfeng / 100).toFixed(2),
+                provider: (parts.provider / 100).toFixed(2)
+            };
+        });
+    }
+
+    /* 履行明细：一行是一天、一个渠道，结款是当日实际履行拆给贸易商、冷丰、服务商的金额。 */
+    function detailRows() {
+        var api = global.RbtDemandData;
+        var list = api && typeof api.list === 'function' ? api.list() : [];
+        var out = [];
+        list.forEach(function (item) {
+            if (!item || !inPerformance(item.status)) return;
+            var shares = {};
+            payeeSplit(item).forEach(function (share) {
+                shares[share.date + ':' + share.channel] = share;
+            });
+            daysOf(item).forEach(function (row) {
+                var share = shares[row.date + ':' + row.channel] || { trader: '0.00', lengfeng: '0.00', provider: '0.00' };
+                out.push({
+                    id: row.id,
+                    date: row.date,
+                    storeCode: row.storeCode,
+                    storeName: row.storeName,
+                    demandCode: row.demandCode,
+                    channel: row.channel,
+                    traderName: item.traderName || '',
+                    traderPay: share.trader,
+                    lengfengPay: share.lengfeng,
+                    providerName: item.providerName || '',
+                    providerPay: share.provider
+                });
+            });
+        });
+        out.sort(function (a, b) {
+            if (a.date !== b.date) return a.date < b.date ? 1 : -1;
+            if (a.storeName !== b.storeName) return a.storeName < b.storeName ? -1 : 1;
+            if (a.demandCode !== b.demandCode) return a.demandCode < b.demandCode ? -1 : 1;
+            return a.channel < b.channel ? -1 : 1;
+        });
+        return out;
+    }
+
     global.RbtDailyFulfill = {
         phaseLabel: phaseLabel,
         inPerformance: inPerformance,
         money: money,
         daysOf: daysOf,
         rows: rows,
-        sumDue: sumDue
+        detailRows: detailRows,
+        sumDue: sumDue,
+        payeeSplit: payeeSplit
     };
 })(window);
