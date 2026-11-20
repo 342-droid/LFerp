@@ -10,9 +10,11 @@
     const isProductPackage = currentPage === 'rbt_product_package';
     const isInstallment = currentPage === 'rbt_installment';
     const isDemand = currentPage === 'rbt_demand';
-    const isPurchase = currentPage === 'rbt_purchase';
-    const isSales = currentPage === 'rbt_sales';
+    const isTrade = currentPage === 'rbt_trade' || currentPage === 'rbt_purchase' || currentPage === 'rbt_sales';
     const isPerformance = currentPage === 'rbt_performance';
+    const isDailyFulfill = currentPage === 'rbt_daily_fulfill';
+    const isRiskConfig = currentPage === 'rbt_risk_config';
+    const isRiskAbnormal = currentPage === 'rbt_risk_abnormal';
 
     const sidebarContainer = document.getElementById('sidebar-container');
     if (!sidebarContainer) {
@@ -35,7 +37,7 @@
         '<li class="menu-item">' +
         '<a href="' + pageHref('rbt_admit_store.html') + '" class="menu-link' + (isAdmitStore ? ' active' : '') + '">' +
         '<img src="' + assetHref('image/基础信息.svg') + '" alt="" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
-        '<span>门店管理</span>' +
+        '<span>门店准入管理</span>' +
         '</a>' +
         '</li>' +
         '<li class="menu-item">' +
@@ -57,21 +59,33 @@
         '</a>' +
         '</li>' +
         '<li class="menu-item">' +
-        '<a href="' + pageHref('rbt_purchase.html') + '" class="menu-link' + (isPurchase ? ' active' : '') + '">' +
+        '<a href="' + pageHref('rbt_trade.html') + '" class="menu-link' + (isTrade ? ' active' : '') + '">' +
         '<img src="' + assetHref('image/基础信息.svg') + '" alt="" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
-        '<span>采购单</span>' +
-        '</a>' +
-        '</li>' +
-        '<li class="menu-item">' +
-        '<a href="' + pageHref('rbt_sales.html') + '" class="menu-link' + (isSales ? ' active' : '') + '">' +
-        '<img src="' + assetHref('image/基础信息.svg') + '" alt="" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
-        '<span>销售单</span>' +
+        '<span>交易单</span>' +
         '</a>' +
         '</li>' +
         '<li class="menu-item">' +
         '<a href="' + pageHref('rbt_performance.html') + '" class="menu-link' + (isPerformance ? ' active' : '') + '">' +
         '<img src="' + assetHref('image/基础信息.svg') + '" alt="" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
         '<span>履约</span>' +
+        '</a>' +
+        '</li>' +
+        '<li class="menu-item">' +
+        '<a href="' + pageHref('rbt_daily_fulfill.html') + '" class="menu-link' + (isDailyFulfill ? ' active' : '') + '">' +
+        '<img src="' + assetHref('image/基础信息.svg') + '" alt="" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
+        '<span>每日履行</span>' +
+        '</a>' +
+        '</li>' +
+        '<li class="menu-item">' +
+        '<a href="' + pageHref('rbt_risk_config.html') + '" class="menu-link' + (isRiskConfig ? ' active' : '') + '">' +
+        '<img src="' + assetHref('image/基础信息.svg') + '" alt="" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
+        '<span>风控配置</span>' +
+        '</a>' +
+        '</li>' +
+        '<li class="menu-item">' +
+        '<a href="' + pageHref('rbt_risk_abnormal.html') + '" class="menu-link' + (isRiskAbnormal ? ' active' : '') + '">' +
+        '<img src="' + assetHref('image/基础信息.svg') + '" alt="" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
+        '<span>异常履约数据</span>' +
         '</a>' +
         '</li>' +
         '</ul>' +

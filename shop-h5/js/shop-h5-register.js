@@ -64,20 +64,6 @@
     return BD_LINKABLE_WAREHOUSES[0];
   }
 
-  function getRegionalProtectionHint(partnerDivision, regionCascade, detailAddress) {
-    var div = (partnerDivision || '').trim();
-    if (div !== '加盟店' && div !== '合作店') return { showWarning: false, message: '' };
-    var text = (regionCascade || '') + (detailAddress || '');
-    if (text.indexOf('西湖区') >= 0 && /文一西路|558/.test(text)) {
-      return {
-        showWarning: true,
-        message:
-          '该区域涉及区域保护范围，已有门店建档。请更换选址，或在「特殊情况说明」中备注并经 BD 总监确认后再提交。',
-      };
-    }
-    return { showWarning: false, message: '' };
-  }
-
   function filterMockStorePois(query) {
     var t = (query || '').trim();
     if (!t) return [];
@@ -166,6 +152,9 @@
       confidenceReach1000: '',
       specialCircumstancesNote: '无',
       otherPlatformsCooperation: '',
+      bizLine: '餐饮',
+      brandName: '冷丰锅贴',
+      bizLines: ['拉新', '商城'],
       mapPoiQuery: MOCK_STORE_POIS[0].displayName,
       companyCallbackNotified: true,
       frontPhotoUploaded: true,
@@ -259,18 +248,6 @@
     });
   }
 
-  function updateProtectionUi() {
-    var pd = $('partnerDivision').value;
-    var rc = $('regionCascade').value;
-    var da = $('detailAddress').value;
-    var hint = getRegionalProtectionHint(pd, rc, da);
-    var box = $('protectionAlert');
-    if (hint.showWarning) {
-      box.classList.remove('shop-h5-hidden');
-      $('protectionAlertMsg').textContent = hint.message;
-    } else box.classList.add('shop-h5-hidden');
-  }
-
   function syncWarehouseHint() {
     var bd = $('boundBd').value || '当前 BD';
     var def = getDefaultWarehouseForBd(resolveBdDisplayName(bd) !== '—' ? resolveBdDisplayName(bd) : bd);
@@ -298,17 +275,46 @@
       else sel.value = def;
     }
 
+  /** 三种合作类型都按加盟店资料填写。历史值：生鲜店、同行店归加盟店，合作店归联营店。 */
+  function normalizePartnerDivision(v) {
+    var t = (v || '').trim();
+    if (t === '生鲜店' || t === '同行店') return '加盟店';
+    if (t === '合作店') return '联营店';
+    return t;
+  }
+
+  function usesFranchiseMaterials(v) {
+    v = normalizePartnerDivision(v);
+    return v === '加盟店' || v === '联营店' || v === '直营店';
+  }
+
+  function ensurePartnerOption(v) {
+    var sel = $('partnerDivision');
+    if (!sel || !v) return;
+    var exists = false;
+    for (var i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].value === v) {
+        exists = true;
+        break;
+      }
+    }
+    if (exists) return;
+    var opt = document.createElement('option');
+    opt.value = v;
+    opt.textContent = v;
+    sel.appendChild(opt);
+  }
+
   function togglePolicyPanels() {
-    var v = $('partnerDivision').value;
+    var raw = $('partnerDivision').value;
+    var v = normalizePartnerDivision(raw);
+    if (v && v !== raw) $('partnerDivision').value = v;
     var policy = !!v;
     $('policyPlaceholder').classList.toggle('shop-h5-hidden', policy);
     $('policyPanels').classList.toggle('shop-h5-hidden', !policy);
     $('storeTypeRow').classList.toggle('shop-h5-hidden', !policy);
-    var fr = v === '加盟店' || v === '合作店' || v === '生鲜店';
-    var peer = v === '同行店';
+    var fr = usesFranchiseMaterials(v);
     $('blockFranchise').classList.toggle('shop-h5-hidden', !fr);
-    $('blockPeer').classList.toggle('shop-h5-hidden', !peer);
-    updateProtectionUi();
   }
 
   function refreshPoiList() {
@@ -359,7 +365,6 @@
         $('mapPin').style.left = p.mapX + '%';
         $('mapPin').style.top = p.mapY + '%';
         refreshPoiList();
-        updateProtectionUi();
         toast('已选点：省市区与详细地址已根据地图 POI 更新（演示）');
       };
       listEl.appendChild(btn);
@@ -413,9 +418,7 @@
 
   function collectPayloadFromForm() {
     var partnerDivision = $('partnerDivision').value;
-    var isFranchiseOrPartner =
-      partnerDivision === '加盟店' || partnerDivision === '合作店' || partnerDivision === '生鲜店';
-    var isPeerStore = partnerDivision === '同行店';
+    var isFranchiseOrPartner = usesFranchiseMaterials(partnerDivision);
     var nameOut = $('name').value.trim() || '未命名门店';
     var warehouse = $('warehouse').value.trim() || getDefaultWarehouseForBd($('boundBd').value);
     return {
@@ -449,9 +452,7 @@
       surroundingCommunityNote: $('surroundingCommunityNote').value.trim(),
       confidenceReach1000: $('confidenceReach1000').value.trim(),
       specialCircumstancesNote: $('specialCircumstancesNote').value.trim(),
-      otherPlatformsCooperation: $('otherPlatformsCooperation').value.trim(),
       isFranchiseOrPartner: isFranchiseOrPartner,
-      isPeerStore: isPeerStore,
     };
   }
 
@@ -459,11 +460,15 @@
     var f = collectPayloadFromForm();
     if (!f.storeSubject) return toastLines('请填写门店主体', '', true), false;
     if (!$('name').value.trim()) return toastLines('请填写门店名称', '', true), false;
+    if (window.MdmEntryMaterials) {
+      var entryErr = window.MdmEntryMaterials.validate(window.MdmEntryMaterials.h5Root(document));
+      if (entryErr) return toastLines(entryErr, '', true), false;
+    }
     if (!f.boundBd || !String(f.boundBd).trim() || f.boundBd === '—')
       return toastLines('请填写绑定 BD', '', true), false;
     if (!f.warehouse || !String(f.warehouse).trim() || f.warehouse === '—')
       return toastLines('请选择配送仓库', '', true), false;
-    if (!f.partnerDivision) return toastLines('请选择门店合作类型（加盟店/合作店/同行店/生鲜店）', '', true), false;
+    if (!f.partnerDivision) return toastLines('请选择门店合作类型（加盟店/联营店/直营店）', '', true), false;
 
     var isCreate = state.mode === 'create';
     var mapOk = isCreate
@@ -501,34 +506,6 @@
     if (f.isFranchiseOrPartner) {
       if (!f.storeArea) return toastLines('请填写门店面积', '', true), false;
       if (!f.storeFloors) return toastLines('请填写门店楼层', '', true), false;
-      var hint = getRegionalProtectionHint(f.partnerDivision, f.regionCascade, f.detailAddress);
-      if (hint.showWarning) {
-        var specialTrim = (f.specialCircumstancesNote || '').trim();
-        var textOk = specialTrim.length > 0 && specialTrim !== '无';
-        var hasPic = state.specialUrls.length > 0;
-        if (!textOk && !hasPic) {
-          expandCollapsibleById('specialCircumstancesNote');
-          return (
-            toastLines(
-              '该区域涉及区域保护范围',
-              '请在「特殊情况说明」中填写文字或上传配图，说明与总监沟通等情况（不可留空且不可仅填「无」而无配图）',
-              true
-            ),
-            false
-          );
-        }
-        if (specialTrim === '无' && !hasPic) {
-          expandCollapsibleById('specialCircumstancesNote');
-          return (
-            toastLines(
-              '该区域涉及区域保护范围',
-              '不可仅在正文填写「无」而无配图；请补充说明或上传相关截图',
-              true
-            ),
-            false
-          );
-        }
-      }
     }
 
     if (!f.companyCallbackNotified)
@@ -545,7 +522,9 @@
     $('boundBd').value = s.boundBd || '';
     $('warehouse').dataset.pending = s.warehouse || '';
     fillWarehouseSelect();
-    $('partnerDivision').value = s.partnerDivision || '';
+    var partner = normalizePartnerDivision(s.partnerDivision || '');
+    ensurePartnerOption(partner);
+    $('partnerDivision').value = partner;
     $('storeTypeDetail').value = s.storeTypeDetail || '';
     $('regionCascade').value = s.regionCascade || '';
     $('detailAddress').value = s.detailAddress || '';
@@ -571,7 +550,10 @@
     $('surroundingCommunityNote').value = s.surroundingCommunityNote || '';
     $('confidenceReach1000').value = s.confidenceReach1000 || '';
     $('specialCircumstancesNote').value = s.specialCircumstancesNote || '';
-    $('otherPlatformsCooperation').value = s.otherPlatformsCooperation || '';
+    if (window.MdmEntryMaterials) {
+      var entrySaved = s.entryMaterials || window.MdmEntryMaterials.load('store', s.name);
+      if (entrySaved) window.MdmEntryMaterials.fill(window.MdmEntryMaterials.h5Root(document), entrySaved);
+    }
     syncWarehouseHint();
     togglePolicyPanels();
     if (state.selectedPoiId === 'legacy') {
@@ -600,7 +582,6 @@
     $('heroTitle').textContent = $('name').value.trim() || '未命名门店';
     $('btnRefrigeratedPick').disabled = $('hasRefrigeratedCabinet').value !== '有';
     $('btnFreezerPick').disabled = $('hasFreezerCabinet').value !== '有';
-    updateProtectionUi();
   }
 
   function phaseAllowsOwnerSupplement(phase) {
@@ -628,7 +609,26 @@
     if (btn) btn.setAttribute('aria-expanded', 'true');
   }
 
+  function mountShopEntryMaterials() {
+    if (!window.MdmEntryMaterials || document.querySelector('[data-entry-materials-wrap]')) return;
+    var anchor = document.getElementById('storeSubject');
+    var section = anchor && anchor.closest ? anchor.closest('section') : null;
+    if (!section || !section.parentNode) return;
+    var holder = document.createElement('div');
+    holder.innerHTML = window.MdmEntryMaterials.h5Section('shop');
+    while (holder.firstChild) section.parentNode.insertBefore(holder.firstChild, section.nextSibling);
+  }
+
+  function currentShopEntry() {
+    if (!window.MdmEntryMaterials) return null;
+    var data = window.MdmEntryMaterials.read(window.MdmEntryMaterials.h5Root(document));
+    var name = document.getElementById('name');
+    if (name && name.value.trim()) window.MdmEntryMaterials.save('store', name.value.trim(), data);
+    return data;
+  }
+
   function init() {
+    mountShopEntryMaterials();
     var params = new URLSearchParams(location.search);
     var storeIdRaw = (params.get('storeId') || '').trim();
     var bdFromUrl =
@@ -649,9 +649,6 @@
       togglePolicyPanels();
       syncWarehouseHint();
     });
-
-    $('regionCascade').addEventListener('change', updateProtectionUi);
-    $('detailAddress').addEventListener('input', updateProtectionUi);
 
     $('mapPoiQuery').addEventListener('input', function () {
       refreshPoiList();
@@ -718,23 +715,6 @@
       this.value = '';
     };
 
-    $('btnBroadcastPick').onclick = function () {
-      $('broadcastFiles').click();
-    };
-    $('broadcastFiles').onchange = function () {
-      var old = state.broadcastUrls.length;
-      state.broadcastUrls = mergePhotos(state.broadcastUrls, this.files, MAX_BROADCAST);
-      $('broadcastCount').textContent = String(state.broadcastUrls.length);
-      renderPhotoGrid('broadcastGrid', state.broadcastUrls, function rem(ix) {
-        revokeUrls([state.broadcastUrls[ix]]);
-        state.broadcastUrls.splice(ix, 1);
-        $('broadcastCount').textContent = String(state.broadcastUrls.length);
-        renderPhotoGrid('broadcastGrid', state.broadcastUrls, rem);
-      });
-      toast(state.broadcastUrls.length > old ? '已添加图片' : '已达上限');
-      this.value = '';
-    };
-
     $('btnVideoStorefront').onclick = function () {
       $('videoStorefrontFile').click();
     };
@@ -783,6 +763,7 @@
       var f = collectPayloadFromForm();
       var bd = f.boundBd || bdFromUrl || '当前 BD';
       var bdDisplay = resolveBdDisplayName(bd);
+      var entryMaterials = currentShopEntry();
 
       if (state.mode === 'create') {
         var newId = nextId();
@@ -819,7 +800,7 @@
           surroundingCommunityNote: f.surroundingCommunityNote,
           confidenceReach1000: f.confidenceReach1000,
           specialCircumstancesNote: f.specialCircumstancesNote,
-          otherPlatformsCooperation: f.otherPlatformsCooperation,
+          entryMaterials: entryMaterials,
         });
         toast('已提交：门店注册申请已提交，请等待审核');
         var q = { status: 'pending', storeName: f.name, bdId: bd, storeId: String(newId) };
@@ -862,7 +843,7 @@
           surroundingCommunityNote: f.surroundingCommunityNote,
           confidenceReach1000: f.confidenceReach1000,
           specialCircumstancesNote: f.specialCircumstancesNote,
-          otherPlatformsCooperation: f.otherPlatformsCooperation,
+          entryMaterials: entryMaterials,
           phase: prev.phase === 'draft' ? 'awaiting_bd' : prev.phase === 'awaiting_bd' ? 'awaiting_bd' : prev.phase,
         })
       );

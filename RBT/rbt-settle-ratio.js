@@ -1,6 +1,7 @@
-/* 初审通过时按需求单维护结算比例：渠道 + 商品类目，每个渠道一条默认比例。 */
+/* 产品配置维护 POS、直播、商城的默认比例。POS 下可再加堂食、外卖、团购，各自单独比例。需求单上仍可再按商品类目改比例。 */
 (function () {
     var CHANNELS = ['POS', '直播', '商城'];
+    var POS_SUBS = ['堂食', '外卖', '团购'];
     var CATEGORIES = ['新鲜蔬菜', '时令水果', '粮油调味', '肉禽蛋品'];
     var SKU_CATEGORY = {
         SKU10001: '时令水果',
@@ -115,6 +116,17 @@
     function renderHtml(item) {
         var view = viewOf(item);
         if (!view) return '';
+        ensureStyle();
+        if (item && item.hideCategories) {
+            var plain = (item.settleRatios || []).map(function (channel) {
+                var subs = (channel.subs || []).map(function (sub) {
+                    return esc(sub.name) + ' ' + esc(sub.ratio) + '%';
+                }).join('；');
+                var ratio = esc(channel.fallback) + '%' + (subs ? '；' + subs : '');
+                return '<tr><td>' + esc(channel.channel) + '</td><td>' + ratio + '</td></tr>';
+            }).join('');
+            return '<table class="rbt-ratio"><thead><tr><th>渠道</th><th>结算比例</th></tr></thead><tbody>' + plain + '</tbody></table>';
+        }
         var body = view.map(function (channel) {
             var cats = channel.categories.map(function (cat) {
                 return '<span class="rbt-ratio__cat"><b>' + esc(cat.name) + '</b>' + esc(cat.ratio) + '%</span>';
@@ -165,13 +177,13 @@
                 seen[category] = true;
                 rows.push({ category: category, ratio: ratio });
             });
-            next.push({ channel: channel, fallback: fallback, rows: rows });
+            next.push({ channel: channel, fallback: fallback, rows: rows, subs: copySubs(channel, found && found.subs) });
             return true;
         });
         return ok ? next : null;
     }
 
-    /* 只有初审维护过才有结算比例。发布时不带。 */
+    /* 发布需求时从产品配置抄到需求单。没有这份比例时不展示。 */
     function textOf(item) {
         if (!item || item.repayMethod !== '比例付') return '';
         if (!item.settleRatios || !item.settleRatios.length) return '';
@@ -185,11 +197,14 @@
             (channel.rows || []).forEach(function (row) {
                 parts.push(row.category + ' ' + row.ratio + '%');
             });
+            (channel.subs || []).forEach(function (sub) {
+                parts.push(sub.name + ' ' + sub.ratio + '%');
+            });
             return channel.channel + ' ' + parts.join('，');
         }).join('；');
     }
 
-    var EDITABLE_STATUSES = ['待接单', '待确认签约', '待签署', '待复核', '支付中'];
+    var EDITABLE_STATUSES = ['待接单', '待确认签约', '待签署', '待付款', '门店付款中'];
 
     function canEdit(item) {
         return !!(item && EDITABLE_STATUSES.indexOf(item.status) >= 0);
@@ -198,7 +213,7 @@
     function emptyDraft() {
         var draft = {};
         CHANNELS.forEach(function (channel) {
-            draft[channel] = { fallback: '', rows: [] };
+            draft[channel] = { fallback: '', rows: [], subs: [] };
         });
         return draft;
     }
@@ -211,7 +226,8 @@
                 fallback: channel.fallback || '',
                 rows: (channel.rows || []).map(function (row) {
                     return { category: row.category, ratio: row.ratio };
-                })
+                }),
+                subs: channel.channel === 'POS' ? copySubs('POS', channel.subs) : []
             };
         });
         return draft;
@@ -276,6 +292,29 @@
         renderEditor(host, draft);
     }
 
+    /* 产品配置表单直接改草稿，不经过审核弹窗里的输入框。 */
+    function collectDraft(draft) {
+        if (!draft) return null;
+        var invalid = false;
+        var list = CHANNELS.map(function (channel) {
+            var item = draft[channel] || { fallback: '', rows: [] };
+            var fallback = parseRatio(item.fallback);
+            if (!fallback) invalid = true;
+            var rows = [];
+            (item.rows || []).forEach(function (row) {
+                var ratio = parseRatio(row && row.ratio);
+                if (!row || !row.category || !ratio) {
+                    invalid = true;
+                    return;
+                }
+                rows.push({ category: row.category, ratio: ratio });
+            });
+            return { channel: channel, fallback: fallback, rows: rows, subs: takenSubs(channel, item.subs, function () { invalid = true; }) };
+        });
+        if (invalid) return null;
+        return normalize(list);
+    }
+
     function collectEditor(host, draft) {
         if (!draft) return null;
         syncEditor(host, draft);
@@ -294,10 +333,42 @@
                 }
                 rows.push({ category: row.category, ratio: ratio });
             });
-            return { channel: channel, fallback: fallback, rows: rows };
+            return { channel: channel, fallback: fallback, rows: rows, subs: takenSubs(channel, item.subs, function () { invalid = true; }) };
         });
         if (invalid) return null;
         return normalize(list);
+    }
+
+    /* POS 二级渠道只收堂食、外卖、团购。同一名称只留一条，比例不合法的丢掉。 */
+    function copySubs(channel, list) {
+        if (channel !== 'POS' || !Array.isArray(list)) return [];
+        var seen = {};
+        var subs = [];
+        list.forEach(function (row) {
+            var name = String(row && row.name || '').trim();
+            var ratio = parseRatio(row && row.ratio);
+            if (POS_SUBS.indexOf(name) < 0 || !ratio || seen[name]) return;
+            seen[name] = true;
+            subs.push({ name: name, ratio: ratio });
+        });
+        return subs;
+    }
+
+    function takenSubs(channel, list, onInvalid) {
+        if (channel !== 'POS') return [];
+        var seen = {};
+        var subs = [];
+        (list || []).forEach(function (row) {
+            var name = String(row && row.name || '').trim();
+            var ratio = parseRatio(row && row.ratio);
+            if (POS_SUBS.indexOf(name) < 0 || !ratio || seen[name]) {
+                if (onInvalid) onInvalid();
+                return;
+            }
+            seen[name] = true;
+            subs.push({ name: name, ratio: ratio });
+        });
+        return subs;
     }
 
     function bindEditor(host, getDraft, toastFn) {
@@ -311,6 +382,14 @@
             if (add) addEditorRow(host, draft, add.getAttribute('data-pass-add'), toastFn);
             if (del) removeEditorRow(host, draft, del.getAttribute('data-pass-del'), Number(del.getAttribute('data-index')));
         });
+    }
+
+    function statusText(item) {
+        var daily = window.RbtDailyFulfill;
+        if (daily && typeof daily.phaseLabel === 'function' && item && (item.status === '还款中' || item.status === '已完成')) {
+            return daily.phaseLabel(item.status);
+        }
+        return (item && item.status) || '';
     }
 
     function toast(message, type) {
@@ -352,7 +431,7 @@
             '<div class="rbt-demand-contract__head">' +
             '<div><div class="rbt-demand-contract__eyebrow">修改结算比例</div>' +
             '<div class="rbt-demand-contract__title">' + esc(demand.code) + '</div>' +
-            '<div class="rbt-demand-contract__meta">' + esc(demand.storeName || '') + ' · ' + esc(demand.status || '') + '</div></div>' +
+            '<div class="rbt-demand-contract__meta">' + esc(demand.storeName || '') + ' · ' + esc(statusText(demand)) + '</div></div>' +
             '<button type="button" class="rbt-demand-contract__close" data-rbt-ratio-edit-close aria-label="关闭">&times;</button></div>' +
             '<div class="rbt-ratio-dialog__body rbt-review-body" data-rbt-ratio-edit-form></div>' +
             '<div class="rbt-review-foot"><button type="button" class="btn btn-secondary" data-rbt-ratio-edit-close>取消</button>' +
@@ -403,7 +482,30 @@
         return names;
     }
 
+    function ensureDialogChrome() {
+        if (document.getElementById('rbt-ratio-dialog-style')) return;
+        var style = document.createElement('style');
+        style.id = 'rbt-ratio-dialog-style';
+        style.textContent = [
+            '.rbt-demand-contract-link{border:0;padding:0;background:transparent;color:#1677ff;cursor:pointer;font:inherit;text-align:left;}',
+            '.rbt-demand-contract-link:hover{text-decoration:underline;}',
+            '.rbt-demand-contract-mask{position:fixed;inset:0;z-index:2400;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:24px;}',
+            '.rbt-demand-contract{width:min(760px,96vw);max-height:min(86vh,920px);background:#fff;border-radius:10px;box-shadow:0 16px 48px rgba(0,0,0,.18);display:flex;flex-direction:column;overflow:hidden;}',
+            '.rbt-demand-contract__head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:18px 20px 14px;border-bottom:1px solid #ebeef5;}',
+            '.rbt-demand-contract__eyebrow{color:#909399;font-size:12px;margin-bottom:4px;}',
+            '.rbt-demand-contract__title{font-size:18px;font-weight:600;color:#303133;line-height:1.4;}',
+            '.rbt-demand-contract__meta{margin-top:4px;color:#606266;font-size:13px;}',
+            '.rbt-demand-contract__close{border:0;background:transparent;color:#909399;font-size:24px;line-height:1;cursor:pointer;padding:0 2px;}',
+            '.rbt-demand-contract__close:hover{color:#303133;}',
+            '.rbt-ratio-dialog{width:min(840px,96vw);}',
+            '.rbt-ratio-dialog__body{padding:16px 20px 20px;overflow:auto;}',
+            '.supplier-detail-section-title .rbt-demand-contract-link{margin-left:12px;font-weight:400;font-size:13px;}'
+        ].join('');
+        document.head.appendChild(style);
+    }
+
     function ensureEditorStyle() {
+        ensureDialogChrome();
         if (document.getElementById('rbt-ratio-editor-style')) return;
         var style = document.createElement('style');
         style.id = 'rbt-ratio-editor-style';
@@ -418,14 +520,14 @@
             '.rbt-pass-label{width:88px;text-align:right;color:#333;font-size:13px;}',
             '.rbt-pass-del{border:0;background:transparent;color:#cf1322;cursor:pointer;font-size:13px;padding:0;}',
             '.rbt-review-note{margin-top:6px;color:#909399;font-size:12px;}',
-            '.rbt-review-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 20px 16px;border-top:1px solid #ebeef5;}',
-            '.supplier-detail-section-title .rbt-demand-contract-link{margin-left:12px;font-weight:400;font-size:13px;}'
+            '.rbt-review-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 20px 16px;border-top:1px solid #ebeef5;}'
         ].join('');
         document.head.appendChild(style);
     }
 
     window.RbtSettleRatio = {
         CHANNELS: CHANNELS.slice(),
+        POS_SUBS: POS_SUBS.slice(),
         CATEGORIES: CATEGORIES.slice(),
         EDITABLE_STATUSES: EDITABLE_STATUSES.slice(),
         parseRatio: parseRatio,
@@ -441,10 +543,12 @@
         emptyDraft: emptyDraft,
         draftFrom: draftFrom,
         renderEditor: renderEditor,
+        collectDraft: collectDraft,
         collectEditor: collectEditor,
         bindEditor: bindEditor,
         openEditor: openEditor,
         closeEditor: closeEditor,
+        ensureDialogChrome: ensureDialogChrome,
         renderHtml: function (item) {
             ensureStyle();
             return renderHtml(item);

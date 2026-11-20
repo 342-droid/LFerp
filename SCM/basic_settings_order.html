@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/lf-settle-account-config.css?v=20260813-bs-store">
     <link rel="stylesheet" href="../css/lf-mdm-points-rule.css">
-    <link rel="stylesheet" href="../css/basic-settings.css?v=20260814-hours-align">
+    <link rel="stylesheet" href="../css/basic-settings.css?v=20261117-restrict-align">
     <link rel="stylesheet" href="../css/mdm-oplog-drawer.css">
 </head>
 <body>
@@ -167,6 +167,24 @@
                         </div>
                     </div>
                 </section>
+
+                <!-- 合同未完成限制：分佣代收、指定商品购买限制、营销选店限制 -->
+                <section class="sac-section" id="bsRestrictSection">
+                    <div class="sac-section__head">
+                        <div class="sac-section__head-main" id="bsRestrictSectionToggle" role="button" tabindex="0">
+                            <span class="sac-section__arrow">▼</span>
+                            <span class="sac-section__title">合同未完成限制</span>
+                        </div>
+                        <div class="bs-section-head-actions" data-bs-actions="restrict">
+                            <button type="button" class="erp-btn" id="bsRestrictEditBtn">修改</button>
+                            <button type="button" class="erp-btn" id="bsRestrictCancelBtn" hidden>取消</button>
+                            <button type="button" class="erp-btn erp-btn--primary" id="bsRestrictSaveBtn" hidden>保存</button>
+                        </div>
+                    </div>
+                    <div class="sac-section__body">
+                        <div class="sac-order-config" id="bsRestrictConfigRoot"></div>
+                    </div>
+                </section>
             </div>
         </main>
     </div>
@@ -175,7 +193,8 @@
     <script src="../js/order-config-ui.js?v=20260813-bs-store"></script>
     <script src="../js/store-account-config.js?v=20260810-sac1"></script>
     <script src="../js/store-wallet-demo.js?v=20260810-deposit-unfreeze6"></script>
-    <script src="../js/basic-settings-order.js?v=20260815-sale-store-hours"></script>
+    <script src="../js/mdm-product-selection-tag-store.js"></script>
+    <script src="../js/basic-settings-order.js?v=20261118-mkt-live"></script>
     <script src="../js/mdm-oplog-dict.js"></script>
     <script src="../js/mdm-oplog-drawer.js"></script>
 </body>

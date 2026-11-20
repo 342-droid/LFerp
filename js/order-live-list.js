@@ -75,7 +75,8 @@
     var field = sw.parentElement;
     var input = field ? field.querySelector('.order-filter-field__input') : null;
     var prev = hidden ? hidden.value : '';
-    var isUserSwitch = sw.getAttribute('data-order-filter-switch') === 'user';
+    var switchKind = sw.getAttribute('data-order-filter-switch') || '';
+    var clearsOnSwitch = switchKind === 'user' || switchKind === 'order';
     if (labelEl) labelEl.textContent = text;
     if (hidden) hidden.value = value;
     if (controlKind && field) {
@@ -86,8 +87,8 @@
     if (input && (!controlKind || controlKind === 'input')) {
       input.placeholder = placeholder;
       input.setAttribute('aria-label', text);
-      /* 买家信息：切换下拉清空输入；重置时也清空 */
-      if (isUserSwitch && (value !== prev || (options && options.reset))) {
+      /* 买家信息、订单号/快递单号：切换下拉清空输入；重置时也清空 */
+      if (clearsOnSwitch && (value !== prev || (options && options.reset))) {
         input.value = '';
       }
     }
@@ -929,6 +930,10 @@
     var statusLabels = getSelectedOrderStatusLabels();
     var productInput = document.getElementById('qProductName');
     var productQ = productInput ? normalizeFilterText(productInput.value) : '';
+    var orderKeyEl = document.getElementById('qOrderKey');
+    var orderKey = orderKeyEl ? (orderKeyEl.value || 'orderNo') : 'orderNo';
+    var orderInput = document.getElementById('qOrderNo');
+    var orderQ = orderInput ? normalizeFilterText(orderInput.value) : '';
 
     var tbody = document.querySelector('.order-live-table tbody');
     if (!tbody) return;
@@ -989,6 +994,12 @@
       if (show && productQ) {
         show = rowMatchesProductQuery(row, productQ);
       }
+      /* 订单号包含匹配；快递单号与已关联包裹物流单号全等，对不上不出现 */
+      if (show && orderQ) {
+        show = orderKey === 'expressNo'
+          ? rowMatchesExpressNo(row, orderQ)
+          : rowMatchesOrderNo(row, orderQ);
+      }
       /* 发起退货/退款：只看售后状态，不改订单状态列；与履约态同时勾选时为或关系 */
       if (show && statusLabels.length) {
         var orderStatuses = statusLabels.filter(function (label) {
@@ -1002,6 +1013,10 @@
         );
         var matchAftersale = wantAftersale && rowHasReturnRefundAftersale(row);
         show = matchOrder || matchAftersale;
+      }
+      /* 供应商组织：只保留本商家供货订单（平台页无 data-org-view，不受影响） */
+      if (show && window.LFSupplierOrderView && window.LFSupplierOrderView.isActive()) {
+        show = window.LFSupplierOrderView.ownsRow(row);
       }
       row.setAttribute('data-query-match', show ? '1' : '0');
       row.hidden = !show;
@@ -1237,6 +1252,27 @@
     return input ? normalizeFilterText(input.value) : '';
   }
 
+  function rowMatchesOrderNo(row, orderQ) {
+    if (!orderQ) return true;
+    var id = normalizeFilterText(row && row.getAttribute('data-order-id'));
+    if (id.indexOf(orderQ) >= 0) return true;
+    var link = row.querySelector('.js-order-view');
+    return normalizeFilterText(link ? link.textContent : '').indexOf(orderQ) >= 0;
+  }
+
+  /** 快递单号去空格、忽略大小写后与包裹物流单号全等才命中。 */
+  function rowMatchesExpressNo(row, expressQ) {
+    if (!expressQ) return true;
+    var orderId = row && row.getAttribute('data-order-id');
+    if (!orderId || !window.OrderProxyExpress || typeof window.OrderProxyExpress.getShipments !== 'function') {
+      return false;
+    }
+    var shipments = window.OrderProxyExpress.getShipments(orderId) || [];
+    return shipments.some(function (shipment) {
+      return normalizeFilterText(shipment && shipment.trackingNo) === expressQ;
+    });
+  }
+
   function rowMatchesProductQuery(row, productQ) {
     if (!row || !productQ) return true;
     var goods = getOrderGoods(row.getAttribute('data-order-id'), row) || [];
@@ -1358,6 +1394,23 @@
 
     var orderId = row.getAttribute('data-order-id');
     var viewLink = cell.querySelector('.js-order-view');
+    /* 供应商组织：列表可发货；售后统一在售后单处理，订单列表不放「处理售后」 */
+    if (window.LFSupplierOrderView && window.LFSupplierOrderView.isActive()) {
+      var supplierActions = document.createElement('div');
+      supplierActions.className = 'order-live-table__actions';
+      if (viewLink) supplierActions.appendChild(viewLink);
+      var supplierExpress = (row.getAttribute('data-delivery-mode') || '') === 'express';
+      var supplierStatus = getRowOrderStatus(row);
+      if (supplierExpress && (supplierStatus === '待发货' || supplierStatus === '待接单')) {
+        supplierActions.appendChild(
+          createRetailActionButton('js-retail-upload-express', orderId, '发货')
+        );
+      }
+      cell.innerHTML = '';
+      cell.appendChild(supplierActions);
+      cell.dataset.actionsNormalized = '1';
+      return;
+    }
     var verifyBtn = cell.querySelector('.js-order-verify');
     var uploadBtn = cell.querySelector('.js-retail-upload-express');
     var cancelBtn = cell.querySelector('.js-retail-cancel-order');
@@ -1586,8 +1639,8 @@
     });
   }
 
-  var RETAIL_EXPORT_FIELDS_KEY = 'lfRetailOrderExportFieldsV9';
-  var PROXY_EXPORT_FIELDS_KEY = 'lfProxyOrderExportFieldsV6';
+  var RETAIL_EXPORT_FIELDS_KEY = 'lfRetailOrderExportFieldsV11';
+  var PROXY_EXPORT_FIELDS_KEY = 'lfProxyOrderExportFieldsV7';
   var RETAIL_CLEARING_EXPORT_FIELDS_KEY = 'lfRetailClearingExportFieldsV4';
   var PROXY_CLEARING_EXPORT_FIELDS_KEY = 'lfProxyClearingExportFieldsV4';
   var RETAIL_EXPORT_FIELDS = [
@@ -1620,9 +1673,12 @@
     { key: 'category', label: '商品类目', extra: true },
     { key: 'allocatedFreight', label: '分摊运费', extra: true },
     { key: 'refundAmount', label: '退款金额', extra: true },
+    { key: 'returnQty', label: '退货数', extra: true },
     { key: 'liveSession', label: '直播场次', extra: true },
     { key: 'address', label: '收货地址', extra: true },
-    { key: 'aftersaleStatus', label: '售后状态', extra: true }
+    { key: 'aftersaleStatus', label: '售后状态', extra: true },
+    { key: 'finishTime', label: '订单完成时间', extra: true },
+    { key: 'bd', label: 'BD', extra: true }
   ];
   var PROXY_EXPORT_FIELDS = [
     { key: 'orderNo', label: '订单号' },
@@ -1652,8 +1708,11 @@
     { key: 'category', label: '商品类目', extra: true },
     { key: 'allocatedFreight', label: '分摊运费', extra: true },
     { key: 'refundAmount', label: '退款金额', extra: true },
+    { key: 'returnQty', label: '退货数', extra: true },
     { key: 'address', label: '收货地址', extra: true },
-    { key: 'aftersaleStatus', label: '售后状态', extra: true }
+    { key: 'aftersaleStatus', label: '售后状态', extra: true },
+    { key: 'finishTime', label: '订单完成时间', extra: true },
+    { key: 'bd', label: 'BD', extra: true }
   ];
   /** 清分明细导出：一行一个清分项；支付流水已去掉，对账用通道流水 */
   var CLEARING_EXPORT_FIELDS = [
@@ -1970,6 +2029,17 @@
     return st === '已完成' || st === '退款成功';
   }
 
+  /**
+   * 已完成的仅退款、退货退款才计入退货数，与售后明细「退货数」一致。
+   * 待审批、待退货、待收货、退款中、退款异常等在途不计入；运费退款、补货也不计。
+   */
+  function isCompletedGoodsReturn(item) {
+    if (!item || isFreightRefundAftersale(item)) return false;
+    if (item.type !== '仅退款' && item.type !== '退货退款') return false;
+    var st = item.status || '';
+    return st === '已完成' || st === '退款成功' || st === '退货成功';
+  }
+
   function aftersaleRefundCents(item) {
     if (!item) return 0;
     return Math.max(
@@ -2033,6 +2103,56 @@
       for (i = 0; i < n; i++) out[i] += leftover[i] || 0;
     }
     return out;
+  }
+
+  /** 一行商品的退货数：只加总已完成售后的退货数量。 */
+  function resolveSkuReturnQty(goods, aftersales) {
+    var n = goods.length;
+    var out = [];
+    var i;
+    for (i = 0; i < n; i++) out.push(0);
+    if (!n) return out;
+    (aftersales || []).forEach(function (as) {
+      if (!isCompletedGoodsReturn(as)) return;
+      var qty = parseInt(as.returnQty, 10);
+      if (!qty || qty < 0) return;
+      var idx = -1;
+      for (i = 0; i < n; i++) {
+        if (goodsMatchesAftersale(goods[i], as)) {
+          idx = i;
+          break;
+        }
+      }
+      if (idx < 0 && n === 1) idx = 0;
+      if (idx >= 0) out[idx] += qty;
+    });
+    return out;
+  }
+
+  /** 仅交易成功 / 已完成写出完成时间；未完成、已关闭为「—」。 */
+  function resolveOrderFinishTime(row, detail) {
+    var progress = (detail && detail.progress) || {};
+    var status = String(progress.status || '').trim();
+    var completed = progress.outcome === 'success' || status === '已完成' || status === '交易成功';
+    if (!completed && row) {
+      var statusEl =
+        row.querySelector('.order-status-cell .order-tag') ||
+        row.querySelector('.order-tag:not(.order-tag--sale):not(.order-tag--scene)');
+      var text = statusEl ? statusEl.textContent.trim() : '';
+      completed = text === '已完成' || text === '交易成功';
+    }
+    if (!completed) return '—';
+    var time = String(progress.finishTime || '').trim();
+    if (!time || time === '-' || time === '—') return '—';
+    return time;
+  }
+
+  /** BD 取订单标记，与详情「订单标记 · BD」一致。 */
+  function resolveOrderBd(detail) {
+    var bd = detail && detail.tags ? detail.tags.bd : '';
+    bd = String(bd == null ? '' : bd).trim();
+    if (!bd || bd === '-' || bd === '—') return '—';
+    return bd;
   }
 
   function resolveLiveSessionExport(row, detail) {
@@ -2146,6 +2266,7 @@
       });
     }
     var refundParts = resolveSkuRefundCents(goods, detail.aftersales, detail);
+    var returnQtyParts = resolveSkuReturnQty(goods, detail.aftersales);
     var aftersaleStatus = '';
     if (window.OrderLiveDetail && typeof window.OrderLiveDetail.getOrderAftersaleStatus === 'function') {
       aftersaleStatus = window.OrderLiveDetail.getOrderAftersaleStatus(
@@ -2179,7 +2300,9 @@
       orderStatus: cellTextOf(cells, col.orderStatus),
       address: (detail.delivery && (detail.delivery.address || detail.delivery.homeAddress)) || '—',
       aftersaleStatus: aftersaleStatus || '—',
-      liveSession: resolveLiveSessionExport(row, detail)
+      liveSession: resolveLiveSessionExport(row, detail),
+      finishTime: resolveOrderFinishTime(row, detail),
+      bd: resolveOrderBd(detail)
     };
     return goods.map(function (item, index) {
       return Object.assign({}, base, {
@@ -2190,7 +2313,8 @@
         allocatedFreight: centsToYuanText(freightParts[index] || 0),
         paidWithoutFreight: centsToYuanText(paidParts[index] || 0),
         paidWithFreight: centsToYuanText((paidParts[index] || 0) + (freightParts[index] || 0)),
-        refundAmount: centsToYuanText(refundParts[index] || 0)
+        refundAmount: centsToYuanText(refundParts[index] || 0),
+        returnQty: String(returnQtyParts[index] || 0)
       });
     });
   }
@@ -2520,7 +2644,10 @@
     }
 
     bindOrderExportButton('order');
-    bindOrderExportButton('clearing');
+    /* 供应商视角不提供清分明细导出 */
+    if (!(window.LFSupplierOrderView && window.LFSupplierOrderView.isActive())) {
+      bindOrderExportButton('clearing');
+    }
   }
 
   function canBatchRefundOrder(row) {
@@ -2731,8 +2858,10 @@
     });
   }
 
-  function initRetailBatchExpressUpload() {
-    if (!document.body || document.body.getAttribute('data-order-page') !== 'retail') return;
+  function initBatchExpressUpload() {
+    var page = document.body ? document.body.getAttribute('data-order-page') : '';
+    /* 代采订单平台、供应商都不提供批量上传/删除快递单，只保留零售 */
+    if (page !== 'retail') return;
 
     function openBatch(mode) {
       if (!window.OrderProxyExpress || typeof window.OrderProxyExpress.openBatchUploadModal !== 'function') {
@@ -2757,18 +2886,24 @@
       });
     }
 
-    var batchBtn = document.getElementById('orderRetailBatchUpload');
-    if (batchBtn) {
-      batchBtn.addEventListener('click', function () {
-        openBatch('upload');
-      });
-    }
-    var deleteBtn = document.getElementById('orderRetailBatchDelete');
-    if (deleteBtn) {
-      deleteBtn.addEventListener('click', function () {
-        openBatch('delete');
-      });
-    }
+    var uploadIds = ['orderRetailBatchUpload'];
+    var deleteIds = ['orderRetailBatchDelete'];
+    uploadIds.forEach(function (id) {
+      var batchBtn = document.getElementById(id);
+      if (batchBtn) {
+        batchBtn.addEventListener('click', function () {
+          openBatch('upload');
+        });
+      }
+    });
+    deleteIds.forEach(function (id) {
+      var deleteBtn = document.getElementById(id);
+      if (deleteBtn) {
+        deleteBtn.addEventListener('click', function () {
+          openBatch('delete');
+        });
+      }
+    });
   }
 
   function padOrderDatePart(n) {
@@ -2823,7 +2958,7 @@
     initPagination();
     initVerifyPickup();
     initRetailExpressUpload();
-    initRetailBatchExpressUpload();
+    initBatchExpressUpload();
     initRetailBatchRefund();
     initRetailActionLayout();
     initRetailCancelAndRefund();

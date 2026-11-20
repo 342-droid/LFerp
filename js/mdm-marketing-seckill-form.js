@@ -681,6 +681,7 @@
         }
         window.MdmProxyStorePicker.open({
           flatFilter: true,
+          commerceGate: true,
           selected: working.saleStores,
           onConfirm: function (selected) {
             working.saleStores = cloneMap(selected);

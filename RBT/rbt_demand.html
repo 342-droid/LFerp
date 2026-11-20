@@ -12,6 +12,16 @@
     <style>
         [v-cloak] { display: none; }
         .rbt-demand-schema-host { min-height: 480px; }
+        .rbt-audit-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+        .rbt-audit-row__label { min-width: 112px; color: #606266; }
+        .rbt-audit-row .el-input { width: 160px; flex: none; }
+        .rbt-reason-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+        .rbt-reason-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 36px; padding: 0 12px; border: 1px solid #ebeef5; border-radius: 4px; }
+        .rbt-reason-row span { flex: 1; color: #303133; line-height: 36px; }
+        .rbt-reason-empty { margin: 0 0 12px; color: #909399; font-size: 13px; }
+        .rbt-reason-add { display: flex; align-items: center; gap: 8px; }
+        .rbt-reason-add .el-input { flex: 1; }
+        .rbt-audit-tip { margin: 0; color: #909399; font-size: 12px; line-height: 1.6; }
         .rbt-demand-schema-host .el-table .rbt-demand-ops {
             display: inline-flex;
             align-items: center;
@@ -221,9 +231,14 @@
                     :request="requestRows"
                     row-key="code"
                     search-label-width="112px"
-                    action-column-width="168"
+                    action-column-width="248"
                     :default-page-size="20"
                     :auto-format-time="false">
+                    <template #toolbar-left="{elSize}">
+                        <el-button :size="elSize" @click="openAuditConfig">审核配置</el-button>
+                        <el-button :size="elSize" @click="openAcceptTimeout">接单时间配置</el-button>
+                        <el-button :size="elSize" @click="openWithdrawReasons">撤回原因配置</el-button>
+                    </template>
                     <template v-slot:[slots.code]="{row}">
                         <doc-no-link :value="row.code" @open="openDetail(row)"></doc-no-link>
                     </template>
@@ -241,10 +256,55 @@
                         <div class="rbt-demand-ops">
                             <el-button :size="elSize" text type="primary" :disabled="!canGoAudit(row)" @click="goAudit(row)">审核</el-button>
                             <el-button :size="elSize" text type="primary" :disabled="!canGoSign(row)" @click="goSign(row)">签署</el-button>
+                            <el-button :size="elSize" text type="primary" :disabled="!canRepublish(row)" @click="republishDemand(row)">重新发布</el-button>
                             <el-button :size="elSize" text type="danger" :disabled="!canVoid(row)" @click="voidDemand(row)">作废</el-button>
                         </div>
                     </template>
                 </vab-schema-table>
+                <el-dialog v-model="auditOpen" title="审核配置" width="520px" append-to-body>
+                    <div class="rbt-audit-row">
+                        <span class="rbt-audit-row__label">初审自动审核</span>
+                        <el-radio-group v-model="auditForm.first">
+                            <el-radio label="是">是</el-radio>
+                            <el-radio label="否">否</el-radio>
+                        </el-radio-group>
+                    </div>
+                    <p class="rbt-audit-tip">选「是」后，需求发布进入初审时由系统自动审核通过。没保存过时，初审是「是」。已经待审核的单据不补审。支付完成后直接进入门店付款中，不再复核。</p>
+                    <template #footer>
+                        <el-button @click="auditOpen = false">取消</el-button>
+                        <el-button type="primary" @click="saveAuditConfig">保存</el-button>
+                    </template>
+                </el-dialog>
+                <el-dialog v-model="acceptOpen" title="接单时间配置" width="520px" append-to-body>
+                    <div class="rbt-audit-row">
+                        <span class="rbt-audit-row__label">接单时限</span>
+                        <el-input :model-value="acceptForm.minutes" placeholder="请输入" @input="onAcceptMinutes"></el-input>
+                        <span>分钟</span>
+                    </div>
+                    <p class="rbt-audit-tip">贸易商接单后开始计时。超过该分钟数仍停在待确认签约，就自动回到待接单，清空接单时间、贸易商、服务商，备注记「接单超时，自动撤回」。其他贸易商可以再接。确认签约后不再退回。未保存时不自动退回。</p>
+                    <template #footer>
+                        <el-button @click="acceptOpen = false">取消</el-button>
+                        <el-button type="primary" @click="saveAcceptTimeout">保存</el-button>
+                    </template>
+                </el-dialog>
+                <el-dialog v-model="reasonOpen" title="撤回原因配置" width="520px" append-to-body>
+                    <div v-if="reasonList.length" class="rbt-reason-list">
+                        <div v-for="(item, index) in reasonList" :key="item" class="rbt-reason-row">
+                            <span>{{ item }}</span>
+                            <el-button text type="danger" @click="removeWithdrawReason(index)">删除</el-button>
+                        </div>
+                    </div>
+                    <p v-else class="rbt-reason-empty">还没有撤回原因，贸易商只能自己填写。</p>
+                    <div class="rbt-reason-add">
+                        <el-input v-model="reasonDraft" maxlength="30" placeholder="请输入撤回原因" @keyup.enter="addWithdrawReason"></el-input>
+                        <el-button @click="addWithdrawReason">添加</el-button>
+                    </div>
+                    <p class="rbt-audit-tip" style="margin-top: 12px;">保存后，贸易商撤回接单时可以点选这些原因，也可以自己填写。撤回时原因必填。没配置时只能自己填写。</p>
+                    <template #footer>
+                        <el-button @click="reasonOpen = false">取消</el-button>
+                        <el-button type="primary" @click="saveWithdrawReasonConfig">保存</el-button>
+                    </template>
+                </el-dialog>
             </div>
         </main>
     </div>
@@ -257,7 +317,6 @@
     <script src="rbt-settle-ratio.js"></script>
     <script src="rbt-demand-data.js"></script>
     <script src="rbt-trade-docs.js"></script>
-    <script src="rbt-trader-store-biz.js"></script>
     <script src="rbt-demand-detail.js"></script>
     <script src="rbt-trade-detail.js"></script>
     <script src="rbt-contract-sign.js"></script>

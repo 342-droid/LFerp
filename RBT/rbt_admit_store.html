@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>冷丰RBT - 门店管理</title>
+    <title>冷丰RBT - 门店准入管理</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
@@ -25,6 +25,9 @@
             color: #606266;
             font-size: 13px;
         }
+        .rbt-deposit-file { display: flex; align-items: center; gap: 8px; min-height: 36px; }
+        .rbt-deposit-file input { max-width: 220px; }
+        .rbt-deposit-file__name { color: #606266; font-size: 13px; }
         .rbt-occupied-link {
             padding: 0;
             height: auto;
@@ -66,7 +69,7 @@
 
     <div class="container">
         <main class="main-content">
-            <div class="content-tabs"><button type="button" class="active">门店管理</button></div>
+            <div class="content-tabs"><button type="button" class="active">门店准入管理</button></div>
             <hr class="content-divider">
 
             <div id="rbtStoreApp" class="rbt-store-schema-host" v-cloak>
@@ -143,6 +146,30 @@
                             <span class="rbt-store-money__unit">元</span>
                         </div>
                     </template>
+                    <template #form-demandlimit="{form}">
+                        <div class="rbt-store-money">
+                            <el-input
+                                :model-value="form.demandlimit"
+                                placeholder="请输入需求次数"
+                                clearable
+                                @input="onDemandLimitInput(form, $event)">
+                            </el-input>
+                            <span class="rbt-store-money__unit">次</span>
+                        </div>
+                    </template>
+                    <template #form-depositpaid="{form}">
+                        <el-radio-group v-model="form.depositpaid">
+                            <el-radio label="是">是</el-radio>
+                            <el-radio label="否">否</el-radio>
+                        </el-radio-group>
+                    </template>
+                    <template #form-depositvoucher="{form}">
+                        <div v-if="form.depositpaid === '是'" class="rbt-deposit-file">
+                            <input type="file" accept="image/*,.pdf" @change="onDepositFile(form, $event)">
+                            <span class="rbt-deposit-file__name">{{ depositFileText(form) }}</span>
+                        </div>
+                        <span v-else class="rbt-deposit-file__name">选择「是」后上传凭证</span>
+                    </template>
                 </vab-schema-form-dialog>
                 <vab-schema-form-dialog
                     ref="editDialog"
@@ -166,6 +193,30 @@
                             </el-input>
                             <span class="rbt-store-money__unit">元</span>
                         </div>
+                    </template>
+                    <template #form-demandlimit="{form}">
+                        <div class="rbt-store-money">
+                            <el-input
+                                :model-value="form.demandlimit"
+                                placeholder="请输入需求次数"
+                                clearable
+                                @input="onDemandLimitInput(form, $event)">
+                            </el-input>
+                            <span class="rbt-store-money__unit">次</span>
+                        </div>
+                    </template>
+                    <template #form-depositpaid="{form}">
+                        <el-radio-group v-model="form.depositpaid">
+                            <el-radio label="是">是</el-radio>
+                            <el-radio label="否">否</el-radio>
+                        </el-radio-group>
+                    </template>
+                    <template #form-depositvoucher="{form}">
+                        <div v-if="form.depositpaid === '是'" class="rbt-deposit-file">
+                            <input type="file" accept="image/*,.pdf" @change="onDepositFile(form, $event)">
+                            <span class="rbt-deposit-file__name">{{ depositFileText(form) }}</span>
+                        </div>
+                        <span v-else class="rbt-deposit-file__name">选择「是」后上传凭证</span>
                     </template>
                 </vab-schema-form-dialog>
                 <vab-schema-form-dialog

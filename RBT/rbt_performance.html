@@ -8,17 +8,28 @@
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
+    <link rel="stylesheet" href="../css/lf-contract.css?v=20261120-rbt-read">
     <link rel="stylesheet" href="../vendor/octopus-prototype-runtime/runtime.css">
     <link rel="stylesheet" href="../vendor/octopus-prototype-runtime/theme.css">
     <style>
         [v-cloak] { display: none; }
         .rbt-perf-host { min-height: 480px; }
         .rbt-perf-tip { margin: 0 0 12px; }
-        .rbt-perf-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        .rbt-perf-table th,
-        .rbt-perf-table td { border: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; vertical-align: top; }
-        .rbt-perf-table th { background: #f7f8fa; font-weight: 600; color: #303133; white-space: nowrap; }
-        .rbt-perf-note { margin: 0 0 10px; color: #606266; font-size: 13px; line-height: 1.7; }
+        .rbt-demand-table-wrap { width: 100%; overflow-x: auto; }
+        .rbt-demand-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .rbt-demand-table th,
+        .rbt-demand-table td { border: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; white-space: nowrap; }
+        .rbt-demand-table th { background: #f7f8fa; font-weight: 600; color: #303133; }
+        .rbt-demand-table td.is-money,
+        .rbt-demand-table th.is-money { text-align: right; }
+        .rbt-demand-table td.is-empty { text-align: center; color: #909399; }
+        .rbt-daily-note { margin: 0 0 10px; color: #606266; font-size: 13px; line-height: 1.7; }
+        .rbt-daily-note__more { margin-left: 8px; color: #155bd4; text-decoration: none; }
+        .rbt-risk-tag { display: inline-block; padding: 0 8px; border-radius: 4px; line-height: 22px; font-size: 12px; }
+        .rbt-risk-tag.is-正常 { color: #389e0d; background: #f6ffed; }
+        .rbt-risk-tag.is-关注 { color: #d48806; background: #fffbe6; }
+        .rbt-risk-tag.is-预警 { color: #d46b08; background: #fff7e6; }
+        .rbt-risk-tag.is-异常 { color: #cf1322; background: #fff1f0; }
     </style>
 </head>
 <body>
@@ -35,14 +46,14 @@
 
             <div id="rbtPerfApp" class="rbt-perf-host" v-cloak>
                 <div class="mdm-biz-tip rbt-perf-tip" role="note">
-                    只列出复核通过、状态为<strong>支付中</strong>或<strong>已完成</strong>的需求。支付中表示复核已通过。比例付按获准的营业来源逐期计算，本页不预造未来固定金额。起算、舍入、退款跨期和完成条件待确认。本金、利息、罚息不是本页字段。有正营收但权益不足、负毛利导致商业不分、确零营收、源数据缺失、未到结算日、执行在途各自单独记录。
+                    只列出贸易商付款完成、处于<strong>履约中</strong>或<strong>已完成</strong>的需求。点需求单号打开履约详情，每日履行在基础信息右侧。应履行按所得佣金乘该渠道结算比例。当日实际履行再按应收占比拆成<strong>贸易商、冷丰、服务商</strong>收款。<strong>已履行金额</strong>、<strong>未履行差额</strong>、<strong>履行覆盖率</strong>、<strong>履约风险等级</strong>只按已发生日期汇总，和首页同一套规则。不预造未发生的日期。起算、舍入、退款跨期和完成条件待确认。
                 </div>
                 <vab-schema-table
                     ref="table"
                     :columns="columns"
                     :request="requestRows"
                     row-key="code"
-                    search-label-width="112px"
+                    search-label-width="128px"
                     action-column-width="88"
                     :default-page-size="20"
                     :auto-format-time="false">
@@ -50,7 +61,10 @@
                         <doc-no-link :value="row.code" @open="openDetail(row)"></doc-no-link>
                     </template>
                     <template v-slot:[slots.status]="{row,elSize}">
-                        <el-tag :size="elSize" effect="light" :type="statusType(row.status)">{{ row.status || '—' }}</el-tag>
+                        <el-tag :size="elSize" effect="light" :type="statusType(row.status)">{{ phase(row.status) }}</el-tag>
+                    </template>
+                    <template v-slot:[slots.riskgrade]="{row}">
+                        <span :class="'rbt-risk-tag is-' + row.riskGrade">{{ row.riskGrade }}</span>
                     </template>
                     <template #actions="{row,elSize}">
                         <el-button :size="elSize" text type="primary" @click="openDetail(row)">查看</el-button>
@@ -62,10 +76,15 @@
 
     <script src="rbt-fresh.js"></script>
     <script src="../js/common.js"></script>
+    <script src="../js/contract-bodies.js?v=20261120-rbt-read"></script>
+    <script src="../js/basic-settings-contract.js?v=20261120-rbt-read"></script>
     <script src="../vendor/octopus-prototype-runtime/runtime.js"></script>
     <script src="rbt-store-data.js"></script>
     <script src="rbt-settle-ratio.js"></script>
     <script src="rbt-demand-data.js"></script>
+    <script src="rbt-demand-detail.js"></script>
+    <script src="rbt-daily-fulfill.js"></script>
+    <script src="rbt-risk.js"></script>
     <script src="rbt-performance.js"></script>
 </body>
 </html>

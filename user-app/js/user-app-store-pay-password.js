@@ -305,7 +305,7 @@
       else if (step === 'verify') title.textContent = '支付密码';
       else title.textContent = '设置支付密码';
     }
-    document.title = (title ? title.textContent : '支付密码') + ' · 门店 APP';
+    document.title = (title ? title.textContent : '支付密码') + ' · 丰银宝';
   }
 
   function initSetOrReset() {

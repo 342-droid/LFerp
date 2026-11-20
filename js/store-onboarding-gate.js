@@ -49,7 +49,7 @@
       variant: 'store',
       merchantShortName: '鲜丰水果文一店',
       subjectName: '杭州鲜丰水果有限公司',
-      channel: '门店 APP',
+      channel: '丰银宝',
       createdBy: '门店负责人',
       submittedAt: now - 86400000,
       updatedAt: now,

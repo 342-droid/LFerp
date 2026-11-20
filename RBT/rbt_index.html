@@ -6,6 +6,35 @@
     <title>冷丰RBT - 首页</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
+    <link rel="stylesheet" href="../css/lf-contract.css?v=20261120-rbt-read">
+    <style>
+        .rbt-risk-tip { margin: 0 0 12px; }
+        .rbt-risk-cards { display: flex; gap: 12px; margin: 0 0 16px; }
+        .rbt-risk-card { flex: 1; padding: 14px 16px; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; }
+        .rbt-risk-card span { display: block; color: #909399; font-size: 13px; }
+        .rbt-risk-card b { display: block; margin-top: 6px; font-size: 24px; line-height: 1.2; }
+        .rbt-risk-card.is-ok b { color: #389e0d; }
+        .rbt-risk-card.is-watch b { color: #d48806; }
+        .rbt-risk-card.is-warn b { color: #d46b08; }
+        .rbt-risk-card.is-bad b { color: #cf1322; }
+        .rbt-risk-block { margin: 0 0 20px; }
+        .rbt-risk-block h3 { margin: 0 0 8px; font-size: 15px; }
+        .rbt-risk-note { margin: 0 0 8px; color: #606266; font-size: 13px; line-height: 1.7; }
+        .rbt-risk-table { width: 100%; border-collapse: collapse; font-size: 13px; background: #fff; }
+        .rbt-risk-table th,
+        .rbt-risk-table td { border: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; vertical-align: top; }
+        .rbt-risk-table th { background: #f7f8fa; font-weight: 600; color: #303133; white-space: nowrap; }
+        .rbt-risk-table td.is-money { text-align: right; white-space: nowrap; }
+        .rbt-risk-tag { display: inline-block; padding: 0 8px; border-radius: 4px; line-height: 22px; font-size: 12px; }
+        .rbt-risk-tag.is-正常 { color: #389e0d; background: #f6ffed; }
+        .rbt-risk-tag.is-关注 { color: #d48806; background: #fffbe6; }
+        .rbt-risk-tag.is-预警 { color: #d46b08; background: #fff7e6; }
+        .rbt-risk-tag.is-异常 { color: #cf1322; background: #fff1f0; }
+        .rbt-risk-link { border: 0; padding: 0; background: transparent; color: #155bd4; cursor: pointer; font: inherit; }
+        .rbt-risk-empty { margin: 0; color: #909399; font-size: 13px; }
+    </style>
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -16,12 +45,112 @@
 
     <div class="container">
         <main class="main-content">
-            <div class="content-title">RBT</div>
+            <div class="content-tabs"><button type="button" class="active">履约风险</button></div>
             <hr class="content-divider">
+
+            <div class="mdm-biz-tip rbt-risk-tip" role="note">
+                只按<strong>已发生日期</strong>评级。当日<strong>实际履行</strong>低于<strong>应履行</strong>记为未履行。应履行 = 所得佣金 × 该渠道结算比例。两个条件同时满足时取更重的等级。未发生的日期不参与，也不预造差额。
+            </div>
+
+            <div class="rbt-risk-cards" id="rbtRiskCards"></div>
+
+            <section class="rbt-risk-block">
+                <h3>当前履约中</h3>
+                <p class="rbt-risk-note">按每日履行台账计算。实际履行已经达到应履行的，等级是正常，不发异常提醒。</p>
+                <table class="rbt-risk-table">
+                    <thead>
+                        <tr>
+                            <th>门店</th><th>需求单号</th><th>连续未履行天数</th>
+                            <th>应履行</th><th>实际履行</th><th>未履行差额</th>
+                            <th>履行覆盖率</th><th>履约风险等级</th><th>最近未履行日期</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rbtRiskLive"></tbody>
+                </table>
+                <h3 style="margin-top:16px;">异常提醒</h3>
+                <div id="rbtRiskAlerts"></div>
+            </section>
+
+            <section class="rbt-risk-block">
+                <h3>持续未履行时</h3>
+                <p class="rbt-risk-note">下面用当前履约单最近一个已发生日期的应履行做单位，看连续未履行会落到哪一档。这是评级样例，不改每日履行里的实际履行。</p>
+                <table class="rbt-risk-table">
+                    <thead>
+                        <tr>
+                            <th>情景</th><th>连续未履行天数</th><th>应履行</th><th>实际履行</th>
+                            <th>未履行差额</th><th>履行覆盖率</th><th>履约风险等级</th><th>异常提醒</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rbtRiskScenes"></tbody>
+                </table>
+            </section>
         </main>
     </div>
 
     <script src="rbt-fresh.js"></script>
     <script src="../js/common.js"></script>
+    <script src="../js/contract-bodies.js?v=20261120-rbt-read"></script>
+    <script src="../js/basic-settings-contract.js?v=20261120-rbt-read"></script>
+    <script src="rbt-store-data.js"></script>
+    <script src="rbt-settle-ratio.js"></script>
+    <script src="rbt-demand-data.js"></script>
+    <script src="rbt-demand-detail.js"></script>
+    <script src="rbt-daily-fulfill.js"></script>
+    <script src="rbt-risk.js"></script>
+    <script>
+        (function () {
+            var api = window.RbtRisk;
+            function esc(value) {
+                return String(value == null ? '' : value)
+                    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            }
+            function tag(grade) {
+                return '<span class="rbt-risk-tag is-' + esc(grade) + '">' + esc(grade) + '</span>';
+            }
+            function yuan(value) {
+                return '¥' + esc(value);
+            }
+            var live = api.liveRows();
+            var counts = { '正常': 0, '关注': 0, '预警': 0, '异常': 0 };
+            live.forEach(function (row) { counts[row.grade] = (counts[row.grade] || 0) + 1; });
+            document.getElementById('rbtRiskCards').innerHTML = [
+                ['正常', 'is-ok'],
+                ['关注', 'is-watch'],
+                ['预警', 'is-warn'],
+                ['异常', 'is-bad']
+            ].map(function (item) {
+                return '<div class="rbt-risk-card ' + item[1] + '"><span>' + item[0] + '</span><b>' + (counts[item[0]] || 0) + '</b></div>';
+            }).join('');
+
+            document.getElementById('rbtRiskLive').innerHTML = live.length ? live.map(function (row) {
+                return '<tr><td>' + esc(row.storeName) + '</td><td><button type="button" class="rbt-risk-link" data-demand="' + esc(row.demandCode) + '">' + esc(row.demandCode) + '</button></td>' +
+                    '<td>' + esc(row.streak) + '</td><td class="is-money">' + yuan(row.due) + '</td><td class="is-money">' + yuan(row.actual) + '</td>' +
+                    '<td class="is-money">' + yuan(row.gap) + '</td><td>' + esc(row.cover) + '</td><td>' + tag(row.grade) + '</td><td>' + esc(row.lastMiss) + '</td></tr>';
+            }).join('') : '<tr><td class="is-empty" colspan="9">暂无履约中的需求</td></tr>';
+
+            var alerts = live.filter(function (row) { return row.grade !== '正常'; });
+            document.getElementById('rbtRiskAlerts').innerHTML = alerts.length
+                ? '<table class="rbt-risk-table"><thead><tr><th>履约风险等级</th><th>异常提醒</th></tr></thead><tbody>' +
+                    alerts.map(function (row) {
+                        return '<tr><td>' + tag(row.grade) + '</td><td>' + esc(row.alert) + '</td></tr>';
+                    }).join('') + '</tbody></table>'
+                : '<p class="rbt-risk-empty">暂无异常提醒。当前履约中的实际履行都已达到应履行。</p>';
+
+            document.getElementById('rbtRiskScenes').innerHTML = api.scenarios().map(function (row) {
+                return '<tr><td>' + esc(row.name) + '</td><td>' + esc(row.streak) + '</td><td class="is-money">' + yuan(row.due) + '</td>' +
+                    '<td class="is-money">' + yuan(row.actual) + '</td><td class="is-money">' + yuan(row.gap) + '</td><td>' + esc(row.cover) + '</td>' +
+                    '<td>' + tag(row.grade) + '</td><td>' + esc(row.alert) + '</td></tr>';
+            }).join('');
+
+            document.getElementById('rbtRiskLive').addEventListener('click', function (event) {
+                var button = event.target.closest('[data-demand]');
+                if (!button) return;
+                var code = button.getAttribute('data-demand');
+                var dataApi = window.RbtDemandData;
+                var item = dataApi && dataApi.get ? dataApi.get(code) : null;
+                if (item && window.RbtDemandDetail) window.RbtDemandDetail.open(item, { performance: true });
+            });
+        })();
+    </script>
 </body>
 </html>

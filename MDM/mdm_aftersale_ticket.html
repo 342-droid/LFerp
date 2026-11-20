@@ -11,11 +11,13 @@
     <link rel="stylesheet" href="../css/lf-aftersale.css?v=20261105-order-query">
     <link rel="stylesheet" href="../css/lf-business-tags.css?v=20260905-product-tag-sync">
     <link rel="stylesheet" href="../css/lf-table-personal-view.css?v=20260905-sync">
+    <link rel="stylesheet" href="../css/mdm-aftersale-supplier.css?v=20261107-sup-as">
 </head>
 <body>
     <div id="sidebar-container"></div>
     <script src="../js/path-prefix.js"></script>
-    <script src="../js/aftersale-sidebar.js"></script>
+    <script src="../js/mdm-aftersale-supplier-view.js?v=20261107-sup-as"></script>
+    <script src="../js/aftersale-sidebar.js?v=20261107-sup-as"></script>
     <div id="header-container"></div>
     <div class="container">
         <main class="main-content">
@@ -65,6 +67,20 @@
                                         <option value="退货退款">退货退款</option>
                                         <option value="补货">补货</option>
                                         <option value="换货">换货</option>
+                                    </select>
+                                </div>
+                                <div class="aftersale-filter-field aftersale-filter-field--extra">
+                                    <label class="aftersale-filter-field__label" for="asPickupStore">提货门店</label>
+                                    <input class="aftersale-filter-field__input" id="asPickupStore" type="text" placeholder="请输入提货门店" autocomplete="off">
+                                </div>
+                                <div class="aftersale-filter-field aftersale-filter-field--extra">
+                                    <label class="aftersale-filter-field__label" for="asSettleStatus">结算状态</label>
+                                    <select class="aftersale-filter-field__select" id="asSettleStatus">
+                                        <option value="">全部</option>
+                                        <option value="待结算">待结算</option>
+                                        <option value="待结款">待结款</option>
+                                        <option value="结款中">结款中</option>
+                                        <option value="已结款">已结款</option>
                                     </select>
                                 </div>
                                 <div class="aftersale-filter-field aftersale-filter-field--extra">
@@ -250,7 +266,7 @@
     <script src="../js/mdm-aftersale-reasons.js"></script>
     <script src="../js/freight-refund-aftersale-store.js?v=20260826-refund-only"></script>
     <script src="../js/mdm-aftersale-demo-tracking.js"></script>
-    <script src="../js/mdm-aftersale-ticket.js?v=20261105-order-query"></script>
+    <script src="../js/mdm-aftersale-ticket.js?v=20261107-sup-as"></script>
     <script src="../js/member-tag-projection.js?v=20260905-member-tag-projection"></script>
     <script src="../js/business-tag-prototype-store.js?v=20260905-product-tag-sync"></script>
     <script src="../js/business-tag-prototype-ui.js?v=20260905-product-tag-sync"></script>

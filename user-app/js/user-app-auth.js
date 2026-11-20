@@ -250,6 +250,7 @@
     }
     if (session && session.loggedIn && window.UaWxPayAuth && !window.UaWxPayAuth.isAuthorized()) {
       window.UaWxPayAuth.ensure({
+        scene: 'login',
         onDone: function () {
           go(true);
         },

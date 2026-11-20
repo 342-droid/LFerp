@@ -277,12 +277,13 @@
     function buildMemberListActions(status) {
         var st = String(status || '正常').trim();
         /* 注销 / 注销中：仅查看详情，无发券、调积分、拉黑等 */
+        var logLink = '<a href="#" class="mdm-mem-oplog">操作日志</a>';
         if (st === '注销' || st === '已注销' || st === '注销中' || st === '审核中') {
-            return '<a href="#" class="mdm-mem-detail">查看详情</a>';
+            return '<a href="#" class="mdm-mem-detail">查看详情</a>' + logLink;
         }
         if (st === '冻结') {
             return '<a href="#" class="mdm-mem-detail">查看详情</a>' +
-                '<a href="#" class="mdm-mem-unfreeze">解冻</a>';
+                '<a href="#" class="mdm-mem-unfreeze">解冻</a>' + logLink;
         }
         var html =
             '<a href="#" class="mdm-mem-detail">查看详情</a>' +
@@ -296,7 +297,7 @@
         } else if (st === '黑名单') {
             html += '<a href="#" class="mdm-mem-restore">恢复</a>';
         }
-        return html;
+        return html + logLink;
     }
 
     function syncMemberListRowStatus(memberId, status) {
@@ -653,6 +654,20 @@
                 setFrozenFlag(item.id, false);
                 persistMemberListStatus(item.id, '黑名单');
                 syncMemberListRowStatus(item.id, '黑名单');
+                if (window.MdmMemberCOplog) {
+                    window.MdmMemberCOplog.record({
+                        action: 'blacklist',
+                        memberId: item.id,
+                        nickname: item.nickname,
+                        phone: item.phone,
+                        summary: '拉黑原因：' + reason,
+                        changes: [
+                            { field: '状态', oldValue: found ? '黑名单' : '正常', newValue: '黑名单' },
+                            { field: '禁用功能', oldValue: found ? ((item.funcs || []).join('、') || '—') : '—', newValue: funcs.join('、') || '—' },
+                            { field: '拉黑原因', oldValue: found ? (item.reason || '—') : '—', newValue: reason }
+                        ]
+                    });
+                }
                 closeBackdrop(backdrop);
                 if (typeof onSaved === 'function') onSaved(item);
                 if (typeof showToast === 'function') {
@@ -792,6 +807,18 @@
             setFrozenFlag(item.id, isFreeze);
             persistMemberListStatus(item.id, next);
             syncMemberListRowStatus(item.id, next);
+            if (isFreeze && window.MdmMemberCOplog) {
+                window.MdmMemberCOplog.record({
+                    action: 'freeze',
+                    memberId: item.id,
+                    nickname: item.nickname,
+                    phone: item.phone,
+                    summary: '会员状态改为冻结',
+                    changes: [
+                        { field: '状态', oldValue: '正常', newValue: '冻结' }
+                    ]
+                });
+            }
             close();
             if (typeof showToast === 'function') {
                 showToast(isFreeze ? '已冻结该会员' : '已解冻该会员', 'success');

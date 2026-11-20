@@ -62,17 +62,54 @@
         return sel;
     }
 
-    /** 与 mdm_bd_store_form / mdm-bd-h5-store-register validate() 对齐的编辑必填项 */
+    /** 生鲜店、同行店归加盟店，合作店归联营店。三种类型都按加盟店资料填写。 */
+    function displayPartnerDivision(v) {
+        if (v === '生鲜店' || v === '同行店') return '加盟店';
+        if (v === '合作店') return '联营店';
+        return v;
+    }
+
     function isFranchiseOrPartnerRow(row) {
-        return (
-            row.partnerDivision === '加盟店' ||
-            row.partnerDivision === '合作店' ||
-            row.partnerDivision === '生鲜店'
-        );
+        var v = displayPartnerDivision(row && row.partnerDivision);
+        return v === '加盟店' || v === '联营店' || v === '直营店';
+    }
+
+    function partnerDivisionSelectOptions(current) {
+        var value = displayPartnerDivision(current) || '';
+        var opts = [
+            { value: '加盟店', label: '加盟店' },
+            { value: '联营店', label: '联营店' },
+            { value: '直营店', label: '直营店' }
+        ];
+        if (value && !opts.some(function (o) { return o.value === value; })) {
+            opts.push({ value: value, label: value });
+        }
+        return { options: opts, value: value };
     }
 
     function isSupplierAuditRow(row) {
         return row && row.subjectType === '供应商';
+    }
+
+    function isTraderAuditRow(row) {
+        return row && (row.subjectType === '贸易商' || row.subjectType === '服务商');
+    }
+
+    /* 供应商、贸易商各一道审核；门店还要总监终审。仓库不进这条审核。 */
+    function isSingleStepAudit(row) {
+        return isSupplierAuditRow(row) || isTraderAuditRow(row);
+    }
+
+    function auditContractScene(row) {
+        if (isSupplierAuditRow(row)) return 'supplier';
+        if (isTraderAuditRow(row)) return 'trader';
+        return 'store';
+    }
+
+    function auditContractTitle(row) {
+        if (isSupplierAuditRow(row)) return '供应商合作';
+        if (isTraderAuditRow(row)) return '贸易商合作';
+        return '门店合作';
     }
 
     function isAuditFieldRequired(fieldKey, row) {
@@ -92,6 +129,9 @@
             storeName: true,
             partnerDivision: true,
             storeType: true,
+            bizLine: true,
+            brandName: true,
+            bizLines: true,
             region: true,
             address: true,
             facadePhoto: true,
@@ -187,6 +227,9 @@
                   { key: 'storeName', msg: '请填写门店名称' },
                   { key: 'partnerDivision', msg: '请选择门店合作类型' },
                   { key: 'storeType', msg: '请填写门店类型' },
+                  { key: 'bizLine', msg: '请选择事业线' },
+                  { key: 'brandName', msg: '请选择品牌名称' },
+                  { key: 'bizLines', msg: '请选择业务线' },
                   { key: 'region', msg: '请选择省市区' },
                   { key: 'address', msg: '请填写详细地址' },
                   { key: 'phone', msg: '请填写联系电话' },
@@ -334,11 +377,76 @@
         return wrap;
     }
 
+    function entryKindOf(row) {
+        if (isSupplierAuditRow(row)) return 'supplier';
+        if (isTraderAuditRow(row)) return 'trader';
+        return 'store';
+    }
+
+    function entryNameOf(row) {
+        return String((row && (row.storeName || row.subjectName)) || '').trim();
+    }
+
+    function savedEntryMaterials(row) {
+        var api = window.MdmEntryMaterials;
+        if (!api) return null;
+        var saved = (row && row.entryMaterials) || api.load(entryKindOf(row), entryNameOf(row));
+        if (!saved && typeof api.loadBySubjectName === 'function') saved = api.loadBySubjectName(row && row.subjectName);
+        return saved || null;
+    }
+
+    function appendEntryMaterials(body, row, opts) {
+        var api = window.MdmEntryMaterials;
+        if (!api) return;
+        var saved = savedEntryMaterials(row);
+        if (opts && opts.view && typeof api.mountView === 'function') {
+            api.mountView(body, saved);
+            return;
+        }
+        api.mount(body, { skin: 'audit', value: saved || null });
+    }
+
+    function rememberEntryMaterials(body, row) {
+        var box = body && body.querySelector('[data-entry-materials]');
+        if (!box || !window.MdmEntryMaterials) return;
+        row.entryMaterials = window.MdmEntryMaterials.read(box);
+    }
+
+    function captureEntryMaterials(body, row) {
+        var box = body && body.querySelector('[data-entry-materials]');
+        var api = window.MdmEntryMaterials;
+        if (!box || !api) return '';
+        if (box.getAttribute('data-entry-materials-view') === '1') {
+            var saved = savedEntryMaterials(row);
+            var viewErr = typeof api.validateRecord === 'function' ? api.validateRecord(saved) : '';
+            if (viewErr) return viewErr;
+            row.entryMaterials = saved;
+            return '';
+        }
+        var err = api.validate(box);
+        if (err) return err;
+        var data = api.read(box);
+        row.entryMaterials = data;
+        api.save(entryKindOf(row), entryNameOf(row), data);
+        return '';
+    }
+
     /** 供应商入驻：字段与「新增供应商商家」一致（主体名称 / 主体类型 / 联系人 / 手机号码） */
-    function appendSupplierRegistrationFields(body, row) {
+    function appendTraderRegistrationFields(body, row, opts) {
+        body.appendChild(el('div', 'supplier-detail-section-title', '贸易商商家字段'));
+        body.appendChild(detailRow('主体名称', row.subjectName, 'subjectName', row));
+        body.appendChild(detailRow('主体类型', row.subjectType || '贸易商'));
+        appendEntryMaterials(body, row, opts);
+        body.appendChild(detailRow('入驻方名称', row.storeName));
+        body.appendChild(detailRow('联系人', row.contact, 'contact', row));
+        body.appendChild(detailRow('手机号码', row.phone, 'phone', row));
+    }
+
+    function appendSupplierRegistrationFields(body, row, opts) {
         body.appendChild(el('div', 'supplier-detail-section-title', '供应商商家字段'));
         body.appendChild(detailRow('主体名称', row.subjectName, 'subjectName', row));
         body.appendChild(detailRow('主体类型', row.subjectType || '供应商'));
+        appendEntryMaterials(body, row, opts);
         body.appendChild(detailRow('联系人', row.contact, 'contact', row));
         body.appendChild(detailRow('手机号码', row.phone, 'phone', row));
     }
@@ -347,33 +455,40 @@
         body.appendChild(el('div', 'supplier-detail-section-title', '供应商商家字段'));
         body.appendChild(editRow('主体名称', textInput('请输入主体名称', row.subjectName), 'subjectName', row));
         body.appendChild(detailRow('主体类型', row.subjectType || '供应商'));
+        appendEntryMaterials(body, row);
         body.appendChild(editRow('联系人', textInput('请输入联系人', row.contact), 'contact', row));
         var phoneInp = textInput('请输入手机号码', row.phone);
         phoneInp.type = 'tel';
         body.appendChild(editRow('手机号码', phoneInp, 'phone', row));
     }
 
-    function appendRegistrationFields(body, row) {
+    function appendRegistrationFields(body, row, opts) {
         if (isSupplierAuditRow(row)) {
-            appendSupplierRegistrationFields(body, row);
+            appendSupplierRegistrationFields(body, row, opts);
             return;
         }
-        var isFranchiseOrPartner =
-            row.partnerDivision === '加盟店' ||
-            row.partnerDivision === '合作店' ||
-            row.partnerDivision === '生鲜店';
-        var isPeerStore = row.partnerDivision === '同行店';
+        if (isTraderAuditRow(row)) {
+            appendTraderRegistrationFields(body, row, opts);
+            return;
+        }
+        var isFranchiseOrPartner = isFranchiseOrPartnerRow(row);
 
         body.appendChild(el('div', 'supplier-detail-section-title', '主体字段'));
         body.appendChild(detailRow('主体名称', row.subjectName, 'subjectName', row));
         body.appendChild(detailRow('绑定BD', row.bd, 'bd', row));
         body.appendChild(detailRow('主体类型', row.subjectType || '门店'));
+        appendEntryMaterials(body, row, opts);
 
         body.appendChild(el('div', 'supplier-detail-section-title', '门店档案字段'));
+        if (row.auditStatus === '审核成功') {
+            assignStoreCode(row);
+            body.appendChild(detailRow('门店编码', row.storeCode || '—'));
+        }
         body.appendChild(detailRow('入驻方名称', row.storeName, 'storeName', row));
         body.appendChild(detailRow('门店简称', row.shortName));
-        body.appendChild(detailRow('门店合作类型', row.partnerDivision, 'partnerDivision', row));
+        body.appendChild(detailRow('门店合作类型', displayPartnerDivision(row.partnerDivision), 'partnerDivision', row));
         body.appendChild(detailRow('门店类型', row.storeType, 'storeType', row));
+        appendStoreBizDetail(body, row);
         body.appendChild(detailRow('配送仓库', row.warehouse, 'warehouse', row));
         body.appendChild(detailRow('省市区', row.region, 'region', row));
         body.appendChild(detailRow('详细地址', row.address, 'address', row));
@@ -387,7 +502,7 @@
         appendContactDetailSection(body, row);
 
         if (isFranchiseOrPartner) {
-            body.appendChild(el('div', 'supplier-detail-section-title', '加盟店 / 合作店补充资料'));
+            body.appendChild(el('div', 'supplier-detail-section-title', '加盟店资料'));
             body.appendChild(detailRow('门店面积（㎡）', row.storeArea, 'storeArea', row));
             body.appendChild(detailRow('门店楼层', row.storeFloors, 'storeFloors', row));
             body.appendChild(detailRow('店门口口述视频', mediaGrid(row.videoStorefrontIntro)));
@@ -403,12 +518,6 @@
             body.appendChild(detailRow('拉到1000人信心说明', row.confidenceReach1000));
             body.appendChild(detailRow('特殊情况说明', row.specialCircumstancesNote));
             body.appendChild(detailRow('特殊情况配图', mediaGrid(row.specialCircumstancesPhotos)));
-        }
-
-        if (isPeerStore) {
-            body.appendChild(el('div', 'supplier-detail-section-title', '同行店补充资料'));
-            body.appendChild(detailRow('已合作其他平台情况', row.otherPlatformsCooperation));
-            body.appendChild(detailRow('近三天上播及销量截图', mediaGrid(row.broadcastSalesScreenshots)));
         }
     }
 
@@ -431,14 +540,14 @@
     }
 
     function currentRegNodeLabel(row) {
-        if (isSupplierAuditRow(row)) return '财务审核';
+        if (isSingleStepAudit(row)) return '财务审核';
         if (row.auditStatus === '待审核') return 'BD 审核';
         if (row.auditStatus === '待总监审核') return 'BD 总监终审';
         return row.auditStatus || '审核';
     }
 
     function currentRegReviewer(row) {
-        if (isSupplierAuditRow(row)) return '财务总监 赵敏';
+        if (isSingleStepAudit(row)) return '财务总监 赵敏';
         if (row.auditStatus === '待总监审核') return 'BD总监 李静';
         if (row.bd && row.bd !== '—') return row.bd;
         return 'BD 王强';
@@ -499,25 +608,96 @@
         return ta ? String(ta.value || '').trim().slice(0, 100) : '';
     }
 
+    function auditPartyName(row) {
+        if (isSupplierAuditRow(row)) return row.subjectName || row.storeName || '';
+        return row.storeName || row.subjectName || '';
+    }
+
+    /* 门店：总监终审通过后生成门店合作；供应商、贸易商：财务审核通过后生成对应合作。仓库不签。 */
+    function attachGeneratedContract(row) {
+        var api = window.LfContract;
+        if (!api || !row || row.auditStatus !== '审核成功') return null;
+        if (row.subjectType === '仓库') return null;
+        var scene = auditContractScene(row);
+        var isStore = scene === 'store';
+        var task = api.generateCoopTask({
+            scene: scene,
+            bizRef: 'audit:' + row.id,
+            name: auditPartyName(row),
+            partnerType: isStore ? (displayPartnerDivision(row.partnerDivision) || '加盟店') : '',
+            bizLine: isStore ? (row.bizLine || '') : '',
+            brandName: isStore ? (row.brandName || '') : '',
+            trigger: 'audit',
+            contact: [row.contact, row.phone].filter(Boolean).join(' '),
+            phone: row.phone || '',
+            address: row.address || '',
+            initiator: scene === 'supplier' ? '供应商入驻审核' : scene === 'trader' ? '贸易商入驻审核' : '门店入驻审核',
+            status: 'sign_progress'
+        });
+        if (!task) return null;
+        row.contractTaskId = task.id;
+        row.contractSignUrl = task.signUrl;
+        row.contractName = task.agreementNames || task.name;
+        return task;
+    }
+
+    function appendContractShare(body, row) {
+        if (!row || row.auditStatus !== '审核成功') return;
+        var task = attachGeneratedContract(row);
+        if (!task || !window.LfContract) return;
+        var live = window.LfContract.findTask(task.id) || task;
+        var progress = window.LfContract.signProgressLabel
+            ? window.LfContract.signProgressLabel(live)
+            : (live.status === 'sign_completed' ? '已签署' : '待签署');
+        var contractTitle = auditContractTitle(row);
+        var partyLabel = isSupplierAuditRow(row) ? '供应商' : isTraderAuditRow(row) ? '贸易商' : '门店';
+        body.appendChild(el('div', 'supplier-detail-section-title', contractTitle));
+        body.appendChild(detailRow('签署协议', live.agreementNames || row.contractName || live.name));
+        body.appendChild(detailRow('签署状态', progress));
+        body.appendChild(detailRow('合同链接', live.signUrl || ''));
+        var wrap = el('div', 'audit-contract-actions');
+        wrap.style.margin = '8px 0 12px';
+        var btn = mkBtn('复制合同链接', true);
+        btn.addEventListener('click', function () {
+            window.LfContract.copyText(live.signUrl).then(function () {
+                showToast('合同链接已复制，可转发给' + partyLabel, 'success');
+            });
+        });
+        wrap.appendChild(btn);
+        wrap.appendChild(el('p', 'audit-reason-hint', partyLabel === '门店'
+            ? '可将链接转发给门店，门店也可在门店 App 中一份份签署。'
+            : '可将链接转发给' + partyLabel + '。每份协议单独确认签署，签完一份不会自动签上其他协议。'));
+        body.appendChild(wrap);
+    }
+
     function approveAudit(row, reason) {
         pushAuditLog(row, '通过', reason);
-        /* 供应商：财务总监一道审核，待审核直接 → 审核成功 */
-        if (isSupplierAuditRow(row)) {
+        /* 供应商、贸易商：财务总监一道审核，待审核直接 → 审核成功 */
+        if (isSingleStepAudit(row)) {
             if (row.auditStatus === '待审核') {
                 row.auditStatus = '审核成功';
-                row.mdmStatus = '已生成主体与供应商档案';
+                row.mdmStatus = isTraderAuditRow(row) ? '已生成主体与贸易商档案' : '已生成主体与供应商档案';
+                persistQueuedAudit(row);
+                return attachGeneratedContract(row);
             }
-            return;
+            persistQueuedAudit(row);
+            return null;
         }
         if (row.auditStatus === '待审核') {
             row.auditStatus = '待总监审核';
             row.mdmStatus = '未生成';
-            return;
+            persistQueuedAudit(row);
+            return null;
         }
         if (row.auditStatus === '待总监审核') {
             row.auditStatus = '审核成功';
             row.mdmStatus = '已生成主体与门店档案';
+            assignStoreCode(row);
+            persistQueuedAudit(row);
+            return attachGeneratedContract(row);
         }
+        persistQueuedAudit(row);
+        return null;
     }
 
     function rejectAudit(row, reason) {
@@ -525,12 +705,158 @@
         row.rejectReason = String(reason || '').trim();
         row.auditStatus = '审核失败';
         row.mdmStatus = '未生成';
+        persistQueuedAudit(row);
     }
 
     function submitEditedAudit(row) {
         /* 供应商驳回后重提：回到待财务审核；门店仍进总监环节 */
-        row.auditStatus = isSupplierAuditRow(row) ? '待审核' : '待总监审核';
+        row.auditStatus = isSingleStepAudit(row) ? '待审核' : '待总监审核';
         row.mdmStatus = '未生成';
+        persistQueuedAudit(row);
+    }
+
+    var APPROVED_STORE_KEY = 'lf_first_store_archives_v1';
+
+    function assignStoreCode(row) {
+        if (!row || isSupplierAuditRow(row) || isTraderAuditRow(row) || row.subjectType === '仓库') return '';
+        if (row.auditStatus !== '审核成功') return row.storeCode || '';
+        if (!row.storeCode) {
+            var api = window.MdmStoreCode;
+            var code = api && typeof api.allocateNextCode === 'function' ? api.allocateNextCode(row.region || '') : '';
+            if (code) row.storeCode = code;
+        }
+        if (row.storeCode && row.fromCreate && !row.archiveQueued) queueApprovedStore(row);
+        return row.storeCode || '';
+    }
+
+    function queueApprovedStore(row) {
+        row.archiveQueued = true;
+        var bizLines = row.bizLines;
+        if (Array.isArray(bizLines)) bizLines = bizLines.join('、');
+        var payload = {
+            storeCode: row.storeCode,
+            subjectName: row.subjectName || '—',
+            name: row.storeName || row.subjectName || '新门店',
+            shortName: row.shortName || row.storeName || '',
+            partner: row.partnerDivision || '—',
+            storeType: row.storeType || '—',
+            bindBd: row.bd || '—',
+            contact: row.contact || '—',
+            phone: row.phone || '—',
+            warehouse: row.warehouse || '—',
+            region: row.region || '',
+            address: row.address || '',
+            bizLine: row.bizLine || '',
+            brandName: row.brandName || '',
+            bizLines: bizLines || ''
+        };
+        try {
+            var list = JSON.parse(localStorage.getItem(APPROVED_STORE_KEY) || '[]');
+            if (!Array.isArray(list)) list = [];
+            list.unshift(payload);
+            localStorage.setItem(APPROVED_STORE_KEY, JSON.stringify(list));
+        } catch (e) {}
+    }
+
+    function bizDisplay(value) {
+        var api = window.StoreBizStructure;
+        var text = api ? api.formatBiz(value) : '';
+        return text || '—';
+    }
+
+    function appendStoreBizDetail(body, row) {
+        body.appendChild(detailRow('事业线', row.bizLine || '—', 'bizLine', row));
+        body.appendChild(detailRow('品牌名称', row.brandName || '—', 'brandName', row));
+        body.appendChild(detailRow('业务线', bizDisplay(row.bizLines), 'bizLines', row));
+    }
+
+    function appendStoreBizEdit(body, row) {
+        var api = window.StoreBizStructure;
+        if (!api) return;
+        var lineSel = selectInput(
+            [{ value: '', label: '请选择事业线' }].concat(
+                api.lines().map(function (n) {
+                    return { value: n, label: n };
+                })
+            ),
+            row.bizLine || ''
+        );
+        var brandSel = selectInput([{ value: '', label: '请先选择事业线' }], '');
+        var checks = el('div', 'store-form__checks');
+        var hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.setAttribute('data-audit-field', 'bizLines');
+        var tip = el('div', 'store-form__field-tip');
+        var wrap = document.createElement('div');
+        wrap.appendChild(checks);
+        wrap.appendChild(hidden);
+        wrap.appendChild(tip);
+
+        function selectedBiz() {
+            return Array.prototype.map.call(checks.querySelectorAll('input:checked'), function (node) {
+                return node.value;
+            });
+        }
+        function syncHidden() {
+            hidden.value = api.formatBiz(selectedBiz());
+        }
+        function paintBiz(keep) {
+            var opts = api.bizLines(lineSel.value, brandSel.value);
+            var keepSet = keep || [];
+            checks.innerHTML = '';
+            opts.forEach(function (name) {
+                var lab = el('label', 'store-form__check');
+                var cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.value = name;
+                if (keepSet.indexOf(name) >= 0) cb.checked = true;
+                cb.addEventListener('change', syncHidden);
+                lab.appendChild(cb);
+                lab.appendChild(document.createTextNode(name));
+                checks.appendChild(lab);
+            });
+            tip.textContent = opts.length
+                ? '可多选。更换品牌后，不在该品牌下的业务线会取消勾选。'
+                : lineSel.value
+                  ? '请先选择品牌名称。业务线可多选。'
+                  : '请先选择事业线和品牌名称。业务线可多选，选项随品牌变化。';
+            syncHidden();
+        }
+        function paintBrands(keepBrand, keepBiz) {
+            var list = api.brands(lineSel.value);
+            brandSel.innerHTML = '';
+            var ph = document.createElement('option');
+            ph.value = '';
+            ph.textContent = list.length ? '请选择品牌名称' : '请先选择事业线';
+            brandSel.appendChild(ph);
+            list.forEach(function (n) {
+                var op = document.createElement('option');
+                op.value = n;
+                op.textContent = n;
+                brandSel.appendChild(op);
+            });
+            brandSel.disabled = !list.length;
+            brandSel.value = list.indexOf(keepBrand) >= 0 ? keepBrand : '';
+            paintBiz(brandSel.value ? keepBiz : []);
+        }
+        lineSel.addEventListener('change', function () {
+            paintBrands('', []);
+        });
+        brandSel.addEventListener('change', function () {
+            paintBiz([]);
+        });
+        body.appendChild(editRow('事业线', lineSel, 'bizLine', row));
+        body.appendChild(editRow('品牌名称', brandSel, 'brandName', row));
+        var rowEl = el('div', 'audit-detail-row');
+        var labelEl = el('span', 'audit-detail-row__label');
+        if (isAuditFieldRequired('bizLines', row)) labelEl.appendChild(el('span', 'audit-req', '*'));
+        labelEl.appendChild(document.createTextNode('业务线'));
+        rowEl.appendChild(labelEl);
+        var value = el('span', 'audit-detail-row__value');
+        value.appendChild(wrap);
+        rowEl.appendChild(value);
+        body.appendChild(rowEl);
+        paintBrands(row.brandName || '', api.normalizeBiz(row.bizLines));
     }
 
     function editRow(label, control, fieldKey, dataRow) {
@@ -557,16 +883,13 @@
             return;
         }
 
-        var isFranchiseOrPartner =
-            row.partnerDivision === '加盟店' ||
-            row.partnerDivision === '合作店' ||
-            row.partnerDivision === '生鲜店';
-        var isPeerStore = row.partnerDivision === '同行店';
+        var isFranchiseOrPartner = isFranchiseOrPartnerRow(row);
 
         body.appendChild(el('div', 'supplier-detail-section-title', '主体字段'));
         body.appendChild(editRow('主体名称', textInput('请输入主体名称', row.subjectName), 'subjectName', row));
         body.appendChild(editRow('绑定BD', textInput('请输入绑定BD', row.bd), 'bd', row));
         body.appendChild(detailRow('主体类型', row.subjectType || '门店'));
+        appendEntryMaterials(body, row);
 
         body.appendChild(el('div', 'supplier-detail-section-title', '门店档案字段'));
         var storeNameInp = textInput('请输入门店名称', row.storeName);
@@ -576,18 +899,12 @@
         });
         body.appendChild(editRow('门店名称', storeNameInp, 'storeName', row));
         body.appendChild(editRow('门店简称', shortNameInp, 'shortName', row));
-        var partnerSel = selectInput(
-            [
-                { value: '加盟店', label: '加盟店' },
-                { value: '合作店', label: '合作店' },
-                { value: '同行店', label: '同行店' },
-                { value: '生鲜店', label: '生鲜店' }
-            ],
-            row.partnerDivision
-        );
+        var partnerOpts = partnerDivisionSelectOptions(row.partnerDivision);
+        var partnerSel = selectInput(partnerOpts.options, partnerOpts.value);
         partnerSel.setAttribute('data-audit-field', 'partnerDivision');
         body.appendChild(editRow('门店合作类型', partnerSel, 'partnerDivision', row));
         body.appendChild(editRow('门店类型', textInput('请输入门店类型', row.storeType), 'storeType', row));
+        appendStoreBizEdit(body, row);
         body.appendChild(editRow('配送仓库', textInput('请输入配送仓库', row.warehouse), 'warehouse', row));
         body.appendChild(editRow('省市区', textInput('请输入省市区', row.region), 'region', row));
         body.appendChild(editRow('详细地址', textInput('请输入详细地址', row.address), 'address', row));
@@ -627,7 +944,7 @@
         appendContactEditSection(body, row);
 
         if (isFranchiseOrPartner) {
-            body.appendChild(el('div', 'supplier-detail-section-title', '加盟店 / 合作店补充资料'));
+            body.appendChild(el('div', 'supplier-detail-section-title', '加盟店资料'));
             body.appendChild(editRow('门店面积（㎡）', textInput('', row.storeArea), 'storeArea', row));
             body.appendChild(editRow('门店楼层', textInput('', row.storeFloors), 'storeFloors', row));
             body.appendChild(detailRow('店门口口述视频', mediaGrid(row.videoStorefrontIntro)));
@@ -686,19 +1003,6 @@
             body.appendChild(detailRow('特殊情况配图', mediaGrid(row.specialCircumstancesPhotos)));
         }
 
-        if (isPeerStore) {
-            body.appendChild(el('div', 'supplier-detail-section-title', '同行店补充资料'));
-            body.appendChild(
-                editRow(
-                    '已合作其他平台情况',
-                    textareaInput('', row.otherPlatformsCooperation, 3),
-                    'otherPlatformsCooperation',
-                    row
-                )
-            );
-            body.appendChild(detailRow('近三天上播及销量截图', mediaGrid(row.broadcastSalesScreenshots)));
-        }
-
         if (typeof onPartnerChange === 'function') {
             partnerSel.addEventListener('change', function () {
                 onPartnerChange(partnerSel);
@@ -724,6 +1028,9 @@
             submittedAt: '2026-05-07 15:20',
             auditLogs: [],
             storeType: '社区生鲜店',
+            bizLine: '餐饮',
+            brandName: '冷丰锅贴',
+            bizLines: ['拉新', '商城', '代采进货'],
             partnerDivision: '加盟店',
             warehouse: '华东 RDC-杭州',
             region: '浙江省 / 杭州市 / 西湖区',
@@ -778,7 +1085,10 @@
                 }
             ],
             storeType: '团购自提点',
-            partnerDivision: '合作店',
+            bizLine: '康美',
+            brandName: '汉言',
+            bizLines: ['外卖运营', 'POS/到店'],
+            partnerDivision: '联营店',
             warehouse: '沪东前置仓',
             region: '上海市 / 市辖区 / 杨浦区',
             address: '五角场商圈政通路 99 号',
@@ -801,10 +1111,10 @@
             privateCommerceFamiliarity: '熟悉私域社群，做过团购接龙。',
             surroundingCommunityNote: '周边办公与居民混合，午晚高峰明显。',
             confidenceReach1000: '已有老客群基础。',
-            specialCircumstancesNote: '需总监确认区域保护边界。',
+            specialCircumstancesNote: '选址附近已有门店，提请审核同事确认。',
             specialCircumstancesPhotos: [
-                { type: 'image', name: '区域保护说明-1.jpg' },
-                { type: 'image', name: '区域保护说明-2.jpg' }
+                { type: 'image', name: '选址情况说明-1.jpg' },
+                { type: 'image', name: '选址情况说明-2.jpg' }
             ]
         },
         {
@@ -833,7 +1143,10 @@
                 }
             ],
             storeType: '社区便利店',
-            partnerDivision: '生鲜店',
+            bizLine: '纯私域',
+            brandName: '冷丰特选',
+            bizLines: ['拉新', '留存', '私域直播-生鲜场'],
+            partnerDivision: '加盟店',
             warehouse: '华东 RDC-杭州',
             region: '浙江省 / 杭州市 / 滨江区',
             address: '春晓路 198 号',
@@ -887,11 +1200,14 @@
                     reviewer: 'BD总监 李静',
                     time: '2026-05-06 18:20',
                     result: '通过',
-                    reason: '区域保护边界已确认'
+                    reason: '选址情况已人工确认'
                 }
             ],
             storeType: '快闪零售',
-            partnerDivision: '同行店',
+            bizLine: '纯私域',
+            brandName: '其他',
+            bizLines: ['私域直播-百货场'],
+            partnerDivision: '加盟店',
             warehouse: '沪东前置仓',
             region: '上海市 / 市辖区 / 浦东新区',
             address: '张江路 88 号',
@@ -998,7 +1314,7 @@
             return d + '　<a href="#" class="mdm-audit-review">审核</a>';
         }
         /* 供应商财务审核无编辑；门店审核失败可改资料重提 */
-        if (rec.auditStatus === '审核失败' && !isSupplierAuditRow(rec)) {
+        if (rec.auditStatus === '审核失败' && !isSingleStepAudit(rec)) {
             return d + '　<a href="#" class="mdm-audit-edit">编辑</a>';
         }
         return d;
@@ -1044,6 +1360,7 @@
         body.appendChild(el('div', 'supplier-detail-section-title', '状态信息'));
         body.appendChild(detailRow('审核状态', row.auditStatus));
         body.appendChild(detailRow('MDM状态', row.mdmStatus));
+        appendContractShare(body, row);
         appendAuditLogTable(body, row.auditLogs);
 
         var footer = el('div', 'erp-modal__footer');
@@ -1132,7 +1449,7 @@
         function renderReview() {
             body.innerHTML = '';
             footer.innerHTML = '';
-            var isSup = isSupplierAuditRow(row);
+            var isSup = isSingleStepAudit(row);
             var phaseLabel;
             if (isSup) {
                 phaseLabel =
@@ -1187,13 +1504,20 @@
                 });
                 var approve = mkBtn('审核通过', true);
                 approve.addEventListener('click', function () {
-                    approveAudit(row, readOpinion(body));
+                    var entryErr = captureEntryMaterials(body, row);
+                    if (entryErr) {
+                        showToast(entryErr, 'error');
+                        return;
+                    }
+                    var task = approveAudit(row, readOpinion(body));
                     backdrop.remove();
                     onDone();
-                    showToast(
-                        isSup ? '财务审核通过，已生成供应商商家（演示）' : '审核已处理（演示）',
-                        'success'
-                    );
+                    if (task && task.signUrl && window.LfContract) {
+                        window.LfContract.copyText(task.signUrl);
+                        showToast(auditContractTitle(row) + '合同已生成，签署链接已复制', 'success');
+                    } else {
+                        showToast(isSup ? '财务审核通过（演示）' : '审核已处理（演示）', 'success');
+                    }
                 });
                 footer.appendChild(reject);
                 footer.appendChild(approve);
@@ -1212,10 +1536,20 @@
                 });
                 var approve2 = mkBtn('审核通过', true);
                 approve2.addEventListener('click', function () {
-                    approveAudit(row, readOpinion(body));
+                    var entryErr = captureEntryMaterials(body, row);
+                    if (entryErr) {
+                        showToast(entryErr, 'error');
+                        return;
+                    }
+                    var task = approveAudit(row, readOpinion(body));
                     backdrop.remove();
                     onDone();
-                    showToast('审核已处理（演示）', 'success');
+                    if (task && task.signUrl && window.LfContract) {
+                        window.LfContract.copyText(task.signUrl);
+                        showToast('门店合作合同已生成，签署链接已复制', 'success');
+                    } else {
+                        showToast('审核已处理（演示）', 'success');
+                    }
                 });
                 footer.appendChild(reject2);
                 footer.appendChild(approve2);
@@ -1231,8 +1565,9 @@
             footer.innerHTML = '';
             body.appendChild(detailRow('当前状态', '编辑资料'));
 
-            function partnerChangeHandler(partnerSel) {
-                var patch = readEditableFromBody(body);
+                function partnerChangeHandler(partnerSel) {
+                    rememberEntryMaterials(body, row);
+                    var patch = readEditableFromBody(body);
                 applyEditableToRow(row, patch);
                 row.partnerDivision = partnerSel.value;
                 while (body.children.length > 1) {
@@ -1250,6 +1585,11 @@
             });
             var save = mkBtn('保存资料', false);
             save.addEventListener('click', function () {
+                var entryErr = captureEntryMaterials(body, row);
+                if (entryErr) {
+                    showToast(entryErr, 'error');
+                    return;
+                }
                 var vals = readEditableFromBody(body);
                 if (!validateAuditEdit(vals, row)) return;
                 applyEditableToRow(row, vals);
@@ -1274,7 +1614,7 @@
         }
 
         /* 供应商财务审核无编辑态 */
-        if (startInEdit && !isSupplierAuditRow(row)) renderEdit();
+        if (startInEdit && !isSingleStepAudit(row)) renderEdit();
         else renderReview();
 
         modal.appendChild(header);
@@ -1305,4 +1645,70 @@
             openAuditReview(rec, pm, startInEdit);
         }
     };
+
+    var ENTRY_AUDIT_KEY = 'lf_entry_audit_queue_v1';
+
+    function readEntryAuditQueue() {
+        try {
+            var list = JSON.parse(localStorage.getItem(ENTRY_AUDIT_KEY) || '[]');
+            return Array.isArray(list) ? list : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function writeEntryAuditQueue(list) {
+        try {
+            localStorage.setItem(ENTRY_AUDIT_KEY, JSON.stringify(list || []));
+        } catch (e) {}
+    }
+
+    function persistQueuedAudit(row) {
+        if (!row || !row.fromCreate || !row.id) return;
+        var list = readEntryAuditQueue();
+        var found = false;
+        for (var i = 0; i < list.length; i++) {
+            if (list[i] && list[i].id === row.id) {
+                list[i] = row;
+                found = true;
+                break;
+            }
+        }
+        if (!found) list.unshift(row);
+        writeEntryAuditQueue(list);
+    }
+
+    function maskAuditPhone(phone) {
+        var digits = String(phone || '').replace(/\D/g, '');
+        if (digits.length === 11) return digits.slice(0, 3) + '****' + digits.slice(7);
+        return phone || '—';
+    }
+
+    function mountQueuedAudits() {
+        var tbody = document.getElementById('tableBody');
+        var list = readEntryAuditQueue();
+        if (!tbody || !list.length) return;
+        for (var i = list.length - 1; i >= 0; i--) {
+            var rec = list[i];
+            if (!rec || !rec.id || rec.subjectType === '仓库') continue;
+            var exists = false;
+            for (var j = 0; j < AUDIT_ROWS.length; j++) {
+                if (AUDIT_ROWS[j].id === rec.id) exists = true;
+            }
+            if (exists) continue;
+            rec.fromCreate = true;
+            if (!rec.auditLogs) rec.auditLogs = [];
+            AUDIT_ROWS.unshift(rec);
+            var tr = document.createElement('tr');
+            tr.innerHTML =
+                '<td>' + escapeHtml(rec.id) + '</td>' +
+                '<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>';
+            tbody.insertBefore(tr, tbody.firstChild);
+            applyRowToDom(tr, rec);
+            var phoneCell = tr.querySelectorAll('td')[7];
+            if (phoneCell) phoneCell.textContent = maskAuditPhone(rec.phone);
+        }
+    }
+
+    if (document.getElementById('tableBody')) mountQueuedAudits();
 })();

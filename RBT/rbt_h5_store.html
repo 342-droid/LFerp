@@ -136,6 +136,36 @@
         .rbt-h5-phone.is-app .rbt-h5-pick { display: none; }
         .rbt-h5-scroll { flex: 1; min-height: 0; overflow: auto; padding: 12px 12px 16px; }
         .rbt-h5-phone.is-home .rbt-h5-phone__head { display: none; }
+        .rbt-h5-phone.is-list .rbt-h5-phone__head,
+        .rbt-h5-phone.is-sku .rbt-h5-phone__head,
+        .rbt-h5-phone.is-confirm .rbt-h5-phone__head {
+            justify-content: center;
+            background: #fff;
+            color: #222;
+            padding: 16px 44px 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .rbt-h5-phone.is-list .rbt-h5-phone__head h1,
+        .rbt-h5-phone.is-sku .rbt-h5-phone__head h1,
+        .rbt-h5-phone.is-confirm .rbt-h5-phone__head h1 {
+            flex: none;
+            font-size: 17px;
+            font-weight: 600;
+            text-align: center;
+        }
+        .rbt-h5-phone.is-list .rbt-h5-head-back,
+        .rbt-h5-phone.is-sku .rbt-h5-head-back,
+        .rbt-h5-phone.is-confirm .rbt-h5-head-back {
+            position: absolute;
+            left: 8px;
+            color: #222;
+        }
+        .rbt-h5-phone.is-list,
+        .rbt-h5-phone.is-sku,
+        .rbt-h5-phone.is-confirm { position: relative; }
+        .rbt-h5-phone.is-list .rbt-h5-phone__head,
+        .rbt-h5-phone.is-sku .rbt-h5-phone__head,
+        .rbt-h5-phone.is-confirm .rbt-h5-phone__head { position: relative; }
         .rbt-h5-scroll.is-home {
             padding: 0 0 20px;
             background: linear-gradient(180deg, #fff6ee 0%, #f4f6fb 240px, #f4f6fb 100%);
@@ -246,7 +276,60 @@
             width: 100%;
             height: 44px;
             margin: 0 auto;
+            border-radius: 22px;
+            font-size: 16px;
+            font-weight: 600;
             text-align: center;
+        }
+        .rbt-demand {
+            margin-bottom: 12px;
+            padding: 14px 14px 12px;
+            border-radius: 12px;
+            background: #fff;
+        }
+        .rbt-demand__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+        .rbt-demand__name { margin: 0; color: #222; font-size: 16px; font-weight: 700; line-height: 1.3; }
+        .rbt-demand__status {
+            flex: none;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: #fff1e8;
+            color: #ff7019;
+            font-size: 12px;
+            line-height: 18px;
+        }
+        .rbt-demand__status.is-off { background: #f2f3f5; color: #999; }
+        .rbt-demand__status.is-done { background: #f6ffed; color: #52c41a; }
+        .rbt-demand__meta { margin: 4px 0 0; color: #999; font-size: 12px; line-height: 1.4; }
+        .rbt-demand__total { display: flex; align-items: baseline; justify-content: space-between; margin-top: 12px; }
+        .rbt-demand__total span { color: #666; font-size: 13px; }
+        .rbt-demand__total b { color: #ff7019; font-size: 22px; font-weight: 700; letter-spacing: 0.2px; }
+        .rbt-demand__grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px 16px;
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            background: #f7f8fa;
+        }
+        .rbt-demand__cell span { display: block; color: #999; font-size: 12px; }
+        .rbt-demand__cell b { display: block; margin-top: 4px; color: #222; font-size: 15px; font-weight: 600; }
+        .rbt-demand__block { margin-top: 12px; }
+        .rbt-demand__block span { display: block; color: #999; font-size: 12px; }
+        .rbt-demand__block p { margin: 4px 0 0; color: #333; font-size: 13px; line-height: 1.5; }
+        .rbt-demand__foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 12px; }
+        .rbt-demand__time { color: #999; font-size: 12px; }
+        .rbt-demand__cancel {
+            flex: none;
+            height: 28px;
+            padding: 0 12px;
+            border: 0;
+            border-radius: 14px;
+            background: #ff7019;
+            color: #fff;
+            font-size: 12px;
+            cursor: pointer;
         }
         .rbt-h5-step-name {
             margin: 0 0 12px;
@@ -357,78 +440,148 @@
         .rbt-h5-check input { width: 18px; height: 18px; margin-top: 2px; accent-color: #ff7019; }
         .rbt-h5-check strong { display: block; color: #222; font-size: 14px; }
         .rbt-h5-check span { display: block; margin-top: 4px; color: #888; font-size: 12px; }
-        .rbt-h5-sku { align-items: flex-start; }
-        .rbt-h5-sku__img {
+        .rbt-sku-pack,
+        .rbt-sku-card {
+            margin-bottom: 10px;
+            padding: 14px;
+            border-radius: 12px;
+            background: #fff;
+        }
+        .rbt-sku-pack h2 { margin: 0; color: #222; font-size: 16px; font-weight: 700; }
+        .rbt-sku-pack p { margin: 6px 0 0; color: #999; font-size: 12px; }
+        .rbt-sku-card { display: flex; align-items: center; gap: 10px; }
+        .rbt-sku-card__pick { flex: none; display: flex; }
+        .rbt-sku-card__pick input,
+        .rbt-sku-bar__all input {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            margin: 0;
+            border: 1.5px solid #dcdcdc;
+            border-radius: 50%;
+            background: #fff center / 12px 12px no-repeat;
+            cursor: pointer;
+        }
+        .rbt-sku-card__pick input:checked,
+        .rbt-sku-bar__all input:checked {
+            border-color: #ff7019;
+            background-color: #ff7019;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.2 4.8 8.8 9.8 3.2' fill='none' stroke='%23fff' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+        }
+        .rbt-sku-card__img {
             flex: none;
-            width: 64px;
-            height: 64px;
+            width: 72px;
+            height: 72px;
             object-fit: cover;
             border-radius: 8px;
             background: #f5f5f5;
         }
-        .rbt-h5-sku__img--empty {
+        .rbt-sku-card__img--empty {
             display: flex;
             align-items: center;
             justify-content: center;
             color: #bbb;
             font-size: 12px;
+            text-align: center;
         }
-        .rbt-h5-check .rbt-h5-sku__body { flex: 1; min-width: 0; margin-top: 0; }
-        .rbt-h5-check .rbt-h5-sku__unit { color: #666; font-size: 12px; }
-        .rbt-h5-check .rbt-h5-sku__price { color: #ff7019; font-size: 14px; font-weight: 600; }
-        .rbt-h5-sku__foot {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            margin-top: 8px;
-        }
-        .rbt-h5-sku__foot .rbt-h5-sku__price { margin-top: 0; }
-        .rbt-h5-qty {
-            display: inline-flex;
-            align-items: center;
-            flex: none;
-        }
+        .rbt-sku-card__main { flex: 1; min-width: 0; }
+        .rbt-sku-card__main strong { display: block; color: #222; font-size: 15px; font-weight: 700; line-height: 1.3; }
+        .rbt-sku-card__main p { margin: 4px 0 0; color: #999; font-size: 12px; line-height: 1.4; }
+        .rbt-sku-card__row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; }
+        .rbt-sku-card__price { color: #ff7019; font-size: 18px; font-weight: 700; }
+        .rbt-h5-qty { display: inline-flex; align-items: center; flex: none; }
         .rbt-h5-qty button {
-            width: 28px;
-            height: 28px;
+            width: 26px;
+            height: 26px;
             padding: 0;
-            border: 1px solid #ffd0b0;
-            border-radius: 6px;
-            background: #fff7f2;
-            color: #ff7019;
+            border: 0;
+            border-radius: 50%;
+            background: #f2f3f5;
+            color: #666;
             font-size: 16px;
             line-height: 1;
             cursor: pointer;
         }
-        .rbt-h5-qty button:disabled {
-            border-color: #eee;
-            background: #f7f7f7;
-            color: #bbb;
-            cursor: not-allowed;
-        }
+        .rbt-h5-qty button:disabled { color: #ccc; cursor: not-allowed; }
         .rbt-h5-qty input {
-            width: 44px;
-            height: 28px;
-            margin: 0 6px;
+            width: 32px;
+            height: 26px;
+            margin: 0;
             padding: 0;
-            border: 1px solid #e0e0e0;
-            border-radius: 6px;
+            border: 0;
+            background: transparent;
             text-align: center;
-            font-size: 14px;
-            color: #333;
+            font-size: 15px;
+            color: #222;
             box-sizing: border-box;
+            -moz-appearance: textfield;
+            appearance: textfield;
         }
-        .rbt-h5-qty input:focus {
-            outline: none;
-            border-color: #ff7019;
+        .rbt-h5-qty input::-webkit-outer-spin-button,
+        .rbt-h5-qty input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .rbt-h5-qty input:focus { outline: none; }
+        .rbt-sku-bar {
+            flex: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px 12px;
+            background: #fff;
+            border-top: 1px solid #f0f0f0;
         }
-        .rbt-h5-sum {
-            margin: 4px 0 12px;
-            color: #333;
-            font-size: 14px;
+        .rbt-sku-bar[hidden] { display: none; }
+        .rbt-sku-bar__all { display: flex; align-items: center; gap: 6px; color: #333; font-size: 13px; }
+        .rbt-sku-bar__sum { flex: 1; min-width: 0; text-align: right; }
+        .rbt-sku-bar__sum p { margin: 0; color: #333; font-size: 12px; line-height: 1.5; }
+        .rbt-sku-bar__sum b { color: #ff7019; font-size: 16px; }
+        .rbt-sku-bar__next {
+            flex: none;
+            height: 40px;
+            padding: 0 22px;
+            border: 0;
+            border-radius: 20px;
+            background: #ff7019;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
         }
-        .rbt-h5-sum b { color: #ff7019; }
+        .rbt-confirm {
+            padding: 4px 14px;
+            border-radius: 12px;
+            background: #fff;
+        }
+        .rbt-confirm__row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            min-height: 52px;
+            border-bottom: 1px solid #f3f3f3;
+        }
+        .rbt-confirm__row:last-child { border-bottom: 0; }
+        .rbt-confirm__row > span { color: #666; font-size: 14px; }
+        .rbt-confirm__value { color: #222; font-size: 15px; font-weight: 500; text-align: right; }
+        .rbt-confirm__row.is-total .rbt-confirm__value { color: #ff7019; font-size: 22px; font-weight: 700; }
+        .rbt-publish-bar {
+            flex: none;
+            padding: 10px 16px 16px;
+            background: #f7f7f7;
+        }
+        .rbt-publish-bar[hidden] { display: none; }
+        .rbt-publish-bar__btn {
+            display: block;
+            width: 100%;
+            height: 44px;
+            border: 0;
+            border-radius: 22px;
+            background: #ff7019;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
         .rbt-h5-publish { width: 100%; height: 44px; }
         .rbt-h5-pick {
             display: none;
@@ -675,16 +828,25 @@
             cursor: pointer;
         }
         .rbt-repay-go:disabled { background: #c9cdd4; cursor: default; }
-        .rbt-repay-hero__note { margin: 12px 0 0; color: #999; font-size: 12px; line-height: 1.6; }
+        .rbt-repay-split { display: flex; gap: 12px; margin: 4px 0 14px; text-align: center; }
+        .rbt-repay-split div { flex: 1; min-width: 0; }
+        .rbt-repay-split span { display: block; color: #888; font-size: 12px; }
+        .rbt-repay-split b { display: block; margin-top: 4px; color: #ff7019; font-size: 22px; font-weight: 700; }
+        .rbt-repay-card {
+            margin: 0 0 10px;
+            border-radius: 10px;
+            background: #fff;
+            overflow: hidden;
+        }
         .rbt-repay-row {
             display: flex;
             justify-content: space-between;
             gap: 12px;
             width: 100%;
-            margin: 0 0 8px;
+            margin: 0;
             padding: 14px 12px;
             border: 0;
-            border-radius: 10px;
+            border-radius: 0;
             background: #fff;
             text-align: left;
             cursor: pointer;
@@ -696,6 +858,8 @@
         .rbt-repay-row__side b { display: block; color: #222; font-size: 14px; font-weight: 600; }
         .rbt-repay-row__side span { display: block; margin-top: 6px; color: #999; font-size: 12px; }
         .rbt-repay-row__side.is-done b { color: #52c41a; }
+        .rbt-repay-days { padding: 0 12px 6px; }
+        .rbt-repay-days .rbt-bill__day { padding: 8px 0; border-top: 1px solid #f2f3f5; }
         .rbt-bill__back { margin-bottom: 8px; }
         .rbt-bill__head {
             margin: -12px -12px 12px;
@@ -728,7 +892,22 @@
         .rbt-bill__trader span { flex: none; opacity: .9; }
         .rbt-bill__trader b { flex: 1; min-width: 0; font-weight: 600; text-align: right; overflow-wrap: break-word; }
         .rbt-bill__sheet { padding: 4px 0 12px; }
-        .rbt-bill__sheet h3 { margin: 0 0 8px; font-size: 15px; color: #222; }
+        .rbt-bill-tabs {
+            display: flex;
+            margin: 12px 0 0;
+            border-bottom: 1px solid #eee;
+        }
+        .rbt-bill-tabs button {
+            flex: 1;
+            height: 40px;
+            border: 0;
+            border-bottom: 2px solid transparent;
+            background: transparent;
+            color: #666;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .rbt-bill-tabs button.is-on { color: #ff7019; border-bottom-color: #ff7019; font-weight: 600; }
         .rbt-bill__line {
             display: flex;
             justify-content: space-between;
@@ -800,12 +979,14 @@
                         <div class="rbt-h5-pick" id="rbtH5Pick" aria-label="选择门店"></div>
                         <div class="rbt-h5-app" id="rbtH5App">
                             <div class="rbt-h5-scroll" id="rbtH5Scroll"></div>
+                            <div class="rbt-sku-bar" id="rbtH5SkuBar" hidden></div>
+                            <div class="rbt-publish-bar" id="rbtH5PublishBar" hidden></div>
                             <div class="rbt-h5-create" id="rbtH5Create" hidden>
                                 <button type="button" class="rbt-h5-primary" data-create>发布需求</button>
                             </div>
                             <nav class="rbt-h5-tabbar" id="rbtH5Tabbar" hidden>
                                 <button type="button" data-tab="home">首页</button>
-                                <button type="button" data-tab="repay">还款</button>
+                                <button type="button" data-tab="repay">履约</button>
                                 <button type="button" data-tab="mine">我的</button>
                             </nav>
                         </div>

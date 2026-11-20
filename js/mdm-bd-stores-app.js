@@ -254,9 +254,10 @@
   function chipsHTML(store) {
     var out = [];
     if (store.partnerDivision) {
+      var partnerLabel = normalizePartnerDivision(store.partnerDivision);
       out.push(
         '<span class="bd-chip-partner">' +
-          escapeHtml(store.partnerDivision) +
+          escapeHtml(partnerLabel) +
           '</span>'
       );
     }
@@ -385,7 +386,13 @@
           '</h3>' +
           '<p style="margin:6px 0 0;font-size:10px;color:var(--bd-muted);font-variant-numeric:tabular-nums">门店编号 ' +
           escapeHtml(store.merchantUid || '') +
-          '</p></div>' +
+          '</p>' +
+          (store.phase === 'approved' && ensureStoreCode(store)
+            ? '<p style="margin:4px 0 0;font-size:10px;color:var(--bd-muted);font-variant-numeric:tabular-nums">门店编码 ' +
+              escapeHtml(store.storeCode) +
+              '</p>'
+            : '') +
+          '</div>' +
           '<span class="bd-store-badge" style="' +
           badgeClass(d) +
           '">' +
@@ -473,8 +480,9 @@
       archiveCard(
         '📄',
         '门店与公司协议',
-        '合作协议生成、签署与合同查阅',
-        fieldBlock('协议状态', statusDisplay) +
+        '按门店合作类型生成该场景下的全部协议，签署与合同查阅',
+        fieldBlock('协议名称', agreementTitle(store.partnerDivision)) +
+          fieldBlock('协议状态', statusDisplay) +
           fieldBlock('协议编号', dash(store.companyAgreementNo)) +
           fieldBlock('生成时间', dash(store.companyAgreementGeneratedAt)) +
           fieldBlock('签署完成时间', dash(store.companyAgreementSignedAt)) +
@@ -523,10 +531,14 @@
   }
 
   function archiveBody(store, appendAgreement) {
-    var div = store.partnerDivision;
-    var policy = div === '加盟店' || div === '合作店' || div === '同行店' || div === '生鲜店';
-    var fr = div === '加盟店' || div === '合作店' || div === '生鲜店';
-    var peer = div === '同行店';
+    var div = normalizePartnerDivision(store.partnerDivision);
+    var policy =
+      div === '加盟店' ||
+      div === '联营店' ||
+      div === '直营店' ||
+      div === '合作店' ||
+      div === '生鲜店';
+    var fr = div === '加盟店' || div === '联营店' || div === '直营店' || div === '合作店' || div === '生鲜店';
     var parts = [];
 
     parts.push(
@@ -535,6 +547,9 @@
         '基础信息',
         '名称与负责 BD',
         fieldBlock('门店主体', archiveText(store.storeSubject), 'storeSubject', store) +
+          (store.phase === 'approved'
+            ? fieldBlock('门店编码', '<span style="font-family:monospace;font-size:12px">' + archiveText(ensureStoreCode(store)) + '</span>')
+            : '') +
           fieldBlock('门店名称', archiveText(store.name), 'name', store) +
           fieldBlock('门店简称', archiveText(store.shortName)) +
           fieldBlock('绑定 BD', archiveText(store.boundBd), 'boundBd', store) +
@@ -543,6 +558,27 @@
       )
     );
 
+    if (window.MdmEntryMaterials && typeof window.MdmEntryMaterials.groupSummary === 'function') {
+      var entryData = store.entryMaterials || window.MdmEntryMaterials.load('store', store.name);
+      [
+        ['📄', '营业执照', '证照照片、名称与有效期', 'license'],
+        ['🪪', '法人身份证', '证件照片与身份信息', 'legal'],
+        ['📞', '法人实名电话', '与证件实名一致的手机号', 'phone'],
+        ['🏦', '结算信息', '开户许可证与收款账户', 'settle']
+      ].forEach(function (group) {
+        parts.push(
+          archiveCard(
+            group[0],
+            group[1],
+            group[2],
+            window.MdmEntryMaterials.groupSummary(entryData, group[3], function (label, value) {
+              return fieldBlock(label, archiveText(value));
+            })
+          )
+        );
+      });
+    }
+
     var whStyle = store.warehouseNeedsAttention ? ' style="color:var(--bd-destructive);font-weight:700"' : '';
     parts.push(
       archiveCard(
@@ -550,7 +586,7 @@
         '配送与分类',
         '配送仓库默认随绑定 BD，可手动调整；门店合作类型与设备归类',
         fieldBlock('配送仓库', '<span' + whStyle + '>' + archiveText(store.warehouse) + '</span>', 'warehouse', store) +
-          fieldBlock('门店合作类型', archiveText(store.partnerDivision), 'partnerDivision', store) +
+          fieldBlock('门店合作类型', archiveText(div), 'partnerDivision', store) +
           (policy ? fieldBlock('门店类型', archiveText(store.storeType), 'storeType', store) : '') +
           fieldBlock('有无冷藏柜', archiveText(store.hasRefrigeratedCabinet)) +
           fieldBlock('有无冷冻柜', archiveText(store.hasFreezerCabinet)) +
@@ -641,19 +677,8 @@
           archiveCard(
             '📋',
             '特殊情况说明',
-            '选填；触发区域保护提醒时须用文字或图片补充说明。',
+            '选填。如需提请审核同事留意选址或其他情况，可在此说明。',
             fieldBlock('说明内容', archiveText(store.specialCircumstancesNote)) + fieldBlock('配图', '—')
-          )
-        );
-      }
-      if (peer) {
-        parts.push(
-          archiveCard(
-            '📋',
-            '同行店补充资料',
-            '请如实填写以下资料',
-            fieldBlock('合作平台现状：说明目前门店已合作的其他平台情况。', archiveText(store.otherPlatformsCooperation)) +
-              fieldBlock('经营数据截图：需提供手机后台截图，包含前三天的上播数据及销量明细。', '—')
           )
         );
       }
@@ -670,9 +695,14 @@
 
   /** 与 mdm-bd-h5-store-register validate() / field(, true) 对齐；审核档案不展示验证码 */
   function isBdArchiveFieldRequired(fieldKey, store) {
-    var div = String((store && store.partnerDivision) || '').trim();
-    var policy = div === '加盟店' || div === '合作店' || div === '同行店' || div === '生鲜店';
-    var fr = div === '加盟店' || div === '合作店' || div === '生鲜店';
+    var div = normalizePartnerDivision((store && store.partnerDivision) || '');
+    var policy =
+      div === '加盟店' ||
+      div === '联营店' ||
+      div === '直营店' ||
+      div === '合作店' ||
+      div === '生鲜店';
+    var fr = div === '加盟店' || div === '联营店' || div === '直营店' || div === '合作店' || div === '生鲜店';
     var common = {
       storeSubject: true,
       name: true,
@@ -762,9 +792,15 @@
       auditApproved &&
       (store.companyAgreementStatus === '待签署' || store.companyAgreementStatus === '已签署')
     ) {
+      ensureBdStoreContract(store);
+      var agreementLabel = store.companyAgreementName || agreementTitle(store.partnerDivision);
       agreementCard =
         '<div style="margin:0 12px 12px;padding:14px;border-radius:16px;border:1px solid rgba(229,231,235,.7);background:#fff">' +
         '<h3 style="margin:0 0 10px;font-size:14px;font-weight:700">门店协议</h3>' +
+        '<div style="font-size:12px;margin-bottom:6px"><span style="color:var(--bd-muted)">协议名称 </span>' +
+        '<span style="font-weight:700">' +
+        escapeHtml(agreementLabel) +
+        '</span></div>' +
         '<div style="font-size:12px"><span style="color:var(--bd-muted)">协议状态 </span>' +
         '<span style="font-weight:700">' +
         escapeHtml(store.companyAgreementStatus) +
@@ -772,7 +808,8 @@
         (store.companyAgreementNo
           ? '<button type="button" style="margin-top:10px;width:100%;text-align:left;padding:10px;border-radius:10px;border:1px solid var(--bd-border);background:rgba(249,250,251,.8);cursor:pointer" data-open-contract><span style="font-size:11px;color:var(--bd-muted);display:block">协议编号</span><span style="font-family:monospace;color:var(--bd-primary);font-weight:700">' +
             escapeHtml(store.companyAgreementNo) +
-            '</span><span style="font-size:10px;color:var(--bd-muted)">点击查看合同</span></button>'
+            '</span><span style="font-size:10px;color:var(--bd-muted)">点击查看合同</span></button>' +
+            '<button type="button" data-copy-contract style="margin-top:8px;width:100%;height:36px;border-radius:10px;border:1px solid var(--bd-primary);background:#fff;color:var(--bd-primary);font-weight:700;cursor:pointer">复制合同链接</button>'
           : '') +
         '</div>';
     }
@@ -862,6 +899,11 @@
       '<div><span style="color:var(--bd-muted);font-size:12px">创建时间：</span><span style="font-weight:600;font-variant-numeric:tabular-nums">' +
       escapeHtml(created) +
       '</span></div>' +
+      (store.phase === 'approved' && ensureStoreCode(store)
+        ? '<div><span style="color:var(--bd-muted);font-size:12px">门店编码：</span><span style="font-weight:700;font-family:monospace">' +
+          escapeHtml(store.storeCode) +
+          '</span></div>'
+        : '') +
       '<div><div style="font-size:11px;font-weight:600;color:var(--bd-muted);margin-bottom:8px">当前状态</div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
       '<button type="button" data-open-history="' +
@@ -1204,9 +1246,24 @@
     root.querySelectorAll('[data-open-contract]').forEach(function (b) {
       b.onclick = function () {
         var store = getStore(route.id);
-        if (store && store.companyAgreementPdfUrl) window.open(store.companyAgreementPdfUrl, '_blank');
+        if (store && store.companyAgreementSignUrl && store.companyAgreementSignUrl.indexOf('contract_sign.html') >= 0) {
+          window.open(store.companyAgreementSignUrl, '_blank');
+        } else if (store && store.companyAgreementPdfUrl) window.open(store.companyAgreementPdfUrl, '_blank');
         else if (store && store.companyAgreementSignUrl) window.open(store.companyAgreementSignUrl, '_blank');
         else window.bdToast && window.bdToast('暂无可查看的合同链接');
+      };
+    });
+    root.querySelectorAll('[data-copy-contract]').forEach(function (b) {
+      b.onclick = function () {
+        var store = getStore(route.id);
+        var url = store && store.companyAgreementSignUrl;
+        if (!url || !window.LfContract) {
+          window.bdToast && window.bdToast('暂无可复制的合同链接');
+          return;
+        }
+        window.LfContract.copyText(url).then(function () {
+          window.bdToast && window.bdToast('合同链接已复制，可转发给门店');
+        });
       };
     });
     root.querySelectorAll('[data-sysfail]').forEach(function (b) {
@@ -1280,10 +1337,47 @@
     mount();
   }
 
+  function ensureBdStoreContract(store) {
+    if (!store || store.phase !== 'approved') return null;
+    if (store.companyAgreementStatus !== '待签署' && store.companyAgreementStatus !== '已签署') return null;
+    var api = window.LfContract;
+    if (!api) return null;
+    var task = api.generateCoopTask({
+      scene: 'store',
+      bizRef: 'bd-store:' + store.id,
+      name: store.name,
+      partnerType: normalizePartnerDivision(store.partnerDivision) || '加盟店',
+      bizLine: store.bizLine || '',
+      brandName: store.brandName || '',
+      trigger: 'audit',
+      contact: store.contact || '',
+      address: store.detailAddress || store.address || '',
+      initiator: '门店入驻审核',
+      status: store.companyAgreementStatus === '已签署' ? 'sign_completed' : 'sign_progress'
+    });
+    if (!task) return null;
+    if (task.status === 'sign_completed') store.companyAgreementStatus = '已签署';
+    store.companyAgreementTaskId = task.id;
+    store.companyAgreementSignUrl = task.signUrl;
+    store.companyAgreementName = task.agreementNames || store.companyAgreementName || agreementTitle(store.partnerDivision);
+    store.companyAgreementNo = task.id;
+    return task;
+  }
+
   function confirmApprove() {
     var store = getStore(route.id);
     var ta = qs('#bdApproveTa');
     if (!store) return;
+    if (window.MdmEntryMaterials) {
+      var entryData = store.entryMaterials || window.MdmEntryMaterials.load('store', store.name);
+      var holder = document.createElement('div');
+      var entryRoot = window.MdmEntryMaterials.mount(holder, { skin: 'pc', value: entryData || null });
+      var entryErr = window.MdmEntryMaterials.validate(entryRoot);
+      if (entryErr) {
+        window.bdToast && window.bdToast(entryErr);
+        return;
+      }
+    }
     var remark = ta ? ta.value.trim().slice(0, 100) : '';
     var at = fmtTs();
     if (!store.auditHistory) store.auditHistory = [];
@@ -1302,10 +1396,11 @@
     } else if (store.phase === 'awaiting_leader') {
       store.phase = 'approved';
       store.approvedAt = at;
+      ensureStoreCode(store);
       store.companyAgreementStatus = '待签署';
-      store.companyAgreementNo = 'HT-DEMO-' + store.id;
+      store.companyAgreementName = agreementTitle(store.partnerDivision);
       store.companyAgreementGeneratedAt = at;
-      store.companyAgreementSignUrl = 'https://esign.example.com/sign?demo=' + store.id;
+      var task = ensureBdStoreContract(store);
       store.auditHistory.push({
         id: 'h' + Date.now(),
         stage: 'BD总监终审',
@@ -1314,7 +1409,13 @@
         result: '通过',
         remark: remark || '—',
       });
-      window.bdToast && window.bdToast('审核完成', '已生成合作协议（演示）');
+      if (task && window.LfContract) {
+        window.LfContract.copyText(task.signUrl);
+        window.bdToast && window.bdToast('审核完成', '已生成' + (task.agreementNames || store.companyAgreementName) + '，签署链接已复制');
+      } else {
+        store.companyAgreementNo = store.companyAgreementNo || ('HT-DEMO-' + store.id);
+        window.bdToast && window.bdToast('审核完成', '已生成' + agreementTitle(store.partnerDivision));
+      }
     }
     openModalClose();
     try {
@@ -1333,6 +1434,59 @@
     else if (h.indexOf('history/') === 0) route = { name: 'history', id: Number(h.split('/')[1]) };
   }
 
+  function ensureStoreCode(store) {
+    if (!store || store.phase !== 'approved') return '';
+    if (store.storeCode) return store.storeCode;
+    var api = window.MdmStoreCode;
+    var code = api && typeof api.allocateNextCode === 'function' ? api.allocateNextCode(store.regionCascade || '') : '';
+    if (code) store.storeCode = code;
+    return store.storeCode || '';
+  }
+
+  function normalizePartnerDivision(v) {
+    var t = String(v || '').trim();
+    if (t === '生鲜店' || t === '同行店') return '加盟店';
+    if (t === '合作店') return '联营店';
+    return t;
+  }
+
+  function agreementTitle(partner) {
+    var type = normalizePartnerDivision(partner) || '加盟店';
+    var fallback = {
+      加盟店: '冷丰品牌合作合同、冷丰加盟门店资金清分结算合同',
+      联营店: '冷丰品牌合作合同',
+      直营店: '冷丰品牌合作合同'
+    };
+    try {
+      var raw = localStorage.getItem('lf_contract_proto_v1');
+      if (raw) {
+        var data = JSON.parse(raw);
+        if (data.catalogVersion !== 'real-20261026') return fallback[type] || fallback['加盟店'];
+        var names = (data.templates || []).filter(function (tpl) {
+          if (tpl.scene !== 'store' || tpl.status !== 'on') return false;
+          var types = Array.isArray(tpl.storePartnerTypes) ? tpl.storePartnerTypes.slice() : [];
+          if (!types.length && tpl.storePartnerType) types = String(tpl.storePartnerType).split(/[、,，]/);
+          return types.indexOf('全部') >= 0 || types.indexOf(type) >= 0;
+        }).map(function (tpl) { return tpl.name; });
+        if (names.length) return names.join('、');
+      }
+    } catch (e) {}
+    return fallback[type] || fallback['加盟店'];
+  }
+
+  function migrateFreshPartner(list) {
+    var changed = false;
+    (list || []).forEach(function (s) {
+      if (!s || !s.partnerDivision) return;
+      var next = normalizePartnerDivision(s.partnerDivision);
+      if (next !== s.partnerDivision) {
+        s.partnerDivision = next;
+        changed = true;
+      }
+    });
+    return changed;
+  }
+
   function init() {
     function bootstrap(data) {
       var raw = sessionStorage.getItem('lf_bd_stores_v1');
@@ -1341,6 +1495,15 @@
           var o = JSON.parse(raw);
           if (Array.isArray(o) && o.length) {
             stores = JSON.parse(JSON.stringify(o));
+            var coded = false;
+            stores.forEach(function (s) {
+              if (s.phase === 'approved' && !s.storeCode && ensureStoreCode(s)) coded = true;
+            });
+            if (migrateFreshPartner(stores) || coded) {
+              try {
+                sessionStorage.setItem('lf_bd_stores_v1', JSON.stringify(stores));
+              } catch (e2) {}
+            }
             parseHash();
             mount();
             return;
@@ -1348,6 +1511,10 @@
         } catch (e) {}
       }
       stores = JSON.parse(JSON.stringify(Array.isArray(data) ? data : []));
+      migrateFreshPartner(stores);
+      stores.forEach(function (s) {
+        ensureStoreCode(s);
+      });
       parseHash();
       mount();
       window.addEventListener('hashchange', function () {

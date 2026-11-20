@@ -372,6 +372,7 @@
   }
 
   function openLog(item) {
+    if (window.MdmOperationLog) { window.MdmOperationLog.fromStore(item.name || item.id, Store, item.id, FIELD_LABEL, null, true); return; }
     logState.activityId = item.id;
     logState.page = 1;
     document.getElementById('tplLogTitle').textContent = '操作日志 · ' + (item.name || item.id);

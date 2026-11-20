@@ -154,6 +154,7 @@
   }
 
   function open(storeAdapter, resourceId, titleName) {
+    if (window.MdmOperationLog) { window.MdmOperationLog.fromStore(titleName || (storeAdapter.getById && storeAdapter.getById(resourceId) || {}).name || '积分', storeAdapter, resourceId); return; }
     adapter = storeAdapter;
     state.resourceId = resourceId;
     state.page = 1;

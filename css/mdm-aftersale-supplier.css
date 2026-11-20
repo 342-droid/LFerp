@@ -1,0 +1,27 @@
+/* 供应商组织 · 售后：隐藏平台专属配置入口文案区等 */
+[data-org-view="supplier"] .aftersale-supplier-hide,
+[data-org-view="supplier"] [data-business-tag-card],
+[data-org-view="supplier"] .bt-detail-card {
+  display: none !important;
+}
+
+.aftersale-supplier-banner {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  background: #fff7f0;
+  border: 1px solid #ffd7b8;
+  border-radius: 8px;
+  color: #8a4b16;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.aftersale-supplier-ops-hint {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: #f7f8fa;
+  border-radius: 6px;
+  color: #666;
+  font-size: 13px;
+  line-height: 1.5;
+}

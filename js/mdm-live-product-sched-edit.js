@@ -171,6 +171,28 @@
     return target;
   }
 
+  function currentDelivery() {
+    var checked = document.querySelector('input[name="deliveryMode"]:checked');
+    return normalizeDelivery(checked ? checked.value : 'express');
+  }
+
+  function liveStockOpts() {
+    return {
+      channel: 'live',
+      sessionId: sessionId,
+      deliveryMode: currentDelivery(),
+      saleScope: 'all'
+    };
+  }
+
+  function syncStockFootTip() {
+    var el = document.querySelector('.lf-live-edit-footer__tip');
+    if (!el) return;
+    el.textContent = currentDelivery() === 'pickup'
+      ? '自提按现货库存时，现货库存就是剩余可售，各渠道共用。按具体数量只扣本渠道可售数量，重新配置可售数量后本渠道预占清零。本场配额不超过这个数。'
+      : '快递只配置可售库存并显示剩余可售，不取仓库现货。重新配置可售数量后本渠道预占清零。本场配额不超过剩余可售。';
+  }
+
   function renderSellableStockField(sku) {
     var mode = sku && sku.sellableMode === 'fixed' ? 'fixed' : 'spot';
     var modeOptions = SELLABLE_STOCK_MODES.map(function (opt) {
@@ -200,13 +222,7 @@
       modeOptions +
       '</select>' +
       (mode === 'spot'
-        ? '<div class="product-proxy-spec__stock-pct">' +
-          '<input type="text" class="product-proxy-spec__input product-proxy-spec__stock-extra product-proxy-spec__stock-extra--percent" data-field="sellablePercent" inputmode="decimal" value="' +
-          escapeHtml((sku && sku.sellablePercent) || '100') +
-          '" placeholder="100" aria-label="现货百分比">' +
-          '<span class="product-proxy-spec__stock-suffix">%</span>' +
-          '</div>' +
-          '<input type="text" class="product-proxy-spec__input product-proxy-spec__stock-extra product-proxy-spec__stock-extra--spot" data-field="spotStock" readonly tabindex="-1" value="' +
+        ? '<input type="text" class="product-proxy-spec__input product-proxy-spec__stock-extra product-proxy-spec__stock-extra--spot" data-field="spotStock" readonly tabindex="-1" value="' +
           escapeHtml((sku && sku.spotStock) || '0') +
           '" aria-label="现货库存">'
         : '') +
@@ -274,7 +290,12 @@
     var mapped = list.map(function (s) {
       var sku = normalizeSku(s, p.img);
       if (window.MdmSkuWhStock && window.MdmSkuWhStock.attachToSku) {
-        var sum = window.MdmSkuWhStock.attachToSku(sku, { channel: 'live', sessionId: sessionId });
+        var sum = window.MdmSkuWhStock.attachToSku(sku, {
+          channel: 'live',
+          sessionId: sessionId,
+          deliveryMode: normalizeDelivery(p.deliveryMode),
+          saleScope: 'all'
+        });
         var cap = (sum.remainTotal || 0) + (sum.sessionReservedTotal || 0);
         if (sku.liveStock === '' || sku.liveStock == null || Number(sku.liveStock) > cap) {
           sku.liveStock = cap;
@@ -500,14 +521,11 @@
       (normalizePoint(sku.pointExchange) === 'points' ? '' : moneyHtml('售价', 'salePrice', sku.salePrice)) +
       moneyHtml('划线价', 'linePrice', sku.linePrice) +
       fieldHtml('起售量', 'minQty', sku.minQty) +
-      renderSellableStockField(sku) +
-      fieldHtml('剩余可售', 'remainStock', sku.remainStock, true) +
+      (window.MdmSkuWhStock && typeof window.MdmSkuWhStock.renderStockEditor === 'function'
+        ? window.MdmSkuWhStock.renderStockEditor(sku, liveStockOpts())
+        : renderSellableStockField(sku)) +
       fieldHtml('本场售卖配额', 'liveStock', sku.liveStock, false, 'is-live-stock') +
-      ((sku.sellableMode === 'fixed')
-        ? ''
-        : (window.MdmSkuWhStock && typeof window.MdmSkuWhStock.renderPanel === 'function'
-          ? window.MdmSkuWhStock.renderPanel(sku, { variant: 'live', channel: 'live', sessionId: sessionId })
-          : '<p class="product-proxy-spec__stock-tip product-proxy-spec__stock-tip--span">可售与预占都在放单渠道。本场配额不超过剩余可售（直播可售−直播预占，含本场已占）。</p>')) +
+      '<p class="product-proxy-spec__stock-tip product-proxy-spec__stock-tip--span">本场配额不超过剩余可售（含本场已占）。</p>' +
       '</div></div>' +
       '<div class="product-proxy-spec__foot">' +
       (idx === 0 && total > 1
@@ -533,7 +551,7 @@
       .map(function (id) {
         var sku = findSku(id);
         if (sku && window.MdmSkuWhStock && window.MdmSkuWhStock.attachToSku) {
-          window.MdmSkuWhStock.attachToSku(sku, { channel: 'live', sessionId: sessionId });
+          window.MdmSkuWhStock.attachToSku(sku, liveStockOpts());
         }
         return sku;
       })
@@ -555,9 +573,14 @@
     document.querySelectorAll('#pSkuList .product-proxy-spec').forEach(function (panel) {
       var sku = findSku(panel.getAttribute('data-sku-id'));
       if (!sku) return;
+      if (window.MdmSkuWhStock && window.MdmSkuWhStock.readWarehouseFields) {
+        window.MdmSkuWhStock.readWarehouseFields(panel, sku);
+      }
       panel.querySelectorAll('[data-field]').forEach(function (input) {
+        if (input.hasAttribute('data-wh-field')) return;
         sku[input.getAttribute('data-field')] = input.value;
       });
+      if (panel.querySelector('[data-stock-editor="express"]')) sku.expressSellableInited = true;
     });
   }
 
@@ -631,6 +654,19 @@
     document.getElementById('pDesc').value = product.desc || '';
     document.getElementById('pArrival').value = product.arrivalTime || '';
     document.getElementById('pArrivalUnit').value = product.arrivalUnit || 'DAY';
+    var aftersaleEl = document.getElementById('pAftersaleDays');
+    if (aftersaleEl) {
+      var days =
+        product.aftersaleDays != null && product.aftersaleDays !== ''
+          ? product.aftersaleDays
+          : window.LFAftersaleGuaranteeStore
+            ? window.LFAftersaleGuaranteeStore.getProductDays(
+                window.LFAftersaleGuaranteeStore.load(),
+                goodsIdOf(product) || product.code || product.sku
+              )
+            : null;
+      aftersaleEl.value = days == null ? '' : String(days);
+    }
 
     var dm = normalizeDelivery(product.deliveryMode);
     var dmEl = document.querySelector('input[name="deliveryMode"][value="' + dm + '"]');
@@ -661,6 +697,7 @@
       selectedSkuIds: selectedSkuIds.slice()
     };
     renderSkuCards();
+    syncStockFootTip();
   }
 
   function validate() {
@@ -684,8 +721,8 @@
       if (s.liveStock === '' || s.liveStock == null || isNaN(Number(s.liveStock))) {
         return toast('请补充 ' + (s.displayName || s.id) + ' 的本场售卖配额', 'warning'), false;
       }
-      if (window.MdmSkuWhStock && window.MdmSkuWhStock.summarize) {
-        var stockSum = window.MdmSkuWhStock.summarize(s, { channel: 'live', sessionId: sessionId });
+      if (window.MdmSkuWhStock && window.MdmSkuWhStock.attachToSku) {
+        var stockSum = window.MdmSkuWhStock.attachToSku(s, liveStockOpts());
         var cap = (stockSum.remainTotal || 0) + (stockSum.sessionReservedTotal || 0);
         if (Number(s.liveStock) > cap) {
           return toast(
@@ -712,6 +749,12 @@
     var first = kept.filter(function (s) {
       return s.isDefault;
     })[0] || kept[0];
+    var aftersaleRaw = ((document.getElementById('pAftersaleDays') || {}).value || '').trim();
+    var aftersaleDays = null;
+    if (aftersaleRaw !== '') {
+      var aftersaleNum = Number(aftersaleRaw);
+      if (!isNaN(aftersaleNum) && aftersaleNum >= 0) aftersaleDays = Math.floor(aftersaleNum);
+    }
     Object.assign(product, {
       name: document.getElementById('pName').value.trim(),
       categoryId: catId,
@@ -719,6 +762,7 @@
       desc: document.getElementById('pDesc').value.trim(),
       arrivalTime: document.getElementById('pArrival').value.trim(),
       arrivalUnit: document.getElementById('pArrivalUnit').value,
+      aftersaleDays: aftersaleDays,
       deliveryMode: (document.querySelector('input[name="deliveryMode"]:checked') || {}).value || 'express',
       freeShip: ((document.querySelector('input[name="freeShip"]:checked') || {}).value || 'yes') === 'yes',
       displaySalesMode: (document.querySelector('input[name="displaySalesMode"]:checked') || {}).value || 'ACTUAL',
@@ -766,6 +810,12 @@
         return sum + (Number(s.liveStock) || 0);
       }, 0)
     });
+    if (window.LFAftersaleGuaranteeStore) {
+      window.LFAftersaleGuaranteeStore.syncProductDays(
+        goodsIdOf(product) || product.code || product.sku,
+        aftersaleDays
+      );
+    }
     persistLiveShipFlag(product);
   }
 
@@ -835,6 +885,13 @@
     document.querySelectorAll('input[name="displaySalesMode"]').forEach(function (el) {
       el.addEventListener('change', syncSalesInput);
     });
+    document.querySelectorAll('input[name="deliveryMode"]').forEach(function (el) {
+      el.addEventListener('change', function () {
+        readSkuCards();
+        renderSkuCards();
+        syncStockFootTip();
+      });
+    });
 
     var trigger = document.getElementById('pSkuTrigger');
     var dropdown = document.getElementById('pSkuDropdown');
@@ -888,25 +945,34 @@
         if (wrap) wrap.setAttribute('data-limit-config', normalizeLimitConfig(ev.target.value));
         return;
       }
-      if (field === 'sellableMode' || field === 'pointExchange') {
+      if (field === 'sellableMode' || field === 'pointExchange' || ev.target.getAttribute('data-wh-field') === 'sellableMode') {
         readSkuCards();
         renderSkuCards();
       }
     });
     document.getElementById('pSkuList').addEventListener('input', function (ev) {
       var field = ev.target.getAttribute('data-field');
-      if (field !== 'sellablePercent' && field !== 'sellableFixed') return;
+      var whField = ev.target.getAttribute('data-wh-field');
       var panel = ev.target.closest('[data-sku-id]');
       var sku = findSku(panel && panel.getAttribute('data-sku-id'));
-      if (!sku) return;
-      sku[field] = ev.target.value;
-      if (window.MdmSkuWhStock && window.MdmSkuWhStock.attachToSku) {
-        window.MdmSkuWhStock.attachToSku(sku, { channel: 'live', sessionId: sessionId });
+      if (!sku || !panel) return;
+      if (field === 'sellableFixed') {
+        sku.sellableFixed = ev.target.value;
+        sku.expressSellableInited = true;
+        if (window.MdmSkuWhStock && window.MdmSkuWhStock.syncStock) {
+          window.MdmSkuWhStock.syncStock(sku, liveStockOpts());
+        }
+        var remain = panel.querySelector('[data-remain-result]');
+        if (remain) remain.value = sku.remainStock == null ? '' : sku.remainStock;
+        var reservedEl = panel.querySelector('[data-channel-reserved]');
+        if (reservedEl) reservedEl.textContent = sku.reservedStock == null ? '0' : String(sku.reservedStock);
+        return;
       }
-      var remain = panel.querySelector('[data-field="remainStock"]');
-      if (remain) remain.value = sku.remainStock == null ? '' : sku.remainStock;
-      var spot = panel.querySelector('[data-field="spotStock"]');
-      if (spot) spot.value = sku.spotStock == null ? '' : sku.spotStock;
+      if (whField !== 'sellablePercent' && whField !== 'sellableFixed') return;
+      if (window.MdmSkuWhStock && window.MdmSkuWhStock.readWarehouseFields) {
+        window.MdmSkuWhStock.readWarehouseFields(panel, sku);
+        window.MdmSkuWhStock.paintWarehouseQuote(panel, sku, liveStockOpts());
+      }
     });
     document.getElementById('pSkuList').addEventListener('click', function (ev) {
       var actEl = ev.target.closest('[data-act]');

@@ -1,9 +1,10 @@
 /* RBT 产品配置：查询、新增、编辑、启用禁用，产品编码弹出详情。 */
 (function () {
-    var Vue = OctopusPrototype.Vue;
+    var octopus = window.OctopusPrototype;
+    var Vue = octopus && octopus.Vue ? octopus.Vue : {};
     var ref = Vue.ref;
     var computed = Vue.computed;
-    var ElMessage = OctopusPrototype.ElementPlus.ElMessage;
+    var ElMessage = octopus && octopus.ElementPlus ? octopus.ElementPlus.ElMessage : null;
     var KEY = 'rbt_installment_v3';
     var PACKAGE_KEY = 'rbt_product_package_v1';
     var REPAY_CYCLES = ['日结'];
@@ -107,6 +108,18 @@
         return (left || []).slice().sort().join('\n') === (right || []).slice().sort().join('\n');
     }
 
+    function defaultSettleRatios(percent) {
+        var ratio = '10.00';
+        var text = String(percent == null ? '' : percent).replace(/%/g, '').trim();
+        if (/^\d+(\.\d+)?$/.test(text)) {
+            var num = Number(text);
+            if (isFinite(num) && num > 0 && num <= 100) ratio = num.toFixed(2);
+        }
+        return ['POS', '直播', '商城'].map(function (channel) {
+            return { channel: channel, fallback: ratio, rows: [] };
+        });
+    }
+
     function seed() {
         return [
             {
@@ -120,6 +133,7 @@
                 providerRate: '1.05',
                 periods: [],
                 periodRates: {},
+                settleRatios: defaultSettleRatios('10.00'),
                 amountMin: '20.00',
                 amountMax: '50000',
                 packages: ['周末生鲜包'],
@@ -139,6 +153,7 @@
                 providerRate: '1.05',
                 periods: [],
                 periodRates: {},
+                settleRatios: defaultSettleRatios('10.00'),
                 amountMin: '20.00',
                 amountMax: '50000',
                 packages: [],
@@ -158,6 +173,7 @@
                 providerRate: '1.02',
                 periods: [],
                 periodRates: {},
+                settleRatios: defaultSettleRatios('10.00'),
                 amountMin: '20.00',
                 amountMax: '50000',
                 packages: [],
@@ -177,6 +193,7 @@
                 providerRate: '1.08',
                 periods: [],
                 periodRates: {},
+                settleRatios: defaultSettleRatios('8.00'),
                 amountMin: '50.00',
                 amountMax: '100000',
                 packages: ['肉类组合包'],
@@ -196,6 +213,7 @@
                 providerRate: '1.04',
                 periods: [],
                 periodRates: {},
+                settleRatios: defaultSettleRatios('10.00'),
                 amountMin: '5.00',
                 amountMax: '20000',
                 packages: ['果蔬尝鲜包'],
@@ -411,6 +429,16 @@
                         changed = true;
                     }
                     if (migrateRateSum(item)) changed = true;
+                    if (!(item.settleRatios && item.settleRatios.length)) {
+                        item.settleRatios = defaultSettleRatios(item.periodRatio || '10.00');
+                        changed = true;
+                    }
+                    (item.settleRatios || []).forEach(function (channel) {
+                        if (channel && channel.rows && channel.rows.length) {
+                            channel.rows = [];
+                            changed = true;
+                        }
+                    });
                 }
                 if (item.feeRule != null || item.feeRate != null) {
                     delete item.feeRule;
@@ -531,6 +559,13 @@
         return '门店' + ratePart(pair && pair.store) + ' / 贸易商' + ratePart(pair && pair.trader) + ' / 服务商' + ratePart(pair && pair.provider);
     }
 
+    function channelRatioText(row) {
+        if (!row || row.repayMethod !== '比例付') return '—';
+        var api = window.RbtSettleRatio;
+        var text = api && typeof api.summary === 'function' ? api.summary(row.settleRatios) : '';
+        return text || '—';
+    }
+
     function rateText(row) {
         if (row && row.repayMethod === '比例付') {
             return ratePairText({ store: row.storeRate, trader: row.traderRate, provider: row.providerRate });
@@ -596,11 +631,26 @@
         }
     };
 
+    if (window.OctopusPrototype && document.getElementById('rbtInstallmentApp')) {
     OctopusPrototype.mount({
         setup: function () {
             var table = ref(null);
             var addDialog = ref(null);
             var dialogTitle = ref('新增产品');
+            var calcOpen = ref(false);
+            var calcChannels = (window.RbtSettleRatio && window.RbtSettleRatio.CHANNELS) || ['POS', '直播', '商城'];
+            function emptyCalcChannels() {
+                var channels = {};
+                calcChannels.forEach(function (name) { channels[name] = { turnover: '', ratio: '' }; });
+                return channels;
+            }
+            var calcForm = ref({
+                goods: '10000', storeRate: '', traderRate: '', providerRate: '',
+                channels: emptyCalcChannels(), posPick: '', posNewTurnover: '', posNewRatio: '', posSubs: []
+            });
+            var posSubPick = ref('');
+            var posSubRatio = ref('');
+            var posSubNames = (window.RbtSettleRatio && window.RbtSettleRatio.POS_SUBS) || ['堂食', '外卖', '团购'];
             var afterSave = 'add';
             var slots = { code: 'cell-code', status: 'cell-enabled' };
             var cycleOptions = REPAY_CYCLES.map(function (name) { return { label: name, value: name }; });
@@ -643,6 +693,7 @@
                 { dataIndex: 'repayCycle', title: '结算周期', minWidth: 110, formatter: function (row) { return show(row.repayCycle); } },
                 { dataIndex: 'repayMethod', title: '结算方式', minWidth: 120, formatter: function (row) { return show(row.repayMethod); } },
                 { dataIndex: 'periodRates', title: '结算系数', minWidth: 360, align: 'left', showOverflowTooltip: true, formatter: rateText },
+                { dataIndex: 'settleRatios', title: '渠道结算比例', minWidth: 280, align: 'left', showOverflowTooltip: true, formatter: channelRatioText },
                 { dataIndex: 'amountRange', title: '货款区间', minWidth: 220, formatter: amountText },
                 { dataIndex: 'packages', title: '适用商品包', minWidth: 200, align: 'left', showOverflowTooltip: true, formatter: packageText },
                 { dataIndex: 'creator', title: '创建人', minWidth: 100 },
@@ -665,6 +716,7 @@
                         placeholder: '请选择结算方式'
                     },
                     { field: 'ratepair', label: '结算系数', control: 'slot', requiredMark: true },
+                    { field: 'channelratio', label: '渠道结算比例', control: 'slot', requiredMark: true },
                     { field: 'amountpair', label: '货款区间', control: 'slot', requiredMark: true },
                     { field: 'packages', label: '适用商品包', control: 'select', multiple: true, required: true, defaultValue: [], options: packageOptions, placeholder: '请选择适用商品包' }
                 ];
@@ -694,6 +746,95 @@
 
             function onDecimal(form, key, value, digits) {
                 form[key] = decimalText(value, digits);
+            }
+
+            function ensureChannel(form, channel) {
+                var draft = form.channelratio && typeof form.channelratio === 'object' ? form.channelratio : {};
+                var current = draft[channel] || { fallback: '', rows: [], subs: [] };
+                return {
+                    draft: draft,
+                    current: {
+                        fallback: current.fallback || '',
+                        rows: [],
+                        subs: channel === 'POS' ? (current.subs || []).map(function (row) {
+                            return { name: row.name, ratio: row.ratio };
+                        }) : []
+                    }
+                };
+            }
+
+            function writeChannel(form, channel, nextChannel) {
+                var pack = ensureChannel(form, channel);
+                var next = {};
+                ((window.RbtSettleRatio && window.RbtSettleRatio.CHANNELS) || ['POS', '直播', '商城']).forEach(function (name) {
+                    next[name] = name === channel ? nextChannel : (pack.draft[name] || { fallback: '', rows: [] });
+                });
+                form.channelratio = next;
+            }
+
+            function channelFallback(form, channel) {
+                var item = form.channelratio && form.channelratio[channel];
+                return item ? item.fallback || '' : '';
+            }
+
+            function onChannelFallback(form, channel, value) {
+                var pack = ensureChannel(form, channel);
+                writeChannel(form, channel, { fallback: decimalText(value), rows: [], subs: pack.current.subs });
+            }
+
+            function posSubs(form) {
+                var item = form.channelratio && form.channelratio.POS;
+                return item && item.subs ? item.subs : [];
+            }
+
+            function posSubChoices(form) {
+                var used = {};
+                posSubs(form).forEach(function (row) { if (row && row.name) used[row.name] = true; });
+                return posSubNames.filter(function (name) { return !used[name]; });
+            }
+
+            function onPosSubPick(value) {
+                posSubPick.value = value || '';
+            }
+
+            function onPosSubRatio(value) {
+                posSubRatio.value = decimalText(value);
+            }
+
+            function writePosSubs(form, subs) {
+                var pack = ensureChannel(form, 'POS');
+                writeChannel(form, 'POS', { fallback: pack.current.fallback, rows: [], subs: subs });
+            }
+
+            function addPosSub(form) {
+                var name = posSubPick.value;
+                var ratio = window.RbtSettleRatio ? window.RbtSettleRatio.parseRatio(posSubRatio.value) : '';
+                if (!name) {
+                    ElMessage.error('请选择二级渠道');
+                    return;
+                }
+                if (posSubs(form).some(function (row) { return row.name === name; })) {
+                    ElMessage.error('该二级渠道已添加');
+                    return;
+                }
+                if (!ratio) {
+                    ElMessage.error('二级渠道比例须大于 0 且不超过 100');
+                    return;
+                }
+                writePosSubs(form, posSubs(form).concat([{ name: name, ratio: ratio }]));
+                posSubPick.value = '';
+                posSubRatio.value = '';
+            }
+
+            function onPosSubRow(form, index, value) {
+                var subs = posSubs(form).map(function (row, rowIndex) {
+                    return rowIndex === index ? { name: row.name, ratio: decimalText(value) } : { name: row.name, ratio: row.ratio };
+                });
+                writePosSubs(form, subs);
+            }
+
+            function removePosSub(form, index) {
+                writePosSubs(form, posSubs(form).filter(function (row, rowIndex) { return rowIndex !== index; }));
             }
 
             function onPeriodRate(form, period, kind, value) {
@@ -745,6 +886,7 @@
                     repayCycle: show(current.repayCycle),
                     repayMethod: show(current.repayMethod),
                     rateRange: rateText(current),
+                    settleRatios: current.settleRatios || [],
                     amountRange: amountText(current),
                     packages: packageText(current),
                     creator: show(current.creator),
@@ -767,6 +909,7 @@
                     storeRate: '',
                     traderRate: '',
                     providerRate: '',
+                    channelratio: window.RbtSettleRatio ? window.RbtSettleRatio.emptyDraft() : {},
                     periodsText: '',
                     periods: [],
                     periodRates: {}
@@ -789,6 +932,7 @@
                     storeRate: current.storeRate || '',
                     traderRate: current.traderRate || '',
                     providerRate: current.providerRate || '',
+                    channelratio: window.RbtSettleRatio ? window.RbtSettleRatio.draftFrom({ settleRatios: current.settleRatios }) : {},
                     periodsText: periodsDisplay(periods),
                     periods: periods,
                     periodRates: cloneRates(current.periodRates),
@@ -860,6 +1004,27 @@
                         ElMessage.error('服务商计提不能超过冷丰差额');
                         return false;
                     }
+                    var ratioApi = window.RbtSettleRatio;
+                    var channelDraft = values.channelratio || {};
+                    Object.keys(channelDraft).forEach(function (name) {
+                        if (!channelDraft[name]) return;
+                        channelDraft[name] = {
+                            fallback: channelDraft[name].fallback || '',
+                            rows: [],
+                            subs: name === 'POS' ? (channelDraft[name].subs || []) : []
+                        };
+                    });
+                    var settleRatios = ratioApi && typeof ratioApi.collectDraft === 'function'
+                        ? ratioApi.collectDraft(channelDraft)
+                        : null;
+                    if (!settleRatios) {
+                        var badSub = !!(ratioApi && (channelDraft.POS && channelDraft.POS.subs || []).some(function (row) {
+                            return !row || posSubNames.indexOf(row.name) < 0 || !ratioApi.parseRatio(row.ratio);
+                        }));
+                        ElMessage.error(badSub ? '二级渠道比例须大于 0 且不超过 100' : '每个渠道都要填写默认比例');
+                        return false;
+                    }
+                    values.settleRatios = settleRatios;
                 }
                 var amountError = pairError(values.amountMin, values.amountMax, '请输入货款区间', '金额仅支持数字，最多两位小数', '金额下限不能大于上限');
                 if (amountError) {
@@ -904,6 +1069,7 @@
                     storeRate: values.storeRate || '',
                     traderRate: values.traderRate || '',
                     providerRate: values.providerRate || '',
+                    settleRatios: values.settleRatios || [],
                     periods: values.periods || [],
                     periodRates: cloneRates(values.periodRates),
                     amountMin: values.amountMin,
@@ -955,6 +1121,11 @@
                     target.storeRate = nextStoreRate;
                     target.traderRate = nextTraderRate;
                     target.providerRate = nextProviderRate;
+                }
+                var nextRatios = values.settleRatios || [];
+                if (channelRatioText(target) !== channelRatioText({ repayMethod: target.repayMethod, settleRatios: nextRatios })) {
+                    changes.push('渠道结算比例：' + channelRatioText(target) + ' → ' + channelRatioText({ repayMethod: '比例付', settleRatios: nextRatios }));
+                    target.settleRatios = nextRatios;
                 }
                 target.periods = values.periods || [];
                 target.periodRates = cloneRates(values.periodRates);
@@ -1014,6 +1185,199 @@
                 table.value && table.value.fetchData();
             }
 
+            function yuanText(value) {
+                if (value == null || !isFinite(value)) return '—';
+                return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' 元';
+            }
+
+            function onCalcField(key, value) {
+                calcForm.value[key] = decimalText(value);
+            }
+
+            function onCalcChannel(name, field, value) {
+                if (!calcForm.value.channels[name]) calcForm.value.channels[name] = { turnover: '', ratio: '' };
+                calcForm.value.channels[name][field] = decimalText(value);
+            }
+
+            function calcChannel(name, field) {
+                var row = calcForm.value.channels[name];
+                return row ? row[field] || '' : '';
+            }
+
+            /* 已填写自己比例的二级渠道，到账从 POS 合计里拆出，不再乘默认比例。 */
+            function splitPosSubs() {
+                var own = [];
+                (calcForm.value.posSubs || []).forEach(function (row) {
+                    if (!row || !validDecimal(row.turnover) || !validDecimal(row.ratio)) return;
+                    var ratio = Number(row.ratio);
+                    if (ratio <= 0 || ratio > 100) return;
+                    own.push({ name: row.name, turnover: Number(row.turnover), ratio: ratio });
+                });
+                return own;
+            }
+
+            function posSplit() {
+                var row = calcForm.value.channels.POS || {};
+                var own = splitPosSubs();
+                var used = own.reduce(function (sum, item) { return sum + item.turnover; }, 0);
+                var hasTotal = validDecimal(row.turnover);
+                var total = hasTotal ? Number(row.turnover) : null;
+                var overflow = !!(hasTotal && used > total + 0.000001);
+                var remainder = hasTotal && !overflow ? total - used : null;
+                return { own: own, used: used, overflow: overflow, remainder: remainder, split: own.length > 0 };
+            }
+
+            function channelDue(name) {
+                var row = calcForm.value.channels[name] || {};
+                if (!validDecimal(row.ratio)) return null;
+                var ratio = Number(row.ratio);
+                if (ratio <= 0 || ratio > 100) return null;
+                if (name === 'POS') {
+                    var split = posSplit();
+                    if (split.split) {
+                        if (split.remainder == null) return null;
+                        return split.remainder * ratio / 100;
+                    }
+                }
+                if (!validDecimal(row.turnover)) return null;
+                return Number(row.turnover) * ratio / 100;
+            }
+
+            function calcChannelDue(name) {
+                return yuanText(channelDue(name));
+            }
+
+            function posSplitNote() {
+                var split = posSplit();
+                if (!split.split || split.remainder == null) return '';
+                return '未单独配置 ' + split.remainder.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' 元';
+            }
+
+            function posSubDue(row) {
+                if (!row || !validDecimal(row.turnover) || !validDecimal(row.ratio)) return null;
+                var ratio = Number(row.ratio);
+                if (ratio <= 0 || ratio > 100) return null;
+                return Number(row.turnover) * ratio / 100;
+            }
+
+            function calcPosDue(index) {
+                var row = calcForm.value.posSubs[index];
+                if (!row) return '—';
+                if (validDecimal(row.turnover) && !String(row.ratio || '').trim()) return '按默认比例';
+                return yuanText(posSubDue(row));
+            }
+
+            function calcPosChoices() {
+                var used = {};
+                (calcForm.value.posSubs || []).forEach(function (row) { if (row && row.name) used[row.name] = true; });
+                return posSubNames.filter(function (name) { return !used[name]; });
+            }
+
+            function onCalcPosPick(value) {
+                calcForm.value.posPick = value || '';
+            }
+
+            function onCalcPosDraft(key, value) {
+                calcForm.value[key] = decimalText(value);
+            }
+
+            function onCalcPosRow(index, field, value) {
+                calcForm.value.posSubs = (calcForm.value.posSubs || []).map(function (row, rowIndex) {
+                    if (rowIndex !== index) return row;
+                    var next = { name: row.name, turnover: row.turnover, ratio: row.ratio };
+                    next[field] = decimalText(value);
+                    return next;
+                });
+            }
+
+            function addCalcPosSub() {
+                var name = calcForm.value.posPick;
+                if (!name) {
+                    ElMessage.error('请选择二级渠道');
+                    return;
+                }
+                if ((calcForm.value.posSubs || []).some(function (row) { return row.name === name; })) {
+                    ElMessage.error('该二级渠道已添加');
+                    return;
+                }
+                var ratio = calcForm.value.posNewRatio;
+                if (String(ratio || '').trim() && (!validDecimal(ratio) || Number(ratio) <= 0 || Number(ratio) > 100)) {
+                    ElMessage.error('二级渠道比例须大于 0 且不超过 100');
+                    return;
+                }
+                calcForm.value.posSubs = (calcForm.value.posSubs || []).concat([{
+                    name: name,
+                    turnover: calcForm.value.posNewTurnover || '',
+                    ratio: ratio || ''
+                }]);
+                calcForm.value.posPick = '';
+                calcForm.value.posNewTurnover = '';
+                calcForm.value.posNewRatio = '';
+            }
+
+            function removeCalcPosSub(index) {
+                calcForm.value.posSubs = (calcForm.value.posSubs || []).filter(function (row, rowIndex) { return rowIndex !== index; });
+            }
+
+            function openCalc() {
+                calcOpen.value = true;
+            }
+
+            var calcResult = computed(function () {
+                var form = calcForm.value;
+                var notes = [];
+                var goodsOk = validDecimal(form.goods);
+                var storeOk = validDecimal(form.storeRate);
+                var traderOk = validDecimal(form.traderRate);
+                var providerOk = validDecimal(form.providerRate);
+                var goods = goodsOk ? Number(form.goods) : NaN;
+                var store = storeOk ? Number(form.storeRate) : NaN;
+                var trader = traderOk ? Number(form.traderRate) : NaN;
+                var provider = providerOk ? Number(form.providerRate) : NaN;
+                if (storeOk && store < 1) notes.push('门店结算系数不能低于1');
+                if (traderOk && trader < 1) notes.push('贸易商结算系数不能低于1');
+                if (providerOk && provider < 1) notes.push('服务商结算系数不能低于1');
+                if (storeOk && traderOk && trader > store) notes.push('贸易商结算系数不能大于门店结算系数');
+                var storePay = goodsOk && storeOk ? goods * store : null;
+                var traderPay = goodsOk && traderOk ? goods * trader : null;
+                var gap = storePay != null && traderPay != null ? storePay - traderPay : null;
+                var providerPay = goodsOk && providerOk ? goods * (provider - 1) : null;
+                if (gap != null && providerPay != null && providerPay > gap + 0.000001) notes.push('服务商计提不能超过冷丰差额');
+                var lengfeng = gap != null && providerPay != null ? gap - providerPay : null;
+                var daily = null;
+                var split = posSplit();
+                if (split.overflow) notes.push('二级渠道到账合计不能超过 POS 当日实际到账');
+                calcChannels.forEach(function (name) {
+                    var row = form.channels[name] || {};
+                    if (validDecimal(row.ratio)) {
+                        var ratio = Number(row.ratio);
+                        if (ratio <= 0 || ratio > 100) notes.push(name + '结算比例须大于 0 且不超过 100');
+                    }
+                    var due = channelDue(name);
+                    if (due != null) daily = (daily || 0) + due;
+                });
+                (form.posSubs || []).forEach(function (row) {
+                    if (row && String(row.ratio || '').trim() && !validDecimal(row.ratio)) notes.push(row.name + '结算比例须大于 0 且不超过 100');
+                    else if (validDecimal(row && row.ratio)) {
+                        var subRatio = Number(row.ratio);
+                        if (subRatio <= 0 || subRatio > 100) notes.push(row.name + '结算比例须大于 0 且不超过 100');
+                    }
+                    var subDue = posSubDue(row);
+                    if (subDue != null) daily = (daily || 0) + subDue;
+                });
+                var days = storePay != null && daily > 0 ? (storePay / daily).toFixed(2) + ' 天' : '—';
+                return {
+                    storePay: yuanText(storePay),
+                    traderPay: yuanText(traderPay),
+                    gap: yuanText(gap),
+                    providerPay: yuanText(providerPay),
+                    lengfeng: yuanText(lengfeng),
+                    daily: yuanText(daily),
+                    days: days,
+                    notes: notes.join('；')
+                };
+            });
+
             function refreshTable() {
                 if (!table.value) return;
                 if (afterSave === 'edit') table.value.fetchData();
@@ -1030,6 +1394,18 @@
                 orderedPeriods: orderedPeriods,
                 periodsDisplay: periodsDisplay,
                 onDecimal: onDecimal,
+                channelNames: (window.RbtSettleRatio && window.RbtSettleRatio.CHANNELS) || ['POS', '直播', '商城'],
+                channelFallback: channelFallback,
+                onChannelFallback: onChannelFallback,
+                posSubPick: posSubPick,
+                posSubRatio: posSubRatio,
+                posSubs: posSubs,
+                posSubChoices: posSubChoices,
+                onPosSubPick: onPosSubPick,
+                onPosSubRatio: onPosSubRatio,
+                addPosSub: addPosSub,
+                onPosSubRow: onPosSubRow,
+                removePosSub: removePosSub,
                 onPeriodRate: onPeriodRate,
                 onPeriodsInput: onPeriodsInput,
                 periodRateValue: periodRateValue,
@@ -1037,6 +1413,22 @@
                 openDetail: openDetail,
                 openAdd: openAdd,
                 openEdit: openEdit,
+                calcOpen: calcOpen,
+                calcForm: calcForm,
+                openCalc: openCalc,
+                onCalcField: onCalcField,
+                onCalcChannel: onCalcChannel,
+                calcChannel: calcChannel,
+                calcChannelDue: calcChannelDue,
+                posSplitNote: computed(posSplitNote),
+                calcPosDue: calcPosDue,
+                calcPosChoices: calcPosChoices,
+                onCalcPosPick: onCalcPosPick,
+                onCalcPosDraft: onCalcPosDraft,
+                onCalcPosRow: onCalcPosRow,
+                addCalcPosSub: addCalcPosSub,
+                removeCalcPosSub: removeCalcPosSub,
+                calcResult: calcResult,
                 toggleEnabled: toggleEnabled,
                 beforeSubmit: beforeSubmit,
                 ratePreview: ratePreview,
@@ -1051,4 +1443,5 @@
         permissions: [],
         layoutDensity: 'default'
     });
+    }
 })();

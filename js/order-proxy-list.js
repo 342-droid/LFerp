@@ -96,6 +96,18 @@
     if (viewLink) viewSlot.appendChild(viewLink);
     actions.appendChild(viewSlot);
 
+    /* 供应商组织：列表操作仅「查看」 */
+    if (window.LFSupplierOrderView && window.LFSupplierOrderView.isActive()) {
+      if (receiptBtn) receiptBtn.remove();
+      if (cancelBtn) cancelBtn.remove();
+      if (refundBtn) refundBtn.remove();
+      if (freightRefundBtn) freightRefundBtn.remove();
+      cell.innerHTML = '';
+      cell.appendChild(actions);
+      cell.dataset.actionsNormalized = '1';
+      return;
+    }
+
     if (receiptBtn) {
       var receiptSlot = document.createElement('span');
       receiptSlot.className = 'order-live-table__actions-item order-live-table__actions-item--receipt';

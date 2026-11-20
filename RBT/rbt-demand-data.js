@@ -38,32 +38,47 @@
         return true;
     }
 
-    function statusLogText(prev, next) {
+    function statusLogText(prev, next, item) {
         if (!prev || !next || prev === next) return '';
         if (prev === '待审核' && next === '待接单') return '初审通过，状态：待审核 → 待接单';
         if (next === '已驳回') return '审核驳回，状态：' + prev + ' → 已驳回';
         if (next === '已作废') return '作废，状态：' + prev + ' → 已作废';
         if (prev === '待接单' && next === '待确认签约') return '接单，状态：待接单 → 待确认签约';
-        if (prev === '待确认签约' && next === '待接单') return '撤回接单，状态：待确认签约 → 待接单';
+        if (prev === '待确认签约' && next === '待重新确认') {
+            var why = item && String(item.withdrawReason || '').trim();
+            return why
+                ? '撤回接单，原因：' + why + '，状态：待确认签约 → 待重新确认'
+                : '撤回接单，状态：待确认签约 → 待重新确认';
+        }
+        if (prev === '待确认签约' && next === '待接单') return '接单超时，自动撤回，状态：待确认签约 → 待接单';
+        if (prev === '待重新确认' && next === '待接单') return '重新发布，状态：待重新确认 → 待接单';
         if (prev === '待确认签约' && next === '待签署') return '确认签约，状态：待确认签约 → 待签署';
-        if (prev === '待签署' && next === '待复核') return '合同签署完成，状态：待签署 → 待复核';
-        if (prev === '待复核' && next === '支付中') return '复核通过，状态：待复核 → 支付中';
+        if (prev === '待签署' && next === '待付款') return '合同签署完成，状态：待签署 → 待付款';
+        if (prev === '待付款' && next === '门店付款中') {
+            return (item && item.payMethod === 'offline' ? '线下支付' : '在线支付') + '，状态：待付款 → 门店付款中';
+        }
         if (next === '已完成') return '需求完成，状态：' + prev + ' → 已完成';
         return '状态：' + prev + ' → ' + next;
     }
-    var DEMAND_STATUSES = ['待审核', '待接单', '待确认签约', '待签署', '待复核', '支付中', '已完成'];
+    /* 待付款：合同签完，等贸易商付款。门店付款中：贸易商付款完成后，门店按日还款。 */
+    var DEMAND_STATUSES = ['待审核', '待接单', '待确认签约', '待重新确认', '待签署', '待付款', '门店付款中', '已完成'];
     var CLOSED_STATUSES = ['已作废', '已驳回'];
-    /* 支付中之前，平台可在需求单列表作废 */
-    var VOIDABLE_STATUSES = ['待审核', '待接单', '待确认签约', '待签署', '待复核'];
+    /* 门店付款中之前，平台可在需求单列表作废。撤回接单后的待重新确认也可作废。 */
+    var VOIDABLE_STATUSES = ['待审核', '待接单', '待确认签约', '待重新确认', '待签署', '待付款'];
     /* 进入这些状态时释放需求门店的已占用额度 */
     var RELEASE_STATUSES = ['已作废', '已驳回', '已完成'];
     /* 待签署及之后才有关联合同 */
-    var CONTRACT_STATUSES = ['待签署', '待复核', '支付中', '已完成'];
+    var CONTRACT_STATUSES = ['待签署', '待付款', '门店付款中', '已完成'];
     var STATUS_MIGRATE = {
         '已发布': '待审核',
         '待报价': '待审核',
         '已报价': '待接单',
-        '待还款': '支付中',
+        '待还款': '门店付款中',
+        '支付中': '门店付款中',
+        '还款中': '门店付款中',
+        '付款中': '门店付款中',
+        '待支付': '待付款',
+        '待复核': '门店付款中',
         '已取消': '已作废'
     };
 
@@ -71,7 +86,7 @@
         return CONTRACT_STATUSES.indexOf(status) >= 0;
     }
 
-    /* 待签署仍为待签署；进入待复核及之后视为已签署。 */
+    /* 待签署仍为待签署；进入待付款及之后视为已签署。 */
     function contractSignStatus(status) {
         if (status === '待签署') return '待签署';
         if (hasContractStatus(status)) return '已签署';
@@ -202,7 +217,7 @@
         ].concat(extraStoreSeeds());
     }
 
-    /* 待复核演示单：销售合同、采购合同的各方都已签署。 */
+    /* 门店付款中演示单：销售合同、采购合同的各方都已签署，贸易商已付款。 */
     function signedRows(storeCode, storeName, traderName, signedAt) {
         return [
             { key: 'sale:store:' + storeCode, role: 'store', code: storeCode, name: storeName, contractKey: 'sale', signedAt: signedAt },
@@ -251,7 +266,7 @@
             }),
             rowSeed(Object.assign({
                 code: 'XQ00016', storeCode: 'ONS00002', storeName: '东城和平里生鲜店',
-                pkg: meat, plan: meatPlan, status: '待复核',
+                pkg: meat, plan: meatPlan, status: '门店付款中',
                 skus: [{ code: 'SKU10003', name: '冷鲜牛腩 1kg', salePrice: '78.00', qty: 15 }, { code: 'SKU10011', name: '冷鲜猪里脊 1kg', salePrice: '52.80', qty: 10 }],
                 amount: '3056.40', creator: '夏利', createdAt: '2026-11-06 11:22:09', updater: '王丽', updatedAt: '2026-11-07 09:30:12',
                 acceptedAt: '2026-11-06 13:05:44',
@@ -286,7 +301,7 @@
             }, haiFeng)),
             rowSeed(Object.assign({
                 code: 'XQ00020', storeCode: 'ONS00004', storeName: '五角场体验店',
-                pkg: fresh, plan: freshPlan, status: '待复核',
+                pkg: fresh, plan: freshPlan, status: '门店付款中',
                 skus: [{ code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 20 }, { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 12 }],
                 amount: '2255.36', creator: '赵倩', createdAt: '2026-11-05 10:08:27', updater: '王丽', updatedAt: '2026-11-06 16:48:20',
                 acceptedAt: '2026-11-05 14:22:03',
@@ -306,7 +321,7 @@
             }),
             rowSeed(Object.assign({
                 code: 'XQ00024', storeCode: 'ONS00001', storeName: '西湖中心生鲜店',
-                pkg: fresh, plan: freshPlan, status: '支付中',
+                pkg: fresh, plan: freshPlan, status: '门店付款中',
                 skus: [{ code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 10 }, { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 8 }],
                 amount: '1200.64', creator: '喻巧', createdAt: '2026-11-10 11:08:16', updater: '王丽', updatedAt: '2026-11-12 17:20:08',
                 acceptedAt: '2026-11-10 15:42:30',
@@ -321,10 +336,10 @@
                     uploadedBy: '王丽'
                 }
             }, xianDa)),
-            /* 复核已通过，供履约页引用。比例付不预造逐期金额，也不记还款。 */
+            /* 门店付款中演示，供履约页引用。比例付不预造逐期金额，也不记还款。 */
             rowSeed(Object.assign({
                 code: 'XQ00023', storeCode: 'ONS00001', storeName: '西湖中心生鲜店',
-                pkg: fresh, plan: freshPlan, status: '支付中',
+                pkg: fresh, plan: freshPlan, status: '门店付款中',
                 skus: [{ code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 8 }, { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 6 }],
                 amount: '591.20', creator: '喻巧', createdAt: '2026-11-06 09:16:40', updater: '王丽', updatedAt: '2026-11-09 10:28:16',
                 acceptedAt: '2026-11-06 14:02:18',
@@ -541,7 +556,7 @@
 
     /* 初审已通过。这些需求单上应能看到结算比例。 */
     function passedFirstAudit(status) {
-        return status === '待接单' || status === '待确认签约' || status === '待签署' || status === '待复核' || status === '支付中' || status === '已完成';
+        return status === '待接单' || status === '待确认签约' || status === '待重新确认' || status === '待签署' || status === '待付款' || status === '门店付款中' || status === '已完成';
     }
 
     /* 演示数据当初写在产品上的比例。初审已通过、单上还没有渠道比例时，用它补三个渠道的默认比例。 */
@@ -566,6 +581,94 @@
         return index.byPlan[item.installmentCode] || '';
     }
 
+    var ACCEPT_TIMEOUT_KEY = 'rbt_accept_timeout_v1';
+    var WITHDRAW_REASON_KEY = 'rbt_withdraw_reasons_v1';
+
+    function withdrawReasons() {
+        try {
+            var raw = sessionStorage.getItem(WITHDRAW_REASON_KEY);
+            if (!raw) return [];
+            var data = JSON.parse(raw);
+            var list = Array.isArray(data) ? data : (data && data.reasons);
+            if (!Array.isArray(list)) return [];
+            var seen = {};
+            return list.reduce(function (rows, item) {
+                var text = String(item || '').trim();
+                if (!text || text.length > 30 || seen[text]) return rows;
+                seen[text] = true;
+                rows.push(text);
+                return rows;
+            }, []);
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function saveWithdrawReasons(list) {
+        var next = withdrawReasonsFrom(list);
+        sessionStorage.setItem(WITHDRAW_REASON_KEY, JSON.stringify({ reasons: next }));
+        return next;
+    }
+
+    function withdrawReasonsFrom(list) {
+        var seen = {};
+        return (list || []).reduce(function (rows, item) {
+            var text = String(item || '').trim();
+            if (!text || text.length > 30 || seen[text]) return rows;
+            seen[text] = true;
+            rows.push(text);
+            return rows;
+        }, []);
+    }
+
+    function readAcceptTimeoutMinutes() {
+        try {
+            var raw = sessionStorage.getItem(ACCEPT_TIMEOUT_KEY);
+            if (!raw) return 0;
+            var data = JSON.parse(raw);
+            var minutes = Number(data && data.minutes);
+            if (!isFinite(minutes) || minutes <= 0 || Math.floor(minutes) !== minutes) return 0;
+            return minutes;
+        } catch (e) {
+            return 0;
+        }
+    }
+
+    function parseClock(text) {
+        var matched = String(text || '').match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/);
+        if (!matched) return NaN;
+        return new Date(Number(matched[1]), Number(matched[2]) - 1, Number(matched[3]), Number(matched[4]), Number(matched[5]), Number(matched[6] || 0)).getTime();
+    }
+
+    /* 只处理待确认签约。确认签约后已生成合同，不再因接单超时退回。 */
+    function expireAcceptTimeout(rows) {
+        var minutes = readAcceptTimeoutMinutes();
+        if (!minutes) return false;
+        var limit = minutes * 60 * 1000;
+        var now = Date.now();
+        var changed = false;
+        (rows || []).forEach(function (item) {
+            if (!item || item.status !== '待确认签约' || !item.acceptedAt) return;
+            var accepted = parseClock(item.acceptedAt);
+            if (!isFinite(accepted) || now - accepted < limit) return;
+            item.status = '待接单';
+            item.traderName = '';
+            item.traderPhone = '';
+            item.acceptedAt = '';
+            item.providerName = '';
+            item.providerId = '';
+            delete item.hasProvider;
+            var note = '接单超时，自动撤回';
+            var remark = String(item.remark || '').trim();
+            item.remark = remark && remark.indexOf(note) < 0 ? remark + '；' + note : (remark || note);
+            touchAudit(item, '系统');
+            ensureLogs(item);
+            pushLog(item, '接单超时，自动撤回，状态：待确认签约 → 待接单', '系统', item.updatedAt);
+            changed = true;
+        });
+        return changed;
+    }
+
     function list() {
         ensurePendingSeed();
         var current = readRaw();
@@ -584,8 +687,8 @@
                 item.status = next;
                 changed = true;
             }
-            /* 支付中/已完成视为已复核通过，用于重算已成交 */
-            if ((item.status === '支付中' || item.status === '已完成') && !item.dealLocked) {
+            /* 门店付款中/已完成表示贸易商已付款，用于重算已成交 */
+            if ((item.status === '门店付款中' || item.status === '已完成') && !item.dealLocked) {
                 item.dealLocked = true;
                 changed = true;
             }
@@ -618,13 +721,16 @@
                     changed = true;
                 }
             }
-            if (item.repayMethod === '比例付' && passedFirstAudit(item.status) && !(item.settleRatios && item.settleRatios.length)) {
-                var legacy = legacyAuditedRatio(item, legacyRatios);
-                var filled = legacy && window.RbtSettleRatio.normalize(window.RbtSettleRatio.CHANNELS.map(function (channel) {
-                    return { channel: channel, fallback: legacy, rows: [] };
-                }));
-                if (filled) {
-                    item.settleRatios = filled;
+            if (item.repayMethod === '比例付' && !(item.settleRatios && item.settleRatios.length)) {
+                var fromProduct = ratiosFromProduct(item);
+                if (!fromProduct && passedFirstAudit(item.status)) {
+                    var legacy = legacyAuditedRatio(item, legacyRatios);
+                    fromProduct = legacy && window.RbtSettleRatio.normalize(window.RbtSettleRatio.CHANNELS.map(function (channel) {
+                        return { channel: channel, fallback: legacy, rows: [] };
+                    }));
+                }
+                if (fromProduct) {
+                    item.settleRatios = fromProduct;
                     changed = true;
                 }
             }
@@ -634,11 +740,6 @@
             }
             if (item.repayCycle === '日付' || item.repayCycle === '日还') {
                 item.repayCycle = '日结';
-                changed = true;
-            }
-            /* 接单后、确认签约前还没有合同。未签署的 XQ00014 从待签署收回这一步。 */
-            if (item.code === 'XQ00014' && item.status === '待签署' && !(item.signings && item.signings.length)) {
-                item.status = '待确认签约';
                 changed = true;
             }
             /* 早期演示把 XQ00012 的商品金额写成了总金额，按肉类 1.80 系数补回。 */
@@ -666,10 +767,11 @@
                 var item = result && result.demandCode ? findDemand(rows, result.demandCode) : null;
                 if (!item) return;
                 ensureLogs(item);
-                pushLog(item, '生成冷丰销售单、贸易商销售单、供应链采购单、门店采购单', item.updater || '系统', item.updatedAt);
+                pushLog(item, '生成上游交易单、下游交易单、冷丰服务费单', item.updater || '系统', item.updatedAt);
                 tradeMade = true;
             });
         }
+        if (expireAcceptTimeout(rows)) changed = true;
         if (changed || tradeMade) write(rows);
         if (seeded || changed) rebuildStoreDealAmounts();
         return rows;
@@ -734,25 +836,39 @@
         });
     }
 
-    /* 发布成功：需求门店增加已占用。 */
+    function moneyNumber(value) {
+        var num = Number(String(value == null ? '' : value).replace(/,/g, '').replace(/^¥/, ''));
+        if (!isFinite(num)) return 0;
+        return Number(num.toFixed(2));
+    }
+
+    /* 占用按商品金额。已记下占用额的单，释放时用当时的金额。 */
+    function occupyAmount(demand) {
+        return moneyNumber(demand && demand.goodsAmount);
+    }
+
+    /* 发布成功：需求门店按商品金额增加已占用。 */
     function occupyDemandQuota(demand) {
         if (!demand || demand.quotaHeld) return demand;
-        var amount = Number(demand.amount) || 0;
+        var amount = occupyAmount(demand);
+        demand.quotaAmount = amount;
         if (amount > 0) adjustStoresOccupied(demandStoreCodes(demand), amount, demand.updater || demand.creator || '用户名');
         demand.quotaHeld = true;
         return demand;
     }
 
-    /* 已作废 / 已驳回 / 已完成：释放需求门店已占用。 */
+    /* 已作废 / 已驳回 / 已完成：按当时占用的商品金额释放。 */
     function releaseDemandQuota(demand) {
         if (!demand || !demand.quotaHeld) return demand;
-        var amount = Number(demand.amount) || 0;
+        var amount = demand.quotaAmount != null && demand.quotaAmount !== ''
+            ? moneyNumber(demand.quotaAmount)
+            : moneyNumber(demand.amount);
         if (amount > 0) adjustStoresOccupied(demandStoreCodes(demand), -Math.abs(amount), demand.updater || demand.creator || '用户名');
         demand.quotaHeld = false;
         return demand;
     }
 
-    /* 复核成功：仅给需求门店累加已成交（不扣可用额度）。 */
+    /* 贸易商付款完成：仅给需求门店累加已成交（不扣可用额度）。 */
     function lockDemandDeal(demand) {
         if (!demand || demand.dealLocked) return demand;
         var storeApi = window.RbtStoreData;
@@ -764,7 +880,7 @@
         return demand;
     }
 
-    /* 按「已复核通过」的需求单重算各门店已成交，避免演示假数据混入。 */
+    /* 按已进入门店付款中或已完成的需求单重算各门店已成交，避免演示假数据混入。 */
     function rebuildStoreDealAmounts() {
         var storeApi = window.RbtStoreData;
         if (!storeApi || typeof storeApi.list !== 'function' || typeof storeApi.applyQuota !== 'function') return;
@@ -805,14 +921,14 @@
         target.status = status;
         touchAudit(target, operator || '王丽');
         ensureLogs(target);
-        var statusLog = statusLogText(prev, status);
+        var statusLog = statusLogText(prev, status, target);
         if (statusLog) pushLog(target, statusLog, target.updater, target.updatedAt);
-        if (prev === '待复核' && status === '支付中') {
+        if (status === '门店付款中' && prev !== '门店付款中') {
             lockDemandDeal(target);
             if (window.RbtTradeDocs && typeof window.RbtTradeDocs.ensureForDemand === 'function') {
                 var madeDocs = window.RbtTradeDocs.ensureForDemand(target, operator);
                 if (madeDocs && madeDocs.created) {
-                    pushLog(target, '生成冷丰销售单、贸易商销售单、供应链采购单、门店采购单', target.updater, target.updatedAt);
+                    pushLog(target, '生成上游交易单、下游交易单、冷丰服务费单', target.updater, target.updatedAt);
                 }
             }
         }
@@ -827,16 +943,16 @@
         return (trader && (trader.name || trader.traderName)) || '';
     }
 
-    /* 档案主体类型为服务商的账号不能接单。对不上档案时仍按贸易商处理。 */
+    /* 服务商档案中的账号不能接单。对不上档案时仍按贸易商处理。 */
     function traderIsProvider(trader) {
         var name = traderNameOf(trader);
-        var api = window.MdmTraderArchiveStore;
+        var api = window.MdmProviderArchiveStore;
         if (!name || !api || typeof api.list !== 'function') return false;
         var matched = false;
         (api.list() || []).some(function (row) {
             if (!row) return false;
             if (row.name === name || row.subjectName === name || (row.license && row.license.name === name)) {
-                matched = row.subjectType === '服务商';
+                matched = true;
                 return true;
             }
             return false;
@@ -869,13 +985,56 @@
         target.traderName = name;
         target.traderPhone = (trader && trader.phone) || '';
         target.acceptedAt = nowText();
+        target.withdrawReason = '';
         write(rows);
         var saved = setStatus(code, '待确认签约', name);
         if (!saved) return { ok: false, reason: 'missing' };
         return { ok: true, demand: saved };
     }
 
-    /* 待确认签约由接单贸易商确认。确认后进入待签署，并生成销售合同、采购合同。 */
+    /* 余额尚未对接。演示余额按贸易商名称，可被 session 覆盖。 */
+    var TRADER_BALANCE_KEY = 'rbt_trader_balance_mock_v1';
+    var TRADER_BALANCE_DEFAULTS = {
+        '杭州鲜达贸易有限公司': '100000.00',
+        '上海冷链融资租赁有限公司': '200000.00',
+        '宁波海丰商业保理有限公司': '50000.00'
+    };
+
+    function readTraderBalances() {
+        var map = {};
+        Object.keys(TRADER_BALANCE_DEFAULTS).forEach(function (key) {
+            map[key] = TRADER_BALANCE_DEFAULTS[key];
+        });
+        try {
+            var raw = sessionStorage.getItem(TRADER_BALANCE_KEY);
+            var saved = raw ? JSON.parse(raw) : null;
+            if (saved && typeof saved === 'object') {
+                Object.keys(saved).forEach(function (key) {
+                    if (saved[key] != null && String(saved[key]).trim() !== '') map[key] = String(saved[key]);
+                });
+            }
+        } catch (e) { /* 用默认演示余额 */ }
+        return map;
+    }
+
+    function traderBalanceOf(name) {
+        var text = readTraderBalances()[name];
+        return text == null ? 0 : moneyNumber(text);
+    }
+
+    /* 确认签署前，贸易商余额须覆盖本单商品金额。只校验，不扣款。 */
+    function traderBalanceCheck(code, trader) {
+        var item = code && typeof code === 'object' ? code : get(code);
+        var name = traderNameOf(trader);
+        var need = moneyNumber(item && item.goodsAmount);
+        var balance = traderBalanceOf(name);
+        if (!item) return { ok: false, reason: 'missing', balance: balance, need: need };
+        if (!(need > 0)) return { ok: false, reason: 'amount', balance: balance, need: need, demand: item };
+        if (balance + 0.001 < need) return { ok: false, reason: 'balance', balance: balance, need: need, demand: item };
+        return { ok: true, balance: balance, need: need, demand: item };
+    }
+
+    /* 待确认签约由接单贸易商确认。确认后进入待签署，并生成销售合同、采购合同。余额不足则不生成合同。 */
     function confirmSigning(code, trader) {
         var rows = list();
         var target = findDemand(rows, code);
@@ -883,13 +1042,18 @@
         if (target.status !== '待确认签约') return { ok: false, reason: 'status', demand: target };
         var name = traderNameOf(trader);
         if (!name || target.traderName !== name) return { ok: false, reason: 'trader', demand: target };
+        var covered = traderBalanceCheck(target, trader);
+        if (!covered.ok) return covered;
         var saved = setStatus(code, '待签署', name);
         if (!saved) return { ok: false, reason: 'missing' };
         return { ok: true, demand: saved };
     }
 
-    /* 确认签约前可撤回。清空接单贸易商，需求回到待接单。 */
-    function withdrawAccept(code, trader) {
+    /* 确认签约前可撤回。必须填写原因。清空接单贸易商，进入待重新确认；平台重新发布后才回到待接单。 */
+    function withdrawAccept(code, trader, reason) {
+        var why = String(reason || '').trim();
+        if (!why) return { ok: false, reason: 'empty' };
+        if (why.length > 100) return { ok: false, reason: 'long' };
         var rows = list();
         var target = findDemand(rows, code);
         if (!target) return { ok: false, reason: 'missing' };
@@ -899,17 +1063,35 @@
         target.traderName = '';
         target.traderPhone = '';
         target.acceptedAt = '';
+        target.withdrawReason = why;
         write(rows);
-        var saved = setStatus(code, '待接单', name);
+        var saved = setStatus(code, '待重新确认', name);
         if (!saved) return { ok: false, reason: 'missing' };
         return { ok: true, demand: saved };
+    }
+
+    function canRepublishDemand(demand) {
+        return !!(demand && demand.status === '待重新确认');
+    }
+
+    /* 平台确认后重新发布，需求回到待接单，贸易商可以再接。 */
+    function republishDemand(code, operator) {
+        var rows = list();
+        var target = findDemand(rows, code);
+        if (!target || !canRepublishDemand(target)) return null;
+        target.traderName = '';
+        target.traderPhone = '';
+        target.acceptedAt = '';
+        target.withdrawReason = '';
+        write(rows);
+        return setStatus(code, '待接单', operator || '平台');
     }
 
     function canVoidDemand(demand) {
         return !!(demand && VOIDABLE_STATUSES.indexOf(demand.status) >= 0);
     }
 
-    /* 支付中之前由平台作废。已产生的审核单、合同在 setStatus 里同步作废。 */
+    /* 门店付款中之前由平台作废。已产生的审核单、合同在 setStatus 里同步作废。 */
     function voidDemand(code, operator) {
         var rows = list();
         var target = findDemand(rows, code);
@@ -1010,7 +1192,7 @@
         });
     }
 
-    /* 当前签署方确认其中一份合同。销售合同和采购合同的各方都签完后，需求进入待复核。 */
+    /* 当前签署方确认其中一份合同。各方都签完后进入待付款，等贸易商支付后进入门店付款中。 */
     function signDemand(code, actor, contractKey) {
         var rows = list();
         var target = null;
@@ -1023,6 +1205,10 @@
         });
         if (!target) return { ok: false, reason: 'missing' };
         if (target.status !== '待签署') return { ok: false, reason: 'status', demand: target };
+        if (actor && actor.role === 'trader') {
+            var covered = traderBalanceCheck(target, actor);
+            if (!covered.ok) return covered;
+        }
         var contract = null;
         signContracts(target).some(function (row) {
             if (row.key === contractKey) {
@@ -1061,12 +1247,41 @@
             return { ok: true, done: false, demand: target };
         }
         write(rows);
-        var saved = setStatus(code, '待复核', mine.name || '签署');
+        var saved = setStatus(code, '待付款', mine.name || '签署');
         return { ok: true, done: true, demand: saved || target };
+    }
+
+    /* 合同签完后由接单贸易商支付。在线支付直接完成；线下支付需先确认。完成后进入门店付款中，不再复核。 */
+    function payDemand(code, method, trader) {
+        var rows = list();
+        var target = findDemand(rows, code);
+        if (!target) return { ok: false, reason: 'missing' };
+        if (target.status !== '待付款') return { ok: false, reason: 'status', demand: target };
+        var name = traderNameOf(trader);
+        if (!name || target.traderName !== name) return { ok: false, reason: 'trader', demand: target };
+        target.payMethod = method === 'offline' ? 'offline' : 'online';
+        target.paidAt = nowText();
+        write(rows);
+        var saved = setStatus(code, '门店付款中', name);
+        if (!saved) return { ok: false, reason: 'missing' };
+        return { ok: true, demand: saved };
     }
 
     /* ---------- 审核中心 · 需求单审核 ---------- */
     var AUDIT_KEY = 'rbt_demand_audit_v1';
+    var AUDIT_AUTO_KEY = 'rbt_audit_auto_v1';
+
+    /* 需求单管理里的审核配置。没保存过时，初审自动审核。 */
+    function readAuditAuto() {
+        try {
+            var raw = sessionStorage.getItem(AUDIT_AUTO_KEY);
+            if (!raw) return { first: true };
+            var data = JSON.parse(raw);
+            return { first: !data || data.first !== false };
+        } catch (e) {
+            return { first: true };
+        }
+    }
     var AUDIT_STATUSES = ['待审核', '审核通过', '审核驳回'];
 
     function readAuditsRaw() {
@@ -1129,10 +1344,10 @@
     }
 
     function auditStage(item) {
-        return item && item.stage === '复核' ? '复核' : '初审';
+        return '初审';
     }
 
-    /* 同一需求单可能有初审、复核两条。未指定环节时取初审。 */
+    /* 同一需求只保留初审。未指定环节时取初审。 */
     function findAuditByDemand(list, demandCode, stage) {
         var primary = null;
         var fallback = null;
@@ -1164,25 +1379,15 @@
         return found;
     }
 
-    function ensureReviewAudit(demand, rows) {
-        var review = findAuditByDemand(rows, demand.code, '复核');
-        if (review) return review;
-        var created = buildAuditFromDemand(demand, rows);
-        created.stage = '复核';
-        created.status = '待审核';
-        created.submitter = demand.updater || demand.creator || '系统';
-        created.submittedAt = nowText();
-        created.auditor = '';
-        created.auditedAt = '';
-        created.opinion = '';
-        rows.unshift(created);
-        return created;
+    function dropReviewAudits(rows) {
+        var kept = (rows || []).filter(function (row) { return !row || row.stage !== '复核'; });
+        return { rows: kept, dropped: kept.length !== (rows || []).length };
     }
 
     /* 门店发布成功：写入一条待审核记录。 */
     function createAuditForDemand(demand) {
         if (!demand || !demand.code) return null;
-        var rows = readAuditsRaw() || [];
+        var rows = dropReviewAudits(readAuditsRaw() || []).rows;
         var exists = findAuditByDemand(rows, demand.code);
         if (exists) {
             exists.storeCode = demand.storeCode || exists.storeCode;
@@ -1202,6 +1407,7 @@
             exists.auditedAt = '';
             exists.opinion = '';
             writeAudits(rows);
+            if (readAuditAuto().first && exists.status === '待审核' && auditStage(exists) === '初审') approveAudit(exists.id, '系统');
             return exists;
         }
         var created = buildAuditFromDemand(demand, rows);
@@ -1211,6 +1417,7 @@
         created.opinion = '';
         rows.unshift(created);
         writeAudits(rows);
+        if (readAuditAuto().first && created.status === '待审核') approveAudit(created.id, '系统');
         return created;
     }
 
@@ -1264,16 +1471,8 @@
             target.auditor = operator || demand.updater || target.auditor || '王丽';
             target.auditedAt = demand.updatedAt || nowText();
         }
-        if (demand.status === '待复核') ensureReviewAudit(demand, rows);
-        if (demand.status === '已驳回') {
-            var review = findAuditByDemand(rows, demand.code, '复核');
-            if (review && review.status === '待审核') {
-                review.status = '审核驳回';
-                review.auditor = operator || demand.updater || '王丽';
-                review.auditedAt = demand.updatedAt || nowText();
-                review.opinion = demand.rejectReason || review.opinion || '不符合放款条件';
-            }
-        }
+        var cleaned = dropReviewAudits(rows);
+        rows = cleaned.rows;
         writeAudits(rows);
         return target;
     }
@@ -1287,6 +1486,9 @@
             rows = [];
             changed = true;
         }
+        var cleaned = dropReviewAudits(rows);
+        rows = cleaned.rows;
+        if (cleaned.dropped) changed = true;
         demands.forEach(function (demand) {
             if (!demand || !demand.code) return;
             var existing = findAuditByDemand(rows, demand.code, '初审');
@@ -1312,10 +1514,6 @@
             }
             if (auditStage(existing) === '初审' && existing.status === '审核通过' && demand.settleRatios && demand.settleRatios.length && !(existing.settleRatios && existing.settleRatios.length)) {
                 existing.settleRatios = demand.settleRatios;
-                changed = true;
-            }
-            if (demand.status === '待复核' && !findAuditByDemand(rows, demand.code, '复核')) {
-                ensureReviewAudit(demand, rows);
                 changed = true;
             }
             if ((demand.status === '已作废' || demand.status === '已取消') && voidRelatedAudits(rows, demand, demand.updater || '平台')) {
@@ -1367,15 +1565,6 @@
         var target = getAudit(id);
         if (!target || target.status !== '待审核') return null;
         var who = operator || '王丽';
-        if (auditStage(target) === '复核') return approveReviewAudit(target, who, extra);
-        var ratioApi = window.RbtSettleRatio;
-        var settleRatios = ratioApi && typeof ratioApi.normalize === 'function' ? ratioApi.normalize(extra && extra.settleRatios) : null;
-        if (!settleRatios) return null;
-        if (!extra || (extra.hasProvider !== true && extra.hasProvider !== false)) return null;
-        var provider = extra.provider;
-        var providerId = provider && String(provider.id || '').trim();
-        var providerName = provider && String(provider.name || '').trim();
-        if (extra.hasProvider && (!providerId || !providerName)) return null;
         var demandRows = list();
         var pending = null;
         demandRows.some(function (item) {
@@ -1386,20 +1575,6 @@
             return false;
         });
         if (!pending) return null;
-        pending.settleRatios = settleRatios;
-        pending.hasProvider = extra.hasProvider === true;
-        if (pending.hasProvider) {
-            pending.providerId = providerId;
-            pending.providerName = providerName;
-            pending.providerSubjectName = String(provider.subjectName || '').trim();
-        } else {
-            pending.providerId = '';
-            pending.providerName = '';
-            pending.providerSubjectName = '';
-        }
-        ensureLogs(pending);
-        pushLog(pending, pending.hasProvider ? ('指定服务商：' + providerName) : '确认无服务商', who);
-        write(demandRows);
         var demand = setStatus(target.demandCode, '待接单', who);
         if (!demand) return null;
         return patchAudit(id, function (row) {
@@ -1407,11 +1582,47 @@
             row.auditor = who;
             row.auditedAt = nowText();
             row.opinion = '';
-            row.settleRatios = settleRatios;
-            row.hasProvider = pending.hasProvider;
-            row.providerId = pending.providerId;
-            row.providerName = pending.providerName;
+            if (pending.settleRatios && pending.settleRatios.length) row.settleRatios = pending.settleRatios;
         });
+    }
+
+    function readProduct(code) {
+        if (!code) return null;
+        var products = window.RbtInstallmentData;
+        if (products && typeof products.get === 'function') {
+            var live = products.get(code);
+            if (live) return live;
+        }
+        try {
+            var raw = sessionStorage.getItem('rbt_installment_v3');
+            var list = raw ? JSON.parse(raw) : null;
+            if (!Array.isArray(list)) return null;
+            var found = null;
+            list.some(function (item) {
+                if (item && item.code === code) {
+                    found = item;
+                    return true;
+                }
+                return false;
+            });
+            return found;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    /* 发布时记到需求单。产品上有渠道比例就用那份；没有则用产品默认比例补三个渠道。 */
+    function ratiosFromProduct(item) {
+        var ratioApi = window.RbtSettleRatio;
+        if (!ratioApi || !item || item.repayMethod !== '比例付') return null;
+        var product = readProduct(item.installmentCode);
+        var normalized = product && typeof ratioApi.normalize === 'function' ? ratioApi.normalize(product.settleRatios) : null;
+        if (normalized) return normalized;
+        var fallback = product && typeof ratioApi.parseRatio === 'function' ? ratioApi.parseRatio(product.periodRatio) : '';
+        if (!fallback || !ratioApi.CHANNELS) return null;
+        return ratioApi.normalize(ratioApi.CHANNELS.map(function (channel) {
+            return { channel: channel, fallback: fallback, rows: [] };
+        }));
     }
 
     function patchAudit(id, mutate) {
@@ -1423,49 +1634,11 @@
         return current;
     }
 
-    function saveGuaranteeVoucher(code, voucher, operator) {
-        var rows = list();
-        var demand = null;
-        rows.some(function (item) {
-            if (item && item.code === code) {
-                demand = item;
-                return true;
-            }
-            return false;
-        });
-        if (!demand) return null;
-        demand.guaranteeDeposit = {
-            paid: true,
-            voucherName: voucher.voucherName || '缴纳凭证',
-            voucherType: voucher.voucherType || '',
-            voucherData: voucher.voucherData || '',
-            uploadedAt: nowText(),
-            uploadedBy: operator || '王丽'
-        };
-        write(rows);
-        return demand;
-    }
-
-    /* 原型演示：复核通过不拦截合同签署状态，弹窗固定展示已签署，不写入 PRD。正式规则按各合同实时签署状态核对，未全部签署不能通过。 */
-    function approveReviewAudit(target, who, extra) {
-        var demand = get(target.demandCode);
-        if (!demand || demand.status !== '待复核') return null;
-        if (!extra || extra.depositPaid !== true || !extra.voucherData) return null;
-        if (!saveGuaranteeVoucher(demand.code, extra, who)) return null;
-        if (!setStatus(demand.code, '支付中', who)) return null;
-        return patchAudit(target.id, function (row) {
-            row.status = '审核通过';
-            row.auditor = who;
-            row.auditedAt = nowText();
-            row.opinion = '';
-        });
-    }
-
-    /* 待接单到支付中可改本单结算比例，不改需求状态。 */
+    /* 待接单到门店付款中可改本单结算比例，不改需求状态。 */
     function canEditSettleRatios(item) {
         var ratioApi = window.RbtSettleRatio;
         if (ratioApi && typeof ratioApi.canEdit === 'function') return ratioApi.canEdit(item);
-        return !!(item && ['待接单', '待确认签约', '待签署', '待复核', '支付中'].indexOf(item.status) >= 0);
+        return !!(item && ['待接单', '待确认签约', '待签署', '待付款', '门店付款中'].indexOf(item.status) >= 0);
     }
 
     function updateSettleRatios(code, ratioList, operator) {
@@ -1541,13 +1714,19 @@
         setStatus: setStatus,
         acceptDemand: acceptDemand,
         confirmSigning: confirmSigning,
+        traderBalanceCheck: traderBalanceCheck,
         withdrawAccept: withdrawAccept,
+        withdrawReasons: withdrawReasons,
+        saveWithdrawReasons: saveWithdrawReasons,
+        canRepublishDemand: canRepublishDemand,
+        republishDemand: republishDemand,
         canVoidDemand: canVoidDemand,
         voidDemand: voidDemand,
         signContracts: signContracts,
         signParties: signParties,
         matchParty: matchParty,
         signDemand: signDemand,
+        payDemand: payDemand,
         listAudits: listAudits,
         getAudit: getAudit,
         createAuditForDemand: createAuditForDemand,

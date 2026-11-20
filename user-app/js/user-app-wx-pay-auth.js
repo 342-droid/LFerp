@@ -1,11 +1,11 @@
 /**
  * 微信支付收款授权（现金红包转入微信零钱）。
  *
- * 未授权时，登录成功（含系统自动登录）、进入直播间仍弹出授权半屏。
+ * 未授权时，登录成功（含系统自动登录）、进入直播间弹出授权半屏。
+ * 同一场景关掉半屏且未点同意，当天这个场景不再弹；另一个场景仍会弹。第二天再按场景弹。
  * 活动中奖先把红包放入账户，不在中奖当场弹授权，也不自动打微信。
- * 我的红包点「领取」，或点现金收益旁的「收款授权」，才弹出授权半屏；领取且同意后才转微信。
- * 点「同意」后记为已授权，再点「完成」继续原来的动作。
- * 授权一次后不再弹出。关闭半屏且未点同意，保持未授权，下次上述场景再弹。
+ * 我的红包点「领取」，或点现金收益旁的「收款授权」，仍弹出授权半屏，不受当天关闭记录影响。领取且同意后才转微信。
+ * 点「同意」后记为已授权，再点「完成」继续原来的动作。授权一次后不再弹出。
  */
 (function (global) {
   'use strict';
@@ -13,6 +13,7 @@
   var STORAGE_KEY = 'ua_wx_pay_auth_v1';
   var ENTER_SKIP_KEY = 'ua_wx_pay_auth_enter_skip_v1';
   var LOGIN_SHOWN_KEY = 'ua_wx_pay_auth_login_shown_v1';
+  var DISMISS_KEY = 'ua_wx_pay_auth_dismiss_v1';
   var MERCHANT = '冷丰';
 
   var root = null;
@@ -68,6 +69,44 @@
       localStorage.removeItem(STORAGE_KEY);
     } catch (e) {}
     syncDemoSelect();
+  }
+
+  function todayKey() {
+    var d = new Date();
+    function pad(n) {
+      return (n < 10 ? '0' : '') + n;
+    }
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
+
+  function readDismiss() {
+    try {
+      var data = JSON.parse(localStorage.getItem(DISMISS_KEY) || 'null');
+      return data && typeof data === 'object' ? data : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  /** 该场景今天已经关掉过授权半屏 */
+  function dismissedToday(scene) {
+    if (!scene) return false;
+    return readDismiss()[scene] === todayKey();
+  }
+
+  function markDismissed(scene) {
+    if (!scene) return;
+    var data = readDismiss();
+    data[scene] = todayKey();
+    try {
+      localStorage.setItem(DISMISS_KEY, JSON.stringify(data));
+    } catch (e) {}
+  }
+
+  function clearDismiss() {
+    try {
+      localStorage.removeItem(DISMISS_KEY);
+    } catch (e) {}
   }
 
   function payIcon() {
@@ -173,16 +212,30 @@
   }
 
   function cancel() {
-    flush('onCancel');
+    var items = queue.splice(0, queue.length);
+    items.forEach(function (it) {
+      if (it && it.scene) markDismissed(it.scene);
+    });
+    closeSheet();
+    items.forEach(function (it) {
+      var fn = it && it.onCancel;
+      if (typeof fn === 'function') fn();
+    });
   }
 
   /**
    * 已授权则直接 onDone。未授权弹出半屏：同意并完成后 onDone，关闭未同意则 onCancel。
+   * opts.scene 为 login（登录含自动登录）或 live（进入直播间）时，当天关掉后同场景不再弹。
+   * 不传 scene 的主动点击（领取、收款授权）每次仍弹出。
    */
   function ensure(opts) {
     opts = opts || {};
     if (isAuthorized()) {
       if (typeof opts.onDone === 'function') opts.onDone();
+      return;
+    }
+    if (opts.scene && dismissedToday(opts.scene)) {
+      if (typeof opts.onCancel === 'function') opts.onCancel();
       return;
     }
     queue.push(opts);
@@ -249,10 +302,10 @@
       if (skip) sessionStorage.removeItem(LOGIN_SHOWN_KEY);
     } catch (e) {}
     if (skip) return;
-    ensure({});
+    ensure({ scene: 'login' });
   }
 
-  /** 进入直播间页时：本趟已经弹过则不再弹，否则未授权再弹一次。 */
+  /** 进入直播间页时：本趟已经弹过，或今天关掉过，则不再弹。 */
   function promptEnterLive() {
     var skip = false;
     try {
@@ -260,7 +313,7 @@
       if (skip) sessionStorage.removeItem(ENTER_SKIP_KEY);
     } catch (e) {}
     if (isAuthorized() || skip) return;
-    ensure({});
+    ensure({ scene: 'live' });
   }
 
   function mountDemo() {
@@ -288,6 +341,7 @@
     if (!apply) return;
     apply.addEventListener('click', function () {
       var sel = document.getElementById('uaWxPayDemoMode');
+      clearDismiss();
       if (sel && sel.value === 'on') {
         authorize();
         if (global.UaLiveBagCash && typeof global.UaLiveBagCash.settleAllHolds === 'function') {

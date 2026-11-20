@@ -4893,7 +4893,7 @@
                         (after && after.released
                             ? '已达到应保有'
                             : '未达应保有，需补 ' + money(after ? after.depositGap : 0)) +
-                        (commerce && commerce.text === '已放开' ? '，低利润与活动已放开' : '，低利润与活动仍未放开') +
+                        (commerce && commerce.text === '正常' ? '，经营限制状态正常' : '，经营限制状态为受限') +
                         '，货款需补足 ' +
                         money(goodsResult.needFill),
                     'success'

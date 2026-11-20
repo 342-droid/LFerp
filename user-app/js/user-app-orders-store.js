@@ -182,6 +182,7 @@
       status: status,
       createdAt: order.createdAt || nowText(),
       paidAt: order.paidAt || '',
+      completedAt: order.completedAt || '',
       closedReason: order.closedReason || '',
       exchangePoints: Number(order.exchangePoints) || 0,
       deductPoints: Number(order.deductPoints) || 0,
@@ -474,6 +475,7 @@
       });
     }
     if ((status === 'shipping' || status === 'pending_accept') && !order.paidAt) order.paidAt = nowText();
+    if (status === 'completed' && !order.completedAt) order.completedAt = nowText();
     return upsert(order);
   }
 

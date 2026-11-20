@@ -334,6 +334,15 @@
         base.card_info = Object.assign({}, base.card_info || {}, sum.fields.card_info || {});
       }
     }
+    if (window.MdmEntryMaterials && typeof window.MdmEntryMaterials.fillEmptyOnboarding === 'function') {
+      var entryNames = [src.storeName, src.name, src.shortName];
+      var entryKinds = src && (src.kind === 'supplier' || src.merchantKind === 'supplier') ? ['supplier', 'store'] : ['store', 'supplier'];
+      entryKinds.forEach(function (kind) {
+        entryNames.forEach(function (name) {
+          if (name) base = window.MdmEntryMaterials.fillEmptyOnboarding(base, kind, name);
+        });
+      });
+    }
     if (base.license_info && !String(base.license_info.found_date || '').trim()) {
       base.license_info.found_date = base.license_info.start_date || '';
     }

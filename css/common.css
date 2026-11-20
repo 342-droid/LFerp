@@ -264,7 +264,8 @@ body {
     flex-wrap: nowrap;
     align-items: center;
     gap: 24px;
-    min-width: 0;
+    /* 给一级页签留最小可滚动宽度，避免被右侧组织/用户区挤成 0 */
+    min-width: 120px;
     margin-right: 0;
     overflow-x: auto;
     overflow-y: hidden;
@@ -302,6 +303,119 @@ body {
     width: 100%;
     height: 2px;
     background-color: #2196F3;
+}
+
+/* 一级页签右侧 · 组织切换（对齐运营后台交互） */
+.header-org {
+    position: relative;
+    flex-shrink: 0;
+    margin-left: 4px;
+}
+.header-org__trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 220px;
+    height: 32px;
+    padding: 0 10px 0 8px;
+    border: none;
+    border-radius: 16px;
+    background: #fff3e8;
+    color: #f36b19;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    line-height: 1;
+}
+.header-org__trigger:hover {
+    background: #ffe8d6;
+}
+.header-org__icon {
+    flex-shrink: 0;
+    color: #f36b19;
+}
+.header-org__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 160px;
+}
+.header-org__caret {
+    font-size: 10px;
+    opacity: 0.85;
+    transform: translateY(-1px);
+}
+.header-org.open .header-org__caret {
+    transform: rotate(180deg) translateY(1px);
+}
+.header-org__dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 260px;
+    padding: 8px;
+    background: #fff;
+    border: 1px solid #eceef2;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(30, 40, 60, 0.12);
+    z-index: 1200;
+}
+.header-org__caption {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    color: #69707e;
+    font-size: 13px;
+}
+.header-org__caption .header-org__icon {
+    color: #8b929d;
+}
+.header-org__list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.header-org__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    padding: 10px 12px;
+    text-align: left;
+    cursor: pointer;
+    color: #30333b;
+    font-size: 14px;
+}
+.header-org__item:hover {
+    background: #f7f8fa;
+}
+.header-org__item.is-active {
+    background: #fff3e8;
+    color: #f36b19;
+    font-weight: 500;
+}
+.header-org__item-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.header-org__check {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #f36b19;
+    color: #fff;
+    font-size: 11px;
+    line-height: 18px;
+    text-align: center;
 }
 
 .header-right {

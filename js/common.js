@@ -108,7 +108,7 @@ function loadHeader() {
         const isMdmLivePage = pageFile.startsWith('mdm_live_');
         const isMdmSettlePage = pageFile.startsWith('mdm_settle_');
         const isMdmBdPage = pageFile.startsWith('mdm_bd_');
-        const isMdmProductPage = pageFile.startsWith('mdm_product_');
+        const isMdmProductPage = pageFile.startsWith('mdm_product_') || pageFile === 'mdm_supplier_product.html';
         const isMdmMemberPage = pageFile.startsWith('mdm_member_');
         /** 平台数据中心（经营数据等），顶栏独立入口 */
         const isMdmPlatformDataPage = pageFile.startsWith('mdm_data_');
@@ -143,14 +143,14 @@ function loadHeader() {
                     <a href="${wp.page('mdm_member_c.html')}" class="${isMdmMemberPage ? 'active' : ''}">会员</a>
                     <a href="${wp.page('mdm_product_selection.html')}" class="${isMdmProductPage ? 'active' : ''}">商品</a>
                     <a href="${wp.page('mdm_audit_store_registration.html')}" class="${isMdmAuditPage ? 'active' : ''}">审核中心</a>
-                    <a href="${wp.page('mdm_order_retail.html')}" class="${isMdmOrderPage ? 'active' : ''}">订单</a>
+                    <a href="${getOrderHomeForOrg(getCurrentHeaderOrg())}" class="${isMdmOrderPage ? 'active' : ''}">订单</a>
                     <a href="${wp.page('mdm_aftersale_ticket.html')}" class="${isMdmAftersalePage ? 'active' : ''}">售后</a>
                     <a href="${wp.page('mdm_marketing_points_home.html')}" class="${isMdmMarketingPage ? 'active' : ''}">营销</a>
                     <a href="${wp.page('mdm_live_room.html')}" class="${isMdmLivePage ? 'active' : ''}">直播</a>
                     <a href="${wp.page('purchase_index.html')}" class="${isPurchasePage ? 'active' : ''}">采购</a>
                     <a href="${wp.page('index.html')}" class="${!isTmsPage && !isPurchasePage && !isBasicSettingsPage && !isAuthzDesignerPage && !isAuthz2Page && !isMdmPage && !isMobilePage && !isRbtPage && !isRbtH5Page ? 'active' : ''}">仓储</a>
                     <a href="${wp.page('TMS_index.html')}" class="${isTmsPage ? 'active' : ''}">物流</a>
-                    <a href="${wp.page('mdm_settle_index.html')}" class="${isMdmSettlePage ? 'active' : ''}">财务</a>
+                    <a href="${getSettleHomeForOrg(getCurrentHeaderOrg())}" class="${isMdmSettlePage ? 'active' : ''}">财务</a>
                     <a href="${wp.page('mdm_data_biz_overview.html')}" class="${isMdmPlatformDataPage ? 'active' : ''}">数据中心</a>
                     <a href="${wp.page('basic_settings_miniprogram_agreement.html')}" class="${isBasicSettingsPage ? 'active' : ''}">基础设置</a>
                     <a href="${wp.page('authz-designer.html')}" class="${isAuthzDesignerPage ? 'active' : ''}">权限设计</a>
@@ -158,6 +158,8 @@ function loadHeader() {
                     <a href="${wp.page('rbt_index.html')}" class="${isRbtPage ? 'active' : ''}">RBT</a>
                     <a href="${wp.page('rbt_h5_index.html')}" class="${isRbtH5Page ? 'active' : ''}">RBT-移动端</a>
                 </nav>
+
+                ${buildHeaderOrgSwitcherHtml()}
                 
                 <div class="header-right">
                     <div class="user-menu" id="userMenu">
@@ -192,6 +194,8 @@ function loadHeader() {
                 activeTab.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'auto' });
             });
         }
+
+        initHeaderOrgSwitcher();
         
         // 添加调试信息
         console.log('Header loaded, sidebarToggle element:', document.getElementById('sidebarToggle'));
@@ -200,6 +204,253 @@ function loadHeader() {
         // 注意：不在这里调用初始化函数，避免重复绑定事件
         // initSidebar() 和 initUserMenu() 将在 initPage() 中统一调用
     }
+}
+
+/* 版头组织切换：一级页签右侧。主组织=平台视角；供应商组织=该商家视角。 */
+var LF_ORG_STORAGE_KEY = 'lfCurrentOrgId';
+var LF_PLATFORM_ORGS = [
+    { id: 'org-platform', name: '上海冷丰科技有限公司', role: 'platform' }
+];
+var LF_SUPPLIER_ORGS = [
+    { id: 'sup-ss', name: '斯斯供应商商家', role: 'supplier' },
+    { id: 'sup-mq', name: '南京马群枢纽供应商', role: 'supplier' }
+];
+
+function getHeaderOrgList() {
+    return LF_PLATFORM_ORGS.concat(LF_SUPPLIER_ORGS);
+}
+
+function isSupplierOrgId(id) {
+    return String(id || '').indexOf('sup-') === 0;
+}
+
+function getCurrentHeaderOrg() {
+    var list = getHeaderOrgList();
+    var saved = '';
+    try { saved = localStorage.getItem(LF_ORG_STORAGE_KEY) || ''; } catch (e) { saved = ''; }
+    /* 供应商结算门户 URL 参数优先 */
+    var path = window.location.pathname || '';
+    var pageFile = (path.split('/').pop() || '').toLowerCase().split('?')[0];
+    if (pageFile && !pageFile.endsWith('.html')) pageFile += '.html';
+    if (pageFile === 'mdm_settle_supplier_portal.html') {
+        var params = new URLSearchParams(window.location.search);
+        saved = params.get('supplier') || saved;
+    }
+    /* 兼容旧 key */
+    if (!saved) {
+        try { saved = localStorage.getItem('spSettleSupplierId') || ''; } catch (e2) { saved = ''; }
+    }
+    return list.filter(function (o) { return o.id === saved; })[0] || list[0];
+}
+
+function isCurrentSupplierOrg() {
+    var org = getCurrentHeaderOrg();
+    return !!(org && (org.role === 'supplier' || isSupplierOrgId(org.id)));
+}
+
+function setCurrentHeaderOrg(id) {
+    var list = getHeaderOrgList();
+    var org = list.filter(function (o) { return o.id === id; })[0] || list[0];
+    if (!org) return null;
+    try {
+        localStorage.setItem(LF_ORG_STORAGE_KEY, org.id);
+        if (isSupplierOrgId(org.id)) localStorage.setItem('spSettleSupplierId', org.id);
+    } catch (e) { /* ignore */ }
+    window.dispatchEvent(new CustomEvent('lf-org-change', {
+        detail: { org: org, mode: isSupplierOrgId(org.id) ? 'supplier' : 'platform' }
+    }));
+    return org;
+}
+
+function getOrderHomeForOrg(org) {
+    var wp = window.wmsPath || { page: function (f) { return f; } };
+    var path = window.location.pathname || '';
+    var pageFile = (path.split('/').pop() || '').toLowerCase().split('?')[0];
+    if (pageFile && !pageFile.endsWith('.html')) pageFile += '.html';
+    /* 组织切换时尽量留在当前零售/代采页，由组织身份决定可见订单范围 */
+    var preferProxy = pageFile === 'mdm_order_proxy.html';
+    return wp.page(preferProxy ? 'mdm_order_proxy.html' : 'mdm_order_retail.html');
+}
+
+function getSettleHomeForOrg(org) {
+    var wp = window.wmsPath || { page: function (f) { return f; } };
+    if (org && isSupplierOrgId(org.id)) {
+        return wp.page('mdm_settle_supplier_portal.html') +
+            '?view=account&supplier=' + encodeURIComponent(org.id);
+    }
+    return wp.page('mdm_settle_index.html');
+}
+
+function resolveOrgSwitchNavigation(prev, next) {
+    if (!next || (prev && prev.id === next.id)) return '';
+    var path = window.location.pathname || '';
+    var pageFile = (path.split('/').pop() || '').toLowerCase().split('?')[0];
+    if (pageFile && !pageFile.endsWith('.html')) pageFile += '.html';
+    var isOrderPage = pageFile.indexOf('mdm_order_') === 0;
+    var isSettlePage = pageFile.indexOf('mdm_settle_') === 0;
+    var isAftersalePage = pageFile.indexOf('mdm_aftersale_') === 0;
+    var isSettleSupplier = pageFile === 'mdm_settle_supplier_portal.html';
+    var nextIsSupplier = isSupplierOrgId(next.id);
+    var wp = window.wmsPath || { page: function (f) { return f; } };
+
+    /* 售后：供应商仅售后单/退款单；保障期与举报反馈为平台专属 */
+    if (isAftersalePage) {
+        var aftersalePlatformOnly = {
+            'mdm_aftersale_guarantee.html': 1,
+            'mdm_aftersale_report.html': 1,
+            'mdm_aftersale_feedback.html': 1
+        };
+        if (nextIsSupplier && aftersalePlatformOnly[pageFile]) {
+            return wp.page('mdm_aftersale_ticket.html');
+        }
+        if (
+            pageFile === 'mdm_aftersale_ticket.html' ||
+            pageFile === 'mdm_aftersale_ticket_detail.html' ||
+            pageFile === 'mdm_aftersale_refund.html'
+        ) {
+            var asStay = new URLSearchParams(location.search);
+            asStay.set('_org', next.id);
+            return location.pathname + '?' + asStay.toString();
+        }
+        return nextIsSupplier ? wp.page('mdm_aftersale_ticket.html') : wp.page('mdm_aftersale_ticket.html');
+    }
+
+    /* 结算：版头组织切换 = 平台结算中心 ↔ 供应商结算门户 */
+    if (isSettlePage) {
+        if (nextIsSupplier) {
+            var stayView = 'account';
+            if (isSettleSupplier) {
+                var cur = new URLSearchParams(window.location.search).get('view');
+                if (cur === 'ledger' || cur === 'bills' || cur === 'account') stayView = cur;
+            }
+            return wp.page('mdm_settle_supplier_portal.html') +
+                '?view=' + stayView + '&supplier=' + encodeURIComponent(next.id);
+        }
+        return wp.page('mdm_settle_index.html');
+    }
+    if (isOrderPage) {
+        /* 供应商进配置类页时回零售；同构零售/代采页刷新即可切换数据范围 */
+        var platformOnly = {
+            'mdm_order_queue.html': 1,
+            'mdm_order_freight_config.html': 1,
+            'mdm_order_config.html': 1,
+            'mdm_order_express_cutoff.html': 1,
+            'mdm_order_sales.html': 1,
+            'mdm_order_supplier.html': 1
+        };
+        if (nextIsSupplier && platformOnly[pageFile]) {
+            return (window.wmsPath || { page: function (f) { return f; } }).page('mdm_order_retail.html');
+        }
+        if (pageFile === 'mdm_order_retail.html' || pageFile === 'mdm_order_proxy.html') {
+            /* 同页切换组织：带 _org 强制刷新，列表按新组织收窄/放开 */
+            var stay = new URLSearchParams(location.search);
+            stay.set('_org', next.id);
+            return location.pathname + '?' + stay.toString();
+        }
+        return getOrderHomeForOrg(next);
+    }
+    return '';
+}
+
+function truncateOrgLabel(name, max) {
+    var s = String(name || '');
+    var n = max || 12;
+    if (s.length <= n) return s;
+    return s.slice(0, n) + '…';
+}
+
+function buildHeaderOrgSwitcherHtml() {
+    var org = getCurrentHeaderOrg();
+    var label = truncateOrgLabel(org && org.name, isSupplierOrgId(org && org.id) ? 14 : 12);
+    var buildingIcon =
+        '<svg class="header-org__icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">' +
+        '<path fill="currentColor" d="M4 21V9l8-5 8 5v12h-5v-6H9v6H4zm2-2h1v-6h10v6h1V9.8l-6-3.75L6 9.8V19z"/></svg>';
+    return (
+        '<div class="header-org" id="headerOrg">' +
+        '<button type="button" class="header-org__trigger" id="headerOrgTrigger" aria-haspopup="listbox" aria-expanded="false">' +
+        buildingIcon +
+        '<span class="header-org__name" id="headerOrgName" title="' + String(org && org.name || '').replace(/"/g, '&quot;') + '">' + label + '</span>' +
+        '<span class="header-org__caret">▾</span>' +
+        '</button>' +
+        '<div class="header-org__dropdown" id="headerOrgDropdown" role="listbox" hidden>' +
+        '<div class="header-org__caption">' + buildingIcon + '<span>切换组织</span></div>' +
+        '<div class="header-org__list" id="headerOrgList"></div>' +
+        '</div></div>'
+    );
+}
+
+function renderHeaderOrgDropdownList() {
+    var listEl = document.getElementById('headerOrgList');
+    var nameEl = document.getElementById('headerOrgName');
+    var trigger = document.getElementById('headerOrgTrigger');
+    if (!listEl) return;
+    var current = getCurrentHeaderOrg();
+    var list = getHeaderOrgList();
+    if (nameEl && current) {
+        nameEl.textContent = truncateOrgLabel(current.name, isSupplierOrgId(current.id) ? 14 : 12);
+        nameEl.setAttribute('title', current.name);
+    }
+    if (trigger && current) trigger.setAttribute('title', current.name);
+    listEl.innerHTML = list.map(function (o) {
+        var active = current && o.id === current.id;
+        return (
+            '<button type="button" class="header-org__item' + (active ? ' is-active' : '') + '" data-org-id="' + o.id + '" role="option" aria-selected="' + (active ? 'true' : 'false') + '">' +
+            '<span class="header-org__item-name">' + o.name + '</span>' +
+            (active ? '<span class="header-org__check" aria-hidden="true">✓</span>' : '') +
+            '</button>'
+        );
+    }).join('');
+}
+
+function initHeaderOrgSwitcher() {
+    var root = document.getElementById('headerOrg');
+    var trigger = document.getElementById('headerOrgTrigger');
+    var dropdown = document.getElementById('headerOrgDropdown');
+    if (!root || !trigger || !dropdown) return;
+
+    renderHeaderOrgDropdownList();
+
+    function close() {
+        root.classList.remove('open');
+        dropdown.hidden = true;
+        trigger.setAttribute('aria-expanded', 'false');
+    }
+    function open() {
+        renderHeaderOrgDropdownList();
+        root.classList.add('open');
+        dropdown.hidden = false;
+        trigger.setAttribute('aria-expanded', 'true');
+    }
+
+    trigger.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (root.classList.contains('open')) close();
+        else open();
+    });
+
+    function pickOrg(id) {
+        var prev = getCurrentHeaderOrg();
+        var next = setCurrentHeaderOrg(id);
+        close();
+        renderHeaderOrgDropdownList();
+        var target = resolveOrgSwitchNavigation(prev, next);
+        if (target) location.href = target;
+    }
+
+    dropdown.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-org-id]');
+        if (!btn) return;
+        e.preventDefault();
+        e.stopPropagation();
+        pickOrg(btn.getAttribute('data-org-id'));
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!root.contains(e.target)) close();
+    });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') close();
+    });
 }
 
 // [已废弃] loadSidebar() 已被 wms-sidebar.js 替代，不再需要
@@ -973,7 +1224,7 @@ if (document.readyState === 'loading') {
         if (window.LfTableRowNo || document.getElementById('lf-table-row-no-js')) return;
         var s = document.createElement('script');
         s.id = 'lf-table-row-no-js';
-        s.src = assetUrl('js/lf-table-row-no.js') + '?v=20260825-wms-skip';
+        s.src = assetUrl('js/lf-table-row-no.js') + '?v=20261030-member-excel';
         s.async = false;
         (document.body || document.head).appendChild(s);
     }

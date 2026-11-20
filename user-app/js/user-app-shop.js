@@ -108,6 +108,7 @@
       shortName: '黑猪肉玉米云吞',
       spec: '12',
       price: 12,
+      purchasePrice: 11.2,
       livePrice: 6,
       liveStock: 66,
       liveSpecs: [{ label: '12', price: 6 }],
@@ -893,6 +894,7 @@
 
   var liveLeftDemoTimer = 0;
   var LIVE_LEFT_DEMO_SELECTORS = [
+    '.ua-live-mkt-demo',
     '.ua-live-sw-demo',
     '.ua-watch-reward-demo',
     '.ua-live-bag-demo',
@@ -1954,13 +1956,37 @@
     return false;
   }
 
+  function lowMarginBlock(product) {
+    if (!window.LfLowMargin || !product) return '';
+    var storeName = STORE.name;
+    var storeId = STORE.id;
+    if (window.UaStoreSwitch && typeof window.UaStoreSwitch.resolveCurrentStore === 'function') {
+      var current = window.UaStoreSwitch.resolveCurrentStore();
+      if (current && current.name) storeName = current.name;
+      if (current && current.id) storeId = current.id;
+    }
+    return window.LfLowMargin.orderBlock({
+      storeName: storeName,
+      storeId: storeId,
+      purchasePrice: product.purchasePrice,
+      salePrice: product.price,
+      category: product.category,
+      productTags: product.productTags || product.tags || []
+    });
+  }
+
   function addToCart(id, qty, opts) {
     opts = opts || {};
     var addQty = qty || 1;
     var p = resolveLiveProduct(id) || PRODUCTS[id];
     if (p && !isProductSaleableNow(p)) {
       if (!opts.silent) showToast(unsaleableLabel());
-      return ensureCart();
+      return null;
+    }
+    var marginMsg = lowMarginBlock(p);
+    if (marginMsg) {
+      if (!opts.silent) showToast(marginMsg);
+      return null;
     }
     var price = opts.price != null ? opts.price : p ? p.price : 0;
     var spec = opts.spec != null ? opts.spec : p ? p.spec : '';
@@ -3132,6 +3158,77 @@
     }, 1600);
   }
 
+  var LIVE_MARKETING_DENY = '当前门店不支持';
+  var LIVE_MARKETING_DEMO_KEY = 'ua_live_marketing_store_demo_v1';
+
+  function currentLiveStoreRef() {
+    try {
+      var api = window.UaStoreSwitch;
+      if (api) {
+        var current = null;
+        if (typeof api.readBind === 'function' && typeof api.resolveCurrentStore === 'function') {
+          var bind = api.readBind();
+          if (bind) current = api.resolveCurrentStore(bind);
+        }
+        if (!current && typeof api.getSystemDefaultStore === 'function') current = api.getSystemDefaultStore();
+        if (current && (current.name || current.id)) {
+          return { storeId: current.id || '', name: current.name || current.homeName || '' };
+        }
+      }
+    } catch (e) {}
+    return { storeId: STORE.id, name: STORE.name };
+  }
+
+  /** 营销选店限制开启且当前门店未同时满足合同已签署、保证金达到应保有。 */
+  function marketingLiveDenied() {
+    try {
+      var demo = localStorage.getItem(LIVE_MARKETING_DEMO_KEY);
+      if (demo === 'allow') return false;
+      if (demo === 'deny') return true;
+    } catch (e) {}
+    if (!window.LfLowMargin || typeof window.LfLowMargin.marketingReleased !== 'function') return false;
+    return !window.LfLowMargin.marketingReleased(currentLiveStoreRef());
+  }
+
+  function blockLiveMarketing() {
+    if (!marketingLiveDenied()) return false;
+    showToast(LIVE_MARKETING_DENY);
+    return true;
+  }
+
+  function mountLiveMarketingDemo() {
+    if (!document.querySelector('.ua-live-room') || document.getElementById('uaLiveMktDemo')) return;
+    var mode = 'follow';
+    try {
+      var saved = localStorage.getItem(LIVE_MARKETING_DEMO_KEY);
+      if (saved === 'allow' || saved === 'deny') mode = saved;
+    } catch (e) {}
+    var panel = document.createElement('div');
+    panel.className = 'ua-live-goods-demo ua-live-mkt-demo';
+    panel.id = 'uaLiveMktDemo';
+    panel.innerHTML =
+      '<div class="ua-live-goods-demo__title">营销参与验收开关</div>' +
+      '<label class="ua-live-goods-demo__row">参与状态' +
+      '<select id="uaLiveMktDemoMode">' +
+      '<option value="follow"' + (mode === 'follow' ? ' selected' : '') + '>跟随门店</option>' +
+      '<option value="deny"' + (mode === 'deny' ? ' selected' : '') + '>当前门店不支持</option>' +
+      '<option value="allow"' + (mode === 'allow' ? ' selected' : '') + '>当前门店支持</option>' +
+      '</select></label>' +
+      '<button type="button" class="ua-live-goods-demo__apply" id="uaLiveMktDemoApply">应用并刷新</button>';
+    document.body.appendChild(panel);
+    var apply = document.getElementById('uaLiveMktDemoApply');
+    if (!apply) return;
+    apply.addEventListener('click', function () {
+      var sel = document.getElementById('uaLiveMktDemoMode');
+      var next = sel ? sel.value : 'follow';
+      try {
+        if (next === 'allow' || next === 'deny') localStorage.setItem(LIVE_MARKETING_DEMO_KEY, next);
+        else localStorage.removeItem(LIVE_MARKETING_DEMO_KEY);
+      } catch (err) {}
+      window.location.reload();
+    });
+  }
+
   var MALL_CATEGORIES = [
     { id: 'daily', name: '日用百货', img: '../assets/shop/cat-daily.svg', products: ['beef-tendon'] },
     { id: 'meat', name: '肉禽蛋品', img: '../assets/shop/cat-meat.svg', products: ['beef-tendon', 'duck-mix'] },
@@ -3492,7 +3589,7 @@
     if (!prod || !guardProductSaleable(prod)) return;
     var specs = mallProductSpecs(prod);
     function finish(spec, qty) {
-      addToCart(id, qty || 1, { spec: spec });
+      if (addToCart(id, qty || 1, { spec: spec }) == null) return;
       showToast('已加入购物车');
       if (typeof after === 'function') after();
     }
@@ -3748,9 +3845,12 @@
           var item = findItem(cart, p.id);
           var qty = item && item.qty ? item.qty : 0;
           var unsaleable = !isProductSaleableNow(p);
+          var marginMsg = lowMarginBlock(p);
+          var blocked = unsaleable || !!marginMsg;
+          var blockLabel = unsaleable ? unsaleableLabel() : '低利润不可下单';
           return (
             '<article class="ua-cat-item' +
-            (unsaleable ? ' is-unsaleable' : '') +
+            (blocked ? ' is-unsaleable' : '') +
             '" data-goods-id="' +
             p.id +
             '">' +
@@ -3760,8 +3860,8 @@
             '" alt="' +
             (p.shortName || p.name) +
             '">' +
-            (unsaleable
-              ? '<span class="ua-sale-unsaleable-badge">' + unsaleableLabel() + '</span>'
+            (blocked
+              ? '<span class="ua-sale-unsaleable-badge">' + blockLabel + '</span>'
               : '') +
             (p.watermark
               ? '<span class="ua-shop-watermark ua-shop-watermark--sm">生产验证商品<br>请勿下单</span>'
@@ -3775,9 +3875,9 @@
             '<span class="ua-cat-item__price">' +
             formatCatPrice(p.price) +
             '</span>' +
-            (unsaleable
+            (blocked
               ? '<button type="button" class="ua-cat-item__add is-unsaleable" disabled aria-label="' +
-                unsaleableLabel() +
+                blockLabel +
                 '">' +
                 cartIconSvg +
                 '</button>'
@@ -4397,7 +4497,7 @@
     function addCurrentToCart() {
       if (!guardProductSaleable(product)) return;
       if (global.UaSeckill && !global.UaSeckill.guardPurchase(product, selectedSpec)) return;
-      addToCart(product.id, 1, { spec: selectedSpec });
+      if (addToCart(product.id, 1, { spec: selectedSpec }) == null) return;
       syncBadges();
       showToast('已加入购物车');
     }
@@ -4468,7 +4568,7 @@
           if (!guardProductSaleable(product)) return;
           if (global.UaSeckill && !global.UaSeckill.guardPurchase(product, selectedSpec)) return;
           if (intent === 'cart') {
-            addToCart(product.id, qty, { spec: selectedSpec });
+            if (addToCart(product.id, qty, { spec: selectedSpec }) == null) return;
             syncBadges();
             showToast('已加入购物车');
           } else if (intent === 'buy') {
@@ -4477,6 +4577,7 @@
               return;
             }
             var cart = addToCart(product.id, qty, { spec: selectedSpec });
+            if (!cart) return;
             (cart.items || []).forEach(function (it) {
               it.checked = it.id === product.id;
             });
@@ -5379,9 +5480,10 @@
         if (fromPrompt && window.UaWxPayAuth) window.UaWxPayAuth.markEnterPrompted();
         window.location.href = 'live-room.html';
       }
-      /* 进直播间前：未授权先弹出微信支付收款半屏，关闭后仍可进入，下次再进会再弹 */
+      /* 进直播间前：未授权先弹出微信支付收款半屏。关掉后仍进入，当天再进不再弹。 */
       if (window.UaWxPayAuth && !window.UaWxPayAuth.isAuthorized()) {
         window.UaWxPayAuth.ensure({
+          scene: 'live',
           onDone: function () {
             go(true);
           },
@@ -5979,6 +6081,7 @@
 
     document.getElementById('liveCouponBtn') &&
       document.getElementById('liveCouponBtn').addEventListener('click', function () {
+        if (blockLiveMarketing()) return;
         showToast('暂无可用优惠券');
       });
     document.getElementById('liveOrderBtn') &&
@@ -6053,6 +6156,7 @@
     mountLiveQuickCommentDemo();
     mountLiveSensitiveDemo();
     layoutLiveRoomLeftDemos();
+    mountLiveMarketingDemo();
     scheduleLiveRoomLeftDemos();
     setTimeout(layoutLiveRoomLeftDemos, 300);
     if (window.MutationObserver && document.body) {
@@ -6118,6 +6222,8 @@
     initHomePage: initHomePage,
     initLiveRoomPage: initLiveRoomPage,
     scheduleLiveRoomLeftDemos: scheduleLiveRoomLeftDemos,
+    marketingLiveDenied: marketingLiveDenied,
+    blockLiveMarketing: blockLiveMarketing,
     initMallPage: initMallPage,
     initCategoryPage: initCategoryPage,
     initCartPage: initCartPage,

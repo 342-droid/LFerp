@@ -333,16 +333,19 @@
       return String(sel || '').replace(/\s+/g, '') === 'td';
     }
 
+    /* 序号列不计入业务列序号 */
+    var businessTd = 'td:not(.lf-row-no-td)';
+
     Element.prototype.querySelectorAll = function (selectors) {
       if (inRowNoTable(this) && isBareTdSelector(selectors)) {
-        return nativeQSA.call(this, 'td:not(.lf-row-no-td)');
+        return nativeQSA.call(this, businessTd);
       }
       return nativeQSA.apply(this, arguments);
     };
 
     Element.prototype.querySelector = function (selectors) {
       if (inRowNoTable(this) && isBareTdSelector(selectors)) {
-        return nativeQS.call(this, 'td:not(.lf-row-no-td)');
+        return nativeQS.call(this, businessTd);
       }
       return nativeQS.apply(this, arguments);
     };

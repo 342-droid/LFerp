@@ -83,14 +83,12 @@
             '</thead><tbody>' + body + '</tbody></table></div>';
     }
 
-    function titleOf(item) {
-        if (item && item.kind === 'purchase') return '采购单详情';
-        return '销售单详情';
+    function titleOf() {
+        return '交易单详情';
     }
 
     function bodyOf(item) {
         if (!item) return '';
-        var peerLabel = item.kind === 'sales' ? '对应采购单' : '对应销售单';
         return (
             '<div class="supplier-detail-tab">' +
             '<div class="supplier-detail-section-title">基础信息</div><div class="supplier-detail-grid">' +
@@ -102,8 +100,7 @@
             textCell('付款方', item.payorName) +
             textCell('收货方', item.receiveName) +
             textCell('实际发货方', item.shipperName) +
-            textCell('金额', money(item.amount)) +
-            linkCell(peerLabel, item.peerCode, 'data-rbt-trade-open', item.peerCode) +
+            textCell('总金额', money(item.amount)) +
             textCell('创建人', item.creator) +
             textCell('创建时间', item.createdAt) +
             '</div>' +

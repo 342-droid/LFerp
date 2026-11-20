@@ -1269,7 +1269,7 @@
         var head = table.querySelector('thead tr');
         if (head && !head.querySelector('[data-contract-head]')) {
             var actionHead = head.lastElementChild;
-            var labels = scene === 'store' ? ['合同签署状态', '低利润与活动'] : ['合同签署状态'];
+            var labels = scene === 'store' ? ['合同签署状态', '经营限制状态'] : ['合同签署状态'];
             labels.forEach(function (label) {
                 var th = document.createElement('th');
                 th.setAttribute('data-contract-head', label);
@@ -1307,6 +1307,7 @@
                 }
                 gateCell.textContent = gate.text;
                 gateCell.title = gate.title;
+                tr.setAttribute('data-commerce-status', gate.text);
             }
         });
     }
@@ -1320,6 +1321,7 @@
         var qOp = (document.getElementById('qStoreOpStatus') || {}).value.trim();
         var qOnboard = (document.getElementById('qStoreOnboardStatus') || {}).value.trim();
         var qContract = (document.getElementById('qStoreContractStatus') || {}).value.trim();
+        var qCommerce = (document.getElementById('qStoreCommerceStatus') || {}).value.trim();
         var qBalance = (document.getElementById('qStoreBalancePay') || {}).value.trim();
         var qSplit = (document.getElementById('qStoreSplit') || {}).value.trim();
         var qSt = (document.getElementById('qStoreStatus') || {}).value.trim();
@@ -1346,6 +1348,7 @@
             if (qOp && opTxt !== opMap[qOp]) ok = false;
             if (qOnboard && onboardTxt !== qOnboard) ok = false;
             if (qContract && tr.getAttribute('data-contract-status') !== qContract) ok = false;
+            if (qCommerce && tr.getAttribute('data-commerce-status') !== qCommerce) ok = false;
             if (qBalance && balanceTxt !== qBalance) ok = false;
             if (qSplit === 'on' && splitTxt !== '开启' && splitTxt !== '已开通') ok = false;
             if (qSplit === 'off' && splitTxt !== '关闭' && splitTxt !== '未开通') ok = false;
@@ -1581,7 +1584,7 @@
             var onboard = actionTd.querySelector('.mdm-onboard-btn');
             var html = '';
             if (edit) html += '<a href="#" class="edit-btn">编辑</a> ';
-            /* 【857】操作列独立入口：更换手机号 = 店长交接 / 主体↔店长重绑 */
+            /* 【857】操作列独立入口：更换手机号 = 店长交接 */
             html += '<a href="#" class="mdm-store-phone-change">更换手机号</a> ';
             if (onboard) html += '<a href="#" class="mdm-onboard-btn">去进件</a> ';
             if (perm && canRowSetAsDefault(meta) && !isDefault) {
@@ -1595,8 +1598,7 @@
             } else if (meta.storeStatus === '已启用') {
                 html += isDefault
                     ? '<a href="#" class="mdm-store-disable is-locked" title="系统默认门店不允许冻结">冻结</a>'
-                    : '<a href="#" class="mdm-store-disable">冻结</a>';
-            }
+                    : '<a href="#" class="mdm-store-disable">冻结</a>';            }
             actionTd.innerHTML = html.replace(/\s+$/, '');
         });
     }
@@ -1878,6 +1880,7 @@
                 'qStoreOpStatus',
                 'qStoreOnboardStatus',
                 'qStoreContractStatus',
+                'qStoreCommerceStatus',
                 'qStoreBalancePay',
                 'qStoreSplit',
                 'qStoreStatus'

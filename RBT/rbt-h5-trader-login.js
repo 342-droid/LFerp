@@ -156,10 +156,14 @@
     }
 
     function archiveList() {
+        var rows = [];
         if (window.MdmTraderArchiveStore && typeof window.MdmTraderArchiveStore.list === 'function') {
-            return window.MdmTraderArchiveStore.list() || [];
+            rows = rows.concat(window.MdmTraderArchiveStore.list() || []);
         }
-        return [];
+        if (window.MdmProviderArchiveStore && typeof window.MdmProviderArchiveStore.list === 'function') {
+            rows = rows.concat(window.MdmProviderArchiveStore.list() || []);
+        }
+        return rows;
     }
 
     function archiveOf(account) {
@@ -183,10 +187,11 @@
     /* 空字符串表示可登录；否则是拦截文案 */
     function archiveLoginBlock(account) {
         var row = archiveOf(account);
-        if (!row) return '未在贸易商档案中，无法登录';
+        if (!row) return '未在贸易商或服务商档案中，无法登录';
+        var provider = row.subjectType === '服务商';
         if (String(row.status || '').trim() === '正常') return '';
-        if (String(row.status || '').trim() === '冻结') return '该贸易商已冻结，无法登录';
-        return '贸易商状态非正常，无法登录';
+        if (String(row.status || '').trim() === '冻结') return provider ? '该服务商已冻结，无法登录' : '该贸易商已冻结，无法登录';
+        return provider ? '服务商状态非正常，无法登录' : '贸易商状态非正常，无法登录';
     }
 
     function canLogin(account) {

@@ -457,6 +457,17 @@
       document.body &&
       document.body.getAttribute('data-order-page') === 'retail';
     var block = el('div', 'order-proxy-shipment');
+    var expressQuery = '';
+    var orderKeyEl = document.getElementById('qOrderKey');
+    var expressInput = document.getElementById('qOrderNo');
+    if (expressInput && (!orderKeyEl || orderKeyEl.value === 'expressNo')) {
+      expressQuery = String(expressInput.value || '').replace(/\s+/g, '').toLowerCase();
+    }
+    var trackingHit = !!(
+      expressQuery &&
+      String(shipment.trackingNo || '').replace(/\s+/g, '').toLowerCase() === expressQuery
+    );
+    if (trackingHit) block.classList.add('is-tracking-hit');
     block.innerHTML =
       '<div class="order-proxy-shipment__head">' +
         '<span class="order-proxy-shipment__label">包裹' + (index + 1) + '</span>' +
@@ -638,6 +649,12 @@
           list.appendChild(buildShipmentBlock(sh, idx, orderId, shipmentHandlers));
         });
         expressWrap.appendChild(list);
+        var trackingHit = list.querySelector('.is-tracking-hit');
+        if (trackingHit) {
+          window.setTimeout(function () {
+            if (trackingHit.isConnected) trackingHit.scrollIntoView({ block: 'nearest' });
+          }, 60);
+        }
       } else {
         expressWrap.appendChild(el(
           'div',

@@ -2756,6 +2756,11 @@ button.order-detail-refund-breakdown__row.is-link:focus-visible {
   line-height: 1;
 }
 
+.order-clearing-sku__badge--freight {
+  background: #ecf5ff;
+  color: #409eff;
+}
+
 .order-clearing-sku__name {
   font-size: 13px;
   font-weight: 600;
@@ -3013,6 +3018,11 @@ button.order-detail-refund-breakdown__row.is-link:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.order-proxy-shipment.is-tracking-hit .order-proxy-goods-card,
+.order-proxy-shipment.is-tracking-hit .order-proxy-shipment__card {
+  border-color: #ff7019;
 }
 
 .order-proxy-shipment__head {

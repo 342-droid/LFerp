@@ -23,6 +23,22 @@
         .rbt-period-rate-row__pair { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
         .rbt-period-rates__empty { color: #909399; font-size: 13px; line-height: 32px; }
         .rbt-rate-tip { width: 100%; margin: 6px 0 0; color: #909399; font-size: 12px; line-height: 1.6; }
+        .rbt-calc__block { margin-bottom: 16px; }
+        .rbt-calc__title { margin: 0 0 10px; font-size: 14px; font-weight: 600; color: #303133; }
+        .rbt-calc__row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+        .rbt-calc__row .el-input,
+        .rbt-calc__row .el-select { width: 140px; flex: 0 0 140px; }
+        .rbt-calc__label { min-width: 112px; color: #606266; }
+        .rbt-calc__result { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; margin-top: 8px; padding: 12px; background: #fafafa; border-radius: 6px; }
+        .rbt-calc__result span { color: #909399; }
+        .rbt-calc__result b { color: #303133; font-weight: 600; }
+        .rbt-calc__note { margin: 8px 0 0; color: #e6a23c; font-size: 12px; line-height: 1.6; }
+        .rbt-calc-dialog .el-dialog__body { max-height: 460px; overflow: auto; }
+        .rbt-channel-block { width: 100%; padding: 10px 0 4px; border-top: 1px solid #f0f0f0; }
+        .rbt-channel-block:first-child { border-top: 0; padding-top: 0; }
+        .rbt-channel-block__title { margin-bottom: 8px; font-size: 13px; font-weight: 600; color: #303133; }
+        .rbt-channel-block .el-select { width: 180px; flex: 0 0 180px; }
+        .rbt-channel-block .rbt-period-rate-row { margin-top: 8px; }
         .rbt-store-log { width: 100%; border-collapse: collapse; font-size: 13px; }
         .rbt-store-log th,
         .rbt-store-log td {
@@ -65,6 +81,7 @@
                     </template>
                     <template #toolbar-left="{elSize}">
                         <el-button type="primary" :size="elSize" @click="openAdd">新增产品</el-button>
+                        <el-button :size="elSize" @click="openCalc">测算</el-button>
                     </template>
                     <template v-slot:[slots.status]="{row,elSize}">
                         <el-tag :size="elSize" effect="light" :type="row.enabled === false ? 'danger' : 'success'">{{ row.enabled === false ? '禁用' : '启用' }}</el-tag>
@@ -105,6 +122,36 @@
                         </div>
                         <p class="rbt-rate-tip">{{ ratePreview(form) }}</p>
                     </template>
+                    <template #form-channelratio="{form}">
+                        <div class="rbt-channel-ratio">
+                            <div class="rbt-channel-block" v-for="channel in channelNames" :key="channel">
+                                <div class="rbt-channel-block__title">{{ channel }}</div>
+                                <div class="rbt-period-rate-row">
+                                    <span class="rbt-range__label">默认比例</span>
+                                    <el-input :model-value="channelFallback(form, channel)" placeholder="请输入" @input="onChannelFallback(form, channel, $event)"></el-input>
+                                    <span class="rbt-range__unit">%</span>
+                                </div>
+                                <template v-if="channel === 'POS'">
+                                    <div class="rbt-period-rate-row">
+                                        <span class="rbt-range__label">二级渠道</span>
+                                        <el-select :model-value="posSubPick" placeholder="请选择" clearable @change="onPosSubPick">
+                                            <el-option v-for="name in posSubChoices(form)" :key="name" :label="name" :value="name"></el-option>
+                                        </el-select>
+                                        <el-input :model-value="posSubRatio" placeholder="请输入" @input="onPosSubRatio"></el-input>
+                                        <span class="rbt-range__unit">%</span>
+                                        <el-button @click="addPosSub(form)">添加</el-button>
+                                    </div>
+                                    <div class="rbt-period-rate-row" v-for="(row, index) in posSubs(form)" :key="row.name">
+                                        <span class="rbt-range__label">{{ row.name }}</span>
+                                        <el-input :model-value="row.ratio" placeholder="请输入" @input="onPosSubRow(form, index, $event)"></el-input>
+                                        <span class="rbt-range__unit">%</span>
+                                        <el-button text type="danger" @click="removePosSub(form, index)">删除</el-button>
+                                    </div>
+                                    <p class="rbt-rate-tip">堂食、外卖、团购需要单独比例时再添加。已配置的实际到账按该二级渠道比例结算，没单独配置的金额用 POS 默认比例。同一二级渠道只加一条。</p>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
                     <template #form-amountpair="{form}">
                         <div class="rbt-range">
                             <el-input :model-value="form.amountMin" placeholder="请输入" @input="onDecimal(form, 'amountMin', $event)"></el-input>
@@ -115,12 +162,85 @@
                         </div>
                     </template>
                 </vab-schema-form-dialog>
+                <el-dialog v-model="calcOpen" class="rbt-calc-dialog" title="结算测算" width="860px" append-to-body>
+                    <div class="rbt-calc__block">
+                        <p class="rbt-calc__title">结算系数</p>
+                        <p class="rbt-rate-tip">门店实付 = 商品金额 × 门店结算系数；贸易商所得 = 商品金额 × 贸易商结算系数；冷丰差额 = 门店实付 − 贸易商所得；服务商计提 = 商品金额 ×（服务商结算系数 − 1）；冷丰实得 = 冷丰差额 − 服务商计提。</p>
+                        <div class="rbt-calc__row">
+                            <span class="rbt-calc__label">商品金额</span>
+                            <el-input :model-value="calcForm.goods" placeholder="请输入" @input="onCalcField('goods', $event)"></el-input>
+                            <span class="rbt-range__unit">元</span>
+                        </div>
+                        <div class="rbt-calc__row">
+                            <span class="rbt-calc__label">门店结算系数</span>
+                            <el-input :model-value="calcForm.storeRate" placeholder="请输入" @input="onCalcField('storeRate', $event)"></el-input>
+                        </div>
+                        <div class="rbt-calc__row">
+                            <span class="rbt-calc__label">贸易商结算系数</span>
+                            <el-input :model-value="calcForm.traderRate" placeholder="请输入" @input="onCalcField('traderRate', $event)"></el-input>
+                        </div>
+                        <div class="rbt-calc__row">
+                            <span class="rbt-calc__label">服务商结算系数</span>
+                            <el-input :model-value="calcForm.providerRate" placeholder="请输入" @input="onCalcField('providerRate', $event)"></el-input>
+                        </div>
+                        <div class="rbt-calc__result">
+                            <div><span>门店实付</span> <b>{{ calcResult.storePay }}</b></div>
+                            <div><span>贸易商所得</span> <b>{{ calcResult.traderPay }}</b></div>
+                            <div><span>冷丰差额</span> <b>{{ calcResult.gap }}</b></div>
+                            <div><span>服务商计提</span> <b>{{ calcResult.providerPay }}</b></div>
+                            <div><span>冷丰实得</span> <b>{{ calcResult.lengfeng }}</b></div>
+                        </div>
+                    </div>
+                    <div class="rbt-calc__block">
+                        <p class="rbt-calc__title">结算比例</p>
+                        <p class="rbt-rate-tip">当日应履行 = 当日门店实际到账 × 结算比例。POS 这一行填当日 POS 实际到账合计。已配置比例的堂食、外卖、团购按各自比例计算，并从合计里拆出；剩下没单独配置的金额才用 POS 默认比例。各行相加后，用门店实付除以当日合计，估算还完大约要多少天。未发生的日期不预造。</p>
+                        <div class="rbt-calc__row" v-for="name in channelNames" :key="name">
+                            <span class="rbt-calc__label">{{ name }}</span>
+                            <el-input :model-value="calcChannel(name, 'turnover')" :placeholder="name === 'POS' ? '当日 POS 实际到账合计' : '当日门店实际到账'" @input="onCalcChannel(name, 'turnover', $event)"></el-input>
+                            <span class="rbt-range__unit">元</span>
+                            <el-input :model-value="calcChannel(name, 'ratio')" :placeholder="name === 'POS' ? '默认比例' : '结算比例'" @input="onCalcChannel(name, 'ratio', $event)"></el-input>
+                            <span class="rbt-range__unit">%</span>
+                            <span class="rbt-range__unit">应履行 {{ calcChannelDue(name) }}</span>
+                            <span class="rbt-range__unit" v-if="name === 'POS' && posSplitNote">{{ posSplitNote }}</span>
+                        </div>
+                        <div class="rbt-calc__row">
+                            <span class="rbt-calc__label">POS二级渠道</span>
+                            <el-select :model-value="calcForm.posPick" placeholder="请选择" clearable @change="onCalcPosPick">
+                                <el-option v-for="name in calcPosChoices()" :key="name" :label="name" :value="name"></el-option>
+                            </el-select>
+                            <el-input :model-value="calcForm.posNewTurnover" placeholder="当日门店实际到账" @input="onCalcPosDraft('posNewTurnover', $event)"></el-input>
+                            <span class="rbt-range__unit">元</span>
+                            <el-input :model-value="calcForm.posNewRatio" placeholder="结算比例" @input="onCalcPosDraft('posNewRatio', $event)"></el-input>
+                            <span class="rbt-range__unit">%</span>
+                            <el-button @click="addCalcPosSub">添加</el-button>
+                        </div>
+                        <div class="rbt-calc__row" v-for="(row, index) in calcForm.posSubs" :key="row.name">
+                            <span class="rbt-calc__label">{{ row.name }}</span>
+                            <el-input :model-value="row.turnover" placeholder="当日门店实际到账" @input="onCalcPosRow(index, 'turnover', $event)"></el-input>
+                            <span class="rbt-range__unit">元</span>
+                            <el-input :model-value="row.ratio" placeholder="结算比例" @input="onCalcPosRow(index, 'ratio', $event)"></el-input>
+                            <span class="rbt-range__unit">%</span>
+                            <span class="rbt-range__unit">应履行 {{ calcPosDue(index) }}</span>
+                            <el-button text type="danger" @click="removeCalcPosSub(index)">删除</el-button>
+                        </div>
+                        <div class="rbt-calc__result">
+                            <div><span>当日合计应履行</span> <b>{{ calcResult.daily }}</b></div>
+                            <div><span>还完门店实付约</span> <b>{{ calcResult.days }}</b></div>
+                        </div>
+                    </div>
+                    <p class="rbt-calc__note" v-if="calcResult.notes">{{ calcResult.notes }}</p>
+                    <p class="rbt-rate-tip">只在本窗口试算，不写入产品配置。</p>
+                    <template #footer>
+                        <el-button @click="calcOpen = false">关闭</el-button>
+                    </template>
+                </el-dialog>
             </div>
         </main>
     </div>
 
     <script src="rbt-fresh.js"></script>
     <script src="../js/common.js"></script>
+    <script src="rbt-settle-ratio.js"></script>
     <script src="../vendor/octopus-prototype-runtime/runtime.js"></script>
     <script src="rbt-installment-detail.js"></script>
     <script src="rbt-installment.js"></script>

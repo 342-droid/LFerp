@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰RBT - 每日履行</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
+    <link rel="stylesheet" href="../vendor/octopus-prototype-runtime/runtime.css">
+    <link rel="stylesheet" href="../vendor/octopus-prototype-runtime/theme.css">
+    <style>
+        [v-cloak] { display: none; }
+        .rbt-daily-host { min-height: 480px; }
+        /* 操作列如果吸在右侧，会压住应履行、实际履行。改回随表格滚动，并始终露出横向滚动条。 */
+        .rbt-daily-host .el-table .el-table-fixed-column--left,
+        .rbt-daily-host .el-table .el-table-fixed-column--right {
+            position: static !important;
+            left: auto !important;
+            right: auto !important;
+            box-shadow: none !important;
+        }
+        .rbt-daily-host .el-table__fixed-right-patch { display: none !important; }
+        .rbt-daily-host .el-table--scrollable-x .el-scrollbar__bar.is-horizontal,
+        .rbt-daily-host .el-table--scrollable-y .el-scrollbar__bar.is-vertical {
+            display: block !important;
+            opacity: 1 !important;
+        }
+        .rbt-daily-host .el-scrollbar__thumb {
+            opacity: 0.5;
+        }
+        /* 表体在视口内滚动，横竖滚动条和分页留在屏幕里。横向条放在表体下方，不压字。 */
+        .rbt-daily-host .el-table__body-wrapper .el-scrollbar__wrap {
+            max-height: calc(100vh - 408px);
+        }
+        .rbt-daily-host .el-table--scrollable-x .el-scrollbar {
+            padding-bottom: 10px;
+            box-sizing: border-box;
+        }
+        .rbt-daily-tip { margin: 12px 0; }
+        .rbt-daily-host .el-table__body td:last-child .cell { white-space: nowrap; }
+        .rbt-day-sheet { padding: 16px 20px 24px; }
+        .rbt-day-sheet .supplier-detail-section-title { margin: 4px 0 10px; }
+        .rbt-day-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .rbt-day-table th,
+        .rbt-day-table td { border: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; }
+        .rbt-day-table th { background: #f7f8fa; font-weight: 600; color: #303133; }
+        .rbt-day-table td.is-money,
+        .rbt-day-table th.is-money { text-align: right; }
+        .rbt-day-note { margin: 10px 0 0; color: #606266; font-size: 13px; line-height: 1.7; }
+        .rbt-demand-table-wrap { width: 100%; overflow-x: auto; }
+        .rbt-demand-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .rbt-demand-table th,
+        .rbt-demand-table td { border: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; white-space: nowrap; }
+        .rbt-demand-table th { background: #f7f8fa; font-weight: 600; color: #303133; }
+        .rbt-demand-table td.is-money,
+        .rbt-demand-table th.is-money { text-align: right; }
+        .rbt-demand-table td.is-empty { text-align: center; color: #909399; }
+        .rbt-daily-note { margin: 0 0 10px; color: #606266; font-size: 13px; line-height: 1.7; }
+        .rbt-daily-note__more { margin-left: 8px; color: #155bd4; text-decoration: none; }
+        .rbt-risk-tag { display: inline-block; padding: 0 8px; border-radius: 4px; line-height: 22px; font-size: 12px; }
+        .rbt-risk-tag.is-正常 { color: #389e0d; background: #f6ffed; }
+        .rbt-risk-tag.is-关注 { color: #d48806; background: #fffbe6; }
+        .rbt-risk-tag.is-预警 { color: #d46b08; background: #fff7e6; }
+        .rbt-risk-tag.is-异常 { color: #cf1322; background: #fff1f0; }
+    </style>
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="rbt-sidebar.js"></script>
+
+    <div id="header-container"></div>
+
+    <div class="container">
+        <main class="main-content">
+            <div class="content-tabs"><button type="button" class="active">每日履行</button></div>
+            <hr class="content-divider">
+            <div id="rbtDailyApp" class="rbt-daily-host" v-cloak>
+                <div class="mdm-biz-tip rbt-daily-tip" role="note">一行是一天、一个渠道。结款从当日实际履行按<strong>贸易商、冷丰、服务商</strong>应收占比拆出，三笔之和等于当日实际履行。没有服务商时，服务商结款为 0。</div>
+
+                <vab-schema-table
+                    :columns="columns"
+                    :request="requestRows"
+                    row-key="id"
+                    data-lf-row-no="off"
+                    search-label-width="112px"
+                    action-column-width="176"
+                    :default-page-size="20"
+                    :auto-format-time="false">
+                    <template v-slot:[slots.demandcode]="{row}">
+                        <doc-no-link :value="row.demandCode" @open="openDemand(row)"></doc-no-link>
+                    </template>
+                    <template #actions="{row,elSize}">
+                        <el-button :size="elSize" text type="primary" @click="openDay(row)">查看</el-button>
+                        <el-button :size="elSize" text type="primary" @click="openPerformance(row)">履约详情</el-button>
+                    </template>
+                </vab-schema-table>
+            </div>
+        </main>
+    </div>
+
+    <script src="rbt-fresh.js"></script>
+    <script src="../js/common.js"></script>
+    <script src="../vendor/octopus-prototype-runtime/runtime.js"></script>
+    <script src="rbt-store-data.js"></script>
+    <script src="rbt-settle-ratio.js"></script>
+    <script src="rbt-demand-data.js"></script>
+    <script src="rbt-demand-detail.js"></script>
+    <script src="rbt-daily-fulfill.js"></script>
+    <script src="rbt-risk.js"></script>
+    <script src="rbt-daily-fulfill-page.js"></script>
+</body>
+</html>

@@ -360,6 +360,7 @@
   var modalOpen = false;
   var modalCash = null;
   var pointsOfflineToastShown = false;
+  var marketingDenyToastShown = false;
 
   function isPointsMasterOn() {
     var cfg = global.MdmPointsMallConfig;
@@ -405,6 +406,13 @@
   }
 
   function grantDue(issued, watchSec, silent) {
+    if (global.UAShop && typeof global.UAShop.marketingLiveDenied === 'function' && global.UAShop.marketingLiveDenied()) {
+      if (!silent && !marketingDenyToastShown && typeof global.UAShop.blockLiveMarketing === 'function') {
+        marketingDenyToastShown = true;
+        global.UAShop.blockLiveMarketing();
+      }
+      return readClaimed(issued.planId);
+    }
     var tpl = findTemplate(issued.templateId);
     var ms = (tpl && tpl.milestones) || issued.milestones || [];
     var claimed = readClaimed(issued.planId).slice();

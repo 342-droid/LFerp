@@ -36,7 +36,7 @@
     },
     approved: {
       title: '审核通过',
-      desc: '门店资料审核已通过，后续将由 BD 协助完成进件与开店准备。',
+      desc: '门店资料审核已通过。请签署门店合作合同，也可使用转发的合同链接签署。',
       icon: '✓',
       bg: '#dcfce7',
       fg: '#15803d',
@@ -116,12 +116,17 @@
         location.reload();
       };
       $('btnContinue').onclick = function () {
+        if (status === 'approved') {
+          location.href = 'contracts.html?storeName=' + encodeURIComponent(storeName);
+          return;
+        }
         var q = new URLSearchParams();
         if (bdId !== '—') q.set('bdId', bdId);
         if (storeId) q.set('storeId', storeId);
         var qs = q.toString();
         location.href = 'register.html' + (qs ? '?' + qs : '');
       };
+      if (status === 'approved') $('btnContinue').textContent = '去签署合同';
     } else {
       actions.classList.add('shop-h5-hidden');
     }

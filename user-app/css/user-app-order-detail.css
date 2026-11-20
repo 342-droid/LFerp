@@ -835,6 +835,12 @@
   font-family: inherit;
 }
 
+/* 售后期结束后入口置灰，仍可点击弹出提示 */
+.ua-od-item__btn.is-disabled,
+.ua-od-item__btn[aria-disabled='true'] {
+  color: #c8c8c8;
+}
+
 /* 积分 */
 .ua-od-points {
   display: flex;

@@ -1210,7 +1210,8 @@
             if (c.length < 11) return;
             selectOptionByLabelText(refs.subjectSel, cellPlainText(c[1]));
             refs.contactInp.value = cellPlainText(c[6]);
-            /* 编辑页联系手机号 = 店长交接入口：改号即重绑「主体 ID ↔ 店长 ID」 */
+            /* 【857】编辑弹窗显示完整手机号（列表仍脱敏）；演示数据无完整号时把 **** 补成 0000 */
+            /* 编辑页联系手机号 = 店长交接；改号即更换本店店长 */
             var fullPhone = storeFullPhone(tr);
             if (refs.phoneInp) {
                 refs.phoneInp.value = fullPhone;
@@ -2510,9 +2511,7 @@
             if (!tr) return;
             var cells = tr.querySelectorAll('td');
             var storeId = cells[0] ? cellPlainText(cells[0]) : '';
-            var subjectId = cells[1] ? cellPlainText(cells[1]) : '—';
             var storeName = cells[2] ? cellPlainText(cells[2]) : '';
-            var originalPhone = storeFullPhone(tr);
             var initial = readVenuePhotos('store', storeId);
             if (!initial.store_header_pic && storeName) {
                 initial = readVenuePhotos('store', 'name:' + storeName);
@@ -2523,30 +2522,17 @@
             });
             bundle.fillFromArchiveRow(tr);
             var refs = bundle.refs || {};
-            var pendingHandover = null;
             function storeSnapshot() {
                 return {
                     '门店编码': cellPlainText(cells[0]),
                     '配送仓库': cellPlainText(cells[8]),
                     '门店简称': tr.getAttribute('data-short-name') || storeName,
                     '所在地区': tr.getAttribute('data-region') || '',
-                    '详细地址': tr.getAttribute('data-address') || '',
-                    '联系手机号': tr.getAttribute('data-phone') || originalPhone || ''
+                    '详细地址': tr.getAttribute('data-address') || ''
                 };
             }
             var before = storeSnapshot();
-            function findOtherStoreByPhone(newPhone) {
-                var otherStore = '';
-                var tbody = tr.parentNode;
-                if (!tbody) return otherStore;
-                Array.prototype.forEach.call(tbody.querySelectorAll('tr'), function (row) {
-                    if (row === tr || otherStore) return;
-                    var tds = row.querySelectorAll('td');
-                    if (tds[7] && storeFullPhone(row) === newPhone) otherStore = cellPlainText(tds[2]);
-                });
-                return otherStore;
-            }
-            function applyEdit(handover) {
+            function applyEdit() {
                 if (!warehouseSelectionAvailable(refs.warehouseSel, before['配送仓库'])) return false;
                 var region = refs.regionInp ? String(refs.regionInp.value || '').trim() : '';
                 var nextCode = storeId;
@@ -2567,8 +2553,6 @@
                 }
                 var nextName =
                     refs.nameInp ? String(refs.nameInp.value || '').trim() : storeName;
-                var nextContact = refs.contactInp ? String(refs.contactInp.value || '').trim() : '';
-                var nextPhone = refs.phoneInp ? String(refs.phoneInp.value || '').trim() : '';
                 var nextShort = nextName;
                 if (window.MdmStoreSiteSlot) {
                     var mapped = window.MdmStoreSiteSlot.getByStore(nextCode || storeId);
@@ -2583,116 +2567,92 @@
                     }
                 }
                 tr.setAttribute('data-short-name', nextShort || nextName || storeName);
-                if (cells[2]) {
-                    var nameLink = cells[2].querySelector('.subject-name-link');
-                    if (nameLink) nameLink.textContent = nextName || storeName;
-                    else cells[2].textContent = nextName || storeName;
-                }
-                if (cells[6]) cells[6].textContent = nextContact || '—';
-                if (nextPhone) {
-                    tr.setAttribute('data-phone', nextPhone);
-                    if (cells[7]) {
-                        cells[7].textContent = /^1\d{10}$/.test(nextPhone)
-                            ? nextPhone.slice(0, 3) + '****' + nextPhone.slice(7)
-                            : nextPhone;
-                    }
-                }
                 var bindings = readJsonStore('mdm_store_warehouse_bindings_v1');
                 if (nextCode !== storeId) bindings[storeId] = '';
                 bindings[nextCode] = selectedLabel(refs.warehouseSel);
                 writeJsonStore('mdm_store_warehouse_bindings_v1', bindings);
                 cells[8].textContent = bindings[nextCode];
                 syncStoreReceiveFromForm(nextCode || storeId, nextName || storeName, refs);
-                if (window.MdmOperationLog) {
-                    window.MdmOperationLog.record(
-                        'store',
-                        nextCode || storeId,
-                        handover ? '编辑门店（店长交接）' : '编辑门店',
-                        before,
-                        storeSnapshot()
-                    );
-                    if (handover) {
-                        window.MdmOperationLog.record(
-                            'store',
-                            nextCode || storeId,
-                            '更换门店店长',
-                            { 原店长手机号: originalPhone, 主体: subjectId },
-                            { 接任店长手机号: nextPhone, 主体: subjectId }
-                        );
-                    }
-                }
+                if (window.MdmOperationLog) window.MdmOperationLog.record('store', nextCode || storeId,
+                    '编辑门店', before, storeSnapshot());
                 persistArchiveMaterials(refs, 'store', nextName || storeName);
                 return true;
             }
+            /* 【857】店长手机号变更：重绑本店主体 ID ↔ 店长 ID，先于其他必填校验 */
+            function checkPhoneChange() {
+                if (!(refs.isPhoneChanged && refs.isPhoneChanged())) return { changed: false };
+                var toast = function (m) {
+                    if (typeof showToast === 'function') showToast(m, 'error');
+                };
+                var newPhone = String(refs.phoneInp.value || '').trim();
+                if (!newPhone) {
+                    toast('请输入手机号码');
+                    refs.phoneInp.focus();
+                    return null;
+                }
+                if (!/^1\d{10}$/.test(newPhone)) {
+                    toast('请输入正确的 11 位手机号');
+                    refs.phoneInp.focus();
+                    return null;
+                }
+                var code = String(refs.verifyInp.value || '').trim();
+                if (!code) {
+                    toast('请输入验证码');
+                    refs.verifyInp.focus();
+                    return null;
+                }
+                if (code !== STORE_PHONE_DEMO_CODE) {
+                    toast('验证码错误或已过期');
+                    refs.verifyInp.focus();
+                    return null;
+                }
+                var masked = newPhone.slice(0, 3) + '****' + newPhone.slice(7);
+                var otherStore = '';
+                var tbody = tr.parentNode;
+                if (tbody) {
+                    Array.prototype.forEach.call(tbody.querySelectorAll('tr'), function (row) {
+                        if (row === tr || otherStore) return;
+                        var tds = row.querySelectorAll('td');
+                        if (tds[7] && storeFullPhone(row) === newPhone) otherStore = cellPlainText(tds[2]);
+                    });
+                }
+                return { changed: true, phone: newPhone, masked: masked, otherStore: otherStore };
+            }
+            var phoneCheck = null;
             attachWideModal(
                 '编辑门店',
                 bundle.body,
                 function () {
-                    if (pendingHandover) {
-                        var pc = pendingHandover;
-                        var msg =
-                            '确认更换门店【' + storeName + '】的店长？\n' +
-                            '门店：' + (storeName || '—') + '（' + (storeId || '—') + '）\n' +
-                            '原店长：' + (originalPhone || '—') + '\n' +
-                            '接任店长：' + pc.phone + '\n' +
-                            '确认后，接任店长可登录并管理本店，原店长不再拥有本店管理权限。';
-                        if (pc.otherStore) {
-                            msg +=
-                                '\n该手机号已是门店【' +
-                                pc.otherStore +
-                                '】的店长登录号，保存后接任店长可同时管理本店及其原有门店。';
-                        }
-                        showStorePhoneConfirm(msg, function () {
-                            if (applyEdit(true) === false) return;
-                            removeArchiveFormModals();
-                            if (typeof showToast === 'function') {
-                                showToast(
-                                    '已更换门店店长，接任店长可使用 ' + pc.phone + ' 登录并管理本店',
-                                    'success'
-                                );
-                            }
-                        });
-                        return false;
+                    if (!phoneCheck || !phoneCheck.changed) {
+                        return applyEdit() !== false;
                     }
-                    return applyEdit(false) !== false;
+                    var pc = phoneCheck;
+                    var subjectId = cellPlainText(cells[1]) || (refs.subjectSel && selectedLabel(refs.subjectSel)) || '—';
+                    var storeCode = cellPlainText(cells[0]) || storeId || '—';
+                    var msg =
+                        '确认更换门店【' + (refs.nameInp.value || storeName) + '】的店长？\n' +
+                        '门店主体：' + subjectId + '（ID 不变）\n' +
+                        '门店编码：' + storeCode + '\n' +
+                        '原店长：' + (refs.originalPhone || '—') + '\n' +
+                        '接任店长：' + pc.phone + '\n' +
+                        '确认后，接任店长可登录并管理本店，原店长不再拥有本店管理权限。';
+                    if (pc.otherStore) {
+                        msg += '\n该手机号已是门店【' + pc.otherStore + '】的店长登录号，保存后接任用户可同时管理本店及其原有门店。';
+                    }
+                    showStorePhoneConfirm(msg, function () {
+                        if (cells[7]) cells[7].textContent = pc.masked;
+                        tr.setAttribute('data-phone', pc.phone);
+                        if (applyEdit() === false) return;
+                        removeArchiveFormModals();
+                        if (typeof showToast === 'function') {
+                            showToast('已更换门店店长，接任店长可使用 ' + pc.phone + ' 登录并管理本店', 'success');
+                        }
+                    });
+                    return false;
                 },
                 function () {
-                    var toast = function (m) {
-                        if (typeof showToast === 'function') showToast(m, 'error');
-                    };
-                    pendingHandover = null;
-                    var phone = refs.phoneInp ? String(refs.phoneInp.value || '').trim() : '';
-                    if (!phone) {
-                        toast('请输入联系手机号');
-                        if (refs.phoneInp) refs.phoneInp.focus();
-                        return false;
-                    }
-                    if (!/^1\d{10}$/.test(phone)) {
-                        toast('请输入正确的 11 位联系手机号');
-                        if (refs.phoneInp) refs.phoneInp.focus();
-                        return false;
-                    }
-                    var changed = typeof refs.isPhoneChanged === 'function'
-                        ? refs.isPhoneChanged()
-                        : phone !== originalPhone;
-                    if (!changed) return true;
-                    if (refs.verifyRow) refs.verifyRow.style.display = '';
-                    var code = refs.verifyInp ? String(refs.verifyInp.value || '').trim() : '';
-                    if (!code) {
-                        toast('更换门店店长需填写验证码');
-                        if (refs.verifyInp) refs.verifyInp.focus();
-                        return false;
-                    }
-                    if (code !== STORE_PHONE_DEMO_CODE) {
-                        toast('验证码错误或已过期');
-                        if (refs.verifyInp) refs.verifyInp.focus();
-                        return false;
-                    }
-                    pendingHandover = {
-                        phone: phone,
-                        otherStore: findOtherStoreByPhone(phone)
-                    };
-                    return true;
+                    phoneCheck = checkPhoneChange();
+                    return phoneCheck !== null;
                 },
                 '门店'
             );

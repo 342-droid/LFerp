@@ -84,7 +84,10 @@
             cell('门店总额度', money(quota && quota.total)) +
                 cell('已占用', money(quota && quota.occupied)) +
                 cell('已成交', money(quota && quota.locked)) +
-                cell('可用额度', money(quota && quota.available))
+                cell('可用额度', money(quota && quota.available)) +
+                cell('需求次数', (window.RbtStoreData && window.RbtStoreData.demandLimitOf ? window.RbtStoreData.demandLimitOf(store) : 1) + ' 次') +
+                cell('保证金是否缴纳', store.depositPaid === true ? '是' : store.depositPaid === false ? '否' : '—') +
+                cell('缴纳凭证', store.depositPaid === true && store.depositVoucher && store.depositVoucher.name ? store.depositVoucher.name : '—')
         );
     }
 
@@ -108,7 +111,7 @@
                     cell('业务线', store.bizLines) +
                     cell('RBT等级', store.rbtLevel) +
                     tagCell('状态', store.enabled === false ? '禁用' : '启用') +
-                    '<div class="supplier-detail-cell"><div class="supplier-detail-cell__label">门店标签</div><div class="supplier-detail-cell__body" id="rbtBaseTags"></div></div>' +
+                    '<div class="supplier-detail-cell"><div class="supplier-detail-cell__label">RBT标签</div><div class="supplier-detail-cell__body" id="rbtBaseTags"></div></div>' +
                     cell('绑定BD', store.bd) +
                     cell('配送仓库', store.warehouse) +
                     cell('省市区', region) +
