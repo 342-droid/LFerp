@@ -10,7 +10,7 @@
 
   var params = new URLSearchParams(window.location.search || '');
   if (params.get('tab') === 'refund') state.tab = 'refund';
-  /* 经营参谋带入时段：仅识别列表已支持的 7d／30d／all */
+  /* 数据中心带入时段：仅识别列表已支持的 7d／30d／all */
   var timeQ = params.get('time');
   if (timeQ === '7d' || timeQ === '30d' || timeQ === 'all') state.time = timeQ;
 

@@ -511,7 +511,7 @@
   color: var(--sa-orange-deep);
 }
 
-/* 供应商：底栏不展示经营参谋（基础工具已有入口） */
+/* 供应商：底栏不展示数据中心（基础工具已有入口） */
 body[data-fyb-role='supplier'] .sa-tab[data-tab-biz],
 body[data-fyb-role='supplier'] #saTabBiz,
 body[data-fyb-role='supplier'] #moreBizCenter,
@@ -692,7 +692,7 @@ body[data-fyb-role='supplier'] #moreBizCenter,
   cursor: pointer;
 }
 
-/* 经营参谋 · RBT 验收：贴右侧，避开底栏 */
+/* 数据中心 · RBT 验收：贴右侧，避开底栏 */
 .sa-lp-demo--rbt {
   left: auto;
   right: 8px;

@@ -1,6 +1,6 @@
 # 经营报表体系 · 文档索引
 
-按经营报表体系交付物，本目录落 **产品文档 1 / 3 / 10** 及单店样式说明；门店端「经营参谋」可点原型与功能 PRD 见 `prototype-prd/门店经营参谋.md`。
+按经营报表体系交付物，本目录落 **产品文档 1 / 3 / 10** 及单店样式说明；门店端「数据中心」可点原型与功能 PRD 见 `prototype-prd/门店经营参谋.md`。
 
 ## 本轮文档
 
@@ -18,13 +18,13 @@
 |---|---|
 | [经营中心佣金日期口径-禅道粘贴.html](../经营中心佣金日期口径-禅道粘贴.html) | 门店佣金五态、下单日 vs 入账日、回退时间等；指标字典直接引用 |
 
-> PC 端平台经营驾驶舱原型已下线（顶栏「经营」、`MDM/mdm_ops_*`）；门店／BD「经营参谋」仍保留。
+> PC 端平台经营驾驶舱原型已下线（顶栏「经营」、`MDM/mdm_ops_*`）；门店／BD「数据中心」仍保留。
 
 RBT 需求单详情内嵌门店经营／本笔回款：[`RBT/rbt_demand.html`](../../RBT/rbt_demand.html)
 
-门店／BD 经营参谋可点原型与 PRD（含角色对照）：
+门店／BD 数据中心可点原型与 PRD（含角色对照）：
 
-- PRD：[prototype-prd/门店经营参谋.md](../../prototype-prd/门店经营参谋.md)（v2 · 门店 APP＋BD APP）
+- PRD：[prototype-prd/门店经营参谋.md](../../prototype-prd/门店经营参谋.md)（v2 · 门店 APP＋BD APP；产品名已更名为数据中心）
 - `store-app/h5/biz-center.html`（经营总览）
 - `store-app/h5/biz-revenue.html`（营业额 · 业务线）
 - `store-app/h5/biz-commission.html`（佣金明细）
@@ -33,7 +33,7 @@ RBT 需求单详情内嵌门店经营／本笔回款：[`RBT/rbt_demand.html`](.
 
 BD 视角（工作台入口 → 多店 → 单店）：
 
-- `MDM/mdm_bd_workbench.html`（工作台宫格「经营参谋」）
+- `MDM/mdm_bd_workbench.html`（工作台宫格「数据中心」）
 - `store-app/h5/biz-bd-home.html`（多店总览）
 - `store-app/h5/biz-bd-alerts.html`（经营提醒）
 - 单店下钻示例：`store-app/h5/biz-center.html?role=bd&storeId=STORE-BJ&from=bd-app`

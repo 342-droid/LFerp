@@ -31,7 +31,7 @@
     }
     var api = window.SaLivePromoSession;
     var info = api && typeof api.identity === 'function' ? api.identity() : null;
-    /* BD 切店后：进该店经营参谋下钻（顶栏店名，返回多店）；店长/员工：本店总览 */
+    /* BD 切店后：进该店数据中心下钻（顶栏店名，返回多店）；店长/员工：本店总览 */
     if (info && info.role === 'bd') {
       var map = {
         HGH00002: 'STORE-YY',
@@ -336,7 +336,7 @@
     if (storeWs) storeWs.hidden = !!supplier;
     if (supWs) supWs.hidden = !supplier;
     document.body.setAttribute('data-fyb-role', supplier ? 'supplier' : 'store');
-    /* 供应商基础工具已有经营参谋；底栏 Tab 取消，避免跳进门店视角 */
+    /* 供应商基础工具已有数据中心；底栏 Tab 取消，避免跳进门店视角 */
     var tabbar = document.querySelector('.sa-tabbar');
     if (tabbar) tabbar.classList.toggle('sa-tabbar--no-biz', !!supplier);
     document.querySelectorAll('[data-tab-biz], #saTabBiz').forEach(function (el) {

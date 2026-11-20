@@ -97,7 +97,7 @@
     var merged = Object.assign({}, params || {});
     if (window.StoreAppBizSession && typeof window.StoreAppBizSession.qsParams === 'function') {
       merged = Object.assign({}, window.StoreAppBizSession.qsParams(), merged);
-      /* 经营参谋内部 from=report 优先；BD 下钻保留 role/storeId，from 用 bd-app */
+      /* 数据中心内部 from=report 优先；BD 下钻保留 role/storeId，from 用 bd-app */
       if (params && params.from === 'report' && merged.role === 'bd') {
         merged.from = 'bd-app';
       }

@@ -48,7 +48,7 @@
   if (tabbar) tabbar.classList.toggle('sa-tabbar--no-biz', !!isSupplier);
   var bizBtn = document.getElementById('moreBizCenter');
   if (bizBtn) {
-    /* 供应商底栏不展示经营参谋（基础工具已有） */
+    /* 供应商底栏不展示数据中心（基础工具已有） */
     bizBtn.hidden = !!isSupplier;
     if (isSupplier) {
       bizBtn.setAttribute('aria-hidden', 'true');

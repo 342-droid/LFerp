@@ -1,5 +1,5 @@
 /**
- * 经营参谋 · 门店 / BD 下钻会话
+ * 数据中心 · 门店 / BD 下钻会话
  * URL：role=bd&storeId=xxx&from=bd-app
  */
 (function (global) {
