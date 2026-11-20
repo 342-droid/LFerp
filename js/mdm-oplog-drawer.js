@@ -23,10 +23,13 @@
     var NAMES = {
         merchantSubject: ['冷丰杭州总店', '南京鲜达商贸', '华东供应链有限公司'], supplier: ['华东供应链', '舟山海鲜直供'], orgWarehouse: ['华东一号仓', '苏州冷链仓'],
         product: ['智利车厘子 JJ 级 2.5kg', '舟山带鱼 500g', '赣南脐橙 5kg'], productCategory: ['生鲜 / 水果', '水产 / 鱼类'], mallCategory: ['时令水果', '冷冻水产'],
-        liveSession: ['双11 生鲜专场'], shippingFee: ['华东标准运费', '自提免运费'], protocol: ['用户协议', '隐私协议'], recommendation: ['新人专享推荐位', '首页轮播-双11'],
+        liveSession: ['双11 生鲜专场'], shippingFee: ['华东标准运费', '自提免运费'], logisticsRate: ['南京仓 → 全国 · 冷丰平台 · 零售订单', '南京仓 → 江苏省南京市江宁区 · 顺丰速运 · 代采订单'], protocol: ['用户协议', '隐私协议'], recommendation: ['新人专享推荐位', '首页轮播-双11'],
         orderConfig: ['平台订单配置', '冷丰杭州总店'], memberLevelPolicy: ['会员等级政策 v3'], growthPolicy: ['成长值规则'], store: ['冷丰杭州总店']
     };
     var SAMPLE = {
+        rateOrigin: ['W001 南京仓', 'W001 南京仓'], rateCarrier: ['SF 顺丰速运', 'LFPT 冷丰平台'], rateChannel: ['零售订单', '代采订单'], rateFulfillment: ['平台配送', '快递直发'],
+        rateMethod: ['重量计费', '按件计费'], rateTemperature: ['常温', '冷链'], rateRegion: ['全国', '江苏省 / 南京市 / 江宁区'], rateTiers: ['首重 20kg 35.00 元，续重 1.00 元/kg', '首重 20kg 30.00 元，续重 0.80 元/kg'],
+        rateFreightDiscount: ['0.80', '0.75'], rateSettlementDiscount: ['0.70', '0.65'], rateExtras: ['否', '保价费：货值 × 0.30%'], rateUpstairs: ['否', '是'], rateEnabled: ['禁用', '启用'],
         orgName: ['冷丰杭州总店', '杭州总店'], contactName: ['张三', '李四'], contactPhone: ['138****1024', '139****8866'], address: ['西湖区文三路 90 号', '西湖区文一西路 588 号'],
         province: ['浙江省', '浙江省'], city: ['杭州市', '杭州市'], district: ['西湖区', '拱墅区'], orgId: ['AG10086', 'AG10086'], agreementCode: ['—', 'AGR-20261106-0003'],
         agreementAlias: ['杭州总店', '冷丰杭州总店'], warehouseName: ['华东一号仓', '华东中心仓'], warehouseCode: ['WH-HZ-01', 'WH-HZ-01'], categoryName: ['生鲜', '生鲜水果'],
@@ -73,7 +76,8 @@
         var create = /^(新增|新建|创建|绑定|上传|发布)/.test(label);
         var del = /^(删除|解绑)/.test(label);
         var status = /(启用|禁用|停用|上架|下架|状态|开始直播|结束直播|显示)/.test(label);
-        var statusFields = fields.filter(function (f) { return /status|Status|enabled|visibleFlag/.test(f); });
+        if (/^(导入|导出)/.test(label)) return [];
+        var statusFields = fields.filter(function (f) { return /status|Status|enabled|Enabled|visibleFlag/.test(f); });
         var sf = statusFields.filter(function (f) { return f === 'enabled' || f === 'status'; })[0] || statusFields[0];
         if (status && sf) {
             var sv = sample(sf, def.fields[sf], name);

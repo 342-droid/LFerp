@@ -291,6 +291,7 @@
         }
     </style>
 <link rel="stylesheet" href="../css/logistics-native.css">
+<link rel="stylesheet" href="../css/mdm-oplog-drawer.css">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -394,6 +395,7 @@
                         <button type="button" class="btn btn-primary" id="btnAdd">新增</button>
                         <button type="button" class="btn btn-secondary" id="btnImport">导入</button>
                         <button type="button" class="btn btn-secondary" id="btnExport">导出</button>
+                        <button type="button" class="btn btn-secondary" data-oplog-scene="logisticsRate">操作日志</button>
                     </div>
                 </form>
             </section>
@@ -1040,6 +1042,8 @@
         </div>
     </div>
 
+    <script src="../js/mdm-oplog-dict.js"></script>
+    <script src="../js/mdm-oplog-drawer.js"></script>
     <script src="../js/logistics-fee-core.js"></script>
 <script src="../js/logistics-native.js"></script>
 <script src="../js/common.js"></script>
