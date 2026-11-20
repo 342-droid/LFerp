@@ -46,7 +46,7 @@
 
             <div id="rbtPerfApp" class="rbt-perf-host" v-cloak>
                 <div class="mdm-biz-tip rbt-perf-tip" role="note">
-                    只列出贸易商付款完成、处于<strong>履约中</strong>或<strong>已完成</strong>的需求。点需求单号打开履约详情，每日履行在基础信息右侧。应履行按所得佣金乘该渠道结算比例。当日实际履行再按应收占比拆成<strong>贸易商、冷丰、服务商</strong>收款。<strong>已履行金额</strong>、<strong>未履行差额</strong>、<strong>履行覆盖率</strong>、<strong>履约风险等级</strong>只按已发生日期汇总，和首页同一套规则。不预造未发生的日期。起算、舍入、退款跨期和完成条件待确认。
+                    只列出贸易商付款完成、处于<strong>履约中</strong>或<strong>已完成</strong>的需求。点需求单号打开履约详情，每日履行在基础信息右侧。应履行按所得佣金乘该渠道结算比例。当日实际履行再按应收占比拆成<strong>贸易商、冷丰、服务商</strong>收款。<strong>日均履行进度</strong> = 累计履行进度 ÷ 已履约天数。未满起算天数不看日均。实际履行为 0 的日期从最近一天起连续计数。<strong>已履行金额</strong>、<strong>未履行差额</strong>、<strong>日均履行进度</strong>、<strong>履约风险等级</strong>和首页同一套规则。不预造未发生的日期。舍入、退款跨期和完成条件待确认。
                 </div>
                 <vab-schema-table
                     ref="table"
