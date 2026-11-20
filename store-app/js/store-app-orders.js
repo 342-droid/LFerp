@@ -2,6 +2,7 @@
  * 门店订单列表（Mock）+ 排队中记录
  */
 (function () {
+  if (window.StoreOrdersReportActive) return;
   var data = window.LFMockData;
   var root = document.getElementById("order-list");
   var emptyEl = document.getElementById("order-list-empty");
@@ -40,6 +41,11 @@
     if (tab === "待发货" || tab === "已关闭") tab = "全部";
     if (tab && ["全部", "待收货", "待提货", "已完成", "排队中"].indexOf(tab) !== -1) {
       currentStatus = tab;
+    }
+    /* 经营数据返回：仅还原入口页 URL（含其筛选），本页不支持报表日期／来源筛选 */
+    var ret = params.get("returnTo") || "";
+    if (btnOrdersBack && ret && /biz-ops\.html/.test(ret)) {
+      btnOrdersBack.setAttribute("href", ret);
     }
   })();
 

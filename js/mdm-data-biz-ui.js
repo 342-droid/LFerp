@@ -358,6 +358,27 @@
     mask.querySelector('[data-ldb-drawer-close]').addEventListener('click', closeDrawer);
   }
 
+  function bizLabel(biz) {
+    if (biz === 'proxy' || biz === '代采') return '代采';
+    if (biz === 'retail' || biz === '零售') return '零售';
+    return biz == null || biz === '' ? '—' : String(biz);
+  }
+
+  function channelLabel(ch) {
+    if (ch === 'live' || ch === '直播') return '直播';
+    if (ch === 'mall' || ch === '商城' || ch === '商城货架') return '商城';
+    return ch == null || ch === '' ? '—' : String(ch);
+  }
+
+  /** 跳转对应订单列表并打开详情（零售／代采分入口） */
+  function orderDetailHref(row) {
+    var id = row && (row.orderId || row.id);
+    if (!id) return '#';
+    var biz = row.biz || row.bizKey || '';
+    var page = biz === 'proxy' || biz === '代采' ? 'mdm_order_proxy.html' : 'mdm_order_retail.html';
+    return pageHref(page, { orderId: id });
+  }
+
   function showDrawer(title, html) {
     ensureDrawer();
     $('[data-ldb-drawer-title]').textContent = title;
@@ -405,14 +426,28 @@
             columns
               .map(function (c) {
                 var v = r[c.key];
-                var text =
-                  c.format === 'money'
-                    ? Biz.money(v)
-                    : c.format === 'pct'
-                      ? Biz.pctText(v)
-                      : v == null || v === ''
-                        ? '—'
-                        : Biz.esc(v);
+                var text;
+                if (c.format === 'money') {
+                  text = Biz.money(v);
+                } else if (c.format === 'pct') {
+                  text = Biz.pctText(v);
+                } else if (c.format === 'biz') {
+                  text = Biz.esc(bizLabel(v));
+                } else if (c.format === 'channel') {
+                  text = Biz.esc(channelLabel(v));
+                } else if (v == null || v === '') {
+                  text = '—';
+                } else {
+                  text = Biz.esc(v);
+                }
+                if (c.link === 'order' && v) {
+                  text =
+                    '<a href="' +
+                    Biz.esc(orderDetailHref(r)) +
+                    '" target="_blank" rel="noopener">' +
+                    text +
+                    '</a>';
+                }
                 return '<td class="' + (c.num ? 'num' : '') + '">' + text + '</td>';
               })
               .join('') +
@@ -808,6 +843,204 @@
     bindCompositionPie(host);
   }
 
+  /** 统一门店排行：三视角指标同表，排序只改字段／强调列 */
+  var UNIFIED_SORT_OPTIONS = [
+    { id: 'retailPay', label: '零售支付成交额' },
+    { id: 'proxyPay', label: '代采商品支付金额' },
+    { id: 'platformTotal', label: '平台分配所得合计' }
+  ];
+
+  function unifiedSortDeltaLabel(sortKey) {
+    if (sortKey === 'proxyPay') return '较上期（代采商品支付金额）';
+    if (sortKey === 'platformTotal') return '较上期（平台分配所得合计）';
+    return '较上期（零售支付成交额）';
+  }
+
+  function unifiedSortValue(row, sortKey) {
+    var v = row[sortKey];
+    if (v == null || v !== v) return Number.NEGATIVE_INFINITY;
+    return v;
+  }
+
+  function platformCellHtml(amount, opts) {
+    opts = opts || {};
+    if (amount == null) {
+      return (
+        '—<div class="ldb-sub">' +
+        (opts.pending > 0 ? '结算未形成' : opts.emptyTip || '结果未形成') +
+        '</div>'
+      );
+    }
+    return Biz.money(amount) + (opts.partial ? '<div class="ldb-sub">部分已结算</div>' : '');
+  }
+
+  function marginCellHtml(amount, rate, pending, hasBiz) {
+    if (!hasBiz) return '—';
+    if (amount == null) {
+      return '—<div class="ldb-sub">' + (pending ? '成本未齐' : '毛利率 —') + '</div>';
+    }
+    return (
+      Biz.money(amount) +
+      '<div class="ldb-sub">' +
+      (rate == null ? '毛利率 —' : '毛利率 ' + Biz.pctText(rate)) +
+      '</div>'
+    );
+  }
+
+  function renderUnifiedStoreThead(sortKey) {
+    var deltaTh = unifiedSortDeltaLabel(sortKey);
+    return (
+      '<thead>' +
+      '<tr class="ldb-th-group">' +
+      '<th colspan="5">基础信息</th>' +
+      '<th colspan="3">零售经营</th>' +
+      '<th colspan="3">代采进货</th>' +
+      '<th colspan="4">平台分配所得</th>' +
+      '<th rowspan="2" class="ldb-col-sticky-right">操作</th>' +
+      '</tr>' +
+      '<tr class="ldb-th-sub">' +
+      '<th class="num ldb-col-sticky-left">排名</th>' +
+      '<th class="ldb-col-sticky-left ldb-col-sticky-left--2">门店</th>' +
+      '<th>事业线</th><th>品牌</th>' +
+      '<th class="num is-sort-col">' +
+      Biz.esc(deltaTh) +
+      '</th>' +
+      '<th class="num' +
+      (sortKey === 'retailPay' ? ' is-sort-col' : '') +
+      '">支付成交额</th>' +
+      '<th class="num">支付主订单数</th>' +
+      '<th class="num">商品交易毛利</th>' +
+      '<th class="num' +
+      (sortKey === 'proxyPay' ? ' is-sort-col' : '') +
+      '">商品支付金额</th>' +
+      '<th class="num">运费支付金额</th>' +
+      '<th class="num">支付主订单数</th>' +
+      '<th class="num">零售商品所得</th>' +
+      '<th class="num">代采商品所得</th>' +
+      '<th class="num">代采运费所得</th>' +
+      '<th class="num' +
+      (sortKey === 'platformTotal' ? ' is-sort-col' : '') +
+      '">所得合计</th>' +
+      '</tr></thead>'
+    );
+  }
+
+  function renderUnifiedStoreRow(r, rankNo, sortKey, detailHref) {
+    var retailHas = !!r.retailHas || Number(r.retailOrders) > 0;
+    var proxyHas = !!r.proxyHas || Number(r.proxyOrders) > 0;
+    var proxyFreight = r.proxyFreight == null ? 0 : r.proxyFreight;
+
+    var delta =
+      sortKey === 'proxyPay'
+        ? Biz.deltaPack(r.proxyPay, r.proxyPayPrev)
+        : sortKey === 'platformTotal'
+          ? Biz.deltaPack(r.platformTotal, r.platformTotalPrev)
+          : Biz.deltaPack(r.retailPay, r.retailPayPrev);
+
+    return (
+      '<tr data-store-id="' +
+      Biz.esc(r.storeId) +
+      '">' +
+      '<td class="num ldb-rank-no ldb-col-sticky-left">' +
+      rankNo +
+      '</td>' +
+      '<td class="ldb-col-sticky-left ldb-col-sticky-left--2">' +
+      Biz.esc(r.storeName) +
+      '</td>' +
+      '<td>' +
+      Biz.esc(r.line) +
+      '</td><td>' +
+      Biz.esc(r.brand) +
+      '</td>' +
+      '<td class="num ldb-delta-cell is-sort-col">' +
+      Biz.formatDelta(delta, true, true) +
+      '</td>' +
+      '<td class="num' +
+      (sortKey === 'retailPay' ? ' is-sort-col' : '') +
+      '">' +
+      Biz.money(r.retailPay == null ? 0 : r.retailPay) +
+      '</td>' +
+      '<td class="num">' +
+      Biz.intText(r.retailOrders == null ? 0 : r.retailOrders) +
+      '</td>' +
+      '<td class="num">' +
+      marginCellHtml(r.retailMargin, r.retailMarginRate, r.retailMarginPending, retailHas) +
+      '</td>' +
+      '<td class="num' +
+      (sortKey === 'proxyPay' ? ' is-sort-col' : '') +
+      '">' +
+      Biz.money(r.proxyPay == null ? 0 : r.proxyPay) +
+      '</td>' +
+      '<td class="num">' +
+      Biz.money(proxyFreight) +
+      '</td>' +
+      '<td class="num">' +
+      Biz.intText(r.proxyOrders == null ? 0 : r.proxyOrders) +
+      '</td>' +
+      '<td class="num">' +
+      platformCellHtml(r.platformRetail, {
+        partial: r.platformRetailPartial,
+        pending: r.platformRetailSettlePending,
+        emptyTip: retailHas ? '结果未形成' : '无零售成交'
+      }) +
+      '</td>' +
+      '<td class="num">' +
+      platformCellHtml(r.platformProxyGoods, {
+        partial: false,
+        pending: r.platformProxySettlePending,
+        emptyTip: proxyHas ? '结果未形成' : '无代采成交'
+      }) +
+      '</td>' +
+      '<td class="num">' +
+      platformCellHtml(r.platformProxyFreight, {
+        partial: false,
+        pending: r.platformProxySettlePending,
+        emptyTip: proxyHas ? '结果未形成' : '无代采成交'
+      }) +
+      '</td>' +
+      '<td class="num' +
+      (sortKey === 'platformTotal' ? ' is-sort-col' : '') +
+      '">' +
+      platformCellHtml(r.platformTotal, {
+        partial: r.platformTotalPartial,
+        pending: r.settlePending,
+        emptyTip: '结果未形成'
+      }) +
+      '</td>' +
+      '<td class="ldb-col-sticky-right"><a href="' +
+      detailHref +
+      '">详情</a></td></tr>'
+    );
+  }
+
+  function renderUnifiedStoreTableHtml(rows, opts) {
+    opts = opts || {};
+    var sortKey = opts.sortKey || 'retailPay';
+    var startRank = opts.startRank || 1;
+    var emptyText = opts.emptyText || '暂无符合条件的门店';
+    var body =
+      rows && rows.length
+        ? rows
+            .map(function (r, idx) {
+              var href =
+                typeof opts.detailHref === 'function'
+                  ? opts.detailHref(r)
+                  : opts.detailHref || '#';
+              return renderUnifiedStoreRow(r, startRank + idx, sortKey, href);
+            })
+            .join('')
+        : '<tr><td colspan="16"><div class="ldb-empty">' + Biz.esc(emptyText) + '</div></td></tr>';
+    return (
+      '<div class="ldb-table-wrap ldb-table-wrap--rank"><table class="ldb-table ldb-table--unified" data-rank-sort="' +
+      Biz.esc(sortKey) +
+      '">' +
+      renderUnifiedStoreThead(sortKey) +
+      '<tbody>' +
+      body +
+      '</tbody></table></div>'
+    );
+  }
+
   global.MdmDataBizUi = {
     $: $,
     readStateFromUrl: readStateFromUrl,
@@ -827,6 +1060,10 @@
     normalizePeriodKey: normalizePeriodKey,
     normalizePlatScope: normalizePlatScope,
     openGlossary: openGlossary,
+    UNIFIED_SORT_OPTIONS: UNIFIED_SORT_OPTIONS,
+    unifiedSortDeltaLabel: unifiedSortDeltaLabel,
+    unifiedSortValue: unifiedSortValue,
+    renderUnifiedStoreTableHtml: renderUnifiedStoreTableHtml,
     showDrawer: showDrawer,
     closeDrawer: closeDrawer,
     showDetailTable: showDetailTable,

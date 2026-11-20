@@ -77,6 +77,8 @@
       settleStatus: '已结算',
       commissionCreateTime: at(0, '10:20:00'),
       creditTime: at(0, '18:00:00'),
+      orderStatus: '已完成',
+      fulfillStatus: '已完成',
       goods: [{ name: '有机生菜', paid: 128.5, test: false }]
     },
     /* 首购仅1次 */
@@ -97,6 +99,8 @@
       settleStatus: '待结算',
       commissionCreateTime: at(0, '11:10:00'),
       creditTime: '',
+      orderStatus: '待收货',
+      fulfillStatus: '待收货',
       goods: [{ name: '直播专享水果盒', paid: 59.9, test: false }]
     },
     /* 首购≥2次（仍属首购） */
@@ -117,6 +121,8 @@
       settleStatus: '已结算',
       commissionCreateTime: at(-1, '09:40:00'),
       creditTime: at(-1, '20:00:00'),
+      orderStatus: '已完成',
+      fulfillStatus: '已完成',
       goods: [{ name: '鸡蛋礼盒', paid: 86.0, test: false }]
     },
     {
@@ -136,6 +142,9 @@
       settleStatus: '结算中',
       commissionCreateTime: at(0, '15:30:00'),
       creditTime: '',
+      orderStatus: '已完成',
+      fulfillStatus: '已完成',
+      aftersaleStatus: '部分退款',
       goods: [{ name: '鲜牛奶', paid: 45.0, test: false }]
     },
     /* 同人跨商城+直播 */
@@ -450,7 +459,9 @@
       freightPaid: 28.0,
       goodsRefund: 0,
       freightRefund: 0,
-      refundTime: ''
+      refundTime: '',
+      orderStatus: '已完成',
+      goods: [{ name: '冷丰锅贴半成品箱', paid: 860.0 }]
     },
     {
       id: 'P-2002',
@@ -459,7 +470,9 @@
       freightPaid: 18.0,
       goodsRefund: 40.0,
       freightRefund: 0,
-      refundTime: at(-1, '16:00:00')
+      refundTime: at(-1, '16:00:00'),
+      orderStatus: '已完成',
+      goods: [{ name: '调味料组合装', paid: 420.0 }]
     },
     {
       id: 'P-2003',
@@ -468,7 +481,9 @@
       freightPaid: 35.0,
       goodsRefund: 0,
       freightRefund: 0,
-      refundTime: ''
+      refundTime: '',
+      orderStatus: '配送中',
+      goods: [{ name: '冷冻食材周配', paid: 700.0 }, { name: '餐具耗材', paid: 400.0 }]
     },
     {
       id: 'P-2004',
@@ -477,173 +492,38 @@
       freightPaid: 22.0,
       goodsRefund: 0,
       freightRefund: 0,
-      refundTime: ''
+      refundTime: '',
+      orderStatus: '已完成',
+      goods: [{ name: '食用油整箱', paid: 650.0 }]
+    },
+    {
+      id: 'P-2005',
+      payTime: at(-1, '14:20:00'),
+      goodsPaid: 318.0,
+      freightPaid: 12.0,
+      goodsRefund: 0,
+      freightRefund: 0,
+      refundTime: '',
+      orderStatus: '待发货',
+      goods: [{ name: '酱料试用装', paid: 318.0 }]
+    },
+    {
+      id: 'P-2006',
+      payTime: at(-3, '16:40:00'),
+      goodsPaid: 520.0,
+      freightPaid: 20.0,
+      goodsRefund: 0,
+      freightRefund: 0,
+      refundTime: '',
+      orderStatus: '已完成',
+      goods: [{ name: '冷鲜肉卷', paid: 520.0 }]
     }
   ];
 
-  /**
-   * 第三方结算：按当前门店实际接入的模块／渠道展示。
-   * 演示门店已接入堂食、外卖（淘宝闪购／美团外卖／京东秒送）、团购核销、储值。
-   * 账单按结算周期结束日整单筛选，金额为实际将支付给门店的结算金额（不称为已到账）。
-   */
   if(global.BusinessReportFixtures) global.BusinessReportFixtures.rows.forEach(function(r){
-    if(r.biz==='retail') RETAIL.push({id:r.id,channel:r.channel,customerId:'LINK-C',payTime:r.pay,goodsPaid:r.paid,freightPaid:0,refundGoods:r.refund||0,refundTime:r.refundAt||'',commission:r.store,settleStatus:'已结算',commissionCreateTime:r.settleAt,creditTime:r.settleAt,goods:[{name:r.name,paid:r.paid,test:false}]});
-    else PROXY.push({id:r.id,payTime:r.pay,goodsPaid:r.paid,freightPaid:r.freight||0,goodsRefund:0,freightRefund:0,refundTime:''});
+    if(r.biz==='retail') RETAIL.push({id:r.id,channel:r.channel,customerId:'LINK-C',payTime:r.pay,goodsPaid:r.paid,freightPaid:0,refundGoods:r.refund||0,refundTime:r.refundAt||'',commission:r.store,settleStatus:'已结算',commissionCreateTime:r.settleAt,creditTime:r.settleAt,orderStatus:'已完成',fulfillStatus:'已完成',goods:[{name:r.name,paid:r.paid,test:false}]});
+    else PROXY.push({id:r.id,payTime:r.pay,goodsPaid:r.paid,freightPaid:r.freight||0,goodsRefund:0,freightRefund:0,refundTime:'',orderStatus:'已完成',goods:[{name:r.name||'代采商品',paid:r.paid}]});
   });
-  var TP_MODULE_DEFS = [
-    { id: 'dineIn', name: '堂食' },
-    {
-      id: 'takeout',
-      name: '外卖',
-      channels: [
-        { id: 'taobao', name: '淘宝闪购' },
-        { id: 'meituan', name: '美团外卖' },
-        { id: 'jd', name: '京东秒送' }
-      ]
-    },
-    { id: 'groupon', name: '团购核销' },
-    { id: 'storedValue', name: '储值' }
-  ];
-
-  /* 本店接入能力：未列出的模块／渠道不展示 */
-  var TP_CONNECTED = {
-    dineIn: true,
-    takeout: ['taobao', 'meituan', 'jd'],
-    groupon: true,
-    storedValue: true
-  };
-
-  var TP_BILLS = [
-    {
-      id: 'TP-DI-01',
-      module: 'dineIn',
-      channel: '',
-      amount: 1280.0,
-      cycleStart: shiftKey(DEMO_TODAY, -1),
-      cycleEnd: shiftKey(DEMO_TODAY, -1)
-    },
-    {
-      id: 'TP-MT-01',
-      module: 'takeout',
-      channel: 'meituan',
-      amount: 1860.5,
-      cycleStart: shiftKey(DEMO_TODAY, -1),
-      cycleEnd: shiftKey(DEMO_TODAY, -1)
-    },
-    {
-      id: 'TP-TB-01',
-      module: 'takeout',
-      channel: 'taobao',
-      amount: 960.0,
-      cycleStart: shiftKey(DEMO_TODAY, -1),
-      cycleEnd: shiftKey(DEMO_TODAY, -1)
-    },
-    {
-      id: 'TP-JD-01',
-      module: 'takeout',
-      channel: 'jd',
-      amount: 720.0,
-      cycleStart: shiftKey(DEMO_TODAY, -2),
-      cycleEnd: shiftKey(DEMO_TODAY, -2)
-    },
-    {
-      id: 'TP-MT-02',
-      module: 'takeout',
-      channel: 'meituan',
-      amount: 2100.0,
-      cycleStart: shiftKey(DEMO_TODAY, -7),
-      cycleEnd: shiftKey(DEMO_TODAY, -7)
-    },
-    {
-      id: 'TP-GP-01',
-      module: 'groupon',
-      channel: '',
-      amount: 450.0,
-      cycleStart: shiftKey(DEMO_TODAY, -1),
-      cycleEnd: shiftKey(DEMO_TODAY, -1)
-    },
-    {
-      id: 'TP-GP-02',
-      module: 'groupon',
-      channel: '',
-      amount: 320.0,
-      cycleStart: shiftKey(DEMO_TODAY, -3),
-      cycleEnd: shiftKey(DEMO_TODAY, -3)
-    },
-    {
-      id: 'TP-SV-01',
-      module: 'storedValue',
-      channel: '',
-      amount: 680.0,
-      cycleStart: shiftKey(DEMO_TODAY, -1),
-      cycleEnd: shiftKey(DEMO_TODAY, -1)
-    },
-    {
-      id: 'TP-SV-02',
-      module: 'storedValue',
-      channel: '',
-      amount: 520.0,
-      cycleStart: shiftKey(DEMO_TODAY, -5),
-      cycleEnd: shiftKey(DEMO_TODAY, -5)
-    }
-  ];
-
-  function readTpMode() {
-    var q = typeof location !== 'undefined' ? location.search || '' : '';
-    if (/(?:\?|&)tp=(?:0|none|off)(?:&|$)/.test(q)) return 'none';
-    try {
-      var v = localStorage.getItem('sa_biz_dc_tp_v1');
-      if (v === 'none' || v === 'on') return v;
-    } catch (e) { /* ignore */ }
-    return 'on';
-  }
-
-  function tpChannelName(channelId) {
-    var map = { taobao: '淘宝闪购', meituan: '美团外卖', jd: '京东秒送' };
-    return map[channelId] || channelId || '';
-  }
-
-  function tpModuleName(moduleId) {
-    var found = TP_MODULE_DEFS.filter(function (m) {
-      return m.id === moduleId;
-    })[0];
-    return found ? found.name : moduleId;
-  }
-
-  /** 当前门店已接入的第三方模块（不含未开通） */
-  function getTpConnectedModules() {
-    if (readTpMode() === 'none') return [];
-    return TP_MODULE_DEFS.map(function (def) {
-      var cap = TP_CONNECTED[def.id];
-      if (!cap) return null;
-      if (def.id === 'takeout') {
-        var chIds = Array.isArray(cap) ? cap : [];
-        if (!chIds.length) return null;
-        var channels = (def.channels || []).filter(function (c) {
-          return chIds.indexOf(c.id) >= 0;
-        });
-        if (!channels.length) return null;
-        return { id: def.id, name: def.name, channels: channels };
-      }
-      return { id: def.id, name: def.name, channels: null };
-    }).filter(Boolean);
-  }
-
-  function mapTpBill(b) {
-    return {
-      id: b.id,
-      module: b.module,
-      moduleName: tpModuleName(b.module),
-      channel: b.channel || '',
-      channelName: b.channel ? tpChannelName(b.channel) : '',
-      amount: round2(b.amount),
-      cycleStart: b.cycleStart,
-      cycleEnd: b.cycleEnd,
-      cycleLabel:
-        b.cycleStart === b.cycleEnd ? b.cycleEnd : b.cycleStart + ' ~ ' + b.cycleEnd
-    };
-  }
-
   function effectiveGoodsPaid(o) {
     if (o.freeGift || o.pointsOnly || o.zeroPromo || o.pointsCashMix) return 0;
     var sum = 0;
@@ -796,8 +676,11 @@
     var c = Number(cur) || 0;
     var p = Number(prev) || 0;
     var abs = round2(c - p);
-    var pct = p === 0 ? null : round2(((c - p) / Math.abs(p)) * 100);
-    return { abs: abs, pct: pct, up: abs > 0, flat: abs === 0, comparable: p !== 0 || c === 0 };
+    if (p === 0) {
+      return { abs: abs, pct: null, up: abs > 0, flat: abs === 0, comparable: false, zeroBase: true };
+    }
+    var pct = round2(((c - p) / Math.abs(p)) * 100);
+    return { abs: abs, pct: pct, up: abs > 0, flat: abs === 0, comparable: true, zeroBase: false };
   }
 
   function retailMetrics(bounds, channel, viewMode) {
@@ -1004,148 +887,58 @@
     };
   }
 
-  function tpBillsInBounds(bounds) {
-    return TP_BILLS.filter(function (b) {
-      var end = parseDay(b.cycleEnd);
-      if (!end) return false;
-      var t = end.getTime();
-      return t >= bounds.startMs && t < bounds.endMs;
-    });
-  }
-
   /**
-   * @param bounds 统计区间
-   * @param moduleId 模块 id；空则返回全部已接入模块摘要
-   * @param channelId 外卖渠道；仅 takeout 有效，'all' 或空表示全部已纳入渠道
+   * 平台零售支付成交额（一期仅商城＋直播；不含POS、代采进货、佣金）。
    */
-  function thirdPartyMetrics(bounds, moduleId, channelId) {
-    var connectedMods = getTpConnectedModules();
-    var tip =
-      '第三方结算：按结算周期结束日筛选整张账单，列表完整展示周期，金额不按天拆分。' +
-      '金额为实际将支付给门店的金额，不推算成交额／订单数／客户数，不称为已到账，不与冷丰零售成交额或佣金相加。' +
-      '堂食、外卖、团购核销、储值分模块展示；外卖可按淘宝闪购／美团外卖／京东秒送筛选。储值金额不称为销售收入。';
-
-    if (!connectedMods.length) {
-      return {
-        connected: false,
-        modules: [],
-        activeModule: null,
-        bills: [],
-        amount: null,
-        totalAmount: null,
-        filterRuleTip: tip
-      };
-    }
-
-    var periodAll = tpBillsInBounds(bounds).filter(function (b) {
-      return connectedMods.some(function (m) {
-        if (m.id !== b.module) return false;
-        if (m.id === 'takeout' && b.channel) {
-          return m.channels.some(function (c) {
-            return c.id === b.channel;
-          });
+  function storeRevenueMetrics(bounds) {
+    var retail = retailMetrics(bounds, 'all', 'pay');
+    var mall = retail.mall || { paidAmount: 0, orderCount: 0 };
+    var live = retail.live || { paidAmount: 0, orderCount: 0 };
+    var platform = {
+      id: 'platformRetail',
+      name: '平台零售',
+      status: 'ok',
+      amount: retail.paidAmount,
+      refundAmount: retail.refundAmount,
+      netAmount: retail.netPaidAmount,
+      children: [
+        {
+          id: 'mall',
+          name: '商城',
+          status: mall.paidAmount > 0 || mall.orderCount > 0 ? 'ok' : 'zero',
+          amount: mall.paidAmount,
+          orderCount: mall.orderCount
+        },
+        {
+          id: 'live',
+          name: '直播',
+          status: live.paidAmount > 0 || live.orderCount > 0 ? 'ok' : 'zero',
+          amount: live.paidAmount,
+          orderCount: live.orderCount
         }
-        return true;
-      });
-    });
-
-    var modules = connectedMods.map(function (m) {
-      var bills = periodAll.filter(function (b) {
-        return b.module === m.id;
-      });
-      var amount = bills.length
-        ? round2(
-            bills.reduce(function (s, b) {
-              return s + (Number(b.amount) || 0);
-            }, 0)
-          )
-        : null;
-      var channelSummaries = null;
-      if (m.channels) {
-        channelSummaries = m.channels.map(function (c) {
-          var cb = bills.filter(function (b) {
-            return b.channel === c.id;
-          });
-          return {
-            id: c.id,
-            name: c.name,
-            amount: cb.length
-              ? round2(
-                  cb.reduce(function (s, b) {
-                    return s + (Number(b.amount) || 0);
-                  }, 0)
-                )
-              : null,
-            billCount: cb.length
-          };
-        });
-      }
-      return {
-        id: m.id,
-        name: m.name,
-        channels: m.channels,
-        channelSummaries: channelSummaries,
-        amount: amount,
-        hasBills: bills.length > 0,
-        billCount: bills.length
-      };
-    });
-
-    var totalAmount = periodAll.length
-      ? round2(
-          periodAll.reduce(function (s, b) {
-            return s + (Number(b.amount) || 0);
-          }, 0)
-        )
-      : null;
-
-    var activeId = moduleId;
-    if (!activeId || !modules.some(function (m) {
-      return m.id === activeId;
-    })) {
-      activeId = modules[0].id;
-    }
-    var active = modules.filter(function (m) {
-      return m.id === activeId;
-    })[0];
-
-    var ch = channelId || 'all';
-    if (active.id === 'takeout' && ch !== 'all') {
-      var okCh = (active.channels || []).some(function (c) {
-        return c.id === ch;
-      });
-      if (!okCh) ch = 'all';
-    } else if (active.id !== 'takeout') {
-      ch = 'all';
-    }
-
-    var viewBills = periodAll.filter(function (b) {
-      if (b.module !== active.id) return false;
-      if (active.id === 'takeout' && ch !== 'all') return b.channel === ch;
-      return true;
-    });
-    var viewAmount = viewBills.length
-      ? round2(
-          viewBills.reduce(function (s, b) {
-            return s + (Number(b.amount) || 0);
-          }, 0)
-        )
-      : null;
+      ]
+    };
 
     return {
-      connected: true,
-      modules: modules,
-      activeModule: active,
-      takeoutChannel: ch,
-      amount: viewAmount,
-      hasBills: viewBills.length > 0,
-      bills: viewBills.map(mapTpBill),
-      totalAmount: totalAmount,
-      filterRuleTip: tip
+      heroTitle: '平台零售支付成交额',
+      coverNote: '',
+      partial: false,
+      amount: retail.paidAmount,
+      refundAmount: retail.refundAmount,
+      netAmount: retail.netPaidAmount,
+      channels: [platform],
+      platformRetail: platform,
+      sourceNote: '仅含平台零售（商城、直播）支付成交；代采进货、佣金不计入。'
     };
   }
 
   function metricValue(bounds, metric, channel) {
+    if (metric === 'revenue' || metric === 'revenueNet' || metric === 'revenueRefund') {
+      var rev = storeRevenueMetrics(bounds);
+      if (metric === 'revenueNet') return rev.netAmount;
+      if (metric === 'revenueRefund') return rev.refundAmount;
+      return rev.amount;
+    }
     if (metric === 'paid' || metric === 'orders' || metric === 'users') {
       var m = retailMetrics(bounds, channel || 'all', 'pay');
       if (metric === 'paid') return m.paidAmount;
@@ -1219,6 +1012,21 @@
               return s + commissionOrZero(o);
             }, 0)
           );
+        } else if (metric === 'revenue' || metric === 'revenueNet' || metric === 'revenueRefund') {
+          /* 小时粒度：平台零售按支付小时 */
+          var retailHour = round2(
+            rows.reduce(function (s, o) {
+              return s + effectiveGoodsPaid(o);
+            }, 0)
+          );
+          var retailRefundHour = round2(
+            rows.reduce(function (s, o) {
+              return s + (Number(o.refundGoods) || 0);
+            }, 0)
+          );
+          if (metric === 'revenueRefund') v = retailRefundHour;
+          else if (metric === 'revenueNet') v = round2(retailHour - retailRefundHour);
+          else v = retailHour;
         }
         points.push({ key: dayKey + ' ' + pad2(hour), label: pad2(hour) + ':00', value: v });
       }
@@ -1266,16 +1074,30 @@
     var cmp = compareBounds(bounds);
     var cur = retailMetrics(bounds, 'all', 'pay');
     var prev = retailMetrics(cmp, 'all', 'pay');
+    var revenue = storeRevenueMetrics(bounds);
+    var revenuePrev = storeRevenueMetrics(cmp);
     var cust = customerMetrics(bounds);
     var custPrev = customerMetrics(cmp);
     var proxy = proxyMetrics(bounds);
-    var tp = thirdPartyMetrics(bounds);
     return {
       store: STORE,
       updatedAt: UPDATED_AT,
       bounds: bounds,
       compareLabel: cmp.label,
       compareRange: { startKey: cmp.startKey, endKey: cmp.endKey },
+      revenue: {
+        heroTitle: revenue.heroTitle,
+        coverNote: revenue.coverNote,
+        partial: revenue.partial,
+        amount: revenue.amount,
+        refundAmount: revenue.refundAmount,
+        netAmount: revenue.netAmount,
+        amountDelta: deltaPack(revenue.amount, revenuePrev.amount),
+        refundDelta: deltaPack(revenue.refundAmount, revenuePrev.refundAmount),
+        netDelta: deltaPack(revenue.netAmount, revenuePrev.netAmount),
+        channels: revenue.channels,
+        sourceNote: revenue.sourceNote
+      },
       retail: {
         paidAmount: cur.paidAmount,
         paidDelta: deltaPack(cur.paidAmount, prev.paidAmount),
@@ -1285,6 +1107,8 @@
         aovDelta: deltaPack(cur.aov || 0, prev.aov || 0),
         storeIncome: cur.storeIncome,
         incomeDelta: deltaPack(cur.storeIncome, prev.storeIncome),
+        refundAmount: cur.refundAmount,
+        netPaidAmount: cur.netPaidAmount,
         mall: cur.mall,
         live: cur.live
       },
@@ -1296,16 +1120,14 @@
         payUserDelta: deltaPack(cust.payUserCount, custPrev.payUserCount)
       },
       proxy: proxy,
-      thirdParty: tp,
       tips: {
         overview:
-          '总览优先看本店零售支付成交额及变化。零售仅含商城、直播有效销售；不含代采进货、不含第三方平台结算账单。',
-        retailPaid:
-          '零售支付成交额＝本店商城、直播有效销售订单的货币实付（目前零售无客户运费）。免费赠品／纯积分／零元营销不计；积分＋现金补差首期不纳入正常成交、购买人数、订单数、首购及购买频次统计。',
-        storeIncome: '佣金＝结算明细中收款角色为当前门店的份额，不等于净利润，不含店长个人 BD／主播所得，不含第三方平台结算金额。',
-        thirdParty: tp.filterRuleTip || '',
-        proxy:
-          '代采属于门店采购支出，独立于第三方结算，不可与零售成交额相加作为营业额。进货支付总额＝进货商品款＋运费。本期最近进货日仅取所选周期内有效进货订单。「最近一次进货（全部历史）」另标，不与本期混用。平均进货间隔＝（本期最近进货日－本期最早进货日）÷（本期进货天数－1），自然日去重；少于2个进货日显示—。'
+          '平台零售支付成交额为本店商城、直播订单的支付成交额合计。',
+        revenue:
+          '支付成交额为所选周期内支付成功订单的实付金额之和。退款金额为关联至这些支付订单的退款；退款后净成交额＝支付成交额−退款金额。代采进货、佣金不计入。',
+        retailPaid: '商城、直播渠道成交均计入平台零售。',
+        storeIncome: '本店获得的佣金，以系统结算记录为准。',
+        proxy: '进货支付总额为采购支出（商品款＋运费），不计入平台零售支付成交额；商品款、运费、进货天数等详见进货数据页。'
       }
     };
   }
@@ -1346,19 +1168,15 @@
             return s + commissionOrZero(o);
           }, 0)
         ),
-        tip:
-          '仅当前门店收款角色份额，不含店长个人 BD／主播等所得，不等于净利润。预估佣金与已形成结算分别展示。跳转佣金明细时保留周期，并可按支付时间／结算时间查看。'
+        tip: '本店获得的佣金，以系统结算记录为准。'
       },
-      thirdParty: thirdPartyMetrics(bounds),
       tips: {
         viewPay:
-          '「按支付订单归属」：先取周期内支付成功订单，再关联截至数据更新时间的退款及门店佣金。支付成交额保留原支付金额，退款另列。支付订单数按支付主订单去重。',
+          '「支付订单归属」：先取周期内支付成功订单，再关联退款。支付成交额保留原支付金额，退款另列。',
         viewEvent:
-          '「按发生日期」：支付按支付成功时间；退款按退款完成时间；佣金按佣金结算单创建时间。当期净成交额＝当期支付−当期成功退款。',
-        proxy:
-          '代采是采购支出，不进入第三方结算。进货商品款与运费分开展示，进货支付总额＝商品款＋运费。本期最近进货日仅取所选周期；平均进货间隔＝（本期最近－本期最早）÷（本期进货天数－1），自然日去重，少于2个进货日显示—。',
-        thirdParty:
-          '第三方结算分堂食、外卖、团购核销、储值；仅展示本店已配置模块。外卖可按淘宝闪购／美团外卖／京东秒送筛选，「全部」为已纳入渠道合计且不重复累计。按结算周期结束日整单筛选。金额为实际将支付给门店的结算金额，不称为已到账；不推算成交额／订单数／客户数；储值不称为销售收入。代采进货不属于本分类。'
+          '「发生日期」：支付按支付成功时间，退款按退款完成时间。当期净成交额＝当期支付−当期成功退款。',
+        proxy: '进货支付总额为采购支出（商品款＋运费），不计入平台零售支付成交额。',
+        retailTab: '平台零售仅含商城、直播成交。'
       }
     };
   }
@@ -1505,12 +1323,19 @@
     buildTrend: buildTrend,
     listCommission: listCommission,
     commissionSummary: commissionSummary,
+    listRetailOrders: function (bounds, channel, view) {
+      return RETAIL.filter(function (o) {
+        return isCountableRetail(o) && (!channel || channel === 'all' || o.channel === channel) &&
+          (inBounds(o.payTime, bounds) || (view === 'event' && Number(o.refundGoods) > 0 && inBounds(o.refundTime, bounds)));
+      }).slice().sort(function (a, b) {
+        return b.payTime.localeCompare(a.payTime) || a.id.localeCompare(b.id);
+      });
+    },
     retailMetrics: retailMetrics,
+    storeRevenueMetrics: storeRevenueMetrics,
     customerMetrics: customerMetrics,
-    readTpMode: readTpMode,
-    getTpConnectedModules: getTpConnectedModules,
-    thirdPartyMetrics: thirdPartyMetrics,
     OPEN_QUESTIONS: [],
-    DATA_SOURCE_NOTE: '页面数值为演示数据，非生产系统接入结果；统计规则按本期产品口径展示。'
+    /* 开发备注勿写入 DATA_SOURCE_NOTE，避免弹层「通用规则」展示给店长 */
+    DATA_SOURCE_NOTE: ''
   };
 })(window);

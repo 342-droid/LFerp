@@ -123,7 +123,16 @@
 
     host.innerHTML = data.stores
       .map(function (s) {
-        var href = 'biz-center.html?' + qsKeep({ storeId: s.id });
+        var sid =
+          window.StoreAppBizSession && StoreAppBizSession.canonicalizeStoreId
+            ? StoreAppBizSession.canonicalizeStoreId(s.id) || s.id
+            : s.id;
+        var href =
+          (window.StoreAppBizSession && StoreAppBizSession.bdStoreHref
+            ? StoreAppBizSession.bdStoreHref(sid, { returnTo: 'stores', range: '7d' })
+            : 'biz-bd-store.html?role=bd&from=bd-app&storeId=' +
+              encodeURIComponent(sid) +
+              '&returnTo=stores&range=7d');
         var tip = alertSummary(s);
         return (
           '<a class="sa-bd-card" href="' +
@@ -202,7 +211,16 @@
 
     host.innerHTML = data.alerts
       .map(function (a) {
-        var href = 'biz-center.html?' + qsKeep({ storeId: a.storeId });
+        var alertSid =
+          window.StoreAppBizSession && StoreAppBizSession.canonicalizeStoreId
+            ? StoreAppBizSession.canonicalizeStoreId(a.storeId) || a.storeId
+            : a.storeId;
+        var href =
+          window.StoreAppBizSession && StoreAppBizSession.bdStoreHref
+            ? StoreAppBizSession.bdStoreHref(alertSid, { returnTo: 'center' })
+            : 'biz-bd-store.html?role=bd&from=bd-app&storeId=' +
+              encodeURIComponent(alertSid) +
+              '&returnTo=center';
         return (
           '<a class="sa-bd-card" href="' +
           href +

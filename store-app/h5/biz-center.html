@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>数据中心 · 丰银宝</title>
-  <link rel="stylesheet" href="../css/store-app.css?v=20261119-fix6">
-  <link rel="stylesheet" href="../css/store-app-biz-report.css?v=20261119-fix6">
-  <link rel="stylesheet" href="../css/store-app-biz-datacenter.css?v=20261119-fix6">
+  <link rel="stylesheet" href="../css/store-app.css?v=20261120-p1fix">
+  <link rel="stylesheet" href="../css/store-app-biz-report.css?v=20261120-p1fix">
+  <link rel="stylesheet" href="../css/store-app-biz-datacenter.css?v=20261120-p1fix">
 </head>
 <body class="store-app-body">
   <div class="sa-shell sa-rpt-shell">
@@ -28,53 +28,56 @@
               <span class="sa-dc-help__sr">指标说明</span>
             </button>
           </div>
-          <div class="sa-dc-ranges" id="dcRanges" role="tablist" aria-label="统计周期"></div>
-          <p class="sa-dc-period" id="dcPeriod">统计 —</p>
         </div>
       </div>
 
-      <div class="sa-rpt-scroll">
-        <p class="sa-dc-asof" id="dcAsOf">数据截至 —</p>
+      <div class="sa-rpt-scroll" id="dcScroll">
+        <div class="sa-dc-filterbar" aria-label="公共筛选">
+          <div class="sa-dc-ranges" id="dcRanges" role="tablist" aria-label="统计周期"></div>
+          <p class="sa-dc-period" id="dcPeriod">统计 —</p>
+          <p class="sa-dc-asof" id="dcAsOf">数据截至 —</p>
+          <p class="sa-dc-filterbar__tip">以下经营、进货、客户概况均按上方周期统计</p>
+        </div>
 
-        <section class="sa-dc-block" aria-label="经营摘要">
-          <button type="button" class="sa-dc-hero" id="dcPaidHero">
-            <div class="sa-dc-hero__t">零售支付成交额</div>
+        <section class="sa-dc-block" aria-label="平台零售">
+          <div class="sa-dc-block__hd">
+            <h2 class="sa-dc-block__title">平台零售</h2>
+            <a class="sa-dc-link" id="dcToOps" href="biz-ops.html?tab=retail">查看经营数据</a>
+          </div>
+          <p class="sa-dc-cover" id="dcCoverNote" hidden></p>
+          <div class="sa-dc-hero sa-dc-hero--soft" id="dcPaidHero">
+            <div class="sa-dc-hero__t" id="dcHeroTitle">平台零售支付成交额</div>
             <div class="sa-dc-hero__v" id="dcPaid">0<span class="sa-dc-hero__unit">元</span></div>
             <div class="sa-dc-hero__foot" id="dcPaidCmp"></div>
-          </button>
+          </div>
           <div class="sa-dc-grid sa-dc-grid--3">
             <div class="sa-dc-metric">
-              <div class="sa-dc-metric__t">支付订单数（单）</div>
-              <div class="sa-dc-metric__v" id="dcOrders">0</div>
-              <div class="sa-dc-metric__foot" id="dcOrdersCmp"></div>
+              <div class="sa-dc-metric__t">退款金额（元）</div>
+              <div class="sa-dc-metric__v" id="dcRefund">0</div>
+              <div class="sa-dc-metric__foot" id="dcRefundCmp"></div>
             </div>
             <div class="sa-dc-metric">
-              <div class="sa-dc-metric__t">客单价（元）</div>
-              <div class="sa-dc-metric__v" id="dcAov">—</div>
-              <div class="sa-dc-metric__foot" id="dcAovCmp"></div>
+              <div class="sa-dc-metric__t">退款后净成交额（元）</div>
+              <div class="sa-dc-metric__v" id="dcNet">0</div>
+              <div class="sa-dc-metric__foot" id="dcNetCmp"></div>
             </div>
-            <div class="sa-dc-metric">
+            <div class="sa-dc-metric sa-dc-metric--with-link">
               <div class="sa-dc-metric__t">佣金（元）</div>
               <div class="sa-dc-metric__v" id="dcIncome">0</div>
               <div class="sa-dc-metric__foot" id="dcIncomeCmp"></div>
+              <a class="sa-dc-link sa-dc-link--metric" id="dcToCommMetric" href="biz-commission.html">佣金明细</a>
             </div>
           </div>
-        </section>
-
-        <div class="sa-dc-entry">
-          <a class="sa-dc-entry__btn" id="dcToOps" href="biz-ops.html">经营数据<span>详情</span></a>
-          <a class="sa-dc-entry__btn" id="dcToOperate" href="biz-operate.html">运营数据<span>详情</span></a>
-        </div>
-
-        <section class="sa-dc-block" aria-label="零售趋势">
-          <div class="sa-dc-block__hd">
-            <h2 class="sa-dc-block__title">零售趋势</h2>
-            <div class="sa-dc-chip" id="dcTrendMetric" role="tablist">
-              <button type="button" class="sa-dc-chip__btn is-active" data-metric="paid">成交额</button>
-              <button type="button" class="sa-dc-chip__btn" data-metric="users">支付人数</button>
+          <div class="sa-dc-channel" id="dcChannelBody" aria-label="平台零售渠道构成"></div>
+          <div class="sa-dc-chart" id="dcTrendBox" style="margin-top:14px">
+            <div class="sa-dc-block__hd">
+              <h2 class="sa-dc-block__title" style="font-size:14px">成交额趋势</h2>
+              <div class="sa-dc-chip" id="dcTrendMetric" role="tablist">
+                <button type="button" class="sa-dc-chip__btn is-active" data-metric="revenue">支付成交额</button>
+                <button type="button" class="sa-dc-chip__btn" data-metric="revenueNet">净成交额</button>
+                <button type="button" class="sa-dc-chip__btn" data-metric="users">支付人数</button>
+              </div>
             </div>
-          </div>
-          <div class="sa-dc-chart" id="dcTrendBox">
             <div class="sa-dc-chart__meta">
               <span id="dcTrendUnit">单位：元</span>
               <button type="button" class="sa-dc-data-toggle" id="dcTrendDataBtn" hidden>查看数据</button>
@@ -88,10 +91,18 @@
           </div>
         </section>
 
-        <section class="sa-dc-block" aria-label="运营摘要">
+        <section class="sa-dc-block" aria-label="代采进货" id="dcProxySection">
           <div class="sa-dc-block__hd">
-            <h2 class="sa-dc-block__title">运营摘要</h2>
-            <a class="sa-dc-link" id="dcToOperate2" href="biz-operate.html">详情</a>
+            <h2 class="sa-dc-block__title">代采进货</h2>
+            <a class="sa-dc-link" id="dcToProxy" href="biz-ops.html?tab=proxy">查看进货数据</a>
+          </div>
+          <div id="dcProxySummary">—</div>
+        </section>
+
+        <section class="sa-dc-block" aria-label="客户概况">
+          <div class="sa-dc-block__hd">
+            <h2 class="sa-dc-block__title">客户概况</h2>
+            <a class="sa-dc-link" id="dcToOperate" href="biz-operate.html?tab=customers">查看运营数据</a>
           </div>
           <div class="sa-dc-grid sa-dc-grid--2">
             <div class="sa-dc-metric">
@@ -111,22 +122,6 @@
               <div class="sa-dc-metric__v" id="dcMulti">0</div>
             </div>
           </div>
-        </section>
-
-        <section class="sa-dc-block" aria-label="第三方结算" id="dcTpSection">
-          <div class="sa-dc-block__hd">
-            <h2 class="sa-dc-block__title">第三方结算</h2>
-            <a class="sa-dc-link" id="dcToTp" href="biz-ops.html?tab=tp">详情</a>
-          </div>
-          <div id="dcTpBody"></div>
-        </section>
-
-        <section class="sa-dc-block" aria-label="代采进货" id="dcProxySection">
-          <div class="sa-dc-block__hd">
-            <h2 class="sa-dc-block__title">代采进货</h2>
-            <a class="sa-dc-link" id="dcToProxy" href="biz-ops.html?tab=proxy">详情</a>
-          </div>
-          <div class="sa-dc-muted" id="dcProxySummary">—</div>
         </section>
       </div>
 
@@ -185,9 +180,9 @@
   </div>
 
   <script src="../../js/business-report-fixtures.js"></script>
-  <script src="../js/store-app-biz-datacenter-data.js?v=20261119-fix6"></script>
-  <script src="../js/store-app-biz-session.js?v=20261117-bd2"></script>
-  <script src="../js/store-app-biz-datacenter-state.js?v=20261119-fix6"></script>
-  <script src="../js/store-app-biz-datacenter-overview.js?v=20261119-fix6"></script>
+  <script src="../js/store-app-biz-datacenter-data.js?v=20261120-p1fix"></script>
+  <script src="../js/store-app-biz-session.js?v=20261120-p1fix"></script>
+  <script src="../js/store-app-biz-datacenter-state.js?v=20261120-p1fix"></script>
+  <script src="../js/store-app-biz-datacenter-overview.js?v=20261120-p1fix"></script>
 </body>
 </html>

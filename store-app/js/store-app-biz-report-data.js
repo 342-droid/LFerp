@@ -2154,8 +2154,8 @@
    */
   var BD_STORES = [
     {
-      id: 'STORE-YY',
-      name: '悠悠生鲜超市',
+      id: 'S-XX',
+      name: '西溪社区店',
       area: '江北',
       paid7d: 18620,
       pendingSettle: 1280.5,
@@ -2163,7 +2163,7 @@
       alerts: []
     },
     {
-      id: 'STORE-BJ',
+      id: 'S-BJ',
       name: '滨江鲜选店',
       area: '滨江',
       paid7d: 6420,
@@ -2186,7 +2186,7 @@
       ]
     },
     {
-      id: 'STORE-CN',
+      id: 'S-CN',
       name: '城南生鲜店',
       area: '城南',
       paid7d: 0,
@@ -2205,7 +2205,7 @@
       ]
     },
     {
-      id: 'STORE-HP',
+      id: 'S-HP',
       name: '湖畔优选店',
       area: '西湖',
       paid7d: 11280,
@@ -2220,15 +2220,34 @@
           tip: '按近期日均实付估算，预计回本约 86 天，较约定进度延长超过 30 天，建议协助门店提升联营销售与日结实付。'
         }
       ]
+    },
+    {
+      id: 'S-DC',
+      name: '东城交接店',
+      area: '东城',
+      paid7d: 3200,
+      pendingSettle: 0,
+      rbtStatus: '无',
+      scope: 'history',
+      alerts: []
     }
   ];
 
   function getBdStoreById(storeId) {
     var id = String(storeId || '').trim();
+    var aliases = {
+      'STORE-YY': 'S-XX',
+      'STORE-CN': 'S-CN',
+      'STORE-HP': 'S-HP',
+      'STORE-BJ': 'S-BJ',
+      'STORE-DC': 'S-DC'
+    };
+    var want = aliases[id] || id;
     for (var i = 0; i < BD_STORES.length; i++) {
-      if (BD_STORES[i].id === id) return BD_STORES[i];
+      if (BD_STORES[i].id === want) return BD_STORES[i];
     }
-    return BD_STORES[0];
+    /* 禁止找不到时静默回退默认店 */
+    return null;
   }
 
   /**

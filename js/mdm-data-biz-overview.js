@@ -3,21 +3,10 @@
   var Ui = window.MdmDataBizUi;
   if (!Biz || !Ui) return;
 
-  var SORT_OPTIONS = [
-    { id: 'retailPay', label: '零售支付成交额' },
-    { id: 'retailMargin', label: '零售商品交易毛利' },
-    { id: 'proxyPay', label: '代采商品支付金额' },
-    { id: 'proxyMargin', label: '代采商品交易毛利' },
-    { id: 'platformTotal', label: '平台分配所得' }
-  ];
+  var SORT_OPTIONS = Ui.UNIFIED_SORT_OPTIONS;
   var SORT_IDS = SORT_OPTIONS.map(function (x) {
     return x.id;
   });
-  var PLAT_SCOPES = [
-    { id: 'all', label: '全部业务' },
-    { id: 'retail', label: '零售' },
-    { id: 'proxy', label: '代采' }
-  ];
   var TREND_METRICS = [
     { id: 'total', label: '成交额合计' },
     { id: 'goods', label: '商品实付' },
@@ -31,7 +20,7 @@
     platScope: 'all'
   });
   if (SORT_IDS.indexOf(state.sort) < 0) state.sort = 'retailPay';
-  state.platScope = Ui.normalizePlatScope(state.platScope);
+  state.platScope = 'all';
   if (['total', 'goods', 'freight'].indexOf(state.trendMetric) < 0) state.trendMetric = 'total';
   /* 总览排行固定 TOP10，不再读写分页参数 */
   delete state.page;
@@ -46,243 +35,8 @@
     };
   }
 
-  /** 实际排序字段：平台所得随业务范围切换 */
-  function activeSortKey() {
-    if (state.sort === 'platformTotal') {
-      if (state.platScope === 'retail') return 'platformRetail';
-      if (state.platScope === 'proxy') return 'platformProxy';
-      return 'platformTotal';
-    }
-    return state.sort;
-  }
-
   function sortValue(row, key) {
-    var v = row[key];
-    /* 缺失不按 0 参与排名，沉底 */
-    if (v == null || v !== v) return Number.NEGATIVE_INFINITY;
-    return v;
-  }
-
-  function marginBlock(amount, rate) {
-    if (amount == null) {
-      return '—<div class="ldb-sub">毛利率 —</div>';
-    }
-    return (
-      Biz.money(amount) +
-      '<div class="ldb-sub">' +
-      (rate == null ? '毛利率 —' : '毛利率 ' + Biz.pctText(rate)) +
-      '</div>'
-    );
-  }
-
-  function platformIncomeCell(amount, opts) {
-    opts = opts || {};
-    if (amount == null) {
-      return (
-        '—<div class="ldb-sub">' +
-        (opts.pending > 0 ? '结算未形成' : opts.emptyTip || '无分配所得') +
-        '</div>'
-      );
-    }
-    return (
-      Biz.money(amount) +
-      (opts.partial ? '<div class="ldb-sub">部分已结算</div>' : '')
-    );
-  }
-
-  function rankColumns(sortKey, platScope) {
-    if (sortKey === 'proxyPay') {
-      return {
-        amountTh: '代采商品支付金额',
-        ordersTh: '代采支付主订单数',
-        extraTh: '代采商品毛利',
-        incomeTh: '代采平台分配所得',
-        tip: '代采商品支付金额不含运费；反映门店进货规模，不可与零售成交相加称为门店营业额。所得列为代采商品＋代采运费平台份额。'
-      };
-    }
-    if (sortKey === 'proxyMargin') {
-      return {
-        amountTh: '代采商品交易毛利',
-        ordersTh: '代采支付主订单数',
-        extraTh: '代采商品支付金额',
-        incomeTh: '代采平台分配所得',
-        tip: '毛利按同批代采支付订单计算；所得列为代采商品＋代采运费平台份额，不改变毛利排序。'
-      };
-    }
-    if (sortKey === 'retailMargin') {
-      return {
-        amountTh: '零售商品交易毛利',
-        ordersTh: '零售支付主订单数',
-        extraTh: '零售支付成交额',
-        incomeTh: '零售平台分配所得',
-        tip: '毛利按同批零售支付订单计算；所得列为该店零售商品带来的平台份额，不改变毛利排序。'
-      };
-    }
-    if (sortKey === 'platformTotal') {
-      if (platScope === 'retail') {
-        return {
-          amountTh: '零售平台分配所得',
-          ordersTh: '所得说明',
-          extraTh: null,
-          incomeTh: null,
-          tip: '仅按零售商品平台所得降序；业务范围指零售／代采，与事业线筛选无关。'
-        };
-      }
-      if (platScope === 'proxy') {
-        return {
-          amountTh: '代采平台分配所得',
-          ordersTh: '所得构成',
-          extraTh: null,
-          incomeTh: null,
-          tip: '按代采商品＋代采运费平台所得合计降序；构成列展示商品／运费明细。'
-        };
-      }
-      return {
-        amountTh: '平台分配所得合计',
-        ordersTh: '所得构成',
-        extraTh: null,
-        incomeTh: null,
-        tip: '合计＝已形成的零售商品＋代采商品＋代采运费平台份额；较上期随业务范围同步。不可将零售成交与代采进货相加称为门店营业额。'
-      };
-    }
-    return {
-      amountTh: '零售支付成交额',
-      ordersTh: '零售支付主订单数',
-      extraTh: '零售商品毛利',
-      incomeTh: '零售平台分配所得',
-      tip: '零售成交反映门店消费者购买规模；代采进货另计，二者不可相加称为门店营业额。所得列不改变成交额排序。'
-    };
-  }
-
-  function rankAmountCell(row, sortKey) {
-    if (sortKey === 'proxyPay') return Biz.money(row.proxyPay);
-    if (sortKey === 'proxyMargin') {
-      if (row.proxyOrders == null) return '—<div class="ldb-sub">无代采成交</div>';
-      if (row.proxyMargin == null) {
-        return '—<div class="ldb-sub">' + (row.proxyMarginPending ? '成本未齐' : '毛利率 —') + '</div>';
-      }
-      return marginBlock(row.proxyMargin, row.proxyMarginRate);
-    }
-    if (sortKey === 'retailMargin') {
-      if (row.retailOrders == null) return '—<div class="ldb-sub">无零售成交</div>';
-      if (row.retailMargin == null) {
-        return '—<div class="ldb-sub">' + (row.retailMarginPending ? '成本未齐' : '毛利率 —') + '</div>';
-      }
-      return marginBlock(row.retailMargin, row.retailMarginRate);
-    }
-    if (sortKey === 'platformTotal') {
-      if (state.platScope === 'retail') {
-        return platformIncomeCell(row.platformRetail, {
-          partial: row.platformRetailPartial,
-          pending: row.platformRetailSettlePending,
-          emptyTip: row.retailOrders == null ? '无零售成交' : '无分配所得'
-        });
-      }
-      if (state.platScope === 'proxy') {
-        return platformIncomeCell(row.platformProxy, {
-          partial: row.platformProxyPartial,
-          pending: row.platformProxySettlePending,
-          emptyTip: row.proxyOrders == null ? '无代采成交' : '无分配所得'
-        });
-      }
-      return platformIncomeCell(row.platformTotal, {
-        partial: row.platformTotalPartial,
-        pending: row.settlePending
-      });
-    }
-    return Biz.money(row.retailPay);
-  }
-
-  function rankDelta(row, sortKey) {
-    if (sortKey === 'proxyPay') return Biz.deltaPack(row.proxyPay, row.proxyPayPrev);
-    if (sortKey === 'proxyMargin') return Biz.deltaPack(row.proxyMargin, row.proxyMarginPrev);
-    if (sortKey === 'retailMargin') return Biz.deltaPack(row.retailMargin, row.retailMarginPrev);
-    if (sortKey === 'platformTotal') {
-      if (state.platScope === 'retail') {
-        return Biz.deltaPack(row.platformRetail, row.platformRetailPrev);
-      }
-      if (state.platScope === 'proxy') {
-        return Biz.deltaPack(row.platformProxy, row.platformProxyPrev);
-      }
-      return Biz.deltaPack(row.platformTotal, row.platformTotalPrev);
-    }
-    return Biz.deltaPack(row.retailPay, row.retailPayPrev);
-  }
-
-  function rankOrdersCell(row, sortKey) {
-    if (sortKey === 'proxyPay' || sortKey === 'proxyMargin') return Biz.intText(row.proxyOrders);
-    if (sortKey === 'platformTotal') {
-      if (state.platScope === 'retail') {
-        return row.platformRetailPartial
-          ? '<span class="ldb-sub">部分已结算</span>'
-          : row.platformRetail == null
-            ? '—'
-            : '零售商品所得';
-      }
-      if (state.platScope === 'proxy') {
-        if (row.platformProxy == null) return '—';
-        return (
-          '<div class="ldb-sub-stack">' +
-          '<div>代采商品 ' +
-          Biz.money(row.platformProxyGoods) +
-          '</div>' +
-          '<div>代采运费 ' +
-          Biz.money(row.platformProxyFreight) +
-          '</div>' +
-          (row.platformProxyPartial ? '<div>部分已结算</div>' : '') +
-          '</div>'
-        );
-      }
-      if (row.platformTotal == null) return '—';
-      return (
-        '<div class="ldb-sub-stack">' +
-        '<div>零售 ' +
-        Biz.money(row.platformRetail) +
-        '</div>' +
-        '<div>代采 ' +
-        Biz.money(row.platformProxy) +
-        '</div>' +
-        (row.platformTotalPartial ? '<div>部分已结算</div>' : '') +
-        '</div>'
-      );
-    }
-    return Biz.intText(row.retailOrders);
-  }
-
-  function rankExtraCell(row, sortKey) {
-    if (sortKey === 'proxyPay') {
-      if (row.proxyOrders == null) return '—<div class="ldb-sub">无代采成交</div>';
-      if (row.proxyMargin == null) {
-        return '—<div class="ldb-sub">' + (row.proxyMarginPending ? '成本未齐' : '毛利率 —') + '</div>';
-      }
-      return marginBlock(row.proxyMargin, row.proxyMarginRate);
-    }
-    if (sortKey === 'proxyMargin') return Biz.money(row.proxyPay);
-    if (sortKey === 'retailMargin') return Biz.money(row.retailPay);
-    if (sortKey === 'platformTotal') return null;
-    if (row.retailOrders == null) return '—<div class="ldb-sub">无零售成交</div>';
-    if (row.retailMargin == null) {
-      return '—<div class="ldb-sub">' + (row.retailMarginPending ? '成本未齐' : '毛利率 —') + '</div>';
-    }
-    return marginBlock(row.retailMargin, row.retailMarginRate);
-  }
-
-  function rankIncomeCell(row, sortKey) {
-    if (sortKey === 'proxyPay' || sortKey === 'proxyMargin') {
-      return platformIncomeCell(row.platformProxy, {
-        partial: row.platformProxyPartial,
-        pending: row.platformProxySettlePending,
-        emptyTip: row.proxyOrders == null ? '无代采成交' : '无分配所得'
-      });
-    }
-    if (sortKey === 'retailPay' || sortKey === 'retailMargin') {
-      return platformIncomeCell(row.platformRetail, {
-        partial: row.platformRetailPartial,
-        pending: row.platformRetailSettlePending,
-        emptyTip: row.retailOrders == null ? '无零售成交' : '无分配所得'
-      });
-    }
-    return null;
+    return Ui.unifiedSortValue(row, key);
   }
 
   function trendMetricLabel(id) {
@@ -412,21 +166,16 @@
         );
     }
 
-    var cols = rankColumns(state.sort, state.platScope);
-    var sortKey = activeSortKey();
+    var sortKey = state.sort;
     var rankAll = Biz.buildStoreRanking(period, filters()).sort(function (a, b) {
       var d = sortValue(b, sortKey) - sortValue(a, sortKey);
       if (d !== 0) return d;
       return String(a.storeName).localeCompare(String(b.storeName), 'zh');
     });
-    /* 仅保留当前指标下有可排名数据的门店，再取前 10，不补齐 */
-    var rankable = rankAll.filter(function (r) {
-      var v = r[sortKey];
-      return v != null && v === v;
-    });
-    var rank = rankable.slice(0, 10);
+    /* 统一门店集合：不因排序指标过滤成三套门店；TOP10 取排序后前 10 */
+    var rank = rankAll.slice(0, 10);
     var sortSel =
-      '<div class="ldb-field ldb-rank-sort"><label>排行</label><select class="ldb-select" data-rank-sort>' +
+      '<div class="ldb-field ldb-rank-sort"><label>排序指标</label><select class="ldb-select" data-rank-sort>' +
       SORT_OPTIONS.map(function (x) {
         return (
           '<option value="' +
@@ -440,45 +189,16 @@
       }).join('') +
       '</select></div>';
 
-    var scopeSel =
-      state.sort === 'platformTotal'
-        ? '<div class="ldb-field ldb-rank-scope"><label>业务范围</label><div class="ldb-chips" data-plat-scope>' +
-          PLAT_SCOPES.map(function (s) {
-            return (
-              '<button type="button" class="ldb-chip' +
-              (state.platScope === s.id ? ' is-active' : '') +
-              '" data-plat-scope-id="' +
-              s.id +
-              '">' +
-              s.label +
-              '</button>'
-            );
-          }).join('') +
-          '</div></div>'
-        : '';
-
     var headExtra =
       state.view === 'event'
         ? '<span class="ldb-badge-view" title="排行不跟随发生日期口径">按支付订单归属</span>'
         : '';
 
-    var thead =
-      '<th class="num">排名</th><th>门店</th><th>事业线</th><th>品牌</th>' +
-      '<th class="num">' +
-      Biz.esc(cols.amountTh) +
-      '</th><th class="num">较上期</th><th class="num">' +
-      Biz.esc(cols.ordersTh) +
-      '</th>' +
-      (cols.extraTh ? '<th class="num">' + Biz.esc(cols.extraTh) + '</th>' : '') +
-      (cols.incomeTh ? '<th class="num">' + Biz.esc(cols.incomeTh) + '</th>' : '') +
-      '<th>操作</th>';
-
-    var colSpan = 7 + (cols.extraTh ? 1 : 0) + (cols.incomeTh ? 1 : 0) + 1;
     var storesLinkParams = Object.assign({}, state, {
       page: 1,
       pageSize: 10,
       q: '',
-      platScope: state.platScope || 'all'
+      platScope: 'all'
     });
     delete storesLinkParams.trendMetric;
     delete storesLinkParams.storeId;
@@ -492,66 +212,30 @@
       '</h3>' +
       '<div class="ldb-card__actions">' +
       sortSel +
-      scopeSel +
       '<a class="ldb-link-all" href="' +
       Ui.pageHref('mdm_data_biz_stores.html', storesLinkParams) +
       '">查看全部门店</a>' +
       '</div></div>' +
-      '<p class="ldb-tip ldb-tip--flush">' +
-      Biz.esc(cols.tip) +
-      ' 对比期：' +
+      '<p class="ldb-tip ldb-tip--flush">零售、代采、平台所得分列同表展示，切换排序仅改变名次与强调列，不切换表头、不合成门店营业额。' +
+      Ui.unifiedSortDeltaLabel(sortKey) +
+      '随排序指标同步。对比期：' +
       Biz.esc(period.compareLabel) +
       '。本表展示前 ' +
       rank.length +
-      ' 名（可排名 ' +
-      rankable.length +
+      ' 名（筛选后门店 ' +
+      rankAll.length +
       ' 家）；完整列表见「查看全部门店」。</p>' +
-      '<div class="ldb-table-wrap"><table class="ldb-table" data-rank-table data-rank-sort="' +
-      Biz.esc(state.sort) +
-      '" data-plat-scope="' +
-      Biz.esc(state.platScope) +
-      '"><thead><tr>' +
-      thead +
-      '</tr></thead><tbody>' +
-      (rank.length
-        ? rank
-            .map(function (r, idx) {
-              var extra = rankExtraCell(r, state.sort);
-              var income = rankIncomeCell(r, state.sort);
-              return (
-                '<tr data-store-id="' +
-                Biz.esc(r.storeId) +
-                '">' +
-                '<td class="num ldb-rank-no">' +
-                (idx + 1) +
-                '</td><td>' +
-                Biz.esc(r.storeName) +
-                '</td><td>' +
-                Biz.esc(r.line) +
-                '</td><td>' +
-                Biz.esc(r.brand) +
-                '</td><td class="num">' +
-                rankAmountCell(r, state.sort) +
-                '</td><td class="num ldb-delta-cell">' +
-                Biz.formatDelta(rankDelta(r, state.sort), true, true) +
-                '</td><td class="num">' +
-                rankOrdersCell(r, state.sort) +
-                '</td>' +
-                (extra != null ? '<td class="num">' + extra + '</td>' : '') +
-                (income != null ? '<td class="num">' + income + '</td>' : '') +
-                '<td><a href="' +
-                Ui.pageHref(
-                  'mdm_data_biz_store_detail.html',
-                  Object.assign({}, state, { storeId: r.storeId, back: 'overview' })
-                ) +
-                '">详情</a></td></tr>'
-              );
-            })
-            .join('')
-        : '<tr><td colspan="' +
-          colSpan +
-          '"><div class="ldb-empty">暂无可排名门店</div></td></tr>') +
-      '</tbody></table></div></section>';
+      Ui.renderUnifiedStoreTableHtml(rank, {
+        sortKey: sortKey,
+        emptyText: '暂无符合条件的门店',
+        detailHref: function (r) {
+          return Ui.pageHref(
+            'mdm_data_biz_store_detail.html',
+            Object.assign({}, state, { storeId: r.storeId, back: 'overview' })
+          );
+        }
+      }) +
+      '</section>';
 
     var sortEl = Ui.$('[data-rank-sort]', root);
     if (sortEl) {
@@ -562,12 +246,6 @@
         render();
       });
     }
-    root.querySelectorAll('[data-plat-scope-id]').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        state.platScope = Ui.normalizePlatScope(btn.getAttribute('data-plat-scope-id'));
-        render();
-      });
-    });
 
     var mid = Ui.$('[data-ldb-mid]', root);
     if (state.view === 'pay') {
@@ -645,8 +323,8 @@
             key === 'pay' ? '支付订单明细（演示）' : '毛利明细（演示）',
             cur.detailRows || [],
             [
-              { key: 'orderId', label: '主订单号' },
-              { key: 'biz', label: '业务线' },
+              { key: 'orderId', label: '主订单号', link: 'order' },
+              { key: 'biz', label: '业务线', format: 'biz' },
               { key: 'storeName', label: '门店' },
               { key: 'payTime', label: '支付时间' },
               { key: 'payGoods', label: '商品实付', num: true, format: 'money' },

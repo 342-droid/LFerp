@@ -172,12 +172,15 @@
   }
 
   function deltaPack(cur, prev) {
-    if (cur == null || prev == null) return { na: true, abs: null, pct: null };
+    if (cur == null || prev == null) return { na: true, abs: null, pct: null, zeroBase: false };
     var c = Number(cur) || 0;
     var p = Number(prev) || 0;
     var abs = round2(c - p);
-    var pct = p === 0 ? null : round2(((c - p) / Math.abs(p)) * 100);
-    return { na: false, abs: abs, pct: pct, up: abs > 0, flat: abs === 0 };
+    if (p === 0) {
+      return { na: false, abs: abs, pct: null, up: abs > 0, flat: abs === 0, zeroBase: true };
+    }
+    var pct = round2(((c - p) / Math.abs(p)) * 100);
+    return { na: false, abs: abs, pct: pct, up: abs > 0, flat: abs === 0, zeroBase: false };
   }
 
   function add(sum, n) {
@@ -213,25 +216,31 @@
     return (Math.abs(n - Math.round(n)) < 0.05 ? String(Math.round(n)) : n.toFixed(1)) + ' 天';
   }
 
-  function deltaHtml(d, label) {
-    if (!d || d.na) return '<span class="sa-dc-delta">—</span>';
-    var abs = moneyFmt(Math.abs(d.abs));
-    var sign = d.flat ? '' : d.up ? '+' : '-';
-    var pct = d.pct == null ? '—' : (d.pct > 0 ? '+' : '') + d.pct + '%';
-    var arrow = d.flat ? '' : d.up ? '↑' : '↓';
+  function deltaHtml(d, label, opts) {
+    opts = opts || {};
+    if (!d || d.na) return '<span class="sa-dc-delta">暂无可比数据</span>';
+    var unit = opts.unit != null ? opts.unit : '元';
+    var absNum = Math.abs(d.abs);
+    var abs =
+      unit === '' || unit === '单' || unit === '人' || unit === '天'
+        ? intFmt(absNum)
+        : moneyFmt(absNum);
+    var verb = d.flat ? '持平' : d.up ? '增加' : '减少';
+    var base = label || '较对比期';
+    var line1 = d.flat ? base + '持平' : base + verb + abs + (unit || '');
+    var line2 = d.zeroBase
+      ? '对比期为0'
+      : d.pct == null
+        ? '暂无可比数据'
+        : (d.up ? '增长' : d.flat ? '变化' : '下降') + Math.abs(d.pct) + '%';
     var cls = d.flat ? '' : d.up ? ' is-up' : ' is-down';
     return (
       '<span class="sa-dc-delta' +
       cls +
       '"><span class="sa-dc-delta__line">' +
-      esc(label || '较对比期') +
-      ' ' +
-      sign +
-      abs +
-      ' ' +
-      arrow +
+      esc(line1) +
       '</span><span class="sa-dc-delta__line">' +
-      pct +
+      esc(line2) +
       '</span></span>'
     );
   }
@@ -426,17 +435,31 @@
       var url = fromUrl();
       var d = defaults || {};
       var range = normalizeRange(url.range || saved.range || d.range || 'today');
+      var page = document.body && document.body.getAttribute('data-dc-page');
+      var urlStore = url.storeId || url.store || '';
+      if (global.StoreAppBizSession && StoreAppBizSession.canonicalizeStoreId && urlStore) {
+        urlStore = StoreAppBizSession.canonicalizeStoreId(urlStore) || urlStore;
+      }
+      /* 单店页：以 URL 门店为准；无 URL 时不静默沿用上次门店 */
+      var storeId =
+        page === 'store'
+          ? urlStore
+          : urlStore || saved.store || d.store || '';
+      var dim;
+      if (url.dim) dim = url.dim === 'settle' ? 'settle' : 'pay';
+      else if (page === 'comm' || page === 'analysis') dim = (saved.dim === 'settle' ? 'settle' : 'pay');
+      else dim = 'pay';
       current = {
         range: range,
         start: url.start || saved.start || '',
         end: url.end || saved.end || '',
         tab: url.tab || saved.tab || d.tab || '',
         scope: url.scope === 'history' || saved.scope === 'history' ? (url.scope || saved.scope) : 'current',
-        dim: (url.dim || saved.dim) === 'settle' ? 'settle' : 'pay',
+        dim: dim,
         settle: url.settle || saved.settle || 'all',
         source: url.source || saved.source || 'all',
         rank: url.rank || saved.rank || d.rank || '',
-        store: url.storeId || url.store || saved.store || d.store || '',
+        store: storeId,
         sku: url.sku || saved.sku || ''
       };
       if (url.scope) current.scope = url.scope === 'history' ? 'history' : 'current';

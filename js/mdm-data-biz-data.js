@@ -533,6 +533,122 @@
       pointsDeduct: 0,
       freightAlloc: null,
       lines: [{ id: 'L1', name: '大宗冻品', cashShare: 980, cost: 720, qty: 4, purchaseQty: 40 }]
+    },
+    /* —— 筛选样例补齐：今日／昨日／近7天／近30天 × 事业线／品牌／合作类型 —— */
+    {
+      id: 'RO-1101',
+      biz: 'retail',
+      channel: 'mall',
+      storeId: 'ST-SH-01',
+      storeName: '冷丰特选·徐汇店',
+      consumerId: 'C-201',
+      payTime: '2026-11-19T11:40:00+08:00',
+      saleKind: 'normal',
+      cashGoods: 156.0,
+      cashFreight: 0,
+      pointsDeduct: 0,
+      lines: [{ id: 'L1', name: '特选时令礼盒', cashShare: 156, cost: 88, qty: 1, purchaseQty: 1 }]
+    },
+    {
+      id: 'RO-1102',
+      biz: 'retail',
+      channel: 'live',
+      storeId: 'ST-SH-01',
+      storeName: '冷丰特选·徐汇店',
+      consumerId: 'C-202',
+      payTime: '2026-11-18T20:15:00+08:00',
+      saleKind: 'normal',
+      cashGoods: 72.0,
+      cashFreight: 0,
+      pointsDeduct: 0,
+      lines: [{ id: 'L1', name: '直播尝鲜装', cashShare: 72, cost: 35, qty: 1, purchaseQty: 1 }]
+    },
+    {
+      id: 'RO-1103',
+      biz: 'retail',
+      channel: 'mall',
+      storeId: 'ST-BJ-02',
+      storeName: '冷丰锅贴·中关村店',
+      consumerId: 'C-203',
+      payTime: '2026-11-18T13:20:00+08:00',
+      saleKind: 'normal',
+      cashGoods: 118.0,
+      cashFreight: 0,
+      pointsDeduct: 0,
+      lines: [{ id: 'L1', name: '联营店招牌饺', cashShare: 118, cost: 55, qty: 2, purchaseQty: 2 }]
+    },
+    {
+      id: 'RO-1104',
+      biz: 'retail',
+      channel: 'mall',
+      storeId: 'ST-HZ-01',
+      storeName: '汉言·西溪店',
+      consumerId: 'C-204',
+      payTime: '2026-11-19T16:05:00+08:00',
+      saleKind: 'normal',
+      cashGoods: 198.0,
+      cashFreight: 0,
+      pointsDeduct: 0,
+      lines: [{ id: 'L1', name: '汉言护理套装', cashShare: 198, cost: 110, qty: 1, purchaseQty: 1 }]
+    },
+    {
+      id: 'RO-1105',
+      biz: 'retail',
+      channel: 'mall',
+      storeId: 'ST-BJ-05',
+      storeName: '冷丰锅贴·亦庄店',
+      consumerId: 'C-205',
+      payTime: '2026-11-05T12:00:00+08:00',
+      saleKind: 'normal',
+      cashGoods: 64.0,
+      cashFreight: 0,
+      pointsDeduct: 0,
+      lines: [{ id: 'L1', name: '亦庄通勤套餐', cashShare: 64, cost: 30, qty: 1, purchaseQty: 1 }]
+    },
+    {
+      id: 'PO-2101',
+      biz: 'proxy',
+      channel: null,
+      storeId: 'ST-NEW-01',
+      storeName: '冷丰食堂大钵刘·新店',
+      consumerId: null,
+      payTime: '2026-11-19T09:20:00+08:00',
+      saleKind: 'normal',
+      cashGoods: 480,
+      cashFreight: 22,
+      pointsDeduct: 0,
+      freightAlloc: null,
+      lines: [{ id: 'L1', name: '食堂周配冻品', cashShare: 480, cost: 350, qty: 2, purchaseQty: 20 }]
+    },
+    {
+      id: 'PO-2102',
+      biz: 'proxy',
+      channel: null,
+      storeId: 'ST-SH-01',
+      storeName: '冷丰特选·徐汇店',
+      consumerId: null,
+      payTime: '2026-11-15T10:00:00+08:00',
+      saleKind: 'normal',
+      cashGoods: 320,
+      cashFreight: 16,
+      pointsDeduct: 0,
+      freightAlloc: null,
+      lines: [{ id: 'L1', name: '特选仓储补货', cashShare: 320, cost: 240, qty: 1, purchaseQty: 1 }]
+    },
+    {
+      id: 'PO-2103',
+      biz: 'proxy',
+      channel: null,
+      storeId: 'ST-XM-01',
+      storeName: '冷丰锅贴·思明店',
+      consumerId: null,
+      payTime: '2026-11-19T15:40:00+08:00',
+      saleKind: 'normal',
+      cashGoods: 210,
+      cashFreight: 14,
+      pointsDeduct: 0,
+      freightAlloc: null,
+      lines: [{ id: 'L1', name: '思明店首批进货', cashShare: 210, cost: 150, qty: 1, purchaseQty: 1 }]
     }
   ];
 
@@ -651,6 +767,43 @@
       createdAt: '2026-11-19T13:30:00+08:00',
       platformShare: 22.0
     },
+    {
+      id: 'CM-7012',
+      type: 'commission',
+      kind: 'goods',
+      biz: 'proxy',
+      orderId: 'PO-2101',
+      createdAt: '2026-11-19T11:00:00+08:00',
+      platformShare: 28.0
+    },
+    {
+      id: 'CM-7013',
+      type: 'commission',
+      kind: 'goods',
+      biz: 'retail',
+      orderId: 'RO-1101',
+      createdAt: '2026-11-19T12:30:00+08:00',
+      platformShare: 14.0
+    },
+    {
+      id: 'CM-7014',
+      type: 'commission',
+      kind: 'goods',
+      biz: 'retail',
+      orderId: 'RO-1104',
+      createdAt: '2026-11-19T17:00:00+08:00',
+      platformShare: 16.0
+    },
+    {
+      id: 'CR-8004',
+      type: 'carrier',
+      kind: 'freight',
+      biz: 'proxy',
+      orderId: 'PO-2101',
+      createdAt: '2026-11-19T11:20:00+08:00',
+      platformShare: 4.0,
+      carrierShare: 12.0
+    },
     /* 延后结算：历史支付订单本周才出结算 */
     {
       id: 'CM-7020',
@@ -703,13 +856,74 @@
     }
   ];
 
-  if(global.BusinessReportFixtures){
-    AS_OF=global.BusinessReportFixtures.asOf.replace(' ','T')+'+08:00';
-    stores.push({id:'S-CN',name:'城南生鲜店',line:'餐饮',brand:'冷丰锅贴',coopType:'加盟店',openDate:'2026-01-01'});
-    global.BusinessReportFixtures.rows.forEach(function(r){
-      orders.push({id:r.id,biz:r.biz,channel:r.channel,storeId:r.storeId,storeName:r.storeName,consumerId:'LINK-C',payTime:r.pay.replace(' ','T')+'+08:00',saleKind:'normal',cashGoods:r.paid,cashFreight:r.freight||0,pointsDeduct:0,lines:[{id:r.sku,name:r.name,cashShare:r.paid,cost:r.cost,qty:r.qty,purchaseQty:r.qty}]});
-      if(r.refund) refunds.push({id:'RF-'+r.id,orderId:r.id,lineId:r.sku,completeTime:r.refundAt.replace(' ','T')+'+08:00',mode:r.refundQty?'qty_partial':'amount_only',goodsAmount:r.refund,freightAmount:0,qtyRefund:r.refundQty||0,purchaseQtyRefund:r.refundQty||0});
-      settlements.push({id:'PL-'+r.id,type:'commission',kind:'goods',biz:r.biz,orderId:r.id,createdAt:r.settleAt.replace(' ','T')+'+08:00',platformShare:r.platform});
+  if (global.BusinessReportFixtures) {
+    /* 不覆盖固定 AS_OF：墙钟「今日」与演示订单日错位会导致今日整页为 0 */
+    var demoDay = AS_OF.slice(0, 10);
+    function fixtureTs(offset, hm) {
+      var base = new Date(demoDay + 'T00:00:00+08:00');
+      base.setDate(base.getDate() + (Number(offset) || 0));
+      var y = base.getFullYear();
+      var m = String(base.getMonth() + 1).padStart(2, '0');
+      var d = String(base.getDate()).padStart(2, '0');
+      return y + '-' + m + '-' + d + 'T' + hm + '+08:00';
+    }
+    stores.push({
+      id: 'S-CN',
+      name: '城南生鲜店',
+      line: '餐饮',
+      brand: '冷丰锅贴',
+      coopType: '加盟店',
+      openDate: '2026-01-01'
+    });
+    global.BusinessReportFixtures.rows.forEach(function (r) {
+      var pay = fixtureTs(r.offset, '10:00:00');
+      var settleAt = fixtureTs(r.offset, '12:00:00');
+      var refundAt = r.refund ? fixtureTs(r.offset, '15:00:00') : '';
+      orders.push({
+        id: r.id,
+        biz: r.biz,
+        channel: r.channel,
+        storeId: r.storeId,
+        storeName: r.storeName,
+        consumerId: 'LINK-C',
+        payTime: pay,
+        saleKind: 'normal',
+        cashGoods: r.paid,
+        cashFreight: r.freight || 0,
+        pointsDeduct: 0,
+        lines: [
+          {
+            id: r.sku,
+            name: r.name,
+            cashShare: r.paid,
+            cost: r.cost,
+            qty: r.qty,
+            purchaseQty: r.qty
+          }
+        ]
+      });
+      if (r.refund) {
+        refunds.push({
+          id: 'RF-' + r.id,
+          orderId: r.id,
+          lineId: r.sku,
+          completeTime: refundAt,
+          mode: r.refundQty ? 'qty_partial' : 'amount_only',
+          goodsAmount: r.refund,
+          freightAmount: 0,
+          qtyRefund: r.refundQty || 0,
+          purchaseQtyRefund: r.refundQty || 0
+        });
+      }
+      settlements.push({
+        id: 'PL-' + r.id,
+        type: 'commission',
+        kind: 'goods',
+        biz: r.biz,
+        orderId: r.id,
+        createdAt: settleAt,
+        platformShare: r.platform
+      });
     });
   }
   global.MdmDataBizData = {

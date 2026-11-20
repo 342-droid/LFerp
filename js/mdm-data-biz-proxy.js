@@ -11,7 +11,7 @@
       '代采支付主订单明细',
       rows,
       [
-        { key: 'orderId', label: '主订单号' },
+        { key: 'orderId', label: '主订单号', link: 'order' },
         { key: 'storeName', label: '采购门店' },
         { key: 'payTime', label: '支付时间' },
         { key: 'payGoods', label: '商品实付', num: true, format: 'money' },

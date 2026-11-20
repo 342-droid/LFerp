@@ -27,7 +27,17 @@
     });
   }
 
+  function applyReturnTo() {
+    var ret = new URLSearchParams(location.search).get('returnTo') || '';
+    var back = document.querySelector('.ua-orders-back');
+    if (back && ret && /biz-ops\.html/.test(ret)) {
+      back.setAttribute('href', ret);
+      back.setAttribute('aria-label', '返回进货数据');
+    }
+  }
+
   function render() {
+    applyReturnTo();
     var wrap = document.getElementById('restockOrderList');
     var empty = document.getElementById('restockOrderEmpty');
     if (!wrap) return;

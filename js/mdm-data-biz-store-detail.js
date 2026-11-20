@@ -161,9 +161,9 @@
           kind === 'proxy' ? '本店代采支付主订单' : '本店零售支付主订单',
           rows,
           [
-            { key: 'orderId', label: '主订单号' },
-            { key: 'biz', label: '业务线' },
-            { key: 'channel', label: '来源' },
+            { key: 'orderId', label: '主订单号', link: 'order' },
+            { key: 'biz', label: '业务线', format: 'biz' },
+            { key: 'channel', label: '来源', format: 'channel' },
             { key: 'payTime', label: '支付时间' },
             { key: 'payGoods', label: '商品实付', num: true, format: 'money' },
             { key: 'payFreight', label: '运费', num: true, format: 'money' },

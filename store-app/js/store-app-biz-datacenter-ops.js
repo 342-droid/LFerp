@@ -8,11 +8,12 @@
     view: 'pay',
     channel: 'all',
     tab: 'retail',
-    tpModule: '',
-    tpChannel: 'all',
-    showTrendData: false
+    showTrendData: false,
+    openDd: ''
   };
-  var TABS = ['retail', 'proxy', 'income', 'tp'];
+  var TABS = ['retail', 'proxy', 'income'];
+  var VIEW_LABELS = { pay: '支付订单归属', event: '发生日期' };
+  var SOURCE_LABELS = { all: '全部来源', mall: '商城', live: '直播' };
 
   function $(id) {
     return document.getElementById(id);
@@ -22,6 +23,45 @@
   }
   function S() {
     return window.StoreAppBizDcState;
+  }
+  function closeDropdowns() {
+    state.openDd = '';
+    document.querySelectorAll('.sa-dc-dd.is-open').forEach(function (el) {
+      el.classList.remove('is-open');
+      var btn = el.querySelector('.sa-dc-dd__btn');
+      var menu = el.querySelector('.sa-dc-dd__menu');
+      if (btn) btn.setAttribute('aria-expanded', 'false');
+      if (menu) menu.hidden = true;
+    });
+  }
+  function openDropdown(name) {
+    closeDropdowns();
+    var root = document.querySelector('.sa-dc-dd[data-dd="' + name + '"]');
+    if (!root || root.hidden) return;
+    state.openDd = name;
+    root.classList.add('is-open');
+    var btn = root.querySelector('.sa-dc-dd__btn');
+    var menu = root.querySelector('.sa-dc-dd__menu');
+    if (btn) btn.setAttribute('aria-expanded', 'true');
+    if (menu) menu.hidden = false;
+  }
+  function markDdOptions(menu, attr, value) {
+    if (!menu) return;
+    menu.querySelectorAll('.sa-dc-dd__opt').forEach(function (opt) {
+      var on = opt.getAttribute(attr) === value;
+      opt.classList.toggle('is-selected', on);
+      opt.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+  }
+  function syncRetailDd() {
+    if ($('opsViewLabel')) {
+      $('opsViewLabel').textContent = VIEW_LABELS[state.view] || VIEW_LABELS.pay;
+    }
+    if ($('opsChannelLabel')) {
+      $('opsChannelLabel').textContent = SOURCE_LABELS[state.channel] || SOURCE_LABELS.all;
+    }
+    markDdOptions($('opsViewMenu'), 'data-view', state.view);
+    markDdOptions($('opsChannelMenu'), 'data-channel', state.channel);
   }
   function group(n) {
     if (n == null || n === '') return '—';
@@ -130,6 +170,7 @@
   function setTab(tab) {
     if (TABS.indexOf(tab) < 0) tab = 'retail';
     state.tab = tab;
+    closeDropdowns();
     TABS.forEach(function (t) {
       var panel = $('panel-' + t);
       if (panel) panel.hidden = t !== tab;
@@ -142,113 +183,6 @@
     persist();
   }
 
-  function renderTp() {
-    var bounds = D().resolveRange(state.range, state.custom);
-    var tp = D().thirdPartyMetrics(bounds, state.tpModule, state.tpChannel);
-    var emptyEl = $('opsTpEmpty');
-    var contentEl = $('opsTpContent');
-    if (!tp.connected || !(tp.modules && tp.modules.length)) {
-      if (emptyEl) emptyEl.hidden = false;
-      if (contentEl) contentEl.hidden = true;
-      state.tpModule = '';
-      return;
-    }
-    if (emptyEl) emptyEl.hidden = true;
-    if (contentEl) contentEl.hidden = false;
-
-    state.tpModule = tp.activeModule.id;
-    state.tpChannel = tp.takeoutChannel || 'all';
-
-    var mods = $('opsTpModules');
-    if (mods) {
-      mods.innerHTML = tp.modules
-        .map(function (m) {
-          return (
-            '<button type="button" class="sa-dc-subtabs__btn' +
-            (m.id === state.tpModule ? ' is-active' : '') +
-            '" data-tp-module="' +
-            m.id +
-            '" role="tab">' +
-            m.name +
-            '</button>'
-          );
-        })
-        .join('');
-    }
-
-    var chWrap = $('opsTpChannelWrap');
-    var chRoot = $('opsTpChannels');
-    /* 外卖渠道仅外卖模块展示；堂食／团购／储值必须隐藏 */
-    if (tp.activeModule.id === 'takeout' && tp.activeModule.channels && tp.activeModule.channels.length) {
-      if (chWrap) {
-        chWrap.hidden = false;
-        chWrap.setAttribute('aria-hidden', 'false');
-      }
-      if (chRoot) {
-        chRoot.innerHTML =
-          '<button type="button" class="sa-dc-subtabs__btn' +
-          (state.tpChannel === 'all' ? ' is-active' : '') +
-          '" data-tp-channel="all">全部</button>' +
-          tp.activeModule.channels
-            .map(function (c) {
-              return (
-                '<button type="button" class="sa-dc-subtabs__btn' +
-                (state.tpChannel === c.id ? ' is-active' : '') +
-                '" data-tp-channel="' +
-                c.id +
-                '">' +
-                c.name +
-                '</button>'
-              );
-            })
-            .join('');
-      }
-    } else {
-      if (chWrap) {
-        chWrap.hidden = true;
-        chWrap.setAttribute('aria-hidden', 'true');
-      }
-      if (chRoot) chRoot.innerHTML = '';
-      state.tpChannel = 'all';
-    }
-
-    var label = $('opsTpAmountLabel');
-    if (label) {
-      label.textContent =
-        tp.activeModule.name +
-        (tp.activeModule.id === 'takeout' && state.tpChannel !== 'all'
-          ? ' · ' +
-            (tp.activeModule.channels.filter(function (c) {
-              return c.id === state.tpChannel;
-            })[0] || { name: '' }).name
-          : '') +
-        ' · 结算金额（元）';
-    }
-    if ($('opsTpAmount')) {
-      $('opsTpAmount').textContent = tp.hasBills ? group(tp.amount) : '—';
-    }
-
-    var list = $('opsTpList');
-    if (!list) return;
-    if (!tp.hasBills) {
-      list.innerHTML = '<div class="sa-dc-empty sa-dc-empty--compact">该时段暂无结算账单</div>';
-      return;
-    }
-    list.innerHTML = tp.bills
-      .map(function (b) {
-        return (
-          '<div class="sa-dc-tp-row"><div><div class="sa-dc-list-row__title">' +
-          (b.channelName || b.moduleName) +
-          '</div><div class="sa-dc-muted">结算周期 ' +
-          b.cycleLabel +
-          '</div></div><div class="sa-dc-tp-amt">' +
-          group(b.amount) +
-          '<span class="sa-dc-hero__unit">元</span></div></div>'
-        );
-      })
-      .join('');
-  }
-
   function persist() {
     if (!S()) return;
     var patch = {
@@ -257,12 +191,10 @@
       end: state.custom.end,
       view: state.view,
       channel: state.channel,
-      tab: state.tab,
-      tpModule: state.tpModule,
-      tpChannel: state.tpChannel
+      tab: state.tab
     };
     S().write(patch);
-    /* URL 不携带隐藏模块筛选；空字符串表示从地址栏移除 */
+    /* URL：非零售不带 view/channel（一期不含POS，不再写 tp 参数） */
     S().pushUrl(
       {
         range: state.range,
@@ -270,9 +202,7 @@
         end: state.custom.end,
         tab: state.tab,
         view: state.tab === 'retail' ? state.view : '',
-        channel: state.tab === 'retail' ? state.channel : '',
-        tpModule: state.tab === 'tp' ? state.tpModule : '',
-        tpChannel: state.tab === 'tp' ? state.tpChannel : ''
+        channel: state.tab === 'retail' ? state.channel : ''
       },
       'ops'
     );
@@ -299,90 +229,94 @@
     var sections = [];
     var title = '指标说明';
     if (state.tab === 'retail') {
-      title = '零售说明';
+      title = '平台零售说明';
       sections.push({
-        title: '零售成交',
+        title: '平台零售',
         items: [
+          tips.retailTab || '',
           tips.viewPay || '',
           tips.viewEvent || '',
-          '支付成交额保留原支付金额，退款另列；客单价＝支付成交额÷支付订单数。'
+          '客单价＝支付成交额÷支付订单数。'
         ].filter(Boolean)
       });
     } else if (state.tab === 'proxy') {
       title = '进货说明';
       sections.push({
         title: '代采进货',
-        items: [
-          '进货商品款、运费分开展示；进货支付总额＝商品款＋运费。',
-          '商品退款、运费退款按各自成功退款时间归入统计周期。',
-          '本期最近进货日、进货天数仅取所选周期内有效进货支付日（自然日去重）。',
-          '公式：平均进货间隔＝（本期最近进货日－本期最早进货日）÷（本期进货天数－1）；少于 2 个进货日显示—。',
-          '代采是采购支出，不进入第三方结算，不可与零售成交额相加作为营业额。',
-          '「最近一次进货（全部历史）」另标，不与本期混用。'
-        ]
+        items: [tips.proxy || '本店采购商品及运费支出，不计入平台零售支付成交额。'].filter(Boolean)
       });
     } else if (state.tab === 'income') {
       title = '佣金说明';
       sections.push({
         title: '佣金',
-        items: [data.income && data.income.tip ? data.income.tip : ''].filter(Boolean)
-      });
-    } else {
-      title = '第三方结算说明';
-      sections.push({
-        title: '第三方结算',
-        items: [tips.thirdParty || ''].filter(Boolean)
+        items: [
+          (data.income && data.income.tip) || '本店获得的佣金，以系统结算记录为准。'
+        ].filter(Boolean)
       });
     }
     $('opsSheetTitle').textContent = title;
-    $('opsSheetBody').innerHTML = S().tipBodyHtml(sections, D().DATA_SOURCE_NOTE || '');
+    $('opsSheetBody').innerHTML = S().tipBodyHtml(sections);
     $('opsSheet').hidden = false;
+    if ($('opsSheetBody')) $('opsSheetBody').scrollTop = 0;
   }
 
+  function escapeHtml(v) {
+    return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  /**
+   * 衔接历史「工作台 → 客户订单」。历史页仅支持 tab 状态筛选，不支持报表日期／来源；
+   * 仅传递 returnTo／可选 order，避免伪造成功筛选。差异见交付说明。
+   */
+  function orderHref(id) {
+    var q = new URLSearchParams({
+      tab: '全部',
+      returnTo: location.pathname + location.search
+    });
+    if (id) q.set('order', id);
+    return 'store-orders.html?' + q.toString();
+  }
+  function restockHref() {
+    var q = new URLSearchParams({
+      returnTo: location.pathname + location.search
+    });
+    return 'restock-orders.html?' + q.toString();
+  }
+  function orderStatusText(o) {
+    if (o.orderStatus) return o.orderStatus;
+    if (o.fulfillStatus && o.fulfillStatus !== '—') return o.fulfillStatus;
+    return '已完成';
+  }
+  function aftersaleText(o) {
+    if (o.aftersaleStatus) return o.aftersaleStatus;
+    var refund = Number(o.refundGoods) || 0;
+    if (refund <= 0) return '';
+    var paid = Number(o.goodsPaid) || 0;
+    return refund >= paid && paid > 0 ? '全额退款' : '部分退款';
+  }
   function renderOrders(list) {
     var root = $('opsOrderTable');
     if (!root) return;
-    if (!list.length) {
-      root.innerHTML = '<div class="sa-dc-empty">暂无订单</div>';
-      return;
-    }
-    root.innerHTML = list
-      .slice(0, 30)
-      .map(function (o) {
-        var goods = (o.goods || [])
-          .filter(function (g) {
-            return !g.test;
-          })
-          .map(function (g) {
-            return g.name;
-          })
-          .join('、');
-        var comm = o.commissionConfigured === false || o.commission == null ? '—' : group(o.commission);
-        return (
-          '<div class="sa-dc-list-row" data-expand>' +
-          '<div><div class="sa-dc-list-row__title">' +
-          (o.channel === 'live' ? '直播' : '商城') +
-          ' · ' +
-          (goods || o.id) +
-          '</div><div class="sa-dc-list-row__meta">' +
-          (o.payTime || '').slice(0, 16) +
-          ' · ' +
-          o.id +
-          '</div><div class="sa-dc-list-row__detail">实付 ' +
-          group(o.goodsPaid) +
-          ' · 退款 ' +
-          group(o.refundGoods || 0) +
-          ' · 佣金 ' +
-          comm +
-          ' · ' +
-          (o.settleStatus || '') +
-          '</div></div>' +
-          '<div class="sa-dc-list-amt">' +
-          group(o.goodsPaid) +
-          '</div></div>'
-        );
-      })
-      .join('');
+    if ($('opsAllOrders')) $('opsAllOrders').href = orderHref();
+    var rows = list.slice().sort(function (a,b) {
+      return b.payTime.localeCompare(a.payTime) || a.id.localeCompare(b.id);
+    });
+    root.innerHTML = rows.slice(0,5).map(function (o) {
+      var goods = (o.goods || []).filter(function (g) { return !g.test; });
+      var title = goods.length ? goods[0].name + (goods.length > 1 ? ' 等' + goods.length + '种商品' : '') : o.id;
+      var status = orderStatusText(o);
+      var aftersale = aftersaleText(o);
+      var statusLine = aftersale
+        ? '订单状态 ' + status + ' · 售后 ' + aftersale
+        : '订单状态 ' + status;
+      return '<a class="sa-dc-list-row" style="color:inherit;text-decoration:none" href="' + escapeHtml(orderHref(o.id)) + '"><div><div class="sa-dc-list-row__title">' +
+        escapeHtml((o.channel === 'live' ? '直播' : '商城') + ' · ' + title) +
+        '</div><div class="sa-dc-list-row__meta">支付 ' + escapeHtml(o.payTime.slice(0,16)) + ' · ' + escapeHtml(o.id) +
+        '</div><div class="sa-dc-muted">' + escapeHtml(statusLine) +
+        '</div></div><div class="sa-dc-list-amt"><small>实付</small> ' + group(o.goodsPaid) + '元</div></a>';
+    }).join('') || '<div class="sa-dc-empty">该时段暂无符合条件的订单</div>';
+    if (rows.length > 5) root.innerHTML += '<div class="sa-dc-muted">仅展示最近5笔，完整列表见客户订单</div>';
   }
 
   function render() {
@@ -408,6 +342,7 @@
         data.compareRange
       );
     }
+    syncRetailDd();
     if ($('opsAsOf')) {
       $('opsAsOf').hidden = false;
       $('opsAsOf').textContent = S().updatedCaption(data.updatedAt || D().UPDATED_AT);
@@ -440,7 +375,7 @@
           '</tbody></table>';
       }
     }
-    renderOrders(r.orders || []);
+    renderOrders(D().listRetailOrders(data.bounds, state.channel, state.view));
 
     var px = data.proxy;
     if ($('opsPxGoods')) $('opsPxGoods').textContent = group(px.goodsPaid);
@@ -471,38 +406,39 @@
       pxTrend.points,
       '#0e76f5'
     );
+    if ($('opsAllProxyOrders')) $('opsAllProxyOrders').href = restockHref();
     var pt = $('opsProxyTable');
     if (pt) {
-      pt.innerHTML = (px.orders || []).length
-        ? px.orders
-            .map(function (o) {
-              var goods = Number(o.goodsPaid) || 0;
-              var freight = Number(o.freightPaid) || 0;
-              var total = Math.round((goods + freight) * 100) / 100;
-              return (
-                '<div class="sa-dc-list-row sa-dc-list-row--proxy">' +
-                '<div class="sa-dc-list-row__main">' +
-                '<div class="sa-dc-list-row__title">' +
-                o.id +
-                '</div>' +
-                '<div class="sa-dc-list-row__meta">' +
-                (o.payTime || '').slice(0, 16) +
-                '</div></div>' +
-                '<div class="sa-dc-list-amts" aria-label="金额明细">' +
-                '<div class="sa-dc-list-amts__row"><span>商品款</span><em>' +
-                group(goods) +
-                '<i>元</i></em></div>' +
-                '<div class="sa-dc-list-amts__row"><span>运费</span><em>' +
-                group(freight) +
-                '<i>元</i></em></div>' +
-                '<div class="sa-dc-list-amts__row is-total"><span>支付总额</span><em>' +
-                group(total) +
-                '<i>元</i></em></div>' +
-                '</div></div>'
-              );
-            })
-            .join('')
-        : '<div class="sa-dc-empty">本时段暂无代采</div>';
+      var proxyRows = (px.orders || []).slice().sort(function (a, b) {
+        return String(b.payTime || '').localeCompare(String(a.payTime || '')) || String(a.id).localeCompare(String(b.id));
+      });
+      pt.innerHTML = proxyRows.length
+        ? proxyRows.slice(0, 5).map(function (o) {
+            var goodsAmt = Number(o.goodsPaid) || 0;
+            var freight = Number(o.freightPaid) || 0;
+            var total = Math.round((goodsAmt + freight) * 100) / 100;
+            var goodsNames = (o.goods || []).map(function (g) { return g.name; }).filter(Boolean);
+            var title = goodsNames.length
+              ? goodsNames[0] + (goodsNames.length > 1 ? ' 等' + goodsNames.length + '种商品' : '')
+              : o.goodsSummary || o.id;
+            var status = o.orderStatus || '已支付';
+            return (
+              '<a class="sa-dc-list-row sa-dc-list-row--proxy" style="color:inherit;text-decoration:none" href="' +
+              escapeHtml(restockHref()) +
+              '"><div class="sa-dc-list-row__main"><div class="sa-dc-list-row__title">' +
+              escapeHtml(title) +
+              '</div><div class="sa-dc-list-row__meta">支付 ' +
+              escapeHtml((o.payTime || '').slice(0, 16)) +
+              ' · ' +
+              escapeHtml(o.id) +
+              '</div><div class="sa-dc-muted">订单状态 ' +
+              escapeHtml(status) +
+              '</div></div><div class="sa-dc-list-amt"><small>支付总额</small> ' +
+              group(total) +
+              '元</div></a>'
+            );
+          }).join('') + (proxyRows.length > 5 ? '<div class="sa-dc-muted">仅展示最近5笔，汇总与趋势仍按全部符合条件订单计算</div>' : '')
+        : '<div class="sa-dc-empty">本时段暂无进货订单</div>';
     }
 
     if ($('opsIncome')) {
@@ -545,8 +481,6 @@
       $('opsIncTrendWrap'),
       incTrend.points
     );
-
-    renderTp();
   }
 
   function bind() {
@@ -556,27 +490,11 @@
         render();
       });
     });
-    if ($('opsTpModules')) {
-      $('opsTpModules').addEventListener('click', function (e) {
-        var btn = e.target.closest('[data-tp-module]');
-        if (!btn) return;
-        state.tpModule = btn.getAttribute('data-tp-module');
-        state.tpChannel = 'all';
-        render();
-      });
-    }
-    if ($('opsTpChannels')) {
-      $('opsTpChannels').addEventListener('click', function (e) {
-        var btn = e.target.closest('[data-tp-channel]');
-        if (!btn) return;
-        state.tpChannel = btn.getAttribute('data-tp-channel');
-        render();
-      });
-    }
     if ($('opsRanges')) {
       $('opsRanges').addEventListener('click', function (e) {
         var btn = e.target.closest('[data-range]');
         if (!btn) return;
+        closeDropdowns();
         var id = btn.getAttribute('data-range');
         if (id === 'custom') {
           openCustom();
@@ -620,34 +538,47 @@
         render();
       });
     }
-    function seg(id, attr, key) {
-      var root = $(id);
-      if (!root) return;
-      root.addEventListener('click', function (e) {
-        var btn = e.target.closest('[' + attr + ']');
-        if (!btn) return;
-        state[key] = btn.getAttribute(attr);
-        root.querySelectorAll('[' + attr + ']').forEach(function (b) {
-          b.classList.toggle('is-active', b === btn);
-        });
-        render();
-      });
-    }
-    seg('opsViewSeg', 'data-view', 'view');
-    seg('opsChannelSeg', 'data-channel', 'channel');
+    document.addEventListener('click', function (e) {
+      var opt = e.target.closest('.sa-dc-dd__opt');
+      if (opt) {
+        if (opt.hasAttribute('data-view')) {
+          state.view = opt.getAttribute('data-view');
+          closeDropdowns();
+          render();
+          return;
+        }
+        if (opt.hasAttribute('data-channel')) {
+          state.channel = opt.getAttribute('data-channel');
+          closeDropdowns();
+          render();
+          return;
+        }
+      }
+      var ddBtn = e.target.closest('.sa-dc-dd__btn');
+      if (ddBtn) {
+        var dd = ddBtn.closest('.sa-dc-dd');
+        var name = dd && dd.getAttribute('data-dd');
+        if (!name) return;
+        e.preventDefault();
+        if (state.openDd === name) closeDropdowns();
+        else openDropdown(name);
+        return;
+      }
+      if (!e.target.closest('.sa-dc-dd')) closeDropdowns();
+      var row = e.target.closest('[data-expand]');
+      if (row) row.classList.toggle('is-open');
+    });
     if ($('opsTrendDataBtn')) {
       $('opsTrendDataBtn').addEventListener('click', function () {
         state.showTrendData = !state.showTrendData;
         render();
       });
     }
-    document.addEventListener('click', function (e) {
-      var row = e.target.closest('[data-expand]');
-      if (!row) return;
-      row.classList.toggle('is-open');
-    });
     document.querySelectorAll('[data-tip]').forEach(function (btn) {
-      btn.addEventListener('click', openTip);
+      btn.addEventListener('click', function () {
+        closeDropdowns();
+        openTip();
+      });
     });
     if ($('opsSheet')) {
       $('opsSheet').addEventListener('click', function (e) {
@@ -662,22 +593,21 @@
     var f = S() ? S().merge('ops') : {};
     state.range = S().normalizeRange(f.range || 'today');
     state.custom = { start: f.start || '', end: f.end || '' };
-    state.view = f.view || 'pay';
-    state.channel = f.channel || 'all';
-    state.tpModule = f.tpModule || '';
-    state.tpChannel = f.tpChannel || 'all';
+    state.view = f.view === 'event' ? 'event' : 'pay';
+    state.channel = f.channel === 'mall' || f.channel === 'live' ? f.channel : 'all';
+    /* 一期不含POS：旧链接 tab=tp 等未知 Tab 一律回退平台零售 */
     state.tab = S().normalizeTab(f.tab || f.section || 'retail') || 'retail';
     if (TABS.indexOf(state.tab) < 0) state.tab = 'retail';
     if (window.StoreAppBizSession && StoreAppBizSession.boot) StoreAppBizSession.boot({});
+    window.addEventListener('pagehide', function () { sessionStorage.setItem('bizOpsScroll', String(document.querySelector('.sa-rpt-scroll') ? document.querySelector('.sa-rpt-scroll').scrollTop : window.scrollY)); });
     bind();
-    document.querySelectorAll('#opsViewSeg [data-view]').forEach(function (b) {
-      b.classList.toggle('is-active', b.getAttribute('data-view') === state.view);
-    });
-    document.querySelectorAll('#opsChannelSeg [data-channel]').forEach(function (b) {
-      b.classList.toggle('is-active', b.getAttribute('data-channel') === state.channel);
-    });
     setTab(state.tab);
     render();
+    window.addEventListener('pageshow', function () {
+      var y = Number(sessionStorage.getItem('bizOpsScroll')) || 0;
+      var scroller = document.querySelector('.sa-rpt-scroll');
+      requestAnimationFrame(function () { if (scroller) scroller.scrollTop = y; else window.scrollTo(0,y); });
+    });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();

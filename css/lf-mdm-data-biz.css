@@ -568,10 +568,67 @@
   overflow: auto;
 }
 
+.ldb-table-wrap--rank {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
 .ldb-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
+}
+
+.ldb-table--unified {
+  min-width: 1280px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.ldb-table--unified .ldb-th-group th {
+  text-align: center;
+  background: #f5f7fa;
+  color: #606266;
+  font-weight: 600;
+  border-bottom: 1px solid #e4e7ed;
+}
+
+.ldb-table--unified .ldb-th-sub th.is-sort-col,
+.ldb-table--unified td.is-sort-col {
+  background: #fff7f0;
+  color: #303133;
+  font-weight: 600;
+}
+
+.ldb-table--unified .ldb-col-sticky-left {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: #fff;
+  box-shadow: 1px 0 0 #ebeef5;
+}
+
+.ldb-table--unified thead .ldb-col-sticky-left {
+  background: #fafafa;
+  z-index: 3;
+}
+
+.ldb-table--unified .ldb-col-sticky-left--2 {
+  left: 56px;
+}
+
+.ldb-table--unified .ldb-col-sticky-right {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  background: #fff;
+  box-shadow: -1px 0 0 #ebeef5;
+}
+
+.ldb-table--unified thead .ldb-col-sticky-right {
+  background: #fafafa;
+  z-index: 3;
 }
 
 .ldb-table th,
