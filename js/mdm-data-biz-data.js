@@ -703,6 +703,15 @@
     }
   ];
 
+  if(global.BusinessReportFixtures){
+    AS_OF=global.BusinessReportFixtures.asOf.replace(' ','T')+'+08:00';
+    stores.push({id:'S-CN',name:'城南生鲜店',line:'餐饮',brand:'冷丰锅贴',coopType:'加盟店',openDate:'2026-01-01'});
+    global.BusinessReportFixtures.rows.forEach(function(r){
+      orders.push({id:r.id,biz:r.biz,channel:r.channel,storeId:r.storeId,storeName:r.storeName,consumerId:'LINK-C',payTime:r.pay.replace(' ','T')+'+08:00',saleKind:'normal',cashGoods:r.paid,cashFreight:r.freight||0,pointsDeduct:0,lines:[{id:r.sku,name:r.name,cashShare:r.paid,cost:r.cost,qty:r.qty,purchaseQty:r.qty}]});
+      if(r.refund) refunds.push({id:'RF-'+r.id,orderId:r.id,lineId:r.sku,completeTime:r.refundAt.replace(' ','T')+'+08:00',mode:r.refundQty?'qty_partial':'amount_only',goodsAmount:r.refund,freightAmount:0,qtyRefund:r.refundQty||0,purchaseQtyRefund:r.refundQty||0});
+      settlements.push({id:'PL-'+r.id,type:'commission',kind:'goods',biz:r.biz,orderId:r.id,createdAt:r.settleAt.replace(' ','T')+'+08:00',platformShare:r.platform});
+    });
+  }
   global.MdmDataBizData = {
     AS_OF: AS_OF,
     DEMO_LABEL: '演示数据',

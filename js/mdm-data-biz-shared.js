@@ -118,10 +118,10 @@
       /* 已废弃本月：旧调用落到近30天 */
       return resolvePeriod('30d', customFrom, customTo, now);
     } else if (key === '7d' || key === '30d') {
-      /* 近 N 天：截至 asOf 的滚动窗口，对比等长同期（相同已过时段） */
+      /* 近 N 个完整自然日，截至昨日，对比此前等长周期 */
       var days = key === '7d' ? 7 : 30;
-      var curEnd = cloneDate(now);
-      var curStart = cloneDate(now);
+      var curEnd = startOfDay(now);
+      var curStart = startOfDay(now);
       curStart.setDate(curStart.getDate() - days);
       setDayRange(curStart, curEnd);
       compareEnd = cloneDate(curStart);
@@ -438,11 +438,11 @@
       marginSum:
         orderCount === 0
           ? null
-          : marginPending === orderCount
+          : marginPending > 0
             ? null
             : round2(marginSum),
       marginDenom: round2(marginDenom),
-      marginRate: orderCount === 0 || marginDenom <= 0 ? null : marginSum / marginDenom,
+      marginRate: orderCount === 0 || marginPending > 0 || marginDenom <= 0 ? null : marginSum / marginDenom,
       marginPending: marginPending,
       marginReady: marginReady,
       platformRetailGoods: round2(platformRetailGoods),

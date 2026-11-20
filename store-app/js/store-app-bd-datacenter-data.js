@@ -68,6 +68,7 @@
       { id: 'MR40', store: 'S-CN', customer: 'C01', pay: at(-40, '10:00:00'), channel: 'mall', role: 'bd', bd: ME, settle: '已结算', settleAt: at(-39, '10:00:00'), lines: [{ name: '陈年茶叶', paid: 1000, commission: 100 }] },
       { id: 'MR41', store: 'S-CN', customer: 'C02', pay: at(-1, '18:00:00'), channel: 'mall', role: 'bd', bd: ME, settle: '已取消', settleAt: '', lines: [{ name: '取消结算的鱼丸', paid: 15, commission: 1.5 }] }
     ];
+    retailCache = retailCache.concat((global.BusinessReportFixtures ? global.BusinessReportFixtures.rows : []).filter(function(r){return r.biz==='retail';}).map(function(r){return {id:r.id,store:r.storeId,customer:'LINK-C',pay:r.pay,channel:r.channel,role:'bd',bd:ME,settle:'已结算',settleAt:r.settleAt,clawback:r.bdRefund||0,clawbackAt:r.refundAt,lines:[{name:r.name,paid:r.paid,commission:r.bd}]};}));
     return retailCache;
   }
   function proxyOrders() {
@@ -85,6 +86,8 @@
       { id: 'MP9', store: 'S-CN', pay: at(0, '12:00:00'), subCount: 1, freeGift: true, lines: [{ name: '免费赠品进货', goods: 0, freight: 0 }] },
       { id: 'MP10', store: 'S-XX', pay: at(-15, '10:00:00'), subCount: 1, zeroPromo: true, lines: [{ name: '零元营销进货', goods: 0, freight: 0 }] }
     ];
+    proxyCache.forEach(function(o,i){o.channel='proxy';o.role='bd';o.bd=i<6?ME:'';o.settle=i%2?'已结算':'待结算';o.settleAt=i%2?o.pay:'';o.lines.forEach(function(l){if(!l.test) l.commission=[9,6,3,2.4,2.1,1.2][i] == null ? null : [9,6,3,2.4,2.1,1.2][i];});});
+    proxyCache=proxyCache.concat((global.BusinessReportFixtures ? global.BusinessReportFixtures.rows : []).filter(function(r){return r.biz==='proxy';}).map(function(r){return {id:r.id,store:r.storeId,pay:r.pay,channel:'proxy',role:'bd',bd:ME,settle:'已结算',settleAt:r.settleAt,lines:[{name:r.name,goods:r.paid,freight:r.freight||0,commission:r.bd}]};}));
     return proxyCache;
   }
 
@@ -145,7 +148,7 @@
     return '';
   }
   function commissionOf(o) {
-    if (o.role !== 'bd' || o.bd !== ME) return null;
+    if (o.role !== 'bd' || o.bd !== ME || blockedOrder(o)) return null;
     var store = storeById(o.store);
     if (excludedStore(store)) return null;
     if (o.configured === false) {
@@ -245,7 +248,7 @@
     };
   }
   function myCommissionRows(bounds, dim) {
-    return retailOrders().filter(function (o) {
+    return retailOrders().concat(proxyOrders()).filter(function (o) {
       if (!commissionOf(o)) return false;
       var store = storeById(o.store);
       if (!store || excludedStore(store)) return false;
@@ -256,7 +259,7 @@
   function sumCommission(rows, scope) {
     var picked = rows.filter(function (o) {
       var store = storeById(o.store);
-      return scope === 'history' ? store.scope === 'history' : store.scope === 'current';
+      return scope === 'all' ? (store.scope === 'history' || store.scope === 'current') : scope === 'history' ? store.scope === 'history' : store.scope === 'current';
     });
     if (!picked.length) return { total: null, pending: null, settled: null, rows: [] };
     var total = 0;
@@ -401,6 +404,20 @@
     };
   }
 
+  function businessCommission(range, custom, tab, storeId) {
+    var p=pack(range,custom);
+    function total(bounds){
+      var rows=myCommissionRows(bounds,'pay').filter(function(o){
+        var store=storeById(o.store);
+        return store && store.scope==='current' && (!storeId || o.store===storeId) && (tab==='proxy' ? sourceName(o.channel)==='代采' : sourceName(o.channel)!=='代采');
+      });
+      var value=null;
+      rows.forEach(function(o){var c=commissionOf(o);if(c && c.amount!=null && c.bucket && c.bucket!=='abnormal') value=K().add(value || 0,c.amount);});
+      return value;
+    }
+    var cur=total(p.bounds),prev=total(p.prev);
+    return {total:cur,delta:K().deltaPack(cur,prev),compareLabel:p.compareLabel};
+  }
   function storesView(range, custom, tab, rank) {
     var p = pack(range, custom);
     var mode = tab === 'proxy' ? 'proxy' : 'retail';
@@ -488,7 +505,7 @@
   function analysis(range, custom, scope, dim) {
     var p = pack(range, custom);
     var mode = dim === 'settle' ? 'settle' : 'pay';
-    var which = scope === 'history' ? 'history' : 'current';
+    var which = scope === 'all' ? 'all' : scope === 'history' ? 'history' : 'current';
     var cur = sumCommission(myCommissionRows(p.bounds, mode), which);
     var prev = sumCommission(myCommissionRows(p.prev, mode), which);
     var byStore = {};
@@ -519,12 +536,12 @@
         return b.amount - a.amount;
       }),
       bySource: ['商城', '直播', '代采'].map(function (name) {
-        return { name: name, amount: Object.prototype.hasOwnProperty.call(bySource, name) ? bySource[name] : name === '代采' ? null : 0 };
+        return { name: name, amount: Object.prototype.hasOwnProperty.call(bySource, name) ? bySource[name] : 0 };
       }),
       trend: K().buildTrend(p.bounds, function (slot) {
         var rows = myCommissionRows(p.bounds, mode).filter(function (o) {
           var store = storeById(o.store);
-          if ((which === 'history') !== (store.scope === 'history')) return false;
+          if (which !== 'all' && (which === 'history') !== (store.scope === 'history')) return false;
           var t = mode === 'settle' ? o.settleAt : o.pay;
           if (slot.day && K().dateKeyOf(t) !== slot.day) return false;
           return hourMatch(t, slot.hour);
@@ -537,12 +554,13 @@
 
   function commissionList(range, custom, scope, dim, source, status, storeId) {
     var view = analysis(range, custom, scope, dim);
-    var src = source === '直播' || source === 'live' ? '直播' : source === '商城' || source === 'mall' ? '商城' : 'all';
+    var src = source === '代采' ? '代采' : source === '零售' ? '零售' : source === '直播' || source === 'live' ? '直播' : source === '商城' || source === 'mall' ? '商城' : 'all';
     var st = status || 'all';
     var rows = view.byStore && sumCommission(myCommissionRows(view.bounds, view.dim), view.scope).rows;
     rows = (rows || []).filter(function (o) {
       if (storeId && o.store !== storeId) return false;
-      if (src !== 'all' && sourceName(o.channel) !== src) return false;
+      if (src === '零售' && sourceName(o.channel) === '代采') return false;
+      if (src !== 'all' && src !== '零售' && sourceName(o.channel) !== src) return false;
       if (st !== 'all' && (o.settle || '未配置') !== st) return false;
       return true;
     });
@@ -585,7 +603,7 @@
           pay: o.pay,
           settleAt: o.settleAt || '',
           settle: o.settle || (c.configured ? '' : '未配置'),
-          amount: c.amount,
+          amount: c.bucket ? c.amount : null,
           gross: c.gross,
           clawback: c.clawback || 0,
           clawbackAt: o.clawbackAt || '',
@@ -610,11 +628,11 @@
     if (today.counts.responsible !== 4) errs.push('负责门店数');
     if (today.counts.retailStores !== 2 || today.counts.proxyStores !== 2 || today.counts.both !== 1) errs.push('门店覆盖');
     if (!near(today.retail.paid, 525) || today.retail.orders !== 6 || today.retail.users !== 4) errs.push('今日零售');
-    if (!near(today.retail.prevPaid, 187.9)) errs.push('今日对比时段');
+    if (!near(today.retail.prevPaid, 287.9)) errs.push('今日对比时段');
     if (!near(today.proxy.goods, 450) || today.proxy.orders !== 2) errs.push('今日代采');
-    if (!near(today.commission.total, 28.5)) errs.push('今日本人佣金');
-    if (!near(y.retail.paid, 287.9)) errs.push('昨日零售');
-    if (!near(d7.retail.paid, 502.9) || !near(d30.retail.paid, 542.9)) errs.push('7/30天');
+    if (!near(today.commission.total, 43.5)) errs.push('今日本人佣金');
+    if (!near(y.retail.paid, 387.9)) errs.push('昨日零售');
+    if (!near(d7.retail.paid, 662.9) || !near(d30.retail.paid, 702.9)) errs.push('7/30天');
     if (!near(custom.retail.paid, 575)) errs.push('自定义含截止后');
     if (d30.rank.rows.some(function (r) { return r.id === 'S-TEST' || r.id === 'S-DC'; })) errs.push('测试或交接店进入排行');
     var cn = storeView('today', null, 'S-CN', 'retail');
@@ -651,6 +669,7 @@
     BD_NAME: BD_NAME,
     overview: overview,
     storesView: storesView,
+    businessCommission: businessCommission,
     storeView: storeView,
     analysis: analysis,
     commissionList: commissionList,
@@ -658,8 +677,8 @@
     tips: {
       overview: '先看当前负责门店的零售成交和代采进货，两笔数不要相加当营业额。负责门店数是现在的负责关系，不是有成交的门店数。本人佣金只统计这些门店里实际归本人的 BD 佣金，不含已交接门店，也不含本人兼任店长或主播的所得。',
       retail: '零售支付成交额只计当前负责门店的有效销售。支付主订单按单去重，供应商子单和包裹不增加订单数。支付人数按消费者跨门店重新去重。免费赠品、纯积分、零元营销、积分加现金补差不计入；福利低价仍计入。',
-      proxy: '代采商品支付金额不含运费，运费和进货总额分开看。进货客单价＝商品支付金额÷支付主订单数。平均进货间隔＝（本期最近进货日－本期最早进货日）÷（进货天数－1），按自然日去重；少于 2 个进货日显示—。本期最近进货日只取所选周期。',
-      commission: '当前负责门店：这些门店里实际归本人的佣金。历史佣金：已不再负责的门店里，过去归本人的佣金以及后来的结算、退款冲回。两边不重复，交接不会把佣金转给新 BD。按支付时间圈定支付成功订单上的佣金；按结算时间按佣金结算单创建时间。结算中计入待结算。未配置、结算失败、已取消不进合计。账户余额和提现不在这里。',
+      proxy: '代采商品支付金额不含运费，运费和进货总额分开看。平均进货间隔＝（本期最近进货日－本期最早进货日）÷（进货天数－1），按自然日去重；少于 2 个进货日显示—。最近进货日展示全部历史最近一次进货。',
+      commission: '佣金数据包含全部归当前BD的佣金及已交接门店历史账目。门店业务中的佣金按本期支付订单关联，不含运费；佣金数据可按支付时间或结算单创建时间统计。未配置结果显示—，结算失败或取消不进正常合计。历史佣金仅允许查看原订单对账摘要，不开放该门店完整业务。账户余额和提现分开。',
       note: K().DATA_NOTE
     }
   };

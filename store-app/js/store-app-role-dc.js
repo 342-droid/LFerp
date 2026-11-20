@@ -176,7 +176,7 @@
     var c = Number(cur) || 0;
     var p = Number(prev) || 0;
     var abs = round2(c - p);
-    var pct = p === 0 ? (c === 0 ? 0 : null) : round2(((c - p) / Math.abs(p)) * 100);
+    var pct = p === 0 ? null : round2(((c - p) / Math.abs(p)) * 100);
     return { na: false, abs: abs, pct: pct, up: abs > 0, flat: abs === 0 };
   }
 
@@ -480,6 +480,8 @@
     function href(path, extra) {
       var o = Object.assign({}, get(), extra || {});
       var parts = [];
+      var parentRoute=new URLSearchParams(location.search);
+      ['group','section'].forEach(function(k){if(parentRoute.get(k)) parts.push(k+'='+encodeURIComponent(parentRoute.get(k)));});
       if (o.range) parts.push('range=' + encodeURIComponent(o.range));
       if (o.range === 'custom' && o.start) parts.push('start=' + encodeURIComponent(o.start));
       if (o.range === 'custom' && o.end) parts.push('end=' + encodeURIComponent(o.end));

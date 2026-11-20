@@ -6,7 +6,7 @@
  * 总览／经营／运营／佣金同口径同源。
  */
 (function (global) {
-  var STORE = { id: 'STORE-YY', name: '悠悠生鲜超市' };
+  var STORE = { id: 'S-CN', name: '城南生鲜店' };
   var DEMO_TODAY = (function () {
     var d = new Date();
     function p(n) {
@@ -486,6 +486,10 @@
    * 演示门店已接入堂食、外卖（淘宝闪购／美团外卖／京东秒送）、团购核销、储值。
    * 账单按结算周期结束日整单筛选，金额为实际将支付给门店的结算金额（不称为已到账）。
    */
+  if(global.BusinessReportFixtures) global.BusinessReportFixtures.rows.forEach(function(r){
+    if(r.biz==='retail') RETAIL.push({id:r.id,channel:r.channel,customerId:'LINK-C',payTime:r.pay,goodsPaid:r.paid,freightPaid:0,refundGoods:r.refund||0,refundTime:r.refundAt||'',commission:r.store,settleStatus:'已结算',commissionCreateTime:r.settleAt,creditTime:r.settleAt,goods:[{name:r.name,paid:r.paid,test:false}]});
+    else PROXY.push({id:r.id,payTime:r.pay,goodsPaid:r.paid,freightPaid:r.freight||0,goodsRefund:0,freightRefund:0,refundTime:''});
+  });
   var TP_MODULE_DEFS = [
     { id: 'dineIn', name: '堂食' },
     {

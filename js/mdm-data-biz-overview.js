@@ -349,7 +349,7 @@
           '',
           cur.marginRate == null
             ? '毛利率 —'
-            : '毛利率 ' + Biz.pctText(cur.marginRate) + (cur.marginPending ? '（含未齐成本明细）' : ''),
+            : '毛利率 ' + Biz.pctText(cur.marginRate) + (cur.marginPending ? '（成本未齐）' : ''),
           'margin'
         ) +
         Ui.kpiCard(
