@@ -713,12 +713,12 @@
         );
     }
 
-    /* 履行汇总与履约列表、首页同一口径：日均履行进度 = 累计履行进度 ÷ 已履约天数。 */
+    /* 履行汇总与履约列表、首页同一口径：剩余履行额 = 总金额 − 已履行金额。日均履行进度 = 累计履行进度 ÷ 已履约天数。 */
     function dailySummary(item, rows, partyCents) {
         var risk = window.RbtRisk;
         var base = risk && typeof risk.receivableOf === 'function' ? risk.receivableOf(item) : 0;
         var fact = risk && typeof risk.assessDays === 'function'
-            ? risk.assessDays(rows, base)
+            ? risk.assessDays(rows, base, item && item.amount)
             : { due: '0.00', actual: '0.00', gap: '0.00', progress: '—', grade: '—' };
         var grades = { '正常': 1, '关注': 1, '预警': 1, '异常': 1 };
         var grade = fact.grade && grades[fact.grade]
@@ -734,7 +734,7 @@
             money(partyCents.lengfeng / 100),
             money(partyCents.provider / 100)
         ];
-        var titles = ['应履行', '已履行金额', '未履行差额', '日均履行进度', '履约风险等级', '贸易商收款', '冷丰收款', '服务商收款'];
+        var titles = ['应履行', '已履行金额', '剩余履行额', '日均履行进度', '履约风险等级', '贸易商收款', '冷丰收款', '服务商收款'];
         var head = '<tr>' + titles.map(function (title, index) {
             return '<th' + (index === 3 || index === 4 ? '' : ' class="is-money"') + '>' + title + '</th>';
         }).join('') + '</tr>';

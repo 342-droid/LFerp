@@ -54,7 +54,7 @@
                 { dataIndex: 'storeName', title: '门店', minWidth: 140, align: 'left', showOverflowTooltip: true, search: { control: 'input' } },
                 { dataIndex: 'demand', title: '需求单号', minWidth: 128, search: { control: 'input' } },
                 { dataIndex: 'streak', title: '连续未履行天数', minWidth: 120 },
-                { dataIndex: 'gap', title: '未履行差额', minWidth: 110, formatter: function (row) { return yuan(row.gap); } },
+                { dataIndex: 'gap', title: '剩余履行额', minWidth: 120, formatter: function (row) { return yuan(row.gap); } },
                 { dataIndex: 'progress', title: '日均履行进度', minWidth: 120 },
                 { dataIndex: 'grade', title: '履约风险等级', minWidth: 120, search: { control: 'select', options: gradeOptions, placeholder: '请选择' } },
                 { dataIndex: 'source', title: '数据来源', minWidth: 140, search: { control: 'select', options: sourceOptions, placeholder: '请选择' } },
@@ -100,7 +100,7 @@
                     ['最近未履行日期', row.lastMiss || '—'],
                     ['应履行', yuan(row.due)],
                     ['实际履行', yuan(row.actual)],
-                    ['未履行差额', yuan(row.gap)],
+                    ['剩余履行额', yuan(row.gap)],
                     ['日均履行进度', row.progress || '—'],
                     ['履约风险等级', row.grade || '—'],
                     ['异常提醒', row.alert || '—']
