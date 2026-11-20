@@ -106,6 +106,16 @@
         return num.toFixed(2);
     }
 
+    function amountOf(value) {
+        var num = Number(String(value == null ? '' : value).replace(/,/g, '').replace(/^¥/, ''));
+        return isFinite(num) ? num : 0;
+    }
+
+    /* 剩余履行额 = 总金额 − 已履行金额。已履行金额是已发生日期的实际履行合计。 */
+    function remainingOf(total, actual) {
+        return money(Math.max(0, Math.round((amountOf(total) - amountOf(actual)) * 100) / 100));
+    }
+
     function belowProgress(progress, line) {
         return progress != null && isFinite(progress) && progress < Number(line) / 100;
     }
@@ -182,7 +192,7 @@
     }
 
     /* 同一天可能有多个渠道。这一天的实际履行合计为 0，才算未履行。 */
-    function assessDays(days, receivable) {
+    function assessDays(days, receivable, totalAmount) {
         var sorted = (days || []).slice().sort(function (a, b) {
             return a.date < b.date ? -1 : a.date > b.date ? 1 : 0;
         });
@@ -221,7 +231,7 @@
         return {
             due: money(due),
             actual: money(actual),
-            gap: money(Math.max(0, due - actual)),
+            gap: remainingOf(totalAmount, actual),
             progress: daily == null ? '—' : (daily * 100).toFixed(2) + '%',
             progressRate: daily,
             elapsed: elapsed,
@@ -251,7 +261,7 @@
     function liveRows() {
         var daily = global.RbtDailyFulfill;
         return activeDemands().map(function (item) {
-            var fact = assessDays(daily.daysOf(item), receivableOf(item));
+            var fact = assessDays(daily.daysOf(item), receivableOf(item), item.amount);
             return {
                 id: item.code,
                 storeName: item.storeName || '—',
@@ -276,7 +286,7 @@
         var daily = global.RbtDailyFulfill;
         var days = item && daily && typeof daily.daysOf === 'function' ? daily.daysOf(item) : [];
         var base = receivableOf(item);
-        var fact = assessDays(days, base);
+        var fact = assessDays(days, base, item && item.amount);
         var progress = fact.progressRate;
         var elapsed = fact.elapsed;
         var due = fact.due;
@@ -288,7 +298,7 @@
             var amount = base > 0 ? Math.round(base * progress * elapsed * 100) / 100 : 0;
             due = money(amount);
             actual = money(amount);
-            gap = money(0);
+            gap = remainingOf(item && item.amount, amount);
         }
         var grade = gradeOf(script.streak, progress, elapsed, rule);
         return {
@@ -313,7 +323,7 @@
         if (grade === '正常') return '';
         var who = (storeName || '该门店') + ' ' + (code || '');
         var reason = driverText(grade, streak, daily, elapsed, cfg);
-        return who + ' ' + reason + '，未履行差额 ¥' + gap + '。' + alertSentence(grade, cfg);
+        return who + ' ' + reason + '，剩余履行额 ¥' + gap + '。' + alertSentence(grade, cfg);
     }
 
     function rules(cfg) {

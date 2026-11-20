@@ -39,13 +39,13 @@
         return blank(value) ? '—' : ('¥' + value);
     }
 
-    /* 与首页履约风险同一口径：已发生日期的实际履行合计、差额、日均履行进度和等级。 */
+    /* 与首页履约风险同一口径：已履行金额、剩余履行额 = 总金额 − 已履行金额、日均履行进度和等级。 */
     function withRisk(row) {
         var days = dailyApi && typeof dailyApi.daysOf === 'function' ? dailyApi.daysOf(row) : [];
         var risk = window.RbtRisk;
         var base = risk && typeof risk.receivableOf === 'function' ? risk.receivableOf(row) : 0;
         var fact = risk && typeof risk.assessDays === 'function'
-            ? risk.assessDays(days, base)
+            ? risk.assessDays(days, base, row.amount)
             : { actual: '', gap: '', progress: '—', grade: '—' };
         return Object.assign({}, row, {
             fulfilledAmount: fact.actual,
@@ -77,7 +77,7 @@
                 { dataIndex: 'accountNoQuery', title: '收款账户', hideInTable: true, search: { control: 'input' } },
                 { dataIndex: 'amount', title: '总金额', minWidth: 120, formatter: function (row) { return blank(row.amount) ? '—' : ('¥' + row.amount); } },
                 { dataIndex: 'fulfilledAmount', title: '已履行金额', minWidth: 120, align: 'right', formatter: function (row) { return yuan(row.fulfilledAmount); } },
-                { dataIndex: 'fulfillGap', title: '未履行差额', minWidth: 120, align: 'right', formatter: function (row) { return yuan(row.fulfillGap); } },
+                { dataIndex: 'fulfillGap', title: '剩余履行额', minWidth: 120, align: 'right', formatter: function (row) { return yuan(row.fulfillGap); } },
                 { dataIndex: 'fulfillProgress', title: '日均履行进度', minWidth: 120 },
                 {
                     dataIndex: 'riskGrade',
