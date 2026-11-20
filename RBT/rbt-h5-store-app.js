@@ -857,11 +857,9 @@
             '<div><span>应履约</span><b>' + (hasDays ? ('¥' + money(dueSum)) : '未产生') + '</b></div>' +
             '</div>' +
             '<button type="button" class="rbt-repay-go" data-bill-first ' + (rows.length ? '' : 'disabled') + '>履约详情</button>' +
-            '<p class="rbt-repay-hero__note">' + (hasDays
-                ? '预计履行是结算单还没确定的预估，售后还可能改金额。应履约是结算单已确定、尚未结款。未发生的日期不算。'
-                : (done
-                    ? '已完成只表示需求状态。还没有可跟的每日金额。'
-                    : '履约中表示复核已通过。还没有营业流水，预计履行未计算，应履约未产生。')) + '</p>' +
+            (hasDays ? '' : ('<p class="rbt-repay-hero__note">' + (done
+                ? '已完成只表示需求状态。还没有可跟的每日金额。'
+                : '履约中表示复核已通过。还没有营业流水，预计履行未计算，应履约未产生。') + '</p>')) +
             '</div>' +
             (rows.length ? rows.map(function (item) {
                 var days = item._days || [];

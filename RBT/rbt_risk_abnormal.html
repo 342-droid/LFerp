@@ -63,7 +63,7 @@
             <div class="content-tabs"><button type="button" class="active">异常履约数据</button></div>
             <hr class="content-divider">
             <div class="mdm-biz-tip rbt-abnormal-tip" role="note">
-                只列出履约风险等级不是<strong>正常</strong>的需求。当前台账按每日履行里已经发生的应履行和实际履行计算。持续未履行样例用来看规则落到哪一档，<strong>不改</strong>每日履行的实际履行。阈值在<a href="rbt_risk_config.html">风控配置</a>里改。处理只做记录，不拦截新建需求。
+                只列出履约风险等级不是<strong>正常</strong>的需求。当前台账里，实际履行为 0 的已发生日期从最近一天往前连续计数；<strong>日均履行进度</strong> = 累计履行进度 ÷ 已履约天数，未满起算天数不看日均。持续未履行样例用来看规则落到哪一档，<strong>不改</strong>每日履行的实际履行。阈值在<a href="rbt_risk_config.html">风控配置</a>里改。处理只做记录，不拦截新建需求。
             </div>
             <div id="rbtAbnormalApp" class="rbt-abnormal-host" v-cloak>
                 <vab-schema-table

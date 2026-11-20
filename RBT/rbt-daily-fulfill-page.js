@@ -54,7 +54,7 @@
                 { dataIndex: 'traderName', title: '贸易商', minWidth: 116, align: 'left', showOverflowTooltip: true, search: { control: 'input' }, formatter: function (row) { return blank(row.traderName) ? '—' : row.traderName; } },
                 { dataIndex: 'traderPay', title: '贸易商结款', minWidth: 108, align: 'right', formatter: function (row) { return yuan(row.traderPay); } },
                 { dataIndex: 'lengfengPay', title: '冷丰结款', minWidth: 100, align: 'right', formatter: function (row) { return yuan(row.lengfengPay); } },
-                { dataIndex: 'providerName', title: '服务商', minWidth: 96, align: 'left', showOverflowTooltip: true, formatter: function (row) { return blank(row.providerName) ? '—' : row.providerName; } },
+                { dataIndex: 'providerName', title: '服务商', minWidth: 96, align: 'left', showOverflowTooltip: true, search: { control: 'input' }, formatter: function (row) { return blank(row.providerName) ? '—' : row.providerName; } },
                 { dataIndex: 'providerPay', title: '服务商结款', minWidth: 108, align: 'right', formatter: function (row) { return yuan(row.providerPay); } },
                 { dataIndex: 'source', title: '计算来源', minWidth: 112, align: 'left', showOverflowTooltip: true }
             ];
@@ -96,6 +96,7 @@
                 }).filter(function (row) {
                     if (!matchDaily(row, params)) return false;
                     if (!includesText(row.traderName, params.traderName)) return false;
+                    if (!includesText(row.providerName, params.providerName)) return false;
                     return true;
                 });
                 return Promise.resolve(paginate(matched, params));

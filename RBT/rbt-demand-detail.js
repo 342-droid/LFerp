@@ -673,7 +673,7 @@
             '<div class="supplier-detail-tab">' +
             '<p class="rbt-daily-note">本单已经发生的每日履行。一行是一天、一个渠道。应履行 = 所得佣金 × 该渠道结算比例。当日实际履行按贸易商、冷丰、服务商应收占比拆成三方收款，三笔之和等于当日实际履行。没有服务商时，服务商收款为 0。未发生的日期不出现。' +
             '<a class="rbt-daily-note__more" href="rbt_daily_fulfill.html">全部门店每日履行</a></p>' +
-            dailySummary(rows, partyCents) +
+            dailySummary(item, rows, partyCents) +
             '<div class="supplier-detail-section-title">每日明细</div>' +
             '<div class="rbt-demand-table-wrap"><table class="rbt-demand-table"><thead><tr>' +
             '<th>日期</th><th>渠道</th><th class="is-money">营业流水</th><th class="is-money">所得佣金</th><th>结算比例</th>' +
@@ -683,12 +683,13 @@
         );
     }
 
-    /* 履行汇总与履约列表、首页同一口径：只加总已经发生的日期。 */
-    function dailySummary(rows, partyCents) {
+    /* 履行汇总与履约列表、首页同一口径：日均履行进度 = 累计履行进度 ÷ 已履约天数。 */
+    function dailySummary(item, rows, partyCents) {
         var risk = window.RbtRisk;
+        var base = risk && typeof risk.receivableOf === 'function' ? risk.receivableOf(item) : 0;
         var fact = risk && typeof risk.assessDays === 'function'
-            ? risk.assessDays(rows)
-            : { due: '0.00', actual: '0.00', gap: '0.00', cover: '—', grade: '—' };
+            ? risk.assessDays(rows, base)
+            : { due: '0.00', actual: '0.00', gap: '0.00', progress: '—', grade: '—' };
         var grades = { '正常': 1, '关注': 1, '预警': 1, '异常': 1 };
         var grade = fact.grade && grades[fact.grade]
             ? '<span class="rbt-risk-tag is-' + fact.grade + '">' + esc(fact.grade) + '</span>'
@@ -697,13 +698,13 @@
             money(fact.due),
             money(fact.actual),
             money(fact.gap),
-            fact.cover || '—',
+            fact.progress || '—',
             null,
             money(partyCents.trader / 100),
             money(partyCents.lengfeng / 100),
             money(partyCents.provider / 100)
         ];
-        var titles = ['应履行', '已履行金额', '未履行差额', '履行覆盖率', '履约风险等级', '贸易商收款', '冷丰收款', '服务商收款'];
+        var titles = ['应履行', '已履行金额', '未履行差额', '日均履行进度', '履约风险等级', '贸易商收款', '冷丰收款', '服务商收款'];
         var head = '<tr>' + titles.map(function (title, index) {
             return '<th' + (index === 3 || index === 4 ? '' : ' class="is-money"') + '>' + title + '</th>';
         }).join('') + '</tr>';
