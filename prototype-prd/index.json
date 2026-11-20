@@ -312,6 +312,33 @@
         "user-app/h5/login-wechat.html",
         "user-app/h5/login-password.html"
       ]
+    },
+    {
+      "id": "一期经营报表",
+      "title": "【一期经营报表】",
+      "file": "一期经营报表.md",
+      "pages": [
+        "MDM/mdm_bd_workbench.html",
+        "MDM/mdm_data_biz_overview.html",
+        "MDM/mdm_data_biz_retail.html",
+        "MDM/mdm_data_biz_proxy.html",
+        "MDM/mdm_data_biz_stores.html",
+        "MDM/mdm_data_biz_store_detail.html",
+        "MDM/mdm_order_retail.html",
+        "MDM/mdm_order_proxy.html",
+        "store-app/h5/biz-bd-center.html",
+        "store-app/h5/biz-bd-commission.html",
+        "store-app/h5/biz-bd-commission-list.html",
+        "store-app/h5/biz-bd-store.html",
+        "store-app/h5/biz-center.html",
+        "store-app/h5/biz-ops.html",
+        "store-app/h5/store-orders.html",
+        "store-app/h5/restock-orders.html",
+        "store-app/h5/biz-operate.html",
+        "store-app/h5/biz-commission.html",
+        "store-app/h5/biz-supplier-home.html",
+        "store-app/h5/biz-bd-stores.html"
+      ]
     }
   ]
 }
