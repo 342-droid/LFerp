@@ -1,6 +1,6 @@
 # 经营报表体系 · 文档索引
 
-按经营报表体系交付物，本目录落 **产品文档 1 / 3 / 10** 及单店样式说明；门店端「数据中心」可点原型与功能 PRD 见 `prototype-prd/门店经营参谋.md`。
+按经营报表体系交付物，本目录落 **产品文档 1 / 3 / 10** 及单店样式说明；门店端「数据中心」可点原型见下方链接。
 
 ## 本轮文档
 
@@ -22,9 +22,8 @@
 
 RBT 需求单详情内嵌门店经营／本笔回款：[`RBT/rbt_demand.html`](../../RBT/rbt_demand.html)
 
-门店／BD 数据中心可点原型与 PRD（含角色对照）：
+门店／BD 数据中心可点原型：
 
-- PRD：[prototype-prd/门店经营参谋.md](../../prototype-prd/门店经营参谋.md)（v2 · 门店 APP＋BD APP；产品名已更名为数据中心）
 - `store-app/h5/biz-center.html`（经营总览）
 - `store-app/h5/biz-revenue.html`（营业额 · 业务线）
 - `store-app/h5/biz-commission.html`（佣金明细）
