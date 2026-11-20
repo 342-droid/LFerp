@@ -1,10 +1,94 @@
 {
-  "latestSha": "8e49091c96555b035db458341c0d4f5902657476",
-  "total": 620,
+  "latestSha": "44ca4377d16c52f2252bb520b80263008341e1dd",
+  "total": 621,
   "days": [
     {
       "date": "2026-11-20",
       "items": [
+        {
+          "sha": "44ca437",
+          "type": "feat",
+          "text": "补充物流费率表操作日志并同步需求原型地址",
+          "author": "u ｌ",
+          "time": "17:09",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_live_session.html",
+              "module": "冷丰WMS",
+              "title": "直播场次"
+            },
+            {
+              "file": "MDM/mdm_member_level.html",
+              "module": "冷丰WMS",
+              "title": "会员等级"
+            },
+            {
+              "file": "MDM/mdm_member_level_rule.html",
+              "module": "冷丰WMS",
+              "title": "成长值规则"
+            },
+            {
+              "file": "MDM/mdm_order_freight_config.html",
+              "module": "冷丰订单",
+              "title": "运费配置"
+            },
+            {
+              "file": "MDM/mdm_party_all.html",
+              "module": "冷丰WMS",
+              "title": "所有主体"
+            },
+            {
+              "file": "MDM/mdm_product_category.html",
+              "module": "冷丰WMS",
+              "title": "商品类目"
+            },
+            {
+              "file": "MDM/mdm_product_mall_category.html",
+              "module": "冷丰WMS",
+              "title": "商城类目"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "module": "冷丰WMS",
+              "title": "选品库"
+            },
+            {
+              "file": "SCM/basic_settings_miniprogram_agreement.html",
+              "module": "冷丰WMS",
+              "title": "小程序协议"
+            },
+            {
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
+            },
+            {
+              "file": "SCM/basic_settings_recommendation.html",
+              "module": "冷丰WMS",
+              "title": "推荐位配置"
+            },
+            {
+              "file": "SCM/logistics_rate.html",
+              "module": "冷丰TMS",
+              "title": "物流费率表"
+            }
+          ]
+        },
         {
           "sha": "8e49091",
           "type": "fix",
@@ -10145,6 +10229,11 @@
               "title": "推荐位配置"
             },
             {
+              "file": "SCM/logistics_rate.html",
+              "module": "冷丰TMS",
+              "title": "物流费率表"
+            },
+            {
               "file": "prototype-prd/view.html",
               "module": "",
               "title": "PRD"
@@ -10261,6 +10350,11 @@
               "file": "SCM/basic_settings_recommendation.html",
               "module": "冷丰WMS",
               "title": "推荐位配置"
+            },
+            {
+              "file": "SCM/logistics_rate.html",
+              "module": "冷丰TMS",
+              "title": "物流费率表"
             }
           ],
           "notes": [
@@ -11379,6 +11473,11 @@
               "title": "推荐位配置"
             },
             {
+              "file": "SCM/logistics_rate.html",
+              "module": "冷丰TMS",
+              "title": "物流费率表"
+            },
+            {
               "file": "prototype-prd/view.html",
               "module": "",
               "title": "PRD"
@@ -11718,6 +11817,11 @@
               "title": "推荐位配置"
             },
             {
+              "file": "SCM/logistics_rate.html",
+              "module": "冷丰TMS",
+              "title": "物流费率表"
+            },
+            {
               "file": "prototype-prd/view.html",
               "module": "",
               "title": "PRD"
@@ -11834,6 +11938,11 @@
               "file": "SCM/basic_settings_recommendation.html",
               "module": "冷丰WMS",
               "title": "推荐位配置"
+            },
+            {
+              "file": "SCM/logistics_rate.html",
+              "module": "冷丰TMS",
+              "title": "物流费率表"
             }
           ],
           "notes": [
