@@ -4123,6 +4123,43 @@
     "status": "diff",
     "date": "2026-11-11"
   },
+  "d513d74|RBT/rbt_daily_fulfill.html": {
+    "before": "changelog-assets/d513d74/RBT__rbt_daily_fulfill.html.before.jpg",
+    "after": "changelog-assets/d513d74/RBT__rbt_daily_fulfill.html.after.jpg",
+    "regions": 11,
+    "status": "diff",
+    "date": "2026-11-23"
+  },
+  "d513d74|RBT/rbt_h5_provider.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-23"
+  },
+  "d513d74|RBT/rbt_h5_store.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-23"
+  },
+  "d513d74|RBT/rbt_h5_trader.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-23"
+  },
+  "d513d74|RBT/rbt_index.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-23"
+  },
+  "d513d74|RBT/rbt_performance.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-23"
+  },
+  "d513d74|RBT/rbt_risk_abnormal.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-23"
+  },
   "d543228|MDM/mdm_audit_rbt_demand.html": {
     "regions": 0,
     "status": "diff",

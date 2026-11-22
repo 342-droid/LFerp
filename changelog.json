@@ -1,10 +1,72 @@
 {
-  "latestSha": "4e563a4ee492615a3e3eed25662f1b1e51b0f4f1",
-  "total": 626,
+  "latestSha": "d513d7484f0b88f90e1427ac491aec979b0a5c62",
+  "total": 627,
   "days": [
     {
       "date": "2026-11-23",
       "items": [
+        {
+          "sha": "d513d74",
+          "type": "feat",
+          "text": "一键履约按结算系数拆给各方",
+          "author": "sisi",
+          "time": "01:44",
+          "pages": [
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日履行"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常履约数据"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "结款明细纳入一键履约，按结算系数拆成已结款，结款时间用实际支付时间"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "text": "一键履约拆到服务商的金额同样进入结款明细，结款时间用实际支付时间"
+            },
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "text": "手动履约单独按贸易商、冷丰、服务商应收占比拆开"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "text": "履约详情里的三方收款包含一键履约，按结算系数分摊"
+            }
+          ]
+        },
         {
           "sha": "4e563a4",
           "type": "feat",
