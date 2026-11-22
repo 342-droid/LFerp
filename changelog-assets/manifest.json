@@ -1464,16 +1464,6 @@
     "status": "diff",
     "date": "2026-11-09"
   },
-  "4f1990b|store-app/h5/supplier-order-detail.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-11-08"
-  },
-  "4f1990b|store-app/h5/supplier-orders.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-11-08"
-  },
   "4f8cc29|MDM/mdm_archive_carrier.html": {
     "regions": 0,
     "status": "diff",
@@ -2881,86 +2871,6 @@
     "regions": 5,
     "status": "diff",
     "date": "2026-11-09"
-  },
-  "7496a97|MDM/mdm_archive_carrier.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-11-08"
-  },
-  "7496a97|MDM/mdm_archive_live_room.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-11-08"
-  },
-  "7496a97|MDM/mdm_archive_store.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-11-08"
-  },
-  "7496a97|MDM/mdm_archive_supplier.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-11-08"
-  },
-  "7496a97|MDM/mdm_archive_warehouse.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-11-08"
-  },
-  "7496a97|MDM/mdm_order_live.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-11-08"
-  },
-  "7496a97|MDM/mdm_order_proxy.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-11-08"
-  },
-  "7496a97|MDM/mdm_order_retail.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-11-08"
-  },
-  "7496a97|store-app/h5/supplier-aftersale-detail.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-11-08"
-  },
-  "7496a97|store-app/h5/supplier-aftersale-logistics.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-11-08"
-  },
-  "7496a97|store-app/h5/supplier-aftersale.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-11-08"
-  },
-  "7496a97|store-app/h5/supplier-order-detail.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-11-08"
-  },
-  "7496a97|store-app/h5/supplier-orders.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-11-08"
-  },
-  "7496a97|store-app/h5/supplier-settle-bill-detail.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-11-08"
-  },
-  "7496a97|store-app/h5/supplier-settle-ledger-detail.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-11-08"
-  },
-  "7496a97|store-app/h5/supplier-settle.html": {
-    "regions": 0,
-    "status": "diff",
-    "date": "2026-11-08"
   },
   "788921b|MDM/mdm_archive_carrier.html": {
     "regions": 0,
