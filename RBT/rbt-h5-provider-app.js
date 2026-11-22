@@ -238,17 +238,6 @@
         return any ? fromCents(total) : '';
     }
 
-    function payTimeOf(item) {
-        if (!item) return '';
-        if (item.paidAt) return item.paidAt;
-        var found = '';
-        (item.logs || []).forEach(function (row) {
-            if (!row || !row.time || !/在线支付|线下支付/.test(row.content || '')) return;
-            if (!found || row.time < found) found = row.time;
-        });
-        return found;
-    }
-
     function settleClock(date) {
         var parts = String(date || '').split('-');
         if (parts.length < 3) return '';
@@ -309,8 +298,7 @@
             ['商品金额', yuan(fund.goods)],
             ['服务商结算系数', providerCoeff(item)],
             ['结算比例', ratioText(item)],
-            ['接单时间', item.acceptedAt || '—'],
-            ['支付时间', payTimeOf(item) || '—'],
+            ['创建时间', item.createdAt || '—'],
             ['已结款', fund.settled ? yuan(fund.settled) : '未产生'],
             ['待结款', fund.pending ? yuan(fund.pending) : '未产生'],
             ['收款账户名称', payee.accountName || '—'],
