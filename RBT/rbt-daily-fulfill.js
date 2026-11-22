@@ -260,10 +260,8 @@
         return Math.round(num * 100);
     }
 
-    /* 当日实际履行按贸易商、冷丰、服务商应收占比拆成三方收款。各日之和等于履约详情里的已结款，一行三笔之和等于当日实际履行。 */
-    function payeeSplit(item) {
-        /* 一键履约是门店另付的履行额，不按营业流水拆给贸易商。 */
-        var days = daysOf(item).filter(function (row) { return row.kind !== 'manual'; });
+    /* 把一组履行额按贸易商、冷丰、服务商应收占比拆开。应收来自产品结算系数。一行三笔之和等于该行实际履行。 */
+    function allocateShares(item, days) {
         var keys = ['trader', 'lengfeng', 'provider'];
         var api = global.RbtDemandData;
         var pack = api && typeof api.receivables === 'function' ? api.receivables(item) : null;
@@ -326,11 +324,32 @@
             return {
                 id: row.id,
                 date: row.date,
+                time: row.time || '',
                 channel: row.channel,
+                kind: row.kind || '',
                 trader: (parts.trader / 100).toFixed(2),
                 lengfeng: (parts.lengfeng / 100).toFixed(2),
                 provider: (parts.provider / 100).toFixed(2)
             };
+        });
+    }
+
+    /* 营业流水按原口径整段拆。一键履约单独按结算系数拆，不把尾差挤进这笔手动履约。 */
+    function payeeSplit(item) {
+        var days = daysOf(item);
+        var auto = [];
+        var manual = [];
+        days.forEach(function (row) {
+            if (row && row.kind === 'manual') manual.push(row);
+            else auto.push(row);
+        });
+        var autoShares = allocateShares(item, auto);
+        var manualShares = manual.map(function (row) { return allocateShares(item, [row])[0]; });
+        var autoIndex = 0;
+        var manualIndex = 0;
+        return days.map(function (row) {
+            if (row && row.kind === 'manual') return manualShares[manualIndex++];
+            return autoShares[autoIndex++];
         });
     }
 

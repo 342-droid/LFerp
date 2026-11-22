@@ -179,15 +179,22 @@
         if (!rows.length) return { total: '', shares: [] };
         var latest = '';
         var shares = rows.map(function (row) {
+            return { date: row.date, time: row.time || '', channel: row.channel, kind: row.kind || '', amount: row.provider };
+        }).filter(function (row) {
+            if (row.kind !== 'manual') return true;
+            return Math.round(Number(row.amount) * 100) > 0;
+        });
+        shares.forEach(function (row) {
+            if (row.kind === 'manual') return;
             if (row.date > latest) latest = row.date;
-            return { date: row.date, channel: row.channel, amount: row.provider };
         });
         var done = item && item.status === '已完成';
         var settledCents = 0;
         shares.forEach(function (row) {
             var cents = Math.round(Number(row.amount) * 100);
             if (!isFinite(cents)) cents = 0;
-            row.stage = !done && row.date === latest ? 'pending' : 'due';
+            /* 一键履约已经付过，按结算系数拆完即已结款。最近一个营业日仍等结算单。 */
+            row.stage = !done && row.kind !== 'manual' && row.date === latest ? 'pending' : 'due';
             if (row.stage !== 'pending') settledCents += cents;
         });
         return { total: (settledCents / 100).toFixed(2), shares: shares };
@@ -236,6 +243,12 @@
             total += cents;
         });
         return any ? fromCents(total) : '';
+    }
+
+    function paidClock(raw) {
+        var matched = String(raw || '').match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{2}:\d{2}:\d{2})/);
+        if (!matched) return '';
+        return Number(matched[2]) + '月' + Number(matched[3]) + '日 ' + matched[4];
     }
 
     function settleClock(date) {
@@ -311,7 +324,7 @@
                     var pendingRow = row.stage === 'pending';
                     return '<div class="rbt-share__row"><b>' + esc(yuan(row.amount)) + '</b><em class="' +
                         (pendingRow ? '' : 'is-due') + '">' + (pendingRow ? '待结款' : '已结款') + '</em><span>' +
-                        esc(pendingRow ? '-' : settleClock(row.date)) + '</span></div>';
+                        esc(pendingRow ? '-' : (row.kind === 'manual' ? (paidClock(row.time) || settleClock(row.date)) : settleClock(row.date))) + '</span></div>';
                 }).join('')
             : '<p class="rbt-bill__empty">暂无结款明细</p>';
         return '<section class="rbt-bill__head">' +
