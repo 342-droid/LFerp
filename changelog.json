@@ -1,10 +1,30 @@
 {
-  "latestSha": "127460f8fe01201e83d4f302c4760bf5cf538d2f",
-  "total": 625,
+  "latestSha": "4e563a4ee492615a3e3eed25662f1b1e51b0f4f1",
+  "total": 626,
   "days": [
     {
       "date": "2026-11-23",
       "items": [
+        {
+          "sha": "4e563a4",
+          "type": "feat",
+          "text": "服务商资金明细改为显示创建时间",
+          "author": "sisi",
+          "time": "01:21",
+          "pages": [
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "text": "基础信息去掉接单时间和支付时间，改为需求创建时间"
+            }
+          ]
+        },
         {
           "sha": "127460f",
           "type": "feat",
