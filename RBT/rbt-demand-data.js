@@ -262,6 +262,7 @@
                 skus: [{ code: 'SKU10003', name: '冷鲜牛腩 1kg', salePrice: '78.00', qty: 15 }, { code: 'SKU10011', name: '冷鲜猪里脊 1kg', salePrice: '52.80', qty: 10 }],
                 amount: '3056.40', creator: '夏利', createdAt: '2026-11-06 11:22:09', updater: '王丽', updatedAt: '2026-11-07 09:30:12',
                 acceptedAt: '2026-11-06 13:05:44',
+                paidAt: '2026-11-07 09:22:05',
                 signings: signedRows('ONS00002', '东城和平里生鲜店', '上海冷链融资租赁有限公司', '2026-11-07 09:12:40')
             }, lengLian)),
             rowSeed({
@@ -297,6 +298,7 @@
                 skus: [{ code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 20 }, { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 12 }],
                 amount: '2255.36', creator: '赵倩', createdAt: '2026-11-05 10:08:27', updater: '王丽', updatedAt: '2026-11-06 16:48:20',
                 acceptedAt: '2026-11-05 14:22:03',
+                paidAt: '2026-11-06 16:35:16',
                 signings: signedRows('ONS00004', '五角场体验店', '杭州鲜达贸易有限公司', '2026-11-06 16:20:08')
             }, xianDa)),
             rowSeed({
@@ -317,6 +319,7 @@
                 skus: [{ code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 10 }, { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 8 }],
                 amount: '1200.64', creator: '喻巧', createdAt: '2026-11-10 11:08:16', updater: '王丽', updatedAt: '2026-11-12 17:20:08',
                 acceptedAt: '2026-11-10 15:42:30',
+                paidAt: '2026-11-11 16:08:26',
                 dealLocked: true,
                 signings: signedRows('ONS00001', '西湖中心生鲜店', '杭州鲜达贸易有限公司', '2026-11-11 10:18:44'),
                 guaranteeDeposit: {
@@ -331,10 +334,11 @@
             /* 复核已通过，供履约页引用。比例付不预造逐期金额，也不记还款。 */
             rowSeed(Object.assign({
                 code: 'XQ00023', storeCode: 'ONS00001', storeName: '西湖中心生鲜店',
-                pkg: fresh, plan: freshPlan, status: '还款中',
+                pkg: fresh, plan: freshPlan, status: '已完成',
                 skus: [{ code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 8 }, { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 6 }],
                 amount: '591.20', creator: '喻巧', createdAt: '2026-11-06 09:16:40', updater: '王丽', updatedAt: '2026-11-09 10:28:16',
                 acceptedAt: '2026-11-06 14:02:18',
+                paidAt: '2026-11-08 16:42:18',
                 signings: signedRows('ONS00001', '西湖中心生鲜店', '杭州鲜达贸易有限公司', '2026-11-08 11:26:33'),
                 guaranteeDeposit: {
                     paid: true,
@@ -370,6 +374,7 @@
         if (spec.traderName) row.traderName = spec.traderName;
         if (spec.traderPhone) row.traderPhone = spec.traderPhone;
         if (spec.acceptedAt) row.acceptedAt = spec.acceptedAt;
+        if (spec.paidAt) row.paidAt = spec.paidAt;
         if (spec.signings) row.signings = spec.signings;
         if (spec.rejectReason) row.rejectReason = spec.rejectReason;
         if (spec.dealLocked) row.dealLocked = true;
@@ -643,6 +648,23 @@
                 item.repayCycle = '日结';
                 changed = true;
             }
+            /* 已付过款的演示单补支付时间。时间落在签署之后、复核或凭证之前，不改更新时间。 */
+            var paidSeeds = {
+                XQ00016: '2026-11-07 09:22:05',
+                XQ00020: '2026-11-06 16:35:16',
+                XQ00023: '2026-11-08 16:42:18',
+                XQ00024: '2026-11-11 16:08:26'
+            };
+            if (!item.paidAt && paidSeeds[item.code] && (item.status === '待复核' || item.status === '还款中' || item.status === '已完成')) {
+                item.paidAt = paidSeeds[item.code];
+                changed = true;
+            }
+            /* 门店履约原型：XQ00023 已履约完成，XQ00024 仍是履约中。已有会话里的旧状态一并改过来。 */
+            if (item.code === 'XQ00023' && item.status === '还款中') {
+                item.status = '已完成';
+                if (item.quotaHeld) releaseDemandQuota(item);
+                changed = true;
+            }
             /* 接单后、确认签约前还没有合同。未签署的 XQ00014 从待签署收回这一步。 */
             if (item.code === 'XQ00014' && item.status === '待签署' && !(item.signings && item.signings.length)) {
                 item.status = '待确认签约';
@@ -823,6 +845,7 @@
                 }
             }
         }
+        if (prev !== '已完成' && status === '已完成') target.completedAt = target.updatedAt;
         if (RELEASE_STATUSES.indexOf(status) >= 0) releaseDemandQuota(target);
         ensureContract(target);
         write(rows);

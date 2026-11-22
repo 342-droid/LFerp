@@ -581,9 +581,9 @@
         .rbt-repay-row__side span { display: block; margin-top: 6px; color: #999; font-size: 12px; }
         .rbt-repay-row__side.is-done b { color: #52c41a; }
         .rbt-bill__head {
-            margin: 0 -12px 12px;
+            margin: -12px -12px 0;
             padding: 8px 16px 16px;
-            background: #1677ff;
+            background: #ff7019;
             color: #fff;
         }
         .rbt-bill__top { display: flex; justify-content: space-between; align-items: center; }
@@ -596,8 +596,46 @@
         }
         .rbt-bill__label { margin: 18px 0 0; text-align: center; font-size: 13px; opacity: .9; }
         .rbt-bill__amt { margin: 6px 0 14px; text-align: center; font-size: 32px; font-weight: 700; }
+        .rbt-bill__stats { display: flex; gap: 8px; }
+        .rbt-bill__stats div { flex: 1; min-width: 0; text-align: center; }
+        .rbt-bill__stats span { display: block; font-size: 12px; opacity: .85; }
+        .rbt-bill__stats b { display: block; margin-top: 4px; font-size: 13px; font-weight: 600; }
+        .rbt-bill-tabs { display: flex; margin: 12px 0 0; border-bottom: 1px solid #eee; }
+        .rbt-bill-tabs button {
+            flex: 1;
+            height: 40px;
+            border: 0;
+            border-bottom: 2px solid transparent;
+            background: transparent;
+            color: #666;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .rbt-bill-tabs button.is-on { color: #ff7019; border-bottom-color: #ff7019; font-weight: 600; }
         .rbt-bill__sheet { padding: 4px 0 12px; }
-        .rbt-bill__sheet h3 { margin: 0 0 8px; font-size: 15px; color: #222; }
+        .rbt-bill__sheet--blank {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 180px;
+            padding: 24px 28px;
+        }
+        .rbt-bill__empty { margin: 0; color: #c0c4cc; font-size: 13px; line-height: 1.6; text-align: center; }
+        .rbt-share__head,
+        .rbt-share__row {
+            display: grid;
+            grid-template-columns: 72px 64px minmax(0, 1fr);
+            align-items: center;
+            gap: 8px;
+        }
+        .rbt-share__head { padding: 10px 0 4px; color: #999; font-size: 12px; }
+        .rbt-share__head span:last-child,
+        .rbt-share__row > span { text-align: right; }
+        .rbt-share__row { padding: 12px 0; border-top: 1px solid #f0f0f0; }
+        .rbt-share__row b { color: #222; font-size: 15px; font-weight: 700; }
+        .rbt-share__row span { color: #222; font-size: 13px; font-weight: 600; }
+        .rbt-share__row em { font-style: normal; color: #ff7019; font-size: 13px; font-weight: 600; }
+        .rbt-share__row em.is-due { color: #52c41a; }
         .rbt-bill__line {
             display: flex;
             justify-content: space-between;
@@ -608,6 +646,118 @@
         }
         .rbt-bill__line span { flex: none; color: #888; white-space: nowrap; }
         .rbt-bill__line b { flex: 1; min-width: 0; color: #222; font-weight: 600; text-align: right; overflow-wrap: break-word; }
+        .rbt-bill__line b:has(.rbt-bill__contract) { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+        .rbt-bill__contract {
+            border: 0;
+            padding: 0;
+            background: transparent;
+            color: #222;
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1.4;
+            text-align: right;
+            cursor: pointer;
+        }
+        .rbt-contract {
+            position: absolute;
+            inset: 0;
+            z-index: 56;
+            display: flex;
+            flex-direction: column;
+            background: #f5f6f8;
+        }
+        .rbt-contract[hidden] { display: none; }
+        .rbt-contract__bar {
+            position: relative;
+            flex: none;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            color: #222;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .rbt-contract__bar button {
+            position: absolute;
+            left: 4px;
+            top: 8px;
+            width: 32px;
+            height: 32px;
+            border: 0;
+            background: transparent;
+            color: #222;
+            font-size: 22px;
+            line-height: 1;
+            cursor: pointer;
+        }
+        .rbt-contract__body { flex: 1; min-height: 0; overflow: auto; padding: 12px; }
+        .rbt-contract__meta { margin: 0 0 10px; color: #888; font-size: 12px; line-height: 1.5; }
+        .rbt-contract__paper {
+            margin: 0;
+            padding: 16px 14px 28px;
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: #222;
+            font-size: 14px;
+            line-height: 1.85;
+        }
+        .rbt-contract__sign { position: relative; display: block; min-height: 28px; padding-right: 108px; }
+        .rbt-contract__seal {
+            position: absolute;
+            right: 0;
+            top: -18px;
+            width: 96px;
+            height: 96px;
+            transform: rotate(-8deg);
+            pointer-events: none;
+            line-height: 1;
+        }
+        .rbt-contract__seal svg { display: block; width: 96px; height: 96px; }
+        .rbt-contract__side {
+            margin-top: 12px;
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .rbt-contract__side h3 { margin: 0; padding: 14px 14px 6px; color: #222; font-size: 15px; font-weight: 700; }
+        .rbt-contract__side-line { display: flex; gap: 12px; padding: 7px 14px; font-size: 13px; line-height: 1.5; }
+        .rbt-contract__side-line span { flex: 0 0 64px; color: #888; }
+        .rbt-contract__side-line b { flex: 1; min-width: 0; color: #222; font-weight: 500; word-break: break-all; }
+        .rbt-contract__dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            margin-right: 6px;
+            border-radius: 50%;
+            background: #52c41a;
+            vertical-align: 1px;
+        }
+        .rbt-contract__signer { margin-top: 8px; padding-top: 4px; border-top: 1px solid #f0f0f0; }
+        .rbt-contract__signer-top,
+        .rbt-contract__signer-who {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 6px 14px;
+            font-size: 13px;
+        }
+        .rbt-contract__signer-top { color: #8c8c8c; }
+        .rbt-contract__signer-top span:first-child {
+            color: #1677ff;
+            font-weight: 600;
+            padding-left: 8px;
+            border-left: 3px solid #1677ff;
+            line-height: 1;
+        }
+        .rbt-contract__signer-who b { color: #222; font-weight: 600; }
+        .rbt-contract__signer-who em { font-style: normal; color: #52c41a; }
         .rbt-fund { padding: 0 0 12px; }
         .rbt-fund__tabs { display: flex; margin: 0 0 12px; border-bottom: 1px solid #eee; }
         .rbt-fund__tabs button {
@@ -621,8 +771,7 @@
         }
         .rbt-fund__summary div { flex: 1; min-width: 0; }
         .rbt-fund__summary span { display: block; color: #888; font-size: 12px; }
-        .rbt-fund__summary b { display: block; margin-top: 6px; color: #222; font-size: 16px; font-weight: 700; overflow-wrap: anywhere; }
-        .rbt-fund__note { margin: 0 0 12px; color: #999; font-size: 12px; line-height: 1.6; }
+        .rbt-fund__summary b { display: block; margin-top: 6px; color: #222; font-size: 14px; font-weight: 700; white-space: nowrap; }
         .rbt-fund-card {
             display: block; width: 100%; margin: 0 0 10px; padding: 14px 12px; border: 1px solid #f0f0f0;
             border-radius: 12px; background: #fff; text-align: left; cursor: pointer;
@@ -694,6 +843,7 @@
                         </form>
                         <div class="rbt-h5-app" id="rbtH5App">
                             <div class="rbt-h5-scroll" id="rbtH5Scroll"></div>
+                            <div class="rbt-contract" id="rbtH5Contract" hidden></div>
                         </div>
                     </div>
                 </section>
@@ -704,10 +854,11 @@
     <script src="../js/common.js"></script>
     <script src="../js/mdm-trader-archive-store.js"></script>
     <script src="rbt-settle-ratio.js"></script>
-    <script src="rbt-demand-data.js"></script>
-    <script src="rbt-daily-fulfill.js"></script>
+    <script src="rbt-demand-data.js?v=20261123-paytime"></script>
+    <script src="rbt-daily-fulfill.js?v=20261123-split-auto"></script>
     <script src="rbt-contract-sign.js"></script>
-    <script src="rbt-h5-trader-app.js"></script>
+    <script src="../js/contract-bodies.js?v=20261123-trader-read"></script>
+    <script src="rbt-h5-trader-app.js?v=20261123-contract-read"></script>
     <script src="rbt-h5-trader-login.js"></script>
 </body>
 </html>

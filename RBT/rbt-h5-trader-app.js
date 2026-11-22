@@ -7,6 +7,7 @@
     var signCode = '';
     var collectFilter = 'open';
     var collectCode = '';
+    var fundTab = 'base';
 
     function esc(value) {
         return String(value == null ? '' : value)
@@ -166,7 +167,7 @@
                 ? '<p>结算周期：' + esc(item.repayCycle) + '</p>' +
                   '<p>结算方式：' + esc(item.repayMethod || '—') + '</p>' +
                   (item.repayMethod === '比例付'
-                      ? ((window.RbtSettleRatio && RbtSettleRatio.textOf(item)) ? '<p>结算比例：' + esc(RbtSettleRatio.textOf(item)) + '</p>' : '')
+                      ? (ratioText(item) !== '—' ? '<p>结算比例：' + esc(ratioText(item)) + '</p>' : '')
                       : '<p>结算期数：' + esc(item.repayPeriod || '—') + '期</p>')
                 : '') +
             '<p>创建时间：' + esc(item.createdAt || '—') + '</p>' +
@@ -219,12 +220,25 @@
             '</div></section></div>';
     }
 
+    function ratioPercent(value) {
+        var num = Number(String(value == null ? '' : value).replace('%', ''));
+        if (!isFinite(num)) return '';
+        return num.toFixed(2) + '%';
+    }
+
+    /* 基础信息只列渠道和比例，不带「默认比例」和类目。 */
     function ratioText(item) {
         var api = window.RbtSettleRatio;
-        if (item && item.repayMethod === '比例付' && api && typeof api.textOf === 'function') {
-            return api.textOf(item) || '—';
+        if (item && item.repayMethod === '比例付' && api && typeof api.viewOf === 'function') {
+            var view = api.viewOf(item) || [];
+            var text = view.map(function (channel) {
+                var percent = ratioPercent(channel.fallback);
+                return percent ? (channel.channel + ' ' + percent) : '';
+            }).filter(Boolean).join('；');
+            if (text) return text;
         }
-        return item && item.repayPeriod ? String(item.repayPeriod) : '—';
+        var period = item && item.repayPeriod ? ratioPercent(item.repayPeriod) : '';
+        return period || (item && item.repayPeriod ? String(item.repayPeriod) : '—');
     }
 
     function phaseLabel(status) {
@@ -237,23 +251,46 @@
         return '¥' + value;
     }
 
-    /* 已结款与履约详情同一套拆分：已发生日期的实际履行，按三方应收占比拆给贸易商。 */
+    /* 已结款是已经结清的营业日拆给贸易商的金额。最近一天结算单未确定，明细行仍记待结款。 */
     function traderSettled(item) {
         var daily = window.RbtDailyFulfill;
         var rows = daily && typeof daily.payeeSplit === 'function' ? daily.payeeSplit(item) : [];
-        if (!rows.length) return { total: '', shares: [] };
-        var totalCents = 0;
+        if (!rows.length) return { total: '', pending: '', shares: [] };
+        var latest = '';
         var shares = rows.map(function (row) {
-            totalCents += Math.round(Number(row.trader) * 100);
+            if (row.date > latest) latest = row.date;
             return { date: row.date, channel: row.channel, amount: row.trader };
         });
-        return { total: (totalCents / 100).toFixed(2), shares: shares };
+        var done = item && item.status === '已完成';
+        var settledCents = 0;
+        var pendingCents = 0;
+        shares.forEach(function (row) {
+            var cents = Math.round(Number(row.amount) * 100);
+            if (!isFinite(cents)) cents = 0;
+            row.stage = !done && row.date === latest ? 'pending' : 'due';
+            if (row.stage === 'pending') pendingCents += cents;
+            else settledCents += cents;
+        });
+        return {
+            total: (settledCents / 100).toFixed(2),
+            pending: done ? '' : (pendingCents / 100).toFixed(2),
+            shares: shares
+        };
     }
 
     var TRADER_ACCOUNTS = {
         '杭州鲜达贸易有限公司': { accountName: '杭州鲜达贸易有限公司', accountNo: '6230610210001001007' },
         '上海冷链融资租赁有限公司': { accountName: '上海冷链融资租赁有限公司', accountNo: '6217920210001002008' }
     };
+
+    /* 待结款 = 应收 − 已结款。还没有已结款时按 0 减。没有应收时不计算。 */
+    function pendingOf(receivable, settled) {
+        var due = centsOf(receivable);
+        if (due == null) return '';
+        var paid = centsOf(settled);
+        if (paid == null) paid = 0;
+        return fromCents(Math.max(0, due - paid));
+    }
 
     function fundOf(item) {
         var amounts = hallAmounts(item);
@@ -263,6 +300,7 @@
             goods: amounts.goods,
             fee: amounts.fee,
             settled: settled.total,
+            pending: pendingOf(amounts.total, settled.total),
             shares: settled.shares,
             account: TRADER_ACCOUNTS[item && item.traderName] || TRADER_ACCOUNTS[traderName()] || null
         };
@@ -296,6 +334,7 @@
         var funds = rows.map(function (item) { return fundOf(item); });
         var receivable = sumMoney(funds, 'receivable');
         var settled = sumMoney(funds, 'settled');
+        var pending = sumMoney(funds, 'pending');
         setHead('收款');
         return '<div class="rbt-fund">' +
             '<div class="rbt-fund__tabs" role="tablist">' +
@@ -306,8 +345,8 @@
             '<div><span>笔数</span><b>' + rows.length + '</b></div>' +
             '<div><span>应收</span><b>' + esc(receivable ? yuan(receivable) : '—') + '</b></div>' +
             '<div><span>已结款</span><b>' + esc(settled ? yuan(settled) : '未产生') + '</b></div>' +
+            '<div><span>待结款</span><b>' + esc(pending ? yuan(pending) : (closed ? '无' : '未产生')) + '</b></div>' +
             '</div>' +
-            '<p class="rbt-fund__note">一笔已接单一张。应收在商品金额和结算系数确定后就有。已结款要等当天营业流水发生，按实际履行拆给贸易商。未发生的日期不算。</p>' +
             (rows.length ? rows.map(function (item) {
                 var fund = fundOf(item);
                 var tagClass = item.status === '已完成' ? ' is-done' : (item.status === '已作废' || item.status === '已驳回' ? ' is-off' : '');
@@ -318,54 +357,224 @@
                     '<div class="rbt-fund-card__metrics">' +
                     '<div><span>应收</span><b>' + esc(yuan(fund.receivable)) + '</b></div>' +
                     '<div><span>已结款</span><b>' + esc(fund.settled ? yuan(fund.settled) : '未产生') + '</b></div>' +
+                    '<div><span>待结款</span><b>' + esc(fund.pending ? yuan(fund.pending) : (item.status === '已完成' ? '无' : '未产生')) + '</b></div>' +
                     '</div></button>';
             }).join('') : '<div class="rbt-h5-empty">' + (closed ? '暂无已结束的接单' : '暂无跟进中的接单') + '</div>') +
             '</div>';
     }
 
+    /* 支付时间是贸易商付完货款的时间。没走过支付的单不补时间。 */
+    function payTimeOf(item) {
+        if (!item) return '';
+        if (item.paidAt) return item.paidAt;
+        var found = '';
+        (item.logs || []).forEach(function (row) {
+            if (!row || !row.time || !/在线支付|线下支付/.test(row.content || '')) return;
+            if (!found || row.time < found) found = row.time;
+        });
+        return found;
+    }
+
+    /* 贸易商签的是销售合同和采购合同。只列出已经签完的。 */
+    function traderSignedContracts(item) {
+        var api = window.RbtDemandData;
+        if (!item || !api || typeof api.signContracts !== 'function') return [];
+        return api.signContracts(item).filter(function (contract) {
+            if (!contract || contract.signStatus !== '已签署') return false;
+            return (contract.parties || []).some(function (party) { return party.role === 'trader'; });
+        });
+    }
+
+    function renderSignedContracts(item) {
+        var contracts = traderSignedContracts(item);
+        var value = contracts.length
+            ? contracts.map(function (contract) {
+                return '<button type="button" class="rbt-bill__contract" data-contract-open="' + esc(contract.key) + '">' +
+                    esc(contract.name) + '</button>';
+            }).join('')
+            : '—';
+        return '<div class="rbt-bill__line"><span>签署合同</span><b>' + value + '</b></div>';
+    }
+
+    function closeContract() {
+        var node = document.getElementById('rbtH5Contract');
+        if (!node) return;
+        node.hidden = true;
+        node.innerHTML = '';
+    }
+
+    function contractSideLine(label, value) {
+        return '<div class="rbt-contract__side-line"><span>' + esc(label) + '</span><b>' + esc(value || '—') + '</b></div>';
+    }
+
+    function contractSeal(name, index) {
+        var uid = 'rbtSealArc' + index;
+        return '<span class="rbt-contract__seal" aria-label="已盖章"><svg viewBox="0 0 120 120" width="96" height="96">' +
+            '<circle cx="60" cy="60" r="56" fill="rgba(255,255,255,0.55)" stroke="#c41e1e" stroke-width="3"/>' +
+            '<circle cx="60" cy="60" r="51" fill="none" stroke="#c41e1e" stroke-width="1"/>' +
+            '<defs><path id="' + uid + '" d="M16,64 A44,44 0 0,1 104,64"/></defs>' +
+            '<text fill="#c41e1e" font-size="11" font-weight="700"><textPath href="#' + uid + '" startOffset="50%" text-anchor="middle">' +
+            esc(name || '签署方') + '</textPath></text>' +
+            '<text x="60" y="66" text-anchor="middle" fill="#c41e1e" font-size="16">★</text>' +
+            '<text x="60" y="86" text-anchor="middle" fill="#c41e1e" font-size="12" font-weight="700">合同专用章</text></svg></span>';
+    }
+
+    function contractCnDate(raw) {
+        var matched = String(raw || '').match(/(\d{4})-(\d{2})-(\d{2})/);
+        return matched ? (matched[1] + '年' + matched[2] + '月' + matched[3] + '日') : '';
+    }
+
+    /* 销售合同正文同门店端，乙方是门店。采购合同是供应商清分合同，乙方是贸易商。签署页盖章。 */
+    function contractPaperHtml(contract, item) {
+        var purchase = contract && contract.key === 'purchase';
+        var bag = window.LF_CONTRACT_BODIES || {};
+        var body = bag[purchase ? 'TPL004' : 'TPL001'] || '';
+        var parties = (contract && contract.parties) || [];
+        var partyB = parties.filter(function (party) {
+            return party && party.role === (purchase ? 'trader' : 'store');
+        })[0];
+        var partyName = partyB && partyB.name || (purchase ? (item && item.traderName) : (item && item.storeName)) || '';
+        var signedAt = '';
+        parties.some(function (party) {
+            if (party && party.signedAt) {
+                signedAt = party.signedAt;
+                return true;
+            }
+            return false;
+        });
+        var dateText = contractCnDate(signedAt);
+        if (!body) return '暂无合同正文';
+        var lines = body.split('\n');
+        var headEnd = lines.findIndex(function (line) {
+            return line.indexOf('鉴于') === 0 || line.indexOf('第一条') === 0 || line.indexOf('1.1') === 0;
+        });
+        if (headEnd < 0) headEnd = Math.min(lines.length, 24);
+        var addressFilled = false;
+        for (var i = 0; i < headEnd; i++) {
+            var head = lines[i];
+            if (partyName && /^乙方(?:（[^）]*）)?：\s*$/.test(head.trim())) {
+                lines[i] = head.replace(/：\s*$/, '：' + partyName);
+                continue;
+            }
+            if (!purchase && partyName && !addressFilled && /地址：\s*$/.test(head.trim())) {
+                lines[i] = head.replace(/：\s*$/, '：' + partyName);
+                addressFilled = true;
+            }
+        }
+        var inPage = false;
+        var sealIndex = 0;
+        return lines.map(function (line) {
+            var trimmed = line.trim();
+            if (trimmed.indexOf('以下无正文') >= 0) inPage = true;
+            if (inPage && trimmed.indexOf('附件') === 0) inPage = false;
+            if (!inPage || trimmed.indexOf('以下无正文') >= 0) return esc(line);
+            if (/^甲方（盖章）/.test(trimmed)) {
+                sealIndex += 1;
+                var partyA = ((trimmed.match(/：\s*(.+)$/) || [])[1] || '').replace(/[_\s　]+$/g, '').trim();
+                if (!partyA) partyA = purchase ? '上海冷丰德本信息科技有限公司' : '上海冷丰道善信息科技有限公司';
+                return '<span class="rbt-contract__sign">' + esc(line) + contractSeal(partyA, sealIndex) + '</span>';
+            }
+            if (/^乙方（(?:签字|盖章)/.test(trimmed)) {
+                var shown = line;
+                if (partyName && /：\s*[_＿\s　]*$/.test(trimmed)) shown = line.replace(/：\s*[_＿\s　]*$/, '：' + partyName);
+                sealIndex += 1;
+                return '<span class="rbt-contract__sign">' + esc(shown) + contractSeal(partyName, sealIndex) + '</span>';
+            }
+            if (/^日期/.test(trimmed) && dateText) return esc(line.replace(/：.*/, '：' + dateText));
+            return esc(line);
+        }).join('\n');
+    }
+
+    function openContract(key) {
+        var item = acceptedDemands().filter(function (row) { return row.code === collectCode; })[0];
+        var contract = traderSignedContracts(item).filter(function (row) { return row.key === key; })[0];
+        var node = document.getElementById('rbtH5Contract');
+        if (!item || !contract || !node) return;
+        var signers = (contract.parties || []).map(function (party) {
+            return '<section class="rbt-contract__signer"><div class="rbt-contract__signer-top"><span>签署</span><span>顺序签署</span></div>' +
+                '<div class="rbt-contract__signer-who"><b>' + esc(party.name || party.roleLabel || '—') + '</b><em>已签署</em></div>' +
+                contractSideLine('完成时间', party.signedAt) + '</section>';
+        }).join('');
+        node.innerHTML = '<div class="rbt-contract__bar"><button type="button" data-contract-close aria-label="返回">‹</button><strong>' +
+            esc(contract.name) + '</strong></div>' +
+            '<div class="rbt-contract__body">' +
+            '<p class="rbt-contract__meta">签署任务 · ' + esc(contract.code) + ' · ' + esc(item.storeName || '') + ' · 已签署</p>' +
+            '<article class="rbt-contract__paper">' + contractPaperHtml(contract, item) + '</article>' +
+            '<section class="rbt-contract__side"><h3>详情</h3>' +
+            contractSideLine('主题', contract.name) +
+            '<div class="rbt-contract__side-line"><span>状态</span><b><i class="rbt-contract__dot"></i>已签署</b></div>' +
+            contractSideLine('合同编号', contract.code) +
+            contractSideLine('发件人', '上海冷丰道善信息科技有限公司') +
+            contractSideLine('关联需求', item.code) +
+            signers +
+            '</section></div>';
+        node.hidden = false;
+    }
+
+    /* 已结款的结款时间是营业日次日 08:00:00，只写月日时分秒。待结款还没结，时间用 -。 */
+    function settleClock(date) {
+        var parts = String(date || '').split('-');
+        if (parts.length < 3) return '';
+        var day = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+        if (isNaN(day.getTime())) return '';
+        day.setDate(day.getDate() + 1);
+        return (day.getMonth() + 1) + '月' + day.getDate() + '日 08:00:00';
+    }
+
     function renderCollectBill(item) {
         var fund = fundOf(item);
-        var account = fund.account || { accountName: '—', accountNo: '—' };
+        var payee = fund.account || { accountName: '—', accountNo: '—' };
         setHead('资金明细');
         var lines = [
-            ['门店', (item.storeName || '—') + '（' + (item.storeCode || '—') + '）'],
+            ['门店', item.storeName || '—'],
             ['商品金额', yuan(fund.goods)],
             ['服务费', yuan(fund.fee)],
-            ['结算周期', item.repayCycle || '—'],
-            ['结算方式', item.repayMethod || '—'],
             ['结算比例', ratioText(item)],
-            ['收款账户名称', account.accountName || '—'],
-            ['收款账户', account.accountNo || '—']
+            ['接单时间', item.acceptedAt || '—'],
+            ['支付时间', payTimeOf(item) || '—'],
+            ['已结款', fund.settled ? yuan(fund.settled) : '未产生'],
+            ['待结款', fund.pending ? yuan(fund.pending) : (item.status === '已完成' ? '无' : '未产生')],
+            ['收款账户名称', payee.accountName || '—'],
+            ['收款账户', payee.accountNo || '—']
         ];
-        var tagClass = item.status === '已完成' ? ' is-done' : (item.status === '已作废' || item.status === '已驳回' ? ' is-off' : '');
         var shares = fund.shares.slice().reverse();
-        return '<section class="rbt-fund-detail">' +
-            '<div class="rbt-fund-detail__head">' +
-            '<div class="rbt-fund-card__top"><strong>' + esc(item.code) + '</strong>' +
-            '<span class="rbt-fund-card__tag' + tagClass + '">' + esc(phaseLabel(item.status)) + '</span></div>' +
-            '<div class="rbt-fund-detail__metrics">' +
-            '<div><span>应收</span><b>' + esc(yuan(fund.receivable)) + '</b></div>' +
-            '<div><span>已结款</span><b>' + esc(fund.settled ? yuan(fund.settled) : '未产生') + '</b></div>' +
-            '</div></div>' +
-            '<p class="rbt-fund__note">已结款是这笔接单里，已发生日期的实际履行拆给贸易商的金额。没有营业流水时不预造。</p>' +
-            '<section class="rbt-bill__sheet">' +
-            lines.map(function (line) {
-                return '<div class="rbt-bill__line"><span>' + esc(line[0]) + '</span><b>' + esc(line[1]) + '</b></div>';
-            }).join('') +
-            '</section>' +
-            '<h3>结款明细</h3>' +
-            (shares.length
-                ? shares.map(function (row) {
-                    return '<div class="rbt-fund-day"><div><b>' + esc(String(row.date).slice(5)) + ' · ' + esc(row.channel) + '</b>' +
-                        '<span>已结款 ' + esc(yuan(row.amount)) + '</span></div></div>';
+        var detail = shares.length
+            ? '<div class="rbt-share__head"><span>金额</span><span>结款状态</span><span>结款时间</span></div>' +
+                shares.map(function (row) {
+                    var pendingRow = row.stage === 'pending';
+                    return '<div class="rbt-share__row"><b>' + esc(yuan(row.amount)) + '</b><em class="' +
+                        (pendingRow ? '' : 'is-due') + '">' + (pendingRow ? '待结款' : '已结款') + '</em><span>' +
+                        esc(pendingRow ? '-' : settleClock(row.date)) + '</span></div>';
                 }).join('')
-                : '<p class="rbt-fund__note">暂无结款明细。还没有已发生的营业流水。</p>') +
-            '</section>';
+            : '<p class="rbt-bill__empty">暂无结款明细</p>';
+        return '<section class="rbt-bill__head">' +
+            '<div class="rbt-bill__top"><span class="rbt-bill__code">' + esc(item.code) + '</span><span class="rbt-bill__tag">' +
+            esc(phaseLabel(item.status)) + '</span></div>' +
+            '<p class="rbt-bill__label">应收</p>' +
+            '<p class="rbt-bill__amt">' + esc(fund.receivable && fund.receivable !== '—' ? fund.receivable : '—') + '</p>' +
+            '<div class="rbt-bill__stats">' +
+            '<div><span>结算周期</span><b>' + esc(item.repayCycle || '—') + '</b></div>' +
+            '<div><span>结算方式</span><b>' + esc(item.repayMethod || '—') + '</b></div>' +
+            '</div>' +
+            '</section>' +
+            '<div class="rbt-bill-tabs" role="tablist">' +
+            '<button type="button" data-fund-tab="base"' + (fundTab === 'share' ? '' : ' class="is-on"') + '>基础信息</button>' +
+            '<button type="button" data-fund-tab="share"' + (fundTab === 'share' ? ' class="is-on"' : '') + '>结款明细</button>' +
+            '</div>' +
+            (fundTab === 'share'
+                ? '<section class="rbt-bill__sheet' + (shares.length ? '' : ' rbt-bill__sheet--blank') + '">' + detail + '</section>'
+                : '<section class="rbt-bill__sheet">' +
+                    lines.map(function (line) {
+                        return '<div class="rbt-bill__line"><span>' + esc(line[0]) + '</span><b>' + esc(line[1]) + '</b></div>';
+                    }).join('') +
+                    renderSignedContracts(item) +
+                    '</section>');
     }
 
     function render() {
         var scroll = document.getElementById('rbtH5Scroll');
         if (!scroll || !account) return;
+        closeContract();
         syncHomeChrome();
         syncHeadBack();
         if (tab === 'hall' && screen === 'sign') {
@@ -475,6 +684,11 @@
     var headBackBtn = document.getElementById('rbtH5HeadBack');
     if (headBackBtn) {
         headBackBtn.addEventListener('click', function () {
+            var contract = document.getElementById('rbtH5Contract');
+            if (contract && !contract.hidden) {
+                closeContract();
+                return;
+            }
             var target = backTarget();
             if (target) goBack(target);
         });
@@ -525,6 +739,17 @@
     }
 
     document.getElementById('rbtH5App').addEventListener('click', function (event) {
+        var contractClose = event.target.closest('[data-contract-close]');
+        var contractOpen = event.target.closest('[data-contract-open]');
+        if (contractClose) {
+            closeContract();
+            return;
+        }
+        if (contractOpen) {
+            openContract(contractOpen.getAttribute('data-contract-open') || '');
+            return;
+        }
+        if (event.target.closest('#rbtH5Contract')) return;
         var entry = event.target.closest('[data-entry]');
         var hallTab = event.target.closest('[data-hall-tab]');
         var accept = event.target.closest('[data-accept]');
@@ -657,8 +882,15 @@
             var collectId = collectBtn.getAttribute('data-collect') || '';
             if (!collectId) return;
             collectCode = collectId;
+            fundTab = 'base';
             tab = 'hall';
             screen = 'collect-bill';
+            render();
+            return;
+        }
+        var fundTabBtn = event.target.closest('[data-fund-tab]');
+        if (fundTabBtn && screen === 'collect-bill') {
+            fundTab = fundTabBtn.getAttribute('data-fund-tab') === 'share' ? 'share' : 'base';
             render();
             return;
         }
