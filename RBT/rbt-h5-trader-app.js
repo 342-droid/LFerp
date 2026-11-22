@@ -313,7 +313,7 @@
         '上海冷链融资租赁有限公司': { accountName: '上海冷链融资租赁有限公司', accountNo: '6217920210001002008' }
     };
 
-    /* 待结款 = 应收 − 已结款。还没有已结款时按 0 减。没有应收时不计算。 */
+    /* 跟进中：待结款 = 应收 − 已结款。还没有已结款时按 0 减。没有应收时不计算。 */
     function pendingOf(receivable, settled) {
         var due = centsOf(receivable);
         if (due == null) return '';
@@ -325,12 +325,22 @@
     function fundOf(item) {
         var amounts = hallAmounts(item);
         var settled = traderSettled(item);
+        var settledText = settled.total;
+        var pending = pendingOf(amounts.total, settledText);
+        /* 已结束的单已经结清：已结款等于应收，待结款为 0。 */
+        if (closedBid(item)) {
+            var due = centsOf(amounts.total);
+            if (due != null) {
+                settledText = fromCents(due);
+                pending = fromCents(0);
+            }
+        }
         return {
             receivable: amounts.total,
             goods: amounts.goods,
             fee: amounts.fee,
-            settled: settled.total,
-            pending: pendingOf(amounts.total, settled.total),
+            settled: settledText,
+            pending: pending,
             shares: settled.shares,
             account: TRADER_ACCOUNTS[item && item.traderName] || TRADER_ACCOUNTS[traderName()] || null
         };
@@ -340,9 +350,14 @@
         return item && (item.status === '已完成' || item.status === '已作废' || item.status === '已驳回');
     }
 
+    /* 收款列表的跟进中只放履约中。待确认签约、待签署、待付款不在这里。 */
+    function fulfillingBid(item) {
+        return item && (item.status === '门店付款中' || item.status === '还款中');
+    }
+
     function collectDemands(closed) {
         return acceptedDemands().filter(function (item) {
-            return closed ? closedBid(item) : !closedBid(item);
+            return closed ? closedBid(item) : fulfillingBid(item);
         });
     }
 
@@ -368,7 +383,7 @@
         setHead('收款');
         return '<div class="rbt-fund">' +
             '<div class="rbt-fund__tabs" role="tablist">' +
-            '<button type="button" data-collect-view="open"' + (closed ? '' : ' class="is-on"') + '>跟进中</button>' +
+            '<button type="button" data-collect-view="open"' + (closed ? '' : ' class="is-on"') + '>履约中</button>' +
             '<button type="button" data-collect-view="closed"' + (closed ? ' class="is-on"' : '') + '>已结束</button>' +
             '</div>' +
             '<div class="rbt-fund__summary">' +
@@ -389,7 +404,7 @@
                     '<div><span>已结款</span><b>' + esc(fund.settled ? yuan(fund.settled) : '未产生') + '</b></div>' +
                     '<div><span>待结款</span><b>' + esc(fund.pending ? yuan(fund.pending) : (item.status === '已完成' ? '无' : '未产生')) + '</b></div>' +
                     '</div></button>';
-            }).join('') : '<div class="rbt-h5-empty">' + (closed ? '暂无已结束的接单' : '暂无跟进中的接单') + '</div>') +
+            }).join('') : '<div class="rbt-h5-empty">' + (closed ? '暂无已结束的接单' : '暂无履约中的接单') + '</div>') +
             '</div>';
     }
 
