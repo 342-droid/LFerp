@@ -31,7 +31,7 @@
 
     function statusType(status) {
         if (status === '已完成') return 'success';
-        if (status === '门店付款中') return 'warning';
+        if (status === '门店付款中' || status === '履约中' || status === '还款中') return 'warning';
         return '';
     }
 
@@ -47,11 +47,13 @@
         var fact = risk && typeof risk.assessDays === 'function'
             ? risk.assessDays(days, base, row.amount)
             : { actual: '', gap: '', progress: '—', grade: '—' };
+        if (dailyApi && typeof dailyApi.performanceFact === 'function') fact = dailyApi.performanceFact(row, fact);
         return Object.assign({}, row, {
             fulfilledAmount: fact.actual,
             fulfillGap: fact.gap,
             fulfillProgress: fact.progress,
-            riskGrade: fact.grade
+            riskGrade: fact.grade,
+            fulfillPhase: fact.phase || phase(row.status)
         });
     }
 
@@ -122,9 +124,12 @@
                     if (!includesText(row.providerName, params.providerName)) return false;
                     if (!payeeHit(row, 'accountName', params.accountNameQuery)) return false;
                     if (!payeeHit(row, 'accountNo', params.accountNoQuery)) return false;
-                    if (!blank(params.status) && row.status !== params.status) return false;
                     return true;
                 }).map(withRisk).filter(function (row) {
+                    if (!blank(params.status)) {
+                        var want = params.status === '已完成' ? '已完成' : '履约中';
+                        if (row.fulfillPhase !== want) return false;
+                    }
                     if (!blank(params.riskGrade) && row.riskGrade !== params.riskGrade) return false;
                     return true;
                 });

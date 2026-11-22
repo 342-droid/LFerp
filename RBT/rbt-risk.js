@@ -254,7 +254,7 @@
         var daily = global.RbtDailyFulfill;
         var list = api && typeof api.list === 'function' ? api.list() : [];
         return list.filter(function (item) {
-            return item && (item.status === '门店付款中' || item.status === '还款中') && daily && typeof daily.daysOf === 'function' && daily.daysOf(item).length;
+            return item && (item.status === '门店付款中' || item.status === '还款中') && daily && typeof daily.daysOf === 'function' && daily.daysOf(item).length && !(typeof daily.isSettled === 'function' && daily.isSettled(item.code));
         });
     }
 
