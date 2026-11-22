@@ -1,10 +1,102 @@
 {
-  "latestSha": "a5d33b09e0b13a89b82c1573fcca5f350a6d40e2",
-  "total": 624,
+  "latestSha": "127460f8fe01201e83d4f302c4760bf5cf538d2f",
+  "total": 625,
   "days": [
     {
       "date": "2026-11-23",
       "items": [
+        {
+          "sha": "127460f",
+          "type": "feat",
+          "text": "贸易商收款只看履约中，并开通服务商收款",
+          "author": "sisi",
+          "time": "01:16",
+          "pages": [
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "module": "冷丰WMS",
+              "title": "需求单审核"
+            },
+            {
+              "file": "RBT/rbt_admit_store.html",
+              "module": "冷丰RBT",
+              "title": "门店准入管理"
+            },
+            {
+              "file": "RBT/rbt_contract_sign.html",
+              "module": "冷丰RBT",
+              "title": "合同签署"
+            },
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日履行"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_index.html",
+              "module": "冷丰RBT-移动端",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常履约数据"
+            },
+            {
+              "file": "RBT/rbt_trade.html",
+              "module": "冷丰RBT",
+              "title": "交易单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_h5_index.html",
+              "text": "贸易商端下面增加服务商端入口"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "text": "侧栏同步增加服务商端入口"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "收款只显示履约中，并补了三笔履约中接单；已结束的已结款等于应收，待结款为0"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "text": "新增服务商收款，只看确认给自己的需求；履约中待结款按应收减已结款，已结束待结款为0"
+            }
+          ]
+        },
         {
           "sha": "a5d33b0",
           "type": "feat",
@@ -36,6 +128,11 @@
               "file": "RBT/rbt_demand.html",
               "module": "冷丰RBT",
               "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
             },
             {
               "file": "RBT/rbt_h5_store.html",
@@ -698,6 +795,11 @@
               "file": "RBT/rbt_demand.html",
               "module": "冷丰RBT",
               "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
             },
             {
               "file": "RBT/rbt_h5_store.html",
@@ -2301,6 +2403,11 @@
               "title": "需求单管理"
             },
             {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            },
+            {
               "file": "RBT/rbt_h5_store.html",
               "module": "冷丰RBT-移动端",
               "title": "门店端"
@@ -3027,6 +3134,11 @@
               "title": "需求单管理"
             },
             {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            },
+            {
               "file": "RBT/rbt_h5_store.html",
               "module": "冷丰RBT-移动端",
               "title": "门店端"
@@ -3429,6 +3541,11 @@
               "file": "RBT/rbt_demand.html",
               "module": "冷丰RBT",
               "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
             },
             {
               "file": "RBT/rbt_h5_store.html",
@@ -4564,6 +4681,11 @@
               "title": "需求单管理"
             },
             {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            },
+            {
               "file": "RBT/rbt_h5_store.html",
               "module": "冷丰RBT-移动端",
               "title": "门店端"
@@ -4797,6 +4919,11 @@
               "file": "RBT/rbt_h5_index.html",
               "module": "冷丰RBT-移动端",
               "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
             },
             {
               "file": "RBT/rbt_h5_store.html",
@@ -5214,6 +5341,11 @@
               "title": "需求单管理"
             },
             {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            },
+            {
               "file": "RBT/rbt_h5_store.html",
               "module": "冷丰RBT-移动端",
               "title": "门店端"
@@ -5336,6 +5468,11 @@
               "file": "RBT/rbt_demand.html",
               "module": "冷丰RBT",
               "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
             },
             {
               "file": "RBT/rbt_h5_store.html",
@@ -5504,6 +5641,11 @@
               "title": "需求单管理"
             },
             {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            },
+            {
               "file": "RBT/rbt_h5_store.html",
               "module": "冷丰RBT-移动端",
               "title": "门店端"
@@ -5592,6 +5734,11 @@
               "file": "RBT/rbt_demand.html",
               "module": "冷丰RBT",
               "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
             },
             {
               "file": "RBT/rbt_h5_store.html",
@@ -5984,6 +6131,11 @@
               "title": "首页"
             },
             {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            },
+            {
               "file": "RBT/rbt_h5_store.html",
               "module": "冷丰RBT-移动端",
               "title": "门店端"
@@ -6280,6 +6432,11 @@
               "file": "RBT/rbt_demand.html",
               "module": "冷丰RBT",
               "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
             },
             {
               "file": "RBT/rbt_h5_store.html",
@@ -7022,6 +7179,11 @@
               "file": "RBT/rbt_h5_index.html",
               "module": "冷丰RBT-移动端",
               "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
             },
             {
               "file": "RBT/rbt_h5_store.html",
@@ -8539,6 +8701,11 @@
               "title": "首页"
             },
             {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            },
+            {
               "file": "RBT/rbt_h5_store.html",
               "module": "冷丰RBT-移动端",
               "title": "门店端"
@@ -9328,6 +9495,11 @@
               "file": "RBT/rbt_h5_index.html",
               "module": "冷丰RBT-移动端",
               "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
             },
             {
               "file": "RBT/rbt_h5_store.html",
