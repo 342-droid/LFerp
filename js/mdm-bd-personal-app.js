@@ -1,10 +1,40 @@
 (function () {
   var messages = [
+    {
+      id: 6,
+      text: '城南生鲜店已连续 8 天无成交，请关注跟进',
+      time: '11:20',
+      date: '今天',
+      read: false,
+      type: '门店预警',
+      href: '../store-app/h5/biz-center.html?role=bd&storeId=STORE-CN&from=bd-app',
+      hrefLabel: '查看门店经营'
+    },
+    {
+      id: 7,
+      text: '滨江鲜选店近两周营业额下降超 20%，到店自提售后偏多',
+      time: '10:48',
+      date: '今天',
+      read: false,
+      type: '门店预警',
+      href: '../store-app/h5/biz-center.html?role=bd&storeId=STORE-BJ&from=bd-app',
+      hrefLabel: '查看门店经营'
+    },
+    {
+      id: 8,
+      text: '湖畔优选店预计回本周期延长超 30 天，请关注联营销售',
+      time: '09:40',
+      date: '今天',
+      read: false,
+      type: '门店预警',
+      href: '../store-app/h5/biz-center.html?role=bd&storeId=STORE-HP&from=bd-app',
+      hrefLabel: '查看门店经营'
+    },
     { id: 1, text: '您的商户"茶百道-人民路店"已通过审核', time: '10:30', date: '今天', read: false, type: '审核通知' },
     { id: 2, text: '本月团队业绩已超额完成，请查看详情', time: '09:15', date: '今天', read: false, type: '业绩通知' },
     { id: 3, text: '新商户"星辰咖啡馆"入驻申请待审核', time: '16:40', date: '昨天', read: false, type: '审核通知' },
     { id: 4, text: '团队成员王强已完成本月KPI目标', time: '14:20', date: '昨天', read: true, type: '团队通知' },
-    { id: 5, text: '系统将于今晚22:00进行例行维护', time: '11:00', date: '昨天', read: true, type: '系统通知' },
+    { id: 5, text: '系统将于今晚22:00进行例行维护', time: '11:00', date: '昨天', read: true, type: '系统通知' }
   ];
   var materials = [
     { id: 1, title: '新商户入驻推广海报', desc: '适用于地推和线上分享，突出费率优势和入驻流程简便', tag: '热门', uses: '2.3k', category: '推广海报' },
@@ -281,7 +311,9 @@
             : '<span style="width:8px;height:8px;margin-top:6px;border-radius:50%;background:var(--bd-primary);flex-shrink:0"></span>') +
           '<div style="flex:1;min-width:0">' +
           '<div style="display:flex;justify-content:space-between;margin-bottom:4px">' +
-          '<span style="font-size:11px;padding:3px 8px;border-radius:6px;background:rgba(37,99,235,.12);color:var(--bd-primary);font-weight:600">' +
+          '<span style="font-size:11px;padding:3px 8px;border-radius:6px;background:' +
+          (m.type === '门店预警' ? 'rgba(255,101,1,.12);color:#ff6501' : 'rgba(37,99,235,.12);color:var(--bd-primary)') +
+          ';font-weight:600">' +
           esc(m.type) +
           '</span>' +
           '<span style="font-size:11px;color:var(--bd-muted)">' +
@@ -310,9 +342,24 @@
       return String(x.id) === String(id);
     });
     if (!m) return barBack('消息', 'messages') + '<div class="bd-empty">无此消息</div>';
+    var linkHtml = '';
+    if (m.href) {
+      var href =
+        window.wmsPath && typeof window.wmsPath.page === 'function' && /store-app\//.test(m.href)
+          ? window.wmsPath.page(m.href.replace(/^\.\.\//, ''))
+          : m.href;
+      linkHtml =
+        '<p style="margin:16px 0 0"><a href="' +
+        esc(href) +
+        '" style="display:inline-block;padding:10px 14px;border-radius:10px;background:#ff6501;color:#fff;text-decoration:none;font-size:14px;font-weight:600">' +
+        esc(m.hrefLabel || '查看详情') +
+        '</a></p>';
+    }
     return (
       barBack('消息详情', 'messages') +
-      '<div style="padding:18px;line-height:1.75"><span style="font-size:11px;color:var(--bd-primary);font-weight:700">' +
+      '<div style="padding:18px;line-height:1.75"><span style="font-size:11px;color:' +
+      (m.type === '门店预警' ? '#ff6501' : 'var(--bd-primary)') +
+      ';font-weight:700">' +
       esc(m.type) +
       '</span>' +
       '<h2 style="margin:10px 0 8px;font-size:17px">' +
@@ -320,7 +367,9 @@
       '</h2>' +
       '<p style="margin:0;font-size:12px;color:var(--bd-muted)">' +
       esc(m.date + ' ' + m.time) +
-      '</p></div>'
+      '</p>' +
+      linkHtml +
+      '</div>'
     );
   }
 

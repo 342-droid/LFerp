@@ -198,7 +198,7 @@
                             <span class="clear-btn">×</span>
                             <div class="select-dropdown" id="searchIsEnabledDropdown">
                                 <div class="select-option" data-value="yes">启用</div>
-                                <div class="select-option" data-value="no">禁用</div>
+                                <div class="select-option" data-value="no">停用</div>
                             </div>
                         </div>
                     </div>
@@ -233,37 +233,74 @@
                             </tr>
                         </thead>
                         <tbody id="tableBody">
-                            <tr>
+                            <!-- 与业务伙伴·仓库档案编码对齐，启停态由 lferp_warehouse_disabled_v1 同步 -->
+                            <tr data-archive-wh="1">
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
-                                <td>W001</td>
-                                <td>南京仓</td>
+                                <td>WH001</td>
+                                <td>主仓库</td>
                                 <td>仓库</td>
                                 <td><span class="status active">启用</span></td>
-                                <td>江苏省</td><td>南京市</td><td>江陵区</td><td>江陵东路88号</td>
-                                <td>张三</td>
-                                <td>18612341234</td>
-                                <td>2025-01-04 10:31:43</td>
-                                <td>张三</td>
-                                <td>2025-01-05 12:31:43</td>
-                                <td>李四</td>
+                                <td>上海市</td><td>市辖区</td><td>浦东新区</td><td>张江路88号</td>
+                                <td>小牛</td>
+                                <td>138****2211</td>
+                                <td>2026-04-24 10:22:11</td>
+                                <td>系统</td>
+                                <td>2026-04-24 10:22:11</td>
+                                <td>系统</td>
                                 <td class="action-links">
                                     <a href="#" class="edit-btn">编辑</a>
                                     <a href="#" class="delete-btn">删除</a>
                                 </td>
                             </tr>
-                            <tr>
+                            <tr data-archive-wh="1">
                                 <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
-                                <td>W002</td>
-                                <td>嘉兴仓</td>
+                                <td>WH304550231884821504</td>
+                                <td>前置仓-华东一号库演示超长名称</td>
                                 <td>仓库</td>
-                                <td><span class="status inactive">禁用</span></td>
-                                <td>江苏省</td><td>南京市</td><td>江陵区</td><td>江陵东路88号</td>
-                                <td>张三</td>
-                                <td>18612341234</td>
-                                <td>2025-01-04 10:31:43</td>
-                                <td>张三</td>
-                                <td>2025-01-05 12:31:43</td>
-                                <td>李四</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>上海市</td><td>市辖区</td><td>浦东新区</td><td>张江路1688号</td>
+                                <td>周仓</td>
+                                <td>137****0098</td>
+                                <td>2026-04-23 15:01:44</td>
+                                <td>系统</td>
+                                <td>2026-04-23 15:01:44</td>
+                                <td>系统</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr data-archive-wh="1">
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>WH-ONS-88303</td>
+                                <td>合作仓-苏州</td>
+                                <td>仓库</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>江苏省</td><td>苏州市</td><td>工业园区</td><td>星湖街328号</td>
+                                <td>钱多多</td>
+                                <td>159****7788</td>
+                                <td>2026-04-22 09:33:02</td>
+                                <td>系统</td>
+                                <td>2026-04-22 09:33:02</td>
+                                <td>系统</td>
+                                <td class="action-links">
+                                    <a href="#" class="edit-btn">编辑</a>
+                                    <a href="#" class="delete-btn">删除</a>
+                                </td>
+                            </tr>
+                            <tr data-archive-wh="1">
+                                <td><input type="checkbox" class="table-checkbox checkbox-row"></td>
+                                <td>WH004</td>
+                                <td>同城周转仓</td>
+                                <td>门店</td>
+                                <td><span class="status active">启用</span></td>
+                                <td>上海市</td><td>市辖区</td><td>杨浦区</td><td>国定路506号</td>
+                                <td>孙丽</td>
+                                <td>188****7765</td>
+                                <td>2026-04-21 08:30:00</td>
+                                <td>系统</td>
+                                <td>2026-04-21 08:30:00</td>
+                                <td>系统</td>
                                 <td class="action-links">
                                     <a href="#" class="edit-btn">编辑</a>
                                     <a href="#" class="delete-btn">删除</a>
@@ -373,6 +410,7 @@
     <script src="../js/region-cascader.js"></script>
     <script src="../js/modal-manager.js"></script>
     <script src="../js/page-manager.js"></script>
+    <script src="../js/mdm-archive-enable-disable.js?v=20261110-wh-scm-sync"></script>
     <script>
         // 使用PageManager简化页面逻辑
         document.addEventListener('DOMContentLoaded', () => {
@@ -399,7 +437,7 @@
                     { id: 'warehouseVolume', label: '仓库容积', type: 'number', step: '0.01' },
                     { id: 'warehouseArea', label: '仓库面积', type: 'number', step: '0.01' },
                     { id: 'isEnabled', label: '是否启用', type: 'select', required: true,
-                      options: [{ value: 'yes', text: '启用' }, { value: 'no', text: '禁用' }] },
+                      options: [{ value: 'yes', text: '启用' }, { value: 'no', text: '停用' }] },
                     ...RegionCascader.buildPageManagerAddressFields({ labelWidth: '110px' }),
                     { id: 'contactPerson', label: '联系人', type: 'text' },
                     { id: 'phone', label: '电话', type: 'text' },
@@ -781,6 +819,33 @@
             }
 
             decorateAllWarehouseCodeCells();
+
+            function syncArchiveWarehouseStatus() {
+                if (
+                    !window.MdmArchiveEnableDisable ||
+                    typeof window.MdmArchiveEnableDisable.applyWarehouseDisabledToTable !== 'function'
+                ) {
+                    return;
+                }
+                window.MdmArchiveEnableDisable.applyWarehouseDisabledToTable(
+                    document.getElementById('tableBody'),
+                    {
+                        codeCol: 1,
+                        nameCol: 2,
+                        statusCol: 4,
+                        enabledLabel: '启用',
+                        disabledLabel: '停用',
+                        pageManager: page
+                    }
+                );
+                decorateAllWarehouseCodeCells();
+            }
+            syncArchiveWarehouseStatus();
+            window.addEventListener('storage', function (e) {
+                if (e.key === 'lferp_warehouse_disabled_v1') syncArchiveWarehouseStatus();
+            });
+            window.addEventListener('lferp-warehouse-disabled-changed', syncArchiveWarehouseStatus);
+            window.addEventListener('pageshow', syncArchiveWarehouseStatus);
 
             const tableBody = document.getElementById('tableBody');
             if (tableBody) {

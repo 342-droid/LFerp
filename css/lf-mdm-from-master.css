@@ -1469,6 +1469,66 @@
 }
 
 .store-receive-card--editing,
+/* RBT 需求单详情 · 门店经营 / 本笔联营回收 */
+[data-rbt-store-biz-host] {
+  margin-top: var(--space-lg);
+}
+
+.rbt-demand-biz-chips {
+  flex-wrap: wrap;
+}
+
+.rbt-demand-biz-chip {
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background: #fff;
+  color: #606266;
+  font-size: 12px;
+  line-height: 26px;
+  cursor: pointer;
+}
+
+.rbt-demand-biz-chip:hover {
+  border-color: #1677ff;
+  color: #1677ff;
+}
+
+.rbt-demand-biz-chip.is-active {
+  border-color: #1677ff;
+  background: #e8f3ff;
+  color: #1677ff;
+  font-weight: 500;
+}
+
+.rbt-demand-biz-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.rbt-demand-biz-metric {
+  padding: 10px 12px;
+  background: #f7f9fc;
+  border-radius: 6px;
+}
+
+.rbt-demand-biz-metric__label {
+  font-size: 12px;
+  color: #909399;
+  margin-bottom: 4px;
+}
+
+.rbt-demand-biz-metric__value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #303133;
+  font-variant-numeric: tabular-nums;
+  word-break: break-all;
+}
+
 .store-receive-list {
   overflow: visible;
 }

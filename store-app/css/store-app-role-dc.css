@@ -1,0 +1,154 @@
+/* BD / 供应商数据中心：只补排版，不改门店佣金明细和供应商结算中心原样式 */
+
+.sa-role-dc .sa-dc-head,
+.sa-role-dc .sa-rpt-nav {
+  flex-shrink: 0;
+}
+
+.sa-role-dc .sa-dc-head__back {
+  position: absolute;
+  left: 0;
+  top: 2px;
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #1f2024;
+  text-decoration: none;
+}
+
+.sa-role-dc .sa-dc-head__back svg {
+  width: 22px;
+  height: 22px;
+}
+
+.sa-role-dc .sa-dc-head__row {
+  padding-left: 28px;
+  padding-right: 28px;
+}
+
+.sa-role-dc--notab .sa-rpt-scroll {
+  padding-bottom: 28px;
+}
+
+.sa-role-dc .sa-dc-list-row {
+  flex-wrap: wrap;
+  text-decoration: none;
+  color: inherit;
+}
+
+.sa-role-dc button.sa-dc-list-row {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sa-role-dc .sa-dc-list-row__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.sa-role-dc .sa-dc-list-row__title {
+  overflow-wrap: anywhere;
+}
+
+.sa-role-dc .sa-dc-hero__v,
+.sa-role-dc .sa-dc-metric__t {
+  font-size: 11px;
+  word-break: keep-all;
+}
+
+.sa-role-dc .sa-dc-metric--wide {
+  grid-column: 1 / -1;
+}
+
+.sa-role-dc .sa-dc-metric__v,
+.sa-role-dc .sa-dc-list-amt,
+.sa-role-dc .sa-sup-card__no,
+.sa-role-dc .sa-dc-period,
+.sa-role-dc .sa-dc-asof {
+  overflow-wrap: anywhere;
+}
+
+.sa-role-dc .sa-dc-note {
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #6b7280;
+}
+
+.sa-role-dc .sa-dc-filters {
+  margin-bottom: 8px;
+}
+
+.sa-role-dc .sa-sup-card {
+  box-shadow: none;
+}
+
+.sa-role-dc .sa-dc-entry {
+  margin-bottom: 8px;
+}
+
+.sa-role-dc .sa-dc-org {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: #1f2024;
+}
+
+.sa-role-dc .sa-dc-org button {
+  border: 0;
+  background: transparent;
+  color: #ff6501;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* BD 数字与页头修正 */
+.sa-role-dc .sa-dc-head__row{position:relative;display:flex;align-items:center;min-height:44px;padding:0 36px}
+.sa-role-dc .sa-dc-head__row .sa-rpt-topline{flex:1;min-width:0}
+.sa-role-dc .sa-dc-head__row .sa-dc-tip-btn{position:absolute;right:0;top:8px;width:28px;height:28px;display:flex;align-items:center;justify-content:center}
+.sa-role-dc .sa-dc-hero__v{font-size:30px;line-height:1.25;font-weight:650}
+.sa-role-dc .sa-dc-hero__unit{font-size:12px;margin-left:4px;font-weight:400}
+.sa-role-dc .sa-dc-metric__t{font-size:13px}
+.sa-role-dc .sa-dc-nav-help{display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sa-role-dc .sa-dc-head{position:relative}
+
+.bd-coverage{font-size:13px;color:#6b7280;margin:4px 0 12px}.bd-coverage strong{color:#202124}.bd-store-card{display:block;color:inherit;text-decoration:none;padding:16px 0;border-bottom:1px solid #eceef2}.bd-store-card:last-child{border-bottom:0}.bd-store-card__head,.bd-store-card__amount{display:flex;justify-content:space-between;align-items:center;gap:8px}.bd-store-card__head strong{font-size:16px}.bd-store-card__head span{font-size:12px;color:#ff6501}.bd-store-card__amount{margin-top:12px;font-size:13px;color:#6b7280}.bd-store-card__amount strong{font-size:25px;color:#202124}.bd-store-card__amount small{font-size:12px;font-weight:400;margin-left:4px}.bd-store-card__metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;color:#6b7280;font-size:12px}.bd-store-card__metrics b{display:block;margin-top:5px;color:#202124;font-size:17px}.bd-store-card__last{font-size:12px;color:#8a8f99;margin-top:12px}
+
+/* 佣金筛选维度独立成行，避免范围与时间挤在同一行 */
+.sa-role-dc .sa-dc-filters{display:block; margin-bottom:8px}
+.sa-role-dc .sa-dc-filters .sa-dc-chip{display:flex; flex-wrap:nowrap; overflow-x:auto; gap:16px; align-items:center}
+.sa-role-dc .sa-dc-filters .sa-dc-chip__btn{white-space:nowrap;flex-shrink:0}
+
+.bd-compact-filters{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:8px;margin:0 0 12px;background:#fff;padding:10px 8px}.bd-compact-filters select{width:100%;min-width:0;border:0;background:#fff;color:#4b5563;font:inherit;font-size:13px;padding:6px 0;cursor:pointer}
+
+.bd-page-title{margin:0;flex:1;text-align:center;font-size:18px;font-weight:600;line-height:44px}
+
+.bd-store-commission{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px;margin:12px 0;background:#fff5eb;color:#9a4500;text-decoration:none;border-radius:8px;font-size:13px}.bd-store-commission strong{font-size:22px;color:#ed6500}.bd-store-commission small{font-size:12px;font-weight:400}
+
+.bd-business-entry{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;padding:14px;border-radius:10px;text-decoration:none;color:#ff6501;margin-bottom:12px;font-size:13px}.bd-business-entry strong{display:block;color:#202124;font-size:16px}.bd-business-entry small{display:block;color:#8a8f99;font-size:12px;margin-top:6px}
+
+.bd-group-tabs,.bd-section-tabs{display:flex;gap:24px;align-items:center;background:#fff;padding:0 12px;overflow-x:auto}.bd-group-tabs button,.bd-section-tabs button{position:relative;border:0;background:none;white-space:nowrap;padding:12px 0;color:#6b7280;font-size:15px}.bd-group-tabs button.is-active,.bd-section-tabs button.is-active{color:#202124;font-weight:600}.bd-group-tabs button.is-active:after,.bd-section-tabs button.is-active:after{content:"";position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:20px;height:3px;background:#ff6501;border-radius:3px}.bd-group-tabs{justify-content:center;gap:60px;border-bottom:1px solid #f0f1f4}.bd-section-tabs{margin-bottom:10px}
+
+.bd-compact-filters--two{grid-template-columns:1.3fr 1fr;padding:6px 10px;margin-bottom:10px}.sa-role-dc .sa-dc-period{margin:4px 0 8px;line-height:1.4;font-size:12px}.sa-role-dc .sa-dc-ranges{padding-top:4px;padding-bottom:4px}.sa-role-dc .bd-section-tabs{margin-bottom:4px}.sa-role-dc .sa-dc-asof[hidden]{display:none}
+
+/* BD ranking: amount first, comparison secondary */
+.sa-role-dc a.sa-dc-list-row{align-items:flex-start;gap:12px}
+.sa-role-dc a.sa-dc-list-row>.sa-dc-list-row__main{flex:1;min-width:0}
+.sa-role-dc a.sa-dc-list-row>div:last-child:not(.sa-dc-list-row__main){text-align:right;flex:0 1 48%;min-width:0}
+.sa-role-dc a.sa-dc-list-row .sa-dc-list-amt{font-size:22px;font-weight:650;line-height:1.3;font-variant-numeric:tabular-nums}
+.sa-role-dc a.sa-dc-list-row .sa-dc-delta{font-size:12px!important;font-weight:400;line-height:1.5;margin-top:4px}
+.sa-role-dc a.sa-dc-list-row .sa-dc-delta__line{font-size:12px!important;line-height:1.5}
+.sa-role-dc a.sa-dc-list-row .sa-dc-list-row__title{font-size:15px;line-height:1.5}
+.sa-role-dc a.sa-dc-list-row .sa-dc-list-row__meta{font-size:12px;line-height:1.5}

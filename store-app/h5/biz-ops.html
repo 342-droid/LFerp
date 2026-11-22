@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>经营数据 · 丰银宝</title>
+  <link rel="stylesheet" href="../css/store-app.css?v=20261119-fix6">
+  <link rel="stylesheet" href="../css/store-app-biz-report.css?v=20261119-fix6">
+  <link rel="stylesheet" href="../css/store-app-biz-datacenter.css?v=20261119-fix6">
+</head>
+<body class="store-app-body">
+  <div class="sa-shell sa-rpt-shell">
+    <div class="sa-rpt sa-dc-page">
+      <div class="sa-dc-topbar">
+        <header class="sa-rpt-nav">
+          <a href="biz-center.html" class="sa-rpt-nav__back" id="opsBack" aria-label="返回总览">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg>
+          </a>
+          <h1 class="sa-rpt-nav__title">经营数据</h1>
+          <button type="button" class="sa-dc-help" data-tip="glossary" aria-label="指标说明">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+              <circle cx="12" cy="12" r="9"/>
+              <path d="M12 11v5" stroke-linecap="round"/>
+              <circle cx="12" cy="8" r="1" fill="currentColor" stroke="none"/>
+            </svg>
+          </button>
+        </header>
+        <div class="sa-dc-ranges" id="opsRanges" role="tablist" aria-label="统计周期"></div>
+        <p class="sa-dc-period" id="opsPeriod">统计 —</p>
+        <div class="sa-dc-mtabs" role="tablist" aria-label="经营模块" id="opsTabs">
+          <button type="button" class="sa-dc-mtabs__btn is-active" data-tab="retail" role="tab" aria-selected="true">零售</button>
+          <button type="button" class="sa-dc-mtabs__btn" data-tab="proxy" role="tab" aria-selected="false">进货</button>
+          <button type="button" class="sa-dc-mtabs__btn" data-tab="income" role="tab" aria-selected="false">佣金</button>
+          <button type="button" class="sa-dc-mtabs__btn" data-tab="tp" role="tab" aria-selected="false">第三方结算</button>
+        </div>
+      </div>
+
+      <div class="sa-rpt-scroll">
+        <p class="sa-dc-asof" id="opsAsOf">数据截至 —</p>
+
+        <section class="sa-dc-panel" id="panel-retail" role="tabpanel">
+          <div class="sa-dc-filters sa-dc-filters--compact">
+            <div class="sa-dc-chip" id="opsViewSeg">
+              <button type="button" class="sa-dc-chip__btn is-active" data-view="pay">按支付订单归属</button>
+              <button type="button" class="sa-dc-chip__btn" data-view="event">按发生日期</button>
+            </div>
+            <div class="sa-dc-chip" id="opsChannelSeg">
+              <button type="button" class="sa-dc-chip__btn is-active" data-channel="all">合计</button>
+              <button type="button" class="sa-dc-chip__btn" data-channel="mall">商城</button>
+              <button type="button" class="sa-dc-chip__btn" data-channel="live">直播</button>
+            </div>
+          </div>
+          <div class="sa-dc-block">
+            <div class="sa-dc-grid sa-dc-grid--3">
+              <div class="sa-dc-metric"><div class="sa-dc-metric__t">支付成交额（元）</div><div class="sa-dc-metric__v" id="opsPaid">0</div></div>
+              <div class="sa-dc-metric"><div class="sa-dc-metric__t">支付订单数（单）</div><div class="sa-dc-metric__v" id="opsOrders">0</div></div>
+              <div class="sa-dc-metric"><div class="sa-dc-metric__t">支付人数（人）</div><div class="sa-dc-metric__v" id="opsUsers">0</div></div>
+              <div class="sa-dc-metric"><div class="sa-dc-metric__t">客单价（元）</div><div class="sa-dc-metric__v" id="opsAov">—</div></div>
+              <div class="sa-dc-metric"><div class="sa-dc-metric__t">商品退款（元）</div><div class="sa-dc-metric__v" id="opsRefund">0</div></div>
+              <div class="sa-dc-metric"><div class="sa-dc-metric__t">退款后实付（元）</div><div class="sa-dc-metric__v" id="opsNet">0</div></div>
+            </div>
+            <div class="sa-dc-chart" style="margin-top:14px">
+              <div class="sa-dc-chart__meta">
+                <span>成交额趋势</span>
+                <button type="button" class="sa-dc-data-toggle" id="opsTrendDataBtn" hidden>查看数据</button>
+              </div>
+              <div class="sa-dc-chart-wrap" id="opsTrendWrap">
+                <div class="sa-dc-chart-y" id="opsTrendY"></div>
+                <svg id="opsTrendSvg" viewBox="0 0 289 88"></svg>
+              </div>
+              <div class="sa-dc-chart-x" id="opsTrendX"></div>
+              <div class="sa-dc-data-table" id="opsTrendTable" hidden></div>
+            </div>
+          </div>
+          <div class="sa-dc-block">
+            <div class="sa-dc-block__hd"><h2 class="sa-dc-block__title">订单明细</h2></div>
+            <div id="opsOrderTable"></div>
+          </div>
+        </section>
+
+        <section class="sa-dc-panel" id="panel-proxy" role="tabpanel" hidden>
+          <div class="sa-dc-block">
+            <div class="sa-dc-grid sa-dc-grid--3">
+              <div class="sa-dc-metric"><div class="sa-dc-metric__t">进货商品款（元）</div><div class="sa-dc-metric__v" id="opsPxGoods">0</div></div>
+              <div class="sa-dc-metric"><div class="sa-dc-metric__t">运费（元）</div><div class="sa-dc-metric__v" id="opsPxFreight">0</div></div>
+              <div class="sa-dc-metric"><div class="sa-dc-metric__t">进货支付总额（元）</div><div class="sa-dc-metric__v" id="opsPxTotal">0</div></div>
+              <div class="sa-dc-metric"><div class="sa-dc-metric__t">进货订单数（单）</div><div class="sa-dc-metric__v" id="opsPxOrders">0</div></div>
+              <div class="sa-dc-metric"><div class="sa-dc-metric__t">商品退款（元）</div><div class="sa-dc-metric__v" id="opsPxGRefund">0</div></div>
+              <div class="sa-dc-metric"><div class="sa-dc-metric__t">运费退款（元）</div><div class="sa-dc-metric__v" id="opsPxFRefund">0</div></div>
+            </div>
+            <div class="sa-dc-inforow" id="opsPxInfo"></div>
+            <div class="sa-dc-chart" style="margin-top:10px">
+              <div class="sa-dc-chart__meta"><span>进货支付趋势</span></div>
+              <div class="sa-dc-chart-wrap" id="opsPxTrendWrap">
+                <div class="sa-dc-chart-y" id="opsPxTrendY"></div>
+                <svg id="opsPxTrendSvg" viewBox="0 0 289 88"></svg>
+              </div>
+              <div class="sa-dc-chart-x" id="opsPxTrendX"></div>
+            </div>
+          </div>
+          <div class="sa-dc-block">
+            <div class="sa-dc-block__hd"><h2 class="sa-dc-block__title">进货订单</h2></div>
+            <div id="opsProxyTable"></div>
+          </div>
+        </section>
+
+        <section class="sa-dc-panel" id="panel-income" role="tabpanel" hidden>
+          <div class="sa-dc-block">
+            <div class="sa-dc-hero sa-dc-hero--soft">
+              <div class="sa-dc-hero__t">佣金合计</div>
+              <div class="sa-dc-hero__v" id="opsIncome">0<span class="sa-dc-hero__unit">元</span></div>
+              <div class="sa-dc-hero__foot" id="opsIncomeCmp"></div>
+            </div>
+            <div class="sa-dc-grid sa-dc-grid--2">
+              <div class="sa-dc-metric"><div class="sa-dc-metric__t">待结算佣金（元）</div><div class="sa-dc-metric__v" id="opsIncomePending">0</div></div>
+              <div class="sa-dc-metric"><div class="sa-dc-metric__t">已结算佣金（元）</div><div class="sa-dc-metric__v" id="opsIncomeSettled">0</div></div>
+            </div>
+            <div class="sa-dc-split" id="opsIncomeSplit"></div>
+            <div class="sa-dc-chart" style="margin-top:10px">
+              <div class="sa-dc-chart__meta"><span>佣金趋势</span></div>
+              <div class="sa-dc-chart-wrap" id="opsIncTrendWrap">
+                <div class="sa-dc-chart-y" id="opsIncTrendY"></div>
+                <svg id="opsIncTrendSvg" viewBox="0 0 289 88"></svg>
+              </div>
+              <div class="sa-dc-chart-x" id="opsIncTrendX"></div>
+            </div>
+            <div style="margin-top:12px;text-align:right">
+              <a class="sa-dc-link" id="opsToComm" href="biz-commission.html">结算明细</a>
+            </div>
+          </div>
+        </section>
+
+        <section class="sa-dc-panel" id="panel-tp" role="tabpanel" hidden>
+          <div id="opsTpEmpty" class="sa-dc-block" hidden>
+            <div class="sa-dc-empty sa-dc-empty--compact">暂无第三方结算数据</div>
+          </div>
+          <div id="opsTpContent">
+            <div class="sa-dc-subtabs" id="opsTpModules" role="tablist" aria-label="第三方业务"></div>
+            <div class="sa-dc-subtabs sa-dc-subtabs--channel" id="opsTpChannelWrap" hidden>
+              <div class="sa-dc-subtabs__row" id="opsTpChannels" role="tablist" aria-label="外卖渠道"></div>
+            </div>
+            <div class="sa-dc-block">
+              <div class="sa-dc-metric">
+                <div class="sa-dc-metric__t" id="opsTpAmountLabel">结算金额（元）</div>
+                <div class="sa-dc-metric__v" id="opsTpAmount">—</div>
+              </div>
+              <div id="opsTpList" style="margin-top:10px"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="sa-rpt-toast" id="opsToast" hidden></div>
+    <div class="sa-rpt-sheet sa-rpt-sheet--tip" id="opsSheet" hidden>
+      <div class="sa-rpt-sheet__panel" role="dialog" aria-modal="true">
+        <div class="sa-rpt-sheet__hd"><strong id="opsSheetTitle">指标说明</strong><button type="button" class="sa-rpt-sheet__close" data-close-sheet aria-label="关闭">×</button></div>
+        <div class="sa-rpt-sheet__body" id="opsSheetBody"></div>
+      </div>
+    </div>
+    <div class="sa-rpt-sheet sa-rpt-sheet--time" id="opsRangeSheet" hidden>
+      <div class="sa-rpt-sheet__panel" role="dialog">
+        <div class="sa-rpt-sheet__hd"><strong>自定义日期</strong><button type="button" class="sa-rpt-sheet__close" data-close-range>×</button></div>
+        <div class="sa-rpt-custom" id="opsCustom">
+          <div class="sa-rpt-custom__row">
+            <label class="sa-rpt-custom__field"><span>开始</span><input type="date" id="opsCustomStart"></label>
+            <span class="sa-rpt-custom__sep">至</span>
+            <label class="sa-rpt-custom__field"><span>结束</span><input type="date" id="opsCustomEnd"></label>
+          </div>
+          <p class="sa-rpt-custom__err" id="opsCustomErr" hidden></p>
+          <button type="button" class="sa-rpt-custom__btn" id="opsCustomApply">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="../../js/business-report-fixtures.js"></script>
+  <script src="../js/store-app-biz-datacenter-data.js?v=20261119-fix6"></script>
+  <script src="../js/store-app-biz-session.js?v=20261117-bd2"></script>
+  <script src="../js/store-app-biz-datacenter-state.js?v=20261119-fix6"></script>
+  <script src="../js/store-app-biz-datacenter-ops.js?v=20261119-fix6"></script>
+</body>
+</html>

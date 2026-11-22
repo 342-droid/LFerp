@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>营业额 · 丰银宝</title>
+  <link rel="stylesheet" href="../css/store-app.css?v=20261117-rpt26">
+  <link rel="stylesheet" href="../css/store-app-biz-report.css?v=20261117-rpt26">
+</head>
+<body class="store-app-body">
+  <div class="sa-shell sa-rpt-shell">
+    <div class="sa-rpt">
+      <header class="sa-rpt-nav">
+        <a href="biz-center.html" class="sa-rpt-nav__back" id="rvBack" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <h1 class="sa-rpt-nav__title">营业额</h1>
+      </header>
+
+      <div class="sa-rpt-scroll">
+        <p class="sa-rpt-asof sa-rpt-asof--page" id="rvAsOf">数据截至 —</p>
+
+        <div class="sa-rpt-chips" id="rvRange" role="tablist">
+          <button type="button" class="sa-rpt-chip is-active" data-range="today">今天</button>
+          <button type="button" class="sa-rpt-chip" data-range="yesterday">昨天</button>
+          <button type="button" class="sa-rpt-chip" data-range="7d">近七天</button>
+          <button type="button" class="sa-rpt-chip" data-range="month">本月</button>
+          <button type="button" class="sa-rpt-chip" data-range="custom">自定义</button>
+        </div>
+
+        <section class="sa-rpt-hero" aria-label="营业额合计">
+          <div class="sa-rpt-hero__label">营业额合计（元）</div>
+          <div class="sa-rpt-hero__amount" id="rvTotal">0</div>
+          <p class="sa-rpt-hero__hint" id="rvHint">门店实际营业额，按已开通来源分开看</p>
+        </section>
+
+        <section class="sa-rpt-card">
+          <div class="sa-rpt-card__hd">
+            <h2 class="sa-rpt-card__title">
+              营收来源
+              <button type="button" class="sa-rpt-help" id="rvHelpBtn" aria-label="说明">?</button>
+            </h2>
+            <span class="sa-rpt-picker sa-rpt-picker--static" id="rvRangeTag">今日</span>
+          </div>
+          <div class="sa-rpt-bizlines" id="rvLines"></div>
+        </section>
+      </div>
+    </div>
+
+    <div class="sa-rpt-toast" id="rvToast" hidden></div>
+    <div class="sa-rpt-sheet" id="rvSheet" hidden>
+      <div class="sa-rpt-sheet__panel" role="dialog" aria-modal="true">
+        <div class="sa-rpt-sheet__hd">
+          <strong>营业额说明</strong>
+          <button type="button" class="sa-rpt-sheet__close" data-close-sheet aria-label="关闭">×</button>
+        </div>
+        <div class="sa-rpt-sheet__body" id="rvSheetBody"></div>
+      </div>
+    </div>
+    <div class="sa-rpt-sheet sa-rpt-sheet--time is-custom" id="rvTimeSheet" hidden>
+      <div class="sa-rpt-sheet__panel" role="dialog" aria-modal="true" aria-labelledby="rvTimeSheetTitle">
+        <div class="sa-rpt-sheet__hd">
+          <strong id="rvTimeSheetTitle">自定义时间</strong>
+          <button type="button" class="sa-rpt-sheet__close" data-close-rv-time aria-label="关闭">×</button>
+        </div>
+        <div class="sa-rpt-custom" id="rvCustom">
+          <p class="sa-rpt-custom__hint">选择起止日期后点击确定</p>
+          <div class="sa-rpt-custom__row">
+            <label class="sa-rpt-custom__field">
+              <span>开始日期</span>
+              <input type="date" id="rvCustomStart">
+            </label>
+            <span class="sa-rpt-custom__sep">至</span>
+            <label class="sa-rpt-custom__field">
+              <span>结束日期</span>
+              <input type="date" id="rvCustomEnd">
+            </label>
+          </div>
+          <p class="sa-rpt-custom__err" id="rvCustomErr" hidden></p>
+          <button type="button" class="sa-rpt-custom__btn" id="rvCustomApply">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/store-app-biz-report-data.js?v=20261117-bd1"></script>
+  <script src="../js/store-app-biz-session.js?v=20261117-bd2"></script>
+  <script src="../js/store-app-biz-revenue.js?v=20261117-bd1"></script>
+</body>
+</html>

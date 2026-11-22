@@ -137,6 +137,46 @@
   display: none;
 }
 
+.sa-header.is-store-disabled .sa-avatar {
+  filter: grayscale(1);
+  opacity: 0.75;
+}
+
+.sa-header.is-store-disabled .sa-store-name {
+  color: #8c8c8c;
+}
+
+.sa-store-disabled-tag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #fff1f0;
+  border: 1px solid #ffa39e;
+  color: #cf1322;
+  font-size: 11px;
+  font-weight: 600;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.sa-store-disabled-banner {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fff2f0;
+  border: 1px solid #ffccc7;
+  color: #a8071a;
+  font-size: 12px;
+  line-height: 1.55;
+  font-weight: 500;
+}
+
+.sa-home.is-store-disabled #saStoreWorkspace .sa-quick,
+.sa-home.is-store-disabled #saStoreWorkspace .sa-card {
+  opacity: 0.72;
+}
+
 .sa-fyb-tip {
   margin: 0 0 14px;
   padding: 12px 14px;
@@ -471,6 +511,16 @@
   color: var(--sa-orange-deep);
 }
 
+/* 供应商：底栏不展示数据中心（基础工具已有入口） */
+body[data-fyb-role='supplier'] .sa-tab[data-tab-biz],
+body[data-fyb-role='supplier'] #saTabBiz,
+body[data-fyb-role='supplier'] #moreBizCenter,
+.sa-tabbar--no-biz .sa-tab[data-tab-biz],
+.sa-tabbar--no-biz #saTabBiz,
+.sa-tabbar--no-biz #moreBizCenter {
+  display: none !important;
+}
+
 .sa-toast {
   position: absolute;
   left: 50%;
@@ -640,4 +690,12 @@
   color: #fff;
   font-size: 11px;
   cursor: pointer;
+}
+
+/* 数据中心 · RBT 验收：贴右侧，避开底栏 */
+.sa-lp-demo--rbt {
+  left: auto;
+  right: 8px;
+  bottom: 72px;
+  width: 210px;
 }

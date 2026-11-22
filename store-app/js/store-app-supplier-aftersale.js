@@ -10,6 +10,9 @@
 
   var params = new URLSearchParams(window.location.search || '');
   if (params.get('tab') === 'refund') state.tab = 'refund';
+  /* 数据中心带入时段：仅识别列表已支持的 7d／30d／all */
+  var timeQ = params.get('time');
+  if (timeQ === '7d' || timeQ === '30d' || timeQ === 'all') state.time = timeQ;
 
   var TICKET_STATUSES = ['全部', '待处理', '进行中', '已完结'];
   var REFUND_STATUSES = ['全部', '待退款', '退款执行中', '退款成功', '退款失败'];

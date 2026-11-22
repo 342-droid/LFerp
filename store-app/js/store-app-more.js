@@ -42,6 +42,44 @@
     });
   }
 
+  var isSupplier = !!(window.FybOrg && window.FybOrg.isSupplier && window.FybOrg.isSupplier());
+  document.body.setAttribute('data-fyb-role', isSupplier ? 'supplier' : 'store');
+  var tabbar = document.querySelector('.sa-tabbar');
+  if (tabbar) tabbar.classList.toggle('sa-tabbar--no-biz', !!isSupplier);
+  var bizBtn = document.getElementById('moreBizCenter');
+  if (bizBtn) {
+    /* 供应商底栏不展示数据中心（基础工具已有） */
+    bizBtn.hidden = !!isSupplier;
+    if (isSupplier) {
+      bizBtn.setAttribute('aria-hidden', 'true');
+      bizBtn.style.display = 'none';
+    } else {
+      bizBtn.style.display = '';
+    }
+    bizBtn.addEventListener('click', function () {
+      if (window.FybOrg && window.FybOrg.isSupplier && window.FybOrg.isSupplier()) {
+        window.location.href = 'biz-supplier-home.html';
+        return;
+      }
+      var api = window.SaLivePromoSession;
+      var info = api && typeof api.identity === 'function' ? api.identity() : null;
+      if (info && info.role === 'bd') {
+        var map = {
+          HGH00002: 'STORE-YY',
+          BJS00001: 'STORE-BJ',
+          TSN00001: 'STORE-CN',
+          SHA00001: 'STORE-HP',
+          HGH00001: 'STORE-YY'
+        };
+        var sid = map[info.storeId] || 'STORE-YY';
+        window.location.href =
+          'biz-center.html?role=bd&from=bd-app&storeId=' + encodeURIComponent(sid);
+        return;
+      }
+      window.location.href = 'biz-center.html?from=store-app';
+    });
+  }
+
   var grid = document.getElementById('moreGrid');
   if (grid) {
     grid.addEventListener('click', function (e) {

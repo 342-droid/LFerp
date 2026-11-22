@@ -541,16 +541,18 @@
     if (f.ticketNo && row.id.indexOf(f.ticketNo) < 0) return false;
     if (f.orderQuery) {
       if (f.orderQueryType === 'trackingNo') {
+        // 只查售后单自身的退货寄回、换货发出、补货发出单号，不含原订单发货单号
         var shipments = row.shipments || {};
-        var numbers = [row.trackingNo, row.orderTrackingNo];
-        Object.keys(shipments).forEach(function (key) {
+        var numbers = [];
+        ['returnShip', 'exchangeOutShip', 'restockShip'].forEach(function (key) {
           if (shipments[key]) numbers.push(shipments[key].trackingNo);
         });
         if (/^AS-(?:RT|PX)/.test(row.id) && window.MdmAftersaleDemoTracking) {
           numbers = numbers.concat(Object.values(window.MdmAftersaleDemoTracking.forTicket(row.id, row.type, row.status, row.fulfillment)));
         }
         var query = f.orderQuery.toUpperCase();
-        if (!numbers.some(function (value) { return String(value || '').toUpperCase().indexOf(query) >= 0; })) return false;
+        // 精确匹配（不模糊），忽略大小写
+        if (!numbers.some(function (value) { return String(value || '').toUpperCase() === query; })) return false;
       } else if (String(row.orderNo).indexOf(f.orderQuery) < 0) return false;
     }
     if (f.orderSource && row.orderSource !== f.orderSource) return false;

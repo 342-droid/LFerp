@@ -4,7 +4,14 @@
  */
 (function (global) {
   var KEY = 'sa_live_promo_session_v1';
-  var STAFF_STORE_ID = 'ONS303445581201';
+  /* 与门店档案编码一致 */
+  var STAFF_STORE_ID = 'HGH00002';
+  var LEGACY_ID_ALIAS = {
+    ONS303445581201: 'HGH00002',
+    'ONS-CENTER-01': 'HGH00002',
+    'ONS-XIXI-SOUTH': 'BJS00001',
+    'ONS-JIANGCUN': 'TSN00001'
+  };
 
   var STAFF = {
     id: 'STAFF-001',
@@ -20,24 +27,29 @@
 
   var STORES = [
     {
-      id: 'ONS303445581201',
-      name: '冷丰生鲜超市',
-      region: '天津市河东区'
-    },
-    {
-      id: 'ONS-CENTER-01',
+      id: 'HGH00002',
       name: '中心店01',
       region: '浙江省杭州市西湖区'
     },
     {
-      id: 'ONS-XIXI-SOUTH',
-      name: '西溪湿地南门店',
-      region: '浙江省杭州市西湖区'
+      id: 'BJS00001',
+      name: '测试通知',
+      region: '北京市东城区'
     },
     {
-      id: 'ONS-JIANGCUN',
-      name: '蒋村公交站店',
-      region: '浙江省杭州市西湖区'
+      id: 'TSN00001',
+      name: '111',
+      region: '天津市河东区'
+    },
+    {
+      id: 'SHA00001',
+      name: 'DDD',
+      region: '上海市浦东新区'
+    },
+    {
+      id: 'HGH00001',
+      name: '张三',
+      region: '浙江省杭州市余杭区'
     }
   ];
 
@@ -60,12 +72,36 @@
     }
   }
 
-  function getStore(id) {
+  function resolveStoreId(id) {
     var sid = String(id || '');
+    return LEGACY_ID_ALIAS[sid] || sid;
+  }
+
+  function getStore(id) {
+    var sid = resolveStoreId(id);
     for (var i = 0; i < STORES.length; i++) {
       if (STORES[i].id === sid) return STORES[i];
     }
     return null;
+  }
+
+  function isCurrentStoreDisabled() {
+    var info = identity();
+    var store = getStore(info.storeId);
+    if (!store) return false;
+    if (global.MdmArchiveEnableDisable && typeof global.MdmArchiveEnableDisable.isStoreDisabledByMeta === 'function') {
+      return !!global.MdmArchiveEnableDisable.isStoreDisabledByMeta({
+        id: store.id,
+        storeId: store.id,
+        name: store.name
+      });
+    }
+    try {
+      var map = JSON.parse(localStorage.getItem('lferp_store_disabled_v1') || '{}') || {};
+      return !!(map[store.id] && map[store.id].disabled) || !!(map[store.name] && map[store.name].disabled);
+    } catch (e) {
+      return false;
+    }
   }
 
   function defaultSession() {
@@ -75,6 +111,7 @@
   function normalize(raw) {
     var next = Object.assign(defaultSession(), raw || {});
     if (next.role !== 'bd') next.role = 'staff';
+    next.storeId = resolveStoreId(next.storeId);
     if (next.role === 'staff') next.storeId = STAFF_STORE_ID;
     if (!getStore(next.storeId)) next.storeId = STAFF_STORE_ID;
     if (next.from !== 'bd-app') next.from = 'store-app';
@@ -200,6 +237,10 @@
     panel.id = 'sa-lp-demo';
     panel.className = 'sa-lp-demo';
     var storeOpts = STORES.map(function (s) {
+      var off =
+        global.MdmArchiveEnableDisable && typeof global.MdmArchiveEnableDisable.isStoreDisabledByMeta === 'function'
+          ? !!global.MdmArchiveEnableDisable.isStoreDisabledByMeta({ id: s.id, storeId: s.id, name: s.name })
+          : false;
       return (
         '<option value="' +
         esc(s.id) +
@@ -207,6 +248,7 @@
         (s.id === info.storeId ? ' selected' : '') +
         '>' +
         esc(s.name) +
+        (off ? '（已停用）' : '') +
         '</option>'
       );
     }).join('');
@@ -265,6 +307,7 @@
     getStore: getStore,
     identity: identity,
     isBd: isBd,
+    isCurrentStoreDisabled: isCurrentStoreDisabled,
     maskPhone: maskPhone,
     whoText: whoText,
     livePromoHref: livePromoHref,

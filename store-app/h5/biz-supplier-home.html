@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>数据中心 · 供应商</title>
+  <link rel="stylesheet" href="../css/store-app.css?v=20261117-sup-tab3">
+  <link rel="stylesheet" href="../css/store-app-supplier.css?v=20261105-dual">
+  <link rel="stylesheet" href="../css/store-app-biz-supplier.css?v=20261117-sup9">
+</head>
+<body class="store-app-body" data-fyb-role="supplier">
+  <div class="sa-shell sa-sup-shell">
+    <div class="sa-sup sa-sbiz" id="saSupBizRoot">
+      <header class="sa-sup-nav">
+        <a href="home.html" class="sa-sup-nav__back" aria-label="返回">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg>
+        </a>
+        <h1 class="sa-sup-nav__title">数据中心</h1>
+      </header>
+      <p class="sa-sbiz-sub" id="saSupBizAsOf">数据截至 —</p>
+      <div class="sa-sbiz-ranges" id="saSupBizRanges" role="tablist" aria-label="时间筛选"></div>
+      <nav class="sa-sbiz-tabs" id="saSupBizTabs" aria-label="经营模块"></nav>
+      <div class="sa-sbiz-scroll" id="saSupBizBody"></div>
+
+      <div class="sa-sbiz-sheet" id="saSupBizSheet" hidden>
+        <div class="sa-sbiz-sheet__panel" role="dialog" aria-labelledby="saSupBizSheetTitle">
+          <div class="sa-sbiz-sheet__hd">
+            <h3 id="saSupBizSheetTitle">自定义时间</h3>
+          </div>
+          <div class="sa-sbiz-sheet__fields">
+            <div>
+              <label for="saSupBizFrom">开始日期</label>
+              <input id="saSupBizFrom" type="date">
+            </div>
+            <div>
+              <label for="saSupBizTo">结束日期</label>
+              <input id="saSupBizTo" type="date">
+            </div>
+          </div>
+          <button type="button" class="sa-sbiz-sheet__ok" id="saSupBizSheetOk">应用</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="../js/store-app-org.js?v=20261105-org-shell"></script>
+  <script src="../js/store-app-biz-supplier-config.js?v=20261117-sup13"></script>
+  <script src="../js/store-app-biz-supplier-data.js?v=20261117-sup13"></script>
+  <script src="../js/store-app-biz-supplier.js?v=20261117-sup12"></script>
+</body>
+</html>

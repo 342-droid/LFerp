@@ -25,7 +25,27 @@
   }
 
   function goBizCenter() {
-    window.location.href = 'biz-center.html';
+    if (isSupplierMode()) {
+      window.location.href = 'biz-supplier-home.html';
+      return;
+    }
+    var api = window.SaLivePromoSession;
+    var info = api && typeof api.identity === 'function' ? api.identity() : null;
+    /* BD 切店后：进该店数据中心下钻（顶栏店名，返回多店）；店长/员工：本店总览 */
+    if (info && info.role === 'bd') {
+      var map = {
+        HGH00002: 'STORE-YY',
+        BJS00001: 'STORE-BJ',
+        TSN00001: 'STORE-CN',
+        SHA00001: 'STORE-HP',
+        HGH00001: 'STORE-YY'
+      };
+      var sid = map[info.storeId] || 'STORE-YY';
+      window.location.href =
+        'biz-center.html?role=bd&from=bd-app&storeId=' + encodeURIComponent(sid);
+      return;
+    }
+    window.location.href = 'biz-center.html?from=store-app';
   }
 
   function goVerify(mode) {
@@ -95,6 +115,10 @@
           }
           if (action === 'orders') {
             goOrders();
+            return;
+          }
+          if (action === 'supplierBiz') {
+            window.location.href = 'biz-supplier-home.html';
             return;
           }
           if (action === 'supplierOrders') {
@@ -234,6 +258,44 @@
     dot.hidden = !show;
   }
 
+  function syncDisabledStoreChrome(info, disabled) {
+    var home = document.querySelector('.sa-home');
+    var header = document.querySelector('.sa-header');
+    var nameEl = document.getElementById('saHomeStoreName');
+    var ban = document.getElementById('saStoreDisabledBanner');
+    if (home) home.classList.toggle('is-store-disabled', !!disabled);
+    if (header) header.classList.toggle('is-store-disabled', !!disabled);
+    if (nameEl) {
+      var tag = nameEl.querySelector('.sa-store-disabled-tag');
+      if (disabled) {
+        if (!tag) {
+          tag = document.createElement('span');
+          tag.className = 'sa-store-disabled-tag';
+          tag.textContent = '已停用';
+          nameEl.appendChild(tag);
+        }
+      } else if (tag) {
+        tag.remove();
+      }
+    }
+    if (ban) ban.remove();
+    if (!disabled || !header || !header.parentNode) return;
+    var copy =
+      window.MdmArchiveEnableDisable && typeof window.MdmArchiveEnableDisable.userFacingDisabledCopy === 'function'
+        ? window.MdmArchiveEnableDisable.userFacingDisabledCopy(info && info.storeName)
+        : null;
+    var text =
+      info && info.role === 'bd'
+        ? (copy && copy.bdBanner) || '当前切入的门店已停用，请切换到其他启用中的门店。'
+        : (copy && copy.staffBanner) || '本门店已停用，用户端暂时无法选店下单。';
+    ban = document.createElement('div');
+    ban.id = 'saStoreDisabledBanner';
+    ban.className = 'sa-store-disabled-banner';
+    ban.setAttribute('role', 'status');
+    ban.textContent = text;
+    header.insertAdjacentElement('afterend', ban);
+  }
+
   function syncHeader() {
     var org = currentOrg();
     var avatar = document.getElementById('saHomeAvatar');
@@ -246,7 +308,7 @@
       roleEl.textContent = org.role === 'supplier' ? '供应商 · 点击切换组织' : '门店 · 点击切换组织';
     }
 
-    /* 门店视角仍可叠加 BD 切店提示 */
+    /* 门店视角仍可叠加 BD 切店提示；停用门店展示灰态与横幅 */
     if (org.role === 'store') {
       var api = window.SaLivePromoSession;
       if (api && typeof api.applyUrlHints === 'function') api.applyUrlHints();
@@ -259,7 +321,11 @@
           roleEl.textContent = 'BD · ' + info.staffName + ' · 已切到该店';
         }
       }
+      var disabled = api && typeof api.isCurrentStoreDisabled === 'function' ? !!api.isCurrentStoreDisabled() : false;
+      syncDisabledStoreChrome(info, disabled);
       if (api && typeof api.mountDemoPanel === 'function') api.mountDemoPanel();
+    } else {
+      syncDisabledStoreChrome(null, false);
     }
   }
 
@@ -270,6 +336,19 @@
     if (storeWs) storeWs.hidden = !!supplier;
     if (supWs) supWs.hidden = !supplier;
     document.body.setAttribute('data-fyb-role', supplier ? 'supplier' : 'store');
+    /* 供应商基础工具已有数据中心；底栏 Tab 取消，避免跳进门店视角 */
+    var tabbar = document.querySelector('.sa-tabbar');
+    if (tabbar) tabbar.classList.toggle('sa-tabbar--no-biz', !!supplier);
+    document.querySelectorAll('[data-tab-biz], #saTabBiz').forEach(function (el) {
+      el.hidden = !!supplier;
+      if (supplier) {
+        el.setAttribute('aria-hidden', 'true');
+        el.style.display = 'none';
+      } else {
+        el.removeAttribute('aria-hidden');
+        el.style.display = '';
+      }
+    });
     syncHeader();
     if (supplier) syncSupplierContractDot();
     else {

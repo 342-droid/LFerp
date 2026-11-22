@@ -4,7 +4,7 @@
 (function () {
   var notifications = [
     { id: 1, text: '您的商户"茶百道-人民路店"已通过审核', time: '10:30' },
-    { id: 2, text: '本月团队业绩已超额完成，请查看详情', time: '09:15' },
+    { id: 2, text: '本月团队业绩已超额完成，请查看详情', time: '09:15' }
   ];
   var marketingMaterials = [
     { id: 1, title: '新商户入驻推广海报', desc: '适用于地推和线上分享', tag: '热门', uses: '2.3k' },
@@ -23,9 +23,14 @@
     '<path d="M10 10.2l5 1.8-5 1.8v-3.6z" fill="currentColor" stroke="none"/>' +
     '<circle cx="7" cy="9" r="1" fill="currentColor" stroke="none"/>' +
     '</svg>';
+  var BIZ_SVG =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">' +
+    '<path d="M4 19V5h4v14H4zm6 0V9h4v10h-4zm6 0v-7h4v7h-4z"/>' +
+    '</svg>';
   var workbenchItems = [
     { label: '进货', emoji: '', cls: 'wb10', hash: 'restock', svg: CART_SVG },
     { label: '直播推广', emoji: '', cls: 'wb11', hash: 'live-promo', svg: LIVE_SVG },
+    { label: '数据中心', emoji: '', cls: 'wb12', hash: 'biz-advisor', svg: BIZ_SVG },
     { label: '门店管理', emoji: '🗺', cls: 'wb1', hash: 'stores' },
     { label: '协议管理', emoji: '📝', cls: 'wb2', hash: 'stores-agreements' },
     { label: '商户进件', emoji: '🏪', cls: 'wb3', hash: 'merchants' },
@@ -568,6 +573,18 @@
               ? window.wmsPath.page('store-app/h5/live-promo.html')
               : '../store-app/h5/live-promo.html';
           location.href = liveHref + '?from=bd-app&role=bd';
+        } else if (x === 'biz-advisor') {
+          var bizHref =
+            window.wmsPath && typeof window.wmsPath.page === 'function'
+              ? window.wmsPath.page('store-app/h5/biz-bd-center.html')
+              : '../store-app/h5/biz-bd-center.html';
+          location.href = bizHref + '?from=bd-app&role=bd';
+        } else if (x === 'bd-datacenter') {
+          var dcHref =
+            window.wmsPath && typeof window.wmsPath.page === 'function'
+              ? window.wmsPath.page('store-app/h5/biz-bd-center.html')
+              : '../store-app/h5/biz-bd-center.html';
+          location.href = dcHref + '?from=bd-app&role=bd';
         }
         else if (x === 'stores') location.href = page('mdm_bd_stores.html');
         else if (x === 'stores-agreements') location.href = page('mdm_bd_stores.html#agreements');
