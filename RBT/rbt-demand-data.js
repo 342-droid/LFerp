@@ -40,7 +40,6 @@
 
     function statusLogText(prev, next, item) {
         if (!prev || !next || prev === next) return '';
-        if (prev === '待审核' && next === '待接单') return '初审通过，状态：待审核 → 待接单';
         if (next === '已驳回') return '审核驳回，状态：' + prev + ' → 已驳回';
         if (next === '已作废') return '作废，状态：' + prev + ' → 已作废';
         if (prev === '待接单' && next === '待确认签约') return '接单，状态：待接单 → 待确认签约';
@@ -53,31 +52,31 @@
         if (prev === '待确认签约' && next === '待接单') return '接单超时，自动撤回，状态：待确认签约 → 待接单';
         if (prev === '待重新确认' && next === '待接单') return '重新发布，状态：待重新确认 → 待接单';
         if (prev === '待确认签约' && next === '待签署') return '确认签约，状态：待确认签约 → 待签署';
-        if (prev === '待签署' && next === '待付款') return '合同签署完成，状态：待签署 → 待付款';
-        if (prev === '待付款' && next === '门店付款中') {
-            return (item && item.payMethod === 'offline' ? '线下支付' : '在线支付') + '，状态：待付款 → 门店付款中';
-        }
+        if (prev === '待签署' && next === '发货中') return '合同签署完成，系统自动划款支付，状态：待签署 → 发货中';
+        if (prev === '发货中' && next === '门店付款中') return '确认发货完成，按发货记录生成交易单，状态：发货中 → 门店付款中';
         if (next === '已完成') return '需求完成，状态：' + prev + ' → 已完成';
         return '状态：' + prev + ' → ' + next;
     }
-    /* 待付款：合同签完，等贸易商付款。门店付款中：贸易商付款完成后，门店按日还款。 */
-    var DEMAND_STATUSES = ['待审核', '待接单', '待确认签约', '待重新确认', '待签署', '待付款', '门店付款中', '已完成'];
+    /* 各方签完后系统自动划款，进入发货中，不生成交易单。确认发货完成后才进入门店付款中并生成交易单。门店付款中：门店按日还款。 */
+    var DEMAND_STATUSES = ['待接单', '待确认签约', '待重新确认', '待签署', '发货中', '门店付款中', '已完成'];
     var CLOSED_STATUSES = ['已作废', '已驳回'];
     /* 门店付款中之前，平台可在需求单列表作废。撤回接单后的待重新确认也可作废。 */
-    var VOIDABLE_STATUSES = ['待审核', '待接单', '待确认签约', '待重新确认', '待签署', '待付款'];
+    var VOIDABLE_STATUSES = ['待接单', '待确认签约', '待重新确认', '待签署'];
     /* 进入这些状态时释放需求门店的已占用额度 */
     var RELEASE_STATUSES = ['已作废', '已驳回', '已完成'];
     /* 待签署及之后才有关联合同 */
-    var CONTRACT_STATUSES = ['待签署', '待付款', '门店付款中', '已完成'];
+    var CONTRACT_STATUSES = ['待签署', '待付款', '发货中', '门店付款中', '已完成'];
     var STATUS_MIGRATE = {
-        '已发布': '待审核',
-        '待报价': '待审核',
+        '已发布': '待接单',
+        '待报价': '待接单',
+        '待审核': '待接单',
         '已报价': '待接单',
         '待还款': '门店付款中',
         '支付中': '门店付款中',
         '还款中': '门店付款中',
         '付款中': '门店付款中',
-        '待支付': '待付款',
+        '待支付': '门店付款中',
+        '待付款': '门店付款中',
         '待复核': '门店付款中',
         '已取消': '已作废'
     };
@@ -86,7 +85,7 @@
         return CONTRACT_STATUSES.indexOf(status) >= 0;
     }
 
-    /* 待签署仍为待签署；进入待付款及之后视为已签署。 */
+    /* 待签署仍为待签署；发货中及之后视为已签署。 */
     function contractSignStatus(status) {
         if (status === '待签署') return '待签署';
         if (hasContractStatus(status)) return '已签署';
@@ -144,77 +143,7 @@
     }
 
     function seed() {
-        return [
-            {
-                code: 'XQ00003',
-                storeCode: 'ONS00001',
-                storeName: '西湖中心生鲜店',
-                packageCode: 'SPB00002',
-                packageName: '肉类组合包',
-                skus: [
-                    { code: 'SKU10003', name: '冷鲜牛腩 1kg', salePrice: '78.00', qty: 25 },
-                    { code: 'SKU10011', name: '冷鲜猪里脊 1kg', salePrice: '52.80', qty: 20 }
-                ],
-                amount: '5364.00',
-                installmentCode: 'FQ00002',
-                installmentName: '肉类备货分期',
-                repayCycle: '日结',
-                repayMethod: '比例付',
-                repayPeriod: '8.00%',
-                dailyAmount: '',
-                status: '待接单',
-                creator: '喻巧',
-                createdAt: '2026-11-09 16:42:10',
-                updater: '王丽',
-                updatedAt: '2026-11-09 17:10:08'
-            },
-            {
-                code: 'XQ00008',
-                storeCode: 'ONS00004',
-                storeName: '五角场体验店',
-                packageCode: 'SPB00002',
-                packageName: '肉类组合包',
-                skus: [
-                    { code: 'SKU10003', name: '冷鲜牛腩 1kg', salePrice: '78.00', qty: 10 },
-                    { code: 'SKU10011', name: '冷鲜猪里脊 1kg', salePrice: '52.80', qty: 10 }
-                ],
-                amount: '2354.40',
-                installmentCode: 'FQ00002',
-                installmentName: '肉类备货分期',
-                repayCycle: '日结',
-                repayMethod: '比例付',
-                repayPeriod: '8.00%',
-                dailyAmount: '',
-                status: '已作废',
-                creator: '赵倩',
-                createdAt: '2026-11-03 13:27:09',
-                updater: '赵倩',
-                updatedAt: '2026-11-03 13:40:21'
-            },
-            {
-                code: 'XQ00012',
-                storeCode: 'ONS00004',
-                storeName: '五角场体验店',
-                packageCode: 'SPB00002',
-                packageName: '肉类组合包',
-                skus: [
-                    { code: 'SKU10003', name: '冷鲜牛腩 1kg', salePrice: '78.00', qty: 8 },
-                    { code: 'SKU10011', name: '冷鲜猪里脊 1kg', salePrice: '52.80', qty: 12 }
-                ],
-                amount: '2263.68',
-                installmentCode: 'FQ00002',
-                installmentName: '肉类备货分期',
-                repayCycle: '日结',
-                repayMethod: '比例付',
-                repayPeriod: '8.00%',
-                dailyAmount: '',
-                status: '待接单',
-                creator: '赵倩',
-                createdAt: '2026-11-11 11:05:27',
-                updater: '王丽',
-                updatedAt: '2026-11-11 11:22:19'
-            }
-        ].concat(extraStoreSeeds());
+        return extraStoreSeeds();
     }
 
     /* 门店付款中演示单：销售合同、采购合同的各方都已签署，贸易商已付款。 */
@@ -227,106 +156,101 @@
         ];
     }
 
-    /* 每家门店另加 2 条日结比例付。商品包按该店已关联的包；余杭未关联商品包，演示挂周末生鲜包。 */
+    /* 按门店已关联的商品包整包下单。明细不可改、不可删，数量和售价与商品包一致。
+       总金额 = 商品金额 × 该产品的门店结算系数。进行中的单每店只留一笔，避免占用超过总额度。
+       五角场额度盖不住铺货包，余杭未关联商品包，这两家没有需求单。 */
     function extraStoreSeeds() {
-        var fresh = { code: 'SPB00001', name: '周末生鲜包' };
-        var meat = { code: 'SPB00002', name: '肉类组合包' };
-        var veg = { code: 'SPB00003', name: '果蔬尝鲜包' };
-        var freshPlan = { installmentCode: 'FQ00001', installmentName: '生鲜周转分期', repayPeriod: '10.00%' };
-        var meatPlan = { installmentCode: 'FQ00002', installmentName: '肉类备货分期', repayPeriod: '8.00%' };
-        var vegPlan = { installmentCode: 'FQ00003', installmentName: '果蔬短周期', repayPeriod: '10.00%' };
+        var fresh = { code: 'SPB00001', name: '汉言开业铺货包' };
+        var image = { code: 'SPB00002', name: '门店形象配置包' };
+        var ops = { code: 'SPB00003', name: '开业运营服务包' };
+        var freshPlan = { installmentCode: 'FQ00001', installmentName: '开业铺货日结', repayPeriod: '10.00%' };
+        var imagePlan = { installmentCode: 'FQ00002', installmentName: '门店形象日结', repayPeriod: '8.00%' };
+        var opsPlan = { installmentCode: 'FQ00003', installmentName: '开业运营日结', repayPeriod: '10.00%' };
         var xianDa = { traderName: '杭州鲜达贸易有限公司', traderPhone: '13800001001' };
         var lengLian = { traderName: '上海冷链融资租赁有限公司', traderPhone: '13800001002' };
-        var haiFeng = { traderName: '宁波海丰商业保理有限公司', traderPhone: '13800001003' };
+        function linesOf(rows) {
+            return rows.map(function (line) { return Object.assign({}, line); });
+        }
+        var freshLines = [
+            { code: 'SKU20001', name: '汉言首批铺货', salePrice: '22000.00', qty: 1 },
+            { code: 'SKU20002', name: '门店设备辅料包', salePrice: '16000.00', qty: 1 },
+            { code: 'SKU20003', name: '门店拉新人力', salePrice: '12000.00', qty: 1 }
+        ];
+        var imageLines = [
+            { code: 'SKU20004', name: '开业拉新物料', salePrice: '30.00', qty: 300 },
+            { code: 'SKU20005', name: '门头招牌及店内品宣', salePrice: '18000.00', qty: 1 },
+            { code: 'SKU20006', name: '门店监控套装', salePrice: '13000.00', qty: 1 }
+        ];
+        var opsLines = [
+            { code: 'SKU20007', name: 'POS及会员管理系统', salePrice: '12000.00', qty: 1 },
+            { code: 'SKU20008', name: '抖音本地生活投放', salePrice: '10000.00', qty: 1 },
+            { code: 'SKU20009', name: '开业督导服务', salePrice: '8000.00', qty: 1 }
+        ];
         return [
             rowSeed({
-                code: 'XQ00025', storeCode: 'ONS00005', storeName: '余杭仓前便利店',
-                pkg: fresh, plan: freshPlan, status: '待审核',
-                skus: [{ code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 2 }, { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 2 }],
-                amount: '254.72', creator: '陈晨', createdAt: '2026-11-13 17:10:00', updater: '陈晨', updatedAt: '2026-11-13 17:10:00'
+                code: 'XQ00013', storeCode: 'ONS00001', storeName: '西湖中心生鲜店',
+                pkg: fresh, plan: freshPlan, status: '已驳回', rejectReason: '门店近期流水不足',
+                skus: linesOf(freshLines), amount: '80000.00',
+                creator: '喻巧', createdAt: '2026-10-08 09:16:20', updater: '王丽', updatedAt: '2026-10-09 11:02:18'
             }),
             rowSeed({
-                code: 'XQ00013', storeCode: 'ONS00001', storeName: '西湖中心生鲜店',
-                pkg: fresh, plan: freshPlan, status: '待审核',
-                skus: [{ code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 6 }, { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 4 }],
-                amount: '691.20', creator: '喻巧', createdAt: '2026-11-10 09:18:22', updater: '喻巧', updatedAt: '2026-11-10 09:18:22'
-            }),
-            rowSeed(Object.assign({
                 code: 'XQ00014', storeCode: 'ONS00001', storeName: '西湖中心生鲜店',
-                pkg: fresh, plan: freshPlan, status: '待确认签约',
-                skus: [{ code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 12 }, { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 10 }],
-                amount: '1455.36', creator: '喻巧', createdAt: '2026-11-08 14:06:33', updater: '杭州鲜达贸易有限公司', updatedAt: '2026-11-08 15:20:11',
-                acceptedAt: '2026-11-08 15:20:11'
+                pkg: fresh, plan: freshPlan, status: '已作废',
+                skus: linesOf(freshLines), amount: '80000.00',
+                creator: '喻巧', createdAt: '2026-10-12 14:06:33', updater: '喻巧', updatedAt: '2026-10-14 16:20:11'
+            }),
+            /* 已结清，供履约页引用。比例付不预造逐期金额，也不记还款。 */
+            rowSeed(Object.assign({
+                code: 'XQ00023', storeCode: 'ONS00001', storeName: '西湖中心生鲜店',
+                pkg: fresh, plan: freshPlan, status: '已完成',
+                skus: linesOf(freshLines), amount: '80000.00',
+                creator: '喻巧', createdAt: '2026-10-18 09:16:40', updater: '王丽', updatedAt: '2026-11-02 10:28:16',
+                acceptedAt: '2026-10-18 14:02:18',
+                dealLocked: true,
+                signings: signedRows('ONS00001', '西湖中心生鲜店', '杭州鲜达贸易有限公司', '2026-10-20 11:26:33'),
+                guaranteeDeposit: {
+                    paid: true,
+                    voucherName: '缴纳凭证',
+                    uploadedAt: '2026-10-21 10:28:16',
+                    uploadedBy: '王丽'
+                }
+            }, xianDa)),
+            /* 发货中：首批铺货已到店确认，设备辅料已发出待确认，拉新人力尚未进场。 */
+            rowSeed(Object.assign({
+                code: 'XQ00026', storeCode: 'ONS00001', storeName: '西湖中心生鲜店',
+                pkg: fresh, plan: freshPlan, status: '发货中',
+                skus: linesOf(freshLines), amount: '80000.00',
+                creator: '喻巧', createdAt: '2026-11-18 09:12:18', updater: '王丽', updatedAt: '2026-11-23 09:18:40',
+                acceptedAt: '2026-11-18 11:06:22',
+                signings: signedRows('ONS00001', '西湖中心生鲜店', '杭州鲜达贸易有限公司', '2026-11-18 16:40:08'),
+                shipments: [
+                    {
+                        id: 'FH00026-1', skuCode: 'SKU20001', name: '汉言首批铺货', qty: 1, amount: '22000.00',
+                        logisticsNo: 'SF1029384756', createdAt: '2026-11-20 10:12:08', creator: '王丽',
+                        confirmed: true, confirmQty: 1, confirmedAt: '2026-11-20 15:06:21', confirmedBy: '喻巧'
+                    },
+                    {
+                        id: 'FH00026-2', skuCode: 'SKU20002', name: '门店设备辅料包', qty: 1, amount: '16000.00',
+                        logisticsNo: '', createdAt: '2026-11-23 09:18:40', creator: '王丽',
+                        confirmed: false, confirmQty: 0
+                    }
+                ]
             }, xianDa)),
             rowSeed({
                 code: 'XQ00015', storeCode: 'ONS00002', storeName: '东城和平里生鲜店',
-                pkg: meat, plan: meatPlan, status: '待接单',
-                skus: [{ code: 'SKU10003', name: '冷鲜牛腩 1kg', salePrice: '78.00', qty: 6 }, { code: 'SKU10011', name: '冷鲜猪里脊 1kg', salePrice: '52.80', qty: 4 }],
-                amount: '1222.56', creator: '夏利', createdAt: '2026-11-11 10:12:40', updater: '王丽', updatedAt: '2026-11-11 10:40:18'
+                pkg: image, plan: imagePlan, status: '已作废',
+                skus: linesOf(imageLines), amount: '72000.00',
+                creator: '夏利', createdAt: '2026-10-20 10:12:40', updater: '夏利', updatedAt: '2026-10-21 09:40:18'
             }),
+            /* 门店付款中：形象包已交付，门店按日还款。担保金凭证供详情和履约查看。 */
             rowSeed(Object.assign({
                 code: 'XQ00016', storeCode: 'ONS00002', storeName: '东城和平里生鲜店',
-                pkg: meat, plan: meatPlan, status: '门店付款中',
-                skus: [{ code: 'SKU10003', name: '冷鲜牛腩 1kg', salePrice: '78.00', qty: 15 }, { code: 'SKU10011', name: '冷鲜猪里脊 1kg', salePrice: '52.80', qty: 10 }],
-                amount: '3056.40', creator: '夏利', createdAt: '2026-11-06 11:22:09', updater: '王丽', updatedAt: '2026-11-07 09:30:12',
+                pkg: image, plan: imagePlan, status: '门店付款中',
+                skus: linesOf(imageLines), amount: '72000.00',
+                creator: '夏利', createdAt: '2026-11-06 11:22:09', updater: '王丽', updatedAt: '2026-11-12 17:20:08',
                 acceptedAt: '2026-11-06 13:05:44',
-                signings: signedRows('ONS00002', '东城和平里生鲜店', '上海冷链融资租赁有限公司', '2026-11-07 09:12:40')
-            }, lengLian)),
-            rowSeed({
-                code: 'XQ00017', storeCode: 'ONS00003', storeName: '河东大桥道自提点',
-                pkg: veg, plan: vegPlan, status: '待审核',
-                skus: [
-                    { code: 'SKU10005', name: '云南小番茄 1kg', salePrice: '18.50', qty: 8 },
-                    { code: 'SKU10006', name: '新西兰奇异果 12粒', salePrice: '49.90', qty: 4 },
-                    { code: 'SKU10010', name: '福建空心菜 400g', salePrice: '9.90', qty: 6 }
-                ],
-                amount: '610.50', creator: '周海', createdAt: '2026-11-12 08:46:15', updater: '周海', updatedAt: '2026-11-12 08:46:15'
-            }),
-            rowSeed({
-                code: 'XQ00018', storeCode: 'ONS00003', storeName: '河东大桥道自提点',
-                pkg: veg, plan: vegPlan, status: '已驳回', rejectReason: '门店近期流水不足',
-                skus: [
-                    { code: 'SKU10005', name: '云南小番茄 1kg', salePrice: '18.50', qty: 4 },
-                    { code: 'SKU10006', name: '新西兰奇异果 12粒', salePrice: '49.90', qty: 2 },
-                    { code: 'SKU10010', name: '福建空心菜 400g', salePrice: '9.90', qty: 3 }
-                ],
-                amount: '305.25', creator: '周海', createdAt: '2026-11-04 16:18:40', updater: '王丽', updatedAt: '2026-11-04 17:02:11'
-            }),
-            rowSeed(Object.assign({
-                code: 'XQ00019', storeCode: 'ONS00004', storeName: '五角场体验店',
-                pkg: fresh, plan: freshPlan, status: '待签署',
-                skus: [{ code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 8 }, { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 6 }],
-                amount: '945.92', creator: '赵倩', createdAt: '2026-11-09 09:40:18', updater: '宁波海丰商业保理有限公司', updatedAt: '2026-11-09 11:15:36',
-                acceptedAt: '2026-11-09 11:15:36'
-            }, haiFeng)),
-            rowSeed(Object.assign({
-                code: 'XQ00020', storeCode: 'ONS00004', storeName: '五角场体验店',
-                pkg: fresh, plan: freshPlan, status: '门店付款中',
-                skus: [{ code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 20 }, { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 12 }],
-                amount: '2255.36', creator: '赵倩', createdAt: '2026-11-05 10:08:27', updater: '王丽', updatedAt: '2026-11-06 16:48:20',
-                acceptedAt: '2026-11-05 14:22:03',
-                signings: signedRows('ONS00004', '五角场体验店', '杭州鲜达贸易有限公司', '2026-11-06 16:20:08')
-            }, xianDa)),
-            rowSeed({
-                code: 'XQ00021', storeCode: 'ONS00005', storeName: '余杭仓前便利店',
-                pkg: fresh, plan: freshPlan, status: '待接单',
-                skus: [{ code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 5 }, { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 5 }],
-                amount: '636.80', creator: '陈晨', createdAt: '2026-11-11 15:33:41', updater: '王丽', updatedAt: '2026-11-11 16:01:09'
-            }),
-            rowSeed({
-                code: 'XQ00022', storeCode: 'ONS00005', storeName: '余杭仓前便利店',
-                pkg: fresh, plan: freshPlan, status: '已作废',
-                skus: [{ code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 3 }, { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 2 }],
-                amount: '345.60', creator: '陈晨', createdAt: '2026-11-02 13:12:55', updater: '陈晨', updatedAt: '2026-11-02 13:40:18'
-            }),
-            rowSeed(Object.assign({
-                code: 'XQ00024', storeCode: 'ONS00001', storeName: '西湖中心生鲜店',
-                pkg: fresh, plan: freshPlan, status: '门店付款中',
-                skus: [{ code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 10 }, { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 8 }],
-                amount: '1200.64', creator: '喻巧', createdAt: '2026-11-10 11:08:16', updater: '王丽', updatedAt: '2026-11-12 17:20:08',
-                acceptedAt: '2026-11-10 15:42:30',
                 dealLocked: true,
-                signings: signedRows('ONS00001', '西湖中心生鲜店', '杭州鲜达贸易有限公司', '2026-11-11 10:18:44'),
+                signings: signedRows('ONS00002', '东城和平里生鲜店', '上海冷链融资租赁有限公司', '2026-11-07 09:12:40'),
                 guaranteeDeposit: {
                     paid: true,
                     voucherType: 'application/pdf',
@@ -335,22 +259,19 @@
                     uploadedAt: '2026-11-12 17:20:08',
                     uploadedBy: '王丽'
                 }
-            }, xianDa)),
-            /* 门店付款中演示，供履约页引用。比例付不预造逐期金额，也不记还款。 */
-            rowSeed(Object.assign({
-                code: 'XQ00023', storeCode: 'ONS00001', storeName: '西湖中心生鲜店',
-                pkg: fresh, plan: freshPlan, status: '门店付款中',
-                skus: [{ code: 'SKU10001', name: '库尔勒香梨 4kg', salePrice: '56.80', qty: 8 }, { code: 'SKU10002', name: '精品黄瓜 2kg', salePrice: '22.80', qty: 6 }],
-                amount: '591.20', creator: '喻巧', createdAt: '2026-11-06 09:16:40', updater: '王丽', updatedAt: '2026-11-09 10:28:16',
-                acceptedAt: '2026-11-06 14:02:18',
-                signings: signedRows('ONS00001', '西湖中心生鲜店', '杭州鲜达贸易有限公司', '2026-11-08 11:26:33'),
-                guaranteeDeposit: {
-                    paid: true,
-                    voucherName: '缴纳凭证',
-                    uploadedAt: '2026-11-09 10:28:16',
-                    uploadedBy: '王丽'
-                }
-            }, xianDa))
+            }, lengLian)),
+            rowSeed({
+                code: 'XQ00018', storeCode: 'ONS00003', storeName: '河东大桥道自提点',
+                pkg: ops, plan: opsPlan, status: '已驳回', rejectReason: '门店近期流水不足',
+                skus: linesOf(opsLines), amount: '45000.00',
+                creator: '周海', createdAt: '2026-10-16 16:18:40', updater: '王丽', updatedAt: '2026-10-17 17:02:11'
+            }),
+            rowSeed({
+                code: 'XQ00017', storeCode: 'ONS00003', storeName: '河东大桥道自提点',
+                pkg: ops, plan: opsPlan, status: '待接单',
+                skus: linesOf(opsLines), amount: '45000.00',
+                creator: '周海', createdAt: '2026-11-12 08:46:15', updater: '周海', updatedAt: '2026-11-12 08:46:15'
+            })
         ];
     }
 
@@ -382,6 +303,8 @@
         if (spec.rejectReason) row.rejectReason = spec.rejectReason;
         if (spec.dealLocked) row.dealLocked = true;
         if (spec.guaranteeDeposit) row.guaranteeDeposit = spec.guaranteeDeposit;
+        if (spec.shipments) row.shipments = spec.shipments;
+        if (spec.supplementVoucher) row.supplementVoucher = spec.supplementVoucher;
         return row;
     }
 
@@ -463,7 +386,7 @@
     function normalizeStatus(status) {
         if (STATUS_MIGRATE[status]) return STATUS_MIGRATE[status];
         if (DEMAND_STATUSES.indexOf(status) >= 0 || CLOSED_STATUSES.indexOf(status) >= 0) return status;
-        return '待审核';
+        return '待接单';
     }
 
     /* 产品配置里的三方结算系数。会话里改过的优先，没有再回落到演示产品。 */
@@ -515,10 +438,9 @@
         return !!(String(item.providerId || '').trim() || String(item.providerName || '').trim());
     }
 
-    /* 待审核仍按产品配置计提服务商。初审通过后只在确认有服务商时计提，没有则这部分留在冷丰。 */
+    /* 发布后即待接单。只在确认有服务商时计提，没有则这部分留在冷丰。 */
     function includeProviderReceivable(item) {
         if (!item) return false;
-        if (item.status === '待审核') return true;
         if (passedFirstAudit(item.status) || item.hasProvider === true || item.hasProvider === false) {
             return confirmedHasProvider(item);
         }
@@ -554,12 +476,12 @@
         };
     }
 
-    /* 初审已通过。这些需求单上应能看到结算比例。 */
+    /* 待接单及之后应能看到结算比例。 */
     function passedFirstAudit(status) {
-        return status === '待接单' || status === '待确认签约' || status === '待重新确认' || status === '待签署' || status === '待付款' || status === '门店付款中' || status === '已完成';
+        return status === '待接单' || status === '待确认签约' || status === '待重新确认' || status === '待签署' || status === '发货中' || status === '待付款' || status === '门店付款中' || status === '已完成';
     }
 
-    /* 演示数据当初写在产品上的比例。初审已通过、单上还没有渠道比例时，用它补三个渠道的默认比例。 */
+    /* 演示数据当初写在产品上的比例。待接单及之后、单上还没有渠道比例时，用它补三个渠道的默认比例。 */
     function legacyRatioIndex() {
         var byCode = {};
         var byPlan = {};
@@ -669,7 +591,22 @@
         return changed;
     }
 
+    /* 旧演示单还是生鲜 SKU。整表换成按商品包铺开的开业需求，避免和额度、产品对不上。 */
+    function replaceLegacyFoodDemands() {
+        var current = readRaw();
+        if (!current || !current.length) return false;
+        var legacy = current.some(function (item) {
+            return (item && item.skus || []).some(function (sku) {
+                return sku && /^SKU100/.test(String(sku.code || ''));
+            });
+        });
+        if (!legacy) return false;
+        write(seed());
+        return true;
+    }
+
     function list() {
+        var replaced = replaceLegacyFoodDemands();
         ensurePendingSeed();
         var current = readRaw();
         var seeded = false;
@@ -678,13 +615,23 @@
             write(current);
             seeded = true;
         }
-        var changed = false;
+        var changed = replaced;
         var legacyRatios = legacyRatioIndex();
         var rows = current.map(function (item) {
             if (!item) return null;
             var next = normalizeStatus(item.status);
             if (next !== item.status) {
                 item.status = next;
+                changed = true;
+            }
+            var packageRename = { '周末生鲜包': '汉言开业铺货包', '肉类组合包': '门店形象配置包', '果蔬尝鲜包': '开业运营服务包' };
+            if (packageRename[item.packageName]) {
+                item.packageName = packageRename[item.packageName];
+                changed = true;
+            }
+            var productRename = { '生鲜周转分期': '开业铺货日结', '肉类备货分期': '门店形象日结', '果蔬短周期': '开业运营日结' };
+            if (productRename[item.installmentName]) {
+                item.installmentName = productRename[item.installmentName];
                 changed = true;
             }
             /* 门店付款中/已完成表示贸易商已付款，用于重算已成交 */
@@ -742,11 +689,6 @@
                 item.repayCycle = '日结';
                 changed = true;
             }
-            /* 早期演示把 XQ00012 的商品金额写成了总金额，按肉类 1.80 系数补回。 */
-            if (item.code === 'XQ00012' && String(item.amount) === '1257.60') {
-                item.amount = '2263.68';
-                changed = true;
-            }
             if (ensureAmountParts(item)) changed = true;
             if (ensureContract(item)) changed = true;
             if (ensureLogs(item)) changed = true;
@@ -774,6 +716,7 @@
         if (expireAcceptTimeout(rows)) changed = true;
         if (changed || tradeMade) write(rows);
         if (seeded || changed) rebuildStoreDealAmounts();
+        rebuildStoreOccupiedAmounts();
         return rows;
     }
 
@@ -868,11 +811,11 @@
         return demand;
     }
 
-    /* 贸易商付款完成：仅给需求门店累加已成交（不扣可用额度）。 */
+    /* 确认发货完成：已成交只加需求单商品金额，不按总金额，也不按实发。 */
     function lockDemandDeal(demand) {
         if (!demand || demand.dealLocked) return demand;
         var storeApi = window.RbtStoreData;
-        var amount = Number(demand.amount) || 0;
+        var amount = occupyGoodsAmount(demand);
         if (amount > 0 && demand.storeCode && storeApi && typeof storeApi.adjustLocked === 'function') {
             storeApi.adjustLocked(demand.storeCode, amount, demand.updater || demand.creator || '用户名');
         }
@@ -880,15 +823,56 @@
         return demand;
     }
 
+    /* 已占用按进行中需求单的商品金额重算，与已占用弹窗同一口径。已作废、已驳回、已完成不计入。 */
+    function occupyGoodsAmount(demand) {
+        if (!demand) return 0;
+        if (demand.goodsAmount != null && demand.goodsAmount !== '') return moneyNumber(demand.goodsAmount);
+        var goods = 0;
+        (demand.skus || []).forEach(function (sku) {
+            var qty = Number(sku && sku.qty);
+            if (!isFinite(qty) || qty < 0) qty = 0;
+            goods += centsOf(sku && sku.salePrice) * qty;
+        });
+        return moneyNumber(fromCents(Math.round(goods)));
+    }
+
+    function demandRowsForQuota() {
+        var current = readRaw();
+        return current ? current : seed();
+    }
+
+    function rebuildStoreOccupiedAmounts() {
+        replaceLegacyFoodDemands();
+        var storeApi = window.RbtStoreData;
+        if (!storeApi || typeof storeApi.list !== 'function' || typeof storeApi.applyQuota !== 'function') return;
+        var sums = {};
+        demandRowsForQuota().forEach(function (demand) {
+            if (!holdsOccupiedQuota(demand) || !demand.storeCode) return;
+            var amount = occupyGoodsAmount(demand);
+            if (amount <= 0) return;
+            sums[demand.storeCode] = Number(((sums[demand.storeCode] || 0) + amount).toFixed(2));
+        });
+        var stores = storeApi.list();
+        var changed = false;
+        stores.forEach(function (store) {
+            var next = sums[store.code] || 0;
+            if (Number(store.occupiedQuota || 0) === next) return;
+            storeApi.applyQuota(store, store.storeQuota, next, store.lockedQuota != null ? store.lockedQuota : 0);
+            changed = true;
+        });
+        if (changed && typeof storeApi.saveList === 'function') storeApi.saveList(stores);
+        rebuildStoreDealAmounts();
+    }
+
     /* 按已进入门店付款中或已完成的需求单重算各门店已成交，避免演示假数据混入。 */
     function rebuildStoreDealAmounts() {
         var storeApi = window.RbtStoreData;
         if (!storeApi || typeof storeApi.list !== 'function' || typeof storeApi.applyQuota !== 'function') return;
         var sums = {};
-        var demands = readRaw() || [];
+        var demands = demandRowsForQuota();
         demands.forEach(function (demand) {
             if (!demand || !demand.storeCode || !demand.dealLocked) return;
-            var amount = Number(demand.amount) || 0;
+            var amount = occupyGoodsAmount(demand);
             if (amount <= 0) return;
             sums[demand.storeCode] = Number(((sums[demand.storeCode] || 0) + amount).toFixed(2));
         });
@@ -924,6 +908,7 @@
         var statusLog = statusLogText(prev, status, target);
         if (statusLog) pushLog(target, statusLog, target.updater, target.updatedAt);
         if (status === '门店付款中' && prev !== '门店付款中') {
+            if (target.shipments && target.shipments.length) target.shipSkus = aggregateShipSkus(target);
             lockDemandDeal(target);
             if (window.RbtTradeDocs && typeof window.RbtTradeDocs.ensureForDemand === 'function') {
                 var madeDocs = window.RbtTradeDocs.ensureForDemand(target, operator);
@@ -935,7 +920,6 @@
         if (RELEASE_STATUSES.indexOf(status) >= 0) releaseDemandQuota(target);
         ensureContract(target);
         write(rows);
-        syncAuditByDemand(target, operator);
         return target;
     }
 
@@ -972,7 +956,57 @@
         return target;
     }
 
-    /* 仅待接单可接。成功后进入待确认签约，此时还不生成合同。 */
+    function clearDemandProvider(target) {
+        if (!target) return;
+        target.providerName = '';
+        target.providerId = '';
+        delete target.hasProvider;
+    }
+
+    /* 接单时带上该贸易商档案里绑定的服务商。对不上档案时不写。 */
+    function boundProviderOf(traderName) {
+        var traderApi = window.MdmTraderArchiveStore;
+        if (!traderApi || typeof traderApi.list !== 'function' || !traderName) return null;
+        var trader = null;
+        (traderApi.list() || []).some(function (row) {
+            if (!row) return false;
+            var name = row.name || row.subjectName || (row.license && row.license.name) || '';
+            if (name === traderName) {
+                trader = row;
+                return true;
+            }
+            return false;
+        });
+        if (!trader) return null;
+        var boundName = String(trader.boundProvider || '').trim();
+        if (!boundName || boundName === '—') return null;
+        var providerId = '';
+        var providerApi = window.MdmProviderArchiveStore;
+        if (providerApi && typeof providerApi.list === 'function') {
+            (providerApi.list() || []).some(function (row) {
+                if (!row) return false;
+                if (row.name === boundName || row.subjectName === boundName) {
+                    providerId = row.id || '';
+                    return true;
+                }
+                return false;
+            });
+        }
+        return { name: boundName, id: providerId };
+    }
+
+    function attachBoundProvider(target, traderName) {
+        var bound = boundProviderOf(traderName);
+        if (!bound) {
+            clearDemandProvider(target);
+            return;
+        }
+        target.providerName = bound.name;
+        target.providerId = bound.id;
+        target.hasProvider = true;
+    }
+
+    /* 仅待接单可接。成功后进入待确认签约，并带上绑定服务商。此时还不生成合同。 */
     function acceptDemand(code, trader) {
         var rows = list();
         var target = findDemand(rows, code);
@@ -986,6 +1020,7 @@
         target.traderPhone = (trader && trader.phone) || '';
         target.acceptedAt = nowText();
         target.withdrawReason = '';
+        attachBoundProvider(target, name);
         write(rows);
         var saved = setStatus(code, '待确认签约', name);
         if (!saved) return { ok: false, reason: 'missing' };
@@ -1064,6 +1099,7 @@
         target.traderPhone = '';
         target.acceptedAt = '';
         target.withdrawReason = why;
+        clearDemandProvider(target);
         write(rows);
         var saved = setStatus(code, '待重新确认', name);
         if (!saved) return { ok: false, reason: 'missing' };
@@ -1083,6 +1119,7 @@
         target.traderPhone = '';
         target.acceptedAt = '';
         target.withdrawReason = '';
+        clearDemandProvider(target);
         write(rows);
         return setStatus(code, '待接单', operator || '平台');
     }
@@ -1091,7 +1128,7 @@
         return !!(demand && VOIDABLE_STATUSES.indexOf(demand.status) >= 0);
     }
 
-    /* 门店付款中之前由平台作废。已产生的审核单、合同在 setStatus 里同步作废。 */
+    /* 门店付款中之前由平台作废。已产生的合同在 setStatus 里标成已作废。 */
     function voidDemand(code, operator) {
         var rows = list();
         var target = findDemand(rows, code);
@@ -1192,7 +1229,7 @@
         });
     }
 
-    /* 当前签署方确认其中一份合同。各方都签完后进入待付款，等贸易商支付后进入门店付款中。 */
+    /* 当前签署方确认其中一份合同。各方都签完后系统自动划款，需求进入发货中，先不生成交易单。 */
     function signDemand(code, actor, contractKey) {
         var rows = list();
         var target = null;
@@ -1246,42 +1283,20 @@
             write(rows);
             return { ok: true, done: false, demand: target };
         }
+        target.payMethod = 'auto';
+        target.paidAt = nowText();
         write(rows);
-        var saved = setStatus(code, '待付款', mine.name || '签署');
+        var saved = setStatus(code, '发货中', '系统');
         return { ok: true, done: true, demand: saved || target };
     }
 
-    /* 合同签完后由接单贸易商支付。在线支付直接完成；线下支付需先确认。完成后进入门店付款中，不再复核。 */
-    function payDemand(code, method, trader) {
-        var rows = list();
-        var target = findDemand(rows, code);
-        if (!target) return { ok: false, reason: 'missing' };
-        if (target.status !== '待付款') return { ok: false, reason: 'status', demand: target };
-        var name = traderNameOf(trader);
-        if (!name || target.traderName !== name) return { ok: false, reason: 'trader', demand: target };
-        target.payMethod = method === 'offline' ? 'offline' : 'online';
-        target.paidAt = nowText();
-        write(rows);
-        var saved = setStatus(code, '门店付款中', name);
-        if (!saved) return { ok: false, reason: 'missing' };
-        return { ok: true, demand: saved };
+    /* 不再由贸易商选择支付。划款在各方签署完成时由系统完成。 */
+    function payDemand() {
+        return { ok: false, reason: 'auto' };
     }
 
-    /* ---------- 审核中心 · 需求单审核 ---------- */
+    /* 初审和自动审核已取消。这里只保留历史审核记录的读取，不再新建、不再通过或驳回。 */
     var AUDIT_KEY = 'rbt_demand_audit_v1';
-    var AUDIT_AUTO_KEY = 'rbt_audit_auto_v1';
-
-    /* 需求单管理里的审核配置。没保存过时，初审自动审核。 */
-    function readAuditAuto() {
-        try {
-            var raw = sessionStorage.getItem(AUDIT_AUTO_KEY);
-            if (!raw) return { first: true };
-            var data = JSON.parse(raw);
-            return { first: !data || data.first !== false };
-        } catch (e) {
-            return { first: true };
-        }
-    }
     var AUDIT_STATUSES = ['待审核', '审核通过', '审核驳回'];
 
     function readAuditsRaw() {
@@ -1297,50 +1312,6 @@
 
     function writeAudits(list) {
         sessionStorage.setItem(AUDIT_KEY, JSON.stringify(list || []));
-    }
-
-    function auditStatusFromDemand(demand) {
-        if (!demand) return '待审核';
-        if (demand.status === '待审核') return '待审核';
-        if (demand.status === '已作废' || demand.status === '已取消') return '审核驳回';
-        if (demand.status === '已驳回') return '审核驳回';
-        return '审核通过';
-    }
-
-    function nextAuditId(list) {
-        var max = 0;
-        (list || []).forEach(function (item) {
-            var matched = String(item && item.id || '').match(/^RBT-AUD-(\d+)$/);
-            if (matched) max = Math.max(max, parseInt(matched[1], 10));
-        });
-        return 'RBT-AUD-' + String(max + 1).padStart(5, '0');
-    }
-
-    function buildAuditFromDemand(demand, list) {
-        var status = auditStatusFromDemand(demand);
-        return {
-            id: nextAuditId(list),
-            demandCode: demand.code,
-            storeCode: demand.storeCode || '',
-            storeName: demand.storeName || '',
-            packageCode: demand.packageCode || '',
-            packageName: demand.packageName || '',
-            goodsAmount: demand.goodsAmount || '',
-            serviceFee: demand.serviceFee || '',
-            amount: demand.amount || '',
-            repayCycle: demand.repayCycle || '',
-            repayMethod: demand.repayMethod || '',
-            repayPeriod: demand.repayPeriod || '',
-            submitter: demand.creator || demand.storeName || '门店',
-            submittedAt: demand.createdAt || nowText(),
-            status: status,
-            auditor: status === '待审核' ? '' : (demand.updater || '王丽'),
-            auditedAt: status === '待审核' ? '' : (demand.updatedAt || ''),
-            opinion: status === '审核驳回'
-                ? ((demand.status === '已作废' || demand.status === '已取消') ? (demand.rejectReason || '需求已作废') : (demand.rejectReason || '不符合放款条件'))
-                : '',
-            stage: '初审'
-        };
     }
 
     function auditStage(item) {
@@ -1367,182 +1338,30 @@
         return primary || (stage ? null : fallback);
     }
 
-    function findAuditById(list, id) {
-        var found = null;
-        (list || []).some(function (item) {
-            if (item && item.id === id) {
-                found = item;
-                return true;
-            }
-            return false;
-        });
-        return found;
-    }
-
     function dropReviewAudits(rows) {
         var kept = (rows || []).filter(function (row) { return !row || row.stage !== '复核'; });
         return { rows: kept, dropped: kept.length !== (rows || []).length };
     }
 
-    /* 门店发布成功：写入一条待审核记录。 */
-    function createAuditForDemand(demand) {
-        if (!demand || !demand.code) return null;
-        var rows = dropReviewAudits(readAuditsRaw() || []).rows;
-        var exists = findAuditByDemand(rows, demand.code);
-        if (exists) {
-            exists.storeCode = demand.storeCode || exists.storeCode;
-            exists.storeName = demand.storeName || exists.storeName;
-            exists.packageCode = demand.packageCode || exists.packageCode;
-            exists.packageName = demand.packageName || exists.packageName;
-            exists.goodsAmount = demand.goodsAmount || exists.goodsAmount || '';
-            exists.serviceFee = demand.serviceFee || exists.serviceFee || '';
-            exists.amount = demand.amount || exists.amount;
-            exists.repayCycle = demand.repayCycle || exists.repayCycle;
-            exists.repayMethod = demand.repayMethod || exists.repayMethod;
-            exists.repayPeriod = demand.repayPeriod || exists.repayPeriod;
-            exists.submitter = demand.creator || exists.submitter;
-            exists.submittedAt = demand.createdAt || exists.submittedAt;
-            exists.status = '待审核';
-            exists.auditor = '';
-            exists.auditedAt = '';
-            exists.opinion = '';
-            writeAudits(rows);
-            if (readAuditAuto().first && exists.status === '待审核' && auditStage(exists) === '初审') approveAudit(exists.id, '系统');
-            return exists;
-        }
-        var created = buildAuditFromDemand(demand, rows);
-        created.status = '待审核';
-        created.auditor = '';
-        created.auditedAt = '';
-        created.opinion = '';
-        rows.unshift(created);
-        writeAudits(rows);
-        if (readAuditAuto().first && created.status === '待审核') approveAudit(created.id, '系统');
-        return created;
+    /* 发布后直接待接单，不再写入审核中心。 */
+    function createAuditForDemand() {
+        return null;
     }
 
-    /* 需求作废后：审核通过的不动；待审核按驳回，意见记「需求已作废」。 */
-    function voidRelatedAudits(rows, demand, operator) {
-        var who = operator || (demand && demand.updater) || '平台';
-        var when = nowText();
-        var changed = false;
-        (rows || []).forEach(function (row) {
-            if (!row || !demand || row.demandCode !== demand.code) return;
-            if (row.status !== '待审核' && row.status !== '已作废' && row.status !== '已取消') return;
-            var pending = row.status === '待审核';
-            row.status = '审核驳回';
-            changed = true;
-            if (pending || !row.auditor) {
-                row.auditor = who;
-                row.auditedAt = when;
-            }
-            if (pending || !row.opinion) row.opinion = '需求已作废';
-        });
-        return changed;
+    function syncAuditByDemand() {
+        return null;
     }
 
-    function syncAuditByDemand(demand, operator) {
-        if (!demand || !demand.code) return null;
-        var rows = readAuditsRaw() || [];
-        var target = findAuditByDemand(rows, demand.code, '初审');
-        if (!target) {
-            target = buildAuditFromDemand(demand, rows);
-            target.stage = '初审';
-            rows.unshift(target);
-        }
-        target.storeName = demand.storeName || target.storeName;
-        target.goodsAmount = demand.goodsAmount || target.goodsAmount || '';
-        target.serviceFee = demand.serviceFee || target.serviceFee || '';
-        target.amount = demand.amount || target.amount;
-        if (demand.status === '待审核') {
-            target.status = '待审核';
-            target.auditor = '';
-            target.auditedAt = '';
-            target.opinion = '';
-        } else if (demand.status === '已作废' || demand.status === '已取消') {
-            voidRelatedAudits(rows, demand, operator);
-        } else if (demand.status === '已驳回' && target.status === '待审核') {
-            target.status = '审核驳回';
-            target.auditor = operator || demand.updater || '王丽';
-            target.auditedAt = demand.updatedAt || nowText();
-            target.opinion = demand.rejectReason || target.opinion || '不符合放款条件';
-        } else if (target.status === '待审核') {
-            target.status = '审核通过';
-            target.auditor = operator || demand.updater || target.auditor || '王丽';
-            target.auditedAt = demand.updatedAt || nowText();
-        }
-        var cleaned = dropReviewAudits(rows);
-        rows = cleaned.rows;
-        writeAudits(rows);
-        return target;
-    }
-
-    /* 按需求单补齐审核记录，保证发布进需求单管理的同时审核中心有单。 */
+    /* 不再按需求补审核单。只清掉复核和仍待审的初审队列。 */
     function ensureAuditsSynced() {
-        var demands = list();
         var rows = readAuditsRaw();
-        var changed = false;
-        if (!rows) {
-            rows = [];
-            changed = true;
-        }
+        if (!rows) return [];
         var cleaned = dropReviewAudits(rows);
-        rows = cleaned.rows;
-        if (cleaned.dropped) changed = true;
-        demands.forEach(function (demand) {
-            if (!demand || !demand.code) return;
-            var existing = findAuditByDemand(rows, demand.code, '初审');
-            if (!existing) {
-                existing = buildAuditFromDemand(demand, rows);
-                rows.push(existing);
-                changed = true;
-            }
-            var expected = auditStatusFromDemand(demand);
-            if (!existing.stage) {
-                existing.stage = '初审';
-                changed = true;
-            }
-            var demandVoided = demand.status === '已作废' || demand.status === '已取消';
-            if (!demandVoided && existing.status === '待审核' && expected !== '待审核' && auditStage(existing) === '初审') {
-                existing.status = expected;
-                existing.auditor = demand.updater || existing.auditor || '王丽';
-                existing.auditedAt = demand.updatedAt || nowText();
-                if (expected === '审核驳回' && !existing.opinion) {
-                    existing.opinion = demand.rejectReason || '不符合放款条件';
-                }
-                changed = true;
-            }
-            if (auditStage(existing) === '初审' && existing.status === '审核通过' && demand.settleRatios && demand.settleRatios.length && !(existing.settleRatios && existing.settleRatios.length)) {
-                existing.settleRatios = demand.settleRatios;
-                changed = true;
-            }
-            if ((demand.status === '已作废' || demand.status === '已取消') && voidRelatedAudits(rows, demand, demand.updater || '平台')) {
-                changed = true;
-            }
-            rows.forEach(function (row) {
-                if (!row || row.demandCode !== demand.code) return;
-                if (row.status === '已作废' || row.status === '已取消') {
-                    row.status = '审核驳回';
-                    if (!row.opinion) row.opinion = '需求已作废';
-                    changed = true;
-                }
-                var goods = demand.goodsAmount || '';
-                var fee = demand.serviceFee || '';
-                var total = demand.amount || row.amount;
-                if (row.goodsAmount === goods && row.serviceFee === fee && row.amount === total) return;
-                row.goodsAmount = goods;
-                row.serviceFee = fee;
-                row.amount = total;
-                changed = true;
-            });
+        var kept = cleaned.rows.filter(function (row) {
+            return row && row.status !== '待审核';
         });
-        if (changed) {
-            rows.sort(function (a, b) {
-                return String(b.submittedAt || '').localeCompare(String(a.submittedAt || ''));
-            });
-            writeAudits(rows);
-        }
-        return rows.slice();
+        if (cleaned.dropped || kept.length !== cleaned.rows.length) writeAudits(kept);
+        return kept.slice();
     }
 
     function listAudits() {
@@ -1561,29 +1380,8 @@
         return found;
     }
 
-    function approveAudit(id, operator, extra) {
-        var target = getAudit(id);
-        if (!target || target.status !== '待审核') return null;
-        var who = operator || '王丽';
-        var demandRows = list();
-        var pending = null;
-        demandRows.some(function (item) {
-            if (item && item.code === target.demandCode) {
-                pending = item;
-                return true;
-            }
-            return false;
-        });
-        if (!pending) return null;
-        var demand = setStatus(target.demandCode, '待接单', who);
-        if (!demand) return null;
-        return patchAudit(id, function (row) {
-            row.status = '审核通过';
-            row.auditor = who;
-            row.auditedAt = nowText();
-            row.opinion = '';
-            if (pending.settleRatios && pending.settleRatios.length) row.settleRatios = pending.settleRatios;
-        });
+    function approveAudit() {
+        return null;
     }
 
     function readProduct(code) {
@@ -1625,33 +1423,35 @@
         }));
     }
 
-    function patchAudit(id, mutate) {
-        var rows = readAuditsRaw() || [];
-        var current = findAuditById(rows, id);
-        if (!current) return null;
-        mutate(current);
-        writeAudits(rows);
-        return current;
-    }
-
     /* 待接单到门店付款中可改本单结算比例，不改需求状态。 */
     function canEditSettleRatios(item) {
         var ratioApi = window.RbtSettleRatio;
         if (ratioApi && typeof ratioApi.canEdit === 'function') return ratioApi.canEdit(item);
-        return !!(item && ['待接单', '待确认签约', '待签署', '待付款', '门店付款中'].indexOf(item.status) >= 0);
+        return !!(item && ['待接单', '待确认签约', '待签署', '发货中', '门店付款中'].indexOf(item.status) >= 0);
     }
 
-    function updateSettleRatios(code, ratioList, operator) {
+    function settleRatioLogText(list) {
+        var ratioApi = window.RbtSettleRatio;
+        var text = ratioApi && typeof ratioApi.summary === 'function' ? ratioApi.summary(list) : '';
+        return text || '无';
+    }
+
+    function updateSettleRatios(code, ratioList, operator, reason) {
+        var why = String(reason == null ? '' : reason).trim();
+        if (!why || why.length > 100) return null;
         var ratioApi = window.RbtSettleRatio;
         var settleRatios = ratioApi && typeof ratioApi.normalize === 'function' ? ratioApi.normalize(ratioList) : null;
         if (!settleRatios) return null;
         var rows = list();
         var target = findDemand(rows, code);
         if (!target || !canEditSettleRatios(target)) return null;
+        var beforeText = settleRatioLogText(target.settleRatios);
+        var afterText = settleRatioLogText(settleRatios);
+        if (beforeText === afterText) return null;
         target.settleRatios = settleRatios;
         touchAudit(target, operator || '王丽');
         ensureLogs(target);
-        pushLog(target, '修改结算比例', target.updater, target.updatedAt);
+        pushLog(target, '修改结算比例，原因：' + why + '。修改前：' + beforeText + '；修改后：' + afterText, target.updater, target.updatedAt);
         write(rows);
         var audits = readAuditsRaw() || [];
         var first = findAuditByDemand(audits, code, '初审');
@@ -1662,30 +1462,310 @@
         return target;
     }
 
-    function rejectAudit(id, opinion, operator) {
-        var target = getAudit(id);
-        if (!target || target.status !== '待审核') return null;
-        var who = operator || '王丽';
-        var reason = String(opinion || '').trim() || '不符合放款条件';
-        var demandRows = list();
-        var demand = null;
-        demandRows.some(function (item) {
-            if (item.code === target.demandCode) {
-                demand = item;
+    /* 与商品包可选商品一致。开业费用项目在前，售卖单价用商品包里的演示售价。 */
+    var SHIP_CATALOG = [
+        { code: 'SKU20001', name: '汉言首批铺货', barcode: '6901234568001', unit: '套', spec: '首批到店', category: '门店费用', purchasePrice: 18000, salePrice: '22000.00' },
+        { code: 'SKU20002', name: '门店设备辅料包', barcode: '6901234568002', unit: '套', spec: '开业配置', category: '门店费用', purchasePrice: 13000, salePrice: '16000.00' },
+        { code: 'SKU20003', name: '门店拉新人力', barcode: '6901234568003', unit: '项', spec: '驻店拉新', category: '门店费用', purchasePrice: 10000, salePrice: '12000.00' },
+        { code: 'SKU20004', name: '开业拉新物料', barcode: '6901234568004', unit: '份', spec: '300份', category: '门店费用', purchasePrice: 24, salePrice: '30.00' },
+        { code: 'SKU20005', name: '门头招牌及店内品宣', barcode: '6901234568005', unit: '项', spec: '门头及店内', category: '门店费用', purchasePrice: 15000, salePrice: '18000.00' },
+        { code: 'SKU20006', name: '门店监控套装', barcode: '6901234568006', unit: '套', spec: '店内监控', category: '门店费用', purchasePrice: 11000, salePrice: '13000.00' },
+        { code: 'SKU20007', name: 'POS及会员管理系统', barcode: '6901234568007', unit: '套', spec: '含会员管理', category: '门店费用', purchasePrice: 10000, salePrice: '12000.00' },
+        { code: 'SKU20008', name: '抖音本地生活投放', barcode: '6901234568008', unit: '项', spec: '本地生活', category: '门店费用', purchasePrice: 8000, salePrice: '10000.00' },
+        { code: 'SKU20009', name: '开业督导服务', barcode: '6901234568009', unit: '项', spec: '开业辅导', category: '门店费用', purchasePrice: 6500, salePrice: '8000.00' },
+        { code: 'SKU10001', name: '库尔勒香梨 4kg', barcode: '6901234567001', unit: '箱', spec: '4kg', category: '时令水果', purchasePrice: 42.5, salePrice: '56.80' },
+        { code: 'SKU10002', name: '精品黄瓜 2kg', barcode: '6901234567002', unit: '箱', spec: '2kg', category: '新鲜蔬菜', purchasePrice: 16.8, salePrice: '22.80' },
+        { code: 'SKU10003', name: '冷鲜牛腩 1kg', barcode: '6901234567003', unit: '件', spec: '1kg', category: '肉禽蛋品', purchasePrice: 58, salePrice: '78.00' },
+        { code: 'SKU10004', name: '山东土豆 5kg', barcode: '6901234567004', unit: '袋', spec: '5kg', category: '新鲜蔬菜', purchasePrice: 21.6, salePrice: '28.90' },
+        { code: 'SKU10005', name: '云南小番茄 1kg', barcode: '6901234567005', unit: '箱', spec: '1kg', category: '时令水果', purchasePrice: 13.2, salePrice: '18.50' },
+        { code: 'SKU10006', name: '新西兰奇异果 12粒', barcode: '6901234567006', unit: '盒', spec: '12粒', category: '时令水果', purchasePrice: 36.9, salePrice: '49.90' },
+        { code: 'SKU10007', name: '冷冻鸡中翅 2kg', barcode: '6901234567007', unit: '袋', spec: '2kg', category: '肉禽蛋品', purchasePrice: 47, salePrice: '62.00' },
+        { code: 'SKU10008', name: '江西紫薯 3kg', barcode: '6901234567008', unit: '箱', spec: '3kg', category: '新鲜蔬菜', purchasePrice: 19.9, salePrice: '26.80' },
+        { code: 'SKU10009', name: '东北黑木耳 500g', barcode: '6901234567009', unit: '袋', spec: '500g', category: '粮油调味', purchasePrice: 29.5, salePrice: '39.90' },
+        { code: 'SKU10010', name: '福建空心菜 400g', barcode: '6901234567010', unit: '把', spec: '400g', category: '新鲜蔬菜', purchasePrice: 6.8, salePrice: '9.90' },
+        { code: 'SKU10011', name: '冷鲜猪里脊 1kg', barcode: '6901234567011', unit: '件', spec: '1kg', category: '肉禽蛋品', purchasePrice: 39.8, salePrice: '52.80' },
+        { code: 'SKU10012', name: '海南贝贝南瓜 2kg', barcode: '6901234567012', unit: '箱', spec: '2kg', category: '新鲜蔬菜', purchasePrice: 18.4, salePrice: '24.90' }
+    ];
+
+    function lineSaleCents(sku) {
+        var qty = Number(sku && sku.qty);
+        if (!isFinite(qty) || qty < 0) qty = 0;
+        return centsOf(sku && sku.salePrice) * qty;
+    }
+
+    function syncDemandMoney(item) {
+        var goods = 0;
+        (item.skus || []).forEach(function (sku) {
+            goods += lineSaleCents(sku);
+        });
+        goods = Math.round(goods);
+        var rates = productRates(item.installmentCode);
+        var total = rates ? rateShare(goods, rates.store) : goods;
+        if (total == null) total = goods;
+        item.goodsAmount = fromCents(goods);
+        item.amount = fromCents(total);
+        item.serviceFee = fromCents(total - goods);
+    }
+
+    function findSku(item, skuCode) {
+        var found = null;
+        (item.skus || []).some(function (sku) {
+            if (sku && sku.code === skuCode) {
+                found = sku;
                 return true;
             }
             return false;
         });
-        if (!demand) return null;
-        demand.rejectReason = reason;
-        write(demandRows);
-        if (!setStatus(target.demandCode, '已驳回', who)) return null;
-        return patchAudit(id, function (row) {
-            row.status = '审核驳回';
-            row.auditor = who;
-            row.auditedAt = nowText();
-            row.opinion = reason;
+        return found;
+    }
+
+    function shippedOf(item, skuCode) {
+        var qty = 0;
+        var amount = 0;
+        (item.shipments || []).forEach(function (row) {
+            if (!row || row.skuCode !== skuCode) return;
+            qty += Number(row.qty) || 0;
+            amount += centsOf(row.amount);
         });
+        return { qty: qty, amount: amount };
+    }
+
+    function aggregateShipSkus(demand) {
+        var map = {};
+        var order = [];
+        (demand.shipments || []).forEach(function (row) {
+            if (!row || !row.skuCode) return;
+            if (!map[row.skuCode]) {
+                map[row.skuCode] = { code: row.skuCode, name: row.name || '', qty: 0, amount: 0 };
+                order.push(row.skuCode);
+            }
+            map[row.skuCode].qty += Number(row.qty) || 0;
+            map[row.skuCode].amount += centsOf(row.amount);
+        });
+        return order.map(function (code) {
+            var row = map[code];
+            var unit = row.qty > 0 ? Math.round(row.amount / row.qty) : 0;
+            return {
+                code: row.code,
+                name: row.name,
+                qty: row.qty,
+                salePrice: fromCents(unit),
+                shipAmount: fromCents(row.amount)
+            };
+        });
+    }
+
+    function nextShipId(item) {
+        var max = 0;
+        (item.shipments || []).forEach(function (row) {
+            var matched = String(row && row.id || '').match(/(\d+)$/);
+            if (matched) max = Math.max(max, Number(matched[1]));
+        });
+        return 'FH' + String(item.code || '').replace(/\D/g, '') + '-' + (max + 1);
+    }
+
+    function requireShipping(item) {
+        if (!item) return '需求单不存在';
+        if (item.status !== '发货中') return '当前不是发货中，不能发货';
+        return '';
+    }
+
+    /* 发货中按需求明细发货。累计数量或金额超过该行时只提示，仍保存。 */
+    function shipLine(code, input, operator) {
+        var rows = list();
+        var target = findDemand(rows, code);
+        var blocked = requireShipping(target);
+        if (blocked) return { ok: false, reason: blocked };
+        var sku = findSku(target, input && input.skuCode);
+        if (!sku) return { ok: false, reason: '请选择需求单上的商品' };
+        var qty = Number(input && input.qty);
+        if (!isFinite(qty) || Math.round(qty) !== qty || qty < 1 || qty > 999) {
+            return { ok: false, reason: '发货数量须为 1 到 999 的整数' };
+        }
+        var amountCents = centsOf(input && input.amount);
+        if (amountCents <= 0) return { ok: false, reason: '请填写发货金额' };
+        var shipped = shippedOf(target, sku.code);
+        var warn = '';
+        if (shipped.qty + qty > Number(sku.qty)) warn = '累计发货数量超过该商品的需求数量';
+        if (shipped.amount + amountCents > lineSaleCents(sku)) {
+            warn = warn ? (warn + '；累计发货金额超过该商品的售卖金额') : '累计发货金额超过该商品的售卖金额';
+        }
+        if (!Array.isArray(target.shipments)) target.shipments = [];
+        var when = nowText();
+        var who = operator || '王丽';
+        target.shipments.push({
+            id: nextShipId(target),
+            skuCode: sku.code,
+            name: sku.name,
+            qty: qty,
+            amount: fromCents(amountCents),
+            logisticsNo: String(input && input.logisticsNo || '').trim(),
+            createdAt: when,
+            creator: who,
+            confirmed: false,
+            confirmQty: 0
+        });
+        target.updater = who;
+        target.updatedAt = when;
+        pushLog(target, '发货 ' + sku.name + ' ×' + qty + ' ¥' + fromCents(amountCents), who, when);
+        write(rows);
+        return { ok: true, warn: warn, demand: target };
+    }
+
+    function deleteShipment(code, shipId, operator) {
+        var rows = list();
+        var target = findDemand(rows, code);
+        var blocked = requireShipping(target);
+        if (blocked) return { ok: false, reason: blocked };
+        var index = -1;
+        (target.shipments || []).some(function (row, i) {
+            if (row && row.id === shipId) {
+                index = i;
+                return true;
+            }
+            return false;
+        });
+        if (index < 0) return { ok: false, reason: '发货记录不存在' };
+        if (target.shipments[index].confirmed) return { ok: false, reason: '门店已确认收货，不能删除' };
+        var removed = target.shipments.splice(index, 1)[0];
+        var when = nowText();
+        var who = operator || '王丽';
+        target.updater = who;
+        target.updatedAt = when;
+        pushLog(target, '删除发货记录 ' + (removed.name || '') + ' ×' + removed.qty, who, when);
+        write(rows);
+        return { ok: true, demand: target };
+    }
+
+    /* 发货中新增的商品不写入需求商品明细，直接生成一条发货记录。 */
+    function addShipSku(code, input, operator) {
+        var rows = list();
+        var target = findDemand(rows, code);
+        var blocked = requireShipping(target);
+        if (blocked) return { ok: false, reason: blocked };
+        var skuCode = String(input && input.skuCode || '').trim();
+        var catalog = null;
+        SHIP_CATALOG.some(function (row) {
+            if (row.code === skuCode) {
+                catalog = row;
+                return true;
+            }
+            return false;
+        });
+        if (!catalog) return { ok: false, reason: '请选择商品' };
+        if (findSku(target, skuCode)) return { ok: false, reason: '该商品已在需求单中，请用发货填写' };
+        var qty = Number(input && input.qty);
+        if (!isFinite(qty) || Math.round(qty) !== qty || qty < 1 || qty > 999) {
+            return { ok: false, reason: '商品数量须为 1 到 999 的整数' };
+        }
+        var priceCents = centsOf(input && input.salePrice);
+        if (priceCents <= 0) return { ok: false, reason: '请填写售卖单价' };
+        if (!Array.isArray(target.shipments)) target.shipments = [];
+        var when = nowText();
+        var who = operator || '王丽';
+        var amountCents = priceCents * qty;
+        target.shipments.push({
+            id: nextShipId(target),
+            skuCode: catalog.code,
+            name: catalog.name,
+            qty: qty,
+            amount: fromCents(amountCents),
+            logisticsNo: String(input && input.logisticsNo || '').trim(),
+            createdAt: when,
+            creator: who,
+            confirmed: false,
+            confirmQty: 0
+        });
+        target.updater = who;
+        target.updatedAt = when;
+        pushLog(target, '新增发货商品 ' + catalog.name + ' ×' + qty + ' ¥' + fromCents(amountCents), who, when);
+        write(rows);
+        return { ok: true, demand: target };
+    }
+
+    /* 确认数量固定等于发货数量，回写后该条不能再删。 */
+    function confirmReceipt(code, shipId, operator) {
+        var rows = list();
+        var target = findDemand(rows, code);
+        if (!target || target.status !== '发货中') return { ok: false, reason: '当前不能确认收货' };
+        var row = null;
+        (target.shipments || []).some(function (item) {
+            if (item && item.id === shipId) {
+                row = item;
+                return true;
+            }
+            return false;
+        });
+        if (!row) return { ok: false, reason: '发货记录不存在' };
+        if (row.confirmed) return { ok: false, reason: '已经确认过' };
+        var when = nowText();
+        var who = operator || target.storeName || '门店';
+        row.confirmed = true;
+        row.confirmQty = Number(row.qty) || 0;
+        row.confirmedAt = when;
+        row.confirmedBy = who;
+        target.updater = who;
+        target.updatedAt = when;
+        pushLog(target, '确认收货 ' + (row.name || '') + ' ×' + row.confirmQty, who, when);
+        write(rows);
+        return { ok: true, demand: target };
+    }
+
+    /* 行没发满只提示。未确认、发货总金额小于商品金额仍然不能完成。 */
+    function finishShipChecks(item) {
+        var blocks = [];
+        var warns = [];
+        (item.skus || []).forEach(function (sku) {
+            var shipped = shippedOf(item, sku.code);
+            var name = sku.name || sku.code;
+            if (shipped.qty < Number(sku.qty)) warns.push(name + ' 发货数量未达到需求数量');
+            if (shipped.amount < lineSaleCents(sku)) warns.push(name + ' 发货金额未达到售卖金额');
+        });
+        var pending = (item.shipments || []).filter(function (row) { return row && !row.confirmed; }).length;
+        if (pending) blocks.push('还有 ' + pending + ' 条发货记录待门店确认');
+        var shippedTotal = 0;
+        (item.shipments || []).forEach(function (row) { shippedTotal += centsOf(row && row.amount); });
+        if (shippedTotal < centsOf(item.goodsAmount)) blocks.push('发货总金额小于需求单商品金额');
+        if (shippedTotal > centsOf(item.goodsAmount)) warns.push('发货金额超过需求单商品金额');
+        return { blocks: blocks, warns: warns };
+    }
+
+    /* ack 为真才改状态。未确认时只返回能不能完成，以及可以忽略的提示。 */
+    function finishShip(code, ack, operator) {
+        var item = get(code);
+        if (!item || item.status !== '发货中') return { ok: false, reason: '当前不是发货中' };
+        var check = finishShipChecks(item);
+        if (check.blocks.length) return { ok: false, reason: check.blocks.join('；') };
+        var reason = check.warns.join('；');
+        if (!ack) return { ok: false, needAck: true, reason: reason };
+        var saved = setStatus(code, '门店付款中', operator || '王丽');
+        return { ok: true, warn: reason, demand: saved };
+    }
+
+    function saveSupplement(code, file, operator) {
+        var rows = list();
+        var target = findDemand(rows, code);
+        if (!target) return { ok: false, reason: '需求单不存在' };
+        var name = String(file && file.name || '').trim();
+        if (!name) return { ok: false, reason: '请选择补缴凭证' };
+        var when = nowText();
+        var who = operator || '王丽';
+        target.supplementVoucher = {
+            name: name,
+            type: file.type || '',
+            data: file.data || '',
+            uploadedAt: when,
+            uploadedBy: who
+        };
+        target.updater = who;
+        target.updatedAt = when;
+        pushLog(target, '上传补缴凭证 ' + name, who, when);
+        write(rows);
+        return { ok: true, demand: target };
+    }
+
+    function rejectAudit() {
+        return null;
     }
 
     window.RbtDemandData = {
@@ -1710,6 +1790,7 @@
         occupyDemandQuota: occupyDemandQuota,
         releaseDemandQuota: releaseDemandQuota,
         lockDemandDeal: lockDemandDeal,
+        rebuildStoreOccupiedAmounts: rebuildStoreOccupiedAmounts,
         rebuildStoreDealAmounts: rebuildStoreDealAmounts,
         setStatus: setStatus,
         acceptDemand: acceptDemand,
@@ -1737,6 +1818,13 @@
         canEditSettleRatios: canEditSettleRatios,
         updateSettleRatios: updateSettleRatios,
         receivables: receivables,
-        settlementRates: settlementRates
+        settlementRates: settlementRates,
+        shipCatalog: function () { return SHIP_CATALOG.slice(); },
+        shipLine: shipLine,
+        deleteShipment: deleteShipment,
+        addShipSku: addShipSku,
+        confirmReceipt: confirmReceipt,
+        finishShip: finishShip,
+        saveSupplement: saveSupplement
     };
 })();

@@ -1,4 +1,4 @@
-/* 产品配置维护 POS、直播、商城的默认比例。POS 下可再加堂食、外卖、团购，各自单独比例。需求单上仍可再按商品类目改比例。 */
+/* 产品配置和需求单都按渠道维护默认比例。POS 可再加堂食、外卖、团购，各自单独比例。不再按商品类目配置。 */
 (function () {
     var CHANNELS = ['POS', '直播', '商城'];
     var POS_SUBS = ['堂食', '外卖', '团购'];
@@ -56,29 +56,14 @@
             .replace(/"/g, '&quot;');
     }
 
-    /* 每个渠道先用自己维护的类目。本单商品类目这个渠道没单独填时，按该渠道默认比例补上。 */
+    /* 按渠道展示默认比例。只有 POS 可以带堂食、外卖、团购。 */
     function viewOf(item) {
         if (!item || item.repayMethod !== '比例付' || !item.settleRatios || !item.settleRatios.length) return null;
-        var demandCategories = categoriesOfDemand(item);
         return item.settleRatios.map(function (channel) {
-            var categories = [];
-            var seen = {};
-            (channel.rows || []).forEach(function (row) {
-                var name = String(row && row.category || '').trim();
-                var ratio = parseRatio(row && row.ratio);
-                if (!name || !ratio || seen[name]) return;
-                seen[name] = true;
-                categories.push({ name: name, ratio: ratio });
-            });
-            demandCategories.forEach(function (name) {
-                if (seen[name] || !channel.fallback) return;
-                seen[name] = true;
-                categories.push({ name: name, ratio: channel.fallback });
-            });
             return {
                 channel: channel.channel,
                 fallback: channel.fallback,
-                categories: categories
+                subs: copySubs(channel.channel, channel.subs)
             };
         });
     }
@@ -87,53 +72,43 @@
         var view = viewOf(item);
         if (!view) return '';
         return view.map(function (channel) {
-            var cats = channel.categories.map(function (cat) {
-                return cat.name + ' ' + cat.ratio + '%';
-            }).join('、');
-            return channel.channel + '：默认比例 ' + channel.fallback + '%' + (cats ? '，' + cats : '');
+            var subs = channel.subs.map(function (sub) {
+                return sub.name + ' ' + sub.ratio + '%';
+            }).join('，');
+            return channel.channel + '：默认比例 ' + channel.fallback + '%' + (subs ? '，' + subs : '');
         }).join('\n');
     }
 
     function tableHtml(item) {
         var view = viewOf(item);
         if (!view || !view.length) return '';
-        var head = '<tr><th>渠道</th><th class="is-money">默认比例</th><th>商品类目</th><th class="is-money">类目结算比例</th></tr>';
+        var head = '<tr><th>渠道</th><th class="is-money">默认比例</th><th>二级渠道</th><th class="is-money">二级渠道比例</th></tr>';
         var body = view.map(function (channel) {
-            var cats = channel.categories || [];
-            if (!cats.length) {
+            var subs = channel.subs || [];
+            if (!subs.length) {
                 return '<tr><td>' + esc(channel.channel) + '</td><td class="is-money">' + esc(channel.fallback) + '%</td><td>—</td><td class="is-money">—</td></tr>';
             }
-            return cats.map(function (cat, index) {
+            return subs.map(function (sub, index) {
                 var lead = index === 0
-                    ? '<td rowspan="' + cats.length + '">' + esc(channel.channel) + '</td><td class="is-money" rowspan="' + cats.length + '">' + esc(channel.fallback) + '%</td>'
+                    ? '<td rowspan="' + subs.length + '">' + esc(channel.channel) + '</td><td class="is-money" rowspan="' + subs.length + '">' + esc(channel.fallback) + '%</td>'
                     : '';
-                return '<tr>' + lead + '<td>' + esc(cat.name) + '</td><td class="is-money">' + esc(cat.ratio) + '%</td></tr>';
+                return '<tr>' + lead + '<td>' + esc(sub.name) + '</td><td class="is-money">' + esc(sub.ratio) + '%</td></tr>';
             }).join('');
         }).join('');
         return '<div class="rbt-demand-table-wrap"><table class="rbt-demand-table"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>';
     }
 
     function renderHtml(item) {
-        var view = viewOf(item);
-        if (!view) return '';
+        if (!item || item.repayMethod !== '比例付' || !item.settleRatios || !item.settleRatios.length) return '';
         ensureStyle();
-        if (item && item.hideCategories) {
-            var plain = (item.settleRatios || []).map(function (channel) {
-                var subs = (channel.subs || []).map(function (sub) {
-                    return esc(sub.name) + ' ' + esc(sub.ratio) + '%';
-                }).join('；');
-                var ratio = esc(channel.fallback) + '%' + (subs ? '；' + subs : '');
-                return '<tr><td>' + esc(channel.channel) + '</td><td>' + ratio + '</td></tr>';
-            }).join('');
-            return '<table class="rbt-ratio"><thead><tr><th>渠道</th><th>结算比例</th></tr></thead><tbody>' + plain + '</tbody></table>';
-        }
-        var body = view.map(function (channel) {
-            var cats = channel.categories.map(function (cat) {
-                return '<span class="rbt-ratio__cat"><b>' + esc(cat.name) + '</b>' + esc(cat.ratio) + '%</span>';
-            }).join('');
-            return '<tr><td>' + esc(channel.channel) + '</td><td>' + esc(channel.fallback) + '%</td><td>' + (cats || '—') + '</td></tr>';
+        var plain = item.settleRatios.map(function (channel) {
+            var subs = copySubs(channel.channel, channel.subs).map(function (sub) {
+                return esc(sub.name) + ' ' + esc(sub.ratio) + '%';
+            }).join('；');
+            var ratio = esc(channel.fallback) + '%' + (subs ? '；' + subs : '');
+            return '<tr><td>' + esc(channel.channel) + '</td><td>' + ratio + '</td></tr>';
         }).join('');
-        return '<table class="rbt-ratio"><thead><tr><th>渠道</th><th>默认比例</th><th>商品类目</th></tr></thead><tbody>' + body + '</tbody></table>';
+        return '<table class="rbt-ratio"><thead><tr><th>渠道</th><th>结算比例</th></tr></thead><tbody>' + plain + '</tbody></table>';
     }
 
     function ensureStyle() {
@@ -153,7 +128,7 @@
         document.head.appendChild(style);
     }
 
-    /* 只保留三个渠道。默认比例必填；类目比例可空，空的不写入。 */
+    /* 只保留三个渠道的默认比例。POS 可带二级渠道，不再写入商品类目比例。 */
     function normalize(list) {
         if (!Array.isArray(list)) return null;
         var next = [];
@@ -168,16 +143,7 @@
             });
             var fallback = parseRatio(found && found.fallback);
             if (!fallback) return false;
-            var rows = [];
-            var seen = {};
-            ((found && found.rows) || []).forEach(function (row) {
-                var category = String(row && row.category || '').trim();
-                var ratio = parseRatio(row && row.ratio);
-                if (!category || !ratio || seen[category]) return;
-                seen[category] = true;
-                rows.push({ category: category, ratio: ratio });
-            });
-            next.push({ channel: channel, fallback: fallback, rows: rows, subs: copySubs(channel, found && found.subs) });
+            next.push({ channel: channel, fallback: fallback, rows: [], subs: copySubs(channel, found && found.subs) });
             return true;
         });
         return ok ? next : null;
@@ -194,17 +160,14 @@
         if (!list || !list.length) return '';
         return list.map(function (channel) {
             var parts = ['默认比例 ' + channel.fallback + '%'];
-            (channel.rows || []).forEach(function (row) {
-                parts.push(row.category + ' ' + row.ratio + '%');
-            });
-            (channel.subs || []).forEach(function (sub) {
+            copySubs(channel.channel, channel.subs).forEach(function (sub) {
                 parts.push(sub.name + ' ' + sub.ratio + '%');
             });
             return channel.channel + ' ' + parts.join('，');
         }).join('；');
     }
 
-    var EDITABLE_STATUSES = ['待接单', '待确认签约', '待签署', '待付款', '门店付款中'];
+    var EDITABLE_STATUSES = ['待接单', '待确认签约', '待签署', '发货中', '门店付款中'];
 
     function canEdit(item) {
         return !!(item && EDITABLE_STATUSES.indexOf(item.status) >= 0);
@@ -224,9 +187,7 @@
             if (!channel || !draft[channel.channel]) return;
             draft[channel.channel] = {
                 fallback: channel.fallback || '',
-                rows: (channel.rows || []).map(function (row) {
-                    return { category: row.category, ratio: row.ratio };
-                }),
+                rows: [],
                 subs: channel.channel === 'POS' ? copySubs('POS', channel.subs) : []
             };
         });
@@ -236,59 +197,71 @@
     function syncEditor(host, draft) {
         if (!host || !draft) return;
         CHANNELS.forEach(function (channel) {
-            if (!draft[channel]) draft[channel] = { fallback: '', rows: [] };
+            if (!draft[channel]) draft[channel] = { fallback: '', rows: [], subs: [] };
             var fallback = host.querySelector('[data-pass-fallback="' + channel + '"]');
             if (fallback) draft[channel].fallback = fallback.value;
-            host.querySelectorAll('[data-pass-row="' + channel + '"]').forEach(function (input) {
-                var index = Number(input.getAttribute('data-index'));
-                if (draft[channel].rows[index]) draft[channel].rows[index].ratio = input.value;
-            });
+        });
+        if (!draft.POS) draft.POS = { fallback: '', rows: [], subs: [] };
+        host.querySelectorAll('[data-pass-sub]').forEach(function (input) {
+            var index = Number(input.getAttribute('data-index'));
+            if (draft.POS.subs[index]) draft.POS.subs[index].ratio = input.value;
         });
     }
 
     function renderEditor(host, draft) {
         if (!host || !draft) return;
-        var options = '<option value="">请选择类目</option>' + categoryOptions().map(function (name) {
+        var used = {};
+        ((draft.POS && draft.POS.subs) || []).forEach(function (row) {
+            if (row && row.name) used[row.name] = true;
+        });
+        var options = '<option value="">请选择</option>' + POS_SUBS.filter(function (name) {
+            return !used[name];
+        }).map(function (name) {
             return '<option value="' + esc(name) + '">' + esc(name) + '</option>';
         }).join('');
         host.innerHTML = CHANNELS.map(function (channel) {
-            var item = draft[channel] || { fallback: '', rows: [] };
-            var rows = (item.rows || []).map(function (row, index) {
-                return '<div class="rbt-pass-field"><span class="rbt-pass-label">' + esc(row.category) + '</span><input data-pass-row="' + esc(channel) + '" data-index="' + index + '" value="' + esc(row.ratio) + '" inputmode="decimal" placeholder="请输入"><span>%</span><button type="button" class="rbt-pass-del" data-pass-del="' + esc(channel) + '" data-index="' + index + '">删除</button></div>';
-            }).join('');
+            var item = draft[channel] || { fallback: '', subs: [] };
+            var pos = '';
+            if (channel === 'POS') {
+                var rows = (item.subs || []).map(function (row, index) {
+                    return '<div class="rbt-pass-field"><span class="rbt-pass-label">' + esc(row.name) + '</span><input data-pass-sub="1" data-index="' + index + '" value="' + esc(row.ratio) + '" inputmode="decimal" placeholder="请输入"><span>%</span><button type="button" class="rbt-pass-del" data-pass-del="' + index + '">删除</button></div>';
+                }).join('');
+                pos = '<div class="rbt-pass-field"><span class="rbt-pass-label">二级渠道</span><select data-pass-pick>' + options + '</select><input data-pass-new inputmode="decimal" placeholder="请输入"><span>%</span><button type="button" class="btn btn-secondary" data-pass-add>添加</button></div>' +
+                    rows +
+                    '<div class="rbt-review-note">堂食、外卖、团购需要单独比例时再添加。没单独配置的金额用 POS 默认比例。同一二级渠道只加一条。</div>';
+            }
             return '<div class="rbt-pass-channel"><h3>' + esc(channel) + '</h3>' +
                 '<div class="rbt-pass-field"><span class="rbt-pass-label">默认比例</span><input data-pass-fallback="' + esc(channel) + '" value="' + esc(item.fallback) + '" inputmode="decimal" placeholder="请输入"><span>%</span></div>' +
-                '<div class="rbt-pass-field"><span class="rbt-pass-label">商品类目</span><select data-pass-pick="' + esc(channel) + '">' + options + '</select><input data-pass-new="' + esc(channel) + '" inputmode="decimal" placeholder="请输入"><span>%</span><button type="button" class="btn btn-secondary" data-pass-add="' + esc(channel) + '">添加</button></div>' +
-                rows +
-                '<div class="rbt-review-note">需要按类目区分时再添加。未添加的类目使用默认比例。</div></div>';
+                pos + '</div>';
         }).join('');
     }
 
-    function addEditorRow(host, draft, channel, toastFn) {
+    function addPosSub(host, draft, toastFn) {
         syncEditor(host, draft);
-        var pick = host.querySelector('[data-pass-pick="' + channel + '"]');
-        var ratioInput = host.querySelector('[data-pass-new="' + channel + '"]');
-        var category = pick ? pick.value : '';
+        if (!draft.POS) draft.POS = { fallback: '', rows: [], subs: [] };
+        var pick = host.querySelector('[data-pass-pick]');
+        var ratioInput = host.querySelector('[data-pass-new]');
+        var name = pick ? pick.value : '';
         var ratio = parseRatio(ratioInput && ratioInput.value);
-        if (!category) {
-            if (toastFn) toastFn('请选择商品类目', 'error');
+        if (!name) {
+            if (toastFn) toastFn('请选择二级渠道', 'error');
             return;
         }
-        if ((draft[channel].rows || []).some(function (row) { return row.category === category; })) {
-            if (toastFn) toastFn('该渠道已添加「' + category + '」', 'error');
+        if ((draft.POS.subs || []).some(function (row) { return row.name === name; })) {
+            if (toastFn) toastFn('该二级渠道已添加', 'error');
             return;
         }
         if (!ratio) {
-            if (toastFn) toastFn('类目结算比例须大于 0 且不超过 100', 'error');
+            if (toastFn) toastFn('二级渠道比例须大于 0 且不超过 100', 'error');
             return;
         }
-        draft[channel].rows.push({ category: category, ratio: ratio });
+        draft.POS.subs.push({ name: name, ratio: ratio });
         renderEditor(host, draft);
     }
 
-    function removeEditorRow(host, draft, channel, index) {
+    function removePosSub(host, draft, index) {
         syncEditor(host, draft);
-        if (draft[channel]) draft[channel].rows.splice(index, 1);
+        if (draft.POS && draft.POS.subs) draft.POS.subs.splice(index, 1);
         renderEditor(host, draft);
     }
 
@@ -297,19 +270,10 @@
         if (!draft) return null;
         var invalid = false;
         var list = CHANNELS.map(function (channel) {
-            var item = draft[channel] || { fallback: '', rows: [] };
+            var item = draft[channel] || { fallback: '', rows: [], subs: [] };
             var fallback = parseRatio(item.fallback);
             if (!fallback) invalid = true;
-            var rows = [];
-            (item.rows || []).forEach(function (row) {
-                var ratio = parseRatio(row && row.ratio);
-                if (!row || !row.category || !ratio) {
-                    invalid = true;
-                    return;
-                }
-                rows.push({ category: row.category, ratio: ratio });
-            });
-            return { channel: channel, fallback: fallback, rows: rows, subs: takenSubs(channel, item.subs, function () { invalid = true; }) };
+            return { channel: channel, fallback: fallback, rows: [], subs: takenSubs(channel, item.subs, function () { invalid = true; }) };
         });
         if (invalid) return null;
         return normalize(list);
@@ -320,20 +284,11 @@
         syncEditor(host, draft);
         var invalid = false;
         var list = CHANNELS.map(function (channel) {
-            var item = draft[channel] || { fallback: '', rows: [] };
+            var item = draft[channel] || { fallback: '', rows: [], subs: [] };
             var fallback = parseRatio(item.fallback);
             if (String(item.fallback || '').trim() && !fallback) invalid = true;
             if (!fallback) invalid = true;
-            var rows = [];
-            (item.rows || []).forEach(function (row) {
-                var ratio = parseRatio(row.ratio);
-                if (!row.category || !ratio) {
-                    invalid = true;
-                    return;
-                }
-                rows.push({ category: row.category, ratio: ratio });
-            });
-            return { channel: channel, fallback: fallback, rows: rows, subs: takenSubs(channel, item.subs, function () { invalid = true; }) };
+            return { channel: channel, fallback: fallback, rows: [], subs: takenSubs(channel, item.subs, function () { invalid = true; }) };
         });
         if (invalid) return null;
         return normalize(list);
@@ -379,8 +334,8 @@
             if (!draft) return;
             var add = event.target.closest('[data-pass-add]');
             var del = event.target.closest('[data-pass-del]');
-            if (add) addEditorRow(host, draft, add.getAttribute('data-pass-add'), toastFn);
-            if (del) removeEditorRow(host, draft, del.getAttribute('data-pass-del'), Number(del.getAttribute('data-index')));
+            if (add) addPosSub(host, draft, toastFn);
+            if (del) removePosSub(host, draft, Number(del.getAttribute('data-pass-del')));
         });
     }
 
@@ -425,7 +380,10 @@
             '<div class="rbt-demand-contract__title">' + esc(demand.code) + '</div>' +
             '<div class="rbt-demand-contract__meta">' + esc(demand.storeName || '') + ' · ' + esc(demand.status || '') + '</div></div>' +
             '<button type="button" class="rbt-demand-contract__close" data-rbt-ratio-edit-close aria-label="关闭">&times;</button></div>' +
-            '<div class="rbt-ratio-dialog__body rbt-review-body" data-rbt-ratio-edit-form></div>' +
+            '<div class="rbt-ratio-dialog__body rbt-review-body">' +
+            '<div data-rbt-ratio-edit-form></div>' +
+            '<label class="rbt-ratio-reason"><span class="rbt-ratio-reason__label"><i>*</i>修改原因</span>' +
+            '<textarea data-rbt-ratio-reason maxlength="100" placeholder="请填写修改原因"></textarea></label></div>' +
             '<div class="rbt-review-foot"><button type="button" class="btn btn-secondary" data-rbt-ratio-edit-close>取消</button>' +
             '<button type="button" class="btn btn-primary" data-rbt-ratio-edit-save>保存</button></div></div>';
         document.body.appendChild(mask);
@@ -438,11 +396,26 @@
             if (!save) return;
             var settleRatios = collectEditor(host, draft);
             if (!settleRatios) {
-                toast('每个渠道都要填写默认比例；已填的类目比例须大于 0 且不超过 100', 'error');
+                toast('每个渠道都要填写默认比例；已填的二级渠道比例须大于 0 且不超过 100', 'error');
+                return;
+            }
+            var reasonInput = mask.querySelector('[data-rbt-ratio-reason]');
+            var reason = reasonInput ? String(reasonInput.value || '').trim() : '';
+            if (!reason) {
+                toast('请填写修改原因', 'error');
+                if (reasonInput) reasonInput.focus();
+                return;
+            }
+            if (reason.length > 100) {
+                toast('修改原因不超过 100 个字', 'error');
+                return;
+            }
+            if (summary(demand.settleRatios) === summary(settleRatios)) {
+                toast('结算比例没有变化', 'error');
                 return;
             }
             var saved = dataApi && typeof dataApi.updateSettleRatios === 'function'
-                ? dataApi.updateSettleRatios(demand.code, settleRatios, '王丽')
+                ? dataApi.updateSettleRatios(demand.code, settleRatios, '王丽', reason)
                 : null;
             if (!saved) {
                 toast('保存失败', 'error');
@@ -489,6 +462,10 @@
             '.rbt-pass-label{width:88px;text-align:right;color:#333;font-size:13px;}',
             '.rbt-pass-del{border:0;background:transparent;color:#cf1322;cursor:pointer;font-size:13px;padding:0;}',
             '.rbt-review-note{margin-top:6px;color:#909399;font-size:12px;}',
+            '.rbt-ratio-reason{display:block;margin-top:16px;padding-top:14px;border-top:1px solid #f0f0f0;}',
+            '.rbt-ratio-reason__label{display:block;margin-bottom:8px;color:#303133;font-size:13px;}',
+            '.rbt-ratio-reason__label i{margin-right:4px;color:#f56c6c;font-style:normal;}',
+            '.rbt-ratio-reason textarea{width:100%;min-height:72px;box-sizing:border-box;border:1px solid #dcdfe6;border-radius:4px;padding:8px 10px;font:inherit;font-size:13px;line-height:1.5;resize:vertical;}',
             '.rbt-review-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 20px 16px;border-top:1px solid #ebeef5;}',
             '.supplier-detail-section-title .rbt-demand-contract-link{margin-left:12px;font-weight:400;font-size:13px;}'
         ].join('');

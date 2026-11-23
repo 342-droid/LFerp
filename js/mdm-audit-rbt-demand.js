@@ -96,11 +96,7 @@
             return;
         }
         body.innerHTML = rows.map(function (row) {
-            var pending = row.status === '待审核';
             var ops = '<a href="#" data-act="detail" data-id="' + row.id + '">详情</a>';
-            if (pending) {
-                ops += '<a href="#" data-act="audit" data-id="' + row.id + '">审核</a>';
-            }
             return '<tr>' +
                 '<td>' + show(row.id) + '</td>' +
                 '<td>' + show(row.demandCode) + '</td>' +

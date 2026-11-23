@@ -1,6 +1,6 @@
-/* 门店端登录后：选择商品包、勾选 SKU 并改数量、发布需求。需求按门店隔离。 */
+/* 门店端登录后查看本店需求。发布需求入口已隐藏，由平台在需求单管理代门店新建。 */
 (function () {
-    var PACKAGE_KEY = 'rbt_product_package_v1';
+    var PACKAGE_KEY = 'rbt_product_package_v2';
     var DEMAND_KEY = 'rbt_h5_fund_demand_v2';
     var INSTALLMENT_KEY = 'rbt_installment_v3';
     var SKUS = {
@@ -15,12 +15,22 @@
         SKU10009: { name: '东北黑木耳 500g', barcode: '6901234567009', unit: '袋', spec: '500g', salePrice: '39.90' },
         SKU10010: { name: '福建空心菜 400g', barcode: '6901234567010', unit: '把', spec: '400g', salePrice: '9.90' },
         SKU10011: { name: '冷鲜猪里脊 1kg', barcode: '6901234567011', unit: '件', spec: '1kg', salePrice: '52.80' },
-        SKU10012: { name: '海南贝贝南瓜 2kg', barcode: '6901234567012', unit: '箱', spec: '2kg', salePrice: '24.90' }
+        SKU10012: { name: '海南贝贝南瓜 2kg', barcode: '6901234567012', unit: '箱', spec: '2kg', salePrice: '24.90' },
+        SKU20001: { name: '汉言首批铺货', barcode: '6901234568001', unit: '套', spec: '首批到店', salePrice: '22000.00' },
+        SKU20002: { name: '门店设备辅料包', barcode: '6901234568002', unit: '套', spec: '开业配置', salePrice: '16000.00' },
+        SKU20003: { name: '门店拉新人力', barcode: '6901234568003', unit: '项', spec: '驻店拉新', salePrice: '12000.00' },
+        SKU20004: { name: '开业拉新物料', barcode: '6901234568004', unit: '份', spec: '300份', salePrice: '30.00' },
+        SKU20005: { name: '门头招牌及店内品宣', barcode: '6901234568005', unit: '项', spec: '门头及店内', salePrice: '18000.00' },
+        SKU20006: { name: '门店监控套装', barcode: '6901234568006', unit: '套', spec: '店内监控', salePrice: '13000.00' },
+        SKU20007: { name: 'POS及会员管理系统', barcode: '6901234568007', unit: '套', spec: '含会员管理', salePrice: '12000.00' },
+        SKU20008: { name: '抖音本地生活投放', barcode: '6901234568008', unit: '项', spec: '本地生活', salePrice: '10000.00' },
+        SKU20009: { name: '开业督导服务', barcode: '6901234568009', unit: '项', spec: '开业辅导', salePrice: '8000.00' }
     };
+    /* 与商品包种子一致：铺货 50000、形象 40000、运营 30000。拉新物料 300 份，行都不可改、不可删。 */
     var SEED_PACKAGES = [
-        { code: 'SPB00001', name: '周末生鲜包', storeCodes: ['ONS00001', 'ONS00004'], skus: [{ code: 'SKU10001', salePrice: '56.80' }, { code: 'SKU10002', salePrice: '22.80' }] },
-        { code: 'SPB00002', name: '肉类组合包', storeCodes: ['ONS00002'], skus: [{ code: 'SKU10003', salePrice: '78.00' }, { code: 'SKU10011', salePrice: '52.80' }] },
-        { code: 'SPB00003', name: '果蔬尝鲜包', storeCodes: ['ONS00003'], skus: [{ code: 'SKU10005', salePrice: '18.50' }, { code: 'SKU10006', salePrice: '49.90' }, { code: 'SKU10010', salePrice: '9.90' }] }
+        { code: 'SPB00001', name: '汉言开业铺货包', scopeType: 'tag', tagIds: ['rbt-open-stock'], storeCodes: [], skus: [{ code: 'SKU20001', salePrice: '22000.00', qty: 1, canEdit: '否', canDelete: '否' }, { code: 'SKU20002', salePrice: '16000.00', qty: 1, canEdit: '否', canDelete: '否' }, { code: 'SKU20003', salePrice: '12000.00', qty: 1, canEdit: '否', canDelete: '否' }] },
+        { code: 'SPB00002', name: '门店形象配置包', scopeType: 'tag', tagIds: ['rbt-store-image'], storeCodes: [], skus: [{ code: 'SKU20004', salePrice: '30.00', qty: 300, canEdit: '否', canDelete: '否' }, { code: 'SKU20005', salePrice: '18000.00', qty: 1, canEdit: '否', canDelete: '否' }, { code: 'SKU20006', salePrice: '13000.00', qty: 1, canEdit: '否', canDelete: '否' }] },
+        { code: 'SPB00003', name: '开业运营服务包', scopeType: 'store', tagIds: [], storeCodes: ['ONS00003'], skus: [{ code: 'SKU20007', salePrice: '12000.00', qty: 1, canEdit: '否', canDelete: '否' }, { code: 'SKU20008', salePrice: '10000.00', qty: 1, canEdit: '否', canDelete: '否' }, { code: 'SKU20009', salePrice: '8000.00', qty: 1, canEdit: '否', canDelete: '否' }] }
     ];
     var BIZ_LINE_STORES = {
         '餐饮': ['ONS00001', 'ONS00004'],
@@ -33,20 +43,22 @@
         SPB00002: ['ONS00002'],
         SPB00003: ['ONS00003']
     };
-    /* 主链路：待审核 → 待接单 → 待确认签约 → 待签署 → 待付款 → 门店付款中 → 已完成；撤回后待重新确认；旁路：已作废、已驳回 */
-    var DEMAND_STATUSES = ['待审核', '待接单', '待确认签约', '待重新确认', '待签署', '待付款', '门店付款中', '已完成'];
-    var ACTIVE_DEMAND_STATUSES = ['待审核', '待接单', '待确认签约', '待重新确认', '待签署', '待付款', '门店付款中'];
-    var CANCELABLE_DEMAND_STATUSES = ['待审核'];
+    /* 主链路：待接单 → 待确认签约 → 待签署 → 发货中 → 门店付款中 → 已完成。签完进入发货中。 */
+    var DEMAND_STATUSES = ['待接单', '待确认签约', '待重新确认', '待签署', '发货中', '门店付款中', '已完成'];
+    var ACTIVE_DEMAND_STATUSES = ['待接单', '待确认签约', '待重新确认', '待签署', '发货中', '门店付款中', '已完成'];
+    var CANCELABLE_DEMAND_STATUSES = [];
     var CLOSED_DEMAND_STATUSES = ['已作废', '已驳回'];
     var STATUS_MIGRATE = {
-        '已发布': '待审核',
-        '待报价': '待审核',
+        '已发布': '待接单',
+        '待报价': '待接单',
+        '待审核': '待接单',
         '已报价': '待接单',
         '待还款': '门店付款中',
         '支付中': '门店付款中',
         '还款中': '门店付款中',
         '付款中': '门店付款中',
-        '待支付': '待付款',
+        '待支付': '门店付款中',
+        '待付款': '门店付款中',
         '已取消': '已作废'
     };
 
@@ -56,6 +68,9 @@
     var repayFilter = 'pending';
     var billCode = '';
     var signCode = '';
+    var receiveCode = '';
+    var detailCode = '';
+    var detailFocusShip = false;
     var packageCode = '';
     var pickedQty = {};
     var repayCycle = '';
@@ -112,14 +127,18 @@
         var code = typeof item === 'string' ? item : item && item.code;
         var known = SKUS[code] || {};
         var sale = item && item.salePrice !== undefined && item.salePrice !== '' ? item.salePrice : known.salePrice;
+        var qty = item && item.qty != null && item.qty !== '' ? item.qty : 1;
         return {
             code: code,
-            name: known.name || code || '—',
-            barcode: known.barcode || '—',
-            unit: known.unit || '—',
-            spec: known.spec || '—',
+            name: (item && item.name) || known.name || code || '—',
+            barcode: (item && item.barcode) || known.barcode || '—',
+            unit: (item && item.unit) || known.unit || '—',
+            spec: (item && item.spec) || known.spec || '—',
             image: typeof getWmsSkuImage === 'function' ? getWmsSkuImage(code) : '',
-            salePrice: money(sale)
+            salePrice: money(sale),
+            qty: qty,
+            canEdit: item && item.canEdit ? item.canEdit : '否',
+            canDelete: item && item.canDelete ? item.canDelete : '否'
         };
     }
 
@@ -146,17 +165,49 @@
         return true;
     }
 
+    var DEMO_SCOPE = {
+        SPB00001: { scopeType: 'tag', tagIds: ['rbt-open-stock'], stores: ['ONS00001', 'ONS00004'] },
+        SPB00002: { scopeType: 'tag', tagIds: ['rbt-store-image'], stores: ['ONS00002'] },
+        SPB00003: { scopeType: 'store', tagIds: [], stores: ['ONS00003'] }
+    };
+
+    function ensureScope(item) {
+        if (!item || item.scopeType === 'store' || item.scopeType === 'tag') return false;
+        var demo = DEMO_SCOPE[item.code];
+        var stores = (item.storeCodes || []).slice().sort().join(',');
+        if (demo && stores === demo.stores.slice().sort().join(',')) {
+            item.scopeType = demo.scopeType;
+            item.tagIds = demo.tagIds.slice();
+            if (demo.scopeType === 'tag') item.storeCodes = [];
+            return true;
+        }
+        item.scopeType = 'store';
+        if (!Array.isArray(item.tagIds)) item.tagIds = [];
+        return true;
+    }
+
+    function packageMatchesStore(item, storeCode) {
+        if (!item || !storeCode) return false;
+        if (item.scopeType === 'tag') {
+            var api = window.BusinessTagPrototypeStore;
+            var bound = api && typeof api.getBinding === 'function' ? (api.getBinding('RBT_STORE', storeCode) || []) : [];
+            return (item.tagIds || []).some(function (id) { return bound.indexOf(id) >= 0; });
+        }
+        return (item.storeCodes || []).indexOf(storeCode) >= 0;
+    }
+
     function packages() {
         var list = readJson(PACKAGE_KEY);
         var source = list && list.length ? list : SEED_PACKAGES.slice();
         var changed = false;
         source.forEach(function (item) {
             if (ensureStores(item)) changed = true;
+            if (ensureScope(item)) changed = true;
         });
         if (changed && list && list.length) sessionStorage.setItem(PACKAGE_KEY, JSON.stringify(source));
         var storeCode = account && account.code;
         return source.filter(function (item) {
-            return item.enabled !== false && storeCode && (item.storeCodes || []).indexOf(storeCode) >= 0;
+            return item.enabled !== false && packageMatchesStore(item, storeCode);
         }).map(function (item) {
             return {
                 code: item.code,
@@ -200,7 +251,7 @@
                 return;
             }
             if (DEMAND_STATUSES.indexOf(item.status) < 0 && CLOSED_DEMAND_STATUSES.indexOf(item.status) < 0) {
-                item.status = '待审核';
+                item.status = '待接单';
                 changed = true;
             }
         });
@@ -234,7 +285,7 @@
         return dataApi.quotaOf(store);
     }
 
-    /* 未结束的需求达到准入配置的需求次数后，不能再发布。已作废、已驳回、已完成不占次数。 */
+    /* 未结束的需求达到准入配置的需求次数后，不能再发布。已完成仍占次数。已作废、已驳回不占次数。 */
     function blockDemandCount() {
         var dataApi = window.RbtStoreData;
         var store = dataApi && account && typeof dataApi.get === 'function' ? dataApi.get(account.code) : null;
@@ -244,6 +295,20 @@
         }).length;
         if (active >= limit) {
             toast('需求次数已达上限，无法发布需求');
+            return true;
+        }
+        return false;
+    }
+
+    /* 门店准入保证金未缴纳，或还没选择时，不能发布。 */
+    function blockUnpaidDeposit() {
+        var dataApi = window.RbtStoreData;
+        var store = dataApi && account && typeof dataApi.get === 'function' ? dataApi.get(account.code) : null;
+        var paid = dataApi && typeof dataApi.depositPaidOf === 'function'
+            ? dataApi.depositPaidOf(store)
+            : !!(store && store.depositPaid === true);
+        if (!paid) {
+            toast('保证金未缴纳，无法发布需求');
             return true;
         }
         return false;
@@ -287,7 +352,9 @@
         if (name) {
             name.textContent = screen === 'list'
                 ? '需求列表'
-                : (screen === 'skus' ? '选择商品' : (screen === 'installment' ? '确认发布信息' : storeName));
+                : (screen === 'detail'
+                    ? '需求详情'
+                    : (screen === 'skus' ? '选择商品' : (screen === 'installment' ? '确认发布信息' : storeName)));
         }
         if (head) head.textContent = title;
     }
@@ -385,12 +452,6 @@
             '<button type="button" class="rbt-sku-bar__next" data-next>下一步</button>';
     }
 
-    function skuQtyText(line) {
-        var qty = Number(line && line.qty);
-        if (!isFinite(qty) || qty < 1) qty = 1;
-        return (line.name || '—') + '×' + qty;
-    }
-
     function cents(value) {
         var amount = Number(value);
         if (!isFinite(amount)) return NaN;
@@ -399,29 +460,29 @@
 
     var DEMO_INSTALLMENTS = [
         {
-            code: 'FQ00001', name: '生鲜周转分期', repayCycle: '日结', periods: [],
+            code: 'FQ00001', name: '开业铺货日结', repayCycle: '日结', periods: [],
             periodRatio: '10.00', storeRate: '1.60', repayMethod: '比例付',
-            amountMin: '20.00', amountMax: '50000', packages: ['周末生鲜包']
+            amountMin: '20.00', amountMax: '50000', packages: ['汉言开业铺货包']
         },
         {
-            code: 'FQ00004', name: '生鲜周转比例付', repayCycle: '日结', periods: [],
+            code: 'FQ00004', name: '开业铺货加价', repayCycle: '日结', periods: [],
             periodRatio: '10.00', storeRate: '1.70', repayMethod: '比例付',
-            amountMin: '20.00', amountMax: '50000', packages: ['周末生鲜包']
+            amountMin: '20.00', amountMax: '50000', packages: []
         },
         {
-            code: 'FQ00005', name: '生鲜周转日结', repayCycle: '日结', periods: [],
+            code: 'FQ00005', name: '开业铺货轻量', repayCycle: '日结', periods: [],
             periodRatio: '10.00', storeRate: '1.30', repayMethod: '比例付',
-            amountMin: '20.00', amountMax: '50000', packages: ['周末生鲜包']
+            amountMin: '20.00', amountMax: '50000', packages: []
         },
         {
-            code: 'FQ00002', name: '肉类备货分期', repayCycle: '日结', periods: [],
+            code: 'FQ00002', name: '门店形象日结', repayCycle: '日结', periods: [],
             periodRatio: '8.00', storeRate: '1.80', repayMethod: '比例付',
-            amountMin: '50.00', amountMax: '100000', packages: ['肉类组合包']
+            amountMin: '50.00', amountMax: '100000', packages: ['门店形象配置包']
         },
         {
-            code: 'FQ00003', name: '果蔬短周期', repayCycle: '日结', periods: [],
+            code: 'FQ00003', name: '开业运营日结', repayCycle: '日结', periods: [],
             periodRatio: '10.00', storeRate: '1.50', repayMethod: '比例付',
-            amountMin: '5.00', amountMax: '20000', packages: ['果蔬尝鲜包']
+            amountMin: '5.00', amountMax: '30000', packages: ['开业运营服务包']
         }
     ];
 
@@ -537,9 +598,29 @@
                 item.repayCycle = '日结';
                 changed = true;
             }
-            if (item && item.name === '生鲜周转日付') {
-                item.name = '生鲜周转日结';
+            var productRename = {
+                FQ00001: { '生鲜周转分期': '开业铺货日结' },
+                FQ00004: { '生鲜周转周还': '开业铺货加价', '生鲜周转比例付': '开业铺货加价' },
+                FQ00005: { '生鲜周转日结': '开业铺货轻量', '生鲜周转日付': '开业铺货轻量' },
+                FQ00002: { '肉类备货分期': '门店形象日结' },
+                FQ00003: { '果蔬短周期': '开业运营日结' }
+            };
+            var nextName = item && productRename[item.code] && productRename[item.code][item.name];
+            if (nextName) {
+                item.name = nextName;
                 changed = true;
+            }
+            if (item && item.code === 'FQ00003' && (String(item.amountMax) === '20000' || String(item.amountMax) === '20000.00')) {
+                item.amountMax = '30000';
+                changed = true;
+            }
+            /* 加价、轻量在产品配置里不挂商品包。旧演示曾把铺货包挂上去，这里只清掉这一条。 */
+            if (item && (item.code === 'FQ00004' || item.code === 'FQ00005')) {
+                var pkgs = item.packages || [];
+                if (pkgs.length === 1 && (pkgs[0] === '汉言开业铺货包' || pkgs[0] === '周末生鲜包')) {
+                    item.packages = [];
+                    changed = true;
+                }
             }
         });
         if (changed) sessionStorage.setItem(INSTALLMENT_KEY, JSON.stringify(list));
@@ -678,31 +759,19 @@
         return num.toFixed(2) + '%';
     }
 
-    /* 列表结算比例按渠道一行展示：POS 完成 8.00%；直播 完成 8.00%。 */
-    function listRatioLine(item) {
-        if (!item || item.repayMethod !== '比例付' || !item.settleRatios || !item.settleRatios.length) return '';
-        return item.settleRatios.map(function (channel) {
-            var percent = ratioPercent(channel && channel.fallback);
-            var text = (channel && channel.channel ? channel.channel : '渠道') + ' 完成 ' + (percent || '—');
-            var subs = (channel && channel.subs || []).map(function (sub) {
-                var subPercent = ratioPercent(sub && sub.ratio);
-                return sub && sub.name && subPercent ? sub.name + ' ' + subPercent : '';
-            }).filter(Boolean);
-            return subs.length ? text + '（' + subs.join('，') + '）' : text;
-        }).join('；');
-    }
-
     function demandCell(label, value) {
         return '<div class="rbt-demand__cell"><span>' + esc(label) + '</span><b>' + esc(value || '—') + '</b></div>';
     }
 
     function renderDemand(item, withCancel) {
-        var names = (item.skus || []).map(skuQtyText).join('、') || '—';
         var cancel = withCancel && canCancelDemand(item) && item.storeCode === account.code
             ? '<button type="button" class="rbt-demand__cancel" data-cancel="' + esc(item.code) + '">取消需求</button>'
             : '';
         var sign = item.status === '待签署'
             ? '<button type="button" class="rbt-demand__cancel" data-sign="' + esc(item.code) + '">去签署</button>'
+            : '';
+        var receive = item.status === '发货中'
+            ? '<button type="button" class="rbt-demand__cancel" data-open-ship="' + esc(item.code) + '">确认收货</button>'
             : '';
         var storeLine = item.storeCode !== account.code
             ? '需求门店 ' + (item.storeName || '—')
@@ -710,13 +779,7 @@
         var statusClass = item.status === '已完成'
             ? ' is-done'
             : (CLOSED_DEMAND_STATUSES.indexOf(item.status) >= 0 ? ' is-off' : '');
-        var ratio = listRatioLine(item);
-        var extra = ratio
-            ? '<div class="rbt-demand__block"><span>结算比例</span><p>' + esc(ratio) + '</p></div>'
-            : (item.repayMethod && item.repayMethod !== '比例付'
-                ? '<div class="rbt-demand__block"><span>结算期数</span><p>' + esc(item.repayPeriod || '—') + '期</p></div>'
-                : '');
-        return '<article class="rbt-demand">' +
+        return '<article class="rbt-demand" data-demand="' + esc(item.code) + '">' +
             '<div class="rbt-demand__top"><h2 class="rbt-demand__name">' + esc(item.packageName || '—') + '</h2>' +
             '<span class="rbt-demand__status' + statusClass + '">' + esc(item.status || '—') + '</span></div>' +
             '<p class="rbt-demand__meta">' + esc(item.code || '—') + ' · ' + esc(item.packageCode || '—') + '</p>' +
@@ -726,11 +789,113 @@
             demandCell('结算周期', item.repayCycle || '—') +
             demandCell('结算方式', item.repayMethod || '—') +
             '</div>' +
-            '<div class="rbt-demand__block"><span>商品</span><p>' + esc(names) + '</p></div>' +
-            extra +
-            '<div class="rbt-demand__foot"><span class="rbt-demand__time">创建时间 ' + esc(item.createdAt || '—') + '</span>' +
-            (sign || cancel) +
-            '</div></article>';
+            (receive || sign || cancel ? '<div class="rbt-demand__foot">' + (receive || sign || cancel) + '</div>' : '') +
+            '</article>';
+    }
+
+    function skuLineAmount(line) {
+        var qty = Number(line && line.qty);
+        var price = Number(line && line.salePrice);
+        if (!isFinite(qty) || qty < 1) qty = 1;
+        if (!isFinite(price)) return '—';
+        return yuanText(money(roundMoney(price * qty)));
+    }
+
+    function renderDemandSkus(item) {
+        var lines = (item && item.skus) || [];
+        if (!lines.length) return '<p class="rbt-demand-sheet__empty">暂无商品</p>';
+        return lines.map(function (line) {
+            var qty = Number(line && line.qty);
+            if (!isFinite(qty) || qty < 1) qty = 1;
+            var price = line && line.salePrice != null && line.salePrice !== '' ? yuanText(money(line.salePrice)) : '—';
+            var spec = [line && line.code, line && line.spec].filter(Boolean).join(' · ');
+            return '<div class="rbt-demand-sku">' +
+                '<div class="rbt-demand-sku__main"><strong>' + esc((line && (line.name || line.code)) || '—') + '</strong>' +
+                '<p>' + esc(spec || '—') + '</p></div>' +
+                '<div class="rbt-demand-sku__side"><b>' + esc(skuLineAmount(line)) + '</b><span>×' + qty + ' · ' + esc(price) + '</span></div>' +
+                '</div>';
+        }).join('');
+    }
+
+    function renderSettleDetail(item) {
+        if (item && item.repayMethod === '比例付') {
+            var rows = (item.settleRatios || []).map(function (channel) {
+                var percent = ratioPercent(channel && channel.fallback) || '—';
+                var subs = (channel && channel.subs || []).map(function (sub) {
+                    var subPercent = ratioPercent(sub && sub.ratio);
+                    return sub && sub.name && subPercent ? sub.name + ' ' + subPercent : '';
+                }).filter(Boolean);
+                return '<div class="rbt-demand-sku">' +
+                    '<div class="rbt-demand-sku__main"><strong>' + esc((channel && channel.channel) || '渠道') + '</strong>' +
+                    (subs.length ? '<p>' + esc(subs.join('，')) + '</p>' : '') +
+                    '</div><div class="rbt-demand-sku__side"><b>' + esc(percent) + '</b><span>默认比例</span></div></div>';
+            }).join('');
+            return '<section class="rbt-demand-sheet"><h3>结算比例</h3>' +
+                (rows || '<p class="rbt-demand-sheet__empty">暂无结算比例</p>') + '</section>';
+        }
+        if (item && item.repayMethod) {
+            return '<section class="rbt-demand-sheet"><h3>结算期数</h3>' +
+                '<p class="rbt-demand-sheet__text">' + esc(item.repayPeriod || '—') + '期</p></section>';
+        }
+        return '';
+    }
+
+    /* 发货记录跟在商品下面。发货中且尚未确认的记录可以确认收货，确认数量等于发货数量。 */
+    function renderShipDetail(item) {
+        var rows = (item && item.shipments) || [];
+        var shipped = 0;
+        rows.forEach(function (row) {
+            shipped += Number(String(row && row.amount || '').replace(/[¥,]/g, '')) || 0;
+        });
+        var goods = Number(String(item && item.goodsAmount || '').replace(/[¥,]/g, '')) || 0;
+        var over = rows.length && shipped - goods > 0.001;
+        var canConfirm = item && item.status === '发货中';
+        var body = rows.length
+            ? rows.map(function (row) {
+                var action = row.confirmed
+                    ? '<p class="rbt-demand-ship__done">已确认 ' + esc(row.confirmQty || row.qty) + ' 件</p>'
+                    : (canConfirm
+                        ? '<button type="button" class="rbt-demand__cancel" data-confirm-recv="' + esc(row.id) + '">确认收货</button>'
+                        : '<p class="rbt-demand-ship__done">待确认</p>');
+                return '<div class="rbt-demand-ship">' +
+                    '<div class="rbt-demand-ship__top"><strong>' + esc(row.name || '—') + '</strong>' +
+                    '<span>' + (row.confirmed ? '已确认' : '待确认') + '</span></div>' +
+                    '<p>发货数量 ' + esc(row.qty) + ' · 发货金额 ' + esc(yuanText(row.amount)) + '</p>' +
+                    '<p>物流单号 ' + esc(row.logisticsNo || '—') + '</p>' +
+                    (row.createdAt ? '<p>发货时间 ' + esc(row.createdAt) + '</p>' : '') +
+                    action + '</div>';
+            }).join('')
+            : '<p class="rbt-demand-sheet__empty">暂无发货</p>';
+        var voucher = item && item.supplementVoucher;
+        var supplement = over
+            ? '<div class="rbt-demand-ship rbt-demand-ship--extra"><strong>补缴凭证</strong><p>' +
+                esc(voucher && voucher.name ? voucher.name : '待补缴') +
+                '</p><label class="rbt-demand-ship__upload">上传凭证<input type="file" accept="image/*,.pdf" data-store-supplement hidden></label></div>'
+            : '';
+        return '<section class="rbt-demand-sheet' + (detailFocusShip ? ' is-focus' : '') + '" id="rbtDemandShip"><h3>发货信息</h3>' +
+            body + supplement + '</section>';
+    }
+
+    function renderDemandDetail(item) {
+        setHead('需求详情');
+        var statusClass = item.status === '已完成'
+            ? ' is-done'
+            : (CLOSED_DEMAND_STATUSES.indexOf(item.status) >= 0 ? ' is-off' : '');
+        return '<article class="rbt-demand">' +
+            '<div class="rbt-demand__top"><h2 class="rbt-demand__name">' + esc(item.packageName || '—') + '</h2>' +
+            '<span class="rbt-demand__status' + statusClass + '">' + esc(item.status || '—') + '</span></div>' +
+            '<p class="rbt-demand__meta">' + esc(item.code || '—') + ' · ' + esc(item.packageCode || '—') + '</p>' +
+            '<div class="rbt-demand__total"><span>商品金额</span><b>' + esc(yuanText(item.goodsAmount)) + '</b></div>' +
+            '<div class="rbt-demand__grid">' +
+            demandCell('结算周期', item.repayCycle || '—') +
+            demandCell('结算方式', item.repayMethod || '—') +
+            '</div>' +
+            '<p class="rbt-demand__meta">创建时间 ' + esc(item.createdAt || '—') + '</p>' +
+            (item.acceptedAt ? '<p class="rbt-demand__meta">接单时间 ' + esc(item.acceptedAt) + '</p>' : '') +
+            '</article>' +
+            '<section class="rbt-demand-sheet"><h3>商品</h3>' + renderDemandSkus(item) + '</section>' +
+            renderShipDetail(item) +
+            renderSettleDetail(item);
     }
 
     function toolIcon(svg, background) {
@@ -808,14 +973,14 @@
         { id: 'repaid-empty', label: '已还款 · 无每日明细' },
         { id: 'repaid-days', label: '已还款 · 有每日明细' }
     ];
-    /* 演示日数据：已发生日期的营业流水 × 该渠道结算比例。不把总金额拆成每日本金，也不预造未发生的日期。 */
+    /* 演示日数据：签约后连续 6 天的营业流水 × 该渠道结算比例。不把需求总金额拆成每日本金。 */
     var REPAY_DEMO_DAYS = [
-        { date: '2026-11-07', channel: 'POS', turnover: 860 },
-        { date: '2026-11-08', channel: '直播', turnover: 420 },
-        { date: '2026-11-09', channel: '商城', turnover: 310 },
-        { date: '2026-11-10', channel: 'POS', turnover: 980 },
-        { date: '2026-11-11', channel: '直播', turnover: 560 },
-        { date: '2026-11-12', channel: '商城', turnover: 240 }
+        { channel: 'POS', turnover: 860 },
+        { channel: '直播', turnover: 420 },
+        { channel: '商城', turnover: 310 },
+        { channel: 'POS', turnover: 980 },
+        { channel: '直播', turnover: 560 },
+        { channel: '商城', turnover: 240 }
     ];
 
     function readRepayDemo() {
@@ -839,12 +1004,31 @@
         return fallback || 10;
     }
 
+    function repayStartDate(item) {
+        var text = '';
+        (item && item.signings || []).forEach(function (row) {
+            var value = row && row.signedAt ? String(row.signedAt) : '';
+            if (value > text) text = value;
+        });
+        if (!text && item) text = String(item.acceptedAt || item.updatedAt || item.createdAt || '');
+        var matched = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (!matched) return null;
+        return new Date(Number(matched[1]), Number(matched[2]) - 1, Number(matched[3]));
+    }
+
+    function shiftDate(start, days) {
+        var next = new Date(start.getTime());
+        next.setDate(next.getDate() + days);
+        return next.getFullYear() + '-' + pad(next.getMonth() + 1) + '-' + pad(next.getDate());
+    }
+
     function repayDayRows(item) {
-        return REPAY_DEMO_DAYS.map(function (row) {
+        var start = repayStartDate(item);
+        return REPAY_DEMO_DAYS.map(function (row, index) {
             var ratio = channelRatio(item, row.channel);
             var due = (Math.round(row.turnover * ratio) / 100).toFixed(2);
             return {
-                date: row.date,
+                date: start ? shiftDate(start, index) : '',
                 channel: row.channel,
                 turnover: row.turnover.toFixed(2),
                 ratio: ratio.toFixed(2) + '%',
@@ -860,16 +1044,22 @@
         }, 0);
     }
 
+    /* 有门店付款中就挂在这笔上；没有则挂到最近一笔已完成，方便西湖这类只有已完成单的门店看到日结。 */
     function repayAnchorCode() {
-        var found = '';
-        storeDemands().some(function (item) {
-            if (item && item.status === '门店付款中') {
-                found = item.code;
-                return true;
+        var paying = '';
+        var doneCode = '';
+        var doneAt = '';
+        storeDemands().forEach(function (item) {
+            if (!item || !item.code) return;
+            if (item.status === '门店付款中' && !paying) paying = item.code;
+            if (item.status !== '已完成') return;
+            var at = String(item.updatedAt || item.createdAt || '');
+            if (!doneCode || at >= doneAt) {
+                doneCode = item.code;
+                doneAt = at;
             }
-            return false;
         });
-        return found;
+        return paying || doneCode;
     }
 
     /* 验收场景只改还款页看到的状态和每日明细，需求单列表仍是原状态。 */
@@ -1002,6 +1192,37 @@
             '</section>';
     }
 
+    function renderReceive() {
+        var api = window.RbtDemandData;
+        var item = api && typeof api.get === 'function' ? api.get(receiveCode) : null;
+        setHead('确认收货');
+        if (!item) return '<div class="rbt-h5-empty">需求单不存在</div>';
+        var rows = item.shipments || [];
+        var shipped = 0;
+        rows.forEach(function (row) { shipped += Number(String(row.amount || '').replace(/[¥,]/g, '')) || 0; });
+        var goods = Number(String(item.goodsAmount || '').replace(/[¥,]/g, '')) || 0;
+        var over = rows.length && shipped - goods > 0.001;
+        var voucher = item.supplementVoucher;
+        var supplement = over
+            ? '<section class="rbt-h5-card"><h2>补缴凭证</h2><p>' +
+                (voucher && voucher.name ? esc(voucher.name) : '待补缴') +
+                '</p><label class="rbt-h5-action" style="display:inline-block;">上传凭证<input type="file" accept="image/*,.pdf" data-store-supplement hidden></label></section>'
+            : '';
+        var list = rows.length
+            ? rows.map(function (row) {
+                var action = row.confirmed
+                    ? '<p>已确认 ' + esc(row.confirmQty || row.qty) + ' 件</p>'
+                    : '<button type="button" class="rbt-h5-action" data-confirm-recv="' + esc(row.id) + '">确认收货</button>';
+                return '<section class="rbt-h5-card"><h2>' + esc(row.name) + '</h2>' +
+                    '<p>发货数量 ' + esc(row.qty) + ' · 发货金额 ¥' + esc(row.amount) + '</p>' +
+                    '<p>物流单号 ' + esc(row.logisticsNo || '—') + '</p>' +
+                    action + '</section>';
+            }).join('')
+            : '<div class="rbt-h5-empty">还没有待确认的发货</div>';
+        return '<section class="rbt-h5-card"><h2>' + esc(item.packageName || item.code) + '</h2>' +
+            '<p>' + esc(item.code) + ' · ' + esc(item.status) + '</p></section>' + list + supplement;
+    }
+
     function renderMine() {
         setHead('我的');
         return '<section class="rbt-h5-card"><h2>' + esc(account && account.name ? account.name : '门店') + '</h2>' +
@@ -1016,7 +1237,7 @@
         var on = screen === 'home';
         if (phone) {
             phone.classList.toggle('is-home', on);
-            phone.classList.toggle('is-list', screen === 'list');
+            phone.classList.toggle('is-list', screen === 'list' || screen === 'detail');
             phone.classList.toggle('is-sku', screen === 'skus');
             phone.classList.toggle('is-confirm', screen === 'installment');
         }
@@ -1027,7 +1248,7 @@
     function backTarget() {
         if (screen === 'bill') return 'repay';
         if (screen === 'list') return 'home';
-        if (screen === 'packages' || screen === 'sign') return 'list';
+        if (screen === 'packages' || screen === 'sign' || screen === 'receive' || screen === 'detail') return 'list';
         if (screen === 'skus') return 'packages';
         if (screen === 'installment') return 'skus';
         return '';
@@ -1057,14 +1278,101 @@
         render();
     }
 
+    function closeRecvConfirm() {
+        document.querySelectorAll('[data-recv-confirm]').forEach(function (node) {
+            node.remove();
+        });
+    }
+
+    /* 详情里先确认商品已到货或服务已完成，再真正记收货。 */
+    function openRecvConfirm(shipId) {
+        var phone = document.getElementById('rbtH5Phone');
+        if (!phone || !shipId) return;
+        closeRecvConfirm();
+        var demand = null;
+        storeDemands().some(function (item) {
+            if (item && item.code === detailCode) {
+                demand = item;
+                return true;
+            }
+            return false;
+        });
+        var row = null;
+        ((demand && demand.shipments) || []).some(function (item) {
+            if (item && item.id === shipId) {
+                row = item;
+                return true;
+            }
+            return false;
+        });
+        var name = row && (row.name || row.skuCode) ? (row.name || row.skuCode) : '';
+        var mask = document.createElement('div');
+        mask.className = 'rbt-recv-mask';
+        mask.setAttribute('data-recv-confirm', '1');
+        mask.innerHTML = '<div class="rbt-recv-dialog" role="dialog" aria-modal="true">' +
+            '<p>请确认当前商品已到货或当前服务已完成</p>' +
+            (name ? '<p class="rbt-recv-dialog__name">' + esc(name) + '</p>' : '') +
+            '<div class="rbt-recv-dialog__actions">' +
+            '<button type="button" data-recv-cancel>取消</button>' +
+            '<button type="button" data-recv-ok>确认收货</button>' +
+            '</div></div>';
+        mask.addEventListener('click', function (event) {
+            if (event.target === mask || event.target.closest('[data-recv-cancel]')) {
+                closeRecvConfirm();
+                return;
+            }
+            if (event.target.closest('[data-recv-ok]')) {
+                closeRecvConfirm();
+                submitRecv(detailCode, shipId);
+            }
+        });
+        phone.appendChild(mask);
+    }
+
+    function submitRecv(code, shipId) {
+        var recvApi = window.RbtDemandData;
+        var recvResult = recvApi && recvApi.confirmReceipt(
+            code,
+            shipId,
+            account && (account.person || account.name)
+        );
+        if (recvResult && recvResult.ok && screen === 'detail') detailFocusShip = true;
+        toast(recvResult && recvResult.ok ? '已确认收货' : ((recvResult && recvResult.reason) || '不能确认'));
+        render();
+    }
+
+    function bindSupplement(scroll, code) {
+        var supplementFile = scroll && scroll.querySelector('[data-store-supplement]');
+        if (!supplementFile) return;
+        supplementFile.addEventListener('change', function () {
+            var file = supplementFile.files && supplementFile.files[0];
+            if (!file) return;
+            var reader = new FileReader();
+            reader.onload = function () {
+                var api = window.RbtDemandData;
+                var result = api && api.saveSupplement(code, {
+                    name: file.name,
+                    type: file.type,
+                    data: reader.result
+                }, account && (account.person || account.name));
+                if (result && result.ok) detailFocusShip = true;
+                toast(result && result.ok ? '补缴凭证已上传' : ((result && result.reason) || '上传失败'));
+                render();
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
     function render() {
         var scroll = document.getElementById('rbtH5Scroll');
         if (!scroll) return;
         syncHomeChrome();
         syncTabbar();
         syncHeadBack();
+        closeRecvConfirm();
+        scroll.style.paddingBottom = '';
         var createBar = document.getElementById('rbtH5Create');
-        if (createBar) createBar.hidden = screen !== 'list';
+        if (createBar) createBar.hidden = true;
         if (screen !== 'skus') fillSkuBar(null);
         fillPublishBar(screen === 'installment');
         if (screen === 'home') {
@@ -1154,6 +1462,11 @@
             fillPublishBar(true);
             return;
         }
+        if (screen === 'receive') {
+            scroll.innerHTML = renderReceive();
+            bindSupplement(scroll, receiveCode);
+            return;
+        }
         if (screen === 'sign') {
             setHead('合同签署');
             var signing = window.RbtDemandData && window.RbtDemandData.get(signCode);
@@ -1176,6 +1489,31 @@
         }
         if (tab === 'repay') {
             scroll.innerHTML = renderRepay();
+            return;
+        }
+        if (screen === 'detail') {
+            var currentDemand = null;
+            storeDemands().some(function (item) {
+                if (item.code === detailCode) {
+                    currentDemand = item;
+                    return true;
+                }
+                return false;
+            });
+            scroll.innerHTML = currentDemand
+                ? renderDemandDetail(currentDemand)
+                : '<div class="rbt-h5-empty">需求单不存在</div>';
+            scroll.scrollTop = 0;
+            if (currentDemand && detailFocusShip) {
+                scroll.style.paddingBottom = '70%';
+                var shipSection = document.getElementById('rbtDemandShip');
+                if (shipSection) {
+                    var shipTop = shipSection.getBoundingClientRect().top;
+                    var scrollerTop = scroll.getBoundingClientRect().top;
+                    scroll.scrollTop += shipTop - scrollerTop;
+                }
+            }
+            bindSupplement(scroll, detailCode);
             return;
         }
         setHead('需求列表');
@@ -1316,16 +1654,7 @@
             render();
             return;
         }
-        if (create) {
-            if (blockDemandCount()) return;
-            if (blockNoAvailableQuota()) return;
-            screen = 'packages';
-            packageCode = '';
-            clearPicked();
-            clearInstallmentChoice();
-            render();
-            return;
-        }
+        if (create) return;
         if (back) {
             screen = back.getAttribute('data-back');
             if (screen === 'packages') {
@@ -1363,6 +1692,7 @@
             return;
         }
         if (nextStep) {
+            if (blockUnpaidDeposit()) return;
             if (blockDemandCount()) return;
             if (blockNoAvailableQuota()) return;
             var nextPkg = findPackage(packageCode);
@@ -1410,11 +1740,29 @@
             var signResult = signApi && typeof signApi.signDemand === 'function'
                 ? signApi.signDemand(signedCode, { role: 'store', code: account && account.code, name: account && account.name }, confirmSign.getAttribute('data-contract-key'))
                 : { ok: false };
-            if (signResult && signResult.ok && signResult.done) toast('各方已完成签署，待贸易商付款');
+            if (signResult && signResult.ok && signResult.done) toast('各方已完成签署，系统已自动划款，需求进入发货中');
             else if (signResult && signResult.ok) toast('签署成功');
             else if (signResult && signResult.reason === 'signed') toast('你已签署');
             else toast('当前不能签署');
             render();
+            return;
+        }
+        var openShip = event.target.closest('[data-open-ship]');
+        if (openShip) {
+            detailCode = openShip.getAttribute('data-open-ship') || '';
+            detailFocusShip = true;
+            screen = 'detail';
+            render();
+            return;
+        }
+        var confirmRecv = event.target.closest('[data-confirm-recv]');
+        if (confirmRecv) {
+            var shipId = confirmRecv.getAttribute('data-confirm-recv') || '';
+            if (screen === 'detail') {
+                openRecvConfirm(shipId);
+                return;
+            }
+            submitRecv(receiveCode, shipId);
             return;
         }
         if (sign) {
@@ -1452,7 +1800,16 @@
             render();
             return;
         }
+        var demandCard = event.target.closest('[data-demand]');
+        if (demandCard && !event.target.closest('button')) {
+            detailCode = demandCard.getAttribute('data-demand') || '';
+            detailFocusShip = false;
+            screen = 'detail';
+            render();
+            return;
+        }
         if (publish) {
+            if (blockUnpaidDeposit()) return;
             if (blockDemandCount()) return;
             if (blockNoAvailableQuota()) return;
             var pkg = findPackage(packageCode);
@@ -1520,7 +1877,7 @@
                 repayPeriod: isRatioPay ? '' : String(repayPeriod),
                 settleRatios: publishRatios ? JSON.parse(JSON.stringify(publishRatios)) : [],
                 dailyAmount: publishDaily || '',
-                status: '待审核',
+                status: '待接单',
                 quotaHeld: false,
                 creator: publisher,
                 createdAt: publishAt,
@@ -1531,9 +1888,6 @@
             occupyDemandQuota(created);
             all.unshift(created);
             saveDemands(all);
-            if (window.RbtDemandData && typeof window.RbtDemandData.createAuditForDemand === 'function') {
-                window.RbtDemandData.createAuditForDemand(created);
-            }
             screen = 'list';
             packageCode = '';
             clearPicked();
