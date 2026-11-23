@@ -4123,6 +4123,18 @@
     "status": "diff",
     "date": "2026-11-11"
   },
+  "cf03d1d|RBT/rbt_h5_provider.html": {
+    "before": "changelog-assets/cf03d1d/RBT__rbt_h5_provider.html.before.jpg",
+    "after": "changelog-assets/cf03d1d/RBT__rbt_h5_provider.html.after.jpg",
+    "regions": 5,
+    "status": "diff",
+    "date": "2026-11-23"
+  },
+  "cf03d1d|RBT/rbt_h5_trader.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-23"
+  },
   "d513d74|RBT/rbt_daily_fulfill.html": {
     "before": "changelog-assets/d513d74/RBT__rbt_daily_fulfill.html.before.jpg",
     "after": "changelog-assets/d513d74/RBT__rbt_daily_fulfill.html.after.jpg",

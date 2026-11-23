@@ -1,10 +1,43 @@
 {
-  "latestSha": "d513d7484f0b88f90e1427ac491aec979b0a5c62",
-  "total": 627,
+  "latestSha": "cf03d1d9660209e3eca5563cea3ab6f646bbd410",
+  "total": 628,
   "days": [
     {
       "date": "2026-11-23",
       "items": [
+        {
+          "sha": "cf03d1d",
+          "type": "feat",
+          "text": "收款汇总吸顶，结款明细调整列顺序",
+          "author": "sisi",
+          "time": "11:08",
+          "pages": [
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "结款明细改为结款时间、金额、结款状态；顶部汇总改为浅色通栏，列表上移时吸在标题下"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "text": "结款明细列顺序和汇总吸顶与贸易商端对齐"
+            },
+            {
+              "file": null,
+              "text": "新增履约结款与风控说明，写上汇总吸顶和结款明细列顺序"
+            }
+          ]
+        },
         {
           "sha": "d513d74",
           "type": "feat",
