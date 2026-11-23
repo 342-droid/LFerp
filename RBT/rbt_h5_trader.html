@@ -97,6 +97,7 @@
         .rbt-h5-phone.is-login .rbt-h5-login-form { display: block; }
         .rbt-h5-phone.is-app .rbt-h5-app { display: flex; }
         .rbt-h5-scroll { flex: 1; min-height: 0; overflow: auto; padding: 12px 12px 16px; }
+        .rbt-h5-scroll.is-collect { padding: 0 0 16px; }
         .rbt-h5-phone.is-home .rbt-h5-phone__head { display: none; }
         .rbt-h5-phone.is-hall .rbt-h5-phone__head,
         .rbt-h5-phone.is-sign .rbt-h5-phone__head {
@@ -801,13 +802,14 @@
         .rbt-share__head,
         .rbt-share__row {
             display: grid;
-            grid-template-columns: 72px 64px minmax(0, 1fr);
+            grid-template-columns: minmax(0, 1.45fr) 84px 64px;
             align-items: center;
             gap: 8px;
         }
         .rbt-share__head { padding: 10px 0 4px; color: #999; font-size: 12px; }
         .rbt-share__head span:last-child,
-        .rbt-share__row > span { text-align: right; }
+        .rbt-share__row em { text-align: right; }
+        .rbt-share__row > span { white-space: nowrap; }
         .rbt-share__row { padding: 12px 0; border-top: 1px solid #f0f0f0; }
         .rbt-share__row b { color: #222; font-size: 15px; font-weight: 700; }
         .rbt-share__row span { color: #222; font-size: 13px; font-weight: 600; }
@@ -942,13 +944,28 @@
             background: transparent; color: #666; font-size: 14px; cursor: pointer;
         }
         .rbt-fund__tabs button.is-on { color: #ff7019; border-bottom-color: #ff7019; font-weight: 600; }
+        .rbt-h5-scroll.is-collect .rbt-fund__tabs { margin: 0; padding: 0 12px; background: #f7f7f7; }
+        .rbt-h5-scroll.is-collect .rbt-fund-card,
+        .rbt-h5-scroll.is-collect .rbt-h5-empty { margin-left: 12px; margin-right: 12px; }
+        .rbt-h5-scroll.is-collect .rbt-fund__summary + .rbt-fund-card,
+        .rbt-h5-scroll.is-collect .rbt-fund__summary + .rbt-h5-empty { margin-top: 12px; }
         .rbt-fund__summary {
-            display: flex; gap: 8px; margin: 0 0 8px; padding: 14px 12px;
-            border-radius: 12px; background: #fff; border: 1px solid #f0f0f0;
+            position: sticky;
+            top: 0;
+            z-index: 4;
+            margin: 0;
+            padding: 10px 16px 12px;
+            border: 0;
+            border-radius: 0;
+            background: #fff6f0;
+            box-shadow: 0 1px 0 #ffd8c2;
         }
-        .rbt-fund__summary div { flex: 1; min-width: 0; }
-        .rbt-fund__summary span { display: block; color: #888; font-size: 12px; }
-        .rbt-fund__summary b { display: block; margin-top: 6px; color: #222; font-size: 14px; font-weight: 700; white-space: nowrap; }
+        .rbt-fund__summary-name { margin: 0 0 8px; color: #ff7019; font-size: 12px; font-weight: 600; line-height: 1.2; }
+        .rbt-fund__summary-metrics { display: flex; gap: 8px; }
+        .rbt-fund__summary-metrics div { flex: 1; min-width: 0; }
+        .rbt-fund__summary span { display: block; color: #a35a32; font-size: 12px; }
+        .rbt-fund__summary b { display: block; margin-top: 4px; color: #222; font-size: 15px; font-weight: 700; white-space: nowrap; }
+        .rbt-fund__summary-metrics div:last-child b { color: #ff7019; }
         .rbt-fund-card {
             display: block; width: 100%; margin: 0 0 10px; padding: 14px 12px; border: 1px solid #f0f0f0;
             border-radius: 12px; background: #fff; text-align: left; cursor: pointer;
@@ -1036,7 +1053,7 @@
     <script src="rbt-daily-fulfill.js?v=20261123-manual-split"></script>
     <script src="rbt-contract-sign.js"></script>
     <script src="../js/contract-bodies.js?v=20261123-trader-read"></script>
-    <script src="rbt-h5-trader-app.js?v=20261123-manual-split"></script>
+    <script src="rbt-h5-trader-app.js?v=20261123-fund-summary"></script>
     <script src="rbt-h5-trader-login.js"></script>
 </body>
 </html>

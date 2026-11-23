@@ -394,11 +394,13 @@
             '<button type="button" data-collect-view="closed"' + (closed ? ' class="is-on"' : '') + '>已结束</button>' +
             '</div>' +
             '<div class="rbt-fund__summary">' +
+            '<p class="rbt-fund__summary-name">汇总</p>' +
+            '<div class="rbt-fund__summary-metrics">' +
             '<div><span>笔数</span><b>' + rows.length + '</b></div>' +
             '<div><span>应收</span><b>' + esc(receivable ? yuan(receivable) : '—') + '</b></div>' +
             '<div><span>已结款</span><b>' + esc(settled ? yuan(settled) : '未产生') + '</b></div>' +
             '<div><span>待结款</span><b>' + esc(pending ? yuan(pending) : (closed ? '无' : '未产生')) + '</b></div>' +
-            '</div>' +
+            '</div></div>' +
             (rows.length ? rows.map(function (item) {
                 var fund = fundOf(item);
                 var tagClass = item.status === '已完成' ? ' is-done' : (item.status === '已作废' || item.status === '已驳回' ? ' is-off' : '');
@@ -597,12 +599,13 @@
         ];
         var shares = fund.shares.slice().reverse();
         var detail = shares.length
-            ? '<div class="rbt-share__head"><span>金额</span><span>结款状态</span><span>结款时间</span></div>' +
+            ? '<div class="rbt-share__head"><span>结款时间</span><span>金额</span><span>结款状态</span></div>' +
                 shares.map(function (row) {
                     var pendingRow = row.stage === 'pending';
-                    return '<div class="rbt-share__row"><b>' + esc(yuan(row.amount)) + '</b><em class="' +
-                        (pendingRow ? '' : 'is-due') + '">' + (pendingRow ? '待结款' : '已结款') + '</em><span>' +
-                        esc(pendingRow ? '-' : (row.kind === 'manual' ? (paidClock(row.time) || settleClock(row.date)) : settleClock(row.date))) + '</span></div>';
+                    return '<div class="rbt-share__row"><span>' +
+                        esc(pendingRow ? '-' : (row.kind === 'manual' ? (paidClock(row.time) || settleClock(row.date)) : settleClock(row.date))) +
+                        '</span><b>' + esc(yuan(row.amount)) + '</b><em class="' +
+                        (pendingRow ? '' : 'is-due') + '">' + (pendingRow ? '待结款' : '已结款') + '</em></div>';
                 }).join('')
             : '<p class="rbt-bill__empty">暂无结款明细</p>';
         return '<section class="rbt-bill__head">' +
@@ -632,6 +635,7 @@
     function render() {
         var scroll = document.getElementById('rbtH5Scroll');
         if (!scroll || !account) return;
+        scroll.classList.toggle('is-collect', tab === 'hall' && screen === 'collect');
         closeContract();
         syncHomeChrome();
         syncHeadBack();
