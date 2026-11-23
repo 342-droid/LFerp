@@ -815,6 +815,28 @@
         .rbt-share__row span { color: #222; font-size: 13px; font-weight: 600; }
         .rbt-share__row em { font-style: normal; color: #ff7019; font-size: 13px; font-weight: 600; }
         .rbt-share__row em.is-due { color: #52c41a; }
+        .rbt-ops__note { margin: 4px 0 10px; color: #888; font-size: 12px; line-height: 1.55; }
+        .rbt-ops { margin: 0 0 10px; padding: 12px; border: 1px solid #f0f0f0; border-radius: 12px; background: #fff; }
+        .rbt-ops__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .rbt-ops__head b { color: #222; font-size: 14px; font-weight: 600; }
+        .rbt-ops__head em { font-style: normal; color: #ff7019; font-size: 12px; font-weight: 600; }
+        .rbt-ops__head em.is-due { color: #52c41a; }
+        .rbt-ops__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; margin-top: 10px; }
+        .rbt-ops__grid span,
+        .rbt-ops__foot span { min-width: 0; }
+        .rbt-ops__grid i,
+        .rbt-ops__foot i { display: block; color: #888; font-style: normal; font-size: 12px; font-weight: 400; }
+        .rbt-ops__grid b,
+        .rbt-ops__foot b { display: block; margin-top: 2px; color: #222; font-size: 13px; font-weight: 600; }
+        .rbt-ops__foot {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #f3f3f3;
+        }
+        .rbt-ops__foot b.is-mine { color: #ff7019; font-size: 16px; }
         .rbt-bill__line {
             display: flex;
             justify-content: space-between;
@@ -1053,7 +1075,7 @@
     <script src="rbt-daily-fulfill.js?v=20261123-manual-split"></script>
     <script src="rbt-contract-sign.js"></script>
     <script src="../js/contract-bodies.js?v=20261123-trader-read"></script>
-    <script src="rbt-h5-trader-app.js?v=20261123-fund-summary"></script>
+    <script src="rbt-h5-trader-app.js?v=20261123-manual-label"></script>
     <script src="rbt-h5-trader-login.js"></script>
 </body>
 </html>

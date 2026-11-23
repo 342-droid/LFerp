@@ -287,8 +287,27 @@
         var rows = daily && typeof daily.payeeSplit === 'function' ? daily.payeeSplit(item) : [];
         if (!rows.length) return { total: '', pending: '', shares: [] };
         var latest = '';
+        var facts = {};
+        if (typeof daily.daysOf === 'function') {
+            daily.daysOf(item).forEach(function (row) {
+                if (row && row.id) facts[row.id] = row;
+            });
+        }
         var shares = rows.map(function (row) {
-            return { date: row.date, time: row.time || '', channel: row.channel, kind: row.kind || '', amount: row.trader };
+            var fact = facts[row.id] || {};
+            var manual = row.kind === 'manual';
+            return {
+                date: row.date,
+                time: row.time || fact.time || '',
+                channel: row.channel,
+                kind: row.kind || '',
+                amount: row.trader,
+                turnover: manual ? '' : (fact.turnover || ''),
+                commission: manual ? '' : (fact.commission || ''),
+                ratio: manual ? '' : (fact.ratio || ''),
+                actual: fact.actual || fact.due || '',
+                payMethod: fact.payMethod || ''
+            };
         }).filter(function (row) {
             if (row.kind !== 'manual') return true;
             return Math.round(Number(row.amount) * 100) > 0;
@@ -572,6 +591,48 @@
         return Number(matched[2]) + '月' + Number(matched[3]) + '日 ' + matched[4];
     }
 
+    function monthDay(date) {
+        var parts = String(date || '').split('-');
+        if (parts.length < 3) return date || '—';
+        return Number(parts[1]) + '月' + Number(parts[2]) + '日';
+    }
+
+    function shareChannel(row) {
+        if (row && row.kind === 'manual') return '手动履约';
+        return (row && row.channel) || '—';
+    }
+
+    function opsMoney(value) {
+        if (value == null || value === '' || value === '—') return '—';
+        return yuan(value);
+    }
+
+    function opsFact(label, value) {
+        return '<span><i>' + esc(label) + '</i><b>' + esc(value) + '</b></span>';
+    }
+
+    function renderShareCards(shares) {
+        return '<p class="rbt-ops__note">当日实际履行 = 所得佣金 × 渠道结算比例。我的结款是这笔实际履行按贸易商结算系数拆出的份额。</p>' +
+            shares.map(function (row) {
+                var pendingRow = row.stage === 'pending';
+                var when = pendingRow ? '-' : (row.kind === 'manual' ? (paidClock(row.time) || settleClock(row.date)) : settleClock(row.date));
+                return '<article class="rbt-ops">' +
+                    '<header class="rbt-ops__head"><b>' + esc(monthDay(row.date) + ' · ' + shareChannel(row)) + '</b>' +
+                    '<em class="' + (pendingRow ? '' : 'is-due') + '">' + (pendingRow ? '待结款' : '已结款') + '</em></header>' +
+                    '<div class="rbt-ops__grid">' +
+                    opsFact('营业流水', opsMoney(row.turnover)) +
+                    opsFact('所得佣金', opsMoney(row.commission)) +
+                    opsFact('结算比例', row.ratio || '—') +
+                    opsFact('当日实际履行', opsMoney(row.actual)) +
+                    opsFact('支付方式', row.payMethod || '—') +
+                    '</div>' +
+                    '<footer class="rbt-ops__foot">' +
+                    '<span><i>结款时间</i><b>' + esc(when) + '</b></span>' +
+                    '<span><i>我的结款</i><b class="is-mine">' + esc(yuan(row.amount)) + '</b></span>' +
+                    '</footer></article>';
+            }).join('');
+    }
+
     function settleClock(date) {
         var parts = String(date || '').split('-');
         if (parts.length < 3) return '';
@@ -599,14 +660,7 @@
         ];
         var shares = fund.shares.slice().reverse();
         var detail = shares.length
-            ? '<div class="rbt-share__head"><span>结款时间</span><span>金额</span><span>结款状态</span></div>' +
-                shares.map(function (row) {
-                    var pendingRow = row.stage === 'pending';
-                    return '<div class="rbt-share__row"><span>' +
-                        esc(pendingRow ? '-' : (row.kind === 'manual' ? (paidClock(row.time) || settleClock(row.date)) : settleClock(row.date))) +
-                        '</span><b>' + esc(yuan(row.amount)) + '</b><em class="' +
-                        (pendingRow ? '' : 'is-due') + '">' + (pendingRow ? '待结款' : '已结款') + '</em></div>';
-                }).join('')
+            ? renderShareCards(shares)
             : '<p class="rbt-bill__empty">暂无结款明细</p>';
         return '<section class="rbt-bill__head">' +
             '<div class="rbt-bill__top"><span class="rbt-bill__code">' + esc(item.code) + '</span><span class="rbt-bill__tag">' +
