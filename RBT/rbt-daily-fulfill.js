@@ -6,7 +6,15 @@
         { date: '2026-11-09', channel: '商城', turnover: 310 },
         { date: '2026-11-10', channel: 'POS', turnover: 980 },
         { date: '2026-11-11', channel: '直播', turnover: 560 },
-        { date: '2026-11-12', channel: '商城', turnover: 240 }
+        { date: '2026-11-12', channel: '商城', turnover: 240 },
+        /* 签完合同后继续发生的营业日，便于贸易商按时段／单日查看 */
+        { date: '2026-11-13', channel: 'POS', turnover: 720 },
+        { date: '2026-11-14', channel: '直播', turnover: 380 },
+        { date: '2026-11-15', channel: '商城', turnover: 290 },
+        { date: '2026-11-16', channel: 'POS', turnover: 850 },
+        { date: '2026-11-18', channel: '直播', turnover: 410 },
+        { date: '2026-11-20', channel: '商城', turnover: 265 },
+        { date: '2026-11-22', channel: 'POS', turnover: 690 }
     ];
     /* 演示：所得佣金 = 当日营业流水 × 10%，与门店佣金明细里常见的门店佣金比例一致。 */
     var COMMISSION_RATE = 0.1;
