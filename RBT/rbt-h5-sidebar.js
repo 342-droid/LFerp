@@ -9,6 +9,7 @@
     const isHome = pageName === 'rbt_h5_index' || pageName === '';
     const isStore = pageName === 'rbt_h5_store';
     const isTrader = pageName === 'rbt_h5_trader';
+    const isProvider = pageName === 'rbt_h5_provider';
 
     const sidebarContainer = document.getElementById('sidebar-container');
     if (!sidebarContainer) {
@@ -38,6 +39,12 @@
         '<a href="' + pageHref('rbt_h5_trader.html') + '" class="menu-link' + (isTrader ? ' active' : '') + '">' +
         '<img src="' + assetHref('image/基础信息.svg') + '" alt="" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
         '<span>贸易商端</span>' +
+        '</a>' +
+        '</li>' +
+        '<li class="menu-item">' +
+        '<a href="' + pageHref('rbt_h5_provider.html') + '" class="menu-link' + (isProvider ? ' active' : '') + '">' +
+        '<img src="' + assetHref('image/基础信息.svg') + '" alt="" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
+        '<span>服务商端</span>' +
         '</a>' +
         '</li>' +
         '</ul>' +

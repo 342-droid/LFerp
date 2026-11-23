@@ -1,7 +1,7 @@
 /* 风控配置：阈值写入本地，异常履约数据和首页按保存后的规则评级。 */
 (function () {
     var api = window.RbtRisk;
-    var fields = ['watchStreak', 'warnStreak', 'badStreak', 'watchCover', 'warnCover', 'badCover', 'watchAlert', 'warnAlert', 'badAlert'];
+    var fields = ['progressStartDays', 'watchStreak', 'warnStreak', 'badStreak', 'watchJoin', 'warnJoin', 'badJoin', 'watchProgress', 'warnProgress', 'badProgress', 'watchAlert', 'warnAlert', 'badAlert'];
 
     function showError(message) {
         var node = document.getElementById('rbtRiskError');
@@ -43,6 +43,9 @@
         showError('');
     });
     document.getElementById('rbtRiskConfigForm').addEventListener('input', function () {
+        showError('');
+    });
+    document.getElementById('rbtRiskConfigForm').addEventListener('change', function () {
         showError('');
     });
     document.getElementById('rbtRiskCancel').addEventListener('click', function () {

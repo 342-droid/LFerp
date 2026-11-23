@@ -49,20 +49,20 @@
             <hr class="content-divider">
 
             <div class="mdm-biz-tip rbt-risk-tip" role="note">
-                只按<strong>已发生日期</strong>评级。当日<strong>实际履行</strong>低于<strong>应履行</strong>记为未履行。应履行 = 所得佣金 × 该渠道结算比例。两个条件同时满足时取更重的等级。未发生的日期不参与，也不预造差额。
+                只按<strong>已发生日期</strong>评级。当日<strong>实际履行</strong>为 0，从这一天起往前连续计数。日均履行进度 = 累计履行进度 ÷ 已履约天数。未满起算天数不看日均。每档按风控配置选<strong>或</strong>、<strong>且</strong>。多档同时命中时取更重的等级。未发生的日期不参与。
             </div>
 
             <div class="rbt-risk-cards" id="rbtRiskCards"></div>
 
             <section class="rbt-risk-block">
                 <h3>当前履约中</h3>
-                <p class="rbt-risk-note">按每日履行台账计算。实际履行已经达到应履行的，等级是正常，不发异常提醒。</p>
+                <p class="rbt-risk-note">剩余履行额 = 总金额 − 已履行金额。日均履行进度按每日履行台账和本单应收计算。未达到关注条件的，等级是正常，不发异常提醒。</p>
                 <table class="rbt-risk-table">
                     <thead>
                         <tr>
                             <th>门店</th><th>需求单号</th><th>连续未履行天数</th>
-                            <th>应履行</th><th>实际履行</th><th>未履行差额</th>
-                            <th>履行覆盖率</th><th>履约风险等级</th><th>最近未履行日期</th>
+                            <th>应履行</th><th>实际履行</th><th>剩余履行额</th>
+                            <th>日均履行进度</th><th>履约风险等级</th><th>最近未履行日期</th>
                         </tr>
                     </thead>
                     <tbody id="rbtRiskLive"></tbody>
@@ -73,12 +73,12 @@
 
             <section class="rbt-risk-block">
                 <h3>持续未履行时</h3>
-                <p class="rbt-risk-note">下面用当前履约单最近一个已发生日期的应履行做单位，看连续未履行会落到哪一档。这是评级样例，不改每日履行里的实际履行。</p>
+                <p class="rbt-risk-note">前三行沿用当前履约单已经发生的履行金额，只看连续天数会落到哪一档。最后一行是日均履行进度低于异常线、并且已经满起算天数。这是评级样例，不改每日履行里的实际履行。</p>
                 <table class="rbt-risk-table">
                     <thead>
                         <tr>
                             <th>情景</th><th>连续未履行天数</th><th>应履行</th><th>实际履行</th>
-                            <th>未履行差额</th><th>履行覆盖率</th><th>履约风险等级</th><th>异常提醒</th>
+                            <th>剩余履行额</th><th>日均履行进度</th><th>履约风险等级</th><th>异常提醒</th>
                         </tr>
                     </thead>
                     <tbody id="rbtRiskScenes"></tbody>
@@ -125,7 +125,7 @@
             document.getElementById('rbtRiskLive').innerHTML = live.length ? live.map(function (row) {
                 return '<tr><td>' + esc(row.storeName) + '</td><td><button type="button" class="rbt-risk-link" data-demand="' + esc(row.demandCode) + '">' + esc(row.demandCode) + '</button></td>' +
                     '<td>' + esc(row.streak) + '</td><td class="is-money">' + yuan(row.due) + '</td><td class="is-money">' + yuan(row.actual) + '</td>' +
-                    '<td class="is-money">' + yuan(row.gap) + '</td><td>' + esc(row.cover) + '</td><td>' + tag(row.grade) + '</td><td>' + esc(row.lastMiss) + '</td></tr>';
+                    '<td class="is-money">' + yuan(row.gap) + '</td><td>' + esc(row.progress) + '</td><td>' + tag(row.grade) + '</td><td>' + esc(row.lastMiss) + '</td></tr>';
             }).join('') : '<tr><td class="is-empty" colspan="9">暂无履约中的需求</td></tr>';
 
             var alerts = live.filter(function (row) { return row.grade !== '正常'; });
@@ -134,11 +134,11 @@
                     alerts.map(function (row) {
                         return '<tr><td>' + tag(row.grade) + '</td><td>' + esc(row.alert) + '</td></tr>';
                     }).join('') + '</tbody></table>'
-                : '<p class="rbt-risk-empty">暂无异常提醒。当前履约中的实际履行都已达到应履行。</p>';
+                : '<p class="rbt-risk-empty">暂无异常提醒。当前履约中的需求都未达到关注条件。</p>';
 
             document.getElementById('rbtRiskScenes').innerHTML = api.scenarios().map(function (row) {
                 return '<tr><td>' + esc(row.name) + '</td><td>' + esc(row.streak) + '</td><td class="is-money">' + yuan(row.due) + '</td>' +
-                    '<td class="is-money">' + yuan(row.actual) + '</td><td class="is-money">' + yuan(row.gap) + '</td><td>' + esc(row.cover) + '</td>' +
+                    '<td class="is-money">' + yuan(row.actual) + '</td><td class="is-money">' + yuan(row.gap) + '</td><td>' + esc(row.progress) + '</td>' +
                     '<td>' + tag(row.grade) + '</td><td>' + esc(row.alert) + '</td></tr>';
             }).join('');
 

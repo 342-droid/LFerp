@@ -133,6 +133,16 @@
         return '<div class="rbt-demand-table-wrap"><table class="rbt-demand-table"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>';
     }
 
+    /* 履约详情里同一角色的应收、已结款合成一组：上面角色名，下面左应收、右已结款。 */
+    function ensureAmountGroupStyle() {
+        if (document.getElementById('rbtAmountGroupStyle')) return;
+        var node = document.createElement('style');
+        node.id = 'rbtAmountGroupStyle';
+        node.textContent = '.rbt-demand-table th.rbt-amount-group{text-align:center;}' +
+            '.rbt-demand-table thead th[rowspan]{vertical-align:middle;}';
+        document.head.appendChild(node);
+    }
+
     function amountTable(item, performance) {
         var settled = performance ? settledOf(item) : null;
         var roles = [
@@ -145,16 +155,33 @@
             money(item && item.serviceFee),
             money(item && item.amount)
         ];
-        var head = '<tr><th class="is-money">商品金额</th><th class="is-money">服务费</th><th class="is-money">总金额</th>';
-        roles.forEach(function (role) {
-            head += '<th class="is-money">' + role[0] + '应收</th>';
-            cells.push(money(receivableOf(item, role[1])));
-            if (settled) {
-                head += '<th class="is-money">' + role[0] + '已结款</th>';
+        var head;
+        if (settled) {
+            ensureAmountGroupStyle();
+            head = '<tr>' +
+                '<th class="is-money" rowspan="2">商品金额</th>' +
+                '<th class="is-money" rowspan="2">服务费</th>' +
+                '<th class="is-money" rowspan="2">总金额</th>' +
+                roles.map(function (role) {
+                    return '<th class="rbt-amount-group" colspan="2">' + role[0] + '</th>';
+                }).join('') +
+                '</tr><tr>' +
+                roles.map(function () {
+                    return '<th class="is-money">应收</th><th class="is-money">已结款</th>';
+                }).join('') +
+                '</tr>';
+            roles.forEach(function (role) {
+                cells.push(money(receivableOf(item, role[1])));
                 cells.push(money(settled[role[1]]));
-            }
-        });
-        head += '</tr>';
+            });
+        } else {
+            head = '<tr><th class="is-money">商品金额</th><th class="is-money">服务费</th><th class="is-money">总金额</th>';
+            roles.forEach(function (role) {
+                head += '<th class="is-money">' + role[0] + '应收</th>';
+                cells.push(money(receivableOf(item, role[1])));
+            });
+            head += '</tr>';
+        }
         var body = '<tr>' + cells.map(function (value) {
             return '<td class="is-money">' + esc(value) + '</td>';
         }).join('') + '</tr>';
@@ -661,8 +688,18 @@
 
     function displayStatus(item, performance) {
         var status = item && item.status;
-        if (performance && window.RbtDailyFulfill && typeof window.RbtDailyFulfill.phaseLabel === 'function') {
-            return window.RbtDailyFulfill.phaseLabel(status);
+        var daily = window.RbtDailyFulfill;
+        if (performance && daily && typeof daily.phaseOf === 'function') {
+            var remain = null;
+            if (typeof daily.performanceFact === 'function' && window.RbtRisk && typeof window.RbtRisk.assessDays === 'function') {
+                var fact = daily.performanceFact(item, window.RbtRisk.assessDays(
+                    typeof daily.daysOf === 'function' ? daily.daysOf(item) : [],
+                    typeof window.RbtRisk.receivableOf === 'function' ? window.RbtRisk.receivableOf(item) : 0,
+                    item && item.amount
+                ));
+                remain = fact && fact.gap;
+            }
+            return daily.phaseOf(item, remain);
         }
         return status || '—';
     }
@@ -677,69 +714,75 @@
         var shares = api && typeof api.payeeSplit === 'function' ? api.payeeSplit(item) : [];
         var shareByKey = {};
         shares.forEach(function (share) {
-            shareByKey[share.date + ':' + share.channel] = share;
+            shareByKey[share.id || (share.date + ':' + share.channel)] = share;
         });
         var partyCents = { trader: 0, lengfeng: 0, provider: 0 };
         var body = rows.length
             ? rows.map(function (row) {
-                var share = shareByKey[row.date + ':' + row.channel] || { trader: '0.00', lengfeng: '0.00', provider: '0.00' };
+                var share = shareByKey[row.id] || shareByKey[row.date + ':' + row.channel] || { trader: '0.00', lengfeng: '0.00', provider: '0.00' };
                 partyCents.trader += Math.round((Number(share.trader) || 0) * 100);
                 partyCents.lengfeng += Math.round((Number(share.lengfeng) || 0) * 100);
                 partyCents.provider += Math.round((Number(share.provider) || 0) * 100);
                 return (
                     '<tr><td>' + esc(row.date) + '</td><td>' + esc(row.channel) +
-                    '</td><td class="is-money">¥' + esc(row.turnover) +
-                    '</td><td class="is-money">¥' + esc(row.commission) +
+                    '</td><td class="is-money">' + esc(row.turnover ? ('¥' + row.turnover) : '—') +
+                    '</td><td class="is-money">' + esc(row.commission ? ('¥' + row.commission) : '—') +
                     '</td><td>' + esc(row.ratio) +
                     '</td><td class="is-money">¥' + esc(row.due) +
                     '</td><td class="is-money">¥' + esc(row.actual) +
+                    '</td><td>' + esc(row.payMethod || (api && api.autoPayMethod) || '营业收入自动扣款') +
                     '</td><td class="is-money">¥' + esc(share.trader) +
                     '</td><td class="is-money">¥' + esc(share.lengfeng) +
                     '</td><td class="is-money">¥' + esc(share.provider) + '</td></tr>'
                 );
             }).join('')
-            : '<tr><td class="is-empty" colspan="10">暂无已发生的每日履行。</td></tr>';
+            : '<tr><td class="is-empty" colspan="11">暂无已发生的每日履行。</td></tr>';
         return (
             '<div class="supplier-detail-tab">' +
             '<p class="rbt-daily-note">本单已经发生的每日履行。一行是一天、一个渠道。应履行 = 所得佣金 × 该渠道结算比例。当日实际履行按贸易商、冷丰、服务商应收占比拆成三方收款，三笔之和等于当日实际履行。没有服务商时，服务商收款为 0。未发生的日期不出现。' +
             '<a class="rbt-daily-note__more" href="rbt_daily_fulfill.html">全部门店每日履行</a></p>' +
-            dailySummary(rows, partyCents) +
+            dailySummary(item, rows, partyCents) +
             '<div class="supplier-detail-section-title">每日明细</div>' +
             '<div class="rbt-demand-table-wrap"><table class="rbt-demand-table"><thead><tr>' +
             '<th>日期</th><th>渠道</th><th class="is-money">营业流水</th><th class="is-money">所得佣金</th><th>结算比例</th>' +
-            '<th class="is-money">应履行</th><th class="is-money">实际履行</th>' +
+            '<th class="is-money">应履行</th><th class="is-money">实际履行</th><th>支付方式</th>' +
             '<th class="is-money">贸易商收款</th><th class="is-money">冷丰收款</th><th class="is-money">服务商收款</th>' +
             '</tr></thead><tbody>' + body + '</tbody></table></div></div>'
         );
     }
 
-    /* 履行汇总与履约列表、首页同一口径：只加总已经发生的日期。 */
-    function dailySummary(rows, partyCents) {
+    /* 履行汇总与履约列表、首页同一口径：剩余履行额 = 总金额 − 已履行金额。日均履行进度 = 累计履行进度 ÷ 已履约天数。 */
+    function dailySummary(item, rows, partyCents) {
         var risk = window.RbtRisk;
+        var base = risk && typeof risk.receivableOf === 'function' ? risk.receivableOf(item) : 0;
         var fact = risk && typeof risk.assessDays === 'function'
-            ? risk.assessDays(rows)
-            : { due: '0.00', actual: '0.00', gap: '0.00', cover: '—', grade: '—' };
+            ? risk.assessDays(rows, base, item && item.amount)
+            : { due: '0.00', actual: '0.00', gap: '0.00', progress: '—', grade: '—' };
+        if (window.RbtDailyFulfill && typeof window.RbtDailyFulfill.performanceFact === 'function') {
+            fact = window.RbtDailyFulfill.performanceFact(item, fact);
+        }
         var grades = { '正常': 1, '关注': 1, '预警': 1, '异常': 1 };
         var grade = fact.grade && grades[fact.grade]
             ? '<span class="rbt-risk-tag is-' + fact.grade + '">' + esc(fact.grade) + '</span>'
             : esc(fact.grade || '—');
         var cells = [
+            money(item && item.amount),
             money(fact.due),
             money(fact.actual),
             money(fact.gap),
-            fact.cover || '—',
+            fact.progress || '—',
             null,
             money(partyCents.trader / 100),
             money(partyCents.lengfeng / 100),
             money(partyCents.provider / 100)
         ];
-        var titles = ['应履行', '已履行金额', '未履行差额', '履行覆盖率', '履约风险等级', '贸易商收款', '冷丰收款', '服务商收款'];
+        var titles = ['总金额', '应履行', '已履行金额', '剩余履行额', '日均履行进度', '履约风险等级', '贸易商收款', '冷丰收款', '服务商收款'];
         var head = '<tr>' + titles.map(function (title, index) {
-            return '<th' + (index === 3 || index === 4 ? '' : ' class="is-money"') + '>' + title + '</th>';
+            return '<th' + (index === 4 || index === 5 ? '' : ' class="is-money"') + '>' + title + '</th>';
         }).join('') + '</tr>';
         var body = '<tr>' + cells.map(function (value, index) {
-            if (index === 4) return '<td>' + grade + '</td>';
-            var moneyCell = index !== 3;
+            if (index === 5) return '<td>' + grade + '</td>';
+            var moneyCell = index !== 4;
             return '<td' + (moneyCell ? ' class="is-money"' : '') + '>' + esc(value) + '</td>';
         }).join('') + '</tr>';
         return '<div class="supplier-detail-section-title">履行汇总</div>' +

@@ -6,14 +6,177 @@
         { date: '2026-11-09', channel: '商城', turnover: 310 },
         { date: '2026-11-10', channel: 'POS', turnover: 980 },
         { date: '2026-11-11', channel: '直播', turnover: 560 },
-        { date: '2026-11-12', channel: '商城', turnover: 240 }
+        { date: '2026-11-12', channel: '商城', turnover: 240 },
+        /* 签完合同后继续发生的营业日，便于贸易商按时段／单日查看 */
+        { date: '2026-11-13', channel: 'POS', turnover: 720 },
+        { date: '2026-11-14', channel: '直播', turnover: 380 },
+        { date: '2026-11-15', channel: '商城', turnover: 290 },
+        { date: '2026-11-16', channel: 'POS', turnover: 850 },
+        { date: '2026-11-18', channel: '直播', turnover: 410 },
+        { date: '2026-11-20', channel: '商城', turnover: 265 },
+        { date: '2026-11-22', channel: 'POS', turnover: 690 }
     ];
     /* 演示：所得佣金 = 当日营业流水 × 10%，与门店佣金明细里常见的门店佣金比例一致。 */
     var COMMISSION_RATE = 0.1;
+    /* 每日履行从营业收入里扣，支付方式固定为这一句。计算来源仍说明金额怎么算，不改成支付方式。 */
+    var AUTO_PAY_METHOD = '营业收入自动扣款';
 
     function phaseLabel(status) {
         if (status === '门店付款中' || status === '还款中') return '履约中';
         return status || '—';
+    }
+
+    /* 手动履约按笔记录。不再读旧的汇总金额，那笔汇总会把两张原型需求都结成已完成。 */
+    var MANUAL_ROW_KEY = 'rbt_h5_store_manual_rows_v1';
+    var SETTLED_KEY = 'rbt_fulfill_settled_v1';
+
+    function readJson(key) {
+        try {
+            var raw = global.localStorage.getItem(key);
+            var map = raw ? JSON.parse(raw) : {};
+            return map && typeof map === 'object' ? map : {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function amountOf(value) {
+        var num = Number(String(value == null ? '' : value).replace(/,/g, '').replace(/^¥/, ''));
+        return isFinite(num) ? num : 0;
+    }
+
+    function manualKey(storeCode, code) {
+        return String(storeCode || '') + '|' + String(code || '');
+    }
+
+    /* 门店原型固定带一笔已支付成功的一键履约，每日履行打开就能看到。已有手动记录时不重复补。 */
+    var DEMO_MANUAL = {
+        storeCode: 'ONS00001',
+        code: 'XQ00024',
+        at: '2026-11-23 09:18:26',
+        cents: 10000,
+        channel: '支付宝'
+    };
+
+    function ensureDemoManual() {
+        var map = readJson(MANUAL_ROW_KEY);
+        var key = manualKey(DEMO_MANUAL.storeCode, DEMO_MANUAL.code);
+        var list = Array.isArray(map[key]) ? map[key].filter(Boolean) : [];
+        if (list.length) return;
+        map[key] = [{
+            at: DEMO_MANUAL.at,
+            cents: DEMO_MANUAL.cents,
+            channel: DEMO_MANUAL.channel
+        }];
+        try { global.localStorage.setItem(MANUAL_ROW_KEY, JSON.stringify(map)); } catch (e) {}
+    }
+
+    function manualRowsOf(storeCode, code) {
+        ensureDemoManual();
+        var list = readJson(MANUAL_ROW_KEY)[manualKey(storeCode, code)];
+        return Array.isArray(list) ? list.filter(Boolean) : [];
+    }
+
+    function manualCents(storeCode, code) {
+        return manualRowsOf(storeCode, code).reduce(function (sum, row) {
+            var cents = Math.round(Number(row && row.cents));
+            return sum + (isFinite(cents) ? cents : 0);
+        }, 0);
+    }
+
+    function appendManual(storeCode, code, record) {
+        if (!code || !record) return;
+        var cents = Math.round(Number(record.cents));
+        if (!isFinite(cents) || cents <= 0) return;
+        var map = readJson(MANUAL_ROW_KEY);
+        var key = manualKey(storeCode, code);
+        var list = Array.isArray(map[key]) ? map[key].slice() : [];
+        list.push({
+            at: record.at || '',
+            cents: cents,
+            channel: record.channel || '支付宝'
+        });
+        map[key] = list;
+        try { global.localStorage.setItem(MANUAL_ROW_KEY, JSON.stringify(map)); } catch (e) {}
+    }
+
+    function manualLedgerRows(item) {
+        if (!item) return [];
+        return manualRowsOf(item.storeCode, item.code).map(function (row, index) {
+            var cents = Math.round(Number(row.cents)) || 0;
+            var amount = (cents / 100).toFixed(2);
+            return {
+                id: item.code + ':manual:' + index + ':' + (row.at || ''),
+                date: String(row.at || '').slice(0, 10),
+                time: row.at || '',
+                storeCode: item.storeCode || '',
+                storeName: item.storeName || '',
+                demandCode: item.code,
+                channel: '手动履约',
+                turnover: '',
+                commission: '',
+                ratio: '—',
+                due: amount,
+                actual: amount,
+                payMethod: row.channel || '支付宝',
+                source: '手动履约',
+                kind: 'manual'
+            };
+        });
+    }
+
+    function isSettled(code) {
+        return !!readJson(SETTLED_KEY)[code];
+    }
+
+    function markSettled(code, done) {
+        if (!code) return;
+        var map = readJson(SETTLED_KEY);
+        var next = !!done;
+        if (!!map[code] === next) return;
+        if (next) map[code] = 1;
+        else delete map[code];
+        try { global.localStorage.setItem(SETTLED_KEY, JSON.stringify(map)); } catch (e) {}
+    }
+
+    /* 剩余履行额为 0，或门店端已把这笔结清：履约阶段为已完成。 */
+    function phaseOf(item, remain) {
+        if (!item) return '—';
+        if (item.status === '已完成') return '已完成';
+        if (item.status === '门店付款中' || item.status === '还款中') {
+            if (remain != null && amountOf(remain) <= 0) return '已完成';
+            if ((remain == null || amountOf(remain) <= 0) && isSettled(item.code)) return '已完成';
+            return '履约中';
+        }
+        return phaseLabel(item.status);
+    }
+
+    /* 已履行加上门店手动支付。结清后剩余履行额为 0，已履行金额等于总金额。 */
+    function performanceFact(item, fact) {
+        var base = fact || {};
+        var total = amountOf(item && item.amount);
+        var actual = amountOf(base.actual);
+        var gap = Math.max(0, Math.round((total - actual) * 100) / 100);
+        if (item && isSettled(item.code) && gap > 0) markSettled(item.code, false);
+        var settled = !!(item && (item.status === '已完成' || gap <= 0));
+        if (settled) {
+            return {
+                due: base.due || '0.00',
+                actual: money(total),
+                gap: '0.00',
+                progress: '—',
+                grade: '—',
+                phase: '已完成'
+            };
+        }
+        return {
+            due: base.due || '0.00',
+            actual: money(actual),
+            gap: money(gap),
+            progress: base.progress || '—',
+            grade: base.grade || '—',
+            phase: phaseLabel(item && item.status)
+        };
     }
 
     function inPerformance(status) {
@@ -49,9 +212,9 @@
     }
 
     function daysOf(item) {
-        if (!item || (item.status !== '门店付款中' && item.status !== '还款中') || item.repayMethod !== '比例付') return [];
+        if (!item || (item.status !== '门店付款中' && item.status !== '还款中' && item.status !== '已完成') || item.repayMethod !== '比例付') return [];
         var scale = scaleOf(item.code);
-        return FACTS.map(function (fact) {
+        var auto = FACTS.map(function (fact) {
             var turnover = Math.round(fact.turnover * scale * 100) / 100;
             var commission = Math.round(turnover * COMMISSION_RATE * 100) / 100;
             var ratio = channelRatio(item, fact.channel);
@@ -68,9 +231,11 @@
                 ratio: ratio.toFixed(2) + '%',
                 due: money(due),
                 actual: money(due),
+                payMethod: AUTO_PAY_METHOD,
                 source: '获准营业事实'
             };
         });
+        return auto.concat(manualLedgerRows(item));
     }
 
     function rows(onlyActive) {
@@ -103,9 +268,8 @@
         return Math.round(num * 100);
     }
 
-    /* 当日实际履行按贸易商、冷丰、服务商应收占比拆成三方收款。各日之和等于履约详情里的已结款，一行三笔之和等于当日实际履行。 */
-    function payeeSplit(item) {
-        var days = daysOf(item);
+    /* 把一组履行额按贸易商、冷丰、服务商应收占比拆开。应收来自产品结算系数。一行三笔之和等于该行实际履行。 */
+    function allocateShares(item, days) {
         var keys = ['trader', 'lengfeng', 'provider'];
         var api = global.RbtDemandData;
         var pack = api && typeof api.receivables === 'function' ? api.receivables(item) : null;
@@ -166,12 +330,34 @@
                 keys.forEach(function (key) { remaining[key] -= parts[key]; });
             }
             return {
+                id: row.id,
                 date: row.date,
+                time: row.time || '',
                 channel: row.channel,
+                kind: row.kind || '',
                 trader: (parts.trader / 100).toFixed(2),
                 lengfeng: (parts.lengfeng / 100).toFixed(2),
                 provider: (parts.provider / 100).toFixed(2)
             };
+        });
+    }
+
+    /* 营业流水按原口径整段拆。一键履约单独按结算系数拆，不把尾差挤进这笔手动履约。 */
+    function payeeSplit(item) {
+        var days = daysOf(item);
+        var auto = [];
+        var manual = [];
+        days.forEach(function (row) {
+            if (row && row.kind === 'manual') manual.push(row);
+            else auto.push(row);
+        });
+        var autoShares = allocateShares(item, auto);
+        var manualShares = manual.map(function (row) { return allocateShares(item, [row])[0]; });
+        var autoIndex = 0;
+        var manualIndex = 0;
+        return days.map(function (row) {
+            if (row && row.kind === 'manual') return manualShares[manualIndex++];
+            return autoShares[autoIndex++];
         });
     }
 
@@ -184,10 +370,10 @@
             if (!item || !inPerformance(item.status)) return;
             var shares = {};
             payeeSplit(item).forEach(function (share) {
-                shares[share.date + ':' + share.channel] = share;
+                shares[share.id || (share.date + ':' + share.channel)] = share;
             });
             daysOf(item).forEach(function (row) {
-                var share = shares[row.date + ':' + row.channel] || { trader: '0.00', lengfeng: '0.00', provider: '0.00' };
+                var share = shares[row.id] || shares[row.date + ':' + row.channel] || { trader: '0.00', lengfeng: '0.00', provider: '0.00' };
                 out.push({
                     id: row.id,
                     date: row.date,
@@ -213,7 +399,15 @@
     }
 
     global.RbtDailyFulfill = {
+        autoPayMethod: AUTO_PAY_METHOD,
+        manualCents: manualCents,
+        manualRows: manualLedgerRows,
+        appendManual: appendManual,
         phaseLabel: phaseLabel,
+        phaseOf: phaseOf,
+        isSettled: isSettled,
+        markSettled: markSettled,
+        performanceFact: performanceFact,
         inPerformance: inPerformance,
         money: money,
         daysOf: daysOf,

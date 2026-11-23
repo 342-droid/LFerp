@@ -31,7 +31,7 @@
 
     function statusType(status) {
         if (status === '已完成') return 'success';
-        if (status === '门店付款中') return 'warning';
+        if (status === '门店付款中' || status === '履约中' || status === '还款中') return 'warning';
         return '';
     }
 
@@ -39,17 +39,21 @@
         return blank(value) ? '—' : ('¥' + value);
     }
 
-    /* 与首页履约风险同一口径：已发生日期的实际履行合计、应履行减实际履行、覆盖率和等级。 */
+    /* 与首页履约风险同一口径：已履行金额、剩余履行额 = 总金额 − 已履行金额、日均履行进度和等级。 */
     function withRisk(row) {
         var days = dailyApi && typeof dailyApi.daysOf === 'function' ? dailyApi.daysOf(row) : [];
-        var fact = window.RbtRisk && typeof window.RbtRisk.assessDays === 'function'
-            ? window.RbtRisk.assessDays(days)
-            : { actual: '', gap: '', cover: '—', grade: '—' };
+        var risk = window.RbtRisk;
+        var base = risk && typeof risk.receivableOf === 'function' ? risk.receivableOf(row) : 0;
+        var fact = risk && typeof risk.assessDays === 'function'
+            ? risk.assessDays(days, base, row.amount)
+            : { actual: '', gap: '', progress: '—', grade: '—' };
+        if (dailyApi && typeof dailyApi.performanceFact === 'function') fact = dailyApi.performanceFact(row, fact);
         return Object.assign({}, row, {
             fulfilledAmount: fact.actual,
             fulfillGap: fact.gap,
-            fulfillCover: fact.cover,
-            riskGrade: fact.grade
+            fulfillProgress: fact.progress,
+            riskGrade: fact.grade,
+            fulfillPhase: fact.phase || phase(row.status)
         });
     }
 
@@ -75,8 +79,8 @@
                 { dataIndex: 'accountNoQuery', title: '收款账户', hideInTable: true, search: { control: 'input' } },
                 { dataIndex: 'amount', title: '总金额', minWidth: 120, formatter: function (row) { return blank(row.amount) ? '—' : ('¥' + row.amount); } },
                 { dataIndex: 'fulfilledAmount', title: '已履行金额', minWidth: 120, align: 'right', formatter: function (row) { return yuan(row.fulfilledAmount); } },
-                { dataIndex: 'fulfillGap', title: '未履行差额', minWidth: 120, align: 'right', formatter: function (row) { return yuan(row.fulfillGap); } },
-                { dataIndex: 'fulfillCover', title: '履行覆盖率', minWidth: 110 },
+                { dataIndex: 'fulfillGap', title: '剩余履行额', minWidth: 120, align: 'right', formatter: function (row) { return yuan(row.fulfillGap); } },
+                { dataIndex: 'fulfillProgress', title: '日均履行进度', minWidth: 120 },
                 {
                     dataIndex: 'riskGrade',
                     title: '履约风险等级',
@@ -120,9 +124,12 @@
                     if (!includesText(row.providerName, params.providerName)) return false;
                     if (!payeeHit(row, 'accountName', params.accountNameQuery)) return false;
                     if (!payeeHit(row, 'accountNo', params.accountNoQuery)) return false;
-                    if (!blank(params.status) && row.status !== params.status) return false;
                     return true;
                 }).map(withRisk).filter(function (row) {
+                    if (!blank(params.status)) {
+                        var want = params.status === '已完成' ? '已完成' : '履约中';
+                        if (row.fulfillPhase !== want) return false;
+                    }
                     if (!blank(params.riskGrade) && row.riskGrade !== params.riskGrade) return false;
                     return true;
                 });

@@ -334,15 +334,302 @@
       });
   }
 
+  /** 演示「今天」；与门店一键履约演示日对齐 */
+  var DEMO_AS_OF = '2026-11-23';
+
+  function numOf(value) {
+    var n = Number(String(value == null ? '' : value).replace(/,/g, '').replace(/^¥/, ''));
+    return isFinite(n) ? n : 0;
+  }
+
+  function demandEnded(demand) {
+    var s = String((demand && demand.status) || '');
+    return s === '已完成' || s === '已作废' || s === '已驳回';
+  }
+
+  /** 经营拆分渠道：仅 POS／直播／商城；手动履约不计入渠道营业额与收入 */
+  var BIZ_CHANNELS = [
+    { id: 'POS', label: 'POS' },
+    { id: '直播', label: '直播' },
+    { id: '商城', label: '商城' }
+  ];
+
+  function normalizeBizChannel(channel) {
+    var name = String(channel || '').trim();
+    if (name === 'POS' || name === '直播' || name === '商城') return name;
+    return '';
+  }
+
+  function emptyChannelPack() {
+    var pack = {};
+    BIZ_CHANNELS.forEach(function (ch) {
+      pack[ch.id] = { turnover: 0, credit: 0 };
+    });
+    return pack;
+  }
+
+  function ymdOf(raw) {
+    var m = String(raw || '').match(/(\d{4}-\d{2}-\d{2})/);
+    return m ? m[1] : '';
+  }
+
+  /* 签完合同日：取已签合同各方签署日的最晚一天；没有则退到支付日。 */
+  function contractDoneDate(demand) {
+    var api = global.RbtDemandData;
+    var latest = '';
+    if (api && typeof api.signContracts === 'function') {
+      api.signContracts(demand).forEach(function (contract) {
+        if (!contract || contract.signStatus !== '已签署') return;
+        (contract.parties || []).forEach(function (party) {
+          var day = ymdOf(party && party.signedAt);
+          if (day && day > latest) latest = day;
+        });
+      });
+    }
+    if (latest) return latest;
+    return ymdOf(demand && demand.paidAt);
+  }
+
+  function clampDay(day, from, to) {
+    var d = ymdOf(day);
+    if (!d) return '';
+    if (from && d < from) return from;
+    if (to && d > to) return to;
+    return d;
+  }
+
+  /**
+   * 收款单据 · 门店经营情况（本笔）
+   * 营业额＝POS／直播／商城渠道营业流水；收入＝同渠道拆给贸易商的结款份额。
+   * 可查区间：签完合同 → 已结单（履约中截至演示当日）；已结束后冻结，不再并入后续。
+   * opts.rangeMode=overview|custom；opts.from/to 自定义；opts.focusDate 点选单日。
+   */
+  function buildCollectStoreBiz(demand, opts) {
+    opts = opts || {};
+    var daily = global.RbtDailyFulfill;
+    var emptyChannels = BIZ_CHANNELS.map(function (ch) {
+      return {
+        id: ch.id,
+        label: ch.label,
+        turnoverTotal: null,
+        creditTotal: null,
+        focusTurnover: null,
+        focusCredit: null,
+        series: []
+      };
+    });
+    var empty = {
+      ready: false,
+      frozen: false,
+      rangeMode: 'overview',
+      windowFrom: '',
+      windowTo: '',
+      from: '',
+      to: '',
+      storeCode: (demand && demand.storeCode) || '',
+      storeName: (demand && demand.storeName) || '',
+      turnoverTotal: null,
+      creditTotal: null,
+      focusLabel: '当日',
+      focusDate: '',
+      focusTurnover: null,
+      focusCredit: null,
+      focusChannels: emptyChannels.map(function (ch) {
+        return {
+          id: ch.id,
+          label: ch.label,
+          turnover: null,
+          credit: null
+        };
+      }),
+      channels: emptyChannels,
+      series: [],
+      tip: '本笔尚未进入履约，暂无门店经营数据'
+    };
+    if (!demand || !demand.code) return empty;
+    var status = String(demand.status || '');
+    if (status !== '门店付款中' && status !== '还款中' && status !== '已完成') {
+      return empty;
+    }
+    var facts = daily && typeof daily.daysOf === 'function' ? daily.daysOf(demand) : [];
+    var splits = daily && typeof daily.payeeSplit === 'function' ? daily.payeeSplit(demand) : [];
+    var byDate = {};
+    function ensureDate(date) {
+      if (!byDate[date]) byDate[date] = emptyChannelPack();
+      return byDate[date];
+    }
+    facts.forEach(function (row) {
+      if (!row || !row.date || row.kind === 'manual') return;
+      var ch = normalizeBizChannel(row.channel);
+      if (!ch) return;
+      ensureDate(row.date)[ch].turnover = round2(ensureDate(row.date)[ch].turnover + numOf(row.turnover));
+    });
+    splits.forEach(function (row) {
+      if (!row || !row.date || row.kind === 'manual') return;
+      var ch = normalizeBizChannel(row.channel);
+      if (!ch) return;
+      ensureDate(row.date)[ch].credit = round2(ensureDate(row.date)[ch].credit + numOf(row.trader));
+    });
+    var allDates = Object.keys(byDate).sort();
+    var frozen = demandEnded(demand);
+    var dataEnd = allDates.length ? allDates[allDates.length - 1] : '';
+    var windowFrom = contractDoneDate(demand) || (allDates[0] || '');
+    var windowTo = frozen ? dataEnd || windowFrom : DEMO_AS_OF;
+    if (windowFrom && windowTo && windowFrom > windowTo) windowFrom = windowTo;
+    var rangeMode = opts.rangeMode === 'custom' ? 'custom' : 'overview';
+    var from = rangeMode === 'custom' ? clampDay(opts.from || windowFrom, windowFrom, windowTo) : windowFrom;
+    var to = rangeMode === 'custom' ? clampDay(opts.to || windowTo, windowFrom, windowTo) : windowTo;
+    if (from && to && from > to) {
+      var swap = from;
+      from = to;
+      to = swap;
+    }
+    var dates = allDates.filter(function (d) {
+      if (from && d < from) return false;
+      if (to && d > to) return false;
+      return true;
+    });
+    var series = dates.map(function (date) {
+      var pack = byDate[date] || emptyChannelPack();
+      var turnover = 0;
+      var credit = 0;
+      var channels = {};
+      BIZ_CHANNELS.forEach(function (ch) {
+        var cell = pack[ch.id] || { turnover: 0, credit: 0 };
+        channels[ch.id] = {
+          turnover: round2(cell.turnover),
+          credit: round2(cell.credit)
+        };
+        turnover = round2(turnover + cell.turnover);
+        credit = round2(credit + cell.credit);
+      });
+      return { date: date, turnover: turnover, credit: credit, channels: channels };
+    });
+    var channelTotals = {};
+    BIZ_CHANNELS.forEach(function (ch) {
+      channelTotals[ch.id] = { turnover: 0, credit: 0 };
+    });
+    series.forEach(function (row) {
+      BIZ_CHANNELS.forEach(function (ch) {
+        var cell = row.channels[ch.id] || { turnover: 0, credit: 0 };
+        channelTotals[ch.id].turnover = round2(channelTotals[ch.id].turnover + cell.turnover);
+        channelTotals[ch.id].credit = round2(channelTotals[ch.id].credit + cell.credit);
+      });
+    });
+    var turnoverTotal = round2(
+      BIZ_CHANNELS.reduce(function (sum, ch) {
+        return sum + channelTotals[ch.id].turnover;
+      }, 0)
+    );
+    var creditTotal = round2(
+      BIZ_CHANNELS.reduce(function (sum, ch) {
+        return sum + channelTotals[ch.id].credit;
+      }, 0)
+    );
+    var picked = clampDay(opts.focusDate, from, to);
+    var focusDate = picked;
+    var focusLabel = picked ? '单日' : rangeMode === 'custom' ? '时段合计' : frozen ? '结束日' : '当日';
+    var focusRow = null;
+    if (picked) {
+      series.forEach(function (row) {
+        if (row.date === picked) focusRow = row;
+      });
+      if (!focusRow) {
+        focusRow = {
+          date: picked,
+          turnover: 0,
+          credit: 0,
+          channels: emptyChannelPack()
+        };
+      }
+    } else if (!frozen && rangeMode === 'overview') {
+      focusDate = DEMO_AS_OF;
+      focusLabel = '当日';
+      series.forEach(function (row) {
+        if (row.date === focusDate) focusRow = row;
+      });
+    }
+    if (!picked && !focusRow && series.length) {
+      focusRow = series[series.length - 1];
+      focusDate = focusRow.date;
+      focusLabel = frozen ? '结束日' : rangeMode === 'custom' ? '时段末日' : '最近营业日';
+    }
+    if (!picked && rangeMode === 'custom' && series.length) {
+      /* 自定义时段默认看合计，明细区展示时段末日拆分，点图可改单日 */
+      focusLabel = '时段末日';
+    }
+    var channels = BIZ_CHANNELS.map(function (ch) {
+      var total = channelTotals[ch.id];
+      var chSeries = series.map(function (row) {
+        var cell = row.channels[ch.id] || { turnover: 0, credit: 0 };
+        return { date: row.date, turnover: cell.turnover, credit: cell.credit };
+      });
+      var focusCell =
+        focusRow && focusRow.channels && focusRow.channels[ch.id]
+          ? focusRow.channels[ch.id]
+          : { turnover: 0, credit: 0 };
+      return {
+        id: ch.id,
+        label: ch.label,
+        turnoverTotal: series.length ? total.turnover : null,
+        creditTotal: series.length ? total.credit : null,
+        focusTurnover: focusRow ? focusCell.turnover : null,
+        focusCredit: focusRow ? focusCell.credit : null,
+        series: chSeries
+      };
+    });
+    var rangeTip =
+      '可查看 ' +
+      (windowFrom || '—') +
+      ' 至 ' +
+      (windowTo || '—') +
+      ' 的经营数据，营业额与收入按 POS、直播、商城分别展示。支持查看整体情况或选择日期范围，点击趋势图可查看当日数据。';
+    return {
+      ready: true,
+      hasSeries: series.length > 0,
+      frozen: frozen,
+      rangeMode: rangeMode,
+      windowFrom: windowFrom,
+      windowTo: windowTo,
+      from: from,
+      to: to,
+      storeCode: demand.storeCode || '',
+      storeName: demand.storeName || '',
+      turnoverTotal: series.length ? turnoverTotal : 0,
+      creditTotal: series.length ? creditTotal : 0,
+      focusLabel: focusLabel,
+      focusDate: focusDate || '',
+      focusTurnover: focusRow ? focusRow.turnover : null,
+      focusCredit: focusRow ? focusRow.credit : null,
+      focusChannels: channels.map(function (ch) {
+        return {
+          id: ch.id,
+          label: ch.label,
+          turnover: ch.focusTurnover,
+          credit: ch.focusCredit
+        };
+      }),
+      channels: channels,
+      series: series,
+      tip: frozen
+        ? rangeTip + '需求已结束，经营数据已冻结，不再跟踪后续营业与收入。'
+        : rangeTip
+    };
+  }
+
   global.RbtTraderStoreBiz = {
     money: money,
     round2: round2,
+    DEMO_AS_OF: DEMO_AS_OF,
+    BIZ_CHANNELS: BIZ_CHANNELS,
     DAILY_PREVIEW: DAILY_PREVIEW,
     isSignedComplete: isSignedComplete,
     shouldShowJvModule: shouldShowJvModule,
     overviewReadyForDemand: overviewReadyForDemand,
+    demandEnded: demandEnded,
     buildStoreOverview: buildStoreOverview,
     buildDemandJv: buildDemandJv,
+    buildCollectStoreBiz: buildCollectStoreBiz,
     listVisibleStores: listVisibleStores,
     RANGE_OPTIONS: [
       { id: '30d', label: '近30天' },

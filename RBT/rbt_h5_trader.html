@@ -97,6 +97,7 @@
         .rbt-h5-phone.is-login .rbt-h5-login-form { display: block; }
         .rbt-h5-phone.is-app .rbt-h5-app { display: flex; }
         .rbt-h5-scroll { flex: 1; min-height: 0; overflow: auto; padding: 12px 12px 16px; }
+        .rbt-h5-scroll.is-collect { padding: 0 0 16px; }
         .rbt-h5-phone.is-home .rbt-h5-phone__head { display: none; }
         .rbt-h5-phone.is-hall .rbt-h5-phone__head,
         .rbt-h5-phone.is-sign .rbt-h5-phone__head {
@@ -758,9 +759,9 @@
         .rbt-repay-row__side span { display: block; margin-top: 6px; color: #999; font-size: 12px; }
         .rbt-repay-row__side.is-done b { color: #52c41a; }
         .rbt-bill__head {
-            margin: 0 -12px 12px;
+            margin: -12px -12px 0;
             padding: 8px 16px 16px;
-            background: #1677ff;
+            background: #ff7019;
             color: #fff;
         }
         .rbt-bill__top { display: flex; justify-content: space-between; align-items: center; }
@@ -773,8 +774,254 @@
         }
         .rbt-bill__label { margin: 18px 0 0; text-align: center; font-size: 13px; opacity: .9; }
         .rbt-bill__amt { margin: 6px 0 14px; text-align: center; font-size: 32px; font-weight: 700; }
+        .rbt-bill__stats { display: flex; gap: 8px; }
+        .rbt-bill__stats div { flex: 1; min-width: 0; text-align: center; }
+        .rbt-bill__stats span { display: block; font-size: 12px; opacity: .85; }
+        .rbt-bill__stats b { display: block; margin-top: 4px; font-size: 13px; font-weight: 600; }
+        .rbt-bill-tabs { display: flex; margin: 12px 0 0; border-bottom: 1px solid #eee; }
+        .rbt-bill-tabs button {
+            flex: 1;
+            height: 40px;
+            border: 0;
+            border-bottom: 2px solid transparent;
+            background: transparent;
+            color: #666;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .rbt-bill-tabs button.is-on { color: #ff7019; border-bottom-color: #ff7019; font-weight: 600; }
         .rbt-bill__sheet { padding: 4px 0 12px; }
-        .rbt-bill__sheet h3 { margin: 0 0 8px; font-size: 15px; color: #222; }
+        .rbt-bill__sheet--blank {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 180px;
+            padding: 24px 28px;
+        }
+        .rbt-bill__empty { margin: 0; color: #c0c4cc; font-size: 13px; line-height: 1.6; text-align: center; }
+        .rbt-share__head,
+        .rbt-share__row {
+            display: grid;
+            grid-template-columns: minmax(0, 1.45fr) 84px 64px;
+            align-items: center;
+            gap: 8px;
+        }
+        .rbt-share__head { padding: 10px 0 4px; color: #999; font-size: 12px; }
+        .rbt-share__head span:last-child,
+        .rbt-share__row em { text-align: right; }
+        .rbt-share__row > span { white-space: nowrap; }
+        .rbt-share__row { padding: 12px 0; border-top: 1px solid #f0f0f0; }
+        .rbt-share__row b { color: #222; font-size: 15px; font-weight: 700; }
+        .rbt-share__row span { color: #222; font-size: 13px; font-weight: 600; }
+        .rbt-share__row em { font-style: normal; color: #ff7019; font-size: 13px; font-weight: 600; }
+        .rbt-share__row em.is-due { color: #52c41a; }
+        .rbt-ops__note { margin: 4px 0 10px; color: #888; font-size: 12px; line-height: 1.55; }
+        .rbt-ops { margin: 0 0 10px; padding: 12px; border: 1px solid #f0f0f0; border-radius: 12px; background: #fff; }
+        .rbt-ops__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .rbt-ops__head b { color: #222; font-size: 14px; font-weight: 600; }
+        .rbt-ops__head em { font-style: normal; color: #ff7019; font-size: 12px; font-weight: 600; }
+        .rbt-ops__head em.is-due { color: #52c41a; }
+        .rbt-ops__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; margin-top: 10px; }
+        .rbt-ops__grid span,
+        .rbt-ops__foot span { min-width: 0; }
+        .rbt-ops__grid i,
+        .rbt-ops__foot i { display: block; color: #888; font-style: normal; font-size: 12px; font-weight: 400; }
+        .rbt-ops__grid b,
+        .rbt-ops__foot b { display: block; margin-top: 2px; color: #222; font-size: 13px; font-weight: 600; }
+        .rbt-ops__foot {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #f3f3f3;
+        }
+        .rbt-ops__foot b.is-mine { color: #ff7019; font-size: 16px; }
+        .rbt-biz { padding-top: 2px; }
+        .rbt-biz-range { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
+        .rbt-biz-window { margin: 0 0 10px; color: #888; font-size: 12px; line-height: 1.5; }
+        .rbt-biz-dates {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 8px;
+            align-items: end;
+            margin: 0 0 10px;
+        }
+        .rbt-biz-dates label {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            color: #888;
+            font-size: 12px;
+        }
+        .rbt-biz-dates input {
+            width: 100%;
+            height: 34px;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 0 8px;
+            color: #222;
+            font-size: 13px;
+            background: #fff;
+        }
+        .rbt-biz-apply {
+            height: 34px;
+            border: 0;
+            border-radius: 8px;
+            padding: 0 12px;
+            background: #ff7019;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .rbt-biz-clear {
+            border: 0;
+            padding: 0;
+            background: transparent;
+            color: #ff7019;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .rbt-biz-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin: 0 0 10px;
+        }
+        .rbt-biz-summary div,
+        .rbt-biz-channel {
+            padding: 12px;
+            border: 1px solid #f0f0f0;
+            border-radius: 12px;
+            background: #fff;
+        }
+        .rbt-biz-summary span,
+        .rbt-biz-channel span { display: block; color: #888; font-size: 12px; }
+        .rbt-biz-summary b,
+        .rbt-biz-channel b { display: block; margin-top: 4px; color: #222; font-size: 16px; font-weight: 700; }
+        .rbt-biz-channels {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .rbt-biz-channel header {
+            margin-bottom: 8px;
+            color: #222;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .rbt-biz-channel div + div { margin-top: 8px; }
+        .rbt-biz-focus {
+            margin-bottom: 12px;
+            padding: 12px;
+            border-radius: 12px;
+            background: #fff7f0;
+        }
+        .rbt-biz-focus > header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 8px;
+            color: #222;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .rbt-biz-focus > header i {
+            font-style: normal;
+            color: #ff7019;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .rbt-biz-focus__total {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 8px;
+            color: #555;
+            font-size: 12px;
+        }
+        .rbt-biz-focus__total b { color: #222; font-size: 14px; }
+        .rbt-biz-focus__ch {
+            display: grid;
+            grid-template-columns: 40px 1fr 1fr;
+            gap: 6px;
+            padding-top: 6px;
+            border-top: 1px dashed #f0d7c2;
+            color: #666;
+            font-size: 12px;
+        }
+        .rbt-biz-focus__ch + .rbt-biz-focus__ch { margin-top: 6px; }
+        .rbt-biz-focus__ch em { font-style: normal; color: #222; font-weight: 600; }
+        .rbt-biz-curve__head {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .rbt-biz-curve__head strong { color: #222; font-size: 14px; }
+        .rbt-biz-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+        .rbt-biz-chip {
+            border: 1px solid #e8e8e8;
+            border-radius: 999px;
+            padding: 4px 10px;
+            background: #fff;
+            color: #666;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .rbt-biz-chip.is-on {
+            border-color: #ff7019;
+            background: #fff7f0;
+            color: #ff7019;
+            font-weight: 600;
+        }
+        .rbt-biz-chart {
+            padding: 8px 4px 4px;
+            border: 1px solid #f0f0f0;
+            border-radius: 12px;
+            background: #fff;
+        }
+        .rbt-biz-chart--empty {
+            padding: 28px 12px;
+            color: #c0c4cc;
+            font-size: 13px;
+            text-align: center;
+        }
+        .rbt-biz-chart svg { display: block; width: 100%; height: auto; }
+        .rbt-biz-chart text { fill: #999; font-size: 9px; }
+        .rbt-biz-chart__line { stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .rbt-biz-chart__line.is-turnover { stroke: #ff7019; }
+        .rbt-biz-chart__line.is-credit { stroke: #2f6bff; }
+        .rbt-biz-chart__hit { cursor: pointer; }
+        .rbt-biz-chart__hot { fill: transparent; }
+        .rbt-biz-chart__dot.is-turnover { fill: #ff7019; stroke: #fff; stroke-width: 1; }
+        .rbt-biz-chart__dot.is-credit { fill: #2f6bff; stroke: #fff; stroke-width: 1; }
+        .rbt-biz-chart__hit.is-on .rbt-biz-chart__dot { stroke: #222; stroke-width: 1.5; }
+        .rbt-biz-chart__hint { margin: 6px 0 0; color: #999; font-size: 11px; text-align: center; }
+        .rbt-biz-chart__legend {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 4px;
+            color: #666;
+            font-size: 12px;
+        }
+        .rbt-biz-chart__legend span::before {
+            content: '';
+            display: inline-block;
+            width: 10px;
+            height: 2px;
+            margin-right: 6px;
+            vertical-align: middle;
+            border-radius: 1px;
+            background: currentColor;
+        }
+        .rbt-biz-chart__legend .is-turnover { color: #ff7019; }
+        .rbt-biz-chart__legend .is-credit { color: #2f6bff; }
         .rbt-bill__line {
             display: flex;
             justify-content: space-between;
@@ -785,6 +1032,118 @@
         }
         .rbt-bill__line span { flex: none; color: #888; white-space: nowrap; }
         .rbt-bill__line b { flex: 1; min-width: 0; color: #222; font-weight: 600; text-align: right; overflow-wrap: break-word; }
+        .rbt-bill__line b:has(.rbt-bill__contract) { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+        .rbt-bill__contract {
+            border: 0;
+            padding: 0;
+            background: transparent;
+            color: #222;
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1.4;
+            text-align: right;
+            cursor: pointer;
+        }
+        .rbt-contract {
+            position: absolute;
+            inset: 0;
+            z-index: 56;
+            display: flex;
+            flex-direction: column;
+            background: #f5f6f8;
+        }
+        .rbt-contract[hidden] { display: none; }
+        .rbt-contract__bar {
+            position: relative;
+            flex: none;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            color: #222;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .rbt-contract__bar button {
+            position: absolute;
+            left: 4px;
+            top: 8px;
+            width: 32px;
+            height: 32px;
+            border: 0;
+            background: transparent;
+            color: #222;
+            font-size: 22px;
+            line-height: 1;
+            cursor: pointer;
+        }
+        .rbt-contract__body { flex: 1; min-height: 0; overflow: auto; padding: 12px; }
+        .rbt-contract__meta { margin: 0 0 10px; color: #888; font-size: 12px; line-height: 1.5; }
+        .rbt-contract__paper {
+            margin: 0;
+            padding: 16px 14px 28px;
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: #222;
+            font-size: 14px;
+            line-height: 1.85;
+        }
+        .rbt-contract__sign { position: relative; display: block; min-height: 28px; padding-right: 108px; }
+        .rbt-contract__seal {
+            position: absolute;
+            right: 0;
+            top: -18px;
+            width: 96px;
+            height: 96px;
+            transform: rotate(-8deg);
+            pointer-events: none;
+            line-height: 1;
+        }
+        .rbt-contract__seal svg { display: block; width: 96px; height: 96px; }
+        .rbt-contract__side {
+            margin-top: 12px;
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .rbt-contract__side h3 { margin: 0; padding: 14px 14px 6px; color: #222; font-size: 15px; font-weight: 700; }
+        .rbt-contract__side-line { display: flex; gap: 12px; padding: 7px 14px; font-size: 13px; line-height: 1.5; }
+        .rbt-contract__side-line span { flex: 0 0 64px; color: #888; }
+        .rbt-contract__side-line b { flex: 1; min-width: 0; color: #222; font-weight: 500; word-break: break-all; }
+        .rbt-contract__dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            margin-right: 6px;
+            border-radius: 50%;
+            background: #52c41a;
+            vertical-align: 1px;
+        }
+        .rbt-contract__signer { margin-top: 8px; padding-top: 4px; border-top: 1px solid #f0f0f0; }
+        .rbt-contract__signer-top,
+        .rbt-contract__signer-who {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 6px 14px;
+            font-size: 13px;
+        }
+        .rbt-contract__signer-top { color: #8c8c8c; }
+        .rbt-contract__signer-top span:first-child {
+            color: #1677ff;
+            font-weight: 600;
+            padding-left: 8px;
+            border-left: 3px solid #1677ff;
+            line-height: 1;
+        }
+        .rbt-contract__signer-who b { color: #222; font-weight: 600; }
+        .rbt-contract__signer-who em { font-style: normal; color: #52c41a; }
         .rbt-fund { padding: 0 0 12px; }
         .rbt-fund__tabs { display: flex; margin: 0 0 12px; border-bottom: 1px solid #eee; }
         .rbt-fund__tabs button {
@@ -792,14 +1151,28 @@
             background: transparent; color: #666; font-size: 14px; cursor: pointer;
         }
         .rbt-fund__tabs button.is-on { color: #ff7019; border-bottom-color: #ff7019; font-weight: 600; }
+        .rbt-h5-scroll.is-collect .rbt-fund__tabs { margin: 0; padding: 0 12px; background: #f7f7f7; }
+        .rbt-h5-scroll.is-collect .rbt-fund-card,
+        .rbt-h5-scroll.is-collect .rbt-h5-empty { margin-left: 12px; margin-right: 12px; }
+        .rbt-h5-scroll.is-collect .rbt-fund__summary + .rbt-fund-card,
+        .rbt-h5-scroll.is-collect .rbt-fund__summary + .rbt-h5-empty { margin-top: 12px; }
         .rbt-fund__summary {
-            display: flex; gap: 8px; margin: 0 0 8px; padding: 14px 12px;
-            border-radius: 12px; background: #fff; border: 1px solid #f0f0f0;
+            position: sticky;
+            top: 0;
+            z-index: 4;
+            margin: 0;
+            padding: 10px 16px 12px;
+            border: 0;
+            border-radius: 0;
+            background: #fff6f0;
+            box-shadow: 0 1px 0 #ffd8c2;
         }
-        .rbt-fund__summary div { flex: 1; min-width: 0; }
-        .rbt-fund__summary span { display: block; color: #888; font-size: 12px; }
-        .rbt-fund__summary b { display: block; margin-top: 6px; color: #222; font-size: 16px; font-weight: 700; overflow-wrap: anywhere; }
-        .rbt-fund__note { margin: 0 0 12px; color: #999; font-size: 12px; line-height: 1.6; }
+        .rbt-fund__summary-name { margin: 0 0 8px; color: #ff7019; font-size: 12px; font-weight: 600; line-height: 1.2; }
+        .rbt-fund__summary-metrics { display: flex; gap: 8px; }
+        .rbt-fund__summary-metrics div { flex: 1; min-width: 0; }
+        .rbt-fund__summary span { display: block; color: #a35a32; font-size: 12px; }
+        .rbt-fund__summary b { display: block; margin-top: 4px; color: #222; font-size: 15px; font-weight: 700; white-space: nowrap; }
+        .rbt-fund__summary-metrics div:last-child b { color: #ff7019; }
         .rbt-fund-card {
             display: block; width: 100%; margin: 0 0 10px; padding: 14px 12px; border: 1px solid #f0f0f0;
             border-radius: 12px; background: #fff; text-align: left; cursor: pointer;
@@ -871,6 +1244,7 @@
                         </form>
                         <div class="rbt-h5-app" id="rbtH5App">
                             <div class="rbt-h5-scroll" id="rbtH5Scroll"></div>
+                            <div class="rbt-contract" id="rbtH5Contract" hidden></div>
                         </div>
                     </div>
                 </section>
@@ -882,10 +1256,12 @@
     <script src="../js/mdm-provider-archive-store.js?v=20261117-provider"></script>
     <script src="../js/mdm-trader-archive-store.js?v=20261117-provider"></script>
     <script src="rbt-settle-ratio.js"></script>
-    <script src="rbt-demand-data.js"></script>
-    <script src="rbt-daily-fulfill.js"></script>
+    <script src="rbt-demand-data.js?v=20261123-fulfill-list"></script>
+    <script src="rbt-daily-fulfill.js?v=20261123-biz-range"></script>
+    <script src="rbt-trader-store-biz.js?v=20261123-biz-tip"></script>
     <script src="rbt-contract-sign.js"></script>
-    <script src="rbt-h5-trader-app.js"></script>
+    <script src="../js/contract-bodies.js?v=20261123-trader-read"></script>
+    <script src="rbt-h5-trader-app.js?v=20261123-biz-tip"></script>
     <script src="rbt-h5-trader-login.js"></script>
 </body>
 </html>

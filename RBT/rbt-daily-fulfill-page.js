@@ -31,7 +31,8 @@
                 options: [
                     { label: 'POS', value: 'POS' },
                     { label: '直播', value: '直播' },
-                    { label: '商城', value: '商城' }
+                    { label: '商城', value: '商城' },
+                    { label: '手动履约', value: '手动履约' }
                 ],
                 placeholder: '请选择渠道'
             };
@@ -51,10 +52,11 @@
                 { dataIndex: 'ratio', title: '结算比例', minWidth: 80, align: 'right' },
                 { dataIndex: 'due', title: '应履行', minWidth: 100, align: 'right', formatter: function (row) { return yuan(row.due); } },
                 { dataIndex: 'actual', title: '实际履行', minWidth: 100, align: 'right', formatter: function (row) { return yuan(row.actual); } },
+                { dataIndex: 'payMethod', title: '支付方式', minWidth: 148, align: 'left', showOverflowTooltip: true },
                 { dataIndex: 'traderName', title: '贸易商', minWidth: 116, align: 'left', showOverflowTooltip: true, search: { control: 'input' }, formatter: function (row) { return blank(row.traderName) ? '—' : row.traderName; } },
                 { dataIndex: 'traderPay', title: '贸易商结款', minWidth: 108, align: 'right', formatter: function (row) { return yuan(row.traderPay); } },
                 { dataIndex: 'lengfengPay', title: '冷丰结款', minWidth: 100, align: 'right', formatter: function (row) { return yuan(row.lengfengPay); } },
-                { dataIndex: 'providerName', title: '服务商', minWidth: 96, align: 'left', showOverflowTooltip: true, formatter: function (row) { return blank(row.providerName) ? '—' : row.providerName; } },
+                { dataIndex: 'providerName', title: '服务商', minWidth: 96, align: 'left', showOverflowTooltip: true, search: { control: 'input' }, formatter: function (row) { return blank(row.providerName) ? '—' : row.providerName; } },
                 { dataIndex: 'providerPay', title: '服务商结款', minWidth: 108, align: 'right', formatter: function (row) { return yuan(row.providerPay); } },
                 { dataIndex: 'source', title: '计算来源', minWidth: 112, align: 'left', showOverflowTooltip: true }
             ];
@@ -86,6 +88,7 @@
                         ratio: row.ratio,
                         due: row.due,
                         actual: row.actual,
+                        payMethod: row.payMethod || (dailyApi && dailyApi.autoPayMethod) || '营业收入自动扣款',
                         source: row.source,
                         traderName: detail.traderName || '',
                         traderPay: detail.traderPay,
@@ -96,6 +99,7 @@
                 }).filter(function (row) {
                     if (!matchDaily(row, params)) return false;
                     if (!includesText(row.traderName, params.traderName)) return false;
+                    if (!includesText(row.providerName, params.providerName)) return false;
                     return true;
                 });
                 return Promise.resolve(paginate(matched, params));
@@ -153,6 +157,7 @@
                     ratio: ledger.ratio,
                     due: ledger.due,
                     actual: ledger.actual,
+                    payMethod: ledger.payMethod || (dailyApi && dailyApi.autoPayMethod) || '营业收入自动扣款',
                     traderName: detail.traderName || '',
                     traderPay: detail.traderPay,
                     lengfengPay: detail.lengfengPay,
@@ -204,6 +209,7 @@
                     field('结算比例', day.ratio) +
                     field('应履行', moneyText(day.due)) +
                     field('实际履行', moneyText(day.actual)) +
+                    field('支付方式', day.payMethod || '—') +
                     '</div>' +
                     '<div class="supplier-detail-section-title">各方结款</div>' +
                     '<table class="rbt-day-table"><thead><tr><th>角色</th><th>收款方</th><th class="is-money">结款</th></tr></thead><tbody>' +
