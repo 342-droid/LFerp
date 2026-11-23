@@ -1,10 +1,64 @@
 {
-  "latestSha": "3dbd1f96e8f8482bd2cafb939d706a897ce45ef8",
-  "total": 629,
+  "latestSha": "b72f5695db66d3d63e62a4f262be150a2b557c5c",
+  "total": 630,
   "days": [
     {
       "date": "2026-11-23",
       "items": [
+        {
+          "sha": "b72f569",
+          "type": "feat",
+          "text": "贸易商收款支持查看门店经营并按时段筛选",
+          "author": "u ｌ",
+          "time": "15:56",
+          "pages": [
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日履行"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常履约数据"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "资金明细新增门店经营页签；营业额与收入按POS、直播、商城拆分；支持总览与自定义时段，点趋势图看当日；已结束单据冻结后续经营"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "text": "履约结款与风控PRD: 补充贸易商门店经营查看规则与说明文案"
+            }
+          ]
+        },
         {
           "sha": "3dbd1f9",
           "type": "feat",
