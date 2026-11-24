@@ -2535,6 +2535,9 @@
         {
           orderNo: nos[idx],
           status: 'unpaid',
+          store: {id:STORE.id,name:STORE.name,address:STORE.address},
+          requiresStoreWork: group.fulfillType !== 'express',
+          fulfillmentValid: true,
           createdAt: global.UaOrdersStore ? global.UaOrdersStore.nowText() : '',
           exchangePoints: exchangePts,
           deductPoints: thisDeductPts,
@@ -4690,7 +4693,24 @@
     hideUnsaleableBrowseCards('.ua-mall-product[data-goods-id]');
   }
 
+  global.addEventListener('ua-store-auto-switched',function(event){showToast(event.detail.message);});
+
+  function refreshServiceStore() {
+    if (!global.UaStoreSwitch || !localStorage.getItem('ua_store_bind_v1')) return false;
+    var bind = global.UaStoreSwitch.readBind();
+    var previous = bind.currentStoreId;
+    var store = global.UaStoreSwitch.resolveCurrentStore(bind);
+    if (!store) return true;
+    Object.assign(STORE,{id:store.id,name:store.name,address:store.addr,contact:store.leader,avatar:store.avatar||STORE.avatar});
+    return previous !== store.id;
+  }
+
+  global.addEventListener('storage',function(event){
+    if (event.key === 'lferp_store_disabled_v1' && /cart|order-confirm/.test(global.location.pathname)) global.location.reload();
+  });
+
   function initCartPage() {
+    refreshServiceStore();
     var aliasPanel = document.createElement('div');
     aliasPanel.id = 'uaSupplierAliasDemo';
     aliasPanel.className = 'ua-bl-demo';
@@ -5101,6 +5121,7 @@
   }
 
   function initOrderConfirmPage() {
+    refreshServiceStore();
     ensureCart();
     applyPickedAddressForConfirm();
     var rawItems = getCheckoutItems({ fromSnapshot: true, includeUnsaleable: true });
@@ -5385,6 +5406,7 @@
 
     document.getElementById('confirmPayBtn') &&
       document.getElementById('confirmPayBtn').addEventListener('click', function () {
+        if (refreshServiceStore()) { setTimeout(function(){global.location.reload();},100); return; }
         /* 黑名单禁用「下单」：确认订单提交拦截 */
         if (global.UaBlacklistGuard && global.UaBlacklistGuard.guardOrderSubmit()) return;
         if (!applyConfirmSaleableGuard()) return;
@@ -5450,6 +5472,14 @@
 
     document.getElementById('confirmPaySubmit') &&
       document.getElementById('confirmPaySubmit').addEventListener('click', function () {
+        if (global.LfStoreServiceRules && global.UaOrdersStore && pendingOrder) {
+          var ids=[pendingOrder.orderNo].concat(pendingOrder.siblingOrderNos||[]);
+          var blocked=ids.some(function(id){var order=global.UaOrdersStore.getByNo(id);return order && !global.LfStoreServiceRules.decision(order).allowed;});
+          if (blocked) {
+            ids.forEach(function(id){var order=global.UaOrdersStore.getByNo(id);if(order && order.status==='unpaid')global.UaOrdersStore.updateStatus(id,'closed',{closedReason:'system',reservationsReleased:true});});
+            closePaySheet();showToast('订单已关闭，请重新选购');return;
+          }
+        }
         var payNcCheck = validateNewcomerCheckout();
         if (!payNcCheck.ok) {
           showToast(payNcCheck.message || '您已有支付成功的订单，无法继续支付新人专区订单');

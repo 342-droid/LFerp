@@ -92,6 +92,7 @@
   };
 
   var CLOSED_REASONS = {
+    system: { title: '订单已关闭', sub: '订单已关闭，请重新选购' },
     cancel: {
       title: '已取消',
       sub: '订单已取消，欢迎下次光临'
@@ -155,12 +156,15 @@
   }
 
   function getClosedReason() {
-    var reason = (getParams().get('reason') || 'cancel').trim();
+    var saved = getStoredDemoOrder();
+    var reason = (saved && saved.closedReason || getParams().get('reason') || 'cancel').trim();
     return CLOSED_REASONS[reason] ? reason : 'cancel';
   }
 
   function applyClosedReason(config) {
     if (getStatus() !== 'closed') return config;
+    var order = getStoredDemoOrder();
+    if (order && order.refundState === 'pending') return Object.assign({},config,{title:'退款处理中',sub:'本订单无法继续履约，正在为你办理退款'});
     var reasonCfg = CLOSED_REASONS[getClosedReason()];
     if (!reasonCfg) return config;
     var patch = {};
@@ -802,6 +806,7 @@
       return;
     }
     window.UaOrderPaySheet.open({
+      orderNo: getParams().get('orderNo') || '',
       isRestock: isFromRestock(),
       getPayable: getUnpaidPayable,
       onPaid: function (extra) {

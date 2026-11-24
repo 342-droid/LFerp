@@ -279,6 +279,11 @@
       }
     }
     if (ban) ban.remove();
+    document.querySelectorAll('#saStoreWorkspace [data-sa-action]').forEach(function(el) {
+      var blocked = disabled && ['scan','code','pending','restock','recharge'].indexOf(el.getAttribute('data-sa-action')) >= 0;
+      if (blocked) { el.setAttribute('data-service-blocked','1'); el.setAttribute('aria-disabled','true'); }
+      else { el.removeAttribute('data-service-blocked'); el.removeAttribute('aria-disabled'); }
+    });
     if (!disabled || !header || !header.parentNode) return;
     var copy =
       window.MdmArchiveEnableDisable && typeof window.MdmArchiveEnableDisable.userFacingDisabledCopy === 'function'
@@ -295,6 +300,13 @@
     ban.textContent = text;
     header.insertAdjacentElement('afterend', ban);
   }
+
+  document.addEventListener('click', function(e) {
+    var el = e.target.closest('[data-service-blocked="1"]');
+    if (!el) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    if (typeof showToast === 'function') showToast('本门店已停用，暂不可开展该业务');
+  }, true);
 
   function syncHeader() {
     var org = currentOrg();

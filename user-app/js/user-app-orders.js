@@ -229,6 +229,7 @@
       var card = btn.closest('.ua-order-card');
       if (!card || !window.UaOrderPaySheet) return;
       window.UaOrderPaySheet.open({
+        orderNo: card.getAttribute('data-order-no') || '',
         isRestock: isFromRestock(),
         getPayable: function () {
           return readCardPayable(card);
