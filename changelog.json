@@ -1,7 +1,453 @@
 {
-  "latestSha": "c1e3e1fc540902d336d932580b933a858ed9b3a0",
-  "total": 631,
+  "latestSha": "6913c068049c72fa3658e125c5b89cfd2e1c372a",
+  "total": 634,
   "days": [
+    {
+      "date": "2026-11-24",
+      "items": [
+        {
+          "sha": "6913c06",
+          "type": "feat",
+          "text": "将经营数据中心专题、导出样表与总览补齐合入 main",
+          "author": "u ｌ",
+          "time": "17:08",
+          "pages": [
+            {
+              "file": "MDM/mdm_data_biz_erp.html",
+              "module": "冷丰WMS",
+              "title": "ERP经营分析 · 经营数据中心"
+            },
+            {
+              "file": "MDM/mdm_data_biz_marketing.html",
+              "module": "冷丰WMS",
+              "title": "营销活动 · 经营数据中心"
+            },
+            {
+              "file": "MDM/mdm_data_biz_overview.html",
+              "module": "冷丰WMS",
+              "title": "经营总览 · 经营数据中心"
+            },
+            {
+              "file": "MDM/mdm_data_biz_points.html",
+              "module": "",
+              "title": "会员营销 · 积分使用情况"
+            },
+            {
+              "file": "MDM/mdm_data_biz_pos.html",
+              "module": "冷丰WMS",
+              "title": "食亨POS · 经营数据中心"
+            },
+            {
+              "file": "MDM/mdm_data_biz_pos_mapping.html",
+              "module": "冷丰WMS",
+              "title": "ERP与食亨门店关系 · 经营数据中心"
+            },
+            {
+              "file": "MDM/mdm_data_biz_proxy.html",
+              "module": "冷丰WMS",
+              "title": "跳转 供应商分析"
+            },
+            {
+              "file": "MDM/mdm_data_biz_rbt.html",
+              "module": "冷丰WMS",
+              "title": "RBT联营 · 经营数据中心"
+            },
+            {
+              "file": "MDM/mdm_data_biz_retail.html",
+              "module": "冷丰WMS",
+              "title": "跳转 ERP经营分析"
+            },
+            {
+              "file": "MDM/mdm_data_biz_store_detail.html",
+              "module": "冷丰WMS",
+              "title": "单店经营详情 · 经营数据中心"
+            },
+            {
+              "file": "MDM/mdm_data_biz_stores.html",
+              "module": "冷丰WMS",
+              "title": "门店分析 · 经营数据中心"
+            },
+            {
+              "file": "MDM/mdm_data_biz_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商分析 · 经营数据中心"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "SCM/basic_settings_file_center.html",
+              "module": "冷丰WMS",
+              "title": "文件中心"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "MDM/mdm_data_biz_overview.html",
+              "text": "补齐下单与核销、积分兑换成本、运营毛利／毛利率；系统流量费与手续费无数据源不展示；导出可到文件中心下载示例表"
+            },
+            {
+              "file": "MDM/mdm_data_biz_rbt.html",
+              "text": "新增联营专题页与侧栏入口"
+            },
+            {
+              "file": "MDM/mdm_data_biz_supplier.html",
+              "text": "独立专题页落地"
+            },
+            {
+              "file": "MDM/mdm_data_biz_stores.html",
+              "text": "对齐中心筛选与导出"
+            },
+            {
+              "file": "MDM/mdm_data_biz_store_detail.html",
+              "text": "对齐中心筛选与导出"
+            },
+            {
+              "file": "MDM/mdm_data_biz_marketing.html",
+              "text": "营销与积分同页；导出含积分工作表"
+            },
+            {
+              "file": "MDM/mdm_data_biz_pos.html",
+              "text": "新增 POS 账单与 ERP 门店关系页"
+            },
+            {
+              "file": "MDM/mdm_data_biz_erp.html",
+              "text": "零售入口改跳转本页"
+            },
+            {
+              "file": "SCM/basic_settings_file_center.html",
+              "text": "支持下载经营报表示例 xlsx"
+            },
+            {
+              "file": null,
+              "text": "侧栏入口、文件中心 downloadUrl 与预览服务同步"
+            }
+          ]
+        },
+        {
+          "sha": "dea0044",
+          "type": "feat",
+          "text": "完善直播优惠券匹配与发放校验",
+          "author": "u ｌ",
+          "time": "15:27",
+          "pages": [
+            {
+              "file": "MDM/mdm_live_control.html",
+              "module": "冷丰WMS",
+              "title": "直播中控"
+            },
+            {
+              "file": "MDM/mdm_live_data.html",
+              "module": "冷丰WMS",
+              "title": "直播数据"
+            },
+            {
+              "file": "MDM/mdm_live_product_category.html",
+              "module": "冷丰WMS",
+              "title": "直播类目"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched.html",
+              "module": "冷丰WMS",
+              "title": "直播排品"
+            },
+            {
+              "file": "MDM/mdm_live_product_sched_edit.html",
+              "module": "冷丰WMS",
+              "title": "直播排品编辑"
+            },
+            {
+              "file": "MDM/mdm_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间"
+            },
+            {
+              "file": "MDM/mdm_live_session.html",
+              "module": "冷丰WMS",
+              "title": "直播场次"
+            },
+            {
+              "file": "MDM/mdm_live_session_detail.html",
+              "module": "冷丰WMS",
+              "title": "直播场次详情"
+            },
+            {
+              "file": "MDM/mdm_live_session_form.html",
+              "module": "冷丰WMS",
+              "title": "直播场次编辑"
+            },
+            {
+              "file": "MDM/mdm_live_timeslot.html",
+              "module": "冷丰WMS",
+              "title": "直播时段"
+            },
+            {
+              "file": "MDM/mdm_marketing_seckill_product.html",
+              "module": "冷丰WMS",
+              "title": "编辑秒杀商品"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "module": "冷丰WMS",
+              "title": "选品库"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            }
+          ]
+        },
+        {
+          "sha": "f0ad0b3",
+          "type": "feat",
+          "text": "完善门店与仓库停启用原型和需求",
+          "author": "u ｌ",
+          "time": "15:26",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_trader.html",
+              "module": "冷丰WMS",
+              "title": "贸易商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
+              "file": "MDM/mdm_people_anchor.html",
+              "module": "冷丰WMS",
+              "title": "主播"
+            },
+            {
+              "file": "MDM/mdm_people_bd.html",
+              "module": "冷丰WMS",
+              "title": "BD推广员"
+            },
+            {
+              "file": "MDM/mdm_people_driver.html",
+              "module": "冷丰WMS",
+              "title": "司机"
+            },
+            {
+              "file": "MDM/mdm_people_purchaser.html",
+              "module": "冷丰WMS",
+              "title": "采购员"
+            },
+            {
+              "file": "MDM/mdm_super_admin_accounts.html",
+              "module": "冷丰WMS",
+              "title": "商户主体建档"
+            },
+            {
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
+            },
+            {
+              "file": "SCM/warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库管理"
+            },
+            {
+              "file": "store-app/h5/biz-commission.html",
+              "module": "",
+              "title": "佣金明细 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "丰银宝 · 工作台"
+            },
+            {
+              "file": "store-app/h5/restock-aftersale-list.html",
+              "module": "",
+              "title": "退款/售后 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/restock-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/restock-orders.html",
+              "module": "",
+              "title": "进货订单 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/restock-refund-detail.html",
+              "module": "",
+              "title": "售后详情 · 丰银宝"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/category.html",
+              "module": "",
+              "title": "分类 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/checkout.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-share.html",
+              "module": "",
+              "title": "直播邀请 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "module": "",
+              "title": "商城 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/newcomer-zone.html",
+              "module": "",
+              "title": "新人专区 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-aftersale-list.html",
+              "module": "",
+              "title": "退款/售后 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail-pickup.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-detail.html",
+              "module": "",
+              "title": "订单详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-refund-detail.html",
+              "module": "",
+              "title": "退款详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/orders.html",
+              "module": "",
+              "title": "我的订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/points-order-confirm.html",
+              "module": "",
+              "title": "确认兑换 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/restock.html",
+              "module": "",
+              "title": "进货 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/scan-store.html",
+              "module": "",
+              "title": "扫一扫 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/store-pay-password.html",
+              "module": "",
+              "title": "设置支付密码 · 丰银宝"
+            },
+            {
+              "file": "user-app/h5/store-recharge.html",
+              "module": "",
+              "title": "充值 · 丰银宝"
+            },
+            {
+              "file": "user-app/h5/store-wallet.html",
+              "module": "",
+              "title": "我的钱包 · 丰银宝"
+            },
+            {
+              "file": "user-app/h5/store-withdraw-records.html",
+              "module": "",
+              "title": "提现明细 · 丰银宝"
+            },
+            {
+              "file": "user-app/h5/store-withdraw.html",
+              "module": "",
+              "title": "提现 · 丰银宝"
+            },
+            {
+              "file": "user-app/h5/switch-address.html",
+              "module": "",
+              "title": "切换门店 · 用户 APP"
+            }
+          ],
+          "global": true
+        }
+      ]
+    },
     {
       "date": "2026-11-23",
       "items": [
@@ -934,29 +1380,59 @@
           "time": "10:23",
           "pages": [
             {
+              "file": "MDM/mdm_data_biz_erp.html",
+              "module": "冷丰WMS",
+              "title": "ERP经营分析 · 经营数据中心"
+            },
+            {
+              "file": "MDM/mdm_data_biz_marketing.html",
+              "module": "冷丰WMS",
+              "title": "营销活动 · 经营数据中心"
+            },
+            {
               "file": "MDM/mdm_data_biz_overview.html",
               "module": "冷丰WMS",
-              "title": "经营总览 · 平台数据中心"
+              "title": "经营总览 · 经营数据中心"
+            },
+            {
+              "file": "MDM/mdm_data_biz_pos.html",
+              "module": "冷丰WMS",
+              "title": "食亨POS · 经营数据中心"
+            },
+            {
+              "file": "MDM/mdm_data_biz_pos_mapping.html",
+              "module": "冷丰WMS",
+              "title": "ERP与食亨门店关系 · 经营数据中心"
             },
             {
               "file": "MDM/mdm_data_biz_proxy.html",
               "module": "冷丰WMS",
-              "title": "代采经营 · 平台数据中心"
+              "title": "跳转 供应商分析"
+            },
+            {
+              "file": "MDM/mdm_data_biz_rbt.html",
+              "module": "冷丰WMS",
+              "title": "RBT联营 · 经营数据中心"
             },
             {
               "file": "MDM/mdm_data_biz_retail.html",
               "module": "冷丰WMS",
-              "title": "零售经营 · 平台数据中心"
+              "title": "跳转 ERP经营分析"
             },
             {
               "file": "MDM/mdm_data_biz_store_detail.html",
               "module": "冷丰WMS",
-              "title": "单店经营详情 · 平台数据中心"
+              "title": "单店经营详情 · 经营数据中心"
             },
             {
               "file": "MDM/mdm_data_biz_stores.html",
               "module": "冷丰WMS",
-              "title": "门店经营比较 · 平台数据中心"
+              "title": "门店分析 · 经营数据中心"
+            },
+            {
+              "file": "MDM/mdm_data_biz_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商分析 · 经营数据中心"
             },
             {
               "file": "store-app/h5/biz-bd-center.html",
@@ -1023,29 +1499,59 @@
               "title": "冷丰 MDM · BD 工作台"
             },
             {
+              "file": "MDM/mdm_data_biz_erp.html",
+              "module": "冷丰WMS",
+              "title": "ERP经营分析 · 经营数据中心"
+            },
+            {
+              "file": "MDM/mdm_data_biz_marketing.html",
+              "module": "冷丰WMS",
+              "title": "营销活动 · 经营数据中心"
+            },
+            {
               "file": "MDM/mdm_data_biz_overview.html",
               "module": "冷丰WMS",
-              "title": "经营总览 · 平台数据中心"
+              "title": "经营总览 · 经营数据中心"
+            },
+            {
+              "file": "MDM/mdm_data_biz_pos.html",
+              "module": "冷丰WMS",
+              "title": "食亨POS · 经营数据中心"
+            },
+            {
+              "file": "MDM/mdm_data_biz_pos_mapping.html",
+              "module": "冷丰WMS",
+              "title": "ERP与食亨门店关系 · 经营数据中心"
             },
             {
               "file": "MDM/mdm_data_biz_proxy.html",
               "module": "冷丰WMS",
-              "title": "代采经营 · 平台数据中心"
+              "title": "跳转 供应商分析"
+            },
+            {
+              "file": "MDM/mdm_data_biz_rbt.html",
+              "module": "冷丰WMS",
+              "title": "RBT联营 · 经营数据中心"
             },
             {
               "file": "MDM/mdm_data_biz_retail.html",
               "module": "冷丰WMS",
-              "title": "零售经营 · 平台数据中心"
+              "title": "跳转 ERP经营分析"
             },
             {
               "file": "MDM/mdm_data_biz_store_detail.html",
               "module": "冷丰WMS",
-              "title": "单店经营详情 · 平台数据中心"
+              "title": "单店经营详情 · 经营数据中心"
             },
             {
               "file": "MDM/mdm_data_biz_stores.html",
               "module": "冷丰WMS",
-              "title": "门店经营比较 · 平台数据中心"
+              "title": "门店分析 · 经营数据中心"
+            },
+            {
+              "file": "MDM/mdm_data_biz_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商分析 · 经营数据中心"
             },
             {
               "file": "store-app/h5/biz-bd-center.html",
@@ -7658,6 +8164,11 @@
               "title": "登录 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/orders.html",
               "module": "",
               "title": "我的订单 · 用户 APP"
@@ -7763,6 +8274,11 @@
               "title": "登录 · 用户 APP"
             },
             {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/orders.html",
               "module": "",
               "title": "我的订单 · 用户 APP"
@@ -7862,6 +8378,11 @@
               "file": "user-app/h5/login.html",
               "module": "",
               "title": "登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
             },
             {
               "file": "user-app/h5/orders.html",
@@ -7967,6 +8488,11 @@
               "file": "user-app/h5/login.html",
               "module": "",
               "title": "登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
             },
             {
               "file": "user-app/h5/orders.html",
@@ -8775,6 +9301,11 @@
               "title": "丰银宝"
             },
             {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
+            },
+            {
               "file": "user-app/h5/home.html",
               "module": "",
               "title": "首页 · 用户 APP"
@@ -8788,6 +9319,11 @@
               "file": "user-app/h5/live-share.html",
               "module": "",
               "title": "直播邀请 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
             },
             {
               "file": "user-app/h5/profile.html",
@@ -29085,6 +29621,11 @@
               "file": "user-app/h5/login.html",
               "module": "",
               "title": "登录 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
             },
             {
               "file": "user-app/h5/order-detail-pickup.html",
