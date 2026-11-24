@@ -53,6 +53,8 @@
       '退款按<strong>成功退款发生时间</strong>单独展示，不冲减销售额或采购成本；售后驳回不计退款。' +
       'ERP 平台分佣与食亨管理费分属不同数据域，本页仅汇总 ERP。' +
       '<strong>RBT 联营不计入本页 GMV / 平台分佣</strong>，见快捷入口「RBT联营」。' +
+      '下方补齐运营管理表中的<strong>总下单／已核销／核销率</strong>，以及财务表中的<strong>积分兑换成本、运营毛利／毛利率</strong>。' +
+      '系统流量费、系统手续费无业务系统数据源，本页不展示。' +
       '</p>';
 
     root.querySelector('[data-ldb-kpis]').innerHTML =
@@ -102,6 +104,94 @@
         { key: 'freightSales', label: '运费', num: true, format: 'money' }
       ], { pageSize: 10, summaryHtml: '<p class="ldb-tip">共 ' + CUi.intText(data.orderDetails.length) + ' 条原型示例订单</p>' });
     });
+
+    var verifyRateText =
+      data.verifyRate == null ? '—' : (Number(data.verifyRate) * 100).toFixed(2) + '%';
+    root.querySelector('[data-ldb-fulfill]').innerHTML = CUi.sectionCard(
+      '下单与核销',
+      '<div class="ldb-kpi-row">' +
+        CUi.kpiCard(
+          '总下单数',
+          CUi.intText(data.placeOrderCount),
+          '',
+          '含未支付／取消等，不等于上方支付主订单数'
+        ) +
+        CUi.kpiCard(
+          '已核销订单金额',
+          CUi.money(data.verifiedOrderAmount),
+          '',
+          '订单状态＝交易成功的实付合计'
+        ) +
+        CUi.kpiCard(
+          '已核销订单数',
+          CUi.intText(data.verifiedOrderCount),
+          '',
+          '订单状态＝交易成功的主订单数'
+        ) +
+        CUi.kpiCard(
+          '核销率',
+          verifyRateText,
+          '',
+          '已核销订单数 ÷ 总下单数'
+        ) +
+        '</div>' +
+        '<p class="ldb-tip" style="margin-top:10px">此处「核销」指订单走到<strong>交易成功</strong>，不是优惠券核销。</p>'
+    );
+
+    var opsRateText =
+      data.opsGrossRate == null ? '—' : (Number(data.opsGrossRate) * 100).toFixed(2) + '%';
+    root.querySelector('[data-ldb-ops]').innerHTML = CUi.sectionCard(
+      '运营成本与毛利',
+      '<div class="ldb-kpi-row">' +
+        CUi.kpiCard(
+          '积分兑换成本',
+          CUi.money(data.pointsExchangeCost),
+          '',
+          '福利／秒杀优惠 · 积分商品（供应商成本−实付含运费）',
+          { actionText: '查看兑换明细', actionAttr: 'data-overview-points-cost' }
+        ) +
+        CUi.kpiCard(
+          '运营毛利',
+          CUi.money(data.opsGrossProfit),
+          '',
+          '对齐财务经营表演示合计数'
+        ) +
+        CUi.kpiCard(
+          '运营毛利率',
+          opsRateText,
+          '',
+          '运营毛利 ÷ 销售额'
+        ) +
+        '</div>' +
+        '<p class="ldb-tip" style="margin-top:10px">运营毛利正式环境对齐财务核算公式；原表公式格曾为 #REF!，原型先按合计数验收展示。' +
+        '系统流量费、系统手续费无业务系统数据源，不纳入本页。</p>'
+    );
+    var ptsBtn = root.querySelector('[data-overview-points-cost]');
+    if (ptsBtn) {
+      ptsBtn.addEventListener('click', function (event) {
+        event.preventDefault();
+        CUi.showDetailTable(
+          '积分兑换成本明细 · ' + CUi.filterHint(state),
+          data.pointsExchangeDetails || [],
+          [
+            { key: 'orderId', label: '订单号' },
+            { key: 'product', label: '积分商品' },
+            { key: 'supplierCost', label: '供应商成本', num: true, format: 'money' },
+            { key: 'paid', label: '实付（含运费分摊）', num: true, format: 'money' },
+            { key: 'freightShare', label: '分摊运费', num: true, format: 'money' },
+            { key: 'cost', label: '兑换成本', num: true, format: 'money' },
+            { key: 'payTime', label: '支付时间' }
+          ],
+          {
+            pageSize: 10,
+            summaryHtml:
+              '<p class="ldb-tip">成本＝供应商成本−实付（含分摊运费）。筛选期合计 ' +
+              CUi.money(data.pointsExchangeCost) +
+              '。</p>'
+          }
+        );
+      });
+    }
 
     var mid = root.querySelector('[data-ldb-mid]');
     mid.innerHTML =
@@ -188,7 +278,7 @@
           ],
           data.expenseSummary
         ) +
-          '<p class="ldb-tip" style="margin-top:10px">有运费的订单可关联承运商结款。承运商支出按结款金额统计，订单实收运费列在销售额中。</p>'
+          '<p class="ldb-tip" style="margin-top:10px">含积分兑换成本。系统流量费、系统手续费无业务系统数据源，不纳入。有运费的订单可关联承运商结款；承运商支出按结款金额统计，订单实收运费列在销售额中。</p>'
       );
   }
 

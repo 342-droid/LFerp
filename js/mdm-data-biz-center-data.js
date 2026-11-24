@@ -118,9 +118,19 @@
     var refundQty = ri(186 * s);
     var supplierPayment = r2(98640 * s);
     var liveFee = r2(4200 * s);
+    /* 对齐财务经营表：积分兑换成本、运营毛利（Excel 原公式格曾为 #REF!，原型按表内合计数演示）
+     * 系统流量费／系统手续费：业务系统无对应数据源，不接入、不展示 */
+    var pointsExchangeCost = r2(17991 * s);
+    var opsGrossProfit = r2(8212 * s);
+    var opsGrossRate = salesTotal ? opsGrossProfit / salesTotal : null;
     var retailOrders = proxyOnly ? 0 : ri(1480 * retailScale);
     var proxyOrders = retailOnly ? 0 : ri(362 * proxyScale);
     var orderCount = retailOrders + proxyOrders;
+    /* 对齐运营管理表：总下单数 vs 交易成功（已核销）订单数／金额、核销率 */
+    var placeOrderCount = ri(5945 * s);
+    var verifiedOrderCount = ri(3296 * s);
+    var verifiedOrderAmount = r2(110447 * s);
+    var verifyRate = placeOrderCount ? verifiedOrderCount / placeOrderCount : null;
 
     var trendDays = period === 'today' || period === 'yesterday' ? 24 : period === '7d' ? 7 : 14;
     var trend = [];
@@ -381,11 +391,12 @@
       { type: '供应商货款', parties: ['鲜达优选供应链', '绿源生鲜批发', '汉言原料仓'] },
       { type: '直播费用', parties: ['望京场次 #L112', '南山周末场 #L108', '徐汇专场 #L106'] },
       { type: 'BD结算', parties: ['BD·王敏', 'BD·李昂', 'BD·周晴'] },
-      { type: '门店分佣', parties: storeNames }
+      { type: '门店分佣', parties: storeNames },
+      { type: '积分兑换成本', parties: ['积分商城 · 兑换订单'] }
     ];
     var expenseDetails = [];
     for (var ei = 0; ei < 32; ei++) {
-      var et = expenseTypes[ei % expenseTypes.length];
+      var et = expenseTypes[ei % 4];
       expenseDetails.push({
         type: et.type,
         party: et.parties[ei % et.parties.length],
@@ -415,6 +426,14 @@
         _protoSample: true
       });
     });
+    expenseDetails.push({
+      type: '积分兑换成本',
+      party: '积分商城 · 兑换订单',
+      amount: pointsExchangeCost,
+      status: '已入账',
+      bizTime: '2026-11-16',
+      _protoSample: true
+    });
     var expenseSummary = expenseTypes.map(function (et) {
       var rows = expenseDetails.filter(function (row) { return row.type === et.type; });
       return {
@@ -423,6 +442,35 @@
         count: rows.length
       };
     });
+    var pointsExchangeDetails = [
+      {
+        orderId: 'ORD-PTS-20261116-01',
+        product: '积分兑换米',
+        supplierCost: r2(28.5 * s + 8),
+        paid: r2(12.2 * s + 2),
+        freightShare: r2(1.8),
+        cost: r2((28.5 * s + 8) - (12.2 * s + 2) - 1.8),
+        payTime: '2026-11-16 11:20'
+      },
+      {
+        orderId: 'ORD-PTS-20261116-02',
+        product: '积分兑换帆布袋',
+        supplierCost: r2(16.4 * s + 4),
+        paid: 0,
+        freightShare: 0,
+        cost: r2(16.4 * s + 4),
+        payTime: '2026-11-16 15:05'
+      },
+      {
+        orderId: 'ORD-PTS-20261117-01',
+        product: '积分兑换毛巾',
+        supplierCost: r2(22.1 * s + 5),
+        paid: r2(6.5 * s),
+        freightShare: r2(0.9),
+        cost: r2((22.1 * s + 5) - 6.5 * s - 0.9),
+        payTime: '2026-11-17 09:40'
+      }
+    ];
 
     return {
       demo: true,
@@ -432,6 +480,10 @@
       orderCount: orderCount,
       retailOrders: retailOrders,
       proxyOrders: proxyOrders,
+      placeOrderCount: placeOrderCount,
+      verifiedOrderCount: verifiedOrderCount,
+      verifiedOrderAmount: verifiedOrderAmount,
+      verifyRate: verifyRate,
       refundAmount: refundAmount,
       refundQty: refundQty,
       purchaseCost: purchaseCost,
@@ -444,6 +496,10 @@
       platformIncome: platformIncome,
       supplierPayment: supplierPayment,
       liveFee: liveFee,
+      pointsExchangeCost: pointsExchangeCost,
+      opsGrossProfit: opsGrossProfit,
+      opsGrossRate: opsGrossRate,
+      pointsExchangeDetails: pointsExchangeDetails,
       trend: trend,
       products: products,
       suppliers: suppliers,
@@ -943,7 +999,27 @@
     },
     {
       name: '经营支出',
-      text: '包含供应商货款、直播费用、BD结算、门店分佣和承运商结算。承运商支出取承运商结款金额。'
+      text: '包含供应商货款、直播费用、BD结算、门店分佣、承运商结算与积分兑换成本。承运商支出取承运商结款金额。系统流量费、系统手续费无业务系统数据源，不接入本页。'
+    },
+    {
+      name: '积分兑换成本',
+      text: '运营成本（福利、秒杀优惠）项。取自研零售清分：商品类目为积分商品的订单，「供应商成本 − 订单实付金额（含分摊运费）」。不计入正常商品销售额。'
+    },
+    {
+      name: '运营毛利 / 运营毛利率',
+      text: '财务经营表「运营毛利及毛利率」。毛利率＝运营毛利÷销售额（销售收入）。运营毛利正式环境对齐财务核算公式；原型按经营表合计数演示（原表公式格曾为 #REF!）。不含系统流量费、系统手续费（无系统数据源）。'
+    },
+    {
+      name: '总下单数',
+      text: '筛选期内创建的主订单数（含未支付、取消等），不等于支付成功主订单数。'
+    },
+    {
+      name: '已核销订单金额 / 已核销订单数',
+      text: '订单状态为「交易成功」的主订单实付金额合计，及对应主订单数。与优惠券核销不是同一概念。'
+    },
+    {
+      name: '核销率',
+      text: '已核销订单数 ÷ 总下单数。'
     },
     {
       name: '门店销售 / 门店进货',
