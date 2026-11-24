@@ -737,6 +737,7 @@
   }
 
   function persistLiveCatalogCodes() {
+    if (Demo.persistProducts) Demo.persistProducts(sessionId);
     var codes = [];
     var seen = {};
     var shipMap = {};

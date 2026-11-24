@@ -237,7 +237,7 @@
         if (!sid || seen[sid]) return null;
         seen[sid] = true;
         var coupon = resolveCouponById(sid);
-        if (!coupon) return null;
+        if (!coupon) return {couponId:sid,couponName:'优惠券 '+sid,categoryNames:['配置不可读取，请刷新核查']};
         return store.liveCategoryMismatchOf(coupon, products);
       })
       .filter(Boolean);
@@ -522,6 +522,18 @@
   }
 
   var ENDED_LOCK_MSG = '已结束场次仅可查看，不能提交操作';
+
+  function marketingBindingLocked() {
+    var sess = sessionId ? findSession(sessionId) : null;
+    return !sess || sess.status !== 'upcoming';
+  }
+
+  function guardMarketingBinding() {
+    if (!marketingBindingLocked()) return false;
+    if (isEndedLocked()) toastEndedLock('deliver');
+    else toast('直播中不能绑定营销模板，请在开播前完成配置', 'warning');
+    return true;
+  }
 
   function isEndedLocked() {
     var sess = sessionId ? findSession(sessionId) : null;
@@ -1814,7 +1826,7 @@
     var list = welfareWindowsOfPlan(welfarePlanIdOf(p));
     var i;
     for (i = 0; i < list.length; i++) {
-      if (list[i].status === 'ACTIVE') return true;
+      if (['ACTIVE','PAUSED_MATCH'].indexOf(list[i].status) >= 0) return true;
     }
     return false;
   }
@@ -1904,7 +1916,7 @@
     var i;
     var active = null;
     for (i = 0; i < list.length; i++) {
-      if (list[i] && list[i].status === 'ACTIVE') {
+      if (list[i] && ['ACTIVE','PAUSED_MATCH'].indexOf(list[i].status) >= 0) {
         active = list[i];
         break;
       }
@@ -2760,6 +2772,7 @@
   }
 
   function expireWelfareWindows() {
+    syncMatchPauses();
     var map = Demo.welfareWindows || {};
     var now = Date.now();
     var changed = false;
@@ -2798,8 +2811,10 @@
   }
 
   function tickWelfareProgress() {
+    syncMatchPauses();
     growActiveBagJoiners();
     var expired = expireWelfareWindows();
+    if (Demo.persistWelfare) Demo.persistWelfare();
     if (!welfareUi.open) return;
     if (expired) {
       renderWelfareDrawer();
@@ -2986,7 +3001,128 @@
     return { show: show, disabled: disabled, tip: tip, label: label };
   }
 
+  function syncMatchPauses() {
+    var sess = findSession(sessionId);
+    if (!sess) return;
+    (sess.templates || []).forEach(function(plan) {
+      if (!planCouponMatchIssues(plan, sess).length) return;
+      (welfareWindowsOfPlan(welfarePlanIdOf(plan)) || []).forEach(function(w) {
+        if (w.status === 'ACTIVE') {
+          w.status = 'PAUSED_MATCH';
+          w.matchPausedAt = Date.now();
+          w.matchRemainingMs = Math.max(0, parseSessionTs(w.endedAt) - Date.now());
+          Object.keys(plan.matchGrantLedger || {}).forEach(function(key) {
+            if (plan.matchGrantLedger[key].status === 'qualified') plan.matchGrantLedger[key].status = 'pending';
+          });
+        }
+      });
+    });
+  }
+
+  function rewardPreviewKey(plan) {
+    var windows = welfareWindowsOfPlan(welfarePlanIdOf(plan)) || [];
+    var w = windows[0];
+    return welfarePlanIdOf(plan) + ':' + (w ? w.id : 'not-started') + ':viewer-demo:reward-1';
+  }
+
+  function matchPanel(plan) {
+    if (!plan || !prizeCouponIdsOfPlan(plan).length) return '';
+    var issues = planCouponMatchIssues(plan, findSession(sessionId));
+    var windows = welfareWindowsOfPlan(welfarePlanIdOf(plan)) || [];
+    var paused = windows.some(function(w){return w.status === 'PAUSED_MATCH';});
+    var grants = plan.matchGrantLedger || {};
+    var pending = Object.keys(grants).filter(function(k){return grants[k].status === 'pending';}).length;
+    var sent = Object.keys(grants).filter(function(k){return grants[k].status === 'sent';}).length;
+    var text = issues.length ? issues.map(mismatchTipText).join('；') : paused ? '商品已匹配，确认恢复后继续发放' : '商品类目已匹配';
+    return '<section id="liveCouponMatchPanel" style="padding:14px;margin-bottom:14px;border:1px solid '+ (issues.length?'#ffd591':'#d9e7dc') +';border-radius:8px;background:'+ (issues.length?'#fff7e6':'#f6ffed') +'">' +
+      '<strong>' + (paused?'活动已暂停发放':'类目匹配检查') + '</strong><p style="margin:8px 0;line-height:1.6">' + escapeHtml(text) + '</p>' +
+      '<a href="' + escapeHtml(startLiveFixHref(findSession(sessionId))) + '">查看排品</a>' +
+      (paused?'<button type="button" class="erp-btn" data-match-resume style="margin-left:12px">恢复发放</button>':'') +
+      '<details style="margin-top:12px"><summary>领取／奖励场景预览</summary><p>演示一名观众在本轮领取或达标后的到账校验；同一奖励重复操作不重复发放。</p><button type="button" class="erp-btn" data-match-qualify>模拟达标待到账</button> <button type="button" class="erp-btn" data-match-grant>模拟领取／达标发奖</button><p data-match-count>待发放 ' + pending + ' · 已发放 ' + sent + '</p></details></section>';
+  }
+
+  function rewardConfigurationError(plan) {
+    var ids = prizeCouponIdsOfPlan(plan);
+    var scene = {COUPON:'LIVE',FORTUNE_BAG:'BAG',SIGN_IN:'SIGNIN',TASK:'WATCH'}[plan.type];
+    var store = window.MdmMarketingCouponStore;
+    for (var i=0;i<ids.length;i++) {
+      var coupon=resolveCouponById(ids[i]);
+      if(!coupon) return '优惠券配置读取失败，请刷新核查';
+      if(['ACTIVE','enabled','ENABLED'].indexOf(coupon.status)<0) return '优惠券已失效或停用，暂不可发放';
+      if(coupon.status === 'ACTIVE' && store && !store.matchesScene(coupon,scene)) return '优惠券发放场景不匹配';
+      if(coupon.config && coupon.config.timeScope === 'SPECIFIC') {
+        var end=parseSessionTs(coupon.validEnd), start=parseSessionTs(coupon.validStart);
+        if ((isFinite(end)&&Date.now()>end)||(isFinite(start)&&Date.now()<start)) return '优惠券不在有效期内';
+      }
+    }
+    return '';
+  }
+
+  function resumeMatchedPlan(plan) {
+    var sess = findSession(sessionId);
+    if (!plan || !sess || sess.status === 'ended') return toast('直播已结束，不可恢复发放', 'warning');
+    var error=rewardConfigurationError(plan);
+    if(error) return toast(error,'warning');
+    if (blockDeliverIfCouponMismatch(plan, sess)) return;
+    var hasPaused = false;
+    var resumedIds = {};
+    welfareWindowsOfPlan(welfarePlanIdOf(plan)).forEach(function(w) {
+      if (w.status !== 'PAUSED_MATCH') return;
+      hasPaused = true;
+      var remaining = Math.max(0, Number(w.matchRemainingMs) || 0);
+      resumedIds[w.id] = true;
+      w.endedAt = tsAfterSec(Math.ceil(remaining / 1000));
+      w.status = remaining > 0 ? 'ACTIVE' : 'CLOSED'; delete w.matchPausedAt;
+      if (!remaining) clearPlanActiveWindow(welfarePlanIdOf(plan), w.id);
+    });
+    if (!hasPaused) return toast('当前没有待恢复的活动','warning');
+    Object.keys(plan.matchGrantLedger || {}).forEach(function(key) {
+      var record = plan.matchGrantLedger[key];
+      if (record.status === 'pending' && resumedIds[record.windowId]) record.status = 'sent';
+    });
+    toast('已恢复发放，待发奖励已按原资格补发');
+    renderWelfareDrawer();
+  }
+
+  function qualifyReward(plan) {
+    var sess = findSession(sessionId);
+    var w = welfareWindowsOfPlan(welfarePlanIdOf(plan))[0];
+    if (!sess || sess.status !== 'live' || !w || w.status !== 'ACTIVE') return toast('请先启动该活动，暂停期间不新增达标','warning');
+    if (rewardConfigurationError(plan) || planCouponMatchIssues(plan, sess).length) { syncMatchPauses(); renderWelfareDrawer(); return toast('活动暂停中，不新增达标资格','warning'); }
+    var ledger = plan.matchGrantLedger || (plan.matchGrantLedger = {});
+    var key = rewardPreviewKey(plan);
+    if (ledger[key]) return toast('该奖励资格已记录','warning');
+    ledger[key] = {status:'qualified', userId:'viewer-demo', windowId:w.id};
+    toast('已记录达标资格，尚未到账');
+    renderWelfareDrawer();
+  }
+
+  function previewActualGrant(plan) {
+    var sess = findSession(sessionId);
+    var windows = welfareWindowsOfPlan(welfarePlanIdOf(plan)) || [];
+    var w = windows[0];
+    if (!sess || sess.status !== 'live') return toast('请先开始直播','warning');
+    if (!w || ['ACTIVE','PAUSED_MATCH'].indexOf(w.status) < 0) return toast('请先启动该活动','warning');
+    var error=rewardConfigurationError(plan);
+    if(error) return toast(error,'warning');
+    var key = rewardPreviewKey(plan);
+    var ledger = plan.matchGrantLedger || (plan.matchGrantLedger = {});
+    if (ledger[key] && ledger[key].status !== 'qualified') return toast(ledger[key].status === 'sent' ? '该奖励已发放，请勿重复领取' : '奖励资格已保留，等待恢复发放','warning');
+    if (ledger[key] && ledger[key].status === 'qualified') {
+      ledger[key].status = planCouponMatchIssues(plan,sess).length || w.status === 'PAUSED_MATCH' ? 'pending' : 'sent';
+      toast(ledger[key].status === 'pending' ? '奖励资格已保留，当前待发放' : '奖励发放成功');
+      renderWelfareDrawer(); return;
+    }
+    var mismatch = planCouponMatchIssues(plan,sess).length > 0;
+    if (w.status === 'PAUSED_MATCH') return toast('活动暂停中，不新增领取或累计进度','warning');
+    ledger[key] = {status:mismatch?'pending':'sent',userId:'viewer-demo',windowId:w.id};
+    if (mismatch) syncMatchPauses();
+    toast(mismatch?'奖励资格已保留，当前待发放':'奖励发放成功');
+    renderWelfareDrawer();
+  }
+
   function renderWelfareDrawer() {
+    syncMatchPauses();
     hideWelfareHelpPop();
     expireWelfareWindows();
     var meta = WELFARE_META[welfareUi.kind] || WELFARE_META.coupon;
@@ -3016,11 +3152,17 @@
     var plan = selectedWelfarePlan();
     var body = document.getElementById('welfareDrawerBody');
     if (body) {
-      body.innerHTML =
-        welfareUi.tab === 'record' ? renderWelfareRecord(meta, plan) : renderWelfareIssue(meta, plans, plan);
+      body.innerHTML = matchPanel(plan) + (welfareUi.tab === 'record' ? renderWelfareRecord(meta, plan) : renderWelfareIssue(meta, plans, plan));
+      var resume = body.querySelector('[data-match-resume]');
+      if (resume) resume.onclick = function(){resumeMatchedPlan(plan);};
+      var qualify = body.querySelector('[data-match-qualify]');
+      if (qualify) qualify.onclick = function(){qualifyReward(plan);};
+      var grant = body.querySelector('[data-match-grant]');
+      if (grant) grant.onclick = function(){previewActualGrant(plan);};
     }
     applyWelfarePrimary();
     syncEndedLock();
+    if (Demo.persistWelfare) Demo.persistWelfare();
   }
 
   function applyWelfarePrimary() {
@@ -3064,6 +3206,7 @@
     var ended = isEndedLocked();
     var toolbar =
       '<div class="coupon-dialog__issue-toolbar"><button type="button" class="erp-btn erp-btn--primary" id="btnAddRedpack"' +
+      (marketingBindingLocked() ? ' hidden style="display:none!important"' : '') +
       (ended ? ' disabled' : '') +
       '>添加现金红包</button></div>';
     if (!plans.length) {
@@ -3188,6 +3331,7 @@
       '>保存</button></div></div>';
     var toolbar =
       '<div class="coupon-dialog__issue-toolbar"><button type="button" class="erp-btn erp-btn--primary" id="btnAddBag"' +
+      (marketingBindingLocked() ? ' hidden style="display:none!important"' : '') +
       (ended ? ' disabled' : '') +
       '>添加福袋</button></div>';
     if (!plans.length) {
@@ -3441,6 +3585,7 @@
     var ended = isEndedLocked();
     var toolbar =
       '<div class="coupon-dialog__issue-toolbar"><button type="button" class="erp-btn erp-btn--primary" id="btnAddCoupon"' +
+      (marketingBindingLocked() ? ' hidden style="display:none!important"' : '') +
       (ended ? ' disabled' : '') +
       '>添加优惠券</button></div>';
     if (!plans.length) {
@@ -3564,6 +3709,7 @@
     var ended = isEndedLocked();
     var toolbar =
       '<div class="coupon-dialog__issue-toolbar"><button type="button" class="erp-btn erp-btn--primary" id="btnAddSign"' +
+      (marketingBindingLocked() ? ' hidden style="display:none!important"' : '') +
       (ended ? ' disabled' : '') +
       '>添加签到</button></div>';
     if (!plans.length) {
@@ -3662,6 +3808,7 @@
     var ended = isEndedLocked();
     var toolbar =
       '<div class="coupon-dialog__issue-toolbar"><button type="button" class="erp-btn erp-btn--primary" id="btnAddTask"' +
+      (marketingBindingLocked() ? ' hidden style="display:none!important"' : '') +
       (ended ? ' disabled' : '') +
       '>添加观看奖励</button></div>';
     if (!plans.length) {
@@ -3982,6 +4129,7 @@
   }
 
   function recordStatusBadge(w, activeText) {
+    if (w.status === 'PAUSED_MATCH') return '<span class="record-card__status record-card__status--interrupted">暂停发放</span>';
     var active = w.status === 'ACTIVE';
     var interrupted = !active && !!w.interrupted;
     return (
@@ -4278,6 +4426,7 @@
   }
 
   function openAddCouponDialog() {
+    if (guardMarketingBinding()) return;
     if (isEndedLocked()) return toastEndedLock('deliver');
     closeAddCouponModal();
     addCouponUi.templateId = '';
@@ -4537,6 +4686,7 @@
   }
 
   function confirmAddCoupon() {
+    if (guardMarketingBinding()) return;
     if (isEndedLocked()) return toastEndedLock('deliver');
     var sess = findSession(sessionId);
     if (!sess) return;
@@ -4570,9 +4720,11 @@
       releasedQty: null
     });
     Demo.welfareWindowsOf(planId);
+    if (Demo.persistSessions) Demo.persistSessions();
     welfareUi.planId = planId;
+    if (Demo.persistSessions) Demo.persistSessions();
     closeAddCouponModal();
-    toast('已添加「' + tpl.name + '」，预扣库存 ' + qty + ' 张');
+    toast('已绑定「' + tpl.name + '」，尚未启动' + (matchIssues.length ? '；待补齐匹配商品' : ''));
     renderWelfareDrawer();
   }
 
@@ -4664,6 +4816,7 @@
   }
 
   function openAddBagDialog() {
+    if (guardMarketingBinding()) return;
     if (isEndedLocked()) return toastEndedLock('deliver');
     if (Demo.refreshMarketingLiveCaches) Demo.refreshMarketingLiveCaches();
     addBagUi.templateId = '';
@@ -4678,6 +4831,7 @@
   }
 
   function confirmAddBag() {
+    if (guardMarketingBinding()) return;
     if (isEndedLocked()) return toastEndedLock('deliver');
     var sess = findSession(sessionId);
     if (!sess) return;
@@ -4709,6 +4863,7 @@
       activeWindowId: null
     });
     Demo.welfareWindowsOf(planId);
+    if (Demo.persistSessions) Demo.persistSessions();
     welfareUi.planId = planId;
     closeDialog('addBagDialog');
     toast('已添加「' + tpl.name + '」，预扣库存 ' + qty);
@@ -4766,6 +4921,7 @@
   }
 
   function openAddSignDialog() {
+    if (guardMarketingBinding()) return;
     if (isEndedLocked()) return toastEndedLock('deliver');
     if (Demo.refreshMarketingLiveCaches) Demo.refreshMarketingLiveCaches();
     addSignUi.templateId = '';
@@ -4777,6 +4933,7 @@
   }
 
   function confirmAddSign() {
+    if (guardMarketingBinding()) return;
     if (isEndedLocked()) return toastEndedLock('deliver');
     var sess = findSession(sessionId);
     if (!sess) return;
@@ -4801,6 +4958,7 @@
       stock: null
     });
     Demo.welfareWindowsOf(planId);
+    if (Demo.persistSessions) Demo.persistSessions();
     welfareUi.planId = planId;
     closeDialog('addSignDialog');
     toast('已添加「' + tpl.name + '」');
@@ -4858,6 +5016,7 @@
   }
 
   function openAddTaskDialog() {
+    if (guardMarketingBinding()) return;
     if (isEndedLocked()) return toastEndedLock('deliver');
     if (Demo.refreshMarketingLiveCaches) Demo.refreshMarketingLiveCaches();
     addTaskUi.templateId = '';
@@ -4869,6 +5028,7 @@
   }
 
   function confirmAddTask() {
+    if (guardMarketingBinding()) return;
     if (isEndedLocked()) return toastEndedLock('deliver');
     var sess = findSession(sessionId);
     if (!sess) return;
@@ -4893,6 +5053,7 @@
       stock: null
     });
     Demo.welfareWindowsOf(planId);
+    if (Demo.persistSessions) Demo.persistSessions();
     welfareUi.planId = planId;
     closeDialog('addTaskDialog');
     toast('已添加「' + tpl.name + '」');
@@ -4972,6 +5133,7 @@
   }
 
   function openAddRedpackDialog() {
+    if (guardMarketingBinding()) return;
     if (isEndedLocked()) return toastEndedLock('deliver');
     if (cashRedpackClosed()) return toast(cashClosedTip(), 'warning');
     addRedpackUi.templateId = '';
@@ -4983,6 +5145,7 @@
   }
 
   function confirmAddRedpack() {
+    if (guardMarketingBinding()) return;
     if (isEndedLocked()) return toastEndedLock('deliver');
     if (cashRedpackClosed()) return toast(cashClosedTip(), 'warning');
     var list = sessionBoundRedpacks();
@@ -5116,6 +5279,9 @@
     if (isEndedLocked()) return toastEndedLock('deliver');
     var plan = selectedWelfarePlan();
     var kind = welfareUi.kind;
+    if (plan) {var error=rewardConfigurationError(plan); if(error) return toast(error,'warning');}
+    if ((findSession(sessionId) || {}).status !== 'live') return toast('请先开始直播，绑定活动不会自动启动', 'warning');
+    if (plan && welfareWindowsOfPlan(welfarePlanIdOf(plan)).some(function(w){return w.status === 'PAUSED_MATCH';})) return toast('当前活动已暂停，请补齐商品后恢复发放', 'warning');
     if (kind === 'coupon') {
       if (!plan) return toast('请先选择优惠券活动', 'warning');
       var couponLock = couponLockedReason(plan);
@@ -6250,6 +6416,7 @@
   }
 
   function render() {
+    if (Demo.persistProducts) Demo.persistProducts(sessionId);
     var picker = document.getElementById('controlPicker');
     var workspace = document.getElementById('controlWorkspace');
     var sess = sessionId ? findSession(sessionId) : null;
@@ -6593,6 +6760,23 @@
     render();
   }
 
+  window.addEventListener('storage', function(event) {
+    if (event.key !== Demo.PRODUCTS_STATE_KEY) return;
+    if (Demo.refreshProducts) Demo.refreshProducts();
+    syncMatchPauses();
+    if (welfareUi.open) renderWelfareDrawer();
+    render();
+  });
+
+  window.LfLiveCouponPreview = {
+    issues: function(plan){return planCouponMatchIssues(plan,findSession(sessionId));},
+    pause: syncMatchPauses,
+    qualify: qualifyReward,
+    grant: previewActualGrant,
+    resume: resumeMatchedPlan,
+    render: renderWelfareDrawer
+  };
+
   function bindEvents() {
     document.addEventListener(
       'click',
@@ -6637,23 +6821,11 @@
         if (!sess) return;
         if (sess.status === 'ended') return toastEndedLock();
         var couponIssues = liveCouponIssues(sess);
-        if (couponIssues.length) {
-          var blockMsg = '无法开始直播：' + startLiveBlockMessage(couponIssues);
-          toast(blockMsg, 'warning');
-          if (
-            window.confirm(
-              blockMsg +
-                '\n\n可前往「直播排品」添加适用商品，或返回场次编辑移除问题优惠券。\n是否打开本场排品页？'
-            )
-          ) {
-            window.location.href = startLiveFixHref(sess);
-          }
-          return;
-        }
         sess.status = 'live';
         stampActualStart(sess);
         processScheduled();
-        toast('已开始直播');
+        if (Demo.persistSessions) Demo.persistSessions();
+        toast(couponIssues.length ? '已开始直播；部分活动待补齐匹配商品，暂不可发放' : '已开始直播');
         render();
       });
     }
