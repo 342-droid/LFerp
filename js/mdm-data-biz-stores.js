@@ -1,162 +1,178 @@
 (function () {
-  var Biz = window.MdmDataBiz;
-  var Ui = window.MdmDataBizUi;
-  if (!Biz || !Ui) return;
+  var Center = window.MdmDataBizCenter;
+  var CUi = window.MdmDataBizCenterUi;
+  if (!Center || !CUi) return;
 
-  var SORT_OPTIONS = Ui.UNIFIED_SORT_OPTIONS;
-  var SORT_IDS = SORT_OPTIONS.map(function (x) {
-    return x.id;
-  });
-
-  var state = Ui.readStateFromUrl({
-    period: '30d',
-    view: 'pay',
-    sort: 'retailPay',
-    platScope: 'all',
-    page: 1,
-    pageSize: 10,
-    q: ''
-  });
-  state.view = 'pay';
-  if (SORT_IDS.indexOf(state.sort) < 0) state.sort = 'retailPay';
-  state.platScope = 'all';
-  state.pageSize = Ui.normalizePageSize(state.pageSize);
+  var state = CUi.readState({ period: '30d', channel: 'all', mode: 'sales' });
+  if (state.mode === 'proxy') state.channel = 'proxy';
+  if (['all', 'retail', 'proxy', 'mall', 'live'].indexOf(state.channel) < 0) state.channel = 'all';
   var root = document.querySelector('[data-ldb-root]');
+  var orderPager = { page: 1, pageSize: 10 };
+  var incomeColumns = [
+    { key: 'storeIncome', label: '门店所得', num: true, format: 'money' },
+    { key: 'platformIncome', label: '平台所得', num: true, format: 'money' }
+  ];
 
-  function sortValue(row, key) {
-    return Ui.unifiedSortValue(row, key);
+  function filters() {
+    return {
+      period: state.period,
+      from: state.from,
+      to: state.to,
+      storeId: state.storeId,
+      line: state.line,
+      channel: state.channel
+    };
   }
 
   function render() {
-    Ui.writeStateToUrl(state);
-    var period = Biz.resolvePeriod(state.period, state.from, state.to);
-    var filters = {
-      line: state.line,
-      brand: state.brand,
-      coopType: state.coopType
-    };
-    var keyword = String(state.q || '')
-      .trim()
-      .toLowerCase();
-    var rows = Biz.buildStoreRanking(period, filters).filter(function (r) {
-      if (!keyword) return true;
-      return (
-        String(r.storeName || '')
-          .toLowerCase()
-          .indexOf(keyword) >= 0
+    state.mode = state.channel === 'proxy' ? 'proxy' : 'sales';
+    CUi.writeState(state);
+    var mode = state.channel === 'all' ? 'all' : state.mode;
+    var all = mode === 'all';
+    var data = Center.storeDaily(filters(), mode);
+    var storeRank = Center.erpSnapshot(filters()).storeRank;
+
+    CUi.renderToolbar(root.querySelector('[data-ldb-toolbar]'), state, {
+      salesScope: true,
+      exportName: '门店分析'
+    });
+    CUi.bindToolbar(root.querySelector('[data-ldb-toolbar]'), state, function () {
+      orderPager.page = 1;
+      render();
+    }, {
+      exportName: '门店分析'
+    });
+    var meta = root.querySelector('[data-ldb-meta]');
+    if (meta) meta.textContent = CUi.filterHint(state);
+
+    root.querySelector('[data-ldb-tip]').innerHTML =
+      all ? '<p class="ldb-tip">全部业务线汇总零售销售和代采进货，两类金额在总额下分列。</p>' : mode === 'proxy'
+        ? '<p class="ldb-tip"><strong>门店进货</strong>仅统计代采订单；与门店销售分开，不合并。使用门店事业线字段筛选。</p>'
+        : '<p class="ldb-tip"><strong>门店销售</strong>仅统计零售订单；与门店进货分开，不合并。使用门店事业线字段筛选。</p>';
+
+    var amountLabel = all ? '支付总额' : mode === 'proxy' ? '代采进货额' : '销售额';
+    var goodsAmountLabel = all ? '商品金额' : mode === 'proxy' ? '商品进货额' : '商品销售额';
+    function commissionCard(label, key, noValueHint) {
+      var entries = data.orders.filter(function (row) { return row[key] != null; });
+      var amount = entries.reduce(function (sum, row) { return sum + row[key]; }, 0);
+      return CUi.kpiCard(label, entries.length ? CUi.money(amount) : '—', '',
+        entries.length ? '按当前筛选的订单清分示例汇总' : noValueHint);
+    }
+
+    root.querySelector('[data-ldb-kpis]').innerHTML =
+      CUi.kpiCard(
+        amountLabel,
+        CUi.money(data.kpis.sales),
+        '',
+        all ? '零售 ' + CUi.money(data.retailKpis.sales) + ' · 代采 ' + CUi.money(data.proxyKpis.sales) :
+          mode === 'proxy' ? '代采实付含运费' : '零售实付含运费'
+      ) +
+      CUi.kpiCard('订单数', CUi.intText(data.kpis.orders), '', '支付成功主订单') +
+      CUi.kpiCard(
+        '成功退款',
+        CUi.money(data.kpis.refundAmount),
+        '',
+        mode === 'proxy' ? '单独展示，不冲减进货额' : '单独展示，不冲减销售额'
+      ) +
+      CUi.kpiCard(
+        mode === 'proxy' ? '有进货门店' : '有成交门店',
+        CUi.intText(data.stores.length),
+        '',
+        '当前筛选'
+      ) +
+      commissionCard('门店分佣所得', 'storeIncome', mode === 'proxy' ? '代采订单无门店分佣' : '当前筛选暂无门店分佣记录') +
+      commissionCard('平台分佣所得', 'platformIncome', '当前筛选暂无平台分佣记录');
+
+    root.querySelector('[data-ldb-mid]').innerHTML =
+      CUi.sectionCard(
+        all ? '每日支付总额' : mode === 'proxy' ? '每日进货额' : '每日金额',
+        '<div class="ldb-chart">' +
+          CUi.renderBars(
+            data.daily.map(function (d) {
+              return { date: d.date, value: d.sales, grain: 'day' };
+            })
+          ) +
+          '</div>'
       );
-    });
-
-    Ui.renderToolbar(Ui.$('[data-ldb-toolbar]', root), state, {
-      showView: false,
-      showStoreFilters: true
-    });
-    Ui.bindToolbar(Ui.$('[data-ldb-toolbar]', root), state, function () {
-      state.page = 1;
-      render();
-    });
-    var meta = Ui.$('[data-ldb-meta]', root);
-    if (meta) {
-      meta.textContent =
-        period.label + ' · 支付订单归属 · 筛选后门店 ' + rows.length + ' 家';
-    }
-
-    Ui.$('[data-ldb-tip]', root).innerHTML =
-      '<p class="ldb-tip">零售、代采、平台所得分列同表；切换排序仅改变名次与强调列，不切换表头、不合成门店营业额。' +
-      Ui.unifiedSortDeltaLabel(state.sort) +
-      '随排序指标同步。口径与总览 TOP10 一致。</p>';
-
-    var sortKey = state.sort;
-    rows.sort(function (a, b) {
-      var d = sortValue(b, sortKey) - sortValue(a, sortKey);
-      if (d !== 0) return d;
-      return String(a.storeName).localeCompare(String(b.storeName), 'zh');
-    });
-    var paged = Ui.paginateRows(rows, state.page, state.pageSize);
-    state.page = paged.page;
-    state.pageSize = paged.pageSize;
-    var pageRows = paged.rows;
-    var startRank = (paged.page - 1) * paged.pageSize + 1;
-
-    var searchBar =
-      '<div class="ldb-search-bar">' +
-      '<div class="ldb-field"><label>门店名称</label>' +
-      '<input class="ldb-input" type="search" data-store-q placeholder="输入门店名称关键词" value="' +
-      Biz.esc(state.q || '') +
-      '"></div>' +
-      '<button type="button" class="btn btn-primary" data-store-search style="height:32px;padding:0 12px;">搜索</button>' +
-      '<button type="button" class="btn btn-secondary" data-store-clear style="height:32px;padding:0 12px;">清空</button>' +
-      '<div class="ldb-field"><label>排序指标</label><select class="ldb-select" data-sort>' +
-      SORT_OPTIONS.map(function (x) {
-        return (
-          '<option value="' +
-          x.id +
-          '"' +
-          (state.sort === x.id ? ' selected' : '') +
-          '>' +
-          x.label +
-          '</option>'
-        );
-      }).join('') +
-      '</select></div></div>';
-
-    Ui.$('[data-ldb-table]', root).innerHTML =
-      '<section class="ldb-card">' +
-      '<div class="ldb-card__head"><h3 class="ldb-card__title">门店经营比较</h3>' +
-      '<span class="ldb-card__extra">共 ' +
-      paged.total +
-      ' 家门店' +
-      (paged.total ? '，当前展示第 ' + paged.from + '–' + paged.to + ' 家' : '') +
-      '</span></div>' +
-      searchBar +
-      Ui.renderUnifiedStoreTableHtml(pageRows, {
-        sortKey: sortKey,
-        startRank: startRank,
-        emptyText: '暂无符合条件的门店',
-        detailHref: function (r) {
-          return Ui.pageHref(
-            'mdm_data_biz_store_detail.html',
-            Object.assign({}, state, { storeId: r.storeId, back: 'stores' })
-          );
-        }
-      }) +
-      Ui.renderPager({
-        total: paged.total,
-        page: paged.page,
-        pageSize: paged.pageSize
-      }) +
-      '</section>';
-
-    var sortEl = Ui.$('[data-sort]', root);
-    if (sortEl) {
-      sortEl.addEventListener('change', function () {
-        state.sort = sortEl.value;
-        state.page = 1;
-        render();
-      });
-    }
-    var qInput = Ui.$('[data-store-q]', root);
-    var searchBtn = Ui.$('[data-store-search]', root);
-    var clearBtn = Ui.$('[data-store-clear]', root);
-    function applySearch() {
-      state.q = (qInput && qInput.value) || '';
-      state.page = 1;
-      render();
-    }
-    if (searchBtn) searchBtn.addEventListener('click', applySearch);
-    if (qInput) {
-      qInput.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') applySearch();
-      });
-    }
-    if (clearBtn) {
-      clearBtn.addEventListener('click', function () {
-        state.q = '';
-        state.page = 1;
-        render();
-      });
-    }
-    Ui.bindPager(Ui.$('[data-ldb-pager]', root), state, render);
+    root.querySelector('[data-ldb-table]').innerHTML =
+      CUi.sectionCard(
+        '商品排行',
+        CUi.simpleTable(
+          [
+            { key: 'name', label: '商品' },
+            { key: 'biz', label: '业务线' },
+            {
+              key: 'storeNames', label: '成交门店',
+              render: function (row) {
+                var names = row.storeNames;
+                if (names.length < 2) return CUi.esc(names[0] || '—');
+                return '<details><summary>' + names.length + ' 家</summary>' +
+                  names.map(function (name) { return '<div>' + CUi.esc(name) + '</div>'; }).join('') + '</details>';
+              }
+            },
+            { key: 'sales', label: goodsAmountLabel, num: true, format: 'money' },
+            { key: 'qty', label: '数量', num: true, format: 'int' },
+            { key: 'orders', label: '样本订单数', num: true, format: 'int' },
+            { key: 'margin', label: '商品毛利', num: true, format: 'money' },
+            { key: 'refundAmount', label: '退款金额', num: true, format: 'money' }
+          ].concat(incomeColumns),
+          data.products.filter(function (product) { return product.orders > 0; }),
+          '当前筛选暂无商品成交样本'
+        ) + '<p class="ldb-tip">成交门店、样本订单数及所得按当前筛选的示例订单统计。</p>'
+      ) +
+      CUi.sectionCard(
+        '门店列表',
+        CUi.simpleTable(
+          [
+            { key: 'storeName', label: '门店' },
+            { key: 'line', label: '事业线' },
+            { key: 'goodsMargin', label: '商品交易毛利', num: true, format: 'money' },
+            { key: 'goodsMarginRate', label: '毛利率', num: true, render: function (row, value) {
+              return value == null ? '—' : (value * 100).toFixed(1) + '%';
+            } },
+            { key: 'retailPlatformIncome', label: '零售平台分配所得', num: true, format: 'money' },
+            { key: 'proxyPlatformIncome', label: '代采平台分配所得', num: true, format: 'money' },
+            { key: 'platformIncome', label: '平台分配所得', num: true, format: 'money' },
+            {
+              key: 'storeId',
+              label: '操作',
+              render: function (r) {
+                return (
+                  '<a href="' +
+                  CUi.pageHref('mdm_data_biz_store_detail.html', {
+                    storeId: r.storeId,
+                    mode: all ? 'sales' : mode,
+                    period: state.period,
+                    line: state.line,
+                    channel: state.channel === 'mall' || state.channel === 'live' ? state.channel : 'all',
+                    from: state.from,
+                    to: state.to,
+                    back: all ? 'stores-all' : 'stores'
+                  }) +
+                  '">详情</a>'
+                );
+              }
+            }
+          ],
+          storeRank
+        )
+      ) +
+      CUi.sectionCard(
+        '订单明细',
+        CUi.renderPagedTable(
+          [
+            { key: 'orderId', label: '主订单号', render: CUi.orderIdCell },
+            { key: 'biz', label: '业务线' },
+            { key: 'storeName', label: '门店' },
+            { key: 'payTime', label: '支付成功时间' },
+            { key: 'goodsSales', label: '商品金额', num: true, format: 'money' },
+            { key: 'freightSales', label: '运费', num: true, format: 'money' },
+            { key: 'refundAmount', label: '退款金额', num: true, format: 'money' }
+          ].concat(incomeColumns),
+          data.orders, orderPager, { unitLabel: '单' }
+        )
+      );
+    CUi.bindPagedTable(root.querySelector('[data-ldb-table]'), orderPager, render);
   }
 
   render();

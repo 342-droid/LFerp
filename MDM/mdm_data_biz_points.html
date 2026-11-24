@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>会员营销 · 积分使用情况</title>
+    <script>
+        var target = new URL('mdm_data_biz_marketing.html', window.location.href);
+        var previous = new URLSearchParams(window.location.search);
+        ['period', 'from', 'to', 'channel'].forEach(function (key) {
+            if (previous.has(key)) target.searchParams.set(key, previous.get(key));
+        });
+        target.hash = 'marketing-points';
+        window.location.replace(target.href);
+    </script>
+</head>
+<body>
+    <a href="mdm_data_biz_marketing.html#marketing-points">前往营销活动 · 会员营销 · 积分使用情况</a>
+</body>
+</html>

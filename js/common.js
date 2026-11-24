@@ -1233,7 +1233,7 @@ if (document.readyState === 'loading') {
         if (/\/(shop-h5|user-app|store-app)\//i.test(window.location.pathname || '')) return;
         var s = document.createElement('script');
         s.id = 'lf-fab-dock-js';
-        s.src = assetUrl('js/lf-fab-dock.js') + '?v=20260909-sku-freight';
+        s.src = assetUrl('js/lf-fab-dock.js') + '?v=20261124-biz-report-sample';
         s.async = false;
         (document.body || document.head).appendChild(s);
     }

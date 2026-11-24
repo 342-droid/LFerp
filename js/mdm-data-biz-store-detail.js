@@ -1,185 +1,137 @@
 (function () {
-  var Biz = window.MdmDataBiz;
-  var Ui = window.MdmDataBizUi;
-  if (!Biz || !Ui) return;
+  var Center = window.MdmDataBizCenter;
+  var CUi = window.MdmDataBizCenterUi;
+  if (!Center || !CUi) return;
 
-  var state = Ui.readStateFromUrl({ period: '30d', view: 'pay' });
-  state.view = 'pay';
+  var state = CUi.readState({ period: '30d', channel: 'all', mode: 'sales', back: 'stores' });
+  if (state.mode !== 'proxy') state.mode = 'sales';
   var root = document.querySelector('[data-ldb-root]');
 
+  function filters() {
+    return {
+      period: state.period,
+      from: state.from,
+      to: state.to,
+      line: state.line,
+      channel: state.channel
+    };
+  }
+
   function render() {
-    var store = Biz.storeById(state.storeId);
-    if (!store) {
-      root.innerHTML = '<div class="ldb-empty">未找到门店</div>';
+    CUi.writeState(state);
+    if (!state.storeId) {
+      root.querySelector('[data-ldb-blocks]').innerHTML = CUi.emptyBlock('未指定门店');
       return;
     }
+    var mode = state.mode === 'proxy' ? 'proxy' : 'sales';
+    var data = Center.storeDetail(state.storeId, filters(), mode);
+    var st = data.store;
 
-    Ui.writeStateToUrl(state);
-    var period = Biz.resolvePeriod(state.period, state.from, state.to);
-    var backParams = Object.assign({}, state);
-    delete backParams.storeId;
-    var fromPage = state.back === 'overview' ? 'overview' : 'stores';
-    delete backParams.back;
-    var backFile =
-      fromPage === 'overview' ? 'mdm_data_biz_overview.html' : 'mdm_data_biz_stores.html';
-    var backLabel = fromPage === 'overview' ? '← 返回经营总览' : '← 返回门店经营比较';
+    var backHref =
+      state.back === 'overview'
+        ? CUi.pageHref('mdm_data_biz_overview.html', {
+            period: state.period,
+            line: state.line,
+            channel: state.channel
+          })
+        : CUi.pageHref('mdm_data_biz_stores.html', {
+            mode: state.back === 'stores-all' ? 'sales' : mode,
+            period: state.period,
+            line: state.line,
+            channel: state.back === 'stores-all' ? 'all' : state.channel,
+            from: state.from,
+            to: state.to
+          });
 
-    Ui.renderToolbar(Ui.$('[data-ldb-toolbar]', root), state, { showView: false });
-    Ui.bindToolbar(Ui.$('[data-ldb-toolbar]', root), state, render);
+    root.querySelector('[data-ldb-back]').innerHTML =
+      '<a class="ldb-back" href="' + backHref + '">← 返回</a>';
+    root.querySelector('[data-ldb-title]').innerHTML =
+      '<h2 class="ldb-section-title" style="margin:0 0 8px">' +
+      CUi.esc(st ? st.name : state.storeId) +
+      (st ? ' · ' + CUi.esc(st.line) + ' / ' + CUi.esc(st.brand) : '') +
+      '</h2>';
 
-    Ui.$('[data-ldb-back]', root).innerHTML =
-      '<a class="ldb-back" href="' + Ui.pageHref(backFile, backParams) + '">' + backLabel + '</a>';
+    CUi.renderToolbar(root.querySelector('[data-ldb-toolbar]'), state, {
+      showStore: false,
+      showChannel: mode === 'sales',
+      exportName: '单店详情'
+    });
+    CUi.bindToolbar(root.querySelector('[data-ldb-toolbar]'), state, render, {
+      exportName: '单店详情'
+    });
+    var meta = root.querySelector('[data-ldb-meta]');
+    if (meta) meta.textContent = CUi.filterHint(state);
 
-    var retail = Biz.metricsForPaidOrders(
-      Biz.paidInPeriod(Biz.filterNormOrders({ biz: 'retail', storeId: store.id }), period.start, period.end),
-      period.asOf.getTime()
+    root.querySelector('[data-ldb-tip]').innerHTML =
+      '<p class="ldb-tip">本店「门店销售」与「门店进货」分开展示，不合并。</p>';
+
+    root.querySelector('[data-ldb-tabs]').innerHTML = CUi.pageTabs(
+      [
+        { id: 'sales', label: '门店销售（零售）' },
+        { id: 'proxy', label: '门店进货（代采）' }
+      ],
+      mode
     );
-    var proxy = Biz.metricsForPaidOrders(
-      Biz.paidInPeriod(Biz.filterNormOrders({ biz: 'proxy', storeId: store.id }), period.start, period.end),
-      period.asOf.getTime()
-    );
-    retail.aov = retail.orderCount ? Biz.round2(retail.payGoods / retail.orderCount) : null;
-    proxy.aov = proxy.orderCount ? Biz.round2(proxy.payGoods / proxy.orderCount) : null;
-
-    var rankRows = Biz.buildStoreRanking(period, {});
-    var row = rankRows.filter(function (r) {
-      return r.storeId === store.id;
-    })[0];
-
-    var retailHas = retail.orderCount > 0;
-    var proxyHas = proxy.orderCount > 0;
-    var platformFormed = retail.settleReady + proxy.settleReady > 0;
-    var platformPending = retail.settlePending + proxy.settlePending;
-    var platformTotal = platformFormed
-      ? Biz.round2(retail.platformRetailGoods + proxy.platformProxyGoods + proxy.platformProxyFreight)
-      : null;
-    var retailMarginTip =
-      !retailHas
-        ? '无零售成交'
-        : retail.marginSum == null
-          ? retail.marginPending
-            ? '成本未齐'
-            : '毛利率 —'
-          : retail.marginRate == null
-            ? '毛利率 —'
-            : '毛利率 ' + Biz.pctText(retail.marginRate);
-    var proxyMarginTip =
-      !proxyHas
-        ? '无代采成交'
-        : proxy.marginSum == null
-          ? proxy.marginPending
-            ? '成本未齐'
-            : '毛利率 —'
-          : proxy.marginRate == null
-            ? '毛利率 —'
-            : '毛利率 ' + Biz.pctText(proxy.marginRate);
-    var platformTip = platformFormed
-      ? ''
-      : platformPending > 0
-        ? '结算未形成'
-        : '无分配所得';
-
-    Ui.$('[data-ldb-title]', root).innerHTML =
-      '<h2 style="margin:0;font-size:18px;">' +
-      Biz.esc(store.name) +
-      '</h2>' +
-      '<p class="ldb-tip" style="margin-top:8px">' +
-      Biz.esc(store.line) +
-      ' · ' +
-      Biz.esc(store.brand) +
-      ' · ' +
-      Biz.esc(store.coopType) +
-      '。无成交不直接判断停业；业绩归属下单时门店快照。</p>';
-
-    Ui.$('[data-ldb-blocks]', root).innerHTML =
-      '<section class="ldb-card"><h3 class="ldb-card__title">零售经营</h3>' +
-      '<div class="ldb-kpi-row">' +
-      Ui.kpiCard('支付成交额', retailHas ? Biz.money(retail.payGoods) : '—', '', retailHas ? '' : '无零售成交') +
-      Ui.kpiCard(
-        '主订单数',
-        retailHas ? Biz.intText(retail.orderCount) : '—',
-        '',
-        '',
-        retailHas
-          ? { actionText: '查看订单明细', actionAttr: 'data-open-orders="retail"' }
-          : null
-      ) +
-      Ui.kpiCard('支付人数', retailHas ? Biz.intText(retail.consumerCount) : '—') +
-      Ui.kpiCard('客单价', retail.aov == null ? '—' : Biz.money(retail.aov)) +
-      Ui.kpiCard('商品毛利', retailHas ? Biz.money(retail.marginSum) : '—', '', retailMarginTip) +
-      Ui.kpiCard(
-        '有支付天数',
-        retailHas ? Biz.intText(row ? row.retailDays : null) : '—',
-        '',
-        '最近支付 ' + (row && row.retailLastPay ? row.retailLastPay : '—')
-      ) +
-      '</div></section>' +
-      '<section class="ldb-card"><h3 class="ldb-card__title">代采进货</h3>' +
-      '<div class="ldb-kpi-row">' +
-      Ui.kpiCard('商品支付金额', proxyHas ? Biz.money(proxy.payGoods) : '—', '', proxyHas ? '' : '无代采成交') +
-      Ui.kpiCard(
-        '主订单数',
-        proxyHas ? Biz.intText(proxy.orderCount) : '—',
-        '',
-        '',
-        proxyHas
-          ? { actionText: '查看订单明细', actionAttr: 'data-open-orders="proxy"' }
-          : null
-      ) +
-      Ui.kpiCard('进货客单价', proxy.aov == null ? '—' : Biz.money(proxy.aov)) +
-      Ui.kpiCard('商品毛利', proxyHas ? Biz.money(proxy.marginSum) : '—', '', proxyMarginTip) +
-      Ui.kpiCard(
-        '有进货天数',
-        proxyHas ? Biz.intText(row ? row.proxyDays : null) : '—',
-        '',
-        '最近进货 ' + (row && row.proxyLastPay ? row.proxyLastPay : '—')
-      ) +
-      Ui.kpiCard('相邻进货间隔', row && row.proxyAvgGap != null ? Biz.intText(row.proxyAvgGap) + ' 天' : '—') +
-      '</div></section>' +
-      '<section class="ldb-card"><h3 class="ldb-card__title">平台分配所得</h3>' +
-      '<div class="ldb-kpi-row">' +
-      Ui.kpiCard(
-        '零售商品所得',
-        platformFormed ? Biz.money(retail.platformRetailGoods) : '—',
-        '',
-        platformTip
-      ) +
-      Ui.kpiCard('代采商品所得', platformFormed ? Biz.money(proxy.platformProxyGoods) : '—') +
-      Ui.kpiCard('代采运费所得', platformFormed ? Biz.money(proxy.platformProxyFreight) : '—') +
-      Ui.kpiCard('合计', Biz.money(platformTotal), '', platformTip) +
-      '</div></section>';
-
-    root.querySelectorAll('[data-open-orders]').forEach(function (btn) {
-      btn.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        var kind = btn.getAttribute('data-open-orders');
-        var rows = kind === 'proxy' ? proxy.detailRows || [] : retail.detailRows || [];
-        var count = kind === 'proxy' ? proxy.orderCount : retail.orderCount;
-        var goods = kind === 'proxy' ? proxy.payGoods : retail.payGoods;
-        Ui.showDetailTable(
-          kind === 'proxy' ? '本店代采支付主订单' : '本店零售支付主订单',
-          rows,
-          [
-            { key: 'orderId', label: '主订单号', link: 'order' },
-            { key: 'biz', label: '业务线', format: 'biz' },
-            { key: 'channel', label: '来源', format: 'channel' },
-            { key: 'payTime', label: '支付时间' },
-            { key: 'payGoods', label: '商品实付', num: true, format: 'money' },
-            { key: 'payFreight', label: '运费', num: true, format: 'money' },
-            { key: 'margin', label: '毛利', num: true, format: 'money' }
-          ],
-          {
-            summaryHtml:
-              '<p class="ldb-tip ldb-tip--flush">共 <strong>' +
-              Biz.intText(count) +
-              '</strong> 单（与主订单数一致）· 商品实付合计 <strong>' +
-              Biz.money(goods) +
-              '</strong>。按主订单ID去重。</p>'
-          }
-        );
+    root.querySelectorAll('[data-page-tab]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        state.mode = btn.getAttribute('data-page-tab');
+        render();
       });
     });
+
+    var amountLabel = mode === 'proxy' ? '代采进货额' : '销售额';
+    var goodsAmountLabel = mode === 'proxy' ? '商品进货额' : '商品销售额';
+
+    root.querySelector('[data-ldb-kpis]').innerHTML =
+      CUi.kpiCard(amountLabel, CUi.money(data.kpis.sales), '', mode === 'proxy' ? '代采实付含运费' : '零售实付含运费') +
+      CUi.kpiCard('订单数', CUi.intText(data.kpis.orders), '', '') +
+      CUi.kpiCard(
+        '成功退款',
+        CUi.money(data.kpis.refundAmount),
+        '',
+        mode === 'proxy' ? '不冲减进货额' : '不冲减销售额'
+      );
+
+    root.querySelector('[data-ldb-blocks]').innerHTML =
+      '<div class="ldb-grid-2">' +
+      CUi.sectionCard(
+        mode === 'proxy' ? '每日进货额' : '每日金额',
+        '<div class="ldb-chart">' +
+          CUi.renderBars(
+            data.daily.map(function (d) {
+              return { date: d.date, value: d.sales, grain: 'day' };
+            })
+          ) +
+          '</div>'
+      ) +
+      CUi.sectionCard(
+        '商品排行',
+        CUi.simpleTable(
+          [
+            { key: 'name', label: '商品' },
+            { key: 'sales', label: goodsAmountLabel, num: true, format: 'money' },
+            { key: 'qty', label: '数量', num: true, format: 'int' },
+            { key: 'refundAmount', label: '退款金额', num: true, format: 'money' }
+          ],
+          data.products
+        )
+      ) +
+      '</div>' +
+      CUi.sectionCard(
+        '订单明细',
+        CUi.simpleTable(
+          [
+            { key: 'orderId', label: '主订单号', render: CUi.orderIdCell },
+            { key: 'payTime', label: '支付成功时间' },
+            { key: 'goodsSales', label: '商品金额', num: true, format: 'money' },
+            { key: 'freightSales', label: '运费', num: true, format: 'money' },
+            { key: 'purchaseCost', label: '采购成本', num: true, format: 'money' },
+            { key: 'goodsMargin', label: '商品毛利', num: true, format: 'money' },
+            { key: 'refundAmount', label: '退款金额', num: true, format: 'money' }
+          ],
+          data.orders
+        )
+      );
   }
 
   render();

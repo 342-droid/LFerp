@@ -39,7 +39,7 @@
         if (!samePath && hrefBase === 'mdm_member_level' && currentPage === 'mdm_member_level_desc') {
             samePath = true;
         }
-        // 单店经营详情归属「门店经营比较」高亮
+        // 单店经营详情归属「门店分析」高亮
         if (!samePath && hrefBase === 'mdm_data_biz_stores' && currentPage === 'mdm_data_biz_store_detail') {
             samePath = true;
         }
@@ -57,7 +57,8 @@
         if (!samePath) return false;
         var curHash = String(window.location.hash || '').replace(/^#/, '');
         if (!hash) {
-            return !curHash || curHash === 'store-registration';
+            return !curHash || curHash === 'store-registration' ||
+                (hrefBase === 'mdm_data_biz_marketing' && curHash === 'marketing-points');
         }
         return curHash === hash;
     }
@@ -120,12 +121,13 @@
         { href: 'mdm_audit_cash_redpack_manual.html', text: '派发红包' }
     ];
 
-    /** 平台数据中心 · 经营分析 */
+    /** 平台数据中心 · 经营数据中心 */
     const dataBizItems = [
         { href: 'mdm_data_biz_overview.html', text: '经营总览' },
-        { href: 'mdm_data_biz_retail.html', text: '零售经营' },
-        { href: 'mdm_data_biz_proxy.html', text: '代采经营' },
-        { href: 'mdm_data_biz_stores.html', text: '门店经营比较' }
+        { href: 'mdm_data_biz_rbt.html', text: 'RBT联营' },
+        { href: 'mdm_data_biz_supplier.html', text: '供应商分析' },
+        { href: 'mdm_data_biz_stores.html', text: '门店分析' },
+        { href: 'mdm_data_biz_marketing.html', text: '营销活动' }
     ];
 
     function groupHasActive(items) {
@@ -194,8 +196,8 @@
             renderCollapsibleGroup('会员体系', '策略管理', memberSystemItems, true) +
             renderCollapsibleGroup('积分管理', '任务管理', memberPointsItems, true);
     } else if (isDataBizPage) {
-        /** 顶栏「数据中心」：经营分析菜单，不混入商家主体／人员中心 */
-        itemsHtml = renderCollapsibleGroup('经营分析', '任务管理', dataBizItems, true);
+        /** 顶栏「数据中心」：经营数据中心菜单，不混入商家主体／人员中心 */
+        itemsHtml = renderCollapsibleGroup('经营数据中心', '任务管理', dataBizItems, true);
     } else {
         itemsHtml =
             renderCollapsibleGroup('商家主体', '基础信息', partyItems, isPartyPage) +

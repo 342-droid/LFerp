@@ -2395,9 +2395,14 @@
                 (storeId || '—') +
                 '）';
             body.appendChild(info);
+            var originalPhoneInp = txt('', originalPhone);
+            originalPhoneInp.disabled = true;
+            originalPhoneInp.setAttribute('aria-label', '原店长手机号');
+            originalPhoneInp.style.background = '#f5f5f5';
+            body.appendChild(formRow('原店长手机号', false, originalPhoneInp));
             var phoneRowWrap = smsRow();
             var phoneInp = phoneRowWrap.querySelector('input');
-            phoneInp.value = originalPhone;
+            phoneInp.value = '';
             phoneInp.placeholder = '请输入接任店长手机号';
             phoneInp.setAttribute('aria-label', '接任店长手机号');
             phoneInp.setAttribute('data-required-msg', '请输入接任店长手机号');
@@ -2416,11 +2421,6 @@
             function isPhoneChanged() {
                 return String(phoneInp.value || '').trim() !== originalPhone;
             }
-            function syncVerifyVisibility() {
-                verifyRow.style.display = isPhoneChanged() ? '' : 'none';
-            }
-            syncVerifyVisibility();
-            phoneInp.addEventListener('input', syncVerifyVisibility);
             function validatePhoneChange() {
                 var toast = function (m) {
                     if (typeof showToast === 'function') showToast(m, 'error');

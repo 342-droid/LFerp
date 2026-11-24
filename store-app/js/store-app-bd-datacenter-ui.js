@@ -5,9 +5,9 @@
   var page = document.body.getAttribute('data-dc-page') || 'overview';
   var openId = '';
   var api = null;
-  var dcGroup = new URLSearchParams(location.search).get('group') || 'stores';
-  var dcSection = new URLSearchParams(location.search).get('section') || (dcGroup === 'commission' ? 'analysis' : 'business');
-  if (dcGroup === 'commission' && dcSection === 'comm') dcSection = 'analysis';
+  var routeParams = new URLSearchParams(location.search);
+  var dcGroup = routeParams.get('group') || 'stores';
+  var storeListPage = page === 'stores' && routeParams.get('view') === 'list';
 
   function K() { return window.StoreAppRoleDc; }
   function D() { return window.StoreAppBdDcData; }
@@ -52,7 +52,8 @@
     if (!rank.rows.length) return '<div class="sa-dc-empty">这个时段没有门店数据</div>';
     return rank.rows.map(function (r) {
       var shown = rank.money ? K().moneyFmt(r.value) : K().intFmt(r.value);
-      var href = api.href('biz-bd-store.html', { tab: tab, store: r.id }) + '&returnTo=stores';
+      var href = api.href('biz-bd-store.html', { tab: tab, store: r.id });
+      if (page === 'stores') href += '&returnTo=stores';
       return '<a class="sa-dc-list-row" href="' + href + '"><div class="sa-dc-list-row__main"><div class="sa-dc-list-row__title">' + esc(r.name) + '</div><div class="sa-dc-list-row__meta">' + esc(rank.label) + ' · 订单 ' + K().intFmt(r.orders) + '</div></div><div><div class="sa-dc-list-amt">' + shown + (rank.money ? '' : '') + '</div>' + (r.delta ? K().deltaHtml(r.delta, '') : '') + '</div></a>';
     }).join('');
   }
@@ -99,81 +100,194 @@
     );
   }
 
-  function renderOverview() {
+  function storeListHref() {
+    return api.href('biz-bd-stores.html', { store: '' }) + '&view=list';
+  }
+
+  function renderStoreList() {
     if (st().store) api.update({ store: '' });
-    document.getElementById('dcHead').innerHTML = head('overview');
+    nav('门店列表', api.href('biz-bd-center.html', { store: '' }));
     var s = st();
-    var tab = s.tab === 'proxy' ? 'proxy' : 'retail';
     var data = D().overview(s.range, customOf());
-    var ranked = D().storesView(s.range, customOf(), tab, tab === 'proxy' ? 'goods' : 'paid').rank;
+    var ranked = D().storesView(s.range, customOf(), 'retail', 'paid').rank;
     var c = data.counts;
-    var visibleRows = tab === 'proxy' ? ranked.rows.filter(function(r){ return r.orders > 0; }) : ranked.rows;
-    var rows = visibleRows.map(function (r) {
-      var detail = D().storeView(s.range, customOf(), r.id, tab);
-      var m = tab === 'proxy' ? detail.proxy : detail.retail;
-      var last = tab === 'proxy' ? detail.historyLastPurchase : detail.historyLastRetail;
-      return '<a class="bd-store-card" href="' + api.href('biz-bd-store.html', {tab:tab,store:r.id}) + '"><div class="bd-store-card__head"><strong>' + esc(r.name) + '</strong><span>查看详情 ›</span></div><div class="bd-store-card__amount"><span>' + (tab === 'proxy' ? '代采商品金额' : '零售成交额') + '</span><strong>' + K().moneyFmt(r.value) + '<small>元</small></strong></div>' + K().deltaHtml(r.delta, data.compareLabel) + '<div class="bd-store-card__metrics"><span>订单数<b>' + K().intFmt(m.orders) + '</b></span><span>' + (tab === 'proxy' ? '进货天数' : '支付人数') + '<b>' + K().intFmt(tab === 'proxy' ? m.days : m.users) + '</b></span>' + (tab === 'proxy' ? '' : '<span>客单价（元）<b>' + K().moneyFmt(m.aov) + '</b></span>') + '</div>' + storeCommissionHtml(r.id, tab).replace('<a ', '<div ').replace('</a>', '</div>').replace('查看明细 ›','') + '<div class="bd-store-card__last">' + (tab === 'proxy' ? '最近进货' : '最近成交') + '：' + esc(last || '—') + '（全部历史）</div></a>';
+    var rows = ranked.rows.map(function (r) {
+      var detail = D().storeView(s.range, customOf(), r.id, 'retail');
+      var retail = detail.retail;
+      var proxy = detail.proxy;
+      var retailComm = D().businessCommission(s.range, customOf(), 'retail', r.id);
+      var proxyComm = D().businessCommission(s.range, customOf(), 'proxy', r.id);
+      var href = api.href('biz-bd-store.html', { tab: 'retail', store: r.id }) + '&returnTo=store-list';
+      return (
+        '<a class="bd-store-card" href="' + href + '">' +
+          '<div class="bd-store-card__head"><strong>' + esc(r.name) + '</strong><span>查看详情 ›</span></div>' +
+          '<div class="bd-store-card__lines">' +
+            '<div class="bd-store-card__line">' +
+              '<div class="bd-store-card__amount"><span>零售成交额</span><strong>' + K().moneyFmt(retail.paid) + '<small>元</small></strong></div>' +
+              K().deltaHtml(detail.retailDelta.paid, data.compareLabel) +
+              '<div class="bd-store-card__metrics"><span>订单数<b>' + K().intFmt(retail.orders) + '</b></span><span>支付人数<b>' + K().intFmt(retail.users) + '</b></span><span>客单价（元）<b>' + K().moneyFmt(retail.aov) + '</b></span></div>' +
+              '<div class="bd-store-commission"><span>零售佣金（元）</span><strong>' + K().moneyFmt(retailComm.total) + '</strong>' + K().deltaHtml(retailComm.delta, data.compareLabel) + '</div>' +
+              '<div class="bd-store-card__last">最近成交：' + esc(detail.historyLastRetail || '—') + '（全部历史）</div>' +
+            '</div>' +
+            '<div class="bd-store-card__line">' +
+              '<div class="bd-store-card__amount"><span>代采商品金额</span><strong>' + K().moneyFmt(proxy.goods) + '<small>元</small></strong></div>' +
+              K().deltaHtml(detail.proxyDelta.goods, data.compareLabel) +
+              '<div class="bd-store-card__metrics"><span>订单数<b>' + K().intFmt(proxy.orders) + '</b></span><span>进货天数<b>' + K().intFmt(proxy.days) + '</b></span><span>进货总额（元）<b>' + K().moneyFmt(proxy.total) + '</b></span></div>' +
+              '<div class="bd-store-commission"><span>代采佣金（元）</span><strong>' + K().moneyFmt(proxyComm.total) + '</strong>' + K().deltaHtml(proxyComm.delta, data.compareLabel) + '</div>' +
+              '<div class="bd-store-card__last">最近进货：' + esc(detail.historyLastPurchase || '—') + '（全部历史）</div>' +
+            '</div>' +
+          '</div>' +
+        '</a>'
+      );
     }).join('');
     document.getElementById('dcMain').innerHTML =
-      '<div class="bd-coverage"><span>当前负责 <strong>' + c.responsible + '</strong> 家门店</span></div>' +
-      '<a class="bd-business-entry" href="' + api.href('biz-bd-stores.html',{tab:tab,store:''}) + '"><span><strong>门店业务分析</strong><small>汇总指标 · 经营趋势 · 门店排行</small></span><span>查看 ›</span></a>' +
-      block('', '', chips([{id:'retail',name:'零售经营'},{id:'proxy',name:'平台进货'}],tab,'tab') + '<p class="sa-dc-note">' + (tab === 'proxy' ? '本期在平台进货的门店，按商品金额排序。' : '全部负责门店，按零售成交额排序。') + '</p>' + (rows || '<div class="sa-dc-empty">所选周期暂无平台进货记录</div>'));
+      rangeBlock() +
+      block('负责门店', '',
+        '<p class="bd-coverage">当前负责 <strong>' + c.responsible + '</strong> 家门店</p>' +
+        '<p class="sa-dc-note">每家门店同时展示零售成交与代采进货，两笔数不要相加当营业额。按零售成交额排序。</p>' +
+        (rows || '<div class="sa-dc-empty">暂无负责门店</div>'));
 
     paintRanges();
     setCaption(data);
+  }
+
+  function storesTabOf(raw) {
+    if (raw === 'proxy') return 'proxy';
+    if (raw === 'retail') return 'retail';
+    return 'overview';
   }
 
   function renderStores() {
     if (st().store) api.update({ store: '' });
     var s = st();
-    var tab = s.tab === 'proxy' ? 'proxy' : 'retail';
+    var tab = storesTabOf(s.tab);
     nav('门店业务', api.href('biz-bd-center.html', { store: '' }));
-    var data = D().storesView(s.range, customOf(), tab, s.rank);
-    var body = tab === 'retail'
-      ? K().grid([
-          { t: '支付成交额（元）', v: K().moneyFmt(data.retail.paid), f: K().deltaHtml(data.retailDelta.paid, data.compareLabel) },
-          { t: '零售佣金（元）', v: K().moneyFmt(D().businessCommission(s.range, customOf(), 'retail').total), f: K().deltaHtml(D().businessCommission(s.range, customOf(), 'retail').delta, data.compareLabel) },
-          { t: '支付主订单数（单）', v: K().intFmt(data.retail.orders), f: K().deltaHtml(data.retailDelta.orders, data.compareLabel, { unit: '单' }) },
-          { t: '支付人数（人）', v: K().intFmt(data.retail.users), f: K().deltaHtml(data.retailDelta.users, data.compareLabel, { unit: '人' }) },
-          { t: '客单价（元）', v: K().moneyFmt(data.retail.aov), f: K().deltaHtml(data.retailDelta.aov, data.compareLabel) },
-          { t: '有成交天数（天）', v: K().intFmt(data.retail.days) },
-          { t: '本期最近成交日', v: K().textFmt(data.retail.last) }
-        ], 3)
-      : K().grid([
-          { t: '商品支付金额（元）', v: K().moneyFmt(data.proxy.goods), f: K().deltaHtml(data.proxyDelta.goods, data.compareLabel) },
-          { t: '代采佣金（元）', v: K().moneyFmt(D().businessCommission(s.range, customOf(), 'proxy').total), f: K().deltaHtml(D().businessCommission(s.range, customOf(), 'proxy').delta, data.compareLabel) },
-
-          { t: '进货支付总额（元）', v: K().moneyFmt(data.proxy.total), f: K().deltaHtml(data.proxyDelta.total, data.compareLabel) },
-          { t: '支付主订单数（单）', v: K().intFmt(data.proxy.orders), f: K().deltaHtml(data.proxyDelta.orders, data.compareLabel) },
-
-          { t: '进货天数（天）', v: K().intFmt(data.proxy.days) },
-          { t: '平均进货间隔', v: K().intervalFmt(data.proxy.interval) },
-          { t: '最近一次进货（全部历史）', v: K().textFmt(data.historyLastPurchase), wide: true }
-        ], 3);
-    if (s.rank === 'commission') {
-      var ranked = data.rank.rows.map(function(r){
-        var c = D().businessCommission(s.range, customOf(), tab, r.id);
-        return Object.assign({}, r, {value:c.total, delta:c.delta});
-      });
-      ranked.sort(function(a,b){ if(a.value == null) return b.value == null ? 0 : 1; if(b.value == null) return -1; return b.value-a.value; });
-      data.rank = {rows:ranked,key:'commission',label:tab === 'proxy' ? '代采佣金' : '零售佣金',money:true};
+    var rankKey = s.rank;
+    var lineTab = tab === 'proxy' ? 'proxy' : 'retail';
+    if (tab === 'overview') {
+      if (rankKey !== 'paid' && rankKey !== 'goods' && rankKey !== 'commission') rankKey = 'commission';
+      lineTab = rankKey === 'goods' ? 'proxy' : 'retail';
+    } else if (tab === 'retail' && (rankKey === 'goods' || rankKey === 'total' || !rankKey)) {
+      rankKey = 'paid';
+    } else if (tab === 'proxy' && (rankKey === 'paid' || rankKey === 'users' || !rankKey)) {
+      rankKey = 'goods';
     }
-    var rankChips = tab === 'retail'
-      ? [{ id: 'paid', name: '成交额' }, { id: 'orders', name: '订单数' }, { id: 'users', name: '支付人数' }, { id: 'commission', name: '佣金' }]
-      : [{ id: 'goods', name: '商品金额' }, { id: 'total', name: '进货总额' }, { id: 'orders', name: '订单数' }, { id: 'commission', name: '佣金' }];
+    var data = tab === 'overview' ? D().overview(s.range, customOf()) : D().storesView(s.range, customOf(), lineTab, rankKey === 'commission' ? (tab === 'proxy' ? 'goods' : 'paid') : rankKey);
+    var body;
+    var note;
+    var chartTitle;
+    var rankChips;
+    var rankLinkTab = lineTab;
+    if (tab === 'overview') {
+      var c = data.counts;
+      var retailComm = D().businessCommission(s.range, customOf(), 'retail');
+      var proxyComm = D().businessCommission(s.range, customOf(), 'proxy');
+      note = '零售成交与代采进货分列展示，两笔数不要相加当营业额。佣金按本期支付订单关联，不含运费。';
+      body = K().grid([
+        { t: '零售成交额（元）', v: K().moneyFmt(data.retail.paid), f: K().deltaHtml(data.retail.delta, data.compareLabel) },
+        { t: '代采商品金额（元）', v: K().moneyFmt(data.proxy.goods), f: K().deltaHtml(data.proxy.delta, data.compareLabel) },
+        { t: '佣金合计（元）', v: K().moneyFmt(data.commission.total), f: K().deltaHtml(data.commission.delta, data.compareLabel) },
+        { t: '零售佣金（元）', v: K().moneyFmt(retailComm.total), f: K().deltaHtml(retailComm.delta, data.compareLabel) },
+        { t: '代采佣金（元）', v: K().moneyFmt(proxyComm.total), f: K().deltaHtml(proxyComm.delta, data.compareLabel) },
+        { t: '负责门店（家）', v: K().intFmt(c.responsible) }
+      ], 3);
+      chartTitle = '零售成交额趋势（元）';
+      rankChips = [
+        { id: 'commission', name: '佣金合计' },
+        { id: 'paid', name: '零售成交额' },
+        { id: 'goods', name: '代采商品金额' }
+      ];
+      var rankedBase = D().storesView(s.range, customOf(), lineTab, rankKey === 'commission' ? 'paid' : rankKey).rank;
+      if (rankKey === 'commission') {
+        var ranked = rankedBase.rows.map(function (r) {
+          var retailC = D().businessCommission(s.range, customOf(), 'retail', r.id);
+          var proxyC = D().businessCommission(s.range, customOf(), 'proxy', r.id);
+          var total = null;
+          if (retailC.total != null || proxyC.total != null) {
+            total = K().add(retailC.total || 0, proxyC.total || 0);
+          }
+          return Object.assign({}, r, { value: total, delta: null });
+        });
+        ranked.sort(function (a, b) {
+          if (a.value == null) return b.value == null ? 0 : 1;
+          if (b.value == null) return -1;
+          return b.value - a.value;
+        });
+        data.rank = { rows: ranked, key: 'commission', label: '佣金合计', money: true };
+        rankLinkTab = 'retail';
+      } else if (rankKey === 'goods') {
+        data.rank = Object.assign({}, rankedBase, { key: 'goods', label: '代采商品金额' });
+        rankLinkTab = 'proxy';
+      } else {
+        data.rank = Object.assign({}, rankedBase, { key: 'paid', label: '零售成交额' });
+        rankLinkTab = 'retail';
+      }
+    } else if (tab === 'retail') {
+      note = '佣金按本期支付订单关联，不含运费。';
+      body = K().grid([
+        { t: '支付成交额（元）', v: K().moneyFmt(data.retail.paid), f: K().deltaHtml(data.retailDelta.paid, data.compareLabel) },
+        { t: '零售佣金（元）', v: K().moneyFmt(D().businessCommission(s.range, customOf(), 'retail').total), f: K().deltaHtml(D().businessCommission(s.range, customOf(), 'retail').delta, data.compareLabel) },
+        { t: '支付主订单数（单）', v: K().intFmt(data.retail.orders), f: K().deltaHtml(data.retailDelta.orders, data.compareLabel, { unit: '单' }) },
+        { t: '支付人数（人）', v: K().intFmt(data.retail.users), f: K().deltaHtml(data.retailDelta.users, data.compareLabel, { unit: '人' }) },
+        { t: '客单价（元）', v: K().moneyFmt(data.retail.aov), f: K().deltaHtml(data.retailDelta.aov, data.compareLabel) },
+        { t: '有成交天数（天）', v: K().intFmt(data.retail.days) },
+        { t: '本期最近成交日', v: K().textFmt(data.retail.last) }
+      ], 3);
+      chartTitle = '成交额趋势（元）';
+      rankChips = [{ id: 'paid', name: '成交额' }, { id: 'orders', name: '订单数' }, { id: 'users', name: '支付人数' }, { id: 'commission', name: '佣金' }];
+      if (rankKey === 'commission') {
+        var retailRanked = data.rank.rows.map(function (r) {
+          var c = D().businessCommission(s.range, customOf(), 'retail', r.id);
+          return Object.assign({}, r, { value: c.total, delta: c.delta });
+        });
+        retailRanked.sort(function (a, b) {
+          if (a.value == null) return b.value == null ? 0 : 1;
+          if (b.value == null) return -1;
+          return b.value - a.value;
+        });
+        data.rank = { rows: retailRanked, key: 'commission', label: '零售佣金', money: true };
+      }
+    } else {
+      note = '佣金按本期支付订单关联，不含运费。';
+      body = K().grid([
+        { t: '商品支付金额（元）', v: K().moneyFmt(data.proxy.goods), f: K().deltaHtml(data.proxyDelta.goods, data.compareLabel) },
+        { t: '代采佣金（元）', v: K().moneyFmt(D().businessCommission(s.range, customOf(), 'proxy').total), f: K().deltaHtml(D().businessCommission(s.range, customOf(), 'proxy').delta, data.compareLabel) },
+        { t: '进货支付总额（元）', v: K().moneyFmt(data.proxy.total), f: K().deltaHtml(data.proxyDelta.total, data.compareLabel) },
+        { t: '支付主订单数（单）', v: K().intFmt(data.proxy.orders), f: K().deltaHtml(data.proxyDelta.orders, data.compareLabel) },
+        { t: '进货天数（天）', v: K().intFmt(data.proxy.days) },
+        { t: '平均进货间隔', v: K().intervalFmt(data.proxy.interval) },
+        { t: '最近一次进货（全部历史）', v: K().textFmt(data.historyLastPurchase), wide: true }
+      ], 3);
+      chartTitle = '商品支付金额趋势（元）';
+      rankChips = [{ id: 'goods', name: '商品金额' }, { id: 'total', name: '进货总额' }, { id: 'orders', name: '订单数' }, { id: 'commission', name: '佣金' }];
+      if (rankKey === 'commission') {
+        var proxyRanked = data.rank.rows.map(function (r) {
+          var c = D().businessCommission(s.range, customOf(), 'proxy', r.id);
+          return Object.assign({}, r, { value: c.total, delta: c.delta });
+        });
+        proxyRanked.sort(function (a, b) {
+          if (a.value == null) return b.value == null ? 0 : 1;
+          if (b.value == null) return -1;
+          return b.value - a.value;
+        });
+        data.rank = { rows: proxyRanked, key: 'commission', label: '代采佣金', money: true };
+      }
+    }
     document.getElementById('dcMain').innerHTML =
       rangeBlock() +
-      mtabs([{ id: 'retail', name: '零售' }, { id: 'proxy', name: '代采' }], tab) +
-      '<section class="sa-dc-panel">' + block('', '', '<p class="sa-dc-note">佣金按本期支付订单关联，不含运费。</p>' + body + K().chartBox(tab === 'retail' ? '成交额趋势（元）' : '商品支付金额趋势（元）')) + '</section>' +
-      block('门店排行 · ' + data.rank.label, '', chips(rankChips, data.rank.key, 'rank') + rankRows(data.rank, tab));
+      mtabs([{ id: 'overview', name: '总览' }, { id: 'retail', name: '零售' }, { id: 'proxy', name: '代采' }], tab) +
+      '<section class="sa-dc-panel">' + block('', '', '<p class="sa-dc-note">' + note + '</p>' + body + K().chartBox(chartTitle)) + '</section>' +
+      block('门店排行 · ' + data.rank.label, '', chips(rankChips, data.rank.key, 'rank') + rankRows(data.rank, rankLinkTab)) +
+      '<a class="bd-business-entry" href="' + storeListHref() + '"><strong>查看门店列表</strong><span aria-hidden="true">›</span></a>';
     paintRanges();
     setCaption(data);
-    K().drawChart(data.trend);
+    K().drawChart(tab === 'overview' ? D().storesView(s.range, customOf(), 'retail', 'paid').trend : data.trend);
   }
 
   function storeBackHref() {
     try {
       var ret = new URLSearchParams(location.search || '').get('returnTo');
+      if (ret === 'store-list') return storeListHref();
       if (ret === 'stores') return api.href('biz-bd-stores.html', { store: '' });
     } catch (e) { /* ignore */ }
     return api.href('biz-bd-center.html', { store: '' });
@@ -336,29 +450,22 @@
 
   function render() {
     if (page === 'overview') {
-      var route=new URL(location.href);route.searchParams.set('group',dcGroup);route.searchParams.set('section',dcSection);history.replaceState(null,'',route.pathname+route.search);
-      if (dcGroup === 'commission') {
-        dcSection = 'analysis';
-        renderAnalysis();
-      } else if(dcSection === 'business') renderStores();
-      else { api.update({tab:dcSection === 'proxy' ? 'proxy' : 'retail'}); renderOverview(); }
+      var route = new URL(location.href);
+      route.searchParams.set('group', dcGroup);
+      route.searchParams.delete('section');
+      history.replaceState(null, '', route.pathname + route.search + route.hash);
+      if (dcGroup === 'commission') renderAnalysis();
+      else renderStores();
       var headEl=document.getElementById('dcHead');
       headEl.innerHTML='<div class="sa-dc-head__row"><a class="sa-dc-head__back" href="' + WORKBENCH + '" aria-label="返回工作台">' + BACK_SVG + '</a><h1 class="bd-page-title">数据中心</h1><button class="sa-dc-tip-btn" data-tip aria-label="指标说明">' + HELP_SVG + '</button></div>';
       var main=document.getElementById('dcMain');
       var oldRange=main.querySelector('#dcRanges');
       if(!oldRange) main.insertAdjacentHTML('afterbegin',rangeBlock());
-      if (dcGroup === 'stores') {
-        var items=[['business','业务分析'],['retail','零售经营'],['proxy','平台进货']];
-        main.insertAdjacentHTML('afterbegin','<div class="bd-section-tabs">'+items.map(function(x){return '<button data-section="'+x[0]+'" class="'+(dcSection===x[0]?'is-active':'')+'">'+x[1]+'</button>';}).join('')+'</div>');
-      }
       headEl.insertAdjacentHTML('beforeend','<div class="bd-group-tabs"><button data-group="stores" class="'+(dcGroup==='stores'?'is-active':'')+'">门店数据</button><button data-group="commission" class="'+(dcGroup==='commission'?'is-active':'')+'">佣金数据</button></div>');
-      if(dcGroup==='stores' && dcSection!=='business') {
-        main.querySelectorAll('.bd-business-entry,.sa-dc-entry,.bd-coverage a').forEach(function(el){el.remove();});
-        var tabs=main.querySelector('.sa-dc-chip'); if(tabs) tabs.remove();
-      }
       paintRanges();
       var info=D().overview(st().range,customOf()); setCaption(info);
     }
+    else if (storeListPage) renderStoreList();
     else if (page === 'stores') renderStores();
     else if (page === 'store') renderStore();
     else if (page === 'analysis') renderAnalysis();
@@ -367,8 +474,11 @@
 
   function tipText() {
     var t = D().tips;
-    if (page === 'stores' || page === 'store' || (page === 'overview' && dcGroup === 'stores')) return t.retail + '\n\n' + t.proxy;
     if (page === 'analysis' || page === 'comm' || (page === 'overview' && dcGroup === 'commission')) return t.commission;
+    if (page === 'stores' || page === 'store' || (page === 'overview' && dcGroup === 'stores')) {
+      if (storesTabOf(st().tab) === 'overview') return t.overview + '\n\n' + t.retail + '\n\n' + t.proxy;
+      return t.retail + '\n\n' + t.proxy;
+    }
     return t.overview + '\n\n' + t.commission;
   }
   function openCustom() {
@@ -393,9 +503,7 @@
     document.getElementById('dcRoot').addEventListener('click', function (e) {
       if (e.target.closest('[data-reset-commission]')) { api.update({range:'30d',settle:'all',source:'all',store:''}); render(); return; }
       var group=e.target.closest('[data-group]');
-      if(group){dcGroup=group.getAttribute('data-group');dcSection=dcGroup==='stores'?'business':'analysis';render();return;}
-      var section=e.target.closest('[data-section]');
-      if(section){dcSection=section.getAttribute('data-section');render();return;}
+      if(group){dcGroup=group.getAttribute('data-group');render();return;}
       var range = e.target.closest('[data-range]');
       if (range) {
         var id = range.getAttribute('data-range');
@@ -406,7 +514,12 @@
       }
       var tab = e.target.closest('[data-tab]');
       if (tab) {
-        api.update({ tab: tab.getAttribute('data-tab') });
+        var nextTab = tab.getAttribute('data-tab');
+        var patch = { tab: nextTab };
+        if (nextTab === 'overview') patch.rank = 'commission';
+        else if (nextTab === 'retail') patch.rank = 'paid';
+        else if (nextTab === 'proxy') patch.rank = 'goods';
+        api.update(patch);
         render();
         return;
       }
@@ -478,9 +591,18 @@
 
   function boot() {
     api = K().createState('sa_bd_dc_v1');
-    var defaults = { range: 'today', tab: 'retail', scope: 'current', rank: page === 'stores' ? 'paid' : '' };
+    var defaults = { range: 'today', tab: 'overview', scope: 'current', rank: 'commission' };
     if (page === 'comm' || page === 'analysis') defaults.tab = '';
+    if (page === 'store') defaults.tab = 'retail';
     api.load(defaults);
+    var legacySection = routeParams.get('section');
+    if (page === 'overview' && dcGroup === 'stores' && (legacySection === 'retail' || legacySection === 'proxy' || legacySection === 'overview' || legacySection === 'business')) {
+      api.update({ tab: legacySection === 'business' ? 'overview' : legacySection });
+    }
+    /* 旧链接或本地缓存仍是零售／代采时，门店数据首页默认回到总览，排行优先佣金合计 */
+    if (page === 'overview' && dcGroup === 'stores' && !routeParams.get('tab') && !legacySection) {
+      api.update({ tab: 'overview', rank: routeParams.get('rank') || 'commission' });
+    }
     var root = document.getElementById('dcRoot');
     var top = page === 'overview' || page === 'comm';
     root.innerHTML = (top ? '<div class="sa-dc-head" id="dcHead"></div>' : '<header class="sa-rpt-nav" id="dcNav"></header>') + '<div class="sa-rpt-scroll" id="dcMain"></div>' + sheets();

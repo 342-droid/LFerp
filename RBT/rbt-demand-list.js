@@ -459,6 +459,17 @@
             window.addEventListener('focus', refreshTable);
             window.setInterval(refreshTable, 30000);
 
+            /* 经营数据中心等外链：?demandCode=XQ00028 打开对应需求详情 */
+            window.setTimeout(function () {
+                try {
+                    var q = new URLSearchParams(window.location.search || '');
+                    var code = q.get('demandCode') || q.get('code');
+                    if (!code) return;
+                    var item = dataApi.get(code);
+                    if (item) openDetail(item);
+                } catch (e) { /* ignore */ }
+            }, 0);
+
             return {
                 table: table,
                 slots: slots,

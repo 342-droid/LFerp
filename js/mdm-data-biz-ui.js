@@ -409,6 +409,7 @@
       page: 1,
       pageSize: normalizePageSize(opts.pageSize || 10)
     };
+    var unit = opts.unitLabel || '单';
 
     function paint() {
       var paged = paginateRows(rows, pagerState.page, pagerState.pageSize);
@@ -435,6 +436,8 @@
                   text = Biz.esc(bizLabel(v));
                 } else if (c.format === 'channel') {
                   text = Biz.esc(channelLabel(v));
+                } else if (c.format === 'int' && v != null) {
+                  text = Biz.intText(v);
                 } else if (v == null || v === '') {
                   text = '—';
                 } else {
@@ -443,8 +446,10 @@
                 if (c.link === 'order' && v) {
                   text =
                     '<a href="' +
-                    Biz.esc(orderDetailHref(r)) +
-                    '" target="_blank" rel="noopener">' +
+                    Biz.esc(orderDetailHref({ orderId: v, biz: r.biz || r.bizKey, bizKey: r.bizKey })) +
+                    '" target="_blank" rel="noopener" data-order-id="' +
+                    Biz.esc(String(v)) +
+                    '">' +
                     text +
                     '</a>';
                 }
@@ -472,10 +477,10 @@
             total: paged.total,
             page: paged.page,
             pageSize: paged.pageSize,
-            unitLabel: '单',
-            rangeUnit: '单',
+            unitLabel: unit,
+            rangeUnit: unit,
             rangeText: paged.total
-              ? '当前展示第 ' + paged.from + '–' + paged.to + ' 单'
+              ? '当前展示第 ' + paged.from + '–' + paged.to + ' ' + unit
               : '当前无展示'
           })
       );

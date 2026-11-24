@@ -864,3 +864,167 @@
   font-weight: 600;
   color: #303133;
 }
+
+/* —— 经营数据中心（本需求扩展） —— */
+
+.ldb-demo-banner--proto {
+  background: #fff1f0;
+  border-color: #ffa39e;
+  color: #a8071a;
+  font-weight: 500;
+}
+
+.ldb-demo-banner--proto strong {
+  color: #cf1322;
+}
+
+.ldb-page-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0;
+  border: 1px solid #ebeef5;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+  margin-bottom: 4px;
+}
+
+.ldb-page-tab {
+  min-height: 34px;
+  padding: 0 16px;
+  border: 0;
+  background: #fff;
+  color: #606266;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.ldb-page-tab + .ldb-page-tab {
+  border-left: 1px solid #ebeef5;
+}
+
+.ldb-page-tab.is-active {
+  background: #fff4ec;
+  color: #ff7019;
+  font-weight: 600;
+}
+
+.ldb-empty--block {
+  padding: 48px 16px;
+  background: #fff;
+  border: 1px dashed #e4e7ed;
+  border-radius: 8px;
+  color: #909399;
+}
+
+.ldb-badge {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 18px;
+  border: 1px solid transparent;
+}
+
+.ldb-badge--ok {
+  background: #f6ffed;
+  border-color: #b7eb8f;
+  color: #389e0d;
+}
+
+.ldb-badge--warn {
+  background: #fff7e6;
+  border-color: #ffd591;
+  color: #d46b08;
+}
+
+.ldb-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 36px;
+  transform: translateX(-50%) translateY(12px);
+  max-width: 480px;
+  padding: 10px 16px;
+  background: rgba(48, 49, 51, 0.92);
+  color: #fff;
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.5;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 1400;
+}
+
+.ldb-toast.is-open {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.ldb-quick-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+}
+
+.ldb-quick-links a {
+  color: #ff7019;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.ldb-quick-links a:hover {
+  text-decoration: underline;
+}
+
+.ldb-expand-row {
+  background: #fafafa;
+}
+
+.ldb-expand-panel {
+  padding: 10px 12px 14px;
+  font-size: 12px;
+  color: #606266;
+  line-height: 1.6;
+}
+
+.ldb-expand-panel h4 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: #303133;
+}
+
+.ldb-kpi-row--6 {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.ldb-table-wrap--scroll {
+  max-height: 420px;
+  overflow: auto;
+  border: 1px solid #ebeef5;
+  border-radius: 6px;
+}
+
+.ldb-table-wrap--scroll .ldb-table {
+  margin: 0;
+}
+
+.ldb-table-wrap--scroll thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #fafafa;
+  box-shadow: 0 1px 0 #ebeef5;
+}
+
+@media (max-width: 1280px) {
+  .ldb-kpi-row--6 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.ldb-perm-note {
+  margin: 0;
+  font-size: 12px;
+  color: #909399;
+}

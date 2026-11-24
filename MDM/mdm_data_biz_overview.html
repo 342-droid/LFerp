@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>冷丰WMS - 经营总览 · 平台数据中心</title>
+    <title>冷丰WMS - 经营总览 · 经营数据中心</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
@@ -11,9 +11,19 @@
     <link rel="stylesheet" href="../css/lf-mdm-data-biz.css">
 </head>
 <body>
+    <script>
+      /* 兼容丢失「?」的旧链接：…overview.htmlperiod=today&… → …overview.html?period=today&… */
+      (function () {
+        var path = location.pathname || '';
+        var m = path.match(/^(.*\.html)([A-Za-z_][\w]*)=(.*)$/);
+        if (!m) return;
+        var qs = m[2] + '=' + m[3] + (location.search ? '&' + location.search.replace(/^\?/, '') : '');
+        location.replace(m[1] + '?' + qs + location.hash);
+      })();
+    </script>
     <div id="sidebar-container"></div>
     <script src="../js/business-report-fixtures.js"></script>
-  <script src="../js/path-prefix.js"></script>
+    <script src="../js/path-prefix.js"></script>
     <script src="../js/mdm-sidebar.js"></script>
     <div id="header-container"></div>
     <div class="container">
@@ -24,21 +34,25 @@
                 <div data-ldb-toolbar></div>
                 <div data-ldb-tip></div>
                 <div class="ldb-kpi-row ldb-kpi-row--5" data-ldb-kpis></div>
-                <div data-ldb-rank></div>
                 <div class="ldb-grid-2" data-ldb-mid></div>
+                <div data-ldb-tables></div>
                 <p class="ldb-section-title">快捷入口</p>
-                <p class="ldb-tip">
-                    <a href="mdm_data_biz_retail.html">零售经营</a>
-                    · <a href="mdm_data_biz_proxy.html">代采经营</a>
-                    · <a href="mdm_data_biz_stores.html">门店经营比较</a>
+                <p class="ldb-tip ldb-quick-links">
+                    <a href="mdm_data_biz_rbt.html">RBT联营</a>
+                    <a href="mdm_data_biz_supplier.html">供应商分析</a>
+                    <a href="mdm_data_biz_stores.html">门店分析</a>
+                    <a href="mdm_data_biz_marketing.html">营销活动</a>
                 </p>
+                <p class="ldb-perm-note">可见角色：财务、管理员。导出受当前账户权限与筛选条件约束。</p>
             </div>
         </main>
     </div>
-    <script src="../js/common.js"></script>
+    <script src="../js/common.js?v=20261124-biz-export"></script>
     <script src="../js/mdm-data-biz-data.js"></script>
     <script src="../js/mdm-data-biz-shared.js"></script>
     <script src="../js/mdm-data-biz-ui.js"></script>
+    <script src="../js/mdm-data-biz-center-data.js"></script>
+    <script src="../js/mdm-data-biz-center-ui.js?v=20261124-mkt-points-merge"></script>
     <script src="../js/mdm-data-biz-overview.js"></script>
 </body>
 </html>
