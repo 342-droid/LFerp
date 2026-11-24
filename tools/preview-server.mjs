@@ -97,7 +97,33 @@ function createAppServer() {
         return;
       }
 
-      const urlPath = (req.url || '/').split('?')[0] || '/';
+      const rawUrl = req.url || '/';
+      const qMark = rawUrl.indexOf('?');
+      let urlPath = (qMark >= 0 ? rawUrl.slice(0, qMark) : rawUrl) || '/';
+      let query = qMark >= 0 ? rawUrl.slice(qMark + 1) : '';
+
+      /*
+       * 兼容粘贴/分享时丢失「?」的旧链接：
+       * /MDM/mdm_data_biz_overview.htmlperiod=today&view=pay
+       * → /MDM/mdm_data_biz_overview.html?period=today&view=pay
+       */
+      const glued = urlPath.match(/^(.*\.html)([A-Za-z_][\w]*)=(.*)$/);
+      if (glued) {
+        const fixedPath = glued[1];
+        const gluedQuery = glued[2] + '=' + glued[3];
+        const merged = gluedQuery + (query ? '&' + query : '');
+        send(
+          res,
+          302,
+          {
+            Location: fixedPath + '?' + merged,
+            'Cache-Control': 'no-store'
+          },
+          ''
+        );
+        return;
+      }
+
       if (urlPath === '/__lferp_preview_health') {
         send(
           res,

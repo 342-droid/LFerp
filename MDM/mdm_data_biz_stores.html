@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>冷丰WMS - 门店经营比较 · 平台数据中心</title>
+    <title>冷丰WMS - 门店分析 · 经营数据中心</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
@@ -13,24 +13,28 @@
 <body>
     <div id="sidebar-container"></div>
     <script src="../js/business-report-fixtures.js"></script>
-  <script src="../js/path-prefix.js"></script>
+    <script src="../js/path-prefix.js"></script>
     <script src="../js/mdm-sidebar.js"></script>
     <div id="header-container"></div>
     <div class="container">
         <main class="main-content">
-            <div class="content-tabs"><button class="active">门店经营比较</button></div>
+            <div class="content-tabs"><button class="active">门店分析</button></div>
             <hr class="content-divider">
             <div class="ldb-page" data-ldb-root>
                 <div data-ldb-toolbar></div>
                 <div data-ldb-tip></div>
+                <div class="ldb-kpi-row" data-ldb-kpis></div>
+                <div class="ldb-grid-2" data-ldb-mid></div>
                 <div data-ldb-table></div>
             </div>
         </main>
     </div>
-    <script src="../js/common.js"></script>
+    <script src="../js/common.js?v=20261124-biz-export"></script>
     <script src="../js/mdm-data-biz-data.js"></script>
     <script src="../js/mdm-data-biz-shared.js"></script>
     <script src="../js/mdm-data-biz-ui.js"></script>
+    <script src="../js/mdm-data-biz-center-data.js"></script>
+    <script src="../js/mdm-data-biz-center-ui.js?v=20261124-mkt-points-merge"></script>
     <script src="../js/mdm-data-biz-stores.js"></script>
 </body>
 </html>

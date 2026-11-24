@@ -217,7 +217,8 @@
         submitTime: task.submitTime,
         expireTime: task.expireTime,
         mine: true,
-        csvContent: task.csvContent || ''
+        csvContent: task.csvContent || '',
+        downloadUrl: task.downloadUrl || ''
       };
       MY_FILES.unshift(row);
       ALL_FILES.unshift(row);
@@ -553,29 +554,39 @@
     if (typeof showToast === 'function') {
       showToast('开始下载：' + file.fileName, 'success');
     }
-    /* 有真实导出内容则下载 CSV，否则给演示占位文本 */
+    /* 优先下载样例 xlsx；其次 CSV 内容；否则占位文本 */
     try {
-      var hasCsv = !!(file.csvContent && String(file.csvContent).trim());
-      var blob = new Blob(
-        [
-          hasCsv
-            ? file.csvContent
-            : '演示导出文件\n任务号：' + file.taskNo + '\n文件名：' + file.fileName + '\n'
-        ],
-        { type: hasCsv ? 'text/csv;charset=utf-8' : 'text/plain;charset=utf-8' }
-      );
-      var url = URL.createObjectURL(blob);
       var a = document.createElement('a');
-      a.href = url;
-      a.download = hasCsv
-        ? String(file.fileName || 'export.csv').replace(/\.xlsx$/i, '.csv')
-        : String(file.fileName || 'export.txt').replace(/\.xlsx$/i, '.txt');
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(function () {
-        URL.revokeObjectURL(url);
-      }, 1000);
+      if (file.downloadUrl) {
+        a.href = file.downloadUrl;
+        a.download = String(file.fileName || 'export.xlsx');
+        a.target = '_blank';
+        a.rel = 'noopener';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } else {
+        var hasCsv = !!(file.csvContent && String(file.csvContent).trim());
+        var blob = new Blob(
+          [
+            hasCsv
+              ? file.csvContent
+              : '演示导出文件\n任务号：' + file.taskNo + '\n文件名：' + file.fileName + '\n'
+          ],
+          { type: hasCsv ? 'text/csv;charset=utf-8' : 'text/plain;charset=utf-8' }
+        );
+        var url = URL.createObjectURL(blob);
+        a.href = url;
+        a.download = hasCsv
+          ? String(file.fileName || 'export.csv').replace(/\.xlsx$/i, '.csv')
+          : String(file.fileName || 'export.txt').replace(/\.xlsx$/i, '.txt');
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(function () {
+          URL.revokeObjectURL(url);
+        }, 1000);
+      }
     } catch (e) {
       /* ignore */
     }

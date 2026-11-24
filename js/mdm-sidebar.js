@@ -39,6 +39,10 @@
         if (!samePath && hrefBase === 'mdm_member_level' && currentPage === 'mdm_member_level_desc') {
             samePath = true;
         }
+        // 单店经营详情归属「门店分析」高亮
+        if (!samePath && hrefBase === 'mdm_data_biz_stores' && currentPage === 'mdm_data_biz_store_detail') {
+            samePath = true;
+        }
         // 成长值规则说明归属「成长值规则」高亮
         if (!samePath && hrefBase === 'mdm_member_level_rule' && currentPage === 'mdm_member_level_rule_desc') {
             samePath = true;
@@ -53,7 +57,8 @@
         if (!samePath) return false;
         var curHash = String(window.location.hash || '').replace(/^#/, '');
         if (!hash) {
-            return !curHash || curHash === 'store-registration';
+            return !curHash || curHash === 'store-registration' ||
+                (hrefBase === 'mdm_data_biz_marketing' && curHash === 'marketing-points');
         }
         return curHash === hash;
     }
@@ -106,10 +111,23 @@
         { href: 'mdm_audit_store_registration.html#onboarding-review', text: '进件审核' }
     ];
 
+    const rbtAuditItems = [
+        { href: 'mdm_audit_rbt_demand.html', text: '需求单审核' }
+    ];
+
     const marketingAuditItems = [
         { href: 'mdm_audit_coupon.html', text: '优惠券' },
         { href: 'mdm_audit_cash_redpack.html', text: '现金红包' },
         { href: 'mdm_audit_cash_redpack_manual.html', text: '派发红包' }
+    ];
+
+    /** 平台数据中心 · 经营数据中心 */
+    const dataBizItems = [
+        { href: 'mdm_data_biz_overview.html', text: '经营总览' },
+        { href: 'mdm_data_biz_rbt.html', text: 'RBT联营' },
+        { href: 'mdm_data_biz_supplier.html', text: '供应商分析' },
+        { href: 'mdm_data_biz_stores.html', text: '门店分析' },
+        { href: 'mdm_data_biz_marketing.html', text: '营销活动' }
     ];
 
     function groupHasActive(items) {
@@ -129,8 +147,12 @@
         isMemberPointsPage ||
         /^mdm_member_/i.test(currentPage);
     const isMarketingAuditPage = groupHasActive(marketingAuditItems);
-    const isRbtAuditPage = currentPage === 'mdm_audit_rbt_demand';
+    const isRbtAuditPage = groupHasActive(rbtAuditItems);
     const isAuditPage = groupHasActive(auditItems) || isMarketingAuditPage || isRbtAuditPage;
+    const isDataBizPage =
+        groupHasActive(dataBizItems) ||
+        /^mdm_data_biz_/i.test(currentPage) ||
+        currentPage === 'mdm_data_biz_store_detail';
 
     /**
      * 与 WMS wms-sidebar 一致：分组 + submenu + toggleSubmenu(this)
@@ -165,13 +187,17 @@
         /** 顶栏「审核中心」独立入口：仅在该模块页面展示侧栏审核菜单 */
         itemsHtml =
             renderCollapsibleGroup('审核中心', '任务管理', auditItems, !isMarketingAuditPage && !isRbtAuditPage) +
-            renderCollapsibleGroup('营销审核', '策略管理', marketingAuditItems, true);
+            renderCollapsibleGroup('营销审核', '策略管理', marketingAuditItems, true) +
+            renderCollapsibleGroup('RBT审核', '策略管理', rbtAuditItems, true);
     } else if (isMemberPage) {
         /** 顶栏「会员」独立入口：分组均默认展开，便于一眼看到完整菜单 */
         itemsHtml =
             renderCollapsibleGroup('会员360', '基础信息', member360Items, true) +
             renderCollapsibleGroup('会员体系', '策略管理', memberSystemItems, true) +
             renderCollapsibleGroup('积分管理', '任务管理', memberPointsItems, true);
+    } else if (isDataBizPage) {
+        /** 顶栏「数据中心」：经营数据中心菜单，不混入商家主体／人员中心 */
+        itemsHtml = renderCollapsibleGroup('经营数据中心', '任务管理', dataBizItems, true);
     } else {
         itemsHtml =
             renderCollapsibleGroup('商家主体', '基础信息', partyItems, isPartyPage) +
@@ -184,7 +210,7 @@
         return;
     }
 
-    var sidebarTitle = isMemberPage ? '冷丰会员' : '冷丰MDM';
+    var sidebarTitle = isMemberPage ? '冷丰会员' : isDataBizPage ? '冷丰数据中心' : '冷丰MDM';
 
     sidebarContainer.innerHTML =
         '<aside class="sidebar" id="sidebar">' +

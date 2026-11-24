@@ -145,7 +145,9 @@
       expireTime: formatDateTime(expire),
       mine: true,
       queuedAt: now.getTime(),
-      csvContent: (meta && meta.csvContent) || ''
+      csvContent: (meta && meta.csvContent) || '',
+      /* 经营报表等：指向仓库内示例 xlsx，文件中心下载时用真实样表 */
+      downloadUrl: (meta && meta.downloadUrl) || ''
     };
   }
 
