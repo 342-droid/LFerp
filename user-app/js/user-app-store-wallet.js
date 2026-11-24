@@ -24,6 +24,9 @@
 
   function renderSummary() {
     snap = api.snapshot();
+    var rechargeBtn = document.getElementById('swRechargeBtn');
+    var serviceOff = api.isStoreServiceDisabled && api.isStoreServiceDisabled();
+    if (rechargeBtn) { rechargeBtn.disabled = !!serviceOff; rechargeBtn.title = serviceOff ? '本门店已停用，暂不可充值' : ''; }
     var total = Number(snap.depositActual || 0) + Number(snap.available || 0);
     var totalWithdraw = Number(snap.withdrawable || 0);
     setText('swTotalAmount', moneyPlain(total));
@@ -857,6 +860,7 @@
 
     document.getElementById('swRechargeBtn') &&
       document.getElementById('swRechargeBtn').addEventListener('click', function () {
+        if (api.isStoreServiceDisabled && api.isStoreServiceDisabled()) return window.alert('本门店已停用，暂不可充值');
         var params = new URLSearchParams(window.location.search);
         var from = params.get('from') || '';
         var q = from ? '?from=' + encodeURIComponent(from) : '';

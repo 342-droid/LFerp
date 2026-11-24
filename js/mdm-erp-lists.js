@@ -34,9 +34,10 @@
 
     function restoreArchiveStatuses(pm, kind, column) {
         document.querySelectorAll('#tableBody tr').forEach(function (row) {
-            var id = row.cells[0] && row.cells[0].textContent.trim();
+            var cells = row.querySelectorAll('td:not(.lf-row-no-td)');
+            var id = cells[0] && cells[0].textContent.trim();
             var status = archiveStatus(kind, id, '');
-            if (!row.cells[column]) return;
+            if (!cells[column]) return;
             if (kind === 'store') {
                 var storedStatus = status || row.dataset.storeStatusSource || pm.getCellStatus(row, column);
                 row.dataset.storeStatusSource = storedStatus;
@@ -1325,6 +1326,8 @@
         var qBalance = (document.getElementById('qStoreBalancePay') || {}).value.trim();
         var qSplit = (document.getElementById('qStoreSplit') || {}).value.trim();
         var qSt = (document.getElementById('qStoreStatus') || {}).value.trim();
+        var serviceFilter = document.getElementById('qStoreServiceStatus');
+        var qService = serviceFilter ? serviceFilter.value : '';
         /* 运营状态：营业中 / 休息中（超过营业时间自动休息，与 C 端一致） */
         var opMap = { '1': '营业中', '2': '休息中' };
         paintArchiveContractColumn('store');
@@ -1352,6 +1355,9 @@
             if (qBalance && balanceTxt !== qBalance) ok = false;
             if (qSplit === 'on' && splitTxt !== '开启' && splitTxt !== '已开通') ok = false;
             if (qSplit === 'off' && splitTxt !== '关闭' && splitTxt !== '未开通') ok = false;
+            var serviceOff = window.MdmArchiveEnableDisable && window.MdmArchiveEnableDisable.isStoreDisabledByMeta({id:code,name:sn});
+            if (qService === 'off' && !serviceOff) ok = false;
+            if (qService === 'on' && serviceOff) ok = false;
             if (qSt === 'normal' && stTxt !== '已启用') ok = false;
             if (qSt === 'stopped' && stTxt !== '已冻结') ok = false;
             tr.style.display = ok ? '' : 'none';
@@ -1599,6 +1605,13 @@
                 html += isDefault
                     ? '<a href="#" class="mdm-store-disable is-locked" title="系统默认门店不允许冻结">冻结</a>'
                     : '<a href="#" class="mdm-store-disable">冻结</a>';            }
+            if (window.MdmArchiveEnableDisable) {
+                var serviceOff = window.MdmArchiveEnableDisable.isStoreDisabledByMeta({id: meta.storeId, name: meta.name});
+                html += ' <a href="#" class="mdm-store-service-toggle">' + (serviceOff ? '启用' : '停用') + '</a>';
+                var badge = tr.querySelector('.mdm-service-status');
+                if (badge) badge.remove();
+                if (serviceOff) tr.querySelectorAll('td')[STORE_COL.status].insertAdjacentHTML('beforeend', '<span class="mdm-service-status status inactive">已停用</span>');
+            }
             actionTd.innerHTML = html.replace(/\s+$/, '');
         });
     }
@@ -1672,6 +1685,38 @@
             storeArchiveFilter(pm);
             showToast(freezing ? '门店已冻结' : '门店已解冻', 'success');
         }, true);
+    }
+
+    function toggleStoreService(tr, pm) {
+        var api = window.MdmArchiveEnableDisable;
+        var meta = storeRowMeta(tr);
+        if (!api || !meta) return;
+        var off = api.isStoreDisabledByMeta({id: meta.storeId, name: meta.name});
+        function precheck() {
+            if (!tr.hasAttribute('data-disable-blocks')) tr.setAttribute('data-disable-blocks', meta.storeId === 'HGH00002' ? 'retail:2,proxy:1' : '');
+            var result = api.buildStorePrecheck(tr);
+            var def = readSystemDefaultStore();
+            if (def && String(def.storeId) === meta.storeId) result.hardBlocks.unshift({message:'系统默认门店不允许停用'});
+            result.canDisable = result.hardBlocks.length === 0;
+            return result;
+        }
+        function enableAllowed() {
+            var text = (tr.querySelectorAll('td')[8] || {}).textContent || '';
+            var code = text.match(/WH[A-Za-z0-9–—_-]*/);
+            var warehouseId = tr.getAttribute('data-warehouse-id') || (code ? code[0] : '');
+            if (!warehouseId) return false;
+            return !api.isWarehouseDisabledByMeta({id:warehouseId}) && archiveStatus('warehouse', warehouseId, '启用') === '启用';
+        }
+        if (off && !enableAllowed()) return showToast('配送仓库不可用，请先启用仓库或更换有效配送仓', 'error');
+        api.openDialog({mode:off?'enable':'disable', entityType:'store',entityName:meta.name,
+            precheck:precheck(), recheck:precheck, onConfirm:function(payload) {
+                if (off && !enableAllowed()) return showToast('配送仓库状态已变化，无法启用门店','error');
+                if (!off && !precheck().canDisable) return showToast('业务状态已变化，请重新预检','error');
+                api.setStoreDisabled({id:meta.storeId,name:meta.name,disabled:!off});
+                if (window.MdmOperationLog) window.MdmOperationLog.record('store', meta.storeId, off?'启用门店':'停用门店', {'业务状态':off?'停用':'启用'}, {'业务状态':off?'启用':'停用','原因':payload.reason||''});
+                refreshStoreArchiveActions();
+                showToast(off?'门店已启用':'门店已停用','success');
+            }});
     }
 
     function bindSetDefaultStorePermissionToggle() {
@@ -1783,6 +1828,10 @@
                     }
                 },
                 {
+                    selector: '.mdm-store-service-toggle',
+                    handler: function(e, el) { e.preventDefault(); toggleStoreService(el.closest('tr'), pm); }
+                },
+                {
                     selector: '.mdm-store-disable',
                     handler: function (e, el) {
                         e.preventDefault();
@@ -1883,7 +1932,8 @@
                 'qStoreCommerceStatus',
                 'qStoreBalancePay',
                 'qStoreSplit',
-                'qStoreStatus'
+                'qStoreStatus',
+                'qStoreServiceStatus'
             ],
             filterFn: storeArchiveFilter
         });
@@ -2139,9 +2189,10 @@
     }
 
     function inspectWarehouseBindings(row) {
-        var warehouseId = row.cells[0].textContent.trim();
-        var warehouseName = row.cells[2].textContent.trim();
-        var subjectName = row.cells[1].textContent.trim();
+        var cells = row.querySelectorAll('td:not(.lf-row-no-td)');
+        var warehouseId = cells[0].textContent.trim();
+        var warehouseName = cells[2].textContent.trim();
+        var subjectName = cells[1].textContent.trim();
         function matchesWarehouse(value) {
             var parts = String(value || '').split('/').map(function (part) { return part.trim(); });
             return parts.indexOf(warehouseId) !== -1 || parts.indexOf(warehouseName) !== -1 ||
@@ -2165,7 +2216,9 @@
             var suppliers = readJsonStore('mdm_supplier_inbound_warehouse_bindings_v1') || {};
             var bd = readBdWarehouseBindings();
             return [
-                { label: '门店', ids: Object.keys(stores).filter(function (id) { return matchesWarehouse(stores[id]); }) },
+                { label: '门店', ids: Object.keys(stores).filter(function (id) { var off = window.MdmArchiveEnableDisable && window.MdmArchiveEnableDisable.isStoreDisabledByMeta({id:id});
+                    var state = archiveStatus('store',id,'已启用');
+                    return !off && state === '已启用' && matchesWarehouse(stores[id]); }) },
                 { label: '供应商', ids: Object.keys(suppliers).filter(function (key) {
                     return matchesWarehouse(suppliers[key]);
                 }).map(function (key) { return key.replace(/^(id|name):/, ''); }) },
@@ -2740,8 +2793,9 @@
                 }
             ],
             onDisableToggle: function (row, status, page) {
-                var id = row.cells[0].textContent.trim();
-                var name = row.cells[2].textContent.trim();
+                var cells = row.querySelectorAll('td:not(.lf-row-no-td)');
+                var id = cells[0].textContent.trim();
+                var name = cells[2].textContent.trim();
                 var archiveLabel = '仓库「' + name + '」（' + id + '）';
                 function showBlocked(message) {
                     window.MdmSubjectLf.showLfWarmConfirm(archiveLabel + '\n' + message, null, false, '无法停用仓库');
@@ -2770,21 +2824,29 @@
                         showBlocked('未能完成关联检查。请通过本地预览服务重新打开页面后重试。');
                     });
                 }
+                var api = window.MdmArchiveEnableDisable;
+                if (!api) return showBlocked('预检服务未就绪，请刷新重试。');
+                function warehousePrecheck() {
+                    if (!row.hasAttribute('data-disable-blocks')) row.setAttribute('data-disable-blocks', id === 'WH001' ? 'refStores:1' : id === 'WH304550231884821504' ? 'inbound:1,task:1' : '');
+                    if (!row.hasAttribute('data-disable-warns')) row.setAttribute('data-disable-warns', id === 'WH004' ? 'stock:12,frozen:4' : 'stock:0');
+                    return api.buildWarehousePrecheck(row);
+                }
                 check(function () {
-                    var message = next + archiveLabel + '？';
-                    if (next === '停用') message += '\n停用后停止用于新业务，存量履约及售后继续使用原仓。';
-                    window.MdmSubjectLf.showLfWarmConfirm(message, function (reason) {
+                    api.openDialog({mode:next === '启用'?'enable':'disable',entityType:'warehouse',entityName:name,
+                      precheck:warehousePrecheck(),recheck:warehousePrecheck,onConfirm:function(payload) {
                         check(function () {
+                            if (next === '停用' && !warehousePrecheck().canDisable) return showBlocked('库存或作业状态已变化，请重新预检。');
                             if (!saveArchiveStatus('warehouse', id, next)) return;
+                            api.setWarehouseDisabled({id:id,name:name,disabled:next==='停用'});
                             updateArchiveStatus(page, row, 11, next);
                             page.refreshDisableToggleLabel(row);
                             cacheEnabledWarehouseOptionsFromTable();
                             warehouseArchiveFilter(page);
                             if (window.MdmOperationLog) window.MdmOperationLog.record('warehouse', id,
-                                next + '仓库', { '状态': status }, { '状态': next, '原因': reason });
+                                next + '仓库', { '状态': status }, { '状态': next, '原因': payload.reason||'' });
                             showToast('仓库已' + next, 'success');
                         });
-                    }, true);
+                      }});
                 });
             },
             editModal: {

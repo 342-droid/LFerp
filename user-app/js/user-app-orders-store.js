@@ -184,6 +184,13 @@
       paidAt: order.paidAt || '',
       completedAt: order.completedAt || '',
       closedReason: order.closedReason || '',
+      internalClosedReason: order.internalClosedReason || '',
+      reservationsReleased: !!order.reservationsReleased,
+      storeId: order.storeId || '',
+      warehouseId: order.warehouseId || '',
+      requiresStoreWork: order.requiresStoreWork,
+      fulfillmentValid: order.fulfillmentValid,
+      refundState: order.refundState || '',
       exchangePoints: Number(order.exchangePoints) || 0,
       deductPoints: Number(order.deductPoints) || 0,
       deductAmount: Number(order.deductAmount) || 0,
@@ -305,10 +312,14 @@
 
   function listNormalized() {
     var raw = readAll();
-    var next = raw.map(normalizeOrder);
+    var next = raw.map(function(order) {
+      var normalized = normalizeOrder(order);
+      return global.LfStoreServiceRules && !isStoreAppShell() ? global.LfStoreServiceRules.closePending(normalized) : normalized;
+    });
     var changed = next.some(function (n, i) {
       var o = raw[i] || {};
       return (
+        n.status !== (o.status || '') ||
         n.fulfillType !== (o.fulfillType || '') ||
         n.splitKind !== (o.splitKind || '') ||
         n.warehouse !== (o.warehouse || '') ||
