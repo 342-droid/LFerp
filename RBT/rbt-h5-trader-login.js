@@ -19,15 +19,15 @@
                 capital: '500万元人民币',
                 founded: '2021-06-18',
                 address: '浙江省杭州市西湖区文三路100号',
-                scope: '预包装食品批发；食用农产品批发'
+                scope: '商业保理'
             },
             permit: {
                 no: 'JY13301061234567',
                 name: '杭州鲜达贸易有限公司',
                 legal: '周宁',
                 place: '浙江省杭州市西湖区文三路100号',
-                mode: '食品销售经营者',
-                items: '预包装食品销售（含冷藏冷冻食品）',
+                mode: '商业保理',
+                items: '应收账款保理',
                 expire: '2029-06-17'
             }
         },
@@ -52,8 +52,8 @@
                 name: '上海冷链融资租赁有限公司',
                 legal: '李航',
                 place: '上海市浦东新区张杨路188号',
-                mode: '食品销售经营者',
-                items: '预包装食品销售',
+                mode: '融资租赁',
+                items: '融资租赁及相关咨询',
                 expire: '2028-03-11'
             }
         },
@@ -78,8 +78,8 @@
                 name: '宁波海丰商业保理有限公司',
                 legal: '陈可',
                 place: '浙江省宁波市鄞州区中山东路666号',
-                mode: '食品销售经营者',
-                items: '预包装食品销售（含冷藏冷冻食品）',
+                mode: '商业保理',
+                items: '应收账款保理',
                 expire: '2027-11-07'
             }
         }
@@ -119,13 +119,47 @@
         sessionStorage.setItem(ACCOUNTS_KEY, JSON.stringify(list));
     }
 
+    /* 旧演示证照还写着食品批发。需求单已改成开业费用后，只替换这几句食品口径。 */
+    function syncDemoLicense(account) {
+        if (!account || !account.phone) return false;
+        var demo = null;
+        DEMO_ACCOUNTS.some(function (item) {
+            if (item.phone === account.phone) {
+                demo = item;
+                return true;
+            }
+            return false;
+        });
+        if (!demo) return false;
+        var changed = false;
+        var foodScope = ['预包装食品批发；食用农产品批发'];
+        var foodMode = ['食品销售经营者'];
+        var foodItems = ['预包装食品销售（含冷藏冷冻食品）', '预包装食品销售'];
+        account.license = account.license || {};
+        account.permit = account.permit || {};
+        if (foodScope.indexOf(account.license.scope) >= 0 && demo.license && account.license.scope !== demo.license.scope) {
+            account.license.scope = demo.license.scope;
+            changed = true;
+        }
+        if (foodMode.indexOf(account.permit.mode) >= 0 && demo.permit && account.permit.mode !== demo.permit.mode) {
+            account.permit.mode = demo.permit.mode;
+            changed = true;
+        }
+        if (foodItems.indexOf(account.permit.items) >= 0 && demo.permit && account.permit.items !== demo.permit.items) {
+            account.permit.items = demo.permit.items;
+            changed = true;
+        }
+        return changed;
+    }
+
     function ensureDemoAccounts() {
         var list = readList();
         var phones = {};
+        var changed = false;
         list.forEach(function (item) {
             if (item && item.phone) phones[item.phone] = true;
+            if (syncDemoLicense(item)) changed = true;
         });
-        var changed = false;
         DEMO_ACCOUNTS.forEach(function (demo) {
             if (phones[demo.phone]) return;
             list.push(JSON.parse(JSON.stringify(demo)));

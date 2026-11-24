@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
     <link rel="stylesheet" href="../vendor/octopus-prototype-runtime/runtime.css">
     <link rel="stylesheet" href="../vendor/octopus-prototype-runtime/theme.css">
     <style>
@@ -73,6 +74,86 @@
             text-align: center;
             background: #fafafa;
         }
+        .rbt-ship-note { margin: 0 0 12px; color: #606266; font-size: 13px; line-height: 1.6; }
+        .rbt-ship-warn { color: #e6a23c; }
+        .rbt-supplement {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: 12px;
+            padding: 12px 16px;
+            border: 1px solid #f3e2c8;
+            border-radius: 8px;
+            background: #fffaf3;
+        }
+        .rbt-supplement__preview {
+            width: 64px;
+            height: 64px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #f0e0cc;
+            background: #fff;
+            flex: 0 0 auto;
+        }
+        .rbt-supplement__main { min-width: 0; flex: 1; }
+        .rbt-supplement__head { display: flex; align-items: center; gap: 8px; color: #303133; font-size: 14px; font-weight: 600; }
+        .rbt-supplement__tag {
+            padding: 0 8px;
+            height: 22px;
+            border-radius: 11px;
+            background: #fdf6ec;
+            color: #e6a23c;
+            font-style: normal;
+            font-size: 12px;
+            font-weight: 500;
+            line-height: 22px;
+        }
+        .rbt-supplement__tag.is-done { background: #f0f9eb; color: #67c23a; }
+        .rbt-supplement__gap,
+        .rbt-supplement__file,
+        .rbt-supplement__meta { margin: 4px 0 0; font-size: 13px; line-height: 1.5; }
+        .rbt-supplement__gap { color: #606266; }
+        .rbt-supplement__file { color: #303133; word-break: break-all; }
+        .rbt-supplement__meta { color: #909399; }
+        .rbt-supplement__upload {
+            flex: 0 0 auto;
+            height: 32px;
+            padding: 0 14px;
+            border: 1px solid #e6a23c;
+            border-radius: 4px;
+            background: #fff;
+            color: #e6a23c;
+            font-size: 13px;
+            line-height: 30px;
+            cursor: pointer;
+        }
+        .rbt-supplement__upload:hover { background: #fdf6ec; }
+        .rbt-sku-actions { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; }
+        .rbt-ship-auto { display: inline-block; min-width: 88px; line-height: 32px; color: #303133; }
+        .rbt-ship-dialog {
+            width: min(1280px, 96vw);
+            max-height: min(86vh, 820px);
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+        .rbt-ship-dialog__head,
+        .rbt-ship-dialog__foot { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; }
+        .rbt-ship-dialog__head { border-bottom: 1px solid #ebeef5; }
+        .rbt-ship-dialog__head h3 { margin: 0; font-size: 16px; font-weight: 600; color: #303133; }
+        .rbt-ship-dialog__body { overflow: auto; padding: 16px 20px; }
+        .rbt-ship-dialog__foot { justify-content: flex-end; gap: 8px; border-top: 1px solid #ebeef5; }
+        .rbt-ship-dialog input,
+        .rbt-ship-dialog select { height: 32px; border: 1px solid #dcdfe6; border-radius: 4px; padding: 0 8px; background: #fff; }
+        .rbt-ship-dialog input[type="number"],
+        .rbt-ship-dialog input[type="text"] { width: 120px; }
+        .rbt-sku-query { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .rbt-sku-query label { display: inline-flex; align-items: center; gap: 8px; color: #606266; font-size: 13px; }
+        .rbt-sku-thumb { width: 48px; height: 48px; object-fit: cover; border-radius: 4px; background: #f5f7fa; vertical-align: middle; }
+        .rbt-sku-thumb--empty { display: inline-flex; align-items: center; justify-content: center; color: #c0c4cc; font-size: 12px; }
+        .rbt-ship-blocks { margin: 0; padding-left: 18px; color: #303133; font-size: 13px; line-height: 1.8; }
         .rbt-demand-contract-link {
             border: 0;
             padding: 0;
@@ -198,6 +279,53 @@
         .rbt-sign-party em.is-done { color: #52c41a; }
         .rbt-sign-tip { margin: 0; color: #888; font-size: 14px; line-height: 1.6; }
         .rbt-sign-empty { padding: 32px 12px; text-align: center; color: #999; }
+        .rbt-create-demand { color: #303133; }
+        .rbt-create-demand .mdm-biz-tip { margin-bottom: 16px; }
+        .rbt-create-block { margin-bottom: 16px; padding: 12px 16px; border: 1px solid #ebeef5; border-radius: 4px; }
+        .rbt-create-block h3 { margin: 0 0 12px; font-size: 14px; font-weight: 600; }
+        .rbt-create-field { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+        .rbt-create-field > span { flex: 0 0 84px; line-height: 36px; text-align: right; color: #333; }
+        .rbt-create-field > span i { color: #ff4d4f; font-style: normal; margin-right: 2px; }
+        .rbt-create-field .el-select,
+        .rbt-create-field select { flex: 1; min-width: 0; }
+        .rbt-create-field select,
+        .rbt-create-qty,
+        .rbt-create-price {
+            height: 36px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            padding: 0 10px;
+            font: inherit;
+            font-size: 13px;
+            background: #fff;
+            box-sizing: border-box;
+        }
+        .rbt-create-price { width: 112px; text-align: right; }
+        .rbt-create-field select:disabled { background: #f5f7fa; color: #c0c4cc; }
+        .rbt-create-quota { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 0 0 0 96px; color: #606266; font-size: 13px; line-height: 22px; }
+        .rbt-create-quota b { color: #303133; }
+        .rbt-create-warn { margin: 8px 0 0 96px; color: #cf1322; font-size: 13px; line-height: 1.6; }
+        .rbt-create-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .rbt-create-table th,
+        .rbt-create-table td { border: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; vertical-align: middle; }
+        .rbt-create-table th { background: #f7f8fa; font-weight: 600; white-space: nowrap; }
+        .rbt-create-table td.is-money,
+        .rbt-create-table th.is-money { text-align: right; }
+        .rbt-create-table td.is-empty { text-align: center; color: #909399; padding: 28px 12px; }
+        .rbt-create-qty { width: 96px; }
+        .rbt-create-remove {
+            border: 0;
+            background: transparent;
+            color: #f56c6c;
+            cursor: pointer;
+            padding: 0;
+            font-size: 13px;
+        }
+        .rbt-create-remove:hover { color: #f23c3c; }
+        .rbt-create-sum { margin: 12px 0 0; font-size: 13px; }
+        .rbt-create-sum b { color: #ff7019; }
+        .rbt-create-plain { line-height: 36px; }
+        .rbt-create-plain.is-money { color: #ff7019; font-weight: 600; }
         .rbt-sign-modal .rbt-sign-submit {
             display: inline-block;
             margin-top: 8px;
@@ -231,11 +359,11 @@
                     :request="requestRows"
                     row-key="code"
                     search-label-width="112px"
-                    action-column-width="248"
+                    action-column-width="200"
                     :default-page-size="20"
                     :auto-format-time="false">
                     <template #toolbar-left="{elSize}">
-                        <el-button :size="elSize" @click="openAuditConfig">审核配置</el-button>
+                        <el-button type="primary" :size="elSize" @click="createDemand">新建需求单</el-button>
                         <el-button :size="elSize" @click="openAcceptTimeout">接单时间配置</el-button>
                         <el-button :size="elSize" @click="openWithdrawReasons">撤回原因配置</el-button>
                     </template>
@@ -254,27 +382,12 @@
                     </template>
                     <template #actions="{row,elSize}">
                         <div class="rbt-demand-ops">
-                            <el-button :size="elSize" text type="primary" :disabled="!canGoAudit(row)" @click="goAudit(row)">审核</el-button>
                             <el-button :size="elSize" text type="primary" :disabled="!canGoSign(row)" @click="goSign(row)">签署</el-button>
                             <el-button :size="elSize" text type="primary" :disabled="!canRepublish(row)" @click="republishDemand(row)">重新发布</el-button>
                             <el-button :size="elSize" text type="danger" :disabled="!canVoid(row)" @click="voidDemand(row)">作废</el-button>
                         </div>
                     </template>
                 </vab-schema-table>
-                <el-dialog v-model="auditOpen" title="审核配置" width="520px" append-to-body>
-                    <div class="rbt-audit-row">
-                        <span class="rbt-audit-row__label">初审自动审核</span>
-                        <el-radio-group v-model="auditForm.first">
-                            <el-radio label="是">是</el-radio>
-                            <el-radio label="否">否</el-radio>
-                        </el-radio-group>
-                    </div>
-                    <p class="rbt-audit-tip">选「是」后，需求发布进入初审时由系统自动审核通过。没保存过时，初审是「是」。已经待审核的单据不补审。支付完成后直接进入门店付款中，不再复核。</p>
-                    <template #footer>
-                        <el-button @click="auditOpen = false">取消</el-button>
-                        <el-button type="primary" @click="saveAuditConfig">保存</el-button>
-                    </template>
-                </el-dialog>
                 <el-dialog v-model="acceptOpen" title="接单时间配置" width="520px" append-to-body>
                     <div class="rbt-audit-row">
                         <span class="rbt-audit-row__label">接单时限</span>
@@ -305,6 +418,107 @@
                         <el-button type="primary" @click="saveWithdrawReasonConfig">保存</el-button>
                     </template>
                 </el-dialog>
+                <el-dialog v-model="createOpen" title="新建需求单" width="1080px" append-to-body :close-on-click-modal="false">
+                    <div class="rbt-create-demand">
+                        <div class="mdm-biz-tip" role="note">平台代门店发布需求。单据归该门店，按<strong>商品金额</strong>占用额度，发布后直接进入待接单。</div>
+                        <div class="rbt-create-block">
+                            <h3>门店</h3>
+                            <div class="rbt-create-field">
+                                <span><i>*</i>门店</span>
+                                <select :value="createView.storeCode" @change="onCreateStore">
+                                    <option value="">请选择门店</option>
+                                    <option v-for="item in createView.stores" :key="item.code" :value="item.code">{{ item.label }}</option>
+                                </select>
+                            </div>
+                            <div v-if="createView.quota" class="rbt-create-quota">
+                                <span>门店总额度 <b>{{ createView.quota.total }}</b></span>
+                                <span>已占用 <b>{{ createView.quota.occupied }}</b></span>
+                                <span>可用额度 <b>{{ createView.quota.available }}</b></span>
+                                <span>未结束需求 <b>{{ createView.quota.count }}</b></span>
+                                <span>保证金 <b>{{ createView.quota.deposit }}</b></span>
+                            </div>
+                            <p v-if="createView.block" class="rbt-create-warn">{{ createView.block }}</p>
+                        </div>
+                        <div class="rbt-create-block">
+                            <h3>商品</h3>
+                            <div class="rbt-create-field">
+                                <span><i>*</i>商品包</span>
+                                <select :value="createView.packageCode" :disabled="createView.packageDisabled" @change="onCreatePackage">
+                                    <option value="">{{ createView.packagePlaceholder }}</option>
+                                    <option v-for="item in createView.packages" :key="item.code" :value="item.code">{{ item.label }}</option>
+                                </select>
+                            </div>
+                            <table class="rbt-create-table">
+                                <thead>
+                                    <tr>
+                                        <th>商品编码</th>
+                                        <th>商品名称</th>
+                                        <th>规格</th>
+                                        <th>商品数量</th>
+                                        <th class="is-money">售卖单价</th>
+                                        <th class="is-money">售卖金额</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-if="!createView.skus.length"><td class="is-empty" colspan="7">{{ createView.skuEmpty }}</td></tr>
+                                    <tr v-for="line in createView.skus" :key="line.code">
+                                        <td>{{ line.code }}</td>
+                                        <td>{{ line.name }}</td>
+                                        <td>{{ line.pack }}</td>
+                                        <td>
+                                            <input v-if="line.canEdit" class="rbt-create-qty" type="text" inputmode="numeric" :value="line.qtyInput" @input="onCreateQty(line.code, $event)">
+                                            <span v-else>{{ line.qtyText }}</span>
+                                        </td>
+                                        <td class="is-money">
+                                            <input v-if="line.canEdit" class="rbt-create-price" type="text" inputmode="decimal" :value="line.priceInput" @input="onCreatePrice(line.code, $event)">
+                                            <span v-else>{{ line.priceText }}</span>
+                                        </td>
+                                        <td class="is-money">{{ line.amount }}</td>
+                                        <td>
+                                            <button v-if="line.canDelete" type="button" class="rbt-create-remove" @click="onCreateRemove(line.code)">删除</button>
+                                            <span v-else>—</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <p class="rbt-create-sum">共 <b>{{ createView.kind }}</b> 种，<b>{{ createView.piece }}</b> 件，商品金额 <b>{{ createView.skuAmount }}</b></p>
+                        </div>
+                        <div class="rbt-create-block">
+                            <h3>结算</h3>
+                            <div class="rbt-create-field"><span>产品</span><div class="rbt-create-plain">{{ createView.product }}</div></div>
+                            <div class="rbt-create-field">
+                                <span><i>*</i>结算周期</span>
+                                <select v-if="createView.cycles.length > 1" :value="createView.cycle" @change="onCreateCycle">
+                                    <option v-for="item in createView.cycles" :key="item" :value="item">{{ item }}</option>
+                                </select>
+                                <div v-else class="rbt-create-plain">{{ createView.cycles[0] || '—' }}</div>
+                            </div>
+                            <div class="rbt-create-field">
+                                <span><i>*</i>结算方式</span>
+                                <select v-if="createView.methods.length > 1" :value="createView.method" @change="onCreateMethod">
+                                    <option v-for="item in createView.methods" :key="item" :value="item">{{ item }}</option>
+                                </select>
+                                <div v-else class="rbt-create-plain">{{ createView.methods[0] || '—' }}</div>
+                            </div>
+                            <div v-if="createView.showPeriod" class="rbt-create-field">
+                                <span><i>*</i>结算期数</span>
+                                <select v-if="createView.periods.length > 1" :value="createView.period" @change="onCreatePeriod">
+                                    <option v-for="item in createView.periods" :key="item" :value="item">{{ item }}期</option>
+                                </select>
+                                <div v-else class="rbt-create-plain">{{ createView.periods[0] ? createView.periods[0] + '期' : '—' }}</div>
+                            </div>
+                            <div class="rbt-create-field"><span>商品金额</span><div class="rbt-create-plain is-money">{{ createView.goods }}</div></div>
+                            <div class="rbt-create-field"><span>服务费</span><div class="rbt-create-plain">{{ createView.fee }}</div></div>
+                            <div class="rbt-create-field"><span>总金额</span><div class="rbt-create-plain">{{ createView.total }}</div></div>
+                            <p v-if="createView.settleTip" class="rbt-create-warn">{{ createView.settleTip }}</p>
+                        </div>
+                    </div>
+                    <template #footer>
+                        <el-button @click="createOpen = false">取消</el-button>
+                        <el-button type="primary" @click="publishCreate">发布需求</el-button>
+                    </template>
+                </el-dialog>
             </div>
         </main>
     </div>
@@ -313,6 +527,7 @@
     <script src="../js/common.js"></script>
     <script src="../vendor/octopus-prototype-runtime/runtime.js"></script>
     <script src="../js/mdm-product-catalog-store.js"></script>
+    <script src="../js/business-tag-prototype-store.js"></script>
     <script src="rbt-store-data.js"></script>
     <script src="rbt-settle-ratio.js"></script>
     <script src="rbt-demand-data.js"></script>

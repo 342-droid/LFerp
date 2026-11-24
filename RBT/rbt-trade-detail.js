@@ -95,9 +95,8 @@
             textCell('单号', item.code) +
             statusCell('状态', item.status) +
             linkCell('来源需求单', item.demandCode, 'data-rbt-open-demand', item.demandCode) +
-            textCell('买方', item.buyerName) +
-            textCell('卖方', item.sellerName) +
-            textCell('付款方', item.payorName) +
+            textCell('付款方', item.buyerName) +
+            textCell('收款方', item.sellerName) +
             textCell('收货方', item.receiveName) +
             textCell('实际发货方', item.shipperName) +
             textCell('总金额', money(item.amount)) +

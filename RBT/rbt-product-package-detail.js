@@ -31,13 +31,15 @@
     }
 
     function skuTable(items) {
-        var head = '<tr><th>商品图片</th><th>商品编码</th><th>商品名称</th><th>商品条码</th><th>商品单位</th><th>商品规格</th><th class="is-money">采购价</th><th class="is-money">售价</th></tr>';
+        var head = '<tr><th>商品图片</th><th>商品编码</th><th>商品名称</th><th>商品条码</th><th>商品单位</th><th>商品规格</th><th class="is-money">采购价</th><th>商品数量</th><th class="is-money">售卖单价</th><th class="is-money">售卖金额</th><th>是否可修改</th><th>是否可删除</th></tr>';
         var body = !items || !items.length
-            ? '<tr><td class="is-empty" colspan="8">暂无商品</td></tr>'
+            ? '<tr><td class="is-empty" colspan="12">暂无商品</td></tr>'
             : items.map(function (item) {
                 return '<tr><td>' + skuImage(item) + '</td><td>' + esc(item.code) + '</td><td>' + esc(item.name) +
                     '</td><td>' + esc(item.barcode) + '</td><td>' + esc(item.unit) + '</td><td>' + esc(item.spec) +
-                    '</td><td class="is-money">' + esc(item.purchasePrice) + '</td><td class="is-money">' + esc(item.salePrice) + '</td></tr>';
+                    '</td><td class="is-money">' + esc(item.purchasePrice) + '</td><td>' + esc(item.qty) +
+                    '</td><td class="is-money">' + esc(item.salePrice) + '</td><td class="is-money">' + esc(item.saleAmount) +
+                    '</td><td>' + esc(item.canEdit) + '</td><td>' + esc(item.canDelete) + '</td></tr>';
             }).join('');
         return '<div class="rbt-package-sku-table-wrap"><table class="rbt-package-sku-table"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>';
     }
@@ -95,7 +97,8 @@
             '<div class="supplier-detail-section-title">基础信息</div><div class="supplier-detail-grid">' +
             cell('商品包编码', pkg.code) +
             cell('商品包名称', pkg.name) +
-            cell('门店', pkg.storeText) +
+            cell('适用门店', pkg.storeText) +
+            cell('总金额', pkg.totalText) +
             cell('状态', pkg.enabled === false ? '禁用' : '启用') +
             '<div class="supplier-detail-cell"><div class="supplier-detail-cell__label">商品包标签</div><div class="supplier-detail-cell__body" id="rbtPackageBaseTags"></div></div>' +
             cell('创建人', pkg.creator) +

@@ -4,6 +4,7 @@
     var tab = 'hall';
     var screen = 'home';
     var hallFilter = 'pending';
+    var detailCode = '';
     var signCode = '';
     var signSummaryOpen = false;
     var collectFilter = 'open';
@@ -28,8 +29,12 @@
         var head = document.getElementById('rbtH5HeadText');
         var title = document.querySelector('.rbt-h5-phone__head h1');
         var phone = document.getElementById('rbtH5Phone');
-        if (phone && phone.classList.contains('is-app')) {
-            if (title) title.textContent = text || '收款';
+        if (title) {
+            if (screen === 'hall') title.textContent = '需求大厅';
+            else if (screen === 'detail') title.textContent = '需求详情';
+            else if (screen === 'sign') title.textContent = '合同签署';
+            else if (phone && phone.classList.contains('is-app')) title.textContent = text || '收款';
+            else title.textContent = '贸易商端';
         }
         if (head) head.textContent = text || '';
     }
@@ -128,11 +133,12 @@
         });
     }
 
-    function skuText(item) {
-        return (item.skus || []).map(function (sku) {
-            var name = sku.name || sku.code || '';
-            return sku.qty != null && sku.qty !== '' ? name + '×' + sku.qty : name;
-        }).filter(Boolean).join('、') || '—';
+    function lineAmount(line) {
+        var qty = Number(line && line.qty);
+        var price = Number(line && line.salePrice);
+        if (!isFinite(qty) || qty < 1) qty = 1;
+        if (!isFinite(price)) return '—';
+        return yuanText((Math.round(price * qty * 100) / 100).toFixed(2));
     }
 
     function centsOf(value) {
@@ -183,27 +189,21 @@
                 '<button type="button" class="rbt-hall-card__btn" data-confirm-deal="' + code + '">确认签约</button>';
         }
         if (item.status === '待签署') return '<button type="button" class="rbt-hall-card__btn" data-sign="' + code + '">去签署</button>';
-        if (item.status === '待付款') {
-            return '<button type="button" class="rbt-hall-card__btn is-ghost" data-pay-offline="' + code + '">线下支付</button>' +
-                '<button type="button" class="rbt-hall-card__btn" data-pay-online="' + code + '">在线支付</button>';
-        }
         return '';
     }
 
-    function renderHallCard(item, accepted) {
+    function hallStatus(item, accepted) {
         var status = accepted ? (item.status || '已接单') : '待接单';
         var statusClass = status === '已完成' ? ' is-done' : (status === '已作废' || status === '已驳回' ? ' is-off' : '');
+        return { text: status, className: statusClass };
+    }
+
+    function hallSummary(item, accepted) {
+        var status = hallStatus(item, accepted);
         var amounts = hallAmounts(item);
-        var ratio = item.repayMethod === '比例付' ? ratioText(item) : '';
-        var extra = ratio && ratio !== '—'
-            ? '<div class="rbt-hall-card__block"><span>结算比例</span><p>' + esc(ratio) + '</p></div>'
-            : (item.repayMethod && item.repayMethod !== '比例付'
-                ? '<div class="rbt-hall-card__block"><span>结算期数</span><p>' + esc(item.repayPeriod || '—') + '期</p></div>'
-                : '');
-        var actions = hallActions(item, accepted);
         return '<article class="rbt-hall-card">' +
             '<div class="rbt-hall-card__top"><h2 class="rbt-hall-card__name">' + esc(item.storeName || '—') + '</h2>' +
-            '<span class="rbt-hall-card__status' + statusClass + '">' + esc(status) + '</span></div>' +
+            '<span class="rbt-hall-card__status' + status.className + '">' + esc(status.text) + '</span></div>' +
             '<p class="rbt-hall-card__meta">' + esc(item.code || '—') + ' · ' + esc(item.packageName || '—') + ' ' + esc(item.packageCode || '—') + '</p>' +
             '<div class="rbt-hall-card__total"><span>总金额</span><b>' + esc(yuanText(amounts.total)) + '</b></div>' +
             '<div class="rbt-hall-card__grid">' +
@@ -211,12 +211,49 @@
             hallCell('服务费', yuanText(amounts.fee)) +
             hallCell('结算周期', item.repayCycle || '—') +
             hallCell('结算方式', item.repayMethod || '—') +
-            '</div>' +
-            '<div class="rbt-hall-card__block"><span>商品</span><p>' + esc(skuText(item)) + '</p></div>' +
-            extra +
-            '<div class="rbt-hall-card__foot"><div class="rbt-hall-card__time"><p>创建时间 ' + esc(item.createdAt || '—') + '</p>' +
-            (accepted ? '<p>接单时间 ' + esc(item.acceptedAt || '—') + '</p>' : '') +
-            '</div><div class="rbt-hall-card__actions">' + actions + '</div></div></article>';
+            '</div>';
+    }
+
+    function renderHallCard(item, accepted) {
+        var actions = hallActions(item, accepted);
+        return hallSummary(item, accepted).replace('<article class="rbt-hall-card">', '<article class="rbt-hall-card" data-demand="' + esc(item.code) + '">') +
+            (actions ? '<div class="rbt-hall-card__foot">' + actions + '</div>' : '') +
+            '</article>';
+    }
+
+    function renderHallSkus(item) {
+        var lines = (item && item.skus) || [];
+        if (!lines.length) return '<p class="rbt-hall-sheet__empty">暂无商品</p>';
+        return lines.map(function (line) {
+            var qty = Number(line && line.qty);
+            if (!isFinite(qty) || qty < 1) qty = 1;
+            var price = line && line.salePrice != null && line.salePrice !== '' ? yuanText(line.salePrice) : '—';
+            var spec = [line && line.code, line && line.spec].filter(Boolean).join(' · ');
+            return '<div class="rbt-hall-sku">' +
+                '<div class="rbt-hall-sku__main"><strong>' + esc((line && (line.name || line.code)) || '—') + '</strong>' +
+                '<p>' + esc(spec || '—') + '</p></div>' +
+                '<div class="rbt-hall-sku__side"><b>' + esc(lineAmount(line)) + '</b><span>×' + qty + ' · ' + esc(price) + '</span></div>' +
+                '</div>';
+        }).join('');
+    }
+
+    /* 比例付不展示结算比例。其他结算方式在详情里展示期数。 */
+    function renderHallSettle(item) {
+        if (item && item.repayMethod && item.repayMethod !== '比例付') {
+            return '<section class="rbt-hall-sheet"><h3>结算期数</h3>' +
+                '<p class="rbt-hall-sheet__text">' + esc(item.repayPeriod || '—') + '期</p></section>';
+        }
+        return '';
+    }
+
+    function renderHallDetail(item) {
+        var accepted = !!(item.traderName && item.traderName === traderName());
+        return hallSummary(item, accepted) +
+            '<p class="rbt-hall-card__meta">创建时间 ' + esc(item.createdAt || '—') + '</p>' +
+            (accepted ? '<p class="rbt-hall-card__meta">接单时间 ' + esc(item.acceptedAt || '—') + '</p>' : '') +
+            '</article>' +
+            '<section class="rbt-hall-sheet"><h3>商品</h3>' + renderHallSkus(item) + '</section>' +
+            renderHallSettle(item);
     }
 
     function syncHomeChrome() {
@@ -225,7 +262,7 @@
         var on = tab === 'hall' && screen === 'home';
         if (phone) {
             phone.classList.toggle('is-home', on);
-            phone.classList.toggle('is-hall', screen === 'hall');
+            phone.classList.toggle('is-hall', screen === 'hall' || screen === 'detail');
             phone.classList.toggle('is-sign', screen === 'sign');
         }
         if (scroll) scroll.classList.toggle('is-home', on);
@@ -868,22 +905,13 @@
         if (tab === 'hall' && screen === 'sign') {
             setHead('合同签署');
             var signing = window.RbtDemandData && window.RbtDemandData.get(signCode);
-            var payActions = signing && signing.status === '待付款'
-                ? '<section class="rbt-sign-card">' +
-                  '<h2>支付</h2>' +
-                  '<p>合同已签署，请选择支付方式。</p>' +
-                  '<button type="button" class="rbt-h5-accept" data-pay-online="' + esc(signing.code) + '">在线支付</button>' +
-                  '<button type="button" class="rbt-h5-withdraw" data-pay-offline="' + esc(signing.code) + '">线下支付</button>' +
-                  '</section>'
-                : '';
             scroll.innerHTML = (window.RbtContractSign
                 ? window.RbtContractSign.render(signing, { role: 'trader', name: traderName(), phone: account.phone }, {
                     layout: 'trader',
                     summaryOpen: signSummaryOpen,
                     amounts: signing ? hallAmounts(signing) : {}
                 })
-                : '<div class="rbt-h5-empty">合同签署页不可用</div>') +
-                payActions;
+                : '<div class="rbt-h5-empty">合同签署页不可用</div>');
             return;
         }
         if (tab === 'hall' && screen === 'collect-bill') {
@@ -933,6 +961,22 @@
         if (tab === 'assets') {
             setHead('资产台账');
             scroll.innerHTML = '<div class="rbt-h5-empty">暂无资产台账</div>';
+            return;
+        }
+        if (tab === 'hall' && screen === 'detail') {
+            setHead('需求详情');
+            var detailItem = null;
+            demandRows().some(function (item) {
+                if (item && item.code === detailCode) {
+                    detailItem = item;
+                    return true;
+                }
+                return false;
+            });
+            scroll.innerHTML = detailItem
+                ? renderHallDetail(detailItem)
+                : '<div class="rbt-h5-empty">需求单不存在</div>';
+            scroll.scrollTop = 0;
             return;
         }
         setHead('需求大厅');
@@ -1191,50 +1235,6 @@
         });
     }
 
-    function finishPay(code, method) {
-        var api = window.RbtDemandData;
-        var result = api && typeof api.payDemand === 'function'
-            ? api.payDemand(code, method, { name: traderName(), phone: account && account.phone })
-            : { ok: false };
-        if (result && result.ok) toast(method === 'offline' ? '已确认线下支付，需求进入门店付款中' : '支付完成，需求进入门店付款中');
-        else toast('当前不能支付');
-        render();
-    }
-
-    function closeOfflinePay() {
-        document.querySelectorAll('[data-pay-dialog]').forEach(function (node) {
-            node.remove();
-        });
-    }
-
-    /* 线下支付先确认。取消不改状态。 */
-    function openOfflinePay(code) {
-        var phone = document.getElementById('rbtH5Phone');
-        if (!phone) return;
-        closeOfflinePay();
-        var mask = document.createElement('div');
-        mask.className = 'rbt-h5-pay-mask';
-        mask.setAttribute('data-pay-dialog', '1');
-        mask.innerHTML =
-            '<div class="rbt-h5-pay-dialog" role="dialog" aria-modal="true">' +
-            '<p>请进行线下打款，相关信息请联系平台处理</p>' +
-            '<div class="rbt-h5-pay-dialog__actions">' +
-            '<button type="button" data-pay-cancel>取消</button>' +
-            '<button type="button" data-pay-ok>确认</button>' +
-            '</div></div>';
-        phone.appendChild(mask);
-        mask.addEventListener('click', function (event) {
-            if (event.target.closest('[data-pay-cancel]')) {
-                closeOfflinePay();
-                return;
-            }
-            if (event.target.closest('[data-pay-ok]')) {
-                closeOfflinePay();
-                finishPay(code, 'offline');
-            }
-        });
-    }
-
     document.getElementById('rbtH5App').addEventListener('click', function (event) {
         var contractClose = event.target.closest('[data-contract-close]');
         var contractOpen = event.target.closest('[data-contract-open]');
@@ -1255,20 +1255,10 @@
         var sign = event.target.closest('[data-sign]');
         var summaryToggle = event.target.closest('[data-sign-summary]');
         var confirmSign = event.target.closest('[data-confirm-sign]');
-        var payOnline = event.target.closest('[data-pay-online]');
-        var payOffline = event.target.closest('[data-pay-offline]');
         var changePassword = event.target.closest('[data-change-password]');
         var savePassword = event.target.closest('[data-save-password]');
         var back = event.target.closest('[data-back]');
         var logout = event.target.closest('[data-logout]');
-        if (payOnline) {
-            finishPay(payOnline.getAttribute('data-pay-online'), 'online');
-            return;
-        }
-        if (payOffline) {
-            openOfflinePay(payOffline.getAttribute('data-pay-offline'));
-            return;
-        }
         if (summaryToggle) {
             signSummaryOpen = !signSummaryOpen;
             render();
@@ -1285,7 +1275,7 @@
                 openBalanceShort(signResult);
                 return;
             }
-            if (signResult && signResult.ok && signResult.done) toast('各方已完成签署，请选择支付方式');
+            if (signResult && signResult.ok && signResult.done) toast('各方已完成签署，系统已自动划款，需求进入发货中');
             else if (signResult && signResult.ok) toast('签署成功');
             else if (signResult && signResult.reason === 'signed') toast('你已签署');
             else toast('当前不能签署');
@@ -1440,6 +1430,13 @@
         }
         if (back) {
             goBack(back.getAttribute('data-back') || 'home');
+            return;
+        }
+        var demandCard = event.target.closest('[data-demand]');
+        if (demandCard && !event.target.closest('button')) {
+            detailCode = demandCard.getAttribute('data-demand') || '';
+            screen = 'detail';
+            render();
             return;
         }
         if (logout && window.RbtH5TraderLogin) window.RbtH5TraderLogin.logout();

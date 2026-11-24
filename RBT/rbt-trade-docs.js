@@ -1,4 +1,4 @@
-/* 贸易商付款完成、进入门店付款中后生成三张交易单，不再生成采购单、销售单和入库单。 */
+/* 确认发货完成、进入门店付款中后按发货记录生成三张交易单。没有发货记录的历史单仍按需求商品生成。 */
 (function () {
     var KEY = 'rbt_trade_docs_v2';
     var LF_SUPPLY = { code: 'LF-SUPPLY', name: '冷丰供应链' };
@@ -133,6 +133,17 @@
     function goodsLine(sku) {
         var qty = Number(sku && sku.qty);
         if (!isFinite(qty) || qty < 0) qty = 0;
+        if (sku && sku.shipAmount != null && sku.shipAmount !== '') {
+            var shipCents = centsOf(sku.shipAmount);
+            var unit = qty > 0 ? Math.round(shipCents / qty) : 0;
+            return {
+                code: sku.code || '',
+                name: sku.name || '',
+                qty: qty,
+                salePrice: fromCents(unit),
+                amount: fromCents(shipCents)
+            };
+        }
         var originCents = centsOf(sku && sku.salePrice);
         return {
             code: sku && sku.code || '',
@@ -152,6 +163,16 @@
     function feeCentsOf(skus, mode, rates) {
         var total = 0;
         (skus || []).forEach(function (sku) {
+            if (sku && sku.shipAmount != null && sku.shipAmount !== '') {
+                var originTotal = centsOf(sku.shipAmount);
+                var traderTotal = rates ? ratedUnitCents(originTotal, rates.trader) : originTotal;
+                var storeTotal = rates ? ratedUnitCents(originTotal, rates.store) : originTotal;
+                var shippedFee = 0;
+                if (mode === 'trader') shippedFee = traderTotal - originTotal;
+                if (mode === 'gap') shippedFee = storeTotal - traderTotal;
+                if (shippedFee > 0) total += shippedFee;
+                return;
+            }
             var qty = Number(sku && sku.qty);
             if (!isFinite(qty) || qty < 0) qty = 0;
             var originCents = centsOf(sku && sku.salePrice);
@@ -165,11 +186,22 @@
         return total;
     }
 
-    function buildLines(skus, mode, rates) {
-        if (mode === 'gap') return [feeLine(feeCentsOf(skus, 'gap', rates))];
+    function buildLines(skus, mode, rates, feeCents) {
+        if (mode === 'gap') return [feeLine(feeCents != null ? feeCents : feeCentsOf(skus, 'gap', rates))];
         var lines = (skus || []).map(goodsLine);
-        if (mode === 'trader') lines.push(feeLine(feeCentsOf(skus, 'trader', rates)));
+        if (mode === 'trader') lines.push(feeLine(feeCents != null ? feeCents : feeCentsOf(skus, 'trader', rates)));
         return lines;
+    }
+
+    /* 服务费只按需求单商品金额计算，多发不加大这笔服务费。 */
+    function feeOnGoods(demand, mode, rates) {
+        var origin = centsOf(demand && demand.goodsAmount);
+        var traderTotal = rates ? ratedUnitCents(origin, rates.trader) : origin;
+        var storeTotal = rates ? ratedUnitCents(origin, rates.store) : origin;
+        var fee = 0;
+        if (mode === 'trader') fee = traderTotal - origin;
+        if (mode === 'gap') fee = storeTotal - traderTotal;
+        return fee > 0 ? fee : 0;
     }
 
     function partyFields(storeCode, storeName, payorName, shipperName) {
@@ -244,6 +276,7 @@
             createdAt: when,
             creator: who
         };
+        var sourceSkus = demand.shipSkus && demand.shipSkus.length ? demand.shipSkus : demand.skus;
         var upParties = partyFields(storeCode, storeName, traderName, LF_SUPPLY.name);
         var downParties = partyFields(storeCode, storeName, storeName, LF_SUPPLY.name);
         var feeParties = partyFields(storeCode, storeName, storeName, '');
@@ -254,14 +287,14 @@
                 buyerName: traderName,
                 sellerCode: LF_SUPPLY.code,
                 sellerName: LF_SUPPLY.name
-            }), buildLines(demand.skus, 'origin', rates)),
+            }), buildLines(sourceSkus, 'origin', rates)),
             down: makeDoc(Object.assign({}, base, downParties, {
                 code: codes.down,
                 docType: DOC_DOWN,
                 buyerCode: storeCode,
                 buyerName: storeName,
                 sellerName: traderName
-            }), buildLines(demand.skus, 'trader', rates)),
+            }), buildLines(sourceSkus, 'trader', rates, feeOnGoods(demand, 'trader', rates))),
             fee: makeDoc(Object.assign({}, base, feeParties, {
                 code: codes.fee,
                 docType: DOC_FEE,
@@ -269,7 +302,7 @@
                 buyerName: storeName,
                 sellerCode: LF_SUPPLY.code,
                 sellerName: LF_SUPPLY.name
-            }), buildLines(demand.skus, 'gap', rates))
+            }), buildLines(sourceSkus, 'gap', rates, feeOnGoods(demand, 'gap', rates)))
         };
     }
 
@@ -302,14 +335,82 @@
         });
     }
 
+    function qtyKey(qty) {
+        var num = Number(qty);
+        return isFinite(num) ? String(num) : '';
+    }
+
+    function linesSignature(lines) {
+        return (lines || []).map(function (line) {
+            return [
+                String(line && line.code || ''),
+                String(line && line.name || ''),
+                qtyKey(line && line.qty),
+                fromCents(centsOf(line && line.salePrice)),
+                fromCents(centsOf(line && line.amount))
+            ].join('|');
+        }).join('\n');
+    }
+
+    function sameLines(left, right) {
+        return linesSignature(left) === linesSignature(right);
+    }
+
+    /* 需求单改成开业费用后，清掉已不存在的单、旧食品明细，以及和当前发货/商品不一致的三张交易单。 */
+    function replaceStaleTrades(demands) {
+        var store = readStore();
+        var generatable = {};
+        (demands || []).forEach(function (item) {
+            if (canGenerate(item)) generatable[item.code] = item;
+        });
+        var drop = {};
+        (store.trades || []).forEach(function (row) {
+            if (!row) return;
+            var demand = generatable[row.demandCode];
+            var legacy = (row.lines || []).some(function (line) {
+                return line && /^SKU100/.test(String(line.code || ''));
+            });
+            if (!demand || legacy) drop[row.demandCode || row.code] = true;
+        });
+        Object.keys(generatable).forEach(function (code) {
+            if (drop[code]) return;
+            var found = docsOf(store, code);
+            if (!hasSet(found)) {
+                if (found.up || found.down || found.fee) drop[code] = true;
+                return;
+            }
+            var fresh = buildSet(generatable[code], '', { trades: store.trades });
+            if (!sameLines(found.up.lines, fresh.up.lines) ||
+                !sameLines(found.down.lines, fresh.down.lines) ||
+                !sameLines(found.fee.lines, fresh.fee.lines) ||
+                found.up.payorName !== fresh.up.payorName ||
+                found.down.payorName !== fresh.down.payorName ||
+                found.fee.payorName !== fresh.fee.payorName) {
+                drop[code] = true;
+            }
+        });
+        var codes = Object.keys(drop);
+        if (!codes.length) return;
+        store.trades = (store.trades || []).filter(function (row) {
+            return row && codes.indexOf(row.demandCode) < 0;
+        });
+        writeStore(store);
+    }
+
+    function currentDemands() {
+        var api = window.RbtDemandData;
+        return api && typeof api.list === 'function' ? api.list() : [];
+    }
+
     function listTrades() {
-        if (window.RbtDemandData && typeof window.RbtDemandData.list === 'function') {
-            ensureForPassedDemands(window.RbtDemandData.list());
-        }
+        var demands = currentDemands();
+        replaceStaleTrades(demands);
+        ensureForPassedDemands(demands);
         return sortRows(readStore().trades);
     }
 
     function getTrade(code) {
+        listTrades();
         var found = null;
         readStore().trades.some(function (row) {
             if (row && row.code === code) {
@@ -322,6 +423,7 @@
     }
 
     function docsOfDemand(demandCode) {
+        listTrades();
         var found = docsOf(readStore(), demandCode);
         return [found.up, found.down, found.fee].filter(Boolean);
     }

@@ -39,8 +39,8 @@
             var columns = [
                 { dataIndex: 'code', title: '交易单号', minWidth: 130, search: { control: 'input' } },
                 { dataIndex: 'demandCode', title: '来源需求单', minWidth: 130, search: { control: 'input' } },
-                { dataIndex: 'buyerName', title: '买方', minWidth: 160, align: 'left', showOverflowTooltip: true, search: { control: 'input' } },
-                { dataIndex: 'sellerName', title: '卖方', minWidth: 160, align: 'left', showOverflowTooltip: true, search: { control: 'input' } },
+                { dataIndex: 'buyerName', title: '付款方', minWidth: 160, align: 'left', showOverflowTooltip: true, search: { control: 'input' } },
+                { dataIndex: 'sellerName', title: '收款方', minWidth: 160, align: 'left', showOverflowTooltip: true, search: { control: 'input' } },
                 { dataIndex: 'receiveName', title: '收货方', minWidth: 150, align: 'left', showOverflowTooltip: true, search: { control: 'input' } },
                 { dataIndex: 'amount', title: '总金额', minWidth: 120, formatter: function (row) { return moneyText(row.amount); } },
                 { dataIndex: 'status', title: '状态', minWidth: 100 },
