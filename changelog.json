@@ -1,10 +1,163 @@
 {
-  "latestSha": "b72f5695db66d3d63e62a4f262be150a2b557c5c",
-  "total": 630,
+  "latestSha": "c1e3e1fc540902d336d932580b933a858ed9b3a0",
+  "total": 631,
   "days": [
     {
       "date": "2026-11-23",
       "items": [
+        {
+          "sha": "c1e3e1f",
+          "type": "feat",
+          "text": "需求改为平台代发，签完后发货并按商品金额计成交",
+          "author": "342-droid",
+          "time": "19:41",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "module": "冷丰售后",
+              "title": "售后单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "module": "冷丰WMS",
+              "title": "需求单审核"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "module": "冷丰WMS",
+              "title": "选品库"
+            },
+            {
+              "file": "RBT/rbt_admit_store.html",
+              "module": "冷丰RBT",
+              "title": "门店准入管理"
+            },
+            {
+              "file": "RBT/rbt_contract_sign.html",
+              "module": "冷丰RBT",
+              "title": "合同签署"
+            },
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日履行"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_index.html",
+              "module": "冷丰RBT-移动端",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
+              "file": "RBT/rbt_product_package.html",
+              "module": "冷丰RBT",
+              "title": "商品包"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常履约数据"
+            },
+            {
+              "file": "RBT/rbt_risk_config.html",
+              "module": "冷丰RBT",
+              "title": "风控配置"
+            },
+            {
+              "file": "RBT/rbt_trade.html",
+              "module": "冷丰RBT",
+              "title": "交易单"
+            },
+            {
+              "file": "SCM/basic_settings_business_tags.html",
+              "module": "冷丰WMS",
+              "title": "标签管理"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "RBT/rbt_demand.html",
+              "text": "平台代门店发布；接单写入贸易商绑定的服务商；发货完成后已成交按商品金额增加；未结束次数含已完成"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "text": "只查看本店需求、签销售合同和确认收货，不再发布或取消"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "接单后进入待确认签约，并带上档案里绑定的服务商"
+            },
+            {
+              "file": "RBT/rbt_product_package.html",
+              "text": "改为开业铺货、门店形象和开业运营服务包，行上可设置能否改价删行"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "text": "产品改为对应开业包的日结，运营包货款上限调到能发整包"
+            },
+            {
+              "file": "RBT/rbt_trade.html",
+              "text": "货款按实发，服务费只按需求商品金额，多发不加大服务费"
+            },
+            {
+              "file": "RBT/rbt_admit_store.html",
+              "text": "已成交按需求商品金额累计"
+            },
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "text": "不再新做初审，审核中心去掉需求单审核入口，只留历史记录"
+            },
+            {
+              "file": null,
+              "text": "需求文档按当前流程重写成 1 到 9"
+            }
+          ]
+        },
         {
           "sha": "b72f569",
           "type": "feat",
@@ -26054,6 +26207,11 @@
               "title": "门店准入管理"
             },
             {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
               "file": "RBT/rbt_h5_store.html",
               "module": "冷丰RBT-移动端",
               "title": "门店端"
@@ -28098,6 +28256,11 @@
               "file": "RBT/rbt_admit_store.html",
               "module": "冷丰RBT",
               "title": "门店准入管理"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
             },
             {
               "file": "RBT/rbt_h5_store.html",
