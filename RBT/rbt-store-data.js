@@ -35,6 +35,11 @@
         return num;
     }
 
+    /* 保证金已缴纳才是 true。未选或选否都视为未缴纳。 */
+    function depositPaidOf(row) {
+        return !!(row && row.depositPaid === true);
+    }
+
     function demoQuotaParts(total) {
         var amount = toAmount(total);
         return {
@@ -215,13 +220,16 @@
                 settleCycle: '自然周',
                 splitService: '已开通',
                 rbtLevel: 'A',
-                storeQuota: 500000,
-                occupiedQuota: 80000,
-                lockedQuota: 0,
+                storeQuota: 50000,
+                /* 已占用 = XQ00026 发货中的商品金额。XQ00013 已驳回、XQ00014 已作废、XQ00023 已完成，不占用 */
+                occupiedQuota: 50000,
+                /* 已成交 = XQ00023 商品金额 */
+                lockedQuota: 50000,
                 creator: '周经理',
                 createdAt: '2026-08-01 09:00:00',
                 updater: '喻巧',
                 updatedAt: '2026-08-12 14:20:00',
+                depositPaid: true,
                 photos: true
             }),
             row({
@@ -251,13 +259,16 @@
                 splitService: '已开通',
                 storeStatus: '正常',
                 rbtLevel: 'B',
-                storeQuota: 200000,
-                occupiedQuota: 30000,
-                lockedQuota: 0,
+                storeQuota: 40000,
+                /* 已占用 = XQ00016 门店付款中的商品金额。XQ00015 已作废，不占用 */
+                occupiedQuota: 40000,
+                /* 已成交 = XQ00016 商品金额 */
+                lockedQuota: 40000,
                 creator: '李敏',
                 createdAt: '2026-04-29 22:53:02',
                 updater: '夏利',
                 updatedAt: '2026-05-02 11:08:20',
+                depositPaid: true,
                 photos: true
             }),
             row({
@@ -286,13 +297,15 @@
                 settleCycle: '自然周',
                 splitService: '开启',
                 rbtLevel: 'A',
-                storeQuota: 300000,
-                occupiedQuota: 45000,
+                storeQuota: 50000,
+                /* 已占用 = XQ00017 待接单的商品金额。XQ00018 已驳回，不占用 */
+                occupiedQuota: 30000,
                 lockedQuota: 0,
                 creator: '刘洋',
                 createdAt: '2026-04-20 10:22:11',
                 updater: '周海',
                 updatedAt: '2026-06-01 09:12:00',
+                depositPaid: false,
                 photos: true
             }),
             row({
@@ -321,13 +334,15 @@
                 settleCycle: '自然月',
                 splitService: '已开通',
                 rbtLevel: 'B',
-                storeQuota: 180000,
-                occupiedQuota: 40000,
+                storeQuota: 40000,
+                /* 关联汉言开业铺货包，商品金额 50000 超过总额度，没有进行中的需求 */
+                occupiedQuota: 0,
                 lockedQuota: 0,
                 creator: '李敏',
                 createdAt: '2026-04-19 15:01:44',
                 updater: '赵倩',
                 updatedAt: '2026-07-18 16:40:33',
+                depositPaid: true,
                 photos: true
             }),
             row({
@@ -355,13 +370,15 @@
                 storeStatus: '正常',
                 enabled: true,
                 rbtLevel: 'C',
-                storeQuota: 120000,
-                occupiedQuota: 10000,
+                storeQuota: 30000,
+                /* 未关联商品包，没有需求单 */
+                occupiedQuota: 0,
                 lockedQuota: 0,
                 creator: '周经理',
                 createdAt: '2026-04-18 09:33:02',
                 updater: '陈晨',
                 updatedAt: '2026-08-08 09:33:02',
+                depositPaid: false,
                 photos: true
             })
         ];
@@ -578,6 +595,17 @@
             if (demandLimitOf(item) !== Number(item.demandLimit)) {
                 item.demandLimit = demandLimitOf(item);
                 changed = true;
+            }
+            /* 旧会话还没记保证金时，按示例补上。已经选过是或否的不改。 */
+            if (item.depositPaid !== true && item.depositPaid !== false) {
+                seed().some(function (source) {
+                    if (source.code !== item.code) return false;
+                    if (source.depositPaid === true || source.depositPaid === false) {
+                        item.depositPaid = source.depositPaid === true;
+                        changed = true;
+                    }
+                    return true;
+                });
             }
         });
         if (changed) write(current);
@@ -832,6 +860,7 @@
         appendLog: appendLog,
         quotaOf: quotaOf,
         demandLimitOf: demandLimitOf,
+        depositPaidOf: depositPaidOf,
         nowText: nowText,
         applyQuota: applyQuota,
         saveList: write

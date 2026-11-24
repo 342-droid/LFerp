@@ -35,7 +35,7 @@
     function statusKind(status) {
         if (status === '已完成' || status === '已签署') return 'success';
         if (status === '已作废' || status === '已取消' || status === '已驳回') return 'neutral';
-        if (status === '待审核' || status === '待确认签约' || status === '待重新确认' || status === '待签署' || status === '待付款') return 'warning';
+        if (status === '待确认签约' || status === '待重新确认' || status === '待签署' || status === '待付款' || status === '发货中') return 'warning';
         if (status === '门店付款中') return 'danger';
         return 'neutral';
     }
@@ -120,15 +120,18 @@
     }
 
     function skuTable(items) {
-        var head = '<tr><th>商品编码</th><th>商品名称</th><th class="is-money">售价</th><th class="is-money">数量</th></tr>';
+        var head = '<tr><th>商品编码</th><th>商品名称</th><th class="is-money">售卖单价</th><th>商品数量</th><th class="is-money">售卖金额</th></tr>';
         var body = !items || !items.length
-            ? '<tr><td class="is-empty" colspan="4">暂无商品</td></tr>'
+            ? '<tr><td class="is-empty" colspan="5">暂无商品</td></tr>'
             : items.map(function (item) {
                 var qty = Number(item && item.qty);
                 if (!isFinite(qty) || qty < 1) qty = 1;
+                var price = Number(String(item && item.salePrice || '').replace(/^¥/, ''));
+                var amount = isFinite(price) ? price * qty : NaN;
                 return '<tr><td>' + esc(item && item.code) + '</td><td>' + esc(item && item.name) +
                     '</td><td class="is-money">' + esc(money(item && item.salePrice)) +
-                    '</td><td class="is-money">' + esc(qty) + '</td></tr>';
+                    '</td><td>' + esc(qty) +
+                    '</td><td class="is-money">' + esc(isFinite(amount) ? money(amount) : '—') + '</td></tr>';
             }).join('');
         return '<div class="rbt-demand-table-wrap"><table class="rbt-demand-table"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>';
     }
@@ -143,6 +146,14 @@
         document.head.appendChild(node);
     }
 
+    function shippedCents(item) {
+        var cents = 0;
+        (item && item.shipments || []).forEach(function (row) {
+            cents += plainCents(row && row.amount);
+        });
+        return cents;
+    }
+
     function amountTable(item, performance) {
         var settled = performance ? settledOf(item) : null;
         var roles = [
@@ -152,6 +163,7 @@
         ];
         var cells = [
             money(item && item.goodsAmount),
+            money(plainYuan(shippedCents(item))),
             money(item && item.serviceFee),
             money(item && item.amount)
         ];
@@ -160,6 +172,7 @@
             ensureAmountGroupStyle();
             head = '<tr>' +
                 '<th class="is-money" rowspan="2">商品金额</th>' +
+                '<th class="is-money" rowspan="2">已发货金额</th>' +
                 '<th class="is-money" rowspan="2">服务费</th>' +
                 '<th class="is-money" rowspan="2">总金额</th>' +
                 roles.map(function (role) {
@@ -175,7 +188,7 @@
                 cells.push(money(settled[role[1]]));
             });
         } else {
-            head = '<tr><th class="is-money">商品金额</th><th class="is-money">服务费</th><th class="is-money">总金额</th>';
+            head = '<tr><th class="is-money">商品金额</th><th class="is-money">已发货金额</th><th class="is-money">服务费</th><th class="is-money">总金额</th>';
             roles.forEach(function (role) {
                 head += '<th class="is-money">' + role[0] + '应收</th>';
                 cells.push(money(receivableOf(item, role[1])));
@@ -287,8 +300,10 @@
         var skuLines = (item.skus || []).map(function (row, index) {
             var qty = Number(row && row.qty);
             if (!isFinite(qty) || qty < 1) qty = 1;
+            var price = Number(String(row && row.salePrice || '').replace(/^¥/, ''));
+            var amount = isFinite(price) ? money(price * qty) : '—';
             return (index + 1) + '. ' + show(row && row.name) + '（' + show(row && row.code) + '）×' + qty +
-                '，售价 ' + money(row && row.salePrice);
+                '，售卖单价 ' + money(row && row.salePrice) + '，售卖金额 ' + amount;
         }).join('\n') || '无';
         var parties = (contract && contract.parties || []).map(function (party) {
             return agreementPartyLine(party, contract);
@@ -652,7 +667,7 @@
         if (!docs || !docs.length) {
             return title + '<div class="rbt-demand-empty">暂无关联交易单</div>';
         }
-        var head = '<tr><th>单号</th><th>买方</th><th>卖方</th><th>收货方</th><th class="is-money">总金额</th><th>状态</th></tr>';
+        var head = '<tr><th>单号</th><th>付款方</th><th>收款方</th><th>收货方</th><th class="is-money">总金额</th><th>状态</th></tr>';
         var body = docs.map(function (row) {
             return '<tr><td><button type="button" class="rbt-demand-contract-link" data-rbt-trade-open="' +
                 esc(row.code) + '">' + esc(row.code) + '</button></td><td>' +
@@ -790,6 +805,363 @@
             '</thead><tbody>' + body + '</tbody></table></div>';
     }
 
+    function plainCents(value) {
+        var num = Number(String(value == null ? '' : value).replace(/[¥,\s]/g, ''));
+        if (!isFinite(num)) return 0;
+        return Math.round(num * 100);
+    }
+
+    function plainYuan(cents) {
+        var abs = Math.abs(Math.round(cents));
+        return (cents < 0 ? '-' : '') + Math.floor(abs / 100) + '.' + String(abs % 100).padStart(2, '0');
+    }
+
+    function shippedBySku(item) {
+        var map = {};
+        (item.shipments || []).forEach(function (row) {
+            if (!row || !row.skuCode) return;
+            if (!map[row.skuCode]) map[row.skuCode] = { qty: 0, amount: 0 };
+            map[row.skuCode].qty += Number(row.qty) || 0;
+            map[row.skuCode].amount += plainCents(row.amount);
+        });
+        return map;
+    }
+
+    function skuActions(item) {
+        if (!item || item.status !== '发货中') return '';
+        return '<div class="rbt-sku-actions">' +
+            '<button type="button" class="btn" data-rbt-add-open>新增商品</button>' +
+            '<button type="button" class="btn btn-primary" data-rbt-ship-open>发货</button>' +
+            '<button type="button" class="btn btn-primary" data-rbt-ship-finish>发货完成</button>' +
+            '</div>';
+    }
+
+    function shipSection(item) {
+        if (!item || (item.status !== '发货中' && !(item.shipments && item.shipments.length))) return '';
+        var shipping = item.status === '发货中';
+        var records = (item.shipments || []).map(function (row) {
+            var confirmQty = row.confirmed ? (row.confirmQty || row.qty) : '—';
+            var remove = shipping && !row.confirmed
+                ? '<button type="button" class="rbt-demand-contract-link" data-rbt-ship-del="' + esc(row.id) + '">删除</button>'
+                : '';
+            return '<tr><td>' + esc(row.name) + '</td><td>' + esc(row.skuCode) + '</td><td>' + esc(row.qty) + '</td>' +
+                '<td class="is-money">¥' + esc(row.amount) + '</td><td>' + esc(row.logisticsNo || '—') + '</td>' +
+                '<td>' + esc(confirmQty) + '</td><td>' + (remove || '—') + '</td></tr>';
+        }).join('');
+        var table = records
+            ? '<div class="rbt-demand-table-wrap"><table class="rbt-demand-table"><thead><tr><th>商品</th><th>商品编码</th><th>发货数量</th><th class="is-money">发货金额</th><th>物流单号</th><th>确认数量</th><th>操作</th></tr></thead><tbody>' +
+                records + '</tbody></table></div>'
+            : '<div class="rbt-demand-empty">还没有发货记录</div>';
+        return '<div class="supplier-detail-section-title">发货信息</div>' + skuActions(item) + table;
+    }
+
+    function supplementSection(item) {
+        if (!item || (item.status !== '门店付款中' && item.status !== '已完成')) return '';
+        var shipped = shippedCents(item);
+        var goods = plainCents(item.goodsAmount);
+        if (!item.shipments || !item.shipments.length || shipped <= goods) return '';
+        var voucher = item.supplementVoucher;
+        var uploaded = !!(voucher && voucher.name);
+        var isImage = uploaded && (String(voucher.type || '').indexOf('image/') === 0 || /^data:image\//.test(String(voucher.data || '')));
+        var preview = isImage
+            ? '<img class="rbt-supplement__preview" src="' + esc(voucher.data) + '" alt="补缴凭证">'
+            : '';
+        var meta = uploaded
+            ? '<p class="rbt-supplement__file">' + esc(voucher.name) + '</p>' +
+                '<p class="rbt-supplement__meta">' + esc(voucher.uploadedBy || '—') + ' · ' + esc(voucher.uploadedAt || '—') + '</p>'
+            : '<p class="rbt-supplement__meta">还没有凭证，可上传图片或 PDF。</p>';
+        return '<div class="rbt-supplement">' +
+            preview +
+            '<div class="rbt-supplement__main">' +
+            '<div class="rbt-supplement__head"><span>补缴凭证</span>' +
+            '<em class="rbt-supplement__tag' + (uploaded ? ' is-done' : '') + '">' + (uploaded ? '已上传' : '待补缴') + '</em></div>' +
+            '<p class="rbt-supplement__gap">发货金额 ' + esc(money(plainYuan(shipped))) + '，超出商品金额 ' + esc(money(plainYuan(shipped - goods))) + '</p>' +
+            meta +
+            '</div>' +
+            '<label class="rbt-supplement__upload">' + (uploaded ? '重新上传' : '上传凭证') +
+            '<input type="file" accept="image/*,.pdf" data-rbt-supplement hidden></label></div>';
+    }
+
+    function reopenDemand(code) {
+        var api = window.RbtDemandData;
+        var fresh = api && typeof api.get === 'function' ? api.get(code) : null;
+        if (fresh) open(fresh);
+    }
+
+    function closeFloat(flag) {
+        document.querySelectorAll('[' + flag + ']').forEach(function (node) {
+            node.remove();
+        });
+    }
+
+    function skuThumb(code) {
+        var src = typeof getWmsSkuImage === 'function' ? getWmsSkuImage(code) : '';
+        if (!src) return '<span class="rbt-sku-thumb rbt-sku-thumb--empty">无图</span>';
+        return '<img class="rbt-sku-thumb" src="' + esc(src) + '" alt="">';
+    }
+
+    function mountFloat(flag, label, title, body, onConfirm, okText) {
+        closeFloat(flag);
+        var mask = document.createElement('div');
+        mask.className = 'rbt-demand-contract-mask';
+        mask.setAttribute(flag, '1');
+        mask.innerHTML =
+            '<div class="rbt-ship-dialog" role="dialog" aria-modal="true" aria-label="' + esc(label) + '">' +
+            '<div class="rbt-ship-dialog__head"><h3>' + esc(title) + '</h3>' +
+            '<button type="button" class="rbt-demand-contract__close" data-rbt-float-close aria-label="关闭">&times;</button></div>' +
+            '<div class="rbt-ship-dialog__body">' + body + '</div>' +
+            '<div class="rbt-ship-dialog__foot">' +
+            '<button type="button" class="btn" data-rbt-float-close>取消</button>' +
+            '<button type="button" class="btn btn-primary" data-rbt-float-ok>' + esc(okText || '确认') + '</button></div></div>';
+        document.body.appendChild(mask);
+        mask.addEventListener('click', function (event) {
+            if (event.target === mask || event.target.closest('[data-rbt-float-close]')) closeFloat(flag);
+        });
+        mask.querySelector('[data-rbt-float-ok]').addEventListener('click', function () {
+            onConfirm(mask);
+        });
+        return mask;
+    }
+
+    function thisShipAmount(price, qty) {
+        var count = Number(qty);
+        if (!isFinite(count) || count <= 0) return { text: '—', plain: '' };
+        var plain = plainYuan(plainCents(price) * count);
+        return { text: money(plain), plain: plain };
+    }
+
+    function openShipDialog(item) {
+        var shipped = shippedBySku(item);
+        var rows = (item.skus || []).map(function (sku) {
+            var done = shipped[sku.code] || { qty: 0, amount: 0 };
+            var left = (Number(sku.qty) || 0) - done.qty;
+            var qty = left > 0 ? left : 1;
+            var sale = plainCents(sku.salePrice) * (Number(sku.qty) || 0);
+            var current = thisShipAmount(sku.salePrice, qty);
+            return '<tr data-ship-row="' + esc(sku.code) + '" data-sale-price="' + esc(sku.salePrice) + '">' +
+                '<td><input type="checkbox" data-ship-check aria-label="选择' + esc(sku.name) + '"></td>' +
+                '<td>' + esc(sku.code) + '</td><td>' + esc(sku.name) + '</td>' +
+                '<td>' + esc(sku.qty) + '</td><td class="is-money">' + esc(money(sku.salePrice)) + '</td>' +
+                '<td class="is-money">' + esc(money(plainYuan(sale))) + '</td>' +
+                '<td>' + esc(done.qty) + '</td><td class="is-money">' + esc(money(plainYuan(done.amount))) + '</td>' +
+                '<td><input type="number" min="1" max="999" value="' + qty + '" data-ship-qty aria-label="本次发货数量"></td>' +
+                '<td class="is-money"><span class="rbt-ship-auto" data-ship-amount data-amount="' + esc(current.plain) + '">' + esc(current.text) + '</span></td>' +
+                '<td><input type="text" data-ship-no placeholder="可不填" aria-label="物流单号"></td></tr>';
+        }).join('');
+        var body = '<p class="rbt-ship-note">勾选本次要发的商品，填写本次发货数量和物流单号。本次发货金额按本次发货数量 × 售卖单价自动计算。确认后按勾选行各生成一条发货记录。</p>' +
+            (rows
+                ? '<div class="rbt-sku-actions"><button type="button" class="btn" data-ship-check-all>全选</button>' +
+                    '<button type="button" class="btn" data-ship-check-none>反全选</button></div>'
+                : '') +
+            '<div class="rbt-demand-table-wrap"><table class="rbt-demand-table"><thead><tr>' +
+            '<th></th><th>商品编码</th><th>商品名称</th><th>需求数量</th><th class="is-money">售卖单价</th><th class="is-money">售卖金额</th>' +
+            '<th>已发货数量</th><th class="is-money">已发货金额</th><th>本次发货数量</th><th class="is-money">本次发货金额</th><th>物流单号</th></tr></thead><tbody>' +
+            (rows || '<tr><td class="is-empty" colspan="11">暂无商品</td></tr>') +
+            '</tbody></table></div>';
+        var mask = mountFloat('data-rbt-ship-dialog', '发货确认', '发货确认', body, function (dialog) {
+            var picked = Array.prototype.slice.call(dialog.querySelectorAll('[data-ship-row]')).filter(function (row) {
+                var box = row.querySelector('[data-ship-check]');
+                return box && box.checked;
+            });
+            if (!picked.length) {
+                window.alert('请勾选要发货的商品');
+                return;
+            }
+            var api = window.RbtDemandData;
+            var warns = [];
+            var failed = '';
+            var saved = 0;
+            picked.some(function (row) {
+                var amountNode = row.querySelector('[data-ship-amount]');
+                var result = api && api.shipLine(item.code, {
+                    skuCode: row.getAttribute('data-ship-row'),
+                    qty: row.querySelector('[data-ship-qty]').value,
+                    amount: amountNode ? amountNode.getAttribute('data-amount') : '',
+                    logisticsNo: row.querySelector('[data-ship-no]').value
+                }, '王丽');
+                if (!result || !result.ok) {
+                    failed = (result && result.reason) || '发货失败';
+                    return true;
+                }
+                saved += 1;
+                if (result.warn) warns.push(result.warn);
+                return false;
+            });
+            if (!saved) {
+                window.alert(failed || '发货失败');
+                return;
+            }
+            if (failed) window.alert(failed);
+            else if (warns.length) window.alert(warns.join('；') + '。本次发货已保存。');
+            closeFloat('data-rbt-ship-dialog');
+            reopenDemand(item.code);
+        });
+        function shipChecks() {
+            return Array.prototype.slice.call(mask.querySelectorAll('[data-ship-check]'));
+        }
+        var checkAll = mask.querySelector('[data-ship-check-all]');
+        var checkNone = mask.querySelector('[data-ship-check-none]');
+        if (checkAll) checkAll.addEventListener('click', function () {
+            shipChecks().forEach(function (box) { box.checked = true; });
+        });
+        if (checkNone) checkNone.addEventListener('click', function () {
+            shipChecks().forEach(function (box) { box.checked = false; });
+        });
+        mask.querySelectorAll('[data-ship-row]').forEach(function (row) {
+            var qtyInput = row.querySelector('[data-ship-qty]');
+            qtyInput.addEventListener('input', function () {
+                var next = thisShipAmount(row.getAttribute('data-sale-price'), qtyInput.value);
+                var amountNode = row.querySelector('[data-ship-amount]');
+                if (!amountNode) return;
+                amountNode.textContent = next.text;
+                amountNode.setAttribute('data-amount', next.plain);
+            });
+        });
+    }
+
+    function addSkuRows(list) {
+        return list.map(function (sku) {
+            var amount = money(Number(sku.salePrice) || 0);
+            return '<tr data-add-row="' + esc(sku.code) + '" data-code="' + esc(sku.code) + '" data-name="' + esc(sku.name) + '" data-category="' + esc(sku.category) + '">' +
+                '<td><input type="checkbox" data-add-check aria-label="选择' + esc(sku.name) + '"></td>' +
+                '<td>' + skuThumb(sku.code) + '</td>' +
+                '<td>' + esc(sku.code) + '</td><td>' + esc(sku.name) + '</td>' +
+                '<td>' + esc(sku.barcode) + '</td><td>' + esc(sku.unit) + '</td><td>' + esc(sku.spec) + '</td>' +
+                '<td class="is-money">' + esc(money(sku.purchasePrice)) + '</td>' +
+                '<td><input type="number" min="1" max="999" value="1" data-add-qty aria-label="商品数量"></td>' +
+                '<td><input type="number" min="0" step="0.01" value="' + esc(sku.salePrice) + '" data-add-price aria-label="售卖单价"></td>' +
+                '<td class="is-money" data-add-amount>' + esc(amount) + '</td>' +
+                '<td><input type="text" data-add-no placeholder="可不填" aria-label="物流单号"></td></tr>';
+        }).join('');
+    }
+
+    function openAddSkuDialog(item) {
+        var api = window.RbtDemandData;
+        var catalog = api && typeof api.shipCatalog === 'function' ? api.shipCatalog() : [];
+        var used = {};
+        (item.skus || []).forEach(function (sku) { if (sku && sku.code) used[sku.code] = true; });
+        var available = catalog.filter(function (sku) { return !used[sku.code]; });
+        var categories = [];
+        available.forEach(function (sku) {
+            if (sku.category && categories.indexOf(sku.category) < 0) categories.push(sku.category);
+        });
+        var options = '<option value="">请选择</option>' + categories.map(function (name) {
+            return '<option value="' + esc(name) + '">' + esc(name) + '</option>';
+        }).join('');
+        var body = '<p class="rbt-ship-note">只列出不在需求商品明细里的商品。确认后直接生成发货记录，不加入商品明细。可填写物流单号。</p>' +
+            '<div class="rbt-sku-query">' +
+            '<label>商品编码 <input type="text" data-add-q-code placeholder="请输入"></label>' +
+            '<label>商品名称 <input type="text" data-add-q-name placeholder="请输入"></label>' +
+            '<label>商品类目 <select data-add-q-category>' + options + '</select></label>' +
+            '<button type="button" class="btn btn-primary" data-add-search>查询</button>' +
+            '<button type="button" class="btn" data-add-reset>重置</button></div>' +
+            '<div class="rbt-demand-table-wrap"><table class="rbt-demand-table"><thead><tr>' +
+            '<th></th><th>商品图片</th><th>商品编码</th><th>商品名称</th><th>商品条码</th><th>商品单位</th><th>商品规格</th>' +
+            '<th class="is-money">采购价</th><th>商品数量</th><th>售卖单价</th><th class="is-money">售卖金额</th><th>物流单号</th>' +
+            '</tr></thead><tbody data-add-body>' +
+            (addSkuRows(available) || '<tr data-add-empty><td class="is-empty" colspan="12">暂无数据</td></tr>') +
+            '</tbody></table></div>';
+        var mask = mountFloat('data-rbt-add-sku-dialog', '新增商品', '新增商品', body, function (dialog) {
+            var picked = Array.prototype.slice.call(dialog.querySelectorAll('[data-add-row]')).filter(function (row) {
+                var box = row.querySelector('[data-add-check]');
+                return box && box.checked && !row.hidden;
+            });
+            if (!picked.length) {
+                window.alert('请勾选要新增的商品');
+                return;
+            }
+            var saved = 0;
+            var failed = '';
+            picked.some(function (row) {
+                var result = api && api.addShipSku(item.code, {
+                    skuCode: row.getAttribute('data-add-row'),
+                    qty: row.querySelector('[data-add-qty]').value,
+                    salePrice: row.querySelector('[data-add-price]').value,
+                    logisticsNo: row.querySelector('[data-add-no]').value
+                }, '王丽');
+                if (!result || !result.ok) {
+                    failed = (result && result.reason) || '不能新增';
+                    return true;
+                }
+                saved += 1;
+                return false;
+            });
+            if (!saved) {
+                window.alert(failed || '不能新增');
+                return;
+            }
+            if (failed) window.alert(failed);
+            closeFloat('data-rbt-add-sku-dialog');
+            reopenDemand(item.code);
+        }, '添加');
+        function syncAmount(row) {
+            var qty = Number(row.querySelector('[data-add-qty]').value);
+            var price = Number(row.querySelector('[data-add-price]').value);
+            var cell = row.querySelector('[data-add-amount]');
+            if (cell) cell.textContent = isFinite(qty) && isFinite(price) ? money(qty * price) : '—';
+        }
+        mask.querySelectorAll('[data-add-row]').forEach(function (row) {
+            row.querySelector('[data-add-qty]').addEventListener('input', function () { syncAmount(row); });
+            row.querySelector('[data-add-price]').addEventListener('input', function () { syncAmount(row); });
+        });
+        function applyFilter() {
+            var code = mask.querySelector('[data-add-q-code]').value.trim().toLowerCase();
+            var name = mask.querySelector('[data-add-q-name]').value.trim().toLowerCase();
+            var category = mask.querySelector('[data-add-q-category]').value;
+            var visible = 0;
+            mask.querySelectorAll('[data-add-row]').forEach(function (row) {
+                var hit = (!code || String(row.getAttribute('data-code') || '').toLowerCase().indexOf(code) >= 0) &&
+                    (!name || String(row.getAttribute('data-name') || '').toLowerCase().indexOf(name) >= 0) &&
+                    (!category || row.getAttribute('data-category') === category);
+                row.hidden = !hit;
+                if (hit) visible += 1;
+            });
+            var empty = mask.querySelector('[data-add-empty]');
+            if (!visible && !empty) {
+                var tbody = mask.querySelector('[data-add-body]');
+                tbody.insertAdjacentHTML('beforeend', '<tr data-add-empty><td class="is-empty" colspan="12">暂无数据</td></tr>');
+            } else if (visible && empty) {
+                empty.remove();
+            }
+        }
+        mask.querySelector('[data-add-search]').addEventListener('click', applyFilter);
+        mask.querySelector('[data-add-reset]').addEventListener('click', function () {
+            mask.querySelector('[data-add-q-code]').value = '';
+            mask.querySelector('[data-add-q-name]').value = '';
+            mask.querySelector('[data-add-q-category]').value = '';
+            applyFilter();
+        });
+    }
+
+    function openFinishDialog(item) {
+        var api = window.RbtDemandData;
+        var check = api && typeof api.finishShip === 'function' ? api.finishShip(item.code, false, '王丽') : null;
+        var blocked = !check || (!check.ok && !check.needAck);
+        var lines = check && check.reason ? check.reason.split('；').filter(Boolean) : [];
+        var body = blocked
+            ? '<p class="rbt-ship-note">还有这些条件没满足，不能发货完成。</p><ul class="rbt-ship-blocks">' +
+                lines.map(function (line) { return '<li>' + esc(line) + '</li>'; }).join('') + '</ul>'
+            : (lines.length
+                ? '<p class="rbt-ship-note">以下只是提示，确定后仍进入门店付款中，并按发货记录生成交易单。</p><ul class="rbt-ship-blocks">' +
+                    lines.map(function (line) { return '<li>' + esc(line) + '</li>'; }).join('') + '</ul>'
+                : '<p class="rbt-ship-note">商品已发完，门店已确认。确认后进入门店付款中，并按发货记录生成交易单。</p>');
+        var mask = mountFloat('data-rbt-finish-dialog', '发货完成', '发货完成', body, function () {
+            if (blocked) {
+                closeFloat('data-rbt-finish-dialog');
+                return;
+            }
+            var done = api.finishShip(item.code, true, '王丽');
+            if (!done || !done.ok) return;
+            closeFloat('data-rbt-finish-dialog');
+            reopenDemand(item.code);
+            window.dispatchEvent(new Event('focus'));
+        }, blocked ? '关闭' : '确认');
+        if (blocked && mask) {
+            var cancel = mask.querySelector('.rbt-ship-dialog__foot .btn:not(.btn-primary)');
+            if (cancel) cancel.hidden = true;
+        }
+    }
+
     function basePanel(item, performance) {
         var statusText = displayStatus(item, performance);
         return (
@@ -798,17 +1170,17 @@
             '<div class="supplier-detail-section-title">基础信息</div><div class="supplier-detail-grid">' +
             textCell('需求单号', item.code) +
             statusCell('状态', item.status, statusText) +
-            textCell('接单贸易商', item.traderName || '—') +
-            textCell('服务商', item.providerName || '—') +
-            textCell('接单时间', item.acceptedAt) +
-            textCell('备注', item.remark || '—') +
-            textCell('撤回原因', item.withdrawReason || '—') +
             textCell('门店', show(item.storeName) + '（' + show(item.storeCode) + '）') +
-            textCell('商品包', show(item.packageName) + '（' + show(item.packageCode) + '）') +
             textCell('产品', show(item.installmentName) + '（' + show(item.installmentCode) + '）') +
+            textCell('商品包', show(item.packageName) + '（' + show(item.packageCode) + '）') +
             textCell('结算周期', item.repayCycle) +
             textCell('结算方式', item.repayMethod) +
             (item.repayMethod === '比例付' && item.settleRatios && item.settleRatios.length ? '' : textCell(periodLabel(item), periodValue(item))) +
+            textCell('接单贸易商', item.traderName || '—') +
+            textCell('服务商', item.providerName || '—') +
+            textCell('接单时间', item.acceptedAt) +
+            textCell('撤回原因', item.withdrawReason || '—') +
+            textCell('备注', item.remark || '—') +
             textCell('创建人', item.creator) +
             textCell('创建时间', item.createdAt) +
             textCell('更新人', item.updater) +
@@ -817,9 +1189,11 @@
             '<div class="supplier-detail-section-title">金额信息</div>' +
             amountTable(item, performance) +
             (performance ? payeeSection(item) : '') +
-            settleRatioSection(item) +
             '<div class="supplier-detail-section-title">商品明细</div>' +
             skuTable(item.skus) +
+            shipSection(item) +
+            supplementSection(item) +
+            settleRatioSection(item) +
             contractSection(item, performance) +
             voucherSection(item) +
             relatedDocsSection(item) +
@@ -844,29 +1218,73 @@
             });
         }
         var agreements = agreementContracts(item);
-        function contractByKey(key) {
-            var found = null;
-            agreements.some(function (row) {
-                if (row.key === key) {
-                    found = row;
-                    return true;
-                }
-                return false;
-            });
-            return found;
-        }
         drawer.querySelectorAll('[data-rbt-demand-contract-open]').forEach(function (btn) {
             btn.addEventListener('click', function () {
-                var found = contractByKey(btn.getAttribute('data-rbt-demand-contract-open'));
+                var key = btn.getAttribute('data-rbt-demand-contract-open');
+                var found = null;
+                agreements.some(function (row) {
+                    if (row.key === key) {
+                        found = row;
+                        return true;
+                    }
+                    return false;
+                });
                 if (found) openPreview(item, found);
             });
         });
         drawer.querySelectorAll('[data-rbt-demand-contract-read]').forEach(function (btn) {
             btn.addEventListener('click', function () {
-                var found = contractByKey(btn.getAttribute('data-rbt-demand-contract-read'));
+                var key = btn.getAttribute('data-rbt-demand-contract-read');
+                var found = null;
+                agreements.some(function (row) {
+                    if (row.key === key) {
+                        found = row;
+                        return true;
+                    }
+                    return false;
+                });
                 if (found) openContractRead(item, found, agreements);
             });
         });
+        var api = window.RbtDemandData;
+        var shipOpen = drawer.querySelector('[data-rbt-ship-open]');
+        if (shipOpen) shipOpen.addEventListener('click', function () { openShipDialog(item); });
+        var addOpen = drawer.querySelector('[data-rbt-add-open]');
+        if (addOpen) addOpen.addEventListener('click', function () { openAddSkuDialog(item); });
+        drawer.querySelectorAll('[data-rbt-ship-del]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                if (!window.confirm('删除这条发货记录？')) return;
+                var result = api && api.deleteShipment(item.code, button.getAttribute('data-rbt-ship-del'), '王丽');
+                if (!result || !result.ok) {
+                    window.alert((result && result.reason) || '不能删除');
+                    return;
+                }
+                reopenDemand(item.code);
+            });
+        });
+        var finish = drawer.querySelector('[data-rbt-ship-finish]');
+        if (finish) finish.addEventListener('click', function () { openFinishDialog(item); });
+        var supplement = drawer.querySelector('[data-rbt-supplement]');
+        if (supplement) {
+            supplement.addEventListener('change', function () {
+                var file = supplement.files && supplement.files[0];
+                if (!file) return;
+                var reader = new FileReader();
+                reader.onload = function () {
+                    var result = api && api.saveSupplement(item.code, {
+                        name: file.name,
+                        type: file.type,
+                        data: reader.result
+                    }, '王丽');
+                    if (!result || !result.ok) {
+                        window.alert((result && result.reason) || '上传失败');
+                        return;
+                    }
+                    reopenDemand(item.code);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
         drawer.querySelectorAll('[data-rbt-trade-open]').forEach(function (btn) {
             btn.addEventListener('click', function () {
                 var code = btn.getAttribute('data-rbt-trade-open');
@@ -881,6 +1299,9 @@
     function closeDrawer() {
         closeContractRead();
         closePreview();
+        closeFloat('data-rbt-ship-dialog');
+        closeFloat('data-rbt-add-sku-dialog');
+        closeFloat('data-rbt-finish-dialog');
         document.querySelectorAll('[data-rbt-demand-drawer]').forEach(function (node) {
             node.remove();
         });
@@ -895,6 +1316,18 @@
         }
         if (document.querySelector('[data-rbt-demand-contract-preview]')) {
             closePreview();
+            return;
+        }
+        if (document.querySelector('[data-rbt-ship-dialog]')) {
+            closeFloat('data-rbt-ship-dialog');
+            return;
+        }
+        if (document.querySelector('[data-rbt-add-sku-dialog]')) {
+            closeFloat('data-rbt-add-sku-dialog');
+            return;
+        }
+        if (document.querySelector('[data-rbt-finish-dialog]')) {
+            closeFloat('data-rbt-finish-dialog');
             return;
         }
         closeDrawer();

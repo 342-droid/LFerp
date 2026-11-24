@@ -106,10 +106,6 @@
         { href: 'mdm_audit_store_registration.html#onboarding-review', text: '进件审核' }
     ];
 
-    const rbtAuditItems = [
-        { href: 'mdm_audit_rbt_demand.html', text: '需求单审核' }
-    ];
-
     const marketingAuditItems = [
         { href: 'mdm_audit_coupon.html', text: '优惠券' },
         { href: 'mdm_audit_cash_redpack.html', text: '现金红包' },
@@ -133,7 +129,7 @@
         isMemberPointsPage ||
         /^mdm_member_/i.test(currentPage);
     const isMarketingAuditPage = groupHasActive(marketingAuditItems);
-    const isRbtAuditPage = groupHasActive(rbtAuditItems);
+    const isRbtAuditPage = currentPage === 'mdm_audit_rbt_demand';
     const isAuditPage = groupHasActive(auditItems) || isMarketingAuditPage || isRbtAuditPage;
 
     /**
@@ -169,8 +165,7 @@
         /** 顶栏「审核中心」独立入口：仅在该模块页面展示侧栏审核菜单 */
         itemsHtml =
             renderCollapsibleGroup('审核中心', '任务管理', auditItems, !isMarketingAuditPage && !isRbtAuditPage) +
-            renderCollapsibleGroup('营销审核', '策略管理', marketingAuditItems, true) +
-            renderCollapsibleGroup('RBT审核', '策略管理', rbtAuditItems, true);
+            renderCollapsibleGroup('营销审核', '策略管理', marketingAuditItems, true);
     } else if (isMemberPage) {
         /** 顶栏「会员」独立入口：分组均默认展开，便于一眼看到完整菜单 */
         itemsHtml =

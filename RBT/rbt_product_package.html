@@ -18,7 +18,27 @@
         .rbt-package-sku__bar { margin-bottom: 8px; }
         .rbt-package-sku .el-button.is-text { padding-left: 0; padding-right: 0; }
         .rbt-package-sku__required::before { content: '*'; color: #f56c6c; margin-right: 4px; }
-        .rbt-package-sku__price { width: 100%; }
+        .rbt-package-sku__price,
+        .rbt-package-sku__qty,
+        .rbt-package-sku .el-select { width: 100%; }
+        .rbt-package-sku__amount { color: #303133; }
+        .rbt-package-sku__total {
+            display: flex;
+            justify-content: flex-end;
+            align-items: baseline;
+            gap: 12px;
+            margin-top: 10px;
+            color: #606266;
+            font-size: 13px;
+        }
+        .rbt-package-sku__total b {
+            color: #303133;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .rbt-package-scope { width: 100%; }
+        .rbt-package-sku .el-radio { margin-right: 12px; }
+        .rbt-package-sku .el-radio:last-child { margin-right: 0; }
         .rbt-sku-picker__query .el-input,
         .rbt-sku-picker__query .el-select { width: 180px; }
         .rbt-package-sku-table-wrap { width: 100%; overflow-x: auto; }
@@ -95,7 +115,7 @@
                 <vab-schema-form-dialog
                     ref="addDialog"
                     :title="dialogTitle"
-                    dialog-width="1180px"
+                    dialog-width="1360px"
                     form-class="rbt-package-form"
                     label-position="top"
                     label-width="120px"
@@ -103,11 +123,20 @@
                     :fields="addFields"
                     row-key-field="code"
                     :before-submit="beforeSubmit"
+                    :after-open="afterOpenScope"
                     :add-api="addPackage"
                     :edit-api="updatePackage"
                     add-success-message="商品包已新增"
                     edit-success-message="商品包已更新"
                     @saved="refreshTable">
+                    <template #form-scopepick="{form}">
+                        <el-select v-if="form.scopeType !== 'tag'" class="rbt-package-scope" v-model="form.storeCodes" multiple filterable clearable placeholder="请选择门店">
+                            <el-option v-for="item in storeChoices" :key="item.value" :label="item.label" :value="item.value"></el-option>
+                        </el-select>
+                        <el-select v-else class="rbt-package-scope" v-model="form.tagIds" multiple filterable clearable placeholder="请选择RBT标签">
+                            <el-option v-for="item in rbtTagChoices" :key="item.value" :label="item.label" :value="item.value"></el-option>
+                        </el-select>
+                    </template>
                     <template #form-skus="{form}">
                         <div class="rbt-package-sku">
                             <div class="rbt-package-sku__bar">
@@ -135,16 +164,42 @@
                                 <el-table-column label="采购价" width="100" align="right">
                                     <template #default="{row}">{{ money(skuOf(row.code).purchasePrice) }}</template>
                                 </el-table-column>
-                                <el-table-column width="140">
-                                    <template #header><span class="rbt-package-sku__required">售价</span></template>
+                                <el-table-column width="120">
+                                    <template #header><span class="rbt-package-sku__required">商品数量</span></template>
+                                    <template #default="{row}">
+                                        <el-input class="rbt-package-sku__qty" v-model="row.qty" placeholder="请输入"></el-input>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column width="130">
+                                    <template #header><span class="rbt-package-sku__required">售卖单价</span></template>
                                     <template #default="{row}">
                                         <el-input class="rbt-package-sku__price" v-model="row.salePrice" placeholder="请输入"></el-input>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column label="售卖金额" width="110" align="right">
+                                    <template #default="{row}"><span class="rbt-package-sku__amount">{{ saleAmount(row) }}</span></template>
+                                </el-table-column>
+                                <el-table-column label="是否可修改" width="150">
+                                    <template #default="{row}">
+                                        <el-radio-group v-model="row.canEdit">
+                                            <el-radio label="是">是</el-radio>
+                                            <el-radio label="否">否</el-radio>
+                                        </el-radio-group>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column label="是否可删除" width="150">
+                                    <template #default="{row}">
+                                        <el-radio-group v-model="row.canDelete">
+                                            <el-radio label="是">是</el-radio>
+                                            <el-radio label="否">否</el-radio>
+                                        </el-radio-group>
                                     </template>
                                 </el-table-column>
                                 <el-table-column label="操作" width="72">
                                     <template #default="{row}"><el-button text type="primary" @click="removeSku(form, row.code)">移除</el-button></template>
                                 </el-table-column>
                             </el-table>
+                            <div class="rbt-package-sku__total">总金额 <b>{{ packageTotal(form) }}</b></div>
                         </div>
                     </template>
                 </vab-schema-form-dialog>

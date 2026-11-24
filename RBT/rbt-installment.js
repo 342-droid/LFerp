@@ -6,7 +6,7 @@
     var computed = Vue.computed;
     var ElMessage = octopus && octopus.ElementPlus ? octopus.ElementPlus.ElMessage : null;
     var KEY = 'rbt_installment_v3';
-    var PACKAGE_KEY = 'rbt_product_package_v1';
+    var PACKAGE_KEY = 'rbt_product_package_v2';
     var REPAY_CYCLES = ['日结'];
     var REPAY_METHODS = ['比例付'];
 
@@ -124,7 +124,7 @@
         return [
             {
                 code: 'FQ00001',
-                name: '生鲜周转分期',
+                name: '开业铺货日结',
                 repayCycle: '日结',
                 repayMethod: '比例付',
                 periodRatio: '10.00',
@@ -136,7 +136,7 @@
                 settleRatios: defaultSettleRatios('10.00'),
                 amountMin: '20.00',
                 amountMax: '50000',
-                packages: ['周末生鲜包'],
+                packages: ['汉言开业铺货包'],
                 creator: '王丽',
                 createdAt: '2026-08-02 10:12:00',
                 updater: '王丽',
@@ -144,7 +144,7 @@
             },
             {
                 code: 'FQ00004',
-                name: '生鲜周转周还',
+                name: '开业铺货加价',
                 repayCycle: '日结',
                 repayMethod: '比例付',
                 periodRatio: '10.00',
@@ -164,7 +164,7 @@
             },
             {
                 code: 'FQ00005',
-                name: '生鲜周转日结',
+                name: '开业铺货轻量',
                 repayCycle: '日结',
                 repayMethod: '比例付',
                 periodRatio: '10.00',
@@ -184,7 +184,7 @@
             },
             {
                 code: 'FQ00002',
-                name: '肉类备货分期',
+                name: '门店形象日结',
                 repayCycle: '日结',
                 repayMethod: '比例付',
                 periodRatio: '8.00',
@@ -196,7 +196,7 @@
                 settleRatios: defaultSettleRatios('8.00'),
                 amountMin: '50.00',
                 amountMax: '100000',
-                packages: ['肉类组合包'],
+                packages: ['门店形象配置包'],
                 creator: '张宁',
                 createdAt: '2026-08-04 14:30:00',
                 updater: '张宁',
@@ -204,7 +204,7 @@
             },
             {
                 code: 'FQ00003',
-                name: '果蔬短周期',
+                name: '开业运营日结',
                 repayCycle: '日结',
                 repayMethod: '比例付',
                 periodRatio: '10.00',
@@ -215,8 +215,8 @@
                 periodRates: {},
                 settleRatios: defaultSettleRatios('10.00'),
                 amountMin: '5.00',
-                amountMax: '20000',
-                packages: ['果蔬尝鲜包'],
+                amountMax: '30000',
+                packages: ['开业运营服务包'],
                 creator: '李萌',
                 createdAt: '2026-08-06 11:08:00',
                 updater: '李萌',
@@ -409,8 +409,16 @@
                 exists[item.code] = true;
                 changed = true;
             });
+            var packageRename = { '周末生鲜包': '汉言开业铺货包', '肉类组合包': '门店形象配置包', '果蔬尝鲜包': '开业运营服务包' };
             list.forEach(function (item) {
                 if (!item) return;
+                if (Array.isArray(item.packages)) {
+                    var nextPackages = item.packages.map(function (name) { return packageRename[name] || name; });
+                    if (nextPackages.join('\n') !== item.packages.join('\n')) {
+                        item.packages = nextPackages;
+                        changed = true;
+                    }
+                }
                 if (migrateEnumLabels(item)) changed = true;
                 if (dropFixedPay(item)) changed = true;
                 if (item.repayMethod === '比例付') {
@@ -459,12 +467,21 @@
                     item.repayCycle = '日结';
                     changed = true;
                 }
-                if (item.name === '生鲜周转日付') {
-                    item.name = '生鲜周转日结';
+                var productRename = {
+                    FQ00001: { '生鲜周转分期': '开业铺货日结' },
+                    FQ00004: { '生鲜周转周还': '开业铺货加价', '生鲜周转比例付': '开业铺货加价' },
+                    FQ00005: { '生鲜周转日结': '开业铺货轻量', '生鲜周转日付': '开业铺货轻量' },
+                    FQ00002: { '肉类备货分期': '门店形象日结' },
+                    FQ00003: { '果蔬短周期': '开业运营日结' }
+                };
+                var nextName = productRename[item.code] && productRename[item.code][item.name];
+                if (nextName) {
+                    item.name = nextName;
                     changed = true;
                 }
                 if (migratePeriodRates(item)) changed = true;
                 if (applyDemoAmountFloor(item)) changed = true;
+                if (applyOpsPackageCeiling(item)) changed = true;
                 if (ensureLogs(item)) changed = true;
             });
             /* 同一商品包可挂多条分期，但同一结算周期+结算方式只能保留最早一条上的关联。 */
@@ -508,6 +525,15 @@
         return true;
     }
 
+    /* 开业运营服务包商品金额是 30000，货款上限仍停在 20000 时整包下不了单。 */
+    function applyOpsPackageCeiling(item) {
+        if (!item || item.code !== 'FQ00003') return false;
+        var max = String(item.amountMax == null ? '' : item.amountMax);
+        if (max !== '20000' && max !== '20000.00') return false;
+        item.amountMax = '30000';
+        return true;
+    }
+
     function write(list) {
         sessionStorage.setItem(KEY, JSON.stringify(list));
     }
@@ -529,7 +555,7 @@
                 return list.filter(function (item) { return item && item.enabled !== false; }).map(function (item) { return item.name; }).filter(Boolean);
             }
         } catch (e) {}
-        return ['周末生鲜包', '肉类组合包', '果蔬尝鲜包'];
+        return ['汉言开业铺货包', '门店形象配置包', '开业运营服务包'];
     }
 
     function packageText(row) {

@@ -334,6 +334,10 @@
             ];
 
             function requestRows(params) {
+                var demandApi = window.RbtDemandData;
+                if (demandApi && typeof demandApi.rebuildStoreOccupiedAmounts === 'function') {
+                    demandApi.rebuildStoreOccupiedAmounts();
+                }
                 var matched = dataApi.list().filter(function (row) {
                     if (!includesText(row.code, params.code)) return false;
                     if (!includesText(row.name, params.name)) return false;

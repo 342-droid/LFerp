@@ -24,7 +24,11 @@
         tag('store-delivery', '配送关注', '#1677ff', 1),
         tag('store-new', '新开门店', '', 1)
       ],
-      RBT_STORE: [],
+      RBT_STORE: [
+        tag('rbt-open-stock', '开业铺货', '#ff7019', 2),
+        tag('rbt-store-image', '门店形象', '#1677ff', 1),
+        tag('rbt-open-ops', '开业运营', '#52c41a', 1)
+      ],
       AFTER_SALE: [
         tag('after-priority', '优先处理', '#ff4d4f', 6),
         tag('after-follow', '重点跟进', '#fa8c16', 8),
@@ -38,7 +42,12 @@
         TSN00001: ['store-delivery'],
         SHA00001: ['store-focus', 'store-new']
       },
-      RBT_STORE: {},
+      RBT_STORE: {
+        ONS00001: ['rbt-open-stock'],
+        ONS00004: ['rbt-open-stock'],
+        ONS00002: ['rbt-store-image'],
+        ONS00003: ['rbt-open-ops']
+      },
       AFTER_SALE: {},
       PRODUCT_PACKAGE: {}
     }
@@ -108,7 +117,62 @@
     restoreArchiveStoreTags(next);
     repairStoreDemoBindings(next);
     clearRbtStoreDemo(next);
+    ensureRbtStoreDemo(next);
     return next;
+  }
+
+  /* 准入门店的演示标签：开业铺货、门店形象、开业运营。
+     已有打标不覆盖；本地残留的空打标只在首次补演示时写入，之后手动清空保留。 */
+  function ensureRbtStoreDemo(next) {
+    var SEED_VERSION = 2;
+    var demoTags = [
+      tag('rbt-open-stock', '开业铺货', '#ff7019', 0),
+      tag('rbt-store-image', '门店形象', '#1677ff', 0),
+      tag('rbt-open-ops', '开业运营', '#52c41a', 0)
+    ];
+    var demoBind = {
+      ONS00001: ['rbt-open-stock'],
+      ONS00004: ['rbt-open-stock'],
+      ONS00002: ['rbt-store-image'],
+      ONS00003: ['rbt-open-ops']
+    };
+    var catalog = next.catalogs.RBT_STORE || [];
+    var ids = {};
+    catalog.forEach(function (item) {
+      if (item && item.id) ids[item.id] = true;
+    });
+    var changed = false;
+    demoTags.forEach(function (item) {
+      if (ids[item.id]) return;
+      catalog.push(clone(item));
+      ids[item.id] = true;
+      changed = true;
+    });
+    next.catalogs.RBT_STORE = catalog;
+    var bindings = next.bindings.RBT_STORE || {};
+    var seedEmpty = next.__rbtStoreDemoSeedVersion !== SEED_VERSION;
+    Object.keys(demoBind).forEach(function (code) {
+      var current = bindings[code];
+      var missing = !Object.prototype.hasOwnProperty.call(bindings, code);
+      if (!missing && !(seedEmpty && (!current || !current.length))) return;
+      bindings[code] = demoBind[code].slice();
+      changed = true;
+    });
+    if (seedEmpty) {
+      next.__rbtStoreDemoSeedVersion = SEED_VERSION;
+      changed = true;
+    }
+    next.bindings.RBT_STORE = bindings;
+    catalog.forEach(function (item) {
+      var usage = Object.keys(bindings).filter(function (resourceId) {
+        return (bindings[resourceId] || []).indexOf(item.id) >= 0;
+      }).length;
+      if (item.usage !== usage) {
+        item.usage = usage;
+        changed = true;
+      }
+    });
+    if (changed) next.__rbtStoreDemoEnsured = true;
   }
 
   /* 准入门店不再预置「担保门店 / 需求门店」。本地已写入的示例标签和打标一并去掉，手动新增的标签保留。 */
@@ -203,10 +267,11 @@
     try {
       var raw = localStorage.getItem(STORAGE_KEY);
       var data = normalize(raw ? JSON.parse(raw) : clone(DEFAULTS));
-      if (data.__archiveStoreTagsRestored || data.__storeDemoRepairPending || data.__rbtStoreDemoCleared) {
+      if (data.__archiveStoreTagsRestored || data.__storeDemoRepairPending || data.__rbtStoreDemoCleared || data.__rbtStoreDemoEnsured) {
         delete data.__archiveStoreTagsRestored;
         delete data.__storeDemoRepairPending;
         delete data.__rbtStoreDemoCleared;
+        delete data.__rbtStoreDemoEnsured;
         write(data);
       }
       return data;
