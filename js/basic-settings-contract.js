@@ -31,7 +31,13 @@
     '结款方式': 'pay_method',
     '结算策略': 'settle_strategy',
     '结算起算节点': 'settle_trigger',
-    '结算周期': 'settle_cycle'
+    '结算周期': 'settle_cycle',
+    '零售结算策略': 'retail_settle_strategy',
+    '零售起算节点': 'retail_settle_trigger',
+    '零售结算周期': 'retail_settle_cycle',
+    '代采结算策略': 'procure_settle_strategy',
+    '代采起算节点': 'procure_settle_trigger',
+    '代采结算周期': 'procure_settle_cycle'
   };
 
   var SEALS = [
@@ -128,7 +134,7 @@
     {
       id: 'STPL-SUP-003', name: '冷丰平台供应商结算信息变更补充协议', scene: 'supplier', launch: 'supplement', signInOrder: true,
       actors: corpActors('供应商'),
-      fill: ['供应商名称', '统一社会信用代码', '法定代表人', '注册地址', '联系电话', '结款方式', '结算策略', '结算起算节点', '结算周期'],
+      fill: ['供应商名称', '统一社会信用代码', '法定代表人', '注册地址', '联系电话', '结款方式', '零售结算策略', '零售起算节点', '零售结算周期', '代采结算策略', '代采起算节点', '代采结算周期'],
       docs: [
         { id: 'DOC-SUP-SETTLE', name: '冷丰平台供应商结算信息变更补充协议', bodyId: 'TPL007' }
       ]

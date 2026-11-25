@@ -265,7 +265,7 @@
     ];
     var ORDER_TYPES = ['普通售卖', '拉新赠品', '福袋奖品', '积分兑换', '签到奖品', '观看奖励奖品'];
     var ROUND_MODES = [['one', '计1分'], ['ignore', '不计分'], ['round', '四舍五入']];
-    var config = {master:true, exclude:false, excludeTypes:[], min:'0.00', roundMode:'round', trigger:'fulfill', cycle:'1', generate:'00:01', autoBill:true, payHours:'1'};
+    var config = {master:true, exclude:false, excludeTypes:[], min:'0.00', roundMode:'round', retailTrigger:'fulfill', retailCycle:'1', procureTrigger:'aftersale', procureCycle:'7', trigger:'fulfill', cycle:'1', generate:'00:01', autoBill:true, payHours:'1'};
     if (window.LFSettleCycleStore) {
         config = Object.assign(config, window.LFSettleCycleStore.loadConfig());
     }
@@ -411,6 +411,28 @@
     }
     function filtered(rows, fields) { var q=state.query.trim().toLowerCase(); return rows.filter(function(row){return (!q || fields.some(function(f){return String(row[f] || '').toLowerCase().includes(q);})) && (!state.status || row.status === state.status || (state.status==='异常' && row.blocked));}); }
     function note(text) { return '<div class="settle-note">' + h(text) + '</div>'; }
+    /* 有退款时供应商结算：退款金额从延迟户划到平台基本户，剩余实付结算给供应商。
+       实付低于采购价时，实际应补贴并入供应商应收；不低于采购价时不补贴。页面不展示公式。 */
+    function supplierAmountAfterRefund(paid, purchase, refund) {
+        var paidN = Math.round(Number(paid) * 100) / 100;
+        var purchaseN = Math.round(Number(purchase) * 100) / 100;
+        var refundN = Math.round(Number(refund) * 100) / 100;
+        if (isNaN(paidN) || paidN < 0) paidN = 0;
+        if (isNaN(purchaseN) || purchaseN < 0) purchaseN = 0;
+        if (isNaN(refundN) || refundN < 0) refundN = 0;
+        if (paidN > 0 && refundN > paidN) refundN = paidN;
+        var remain = Math.round(Math.max(0, paidN - refundN) * 100) / 100;
+        var subsidy = 0;
+        if (purchaseN > paidN && paidN > 0) {
+            subsidy = Math.round(((1 - refundN / paidN) * purchaseN - remain) * 100) / 100;
+            if (subsidy < 0) subsidy = 0;
+        }
+        return {
+            refund: refundN.toFixed(2),
+            remain: remain.toFixed(2),
+            settle: (Math.round((remain + subsidy) * 100) / 100).toFixed(2)
+        };
+    }
     /* 清分台账：订单商品行级清分明细，对齐运营后台策略管理 · 清分台账列表。 */
     var LEDGER_CLEAR_STATUSES = ['待清分', '已清分', '清分异常'];
     var LEDGER_SETTLE_STATUSES = ['待结算', '待结款', '结款中', '已结款', '结款失败'];
@@ -423,6 +445,8 @@
     var ledgerSeed = [
         {id:'1720', orderNo:'ORD-2610312477895', lineNo:'—', storeId:'325279987563245056', storeName:'德清乾元天恩冷鲜超市', orderType:'代采', channel:'代采', sku:'SKU00217', product:'运费验收-快递常温2.5kg', spec:'2.5kg', qty:1, orderStatus:'交易成功', aftersaleStatus:'—', reverseSettle:'是', purchase:'0.01', sales:'1.00', paid:'2.40', netPaid:'2.40', margin:'99.58%', payee:'上海冷丰科技有限公司', payeeType:'平台', account:'6666000202016395', accountNo:'6666000202016395', commissionMode:'按实付金额分佣', strategy:'未命中策略 (系统默认)', commissionable:'是', receivable:'1.40', received:'—', clearStatus:'已清分', settleStatus:'待结算', postingStatus:'待入账', exceptionType:'—', orderTime:'2026-10-31 18:17:16', clearTime:'—', settleTime:'—', postingTime:'—', remark:'—', billKind:'commission'},
         {id:'1721', orderNo:'ORD-2610312477895', lineNo:'—', storeId:'325279987563245056', storeName:'德清乾元天恩冷鲜超市', orderType:'代采', channel:'代采', sku:'SKU00217', product:'运费验收-快递常温2.5kg', spec:'2.5kg', qty:1, orderStatus:'交易成功', aftersaleStatus:'—', reverseSettle:'否', purchase:'0.01', sales:'1.00', paid:'2.40', netPaid:'2.40', margin:'99.58%', payee:'上海恒业智汇贸易有限公司', payeeType:'供应商', account:'6666000218008801', accountNo:'6666000218008801', commissionMode:'—', strategy:'—', commissionable:'否', receivable:'0.01', received:'0.00', clearStatus:'已清分', settleStatus:'待结算', postingStatus:'待入账', exceptionType:'—', orderTime:'2026-10-31 18:17:16', clearTime:'—', settleTime:'—', postingTime:'—', remark:'—', billKind:'non_commission'},
+        {id:'1723', orderNo:'ORD-261124320200', lineNo:'ORD-261124320200-1', storeId:'330159456409100288', storeName:'斯斯门店商家2', orderType:'零售', channel:'商城', sku:'SPU00088', product:'芒果干', spec:'200g', qty:1, orderStatus:'交易成功', aftersaleStatus:'售后完成', reverseSettle:'否', purchase:'2.56', sales:'3.20', paid:'3.20', refund:'2.00', netPaid:'1.20', margin:'20.00%', payee:'斯斯供应商商家', payeeType:'供应商', account:'6666000218008801', accountNo:'6666000218008801', commissionMode:'—', strategy:'—', commissionable:'否', receivable:'1.20', received:'0.00', clearStatus:'已清分', settleStatus:'待结算', postingStatus:'待入账', exceptionType:'—', orderTime:'2026-11-24 11:20:00', clearTime:'2026-11-24 11:26:00', settleTime:'—', postingTime:'—', remark:'—', billKind:'non_commission'},
+        {id:'1724', orderNo:'ORD-261124100400', lineNo:'ORD-261124100400-1', storeId:'330159456409100288', storeName:'斯斯门店商家2', orderType:'代采', channel:'代采', sku:'SPU00204', product:'低糖养乐多', spec:'低糖芒果味 / 箱', qty:1, orderStatus:'交易成功', aftersaleStatus:'售后完成', reverseSettle:'否', purchase:'14.00', sales:'12.00', paid:'10.00', refund:'4.00', netPaid:'6.00', margin:'-40.00%', payee:'斯斯供应商商家', payeeType:'供应商', account:'6666000218008801', accountNo:'6666000218008801', commissionMode:'—', strategy:'—', commissionable:'否', receivable:'8.40', received:'0.00', clearStatus:'已清分', settleStatus:'待结算', postingStatus:'待入账', exceptionType:'—', orderTime:'2026-11-24 10:04:00', clearTime:'2026-11-24 10:12:00', settleTime:'—', postingTime:'—', remark:'—', billKind:'non_commission'},
         /* 承运商运费清分：不参与商品分佣，平台结算账户 → 承运商基本账户 */
         {id:'1722', orderNo:'ORD-3212689201599201', lineNo:'—', storeId:'ONS303445581212', storeName:'德清乾元天恩冷丰店', orderType:'零售', channel:'商城', sku:'FREIGHT', product:'订单运费', spec:'快递', qty:1, orderStatus:'待提货', aftersaleStatus:'无售后', reverseSettle:'否', purchase:'0.00', sales:'6.00', paid:'6.00', netPaid:'6.00', margin:'—', payee:'顺丰速运', payeeType:'承运商', account:'6666000219001100', accountNo:'6666000219001100', commissionMode:'运费全额结算', strategy:'承运商运费结算', commissionable:'否', receivable:'6.00', received:'0.00', clearStatus:'已清分', settleStatus:'待结算', postingStatus:'待入账', exceptionType:'—', orderTime:'2026-08-07 15:21:00', clearTime:'2026-08-07 15:21:05', settleTime:'—', postingTime:'—', remark:'运费不参与分佣', billKind:'non_commission'},
         /* 起算=售后期结束：商品售后期 2/7 天，结算取 max=7，可结算时点一致；若起算=履约确认后则不读售后期 */
@@ -558,6 +582,13 @@
                 row.poolStatus = (row.settleStatus === '已结款' || row.settleStatus === '待结款' || row.settleStatus === '结款中')
                     ? '已入池'
                     : (row.clearStatus === '已清分' ? '已入池' : '待入池');
+            }
+            if (row.payeeType === '供应商' && row.refund != null && Number(row.refund) > 0) {
+                var refundSplit = supplierAmountAfterRefund(row.paid, row.purchase, row.refund);
+                row.refund = refundSplit.refund;
+                row.netPaid = refundSplit.remain;
+                row.receivable = refundSplit.settle;
+                if (row.settleStatus === '已结款') row.received = refundSplit.settle;
             }
         });
         return list;
@@ -1205,9 +1236,10 @@
             '<label class="settle-field"><span>策略状态</span><select class="settle-select" id="settle-status"><option value="">请选择</option>'+['已启用','已停用','已终止','草稿'].map(function(s){return '<option'+(state.status===s?' selected':'')+'>'+s+'</option>';}).join('')+'</select></label>'+
             (retail?'<label class="settle-field"><span>绑定门店</span><input class="settle-input" id="policy-store" value="'+h(state.policyStore)+'" placeholder="请输入绑定门店"></label>':'')+
             '<div class="settle-actions">'+button('查询','search','','primary')+button('重置','reset')+'</div></div></div>';
-        var head=retail?['序号','策略名称','策略类型','订单渠道','分佣基准','结算起算节点','策略详情','门店数量','策略状态','创建时间','操作']:
-            ['序号','策略名称','策略类型','结算起算节点','策略详情','策略状态','创建时间','操作'];
+        var head=retail?['序号','策略名称','策略类型','订单渠道','分佣基准','结算节点','策略详情','门店数量','策略状态','创建时间','操作']:
+            ['序号','策略名称','策略类型','结算节点','策略详情','策略状态','创建时间','操作'];
         return tabs([['retail','零售订单策略'],['procurement','代采订单策略'],['config','通用配置']]) +
+            renderBizSettle(retail ? 'retail' : 'procure') +
             '<section class="settle-card">'+filters+'<div class="settle-toolbar">'+button('创建策略','new-policy','','primary')+'</div>'+table(head,tr,'共 '+(retail?'15':'1')+' 条 · 20条/页')+'</section>';
     }
     function switcher(key) {return '<button type="button" role="switch" aria-checked="' + (config[key]?'true':'false') + '" class="settle-switch' + (config[key]?' on':'') + '" data-act="switch" data-id="' + h(key) + '"></button>';}
@@ -1245,25 +1277,43 @@
             return '<label><input type="radio" name="roundMode" value="' + h(item[0]) + '" disabled' + (on ? ' checked' : '') + '> ' + h(item[1]) + '</label>';
         }).join('') + '</div>';
     }
+    var TRIGGER_HINT = '① 订单履约确认后：整单完成日（自提=全部核销；配送/直发=确认收货）+ 结算周期生成结算单；商品售后期只约束用户端售后，与结算互不影响。② 售后期结束：整单履约确认后，取本单各商品售后期的最大值（商品 > 类目 > 平台兜底）再加结算周期；同单各行可结算时点一致；用户端申请售后仍按各商品自己的售后期。';
+    var CYCLE_OPTS = [['1','1天'],['2','2天'],['3','3天'],['5','5天'],['7','7天'],['15','15天'],['30','30天'],['month','自然月1日']];
+    function triggerCards(key) {
+        var opts=[['fulfill','订单履约确认后'],['aftersale','售后期结束']];
+        var current=config[key]==='aftersale'?'aftersale':'fulfill';
+        return '<div class="settle-config-cards">'+opts.map(function(x){
+            return '<label class="settle-config-card'+(current===x[0]?' selected':'')+'"><input type="radio" name="settle-'+h(key)+'" data-config="'+h(key)+'" value="'+h(x[0])+'"'+(current===x[0]?' checked':'')+'>'+h(x[1])+'</label>';
+        }).join('')+'</div>';
+    }
+    function cycleSelect(key) {
+        var current=String(config[key]||'1');
+        return '系统每 <select class="settle-select settle-config-short" data-config="'+h(key)+'">'+CYCLE_OPTS.map(function(x){return '<option value="'+x[0]+'"'+(current===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('')+'</select> 结算并出账一次';
+    }
+    function renderBizSettle(line) {
+        var procure=line==='procure';
+        var triggerKey=procure?'procureTrigger':'retailTrigger';
+        var cycleKey=procure?'procureCycle':'retailCycle';
+        var title=procure?'代采结算规则':'零售结算规则';
+        var tip=procure
+            ? '<div class="mdm-biz-tip" role="note">代采订单单独一套平台默认，可与零售不同。供应商选择<strong>跟随代采平台默认</strong>时用这一套。已生成清分不变，新增清分按新配置。</div>'
+            : '<div class="mdm-biz-tip" role="note">零售订单的平台默认，本页全部分佣策略共用，不按单条策略分别设置。供应商选择<strong>跟随零售平台默认</strong>时用这一套。已生成清分不变，新增清分按新配置。</div>';
+        var body='<div class="settle-card-body">'+tip+'<div class="settle-config-grid">' +
+            configLine('结算起算节点',triggerCards(triggerKey),TRIGGER_HINT) +
+            configLine('结算周期',cycleSelect(cycleKey),'「N 天」自上次结算滚动；「自然月1日」每月固定 1 号结算。已生成清分不变，新增清分按新配置。') +
+            '</div><div class="settle-actions" style="margin-top:18px">' + button('保存','save-biz-settle',line,'primary') + '</div></div>';
+        return card(title, body);
+    }
     function renderConfig() {
         var lockedCards=function(options,selected){return '<div class="settle-config-cards">'+options.map(function(x){return '<label class="settle-config-card is-locked'+(x===selected?' selected':'')+'"><input type="radio" disabled'+(x===selected?' checked':'')+'>'+h(x)+'</label>';}).join('')+'</div>';};
-        var triggerCards=(function(){
-            var opts=[['fulfill','订单履约确认后'],['aftersale','售后期结束']];
-            return '<div class="settle-config-cards">'+opts.map(function(x){
-                return '<label class="settle-config-card'+(config.trigger===x[0]?' selected':'')+'"><input type="radio" name="settle-trigger" data-config="trigger" value="'+h(x[0])+'"'+(config.trigger===x[0]?' checked':'')+'>'+h(x[1])+'</label>';
-            }).join('')+'</div>';
-        })();
-        var cycleOpts=[['1','1天'],['2','2天'],['3','3天'],['5','5天'],['7','7天'],['15','15天'],['30','30天'],['month','自然月1日']];
         var body='<div class="settle-card-body"><h3 class="settle-section-title">佣金规则设置</h3><div class="settle-config-grid">' +
             configLine('分佣总开关',switcher('master'),'开启后按分佣策略执行佣金分配；关闭后仅平台保留收益，其余参与方不进行分佣。') +
             configLine('订单类型',switcher('exclude')+orderTypeMulti(),'开启后，所选类型的订单不参与分佣，资金归入平台；可多选。关闭后所有订单均参与分佣。') +
             configLine('订单实付金额低于','<input class="settle-input settle-config-short" type="number" min="0" step="0.01" data-config="min" value="'+h(config.min)+'"> 元，低于此值不分佣，资金归入平台（0=不限）','注：商品实际支付金额少于商品采购价，订单不分佣，平台补差结算。') +
             configLine('分佣基准',lockedCards(['按实付金额分佣','按销售金额分佣'],'按实付金额分佣'),'分佣基准为全局默认展示，下期支持切换；实际算分以各分佣策略明细的基准为准（代销按毛利、平台按实付）。') +
             configLine('佣金金额不足1分计',roundModeRadios(),'佣金不足 1 分时固定按四舍五入处理，本期不可变更。') +
-            '</div><h3 class="settle-section-title" style="margin-top:28px">结算规则设置</h3><div class="settle-config-grid">' +
-            configLine('结算起算节点',triggerCards,'① 订单履约确认后：整单完成日（自提=全部核销；配送/直发=确认收货）+ 结算周期生成结算单；商品售后期只约束用户端售后，与结算互不影响。② 售后期结束：整单履约确认后，取本单各商品售后期的最大值（商品 > 类目 > 平台兜底）再加结算周期；同单各行可结算时点一致；用户端申请售后仍按各商品自己的售后期。') +
-            configLine('结算周期','系统每 <select class="settle-select settle-config-short" data-config="cycle">'+cycleOpts.map(function(x){return '<option value="'+x[0]+'"'+(config.cycle===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('')+'</select> 结算并出账一次','「N 天」自上次结算滚动；「自然月1日」每月固定 1 号结算。已生成清分不变，新增清分按新配置。') +
-            configLine('结算单生成时间','<input class="settle-input settle-config-short" type="time" data-config="generate" value="'+h(config.generate)+'">','每日结算单生成时刻（如 09:30）。') +
+            '</div><h3 class="settle-section-title" style="margin-top:28px">出账执行</h3><div class="settle-config-grid">' +
+            configLine('结算单生成时间','<input class="settle-input settle-config-short" type="time" data-config="generate" value="'+h(config.generate)+'">','每日结算单生成时刻（如 09:30）。零售、代采共用。') +
             configLine('自动生成结款单',switcher('autoBill'),'开启后，财务未在规定时间内审核时系统自动生成付款单；关闭则需财务手动生成。') +
             configLine('结款执行时间','生成结款单后 <input class="settle-input settle-config-short" type="number" min="0" step="1" data-config="payHours" value="'+h(config.payHours)+'"> 小时内执行打款','0 = 生成结款单后立即执行；仅「自动生成结款单」开启时生效。') +
             '</div><div class="settle-actions" style="margin-top:26px">' + button('保存','save-config','','primary') + '</div></div>';
@@ -1288,7 +1338,7 @@
             policyField('策略类型','<div class="settle-type-cards"><span class="selected">默认<br><b>商品分佣</b></span><span class="disabled">商品营销费用承担（二期）</span></div>')+
             policyField('扣除项规则','<div class="settle-deduction">承运商运费：不参与分佣，由平台结算到承运商基本账户<br>仓储服务商：不参与分佣，平台线下结算<br>供应商：不参与分佣，按采购金额结算</div>')+
             policyField('分佣基准',consign?'实付减进货成本（代采业态固定）':policyRadio('basis','按实付金额分佣',['按实付金额分佣'],true))+
-            policyField('结算节点',policyRadio('trigger','订单履约确认后',['订单履约确认后','售后期结束'],true)+'<span class="muted">分佣策略展示用；供应商实际起算以档案配置为准（可覆盖平台默认）</span>')+'</div>';
+            policyField('结算节点',policyRadio('trigger','订单履约确认后',['订单履约确认后','售后期结束'],true)+'<span class="muted">分佣策略展示用。零售、代采的起算和周期在对应策略页顶部的结算规则里配置；供应商档案可按业态覆盖。</span>')+'</div>';
         var rules=draft.rules||[];
         var rows=rules.map(function(r,i){return '<tr><td>'+(i+1)+'</td><td>'+h(r.name)+'</td><td>'+h(r.method||'按实付金额分佣')+'</td><td class="wrap">'+h(r.summary||'—')+'</td><td>'+h(r.dimension||'全部商品')+' '+button('查看','rule-scope',String(i))+'</td><td class="settle-actions">'+(readonly?'—':button('编辑','edit-rule',String(i))+button('删除','remove-rule',String(i)))+'</td></tr>';});
         var ruleBody=(consign?'<div class="settle-card-body">'+note('代采策略：供应商按采购价结算（系统自动），按毛利率阶梯配置BD扶商比例，剩余归平台；规则配置参与商品范围与BD阶梯')+'</div>':'')+
@@ -1723,7 +1773,14 @@
         if(act==='general-log'){openLogs('general');return;}
         if(act==='policy-log'){openLogs('policy',id);return;}
         if(act==='switch'){config[id]=!config[id];render();return;}
-        if(act==='save-config'){readGeneralConfig();openModal('保存通用配置','确认保存当前结算通用配置？<br><br><span class="muted">已生成的清分数据不变，新增清分按新配置计算。</span>',false,button('取消','close','','')+button('确认保存','confirm-save','','primary'));return;}
+        if(act==='save-config'){readGeneralConfig();openModal('保存通用配置','确认保存佣金规则和出账执行？<br><br><span class="muted">零售、代采的起算节点和结算周期在各自策略页单独保存。</span>',false,button('取消','close','','')+button('确认保存','confirm-save','','primary'));return;}
+        if(act==='save-biz-settle'){
+            readGeneralConfig();
+            state.pendingBizLine=id==='procure'?'procure':'retail';
+            var bizName=state.pendingBizLine==='procure'?'代采':'零售';
+            openModal('保存'+bizName+'结算规则','确认保存'+bizName+'订单的平台结算起算和周期？<br><br><span class="muted">已生成的清分不变。跟随'+bizName+'平台默认的供应商，新清分按这一套。另一业态不受影响。</span>',false,button('取消','close','','')+button('确认保存','confirm-save-biz','','primary'));
+            return;
+        }
         if(act==='export-summary'){exportSummary();return;}
         if(act==='manual'){var x=compensations.find(function(r){return r.id===id;});if(!x){openModal('人工结款',note('未找到补偿结款单：'+h(id)));return;}openModal('人工结款','<div class="settle-policy-form">'+policyField('结款金额','<b>'+cash(x.amount)+'</b> <small>（默认清分待结算金额，不支持修改）</small>')+policyField('上传凭证','<input type="file" accept=".jpg,.jpeg,.png" multiple aria-label="上传凭证"><small>支持 JPG/JPEG/PNG，最多 3 张，单张 ≤ 10MB</small>')+policyField('备注','<textarea class="settle-input settle-textarea" id="compensation-manual-remark" maxlength="100" placeholder="选填，≤100 字"></textarea>')+'</div>',false,button('取消','close')+button('确定','confirm-compensation-manual',id,'primary'));return;}
         if(act==='retry'){openModal('重新执行','确认对单据 '+h(id)+' 重新执行？将重新校验供应商进件/账户，通过后即可加入结款单。',false,button('取消','close')+button('确认','confirm-supplier-retry',id,'primary'));return;}
@@ -1935,7 +1992,16 @@
             readGeneralConfig();
             if(window.LFSettleCycleStore) window.LFSettleCycleStore.saveConfig(config);
             overlay.innerHTML='';
-            if(typeof showToast==='function') showToast('通用配置已保存；平台通用配置策略的供应商已同步','success');
+            if(typeof showToast==='function') showToast('通用配置已保存','success');
+            render();
+            return;
+        }
+        if(act==='confirm-save-biz'){
+            readGeneralConfig();
+            if(window.LFSettleCycleStore) window.LFSettleCycleStore.saveConfig(config);
+            var savedLine=state.pendingBizLine==='procure'?'代采':'零售';
+            overlay.innerHTML='';
+            if(typeof showToast==='function') showToast(savedLine+'结算规则已保存；跟随'+savedLine+'平台默认的供应商已同步','success');
             render();
             return;
         }
@@ -1945,10 +2011,11 @@
     app.addEventListener('change',function(e){
         if(e.target.dataset.config){
             config[e.target.dataset.config]=e.target.type==='checkbox'?e.target.checked:e.target.value;
-            if(e.target.dataset.config==='trigger'){
-                app.querySelectorAll('.settle-config-card').forEach(function(card){
-                    var inp=card.querySelector('input[data-config="trigger"]');
-                    if(inp) card.classList.toggle('selected', !!inp.checked);
+            if(e.target.type==='radio' && /Trigger$/.test(e.target.dataset.config||'')){
+                var radioName=e.target.name;
+                app.querySelectorAll('input[name="'+radioName+'"]').forEach(function(inp){
+                    var card=inp.closest('.settle-config-card');
+                    if(card) card.classList.toggle('selected', !!inp.checked);
                 });
             }
         }

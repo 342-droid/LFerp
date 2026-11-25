@@ -6,7 +6,7 @@
   <title>黑灯直播间 · 用户 APP</title>
   <link rel="stylesheet" href="../css/user-app-shell.css">
   <link rel="stylesheet" href="../css/user-app-profile.css">
-  <link rel="stylesheet" href="../css/user-app-shop.css?v=20260924-live-demos">
+  <link rel="stylesheet" href="../css/user-app-shop.css?v=20261124-live-soldout-hint">
   <link rel="stylesheet" href="../../css/lf-live-comment-level.css?v=20260909-cmt-lv">
   <link rel="stylesheet" href="../css/user-app-live-entry-fx.css">
   <link rel="stylesheet" href="../css/user-app-feedback.css">
@@ -149,7 +149,10 @@
                 <span class="ua-gd-info__price" id="goodsDetailPrice"></span>
                 <span class="ua-gd-info__origin" id="goodsDetailOrigin" hidden></span>
               </div>
-              <span class="ua-gd-info__sold" id="goodsDetailSold"></span>
+              <span class="ua-gd-info__sold-col">
+                <span class="ua-gd-info__sold" id="goodsDetailSold"></span>
+                <span class="ua-gd-info__soldout" id="goodsDetailSoldOut" hidden>已售罄</span>
+              </span>
             </div>
             <h1 class="ua-gd-info__title" id="goodsDetailTitle"></h1>
             <p class="ua-gd-info__service" id="goodsDetailService"></p>
@@ -362,7 +365,7 @@
   <script src="../js/user-app-wx-pay-auth.js?v=20261023-auth-day"></script>
   <script src="../../js/store-account-config.js?v=20261112-deposit-gate"></script>
   <script src="../../js/mdm-low-margin-gate.js?v=20261117-restrict-scheme"></script>
-  <script src="../js/user-app-shop.js?v=20261118-mkt-live-2"></script>
+  <script src="../js/user-app-shop.js?v=20261124-live-soldout-hint"></script>
   <script src="../../js/mdm-marketing-cash-redpack-store.js?v=20261016-hide-transfer"></script>
   <script src="../../js/mdm-marketing-cash-redpack-tpl-store.js?v=20261015-amt-200"></script>
   <script src="../js/user-app-live-watch-reward.js?v=20261118-mkt-live"></script>

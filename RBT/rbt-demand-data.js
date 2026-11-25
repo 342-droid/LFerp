@@ -199,10 +199,11 @@
                 skus: linesOf(freshLines), amount: '80000.00',
                 creator: '喻巧', createdAt: '2026-10-12 14:06:33', updater: '喻巧', updatedAt: '2026-10-14 16:20:11'
             }),
-            /* 已结清，供履约页引用。比例付不预造逐期金额，也不记还款。 */
+            /* 履约中，供门店端一键履约。额度已由发货中的 XQ00026 占满，本单不再重复占用。 */
             rowSeed(Object.assign({
                 code: 'XQ00023', storeCode: 'ONS00001', storeName: '西湖中心生鲜店',
-                pkg: fresh, plan: freshPlan, status: '已完成',
+                pkg: fresh, plan: freshPlan, status: '门店付款中',
+                quotaHeld: false,
                 skus: linesOf(freshLines), amount: '80000.00',
                 creator: '喻巧', createdAt: '2026-10-18 09:16:40', updater: '王丽', updatedAt: '2026-11-02 10:28:16',
                 acceptedAt: '2026-10-18 14:02:18',
@@ -306,6 +307,7 @@
         if (spec.signings) row.signings = spec.signings;
         if (spec.rejectReason) row.rejectReason = spec.rejectReason;
         if (spec.dealLocked) row.dealLocked = true;
+        if (spec.quotaHeld === false) row.quotaHeld = false;
         if (spec.guaranteeDeposit) row.guaranteeDeposit = spec.guaranteeDeposit;
         if (spec.shipments) row.shipments = spec.shipments;
         if (spec.supplementVoucher) row.supplementVoucher = spec.supplementVoucher;
@@ -636,6 +638,12 @@
             var productRename = { '生鲜周转分期': '开业铺货日结', '肉类备货分期': '门店形象日结', '果蔬短周期': '开业运营日结' };
             if (productRename[item.installmentName]) {
                 item.installmentName = productRename[item.installmentName];
+                changed = true;
+            }
+            /* 旧种子把西湖中心演示单写成已完成，门店端没有剩余履行额，一键履约会一直置灰。 */
+            if (item.code === 'XQ00023' && item.storeCode === 'ONS00001' && item.status === '已完成' && item.updatedAt === '2026-11-02 10:28:16') {
+                item.status = '门店付款中';
+                item.quotaHeld = false;
                 changed = true;
             }
             /* 门店付款中/已完成表示贸易商已付款，用于重算已成交 */

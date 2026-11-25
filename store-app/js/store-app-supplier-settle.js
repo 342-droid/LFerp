@@ -123,30 +123,14 @@
             '">' +
             x.settleStatus +
             '</span></div>' +
-            '<h3 class="sa-sup-card__name">' +
+            '<div class="sa-sup-card__row"><h3 class="sa-sup-card__name">' +
             x.product +
-            '</h3>' +
-            '<div class="sa-sup-card__row"><div class="sa-sup-card__meta">' +
-            (x.orderType || '') +
-            ' · 清分 ' +
-            x.clearStatus +
-            ' · 入账 ' +
-            (x.postingStatus || '—') +
-            '<br>' +
-            x.time +
-            ' · 清分单 ' +
-            x.id +
-            (x.billId
-              ? '<br>结款单 <a class="sa-sup-link" href="supplier-settle-bill-detail.html?id=' +
-                encodeURIComponent(x.billId) +
-                '" data-act="order">' +
-                x.billId +
-                '</a>'
-              : '') +
-            '</div><div class="sa-sup-card__amt">' +
+            '</h3><div class="sa-sup-card__amt">' +
             money(x.net) +
             '</div></div>' +
-            '<div class="sa-sup-card__actions"><button type="button" class="sa-sup-card__act" data-act="detail">查看详情</button></div>' +
+            '<div class="sa-sup-card__actions"><span class="sa-sup-card__time">' +
+            (x.time || '—') +
+            '</span><button type="button" class="sa-sup-card__act" data-act="detail">查看详情</button></div>' +
             '</article>'
           );
         })

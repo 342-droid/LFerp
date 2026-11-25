@@ -2437,7 +2437,7 @@ a.aftersale-btn {
 
 .aftersale-refund-table .aftersale-table__th--action,
 .aftersale-refund-table .aftersale-table__td--action {
-  min-width: 200px;
+  min-width: 268px;
 }
 
 .aftersale-action .aftersale-link {
@@ -2469,8 +2469,48 @@ a.aftersale-btn {
 }
 
 .aftersale-refund-modal__content--upload {
-  width: 520px;
+  width: 560px;
   max-width: calc(100vw - 32px);
+}
+
+.aftersale-refund-fund {
+  margin: 4px 0 8px;
+}
+
+.aftersale-refund-fund .mdm-biz-tip {
+  margin-bottom: 8px;
+}
+
+.aftersale-refund-fund__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid #f2f3f5;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.aftersale-refund-fund__row span {
+  color: #909399;
+}
+
+.aftersale-refund-fund__row strong {
+  color: #303133;
+  font-weight: 600;
+}
+
+.aftersale-refund-desc--fund {
+  grid-template-columns: 1fr 1fr;
+}
+
+.aftersale-refund-desc--fund .aftersale-refund-desc__cell {
+  grid-template-columns: 180px minmax(0, 1fr);
+}
+
+.as-refund-retry-confirm {
+  z-index: 3200;
 }
 
 /* 退款单详情：右侧抽屉 */
