@@ -329,7 +329,8 @@
         return '¥' + value;
     }
 
-    /* 已结款是已经结清的营业日拆给贸易商的金额。最近一天结算单未确定，明细行仍记待结款。 */
+    /* 已结款是已经结清的营业日拆给贸易商的金额。最近一天结算单未确定，明细行仍记待结款。
+       结款不按渠道拆开：各渠道佣金进门店钱包后，用佣金余额支付，同一天多渠道合成一笔。后台每日付款仍按渠道分行。 */
     function traderSettled(item) {
         var daily = window.RbtDailyFulfill;
         var rows = daily && typeof daily.payeeSplit === 'function' ? daily.payeeSplit(item) : [];
@@ -378,8 +379,56 @@
         return {
             total: (settledCents / 100).toFixed(2),
             pending: done ? '' : (pendingCents / 100).toFixed(2),
-            shares: shares
+            shares: mergeWalletShares(shares)
         };
+    }
+
+    /* 同一天的 POS、商城、直播合成一笔佣金余额结款。一键付款仍单独成行。 */
+    function mergeWalletShares(rows) {
+        var grouped = {};
+        var order = [];
+        rows.forEach(function (row) {
+            if (!row || row.kind === 'manual') {
+                order.push(row);
+                return;
+            }
+            var key = row.date || '';
+            if (!grouped[key]) {
+                grouped[key] = {
+                    date: row.date,
+                    time: row.time || '',
+                    kind: '',
+                    amountCents: 0,
+                    turnoverCents: 0,
+                    commissionCents: 0,
+                    actualCents: 0,
+                    stage: row.stage || 'due'
+                };
+                order.push(grouped[key]);
+            }
+            var bucket = grouped[key];
+            bucket.amountCents += centsOf(row.amount) || 0;
+            bucket.turnoverCents += centsOf(row.turnover) || 0;
+            bucket.commissionCents += centsOf(row.commission) || 0;
+            bucket.actualCents += centsOf(row.actual) || 0;
+            if (row.stage === 'pending') bucket.stage = 'pending';
+        });
+        return order.map(function (row) {
+            if (!row || row.kind === 'manual') return row;
+            return {
+                date: row.date,
+                time: row.time,
+                channel: '',
+                kind: '',
+                amount: fromCents(row.amountCents),
+                turnover: fromCents(row.turnoverCents),
+                commission: fromCents(row.commissionCents),
+                ratio: '',
+                actual: fromCents(row.actualCents),
+                payMethod: '佣金余额',
+                stage: row.stage
+            };
+        });
     }
 
     var TRADER_ACCOUNTS = {
@@ -645,9 +694,10 @@
         return Number(parts[1]) + '月' + Number(parts[2]) + '日';
     }
 
-    function shareChannel(row) {
-        if (row && row.kind === 'manual') return '手动付款';
-        return (row && row.channel) || '—';
+    function shareTitle(row) {
+        var day = monthDay(row && row.date);
+        if (row && row.kind === 'manual') return day + ' · 提前支付';
+        return day;
     }
 
     function opsMoney(value) {
@@ -660,19 +710,23 @@
     }
 
     function renderShareCards(shares) {
-        return '<p class="rbt-ops__note">当日实际付款 = 所得佣金 × 渠道结算比例。我的结款是这笔实际付款按贸易商结算系数拆出的份额。</p>' +
+        return '<p class="rbt-ops__note">各渠道佣金先进入门店钱包。结款从佣金余额支付，同一天可以多渠道混合后还款。</p>' +
             shares.map(function (row) {
                 var pendingRow = row.stage === 'pending';
-                var when = pendingRow ? '-' : (row.kind === 'manual' ? (paidClock(row.time) || settleClock(row.date)) : settleClock(row.date));
+                var manual = row.kind === 'manual';
+                var when = pendingRow ? '-' : (manual ? (paidClock(row.time) || settleClock(row.date)) : settleClock(row.date));
+                var facts = manual
+                    ? opsFact('当日实际付款', opsMoney(row.actual)) +
+                        opsFact('支付方式', row.payMethod || '—')
+                    : opsFact('营业流水', opsMoney(row.turnover)) +
+                        opsFact('所得佣金', opsMoney(row.commission)) +
+                        opsFact('当日实际付款', opsMoney(row.actual)) +
+                        opsFact('支付方式', '佣金余额');
                 return '<article class="rbt-ops">' +
-                    '<header class="rbt-ops__head"><b>' + esc(monthDay(row.date) + ' · ' + shareChannel(row)) + '</b>' +
+                    '<header class="rbt-ops__head"><b>' + esc(shareTitle(row)) + '</b>' +
                     '<em class="' + (pendingRow ? '' : 'is-due') + '">' + (pendingRow ? '待结款' : '已结款') + '</em></header>' +
                     '<div class="rbt-ops__grid">' +
-                    opsFact('营业流水', opsMoney(row.turnover)) +
-                    opsFact('所得佣金', opsMoney(row.commission)) +
-                    opsFact('结算比例', row.ratio || '—') +
-                    opsFact('当日实际付款', opsMoney(row.actual)) +
-                    opsFact('支付方式', row.payMethod || '—') +
+                    facts +
                     '</div>' +
                     '<footer class="rbt-ops__foot">' +
                     '<span><i>结款时间</i><b>' + esc(when) + '</b></span>' +

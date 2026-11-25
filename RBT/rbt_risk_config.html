@@ -13,27 +13,84 @@
     <style>
         .rbt-risk-config-tip { margin: 0 0 12px; }
         .rbt-risk-error { margin: 0 0 12px; color: #cf1322; font-size: 13px; }
-        .rbt-risk-grade { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .rbt-risk-grade { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
         .rbt-risk-grade th,
         .rbt-risk-grade td { border: 1px solid #e5e7eb; padding: 10px 12px; text-align: left; vertical-align: middle; }
-        .rbt-risk-grade th { background: #f7f8fa; font-weight: 600; color: #303133; white-space: nowrap; }
+        .rbt-risk-grade th { background: #f7f8fa; font-weight: 600; color: #303133; }
+        .rbt-risk-grade th:nth-child(1),
+        .rbt-risk-grade td:nth-child(1) { width: 108px; }
+        .rbt-risk-grade th:nth-child(2),
+        .rbt-risk-grade td:nth-child(2) { width: 168px; }
+        .rbt-risk-grade th:nth-child(3),
+        .rbt-risk-grade td:nth-child(3) { width: 112px; }
+        .rbt-risk-grade th:nth-child(4),
+        .rbt-risk-grade td:nth-child(4) { width: 196px; }
         .rbt-risk-grade__unit { display: flex; align-items: center; gap: 8px; }
         .rbt-risk-grade__unit .erp-input,
-        .rbt-risk-grade__unit .erp-select { width: 120px; height: 36px; min-width: 0; flex: none; }
-        .rbt-risk-grade__unit .erp-select { width: 88px; }
-        .rbt-risk-grade textarea.erp-input { width: 100%; min-width: 240px; height: auto; min-height: 72px; padding: 8px 10px; line-height: 1.5; resize: vertical; box-sizing: border-box; }
+        .rbt-risk-grade__unit .erp-select { width: 72px; height: 36px; min-width: 0; flex: none; }
+        .rbt-risk-grade__unit .erp-select { width: 72px; }
+        .rbt-risk-grade textarea.erp-input { width: 100%; min-width: 0; height: 64px; min-height: 64px; padding: 8px 10px; line-height: 1.5; resize: vertical; box-sizing: border-box; }
         .rbt-risk-grade__plain { color: #909399; }
         .rbt-risk-tag { display: inline-block; padding: 0 8px; border-radius: 4px; line-height: 22px; font-size: 12px; }
         .rbt-risk-tag.is-正常 { color: #389e0d; background: #f6ffed; }
         .rbt-risk-tag.is-关注 { color: #d48806; background: #fffbe6; }
         .rbt-risk-tag.is-预警 { color: #d46b08; background: #fff7e6; }
         .rbt-risk-tag.is-异常 { color: #cf1322; background: #fff1f0; }
-        .rbt-baseline-now { display: inline-block; margin: 0 0 8px; padding: 2px 8px; border-radius: 4px; background: #fff7e6; color: #d46b08; font-weight: 600; }
-        .rbt-duration-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
-        .rbt-duration-chip { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border: 1px solid #e5e7eb; border-radius: 16px; background: #fff; }
-        .rbt-duration-chip button { border: 0; background: transparent; color: #909399; cursor: pointer; }
-        #rbtRiskLine { width: 220px; }
-        .pts-rule-check-label { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; }
+        .rbt-seg { display: inline-flex; border: 1px solid #e5e7eb; border-radius: 4px; overflow: hidden; }
+        .rbt-seg button { height: 36px; padding: 0 16px; border: 0; border-right: 1px solid #e5e7eb; background: #fff; color: #333; cursor: pointer; }
+        .rbt-seg button:last-child { border-right: 0; }
+        .rbt-seg button.is-on { background: #fff7e6; color: #d46b08; font-weight: 600; }
+        #rbtDurationField[hidden] { display: none !important; }
+        .rbt-duration-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 36px; }
+        .rbt-duration-row > .erp-input { width: 88px; min-width: 88px; max-width: 88px; flex: none; height: 36px; }
+        .rbt-duration-row > .btn { height: 36px; }
+        .rbt-duration-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }
+        .rbt-duration-chip { display: inline-flex; align-items: center; gap: 4px; height: 36px; padding: 0 8px 0 12px; border: 1px solid #e5e7eb; border-radius: 4px; background: #fff; }
+        .rbt-duration-chip button { width: 20px; height: 20px; border: 0; background: transparent; color: #909399; cursor: pointer; line-height: 20px; }
+        .rbt-risk-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 36px; margin: 0; }
+        .rbt-risk-nav__item { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px; border: 1px solid #e5e7eb; border-radius: 4px; background: #fff; color: #333; cursor: pointer; font-size: 13px; }
+        .rbt-risk-nav__item.is-active { background: #fff7e6; border-color: #f3d19e; color: #d46b08; font-weight: 600; }
+        .rbt-risk-nav__meta { font-size: 12px; font-weight: 400; color: #909399; }
+        .rbt-risk-nav__item.is-active .rbt-risk-nav__meta,
+        .rbt-risk-nav__meta.is-own { color: #d46b08; }
+        .rbt-risk-pane__bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 8px; padding: 0; background: none; border: 0; }
+        .rbt-risk-pane__bar[hidden] { display: none !important; }
+        .rbt-risk-pane__bar p { flex: 0 1 auto; min-width: 0; margin: 0; font-size: 12px; color: #999; line-height: 1.5; }
+        .rbt-risk-pane__bar .btn { flex: none; }
+        #rbtRiskGradeForm[hidden] { display: none !important; }
+        .rbt-risk-grade-field > .pts-rule-field__label { line-height: 17.4px; padding-top: 0; }
+        .rbt-risk-grade-field .pts-rule-tip { margin-top: 0; line-height: 17.4px; }
+        .rbt-baseline-field > .pts-rule-field__label { line-height: 36px; padding-top: 0; }
+        .rbt-baseline-scroll.erp-table-scroll { width: 100%; }
+        .rbt-baseline-table {
+            width: 100%;
+            min-width: 0;
+            border-collapse: collapse;
+            font-size: 13px;
+            table-layout: fixed;
+        }
+        .rbt-baseline-table th,
+        .rbt-baseline-table td {
+            height: 36px;
+            padding: 0 12px;
+            text-align: left;
+            vertical-align: middle;
+            white-space: nowrap;
+            box-sizing: border-box;
+        }
+        .rbt-baseline-table th {
+            background: #fafafa;
+            color: var(--color-text-secondary, #909399);
+            font-weight: 600;
+            border-bottom: 1px solid var(--color-border, #e5e7eb);
+        }
+        .rbt-baseline-table td {
+            color: var(--color-text, #333);
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .rbt-baseline-table tr:last-child td { border-bottom: none; }
+        .rbt-baseline-table .is-money { text-align: right; font-variant-numeric: tabular-nums; }
+        .rbt-baseline-table__empty { color: #909399; }
     </style>
 </head>
 <body>
@@ -47,7 +104,7 @@
             <hr class="content-divider">
 
             <div class="mdm-biz-tip rbt-risk-config-tip" role="note">
-                只按<strong>已发生营业日</strong>评级。单店<strong>日均付款额</strong> = 实际付款合计 ÷ 营业日天数。上线用<strong>静态基准</strong>：基准日均 = 产品金额 ÷ 预期付款天数。预期时长跟产品走，按月配置，一个月按 30 天。<strong>动态基准</strong>先留计算位，用该事业线门店营收和佣金推算平台日均。页面写明当前生效的是哪一种，不和百分比进度混用。高于或等于基准记 <strong>A 类</strong>。保存后，<a href="rbt_risk_abnormal.html">异常付款数据</a>、付款列表和首页按这套规则重算。
+                只按<strong>已发生营业日</strong>评级，日均付款额 = 实际付款合计 ÷ 营业日天数。上线用<strong>静态基准</strong>，可切换<strong>动态基准</strong>。先配<strong>通用阈值</strong>，事业线要单独规则再点<strong>独立配置</strong>。高于或等于基准记 <strong>A 类</strong>。保存后，<a href="rbt_risk_abnormal.html">异常付款数据</a>、付款列表和首页按事业线重算。
             </div>
             <p class="rbt-risk-error" id="rbtRiskError" hidden></p>
 
@@ -74,35 +131,21 @@
                         <div class="pts-rule-field">
                             <label class="pts-rule-field__label">当前生效</label>
                             <div class="pts-rule-field__control">
-                                <span class="rbt-baseline-now" id="rbtBaselineNow">静态基准</span>
-                                <div class="pts-rule-switch-row">
-                                    <button type="button" class="btn btn-primary" id="rbtBaselineStatic">静态基准</button>
-                                    <button type="button" class="btn btn-secondary" id="rbtBaselineDynamic">动态基准</button>
+                                <div class="rbt-seg" role="group" aria-label="生效基准">
+                                    <button type="button" class="is-on" id="rbtBaselineStatic">静态基准</button>
+                                    <button type="button" id="rbtBaselineDynamic">动态基准</button>
                                 </div>
-                                <div class="pts-rule-tip">静态基准日均 = 产品金额 ÷ 预期付款天数。动态基准用对应事业线的门店营收和佣金，推算该线日均付款额的平台值：应付款合计 ÷ 门店营业日次数。两种只生效一种。</div>
+                                <div class="pts-rule-tip" id="rbtBaselineFormula">静态基准日均 = 该产品金额 ÷（该档预期月数 × 30）。不同事业线对应不同产品。</div>
                             </div>
                         </div>
-                        <div class="pts-rule-field">
+                        <div class="pts-rule-field" id="rbtDurationField">
                             <label class="pts-rule-field__label">预期时长</label>
                             <div class="pts-rule-field__control">
-                                <div class="rbt-duration-list" id="rbtDurationTiers"></div>
-                                <div class="rbt-risk-grade__unit">
+                                <div class="rbt-duration-row">
+                                    <div class="rbt-duration-list" id="rbtDurationTiers"></div>
                                     <input class="erp-input" id="rbtDurationInput" type="number" min="1" step="1" inputmode="numeric" placeholder="月数" aria-label="新增预期时长">
                                     <button type="button" class="btn btn-secondary" id="rbtDurationAdd">添加档位</button>
                                 </div>
-                                <div class="pts-rule-tip">跟产品走，不是写死 3、6、9、12 四档。可以增删。一个月按 30 天。</div>
-                            </div>
-                        </div>
-                        <div class="pts-rule-field">
-                            <label class="pts-rule-field__label" for="rbtRiskLine">事业线</label>
-                            <div class="pts-rule-field__control">
-                                <div class="rbt-risk-grade__unit">
-                                    <select class="erp-select" id="rbtRiskLine" aria-label="事业线"></select>
-                                </div>
-                                <label class="pts-rule-check-label" id="rbtRiskLineOwnWrap" hidden>
-                                    <input type="checkbox" id="rbtRiskLineOwn"> 本事业线单独配置
-                                </label>
-                                <div class="pts-rule-tip">未单独配置的事业线用共用阈值。动态基准仍按事业线各自的营收和佣金计算。</div>
                             </div>
                         </div>
                     </div>
@@ -112,6 +155,24 @@
                     <div class="pts-rule-card__title">付款风险等级</div>
                     <div class="pts-rule-card__body">
                         <div class="pts-rule-field">
+                            <label class="pts-rule-field__label">配置对象</label>
+                            <div class="pts-rule-field__control">
+                                <nav class="rbt-risk-nav" id="rbtRiskNav" aria-label="配置对象"></nav>
+                                <div class="rbt-risk-pane__bar" id="rbtRiskScopeBar" hidden>
+                                    <p id="rbtRiskScopeTip"></p>
+                                    <button type="button" class="btn btn-primary" id="rbtRiskLineOwnBtn" hidden>独立配置</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field rbt-baseline-field">
+                            <label class="pts-rule-field__label">基准日均</label>
+                            <div class="pts-rule-field__control">
+                                <div class="rbt-baseline-value" id="rbtBaselineValue"></div>
+                                <div class="pts-rule-tip" id="rbtBaselineValueTip"></div>
+                            </div>
+                        </div>
+                        <div id="rbtRiskGradeForm">
+                        <div class="pts-rule-field">
                             <label class="pts-rule-field__label" for="progressStartDays">进度起算</label>
                             <div class="pts-rule-field__control">
                                 <div class="rbt-risk-grade__unit">
@@ -119,10 +180,13 @@
                                     <input class="erp-input" id="progressStartDays" type="number" min="1" step="1" inputmode="numeric" aria-label="进度起算天数">
                                     <span>天</span>
                                 </div>
-                                <div class="pts-rule-tip">未满这个营业日天数时，不拿日均付款额和基准比。关注、预警、异常共用。</div>
+                                <div class="pts-rule-tip">未满这个营业日天数时，不拿日均付款额和基准比。</div>
                             </div>
                         </div>
-                        <div class="pts-rule-tip" style="margin-top:0;margin-bottom:10px;">每档单独选择条件关系。<strong>或</strong>是满足一个就记入该档，<strong>且</strong>是两个都要满足。多档同时命中时取更重的等级。连续未付款天数递增。低于基准的比例递减。正常不用单独配置。高于或等于基准，且未命中关注，记 A 类。</div>
+                        <div class="pts-rule-field rbt-risk-grade-field">
+                            <label class="pts-rule-field__label">等级规则</label>
+                            <div class="pts-rule-field__control">
+                        <div class="pts-rule-tip">每档单独选择条件关系。<strong>或</strong>是满足一个就记入该档，<strong>且</strong>是两个都要满足。多档同时命中时取更重的等级。连续未付款天数递增。低于基准的比例递增，比例越大，日均付款额比基准越低。正常不用单独配置。高于或等于基准，且未命中关注，记 A 类。</div>
                         <table class="rbt-risk-grade">
                             <thead>
                                 <tr>
@@ -216,6 +280,9 @@
                                 </tr>
                             </tbody>
                         </table>
+                            </div>
+                        </div>
+                        </div>
                     </div>
                 </div>
 
@@ -231,7 +298,10 @@
     <script src="rbt-fresh.js"></script>
     <script src="../js/common.js"></script>
     <script src="rbt-store-data.js"></script>
-    <script src="rbt-risk.js"></script>
-    <script src="rbt-risk-config.js"></script>
+    <script src="rbt-settle-ratio.js"></script>
+    <script src="rbt-demand-data.js"></script>
+    <script src="rbt-daily-fulfill.js?v=20261126-sim-due"></script>
+    <script src="rbt-risk.js?v=20261126-sim-due-plain"></script>
+    <script src="rbt-risk-config.js?v=20261126-sim-due"></script>
 </body>
 </html>
