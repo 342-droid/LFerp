@@ -1,10 +1,45 @@
 {
-  "latestSha": "36b9eb84919ffe4c647beae1d1f76b95740065ed",
-  "total": 636,
+  "latestSha": "10c21a3f5e7272702a573f5e330f622accbb1b1b",
+  "total": 637,
   "days": [
     {
       "date": "2026-11-25",
       "items": [
+        {
+          "sha": "10c21a3",
+          "type": "fix",
+          "text": "需求单管理的新建需求单按钮恢复可点",
+          "author": "342-droid",
+          "time": "16:18",
+          "pages": [
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "module": "冷丰WMS",
+              "title": "需求单审核"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
+            },
+            {
+              "file": "RBT/rbt_product_package.html",
+              "module": "冷丰RBT",
+              "title": "商品包"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_demand.html",
+              "text": "点击新建需求单会打开弹窗，可选门店和商品包，校验额度后发布为待接单"
+            }
+          ]
+        },
         {
           "sha": "36b9eb8",
           "type": "feat",
