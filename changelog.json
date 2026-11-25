@@ -1,7 +1,79 @@
 {
-  "latestSha": "dfa74bb9db341482975e6b93c8e3034b568e3d94",
-  "total": 639,
+  "latestSha": "c53d30b38f7c74aff427a9883754255ff056bbcf",
+  "total": 640,
   "days": [
+    {
+      "date": "2026-11-26",
+      "items": [
+        {
+          "sha": "c53d30b",
+          "type": "feat",
+          "text": "风控基准按事业线产品展示，并恢复提前支付",
+          "author": "sisi",
+          "time": "07:39",
+          "pages": [
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日付款"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "付款"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常付款数据"
+            },
+            {
+              "file": "RBT/rbt_risk_config.html",
+              "module": "冷丰RBT",
+              "title": "风控配置"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_risk_config.html",
+              "text": "静态基准按事业线对应产品分档展示；动态基准改为用该事业线全部门店营收佣金按结算规则模拟；基准表只保留数值，去掉旁边的重复说明"
+            },
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "text": "恢复提前支付明细，渠道筛选改为提前支付"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "结款明细同一天多渠道合成一笔，从佣金余额支付"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "text": "去掉顶部评级公式说明"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-11-25",
       "items": [
@@ -1388,6 +1460,11 @@
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
               "title": "异常付款数据"
+            },
+            {
+              "file": "RBT/rbt_risk_config.html",
+              "module": "冷丰RBT",
+              "title": "风控配置"
             }
           ],
           "notes": [
@@ -1499,6 +1576,11 @@
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
               "title": "异常付款数据"
+            },
+            {
+              "file": "RBT/rbt_risk_config.html",
+              "module": "冷丰RBT",
+              "title": "风控配置"
             }
           ],
           "notes": [
@@ -1606,6 +1688,11 @@
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
               "title": "异常付款数据"
+            },
+            {
+              "file": "RBT/rbt_risk_config.html",
+              "module": "冷丰RBT",
+              "title": "风控配置"
             },
             {
               "file": "RBT/rbt_trade.html",
@@ -2425,6 +2512,11 @@
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
               "title": "异常付款数据"
+            },
+            {
+              "file": "RBT/rbt_risk_config.html",
+              "module": "冷丰RBT",
+              "title": "风控配置"
             },
             {
               "file": "RBT/rbt_trade.html",
@@ -6987,6 +7079,11 @@
               "title": "异常付款数据"
             },
             {
+              "file": "RBT/rbt_risk_config.html",
+              "module": "冷丰RBT",
+              "title": "风控配置"
+            },
+            {
               "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
               "title": "交易单"
@@ -7287,6 +7384,11 @@
               "title": "异常付款数据"
             },
             {
+              "file": "RBT/rbt_risk_config.html",
+              "module": "冷丰RBT",
+              "title": "风控配置"
+            },
+            {
               "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
               "title": "交易单"
@@ -7380,6 +7482,11 @@
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
               "title": "异常付款数据"
+            },
+            {
+              "file": "RBT/rbt_risk_config.html",
+              "module": "冷丰RBT",
+              "title": "风控配置"
             },
             {
               "file": "RBT/rbt_trade.html",
