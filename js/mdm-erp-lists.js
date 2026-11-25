@@ -1117,14 +1117,24 @@
             shortName = archiveShort || shortName;
             detailAddrIdx = SUPPLIER_COL.detailAddr;
             contactMobileIdx = SUPPLIER_COL.phone;
-        } else if (kind === 'trader' || kind === 'provider') {
-            var traderShort = c[TRADER_COL.shortName]
-                ? c[TRADER_COL.shortName].textContent.trim()
+        } else if (kind === 'trader') {
+            recordId = tr.getAttribute('data-trader-id') || recordId;
+            var traderPageShort = c[TRADER_PAGE_COL.shortName]
+                ? c[TRADER_PAGE_COL.shortName].textContent.trim()
                 : '';
-            if (traderShort === '—' || traderShort === '-') traderShort = '';
-            shortName = traderShort || shortName;
-            detailAddrIdx = TRADER_COL.detailAddr;
-            contactMobileIdx = TRADER_COL.phone;
+            if (traderPageShort === '—' || traderPageShort === '-') traderPageShort = '';
+            shortName = traderPageShort || shortName;
+            detailAddrIdx = TRADER_PAGE_COL.detailAddr;
+            contactMobileIdx = TRADER_PAGE_COL.phone;
+        } else if (kind === 'provider') {
+            recordId = tr.getAttribute('data-provider-id') || recordId;
+            var providerPageShort = c[PROVIDER_PAGE_COL.shortName]
+                ? c[PROVIDER_PAGE_COL.shortName].textContent.trim()
+                : '';
+            if (providerPageShort === '—' || providerPageShort === '-') providerPageShort = '';
+            shortName = providerPageShort || shortName;
+            detailAddrIdx = PROVIDER_PAGE_COL.detailAddr;
+            contactMobileIdx = PROVIDER_PAGE_COL.phone;
         }
         var detailAddr = c[detailAddrIdx] ? c[detailAddrIdx].textContent.trim() : '';
         var contactMobile = c[contactMobileIdx]
@@ -2196,6 +2206,44 @@
         updatedAt: 15
     };
 
+    /** 贸易商档案列表：不展示贸易商ID、主体名称、主体类型 */
+    var TRADER_PAGE_COL = {
+        name: 0,
+        shortName: 1,
+        region: 2,
+        detailAddr: 3,
+        boundProvider: 4,
+        contact: 5,
+        phone: 6,
+        channel: 7,
+        onboard: 8,
+        balancePay: 9,
+        status: 10,
+        createdBy: 11,
+        createdAt: 12,
+        updatedBy: 13,
+        updatedAt: 14
+    };
+
+    /** 服务商档案列表：不展示服务商ID、主体名称、主体类型 */
+    var PROVIDER_PAGE_COL = {
+        name: 0,
+        shortName: 1,
+        region: 2,
+        detailAddr: 3,
+        providerType: 4,
+        contact: 5,
+        phone: 6,
+        channel: 7,
+        onboard: 8,
+        balancePay: 9,
+        status: 10,
+        createdBy: 11,
+        createdAt: 12,
+        updatedBy: 13,
+        updatedAt: 14
+    };
+
     function statusClassForTrader(status) {
         return status === '冻结' || status === '停用' || status === '禁用' ? 'inactive' : 'active';
     }
@@ -2207,6 +2255,18 @@
         if (/进件成功/.test(s)) variant = 'success';
         else if (/进件失败/.test(s)) variant = 'danger';
         else if (/进件中|未进件/.test(s)) variant = 'warning';
+        return (
+            '<span class="mdm-detail-tag mdm-detail-tag--' +
+            variant +
+            '">' +
+            escapeHtml(s) +
+            '</span>'
+        );
+    }
+
+    function traderBalancePayTagHtml(text) {
+        var s = String(text || '未发起').trim() || '未发起';
+        var variant = s === '已开通' ? 'success' : 'neutral';
         return (
             '<span class="mdm-detail-tag mdm-detail-tag--' +
             variant +
@@ -2240,13 +2300,6 @@
                     '<tr data-trader-id="' +
                     escapeHtml(item.id) +
                     '">' +
-                    '<td>' +
-                    escapeHtml(item.id) +
-                    '</td>' +
-                    traderTextCell(item.subjectName) +
-                    '<td>' +
-                    escapeHtml(item.subjectType || '贸易商') +
-                    '</td>' +
                     traderTextCell(item.name) +
                     traderTextCell(item.shortName, ' data-field="shortName"') +
                     traderTextCell(item.region) +
@@ -2261,7 +2314,13 @@
                     escapeHtml(item.phone || '—') +
                     '</td>' +
                     '<td>' +
+                    escapeHtml(item.onboardChannel || '汇付') +
+                    '</td>' +
+                    '<td>' +
                     traderOnboardTagHtml(item.onboardStatus || '未进件') +
+                    '</td>' +
+                    '<td>' +
+                    traderBalancePayTagHtml(item.balancePay || '未发起') +
                     '</td>' +
                     '<td><span class="status ' +
                     statusClassForTrader(st) +
@@ -2290,14 +2349,14 @@
     function syncTraderArchiveRow(tr, payload) {
         if (!tr) return;
         var cells = tr.querySelectorAll('td');
-        if (cells.length < TRADER_COL.status + 1) return;
-        var traderId = cells[0].textContent.trim();
+        if (cells.length < TRADER_PAGE_COL.status + 1) return;
+        var traderId = tr.getAttribute('data-trader-id') || '';
         var recordKey = 'archive::trader::' + traderId;
-        var onboardFallback = cells[TRADER_COL.onboard].textContent.trim();
+        var onboardFallback = cells[TRADER_PAGE_COL.onboard].textContent.trim();
         var onboardDisplay = resolveSupplierOnboardingDisplay(recordKey, onboardFallback);
         if (payload && payload.status === 'submitted') onboardDisplay = '进件中';
         if (payload === null) onboardDisplay = '未进件';
-        cells[TRADER_COL.onboard].innerHTML = traderOnboardTagHtml(onboardDisplay);
+        cells[TRADER_PAGE_COL.onboard].innerHTML = traderOnboardTagHtml(onboardDisplay);
         if (window.MdmTraderArchiveStore && typeof window.MdmTraderArchiveStore.update === 'function') {
             window.MdmTraderArchiveStore.update({
                 id: traderId,
@@ -2309,14 +2368,14 @@
     function syncProviderArchiveRow(tr, payload) {
         if (!tr) return;
         var cells = tr.querySelectorAll('td');
-        if (cells.length < TRADER_COL.status + 1) return;
-        var providerId = cells[0].textContent.trim();
+        if (cells.length < PROVIDER_PAGE_COL.status + 1) return;
+        var providerId = tr.getAttribute('data-provider-id') || '';
         var recordKey = 'archive::provider::' + providerId;
-        var onboardFallback = cells[TRADER_COL.onboard].textContent.trim();
+        var onboardFallback = cells[PROVIDER_PAGE_COL.onboard].textContent.trim();
         var onboardDisplay = resolveSupplierOnboardingDisplay(recordKey, onboardFallback);
         if (payload && payload.status === 'submitted') onboardDisplay = '进件中';
         if (payload === null) onboardDisplay = '未进件';
-        cells[TRADER_COL.onboard].innerHTML = traderOnboardTagHtml(onboardDisplay);
+        cells[PROVIDER_PAGE_COL.onboard].innerHTML = traderOnboardTagHtml(onboardDisplay);
         if (window.MdmProviderArchiveStore && typeof window.MdmProviderArchiveStore.update === 'function') {
             window.MdmProviderArchiveStore.update({
                 id: providerId,
@@ -2328,8 +2387,6 @@
     function traderArchiveFilter(pm) {
         var tbody = document.getElementById(pm.config.tableBodyId);
         if (!tbody) return;
-        var qSub = (document.getElementById('qSubjectName') || {}).value.trim();
-        var qType = (document.getElementById('qTraderSubjectType') || {}).value.trim();
         var qBound = (document.getElementById('qTraderBoundProvider') || {}).value.trim();
         var qContact = (document.getElementById('qTraderContact') || {}).value.trim();
         var qPhone = (document.getElementById('qTraderPhone') || {}).value.trim();
@@ -2338,14 +2395,12 @@
         var qSt = (document.getElementById('qResStatus') || {}).value.trim();
         tbody.querySelectorAll('tr').forEach(function (tr) {
             var cells = tr.querySelectorAll('td');
-            if (cells.length < TRADER_COL.updatedAt + 1) return;
+            if (cells.length < TRADER_PAGE_COL.updatedAt + 1) return;
             var ok = true;
-            if (qSub && cells[1].textContent.trim().indexOf(qSub) === -1) ok = false;
-            if (qType && cells[TRADER_COL.subjectType].textContent.trim() !== qType) ok = false;
-            if (qBound && cells[TRADER_COL.boundProvider].textContent.trim().indexOf(qBound) === -1) ok = false;
-            if (qContact && cells[TRADER_COL.contact].textContent.trim().indexOf(qContact) === -1) ok = false;
+            if (qBound && cells[TRADER_PAGE_COL.boundProvider].textContent.trim().indexOf(qBound) === -1) ok = false;
+            if (qContact && cells[TRADER_PAGE_COL.contact].textContent.trim().indexOf(qContact) === -1) ok = false;
             if (qPhone) {
-                var phoneText = cells[TRADER_COL.phone].textContent.trim();
+                var phoneText = cells[TRADER_PAGE_COL.phone].textContent.trim();
                 var phoneDigits = phoneText.replace(/\D/g, '');
                 var queryDigits = qPhone.replace(/\D/g, '');
                 var phoneHit =
@@ -2353,11 +2408,11 @@
                     (queryDigits && phoneDigits.indexOf(queryDigits) !== -1);
                 if (!phoneHit) ok = false;
             }
-            if (qN && cells[TRADER_COL.name].textContent.trim().indexOf(qN) === -1) ok = false;
-            if (qOn && cells[TRADER_COL.onboard].textContent.trim() !== qOn) ok = false;
-            var stText = cells[TRADER_COL.status].querySelector('.status')
-                ? cells[TRADER_COL.status].querySelector('.status').textContent.trim()
-                : cells[TRADER_COL.status].textContent.trim();
+            if (qN && cells[TRADER_PAGE_COL.name].textContent.trim().indexOf(qN) === -1) ok = false;
+            if (qOn && cells[TRADER_PAGE_COL.onboard].textContent.trim() !== qOn) ok = false;
+            var stText = cells[TRADER_PAGE_COL.status].querySelector('.status')
+                ? cells[TRADER_PAGE_COL.status].querySelector('.status').textContent.trim()
+                : cells[TRADER_PAGE_COL.status].textContent.trim();
             if (qSt === 'normal' && stText !== '正常') ok = false;
             if (qSt === 'frozen' && stText !== '冻结') ok = false;
             tr.style.display = ok ? '' : 'none';
@@ -2405,12 +2460,12 @@
             entityName: '贸易商档案',
             modalWidth: '640px',
             checkboxColumn: false,
-            statusColumnIndex: TRADER_COL.status,
+            statusColumnIndex: TRADER_PAGE_COL.status,
             actionColumnMode: 'editOnboard',
             fields: fields,
             detailView: {
                 enabled: true,
-                columnIndex: TRADER_COL.name,
+                columnIndex: TRADER_PAGE_COL.name,
                 linkClass: 'subject-name-link',
                 onOpenDetail: function (row) {
                     if (window.MdmArchiveDetailDrawer && typeof window.MdmArchiveDetailDrawer.openTrader === 'function') {
@@ -2449,25 +2504,8 @@
             ]
         });
         pm.init();
-        document.getElementById('mdmArchiveTraderAddBtn') &&
-            document.getElementById('mdmArchiveTraderAddBtn').addEventListener('click', function () {
-                if (
-                    !window.MdmResourceArchiveForms ||
-                    typeof window.MdmResourceArchiveForms.openTraderAdd !== 'function'
-                ) {
-                    showToast('表单模块未加载，请确认已引入 mdm-resource-archive-forms.js', 'error');
-                    return;
-                }
-                window.MdmResourceArchiveForms.openTraderAdd(function () {
-                    renderTraderArchiveRows();
-                    pm.decorateAllDetailLinkCells();
-                    pm.refreshPagination();
-                });
-            });
         bindSimpleFilter(pm, {
             resetFields: [
-                'qSubjectName',
-                'qTraderSubjectType',
                 'qTraderBoundProvider',
                 'qTraderContact',
                 'qTraderPhone',
@@ -2497,13 +2535,6 @@
                     '<tr data-provider-id="' +
                     escapeHtml(item.id) +
                     '">' +
-                    '<td>' +
-                    escapeHtml(item.id) +
-                    '</td>' +
-                    traderTextCell(item.subjectName) +
-                    '<td>' +
-                    escapeHtml(item.subjectType || '服务商') +
-                    '</td>' +
                     traderTextCell(item.name) +
                     traderTextCell(item.shortName, ' data-field="shortName"') +
                     traderTextCell(item.region) +
@@ -2518,7 +2549,13 @@
                     escapeHtml(item.phone || '—') +
                     '</td>' +
                     '<td>' +
+                    escapeHtml(item.onboardChannel || '汇付') +
+                    '</td>' +
+                    '<td>' +
                     traderOnboardTagHtml(item.onboardStatus || '未进件') +
+                    '</td>' +
+                    '<td>' +
+                    traderBalancePayTagHtml(item.balancePay || '未发起') +
                     '</td>' +
                     '<td><span class="status ' +
                     statusClassForTrader(st) +
@@ -2547,7 +2584,6 @@
     function providerArchiveFilter(pm) {
         var tbody = document.getElementById(pm.config.tableBodyId);
         if (!tbody) return;
-        var qSub = (document.getElementById('qSubjectName') || {}).value.trim();
         var qType = (document.getElementById('qProviderType') || {}).value.trim();
         var qContact = (document.getElementById('qProviderContact') || {}).value.trim();
         var qPhone = (document.getElementById('qProviderPhone') || {}).value.trim();
@@ -2556,13 +2592,12 @@
         var qSt = (document.getElementById('qResStatus') || {}).value.trim();
         tbody.querySelectorAll('tr').forEach(function (tr) {
             var cells = tr.querySelectorAll('td');
-            if (cells.length < TRADER_COL.updatedAt + 1) return;
+            if (cells.length < PROVIDER_PAGE_COL.updatedAt + 1) return;
             var ok = true;
-            if (qSub && cells[1].textContent.trim().indexOf(qSub) === -1) ok = false;
-            if (qType && cells[TRADER_COL.boundProvider].textContent.trim() !== qType) ok = false;
-            if (qContact && cells[TRADER_COL.contact].textContent.trim().indexOf(qContact) === -1) ok = false;
+            if (qType && cells[PROVIDER_PAGE_COL.providerType].textContent.trim() !== qType) ok = false;
+            if (qContact && cells[PROVIDER_PAGE_COL.contact].textContent.trim().indexOf(qContact) === -1) ok = false;
             if (qPhone) {
-                var phoneText = cells[TRADER_COL.phone].textContent.trim();
+                var phoneText = cells[PROVIDER_PAGE_COL.phone].textContent.trim();
                 var phoneDigits = phoneText.replace(/\D/g, '');
                 var queryDigits = qPhone.replace(/\D/g, '');
                 var phoneHit =
@@ -2570,11 +2605,11 @@
                     (queryDigits && phoneDigits.indexOf(queryDigits) !== -1);
                 if (!phoneHit) ok = false;
             }
-            if (qN && cells[TRADER_COL.name].textContent.trim().indexOf(qN) === -1) ok = false;
-            if (qOn && cells[TRADER_COL.onboard].textContent.trim() !== qOn) ok = false;
-            var stText = cells[TRADER_COL.status].querySelector('.status')
-                ? cells[TRADER_COL.status].querySelector('.status').textContent.trim()
-                : cells[TRADER_COL.status].textContent.trim();
+            if (qN && cells[PROVIDER_PAGE_COL.name].textContent.trim().indexOf(qN) === -1) ok = false;
+            if (qOn && cells[PROVIDER_PAGE_COL.onboard].textContent.trim() !== qOn) ok = false;
+            var stText = cells[PROVIDER_PAGE_COL.status].querySelector('.status')
+                ? cells[PROVIDER_PAGE_COL.status].querySelector('.status').textContent.trim()
+                : cells[PROVIDER_PAGE_COL.status].textContent.trim();
             if (qSt === 'normal' && stText !== '正常') ok = false;
             if (qSt === 'frozen' && stText !== '冻结') ok = false;
             tr.style.display = ok ? '' : 'none';
@@ -2614,12 +2649,12 @@
             entityName: '服务商档案',
             modalWidth: '640px',
             checkboxColumn: false,
-            statusColumnIndex: TRADER_COL.status,
+            statusColumnIndex: PROVIDER_PAGE_COL.status,
             actionColumnMode: 'editOnboard',
             fields: fields,
             detailView: {
                 enabled: true,
-                columnIndex: TRADER_COL.name,
+                columnIndex: PROVIDER_PAGE_COL.name,
                 linkClass: 'subject-name-link',
                 onOpenDetail: function (row) {
                     if (window.MdmArchiveDetailDrawer && typeof window.MdmArchiveDetailDrawer.openProvider === 'function') {
@@ -2658,24 +2693,8 @@
             ]
         });
         pm.init();
-        document.getElementById('mdmArchiveProviderAddBtn') &&
-            document.getElementById('mdmArchiveProviderAddBtn').addEventListener('click', function () {
-                if (
-                    !window.MdmResourceArchiveForms ||
-                    typeof window.MdmResourceArchiveForms.openProviderAdd !== 'function'
-                ) {
-                    showToast('表单模块未加载，请确认已引入 mdm-resource-archive-forms.js', 'error');
-                    return;
-                }
-                window.MdmResourceArchiveForms.openProviderAdd(function () {
-                    renderProviderArchiveRows();
-                    pm.decorateAllDetailLinkCells();
-                    pm.refreshPagination();
-                });
-            });
         bindSimpleFilter(pm, {
             resetFields: [
-                'qSubjectName',
                 'qProviderType',
                 'qProviderContact',
                 'qProviderPhone',

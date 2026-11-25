@@ -49,6 +49,10 @@
         row.subjectType = '贸易商';
         var bound = String(row.boundProvider || '').trim();
         row.boundProvider = bound && bound !== '—' ? bound : '冷丰';
+        row.onboardChannel = String(row.onboardChannel || '').trim() || '汇付';
+        if (!String(row.balancePay || '').trim()) {
+            row.balancePay = row.onboardStatus === '进件成功' ? '已开通' : '未发起';
+        }
         return row;
     }
 
@@ -66,7 +70,9 @@
                 boundProvider: '冷丰',
                 contact: '周宁',
                 phone: '138****1001',
+                onboardChannel: '汇付',
                 onboardStatus: '进件成功',
+                balancePay: '已开通',
                 status: '正常',
                 license: {
                     name: '杭州鲜达贸易有限公司',
@@ -106,7 +112,9 @@
                 boundProvider: '冷丰',
                 contact: '李航',
                 phone: '138****1002',
+                onboardChannel: '汇付',
                 onboardStatus: '进件中',
+                balancePay: '未发起',
                 status: '正常',
                 license: {
                     name: '上海冷链融资租赁有限公司',

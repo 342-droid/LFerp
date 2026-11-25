@@ -1649,30 +1649,43 @@
 
         function fillFromArchiveRow(tr) {
             var c = tr.querySelectorAll('td');
+            var col = {
+                subject: -1,
+                name: 0,
+                shortName: 1,
+                region: 2,
+                detail: 3,
+                extra: 4,
+                contact: 5,
+                phone: 6,
+                status: 10
+            };
             var id =
                 tr.getAttribute(isProvider ? 'data-provider-id' : 'data-trader-id') || cellPlainText(c[0]);
             var stored = archiveApi && archiveApi.get ? archiveApi.get(id) : null;
-            ensureSubjectOption((stored && stored.subjectName) || cellPlainText(c[1]));
+            ensureSubjectOption(
+                (stored && stored.subjectName) || (col.subject >= 0 ? cellPlainText(c[col.subject]) : '')
+            );
             refs.subjectTypeInp.value = noun;
-            refs.nameInp.value = dashToEmpty((stored && stored.name) || cellPlainText(c[3]));
-            refs.shortNameInp.value = dashToEmpty((stored && stored.shortName) || cellPlainText(c[4]));
+            refs.nameInp.value = dashToEmpty((stored && stored.name) || cellPlainText(c[col.name]));
+            refs.shortNameInp.value = dashToEmpty((stored && stored.shortName) || cellPlainText(c[col.shortName]));
             if (refs.providerTypeSel) {
-                refs.providerTypeSel.value = dashToEmpty((stored && stored.providerType) || cellPlainText(c[7]));
+                refs.providerTypeSel.value = dashToEmpty((stored && stored.providerType) || cellPlainText(c[col.extra]));
             }
             if (refs.boundSel) {
-                var bound = dashToEmpty((stored && stored.boundProvider) || cellPlainText(c[7]));
+                var bound = dashToEmpty((stored && stored.boundProvider) || cellPlainText(c[col.extra]));
                 refs.boundSel.value = bound;
                 if (refs.boundSel.value !== bound) refs.boundSel.value = '';
             }
-            refs.regionInp.value = dashToEmpty((stored && stored.region) || cellPlainText(c[5]));
-            if (refs.detailTa) refs.detailTa.value = dashToEmpty((stored && stored.detailAddr) || cellPlainText(c[6]));
-            if (refs.phoneInp) refs.phoneInp.value = dashToEmpty((stored && stored.phone) || cellPlainText(c[9]));
-            refs.contactInp.value = dashToEmpty((stored && stored.contact) || cellPlainText(c[8]));
-            var status = dashToEmpty((stored && stored.status) || (c[11] && cellPlainText(c[11]))) || '正常';
+            refs.regionInp.value = dashToEmpty((stored && stored.region) || cellPlainText(c[col.region]));
+            if (refs.detailTa) refs.detailTa.value = dashToEmpty((stored && stored.detailAddr) || cellPlainText(c[col.detail]));
+            if (refs.phoneInp) refs.phoneInp.value = dashToEmpty((stored && stored.phone) || cellPlainText(c[col.phone]));
+            refs.contactInp.value = dashToEmpty((stored && stored.contact) || cellPlainText(c[col.contact]));
+            var status = dashToEmpty((stored && stored.status) || (c[col.status] && cellPlainText(c[col.status]))) || '正常';
             body.querySelectorAll('input[name="' + refs.statusName + '"]').forEach(function (inp) {
                 inp.checked = inp.value === status;
             });
-            hydrateArchiveMaterials(refs, 'trader', refs.nameInp.value);
+            hydrateArchiveMaterials(refs, isProvider ? 'provider' : 'trader', refs.nameInp.value);
         }
 
         function collect() {
@@ -2230,6 +2243,30 @@
         return true;
     }
 
+    function commitFirstProvider(subject, bundle) {
+        var refs = bundle.refs || {};
+        copySubjectIntoArchive('provider', subject, refs);
+        var providerName = refs.nameInp ? String(refs.nameInp.value || '').trim() : '';
+        saveSubjectMaterials(subject, 'provider', providerName, refs.entryMaterials);
+        if (!bundle.collect) return false;
+        var payload = bundle.collect();
+        payload.subjectId = subject.id || '';
+        payload.subjectName = subject.name || payload.subjectName;
+        payload.subjectType = '服务商';
+        payload.contact = subject.contact || payload.contact;
+        payload.phone = subject.phone || payload.phone;
+        if (!window.MdmProviderArchiveStore || typeof window.MdmProviderArchiveStore.add !== 'function') {
+            if (typeof showToast === 'function') showToast('服务商档案存储未加载', 'error');
+            return false;
+        }
+        var created = window.MdmProviderArchiveStore.add(payload);
+        if (!created) {
+            if (typeof showToast === 'function') showToast('服务商档案未写入，请检查必填项', 'error');
+            return false;
+        }
+        return true;
+    }
+
     function buildFirstArchive(kind) {
         if (kind === 'warehouse') {
             var warehouseBundle = createWarehouseFormBundle();
@@ -2242,6 +2279,12 @@
             hideLabeledRows(traderBundle.body, ['主体名称', '主体类型', '手机号码', '验证码', '联系人姓名']);
             traderBundle.kind = kind;
             return traderBundle;
+        }
+        if (kind === 'provider') {
+            var providerBundle = createTraderFormBundle('provider');
+            hideLabeledRows(providerBundle.body, ['主体名称', '主体类型', '手机号码', '验证码', '联系人姓名']);
+            providerBundle.kind = kind;
+            return providerBundle;
         }
         var bundle = kind === 'supplier'
             ? createSupplierFormBundle({ includeInboundWarehouse: true })
@@ -2276,7 +2319,9 @@
         if (subjectType !== '门店' && subjectType !== '供应商' && subjectType !== '贸易商' && subjectType !== '服务商') {
             return null;
         }
-        var prefix = subjectType === '供应商' ? 'WF-SUP-' : (subjectType === '门店' ? 'WF-STORE-' : 'WF-TRD-');
+        var prefix = subjectType === '供应商'
+            ? 'WF-SUP-'
+            : (subjectType === '门店' ? 'WF-STORE-' : (subjectType === '服务商' ? 'WF-PRV-' : 'WF-TRD-'));
         var list = [];
         try {
             list = JSON.parse(localStorage.getItem(ENTRY_AUDIT_KEY) || '[]');
@@ -2326,6 +2371,7 @@
             if (kind === 'supplier') return commitFirstSupplier(subject, bundle);
             if (kind === 'warehouse') return commitFirstWarehouse(subject, bundle);
             if (kind === 'trader') return commitFirstTrader(subject, bundle);
+            if (kind === 'provider') return commitFirstProvider(subject, bundle);
             return commitFirstStore(subject, bundle);
         },
         takeFirstStores: function () { return takeQueue(FIRST_STORE_KEY); },
@@ -2743,7 +2789,8 @@
                     return false;
                 }
                 if (typeof onSaved === 'function') onSaved(updated);
-            });
+                persistArchiveMaterials(bundle.refs, 'provider', payload.name);
+            }, null, '服务商');
         },
         openSupplierAdd: function () {
             var bundle = createSupplierFormBundle({ includeInboundWarehouse: true });

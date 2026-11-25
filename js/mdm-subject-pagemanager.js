@@ -1731,6 +1731,7 @@
         if (label === '供应商') return 'supplier';
         if (label === '仓库') return 'warehouse';
         if (label === '贸易商') return 'trader';
+        if (label === '服务商') return 'provider';
         if (label === '门店') return 'store';
         return '';
     }
@@ -1944,6 +1945,7 @@
                         window.location.href = 'mdm_archive_trader.html';
                     }, 600);
                 } else if (
+                    !kindSpec.archiveBundle &&
                     kindSpec.subjectTypeLabel === '服务商' &&
                     window.MdmProviderArchiveStore &&
                     typeof window.MdmProviderArchiveStore.addFromSubject === 'function'

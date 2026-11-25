@@ -452,6 +452,7 @@
                 if (field.tip) cell.appendChild(el('div', 'em-tip', field.tip));
                 grid.appendChild(cell);
             });
+            block.setAttribute('data-em-group', group);
             block.appendChild(grid);
             root.appendChild(block);
         }
@@ -467,6 +468,15 @@
             appendGroup('法人身份证', 'legal');
             appendGroup('法人实名电话', 'phone');
             appendGroup('结算信息', 'settle');
+            relocateSettle();
+        }
+
+        function relocateSettle() {
+            var host = root._emSettleHost;
+            if (!host) return;
+            host.innerHTML = '';
+            var block = root.querySelector('[data-em-group="settle"]');
+            if (block) host.appendChild(block);
         }
 
         function markUploaded(key) {
@@ -489,15 +499,21 @@
         return root;
     }
 
+    function collectFields(node, data) {
+        if (!node) return;
+        node.querySelectorAll('[data-em]').forEach(function (input) {
+            data[input.getAttribute('data-em')] = String(input.value || '').trim();
+        });
+        node.querySelectorAll('[data-em-upload]').forEach(function (btn) {
+            data[btn.getAttribute('data-em-upload')] = btn.getAttribute('data-upload-state') === '1';
+        });
+    }
+
     function read(root) {
         var data = emptyRecord();
         if (!root) return data;
-        root.querySelectorAll('[data-em]').forEach(function (input) {
-            data[input.getAttribute('data-em')] = String(input.value || '').trim();
-        });
-        root.querySelectorAll('[data-em-upload]').forEach(function (btn) {
-            data[btn.getAttribute('data-em-upload')] = btn.getAttribute('data-upload-state') === '1';
-        });
+        collectFields(root, data);
+        if (root._emSettleHost && !root.contains(root._emSettleHost)) collectFields(root._emSettleHost, data);
         return data;
     }
 
@@ -527,21 +543,40 @@
         });
     }
 
-    function validateRecord(data) {
+    function validateRecord(data, groups) {
         data = Object.assign(emptyRecord(), data || {});
+        function inGroup(field) {
+            return !groups || groups.indexOf(field.group) >= 0;
+        }
         var i;
         for (i = 0; i < UPLOADS.length; i++) {
+            if (!inGroup(UPLOADS[i])) continue;
             if (!data[UPLOADS[i].key]) return '请' + UPLOADS[i].label;
         }
         for (i = 0; i < TEXT_FIELDS.length; i++) {
+            if (!inGroup(TEXT_FIELDS[i])) continue;
             if (!data[TEXT_FIELDS[i].key]) return '请填写' + TEXT_FIELDS[i].label;
         }
-        if (!/^1\d{10}$/.test(data.legalRealnamePhone)) return '请填写11位法人实名电话';
+        if (inGroup({ group: 'phone' }) && !/^1\d{10}$/.test(data.legalRealnamePhone)) return '请填写11位法人实名电话';
         return '';
     }
 
     function validate(root) {
         return validateRecord(read(root));
+    }
+
+    /* 只校验容器里实际放着的资料分组，结算被拆到另一步时不会挡住上一步。 */
+    function validateGroups(container) {
+        if (!container) return '';
+        var groups = [];
+        container.querySelectorAll('[data-em-group]').forEach(function (el) {
+            var name = el.getAttribute('data-em-group');
+            if (name && groups.indexOf(name) < 0) groups.push(name);
+        });
+        if (!groups.length) return '';
+        var data = emptyRecord();
+        collectFields(container, data);
+        return validateRecord(data, groups);
     }
 
     function h5Field(label, inner) {
@@ -857,6 +892,7 @@
         fill: fill,
         validate: validate,
         validateRecord: validateRecord,
+        validateGroups: validateGroups,
         h5Section: h5Section,
         h5Root: h5Root,
         toOnboardingDefaults: toOnboardingDefaults,

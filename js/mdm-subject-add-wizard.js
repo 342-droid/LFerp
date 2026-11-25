@@ -1,6 +1,6 @@
 /**
  * 所有主体「新增」改为分步弹窗：先配主体，再编下游档案。
- * 门店、供应商、仓库、贸易商都是两步：先主体，再下游信息。
+ * 门店、供应商、仓库、贸易商、服务商都是两步：先主体，再下游信息。
  */
 (function (global) {
     var CONTRACT_CAUTION = '所填信息为合同签约的控件填充字段，<strong>请谨慎填写</strong>！';
@@ -156,6 +156,38 @@
         }
     ];
 
+    var PROVIDER_STEPS = [
+        {
+            title: '主体信息',
+            items: [
+                { caution: CONTRACT_CAUTION },
+                { sec: '基础信息' },
+                { label: '主体名称', span: true, bar: true },
+                { label: '主体类型' },
+                { sec: '联系信息' },
+                { label: '联系人' },
+                { label: '手机号码' },
+                { label: '验证码' },
+                { sec: '证照与结算' },
+                { materials: true, span: true }
+            ]
+        },
+        {
+            title: '服务商信息',
+            items: [
+                { sec: '基础信息' },
+                { label: '服务商名称' },
+                { label: '服务商简称' },
+                { label: '服务商类型' },
+                { label: '服务商状态', span: true },
+                { sec: '地址' },
+                { label: '服务商地址' },
+                { label: '详细地址', span: true },
+                { map: true, span: true }
+            ]
+        }
+    ];
+
     var ARCHIVE_STORE_STEPS = [
         {
             title: '门店信息',
@@ -289,23 +321,53 @@
                 { label: '主体类型' },
                 { label: '贸易商名称' },
                 { label: '贸易商简称' },
+                { label: '绑定服务商' },
                 { label: '牌照类型' },
                 { label: '业务范围' },
                 { label: '贸易商状态', span: true },
                 { label: '联系人姓名' },
                 { label: '手机号码' },
                 { label: '验证码' },
-                { sec: '证照与结算' },
-                { materials: true, span: true }
-            ]
-        },
-        {
-            title: '地址',
-            items: [
                 { sec: '地址' },
                 { label: '贸易商地址' },
                 { label: '详细地址', span: true },
                 { map: true, span: true }
+            ]
+        },
+        {
+            title: '证照与结算',
+            items: [
+                { sec: '证照与结算' },
+                { materials: true, span: true }
+            ]
+        }
+    ];
+
+    var ARCHIVE_PROVIDER_STEPS = [
+        {
+            title: '服务商信息',
+            items: [
+                { sec: '基础信息' },
+                { label: '主体名称', span: true, bar: true },
+                { label: '主体类型' },
+                { label: '服务商名称' },
+                { label: '服务商简称' },
+                { label: '服务商类型' },
+                { label: '服务商状态', span: true },
+                { label: '联系人姓名' },
+                { label: '手机号码' },
+                { label: '验证码' },
+                { sec: '地址' },
+                { label: '服务商地址' },
+                { label: '详细地址', span: true },
+                { map: true, span: true }
+            ]
+        },
+        {
+            title: '证照与结算',
+            items: [
+                { sec: '证照与结算' },
+                { materials: true, span: true }
             ]
         }
     ];
@@ -341,12 +403,12 @@
         form.style.maxHeight = '';
         form.style.overflow = '';
 
-        var titles = { 门店: '添加门店商家', 供应商: '添加供应商商家', 仓库: '添加仓库商家', 贸易商: '添加贸易商商家' };
+        var titles = { 门店: '添加门店商家', 供应商: '添加供应商商家', 仓库: '添加仓库商家', 贸易商: '添加贸易商商家', 服务商: '添加服务商商家' };
         var heading = modal.querySelector('.modal-title');
         if (heading && titles[kind] && !opts.keepTitle) heading.textContent = titles[kind];
 
-        var subjectRecipes = { 门店: STORE_STEPS, 供应商: SUPPLIER_STEPS, 仓库: WAREHOUSE_STEPS, 贸易商: TRADER_STEPS };
-        var archiveRecipes = { 门店: ARCHIVE_STORE_STEPS, 供应商: ARCHIVE_SUPPLIER_STEPS, 仓库: ARCHIVE_WAREHOUSE_STEPS, 贸易商: ARCHIVE_TRADER_STEPS };
+        var subjectRecipes = { 门店: STORE_STEPS, 供应商: SUPPLIER_STEPS, 仓库: WAREHOUSE_STEPS, 贸易商: TRADER_STEPS, 服务商: PROVIDER_STEPS };
+        var archiveRecipes = { 门店: ARCHIVE_STORE_STEPS, 供应商: ARCHIVE_SUPPLIER_STEPS, 仓库: ARCHIVE_WAREHOUSE_STEPS, 贸易商: ARCHIVE_TRADER_STEPS, 服务商: ARCHIVE_PROVIDER_STEPS };
         var recipe = (opts.archive ? archiveRecipes[kind] : subjectRecipes[kind]) || null;
         var archive = form.querySelector('.store-form__row')
             ? form.querySelector('.store-form__row').parentNode
@@ -384,7 +446,7 @@
         claimTree(archive || form);
         form.querySelectorAll('.modal-form-group').forEach(function (group) {
             var lab = labelOf(group);
-            if (lab === '主体类型' && kind !== '贸易商') {
+            if (lab === '主体类型' && kind !== '贸易商' && kind !== '服务商') {
                 sink.appendChild(group);
                 return;
             }
@@ -449,6 +511,18 @@
                     return;
                 }
                 var node = null;
+                if (item.settle) {
+                    var settleGroup = modal.querySelector('[data-em-group="settle"]');
+                    if (settleGroup) {
+                        var settleHost = el('div', 'subj-wiz__span');
+                        settleHost.setAttribute('data-em-settle-host', '1');
+                        var materialsRoot = settleGroup.closest('[data-entry-materials]');
+                        if (materialsRoot) materialsRoot._emSettleHost = settleHost;
+                        settleHost.appendChild(settleGroup);
+                        grid.appendChild(settleHost);
+                    }
+                    return;
+                }
                 if (item.materials) node = take(function (n) { return n.hasAttribute && n.hasAttribute('data-entry-materials'); });
                 else if (item.map) node = take(function (n) { return !!n.querySelector('.store-archive__map-mock'); });
                 else if (item.collapse) node = take(function (n) { return labelOf(n) === item.collapse; });
@@ -613,12 +687,22 @@
                     ok = false;
                 }
             });
-            var materials = panel.querySelector('[data-entry-materials]');
-            if (materials && global.MdmEntryMaterials && typeof global.MdmEntryMaterials.validate === 'function') {
-                var entryErr = global.MdmEntryMaterials.validate(materials);
-                if (entryErr) {
-                    mark(materials, entryErr);
-                    ok = false;
+            if (global.MdmEntryMaterials && typeof global.MdmEntryMaterials.validateGroups === 'function') {
+                panel.querySelectorAll('[data-entry-materials], [data-em-settle-host]').forEach(function (chunk) {
+                    var entryErr = global.MdmEntryMaterials.validateGroups(chunk);
+                    if (entryErr) {
+                        mark(chunk, entryErr);
+                        ok = false;
+                    }
+                });
+            } else {
+                var materials = panel.querySelector('[data-entry-materials]');
+                if (materials && global.MdmEntryMaterials && typeof global.MdmEntryMaterials.validate === 'function') {
+                    var entryErr = global.MdmEntryMaterials.validate(materials);
+                    if (entryErr) {
+                        mark(materials, entryErr);
+                        ok = false;
+                    }
                 }
             }
             return ok;

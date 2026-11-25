@@ -7772,7 +7772,87 @@
         });
     }
 
+    function rowToTraderPage(tr) {
+        var id = tr.getAttribute('data-trader-id') || '';
+        var stored =
+            window.MdmTraderArchiveStore && typeof window.MdmTraderArchiveStore.get === 'function'
+                ? window.MdmTraderArchiveStore.get(id)
+                : null;
+        var c = tr.querySelectorAll('td');
+        var fromCells = {
+            id: id,
+            name: cellPlain(c[0]),
+            shortName: cellPlain(c[1]),
+            region: cellPlain(c[2]),
+            detailAddr: cellPlain(c[3]),
+            boundProvider: cellPlain(c[4]),
+            contact: cellPlain(c[5]),
+            phone: cellPlain(c[6]),
+            onboardChannel: cellPlain(c[7]) || '汇付',
+            onboardStatus: cellPlain(c[8]),
+            balancePay: cellPlain(c[9]) || '未发起',
+            status: cellStatus(c[10]),
+            createdBy: cellPlain(c[11]),
+            createdAt: cellPlain(c[12]),
+            updatedBy: cellPlain(c[13]),
+            updatedAt: cellPlain(c[14])
+        };
+        if (!stored) {
+            return Object.assign(fromCells, { subjectName: '', subjectType: '贸易商' });
+        }
+        return Object.assign({}, stored, fromCells, {
+            id: stored.id || id,
+            subjectName: stored.subjectName || '',
+            subjectType: '贸易商',
+            onboardChannel: stored.onboardChannel || fromCells.onboardChannel || '汇付',
+            balancePay: stored.balancePay || fromCells.balancePay || '未发起'
+        });
+    }
+
+    function rowToProviderPage(tr) {
+        var id = tr.getAttribute('data-provider-id') || '';
+        var stored =
+            window.MdmProviderArchiveStore && typeof window.MdmProviderArchiveStore.get === 'function'
+                ? window.MdmProviderArchiveStore.get(id)
+                : null;
+        var c = tr.querySelectorAll('td');
+        var providerType = cellPlain(c[4]);
+        var fromCells = {
+            id: id,
+            name: cellPlain(c[0]),
+            shortName: cellPlain(c[1]),
+            region: cellPlain(c[2]),
+            detailAddr: cellPlain(c[3]),
+            boundProvider: providerType,
+            providerType: providerType,
+            contact: cellPlain(c[5]),
+            phone: cellPlain(c[6]),
+            onboardChannel: cellPlain(c[7]) || '汇付',
+            onboardStatus: cellPlain(c[8]),
+            balancePay: cellPlain(c[9]) || '未发起',
+            status: cellStatus(c[10]),
+            createdBy: cellPlain(c[11]),
+            createdAt: cellPlain(c[12]),
+            updatedBy: cellPlain(c[13]),
+            updatedAt: cellPlain(c[14])
+        };
+        if (!stored) {
+            return Object.assign(fromCells, { subjectName: '', subjectType: '服务商' });
+        }
+        return Object.assign({}, stored, fromCells, {
+            id: stored.id || id,
+            subjectName: stored.subjectName || '',
+            subjectType: '服务商',
+            providerType: stored.providerType || fromCells.providerType,
+            boundProvider: stored.providerType || fromCells.providerType,
+            onboardChannel: stored.onboardChannel || fromCells.onboardChannel || '汇付',
+            balancePay: stored.balancePay || fromCells.balancePay || '未发起'
+        });
+    }
+
     function rowToTrader(tr) {
+        if (tr && tr.getAttribute('data-trader-id')) return rowToTraderPage(tr);
+        if (tr && tr.getAttribute('data-provider-id')) return rowToProviderPage(tr);
         var c = tr.querySelectorAll('td');
         if (c.length < 16) return null;
         return {
@@ -7799,9 +7879,6 @@
         var p = el('div', 'supplier-detail-tab');
         p.appendChild(sectionTitle('基础信息'));
         var grid = el('div', 'supplier-detail-grid');
-        grid.appendChild(detailCell('贸易商ID', r.id));
-        grid.appendChild(detailCell('主体名称', r.subjectName));
-        grid.appendChild(detailCell('主体类型', r.subjectType || '贸易商'));
         grid.appendChild(detailCell('贸易商名称', r.name));
         grid.appendChild(detailCell('贸易商简称', r.shortName));
         grid.appendChild(detailCell('贸易商地址', r.region));
@@ -7809,7 +7886,9 @@
         grid.appendChild(detailCell('绑定服务商', r.boundProvider || '冷丰'));
         grid.appendChild(detailCell('联系人姓名', r.contact));
         grid.appendChild(detailCell('手机号码', r.phone));
+        grid.appendChild(detailCell('进件渠道', r.onboardChannel || '汇付'));
         grid.appendChild(detailCellTagged('进件状态', r.onboardStatus, true));
+        grid.appendChild(detailCell('余额支付', r.balancePay || '未发起'));
         grid.appendChild(detailCellTagged('贸易商状态', r.status, true));
         grid.appendChild(detailCell('创建人', r.createdBy));
         grid.appendChild(detailCell('创建时间', r.createdAt));
@@ -7977,7 +8056,12 @@
             heroName: r.shortName && r.shortName !== '—' ? r.shortName : r.name,
             heroTags: tags,
             sourceRow: tr,
-            metaLines: ['贸易商ID：' + r.id + ' · 所属组织：' + r.subjectName],
+            metaLines: [
+                '绑定服务商：' +
+                    (r.boundProvider || '冷丰') +
+                    ' · 进件渠道：' +
+                    (r.onboardChannel || '汇付')
+            ],
             wideClass: 'store-drawer--supplier-wide',
             tabIds: ['base', 'onboard'],
             tabLabels: ['基础信息', '进件信息'],
@@ -7992,9 +8076,6 @@
         var p = el('div', 'supplier-detail-tab');
         p.appendChild(sectionTitle('基础信息'));
         var grid = el('div', 'supplier-detail-grid');
-        grid.appendChild(detailCell('服务商ID', r.id));
-        grid.appendChild(detailCell('主体名称', r.subjectName));
-        grid.appendChild(detailCell('主体类型', '服务商'));
         grid.appendChild(detailCell('服务商名称', r.name));
         grid.appendChild(detailCell('服务商简称', r.shortName));
         grid.appendChild(detailCell('服务商地址', r.region));
@@ -8002,7 +8083,9 @@
         grid.appendChild(detailCell('服务商类型', r.providerType));
         grid.appendChild(detailCell('联系人姓名', r.contact));
         grid.appendChild(detailCell('手机号码', r.phone));
+        grid.appendChild(detailCell('进件渠道', r.onboardChannel || '汇付'));
         grid.appendChild(detailCellTagged('进件状态', r.onboardStatus, true));
+        grid.appendChild(detailCell('余额支付', r.balancePay || '未发起'));
         grid.appendChild(detailCellTagged('服务商状态', r.status, true));
         grid.appendChild(detailCell('创建人', r.createdBy));
         grid.appendChild(detailCell('创建时间', r.createdAt));
@@ -8028,6 +8111,8 @@
                 r.subjectType = '服务商';
                 r.name = stored.name || r.name;
                 r.shortName = stored.shortName || r.shortName;
+                r.onboardChannel = stored.onboardChannel || r.onboardChannel || '汇付';
+                r.balancePay = stored.balancePay || r.balancePay || '未发起';
                 r.license = stored.license || {};
                 r.permit = stored.permit || {};
             }
@@ -8040,7 +8125,12 @@
             title: '服务商详情',
             heroName: r.shortName && r.shortName !== '—' ? r.shortName : r.name,
             heroTags: tags,
-            metaLines: ['服务商ID：' + r.id + ' · 所属组织：' + r.subjectName],
+            metaLines: [
+                '服务商类型：' +
+                    (r.providerType || '—') +
+                    ' · 进件渠道：' +
+                    (r.onboardChannel || '汇付')
+            ],
             wideClass: 'store-drawer--supplier-wide',
             tabIds: ['base', 'onboard'],
             tabLabels: ['基础信息', '进件信息'],

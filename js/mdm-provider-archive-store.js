@@ -51,6 +51,10 @@
         row.subjectType = '服务商';
         var providerType = String(row.providerType || row.licenseType || '').trim();
         row.providerType = PROVIDER_TYPES.indexOf(providerType) >= 0 ? providerType : providerType && providerType !== '—' ? providerType : '';
+        row.onboardChannel = String(row.onboardChannel || '').trim() || '汇付';
+        if (!String(row.balancePay || '').trim()) {
+            row.balancePay = row.onboardStatus === '进件成功' ? '已开通' : '未发起';
+        }
         return row;
     }
 
@@ -68,7 +72,9 @@
                 providerType: '商业保理公司',
                 contact: '林夏',
                 phone: '138****1000',
+                onboardChannel: '汇付',
                 onboardStatus: '进件成功',
+                balancePay: '已开通',
                 status: '正常',
                 createdBy: '系统',
                 createdAt: '2026-01-06 09:00:00',
@@ -87,7 +93,9 @@
                 providerType: '持牌金融机构',
                 contact: '陈可',
                 phone: '138****1003',
+                onboardChannel: '汇付',
                 onboardStatus: '未进件',
+                balancePay: '未发起',
                 status: '正常',
                 license: {
                     name: '宁波海丰商业保理有限公司',
