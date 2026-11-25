@@ -4046,6 +4046,105 @@
     "status": "diff",
     "date": "2026-11-24"
   },
+  "dfa74bb|MDM/mdm_audit_rbt_demand.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "dfa74bb|RBT/rbt_admit_store.html": {
+    "before": "changelog-assets/dfa74bb/RBT__rbt_admit_store.html.before.jpg",
+    "after": "changelog-assets/dfa74bb/RBT__rbt_admit_store.html.after.jpg",
+    "regions": 3,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "dfa74bb|RBT/rbt_contract_sign.html": {
+    "before": "changelog-assets/dfa74bb/RBT__rbt_contract_sign.html.before.jpg",
+    "after": "changelog-assets/dfa74bb/RBT__rbt_contract_sign.html.after.jpg",
+    "regions": 3,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "dfa74bb|RBT/rbt_daily_fulfill.html": {
+    "before": "changelog-assets/dfa74bb/RBT__rbt_daily_fulfill.html.before.jpg",
+    "after": "changelog-assets/dfa74bb/RBT__rbt_daily_fulfill.html.after.jpg",
+    "regions": 5,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "dfa74bb|RBT/rbt_demand.html": {
+    "before": "changelog-assets/dfa74bb/RBT__rbt_demand.html.before.jpg",
+    "after": "changelog-assets/dfa74bb/RBT__rbt_demand.html.after.jpg",
+    "regions": 3,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "dfa74bb|RBT/rbt_h5_provider.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "dfa74bb|RBT/rbt_h5_store.html": {
+    "before": "changelog-assets/dfa74bb/RBT__rbt_h5_store.html.before.jpg",
+    "after": "changelog-assets/dfa74bb/RBT__rbt_h5_store.html.after.jpg",
+    "regions": 12,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "dfa74bb|RBT/rbt_h5_trader.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "dfa74bb|RBT/rbt_index.html": {
+    "before": "changelog-assets/dfa74bb/RBT__rbt_index.html.before.jpg",
+    "after": "changelog-assets/dfa74bb/RBT__rbt_index.html.after.jpg",
+    "regions": 10,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "dfa74bb|RBT/rbt_installment.html": {
+    "before": "changelog-assets/dfa74bb/RBT__rbt_installment.html.before.jpg",
+    "after": "changelog-assets/dfa74bb/RBT__rbt_installment.html.after.jpg",
+    "regions": 3,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "dfa74bb|RBT/rbt_performance.html": {
+    "before": "changelog-assets/dfa74bb/RBT__rbt_performance.html.before.jpg",
+    "after": "changelog-assets/dfa74bb/RBT__rbt_performance.html.after.jpg",
+    "regions": 6,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "dfa74bb|RBT/rbt_product_package.html": {
+    "before": "changelog-assets/dfa74bb/RBT__rbt_product_package.html.before.jpg",
+    "after": "changelog-assets/dfa74bb/RBT__rbt_product_package.html.after.jpg",
+    "regions": 3,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "dfa74bb|RBT/rbt_risk_abnormal.html": {
+    "before": "changelog-assets/dfa74bb/RBT__rbt_risk_abnormal.html.before.jpg",
+    "after": "changelog-assets/dfa74bb/RBT__rbt_risk_abnormal.html.after.jpg",
+    "regions": 34,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "dfa74bb|RBT/rbt_risk_config.html": {
+    "before": "changelog-assets/dfa74bb/RBT__rbt_risk_config.html.before.jpg",
+    "after": "changelog-assets/dfa74bb/RBT__rbt_risk_config.html.after.jpg",
+    "regions": 8,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "dfa74bb|RBT/rbt_trade.html": {
+    "before": "changelog-assets/dfa74bb/RBT__rbt_trade.html.before.jpg",
+    "after": "changelog-assets/dfa74bb/RBT__rbt_trade.html.after.jpg",
+    "regions": 3,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
   "e420222|MDM/mdm_archive_carrier.html": {
     "regions": 0,
     "status": "diff",
@@ -4639,6 +4738,11 @@
     "before": "changelog-assets/efeb350/RBT__rbt_risk_abnormal.html.before.jpg",
     "after": "changelog-assets/efeb350/RBT__rbt_risk_abnormal.html.after.jpg",
     "regions": 29,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "efeb350|RBT/rbt_risk_config.html": {
+    "regions": 0,
     "status": "diff",
     "date": "2026-11-25"
   },

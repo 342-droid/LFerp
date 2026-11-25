@@ -1,10 +1,128 @@
 {
-  "latestSha": "c9195d12d9a7b02efb2c6ac7922c127a46877b3d",
-  "total": 638,
+  "latestSha": "dfa74bb9db341482975e6b93c8e3034b568e3d94",
+  "total": 639,
   "days": [
     {
       "date": "2026-11-25",
       "items": [
+        {
+          "sha": "dfa74bb",
+          "type": "feat",
+          "text": "付款风控改为按日均金额和静态基准评级",
+          "author": "sisi",
+          "time": "22:01",
+          "pages": [
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "module": "冷丰WMS",
+              "title": "需求单审核"
+            },
+            {
+              "file": "RBT/rbt_admit_store.html",
+              "module": "冷丰RBT",
+              "title": "门店准入管理"
+            },
+            {
+              "file": "RBT/rbt_contract_sign.html",
+              "module": "冷丰RBT",
+              "title": "合同签署"
+            },
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日付款"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "付款"
+            },
+            {
+              "file": "RBT/rbt_product_package.html",
+              "module": "冷丰RBT",
+              "title": "商品包"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常付款数据"
+            },
+            {
+              "file": "RBT/rbt_risk_config.html",
+              "module": "冷丰RBT",
+              "title": "风控配置"
+            },
+            {
+              "file": "RBT/rbt_trade.html",
+              "module": "冷丰RBT",
+              "title": "交易单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_index.html",
+              "text": "当前付款中展示日均付款额，并写明当前生效的是静态基准还是动态基准"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "text": "列表补上生效基准，风险按金额和基准比较，不再用百分比进度"
+            },
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "text": "后台仍按渠道和冷丰、服务商分开记账"
+            },
+            {
+              "file": "RBT/rbt_risk_config.html",
+              "text": "可切换静态或动态基准，预期时长按月增删，阈值可按事业线单独配置"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "text": "命中后生成工单，可记处置措施、结果、处理人，以及是否暂停新需求"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "text": "展示剩余应付金额和次日预估的预计应付，提前支付单独成行；同一天渠道合成一条，冷丰和服务商服务费合并为服务费"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "商品金额展示原价和加价率，不再单列贸易商服务费"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "text": "付款阶段文案改为付款中"
+            }
+          ]
+        },
         {
           "sha": "c9195d1",
           "type": "feat",
@@ -360,7 +478,7 @@
             {
               "file": "RBT/rbt_daily_fulfill.html",
               "module": "冷丰RBT",
-              "title": "每日履行"
+              "title": "每日付款"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -390,7 +508,7 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_product_package.html",
@@ -400,7 +518,12 @@
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
+            },
+            {
+              "file": "RBT/rbt_risk_config.html",
+              "module": "冷丰RBT",
+              "title": "风控配置"
             },
             {
               "file": "RBT/rbt_trade.html",
@@ -1116,7 +1239,7 @@
             {
               "file": "RBT/rbt_daily_fulfill.html",
               "module": "冷丰RBT",
-              "title": "每日履行"
+              "title": "每日付款"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -1156,7 +1279,7 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_product_package.html",
@@ -1166,7 +1289,7 @@
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "RBT/rbt_risk_config.html",
@@ -1234,7 +1357,7 @@
             {
               "file": "RBT/rbt_daily_fulfill.html",
               "module": "冷丰RBT",
-              "title": "每日履行"
+              "title": "每日付款"
             },
             {
               "file": "RBT/rbt_h5_provider.html",
@@ -1259,12 +1382,12 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             }
           ],
           "notes": [
@@ -1273,7 +1396,7 @@
               "text": "资金明细新增门店经营页签；营业额与收入按POS、直播、商城拆分；支持总览与自定义时段，点趋势图看当日；已结束单据冻结后续经营"
             },
             {
-              "file": "RBT/rbt_performance.html",
+              "file": null,
               "text": "履约结款与风控PRD: 补充贸易商门店经营查看规则与说明文案"
             }
           ]
@@ -1345,7 +1468,7 @@
             {
               "file": "RBT/rbt_daily_fulfill.html",
               "module": "冷丰RBT",
-              "title": "每日履行"
+              "title": "每日付款"
             },
             {
               "file": "RBT/rbt_h5_provider.html",
@@ -1370,12 +1493,12 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             }
           ],
           "notes": [
@@ -1388,12 +1511,12 @@
               "text": "一键履约拆到服务商的金额同样进入结款明细，结款时间用实际支付时间"
             },
             {
-              "file": "RBT/rbt_daily_fulfill.html",
-              "text": "手动履约单独按贸易商、冷丰、服务商应收占比拆开"
+              "file": null,
+              "text": "每日履行: 手动履约单独按贸易商、冷丰、服务商应收占比拆开"
             },
             {
-              "file": "RBT/rbt_performance.html",
-              "text": "履约详情里的三方收款包含一键履约，按结算系数分摊"
+              "file": null,
+              "text": "履约: 履约详情里的三方收款包含一键履约，按结算系数分摊"
             }
           ]
         },
@@ -1442,7 +1565,7 @@
             {
               "file": "RBT/rbt_daily_fulfill.html",
               "module": "冷丰RBT",
-              "title": "每日履行"
+              "title": "每日付款"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -1477,12 +1600,12 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "RBT/rbt_trade.html",
@@ -1534,7 +1657,7 @@
             {
               "file": "RBT/rbt_daily_fulfill.html",
               "module": "冷丰RBT",
-              "title": "每日履行"
+              "title": "每日付款"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -1564,12 +1687,12 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "RBT/rbt_risk_config.html",
@@ -1592,16 +1715,16 @@
               "text": "资金明细分为基础信息和结款明细，待结款按应收减已结款；结款明细展示金额、结款状态和结款时间；签署合同可查看销售合同和采购合同正文"
             },
             {
-              "file": "RBT/rbt_daily_fulfill.html",
-              "text": "列表和详情补支付方式，渠道可筛手动履约"
+              "file": null,
+              "text": "每日履行: 列表和详情补支付方式，渠道可筛手动履约"
             },
             {
               "file": "RBT/rbt_demand.html",
               "text": "履约详情的每日履行补支付方式，已完成需求仍保留历史每日履行"
             },
             {
-              "file": "RBT/rbt_performance.html",
-              "text": "列表按履约阶段筛选，剩余履行额为0时阶段显示已完成"
+              "file": null,
+              "text": "履约: 列表按履约阶段筛选，剩余履行额为0时阶段显示已完成"
             }
           ]
         }
@@ -1625,7 +1748,7 @@
             {
               "file": "RBT/rbt_daily_fulfill.html",
               "module": "冷丰RBT",
-              "title": "每日履行"
+              "title": "每日付款"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -1640,12 +1763,12 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "RBT/rbt_risk_config.html",
@@ -1664,16 +1787,16 @@
               "text": "当前履约和持续未履行样例的未履行差额改为剩余履行额，按总金额减已履行金额"
             },
             {
-              "file": "RBT/rbt_performance.html",
-              "text": "列表未履行差额改为剩余履行额，说明写明等于总金额减已履行金额"
+              "file": null,
+              "text": "履约: 列表未履行差额改为剩余履行额，说明写明等于总金额减已履行金额"
             },
             {
-              "file": "RBT/rbt_performance.html",
+              "file": null,
               "text": "履约详情: 履行汇总的未履行差额改为剩余履行额"
             },
             {
-              "file": "RBT/rbt_risk_abnormal.html",
-              "text": "列表和处理说明的未履行差额改为剩余履行额"
+              "file": null,
+              "text": "异常履约数据: 列表和处理说明的未履行差额改为剩余履行额"
             }
           ]
         },
@@ -1692,7 +1815,7 @@
             {
               "file": "RBT/rbt_daily_fulfill.html",
               "module": "冷丰RBT",
-              "title": "每日履行"
+              "title": "每日付款"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -1712,12 +1835,12 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "RBT/rbt_risk_config.html",
@@ -1740,24 +1863,24 @@
               "text": "当前履约和持续未履行样例改为展示日均履行进度，未满起算天数不看日均"
             },
             {
-              "file": "RBT/rbt_performance.html",
-              "text": "列表改为日均履行进度，和首页同一套评级"
+              "file": "RBT/rbt_index.html",
+              "text": "履约: 列表改为日均履行进度，和首页同一套评级"
             },
             {
-              "file": "RBT/rbt_performance.html",
+              "file": null,
               "text": "履约详情: 履行汇总改为日均履行进度"
             },
             {
-              "file": "RBT/rbt_risk_abnormal.html",
-              "text": "列表和处理说明改为日均履行进度，实际履行为 0 才计连续未履行"
+              "file": null,
+              "text": "异常履约数据: 列表和处理说明改为日均履行进度，实际履行为 0 才计连续未履行"
             },
             {
               "file": "RBT/rbt_h5_store.html",
               "text": "去掉预计履行和应履约的说明句，金额计算不变"
             },
             {
-              "file": "RBT/rbt_daily_fulfill.html",
-              "text": "服务商支持按名称筛选"
+              "file": null,
+              "text": "每日履行: 服务商支持按名称筛选"
             }
           ]
         },
@@ -2261,7 +2384,7 @@
             {
               "file": "RBT/rbt_daily_fulfill.html",
               "module": "冷丰RBT",
-              "title": "每日履行"
+              "title": "每日付款"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -2296,12 +2419,12 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "RBT/rbt_trade.html",
@@ -2315,12 +2438,20 @@
               "text": "去掉履约风险等级规则表，等级卡片、当前履约中、异常提醒和持续未履行样例恢复显示"
             },
             {
-              "file": "RBT/rbt_performance.html",
-              "text": "列表增加已履行金额、未履行差额、履行覆盖率和履约风险等级；履约详情可改结算比例，点合同编号从右侧看合同，每日履行去掉操作记录并列出三方收款，上方增加履行汇总"
+              "file": null,
+              "text": "履约: 列表增加已履行金额、未履行差额、履行覆盖率和履约风险等级"
             },
             {
-              "file": "RBT/rbt_daily_fulfill.html",
-              "text": "每日金额和各方结款合成一张表；查看打开当天该渠道的履行明细，需求单号进入需求单详情，操作列增加履约详情"
+              "file": null,
+              "text": "履约详情可改结算比例，点合同编号从右侧看合同，每日履行去掉操作记录并列出三方收款，上方增加履行汇总"
+            },
+            {
+              "file": null,
+              "text": "每日履行: 每日金额和各方结款合成一张表"
+            },
+            {
+              "file": null,
+              "text": "查看打开当天该渠道的履行明细，需求单号进入需求单详情，操作列增加履约详情"
             },
             {
               "file": "RBT/rbt_h5_trader.html",
@@ -2331,8 +2462,8 @@
               "text": "修改结算比例时，履约中的需求显示履约中"
             },
             {
-              "file": "RBT/rbt_risk_abnormal.html",
-              "text": "从本页打开履约详情可以查看合同，正常等级补上对应颜色"
+              "file": null,
+              "text": "异常履约数据: 从本页打开履约详情可以查看合同，正常等级补上对应颜色"
             }
           ]
         }
@@ -2681,12 +2812,12 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -3013,12 +3144,12 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "RBT/rbt_risk_config.html",
@@ -3239,7 +3370,7 @@
             {
               "file": "RBT/rbt_daily_fulfill.html",
               "module": "冷丰RBT",
-              "title": "每日履行"
+              "title": "每日付款"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -3254,7 +3385,7 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_purchase.html",
@@ -3264,7 +3395,7 @@
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "RBT/rbt_sales.html",
@@ -3304,7 +3435,7 @@
               "text": "经营驾驶舱: 顶栏「经营」进入全景总览"
             },
             {
-              "file": "RBT/rbt_performance.html",
+              "file": null,
               "text": "侧栏覆盖销售／RBT／供货履约／结算／售后预警专题页"
             },
             {
@@ -3596,12 +3727,12 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -3771,7 +3902,7 @@
             {
               "file": "RBT/rbt_daily_fulfill.html",
               "module": "冷丰RBT",
-              "title": "每日履行"
+              "title": "每日付款"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -3796,7 +3927,7 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_product_package.html",
@@ -3806,7 +3937,7 @@
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "RBT/rbt_risk_config.html",
@@ -3821,16 +3952,20 @@
           ],
           "notes": [
             {
-              "file": "RBT/rbt_daily_fulfill.html",
-              "text": "表格列不再叠在一起；下方新增风控配置和异常履约数据入口"
+              "file": null,
+              "text": "每日履行: 表格列不再叠在一起"
+            },
+            {
+              "file": "RBT/rbt_risk_config.html",
+              "text": "下方新增风控配置和异常履约数据入口"
             },
             {
               "file": "RBT/rbt_risk_config.html",
               "text": "试算改为按等级配置，关注、预警、异常可手填连续未履行天数和履行覆盖率"
             },
             {
-              "file": "RBT/rbt_risk_abnormal.html",
-              "text": "新增列表，只展示不是正常的需求，可记录处理状态"
+              "file": null,
+              "text": "异常履约数据: 新增列表，只展示不是正常的需求，可记录处理状态"
             },
             {
               "file": "RBT/rbt_index.html",
@@ -3867,7 +4002,7 @@
             {
               "file": "RBT/rbt_daily_fulfill.html",
               "module": "冷丰RBT",
-              "title": "每日履行"
+              "title": "每日付款"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -3902,7 +4037,7 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_product_package.html",
@@ -3912,7 +4047,7 @@
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "RBT/rbt_risk_config.html",
@@ -3927,12 +4062,16 @@
           ],
           "notes": [
             {
-              "file": "RBT/rbt_performance.html",
-              "text": "履约详情增加每日履行页签、所得佣金，以及贸易商、冷丰、服务商的应收和已结款对照；列表可按贸易商、服务商、收款账户名称、收款账户筛选"
+              "file": null,
+              "text": "履约: 履约详情增加每日履行页签、所得佣金，以及贸易商、冷丰、服务商的应收和已结款对照"
             },
             {
-              "file": "RBT/rbt_daily_fulfill.html",
-              "text": "新增全部门店已发生的每日履行列表"
+              "file": null,
+              "text": "列表可按贸易商、服务商、收款账户名称、收款账户筛选"
+            },
+            {
+              "file": null,
+              "text": "每日履行: 新增全部门店已发生的每日履行列表"
             },
             {
               "file": "RBT/rbt_index.html",
@@ -4598,7 +4737,7 @@
             {
               "file": "RBT/rbt_daily_fulfill.html",
               "module": "冷丰RBT",
-              "title": "每日履行"
+              "title": "每日付款"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -4633,7 +4772,7 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_product_package.html",
@@ -4643,7 +4782,12 @@
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
+            },
+            {
+              "file": "RBT/rbt_risk_config.html",
+              "module": "冷丰RBT",
+              "title": "风控配置"
             },
             {
               "file": "RBT/rbt_trade.html",
@@ -4662,7 +4806,7 @@
             },
             {
               "file": "RBT/rbt_performance.html",
-              "text": "只列出门店付款中或已完成的需求"
+              "text": "履约: 只列出门店付款中或已完成的需求"
             },
             {
               "file": "RBT/rbt_h5_store.html",
@@ -4793,12 +4937,12 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -5007,7 +5151,7 @@
             {
               "file": "RBT/rbt_daily_fulfill.html",
               "module": "冷丰RBT",
-              "title": "每日履行"
+              "title": "每日付款"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -5042,7 +5186,7 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_product_package.html",
@@ -5057,7 +5201,7 @@
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "RBT/rbt_risk_config.html",
@@ -5119,7 +5263,7 @@
             },
             {
               "file": "RBT/rbt_performance.html",
-              "text": "还款中更名为付款中"
+              "text": "履约: 还款中更名为付款中"
             }
           ]
         },
@@ -5779,12 +5923,12 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -6145,7 +6289,7 @@
             {
               "file": "RBT/rbt_daily_fulfill.html",
               "module": "冷丰RBT",
-              "title": "每日履行"
+              "title": "每日付款"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -6180,7 +6324,7 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_product_package.html",
@@ -6190,7 +6334,7 @@
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "RBT/rbt_risk_config.html",
@@ -6221,8 +6365,8 @@
               "text": "左侧菜单和页签由门店管理改为门店准入管理"
             },
             {
-              "file": "RBT/rbt_performance.html",
-              "text": "只列出还款中和已完成，说明改为门店按日还款"
+              "file": null,
+              "text": "履约: 只列出还款中和已完成，说明改为门店按日还款"
             },
             {
               "file": "MDM/mdm_audit_rbt_demand.html",
@@ -6380,7 +6524,7 @@
             {
               "file": "RBT/rbt_daily_fulfill.html",
               "module": "冷丰RBT",
-              "title": "每日履行"
+              "title": "每日付款"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -6420,7 +6564,7 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_product_package.html",
@@ -6435,7 +6579,7 @@
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "RBT/rbt_risk_config.html",
@@ -6805,7 +6949,7 @@
             {
               "file": "RBT/rbt_daily_fulfill.html",
               "module": "冷丰RBT",
-              "title": "每日履行"
+              "title": "每日付款"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -6835,12 +6979,12 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "RBT/rbt_trade.html",
@@ -6934,7 +7078,7 @@
             {
               "file": "RBT/rbt_daily_fulfill.html",
               "module": "冷丰RBT",
-              "title": "每日履行"
+              "title": "每日付款"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -6969,7 +7113,7 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_product_package.html",
@@ -6979,7 +7123,7 @@
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "RBT/rbt_risk_config.html",
@@ -7059,8 +7203,8 @@
           ],
           "notes": [
             {
-              "file": "RBT/rbt_performance.html",
-              "text": "新增履约列表，查看支付中和已完成需求的履行事实"
+              "file": null,
+              "text": "履约: 新增履约列表，查看支付中和已完成需求的履行事实"
             },
             {
               "file": "RBT/rbt_h5_store.html",
@@ -7105,7 +7249,7 @@
             {
               "file": "RBT/rbt_daily_fulfill.html",
               "module": "冷丰RBT",
-              "title": "每日履行"
+              "title": "每日付款"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -7135,12 +7279,12 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "RBT/rbt_trade.html",
@@ -7200,7 +7344,7 @@
             {
               "file": "RBT/rbt_daily_fulfill.html",
               "module": "冷丰RBT",
-              "title": "每日履行"
+              "title": "每日付款"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -7230,12 +7374,12 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "RBT/rbt_trade.html",
@@ -7590,7 +7734,7 @@
             {
               "file": "RBT/rbt_daily_fulfill.html",
               "module": "冷丰RBT",
-              "title": "每日履行"
+              "title": "每日付款"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -7630,7 +7774,7 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_product_package.html",
@@ -7645,7 +7789,7 @@
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "RBT/rbt_risk_config.html",
@@ -7673,7 +7817,7 @@
               "text": "复核通过生成供应链采购、门店采购，单号以 PO 开头"
             },
             {
-              "file": null,
+              "file": "RBT/rbt_performance.html",
               "text": "展示买方、卖方、付款方、收货方、实际发货方"
             },
             {
@@ -7770,12 +7914,12 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -7898,7 +8042,7 @@
             {
               "file": "RBT/rbt_daily_fulfill.html",
               "module": "冷丰RBT",
-              "title": "每日履行"
+              "title": "每日付款"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -7933,7 +8077,7 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_product_package.html",
@@ -7943,7 +8087,12 @@
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
+            },
+            {
+              "file": "RBT/rbt_risk_config.html",
+              "module": "冷丰RBT",
+              "title": "风控配置"
             },
             {
               "file": "RBT/rbt_trade.html",
@@ -8186,12 +8335,12 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -8640,7 +8789,7 @@
             {
               "file": "RBT/rbt_daily_fulfill.html",
               "module": "冷丰RBT",
-              "title": "每日履行"
+              "title": "每日付款"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -8680,7 +8829,7 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_product_package.html",
@@ -8690,7 +8839,7 @@
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "RBT/rbt_risk_config.html",
@@ -10190,7 +10339,7 @@
             {
               "file": "RBT/rbt_daily_fulfill.html",
               "module": "冷丰RBT",
-              "title": "每日履行"
+              "title": "每日付款"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -10230,7 +10379,7 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_product_package.html",
@@ -10240,7 +10389,7 @@
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "RBT/rbt_risk_config.html",
@@ -10986,7 +11135,7 @@
             {
               "file": "RBT/rbt_daily_fulfill.html",
               "module": "冷丰RBT",
-              "title": "每日履行"
+              "title": "每日付款"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -11026,7 +11175,7 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_product_package.html",
@@ -11036,7 +11185,7 @@
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "RBT/rbt_risk_config.html",
@@ -11135,7 +11284,7 @@
             {
               "file": "RBT/rbt_daily_fulfill.html",
               "module": "冷丰RBT",
-              "title": "每日履行"
+              "title": "每日付款"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -11155,7 +11304,7 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_product_package.html",
@@ -11165,7 +11314,7 @@
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "RBT/rbt_trade.html",
@@ -12648,12 +12797,12 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -13464,12 +13613,12 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -14236,12 +14385,12 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -14669,12 +14818,12 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "SCM/basic_settings_business_tags.html",
@@ -14883,12 +15032,12 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -16432,12 +16581,12 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -17009,12 +17158,12 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -17594,7 +17743,7 @@
             {
               "file": "RBT/rbt_daily_fulfill.html",
               "module": "冷丰RBT",
-              "title": "每日履行"
+              "title": "每日付款"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -17609,7 +17758,7 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_product_package.html",
@@ -17619,7 +17768,7 @@
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "RBT/rbt_trade.html",
@@ -18988,12 +19137,12 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -19160,12 +19309,12 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -19448,12 +19597,12 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -32486,12 +32635,12 @@
             {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
-              "title": "履约"
+              "title": "付款"
             },
             {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
-              "title": "异常履约数据"
+              "title": "异常付款数据"
             },
             {
               "file": "SCM/basic_settings_business_tags.html",
