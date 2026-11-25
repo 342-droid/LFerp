@@ -49,10 +49,10 @@
         return String(storeCode || '') + '|' + String(code || '');
     }
 
-    /* 门店原型固定带一笔已支付成功的一键付款，每日付款打开就能看到。已有手动记录时不重复补。 */
+    /* 门店原型固定带一笔已支付成功的提前支付，每日付款打开就能看到。按支付时间认这笔，不重复补。 */
     var DEMO_MANUAL = {
         storeCode: 'ONS00001',
-        code: 'XQ00024',
+        code: 'XQ00023',
         at: '2026-11-23 09:18:26',
         cents: 10000,
         channel: '支付宝'
@@ -62,12 +62,16 @@
         var map = readJson(MANUAL_ROW_KEY);
         var key = manualKey(DEMO_MANUAL.storeCode, DEMO_MANUAL.code);
         var list = Array.isArray(map[key]) ? map[key].filter(Boolean) : [];
-        if (list.length) return;
-        map[key] = [{
+        var has = list.some(function (row) {
+            return row && row.at === DEMO_MANUAL.at && Math.round(Number(row.cents)) === DEMO_MANUAL.cents;
+        });
+        if (has) return;
+        list.push({
             at: DEMO_MANUAL.at,
             cents: DEMO_MANUAL.cents,
             channel: DEMO_MANUAL.channel
-        }];
+        });
+        map[key] = list;
         try { global.localStorage.setItem(MANUAL_ROW_KEY, JSON.stringify(map)); } catch (e) {}
     }
 
@@ -112,14 +116,14 @@
                 storeCode: item.storeCode || '',
                 storeName: item.storeName || '',
                 demandCode: item.code,
-                channel: '手动付款',
+                channel: '提前支付',
                 turnover: '',
                 commission: '',
                 ratio: '—',
                 due: amount,
                 actual: amount,
                 payMethod: row.channel || '支付宝',
-                source: '手动付款',
+                source: '提前支付',
                 kind: 'manual'
             };
         });
@@ -402,8 +406,17 @@
         return out;
     }
 
+    /* 已发生的营收事实。动态基准用它给事业线下的每家门店模拟应付款，不读付款中台账。 */
+    function revenueFacts() {
+        return FACTS.map(function (fact) {
+            return { date: fact.date, channel: fact.channel, turnover: fact.turnover };
+        });
+    }
+
     global.RbtDailyFulfill = {
         autoPayMethod: AUTO_PAY_METHOD,
+        revenueFacts: revenueFacts,
+        commissionRate: COMMISSION_RATE,
         manualCents: manualCents,
         manualRows: manualLedgerRows,
         appendManual: appendManual,

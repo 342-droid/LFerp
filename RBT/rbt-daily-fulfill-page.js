@@ -32,7 +32,7 @@
                     { label: 'POS', value: 'POS' },
                     { label: '直播', value: '直播' },
                     { label: '商城', value: '商城' },
-                    { label: '手动付款', value: '手动付款' }
+                    { label: '提前支付', value: '提前支付' }
                 ],
                 placeholder: '请选择渠道'
             };

@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
-    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
     <link rel="stylesheet" href="../css/lf-contract.css?v=20261120-rbt-read">
     <style>
         .rbt-risk-tip { margin: 0 0 12px; }
@@ -47,10 +46,6 @@
         <main class="main-content">
             <div class="content-tabs"><button type="button" class="active">付款风险</button></div>
             <hr class="content-divider">
-
-            <div class="mdm-biz-tip rbt-risk-tip" role="note">
-                只按<strong>已发生营业日</strong>评级。单店日均付款额 = 实际付款合计 ÷ 营业日天数，再和<strong>当前生效基准</strong>比。静态基准日均 = 产品金额 ÷ 预期付款天数。动态基准用事业线门店营收和佣金推算。高于或等于基准为 A 类。不使用百分比进度。
-            </div>
 
             <div class="rbt-risk-cards" id="rbtRiskCards"></div>
 
@@ -95,7 +90,7 @@
     <script src="rbt-settle-ratio.js"></script>
     <script src="rbt-demand-data.js"></script>
     <script src="rbt-demand-detail.js"></script>
-    <script src="rbt-daily-fulfill.js"></script>
+    <script src="rbt-daily-fulfill.js?v=20261126-early-pay"></script>
     <script src="rbt-risk.js"></script>
     <script>
         (function () {
