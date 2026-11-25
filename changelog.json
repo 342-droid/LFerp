@@ -1,7 +1,382 @@
 {
-  "latestSha": "6913c068049c72fa3658e125c5b89cfd2e1c372a",
-  "total": 634,
+  "latestSha": "efeb350a6b5c33d8181816c6e6f04ae6d6682bc6",
+  "total": 635,
   "days": [
+    {
+      "date": "2026-11-25",
+      "items": [
+        {
+          "sha": "efeb350",
+          "type": "feat",
+          "text": "完善退款结算和履约演示，并补上用户端售罄验收",
+          "author": "sisi",
+          "time": "09:16",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_feedback.html",
+              "module": "冷丰售后",
+              "title": "意见反馈"
+            },
+            {
+              "file": "MDM/mdm_aftersale_guarantee.html",
+              "module": "冷丰售后",
+              "title": "售后保障期管理"
+            },
+            {
+              "file": "MDM/mdm_aftersale_refund.html",
+              "module": "冷丰售后",
+              "title": "退款单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_report.html",
+              "module": "冷丰售后",
+              "title": "举报管理"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "module": "冷丰售后",
+              "title": "售后单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_trader.html",
+              "module": "冷丰WMS",
+              "title": "贸易商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "module": "冷丰WMS",
+              "title": "需求单审核"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_bd_stores.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 门店模块"
+            },
+            {
+              "file": "MDM/mdm_party_all.html",
+              "module": "冷丰WMS",
+              "title": "所有主体"
+            },
+            {
+              "file": "MDM/mdm_settle_index.html",
+              "module": "冷丰结算",
+              "title": "结算中心"
+            },
+            {
+              "file": "RBT/rbt_admit_store.html",
+              "module": "冷丰RBT",
+              "title": "门店准入管理"
+            },
+            {
+              "file": "RBT/rbt_contract_sign.html",
+              "module": "冷丰RBT",
+              "title": "合同签署"
+            },
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日履行"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "履约"
+            },
+            {
+              "file": "RBT/rbt_product_package.html",
+              "module": "冷丰RBT",
+              "title": "商品包"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常履约数据"
+            },
+            {
+              "file": "RBT/rbt_trade.html",
+              "module": "冷丰RBT",
+              "title": "交易单"
+            },
+            {
+              "file": "SCM/basic_settings_contract_config.html",
+              "module": "冷丰WMS",
+              "title": "接入配置"
+            },
+            {
+              "file": "SCM/basic_settings_contract_party.html",
+              "module": "冷丰WMS",
+              "title": "签署主体"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task.html",
+              "module": "冷丰WMS",
+              "title": "签署任务"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_detail.html",
+              "module": "冷丰WMS",
+              "title": "签署任务详情"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template.html",
+              "module": "冷丰WMS",
+              "title": "合同模板"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template_form.html",
+              "module": "冷丰WMS",
+              "title": "合同模板配置"
+            },
+            {
+              "file": "SCM/contract_sign.html",
+              "module": "",
+              "title": "合同"
+            },
+            {
+              "file": "shop-h5/h5/store/contracts.html",
+              "module": "",
+              "title": "签署合同 · Shop H5"
+            },
+            {
+              "file": "store-app/h5/biz-supplier-home.html",
+              "module": "",
+              "title": "数据中心 · 供应商"
+            },
+            {
+              "file": "store-app/h5/contract-sign.html",
+              "module": "",
+              "title": "签署合同 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/contracts.html",
+              "module": "",
+              "title": "合同签署 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "丰银宝 · 工作台"
+            },
+            {
+              "file": "store-app/h5/supplier-aftersale-detail.html",
+              "module": "",
+              "title": "售后详情 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-aftersale-logistics.html",
+              "module": "",
+              "title": "物流跟踪 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-aftersale.html",
+              "module": "",
+              "title": "售后管理 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-orders.html",
+              "module": "",
+              "title": "客户订单 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-settle-bill-detail.html",
+              "module": "",
+              "title": "结款详情 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-settle-ledger-detail.html",
+              "module": "",
+              "title": "清分明细 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-settle.html",
+              "module": "",
+              "title": "结算中心 · 丰银宝"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "module": "",
+              "title": "购物车 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/category.html",
+              "module": "",
+              "title": "分类 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "module": "",
+              "title": "商品详情 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "module": "",
+              "title": "首页 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "module": "",
+              "title": "黑灯直播间 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "module": "",
+              "title": "商城 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "module": "",
+              "title": "确认订单 · 用户 APP"
+            },
+            {
+              "file": "user-app/h5/profile.html",
+              "module": "",
+              "title": "我的 · 用户 APP"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_aftersale_refund.html",
+              "text": "退款失败可二次确认后重试，也可转线下退款并上传付款凭证"
+            },
+            {
+              "file": "MDM/mdm_settle_index.html",
+              "text": "零售和代采结算规则分开配置；退款后供应商应收按剩余实付和实际补贴计算"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "text": "零售、代采可分别跟随平台或独立配置结算策略"
+            },
+            {
+              "file": "MDM/mdm_party_all.html",
+              "text": "合同字段补上零售、代采两套结算策略"
+            },
+            {
+              "file": "store-app/h5/supplier-settle.html",
+              "text": "清分卡片去掉状态摘要，时间放在查看详情左侧；退款后按剩余实付显示清分净额"
+            },
+            {
+              "file": "store-app/h5/supplier-settle-ledger-detail.html",
+              "text": "展示订单实付、采购款、销售价、退款金额和清分净额"
+            },
+            {
+              "file": "store-app/h5/supplier-settle-bill-detail.html",
+              "text": "结款金额跟随退款后的清分净额"
+            },
+            {
+              "file": "store-app/h5/supplier-aftersale-detail.html",
+              "text": "补上下单人、门店名称，门店地址只显示省市区"
+            },
+            {
+              "file": "user-app/h5/mall.html",
+              "text": "售罄验收开关可把饺子标为补货中，列表小图全遮罩且不能加购"
+            },
+            {
+              "file": "user-app/h5/category.html",
+              "text": "售罄商品在列表小图显示补货中"
+            },
+            {
+              "file": "user-app/h5/goods-detail.html",
+              "text": "主图不盖遮罩，立即购买变为补货中"
+            },
+            {
+              "file": "user-app/h5/cart.html",
+              "text": "售罄时饺子排在最前，小图显示补货中且不能再加"
+            },
+            {
+              "file": "user-app/h5/order-confirm.html",
+              "text": "已加购的售罄商品在结算里仍然可见"
+            },
+            {
+              "file": "user-app/h5/live-room.html",
+              "text": "售罄商品仍在列表，小图补货中、按钮显示售罄，已售数量下显示已售罄"
+            },
+            {
+              "file": "user-app/h5/home.html",
+              "text": "验收开关左右分列，不再叠在同一角"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "text": "西湖中心演示单改为履约中，一键履约可以支付"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-11-24",
       "items": [
