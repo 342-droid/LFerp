@@ -162,18 +162,16 @@
         return sign + Math.floor(abs / 100) + '.' + String(abs % 100).padStart(2, '0');
     }
 
-    /* 大厅总金额用需求单的贸易商应收，服务费按这个总金额减商品金额。 */
+    /* 大厅总金额用贸易商应收（含加价）。需求单商品金额仍是原价，不再单列贸易商服务费。 */
     function hallAmounts(item) {
         var goods = item && item.goodsAmount ? String(item.goodsAmount) : '';
         var api = window.RbtDemandData;
         var pack = api && typeof api.receivables === 'function' ? api.receivables(item) : null;
+        var markup = api && typeof api.markupOf === 'function' ? api.markupOf(item) : null;
         var total = pack && pack.trader ? String(pack.trader) : '';
-        var goodsCents = centsOf(goods);
-        var totalCents = centsOf(total);
-        var fee = goodsCents == null || totalCents == null ? '' : fromCents(totalCents - goodsCents);
         return {
             goods: goods || '—',
-            fee: fee || '—',
+            markup: markup && markup.rateText ? markup.rateText : '—',
             total: total || '—'
         };
     }
@@ -214,8 +212,8 @@
             '<p class="rbt-hall-card__meta">' + esc(item.code || '—') + ' · ' + esc(item.packageName || '—') + ' ' + esc(item.packageCode || '—') + '</p>' +
             '<div class="rbt-hall-card__total"><span>总金额</span><b>' + esc(yuanText(amounts.total)) + '</b></div>' +
             '<div class="rbt-hall-card__grid">' +
-            hallCell('商品金额', yuanText(amounts.goods)) +
-            hallCell('服务费', yuanText(amounts.fee)) +
+            hallCell('商品金额（原价）', yuanText(amounts.goods)) +
+            hallCell('加价率', amounts.markup) +
             hallCell('结算周期', item.repayCycle || '—') +
             hallCell('结算方式', item.repayMethod || '—') +
             '</div>';
@@ -322,7 +320,7 @@
     }
 
     function phaseLabel(status) {
-        if (status === '门店付款中' || status === '还款中') return '履约中';
+        if (status === '门店付款中' || status === '还款中') return '付款中';
         return status || '—';
     }
 
@@ -372,7 +370,7 @@
         shares.forEach(function (row) {
             var cents = Math.round(Number(row.amount) * 100);
             if (!isFinite(cents)) cents = 0;
-            /* 一键履约已经付过，按结算系数拆完即已结款。最近一个营业日仍等结算单。 */
+            /* 一键付款已经付过，按结算系数拆完即已结款。最近一个营业日仍等结算单。 */
             row.stage = !done && row.kind !== 'manual' && row.date === latest ? 'pending' : 'due';
             if (row.stage === 'pending') pendingCents += cents;
             else settledCents += cents;
@@ -414,7 +412,7 @@
         return {
             receivable: amounts.total,
             goods: amounts.goods,
-            fee: amounts.fee,
+            markup: amounts.markup,
             settled: settledText,
             pending: pending,
             shares: settled.shares,
@@ -426,7 +424,7 @@
         return item && (item.status === '已完成' || item.status === '已作废' || item.status === '已驳回');
     }
 
-    /* 收款列表的跟进中只放履约中。待确认签约、待签署、待付款不在这里。 */
+    /* 收款列表的跟进中只放付款中。待确认签约、待签署、待付款不在这里。 */
     function fulfillingBid(item) {
         return item && (item.status === '门店付款中' || item.status === '还款中');
     }
@@ -459,7 +457,7 @@
         setHead('收款');
         return '<div class="rbt-fund">' +
             '<div class="rbt-fund__tabs" role="tablist">' +
-            '<button type="button" data-collect-view="open"' + (closed ? '' : ' class="is-on"') + '>履约中</button>' +
+            '<button type="button" data-collect-view="open"' + (closed ? '' : ' class="is-on"') + '>付款中</button>' +
             '<button type="button" data-collect-view="closed"' + (closed ? ' class="is-on"' : '') + '>已结束</button>' +
             '</div>' +
             '<div class="rbt-fund__summary">' +
@@ -482,7 +480,7 @@
                     '<div><span>已结款</span><b>' + esc(fund.settled ? yuan(fund.settled) : '未产生') + '</b></div>' +
                     '<div><span>待结款</span><b>' + esc(fund.pending ? yuan(fund.pending) : (item.status === '已完成' ? '无' : '未产生')) + '</b></div>' +
                     '</div></button>';
-            }).join('') : '<div class="rbt-h5-empty">' + (closed ? '暂无已结束的接单' : '暂无履约中的接单') + '</div>') +
+            }).join('') : '<div class="rbt-h5-empty">' + (closed ? '暂无已结束的接单' : '暂无付款中的接单') + '</div>') +
             '</div>';
     }
 
@@ -634,7 +632,7 @@
         node.hidden = false;
     }
 
-    /* 已结款的结款时间是营业日次日 08:00:00，只写月日时分秒。一键履约用实际支付时间。待结款还没结，时间用 -。 */
+    /* 已结款的结款时间是营业日次日 08:00:00，只写月日时分秒。一键付款用实际支付时间。待结款还没结，时间用 -。 */
     function paidClock(raw) {
         var matched = String(raw || '').match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{2}:\d{2}:\d{2})/);
         if (!matched) return '';
@@ -648,7 +646,7 @@
     }
 
     function shareChannel(row) {
-        if (row && row.kind === 'manual') return '手动履约';
+        if (row && row.kind === 'manual') return '手动付款';
         return (row && row.channel) || '—';
     }
 
@@ -662,7 +660,7 @@
     }
 
     function renderShareCards(shares) {
-        return '<p class="rbt-ops__note">当日实际履行 = 所得佣金 × 渠道结算比例。我的结款是这笔实际履行按贸易商结算系数拆出的份额。</p>' +
+        return '<p class="rbt-ops__note">当日实际付款 = 所得佣金 × 渠道结算比例。我的结款是这笔实际付款按贸易商结算系数拆出的份额。</p>' +
             shares.map(function (row) {
                 var pendingRow = row.stage === 'pending';
                 var when = pendingRow ? '-' : (row.kind === 'manual' ? (paidClock(row.time) || settleClock(row.date)) : settleClock(row.date));
@@ -673,7 +671,7 @@
                     opsFact('营业流水', opsMoney(row.turnover)) +
                     opsFact('所得佣金', opsMoney(row.commission)) +
                     opsFact('结算比例', row.ratio || '—') +
-                    opsFact('当日实际履行', opsMoney(row.actual)) +
+                    opsFact('当日实际付款', opsMoney(row.actual)) +
                     opsFact('支付方式', row.payMethod || '—') +
                     '</div>' +
                     '<footer class="rbt-ops__foot">' +
@@ -859,8 +857,8 @@
         setHead('资金明细');
         var lines = [
             ['门店', item.storeName || '—'],
-            ['商品金额', yuan(fund.goods)],
-            ['服务费', yuan(fund.fee)],
+            ['商品金额（原价）', yuan(fund.goods)],
+            ['加价率', fund.markup || '—'],
             ['结算比例', ratioText(item)],
             ['接单时间', item.acceptedAt || '—'],
             ['支付时间', payTimeOf(item) || '—'],

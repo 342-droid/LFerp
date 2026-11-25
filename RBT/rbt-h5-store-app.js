@@ -801,17 +801,15 @@
             ? ' is-done'
             : (CLOSED_DEMAND_STATUSES.indexOf(item.status) >= 0 ? ' is-off' : '');
         var names = (item.skus || []).map(skuQtyText).join('、') || '—';
-        var ratio = listRatioLine(item);
-        var extra = ratio
-            ? '<div class="rbt-demand__block"><span>结算比例</span><p>' + esc(ratio) + '</p></div>'
-            : (item.repayMethod && item.repayMethod !== '比例付'
-                ? '<div class="rbt-demand__block"><span>结算期数</span><p>' + esc(item.repayPeriod || '—') + '期</p></div>'
-                : '');
+        var extra = item.repayMethod && item.repayMethod !== '比例付'
+            ? '<div class="rbt-demand__block"><span>结算期数</span><p>' + esc(item.repayPeriod || '—') + '期</p></div>'
+            : '';
         var view = repayView(item);
         var split = fulfillSplit(view && view._days);
         var hasDays = view && view._days && view._days.length;
-        var fulfillBlock = '<div class="rbt-demand__block"><span>预计履行</span><p>' + esc(hasDays ? ('¥' + money(split.estimate) + '。结算单未确定，售后还可能改金额，只是预估。') : '未计算。还没有营业流水。') + '</p></div>' +
-            '<div class="rbt-demand__block"><span>应履约</span><p>' + esc(hasDays ? ('¥' + money(split.due) + '。结算单已确定，尚未结款。') : '未产生。结算单未确定。') + '</p></div>';
+        var nextPay = nextPayableOf(view);
+        var fulfillBlock = '<div class="rbt-demand__block"><span>预计应付金额</span><p>' + esc(hasDays && nextPay ? ('¥' + centsText(nextPay.cents) + '。按次日佣金预估，不是已经发生、只是结算单未定的那一天。') : '未计算。还没有营业流水。') + '</p></div>' +
+            '<div class="rbt-demand__block"><span>应付款</span><p>' + esc(hasDays ? ('¥' + money(split.due) + '。结算单已确定，尚未结款。') : '未产生。结算单未确定。') + '</p></div>';
         return '<article class="rbt-demand" data-demand="' + esc(item.code) + '">' +
             '<div class="rbt-demand__top"><h2 class="rbt-demand__name">' + esc(item.packageName || '—') + '</h2>' +
             '<span class="rbt-demand__status' + statusClass + '">' + esc(shownPhase || item.status || '—') + '</span></div>' +
@@ -855,22 +853,7 @@
     }
 
     function renderSettleDetail(item) {
-        if (item && item.repayMethod === '比例付') {
-            var rows = (item.settleRatios || []).map(function (channel) {
-                var percent = ratioPercent(channel && channel.fallback) || '—';
-                var subs = (channel && channel.subs || []).map(function (sub) {
-                    var subPercent = ratioPercent(sub && sub.ratio);
-                    return sub && sub.name && subPercent ? sub.name + ' ' + subPercent : '';
-                }).filter(Boolean);
-                return '<div class="rbt-demand-sku">' +
-                    '<div class="rbt-demand-sku__main"><strong>' + esc((channel && channel.channel) || '渠道') + '</strong>' +
-                    (subs.length ? '<p>' + esc(subs.join('，')) + '</p>' : '') +
-                    '</div><div class="rbt-demand-sku__side"><b>' + esc(percent) + '</b><span>默认比例</span></div></div>';
-            }).join('');
-            return '<section class="rbt-demand-sheet"><h3>结算比例</h3>' +
-                (rows || '<p class="rbt-demand-sheet__empty">暂无结算比例</p>') + '</section>';
-        }
-        if (item && item.repayMethod) {
+        if (item && item.repayMethod && item.repayMethod !== '比例付') {
             return '<section class="rbt-demand-sheet"><h3>结算期数</h3>' +
                 '<p class="rbt-demand-sheet__text">' + esc(item.repayPeriod || '—') + '期</p></section>';
         }
@@ -1019,10 +1002,10 @@
 
     var REPAY_DEMO_KEY = 'rbt_h5_store_repay_demo_v1';
     var REPAY_DEMO_SCENES = [
-        { id: 'pending', label: '履约中 · 无每日履行' },
-        { id: 'days', label: '履约中 · 有每日履行' }
+        { id: 'pending', label: '付款中 · 无每日付款' },
+        { id: 'days', label: '付款中 · 有每日付款' }
     ];
-    /* 演示日数据：金额 = 所得佣金 × 该渠道结算比例。所得佣金按当日营业流水的 10% 演示。结算单未确定时记预计履行，已经履约的日期记已履行。 */
+    /* 演示日数据：金额 = 所得佣金 × 该渠道结算比例。所得佣金按当日营业流水的 10% 演示。结算单未确定时记预计付款，已经付款的日期记已付款。 */
     var REPAY_DEMO_DAYS = [
         { channel: 'POS', turnover: 860 },
         { channel: '直播', turnover: 420 },
@@ -1080,7 +1063,7 @@
             var commission = Math.round(row.turnover * 10) / 100;
             var due = (Math.round(commission * ratio) / 100).toFixed(2);
             return {
-                date: start ? shiftDate(start, index) : '',
+                date: start ? shiftDate(start, Math.floor(index / 3)) : '',
                 channel: row.channel,
                 turnover: row.turnover.toFixed(2),
                 commission: commission.toFixed(2),
@@ -1092,7 +1075,7 @@
         }));
     }
 
-    /* 日结结算单在营业日的次日确定。演示当前日取最近一个已发生营业日的次日，所以最近一天结算单还没确定，售后仍可能改金额，只记预计履行。更早的日期已经履约，记已履行。 */
+    /* 日结结算单在营业日的次日确定。演示当前日取最近一个已发生营业日的次日，所以最近一天结算单还没确定，售后仍可能改金额，只记预计付款。更早的日期已经付款，记已付款。 */
     function markFulfillDays(rows) {
         var latest = '';
         rows.forEach(function (row) {
@@ -1172,24 +1155,49 @@
         }, 0);
     }
 
-    function estimateCentsOf(days) {
-        return (days || []).reduce(function (total, row) {
-            if (row.stage !== 'estimate') return total;
-            return total + yuanCents(row.due);
-        }, 0);
+    /* 预计应付金额按次日佣金预估，不用最近一个结算单未定的营业日。演示里次日佣金沿用最近一个已发生营业日的佣金合计。 */
+    function nextDayDate(date) {
+        var parts = String(date || '').split('-');
+        if (parts.length < 3) return '';
+        var day = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+        if (isNaN(day.getTime())) return '';
+        day.setDate(day.getDate() + 1);
+        return day.getFullYear() + '-' + pad(day.getMonth() + 1) + '-' + pad(day.getDate());
+    }
+
+    function nextPayableOf(item) {
+        var days = ((item && item._days) || []).filter(function (row) {
+            return row && row.kind !== 'manual';
+        });
+        if (!days.length) return null;
+        var last = '';
+        days.forEach(function (row) {
+            if (row.date > last) last = row.date;
+        });
+        var commission = 0;
+        days.forEach(function (row) {
+            if (row.date === last) commission += Number(row.commission) || 0;
+        });
+        var ratio = channelRatio(item, 'POS');
+        var due = Math.round(commission * ratio) / 100;
+        return {
+            date: nextDayDate(last),
+            cents: yuanCents(due)
+        };
     }
 
     function totalCents(item) {
         return yuanCents(item && item.amount);
     }
 
-    /* 待付总额 = 货款 + 服务费。缺分项时用总金额。 */
+    /* 剩余应付用含加价的实付。需求单商品金额仍是原价。缺分项时用总金额。 */
     function payableCents(item) {
         if (!item) return 0;
+        if (item.amount != null && String(item.amount) !== '') return totalCents(item);
         var hasGoods = item.goodsAmount != null && String(item.goodsAmount) !== '';
         var hasFee = item.serviceFee != null && String(item.serviceFee) !== '';
         if (hasGoods || hasFee) return Math.max(0, yuanCents(item.goodsAmount) + yuanCents(item.serviceFee));
-        return totalCents(item);
+        return 0;
     }
 
     function fulfilledCents(item) {
@@ -1198,23 +1206,13 @@
         return paid;
     }
 
-    /* 剩余履行额 = 货款加服务费后的待付总额，再减去已履行。 */
+    /* 剩余应付金额 = 含加价实付 − 已付款。 */
     function remainCents(item) {
         return Math.max(0, payableCents(item) - fulfilledCents(item));
     }
 
-    /* 最近一个预计履行日。同一天多个渠道加总。 */
-    function latestEstimate(days) {
-        var date = '';
-        (days || []).forEach(function (row) {
-            if (row.stage === 'estimate' && row.date > date) date = row.date;
-        });
-        if (!date) return null;
-        var cents = 0;
-        (days || []).forEach(function (row) {
-            if (row.stage === 'estimate' && row.date === date) cents += yuanCents(row.due);
-        });
-        return { date: date, cents: cents };
+    function latestEstimate(item) {
+        return nextPayableOf(item);
     }
 
     function monthDay(date) {
@@ -1223,7 +1221,7 @@
         return Number(parts[1]) + '月' + Number(parts[2]) + '日';
     }
 
-    /* 营业收入自动扣款在营业日次日 08:00:00 结算。预计履行的结算单还没确定，不写结算时间。 */
+    /* 营业收入自动扣款在营业日次日 08:00:00 结算。预计付款的结算单还没确定，不写结算时间。 */
     function settlementTime(date) {
         var parts = String(date || '').split('-');
         if (parts.length < 3) return '';
@@ -1242,7 +1240,7 @@
         return settlementTime(day.date);
     }
 
-    /* 验收场景只改履约页能不能看到每日履行，不把需求改成已完成。订单完成后进入履约中。 */
+    /* 验收场景只改付款页能不能看到每日付款，不把需求改成已完成。订单完成后进入付款中。 */
     function repayView(item) {
         if (!item) return item;
         var view = {};
@@ -1274,9 +1272,9 @@
         });
     }
 
-    /* 需求列表：门店付款中、还款中显示履约中。剩余履行额为 0 时，履约状态改为已完成，与 PC 履约阶段一致。 */
+    /* 需求列表：门店付款中显示付款中。剩余应付为 0 时，付款状态改为已完成，与 PC 付款阶段一致。 */
     function phaseLabel(status) {
-        if (status === '门店付款中' || status === '还款中') return '履约中';
+        if (status === '门店付款中' || status === '还款中') return '付款中';
         return status || '—';
     }
 
@@ -1285,7 +1283,7 @@
         if (item.status !== '门店付款中' && item.status !== '还款中' && item.status !== '已完成') return phaseLabel(item.status);
         var view = item._days ? item : repayView(item);
         if (item.status === '已完成' || remainCents(view) === 0) return '已完成';
-        return '履约中';
+        return '付款中';
     }
 
     function payableDemands() {
@@ -1294,7 +1292,7 @@
         });
     }
 
-    /* 把门店端结清结果写给 PC。剩余履行额回到大于 0 时清掉。 */
+    /* 把门店端结清结果写给 PC。剩余付款额回到大于 0 时清掉。 */
     function syncSettledFlags() {
         var api = window.RbtDailyFulfill;
         if (!api || typeof api.markSettled !== 'function') return;
@@ -1315,44 +1313,45 @@
             fulfilledSum += fulfilledCents(item);
         });
         openRows.forEach(function (item) {
-            if (item._days && item._days.length) {
+            var next = nextPayableOf(item);
+            if (next) {
                 hasOpenDays = true;
-                estimateSum += estimateCentsOf(item._days);
+                estimateSum += next.cents;
             }
         });
-        setHead('履约');
+        setHead('付款');
         return '<section class="rbt-pay__hero">' +
-            '<p class="rbt-pay__label">剩余履行额</p>' +
+            '<p class="rbt-pay__label">剩余应付金额</p>' +
             '<p class="rbt-pay__amt">' + centsComma(remainSum) + '</p>' +
             '<div class="rbt-pay__pair">' +
-            '<div><span>预计履约</span><b>' + (openRows.length ? (hasOpenDays ? ('¥' + centsText(estimateSum)) : '未计算') : '¥0.00') + '</b></div>' +
-            '<div><span>已履行</span><b>¥' + centsText(fulfilledSum) + '</b></div>' +
+            '<div><span>预计应付金额</span><b>' + (openRows.length ? (hasOpenDays ? ('¥' + centsText(estimateSum)) : '未计算') : '¥0.00') + '</b></div>' +
+            '<div><span>已付金额</span><b>¥' + centsText(fulfilledSum) + '</b></div>' +
             '</div>' +
-            '<button type="button" class="rbt-pay__go" data-pay-open ' + (openRows.length ? '' : 'disabled') + '>一键履约</button>' +
-            '<p class="rbt-pay__note">每天将从营业收入自动扣款</p>' +
+            '<button type="button" class="rbt-pay__go" data-pay-open ' + (openRows.length ? '' : 'disabled') + '>提前支付</button>' +
+            '<p class="rbt-pay__note">每天将从营业收入自动扣款。预计应付是次日佣金预估。</p>' +
             '</section>' +
             '<div class="rbt-pay__list">' +
             (rows.length ? rows.map(function (item) {
                 var phase = fulfillPhase(item);
                 var done = phase === '已完成';
-                var latest = latestEstimate(item._days);
+                var latest = latestEstimate(item);
                 var latestText = done
                     ? ''
                     : (latest
-                        ? (monthDay(latest.date) + ' 预计履行 ¥' + centsText(latest.cents))
-                        : '预计履行未计算');
+                        ? ('预计应付金额 ¥' + centsText(latest.cents) + '（次日预估）')
+                        : '预计应付金额未计算');
                 var title = item.code + (item.packageName ? ' · ' + item.packageName : '');
                 return '<button type="button" class="rbt-pay__row" data-bill="' + esc(item.code) + '">' +
                     '<span class="rbt-pay__main">' +
                     '<span class="rbt-pay__head"><span class="rbt-pay__title">' + esc(title) + '</span>' +
                     '<span class="rbt-pay__phase' + (done ? ' is-done' : '') + '">' + phase + '</span></span>' +
-                    '<span class="rbt-pay__sum">总金额 ¥' + centsText(totalCents(item)) + ' · 已履行 ¥' + centsText(fulfilledCents(item)) + '</span>' +
-                    '<span class="rbt-pay__sum">剩余履行额 ¥' + centsText(remainCents(item)) + '</span>' +
+                    '<span class="rbt-pay__sum">总金额 ¥' + centsText(totalCents(item)) + ' · 已付款 ¥' + centsText(fulfilledCents(item)) + '</span>' +
+                    '<span class="rbt-pay__sum">剩余应付金额 ¥' + centsText(remainCents(item)) + '</span>' +
                     (latestText ? '<span class="rbt-pay__latest">' + esc(latestText) + '</span>' : '') +
                     '</span>' +
                     '<span class="rbt-pay__chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>' +
                     '</button>';
-            }).join('') : '<div class="rbt-pay__empty">暂无履约中的合作</div>') +
+            }).join('') : '<div class="rbt-pay__empty">暂无付款中的合作</div>') +
             '</div>';
     }
 
@@ -1383,10 +1382,10 @@
     function syncPayHint() {
         var hint = document.getElementById('rbtPayHint');
         var item = currentPayItem();
-        if (hint && item) hint.textContent = '剩余履行额 ¥' + centsText(remainCents(item));
+        if (hint && item) hint.textContent = '剩余应付金额 ¥' + centsText(remainCents(item));
     }
 
-    /* 超过剩余履行额时改回剩余履行额，输入框仍可再改。返回是否发生了回改。 */
+    /* 超过剩余付款额时改回剩余付款额，输入框仍可再改。返回是否发生了回改。 */
     function clampPayInput() {
         var input = document.getElementById('rbtPayAmount');
         var item = currentPayItem();
@@ -1408,13 +1407,13 @@
         if (!rows.length || !mask) return;
         payMethod = 'alipay';
         var demandField = rows.length > 1
-            ? '<label class="rbt-pay-demand"><span>履约需求</span><select id="rbtPayDemand">' +
+            ? '<label class="rbt-pay-demand"><span>提前支付</span><select id="rbtPayDemand">' +
                 rows.map(function (item) {
                     return '<option value="' + esc(item.code) + '">' + esc(item.code) +
                         (item.packageName ? ' · ' + esc(item.packageName) : '') +
                         ' · 剩余 ¥' + centsText(remainCents(item)) + '</option>';
                 }).join('') + '</select></label>'
-            : '<p class="rbt-pay-demand rbt-pay-demand--text"><span>履约需求</span><b>' + esc(rows[0].code) +
+            : '<p class="rbt-pay-demand rbt-pay-demand--text"><span>提前支付</span><b>' + esc(rows[0].code) +
                 (rows[0].packageName ? ' · ' + esc(rows[0].packageName) : '') + '</b></p>' +
                 '<input type="hidden" id="rbtPayDemand" value="' + esc(rows[0].code) + '">';
         mask.innerHTML = '<div class="rbt-pay-page" data-pay-sheet>' +
@@ -1422,7 +1421,7 @@
             '<button type="button" data-pay-close aria-label="关闭">×</button></div>' +
             '<div class="rbt-pay-page__body">' +
             demandField +
-            '<label class="rbt-pay-amount"><span>履约金额</span>' +
+            '<label class="rbt-pay-amount"><span>支付金额</span>' +
             '<span class="rbt-pay-amount__box"><input id="rbtPayAmount" inputmode="decimal" placeholder="0.00" autocomplete="off"><em>元</em></span>' +
             '<p class="rbt-pay-amount__hint" id="rbtPayHint"></p></label>' +
             '<button type="button" class="rbt-pay-method is-on" data-pay-method="alipay"><i class="rbt-pay-logo rbt-pay-logo--ali">支</i><span>支付宝</span><em></em></button>' +
@@ -1451,18 +1450,18 @@
         var input = document.getElementById('rbtPayAmount');
         var item = select ? payDemandByCode(select.value) : null;
         if (!item) {
-            toast('请选择履约需求');
+            toast('请选择要提前支付的需求');
             return;
         }
         if (clampPayInput()) return;
         var raw = input ? String(input.value || '').trim() : '';
         if (!/^\d+(\.\d{1,2})?$/.test(raw)) {
-            toast('请填写履约金额，最多两位小数');
+            toast('请填写支付金额，最多两位小数');
             return;
         }
         var cents = yuanCents(raw);
         if (cents <= 0) {
-            toast('请填写大于 0 的履约金额');
+            toast('请填写大于 0 的支付金额');
             return;
         }
         var remain = remainCents(item);
@@ -1477,7 +1476,7 @@
             return;
         }
         if (payApi.isLocked()) {
-            toast('履约失败，请重新操作！');
+            toast('付款失败，请重新操作！');
             return;
         }
         pendingPay = {
@@ -1550,7 +1549,7 @@
         node.innerHTML = '';
     }
 
-    /* 支付完成弹框。还款字眼都写成支付。关闭回到当前履约页，查看履约进入这笔履约明细。 */
+    /* 支付完成弹框。关闭回到当前付款页，查看付款进入这笔付款明细。 */
     function showPayResult(pay) {
         var node = document.getElementById('rbtH5Result');
         if (!node || !pay) return;
@@ -1562,9 +1561,9 @@
             '<div class="rbt-result__meta">' +
             '<div><span>支付金额</span><b>¥' + centsText(pay.cents) + '</b></div>' +
             '<div><span>支付方式</span><b>' + esc(pay.channel) + '</b></div>' +
-            '<div><span>履约需求</span><b>' + esc(pay.code) + '</b></div>' +
+            '<div><span>需求单号</span><b>' + esc(pay.code) + '</b></div>' +
             '</div>' +
-            '<button type="button" class="rbt-result__go" data-result-bill="' + esc(pay.code) + '">查看履约</button>' +
+            '<button type="button" class="rbt-result__go" data-result-bill="' + esc(pay.code) + '">查看付款</button>' +
             '</div>';
         node.hidden = false;
     }
@@ -1607,7 +1606,7 @@
             payPwd = '';
             payPwdError = true;
             renderPwdFace();
-            if (res.locked) toast('履约失败，请重新操作！');
+            if (res.locked) toast('付款失败，请重新操作！');
             return;
         }
         finishPendingPay();
@@ -1630,8 +1629,36 @@
         });
     }
 
+    /* 门店端把同一天的 POS、商城、直播合成一条。一键付款仍单独成行。后台每日付款仍按渠道分行。 */
     function displayDays(item) {
-        var days = billDays(item).concat(manualDayRows(item));
+        var grouped = {};
+        var days = [];
+        billDays(item).forEach(function (day) {
+            if (!day) return;
+            var key = day.date || '';
+            if (!grouped[key]) {
+                grouped[key] = {
+                    date: day.date,
+                    kind: 'daily',
+                    channel: '当日付款',
+                    stage: day.stage,
+                    turnover: 0,
+                    commission: 0,
+                    due: 0,
+                    actual: 0,
+                    time: day.time || '',
+                    payMethod: day.payMethod
+                };
+                days.push(grouped[key]);
+            }
+            var row = grouped[key];
+            row.turnover += Number(day.turnover) || 0;
+            row.commission += Number(day.commission) || 0;
+            row.due += Number(day.due) || 0;
+            row.actual += Number(day.actual) || 0;
+            if (day.stage !== 'due') row.stage = day.stage;
+        });
+        days = days.concat(manualDayRows(item));
         days.sort(function (a, b) {
             if (a.date !== b.date) return a.date < b.date ? -1 : 1;
             if (a.kind === 'manual' && b.kind !== 'manual') return 1;
@@ -1642,19 +1669,18 @@
     }
 
     function dayChannel(day) {
-        return day && day.kind === 'manual' ? '一键履约' : (day && day.channel) || '—';
+        return day && day.kind === 'manual' ? '提前支付' : '当日付款';
     }
 
     function renderDayList(item, days) {
         return days.slice().reverse().map(function (day, revIndex) {
             var index = days.length - 1 - revIndex;
-            var stage = day.stage === 'due' ? '已履行' : '预计履行';
+            var stage = day.kind === 'manual' ? '已付款' : (day.stage === 'due' ? '已付款' : '待结算');
             var when = executedAtOf(day) || '未执行';
             var facts = day.kind === 'manual'
                 ? dayFact('支付方式', day.payMethod || '—')
                 : dayFact('营业流水', '¥' + money(day.turnover)) +
                     dayFact('所得佣金', '¥' + money(day.commission)) +
-                    dayFact('结算比例', day.ratio) +
                     dayFact('支付方式', dayPayMethod(day));
             facts += dayFact('结算时间', when);
             return '<button type="button" class="rbt-bill__day" data-day-index="' + index + '">' +
@@ -1667,7 +1693,7 @@
         }).join('');
     }
 
-    /* 本行履行额按需求单构成分摊。商品金额是货款；贸易商服务费 = 贸易商应收 − 商品金额；冷丰、服务商服务费用各自应收。四项之和等于总金额，再按占比拆到这一天，合计等于本行金额。 */
+    /* 门店端把冷丰服务费和服务商服务费合成一项服务费。后台仍分开记冷丰、服务商。 */
     function dayPayWeights(item) {
         var goods = yuanCents(item && item.goodsAmount);
         var pack = window.RbtDemandData && typeof window.RbtDemandData.receivables === 'function'
@@ -1677,10 +1703,8 @@
         var lengfeng = yuanCents(pack && pack.lengfeng);
         var provider = yuanCents(pack && pack.provider);
         var weights = [
-            { label: '商品金额', cents: goods },
-            { label: '贸易商服务费', cents: Math.max(0, trader - goods) },
-            { label: '冷丰服务费', cents: Math.max(0, lengfeng) },
-            { label: '服务商服务费', cents: Math.max(0, provider) }
+            { label: '商品金额', cents: trader > 0 ? trader : goods },
+            { label: '服务费', cents: Math.max(0, lengfeng) + Math.max(0, provider) }
         ].filter(function (row) { return row.cents > 0; });
         if (weights.length) return weights;
         var fee = yuanCents(item && item.serviceFee);
@@ -1746,11 +1770,11 @@
         add('创建时间', item.createdAt);
         add('确认签约', earliestLogTime(item, /确认签约/));
         add('付款时间', item.paidAt || earliestLogTime(item, /在线支付|线下支付/));
-        if (item.status === '已完成') add('履约完成', item.completedAt);
+        if (item.status === '已完成') add('付款完成', item.completedAt);
         return lines;
     }
 
-    /* 已完成不再留预计履行。最近一天结算单未确定时本来记预计履行，整笔完成后改记已履行。 */
+    /* 已完成不再留预计付款。最近一天结算单未确定时本来记预计付款，整笔完成后改记已付款。 */
     function billDays(item) {
         var days = (item && item._days) || [];
         if (fulfillPhase(item) !== '已完成') return days;
@@ -1768,27 +1792,26 @@
         var autoDays = billDays(item);
         var days = displayDays(item);
         var split = fulfillSplit(autoDays);
-        setHead('履约明细');
+        setHead('付款明细');
+        var nextPay = nextPayableOf(item);
         var settled = [
-            ['已履行', '¥' + centsText(fulfilledCents(item))],
-            ['剩余履行额', '¥' + centsText(remainCents(item))]
+            ['已付金额', '¥' + centsText(fulfilledCents(item))],
+            ['剩余应付金额', '¥' + centsText(remainCents(item))]
         ];
         var lines = autoDays.length
             ? [
                 ['贸易商', item.traderName || '—'],
-                ['履约计划', '已按日产生'],
-                ['结算比例', ratioText(item)],
+                ['付款计划', '已按日产生'],
                 ['计算来源', '按营业流水计算'],
-                ['预计履行', phase === '已完成' ? '无' : ('¥' + money(split.estimate))],
-                ['应履约', '¥' + money(split.due)]
+                ['预计应付金额', phase === '已完成' ? '无' : (nextPay ? ('¥' + centsText(nextPay.cents) + '（次日预估）') : '未计算')],
+                ['应付款', '¥' + money(split.due)]
             ].concat(settled).concat(nodeTimeLines(item))
             : [
                 ['贸易商', item.traderName || '—'],
-                ['履约计划', '未激活'],
-                ['结算比例', ratioText(item)],
+                ['付款计划', '未激活'],
                 ['计算来源', '还没有营业流水'],
-                ['预计履行', '未计算'],
-                ['应履约', '未产生']
+                ['预计应付金额', '未计算'],
+                ['应付款', '未产生']
             ].concat(settled).concat(nodeTimeLines(item));
         return '<section class="rbt-bill__head">' +
             '<div class="rbt-bill__top"><span class="rbt-bill__code">' + esc(item.code) + '</span><span class="rbt-bill__tag">' + phase + '</span></div>' +
@@ -1801,13 +1824,13 @@
             '</section>' +
             '<div class="rbt-bill-tabs" role="tablist">' +
             '<button type="button" data-bill-tab="base"' + (billTab === 'daily' ? '' : ' class="is-on"') + '>基础信息</button>' +
-            '<button type="button" data-bill-tab="daily"' + (billTab === 'daily' ? ' class="is-on"' : '') + '>每日履行</button>' +
+            '<button type="button" data-bill-tab="daily"' + (billTab === 'daily' ? ' class="is-on"' : '') + '>每日付款</button>' +
             '</div>' +
             (billTab === 'daily'
                 ? ('<section class="rbt-bill__sheet' + (days.length ? '' : ' rbt-bill__sheet--blank') + '">' +
                     (days.length
                         ? renderDayList(item, days)
-                        : '<p class="rbt-bill__empty">暂无每日履行。履约计划未激活，比例付不预造每日金额。</p>') +
+                        : '<p class="rbt-bill__empty">暂无每日付款。付款计划未激活，比例付不预造每日金额。</p>') +
                     '</section>')
                 : ('<section class="rbt-bill__sheet">' +
                     lines.map(function (line) {
@@ -1996,7 +2019,7 @@
         if (scroll) scroll.classList.toggle('is-home', on);
     }
 
-    /* 返回放在门店名左侧。首页、还款、我的没有上一级。 */
+    /* 返回放在门店名左侧。首页、付款、我的没有上一级。 */
     function backTarget() {
         if (screen === 'bill') return 'repay';
         if (screen === 'list') return 'home';
@@ -2241,7 +2264,7 @@
             scroll.classList.toggle('is-bill-blank', !!(bill && billTab === 'daily' && !displayDays(bill).length));
             scroll.innerHTML = bill
                 ? renderBill(bill)
-                : '<div class="rbt-h5-empty">履约明细不存在</div>';
+                : '<div class="rbt-h5-empty">付款明细不存在</div>';
             return;
         }
         if (tab === 'mine') {
@@ -2797,14 +2820,14 @@
         panel.id = 'rbtRepayDemo';
         panel.className = 'rbt-repay-demo';
         panel.innerHTML =
-            '<div class="rbt-repay-demo__title">履约验收开关</div>' +
+            '<div class="rbt-repay-demo__title">付款验收开关</div>' +
             '<label class="rbt-repay-demo__row">场景' +
             '<select id="rbtRepayDemoScene">' +
             REPAY_DEMO_SCENES.map(function (scene) {
                 return '<option value="' + scene.id + '"' + (scene.id === current ? ' selected' : '') + '>' + scene.label + '</option>';
             }).join('') +
             '</select></label>' +
-            '<p class="rbt-repay-demo__hint">履约中的每日履行按所得佣金乘结算比例生成。切到无每日履行时不列出。只影响履约页，不改需求单状态。</p>' +
+            '<p class="rbt-repay-demo__hint">付款中的每日付款按所得佣金乘结算比例生成。切到无每日付款时不列出。只影响付款页，不改需求单状态。</p>' +
             '<button type="button" class="rbt-repay-demo__apply" id="rbtRepayDemoApply">应用并刷新</button>';
         document.body.appendChild(panel);
         document.getElementById('rbtRepayDemoApply').addEventListener('click', function () {

@@ -54,7 +54,7 @@
     }
 
     function phaseLabel(status) {
-        if (status === '门店付款中' || status === '还款中') return '履约中';
+        if (status === '门店付款中' || status === '还款中') return '付款中';
         return status || '—';
     }
 
@@ -193,7 +193,7 @@
         shares.forEach(function (row) {
             var cents = Math.round(Number(row.amount) * 100);
             if (!isFinite(cents)) cents = 0;
-            /* 一键履约已经付过，按结算系数拆完即已结款。最近一个营业日仍等结算单。 */
+            /* 一键付款已经付过，按结算系数拆完即已结款。最近一个营业日仍等结算单。 */
             row.stage = !done && row.kind !== 'manual' && row.date === latest ? 'pending' : 'due';
             if (row.stage !== 'pending') settledCents += cents;
         });
@@ -276,7 +276,7 @@
         setHead('收款');
         return '<div class="rbt-fund">' +
             '<div class="rbt-fund__tabs" role="tablist">' +
-            '<button type="button" data-collect-view="open"' + (closed ? '' : ' class="is-on"') + '>履约中</button>' +
+            '<button type="button" data-collect-view="open"' + (closed ? '' : ' class="is-on"') + '>付款中</button>' +
             '<button type="button" data-collect-view="closed"' + (closed ? ' class="is-on"' : '') + '>已结束</button>' +
             '</div>' +
             '<div class="rbt-fund__summary">' +
@@ -299,7 +299,7 @@
                     '<div><span>已结款</span><b>' + esc(fund.settled ? yuan(fund.settled) : '未产生') + '</b></div>' +
                     '<div><span>待结款</span><b>' + esc(fund.pending ? yuan(fund.pending) : '未产生') + '</b></div>' +
                     '</div></button>';
-            }).join('') : '<div class="rbt-h5-empty">' + (closed ? '暂无已结束的收款' : '暂无履约中的收款') + '</div>') +
+            }).join('') : '<div class="rbt-h5-empty">' + (closed ? '暂无已结束的收款' : '暂无付款中的收款') + '</div>') +
             '</div>';
     }
 

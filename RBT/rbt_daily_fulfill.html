@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>冷丰RBT - 每日履行</title>
+    <title>冷丰RBT - 每日付款</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
@@ -13,7 +13,7 @@
     <style>
         [v-cloak] { display: none; }
         .rbt-daily-host { min-height: 480px; }
-        /* 操作列如果吸在右侧，会压住应履行、实际履行。改回随表格滚动，并始终露出横向滚动条。 */
+        /* 操作列如果吸在右侧，会压住应付款、实际付款。改回随表格滚动，并始终露出横向滚动条。 */
         .rbt-daily-host .el-table .el-table-fixed-column--left,
         .rbt-daily-host .el-table .el-table-fixed-column--right {
             position: static !important;
@@ -75,10 +75,10 @@
 
     <div class="container">
         <main class="main-content">
-            <div class="content-tabs"><button type="button" class="active">每日履行</button></div>
+            <div class="content-tabs"><button type="button" class="active">每日付款</button></div>
             <hr class="content-divider">
             <div id="rbtDailyApp" class="rbt-daily-host" v-cloak>
-                <div class="mdm-biz-tip rbt-daily-tip" role="note">一行是一天、一个渠道。结款从当日实际履行按<strong>贸易商、冷丰、服务商</strong>应收占比拆出，三笔之和等于当日实际履行。没有服务商时，服务商结款为 0。</div>
+                <div class="mdm-biz-tip rbt-daily-tip" role="note">后台一行是一天、一个渠道。结款从当日实际付款按<strong>贸易商、冷丰、服务商</strong>应收占比拆出，三笔之和等于当日实际付款。冷丰和服务商仍分开。门店端把同一天的渠道合成一条，并把冷丰服务费、服务商服务费合成一项服务费。</div>
 
                 <vab-schema-table
                     :columns="columns"
@@ -94,7 +94,7 @@
                     </template>
                     <template #actions="{row,elSize}">
                         <el-button :size="elSize" text type="primary" @click="openDay(row)">查看</el-button>
-                        <el-button :size="elSize" text type="primary" @click="openPerformance(row)">履约详情</el-button>
+                        <el-button :size="elSize" text type="primary" @click="openPerformance(row)">付款详情</el-button>
                     </template>
                 </vab-schema-table>
             </div>
