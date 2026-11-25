@@ -480,6 +480,26 @@
     "status": "diff",
     "date": "2026-11-13"
   },
+  "10c21a3|MDM/mdm_audit_rbt_demand.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "10c21a3|RBT/rbt_demand.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "10c21a3|RBT/rbt_installment.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "10c21a3|RBT/rbt_product_package.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
   "127460f|MDM/mdm_audit_rbt_demand.html": {
     "before": "changelog-assets/127460f/MDM__mdm_audit_rbt_demand.html.before.jpg",
     "after": "changelog-assets/127460f/MDM__mdm_audit_rbt_demand.html.after.jpg",
