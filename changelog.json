@@ -1,10 +1,68 @@
 {
-  "latestSha": "10c21a3f5e7272702a573f5e330f622accbb1b1b",
-  "total": 637,
+  "latestSha": "c9195d12d9a7b02efb2c6ac7922c127a46877b3d",
+  "total": 638,
   "days": [
     {
       "date": "2026-11-25",
       "items": [
+        {
+          "sha": "c9195d1",
+          "type": "feat",
+          "text": "门店和商品包标签库的计数列改为已绑定数量",
+          "author": "342-droid",
+          "time": "16:43",
+          "pages": [
+            {
+              "file": "MDM/mdm_aftersale_ticket.html",
+              "module": "冷丰售后",
+              "title": "售后单"
+            },
+            {
+              "file": "MDM/mdm_aftersale_ticket_detail.html",
+              "module": "冷丰售后",
+              "title": "售后详情"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "RBT/rbt_admit_store.html",
+              "module": "冷丰RBT",
+              "title": "门店准入管理"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_product_package.html",
+              "module": "冷丰RBT",
+              "title": "商品包"
+            },
+            {
+              "file": "SCM/basic_settings_business_tags.html",
+              "module": "冷丰WMS",
+              "title": "标签管理"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_admit_store.html",
+              "text": "标签管理里的「使用次数」改为「已绑定门店」，数字仍是当前带该标签的门店数"
+            },
+            {
+              "file": "RBT/rbt_product_package.html",
+              "text": "标签管理里的「使用次数」改为「已绑定商品包」，数字仍是当前带该标签的商品包数"
+            },
+            {
+              "file": null,
+              "text": "门店管理和商品包 PRD 同步写上对应列表列和计数口径"
+            }
+          ]
+        },
         {
           "sha": "10c21a3",
           "type": "fix",

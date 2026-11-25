@@ -3142,6 +3142,41 @@
     "status": "added",
     "date": "2026-11-13"
   },
+  "c9195d1|MDM/mdm_aftersale_ticket.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "c9195d1|MDM/mdm_aftersale_ticket_detail.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "c9195d1|MDM/mdm_archive_store.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "c9195d1|RBT/rbt_admit_store.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "c9195d1|RBT/rbt_demand.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "c9195d1|RBT/rbt_product_package.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "c9195d1|SCM/basic_settings_business_tags.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
   "cabf7f4|MDM/mdm_archive_carrier.html": {
     "regions": 0,
     "status": "diff",
