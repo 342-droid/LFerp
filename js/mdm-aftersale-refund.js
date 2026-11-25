@@ -4,6 +4,12 @@
  *         退款状态（未发起退款/待退款/退款执行中/退款成功/退款失败）
  * 申请信息：仅「批量退款 / 仅退款」详情展示
  * 支付凭证：仅售后单线下付款；结算前直退不展示、不可上传付款凭证
+ * 退款失败（原路退回）：可重试，或转线下退款并上传付款凭证。
+ * 线下退款仍按同一口径拆资金，但不在本页展示：
+ * 延迟户实付按本次退款金额解冻划入平台基本户，剩余实付结算给供应商。
+ * 实付低于采购价时，原补贴 = 采购款 - 订单实付，
+ * 实际应补贴 = (1 - 退款金额 / 实付金额) × 采购价 - 剩余实付。
+ * 供应商应收在结算清分里体现。
  */
 (function () {
   var SOURCES = ['批量退款', '仅退款', '取消订单', '退运费', '售后单'];
@@ -15,7 +21,8 @@
     运营代用户发起: '退运费'
   };
   var STATUSES = ['未发起退款', '待退款', '退款执行中', '退款成功', '退款失败'];
-  var METHODS = ['原路退回', '线下付款'];
+  var METHODS = ['原路退回', '线下付款', '线下退款'];
+  var OFFLINE_CONVERT_REASON = '退款失败转线下退款';
   /** 钱包渠道仅代采售后线下付款可用；零售不含钱包 */
   var CHANNELS_RETAIL = ['微信', '支付宝', '银行转账'];
   var CHANNELS_PROXY = ['微信', '支付宝', '钱包', '银行转账'];
@@ -32,6 +39,7 @@
     filters: {},
     filtered: [],
     uploadId: '',
+    uploadMode: '',
     uploadProofDataUrl: '',
     detailId: ''
   };
@@ -146,6 +154,66 @@
     );
   }
 
+  /** 原路退回失败：可重新向支付通道发起，也可改走线下退款 */
+  function canRetryRefund(row) {
+    if (isSupplierAftersaleView() || !row) return false;
+    return row.status === '退款失败' && row.method === '原路退回';
+  }
+
+  function canConvertOffline(row) {
+    return canRetryRefund(row);
+  }
+
+  function roundMoney(n) {
+    var num = Number(n);
+    if (isNaN(num)) return 0;
+    return Math.round(num * 100) / 100;
+  }
+
+  function ensureTradeAmounts(row) {
+    if (!row) return;
+    var cash = roundMoney(row.cashAmount);
+    if (row.orderPaid == null || row.orderPaid === '' || isNaN(Number(row.orderPaid))) {
+      row.orderPaid = cash;
+    }
+    row.orderPaid = roundMoney(row.orderPaid);
+    if (row.purchaseAmount == null || row.purchaseAmount === '' || isNaN(Number(row.purchaseAmount))) {
+      row.purchaseAmount = row.orderPaid;
+    }
+    row.purchaseAmount = roundMoney(row.purchaseAmount);
+  }
+
+  /**
+   * 线下退款资金：
+   * 延迟户实付按本次退款金额解冻划入平台基本户；剩余实付结算给供应商。
+   * 原补贴金额 = 采购款 - 订单实付（实付不低于采购款时为 0）。
+   * 实际应补贴金额 = (1 - 退款金额 / 实付金额) × 采购价 - 剩余实付。
+   */
+  function fundSplit(row, refundAmount) {
+    ensureTradeAmounts(row);
+    var paid = row.orderPaid;
+    var purchase = row.purchaseAmount;
+    var refund = roundMoney(refundAmount);
+    if (refund < 0) refund = 0;
+    if (paid > 0 && refund > paid) refund = paid;
+    var remain = roundMoney(Math.max(0, paid - refund));
+    var original = roundMoney(Math.max(0, purchase - paid));
+    var actual = 0;
+    if (original > 0 && paid > 0) {
+      actual = roundMoney((1 - refund / paid) * purchase - remain);
+      if (actual < 0) actual = 0;
+    }
+    return {
+      orderPaid: paid,
+      purchaseAmount: purchase,
+      refundAmount: refund,
+      originalSubsidy: original,
+      actualSubsidy: actual,
+      unfreezeToBasic: refund,
+      remainToSupplier: remain
+    };
+  }
+
   function buildDemoRows() {
     var list = [];
     var amounts = [1, 0.2, 0.02, 12.5, 0.75, 2.0, 9.9, 0.1, 3.6, 0.5];
@@ -162,6 +230,13 @@
         status = pool[i % pool.length];
       }
       var cash = amounts[i % amounts.length];
+      /* 订单实付覆盖本次可退现金；每 3 单有一单实付低于采购价，用来看平台补贴 */
+      var orderPaid = roundMoney(cash * (i % 3 === 0 ? 1 : i % 3 === 1 ? 2 : 1.6));
+      if (orderPaid < cash) orderPaid = cash;
+      var purchaseAmount =
+        i % 3 === 1
+          ? roundMoney(orderPaid + 4 + (i % 4))
+          : roundMoney(orderPaid * 0.8);
       /* 演示：多数代采（钱包渠道可用），少量零售（无钱包） */
       var orderSource = i % 5 === 1 ? '零售' : '代采';
       var day = pad((i % 28) + 1);
@@ -241,6 +316,8 @@
         proofs: proofs,
         status: status,
         cashAmount: cash,
+        orderPaid: orderPaid,
+        purchaseAmount: purchaseAmount,
         actualPaid: actualPaid,
         payTxnNo: payTxn,
         refundTxnNo: refundTxn,
@@ -501,6 +578,15 @@
       '<a href="#" class="aftersale-link js-as-refund-detail" data-id="' +
       escapeHtml(row.id) +
       '">查看详情</a>';
+    if (canRetryRefund(row)) {
+      html +=
+        '<a href="#" class="aftersale-link js-as-refund-retry" data-id="' +
+        escapeHtml(row.id) +
+        '">重试</a>' +
+        '<a href="#" class="aftersale-link js-as-refund-offline" data-id="' +
+        escapeHtml(row.id) +
+        '">转线下退款</a>';
+    }
     if (canUploadVoucher(row)) {
       html +=
         '<a href="#" class="aftersale-link js-as-refund-upload" data-id="' +
@@ -664,10 +750,15 @@
   }
 
   /* —— 上传付款凭证 —— */
-  function openUploadModal(id) {
+  function openUploadModal(id, mode) {
     var row = findRow(id);
-    if (!row || !canUploadVoucher(row)) return;
+    var converting = mode === 'convert';
+    if (!row) return;
+    if (converting) {
+      if (!canConvertOffline(row)) return;
+    } else if (!canUploadVoucher(row)) return;
     state.uploadId = id;
+    state.uploadMode = converting ? 'convert' : 'voucher';
     state.uploadProofDataUrl = '';
 
     var amountEl = $('asUploadAmount');
@@ -677,8 +768,8 @@
     var inputEl = $('asUploadProofInput');
     if (amountEl) amountEl.value = moneyPlain(row.cashAmount);
     if (hintEl) hintEl.textContent = '最大不超过 ' + money(row.cashAmount);
-    if (remarkEl) remarkEl.value = '';
-    if (countEl) countEl.textContent = '0';
+    if (remarkEl) remarkEl.value = converting ? OFFLINE_CONVERT_REASON : '';
+    if (countEl) countEl.textContent = String(remarkEl && remarkEl.value ? remarkEl.value.length : 0);
     if (inputEl) inputEl.value = '';
     resetProofPreview();
 
@@ -719,7 +810,78 @@
   function closeUploadModal() {
     hideModal('asRefundUploadModal');
     state.uploadId = '';
+    state.uploadMode = '';
     resetProofPreview();
+  }
+
+  function refreshViews() {
+    applyFilters();
+    renderTable();
+    if (state.detailId) {
+      var current = findRow(state.detailId);
+      if (current) renderDetail(current);
+    }
+  }
+
+  function retryRefund(id) {
+    var row = findRow(id);
+    if (!row || !canRetryRefund(row)) return;
+    row.status = '退款执行中';
+    row.refundTxnNo = '003100TOP1B26' + pad(Date.now() % 100000000, 8) + 'R';
+    row.updatedAt = nowStamp();
+    refreshViews();
+    if (typeof showToast === 'function') showToast('已重新发起原路退款', 'success');
+  }
+
+  function openRetryConfirm(id) {
+    var row = findRow(id);
+    if (!row || !canRetryRefund(row)) return;
+    var existing = document.getElementById('asRefundRetryConfirm');
+    if (existing) existing.remove();
+
+    var backdrop = document.createElement('div');
+    backdrop.className = 'erp-modal-backdrop mdm-people-warm-confirm-backdrop as-refund-retry-confirm';
+    backdrop.id = 'asRefundRetryConfirm';
+
+    function hide() {
+      document.removeEventListener('keydown', onKey);
+      if (backdrop.parentNode) backdrop.remove();
+    }
+
+    function onKey(e) {
+      if (e.key === 'Escape') hide();
+    }
+
+    backdrop.innerHTML =
+      '<div class="erp-modal erp-modal--confirm" role="dialog" aria-modal="true" aria-labelledby="asRefundRetryTitle">' +
+      '<div class="erp-modal__header">' +
+      '<h2 class="erp-modal__title" id="asRefundRetryTitle">温馨提示</h2>' +
+      '<div class="erp-modal__header-actions">' +
+      '<button type="button" class="erp-modal__header-btn" data-act="close" aria-label="关闭">&times;</button>' +
+      '</div></div>' +
+      '<div class="erp-modal__body">' +
+      '<div class="erp-modal-confirm__row">' +
+      '<div class="erp-modal-confirm__icon" aria-hidden="true">!</div>' +
+      '<div class="erp-modal-confirm__msg">确定重试该退款单吗？</div>' +
+      '</div></div>' +
+      '<div class="erp-modal__footer">' +
+      '<button type="button" class="erp-btn" data-act="cancel">取消</button>' +
+      '<button type="button" class="erp-btn erp-btn--primary" data-act="ok">确定</button>' +
+      '</div></div>';
+
+    document.body.appendChild(backdrop);
+    document.addEventListener('keydown', onKey);
+    backdrop.addEventListener('click', function (e) {
+      var act = e.target.getAttribute ? e.target.getAttribute('data-act') : '';
+      if (e.target === backdrop || act === 'close' || act === 'cancel') {
+        hide();
+        return;
+      }
+      if (act === 'ok') {
+        hide();
+        retryRefund(id);
+      }
+    });
   }
 
   function confirmUpload() {
@@ -775,6 +937,8 @@
       ':' +
       pad(now.getSeconds());
 
+    var converting = state.uploadMode === 'convert';
+    var fund = converting ? fundSplit(row, amount) : null;
     row.status = '退款成功';
     row.actualPaid = amount;
     row.offlineChannel = channel;
@@ -784,11 +948,26 @@
     row.voucherUploaded = true;
     row.completedAt = stamp;
     row.updatedAt = stamp;
+    if (converting && fund) {
+      row.method = '线下退款';
+      row.reason = OFFLINE_CONVERT_REASON;
+      row.cashAmount = amount;
+      row.orderPaid = fund.orderPaid;
+      row.purchaseAmount = fund.purchaseAmount;
+      row.originalSubsidy = fund.originalSubsidy;
+      row.actualSubsidy = fund.actualSubsidy;
+      row.unfreezeToBasic = fund.unfreezeToBasic;
+      row.remainToSupplier = fund.remainToSupplier;
+    }
 
     closeUploadModal();
-    applyFilters();
-    renderTable();
-    if (typeof showToast === 'function') showToast('线下付款已标记完成', 'success');
+    refreshViews();
+    if (typeof showToast === 'function') {
+      showToast(
+        converting ? '已转为线下退款' : '线下付款已标记完成',
+        'success'
+      );
+    }
   }
 
   /* —— 退款单详情 —— */
@@ -906,8 +1085,8 @@
       );
     }
 
-    // 结算前直退（批量 / 仅退款 / 取消订单）不展示支付凭证；仅售后单线下付款保留
-    if (row.method === '线下付款' && !isPreSettleRefund(row.source)) {
+    // 结算前直退（批量 / 仅退款 / 取消订单）不展示支付凭证；线下退款和售后单线下付款保留
+    if (row.method === '线下退款' || (row.method === '线下付款' && !isPreSettleRefund(row.source))) {
       var voucherActual =
         row.voucherUploaded && row.actualPaid != null
           ? money(row.actualPaid)
@@ -923,7 +1102,7 @@
       }
 
       var voucher =
-        descCell('线下付款渠道', escapeHtml(dash(row.offlineChannel))) +
+        descCell(row.method === '线下退款' ? '线下退款渠道' : '线下付款渠道', escapeHtml(dash(row.offlineChannel))) +
         descCell('实际打款金额', escapeHtml(voucherActual)) +
         descCell('退款备注', escapeHtml(dash(row.remark))) +
         descCell('支付凭证', proofHtml);
@@ -1055,6 +1234,18 @@
         if (upload) {
           e.preventDefault();
           openUploadModal(upload.getAttribute('data-id'));
+          return;
+        }
+        var retry = e.target.closest('.js-as-refund-retry');
+        if (retry) {
+          e.preventDefault();
+          openRetryConfirm(retry.getAttribute('data-id'));
+          return;
+        }
+        var offline = e.target.closest('.js-as-refund-offline');
+        if (offline) {
+          e.preventDefault();
+          openUploadModal(offline.getAttribute('data-id'), 'convert');
           return;
         }
         var detail = e.target.closest('.js-as-refund-detail');

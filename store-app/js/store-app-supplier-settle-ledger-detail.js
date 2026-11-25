@@ -80,9 +80,9 @@
     '<article class="sa-sup-card">' +
     '<h3 class="sa-sup-card__name">清分金额</h3>' +
     '<div class="sa-sup-od-grid">' +
+    (row.paid != null && row.paid !== '' ? kv('订单实付', money(row.paid)) : '') +
     kv('采购款', money(row.purchase)) +
     kv('销售价', money(row.sales)) +
-    kv('应收金额', money(row.receivable)) +
     kv('退款金额', money(row.refund)) +
     kv('清分净额', money(row.net)) +
     '</div></article>' +

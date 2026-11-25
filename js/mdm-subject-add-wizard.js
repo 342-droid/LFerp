@@ -84,9 +84,12 @@
                 { sec: '结算方式' },
                 { label: '结款方式' },
                 { label: '结算类型' },
-                { label: '结算策略', span: true },
-                { label: '结算起算节点' },
-                { label: '结算周期' }
+                { label: '零售结算策略', span: true },
+                { label: '零售起算节点' },
+                { label: '零售结算周期' },
+                { label: '代采结算策略', span: true },
+                { label: '代采起算节点' },
+                { label: '代采结算周期' }
             ]
         }
     ];
@@ -277,9 +280,12 @@
                 { sec: '结算方式' },
                 { label: '结款方式' },
                 { label: '结算类型' },
-                { label: '结算策略', span: true },
-                { label: '结算起算节点' },
-                { label: '结算周期' }
+                { label: '零售结算策略', span: true },
+                { label: '零售起算节点' },
+                { label: '零售结算周期' },
+                { label: '代采结算策略', span: true },
+                { label: '代采起算节点' },
+                { label: '代采结算周期' }
             ]
         }
     ];

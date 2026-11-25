@@ -209,13 +209,19 @@
   }
 
   function emptyBind() {
-    return { confirmed: false, currentStoreId: '', scannedIds: [], visitAt: {} };
+    return { confirmed: false, currentStoreId: '', scannedIds: [], firstBoundAt: {}, visitAt: {} };
   }
 
   function readBind() {
     var bind = Object.assign(emptyBind(), readJson(BIND_KEY, {}));
     if (!Array.isArray(bind.scannedIds)) bind.scannedIds = [];
     if (!bind.visitAt || typeof bind.visitAt !== 'object') bind.visitAt = {};
+    if (!bind.firstBoundAt || typeof bind.firstBoundAt !== 'object') bind.firstBoundAt = {};
+    var memberships = readJson('ua_store_membership_v1', {}).U10001 || {};
+    Object.keys(memberships).forEach(function(id) {
+      if (bind.scannedIds.indexOf(id) < 0 && !isSystemDefaultId(id)) bind.scannedIds.push(id);
+      if (!bind.firstBoundAt[id] && memberships[id].firstBoundAt) bind.firstBoundAt[id] = memberships[id].firstBoundAt;
+    });
     return bind;
   }
 
@@ -299,12 +305,23 @@
       }
     }
     if (preferred && !isStoreDisabled(preferred)) return preferred;
-    var pool = scanned
-      .map(getCatalogById)
-      .filter(Boolean)
-      .concat(def ? [def] : [])
-      .concat(CATALOG);
-    return pickFirstEnabledStore(pool) || preferred;
+    var ordered = scanned.map(function(id, index) {
+      var raw = (bind.firstBoundAt || {})[id];
+      var at = raw ? new Date(String(raw).replace(' ', 'T')).getTime() : NaN;
+      return {store:getCatalogById(id), at:at, index:index};
+    }).filter(function(row) {return row.store && !isStoreDisabled(row.store);});
+    ordered.sort(function(a,b) {
+      if (isFinite(a.at) && isFinite(b.at)) return a.at - b.at || a.index - b.index;
+      return a.index - b.index;
+    });
+    var next = ordered.length ? ordered[0].store : (!isStoreDisabled(def) ? def : null);
+    if (next && bind.currentStoreId !== next.id) {
+      bind.currentStoreId = next.id;
+      writeBind(bind);
+      var confirmPage = /cart|confirm/.test(global.location.pathname || '');
+      setTimeout(function(){ var text='已切换门店至：' + next.name + (confirmPage ? '，请确认商品及配送信息' : ''); if (typeof global.showToast === 'function') global.showToast(text); else global.dispatchEvent(new CustomEvent('ua-store-auto-switched',{detail:{message:text}})); },0);
+    }
+    return next;
   }
 
   function resolveSwitchableStores(bind, current) {
@@ -329,6 +346,8 @@
     if (storeId && (!def || storeId !== def.id) && bind.scannedIds.indexOf(storeId) < 0) {
       bind.scannedIds.push(storeId);
     }
+    if (!bind.firstBoundAt) bind.firstBoundAt = {};
+    if (!bind.firstBoundAt[storeId]) bind.firstBoundAt[storeId] = new Date().toISOString();
     bind.currentStoreId = storeId;
     bind.visitAt[storeId] = Date.now();
     bind.confirmed = true;
@@ -438,7 +457,11 @@
   }
 
   function syncLocateCtx(bind) {
-    if (!global.UaSwitchAddress || typeof global.UaSwitchAddress.writeCtx !== 'function') return;
+    if (!global.UaSwitchAddress || typeof global.UaSwitchAddress.writeCtx !== 'function') {
+      var selected=resolveCurrentStore(bind || readBind());
+      if(selected) writeJson('ua_locate_ctx_v1',Object.assign({},readJson('ua_locate_ctx_v1',{}),{storeId:selected.id,displayName:selected.name,storeAddr:selected.addr,picked:true,pickedKind:'pickup'}));
+      return;
+    }
     var store = resolveCurrentStore(bind || readBind());
     if (!store) return;
     var ctx = global.UaSwitchAddress.readCtx ? global.UaSwitchAddress.readCtx() : {};
@@ -687,18 +710,8 @@
     var curHost = $('saCurrentPickup');
     var otherHost = $('saSwitchablePickup');
     var emptyEl = $('saSwitchableEmpty');
-    ensureDisabledCurrentBanner(rawCurrent);
-    if (curHost) {
-      if (rawCurrent && isStoreDisabled(rawCurrent)) {
-        curHost.innerHTML =
-          storeCardHtml(rawCurrent, { asButton: false }) +
-          '<div style="margin-top:8px;font-size:12px;color:#a8071a;line-height:1.5">' +
-          escapeHtml(disabledCopy(rawCurrent).current) +
-          '</div>';
-      } else {
-        curHost.innerHTML = current ? storeCardHtml(current, { asButton: false }) : '';
-      }
-    }
+    ensureDisabledCurrentBanner(null);
+    if (curHost) curHost.innerHTML = current ? storeCardHtml(current, {asButton:false}) : '';
     if (otherHost) {
       otherHost.innerHTML = filtered
         .map(function (s) {

@@ -41,6 +41,25 @@
     return escapeHtml(src || AS.defaultImg || '../../user-app/assets/order-product-1.svg');
   }
 
+  /** 门店地址只保留省市区，详细地址显示 ** */
+  function maskStoreAddress(addr) {
+    var s = String(addr || '').replace(/\s+/g, '');
+    if (!s || s === '—') return '';
+    var direct = /^(北京|上海|天津|重庆)/.test(s);
+    var patterns = direct
+      ? [/^(.*?(?:市))/, /^(.*?(?:区|县))/]
+      : [/^(.*?(?:省|自治区|特别行政区))/, /^(.*?(?:市|州|盟|地区))/, /^(.*?(?:区|县|旗))/];
+    var rest = s;
+    var out = '';
+    for (var i = 0; i < patterns.length; i++) {
+      var matched = rest.match(patterns[i]);
+      if (!matched) break;
+      out += matched[1];
+      rest = rest.slice(matched[1].length);
+    }
+    return out ? out + ' **' : '**';
+  }
+
   function infoRow(label, value, strong) {
     return (
       '<div class="sa-ua-info__row"><span class="sa-ua-info__label">' +
@@ -197,6 +216,9 @@
       '</span></div></div></div></div>' +
       infoRow('售后单号', ticket.id) +
       infoRow('订单号', ticket.orderNo) +
+      infoRow('下单人', ticket.orderer) +
+      infoRow('门店名称', ticket.storeName) +
+      infoRow('门店地址', maskStoreAddress(ticket.storeAddress)) +
       infoRow('订单来源', ticket.orderSource) +
       infoRow('履约方式', ticket.fulfill) +
       infoRow('申请时间', ticket.applyTime) +

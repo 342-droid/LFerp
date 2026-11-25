@@ -188,12 +188,11 @@
                 cells.push(money(settled[role[1]]));
             });
         } else {
-            head = '<tr><th class="is-money">商品金额</th><th class="is-money">已发货金额</th><th class="is-money">服务费</th><th class="is-money">总金额</th>';
+            head = '<tr><th class="is-money">商品金额</th><th class="is-money">已发货金额</th><th class="is-money">服务费</th><th class="is-money">总金额</th>' +
+                '<th class="is-money">贸易商应收</th><th class="is-money">冷丰应收</th><th class="is-money">服务商应收</th></tr>';
             roles.forEach(function (role) {
-                head += '<th class="is-money">' + role[0] + '应收</th>';
                 cells.push(money(receivableOf(item, role[1])));
             });
-            head += '</tr>';
         }
         var body = '<tr>' + cells.map(function (value) {
             return '<td class="is-money">' + esc(value) + '</td>';

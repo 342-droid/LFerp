@@ -19,6 +19,7 @@
 
   var ctx = {
     isRestock: false,
+    orderNo: '',
     getPayable: function () {
       return 0;
     },
@@ -267,8 +268,32 @@
     return { ok: true };
   }
 
+  function currentPaymentOrder() {
+    return ctx.orderNo && global.UaOrdersStore ? global.UaOrdersStore.getByNo(ctx.orderNo) : null;
+  }
+  function servicePaymentAllowed() {
+    if (ctx.isRestock || !global.LfStoreServiceRules) return true;
+    var order = currentPaymentOrder();
+    var check = global.LfStoreServiceRules.decision(order);
+    if (check.allowed) return true;
+    closeSheet();
+    if (typeof global.showToast === 'function') global.showToast(check.message);
+    else global.alert(check.message);
+    return false;
+  }
+
   function finishPay(legs) {
     var L = legs || getLegs();
+    var order = currentPaymentOrder();
+    if (!ctx.isRestock && order && global.LfStoreServiceRules) {
+      var outcome = global.LfStoreServiceRules.callback(order);
+      if (outcome.mode === 'refund_pending') {
+        closeSheet();
+        global.UaOrdersStore.updateStatus(order.orderNo, 'closed', {closedReason:'system',refundState:'pending'});
+        global.alert(outcome.message);
+        return;
+      }
+    }
     var parts = buildPayLegParts(L);
     settlePayAfterOk(L);
     closeSheet();
@@ -439,6 +464,7 @@
 
   function confirmChannelPay() {
     if (state.busy) return;
+    if (!servicePaymentAllowed()) return;
     var legs = getLegs();
     if (legs.needsPassword) return;
     if (legs.needChannel && legs.channel !== 'alipay' && legs.channel !== 'wechat') {
@@ -581,6 +607,8 @@
   function open(options) {
     options = options || {};
     ctx.isRestock = !!options.isRestock;
+    ctx.orderNo = options.orderNo || '';
+    if (!servicePaymentAllowed()) return;
     ctx.getPayable =
       typeof options.getPayable === 'function'
         ? options.getPayable

@@ -3381,11 +3381,41 @@
     });
   }
 
+  var PRODUCTS_STATE_KEY = 'lf_live_sched_products_v1';
+  var WINDOWS_STATE_KEY = 'lf_live_welfare_windows_v1';
+  function refreshProducts() {
+    try {
+      var saved = JSON.parse(localStorage.getItem(PRODUCTS_STATE_KEY)||'{}');
+      Object.keys(saved).forEach(function(id){if(Array.isArray(saved[id])) productsBySession[id]=saved[id];});
+    } catch(e) { /* Keep current draft when persistence is unavailable. */ }
+  }
+  function persistProducts(id) {
+    if (!id) return;
+    try {
+      var saved=JSON.parse(localStorage.getItem(PRODUCTS_STATE_KEY)||'{}');
+      saved[id]=productsBySession[id]||[];
+      localStorage.setItem(PRODUCTS_STATE_KEY,JSON.stringify(saved));
+    } catch(e) { /* Local prototype only. */ }
+  }
+  function persistWelfare() {
+    try {localStorage.setItem(WINDOWS_STATE_KEY,JSON.stringify(welfareWindows));} catch(e) {}
+    persistSessions();
+  }
+  refreshProducts();
+  try {
+    var savedWindows=JSON.parse(localStorage.getItem(WINDOWS_STATE_KEY)||'{}');
+    Object.keys(savedWindows).forEach(function(id){if(Array.isArray(savedWindows[id])) welfareWindows[id]=savedWindows[id];});
+  } catch(e) {}
+
   window.MdmLiveDemo = {
     rooms: rooms,
     timeslots: timeslots,
     sessions: sessions,
     persistSessions: persistSessions,
+    persistProducts: persistProducts,
+    refreshProducts: refreshProducts,
+    persistWelfare: persistWelfare,
+    PRODUCTS_STATE_KEY: PRODUCTS_STATE_KEY,
     SESSIONS_LS_KEY: SESSIONS_LS_KEY,
     categories: categories,
     productsBySession: productsBySession,

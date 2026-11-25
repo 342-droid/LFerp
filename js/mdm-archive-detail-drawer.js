@@ -6105,33 +6105,37 @@
                 store.payMethodLabel ? store.payMethodLabel(sc.payMethod) : '先货后款'
             )
         );
-        grid.appendChild(
-            detailCell(
-                '结算策略',
-                store.strategyLabel
-                    ? store.strategyLabel(sc.followPlatform)
-                    : sc.followPlatform === false
-                      ? '供应商独立配置'
-                      : '平台通用配置'
-            )
-        );
-        grid.appendChild(
-            detailCell(
-                '结算起算节点',
-                store.triggerLabel ? store.triggerLabel(sc.trigger) : sc.trigger || '—'
-            )
-        );
-        grid.appendChild(
-            detailCell(
-                '结算周期',
-                store.cycleLabel ? store.cycleLabel(sc.cycle) : sc.cycle || '—'
-            )
-        );
+        function appendLine(line) {
+            var procure = line === 'procure';
+            var follow = procure ? sc.followProcure !== false : sc.followRetail !== false;
+            var trigger = procure ? sc.procureTrigger : sc.retailTrigger;
+            var cycle = procure ? sc.procureCycle : sc.retailCycle;
+            var strategy = store.lineStrategyLabel
+                ? store.lineStrategyLabel(line, follow)
+                : follow
+                  ? '跟随平台'
+                  : '独立配置';
+            grid.appendChild(detailCell(procure ? '代采结算策略' : '零售结算策略', strategy));
+            grid.appendChild(
+                detailCell(
+                    procure ? '代采起算节点' : '零售起算节点',
+                    store.triggerLabel ? store.triggerLabel(trigger) : trigger || '—'
+                )
+            );
+            grid.appendChild(
+                detailCell(
+                    procure ? '代采结算周期' : '零售结算周期',
+                    store.cycleLabel ? store.cycleLabel(cycle) : cycle || '—'
+                )
+            );
+        }
+        appendLine('retail');
+        appendLine('procure');
         viewHost.appendChild(grid);
         card.appendChild(el(
             'p',
             'erp-page__note mdm-detail-note supplier-settle-contract-tip',
-            '结算条款写入「资金清分结算合同」。变更后走结算补充协议：旧结算合同保留不整份作废；补充协议约定生效日与新旧条款衔接，已生成清分按旧条款，新入池按新条款。'
+            '零售、代采的起算和周期分开配置。跟随对应业态平台默认的，平台改该业态后自动同步。变更后走结算补充协议：旧结算合同保留不整份作废；补充协议约定生效日与新旧条款衔接，已生成清分按旧条款，新入池按新条款。'
         ));
         return card;
     }

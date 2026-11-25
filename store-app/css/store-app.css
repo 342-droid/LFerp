@@ -172,9 +172,9 @@
   font-weight: 500;
 }
 
-.sa-home.is-store-disabled #saStoreWorkspace .sa-quick,
-.sa-home.is-store-disabled #saStoreWorkspace .sa-card {
-  opacity: 0.72;
+.sa-home.is-store-disabled [data-service-blocked="1"] {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .sa-fyb-tip {

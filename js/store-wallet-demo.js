@@ -558,6 +558,19 @@
     }
   }
 
+  function isStoreServiceDisabled(meta) {
+    meta = meta || {};
+    try {
+      var session = JSON.parse(localStorage.getItem('sa_live_promo_session_v1') || '{}') || {};
+      var wallet = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') || {};
+      var params = new URLSearchParams(global.location ? global.location.search || '' : '');
+      var id = meta.storeId || params.get('storeId') || session.storeId || wallet.storeId || '';
+      var name = meta.storeName || wallet.storeName || DEFAULT.storeName;
+      var map = JSON.parse(localStorage.getItem('lferp_store_disabled_v1') || '{}') || {};
+      return !!((map[id] && map[id].disabled) || (map[name] && map[name].disabled));
+    } catch (e) { return false; }
+  }
+
   function snapshot(data) {
     var d = data || load();
     var gap = round2(Math.max(0, d.depositRequired - d.depositActual));
@@ -569,7 +582,7 @@
     var withdrawable = round2(Math.max(0, Number(d.withdrawable || 0) - fw));
     var pendingAvail = round2(Math.max(0, pending - fp));
     /* 余额含在途（资金仍在钱包）；进货 / 提现不含在途 */
-    var restockAvailable = round2(goodsQuota + withdrawable);
+    var restockAvailable = isStoreServiceDisabled() ? 0 : round2(goodsQuota + withdrawable);
     var available = round2(goodsQuota + withdrawable + pendingAvail);
     var settle = Object.assign({}, DEFAULT.settleAccount, d.settleAccount || {});
     return {
@@ -662,6 +675,7 @@
 
   /** 充值演示：优先补齐保证金缺口，其余进可提现（入账即可提） */
   function applyRecharge(amount, meta) {
+    if (isStoreServiceDisabled(meta)) return {ok:false,message:'本门店已停用，暂不可充值',snapshot:snapshot(),filledGap:0,toPending:0};
     var amt = round2(amount);
     var d = normalizeRechargeDaily(load());
     var singleLimit = Number(d.rechargeSingleLimit || 5000);
@@ -882,6 +896,7 @@
    * meta: { balanceAmount, pointsAmount, channel }
    */
   function freezeRestockPay(meta) {
+    if (isStoreServiceDisabled(meta) && Number((meta || {}).balanceAmount) > 0) return {ok:false,message:'本门店已停用，暂不可使用余额支付',snapshot:snapshot()};
     var d = load();
     if (d.freezeRecord) {
       return { ok: false, message: '存在未完成的支付冻结', snapshot: snapshot(d) };
@@ -909,6 +924,7 @@
 
   /** 三方回调成功后：解冻并划拨余额、记流水（积分由收银台侧扣减） */
   function commitRestockPayFreeze(meta) {
+    if (isStoreServiceDisabled(meta) && Number((meta || {}).balanceAmount) > 0) return {ok:false,message:'本门店已停用，暂不可使用余额支付',snapshot:snapshot()};
     var d = load();
     var rec = d.freezeRecord;
     if (!rec) {
@@ -976,6 +992,7 @@
    * 顺序：货款 → 余额(可提现)；渠道腿由收银台走支付宝/微信
    */
   function applyRestockPay(balanceAmount, meta) {
+    if (isStoreServiceDisabled(meta) && Number(balanceAmount) > 0) return Object.assign(snapshot(),{ok:false,message:'本门店已停用，暂不可使用余额支付'});
     var amt = round2(balanceAmount);
     if (amt <= 0) return snapshot();
     var d = load();
@@ -1401,6 +1418,7 @@
     load: load,
     save: save,
     snapshot: snapshot,
+    isStoreServiceDisabled: isStoreServiceDisabled,
     applyRestockPay: applyRestockPay,
     freezeRestockPay: freezeRestockPay,
     commitRestockPayFreeze: commitRestockPayFreeze,

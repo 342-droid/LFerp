@@ -178,7 +178,7 @@
         var idx = pair.indexOf(':');
         if (idx < 0) return;
         var k = pair.slice(0, idx).trim();
-        var n = parseInt(pair.slice(idx + 1).trim(), 10);
+        var n = Number(pair.slice(idx + 1).trim());
         if (!k || isNaN(n)) return;
         out[k] = n;
       });
@@ -202,7 +202,7 @@
     if (blocks.retail > 0) {
       hardBlocks.push({
         code: 'H1',
-        message: '仍有 ' + blocks.retail + ' 笔未完结零售订单（用户单），无法停用',
+        message: '仍有 ' + blocks.retail + ' 笔依赖本店作业的未完结零售订单，无法停用',
         count: blocks.retail,
         jumpHint: '零售订单'
       });
@@ -234,13 +234,13 @@
     if (warns.pendingPay > 0) {
       warnings.push({
         code: 'W-pay',
-        message: '存在 ' + warns.pendingPay + ' 笔待支付订单（不阻断，建议先关闭或等待超时）'
+        message: '存在 ' + warns.pendingPay + ' 笔待支付订单：自提系统关闭并释放占用，原链路有效的快递到家订单可继续支付'
       });
     }
     if (warns.bind > 0) {
       warnings.push({
         code: 'W-bind',
-        message: '仍有 ' + warns.bind + ' 名绑定客户；停用后用户 APP 不可再选该店'
+        message: '仍有 ' + warns.bind + ' 名绑定客户；按首次绑定时间自动切换其他启用门店，无其他有效门店则切至系统默认门店'
       });
     }
     if (warns.balance > 0) {
@@ -324,12 +324,12 @@
         jumpHint: '作业任务'
       });
     }
-    if (warns.stock > 0) {
-      warnings.push({
-        code: 'W-W2',
-        message: '可用库存约 ' + warns.stock + '：库存保留，停用后不可新出入库'
-      });
-    }
+    var dimensions = { stock: '当前实物库存', occupied: 'WMS 占用', frozen: '冻结库存', outboundReserved: '出库预占', returnReserved: '退货预占', transit: '在途库存', transitDocs: '在途单据', difference: '未处理收货差异', abnormal: '库存异常', rooms: '启用仓间', internal: '未完成库内作业', wave: '未完成波次', obligation: '待处理退货／补送义务' };
+    Object.keys(dimensions).forEach(function (key) {
+      var n = Number(blocks[key] || warns[key] || 0);
+      if (n !== 0) hardBlocks.push({ code: 'W-' + key, message: dimensions[key] + '：' + n + '，请清理后再停用', count: n });
+    });
+    if (tr.getAttribute('data-check-failed') === '1') hardBlocks.push({ code: 'W-UNKNOWN', message: '库存／作业检查未完成，请稍后重试' });
     return {
       canDisable: hardBlocks.length === 0,
       hardBlocks: hardBlocks,
@@ -450,6 +450,7 @@
     var reasonOther = document.getElementById('mdmArchEdReasonOther');
     var entityName = String(opts.entityName || '').trim();
     var isDisable = opts.mode !== 'enable';
+    document.getElementById('mdmArchEdCancel').style.display = '';
     var precheck = opts.precheck || { canDisable: true, hardBlocks: [], warnings: [] };
 
     titleEl.textContent = isDisable
@@ -490,6 +491,7 @@
     enableBody.style.display = 'none';
 
     var blocked = !precheck.canDisable;
+    if (blocked) { warnEl.style.display = 'none'; document.getElementById('mdmArchEdCancel').style.display = 'none'; }
     formEl.style.display = blocked ? 'none' : 'block';
     okBtn.textContent = blocked ? '关闭' : '确认停用';
     okBtn.disabled = false;
@@ -526,6 +528,14 @@
         }
         reason = '其他：' + other;
       }
+      if (typeof opts.recheck === 'function') {
+        var latest = opts.recheck();
+        if (!latest.canDisable) {
+          hardEl.innerHTML = listHtml('检查结果已变化，请先处理：', latest.hardBlocks, 'hard');
+          hardEl.style.display = 'block';
+          return;
+        }
+      }
       modal.style.display = 'none';
       if (typeof opts.onConfirm === 'function') {
         opts.onConfirm({ mode: 'disable', reason: reason });
@@ -538,11 +548,11 @@
   function userFacingDisabledCopy(storeName) {
     var name = String(storeName || '该门店').trim() || '该门店';
     return {
-      title: '门店已暂停服务',
+      title: '暂时无法进入该门店',
       scan:
         '「' +
         name +
-        '」目前已停用，暂时不能进入或切换到这家店。请选择其他正在营业的门店继续购物。',
+        '」暂时无法进入，请选择其他门店继续购物。',
       switch:
         '「' +
         name +
@@ -552,7 +562,7 @@
         name +
         '」已停用。请先切换到其他门店，再继续购物。',
       staffBanner:
-        '本门店已停用。用户端无法选店下单；请联系平台运营了解恢复启用安排。',
+        '本门店已停用，新增业务已暂停；提现、资料维护、历史订单及售后仍可按原权限操作。',
       bdBanner: '当前切入的门店已停用。用户无法进入该店；请切换到其他启用中的门店开展业务。'
     };
   }
