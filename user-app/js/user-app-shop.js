@@ -304,6 +304,68 @@
   });
 
   var LIVE_PRODUCT_IDS = ['dumpling', 'wonton-pork', 'wonton-corn', 'duck-mix'];
+
+  /** 售罄验收：默认把「饺子」标为补货中。浏览列表隐藏，购物车/搜索/结算/直播间商品列表仍可见。 */
+  var RESTOCK_DEMO_KEY = 'ua_mall_restock_demo_v1';
+  var RESTOCK_GOODS_ID = 'dumpling';
+  var RESTOCK_LABEL = '补货中';
+
+  function isRestockDemoOn() {
+    try {
+      var v = localStorage.getItem(RESTOCK_DEMO_KEY);
+      if (v === 'off' || v === '0') return false;
+    } catch (e) {}
+    return true;
+  }
+
+  function isRestocking(idOrProduct) {
+    if (!isRestockDemoOn()) return false;
+    var id = idOrProduct && typeof idOrProduct === 'object' ? idOrProduct.id : idOrProduct;
+    return String(id || '') === RESTOCK_GOODS_ID;
+  }
+
+  function restockMaskHtml() {
+    return '<span class="ua-restock-mask">补货中</span>';
+  }
+
+  /* 详情主图不盖「补货中」，只在商品列表小图上显示。 */
+  function syncHeroRestockMask() {
+    document.querySelectorAll('.ua-gd-hero').forEach(function (hero) {
+      hero.classList.remove('is-restocking');
+      hero.querySelectorAll('.ua-restock-mask').forEach(function (mask) {
+        mask.remove();
+      });
+    });
+  }
+
+  function mountRestockDemo() {
+    if (document.getElementById('uaRestockDemo')) return;
+    var on = isRestockDemoOn();
+    var panel = document.createElement('div');
+    panel.id = 'uaRestockDemo';
+    panel.className = 'ua-rg-demo ua-restock-demo';
+    panel.innerHTML =
+      '<div class="ua-rg-demo__title">售罄验收开关</div>' +
+      '<label class="ua-rg-demo__row">饺子' +
+      '<select id="uaRestockDemoMode">' +
+      '<option value="on"' +
+      (on ? ' selected' : '') +
+      '>售罄</option>' +
+      '<option value="off"' +
+      (on ? '' : ' selected') +
+      '>在售</option></select></label>' +
+      '<p class="ua-restock-demo__tip">售罄后商城、分类等列表隐藏；购物车、搜索、结算和直播间商品列表仍可见。</p>' +
+      '<button type="button" class="ua-rg-demo__apply" id="uaRestockDemoApply">应用并刷新</button>';
+    document.body.appendChild(panel);
+    panel.querySelector('#uaRestockDemoApply').addEventListener('click', function () {
+      var sel = document.getElementById('uaRestockDemoMode');
+      var next = sel && sel.value === 'off' ? 'off' : 'on';
+      try {
+        localStorage.setItem(RESTOCK_DEMO_KEY, next);
+      } catch (e) {}
+      global.location.reload();
+    });
+  }
   var LIVE_SALE_MODE_KEY = 'ua_live_sale_mode_v1';
   var LIVE_PREVIEW_PRICE_KEY = 'ua_live_preview_price_v1';
   var LIVE_EXPLAIN_KEY = 'ua_live_explain_v1';
@@ -904,7 +966,8 @@
     '.ua-live-cond-demo',
     '.ua-live-qc-demo',
     '.ua-live-invite-demo',
-    '.ua-bl-demo'
+    '.ua-bl-demo',
+    '#uaRestockDemo'
   ];
 
   var CART_LEFT_DEMO_SELECTORS = [
@@ -912,7 +975,8 @@
     '.ua-sk-demo--cart',
     '.ua-live-invite-demo',
     '#uaBlDemo',
-    '#uaSupplierAliasDemo'
+    '#uaSupplierAliasDemo',
+    '#uaRestockDemo'
   ];
 
   function leftDemoSelectors() {
@@ -953,6 +1017,38 @@
     if (!leftDemoSelectors()) return;
     if (liveLeftDemoTimer) clearTimeout(liveLeftDemoTimer);
     liveLeftDemoTimer = setTimeout(layoutLiveRoomLeftDemos, 0);
+  }
+
+  /* 首页验收开关分左右两列排开。售罄开关只在有商品列表的页面出现。 */
+  var homeDemoObserver = null;
+  function layoutHomeDemoPanels() {
+    if (!document.querySelector('.ua-home-page')) return;
+    function stack(id, side, selectors) {
+      var nodes = [];
+      selectors.forEach(function (sel) {
+        var el = document.querySelector(sel);
+        if (el) nodes.push(el);
+      });
+      if (!nodes.length) return;
+      var host = document.getElementById(id);
+      if (!host) {
+        host = document.createElement('div');
+        host.id = id;
+        host.className = 'ua-home-demo-stack ua-home-demo-stack--' + side;
+        document.body.appendChild(host);
+      }
+      nodes.forEach(function (el) {
+        if (el.parentNode !== host) host.appendChild(el);
+      });
+    }
+    stack('uaHomeDemoLeft', 'left', ['#uaBlDemo', '#uaLiveInviteDemo']);
+    stack('uaHomeDemoRight', 'right', ['#uaRgDemo', '#uaStoreBindDemo']);
+    if (!homeDemoObserver && window.MutationObserver) {
+      homeDemoObserver = new MutationObserver(function () {
+        layoutHomeDemoPanels();
+      });
+      homeDemoObserver.observe(document.body, { childList: true });
+    }
   }
 
   function readLiveSaleMode() {
@@ -1145,19 +1241,22 @@
     var buyBtn = document.getElementById('liveExplainBuy');
     if (nameEl) nameEl.textContent = info.name || '讲解商品';
     if (priceEl) priceEl.innerHTML = liveExplainPriceHtml(info);
+    var restocking = isRestocking(info);
     if (thumbEl) {
       var badge = preview ? '<span class="ua-live-goods__preview-badge">预告中</span>' : '';
+      var mask = restocking ? restockMaskHtml() : '';
       if (info.img) {
-        thumbEl.innerHTML = badge + '<img src="' + info.img + '" alt="">';
+        thumbEl.innerHTML = badge + mask + '<img src="' + info.img + '" alt="">';
       } else {
         var ch = String(info.name || '商').charAt(0);
-        thumbEl.innerHTML = badge + '<span>' + ch + '</span>';
+        thumbEl.innerHTML = badge + mask + '<span>' + ch + '</span>';
       }
     }
     if (buyBtn) {
-      buyBtn.disabled = preview;
-      buyBtn.classList.toggle('is-soon', preview);
-      buyBtn.textContent = preview ? '即将开售' : '去抢购';
+      buyBtn.disabled = preview || restocking;
+      buyBtn.classList.toggle('is-soon', preview && !restocking);
+      buyBtn.classList.toggle('is-restocking', restocking);
+      buyBtn.textContent = restocking ? RESTOCK_LABEL : preview ? '即将开售' : '去抢购';
       buyBtn.setAttribute('data-live-explain-id', info.id || '');
     }
     card.classList.toggle('is-preview', preview);
@@ -1194,7 +1293,7 @@
     var cart = readCart();
     if (cart && Array.isArray(cart.items) && cart.items.length) {
       normalizeCartItems(cart);
-      return cart;
+      return ensureRestockDemoLine(cart);
     }
     cart = {
       store: STORE,
@@ -1212,6 +1311,19 @@
         { id: 'wonton-pork', qty: 1, checked: true, source: 'mall' }
       ];
     }
+    normalizeCartItems(cart);
+    writeCart(cart);
+    return ensureRestockDemoLine(cart);
+  }
+
+  /* 售罄验收时，购物车里必须能看到这件历史加购，避免被旧购物车数据漏掉。 */
+  function ensureRestockDemoLine(cart) {
+    if (!isRestockDemoOn() || !cart || !Array.isArray(cart.items)) return cart;
+    var has = cart.items.some(function (it) {
+      return it && it.id === RESTOCK_GOODS_ID;
+    });
+    if (has) return cart;
+    cart.items.unshift({ id: RESTOCK_GOODS_ID, qty: 1, checked: true, source: 'mall' });
     normalizeCartItems(cart);
     writeCart(cart);
     return cart;
@@ -1337,6 +1449,19 @@
       if (a.fulfillType === b.fulfillType) return a.merchantName.localeCompare(b.merchantName, 'zh');
       return a.fulfillType === 'pickup' ? -1 : 1;
     });
+    /* 售罄验收的历史加购放到购物车最上面，避免被底栏和开关挡住。 */
+    if (isRestockDemoOn()) {
+      groups.forEach(function (group) {
+        group.items.sort(function (a, b) {
+          return (isRestocking(a) ? 0 : 1) - (isRestocking(b) ? 0 : 1);
+        });
+      });
+      groups.sort(function (a, b) {
+        var ar = a.items.some(isRestocking) ? 0 : 1;
+        var br = b.items.some(isRestocking) ? 0 : 1;
+        return ar - br;
+      });
+    }
     return groups;
   }
 
@@ -1979,6 +2104,10 @@
     opts = opts || {};
     var addQty = qty || 1;
     var p = resolveLiveProduct(id) || PRODUCTS[id];
+    if (p && isRestocking(p)) {
+      if (!opts.silent) showToast(RESTOCK_LABEL);
+      return null;
+    }
     if (p && !isProductSaleableNow(p)) {
       if (!opts.silent) showToast(unsaleableLabel());
       return null;
@@ -2785,6 +2914,7 @@
         '<img src="' +
         item.img +
         '" alt="">' +
+        (isRestocking(item) ? restockMaskHtml() : '') +
         (item.watermark
           ? '<span class="ua-shop-watermark ua-shop-watermark--sm">生产验证商品<br>请勿下单</span>'
           : '') +
@@ -2816,7 +2946,9 @@
           return (
             '<div class="ua-confirm-pkg__thumb"><img src="' +
             item.img +
-            '" alt=""></div>'
+            '" alt="">' +
+            (isRestocking(item) ? restockMaskHtml() : '') +
+            '</div>'
           );
         })
         .join('');
@@ -3589,7 +3721,12 @@
 
   function promptMallAdd(id, after) {
     var prod = PRODUCTS[id];
-    if (!prod || !guardProductSaleable(prod)) return;
+    if (!prod) return;
+    if (isRestocking(prod)) {
+      showToast(RESTOCK_LABEL);
+      return;
+    }
+    if (!guardProductSaleable(prod)) return;
     var specs = mallProductSpecs(prod);
     function finish(spec, qty) {
       if (addToCart(id, qty || 1, { spec: spec }) == null) return;
@@ -3647,6 +3784,7 @@
 
     syncMallAddButtons();
     applyMallSaleableState();
+    mountRestockDemo();
     if (global.UaProductSaleTime && global.UaProductSaleTime.mountDemoPanel) {
       global.UaProductSaleTime.mountDemoPanel({ className: 'ua-sale-time-demo--mall' });
     }
@@ -3761,7 +3899,7 @@
             return PRODUCTS[id];
           })
           .filter(function (p) {
-            return !!p && isProductSaleableNow(p);
+            return !!p && isProductSaleableNow(p) && !isRestocking(p);
           });
       }
       if (state.sort === 'price') {
@@ -3847,12 +3985,14 @@
         .map(function (p) {
           var item = findItem(cart, p.id);
           var qty = item && item.qty ? item.qty : 0;
-          var unsaleable = !isProductSaleableNow(p);
-          var marginMsg = lowMarginBlock(p);
+          var restocking = isRestocking(p);
+          var unsaleable = !restocking && !isProductSaleableNow(p);
+          var marginMsg = restocking ? '' : lowMarginBlock(p);
           var blocked = unsaleable || !!marginMsg;
           var blockLabel = unsaleable ? unsaleableLabel() : '低利润不可下单';
           return (
             '<article class="ua-cat-item' +
+            (restocking ? ' is-restocking' : '') +
             (blocked ? ' is-unsaleable' : '') +
             '" data-goods-id="' +
             p.id +
@@ -3863,6 +4003,7 @@
             '" alt="' +
             (p.shortName || p.name) +
             '">' +
+            (restocking ? restockMaskHtml() : '') +
             (blocked
               ? '<span class="ua-sale-unsaleable-badge">' + blockLabel + '</span>'
               : '') +
@@ -3878,7 +4019,13 @@
             '<span class="ua-cat-item__price">' +
             formatCatPrice(p.price) +
             '</span>' +
-            (blocked
+            (restocking
+              ? '<button type="button" class="ua-cat-item__add is-restocking" disabled aria-label="' +
+                RESTOCK_LABEL +
+                '">' +
+                cartIconSvg +
+                '</button>'
+              : blocked
               ? '<button type="button" class="ua-cat-item__add is-unsaleable" disabled aria-label="' +
                 blockLabel +
                 '">' +
@@ -3997,6 +4144,7 @@
     syncSortUI();
     renderProducts();
     syncCartBar();
+    mountRestockDemo();
     if (global.UaProductSaleTime && global.UaProductSaleTime.mountDemoPanel) {
       global.UaProductSaleTime.mountDemoPanel({ className: 'ua-sale-time-demo--cat' });
     }
@@ -4198,7 +4346,13 @@
 
       var tags = document.getElementById('goodsDetailTags');
       if (tags) {
-        tags.innerHTML = (product.heroTags || [])
+        var heroTags = product.heroTags || [];
+        if (fromLive) {
+          heroTags = heroTags.filter(function (t) {
+            return t !== '生产验证商品' && t !== '请勿下单';
+          });
+        }
+        tags.innerHTML = heroTags
           .map(function (t) {
             return '<span class="ua-gd-hero__tag"><i></i>' + t + '</span>';
           })
@@ -4236,31 +4390,47 @@
         }
       }
       var seckillDeny = !!(seckillHit && seckillHit.deny);
-      var soldOut = fromLive && product.liveStatus === 'sold_out';
-      var unsaleable = !livePreview && !soldOut && !isProductSaleableNow(product);
+      var restocking = isRestocking(product);
+      var soldOut = fromLive && !restocking && product.liveStatus === 'sold_out';
+      var unsaleable = !livePreview && !soldOut && !restocking && !isProductSaleableNow(product);
       var blocked = livePreview || soldOut || unsaleable || seckillDeny;
       var unsaleableBadge = document.getElementById('goodsDetailUnsaleableBadge');
       if (unsaleableBadge) {
-        unsaleableBadge.hidden = !unsaleable && !soldOut && !seckillDeny;
+        unsaleableBadge.hidden = restocking || (!unsaleable && !soldOut && !seckillDeny);
         unsaleableBadge.textContent = soldOut
           ? '已售罄'
           : seckillDeny
             ? '不支持购买'
             : unsaleableLabel();
       }
+      syncHeroRestockMask();
       var hero = document.querySelector('.ua-gd-hero');
-      if (hero) hero.classList.toggle('is-unsaleable', unsaleable || soldOut);
+      if (hero) hero.classList.toggle('is-unsaleable', (unsaleable || soldOut) && !restocking);
       var pageRoot = document.querySelector('.ua-gd-page') || document.querySelector('.ua-live-gd');
-      if (pageRoot) pageRoot.classList.toggle('is-unsaleable', unsaleable || soldOut);
+      if (pageRoot) pageRoot.classList.toggle('is-unsaleable', (unsaleable || soldOut) && !restocking);
       var cartBtn = document.getElementById('goodsDetailCartBtn');
       var addBtn = document.getElementById('goodsDetailAddCart');
       var buyBtn = document.getElementById('goodsDetailBuyNow');
       var soonBtn = document.getElementById('goodsDetailSoon');
       if (fromLive && cartBtn) cartBtn.hidden = true;
-      if (addBtn) addBtn.hidden = fromLive || blocked;
-      if (buyBtn) buyBtn.hidden = blocked;
+      if (addBtn) addBtn.hidden = fromLive || blocked || restocking;
+      if (buyBtn) {
+        if (restocking) {
+          buyBtn.hidden = false;
+          buyBtn.disabled = true;
+          buyBtn.textContent = RESTOCK_LABEL;
+          buyBtn.classList.add('is-restocking');
+        } else {
+          buyBtn.hidden = blocked;
+          buyBtn.disabled = false;
+          buyBtn.textContent = '立即购买';
+          buyBtn.classList.remove('is-restocking');
+        }
+      }
       if (soonBtn) {
-        if (livePreview) {
+        if (restocking) {
+          soonBtn.hidden = true;
+        } else if (livePreview) {
           soonBtn.hidden = false;
           soonBtn.textContent = '即将开售';
         } else if (soldOut) {
@@ -4277,6 +4447,10 @@
         }
       }
       setText('goodsDetailSold', '已售' + (product.sold || 0));
+      var soldOutHint = document.getElementById('goodsDetailSoldOut');
+      if (soldOutHint) {
+        soldOutHint.hidden = !(fromLive && (restocking || product.liveStatus === 'sold_out'));
+      }
       setText('goodsDetailTitle', product.name);
       setText('goodsDetailService', product.serviceText || '坏了包退 三天内到货');
       if (!fromLive && global.UaSeckill && typeof global.UaSeckill.applyGoodsDetail === 'function') {
@@ -4597,6 +4771,10 @@
       document.getElementById('goodsDetailAddCart') &&
         document.getElementById('goodsDetailAddCart').addEventListener('click', function () {
           if (fromLive || livePreview) return;
+          if (isRestocking(product)) {
+            showToast(RESTOCK_LABEL);
+            return;
+          }
           if (!guardProductSaleable(product)) return;
           if (global.UaSeckill && !global.UaSeckill.guardPurchase(product, selectedSpec)) return;
           openSpecSheet('cart');
@@ -4605,6 +4783,7 @@
       document.getElementById('goodsDetailBuyNow') &&
         document.getElementById('goodsDetailBuyNow').addEventListener('click', function () {
           if (livePreview) return;
+          if (isRestocking(product)) return;
           if (fromLive && product.liveStatus === 'sold_out') {
             showToast('该商品已售罄');
             return;
@@ -4640,6 +4819,7 @@
     ctl.bind();
     ctl.load(getProduct(params.get('id') || 'beef-tendon'));
     if (fromLive) mountLiveGoodsDemo({ includeExplain: false, offsetFooter: true });
+    mountRestockDemo();
     if (global.UaProductSaleTime && global.UaProductSaleTime.mountDemoPanel) {
       global.UaProductSaleTime.mountDemoPanel({
         className: fromLive ? 'ua-sale-time-demo--gd-live' : 'ua-sale-time-demo--gd'
@@ -4655,6 +4835,16 @@
     document.querySelectorAll('[data-add-product]').forEach(function (btn) {
       var id = btn.getAttribute('data-add-product');
       var prod = PRODUCTS[id];
+      if (prod && isRestocking(prod)) {
+        btn.disabled = true;
+        btn.classList.add('is-restocking');
+        btn.classList.remove('is-unsaleable', 'is-qty');
+        btn.innerHTML =
+          '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="20" r="1.5"/><circle cx="17" cy="20" r="1.5"/><path d="M3 4h2l2.2 11h9.6L19 8H7"/></svg>';
+        btn.setAttribute('aria-label', RESTOCK_LABEL);
+        return;
+      }
+      btn.classList.remove('is-restocking');
       if (prod && !isProductSaleableNow(prod)) {
         btn.disabled = true;
         btn.classList.add('is-unsaleable');
@@ -4681,8 +4871,8 @@
     document.querySelectorAll(selector).forEach(function (card) {
       var id = card.getAttribute('data-goods-id');
       var prod = PRODUCTS[id];
-      /* 首页/商城浏览流：不可售下架不展示 */
-      card.hidden = !!(prod && !isProductSaleableNow(prod));
+      /* 首页/商城浏览流：不可售、售罄（补货中）下架不展示 */
+      card.hidden = !!(prod && (!isProductSaleableNow(prod) || isRestocking(prod)));
       card.classList.remove('is-unsaleable');
       var badge = card.querySelector('.ua-sale-unsaleable-badge');
       if (badge) badge.remove();
@@ -4740,6 +4930,7 @@
     if (global.UaSeckill && typeof global.UaSeckill.mountDemoPanel === 'function') {
       global.UaSeckill.mountDemoPanel({ className: 'ua-sk-demo--cart' });
     }
+    mountRestockDemo();
     layoutLiveRoomLeftDemos();
     scheduleLiveRoomLeftDemos();
     setTimeout(layoutLiveRoomLeftDemos, 300);
@@ -4948,7 +5139,9 @@
             var p = PRODUCTS[item.id];
             if (!p) return '';
             return (
-              '<article class="ua-cart-item" data-id="' +
+              '<article class="ua-cart-item' +
+              (isRestocking(p) ? ' is-restocking' : '') +
+              '" data-id="' +
               p.id +
               '">' +
               '<div class="ua-cart-item__check">' +
@@ -4964,6 +5157,7 @@
               '<img src="' +
               p.img +
               '" alt="">' +
+              (isRestocking(p) ? restockMaskHtml() : '') +
               (p.watermark
                 ? '<span class="ua-shop-watermark ua-shop-watermark--sm">生产验证商品<br>请勿下单</span>'
                 : '') +
@@ -4987,9 +5181,13 @@
               '<span class="ua-cart-stepper__num">' +
               item.qty +
               '</span>' +
-              '<button type="button" class="ua-cart-stepper__btn ua-cart-stepper__btn--plus" data-cart-plus="' +
+              '<button type="button" class="ua-cart-stepper__btn ua-cart-stepper__btn--plus' +
+              (isRestocking(p) ? ' is-restocking' : '') +
+              '" data-cart-plus="' +
               p.id +
-              '">+</button>' +
+              '"' +
+              (isRestocking(p) ? ' disabled aria-label="补货中"' : '') +
+              '>+</button>' +
               '</div></div></div></article>'
             );
           })
@@ -5057,6 +5255,7 @@
 
     listEl.querySelectorAll('[data-cart-plus]').forEach(function (btn) {
       btn.addEventListener('click', function () {
+        if (btn.disabled || isRestocking(btn.getAttribute('data-cart-plus'))) return;
         var id = btn.getAttribute('data-cart-plus');
         var item = findItem(ensureCart(), id);
         setQty(id, (item ? item.qty : 0) + 1);
@@ -5079,7 +5278,9 @@
             var line = findItem(cart, id);
             if (!line) return;
             line.spec = spec;
-            line.qty = Math.max(1, Math.min(99, Math.round(Number(qty) || 1)));
+            var nextQty = Math.max(1, Math.min(99, Math.round(Number(qty) || 1)));
+            if (isRestocking(product)) nextQty = item.qty || line.qty || 1;
+            line.qty = nextQty;
             writeCart(cart);
             if (line.fromLive) {
               var liveCart = readLiveCart();
@@ -5211,6 +5412,7 @@
       syncAmounts();
     }
 
+    mountRestockDemo();
     if (global.UaProductSaleTime && global.UaProductSaleTime.mountDemoPanel) {
       global.UaProductSaleTime.mountDemoPanel({
         className: 'ua-sale-time-demo--confirm',
@@ -5528,6 +5730,7 @@
     if (enterBtn) enterBtn.addEventListener('click', enterLive);
     if (card) card.addEventListener('click', enterLive);
     hideUnsaleableBrowseCards('.ua-home-page [data-goods-id], .ua-home-page .ua-mall-product');
+    setTimeout(layoutHomeDemoPanels, 0);
   }
 
   function initLiveRoomPage() {
@@ -5677,7 +5880,8 @@
       listEl.innerHTML = products
         .map(function (p, index) {
           var preview = isLiveProductPreview(p);
-          var soldOut = !preview && p.liveStatus === 'sold_out';
+          var restocking = isRestocking(p);
+          var soldOut = !preview && (restocking || p.liveStatus === 'sold_out');
           var unsaleable = !preview && !soldOut && !isProductSaleableNow(p);
           var actions;
           if (preview) {
@@ -5687,7 +5891,7 @@
           } else if (soldOut) {
             actions =
               '<div class="ua-live-goods__ops">' +
-              '<button type="button" class="ua-live-goods__buy is-unsaleable" disabled>已售罄</button></div>';
+              '<button type="button" class="ua-live-goods__buy is-soldout" disabled>售罄</button></div>';
           } else if (unsaleable) {
             actions =
               '<div class="ua-live-goods__ops">' +
@@ -5707,7 +5911,8 @@
           return (
             '<article class="ua-live-goods__item' +
             (preview ? ' is-preview' : '') +
-            (unsaleable || soldOut ? ' is-unsaleable' : '') +
+            (soldOut ? ' is-soldout' : '') +
+            (unsaleable ? ' is-unsaleable' : '') +
             '" data-live-goods-id="' +
             p.id +
             '" role="link" tabindex="0">' +
@@ -5718,8 +5923,8 @@
             (index + 1) +
             '</span>' +
             thumbInner +
+            (soldOut ? restockMaskHtml() : '') +
             (preview ? '<span class="ua-live-goods__preview-badge">预告中</span>' : '') +
-            (soldOut ? '<span class="ua-live-goods__unsaleable-badge">已售罄</span>' : '') +
             (unsaleable
               ? '<span class="ua-live-goods__unsaleable-badge">' + unsaleableLabel() + '</span>'
               : '') +
@@ -5762,6 +5967,10 @@
       if (!p) return;
       if (isLiveProductPreview(p)) {
         showToast('该商品为预告，暂不可购买');
+        return;
+      }
+      if (isRestocking(p)) {
+        showToast(RESTOCK_LABEL);
         return;
       }
       if (p.liveStatus === 'sold_out') {
@@ -6163,6 +6372,10 @@
           showToast('该商品为预告，暂不可购买');
           return;
         }
+        if (isRestocking(info)) {
+          if (info.id) openLiveDetail(info.id);
+          return;
+        }
         if (!info.id) return;
         openSkuSheet(info.id);
       });
@@ -6177,10 +6390,15 @@
           showToast('该商品为预告，暂不可购买');
           return;
         }
+        if (isRestocking(info)) {
+          openLiveDetail(info.id);
+          return;
+        }
         openSkuSheet(info.id);
       });
     }
 
+    mountRestockDemo();
     mountLiveGoodsDemo();
     mountLiveDanmuDemo();
     mountLiveQuickCommentDemo();

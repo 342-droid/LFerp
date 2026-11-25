@@ -1,7 +1,8 @@
 /**
- * 结算起算节点 / 平台默认周期 / 供应商覆盖（原型共享）
- * - 平台改默认后：标记「跟随平台」的供应商自动同步；已生成清分不变，新增按新配置。
- * - 结款方式一并落在供应商结算配置里，详情与编辑表单共用。
+ * 结算起算 / 周期：零售、代采各一套平台默认；供应商可按业态跟随或独立配置。
+ * 佣金开关、出账时间仍是平台通用项，不按业态拆开。
+ * 平台改某一业态后：只同步「跟随该业态平台默认」的供应商。已生成清分不变，新增按新配置。
+ * 结款方式仍落在供应商结算配置里，详情与编辑表单共用。
  */
 (function (global) {
   var CFG_KEY = 'lf_settle_general_config_v1';
@@ -18,8 +19,10 @@
   };
 
   var STRATEGY_LABELS = {
-    inherit: '平台通用配置',
-    override: '供应商独立配置'
+    inherit: '跟随平台',
+    inheritRetail: '跟随零售平台默认',
+    inheritProcure: '跟随代采平台默认',
+    override: '独立配置'
   };
 
   var CYCLE_OPTIONS = [
@@ -34,6 +37,11 @@
   ];
 
   var DEFAULT_CFG = {
+    retailTrigger: 'fulfill',
+    retailCycle: '1',
+    procureTrigger: 'aftersale',
+    procureCycle: '7',
+    /* 旧字段保留为零售别名，避免历史读取落空 */
     trigger: 'fulfill',
     cycle: '1',
     generate: '00:01',
@@ -55,6 +63,19 @@
     }
   }
 
+  function normalizeTrigger(v, fallback) {
+    return v === 'aftersale' || v === 'fulfill' ? v : fallback;
+  }
+
+  function normalizeCycle(v, fallback) {
+    var s = v == null || v === '' ? '' : String(v);
+    if (!s) return String(fallback);
+    for (var i = 0; i < CYCLE_OPTIONS.length; i++) {
+      if (CYCLE_OPTIONS[i].value === s) return s;
+    }
+    return String(fallback);
+  }
+
   function loadConfig() {
     var raw = null;
     try {
@@ -67,12 +88,32 @@
     Object.keys(DEFAULT_CFG).forEach(function (k) {
       out[k] = saved[k] != null ? saved[k] : DEFAULT_CFG[k];
     });
-    if (out.trigger !== 'fulfill' && out.trigger !== 'aftersale') out.trigger = 'fulfill';
+    /* 旧版只有一套起算/周期时，两业态都沿用，避免已保存的演示被默认值改掉 */
+    if (saved.retailTrigger == null && saved.trigger != null) {
+      out.retailTrigger = saved.trigger;
+      out.retailCycle = saved.cycle != null ? saved.cycle : out.retailCycle;
+    }
+    if (saved.procureTrigger == null && saved.trigger != null) {
+      out.procureTrigger = saved.trigger;
+      out.procureCycle = saved.cycle != null ? saved.cycle : out.procureCycle;
+    }
+    out.retailTrigger = normalizeTrigger(out.retailTrigger, 'fulfill');
+    out.procureTrigger = normalizeTrigger(out.procureTrigger, 'aftersale');
+    out.retailCycle = normalizeCycle(out.retailCycle, '1');
+    out.procureCycle = normalizeCycle(out.procureCycle, '7');
+    out.trigger = out.retailTrigger;
+    out.cycle = out.retailCycle;
     return out;
   }
 
   function saveConfig(partial) {
     var next = Object.assign({}, loadConfig(), partial || {});
+    next.retailTrigger = normalizeTrigger(next.retailTrigger, 'fulfill');
+    next.procureTrigger = normalizeTrigger(next.procureTrigger, 'aftersale');
+    next.retailCycle = normalizeCycle(next.retailCycle, '1');
+    next.procureCycle = normalizeCycle(next.procureCycle, '7');
+    next.trigger = next.retailTrigger;
+    next.cycle = next.retailCycle;
     try {
       if (global.localStorage) global.localStorage.setItem(CFG_KEY, JSON.stringify(next));
     } catch (e) {}
@@ -106,47 +147,118 @@
     return v === 'pay_first' ? 'pay_first' : 'goods_first';
   }
 
+  function followsRetail(row) {
+    if (!row) return true;
+    if (row.followRetail != null) return row.followRetail !== false;
+    return row.followPlatform !== false;
+  }
+
+  function followsProcure(row) {
+    if (!row) return true;
+    if (row.followProcure != null) return row.followProcure !== false;
+    return row.followPlatform !== false;
+  }
+
+  function storedTrigger(row, line, fallback) {
+    var key = line === 'procure' ? 'procureTrigger' : 'retailTrigger';
+    if (row && row[key] != null) return normalizeTrigger(row[key], fallback);
+    if (row && row.trigger != null) return normalizeTrigger(row.trigger, fallback);
+    return fallback;
+  }
+
+  function storedCycle(row, line, fallback) {
+    var key = line === 'procure' ? 'procureCycle' : 'retailCycle';
+    if (row && row[key] != null && row[key] !== '') return normalizeCycle(row[key], fallback);
+    if (row && row.cycle != null && row.cycle !== '') return normalizeCycle(row.cycle, fallback);
+    return String(fallback);
+  }
+
+  function blankSupplier(key, cfg) {
+    return {
+      key: key,
+      followRetail: true,
+      followProcure: true,
+      followPlatform: true,
+      retailTrigger: cfg.retailTrigger,
+      retailCycle: cfg.retailCycle,
+      procureTrigger: cfg.procureTrigger,
+      procureCycle: cfg.procureCycle,
+      trigger: cfg.retailTrigger,
+      cycle: cfg.retailCycle,
+      payMethod: 'goods_first'
+    };
+  }
+
   function getSupplier(id, name) {
     var map = loadSupplierMap();
     var key = normalizeSupplierKey(id, name);
     var row = map[key];
     var cfg = loadConfig();
-    if (!row) {
-      return {
-        key: key,
-        trigger: cfg.trigger,
-        cycle: cfg.cycle,
-        followPlatform: true,
-        payMethod: 'goods_first'
-      };
-    }
-    var follow = row.followPlatform !== false;
+    if (!row) return blankSupplier(key, cfg);
+    var followRetail = followsRetail(row);
+    var followProcure = followsProcure(row);
+    var retailTrigger = followRetail
+      ? cfg.retailTrigger
+      : storedTrigger(row, 'retail', cfg.retailTrigger);
+    var retailCycle = followRetail
+      ? cfg.retailCycle
+      : storedCycle(row, 'retail', cfg.retailCycle);
+    var procureTrigger = followProcure
+      ? cfg.procureTrigger
+      : storedTrigger(row, 'procure', cfg.procureTrigger);
+    var procureCycle = followProcure
+      ? cfg.procureCycle
+      : storedCycle(row, 'procure', cfg.procureCycle);
     return {
       key: key,
-      trigger: follow
-        ? cfg.trigger
-        : row.trigger === 'aftersale'
-          ? 'aftersale'
-          : 'fulfill',
-      cycle: follow ? cfg.cycle : row.cycle || cfg.cycle,
-      followPlatform: follow,
+      followRetail: followRetail,
+      followProcure: followProcure,
+      followPlatform: followRetail && followProcure,
+      retailTrigger: retailTrigger,
+      retailCycle: retailCycle,
+      procureTrigger: procureTrigger,
+      procureCycle: procureCycle,
+      trigger: retailTrigger,
+      cycle: retailCycle,
       payMethod: normalizePayMethod(row.payMethod)
     };
   }
 
   function saveSupplier(id, name, data) {
+    data = data || {};
     var map = loadSupplierMap();
     var key = normalizeSupplierKey(id, name);
     var cfg = loadConfig();
-    var follow = !!(data && data.followPlatform);
     var prev = map[key] || {};
+    var legacy =
+      data.followRetail == null &&
+      data.followProcure == null &&
+      (data.followPlatform != null || data.trigger != null || data.cycle != null);
+    var followRetail = legacy ? data.followPlatform !== false : data.followRetail !== false;
+    var followProcure = legacy ? data.followPlatform !== false : data.followProcure !== false;
+    var retailTrigger = followRetail
+      ? cfg.retailTrigger
+      : normalizeTrigger(legacy ? data.trigger : data.retailTrigger, cfg.retailTrigger);
+    var procureTrigger = followProcure
+      ? cfg.procureTrigger
+      : normalizeTrigger(legacy ? data.trigger : data.procureTrigger, cfg.procureTrigger);
+    var retailCycle = followRetail
+      ? cfg.retailCycle
+      : normalizeCycle(legacy ? data.cycle : data.retailCycle, cfg.retailCycle);
+    var procureCycle = followProcure
+      ? cfg.procureCycle
+      : normalizeCycle(legacy ? data.cycle : data.procureCycle, cfg.procureCycle);
     map[key] = {
-      trigger: follow ? cfg.trigger : data && data.trigger === 'aftersale' ? 'aftersale' : 'fulfill',
-      cycle: follow ? cfg.cycle : (data && data.cycle) || cfg.cycle,
-      followPlatform: follow,
-      payMethod: normalizePayMethod(
-        data && data.payMethod != null ? data.payMethod : prev.payMethod
-      ),
+      followRetail: followRetail,
+      followProcure: followProcure,
+      followPlatform: followRetail && followProcure,
+      retailTrigger: retailTrigger,
+      retailCycle: retailCycle,
+      procureTrigger: procureTrigger,
+      procureCycle: procureCycle,
+      trigger: retailTrigger,
+      cycle: retailCycle,
+      payMethod: normalizePayMethod(data.payMethod != null ? data.payMethod : prev.payMethod),
       name: String(name || '').trim(),
       updatedAt: new Date().toISOString()
     };
@@ -154,16 +266,41 @@
     return getSupplier(id, name);
   }
 
-  /** 平台默认变更后，同步所有「跟随平台」的供应商配置 */
+  /** 平台默认变更后，只同步跟随对应业态的供应商 */
   function syncFollowers(cfg) {
     var map = loadSupplierMap();
     var changed = false;
     Object.keys(map).forEach(function (key) {
       var row = map[key];
-      if (!row || row.followPlatform === false) return;
-      if (row.trigger !== cfg.trigger || row.cycle !== cfg.cycle) {
-        row.trigger = cfg.trigger;
-        row.cycle = cfg.cycle;
+      if (!row) return;
+      var touch = false;
+      if (followsRetail(row)) {
+        row.followRetail = true;
+        if (row.retailTrigger !== cfg.retailTrigger || String(row.retailCycle) !== String(cfg.retailCycle)) {
+          row.retailTrigger = cfg.retailTrigger;
+          row.retailCycle = cfg.retailCycle;
+          touch = true;
+        }
+      }
+      if (followsProcure(row)) {
+        row.followProcure = true;
+        if (
+          row.procureTrigger !== cfg.procureTrigger ||
+          String(row.procureCycle) !== String(cfg.procureCycle)
+        ) {
+          row.procureTrigger = cfg.procureTrigger;
+          row.procureCycle = cfg.procureCycle;
+          touch = true;
+        }
+      }
+      var retailTrigger = followsRetail(row) ? cfg.retailTrigger : row.retailTrigger || row.trigger;
+      var retailCycle = followsRetail(row) ? cfg.retailCycle : row.retailCycle || row.cycle;
+      if (row.trigger !== retailTrigger || String(row.cycle) !== String(retailCycle)) {
+        row.trigger = retailTrigger;
+        row.cycle = retailCycle;
+        touch = true;
+      }
+      if (touch) {
         row.updatedAt = new Date().toISOString();
         changed = true;
       }
@@ -172,10 +309,11 @@
   }
 
   function cycleLabel(value) {
+    var s = value == null ? '' : String(value);
     for (var i = 0; i < CYCLE_OPTIONS.length; i++) {
-      if (CYCLE_OPTIONS[i].value === value) return CYCLE_OPTIONS[i].label;
+      if (CYCLE_OPTIONS[i].value === s) return CYCLE_OPTIONS[i].label;
     }
-    return value || '—';
+    return s || '—';
   }
 
   function triggerLabel(value) {
@@ -186,19 +324,57 @@
     return PAY_METHOD_LABELS[normalizePayMethod(value)] || PAY_METHOD_LABELS.goods_first;
   }
 
-  function strategyLabel(followPlatform) {
+  function lineStrategyLabel(line, follow) {
+    if (follow === false) return STRATEGY_LABELS.override;
+    return line === 'procure' ? STRATEGY_LABELS.inheritProcure : STRATEGY_LABELS.inheritRetail;
+  }
+
+  function strategyLabel(followPlatform, line) {
+    if (line) return lineStrategyLabel(line, followPlatform);
     return followPlatform === false ? STRATEGY_LABELS.override : STRATEGY_LABELS.inherit;
   }
 
-  /** 列表「结算信息」摘要：结款方式 / 策略 / 起算 / 周期 */
+  function describeLine(sc, line) {
+    var procure = line === 'procure';
+    var follow = procure ? sc.followProcure !== false : sc.followRetail !== false;
+    var trigger = procure ? sc.procureTrigger : sc.retailTrigger;
+    var cycle = procure ? sc.procureCycle : sc.retailCycle;
+    return (
+      (procure ? '代采' : '零售') +
+      '：' +
+      lineStrategyLabel(line, follow) +
+      '，' +
+      triggerLabel(trigger) +
+      '，' +
+      cycleLabel(cycle)
+    );
+  }
+
+  function describeSupplier(sc) {
+    if (!sc) return '—';
+    return [payMethodLabel(sc.payMethod), describeLine(sc, 'retail'), describeLine(sc, 'procure')].join('；');
+  }
+
+  function briefLine(sc, line) {
+    var procure = line === 'procure';
+    var follow = procure ? sc.followProcure !== false : sc.followRetail !== false;
+    var trigger = procure ? sc.procureTrigger : sc.retailTrigger;
+    var cycle = procure ? sc.procureCycle : sc.retailCycle;
+    return (
+      (procure ? '代采' : '零售') +
+      '：' +
+      (follow ? '跟随平台' : '独立') +
+      ' · ' +
+      triggerLabel(trigger) +
+      ' · ' +
+      cycleLabel(cycle)
+    );
+  }
+
+  /** 列表「结算信息」摘要：结款方式 / 零售 / 代采 */
   function formatSupplierSettleSummary(id, name) {
     var sc = getSupplier(id, name);
-    return [
-      payMethodLabel(sc.payMethod),
-      strategyLabel(sc.followPlatform),
-      triggerLabel(sc.trigger),
-      cycleLabel(sc.cycle)
-    ].join(' / ');
+    return [payMethodLabel(sc.payMethod), briefLine(sc, 'retail'), briefLine(sc, 'procure')].join(' / ');
   }
 
   global.LFSettleCycleStore = {
@@ -217,6 +393,9 @@
     triggerLabel: triggerLabel,
     payMethodLabel: payMethodLabel,
     strategyLabel: strategyLabel,
+    lineStrategyLabel: lineStrategyLabel,
+    describeLine: describeLine,
+    describeSupplier: describeSupplier,
     formatSupplierSettleSummary: formatSupplierSettleSummary
   };
 })(typeof window !== 'undefined' ? window : this);

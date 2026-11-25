@@ -256,6 +256,27 @@
     }
   ];
 
+  /** 下单人、门店名称、门店地址。地址含详细门牌，详情页只展示省市区，详细部分显示 ** */
+  var ORDER_PLACE = {
+    'AS-26101601': { orderer: '林晓', storeName: '斯斯门店商家2', storeAddress: '浙江省杭州市萧山区宁围街道演示门店' },
+    'AS-26090301': { orderer: '林晓', storeName: '斯斯门店商家2', storeAddress: '浙江省杭州市萧山区宁围街道演示门店' },
+    'AS-26102811': { orderer: '林晓', storeName: '斯斯门店商家2', storeAddress: '浙江省杭州市萧山区宁围街道演示门店' },
+    'AS-26102055': { orderer: '林晓', storeName: '斯斯门店商家2', storeAddress: '浙江省杭州市萧山区宁围街道演示门店' },
+    'AS-26101877': { orderer: '周宁', storeName: '德清乾元天恩冷鲜超市', storeAddress: '浙江省湖州市德清县乾元镇天恩路' },
+    'AS-26101233': { orderer: '林晓', storeName: '斯斯门店商家2', storeAddress: '浙江省杭州市萧山区宁围街道演示门店' },
+    'AS-26100109': { orderer: '林晓', storeName: '斯斯门店商家2', storeAddress: '浙江省杭州市萧山区宁围街道演示门店' },
+    'AS-26102588': { orderer: '陈可', storeName: '南京马群枢纽供应商店', storeAddress: '江苏省南京市栖霞区马群街道' },
+    'AS-26102266': { orderer: '赵敏', storeName: '野子文化', storeAddress: '浙江省杭州市拱墅区莫干山路' },
+    'AS-26101544': { orderer: '陈可', storeName: '南京马群枢纽供应商店', storeAddress: '江苏省南京市栖霞区马群街道' }
+  };
+  TICKETS.forEach(function (ticket) {
+    var place = ORDER_PLACE[ticket.id];
+    if (!place) return;
+    ticket.orderer = place.orderer;
+    ticket.storeName = place.storeName;
+    ticket.storeAddress = place.storeAddress;
+  });
+
   var REFUNDS = [
     {
       id: 'RF-2610123301',

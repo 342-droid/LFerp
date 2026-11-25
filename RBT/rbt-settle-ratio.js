@@ -497,7 +497,8 @@
             '.rbt-ratio-reason__label{display:block;margin-bottom:8px;color:#303133;font-size:13px;}',
             '.rbt-ratio-reason__label i{margin-right:4px;color:#f56c6c;font-style:normal;}',
             '.rbt-ratio-reason textarea{width:100%;min-height:72px;box-sizing:border-box;border:1px solid #dcdfe6;border-radius:4px;padding:8px 10px;font:inherit;font-size:13px;line-height:1.5;resize:vertical;}',
-            '.rbt-review-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 20px 16px;border-top:1px solid #ebeef5;}'
+            '.rbt-review-foot{display:flex;justify-content:flex-end;gap:8px;padding:12px 20px 16px;border-top:1px solid #ebeef5;}',
+            '.supplier-detail-section-title .rbt-demand-contract-link{margin-left:12px;font-weight:400;font-size:13px;}'
         ].join('');
         document.head.appendChild(style);
     }

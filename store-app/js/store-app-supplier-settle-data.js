@@ -3,7 +3,90 @@
  * 清分按本商家订单归集；字段对齐 PC 清分台账供应商侧可读信息。
  */
 (function (global) {
+  /* 有退款时：退款从延迟户划到平台基本户，剩余实付结算给供应商。
+     实付低于采购价时补贴并入清分净额；不低于采购价时净额就是剩余实付。 */
+  function settleAfterRefund(paid, purchase, refund) {
+    var paidN = Math.round(Number(paid) * 100) / 100;
+    var purchaseN = Math.round(Number(purchase) * 100) / 100;
+    var refundN = Math.round(Number(refund) * 100) / 100;
+    if (isNaN(paidN) || paidN < 0) paidN = 0;
+    if (isNaN(purchaseN) || purchaseN < 0) purchaseN = 0;
+    if (isNaN(refundN) || refundN < 0) refundN = 0;
+    if (paidN > 0 && refundN > paidN) refundN = paidN;
+    var remain = Math.round(Math.max(0, paidN - refundN) * 100) / 100;
+    var subsidy = 0;
+    if (purchaseN > paidN && paidN > 0) {
+      subsidy = Math.round(((1 - refundN / paidN) * purchaseN - remain) * 100) / 100;
+      if (subsidy < 0) subsidy = 0;
+    }
+    var settle = Math.round((remain + subsidy) * 100) / 100;
+    return {
+      paid: paidN.toFixed(2),
+      purchase: purchaseN.toFixed(2),
+      refund: refundN.toFixed(2),
+      net: settle.toFixed(2)
+    };
+  }
+
+  var overPay = settleAfterRefund(3.2, 2.56, 2);
+  var underPay = settleAfterRefund(10, 14, 4);
+  var fullRefund = settleAfterRefund(0.8, 0.64, 0.8);
+
   var LEDGER = [
+    {
+      id: '1723',
+      orderNo: 'ORD-261124320200',
+      lineNo: 'ORD-261124320200-1',
+      product: '芒果干',
+      sku: 'SPU00088',
+      spec: '200g',
+      qty: 1,
+      orderType: '零售',
+      channel: '商城',
+      storeName: '斯斯门店商家2',
+      paid: overPay.paid,
+      purchase: overPay.purchase,
+      sales: '3.20',
+      receivable: overPay.net,
+      refund: overPay.refund,
+      net: overPay.net,
+      clearStatus: '已清分',
+      settleStatus: '待结算',
+      postingStatus: '待入账',
+      time: '2026-11-24 11:20',
+      clearTime: '2026-11-24 11:26',
+      settleTime: '—',
+      billId: '',
+      supplier: '斯斯供应商商家',
+      remark: '—'
+    },
+    {
+      id: '1724',
+      orderNo: 'ORD-261124100400',
+      lineNo: 'ORD-261124100400-1',
+      product: '低糖养乐多',
+      sku: 'SPU00204',
+      spec: '低糖芒果味 / 箱',
+      qty: 1,
+      orderType: '代采',
+      channel: '代采',
+      storeName: '斯斯门店商家2',
+      paid: underPay.paid,
+      purchase: underPay.purchase,
+      sales: '12.00',
+      receivable: underPay.net,
+      refund: underPay.refund,
+      net: underPay.net,
+      clearStatus: '已清分',
+      settleStatus: '待结算',
+      postingStatus: '待入账',
+      time: '2026-11-24 10:04',
+      clearTime: '2026-11-24 10:12',
+      settleTime: '—',
+      billId: '',
+      supplier: '斯斯供应商商家',
+      remark: '—'
+    },
     {
       id: '1721',
       orderNo: 'ORD-2610312477895',
@@ -67,11 +150,12 @@
       orderType: '零售',
       channel: '商城',
       storeName: '斯斯门店商家2',
-      purchase: '0.64',
+      paid: fullRefund.paid,
+      purchase: fullRefund.purchase,
       sales: '0.80',
-      receivable: '0.64',
-      refund: '0.80',
-      net: '0.64',
+      receivable: fullRefund.net,
+      refund: fullRefund.refund,
+      net: fullRefund.net,
       clearStatus: '已清分',
       settleStatus: '结款中',
       postingStatus: '待入账',
@@ -80,7 +164,7 @@
       settleTime: '—',
       billId: 'ST_2086759712106688514',
       supplier: '斯斯供应商商家',
-      remark: '售后退款中，采购款仍按行清分'
+      remark: '—'
     },
     {
       id: '1708',
@@ -285,11 +369,11 @@
     },
     {
       id: 'ST_2086759712106688514',
-      goods: '0.64',
+      goods: fullRefund.net,
       payable: '0.00',
-      net: '0.64',
+      net: fullRefund.net,
       paid: '0.00',
-      unpaid: '0.64',
+      unpaid: fullRefund.net,
       orders: 1,
       status: '结款中',
       created: '2026-08-10 18:21',
@@ -304,9 +388,9 @@
           ledgerId: '1705',
           product: '芒果干',
           qty: 2,
-          goods: '0.64',
+          goods: fullRefund.net,
           fee: '0.00',
-          net: '0.64',
+          net: fullRefund.net,
           status: '结款中'
         }
       ]
