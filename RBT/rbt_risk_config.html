@@ -28,6 +28,12 @@
         .rbt-risk-tag.is-关注 { color: #d48806; background: #fffbe6; }
         .rbt-risk-tag.is-预警 { color: #d46b08; background: #fff7e6; }
         .rbt-risk-tag.is-异常 { color: #cf1322; background: #fff1f0; }
+        .rbt-baseline-now { display: inline-block; margin: 0 0 8px; padding: 2px 8px; border-radius: 4px; background: #fff7e6; color: #d46b08; font-weight: 600; }
+        .rbt-duration-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+        .rbt-duration-chip { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border: 1px solid #e5e7eb; border-radius: 16px; background: #fff; }
+        .rbt-duration-chip button { border: 0; background: transparent; color: #909399; cursor: pointer; }
+        #rbtRiskLine { width: 220px; }
+        .pts-rule-check-label { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; }
     </style>
 </head>
 <body>
@@ -41,7 +47,7 @@
             <hr class="content-divider">
 
             <div class="mdm-biz-tip rbt-risk-config-tip" role="note">
-                只按<strong>已发生日期</strong>评级。当日<strong>实际履行</strong>为 0，从这一天起往前连续计数。日均履行进度 = 累计履行进度 ÷ 已履约天数。已履约天数从最早到最晚的已发生日期，含首尾。未满起算天数不看日均。每档的连续未履行天数和日均履行进度可配成<strong>或</strong>、<strong>且</strong>。多档同时命中时取更重的等级。保存后，<a href="rbt_risk_abnormal.html">异常履约数据</a>、履约列表和首页按这套规则重算。未发生的日期不参与。
+                只按<strong>已发生营业日</strong>评级。单店<strong>日均付款额</strong> = 实际付款合计 ÷ 营业日天数。上线用<strong>静态基准</strong>：基准日均 = 产品金额 ÷ 预期付款天数。预期时长跟产品走，按月配置，一个月按 30 天。<strong>动态基准</strong>先留计算位，用该事业线门店营收和佣金推算平台日均。页面写明当前生效的是哪一种，不和百分比进度混用。高于或等于基准记 <strong>A 类</strong>。保存后，<a href="rbt_risk_abnormal.html">异常付款数据</a>、付款列表和首页按这套规则重算。
             </div>
             <p class="rbt-risk-error" id="rbtRiskError" hidden></p>
 
@@ -56,34 +62,74 @@
                                     <button type="button" class="pts-rule-switch is-on" id="rbtRiskEnabled" aria-pressed="true" aria-label="风险评级"></button>
                                     <span class="pts-rule-switch__text" id="rbtRiskEnabledText">开</span>
                                 </div>
-                                <div class="pts-rule-tip">关闭后不再产生关注、预警、异常，异常履约数据为空。每日履行里的金额不变。</div>
+                                <div class="pts-rule-tip">关闭后不再产生关注、预警、异常，异常付款数据为空。每日付款里的金额不变。</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="pts-rule-card">
-                    <div class="pts-rule-card__title">履约风险等级</div>
+                    <div class="pts-rule-card__title">生效基准</div>
+                    <div class="pts-rule-card__body">
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label">当前生效</label>
+                            <div class="pts-rule-field__control">
+                                <span class="rbt-baseline-now" id="rbtBaselineNow">静态基准</span>
+                                <div class="pts-rule-switch-row">
+                                    <button type="button" class="btn btn-primary" id="rbtBaselineStatic">静态基准</button>
+                                    <button type="button" class="btn btn-secondary" id="rbtBaselineDynamic">动态基准</button>
+                                </div>
+                                <div class="pts-rule-tip">静态基准日均 = 产品金额 ÷ 预期付款天数。动态基准用对应事业线的门店营收和佣金，推算该线日均付款额的平台值：应付款合计 ÷ 门店营业日次数。两种只生效一种。</div>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label">预期时长</label>
+                            <div class="pts-rule-field__control">
+                                <div class="rbt-duration-list" id="rbtDurationTiers"></div>
+                                <div class="rbt-risk-grade__unit">
+                                    <input class="erp-input" id="rbtDurationInput" type="number" min="1" step="1" inputmode="numeric" placeholder="月数" aria-label="新增预期时长">
+                                    <button type="button" class="btn btn-secondary" id="rbtDurationAdd">添加档位</button>
+                                </div>
+                                <div class="pts-rule-tip">跟产品走，不是写死 3、6、9、12 四档。可以增删。一个月按 30 天。</div>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label" for="rbtRiskLine">事业线</label>
+                            <div class="pts-rule-field__control">
+                                <div class="rbt-risk-grade__unit">
+                                    <select class="erp-select" id="rbtRiskLine" aria-label="事业线"></select>
+                                </div>
+                                <label class="pts-rule-check-label" id="rbtRiskLineOwnWrap" hidden>
+                                    <input type="checkbox" id="rbtRiskLineOwn"> 本事业线单独配置
+                                </label>
+                                <div class="pts-rule-tip">未单独配置的事业线用共用阈值。动态基准仍按事业线各自的营收和佣金计算。</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pts-rule-card">
+                    <div class="pts-rule-card__title">付款风险等级</div>
                     <div class="pts-rule-card__body">
                         <div class="pts-rule-field">
                             <label class="pts-rule-field__label" for="progressStartDays">进度起算</label>
                             <div class="pts-rule-field__control">
                                 <div class="rbt-risk-grade__unit">
-                                    <span>进入履约满</span>
+                                    <span>进入付款满</span>
                                     <input class="erp-input" id="progressStartDays" type="number" min="1" step="1" inputmode="numeric" aria-label="进度起算天数">
                                     <span>天</span>
                                 </div>
-                                <div class="pts-rule-tip">未满这个天数时，不看日均履行进度。关注、预警、异常共用。</div>
+                                <div class="pts-rule-tip">未满这个营业日天数时，不拿日均付款额和基准比。关注、预警、异常共用。</div>
                             </div>
                         </div>
-                        <div class="pts-rule-tip" style="margin-top:0;margin-bottom:10px;">每档单独选择条件关系。<strong>或</strong>是满足一个就记入该档，<strong>且</strong>是两个都要满足。多档同时命中时取更重的等级。连续未履行天数按关注、预警、异常递增，日均履行进度按关注、预警、异常递减。正常不用单独配置。</div>
+                        <div class="pts-rule-tip" style="margin-top:0;margin-bottom:10px;">每档单独选择条件关系。<strong>或</strong>是满足一个就记入该档，<strong>且</strong>是两个都要满足。多档同时命中时取更重的等级。连续未付款天数递增。低于基准的比例递减。正常不用单独配置。高于或等于基准，且未命中关注，记 A 类。</div>
                         <table class="rbt-risk-grade">
                             <thead>
                                 <tr>
-                                    <th>履约风险等级</th>
-                                    <th>连续未履行天数</th>
+                                    <th>付款风险等级</th>
+                                    <th>连续未付款天数</th>
                                     <th>条件关系</th>
-                                    <th>日均履行进度</th>
+                                    <th>低于基准</th>
                                     <th>异常提醒</th>
                                 </tr>
                             </thead>
@@ -97,7 +143,7 @@
                                     <td><span class="rbt-risk-tag is-关注">关注</span></td>
                                     <td>
                                         <div class="rbt-risk-grade__unit">
-                                            <input class="erp-input" id="watchStreak" type="number" min="1" step="1" inputmode="numeric" aria-label="关注连续未履行天数">
+                                            <input class="erp-input" id="watchStreak" type="number" min="1" step="1" inputmode="numeric" aria-label="关注连续未付款天数">
                                             <span>天</span>
                                         </div>
                                     </td>
@@ -112,7 +158,7 @@
                                     <td>
                                         <div class="rbt-risk-grade__unit">
                                             <span>低于</span>
-                                            <input class="erp-input" id="watchProgress" type="number" min="0.01" max="100" step="0.01" inputmode="decimal" aria-label="关注日均履行进度">
+                                            <input class="erp-input" id="watchProgress" type="number" min="0.01" max="100" step="0.01" inputmode="decimal" aria-label="关注低于基准">
                                             <span>%</span>
                                         </div>
                                     </td>
@@ -122,7 +168,7 @@
                                     <td><span class="rbt-risk-tag is-预警">预警</span></td>
                                     <td>
                                         <div class="rbt-risk-grade__unit">
-                                            <input class="erp-input" id="warnStreak" type="number" min="1" step="1" inputmode="numeric" aria-label="预警连续未履行天数">
+                                            <input class="erp-input" id="warnStreak" type="number" min="1" step="1" inputmode="numeric" aria-label="预警连续未付款天数">
                                             <span>天</span>
                                         </div>
                                     </td>
@@ -137,7 +183,7 @@
                                     <td>
                                         <div class="rbt-risk-grade__unit">
                                             <span>低于</span>
-                                            <input class="erp-input" id="warnProgress" type="number" min="0.01" max="100" step="0.01" inputmode="decimal" aria-label="预警日均履行进度">
+                                            <input class="erp-input" id="warnProgress" type="number" min="0.01" max="100" step="0.01" inputmode="decimal" aria-label="预警低于基准">
                                             <span>%</span>
                                         </div>
                                     </td>
@@ -147,7 +193,7 @@
                                     <td><span class="rbt-risk-tag is-异常">异常</span></td>
                                     <td>
                                         <div class="rbt-risk-grade__unit">
-                                            <input class="erp-input" id="badStreak" type="number" min="1" step="1" inputmode="numeric" aria-label="异常连续未履行天数">
+                                            <input class="erp-input" id="badStreak" type="number" min="1" step="1" inputmode="numeric" aria-label="异常连续未付款天数">
                                             <span>天</span>
                                         </div>
                                     </td>
@@ -162,7 +208,7 @@
                                     <td>
                                         <div class="rbt-risk-grade__unit">
                                             <span>低于</span>
-                                            <input class="erp-input" id="badProgress" type="number" min="0.01" max="100" step="0.01" inputmode="decimal" aria-label="异常日均履行进度">
+                                            <input class="erp-input" id="badProgress" type="number" min="0.01" max="100" step="0.01" inputmode="decimal" aria-label="异常低于基准">
                                             <span>%</span>
                                         </div>
                                     </td>
@@ -184,6 +230,7 @@
 
     <script src="rbt-fresh.js"></script>
     <script src="../js/common.js"></script>
+    <script src="rbt-store-data.js"></script>
     <script src="rbt-risk.js"></script>
     <script src="rbt-risk-config.js"></script>
 </body>

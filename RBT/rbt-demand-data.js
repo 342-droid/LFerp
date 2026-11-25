@@ -487,6 +487,21 @@
         };
     }
 
+    /* 贸易商服务费并进单价。需求单商品金额仍是原价。加价率 = 贸易商结算系数 − 1。订单实付按原价 ×（1 + 加价率）。 */
+    function markupOf(item) {
+        var rates = productRates(item && item.installmentCode);
+        var goods = centsOf(item && item.goodsAmount);
+        var traderRate = rates ? Number(rates.trader) : NaN;
+        var rate = isFinite(traderRate) && traderRate > 0 ? Math.round((traderRate - 1) * 10000) / 100 : null;
+        var marked = rate != null ? Math.round(goods * Math.round(traderRate * 100) / 100) : null;
+        return {
+            rate: rate,
+            rateText: rate == null ? '—' : rate.toFixed(2) + '%',
+            original: fromCents(goods),
+            marked: marked == null ? '' : fromCents(marked)
+        };
+    }
+
     /* 待接单及之后应能看到结算比例。 */
     function passedFirstAudit(status) {
         return status === '待接单' || status === '待确认签约' || status === '待重新确认' || status === '待签署' || status === '发货中' || status === '待付款' || status === '门店付款中' || status === '已完成';
@@ -1857,6 +1872,7 @@
         canEditSettleRatios: canEditSettleRatios,
         updateSettleRatios: updateSettleRatios,
         receivables: receivables,
+        markupOf: markupOf,
         settlementRates: settlementRates,
         shipCatalog: function () { return SHIP_CATALOG.slice(); },
         shipLine: shipLine,

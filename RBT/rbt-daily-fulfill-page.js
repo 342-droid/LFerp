@@ -1,4 +1,4 @@
-/* 全部门店的每日履行。 */
+/* 全部门店的每日付款。 */
 (function () {
     var dailyApi = window.RbtDailyFulfill;
 
@@ -32,7 +32,7 @@
                     { label: 'POS', value: 'POS' },
                     { label: '直播', value: '直播' },
                     { label: '商城', value: '商城' },
-                    { label: '手动履约', value: '手动履约' }
+                    { label: '手动付款', value: '手动付款' }
                 ],
                 placeholder: '请选择渠道'
             };
@@ -50,8 +50,8 @@
                 { dataIndex: 'turnover', title: '营业流水', minWidth: 100, align: 'right', formatter: function (row) { return yuan(row.turnover); } },
                 { dataIndex: 'commission', title: '所得佣金', minWidth: 100, align: 'right', formatter: function (row) { return yuan(row.commission); } },
                 { dataIndex: 'ratio', title: '结算比例', minWidth: 80, align: 'right' },
-                { dataIndex: 'due', title: '应履行', minWidth: 100, align: 'right', formatter: function (row) { return yuan(row.due); } },
-                { dataIndex: 'actual', title: '实际履行', minWidth: 100, align: 'right', formatter: function (row) { return yuan(row.actual); } },
+                { dataIndex: 'due', title: '应付款', minWidth: 100, align: 'right', formatter: function (row) { return yuan(row.due); } },
+                { dataIndex: 'actual', title: '实际付款', minWidth: 100, align: 'right', formatter: function (row) { return yuan(row.actual); } },
                 { dataIndex: 'payMethod', title: '支付方式', minWidth: 148, align: 'left', showOverflowTooltip: true },
                 { dataIndex: 'traderName', title: '贸易商', minWidth: 116, align: 'left', showOverflowTooltip: true, search: { control: 'input' }, formatter: function (row) { return blank(row.traderName) ? '—' : row.traderName; } },
                 { dataIndex: 'traderPay', title: '贸易商结款', minWidth: 108, align: 'right', formatter: function (row) { return yuan(row.traderPay); } },
@@ -194,9 +194,9 @@
                 drawer.setAttribute('data-rbt-day-drawer', '1');
                 drawer.setAttribute('role', 'dialog');
                 drawer.setAttribute('aria-modal', 'true');
-                drawer.setAttribute('aria-label', '履行明细');
+                drawer.setAttribute('aria-label', '付款明细');
                 drawer.innerHTML =
-                    '<div class="store-drawer__header"><h2 class="store-drawer__title">履行明细</h2>' +
+                    '<div class="store-drawer__header"><h2 class="store-drawer__title">付款明细</h2>' +
                     '<button type="button" class="store-drawer__close" data-rbt-day-close aria-label="关闭">&times;</button></div>' +
                     '<div class="store-drawer__body"><div class="rbt-day-sheet">' +
                     '<div class="supplier-detail-grid">' +
@@ -207,8 +207,8 @@
                     field('营业流水', moneyText(day.turnover)) +
                     field('所得佣金', moneyText(day.commission)) +
                     field('结算比例', day.ratio) +
-                    field('应履行', moneyText(day.due)) +
-                    field('实际履行', moneyText(day.actual)) +
+                    field('应付款', moneyText(day.due)) +
+                    field('实际付款', moneyText(day.actual)) +
                     field('支付方式', day.payMethod || '—') +
                     '</div>' +
                     '<div class="supplier-detail-section-title">各方结款</div>' +
@@ -217,7 +217,7 @@
                     '<tr><td>冷丰</td><td>上海冷丰科技有限公司</td><td class="is-money">' + esc(moneyText(day.lengfengPay)) + '</td></tr>' +
                     '<tr><td>服务商</td><td>' + esc(day.providerName) + '</td><td class="is-money">' + esc(moneyText(day.providerPay)) + '</td></tr>' +
                     '</tbody></table>' +
-                    '<p class="rbt-day-note">结款从当日实际履行按贸易商、冷丰、服务商应收占比拆出，三笔之和等于当日实际履行。没有服务商时，服务商结款为 0。</p>' +
+                    '<p class="rbt-day-note">结款从当日实际付款按贸易商、冷丰、服务商应收占比拆出，三笔之和等于当日实际付款。没有服务商时，服务商结款为 0。</p>' +
                     '</div></div>';
                 document.body.appendChild(backdrop);
                 document.body.appendChild(drawer);
