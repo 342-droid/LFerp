@@ -459,7 +459,7 @@
 
             function openTags() {
                 if (window.BusinessTagPrototypeUI && typeof window.BusinessTagPrototypeUI.openManager === 'function') {
-                    window.BusinessTagPrototypeUI.openManager('RBT_STORE', '门店标签库');
+                    window.BusinessTagPrototypeUI.openManager('RBT_STORE', '门店标签库', '已绑定门店');
                 }
             }
 

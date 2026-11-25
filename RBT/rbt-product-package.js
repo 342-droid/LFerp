@@ -864,7 +864,7 @@
 
             function openTags() {
                 if (window.BusinessTagPrototypeUI) {
-                    window.BusinessTagPrototypeUI.openManager(TAG_TYPE, '商品包标签库');
+                    window.BusinessTagPrototypeUI.openManager(TAG_TYPE, '商品包标签库', '已绑定商品包');
                 }
             }
 

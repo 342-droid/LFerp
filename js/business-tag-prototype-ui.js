@@ -158,7 +158,7 @@
     if (initial) initial.focus();
   }
 
-  function openManager(type, title) {
+  function openManager(type, title, usageLabel) {
     var old = document.querySelector('[data-business-tag-manager-layer]');
     if (old) old.remove();
     var layer = document.createElement('div');
@@ -179,7 +179,7 @@
             '<button type="submit" class="btn btn-primary">保存</button></div>' +
         '</form>' +
         '<div class="bt-manager__table-wrap"><table class="bt-manager__table"><thead><tr>' +
-          '<th>标签名称</th><th>颜色</th><th>来源</th><th>状态</th><th>使用次数</th><th>更新时间</th><th>操作</th>' +
+          '<th>标签名称</th><th>颜色</th><th>来源</th><th>状态</th><th>' + escapeHtml(usageLabel || '使用次数') + '</th><th>更新时间</th><th>操作</th>' +
         '</tr></thead><tbody data-bt-manager-body></tbody></table></div>' +
       '</aside>';
     document.body.appendChild(layer);
