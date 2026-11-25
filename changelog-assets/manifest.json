@@ -812,6 +812,135 @@
     "status": "diff",
     "date": "2026-11-18"
   },
+  "36b9eb8|MDM/mdm_archive_carrier.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "36b9eb8|MDM/mdm_archive_live_room.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "36b9eb8|MDM/mdm_archive_provider.html": {
+    "before": "changelog-assets/36b9eb8/MDM__mdm_archive_provider.html.before.jpg",
+    "after": "changelog-assets/36b9eb8/MDM__mdm_archive_provider.html.after.jpg",
+    "regions": 4,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "36b9eb8|MDM/mdm_archive_store.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "36b9eb8|MDM/mdm_archive_supplier.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "36b9eb8|MDM/mdm_archive_trader.html": {
+    "before": "changelog-assets/36b9eb8/MDM__mdm_archive_trader.html.before.jpg",
+    "after": "changelog-assets/36b9eb8/MDM__mdm_archive_trader.html.after.jpg",
+    "regions": 3,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "36b9eb8|MDM/mdm_archive_warehouse.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "36b9eb8|MDM/mdm_audit_rbt_demand.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "36b9eb8|MDM/mdm_audit_store_registration.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "36b9eb8|MDM/mdm_bd_h5.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "36b9eb8|MDM/mdm_bd_merchants.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "36b9eb8|MDM/mdm_bd_store_form.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "36b9eb8|MDM/mdm_bd_stores.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "36b9eb8|MDM/mdm_member_c.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "36b9eb8|MDM/mdm_party_all.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "36b9eb8|MDM/mdm_people_anchor.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "36b9eb8|MDM/mdm_people_bd.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "36b9eb8|MDM/mdm_people_driver.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "36b9eb8|MDM/mdm_people_purchaser.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "36b9eb8|MDM/mdm_resource_onboarding.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "36b9eb8|MDM/mdm_super_admin_accounts.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "36b9eb8|RBT/rbt_h5_provider.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "36b9eb8|RBT/rbt_h5_trader.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "36b9eb8|shop-h5/h5/store/register.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
+  "36b9eb8|store-app/h5/onboarding.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-25"
+  },
   "39b88fe|MDM/mdm_archive_carrier.html": {
     "regions": 0,
     "status": "diff",
