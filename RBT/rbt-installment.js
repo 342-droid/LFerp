@@ -654,6 +654,9 @@
                 return false;
             });
             return found;
+        },
+        list: function () {
+            return read().filter(function (item) { return item && item.enabled !== false; });
         }
     };
 

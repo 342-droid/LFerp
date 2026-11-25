@@ -2,6 +2,7 @@
 (function () {
     var Vue = OctopusPrototype.Vue;
     var ref = Vue.ref;
+    var computed = Vue.computed;
     var ElMessage = OctopusPrototype.ElementPlus ? OctopusPrototype.ElementPlus.ElMessage : null;
     var dataApi = window.RbtDemandData;
 
@@ -453,6 +454,446 @@
                 if (ElMessage) ElMessage.success('撤回原因已保存');
             }
 
+            /* 平台代门店发布。单据归该门店，按商品金额占额度，发布后直接待接单。 */
+            var createOpen = ref(false);
+            var createStoreCode = ref('');
+            var createPackageCode = ref('');
+            var createLines = ref([]);
+            var createCycle = ref('');
+            var createMethod = ref('');
+            var createPeriod = ref('');
+            var createStores = ref([]);
+            var createPackages = ref([]);
+            var createPlans = ref([]);
+            var createDemandCount = ref(0);
+            var COUNT_SKIP = { '已作废': true, '已驳回': true, '已取消': true };
+
+            function moneyCents(value) {
+                var amount = Number(String(value == null ? '' : value).replace(/,/g, '').replace(/^¥/, ''));
+                if (!isFinite(amount)) return NaN;
+                return Math.round(amount * 100);
+            }
+
+            function centsText(cents) {
+                var sign = cents < 0 ? '-' : '';
+                var abs = Math.abs(Math.round(cents));
+                var whole = String(Math.floor(abs / 100));
+                whole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                return sign + whole + '.' + String(abs % 100).padStart(2, '0');
+            }
+
+            function yuanText(cents) {
+                return isFinite(cents) ? ('¥' + centsText(cents)) : '—';
+            }
+
+            function packText(unit, spec) {
+                var unitText = unit && unit !== '—' ? unit : '';
+                var specText = spec && spec !== '—' ? spec : '';
+                if (unitText && specText) return '1' + unitText + ' ' + specText;
+                return unitText || specText || '—';
+            }
+
+            function cleanQty(value) {
+                return String(value == null ? '' : value).replace(/[^\d]/g, '').replace(/^0+(\d)/, '$1').slice(0, 3);
+            }
+
+            function cleanPrice(value) {
+                var text = String(value == null ? '' : value).replace(/[^\d.]/g, '');
+                var parts = text.split('.');
+                var whole = parts[0].replace(/^0+(\d)/, '$1');
+                if (parts.length === 1) return whole;
+                return whole + '.' + parts.slice(1).join('').slice(0, 2);
+            }
+
+            function qtyNumber(value) {
+                if (!/^\d+$/.test(String(value || ''))) return 0;
+                var qty = Number(value);
+                if (!isFinite(qty) || qty < 1 || qty > 999) return 0;
+                return qty;
+            }
+
+            function priceNumber(value) {
+                var text = String(value == null ? '' : value).trim();
+                if (!/^\d+(\.\d{1,2})?$/.test(text)) return 0;
+                var amount = Number(text);
+                return isFinite(amount) && amount > 0 ? amount : 0;
+            }
+
+            function lineCents(line) {
+                var qty = qtyNumber(line && line.qtyInput);
+                var price = priceNumber(line && line.priceInput);
+                if (!qty || !price) return 0;
+                return Math.round(price * 100) * qty;
+            }
+
+            function countStoreDemands(storeCode) {
+                var count = 0;
+                if (!storeCode) return 0;
+                dataApi.list().forEach(function (item) {
+                    if (!item || item.storeCode !== storeCode || COUNT_SKIP[item.status]) return;
+                    count += 1;
+                });
+                return count;
+            }
+
+            function loadCreateStore(code) {
+                createStoreCode.value = code || '';
+                createPackageCode.value = '';
+                createLines.value = [];
+                createCycle.value = '';
+                createMethod.value = '';
+                createPeriod.value = '';
+                var packageApi = window.RbtPackageData;
+                createPackages.value = code && packageApi && typeof packageApi.forStore === 'function'
+                    ? packageApi.forStore(code)
+                    : [];
+                createDemandCount.value = countStoreDemands(code);
+            }
+
+            function plansForPackage(pkg, goodsCents) {
+                if (!pkg || !isFinite(goodsCents) || goodsCents <= 0) return [];
+                return createPlans.value.filter(function (plan) {
+                    var names = plan.packages || [];
+                    if (names.indexOf(pkg.name) < 0 && names.indexOf(pkg.code) < 0) return false;
+                    var min = moneyCents(plan.amountMin);
+                    var max = moneyCents(plan.amountMax);
+                    return isFinite(min) && isFinite(max) && goodsCents >= min && goodsCents <= max;
+                });
+            }
+
+            function plansCoveringPackage(pkg) {
+                if (!pkg) return [];
+                return createPlans.value.filter(function (plan) {
+                    var names = plan.packages || [];
+                    return names.indexOf(pkg.name) >= 0 || names.indexOf(pkg.code) >= 0;
+                });
+            }
+
+            function settleChoice(plans) {
+                var cycles = [];
+                var seenCycle = {};
+                plans.forEach(function (plan) {
+                    if (plan.repayCycle && !seenCycle[plan.repayCycle]) {
+                        seenCycle[plan.repayCycle] = true;
+                        cycles.push(plan.repayCycle);
+                    }
+                });
+                var cycle = cycles.indexOf(createCycle.value) >= 0
+                    ? createCycle.value
+                    : (cycles.indexOf('日结') >= 0 ? '日结' : (cycles[0] || ''));
+                var methods = [];
+                var seenMethod = {};
+                plans.forEach(function (plan) {
+                    if (plan.repayCycle === cycle && plan.repayMethod && !seenMethod[plan.repayMethod]) {
+                        seenMethod[plan.repayMethod] = true;
+                        methods.push(plan.repayMethod);
+                    }
+                });
+                var method = methods.indexOf(createMethod.value) >= 0 ? createMethod.value : (methods[0] || '');
+                var plan = null;
+                plans.some(function (item) {
+                    if (item.repayCycle === cycle && item.repayMethod === method) {
+                        plan = item;
+                        return true;
+                    }
+                    return false;
+                });
+                var periods = plan && Array.isArray(plan.periods) ? plan.periods.map(String) : [];
+                var period = periods.indexOf(String(createPeriod.value)) >= 0 ? String(createPeriod.value) : (periods[0] || '');
+                return { cycles: cycles, cycle: cycle, methods: methods, method: method, plan: plan, periods: periods, period: period };
+            }
+
+            function storeRateOf(plan, period) {
+                if (!plan) return 0;
+                var rate = plan.repayMethod === '比例付'
+                    ? Number(plan.storeRate)
+                    : Number((plan.periodRates || {})[String(period)] || 0);
+                return isFinite(rate) && rate > 0 ? rate : 0;
+            }
+
+            function channelRatiosOf(plan) {
+                var api = window.RbtSettleRatio;
+                if (!api || !plan || plan.repayMethod !== '比例付' || typeof api.normalize !== 'function') return null;
+                if (plan.settleRatios && plan.settleRatios.length) return api.normalize(plan.settleRatios);
+                var fallback = typeof api.parseRatio === 'function' ? api.parseRatio(plan.periodRatio) : '';
+                if (!fallback || !api.CHANNELS) return null;
+                return api.normalize(api.CHANNELS.map(function (channel) {
+                    return { channel: channel, fallback: fallback, rows: [] };
+                }));
+            }
+
+            var createView = computed(function () {
+                var storeApi = window.RbtStoreData;
+                var code = createStoreCode.value;
+                var store = code && storeApi && typeof storeApi.get === 'function' ? storeApi.get(code) : null;
+                var quota = store && typeof storeApi.quotaOf === 'function' ? storeApi.quotaOf(store) : null;
+                var paid = store && typeof storeApi.depositPaidOf === 'function' ? storeApi.depositPaidOf(store) : false;
+                var limit = store && typeof storeApi.demandLimitOf === 'function' ? storeApi.demandLimitOf(store) : 1;
+                var block = '';
+                if (store && !paid) block = '保证金未缴纳，无法发布需求';
+                else if (store && createDemandCount.value >= limit) block = '需求次数已达上限，无法发布需求';
+                else if (store && !(quota && quota.available > 0)) block = '可用额度不足，无法发布需求';
+                var pkg = null;
+                createPackages.value.some(function (item) {
+                    if (item.code === createPackageCode.value) {
+                        pkg = item;
+                        return true;
+                    }
+                    return false;
+                });
+                var lines = createLines.value.map(function (line) {
+                    var cents = lineCents(line);
+                    var qty = qtyNumber(line.qtyInput);
+                    return {
+                        code: line.code,
+                        name: line.name,
+                        pack: line.pack,
+                        canEdit: line.canEdit,
+                        canDelete: line.canDelete,
+                        qtyInput: line.qtyInput,
+                        qtyText: qty ? String(qty) : '—',
+                        priceInput: line.priceInput,
+                        priceText: priceNumber(line.priceInput) ? Number(line.priceInput).toFixed(2) : '—',
+                        amount: cents ? yuanText(cents) : '—'
+                    };
+                });
+                var goods = 0;
+                var piece = 0;
+                var kind = 0;
+                var pending = false;
+                createLines.value.forEach(function (line) {
+                    var cents = lineCents(line);
+                    if (!cents) {
+                        pending = true;
+                        return;
+                    }
+                    goods += cents;
+                    piece += qtyNumber(line.qtyInput);
+                    kind += 1;
+                });
+                var matched = pkg && !pending && goods > 0 ? plansForPackage(pkg, goods) : [];
+                var choice = settleChoice(matched);
+                var rate = storeRateOf(choice.plan, choice.period);
+                var total = choice.plan && rate ? Math.round(goods * rate) : NaN;
+                var settleTip = '';
+                if (pkg && !createLines.value.length) settleTip = '请至少保留一件商品';
+                else if (pkg && pending) settleTip = '请把商品数量和售卖单价填完整';
+                else if (pkg && goods > 0 && !plansCoveringPackage(pkg).length) settleTip = '商品未关联产品配置';
+                else if (pkg && goods > 0 && !matched.length) settleTip = '售价不在产品配置的货款区间内';
+                else if (pkg && quota && goods > moneyCents(quota.available)) settleTip = '商品金额须小于等于可用额度';
+                else if (choice.plan && choice.plan.repayMethod === '比例付' && !channelRatiosOf(choice.plan)) settleTip = '请先在产品配置中维护各渠道结算比例';
+                return {
+                    storeCode: code,
+                    stores: createStores.value,
+                    quota: store && quota ? {
+                        total: centsText(moneyCents(quota.total)),
+                        occupied: centsText(moneyCents(quota.occupied)),
+                        available: centsText(moneyCents(quota.available)),
+                        count: createDemandCount.value + ' / ' + limit,
+                        deposit: paid ? '已缴纳' : '未缴纳'
+                    } : null,
+                    block: block,
+                    packageCode: createPackageCode.value,
+                    packageDisabled: !store || !!block,
+                    packagePlaceholder: !store ? '请先选择门店' : (createPackages.value.length ? '请选择商品包' : '该门店没有可用商品包'),
+                    packages: createPackages.value.map(function (item) {
+                        return { code: item.code, label: (item.name || item.code) + '（' + item.code + '）' };
+                    }),
+                    skus: lines,
+                    skuEmpty: pkg ? '该商品包暂无商品' : '请先选择商品包',
+                    kind: kind,
+                    piece: piece,
+                    skuAmount: goods ? yuanText(goods) : '¥0.00',
+                    product: choice.plan ? ((choice.plan.name || choice.plan.code) + '（' + (choice.plan.code || '—') + '）') : '—',
+                    cycles: choice.cycles,
+                    cycle: choice.cycle,
+                    methods: choice.methods,
+                    method: choice.method,
+                    showPeriod: !!(choice.method && choice.method !== '比例付'),
+                    periods: choice.periods,
+                    period: choice.period,
+                    goods: goods ? yuanText(goods) : '—',
+                    fee: isFinite(total) ? yuanText(total - goods) : '—',
+                    total: isFinite(total) ? yuanText(total) : '—',
+                    settleTip: block ? '' : settleTip
+                };
+            });
+
+            function createDemand() {
+                var storeApi = window.RbtStoreData;
+                var stores = storeApi && typeof storeApi.list === 'function' ? storeApi.list() : [];
+                createStores.value = stores.filter(function (item) {
+                    return item && item.code && item.enabled !== false;
+                }).map(function (item) {
+                    return { code: item.code, label: (item.name || item.code) + '（' + item.code + '）' };
+                });
+                var installmentApi = window.RbtInstallmentData;
+                createPlans.value = installmentApi && typeof installmentApi.list === 'function' ? installmentApi.list() : [];
+                loadCreateStore('');
+                createOpen.value = true;
+            }
+
+            function onCreateStore(event) {
+                loadCreateStore(event && event.target ? event.target.value : '');
+            }
+
+            function onCreatePackage(event) {
+                var code = event && event.target ? event.target.value : '';
+                createPackageCode.value = code;
+                createCycle.value = '';
+                createMethod.value = '';
+                createPeriod.value = '';
+                var pkg = null;
+                createPackages.value.some(function (item) {
+                    if (item.code === code) {
+                        pkg = item;
+                        return true;
+                    }
+                    return false;
+                });
+                createLines.value = pkg ? (pkg.skus || []).map(function (line) {
+                    return {
+                        code: line.code,
+                        name: line.name || line.code,
+                        pack: packText(line.unit, line.spec),
+                        canEdit: line.canEdit === '是',
+                        canDelete: line.canDelete === '是',
+                        qtyInput: line.qty && line.qty !== '—' ? String(line.qty) : '',
+                        priceInput: line.salePrice && line.salePrice !== '—' ? String(line.salePrice) : ''
+                    };
+                }) : [];
+            }
+
+            function patchCreateLine(code, field, value) {
+                createLines.value = createLines.value.map(function (line) {
+                    if (line.code !== code) return line;
+                    var next = Object.assign({}, line);
+                    next[field] = value;
+                    return next;
+                });
+            }
+
+            function onCreateQty(code, event) {
+                patchCreateLine(code, 'qtyInput', cleanQty(event && event.target ? event.target.value : ''));
+            }
+
+            function onCreatePrice(code, event) {
+                patchCreateLine(code, 'priceInput', cleanPrice(event && event.target ? event.target.value : ''));
+            }
+
+            function onCreateRemove(code) {
+                createLines.value = createLines.value.filter(function (line) { return line.code !== code; });
+            }
+
+            function onCreateCycle(event) {
+                createCycle.value = event && event.target ? event.target.value : '';
+                createMethod.value = '';
+                createPeriod.value = '';
+            }
+
+            function onCreateMethod(event) {
+                createMethod.value = event && event.target ? event.target.value : '';
+                createPeriod.value = '';
+            }
+
+            function onCreatePeriod(event) {
+                createPeriod.value = event && event.target ? event.target.value : '';
+            }
+
+            function nextDemandCode(rows) {
+                var max = 0;
+                (rows || []).forEach(function (item) {
+                    var matched = String(item && item.code || '').match(/^XQ(\d+)$/);
+                    if (matched) max = Math.max(max, parseInt(matched[1], 10));
+                });
+                return 'XQ' + String(max + 1).padStart(5, '0');
+            }
+
+            function publishCreate() {
+                var view = createView.value;
+                if (!createStoreCode.value) {
+                    if (ElMessage) ElMessage.error('请选择门店');
+                    return;
+                }
+                if (view.block) {
+                    if (ElMessage) ElMessage.error(view.block);
+                    return;
+                }
+                if (!createPackageCode.value) {
+                    if (ElMessage) ElMessage.error('请选择商品包');
+                    return;
+                }
+                if (view.settleTip) {
+                    if (ElMessage) ElMessage.error(view.settleTip);
+                    return;
+                }
+                if (!view.cycle || !view.method || (view.showPeriod && !view.period)) {
+                    if (ElMessage) ElMessage.error('请补齐结算周期、结算方式和结算期数');
+                    return;
+                }
+                var pkg = null;
+                createPackages.value.some(function (item) {
+                    if (item.code === createPackageCode.value) {
+                        pkg = item;
+                        return true;
+                    }
+                    return false;
+                });
+                var goods = 0;
+                createLines.value.forEach(function (line) { goods += lineCents(line); });
+                var choice = settleChoice(plansForPackage(pkg, goods));
+                var plan = choice.plan;
+                var rate = storeRateOf(plan, choice.period);
+                var total = Math.round(goods * rate);
+                var ratios = plan && plan.repayMethod === '比例付' ? channelRatiosOf(plan) : null;
+                var storeApi = window.RbtStoreData;
+                var store = storeApi && typeof storeApi.get === 'function' ? storeApi.get(createStoreCode.value) : null;
+                if (!store || !plan) {
+                    if (ElMessage) ElMessage.error('发布信息不完整');
+                    return;
+                }
+                var when = dataApi.nowText();
+                var rows = dataApi.list();
+                var created = {
+                    code: nextDemandCode(rows),
+                    storeCode: store.code,
+                    storeName: store.name || store.code,
+                    packageCode: pkg.code,
+                    packageName: pkg.name || pkg.code,
+                    skus: createLines.value.map(function (line) {
+                        return {
+                            code: line.code,
+                            name: line.name,
+                            salePrice: priceNumber(line.priceInput).toFixed(2),
+                            qty: qtyNumber(line.qtyInput)
+                        };
+                    }),
+                    goodsAmount: centsText(goods).replace(/,/g, ''),
+                    serviceFee: centsText(total - goods).replace(/,/g, ''),
+                    amount: centsText(total).replace(/,/g, ''),
+                    installmentCode: plan.code,
+                    installmentName: plan.name || plan.code,
+                    repayCycle: choice.cycle,
+                    repayMethod: choice.method,
+                    repayPeriod: choice.method === '比例付' ? '' : String(choice.period),
+                    settleRatios: ratios ? JSON.parse(JSON.stringify(ratios)) : [],
+                    dailyAmount: '',
+                    status: '待接单',
+                    quotaHeld: false,
+                    creator: '平台',
+                    createdAt: when,
+                    updater: '平台',
+                    updatedAt: when,
+                    logs: [{ time: when, operator: '平台', content: '平台代门店发布需求' }]
+                };
+                if (typeof dataApi.occupyDemandQuota === 'function') dataApi.occupyDemandQuota(created);
+                rows.unshift(created);
+                dataApi.save(rows);
+                createOpen.value = false;
+                refreshTable();
+                if (ElMessage) ElMessage.success('需求已发布');
+            }
+
             document.addEventListener('visibilitychange', function () {
                 if (document.visibilityState === 'visible') refreshTable();
             });
@@ -505,7 +946,19 @@
                 openWithdrawReasons: openWithdrawReasons,
                 addWithdrawReason: addWithdrawReason,
                 removeWithdrawReason: removeWithdrawReason,
-                saveWithdrawReasonConfig: saveWithdrawReasonConfig
+                saveWithdrawReasonConfig: saveWithdrawReasonConfig,
+                createOpen: createOpen,
+                createView: createView,
+                createDemand: createDemand,
+                onCreateStore: onCreateStore,
+                onCreatePackage: onCreatePackage,
+                onCreateQty: onCreateQty,
+                onCreatePrice: onCreatePrice,
+                onCreateRemove: onCreateRemove,
+                onCreateCycle: onCreateCycle,
+                onCreateMethod: onCreateMethod,
+                onCreatePeriod: onCreatePeriod,
+                publishCreate: publishCreate
             };
         }
     }, '#rbtDemandApp', {

@@ -591,7 +591,23 @@
 
     var packageTagOptions = tagOptions();
 
-    window.RbtPackageData = { get: findPackage };
+    /* 需求单代发要按门店取商品包。只在商品包页挂表格，别的页面引入脚本时不挂载。 */
+    window.RbtPackageData = {
+        get: findPackage,
+        list: function () { return read(); },
+        forStore: function (storeCode) {
+            return read().filter(function (item) {
+                return item && item.enabled !== false && packageMatchesStore(item, storeCode);
+            }).map(function (item) {
+                return {
+                    code: item.code,
+                    name: item.name || item.code,
+                    skus: normalizeSkus(item.skus).map(skuView)
+                };
+            });
+        }
+    };
+    if (!document.getElementById('rbtPackageApp')) return;
     OctopusPrototype.mount({
         setup: function () {
             var reactive = Vue.reactive;
