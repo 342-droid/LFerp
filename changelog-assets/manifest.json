@@ -2399,6 +2399,63 @@
     "status": "diff",
     "date": "2026-11-18"
   },
+  "a326726|MDM/mdm_audit_rbt_demand.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "a326726|RBT/rbt_daily_fulfill.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "a326726|RBT/rbt_demand.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "a326726|RBT/rbt_h5_provider.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "a326726|RBT/rbt_h5_store.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "a326726|RBT/rbt_h5_trader.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "a326726|RBT/rbt_index.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "a326726|RBT/rbt_performance.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "a326726|RBT/rbt_risk_abnormal.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "a326726|RBT/rbt_risk_config.html": {
+    "before": "changelog-assets/a326726/RBT__rbt_risk_config.html.before.jpg",
+    "after": "changelog-assets/a326726/RBT__rbt_risk_config.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "a326726|RBT/rbt_trade.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
   "a5d33b0|MDM/mdm_audit_rbt_demand.html": {
     "regions": 0,
     "status": "diff",

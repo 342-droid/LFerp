@@ -1,10 +1,92 @@
 {
-  "latestSha": "c53d30b38f7c74aff427a9883754255ff056bbcf",
-  "total": 640,
+  "latestSha": "a326726ea378b9662774e513e9a7d19706fcf499",
+  "total": 641,
   "days": [
     {
       "date": "2026-11-26",
       "items": [
+        {
+          "sha": "a326726",
+          "type": "feat",
+          "text": "收口付款结款规则并统一风险等级展示",
+          "author": "sisi",
+          "time": "13:52",
+          "pages": [
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "module": "冷丰WMS",
+              "title": "需求单审核"
+            },
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日付款"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "付款"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常付款数据"
+            },
+            {
+              "file": "RBT/rbt_risk_config.html",
+              "module": "冷丰RBT",
+              "title": "风控配置"
+            },
+            {
+              "file": "RBT/rbt_trade.html",
+              "module": "冷丰RBT",
+              "title": "交易单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_index.html",
+              "text": "付款风险等级按正常、关注、预警、异常展示"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "text": "列表和详情的付款风险等级按正常、关注、预警、异常展示"
+            },
+            {
+              "file": "RBT/rbt_risk_config.html",
+              "text": "说明和等级规则按正常、关注、预警、异常书写"
+            },
+            {
+              "file": null,
+              "text": "付款结款文档收口为 V1.1，并改名为付款结款与风控PRD"
+            }
+          ]
+        },
         {
           "sha": "c53d30b",
           "type": "feat",
