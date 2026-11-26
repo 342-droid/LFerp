@@ -1406,14 +1406,14 @@
         });
     }
 
-    /* 余额不够时拦住确认签署。我知道了不改状态。 */
+    /* 余额不够时拦住确认签约。我知道了不改状态，也不生成合同、不冻结。 */
     function openBalanceShort(check) {
         var phone = document.getElementById('rbtH5Phone');
         if (!phone) return;
         closeBalanceShort();
         var text = check && check.reason === 'amount'
             ? '暂时无法核对商品金额，请稍后再试'
-            : '当前余额 ¥' + moneyLabel(check && check.balance) + '，本单需支付商品金额 ¥' + moneyLabel(check && check.need) + '。余额不足，请尽快充值后再确认签署。';
+            : '当前余额 ¥' + moneyLabel(check && check.balance) + '，本单需支付商品金额 ¥' + moneyLabel(check && check.need) + '。余额不足，请尽快充值后再确认签约。';
         var mask = document.createElement('div');
         mask.className = 'rbt-h5-pay-mask';
         mask.setAttribute('data-balance-short', '1');
@@ -1443,7 +1443,7 @@
         return true;
     }
 
-    /* 确认签约前先说明会生成两份合同。稍后处理不改状态；去签署才确认并进入签署页。 */
+    /* 确认签约前先说明会生成两份合同并冻结商品金额。稍后处理不改状态；余额够才确认，并进入签署页。 */
     function openConfirmSign(code) {
         var phone = document.getElementById('rbtH5Phone');
         if (!phone) return;
@@ -1535,7 +1535,6 @@
         }
         if (confirmSign) {
             var signedCode = confirmSign.getAttribute('data-confirm-sign');
-            if (blockIfBalanceShort(signedCode)) return;
             var signApi = window.RbtDemandData;
             var signResult = signApi && typeof signApi.signDemand === 'function'
                 ? signApi.signDemand(signedCode, traderActor(), confirmSign.getAttribute('data-contract-key'))

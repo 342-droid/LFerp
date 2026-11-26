@@ -1129,7 +1129,7 @@
         return text == null ? 0 : moneyNumber(text);
     }
 
-    /* 确认签署前，贸易商余额须覆盖本单商品金额。只校验，不扣款。 */
+    /* 确认签约前，贸易商余额须覆盖本单商品金额。通过后与生成合同同一步冻结。演示只校验，不扣款。 */
     function traderBalanceCheck(code, trader) {
         var item = code && typeof code === 'object' ? code : get(code);
         var name = traderNameOf(trader);
@@ -1141,7 +1141,7 @@
         return { ok: true, balance: balance, need: need, demand: item };
     }
 
-    /* 待确认签约由接单贸易商确认。确认后进入待签署，并生成销售合同、采购合同。余额不足则不生成合同。 */
+    /* 待确认签约由接单贸易商确认。余额足够时进入待签署，生成两份合同，并冻结本单商品金额。余额不足则不生成合同、不冻结。 */
     function confirmSigning(code, trader) {
         var rows = list();
         var target = findDemand(rows, code);
@@ -1301,7 +1301,7 @@
         });
     }
 
-    /* 当前签署方确认其中一份合同。各方都签完后系统自动划款，需求进入发货中，先不生成交易单。 */
+    /* 当前签署方确认其中一份合同。冻结已在确认签约完成，这里不再校验余额。各方都签完后系统自动划款，需求进入发货中，先不生成交易单。 */
     function signDemand(code, actor, contractKey) {
         var rows = list();
         var target = null;
@@ -1314,10 +1314,6 @@
         });
         if (!target) return { ok: false, reason: 'missing' };
         if (target.status !== '待签署') return { ok: false, reason: 'status', demand: target };
-        if (actor && actor.role === 'trader') {
-            var covered = traderBalanceCheck(target, actor);
-            if (!covered.ok) return covered;
-        }
         var contract = null;
         signContracts(target).some(function (row) {
             if (row.key === contractKey) {
