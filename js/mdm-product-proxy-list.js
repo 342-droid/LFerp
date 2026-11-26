@@ -934,6 +934,9 @@
             '<td class="product-proxy-table__td product-proxy-table__td--sale">' + renderSalePrice(item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--margin">' + renderMarginCell(item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--line">' + renderLinePrice(item) + '</td>' +
+            '<td class="product-proxy-table__td product-proxy-table__td--stock">' +
+            (window.ProductStock ? window.ProductStock.render('proxy', item) : '—') +
+            '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--sales">' + window.ProductSales.render('proxy', item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--fulfillment">' + renderDeliveryMode(item) + '</td>' +
             renderSaleTimeCell(item) +
