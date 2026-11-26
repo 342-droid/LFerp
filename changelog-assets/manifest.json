@@ -1104,6 +1104,71 @@
     "status": "diff",
     "date": "2026-11-23"
   },
+  "425e4a7|MDM/mdm_audit_rbt_demand.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "425e4a7|RBT/rbt_admit_store.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "425e4a7|RBT/rbt_contract_sign.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "425e4a7|RBT/rbt_daily_fulfill.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "425e4a7|RBT/rbt_demand.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "425e4a7|RBT/rbt_h5_provider.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "425e4a7|RBT/rbt_h5_store.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "425e4a7|RBT/rbt_h5_trader.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "425e4a7|RBT/rbt_index.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "425e4a7|RBT/rbt_performance.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "425e4a7|RBT/rbt_risk_abnormal.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "425e4a7|RBT/rbt_risk_config.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "425e4a7|RBT/rbt_trade.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
   "44ca437|MDM/mdm_archive_store.html": {
     "regions": 0,
     "status": "diff",

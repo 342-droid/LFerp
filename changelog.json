@@ -1,10 +1,98 @@
 {
-  "latestSha": "b61eb184f377beac48b51cf030ddf512ae7db09a",
-  "total": 645,
+  "latestSha": "425e4a7e4b4eeaec9f980f70e7bed4db33fc0c3e",
+  "total": 646,
   "days": [
     {
       "date": "2026-11-26",
       "items": [
+        {
+          "sha": "425e4a7",
+          "type": "feat",
+          "text": "贸易商在确认签约时生成合同并冻结商品金额",
+          "author": "342-droid",
+          "time": "15:49",
+          "pages": [
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "module": "冷丰WMS",
+              "title": "需求单审核"
+            },
+            {
+              "file": "RBT/rbt_admit_store.html",
+              "module": "冷丰RBT",
+              "title": "门店准入管理"
+            },
+            {
+              "file": "RBT/rbt_contract_sign.html",
+              "module": "冷丰RBT",
+              "title": "合同签署"
+            },
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日付款"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "付款"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常付款数据"
+            },
+            {
+              "file": "RBT/rbt_risk_config.html",
+              "module": "冷丰RBT",
+              "title": "风控配置"
+            },
+            {
+              "file": "RBT/rbt_trade.html",
+              "module": "冷丰RBT",
+              "title": "交易单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "确认签约先核对余额，余额足够时生成两份合同并冻结商品金额；余额不足留在待确认签约且不生成合同；确认签署不再校验余额、不再冻结"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "text": "签署合同时不再校验贸易商余额，冻结改在确认签约完成"
+            },
+            {
+              "file": null,
+              "text": "整体流程、接单、门店签署、发货和付款结款文档同步为确认签约时冻结"
+            }
+          ]
+        },
         {
           "sha": "b61eb18",
           "type": "fix",
