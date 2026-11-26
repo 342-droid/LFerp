@@ -31,7 +31,15 @@
       ? window.MdmProductCatalog.getByCode(item.code)
       : item;
     var sourceSkus = detail && (detail.specs || detail.skus);
-    if (!Array.isArray(sourceSkus) || !sourceSkus.length) sourceSkus = [item];
+    var expectedCount = Math.max(1, parseInt(item.specCount, 10) || 1);
+    if (!Array.isArray(sourceSkus) || sourceSkus.length !== expectedCount) {
+      sourceSkus = Array.from({ length: expectedCount }, function (_, index) {
+        return {
+          skuCode: item.code + '-' + String(index + 1).padStart(2, '0'),
+          packaging: item.spec || '规格待维护'
+        };
+      });
+    }
     return sourceSkus.map(function (source, index) {
       var sku = Object.assign({}, source);
       var summary = window.MdmSkuWhStock && window.MdmSkuWhStock.attachToSku
