@@ -2939,6 +2939,68 @@
     "status": "diff",
     "date": "2026-11-16"
   },
+  "b54ccd7|MDM/mdm_product_mall.html": {
+    "before": "changelog-assets/b54ccd7/MDM__mdm_product_mall.html.before.jpg",
+    "after": "changelog-assets/b54ccd7/MDM__mdm_product_mall.html.after.jpg",
+    "regions": 7,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "b54ccd7|MDM/mdm_product_proxy_list.html": {
+    "before": "changelog-assets/b54ccd7/MDM__mdm_product_proxy_list.html.before.jpg",
+    "after": "changelog-assets/b54ccd7/MDM__mdm_product_proxy_list.html.after.jpg",
+    "regions": 7,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "b54ccd7|RBT/rbt_daily_fulfill.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "b54ccd7|RBT/rbt_h5_provider.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "b54ccd7|RBT/rbt_h5_store.html": {
+    "before": "changelog-assets/b54ccd7/RBT__rbt_h5_store.html.before.jpg",
+    "after": "changelog-assets/b54ccd7/RBT__rbt_h5_store.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "b54ccd7|RBT/rbt_h5_trader.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "b54ccd7|RBT/rbt_index.html": {
+    "before": "changelog-assets/b54ccd7/RBT__rbt_index.html.before.jpg",
+    "after": "changelog-assets/b54ccd7/RBT__rbt_index.html.after.jpg",
+    "regions": 5,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "b54ccd7|RBT/rbt_performance.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "b54ccd7|RBT/rbt_risk_abnormal.html": {
+    "before": "changelog-assets/b54ccd7/RBT__rbt_risk_abnormal.html.before.jpg",
+    "after": "changelog-assets/b54ccd7/RBT__rbt_risk_abnormal.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "b54ccd7|RBT/rbt_risk_config.html": {
+    "before": "changelog-assets/b54ccd7/RBT__rbt_risk_config.html.before.jpg",
+    "after": "changelog-assets/b54ccd7/RBT__rbt_risk_config.html.after.jpg",
+    "regions": 29,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
   "b61eb18|RBT/rbt_demand.html": {
     "before": "changelog-assets/b61eb18/RBT__rbt_demand.html.before.jpg",
     "after": "changelog-assets/b61eb18/RBT__rbt_demand.html.after.jpg",

@@ -1,10 +1,108 @@
 {
-  "latestSha": "425e4a7e4b4eeaec9f980f70e7bed4db33fc0c3e",
-  "total": 646,
+  "latestSha": "b54ccd7d48f0d4ce0899400f346c2d9b76c20dbd",
+  "total": 647,
   "days": [
     {
       "date": "2026-11-26",
       "items": [
+        {
+          "sha": "b54ccd7",
+          "type": "feat",
+          "text": "付款风险改为按产品评级，并统一门店和贸易商的结款展示",
+          "author": "sisi",
+          "time": "16:31",
+          "pages": [
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            },
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日付款"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "付款"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常付款数据"
+            },
+            {
+              "file": "RBT/rbt_risk_config.html",
+              "module": "冷丰RBT",
+              "title": "风控配置"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "RBT/rbt_risk_config.html",
+              "text": "风险等级按产品配置，有营收开始结款后即评级；动态基准改为已结款合计除以对应营业天数"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "text": "持续未付款样例不再写满起算天数，评级跟着产品基准走"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "text": "风险等级按产品基准重算"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "text": "列表等级按产品基准重算"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "基础信息去掉结算比例；结款明细营业流水改为营业额，去掉所得佣金和当日实际付款，支付方式改为营业收入，标题分为提前支付和当日支付"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "text": "每日付款所得佣金改为收入所得并补上支付金额；点开后商品金额改为货款；渠道改为提前支付和当日支付"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "text": "毛利率不再压住划线价"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "text": "毛利率不再压住划线价"
+            },
+            {
+              "file": null,
+              "text": "付款结款文档同步按产品评级和两端结款文案"
+            }
+          ]
+        },
         {
           "sha": "425e4a7",
           "type": "feat",
