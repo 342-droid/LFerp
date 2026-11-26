@@ -1,6 +1,18 @@
 /* 每日履行：应履行 = 所得佣金 × 该渠道结算比例。所得佣金是当日已发生的门店佣金。不叫还款，不拆总金额，不预造未发生的日期。 */
 (function (global) {
     var FACTS = [
+        /* 跨年／跨月稀疏点：供贸易商「门店经营」自定义时段示例；daysOf 按支付日起滤 */
+        { date: '2025-12-20', channel: 'POS', turnover: 540 },
+        { date: '2025-12-24', channel: '直播', turnover: 360 },
+        { date: '2025-12-28', channel: '商城', turnover: 280 },
+        { date: '2025-12-31', channel: 'POS', turnover: 610 },
+        { date: '2026-01-03', channel: '直播', turnover: 390 },
+        { date: '2026-01-08', channel: '商城', turnover: 250 },
+        { date: '2026-01-12', channel: 'POS', turnover: 700 },
+        { date: '2026-10-22', channel: 'POS', turnover: 640 },
+        { date: '2026-10-25', channel: '直播', turnover: 410 },
+        { date: '2026-10-28', channel: '商城', turnover: 300 },
+        { date: '2026-10-31', channel: 'POS', turnover: 760 },
         { date: '2026-11-07', channel: 'POS', turnover: 860 },
         { date: '2026-11-08', channel: '直播', turnover: 420 },
         { date: '2026-11-09', channel: '商城', turnover: 310 },
@@ -214,7 +226,17 @@
     function daysOf(item) {
         if (!item || (item.status !== '门店付款中' && item.status !== '还款中' && item.status !== '已完成') || item.repayMethod !== '比例付') return [];
         var scale = scaleOf(item.code);
-        var auto = FACTS.map(function (fact) {
+        /* 只取支付日（无则创建日）及之后的营业事实，避免跨单共用造数串台 */
+        var startDay = String(item.paidAt || item.createdAt || '').slice(0, 10);
+        var endDay = '';
+        if (item.status === '已完成') {
+            endDay = String(item.updatedAt || item.paidAt || '').slice(0, 10);
+        }
+        var auto = FACTS.filter(function (fact) {
+            if (startDay && fact.date < startDay) return false;
+            if (endDay && fact.date > endDay) return false;
+            return true;
+        }).map(function (fact) {
             var turnover = Math.round(fact.turnover * scale * 100) / 100;
             var commission = Math.round(turnover * COMMISSION_RATE * 100) / 100;
             var ratio = channelRatio(item, fact.channel);
