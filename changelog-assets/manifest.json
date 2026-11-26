@@ -1958,6 +1958,20 @@
     "status": "diff",
     "date": "2026-11-20"
   },
+  "60d9619|MDM/mdm_product_mall.html": {
+    "before": "changelog-assets/60d9619/MDM__mdm_product_mall.html.before.jpg",
+    "after": "changelog-assets/60d9619/MDM__mdm_product_mall.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "60d9619|MDM/mdm_product_proxy_list.html": {
+    "before": "changelog-assets/60d9619/MDM__mdm_product_proxy_list.html.before.jpg",
+    "after": "changelog-assets/60d9619/MDM__mdm_product_proxy_list.html.after.jpg",
+    "regions": 6,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
   "663a655|MDM/mdm_product_mall.html": {
     "before": "changelog-assets/663a655/MDM__mdm_product_mall.html.before.jpg",
     "after": "changelog-assets/663a655/MDM__mdm_product_mall.html.after.jpg",
