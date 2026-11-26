@@ -13,21 +13,84 @@
     <style>
         .rbt-risk-config-tip { margin: 0 0 12px; }
         .rbt-risk-error { margin: 0 0 12px; color: #cf1322; font-size: 13px; }
-        .rbt-risk-grade { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .rbt-risk-grade { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
         .rbt-risk-grade th,
         .rbt-risk-grade td { border: 1px solid #e5e7eb; padding: 10px 12px; text-align: left; vertical-align: middle; }
-        .rbt-risk-grade th { background: #f7f8fa; font-weight: 600; color: #303133; white-space: nowrap; }
+        .rbt-risk-grade th { background: #f7f8fa; font-weight: 600; color: #303133; }
+        .rbt-risk-grade th:nth-child(1),
+        .rbt-risk-grade td:nth-child(1) { width: 108px; }
+        .rbt-risk-grade th:nth-child(2),
+        .rbt-risk-grade td:nth-child(2) { width: 168px; }
+        .rbt-risk-grade th:nth-child(3),
+        .rbt-risk-grade td:nth-child(3) { width: 112px; }
+        .rbt-risk-grade th:nth-child(4),
+        .rbt-risk-grade td:nth-child(4) { width: 196px; }
         .rbt-risk-grade__unit { display: flex; align-items: center; gap: 8px; }
         .rbt-risk-grade__unit .erp-input,
-        .rbt-risk-grade__unit .erp-select { width: 120px; height: 36px; min-width: 0; flex: none; }
-        .rbt-risk-grade__unit .erp-select { width: 88px; }
-        .rbt-risk-grade textarea.erp-input { width: 100%; min-width: 240px; height: auto; min-height: 72px; padding: 8px 10px; line-height: 1.5; resize: vertical; box-sizing: border-box; }
+        .rbt-risk-grade__unit .erp-select { width: 72px; height: 36px; min-width: 0; flex: none; }
+        .rbt-risk-grade__unit .erp-select { width: 72px; }
+        .rbt-risk-grade textarea.erp-input { width: 100%; min-width: 0; height: 64px; min-height: 64px; padding: 8px 10px; line-height: 1.5; resize: vertical; box-sizing: border-box; }
         .rbt-risk-grade__plain { color: #909399; }
         .rbt-risk-tag { display: inline-block; padding: 0 8px; border-radius: 4px; line-height: 22px; font-size: 12px; }
         .rbt-risk-tag.is-正常 { color: #389e0d; background: #f6ffed; }
         .rbt-risk-tag.is-关注 { color: #d48806; background: #fffbe6; }
         .rbt-risk-tag.is-预警 { color: #d46b08; background: #fff7e6; }
         .rbt-risk-tag.is-异常 { color: #cf1322; background: #fff1f0; }
+        .rbt-seg { display: inline-flex; border: 1px solid #e5e7eb; border-radius: 4px; overflow: hidden; }
+        .rbt-seg button { height: 36px; padding: 0 16px; border: 0; border-right: 1px solid #e5e7eb; background: #fff; color: #333; cursor: pointer; }
+        .rbt-seg button:last-child { border-right: 0; }
+        .rbt-seg button.is-on { background: #fff7e6; color: #d46b08; font-weight: 600; }
+        #rbtDurationField[hidden] { display: none !important; }
+        .rbt-duration-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 36px; }
+        .rbt-duration-row > .erp-input { width: 88px; min-width: 88px; max-width: 88px; flex: none; height: 36px; }
+        .rbt-duration-row > .btn { height: 36px; }
+        .rbt-duration-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }
+        .rbt-duration-chip { display: inline-flex; align-items: center; gap: 4px; height: 36px; padding: 0 8px 0 12px; border: 1px solid #e5e7eb; border-radius: 4px; background: #fff; }
+        .rbt-duration-chip button { width: 20px; height: 20px; border: 0; background: transparent; color: #909399; cursor: pointer; line-height: 20px; }
+        .rbt-risk-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-height: 36px; margin: 0; }
+        .rbt-risk-nav__item { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px; border: 1px solid #e5e7eb; border-radius: 4px; background: #fff; color: #333; cursor: pointer; font-size: 13px; }
+        .rbt-risk-nav__item.is-active { background: #fff7e6; border-color: #f3d19e; color: #d46b08; font-weight: 600; }
+        .rbt-risk-nav__meta { font-size: 12px; font-weight: 400; color: #909399; }
+        .rbt-risk-nav__item.is-active .rbt-risk-nav__meta,
+        .rbt-risk-nav__meta.is-own { color: #d46b08; }
+        .rbt-risk-pane__bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 8px; padding: 0; background: none; border: 0; }
+        .rbt-risk-pane__bar[hidden] { display: none !important; }
+        .rbt-risk-pane__bar p { flex: 0 1 auto; min-width: 0; margin: 0; font-size: 12px; color: #999; line-height: 1.5; }
+        .rbt-risk-pane__bar .btn { flex: none; }
+        #rbtRiskGradeForm[hidden] { display: none !important; }
+        .rbt-risk-grade-field > .pts-rule-field__label { line-height: 17.4px; padding-top: 0; }
+        .rbt-risk-grade-field .pts-rule-tip { margin-top: 0; line-height: 17.4px; }
+        .rbt-baseline-field > .pts-rule-field__label { line-height: 36px; padding-top: 0; }
+        .rbt-baseline-scroll.erp-table-scroll { width: 100%; }
+        .rbt-baseline-table {
+            width: 100%;
+            min-width: 0;
+            border-collapse: collapse;
+            font-size: 13px;
+            table-layout: fixed;
+        }
+        .rbt-baseline-table th,
+        .rbt-baseline-table td {
+            height: 36px;
+            padding: 0 12px;
+            text-align: left;
+            vertical-align: middle;
+            white-space: nowrap;
+            box-sizing: border-box;
+        }
+        .rbt-baseline-table th {
+            background: #fafafa;
+            color: var(--color-text-secondary, #909399);
+            font-weight: 600;
+            border-bottom: 1px solid var(--color-border, #e5e7eb);
+        }
+        .rbt-baseline-table td {
+            color: var(--color-text, #333);
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .rbt-baseline-table tr:last-child td { border-bottom: none; }
+        .rbt-baseline-table .is-money { text-align: right; font-variant-numeric: tabular-nums; }
+        .rbt-baseline-table__empty { color: #909399; }
     </style>
 </head>
 <body>
@@ -41,7 +104,7 @@
             <hr class="content-divider">
 
             <div class="mdm-biz-tip rbt-risk-config-tip" role="note">
-                只按<strong>已发生日期</strong>评级。当日<strong>实际履行</strong>为 0，从这一天起往前连续计数。日均履行进度 = 累计履行进度 ÷ 已履约天数。已履约天数从最早到最晚的已发生日期，含首尾。未满起算天数不看日均。每档的连续未履行天数和日均履行进度可配成<strong>或</strong>、<strong>且</strong>。多档同时命中时取更重的等级。保存后，<a href="rbt_risk_abnormal.html">异常履约数据</a>、履约列表和首页按这套规则重算。未发生的日期不参与。
+                只按<strong>已发生营业日</strong>评级，日均付款额 = 实际付款合计 ÷ 营业日天数。上线用<strong>静态基准</strong>，可切换<strong>动态基准</strong>。先配<strong>通用阈值</strong>，事业线要单独规则再点<strong>独立配置</strong>。保存后，<a href="rbt_risk_abnormal.html">异常付款数据</a>、付款列表和首页按事业线重算。
             </div>
             <p class="rbt-risk-error" id="rbtRiskError" hidden></p>
 
@@ -56,34 +119,81 @@
                                     <button type="button" class="pts-rule-switch is-on" id="rbtRiskEnabled" aria-pressed="true" aria-label="风险评级"></button>
                                     <span class="pts-rule-switch__text" id="rbtRiskEnabledText">开</span>
                                 </div>
-                                <div class="pts-rule-tip">关闭后不再产生关注、预警、异常，异常履约数据为空。每日履行里的金额不变。</div>
+                                <div class="pts-rule-tip">关闭后不再产生关注、预警、异常，异常付款数据为空。每日付款里的金额不变。</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="pts-rule-card">
-                    <div class="pts-rule-card__title">履约风险等级</div>
+                    <div class="pts-rule-card__title">生效基准</div>
                     <div class="pts-rule-card__body">
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label">当前生效</label>
+                            <div class="pts-rule-field__control">
+                                <div class="rbt-seg" role="group" aria-label="生效基准">
+                                    <button type="button" class="is-on" id="rbtBaselineStatic">静态基准</button>
+                                    <button type="button" id="rbtBaselineDynamic">动态基准</button>
+                                </div>
+                                <div class="pts-rule-tip" id="rbtBaselineFormula">静态基准日均 = 该产品金额 ÷（该档预期月数 × 30）。不同事业线对应不同产品。</div>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field" id="rbtDurationField">
+                            <label class="pts-rule-field__label">预期时长</label>
+                            <div class="pts-rule-field__control">
+                                <div class="rbt-duration-row">
+                                    <div class="rbt-duration-list" id="rbtDurationTiers"></div>
+                                    <input class="erp-input" id="rbtDurationInput" type="number" min="1" step="1" inputmode="numeric" placeholder="月数" aria-label="新增预期时长">
+                                    <button type="button" class="btn btn-secondary" id="rbtDurationAdd">添加档位</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pts-rule-card">
+                    <div class="pts-rule-card__title">付款风险等级</div>
+                    <div class="pts-rule-card__body">
+                        <div class="pts-rule-field">
+                            <label class="pts-rule-field__label">配置对象</label>
+                            <div class="pts-rule-field__control">
+                                <nav class="rbt-risk-nav" id="rbtRiskNav" aria-label="配置对象"></nav>
+                                <div class="rbt-risk-pane__bar" id="rbtRiskScopeBar" hidden>
+                                    <p id="rbtRiskScopeTip"></p>
+                                    <button type="button" class="btn btn-primary" id="rbtRiskLineOwnBtn" hidden>独立配置</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pts-rule-field rbt-baseline-field">
+                            <label class="pts-rule-field__label">基准日均</label>
+                            <div class="pts-rule-field__control">
+                                <div class="rbt-baseline-value" id="rbtBaselineValue"></div>
+                                <div class="pts-rule-tip" id="rbtBaselineValueTip"></div>
+                            </div>
+                        </div>
+                        <div id="rbtRiskGradeForm">
                         <div class="pts-rule-field">
                             <label class="pts-rule-field__label" for="progressStartDays">进度起算</label>
                             <div class="pts-rule-field__control">
                                 <div class="rbt-risk-grade__unit">
-                                    <span>进入履约满</span>
+                                    <span>进入付款满</span>
                                     <input class="erp-input" id="progressStartDays" type="number" min="1" step="1" inputmode="numeric" aria-label="进度起算天数">
                                     <span>天</span>
                                 </div>
-                                <div class="pts-rule-tip">未满这个天数时，不看日均履行进度。关注、预警、异常共用。</div>
+                                <div class="pts-rule-tip">未满这个营业日天数时，不拿日均付款额和基准比。</div>
                             </div>
                         </div>
-                        <div class="pts-rule-tip" style="margin-top:0;margin-bottom:10px;">每档单独选择条件关系。<strong>或</strong>是满足一个就记入该档，<strong>且</strong>是两个都要满足。多档同时命中时取更重的等级。连续未履行天数按关注、预警、异常递增，日均履行进度按关注、预警、异常递减。正常不用单独配置。</div>
+                        <div class="pts-rule-field rbt-risk-grade-field">
+                            <label class="pts-rule-field__label">等级规则</label>
+                            <div class="pts-rule-field__control">
+                        <div class="pts-rule-tip">每档单独选择条件关系。<strong>或</strong>是满足一个就记入该档，<strong>且</strong>是两个都要满足。多档同时命中时取更重的等级。连续未付款天数递增。低于基准的比例递增，比例越大，日均付款额比基准越低。正常不用单独配置。</div>
                         <table class="rbt-risk-grade">
                             <thead>
                                 <tr>
-                                    <th>履约风险等级</th>
-                                    <th>连续未履行天数</th>
+                                    <th>付款风险等级</th>
+                                    <th>连续未付款天数</th>
                                     <th>条件关系</th>
-                                    <th>日均履行进度</th>
+                                    <th>低于基准</th>
                                     <th>异常提醒</th>
                                 </tr>
                             </thead>
@@ -97,7 +207,7 @@
                                     <td><span class="rbt-risk-tag is-关注">关注</span></td>
                                     <td>
                                         <div class="rbt-risk-grade__unit">
-                                            <input class="erp-input" id="watchStreak" type="number" min="1" step="1" inputmode="numeric" aria-label="关注连续未履行天数">
+                                            <input class="erp-input" id="watchStreak" type="number" min="1" step="1" inputmode="numeric" aria-label="关注连续未付款天数">
                                             <span>天</span>
                                         </div>
                                     </td>
@@ -112,7 +222,7 @@
                                     <td>
                                         <div class="rbt-risk-grade__unit">
                                             <span>低于</span>
-                                            <input class="erp-input" id="watchProgress" type="number" min="0.01" max="100" step="0.01" inputmode="decimal" aria-label="关注日均履行进度">
+                                            <input class="erp-input" id="watchProgress" type="number" min="0.01" max="100" step="0.01" inputmode="decimal" aria-label="关注低于基准">
                                             <span>%</span>
                                         </div>
                                     </td>
@@ -122,7 +232,7 @@
                                     <td><span class="rbt-risk-tag is-预警">预警</span></td>
                                     <td>
                                         <div class="rbt-risk-grade__unit">
-                                            <input class="erp-input" id="warnStreak" type="number" min="1" step="1" inputmode="numeric" aria-label="预警连续未履行天数">
+                                            <input class="erp-input" id="warnStreak" type="number" min="1" step="1" inputmode="numeric" aria-label="预警连续未付款天数">
                                             <span>天</span>
                                         </div>
                                     </td>
@@ -137,7 +247,7 @@
                                     <td>
                                         <div class="rbt-risk-grade__unit">
                                             <span>低于</span>
-                                            <input class="erp-input" id="warnProgress" type="number" min="0.01" max="100" step="0.01" inputmode="decimal" aria-label="预警日均履行进度">
+                                            <input class="erp-input" id="warnProgress" type="number" min="0.01" max="100" step="0.01" inputmode="decimal" aria-label="预警低于基准">
                                             <span>%</span>
                                         </div>
                                     </td>
@@ -147,7 +257,7 @@
                                     <td><span class="rbt-risk-tag is-异常">异常</span></td>
                                     <td>
                                         <div class="rbt-risk-grade__unit">
-                                            <input class="erp-input" id="badStreak" type="number" min="1" step="1" inputmode="numeric" aria-label="异常连续未履行天数">
+                                            <input class="erp-input" id="badStreak" type="number" min="1" step="1" inputmode="numeric" aria-label="异常连续未付款天数">
                                             <span>天</span>
                                         </div>
                                     </td>
@@ -162,7 +272,7 @@
                                     <td>
                                         <div class="rbt-risk-grade__unit">
                                             <span>低于</span>
-                                            <input class="erp-input" id="badProgress" type="number" min="0.01" max="100" step="0.01" inputmode="decimal" aria-label="异常日均履行进度">
+                                            <input class="erp-input" id="badProgress" type="number" min="0.01" max="100" step="0.01" inputmode="decimal" aria-label="异常低于基准">
                                             <span>%</span>
                                         </div>
                                     </td>
@@ -170,6 +280,9 @@
                                 </tr>
                             </tbody>
                         </table>
+                            </div>
+                        </div>
+                        </div>
                     </div>
                 </div>
 
@@ -184,7 +297,11 @@
 
     <script src="rbt-fresh.js"></script>
     <script src="../js/common.js"></script>
-    <script src="rbt-risk.js"></script>
-    <script src="rbt-risk-config.js"></script>
+    <script src="rbt-store-data.js"></script>
+    <script src="rbt-settle-ratio.js"></script>
+    <script src="rbt-demand-data.js"></script>
+    <script src="rbt-daily-fulfill.js?v=20261126-no-aclass"></script>
+    <script src="rbt-risk.js?v=20261126-no-aclass"></script>
+    <script src="rbt-risk-config.js?v=20261126-sim-due"></script>
 </body>
 </html>

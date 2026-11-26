@@ -456,10 +456,38 @@
   }
 
   function storeView(range, custom, storeId, tab) {
-    var store = storeById(storeId);
+    var rawId = String(storeId || '').trim();
     var p = pack(range, custom);
-    if (!store || excludedStore(store)) {
-      return { blocked: 'test', name: store ? store.name : '', updatedAt: p.updatedAt, bounds: p.bounds, compareLabel: p.compareLabel };
+    if (!rawId) {
+      return {
+        blocked: 'missing',
+        id: '',
+        name: '',
+        updatedAt: p.updatedAt,
+        bounds: p.bounds,
+        compareLabel: p.compareLabel
+      };
+    }
+    var store = storeById(rawId);
+    if (!store) {
+      return {
+        blocked: 'unknown',
+        id: rawId,
+        name: '',
+        updatedAt: p.updatedAt,
+        bounds: p.bounds,
+        compareLabel: p.compareLabel
+      };
+    }
+    if (excludedStore(store)) {
+      return {
+        blocked: 'test',
+        id: store.id,
+        name: store.name,
+        updatedAt: p.updatedAt,
+        bounds: p.bounds,
+        compareLabel: p.compareLabel
+      };
     }
     if (store.scope !== 'current') {
       return { blocked: 'history', id: store.id, name: store.name, updatedAt: p.updatedAt, bounds: p.bounds, compareLabel: p.compareLabel };
@@ -667,6 +695,8 @@
 
   global.StoreAppBdDcData = {
     BD_NAME: BD_NAME,
+    stores: stores,
+    storeById: storeById,
     overview: overview,
     storesView: storesView,
     businessCommission: businessCommission,
@@ -675,7 +705,7 @@
     commissionList: commissionList,
     selfCheck: selfCheck,
     tips: {
-      overview: '先看当前负责门店的零售成交和代采进货，两笔数不要相加当营业额。负责门店数是现在的负责关系，不是有成交的门店数。本人佣金只统计这些门店里实际归本人的 BD 佣金，不含已交接门店，也不含本人兼任店长或主播的所得。',
+      overview: '先看当前负责门店的零售成交和代采进货，两笔数不要相加当营业额。负责门店数是现在的负责关系，不是有成交的门店数。门店卡片上的「零售佣金／代采佣金」只统计该店本期归本人的 BD 佣金。',
       retail: '零售支付成交额只计当前负责门店的有效销售。支付主订单按单去重，供应商子单和包裹不增加订单数。支付人数按消费者跨门店重新去重。免费赠品、纯积分、零元营销、积分加现金补差不计入；福利低价仍计入。',
       proxy: '代采商品支付金额不含运费，运费和进货总额分开看。平均进货间隔＝（本期最近进货日－本期最早进货日）÷（进货天数－1），按自然日去重；少于 2 个进货日显示—。最近进货日展示全部历史最近一次进货。',
       commission: '佣金数据包含全部归当前BD的佣金及已交接门店历史账目。门店业务中的佣金按本期支付订单关联，不含运费；佣金数据可按支付时间或结算单创建时间统计。未配置结果显示—，结算失败或取消不进正常合计。历史佣金仅允许查看原订单对账摘要，不开放该门店完整业务。账户余额和提现分开。',

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>冷丰RBT - 异常履约数据</title>
+    <title>冷丰RBT - 异常付款数据</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
@@ -60,10 +60,15 @@
     <div id="header-container"></div>
     <div class="container">
         <main class="main-content">
-            <div class="content-tabs"><button type="button" class="active">异常履约数据</button></div>
+            <div class="content-tabs"><button type="button" class="active">异常付款数据</button></div>
             <hr class="content-divider">
             <div class="mdm-biz-tip rbt-abnormal-tip" role="note">
-                只列出履约风险等级不是<strong>正常</strong>的需求。当前台账里，实际履行为 0 的已发生日期从最近一天往前连续计数；<strong>日均履行进度</strong> = 累计履行进度 ÷ 已履约天数，未满起算天数不看日均。<strong>剩余履行额</strong> = 总金额 − 已履行金额。持续未履行样例用来看规则落到哪一档，<strong>不改</strong>每日履行的实际履行。阈值在<a href="rbt_risk_config.html">风控配置</a>里改。处理只做记录，不拦截新建需求。
+                只列出付款风险等级不是<strong>正常</strong>的需求。日均付款额和<a href="rbt_risk_config.html">风控配置</a>里当前生效的静态基准或动态基准比，不使用百分比进度。<strong>剩余付款额</strong> = 总金额 − 已付款金额。命中后生成工单，状态为待处置、处置中、已关闭。风控看全部并可处置；业务处置本事业线；财务看金额，不改风险结论。工单不拦截新建需求。
+            </div>
+            <div class="mdm-biz-tip" role="note" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+                <label>当前身份 <select class="erp-select" id="rbtRiskRole" style="width:120px;height:36px;"><option value="风控">风控</option><option value="业务">业务</option><option value="财务">财务</option></select></label>
+                <label>事业线 <select class="erp-select" id="rbtRiskBiz" style="width:160px;height:36px;"></select></label>
+                <span>风控看全部并可处置。业务只处置所选事业线。财务只看金额，不改结论。</span>
             </div>
             <div id="rbtAbnormalApp" class="rbt-abnormal-host" v-cloak>
                 <vab-schema-table
@@ -83,7 +88,7 @@
                         <span :class="'rbt-risk-tag is-' + row.grade">{{ row.grade }}</span>
                     </template>
                     <template #actions="{row,elSize}">
-                        <el-button :size="elSize" text type="primary" @click="openHandle(row)">处理</el-button>
+                        <el-button :size="elSize" text type="primary" @click="openHandle(row)">处置</el-button>
                     </template>
                 </vab-schema-table>
             </div>
@@ -94,7 +99,7 @@
         <div class="rbt-handle__mask" id="rbtHandleMask"></div>
         <aside class="rbt-handle__panel" role="dialog" aria-modal="true" aria-labelledby="rbtHandleTitle">
             <div class="rbt-handle__head">
-                <h2 id="rbtHandleTitle">处理异常履约</h2>
+                <h2 id="rbtHandleTitle">付款异常工单</h2>
                 <button type="button" class="rbt-handle__close" id="rbtHandleClose" aria-label="关闭">&times;</button>
             </div>
             <div class="rbt-handle__body">
@@ -102,11 +107,28 @@
                     <tbody id="rbtHandleFact"></tbody>
                 </table>
                 <div class="rbt-handle__field">
-                    <label for="rbtHandleStatus">处理状态</label>
+                    <label for="rbtHandleStatus">工单状态</label>
                     <select class="erp-select" id="rbtHandleStatus"></select>
                 </div>
                 <div class="rbt-handle__field">
-                    <label for="rbtHandleNote">处理说明</label>
+                    <label for="rbtHandleMeasure">处置措施</label>
+                    <textarea class="erp-input" id="rbtHandleMeasure" placeholder="选填，例如已联系门店核对次日佣金"></textarea>
+                </div>
+                <div class="rbt-handle__field">
+                    <label for="rbtHandleResult">处置结果</label>
+                    <textarea class="erp-input" id="rbtHandleResult" placeholder="选填"></textarea>
+                </div>
+                <div class="rbt-handle__field">
+                    <label for="rbtHandleHandler">处理人</label>
+                    <input class="erp-input" id="rbtHandleHandler" placeholder="选填">
+                </div>
+                <div class="rbt-handle__field">
+                    <label class="pts-rule-check-label" style="display:flex;align-items:center;gap:8px;">
+                        <input type="checkbox" id="rbtHandlePause"> 建议暂停该店新需求（只记在工单，系统不自动拦截）
+                    </label>
+                </div>
+                <div class="rbt-handle__field">
+                    <label for="rbtHandleNote">说明</label>
                     <textarea class="erp-input" id="rbtHandleNote" placeholder="选填，例如已电话核对营业流水"></textarea>
                 </div>
             </div>
@@ -125,9 +147,9 @@
     <script src="rbt-store-data.js"></script>
     <script src="rbt-settle-ratio.js"></script>
     <script src="rbt-demand-data.js"></script>
-    <script src="rbt-demand-detail.js"></script>
-    <script src="rbt-daily-fulfill.js"></script>
-    <script src="rbt-risk.js"></script>
+    <script src="rbt-demand-detail.js?v=20261126-no-aclass"></script>
+    <script src="rbt-daily-fulfill.js?v=20261126-no-aclass"></script>
+    <script src="rbt-risk.js?v=20261126-no-aclass"></script>
     <script src="rbt-risk-abnormal.js"></script>
 </body>
 </html>

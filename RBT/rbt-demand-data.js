@@ -243,6 +243,24 @@
                 skus: linesOf(imageLines), amount: '72000.00',
                 creator: '夏利', createdAt: '2026-10-20 10:12:40', updater: '夏利', updatedAt: '2026-10-21 09:40:18'
             }),
+            rowSeed(Object.assign({
+                code: 'XQ00024', storeCode: 'ONS00001', storeName: '西湖中心生鲜店',
+                pkg: fresh, plan: freshPlan, status: '门店付款中',
+                skus: linesOf(freshLines),
+                amount: '80000.00', creator: '喻巧', createdAt: '2025-12-16 11:08:16', updater: '王丽', updatedAt: '2026-11-12 17:20:08',
+                acceptedAt: '2025-12-17 15:42:30',
+                /* 签署／支付提前到 2025-12，便于门店经营自定义时段演示跨年、跨月 */
+                paidAt: '2025-12-18 16:08:26',
+                quotaHeld: false,
+                dealLocked: true,
+                signings: signedRows('ONS00001', '西湖中心生鲜店', '杭州鲜达贸易有限公司', '2025-12-18 10:18:44'),
+                guaranteeDeposit: {
+                    paid: true,
+                    voucherName: '缴纳凭证',
+                    uploadedAt: '2025-12-18 17:20:08',
+                    uploadedBy: '王丽'
+                }
+            }, xianDa)),
             /* 门店付款中：形象包已交付，门店按日还款。担保金凭证供详情和履约查看。 */
             rowSeed(Object.assign({
                 code: 'XQ00016', storeCode: 'ONS00002', storeName: '东城和平里生鲜店',
@@ -487,6 +505,21 @@
         };
     }
 
+    /* 贸易商服务费并进单价。需求单商品金额仍是原价。加价率 = 贸易商结算系数 − 1。订单实付按原价 ×（1 + 加价率）。 */
+    function markupOf(item) {
+        var rates = productRates(item && item.installmentCode);
+        var goods = centsOf(item && item.goodsAmount);
+        var traderRate = rates ? Number(rates.trader) : NaN;
+        var rate = isFinite(traderRate) && traderRate > 0 ? Math.round((traderRate - 1) * 10000) / 100 : null;
+        var marked = rate != null ? Math.round(goods * Math.round(traderRate * 100) / 100) : null;
+        return {
+            rate: rate,
+            rateText: rate == null ? '—' : rate.toFixed(2) + '%',
+            original: fromCents(goods),
+            marked: marked == null ? '' : fromCents(marked)
+        };
+    }
+
     /* 待接单及之后应能看到结算比例。 */
     function passedFirstAudit(status) {
         return status === '待接单' || status === '待确认签约' || status === '待重新确认' || status === '待签署' || status === '发货中' || status === '待付款' || status === '门店付款中' || status === '已完成';
@@ -711,7 +744,7 @@
                 XQ00016: '2026-11-07 09:22:05',
                 XQ00020: '2026-11-06 16:35:16',
                 XQ00023: '2026-11-08 16:42:18',
-                XQ00024: '2026-11-11 16:08:26'
+                XQ00024: '2025-12-18 16:08:26'
             };
             if (!item.paidAt && paidSeeds[item.code] && (item.status === '待复核' || item.status === '还款中' || item.status === '门店付款中' || item.status === '已完成')) {
                 item.paidAt = paidSeeds[item.code];
@@ -1857,6 +1890,7 @@
         canEditSettleRatios: canEditSettleRatios,
         updateSettleRatios: updateSettleRatios,
         receivables: receivables,
+        markupOf: markupOf,
         settlementRates: settlementRates,
         shipCatalog: function () { return SHIP_CATALOG.slice(); },
         shipLine: shipLine,

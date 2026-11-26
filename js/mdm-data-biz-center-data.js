@@ -1,5 +1,5 @@
 /**
- * 经营数据中心 · 原型示例数据与口径汇总
+ * 经营数据中台 · 原型示例数据与口径汇总
  * 数值均为「原型示例数据」，非 UAT 实数；食亨 POS 故意为空。
  */
 (function (global) {
@@ -15,7 +15,16 @@
     { id: 'ST-SH-01', name: '冷丰特选·徐汇店', line: '纯私域', brand: '冷丰特选' },
     { id: 'ST-CD-01', name: '冷丰食堂大钵刘·春熙路店', line: '餐饮', brand: '冷丰食堂大钵刘' },
     { id: 'ST-SZ-01', name: '冷丰锅贴·南山店', line: '餐饮', brand: '冷丰锅贴' },
-    { id: 'ST-GZ-01', name: '汉言·天河店', line: '康美', brand: '汉言' }
+    { id: 'ST-GZ-01', name: '汉言·天河店', line: '康美', brand: '汉言' },
+    { id: 'ST-SH-02', name: '冷丰锅贴·静安店', line: '餐饮', brand: '冷丰锅贴' },
+    { id: 'ST-BJ-03', name: '冷丰特选·朝阳大悦城店', line: '纯私域', brand: '冷丰特选' },
+    { id: 'ST-HZ-02', name: '冷丰食堂大钵刘·滨江店', line: '餐饮', brand: '冷丰食堂大钵刘' },
+    { id: 'ST-NJ-01', name: '汉言·新街口店', line: '康美', brand: '汉言' },
+    { id: 'ST-WH-01', name: '冷丰锅贴·光谷店', line: '餐饮', brand: '冷丰锅贴' },
+    { id: 'ST-CQ-01', name: '冷丰特选·解放碑店', line: '纯私域', brand: '冷丰特选' },
+    { id: 'ST-XA-01', name: '汉言·小寨店', line: '康美', brand: '汉言' },
+    { id: 'ST-SZ-02', name: '冷丰锅贴·福田店', line: '餐饮', brand: '冷丰锅贴' },
+    { id: 'ST-CD-02', name: '冷丰食堂大钵刘·宽窄巷子店', line: '餐饮', brand: '冷丰食堂大钵刘' }
   ];
 
   var SUPPLIERS = [
@@ -88,9 +97,9 @@
 
   /**
    * ERP 经营快照（支付成功口径）
-   * 销售额含运费；退款单独按成功退款时间展示，不冲减销售额/采购成本
-   * 商品平台分佣 = 商品毛利 − BD − 直播 − 门店；运费分佣单独；平台分佣收入 = 二者之和
-   * 供应商货款等列在支出，不从商品毛利再扣
+   * 销售额含运费；退款单独按成功退款时间展示，不冲减销售额
+   * 采购成本分支付时 / 退款后实际；平台分佣分预计（支付时）/ 实际（结算完成）
+   * 运营成本不含供应商货款、承运商结算；含 BD／直播运营组／门店分佣、汇付手续费、汇总积分成本
    */
   function erpSnapshot(filters) {
     var period = (filters && filters.period) || '30d';
@@ -106,21 +115,32 @@
     var goodsSales = r2(186420 * s);
     var freightSales = r2(12480 * s);
     var salesTotal = r2(goodsSales + freightSales);
-    var purchaseCost = r2(112860 * s);
-    var goodsMargin = r2(goodsSales - purchaseCost);
+    var purchaseCostPay = r2(112860 * s);
+    var purchaseCostAfterRefund = r2(104820 * s);
+    var purchaseCost = purchaseCostPay;
+    /* 预计＝支付时采购成本；实际＝退款后实际采购成本 */
+    var goodsMarginExpected = r2(goodsSales - purchaseCostPay);
+    var goodsMarginActual = r2(goodsSales - purchaseCostAfterRefund);
+    var goodsMargin = goodsMarginExpected;
     var bdCommission = r2(8640 * s);
     var liveCommission = r2(6120 * s);
     var storeCommission = r2(14820 * s);
     var platformGoodsCommission = r2(goodsMargin - bdCommission - liveCommission - storeCommission);
     var freightCommission = r2(3260 * s);
-    var platformIncome = r2(platformGoodsCommission + freightCommission);
+    var platformCommissionExpected = r2(platformGoodsCommission + freightCommission);
+    var platformCommissionActual = r2(platformCommissionExpected * 0.86);
+    var platformIncome = platformCommissionExpected;
     var refundAmount = r2(12860 * s);
     var refundQty = ri(186 * s);
     var supplierPayment = r2(98640 * s);
     var liveFee = r2(4200 * s);
-    /* 对齐财务经营表：积分兑换成本、运营毛利（Excel 原公式格曾为 #REF!，原型按表内合计数演示）
-     * 系统流量费／系统手续费：业务系统无对应数据源，不接入、不展示 */
+    var paymentFeeCost = r2(salesTotal * 0.006);
+    /* 直播流量使用情况：场次结束后统计消耗量（GB），不可换算金额；≠ 腾讯云系统流量费 */
+    var liveTrafficGb = r2((86.4 + 42.2 * s) * (period === 'today' || period === 'yesterday' ? 0.35 : 1));
+    /* 积分兑换商品成本 vs 订单积分抵现（1 积分 = 0.1 元） */
     var pointsExchangeCost = r2(17991 * s);
+    var pointsCashDeductAmount = r2(3330 * s);
+    var pointsCashDeductPoints = ri(pointsCashDeductAmount * 10);
     var opsGrossProfit = r2(8212 * s);
     var opsGrossRate = salesTotal ? opsGrossProfit / salesTotal : null;
     var retailOrders = proxyOnly ? 0 : ri(1480 * retailScale);
@@ -131,6 +151,14 @@
     var verifiedOrderCount = ri(3296 * s);
     var verifiedOrderAmount = r2(110447 * s);
     var verifyRate = placeOrderCount ? verifiedOrderCount / placeOrderCount : null;
+    /* 售后演示 */
+    var aftersaleApplyCount = ri(420 * s);
+    var aftersaleRefundOnlyCount = ri(210 * s);
+    var aftersaleReturnRefundCount = ri(148 * s);
+    var aftersaleReshipCount = ri(48 * s);
+    var aftersaleRejectCount = ri(62 * s);
+    var aftersaleRefundRate = salesTotal ? refundAmount / salesTotal : null;
+    var aftersaleAvgHandleHours = r2(18.6);
 
     var trendDays = period === 'today' || period === 'yesterday' ? 24 : period === '7d' ? 7 : 14;
     var trend = [];
@@ -387,59 +415,56 @@
     });
 
     orderDetails = scopedOrders.filter(function (row) { return matchesPeriod(filters, row.payTime); });
-    var expenseTypes = [
-      { type: '供应商货款', parties: ['鲜达优选供应链', '绿源生鲜批发', '汉言原料仓'] },
-      { type: '直播费用', parties: ['望京场次 #L112', '南山周末场 #L108', '徐汇专场 #L106'] },
-      { type: 'BD结算', parties: ['BD·王敏', 'BD·李昂', 'BD·周晴'] },
-      { type: '门店分佣', parties: storeNames },
-      { type: '积分兑换成本', parties: ['积分商城 · 兑换订单'] }
+    var pointsCostTotal = r2(pointsExchangeCost + pointsCashDeductAmount);
+    var expenseDetails = [
+      { type: 'BD分佣', party: 'BD结算汇总', amount: bdCommission, status: '已结算', bizTime: '2026-11-16', _protoSample: true },
+      { type: '直播运营组分佣', party: '直播运营组汇总', amount: liveCommission, status: '已结算', bizTime: '2026-11-16', _protoSample: true },
+      { type: '直播流量使用情况', party: '直播场次流量汇总', amount: null, quantityGb: liveTrafficGb, status: '已出账', bizTime: '2026-11-16', _protoSample: true },
+      { type: '门店分佣', party: '门店分佣汇总', amount: storeCommission, status: '已结算', bizTime: '2026-11-16', _protoSample: true },
+      { type: '手续费成本', party: '汇付通道', amount: paymentFeeCost, status: '已入账', bizTime: '2026-11-16', _protoSample: true },
+      { type: '积分成本', party: '积分兑换＋订单抵现', amount: pointsCostTotal, status: '已入账', bizTime: '2026-11-16', _protoSample: true }
     ];
-    var expenseDetails = [];
-    for (var ei = 0; ei < 32; ei++) {
-      var et = expenseTypes[ei % 4];
-      expenseDetails.push({
-        type: et.type,
-        party: et.parties[ei % et.parties.length],
-        amount: r2(
-          ((et.type === '供应商货款' ? 2800 : et.type === '门店分佣' ? 620 : 380) +
-            (ei % 9) * 55) *
-            s
-        ),
-        status: ei % 3 === 0 ? '待结算' : '已结算',
-        bizTime: '2026-11-' + String(11 + (ei % 8)),
-        _protoSample: true
-      });
-    }
-    expenseTypes.push({ type: '承运商结算' });
-    scopedOrders.filter(function (order) { return order.freightSales > 0; }).forEach(function (order) {
-      var sequence = Number(order.orderId.replace(/\D/g, '').slice(-2));
-      var settled = sequence % 3 !== 0;
-      var settlementDay = Number(order.payTime.slice(8, 10)) + (settled ? 1 : 0);
-      var statusTime = '2026-11-' + settlementDay + ' 12:00';
-      if (!matchesPeriod(filters, statusTime)) return;
-      expenseDetails.push({
-        type: '承运商结算',
-        party: '示例承运商',
-        amount: 8 + sequence % 7,
-        status: settled ? '已结算' : '待结算',
-        bizTime: statusTime.slice(0, 10),
-        _protoSample: true
-      });
-    });
-    expenseDetails.push({
-      type: '积分兑换成本',
-      party: '积分商城 · 兑换订单',
-      amount: pointsExchangeCost,
-      status: '已入账',
-      bizTime: '2026-11-16',
-      _protoSample: true
-    });
-    var expenseSummary = expenseTypes.map(function (et) {
-      var rows = expenseDetails.filter(function (row) { return row.type === et.type; });
+    /* 运营成本：不含供应商货款、承运商结算；两类积分汇总为「积分成本」；直播流量仅 GB */
+    var opsCostOrder = [
+      'BD分佣',
+      '直播运营组分佣',
+      '直播流量使用情况',
+      '门店分佣',
+      '手续费成本',
+      '积分成本'
+    ];
+    var expenseSummary = opsCostOrder.map(function (type) {
+      var amount =
+        type === 'BD分佣'
+          ? bdCommission
+          : type === '直播运营组分佣'
+            ? liveCommission
+            : type === '直播流量使用情况'
+              ? null
+              : type === '门店分佣'
+                ? storeCommission
+                : type === '手续费成本'
+                  ? paymentFeeCost
+                  : pointsCostTotal;
       return {
-        type: et.type,
-        amount: r2(rows.reduce(function (total, row) { return total + row.amount; }, 0)),
-        count: rows.length
+        type: type,
+        amount: amount,
+        quantityGb: type === '直播流量使用情况' ? liveTrafficGb : null,
+        money: type !== '直播流量使用情况',
+        exchangeAmount: type === '积分成本' ? pointsExchangeCost : null,
+        cashAmount: type === '积分成本' ? pointsCashDeductAmount : null,
+        note:
+          type === 'BD分佣'
+            ? '结算分佣 · BD'
+            : type === '直播运营组分佣'
+              ? '结算分佣 · 直播运营组'
+              : type === '直播流量使用情况'
+                ? '场次结束后统计消耗（GB），不可换算金额'
+                : type === '门店分佣'
+                  ? '结算分佣 · 门店'
+                  : type === '手续费成本'
+                    ? '订单汇付手续费汇总'
+                    : '含积分兑换商品成本＋订单积分抵现（1 积分＝0.1 元）'
       };
     });
     var pointsExchangeDetails = [
@@ -471,6 +496,79 @@
         payTime: '2026-11-17 09:40'
       }
     ];
+    var pointsCashDetails = [
+      {
+        orderId: 'ORD-3212689201599501',
+        points: ri(1200 * s),
+        amount: r2(120 * s),
+        storeName: storeNames[0],
+        channel: '商城',
+        payTime: '2026-11-16 12:08'
+      },
+      {
+        orderId: 'ORD-3212689201599601',
+        points: ri(800 * s),
+        amount: r2(80 * s),
+        storeName: storeNames[1 % storeNames.length],
+        channel: '直播',
+        payTime: '2026-11-17 19:22'
+      },
+      {
+        orderId: 'ORD-3212689201599801',
+        points: ri(450 * s),
+        amount: r2(45 * s),
+        storeName: storeNames[2 % storeNames.length],
+        channel: '商城',
+        payTime: '2026-11-18 10:41'
+      }
+    ];
+    var aftersaleDetails = [
+      {
+        asId: 'AS-20261116-001',
+        type: '仅退款',
+        status: '退款成功',
+        refundAmount: r2(86.5 * s),
+        storeName: storeNames[0],
+        finishTime: '2026-11-16 18:20',
+        handleHours: 6.2
+      },
+      {
+        asId: 'AS-20261117-014',
+        type: '退货退款',
+        status: '退款成功',
+        refundAmount: r2(128 * s),
+        storeName: storeNames[1 % storeNames.length],
+        finishTime: '2026-11-18 11:05',
+        handleHours: 28.4
+      },
+      {
+        asId: 'AS-20261118-008',
+        type: '仅退款',
+        status: '已驳回',
+        refundAmount: 0,
+        storeName: storeNames[2 % storeNames.length],
+        finishTime: '2026-11-18 15:40',
+        handleHours: 4.1
+      },
+      {
+        asId: 'AS-20261119-003',
+        type: '退货退款',
+        status: '处理中',
+        refundAmount: null,
+        storeName: storeNames[0],
+        finishTime: '',
+        handleHours: null
+      },
+      {
+        asId: 'AS-20261119-021',
+        type: '补货',
+        status: '已完结',
+        refundAmount: 0,
+        storeName: storeNames[1 % storeNames.length],
+        finishTime: '2026-11-19 16:12',
+        handleHours: 9.5
+      }
+    ];
 
     return {
       demo: true,
@@ -487,19 +585,39 @@
       refundAmount: refundAmount,
       refundQty: refundQty,
       purchaseCost: purchaseCost,
+      purchaseCostPay: purchaseCostPay,
+      purchaseCostAfterRefund: purchaseCostAfterRefund,
       goodsMargin: goodsMargin,
+      goodsMarginExpected: goodsMarginExpected,
+      goodsMarginActual: goodsMarginActual,
       bdCommission: bdCommission,
       liveCommission: liveCommission,
       storeCommission: storeCommission,
       platformGoodsCommission: platformGoodsCommission,
       freightCommission: freightCommission,
+      platformCommissionExpected: platformCommissionExpected,
+      platformCommissionActual: platformCommissionActual,
       platformIncome: platformIncome,
+      paymentFeeCost: paymentFeeCost,
       supplierPayment: supplierPayment,
       liveFee: liveFee,
+      liveTrafficGb: liveTrafficGb,
       pointsExchangeCost: pointsExchangeCost,
+      pointsCashDeductAmount: pointsCashDeductAmount,
+      pointsCashDeductPoints: pointsCashDeductPoints,
+      pointsCostTotal: pointsCostTotal,
       opsGrossProfit: opsGrossProfit,
       opsGrossRate: opsGrossRate,
       pointsExchangeDetails: pointsExchangeDetails,
+      pointsCashDetails: pointsCashDetails,
+      aftersaleApplyCount: aftersaleApplyCount,
+      aftersaleRefundOnlyCount: aftersaleRefundOnlyCount,
+      aftersaleReturnRefundCount: aftersaleReturnRefundCount,
+      aftersaleReshipCount: aftersaleReshipCount,
+      aftersaleRejectCount: aftersaleRejectCount,
+      aftersaleRefundRate: aftersaleRefundRate,
+      aftersaleAvgHandleHours: aftersaleAvgHandleHours,
+      aftersaleDetails: aftersaleDetails,
       trend: trend,
       products: products,
       suppliers: suppliers,
@@ -923,13 +1041,13 @@
   function pointsSnapshot(filters) {
     var details = [
       { time: '2026-11-19 16:42', user: '138****6210', type: '发放', scene: '消费送积分', points: 128, balanceAfter: 1860, storeId: 'ST-BJ-01' },
-      { time: '2026-11-19 15:18', user: '139****8831', type: '消耗', scene: '积分抵现', points: -50, balanceAfter: 420, storeId: 'ST-HZ-01',
+      { time: '2026-11-19 15:18', user: '139****8831', type: '下单抵扣', scene: '订单积分抵现', points: -50, balanceAfter: 420, storeId: 'ST-HZ-01',
         channel: 'mall', rateCents: 1, maxRatio: 50, deductionCents: 50 },
       { time: '2026-11-19 14:05', user: '136****2209', type: '发放', scene: '签到奖励', points: 10, balanceAfter: 310 },
-      { time: '2026-11-18 21:30', user: '137****4412', type: '消耗', scene: '积分商城兑换', points: -200, balanceAfter: 80 },
+      { time: '2026-11-18 21:30', user: '137****4412', type: '商品兑换', scene: '积分商城兑换', points: -200, balanceAfter: 80 },
       { time: '2026-11-18 11:02', user: '135****9088', type: '发放', scene: '注册有礼', points: 100, balanceAfter: 100 },
       { time: '2026-11-18 10:15', user: '138****6210', type: '发放', scene: '消费送积分', points: 85, balanceAfter: 1732, storeId: 'ST-BJ-01' },
-      { time: '2026-11-17 13:20', user: '139****8831', type: '消耗', scene: '积分抵现', points: -30, balanceAfter: 470, storeId: 'ST-HZ-01',
+      { time: '2026-11-17 13:20', user: '139****8831', type: '下单抵扣', scene: '订单积分抵现', points: -30, balanceAfter: 470, storeId: 'ST-HZ-01',
         channel: 'mall', rateCents: 1, maxRatio: 50, deductionCents: 30 }
     ].concat(Array.from({ length: 30 }, function (_, index) {
       var spent = index % 3 === 0;
@@ -938,15 +1056,15 @@
       var row = {
         time: '2026-11-' + (16 - Math.floor(index / 6)) + ' ' + (16 - index % 6) + ':00',
         user: '130****' + (7000 + index),
-        type: spent ? '消耗' : '发放',
-        scene: exchange ? '积分商城兑换' : spent ? '积分抵现' : live ? '观看任务奖励' : '消费送积分',
+        type: exchange ? '商品兑换' : spent ? '下单抵扣' : '发放',
+        scene: exchange ? '积分商城兑换' : spent ? '订单积分抵现' : live ? '观看任务奖励' : '消费送积分',
         points: spent ? -20 - index : 25 + index,
         balanceAfter: 200 + index * 5,
         storeId: index % 4 === 3 ? 'ST-HZ-01' : 'ST-BJ-01',
         channel: live ? 'live' : 'mall'
       };
       if (spent && !exchange) {
-        // 示例订单记录的规则快照和成功抵现结果。
+        /* 示例订单记录的规则快照和成功抵现结果 */
         row.rateCents = live ? 2 : 1;
         row.maxRatio = live ? 40 : 50;
         row.deductionCents = (20 + index) * row.rateCents;
@@ -959,10 +1077,24 @@
       row.channel = row.channel || (row.scene === '签到奖励' ? 'live' : row.scene === '注册有礼' ? '' : 'mall');
       return storeMatch(filters, row.storeId) && channelMatch(filters, row.channel) && matchesPeriod(filters, row.time);
     }).sort(function (a, b) { return b.time.localeCompare(a.time); });
+    function isExchange(row) {
+      return row.type === '商品兑换' || row.scene === '积分商城兑换';
+    }
+    function isCash(row) {
+      return row.type === '下单抵扣' || row.scene === '订单积分抵现' || row.scene === '积分抵现' || row.deductionCents != null;
+    }
+    var exchangeConsumed = details.reduce(function (total, row) {
+      return total + (isExchange(row) ? Math.max(0, -row.points) : 0);
+    }, 0);
+    var cashConsumed = details.reduce(function (total, row) {
+      return total + (isCash(row) && !isExchange(row) ? Math.max(0, -row.points) : 0);
+    }, 0);
     return {
       demo: true,
       issued: details.reduce(function (total, row) { return total + Math.max(0, row.points); }, 0),
       consumed: details.reduce(function (total, row) { return total + Math.max(0, -row.points); }, 0),
+      exchangeConsumed: exchangeConsumed,
+      cashConsumed: cashConsumed,
       balance: ri(1286400),
       details: details
     };
@@ -975,39 +1107,55 @@
     },
     {
       name: '退款金额',
-      text: '仅统计成功退款，按退款成功发生时间单独展示；售后驳回不计。退款金额不回写扣减销售额或采购成本。'
+      text: '仅统计成功退款，按退款成功发生时间单独展示；售后驳回不计。退款金额不回写扣减销售额。'
     },
     {
       name: '商品销售额',
       text: '订单商品快照：商品单价×实际销售数量（零售/代采取对应维护价格）。'
     },
     {
-      name: '采购成本',
-      text: '商品采购成本字段×实际销售数量；不因退款冲减。'
+      name: '支付时采购成本 / 退款后实际采购成本',
+      text: '支付时采购成本按支付成功时间汇总商品采购成本；发生成功退款后回写得到退款后实际采购成本。两套口径并存，不互相覆盖。'
     },
     {
-      name: '商品毛利',
-      text: '商品销售额−采购成本。'
+      name: '预计商品毛利 / 实际商品毛利',
+      text: '预计商品毛利＝商品销售额−支付时采购成本；实际商品毛利＝商品销售额−退款后实际采购成本（结算回写后退款影响）。'
     },
     {
       name: '商品平台分佣',
-      text: '商品毛利−BD分佣−直播分佣−门店分佣。'
+      text: '商品毛利−BD分佣−直播运营组分佣−门店分佣。'
     },
     {
-      name: '平台分佣所得',
-      text: '商品平台分佣＋运费分佣。与食亨管理费分属不同数据域，绝不合并。'
+      name: '平台预计分佣 / 平台实际分佣',
+      text: '预计分佣＝支付时点商品分佣＋运费分佣；实际分佣按结算完成时间入账。与食亨管理费分属不同数据域，绝不合并。'
     },
     {
-      name: '经营支出',
-      text: '包含供应商货款、直播费用、BD结算、门店分佣、承运商结算与积分兑换成本。承运商支出取承运商结款金额。系统流量费、系统手续费无业务系统数据源，不接入本页。'
+      name: '运营成本与毛利',
+      text: '运营成本含 BD分佣、直播运营组分佣、门店分佣、汇付手续费成本、积分兑换商品成本、订单积分抵现；直播流量仅 GB 不计入金额合计。不含供应商货款、承运商结算。并展示运营毛利／毛利率。不展示结算项数。'
     },
     {
-      name: '积分兑换成本',
-      text: '运营成本（福利、秒杀优惠）项。取自研零售清分：商品类目为积分商品的订单，「供应商成本 − 订单实付金额（含分摊运费）」。不计入正常商品销售额。'
+      name: 'BD分佣 / 直播运营组分佣 / 门店分佣',
+      text: '结算规则下各方分佣金额，与平台分佣拆分同源：商品毛利中划给 BD、直播运营组、门店的部分。'
+    },
+    {
+      name: '手续费成本',
+      text: '订单汇付手续费汇总，列入运营成本。不同于已剔除的腾讯云系统流量费／估算手续费。'
+    },
+    {
+      name: '直播流量使用情况',
+      text: '每场直播结束后可统计流量消耗，单位 GB；无法换算为金额，不计入运营成本合计。与已剔除的腾讯云「系统流量费」不是同一数据源。'
+    },
+    {
+      name: '积分成本',
+      text: '运营成本中两类积分场景汇总：积分兑换商品成本（供应商成本−实付含运费）＋订单积分抵现（1 积分＝0.1 元）。明细仍可按场景分别下钻。'
+    },
+    {
+      name: '售后申请 / 退款率 / 处理时长',
+      text: '售后申请单数按筛选期内创建统计；成功退款金额与退款商品数与总览「成功退款」同口径；退款率＝成功退款金额÷销售额；仅退款／退货退款／补货／驳回按类型拆分；平均处理时长为申请→完结的演示小时数。'
     },
     {
       name: '运营毛利 / 运营毛利率',
-      text: '财务经营表「运营毛利及毛利率」。毛利率＝运营毛利÷销售额（销售收入）。运营毛利正式环境对齐财务核算公式；原型按经营表合计数演示（原表公式格曾为 #REF!）。不含系统流量费、系统手续费（无系统数据源）。'
+      text: '财务经营表「运营毛利及毛利率」。毛利率＝运营毛利÷销售额（销售收入）。运营毛利正式环境对齐财务核算公式；原型按经营表合计数演示。'
     },
     {
       name: '总下单数',
@@ -1034,20 +1182,24 @@
       text: '计划、成功发放、实际领取与成功核销各按发生时间统计。计划发放、成功发放及领取金额由券面额与红包金额组成。实际使用金额由订单用券抵扣、红包到账、实发商品采购成本及订单实际积分抵现组成。积分同时按数量展示。涉及用户数按实际发放、领取或使用记录去重。'
     },
     {
-      name: 'RBT联营 · 贸易商投入',
+      name: '积分使用 · 商品兑换 / 下单抵扣',
+      text: '会员营销积分消耗分两类：商品兑换（积分商城兑换商品）与下单抵扣（订单积分抵现）。KPI 与流水类型分开展示，消耗合计＝二者之和。'
+    },
+    {
+      name: 'RBT · 贸易商投入',
       text: '贸易商签约完成后划拨成功、进入发货中起计入。冻结不算投入。总投入不区分在途，含发货中已划拨。'
     },
     {
-      name: 'RBT联营 · 约定回收',
-      text: '发布成功进入待接单时固化：商品金额×当时门店结算系数（门店按合同应付的联营总额，不是门店营业额）。之后改渠道比例或产品系数不重算该快照。剩余＝约定−已履行净额。'
+      name: 'RBT · 门店应付总额',
+      text: '发布成功进入待接单时，按商品金额乘以当时的门店结算系数固化。剩余应付等于门店应付总额减累计已支付。'
     },
     {
-      name: 'RBT联营 · 已履行 / 三方拆分',
-      text: '与 RBT 履约一致：最近营业日为预计履行（结算时间未执行），更早为已履行（次日 08:00）；一键履约支付成功即已履行。看板汇总只计已履行。拆分为贸易商回收、冷丰实得、服务商计提。不进经营总览销售额与 ERP 平台分佣。'
+      name: 'RBT · 累计已支付',
+      text: '最近营业日的款项在结算前为预计付款，次日 08:00 执行结算。一键付款在支付成功后计入累计已支付。累计已支付拆分为贸易商实收、冷丰实得和服务商实收，独立于经营总览销售额和 ERP 平台分佣统计。'
     },
     {
-      name: 'RBT联营 · 营业基数',
-      text: '所得佣金与门店经营中心渠道数据同源，再×本单渠道结算比例。一期不因消费者退款重算已落定履行。'
+      name: 'RBT · 营业基数',
+      text: '所得佣金与门店经营中心渠道数据同源，再乘以本单渠道结算比例。已确认的付款金额按当时结果记录。'
     },
     {
       name: '导出权限',
@@ -1178,7 +1330,7 @@
           progress: progress,
           phase:
             row.status === '门店付款中' && remain > 0
-              ? '履约中'
+              ? '门店付款中'
               : row.status === '已完成' || remain <= 0
                 ? '已完成'
                 : '发货中'

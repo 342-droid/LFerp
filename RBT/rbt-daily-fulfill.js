@@ -1,5 +1,18 @@
-/* 每日履行：应履行 = 所得佣金 × 该渠道结算比例。所得佣金是当日已发生的门店佣金。不叫还款，不拆总金额，不预造未发生的日期。 */
+/* 每日付款：应付款 = 所得佣金 × 该渠道结算比例。所得佣金是当日已发生的门店佣金。不叫还款，不拆总金额，不预造未发生的日期。 */
 (function (global) {
+    var SPAN_DEMO_FACTS = [
+        { date: '2025-12-20', channel: 'POS', turnover: 540 },
+        { date: '2025-12-24', channel: '直播', turnover: 360 },
+        { date: '2025-12-28', channel: '商城', turnover: 280 },
+        { date: '2025-12-31', channel: 'POS', turnover: 610 },
+        { date: '2026-01-03', channel: '直播', turnover: 390 },
+        { date: '2026-01-08', channel: '商城', turnover: 250 },
+        { date: '2026-01-12', channel: 'POS', turnover: 700 },
+        { date: '2026-10-22', channel: 'POS', turnover: 640 },
+        { date: '2026-10-25', channel: '直播', turnover: 410 },
+        { date: '2026-10-28', channel: '商城', turnover: 300 },
+        { date: '2026-10-31', channel: 'POS', turnover: 760 }
+    ];
     var FACTS = [
         { date: '2026-11-07', channel: 'POS', turnover: 860 },
         { date: '2026-11-08', channel: '直播', turnover: 420 },
@@ -18,15 +31,15 @@
     ];
     /* 演示：所得佣金 = 当日营业流水 × 10%，与门店佣金明细里常见的门店佣金比例一致。 */
     var COMMISSION_RATE = 0.1;
-    /* 每日履行从营业收入里扣，支付方式固定为这一句。计算来源仍说明金额怎么算，不改成支付方式。 */
+    /* 每日付款从营业收入里扣，支付方式固定为这一句。计算来源仍说明金额怎么算，不改成支付方式。 */
     var AUTO_PAY_METHOD = '营业收入自动扣款';
 
     function phaseLabel(status) {
-        if (status === '门店付款中' || status === '还款中') return '履约中';
+        if (status === '门店付款中' || status === '还款中') return '付款中';
         return status || '—';
     }
 
-    /* 手动履约按笔记录。不再读旧的汇总金额，那笔汇总会把两张原型需求都结成已完成。 */
+    /* 手动付款按笔记录。不再读旧的汇总金额，那笔汇总会把两张原型需求都结成已完成。 */
     var MANUAL_ROW_KEY = 'rbt_h5_store_manual_rows_v1';
     var SETTLED_KEY = 'rbt_fulfill_settled_v1';
 
@@ -49,10 +62,10 @@
         return String(storeCode || '') + '|' + String(code || '');
     }
 
-    /* 门店原型固定带一笔已支付成功的一键履约，每日履行打开就能看到。已有手动记录时不重复补。 */
+    /* 门店原型固定带一笔已支付成功的提前支付，每日付款打开就能看到。按支付时间认这笔，不重复补。 */
     var DEMO_MANUAL = {
         storeCode: 'ONS00001',
-        code: 'XQ00024',
+        code: 'XQ00023',
         at: '2026-11-23 09:18:26',
         cents: 10000,
         channel: '支付宝'
@@ -62,12 +75,16 @@
         var map = readJson(MANUAL_ROW_KEY);
         var key = manualKey(DEMO_MANUAL.storeCode, DEMO_MANUAL.code);
         var list = Array.isArray(map[key]) ? map[key].filter(Boolean) : [];
-        if (list.length) return;
-        map[key] = [{
+        var has = list.some(function (row) {
+            return row && row.at === DEMO_MANUAL.at && Math.round(Number(row.cents)) === DEMO_MANUAL.cents;
+        });
+        if (has) return;
+        list.push({
             at: DEMO_MANUAL.at,
             cents: DEMO_MANUAL.cents,
             channel: DEMO_MANUAL.channel
-        }];
+        });
+        map[key] = list;
         try { global.localStorage.setItem(MANUAL_ROW_KEY, JSON.stringify(map)); } catch (e) {}
     }
 
@@ -112,14 +129,14 @@
                 storeCode: item.storeCode || '',
                 storeName: item.storeName || '',
                 demandCode: item.code,
-                channel: '手动履约',
+                channel: '提前支付',
                 turnover: '',
                 commission: '',
                 ratio: '—',
                 due: amount,
                 actual: amount,
                 payMethod: row.channel || '支付宝',
-                source: '手动履约',
+                source: '提前支付',
                 kind: 'manual'
             };
         });
@@ -139,19 +156,19 @@
         try { global.localStorage.setItem(SETTLED_KEY, JSON.stringify(map)); } catch (e) {}
     }
 
-    /* 剩余履行额为 0，或门店端已把这笔结清：履约阶段为已完成。 */
+    /* 剩余付款额为 0，或门店端已把这笔结清：付款阶段为已完成。 */
     function phaseOf(item, remain) {
         if (!item) return '—';
         if (item.status === '已完成') return '已完成';
         if (item.status === '门店付款中' || item.status === '还款中') {
             if (remain != null && amountOf(remain) <= 0) return '已完成';
             if ((remain == null || amountOf(remain) <= 0) && isSettled(item.code)) return '已完成';
-            return '履约中';
+            return '付款中';
         }
         return phaseLabel(item.status);
     }
 
-    /* 已履行加上门店手动支付。结清后剩余履行额为 0，已履行金额等于总金额。 */
+    /* 已付款加上门店手动支付。结清后剩余付款额为 0，已付款金额等于总金额。 */
     function performanceFact(item, fact) {
         var base = fact || {};
         var total = amountOf(item && item.amount);
@@ -165,6 +182,7 @@
                 actual: money(total),
                 gap: '0.00',
                 progress: '—',
+                baseline: '—',
                 grade: '—',
                 phase: '已完成'
             };
@@ -174,6 +192,7 @@
             actual: money(actual),
             gap: money(gap),
             progress: base.progress || '—',
+            baseline: base.baseline || '—',
             grade: base.grade || '—',
             phase: phaseLabel(item && item.status)
         };
@@ -214,7 +233,15 @@
     function daysOf(item) {
         if (!item || (item.status !== '门店付款中' && item.status !== '还款中' && item.status !== '已完成') || item.repayMethod !== '比例付') return [];
         var scale = scaleOf(item.code);
-        var auto = FACTS.map(function (fact) {
+        var facts = FACTS;
+        if (item.code === 'XQ00024') {
+            var start = String(item.paidAt || item.createdAt || '').slice(0, 10);
+            var end = item.status === '已完成' ? String(item.updatedAt || '').slice(0, 10) : '';
+            facts = SPAN_DEMO_FACTS.concat(FACTS).filter(function (fact) {
+                return (!start || fact.date >= start) && (!end || fact.date <= end);
+            });
+        }
+        var auto = facts.map(function (fact) {
             var turnover = Math.round(fact.turnover * scale * 100) / 100;
             var commission = Math.round(turnover * COMMISSION_RATE * 100) / 100;
             var ratio = channelRatio(item, fact.channel);
@@ -268,7 +295,7 @@
         return Math.round(num * 100);
     }
 
-    /* 把一组履行额按贸易商、冷丰、服务商应收占比拆开。应收来自产品结算系数。一行三笔之和等于该行实际履行。 */
+    /* 把一组付款额按贸易商、冷丰、服务商应收占比拆开。应收来自产品结算系数。一行三笔之和等于该行实际付款。 */
     function allocateShares(item, days) {
         var keys = ['trader', 'lengfeng', 'provider'];
         var api = global.RbtDemandData;
@@ -342,7 +369,7 @@
         });
     }
 
-    /* 营业流水按原口径整段拆。一键履约单独按结算系数拆，不把尾差挤进这笔手动履约。 */
+    /* 营业流水按原口径整段拆。一键付款单独按结算系数拆，不把尾差挤进这笔手动付款。 */
     function payeeSplit(item) {
         var days = daysOf(item);
         var auto = [];
@@ -361,7 +388,7 @@
         });
     }
 
-    /* 履行明细：一行是一天、一个渠道，结款是当日实际履行拆给贸易商、冷丰、服务商的金额。 */
+    /* 付款明细：一行是一天、一个渠道，结款是当日实际付款拆给贸易商、冷丰、服务商的金额。 */
     function detailRows() {
         var api = global.RbtDemandData;
         var list = api && typeof api.list === 'function' ? api.list() : [];
@@ -398,8 +425,17 @@
         return out;
     }
 
+    /* 已发生的营收事实。动态基准用它给事业线下的每家门店模拟应付款，不读付款中台账。 */
+    function revenueFacts() {
+        return FACTS.map(function (fact) {
+            return { date: fact.date, channel: fact.channel, turnover: fact.turnover };
+        });
+    }
+
     global.RbtDailyFulfill = {
         autoPayMethod: AUTO_PAY_METHOD,
+        revenueFacts: revenueFacts,
+        commissionRate: COMMISSION_RATE,
         manualCents: manualCents,
         manualRows: manualLedgerRows,
         appendManual: appendManual,

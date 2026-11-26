@@ -134,8 +134,14 @@
           { key: 'channel', label: '渠道' },
           { key: 'qty', label: '销售数量', num: true, format: 'int' }
         ].concat(orderColumn, amounts), {
-          pageSize: 10, unitLabel: '条',
-          summaryHtml: '<p class="ldb-tip">共 ' + row.products.length + ' 条商品业务明细</p>'
+          pageSize: 10,
+          unitLabel: '条',
+          exportName: row.name + '商品明细',
+          summaryHtml: '<p class="ldb-tip">共 ' + row.products.length + ' 条商品业务明细</p>',
+          filters: [
+            { key: 'name', label: '商品名', type: 'text' },
+            { key: 'biz', label: '业务线', type: 'select' }
+          ]
         });
       });
     });

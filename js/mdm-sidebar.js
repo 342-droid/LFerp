@@ -121,10 +121,10 @@
         { href: 'mdm_audit_cash_redpack_manual.html', text: '派发红包' }
     ];
 
-    /** 平台数据中心 · 经营数据中心 */
+    /** 平台数据中台 · 经营数据中台 */
     const dataBizItems = [
         { href: 'mdm_data_biz_overview.html', text: '经营总览' },
-        { href: 'mdm_data_biz_rbt.html', text: 'RBT联营' },
+        { href: 'mdm_data_biz_rbt.html', text: 'RBT' },
         { href: 'mdm_data_biz_supplier.html', text: '供应商分析' },
         { href: 'mdm_data_biz_stores.html', text: '门店分析' },
         { href: 'mdm_data_biz_marketing.html', text: '营销活动' }
@@ -196,8 +196,8 @@
             renderCollapsibleGroup('会员体系', '策略管理', memberSystemItems, true) +
             renderCollapsibleGroup('积分管理', '任务管理', memberPointsItems, true);
     } else if (isDataBizPage) {
-        /** 顶栏「数据中心」：经营数据中心菜单，不混入商家主体／人员中心 */
-        itemsHtml = renderCollapsibleGroup('经营数据中心', '任务管理', dataBizItems, true);
+        /** 顶栏「数据中台」：经营数据中台菜单，不混入商家主体／人员中心 */
+        itemsHtml = renderCollapsibleGroup('经营数据中台', '任务管理', dataBizItems, true);
     } else {
         itemsHtml =
             renderCollapsibleGroup('商家主体', '基础信息', partyItems, isPartyPage) +
@@ -210,7 +210,7 @@
         return;
     }
 
-    var sidebarTitle = isMemberPage ? '冷丰会员' : isDataBizPage ? '冷丰数据中心' : '冷丰MDM';
+    var sidebarTitle = isMemberPage ? '冷丰会员' : isDataBizPage ? '冷丰数据中台' : '冷丰MDM';
 
     sidebarContainer.innerHTML =
         '<aside class="sidebar" id="sidebar">' +

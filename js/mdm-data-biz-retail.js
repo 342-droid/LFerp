@@ -15,8 +15,8 @@
       '零售支付主订单明细',
       rows,
       [
-        { key: 'orderId', label: '主订单号' },
-        { key: 'channel', label: '来源' },
+        { key: 'orderId', label: '主订单号', link: 'order' },
+        { key: 'channel', label: '来源', format: 'channel' },
         { key: 'storeName', label: '门店' },
         { key: 'payTime', label: '支付时间' },
         { key: 'payGoods', label: '商品实付', num: true, format: 'money' },

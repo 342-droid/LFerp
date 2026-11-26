@@ -136,7 +136,7 @@
         return '<div class="rbt-demand-table-wrap"><table class="rbt-demand-table"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>';
     }
 
-    /* 履约详情里同一角色的应收、已结款合成一组：上面角色名，下面左应收、右已结款。 */
+    /* 付款详情里同一角色的应收、已结款合成一组：上面角色名，下面左应收、右已结款。 */
     function ensureAmountGroupStyle() {
         if (document.getElementById('rbtAmountGroupStyle')) return;
         var node = document.createElement('style');
@@ -750,28 +750,28 @@
                     '</td><td class="is-money">¥' + esc(share.provider) + '</td></tr>'
                 );
             }).join('')
-            : '<tr><td class="is-empty" colspan="11">暂无已发生的每日履行。</td></tr>';
+            : '<tr><td class="is-empty" colspan="11">暂无已发生的每日付款。</td></tr>';
         return (
             '<div class="supplier-detail-tab">' +
-            '<p class="rbt-daily-note">本单已经发生的每日履行。一行是一天、一个渠道。应履行 = 所得佣金 × 该渠道结算比例。当日实际履行按贸易商、冷丰、服务商应收占比拆成三方收款，三笔之和等于当日实际履行。没有服务商时，服务商收款为 0。未发生的日期不出现。' +
-            '<a class="rbt-daily-note__more" href="rbt_daily_fulfill.html">全部门店每日履行</a></p>' +
+            '<p class="rbt-daily-note">本单已经发生的每日付款。一行是一天、一个渠道。应付款 = 所得佣金 × 该渠道结算比例。当日实际付款按贸易商、冷丰、服务商应收占比拆成三方收款，三笔之和等于当日实际付款。没有服务商时，服务商收款为 0。未发生的日期不出现。' +
+            '<a class="rbt-daily-note__more" href="rbt_daily_fulfill.html">全部门店每日付款</a></p>' +
             dailySummary(item, rows, partyCents) +
             '<div class="supplier-detail-section-title">每日明细</div>' +
             '<div class="rbt-demand-table-wrap"><table class="rbt-demand-table"><thead><tr>' +
             '<th>日期</th><th>渠道</th><th class="is-money">营业流水</th><th class="is-money">所得佣金</th><th>结算比例</th>' +
-            '<th class="is-money">应履行</th><th class="is-money">实际履行</th><th>支付方式</th>' +
+            '<th class="is-money">应付款</th><th class="is-money">实际付款</th><th>支付方式</th>' +
             '<th class="is-money">贸易商收款</th><th class="is-money">冷丰收款</th><th class="is-money">服务商收款</th>' +
             '</tr></thead><tbody>' + body + '</tbody></table></div></div>'
         );
     }
 
-    /* 履行汇总与履约列表、首页同一口径：剩余履行额 = 总金额 − 已履行金额。日均履行进度 = 累计履行进度 ÷ 已履约天数。 */
+    /* 付款汇总与付款列表、首页同一口径：剩余付款额 = 总金额 − 已付款金额。日均付款额 = 累计付款额 ÷ 已付款天数。 */
     function dailySummary(item, rows, partyCents) {
         var risk = window.RbtRisk;
         var base = risk && typeof risk.receivableOf === 'function' ? risk.receivableOf(item) : 0;
         var fact = risk && typeof risk.assessDays === 'function'
-            ? risk.assessDays(rows, base, item && item.amount)
-            : { due: '0.00', actual: '0.00', gap: '0.00', progress: '—', grade: '—' };
+            ? risk.assessDays(rows, base, item && item.amount, item)
+            : { due: '0.00', actual: '0.00', gap: '0.00', progress: '—', baseline: '—', grade: '—' };
         if (window.RbtDailyFulfill && typeof window.RbtDailyFulfill.performanceFact === 'function') {
             fact = window.RbtDailyFulfill.performanceFact(item, fact);
         }
@@ -785,21 +785,22 @@
             money(fact.actual),
             money(fact.gap),
             fact.progress || '—',
+            fact.baseline || '—',
             null,
             money(partyCents.trader / 100),
             money(partyCents.lengfeng / 100),
             money(partyCents.provider / 100)
         ];
-        var titles = ['总金额', '应履行', '已履行金额', '剩余履行额', '日均履行进度', '履约风险等级', '贸易商收款', '冷丰收款', '服务商收款'];
+        var titles = ['总金额', '应付款', '已付款金额', '剩余付款额', '日均付款额', '生效基准', '付款风险等级', '贸易商收款', '冷丰收款', '服务商收款'];
         var head = '<tr>' + titles.map(function (title, index) {
-            return '<th' + (index === 4 || index === 5 ? '' : ' class="is-money"') + '>' + title + '</th>';
+            return '<th' + (index === 4 || index === 5 || index === 6 ? '' : ' class="is-money"') + '>' + title + '</th>';
         }).join('') + '</tr>';
         var body = '<tr>' + cells.map(function (value, index) {
-            if (index === 5) return '<td>' + grade + '</td>';
-            var moneyCell = index !== 4;
+            if (index === 6) return '<td>' + grade + '</td>';
+            var moneyCell = index !== 4 && index !== 5;
             return '<td' + (moneyCell ? ' class="is-money"' : '') + '>' + esc(value) + '</td>';
         }).join('') + '</tr>';
-        return '<div class="supplier-detail-section-title">履行汇总</div>' +
+        return '<div class="supplier-detail-section-title">付款汇总</div>' +
             '<div class="rbt-demand-table-wrap"><table class="rbt-demand-table"><thead>' + head +
             '</thead><tbody>' + body + '</tbody></table></div>';
     }
@@ -1376,7 +1377,7 @@
             auditSession = options && options.audit ? options.audit : null;
         }
         var performance = !!(options && options.performance);
-        var title = performance ? '履约详情' : '需求单详情';
+        var title = performance ? '付款详情' : '需求单详情';
         var statusText = displayStatus(item, performance);
         closeDrawer();
         var backdrop = document.createElement('div');
@@ -1398,7 +1399,7 @@
             '<div class="store-drawer__meta">商品包：' + esc(item.packageName) + '（' + esc(item.packageCode) + '）</div></div>' +
             '<div class="store-drawer__tabs store-drawer__tabs--sticky" id="rbtDemandTabs">' +
             '<button type="button" class="store-drawer__tab is-active" data-tab="base">基础信息</button>' +
-            (performance ? '<button type="button" class="store-drawer__tab" data-tab="daily">每日履行</button>' : '') +
+            (performance ? '<button type="button" class="store-drawer__tab" data-tab="daily">每日付款</button>' : '') +
             (performance ? '' : '<button type="button" class="store-drawer__tab" data-tab="logs">操作记录</button>') +
             '</div>' +
             '<div class="store-drawer__body" id="rbtDemandBody"></div>' +

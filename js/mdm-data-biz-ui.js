@@ -1,5 +1,5 @@
 /**
- * 平台数据中心 · 经营数据 · 页面公共 UI
+ * 平台数据中台 · 经营数据 · 页面公共 UI
  */
 (function (global) {
   'use strict';
@@ -394,25 +394,300 @@
     $('[data-ldb-drawer]').classList.remove('is-open');
   }
 
+  function uniqueFilterOptions(rows, key) {
+    var seen = {};
+    var list = [];
+    (rows || []).forEach(function (row) {
+      var v = row[key];
+      if (v == null || v === '') return;
+      var s = String(v);
+      if (seen[s]) return;
+      seen[s] = true;
+      list.push(s);
+    });
+    return list.sort();
+  }
+
+  function matchDetailFilter(row, filter, values) {
+    var value = values[filter.key];
+    if (filter.type === 'daterange') {
+      var from = values[filter.key + '__from'] || '';
+      var to = values[filter.key + '__to'] || '';
+      if (!from && !to) return true;
+      var cell = String(row[filter.key] || '').slice(0, 10);
+      if (!cell) return false;
+      if (from && cell < from) return false;
+      if (to && cell > to) return false;
+      return true;
+    }
+    if (value == null || value === '') return true;
+    if (typeof filter.test === 'function') return !!filter.test(row, value);
+    if (filter.type === 'text') {
+      return String(row[filter.key] == null ? '' : row[filter.key])
+        .toLowerCase()
+        .indexOf(String(value).toLowerCase()) !== -1;
+    }
+    return String(row[filter.key] == null ? '' : row[filter.key]) === String(value);
+  }
+
+  function applyDetailFilters(rows, filterDefs, values) {
+    if (!filterDefs || !filterDefs.length) return rows || [];
+    return (rows || []).filter(function (row) {
+      return filterDefs.every(function (filter) {
+        return matchDetailFilter(row, filter, values);
+      });
+    });
+  }
+
+  function formatDetailCell(column, row, value) {
+    if (column.format === 'money') return Biz.money(value);
+    if (column.format === 'pct') return Biz.pctText(value);
+    if (column.format === 'biz') return bizLabel(value);
+    if (column.format === 'channel') return channelLabel(value);
+    if (column.format === 'int' && value != null) return Biz.intText(value);
+    if (value == null || value === '') return '';
+    return String(value);
+  }
+
+  function buildDetailCsv(rows, columns) {
+    function csvEscape(text) {
+      var s = String(text == null ? '' : text);
+      if (/[",\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+      return s;
+    }
+    var lines = [columns.map(function (c) { return csvEscape(c.label); }).join(',')];
+    rows.forEach(function (row) {
+      lines.push(
+        columns
+          .map(function (c) {
+            return csvEscape(formatDetailCell(c, row, row[c.key]));
+          })
+          .join(',')
+      );
+    });
+    return '\ufeff' + lines.join('\n');
+  }
+
+  function bumpDetailExport(fileName, title, csvText, ev) {
+    var blob = new Blob([csvText], { type: 'text/csv;charset=utf-8;' });
+    var downloadUrl = URL.createObjectURL(blob);
+    var notify = global.LfFileCenterNotify;
+    if (notify && typeof notify.bump === 'function') {
+      notify.bump(
+        {
+          title: title || '明细导出',
+          type: 'biz-detail-export',
+          fileName: fileName,
+          size: Math.max(1, Math.round(blob.size / 1024)) + ' KB',
+          downloadUrl: downloadUrl
+        },
+        { fromEvent: ev, toast: true, force: true }
+      );
+      return;
+    }
+    var a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    if (typeof global.showToast === 'function') {
+      global.showToast('已导出明细文件', 'success');
+    }
+  }
+
+  /** 页面表格导出到文件中心（可选列；默认全列） */
+  function exportRowsToFileCenter(exportName, rows, columns, ev, opts) {
+    opts = opts || {};
+    rows = rows || [];
+    columns = (columns || []).filter(Boolean);
+    if (!columns.length) return;
+    var pickedKeys = opts.columns;
+    var picked = pickedKeys && pickedKeys.length
+      ? columns.filter(function (c) {
+          return pickedKeys.indexOf(c.key) >= 0;
+        })
+      : columns;
+    if (!picked.length) {
+      if (typeof global.showToast === 'function') global.showToast('请至少勾选一列', 'warning');
+      return;
+    }
+    var stamp = new Date();
+    var mm = stamp.getMonth() + 1;
+    var dd = stamp.getDate();
+    var fileName =
+      String(exportName || '明细导出').replace(/[\\/:*?"<>|]/g, '_') +
+      '_' +
+      stamp.getFullYear() +
+      (mm < 10 ? '0' : '') +
+      mm +
+      (dd < 10 ? '0' : '') +
+      dd +
+      '.csv';
+    bumpDetailExport(fileName, (exportName || '明细') + '导出', buildDetailCsv(rows, picked), ev);
+  }
+
   /**
-   * 明细抽屉表（支持分页）
-   * opts: { pageSize, summaryHtml }
+   * 明细抽屉表（支持分页、筛选项、可选列导出到文件中心）
+   * opts: { pageSize, summaryHtml, unitLabel, filters, exportName, exportable }
    */
   function showDetailTable(title, rows, columns, opts) {
     opts = opts || {};
     rows = rows || [];
+    columns = columns || [];
     if (!rows.length) {
       showDrawer(title, '<div class="ldb-empty">暂无明细</div>');
       return;
     }
+    var filterDefs = opts.filters || [];
+    var filterValues = {};
+    filterDefs.forEach(function (filter) {
+      filterValues[filter.key] = '';
+      if (filter.type === 'daterange') {
+        filterValues[filter.key + '__from'] = '';
+        filterValues[filter.key + '__to'] = '';
+      }
+    });
+    var exportable = opts.exportable !== false;
+    var exportName = opts.exportName || title || '明细导出';
+    var exportOpen = false;
+    var exportChecked = {};
+    columns.forEach(function (c) {
+      exportChecked[c.key] = true;
+    });
     var pagerState = {
       page: 1,
       pageSize: normalizePageSize(opts.pageSize || 10)
     };
     var unit = opts.unitLabel || '单';
 
+    function filteredRows() {
+      return applyDetailFilters(rows, filterDefs, filterValues);
+    }
+
+    function renderFilterBar() {
+      if (!filterDefs.length) return '';
+      var fields = filterDefs
+        .map(function (filter) {
+          if (filter.type === 'text') {
+            return (
+              '<label class="ldb-field ldb-drawer-filter__field">' +
+              '<span>' +
+              Biz.esc(filter.label) +
+              '</span>' +
+              '<input class="ldb-input" type="search" data-detail-filter="' +
+              Biz.esc(filter.key) +
+              '" value="' +
+              Biz.esc(filterValues[filter.key] || '') +
+              '" placeholder="输入关键词">' +
+              '</label>'
+            );
+          }
+          if (filter.type === 'daterange') {
+            return (
+              '<label class="ldb-field ldb-drawer-filter__field">' +
+              '<span>' +
+              Biz.esc(filter.label) +
+              '</span>' +
+              '<input class="ldb-input ldb-input--date" type="date" data-detail-filter-from="' +
+              Biz.esc(filter.key) +
+              '" value="' +
+              Biz.esc(filterValues[filter.key + '__from'] || '') +
+              '">' +
+              '<span class="ldb-drawer-filter__sep">至</span>' +
+              '<input class="ldb-input ldb-input--date" type="date" data-detail-filter-to="' +
+              Biz.esc(filter.key) +
+              '" value="' +
+              Biz.esc(filterValues[filter.key + '__to'] || '') +
+              '">' +
+              '</label>'
+            );
+          }
+          var options = filter.options;
+          if (!options || !options.length) {
+            options = [{ value: '', label: '全部' }].concat(
+              uniqueFilterOptions(rows, filter.key).map(function (v) {
+                return { value: v, label: v };
+              })
+            );
+          } else if (options[0] && typeof options[0] === 'string') {
+            options = [{ value: '', label: '全部' }].concat(
+              options.map(function (v) {
+                return { value: v, label: v };
+              })
+            );
+          }
+          return (
+            '<label class="ldb-field ldb-drawer-filter__field">' +
+            '<span>' +
+            Biz.esc(filter.label) +
+            '</span>' +
+            '<select class="ldb-select" data-detail-filter="' +
+            Biz.esc(filter.key) +
+            '">' +
+            options
+              .map(function (opt) {
+                var value = opt.value != null ? opt.value : opt;
+                var label = opt.label != null ? opt.label : opt;
+                return (
+                  '<option value="' +
+                  Biz.esc(String(value)) +
+                  '"' +
+                  (String(filterValues[filter.key] || '') === String(value) ? ' selected' : '') +
+                  '>' +
+                  Biz.esc(String(label)) +
+                  '</option>'
+                );
+              })
+              .join('') +
+            '</select></label>'
+          );
+        })
+        .join('');
+      return (
+        '<div class="ldb-drawer-filter" data-detail-filter-bar>' +
+        '<div class="ldb-drawer-filter__fields">' +
+        fields +
+        '</div>' +
+        '<div class="ldb-drawer-filter__actions">' +
+        '<button type="button" class="ldb-chip is-active" data-detail-filter-apply>筛选</button>' +
+        '<button type="button" class="ldb-chip" data-detail-filter-reset>重置</button>' +
+        '</div></div>'
+      );
+    }
+
+    function renderExportPanel() {
+      if (!exportable || !exportOpen) return '';
+      return (
+        '<div class="ldb-drawer-export" data-detail-export-panel>' +
+        '<p class="ldb-tip ldb-tip--flush">勾选导出列（默认全选），提交后生成文件中心下载任务。</p>' +
+        '<div class="ldb-drawer-export__cols">' +
+        columns
+          .map(function (c) {
+            return (
+              '<label class="ldb-drawer-export__col">' +
+              '<input type="checkbox" data-detail-export-col="' +
+              Biz.esc(c.key) +
+              '"' +
+              (exportChecked[c.key] ? ' checked' : '') +
+              '> ' +
+              Biz.esc(c.label) +
+              '</label>'
+            );
+          })
+          .join('') +
+        '</div>' +
+        '<div class="ldb-drawer-export__actions">' +
+        '<button type="button" class="ldb-chip" data-detail-export-all>全选</button>' +
+        '<button type="button" class="ldb-chip is-active" data-detail-export-submit>导出到文件中心</button>' +
+        '<button type="button" class="ldb-chip" data-detail-export-cancel>取消</button>' +
+        '</div></div>'
+      );
+    }
+
     function paint() {
-      var paged = paginateRows(rows, pagerState.page, pagerState.pageSize);
+      var viewRows = filteredRows();
+      var paged = paginateRows(viewRows, pagerState.page, pagerState.pageSize);
       pagerState.page = paged.page;
       pagerState.pageSize = paged.pageSize;
       var head = columns
@@ -463,15 +738,32 @@
       var summary =
         opts.summaryHtml ||
         '<p class="ldb-tip ldb-tip--flush">共 ' +
-          paged.total +
-          ' 单（按主订单去重）</p>';
+          viewRows.length +
+          ' ' +
+          Biz.esc(unit) +
+          '</p>';
+      var toolbar =
+        '<div class="ldb-drawer-toolbar">' +
+        (filterDefs.length
+          ? '<span class="ldb-drawer-toolbar__hint">可筛选当前明细</span>'
+          : '<span class="ldb-drawer-toolbar__hint">明细列表</span>') +
+        (exportable
+          ? '<button type="button" class="ldb-chip is-active" data-detail-export-toggle>导出</button>'
+          : '') +
+        '</div>';
       showDrawer(
         title,
-        summary +
+        toolbar +
+          renderFilterBar() +
+          renderExportPanel() +
+          summary +
           '<div class="ldb-table-wrap"><table class="ldb-table"><thead><tr>' +
           head +
           '</tr></thead><tbody>' +
-          body +
+          (body ||
+            '<tr><td colspan="' +
+              columns.length +
+              '" class="ldb-empty-cell">当前筛选暂无明细</td></tr>') +
           '</tbody></table></div>' +
           renderPager({
             total: paged.total,
@@ -484,7 +776,93 @@
               : '当前无展示'
           })
       );
-      bindPager($('[data-ldb-drawer-body] [data-ldb-pager]'), pagerState, paint);
+      var bodyEl = $('[data-ldb-drawer-body]');
+      bindPager(bodyEl.querySelector('[data-ldb-pager]'), pagerState, paint);
+      var applyBtn = bodyEl.querySelector('[data-detail-filter-apply]');
+      if (applyBtn) {
+        applyBtn.addEventListener('click', function () {
+          filterDefs.forEach(function (filter) {
+            if (filter.type === 'daterange') {
+              var fromEl = bodyEl.querySelector('[data-detail-filter-from="' + filter.key + '"]');
+              var toEl = bodyEl.querySelector('[data-detail-filter-to="' + filter.key + '"]');
+              filterValues[filter.key + '__from'] = fromEl ? fromEl.value : '';
+              filterValues[filter.key + '__to'] = toEl ? toEl.value : '';
+              return;
+            }
+            var el = bodyEl.querySelector('[data-detail-filter="' + filter.key + '"]');
+            filterValues[filter.key] = el ? el.value : '';
+          });
+          pagerState.page = 1;
+          paint();
+        });
+      }
+      var resetBtn = bodyEl.querySelector('[data-detail-filter-reset]');
+      if (resetBtn) {
+        resetBtn.addEventListener('click', function () {
+          Object.keys(filterValues).forEach(function (k) {
+            filterValues[k] = '';
+          });
+          pagerState.page = 1;
+          paint();
+        });
+      }
+      var exportToggle = bodyEl.querySelector('[data-detail-export-toggle]');
+      if (exportToggle) {
+        exportToggle.addEventListener('click', function () {
+          exportOpen = !exportOpen;
+          paint();
+        });
+      }
+      var exportCancel = bodyEl.querySelector('[data-detail-export-cancel]');
+      if (exportCancel) {
+        exportCancel.addEventListener('click', function () {
+          exportOpen = false;
+          paint();
+        });
+      }
+      var exportAll = bodyEl.querySelector('[data-detail-export-all]');
+      if (exportAll) {
+        exportAll.addEventListener('click', function () {
+          columns.forEach(function (c) {
+            exportChecked[c.key] = true;
+          });
+          paint();
+        });
+      }
+      bodyEl.querySelectorAll('[data-detail-export-col]').forEach(function (box) {
+        box.addEventListener('change', function () {
+          exportChecked[box.getAttribute('data-detail-export-col')] = !!box.checked;
+        });
+      });
+      var exportSubmit = bodyEl.querySelector('[data-detail-export-submit]');
+      if (exportSubmit) {
+        exportSubmit.addEventListener('click', function (ev) {
+          var picked = columns.filter(function (c) {
+            return exportChecked[c.key];
+          });
+          if (!picked.length) {
+            if (typeof global.showToast === 'function') {
+              global.showToast('请至少勾选一列', 'warning');
+            }
+            return;
+          }
+          var stamp = new Date();
+          var mm = stamp.getMonth() + 1;
+          var dd = stamp.getDate();
+          var fileName =
+            exportName.replace(/[\\/:*?"<>|]/g, '_') +
+            '_' +
+            stamp.getFullYear() +
+            (mm < 10 ? '0' : '') +
+            mm +
+            (dd < 10 ? '0' : '') +
+            dd +
+            '.csv';
+          bumpDetailExport(fileName, exportName + '导出', buildDetailCsv(filteredRows(), picked), ev);
+          exportOpen = false;
+          paint();
+        });
+      }
     }
 
     paint();
@@ -1072,6 +1450,7 @@
     showDrawer: showDrawer,
     closeDrawer: closeDrawer,
     showDetailTable: showDetailTable,
+    exportRowsToFileCenter: exportRowsToFileCenter,
     pageHref: pageHref
   };
 })(typeof window !== 'undefined' ? window : this);

@@ -16,6 +16,7 @@
     var bizFrom = '';
     var bizTo = '';
     var bizFocusDate = '';
+    var bizPreset = '';
 
     function esc(value) {
         return String(value == null ? '' : value)
@@ -162,18 +163,16 @@
         return sign + Math.floor(abs / 100) + '.' + String(abs % 100).padStart(2, '0');
     }
 
-    /* 大厅总金额用需求单的贸易商应收，服务费按这个总金额减商品金额。 */
+    /* 大厅总金额用贸易商应收（含加价）。需求单商品金额仍是原价，不再单列贸易商服务费。 */
     function hallAmounts(item) {
         var goods = item && item.goodsAmount ? String(item.goodsAmount) : '';
         var api = window.RbtDemandData;
         var pack = api && typeof api.receivables === 'function' ? api.receivables(item) : null;
+        var markup = api && typeof api.markupOf === 'function' ? api.markupOf(item) : null;
         var total = pack && pack.trader ? String(pack.trader) : '';
-        var goodsCents = centsOf(goods);
-        var totalCents = centsOf(total);
-        var fee = goodsCents == null || totalCents == null ? '' : fromCents(totalCents - goodsCents);
         return {
             goods: goods || '—',
-            fee: fee || '—',
+            markup: markup && markup.rateText ? markup.rateText : '—',
             total: total || '—'
         };
     }
@@ -214,8 +213,8 @@
             '<p class="rbt-hall-card__meta">' + esc(item.code || '—') + ' · ' + esc(item.packageName || '—') + ' ' + esc(item.packageCode || '—') + '</p>' +
             '<div class="rbt-hall-card__total"><span>总金额</span><b>' + esc(yuanText(amounts.total)) + '</b></div>' +
             '<div class="rbt-hall-card__grid">' +
-            hallCell('商品金额', yuanText(amounts.goods)) +
-            hallCell('服务费', yuanText(amounts.fee)) +
+            hallCell('商品金额（原价）', yuanText(amounts.goods)) +
+            hallCell('加价率', amounts.markup) +
             hallCell('结算周期', item.repayCycle || '—') +
             hallCell('结算方式', item.repayMethod || '—') +
             '</div>';
@@ -322,7 +321,7 @@
     }
 
     function phaseLabel(status) {
-        if (status === '门店付款中' || status === '还款中') return '履约中';
+        if (status === '门店付款中' || status === '还款中') return '付款中';
         return status || '—';
     }
 
@@ -331,7 +330,8 @@
         return '¥' + value;
     }
 
-    /* 已结款是已经结清的营业日拆给贸易商的金额。最近一天结算单未确定，明细行仍记待结款。 */
+    /* 已结款是已经结清的营业日拆给贸易商的金额。最近一天结算单未确定，明细行仍记待结款。
+       结款不按渠道拆开：各渠道佣金进门店钱包后，用佣金余额支付，同一天多渠道合成一笔。后台每日付款仍按渠道分行。 */
     function traderSettled(item) {
         var daily = window.RbtDailyFulfill;
         var rows = daily && typeof daily.payeeSplit === 'function' ? daily.payeeSplit(item) : [];
@@ -372,7 +372,7 @@
         shares.forEach(function (row) {
             var cents = Math.round(Number(row.amount) * 100);
             if (!isFinite(cents)) cents = 0;
-            /* 一键履约已经付过，按结算系数拆完即已结款。最近一个营业日仍等结算单。 */
+            /* 一键付款已经付过，按结算系数拆完即已结款。最近一个营业日仍等结算单。 */
             row.stage = !done && row.kind !== 'manual' && row.date === latest ? 'pending' : 'due';
             if (row.stage === 'pending') pendingCents += cents;
             else settledCents += cents;
@@ -380,8 +380,56 @@
         return {
             total: (settledCents / 100).toFixed(2),
             pending: done ? '' : (pendingCents / 100).toFixed(2),
-            shares: shares
+            shares: mergeWalletShares(shares)
         };
+    }
+
+    /* 同一天的 POS、商城、直播合成一笔佣金余额结款。一键付款仍单独成行。 */
+    function mergeWalletShares(rows) {
+        var grouped = {};
+        var order = [];
+        rows.forEach(function (row) {
+            if (!row || row.kind === 'manual') {
+                order.push(row);
+                return;
+            }
+            var key = row.date || '';
+            if (!grouped[key]) {
+                grouped[key] = {
+                    date: row.date,
+                    time: row.time || '',
+                    kind: '',
+                    amountCents: 0,
+                    turnoverCents: 0,
+                    commissionCents: 0,
+                    actualCents: 0,
+                    stage: row.stage || 'due'
+                };
+                order.push(grouped[key]);
+            }
+            var bucket = grouped[key];
+            bucket.amountCents += centsOf(row.amount) || 0;
+            bucket.turnoverCents += centsOf(row.turnover) || 0;
+            bucket.commissionCents += centsOf(row.commission) || 0;
+            bucket.actualCents += centsOf(row.actual) || 0;
+            if (row.stage === 'pending') bucket.stage = 'pending';
+        });
+        return order.map(function (row) {
+            if (!row || row.kind === 'manual') return row;
+            return {
+                date: row.date,
+                time: row.time,
+                channel: '',
+                kind: '',
+                amount: fromCents(row.amountCents),
+                turnover: fromCents(row.turnoverCents),
+                commission: fromCents(row.commissionCents),
+                ratio: '',
+                actual: fromCents(row.actualCents),
+                payMethod: '佣金余额',
+                stage: row.stage
+            };
+        });
     }
 
     var TRADER_ACCOUNTS = {
@@ -414,7 +462,7 @@
         return {
             receivable: amounts.total,
             goods: amounts.goods,
-            fee: amounts.fee,
+            markup: amounts.markup,
             settled: settledText,
             pending: pending,
             shares: settled.shares,
@@ -426,7 +474,7 @@
         return item && (item.status === '已完成' || item.status === '已作废' || item.status === '已驳回');
     }
 
-    /* 收款列表的跟进中只放履约中。待确认签约、待签署、待付款不在这里。 */
+    /* 收款列表的跟进中只放付款中。待确认签约、待签署、待付款不在这里。 */
     function fulfillingBid(item) {
         return item && (item.status === '门店付款中' || item.status === '还款中');
     }
@@ -459,7 +507,7 @@
         setHead('收款');
         return '<div class="rbt-fund">' +
             '<div class="rbt-fund__tabs" role="tablist">' +
-            '<button type="button" data-collect-view="open"' + (closed ? '' : ' class="is-on"') + '>履约中</button>' +
+            '<button type="button" data-collect-view="open"' + (closed ? '' : ' class="is-on"') + '>付款中</button>' +
             '<button type="button" data-collect-view="closed"' + (closed ? ' class="is-on"' : '') + '>已结束</button>' +
             '</div>' +
             '<div class="rbt-fund__summary">' +
@@ -482,7 +530,7 @@
                     '<div><span>已结款</span><b>' + esc(fund.settled ? yuan(fund.settled) : '未产生') + '</b></div>' +
                     '<div><span>待结款</span><b>' + esc(fund.pending ? yuan(fund.pending) : (item.status === '已完成' ? '无' : '未产生')) + '</b></div>' +
                     '</div></button>';
-            }).join('') : '<div class="rbt-h5-empty">' + (closed ? '暂无已结束的接单' : '暂无履约中的接单') + '</div>') +
+            }).join('') : '<div class="rbt-h5-empty">' + (closed ? '暂无已结束的接单' : '暂无付款中的接单') + '</div>') +
             '</div>';
     }
 
@@ -634,7 +682,7 @@
         node.hidden = false;
     }
 
-    /* 已结款的结款时间是营业日次日 08:00:00，只写月日时分秒。一键履约用实际支付时间。待结款还没结，时间用 -。 */
+    /* 已结款的结款时间是营业日次日 08:00:00，只写月日时分秒。一键付款用实际支付时间。待结款还没结，时间用 -。 */
     function paidClock(raw) {
         var matched = String(raw || '').match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{2}:\d{2}:\d{2})/);
         if (!matched) return '';
@@ -647,9 +695,10 @@
         return Number(parts[1]) + '月' + Number(parts[2]) + '日';
     }
 
-    function shareChannel(row) {
-        if (row && row.kind === 'manual') return '手动履约';
-        return (row && row.channel) || '—';
+    function shareTitle(row) {
+        var day = monthDay(row && row.date);
+        if (row && row.kind === 'manual') return day + ' · 提前支付';
+        return day;
     }
 
     function opsMoney(value) {
@@ -662,19 +711,23 @@
     }
 
     function renderShareCards(shares) {
-        return '<p class="rbt-ops__note">当日实际履行 = 所得佣金 × 渠道结算比例。我的结款是这笔实际履行按贸易商结算系数拆出的份额。</p>' +
+        return '<p class="rbt-ops__note">各渠道佣金先进入门店钱包。结款从佣金余额支付，同一天可以多渠道混合后还款。</p>' +
             shares.map(function (row) {
                 var pendingRow = row.stage === 'pending';
-                var when = pendingRow ? '-' : (row.kind === 'manual' ? (paidClock(row.time) || settleClock(row.date)) : settleClock(row.date));
+                var manual = row.kind === 'manual';
+                var when = pendingRow ? '-' : (manual ? (paidClock(row.time) || settleClock(row.date)) : settleClock(row.date));
+                var facts = manual
+                    ? opsFact('当日实际付款', opsMoney(row.actual)) +
+                        opsFact('支付方式', row.payMethod || '—')
+                    : opsFact('营业流水', opsMoney(row.turnover)) +
+                        opsFact('所得佣金', opsMoney(row.commission)) +
+                        opsFact('当日实际付款', opsMoney(row.actual)) +
+                        opsFact('支付方式', '佣金余额');
                 return '<article class="rbt-ops">' +
-                    '<header class="rbt-ops__head"><b>' + esc(monthDay(row.date) + ' · ' + shareChannel(row)) + '</b>' +
+                    '<header class="rbt-ops__head"><b>' + esc(shareTitle(row)) + '</b>' +
                     '<em class="' + (pendingRow ? '' : 'is-due') + '">' + (pendingRow ? '待结款' : '已结款') + '</em></header>' +
                     '<div class="rbt-ops__grid">' +
-                    opsFact('营业流水', opsMoney(row.turnover)) +
-                    opsFact('所得佣金', opsMoney(row.commission)) +
-                    opsFact('结算比例', row.ratio || '—') +
-                    opsFact('当日实际履行', opsMoney(row.actual)) +
-                    opsFact('支付方式', row.payMethod || '—') +
+                    facts +
                     '</div>' +
                     '<footer class="rbt-ops__foot">' +
                     '<span><i>结款时间</i><b>' + esc(when) + '</b></span>' +
@@ -709,20 +762,74 @@
         });
     }
 
-    /* 简易双折线：营业额 / 收入；圆点可点选单日 */
+    /* 轴标签：同月 M/D；跨月首点或换月用 M月D日；跨年换年用 YY/M/D */
+    function bizChartAxisMode(series) {
+        var years = {};
+        var months = {};
+        (series || []).forEach(function (row) {
+            var parts = String(row.date || '').split('-');
+            if (parts.length < 3) return;
+            years[parts[0]] = true;
+            months[parts[0] + '-' + parts[1]] = true;
+        });
+        var yearCount = Object.keys(years).length;
+        var monthCount = Object.keys(months).length;
+        if (yearCount > 1) return 'year';
+        if (monthCount > 1) return 'month';
+        return 'day';
+    }
+
+    function bizChartAxisLabel(date, mode, prevDate) {
+        var parts = String(date || '').split('-');
+        if (parts.length < 3) return date || '';
+        var y = parts[0];
+        var m = Number(parts[1]);
+        var d = Number(parts[2]);
+        var prev = String(prevDate || '').split('-');
+        var yearChanged = !prevDate || prev[0] !== y;
+        var monthChanged = !prevDate || prev[0] !== y || prev[1] !== parts[1];
+        if (mode === 'year') {
+            if (yearChanged) return y.slice(2) + '/' + m + '/' + d;
+            if (monthChanged) return m + '月' + d;
+            return m + '/' + d;
+        }
+        if (mode === 'month') {
+            if (monthChanged) return m + '月' + d + '日';
+            return m + '/' + d;
+        }
+        return m + '/' + d;
+    }
+
+    function bizChartShouldShowLabel(series, index, mode) {
+        if (!series || !series.length) return false;
+        if (index === 0 || index === series.length - 1) return true;
+        var prev = series[index - 1] && series[index - 1].date;
+        var cur = series[index] && series[index].date;
+        var prevParts = String(prev || '').split('-');
+        var curParts = String(cur || '').split('-');
+        if (mode === 'year' && prevParts[0] !== curParts[0]) return true;
+        if ((mode === 'year' || mode === 'month') && (prevParts[0] !== curParts[0] || prevParts[1] !== curParts[1])) {
+            return true;
+        }
+        var step = series.length > 14 ? Math.ceil(series.length / 6) : series.length > 6 ? 2 : 1;
+        return index % step === 0;
+    }
+
+    /* 营业额单折线；圆点可点选单日高亮；跨月／跨年轴签换样式 */
     function renderBizChart(series, focusDate) {
         if (!series || !series.length) {
             return '<div class="rbt-biz-chart rbt-biz-chart--empty">该时段暂无曲线数据</div>';
         }
+        var mode = bizChartAxisMode(series);
         var w = 320;
-        var h = 148;
-        var padL = 8;
-        var padR = 8;
+        var h = mode === 'year' ? 160 : mode === 'month' ? 154 : 148;
+        var padL = mode === 'year' ? 10 : 8;
+        var padR = mode === 'year' ? 10 : 8;
         var padT = 12;
-        var padB = 22;
+        var padB = mode === 'year' ? 30 : mode === 'month' ? 26 : 22;
         var max = 0;
         series.forEach(function (row) {
-            max = Math.max(max, Number(row.turnover) || 0, Number(row.credit) || 0);
+            max = Math.max(max, Number(row.turnover) || 0);
         });
         if (max <= 0) max = 1;
         var innerW = w - padL - padR;
@@ -739,30 +846,107 @@
                 return (i ? 'L' : 'M') + xAt(i).toFixed(1) + ' ' + yAt(row[key]).toFixed(1);
             }).join(' ');
         }
-        var labels = series.map(function (row, i) {
-            if (series.length > 6 && i !== 0 && i !== series.length - 1 && i % 2) return '';
-            var parts = String(row.date || '').split('-');
-            var text = parts.length >= 3 ? Number(parts[1]) + '/' + Number(parts[2]) : row.date;
-            return '<text x="' + xAt(i).toFixed(1) + '" y="' + (h - 6) + '" text-anchor="middle">' + esc(text) + '</text>';
-        }).join('');
-        var dots = series.map(function (row, i) {
-            var on = focusDate && row.date === focusDate;
-            var cx = xAt(i).toFixed(1);
-            return '<g class="rbt-biz-chart__hit' + (on ? ' is-on' : '') + '" data-biz-day="' + esc(row.date) + '">' +
-                '<circle class="rbt-biz-chart__hot" cx="' + cx + '" cy="' + (padT + innerH / 2).toFixed(1) + '" r="14"/>' +
-                '<circle class="rbt-biz-chart__dot is-turnover" cx="' + cx + '" cy="' + yAt(row.turnover).toFixed(1) + '" r="' + (on ? 4.5 : 3) + '"/>' +
-                '<circle class="rbt-biz-chart__dot is-credit" cx="' + cx + '" cy="' + yAt(row.credit).toFixed(1) + '" r="' + (on ? 4.5 : 3) + '"/>' +
-                '</g>';
-        }).join('');
-        return '<div class="rbt-biz-chart">' +
-            '<svg viewBox="0 0 ' + w + ' ' + h + '" role="img" aria-label="营业额与收入曲线，可点选单日">' +
-            '<path class="rbt-biz-chart__line is-turnover" d="' + pathOf('turnover') + '" fill="none"/>' +
-            '<path class="rbt-biz-chart__line is-credit" d="' + pathOf('credit') + '" fill="none"/>' +
-            labels + dots +
+        var guides = '';
+        series.forEach(function (row, i) {
+            if (i === 0) return;
+            var prevParts = String(series[i - 1].date || '').split('-');
+            var curParts = String(row.date || '').split('-');
+            var yearBreak = prevParts[0] !== curParts[0];
+            var monthBreak = yearBreak || prevParts[1] !== curParts[1];
+            if ((mode === 'year' && yearBreak) || (mode === 'month' && monthBreak)) {
+                var gx = xAt(i).toFixed(1);
+                guides +=
+                    '<line class="rbt-biz-chart__guide' +
+                    (yearBreak ? ' is-year' : '') +
+                    '" x1="' +
+                    gx +
+                    '" y1="' +
+                    padT +
+                    '" x2="' +
+                    gx +
+                    '" y2="' +
+                    (padT + innerH).toFixed(1) +
+                    '"/>';
+            }
+        });
+        var labels = series
+            .map(function (row, i) {
+                if (!bizChartShouldShowLabel(series, i, mode)) return '';
+                var prev = i > 0 ? series[i - 1].date : '';
+                var text = bizChartAxisLabel(row.date, mode, prev);
+                var cls = 'rbt-biz-chart__tick';
+                var prevParts = String(prev || '').split('-');
+                var curParts = String(row.date || '').split('-');
+                if (mode === 'year' && (!prev || prevParts[0] !== curParts[0])) cls += ' is-year';
+                else if ((mode === 'year' || mode === 'month') && (!prev || prevParts[1] !== curParts[1] || prevParts[0] !== curParts[0])) {
+                    cls += ' is-month';
+                }
+                return (
+                    '<text class="' +
+                    cls +
+                    '" x="' +
+                    xAt(i).toFixed(1) +
+                    '" y="' +
+                    (h - 6) +
+                    '" text-anchor="middle">' +
+                    esc(text) +
+                    '</text>'
+                );
+            })
+            .join('');
+        var dots = series
+            .map(function (row, i) {
+                var on = focusDate && row.date === focusDate;
+                var cx = xAt(i).toFixed(1);
+                return (
+                    '<g class="rbt-biz-chart__hit' +
+                    (on ? ' is-on' : '') +
+                    '" data-biz-day="' +
+                    esc(row.date) +
+                    '">' +
+                    '<circle class="rbt-biz-chart__hot" cx="' +
+                    cx +
+                    '" cy="' +
+                    (padT + innerH / 2).toFixed(1) +
+                    '" r="14"/>' +
+                    '<circle class="rbt-biz-chart__dot is-turnover" cx="' +
+                    cx +
+                    '" cy="' +
+                    yAt(row.turnover).toFixed(1) +
+                    '" r="' +
+                    (on ? 4.5 : 3) +
+                    '"/>' +
+                    '</g>'
+                );
+            })
+            .join('');
+        var metricLabel = bizChannel === '直播' || bizChannel === '商城' ? '预计收入' : '营业额';
+        var spanCls =
+            mode === 'year' ? ' rbt-biz-chart--cross-year' : mode === 'month' ? ' rbt-biz-chart--cross-month' : '';
+        return (
+            '<div class="rbt-biz-chart' +
+            spanCls +
+            '">' +
+            '<svg viewBox="0 0 ' +
+            w +
+            ' ' +
+            h +
+            '" role="img" aria-label="' +
+            esc(metricLabel) +
+            '曲线，可点选单日">' +
+            guides +
+            '<path class="rbt-biz-chart__line is-turnover" d="' +
+            pathOf('turnover') +
+            '" fill="none"/>' +
+            labels +
+            dots +
             '</svg>' +
-            '<div class="rbt-biz-chart__legend"><span class="is-turnover">营业额</span><span class="is-credit">收入</span></div>' +
-            '<p class="rbt-biz-chart__hint">点击趋势图可查看当日数据</p>' +
-            '</div>';
+            '<div class="rbt-biz-chart__legend"><span class="is-turnover">' +
+            esc(metricLabel) +
+            '</span></div>' +
+            '<p class="rbt-biz-chart__hint">点击趋势图可高亮当日</p>' +
+            '</div>'
+        );
     }
 
     function renderCollectBiz(item) {
@@ -782,15 +966,57 @@
             '<button type="button" class="rbt-biz-chip' + (bizRangeMode === 'custom' ? ' is-on' : '') +
             '" data-biz-range="custom">自定义时段</button>' +
             '</div>';
+        var presets = (api && api.CUSTOM_RANGE_PRESETS) || [];
+        var presetChips = presets
+            .map(function (p) {
+                var inWin =
+                    (!pack.windowFrom || p.from >= pack.windowFrom) &&
+                    (!pack.windowTo || p.to <= pack.windowTo);
+                if (!inWin) return '';
+                return (
+                    '<button type="button" class="rbt-biz-chip rbt-biz-chip--preset' +
+                    (bizPreset === p.id ? ' is-on' : '') +
+                    '" data-biz-preset="' +
+                    esc(p.id) +
+                    '" data-biz-from-set="' +
+                    esc(p.from) +
+                    '" data-biz-to-set="' +
+                    esc(p.to) +
+                    '">' +
+                    esc(p.label) +
+                    '</button>'
+                );
+            })
+            .join('');
         var rangePick =
             bizRangeMode === 'custom'
-                ? '<div class="rbt-biz-dates">' +
-                  '<label>开始<input type="date" data-biz-from value="' + esc(bizFrom || pack.windowFrom || '') +
-                  '" min="' + esc(pack.windowFrom || '') + '" max="' + esc(pack.windowTo || '') + '"></label>' +
-                  '<label>结束<input type="date" data-biz-to value="' + esc(bizTo || pack.windowTo || '') +
-                  '" min="' + esc(pack.windowFrom || '') + '" max="' + esc(pack.windowTo || '') + '"></label>' +
+                ? '<div class="rbt-biz-presets">' +
+                  (presetChips || '') +
+                  '</div>' +
+                  '<div class="rbt-biz-dates">' +
+                  '<label>开始<input type="date" data-biz-from value="' +
+                  esc(bizFrom || pack.windowFrom || '') +
+                  '" min="' +
+                  esc(pack.windowFrom || '') +
+                  '" max="' +
+                  esc(pack.windowTo || '') +
+                  '"></label>' +
+                  '<label>结束<input type="date" data-biz-to value="' +
+                  esc(bizTo || pack.windowTo || '') +
+                  '" min="' +
+                  esc(pack.windowFrom || '') +
+                  '" max="' +
+                  esc(pack.windowTo || '') +
+                  '"></label>' +
                   '<button type="button" class="rbt-biz-apply" data-biz-apply>应用</button>' +
-                  '</div>'
+                  '</div>' +
+                  (bizFrom && bizTo
+                      ? '<p class="rbt-biz-window">已选时段：' +
+                        esc(bizFrom) +
+                        ' 至 ' +
+                        esc(bizTo) +
+                        '</p>'
+                      : '')
                 : '<p class="rbt-biz-window">总览区间：' +
                   esc(pack.windowFrom || '—') +
                   ' 至 ' +
@@ -802,44 +1028,80 @@
             return '<button type="button" class="rbt-biz-chip' + (bizChannel === ch.id ? ' is-on' : '') +
                 '" data-biz-channel="' + esc(ch.id) + '">' + esc(ch.label) + '</button>';
         }).join('');
-        var channelCards = (pack.channels || []).map(function (ch) {
-            return '<article class="rbt-biz-channel">' +
-                '<header>' + esc(ch.label) + '</header>' +
-                '<div><span>营业额</span><b>' + esc(bizMoney(ch.turnoverTotal)) + '</b></div>' +
-                '<div><span>收入</span><b>' + esc(bizMoney(ch.creditTotal)) + '</b></div>' +
+        var posChannel = null;
+        var estimateCards = [];
+        (pack.channels || []).forEach(function (ch) {
+            if (ch.id === 'POS') posChannel = ch;
+            else estimateCards.push(ch);
+        });
+        var posCard = '';
+        if (posChannel) {
+            var modules = posChannel.posModules || [];
+            var moduleHtml = modules.length
+                ? '<div class="rbt-biz-channel__subs">' +
+                  modules
+                    .map(function (mod) {
+                        return (
+                            '<div class="rbt-biz-channel__sub">' +
+                            '<span>' +
+                            esc(mod.label) +
+                            '</span><b>' +
+                            esc(bizMoney(mod.turnover)) +
+                            '</b></div>'
+                        );
+                    })
+                    .join('') +
+                  '</div>'
+                : '<div class="rbt-biz-channel__metric"><span>营业额</span><b>' +
+                  esc(bizMoney(posChannel.turnoverTotal)) +
+                  '</b></div>';
+            posCard =
+                '<article class="rbt-biz-channel rbt-biz-channel--pos">' +
+                '<header>' +
+                esc(posChannel.label) +
+                '</header>' +
+                '<div class="rbt-biz-channel__metric rbt-biz-channel__total">' +
+                '<span>营业额合计</span><b>' +
+                esc(bizMoney(posChannel.turnoverTotal)) +
+                '</b></div>' +
+                moduleHtml +
                 '</article>';
-        }).join('');
-        var focusBits = (pack.focusChannels || []).map(function (ch) {
-            return '<div class="rbt-biz-focus__ch"><em>' + esc(ch.label) + '</em>' +
-                '<span>营业额 ' + esc(bizMoney(ch.turnover)) + '</span>' +
-                '<span>收入 ' + esc(bizMoney(ch.credit)) + '</span></div>';
-        }).join('');
-        var dateText = pack.focusDate ? monthDay(pack.focusDate) : '—';
+        }
+        var estimateHtml = estimateCards
+            .map(function (ch) {
+                return (
+                    '<article class="rbt-biz-channel rbt-biz-channel--estimate">' +
+                    '<header>' +
+                    esc(ch.label) +
+                    '</header>' +
+                    '<div class="rbt-biz-channel__metric">' +
+                    '<span>预计收入</span><b>' +
+                    esc(bizMoney(ch.turnoverTotal)) +
+                    '</b></div>' +
+                    '</article>'
+                );
+            })
+            .join('');
+        var channelCards =
+            posCard +
+            (estimateHtml
+                ? '<div class="rbt-biz-channels__estimate">' + estimateHtml + '</div>'
+                : '');
         var clearDay = bizFocusDate
-            ? '<button type="button" class="rbt-biz-clear" data-biz-clear-day>清除单日</button>'
+            ? '<button type="button" class="rbt-biz-clear" data-biz-clear-day>清除单日高亮</button>'
             : '';
         return '<section class="rbt-biz">' +
             '<p class="rbt-ops__note">' + esc(pack.tip || '') + '</p>' +
             rangeChips + rangePick +
-            '<div class="rbt-biz-summary">' +
+            '<div class="rbt-biz-summary rbt-biz-summary--single">' +
             '<div><span>' + (bizRangeMode === 'custom' ? '时段营业额' : '门店营业额') + '</span><b>' +
             esc(bizMoney(pack.turnoverTotal)) + '</b></div>' +
-            '<div><span>' + (bizRangeMode === 'custom' ? '时段收入' : '累计收入') + '</span><b>' +
-            esc(bizMoney(pack.creditTotal)) + '</b></div>' +
             '</div>' +
             '<div class="rbt-biz-channels">' + channelCards + '</div>' +
-            '<div class="rbt-biz-focus">' +
-            '<header><span>' + esc((pack.focusLabel || '当日') + ' · ' + dateText) + '</span>' +
-            (pack.frozen ? '<i class="is-frozen">已冻结</i>' : '') + clearDay + '</header>' +
-            '<div class="rbt-biz-focus__total">' +
-            '<span>营业额 <b>' + esc(bizMoney(pack.focusTurnover)) + '</b></span>' +
-            '<span>收入 <b>' + esc(bizMoney(pack.focusCredit)) + '</b></span>' +
-            '</div>' +
-            (pack.hasSeries || bizFocusDate ? focusBits : '<p class="rbt-bill__empty">该时段暂无拆分数据</p>') +
-            '</div>' +
+            '<p class="rbt-biz-estimate-note">直播、商城展示金额均为预计收入，经退款、平台结算后，最终到账金额以实际结算单为准；该部分收入不计入门店当期实收。</p>' +
             '<div class="rbt-biz-curve">' +
             '<div class="rbt-biz-curve__head"><strong>经营曲线</strong>' +
-            '<div class="rbt-biz-chips">' + channelChips + '</div></div>' +
+            '<div class="rbt-biz-chips">' + channelChips + '</div>' + clearDay + '</div>' +
             renderBizChart(bizSeriesOf(pack), pack.focusDate) +
             '</div></section>';
     }
@@ -859,8 +1121,8 @@
         setHead('资金明细');
         var lines = [
             ['门店', item.storeName || '—'],
-            ['商品金额', yuan(fund.goods)],
-            ['服务费', yuan(fund.fee)],
+            ['商品金额（原价）', yuan(fund.goods)],
+            ['加价率', fund.markup || '—'],
             ['结算比例', ratioText(item)],
             ['接单时间', item.acceptedAt || '—'],
             ['支付时间', payTimeOf(item) || '—'],
@@ -1377,6 +1639,7 @@
             bizFrom = '';
             bizTo = '';
             bizFocusDate = '';
+            bizPreset = '';
             tab = 'hall';
             screen = 'collect-bill';
             render();
@@ -1397,7 +1660,19 @@
             if (bizRangeMode === 'overview') {
                 bizFrom = '';
                 bizTo = '';
+                bizPreset = '';
             }
+            render();
+            return;
+        }
+        var bizPresetBtn = event.target.closest('[data-biz-preset]');
+        if (bizPresetBtn && screen === 'collect-bill') {
+            bizPreset = bizPresetBtn.getAttribute('data-biz-preset') || '';
+            bizFrom = bizPresetBtn.getAttribute('data-biz-from-set') || '';
+            bizTo = bizPresetBtn.getAttribute('data-biz-to-set') || '';
+            bizRangeMode = 'custom';
+            bizFocusDate = '';
+            fundTab = 'biz';
             render();
             return;
         }
@@ -1409,6 +1684,7 @@
             bizTo = toInput ? toInput.value : bizTo;
             bizRangeMode = 'custom';
             bizFocusDate = '';
+            bizPreset = '';
             fundTab = 'biz';
             render();
             return;

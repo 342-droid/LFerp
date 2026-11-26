@@ -1,4 +1,4 @@
-/* 履约：贸易商付款完成后的需求。每日履行在履约详情里。 */
+/* 付款：贸易商付款完成后的需求。每日付款在付款详情里。 */
 (function () {
     var Vue = OctopusPrototype.Vue;
     var ref = Vue.ref;
@@ -31,7 +31,7 @@
 
     function statusType(status) {
         if (status === '已完成') return 'success';
-        if (status === '门店付款中' || status === '履约中' || status === '还款中') return 'warning';
+        if (status === '门店付款中' || status === '付款中' || status === '还款中') return 'warning';
         return '';
     }
 
@@ -39,19 +39,20 @@
         return blank(value) ? '—' : ('¥' + value);
     }
 
-    /* 与首页履约风险同一口径：已履行金额、剩余履行额 = 总金额 − 已履行金额、日均履行进度和等级。 */
+    /* 与首页付款风险同一口径：已付款金额、剩余付款额 = 总金额 − 已付款金额、日均付款额和等级。 */
     function withRisk(row) {
         var days = dailyApi && typeof dailyApi.daysOf === 'function' ? dailyApi.daysOf(row) : [];
         var risk = window.RbtRisk;
         var base = risk && typeof risk.receivableOf === 'function' ? risk.receivableOf(row) : 0;
         var fact = risk && typeof risk.assessDays === 'function'
-            ? risk.assessDays(days, base, row.amount)
-            : { actual: '', gap: '', progress: '—', grade: '—' };
+            ? risk.assessDays(days, base, row.amount, row)
+            : { actual: '', gap: '', progress: '—', baseline: '—', grade: '—' };
         if (dailyApi && typeof dailyApi.performanceFact === 'function') fact = dailyApi.performanceFact(row, fact);
         return Object.assign({}, row, {
             fulfilledAmount: fact.actual,
             fulfillGap: fact.gap,
             fulfillProgress: fact.progress,
+            fulfillBaseline: fact.baseline || '—',
             riskGrade: fact.grade,
             fulfillPhase: fact.phase || phase(row.status)
         });
@@ -78,12 +79,13 @@
                 { dataIndex: 'accountNameQuery', title: '收款账户名称', hideInTable: true, search: { control: 'input' } },
                 { dataIndex: 'accountNoQuery', title: '收款账户', hideInTable: true, search: { control: 'input' } },
                 { dataIndex: 'amount', title: '总金额', minWidth: 120, formatter: function (row) { return blank(row.amount) ? '—' : ('¥' + row.amount); } },
-                { dataIndex: 'fulfilledAmount', title: '已履行金额', minWidth: 120, align: 'right', formatter: function (row) { return yuan(row.fulfilledAmount); } },
-                { dataIndex: 'fulfillGap', title: '剩余履行额', minWidth: 120, align: 'right', formatter: function (row) { return yuan(row.fulfillGap); } },
-                { dataIndex: 'fulfillProgress', title: '日均履行进度', minWidth: 120 },
+                { dataIndex: 'fulfilledAmount', title: '已付款金额', minWidth: 120, align: 'right', formatter: function (row) { return yuan(row.fulfilledAmount); } },
+                { dataIndex: 'fulfillGap', title: '剩余付款额', minWidth: 120, align: 'right', formatter: function (row) { return yuan(row.fulfillGap); } },
+                { dataIndex: 'fulfillProgress', title: '日均付款额', minWidth: 120 },
+                { dataIndex: 'fulfillBaseline', title: '生效基准', minWidth: 180 },
                 {
                     dataIndex: 'riskGrade',
-                    title: '履约风险等级',
+                    title: '付款风险等级',
                     minWidth: 120,
                     search: { control: 'select', options: gradeOptions, placeholder: '请选择' }
                 },
@@ -91,12 +93,12 @@
                 { dataIndex: 'repayMethod', title: '结算方式', minWidth: 100, formatter: function (row) { return show(row.repayMethod); } },
                 {
                     dataIndex: 'status',
-                    title: '履约阶段',
+                    title: '付款阶段',
                     minWidth: 110,
                     search: {
                         control: 'select',
                         options: [
-                            { label: '履约中', value: '门店付款中' },
+                            { label: '付款中', value: '门店付款中' },
                             { label: '已完成', value: '已完成' }
                         ],
                         placeholder: '请选择'
@@ -127,7 +129,7 @@
                     return true;
                 }).map(withRisk).filter(function (row) {
                     if (!blank(params.status)) {
-                        var want = params.status === '已完成' ? '已完成' : '履约中';
+                        var want = params.status === '已完成' ? '已完成' : '付款中';
                         if (row.fulfillPhase !== want) return false;
                     }
                     if (!blank(params.riskGrade) && row.riskGrade !== params.riskGrade) return false;

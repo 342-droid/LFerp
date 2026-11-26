@@ -67,13 +67,13 @@
         '<li class="menu-item">' +
         '<a href="' + pageHref('rbt_performance.html') + '" class="menu-link' + (isPerformance ? ' active' : '') + '">' +
         '<img src="' + assetHref('image/基础信息.svg') + '" alt="" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
-        '<span>履约</span>' +
+        '<span>付款</span>' +
         '</a>' +
         '</li>' +
         '<li class="menu-item">' +
         '<a href="' + pageHref('rbt_daily_fulfill.html') + '" class="menu-link' + (isDailyFulfill ? ' active' : '') + '">' +
         '<img src="' + assetHref('image/基础信息.svg') + '" alt="" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
-        '<span>每日履行</span>' +
+        '<span>每日付款</span>' +
         '</a>' +
         '</li>' +
         '<li class="menu-item">' +
@@ -85,7 +85,7 @@
         '<li class="menu-item">' +
         '<a href="' + pageHref('rbt_risk_abnormal.html') + '" class="menu-link' + (isRiskAbnormal ? ' active' : '') + '">' +
         '<img src="' + assetHref('image/基础信息.svg') + '" alt="" style="height: 20px; margin-right: 10px; vertical-align: middle;">' +
-        '<span>异常履约数据</span>' +
+        '<span>异常付款数据</span>' +
         '</a>' +
         '</li>' +
         '</ul>' +

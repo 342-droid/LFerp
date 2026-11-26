@@ -7,7 +7,8 @@
 
   var PAGE_KEYS = {
     center: ['range', 'start', 'end'],
-    ops: ['range', 'start', 'end', 'view', 'channel', 'tab', 'tpModule', 'tpChannel'],
+    /* 一期不含 POS：新链接不再携带 tpModule／tpChannel */
+    ops: ['range', 'start', 'end', 'view', 'channel', 'tab'],
     operate: ['range', 'start', 'end', 'tab'],
     commission: ['range', 'start', 'end', 'dim']
   };
@@ -77,7 +78,8 @@
   function normalizeTab(raw) {
     var t = String(raw || '');
     if (t === 'proxy' || t === '采购' || t === '进货') return 'proxy';
-    if (t === 'tp' || t === 'third' || t === '第三方') return 'tp';
+    /* 一期不含POS：旧 tp 链接回退平台零售 */
+    if (t === 'tp' || t === 'third' || t === '第三方') return 'retail';
     if (t === 'income' || t === '所得' || t === '佣金' || t === '本店所得') return 'income';
     if (t === 'retail' || t === '零售') return 'retail';
     if (t === 'customers' || t === '客户') return 'customers';
@@ -135,13 +137,8 @@
       out.channel = url.channel || saved.channel || 'all';
     }
     if (keys.indexOf('dim') >= 0) {
-      out.dim = normalizeDim(url.dim || saved.dim || 'pay');
-    }
-    if (keys.indexOf('tpModule') >= 0) {
-      out.tpModule = url.tpModule || saved.tpModule || '';
-    }
-    if (keys.indexOf('tpChannel') >= 0) {
-      out.tpChannel = url.tpChannel || saved.tpChannel || 'all';
+      /* URL 显式 dim 优先（指标下钻带 dim=pay）；顶栏独立入口无 dim 时才用缓存 */
+      out.dim = normalizeDim(url.dim ? url.dim : saved.dim || 'pay');
     }
     if (keys.indexOf('tab') >= 0) {
       var rawTab =
@@ -162,8 +159,9 @@
     if (out.view != null) persist.view = out.view;
     if (out.channel != null) persist.channel = out.channel;
     if (out.dim != null) persist.dim = out.dim;
-    if (out.tpModule != null) persist.tpModule = out.tpModule;
-    if (out.tpChannel != null) persist.tpChannel = out.tpChannel;
+    /* 清除历史 tp 残留，避免旧链接再次写出 */
+    persist.tpModule = '';
+    persist.tpChannel = '';
     if (out.tab != null) {
       if (tabStoreKey) persist[tabStoreKey] = out.tab;
       persist.tab = out.tab;
@@ -335,7 +333,8 @@
   }
 
   /**
-   * 说明弹层 HTML：短标题 + 分条 + 可展开通用规则
+   * 说明弹层 HTML：短标题 + 分条。
+   * commonNote 仅在有面向用户的补充规则时传入；空串不渲染「通用规则」。
    * @param {{title:string, items:string[]}[]} sections
    * @param {string} [commonNote]
    */
@@ -356,10 +355,11 @@
         );
       })
       .join('');
-    if (commonNote) {
+    var note = String(commonNote || '').trim();
+    if (note) {
       html +=
         '<details class="sa-dc-tip-common"><summary>通用规则</summary><p>' +
-        escHtml(commonNote) +
+        escHtml(note) +
         '</p></details>';
     }
     return html;
