@@ -7,6 +7,7 @@
 .mol-close { border: none; background: none; font-size: 20px; line-height: 1; color: #909399; cursor: pointer; }
 .mol-close:hover { color: #ff7019; }
 .mol-drawer__body { flex: 1; overflow: auto; padding: 4px 20px 20px; }
+.mol-demo-note { margin: 4px 0 10px; color: #909399; font-size: 12px; }
 
 .mol-filter { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
 .mol-filter__item { display: inline-flex; align-items: center; gap: 8px; margin: 0; font-size: 13px; color: #606266; white-space: nowrap; }

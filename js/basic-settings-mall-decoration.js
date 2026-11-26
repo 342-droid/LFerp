@@ -1,11 +1,11 @@
 /**
  * 基础设置 · 商城装修
- * 绑定商城商品弹窗：仅展示带线上标签 ID 的商品
+ * 绑定商城商品弹窗：仅展示带冷丰商城标签 ID 的商品
  */
 (function () {
-  /** 线上环境商品标签 ID（进入弹窗列表的过滤条件） */
+  /** 冷丰商城商品标签 ID（进入弹窗列表的过滤条件） */
   var ONLINE_PRODUCT_TAG_ID = '382058562475524096';
-  var ONLINE_PRODUCT_TAG_LABEL = '线上（' + ONLINE_PRODUCT_TAG_ID + '）';
+  var ONLINE_PRODUCT_TAG_LABEL = '冷丰商城（' + ONLINE_PRODUCT_TAG_ID + '）';
 
   var MODULE_DEFS = [
     { type: 'banner', name: '推荐位轮播' },
@@ -139,6 +139,7 @@
     open: false,
     tab: 'mall',
     category: '全部',
+    searchField: 'name',
     keyword: '',
     selected: {},
     page: 1,
@@ -203,7 +204,7 @@
     return base;
   }
 
-  /** 仅返回带线上标签 ID 的商品（弹窗列表过滤口径） */
+  /** 仅返回带冷丰商城标签 ID 的商品（弹窗列表过滤口径） */
   function productsWithOnlineTag() {
     return DEMO_PRODUCTS.filter(function (p) {
       return (p.tagIds || []).indexOf(ONLINE_PRODUCT_TAG_ID) !== -1;
@@ -215,11 +216,8 @@
       if (pickerState.category !== '全部' && p.category !== pickerState.category) return false;
       var kw = String(pickerState.keyword || '').trim().toLowerCase();
       if (!kw) return true;
-      return (
-        String(p.name).toLowerCase().indexOf(kw) !== -1 ||
-        String(p.code).toLowerCase().indexOf(kw) !== -1 ||
-        String(p.id).toLowerCase().indexOf(kw) !== -1
-      );
+      var value = pickerState.searchField === 'code' ? p.code : p.name;
+      return String(value || '').toLowerCase().indexOf(kw) !== -1;
     });
   }
 
@@ -557,7 +555,7 @@
         .join('');
     }
 
-    var pickable = list.filter(function (p) {
+    var pickable = pageItems.filter(function (p) {
       return !bound[p.id];
     });
     var selectedCount = Object.keys(pickerState.selected).length;
@@ -614,6 +612,7 @@
     pickerState.open = true;
     pickerState.tab = 'mall';
     pickerState.category = '全部';
+    pickerState.searchField = 'name';
     pickerState.keyword = '';
     pickerState.selected = {};
     pickerState.page = 1;
@@ -635,7 +634,7 @@
       '<select id="decoPickerSearchField" aria-label="搜索字段"><option value="name">商品名称</option><option value="code">商品编码</option></select>' +
       '<input type="text" id="decoPickerKeyword" placeholder="搜索商品名称" autocomplete="off">' +
       '</div>' +
-      '<label class="mdm-deco-picker__checkall"><input type="checkbox" id="decoPickerCheckAll"> 全选 <span id="decoPickerTotal">共 0 条</span></label>' +
+      '<label class="mdm-deco-picker__checkall"><input type="checkbox" id="decoPickerCheckAll"> 全选本页 <span id="decoPickerTotal">共 0 条</span></label>' +
       '</div>' +
       '<div class="mdm-deco-picker__grid-wrap"><div class="mdm-deco-picker__grid" id="decoPickerGrid"></div></div>' +
       '</div></div>' +
@@ -685,6 +684,16 @@
       });
     }
 
+    var searchField = document.getElementById('decoPickerSearchField');
+    if (searchField) {
+      searchField.addEventListener('change', function () {
+        pickerState.searchField = searchField.value === 'code' ? 'code' : 'name';
+        if (keyword) keyword.placeholder = pickerState.searchField === 'code' ? '搜索商品编码' : '搜索商品名称';
+        pickerState.page = 1;
+        refreshPicker(mod);
+      });
+    }
+
     var grid = document.getElementById('decoPickerGrid');
     if (grid) {
       grid.addEventListener('click', function (e) {
@@ -702,13 +711,16 @@
     if (checkAll) {
       checkAll.addEventListener('change', function () {
         var bound = boundProductMap(mod);
-        var list = getPickerPool();
+        var start = (pickerState.page - 1) * pickerState.pageSize;
+        var list = getPickerPool().slice(start, start + pickerState.pageSize);
         if (checkAll.checked) {
           list.forEach(function (p) {
             if (!bound[p.id]) pickerState.selected[p.id] = true;
           });
         } else {
-          pickerState.selected = {};
+          list.forEach(function (p) {
+            delete pickerState.selected[p.id];
+          });
         }
         renderPickerGrid(mod);
       });
