@@ -104,7 +104,7 @@
             <hr class="content-divider">
 
             <div class="mdm-biz-tip rbt-risk-config-tip" role="note">
-                只按<strong>已发生营业日</strong>评级，日均付款额 = 实际付款合计 ÷ 营业日天数。上线用<strong>静态基准</strong>，可切换<strong>动态基准</strong>。先配<strong>通用阈值</strong>，事业线要单独规则再点<strong>独立配置</strong>。高于或等于基准记 <strong>A 类</strong>。保存后，<a href="rbt_risk_abnormal.html">异常付款数据</a>、付款列表和首页按事业线重算。
+                只按<strong>已发生营业日</strong>评级，日均付款额 = 实际付款合计 ÷ 营业日天数。上线用<strong>静态基准</strong>，可切换<strong>动态基准</strong>。先配<strong>通用阈值</strong>，事业线要单独规则再点<strong>独立配置</strong>。保存后，<a href="rbt_risk_abnormal.html">异常付款数据</a>、付款列表和首页按事业线重算。
             </div>
             <p class="rbt-risk-error" id="rbtRiskError" hidden></p>
 
@@ -186,7 +186,7 @@
                         <div class="pts-rule-field rbt-risk-grade-field">
                             <label class="pts-rule-field__label">等级规则</label>
                             <div class="pts-rule-field__control">
-                        <div class="pts-rule-tip">每档单独选择条件关系。<strong>或</strong>是满足一个就记入该档，<strong>且</strong>是两个都要满足。多档同时命中时取更重的等级。连续未付款天数递增。低于基准的比例递增，比例越大，日均付款额比基准越低。正常不用单独配置。高于或等于基准，且未命中关注，记 A 类。</div>
+                        <div class="pts-rule-tip">每档单独选择条件关系。<strong>或</strong>是满足一个就记入该档，<strong>且</strong>是两个都要满足。多档同时命中时取更重的等级。连续未付款天数递增。低于基准的比例递增，比例越大，日均付款额比基准越低。正常不用单独配置。</div>
                         <table class="rbt-risk-grade">
                             <thead>
                                 <tr>
@@ -300,8 +300,8 @@
     <script src="rbt-store-data.js"></script>
     <script src="rbt-settle-ratio.js"></script>
     <script src="rbt-demand-data.js"></script>
-    <script src="rbt-daily-fulfill.js?v=20261126-sim-due"></script>
-    <script src="rbt-risk.js?v=20261126-sim-due-plain"></script>
+    <script src="rbt-daily-fulfill.js?v=20261126-no-aclass"></script>
+    <script src="rbt-risk.js?v=20261126-no-aclass"></script>
     <script src="rbt-risk-config.js?v=20261126-sim-due"></script>
 </body>
 </html>

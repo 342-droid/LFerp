@@ -170,7 +170,6 @@
                 gap: '0.00',
                 progress: '—',
                 baseline: '—',
-                classA: false,
                 grade: '—',
                 phase: '已完成'
             };
@@ -181,7 +180,6 @@
             gap: money(gap),
             progress: base.progress || '—',
             baseline: base.baseline || '—',
-            classA: !!base.classA,
             grade: base.grade || '—',
             phase: phaseLabel(item && item.status)
         };

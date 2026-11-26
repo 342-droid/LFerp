@@ -65,7 +65,6 @@
                     </template>
                     <template v-slot:[slots.riskgrade]="{row}">
                         <span :class="'rbt-risk-tag is-' + row.riskGrade">{{ row.riskGrade }}</span>
-                        <span v-if="row.riskMark"> {{ row.riskMark }}</span>
                     </template>
                     <template #actions="{row,elSize}">
                         <el-button :size="elSize" text type="primary" @click="openDetail(row)">查看</el-button>
@@ -83,9 +82,9 @@
     <script src="rbt-store-data.js"></script>
     <script src="rbt-settle-ratio.js"></script>
     <script src="rbt-demand-data.js"></script>
-    <script src="rbt-demand-detail.js"></script>
-    <script src="rbt-daily-fulfill.js?v=20261126-early-pay"></script>
-    <script src="rbt-risk.js"></script>
-    <script src="rbt-performance.js"></script>
+    <script src="rbt-demand-detail.js?v=20261126-no-aclass"></script>
+    <script src="rbt-daily-fulfill.js?v=20261126-no-aclass"></script>
+    <script src="rbt-risk.js?v=20261126-no-aclass"></script>
+    <script src="rbt-performance.js?v=20261126-no-aclass"></script>
 </body>
 </html>

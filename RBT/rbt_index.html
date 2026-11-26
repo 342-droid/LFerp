@@ -89,9 +89,9 @@
     <script src="rbt-store-data.js"></script>
     <script src="rbt-settle-ratio.js"></script>
     <script src="rbt-demand-data.js"></script>
-    <script src="rbt-demand-detail.js"></script>
-    <script src="rbt-daily-fulfill.js?v=20261126-early-pay"></script>
-    <script src="rbt-risk.js"></script>
+    <script src="rbt-demand-detail.js?v=20261126-no-aclass"></script>
+    <script src="rbt-daily-fulfill.js?v=20261126-no-aclass"></script>
+    <script src="rbt-risk.js?v=20261126-no-aclass"></script>
     <script>
         (function () {
             var api = window.RbtRisk;
@@ -120,7 +120,7 @@
             document.getElementById('rbtRiskLive').innerHTML = live.length ? live.map(function (row) {
                 return '<tr><td>' + esc(row.storeName) + '</td><td><button type="button" class="rbt-risk-link" data-demand="' + esc(row.demandCode) + '">' + esc(row.demandCode) + '</button></td>' +
                     '<td>' + esc(row.streak) + '</td><td class="is-money">' + yuan(row.due) + '</td><td class="is-money">' + yuan(row.actual) + '</td>' +
-                    '<td class="is-money">' + yuan(row.gap) + '</td><td>' + esc(row.progress) + '</td><td>' + esc(row.baseline || '—') + '</td><td>' + tag(row.grade) + (row.classA ? ' A类' : '') + '</td><td>' + esc(row.lastMiss) + '</td></tr>';
+                    '<td class="is-money">' + yuan(row.gap) + '</td><td>' + esc(row.progress) + '</td><td>' + esc(row.baseline || '—') + '</td><td>' + tag(row.grade) + '</td><td>' + esc(row.lastMiss) + '</td></tr>';
             }).join('') : '<tr><td class="is-empty" colspan="10">暂无付款中的需求</td></tr>';
 
             var alerts = live.filter(function (row) { return row.grade !== '正常'; });
@@ -134,7 +134,7 @@
             document.getElementById('rbtRiskScenes').innerHTML = api.scenarios().map(function (row) {
                 return '<tr><td>' + esc(row.name) + '</td><td>' + esc(row.streak) + '</td><td class="is-money">' + yuan(row.due) + '</td>' +
                     '<td class="is-money">' + yuan(row.actual) + '</td><td class="is-money">' + yuan(row.gap) + '</td><td>' + esc(row.progress) + '</td>' +
-                    '<td>' + esc(row.baseline || '—') + '</td><td>' + tag(row.grade) + (row.classA ? ' A类' : '') + '</td><td>' + esc(row.alert) + '</td></tr>';
+                    '<td>' + esc(row.baseline || '—') + '</td><td>' + tag(row.grade) + '</td><td>' + esc(row.alert) + '</td></tr>';
             }).join('');
 
             document.getElementById('rbtRiskLive').addEventListener('click', function (event) {
