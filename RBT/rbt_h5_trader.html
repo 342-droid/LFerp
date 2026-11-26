@@ -874,6 +874,15 @@
         .rbt-biz { padding-top: 2px; }
         .rbt-biz-range { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
         .rbt-biz-window { margin: 0 0 10px; color: #888; font-size: 12px; line-height: 1.5; }
+        .rbt-biz-presets {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 0 0 8px;
+        }
+        .rbt-biz-chip--preset {
+            border-style: dashed;
+        }
         .rbt-biz-dates {
             display: grid;
             grid-template-columns: 1fr 1fr auto;
@@ -1027,6 +1036,23 @@
         }
         .rbt-biz-chart svg { display: block; width: 100%; height: auto; }
         .rbt-biz-chart text { fill: #999; font-size: 9px; }
+        .rbt-biz-chart--cross-month text,
+        .rbt-biz-chart--cross-year text { font-size: 8px; }
+        .rbt-biz-chart__tick.is-month { fill: #666; font-weight: 600; }
+        .rbt-biz-chart__tick.is-year { fill: #ff7019; font-weight: 700; }
+        .rbt-biz-chart__guide {
+            stroke: #ececec;
+            stroke-width: 1;
+            stroke-dasharray: 3 3;
+        }
+        .rbt-biz-chart__guide.is-year {
+            stroke: #ffd0b0;
+            stroke-dasharray: 4 3;
+        }
+        .rbt-biz-chart--cross-month,
+        .rbt-biz-chart--cross-year {
+            background: linear-gradient(180deg, #fffdfb 0%, #fff 42%);
+        }
         .rbt-biz-chart__line { stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
         .rbt-biz-chart__line.is-turnover { stroke: #ff7019; }
         .rbt-biz-chart__line.is-credit { stroke: #2f6bff; }
@@ -1290,12 +1316,12 @@
     <script src="../js/mdm-provider-archive-store.js?v=20261117-provider"></script>
     <script src="../js/mdm-trader-archive-store.js?v=20261117-provider"></script>
     <script src="rbt-settle-ratio.js"></script>
-    <script src="rbt-demand-data.js?v=20261123-fulfill-list"></script>
-    <script src="rbt-daily-fulfill.js?v=20261126-early-pay"></script>
-    <script src="rbt-trader-store-biz.js?v=20261123-biz-tip"></script>
+    <script src="rbt-demand-data.js?v=20261126-span-main"></script>
+    <script src="rbt-daily-fulfill.js?v=20261126-span-main"></script>
+    <script src="rbt-trader-store-biz.js?v=20261126-span-main"></script>
     <script src="rbt-contract-sign.js"></script>
     <script src="../js/contract-bodies.js?v=20261123-trader-read"></script>
-    <script src="rbt-h5-trader-app.js?v=20261126-wallet-mix"></script>
+    <script src="rbt-h5-trader-app.js?v=20261126-span-main"></script>
     <script src="rbt-h5-trader-login.js"></script>
 </body>
 </html>

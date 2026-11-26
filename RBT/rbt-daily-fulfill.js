@@ -1,5 +1,18 @@
 /* 每日付款：应付款 = 所得佣金 × 该渠道结算比例。所得佣金是当日已发生的门店佣金。不叫还款，不拆总金额，不预造未发生的日期。 */
 (function (global) {
+    var SPAN_DEMO_FACTS = [
+        { date: '2025-12-20', channel: 'POS', turnover: 540 },
+        { date: '2025-12-24', channel: '直播', turnover: 360 },
+        { date: '2025-12-28', channel: '商城', turnover: 280 },
+        { date: '2025-12-31', channel: 'POS', turnover: 610 },
+        { date: '2026-01-03', channel: '直播', turnover: 390 },
+        { date: '2026-01-08', channel: '商城', turnover: 250 },
+        { date: '2026-01-12', channel: 'POS', turnover: 700 },
+        { date: '2026-10-22', channel: 'POS', turnover: 640 },
+        { date: '2026-10-25', channel: '直播', turnover: 410 },
+        { date: '2026-10-28', channel: '商城', turnover: 300 },
+        { date: '2026-10-31', channel: 'POS', turnover: 760 }
+    ];
     var FACTS = [
         { date: '2026-11-07', channel: 'POS', turnover: 860 },
         { date: '2026-11-08', channel: '直播', turnover: 420 },
@@ -220,7 +233,15 @@
     function daysOf(item) {
         if (!item || (item.status !== '门店付款中' && item.status !== '还款中' && item.status !== '已完成') || item.repayMethod !== '比例付') return [];
         var scale = scaleOf(item.code);
-        var auto = FACTS.map(function (fact) {
+        var facts = FACTS;
+        if (item.code === 'XQ00024') {
+            var start = String(item.paidAt || item.createdAt || '').slice(0, 10);
+            var end = item.status === '已完成' ? String(item.updatedAt || '').slice(0, 10) : '';
+            facts = SPAN_DEMO_FACTS.concat(FACTS).filter(function (fact) {
+                return (!start || fact.date >= start) && (!end || fact.date <= end);
+            });
+        }
+        var auto = facts.map(function (fact) {
             var turnover = Math.round(fact.turnover * scale * 100) / 100;
             var commission = Math.round(turnover * COMMISSION_RATE * 100) / 100;
             var ratio = channelRatio(item, fact.channel);

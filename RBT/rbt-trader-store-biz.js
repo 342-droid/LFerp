@@ -337,6 +337,12 @@
   /** 演示「今天」；与门店一键履约演示日对齐 */
   var DEMO_AS_OF = '2026-11-23';
 
+  /* 自定义时段快捷示例：跨月、跨年（须落在可查窗口内） */
+  var CUSTOM_RANGE_PRESETS = [
+    { id: 'cross-month', label: '跨月示例', from: '2026-10-25', to: '2026-11-15' },
+    { id: 'cross-year', label: '跨年示例', from: '2025-12-20', to: '2026-01-12' }
+  ];
+
   function numOf(value) {
     var n = Number(String(value == null ? '' : value).replace(/,/g, '').replace(/^¥/, ''));
     return isFinite(n) ? n : 0;
@@ -621,6 +627,7 @@
     money: money,
     round2: round2,
     DEMO_AS_OF: DEMO_AS_OF,
+    CUSTOM_RANGE_PRESETS: CUSTOM_RANGE_PRESETS,
     BIZ_CHANNELS: BIZ_CHANNELS,
     DAILY_PREVIEW: DAILY_PREVIEW,
     isSignedComplete: isSignedComplete,

@@ -16,6 +16,7 @@
     var bizFrom = '';
     var bizTo = '';
     var bizFocusDate = '';
+    var bizPreset = '';
 
     function esc(value) {
         return String(value == null ? '' : value)
@@ -761,17 +762,71 @@
         });
     }
 
-    /* 简易双折线：营业额 / 收入；圆点可点选单日 */
+    /* 轴标签：同月 M/D；跨月首点或换月用 M月D日；跨年换年用 YY/M/D */
+    function bizChartAxisMode(series) {
+        var years = {};
+        var months = {};
+        (series || []).forEach(function (row) {
+            var parts = String(row.date || '').split('-');
+            if (parts.length < 3) return;
+            years[parts[0]] = true;
+            months[parts[0] + '-' + parts[1]] = true;
+        });
+        var yearCount = Object.keys(years).length;
+        var monthCount = Object.keys(months).length;
+        if (yearCount > 1) return 'year';
+        if (monthCount > 1) return 'month';
+        return 'day';
+    }
+
+    function bizChartAxisLabel(date, mode, prevDate) {
+        var parts = String(date || '').split('-');
+        if (parts.length < 3) return date || '';
+        var y = parts[0];
+        var m = Number(parts[1]);
+        var d = Number(parts[2]);
+        var prev = String(prevDate || '').split('-');
+        var yearChanged = !prevDate || prev[0] !== y;
+        var monthChanged = !prevDate || prev[0] !== y || prev[1] !== parts[1];
+        if (mode === 'year') {
+            if (yearChanged) return y.slice(2) + '/' + m + '/' + d;
+            if (monthChanged) return m + '月' + d;
+            return m + '/' + d;
+        }
+        if (mode === 'month') {
+            if (monthChanged) return m + '月' + d + '日';
+            return m + '/' + d;
+        }
+        return m + '/' + d;
+    }
+
+    function bizChartShouldShowLabel(series, index, mode) {
+        if (!series || !series.length) return false;
+        if (index === 0 || index === series.length - 1) return true;
+        var prev = series[index - 1] && series[index - 1].date;
+        var cur = series[index] && series[index].date;
+        var prevParts = String(prev || '').split('-');
+        var curParts = String(cur || '').split('-');
+        if (mode === 'year' && prevParts[0] !== curParts[0]) return true;
+        if ((mode === 'year' || mode === 'month') && (prevParts[0] !== curParts[0] || prevParts[1] !== curParts[1])) {
+            return true;
+        }
+        var step = series.length > 14 ? Math.ceil(series.length / 6) : series.length > 6 ? 2 : 1;
+        return index % step === 0;
+    }
+
+    /* 营业额与收入双折线；圆点可点选单日高亮；跨月／跨年轴签换样式 */
     function renderBizChart(series, focusDate) {
         if (!series || !series.length) {
             return '<div class="rbt-biz-chart rbt-biz-chart--empty">该时段暂无曲线数据</div>';
         }
+        var mode = bizChartAxisMode(series);
         var w = 320;
-        var h = 148;
-        var padL = 8;
-        var padR = 8;
+        var h = mode === 'year' ? 160 : mode === 'month' ? 154 : 148;
+        var padL = mode === 'year' ? 10 : 8;
+        var padR = mode === 'year' ? 10 : 8;
         var padT = 12;
-        var padB = 22;
+        var padB = mode === 'year' ? 30 : mode === 'month' ? 26 : 22;
         var max = 0;
         series.forEach(function (row) {
             max = Math.max(max, Number(row.turnover) || 0, Number(row.credit) || 0);
@@ -791,30 +846,104 @@
                 return (i ? 'L' : 'M') + xAt(i).toFixed(1) + ' ' + yAt(row[key]).toFixed(1);
             }).join(' ');
         }
-        var labels = series.map(function (row, i) {
-            if (series.length > 6 && i !== 0 && i !== series.length - 1 && i % 2) return '';
-            var parts = String(row.date || '').split('-');
-            var text = parts.length >= 3 ? Number(parts[1]) + '/' + Number(parts[2]) : row.date;
-            return '<text x="' + xAt(i).toFixed(1) + '" y="' + (h - 6) + '" text-anchor="middle">' + esc(text) + '</text>';
-        }).join('');
-        var dots = series.map(function (row, i) {
-            var on = focusDate && row.date === focusDate;
-            var cx = xAt(i).toFixed(1);
-            return '<g class="rbt-biz-chart__hit' + (on ? ' is-on' : '') + '" data-biz-day="' + esc(row.date) + '">' +
-                '<circle class="rbt-biz-chart__hot" cx="' + cx + '" cy="' + (padT + innerH / 2).toFixed(1) + '" r="14"/>' +
-                '<circle class="rbt-biz-chart__dot is-turnover" cx="' + cx + '" cy="' + yAt(row.turnover).toFixed(1) + '" r="' + (on ? 4.5 : 3) + '"/>' +
-                '<circle class="rbt-biz-chart__dot is-credit" cx="' + cx + '" cy="' + yAt(row.credit).toFixed(1) + '" r="' + (on ? 4.5 : 3) + '"/>' +
-                '</g>';
-        }).join('');
-        return '<div class="rbt-biz-chart">' +
-            '<svg viewBox="0 0 ' + w + ' ' + h + '" role="img" aria-label="营业额与收入曲线，可点选单日">' +
-            '<path class="rbt-biz-chart__line is-turnover" d="' + pathOf('turnover') + '" fill="none"/>' +
+        var guides = '';
+        series.forEach(function (row, i) {
+            if (i === 0) return;
+            var prevParts = String(series[i - 1].date || '').split('-');
+            var curParts = String(row.date || '').split('-');
+            var yearBreak = prevParts[0] !== curParts[0];
+            var monthBreak = yearBreak || prevParts[1] !== curParts[1];
+            if ((mode === 'year' && yearBreak) || (mode === 'month' && monthBreak)) {
+                var gx = xAt(i).toFixed(1);
+                guides +=
+                    '<line class="rbt-biz-chart__guide' +
+                    (yearBreak ? ' is-year' : '') +
+                    '" x1="' +
+                    gx +
+                    '" y1="' +
+                    padT +
+                    '" x2="' +
+                    gx +
+                    '" y2="' +
+                    (padT + innerH).toFixed(1) +
+                    '"/>';
+            }
+        });
+        var labels = series
+            .map(function (row, i) {
+                if (!bizChartShouldShowLabel(series, i, mode)) return '';
+                var prev = i > 0 ? series[i - 1].date : '';
+                var text = bizChartAxisLabel(row.date, mode, prev);
+                var cls = 'rbt-biz-chart__tick';
+                var prevParts = String(prev || '').split('-');
+                var curParts = String(row.date || '').split('-');
+                if (mode === 'year' && (!prev || prevParts[0] !== curParts[0])) cls += ' is-year';
+                else if ((mode === 'year' || mode === 'month') && (!prev || prevParts[1] !== curParts[1] || prevParts[0] !== curParts[0])) {
+                    cls += ' is-month';
+                }
+                return (
+                    '<text class="' +
+                    cls +
+                    '" x="' +
+                    xAt(i).toFixed(1) +
+                    '" y="' +
+                    (h - 6) +
+                    '" text-anchor="middle">' +
+                    esc(text) +
+                    '</text>'
+                );
+            })
+            .join('');
+        var dots = series
+            .map(function (row, i) {
+                var on = focusDate && row.date === focusDate;
+                var cx = xAt(i).toFixed(1);
+                return (
+                    '<g class="rbt-biz-chart__hit' +
+                    (on ? ' is-on' : '') +
+                    '" data-biz-day="' +
+                    esc(row.date) +
+                    '">' +
+                    '<circle class="rbt-biz-chart__hot" cx="' +
+                    cx +
+                    '" cy="' +
+                    (padT + innerH / 2).toFixed(1) +
+                    '" r="14"/>' +
+                    '<circle class="rbt-biz-chart__dot is-turnover" cx="' +
+                    cx +
+                    '" cy="' +
+                    yAt(row.turnover).toFixed(1) +
+                    '" r="' +
+                    (on ? 4.5 : 3) +
+                    '"/>' +
+                    '<circle class="rbt-biz-chart__dot is-credit" cx="' + cx + '" cy="' + yAt(row.credit).toFixed(1) + '" r="' + (on ? 4.5 : 3) + '"/>' +
+                    '</g>'
+                );
+            })
+            .join('');
+        var spanCls =
+            mode === 'year' ? ' rbt-biz-chart--cross-year' : mode === 'month' ? ' rbt-biz-chart--cross-month' : '';
+        return (
+            '<div class="rbt-biz-chart' +
+            spanCls +
+            '">' +
+            '<svg viewBox="0 0 ' +
+            w +
+            ' ' +
+            h +
+            '" role="img" aria-label="营业额与收入曲线，可点选单日">' +
+            guides +
+            '<path class="rbt-biz-chart__line is-turnover" d="' +
+            pathOf('turnover') +
+            '" fill="none"/>' +
             '<path class="rbt-biz-chart__line is-credit" d="' + pathOf('credit') + '" fill="none"/>' +
-            labels + dots +
+            labels +
+            dots +
             '</svg>' +
             '<div class="rbt-biz-chart__legend"><span class="is-turnover">营业额</span><span class="is-credit">收入</span></div>' +
-            '<p class="rbt-biz-chart__hint">点击趋势图可查看当日数据</p>' +
-            '</div>';
+            '<p class="rbt-biz-chart__hint">点击趋势图可高亮当日</p>' +
+            '</div>'
+        );
     }
 
     function renderCollectBiz(item) {
@@ -834,15 +963,57 @@
             '<button type="button" class="rbt-biz-chip' + (bizRangeMode === 'custom' ? ' is-on' : '') +
             '" data-biz-range="custom">自定义时段</button>' +
             '</div>';
+        var presets = (api && api.CUSTOM_RANGE_PRESETS) || [];
+        var presetChips = presets
+            .map(function (p) {
+                var inWin =
+                    (!pack.windowFrom || p.from >= pack.windowFrom) &&
+                    (!pack.windowTo || p.to <= pack.windowTo);
+                if (!inWin) return '';
+                return (
+                    '<button type="button" class="rbt-biz-chip rbt-biz-chip--preset' +
+                    (bizPreset === p.id ? ' is-on' : '') +
+                    '" data-biz-preset="' +
+                    esc(p.id) +
+                    '" data-biz-from-set="' +
+                    esc(p.from) +
+                    '" data-biz-to-set="' +
+                    esc(p.to) +
+                    '">' +
+                    esc(p.label) +
+                    '</button>'
+                );
+            })
+            .join('');
         var rangePick =
             bizRangeMode === 'custom'
-                ? '<div class="rbt-biz-dates">' +
-                  '<label>开始<input type="date" data-biz-from value="' + esc(bizFrom || pack.windowFrom || '') +
-                  '" min="' + esc(pack.windowFrom || '') + '" max="' + esc(pack.windowTo || '') + '"></label>' +
-                  '<label>结束<input type="date" data-biz-to value="' + esc(bizTo || pack.windowTo || '') +
-                  '" min="' + esc(pack.windowFrom || '') + '" max="' + esc(pack.windowTo || '') + '"></label>' +
+                ? '<div class="rbt-biz-presets">' +
+                  (presetChips || '') +
+                  '</div>' +
+                  '<div class="rbt-biz-dates">' +
+                  '<label>开始<input type="date" data-biz-from value="' +
+                  esc(bizFrom || pack.windowFrom || '') +
+                  '" min="' +
+                  esc(pack.windowFrom || '') +
+                  '" max="' +
+                  esc(pack.windowTo || '') +
+                  '"></label>' +
+                  '<label>结束<input type="date" data-biz-to value="' +
+                  esc(bizTo || pack.windowTo || '') +
+                  '" min="' +
+                  esc(pack.windowFrom || '') +
+                  '" max="' +
+                  esc(pack.windowTo || '') +
+                  '"></label>' +
                   '<button type="button" class="rbt-biz-apply" data-biz-apply>应用</button>' +
-                  '</div>'
+                  '</div>' +
+                  (bizFrom && bizTo
+                      ? '<p class="rbt-biz-window">已选时段：' +
+                        esc(bizFrom) +
+                        ' 至 ' +
+                        esc(bizTo) +
+                        '</p>'
+                      : '')
                 : '<p class="rbt-biz-window">总览区间：' +
                   esc(pack.windowFrom || '—') +
                   ' 至 ' +
@@ -1429,6 +1600,7 @@
             bizFrom = '';
             bizTo = '';
             bizFocusDate = '';
+            bizPreset = '';
             tab = 'hall';
             screen = 'collect-bill';
             render();
@@ -1449,7 +1621,19 @@
             if (bizRangeMode === 'overview') {
                 bizFrom = '';
                 bizTo = '';
+                bizPreset = '';
             }
+            render();
+            return;
+        }
+        var bizPresetBtn = event.target.closest('[data-biz-preset]');
+        if (bizPresetBtn && screen === 'collect-bill') {
+            bizPreset = bizPresetBtn.getAttribute('data-biz-preset') || '';
+            bizFrom = bizPresetBtn.getAttribute('data-biz-from-set') || '';
+            bizTo = bizPresetBtn.getAttribute('data-biz-to-set') || '';
+            bizRangeMode = 'custom';
+            bizFocusDate = '';
+            fundTab = 'biz';
             render();
             return;
         }
@@ -1461,6 +1645,7 @@
             bizTo = toInput ? toInput.value : bizTo;
             bizRangeMode = 'custom';
             bizFocusDate = '';
+            bizPreset = '';
             fundTab = 'biz';
             render();
             return;
