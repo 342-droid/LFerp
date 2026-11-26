@@ -1,10 +1,29 @@
 {
-  "latestSha": "cd5a1435218914155205918572921cb9500f71d0",
-  "total": 651,
+  "latestSha": "663a655c165d5626959660251a5bb5d7e10617b2",
+  "total": 652,
   "days": [
     {
       "date": "2026-11-26",
       "items": [
+        {
+          "sha": "663a655",
+          "type": "other",
+          "text": "Show stock totals by SPU and SKU",
+          "author": "u ｌ",
+          "time": "22:34",
+          "pages": [
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            }
+          ]
+        },
         {
           "sha": "cd5a143",
           "type": "other",
