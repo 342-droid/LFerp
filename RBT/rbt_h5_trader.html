@@ -890,6 +890,9 @@
             gap: 8px;
             margin: 0 0 10px;
         }
+        .rbt-biz-summary--single {
+            grid-template-columns: 1fr;
+        }
         .rbt-biz-summary div,
         .rbt-biz-channel {
             padding: 12px;
@@ -902,18 +905,97 @@
         .rbt-biz-summary b,
         .rbt-biz-channel b { display: block; margin-top: 4px; color: #222; font-size: 16px; font-weight: 700; }
         .rbt-biz-channels {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            display: flex;
+            flex-direction: column;
             gap: 8px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+        }
+        .rbt-biz-channels__estimate {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+        .rbt-biz-channel {
+            min-width: 0;
         }
         .rbt-biz-channel header {
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             color: #222;
             font-size: 13px;
             font-weight: 600;
+            line-height: 1.2;
         }
-        .rbt-biz-channel div + div { margin-top: 8px; }
+        .rbt-biz-channel__metric span {
+            margin: 0;
+        }
+        .rbt-biz-channel__metric b {
+            margin-top: 4px;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.02em;
+            word-break: break-all;
+        }
+        .rbt-biz-channel--pos {
+            padding: 12px 14px;
+        }
+        .rbt-biz-channel--pos .rbt-biz-channel__total {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .rbt-biz-channel--pos .rbt-biz-channel__total span {
+            flex: 0 0 auto;
+        }
+        .rbt-biz-channel--pos .rbt-biz-channel__total b {
+            margin: 0;
+            text-align: right;
+            font-size: 18px;
+        }
+        .rbt-biz-channel__subs {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+        }
+        .rbt-biz-channel__sub {
+            min-width: 0;
+            padding: 8px;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        .rbt-biz-channel__sub span {
+            margin: 0;
+            font-size: 11px;
+            color: #999;
+        }
+        .rbt-biz-channel__sub b {
+            margin-top: 4px;
+            font-size: 13px;
+            font-variant-numeric: tabular-nums;
+            word-break: break-all;
+        }
+        .rbt-biz-channel--estimate {
+            padding: 12px 14px;
+        }
+        .rbt-biz-channel--estimate header {
+            margin-bottom: 6px;
+        }
+        .rbt-biz-channel--estimate .rbt-biz-channel__metric b {
+            margin-top: 2px;
+            font-size: 18px;
+        }
+        .rbt-biz-estimate-note {
+            margin: 0 0 12px;
+            padding: 0 2px;
+            color: #999;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+        .rbt-biz-curve__head .rbt-biz-clear {
+            margin-left: auto;
+        }
         .rbt-biz-focus {
             margin-bottom: 12px;
             padding: 12px;
@@ -1258,10 +1340,10 @@
     <script src="rbt-settle-ratio.js"></script>
     <script src="rbt-demand-data.js?v=20261123-fulfill-list"></script>
     <script src="rbt-daily-fulfill.js?v=20261123-biz-range"></script>
-    <script src="rbt-trader-store-biz.js?v=20261123-biz-tip"></script>
+    <script src="rbt-trader-store-biz.js?v=20261126-biz-tip2"></script>
     <script src="rbt-contract-sign.js"></script>
     <script src="../js/contract-bodies.js?v=20261123-trader-read"></script>
-    <script src="rbt-h5-trader-app.js?v=20261123-biz-tip"></script>
+    <script src="rbt-h5-trader-app.js?v=20261126-biz-tight"></script>
     <script src="rbt-h5-trader-login.js"></script>
 </body>
 </html>

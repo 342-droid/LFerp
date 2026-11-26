@@ -131,7 +131,7 @@
         startKey: shiftKey(DEMO_TODAY, -1),
         endKey: shiftKey(DEMO_TODAY, -1),
         cutoffHm: CUTOFF,
-        label: '较昨日同时段'
+        label: '环比'
       };
     }
     if (r === 'yesterday') {
@@ -142,13 +142,12 @@
         startKey: shiftKey(DEMO_TODAY, -2),
         endKey: shiftKey(DEMO_TODAY, -2),
         cutoffHm: '',
-        label: '较前日'
+        label: '环比'
       };
     }
     var days = Math.max(1, Math.round((bounds.endMs - bounds.startMs) / 86400000));
     var prevEnd = bounds.startMs;
     var prevStart = bounds.startMs - days * 86400000;
-    var label = r === '7d' ? '较前7天' : r === '30d' ? '较前30天' : '较上一周期';
     return {
       range: 'compare',
       startMs: prevStart,
@@ -156,7 +155,7 @@
       startKey: keyFromDate(new Date(prevStart)),
       endKey: keyFromDate(new Date(prevEnd - 86400000)),
       cutoffHm: '',
-      label: label
+      label: '环比'
     };
   }
 
@@ -220,19 +219,21 @@
     opts = opts || {};
     if (!d || d.na) return '<span class="sa-dc-delta">暂无可比数据</span>';
     var unit = opts.unit != null ? opts.unit : '元';
+    var tag = label || '环比';
     var absNum = Math.abs(d.abs);
     var abs =
       unit === '' || unit === '单' || unit === '人' || unit === '天'
         ? intFmt(absNum)
         : moneyFmt(absNum);
-    var verb = d.flat ? '持平' : d.up ? '增加' : '减少';
-    var base = label || '较对比期';
-    var line1 = d.flat ? base + '持平' : base + verb + abs + (unit || '');
+    var sign = d.flat ? '' : d.up ? '+' : '-';
+    var line1 = d.flat ? tag + '持平' : tag + ' ' + sign + abs + (unit || '');
     var line2 = d.zeroBase
       ? '对比期为0'
       : d.pct == null
         ? '暂无可比数据'
-        : (d.up ? '增长' : d.flat ? '变化' : '下降') + Math.abs(d.pct) + '%';
+        : d.flat
+          ? '0%'
+          : sign + Math.abs(d.pct) + '%';
     var cls = d.flat ? '' : d.up ? ' is-up' : ' is-down';
     return (
       '<span class="sa-dc-delta' +

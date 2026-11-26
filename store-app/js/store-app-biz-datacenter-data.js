@@ -618,14 +618,14 @@
     var r = bounds.range;
     var today = parseDay(DEMO_TODAY);
     if (r === 'today') {
-      /* 今日对比昨日同一已过时段 —— 原型按全日对比 */
+      /* 今日对比昨日同一已过时段 —— 原型按全日对比；文案统一为环比 */
       var y = new Date(today.getTime() - 86400000);
       return {
         startMs: y.getTime(),
         endMs: today.getTime(),
         startKey: dateKeyOf(shiftKey(DEMO_TODAY, -1)),
         endKey: dateKeyOf(shiftKey(DEMO_TODAY, -1)),
-        label: '比昨日同时段'
+        label: '环比'
       };
     }
     if (r === 'yesterday') {
@@ -636,7 +636,7 @@
         endMs: d1.getTime(),
         startKey: dateKeyOf(shiftKey(DEMO_TODAY, -2)),
         endKey: dateKeyOf(shiftKey(DEMO_TODAY, -2)),
-        label: '比前一天'
+        label: '环比'
       };
     }
     var days = Math.max(1, Math.round((bounds.endMs - bounds.startMs) / 86400000));
@@ -646,14 +646,13 @@
       var d = new Date(ms);
       return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
     }
-    var label =
-      r === '7d' ? '比前7天' : r === '30d' ? '比前30天' : '比上一周期';
+    /* 近7／30天／自定义：对比上一等长周期 → 环比 */
     return {
       startMs: prevStart,
       endMs: prevEnd,
       startKey: keyFromMs(prevStart),
       endKey: keyFromMs(prevEnd - 86400000),
-      label: label
+      label: '环比'
     };
   }
 
@@ -888,7 +887,7 @@
   }
 
   /**
-   * 平台零售支付成交额（一期仅商城＋直播；不含POS、代采进货、佣金）。
+   * 营业额／支付成交额（一期仅商城＋直播；不含POS、代采进货、佣金）。
    */
   function storeRevenueMetrics(bounds) {
     var retail = retailMetrics(bounds, 'all', 'pay');
@@ -896,7 +895,7 @@
     var live = retail.live || { paidAmount: 0, orderCount: 0 };
     var platform = {
       id: 'platformRetail',
-      name: '平台零售',
+      name: '营业额',
       status: 'ok',
       amount: retail.paidAmount,
       refundAmount: retail.refundAmount,
@@ -920,7 +919,7 @@
     };
 
     return {
-      heroTitle: '平台零售支付成交额',
+      heroTitle: '支付成交额',
       coverNote: '',
       partial: false,
       amount: retail.paidAmount,
@@ -928,7 +927,7 @@
       netAmount: retail.netPaidAmount,
       channels: [platform],
       platformRetail: platform,
-      sourceNote: '仅含平台零售（商城、直播）支付成交；代采进货、佣金不计入。'
+      sourceNote: '仅含营业额（商城、直播）支付成交；代采进货、佣金不计入。'
     };
   }
 
@@ -1122,12 +1121,12 @@
       proxy: proxy,
       tips: {
         overview:
-          '平台零售支付成交额为本店商城、直播订单的支付成交额合计。',
+          '支付成交额为本店商城、直播订单的支付成交额合计。',
         revenue:
           '支付成交额为所选周期内支付成功订单的实付金额之和。退款金额为关联至这些支付订单的退款；退款后净成交额＝支付成交额−退款金额。代采进货、佣金不计入。',
-        retailPaid: '商城、直播渠道成交均计入平台零售。',
+        retailPaid: '商城、直播渠道成交均计入营业额。',
         storeIncome: '本店获得的佣金，以系统结算记录为准。',
-        proxy: '进货支付总额为采购支出（商品款＋运费），不计入平台零售支付成交额；商品款、运费、进货天数等详见进货数据页。'
+        proxy: '进货支付总额为采购支出（商品款＋运费），不计入支付成交额；商品款、运费、进货天数等详见进货数据页。'
       }
     };
   }
@@ -1175,8 +1174,8 @@
           '「支付订单归属」：先取周期内支付成功订单，再关联退款。支付成交额保留原支付金额，退款另列。',
         viewEvent:
           '「发生日期」：支付按支付成功时间，退款按退款完成时间。当期净成交额＝当期支付−当期成功退款。',
-        proxy: '进货支付总额为采购支出（商品款＋运费），不计入平台零售支付成交额。',
-        retailTab: '平台零售仅含商城、直播成交。'
+        proxy: '进货支付总额为采购支出（商品款＋运费），不计入支付成交额。',
+        retailTab: '营业额仅含商城、直播成交。'
       }
     };
   }

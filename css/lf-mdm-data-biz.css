@@ -700,7 +700,7 @@
   position: fixed;
   top: 0;
   right: 0;
-  width: min(560px, 92vw);
+  width: min(680px, 94vw);
   height: 100%;
   background: #fff;
   z-index: 1201;
@@ -742,6 +742,97 @@
   flex: 1;
   overflow: auto;
   padding: 16px 18px 24px;
+}
+
+.ldb-drawer-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.ldb-drawer-toolbar__hint {
+  font-size: 12px;
+  color: #909399;
+}
+
+.ldb-drawer-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  background: #fafafa;
+  border: 1px solid #ebeef5;
+  border-radius: 6px;
+}
+
+.ldb-drawer-filter__fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  flex: 1;
+}
+
+.ldb-drawer-filter__field {
+  align-items: center;
+}
+
+.ldb-drawer-filter__field .ldb-input,
+.ldb-drawer-filter__field .ldb-select {
+  min-width: 110px;
+}
+
+.ldb-input--date {
+  min-width: 132px;
+}
+
+.ldb-drawer-filter__sep {
+  color: #909399;
+  font-size: 12px;
+}
+
+.ldb-drawer-filter__actions {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.ldb-drawer-export {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px dashed #ffd591;
+  border-radius: 6px;
+  background: #fffaf3;
+}
+
+.ldb-drawer-export__cols {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin: 8px 0 10px;
+}
+
+.ldb-drawer-export__col {
+  font-size: 13px;
+  color: #606266;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ldb-drawer-export__actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ldb-empty-cell {
+  text-align: center;
+  color: #909399;
+  padding: 18px 8px !important;
 }
 
 .ldb-glossary {

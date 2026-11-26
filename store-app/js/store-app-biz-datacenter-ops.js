@@ -229,9 +229,9 @@
     var sections = [];
     var title = '指标说明';
     if (state.tab === 'retail') {
-      title = '平台零售说明';
+      title = '营业额说明';
       sections.push({
-        title: '平台零售',
+        title: '营业额',
         items: [
           tips.retailTab || '',
           tips.viewPay || '',
@@ -240,10 +240,10 @@
         ].filter(Boolean)
       });
     } else if (state.tab === 'proxy') {
-      title = '进货说明';
+      title = '采购支出说明';
       sections.push({
-        title: '代采进货',
-        items: [tips.proxy || '本店采购商品及运费支出，不计入平台零售支付成交额。'].filter(Boolean)
+        title: '采购支出',
+        items: [tips.proxy || '本店采购商品及运费支出，不计入支付成交额。'].filter(Boolean)
       });
     } else if (state.tab === 'income') {
       title = '佣金说明';
@@ -349,6 +349,7 @@
     }
 
     var r = data.retail;
+    if ($('opsPaidLabel')) $('opsPaidLabel').textContent = '支付成交额（元）';
     if ($('opsPaid')) $('opsPaid').textContent = group(r.paidAmount);
     if ($('opsOrders')) $('opsOrders').textContent = group(r.orderCount);
     if ($('opsUsers')) $('opsUsers').textContent = group(r.payUserCount);

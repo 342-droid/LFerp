@@ -87,10 +87,10 @@
 
   function deltaHtml(d, label) {
     if (!d) return '<span class="sa-dc-delta">暂无可比数据</span>';
+    var tag = label || '环比';
     var abs = group(Math.abs(d.abs));
-    var verb = d.flat ? '持平' : d.up ? '增加' : '减少';
-    var base = label || '较对比期';
-    var line1 = d.flat ? base + '持平' : base + verb + abs + '元';
+    var sign = d.flat ? '' : d.up ? '+' : '-';
+    var line1 = d.flat ? tag + '持平' : tag + ' ' + sign + abs + '元';
     var zeroBase = d.zeroBase || (d.pct == null && d.comparable === false) || (d.pct == null && !d.flat && d.abs != null);
     /* comparable=false 且 prev=0：datacenter-data 用 pct=null */
     if (d.pct == null && !d.flat && Number(d.abs) !== 0) zeroBase = true;
@@ -98,8 +98,9 @@
       ? '对比期为0'
       : d.pct == null
         ? '暂无可比数据'
-        : (d.up ? '增长' : '下降') + Math.abs(d.pct) + '%';
-    if (d.flat) line2 = '变化0%';
+        : d.flat
+          ? '0%'
+          : sign + Math.abs(d.pct) + '%';
     var cls = d.flat ? '' : d.up ? ' is-up' : ' is-down';
     return (
       '<span class="sa-dc-delta' +
@@ -384,7 +385,7 @@
       total = D().round2(total + (Number(s.amount) || 0));
     });
 
-    var head = '<div class="sa-dc-channel__hd"><span>平台零售渠道构成</span></div>';
+    var head = '<div class="sa-dc-channel__hd"><span>营业额渠道构成</span></div>';
 
     if (!slices.length || total <= 0) {
       root.innerHTML =
@@ -443,7 +444,7 @@
       $('dcAsOf').textContent = S().updatedCaption(ov.updatedAt || D().UPDATED_AT);
     }
     var rev = ov.revenue || {};
-    if ($('dcHeroTitle')) $('dcHeroTitle').textContent = rev.heroTitle || '平台零售支付成交额';
+    if ($('dcHeroTitle')) $('dcHeroTitle').textContent = rev.heroTitle || '支付成交额';
     if ($('dcCoverNote')) {
       if (rev.partial && rev.coverNote) {
         $('dcCoverNote').hidden = false;
@@ -602,7 +603,7 @@
         var tip = ov.tips || {};
         var sections = [
           {
-            title: '平台零售支付成交额',
+            title: '支付成交额',
             items: [tip.overview || '', tip.revenue || '', tip.retailPaid || ''].filter(Boolean)
           },
           {
@@ -610,7 +611,7 @@
             items: [tip.storeIncome || ''].filter(Boolean)
           },
           {
-            title: '代采进货',
+            title: '采购支出',
             items: [tip.proxy || ''].filter(Boolean)
           }
         ];

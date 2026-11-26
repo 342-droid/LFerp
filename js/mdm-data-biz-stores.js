@@ -7,10 +7,37 @@
   if (state.mode === 'proxy') state.channel = 'proxy';
   if (['all', 'retail', 'proxy', 'mall', 'live'].indexOf(state.channel) < 0) state.channel = 'all';
   var root = document.querySelector('[data-ldb-root]');
+  var storePager = { page: 1, pageSize: 10 };
   var orderPager = { page: 1, pageSize: 10 };
   var incomeColumns = [
     { key: 'storeIncome', label: '门店所得', num: true, format: 'money' },
     { key: 'platformIncome', label: '平台所得', num: true, format: 'money' }
+  ];
+  var orderColumns = [
+    { key: 'orderId', label: '主订单号', render: CUi.orderIdCell },
+    { key: 'biz', label: '业务线' },
+    { key: 'storeName', label: '门店' },
+    { key: 'payTime', label: '支付成功时间' },
+    { key: 'goodsSales', label: '商品金额', num: true, format: 'money' },
+    { key: 'freightSales', label: '运费', num: true, format: 'money' },
+    { key: 'refundAmount', label: '退款金额', num: true, format: 'money' }
+  ].concat(incomeColumns);
+  var storeExportColumns = [
+    { key: 'storeName', label: '门店' },
+    { key: 'line', label: '事业线' },
+    { key: 'goodsMargin', label: '商品交易毛利', num: true, format: 'money' },
+    {
+      key: 'goodsMarginRate',
+      label: '毛利率',
+      num: true,
+      format: 'pct',
+      render: function (row, value) {
+        return value == null ? '—' : (Number(value) * 100).toFixed(1) + '%';
+      }
+    },
+    { key: 'retailPlatformIncome', label: '零售平台分配所得', num: true, format: 'money' },
+    { key: 'proxyPlatformIncome', label: '代采平台分配所得', num: true, format: 'money' },
+    { key: 'platformIncome', label: '平台分配所得', num: true, format: 'money' }
   ];
 
   function filters() {
@@ -22,6 +49,86 @@
       line: state.line,
       channel: state.channel
     };
+  }
+
+  function openTableExport(opts) {
+    var title = opts.title || '导出明细';
+    var exportName = opts.exportName || title;
+    var unitLabel = opts.unitLabel || '条';
+    var rows = opts.rows || [];
+    var columns = opts.columns || [];
+    var checked = {};
+    columns.forEach(function (c) {
+      checked[c.key] = true;
+    });
+    function paint() {
+      CUi.showDrawer(
+        title,
+        '<p class="ldb-tip ldb-tip--flush">勾选导出列（默认全选），提交后生成文件中心下载任务。当前筛选共 ' +
+          CUi.intText(rows.length) +
+          ' ' +
+          CUi.esc(unitLabel) +
+          '。</p>' +
+          '<div class="ldb-drawer-export__cols">' +
+          columns
+            .map(function (c) {
+              return (
+                '<label class="ldb-drawer-export__col">' +
+                '<input type="checkbox" data-export-col="' +
+                CUi.esc(c.key) +
+                '"' +
+                (checked[c.key] ? ' checked' : '') +
+                '> ' +
+                CUi.esc(c.label) +
+                '</label>'
+              );
+            })
+            .join('') +
+          '</div>' +
+          '<div class="ldb-drawer-export__actions" style="margin-top:12px">' +
+          '<button type="button" class="ldb-chip" data-export-all>全选</button>' +
+          '<button type="button" class="ldb-chip is-active" data-export-submit data-lf-skip-export-notify>导出到文件中心</button>' +
+          '<button type="button" class="ldb-chip" data-export-cancel>取消</button>' +
+          '</div>'
+      );
+      var body = document.querySelector('[data-ldb-drawer-body]');
+      if (!body) return;
+      body.querySelectorAll('[data-export-col]').forEach(function (box) {
+        box.addEventListener('change', function () {
+          checked[box.getAttribute('data-export-col')] = !!box.checked;
+        });
+      });
+      var allBtn = body.querySelector('[data-export-all]');
+      if (allBtn) {
+        allBtn.addEventListener('click', function () {
+          columns.forEach(function (c) {
+            checked[c.key] = true;
+          });
+          paint();
+        });
+      }
+      var cancel = body.querySelector('[data-export-cancel]');
+      if (cancel) {
+        cancel.addEventListener('click', function () {
+          if (typeof CUi.closeDrawer === 'function') CUi.closeDrawer();
+        });
+      }
+      var submit = body.querySelector('[data-export-submit]');
+      if (submit) {
+        submit.addEventListener('click', function (ev) {
+          var picked = columns
+            .filter(function (c) {
+              return checked[c.key];
+            })
+            .map(function (c) {
+              return c.key;
+            });
+          CUi.exportRowsToFileCenter(exportName, rows, columns, ev, { columns: picked });
+          if (typeof CUi.closeDrawer === 'function') CUi.closeDrawer();
+        });
+      }
+    }
+    paint();
   }
 
   function render() {
@@ -37,6 +144,7 @@
       exportName: '门店分析'
     });
     CUi.bindToolbar(root.querySelector('[data-ldb-toolbar]'), state, function () {
+      storePager.page = 1;
       orderPager.page = 1;
       render();
     }, {
@@ -120,19 +228,11 @@
           '当前筛选暂无商品成交样本'
         ) + '<p class="ldb-tip">成交门店、样本订单数及所得按当前筛选的示例订单统计。</p>'
       ) +
+      '<div data-ldb-store-list>' +
       CUi.sectionCard(
         '门店列表',
-        CUi.simpleTable(
-          [
-            { key: 'storeName', label: '门店' },
-            { key: 'line', label: '事业线' },
-            { key: 'goodsMargin', label: '商品交易毛利', num: true, format: 'money' },
-            { key: 'goodsMarginRate', label: '毛利率', num: true, render: function (row, value) {
-              return value == null ? '—' : (value * 100).toFixed(1) + '%';
-            } },
-            { key: 'retailPlatformIncome', label: '零售平台分配所得', num: true, format: 'money' },
-            { key: 'proxyPlatformIncome', label: '代采平台分配所得', num: true, format: 'money' },
-            { key: 'platformIncome', label: '平台分配所得', num: true, format: 'money' },
+        CUi.renderPagedTable(
+          storeExportColumns.concat([
             {
               key: 'storeId',
               label: '操作',
@@ -153,26 +253,53 @@
                 );
               }
             }
-          ],
-          storeRank
-        )
+          ]),
+          storeRank,
+          storePager,
+          { unitLabel: '家', emptyText: '当前筛选暂无门店经营数据' }
+        ),
+        '<div class="ldb-card__actions">' +
+          '<button type="button" class="ldb-chip is-active" data-store-list-export data-lf-skip-export-notify>导出</button>' +
+          '</div>'
       ) +
+      '</div>' +
+      '<div data-ldb-order-list style="margin-top:14px">' +
       CUi.sectionCard(
         '订单明细',
-        CUi.renderPagedTable(
-          [
-            { key: 'orderId', label: '主订单号', render: CUi.orderIdCell },
-            { key: 'biz', label: '业务线' },
-            { key: 'storeName', label: '门店' },
-            { key: 'payTime', label: '支付成功时间' },
-            { key: 'goodsSales', label: '商品金额', num: true, format: 'money' },
-            { key: 'freightSales', label: '运费', num: true, format: 'money' },
-            { key: 'refundAmount', label: '退款金额', num: true, format: 'money' }
-          ].concat(incomeColumns),
-          data.orders, orderPager, { unitLabel: '单' }
-        )
-      );
-    CUi.bindPagedTable(root.querySelector('[data-ldb-table]'), orderPager, render);
+        CUi.renderPagedTable(orderColumns, data.orders, orderPager, { unitLabel: '单' }),
+        '<div class="ldb-card__actions">' +
+          '<button type="button" class="ldb-chip is-active" data-store-orders-export data-lf-skip-export-notify>导出</button>' +
+          '</div>'
+      ) +
+      '</div>';
+    CUi.bindPagedTable(root.querySelector('[data-ldb-store-list]'), storePager, render);
+    CUi.bindPagedTable(root.querySelector('[data-ldb-order-list]'), orderPager, render);
+    var storeExportBtn = root.querySelector('[data-store-list-export]');
+    if (storeExportBtn) {
+      storeExportBtn.addEventListener('click', function (ev) {
+        ev.preventDefault();
+        openTableExport({
+          title: '导出门店列表',
+          exportName: '门店列表',
+          unitLabel: '家',
+          rows: storeRank || [],
+          columns: storeExportColumns
+        });
+      });
+    }
+    var orderExportBtn = root.querySelector('[data-store-orders-export]');
+    if (orderExportBtn) {
+      orderExportBtn.addEventListener('click', function (ev) {
+        ev.preventDefault();
+        openTableExport({
+          title: '导出订单明细',
+          exportName: '门店订单明细',
+          unitLabel: '单',
+          rows: data.orders || [],
+          columns: orderColumns
+        });
+      });
+    }
   }
 
   render();

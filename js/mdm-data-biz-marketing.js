@@ -332,16 +332,43 @@
       });
     var details = data.details.concat(awards).sort(function (a, b) { return b.time.localeCompare(a.time); });
     var issued = data.issued + awards.reduce(function (total, row) { return total + row.points; }, 0);
+    var exchangePoints = data.exchangeConsumed != null
+      ? data.exchangeConsumed
+      : data.details.reduce(function (total, row) {
+          return total + ((row.type === '商品兑换' || row.scene === '积分商城兑换') ? Math.max(0, -row.points) : 0);
+        }, 0);
     var cashPoints = 0;
     var deductionCents = 0;
     data.details.forEach(function (row) {
-      if (row.deductionCents == null) return;
-      cashPoints += Math.abs(row.points);
-      deductionCents += row.deductionCents;
+      var isExchange = row.type === '商品兑换' || row.scene === '积分商城兑换';
+      var isCash =
+        row.type === '下单抵扣' ||
+        row.scene === '订单积分抵现' ||
+        row.scene === '积分抵现' ||
+        row.deductionCents != null;
+      if (isCash && !isExchange) cashPoints += Math.abs(row.points);
+      if (row.deductionCents != null) deductionCents += row.deductionCents;
     });
+    if (data.cashConsumed != null) cashPoints = data.cashConsumed;
     var columns = [
       { key: 'time', label: '时间' }, { key: 'user', label: '用户' },
-      { key: 'type', label: '类型' }, { key: 'scene', label: '场景' },
+      {
+        key: 'type',
+        label: '类型',
+        render: function (row) {
+          if (row.type === '商品兑换' || row.scene === '积分商城兑换') return '商品兑换';
+          if (
+            row.type === '下单抵扣' ||
+            row.scene === '订单积分抵现' ||
+            row.scene === '积分抵现' ||
+            row.deductionCents != null
+          ) {
+            return '下单抵扣';
+          }
+          return CUi.esc(row.type || '—');
+        }
+      },
+      { key: 'scene', label: '场景' },
       { label: '渠道', render: function (row) { return channels[row.channel] || '-'; } },
       { key: 'points', label: '积分变动', num: true, render: function (row) {
         return (row.points > 0 ? '+' : '') + CUi.intText(row.points);
@@ -357,15 +384,39 @@
     ];
     var cards = [
       CUi.kpiCard('发放积分', CUi.intText(issued), '', '筛选期内发放成功'),
-      CUi.kpiCard('消耗积分', CUi.intText(data.consumed), '', '含订单抵现及积分兑换'),
+      CUi.kpiCard(
+        '商品兑换消耗',
+        CUi.intText(exchangePoints),
+        '',
+        '积分商城兑换商品消耗的积分'
+      ),
+      CUi.kpiCard(
+        '下单抵扣消耗',
+        CUi.intText(cashPoints),
+        '',
+        '下单积分抵现消耗的积分'
+      ),
+      CUi.kpiCard('实际积分抵现金额', moneyCell(deductionCents), '', '按订单记录的实际抵现金额汇总'),
       CUi.kpiCard('平台当前积分余额', CUi.intText(data.balance), '', '全平台会员积分余额快照'),
-      CUi.kpiCard('抵现使用积分', CUi.intText(cashPoints), '', '筛选期内用于订单抵现'),
-      CUi.kpiCard('实际积分抵现金额', moneyCell(deductionCents), '', '按订单记录的实际抵现金额汇总')
+      CUi.kpiCard(
+        '消耗合计',
+        CUi.intText(data.consumed),
+        '',
+        '商品兑换 ' + CUi.intText(exchangePoints) + ' · 下单抵扣 ' + CUi.intText(cashPoints)
+      )
     ].join('');
     function renderDetails() {
-      host.innerHTML = CUi.sectionCard('会员营销 · 积分使用情况',
-        '<div class="ldb-kpi-row">' + cards + '</div>' +
-        CUi.renderPagedTable(columns, details, pointsPager, { unitLabel: '条', emptyText: '当前筛选范围内暂无积分流水' }));
+      host.innerHTML = CUi.sectionCard(
+        '会员营销 · 积分使用情况',
+        '<p class="ldb-tip ldb-tip--flush">消耗按场景拆分：<strong>商品兑换</strong>（积分商城）与<strong>下单抵扣</strong>（订单积分抵现），二者口径分开统计。</p>' +
+          '<div class="ldb-kpi-row ldb-kpi-row--6">' +
+          cards +
+          '</div>' +
+          CUi.renderPagedTable(columns, details, pointsPager, {
+            unitLabel: '条',
+            emptyText: '当前筛选范围内暂无积分流水'
+          })
+      );
       CUi.bindPagedTable(host, pointsPager, renderDetails);
     }
     renderDetails();
