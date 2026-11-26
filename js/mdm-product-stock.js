@@ -25,14 +25,36 @@
     return true;
   }
 
-  function remainOf(item) {
-    if (!maintainsStock(item)) return null;
-    if (item.remainStock != null && item.remainStock !== '') {
-      var n = Number(item.remainStock);
-      if (isFinite(n) && n >= 0) return Math.round(n);
-    }
-    var seed = hashSeed(item.code + ':' + item.name);
-    return 8 + (seed % 93);
+  function skuRows(channel, item) {
+    if (!maintainsStock(item)) return [];
+    var detail = window.MdmProductCatalog && window.MdmProductCatalog.getByCode
+      ? window.MdmProductCatalog.getByCode(item.code)
+      : item;
+    var sourceSkus = detail && (detail.specs || detail.skus);
+    if (!Array.isArray(sourceSkus) || !sourceSkus.length) sourceSkus = [item];
+    return sourceSkus.map(function (source, index) {
+      var sku = Object.assign({}, source);
+      var summary = window.MdmSkuWhStock && window.MdmSkuWhStock.attachToSku
+        ? window.MdmSkuWhStock.attachToSku(sku, { channel: channel })
+        : null;
+      var sellable = summary ? Number(summary.sellableTotal) : Number(sku.sellableStock);
+      var reserved = summary ? Number(summary.reservedTotal) : Number(sku.reservedStock);
+      var remain = summary ? Number(summary.remainTotal) : Number(sku.remainStock);
+      if (!isFinite(sellable) || sellable < 0) sellable = 0;
+      if (!isFinite(reserved) || reserved < 0) reserved = 0;
+      if (!isFinite(remain) || remain < 0) remain = Math.max(0, sellable - reserved);
+      return {
+        code: sku.skuCode || sku.code || (item.code + '-' + String(index + 1).padStart(2, '0')),
+        spec: sku.specValue || sku.packaging || sku.spec || ('规格' + (index + 1)),
+        sellable: Math.round(sellable), reserved: Math.round(reserved), remain: Math.round(remain)
+      };
+    });
+  }
+
+  function remainOf(item, channel) {
+    var skus = skuRows(channel || 'mall', item);
+    if (!skus.length) return null;
+    return skus.reduce(function (total, sku) { return total + sku.remain; }, 0);
   }
 
   function operationRows(channel, item, remain) {
@@ -78,7 +100,7 @@
     render: function (channel, item) {
       var key = channel + ':' + item.code + ':' + item.name;
       products[key] = { channel: channel, item: item };
-      var remain = remainOf(item);
+      var remain = remainOf(item, channel);
       if (remain == null) {
         return (
           '<button type="button" class="product-sales-link product-stock-link is-empty" data-stock-key="' +
@@ -168,7 +190,10 @@
   }
 
   function openDetail(product) {
-    var remain = remainOf(product.item);
+    var skus = skuRows(product.channel, product.item);
+    var remain = skus.length ? skus.reduce(function (total, sku) { return total + sku.remain; }, 0) : null;
+    var sellableTotal = skus.reduce(function (total, sku) { return total + sku.sellable; }, 0);
+    var reservedTotal = skus.reduce(function (total, sku) { return total + sku.reserved; }, 0);
     var rows = operationRows(product.channel, product.item, remain);
     var view = { page: 1, size: DETAIL_PAGE_SIZES[0] };
     var dialog = document.createElement('dialog');
@@ -178,8 +203,10 @@
       remain == null
         ? '<section class="product-sales-summary product-stock-summary--empty"><div>剩余库存<strong>—</strong></div><div>库存维护<strong>未启用</strong></div><div>说明<strong>未维护库存</strong></div></section>'
         : '<section class="product-sales-summary"><div>可售库存<strong>' +
-          (remain + 8) +
-          '</strong></div><div>预占<strong>8</strong></div><div>剩余库存<strong>' +
+          sellableTotal +
+          '</strong></div><div>预占<strong>' +
+          reservedTotal +
+          '</strong></div><div>剩余库存<strong>' +
           remain +
           '</strong></div></section>';
 
@@ -194,6 +221,9 @@
       '</p>' +
       '<p class="product-sales-note">库存流水 · 原型示例数据</p>' +
       summaryHtml +
+      '<h3 class="product-stock-sku-title">SPU 下各 SKU 库存</h3><div class="product-sales-scroll"><table><thead><tr><th>SKU 编码</th><th>规格</th><th>可售库存</th><th>预占</th><th>剩余库存</th></tr></thead><tbody>' +
+      (skus.length ? skus.map(function (sku) { return '<tr><td>' + escape(sku.code) + '</td><td>' + escape(sku.spec) + '</td><td>' + sku.sellable + '</td><td>' + sku.reserved + '</td><td>' + sku.remain + '</td></tr>'; }).join('') : '<tr><td colspan="5">未维护库存</td></tr>') +
+      '</tbody></table></div>' +
       '<p class="product-sales-formula">剩余库存 = 可售库存 − 本渠道预占；表中「变动」是剩余库存的变化。下单成功即预占，付款不重复预占；取消或发货前退款释放对应预占，且不得重复退占。履约释放预占不回补已售剩余。仅当可售按现货计算时，入库联动剩余库存。</p>' +
       '<div class="product-sales-scroll"><table><thead><tr><th>操作时间</th><th>操作类型</th><th>变动</th><th>变动后剩余</th><th>操作人</th><th>说明</th></tr></thead><tbody data-stock-body></tbody></table></div>' +
       '<div class="product-pagination product-sales-pager" data-stock-pager></div>' +
