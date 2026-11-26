@@ -65,15 +65,19 @@
       var info = api && typeof api.identity === 'function' ? api.identity() : null;
       if (info && info.role === 'bd') {
         var map = {
-          HGH00002: 'STORE-YY',
-          BJS00001: 'STORE-BJ',
-          TSN00001: 'STORE-CN',
-          SHA00001: 'STORE-HP',
-          HGH00001: 'STORE-YY'
+          HGH00002: 'S-XX',
+          BJS00001: 'S-BJ',
+          TSN00001: 'S-CN',
+          SHA00001: 'S-HP',
+          HGH00001: 'S-CN'
         };
-        var sid = map[info.storeId] || 'STORE-YY';
+        var sid = map[info.storeId] || '';
+        if (!sid) {
+          window.location.href = 'biz-bd-center.html?from=bd-app&role=bd';
+          return;
+        }
         window.location.href =
-          'biz-center.html?role=bd&from=bd-app&storeId=' + encodeURIComponent(sid);
+          'biz-bd-store.html?role=bd&from=bd-app&storeId=' + encodeURIComponent(sid) + '&returnTo=center';
         return;
       }
       window.location.href = 'biz-center.html?from=store-app';

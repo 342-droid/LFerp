@@ -815,7 +815,7 @@
         return index % step === 0;
     }
 
-    /* 营业额与收入双折线；圆点可点选单日高亮；跨月／跨年轴签换样式 */
+    /* 营业额单折线；圆点可点选单日高亮；跨月／跨年轴签换样式 */
     function renderBizChart(series, focusDate) {
         if (!series || !series.length) {
             return '<div class="rbt-biz-chart rbt-biz-chart--empty">该时段暂无曲线数据</div>';
@@ -829,7 +829,7 @@
         var padB = mode === 'year' ? 30 : mode === 'month' ? 26 : 22;
         var max = 0;
         series.forEach(function (row) {
-            max = Math.max(max, Number(row.turnover) || 0, Number(row.credit) || 0);
+            max = Math.max(max, Number(row.turnover) || 0);
         });
         if (max <= 0) max = 1;
         var innerW = w - padL - padR;
@@ -916,11 +916,11 @@
                     '" r="' +
                     (on ? 4.5 : 3) +
                     '"/>' +
-                    '<circle class="rbt-biz-chart__dot is-credit" cx="' + cx + '" cy="' + yAt(row.credit).toFixed(1) + '" r="' + (on ? 4.5 : 3) + '"/>' +
                     '</g>'
                 );
             })
             .join('');
+        var metricLabel = bizChannel === '直播' || bizChannel === '商城' ? '预计收入' : '营业额';
         var spanCls =
             mode === 'year' ? ' rbt-biz-chart--cross-year' : mode === 'month' ? ' rbt-biz-chart--cross-month' : '';
         return (
@@ -931,16 +931,19 @@
             w +
             ' ' +
             h +
-            '" role="img" aria-label="营业额与收入曲线，可点选单日">' +
+            '" role="img" aria-label="' +
+            esc(metricLabel) +
+            '曲线，可点选单日">' +
             guides +
             '<path class="rbt-biz-chart__line is-turnover" d="' +
             pathOf('turnover') +
             '" fill="none"/>' +
-            '<path class="rbt-biz-chart__line is-credit" d="' + pathOf('credit') + '" fill="none"/>' +
             labels +
             dots +
             '</svg>' +
-            '<div class="rbt-biz-chart__legend"><span class="is-turnover">营业额</span><span class="is-credit">收入</span></div>' +
+            '<div class="rbt-biz-chart__legend"><span class="is-turnover">' +
+            esc(metricLabel) +
+            '</span></div>' +
             '<p class="rbt-biz-chart__hint">点击趋势图可高亮当日</p>' +
             '</div>'
         );
@@ -1025,44 +1028,80 @@
             return '<button type="button" class="rbt-biz-chip' + (bizChannel === ch.id ? ' is-on' : '') +
                 '" data-biz-channel="' + esc(ch.id) + '">' + esc(ch.label) + '</button>';
         }).join('');
-        var channelCards = (pack.channels || []).map(function (ch) {
-            return '<article class="rbt-biz-channel">' +
-                '<header>' + esc(ch.label) + '</header>' +
-                '<div><span>营业额</span><b>' + esc(bizMoney(ch.turnoverTotal)) + '</b></div>' +
-                '<div><span>收入</span><b>' + esc(bizMoney(ch.creditTotal)) + '</b></div>' +
+        var posChannel = null;
+        var estimateCards = [];
+        (pack.channels || []).forEach(function (ch) {
+            if (ch.id === 'POS') posChannel = ch;
+            else estimateCards.push(ch);
+        });
+        var posCard = '';
+        if (posChannel) {
+            var modules = posChannel.posModules || [];
+            var moduleHtml = modules.length
+                ? '<div class="rbt-biz-channel__subs">' +
+                  modules
+                    .map(function (mod) {
+                        return (
+                            '<div class="rbt-biz-channel__sub">' +
+                            '<span>' +
+                            esc(mod.label) +
+                            '</span><b>' +
+                            esc(bizMoney(mod.turnover)) +
+                            '</b></div>'
+                        );
+                    })
+                    .join('') +
+                  '</div>'
+                : '<div class="rbt-biz-channel__metric"><span>营业额</span><b>' +
+                  esc(bizMoney(posChannel.turnoverTotal)) +
+                  '</b></div>';
+            posCard =
+                '<article class="rbt-biz-channel rbt-biz-channel--pos">' +
+                '<header>' +
+                esc(posChannel.label) +
+                '</header>' +
+                '<div class="rbt-biz-channel__metric rbt-biz-channel__total">' +
+                '<span>营业额合计</span><b>' +
+                esc(bizMoney(posChannel.turnoverTotal)) +
+                '</b></div>' +
+                moduleHtml +
                 '</article>';
-        }).join('');
-        var focusBits = (pack.focusChannels || []).map(function (ch) {
-            return '<div class="rbt-biz-focus__ch"><em>' + esc(ch.label) + '</em>' +
-                '<span>营业额 ' + esc(bizMoney(ch.turnover)) + '</span>' +
-                '<span>收入 ' + esc(bizMoney(ch.credit)) + '</span></div>';
-        }).join('');
-        var dateText = pack.focusDate ? monthDay(pack.focusDate) : '—';
+        }
+        var estimateHtml = estimateCards
+            .map(function (ch) {
+                return (
+                    '<article class="rbt-biz-channel rbt-biz-channel--estimate">' +
+                    '<header>' +
+                    esc(ch.label) +
+                    '</header>' +
+                    '<div class="rbt-biz-channel__metric">' +
+                    '<span>预计收入</span><b>' +
+                    esc(bizMoney(ch.turnoverTotal)) +
+                    '</b></div>' +
+                    '</article>'
+                );
+            })
+            .join('');
+        var channelCards =
+            posCard +
+            (estimateHtml
+                ? '<div class="rbt-biz-channels__estimate">' + estimateHtml + '</div>'
+                : '');
         var clearDay = bizFocusDate
-            ? '<button type="button" class="rbt-biz-clear" data-biz-clear-day>清除单日</button>'
+            ? '<button type="button" class="rbt-biz-clear" data-biz-clear-day>清除单日高亮</button>'
             : '';
         return '<section class="rbt-biz">' +
             '<p class="rbt-ops__note">' + esc(pack.tip || '') + '</p>' +
             rangeChips + rangePick +
-            '<div class="rbt-biz-summary">' +
+            '<div class="rbt-biz-summary rbt-biz-summary--single">' +
             '<div><span>' + (bizRangeMode === 'custom' ? '时段营业额' : '门店营业额') + '</span><b>' +
             esc(bizMoney(pack.turnoverTotal)) + '</b></div>' +
-            '<div><span>' + (bizRangeMode === 'custom' ? '时段收入' : '累计收入') + '</span><b>' +
-            esc(bizMoney(pack.creditTotal)) + '</b></div>' +
             '</div>' +
             '<div class="rbt-biz-channels">' + channelCards + '</div>' +
-            '<div class="rbt-biz-focus">' +
-            '<header><span>' + esc((pack.focusLabel || '当日') + ' · ' + dateText) + '</span>' +
-            (pack.frozen ? '<i class="is-frozen">已冻结</i>' : '') + clearDay + '</header>' +
-            '<div class="rbt-biz-focus__total">' +
-            '<span>营业额 <b>' + esc(bizMoney(pack.focusTurnover)) + '</b></span>' +
-            '<span>收入 <b>' + esc(bizMoney(pack.focusCredit)) + '</b></span>' +
-            '</div>' +
-            (pack.hasSeries || bizFocusDate ? focusBits : '<p class="rbt-bill__empty">该时段暂无拆分数据</p>') +
-            '</div>' +
+            '<p class="rbt-biz-estimate-note">直播、商城展示金额均为预计收入，经退款、平台结算后，最终到账金额以实际结算单为准；该部分收入不计入门店当期实收。</p>' +
             '<div class="rbt-biz-curve">' +
             '<div class="rbt-biz-curve__head"><strong>经营曲线</strong>' +
-            '<div class="rbt-biz-chips">' + channelChips + '</div></div>' +
+            '<div class="rbt-biz-chips">' + channelChips + '</div>' + clearDay + '</div>' +
             renderBizChart(bizSeriesOf(pack), pack.focusDate) +
             '</div></section>';
     }
