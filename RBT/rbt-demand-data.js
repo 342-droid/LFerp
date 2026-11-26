@@ -1107,6 +1107,10 @@
     }
 
     function traderBalanceOf(name) {
+        if (typeof window !== 'undefined' && window.RbtPartyWallet && typeof window.RbtPartyWallet.balanceOf === 'function') {
+            var fromWallet = window.RbtPartyWallet.balanceOf('trader', name);
+            if (isFinite(fromWallet)) return fromWallet;
+        }
         var text = readTraderBalances()[name];
         return text == null ? 0 : moneyNumber(text);
     }
@@ -1340,6 +1344,9 @@
         target.payMethod = 'auto';
         target.paidAt = nowText();
         write(rows);
+        if (typeof window !== 'undefined' && window.RbtPartyWallet && typeof window.RbtPartyWallet.transferToSupply === 'function') {
+            window.RbtPartyWallet.transferToSupply(target.traderName, code, moneyNumber(target.goodsAmount));
+        }
         var saved = setStatus(code, '发货中', '系统');
         return { ok: true, done: true, demand: saved || target };
     }

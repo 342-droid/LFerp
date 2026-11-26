@@ -343,7 +343,7 @@
         var goods = amountOf(item && item.goodsAmount);
         var days = monthsOf(item, (cfg || readConfig()).durationTiers) * 30;
         if (!(goods > 0) || !(days > 0)) return 0;
-        return Math.round(goods / days * 100) / 100;
+        return goods / days;
     }
 
     var PRODUCT_CATALOG = [
@@ -411,25 +411,18 @@
         });
     }
 
-    /* 已结款：提前支付当时结清；自动扣款不含最近一个尚未确定的营业日。已完成全部计入。 */
+    /* 已结款只计已经到账核销的金额。提前支付当时核销。已冻结、在途不计入。 */
     function settledOfDemand(item) {
         var daily = global.RbtDailyFulfill;
         var rows = daily && typeof daily.daysOf === 'function' ? daily.daysOf(item) : [];
-        var autoDates = [];
-        rows.forEach(function (row) {
-            if (!row || row.kind === 'manual' || !row.date || autoDates.indexOf(row.date) >= 0) return;
-            autoDates.push(row.date);
-        });
-        autoDates.sort();
-        var latest = autoDates.length ? autoDates[autoDates.length - 1] : '';
-        var done = item && item.status === '已完成';
         var cents = 0;
         var dates = {};
         rows.forEach(function (row) {
             if (!row || !row.date) return;
-            var settled = done || row.kind === 'manual' || (latest && row.date < latest);
-            if (!settled) return;
-            cents += Math.round((Number(row.actual) || 0) * 100);
+            if (row.fundStatus && row.fundStatus !== 'arrived') return;
+            var amount = row.kind === 'manual' ? (Number(row.actual) || Number(row.due) || 0) : (Number(row.actual) || 0);
+            if (!(amount > 0)) return;
+            cents += Math.round(amount * 100);
             dates[row.date] = 1;
         });
         return { cents: cents, dates: dates };
@@ -452,7 +445,7 @@
             slots += Object.keys(byStore[store]).length;
         });
         if (!slots) return 0;
-        return Math.round(sum / slots) / 100;
+        return (sum / slots) / 100;
     }
 
     function baselineAmount(item, cfg) {
@@ -470,25 +463,46 @@
         return mode + ' ¥' + money(amount) + extra;
     }
 
-    /* 同一天多个渠道先加总。这一天实际付款合计为 0，才算未付款。 */
+    function fundOpen(row) {
+        return row && (row.fundStatus === 'inflight' || row.fundStatus === 'frozen' || row.fundStatus === 'missing' || row.fundStatus === 'pending_freeze');
+    }
+
+    /* 只统计已经确认结果的营业日。缺报、已冻结、在途整日跳过，不当成 0 元未付款。提前支付只进分子。 */
     function assessDays(days, receivable, totalAmount, item) {
         var sorted = (days || []).slice().sort(function (a, b) {
             return a.date < b.date ? -1 : a.date > b.date ? 1 : 0;
         });
         var due = 0;
         var actual = 0;
+        var early = 0;
         var byDate = {};
         var dates = [];
+        var blocked = {};
         sorted.forEach(function (row) {
-            var date = row.date;
-            if (!byDate[date]) {
-                byDate[date] = 0;
-                dates.push(date);
-            }
+            if (!row || !row.date) return;
             due += Number(row.due) || 0;
-            actual += Number(row.actual) || 0;
-            byDate[date] += Number(row.actual) || 0;
+            if (row.kind === 'manual') {
+                early += Number(row.actual) || Number(row.due) || 0;
+                return;
+            }
+            if (fundOpen(row)) {
+                blocked[row.date] = 1;
+                return;
+            }
+            if (!byDate[row.date]) {
+                byDate[row.date] = 0;
+                dates.push(row.date);
+            }
+            var paid = Number(row.actual) || 0;
+            byDate[row.date] += paid;
+            actual += paid;
         });
+        sorted.forEach(function (row) {
+            if (!row || row.kind !== 'manual' || blocked[row.date] || byDate[row.date] == null) return;
+            byDate[row.date] += Number(row.actual) || Number(row.due) || 0;
+        });
+        dates = dates.filter(function (date) { return !blocked[date]; });
+        actual += early;
         due = Math.round(due * 100) / 100;
         actual = Math.round(actual * 100) / 100;
         var streak = 0;
@@ -504,10 +518,11 @@
             }
         }
         var businessDays = dates.length;
-        var storeDaily = businessDays ? Math.round(actual / businessDays * 100) / 100 : null;
+        var storeDailyExact = businessDays ? actual / businessDays : null;
+        var storeDaily = storeDailyExact == null ? null : Math.round(storeDailyExact * 100) / 100;
         var rule = productRule(item);
         var baseline = baselineAmount(item, rule);
-        var ratio = storeDaily != null && baseline > 0 ? storeDaily / baseline : null;
+        var ratio = storeDailyExact != null && baseline > 0 ? storeDailyExact / baseline : null;
         var grade = gradeOf(streak, ratio, businessDays, rule);
         return {
             due: money(due),
@@ -801,7 +816,7 @@
                 kind: 'list',
                 columns: ['产品', '基准日均'],
                 moneyAt: [1],
-                tip: '已结款取该产品下 RBT 门店已经结清的金额，含提前支付，不含最近一个尚未确定的营业日。营业日按各门店分别计数后相加，同一门店同一天只算 1 天。每个营业日重算一次，不能手改。',
+                tip: '已结款取该产品下 RBT 门店已经到账核销的金额，含提前支付，不含已冻结和在途。营业日按各门店分别计数后相加，同一门店同一天只算 1 天。每个营业日重算一次，不能手改。',
                 rows: rows
             };
         }
