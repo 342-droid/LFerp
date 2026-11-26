@@ -37,11 +37,28 @@
       (state.storeId ? '指定门店' : '全部门店及平台');
 
     root.querySelector('[data-ldb-tip]').innerHTML =
-      '<p class="ldb-tip">发放和消耗根据筛选后的积分流水汇总。选择门店时，仅展示归属该门店的流水。积分余额为平台当前快照。</p>';
+      '<p class="ldb-tip">发放与消耗按筛选后流水汇总；消耗区分<strong>商品兑换</strong>与<strong>下单抵扣</strong>。选择门店时仅展示归属该门店的流水。积分余额为平台当前快照。</p>';
 
     root.querySelector('[data-ldb-kpis]').innerHTML =
       CUi.kpiCard('发放', CUi.intText(data.issued), '', '筛选期内发放成功') +
-      CUi.kpiCard('消耗', CUi.intText(data.consumed), '', '筛选期内消耗成功') +
+      CUi.kpiCard(
+        '商品兑换消耗',
+        CUi.intText(data.exchangeConsumed),
+        '',
+        '积分商城兑换商品'
+      ) +
+      CUi.kpiCard(
+        '下单抵扣消耗',
+        CUi.intText(data.cashConsumed),
+        '',
+        '订单积分抵现'
+      ) +
+      CUi.kpiCard(
+        '消耗合计',
+        CUi.intText(data.consumed),
+        '',
+        '商品兑换＋下单抵扣'
+      ) +
       CUi.kpiCard('平台当前积分余额', CUi.intText(data.balance), '', '全平台会员积分余额合计（原型）');
 
     var results = root.querySelector('[data-ldb-table]');

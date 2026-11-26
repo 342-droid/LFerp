@@ -1,5 +1,5 @@
 /**
- * 经营数据中心 · 页面公共交互（基于 MdmDataBizUi，叠加本需求筛选与导出）
+ * 经营数据中台 · 页面公共交互（基于 MdmDataBizUi，叠加本需求筛选与导出）
  */
 (function (global) {
   'use strict';
@@ -269,7 +269,6 @@
         '期间指标',
         '每日经营趋势',
         '门店排行前10',
-        '经营支出统计',
         '下单与核销',
         '运营成本与毛利'
       ],
@@ -651,6 +650,8 @@
     renderCompositionPie: Ui.renderCompositionPie,
     bindCompositionPie: Ui.bindCompositionPie,
     showDrawer: Ui.showDrawer,
-    showDetailTable: Ui.showDetailTable
+    showDetailTable: Ui.showDetailTable,
+    exportRowsToFileCenter: Ui.exportRowsToFileCenter,
+    closeDrawer: Ui.closeDrawer
   };
 })(typeof window !== 'undefined' ? window : this);
