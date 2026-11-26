@@ -1,10 +1,65 @@
 {
-  "latestSha": "3c4c1cbec23960a803515fa1c59ad4fdcf77fe95",
-  "total": 642,
+  "latestSha": "1aceb9d8a9eaf157b2b510180cb89df9344deb81",
+  "total": 643,
   "days": [
     {
       "date": "2026-11-26",
       "items": [
+        {
+          "sha": "1aceb9d",
+          "type": "feat",
+          "text": "更新经营数据中台统计与 RBT 付款展示",
+          "author": "u ｌ",
+          "time": "14:53",
+          "pages": [
+            {
+              "file": "MDM/mdm_data_biz_erp.html",
+              "module": "冷丰WMS",
+              "title": "ERP经营分析 · 经营数据中台"
+            },
+            {
+              "file": "MDM/mdm_data_biz_marketing.html",
+              "module": "冷丰WMS",
+              "title": "营销活动 · 经营数据中台"
+            },
+            {
+              "file": "MDM/mdm_data_biz_overview.html",
+              "module": "冷丰WMS",
+              "title": "经营总览 · 经营数据中台"
+            },
+            {
+              "file": "MDM/mdm_data_biz_pos.html",
+              "module": "冷丰WMS",
+              "title": "食亨POS · 经营数据中台"
+            },
+            {
+              "file": "MDM/mdm_data_biz_pos_mapping.html",
+              "module": "冷丰WMS",
+              "title": "ERP与食亨门店关系 · 经营数据中台"
+            },
+            {
+              "file": "MDM/mdm_data_biz_rbt.html",
+              "module": "冷丰WMS",
+              "title": "RBT · 经营数据中台"
+            },
+            {
+              "file": "MDM/mdm_data_biz_store_detail.html",
+              "module": "冷丰WMS",
+              "title": "单店经营详情 · 经营数据中台"
+            },
+            {
+              "file": "MDM/mdm_data_biz_stores.html",
+              "module": "冷丰WMS",
+              "title": "门店分析 · 经营数据中台"
+            },
+            {
+              "file": "MDM/mdm_data_biz_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商分析 · 经营数据中台"
+            }
+          ],
+          "global": true
+        },
         {
           "sha": "3c4c1cb",
           "type": "feat",
@@ -992,17 +1047,17 @@
             {
               "file": "MDM/mdm_data_biz_erp.html",
               "module": "冷丰WMS",
-              "title": "ERP经营分析 · 经营数据中心"
+              "title": "ERP经营分析 · 经营数据中台"
             },
             {
               "file": "MDM/mdm_data_biz_marketing.html",
               "module": "冷丰WMS",
-              "title": "营销活动 · 经营数据中心"
+              "title": "营销活动 · 经营数据中台"
             },
             {
               "file": "MDM/mdm_data_biz_overview.html",
               "module": "冷丰WMS",
-              "title": "经营总览 · 经营数据中心"
+              "title": "经营总览 · 经营数据中台"
             },
             {
               "file": "MDM/mdm_data_biz_points.html",
@@ -1012,12 +1067,12 @@
             {
               "file": "MDM/mdm_data_biz_pos.html",
               "module": "冷丰WMS",
-              "title": "食亨POS · 经营数据中心"
+              "title": "食亨POS · 经营数据中台"
             },
             {
               "file": "MDM/mdm_data_biz_pos_mapping.html",
               "module": "冷丰WMS",
-              "title": "ERP与食亨门店关系 · 经营数据中心"
+              "title": "ERP与食亨门店关系 · 经营数据中台"
             },
             {
               "file": "MDM/mdm_data_biz_proxy.html",
@@ -1027,7 +1082,7 @@
             {
               "file": "MDM/mdm_data_biz_rbt.html",
               "module": "冷丰WMS",
-              "title": "RBT联营 · 经营数据中心"
+              "title": "RBT · 经营数据中台"
             },
             {
               "file": "MDM/mdm_data_biz_retail.html",
@@ -1037,17 +1092,17 @@
             {
               "file": "MDM/mdm_data_biz_store_detail.html",
               "module": "冷丰WMS",
-              "title": "单店经营详情 · 经营数据中心"
+              "title": "单店经营详情 · 经营数据中台"
             },
             {
               "file": "MDM/mdm_data_biz_stores.html",
               "module": "冷丰WMS",
-              "title": "门店分析 · 经营数据中心"
+              "title": "门店分析 · 经营数据中台"
             },
             {
               "file": "MDM/mdm_data_biz_supplier.html",
               "module": "冷丰WMS",
-              "title": "供应商分析 · 经营数据中心"
+              "title": "供应商分析 · 经营数据中台"
             },
             {
               "file": "RBT/rbt_demand.html",
@@ -1064,35 +1119,47 @@
           "notes": [
             {
               "file": "MDM/mdm_data_biz_overview.html",
-              "text": "补齐下单与核销、积分兑换成本、运营毛利／毛利率；系统流量费与手续费无数据源不展示；导出可到文件中心下载示例表"
+              "text": "经营总览 · 经营数据中心: 补齐下单与核销、积分兑换成本、运营毛利／毛利率"
+            },
+            {
+              "file": null,
+              "text": "系统流量费与手续费无数据源不展示"
+            },
+            {
+              "file": "SCM/basic_settings_file_center.html",
+              "text": "导出可到文件中心下载示例表"
             },
             {
               "file": "MDM/mdm_data_biz_rbt.html",
-              "text": "新增联营专题页与侧栏入口"
+              "text": "RBT联营 · 经营数据中心: 新增联营专题页与侧栏入口"
             },
             {
               "file": "MDM/mdm_data_biz_supplier.html",
-              "text": "独立专题页落地"
+              "text": "供应商分析 · 经营数据中心: 独立专题页落地"
             },
             {
               "file": "MDM/mdm_data_biz_stores.html",
-              "text": "对齐中心筛选与导出"
+              "text": "门店分析 · 经营数据中心: 对齐中心筛选与导出"
             },
             {
               "file": "MDM/mdm_data_biz_store_detail.html",
-              "text": "对齐中心筛选与导出"
+              "text": "单店经营详情 · 经营数据中心: 对齐中心筛选与导出"
             },
             {
               "file": "MDM/mdm_data_biz_marketing.html",
-              "text": "营销与积分同页；导出含积分工作表"
+              "text": "营销活动 · 经营数据中心: 营销与积分同页"
+            },
+            {
+              "file": null,
+              "text": "导出含积分工作表"
             },
             {
               "file": "MDM/mdm_data_biz_pos.html",
-              "text": "新增 POS 账单与 ERP 门店关系页"
+              "text": "食亨POS · 经营数据中心: 新增 POS 账单与 ERP 门店关系页"
             },
             {
               "file": "MDM/mdm_data_biz_erp.html",
-              "text": "零售入口改跳转本页"
+              "text": "ERP经营分析 · 经营数据中心: 零售入口改跳转本页"
             },
             {
               "file": "SCM/basic_settings_file_center.html",
@@ -2374,27 +2441,27 @@
             {
               "file": "MDM/mdm_data_biz_erp.html",
               "module": "冷丰WMS",
-              "title": "ERP经营分析 · 经营数据中心"
+              "title": "ERP经营分析 · 经营数据中台"
             },
             {
               "file": "MDM/mdm_data_biz_marketing.html",
               "module": "冷丰WMS",
-              "title": "营销活动 · 经营数据中心"
+              "title": "营销活动 · 经营数据中台"
             },
             {
               "file": "MDM/mdm_data_biz_overview.html",
               "module": "冷丰WMS",
-              "title": "经营总览 · 经营数据中心"
+              "title": "经营总览 · 经营数据中台"
             },
             {
               "file": "MDM/mdm_data_biz_pos.html",
               "module": "冷丰WMS",
-              "title": "食亨POS · 经营数据中心"
+              "title": "食亨POS · 经营数据中台"
             },
             {
               "file": "MDM/mdm_data_biz_pos_mapping.html",
               "module": "冷丰WMS",
-              "title": "ERP与食亨门店关系 · 经营数据中心"
+              "title": "ERP与食亨门店关系 · 经营数据中台"
             },
             {
               "file": "MDM/mdm_data_biz_proxy.html",
@@ -2404,7 +2471,7 @@
             {
               "file": "MDM/mdm_data_biz_rbt.html",
               "module": "冷丰WMS",
-              "title": "RBT联营 · 经营数据中心"
+              "title": "RBT · 经营数据中台"
             },
             {
               "file": "MDM/mdm_data_biz_retail.html",
@@ -2414,17 +2481,17 @@
             {
               "file": "MDM/mdm_data_biz_store_detail.html",
               "module": "冷丰WMS",
-              "title": "单店经营详情 · 经营数据中心"
+              "title": "单店经营详情 · 经营数据中台"
             },
             {
               "file": "MDM/mdm_data_biz_stores.html",
               "module": "冷丰WMS",
-              "title": "门店分析 · 经营数据中心"
+              "title": "门店分析 · 经营数据中台"
             },
             {
               "file": "MDM/mdm_data_biz_supplier.html",
               "module": "冷丰WMS",
-              "title": "供应商分析 · 经营数据中心"
+              "title": "供应商分析 · 经营数据中台"
             },
             {
               "file": "store-app/h5/biz-bd-center.html",
@@ -2493,27 +2560,27 @@
             {
               "file": "MDM/mdm_data_biz_erp.html",
               "module": "冷丰WMS",
-              "title": "ERP经营分析 · 经营数据中心"
+              "title": "ERP经营分析 · 经营数据中台"
             },
             {
               "file": "MDM/mdm_data_biz_marketing.html",
               "module": "冷丰WMS",
-              "title": "营销活动 · 经营数据中心"
+              "title": "营销活动 · 经营数据中台"
             },
             {
               "file": "MDM/mdm_data_biz_overview.html",
               "module": "冷丰WMS",
-              "title": "经营总览 · 经营数据中心"
+              "title": "经营总览 · 经营数据中台"
             },
             {
               "file": "MDM/mdm_data_biz_pos.html",
               "module": "冷丰WMS",
-              "title": "食亨POS · 经营数据中心"
+              "title": "食亨POS · 经营数据中台"
             },
             {
               "file": "MDM/mdm_data_biz_pos_mapping.html",
               "module": "冷丰WMS",
-              "title": "ERP与食亨门店关系 · 经营数据中心"
+              "title": "ERP与食亨门店关系 · 经营数据中台"
             },
             {
               "file": "MDM/mdm_data_biz_proxy.html",
@@ -2523,7 +2590,7 @@
             {
               "file": "MDM/mdm_data_biz_rbt.html",
               "module": "冷丰WMS",
-              "title": "RBT联营 · 经营数据中心"
+              "title": "RBT · 经营数据中台"
             },
             {
               "file": "MDM/mdm_data_biz_retail.html",
@@ -2533,17 +2600,17 @@
             {
               "file": "MDM/mdm_data_biz_store_detail.html",
               "module": "冷丰WMS",
-              "title": "单店经营详情 · 经营数据中心"
+              "title": "单店经营详情 · 经营数据中台"
             },
             {
               "file": "MDM/mdm_data_biz_stores.html",
               "module": "冷丰WMS",
-              "title": "门店分析 · 经营数据中心"
+              "title": "门店分析 · 经营数据中台"
             },
             {
               "file": "MDM/mdm_data_biz_supplier.html",
               "module": "冷丰WMS",
-              "title": "供应商分析 · 经营数据中心"
+              "title": "供应商分析 · 经营数据中台"
             },
             {
               "file": "store-app/h5/biz-bd-center.html",

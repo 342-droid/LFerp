@@ -497,6 +497,69 @@
     "status": "diff",
     "date": "2026-11-23"
   },
+  "1aceb9d|MDM/mdm_data_biz_erp.html": {
+    "before": "changelog-assets/1aceb9d/MDM__mdm_data_biz_erp.html.before.jpg",
+    "after": "changelog-assets/1aceb9d/MDM__mdm_data_biz_erp.html.after.jpg",
+    "regions": 11,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "1aceb9d|MDM/mdm_data_biz_marketing.html": {
+    "before": "changelog-assets/1aceb9d/MDM__mdm_data_biz_marketing.html.before.jpg",
+    "after": "changelog-assets/1aceb9d/MDM__mdm_data_biz_marketing.html.after.jpg",
+    "regions": 6,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "1aceb9d|MDM/mdm_data_biz_overview.html": {
+    "before": "changelog-assets/1aceb9d/MDM__mdm_data_biz_overview.html.before.jpg",
+    "after": "changelog-assets/1aceb9d/MDM__mdm_data_biz_overview.html.after.jpg",
+    "regions": 12,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "1aceb9d|MDM/mdm_data_biz_pos.html": {
+    "before": "changelog-assets/1aceb9d/MDM__mdm_data_biz_pos.html.before.jpg",
+    "after": "changelog-assets/1aceb9d/MDM__mdm_data_biz_pos.html.after.jpg",
+    "regions": 8,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "1aceb9d|MDM/mdm_data_biz_pos_mapping.html": {
+    "before": "changelog-assets/1aceb9d/MDM__mdm_data_biz_pos_mapping.html.before.jpg",
+    "after": "changelog-assets/1aceb9d/MDM__mdm_data_biz_pos_mapping.html.after.jpg",
+    "regions": 26,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "1aceb9d|MDM/mdm_data_biz_rbt.html": {
+    "before": "changelog-assets/1aceb9d/MDM__mdm_data_biz_rbt.html.before.jpg",
+    "after": "changelog-assets/1aceb9d/MDM__mdm_data_biz_rbt.html.after.jpg",
+    "regions": 9,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "1aceb9d|MDM/mdm_data_biz_store_detail.html": {
+    "before": "changelog-assets/1aceb9d/MDM__mdm_data_biz_store_detail.html.before.jpg",
+    "after": "changelog-assets/1aceb9d/MDM__mdm_data_biz_store_detail.html.after.jpg",
+    "regions": 5,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "1aceb9d|MDM/mdm_data_biz_stores.html": {
+    "before": "changelog-assets/1aceb9d/MDM__mdm_data_biz_stores.html.before.jpg",
+    "after": "changelog-assets/1aceb9d/MDM__mdm_data_biz_stores.html.after.jpg",
+    "regions": 12,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
+  "1aceb9d|MDM/mdm_data_biz_supplier.html": {
+    "before": "changelog-assets/1aceb9d/MDM__mdm_data_biz_supplier.html.before.jpg",
+    "after": "changelog-assets/1aceb9d/MDM__mdm_data_biz_supplier.html.after.jpg",
+    "regions": 5,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
   "294a814|MDM/mdm_audit_rbt_demand.html": {
     "regions": 0,
     "status": "diff",
