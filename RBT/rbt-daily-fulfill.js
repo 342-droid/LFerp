@@ -404,7 +404,7 @@
         return out;
     }
 
-    /* 已发生的营收事实。动态基准用它给事业线下的每家门店模拟应付款，不读付款中台账。 */
+    /* 已发生的营收事实，供门店流水演示。 */
     function revenueFacts() {
         return FACTS.map(function (fact) {
             return { date: fact.date, channel: fact.channel, turnover: fact.turnover };
