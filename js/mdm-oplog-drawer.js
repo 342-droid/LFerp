@@ -94,27 +94,40 @@
         });
     }
 
-    function makeLog(scene, opts) {
+    function makeLog(scene, opts, forcedAction) {
         var def = sceneDef(scene);
         var keys = Object.keys(def.actions || {});
-        var action = keys.length ? pick(keys) : scene + '.update';
+        var action = forcedAction || (keys.length ? pick(keys) : scene + '.update');
         var label = (def.actions || {})[action] || '其他操作';
         var success = rand() > 0.12;
-        var name = opts.resourceName || pick(NAMES[scene] || [def.title]);
-        var rid = opts.resourceId || longId();
+        var catalog = scene === 'product' && global.MdmProductCatalog ? global.MdmProductCatalog.getAll() : [];
+        var product = opts.productCode && global.MdmProductCatalog
+            ? global.MdmProductCatalog.getByCode(opts.productCode) : (catalog.length ? pick(catalog) : null);
+        var name = opts.resourceName || (product && product.name) || pick(NAMES[scene] || [def.title]);
+        var rid = opts.resourceId || (product && product.code) || longId();
         var res = [].concat(def.resource || scene)[0];
         var svc = /growth|member/.test(res) ? 'member-core' : /live/.test(res) ? 'live-core' : /fee/.test(res) ? 'settlement-core' : /spu|sku|category|mall/i.test(res) ? 'product-core' : 'system-core';
         var verb = action.split('.').pop();
         var method = /delete|unbind/i.test(verb) ? 'DELETE' : /create|schedule|bind|publish|Draft/i.test(verb) ? 'POST' : 'PUT';
-        var productCode = '';
-        if (scene === 'product') {
-            productCode = opts.productCode || ('spu' + ('000' + (1 + Math.floor(rand() * 200))).slice(-4));
+        var productCode = scene === 'product' ? (opts.productCode || (product && product.code) || '') : '';
+        var changes = success ? makeChanges(def, label, name) : [];
+        if (scene === 'product' && success) {
+            if (action === 'spu.audit.pass') changes = [{ field: '审核状态', before: '待审核', after: '审核通过' }];
+            if (action === 'spu.audit.reject') {
+                changes = [{ field: '审核状态', before: '待审核', after: '审核未通过' }];
+                if (product && product.rejectReason) changes.push({ field: '审核原因', before: '—', after: product.rejectReason });
+            }
+            if (action === 'spu.audit.resubmit') changes = [{ field: '审核状态', before: '审核未通过', after: '待审核' }];
+            if (action === 'spu.delete') changes = [
+                { field: '商品名称', before: name, after: '—' },
+                { field: '商品编码', before: productCode, after: '—' }
+            ];
         }
         return {
             id: 'mol-' + hex(12), scene: scene, action: action, actionLabel: label, timestamp: opts.time || timeAgo(30),
             operator: pick(OPERATORS), resourceId: rid, resourceName: name, productCode: productCode, success: success,
             errorMessage: success ? '' : pick(['名称已存在，请修改后重试', '数据已被他人修改，请刷新后重试', '无该操作权限', '关联数据校验未通过']),
-            changes: success ? makeChanges(def, label, name) : [],
+            changes: changes,
             service: svc, httpMethod: method,
             requestUri: '/' + svc + '/v1/' + res.replace(/\./g, '/') + '/' + verb.replace(/[A-Z]/g, function (c) { return '-' + c.toLowerCase(); }).replace(/_/g, '-'),
             clientIp: pick(IPS), elapsedMs: 20 + Math.floor(rand() * 600), traceId: hex(32),
@@ -130,7 +143,8 @@
             for (var c = 0; c < key.length; c++) seed = (seed * 31 + key.charCodeAt(c)) % 233280;
             var list = [];
             var n = opts.resourceId || opts.resourceName ? 8 + Math.floor(rand() * 8) : 24 + Math.floor(rand() * 10);
-            for (var i = 0; i < n; i++) list.push(makeLog(scene, opts));
+            var productActions = scene === 'product' ? Object.keys(sceneDef(scene).actions || {}) : [];
+            for (var i = 0; i < n; i++) list.push(makeLog(scene, opts, productActions.length ? productActions[i % productActions.length] : null));
             list.sort(function (a, b) { return a.timestamp < b.timestamp ? 1 : -1; });
             if (scene === 'store') {
                 /* 【689】验收示例：张三将门店简称从冷丰杭州总店变更为杭州总店 */
@@ -246,7 +260,9 @@
         var box = layer('mol-drawer',
             '<div class="mol-drawer__head"><span class="mol-drawer__title">' + esc(def.title + ' · 操作日志' + (obj ? ' · ' + obj : '')) + '</span>' +
             '<button type="button" class="mol-close" data-mol-close aria-label="关闭">×</button></div>' +
-            '<div class="mol-drawer__body"><div class="mol-filter">' +
+            '<div class="mol-drawer__body">' +
+            (showProductCode ? '<p class="mol-demo-note">原型示例数据，正式日志以实际业务记录为准</p>' : '') +
+            '<div class="mol-filter">' +
             (showProductCode
                 ? '<label class="mol-filter__item">商品编码<input class="mol-input" data-mol-f="productCode" placeholder="请输入商品编码" autocomplete="off"></label>'
                 : '') +

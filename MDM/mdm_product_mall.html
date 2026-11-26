@@ -81,7 +81,7 @@
                             <div class="product-batch" id="mallProductBatch"></div>
                         </div>
                         <div class="product-table-wrap">
-                            <p class="product-sales-note">原型示例数据 · 点击销量查看成交及退款明细</p><table class="product-table product-proxy-table">
+                            <p class="product-sales-note">原型示例数据 · 点击剩余库存查看库存操作；点击销量查看成交及退款明细</p><table class="product-table product-proxy-table">
                                 <colgroup>
                                     <col class="product-proxy-table__col product-proxy-table__col--check order-live-table__check-col">
                                     <col class="product-proxy-table__col product-proxy-table__col--name">
@@ -93,6 +93,7 @@
                                     <col class="product-proxy-table__col product-proxy-table__col--sale">
                                     <col class="product-proxy-table__col product-proxy-table__col--margin">
                                     <col class="product-proxy-table__col product-proxy-table__col--line">
+                                    <col class="product-proxy-table__col product-proxy-table__col--stock">
                                     <col class="product-proxy-table__col product-proxy-table__col--sales">
                                     <col class="product-proxy-table__col product-proxy-table__col--fulfillment">
                                     <col class="product-proxy-table__col product-proxy-table__col--sale-time">
@@ -113,6 +114,7 @@
                                         <th class="product-proxy-table__th product-proxy-table__th--sale">售价</th>
                                         <th class="product-proxy-table__th product-proxy-table__th--margin">毛利率</th>
                                         <th class="product-proxy-table__th product-proxy-table__th--line">划线价</th>
+                                        <th class="product-proxy-table__th product-proxy-table__th--stock">剩余库存 <button type="button" class="product-stock-help" aria-label="查看剩余库存说明" aria-expanded="false" aria-controls="productStockHelp">ⓘ</button></th>
                                         <th class="product-proxy-table__th product-proxy-table__th--sales">销量 <button type="button" class="product-sales-help" aria-label="查看销量统计说明" aria-expanded="false" aria-controls="productSalesHelp">ⓘ</button></th>
                                         <th class="product-proxy-table__th product-proxy-table__th--fulfillment">履约方式</th>
                                         <th class="product-proxy-table__th product-proxy-table__th--sale-time">可售时间</th>
@@ -162,7 +164,9 @@
     <script src="../js/mdm-product-proxy-library-drawer.js?v=20260911-lib-checkall"></script>
     <script src="../js/mdm-product-list-batch.js?v=20261028-stock-model"></script>
     <script src="../js/mdm-product-sales.js?v=759-r6"></script>
+    <script src="../js/mdm-product-list-stock.js?v=925"></script>
     <script src="../js/mdm-product-mall-list.js?v=20261112-low-margin"></script>
+    <div id="productStockHelp" class="product-sales-help-panel" role="tooltip" hidden>剩余库存 = 可售库存 − 本渠道预占。下单成功即预占，付款不重复预占；取消或发货前退款释放对应预占。履约释放不回补已售剩余；仅当可售按现货计算时，入库联动剩余。未维护库存显示「—」。点击数字查看库存操作流水。</div>
     <div id="productSalesHelp" class="product-sales-help-panel" role="tooltip" hidden>销量为当前渠道商品的累计净成交数量：支付成功商品数量减去退款成功商品数量。未支付、交易失败不计入；仅退运费或差价不扣减。点击销量数字查看明细。</div>
 </body>
 </html>

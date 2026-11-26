@@ -2127,7 +2127,7 @@ body.product-add-drawer-open {
 }
 
 .product-proxy-table {
-  min-width: 1420px;
+  min-width: 1620px;
   table-layout: fixed;
 }
 
@@ -2140,6 +2140,7 @@ body.product-add-drawer-open {
 .product-proxy-table__col--sale { width: 8%; }
 .product-proxy-table__col--margin { width: 10%; }
 .product-proxy-table__col--line { width: 6%; }
+.product-proxy-table__col--stock { width: 8%; }
 .product-proxy-table__col--sales { width: 4%; }
 .product-proxy-table__col--sale-time { width: 11%; }
 .product-proxy-table__col--fulfillment { width: 6%; }
@@ -2198,6 +2199,8 @@ body.product-add-drawer-open {
 .product-proxy-table__td--margin,
 .product-proxy-table__th--line,
 .product-proxy-table__td--line,
+.product-proxy-table__th--stock,
+.product-proxy-table__td--stock,
 .product-proxy-table__th--sales,
 .product-proxy-table__td--sales,
 .product-proxy-table__th--sale-time,
@@ -2214,6 +2217,18 @@ body.product-add-drawer-open {
 .product-proxy-table__th--line,
 .product-proxy-table__td--line {
   white-space: nowrap;
+}
+
+.product-proxy-table__th--stock,
+.product-proxy-table__td--stock {
+  min-width: 108px;
+  overflow: hidden;
+}
+
+.product-proxy-table__th--sales,
+.product-proxy-table__td--sales {
+  min-width: 72px;
+  overflow: hidden;
 }
 
 .product-proxy-table__td--sale-time {
