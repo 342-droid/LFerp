@@ -46,7 +46,7 @@
     function statusType(status) {
         if (status === '已完成') return 'success';
         if (status === '已作废' || status === '已取消' || status === '已驳回') return 'info';
-        if (status === '待审核' || status === '待确认签约' || status === '待重新确认' || status === '待付款') return 'warning';
+        if (status === '待确认签约' || status === '待重新确认' || status === '待付款' || status === '发货中') return 'warning';
         if (status === '门店付款中') return 'danger';
         return '';
     }
@@ -62,7 +62,16 @@
             var columns = [
                 { dataIndex: 'code', title: '需求单号', minWidth: 130, search: { control: 'input' } },
                 { dataIndex: 'storeName', title: '门店', minWidth: 150, align: 'left', showOverflowTooltip: true, search: { control: 'input' } },
-                { dataIndex: 'packageName', title: '商品包', minWidth: 140, align: 'left', showOverflowTooltip: true, search: { control: 'input' } },
+                {
+                    dataIndex: 'status',
+                    title: '状态',
+                    minWidth: 110,
+                    search: { control: 'select', options: statusOptions, placeholder: '请选择状态' }
+                },
+                { dataIndex: 'installmentName', title: '产品', minWidth: 140, align: 'left', showOverflowTooltip: true, search: { control: 'input' }, formatter: function (row) { return show(row.installmentName); } },
+                { dataIndex: 'repayCycle', title: '结算周期', minWidth: 100, formatter: function (row) { return show(row.repayCycle); } },
+                { dataIndex: 'repayMethod', title: '结算方式', minWidth: 100, formatter: function (row) { return show(row.repayMethod); } },
+                { dataIndex: 'repayPeriod', title: '结算比例', minWidth: 140, align: 'left' },
                 { dataIndex: 'traderName', title: '贸易商', minWidth: 180, align: 'left', showOverflowTooltip: true, search: { control: 'input' }, formatter: function (row) { return show(row.traderName); } },
                 { dataIndex: 'providerName', title: '服务商', minWidth: 180, align: 'left', showOverflowTooltip: true, search: { control: 'input' }, formatter: function (row) { return show(row.providerName); } },
                 { dataIndex: 'acceptedAt', title: '接单时间', minWidth: 170, formatter: function (row) { return show(row.acceptedAt); } },
@@ -72,17 +81,8 @@
                 { dataIndex: 'traderReceivable', title: '贸易商应收', minWidth: 130, formatter: function (row) { return receivableText(row, 'trader'); } },
                 { dataIndex: 'lengfengReceivable', title: '冷丰应收', minWidth: 120, formatter: function (row) { return receivableText(row, 'lengfeng'); } },
                 { dataIndex: 'providerReceivable', title: '服务商应收', minWidth: 130, formatter: function (row) { return receivableText(row, 'provider'); } },
-                { dataIndex: 'repayCycle', title: '结算周期', minWidth: 100, formatter: function (row) { return show(row.repayCycle); } },
-                { dataIndex: 'repayMethod', title: '结算方式', minWidth: 100, formatter: function (row) { return show(row.repayMethod); } },
-                { dataIndex: 'repayPeriod', title: '结算比例', minWidth: 140, align: 'left' },
-                {
-                    dataIndex: 'status',
-                    title: '状态',
-                    minWidth: 110,
-                    search: { control: 'select', options: statusOptions, placeholder: '请选择状态' }
-                },
-                { dataIndex: 'remark', title: '备注', minWidth: 180, align: 'left', showOverflowTooltip: true, formatter: function (row) { return show(row.remark); } },
                 { dataIndex: 'withdrawReason', title: '撤回原因', minWidth: 160, align: 'left', showOverflowTooltip: true, formatter: function (row) { return show(row.withdrawReason); } },
+                { dataIndex: 'remark', title: '备注', minWidth: 180, align: 'left', showOverflowTooltip: true, formatter: function (row) { return show(row.remark); } },
                 { dataIndex: 'creator', title: '创建人', minWidth: 100 },
                 { dataIndex: 'createdAt', title: '创建时间', minWidth: 170 },
                 { dataIndex: 'updater', title: '更新人', minWidth: 100 },
@@ -93,7 +93,7 @@
                 var matched = dataApi.list().filter(function (row) {
                     if (!includesText(row.code, params.code)) return false;
                     if (!includesText(row.storeName, params.storeName) && !includesText(row.storeCode, params.storeName)) return false;
-                    if (!includesText(row.packageName, params.packageName) && !includesText(row.packageCode, params.packageName)) return false;
+                    if (!includesText(row.installmentName, params.installmentName) && !includesText(row.installmentCode, params.installmentName)) return false;
                     if (!includesText(row.traderName, params.traderName)) return false;
                     if (!includesText(row.providerName, params.providerName) && !includesText(row.providerId, params.providerName)) return false;
                     if (!blank(params.status) && row.status !== params.status) return false;
