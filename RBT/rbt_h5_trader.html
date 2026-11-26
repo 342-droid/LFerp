@@ -6,6 +6,7 @@
     <title>冷丰RBT-移动端 - 贸易商端</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="rbt-h5-party.css?v=20261127-wallet">
     <style>
         .rbt-h5-store-stage {
             min-height: calc(100vh - 88px);
@@ -931,6 +932,28 @@
             font-weight: 600;
             cursor: pointer;
         }
+        .rbt-biz-hero {
+            margin: 0 0 10px;
+            padding: 14px 12px;
+            border: 1px solid #f0f0f0;
+            border-radius: 12px;
+            background: #fff;
+        }
+        .rbt-biz-hero span { display: block; color: #888; font-size: 12px; }
+        .rbt-biz-hero b { display: block; margin-top: 4px; color: #222; font-size: 28px; font-weight: 700; }
+        .rbt-biz-bars {
+            margin: 0 0 10px;
+            padding: 12px;
+            border: 1px solid #f0f0f0;
+            border-radius: 12px;
+            background: #fff;
+        }
+        .rbt-biz-bar { display: grid; grid-template-columns: 42px 1fr auto; gap: 8px; align-items: center; margin-top: 8px; }
+        .rbt-biz-bar:first-child { margin-top: 0; }
+        .rbt-biz-bar span { color: #666; font-size: 13px; }
+        .rbt-biz-bar i { display: block; height: 8px; border-radius: 99px; background: #fff1e8; }
+        .rbt-biz-bar i b { display: block; height: 8px; border-radius: 99px; background: #ff7019; }
+        .rbt-biz-bar em { font-style: normal; color: #222; font-size: 13px; font-weight: 700; }
         .rbt-biz-summary {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -1402,12 +1425,14 @@
     <script src="../js/mdm-provider-archive-store.js?v=20261117-provider"></script>
     <script src="../js/mdm-trader-archive-store.js?v=20261117-provider"></script>
     <script src="rbt-settle-ratio.js"></script>
-    <script src="rbt-demand-data.js?v=20261126-span-main"></script>
-    <script src="rbt-daily-fulfill.js?v=20261126-span-main"></script>
-    <script src="rbt-trader-store-biz.js?v=20261126-biz-views"></script>
+    <script src="rbt-demand-data.js?v=20261127-pos-pay"></script>
+    <script src="rbt-daily-fulfill.js?v=20261127-pos-pay"></script>
+    <script src="../js/store-pay-password.js"></script>
+    <script src="rbt-party-wallet.js?v=20261127-wallet"></script>
+    <script src="rbt-trader-store-biz.js?v=20261127-pos-pay"></script>
     <script src="rbt-contract-sign.js"></script>
     <script src="../js/contract-bodies.js?v=20261123-trader-read"></script>
-    <script src="rbt-h5-trader-app.js?v=20261126-day-pay"></script>
+    <script src="rbt-h5-trader-app.js?v=20261127-wallet"></script>
     <script src="rbt-h5-trader-login.js"></script>
 </body>
 </html>

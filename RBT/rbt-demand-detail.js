@@ -753,7 +753,7 @@
             : '<tr><td class="is-empty" colspan="11">暂无已发生的每日付款。</td></tr>';
         return (
             '<div class="supplier-detail-tab">' +
-            '<p class="rbt-daily-note">本单已经发生的每日付款。一行是一天、一个渠道。应付款 = 所得佣金 × 该渠道结算比例。当日实际付款按贸易商、冷丰、服务商应收占比拆成三方收款，三笔之和等于当日实际付款。没有服务商时，服务商收款为 0。未发生的日期不出现。' +
+            '<p class="rbt-daily-note">本单已经发生的每日付款。一行是一天、一个渠道。应付款：商城、直播为已入账佣金乘结算比例，POS 为经营流水扣除平台服务费后乘结算比例。当日实际付款按贸易商、冷丰、服务商应收占比拆成三方收款，三笔之和等于当日实际付款。没有服务商时，服务商收款为 0。未发生的日期不出现。' +
             '<a class="rbt-daily-note__more" href="rbt_daily_fulfill.html">全部门店每日付款</a></p>' +
             dailySummary(item, rows, partyCents) +
             '<div class="supplier-detail-section-title">每日明细</div>' +

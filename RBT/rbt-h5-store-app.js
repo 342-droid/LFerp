@@ -1005,7 +1005,7 @@
         { id: 'pending', label: '付款中 · 无每日付款' },
         { id: 'days', label: '付款中 · 有每日付款' }
     ];
-    /* 演示日数据：支付金额 = 收入所得 × 该渠道结算比例。收入所得按当日营业流水的 10% 演示。结算单未确定时记预计付款，已经付款的日期记已付款。 */
+    /* 演示日数据：支付金额 = 收入所得 × 该渠道结算比例。商城、直播的收入所得是已入账佣金；POS 的收入所得是经营流水扣除平台服务费。 */
     var REPAY_DEMO_DAYS = [
         { channel: 'POS', turnover: 860 },
         { channel: '直播', turnover: 420 },
@@ -1056,11 +1056,22 @@
         return next.getFullYear() + '-' + pad(next.getMonth() + 1) + '-' + pad(next.getDate());
     }
 
+    function incomeBase(channel, turnover) {
+        var api = window.RbtDailyFulfill;
+        if (api && typeof api.postedBase === 'function') return api.postedBase(channel, turnover);
+        var amount = Number(turnover) || 0;
+        if (channel === 'POS') {
+            var fee = Math.round(amount * 10) / 100;
+            return Math.round((amount - fee) * 100) / 100;
+        }
+        return Math.round(amount * 10) / 100;
+    }
+
     function repayDayRows(item) {
         var start = repayStartDate(item);
         return markFulfillDays(REPAY_DEMO_DAYS.map(function (row, index) {
             var ratio = channelRatio(item, row.channel);
-            var commission = Math.round(row.turnover * 10) / 100;
+            var commission = incomeBase(row.channel, row.turnover);
             var due = (Math.round(commission * ratio) / 100).toFixed(2);
             return {
                 date: start ? shiftDate(start, Math.floor(index / 3)) : '',
@@ -1075,7 +1086,7 @@
         }));
     }
 
-    /* 日结结算单在营业日的次日确定。演示当前日取最近一个已发生营业日的次日，所以最近一天结算单还没确定，售后仍可能改金额，只记预计付款。更早的日期已经付款，记已付款。 */
+    /* 最近一个入账日还在途。更早的日期已经到账。 */
     function markFulfillDays(rows) {
         var latest = '';
         rows.forEach(function (row) {
@@ -1083,6 +1094,8 @@
         });
         return rows.map(function (row) {
             row.stage = row.date === latest ? 'estimate' : 'due';
+            row.fundStatus = row.stage === 'due' ? 'arrived' : 'inflight';
+            if (row.fundStatus !== 'arrived') row.actual = '';
             return row;
         });
     }
@@ -1221,7 +1234,7 @@
         return Number(parts[1]) + '月' + Number(parts[2]) + '日';
     }
 
-    /* 营业收入自动扣款在营业日次日 08:00:00 结算。预计付款的结算单还没确定，不写结算时间。 */
+    /* 最近一个入账日还在途，不写到账时间。更早的日期用次日批次的演示到账时间，正式环境用转账成功时间。 */
     function settlementTime(date) {
         var parts = String(date || '').split('-');
         if (parts.length < 3) return '';
@@ -1426,6 +1439,9 @@
             '<p class="rbt-pay-amount__hint" id="rbtPayHint"></p></label>' +
             '<button type="button" class="rbt-pay-method is-on" data-pay-method="alipay"><i class="rbt-pay-logo rbt-pay-logo--ali">支</i><span>支付宝</span><em></em></button>' +
             '<button type="button" class="rbt-pay-method" data-pay-method="wechat"><i class="rbt-pay-logo rbt-pay-logo--wx">微</i><span>微信</span><em></em></button>' +
+            '<button type="button" class="rbt-pay-method" data-pay-method="wallet"><i class="rbt-pay-logo rbt-pay-logo--wallet">钱</i><span>钱包<small id="rbtPayWalletBalance">' +
+            esc(walletBalanceText()) + '</small></span><em></em></button>' +
+            '<p class="rbt-pay-method__tip">支付宝、微信跳转对方完成密码验证。钱包支付使用余额账户可提现，不含货款和保证金，需先验证平台支付密码。</p>' +
             '</div>' +
             '<button type="button" class="rbt-pay-confirm" data-pay-confirm>确认支付</button>' +
             '</div>';
@@ -1470,21 +1486,70 @@
             if (input) input.value = centsText(remain);
             return;
         }
-        var payApi = window.StorePayPassword;
-        if (!payApi || !payApi.hasPassword()) {
-            toast('请先设置支付密码');
+        var channel = payMethod === 'wechat' ? '微信' : (payMethod === 'wallet' ? '钱包' : '支付宝');
+        pendingPay = { code: item.code, cents: cents, channel: channel };
+        if (channel !== '钱包') {
+            toast('正在跳转' + channel + '，请在' + channel + '完成密码验证');
+            setTimeout(function () {
+                if (!pendingPay || pendingPay.channel !== channel) return;
+                finishPendingPay();
+            }, 650);
             return;
         }
-        if (payApi.isLocked()) {
+        var wallet = storeWalletSnap();
+        if (!wallet) {
+            pendingPay = null;
+            toast('钱包暂不可用');
+            return;
+        }
+        if (cents / 100 > wallet.withdrawable + 0.001) {
+            pendingPay = null;
+            toast('钱包可提现余额不足，当前 ¥' + wallet.withdrawable.toFixed(2));
+            return;
+        }
+        var payApi = window.StorePayPassword;
+        if (payApi && payApi.isLocked()) {
+            pendingPay = null;
             toast('付款失败，请重新操作！');
             return;
         }
-        pendingPay = {
-            code: item.code,
-            cents: cents,
-            channel: payMethod === 'wechat' ? '微信' : '支付宝'
-        };
         openPwdSheet();
+    }
+
+    function storeWalletSnap() {
+        var api = window.StoreWalletDemo;
+        if (!api || typeof api.snapshot !== 'function') return null;
+        return api.snapshot();
+    }
+
+    function walletBalanceText() {
+        var snap = storeWalletSnap();
+        if (!snap) return '可提现余额暂不可用';
+        return '可提现 ¥' + Number(snap.withdrawable || 0).toFixed(2);
+    }
+
+    function debitStoreWallet(pay) {
+        var api = window.StoreWalletDemo;
+        if (!api || typeof api.load !== 'function' || typeof api.save !== 'function') return { ok: false, message: '钱包暂不可用' };
+        var data = api.load();
+        var snap = api.snapshot(data);
+        var amount = Math.round(pay.cents) / 100;
+        if (amount > Number(snap.withdrawable || 0) + 0.001) return { ok: false, message: '钱包可提现余额不足' };
+        data.withdrawable = Math.round((Number(data.withdrawable || 0) - amount) * 100) / 100;
+        data.ledgers = data.ledgers || [];
+        data.ledgers.unshift({
+            id: 'RBT' + Date.now(),
+            time: nowText(),
+            type: '提前支付',
+            dir: 'out',
+            amount: amount,
+            account: '平台',
+            bizNo: pay.code,
+            payMethod: '余额账户',
+            remark: '提前支付从余额账户可提现扣款，不扣货款、不扣保证金'
+        });
+        api.save(data);
+        return { ok: true };
     }
 
     function closePwdSheet() {
@@ -1517,6 +1582,7 @@
                 '<div class="rbt-pwd__body"><p class="rbt-pwd__amount">' + esc(amount) + '</p>' +
                 '<div class="rbt-pwd__boxes" aria-label="支付密码">' + boxes + '</div>' +
                 '<p class="rbt-pwd__error">' + (payPwdError ? '密码输入错误，请重新输入' : '') + '</p>' +
+                '<p class="rbt-pwd__demo">未单独设置时，演示密码为 123456</p>' +
                 '<button type="button" class="rbt-pwd__forgot" data-pwd-forgot>忘记密码?</button></div>' +
                 '<div class="rbt-pwd__keypad" aria-label="数字键盘">' +
                 pwdKey('1') + pwdKey('2') + pwdKey('3') +
@@ -1571,6 +1637,13 @@
     function finishPendingPay() {
         var pay = pendingPay;
         if (!pay) return;
+        if (pay.channel === '钱包') {
+            var debit = debitStoreWallet(pay);
+            if (!debit.ok) {
+                toast(debit.message || '钱包扣款失败');
+                return;
+            }
+        }
         pendingPay = null;
         addManualPay(pay.code, pay.cents, pay.channel);
         closePwdSheet();
@@ -1594,6 +1667,9 @@
         payPwd += key;
         renderPwdFace();
         if (payPwd.length < 6) return;
+        if (!payApi || !payApi.hasPassword()) {
+            if (payPwd === '123456' && payApi && typeof payApi.setPassword === 'function') payApi.setPassword('123456');
+        }
         if (!payApi || !payApi.hasPassword()) {
             payPwd = '';
             payPwdError = true;
@@ -1753,6 +1829,21 @@
         node.hidden = false;
     }
 
+    /* 两份合同都签完的最晚时间，就是合同内容生效的时间。 */
+    function effectTimeOf(item) {
+        var api = window.RbtDemandData;
+        if (!item || !api || typeof api.signContracts !== 'function') return '';
+        var contracts = api.signContracts(item) || [];
+        if (!contracts.length || contracts.some(function (contract) { return !contract || contract.signStatus !== '已签署'; })) return '';
+        var latest = '';
+        contracts.forEach(function (contract) {
+            (contract.parties || []).forEach(function (party) {
+                if (party && party.signedAt && party.signedAt > latest) latest = party.signedAt;
+            });
+        });
+        return latest;
+    }
+
     /* 已发生节点才列出时间。付款时间是贸易商付完货款的时间，本业务不叫放款。 */
     function earliestLogTime(item, pattern) {
         var found = '';
@@ -1771,6 +1862,7 @@
         }
         if (!item) return lines;
         add('创建时间', item.createdAt);
+        lines.push(['签署时间', effectTimeOf(item) || '—']);
         add('确认签约', earliestLogTime(item, /确认签约/));
         add('付款时间', item.paidAt || earliestLogTime(item, /在线支付|线下支付/));
         if (item.status === '已完成') add('付款完成', item.completedAt);
@@ -2437,7 +2529,8 @@
             return;
         }
         if (payPick) {
-            payMethod = payPick.getAttribute('data-pay-method') === 'wechat' ? 'wechat' : 'alipay';
+            var picked = payPick.getAttribute('data-pay-method');
+            payMethod = picked === 'wechat' || picked === 'wallet' ? picked : 'alipay';
             var methods = document.querySelectorAll('#rbtH5Pay [data-pay-method]');
             Array.prototype.forEach.call(methods, function (btn) {
                 btn.classList.toggle('is-on', btn === payPick);
