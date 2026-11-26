@@ -801,7 +801,7 @@
             hidden.value = api.formatBiz(selectedBiz());
         }
         function paintBiz(keep) {
-            var opts = api.bizLines(lineSel.value, brandSel.value);
+            var opts = api.bizLines(lineSel.value);
             var keepSet = keep || [];
             checks.innerHTML = '';
             opts.forEach(function (name) {
@@ -816,10 +816,10 @@
                 checks.appendChild(lab);
             });
             tip.textContent = opts.length
-                ? '可多选。更换品牌后，不在该品牌下的业务线会取消勾选。'
+                ? '可多选。更换事业线后，不在该事业线下的业务线会取消勾选。'
                 : lineSel.value
-                  ? '请先选择品牌名称。业务线可多选。'
-                  : '请先选择事业线和品牌名称。业务线可多选，选项随品牌变化。';
+                  ? '该事业线暂无业务线，请先在门店分类配置中添加。'
+                  : '请先选择事业线。业务线可多选。';
             syncHidden();
         }
         function paintBrands(keepBrand, keepBiz) {
@@ -837,13 +837,10 @@
             });
             brandSel.disabled = !list.length;
             brandSel.value = list.indexOf(keepBrand) >= 0 ? keepBrand : '';
-            paintBiz(brandSel.value ? keepBiz : []);
+            paintBiz(keepBiz);
         }
         lineSel.addEventListener('change', function () {
             paintBrands('', []);
-        });
-        brandSel.addEventListener('change', function () {
-            paintBiz([]);
         });
         body.appendChild(editRow('事业线', lineSel, 'bizLine', row));
         body.appendChild(editRow('品牌名称', brandSel, 'brandName', row));

@@ -409,7 +409,7 @@
         refs.bizHidden.setAttribute('data-required-msg', '请选择业务线');
         var tip = document.createElement('div');
         tip.className = 'store-form__field-tip';
-        tip.textContent = '请先选择事业线和品牌名称。业务线可多选，选项随品牌变化。';
+        tip.textContent = '请先选择事业线。业务线可多选，选项随事业线变化。';
         wrap.appendChild(refs.bizChecks);
         wrap.appendChild(refs.bizHidden);
         wrap.appendChild(tip);
@@ -424,17 +424,17 @@
             refs.bizHidden.value = api.formatBiz(selectedBiz());
         }
         function paintBiz(keep) {
-            var opts = api.bizLines(refs.bizLineSel.value, refs.brandSel.value);
+            var opts = api.bizLines(refs.bizLineSel.value);
             var keepSet = keep || [];
             refs.bizChecks.innerHTML = '';
             if (!opts.length) {
                 tip.textContent = refs.bizLineSel.value
-                    ? '请先选择品牌名称。业务线可多选。'
-                    : '请先选择事业线和品牌名称。业务线可多选，选项随品牌变化。';
+                    ? '该事业线暂无业务线，请先在门店分类配置中添加。'
+                    : '请先选择事业线。业务线可多选。';
                 syncHidden();
                 return;
             }
-            tip.textContent = '可多选。更换品牌后，不在该品牌下的业务线会取消勾选。';
+            tip.textContent = '可多选。更换事业线后，不在该事业线下的业务线会取消勾选。';
             opts.forEach(function (name) {
                 var lab = document.createElement('label');
                 lab.className = 'store-form__check';
@@ -465,13 +465,10 @@
             });
             refs.brandSel.disabled = !brandList.length;
             refs.brandSel.value = brandList.indexOf(cur) >= 0 ? cur : '';
-            paintBiz(refs.brandSel.value ? keepBiz : []);
+            paintBiz(keepBiz);
         }
         refs.bizLineSel.addEventListener('change', function () {
             paintBrands('', []);
-        });
-        refs.brandSel.addEventListener('change', function () {
-            paintBiz([]);
         });
         refs.setBizStructure = function (line, brand, biz) {
             refs.bizLineSel.value = api.lines().indexOf(line) >= 0 ? line : '';
