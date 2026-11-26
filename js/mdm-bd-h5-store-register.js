@@ -1194,7 +1194,7 @@
       if (!api) return '';
       var lineList = api.lines();
       var brandList = api.brands(st.bizLine);
-      var bizOpts = api.bizLines(st.bizLine, st.brandName);
+      var bizOpts = api.bizLines(st.bizLine);
       var picked = api.normalizeBiz(st.bizLines);
       var lineOpts =
         '<option value="">请选择事业线</option>' +
@@ -1231,7 +1231,7 @@
             .join('') +
           '</div>'
         : '<p class="h5-hint">' +
-          (st.bizLine ? '请先选择品牌名称' : '请先选择事业线和品牌名称') +
+          (st.bizLine ? '该事业线暂无业务线' : '请先选择事业线') +
           '</p>';
       return (
         field('事业线', true, '<select class="h5-input" id="f_bizline">' + lineOpts + '</select>', '单选') +
@@ -1245,7 +1245,7 @@
             '</select>',
           '随事业线切换'
         ) +
-        field('业务线', true, checks, '可多选，随品牌切换')
+        field('业务线', true, checks, '可多选，随事业线切换')
       );
     }
 
@@ -1619,7 +1619,7 @@
           }
           if (this && this.id === 'f_brand') {
             var allowed = window.StoreBizStructure
-              ? window.StoreBizStructure.bizLines(st.bizLine, st.brandName)
+              ? window.StoreBizStructure.bizLines(st.bizLine)
               : [];
             st.bizLines = (st.bizLines || []).filter(function (n) {
               return allowed.indexOf(n) >= 0;
