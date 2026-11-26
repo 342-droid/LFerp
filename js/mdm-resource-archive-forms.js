@@ -711,6 +711,101 @@
         return shown.replace('****', '0000');
     }
 
+    function storeDuplicateSimilarity(a, b) {
+        a = String(a || '').toLowerCase().replace(/[\s\-—_·,，.。()（）\/\\]/g, '');
+        b = String(b || '').toLowerCase().replace(/[\s\-—_·,，.。()（）\/\\]/g, '');
+        if (!a || !b) return 0;
+        var prev = Array.from({ length: b.length + 1 }, function (_, i) { return i; });
+        for (var i = 1; i <= a.length; i++) {
+            var next = [i];
+            for (var j = 1; j <= b.length; j++) {
+                next[j] = Math.min(next[j - 1] + 1, prev[j] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+            }
+            prev = next;
+        }
+        return Math.round((1 - prev[b.length] / Math.max(a.length, b.length)) * 100);
+    }
+
+    function storeDuplicateMatches(refs, currentRow) {
+        var name = refs.nameInp && refs.nameInp.value;
+        var region = refs.regionInp && refs.regionInp.value;
+        var detail = refs.addressTa && refs.addressTa.value;
+        var phone = String(refs.phoneInp && refs.phoneInp.value || '').replace(/\D/g, '');
+        var table = currentRow && currentRow.closest('table');
+        var headings = table ? Array.prototype.map.call(table.querySelectorAll('thead th'), function (th) {
+            return String(th.textContent || '').trim();
+        }) : [];
+        var codeIndex = headings.indexOf('门店编码');
+        var nameIndex = headings.indexOf('门店名称');
+        return Array.prototype.map.call(document.querySelectorAll('#tableBody tr'), function (row) {
+            if (row === currentRow) return null;
+            var cells = row.querySelectorAll('td');
+            if (codeIndex < 0 || nameIndex < 0 || cells.length <= Math.max(codeIndex, nameIndex)) return null;
+            var peerDetail = row.getAttribute('data-address') || '';
+            var nameScore = storeDuplicateSimilarity(name, cellPlainText(cells[nameIndex]));
+            var addressScore = Math.max(
+                storeDuplicateSimilarity(String(region || '') + String(detail || ''), String(row.getAttribute('data-region') || '') + peerDetail),
+                storeDuplicateSimilarity(detail, peerDetail)
+            );
+            var peerPhone = String(row.getAttribute('data-phone') || '').replace(/\D/g, '');
+            var phoneMatch = phone.length === 11 && peerPhone.length === 11 && phone === peerPhone;
+            var hits = [];
+            if (nameScore >= 80) hits.push('门店名称相似 ' + nameScore + '%');
+            if (addressScore >= 85) hits.push('门店地址相似 ' + addressScore + '%');
+            if (phoneMatch) hits.push('手机号相同 100%');
+            return hits.length ? { id: cellPlainText(cells[codeIndex]), name: cellPlainText(cells[nameIndex]), hits: hits, score: Math.max(nameScore, addressScore, phoneMatch ? 100 : 0) } : null;
+        }).filter(Boolean).sort(function (a, b) { return b.score - a.score; }).slice(0, 3);
+    }
+
+    function showStoreDuplicateConfirm(matches, onContinue) {
+        var backdrop = document.createElement('div');
+        backdrop.className = 'store-duplicate-backdrop';
+        var dialog = document.createElement('div');
+        dialog.className = 'store-duplicate-dialog';
+        dialog.setAttribute('role', 'dialog');
+        dialog.setAttribute('aria-modal', 'true');
+        var title = document.createElement('h2');
+        title.textContent = '发现疑似重复门店';
+        dialog.appendChild(title);
+        var intro = document.createElement('p');
+        intro.textContent = '以下门店的名称、地址或手机号与本次填写内容相同或相似。请核对后决定是否继续保存。';
+        dialog.appendChild(intro);
+        matches.forEach(function (match) {
+            var item = document.createElement('div');
+            item.className = 'store-duplicate-item';
+            var name = document.createElement('strong');
+            name.textContent = match.name || '未命名门店';
+            var id = document.createElement('span');
+            id.textContent = '门店编码：' + (match.id || '—');
+            var hits = document.createElement('small');
+            hits.textContent = match.hits.join(' · ');
+            item.appendChild(name);
+            item.appendChild(id);
+            item.appendChild(hits);
+            dialog.appendChild(item);
+        });
+        var note = document.createElement('p');
+        note.className = 'store-duplicate-note';
+        note.textContent = '相似度仅供排查参考；继续保存后仍按原流程处理。';
+        dialog.appendChild(note);
+        var actions = document.createElement('div');
+        actions.className = 'store-duplicate-actions';
+        var back = document.createElement('button');
+        back.type = 'button';
+        back.textContent = '返回修改';
+        var confirm = document.createElement('button');
+        confirm.type = 'button';
+        confirm.textContent = '确认，继续保存';
+        confirm.className = 'erp-btn erp-btn--primary';
+        back.addEventListener('click', function () { backdrop.remove(); });
+        confirm.addEventListener('click', function () { backdrop.remove(); onContinue(); });
+        actions.appendChild(back);
+        actions.appendChild(confirm);
+        dialog.appendChild(actions);
+        backdrop.appendChild(dialog);
+        document.body.appendChild(backdrop);
+    }
+
     /* 【857】演示用验证码 */
     var STORE_PHONE_DEMO_CODE = '123456';
 
@@ -2616,33 +2711,43 @@
                 return { changed: true, phone: newPhone, masked: masked, otherStore: otherStore };
             }
             var phoneCheck = null;
+            function commitStoreEdit() {
+                if (!phoneCheck || !phoneCheck.changed) return applyEdit() !== false;
+                var pc = phoneCheck;
+                var subjectId = cellPlainText(cells[1]) || (refs.subjectSel && selectedLabel(refs.subjectSel)) || '—';
+                var storeCode = cellPlainText(cells[0]) || storeId || '—';
+                var msg =
+                    '确认更换门店【' + (refs.nameInp.value || storeName) + '】的店长？\n' +
+                    '门店主体：' + subjectId + '（ID 不变）\n' +
+                    '门店编码：' + storeCode + '\n' +
+                    '原店长：' + (refs.originalPhone || '—') + '\n' +
+                    '接任店长：' + pc.phone + '\n' +
+                    '确认后，接任店长可登录并管理本店，原店长不再拥有本店管理权限。';
+                if (pc.otherStore) {
+                    msg += '\n该手机号已是门店【' + pc.otherStore + '】的店长登录号，保存后接任用户可同时管理本店及其原有门店。';
+                }
+                showStorePhoneConfirm(msg, function () {
+                    if (cells[7]) cells[7].textContent = pc.masked;
+                    tr.setAttribute('data-phone', pc.phone);
+                    if (applyEdit() === false) return;
+                    removeArchiveFormModals();
+                    if (typeof showToast === 'function') {
+                        showToast('已更换门店店长，接任店长可使用 ' + pc.phone + ' 登录并管理本店', 'success');
+                    }
+                });
+                return false;
+            }
             attachWideModal(
                 '编辑门店',
                 bundle.body,
                 function () {
-                    if (!phoneCheck || !phoneCheck.changed) {
-                        return applyEdit() !== false;
-                    }
-                    var pc = phoneCheck;
-                    var subjectId = cellPlainText(cells[1]) || (refs.subjectSel && selectedLabel(refs.subjectSel)) || '—';
-                    var storeCode = cellPlainText(cells[0]) || storeId || '—';
-                    var msg =
-                        '确认更换门店【' + (refs.nameInp.value || storeName) + '】的店长？\n' +
-                        '门店主体：' + subjectId + '（ID 不变）\n' +
-                        '门店编码：' + storeCode + '\n' +
-                        '原店长：' + (refs.originalPhone || '—') + '\n' +
-                        '接任店长：' + pc.phone + '\n' +
-                        '确认后，接任店长可登录并管理本店，原店长不再拥有本店管理权限。';
-                    if (pc.otherStore) {
-                        msg += '\n该手机号已是门店【' + pc.otherStore + '】的店长登录号，保存后接任用户可同时管理本店及其原有门店。';
-                    }
-                    showStorePhoneConfirm(msg, function () {
-                        if (cells[7]) cells[7].textContent = pc.masked;
-                        tr.setAttribute('data-phone', pc.phone);
-                        if (applyEdit() === false) return;
-                        removeArchiveFormModals();
-                        if (typeof showToast === 'function') {
-                            showToast('已更换门店店长，接任店长可使用 ' + pc.phone + ' 登录并管理本店', 'success');
+                    var matches = storeDuplicateMatches(refs, tr);
+                    if (!matches.length) return commitStoreEdit();
+                    showStoreDuplicateConfirm(matches, function () {
+                        var result = commitStoreEdit();
+                        if (result !== false) {
+                            removeArchiveFormModals();
+                            if (typeof showToast === 'function') showToast('已保存门店资料（演示）', 'success');
                         }
                     });
                     return false;
@@ -2653,6 +2758,15 @@
                 },
                 '门店'
             );
+            if (new URLSearchParams(window.location.search).get('previewDuplicate') === '1') {
+                showStoreDuplicateConfirm([{
+                    id: 'HGH00001',
+                    name: '鲜丰水果文一西路店',
+                    hits: ['门店名称相似 92%', '门店地址相似 87%', '手机号相同 100%']
+                }], function () {
+                    if (typeof showToast === 'function') showToast('界面预览不会保存资料', 'success');
+                });
+            }
         },
         openTraderAdd: function (onSaved) {
             var bundle = createTraderFormBundle();
