@@ -2966,8 +2966,8 @@
         var tags = [];
         var st = store.storeStatus;
         if (st === '已启用' || st === '正常') tags.push({ kind: 'green', label: '已启用' });
-        else if (['已冻结', '冻结', '已禁用', '停用'].indexOf(st) !== -1) {
-            tags.push({ kind: 'gray', label: '已冻结' });
+        else if (['已冻结', '冻结', '已禁用', '停用', '已停用'].indexOf(st) !== -1) {
+            tags.push({ kind: 'gray', label: '已停用' });
         }
         if (store.opStatus && store.opStatus !== '—') {
             tags.push({ kind: 'gray', label: store.opStatus });

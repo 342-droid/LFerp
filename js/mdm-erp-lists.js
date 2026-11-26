@@ -1358,8 +1358,10 @@
             var serviceOff = window.MdmArchiveEnableDisable && window.MdmArchiveEnableDisable.isStoreDisabledByMeta({id:code,name:sn});
             if (qService === 'off' && !serviceOff) ok = false;
             if (qService === 'on' && serviceOff) ok = false;
-            if (qSt === 'normal' && stTxt !== '已启用') ok = false;
-            if (qSt === 'stopped' && stTxt !== '已冻结') ok = false;
+            /* 门店状态统一为启用/停用：筛选同时覆盖档案状态与业务停用 */
+            var statusOff = serviceOff || stTxt === '已停用' || stTxt === '已冻结';
+            if (qSt === 'normal' && statusOff) ok = false;
+            if (qSt === 'stopped' && !statusOff) ok = false;
             tr.style.display = ok ? '' : 'none';
         });
         pm.refreshPagination();
@@ -1526,7 +1528,7 @@
             splitService: String(tr.getAttribute('data-split') || '').trim(),
             onboardStatus: c[STORE_COL.onboard].textContent.trim(),
             balancePay: c[STORE_COL.balancePay].textContent.trim(),
-            storeStatus: stSpan ? stSpan.textContent.trim() : '',
+            storeStatus: normalizeStoreArchiveStatus(stSpan ? stSpan.textContent.trim() : ''),
             hoursText: (c[STORE_COL.hours].textContent || '').replace(/\s+/g, ' ').trim()
         };
     }
@@ -1539,7 +1541,7 @@
     }
 
     function normalizeStoreArchiveStatus(status) {
-        if (['冻结', '已冻结', '已禁用', '停用', '禁用', '已停用'].indexOf(status) !== -1) return '已冻结';
+        if (['冻结', '已冻结', '已禁用', '停用', '禁用', '已停用'].indexOf(status) !== -1) return '已停用';
         if (['正常', '启用', '已启用'].indexOf(status) !== -1) return '已启用';
         return status;
     }
@@ -1599,18 +1601,26 @@
                     DEFAULT_STORE_TIP.replace(/"/g, '&quot;') +
                     '">设为系统默认门店</a> ';
             }
-            if (meta.storeStatus === '已冻结') {
-                html += '<a href="#" class="mdm-store-disable">解冻</a>';
-            } else if (meta.storeStatus === '已启用') {
-                html += isDefault
-                    ? '<a href="#" class="mdm-store-disable is-locked" title="系统默认门店不允许冻结">冻结</a>'
-                    : '<a href="#" class="mdm-store-disable">冻结</a>';            }
             if (window.MdmArchiveEnableDisable) {
                 var serviceOff = window.MdmArchiveEnableDisable.isStoreDisabledByMeta({id: meta.storeId, name: meta.name});
-                html += ' <a href="#" class="mdm-store-service-toggle">' + (serviceOff ? '启用' : '停用') + '</a>';
+                var statusOff = serviceOff || meta.storeStatus === '已停用';
+                html += isDefault && !statusOff
+                    ? ' <a href="#" class="mdm-store-service-toggle is-locked" title="系统默认门店不允许停用">停用</a>'
+                    : ' <a href="#" class="mdm-store-service-toggle">' + (statusOff ? '启用' : '停用') + '</a>';
+                var statusTd = tr.querySelectorAll('td')[STORE_COL.status];
+                var statusSpan = statusTd && statusTd.querySelector('.status');
+                if (statusSpan) {
+                    statusSpan.textContent = statusOff ? '已停用' : '已启用';
+                    statusSpan.className = 'status ' + (statusOff ? 'inactive' : 'active');
+                }
                 var badge = tr.querySelector('.mdm-service-status');
                 if (badge) badge.remove();
-                if (serviceOff) tr.querySelectorAll('td')[STORE_COL.status].insertAdjacentHTML('beforeend', '<span class="mdm-service-status status inactive">已停用</span>');
+            } else if (meta.storeStatus === '已停用') {
+                html += '<a href="#" class="mdm-store-disable">启用</a>';
+            } else if (meta.storeStatus === '已启用') {
+                html += isDefault
+                    ? '<a href="#" class="mdm-store-disable is-locked" title="系统默认门店不允许停用">停用</a>'
+                    : '<a href="#" class="mdm-store-disable">停用</a>';
             }
             actionTd.innerHTML = html.replace(/\s+$/, '');
         });
@@ -1651,17 +1661,18 @@
 
     function toggleStoreDisable(tr, pm) {
         var meta = storeRowMeta(tr);
-        if (!meta || ['已启用', '已冻结'].indexOf(meta.storeStatus) === -1) return;
-        var freezing = meta.storeStatus === '已启用';
-        var verb = freezing ? '冻结' : '解冻';
-        var next = freezing ? '已冻结' : '已启用';
+        var cur = normalizeStoreArchiveStatus(meta && meta.storeStatus);
+        if (!meta || ['已启用', '已停用'].indexOf(cur) === -1) return;
+        var disabling = cur === '已启用';
+        var verb = disabling ? '停用' : '启用';
+        var next = disabling ? '已停用' : '已启用';
         var source = tr.dataset.storeStatusSource || meta.storeStatus;
         function canChange() {
             var current = readSystemDefaultStore();
-            if (freezing && current && current.storeId === meta.storeId) {
+            if (disabling && current && current.storeId === meta.storeId) {
                 window.MdmSubjectLf.showLfWarmConfirm(
                     '门店「' + meta.name + '」（' + meta.storeId + '）是系统默认门店。请先切换系统默认门店，再重试。',
-                    null, false, '无法冻结门店');
+                    null, false, '无法停用门店');
                 return false;
             }
             if (archiveStatus('store', meta.storeId, source) !== source) {
@@ -1672,10 +1683,10 @@
         }
         if (!canChange()) return;
         var message = verb + '门店「' + meta.name + '」（' + meta.storeId + '）？';
-        if (freezing) message += '\n冻结后停止新下单和支付，存量履约、售后及结算继续按原单据处理。';
+        if (disabling) message += '\n停用后停止新下单和支付，存量履约、售后及结算继续按原单据处理。';
         window.MdmSubjectLf.showLfWarmConfirm(message, function (reason) {
             // 沿用原禁用值，保留钱包对禁用记录的保证金解冻口径。
-            var storedStatus = freezing ? '已禁用' : '已启用';
+            var storedStatus = disabling ? '已禁用' : '已启用';
             if (!canChange() || !saveArchiveStatus('store', meta.storeId, storedStatus)) return;
             tr.dataset.storeStatusSource = storedStatus;
             updateArchiveStatus(pm, tr, STORE_COL.status, next);
@@ -1683,7 +1694,7 @@
                 verb + '门店', { '状态': meta.storeStatus }, { '状态': next, '原因': reason });
             refreshStoreArchiveActions();
             storeArchiveFilter(pm);
-            showToast(freezing ? '门店已冻结' : '门店已解冻', 'success');
+            showToast(disabling ? '门店已停用' : '门店已启用', 'success');
         }, true);
     }
 
@@ -1691,7 +1702,11 @@
         var api = window.MdmArchiveEnableDisable;
         var meta = storeRowMeta(tr);
         if (!api || !meta) return;
-        var off = api.isStoreDisabledByMeta({id: meta.storeId, name: meta.name});
+        if (tr.querySelector('.mdm-store-service-toggle.is-locked')) {
+            return showToast('系统默认门店不允许停用', 'error');
+        }
+        var off = api.isStoreDisabledByMeta({id: meta.storeId, name: meta.name}) ||
+            normalizeStoreArchiveStatus(meta.storeStatus) === '已停用';
         function precheck() {
             if (!tr.hasAttribute('data-disable-blocks')) tr.setAttribute('data-disable-blocks', meta.storeId === 'HGH00002' ? 'retail:2,proxy:1' : '');
             var result = api.buildStorePrecheck(tr);
@@ -1713,8 +1728,14 @@
                 if (off && !enableAllowed()) return showToast('配送仓库状态已变化，无法启用门店','error');
                 if (!off && !precheck().canDisable) return showToast('业务状态已变化，请重新预检','error');
                 api.setStoreDisabled({id:meta.storeId,name:meta.name,disabled:!off});
-                if (window.MdmOperationLog) window.MdmOperationLog.record('store', meta.storeId, off?'启用门店':'停用门店', {'业务状态':off?'停用':'启用'}, {'业务状态':off?'启用':'停用','原因':payload.reason||''});
+                /* 档案状态与业务停启用统一：停用写已禁用，兼容钱包保证金解冻口径 */
+                var storedStatus = off ? '已启用' : '已禁用';
+                saveArchiveStatus('store', meta.storeId, storedStatus);
+                tr.dataset.storeStatusSource = storedStatus;
+                updateArchiveStatus(pm, tr, STORE_COL.status, off ? '已启用' : '已停用');
+                if (window.MdmOperationLog) window.MdmOperationLog.record('store', meta.storeId, off?'启用门店':'停用门店', {'状态':off?'停用':'启用'}, {'状态':off?'启用':'停用','原因':payload.reason||''});
                 refreshStoreArchiveActions();
+                storeArchiveFilter(pm);
                 showToast(off?'门店已启用':'门店已停用','success');
             }});
     }
@@ -1747,7 +1768,7 @@
                 editDisabled: true,
                 options: [
                     { value: '已启用', text: '已启用' },
-                    { value: '已冻结', text: '已冻结' }
+                    { value: '已停用', text: '已停用' }
                 ]
             }
         ];

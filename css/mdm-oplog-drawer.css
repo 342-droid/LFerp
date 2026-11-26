@@ -9,6 +9,9 @@
 .mol-drawer__body { flex: 1; overflow: auto; padding: 4px 20px 20px; }
 
 .mol-filter { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+.mol-filter__item { display: inline-flex; align-items: center; gap: 8px; margin: 0; font-size: 13px; color: #606266; white-space: nowrap; }
+.mol-filter__item .mol-select,
+.mol-filter__item .mol-input { min-width: 160px; }
 .mol-select, .mol-input { height: 32px; min-width: 180px; padding: 0 10px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 13px; color: #303133; background: #fff; box-sizing: border-box; }
 .mol-select:focus, .mol-input:focus { outline: none; border-color: #ff7019; }
 .mol-input--date { min-width: 150px; }
