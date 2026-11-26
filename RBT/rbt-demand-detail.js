@@ -796,7 +796,7 @@
             return '<th' + (index === 4 || index === 5 || index === 6 ? '' : ' class="is-money"') + '>' + title + '</th>';
         }).join('') + '</tr>';
         var body = '<tr>' + cells.map(function (value, index) {
-            if (index === 6) return '<td>' + grade + (fact.classA ? ' · A类' : '') + '</td>';
+            if (index === 6) return '<td>' + grade + '</td>';
             var moneyCell = index !== 4 && index !== 5;
             return '<td' + (moneyCell ? ' class="is-money"' : '') + '>' + esc(value) + '</td>';
         }).join('') + '</tr>';

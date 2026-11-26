@@ -54,7 +54,6 @@
             fulfillProgress: fact.progress,
             fulfillBaseline: fact.baseline || '—',
             riskGrade: fact.grade,
-            riskMark: fact.classA ? 'A类' : '',
             fulfillPhase: fact.phase || phase(row.status)
         });
     }
