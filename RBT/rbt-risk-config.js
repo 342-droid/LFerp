@@ -1,7 +1,7 @@
 /* 风控配置：基准开关、预期时长档位和阈值写入本地。异常付款数据和首页按保存后的规则评级。 */
 (function () {
     var api = window.RbtRisk;
-    var fields = ['progressStartDays', 'watchStreak', 'warnStreak', 'badStreak', 'watchJoin', 'warnJoin', 'badJoin', 'watchProgress', 'warnProgress', 'badProgress', 'watchAlert', 'warnAlert', 'badAlert'];
+    var fields = ['watchStreak', 'warnStreak', 'badStreak', 'watchJoin', 'warnJoin', 'badJoin', 'watchProgress', 'warnProgress', 'badProgress', 'watchAlert', 'warnAlert', 'badAlert'];
     function cloneProfile(pack) {
         return JSON.parse(JSON.stringify(pack));
     }
@@ -18,13 +18,13 @@
     var mode = saved.baselineMode === 'dynamic' ? 'dynamic' : 'static';
     var editing = '*';
     var shared;
-    var lineRules;
+    var productRules;
     var tiers;
 
     function useMode() {
         var pack = profiles[mode];
         shared = pack;
-        lineRules = pack.lineRules;
+        productRules = pack.productRules;
         tiers = pack.durationTiers;
     }
 
@@ -67,8 +67,8 @@
         document.getElementById('rbtBaselineDynamic').classList.toggle('is-on', dynamic);
         document.getElementById('rbtDurationField').hidden = dynamic;
         document.getElementById('rbtBaselineFormula').textContent = dynamic
-            ? '动态基准日均 = 该事业线全部门店的营收佣金按结算规则模拟出的应付款合计 ÷ 这些门店的营业日次数总和。'
-            : '静态基准日均 = 该产品金额 ÷（该档预期月数 × 30）。不同事业线对应不同产品。';
+            ? '动态基准日均 = RBT门店的已结款合计 ÷ 对应营业天数总和。'
+            : '静态基准日均 = 该产品金额 ÷（该档预期月数 × 30）。';
         paintBaseline();
     }
 
@@ -76,8 +76,8 @@
         var box = document.getElementById('rbtBaselineValue');
         var tip = document.getElementById('rbtBaselineValueTip');
         if (!box || !api || typeof api.baselinePreview !== 'function') return;
-        var lineName = editing && editing !== '*' ? editing : '';
-        var pack = api.baselinePreview(mode, lineName, tiers);
+        var productCode = editing && editing !== '*' ? editing : '';
+        var pack = api.baselinePreview(mode, productCode, tiers);
         var rows = pack && pack.rows ? pack.rows : [];
         var columns = pack && pack.columns ? pack.columns : [];
         var moneyAt = pack && pack.moneyAt ? pack.moneyAt : [];
@@ -122,16 +122,20 @@
         }).join('');
     }
 
-    function lineNames() {
-        var names = [];
-        var list = window.RbtStoreData && typeof window.RbtStoreData.list === 'function' ? window.RbtStoreData.list() : [];
-        list.forEach(function (row) {
-            if (row && row.bizLine && names.indexOf(row.bizLine) < 0) names.push(row.bizLine);
+    function productList() {
+        return api && typeof api.products === 'function' ? api.products() : [];
+    }
+
+    function productTitle(code) {
+        var name = code;
+        productList().some(function (item) {
+            if (item.code === code) {
+                name = item.name;
+                return true;
+            }
+            return false;
         });
-        ['餐饮', '康美', '纯私域', '集团内部'].forEach(function (name) {
-            if (names.indexOf(name) < 0) names.push(name);
-        });
-        return names;
+        return name;
     }
 
     function esc(text) {
@@ -142,9 +146,9 @@
 
     function paintNav() {
         var items = [{ id: '*', name: '通用阈值', meta: '默认', own: false }];
-        lineNames().forEach(function (name) {
-            var own = !!lineRules[name];
-            items.push({ id: name, name: name, meta: own ? '独立' : '通用', own: own });
+        productList().forEach(function (product) {
+            var own = !!productRules[product.code];
+            items.push({ id: product.code, name: product.name, meta: own ? '独立' : '通用', own: own });
         });
         document.getElementById('rbtRiskNav').innerHTML = items.map(function (item) {
             return '<button type="button" class="rbt-risk-nav__item' + (item.id === editing ? ' is-active' : '') + '" data-scope="' + esc(item.id) + '">' +
@@ -158,8 +162,8 @@
             fields.forEach(function (key) { shared[key] = current[key]; });
             return;
         }
-        if (!lineRules[editing]) return;
-        lineRules[editing] = current;
+        if (!productRules[editing]) return;
+        productRules[editing] = current;
     }
 
     function commitMode() {
@@ -179,25 +183,26 @@
             form.hidden = false;
             btn.hidden = true;
             bar.hidden = false;
-            tip.textContent = modeLabel() + '的通用阈值。标记「通用」的事业线均用这套。某事业线独配，先点事业线，再点「独立配置」。';
+            tip.textContent = modeLabel() + '的通用阈值。标记「通用」的产品均用这套。某产品独配，先点产品，再点「独立配置」。';
             paintBaseline();
             return;
         }
         bar.hidden = false;
-        var own = !!lineRules[editing];
+        var own = !!productRules[editing];
+        var title = productTitle(editing);
         btn.hidden = false;
         btn.textContent = own ? '改回通用' : '独立配置';
         btn.className = own ? 'btn btn-secondary' : 'btn btn-primary';
         if (!own) {
             fillFields(shared);
             form.hidden = true;
-            tip.textContent = modeLabel() + '下，' + editing + '还没有独立阈值，门店按通用阈值评级。支持事业线独立配置。';
+            tip.textContent = modeLabel() + '下，' + title + '还没有独立阈值，门店按通用阈值评级。支持产品独立配置。';
             paintBaseline();
             return;
         }
-        fillFields(lineRules[editing]);
+        fillFields(productRules[editing]);
         form.hidden = false;
-        tip.textContent = '正在配置' + modeLabel() + '的' + editing + '。保存后只影响这一边的' + editing + '。';
+        tip.textContent = '正在配置' + modeLabel() + '的' + title + '。保存后只影响这一边的' + title + '。';
         paintBaseline();
     }
 
@@ -275,8 +280,8 @@
     });
     document.getElementById('rbtRiskLineOwnBtn').addEventListener('click', function () {
         if (editing === '*') return;
-        if (lineRules[editing]) delete lineRules[editing];
-        else lineRules[editing] = readFields();
+        if (productRules[editing]) delete productRules[editing];
+        else productRules[editing] = readFields();
         showEditing();
         showError('');
     });

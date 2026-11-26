@@ -1005,7 +1005,7 @@
         { id: 'pending', label: '付款中 · 无每日付款' },
         { id: 'days', label: '付款中 · 有每日付款' }
     ];
-    /* 演示日数据：金额 = 所得佣金 × 该渠道结算比例。所得佣金按当日营业流水的 10% 演示。结算单未确定时记预计付款，已经付款的日期记已付款。 */
+    /* 演示日数据：支付金额 = 收入所得 × 该渠道结算比例。收入所得按当日营业流水的 10% 演示。结算单未确定时记预计付款，已经付款的日期记已付款。 */
     var REPAY_DEMO_DAYS = [
         { channel: 'POS', turnover: 860 },
         { channel: '直播', turnover: 420 },
@@ -1640,7 +1640,7 @@
                 grouped[key] = {
                     date: day.date,
                     kind: 'daily',
-                    channel: '当日付款',
+                    channel: '当日支付',
                     stage: day.stage,
                     turnover: 0,
                     commission: 0,
@@ -1669,7 +1669,7 @@
     }
 
     function dayChannel(day) {
-        return day && day.kind === 'manual' ? '提前支付' : '当日付款';
+        return day && day.kind === 'manual' ? '提前支付' : '当日支付';
     }
 
     function renderDayList(item, days) {
@@ -1677,10 +1677,13 @@
             var index = days.length - 1 - revIndex;
             var stage = day.kind === 'manual' ? '已付款' : (day.stage === 'due' ? '已付款' : '待结算');
             var when = executedAtOf(day) || '未执行';
+            var payText = '¥' + money(day.due);
             var facts = day.kind === 'manual'
-                ? dayFact('支付方式', day.payMethod || '—')
+                ? dayFact('支付金额', payText) +
+                    dayFact('支付方式', day.payMethod || '—')
                 : dayFact('营业流水', '¥' + money(day.turnover)) +
-                    dayFact('所得佣金', '¥' + money(day.commission)) +
+                    dayFact('收入所得', '¥' + money(day.commission)) +
+                    dayFact('支付金额', payText) +
                     dayFact('支付方式', dayPayMethod(day));
             facts += dayFact('结算时间', when);
             return '<button type="button" class="rbt-bill__day" data-day-index="' + index + '">' +
@@ -1703,14 +1706,14 @@
         var lengfeng = yuanCents(pack && pack.lengfeng);
         var provider = yuanCents(pack && pack.provider);
         var weights = [
-            { label: '商品金额', cents: trader > 0 ? trader : goods },
+            { label: '货款', cents: trader > 0 ? trader : goods },
             { label: '服务费', cents: Math.max(0, lengfeng) + Math.max(0, provider) }
         ].filter(function (row) { return row.cents > 0; });
         if (weights.length) return weights;
         var fee = yuanCents(item && item.serviceFee);
-        if (goods > 0) weights.push({ label: '商品金额', cents: goods });
+        if (goods > 0) weights.push({ label: '货款', cents: goods });
         if (fee > 0) weights.push({ label: '服务费', cents: fee });
-        return weights.length ? weights : [{ label: '商品金额', cents: 1 }];
+        return weights.length ? weights : [{ label: '货款', cents: 1 }];
     }
 
     function splitDayPay(cents, weights) {
@@ -1741,7 +1744,7 @@
             '<h2 class="rbt-split__title">' + esc(monthDay(day.date) + ' · ' + dayChannel(day)) + '</h2>' +
             '<div class="rbt-split__row"><span>结算时间</span><b>' + esc(executedAtOf(day) || '未执行') + '</b></div>' +
             '<div class="rbt-split__row"><span>支付方式</span><b>' + esc(day.kind === 'manual' ? (day.payMethod || '—') : dayPayMethod(day)) + '</b></div>' +
-            '<div class="rbt-split__row"><span>金额</span><b>¥' + esc(money(day.due)) + '</b></div>' +
+            '<div class="rbt-split__row"><span>支付金额</span><b>¥' + esc(money(day.due)) + '</b></div>' +
             parts.map(function (row) {
                 return '<div class="rbt-split__row"><span>' + esc(row.label) + '</span><b>¥' + centsText(row.cents) + '</b></div>';
             }).join('') +
@@ -2827,7 +2830,7 @@
                 return '<option value="' + scene.id + '"' + (scene.id === current ? ' selected' : '') + '>' + scene.label + '</option>';
             }).join('') +
             '</select></label>' +
-            '<p class="rbt-repay-demo__hint">付款中的每日付款按所得佣金乘结算比例生成。切到无每日付款时不列出。只影响付款页，不改需求单状态。</p>' +
+            '<p class="rbt-repay-demo__hint">付款中的每日付款按收入所得乘结算比例生成。切到无每日付款时不列出。只影响付款页，不改需求单状态。</p>' +
             '<button type="button" class="rbt-repay-demo__apply" id="rbtRepayDemoApply">应用并刷新</button>';
         document.body.appendChild(panel);
         document.getElementById('rbtRepayDemoApply').addEventListener('click', function () {

@@ -299,27 +299,6 @@
             '</div></section></div>';
     }
 
-    function ratioPercent(value) {
-        var num = Number(String(value == null ? '' : value).replace('%', ''));
-        if (!isFinite(num)) return '';
-        return num.toFixed(2) + '%';
-    }
-
-    /* 基础信息只列渠道和比例，不带「默认比例」和类目。 */
-    function ratioText(item) {
-        var api = window.RbtSettleRatio;
-        if (item && item.repayMethod === '比例付' && api && typeof api.viewOf === 'function') {
-            var view = api.viewOf(item) || [];
-            var text = view.map(function (channel) {
-                var percent = ratioPercent(channel.fallback);
-                return percent ? (channel.channel + ' ' + percent) : '';
-            }).filter(Boolean).join('；');
-            if (text) return text;
-        }
-        var period = item && item.repayPeriod ? ratioPercent(item.repayPeriod) : '';
-        return period || (item && item.repayPeriod ? String(item.repayPeriod) : '—');
-    }
-
     function phaseLabel(status) {
         if (status === '门店付款中' || status === '还款中') return '付款中';
         return status || '—';
@@ -426,7 +405,7 @@
                 commission: fromCents(row.commissionCents),
                 ratio: '',
                 actual: fromCents(row.actualCents),
-                payMethod: '佣金余额',
+                payMethod: '营业收入',
                 stage: row.stage
             };
         });
@@ -698,7 +677,7 @@
     function shareTitle(row) {
         var day = monthDay(row && row.date);
         if (row && row.kind === 'manual') return day + ' · 提前支付';
-        return day;
+        return day + ' · 当日支付';
     }
 
     function opsMoney(value) {
@@ -706,8 +685,8 @@
         return yuan(value);
     }
 
-    function opsFact(label, value) {
-        return '<span><i>' + esc(label) + '</i><b>' + esc(value) + '</b></span>';
+    function opsFact(label, value, kind) {
+        return '<span class="rbt-ops__fact' + (kind ? ' is-' + kind : '') + '"><i>' + esc(label) + '</i><b>' + esc(value) + '</b></span>';
     }
 
     function renderShareCards(shares) {
@@ -717,16 +696,13 @@
                 var manual = row.kind === 'manual';
                 var when = pendingRow ? '-' : (manual ? (paidClock(row.time) || settleClock(row.date)) : settleClock(row.date));
                 var facts = manual
-                    ? opsFact('当日实际付款', opsMoney(row.actual)) +
-                        opsFact('支付方式', row.payMethod || '—')
-                    : opsFact('营业流水', opsMoney(row.turnover)) +
-                        opsFact('所得佣金', opsMoney(row.commission)) +
-                        opsFact('当日实际付款', opsMoney(row.actual)) +
-                        opsFact('支付方式', '佣金余额');
+                    ? opsFact('支付方式', row.payMethod || '—', 'pay')
+                    : opsFact('营业额', opsMoney(row.turnover), 'amount') +
+                        opsFact('支付方式', row.payMethod || '营业收入', 'pay');
                 return '<article class="rbt-ops">' +
                     '<header class="rbt-ops__head"><b>' + esc(shareTitle(row)) + '</b>' +
                     '<em class="' + (pendingRow ? '' : 'is-due') + '">' + (pendingRow ? '待结款' : '已结款') + '</em></header>' +
-                    '<div class="rbt-ops__grid">' +
+                    '<div class="rbt-ops__grid' + (manual ? ' is-single' : '') + '">' +
                     facts +
                     '</div>' +
                     '<footer class="rbt-ops__foot">' +
@@ -1123,7 +1099,6 @@
             ['门店', item.storeName || '—'],
             ['商品金额（原价）', yuan(fund.goods)],
             ['加价率', fund.markup || '—'],
-            ['结算比例', ratioText(item)],
             ['接单时间', item.acceptedAt || '—'],
             ['支付时间', payTimeOf(item) || '—'],
             ['已结款', fund.settled ? yuan(fund.settled) : '未产生'],
