@@ -1,10 +1,30 @@
 {
-  "latestSha": "4bda42476745cacbde6f732da3d9d89a48724846",
-  "total": 644,
+  "latestSha": "b61eb184f377beac48b51cf030ddf512ae7db09a",
+  "total": 645,
   "days": [
     {
       "date": "2026-11-26",
       "items": [
+        {
+          "sha": "b61eb18",
+          "type": "fix",
+          "text": "需求单列表恢复为按产品和状态在前的列顺序",
+          "author": "342-droid",
+          "time": "15:23",
+          "pages": [
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_demand.html",
+              "text": "列表改回需求单号、门店、状态、产品、结算周期在前；查询改为按产品筛选；发货中状态标签恢复为橙色"
+            }
+          ]
+        },
         {
           "sha": "4bda424",
           "type": "feat",
