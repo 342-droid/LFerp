@@ -1,10 +1,159 @@
 {
-  "latestSha": "1aceb9d8a9eaf157b2b510180cb89df9344deb81",
-  "total": 643,
+  "latestSha": "4bda42476745cacbde6f732da3d9d89a48724846",
+  "total": 644,
   "days": [
     {
       "date": "2026-11-26",
       "items": [
+        {
+          "sha": "4bda424",
+          "type": "feat",
+          "text": "同步经营数据中台四端原型",
+          "author": "u ｌ",
+          "time": "15:00",
+          "pages": [
+            {
+              "file": "MDM/mdm_data_biz_erp.html",
+              "module": "冷丰WMS",
+              "title": "ERP经营分析 · 经营数据中台"
+            },
+            {
+              "file": "MDM/mdm_data_biz_marketing.html",
+              "module": "冷丰WMS",
+              "title": "营销活动 · 经营数据中台"
+            },
+            {
+              "file": "MDM/mdm_data_biz_overview.html",
+              "module": "冷丰WMS",
+              "title": "经营总览 · 经营数据中台"
+            },
+            {
+              "file": "MDM/mdm_data_biz_pos.html",
+              "module": "冷丰WMS",
+              "title": "食亨POS · 经营数据中台"
+            },
+            {
+              "file": "MDM/mdm_data_biz_pos_mapping.html",
+              "module": "冷丰WMS",
+              "title": "ERP与食亨门店关系 · 经营数据中台"
+            },
+            {
+              "file": "MDM/mdm_data_biz_rbt.html",
+              "module": "冷丰WMS",
+              "title": "RBT · 经营数据中台"
+            },
+            {
+              "file": "MDM/mdm_data_biz_store_detail.html",
+              "module": "冷丰WMS",
+              "title": "单店经营详情 · 经营数据中台"
+            },
+            {
+              "file": "MDM/mdm_data_biz_stores.html",
+              "module": "冷丰WMS",
+              "title": "门店分析 · 经营数据中台"
+            },
+            {
+              "file": "MDM/mdm_data_biz_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商分析 · 经营数据中台"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            },
+            {
+              "file": "store-app/h5/biz-bd-alerts.html",
+              "module": "",
+              "title": "经营提醒 · BD"
+            },
+            {
+              "file": "store-app/h5/biz-bd-center.html",
+              "module": "",
+              "title": "数据中心 · BD"
+            },
+            {
+              "file": "store-app/h5/biz-bd-commission-list.html",
+              "module": "",
+              "title": "佣金明细 · BD"
+            },
+            {
+              "file": "store-app/h5/biz-bd-commission.html",
+              "module": "",
+              "title": "佣金分析 · BD"
+            },
+            {
+              "file": "store-app/h5/biz-bd-home.html",
+              "module": "",
+              "title": "数据中心 · BD"
+            },
+            {
+              "file": "store-app/h5/biz-bd-store.html",
+              "module": "",
+              "title": "门店详情 · BD"
+            },
+            {
+              "file": "store-app/h5/biz-bd-stores.html",
+              "module": "",
+              "title": "门店业务 · BD"
+            },
+            {
+              "file": "store-app/h5/biz-center.html",
+              "module": "",
+              "title": "数据中心 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/biz-commission.html",
+              "module": "",
+              "title": "佣金明细 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/biz-operate.html",
+              "module": "",
+              "title": "运营数据 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/biz-ops.html",
+              "module": "",
+              "title": "经营数据 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/biz-order-goods.html",
+              "module": "",
+              "title": "订单商品明细 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/biz-rbt.html",
+              "module": "",
+              "title": "RBT 付款账单 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/biz-restock-report.html",
+              "module": "",
+              "title": "进货概况 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/biz-revenue.html",
+              "module": "",
+              "title": "营业额 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "丰银宝 · 工作台"
+            },
+            {
+              "file": "store-app/h5/more.html",
+              "module": "",
+              "title": "更多 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "module": "",
+              "title": "门店订单 · 丰银宝"
+            }
+          ]
+        },
         {
           "sha": "1aceb9d",
           "type": "feat",
@@ -2509,6 +2658,11 @@
               "title": "佣金分析 · BD"
             },
             {
+              "file": "store-app/h5/biz-bd-home.html",
+              "module": "",
+              "title": "数据中心 · BD"
+            },
+            {
               "file": "store-app/h5/biz-bd-store.html",
               "module": "",
               "title": "门店详情 · BD"
@@ -2542,6 +2696,11 @@
               "file": "store-app/h5/biz-supplier-home.html",
               "module": "",
               "title": "数据中心 · 供应商"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "module": "",
+              "title": "门店订单 · 丰银宝"
             }
           ]
         },
@@ -2676,6 +2835,11 @@
               "file": "store-app/h5/more.html",
               "module": "",
               "title": "更多 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "module": "",
+              "title": "门店订单 · 丰银宝"
             }
           ],
           "global": true
@@ -5683,6 +5847,11 @@
               "file": "store-app/h5/biz-bd-home.html",
               "module": "",
               "title": "数据中心 · BD"
+            },
+            {
+              "file": "store-app/h5/biz-bd-store.html",
+              "module": "",
+              "title": "门店详情 · BD"
             },
             {
               "file": "store-app/h5/biz-center.html",
