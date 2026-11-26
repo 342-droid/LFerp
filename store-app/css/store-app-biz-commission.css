@@ -106,6 +106,16 @@
   color: #fff;
 }
 
+.sa-biz-summary__metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 16px;
+}
+
+.sa-biz-summary__metrics div { min-width: 0; }
+.sa-biz-summary__metrics span { display: block; font-size: 11px; line-height: 16px; color: rgba(255,255,255,.86); }
+.sa-biz-summary__metrics strong { display: block; margin-top: 3px; font-size: 20px; line-height: 24px; color: #fff; font-variant-numeric: tabular-nums; }
+
 .sa-biz-summary__top {
   display: flex;
   align-items: flex-start;
@@ -176,9 +186,9 @@
 }
 
 .sa-biz-summary__total {
-  margin-top: 4px;
-  padding-top: 0;
-  border-top: 0;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,.24);
   font-size: 12px;
   color: rgba(255, 255, 255, 0.95);
   line-height: 17px;

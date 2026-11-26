@@ -1233,12 +1233,12 @@
 
   function listCommission(range, custom, dim) {
     var bounds = resolveRange(range || 'today', custom);
-    /* pay＝按支付时间；settle／create＝按结算单创建时间 */
+    /* pay＝下单口径（当前数据以支付成功时间代表有效下单）；settle＝实际入账时间。 */
     var mode = dim === 'settle' || dim === 'create' ? 'settle' : 'pay';
     return RETAIL.filter(function (o) {
       if (!isCountableRetail(o)) return false;
       if (mode === 'pay') return inBounds(o.payTime, bounds);
-      return o.commissionCreateTime && inBounds(o.commissionCreateTime, bounds);
+      return o.settleStatus === '已结算' && o.creditTime && inBounds(o.creditTime, bounds);
     }).map(function (o) {
       var comm = effectiveCommission(o);
       var goodsNames = (o.goods || [])

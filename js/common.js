@@ -151,7 +151,6 @@ function loadHeader() {
                     <a href="${wp.page('index.html')}" class="${!isTmsPage && !isPurchasePage && !isBasicSettingsPage && !isAuthzDesignerPage && !isAuthz2Page && !isMdmPage && !isMobilePage && !isRbtPage && !isRbtH5Page ? 'active' : ''}">仓储</a>
                     <a href="${wp.page('TMS_index.html')}" class="${isTmsPage ? 'active' : ''}">物流</a>
                     <a href="${getSettleHomeForOrg(getCurrentHeaderOrg())}" class="${isMdmSettlePage ? 'active' : ''}">财务</a>
-                    <a href="${wp.page('mdm_data_biz_overview.html')}" class="${isMdmPlatformDataPage ? 'active' : ''}">数据中台</a>
                     <a href="${wp.page('basic_settings_miniprogram_agreement.html')}" class="${isBasicSettingsPage ? 'active' : ''}">基础设置</a>
                     <a href="${wp.page('authz-designer.html')}" class="${isAuthzDesignerPage ? 'active' : ''}">权限设计</a>
                     <a href="${wp.page('authz-2-guide.html')}" class="${isAuthz2Page ? 'active' : ''}">权限2.0</a>

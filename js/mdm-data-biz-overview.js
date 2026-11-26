@@ -177,8 +177,8 @@
     if (meta) meta.textContent = CUi.filterHint(state);
 
     root.querySelector('[data-ldb-tip]').innerHTML =
-      '<p class="ldb-tip">销售额按<strong>支付成功时间</strong>统计实付金额（含运费），商品与运费拆分。' +
-      '退款按<strong>成功退款发生时间</strong>单独展示，不冲减销售额；采购成本分<strong>支付时</strong>与<strong>退款后实际</strong>两套口径。' +
+      '<p class="ldb-tip">GMV按<strong>支付成功时间</strong>统计实付金额（含运费），商品与运费拆分。' +
+      '退款按<strong>成功退款发生时间</strong>单独展示，不冲减GMV；采购成本分<strong>支付时</strong>与<strong>退款后实际</strong>两套口径。' +
       '平台分佣分<strong>预计</strong>（支付时点）与<strong>实际</strong>（结算完成入账）。' +
       'ERP 平台分佣与食亨管理费分属不同数据域，本页仅汇总 ERP。' +
       '<strong>RBT 联营不计入本页 GMV / 平台分佣</strong>，见快捷入口「RBT联营」。' +
@@ -189,7 +189,7 @@
     root.querySelector('[data-ldb-kpis]').innerHTML =
       '<div class="ldb-kpi-row ldb-kpi-row--6">' +
       CUi.kpiCard(
-        '销售额',
+        'GMV',
         CUi.money(data.salesTotal),
         '',
         '商品 ' + CUi.money(data.goodsSales) + ' · 运费 ' + CUi.money(data.freightSales)
@@ -198,7 +198,7 @@
         '成功退款',
         CUi.money(data.refundAmount),
         '',
-        '退款商品数 ' + CUi.intText(data.refundQty) + '（不冲减销售额）'
+        '退款商品数 ' + CUi.intText(data.refundQty) + '（不冲减GMV）'
       ) +
       CUi.kpiCard(
         '支付时采购成本',
@@ -278,7 +278,7 @@
             '',
             '退款商品数 ' + CUi.intText(data.refundQty)
           ) +
-          CUi.kpiCard('退款率', refundRateText, '', '成功退款金额 ÷ 销售额') +
+          CUi.kpiCard('退款率', refundRateText, '', '成功退款金额 ÷ GMV') +
           CUi.kpiCard(
             '仅退款 / 退货退款 / 补货',
             CUi.intText(data.aftersaleRefundOnlyCount) +
@@ -360,7 +360,7 @@
           '',
           '对齐财务经营表演示合计数'
         ) +
-        CUi.kpiCard('运营毛利率', opsRateText, '', '运营毛利 ÷ 销售额') +
+        CUi.kpiCard('运营毛利率', opsRateText, '', '运营毛利 ÷ GMV') +
         '</div>' +
         CUi.simpleTable(
           [
@@ -411,19 +411,19 @@
     var mid = root.querySelector('[data-ldb-mid]');
     mid.innerHTML =
       CUi.sectionCard(
-        '销售额趋势',
-        '<p class="ldb-tip ldb-tip--flush">按支付成功时间；与上方销售额同口径（含运费）。</p><div class="ldb-chart">' +
+        'GMV趋势',
+        '<p class="ldb-tip ldb-tip--flush">按支付成功时间；与上方GMV同口径（含运费）。</p><div class="ldb-chart">' +
           CUi.renderBars(data.trend) +
           '</div>'
       ) +
       CUi.sectionCard(
-        '销售额构成',
+        'GMV构成',
         CUi.renderCompositionPie(mix, {
-          centerLabel: '销售额',
-          ariaLabel: '销售额构成'
+          centerLabel: 'GMV',
+          ariaLabel: 'GMV构成'
         }) +
           (breakdown && state.channel === 'all'
-            ? '<p class="ldb-tip">占零售销售额 · 商城 ' +
+            ? '<p class="ldb-tip">占零售GMV · 商城 ' +
               CUi.money(breakdown.mall) +
               retailShare(breakdown.mall) +
               ' · 直播 ' +

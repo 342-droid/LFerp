@@ -47,19 +47,28 @@
     var ledger = allLedger();
     var pending = 0;
     var settled = 0;
+    var settling = 0;
     ledger.forEach(function (x) {
       var n = Number(x.net) || 0;
       if (x.settleStatus === '已结款') settled += n;
+      else if (/结款中|结算中/.test(x.settleStatus)) settling += n;
       else pending += n;
     });
+    var expected = pending + settling + settled;
     var acc = window.FybSupplierSettle.accounts[org.id] || { accountName: '—', accountNo: '—' };
     return (
       '<div class="sa-sup-summary">' +
-      '<div class="sa-sup-summary__item"><span>待结算/在途</span><strong>' +
+      '<div class="sa-sup-summary__item"><span>预计结款</span><strong>' +
+      money(expected) +
+      '</strong></div>' +
+      '<div class="sa-sup-summary__item"><span>累计已结款</span><strong>' +
+      money(settled) +
+      '</strong></div>' +
+      '<div class="sa-sup-summary__item"><span>待结算</span><strong>' +
       money(pending) +
       '</strong></div>' +
-      '<div class="sa-sup-summary__item"><span>已结款</span><strong>' +
-      money(settled) +
+      '<div class="sa-sup-summary__item"><span>结算中</span><strong>' +
+      money(settling) +
       '</strong></div></div>' +
       '<article class="sa-sup-card">' +
       '<h3 class="sa-sup-card__name">收款账户</h3>' +

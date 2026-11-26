@@ -882,7 +882,8 @@
       q.set(k, String(v));
     });
     var qs = q.toString();
-    return wp.page(file) + (qs ? '?' + qs : '');
+    var base = wp.page(file);
+    return base + (qs ? (base.indexOf('?') >= 0 ? '&' : '?') + qs : '');
   }
 
   /** 分页条：总数、每页条数、上一页／下一页、页码跳转 */

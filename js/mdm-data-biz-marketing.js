@@ -468,10 +468,7 @@
   }
 
   root.querySelector('[data-ldb-tip]').innerHTML = '<p class="ldb-tip">计划、发放、领取和核销分别按各自发生时间统计。' +
-    '发放与领取按对应渠道统计，无渠道的流水计入「全部」。优惠券核销按订单渠道归属。<br>' +
-    'UAT 配置入口：<a href="https://uat.lengfenghl.org.cn/#/campaign/marketing-template/template-setting/list" target="_blank" rel="noopener">营销模板</a> · ' +
-    '<a href="https://uat.lengfenghl.org.cn/#/campaign/marketingActive/redPacket" target="_blank" rel="noopener">现金红包</a> · ' +
-    '<a href="https://uat.lengfenghl.org.cn/#/member/memberManagement/memberLevel/edit/3" target="_blank" rel="noopener">会员等级赠券</a></p>';
+    '发放与领取按对应渠道统计，无渠道的流水计入「全部」。优惠券核销按订单渠道归属。</p>';
   render();
   if (window.location.hash === '#marketing-points') body.querySelector('#marketing-points').scrollIntoView();
 })();

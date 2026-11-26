@@ -7,7 +7,7 @@
   <!-- UI：等价于 Time Machine 本地快照 2026-11-19-123921（佣金 HTML/CSS 自 11:05 未改；挂载需本机密码，改用 Cursor Local History 5a14de00/4iyL.html + store-app-biz-commission.css） -->
   <link rel="stylesheet" href="../css/store-app.css?v=20261119-fix2">
   <link rel="stylesheet" href="../css/store-app-biz-report.css?v=20261119-fix2">
-  <link rel="stylesheet" href="../css/store-app-biz-commission.css?v=20261119-fix2">
+  <link rel="stylesheet" href="../css/store-app-biz-commission.css?v=20261126-income-metrics">
 </head>
 <body class="store-app-body">
   <div class="sa-shell sa-biz-shell">
@@ -20,29 +20,19 @@
         </div>
 
         <div class="sa-biz-mode" id="bizDimTabs" role="tablist" aria-label="统计维度" style="width:220px">
-          <button type="button" class="sa-biz-mode__btn is-active" data-dim="pay">按支付时间</button>
-          <button type="button" class="sa-biz-mode__btn" data-dim="settle">按结算时间</button>
+          <button type="button" class="sa-biz-mode__btn is-active" data-dim="pay">下单时间</button>
+          <button type="button" class="sa-biz-mode__btn" data-dim="settle">入账时间</button>
         </div>
 
         <section class="sa-biz-summary">
-          <div class="sa-biz-summary__top" id="bizWithdrawTop">
-            <div class="sa-biz-summary__balance">
-              <div class="sa-biz-summary__label">
-                可提现账户余额（元）
-                <button type="button" class="sa-biz-eye" id="bizEyeBtn" aria-label="显示/隐藏余额" aria-pressed="false">
-                  <svg id="bizEyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true">
-                    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/>
-                    <circle cx="12" cy="12" r="2.5"/>
-                  </svg>
-                </button>
-              </div>
-              <div class="sa-biz-summary__amount" id="bizWithdrawAmount">0.00</div>
-            </div>
-            <button type="button" class="sa-biz-summary__withdraw" id="bizWithdrawBtn">去提现</button>
+          <div class="sa-biz-summary__metrics">
+            <div><span>预计累计收入</span><strong id="bizEstimatedTotal">0.00</strong></div>
+            <div><span id="bizCreditedLabel">当前已入账金额</span><strong id="bizCreditedTotal">0.00</strong></div>
+            <div><span>待结算金额</span><strong id="bizPendingTotal">0.00</strong></div>
+            <div><span>结算中金额</span><strong id="bizSettlingTotal">0.00</strong></div>
           </div>
-          <div class="sa-biz-summary__extra" id="bizExtraLabel">所选期间佣金</div>
           <div class="sa-biz-summary__total" id="bizTotalLine">
-            所选期间佣金 <em>0.00</em> 元 <em>0</em>单
+            所选期间共计 <em>0</em> 单，预计佣金 <em>0.00</em> 元
           </div>
         </section>
 
@@ -160,9 +150,9 @@
 
   <script src="../../js/business-report-fixtures.js"></script>
   <script src="../../js/store-wallet-demo.js"></script>
-  <script src="../js/store-app-biz-datacenter-data.js?v=20261119-fix6"></script>
+  <script src="../js/store-app-biz-datacenter-data.js?v=20261126-income-metrics"></script>
   <script src="../js/store-app-biz-session.js?v=20261117-bd2"></script>
   <script src="../js/store-app-biz-datacenter-state.js?v=20261119-fix6"></script>
-  <script src="../js/store-app-biz-datacenter-commission.js?v=20261119-fix6"></script>
+  <script src="../js/store-app-biz-datacenter-commission.js?v=20261126-income-metrics"></script>
 </body>
 </html>

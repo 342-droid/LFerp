@@ -128,7 +128,8 @@
     var platformGoodsCommission = r2(goodsMargin - bdCommission - liveCommission - storeCommission);
     var freightCommission = r2(3260 * s);
     var platformCommissionExpected = r2(platformGoodsCommission + freightCommission);
-    var platformCommissionActual = r2(platformCommissionExpected * 0.86);
+    var sampleSettledShare = 0.86;
+    var platformCommissionActual = r2(platformCommissionExpected * sampleSettledShare);
     var platformIncome = platformCommissionExpected;
     var refundAmount = r2(12860 * s);
     var refundQty = ri(186 * s);
@@ -310,7 +311,7 @@
       var proxyMargin = r2(proxyGoodsSales - proxyCost);
       var goodsSalesTotal = r2(retailGoodsSales + proxyGoodsSales);
       var goodsMargin = r2(retailMargin + proxyMargin);
-      /* 原型按结算后平台可得份额展示，零售与代采拆列，合计用于总览比较。 */
+      /* 延用排行的预计清分样本，按示例结算比例给出实际所得。 */
       var retailPlatformIncome = r2(retailMargin * 0.24);
       var proxyPlatformIncome = retailOnly
         ? 0
@@ -324,6 +325,11 @@
         goodsMarginRate: goodsSalesTotal ? goodsMargin / goodsSalesTotal : null,
         retailPlatformIncome: retailPlatformIncome,
         proxyPlatformIncome: proxyPlatformIncome,
+        retailPlatformIncomeActual: proxyOnly ? null : r2(retailPlatformIncome * sampleSettledShare),
+        proxyPlatformIncomeActual: retailOnly ? null : r2(proxyPlatformIncome * sampleSettledShare),
+        platformIncomeActual: r2(
+          r2(retailPlatformIncome * sampleSettledShare) + r2(proxyPlatformIncome * sampleSettledShare)
+        ),
         platformIncome: r2(retailPlatformIncome + proxyPlatformIncome)
       };
     }).sort(function (a, b) { return b.platformIncome - a.platformIncome; });
@@ -372,29 +378,54 @@
     var orderDetails = [];
     var retailSeq = 0;
     var proxySeq = 0;
-    for (var oi = 0; oi < 32; oi++) {
-      var isProxy = oi % 5 === 0;
+    // 补齐徐汇店代采详情，7 笔的商品、运费和退款合计与近 30 天指标卡的示例一致。
+    var orderSampleCount = 32;
+    var xuhuiProxySampleCount = 7;
+    for (var oi = 0; oi < orderSampleCount + xuhuiProxySampleCount; oi++) {
+      var isXuhuiProxySample = oi >= orderSampleCount;
+      var isProxy = isXuhuiProxySample || oi % 5 === 0;
       var productIndex = isProxy ? proxySeq % 2 : retailSeq % 3;
-      var oid = isProxy
-        ? PROXY_ORDER_IDS[proxySeq++ % PROXY_ORDER_IDS.length]
-        : RETAIL_ORDER_IDS[retailSeq++ % RETAIL_ORDER_IDS.length];
-      var goods = r2((isProxy ? 420 : 96) + (oi % 7) * 18);
-      var freight = r2(isProxy ? 24 + (oi % 4) * 6 : oi % 3 === 0 ? 12 : 0);
+      var oid = isXuhuiProxySample
+        ? 'DEMO-PROXY-ST-SH-01-' + (oi - orderSampleCount + 1)
+        : isProxy
+          ? PROXY_ORDER_IDS[proxySeq % PROXY_ORDER_IDS.length]
+          : RETAIL_ORDER_IDS[retailSeq % RETAIL_ORDER_IDS.length];
+      if (isProxy) proxySeq++;
+      else retailSeq++;
+      var goods = isXuhuiProxySample ? 356.4 : r2((isProxy ? 420 : 96) + (oi % 7) * 18);
+      var freight = isXuhuiProxySample ? 52.8 : r2(isProxy ? 24 + (oi % 4) * 6 : oi % 3 === 0 ? 12 : 0);
       var cost = r2(goods * (isProxy ? 0.68 : 0.52));
+      var storeIncome = isProxy ? null : r2((goods - cost) * 0.16);
+      var orderPlatformIncome = r2((goods - cost) * (isProxy ? 0.20 : 0.24) + (isProxy ? freight * 0.12 : 0));
+      // 示例订单中部分仍待结算，其余在支付次日完成清分。
+      var payDay = isXuhuiProxySample ? 12 + oi - orderSampleCount : 12 + (oi % 8);
+      var settledAt = oi % 4 === 0 ? null : '2026-11-' + String(payDay + 1) + ' 09:00';
+      var settledInPeriod = settledAt && matchesPeriod(filters, settledAt);
+      var refundAmount = isXuhuiProxySample
+        ? (oi - orderSampleCount < 2 ? 47.74 : 0)
+        : oi % 6 === 0 ? r2(goods * 0.12) : 0;
+      var refundedCost = goods ? r2(cost * refundAmount / goods) : 0;
+      var actualPurchaseCost = r2(Math.max(0, cost - refundedCost));
       orderDetails.push({
         orderId: oid,
         productIndex: productIndex,
         biz: isProxy ? '代采' : '零售',
         channel: isProxy ? '—' : oi % 2 === 0 ? '商城' : '直播',
-        storeName: storeNames[oi % storeNames.length],
-        payTime: '2026-11-' + String(12 + (oi % 8)) + ' ' + String(10 + (oi % 7)) + ':20',
+        storeName: isXuhuiProxySample ? '冷丰特选·徐汇店' : storeNames[oi % storeNames.length],
+        orderDetailUnavailable: isXuhuiProxySample,
+        payTime: '2026-11-' + String(payDay) + ' ' + String(10 + (oi % 7)) + ':20',
         goodsSales: goods,
         freightSales: freight,
         purchaseCost: cost,
         goodsMargin: r2(goods - cost),
-        storeIncome: isProxy ? null : r2((goods - cost) * 0.16),
-        platformIncome: r2((goods - cost) * (isProxy ? 0.20 : 0.24) + (isProxy ? freight * 0.12 : 0)),
-        refundAmount: oi % 6 === 0 ? r2(goods * 0.12) : 0,
+        actualPurchaseCost: actualPurchaseCost,
+        actualGoodsMargin: r2(goods - refundAmount - actualPurchaseCost),
+        storeIncome: storeIncome,
+        platformIncome: orderPlatformIncome,
+        settledInPeriod: !!settledInPeriod,
+        storeIncomeActual: settledInPeriod ? storeIncome : null,
+        platformIncomeActual: settledInPeriod ? orderPlatformIncome : null,
+        refundAmount: refundAmount,
         _protoSample: true
       });
     }
@@ -629,17 +660,23 @@
       storeProxy: storeProxy,
       storeRank: storeRank,
       orderDetails: orderDetails,
+      settledOrderDetails: scopedOrders.filter(function (row) { return row.settledInPeriod; }),
       expenseDetails: expenseDetails,
       expenseSummary: expenseSummary,
       mix: retailOnly
-        ? [{ name: '零售销售额', value: salesTotal, orders: retailOrders, color: '#ff7019' }]
+        ? [{ name: '零售GMV', value: salesTotal, orders: retailOrders, color: '#ff7019' }]
         : proxyOnly
-          ? [{ name: '代采销售额', value: salesTotal, orders: proxyOrders, color: '#1677ff' }]
+          ? [{ name: '代采GMV', value: salesTotal, orders: proxyOrders, color: '#1677ff' }]
           : [
-            { name: '零售销售额', value: r2(salesTotal * 0.72), orders: retailOrders, color: '#ff7019' },
-            { name: '代采销售额', value: r2(salesTotal * 0.28), orders: proxyOrders, color: '#1677ff' }
+            { name: '零售GMV', value: r2(salesTotal * 0.72), orders: retailOrders, color: '#ff7019' },
+            { name: '代采GMV', value: r2(salesTotal * 0.28), orders: proxyOrders, color: '#1677ff' }
           ]
     };
+  }
+
+  function optionalSum(rows, key) {
+    var available = rows.filter(function (row) { return row[key] != null; });
+    return available.length ? r2(available.reduce(function (sum, row) { return sum + row[key]; }, 0)) : null;
   }
 
   function storeDaily(filters, mode) {
@@ -657,6 +694,12 @@
         kpis: combine(retail.kpis, proxy.kpis),
         retailKpis: retail.kpis,
         proxyKpis: proxy.kpis,
+        commission: {
+          storeIncome: retail.commission.storeIncome,
+          platformIncome: optionalSum([retail.commission, proxy.commission], 'platformIncome'),
+          storeIncomeActual: retail.commission.storeIncomeActual,
+          platformIncomeActual: optionalSum([retail.commission, proxy.commission], 'platformIncomeActual')
+        },
         daily: retail.daily.map(function (row, index) { return combine(row, proxy.daily[index]); }),
         stores: retail.stores.map(function (row, index) { return combine(row, proxy.stores[index]); }),
         orders: retail.orders.concat(proxy.orders),
@@ -664,9 +707,10 @@
       };
     }
     var snap = erpSnapshot(filters);
-    var orders = snap.orderDetails.filter(function (row) {
-      return row.biz === (mode === 'proxy' ? '代采' : '零售');
-    });
+    var sampleSettledShare = 0.86;
+    var business = mode === 'proxy' ? '代采' : '零售';
+    var orders = snap.orderDetails.filter(function (row) { return row.biz === business; });
+    var settledOrders = snap.settledOrderDetails.filter(function (row) { return row.biz === business; });
     var products = snap.products.filter(function (row) {
       return row.biz === (mode === 'proxy' ? '代采' : '零售');
     }).map(function (row, index) {
@@ -676,8 +720,10 @@
       return Object.assign({}, row, {
         orders: new Set(matched.map(function (order) { return order.orderId; })).size,
         storeNames: Array.from(new Set(matched.map(function (order) { return order.storeName; }))),
-        storeIncome: mode !== 'proxy' && matched.length ? r2(matched.reduce(function (sum, order) { return sum + order.storeIncome; }, 0)) : null,
-        platformIncome: matched.length ? r2(matched.reduce(function (sum, order) { return sum + order.platformIncome; }, 0)) : null
+        storeIncome: optionalSum(matched, 'storeIncome'),
+        platformIncome: optionalSum(matched, 'platformIncome'),
+        storeIncomeActual: optionalSum(matched, 'storeIncomeActual'),
+        platformIncomeActual: optionalSum(matched, 'platformIncomeActual')
       });
     }).sort(function (a, b) { return b.sales - a.sales; });
     var s = scaleOf((filters && filters.period) || '30d') * filterFactor(filters);
@@ -693,23 +739,31 @@
         refundAmount: r2((mode === 'proxy' ? 120 : 280) * s * w)
       });
     }
+    var stores = mode === 'proxy' ? snap.storeProxy : snap.storeSales;
+    var kpis = {};
+    ['sales', 'goodsSales', 'freightSales', 'orders', 'refundAmount'].forEach(function (key) {
+      kpis[key] = r2(stores.reduce(function (total, row) { return total + row[key]; }, 0));
+    });
+    var sampleSettledShare = 0.86;
+    var storeIncomeActual = optionalSum(settledOrders, 'storeIncomeActual');
+    var platformIncomeActual = optionalSum(settledOrders, 'platformIncomeActual');
+    if (mode !== 'proxy') {
+      if (storeIncomeActual == null) storeIncomeActual = r2(optionalSum(orders, 'storeIncome') * sampleSettledShare);
+      if (platformIncomeActual == null) platformIncomeActual = r2(optionalSum(orders, 'platformIncome') * sampleSettledShare);
+    }
     return {
       demo: true,
       mode: mode,
-      kpis: mode === 'proxy'
-        ? {
-            sales: snap.storeProxy.reduce(function (a, b) { return a + b.sales; }, 0),
-            orders: snap.storeProxy.reduce(function (a, b) { return a + b.orders; }, 0),
-            refundAmount: snap.storeProxy.reduce(function (a, b) { return a + b.refundAmount; }, 0)
-          }
-        : {
-            sales: snap.storeSales.reduce(function (a, b) { return a + b.sales; }, 0),
-            orders: snap.storeSales.reduce(function (a, b) { return a + b.orders; }, 0),
-            refundAmount: snap.storeSales.reduce(function (a, b) { return a + b.refundAmount; }, 0)
-          },
+      kpis: kpis,
+      commission: {
+        storeIncome: optionalSum(orders, 'storeIncome'),
+        platformIncome: optionalSum(orders, 'platformIncome'),
+        storeIncomeActual: storeIncomeActual,
+        platformIncomeActual: platformIncomeActual
+      },
       daily: days,
       products: products,
-      stores: mode === 'proxy' ? snap.storeProxy : snap.storeSales,
+      stores: stores,
       orders: orders
     };
   }
@@ -1102,7 +1156,7 @@
 
   var GLOSSARY = [
     {
-      name: '销售额',
+      name: 'GMV',
       text: '支付成功订单的实付金额（含运费），按支付成功时间统计。商品金额与运费拆分展示。积分/优惠券不影响商品销售价口径。'
     },
     {
@@ -1110,7 +1164,7 @@
       text: '仅统计成功退款，按退款成功发生时间单独展示；售后驳回不计。退款金额不回写扣减销售额。'
     },
     {
-      name: '商品销售额',
+      name: '商品GMV',
       text: '订单商品快照：商品单价×实际销售数量（零售/代采取对应维护价格）。'
     },
     {
@@ -1123,7 +1177,7 @@
     },
     {
       name: '商品平台分佣',
-      text: '商品毛利−BD分佣−直播运营组分佣−门店分佣。'
+      text: '零售商品毛利−零售 BD 分佣−直播运营组分佣−门店分佣。代采订单不产生 BD 分佣，不纳入本指标。'
     },
     {
       name: '平台预计分佣 / 平台实际分佣',
@@ -1135,7 +1189,7 @@
     },
     {
       name: 'BD分佣 / 直播运营组分佣 / 门店分佣',
-      text: '结算规则下各方分佣金额，与平台分佣拆分同源：商品毛利中划给 BD、直播运营组、门店的部分。'
+      text: '零售结算规则下各方分佣金额，与平台分佣拆分同源。代采订单不产生 BD 分佣；BD 数据中心不展示代采营业额或代采佣金。'
     },
     {
       name: '手续费成本',
@@ -1171,11 +1225,15 @@
     },
     {
       name: '门店销售 / 门店进货',
-      text: '门店销售仅统计零售订单，金额称「销售额」。门店进货仅统计代采订单，金额称「进货额／代采进货额」，不称销售额。二者分开，不合并为门店营业额。'
+      text: '门店销售仅统计零售订单，金额称「零售 GMV」。门店进货仅统计代采订单，金额称「代采 GMV／进货额」。在门店分析中二者分开展示；平台经营总览仅为计算平台总 GMV 将二者分别汇总，不代表门店营业额。'
     },
     {
       name: '食亨POS',
-      text: '独立数据域。按账单日、门店、渠道展示账单金额、商户实收、管理费、分账状态。不与 ERP 重复汇总。'
+      text: '独立数据域。按账单日、门店、渠道展示 POS GMV、商户实收、管理费、分账状态。POS 收入目前只确认 GMV，不计算平台预计收入或实际入账收入。'
+    },
+    {
+      name: '平台经营总览',
+      text: '平台总 GMV＝POS GMV＋零售 GMV＋代采 GMV。POS 仅提供门店收银 GMV；零售提供商城、直播 GMV 及平台预计收入／实际已入账收入；代采计入平台 GMV，但不产生 BD 分佣。'
     },
     {
       name: '营销活动',
