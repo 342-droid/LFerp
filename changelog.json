@@ -1,10 +1,269 @@
 {
-  "latestSha": "f71ce3875f04e5721a706404effb44f644805214",
-  "total": 649,
+  "latestSha": "cd5a1435218914155205918572921cb9500f71d0",
+  "total": 651,
   "days": [
     {
       "date": "2026-11-26",
       "items": [
+        {
+          "sha": "cd5a143",
+          "type": "other",
+          "text": "Add confirmed product stock and selection updates",
+          "author": "u ｌ",
+          "time": "22:25",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_live_session.html",
+              "module": "冷丰WMS",
+              "title": "直播场次"
+            },
+            {
+              "file": "MDM/mdm_member_level.html",
+              "module": "冷丰WMS",
+              "title": "会员等级"
+            },
+            {
+              "file": "MDM/mdm_member_level_rule.html",
+              "module": "冷丰WMS",
+              "title": "成长值规则"
+            },
+            {
+              "file": "MDM/mdm_order_freight_config.html",
+              "module": "冷丰订单",
+              "title": "运费配置"
+            },
+            {
+              "file": "MDM/mdm_party_all.html",
+              "module": "冷丰WMS",
+              "title": "所有主体"
+            },
+            {
+              "file": "MDM/mdm_product_category.html",
+              "module": "冷丰WMS",
+              "title": "商品类目"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_mall_category.html",
+              "module": "冷丰WMS",
+              "title": "商城类目"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "module": "冷丰WMS",
+              "title": "选品库"
+            },
+            {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
+            },
+            {
+              "file": "SCM/basic_settings_miniprogram_agreement.html",
+              "module": "冷丰WMS",
+              "title": "小程序协议"
+            },
+            {
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
+            },
+            {
+              "file": "SCM/basic_settings_recommendation.html",
+              "module": "冷丰WMS",
+              "title": "推荐位配置"
+            },
+            {
+              "file": "SCM/logistics_rate.html",
+              "module": "冷丰TMS",
+              "title": "物流费率表"
+            }
+          ],
+          "global": true
+        },
+        {
+          "sha": "d6b9833",
+          "type": "other",
+          "text": "Add mall decoration prototype and product log filters",
+          "author": "u ｌ",
+          "time": "22:23",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_live_session.html",
+              "module": "冷丰WMS",
+              "title": "直播场次"
+            },
+            {
+              "file": "MDM/mdm_member_level.html",
+              "module": "冷丰WMS",
+              "title": "会员等级"
+            },
+            {
+              "file": "MDM/mdm_member_level_rule.html",
+              "module": "冷丰WMS",
+              "title": "成长值规则"
+            },
+            {
+              "file": "MDM/mdm_order_freight_config.html",
+              "module": "冷丰订单",
+              "title": "运费配置"
+            },
+            {
+              "file": "MDM/mdm_party_all.html",
+              "module": "冷丰WMS",
+              "title": "所有主体"
+            },
+            {
+              "file": "MDM/mdm_product_category.html",
+              "module": "冷丰WMS",
+              "title": "商品类目"
+            },
+            {
+              "file": "MDM/mdm_product_mall_category.html",
+              "module": "冷丰WMS",
+              "title": "商城类目"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "module": "冷丰WMS",
+              "title": "选品库"
+            },
+            {
+              "file": "SCM/basic_settings_business_tags.html",
+              "module": "冷丰WMS",
+              "title": "标签管理"
+            },
+            {
+              "file": "SCM/basic_settings_contract_config.html",
+              "module": "冷丰WMS",
+              "title": "接入配置"
+            },
+            {
+              "file": "SCM/basic_settings_contract_party.html",
+              "module": "冷丰WMS",
+              "title": "签署主体"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task.html",
+              "module": "冷丰WMS",
+              "title": "签署任务"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_detail.html",
+              "module": "冷丰WMS",
+              "title": "签署任务详情"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template.html",
+              "module": "冷丰WMS",
+              "title": "合同模板"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template_form.html",
+              "module": "冷丰WMS",
+              "title": "合同模板配置"
+            },
+            {
+              "file": "SCM/basic_settings_cooperation.html",
+              "module": "冷丰WMS",
+              "title": "合作管理"
+            },
+            {
+              "file": "SCM/basic_settings_file_center.html",
+              "module": "冷丰WMS",
+              "title": "文件中心"
+            },
+            {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
+            },
+            {
+              "file": "SCM/basic_settings_material.html",
+              "module": "冷丰WMS",
+              "title": "素材列表"
+            },
+            {
+              "file": "SCM/basic_settings_material_type.html",
+              "module": "冷丰WMS",
+              "title": "素材类型"
+            },
+            {
+              "file": "SCM/basic_settings_member.html",
+              "module": "冷丰WMS",
+              "title": "会员配置"
+            },
+            {
+              "file": "SCM/basic_settings_miniprogram_agreement.html",
+              "module": "冷丰WMS",
+              "title": "小程序协议"
+            },
+            {
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
+            },
+            {
+              "file": "SCM/basic_settings_recommendation.html",
+              "module": "冷丰WMS",
+              "title": "推荐位配置"
+            },
+            {
+              "file": "SCM/basic_settings_system.html",
+              "module": "冷丰WMS",
+              "title": "系统管理"
+            },
+            {
+              "file": "SCM/logistics_rate.html",
+              "module": "冷丰TMS",
+              "title": "物流费率表"
+            }
+          ]
+        },
         {
           "sha": "f71ce38",
           "type": "feat",
@@ -176,6 +435,11 @@
               "file": "SCM/basic_settings_file_center.html",
               "module": "冷丰WMS",
               "title": "文件中心"
+            },
+            {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
             },
             {
               "file": "SCM/basic_settings_material.html",
@@ -5445,6 +5709,11 @@
               "file": "SCM/basic_settings_file_center.html",
               "module": "冷丰WMS",
               "title": "文件中心"
+            },
+            {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
             },
             {
               "file": "SCM/basic_settings_material.html",
@@ -13524,6 +13793,11 @@
               "title": "文件中心"
             },
             {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
+            },
+            {
               "file": "SCM/basic_settings_material.html",
               "module": "冷丰WMS",
               "title": "素材列表"
@@ -13626,6 +13900,11 @@
               "file": "SCM/basic_settings_file_center.html",
               "module": "冷丰WMS",
               "title": "文件中心"
+            },
+            {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
             },
             {
               "file": "SCM/basic_settings_material.html",
@@ -15112,6 +15391,11 @@
               "title": "文件中心"
             },
             {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
+            },
+            {
               "file": "SCM/basic_settings_material.html",
               "module": "冷丰WMS",
               "title": "素材列表"
@@ -15214,6 +15498,11 @@
               "file": "SCM/basic_settings_file_center.html",
               "module": "冷丰WMS",
               "title": "文件中心"
+            },
+            {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
             },
             {
               "file": "SCM/basic_settings_material.html",
@@ -21208,6 +21497,11 @@
               "title": "文件中心"
             },
             {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
+            },
+            {
               "file": "SCM/basic_settings_material.html",
               "module": "冷丰WMS",
               "title": "素材列表"
@@ -23444,6 +23738,11 @@
               "file": "SCM/basic_settings_file_center.html",
               "module": "冷丰WMS",
               "title": "文件中心"
+            },
+            {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
             },
             {
               "file": "SCM/basic_settings_material.html",
@@ -30324,6 +30623,11 @@
               "title": "文件中心"
             },
             {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
+            },
+            {
               "file": "SCM/basic_settings_material.html",
               "module": "冷丰WMS",
               "title": "素材列表"
@@ -33616,6 +33920,11 @@
               "file": "SCM/basic_settings_file_center.html",
               "module": "冷丰WMS",
               "title": "文件中心"
+            },
+            {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
             },
             {
               "file": "SCM/basic_settings_material.html",
@@ -37821,6 +38130,11 @@
               "title": "文件中心"
             },
             {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
+            },
+            {
               "file": "SCM/basic_settings_material.html",
               "module": "冷丰WMS",
               "title": "素材列表"
@@ -38782,6 +39096,11 @@
               "title": "文件中心"
             },
             {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
+            },
+            {
               "file": "SCM/basic_settings_material.html",
               "module": "冷丰WMS",
               "title": "素材列表"
@@ -39049,6 +39368,11 @@
               "file": "SCM/basic_settings_file_center.html",
               "module": "冷丰WMS",
               "title": "文件中心"
+            },
+            {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
             },
             {
               "file": "SCM/basic_settings_material.html",
@@ -54569,6 +54893,11 @@
               "file": "SCM/basic_settings_index.html",
               "module": "冷丰WMS",
               "title": "基础设置"
+            },
+            {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
             },
             {
               "file": "SCM/basic_settings_material.html",
