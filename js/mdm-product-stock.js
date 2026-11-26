@@ -20,6 +20,8 @@
   /** 仅快递一件代发、无自提/配送时不做库存维护 */
   function maintainsStock(item) {
     if (!item) return false;
+    if (item.stockManaged === true || (item.remainStock != null && item.remainStock !== '') || item.sellableStock != null) return true;
+    if (item.stockManaged === false) return false;
     var mode = String(item.fulfillmentMode || item.deliveryMode || '').toLowerCase();
     if (!mode) return true;
     if (mode === 'express') return false;
@@ -41,19 +43,28 @@
 
   function operationRows(channel, item, remain) {
     if (remain == null) return [];
+    var fulfillRemark = channel === 'mall'
+      ? (String(item.fulfillmentMode || item.deliveryMode || '').toLowerCase().indexOf('express') !== -1
+        ? '供应商发货后释放预占；已售数量不回补剩余'
+        : '自提核销后释放预占；已售数量不回补剩余')
+      : '门店收货后释放预占；已售数量不回补剩余';
     var ops = [
-      { type: '初始可售', delta: remain - 2, operator: '系统', remark: '渠道可售库存生效' },
-      { type: '下单预占', delta: -3, operator: '系统', remark: '待支付预占' },
-      { type: '支付扣减', delta: -5, operator: '系统', remark: '支付成功转实扣' },
-      { type: '退款回补', delta: 2, operator: '系统', remark: '退款成功回补可售' },
-      { type: '补货', delta: 10, operator: '杨欣如', remark: '仓配补货后自动累加剩余' },
-      { type: '手动调整', delta: -2, operator: '李运营', remark: '盘点校准' }
+      { type: '初始可售', delta: remain + 5, operator: '系统', remark: '本渠道可售配置生效' },
+      { type: '支付成功预占', delta: -4, operator: '系统', remark: '支付成功，本渠道预占 +4' },
+      { type: '取消退占', delta: 4, operator: '系统', remark: '未履约取消，原路释放预占 4' },
+      { type: '支付成功预占', delta: -3, operator: '系统', remark: '支付成功，本渠道预占 +3' },
+      { type: '售中退款退占', delta: 3, operator: '系统', remark: '释放前退款成功，原路释放预占 3' },
+      { type: '支付成功预占', delta: -5, operator: '系统', remark: '支付成功，本渠道预占 +5' },
+      { type: '履约释放预占', delta: 0, operator: '系统', remark: fulfillRemark },
+      { type: '支付成功预占', delta: -8, operator: '系统', remark: '支付成功，本渠道预占 +8' },
+      { type: '入库联动可售', delta: 10, operator: '系统', remark: '按现货配置可售，入库后可售增加 10' },
+      { type: '可售调整', delta: -2, operator: '李运营', remark: '本渠道可售手动调减 2' }
     ];
     var cursor = 0;
     var channelLabel = channel === 'mall' ? '商城' : '代采';
     return ops.map(function (op, index) {
       cursor += op.delta;
-      var day = 20 + index;
+      var day = 16 + index;
       return {
         time: '2026-11-' + (day < 10 ? '0' + day : day) + ' 1' + (index % 10) + ':2' + (index % 6) + ':0' + (index % 9),
         type: op.type,
@@ -189,7 +200,7 @@
       '</p>' +
       '<p class="product-sales-note">库存流水 · 原型示例数据</p>' +
       summaryHtml +
-      '<p class="product-sales-formula">剩余库存 = 可售库存 − 本渠道预占。自提 / 配送可联动仓现货；补货后剩余自动累加。快递一件代发未维护库存时展示「—」。</p>' +
+      '<p class="product-sales-formula">剩余库存 = 可售库存 − 本渠道预占；表中「变动」是剩余库存的变化。待支付、未支付关单、支付失败及截单不改库存，不生成库存变动流水。支付成功增加预占；释放前取消或退款退占。履约释放预占不回补已售数量。按现货配置可售时，入库可能增加剩余；售后回库不自动增加本渠道剩余。</p>' +
       '<div class="product-sales-scroll"><table><thead><tr><th>操作时间</th><th>操作类型</th><th>变动</th><th>变动后剩余</th><th>操作人</th><th>说明</th></tr></thead><tbody data-stock-body></tbody></table></div>' +
       '<div class="product-pagination product-sales-pager" data-stock-pager></div>' +
       '</div><form method="dialog" class="erp-modal__footer"><button class="btn btn-secondary">关闭</button></form>';

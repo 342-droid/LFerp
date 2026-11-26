@@ -5,6 +5,7 @@
 (function () {
   /** 线上环境商品标签 ID（进入弹窗列表的过滤条件） */
   var ONLINE_PRODUCT_TAG_ID = '382058562475524096';
+  var ONLINE_PRODUCT_TAG_LABEL = '线上（' + ONLINE_PRODUCT_TAG_ID + '）';
 
   var MODULE_DEFS = [
     { type: 'banner', name: '推荐位轮播' },
@@ -383,9 +384,9 @@
 
     var productBlock =
       mode === 'auto'
-        ? '<p class="mdm-deco-auto-tip">自动模式：按商城入口关联规则拉取商品，仍仅包含带标签 ID <strong>' +
-          ONLINE_PRODUCT_TAG_ID +
-          '</strong> 的商品。</p>'
+        ? '<p class="mdm-deco-auto-tip">自动模式：按商城入口关联规则拉取商品，仍仅包含带标签<strong>' +
+          escapeHtml(ONLINE_PRODUCT_TAG_LABEL) +
+          '</strong>的商品。</p>'
         : '<button type="button" class="mdm-deco-search-trigger" data-open-product-picker>搜索并添加商城商品</button>' +
           productListHtml;
 
@@ -509,9 +510,9 @@
 
     if (!list.length) {
       grid.innerHTML =
-        '<div class="mdm-deco-picker__empty">暂无带标签 ID ' +
-        escapeHtml(ONLINE_PRODUCT_TAG_ID) +
-        ' 的商品</div>';
+        '<div class="mdm-deco-picker__empty">暂无带标签' +
+        escapeHtml(ONLINE_PRODUCT_TAG_LABEL) +
+        '的商品</div>';
     } else {
       grid.innerHTML = pageItems
         .map(function (p) {
@@ -623,9 +624,9 @@
       '<div class="mdm-deco-picker__tabs">' +
       '<button type="button" class="mdm-deco-picker__tab is-active" data-picker-tab="mall">从商城商品列表添加</button>' +
       '</div>' +
-      '<p class="mdm-deco-picker__tag-tip">列表已按标签 ID 过滤：仅展示带 <strong>' +
-      ONLINE_PRODUCT_TAG_ID +
-      '</strong>（线上 ID）的商品</p>' +
+      '<p class="mdm-deco-picker__tag-tip">列表已按标签过滤：仅展示带<strong>' +
+      escapeHtml(ONLINE_PRODUCT_TAG_LABEL) +
+      '</strong>的商品</p>' +
       '<div class="mdm-deco-picker__body">' +
       '<aside class="mdm-deco-picker__sidebar"><ul id="decoPickerCatList" style="list-style:none;margin:0;padding:8px 0;"></ul></aside>' +
       '<div class="mdm-deco-picker__main">' +
