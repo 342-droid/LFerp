@@ -2874,6 +2874,13 @@
     "status": "diff",
     "date": "2026-11-16"
   },
+  "b61eb18|RBT/rbt_demand.html": {
+    "before": "changelog-assets/b61eb18/RBT__rbt_demand.html.before.jpg",
+    "after": "changelog-assets/b61eb18/RBT__rbt_demand.html.after.jpg",
+    "regions": 42,
+    "status": "diff",
+    "date": "2026-11-26"
+  },
   "b72f569|RBT/rbt_daily_fulfill.html": {
     "before": "changelog-assets/b72f569/RBT__rbt_daily_fulfill.html.before.jpg",
     "after": "changelog-assets/b72f569/RBT__rbt_daily_fulfill.html.after.jpg",
