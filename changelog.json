@@ -1,10 +1,95 @@
 {
-  "latestSha": "4d7626ddfe1c1c18762e55899f03c53c29471de5",
-  "total": 663,
+  "latestSha": "891340aed40ec23ed7c67e6a964eac4b7c8659c7",
+  "total": 664,
   "days": [
     {
       "date": "2026-11-27",
       "items": [
+        {
+          "sha": "891340a",
+          "type": "feat",
+          "text": "产品配置试算补上冷丰应收与实收",
+          "author": "342-droid",
+          "time": "22:31",
+          "pages": [
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "module": "冷丰WMS",
+              "title": "需求单审核"
+            },
+            {
+              "file": "RBT/rbt_admit_store.html",
+              "module": "冷丰RBT",
+              "title": "门店准入管理"
+            },
+            {
+              "file": "RBT/rbt_contract_sign.html",
+              "module": "冷丰RBT",
+              "title": "合同签署"
+            },
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日付款"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "付款"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常付款数据"
+            },
+            {
+              "file": "RBT/rbt_risk_config.html",
+              "module": "冷丰RBT",
+              "title": "风控配置"
+            },
+            {
+              "file": "RBT/rbt_trade.html",
+              "module": "冷丰RBT",
+              "title": "交易单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_installment.html",
+              "text": "测算和新增、编辑试算里应付、应收、收益改称贸易商应付、贸易商应收、贸易商收益；冷丰应收排在服务商实收前面，并展示冷丰实收"
+            }
+          ]
+        },
         {
           "sha": "4d7626d",
           "type": "feat",
