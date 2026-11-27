@@ -65,6 +65,20 @@
     return skus.reduce(function (total, sku) { return total + sku.remain; }, 0);
   }
 
+  function renderSkuStack(channel, item, field) {
+    if (!item || (parseInt(item.specCount, 10) || 1) <= 1) return '';
+    return '<div class="product-sku-stack" data-stock-inline-code="' + item.code + '" hidden>' +
+      skuRows(channel, item).map(function (sku) {
+        return '<div class="product-sku-stack__item">' + (field === 'stock' ? '<span class="product-stock-value">' + sku.remain + '</span>' : field === 'spec' ? sku.spec : sku.code) + '</div>';
+      }).join('') + '</div>';
+  }
+
+  function renderSkuCode(channel, item) {
+    if (!item || (parseInt(item.specCount, 10) || 1) <= 1) return item.code;
+    return '<button type="button" class="product-stock-expand" data-stock-expand="' + item.code + '" aria-expanded="false" aria-label="展开' + item.code + '各 SKU 库存">⌄</button>' +
+      '<span>' + item.code + '</span>' + renderSkuStack(channel, item, 'code');
+  }
+
   function renderSkuRows(channel, item) {
     if (!item || (parseInt(item.specCount, 10) || 1) <= 1) return '';
     return '<tr class="product-proxy-table__row product-sku-row" data-stock-parent-code="' + item.code + '" hidden>' +
@@ -117,6 +131,8 @@
     remainOf: remainOf,
     maintainsStock: maintainsStock,
     skuRows: skuRows,
+    renderSkuCode: renderSkuCode,
+    renderSkuStack: renderSkuStack,
     renderSkuRows: renderSkuRows,
     render: function (channel, item) {
       var remain = remainOf(item, channel);
@@ -315,8 +331,9 @@
     if (expand) {
       var code = expand.getAttribute('data-stock-expand');
       var open = expand.getAttribute('aria-expanded') !== 'true';
-      document.querySelectorAll('[data-stock-parent-code]').forEach(function (row) {
-        if (row.getAttribute('data-stock-parent-code') === code) row.hidden = !open;
+      document.querySelectorAll('[data-stock-inline-code], [data-stock-summary-code]').forEach(function (row) {
+        if (row.getAttribute('data-stock-inline-code') === code) row.hidden = !open;
+        if (row.getAttribute('data-stock-summary-code') === code) row.hidden = open;
       });
       expand.setAttribute('aria-expanded', open ? 'true' : 'false');
       expand.textContent = open ? '⌃' : '⌄';

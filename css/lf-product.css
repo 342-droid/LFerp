@@ -2452,6 +2452,20 @@ body.product-add-drawer-open {
   font: inherit;
 }
 
+.product-sku-stack {
+  margin-top: 4px;
+}
+
+.product-sku-stack__item {
+  min-height: 28px;
+  line-height: 28px;
+  white-space: nowrap;
+}
+
+.product-sku-stack__item + .product-sku-stack__item {
+  border-top: 1px solid #f5f5f5;
+}
+
 .product-sku-row__cell {
   padding: 0 16px 10px 16px;
   background: #fafafa;
