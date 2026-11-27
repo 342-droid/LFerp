@@ -49,41 +49,62 @@
     return '¥' + Number(value).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
+  function overviewUrl(period, from, to, page) {
+    var query = new URLSearchParams({ section: 'overview', period: period });
+    if (period === 'custom') { query.set('from', from); query.set('to', to); }
+    if (page > 1) query.set('storePage', String(page));
+    return '?' + query.toString();
+  }
+
   function renderPlatformOverview() {
     var Center = window.MdmDataBizCenter;
-    var period = params.get('period') || '30d';
-    var snap = Center ? Center.erpSnapshot({ period: period, channel: 'all' }) : null;
-    var pos = Center ? Center.posSnapshot({ period: period, channel: 'all' }) : { rows: [] };
+    var period = ['today', 'yesterday', '7d', '30d', 'custom'].indexOf(params.get('period')) >= 0
+      ? params.get('period') : '30d';
+    var asOfDay = Center.AS_OF.slice(0, 10);
+    var from = params.get('from') || asOfDay;
+    var to = params.get('to') || asOfDay;
+    if (period === 'custom' && (!/^\d{4}-\d{2}-\d{2}$/.test(from) ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(to) || from > to || to > asOfDay)) {
+      period = '30d';
+      from = asOfDay;
+      to = asOfDay;
+    }
+    var filters = { period: period, from: from, to: to };
+    var snap = Center ? Center.erpSnapshot(Object.assign({}, filters, { channel: 'all' })) : null;
+    var retail = Center ? Center.erpSnapshot(Object.assign({}, filters, { channel: 'retail' })) : null;
+    var proxy = Center ? Center.erpSnapshot(Object.assign({}, filters, { channel: 'proxy' })) : null;
+    var pos = Center ? Center.posSnapshot(Object.assign({}, filters, { channel: 'all' })) : { rows: [] };
     if (!snap) {
       placeholder('平台经营总概览', '数据源尚未加载，请刷新页面重试。');
       return;
     }
     var posGmv = pos.rows.reduce(function (sum, row) { return sum + Number(row.billAmount || 0); }, 0);
-    var retailGmv = (snap.mix || []).filter(function (row) { return row.name === '零售GMV'; }).reduce(function (sum, row) { return sum + Number(row.value || 0); }, 0);
-    var proxyGmv = (snap.mix || []).filter(function (row) { return row.name === '代采GMV'; }).reduce(function (sum, row) { return sum + Number(row.value || 0); }, 0);
-    var grossRetailGmv = retailGmv;
-    var grossProxyGmv = proxyGmv;
-    var refundTotal = (snap.orderDetails || []).reduce(function (sum, row) { return sum + Number(row.refundAmount || 0); }, 0);
-    if (!refundTotal) refundTotal = Number(snap.refundAmount || 0);
-    var refundRetail = refundTotal * 0.72;
-    var refundProxy = refundTotal * 0.28;
-    var retailNetGmv = Math.max(0, grossRetailGmv - refundRetail);
-    var proxyNetGmv = Math.max(0, grossProxyGmv - refundProxy);
-    var totalGmv = posGmv + grossRetailGmv + grossProxyGmv;
-    var totalNetGmv = posGmv + retailNetGmv + proxyNetGmv;
-    var retailExpected = Number(snap.platformCommissionExpected || 0) * 0.72;
-    var proxyExpected = Number(snap.platformCommissionExpected || 0) * 0.28;
-    var retailActual = Number(snap.platformCommissionActual || 0) * 0.72;
-    var proxyActual = Number(snap.platformCommissionActual || 0) * 0.28;
+    var retailGmv = Number(retail.salesTotal || 0);
+    var proxyGmv = Number(proxy.salesTotal || 0);
+    var refundRetail = Number(retail.refundAmount || 0);
+    var refundProxy = Number(proxy.refundAmount || 0);
+    var retailNetGmv = retailGmv - refundRetail;
+    var proxyNetGmv = proxyGmv - refundProxy;
+    var totalGmv = posGmv + retailGmv + proxyGmv;
+    var totalNetGmv = totalGmv - refundRetail - refundProxy;
+    var retailExpected = Number(retail.platformCommissionExpected || 0);
+    var proxyExpected = Number(proxy.platformCommissionExpected || 0);
+    var retailActual = Number(retail.platformCommissionActual || 0);
+    var proxyActual = Number(proxy.platformCommissionActual || 0);
     var storeMap = {};
     function addStore(name, key, value) {
       if (!name) return;
       storeMap[name] = storeMap[name] || { name: name, pos: 0, retail: 0, proxy: 0, refund: 0 };
       storeMap[name][key] += Number(value || 0);
     }
-    pos.rows.forEach(function (row) { addStore(row.storeName, 'pos', row.billAmount); });
-    (snap.storeSales || []).forEach(function (row) { addStore(row.storeName, 'retail', row.sales); addStore(row.storeName, 'refund', row.refundAmount); });
-    (snap.storeProxy || []).forEach(function (row) { addStore(row.storeName, 'proxy', row.sales); addStore(row.storeName, 'refund', row.refundAmount); });
+    pos.rows.forEach(function (row) {
+      var mapped = (Center.POS_STORE_MAP || []).filter(function (item) { return item.posName === row.storeName; })[0];
+      addStore(mapped && mapped.erpName || row.storeName, 'pos', row.billAmount);
+    });
+    (snap.storeSales || []).forEach(function (row) { addStore(row.storeName, 'retail', row.sales); });
+    (snap.storeProxy || []).forEach(function (row) { addStore(row.storeName, 'proxy', row.sales); });
+    (snap.aftersaleDetails || []).filter(function (row) { return Number(row.refundAmount) > 0; })
+      .forEach(function (row) { addStore(row.storeName, 'refund', row.refundAmount); });
     var stores = Object.keys(storeMap).map(function (name) {
       var row = storeMap[name];
       row.total = row.pos + row.retail + row.proxy;
@@ -95,8 +116,22 @@
       { name: '零售', detail: '商城 / 直播', gmv: retailGmv, netGmv: retailNetGmv, expected: retailExpected, actual: retailActual },
       { name: '代采', detail: '门店进货订单，计入平台 GMV', gmv: proxyGmv, netGmv: proxyNetGmv, expected: proxyExpected, actual: proxyActual }
     ];
+    var periods = [
+      { key: 'today', label: '今日' }, { key: 'yesterday', label: '昨日' },
+      { key: '7d', label: '近7天' }, { key: '30d', label: '近30天' }
+    ];
+    var dateControls = '<section class="dc-card dc-date-filter"><strong>统计日期</strong><div class="dc-date-options">' +
+      periods.map(function (item) { return '<a class="' + (period === item.key ? 'is-active' : '') +
+        '" href="' + overviewUrl(item.key, '', '', 1) + '">' + item.label + '</a>'; }).join('') +
+      '<button type="button" data-custom-toggle class="' + (period === 'custom' ? 'is-active' : '') + '">自定义</button></div>' +
+      '<div class="dc-custom-range" data-custom-range' + (period === 'custom' ? '' : ' hidden') + '>' +
+      '<input type="date" data-from max="' + asOfDay + '" value="' + from + '"><span>至</span>' +
+      '<input type="date" data-to max="' + asOfDay + '" value="' + to + '">' +
+      '<button type="button" data-custom-apply>应用</button><span data-date-error></span></div>' +
+      '<small>数据截止 ' + Center.AS_OF.replace('T', ' ').replace('+08:00', '') + '（北京时间）· 原型示例数据</small></section>';
     main.innerHTML =
       '<div class="dc-page-head"><h1>平台经营总概览</h1><p>平台总 GMV = POS GMV + 零售 GMV + 代采 GMV。退款后净 GMV = GMV - 成功退款金额。</p></div>' +
+      dateControls +
       '<section class="dc-card dc-overview-note"><strong>指标口径</strong><p>POS 仅展示门店通过收银系统产生的 GMV；商城、直播和代采展示平台预计收入与实际已入账收入；代采计入平台 GMV，但不计入 BD 佣金。</p></section>' +
       '<section class="dc-overview-kpis">' +
         '<div class="dc-card"><span>平台总 GMV</span><strong>' + money(totalGmv) + '</strong><small>退款后净 GMV ' + money(totalNetGmv) + ' · POS ' + money(posGmv) + ' · 零售 ' + money(retailGmv) + ' · 代采 ' + money(proxyGmv) + '</small></div>' +
@@ -109,8 +144,20 @@
       '</tbody></table></section>' +
       '<section class="dc-card"><h2>门店经营表</h2><p class="dc-muted">用于判断门店贡献、渠道结构和待补数据；支持分页。代采 GMV 纳入平台总 GMV，但不产生 BD 分佣。</p><table class="dc-table"><thead><tr><th>门店</th><th>POS GMV</th><th>零售 GMV</th><th>代采 GMV</th><th>门店总 GMV</th><th>退款后净 GMV</th><th>决策提示</th></tr></thead><tbody>' +
         stores.slice(Math.max(0, (Number(params.get('storePage')) || 1) - 1) * 10, (Number(params.get('storePage')) || 1) * 10).map(function (row) { var tip = row.total === 0 ? '无有效数据' : row.pos === 0 ? '检查 POS 接入' : row.retail === 0 ? '关注零售经营' : row.proxy > row.retail ? '代采占比较高' : '结构正常'; return '<tr><td>' + row.name + '</td><td>' + money(row.pos) + '</td><td>' + money(row.retail) + '</td><td>' + money(row.proxy) + '</td><td>' + money(row.total) + '</td><td>' + money(row.net) + '</td><td>' + tip + '</td></tr>'; }).join('') +
-      '</tbody></table>' + (stores.length > 10 ? '<div class="dc-pagination">第 ' + (Number(params.get('storePage')) || 1) + ' / ' + Math.ceil(stores.length / 10) + ' 页 ' + ((Number(params.get('storePage')) || 1) > 1 ? '<a href="?section=overview&period=' + period + '&storePage=' + ((Number(params.get('storePage')) || 1) - 1) + '">上一页</a>' : '') + ' ' + ((Number(params.get('storePage')) || 1) < Math.ceil(stores.length / 10) ? '<a href="?section=overview&period=' + period + '&storePage=' + ((Number(params.get('storePage')) || 1) + 1) + '">下一页</a>' : '') + '</div>' : '') + '</section>' +
+      '</tbody></table>' + (stores.length > 10 ? '<div class="dc-pagination">第 ' + (Number(params.get('storePage')) || 1) + ' / ' + Math.ceil(stores.length / 10) + ' 页 ' + ((Number(params.get('storePage')) || 1) > 1 ? '<a href="' + overviewUrl(period, from, to, (Number(params.get('storePage')) || 1) - 1) + '">上一页</a>' : '') + ' ' + ((Number(params.get('storePage')) || 1) < Math.ceil(stores.length / 10) ? '<a href="' + overviewUrl(period, from, to, (Number(params.get('storePage')) || 1) + 1) + '">下一页</a>' : '') + '</div>' : '') + '</section>' +
       '<section class="dc-card"><h2>建议关注</h2><ul class="dc-decision-list"><li>优先关注高 GMV 但 POS 或零售数据缺失的门店，确认接入与映射关系。</li><li>零售预计收入与实际入账的差额用于定位清分、结算延迟；POS 暂不生成收入差额。</li><li>代采作为平台收入来源纳入 GMV，但 BD 数据中心不展示代采营业额和佣金。</li></ul></section>';
+    main.querySelector('[data-custom-toggle]').addEventListener('click', function () {
+      main.querySelector('[data-custom-range]').hidden = false;
+    });
+    main.querySelector('[data-custom-apply]').addEventListener('click', function () {
+      var first = main.querySelector('[data-from]').value;
+      var last = main.querySelector('[data-to]').value;
+      if (!first || !last || first > last || last > asOfDay) {
+        main.querySelector('[data-date-error]').textContent = '请选择有效日期，结束日期不得晚于数据截止日';
+        return;
+      }
+      location.href = overviewUrl('custom', first, last, 1);
+    });
   }
 
   function ensureBusinessPath() {

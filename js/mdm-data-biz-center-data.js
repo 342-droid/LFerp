@@ -33,6 +33,14 @@
     { id: 'SUP-03', name: '汉言原料仓' }
   ];
 
+  /* 成功退款示例：金额、件数与成本调整共用同一批完成记录。 */
+  var REFUND_EVENTS = [
+    { asId: 'AS-20261115-001', orderId: 'ORD-REF-01', storeId: 'ST-BJ-01', biz: '零售', channel: '商城', type: '部分退款', payTime: '2026-10-05 10:20', finishTime: '2026-11-15 18:20', refundAmount: 3860, refundQty: 52, costAdjust: 2440 },
+    { asId: 'AS-20261116-014', orderId: 'ORD-REF-02', storeId: 'ST-SH-01', biz: '代采', channel: '代采', type: '退货退款', payTime: '2026-11-12 09:05', finishTime: '2026-11-16 11:05', refundAmount: 2400, refundQty: 34, costAdjust: 1480 },
+    { asId: 'AS-20261117-008', orderId: 'ORD-REF-03', storeId: 'ST-HZ-01', biz: '零售', channel: '直播', type: '部分退款', payTime: '2026-11-13 19:20', finishTime: '2026-11-17 15:40', refundAmount: 3100, refundQty: 45, costAdjust: 1960 },
+    { asId: 'AS-20261118-021', orderId: 'ORD-REF-04', storeId: 'ST-SZ-01', biz: '代采', channel: '代采', type: '退货退款', payTime: '2026-11-17 11:00', finishTime: '2026-11-18 16:12', refundAmount: 3500, refundQty: 55, costAdjust: 2160 }
+  ];
+
   /** 食亨门店及其默认 ERP 对应关系（原型）。 */
   var POS_STORE_MAP = [
     { posId: 'POS-01', erpId: 'ST-BJ-01', erpName: '冷丰锅贴·望京店', posName: '冷丰锅贴·望京店', matched: true },
@@ -43,12 +51,19 @@
     { posId: 'POS-04', erpId: '', erpName: '', posName: '食亨演示店·未映射', matched: false, posOnly: true }
   ];
 
-  function scaleOf(period) {
+  function scaleOf(period, filters) {
     if (period === 'today') return 0.12;
     if (period === 'yesterday') return 0.11;
     if (period === '7d') return 0.55;
     if (period === '30d') return 1;
-    if (period === 'custom') return 0.72;
+    if (period === 'custom') {
+      var from = filters && filters.from;
+      var to = filters && filters.to;
+      if (!from || !to || from > to) return 0;
+      var start = Math.max(Date.parse(from + 'T00:00:00+08:00'), Date.parse('2026-10-20T00:00:00+08:00'));
+      var end = Math.min(Date.parse(to + 'T00:00:00+08:00'), Date.parse('2026-11-19T00:00:00+08:00'));
+      return Math.min(1, Math.max(0, (end - start) / 86400000 + 1) / 30);
+    }
     return 1;
   }
 
@@ -85,6 +100,21 @@
       timestamp <= Date.parse(AS_OF);
   }
 
+  function successfulRefunds(filters) {
+    var scope = filters && filters.channel || 'all';
+    return REFUND_EVENTS.filter(function (row) {
+      if (!matchesPeriod(filters, row.finishTime)) return false;
+      if (!storeMatch(filters, row.storeId)) return false;
+      var store = STORES.filter(function (item) { return item.id === row.storeId; })[0];
+      if (!lineMatch(filters, store && store.line)) return false;
+      if (scope === 'retail' && row.biz !== '零售') return false;
+      if (scope === 'proxy' && row.biz !== '代采') return false;
+      if (scope === 'mall' && row.channel !== '商城') return false;
+      if (scope === 'live' && row.channel !== '直播') return false;
+      return true;
+    });
+  }
+
   function filterFactor(filters) {
     var f = filters || {};
     var s = 1;
@@ -103,7 +133,8 @@
    */
   function erpSnapshot(filters) {
     var period = (filters && filters.period) || '30d';
-    var s = scaleOf(period) * filterFactor(filters);
+    var samplePeriodScale = scaleOf(period, filters) * filterFactor(filters);
+    var s = samplePeriodScale;
     var scope = (filters && filters.channel) || 'all';
     var channelFiltered = scope === 'mall' || scope === 'live';
     var retailOnly = scope === 'retail' || channelFiltered;
@@ -112,27 +143,34 @@
     var proxyScale = s;
     if (retailOnly) s *= 0.72;
     if (proxyOnly) s *= 0.28;
-    var goodsSales = r2(186420 * s);
-    var freightSales = r2(12480 * s);
+    var channelBase = retailOnly
+      ? { goods: 134500, freight: 8400, purchase: 78500, bd: 8640, live: 6120, store: 11500, freightIncome: 2100, actualIncome: 27400 }
+      : proxyOnly
+        ? { goods: 51920, freight: 4080, purchase: 34360, bd: 0, live: 0, store: 3320, freightIncome: 1160, actualIncome: 13226.4 }
+        : { goods: 186420, freight: 12480, purchase: 112860, bd: 8640, live: 6120, store: 14820, freightIncome: 3260, actualIncome: 40626.4 };
+    var goodsSales = r2(channelBase.goods * samplePeriodScale);
+    var freightSales = r2(channelBase.freight * samplePeriodScale);
     var salesTotal = r2(goodsSales + freightSales);
-    var purchaseCostPay = r2(112860 * s);
-    var purchaseCostAfterRefund = r2(104820 * s);
+    var purchaseCostPay = r2(channelBase.purchase * samplePeriodScale);
+    var refunds = successfulRefunds(filters);
+    var refundAmount = r2(refunds.reduce(function (sum, row) { return sum + row.refundAmount; }, 0));
+    var refundQty = refunds.reduce(function (sum, row) { return sum + row.refundQty; }, 0);
+    var costAdjustment = r2(refunds.reduce(function (sum, row) { return sum + row.costAdjust; }, 0));
+    var purchaseCostAfterRefund = r2(Math.max(0, purchaseCostPay - costAdjustment));
     var purchaseCost = purchaseCostPay;
     /* 预计＝支付时采购成本；实际＝退款后实际采购成本 */
     var goodsMarginExpected = r2(goodsSales - purchaseCostPay);
     var goodsMarginActual = r2(goodsSales - purchaseCostAfterRefund);
     var goodsMargin = goodsMarginExpected;
-    var bdCommission = r2(8640 * s);
-    var liveCommission = r2(6120 * s);
-    var storeCommission = r2(14820 * s);
+    var bdCommission = r2(channelBase.bd * samplePeriodScale);
+    var liveCommission = r2(channelBase.live * samplePeriodScale);
+    var storeCommission = r2(channelBase.store * samplePeriodScale);
     var platformGoodsCommission = r2(goodsMargin - bdCommission - liveCommission - storeCommission);
-    var freightCommission = r2(3260 * s);
+    var freightCommission = r2(channelBase.freightIncome * samplePeriodScale);
     var platformCommissionExpected = r2(platformGoodsCommission + freightCommission);
     var sampleSettledShare = 0.86;
-    var platformCommissionActual = r2(platformCommissionExpected * sampleSettledShare);
+    var platformCommissionActual = r2(channelBase.actualIncome * samplePeriodScale);
     var platformIncome = platformCommissionExpected;
-    var refundAmount = r2(12860 * s);
-    var refundQty = ri(186 * s);
     var supplierPayment = r2(98640 * s);
     var liveFee = r2(4200 * s);
     var paymentFeeCost = r2(salesTotal * 0.006);
@@ -265,7 +303,8 @@
 
     var storeSales = STORES.filter(function (st) {
       return storeMatch(filters, st.id) && lineMatch(filters, st.line);
-    }).map(function (st, idx) {
+    }).map(function (st) {
+      var idx = STORES.indexOf(st);
       var w = 1 - idx * 0.08;
       return {
         storeId: st.id,
@@ -299,13 +338,15 @@
     /* 总览排行同时保留零售与代采的经营贡献；不再只以零售销售额作为排行内容。 */
     var storeRank = STORES.filter(function (st) {
       return storeMatch(filters, st.id) && lineMatch(filters, st.line);
-    }).map(function (st, idx) {
+    }).map(function (st) {
+      var idx = STORES.indexOf(st);
       var retailWeight = 1 - idx * 0.08;
       var proxyWeight = 0.7 - idx * 0.06;
       if (proxyWeight < 0.15) proxyWeight = 0.15;
       var retailGoodsSales = proxyOnly ? 0 : r2(26800 * retailScale * retailWeight);
       var retailCost = r2(retailGoodsSales * 0.52);
       var proxyGoodsSales = retailOnly ? 0 : r2(16200 * proxyScale * proxyWeight);
+      var proxyFreightSales = retailOnly ? 0 : r2(2400 * proxyScale * proxyWeight);
       var proxyCost = r2(proxyGoodsSales * 0.68);
       var retailMargin = r2(retailGoodsSales - retailCost);
       var proxyMargin = r2(proxyGoodsSales - proxyCost);
@@ -313,13 +354,26 @@
       var goodsMargin = r2(retailMargin + proxyMargin);
       /* 延用排行的预计清分样本，按示例结算比例给出实际所得。 */
       var retailPlatformIncome = r2(retailMargin * 0.24);
-      var proxyPlatformIncome = retailOnly
-        ? 0
-        : r2(proxyMargin * 0.2 + 2400 * proxyScale * proxyWeight * 0.12);
+      var proxyPlatformGoodsIncome = r2(proxyMargin * 0.2);
+      var proxyPlatformFreightIncome = r2(proxyFreightSales * 0.12);
+      var proxyPlatformIncome = r2(proxyPlatformGoodsIncome + proxyPlatformFreightIncome);
       return {
         storeId: st.id,
         storeName: st.name,
         line: st.line,
+        brand: st.brand,
+        retailSales: retailGoodsSales,
+        retailSalesPrev: r2(retailGoodsSales * (0.86 + (idx % 5) * 0.04)),
+        retailOrders: retailGoodsSales ? ri(retailGoodsSales / 96) : 0,
+        retailMargin: retailMargin,
+        retailMarginRate: retailGoodsSales ? retailMargin / retailGoodsSales : null,
+        proxyGoodsSales: proxyGoodsSales,
+        proxyGoodsSalesPrev: r2(proxyGoodsSales * (0.9 + (idx % 4) * 0.05)),
+        proxyFreightSales: proxyFreightSales,
+        proxyOrders: proxyGoodsSales ? ri(proxyGoodsSales / 420) : 0,
+        proxyPlatformGoodsIncome: proxyPlatformGoodsIncome,
+        proxyPlatformFreightIncome: proxyPlatformFreightIncome,
+        platformIncomePrev: r2((retailPlatformIncome + proxyPlatformIncome) * (0.88 + (idx % 3) * 0.06)),
         goodsSales: goodsSalesTotal,
         goodsMargin: goodsMargin,
         goodsMarginRate: goodsSalesTotal ? goodsMargin / goodsSalesTotal : null,
@@ -553,53 +607,29 @@
         payTime: '2026-11-18 10:41'
       }
     ];
-    var aftersaleDetails = [
-      {
-        asId: 'AS-20261116-001',
-        type: '仅退款',
+    var aftersaleDetails = refunds.map(function (row) {
+      var store = STORES.filter(function (item) { return item.id === row.storeId; })[0];
+      return {
+        asId: row.asId,
+        orderId: row.orderId,
+        type: row.type,
         status: '退款成功',
-        refundAmount: r2(86.5 * s),
-        storeName: storeNames[0],
-        finishTime: '2026-11-16 18:20',
-        handleHours: 6.2
-      },
-      {
-        asId: 'AS-20261117-014',
-        type: '退货退款',
-        status: '退款成功',
-        refundAmount: r2(128 * s),
-        storeName: storeNames[1 % storeNames.length],
-        finishTime: '2026-11-18 11:05',
-        handleHours: 28.4
-      },
-      {
-        asId: 'AS-20261118-008',
-        type: '仅退款',
-        status: '已驳回',
-        refundAmount: 0,
-        storeName: storeNames[2 % storeNames.length],
-        finishTime: '2026-11-18 15:40',
-        handleHours: 4.1
-      },
-      {
-        asId: 'AS-20261119-003',
-        type: '退货退款',
-        status: '处理中',
-        refundAmount: null,
-        storeName: storeNames[0],
-        finishTime: '',
+        refundAmount: row.refundAmount,
+        refundQty: row.refundQty,
+        storeName: store ? store.name : '—',
+        payTime: row.payTime,
+        finishTime: row.finishTime,
         handleHours: null
-      },
-      {
-        asId: 'AS-20261119-021',
-        type: '补货',
-        status: '已完结',
-        refundAmount: 0,
-        storeName: storeNames[1 % storeNames.length],
-        finishTime: '2026-11-19 16:12',
-        handleHours: 9.5
-      }
-    ];
+      };
+    });
+    if (matchesPeriod(filters, '2026-11-18 15:40')) {
+      aftersaleDetails.push({ asId: 'AS-20261118-088', type: '仅退款', status: '已驳回', refundAmount: 0,
+        refundQty: 0, storeName: storeNames[2 % storeNames.length], finishTime: '2026-11-18 15:40', handleHours: 4.1 });
+    }
+    if (matchesPeriod(filters, '2026-11-19 16:12')) {
+      aftersaleDetails.push({ asId: 'AS-20261119-021', type: '补货', status: '已完结', refundAmount: 0,
+        refundQty: 0, storeName: storeNames[1 % storeNames.length], finishTime: '2026-11-19 16:12', handleHours: 9.5 });
+    }
 
     return {
       demo: true,
@@ -653,8 +683,8 @@
       products: products,
       suppliers: suppliers,
       retailBreakdown: scope === 'all' || scope === 'retail' ? {
-        mall: r2(salesTotal * (scope === 'all' ? 0.72 : 1) * 0.58),
-        live: r2(salesTotal * (scope === 'all' ? 0.72 : 1) * 0.42)
+        mall: r2(142900 * samplePeriodScale * 0.58),
+        live: r2(142900 * samplePeriodScale * 0.42)
       } : null,
       storeSales: storeSales,
       storeProxy: storeProxy,
@@ -668,8 +698,8 @@
         : proxyOnly
           ? [{ name: '代采GMV', value: salesTotal, orders: proxyOrders, color: '#1677ff' }]
           : [
-            { name: '零售GMV', value: r2(salesTotal * 0.72), orders: retailOrders, color: '#ff7019' },
-            { name: '代采GMV', value: r2(salesTotal * 0.28), orders: proxyOrders, color: '#1677ff' }
+            { name: '零售GMV', value: r2(142900 * samplePeriodScale), orders: retailOrders, color: '#ff7019' },
+            { name: '代采GMV', value: r2(56000 * samplePeriodScale), orders: proxyOrders, color: '#1677ff' }
           ]
     };
   }
@@ -726,7 +756,7 @@
         platformIncomeActual: optionalSum(matched, 'platformIncomeActual')
       });
     }).sort(function (a, b) { return b.sales - a.sales; });
-    var s = scaleOf((filters && filters.period) || '30d') * filterFactor(filters);
+    var s = scaleOf((filters && filters.period) || '30d', filters) * filterFactor(filters);
     var days = [];
     for (var i = 0; i < 7; i++) {
       var w = 0.7 + (i % 3) * 0.12;
@@ -1273,7 +1303,7 @@
   function rbtSnapshot(filters) {
     var f = filters || {};
     var period = f.period || '30d';
-    var s = scaleOf(period);
+    var s = scaleOf(period, filters);
     var raw = [
       {
         demandCode: 'XQ00031',

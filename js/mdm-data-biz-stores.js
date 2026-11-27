@@ -1,33 +1,29 @@
 (function () {
   var Center = window.MdmDataBizCenter;
   var CUi = window.MdmDataBizCenterUi;
-  if (!Center || !CUi) return;
+  var Rank = window.MdmDataBizStoreRank;
+  if (!Center || !CUi || !Rank) return;
 
   var state = CUi.readState({ period: '30d', channel: 'all', mode: 'sales' });
   if (state.mode === 'proxy') state.channel = 'proxy';
   if (['all', 'retail', 'proxy', 'mall', 'live'].indexOf(state.channel) < 0) state.channel = 'all';
   var root = document.querySelector('[data-ldb-root]');
-  var storePager = { page: 1, pageSize: 10 };
+  var storePager = { page: 1, pageSize: 10, sort: 'retailSales', query: '' };
   var orderPager = { page: 1, pageSize: 10 };
   var storeExportColumns = [
     { key: 'storeName', label: '门店' },
     { key: 'line', label: '事业线' },
-    { key: 'goodsMargin', label: '商品交易毛利', num: true, format: 'money' },
-    {
-      key: 'goodsMarginRate',
-      label: '毛利率',
-      num: true,
-      format: 'pct',
-      render: function (row, value) {
-        return value == null ? '—' : (Number(value) * 100).toFixed(1) + '%';
-      }
-    },
-    { key: 'retailPlatformIncome', label: '零售平台预计所得', num: true, format: 'money' },
-    { key: 'retailPlatformIncomeActual', label: '零售平台实际所得', num: true, format: 'money' },
-    { key: 'proxyPlatformIncome', label: '代采平台预计所得', num: true, format: 'money' },
-    { key: 'proxyPlatformIncomeActual', label: '代采平台实际所得', num: true, format: 'money' },
-    { key: 'platformIncome', label: '平台预计所得', num: true, format: 'money' },
-    { key: 'platformIncomeActual', label: '平台实际所得', num: true, format: 'money' }
+    { key: 'brand', label: '品牌' },
+    { key: 'retailSales', label: '零售支付成交额', num: true, format: 'money' },
+    { key: 'retailOrders', label: '零售支付主订单数', num: true, format: 'int' },
+    { key: 'retailMargin', label: '零售商品交易毛利', num: true, format: 'money' },
+    { key: 'proxyGoodsSales', label: '代采商品支付金额', num: true, format: 'money' },
+    { key: 'proxyFreightSales', label: '代采运费支付金额', num: true, format: 'money' },
+    { key: 'proxyOrders', label: '代采支付主订单数', num: true, format: 'int' },
+    { key: 'retailPlatformIncome', label: '零售商品所得', num: true, format: 'money' },
+    { key: 'proxyPlatformGoodsIncome', label: '代采商品所得', num: true, format: 'money' },
+    { key: 'proxyPlatformFreightIncome', label: '代采运费所得', num: true, format: 'money' },
+    { key: 'platformIncome', label: '所得合计', num: true, format: 'money' }
   ];
 
   function filters() {
@@ -111,33 +107,18 @@
       '<div data-ldb-store-list>' +
       CUi.sectionCard(
         '门店列表',
-        CUi.renderPagedTable(
-          storeExportColumns.concat([
-            {
-              key: 'storeId',
-              label: '操作',
-              render: function (r) {
-                return (
-                  '<a href="' +
-                  CUi.pageHref('mdm_data_biz_store_detail.html', {
-                    storeId: r.storeId,
-                    mode: all ? 'sales' : mode,
-                    period: state.period,
-                    line: state.line,
-                    channel: state.channel === 'mall' || state.channel === 'live' ? state.channel : 'all',
-                    from: state.from,
-                    to: state.to,
-                    back: all ? 'stores-all' : 'stores'
-                  }) +
-                  '">详情</a>'
-                );
-              }
-            }
-          ]),
-          storeRank,
-          storePager,
-          { unitLabel: '家', emptyText: '当前筛选暂无门店经营数据' }
-        ),
+        Rank.table(storeRank, storePager, function (row) {
+          return CUi.pageHref('mdm_data_biz_store_detail.html', {
+            storeId: row.storeId,
+            mode: all ? 'sales' : mode,
+            period: state.period,
+            line: state.line,
+            channel: state.channel === 'mall' || state.channel === 'live' ? state.channel : 'all',
+            from: state.from,
+            to: state.to,
+            back: all ? 'stores-all' : 'stores'
+          });
+        }, true),
         '<div class="ldb-card__actions">' +
           '<button type="button" class="ldb-chip is-active" data-store-list-export data-lf-skip-export-notify>导出</button>' +
           '</div>'
@@ -153,7 +134,7 @@
           '</div>'
       ) +
       '</div>';
-    CUi.bindPagedTable(root.querySelector('[data-ldb-store-list]'), storePager, render);
+    Rank.bind(root.querySelector('[data-ldb-store-list]'), storePager, render);
     CUi.bindPagedTable(root.querySelector('[data-ldb-order-list]'), orderPager, render);
     var storeExportBtn = root.querySelector('[data-store-list-export]');
     if (storeExportBtn) {
@@ -163,7 +144,7 @@
           title: '导出门店列表',
           exportName: '门店列表',
           unitLabel: '家',
-          rows: storeRank || [],
+          rows: Rank.sortRows(storeRank, storePager.sort, storePager.query),
           columns: storeExportColumns
         });
       });

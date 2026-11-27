@@ -54,6 +54,15 @@ html, body { margin: 0; min-height: 100%; font-family: -apple-system, BlinkMacSy
 .dc-load-error a { color: var(--dc-green); }
 .dc-store-link { display: inline-flex; margin-top: 18px; min-height: 36px; align-items: center; padding: 0 16px; border-radius: 5px; background: var(--dc-green); color: #fff; text-decoration: none; font-size: 14px; }
 .dc-overview-note { margin-bottom: 16px; }
+.dc-date-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; margin-bottom: 16px; }
+.dc-date-filter > strong { font-size: 14px; }
+.dc-date-options, .dc-custom-range { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.dc-date-options a, .dc-date-options button, .dc-custom-range button { padding: 8px 12px; border: 1px solid #dce2e9; border-radius: 5px; background: #fff; color: var(--dc-text); font: inherit; font-size: 13px; text-decoration: none; cursor: pointer; }
+.dc-date-options .is-active, .dc-custom-range button { border-color: var(--dc-green); background: var(--dc-green-soft); color: #16835e; }
+.dc-custom-range[hidden] { display: none; }
+.dc-custom-range input { padding: 7px 9px; border: 1px solid #dce2e9; border-radius: 5px; font: inherit; font-size: 13px; }
+.dc-custom-range [data-date-error] { color: #c32929; font-size: 12px; }
+.dc-date-filter > small { width: 100%; color: var(--dc-muted); }
 .dc-overview-note p, .dc-muted { color: var(--dc-muted); line-height: 1.7; }
 .dc-overview-kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 16px; }
 .dc-overview-kpis span { display:block; color: var(--dc-muted); font-size: 14px; }

@@ -1,10 +1,12 @@
 (function () {
   var Center = window.MdmDataBizCenter;
   var CUi = window.MdmDataBizCenterUi;
-  if (!Center || !CUi) return;
+  var Rank = window.MdmDataBizStoreRank;
+  if (!Center || !CUi || !Rank) return;
 
   var state = CUi.readState({ period: '30d', channel: 'all' });
   var root = document.querySelector('[data-ldb-root]');
+  var rankState = { sort: 'retailSales', page: 1 };
 
   function filters() {
     return {
@@ -125,7 +127,9 @@
         { key: 'type', label: '类型' },
         { key: 'status', label: '状态' },
         { key: 'refundAmount', label: '退款金额', num: true, format: 'money' },
+        { key: 'refundQty', label: '退款商品数', num: true, format: 'int' },
         { key: 'storeName', label: '门店' },
+        { key: 'payTime', label: '原订单支付时间' },
         { key: 'finishTime', label: '完结时间' }
       ],
       {
@@ -434,63 +438,33 @@
       );
     CUi.bindCompositionPie(mid.querySelector('[data-ldb-pie]'));
 
-    root.querySelector('[data-ldb-tables]').innerHTML =
-      CUi.sectionCard(
-        '门店经营排行',
-        CUi.simpleTable(
-          [
-            { key: 'storeName', label: '门店' },
-            { key: 'line', label: '事业线' },
-            { key: 'goodsMargin', label: '商品交易毛利', num: true, format: 'money' },
-            {
-              key: 'goodsMarginRate',
-              label: '毛利率',
-              num: true,
-              render: function (r, v) {
-                return v == null ? '—' : (Number(v) * 100).toFixed(1) + '%';
-              }
-            },
-            { key: 'retailPlatformIncome', label: '零售平台分配所得', num: true, format: 'money' },
-            { key: 'proxyPlatformIncome', label: '代采平台分配所得', num: true, format: 'money' },
-            { key: 'platformIncome', label: '平台分配所得', num: true, format: 'money' },
-            {
-              key: 'storeId',
-              label: '操作',
-              render: function (r) {
-                return (
-                  '<a href="' +
-                  CUi.pageHref('mdm_data_biz_store_detail.html', {
-                    storeId: r.storeId,
-                    mode: state.channel === 'proxy' ? 'proxy' : 'sales',
-                    period: state.period,
-                    line: state.line,
-                    channel:
-                      state.channel === 'retail' || state.channel === 'proxy' ? 'all' : state.channel,
-                    from: state.from,
-                    to: state.to,
-                    back: 'overview'
-                  }) +
-                  '">详情</a>'
-                );
-              }
-            }
-          ],
-          data.storeRank.slice(0, 10),
-          '当前筛选暂无门店经营数据'
-        ),
-        '<span class="ldb-card__extra">按平台分配所得降序 · Top10</span>' +
-          '<a class="ldb-link-all" href="' +
-          CUi.pageHref('mdm_data_biz_stores.html', {
-            mode: state.channel === 'proxy' ? 'proxy' : 'sales',
-            period: state.period,
-            line: state.line,
-            channel: state.channel === 'retail' || state.channel === 'proxy' ? 'all' : state.channel,
-            from: state.from,
-            to: state.to,
-            storeId: state.storeId
-          }) +
-          '">门店分析</a>'
-      );
+    var rankHost = root.querySelector('[data-ldb-tables]');
+    rankHost.innerHTML = CUi.sectionCard(
+      '门店经营排行',
+      Rank.table(data.storeRank, rankState, function (row) {
+        return CUi.pageHref('mdm_data_biz_store_detail.html', {
+          storeId: row.storeId,
+          mode: state.channel === 'proxy' ? 'proxy' : 'sales',
+          period: state.period,
+          line: state.line,
+          channel: state.channel === 'retail' || state.channel === 'proxy' ? 'all' : state.channel,
+          from: state.from,
+          to: state.to,
+          back: 'overview'
+        });
+      }, false),
+      '<span class="ldb-card__extra">当前排序前 10 家</span>' +
+      '<a class="ldb-link-all" href="' + CUi.pageHref('mdm_data_biz_stores.html', {
+        mode: state.channel === 'proxy' ? 'proxy' : 'sales',
+        period: state.period,
+        line: state.line,
+        channel: state.channel === 'retail' || state.channel === 'proxy' ? 'all' : state.channel,
+        from: state.from,
+        to: state.to,
+        storeId: state.storeId
+      }) + '">查看全部门店</a>'
+    );
+    Rank.bind(rankHost, rankState, render);
   }
 
   render();
