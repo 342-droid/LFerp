@@ -1,10 +1,30 @@
 {
-  "latestSha": "f9276d1f5d6271c76060ef5d10620df8c80ddbb6",
-  "total": 665,
+  "latestSha": "d2092af49b8bfa5a49fad18d24205f67021cbe28",
+  "total": 666,
   "days": [
     {
       "date": "2026-11-27",
       "items": [
+        {
+          "sha": "d2092af",
+          "type": "other",
+          "text": "Align multi-SKU stock display within product rows",
+          "author": "u ｌ",
+          "time": "23:18",
+          "pages": [
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            }
+          ],
+          "global": true
+        },
         {
           "sha": "f9276d1",
           "type": "feat",
