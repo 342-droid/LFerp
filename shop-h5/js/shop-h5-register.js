@@ -756,11 +756,27 @@
       navigateStatus(p);
     };
 
+    var duplicateConfirmed = false;
     $('btnSubmit').onclick = function () {
       var isSupplement = state.mode === 'supplement';
       if (!validateSubmit(isSupplement)) return;
 
       var f = collectPayloadFromForm();
+      var duplicateApi = window.MdmStoreDuplicateReview;
+      var matches = duplicateApi ? duplicateApi.find({
+        currentId: isSupplement ? state.supplementStoreId : '',
+        name: f.name,
+        address: String(f.regionCascade || '') + String(f.detailAddress || ''),
+        phone: f.contactPhone
+      }, (window.__BD_STORE_AUDITS__ || []).concat(loadStores())) : [];
+      if (!duplicateConfirmed && duplicateApi && matches.length) {
+        duplicateApi.dialog(matches, function () {
+          duplicateConfirmed = true;
+          $('btnSubmit').click();
+        });
+        return;
+      }
+      duplicateConfirmed = false;
       var bd = f.boundBd || bdFromUrl || '当前 BD';
       var bdDisplay = resolveBdDisplayName(bd);
       var entryMaterials = currentShopEntry();
@@ -801,6 +817,7 @@
           confidenceReach1000: f.confidenceReach1000,
           specialCircumstancesNote: f.specialCircumstancesNote,
           entryMaterials: entryMaterials,
+          duplicateMatches: matches,
         });
         toast('已提交：门店注册申请已提交，请等待审核');
         var q = { status: 'pending', storeName: f.name, bdId: bd, storeId: String(newId) };
@@ -844,6 +861,7 @@
           confidenceReach1000: f.confidenceReach1000,
           specialCircumstancesNote: f.specialCircumstancesNote,
           entryMaterials: entryMaterials,
+          duplicateMatches: matches,
           phase: prev.phase === 'draft' ? 'awaiting_bd' : prev.phase === 'awaiting_bd' ? 'awaiting_bd' : prev.phase,
         })
       );

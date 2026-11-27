@@ -957,20 +957,20 @@
             (window.MdmProductListBatch ? window.MdmProductListBatch.cell(item.code) : '') +
             '<td class="product-proxy-table__td product-proxy-table__td--name">' + item.name + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--code">' +
-            '  <div class="product-proxy-code">' + item.code + '</div>' +
-            '  <div class="product-proxy-code__sub">' + item.specCount + '个规格</div>' +
+            '  <div class="product-proxy-code">' + (window.ProductStock ? window.ProductStock.renderSkuCode('mall', item) : item.code) + '</div>' +
+            '  <div class="product-proxy-code__sub product-sku-summary" data-stock-summary-code="' + item.code + '">' + item.specCount + '个规格</div>' +
             '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--img">' +
             '  <img class="product-table__thumb" src="' + item.img + '" alt="">' +
             '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--tag">' + (item.tag || '<span class="product-proxy-dash">-</span>') + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--category">' + renderCategoryCell(item) + '</td>' +
-            '<td class="product-proxy-table__td product-proxy-table__td--spec">' + item.spec + '</td>' +
+            '<td class="product-proxy-table__td product-proxy-table__td--spec">' + (window.ProductStock ? (item.specCount > 1 ? window.ProductStock.renderSkuStack('mall', item, 'spec') : item.spec) : item.spec) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--sale">' + renderSalePrice(item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--margin">' + renderMarginCell(item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--line">' + renderLinePrice(item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--stock">' +
-            (window.ProductStock ? window.ProductStock.render('mall', item) : '—') +
+            (window.ProductStock ? (item.specCount > 1 ? window.ProductStock.render('mall', item) + window.ProductStock.renderSkuStack('mall', item, 'stock') : window.ProductStock.render('mall', item)) : '—') +
             '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--sales">' + window.ProductSales.render('mall', item) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--fulfillment">' + renderDeliveryMode(item) + '</td>' +

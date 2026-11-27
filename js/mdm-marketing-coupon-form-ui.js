@@ -164,18 +164,6 @@
       if (!locked) html += '<button type="button" class="mkt-tpl-add-link" data-act="add-coupon-sku">+ 添加商品</button>';
       html += '</div>';
     } else if (model.itemScope === 'CATEGORY') {
-      var catCount = (model.selectedCategories || []).length;
-      html += '<div class="mkt-cp-goods-count-row">';
-      if (catCount) {
-        html +=
-          '<button type="button" class="mkt-tpl-name" data-act="view-cats">' +
-          '指定类目（' +
-          catCount +
-          '）</button>';
-      } else {
-        html += '<span class="mkt-cp-goods-count-empty">指定类目（0）</span>';
-      }
-      html += '</div>';
       html += '<div class="pts-rule-check-row" style="margin:8px 0">';
       html += radio('fCatSrc', 'MALL', model.categorySource, '商城类目', locked);
       html += radio('fCatSrc', 'LIVE', model.categorySource, '直播类目', locked);

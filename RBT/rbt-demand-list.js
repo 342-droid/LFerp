@@ -510,11 +510,86 @@
                 return isFinite(amount) && amount > 0 ? amount : 0;
             }
 
-            function lineCents(line) {
+            function ratePoints(rate) {
+                var num = Number(rate);
+                if (!isFinite(num)) return null;
+                return Math.round(num * 100);
+            }
+
+            /* 比例付用产品上的门店、贸易商系数。其他结算方式优先用当前期数上的一对系数。 */
+            function ratePairOf(plan, period) {
+                if (!plan) return null;
+                var store = plan.storeRate;
+                var trader = plan.traderRate;
+                if (plan.repayMethod !== '比例付') {
+                    var pair = (plan.periodRates || {})[String(period || '')];
+                    if (pair) {
+                        store = pair.store;
+                        trader = pair.trader;
+                    }
+                }
+                var storePts = ratePoints(store);
+                var traderPts = ratePoints(trader);
+                if (storePts == null || traderPts == null || storePts <= 0 || traderPts <= 0) return null;
+                /* 乘数 = 1 + 门店系数 − 贸易商系数。1.20 和 1.08 就是 ×1.12。 */
+                return { storePts: storePts, traderPts: traderPts, multPts: 100 + storePts - traderPts };
+            }
+
+            /* 需求单售卖单价 = 商品包标准售卖单价 ×（1 + 门店系数 − 贸易商系数），四舍五入到分。 */
+            function quotedUnitCents(baseText, multPts) {
+                var base = priceNumber(baseText);
+                if (!base || !(multPts > 0)) return 0;
+                return Math.round(Math.round(base * 100) * multPts / 100);
+            }
+
+            function unitCentsOf(line, multPts) {
+                if (!line) return 0;
+                if (line.priceTouched) {
+                    var typed = priceNumber(line.priceInput);
+                    return typed ? Math.round(typed * 100) : 0;
+                }
+                return quotedUnitCents(line.basePrice != null ? line.basePrice : line.priceInput, multPts);
+            }
+
+            function lineQuoteCents(line, multPts) {
                 var qty = qtyNumber(line && line.qtyInput);
-                var price = priceNumber(line && line.priceInput);
-                if (!qty || !price) return 0;
-                return Math.round(price * 100) * qty;
+                var unit = unitCentsOf(line, multPts);
+                if (!qty || !unit) return 0;
+                return unit * qty;
+            }
+
+            function quotedGoods(lines, multPts) {
+                var goods = 0;
+                (lines || []).forEach(function (line) {
+                    goods += lineQuoteCents(line, multPts);
+                });
+                return goods;
+            }
+
+            function linesReady(lines) {
+                var ready = false;
+                var bad = false;
+                (lines || []).forEach(function (line) {
+                    var qty = qtyNumber(line && line.qtyInput);
+                    var priceReady = line && line.priceTouched
+                        ? priceNumber(line.priceInput)
+                        : priceNumber(line && line.basePrice);
+                    if (!qty || !priceReady) bad = true;
+                    else ready = true;
+                });
+                return ready && !bad;
+            }
+
+            function planCoversPackage(plan, pkg) {
+                var names = plan && plan.packages || [];
+                return names.indexOf(pkg.name) >= 0 || names.indexOf(pkg.code) >= 0;
+            }
+
+            /* 非比例付的系数在期数上。已选期数就用它，否则用该产品的第一个期数。 */
+            function matchPeriodOf(plan) {
+                var periods = plan && Array.isArray(plan.periods) ? plan.periods.map(String) : [];
+                if (periods.indexOf(String(createPeriod.value)) >= 0) return String(createPeriod.value);
+                return periods[0] || '';
             }
 
             function countStoreDemands(storeCode) {
@@ -541,22 +616,41 @@
                 createDemandCount.value = countStoreDemands(code);
             }
 
-            function plansForPackage(pkg, goodsCents) {
-                if (!pkg || !isFinite(goodsCents) || goodsCents <= 0) return [];
+            function quotedPair(plan) {
+                return ratePairOf(plan, matchPeriodOf(plan));
+            }
+
+            /* 能挂上这个商品包、并且系数算得出售价的产品。不看出不在货款区间。 */
+            function quotablePlans(pkg, lines) {
+                if (!pkg || !linesReady(lines)) return [];
                 return createPlans.value.filter(function (plan) {
-                    var names = plan.packages || [];
-                    if (names.indexOf(pkg.name) < 0 && names.indexOf(pkg.code) < 0) return false;
-                    var min = moneyCents(plan.amountMin);
-                    var max = moneyCents(plan.amountMax);
-                    return isFinite(min) && isFinite(max) && goodsCents >= min && goodsCents <= max;
+                    if (!planCoversPackage(plan, pkg)) return false;
+                    var pair = quotedPair(plan);
+                    return !!(pair && pair.multPts > 0);
+                });
+            }
+
+            /* 货款区间对的是折算后的商品金额。每个候选产品先用自己的系数折算，再看是否落在自己的区间里。 */
+            function planInRange(plan, lines) {
+                var pair = quotedPair(plan);
+                if (!pair || !(pair.multPts > 0)) return false;
+                var goodsCents = quotedGoods(lines, pair.multPts);
+                if (!(goodsCents > 0)) return false;
+                var min = moneyCents(plan.amountMin);
+                var max = moneyCents(plan.amountMax);
+                return isFinite(min) && isFinite(max) && goodsCents >= min && goodsCents <= max;
+            }
+
+            function plansForPackage(pkg, lines) {
+                return quotablePlans(pkg, lines).filter(function (plan) {
+                    return planInRange(plan, lines);
                 });
             }
 
             function plansCoveringPackage(pkg) {
                 if (!pkg) return [];
                 return createPlans.value.filter(function (plan) {
-                    var names = plan.packages || [];
-                    return names.indexOf(pkg.name) >= 0 || names.indexOf(pkg.code) >= 0;
+                    return planCoversPackage(plan, pkg);
                 });
             }
 
@@ -594,14 +688,6 @@
                 return { cycles: cycles, cycle: cycle, methods: methods, method: method, plan: plan, periods: periods, period: period };
             }
 
-            function storeRateOf(plan, period) {
-                if (!plan) return 0;
-                var rate = plan.repayMethod === '比例付'
-                    ? Number(plan.storeRate)
-                    : Number((plan.periodRates || {})[String(period)] || 0);
-                return isFinite(rate) && rate > 0 ? rate : 0;
-            }
-
             function channelRatiosOf(plan) {
                 var api = window.RbtSettleRatio;
                 if (!api || !plan || plan.repayMethod !== '比例付' || typeof api.normalize !== 'function') return null;
@@ -632,9 +718,24 @@
                     }
                     return false;
                 });
+                var pending = false;
+                createLines.value.forEach(function (line) {
+                    var baseReady = line.priceTouched ? priceNumber(line.priceInput) : priceNumber(line.basePrice);
+                    if (!qtyNumber(line.qtyInput) || !baseReady) pending = true;
+                });
+                var quotable = pkg && !pending ? quotablePlans(pkg, createLines.value) : [];
+                var matched = quotable.filter(function (plan) { return planInRange(plan, createLines.value); });
+                /* 区间外也按候选产品把售价和结算字段算出来，只是不能发布。 */
+                var choice = settleChoice(matched.length ? matched : quotable);
+                var pair = ratePairOf(choice.plan, choice.period);
+                var multPts = pair && pair.multPts > 0 ? pair.multPts : 0;
                 var lines = createLines.value.map(function (line) {
-                    var cents = lineCents(line);
                     var qty = qtyNumber(line.qtyInput);
+                    var unit = multPts || line.priceTouched ? unitCentsOf(line, multPts) : 0;
+                    var cents = qty && unit ? unit * qty : 0;
+                    var priceText = line.priceTouched
+                        ? (line.priceInput ? String(line.priceInput) : '')
+                        : (unit ? (unit / 100).toFixed(2) : '—');
                     return {
                         code: line.code,
                         name: line.name,
@@ -644,33 +745,35 @@
                         qtyInput: line.qtyInput,
                         qtyText: qty ? String(qty) : '—',
                         priceInput: line.priceInput,
-                        priceText: priceNumber(line.priceInput) ? Number(line.priceInput).toFixed(2) : '—',
+                        priceTouched: !!line.priceTouched,
+                        priceText: priceText,
                         amount: cents ? yuanText(cents) : '—'
                     };
                 });
                 var goods = 0;
                 var piece = 0;
                 var kind = 0;
-                var pending = false;
-                createLines.value.forEach(function (line) {
-                    var cents = lineCents(line);
-                    if (!cents) {
-                        pending = true;
-                        return;
-                    }
-                    goods += cents;
-                    piece += qtyNumber(line.qtyInput);
-                    kind += 1;
-                });
-                var matched = pkg && !pending && goods > 0 ? plansForPackage(pkg, goods) : [];
-                var choice = settleChoice(matched);
-                var rate = storeRateOf(choice.plan, choice.period);
-                var total = choice.plan && rate ? Math.round(goods * rate) : NaN;
+                if (multPts || createLines.value.some(function (line) { return line.priceTouched; })) {
+                    createLines.value.forEach(function (line) {
+                        var cents = lineQuoteCents(line, multPts);
+                        if (!cents) {
+                            pending = true;
+                            return;
+                        }
+                        goods += cents;
+                        piece += qtyNumber(line.qtyInput);
+                        kind += 1;
+                    });
+                }
+                var total = pair && multPts && goods ? Math.round(goods * pair.traderPts / 100) : NaN;
                 var settleTip = '';
                 if (pkg && !createLines.value.length) settleTip = '请至少保留一件商品';
+                else if (pkg && pending && !multPts) settleTip = '请把商品数量和售卖单价填完整';
+                else if (pkg && !plansCoveringPackage(pkg).length) settleTip = '商品未关联产品配置';
+                else if (pkg && !matched.length && !quotable.length) settleTip = '门店系数与贸易商系数无法算出售价';
+                else if (pkg && !matched.length) settleTip = '售价不在产品配置的货款区间内';
+                else if (pkg && choice.plan && !multPts) settleTip = '门店系数与贸易商系数无法算出售价';
                 else if (pkg && pending) settleTip = '请把商品数量和售卖单价填完整';
-                else if (pkg && goods > 0 && !plansCoveringPackage(pkg).length) settleTip = '商品未关联产品配置';
-                else if (pkg && goods > 0 && !matched.length) settleTip = '售价不在产品配置的货款区间内';
                 else if (pkg && quota && goods > moneyCents(quota.available)) settleTip = '商品金额须小于等于可用额度';
                 else if (choice.plan && choice.plan.repayMethod === '比例付' && !channelRatiosOf(choice.plan)) settleTip = '请先在产品配置中维护各渠道结算比例';
                 return {
@@ -743,6 +846,7 @@
                     return false;
                 });
                 createLines.value = pkg ? (pkg.skus || []).map(function (line) {
+                    var base = line.salePrice && line.salePrice !== '—' ? String(line.salePrice).replace(/,/g, '') : '';
                     return {
                         code: line.code,
                         name: line.name || line.code,
@@ -750,7 +854,9 @@
                         canEdit: line.canEdit === '是',
                         canDelete: line.canDelete === '是',
                         qtyInput: line.qty && line.qty !== '—' ? String(line.qty) : '',
-                        priceInput: line.salePrice && line.salePrice !== '—' ? String(line.salePrice) : ''
+                        basePrice: base,
+                        priceInput: base,
+                        priceTouched: false
                     };
                 }) : [];
             }
@@ -769,7 +875,11 @@
             }
 
             function onCreatePrice(code, event) {
-                patchCreateLine(code, 'priceInput', cleanPrice(event && event.target ? event.target.value : ''));
+                var next = cleanPrice(event && event.target ? event.target.value : '');
+                createLines.value = createLines.value.map(function (line) {
+                    if (line.code !== code) return line;
+                    return Object.assign({}, line, { priceInput: next, priceTouched: true });
+                });
             }
 
             function onCreateRemove(code) {
@@ -830,12 +940,15 @@
                     }
                     return false;
                 });
-                var goods = 0;
-                createLines.value.forEach(function (line) { goods += lineCents(line); });
-                var choice = settleChoice(plansForPackage(pkg, goods));
+                var choice = settleChoice(plansForPackage(pkg, createLines.value));
                 var plan = choice.plan;
-                var rate = storeRateOf(plan, choice.period);
-                var total = Math.round(goods * rate);
+                var pair = ratePairOf(plan, choice.period);
+                if (!pair || pair.multPts <= 0) {
+                    if (ElMessage) ElMessage.error('门店系数与贸易商系数无法算出售价');
+                    return;
+                }
+                var goods = quotedGoods(createLines.value, pair.multPts);
+                var total = Math.round(goods * pair.traderPts / 100);
                 var ratios = plan && plan.repayMethod === '比例付' ? channelRatiosOf(plan) : null;
                 var storeApi = window.RbtStoreData;
                 var store = storeApi && typeof storeApi.get === 'function' ? storeApi.get(createStoreCode.value) : null;
@@ -855,7 +968,7 @@
                         return {
                             code: line.code,
                             name: line.name,
-                            salePrice: priceNumber(line.priceInput).toFixed(2),
+                            salePrice: (unitCentsOf(line, pair.multPts) / 100).toFixed(2),
                             qty: qtyNumber(line.qtyInput)
                         };
                     }),

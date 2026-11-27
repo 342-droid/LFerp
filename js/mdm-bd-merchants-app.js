@@ -1229,6 +1229,20 @@
     var effPhase = resolveReviewPhase(m, om);
     var bdCanAct = m.status === '待审核' && effPhase === 'awaiting_bd';
     var awaitingLeader = m.status === '审核中' && effPhase === 'awaiting_leader';
+    var duplicateNotice = '';
+    if (bdCanAct || awaitingLeader) {
+      var duplicateApi = window.MdmStoreDuplicateReview;
+      if (duplicateApi) {
+        var storedMatches = [];
+        try {
+          var saved = JSON.parse(localStorage.getItem('mdm_unified_onboarding_records_v1') || '{}');
+          var storeRecord = saved['storeapp::store::' + String(m.merchantNo || '')];
+          if (storeRecord) storedMatches = storeRecord.duplicateMatches || [];
+        } catch (e) {}
+        var duplicateBanner = duplicateApi.banner(duplicateApi.reviewMatches(storedMatches), true);
+        if (duplicateBanner) duplicateNotice = duplicateBanner.outerHTML;
+      }
+    }
     var auditStepLabel = currentOnbNode(m, om);
     var bottomPad =
       bdCanAct || awaitingLeader || m.status === '审核失败' ? 'calc(120px + env(safe-area-inset-bottom))' : '24px';
@@ -1327,6 +1341,7 @@
       '<div style="padding:12px;padding-bottom:' +
       bottomPad +
       '">' +
+      duplicateNotice +
       headerTop +
       sectionCard('进件信息', '', onboardInfoInner) +
       sectionCard('主体关系信息', '', detailRow('上级汇付ID', esc(nz(m.headHuifuId || m.head_huifu_id)))) +

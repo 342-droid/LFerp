@@ -23,6 +23,7 @@
         .rbt-period-rate-row__pair { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
         .rbt-period-rates__empty { color: #909399; font-size: 13px; line-height: 32px; }
         .rbt-rate-tip { width: 100%; margin: 6px 0 0; color: #909399; font-size: 12px; line-height: 1.6; }
+        .rbt-rate-warn { color: #f56c6c; }
         .rbt-calc__block { margin-bottom: 16px; }
         .rbt-calc__title { margin: 0 0 10px; font-size: 14px; font-weight: 600; color: #303133; }
         .rbt-calc__row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
@@ -120,7 +121,7 @@
                                 <el-input :model-value="form.providerRate" placeholder="请输入" @input="onDecimal(form, 'providerRate', $event)"></el-input>
                             </div>
                         </div>
-                        <p class="rbt-rate-tip">{{ ratePreview(form) }}</p>
+                        <p class="rbt-rate-tip"><template v-for="(part, index) in tipParts(ratePreview(form))" :key="index"><span v-if="part.warn" class="rbt-rate-warn">{{ part.text }}</span><template v-else>{{ part.text }}</template></template></p>
                     </template>
                     <template #form-channelratio="{form}">
                         <div class="rbt-channel-ratio">
@@ -165,9 +166,9 @@
                 <el-dialog v-model="calcOpen" class="rbt-calc-dialog" title="结算测算" width="860px" append-to-body>
                     <div class="rbt-calc__block">
                         <p class="rbt-calc__title">结算系数</p>
-                        <p class="rbt-rate-tip">门店实付 = 商品金额 × 门店结算系数；贸易商实付 = 门店实付 ÷ 贸易商结算系数；贸易商实收 = 门店实付；服务商实收 = 贸易商实付 ×（服务商结算系数 − 1）；冷丰实收 = 贸易商实付 − 商品金额 − 服务商实收。冷丰实收须大于 0。</p>
+                        <p class="rbt-rate-tip">冷丰系数 = 1 + 门店结算系数 − 贸易商结算系数。商品金额 = 商品包金额 × 冷丰系数，四舍五入到分。总金额 = 商品金额 × 贸易商结算系数。服务费 = 总金额 − 商品金额。贸易商应付 = 商品金额，贸易商应收 = 总金额，贸易商收益 = 服务费。服务商实收 = 商品金额 ×（服务商结算系数 − 1）。冷丰应收 = 商品金额 − 商品金额 / 冷丰系数。冷丰实收 = 冷丰应收 − 服务商实收。</p>
                         <div class="rbt-calc__row">
-                            <span class="rbt-calc__label">商品金额</span>
+                            <span class="rbt-calc__label">商品包金额</span>
                             <el-input :model-value="calcForm.goods" placeholder="请输入" @input="onCalcField('goods', $event)"></el-input>
                             <span class="rbt-range__unit">元</span>
                         </div>
@@ -184,16 +185,20 @@
                             <el-input :model-value="calcForm.providerRate" placeholder="请输入" @input="onCalcField('providerRate', $event)"></el-input>
                         </div>
                         <div class="rbt-calc__result">
-                            <div><span>门店实付</span> <b>{{ calcResult.storePay }}</b></div>
-                            <div><span>贸易商实付</span> <b>{{ calcResult.traderPaid }}</b></div>
-                            <div><span>贸易商实收</span> <b>{{ calcResult.traderReceipt }}</b></div>
+                            <div><span>商品金额</span> <b>{{ calcResult.goods }}</b></div>
+                            <div><span>服务费</span> <b>{{ calcResult.fee }}</b></div>
+                            <div><span>总金额</span> <b>{{ calcResult.total }}</b></div>
+                            <div><span>贸易商应付</span> <b>{{ calcResult.paid }}</b></div>
+                            <div><span>贸易商应收</span> <b>{{ calcResult.receive }}</b></div>
+                            <div><span>贸易商收益</span> <b>{{ calcResult.profit }}</b></div>
+                            <div><span>冷丰应收</span> <b>{{ calcResult.lengfengReceive }}</b></div>
                             <div><span>服务商实收</span> <b>{{ calcResult.providerPay }}</b></div>
                             <div><span>冷丰实收</span> <b>{{ calcResult.lengfeng }}</b></div>
                         </div>
                     </div>
                     <div class="rbt-calc__block">
                         <p class="rbt-calc__title">结算比例</p>
-                        <p class="rbt-rate-tip">当日应履行 = 当日门店实际到账 × 结算比例。POS 这一行填当日 POS 实际到账合计。已配置比例的堂食、外卖、团购按各自比例计算，并从合计里拆出；剩下没单独配置的金额才用 POS 默认比例。各行相加后，用门店实付除以当日合计，估算还完大约要多少天。未发生的日期不预造。</p>
+                        <p class="rbt-rate-tip">当日应履行 = 当日门店实际到账 × 结算比例。POS 这一行填当日 POS 实际到账合计。已配置比例的堂食、外卖、团购按各自比例计算，并从合计里拆出；剩下没单独配置的金额才用 POS 默认比例。各行相加后，用总金额除以当日合计，估算还完大约要多少天。未发生的日期不预造。</p>
                         <div class="rbt-calc__row" v-for="name in channelNames" :key="name">
                             <span class="rbt-calc__label">{{ name }}</span>
                             <el-input :model-value="calcChannel(name, 'turnover')" :placeholder="name === 'POS' ? '当日 POS 实际到账合计' : '当日门店实际到账'" @input="onCalcChannel(name, 'turnover', $event)"></el-input>
@@ -225,10 +230,10 @@
                         </div>
                         <div class="rbt-calc__result">
                             <div><span>当日合计应履行</span> <b>{{ calcResult.daily }}</b></div>
-                            <div><span>还完门店实付约</span> <b>{{ calcResult.days }}</b></div>
+                            <div><span>还完总金额约</span> <b>{{ calcResult.days }}</b></div>
                         </div>
                     </div>
-                    <p class="rbt-calc__note" v-if="calcResult.notes">{{ calcResult.notes }}</p>
+                    <p class="rbt-calc__note" v-if="calcResult.notes"><template v-for="(part, index) in tipParts(calcResult.notes)" :key="'calc-' + index"><span v-if="part.warn" class="rbt-rate-warn">{{ part.text }}</span><template v-else>{{ part.text }}</template></template></p>
                     <p class="rbt-rate-tip">只在本窗口试算，不写入产品配置。</p>
                     <template #footer>
                         <el-button @click="calcOpen = false">关闭</el-button>

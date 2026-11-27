@@ -261,3 +261,53 @@
   border-left: 2px solid #e6e6e6;
   line-height: 1.5;
 }
+
+/* 优惠券适用商品与类目选择：沿用橙色按钮和标签式选中态。 */
+#cpFormPanel .pts-rule-check-row:has(input[name="fItemScope"]),
+#cpFormPanel .pts-rule-check-row:has(input[name="fCatSrc"]) {
+  gap: 8px;
+}
+#cpFormPanel .pts-rule-check-label:has(input[name="fItemScope"]),
+#cpFormPanel .pts-rule-check-label:has(input[name="fCatSrc"]),
+#cpFormPanel .mkt-cp-cats .pts-rule-check-label {
+  position: relative;
+  min-height: 32px;
+  padding: 0 16px;
+  border-radius: 4px;
+  color: #606266;
+  line-height: 32px;
+}
+#cpFormPanel .pts-rule-check-label:has(input[name="fItemScope"]) input,
+#cpFormPanel .pts-rule-check-label:has(input[name="fCatSrc"]) input,
+#cpFormPanel .mkt-cp-cats input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+#cpFormPanel .pts-rule-check-label:has(input[name="fItemScope"]:checked),
+#cpFormPanel .pts-rule-check-label:has(input[name="fCatSrc"]:checked) {
+  background: #ff6b18;
+  color: #fff;
+}
+#cpFormPanel .mkt-cp-cats {
+  gap: 8px;
+}
+#cpFormPanel .mkt-cp-cats .pts-rule-check-label {
+  min-height: 30px;
+  background: #f4f4f5;
+  color: #909399;
+  font-weight: 600;
+  line-height: 30px;
+}
+#cpFormPanel .mkt-cp-cats .pts-rule-check-label:has(input:checked) {
+  background: #ffe3d0;
+  color: #ff6b18;
+}
+#cpFormPanel .pts-rule-check-label:has(input:focus-visible) {
+  outline: 2px solid #ff9b62;
+  outline-offset: 2px;
+}
+#cpFormPanel .pts-rule-check-label:has(input:disabled) {
+  cursor: default;
+}

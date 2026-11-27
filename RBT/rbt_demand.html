@@ -322,7 +322,8 @@
             font-size: 13px;
         }
         .rbt-create-remove:hover { color: #f23c3c; }
-        .rbt-create-sum { margin: 12px 0 0; font-size: 13px; }
+        .rbt-create-note { margin: 12px 0 0; color: #606266; font-size: 13px; line-height: 1.6; }
+        .rbt-create-sum { margin: 8px 0 0; font-size: 13px; }
         .rbt-create-sum b { color: #ff7019; }
         .rbt-create-plain { line-height: 36px; }
         .rbt-create-plain.is-money { color: #ff7019; font-weight: 600; }
@@ -471,7 +472,7 @@
                                             <span v-else>{{ line.qtyText }}</span>
                                         </td>
                                         <td class="is-money">
-                                            <input v-if="line.canEdit" class="rbt-create-price" type="text" inputmode="decimal" :value="line.priceInput" @input="onCreatePrice(line.code, $event)">
+                                            <input v-if="line.canEdit" class="rbt-create-price" type="text" inputmode="decimal" :value="line.priceTouched ? line.priceInput : line.priceText" @input="onCreatePrice(line.code, $event)">
                                             <span v-else>{{ line.priceText }}</span>
                                         </td>
                                         <td class="is-money">{{ line.amount }}</td>
@@ -482,6 +483,7 @@
                                     </tr>
                                 </tbody>
                             </table>
+                            <p class="rbt-create-note">售卖单价 = 商品包标准售卖单价 ×（1 + 门店系数 − 贸易商系数），四舍五入到分。例如门店系数 1.20、贸易商系数 1.08，就乘 1.12。商品金额和售卖金额按这个单价计算。总金额 = 商品金额 × 贸易商系数，服务费 = 总金额 − 商品金额。</p>
                             <p class="rbt-create-sum">共 <b>{{ createView.kind }}</b> 种，<b>{{ createView.piece }}</b> 件，商品金额 <b>{{ createView.skuAmount }}</b></p>
                         </div>
                         <div class="rbt-create-block">

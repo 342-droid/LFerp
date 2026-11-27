@@ -221,10 +221,10 @@
                 splitService: '已开通',
                 rbtLevel: 'A',
                 storeQuota: 50000,
-                /* 已占用 = XQ00026 发货中的商品金额。XQ00013 已驳回、XQ00014 已作废不占用。XQ00023 履约中，额度已由发货单占满，不再重复占用 */
-                occupiedQuota: 50000,
-                /* 已成交 = XQ00023 商品金额 */
-                lockedQuota: 50000,
+                /* 已占用 = XQ00026 发货中的折算后商品金额。XQ00013 已驳回、XQ00014 已作废不占用。XQ00023、XQ00024 不再重复占用 */
+                occupiedQuota: 56000,
+                /* 已成交 = XQ00023、XQ00024 的折算后商品金额 */
+                lockedQuota: 112000,
                 creator: '周经理',
                 createdAt: '2026-08-01 09:00:00',
                 updater: '喻巧',
@@ -260,10 +260,10 @@
                 storeStatus: '正常',
                 rbtLevel: 'B',
                 storeQuota: 40000,
-                /* 已占用 = XQ00016 门店付款中的商品金额。XQ00015 已作废，不占用 */
-                occupiedQuota: 40000,
-                /* 已成交 = XQ00016 商品金额 */
-                lockedQuota: 40000,
+                /* 已占用 = XQ00016 门店付款中的折算后商品金额。XQ00015 已作废，不占用 */
+                occupiedQuota: 44800,
+                /* 已成交 = XQ00016 折算后商品金额 */
+                lockedQuota: 44800,
                 creator: '李敏',
                 createdAt: '2026-04-29 22:53:02',
                 updater: '夏利',
@@ -298,8 +298,8 @@
                 splitService: '开启',
                 rbtLevel: 'A',
                 storeQuota: 50000,
-                /* 已占用 = XQ00017 待接单的商品金额。XQ00018 已驳回，不占用 */
-                occupiedQuota: 30000,
+                /* 已占用 = XQ00017 待接单的折算后商品金额。XQ00018 已驳回，不占用 */
+                occupiedQuota: 33600,
                 lockedQuota: 0,
                 creator: '刘洋',
                 createdAt: '2026-04-20 10:22:11',

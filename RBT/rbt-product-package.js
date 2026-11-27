@@ -6,7 +6,7 @@
     var KEY = 'rbt_product_package_v2';
     var TAG_TYPE = 'PRODUCT_PACKAGE';
     /* 条码、单位、采购价与供货关系一致；规格从商品名称拆出。类目沿用商品模块已有类目。
-       加入商品包后手填数量和售卖单价，售卖金额=数量×售卖单价。是否可修改、是否可删除带到新建需求单。 */
+       加入商品包后手填数量和标准售卖单价，标准售卖金额=数量×标准售卖单价。是否可修改、是否可删除带到新建需求单。 */
     var SKUS = [
         { code: 'SKU10001', name: '库尔勒香梨 4kg', barcode: '6901234567001', unit: '箱', spec: '4kg', category: '时令水果', purchasePrice: 42.5 },
         { code: 'SKU10002', name: '精品黄瓜 2kg', barcode: '6901234567002', unit: '箱', spec: '2kg', category: '新鲜蔬菜', purchasePrice: 16.8 },
@@ -99,7 +99,7 @@
     }
 
     function seed() {
-        /* 总金额 = 各行售卖金额之和。三条演示包分别是 50000、40000、30000。明细按费用项目清单拆开。 */
+        /* 总金额 = 各行标准售卖金额之和。三条演示包分别是 50000、40000、30000。明细按费用项目清单拆开。 */
         return [
             {
                 code: 'SPB00001',
@@ -265,7 +265,7 @@
         return isFinite(amount) && amount > 0;
     }
 
-    /* 旧会话里的种子商品包还没有数量和两个参数时，补上初始明细，已手改的售卖单价保留。 */
+    /* 旧会话里的种子商品包还没有数量和两个参数时，补上初始明细，已手改的标准售卖单价保留。 */
     function ensureSkuShape(item) {
         if (!item) return false;
         var list = Array.isArray(item.skus) ? item.skus : [];
@@ -464,7 +464,7 @@
         });
     }
 
-    /* 商品包总金额 = 各行售卖金额之和。有一行还没填成有效金额时，只累加已填行。 */
+    /* 商品包总金额 = 各行标准售卖金额之和。有一行还没填成有效金额时，只累加已填行。 */
     function packageSaleCents(row) {
         var cents = 0;
         var any = false;
@@ -518,8 +518,8 @@
         return normalized.map(function (line) {
             var found = findSku(line.code);
             var qty = validQty(line.qty) ? String(Math.floor(Number(line.qty))) : '无数量';
-            var price = validSale(line.salePrice) ? Number(line.salePrice).toFixed(2) : '无售卖单价';
-            var amount = lineAmount(line.qty, line.salePrice) || '无售卖金额';
+            var price = validSale(line.salePrice) ? Number(line.salePrice).toFixed(2) : '无标准售卖单价';
+            var amount = lineAmount(line.qty, line.salePrice) || '无标准售卖金额';
             return line.code + ' ' + (found ? found.name : line.code) + ' ×' + qty + ' 单价¥' + price + ' 金额¥' + amount +
                 ' 可修改' + flagText(line.canEdit, '否') + ' 可删除' + flagText(line.canDelete, '否');
         }).join('、');
@@ -901,7 +901,7 @@
                     return false;
                 }
                 if (lines.some(function (line) { return !validSale(line.salePrice); })) {
-                    ElMessage.error('请填写售卖单价');
+                    ElMessage.error('请填写标准售卖单价');
                     return false;
                 }
                 if (lines.some(function (line) { return line.canEdit !== '是' && line.canEdit !== '否'; })) {

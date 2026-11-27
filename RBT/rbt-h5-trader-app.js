@@ -194,16 +194,24 @@
         return sign + Math.floor(abs / 100) + '.' + String(abs % 100).padStart(2, '0');
     }
 
-    /* 大厅收益 = 应收 − 应付。应付是确认签约时要支付并冻结的金额。应收是贸易商应收，等于门店实付。 */
+    /* 大厅收益 = 应收 − 应付。应付是确认签约时要支付并冻结的金额，等于商品金额。应收等于需求总金额，即商品金额 × 贸易商系数。 */
     function hallAmounts(item) {
         var goods = item && item.goodsAmount ? String(item.goodsAmount) : '';
-        var api = window.RbtDemandData;
-        var pack = api && typeof api.deductSettlement === 'function' ? api.deductSettlement(item) : null;
+        var goodsCents = centsOf(goods);
+        var totalCents = centsOf(item && item.amount);
+        if (totalCents == null && goodsCents != null) {
+            var api = window.RbtDemandData;
+            var rates = api && typeof api.settlementRates === 'function' ? api.settlementRates(item) : null;
+            var traderPts = rates && rates.trader ? Math.round(Number(rates.trader) * 100) : null;
+            if (traderPts > 0) totalCents = Math.round(goodsCents * traderPts / 100);
+        }
+        var receive = totalCents != null ? fromCents(totalCents) : '';
+        var profit = goodsCents != null && totalCents != null ? fromCents(totalCents - goodsCents) : '';
         return {
             goods: goods || '—',
-            paid: pack && pack.traderPaid ? String(pack.traderPaid) : '—',
-            profit: pack && pack.profit ? String(pack.profit) : '—',
-            total: pack && pack.trader ? String(pack.trader) : '—'
+            paid: goods || '—',
+            profit: profit || '—',
+            total: receive || '—'
         };
     }
 

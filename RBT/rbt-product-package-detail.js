@@ -31,7 +31,7 @@
     }
 
     function skuTable(items) {
-        var head = '<tr><th>商品图片</th><th>商品编码</th><th>商品名称</th><th>商品条码</th><th>商品单位</th><th>商品规格</th><th class="is-money">采购价</th><th>商品数量</th><th class="is-money">售卖单价</th><th class="is-money">售卖金额</th><th>是否可修改</th><th>是否可删除</th></tr>';
+        var head = '<tr><th>商品图片</th><th>商品编码</th><th>商品名称</th><th>商品条码</th><th>商品单位</th><th>商品规格</th><th class="is-money">采购价</th><th>商品数量</th><th class="is-money">标准售卖单价</th><th class="is-money">标准售卖金额</th><th>是否可修改</th><th>是否可删除</th></tr>';
         var body = !items || !items.length
             ? '<tr><td class="is-empty" colspan="12">暂无商品</td></tr>'
             : items.map(function (item) {

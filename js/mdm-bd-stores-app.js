@@ -942,6 +942,18 @@
     var bdStage = store.phase === 'awaiting_bd';
     var leaderStage = store.phase === 'awaiting_leader';
     var showActions = canAudit(store);
+    var duplicateNotice = '';
+    var duplicateApi = window.MdmStoreDuplicateReview;
+    if (duplicateApi && (bdStage || leaderStage)) {
+      var storedMatches = [];
+      try {
+        var saved = JSON.parse(localStorage.getItem('mdm_unified_onboarding_records_v1') || '{}');
+        var storeRecord = saved['storeapp::store::' + String(store.merchantUid || '')];
+        if (storeRecord) storedMatches = storeRecord.duplicateMatches || [];
+      } catch (e) {}
+      var duplicateBanner = duplicateApi.banner(duplicateApi.reviewMatches(storedMatches), true);
+      if (duplicateBanner) duplicateNotice = '<div style="margin:0 12px">' + duplicateBanner.outerHTML + '</div>';
+    }
     var banner = '';
     if (bdStage) {
       banner =
@@ -991,6 +1003,7 @@
     }
     return (
       '<div class="bd-page-bar"><button type="button" class="bd-back" data-back-ws>‹</button><h1>审核资料</h1></div>' +
+      duplicateNotice +
       banner +
       rejectBox +
       '<div style="margin:8px 10px 100px;border-radius:12px;border:1px solid rgba(229,231,235,.75);background:#fff;padding:6px">' +
