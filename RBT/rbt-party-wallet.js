@@ -31,6 +31,26 @@
         '622588': 'cmb',
         '622262': 'comm'
     };
+    /* 原型支出，落在近 30 天内。提现是提到收款账户；划转是签完合同后把货款付给冷丰供应链。 */
+    var DEMO_MOVEMENTS = {
+        '杭州鲜达贸易有限公司': {
+            withdraw: [
+                { id: 'withdraw:demo:20261121', amount: 3600, time: '2026-11-21 15:26:08' },
+                { id: 'withdraw:demo:20261110', amount: 12000, time: '2026-11-10 11:08:42' }
+            ],
+            transfer: [
+                { code: 'XQ00026', amount: 50000, time: '2026-11-18 16:40:08' }
+            ]
+        },
+        '上海冷链融资租赁有限公司': {
+            withdraw: [
+                { id: 'withdraw:demo:20261115', amount: 8000, time: '2026-11-15 14:12:33' }
+            ],
+            transfer: [
+                { code: 'XQ00016', amount: 40000, time: '2026-11-07 09:22:05' }
+            ]
+        }
+    };
     var SEED_CARDS = [{
         id: 'BC-QUICK-001',
         bankId: 'cmb',
@@ -120,7 +140,7 @@
 
     function bagOf(name) {
         var bag = readAll()[name] || {};
-        return {
+        var next = {
             recharge: Array.isArray(bag.recharge) ? bag.recharge : [],
             withdraw: Array.isArray(bag.withdraw) ? bag.withdraw : [],
             transfer: Array.isArray(bag.transfer) ? bag.transfer : [],
@@ -128,6 +148,25 @@
             rechargeDailyDate: bag.rechargeDailyDate || '',
             rechargeDailyUsed: Number(bag.rechargeDailyUsed || 0)
         };
+        return ensureDemoMovements(name, next);
+    }
+
+    function ensureDemoMovements(name, bag) {
+        var demo = DEMO_MOVEMENTS[name];
+        if (!demo) return bag;
+        var changed = false;
+        (demo.withdraw || []).forEach(function (row) {
+            if (bag.withdraw.some(function (item) { return item && item.id === row.id; })) return;
+            bag.withdraw.push(row);
+            changed = true;
+        });
+        (demo.transfer || []).forEach(function (row) {
+            if (bag.transfer.some(function (item) { return item && item.code === row.code; })) return;
+            bag.transfer.push(row);
+            changed = true;
+        });
+        if (changed) saveBag(name, bag);
+        return bag;
     }
 
     function saveBag(name, bag) {

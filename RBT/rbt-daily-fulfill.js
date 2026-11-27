@@ -257,6 +257,13 @@
                 return (!start || fact.date >= start) && (!end || fact.date <= end);
             });
         }
+        /* 已完成的原型单只保留结清日之前的营业日，避免把后续付款中的流水算进来。 */
+        if (item.code === 'XQ00027') {
+            var doneOn = String(item.updatedAt || '').slice(0, 10);
+            facts = FACTS.filter(function (fact) {
+                return fact && (!doneOn || fact.date <= doneOn);
+            });
+        }
         facts = facts.filter(payableFact);
         var latest = '';
         facts.forEach(function (fact) {
@@ -267,7 +274,8 @@
             var commission = postedBase(fact.channel, turnover);
             var ratio = channelRatio(item, fact.channel);
             var due = Math.round(commission * ratio) / 100;
-            var inflight = fact.date === latest;
+            /* 需求已完成时，结清日前的批次都已到账，不再留一个在途日。 */
+            var inflight = item.status !== '已完成' && fact.date === latest;
             return {
                 id: item.code + ':' + fact.date + ':' + fact.channel,
                 date: fact.date,
@@ -459,8 +467,9 @@
     function opsFacts(item) {
         if (!item || (item.status !== '门店付款中' && item.status !== '还款中' && item.status !== '已完成')) return [];
         var scale = scaleOf(item.code);
+        var doneOn = item.status === '已完成' ? String(item.updatedAt || '').slice(0, 10) : '';
         return FACTS.filter(function (fact) {
-            return fact && fact.date && fact.channel && !fact.missing;
+            return fact && fact.date && fact.channel && !fact.missing && (!doneOn || fact.date <= doneOn);
         }).map(function (fact) {
             return {
                 date: fact.date,

@@ -1,5 +1,5 @@
 ---
-description: 禁止强制推送；推送前先拉取，保持线性合入
+description: 禁止强制推送；推送前先拉取；冲突时保留双方全部变更
 alwaysApply: true
 ---
 
@@ -16,6 +16,7 @@ alwaysApply: true
 1. 推送前先 `git fetch`，再 `git pull`（或 `git pull --rebase`，若当前分支策略允许）
 2. 本地与远端有分歧时：先合入/变基解决，再普通 `git push`
 3. 需要修正已推送提交的说明时：优先用 `changelog-notes.json` 补录，或另提修正说明的新 commit；不要改写远端 SHA
+4. 拉取、合并或推送时出现文件冲突：**保留双方全部变更项**。逐段把本地和远端的改动都留在结果里，禁止用 `checkout --ours` / `--theirs` 或整文件覆盖丢掉任一侧。同一处改法不同且无法同时成立时，停下来列出冲突，等用户确认，不要擅自删掉其中一项
 
 ## 例外
 

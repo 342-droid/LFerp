@@ -295,7 +295,37 @@
                 pkg: ops, plan: opsPlan, status: '待接单',
                 skus: linesOf(opsLines), amount: '45000.00',
                 creator: '周海', createdAt: '2026-11-12 08:46:15', updater: '周海', updatedAt: '2026-11-12 08:46:15'
-            })
+            }),
+            /* 已结束：结清的形象包，供贸易商收款「已结束」查看。不占用额度。 */
+            rowSeed(Object.assign({
+                code: 'XQ00027', storeCode: 'ONS00004', storeName: '五角场体验店',
+                pkg: image, plan: imagePlan, status: '已完成',
+                quotaHeld: false,
+                skus: linesOf(imageLines), amount: '72000.00',
+                creator: '赵倩', createdAt: '2026-10-28 09:12:16', updater: '王丽', updatedAt: '2026-11-16 18:06:40',
+                acceptedAt: '2026-11-01 10:16:20',
+                paidAt: '2026-11-02 09:40:18',
+                dealLocked: true,
+                signings: signedRows('ONS00004', '五角场体验店', '杭州鲜达贸易有限公司', '2026-11-02 09:28:06')
+            }, xianDa)),
+            /* 已结束：接单后作废，没有进入每日付款。 */
+            rowSeed(Object.assign({
+                code: 'XQ00028', storeCode: 'ONS00003', storeName: '河东大桥道自提点',
+                pkg: ops, plan: opsPlan, status: '已作废',
+                quotaHeld: false,
+                skus: linesOf(opsLines), amount: '45000.00',
+                creator: '周海', createdAt: '2026-10-20 11:06:28', updater: '喻巧', updatedAt: '2026-10-28 11:20:06',
+                acceptedAt: '2026-10-22 14:08:11'
+            }, xianDa)),
+            /* 已结束：接单后被驳回。 */
+            rowSeed(Object.assign({
+                code: 'XQ00029', storeCode: 'ONS00005', storeName: '余杭仓前便利店',
+                pkg: fresh, plan: freshPlan, status: '已驳回', rejectReason: '门店近期流水不足',
+                quotaHeld: false,
+                skus: linesOf(freshLines), amount: '80000.00',
+                creator: '陈晨', createdAt: '2026-10-09 15:22:40', updater: '王丽', updatedAt: '2026-10-13 16:05:18',
+                acceptedAt: '2026-10-11 09:22:40'
+            }, xianDa))
         ];
     }
 
