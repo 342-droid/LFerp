@@ -311,18 +311,19 @@
 
     /* 新增、编辑里按商品包金额 50000 试算，和结算测算同一套口径。 */
     function ratePreview(form) {
-        var rule = '商品金额 = 商品包金额 ×（1 + 门店结算系数 − 贸易商结算系数），四舍五入到分。总金额 = 商品金额 × 贸易商结算系数。服务费 = 总金额 − 商品金额。贸易商应付 = 商品金额，贸易商应收 = 总金额，贸易商收益 = 服务费。服务商实收 = 商品金额 ×（服务商结算系数 − 1）。冷丰系数 = 门店结算系数 − 贸易商结算系数。冷丰应收 = 商品金额 − 商品金额 /（1 + 冷丰系数）。冷丰实收 = 冷丰应收 − 服务商实收。';
+        var rule = '冷丰系数 = 1 + 门店结算系数 − 贸易商结算系数。商品金额 = 商品包金额 × 冷丰系数，四舍五入到分。总金额 = 商品金额 × 贸易商结算系数。服务费 = 总金额 − 商品金额。贸易商应付 = 商品金额，贸易商应收 = 总金额，贸易商收益 = 服务费。服务商实收 = 商品金额 ×（服务商结算系数 − 1）。冷丰应收 = 商品金额 − 商品金额 / 冷丰系数。冷丰实收 = 冷丰应收 − 服务商实收。';
         if (!form || !validDecimal(form.storeRate) || !validDecimal(form.traderRate) || !validDecimal(form.providerRate)) return rule;
         var api = window.RbtDemandData;
         var quote = api && typeof api.packageQuote === 'function'
             ? api.packageQuote(50000, form.storeRate, form.traderRate, form.providerRate)
             : null;
         if (!quote) return rule;
-        if (quote.blocked) return '门店系数与贸易商系数无法算出售价';
         function yuan(value) {
             return Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
-        return '按商品包金额 50,000 元试算：商品金额 ' + yuan(quote.goods) +
+        /* 冷丰系数小于等于 0 时算不出金额；算得出但冷丰实收小于等于 0 时，试算数字仍展示，并跟上提示。 */
+        if (quote.blocked) return '冷丰实收不能小于或等于0';
+        var sentence = '按商品包金额 50,000 元试算：商品金额 ' + yuan(quote.goods) +
             '，服务费 ' + yuan(quote.fee) +
             '，总金额 ' + yuan(quote.total) +
             '，贸易商应付 ' + yuan(quote.paid) +
@@ -331,6 +332,8 @@
             '，冷丰应收 ' + yuan(quote.lengfengReceive) +
             '，服务商实收 ' + yuan(quote.providerPay) +
             '，冷丰实收 ' + yuan(quote.lengfeng) + '。';
+        if (!(Number(quote.lengfeng) > 0)) sentence += '冷丰实收不能小于或等于0';
+        return sentence;
     }
 
     /* 旧单值结算系数迁成门店/贸易商/服务商；旧费率区间仍先按期插值。 */
@@ -1032,16 +1035,12 @@
                         ElMessage.error('服务商结算系数不能低于1');
                         return false;
                     }
-                    if (Number(values.providerRate) >= 2) {
-                        ElMessage.error('服务商结算系数必须小于2');
-                        return false;
-                    }
                     var quoteApi = window.RbtDemandData;
                     var quote = quoteApi && typeof quoteApi.packageQuote === 'function'
                         ? quoteApi.packageQuote(50000, values.storeRate, values.traderRate, values.providerRate)
                         : null;
-                    if (!quote || quote.blocked) {
-                        ElMessage.error('门店系数与贸易商系数无法算出售价');
+                    if (!quote || quote.blocked || !(Number(quote.lengfeng) > 0)) {
+                        ElMessage.error('冷丰实收不能小于或等于0');
                         return false;
                     }
                     var ratioApi = window.RbtSettleRatio;
@@ -1377,11 +1376,10 @@
                 if (storeOk && store < 1) notes.push('门店结算系数不能低于1');
                 if (traderOk && trader < 1) notes.push('贸易商结算系数不能低于1');
                 if (providerOk && provider < 1) notes.push('服务商结算系数不能低于1');
-                if (providerOk && provider >= 2) notes.push('服务商结算系数必须小于2');
                 var quote = goodsOk && storeOk && traderOk && providerOk && window.RbtDemandData && typeof window.RbtDemandData.packageQuote === 'function'
                     ? window.RbtDemandData.packageQuote(goods, form.storeRate, form.traderRate, form.providerRate)
                     : null;
-                if (quote && quote.blocked) notes.push('门店系数与贸易商系数无法算出售价');
+                if (quote && (quote.blocked || !(Number(quote.lengfeng) > 0))) notes.push('冷丰实收不能小于或等于0');
                 var quotedGoods = quote && !quote.blocked ? quote.goods : null;
                 var fee = quote && !quote.blocked ? quote.fee : null;
                 var total = quote && !quote.blocked ? quote.total : null;

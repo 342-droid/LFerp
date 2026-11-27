@@ -567,7 +567,7 @@
         };
     }
 
-    /* 测算从商品包金额出发。商品金额先按 1 + 门店系数 − 贸易商系数折算，总金额再乘贸易商系数。 */
+    /* 测算从商品包金额出发。冷丰系数 = 1 + 门店系数 − 贸易商系数，商品金额按它折算，总金额再乘贸易商系数。 */
     function packageQuote(packageYuan, storeRate, traderRate, providerRate) {
         var pack = Math.round(Number(packageYuan) * 100);
         var storePts = ratePoints(storeRate);
@@ -580,7 +580,7 @@
         var goods = Math.round(pack * multPts / 100);
         var total = Math.round(goods * traderPts / 100);
         var providerPay = Math.round(goods * (providerPts - 100) / 100);
-        /* 冷丰系数 = 门店系数 − 贸易商系数。售价乘数是 1 + 冷丰系数，冷丰应收是商品金额里多出来的这一截。 */
+        /* 冷丰系数就是上面的 multPts。冷丰应收 = 商品金额 − 商品金额 / 冷丰系数。 */
         var lengfengReceive = goods - Math.round(goods * 100 / multPts);
         var lengfeng = lengfengReceive - providerPay;
         return {
