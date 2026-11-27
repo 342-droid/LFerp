@@ -2585,6 +2585,30 @@
     "status": "diff",
     "date": "2026-11-20"
   },
+  "881f627|RBT/rbt_contract_sign.html": {
+    "before": "changelog-assets/881f627/RBT__rbt_contract_sign.html.before.jpg",
+    "after": "changelog-assets/881f627/RBT__rbt_contract_sign.html.after.jpg",
+    "regions": 11,
+    "status": "diff",
+    "date": "2026-11-27"
+  },
+  "881f627|RBT/rbt_demand.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-27"
+  },
+  "881f627|RBT/rbt_h5_store.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-27"
+  },
+  "881f627|RBT/rbt_h5_trader.html": {
+    "before": "changelog-assets/881f627/RBT__rbt_h5_trader.html.before.jpg",
+    "after": "changelog-assets/881f627/RBT__rbt_h5_trader.html.after.jpg",
+    "regions": 5,
+    "status": "diff",
+    "date": "2026-11-27"
+  },
   "89b0a32|MDM/mdm_audit_rbt_demand.html": {
     "before": "changelog-assets/89b0a32/MDM__mdm_audit_rbt_demand.html.before.jpg",
     "after": "changelog-assets/89b0a32/MDM__mdm_audit_rbt_demand.html.after.jpg",
