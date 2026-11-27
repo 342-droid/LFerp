@@ -67,12 +67,13 @@
 
   function renderSkuRows(channel, item) {
     if (!item || (parseInt(item.specCount, 10) || 1) <= 1) return '';
-    return skuRows(channel, item).map(function (sku) {
-      return '<tr class="product-proxy-table__row product-sku-row" data-stock-parent-code="' + item.code + '" hidden>' +
-        '<td></td><td></td><td class="product-proxy-table__td product-proxy-table__td--code"><span class="product-proxy-code__sub">' + sku.code + '</span></td>' +
-        '<td colspan="3"></td><td class="product-proxy-table__td product-proxy-table__td--spec">' + sku.spec + '</td><td colspan="3"></td>' +
-        '<td class="product-proxy-table__td product-proxy-table__td--stock"><span class="product-stock-value">' + sku.remain + '</span></td><td colspan="5"></td></tr>';
-    }).join('');
+    return '<tr class="product-proxy-table__row product-sku-row" data-stock-parent-code="' + item.code + '" hidden>' +
+      '<td class="product-sku-row__cell" colspan="99"><div class="product-sku-inline">' +
+      '<div class="product-sku-inline__head"><span>SKU 编码</span><span>规格</span><span>剩余库存</span></div>' +
+      skuRows(channel, item).map(function (sku) {
+        return '<div class="product-sku-inline__item"><span>' + sku.code + '</span><span>' + sku.spec + '</span><span class="product-stock-value">' + sku.remain + '</span></div>';
+      }).join('') +
+      '</div></td></tr>';
   }
 
   function operationRows(channel, item, remain) {
