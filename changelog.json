@@ -1,10 +1,103 @@
 {
-  "latestSha": "8f037ecda70c998514ba3a697f3655d0c71f5347",
-  "total": 657,
+  "latestSha": "fc856868a270634aa89faaa42f7b810ae46af379",
+  "total": 661,
   "days": [
     {
       "date": "2026-11-27",
       "items": [
+        {
+          "sha": "fc85686",
+          "type": "other",
+          "text": "Render multi-SKU stock inside expanded product row",
+          "author": "u ｌ",
+          "time": "17:56",
+          "pages": [
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            }
+          ],
+          "global": true
+        },
+        {
+          "sha": "fd64da4",
+          "type": "other",
+          "text": "Expand multi-SKU stock rows in product lists",
+          "author": "u ｌ",
+          "time": "17:53",
+          "pages": [
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            }
+          ]
+        },
+        {
+          "sha": "4653f89",
+          "type": "other",
+          "text": "Keep product stock as list-only display",
+          "author": "u ｌ",
+          "time": "17:13",
+          "pages": [
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            }
+          ]
+        },
+        {
+          "sha": "881f627",
+          "type": "feat",
+          "text": "贸易商合同签署页的需求单信息对齐需求大厅",
+          "author": "342-droid",
+          "time": "16:32",
+          "pages": [
+            {
+              "file": "RBT/rbt_contract_sign.html",
+              "module": "冷丰RBT",
+              "title": "合同签署"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "合同签署页的需求单改为与需求大厅同一张卡片，展示收益、应付、应收、结算周期和结算方式"
+            }
+          ]
+        },
         {
           "sha": "8f037ec",
           "type": "feat",

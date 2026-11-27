@@ -65,6 +65,17 @@
     return skus.reduce(function (total, sku) { return total + sku.remain; }, 0);
   }
 
+  function renderSkuRows(channel, item) {
+    if (!item || (parseInt(item.specCount, 10) || 1) <= 1) return '';
+    return '<tr class="product-proxy-table__row product-sku-row" data-stock-parent-code="' + item.code + '" hidden>' +
+      '<td class="product-sku-row__cell" colspan="99"><div class="product-sku-inline">' +
+      '<div class="product-sku-inline__head"><span>SKU 编码</span><span>规格</span><span>剩余库存</span></div>' +
+      skuRows(channel, item).map(function (sku) {
+        return '<div class="product-sku-inline__item"><span>' + sku.code + '</span><span>' + sku.spec + '</span><span class="product-stock-value">' + sku.remain + '</span></div>';
+      }).join('') +
+      '</div></td></tr>';
+  }
+
   function operationRows(channel, item, remain) {
     if (remain == null) return [];
     var fulfillRemark = channel === 'mall'
@@ -105,28 +116,14 @@
   window.ProductStock = {
     remainOf: remainOf,
     maintainsStock: maintainsStock,
+    skuRows: skuRows,
+    renderSkuRows: renderSkuRows,
     render: function (channel, item) {
-      var key = channel + ':' + item.code + ':' + item.name;
-      products[key] = { channel: channel, item: item };
       var remain = remainOf(item, channel);
       if (remain == null) {
-        return (
-          '<button type="button" class="product-sales-link product-stock-link is-empty" data-stock-key="' +
-          escape(key) +
-          '" aria-label="查看' +
-          escape(item.name) +
-          '库存说明">—</button>'
-        );
+        return '<span class="product-stock-value is-empty">—</span>';
       }
-      return (
-        '<button type="button" class="product-sales-link product-stock-link" data-stock-key="' +
-        escape(key) +
-        '" aria-label="查看' +
-        escape(item.name) +
-        '库存操作">' +
-        remain +
-        '</button>'
-      );
+      return '<span class="product-stock-value">' + remain + '</span>';
     }
   };
 
@@ -314,11 +311,18 @@
       else openHelp(help);
       return;
     }
+    var expand = event.target.closest('[data-stock-expand]');
+    if (expand) {
+      var code = expand.getAttribute('data-stock-expand');
+      var open = expand.getAttribute('aria-expanded') !== 'true';
+      document.querySelectorAll('[data-stock-parent-code]').forEach(function (row) {
+        if (row.getAttribute('data-stock-parent-code') === code) row.hidden = !open;
+      });
+      expand.setAttribute('aria-expanded', open ? 'true' : 'false');
+      expand.textContent = open ? '⌃' : '⌄';
+      return;
+    }
     if (!event.target.closest('#productStockHelp')) closeHelp();
-    var button = event.target.closest('[data-stock-key]');
-    if (!button) return;
-    var product = products[button.dataset.stockKey];
-    if (product) openDetail(product);
   });
   document.addEventListener('keydown', function (event) {
     if (event.key === 'Escape') closeHelp();

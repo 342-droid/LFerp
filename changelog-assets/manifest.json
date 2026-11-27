@@ -1289,6 +1289,20 @@
     "status": "diff",
     "date": "2026-11-14"
   },
+  "4653f89|MDM/mdm_product_mall.html": {
+    "before": "changelog-assets/4653f89/MDM__mdm_product_mall.html.before.jpg",
+    "after": "changelog-assets/4653f89/MDM__mdm_product_mall.html.after.jpg",
+    "regions": 7,
+    "status": "diff",
+    "date": "2026-11-27"
+  },
+  "4653f89|MDM/mdm_product_proxy_list.html": {
+    "before": "changelog-assets/4653f89/MDM__mdm_product_proxy_list.html.before.jpg",
+    "after": "changelog-assets/4653f89/MDM__mdm_product_proxy_list.html.after.jpg",
+    "regions": 7,
+    "status": "diff",
+    "date": "2026-11-27"
+  },
   "4bda424|MDM/mdm_data_biz_erp.html": {
     "regions": 0,
     "status": "diff",
@@ -2584,6 +2598,30 @@
     "regions": 0,
     "status": "diff",
     "date": "2026-11-20"
+  },
+  "881f627|RBT/rbt_contract_sign.html": {
+    "before": "changelog-assets/881f627/RBT__rbt_contract_sign.html.before.jpg",
+    "after": "changelog-assets/881f627/RBT__rbt_contract_sign.html.after.jpg",
+    "regions": 11,
+    "status": "diff",
+    "date": "2026-11-27"
+  },
+  "881f627|RBT/rbt_demand.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-27"
+  },
+  "881f627|RBT/rbt_h5_store.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-27"
+  },
+  "881f627|RBT/rbt_h5_trader.html": {
+    "before": "changelog-assets/881f627/RBT__rbt_h5_trader.html.before.jpg",
+    "after": "changelog-assets/881f627/RBT__rbt_h5_trader.html.after.jpg",
+    "regions": 5,
+    "status": "diff",
+    "date": "2026-11-27"
   },
   "89b0a32|MDM/mdm_audit_rbt_demand.html": {
     "before": "changelog-assets/89b0a32/MDM__mdm_audit_rbt_demand.html.before.jpg",
@@ -5673,6 +5711,34 @@
     "regions": 0,
     "status": "diff",
     "date": "2026-11-26"
+  },
+  "fc85686|MDM/mdm_product_mall.html": {
+    "before": "changelog-assets/fc85686/MDM__mdm_product_mall.html.before.jpg",
+    "after": "changelog-assets/fc85686/MDM__mdm_product_mall.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-11-27"
+  },
+  "fc85686|MDM/mdm_product_proxy_list.html": {
+    "before": "changelog-assets/fc85686/MDM__mdm_product_proxy_list.html.before.jpg",
+    "after": "changelog-assets/fc85686/MDM__mdm_product_proxy_list.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-11-27"
+  },
+  "fd64da4|MDM/mdm_product_mall.html": {
+    "before": "changelog-assets/fd64da4/MDM__mdm_product_mall.html.before.jpg",
+    "after": "changelog-assets/fd64da4/MDM__mdm_product_mall.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-11-27"
+  },
+  "fd64da4|MDM/mdm_product_proxy_list.html": {
+    "before": "changelog-assets/fd64da4/MDM__mdm_product_proxy_list.html.before.jpg",
+    "after": "changelog-assets/fd64da4/MDM__mdm_product_proxy_list.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-11-27"
   },
   "fee01e6|MDM/mdm_audit_rbt_demand.html": {
     "before": "changelog-assets/fee01e6/MDM__mdm_audit_rbt_demand.html.before.jpg",
