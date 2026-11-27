@@ -1,10 +1,132 @@
 {
-  "latestSha": "c36c7d023067b53d1d3e5e0108fc58af0b5db6eb",
-  "total": 656,
+  "latestSha": "8f037ecda70c998514ba3a697f3655d0c71f5347",
+  "total": 657,
   "days": [
     {
       "date": "2026-11-27",
       "items": [
+        {
+          "sha": "8f037ec",
+          "type": "feat",
+          "text": "按扣率重算贸易商应付应收，并调整需求大厅",
+          "author": "342-droid",
+          "time": "16:21",
+          "pages": [
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "module": "冷丰WMS",
+              "title": "需求单审核"
+            },
+            {
+              "file": "RBT/rbt_admit_store.html",
+              "module": "冷丰RBT",
+              "title": "门店准入管理"
+            },
+            {
+              "file": "RBT/rbt_contract_sign.html",
+              "module": "冷丰RBT",
+              "title": "合同签署"
+            },
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日付款"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "付款"
+            },
+            {
+              "file": "RBT/rbt_product_package.html",
+              "module": "冷丰RBT",
+              "title": "商品包"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常付款数据"
+            },
+            {
+              "file": "RBT/rbt_risk_config.html",
+              "module": "冷丰RBT",
+              "title": "风控配置"
+            },
+            {
+              "file": "RBT/rbt_trade.html",
+              "module": "冷丰RBT",
+              "title": "交易单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_installment.html",
+              "text": "测算默认按商品金额 5 万元试算；结果改为门店实付、贸易商实付、贸易商实收、服务商实收、冷丰实收；冷丰实收为 0 时不能保存"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "text": "列表去掉贸易商应收、冷丰应收、服务商应收；从本页打开的详情金额只保留商品金额、已发货金额、服务费、总金额"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "text": "付款详情金额信息增加贸易商实付，已结款整笔记给贸易商"
+            },
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "text": "查看需求详情时金额信息增加贸易商实付，已结款整笔记给贸易商"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "text": "详情金额信息增加贸易商实付，已结款整笔记给贸易商"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "需求大厅点卡片不再进详情，卡片改为收益、应付、应收；确认签约按实付核对余额；资金明细改为展示实付和收益"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "text": "需求列表只留摘要和底部操作，确认收货挪到发货记录标题旁"
+            },
+            {
+              "file": "RBT/rbt_trade.html",
+              "text": "服务费改由贸易商承担，并拆出服务商实收和冷丰实收"
+            },
+            {
+              "file": null,
+              "text": "RBT 文档改为只留在本地，不再随仓库推送；去掉采购单、销售单跳转页"
+            }
+          ]
+        },
         {
           "sha": "c36c7d0",
           "type": "feat",
@@ -114,6 +236,11 @@
               "file": "RBT/rbt_index.html",
               "module": "冷丰RBT",
               "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
             },
             {
               "file": "RBT/rbt_performance.html",
@@ -842,6 +969,11 @@
               "title": "首页"
             },
             {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
+            },
+            {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
               "title": "付款"
@@ -1152,6 +1284,11 @@
               "file": "RBT/rbt_index.html",
               "module": "冷丰RBT",
               "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
             },
             {
               "file": "RBT/rbt_performance.html",
@@ -1834,6 +1971,11 @@
               "file": "RBT/rbt_index.html",
               "module": "冷丰RBT",
               "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
             },
             {
               "file": "RBT/rbt_performance.html",
@@ -2955,6 +3097,11 @@
               "title": "首页"
             },
             {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
+            },
+            {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
               "title": "付款"
@@ -3045,6 +3192,11 @@
               "file": "RBT/rbt_index.html",
               "module": "冷丰RBT",
               "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
             },
             {
               "file": "RBT/rbt_performance.html",
@@ -4770,19 +4922,9 @@
               "title": "付款"
             },
             {
-              "file": "RBT/rbt_purchase.html",
-              "module": "冷丰RBT",
-              "title": "交易单"
-            },
-            {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
               "title": "异常付款数据"
-            },
-            {
-              "file": "RBT/rbt_sales.html",
-              "module": "冷丰RBT",
-              "title": "交易单"
             },
             {
               "file": "RBT/rbt_trade.html",
@@ -6581,11 +6723,6 @@
               "title": "商品包"
             },
             {
-              "file": "RBT/rbt_purchase.html",
-              "module": "冷丰RBT",
-              "title": "交易单"
-            },
-            {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
               "title": "异常付款数据"
@@ -6594,11 +6731,6 @@
               "file": "RBT/rbt_risk_config.html",
               "module": "冷丰RBT",
               "title": "风控配置"
-            },
-            {
-              "file": "RBT/rbt_sales.html",
-              "module": "冷丰RBT",
-              "title": "交易单"
             },
             {
               "file": "RBT/rbt_trade.html",
@@ -6633,7 +6765,7 @@
               "text": "初审和复核都只打开需求详情后通过或驳回；复核通过后生成三张交易单"
             },
             {
-              "file": "RBT/rbt_purchase.html",
+              "file": "RBT/rbt_trade.html",
               "text": "采购单和销售单合并为上游交易、下游交易和冷丰服务费；服务费作为商品明细一行；去掉单据和商品金额，金额改为总金额"
             },
             {
@@ -7964,11 +8096,6 @@
               "title": "商品包"
             },
             {
-              "file": "RBT/rbt_purchase.html",
-              "module": "冷丰RBT",
-              "title": "交易单"
-            },
-            {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
               "title": "异常付款数据"
@@ -7977,11 +8104,6 @@
               "file": "RBT/rbt_risk_config.html",
               "module": "冷丰RBT",
               "title": "风控配置"
-            },
-            {
-              "file": "RBT/rbt_sales.html",
-              "module": "冷丰RBT",
-              "title": "交易单"
             },
             {
               "file": "RBT/rbt_trade.html",
@@ -8369,6 +8491,11 @@
               "title": "首页"
             },
             {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
+            },
+            {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
               "title": "付款"
@@ -8674,6 +8801,11 @@
               "title": "首页"
             },
             {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
+            },
+            {
               "file": "RBT/rbt_performance.html",
               "module": "冷丰RBT",
               "title": "付款"
@@ -8772,6 +8904,11 @@
               "file": "RBT/rbt_index.html",
               "module": "冷丰RBT",
               "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
             },
             {
               "file": "RBT/rbt_performance.html",
@@ -9189,11 +9326,6 @@
               "title": "商品包"
             },
             {
-              "file": "RBT/rbt_purchase.html",
-              "module": "冷丰RBT",
-              "title": "交易单"
-            },
-            {
               "file": "RBT/rbt_risk_abnormal.html",
               "module": "冷丰RBT",
               "title": "异常付款数据"
@@ -9202,11 +9334,6 @@
               "file": "RBT/rbt_risk_config.html",
               "module": "冷丰RBT",
               "title": "风控配置"
-            },
-            {
-              "file": "RBT/rbt_sales.html",
-              "module": "冷丰RBT",
-              "title": "交易单"
             },
             {
               "file": "RBT/rbt_trade.html",
