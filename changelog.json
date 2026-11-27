@@ -1,10 +1,124 @@
 {
-  "latestSha": "fc856868a270634aa89faaa42f7b810ae46af379",
-  "total": 661,
+  "latestSha": "9d4c11981addc4132fc96496c68929328de8e15b",
+  "total": 662,
   "days": [
     {
       "date": "2026-11-27",
       "items": [
+        {
+          "sha": "9d4c119",
+          "type": "feat",
+          "text": "需求售价按门店与贸易商系数折算，服务费改为按贸易商系数",
+          "author": "342-droid",
+          "time": "20:27",
+          "pages": [
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "module": "冷丰WMS",
+              "title": "需求单审核"
+            },
+            {
+              "file": "RBT/rbt_admit_store.html",
+              "module": "冷丰RBT",
+              "title": "门店准入管理"
+            },
+            {
+              "file": "RBT/rbt_contract_sign.html",
+              "module": "冷丰RBT",
+              "title": "合同签署"
+            },
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日付款"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "付款"
+            },
+            {
+              "file": "RBT/rbt_product_package.html",
+              "module": "冷丰RBT",
+              "title": "商品包"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常付款数据"
+            },
+            {
+              "file": "RBT/rbt_risk_config.html",
+              "module": "冷丰RBT",
+              "title": "风控配置"
+            },
+            {
+              "file": "RBT/rbt_trade.html",
+              "module": "冷丰RBT",
+              "title": "交易单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_demand.html",
+              "text": "新建时售卖单价按标准售卖单价×（1+门店系数−贸易商系数）计算；总金额改为商品金额×贸易商系数，服务费为差额；演示需求金额已按新口径刷新"
+            },
+            {
+              "file": "RBT/rbt_product_package.html",
+              "text": "明细列改为标准售卖单价、标准售卖金额"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "text": "结算测算改为输入商品包金额，试算商品金额、服务费、总金额、应付、应收、收益和服务商实收；演示系数统一为门店 1.20、贸易商 1.08、服务商 1.02"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "需求大厅应付改为商品金额，应收改为需求总金额，收益等于服务费"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "text": "总金额按贸易商系数计算"
+            },
+            {
+              "file": "RBT/rbt_trade.html",
+              "text": "发货完成只生成上游和下游两张交易单，下游单价按贸易商系数；点来源需求只看商品金额、已发货金额、服务费、总金额"
+            },
+            {
+              "file": "RBT/rbt_admit_store.html",
+              "text": "已占用和已成交按折算后的商品金额更新"
+            }
+          ]
+        },
         {
           "sha": "fc85686",
           "type": "other",
