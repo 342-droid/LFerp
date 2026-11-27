@@ -337,6 +337,8 @@
   /** 演示「今天」；与门店一键履约演示日对齐 */
   var DEMO_AS_OF = '2026-11-23';
 
+  var CUSTOM_RANGE_PRESETS = [];
+
   function numOf(value) {
     var n = Number(String(value == null ? '' : value).replace(/,/g, '').replace(/^¥/, ''));
     return isFinite(n) ? n : 0;
@@ -345,6 +347,37 @@
   function demandEnded(demand) {
     var s = String((demand && demand.status) || '');
     return s === '已完成' || s === '已作废' || s === '已驳回';
+  }
+
+  /** POS 营业额二级拆分（演示比例，合计＝POS 营业额） */
+  var POS_TURNOVER_MODULES = [
+    { id: 'dine', label: '堂食', share: 0.52 },
+    { id: 'takeout', label: '外卖', share: 0.33 },
+    { id: 'stored', label: '储值卡', share: 0.15 }
+  ];
+
+  function splitPosModules(total) {
+    var amount = round2(total);
+    if (!(amount > 0)) {
+      return POS_TURNOVER_MODULES.map(function (mod) {
+        return { id: mod.id, label: mod.label, turnover: 0 };
+      });
+    }
+    var parts = POS_TURNOVER_MODULES.map(function (mod) {
+      return {
+        id: mod.id,
+        label: mod.label,
+        turnover: round2(amount * mod.share)
+      };
+    });
+    /* 尾差补到堂食，保证三块合计等于 POS 总额 */
+    var sum = round2(
+      parts.reduce(function (acc, row) {
+        return acc + row.turnover;
+      }, 0)
+    );
+    parts[0].turnover = round2(parts[0].turnover + (amount - sum));
+    return parts;
   }
 
   /** 经营拆分渠道：仅 POS／直播／商城；手动履约不计入渠道营业额与收入 */
@@ -568,22 +601,19 @@
         focusRow && focusRow.channels && focusRow.channels[ch.id]
           ? focusRow.channels[ch.id]
           : { turnover: 0, credit: 0 };
+      var turnoverTotal = series.length ? total.turnover : null;
       return {
         id: ch.id,
         label: ch.label,
-        turnoverTotal: series.length ? total.turnover : null,
+        turnoverTotal: turnoverTotal,
         creditTotal: series.length ? total.credit : null,
         focusTurnover: focusRow ? focusCell.turnover : null,
         focusCredit: focusRow ? focusCell.credit : null,
+        posModules: ch.id === 'POS' ? splitPosModules(turnoverTotal || 0) : null,
         series: chSeries
       };
     });
-    var rangeTip =
-      '可查看 ' +
-      (windowFrom || '—') +
-      ' 至 ' +
-      (windowTo || '—') +
-      ' 的经营数据，营业额按 POS、直播、商城分别展示。支持查看整体情况或选择日期范围，点击趋势图可查看当日营业额。';
+    var tip = frozen ? '需求已结束，经营数据已冻结，不再跟踪后续营业额。' : '';
     return {
       ready: true,
       hasSeries: series.length > 0,
@@ -611,9 +641,7 @@
       }),
       channels: channels,
       series: series,
-      tip: frozen
-        ? rangeTip + '需求已结束，经营数据已冻结，不再跟踪后续营业额。'
-        : rangeTip
+      tip: tip
     };
   }
 
@@ -621,7 +649,9 @@
     money: money,
     round2: round2,
     DEMO_AS_OF: DEMO_AS_OF,
+    CUSTOM_RANGE_PRESETS: CUSTOM_RANGE_PRESETS,
     BIZ_CHANNELS: BIZ_CHANNELS,
+    POS_TURNOVER_MODULES: POS_TURNOVER_MODULES,
     DAILY_PREVIEW: DAILY_PREVIEW,
     isSignedComplete: isSignedComplete,
     shouldShowJvModule: shouldShowJvModule,

@@ -141,17 +141,20 @@
             (row.fundStatus === 'inflight' || row.fundStatus === 'frozen' || row.fundStatus === 'missing' || row.fundStatus === 'pending_freeze');
     }
 
+    /* 各渠道、各需求先汇总进门店钱包，再从门店余额按打款节点打出。同一门店同一天只入账一笔。 */
     function receiptLines(role, name) {
         var api = global.RbtDemandData;
         var daily = global.RbtDailyFulfill;
         if (!name || !api || typeof api.list !== 'function' || !daily || typeof daily.payeeSplit !== 'function') return [];
         var field = role === 'provider' ? 'provider' : 'trader';
-        var lines = [];
+        var batches = {};
+        var batchOrder = [];
         (api.list() || []).forEach(function (item) {
             if (!item) return;
             if (role === 'provider') {
                 if (item.providerName !== name) return;
             } else if (item.traderName !== name) return;
+            var store = item.storeName || '';
             var facts = {};
             if (typeof daily.daysOf === 'function') {
                 daily.daysOf(item).forEach(function (row) {
@@ -164,18 +167,30 @@
                 if (openFund(row.kind === 'manual' ? { kind: 'manual' } : fact)) return;
                 var amount = round2(row[field]);
                 if (!(amount > 0)) return;
-                var when = row.kind === 'manual' ? (row.time || '') : (addDays(row.date, 1) + ' 08:00:00');
-                lines.push({
-                    id: 'receipt:' + item.code + ':' + (row.id || row.date + ':' + row.channel),
-                    time: when,
-                    dir: 'in',
-                    title: '结款入账 · ' + item.code,
-                    amount: amount,
-                    kind: 'receipt'
-                });
+                var manual = row.kind === 'manual';
+                var when = manual ? (row.time || '') : (addDays(row.date, 1) + ' 08:00:00');
+                var day = String(when).slice(0, 10);
+                var key = day + '\n' + store;
+                if (!batches[key]) {
+                    batches[key] = { time: when, store: store, amountCents: 0 };
+                    batchOrder.push(key);
+                }
+                var batch = batches[key];
+                batch.amountCents += Math.round(amount * 100);
+                if (!manual) batch.time = when;
             });
         });
-        return lines;
+        return batchOrder.map(function (key) {
+            var batch = batches[key];
+            return {
+                id: 'receipt:store:' + key,
+                time: batch.time,
+                dir: 'in',
+                title: batch.store ? ('结款入账 · ' + batch.store) : '结款入账',
+                amount: round2(batch.amountCents / 100),
+                kind: 'receipt'
+            };
+        });
     }
 
     function movementLines(name) {
@@ -566,15 +581,14 @@
         var pending = 0;
         var daily = 0;
         var manual = 0;
-        var count = 0;
         var stores = {};
         var days = {};
         rows.forEach(function (row) {
             var amount = round2((row.cents || 0) / 100);
             var store = row.store || '—';
             var date = row.date || '—';
-            if (!stores[store]) stores[store] = { settled: 0, pending: 0, count: 0 };
-            if (!days[date]) days[date] = { settled: 0, pending: 0, count: 0 };
+            if (!stores[store]) stores[store] = { settled: 0, pending: 0 };
+            if (!days[date]) days[date] = { settled: 0, pending: 0 };
             if (row.pending) {
                 pending += amount;
                 stores[store].pending += amount;
@@ -582,16 +596,13 @@
                 return;
             }
             settled += amount;
-            count += 1;
             stores[store].settled += amount;
-            stores[store].count += 1;
             days[date].settled += amount;
-            days[date].count += 1;
             if (row.kind === 'manual') manual += amount;
             else daily += amount;
         });
         var storeRows = Object.keys(stores).map(function (name) {
-            return { name: name, settled: stores[name].settled, pending: stores[name].pending, count: stores[name].count };
+            return { name: name, settled: stores[name].settled, pending: stores[name].pending };
         }).sort(function (a, b) { return b.settled - a.settled || a.name.localeCompare(b.name, 'zh'); });
         var dayRows = Object.keys(days).sort().reverse();
         var body = waiting
@@ -601,15 +612,13 @@
                 : '<section class="rbt-party-block"><h3>按门店</h3>' + storeRows.map(function (row) {
                     return '<div class="rbt-party-line"><b>' + esc(row.name) + '</b>' +
                         '<span>已结款 ¥' + comma(row.settled) + '</span>' +
-                        '<span>待结款 ¥' + comma(row.pending) + '</span>' +
-                        '<em>' + row.count + ' 笔</em></div>';
+                        '<span>待结款 ¥' + comma(row.pending) + '</span></div>';
                 }).join('') + '</section>' +
                 '<section class="rbt-party-block"><h3>按日</h3>' + dayRows.map(function (date) {
                     var row = days[date];
                     return '<div class="rbt-party-line"><b>' + esc(date) + '</b>' +
                         '<span>已结款 ¥' + comma(row.settled) + '</span>' +
-                        '<span>待结款 ¥' + comma(row.pending) + '</span>' +
-                        '<em>' + row.count + ' 笔</em></div>';
+                        '<span>待结款 ¥' + comma(row.pending) + '</span></div>';
                 }).join('') + '</section>');
         return '<section class="rbt-party-overview">' +
             '<div class="rbt-party-chips">' +
@@ -623,7 +632,6 @@
             '<div class="rbt-party-hero"><span>已结款</span><b>¥' + (waiting ? '—' : comma(settled)) + '</b></div>' +
             '<div class="rbt-party-metrics">' +
             '<div><span>待结款</span><b>' + (waiting ? '—' : ('¥' + comma(pending))) + '</b></div>' +
-            '<div><span>已结款笔数</span><b>' + (waiting ? '—' : String(count)) + '</b></div>' +
             '<div><span>当日支付</span><b>' + (waiting ? '—' : ('¥' + comma(daily))) + '</b></div>' +
             '<div><span>提前支付</span><b>' + (waiting ? '—' : ('¥' + comma(manual))) + '</b></div>' +
             '</div>' + body + '</section>';
@@ -847,6 +855,7 @@
 
     global.RbtPartyWallet = {
         queryDate: queryDate,
+        dateInRange: inRange,
         balanceOf: balanceOf,
         snapshot: snapshot,
         editAmount: editAmount,

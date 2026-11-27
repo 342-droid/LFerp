@@ -16,6 +16,7 @@
     var bizFrom = '';
     var bizTo = '';
     var bizFocusDate = '';
+    var bizPreset = '';
     var overviewMode = '30';
     var overviewFrom = '';
     var overviewTo = '';
@@ -95,7 +96,9 @@
         }
         screen = target || 'home';
         if (screen === 'hall') hallFilter = 'accepted';
-        if (screen === 'collect') collectFilter = collectFilter === 'closed' ? 'closed' : 'open';
+        if (screen === 'collect' && collectFilter !== 'board') {
+            collectFilter = collectFilter === 'closed' ? 'closed' : 'open';
+        }
         tab = screen === 'mine' || screen === 'password' ? 'mine' : 'hall';
         render();
     }
@@ -496,27 +499,143 @@
         return any ? fromCents(total) : '';
     }
 
+    function collectTabs() {
+        function tab(id, label) {
+            return '<button type="button" data-collect-view="' + id + '"' +
+                (collectFilter === id ? ' class="is-on"' : '') + '>' + label + '</button>';
+        }
+        return '<div class="rbt-fund__tabs" role="tablist">' +
+            tab('open', '付款中') + tab('closed', '已结束') + tab('board', '数据总览') +
+            '</div>';
+    }
+
+    function packFunds(items) {
+        var funds = items.map(function (item) { return fundOf(item); });
+        return {
+            count: items.length,
+            receivable: sumMoney(funds, 'receivable'),
+            settled: sumMoney(funds, 'settled'),
+            pending: sumMoney(funds, 'pending')
+        };
+    }
+
+    function pendingText(value, kind) {
+        if (value) return yuan(value);
+        if (kind === 'paying' || kind === 'other') return '未产生';
+        if (kind === 'closed' || kind === 'done' || kind === 'void' || kind === 'reject') return '无';
+        return '—';
+    }
+
+    function boardMetrics(pack, kind) {
+        return '<div class="rbt-board-metrics">' +
+            '<div><span>笔数</span><b>' + pack.count + '</b></div>' +
+            '<div><span>应收</span><b>' + esc(pack.receivable ? yuan(pack.receivable) : '—') + '</b></div>' +
+            '<div><span>已结款</span><b>' + esc(pack.settled ? yuan(pack.settled) : '未产生') + '</b></div>' +
+            '<div><span>待结款</span><b>' + esc(pendingText(pack.pending, kind)) + '</b></div>' +
+            '</div>';
+    }
+
+    /* 收款总览：付款中、已结束的汇总从列表挪到这里，并按状态、门店汇总当前贸易商在平台上的单。 */
+    function renderCollectBoard() {
+        var paying = collectDemands(false);
+        var closed = collectDemands(true);
+        var scoped = paying.concat(closed);
+        var all = acceptedDemands();
+        var total = packFunds(all);
+        var statuses = [
+            { label: '付款中', items: paying, kind: 'paying' },
+            { label: '已完成', items: closed.filter(function (item) { return item.status === '已完成'; }), kind: 'done' }
+        ];
+        var extraMap = {};
+        var extras = [];
+        acceptedDemands().forEach(function (item) {
+            if (fulfillingBid(item) || closedBid(item)) return;
+            var label = item.status || '其他';
+            if (label === '发货中') return;
+            if (!extraMap[label]) {
+                extraMap[label] = { label: label, items: [], kind: 'other' };
+                extras.push(extraMap[label]);
+            }
+            extraMap[label].items.push(item);
+        });
+        var statusHtml = statuses.concat(extras).map(function (row) {
+            return '<article class="rbt-board-card"><header><strong>' + esc(row.label) + '</strong><em>' +
+                row.items.length + ' 笔</em></header>' + boardMetrics(packFunds(row.items), row.kind) + '</article>';
+        }).join('');
+        var stores = {};
+        var storeOrder = [];
+        acceptedDemands().forEach(function (item) {
+            var name = item.storeName || '—';
+            if (!stores[name]) {
+                stores[name] = { name: name, items: [], paying: 0, closed: 0, other: 0 };
+                storeOrder.push(stores[name]);
+            }
+            var bucket = stores[name];
+            bucket.items.push(item);
+            if (fulfillingBid(item)) bucket.paying += 1;
+            else if (closedBid(item)) bucket.closed += 1;
+            else bucket.other += 1;
+        });
+        var storeRows = storeOrder.map(function (row) {
+            var pack = packFunds(row.items);
+            var hint = [];
+            if (row.paying) hint.push('付款中 ' + row.paying + ' 笔');
+            if (row.closed) hint.push('已结束 ' + row.closed + ' 笔');
+            if (row.other) hint.push('其他 ' + row.other + ' 笔');
+            return {
+                name: row.name,
+                hint: hint.join(' · '),
+                pack: pack,
+                receivableCents: centsOf(pack.receivable) || 0
+            };
+        }).sort(function (a, b) {
+            return b.receivableCents - a.receivableCents || a.name.localeCompare(b.name, 'zh');
+        });
+        var storeHtml = storeRows.length ? storeRows.map(function (row) {
+            return '<article class="rbt-board-store"><header><strong>' + esc(row.name) + '</strong><em>' +
+                row.pack.count + ' 笔</em></header><p>' + esc(row.hint || '暂无分状态') + '</p>' +
+                boardMetrics(row.pack, 'mixed') + '</article>';
+        }).join('') : '<p class="rbt-h5-empty">暂无门店数据</p>';
+        var dailyCents = 0;
+        var manualCents = 0;
+        var dueCount = 0;
+        var waitCount = 0;
+        scoped.forEach(function (item) {
+            (fundOf(item).shares || []).forEach(function (share) {
+                var cents = centsOf(share.amount);
+                if (cents == null) return;
+                if (share.stage === 'pending') {
+                    waitCount += 1;
+                    return;
+                }
+                dueCount += 1;
+                if (share.kind === 'manual') manualCents += cents;
+                else dailyCents += cents;
+            });
+        });
+        setHead('收款');
+        return '<div class="rbt-fund">' + collectTabs() +
+            '<div class="rbt-board">' +
+            '<h2>平台合计</h2>' +
+            '<section class="rbt-board__total">' + boardMetrics(total, 'paying') + '</section>' +
+            '<h2>按状态</h2>' + statusHtml +
+            '<h2>按门店</h2>' + storeHtml +
+            '<h2>结款构成</h2>' +
+            '<section class="rbt-board__total">' +
+            '<div class="rbt-board-metrics">' +
+            '<div><span>当日支付</span><b>' + esc(dailyCents ? yuan(fromCents(dailyCents)) : '未产生') + '</b></div>' +
+            '<div><span>提前支付</span><b>' + esc(manualCents ? yuan(fromCents(manualCents)) : '未产生') + '</b></div>' +
+            '<div><span>已到账笔数</span><b>' + dueCount + '</b></div>' +
+            '<div><span>待到账笔数</span><b>' + waitCount + '</b></div>' +
+            '</div></section></div></div>';
+    }
+
     function renderCollect() {
+        if (collectFilter === 'board') return renderCollectBoard();
         var closed = collectFilter === 'closed';
         var rows = collectDemands(closed);
-        var funds = rows.map(function (item) { return fundOf(item); });
-        var receivable = sumMoney(funds, 'receivable');
-        var settled = sumMoney(funds, 'settled');
-        var pending = sumMoney(funds, 'pending');
         setHead('收款');
-        return '<div class="rbt-fund">' +
-            '<div class="rbt-fund__tabs" role="tablist">' +
-            '<button type="button" data-collect-view="open"' + (closed ? '' : ' class="is-on"') + '>付款中</button>' +
-            '<button type="button" data-collect-view="closed"' + (closed ? ' class="is-on"' : '') + '>已结束</button>' +
-            '</div>' +
-            '<div class="rbt-fund__summary">' +
-            '<p class="rbt-fund__summary-name">汇总</p>' +
-            '<div class="rbt-fund__summary-metrics">' +
-            '<div><span>笔数</span><b>' + rows.length + '</b></div>' +
-            '<div><span>应收</span><b>' + esc(receivable ? yuan(receivable) : '—') + '</b></div>' +
-            '<div><span>已结款</span><b>' + esc(settled ? yuan(settled) : '未产生') + '</b></div>' +
-            '<div><span>待结款</span><b>' + esc(pending ? yuan(pending) : (closed ? '无' : '未产生')) + '</b></div>' +
-            '</div></div>' +
+        return '<div class="rbt-fund">' + collectTabs() +
             (rows.length ? rows.map(function (item) {
                 var fund = fundOf(item);
                 var tagClass = item.status === '已完成' ? ' is-done' : (item.status === '已作废' || item.status === '已驳回' ? ' is-off' : '');
@@ -725,8 +844,7 @@
     }
 
     function renderShareCards(shares) {
-        return '<p class="rbt-ops__note">各渠道佣金先进入门店钱包。结款从佣金余额支付，同一天可以多渠道混合后还款。</p>' +
-            shares.map(function (row) {
+        return shares.map(function (row) {
                 var pendingRow = row.stage === 'pending';
                 var manual = row.kind === 'manual';
                 var when = pendingRow ? '-' : (manual ? (paidClock(row.time) || settleClock(row.date)) : settleClock(row.date));
@@ -773,17 +891,70 @@
         });
     }
 
-    /* 单折线只画营业额。圆点可点选单日。 */
-    function renderBizChart(series, focusDate) {
+    /* 轴标签：同月 M/D；跨月首点或换月用 M月D日；跨年换年用 YY/M/D */
+    function bizChartAxisMode(series) {
+        var years = {};
+        var months = {};
+        (series || []).forEach(function (row) {
+            var parts = String(row.date || '').split('-');
+            if (parts.length < 3) return;
+            years[parts[0]] = true;
+            months[parts[0] + '-' + parts[1]] = true;
+        });
+        var yearCount = Object.keys(years).length;
+        var monthCount = Object.keys(months).length;
+        if (yearCount > 1) return 'year';
+        if (monthCount > 1) return 'month';
+        return 'day';
+    }
+
+    function bizChartAxisLabel(date, mode, prevDate) {
+        var parts = String(date || '').split('-');
+        if (parts.length < 3) return date || '';
+        var y = parts[0];
+        var m = Number(parts[1]);
+        var d = Number(parts[2]);
+        var prev = String(prevDate || '').split('-');
+        var yearChanged = !prevDate || prev[0] !== y;
+        var monthChanged = !prevDate || prev[0] !== y || prev[1] !== parts[1];
+        if (mode === 'year') {
+            if (yearChanged) return y.slice(2) + '/' + m + '/' + d;
+            if (monthChanged) return m + '月' + d;
+            return m + '/' + d;
+        }
+        if (mode === 'month') {
+            if (monthChanged) return m + '月' + d + '日';
+            return m + '/' + d;
+        }
+        return m + '/' + d;
+    }
+
+    function bizChartShouldShowLabel(series, index, mode) {
+        if (!series || !series.length) return false;
+        if (index === 0 || index === series.length - 1) return true;
+        var prev = series[index - 1] && series[index - 1].date;
+        var cur = series[index] && series[index].date;
+        var prevParts = String(prev || '').split('-');
+        var curParts = String(cur || '').split('-');
+        if (mode === 'year' && prevParts[0] !== curParts[0]) return true;
+        if ((mode === 'year' || mode === 'month') && (prevParts[0] !== curParts[0] || prevParts[1] !== curParts[1])) {
+            return true;
+        }
+        var step = series.length > 14 ? Math.ceil(series.length / 6) : series.length > 6 ? 2 : 1;
+        return index % step === 0;
+    }
+
+    /* 营业额单折线；圆点可点选单日高亮；跨月／跨年轴签换样式 */    function renderBizChart(series, focusDate) {
         if (!series || !series.length) {
             return '<div class="rbt-biz-chart rbt-biz-chart--empty">该时段暂无曲线数据</div>';
         }
+        var mode = bizChartAxisMode(series);
         var w = 320;
-        var h = 148;
-        var padL = 8;
-        var padR = 8;
+        var h = mode === 'year' ? 160 : mode === 'month' ? 154 : 148;
+        var padL = mode === 'year' ? 10 : 8;
+        var padR = mode === 'year' ? 10 : 8;
         var padT = 12;
-        var padB = 22;
+        var padB = mode === 'year' ? 30 : mode === 'month' ? 26 : 22;
         var max = 0;
         series.forEach(function (row) {
             max = Math.max(max, Number(row.turnover) || 0);
@@ -803,29 +974,107 @@
                 return (i ? 'L' : 'M') + xAt(i).toFixed(1) + ' ' + yAt(row[key]).toFixed(1);
             }).join(' ');
         }
-        var labels = series.map(function (row, i) {
-            if (series.length > 6 && i !== 0 && i !== series.length - 1 && i % 2) return '';
-            var parts = String(row.date || '').split('-');
-            var text = parts.length >= 3 ? Number(parts[1]) + '/' + Number(parts[2]) : row.date;
-            return '<text x="' + xAt(i).toFixed(1) + '" y="' + (h - 6) + '" text-anchor="middle">' + esc(text) + '</text>';
-        }).join('');
-        var dots = series.map(function (row, i) {
-            var on = focusDate && row.date === focusDate;
-            var cx = xAt(i).toFixed(1);
-            return '<g class="rbt-biz-chart__hit' + (on ? ' is-on' : '') + '" data-biz-day="' + esc(row.date) + '">' +
-                '<circle class="rbt-biz-chart__hot" cx="' + cx + '" cy="' + (padT + innerH / 2).toFixed(1) + '" r="14"/>' +
-                '<circle class="rbt-biz-chart__dot is-turnover" cx="' + cx + '" cy="' + yAt(row.turnover).toFixed(1) + '" r="' + (on ? 4.5 : 3) + '"/>' +
-                '</g>';
-        }).join('');
-        return '<div class="rbt-biz-chart">' +
-            '<svg viewBox="0 0 ' + w + ' ' + h + '" role="img" aria-label="营业额曲线，可点选单日">' +
-            '<path class="rbt-biz-chart__line is-turnover" d="' + pathOf('turnover') + '" fill="none"/>' +
-            labels + dots +
+        var guides = '';
+        series.forEach(function (row, i) {
+            if (i === 0) return;
+            var prevParts = String(series[i - 1].date || '').split('-');
+            var curParts = String(row.date || '').split('-');
+            var yearBreak = prevParts[0] !== curParts[0];
+            var monthBreak = yearBreak || prevParts[1] !== curParts[1];
+            if ((mode === 'year' && yearBreak) || (mode === 'month' && monthBreak)) {
+                var gx = xAt(i).toFixed(1);
+                guides +=
+                    '<line class="rbt-biz-chart__guide' +
+                    (yearBreak ? ' is-year' : '') +
+                    '" x1="' +
+                    gx +
+                    '" y1="' +
+                    padT +
+                    '" x2="' +
+                    gx +
+                    '" y2="' +
+                    (padT + innerH).toFixed(1) +
+                    '"/>';
+            }
+        });
+        var labels = series
+            .map(function (row, i) {
+                if (!bizChartShouldShowLabel(series, i, mode)) return '';
+                var prev = i > 0 ? series[i - 1].date : '';
+                var text = bizChartAxisLabel(row.date, mode, prev);
+                var cls = 'rbt-biz-chart__tick';
+                var prevParts = String(prev || '').split('-');
+                var curParts = String(row.date || '').split('-');
+                if (mode === 'year' && (!prev || prevParts[0] !== curParts[0])) cls += ' is-year';
+                else if ((mode === 'year' || mode === 'month') && (!prev || prevParts[1] !== curParts[1] || prevParts[0] !== curParts[0])) {
+                    cls += ' is-month';
+                }
+                return (
+                    '<text class="' +
+                    cls +
+                    '" x="' +
+                    xAt(i).toFixed(1) +
+                    '" y="' +
+                    (h - 6) +
+                    '" text-anchor="middle">' +
+                    esc(text) +
+                    '</text>'
+                );
+            })
+            .join('');
+        var dots = series
+            .map(function (row, i) {
+                var on = focusDate && row.date === focusDate;
+                var cx = xAt(i).toFixed(1);
+                return (
+                    '<g class="rbt-biz-chart__hit' +
+                    (on ? ' is-on' : '') +
+                    '" data-biz-day="' +
+                    esc(row.date) +
+                    '">' +
+                    '<circle class="rbt-biz-chart__hot" cx="' +
+                    cx +
+                    '" cy="' +
+                    (padT + innerH / 2).toFixed(1) +
+                    '" r="14"/>' +
+                    '<circle class="rbt-biz-chart__dot is-turnover" cx="' +
+                    cx +
+                    '" cy="' +
+                    yAt(row.turnover).toFixed(1) +
+                    '" r="' +
+                    (on ? 4.5 : 3) +
+                    '"/>' +
+                    '</g>'
+                );
+            })
+            .join('');
+        var metricLabel = '营业额';
+        var spanCls =
+            mode === 'year' ? ' rbt-biz-chart--cross-year' : mode === 'month' ? ' rbt-biz-chart--cross-month' : '';
+        return (
+            '<div class="rbt-biz-chart' +
+            spanCls +
+            '">' +
+            '<svg viewBox="0 0 ' +
+            w +
+            ' ' +
+            h +
+            '" role="img" aria-label="' +
+            esc(metricLabel) +
+            '曲线，可点选单日">' +
+            guides +
+            '<path class="rbt-biz-chart__line is-turnover" d="' +
+            pathOf('turnover') +
+            '" fill="none"/>' +
+            labels +
+            dots +
             '</svg>' +
-            '<div class="rbt-biz-chart__legend"><span class="is-turnover">营业额</span></div>' +
-            '<p class="rbt-biz-chart__hint">点击趋势图可查看当日营业额</p>' +
-            '</div>';
-    }
+            '<div class="rbt-biz-chart__legend"><span class="is-turnover">' +
+            esc(metricLabel) +
+            '</span></div>' +
+            '<p class="rbt-biz-chart__hint">点击趋势图可高亮当日</p>' +
+            '</div>'
+        );    }
 
     function renderCollectBiz(item) {
         var api = window.RbtTraderStoreBiz;
@@ -844,14 +1093,47 @@
             '<button type="button" class="rbt-biz-chip' + (bizRangeMode === 'custom' ? ' is-on' : '') +
             '" data-biz-range="custom">自定义时段</button>' +
             '</div>';
+        var presets = (api && api.CUSTOM_RANGE_PRESETS) || [];
+        var presetChips = presets
+            .map(function (p) {
+                var inWin =
+                    (!pack.windowFrom || p.from >= pack.windowFrom) &&
+                    (!pack.windowTo || p.to <= pack.windowTo);
+                if (!inWin) return '';
+                return (
+                    '<button type="button" class="rbt-biz-chip rbt-biz-chip--preset' +
+                    (bizPreset === p.id ? ' is-on' : '') +
+                    '" data-biz-preset="' +
+                    esc(p.id) +
+                    '" data-biz-from-set="' +
+                    esc(p.from) +
+                    '" data-biz-to-set="' +
+                    esc(p.to) +
+                    '">' +
+                    esc(p.label) +
+                    '</button>'
+                );
+            })
+            .join('');
         var rangePick =
             bizRangeMode === 'custom'
-                ? '<div class="rbt-biz-dates">' +
-                  '<label>开始<input type="date" data-biz-from value="' + esc(bizFrom || pack.windowFrom || '') +
-                  '" min="' + esc(pack.windowFrom || '') + '" max="' + esc(pack.windowTo || '') + '"></label>' +
-                  '<label>结束<input type="date" data-biz-to value="' + esc(bizTo || pack.windowTo || '') +
-                  '" min="' + esc(pack.windowFrom || '') + '" max="' + esc(pack.windowTo || '') + '"></label>' +
-                  '<button type="button" class="rbt-biz-apply" data-biz-apply>应用</button>' +
+                ? (presetChips ? '<div class="rbt-biz-presets">' + presetChips + '</div>' : '') +
+                  '<div class="rbt-biz-dates">' +
+                  '<label>开始<input type="date" data-biz-from value="' +
+                  esc(bizFrom || pack.windowFrom || '') +
+                  '" min="' +
+                  esc(pack.windowFrom || '') +
+                  '" max="' +
+                  esc(pack.windowTo || '') +
+                  '"></label>' +
+                  '<label>结束<input type="date" data-biz-to value="' +
+                  esc(bizTo || pack.windowTo || '') +
+                  '" min="' +
+                  esc(pack.windowFrom || '') +
+                  '" max="' +
+                  esc(pack.windowTo || '') +
+                  '"></label>' +
+                  '<button type="button" class="rbt-biz-apply" data-biz-apply>查询</button>' +
                   '</div>'
                 : '<p class="rbt-biz-window">总览区间：' +
                   esc(pack.windowFrom || '—') +
@@ -864,38 +1146,89 @@
             return '<button type="button" class="rbt-biz-chip' + (bizChannel === ch.id ? ' is-on' : '') +
                 '" data-biz-channel="' + esc(ch.id) + '">' + esc(ch.label) + '</button>';
         }).join('');
-        var maxTurnover = 0;
+        var posChannel = null;
+        var otherCards = [];
         (pack.channels || []).forEach(function (ch) {
-            maxTurnover = Math.max(maxTurnover, Number(ch.turnoverTotal) || 0);
+            if (ch.id === 'POS') posChannel = ch;
+            else otherCards.push(ch);
         });
-        var channelBars = (pack.channels || []).map(function (ch) {
-            var width = maxTurnover > 0 ? Math.max(4, Math.round((Number(ch.turnoverTotal) || 0) / maxTurnover * 100)) : 0;
-            return '<div class="rbt-biz-bar"><span>' + esc(ch.label) + '</span>' +
-                '<i><b style="width:' + width + '%"></b></i><em>' + esc(bizMoney(ch.turnoverTotal)) + '</em></div>';
-        }).join('');
+        var posCard = '';
+        if (posChannel) {
+            var modules = posChannel.posModules || [];
+            var moduleHtml = modules.length
+                ? '<div class="rbt-biz-channel__subs">' +
+                  modules
+                    .map(function (mod) {
+                        return (
+                            '<div class="rbt-biz-channel__sub">' +
+                            '<span>' +
+                            esc(mod.label) +
+                            '</span><b>' +
+                            esc(bizMoney(mod.turnover)) +
+                            '</b></div>'
+                        );
+                    })
+                    .join('') +
+                  '</div>'
+                : '<div class="rbt-biz-channel__metric"><span>营业额</span><b>' +
+                  esc(bizMoney(posChannel.turnoverTotal)) +
+                  '</b></div>';
+            posCard =
+                '<article class="rbt-biz-channel rbt-biz-channel--pos">' +
+                '<header>' +
+                esc(posChannel.label) +
+                '</header>' +
+                '<div class="rbt-biz-channel__metric rbt-biz-channel__total">' +
+                '<span>营业额合计</span><b>' +
+                esc(bizMoney(posChannel.turnoverTotal)) +
+                '</b></div>' +
+                moduleHtml +
+                '</article>';
+        }
+        var otherHtml = otherCards
+            .map(function (ch) {
+                return (
+                    '<article class="rbt-biz-channel rbt-biz-channel--estimate">' +
+                    '<header>' +
+                    esc(ch.label) +
+                    '</header>' +
+                    '<div class="rbt-biz-channel__metric">' +
+                    '<span>营业额</span><b>' +
+                    esc(bizMoney(ch.turnoverTotal)) +
+                    '</b></div>' +
+                    '</article>'
+                );
+            })
+            .join('');
+        var channelCards =
+            posCard +
+            (otherHtml
+                ? '<div class="rbt-biz-channels__estimate">' + otherHtml + '</div>'
+                : '');
         var focusBits = (pack.focusChannels || []).map(function (ch) {
             return '<div class="rbt-biz-focus__ch"><em>' + esc(ch.label) + '</em>' +
                 '<span>' + esc(bizMoney(ch.turnover)) + '</span></div>';
         }).join('');
         var dateText = pack.focusDate ? monthDay(pack.focusDate) : '—';
         var clearDay = bizFocusDate
-            ? '<button type="button" class="rbt-biz-clear" data-biz-clear-day>清除单日</button>'
+            ? '<button type="button" class="rbt-biz-clear" data-biz-clear-day>清除单日高亮</button>'
             : '';
+        var tipHtml = pack.tip ? '<p class="rbt-ops__note">' + esc(pack.tip) + '</p>' : '';
         return '<section class="rbt-biz">' +
-            '<p class="rbt-ops__note">' + esc(pack.tip || '') + '</p>' +
+            tipHtml +
             rangeChips + rangePick +
             '<div class="rbt-biz-hero"><span>' + (bizRangeMode === 'custom' ? '时段营业额' : '门店营业额') + '</span><b>' +
             esc(bizMoney(pack.turnoverTotal)) + '</b></div>' +
-            '<div class="rbt-biz-bars">' + channelBars + '</div>' +
+            '<div class="rbt-biz-channels">' + channelCards + '</div>' +
             '<div class="rbt-biz-focus">' +
             '<header><span>' + esc((pack.focusLabel || '当日') + ' · ' + dateText) + '</span>' +
-            (pack.frozen ? '<i class="is-frozen">已冻结</i>' : '') + clearDay + '</header>' +
+            (pack.frozen ? '<i class="is-frozen">已冻结</i>' : '') + '</header>' +
             '<div class="rbt-biz-focus__total"><span>营业额 <b>' + esc(bizMoney(pack.focusTurnover)) + '</b></span></div>' +
             (pack.hasSeries || bizFocusDate ? focusBits : '<p class="rbt-bill__empty">该时段暂无拆分数据</p>') +
             '</div>' +
             '<div class="rbt-biz-curve">' +
             '<div class="rbt-biz-curve__head"><strong>经营曲线</strong>' +
-            '<div class="rbt-biz-chips">' + channelChips + '</div></div>' +
+            '<div class="rbt-biz-chips">' + channelChips + '</div>' + clearDay + '</div>' +
             renderBizChart(bizSeriesOf(pack), pack.focusDate) +
             '</div></section>';
     }
@@ -925,16 +1258,12 @@
             ['收款账户名称', payee.accountName || '—'],
             ['收款账户', payee.accountNo || '—']
         ];
+        if (fundTab === 'overview') fundTab = 'share';
         var shares = fund.shares.slice().reverse();
-        var detail = shares.length
-            ? renderShareCards(shares)
-            : '<p class="rbt-bill__empty">暂无结款明细</p>';
         var sheet =
             fundTab === 'share'
-                ? '<section class="rbt-bill__sheet' + (shares.length ? '' : ' rbt-bill__sheet--blank') + '">' + detail + '</section>'
-                : fundTab === 'overview'
-                    ? '<section class="rbt-bill__sheet">' + renderOverview() + '</section>'
-                    : fundTab === 'biz'
+                ? renderShareSheet(shares)
+                : fundTab === 'biz'
                         ? '<section class="rbt-bill__sheet">' + renderCollectBiz(item) + '</section>'
                         : '<section class="rbt-bill__sheet">' +
                             lines.map(function (line) {
@@ -955,42 +1284,62 @@
             '<div class="rbt-bill-tabs" role="tablist">' +
             '<button type="button" data-fund-tab="base"' + (fundTab === 'base' ? ' class="is-on"' : '') + '>基础信息</button>' +
             '<button type="button" data-fund-tab="share"' + (fundTab === 'share' ? ' class="is-on"' : '') + '>结款明细</button>' +
-            '<button type="button" data-fund-tab="overview"' + (fundTab === 'overview' ? ' class="is-on"' : '') + '>结款总览</button>' +
             '<button type="button" data-fund-tab="biz"' + (fundTab === 'biz' ? ' class="is-on"' : '') + '>门店经营</button>' +
             '</div>' +
             sheet;
     }
 
-    function overviewRows() {
+    /* 本单结款：时间选择在汇总卡片上方，同时筛汇总和下面这一单的结款卡片。已结款是已到账的当日支付加提前支付。 */
+    function shareInRange(share) {
         var wallet = window.RbtPartyWallet;
-        var rows = [];
-        acceptedDemands().forEach(function (item) {
-            if (!fulfillingBid(item) && !closedBid(item)) return;
-            (fundOf(item).shares || []).forEach(function (share) {
-                var amount = centsOf(share.amount);
-                if (amount == null) return;
-                rows.push({
-                    date: wallet && wallet.queryDate ? wallet.queryDate(share) : (share.date || ''),
-                    cents: amount,
-                    pending: share.stage === 'pending',
-                    store: item.storeName || '—',
-                    kind: share.kind === 'manual' ? 'manual' : 'daily',
-                    code: item.code
-                });
-            });
-        });
-        return rows;
+        var date = wallet && wallet.queryDate ? wallet.queryDate(share) : ((share && share.date) || '');
+        if (wallet && wallet.dateInRange) return wallet.dateInRange(date, overviewMode, overviewFrom, overviewTo);
+        return overviewMode === 'all';
     }
 
-    function renderOverview() {
-        var wallet = window.RbtPartyWallet;
-        if (!wallet || typeof wallet.overviewHtml !== 'function') return '<div class="rbt-h5-empty">结款总览不可用</div>';
-        return wallet.overviewHtml({
-            rows: overviewRows(),
-            mode: overviewMode,
-            from: overviewFrom,
-            to: overviewTo
+    function renderShareSheet(shares) {
+        var waiting = overviewMode === 'custom' && (!overviewFrom || !overviewTo);
+        var shown = waiting ? [] : (shares || []).filter(shareInRange);
+        var pendingCents = 0;
+        var dailyCents = 0;
+        var manualCents = 0;
+        shown.forEach(function (share) {
+            var cents = centsOf(share.amount);
+            if (cents == null) return;
+            if (share.stage === 'pending') pendingCents += cents;
+            else if (share.kind === 'manual') manualCents += cents;
+            else dailyCents += cents;
         });
+        function money(cents) {
+            if (waiting) return '—';
+            return yuan(fromCents(cents));
+        }
+        function chip(id, label) {
+            return '<button type="button" class="rbt-party-chip' + (overviewMode === id ? ' is-on' : '') + '" data-ov-mode="' + id + '">' + label + '</button>';
+        }
+        var dates = overviewMode === 'custom'
+            ? '<div class="rbt-party-dates">' +
+                '<label>开始<input type="date" data-ov-from value="' + esc(overviewFrom || '') + '"></label>' +
+                '<label>结束<input type="date" data-ov-to value="' + esc(overviewTo || '') + '"></label>' +
+                '<button type="button" class="rbt-party-apply" data-ov-apply>查询</button></div>'
+            : '';
+        var cards = waiting
+            ? '<p class="rbt-bill__empty">选择起止日期后查询</p>'
+            : (shown.length ? renderShareCards(shown) : '<p class="rbt-bill__empty">该时段暂无结款</p>');
+        return '<section class="rbt-bill__sheet rbt-share-page">' +
+            '<div class="rbt-share-range">' +
+            '<div class="rbt-party-chips">' +
+            chip('7', '近7天') + chip('30', '近30天') + chip('all', '全部') + chip('custom', '自定义') +
+            '</div>' + dates +
+            '</div>' +
+            '<section class="rbt-share-board">' +
+            '<div class="rbt-share-board__metrics">' +
+            '<div><span>已结款</span><b>' + esc(money(dailyCents + manualCents)) + '</b></div>' +
+            '<div><span>待结款</span><b>' + esc(money(pendingCents)) + '</b></div>' +
+            '<div><span>当日支付</span><b>' + esc(money(dailyCents)) + '</b></div>' +
+            '<div><span>提前支付</span><b>' + esc(money(manualCents)) + '</b></div>' +
+            '</div></section>' +
+            '<section class="rbt-share-detail"><h3>结款明细</h3>' + cards + '</section></section>';
     }
 
     function renderWallet() {
@@ -1571,14 +1920,14 @@
         });
     }
 
-    /* 余额不够时拦住确认签署。我知道了不改状态。 */
+    /* 余额不够时拦住确认签约。我知道了不改状态，也不生成合同、不冻结。 */
     function openBalanceShort(check) {
         var phone = document.getElementById('rbtH5Phone');
         if (!phone) return;
         closeBalanceShort();
         var text = check && check.reason === 'amount'
             ? '暂时无法核对商品金额，请稍后再试'
-            : '当前余额 ¥' + moneyLabel(check && check.balance) + '，本单需支付商品金额 ¥' + moneyLabel(check && check.need) + '。余额不足，请尽快充值后再确认签署。';
+            : '当前余额 ¥' + moneyLabel(check && check.balance) + '，本单需支付商品金额 ¥' + moneyLabel(check && check.need) + '。余额不足，请尽快充值后再确认签约。';
         var mask = document.createElement('div');
         mask.className = 'rbt-h5-pay-mask';
         mask.setAttribute('data-balance-short', '1');
@@ -1616,7 +1965,7 @@
         return true;
     }
 
-    /* 确认签约前先说明会生成两份合同。稍后处理不改状态；去签署才确认并进入签署页。 */
+    /* 确认签约前先说明会生成两份合同并冻结商品金额。稍后处理不改状态；余额够才确认，并进入签署页。 */
     function openConfirmSign(code) {
         var phone = document.getElementById('rbtH5Phone');
         if (!phone) return;
@@ -1739,7 +2088,6 @@
         }
         if (confirmSign) {
             var signedCode = confirmSign.getAttribute('data-confirm-sign');
-            if (blockIfBalanceShort(signedCode)) return;
             var signApi = window.RbtDemandData;
             var signResult = signApi && typeof signApi.signDemand === 'function'
                 ? signApi.signDemand(signedCode, traderActor(), confirmSign.getAttribute('data-contract-key'))
@@ -1790,7 +2138,7 @@
             render();
             return;
         }
-        if (screen === 'wallet' || (screen === 'collect-bill' && fundTab === 'overview')) {
+        if (screen === 'wallet' || (screen === 'collect-bill' && fundTab === 'share')) {
             if (handlePartyClick(event)) return;
         }
         if (confirmDeal) {
@@ -1837,7 +2185,8 @@
         var collectView = event.target.closest('[data-collect-view]');
         var collectBtn = event.target.closest('[data-collect]');
         if (collectView) {
-            collectFilter = collectView.getAttribute('data-collect-view') === 'closed' ? 'closed' : 'open';
+            var collectViewId = collectView.getAttribute('data-collect-view');
+            collectFilter = collectViewId === 'closed' || collectViewId === 'board' ? collectViewId : 'open';
             tab = 'hall';
             screen = 'collect';
             render();
@@ -1853,6 +2202,7 @@
             bizFrom = '';
             bizTo = '';
             bizFocusDate = '';
+            bizPreset = '';
             tab = 'hall';
             screen = 'collect-bill';
             render();
@@ -1861,7 +2211,7 @@
         var fundTabBtn = event.target.closest('[data-fund-tab]');
         if (fundTabBtn && screen === 'collect-bill') {
             var nextTab = fundTabBtn.getAttribute('data-fund-tab') || 'base';
-            fundTab = nextTab === 'share' || nextTab === 'overview' || nextTab === 'biz' ? nextTab : 'base';
+            fundTab = nextTab === 'share' || nextTab === 'biz' ? nextTab : 'base';
             render();
             return;
         }
@@ -1873,7 +2223,19 @@
             if (bizRangeMode === 'overview') {
                 bizFrom = '';
                 bizTo = '';
+                bizPreset = '';
             }
+            render();
+            return;
+        }
+        var bizPresetBtn = event.target.closest('[data-biz-preset]');
+        if (bizPresetBtn && screen === 'collect-bill') {
+            bizPreset = bizPresetBtn.getAttribute('data-biz-preset') || '';
+            bizFrom = bizPresetBtn.getAttribute('data-biz-from-set') || '';
+            bizTo = bizPresetBtn.getAttribute('data-biz-to-set') || '';
+            bizRangeMode = 'custom';
+            bizFocusDate = '';
+            fundTab = 'biz';
             render();
             return;
         }
@@ -1885,6 +2247,7 @@
             bizTo = toInput ? toInput.value : bizTo;
             bizRangeMode = 'custom';
             bizFocusDate = '';
+            bizPreset = '';
             fundTab = 'biz';
             render();
             return;
