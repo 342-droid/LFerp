@@ -1,10 +1,30 @@
 {
-  "latestSha": "9d4c11981addc4132fc96496c68929328de8e15b",
-  "total": 662,
+  "latestSha": "4d7626ddfe1c1c18762e55899f03c53c29471de5",
+  "total": 663,
   "days": [
     {
       "date": "2026-11-27",
       "items": [
+        {
+          "sha": "4d7626d",
+          "type": "feat",
+          "text": "新建需求按折算后商品金额匹配货款区间",
+          "author": "342-droid",
+          "time": "20:40",
+          "pages": [
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_demand.html",
+              "text": "货款区间改为按折算后的商品金额匹配；超出区间时售价、产品和结算金额仍展示，并提示不能发布"
+            }
+          ]
+        },
         {
           "sha": "9d4c119",
           "type": "feat",
