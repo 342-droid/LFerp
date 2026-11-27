@@ -401,10 +401,10 @@
       var payDay = isXuhuiProxySample ? 12 + oi - orderSampleCount : 12 + (oi % 8);
       var settledAt = oi % 4 === 0 ? null : '2026-11-' + String(payDay + 1) + ' 09:00';
       var settledInPeriod = settledAt && matchesPeriod(filters, settledAt);
-      var refundAmount = isXuhuiProxySample
+      var orderRefundAmount = isXuhuiProxySample
         ? (oi - orderSampleCount < 2 ? 47.74 : 0)
         : oi % 6 === 0 ? r2(goods * 0.12) : 0;
-      var refundedCost = goods ? r2(cost * refundAmount / goods) : 0;
+      var refundedCost = goods ? r2(cost * orderRefundAmount / goods) : 0;
       var actualPurchaseCost = r2(Math.max(0, cost - refundedCost));
       orderDetails.push({
         orderId: oid,
@@ -419,13 +419,13 @@
         purchaseCost: cost,
         goodsMargin: r2(goods - cost),
         actualPurchaseCost: actualPurchaseCost,
-        actualGoodsMargin: r2(goods - refundAmount - actualPurchaseCost),
+        actualGoodsMargin: r2(goods - orderRefundAmount - actualPurchaseCost),
         storeIncome: storeIncome,
         platformIncome: orderPlatformIncome,
         settledInPeriod: !!settledInPeriod,
         storeIncomeActual: settledInPeriod ? storeIncome : null,
         platformIncomeActual: settledInPeriod ? orderPlatformIncome : null,
-        refundAmount: refundAmount,
+        refundAmount: orderRefundAmount,
         _protoSample: true
       });
     }
