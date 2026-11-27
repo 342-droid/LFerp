@@ -285,13 +285,7 @@
       "pages": [
         "MDM/mdm_marketing_coupon.html",
         "MDM/mdm_marketing_coupon_form.html",
-        "MDM/mdm_marketing_template.html",
-        "MDM/mdm_live_session.html",
-        "MDM/mdm_live_session_form.html",
-        "MDM/mdm_live_session_detail.html",
-        "MDM/mdm_live_product_sched.html",
-        "MDM/mdm_live_product_sched_edit.html",
-        "MDM/mdm_live_control.html"
+        "MDM/mdm_marketing_template.html"
       ]
     },
     {
