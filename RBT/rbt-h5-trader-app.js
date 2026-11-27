@@ -21,11 +21,14 @@
     var overviewFrom = '';
     var overviewTo = '';
     var walletPane = 'main';
-    var walletMethod = '支付宝';
+    var walletMethod = '';
+    var walletSheet = '';
+    var walletBind = { cardNo: '', bankId: '', phone: '', sms: '', sheet: '', modal: '' };
     var walletTab = 'all';
     var walletRange = '30';
     var walletFrom = '';
     var walletTo = '';
+    var walletTimeOpen = false;
     var walletDraft = '';
 
     function esc(value) {
@@ -57,8 +60,9 @@
         if (screen === 'detail') return 'hall-back';
         if (screen === 'sign') return 'hall';
         if (screen === 'password') return 'mine';
+        if (screen === 'wallet' && walletPane === 'bind') return 'wallet-recharge';
         if (screen === 'wallet' && walletPane !== 'main') return 'wallet-main';
-        if (screen === 'collect' || screen === 'hall' || screen === 'overview' || screen === 'wallet') return 'home';
+        if (screen === 'collect' || screen === 'hall' || screen === 'wallet') return 'home';
         return '';
     }
 
@@ -69,6 +73,14 @@
     }
 
     function goBack(target) {
+        if (target === 'wallet-recharge') {
+            walletPane = 'recharge';
+            walletSheet = '';
+            screen = 'wallet';
+            tab = 'hall';
+            render();
+            return;
+        }
         if (target === 'wallet-main') {
             walletPane = 'main';
             screen = 'wallet';
@@ -314,10 +326,6 @@
             '<button type="button" class="rbt-h5-tool" data-entry="collect">' +
             '<span class="rbt-h5-tool__icon" style="background:' + orange + '">' + hall + '</span>' +
             '<span>收款</span></button>' +
-            '<button type="button" class="rbt-h5-tool" data-entry="overview">' +
-            '<span class="rbt-h5-tool__icon" style="background:' + orange + '">' +
-            svgIcon('<path d="M4 19V5M4 19h16" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><path d="M7 15l3.2-3.5 2.6 2.2L18 8" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>') +
-            '</span><span>结款总览</span></button>' +
             '<button type="button" class="rbt-h5-tool" data-entry="wallet">' +
             '<span class="rbt-h5-tool__icon" style="background:' + orange + '">' +
             svgIcon('<rect x="3" y="6" width="18" height="13" rx="2" stroke="#fff" stroke-width="1.6"/><path d="M3 10h18" stroke="#fff" stroke-width="1.6"/><circle cx="16.5" cy="14.5" r="1.2" fill="#fff"/>') +
@@ -1148,14 +1156,16 @@
         var sheet =
             fundTab === 'share'
                 ? '<section class="rbt-bill__sheet' + (shares.length ? '' : ' rbt-bill__sheet--blank') + '">' + detail + '</section>'
-                : fundTab === 'biz'
-                    ? '<section class="rbt-bill__sheet">' + renderCollectBiz(item) + '</section>'
-                    : '<section class="rbt-bill__sheet">' +
-                        lines.map(function (line) {
-                            return '<div class="rbt-bill__line"><span>' + esc(line[0]) + '</span><b>' + esc(line[1]) + '</b></div>';
-                        }).join('') +
-                        renderSignedContracts(item) +
-                        '</section>';
+                : fundTab === 'overview'
+                    ? '<section class="rbt-bill__sheet">' + renderOverview() + '</section>'
+                    : fundTab === 'biz'
+                        ? '<section class="rbt-bill__sheet">' + renderCollectBiz(item) + '</section>'
+                        : '<section class="rbt-bill__sheet">' +
+                            lines.map(function (line) {
+                                return '<div class="rbt-bill__line"><span>' + esc(line[0]) + '</span><b>' + esc(line[1]) + '</b></div>';
+                            }).join('') +
+                            renderSignedContracts(item) +
+                            '</section>';
         return '<section class="rbt-bill__head">' +
             '<div class="rbt-bill__top"><span class="rbt-bill__code">' + esc(item.code) + '</span><span class="rbt-bill__tag">' +
             esc(phaseLabel(item.status)) + '</span></div>' +
@@ -1169,6 +1179,7 @@
             '<div class="rbt-bill-tabs" role="tablist">' +
             '<button type="button" data-fund-tab="base"' + (fundTab === 'base' ? ' class="is-on"' : '') + '>基础信息</button>' +
             '<button type="button" data-fund-tab="share"' + (fundTab === 'share' ? ' class="is-on"' : '') + '>结款明细</button>' +
+            '<button type="button" data-fund-tab="overview"' + (fundTab === 'overview' ? ' class="is-on"' : '') + '>结款总览</button>' +
             '<button type="button" data-fund-tab="biz"' + (fundTab === 'biz' ? ' class="is-on"' : '') + '>门店经营</button>' +
             '</div>' +
             sheet;
@@ -1196,7 +1207,6 @@
     }
 
     function renderOverview() {
-        setHead('结款总览');
         var wallet = window.RbtPartyWallet;
         if (!wallet || typeof wallet.overviewHtml !== 'function') return '<div class="rbt-h5-empty">结款总览不可用</div>';
         return wallet.overviewHtml({
@@ -1208,7 +1218,7 @@
     }
 
     function renderWallet() {
-        var titles = { recharge: '充值', withdraw: '提现' };
+        var titles = { recharge: '充值', withdraw: '提现', bind: '绑定银行卡' };
         setHead(titles[walletPane] || '钱包');
         var wallet = window.RbtPartyWallet;
         if (!wallet || typeof wallet.walletHtml !== 'function') return '<div class="rbt-h5-empty">钱包不可用</div>';
@@ -1217,19 +1227,17 @@
             name: traderName(),
             pane: walletPane,
             method: walletMethod,
+            sheet: walletSheet,
+            bind: walletBind,
+            holder: traderName(),
             tab: walletTab,
             range: walletRange,
             from: walletFrom,
             to: walletTo,
+            timeOpen: walletTimeOpen,
             account: TRADER_ACCOUNTS[traderName()] || null,
-            draft: walletDraft,
-            note: '余额用于合同签完后把商品金额划转至冷丰供应链。已到账的结款可从这里提现。没有保证金账户，也没有货款账户。'
+            draft: walletDraft
         });
-    }
-
-    function readWalletAmount() {
-        var input = document.getElementById('rbtWalletAmount');
-        return input ? String(input.value || '').trim() : '';
     }
 
     function validAmount(raw) {
@@ -1318,13 +1326,116 @@
             walletRange = 'custom';
             walletFrom = from;
             walletTo = to;
+            walletTimeOpen = false;
         }
         render();
     }
 
+    function readBindFields() {
+        var card = document.querySelector('[data-wallet-bind="cardNo"]');
+        var phone = document.querySelector('[data-wallet-bind="phone"]');
+        var sms = document.querySelector('[data-wallet-bind="sms"]');
+        if (card) walletBind.cardNo = String(card.value || '').replace(/\D/g, '').slice(0, 19);
+        if (phone) walletBind.phone = String(phone.value || '').replace(/\D/g, '').slice(0, 11);
+        if (sms) walletBind.sms = String(sms.value || '').replace(/\D/g, '').slice(0, 6);
+    }
+
+    function syncBindSubmit() {
+        var button = document.querySelector('[data-wallet-bind-submit]');
+        var api = window.RbtPartyWallet;
+        if (button && api && api.bindReady) button.disabled = !api.bindReady(walletBind);
+    }
+
+    function handleBindClick(event) {
+        if (screen !== 'wallet' || walletPane !== 'bind') return false;
+        var api = window.RbtPartyWallet;
+        if (event.target.closest('[data-wallet-holder-info]')) {
+            readBindFields();
+            walletBind.modal = 'holder';
+            walletBind.sheet = '';
+            render();
+            return true;
+        }
+        if (event.target.closest('[data-wallet-bank-open]')) {
+            readBindFields();
+            walletBind.sheet = 'bank';
+            walletBind.modal = '';
+            render();
+            return true;
+        }
+        if (event.target.closest('[data-wallet-bind-close]')) {
+            readBindFields();
+            walletBind.sheet = '';
+            walletBind.modal = '';
+            render();
+            return true;
+        }
+        var bankBtn = event.target.closest('[data-wallet-bank]');
+        if (bankBtn) {
+            readBindFields();
+            walletBind.bankId = bankBtn.getAttribute('data-wallet-bank') || '';
+            walletBind.sheet = '';
+            render();
+            return true;
+        }
+        if (event.target.closest('[data-wallet-sms]')) {
+            readBindFields();
+            if (!/^\d{11}$/.test(walletBind.phone)) {
+                toast('请输入银行预留手机号');
+                return true;
+            }
+            toast('验证码已发送（演示码 123456）');
+            return true;
+        }
+        if (event.target.closest('[data-wallet-bind-submit]')) {
+            readBindFields();
+            var result = api && api.bindCard ? api.bindCard(traderName(), walletBind) : { ok: false };
+            if (!result || !result.ok) {
+                toast((result && result.message) || '绑定银行卡失败，请重新绑定。');
+                return true;
+            }
+            walletMethod = 'card:' + result.card.id;
+            walletBind = { cardNo: '', bankId: '', phone: '', sms: '', sheet: '', modal: '' };
+            walletPane = 'recharge';
+            walletSheet = '';
+            toast('绑定成功');
+            render();
+            return true;
+        }
+        return false;
+    }
+
+    function submitPartyRecharge(role, name, raw, wallet) {
+        var issue = wallet.rechargeIssue ? wallet.rechargeIssue(name, walletMethod, raw) : '';
+        if (issue) {
+            toast(issue);
+            return;
+        }
+        var method = wallet.rechargeMethod ? wallet.rechargeMethod(name, walletMethod) : null;
+        var channel = method && method.channel ? method.channel : '支付宝';
+        var methodId = method && method.id ? method.id : walletMethod;
+        function finish() {
+            var result = wallet.recharge(role, name, raw, methodId);
+            if (!result || !result.ok) {
+                toast((result && result.message) || '充值失败');
+                return;
+            }
+            walletDraft = '';
+            walletPane = 'main';
+            toast('充值成功');
+            render();
+        }
+        if (methodId === 'alipay' || methodId === 'wechat') {
+            toast('正在跳转' + channel + '，请在' + channel + '完成密码验证');
+            setTimeout(finish, 600);
+            return;
+        }
+        finish();
+    }
+
     function handlePartyClick(event) {
         var modeBtn = event.target.closest('[data-ov-mode]');
-        if (modeBtn && screen === 'overview') {
+        if (modeBtn && screen === 'collect-bill') {
             overviewMode = modeBtn.getAttribute('data-ov-mode') || '30';
             render();
             return true;
@@ -1336,25 +1447,71 @@
         var go = event.target.closest('[data-wallet-go]');
         if (go && screen === 'wallet') {
             walletPane = go.getAttribute('data-wallet-go') === 'recharge' ? 'recharge' : 'withdraw';
+            walletDraft = '';
+            walletSheet = '';
+            walletTimeOpen = false;
             render();
             return true;
         }
-        var methodBtn = event.target.closest('[data-wallet-method]');
-        if (methodBtn) {
-            walletDraft = readWalletAmount();
-            walletMethod = methodBtn.getAttribute('data-wallet-method') === '微信' ? '微信' : '支付宝';
+        var keyBtn = event.target.closest('[data-wallet-key]');
+        if (keyBtn && screen === 'wallet') {
+            var amountApi = window.RbtPartyWallet;
+            walletDraft = amountApi && amountApi.editAmount ? amountApi.editAmount(walletDraft, keyBtn.getAttribute('data-wallet-key')) : walletDraft;
+            render();
+            return true;
+        }
+        if (event.target.closest('[data-wallet-method-open]') && screen === 'wallet') {
+            walletSheet = 'method';
+            render();
+            return true;
+        }
+        if (event.target.closest('[data-wallet-sheet-close]') && screen === 'wallet') {
+            walletSheet = '';
+            render();
+            return true;
+        }
+        var pick = event.target.closest('[data-wallet-pick]');
+        if (pick && screen === 'wallet') {
+            walletMethod = pick.getAttribute('data-wallet-pick') || '';
+            walletSheet = '';
+            render();
+            return true;
+        }
+        if (event.target.closest('[data-wallet-add-card]') && screen === 'wallet') {
+            walletBind = { cardNo: '', bankId: '', phone: '', sms: '', sheet: '', modal: '' };
+            walletPane = 'bind';
+            walletSheet = '';
+            render();
+            return true;
+        }
+        if (handleBindClick(event)) return true;
+        if (event.target.closest('[data-wallet-all]') && screen === 'wallet') {
+            var snapApi = window.RbtPartyWallet;
+            var snap = snapApi && snapApi.snapshot ? snapApi.snapshot('trader', traderName()) : null;
+            walletDraft = snap ? Number(snap.withdrawable || 0).toFixed(2) : '';
+            render();
+            return true;
+        }
+        if (event.target.closest('[data-wallet-time]') && screen === 'wallet') {
+            walletTimeOpen = !walletTimeOpen;
+            render();
+            return true;
+        }
+        if (event.target.closest('[data-wallet-time-close]') && screen === 'wallet') {
+            walletTimeOpen = false;
             render();
             return true;
         }
         var tabBtn = event.target.closest('[data-wallet-tab]');
-        if (tabBtn) {
+        if (tabBtn && screen === 'wallet') {
             walletTab = tabBtn.getAttribute('data-wallet-tab') || 'all';
             render();
             return true;
         }
         var rangeBtn = event.target.closest('[data-wallet-range]');
-        if (rangeBtn) {
+        if (rangeBtn && screen === 'wallet') {
             walletRange = rangeBtn.getAttribute('data-wallet-range') || '30';
+            walletTimeOpen = walletRange === 'custom';
             render();
             return true;
         }
@@ -1364,7 +1521,7 @@
         }
         var submit = event.target.closest('[data-wallet-submit]');
         if (!submit) return false;
-        var raw = readWalletAmount();
+        var raw = walletDraft;
         if (!validAmount(raw)) {
             toast('请填写金额，最多两位小数');
             return true;
@@ -1372,19 +1529,7 @@
         var wallet = window.RbtPartyWallet;
         if (!wallet) return true;
         if (submit.getAttribute('data-wallet-submit') === 'recharge') {
-            var method = walletMethod;
-            walletDraft = '';
-            toast('正在跳转' + method + '，请在' + method + '完成密码验证');
-            setTimeout(function () {
-                var result = wallet.recharge('trader', traderName(), raw, method);
-                if (!result || !result.ok) {
-                    toast((result && result.message) || '充值失败');
-                    return;
-                }
-                walletPane = 'main';
-                toast('充值成功');
-                render();
-            }, 600);
+            submitPartyRecharge('trader', traderName(), raw, wallet);
             return true;
         }
         walletDraft = raw;
@@ -1405,7 +1550,8 @@
     function render() {
         var scroll = document.getElementById('rbtH5Scroll');
         if (!scroll || !account) return;
-        scroll.classList.toggle('is-collect', tab === 'hall' && (screen === 'collect' || screen === 'overview' || screen === 'wallet'));
+        if (window.RbtPartyWallet && window.RbtPartyWallet.clearTimeSheet) window.RbtPartyWallet.clearTimeSheet();
+        scroll.classList.toggle('is-collect', tab === 'hall' && (screen === 'collect' || screen === 'wallet'));
         closeContract();
         syncHomeChrome();
         syncHeadBack();
@@ -1433,12 +1579,9 @@
             scroll.innerHTML = renderCollect();
             return;
         }
-        if (tab === 'hall' && screen === 'overview') {
-            scroll.innerHTML = renderOverview();
-            return;
-        }
         if (tab === 'hall' && screen === 'wallet') {
             scroll.innerHTML = renderWallet();
+            if (window.RbtPartyWallet && window.RbtPartyWallet.pinTimeSheet) window.RbtPartyWallet.pinTimeSheet();
             return;
         }
         if (tab === 'hall' && screen === 'home') {
@@ -1758,6 +1901,37 @@
         });
     }
 
+    document.getElementById('rbtH5App').addEventListener('input', function (event) {
+        var input = event.target.closest('[data-wallet-bind]');
+        if (!input || screen !== 'wallet') return;
+        var key = input.getAttribute('data-wallet-bind');
+        var digits = String(input.value || '').replace(/\D/g, '');
+        if (key === 'cardNo') {
+            digits = digits.slice(0, 19);
+            input.value = digits.replace(/(\d{4})(?=\d)/g, '$1 ');
+            walletBind.cardNo = digits;
+            if (!walletBind.bankId && window.RbtPartyWallet && window.RbtPartyWallet.detectBank) {
+                var bank = window.RbtPartyWallet.detectBank(digits);
+                var nameNode = document.querySelector('[data-wallet-bank-open] span');
+                var bankBtn = document.querySelector('[data-wallet-bank-open]');
+                if (bank && nameNode) {
+                    walletBind.bankId = bank.id;
+                    nameNode.textContent = bank.name;
+                    if (bankBtn) bankBtn.classList.remove('is-empty');
+                }
+            }
+        } else if (key === 'phone') {
+            digits = digits.slice(0, 11);
+            input.value = digits;
+            walletBind.phone = digits;
+        } else {
+            digits = digits.slice(0, 6);
+            input.value = digits;
+            walletBind.sms = digits;
+        }
+        syncBindSubmit();
+    });
+
     document.getElementById('rbtH5App').addEventListener('click', function (event) {
         var contractClose = event.target.closest('[data-contract-close]');
         var contractOpen = event.target.closest('[data-contract-open]');
@@ -1832,12 +2006,6 @@
             render();
             return;
         }
-        if (entry && entry.getAttribute('data-entry') === 'overview') {
-            tab = 'hall';
-            screen = 'overview';
-            render();
-            return;
-        }
         if (entry && entry.getAttribute('data-entry') === 'wallet') {
             tab = 'hall';
             screen = 'wallet';
@@ -1845,7 +2013,7 @@
             render();
             return;
         }
-        if (screen === 'overview' || screen === 'wallet') {
+        if (screen === 'wallet' || (screen === 'collect-bill' && fundTab === 'overview')) {
             if (handlePartyClick(event)) return;
         }
         if (confirmDeal) {
@@ -1917,7 +2085,7 @@
         var fundTabBtn = event.target.closest('[data-fund-tab]');
         if (fundTabBtn && screen === 'collect-bill') {
             var nextTab = fundTabBtn.getAttribute('data-fund-tab') || 'base';
-            fundTab = nextTab === 'share' || nextTab === 'biz' ? nextTab : 'base';
+            fundTab = nextTab === 'share' || nextTab === 'overview' || nextTab === 'biz' ? nextTab : 'base';
             render();
             return;
         }
