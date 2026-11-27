@@ -47,24 +47,39 @@
                 { label: '当前台账', value: '当前台账' },
                 { label: '持续未付款样例', value: '持续未付款样例' }
             ];
-            var roleNode = document.getElementById('rbtRiskRole');
-            var lineNode = document.getElementById('rbtRiskBiz');
-            var lines = [];
-            (window.RbtStoreData && window.RbtStoreData.list ? window.RbtStoreData.list() : []).forEach(function (row) {
-                if (row && row.bizLine && lines.indexOf(row.bizLine) < 0) lines.push(row.bizLine);
-            });
-            if (!lines.length) lines = ['餐饮', '康美', '纯私域', '集团内部'];
-            if (lineNode) {
-                lineNode.innerHTML = lines.map(function (name) {
-                    return '<option value="' + esc(name) + '">' + esc(name) + '</option>';
-                }).join('');
-            }
             var handleOptions = api.handleStatuses.map(function (status) {
                 return { label: status, value: status };
             });
+            function productOptions() {
+                var names = [];
+                function add(name) {
+                    var text = String(name || '').trim();
+                    if (!text || names.indexOf(text) >= 0) return;
+                    names.push(text);
+                }
+                var stored = [];
+                try {
+                    var raw = sessionStorage.getItem('rbt_installment_v3');
+                    var list = raw ? JSON.parse(raw) : null;
+                    if (Array.isArray(list)) stored = list;
+                } catch (e) {}
+                if (stored.length) {
+                    stored.forEach(function (item) {
+                        if (item && item.enabled !== false) add(item.name);
+                    });
+                } else {
+                    ['开业铺货日结', '开业铺货加价', '开业铺货轻量', '门店形象日结', '开业运营日结'].forEach(add);
+                }
+                var demands = window.RbtDemandData && window.RbtDemandData.list ? window.RbtDemandData.list() : [];
+                demands.forEach(function (item) { add(item && item.installmentName); });
+                return names.map(function (name) { return { label: name, value: name }; });
+            }
+
             var columns = [
                 { dataIndex: 'storeName', title: '门店', minWidth: 140, align: 'left', showOverflowTooltip: true, search: { control: 'input' } },
+                { dataIndex: 'ledger', title: '付款单号', minWidth: 168, search: { control: 'input' } },
                 { dataIndex: 'demand', title: '需求单号', minWidth: 128, search: { control: 'input' } },
+                { dataIndex: 'installmentName', title: '产品', minWidth: 140, align: 'left', showOverflowTooltip: true, search: { control: 'select', options: productOptions(), placeholder: '请选择' }, formatter: function (row) { return blank(row.installmentName) ? '—' : row.installmentName; } },
                 { dataIndex: 'streak', title: '连续未付款天数', minWidth: 120 },
                 { dataIndex: 'gap', title: '剩余应付金额', minWidth: 120, formatter: function (row) { return yuan(row.gap); } },
                 { dataIndex: 'progress', title: '日均付款额', minWidth: 120 },
@@ -75,17 +90,32 @@
                 { dataIndex: 'handleHandler', title: '处理人', minWidth: 100 }
             ];
 
+            function productOf(code) {
+                var dataApi = window.RbtDemandData;
+                var item = dataApi && dataApi.get ? dataApi.get(code) : null;
+                return {
+                    installmentName: item && item.installmentName ? item.installmentName : '',
+                    installmentCode: item && item.installmentCode ? item.installmentCode : ''
+                };
+            }
+
             function requestRows(params) {
+                var daily = window.RbtDailyFulfill;
+                var dataApi = window.RbtDemandData;
                 var matched = api.exceptionRows().map(function (row) {
-                    return Object.assign({ demand: row.demandCode }, row);
+                    var item = dataApi && dataApi.get ? dataApi.get(row.demandCode) : null;
+                    var ledger = daily && typeof daily.ledgerNo === 'function'
+                        ? daily.ledgerNo(item || { code: row.demandCode })
+                        : '';
+                    return Object.assign({ demand: row.demandCode, ledger: ledger, ledgerNo: ledger }, row, productOf(row.demandCode));
                 }).filter(function (row) {
                     if (!includesText(row.storeName, params.storeName) && !includesText(row.storeCode, params.storeName)) return false;
+                    if (!includesText(row.ledger, params.ledger)) return false;
                     if (!includesText(row.demandCode, params.demand)) return false;
+                    if (!blank(params.installmentName) && row.installmentName !== params.installmentName) return false;
                     if (!blank(params.grade) && row.grade !== params.grade) return false;
                     if (!blank(params.source) && row.source !== params.source) return false;
                     if (!blank(params.handleStatus) && row.handleStatus !== params.handleStatus) return false;
-                    var role = roleNode ? roleNode.value : '风控';
-                    if (role === '业务' && lineNode && row.bizLine && row.bizLine !== lineNode.value) return false;
                     return true;
                 });
                 return Promise.resolve(paginate(matched, params));
@@ -98,11 +128,22 @@
                 else if (typeof tableVm.fetchData === 'function') tableVm.fetchData();
             }
 
-            function openDemand(row) {
+            function demandItem(row) {
                 var dataApi = window.RbtDemandData;
-                var item = dataApi && dataApi.get ? dataApi.get(row && row.demandCode) : null;
+                return dataApi && dataApi.get ? dataApi.get(row && row.demandCode) : null;
+            }
+
+            function openLedger(row) {
+                var item = demandItem(row);
                 if (item && window.RbtDemandDetail && typeof window.RbtDemandDetail.open === 'function') {
                     window.RbtDemandDetail.open(item, { performance: true });
+                }
+            }
+
+            function openDemand(row) {
+                var item = demandItem(row);
+                if (item && window.RbtDemandDetail && typeof window.RbtDemandDetail.open === 'function') {
+                    window.RbtDemandDetail.open(item);
                 }
             }
 
@@ -110,6 +151,7 @@
                 current = row;
                 var fact = [
                     ['门店', (row.storeName || '—') + (row.storeCode ? '（' + row.storeCode + '）' : '')],
+                    ['付款单号', row.ledgerNo || '—'],
                     ['需求单号', row.demandCode || '—'],
                     ['数据来源', row.scene || row.source || '—'],
                     ['连续未付款天数', row.streak],
@@ -136,10 +178,8 @@
                 document.getElementById('rbtHandleMeasure').value = row.handleMeasure || '';
                 document.getElementById('rbtHandleResult').value = row.handleResult || '';
                 document.getElementById('rbtHandleNote').value = row.handleNote || '';
-                document.getElementById('rbtHandleHandler').value = row.handleHandler || (roleNode && roleNode.value !== '财务' ? roleNode.value + '演示' : '');
+                document.getElementById('rbtHandleHandler').value = row.handleHandler || '';
                 document.getElementById('rbtHandlePause').checked = !!row.handlePause;
-                var finance = roleNode && roleNode.value === '财务';
-                document.getElementById('rbtHandleSave').hidden = finance;
                 document.getElementById('rbtHandle').hidden = false;
             }
 
@@ -147,7 +187,7 @@
             document.getElementById('rbtHandleClose').addEventListener('click', closeHandle);
             document.getElementById('rbtHandleCancel').addEventListener('click', closeHandle);
             document.getElementById('rbtHandleSave').addEventListener('click', function () {
-                if (!current || (roleNode && roleNode.value === '财务')) return;
+                if (!current) return;
                 api.saveHandle(current.id, {
                     status: document.getElementById('rbtHandleStatus').value,
                     measure: document.getElementById('rbtHandleMeasure').value,
@@ -160,13 +200,11 @@
                 refreshTable();
                 if (typeof window.showToast === 'function') window.showToast('已记录处置', 'success');
             });
-            if (roleNode) roleNode.addEventListener('change', refreshTable);
-            if (lineNode) lineNode.addEventListener('change', refreshTable);
-
             return {
                 table: table,
                 columns: columns,
                 requestRows: requestRows,
+                openLedger: openLedger,
                 openDemand: openDemand,
                 openHandle: openHandle
             };

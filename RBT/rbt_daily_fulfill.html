@@ -7,12 +7,11 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
-    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
     <link rel="stylesheet" href="../vendor/octopus-prototype-runtime/runtime.css">
     <link rel="stylesheet" href="../vendor/octopus-prototype-runtime/theme.css">
     <style>
         [v-cloak] { display: none; }
-        .rbt-daily-host { min-height: 480px; }
+        .rbt-daily-host { min-height: 480px; margin-top: 16px; }
         /* 操作列如果吸在右侧，会压住应付款、实际付款。改回随表格滚动，并始终露出横向滚动条。 */
         .rbt-daily-host .el-table .el-table-fixed-column--left,
         .rbt-daily-host .el-table .el-table-fixed-column--right {
@@ -32,13 +31,36 @@
         }
         /* 表体在视口内滚动，横竖滚动条和分页留在屏幕里。横向条放在表体下方，不压字。 */
         .rbt-daily-host .el-table__body-wrapper .el-scrollbar__wrap {
-            max-height: calc(100vh - 408px);
+            max-height: calc(100vh - 360px);
         }
         .rbt-daily-host .el-table--scrollable-x .el-scrollbar {
             padding-bottom: 10px;
             box-sizing: border-box;
         }
-        .rbt-daily-tip { margin: 12px 0; }
+        .rbt-daily-search { display: flex; flex-wrap: wrap; align-items: flex-start; }
+        .rbt-daily-search .el-form-item { margin-right: 16px; margin-bottom: 12px; }
+        .rbt-daily-search .el-input,
+        .rbt-daily-search .el-select { width: 220px; }
+        .rbt-daily-search__ops .el-form-item__content { margin-left: 0 !important; }
+        .rbt-daily-pager { display: flex; justify-content: flex-end; padding: 12px 0 4px; }
+        .rbt-daily-host .el-table th.el-table__cell { background: #f7f8fa; color: #303133; }
+        .rbt-daily-host .el-table thead th.is-center .cell { text-align: center; }
+        .rbt-daily-flow { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; }
+        .rbt-daily-flow__text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .rbt-daily-flow__copy {
+            flex: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: #909399;
+            cursor: pointer;
+        }
+        .rbt-daily-flow__copy:hover { color: #155bd4; }
         .rbt-daily-host .el-table__body td:last-child .cell { white-space: nowrap; }
         .rbt-day-sheet { padding: 16px 20px 24px; }
         .rbt-day-sheet .supplier-detail-section-title { margin: 4px 0 10px; }
@@ -78,25 +100,130 @@
             <div class="content-tabs"><button type="button" class="active">每日付款</button></div>
             <hr class="content-divider">
             <div id="rbtDailyApp" class="rbt-daily-host" v-cloak>
-                <div class="mdm-biz-tip rbt-daily-tip" role="note">后台一行是一天、一个渠道。结款从当日实际付款按<strong>贸易商、冷丰、服务商</strong>应收占比拆出，三笔之和等于当日实际付款。冷丰和服务商仍分开。门店端把同一天的渠道合成一条，并把冷丰服务费、服务商服务费合成一项服务费。</div>
+                <el-form class="rbt-daily-search" inline label-width="112px" @submit.prevent>
+                    <el-form-item label="日期">
+                        <el-input v-model="query.date" clearable placeholder="如 2026-11-10" @keyup.enter="search"></el-input>
+                    </el-form-item>
+                    <el-form-item v-show="expanded" label="门店">
+                        <el-input v-model="query.storeName" clearable placeholder="请输入" @keyup.enter="search"></el-input>
+                    </el-form-item>
+                    <el-form-item v-show="expanded" label="需求单号">
+                        <el-input v-model="query.demandCode" clearable placeholder="请输入" @keyup.enter="search"></el-input>
+                    </el-form-item>
+                    <el-form-item v-show="expanded" label="产品">
+                        <el-select v-model="query.installmentName" clearable placeholder="请选择">
+                            <el-option v-for="item in productOptions" :key="item.value" :label="item.label" :value="item.value"></el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item v-show="expanded" label="角色">
+                        <el-select v-model="query.payeeRole" clearable placeholder="请选择">
+                            <el-option label="贸易商" value="贸易商"></el-option>
+                            <el-option label="冷丰" value="冷丰"></el-option>
+                            <el-option label="服务商" value="服务商"></el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item v-show="expanded" label="收款方名称">
+                        <el-input v-model="query.payeeName" clearable placeholder="请输入" @keyup.enter="search"></el-input>
+                    </el-form-item>
+                    <el-form-item v-show="expanded" label="支付方式">
+                        <el-select v-model="query.channel" clearable placeholder="请选择支付方式">
+                            <el-option label="自动扣款" value="自动扣款"></el-option>
+                            <el-option label="手动付款" value="手动付款"></el-option>
+                            <el-option label="放款划拨" value="放款划拨"></el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item v-show="expanded" label="结款状态">
+                        <el-select v-model="query.settleStatus" clearable placeholder="请选择">
+                            <el-option label="在途" value="在途"></el-option>
+                            <el-option label="已结款" value="已结款"></el-option>
+                            <el-option label="结款失败" value="结款失败"></el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item v-show="expanded" label="付款子单号">
+                        <el-input v-model="query.payNo" clearable placeholder="请输入" @keyup.enter="search"></el-input>
+                    </el-form-item>
+                    <el-form-item v-show="expanded" label="通道流水">
+                        <el-input v-model="query.channelFlow" clearable placeholder="请输入" @keyup.enter="search"></el-input>
+                    </el-form-item>
+                    <el-form-item class="rbt-daily-search__ops">
+                        <el-button type="primary" @click="search">查询</el-button>
+                        <el-button @click="reset">重置</el-button>
+                        <el-button text type="primary" @click="toggleSearch">{{ expanded ? '收起' : '展开' }}</el-button>
+                    </el-form-item>
+                </el-form>
 
-                <vab-schema-table
-                    :columns="columns"
-                    :request="requestRows"
-                    row-key="id"
-                    data-lf-row-no="off"
-                    search-label-width="112px"
-                    action-column-width="176"
-                    :default-page-size="20"
-                    :auto-format-time="false">
-                    <template v-slot:[slots.demandcode]="{row}">
-                        <doc-no-link :value="row.demandCode" @open="openDemand(row)"></doc-no-link>
-                    </template>
-                    <template #actions="{row,elSize}">
-                        <el-button :size="elSize" text type="primary" @click="openDay(row)">查看</el-button>
-                        <el-button :size="elSize" text type="primary" @click="openPerformance(row)">付款详情</el-button>
-                    </template>
-                </vab-schema-table>
+                <el-table :data="pageRows" border row-key="id">
+                    <el-table-column prop="date" label="日期" min-width="108"></el-table-column>
+                    <el-table-column prop="storeName" label="门店" min-width="140" show-overflow-tooltip></el-table-column>
+                    <el-table-column prop="storeCode" label="门店编码" min-width="112"></el-table-column>
+                    <el-table-column label="需求单号" min-width="120">
+                        <template #default="{ row }">
+                            <doc-no-link :value="row.demandCode" @open="openDemand(row)"></doc-no-link>
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="installmentName" label="产品" min-width="140" show-overflow-tooltip :formatter="textFormatter"></el-table-column>
+                    <el-table-column prop="payNo" label="付款子单号" min-width="196" show-overflow-tooltip :formatter="textFormatter"></el-table-column>
+                    <el-table-column prop="settleStatus" label="结款状态" min-width="96"></el-table-column>
+                    <el-table-column label="通道流水" min-width="248">
+                        <template #default="{ row }">
+                            <span v-if="!row.channelFlow">—</span>
+                            <span v-else class="rbt-daily-flow">
+                                <span class="rbt-daily-flow__text" :title="row.channelFlow">{{ row.channelFlow }}</span>
+                                <button type="button" class="rbt-daily-flow__copy" aria-label="复制通道流水" @click="copyFlow(row.channelFlow)">
+                                    <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+                                        <rect x="5.2" y="5.2" width="8" height="8" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.2"></rect>
+                                        <path d="M3.2 10.6H2.8A1.2 1.2 0 0 1 1.6 9.4V2.8A1.2 1.2 0 0 1 2.8 1.6H9.4A1.2 1.2 0 0 1 10.6 2.8V3.4" fill="none" stroke="currentColor" stroke-width="1.2"></path>
+                                    </svg>
+                                </button>
+                            </span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="payeeRole" label="角色" min-width="88"></el-table-column>
+                    <el-table-column prop="payeeName" label="收款方名称" min-width="168" show-overflow-tooltip :formatter="textFormatter"></el-table-column>
+                    <el-table-column prop="payWay" label="支付方式" min-width="108" show-overflow-tooltip :formatter="textFormatter"></el-table-column>
+                    <el-table-column prop="payAccount" label="付款账户" min-width="120" show-overflow-tooltip :formatter="textFormatter"></el-table-column>
+                    <el-table-column prop="turnover" label="营业流水" min-width="108" align="right" header-align="center" :formatter="moneyFormatter"></el-table-column>
+                    <el-table-column label="所得收入" align="center" header-align="center">
+                        <el-table-column prop="commission" label="总额" min-width="100" align="right" header-align="center" :formatter="moneyFormatter"></el-table-column>
+                        <el-table-column prop="incomePos" label="POS" min-width="96" align="right" header-align="center" :formatter="moneyFormatter"></el-table-column>
+                        <el-table-column prop="incomeLive" label="直播" min-width="96" align="right" header-align="center" :formatter="moneyFormatter"></el-table-column>
+                        <el-table-column prop="incomeMall" label="商城" min-width="96" align="right" header-align="center" :formatter="moneyFormatter"></el-table-column>
+                    </el-table-column>
+                    <el-table-column label="结算比例" align="center" header-align="center">
+                        <el-table-column prop="ratioPos" label="POS" min-width="88" align="right" header-align="center" :formatter="ratioFormatter"></el-table-column>
+                        <el-table-column prop="ratioLive" label="直播" min-width="88" align="right" header-align="center" :formatter="ratioFormatter"></el-table-column>
+                        <el-table-column prop="ratioMall" label="商城" min-width="88" align="right" header-align="center" :formatter="ratioFormatter"></el-table-column>
+                    </el-table-column>
+                    <el-table-column label="应付款" align="center" header-align="center">
+                        <el-table-column prop="due" label="应付" min-width="100" align="right" header-align="center" :formatter="moneyFormatter"></el-table-column>
+                        <el-table-column prop="duePos" label="POS" min-width="96" align="right" header-align="center" :formatter="moneyFormatter"></el-table-column>
+                        <el-table-column prop="dueLive" label="直播" min-width="96" align="right" header-align="center" :formatter="moneyFormatter"></el-table-column>
+                        <el-table-column prop="dueMall" label="商城" min-width="96" align="right" header-align="center" :formatter="moneyFormatter"></el-table-column>
+                    </el-table-column>
+                    <el-table-column prop="actual" label="实际付款" min-width="108" align="right" header-align="center" :formatter="moneyFormatter"></el-table-column>
+                    <el-table-column label="结款" align="center" header-align="center">
+                        <el-table-column prop="settleAmount" label="已结" min-width="108" align="right" header-align="center" :formatter="moneyFormatter"></el-table-column>
+                        <el-table-column prop="goodsPay" label="货款" min-width="108" align="right" header-align="center" :formatter="moneyFormatter"></el-table-column>
+                        <el-table-column prop="feePay" label="服务费" min-width="108" align="right" header-align="center" :formatter="moneyFormatter"></el-table-column>
+                    </el-table-column>
+                    <el-table-column label="操作" width="88">
+                        <template #default="{ row }">
+                            <el-button text type="primary" @click="openDay(row)">查看</el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
+                <div class="rbt-daily-pager">
+                    <el-pagination
+                        background
+                        :current-page="page"
+                        :page-size="pageSize"
+                        :page-sizes="pageSizes"
+                        :total="total"
+                        layout="total, sizes, prev, pager, next, jumper"
+                        @current-change="onPage"
+                        @size-change="onSize">
+                    </el-pagination>
+                </div>
             </div>
         </main>
     </div>
@@ -107,9 +234,9 @@
     <script src="rbt-store-data.js"></script>
     <script src="rbt-settle-ratio.js"></script>
     <script src="rbt-demand-data.js"></script>
-    <script src="rbt-demand-detail.js?v=20261127-pos-pay"></script>
-    <script src="rbt-daily-fulfill.js?v=20261127-pos-pay"></script>
+    <script src="rbt-demand-detail.js?v=20261128-settle-status"></script>
+    <script src="rbt-daily-fulfill.js?v=20261128-settle-fail"></script>
     <script src="rbt-risk.js?v=20261126-posting"></script>
-    <script src="rbt-daily-fulfill-page.js?v=20261126-early-pay"></script>
+    <script src="rbt-daily-fulfill-page.js?v=20261128-settle-fail"></script>
 </body>
 </html>

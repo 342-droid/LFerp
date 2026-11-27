@@ -9,6 +9,7 @@
     var collectFilter = 'open';
     var collectCode = '';
     var fundTab = 'base';
+    var baseFold = { due: false, settled: false, pending: false };
     /* 门店经营：渠道、总览／自定义时段、点选单日 */
     var bizChannel = 'all';
     var bizRangeMode = 'overview';
@@ -352,7 +353,7 @@
     }
 
     /* 已结款是门店已经到账、整笔记给贸易商的金额。已冻结和在途仍是待结款。最近一天结算单未确定，明细行仍记待结款。
-       结款不按渠道拆开：各渠道佣金进门店钱包后，用佣金余额支付，同一天多渠道合成一笔。后台每日付款页仍按旧口径拆分。 */
+       结款不按渠道拆开：同一天多渠道合成一笔。平台服务费、服务商服务费在划转时一次结清，不进这里。 */
     function traderSettled(item) {
         var daily = window.RbtDailyFulfill;
         var rows = daily && typeof daily.payeeSplit === 'function' ? daily.payeeSplit(item) : [];
@@ -379,7 +380,23 @@
                 payMethod: fact.payMethod || '',
                 fundStatus: manual ? 'arrived' : (fact.fundStatus || '')
             };
-        }).filter(function (row) {
+        });
+        if (typeof daily.failedRows === 'function') {
+            daily.failedRows(item).forEach(function (row) {
+                shares.push({
+                    date: row.date,
+                    time: row.time || '',
+                    channel: row.channel,
+                    kind: 'manual',
+                    amount: row.due || '',
+                    turnover: '',
+                    payMethod: row.payMethod || '',
+                    fundStatus: 'failed',
+                    stage: 'failed'
+                });
+            });
+        }
+        shares = shares.filter(function (row) {
             if (row.kind !== 'manual') return true;
             return Math.round(Number(row.amount) * 100) > 0;
         });
@@ -388,6 +405,10 @@
         shares.forEach(function (row) {
             var cents = Math.round(Number(row.amount) * 100);
             if (!isFinite(cents)) cents = 0;
+            if (row.fundStatus === 'failed') {
+                row.stage = 'failed';
+                return;
+            }
             var open = row.fundStatus === 'inflight' || row.fundStatus === 'frozen' || row.fundStatus === 'missing' || row.fundStatus === 'pending_freeze';
             row.stage = row.kind !== 'manual' && open ? 'pending' : 'due';
             if (row.stage === 'pending') pendingCents += cents;
@@ -611,6 +632,7 @@
             (fundOf(item).shares || []).forEach(function (share) {
                 var cents = centsOf(share.amount);
                 if (cents == null) return;
+                if (share.stage === 'failed' || share.fundStatus === 'failed') return;
                 if (share.stage === 'pending') {
                     waitCount += 1;
                     return;
@@ -630,8 +652,8 @@
             '<h2>结款构成</h2>' +
             '<section class="rbt-board__total">' +
             '<div class="rbt-board-metrics">' +
-            '<div><span>当日支付</span><b>' + esc(dailyCents ? yuan(fromCents(dailyCents)) : '未产生') + '</b></div>' +
-            '<div><span>提前支付</span><b>' + esc(manualCents ? yuan(fromCents(manualCents)) : '未产生') + '</b></div>' +
+            '<div><span>自动扣款</span><b>' + esc(dailyCents ? yuan(fromCents(dailyCents)) : '未产生') + '</b></div>' +
+            '<div><span>手动付款</span><b>' + esc(manualCents ? yuan(fromCents(manualCents)) : '未产生') + '</b></div>' +
             '<div><span>已到账笔数</span><b>' + dueCount + '</b></div>' +
             '<div><span>待到账笔数</span><b>' + waitCount + '</b></div>' +
             '</div></section></div></div>';
@@ -837,8 +859,7 @@
 
     function shareTitle(row) {
         var day = monthDay(row && row.date);
-        if (row && row.kind === 'manual') return day + ' · 提前支付';
-        return day + ' · 当日支付';
+        return day + (row && row.kind === 'manual' ? ' · 手动付款' : ' · 自动扣款');
     }
 
     function opsMoney(value) {
@@ -852,19 +873,22 @@
 
     function renderShareCards(shares) {
         return shares.map(function (row) {
+                var failedRow = row.stage === 'failed' || row.fundStatus === 'failed';
                 var pendingRow = row.stage === 'pending';
                 var manual = row.kind === 'manual';
-                var when = pendingRow ? '-' : (manual ? (paidClock(row.time) || settleClock(row.date)) : settleClock(row.date));
-                var facts = manual
-                    ? opsFact('支付方式', row.payMethod || '—', 'pay')
-                    : opsFact('营业额', opsMoney(row.turnover), 'amount') +
-                        opsFact('支付方式', row.payMethod || '营业收入', 'pay');
+                var when = failedRow || pendingRow ? '-' : (manual ? (paidClock(row.time) || settleClock(row.date)) : settleClock(row.date));
+                var account = '钱包余额';
+                if (manual) {
+                    account = String(row.payMethod || '').trim();
+                    if (account === '余额账户') account = '钱包';
+                    if (account !== '支付宝' && account !== '微信' && account !== '钱包') account = '';
+                }
+                var facts = (manual ? '' : opsFact('营业额', opsMoney(row.turnover), 'amount')) +
+                    (account ? opsFact('付款账户', account, 'pay') : '');
                 return '<article class="rbt-ops">' +
                     '<header class="rbt-ops__head"><b>' + esc(shareTitle(row)) + '</b>' +
-                    '<em class="' + (pendingRow ? '' : 'is-due') + '">' + (pendingRow ? '待结款' : '已结款') + '</em></header>' +
-                    '<div class="rbt-ops__grid' + (manual ? ' is-single' : '') + '">' +
-                    facts +
-                    '</div>' +
+                    '<em class="' + (failedRow ? 'is-fail' : (pendingRow ? '' : 'is-due')) + '">' + (failedRow ? '结款失败' : (pendingRow ? '在途' : '已结款')) + '</em></header>' +
+                    (facts ? '<div class="rbt-ops__grid">' + facts + '</div>' : '') +
                     '<footer class="rbt-ops__foot">' +
                     '<span><i>结款时间</i><b>' + esc(when) + '</b></span>' +
                     '<span><i>我的结款</i><b class="is-mine">' + esc(yuan(row.amount)) + '</b></span>' +
@@ -1249,24 +1273,77 @@
         return (day.getMonth() + 1) + '月' + day.getDate() + '日 08:00:00';
     }
 
+    function billLine(label, value, extra) {
+        return '<div class="rbt-bill__line' + (extra ? ' ' + extra : '') + '"><span>' + esc(label) + '</span><b>' + esc(value) + '</b></div>';
+    }
+
+    function centsText(cents) {
+        if (cents == null || !isFinite(cents)) return '—';
+        return yuan(fromCents(cents));
+    }
+
+    /* 已结、待结按应收中的实付、收益占比拆开。同一行的实付加收益等于该行金额，已结加待结回到应收。 */
+    function fundBreak(fund) {
+        var paid = centsOf(fund && fund.paid);
+        var profit = centsOf(fund && fund.profit);
+        var due = paid != null && profit != null ? paid + profit : centsOf(fund && fund.receivable);
+        var settled = centsOf(fund && fund.settled);
+        if (settled == null) settled = 0;
+        if (due != null && settled > due) settled = due;
+        var pending = due == null ? null : due - settled;
+        var settledPaid = null;
+        var settledProfit = null;
+        if (due > 0 && paid != null && profit != null) {
+            settledProfit = Math.round(settled * profit / due);
+            if (settledProfit > settled) settledProfit = settled;
+            if (settledProfit < 0) settledProfit = 0;
+            settledPaid = settled - settledProfit;
+        }
+        return {
+            paid: paid,
+            profit: profit,
+            settledPaid: settledPaid,
+            settledProfit: settledProfit,
+            pendingPaid: settledPaid == null || paid == null ? null : paid - settledPaid,
+            pendingProfit: settledProfit == null || profit == null ? null : profit - settledProfit,
+            pending: pending
+        };
+    }
+
+    function foldMark(open) {
+        return '<i class="rbt-bill__fold' + (open ? ' is-open' : '') + '" aria-hidden="true"></i>';
+    }
+
+    function foldGroup(key, label, amount, paidText, profitText) {
+        var open = !!baseFold[key];
+        return '<div class="rbt-bill__tree' + (open ? ' is-open' : '') + '">' +
+            '<button type="button" class="rbt-bill__line rbt-bill__sum" data-base-fold="' + key + '" aria-expanded="' + (open ? 'true' : 'false') + '">' +
+            '<span>' + esc(label) + '</span><b>' + esc(amount) + foldMark(open) + '</b></button>' +
+            (open
+                ? '<div class="rbt-bill__kids">' +
+                    billLine('实付', paidText, 'is-child') +
+                    billLine('收益', profitText, 'is-child') +
+                    '</div>'
+                : '') +
+            '</div>';
+    }
+
     function renderCollectBill(item) {
         var fund = fundOf(item);
         var payee = fund.account || { accountName: '—', accountNo: '—' };
+        var parts = fundBreak(fund);
         setHead('资金明细');
-        var lines = [
-            ['门店', item.storeName || '—'],
-            ['商品金额（原价）', yuan(fund.goods)],
-            ['实付', fund.paid && fund.paid !== '—' ? yuan(fund.paid) : '—'],
-            ['收益', fund.profit && fund.profit !== '—' ? yuan(fund.profit) : '—'],
-            ['结算比例', ratioText(item)],
-            ['接单时间', item.acceptedAt || '—'],
-            ['支付时间', payTimeOf(item) || '—'],
-            ['签署时间', effectTimeOf(item) || '—'],
-            ['已结款', fund.settled ? yuan(fund.settled) : '未产生'],
-            ['待结款', fund.pending ? yuan(fund.pending) : (item.status === '已完成' ? '无' : '未产生')],
-            ['收款账户名称', payee.accountName || '—'],
-            ['收款账户', payee.accountNo || '—']
-        ];
+        var baseSheet =
+            billLine('门店', item.storeName || '—') +
+            billLine('商品金额（原价）', yuan(fund.goods)) +
+            foldGroup('due', '应收', fund.receivable && fund.receivable !== '—' ? yuan(fund.receivable) : '—', centsText(parts.paid), centsText(parts.profit)) +
+            billLine('接单时间', item.acceptedAt || '—') +
+            billLine('支付时间', payTimeOf(item) || '—') +
+            billLine('签署时间', effectTimeOf(item) || '—') +
+            foldGroup('settled', '已结款', fund.settled ? yuan(fund.settled) : '未产生', centsText(parts.settledPaid), centsText(parts.settledProfit)) +
+            foldGroup('pending', '待结款', fund.pending ? yuan(fund.pending) : (item.status === '已完成' ? '无' : '未产生'), centsText(parts.pendingPaid), centsText(parts.pendingProfit)) +
+            billLine('收款账户名称', payee.accountName || '—') +
+            billLine('收款账户', payee.accountNo || '—');
         if (fundTab === 'overview') fundTab = 'share';
         var shares = fund.shares.slice().reverse();
         var sheet =
@@ -1275,9 +1352,7 @@
                 : fundTab === 'biz'
                         ? '<section class="rbt-bill__sheet">' + renderCollectBiz(item) + '</section>'
                         : '<section class="rbt-bill__sheet">' +
-                            lines.map(function (line) {
-                                return '<div class="rbt-bill__line"><span>' + esc(line[0]) + '</span><b>' + esc(line[1]) + '</b></div>';
-                            }).join('') +
+                            baseSheet +
                             renderSignedContracts(item) +
                             '</section>';
         return '<section class="rbt-bill__head">' +
@@ -1315,6 +1390,7 @@
         shown.forEach(function (share) {
             var cents = centsOf(share.amount);
             if (cents == null) return;
+            if (share.stage === 'failed' || share.fundStatus === 'failed') return;
             if (share.stage === 'pending') pendingCents += cents;
             else if (share.kind === 'manual') manualCents += cents;
             else dailyCents += cents;
@@ -1345,8 +1421,8 @@
             '<div class="rbt-share-board__metrics">' +
             '<div><span>已结款</span><b>' + esc(money(dailyCents + manualCents)) + '</b></div>' +
             '<div><span>待结款</span><b>' + esc(money(pendingCents)) + '</b></div>' +
-            '<div><span>当日支付</span><b>' + esc(money(dailyCents)) + '</b></div>' +
-            '<div><span>提前支付</span><b>' + esc(money(manualCents)) + '</b></div>' +
+            '<div><span>自动扣款</span><b>' + esc(money(dailyCents)) + '</b></div>' +
+            '<div><span>手动付款</span><b>' + esc(money(manualCents)) + '</b></div>' +
             '</div></section>' +
             '<section class="rbt-share-detail"><h3>结款明细</h3>' + cards + '</section></section>';
     }
@@ -2197,6 +2273,7 @@
             if (!collectId) return;
             collectCode = collectId;
             fundTab = 'base';
+            baseFold = { due: false, settled: false, pending: false };
             bizChannel = 'all';
             bizRangeMode = 'overview';
             bizFrom = '';
@@ -2206,6 +2283,18 @@
             tab = 'hall';
             screen = 'collect-bill';
             render();
+            return;
+        }
+        var foldBtn = event.target.closest('[data-base-fold]');
+        if (foldBtn && screen === 'collect-bill' && fundTab === 'base') {
+            var foldKey = foldBtn.getAttribute('data-base-fold');
+            if (foldKey === 'due' || foldKey === 'settled' || foldKey === 'pending') {
+                var scrollTop = (document.getElementById('rbtH5Scroll') || {}).scrollTop || 0;
+                baseFold[foldKey] = !baseFold[foldKey];
+                render();
+                var scrollNext = document.getElementById('rbtH5Scroll');
+                if (scrollNext) scrollNext.scrollTop = scrollTop;
+            }
             return;
         }
         var fundTabBtn = event.target.closest('[data-fund-tab]');

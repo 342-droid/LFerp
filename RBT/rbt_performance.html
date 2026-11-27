@@ -7,14 +7,12 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
-    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
     <link rel="stylesheet" href="../css/lf-contract.css?v=20261120-rbt-read">
     <link rel="stylesheet" href="../vendor/octopus-prototype-runtime/runtime.css">
     <link rel="stylesheet" href="../vendor/octopus-prototype-runtime/theme.css">
     <style>
         [v-cloak] { display: none; }
-        .rbt-perf-host { min-height: 480px; }
-        .rbt-perf-tip { margin: 0 0 12px; }
+        .rbt-perf-host { min-height: 480px; margin-top: 16px; }
         .rbt-demand-table-wrap { width: 100%; overflow-x: auto; }
         .rbt-demand-table { width: 100%; border-collapse: collapse; font-size: 13px; }
         .rbt-demand-table th,
@@ -45,9 +43,6 @@
             <hr class="content-divider">
 
             <div id="rbtPerfApp" class="rbt-perf-host" v-cloak>
-                <div class="mdm-biz-tip rbt-perf-tip" role="note">
-                    只列出贸易商付款完成、处于<strong>付款中</strong>或<strong>已完成</strong>的需求。点需求单号打开付款详情，每日付款在基础信息右侧。应付款：商城、直播按已入账佣金乘结算比例，POS 按经营流水扣除平台服务费后乘结算比例。当日实际付款再按应收占比拆成<strong>贸易商、冷丰、服务商</strong>收款。后台仍按渠道、按冷丰和服务商分开。<strong>日均付款额</strong> = 实际付款合计 ÷ 营业日天数，和当前生效基准比，不是百分比进度。<strong>剩余付款额</strong> = 总金额 − 已付款金额。剩余付款额为 0 时，付款阶段为<strong>已完成</strong>。
-                </div>
                 <vab-schema-table
                     ref="table"
                     :columns="columns"
@@ -57,8 +52,11 @@
                     action-column-width="88"
                     :default-page-size="20"
                     :auto-format-time="false">
+                    <template v-slot:[slots.ledger]="{row}">
+                        <doc-no-link :value="row.ledger" @open="openDetail(row)"></doc-no-link>
+                    </template>
                     <template v-slot:[slots.code]="{row}">
-                        <doc-no-link :value="row.code" @open="openDetail(row)"></doc-no-link>
+                        <doc-no-link :value="row.code" @open="openDemand(row)"></doc-no-link>
                     </template>
                     <template v-slot:[slots.status]="{row,elSize}">
                         <el-tag :size="elSize" effect="light" :type="statusType(row.fulfillPhase)">{{ row.fulfillPhase }}</el-tag>
@@ -82,9 +80,9 @@
     <script src="rbt-store-data.js"></script>
     <script src="rbt-settle-ratio.js"></script>
     <script src="rbt-demand-data.js"></script>
-    <script src="rbt-demand-detail.js?v=20261127-pos-pay"></script>
-    <script src="rbt-daily-fulfill.js?v=20261127-pos-pay"></script>
+    <script src="rbt-demand-detail.js?v=20261128-settle-status"></script>
+    <script src="rbt-daily-fulfill.js?v=20261128-settle-fail"></script>
     <script src="rbt-risk.js?v=20261126-posting"></script>
-    <script src="rbt-performance.js?v=20261126-no-aclass"></script>
+    <script src="rbt-performance.js?v=20261128-pay-child"></script>
 </body>
 </html>

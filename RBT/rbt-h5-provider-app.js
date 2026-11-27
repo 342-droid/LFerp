@@ -72,14 +72,13 @@
         return status || '—';
     }
 
-    /* 服务商结算系数 = 1 + 服务商应收 / 商品金额。计提是系数超出 1 的部分。 */
+    /* 服务商结算系数用产品配置上的系数，不按旧的加率应收倒推。 */
     function providerCoeff(item) {
         var api = window.RbtDemandData;
-        var pack = api && typeof api.receivables === 'function' ? api.receivables(item) : null;
-        var goods = centsOf(item && item.goodsAmount);
-        var provider = centsOf(pack && pack.provider);
-        if (!goods || provider == null) return '—';
-        return (1 + provider / goods).toFixed(2);
+        var rates = api && typeof api.settlementRates === 'function' ? api.settlementRates(item) : null;
+        var rate = rates && rates.provider != null ? Number(rates.provider) : NaN;
+        if (!isFinite(rate) || rate <= 0) return '—';
+        return rate.toFixed(2);
     }
 
     function archiveOf(name) {
@@ -167,40 +166,26 @@
         });
     }
 
-    /* 已结款只计已经到账、拆给服务商的金额。已冻结和在途仍是待结款。服务商份额不进冷丰、贸易商的自动转账。 */
+    /* 服务商服务费在贸易商划转时一次结清。结款明细只有这一条，不再按日拆。 */
     function providerSettled(item) {
-        var daily = window.RbtDailyFulfill;
-        var rows = daily && typeof daily.payeeSplit === 'function' ? daily.payeeSplit(item) : [];
-        if (!rows.length) return { total: '', shares: [] };
-        var facts = {};
-        if (typeof daily.daysOf === 'function') {
-            daily.daysOf(item).forEach(function (row) {
-                if (row && row.id) facts[row.id] = row;
-            });
-        }
-        var shares = rows.map(function (row) {
-            var fact = facts[row.id] || {};
-            return {
-                date: row.date,
-                time: row.time || '',
-                channel: row.channel,
-                kind: row.kind || '',
-                amount: row.provider,
-                fundStatus: row.kind === 'manual' ? 'arrived' : (fact.fundStatus || '')
-            };
-        }).filter(function (row) {
-            if (row.kind !== 'manual') return true;
-            return Math.round(Number(row.amount) * 100) > 0;
-        });
-        var settledCents = 0;
-        shares.forEach(function (row) {
-            var cents = Math.round(Number(row.amount) * 100);
-            if (!isFinite(cents)) cents = 0;
-            var open = row.fundStatus === 'inflight' || row.fundStatus === 'frozen' || row.fundStatus === 'missing' || row.fundStatus === 'pending_freeze';
-            row.stage = row.kind !== 'manual' && open ? 'pending' : 'due';
-            if (row.stage !== 'pending') settledCents += cents;
-        });
-        return { total: (settledCents / 100).toFixed(2), shares: shares };
+        var api = window.RbtDemandData;
+        var pack = api && typeof api.deductSettlement === 'function' ? api.deductSettlement(item) : null;
+        var amount = pack && pack.provider ? String(pack.provider) : '';
+        var cents = Math.round(Number(amount) * 100);
+        if (!(cents > 0)) return { total: '', shares: [] };
+        var when = (item && item.paidAt) || '';
+        return {
+            total: (cents / 100).toFixed(2),
+            shares: [{
+                date: String(when).slice(0, 10),
+                time: when,
+                kind: 'fee',
+                channel: '放款划拨',
+                amount: (cents / 100).toFixed(2),
+                fundStatus: 'arrived',
+                stage: 'due'
+            }]
+        };
     }
 
     /* 跟进中：待结款 = 应收 − 已结款。已结束已经结清，已结款等于应收，待结款为 0。 */
@@ -214,7 +199,7 @@
 
     function fundOf(item) {
         var api = window.RbtDemandData;
-        var pack = api && typeof api.receivables === 'function' ? api.receivables(item) : null;
+        var pack = api && typeof api.deductSettlement === 'function' ? api.deductSettlement(item) : null;
         var receivable = pack && pack.provider ? String(pack.provider) : '';
         var settled = providerSettled(item);
         var settledText = settled.total;
@@ -268,7 +253,6 @@
         var funds = rows.map(fundOf);
         var receivable = sumMoney(funds, 'receivable');
         var settled = sumMoney(funds, 'settled');
-        var pending = sumMoney(funds, 'pending');
         setHead('收款');
         return '<div class="rbt-fund">' +
             '<div class="rbt-fund__tabs" role="tablist">' +
@@ -281,7 +265,6 @@
             '<div><span>笔数</span><b>' + rows.length + '</b></div>' +
             '<div><span>应收</span><b>' + esc(receivable ? yuan(receivable) : '—') + '</b></div>' +
             '<div><span>已结款</span><b>' + esc(settled ? yuan(settled) : '未产生') + '</b></div>' +
-            '<div><span>待结款</span><b>' + esc(pending ? yuan(pending) : (closed ? '无' : '未产生')) + '</b></div>' +
             '</div></div>' +
             (rows.length ? rows.map(function (item) {
                 var fund = fundOf(item);
@@ -293,15 +276,17 @@
                     '<div class="rbt-fund-card__metrics">' +
                     '<div><span>应收</span><b>' + esc(yuan(fund.receivable)) + '</b></div>' +
                     '<div><span>已结款</span><b>' + esc(fund.settled ? yuan(fund.settled) : '未产生') + '</b></div>' +
-                    '<div><span>待结款</span><b>' + esc(fund.pending ? yuan(fund.pending) : '未产生') + '</b></div>' +
                     '</div></button>';
             }).join('') : '<div class="rbt-h5-empty">' + (closed ? '暂无已结束的收款' : '暂无付款中的收款') + '</div>') +
             '</div>';
     }
 
+    /* 服务商服务费在贸易商划转时一次结清，不跟门店的日结。销售合同是门店与贸易商，采购合同是贸易商与冷丰供应链，服务商不是签署方。 */
     function renderBill(item) {
         var fund = fundOf(item);
         var payee = fund.account || { accountName: '—', accountNo: '—' };
+        var share = (fund.shares && fund.shares[0]) || null;
+        var settled = !!(share && share.stage !== 'pending' && fund.settled);
         setHead('资金明细');
         var lines = [
             ['门店', item.storeName || '—'],
@@ -309,44 +294,24 @@
             ['商品金额', yuan(fund.goods)],
             ['服务商结算系数', providerCoeff(item)],
             ['创建时间', item.createdAt || '—'],
-            ['签署时间', effectTimeOf(item) || '—'],
-            ['已结款', fund.settled ? yuan(fund.settled) : '未产生'],
-            ['待结款', fund.pending ? yuan(fund.pending) : '未产生'],
+            ['已结款', settled ? yuan(fund.settled) : '未产生'],
+            ['结款时间', settled ? (share.time || share.date || '—') : '—'],
+            ['结款状态', settled ? '已结款' : '未产生'],
             ['收款账户名称', payee.accountName || '—'],
             ['收款账户', payee.accountNo || '—']
         ];
-        var shares = fund.shares.slice().reverse();
-        var detail = shares.length
-            ? '<div class="rbt-share__head"><span>结款时间</span><span>金额</span><span>结款状态</span></div>' +
-                shares.map(function (row) {
-                    var pendingRow = row.stage === 'pending';
-                    return '<div class="rbt-share__row"><span>' +
-                        esc(pendingRow ? '-' : (row.kind === 'manual' ? (paidClock(row.time) || settleClock(row.date)) : settleClock(row.date))) +
-                        '</span><b>' + esc(yuan(row.amount)) + '</b><em class="' +
-                        (pendingRow ? '' : 'is-due') + '">' + (pendingRow ? '待结款' : '已结款') + '</em></div>';
-                }).join('')
-            : '<p class="rbt-bill__empty">暂无结款明细</p>';
         return '<section class="rbt-bill__head">' +
             '<div class="rbt-bill__top"><span class="rbt-bill__code">' + esc(item.code) + '</span><span class="rbt-bill__tag">' +
             esc(phaseLabel(item.status)) + '</span></div>' +
             '<p class="rbt-bill__label">应收</p>' +
             '<p class="rbt-bill__amt">' + esc(fund.receivable && fund.receivable !== '—' ? fund.receivable : '—') + '</p>' +
             '<div class="rbt-bill__stats">' +
-            '<div><span>结算周期</span><b>' + esc(item.repayCycle || '—') + '</b></div>' +
+            '<div><span>结算周期</span><b>一次结清</b></div>' +
             '<div><span>结算方式</span><b>' + esc(item.repayMethod || '—') + '</b></div>' +
             '</div></section>' +
-            '<div class="rbt-bill-tabs" role="tablist">' +
-            '<button type="button" data-fund-tab="base"' + (fundTab === 'base' ? ' class="is-on"' : '') + '>基础信息</button>' +
-            '<button type="button" data-fund-tab="share"' + (fundTab === 'share' ? ' class="is-on"' : '') + '>结款明细</button>' +
-            '<button type="button" data-fund-tab="overview"' + (fundTab === 'overview' ? ' class="is-on"' : '') + '>结款总览</button>' +
-            '</div>' +
-            (fundTab === 'share'
-                ? '<section class="rbt-bill__sheet' + (shares.length ? '' : ' rbt-bill__sheet--blank') + '">' + detail + '</section>'
-                : fundTab === 'overview'
-                    ? '<section class="rbt-bill__sheet">' + renderOverview() + '</section>'
-                    : '<section class="rbt-bill__sheet">' + lines.map(function (line) {
-                        return '<div class="rbt-bill__line"><span>' + esc(line[0]) + '</span><b>' + esc(line[1]) + '</b></div>';
-                    }).join('') + renderSignedContracts(item) + '</section>');
+            '<section class="rbt-bill__sheet">' + lines.map(function (line) {
+                return '<div class="rbt-bill__line"><span>' + esc(line[0]) + '</span><b>' + esc(line[1]) + '</b></div>';
+            }).join('') + '</section>';
     }
 
     function signedContracts(item) {
@@ -436,7 +401,14 @@
     function renderOverview() {
         var wallet = window.RbtPartyWallet;
         if (!wallet) return '<div class="rbt-h5-empty">结款总览不可用</div>';
-        return wallet.overviewHtml({ rows: providerOverviewRows(), mode: overviewMode, from: overviewFrom, to: overviewTo });
+        return wallet.overviewHtml({
+            rows: providerOverviewRows(),
+            mode: overviewMode,
+            from: overviewFrom,
+            to: overviewTo,
+            dailyLabel: '放款划拨',
+            manualLabel: '手动付款'
+        });
     }
 
     function renderWallet() {
@@ -621,7 +593,7 @@
             }
             walletMethod = 'card:' + result.card.id;
             walletBind = { cardNo: '', bankId: '', phone: '', sms: '', sheet: '', modal: '' };
-            walletPane = 'recharge';
+            walletPane = 'main';
             walletSheet = '';
             toast('绑定成功');
             render();
@@ -728,7 +700,9 @@
         if (screen === 'wallet') {
             var walletGo = event.target.closest('[data-wallet-go]');
             if (walletGo) {
-                walletPane = walletGo.getAttribute('data-wallet-go') === 'recharge' ? 'recharge' : 'withdraw';
+                var nextPane = walletGo.getAttribute('data-wallet-go') || '';
+                if (nextPane === 'recharge') return;
+                walletPane = nextPane === 'withdraw' ? 'withdraw' : 'main';
                 walletDraft = '';
                 walletSheet = '';
                 walletTimeOpen = false;
@@ -847,7 +821,7 @@
         var tab = event.target.closest('[data-fund-tab]');
         if (tab && screen === 'bill') {
             var nextTab = tab.getAttribute('data-fund-tab');
-            fundTab = nextTab === 'share' || nextTab === 'overview' ? nextTab : 'base';
+            fundTab = nextTab === 'share' ? 'share' : 'base';
             render();
         }
     });
@@ -862,7 +836,7 @@
             return;
         }
         if (screen === 'wallet' && walletPane === 'bind') {
-            walletPane = 'recharge';
+            walletPane = 'main';
             walletSheet = '';
             render();
             return;

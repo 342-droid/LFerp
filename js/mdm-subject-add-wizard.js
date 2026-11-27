@@ -31,6 +31,13 @@
                 { label: '事业线' },
                 { label: '品牌名称' },
                 { label: '业务线' },
+                { label: '是否申请RBF联营' },
+                { label: 'RBF等级' },
+                { label: '门店额度', span: true },
+                { label: '需求发布次数' },
+                { label: '保证金是否缴纳', span: true },
+                { label: '缴纳凭证', span: true },
+                { label: '商品包', span: true },
                 { sec: '地址与位置' },
                 { label: '配送仓库' },
                 { label: '门店编码' },
@@ -659,6 +666,18 @@
                 var req = node.querySelector('[data-required-msg]');
                 if (req && !req.disabled && !String(req.value || '').trim()) {
                     mark(node, req.getAttribute('data-required-msg') || '请填写');
+                    ok = false;
+                    return;
+                }
+                var quotaInp = node.querySelector('[data-rbf-quota]');
+                if (quotaInp && (!/^\d+(\.\d{1,2})?$/.test(quotaInp.value) || Number(quotaInp.value) <= 0)) {
+                    mark(node, '门店额度须大于 0，最多两位小数');
+                    ok = false;
+                    return;
+                }
+                var timesInp = node.querySelector('[data-rbf-times]');
+                if (timesInp && !/^[1-9]\d*$/.test(timesInp.value)) {
+                    mark(node, '需求发布次数须为大于 0 的整数');
                     ok = false;
                     return;
                 }

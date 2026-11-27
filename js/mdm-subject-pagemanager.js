@@ -1754,6 +1754,9 @@
             if (kindSpec.archiveBundle.refs.entryMaterials && window.MdmEntryMaterials) {
                 window.MdmEntryMaterials.fill(kindSpec.archiveBundle.refs.entryMaterials, {});
             }
+            if (typeof kindSpec.archiveBundle.refs.resetRbf === 'function') {
+                kindSpec.archiveBundle.refs.resetRbf();
+            }
             var statusName = kindSpec.archiveBundle.refs.statusName;
             if (statusName) {
                 modal.querySelectorAll('input[name="' + statusName + '"]').forEach(function (inp) {

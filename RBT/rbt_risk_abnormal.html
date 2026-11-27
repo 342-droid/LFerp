@@ -7,14 +7,12 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
-    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
     <link rel="stylesheet" href="../css/lf-contract.css?v=20261120-rbt-read">
     <link rel="stylesheet" href="../vendor/octopus-prototype-runtime/runtime.css">
     <link rel="stylesheet" href="../vendor/octopus-prototype-runtime/theme.css">
     <style>
         [v-cloak] { display: none; }
-        .rbt-abnormal-host { min-height: 480px; }
-        .rbt-abnormal-tip { margin: 0 0 12px; }
+        .rbt-abnormal-host { min-height: 480px; margin-top: 16px; }
         .rbt-abnormal-host .el-table .el-table-fixed-column--left,
         .rbt-abnormal-host .el-table .el-table-fixed-column--right {
             position: static !important;
@@ -62,14 +60,6 @@
         <main class="main-content">
             <div class="content-tabs"><button type="button" class="active">异常付款数据</button></div>
             <hr class="content-divider">
-            <div class="mdm-biz-tip rbt-abnormal-tip" role="note">
-                只列出付款风险等级不是<strong>正常</strong>的需求。日均付款额和<a href="rbt_risk_config.html">风控配置</a>里当前生效的静态基准或动态基准比，不使用百分比进度。<strong>剩余付款额</strong> = 总金额 − 已付款金额。命中后生成工单，状态为待处置、处置中、已关闭。风控看全部并可处置；业务处置本事业线；财务看金额，不改风险结论。工单不拦截新建需求。
-            </div>
-            <div class="mdm-biz-tip" role="note" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
-                <label>当前身份 <select class="erp-select" id="rbtRiskRole" style="width:120px;height:36px;"><option value="风控">风控</option><option value="业务">业务</option><option value="财务">财务</option></select></label>
-                <label>事业线 <select class="erp-select" id="rbtRiskBiz" style="width:160px;height:36px;"></select></label>
-                <span>风控看全部并可处置。业务只处置所选事业线。财务只看金额，不改结论。</span>
-            </div>
             <div id="rbtAbnormalApp" class="rbt-abnormal-host" v-cloak>
                 <vab-schema-table
                     ref="table"
@@ -77,10 +67,13 @@
                     :request="requestRows"
                     row-key="id"
                     data-lf-row-no="off"
-                    search-label-width="110px"
+                    search-label-width="128px"
                     action-column-width="72"
                     :default-page-size="20"
                     :auto-format-time="false">
+                    <template #cell-ledger="{row}">
+                        <button type="button" class="rbt-risk-link" @click="openLedger(row)">{{ row.ledger || '—' }}</button>
+                    </template>
                     <template #cell-demand="{row}">
                         <button type="button" class="rbt-risk-link" @click="openDemand(row)">{{ row.demandCode || '—' }}</button>
                     </template>
@@ -147,9 +140,9 @@
     <script src="rbt-store-data.js"></script>
     <script src="rbt-settle-ratio.js"></script>
     <script src="rbt-demand-data.js"></script>
-    <script src="rbt-demand-detail.js?v=20261127-pos-pay"></script>
-    <script src="rbt-daily-fulfill.js?v=20261127-pos-pay"></script>
+    <script src="rbt-demand-detail.js?v=20261128-settle-status"></script>
+    <script src="rbt-daily-fulfill.js?v=20261128-settle-fail"></script>
     <script src="rbt-risk.js?v=20261126-posting"></script>
-    <script src="rbt-risk-abnormal.js"></script>
+    <script src="rbt-risk-abnormal.js?v=20261128-pay-child"></script>
 </body>
 </html>

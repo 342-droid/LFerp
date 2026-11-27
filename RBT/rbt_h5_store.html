@@ -1149,19 +1149,17 @@
             display: flex;
             flex-direction: column;
             align-items: stretch;
-            gap: 10px;
+            gap: 6px;
             width: 100%;
-            margin: 0 0 10px;
+            margin: 0 0 8px;
             padding: 12px;
             border: 0;
             border-radius: 10px;
             background: #f7f8fa;
             text-align: left;
-            cursor: pointer;
             font: inherit;
         }
-        .rbt-bill__day:active { background: #f0f1f3; }
-        .rbt-bill__day-head { display: flex; align-items: center; gap: 6px; min-width: 0; }
+        .rbt-bill__day-head { display: flex; align-items: center; gap: 6px; width: 100%; min-width: 0; }
         .rbt-bill__day-date { flex: none; color: #222; font-size: 15px; font-weight: 600; }
         .rbt-bill__day-channel {
             flex: none;
@@ -1174,7 +1172,17 @@
         }
         .rbt-bill__day-stage { flex: none; margin-left: auto; color: #ff7019; font-size: 12px; }
         .rbt-bill__day-stage.is-due { color: #52c41a; }
-        .rbt-bill__day-amt { flex: none; color: #222; font-size: 16px; font-weight: 700; }
+        .rbt-bill__day-stage.is-fail { color: #cf1322; }
+        .rbt-bill__day-amt { flex: none; margin-left: auto; color: #222; font-size: 16px; font-weight: 700; }
+        .rbt-bill__day-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 12px;
+            min-width: 0;
+        }
+        .rbt-bill__day-meta i { flex: none; color: #999; font-size: 12px; font-style: normal; }
+        .rbt-bill__day-meta b { color: #222; font-size: 13px; font-weight: 600; text-align: right; }
         .rbt-bill__day-more { flex: none; color: #c8c9cc; font-size: 18px; line-height: 1; }
         .rbt-bill__day-grid { display: flex; flex-direction: column; }
         .rbt-bill__day-grid span {
@@ -1666,10 +1674,10 @@
     <script src="rbt-demand-data.js?v=20261125-store-pay"></script>
     <script src="rbt-contract-sign.js"></script>
     <script src="../js/contract-bodies.js?v=20261120-rbt-read"></script>
-    <script src="rbt-daily-fulfill.js?v=20261127-pos-pay"></script>
+    <script src="rbt-daily-fulfill.js?v=20261128-settle-fail"></script>
     <script src="../js/store-pay-password.js"></script>
     <script src="../js/store-wallet-demo.js?v=20261127-wallet"></script>
-    <script src="rbt-h5-store-app.js?v=20261127-pos-pay"></script>
+    <script src="rbt-h5-store-app.js?v=20261128-settle-fail"></script>
     <script src="rbt-h5-store-login.js"></script>
 </body>
 </html>

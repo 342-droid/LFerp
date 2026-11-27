@@ -22,87 +22,193 @@
         return blank(value) ? '—' : ('¥' + value);
     }
 
+    var reactive = OctopusPrototype.reactive;
+    var ref = OctopusPrototype.ref;
+    var computed = OctopusPrototype.computed;
+
     OctopusPrototype.mount({
         setup: function () {
-            /* 页内模板会把 v-slot 表达式转成小写，键必须用 demandcode。值仍是 cell-demandCode，和列 dataIndex 对应。 */
-            var slots = { demandcode: 'cell-demandCode' };
-            var channelSearch = {
-                control: 'select',
-                options: [
-                    { label: 'POS', value: 'POS' },
-                    { label: '直播', value: '直播' },
-                    { label: '商城', value: '商城' },
-                    { label: '提前支付', value: '提前支付' }
-                ],
-                placeholder: '请选择渠道'
-            };
-            var columns = [
-                { dataIndex: 'date', title: '日期', minWidth: 96, search: { control: 'input', placeholder: '如 2026-11-10' } },
-                { dataIndex: 'storeName', title: '门店', minWidth: 132, align: 'left', showOverflowTooltip: true, search: { control: 'input' } },
-                { dataIndex: 'storeCode', title: '门店编码', minWidth: 108 },
-                { dataIndex: 'demandCode', title: '需求单号', minWidth: 120, search: { control: 'input' } },
-                {
-                    dataIndex: 'channel',
-                    title: '渠道',
-                    minWidth: 72,
-                    search: channelSearch
-                },
-                { dataIndex: 'turnover', title: '营业流水', minWidth: 100, align: 'right', formatter: function (row) { return yuan(row.turnover); } },
-                { dataIndex: 'commission', title: '所得佣金', minWidth: 100, align: 'right', formatter: function (row) { return yuan(row.commission); } },
-                { dataIndex: 'ratio', title: '结算比例', minWidth: 80, align: 'right' },
-                { dataIndex: 'due', title: '应付款', minWidth: 100, align: 'right', formatter: function (row) { return yuan(row.due); } },
-                { dataIndex: 'actual', title: '实际付款', minWidth: 100, align: 'right', formatter: function (row) { return yuan(row.actual); } },
-                { dataIndex: 'payMethod', title: '支付方式', minWidth: 148, align: 'left', showOverflowTooltip: true },
-                { dataIndex: 'traderName', title: '贸易商', minWidth: 116, align: 'left', showOverflowTooltip: true, search: { control: 'input' }, formatter: function (row) { return blank(row.traderName) ? '—' : row.traderName; } },
-                { dataIndex: 'traderPay', title: '贸易商结款', minWidth: 108, align: 'right', formatter: function (row) { return yuan(row.traderPay); } },
-                { dataIndex: 'lengfengPay', title: '冷丰结款', minWidth: 100, align: 'right', formatter: function (row) { return yuan(row.lengfengPay); } },
-                { dataIndex: 'providerName', title: '服务商', minWidth: 96, align: 'left', showOverflowTooltip: true, search: { control: 'input' }, formatter: function (row) { return blank(row.providerName) ? '—' : row.providerName; } },
-                { dataIndex: 'providerPay', title: '服务商结款', minWidth: 108, align: 'right', formatter: function (row) { return yuan(row.providerPay); } },
-                { dataIndex: 'source', title: '计算来源', minWidth: 112, align: 'left', showOverflowTooltip: true }
-            ];
+            function productOptions() {
+                var names = [];
+                function add(name) {
+                    var text = String(name || '').trim();
+                    if (!text || names.indexOf(text) >= 0) return;
+                    names.push(text);
+                }
+                var stored = [];
+                try {
+                    var raw = sessionStorage.getItem('rbt_installment_v3');
+                    var list = raw ? JSON.parse(raw) : null;
+                    if (Array.isArray(list)) stored = list;
+                } catch (e) {}
+                if (stored.length) {
+                    stored.forEach(function (item) {
+                        if (item && item.enabled !== false) add(item.name);
+                    });
+                } else {
+                    ['开业铺货日结', '开业铺货加价', '开业铺货轻量', '门店形象日结', '开业运营日结'].forEach(add);
+                }
+                var demands = window.RbtDemandData && window.RbtDemandData.list ? window.RbtDemandData.list() : [];
+                demands.forEach(function (item) { add(item && item.installmentName); });
+                return names.map(function (name) { return { label: name, value: name }; });
+            }
+
+            function moneyFormatter(row, column, cellValue) {
+                return yuan(cellValue);
+            }
+
+            function ratioFormatter(row, column, cellValue) {
+                return blank(cellValue) ? '—' : cellValue;
+            }
+
+            function textFormatter(row, column, cellValue) {
+                return blank(cellValue) ? '—' : cellValue;
+            }
 
             function matchDaily(row, params) {
                 if (!includesText(row.date, params.date)) return false;
                 if (!includesText(row.storeName, params.storeName) && !includesText(row.storeCode, params.storeName)) return false;
                 if (!includesText(row.demandCode, params.demandCode)) return false;
+                if (!blank(params.installmentName) && row.installmentName !== params.installmentName) return false;
+                if (!blank(params.payeeRole) && row.payeeRole !== params.payeeRole) return false;
                 if (!blank(params.channel) && row.channel !== params.channel) return false;
+                if (!blank(params.settleStatus) && row.settleStatus !== params.settleStatus) return false;
+                if (!includesText(row.payNo, params.payNo)) return false;
+                if (!includesText(row.channelFlow, params.channelFlow)) return false;
                 return true;
             }
 
-            function requestRows(params) {
-                var details = {};
-                (dailyApi && dailyApi.detailRows ? dailyApi.detailRows() : []).forEach(function (row) {
-                    details[row.id] = row;
-                });
-                var matched = (dailyApi && dailyApi.rows ? dailyApi.rows(false) : []).map(function (row) {
-                    var detail = details[row.id] || {};
+            function productOf(code) {
+                var api = window.RbtDemandData;
+                var item = api && api.get ? api.get(code) : null;
+                return {
+                    installmentName: item && item.installmentName ? item.installmentName : '',
+                    installmentCode: item && item.installmentCode ? item.installmentCode : ''
+                };
+            }
+
+            function collectRows(params) {
+                var source = dailyApi && dailyApi.partyRows ? dailyApi.partyRows() : [];
+                return source.map(function (row) {
+                    var product = productOf(row.demandCode);
                     return {
                         id: row.id,
                         date: row.date,
                         storeName: row.storeName,
                         storeCode: row.storeCode,
                         demandCode: row.demandCode,
+                        installmentName: product.installmentName,
+                        installmentCode: product.installmentCode,
+                        payeeRole: row.payeeRole || '',
+                        payeeName: row.payeeName || '',
                         channel: row.channel,
+                        payWay: row.payWay || row.channel,
+                        payAccount: row.payAccount || '',
+                        payNo: row.payNo || '',
+                        settleStatus: row.settleStatus || '',
+                        channelFlow: row.channelFlow || '',
                         turnover: row.turnover,
                         commission: row.commission,
-                        ratio: row.ratio,
+                        incomePos: row.incomePos,
+                        incomeLive: row.incomeLive,
+                        incomeMall: row.incomeMall,
+                        ratioPos: row.ratioPos,
+                        ratioLive: row.ratioLive,
+                        ratioMall: row.ratioMall,
                         due: row.due,
+                        duePos: row.duePos,
+                        dueLive: row.dueLive,
+                        dueMall: row.dueMall,
                         actual: row.actual,
-                        payMethod: row.payMethod || (dailyApi && dailyApi.autoPayMethod) || '营业收入自动扣款',
-                        source: row.source,
-                        traderName: detail.traderName || '',
-                        traderPay: detail.traderPay,
-                        lengfengPay: detail.lengfengPay,
-                        providerName: detail.providerName || '',
-                        providerPay: detail.providerPay
+                        payMethod: row.payMethod || (row.kind === 'fee' ? '放款划拨' : ((dailyApi && dailyApi.autoPayMethod) || '营业收入自动扣款')),
+                        settleAmount: row.settleAmount,
+                        goodsPay: row.goodsPay,
+                        feePay: row.feePay,
+                        kind: row.kind || ''
                     };
                 }).filter(function (row) {
                     if (!matchDaily(row, params)) return false;
-                    if (!includesText(row.traderName, params.traderName)) return false;
-                    if (!includesText(row.providerName, params.providerName)) return false;
+                    if (!includesText(row.payeeName, params.payeeName)) return false;
                     return true;
                 });
-                return Promise.resolve(paginate(matched, params));
+            }
+
+            var query = reactive({
+                date: '',
+                storeName: '',
+                demandCode: '',
+                installmentName: '',
+                payeeRole: '',
+                payeeName: '',
+                channel: '',
+                settleStatus: '',
+                payNo: '',
+                channelFlow: ''
+            });
+            var expanded = ref(false);
+            var page = ref(1);
+            var pageSize = ref(20);
+            var pageSizes = [20, 50, 100, 200];
+            var matched = ref(collectRows(query));
+            var total = computed(function () { return matched.value.length; });
+            var pageRows = computed(function () {
+                return paginate(matched.value, { page: page.value, pageSize: pageSize.value }).list;
+            });
+
+            function search() {
+                page.value = 1;
+                matched.value = collectRows(query);
+            }
+
+            function reset() {
+                query.date = '';
+                query.storeName = '';
+                query.demandCode = '';
+                query.installmentName = '';
+                query.payeeRole = '';
+                query.payeeName = '';
+                query.channel = '';
+                query.settleStatus = '';
+                query.payNo = '';
+                query.channelFlow = '';
+                search();
+            }
+
+            function toggleSearch() {
+                expanded.value = !expanded.value;
+            }
+
+            function onPage(next) {
+                page.value = next;
+            }
+
+            function onSize(next) {
+                pageSize.value = next;
+                page.value = 1;
+            }
+
+            function copyFlow(value) {
+                var text = String(value || '').trim();
+                if (!text) return;
+                function done() {
+                    if (typeof window.showToast === 'function') window.showToast('通道流水已复制', 'success');
+                }
+                function fallback() {
+                    var input = document.createElement('textarea');
+                    input.value = text;
+                    input.setAttribute('readonly', 'readonly');
+                    input.style.position = 'fixed';
+                    input.style.left = '-9999px';
+                    document.body.appendChild(input);
+                    input.select();
+                    try { document.execCommand('copy'); done(); } catch (e) {}
+                    input.remove();
+                }
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(done).catch(fallback);
+                    return;
+                }
+                fallback();
             }
 
             function demandOf(row) {
@@ -115,14 +221,6 @@
                 var item = demandOf(row);
                 if (item && window.RbtDemandDetail && typeof window.RbtDemandDetail.open === 'function') {
                     window.RbtDemandDetail.open(item);
-                }
-            }
-
-            function openPerformance(row) {
-                closeDay();
-                var item = demandOf(row);
-                if (item && window.RbtDemandDetail && typeof window.RbtDemandDetail.open === 'function') {
-                    window.RbtDemandDetail.open(item, { performance: true });
                 }
             }
 
@@ -140,29 +238,41 @@
 
             function dayOf(row) {
                 var id = row && row.id;
-                var ledger = ((dailyApi && dailyApi.rows ? dailyApi.rows(false) : []).filter(function (item) {
-                    return item.id === id;
-                })[0]) || {};
-                var detail = ((dailyApi && dailyApi.detailRows ? dailyApi.detailRows() : []).filter(function (item) {
-                    return item.id === id;
-                })[0]) || {};
+                var source = dailyApi && dailyApi.partyRows ? dailyApi.partyRows() : [];
+                var detail = (source.filter(function (item) { return item.id === id; })[0]) || row || {};
+                var product = productOf(detail.demandCode);
                 return {
-                    date: ledger.date || detail.date || (row && row.date) || '',
-                    channel: ledger.channel || detail.channel || (row && row.channel) || '',
-                    storeName: ledger.storeName || detail.storeName || '',
-                    storeCode: ledger.storeCode || detail.storeCode || '',
-                    demandCode: ledger.demandCode || detail.demandCode || '',
-                    turnover: ledger.turnover,
-                    commission: ledger.commission,
-                    ratio: ledger.ratio,
-                    due: ledger.due,
-                    actual: ledger.actual,
-                    payMethod: ledger.payMethod || (dailyApi && dailyApi.autoPayMethod) || '营业收入自动扣款',
-                    traderName: detail.traderName || '',
-                    traderPay: detail.traderPay,
-                    lengfengPay: detail.lengfengPay,
-                    providerName: detail.providerName || '',
-                    providerPay: detail.providerPay
+                    date: detail.date || '',
+                    payNo: detail.payNo || '',
+                    settleStatus: detail.settleStatus || '',
+                    channelFlow: detail.channelFlow || '',
+                    channel: detail.channel || '',
+                    payWay: detail.payWay || detail.channel || '',
+                    payAccount: detail.payAccount || '',
+                    kind: detail.kind || '',
+                    storeName: detail.storeName || '',
+                    storeCode: detail.storeCode || '',
+                    demandCode: detail.demandCode || '',
+                    installmentName: product.installmentName || '',
+                    payeeRole: detail.payeeRole || '',
+                    payeeName: detail.payeeName || '',
+                    turnover: detail.turnover,
+                    commission: detail.commission,
+                    incomePos: detail.incomePos,
+                    incomeLive: detail.incomeLive,
+                    incomeMall: detail.incomeMall,
+                    ratioPos: detail.ratioPos,
+                    ratioLive: detail.ratioLive,
+                    ratioMall: detail.ratioMall,
+                    due: detail.due,
+                    duePos: detail.duePos,
+                    dueLive: detail.dueLive,
+                    dueMall: detail.dueMall,
+                    actual: detail.actual,
+                    payMethod: detail.payMethod || (detail.kind === 'fee' ? '放款划拨' : ((dailyApi && dailyApi.autoPayMethod) || '营业收入自动扣款')),
+                    settleAmount: detail.settleAmount,
+                    goodsPay: detail.goodsPay,
+                    feePay: detail.feePay
                 };
             }
 
@@ -182,7 +292,35 @@
                     '</div><div class="supplier-detail-cell__body">' + esc(value) + '</div></div>';
             }
 
-            /* 查看只看这一天、这个渠道付给各方的结款，不打开需求单。 */
+            function channelBody(day) {
+                if (day.channel !== '自动扣款') return '';
+                var lines = [
+                    ['POS', day.incomePos, day.ratioPos, day.duePos],
+                    ['直播', day.incomeLive, day.ratioLive, day.dueLive],
+                    ['商城', day.incomeMall, day.ratioMall, day.dueMall]
+                ];
+                return '<div class="supplier-detail-section-title">渠道</div>' +
+                    '<table class="rbt-day-table"><thead><tr><th>渠道</th><th class="is-money">所得收入</th><th class="is-money">结算比例</th><th class="is-money">应付</th></tr></thead><tbody>' +
+                    lines.map(function (line) {
+                        return '<tr><td>' + esc(line[0]) + '</td><td class="is-money">' + esc(moneyText(line[1])) +
+                            '</td><td class="is-money">' + esc(blank(line[2]) ? '—' : line[2]) +
+                            '</td><td class="is-money">' + esc(moneyText(line[3])) + '</td></tr>';
+                    }).join('') +
+                    '<tr><td>合计</td><td class="is-money">' + esc(moneyText(day.commission)) +
+                    '</td><td class="is-money">—</td><td class="is-money">' + esc(moneyText(day.due)) + '</td></tr>' +
+                    '</tbody></table>';
+            }
+
+            function dayNote(day) {
+                if (day.payeeRole === '冷丰' || day.payeeRole === '服务商' || day.channel === '放款划拨') {
+                    return '这笔在贸易商把货款划到平台供应商公司时一次结清，不进门店每日还款。';
+                }
+                if (day.settleStatus === '结款失败') return '付款子单已生成。提交汇付时失败，没有通道流水、实际付款和结款。';
+                if (day.settleStatus === '在途') return '付款子单已生成，并据此发起付款申请。钱还在途，到账后才有通道流水、实际付款和结款。';
+                return '这笔只结给贸易商。货款、服务费从已结里拆出，两者之和等于已结。';
+            }
+
+            /* 查看这一条结款，不打开需求单。 */
             function openDay(row) {
                 var day = dayOf(row);
                 closeDay();
@@ -201,23 +339,26 @@
                     '<div class="store-drawer__body"><div class="rbt-day-sheet">' +
                     '<div class="supplier-detail-grid">' +
                     field('日期', day.date) +
-                    field('渠道', day.channel) +
+                    field('付款子单号', day.payNo) +
+                    field('结款状态', day.settleStatus) +
+                    field('通道流水', day.channelFlow) +
+                    field('角色', day.payeeRole) +
+                    field('收款方名称', day.payeeName) +
+                    field('支付方式', day.payWay || day.channel) +
+                    field('付款账户', day.payAccount) +
                     field('门店', (day.storeName || '—') + '（' + (day.storeCode || '—') + '）') +
                     field('需求单号', day.demandCode) +
+                    field('产品', day.installmentName) +
                     field('营业流水', moneyText(day.turnover)) +
-                    field('所得佣金', moneyText(day.commission)) +
-                    field('结算比例', day.ratio) +
-                    field('应付款', moneyText(day.due)) +
+                    field('所得收入', moneyText(day.commission)) +
+                    field('应付', moneyText(day.due)) +
                     field('实际付款', moneyText(day.actual)) +
-                    field('支付方式', day.payMethod || '—') +
+                    field('已结', moneyText(day.settleAmount)) +
+                    field('货款', moneyText(day.goodsPay)) +
+                    field('服务费', moneyText(day.feePay)) +
                     '</div>' +
-                    '<div class="supplier-detail-section-title">各方结款</div>' +
-                    '<table class="rbt-day-table"><thead><tr><th>角色</th><th>收款方</th><th class="is-money">结款</th></tr></thead><tbody>' +
-                    '<tr><td>贸易商</td><td>' + esc(day.traderName) + '</td><td class="is-money">' + esc(moneyText(day.traderPay)) + '</td></tr>' +
-                    '<tr><td>冷丰</td><td>上海冷丰科技有限公司</td><td class="is-money">' + esc(moneyText(day.lengfengPay)) + '</td></tr>' +
-                    '<tr><td>服务商</td><td>' + esc(day.providerName) + '</td><td class="is-money">' + esc(moneyText(day.providerPay)) + '</td></tr>' +
-                    '</tbody></table>' +
-                    '<p class="rbt-day-note">结款从当日实际付款按贸易商、冷丰、服务商应收占比拆出，三笔之和等于当日实际付款。没有服务商时，服务商结款为 0。</p>' +
+                    channelBody(day) +
+                    '<p class="rbt-day-note">' + esc(dayNote(day)) + '</p>' +
                     '</div></div>';
                 document.body.appendChild(backdrop);
                 document.body.appendChild(drawer);
@@ -227,11 +368,24 @@
             }
 
             return {
-                slots: slots,
-                columns: columns,
-                requestRows: requestRows,
+                query: query,
+                expanded: expanded,
+                productOptions: productOptions(),
+                page: page,
+                pageSize: pageSize,
+                pageSizes: pageSizes,
+                total: total,
+                pageRows: pageRows,
+                search: search,
+                reset: reset,
+                toggleSearch: toggleSearch,
+                onPage: onPage,
+                onSize: onSize,
+                copyFlow: copyFlow,
+                moneyFormatter: moneyFormatter,
+                ratioFormatter: ratioFormatter,
+                textFormatter: textFormatter,
                 openDemand: openDemand,
-                openPerformance: openPerformance,
                 openDay: openDay
             };
         }

@@ -1204,7 +1204,7 @@
         return Number(parts[1]) + '月' + Number(parts[2]) + '日';
     }
 
-    /* 最近一个入账日还在途，不写到账时间。更早的日期用次日批次的演示到账时间，正式环境用转账成功时间。 */
+    /* 当日支付在次日批次到账。提前支付用实际支付时间。还没扣到的不写付款时间。 */
     function settlementTime(date) {
         var parts = String(date || '').split('-');
         if (parts.length < 3) return '';
@@ -1214,10 +1214,10 @@
         return day.getFullYear() + '-' + pad(day.getMonth() + 1) + '-' + pad(day.getDate()) + ' 08:00:00';
     }
 
-    function executedAtOf(day) {
-        if (!day) return '';
+    function paidAtOf(day) {
+        if (!day || day.stage === 'failed') return '';
         var raw = String(day.time || '');
-        if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(raw)) return raw;
+        if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}/.test(raw)) return raw.length > 19 ? raw.slice(0, 19) : raw;
         if (day.kind === 'manual') return raw;
         if (day.stage !== 'due') return '';
         return settlementTime(day.date);
@@ -1310,7 +1310,7 @@
             '<div><span>预计应付金额</span><b>' + (openRows.length ? (hasOpenDays ? ('¥' + centsText(estimateSum)) : '未计算') : '¥0.00') + '</b></div>' +
             '<div><span>已付金额</span><b>¥' + centsText(fulfilledSum) + '</b></div>' +
             '</div>' +
-            '<button type="button" class="rbt-pay__go" data-pay-open ' + (openRows.length ? '' : 'disabled') + '>提前支付</button>' +
+            '<button type="button" class="rbt-pay__go" data-pay-open ' + (openRows.length ? '' : 'disabled') + '>手动付款</button>' +
             '<p class="rbt-pay__note">每天将从营业收入自动扣款。预计应付是次日佣金预估。</p>' +
             '</section>' +
             '<div class="rbt-pay__list">' +
@@ -1390,17 +1390,17 @@
         if (!rows.length || !mask) return;
         payMethod = 'alipay';
         var demandField = rows.length > 1
-            ? '<label class="rbt-pay-demand"><span>提前支付</span><select id="rbtPayDemand">' +
+            ? '<label class="rbt-pay-demand"><span>手动付款</span><select id="rbtPayDemand">' +
                 rows.map(function (item) {
                     return '<option value="' + esc(item.code) + '">' + esc(item.code) +
                         (item.packageName ? ' · ' + esc(item.packageName) : '') +
                         ' · 剩余 ¥' + centsText(remainCents(item)) + '</option>';
                 }).join('') + '</select></label>'
-            : '<p class="rbt-pay-demand rbt-pay-demand--text"><span>提前支付</span><b>' + esc(rows[0].code) +
+            : '<p class="rbt-pay-demand rbt-pay-demand--text"><span>手动付款</span><b>' + esc(rows[0].code) +
                 (rows[0].packageName ? ' · ' + esc(rows[0].packageName) : '') + '</b></p>' +
                 '<input type="hidden" id="rbtPayDemand" value="' + esc(rows[0].code) + '">';
         mask.innerHTML = '<div class="rbt-pay-page" data-pay-sheet>' +
-            '<div class="rbt-pay-page__bar"><strong>选择支付方式</strong>' +
+            '<div class="rbt-pay-page__bar"><strong>选择付款账户</strong>' +
             '<button type="button" data-pay-close aria-label="关闭">×</button></div>' +
             '<div class="rbt-pay-page__body">' +
             demandField +
@@ -1411,7 +1411,6 @@
             '<button type="button" class="rbt-pay-method" data-pay-method="wechat"><i class="rbt-pay-logo rbt-pay-logo--wx">微</i><span>微信</span><em></em></button>' +
             '<button type="button" class="rbt-pay-method" data-pay-method="wallet"><i class="rbt-pay-logo rbt-pay-logo--wallet">钱</i><span>钱包<small id="rbtPayWalletBalance">' +
             esc(walletBalanceText()) + '</small></span><em></em></button>' +
-            '<p class="rbt-pay-method__tip">支付宝、微信跳转对方完成密码验证。钱包支付使用余额账户可提现，不含货款和保证金，需先验证平台支付密码。</p>' +
             '</div>' +
             '<button type="button" class="rbt-pay-confirm" data-pay-confirm>确认支付</button>' +
             '</div>';
@@ -1436,7 +1435,7 @@
         var input = document.getElementById('rbtPayAmount');
         var item = select ? payDemandByCode(select.value) : null;
         if (!item) {
-            toast('请选择要提前支付的需求');
+            toast('请选择要手动付款的需求');
             return;
         }
         if (clampPayInput()) return;
@@ -1456,6 +1455,7 @@
             if (input) input.value = centsText(remain);
             return;
         }
+        /* 支付宝、微信跳转对方验密。钱包只扣余额账户可用余额，并先验平台支付密码。 */
         var channel = payMethod === 'wechat' ? '微信' : (payMethod === 'wallet' ? '钱包' : '支付宝');
         pendingPay = { code: item.code, cents: cents, channel: channel };
         if (channel !== '钱包') {
@@ -1474,7 +1474,7 @@
         }
         if (cents / 100 > wallet.withdrawable + 0.001) {
             pendingPay = null;
-            toast('钱包可提现余额不足，当前 ¥' + wallet.withdrawable.toFixed(2));
+            toast('可用余额不足，当前 ¥' + wallet.withdrawable.toFixed(2));
             return;
         }
         var payApi = window.StorePayPassword;
@@ -1494,8 +1494,8 @@
 
     function walletBalanceText() {
         var snap = storeWalletSnap();
-        if (!snap) return '可提现余额暂不可用';
-        return '可提现 ¥' + Number(snap.withdrawable || 0).toFixed(2);
+        if (!snap) return '可用余额暂不可用';
+        return '可用余额 ¥' + Number(snap.withdrawable || 0).toFixed(2);
     }
 
     function debitStoreWallet(pay) {
@@ -1504,19 +1504,19 @@
         var data = api.load();
         var snap = api.snapshot(data);
         var amount = Math.round(pay.cents) / 100;
-        if (amount > Number(snap.withdrawable || 0) + 0.001) return { ok: false, message: '钱包可提现余额不足' };
+        if (amount > Number(snap.withdrawable || 0) + 0.001) return { ok: false, message: '可用余额不足' };
         data.withdrawable = Math.round((Number(data.withdrawable || 0) - amount) * 100) / 100;
         data.ledgers = data.ledgers || [];
         data.ledgers.unshift({
             id: 'RBT' + Date.now(),
             time: nowText(),
-            type: '提前支付',
+            type: '手动付款',
             dir: 'out',
             amount: amount,
             account: '平台',
             bizNo: pay.code,
             payMethod: '余额账户',
-            remark: '提前支付从余额账户可提现扣款，不扣货款、不扣保证金'
+            remark: '手动付款'
         });
         api.save(data);
         return { ok: true };
@@ -1596,7 +1596,7 @@
             '<p class="rbt-result__amt">¥' + centsComma(pay.cents) + '</p>' +
             '<div class="rbt-result__meta">' +
             '<div><span>支付金额</span><b>¥' + centsText(pay.cents) + '</b></div>' +
-            '<div><span>支付方式</span><b>' + esc(pay.channel) + '</b></div>' +
+            '<div><span>付款账户</span><b>' + esc(pay.channel) + '</b></div>' +
             '<div><span>需求单号</span><b>' + esc(pay.code) + '</b></div>' +
             '</div>' +
             '<button type="button" class="rbt-result__go" data-result-bill="' + esc(pay.code) + '">查看付款</button>' +
@@ -1658,14 +1658,6 @@
         finishPendingPay();
     }
 
-    function dayPayMethod(day) {
-        return (day && day.payMethod) || ((window.RbtDailyFulfill && window.RbtDailyFulfill.autoPayMethod) || '营业收入自动扣款');
-    }
-
-    function dayFact(label, value) {
-        return '<span><i>' + esc(label) + '</i><b>' + esc(value) + '</b></span>';
-    }
-
     function manualDayRows(item) {
         var api = window.RbtDailyFulfill;
         if (!item || !api || typeof api.manualRows !== 'function') return [];
@@ -1686,7 +1678,7 @@
                 grouped[key] = {
                     date: day.date,
                     kind: 'daily',
-                    channel: '当日支付',
+                    channel: '自动扣款',
                     stage: day.stage,
                     turnover: 0,
                     commission: 0,
@@ -1704,7 +1696,7 @@
             row.actual += Number(day.actual) || 0;
             if (day.stage !== 'due') row.stage = day.stage;
         });
-        days = days.concat(manualDayRows(item));
+        days = days.concat(manualDayRows(item), failedDayRows(item));
         days.sort(function (a, b) {
             if (a.date !== b.date) return a.date < b.date ? -1 : 1;
             if (a.kind === 'manual' && b.kind !== 'manual') return 1;
@@ -1714,63 +1706,51 @@
         return days;
     }
 
+    function failedDayRows(item) {
+        var api = window.RbtDailyFulfill;
+        if (!item || !api || typeof api.failedRows !== 'function') return [];
+        return api.failedRows(item).map(function (row) {
+            row.stage = 'failed';
+            return row;
+        });
+    }
+
     function dayChannel(day) {
-        return day && day.kind === 'manual' ? '提前支付' : '当日支付';
+        return day && day.kind === 'manual' ? '手动付款' : '自动扣款';
+    }
+
+    function dayAccount(day) {
+        if (!day) return '';
+        if (day.kind !== 'manual') return '钱包余额';
+        var tool = String(day.payMethod || '').trim();
+        if (tool === '余额账户') tool = '钱包';
+        if (tool === '支付宝' || tool === '微信' || tool === '钱包') return tool;
+        return '';
+    }
+
+    function turnoverText(day) {
+        if (!day || day.turnover == null || day.turnover === '') return '—';
+        return '¥' + money(day.turnover);
     }
 
     function renderDayList(item, days) {
-        return days.slice().reverse().map(function (day, revIndex) {
-            var index = days.length - 1 - revIndex;
-            var stage = day.kind === 'manual' ? '已付款' : (day.stage === 'due' ? '已付款' : '待结算');
-            var when = executedAtOf(day) || '未执行';
-            var payText = '¥' + money(day.due);
-            var facts = day.kind === 'manual'
-                ? dayFact('支付金额', payText) +
-                    dayFact('支付方式', day.payMethod || '—')
-                : dayFact('营业流水', '¥' + money(day.turnover)) +
-                    dayFact('收入所得', '¥' + money(day.commission)) +
-                    dayFact('支付金额', payText) +
-                    dayFact('支付方式', dayPayMethod(day));
-            facts += dayFact('结算时间', when);
-            return '<button type="button" class="rbt-bill__day" data-day-index="' + index + '">' +
+        return days.slice().reverse().map(function (day) {
+            var stage = day.stage === 'failed' ? '结款失败' : (day.kind === 'manual' || day.stage === 'due' ? '已结款' : '在途');
+            var account = dayAccount(day);
+            var accountHtml = account ? '<span class="rbt-bill__day-meta"><i>付款账户</i><b>' + esc(account) + '</b></span>' : '';
+            var turnover = day.kind === 'manual'
+                ? accountHtml
+                : '<span class="rbt-bill__day-meta"><i>营业额</i><b>' + esc(turnoverText(day)) + '</b></span>' + accountHtml;
+            return '<div class="rbt-bill__day">' +
                 '<span class="rbt-bill__day-head">' +
                 '<span class="rbt-bill__day-date">' + esc(monthDay(day.date)) + '</span>' +
                 '<span class="rbt-bill__day-channel">' + esc(dayChannel(day)) + '</span>' +
-                '<span class="rbt-bill__day-stage' + (day.stage === 'due' ? ' is-due' : '') + '">' + stage + '</span>' +
-                '<span class="rbt-bill__day-more" aria-hidden="true">›</span></span>' +
-                '<span class="rbt-bill__day-grid">' + facts + '</span></button>';
+                '<span class="rbt-bill__day-stage' + (day.stage === 'failed' ? ' is-fail' : (day.stage === 'due' ? ' is-due' : '')) + '">' + stage + '</span></span>' +
+                turnover +
+                '<span class="rbt-bill__day-meta"><i>货款</i><b>¥' + esc(money(day.due)) + '</b></span>' +
+                '<span class="rbt-bill__day-meta"><i>付款时间</i><b>' + esc(paidAtOf(day) || '—') + '</b></span>' +
+                '</div>';
         }).join('');
-    }
-
-    /* 门店端把冷丰服务费和服务商服务费合成一项服务费。后台仍分开记冷丰、服务商。 */
-    function dayPayWeights(item) {
-        var goods = yuanCents(item && item.goodsAmount);
-        var pack = window.RbtDemandData && typeof window.RbtDemandData.receivables === 'function'
-            ? window.RbtDemandData.receivables(item)
-            : null;
-        var trader = yuanCents(pack && pack.trader);
-        var lengfeng = yuanCents(pack && pack.lengfeng);
-        var provider = yuanCents(pack && pack.provider);
-        var weights = [
-            { label: '货款', cents: trader > 0 ? trader : goods },
-            { label: '服务费', cents: Math.max(0, lengfeng) + Math.max(0, provider) }
-        ].filter(function (row) { return row.cents > 0; });
-        if (weights.length) return weights;
-        var fee = yuanCents(item && item.serviceFee);
-        if (goods > 0) weights.push({ label: '货款', cents: goods });
-        if (fee > 0) weights.push({ label: '服务费', cents: fee });
-        return weights.length ? weights : [{ label: '货款', cents: 1 }];
-    }
-
-    function splitDayPay(cents, weights) {
-        var total = weights.reduce(function (sum, row) { return sum + row.cents; }, 0);
-        var used = 0;
-        return weights.map(function (row, index) {
-            if (index === weights.length - 1) return { label: row.label, cents: cents - used };
-            var share = total > 0 ? Math.floor(cents * row.cents / total) : 0;
-            used += share;
-            return { label: row.label, cents: share };
-        });
     }
 
     function closeDaySplit() {
@@ -1778,25 +1758,6 @@
         if (!node) return;
         node.hidden = true;
         node.innerHTML = '';
-    }
-
-    function openDaySplit(index) {
-        var item = repayViews().filter(function (row) { return row.code === billCode; })[0];
-        var day = item ? displayDays(item)[index] : null;
-        var node = document.getElementById('rbtH5DaySplit');
-        if (!item || !day || !node) return;
-        var parts = splitDayPay(yuanCents(day.due), dayPayWeights(item));
-        node.innerHTML = '<div class="rbt-split__card" role="dialog" aria-modal="true" aria-label="支付明细">' +
-            '<h2 class="rbt-split__title">' + esc(monthDay(day.date) + ' · ' + dayChannel(day)) + '</h2>' +
-            '<div class="rbt-split__row"><span>结算时间</span><b>' + esc(executedAtOf(day) || '未执行') + '</b></div>' +
-            '<div class="rbt-split__row"><span>支付方式</span><b>' + esc(day.kind === 'manual' ? (day.payMethod || '—') : dayPayMethod(day)) + '</b></div>' +
-            '<div class="rbt-split__row"><span>支付金额</span><b>¥' + esc(money(day.due)) + '</b></div>' +
-            parts.map(function (row) {
-                return '<div class="rbt-split__row"><span>' + esc(row.label) + '</span><b>¥' + centsText(row.cents) + '</b></div>';
-            }).join('') +
-            '<button type="button" class="rbt-split__ok" data-day-split-close>确定</button>' +
-            '</div>';
-        node.hidden = false;
     }
 
     /* 两份合同都签完的最晚时间，就是合同内容生效的时间。 */
@@ -2446,17 +2407,6 @@
             return;
         }
         if (event.target.closest('#rbtH5Result')) return;
-        var dayBtn = event.target.closest('[data-day-index]');
-        var dayClose = event.target.closest('[data-day-split-close]');
-        if (dayClose || event.target.id === 'rbtH5DaySplit') {
-            closeDaySplit();
-            return;
-        }
-        if (dayBtn) {
-            openDaySplit(Number(dayBtn.getAttribute('data-day-index')));
-            return;
-        }
-        if (event.target.closest('#rbtH5DaySplit')) return;
         var contractClose = event.target.closest('[data-contract-close]');
         var contractOpen = event.target.closest('[data-contract-open]');
         if (contractClose) {

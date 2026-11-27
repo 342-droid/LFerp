@@ -858,6 +858,7 @@
         .rbt-ops__head b { color: #222; font-size: 14px; font-weight: 600; }
         .rbt-ops__head em { font-style: normal; color: #ff7019; font-size: 12px; font-weight: 600; }
         .rbt-ops__head em.is-due { color: #52c41a; }
+        .rbt-ops__head em.is-fail { color: #cf1322; }
         .rbt-ops__grid { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-top: 12px; }
         .rbt-ops__grid.is-single { justify-content: flex-start; }
         .rbt-ops__grid span,
@@ -1233,6 +1234,59 @@
         .rbt-bill__line span { flex: none; color: #888; white-space: nowrap; }
         .rbt-bill__line b { flex: 1; min-width: 0; color: #222; font-weight: 600; text-align: right; overflow-wrap: break-word; }
         .rbt-bill__line b:has(.rbt-bill__contract) { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+        .rbt-bill__sum {
+            width: 100%;
+            margin: 0;
+            border-left: 0;
+            border-right: 0;
+            border-top: 0;
+            border-radius: 0;
+            background: transparent;
+            color: inherit;
+            font-size: 13px;
+            font-weight: 400;
+            line-height: 1.4;
+            text-align: left;
+            cursor: pointer;
+            appearance: none;
+        }
+        .rbt-bill__sum span,
+        .rbt-bill__sum b { font-size: 13px; }
+        .rbt-bill__tree.is-open > .rbt-bill__sum { border-bottom-color: transparent; padding-bottom: 2px; }
+        .rbt-bill__sum b { display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
+        .rbt-bill__fold {
+            flex: none;
+            width: 6px;
+            height: 6px;
+            margin-top: -2px;
+            border-right: 1.5px solid #bbb;
+            border-bottom: 1.5px solid #bbb;
+            transform: rotate(-45deg);
+        }
+        .rbt-bill__fold.is-open { margin-top: 2px; transform: rotate(45deg); }
+        .rbt-bill__kids {
+            margin: 0;
+            padding: 0 0 0 2px;
+            border-left: 0;
+            background: transparent;
+        }
+        .rbt-bill__line.is-child {
+            padding: 7px 0;
+            font-size: 13px;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        .rbt-bill__line.is-child span::before {
+            content: '•';
+            margin-right: 6px;
+            color: #666;
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 0;
+            vertical-align: -1px;
+        }
+        .rbt-bill__kids .rbt-bill__line:last-child { border-bottom: 1px solid #f0f0f0; }
+        .rbt-bill__line.is-child span { color: #999; font-size: 13px; }
+        .rbt-bill__line.is-child b { color: #666; font-size: 13px; font-weight: 500; }
         .rbt-bill__contract {
             border: 0;
             padding: 0;
@@ -1491,13 +1545,13 @@
     <script src="../js/mdm-trader-archive-store.js?v=20261117-provider"></script>
     <script src="rbt-settle-ratio.js"></script>
     <script src="rbt-demand-data.js?v=20261127-closed-demo"></script>
-    <script src="rbt-daily-fulfill.js?v=20261127-closed-demo"></script>
+    <script src="rbt-daily-fulfill.js?v=20261128-settle-fail"></script>
     <script src="../js/store-pay-password.js"></script>
-    <script src="rbt-party-wallet.js?v=20261127-out-demo"></script>
+    <script src="rbt-party-wallet.js?v=20261128-pay-method"></script>
     <script src="rbt-trader-store-biz.js?v=20261127-no-preset"></script>
     <script src="rbt-contract-sign.js"></script>
     <script src="../js/contract-bodies.js?v=20261123-trader-read"></script>
-    <script src="rbt-h5-trader-app.js?v=20261127-range-out"></script>
+    <script src="rbt-h5-trader-app.js?v=20261128-settle-fail"></script>
     <script src="rbt-h5-trader-login.js"></script>
 </body>
 </html>
