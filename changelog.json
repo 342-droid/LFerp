@@ -1,10 +1,882 @@
 {
-  "latestSha": "b61eb184f377beac48b51cf030ddf512ae7db09a",
-  "total": 645,
+  "latestSha": "c36c7d023067b53d1d3e5e0108fc58af0b5db6eb",
+  "total": 656,
   "days": [
+    {
+      "date": "2026-11-27",
+      "items": [
+        {
+          "sha": "c36c7d0",
+          "type": "feat",
+          "text": "贸易商结款明细按时段汇总，钱包同一天只入账一笔",
+          "author": "sisi",
+          "time": "14:31",
+          "pages": [
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "结款明细的时间筛选放到汇总卡片上方，已结款、待结款、当日支付、提前支付分两行，并一起筛选下方明细；去掉结款总览、按门店统计和日期口径说明；收款数据总览不再展示已作废、已驳回、发货中；门店经营可打开，自定义时段去掉跨年示例和已选时段，按钮改为查询；钱包同一门店同一天只显示一笔结款入账"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "text": "结款总览去掉已结款笔数和按日、按门店的笔数；钱包同一门店同一天只显示一笔结款入账，并去掉账户首页的余额说明"
+            }
+          ]
+        },
+        {
+          "sha": "6e4d260",
+          "type": "feat",
+          "text": "收紧贸易商和服务商钱包首页的账户明细",
+          "author": "sisi",
+          "time": "09:54",
+          "pages": [
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "去掉重复的余额账户和划转说明；充值可绑银行卡并按限额校验；账户明细改为右上角选时间、收支页签，流水按天分组"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "text": "充值和账户明细与贸易商同一套；流水按天分组，时间筛选收进标题右侧"
+            }
+          ]
+        },
+        {
+          "sha": "df5a619",
+          "type": "feat",
+          "text": "日结计入商城直播佣金和 POS 扣费后收款，并补齐结款钱包",
+          "author": "sisi",
+          "time": "00:23",
+          "pages": [
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "module": "冷丰WMS",
+              "title": "需求单审核"
+            },
+            {
+              "file": "RBT/rbt_admit_store.html",
+              "module": "冷丰RBT",
+              "title": "门店准入管理"
+            },
+            {
+              "file": "RBT/rbt_contract_sign.html",
+              "module": "冷丰RBT",
+              "title": "合同签署"
+            },
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日付款"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "付款"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常付款数据"
+            },
+            {
+              "file": "RBT/rbt_risk_config.html",
+              "module": "冷丰RBT",
+              "title": "风控配置"
+            },
+            {
+              "file": "RBT/rbt_trade.html",
+              "module": "冷丰RBT",
+              "title": "交易单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "text": "POS 进入应付；商城、直播按已入账佣金乘结算比例，POS 按经营流水扣除平台服务费后乘结算比例；最近一天在途不记已付款"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "text": "顶部说明改为商城直播与 POS 两套应付口径；付款详情里的每日付款说明同步"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "text": "已付款和日均只统计到账核销，在途不计入"
+            },
+            {
+              "file": "RBT/rbt_risk_config.html",
+              "text": "动态基准的已结款改为已经到账的金额，有营收即和基准比"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "text": "缺报、已冻结和在途不计入连续未付款"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "text": "同一天的 POS、商城、直播合成当日支付；基础信息增加签署时间；提前支付支持支付宝、微信和钱包"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "新增结款总览和钱包；门店经营只保留营业额；基础信息增加签署时间；结款明细含 POS"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "text": "登录后进入首页，新增结款总览和钱包；基础信息改为签署合同和签署时间"
+            },
+            {
+              "file": null,
+              "text": "付款结款按钱包入账日归集，到账后才核销"
+            }
+          ]
+        }
+      ]
+    },
     {
       "date": "2026-11-26",
       "items": [
+        {
+          "sha": "60d9619",
+          "type": "other",
+          "text": "Match stock detail rows to SPU SKU count",
+          "author": "u ｌ",
+          "time": "22:41",
+          "pages": [
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            }
+          ]
+        },
+        {
+          "sha": "663a655",
+          "type": "other",
+          "text": "Show stock totals by SPU and SKU",
+          "author": "u ｌ",
+          "time": "22:34",
+          "pages": [
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            }
+          ]
+        },
+        {
+          "sha": "cd5a143",
+          "type": "other",
+          "text": "Add confirmed product stock and selection updates",
+          "author": "u ｌ",
+          "time": "22:25",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_live_session.html",
+              "module": "冷丰WMS",
+              "title": "直播场次"
+            },
+            {
+              "file": "MDM/mdm_member_level.html",
+              "module": "冷丰WMS",
+              "title": "会员等级"
+            },
+            {
+              "file": "MDM/mdm_member_level_rule.html",
+              "module": "冷丰WMS",
+              "title": "成长值规则"
+            },
+            {
+              "file": "MDM/mdm_order_freight_config.html",
+              "module": "冷丰订单",
+              "title": "运费配置"
+            },
+            {
+              "file": "MDM/mdm_party_all.html",
+              "module": "冷丰WMS",
+              "title": "所有主体"
+            },
+            {
+              "file": "MDM/mdm_product_category.html",
+              "module": "冷丰WMS",
+              "title": "商品类目"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_mall_category.html",
+              "module": "冷丰WMS",
+              "title": "商城类目"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "module": "冷丰WMS",
+              "title": "选品库"
+            },
+            {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
+            },
+            {
+              "file": "SCM/basic_settings_miniprogram_agreement.html",
+              "module": "冷丰WMS",
+              "title": "小程序协议"
+            },
+            {
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
+            },
+            {
+              "file": "SCM/basic_settings_recommendation.html",
+              "module": "冷丰WMS",
+              "title": "推荐位配置"
+            },
+            {
+              "file": "SCM/logistics_rate.html",
+              "module": "冷丰TMS",
+              "title": "物流费率表"
+            }
+          ],
+          "global": true
+        },
+        {
+          "sha": "d6b9833",
+          "type": "other",
+          "text": "Add mall decoration prototype and product log filters",
+          "author": "u ｌ",
+          "time": "22:23",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_live_session.html",
+              "module": "冷丰WMS",
+              "title": "直播场次"
+            },
+            {
+              "file": "MDM/mdm_member_level.html",
+              "module": "冷丰WMS",
+              "title": "会员等级"
+            },
+            {
+              "file": "MDM/mdm_member_level_rule.html",
+              "module": "冷丰WMS",
+              "title": "成长值规则"
+            },
+            {
+              "file": "MDM/mdm_order_freight_config.html",
+              "module": "冷丰订单",
+              "title": "运费配置"
+            },
+            {
+              "file": "MDM/mdm_party_all.html",
+              "module": "冷丰WMS",
+              "title": "所有主体"
+            },
+            {
+              "file": "MDM/mdm_product_category.html",
+              "module": "冷丰WMS",
+              "title": "商品类目"
+            },
+            {
+              "file": "MDM/mdm_product_mall_category.html",
+              "module": "冷丰WMS",
+              "title": "商城类目"
+            },
+            {
+              "file": "MDM/mdm_product_selection.html",
+              "module": "冷丰WMS",
+              "title": "选品库"
+            },
+            {
+              "file": "SCM/basic_settings_business_tags.html",
+              "module": "冷丰WMS",
+              "title": "标签管理"
+            },
+            {
+              "file": "SCM/basic_settings_contract_config.html",
+              "module": "冷丰WMS",
+              "title": "接入配置"
+            },
+            {
+              "file": "SCM/basic_settings_contract_party.html",
+              "module": "冷丰WMS",
+              "title": "签署主体"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task.html",
+              "module": "冷丰WMS",
+              "title": "签署任务"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_detail.html",
+              "module": "冷丰WMS",
+              "title": "签署任务详情"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template.html",
+              "module": "冷丰WMS",
+              "title": "合同模板"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template_form.html",
+              "module": "冷丰WMS",
+              "title": "合同模板配置"
+            },
+            {
+              "file": "SCM/basic_settings_cooperation.html",
+              "module": "冷丰WMS",
+              "title": "合作管理"
+            },
+            {
+              "file": "SCM/basic_settings_file_center.html",
+              "module": "冷丰WMS",
+              "title": "文件中心"
+            },
+            {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
+            },
+            {
+              "file": "SCM/basic_settings_material.html",
+              "module": "冷丰WMS",
+              "title": "素材列表"
+            },
+            {
+              "file": "SCM/basic_settings_material_type.html",
+              "module": "冷丰WMS",
+              "title": "素材类型"
+            },
+            {
+              "file": "SCM/basic_settings_member.html",
+              "module": "冷丰WMS",
+              "title": "会员配置"
+            },
+            {
+              "file": "SCM/basic_settings_miniprogram_agreement.html",
+              "module": "冷丰WMS",
+              "title": "小程序协议"
+            },
+            {
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
+            },
+            {
+              "file": "SCM/basic_settings_recommendation.html",
+              "module": "冷丰WMS",
+              "title": "推荐位配置"
+            },
+            {
+              "file": "SCM/basic_settings_system.html",
+              "module": "冷丰WMS",
+              "title": "系统管理"
+            },
+            {
+              "file": "SCM/logistics_rate.html",
+              "module": "冷丰TMS",
+              "title": "物流费率表"
+            }
+          ]
+        },
+        {
+          "sha": "f71ce38",
+          "type": "feat",
+          "text": "门店进件与档案编辑提示疑似重复",
+          "author": "u ｌ",
+          "time": "17:33",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_trader.html",
+              "module": "冷丰WMS",
+              "title": "贸易商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_bd_h5.html",
+              "module": "",
+              "title": "冷丰 MDM · 门店扫码 H5"
+            },
+            {
+              "file": "MDM/mdm_bd_store_form.html",
+              "module": "",
+              "title": "冷丰 MDM · 添加 / 编辑门店"
+            },
+            {
+              "file": "MDM/mdm_party_all.html",
+              "module": "冷丰WMS",
+              "title": "所有主体"
+            }
+          ],
+          "global": true
+        },
+        {
+          "sha": "156e1c5",
+          "type": "feat",
+          "text": "新增门店分类配置并联动门店字段",
+          "author": "u ｌ",
+          "time": "17:25",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_trader.html",
+              "module": "冷丰WMS",
+              "title": "贸易商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_bd_h5.html",
+              "module": "",
+              "title": "冷丰 MDM · 门店扫码 H5"
+            },
+            {
+              "file": "MDM/mdm_bd_store_form.html",
+              "module": "",
+              "title": "冷丰 MDM · 添加 / 编辑门店"
+            },
+            {
+              "file": "MDM/mdm_party_all.html",
+              "module": "冷丰WMS",
+              "title": "所有主体"
+            },
+            {
+              "file": "SCM/basic_settings_business_tags.html",
+              "module": "冷丰WMS",
+              "title": "标签管理"
+            },
+            {
+              "file": "SCM/basic_settings_contract_config.html",
+              "module": "冷丰WMS",
+              "title": "接入配置"
+            },
+            {
+              "file": "SCM/basic_settings_contract_party.html",
+              "module": "冷丰WMS",
+              "title": "签署主体"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task.html",
+              "module": "冷丰WMS",
+              "title": "签署任务"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_detail.html",
+              "module": "冷丰WMS",
+              "title": "签署任务详情"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template.html",
+              "module": "冷丰WMS",
+              "title": "合同模板"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template_form.html",
+              "module": "冷丰WMS",
+              "title": "合同模板配置"
+            },
+            {
+              "file": "SCM/basic_settings_cooperation.html",
+              "module": "冷丰WMS",
+              "title": "合作管理"
+            },
+            {
+              "file": "SCM/basic_settings_file_center.html",
+              "module": "冷丰WMS",
+              "title": "文件中心"
+            },
+            {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
+            },
+            {
+              "file": "SCM/basic_settings_material.html",
+              "module": "冷丰WMS",
+              "title": "素材列表"
+            },
+            {
+              "file": "SCM/basic_settings_material_type.html",
+              "module": "冷丰WMS",
+              "title": "素材类型"
+            },
+            {
+              "file": "SCM/basic_settings_member.html",
+              "module": "冷丰WMS",
+              "title": "会员配置"
+            },
+            {
+              "file": "SCM/basic_settings_miniprogram_agreement.html",
+              "module": "冷丰WMS",
+              "title": "小程序协议"
+            },
+            {
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
+            },
+            {
+              "file": "SCM/basic_settings_recommendation.html",
+              "module": "冷丰WMS",
+              "title": "推荐位配置"
+            },
+            {
+              "file": "SCM/basic_settings_system.html",
+              "module": "冷丰WMS",
+              "title": "系统管理"
+            }
+          ]
+        },
+        {
+          "sha": "b54ccd7",
+          "type": "feat",
+          "text": "付款风险改为按产品评级，并统一门店和贸易商的结款展示",
+          "author": "sisi",
+          "time": "16:31",
+          "pages": [
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "module": "冷丰WMS",
+              "title": "商品列表"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "module": "冷丰WMS",
+              "title": "代采商品列表"
+            },
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日付款"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "付款"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常付款数据"
+            },
+            {
+              "file": "RBT/rbt_risk_config.html",
+              "module": "冷丰RBT",
+              "title": "风控配置"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "RBT/rbt_risk_config.html",
+              "text": "风险等级按产品配置，有营收开始结款后即评级；动态基准改为已结款合计除以对应营业天数"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "text": "持续未付款样例不再写满起算天数，评级跟着产品基准走"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "text": "风险等级按产品基准重算"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "text": "列表等级按产品基准重算"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "基础信息去掉结算比例；结款明细营业流水改为营业额，去掉所得佣金和当日实际付款，支付方式改为营业收入，标题分为提前支付和当日支付"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "text": "每日付款所得佣金改为收入所得并补上支付金额；点开后商品金额改为货款；渠道改为提前支付和当日支付"
+            },
+            {
+              "file": "MDM/mdm_product_mall.html",
+              "text": "毛利率不再压住划线价"
+            },
+            {
+              "file": "MDM/mdm_product_proxy_list.html",
+              "text": "毛利率不再压住划线价"
+            },
+            {
+              "file": null,
+              "text": "付款结款文档同步按产品评级和两端结款文案"
+            }
+          ]
+        },
+        {
+          "sha": "425e4a7",
+          "type": "feat",
+          "text": "贸易商在确认签约时生成合同并冻结商品金额",
+          "author": "342-droid",
+          "time": "15:49",
+          "pages": [
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "module": "冷丰WMS",
+              "title": "需求单审核"
+            },
+            {
+              "file": "RBT/rbt_admit_store.html",
+              "module": "冷丰RBT",
+              "title": "门店准入管理"
+            },
+            {
+              "file": "RBT/rbt_contract_sign.html",
+              "module": "冷丰RBT",
+              "title": "合同签署"
+            },
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日付款"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "付款"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常付款数据"
+            },
+            {
+              "file": "RBT/rbt_risk_config.html",
+              "module": "冷丰RBT",
+              "title": "风控配置"
+            },
+            {
+              "file": "RBT/rbt_trade.html",
+              "module": "冷丰RBT",
+              "title": "交易单"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "确认签约先核对余额，余额足够时生成两份合同并冻结商品金额；余额不足留在待确认签约且不生成合同；确认签署不再校验余额、不再冻结"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "text": "签署合同时不再校验贸易商余额，冻结改在确认签约完成"
+            },
+            {
+              "file": null,
+              "text": "整体流程、接单、门店签署、发货和付款结款文档同步为确认签约时冻结"
+            }
+          ]
+        },
         {
           "sha": "b61eb18",
           "type": "fix",
@@ -1490,6 +2362,11 @@
               "file": "MDM/mdm_super_admin_accounts.html",
               "module": "冷丰WMS",
               "title": "商户主体建档"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
             },
             {
               "file": "SCM/basic_settings_order.html",
@@ -5050,6 +5927,11 @@
               "file": "SCM/basic_settings_file_center.html",
               "module": "冷丰WMS",
               "title": "文件中心"
+            },
+            {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
             },
             {
               "file": "SCM/basic_settings_material.html",
@@ -11092,6 +11974,11 @@
               "title": "所有主体"
             },
             {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
               "file": "SCM/basic_settings_order.html",
               "module": "冷丰WMS",
               "title": "门店配置"
@@ -11430,6 +12317,11 @@
               "file": "MDM/mdm_party_all.html",
               "module": "冷丰WMS",
               "title": "所有主体"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
             },
             {
               "file": "SCM/basic_settings_order.html",
@@ -13129,6 +14021,11 @@
               "title": "文件中心"
             },
             {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
+            },
+            {
               "file": "SCM/basic_settings_material.html",
               "module": "冷丰WMS",
               "title": "素材列表"
@@ -13231,6 +14128,11 @@
               "file": "SCM/basic_settings_file_center.html",
               "module": "冷丰WMS",
               "title": "文件中心"
+            },
+            {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
             },
             {
               "file": "SCM/basic_settings_material.html",
@@ -14717,6 +15619,11 @@
               "title": "文件中心"
             },
             {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
+            },
+            {
               "file": "SCM/basic_settings_material.html",
               "module": "冷丰WMS",
               "title": "素材列表"
@@ -14819,6 +15726,11 @@
               "file": "SCM/basic_settings_file_center.html",
               "module": "冷丰WMS",
               "title": "文件中心"
+            },
+            {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
             },
             {
               "file": "SCM/basic_settings_material.html",
@@ -20165,6 +21077,11 @@
               "title": "合同模板配置"
             },
             {
+              "file": "SCM/basic_settings_order.html",
+              "module": "冷丰WMS",
+              "title": "门店配置"
+            },
+            {
               "file": "SCM/contract_sign.html",
               "module": "",
               "title": "合同"
@@ -20806,6 +21723,11 @@
               "file": "SCM/basic_settings_file_center.html",
               "module": "冷丰WMS",
               "title": "文件中心"
+            },
+            {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
             },
             {
               "file": "SCM/basic_settings_material.html",
@@ -23044,6 +23966,11 @@
               "file": "SCM/basic_settings_file_center.html",
               "module": "冷丰WMS",
               "title": "文件中心"
+            },
+            {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
             },
             {
               "file": "SCM/basic_settings_material.html",
@@ -27507,6 +28434,11 @@
               "title": "代采商品列表"
             },
             {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
               "file": "SCM/basic_settings_order.html",
               "module": "冷丰WMS",
               "title": "门店配置"
@@ -27759,6 +28691,11 @@
               "file": "MDM/mdm_super_admin_accounts.html",
               "module": "冷丰WMS",
               "title": "商户主体建档"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
             },
             {
               "file": "SCM/basic_settings_order.html",
@@ -28901,6 +29838,11 @@
               "title": "仓库档案"
             },
             {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
               "file": "SCM/basic_settings_order.html",
               "module": "冷丰WMS",
               "title": "门店配置"
@@ -29922,6 +30864,11 @@
               "file": "SCM/basic_settings_file_center.html",
               "module": "冷丰WMS",
               "title": "文件中心"
+            },
+            {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
             },
             {
               "file": "SCM/basic_settings_material.html",
@@ -32730,6 +33677,11 @@
               "title": "仓库档案"
             },
             {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
               "file": "SCM/basic_settings_order.html",
               "module": "冷丰WMS",
               "title": "门店配置"
@@ -33216,6 +34168,11 @@
               "file": "SCM/basic_settings_file_center.html",
               "module": "冷丰WMS",
               "title": "文件中心"
+            },
+            {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
             },
             {
               "file": "SCM/basic_settings_material.html",
@@ -37421,6 +38378,11 @@
               "title": "文件中心"
             },
             {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
+            },
+            {
               "file": "SCM/basic_settings_material.html",
               "module": "冷丰WMS",
               "title": "素材列表"
@@ -38382,6 +39344,11 @@
               "title": "文件中心"
             },
             {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
+            },
+            {
               "file": "SCM/basic_settings_material.html",
               "module": "冷丰WMS",
               "title": "素材列表"
@@ -38649,6 +39616,11 @@
               "file": "SCM/basic_settings_file_center.html",
               "module": "冷丰WMS",
               "title": "文件中心"
+            },
+            {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
             },
             {
               "file": "SCM/basic_settings_material.html",
@@ -40179,6 +41151,11 @@
               "title": "结算中心"
             },
             {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
               "file": "SCM/basic_settings_order.html",
               "module": "冷丰WMS",
               "title": "门店配置"
@@ -40450,6 +41427,11 @@
               "file": "MDM/mdm_order_retail.html",
               "module": "冷丰WMS",
               "title": "零售订单"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
             },
             {
               "file": "SCM/basic_settings_order.html",
@@ -40807,6 +41789,11 @@
               "file": "MDM/mdm_order_retail.html",
               "module": "冷丰WMS",
               "title": "零售订单"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
             },
             {
               "file": "SCM/basic_settings_order.html",
@@ -41808,6 +42795,11 @@
               "title": "仓库档案"
             },
             {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
               "file": "SCM/basic_settings_order.html",
               "module": "冷丰WMS",
               "title": "门店配置"
@@ -41996,6 +42988,11 @@
               "file": "MDM/mdm_super_admin_accounts.html",
               "module": "冷丰WMS",
               "title": "商户主体建档"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
             },
             {
               "file": "SCM/basic_settings_order.html",
@@ -42345,6 +43342,11 @@
               "title": "门店档案"
             },
             {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
               "file": "SCM/basic_settings_order.html",
               "module": "冷丰WMS",
               "title": "门店配置"
@@ -42478,9 +43480,19 @@
               "title": "仓库档案"
             },
             {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            },
+            {
               "file": "RBT/rbt_h5_store.html",
               "module": "冷丰RBT-移动端",
               "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
             },
             {
               "file": "SCM/basic_settings_order.html",
@@ -43186,6 +44198,11 @@
               "title": "零售订单"
             },
             {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
               "file": "SCM/basic_settings_order.html",
               "module": "冷丰WMS",
               "title": "门店配置"
@@ -43730,6 +44747,11 @@
               "file": "MDM/mdm_archive_warehouse.html",
               "module": "冷丰WMS",
               "title": "仓库档案"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
             },
             {
               "file": "SCM/basic_settings_order.html",
@@ -54169,6 +55191,11 @@
               "file": "SCM/basic_settings_index.html",
               "module": "冷丰WMS",
               "title": "基础设置"
+            },
+            {
+              "file": "SCM/basic_settings_mall_decoration.html",
+              "module": "冷丰WMS",
+              "title": "商城装修"
             },
             {
               "file": "SCM/basic_settings_material.html",

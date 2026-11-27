@@ -1,4 +1,4 @@
-/* 每日付款：应付款 = 所得佣金 × 该渠道结算比例。所得佣金是当日已发生的门店佣金。不叫还款，不拆总金额，不预造未发生的日期。 */
+/* 每日付款：商城、直播应付 = 已入账佣金 × 结算比例。POS 应付 =（经营流水 − 平台服务费）× 结算比例。不叫还款，不拆总金额，不预造未发生的日期。 */
 (function (global) {
     var SPAN_DEMO_FACTS = [
         { date: '2025-12-20', channel: 'POS', turnover: 540 },
@@ -29,8 +29,9 @@
         { date: '2026-11-20', channel: '商城', turnover: 265 },
         { date: '2026-11-22', channel: 'POS', turnover: 690 }
     ];
-    /* 演示：所得佣金 = 当日营业流水 × 10%，与门店佣金明细里常见的门店佣金比例一致。 */
+    /* 演示：商城、直播已入账佣金 = 当日营业流水 × 10%。POS 平台服务费同样按经营流水的 10% 扣除。 */
     var COMMISSION_RATE = 0.1;
+    var POS_PLATFORM_FEE_RATE = 0.1;
     /* 每日付款从营业收入里扣，支付方式固定为这一句。计算来源仍说明金额怎么算，不改成支付方式。 */
     var AUTO_PAY_METHOD = '营业收入自动扣款';
 
@@ -230,6 +231,21 @@
         return 0.82 + (n % 6) * 0.06;
     }
 
+    /* 商城、直播：已入账佣金。POS：经营流水扣除平台服务费。再各自乘渠道结算比例。 */
+    function postedBase(channel, turnover) {
+        var amount = Number(turnover) || 0;
+        if (channel === 'POS') {
+            var fee = Math.round(amount * POS_PLATFORM_FEE_RATE * 100) / 100;
+            return Math.round((amount - fee) * 100) / 100;
+        }
+        return Math.round(amount * COMMISSION_RATE * 100) / 100;
+    }
+
+    function payableFact(fact) {
+        return fact && !fact.missing;
+    }
+
+    /* 最近一个入账日已日切冻结，次日批次还没到账，不能记成已付款，也不能当成 0 元未付款。 */
     function daysOf(item) {
         if (!item || (item.status !== '门店付款中' && item.status !== '还款中' && item.status !== '已完成') || item.repayMethod !== '比例付') return [];
         var scale = scaleOf(item.code);
@@ -241,14 +257,21 @@
                 return (!start || fact.date >= start) && (!end || fact.date <= end);
             });
         }
+        facts = facts.filter(payableFact);
+        var latest = '';
+        facts.forEach(function (fact) {
+            if (fact.date > latest) latest = fact.date;
+        });
         var auto = facts.map(function (fact) {
             var turnover = Math.round(fact.turnover * scale * 100) / 100;
-            var commission = Math.round(turnover * COMMISSION_RATE * 100) / 100;
+            var commission = postedBase(fact.channel, turnover);
             var ratio = channelRatio(item, fact.channel);
             var due = Math.round(commission * ratio) / 100;
+            var inflight = fact.date === latest;
             return {
                 id: item.code + ':' + fact.date + ':' + fact.channel,
                 date: fact.date,
+                postDate: fact.postDate || fact.date,
                 storeCode: item.storeCode || '',
                 storeName: item.storeName || '',
                 demandCode: item.code,
@@ -257,12 +280,16 @@
                 commission: money(commission),
                 ratio: ratio.toFixed(2) + '%',
                 due: money(due),
-                actual: money(due),
+                actual: inflight ? '' : money(due),
+                fundStatus: inflight ? 'inflight' : 'arrived',
                 payMethod: AUTO_PAY_METHOD,
                 source: '获准营业事实'
             };
         });
-        return auto.concat(manualLedgerRows(item));
+        return auto.concat(manualLedgerRows(item).map(function (row) {
+            row.fundStatus = 'arrived';
+            return row;
+        }));
     }
 
     function rows(onlyActive) {
@@ -306,7 +333,10 @@
             weights[key] = Math.max(0, cents(pack && pack[key]));
             weightTotal += weights[key];
         });
-        var actuals = days.map(function (row) { return Math.max(0, cents(row.actual)); });
+        var actuals = days.map(function (row) {
+            var base = row.due != null && row.due !== '' ? row.due : row.actual;
+            return Math.max(0, cents(base));
+        });
         var pool = actuals.reduce(function (sum, value) { return sum + value; }, 0);
         var shares = { trader: 0, lengfeng: 0, provider: 0 };
         if (weightTotal && pool) {
@@ -425,7 +455,22 @@
         return out;
     }
 
-    /* 已发生的营收事实。动态基准用它给事业线下的每家门店模拟应付款，不读付款中台账。 */
+    /* 门店经营用营业额，含 POS。不生成应付。 */
+    function opsFacts(item) {
+        if (!item || (item.status !== '门店付款中' && item.status !== '还款中' && item.status !== '已完成')) return [];
+        var scale = scaleOf(item.code);
+        return FACTS.filter(function (fact) {
+            return fact && fact.date && fact.channel && !fact.missing;
+        }).map(function (fact) {
+            return {
+                date: fact.date,
+                channel: fact.channel,
+                turnover: Math.round(fact.turnover * scale * 100) / 100
+            };
+        });
+    }
+
+    /* 已发生的营收事实，供门店流水演示。 */
     function revenueFacts() {
         return FACTS.map(function (fact) {
             return { date: fact.date, channel: fact.channel, turnover: fact.turnover };
@@ -435,7 +480,10 @@
     global.RbtDailyFulfill = {
         autoPayMethod: AUTO_PAY_METHOD,
         revenueFacts: revenueFacts,
+        opsFacts: opsFacts,
         commissionRate: COMMISSION_RATE,
+        posPlatformFeeRate: POS_PLATFORM_FEE_RATE,
+        postedBase: postedBase,
         manualCents: manualCents,
         manualRows: manualLedgerRows,
         appendManual: appendManual,

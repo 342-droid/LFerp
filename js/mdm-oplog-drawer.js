@@ -94,27 +94,44 @@
         });
     }
 
-    function makeLog(scene, opts) {
+    function makeLog(scene, opts, forcedAction) {
         var def = sceneDef(scene);
         var keys = Object.keys(def.actions || {});
-        var action = keys.length ? pick(keys) : scene + '.update';
+        var action = forcedAction || (keys.length ? pick(keys) : scene + '.update');
         var label = (def.actions || {})[action] || '其他操作';
         var success = rand() > 0.12;
-        var name = opts.resourceName || pick(NAMES[scene] || [def.title]);
-        var rid = opts.resourceId || longId();
+        var catalog = scene === 'product' && global.MdmProductCatalog ? global.MdmProductCatalog.getAll() : [];
+        var product = opts.productCode && global.MdmProductCatalog
+            ? global.MdmProductCatalog.getByCode(opts.productCode) : (catalog.length ? pick(catalog) : null);
+        var name = opts.resourceName || (product && product.name) || pick(NAMES[scene] || [def.title]);
+        var rid = opts.resourceId || (product && product.code) || longId();
         var res = [].concat(def.resource || scene)[0];
         var svc = /growth|member/.test(res) ? 'member-core' : /live/.test(res) ? 'live-core' : /fee/.test(res) ? 'settlement-core' : /spu|sku|category|mall/i.test(res) ? 'product-core' : 'system-core';
         var verb = action.split('.').pop();
         var method = /delete|unbind/i.test(verb) ? 'DELETE' : /create|schedule|bind|publish|Draft/i.test(verb) ? 'POST' : 'PUT';
+        var productCode = scene === 'product' ? (opts.productCode || (product && product.code) || '') : '';
+        var changes = success ? makeChanges(def, label, name) : [];
+        if (scene === 'product' && success) {
+            if (action === 'spu.audit.pass') changes = [{ field: '审核状态', before: '待审核', after: '审核通过' }];
+            if (action === 'spu.audit.reject') {
+                changes = [{ field: '审核状态', before: '待审核', after: '审核未通过' }];
+                if (product && product.rejectReason) changes.push({ field: '审核原因', before: '—', after: product.rejectReason });
+            }
+            if (action === 'spu.audit.resubmit') changes = [{ field: '审核状态', before: '审核未通过', after: '待审核' }];
+            if (action === 'spu.delete') changes = [
+                { field: '商品名称', before: name, after: '—' },
+                { field: '商品编码', before: productCode, after: '—' }
+            ];
+        }
         return {
             id: 'mol-' + hex(12), scene: scene, action: action, actionLabel: label, timestamp: opts.time || timeAgo(30),
-            operator: pick(OPERATORS), resourceId: rid, resourceName: name, success: success,
+            operator: pick(OPERATORS), resourceId: rid, resourceName: name, productCode: productCode, success: success,
             errorMessage: success ? '' : pick(['名称已存在，请修改后重试', '数据已被他人修改，请刷新后重试', '无该操作权限', '关联数据校验未通过']),
-            changes: success ? makeChanges(def, label, name) : [],
+            changes: changes,
             service: svc, httpMethod: method,
             requestUri: '/' + svc + '/v1/' + res.replace(/\./g, '/') + '/' + verb.replace(/[A-Z]/g, function (c) { return '-' + c.toLowerCase(); }).replace(/_/g, '-'),
             clientIp: pick(IPS), elapsedMs: 20 + Math.floor(rand() * 600), traceId: hex(32),
-            requestParams: JSON.stringify([{ id: rid, name: name, contactPhone: '138****8952', smsCode: '••••••' }], null, 2)
+            requestParams: JSON.stringify([{ id: rid, name: name, productCode: productCode || undefined, contactPhone: '138****8952', smsCode: '••••••' }], null, 2)
         };
     }
 
@@ -126,7 +143,8 @@
             for (var c = 0; c < key.length; c++) seed = (seed * 31 + key.charCodeAt(c)) % 233280;
             var list = [];
             var n = opts.resourceId || opts.resourceName ? 8 + Math.floor(rand() * 8) : 24 + Math.floor(rand() * 10);
-            for (var i = 0; i < n; i++) list.push(makeLog(scene, opts));
+            var productActions = scene === 'product' ? Object.keys(sceneDef(scene).actions || {}) : [];
+            for (var i = 0; i < n; i++) list.push(makeLog(scene, opts, productActions.length ? productActions[i % productActions.length] : null));
             list.sort(function (a, b) { return a.timestamp < b.timestamp ? 1 : -1; });
             if (scene === 'store') {
                 /* 【689】验收示例：张三将门店简称从冷丰杭州总店变更为杭州总店 */
@@ -184,8 +202,19 @@
     /* 通用详情弹窗（UAT：760px，基础信息 + 变更明细 + 技术信息） */
     function openDetail(scene, l) {
         var b = bizCell(scene, l);
+        var infoRows = [
+            ['操作时间', l.timestamp],
+            ['操作人', l.operator]
+        ];
+        if (scene === 'product') {
+            infoRows.push(['商品编码', l.productCode || '—']);
+        }
+        infoRows.push(
+            [bizLabel(scene), b.primary + (b.secondary ? '（' + b.secondary + '）' : '')],
+            ['操作结果', l.success ? '成功' : '失败']
+        );
         var html = '<div class="mol-detail-head">' + resultTag(l.success) + '<strong>' + esc(l.actionLabel) + '</strong></div>' +
-            desc([['操作时间', l.timestamp], ['操作人', l.operator], [bizLabel(scene), b.primary + (b.secondary ? '（' + b.secondary + '）' : '')], ['操作结果', l.success ? '成功' : '失败']]) +
+            desc(infoRows) +
             '<div class="mol-section-title">变更明细 <span>（共 ' + l.changes.length + ' 项）</span></div>' +
             (l.changes.length ? '<div class="mol-group-title">' + esc(sceneDef(scene).title) + '</div>' : '') + changeTable(l.changes, '变更项') +
             (l.success === false && l.errorMessage ? '<div class="mol-alert">' + esc(l.errorMessage) + '</div>' : '') +
@@ -224,30 +253,46 @@
         if (!def) return;
         var obj = opts.resourceName || opts.resourceId;
         var logs = logsFor(scene, opts);
-        var st = { page: 1, size: 20, action: '', success: '', kw: '' };
+        var st = { page: 1, size: 20, action: '', success: '', kw: '', productCode: '' };
         var keyword = scene === 'shippingFee' && !opts.resourceId;
+        var showProductCode = scene === 'product';
+        var colCount = showProductCode ? 7 : 6;
         var box = layer('mol-drawer',
             '<div class="mol-drawer__head"><span class="mol-drawer__title">' + esc(def.title + ' · 操作日志' + (obj ? ' · ' + obj : '')) + '</span>' +
             '<button type="button" class="mol-close" data-mol-close aria-label="关闭">×</button></div>' +
-            '<div class="mol-drawer__body"><div class="mol-filter">' +
+            '<div class="mol-drawer__body">' +
+            (showProductCode ? '<p class="mol-demo-note">原型示例数据，正式日志以实际业务记录为准</p>' : '') +
+            '<div class="mol-filter">' +
+            (showProductCode
+                ? '<label class="mol-filter__item">商品编码<input class="mol-input" data-mol-f="productCode" placeholder="请输入商品编码" autocomplete="off"></label>'
+                : '') +
             (keyword ? '<input class="mol-input" data-mol-f="kw" placeholder="模板名称 / ID">' : '') +
-            '<select class="mol-select" data-mol-f="action"><option value="">操作类型</option>' + actionOptions(def) + '</select>' +
-            '<select class="mol-select" data-mol-f="success"><option value="">操作结果</option><option value="1">成功</option><option value="0">失败</option></select>' +
+            (showProductCode
+                ? '<label class="mol-filter__item">操作类型<select class="mol-select" data-mol-f="action"><option value="">全部</option>' + actionOptions(def) + '</select></label>' +
+                  '<label class="mol-filter__item">操作结果<select class="mol-select" data-mol-f="success"><option value="">全部</option><option value="1">成功</option><option value="0">失败</option></select></label>'
+                : '<select class="mol-select" data-mol-f="action"><option value="">操作类型</option>' + actionOptions(def) + '</select>' +
+                  '<select class="mol-select" data-mol-f="success"><option value="">操作结果</option><option value="1">成功</option><option value="0">失败</option></select>') +
             '<button type="button" class="mol-btn mol-btn--primary" data-mol-act="query">查询</button><button type="button" class="mol-btn" data-mol-act="reset">重置</button></div>' +
-            '<table class="mol-table"><thead><tr><th>操作时间</th><th>操作内容</th><th>操作人</th><th>' + bizLabel(scene) + '</th><th class="is-center">结果</th><th class="is-center">操作</th></tr></thead><tbody data-mol-body></tbody></table>' +
+            '<table class="mol-table"><thead><tr><th>操作时间</th><th>操作内容</th><th>操作人</th>' +
+            (showProductCode ? '<th>商品编码</th>' : '') +
+            '<th>' + bizLabel(scene) + '</th><th class="is-center">结果</th><th class="is-center">操作</th></tr></thead><tbody data-mol-body></tbody></table>' +
             '<div class="mol-pager" data-mol-pager></div></div>');
         function render() {
             var list = logs.filter(function (l) {
+                var code = String(l.productCode || '').toLowerCase();
+                var codeKw = String(st.productCode || '').trim().toLowerCase();
                 return (!st.action || l.action === st.action) && (st.success === '' || String(l.success ? 1 : 0) === st.success) &&
-                    (!st.kw || (l.resourceName + l.resourceId).indexOf(st.kw) >= 0);
+                    (!st.kw || (l.resourceName + l.resourceId).indexOf(st.kw) >= 0) &&
+                    (!codeKw || code.indexOf(codeKw) >= 0);
             });
             var rows = list.slice((st.page - 1) * st.size, st.page * st.size);
             box.querySelector('[data-mol-body]').innerHTML = rows.length ? rows.map(function (l) {
                 var b = bizCell(scene, l);
                 return '<tr><td>' + esc(l.timestamp) + '</td><td>' + esc(l.actionLabel) + '</td><td>' + esc(l.operator) + '</td>' +
+                    (showProductCode ? '<td>' + esc(l.productCode || '—') + '</td>' : '') +
                     '<td>' + esc(b.primary) + (b.secondary ? '<span class="mol-sub">' + esc(b.secondary) + '</span>' : '') + '</td>' +
                     '<td class="is-center">' + resultTag(l.success) + '</td><td class="is-center"><button type="button" class="mol-link" data-mol-detail="' + l.id + '">查看详情</button></td></tr>';
-            }).join('') : '<tr><td colspan="6" class="mol-empty">暂无操作记录</td></tr>';
+            }).join('') : '<tr><td colspan="' + colCount + '" class="mol-empty">暂无操作记录</td></tr>';
             box.querySelector('[data-mol-pager]').innerHTML = pager(list.length, st.page, st.size);
         }
         box.addEventListener('click', function (e) {
@@ -256,9 +301,16 @@
             if (t.dataset.molPage && !t.disabled) { st.page = +t.dataset.molPage; render(); }
             if (t.dataset.molAct === 'query') {
                 st.action = box.querySelector('[data-mol-f="action"]').value; st.success = box.querySelector('[data-mol-f="success"]').value;
-                var kw = box.querySelector('[data-mol-f="kw"]'); st.kw = kw ? kw.value.trim() : ''; st.page = 1; render();
+                var kw = box.querySelector('[data-mol-f="kw"]'); st.kw = kw ? kw.value.trim() : '';
+                var codeInput = box.querySelector('[data-mol-f="productCode"]');
+                st.productCode = codeInput ? codeInput.value.trim() : '';
+                st.page = 1; render();
             }
-            if (t.dataset.molAct === 'reset') { box.querySelectorAll('[data-mol-f]').forEach(function (x) { x.value = ''; }); st.action = st.success = st.kw = ''; st.page = 1; render(); }
+            if (t.dataset.molAct === 'reset') {
+                box.querySelectorAll('[data-mol-f]').forEach(function (x) { x.value = ''; });
+                st.action = st.success = st.kw = st.productCode = '';
+                st.page = 1; render();
+            }
         });
         render();
     }

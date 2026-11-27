@@ -6,6 +6,7 @@
     <title>冷丰RBT-移动端 - 贸易商端</title>
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="rbt-h5-party.css?v=20261127-ledger2">
     <style>
         .rbt-h5-store-stage {
             min-height: calc(100vh - 88px);
@@ -816,11 +817,13 @@
         .rbt-bill-tabs button {
             flex: 1;
             height: 40px;
+            padding: 0 2px;
             border: 0;
             border-bottom: 2px solid transparent;
             background: transparent;
             color: #666;
-            font-size: 14px;
+            font-size: 13px;
+            white-space: nowrap;
             cursor: pointer;
         }
         .rbt-bill-tabs button.is-on { color: #ff7019; border-bottom-color: #ff7019; font-weight: 600; }
@@ -855,13 +858,17 @@
         .rbt-ops__head b { color: #222; font-size: 14px; font-weight: 600; }
         .rbt-ops__head em { font-style: normal; color: #ff7019; font-size: 12px; font-weight: 600; }
         .rbt-ops__head em.is-due { color: #52c41a; }
-        .rbt-ops__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; margin-top: 10px; }
+        .rbt-ops__grid { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-top: 12px; }
+        .rbt-ops__grid.is-single { justify-content: flex-start; }
         .rbt-ops__grid span,
         .rbt-ops__foot span { min-width: 0; }
         .rbt-ops__grid i,
         .rbt-ops__foot i { display: block; color: #888; font-style: normal; font-size: 12px; font-weight: 400; }
         .rbt-ops__grid b,
         .rbt-ops__foot b { display: block; margin-top: 2px; color: #222; font-size: 13px; font-weight: 600; }
+        .rbt-ops__fact.is-amount b { font-size: 18px; font-weight: 700; line-height: 1.2; }
+        .rbt-ops__fact.is-pay { text-align: right; }
+        .rbt-ops__grid.is-single .rbt-ops__fact.is-pay { text-align: left; }
         .rbt-ops__foot {
             display: flex;
             justify-content: space-between;
@@ -871,6 +878,35 @@
             border-top: 1px solid #f3f3f3;
         }
         .rbt-ops__foot b.is-mine { color: #ff7019; font-size: 16px; }
+        .rbt-share-page { padding-top: 12px; }
+        .rbt-share-range { margin: 0 0 10px; }
+        .rbt-share-range .rbt-party-chips { margin-bottom: 0; }
+        .rbt-share-range .rbt-party-dates { margin: 8px 0 0; }
+        .rbt-share-board {
+            margin: 0 0 16px;
+            padding: 12px;
+            border-radius: 12px;
+            background: #fff;
+        }
+        .rbt-share-board__metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+        .rbt-share-board__metrics div {
+            min-width: 0;
+            padding: 10px 8px;
+            border-radius: 10px;
+            background: #fafafa;
+            text-align: center;
+        }
+        .rbt-share-board__metrics span { display: block; color: #888; font-size: 12px; }
+        .rbt-share-board__metrics b {
+            display: block;
+            margin-top: 6px;
+            color: #222;
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 1.3;
+            overflow-wrap: anywhere;
+        }
+        .rbt-share-detail h3 { margin: 0 0 10px; color: #222; font-size: 15px; font-weight: 600; }
         .rbt-biz { padding-top: 2px; }
         .rbt-biz-range { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
         .rbt-biz-window { margin: 0 0 10px; color: #888; font-size: 12px; line-height: 1.5; }
@@ -927,6 +963,28 @@
             font-weight: 600;
             cursor: pointer;
         }
+        .rbt-biz-hero {
+            margin: 0 0 10px;
+            padding: 14px 12px;
+            border: 1px solid #f0f0f0;
+            border-radius: 12px;
+            background: #fff;
+        }
+        .rbt-biz-hero span { display: block; color: #888; font-size: 12px; }
+        .rbt-biz-hero b { display: block; margin-top: 4px; color: #222; font-size: 28px; font-weight: 700; }
+        .rbt-biz-bars {
+            margin: 0 0 10px;
+            padding: 12px;
+            border: 1px solid #f0f0f0;
+            border-radius: 12px;
+            background: #fff;
+        }
+        .rbt-biz-bar { display: grid; grid-template-columns: 42px 1fr auto; gap: 8px; align-items: center; margin-top: 8px; }
+        .rbt-biz-bar:first-child { margin-top: 0; }
+        .rbt-biz-bar span { color: #666; font-size: 13px; }
+        .rbt-biz-bar i { display: block; height: 8px; border-radius: 99px; background: #fff1e8; }
+        .rbt-biz-bar i b { display: block; height: 8px; border-radius: 99px; background: #ff7019; }
+        .rbt-biz-bar em { font-style: normal; color: #222; font-size: 13px; font-weight: 700; }
         .rbt-biz-summary {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -1296,8 +1354,42 @@
         .rbt-h5-scroll.is-collect .rbt-fund__tabs { margin: 0; padding: 0 12px; background: #f7f7f7; }
         .rbt-h5-scroll.is-collect .rbt-fund-card,
         .rbt-h5-scroll.is-collect .rbt-h5-empty { margin-left: 12px; margin-right: 12px; }
-        .rbt-h5-scroll.is-collect .rbt-fund__summary + .rbt-fund-card,
-        .rbt-h5-scroll.is-collect .rbt-fund__summary + .rbt-h5-empty { margin-top: 12px; }
+        .rbt-h5-scroll.is-collect .rbt-fund__tabs + .rbt-fund-card,
+        .rbt-h5-scroll.is-collect .rbt-fund__tabs + .rbt-h5-empty { margin-top: 12px; }
+        .rbt-board { padding: 0 12px 16px; }
+        .rbt-board h2 { margin: 14px 2px 8px; color: #222; font-size: 14px; font-weight: 600; }
+        .rbt-board__total,
+        .rbt-board-card,
+        .rbt-board-store {
+            margin: 0 0 10px;
+            padding: 12px;
+            border-radius: 12px;
+            background: #fff;
+        }
+        .rbt-board__total { background: #fff6f0; }
+        .rbt-board-card header,
+        .rbt-board-store header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .rbt-board-card header strong,
+        .rbt-board-store header strong { color: #222; font-size: 14px; }
+        .rbt-board-card header em,
+        .rbt-board-store header em { color: #ff7019; font-style: normal; font-size: 12px; font-weight: 600; }
+        .rbt-board-store p { margin: -4px 0 8px; color: #888; font-size: 12px; }
+        .rbt-board-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
+        .rbt-board-metrics span { display: block; color: #888; font-size: 12px; }
+        .rbt-board-metrics b {
+            display: block;
+            margin-top: 2px;
+            color: #222;
+            font-size: 15px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
         .rbt-fund__summary {
             position: sticky;
             top: 0;
@@ -1398,12 +1490,14 @@
     <script src="../js/mdm-provider-archive-store.js?v=20261117-provider"></script>
     <script src="../js/mdm-trader-archive-store.js?v=20261117-provider"></script>
     <script src="rbt-settle-ratio.js"></script>
-    <script src="rbt-demand-data.js?v=20261126-span-main"></script>
-    <script src="rbt-daily-fulfill.js?v=20261126-span-main"></script>
-    <script src="rbt-trader-store-biz.js?v=20261126-biz-views"></script>
+    <script src="rbt-demand-data.js?v=20261127-pos-pay"></script>
+    <script src="rbt-daily-fulfill.js?v=20261127-pos-pay"></script>
+    <script src="../js/store-pay-password.js"></script>
+    <script src="rbt-party-wallet.js?v=20261127-share-merge"></script>
+    <script src="rbt-trader-store-biz.js?v=20261127-no-preset"></script>
     <script src="rbt-contract-sign.js"></script>
     <script src="../js/contract-bodies.js?v=20261123-trader-read"></script>
-    <script src="rbt-h5-trader-app.js?v=20261126-biz-views"></script>
+    <script src="rbt-h5-trader-app.js?v=20261127-range-out"></script>
     <script src="rbt-h5-trader-login.js"></script>
 </body>
 </html>

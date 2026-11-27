@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷丰WMS - 商城装修</title>
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/basic-settings.css">
+    <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-mdm-biz-tip.css">
+    <link rel="stylesheet" href="../css/lf-product.css">
+    <link rel="stylesheet" href="../css/basic-settings-mall-decoration.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <script src="../js/path-prefix.js"></script>
+    <script src="../js/basic-settings-sidebar.js"></script>
+    <div id="header-container"></div>
+
+    <div class="container">
+        <main class="main-content mdm-deco-page">
+            <div class="content-title">基础设置 / 商城装修</div>
+            <hr class="content-divider">
+
+            <div class="mdm-biz-tip" role="note">
+                商城入口「绑定商城商品」选择“指定”时，弹窗仅展示带标签<strong>冷丰商城（382058562475524096）</strong>的商品；全选仅作用于当前页。
+            </div>
+
+            <div class="mdm-deco-workspace">
+                <aside class="mdm-deco-left" aria-label="模块库与页面结构">
+                    <section class="mdm-deco-panel">
+                        <h3 class="mdm-deco-panel__title">添加模块</h3>
+                        <div class="mdm-deco-module-grid" id="decoModulePalette"></div>
+                    </section>
+                    <section class="mdm-deco-panel mdm-deco-panel--structure">
+                        <h3 class="mdm-deco-panel__title">页面结构</h3>
+                        <ul class="mdm-deco-structure" id="decoStructureList"></ul>
+                    </section>
+                </aside>
+
+                <section class="mdm-deco-center" aria-label="手机预览">
+                    <div class="mdm-deco-phone">
+                        <div class="mdm-deco-phone__notch"></div>
+                        <div class="mdm-deco-phone__screen" id="decoPhonePreview"></div>
+                    </div>
+                </section>
+
+                <aside class="mdm-deco-right" aria-label="模块配置">
+                    <div class="mdm-deco-panel mdm-deco-panel--settings" id="decoSettingsPanel">
+                        <p class="mdm-deco-settings-empty">请选择左侧页面结构中的模块进行配置</p>
+                    </div>
+                    <div class="mdm-deco-module-actions" id="decoModuleActions" hidden>
+                        <button type="button" class="erp-btn" data-deco-action="up">上移</button>
+                        <button type="button" class="erp-btn" data-deco-action="down">下移</button>
+                        <button type="button" class="erp-btn" data-deco-action="copy">复制</button>
+                        <button type="button" class="erp-btn erp-btn--danger" data-deco-action="remove">移除模块</button>
+                    </div>
+                </aside>
+            </div>
+
+            <footer class="mdm-deco-page-footer">
+                <button type="button" class="erp-btn erp-btn--primary" id="decoSaveBtn">保存装修</button>
+            </footer>
+        </main>
+    </div>
+
+    <script src="../js/common.js"></script>
+    <script src="../js/basic-settings-mall-decoration.js"></script>
+</body>
+</html>

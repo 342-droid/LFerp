@@ -709,7 +709,7 @@
         pageTitle = bdCtx.isCreate ? '添加门店' : '编辑门店';
         subLbl = '门店资料';
         heroDesc =
-          '以下内容用于门店入驻审核，须如实填写；资料不全将无法进入审核。加盟店、联营店、直营店均按加盟店资料填写。选址是否冲突由审核人员人工排查。';
+          '以下内容用于门店入驻审核，须如实填写；资料不全将无法进入审核。加盟店、联营店、直营店均按加盟店资料填写。提交时将提示疑似重复门店，审核人员仍会核实选址。';
       }
 
       var html =
@@ -920,10 +920,10 @@
         secHead(
           '📍',
           '地址与定位',
-          '搜索选点、省市区与详细地址均为必填。模糊搜索门店名称或地址，选中后自动写入省市区与详细地址。选址是否与已有门店冲突，由审核人员人工排查。'
+          '搜索选点、省市区与详细地址均为必填。模糊搜索门店名称或地址，选中后自动写入省市区与详细地址。提交时提示疑似重复门店，审核人员仍会核实选址。'
         ) +
         '<div class="h5-sec-body">' +
-        '<p class="h5-rule">加盟店、联营店、直营店均按加盟店资料填写。选址是否冲突不在此拦截，由审核人员人工排查。</p>' +
+        '<p class="h5-rule">加盟店、联营店、直营店均按加盟店资料填写。疑似重复会在提交时提示，选址仍由审核人员核实。</p>' +
         field(
           '搜索门店位置',
           false,
@@ -1194,7 +1194,7 @@
       if (!api) return '';
       var lineList = api.lines();
       var brandList = api.brands(st.bizLine);
-      var bizOpts = api.bizLines(st.bizLine, st.brandName);
+      var bizOpts = api.bizLines(st.bizLine);
       var picked = api.normalizeBiz(st.bizLines);
       var lineOpts =
         '<option value="">请选择事业线</option>' +
@@ -1231,7 +1231,7 @@
             .join('') +
           '</div>'
         : '<p class="h5-hint">' +
-          (st.bizLine ? '请先选择品牌名称' : '请先选择事业线和品牌名称') +
+          (st.bizLine ? '该事业线暂无业务线' : '请先选择事业线') +
           '</p>';
       return (
         field('事业线', true, '<select class="h5-input" id="f_bizline">' + lineOpts + '</select>', '单选') +
@@ -1245,7 +1245,7 @@
             '</select>',
           '随事业线切换'
         ) +
-        field('业务线', true, checks, '可多选，随品牌切换')
+        field('业务线', true, checks, '可多选，随事业线切换')
       );
     }
 
@@ -1537,6 +1537,66 @@
       return true;
     }
 
+    function duplicateText(value) {
+      return String(value || '').toLowerCase().replace(/[\s\-—_·,，.。()（）\/\\]/g, '');
+    }
+
+    function similarity(left, right) {
+      left = duplicateText(left);
+      right = duplicateText(right);
+      if (!left || !right) return 0;
+      var prev = Array.from({ length: right.length + 1 }, function (_, i) { return i; });
+      for (var i = 1; i <= left.length; i++) {
+        var next = [i];
+        for (var j = 1; j <= right.length; j++) {
+          next[j] = Math.min(next[j - 1] + 1, prev[j] + 1, prev[j - 1] + (left[i - 1] === right[j - 1] ? 0 : 1));
+        }
+        prev = next;
+      }
+      return Math.round((1 - prev[right.length] / Math.max(left.length, right.length)) * 100);
+    }
+
+    function duplicateMatches() {
+      var list = isBdApp && bdCtx ? bdCtx.stores : null;
+      if (!list) {
+        try { list = JSON.parse(sessionStorage.getItem(BD_STORES_SESSION_KEY) || 'null'); } catch (e) {}
+      }
+      if (!Array.isArray(list)) list = window.__BD_STORE_AUDITS__ || [];
+      var currentAddress = (st.regionCascade || '') + (st.detailAddress || '');
+      var currentPhone = String(st.contactPhone || '').replace(/\D/g, '');
+      return list.filter(function (rec) {
+        return rec && String(rec.id) !== String(bdCtx && bdCtx.record ? bdCtx.record.id : (supplementMode ? storeIdRaw : ''));
+      }).map(function (rec) {
+        var nameScore = similarity(st.name, rec.name);
+        var addressScore = similarity(currentAddress, (rec.regionCascade || '') + (rec.detailAddress || rec.address || ''));
+        var peerPhone = String(rec.contactPhone || '').replace(/\D/g, '');
+        var phoneMatch = currentPhone.length === 11 && peerPhone.length === 11 && currentPhone === peerPhone;
+        var hits = [];
+        if (nameScore >= 80) hits.push('门店名称相似 ' + nameScore + '%');
+        if (addressScore >= 85) hits.push('门店地址相似 ' + addressScore + '%');
+        if (phoneMatch) hits.push('手机号相同 100%');
+        return { rec: rec, hits: hits, score: Math.max(nameScore >= 80 ? nameScore : 0, addressScore >= 85 ? addressScore : 0, phoneMatch ? 100 : 0) };
+      }).filter(function (x) { return x.hits.length; }).sort(function (a, b) { return b.score - a.score; }).slice(0, 3);
+    }
+
+    function confirmDuplicateSubmission(matches, onConfirm) {
+      if (!matches.length) { onConfirm(); return; }
+      var overlay = document.createElement('div');
+      overlay.className = 'h5-duplicate-overlay';
+      overlay.innerHTML = '<div class="h5-duplicate-dialog" role="dialog" aria-modal="true" aria-labelledby="duplicateTitle">' +
+        '<h2 id="duplicateTitle">发现疑似重复门店</h2>' +
+        '<p>以下门店的名称、地址或手机号与本次填写内容相同或相似。请核对后决定是否继续提交。</p>' +
+        '<div class="h5-duplicate-list">' + matches.map(function (x) {
+          return '<div class="h5-duplicate-item"><strong>' + esc(x.rec.name || '未命名门店') + '</strong>' +
+            '<span>门店 ID：' + esc(x.rec.id || '—') + '</span><small>' + esc(x.hits.join(' · ')) + '</small></div>';
+        }).join('') + '</div>' +
+        '<p class="h5-duplicate-note">相似度仅供排查参考；继续提交后仍进入原审核流程。</p>' +
+        '<div class="h5-duplicate-actions"><button type="button" data-duplicate-back>返回修改</button><button type="button" data-duplicate-confirm>确认，继续提交</button></div></div>';
+      (document.querySelector('.bd-mobile-shell') || document.body).appendChild(overlay);
+      overlay.querySelector('[data-duplicate-back]').onclick = function () { overlay.remove(); };
+      overlay.querySelector('[data-duplicate-confirm]').onclick = function () { overlay.remove(); onConfirm(); };
+    }
+
     function bindFormEvents() {
       var el = function (id) {
         return document.getElementById(id);
@@ -1619,7 +1679,7 @@
           }
           if (this && this.id === 'f_brand') {
             var allowed = window.StoreBizStructure
-              ? window.StoreBizStructure.bizLines(st.bizLine, st.brandName)
+              ? window.StoreBizStructure.bizLines(st.bizLine)
               : [];
             st.bizLines = (st.bizLines || []).filter(function (n) {
               return allowed.indexOf(n) >= 0;
@@ -1817,26 +1877,35 @@
       if (sub)
         sub.onclick = function () {
           readFormToState();
-          if (isBdApp && bdCtx) {
-            if (!validate()) return;
-            persistBdStore('submit');
-            return;
-          }
           if (!validate()) return;
-          var p = new URLSearchParams({
-            status: supplementMode ? 'updated' : 'pending',
-            storeName: st.name.trim(),
-            bdId: boundBd,
-            bdName: resolveBdName(boundBd)
+          confirmDuplicateSubmission(duplicateMatches(), function () {
+            if (isBdApp && bdCtx) {
+              persistBdStore('submit');
+              return;
+            }
+            var p = new URLSearchParams({
+              status: supplementMode ? 'updated' : 'pending',
+              storeName: st.name.trim(),
+              bdId: boundBd,
+              bdName: resolveBdName(boundBd)
+            });
+            p.set('storeId', supplementMode ? storeIdRaw : String(Math.floor(Math.random() * 90000) + 10000));
+            navigateStatus(p);
           });
-          p.set('storeId', supplementMode ? storeIdRaw : String(Math.floor(Math.random() * 90000) + 10000));
-          navigateStatus(p);
         };
     }
 
     st.warehouse = defaultWarehouse(boundBd);
     fullRender();
     fillDomFromState();
+    if (q.previewDuplicate === '1') {
+      confirmDuplicateSubmission([{
+        rec: { id: '示例 01', name: '鲜丰水果文一西路店' },
+        hits: ['门店名称相似 92%', '门店地址相似 87%', '手机号相同 100%']
+      }], function () {
+        bdToast('界面预览', '示例弹窗不会提交资料');
+      });
+    }
   }
 
   function mount() {

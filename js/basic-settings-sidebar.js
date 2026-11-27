@@ -33,6 +33,7 @@
     const topLevelItems = [
         { href: 'basic_settings_order.html', text: '门店配置' },
         { href: 'basic_settings_recommendation.html', text: '推荐位配置' },
+        { href: 'basic_settings_mall_decoration.html', text: '商城装修' },
         { href: 'basic_settings_business_tags.html', text: '标签管理' },
         { href: 'basic_settings_system.html', text: '系统管理', icon: '权限管理' },
         { href: 'basic_settings_cooperation.html', text: '合作管理' }
@@ -107,13 +108,13 @@
         '</div>' +
         '<ul class="sidebar-menu">' +
         renderCollapsibleGroup('协议配置', null, agreementItems, isAgreementSection) +
-        topLevelItems.slice(0, 2).map(renderTopLevelItem).join('') +
+        topLevelItems.slice(0, 3).map(renderTopLevelItem).join('') +
         renderCollapsibleGroup('素材管理', '基础信息', materialItems, isMaterialSection) +
         renderTopLevelItem(fileCenterItem) +
-        renderTopLevelItem(topLevelItems[2]) +
         renderTopLevelItem(topLevelItems[3]) +
-        renderCollapsibleGroup('合同管理', null, contractItems, isContractSection) +
         renderTopLevelItem(topLevelItems[4]) +
+        renderCollapsibleGroup('合同管理', null, contractItems, isContractSection) +
+        renderTopLevelItem(topLevelItems[5]) +
         '</ul>' +
         '</aside>';
 })();

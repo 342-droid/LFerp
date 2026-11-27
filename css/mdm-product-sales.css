@@ -19,3 +19,11 @@
 .product-sales-formula { margin: 0 0 12px; color: #606266; }
 .product-sales-pager { margin-top: 12px; padding: 0; }
 .product-sales-pager[hidden] { display: none; }
+
+/* 【925】剩余库存：复用销量链样式，补充空态与变动色 */
+.product-stock-help { border: 0; padding: 2px 4px; background: transparent; color: #909399; cursor: pointer; font: inherit; }
+.product-stock-link.is-empty { color: #909399; text-decoration: none; }
+.product-stock-link.is-empty:hover { text-decoration: underline; }
+.product-stock-delta.is-plus { color: #67c23a; font-weight: 600; }
+.product-stock-delta.is-minus { color: #f56c6c; font-weight: 600; }
+.product-stock-summary--empty strong { font-size: 20px; }

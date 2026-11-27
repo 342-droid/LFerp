@@ -17,6 +17,19 @@
     var bizTo = '';
     var bizFocusDate = '';
     var bizPreset = '';
+    var overviewMode = '30';
+    var overviewFrom = '';
+    var overviewTo = '';
+    var walletPane = 'main';
+    var walletMethod = '';
+    var walletSheet = '';
+    var walletBind = { cardNo: '', bankId: '', phone: '', sms: '', sheet: '', modal: '' };
+    var walletTab = 'all';
+    var walletRange = '30';
+    var walletFrom = '';
+    var walletTo = '';
+    var walletTimeOpen = false;
+    var walletDraft = '';
 
     function esc(value) {
         return String(value == null ? '' : value)
@@ -47,7 +60,9 @@
         if (screen === 'detail') return 'hall-back';
         if (screen === 'sign') return 'hall';
         if (screen === 'password') return 'mine';
-        if (screen === 'collect' || screen === 'hall') return 'home';
+        if (screen === 'wallet' && walletPane === 'bind') return 'wallet-recharge';
+        if (screen === 'wallet' && walletPane !== 'main') return 'wallet-main';
+        if (screen === 'collect' || screen === 'hall' || screen === 'wallet') return 'home';
         return '';
     }
 
@@ -58,6 +73,21 @@
     }
 
     function goBack(target) {
+        if (target === 'wallet-recharge') {
+            walletPane = 'recharge';
+            walletSheet = '';
+            screen = 'wallet';
+            tab = 'hall';
+            render();
+            return;
+        }
+        if (target === 'wallet-main') {
+            walletPane = 'main';
+            screen = 'wallet';
+            tab = 'hall';
+            render();
+            return;
+        }
         if (target === 'hall-back') {
             screen = 'hall';
             tab = 'hall';
@@ -66,7 +96,9 @@
         }
         screen = target || 'home';
         if (screen === 'hall') hallFilter = 'accepted';
-        if (screen === 'collect') collectFilter = collectFilter === 'closed' ? 'closed' : 'open';
+        if (screen === 'collect' && collectFilter !== 'board') {
+            collectFilter = collectFilter === 'closed' ? 'closed' : 'open';
+        }
         tab = screen === 'mine' || screen === 'password' ? 'mine' : 'hall';
         render();
     }
@@ -295,28 +327,11 @@
             '<button type="button" class="rbt-h5-tool" data-entry="collect">' +
             '<span class="rbt-h5-tool__icon" style="background:' + orange + '">' + hall + '</span>' +
             '<span>收款</span></button>' +
+            '<button type="button" class="rbt-h5-tool" data-entry="wallet">' +
+            '<span class="rbt-h5-tool__icon" style="background:' + orange + '">' +
+            svgIcon('<rect x="3" y="6" width="18" height="13" rx="2" stroke="#fff" stroke-width="1.6"/><path d="M3 10h18" stroke="#fff" stroke-width="1.6"/><circle cx="16.5" cy="14.5" r="1.2" fill="#fff"/>') +
+            '</span><span>钱包</span></button>' +
             '</div></section></div>';
-    }
-
-    function ratioPercent(value) {
-        var num = Number(String(value == null ? '' : value).replace('%', ''));
-        if (!isFinite(num)) return '';
-        return num.toFixed(2) + '%';
-    }
-
-    /* 基础信息只列渠道和比例，不带「默认比例」和类目。 */
-    function ratioText(item) {
-        var api = window.RbtSettleRatio;
-        if (item && item.repayMethod === '比例付' && api && typeof api.viewOf === 'function') {
-            var view = api.viewOf(item) || [];
-            var text = view.map(function (channel) {
-                var percent = ratioPercent(channel.fallback);
-                return percent ? (channel.channel + ' ' + percent) : '';
-            }).filter(Boolean).join('；');
-            if (text) return text;
-        }
-        var period = item && item.repayPeriod ? ratioPercent(item.repayPeriod) : '';
-        return period || (item && item.repayPeriod ? String(item.repayPeriod) : '—');
     }
 
     function phaseLabel(status) {
@@ -329,13 +344,12 @@
         return '¥' + value;
     }
 
-    /* 已结款是门店已经付过、整笔记给贸易商的金额。最近一天结算单未确定，明细行仍记待结款。
+    /* 已结款是门店已经到账、整笔记给贸易商的金额。已冻结和在途仍是待结款。最近一天结算单未确定，明细行仍记待结款。
        结款不按渠道拆开：各渠道佣金进门店钱包后，用佣金余额支付，同一天多渠道合成一笔。后台每日付款页仍按旧口径拆分。 */
     function traderSettled(item) {
         var daily = window.RbtDailyFulfill;
         var rows = daily && typeof daily.payeeSplit === 'function' ? daily.payeeSplit(item) : [];
         if (!rows.length) return { total: '', pending: '', shares: [] };
-        var latest = '';
         var facts = {};
         if (typeof daily.daysOf === 'function') {
             daily.daysOf(item).forEach(function (row) {
@@ -355,30 +369,26 @@
                 commission: manual ? '' : (fact.commission || ''),
                 ratio: manual ? '' : (fact.ratio || ''),
                 actual: fact.actual || fact.due || '',
-                payMethod: fact.payMethod || ''
+                payMethod: fact.payMethod || '',
+                fundStatus: manual ? 'arrived' : (fact.fundStatus || '')
             };
         }).filter(function (row) {
             if (row.kind !== 'manual') return true;
             return Math.round(Number(row.amount) * 100) > 0;
         });
-        shares.forEach(function (row) {
-            if (row.kind === 'manual') return;
-            if (row.date > latest) latest = row.date;
-        });
-        var done = item && item.status === '已完成';
         var settledCents = 0;
         var pendingCents = 0;
         shares.forEach(function (row) {
             var cents = Math.round(Number(row.amount) * 100);
             if (!isFinite(cents)) cents = 0;
-            /* 一键付款已经付过，按结算系数拆完即已结款。最近一个营业日仍等结算单。 */
-            row.stage = !done && row.kind !== 'manual' && row.date === latest ? 'pending' : 'due';
+            var open = row.fundStatus === 'inflight' || row.fundStatus === 'frozen' || row.fundStatus === 'missing' || row.fundStatus === 'pending_freeze';
+            row.stage = row.kind !== 'manual' && open ? 'pending' : 'due';
             if (row.stage === 'pending') pendingCents += cents;
             else settledCents += cents;
         });
         return {
             total: (settledCents / 100).toFixed(2),
-            pending: done ? '' : (pendingCents / 100).toFixed(2),
+            pending: (pendingCents / 100).toFixed(2),
             shares: mergeWalletShares(shares)
         };
     }
@@ -425,7 +435,7 @@
                 commission: fromCents(row.commissionCents),
                 ratio: '',
                 actual: fromCents(row.actualCents),
-                payMethod: '佣金余额',
+                payMethod: '营业收入',
                 stage: row.stage
             };
         });
@@ -450,14 +460,6 @@
         var settled = traderSettled(item);
         var settledText = settled.total;
         var pending = pendingOf(amounts.total, settledText);
-        /* 已结束的单已经结清：已结款等于应收，待结款为 0。 */
-        if (closedBid(item)) {
-            var due = centsOf(amounts.total);
-            if (due != null) {
-                settledText = fromCents(due);
-                pending = fromCents(0);
-            }
-        }
         return {
             receivable: amounts.total,
             goods: amounts.goods,
@@ -497,27 +499,143 @@
         return any ? fromCents(total) : '';
     }
 
+    function collectTabs() {
+        function tab(id, label) {
+            return '<button type="button" data-collect-view="' + id + '"' +
+                (collectFilter === id ? ' class="is-on"' : '') + '>' + label + '</button>';
+        }
+        return '<div class="rbt-fund__tabs" role="tablist">' +
+            tab('open', '付款中') + tab('closed', '已结束') + tab('board', '数据总览') +
+            '</div>';
+    }
+
+    function packFunds(items) {
+        var funds = items.map(function (item) { return fundOf(item); });
+        return {
+            count: items.length,
+            receivable: sumMoney(funds, 'receivable'),
+            settled: sumMoney(funds, 'settled'),
+            pending: sumMoney(funds, 'pending')
+        };
+    }
+
+    function pendingText(value, kind) {
+        if (value) return yuan(value);
+        if (kind === 'paying' || kind === 'other') return '未产生';
+        if (kind === 'closed' || kind === 'done' || kind === 'void' || kind === 'reject') return '无';
+        return '—';
+    }
+
+    function boardMetrics(pack, kind) {
+        return '<div class="rbt-board-metrics">' +
+            '<div><span>笔数</span><b>' + pack.count + '</b></div>' +
+            '<div><span>应收</span><b>' + esc(pack.receivable ? yuan(pack.receivable) : '—') + '</b></div>' +
+            '<div><span>已结款</span><b>' + esc(pack.settled ? yuan(pack.settled) : '未产生') + '</b></div>' +
+            '<div><span>待结款</span><b>' + esc(pendingText(pack.pending, kind)) + '</b></div>' +
+            '</div>';
+    }
+
+    /* 收款总览：付款中、已结束的汇总从列表挪到这里，并按状态、门店汇总当前贸易商在平台上的单。 */
+    function renderCollectBoard() {
+        var paying = collectDemands(false);
+        var closed = collectDemands(true);
+        var scoped = paying.concat(closed);
+        var all = acceptedDemands();
+        var total = packFunds(all);
+        var statuses = [
+            { label: '付款中', items: paying, kind: 'paying' },
+            { label: '已完成', items: closed.filter(function (item) { return item.status === '已完成'; }), kind: 'done' }
+        ];
+        var extraMap = {};
+        var extras = [];
+        acceptedDemands().forEach(function (item) {
+            if (fulfillingBid(item) || closedBid(item)) return;
+            var label = item.status || '其他';
+            if (label === '发货中') return;
+            if (!extraMap[label]) {
+                extraMap[label] = { label: label, items: [], kind: 'other' };
+                extras.push(extraMap[label]);
+            }
+            extraMap[label].items.push(item);
+        });
+        var statusHtml = statuses.concat(extras).map(function (row) {
+            return '<article class="rbt-board-card"><header><strong>' + esc(row.label) + '</strong><em>' +
+                row.items.length + ' 笔</em></header>' + boardMetrics(packFunds(row.items), row.kind) + '</article>';
+        }).join('');
+        var stores = {};
+        var storeOrder = [];
+        acceptedDemands().forEach(function (item) {
+            var name = item.storeName || '—';
+            if (!stores[name]) {
+                stores[name] = { name: name, items: [], paying: 0, closed: 0, other: 0 };
+                storeOrder.push(stores[name]);
+            }
+            var bucket = stores[name];
+            bucket.items.push(item);
+            if (fulfillingBid(item)) bucket.paying += 1;
+            else if (closedBid(item)) bucket.closed += 1;
+            else bucket.other += 1;
+        });
+        var storeRows = storeOrder.map(function (row) {
+            var pack = packFunds(row.items);
+            var hint = [];
+            if (row.paying) hint.push('付款中 ' + row.paying + ' 笔');
+            if (row.closed) hint.push('已结束 ' + row.closed + ' 笔');
+            if (row.other) hint.push('其他 ' + row.other + ' 笔');
+            return {
+                name: row.name,
+                hint: hint.join(' · '),
+                pack: pack,
+                receivableCents: centsOf(pack.receivable) || 0
+            };
+        }).sort(function (a, b) {
+            return b.receivableCents - a.receivableCents || a.name.localeCompare(b.name, 'zh');
+        });
+        var storeHtml = storeRows.length ? storeRows.map(function (row) {
+            return '<article class="rbt-board-store"><header><strong>' + esc(row.name) + '</strong><em>' +
+                row.pack.count + ' 笔</em></header><p>' + esc(row.hint || '暂无分状态') + '</p>' +
+                boardMetrics(row.pack, 'mixed') + '</article>';
+        }).join('') : '<p class="rbt-h5-empty">暂无门店数据</p>';
+        var dailyCents = 0;
+        var manualCents = 0;
+        var dueCount = 0;
+        var waitCount = 0;
+        scoped.forEach(function (item) {
+            (fundOf(item).shares || []).forEach(function (share) {
+                var cents = centsOf(share.amount);
+                if (cents == null) return;
+                if (share.stage === 'pending') {
+                    waitCount += 1;
+                    return;
+                }
+                dueCount += 1;
+                if (share.kind === 'manual') manualCents += cents;
+                else dailyCents += cents;
+            });
+        });
+        setHead('收款');
+        return '<div class="rbt-fund">' + collectTabs() +
+            '<div class="rbt-board">' +
+            '<h2>平台合计</h2>' +
+            '<section class="rbt-board__total">' + boardMetrics(total, 'paying') + '</section>' +
+            '<h2>按状态</h2>' + statusHtml +
+            '<h2>按门店</h2>' + storeHtml +
+            '<h2>结款构成</h2>' +
+            '<section class="rbt-board__total">' +
+            '<div class="rbt-board-metrics">' +
+            '<div><span>当日支付</span><b>' + esc(dailyCents ? yuan(fromCents(dailyCents)) : '未产生') + '</b></div>' +
+            '<div><span>提前支付</span><b>' + esc(manualCents ? yuan(fromCents(manualCents)) : '未产生') + '</b></div>' +
+            '<div><span>已到账笔数</span><b>' + dueCount + '</b></div>' +
+            '<div><span>待到账笔数</span><b>' + waitCount + '</b></div>' +
+            '</div></section></div></div>';
+    }
+
     function renderCollect() {
+        if (collectFilter === 'board') return renderCollectBoard();
         var closed = collectFilter === 'closed';
         var rows = collectDemands(closed);
-        var funds = rows.map(function (item) { return fundOf(item); });
-        var receivable = sumMoney(funds, 'receivable');
-        var settled = sumMoney(funds, 'settled');
-        var pending = sumMoney(funds, 'pending');
         setHead('收款');
-        return '<div class="rbt-fund">' +
-            '<div class="rbt-fund__tabs" role="tablist">' +
-            '<button type="button" data-collect-view="open"' + (closed ? '' : ' class="is-on"') + '>付款中</button>' +
-            '<button type="button" data-collect-view="closed"' + (closed ? ' class="is-on"' : '') + '>已结束</button>' +
-            '</div>' +
-            '<div class="rbt-fund__summary">' +
-            '<p class="rbt-fund__summary-name">汇总</p>' +
-            '<div class="rbt-fund__summary-metrics">' +
-            '<div><span>笔数</span><b>' + rows.length + '</b></div>' +
-            '<div><span>应收</span><b>' + esc(receivable ? yuan(receivable) : '—') + '</b></div>' +
-            '<div><span>已结款</span><b>' + esc(settled ? yuan(settled) : '未产生') + '</b></div>' +
-            '<div><span>待结款</span><b>' + esc(pending ? yuan(pending) : (closed ? '无' : '未产生')) + '</b></div>' +
-            '</div></div>' +
+        return '<div class="rbt-fund">' + collectTabs() +
             (rows.length ? rows.map(function (item) {
                 var fund = fundOf(item);
                 var tagClass = item.status === '已完成' ? ' is-done' : (item.status === '已作废' || item.status === '已驳回' ? ' is-off' : '');
@@ -544,6 +662,21 @@
             if (!found || row.time < found) found = row.time;
         });
         return found;
+    }
+
+    /* 两份合同都签完的最晚时间，就是合同内容生效的时间。 */
+    function effectTimeOf(item) {
+        var api = window.RbtDemandData;
+        if (!item || !api || typeof api.signContracts !== 'function') return '';
+        var contracts = api.signContracts(item) || [];
+        if (!contracts.length || contracts.some(function (contract) { return !contract || contract.signStatus !== '已签署'; })) return '';
+        var latest = '';
+        contracts.forEach(function (contract) {
+            (contract.parties || []).forEach(function (party) {
+                if (party && party.signedAt && party.signedAt > latest) latest = party.signedAt;
+            });
+        });
+        return latest;
     }
 
     /* 贸易商签的是销售合同和采购合同。只列出已经签完的。 */
@@ -698,7 +831,7 @@
     function shareTitle(row) {
         var day = monthDay(row && row.date);
         if (row && row.kind === 'manual') return day + ' · 提前支付';
-        return day;
+        return day + ' · 当日支付';
     }
 
     function opsMoney(value) {
@@ -706,27 +839,23 @@
         return yuan(value);
     }
 
-    function opsFact(label, value) {
-        return '<span><i>' + esc(label) + '</i><b>' + esc(value) + '</b></span>';
+    function opsFact(label, value, kind) {
+        return '<span class="rbt-ops__fact' + (kind ? ' is-' + kind : '') + '"><i>' + esc(label) + '</i><b>' + esc(value) + '</b></span>';
     }
 
     function renderShareCards(shares) {
-        return '<p class="rbt-ops__note">各渠道佣金先进入门店钱包。结款从佣金余额支付，同一天可以多渠道混合后还款。</p>' +
-            shares.map(function (row) {
+        return shares.map(function (row) {
                 var pendingRow = row.stage === 'pending';
                 var manual = row.kind === 'manual';
                 var when = pendingRow ? '-' : (manual ? (paidClock(row.time) || settleClock(row.date)) : settleClock(row.date));
                 var facts = manual
-                    ? opsFact('当日实际付款', opsMoney(row.actual)) +
-                        opsFact('支付方式', row.payMethod || '—')
-                    : opsFact('营业流水', opsMoney(row.turnover)) +
-                        opsFact('所得佣金', opsMoney(row.commission)) +
-                        opsFact('当日实际付款', opsMoney(row.actual)) +
-                        opsFact('支付方式', '佣金余额');
+                    ? opsFact('支付方式', row.payMethod || '—', 'pay')
+                    : opsFact('营业额', opsMoney(row.turnover), 'amount') +
+                        opsFact('支付方式', row.payMethod || '营业收入', 'pay');
                 return '<article class="rbt-ops">' +
                     '<header class="rbt-ops__head"><b>' + esc(shareTitle(row)) + '</b>' +
                     '<em class="' + (pendingRow ? '' : 'is-due') + '">' + (pendingRow ? '待结款' : '已结款') + '</em></header>' +
-                    '<div class="rbt-ops__grid">' +
+                    '<div class="rbt-ops__grid' + (manual ? ' is-single' : '') + '">' +
                     facts +
                     '</div>' +
                     '<footer class="rbt-ops__foot">' +
@@ -815,8 +944,7 @@
         return index % step === 0;
     }
 
-    /* 营业额单折线；圆点可点选单日高亮；跨月／跨年轴签换样式 */
-    function renderBizChart(series, focusDate) {
+    /* 营业额单折线；圆点可点选单日高亮；跨月／跨年轴签换样式 */    function renderBizChart(series, focusDate) {
         if (!series || !series.length) {
             return '<div class="rbt-biz-chart rbt-biz-chart--empty">该时段暂无曲线数据</div>';
         }
@@ -920,7 +1048,7 @@
                 );
             })
             .join('');
-        var metricLabel = bizChannel === '直播' || bizChannel === '商城' ? '预计收入' : '营业额';
+        var metricLabel = '营业额';
         var spanCls =
             mode === 'year' ? ' rbt-biz-chart--cross-year' : mode === 'month' ? ' rbt-biz-chart--cross-month' : '';
         return (
@@ -946,8 +1074,7 @@
             '</span></div>' +
             '<p class="rbt-biz-chart__hint">点击趋势图可高亮当日</p>' +
             '</div>'
-        );
-    }
+        );    }
 
     function renderCollectBiz(item) {
         var api = window.RbtTraderStoreBiz;
@@ -990,9 +1117,7 @@
             .join('');
         var rangePick =
             bizRangeMode === 'custom'
-                ? '<div class="rbt-biz-presets">' +
-                  (presetChips || '') +
-                  '</div>' +
+                ? (presetChips ? '<div class="rbt-biz-presets">' + presetChips + '</div>' : '') +
                   '<div class="rbt-biz-dates">' +
                   '<label>开始<input type="date" data-biz-from value="' +
                   esc(bizFrom || pack.windowFrom || '') +
@@ -1008,15 +1133,8 @@
                   '" max="' +
                   esc(pack.windowTo || '') +
                   '"></label>' +
-                  '<button type="button" class="rbt-biz-apply" data-biz-apply>应用</button>' +
-                  '</div>' +
-                  (bizFrom && bizTo
-                      ? '<p class="rbt-biz-window">已选时段：' +
-                        esc(bizFrom) +
-                        ' 至 ' +
-                        esc(bizTo) +
-                        '</p>'
-                      : '')
+                  '<button type="button" class="rbt-biz-apply" data-biz-apply>查询</button>' +
+                  '</div>'
                 : '<p class="rbt-biz-window">总览区间：' +
                   esc(pack.windowFrom || '—') +
                   ' 至 ' +
@@ -1029,10 +1147,10 @@
                 '" data-biz-channel="' + esc(ch.id) + '">' + esc(ch.label) + '</button>';
         }).join('');
         var posChannel = null;
-        var estimateCards = [];
+        var otherCards = [];
         (pack.channels || []).forEach(function (ch) {
             if (ch.id === 'POS') posChannel = ch;
-            else estimateCards.push(ch);
+            else otherCards.push(ch);
         });
         var posCard = '';
         if (posChannel) {
@@ -1067,7 +1185,7 @@
                 moduleHtml +
                 '</article>';
         }
-        var estimateHtml = estimateCards
+        var otherHtml = otherCards
             .map(function (ch) {
                 return (
                     '<article class="rbt-biz-channel rbt-biz-channel--estimate">' +
@@ -1075,7 +1193,7 @@
                     esc(ch.label) +
                     '</header>' +
                     '<div class="rbt-biz-channel__metric">' +
-                    '<span>预计收入</span><b>' +
+                    '<span>营业额</span><b>' +
                     esc(bizMoney(ch.turnoverTotal)) +
                     '</b></div>' +
                     '</article>'
@@ -1084,21 +1202,30 @@
             .join('');
         var channelCards =
             posCard +
-            (estimateHtml
-                ? '<div class="rbt-biz-channels__estimate">' + estimateHtml + '</div>'
+            (otherHtml
+                ? '<div class="rbt-biz-channels__estimate">' + otherHtml + '</div>'
                 : '');
+        var focusBits = (pack.focusChannels || []).map(function (ch) {
+            return '<div class="rbt-biz-focus__ch"><em>' + esc(ch.label) + '</em>' +
+                '<span>' + esc(bizMoney(ch.turnover)) + '</span></div>';
+        }).join('');
+        var dateText = pack.focusDate ? monthDay(pack.focusDate) : '—';
         var clearDay = bizFocusDate
             ? '<button type="button" class="rbt-biz-clear" data-biz-clear-day>清除单日高亮</button>'
             : '';
+        var tipHtml = pack.tip ? '<p class="rbt-ops__note">' + esc(pack.tip) + '</p>' : '';
         return '<section class="rbt-biz">' +
-            '<p class="rbt-ops__note">' + esc(pack.tip || '') + '</p>' +
+            tipHtml +
             rangeChips + rangePick +
-            '<div class="rbt-biz-summary rbt-biz-summary--single">' +
-            '<div><span>' + (bizRangeMode === 'custom' ? '时段营业额' : '门店营业额') + '</span><b>' +
+            '<div class="rbt-biz-hero"><span>' + (bizRangeMode === 'custom' ? '时段营业额' : '门店营业额') + '</span><b>' +
             esc(bizMoney(pack.turnoverTotal)) + '</b></div>' +
-            '</div>' +
             '<div class="rbt-biz-channels">' + channelCards + '</div>' +
-            '<p class="rbt-biz-estimate-note">直播、商城展示金额均为预计收入，经退款、平台结算后，最终到账金额以实际结算单为准；该部分收入不计入门店当期实收。</p>' +
+            '<div class="rbt-biz-focus">' +
+            '<header><span>' + esc((pack.focusLabel || '当日') + ' · ' + dateText) + '</span>' +
+            (pack.frozen ? '<i class="is-frozen">已冻结</i>' : '') + '</header>' +
+            '<div class="rbt-biz-focus__total"><span>营业额 <b>' + esc(bizMoney(pack.focusTurnover)) + '</b></span></div>' +
+            (pack.hasSeries || bizFocusDate ? focusBits : '<p class="rbt-bill__empty">该时段暂无拆分数据</p>') +
+            '</div>' +
             '<div class="rbt-biz-curve">' +
             '<div class="rbt-biz-curve__head"><strong>经营曲线</strong>' +
             '<div class="rbt-biz-chips">' + channelChips + '</div>' + clearDay + '</div>' +
@@ -1127,26 +1254,25 @@
             ['结算比例', ratioText(item)],
             ['接单时间', item.acceptedAt || '—'],
             ['支付时间', payTimeOf(item) || '—'],
+            ['签署时间', effectTimeOf(item) || '—'],
             ['已结款', fund.settled ? yuan(fund.settled) : '未产生'],
             ['待结款', fund.pending ? yuan(fund.pending) : (item.status === '已完成' ? '无' : '未产生')],
             ['收款账户名称', payee.accountName || '—'],
             ['收款账户', payee.accountNo || '—']
         ];
+        if (fundTab === 'overview') fundTab = 'share';
         var shares = fund.shares.slice().reverse();
-        var detail = shares.length
-            ? renderShareCards(shares)
-            : '<p class="rbt-bill__empty">暂无结款明细</p>';
         var sheet =
             fundTab === 'share'
-                ? '<section class="rbt-bill__sheet' + (shares.length ? '' : ' rbt-bill__sheet--blank') + '">' + detail + '</section>'
+                ? renderShareSheet(shares)
                 : fundTab === 'biz'
-                    ? '<section class="rbt-bill__sheet">' + renderCollectBiz(item) + '</section>'
-                    : '<section class="rbt-bill__sheet">' +
-                        lines.map(function (line) {
-                            return '<div class="rbt-bill__line"><span>' + esc(line[0]) + '</span><b>' + esc(line[1]) + '</b></div>';
-                        }).join('') +
-                        renderSignedContracts(item) +
-                        '</section>';
+                        ? '<section class="rbt-bill__sheet">' + renderCollectBiz(item) + '</section>'
+                        : '<section class="rbt-bill__sheet">' +
+                            lines.map(function (line) {
+                                return '<div class="rbt-bill__line"><span>' + esc(line[0]) + '</span><b>' + esc(line[1]) + '</b></div>';
+                            }).join('') +
+                            renderSignedContracts(item) +
+                            '</section>';
         return '<section class="rbt-bill__head">' +
             '<div class="rbt-bill__top"><span class="rbt-bill__code">' + esc(item.code) + '</span><span class="rbt-bill__tag">' +
             esc(phaseLabel(item.status)) + '</span></div>' +
@@ -1165,10 +1291,394 @@
             sheet;
     }
 
+    /* 本单结款：时间选择在汇总卡片上方，同时筛汇总和下面这一单的结款卡片。已结款是已到账的当日支付加提前支付。 */
+    function shareInRange(share) {
+        var wallet = window.RbtPartyWallet;
+        var date = wallet && wallet.queryDate ? wallet.queryDate(share) : ((share && share.date) || '');
+        if (wallet && wallet.dateInRange) return wallet.dateInRange(date, overviewMode, overviewFrom, overviewTo);
+        return overviewMode === 'all';
+    }
+
+    function renderShareSheet(shares) {
+        var waiting = overviewMode === 'custom' && (!overviewFrom || !overviewTo);
+        var shown = waiting ? [] : (shares || []).filter(shareInRange);
+        var pendingCents = 0;
+        var dailyCents = 0;
+        var manualCents = 0;
+        shown.forEach(function (share) {
+            var cents = centsOf(share.amount);
+            if (cents == null) return;
+            if (share.stage === 'pending') pendingCents += cents;
+            else if (share.kind === 'manual') manualCents += cents;
+            else dailyCents += cents;
+        });
+        function money(cents) {
+            if (waiting) return '—';
+            return yuan(fromCents(cents));
+        }
+        function chip(id, label) {
+            return '<button type="button" class="rbt-party-chip' + (overviewMode === id ? ' is-on' : '') + '" data-ov-mode="' + id + '">' + label + '</button>';
+        }
+        var dates = overviewMode === 'custom'
+            ? '<div class="rbt-party-dates">' +
+                '<label>开始<input type="date" data-ov-from value="' + esc(overviewFrom || '') + '"></label>' +
+                '<label>结束<input type="date" data-ov-to value="' + esc(overviewTo || '') + '"></label>' +
+                '<button type="button" class="rbt-party-apply" data-ov-apply>查询</button></div>'
+            : '';
+        var cards = waiting
+            ? '<p class="rbt-bill__empty">选择起止日期后查询</p>'
+            : (shown.length ? renderShareCards(shown) : '<p class="rbt-bill__empty">该时段暂无结款</p>');
+        return '<section class="rbt-bill__sheet rbt-share-page">' +
+            '<div class="rbt-share-range">' +
+            '<div class="rbt-party-chips">' +
+            chip('7', '近7天') + chip('30', '近30天') + chip('all', '全部') + chip('custom', '自定义') +
+            '</div>' + dates +
+            '</div>' +
+            '<section class="rbt-share-board">' +
+            '<div class="rbt-share-board__metrics">' +
+            '<div><span>已结款</span><b>' + esc(money(dailyCents + manualCents)) + '</b></div>' +
+            '<div><span>待结款</span><b>' + esc(money(pendingCents)) + '</b></div>' +
+            '<div><span>当日支付</span><b>' + esc(money(dailyCents)) + '</b></div>' +
+            '<div><span>提前支付</span><b>' + esc(money(manualCents)) + '</b></div>' +
+            '</div></section>' +
+            '<section class="rbt-share-detail"><h3>结款明细</h3>' + cards + '</section></section>';
+    }
+
+    function renderWallet() {
+        var titles = { recharge: '充值', withdraw: '提现', bind: '绑定银行卡' };
+        setHead(titles[walletPane] || '钱包');
+        var wallet = window.RbtPartyWallet;
+        if (!wallet || typeof wallet.walletHtml !== 'function') return '<div class="rbt-h5-empty">钱包不可用</div>';
+        return wallet.walletHtml({
+            role: 'trader',
+            name: traderName(),
+            pane: walletPane,
+            method: walletMethod,
+            sheet: walletSheet,
+            bind: walletBind,
+            holder: traderName(),
+            tab: walletTab,
+            range: walletRange,
+            from: walletFrom,
+            to: walletTo,
+            timeOpen: walletTimeOpen,
+            account: TRADER_ACCOUNTS[traderName()] || null,
+            draft: walletDraft
+        });
+    }
+
+    function validAmount(raw) {
+        return /^\d+(\.\d{1,2})?$/.test(raw) && Number(raw) > 0;
+    }
+
+    function closePartyPwd() {
+        var node = document.getElementById('rbtPartyPwd');
+        if (node) node.remove();
+    }
+
+    function openPartyPwd(amountText, onOk) {
+        var phone = document.getElementById('rbtH5Phone');
+        if (!phone) return;
+        closePartyPwd();
+        var pwd = '';
+        var node = document.createElement('div');
+        node.id = 'rbtPartyPwd';
+        node.className = 'rbt-party-pwd';
+        function paint() {
+            var boxes = '';
+            var i;
+            for (i = 0; i < 6; i++) boxes += '<span' + (i < pwd.length ? ' class="is-on"' : '') + '></span>';
+            var boxNode = node.querySelector('.rbt-party-pwd__boxes');
+            if (boxNode) boxNode.innerHTML = boxes;
+        }
+        node.innerHTML = '<div class="rbt-party-pwd__mask" data-party-pwd-close></div>' +
+            '<div class="rbt-party-pwd__panel" role="dialog" aria-modal="true" aria-label="请输入支付密码">' +
+            '<div class="rbt-party-pwd__bar"><strong>请输入支付密码</strong><button type="button" data-party-pwd-close aria-label="关闭">×</button></div>' +
+            '<div class="rbt-party-pwd__body"><p class="rbt-party-pwd__amount">' + esc(amountText) + '</p>' +
+            '<div class="rbt-party-pwd__boxes"></div><p class="rbt-party-pwd__error"></p>' +
+            '<p class="rbt-party-pwd__hint">未单独设置时，演示密码为 123456</p></div>' +
+            '<div class="rbt-party-pwd__keys">' +
+            '123456789'.split('').map(function (num) {
+                return '<button type="button" data-party-key="' + num + '">' + num + '</button>';
+            }).join('') +
+            '<button type="button" disabled></button><button type="button" data-party-key="0">0</button>' +
+            '<button type="button" data-party-key="del">删除</button></div></div>';
+        node.addEventListener('click', function (event) {
+            event.stopPropagation();
+            if (event.target.closest('[data-party-pwd-close]')) {
+                closePartyPwd();
+                return;
+            }
+            var keyBtn = event.target.closest('[data-party-key]');
+            if (!keyBtn) return;
+            var key = keyBtn.getAttribute('data-party-key');
+            if (key === 'del') pwd = pwd.slice(0, -1);
+            else if (pwd.length < 6) pwd += key;
+            paint();
+            if (pwd.length < 6) return;
+            var wallet = window.RbtPartyWallet;
+            var result = wallet && wallet.verifyPassword ? wallet.verifyPassword(pwd) : { ok: false };
+            if (!result || !result.ok) {
+                pwd = '';
+                paint();
+                var error = node.querySelector('.rbt-party-pwd__error');
+                if (error) error.textContent = '密码输入错误，请重新输入';
+                return;
+            }
+            closePartyPwd();
+            onOk();
+        });
+        phone.appendChild(node);
+        paint();
+    }
+
+    function applyPartyRange(kind) {
+        var fromName = kind === 'overview' ? '[data-ov-from]' : '[data-wallet-from]';
+        var toName = kind === 'overview' ? '[data-ov-to]' : '[data-wallet-to]';
+        var from = String((document.querySelector(fromName) || {}).value || '');
+        var to = String((document.querySelector(toName) || {}).value || '');
+        if (!from || !to) {
+            toast('请选择起止日期');
+            return;
+        }
+        if (from > to) {
+            toast('开始日期不能晚于结束日期');
+            return;
+        }
+        if (kind === 'overview') {
+            overviewMode = 'custom';
+            overviewFrom = from;
+            overviewTo = to;
+        } else {
+            walletRange = 'custom';
+            walletFrom = from;
+            walletTo = to;
+            walletTimeOpen = false;
+        }
+        render();
+    }
+
+    function readBindFields() {
+        var card = document.querySelector('[data-wallet-bind="cardNo"]');
+        var phone = document.querySelector('[data-wallet-bind="phone"]');
+        var sms = document.querySelector('[data-wallet-bind="sms"]');
+        if (card) walletBind.cardNo = String(card.value || '').replace(/\D/g, '').slice(0, 19);
+        if (phone) walletBind.phone = String(phone.value || '').replace(/\D/g, '').slice(0, 11);
+        if (sms) walletBind.sms = String(sms.value || '').replace(/\D/g, '').slice(0, 6);
+    }
+
+    function syncBindSubmit() {
+        var button = document.querySelector('[data-wallet-bind-submit]');
+        var api = window.RbtPartyWallet;
+        if (button && api && api.bindReady) button.disabled = !api.bindReady(walletBind);
+    }
+
+    function handleBindClick(event) {
+        if (screen !== 'wallet' || walletPane !== 'bind') return false;
+        var api = window.RbtPartyWallet;
+        if (event.target.closest('[data-wallet-holder-info]')) {
+            readBindFields();
+            walletBind.modal = 'holder';
+            walletBind.sheet = '';
+            render();
+            return true;
+        }
+        if (event.target.closest('[data-wallet-bank-open]')) {
+            readBindFields();
+            walletBind.sheet = 'bank';
+            walletBind.modal = '';
+            render();
+            return true;
+        }
+        if (event.target.closest('[data-wallet-bind-close]')) {
+            readBindFields();
+            walletBind.sheet = '';
+            walletBind.modal = '';
+            render();
+            return true;
+        }
+        var bankBtn = event.target.closest('[data-wallet-bank]');
+        if (bankBtn) {
+            readBindFields();
+            walletBind.bankId = bankBtn.getAttribute('data-wallet-bank') || '';
+            walletBind.sheet = '';
+            render();
+            return true;
+        }
+        if (event.target.closest('[data-wallet-sms]')) {
+            readBindFields();
+            if (!/^\d{11}$/.test(walletBind.phone)) {
+                toast('请输入银行预留手机号');
+                return true;
+            }
+            toast('验证码已发送（演示码 123456）');
+            return true;
+        }
+        if (event.target.closest('[data-wallet-bind-submit]')) {
+            readBindFields();
+            var result = api && api.bindCard ? api.bindCard(traderName(), walletBind) : { ok: false };
+            if (!result || !result.ok) {
+                toast((result && result.message) || '绑定银行卡失败，请重新绑定。');
+                return true;
+            }
+            walletMethod = 'card:' + result.card.id;
+            walletBind = { cardNo: '', bankId: '', phone: '', sms: '', sheet: '', modal: '' };
+            walletPane = 'recharge';
+            walletSheet = '';
+            toast('绑定成功');
+            render();
+            return true;
+        }
+        return false;
+    }
+
+    function submitPartyRecharge(role, name, raw, wallet) {
+        var issue = wallet.rechargeIssue ? wallet.rechargeIssue(name, walletMethod, raw) : '';
+        if (issue) {
+            toast(issue);
+            return;
+        }
+        var method = wallet.rechargeMethod ? wallet.rechargeMethod(name, walletMethod) : null;
+        var channel = method && method.channel ? method.channel : '支付宝';
+        var methodId = method && method.id ? method.id : walletMethod;
+        function finish() {
+            var result = wallet.recharge(role, name, raw, methodId);
+            if (!result || !result.ok) {
+                toast((result && result.message) || '充值失败');
+                return;
+            }
+            walletDraft = '';
+            walletPane = 'main';
+            toast('充值成功');
+            render();
+        }
+        if (methodId === 'alipay' || methodId === 'wechat') {
+            toast('正在跳转' + channel + '，请在' + channel + '完成密码验证');
+            setTimeout(finish, 600);
+            return;
+        }
+        finish();
+    }
+
+    function handlePartyClick(event) {
+        var modeBtn = event.target.closest('[data-ov-mode]');
+        if (modeBtn && screen === 'collect-bill') {
+            overviewMode = modeBtn.getAttribute('data-ov-mode') || '30';
+            render();
+            return true;
+        }
+        if (event.target.closest('[data-ov-apply]')) {
+            applyPartyRange('overview');
+            return true;
+        }
+        var go = event.target.closest('[data-wallet-go]');
+        if (go && screen === 'wallet') {
+            walletPane = go.getAttribute('data-wallet-go') === 'recharge' ? 'recharge' : 'withdraw';
+            walletDraft = '';
+            walletSheet = '';
+            walletTimeOpen = false;
+            render();
+            return true;
+        }
+        var keyBtn = event.target.closest('[data-wallet-key]');
+        if (keyBtn && screen === 'wallet') {
+            var amountApi = window.RbtPartyWallet;
+            walletDraft = amountApi && amountApi.editAmount ? amountApi.editAmount(walletDraft, keyBtn.getAttribute('data-wallet-key')) : walletDraft;
+            render();
+            return true;
+        }
+        if (event.target.closest('[data-wallet-method-open]') && screen === 'wallet') {
+            walletSheet = 'method';
+            render();
+            return true;
+        }
+        if (event.target.closest('[data-wallet-sheet-close]') && screen === 'wallet') {
+            walletSheet = '';
+            render();
+            return true;
+        }
+        var pick = event.target.closest('[data-wallet-pick]');
+        if (pick && screen === 'wallet') {
+            walletMethod = pick.getAttribute('data-wallet-pick') || '';
+            walletSheet = '';
+            render();
+            return true;
+        }
+        if (event.target.closest('[data-wallet-add-card]') && screen === 'wallet') {
+            walletBind = { cardNo: '', bankId: '', phone: '', sms: '', sheet: '', modal: '' };
+            walletPane = 'bind';
+            walletSheet = '';
+            render();
+            return true;
+        }
+        if (handleBindClick(event)) return true;
+        if (event.target.closest('[data-wallet-all]') && screen === 'wallet') {
+            var snapApi = window.RbtPartyWallet;
+            var snap = snapApi && snapApi.snapshot ? snapApi.snapshot('trader', traderName()) : null;
+            walletDraft = snap ? Number(snap.withdrawable || 0).toFixed(2) : '';
+            render();
+            return true;
+        }
+        if (event.target.closest('[data-wallet-time]') && screen === 'wallet') {
+            walletTimeOpen = !walletTimeOpen;
+            render();
+            return true;
+        }
+        if (event.target.closest('[data-wallet-time-close]') && screen === 'wallet') {
+            walletTimeOpen = false;
+            render();
+            return true;
+        }
+        var tabBtn = event.target.closest('[data-wallet-tab]');
+        if (tabBtn && screen === 'wallet') {
+            walletTab = tabBtn.getAttribute('data-wallet-tab') || 'all';
+            render();
+            return true;
+        }
+        var rangeBtn = event.target.closest('[data-wallet-range]');
+        if (rangeBtn && screen === 'wallet') {
+            walletRange = rangeBtn.getAttribute('data-wallet-range') || '30';
+            walletTimeOpen = walletRange === 'custom';
+            render();
+            return true;
+        }
+        if (event.target.closest('[data-wallet-apply]')) {
+            applyPartyRange('wallet');
+            return true;
+        }
+        var submit = event.target.closest('[data-wallet-submit]');
+        if (!submit) return false;
+        var raw = walletDraft;
+        if (!validAmount(raw)) {
+            toast('请填写金额，最多两位小数');
+            return true;
+        }
+        var wallet = window.RbtPartyWallet;
+        if (!wallet) return true;
+        if (submit.getAttribute('data-wallet-submit') === 'recharge') {
+            submitPartyRecharge('trader', traderName(), raw, wallet);
+            return true;
+        }
+        walletDraft = raw;
+        openPartyPwd('¥' + Number(raw).toFixed(2), function () {
+            walletDraft = '';
+            var result = wallet.withdraw('trader', traderName(), raw);
+            if (!result || !result.ok) {
+                toast((result && result.message) || '提现失败');
+                return;
+            }
+            walletPane = 'main';
+            toast('提现已提交');
+            render();
+        });
+        return true;
+    }
+
     function render() {
         var scroll = document.getElementById('rbtH5Scroll');
         if (!scroll || !account) return;
-        scroll.classList.toggle('is-collect', tab === 'hall' && screen === 'collect');
+        if (window.RbtPartyWallet && window.RbtPartyWallet.clearTimeSheet) window.RbtPartyWallet.clearTimeSheet();
+        scroll.classList.toggle('is-collect', tab === 'hall' && (screen === 'collect' || screen === 'wallet'));
         closeContract();
         syncHomeChrome();
         syncHeadBack();
@@ -1194,6 +1704,11 @@
         }
         if (tab === 'hall' && screen === 'collect') {
             scroll.innerHTML = renderCollect();
+            return;
+        }
+        if (tab === 'hall' && screen === 'wallet') {
+            scroll.innerHTML = renderWallet();
+            if (window.RbtPartyWallet && window.RbtPartyWallet.pinTimeSheet) window.RbtPartyWallet.pinTimeSheet();
             return;
         }
         if (tab === 'hall' && screen === 'home') {
@@ -1423,10 +1938,18 @@
             '<h2 id="rbtBalanceTitle">余额不足</h2>' +
             '<p>' + esc(text) + '</p>' +
             '<div class="rbt-accept-dialog__actions">' +
-            '<button type="button" class="is-go" data-balance-ok>我知道了</button>' +
+            '<button type="button" class="is-later" data-balance-ok>我知道了</button>' +
+            '<button type="button" class="is-go" data-balance-recharge>去充值</button>' +
             '</div></div>';
         mask.addEventListener('click', function (event) {
             if (event.target.closest('[data-balance-ok]')) closeBalanceShort();
+            if (event.target.closest('[data-balance-recharge]')) {
+                closeBalanceShort();
+                tab = 'hall';
+                screen = 'wallet';
+                walletPane = 'recharge';
+                render();
+            }
         });
         phone.appendChild(mask);
     }
@@ -1505,6 +2028,37 @@
         });
     }
 
+    document.getElementById('rbtH5App').addEventListener('input', function (event) {
+        var input = event.target.closest('[data-wallet-bind]');
+        if (!input || screen !== 'wallet') return;
+        var key = input.getAttribute('data-wallet-bind');
+        var digits = String(input.value || '').replace(/\D/g, '');
+        if (key === 'cardNo') {
+            digits = digits.slice(0, 19);
+            input.value = digits.replace(/(\d{4})(?=\d)/g, '$1 ');
+            walletBind.cardNo = digits;
+            if (!walletBind.bankId && window.RbtPartyWallet && window.RbtPartyWallet.detectBank) {
+                var bank = window.RbtPartyWallet.detectBank(digits);
+                var nameNode = document.querySelector('[data-wallet-bank-open] span');
+                var bankBtn = document.querySelector('[data-wallet-bank-open]');
+                if (bank && nameNode) {
+                    walletBind.bankId = bank.id;
+                    nameNode.textContent = bank.name;
+                    if (bankBtn) bankBtn.classList.remove('is-empty');
+                }
+            }
+        } else if (key === 'phone') {
+            digits = digits.slice(0, 11);
+            input.value = digits;
+            walletBind.phone = digits;
+        } else {
+            digits = digits.slice(0, 6);
+            input.value = digits;
+            walletBind.sms = digits;
+        }
+        syncBindSubmit();
+    });
+
     document.getElementById('rbtH5App').addEventListener('click', function (event) {
         var contractClose = event.target.closest('[data-contract-close]');
         var contractOpen = event.target.closest('[data-contract-open]');
@@ -1579,6 +2133,16 @@
             render();
             return;
         }
+        if (entry && entry.getAttribute('data-entry') === 'wallet') {
+            tab = 'hall';
+            screen = 'wallet';
+            walletPane = 'main';
+            render();
+            return;
+        }
+        if (screen === 'wallet' || (screen === 'collect-bill' && fundTab === 'share')) {
+            if (handlePartyClick(event)) return;
+        }
         if (confirmDeal) {
             openConfirmSign(confirmDeal.getAttribute('data-confirm-deal'));
             return;
@@ -1623,7 +2187,8 @@
         var collectView = event.target.closest('[data-collect-view]');
         var collectBtn = event.target.closest('[data-collect]');
         if (collectView) {
-            collectFilter = collectView.getAttribute('data-collect-view') === 'closed' ? 'closed' : 'open';
+            var collectViewId = collectView.getAttribute('data-collect-view');
+            collectFilter = collectViewId === 'closed' || collectViewId === 'board' ? collectViewId : 'open';
             tab = 'hall';
             screen = 'collect';
             render();

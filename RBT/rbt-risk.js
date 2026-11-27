@@ -16,11 +16,10 @@
     function blankProfile() {
         return {
             durationTiers: [3, 6, 9, 12],
-            lineRules: {},
+            productRules: {},
             watchStreak: 1,
             warnStreak: 3,
             badStreak: 7,
-            progressStartDays: 7,
             watchProgress: 33,
             warnProgress: 60,
             badProgress: 80,
@@ -67,24 +66,24 @@
         var pack = blankProfile();
         if (!raw || typeof raw !== 'object') return pack;
         Object.keys(pack).forEach(function (key) {
-            if (key === 'durationTiers' || key === 'lineRules') return;
+            if (key === 'durationTiers' || key === 'productRules') return;
             if (raw[key] == null || raw[key] === '') return;
             pack[key] = raw[key];
         });
         var tiers = tiersOf(raw.durationTiers);
         if (tiers.length) pack.durationTiers = tiers;
-        pack.lineRules = {};
-        var rules = raw.lineRules && typeof raw.lineRules === 'object' ? raw.lineRules : {};
+        pack.productRules = {};
+        var rules = raw.productRules && typeof raw.productRules === 'object' ? raw.productRules : {};
         Object.keys(rules).forEach(function (name) {
             if (rules[name] && typeof rules[name] === 'object') {
-                pack.lineRules[name] = JSON.parse(JSON.stringify(rules[name]));
+                pack.productRules[name] = JSON.parse(JSON.stringify(rules[name]));
             }
         });
         pack.watchProgress = percentOf(pack.watchProgress, 33);
         pack.warnProgress = percentOf(pack.warnProgress, 60);
         pack.badProgress = percentOf(pack.badProgress, 80);
         liftShortfall(pack);
-        Object.keys(pack.lineRules).forEach(function (name) { liftShortfall(pack.lineRules[name]); });
+        Object.keys(pack.productRules).forEach(function (name) { liftShortfall(pack.productRules[name]); });
         return pack;
     }
 
@@ -104,7 +103,7 @@
     function applyActive(cfg) {
         var pack = cfg.profiles[cfg.baselineMode] || cfg.profiles.static;
         Object.keys(pack).forEach(function (key) {
-            cfg[key] = key === 'lineRules' || key === 'durationTiers' ? pack[key] : pack[key];
+            cfg[key] = key === 'productRules' || key === 'durationTiers' ? pack[key] : pack[key];
         });
         return cfg;
     }
@@ -144,9 +143,6 @@
         if (!(Number(cfg.watchStreak) < Number(cfg.warnStreak) && Number(cfg.warnStreak) < Number(cfg.badStreak))) {
             return '连续未付款天数须按关注、预警、异常递增';
         }
-        if (!/^\d+$/.test(String(cfg.progressStartDays)) || Number(cfg.progressStartDays) < 1) {
-            return '起算天数须为大于 0 的整数';
-        }
         for (i = 0; i < progresses.length; i++) {
             var progress = Number(progresses[i]);
             if (!isFinite(progress) || progress <= 0 || progress >= 100) return '低于基准的比例须大于 0，且小于 100';
@@ -168,11 +164,11 @@
     function issuesOfProfile(pack, label) {
         var issue = issuesOf(pack);
         if (issue) return label + '：' + issue;
-        var names = Object.keys(pack.lineRules || {});
+        var names = Object.keys(pack.productRules || {});
         var n;
         for (n = 0; n < names.length; n++) {
-            issue = issuesOf(pack.lineRules[names[n]]);
-            if (issue) return label + ' · ' + names[n] + '：' + issue;
+            issue = issuesOf(pack.productRules[names[n]]);
+            if (issue) return label + ' · ' + productName(names[n]) + '：' + issue;
         }
         return '';
     }
@@ -185,7 +181,7 @@
         var given = cfg && cfg.profiles;
         next.profiles.static = profileFrom(given && given.static ? given.static : previous.profiles.static);
         next.profiles.dynamic = profileFrom(given && given.dynamic ? given.dynamic : previous.profiles.dynamic);
-        ['watchStreak', 'warnStreak', 'badStreak', 'progressStartDays'].forEach(function (key) {
+        ['watchStreak', 'warnStreak', 'badStreak'].forEach(function (key) {
             next.profiles.static[key] = Number(next.profiles.static[key]);
             next.profiles.dynamic[key] = Number(next.profiles.dynamic[key]);
         });
@@ -225,19 +221,20 @@
         return value === '且' ? '且' : '或';
     }
 
-    /* 或：连续未付款、日均付款低于基准满足一个即命中。且：两个都要满足。未满起算天数时，基准条件不命中。 */
-    function hits(streak, daily, elapsed, days, line, join, startDays) {
-        var byDay = streak >= Number(days);
-        var byRate = Number(elapsed) >= Number(startDays) && belowProgress(daily, line);
+    /* 有营收并开始给各方结款（已有营业日）后即评级。或：连续未付款、日均低于基准满足一个即命中。且：两个都要满足。 */
+    function hits(streak, daily, elapsed, days, line, join) {
+        var started = Number(elapsed) >= 1;
+        var byDay = started && streak >= Number(days);
+        var byRate = started && belowProgress(daily, line);
         return joinMode(join) === '且' ? (byDay && byRate) : (byDay || byRate);
     }
 
     function gradeOf(streak, daily, elapsed, cfg) {
         var rule = cfg || readConfig();
         if (!rule.enabled) return '正常';
-        if (hits(streak, daily, elapsed, rule.badStreak, rule.badProgress, rule.badJoin, rule.progressStartDays)) return '异常';
-        if (hits(streak, daily, elapsed, rule.warnStreak, rule.warnProgress, rule.warnJoin, rule.progressStartDays)) return '预警';
-        if (hits(streak, daily, elapsed, rule.watchStreak, rule.watchProgress, rule.watchJoin, rule.progressStartDays)) return '关注';
+        if (hits(streak, daily, elapsed, rule.badStreak, rule.badProgress, rule.badJoin)) return '异常';
+        if (hits(streak, daily, elapsed, rule.warnStreak, rule.warnProgress, rule.warnJoin)) return '预警';
+        if (hits(streak, daily, elapsed, rule.watchStreak, rule.watchProgress, rule.watchJoin)) return '关注';
         return '正常';
     }
 
@@ -274,8 +271,8 @@
         var rule = cfg || readConfig();
         var dayText = '连续未付款 ' + streak + ' 天';
         var progressText = '日均付款低于' + (rule.baselineMode === 'dynamic' ? '动态' : '静态') + '基准';
-        var byDay = streak >= dayLine(grade, rule);
-        var byRate = Number(elapsed) >= Number(rule.progressStartDays) && belowProgress(daily, progressLine(grade, rule));
+        var byDay = Number(elapsed) >= 1 && streak >= dayLine(grade, rule);
+        var byRate = Number(elapsed) >= 1 && belowProgress(daily, progressLine(grade, rule));
         if (joinOf(grade, rule) === '且') return dayText + '，且' + progressText;
         if (byDay && !byRate) return dayText;
         if (byRate && !byDay) return progressText;
@@ -309,9 +306,10 @@
         return (found && found.bizLine) || (item && item.bizLine) || '';
     }
 
-    function lineRule(bizLine, cfg) {
+    function productRule(item, cfg) {
         var rule = cfg || readConfig();
-        var extra = rule.lineRules && bizLine && rule.lineRules[bizLine];
+        var code = productCodeOf(item);
+        var extra = rule.productRules && code && rule.productRules[code];
         if (!extra) return rule;
         var next = {};
         Object.keys(rule).forEach(function (key) { next[key] = rule[key]; });
@@ -345,99 +343,114 @@
         var goods = amountOf(item && item.goodsAmount);
         var days = monthsOf(item, (cfg || readConfig()).durationTiers) * 30;
         if (!(goods > 0) || !(days > 0)) return 0;
-        return Math.round(goods / days * 100) / 100;
+        return goods / days;
     }
 
-    /* 事业线和产品的对应。结算比例以产品配置为准，页面还没打开过产品配置时用这套默认。 */
-    var LINE_PRODUCT = {
-        '餐饮': 'FQ00001',
-        '康美': 'FQ00002',
-        '纯私域': 'FQ00003'
-    };
-    var PRODUCT_RATIOS = {
-        FQ00001: { POS: 10, '直播': 10, '商城': 10 },
-        FQ00002: { POS: 8, '直播': 8, '商城': 8 },
-        FQ00003: { POS: 10, '直播': 10, '商城': 10 }
-    };
+    var PRODUCT_CATALOG = [
+        { code: 'FQ00001', name: '开业铺货日结' },
+        { code: 'FQ00004', name: '开业铺货加价' },
+        { code: 'FQ00005', name: '开业铺货轻量' },
+        { code: 'FQ00002', name: '门店形象日结' },
+        { code: 'FQ00003', name: '开业运营日结' }
+    ];
 
-    function productRatios(code) {
-        var fallback = PRODUCT_RATIOS[code] || null;
+    function productCodeOf(item) {
+        return String(item && (item.installmentCode || item.productCode) || '');
+    }
+
+    function products() {
+        var map = {};
+        var order = [];
+        function add(code, name) {
+            code = String(code || '');
+            if (!code || map[code]) return;
+            map[code] = { code: code, name: name || code };
+            order.push(code);
+        }
+        var stored = null;
         try {
             var raw = global.sessionStorage && global.sessionStorage.getItem('rbt_installment_v3');
-            var list = raw ? JSON.parse(raw) : null;
-            if (!Array.isArray(list)) return fallback;
-            var found = null;
-            list.some(function (item) {
-                if (item && item.code === code) {
-                    found = item;
-                    return true;
-                }
-                return false;
-            });
-            if (!found || !found.settleRatios) return fallback;
-            var out = {};
-            found.settleRatios.forEach(function (channel) {
-                var ratio = Number(String(channel && channel.fallback || '').replace('%', ''));
-                if (channel && channel.channel && isFinite(ratio) && ratio > 0) out[channel.channel] = ratio;
-            });
-            return Object.keys(out).length ? out : fallback;
+            stored = raw ? JSON.parse(raw) : null;
         } catch (e) {
-            return fallback;
+            stored = null;
         }
-    }
-
-    function storesOfLine(bizLine) {
-        var api = global.RbtStoreData;
-        var list = api && typeof api.list === 'function' ? api.list() : [];
-        var seen = {};
-        var rows = [];
-        list.forEach(function (store) {
-            if (!store || store.bizLine !== bizLine || !store.code || seen[store.code]) return;
-            seen[store.code] = 1;
-            rows.push(store);
-        });
-        return rows;
-    }
-
-    function storeScale(code) {
-        var text = String(code || '');
-        var n = 0;
-        var i;
-        for (i = 0; i < text.length; i++) n += text.charCodeAt(i);
-        return 0.82 + (n % 6) * 0.06;
-    }
-
-    /* 动态基准日均 = 该事业线全部门店的营收佣金，按该事业线产品的结算规则模拟出应付款合计 ÷ 这些门店的营业日次数总和。
-       所得佣金 = 营业流水 × 门店佣金比例。应付款 = 所得佣金 × 渠道结算比例。提前支付不参与。
-       营业日按门店分别计数后再相加：同一门店同一天多个渠道算 1 天，不同门店同一天分别计算。 */
-    function dynamicBaseline(bizLine) {
-        var daily = global.RbtDailyFulfill;
-        var facts = daily && typeof daily.revenueFacts === 'function' ? daily.revenueFacts() : [];
-        var ratios = productRatios(LINE_PRODUCT[bizLine]);
-        if (!bizLine || !facts.length || !ratios) return 0;
-        var rate = typeof daily.commissionRate === 'number' ? daily.commissionRate : 0.1;
-        var sum = 0;
-        var slots = 0;
-        storesOfLine(bizLine).forEach(function (store) {
-            var scale = storeScale(store.code);
-            var dates = {};
-            facts.forEach(function (fact) {
-                var ratio = ratios[fact.channel];
-                if (!fact || !fact.date || !(ratio > 0)) return;
-                var turnover = Math.round(Number(fact.turnover) * scale * 100) / 100;
-                var commission = Math.round(turnover * rate * 100) / 100;
-                sum += Math.round(commission * ratio) / 100;
-                dates[fact.date] = 1;
+        if (Array.isArray(stored) && stored.length) {
+            stored.forEach(function (item) {
+                if (!item || item.repayMethod && item.repayMethod !== '比例付') return;
+                add(item.code, item.name);
             });
-            slots += Object.keys(dates).length;
+        }
+        if (!order.length) PRODUCT_CATALOG.forEach(function (item) { add(item.code, item.name); });
+        demandList().forEach(function (item) {
+            if (!item || item.repayMethod && item.repayMethod !== '比例付') return;
+            add(productCodeOf(item), item.installmentName || item.packageName);
+        });
+        return order.map(function (code) { return map[code]; });
+    }
+
+    function productName(code) {
+        var name = code;
+        products().some(function (item) {
+            if (item.code === code) {
+                name = item.name;
+                return true;
+            }
+            return false;
+        });
+        return name || code;
+    }
+
+    function demandList() {
+        var api = global.RbtDemandData;
+        return api && typeof api.list === 'function' ? api.list() : [];
+    }
+
+    function demandsOfProduct(code) {
+        return demandList().filter(function (item) {
+            return item && productCodeOf(item) === code && item.repayMethod === '比例付' && (item.status === '门店付款中' || item.status === '还款中' || item.status === '已完成');
+        });
+    }
+
+    /* 已结款只计已经到账核销的金额。提前支付当时核销。已冻结、在途不计入。 */
+    function settledOfDemand(item) {
+        var daily = global.RbtDailyFulfill;
+        var rows = daily && typeof daily.daysOf === 'function' ? daily.daysOf(item) : [];
+        var cents = 0;
+        var dates = {};
+        rows.forEach(function (row) {
+            if (!row || !row.date) return;
+            if (row.fundStatus && row.fundStatus !== 'arrived') return;
+            var amount = row.kind === 'manual' ? (Number(row.actual) || Number(row.due) || 0) : (Number(row.actual) || 0);
+            if (!(amount > 0)) return;
+            cents += Math.round(amount * 100);
+            dates[row.date] = 1;
+        });
+        return { cents: cents, dates: dates };
+    }
+
+    /* 动态基准日均 = 该产品下 RBT 门店的已结款合计 ÷ 这些门店对应营业天数总和。
+       同一门店同一天只算 1 天，不同门店同一天分别计算。 */
+    function dynamicBaseline(productCode) {
+        var byStore = {};
+        var sum = 0;
+        demandsOfProduct(productCode).forEach(function (item) {
+            var pack = settledOfDemand(item);
+            sum += pack.cents;
+            var store = item.storeCode || item.code;
+            if (!byStore[store]) byStore[store] = {};
+            Object.keys(pack.dates).forEach(function (date) { byStore[store][date] = 1; });
+        });
+        var slots = 0;
+        Object.keys(byStore).forEach(function (store) {
+            slots += Object.keys(byStore[store]).length;
         });
         if (!slots) return 0;
-        return Math.round(sum / slots * 100) / 100;
+        return (sum / slots) / 100;
     }
 
     function baselineAmount(item, cfg) {
         var rule = cfg || readConfig();
-        if (rule.baselineMode === 'dynamic') return dynamicBaseline(bizLineOf(item));
+        if (rule.baselineMode === 'dynamic') return dynamicBaseline(productCodeOf(item));
         return staticBaseline(item, rule);
     }
 
@@ -450,25 +463,46 @@
         return mode + ' ¥' + money(amount) + extra;
     }
 
-    /* 同一天多个渠道先加总。这一天实际付款合计为 0，才算未付款。 */
+    function fundOpen(row) {
+        return row && (row.fundStatus === 'inflight' || row.fundStatus === 'frozen' || row.fundStatus === 'missing' || row.fundStatus === 'pending_freeze');
+    }
+
+    /* 只统计已经确认结果的营业日。缺报、已冻结、在途整日跳过，不当成 0 元未付款。提前支付只进分子。 */
     function assessDays(days, receivable, totalAmount, item) {
         var sorted = (days || []).slice().sort(function (a, b) {
             return a.date < b.date ? -1 : a.date > b.date ? 1 : 0;
         });
         var due = 0;
         var actual = 0;
+        var early = 0;
         var byDate = {};
         var dates = [];
+        var blocked = {};
         sorted.forEach(function (row) {
-            var date = row.date;
-            if (!byDate[date]) {
-                byDate[date] = 0;
-                dates.push(date);
-            }
+            if (!row || !row.date) return;
             due += Number(row.due) || 0;
-            actual += Number(row.actual) || 0;
-            byDate[date] += Number(row.actual) || 0;
+            if (row.kind === 'manual') {
+                early += Number(row.actual) || Number(row.due) || 0;
+                return;
+            }
+            if (fundOpen(row)) {
+                blocked[row.date] = 1;
+                return;
+            }
+            if (!byDate[row.date]) {
+                byDate[row.date] = 0;
+                dates.push(row.date);
+            }
+            var paid = Number(row.actual) || 0;
+            byDate[row.date] += paid;
+            actual += paid;
         });
+        sorted.forEach(function (row) {
+            if (!row || row.kind !== 'manual' || blocked[row.date] || byDate[row.date] == null) return;
+            byDate[row.date] += Number(row.actual) || Number(row.due) || 0;
+        });
+        dates = dates.filter(function (date) { return !blocked[date]; });
+        actual += early;
         due = Math.round(due * 100) / 100;
         actual = Math.round(actual * 100) / 100;
         var streak = 0;
@@ -484,10 +518,11 @@
             }
         }
         var businessDays = dates.length;
-        var storeDaily = businessDays ? Math.round(actual / businessDays * 100) / 100 : null;
-        var rule = lineRule(bizLineOf(item));
+        var storeDailyExact = businessDays ? actual / businessDays : null;
+        var storeDaily = storeDailyExact == null ? null : Math.round(storeDailyExact * 100) / 100;
+        var rule = productRule(item);
         var baseline = baselineAmount(item, rule);
-        var ratio = storeDaily != null && baseline > 0 ? storeDaily / baseline : null;
+        var ratio = storeDailyExact != null && baseline > 0 ? storeDailyExact / baseline : null;
         var grade = gradeOf(streak, ratio, businessDays, rule);
         return {
             due: money(due),
@@ -539,7 +574,7 @@
                 baseline: fact.baseline,
                 grade: fact.grade,
                 lastMiss: fact.lastMiss,
-                alert: alertText(fact.grade, item.storeName, item.code, fact.streak, fact.gap, fact.progressRate, fact.elapsed, lineRule(fact.bizLine))
+                alert: alertText(fact.grade, item.storeName, item.code, fact.streak, fact.gap, fact.progressRate, fact.elapsed, productRule(item))
             };
         });
     }
@@ -551,7 +586,7 @@
         var daily = global.RbtDailyFulfill;
         var days = item && daily && typeof daily.daysOf === 'function' ? daily.daysOf(item) : [];
         var base = receivableOf(item);
-        var line = lineRule(bizLineOf(item), rule);
+        var line = productRule(item, rule);
         var fact = assessDays(days, base, item && item.amount, item);
         var progress = fact.progressRate;
         var elapsed = fact.elapsed;
@@ -564,7 +599,7 @@
         if (script.lowProgress) {
             var floor = 1 - Number(line.badProgress) / 100;
             progress = floor > 0 ? floor * 0.8 : 0;
-            elapsed = Number(line.progressStartDays);
+            elapsed = fact.elapsed || 1;
             var bench = baselineAmount(item, line);
             var storeDaily = bench > 0 ? Math.round(bench * progress * 100) / 100 : 0;
             due = money(storeDaily * elapsed);
@@ -747,87 +782,64 @@
         return ledgerRows().concat(sampleRows());
     }
 
-    var LINE_ORDER = ['餐饮', '康美', '纯私域', '集团内部'];
-
-    function lineRank(name) {
-        var index = LINE_ORDER.indexOf(name);
-        return index < 0 ? LINE_ORDER.length : index;
-    }
-
-    /* 产品跟着事业线走，不跟着某一家门店。同一事业线、同一产品、同一金额只留一条。 */
-    function staticProducts() {
-        var api = global.RbtDemandData;
-        var list = api && typeof api.list === 'function' ? api.list() : [];
+    function goodsOfProduct(code) {
         var seen = {};
-        var rows = [];
-        list.forEach(function (item) {
-            if (!item || item.repayMethod !== '比例付') return;
+        var amounts = [];
+        demandList().forEach(function (item) {
+            if (!item || productCodeOf(item) !== code || item.repayMethod !== '比例付') return;
             var goods = amountOf(item.goodsAmount);
             if (!(goods > 0)) return;
-            var line = bizLineOf(item);
-            if (!line) return;
-            var name = item.installmentName || item.packageName || '产品';
-            var code = item.installmentCode || name;
-            var key = line + ':' + code + ':' + goods;
+            var key = goods.toFixed(2);
             if (seen[key]) return;
             seen[key] = 1;
-            rows.push({ line: line, name: name, goods: goods });
+            amounts.push(goods);
         });
-        rows.sort(function (a, b) {
-            var diff = lineRank(a.line) - lineRank(b.line);
-            if (diff) return diff;
-            return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
-        });
-        return rows;
+        return amounts;
     }
 
-    function payingDemands() {
-        var api = global.RbtDemandData;
-        var list = api && typeof api.list === 'function' ? api.list() : [];
-        return list.filter(function (item) {
-            return item && (item.status === '门店付款中' || item.status === '还款中') && item.repayMethod === '比例付';
-        });
-    }
-
-    /* 配置页展示当前条件下的基准日均。只读。动态基准按事业线、每个营业日重算。 */
-    function baselinePreview(mode, lineName, tiers) {
+    /* 配置页展示当前产品的基准日均。只读。动态基准按产品、每个营业日重算。 */
+    function baselinePreview(mode, productCode, tiers) {
         var dynamic = mode === 'dynamic';
         var cfg = { baselineMode: dynamic ? 'dynamic' : 'static', durationTiers: tiersOf(tiers) };
+        var list = products().filter(function (item) {
+            return !productCode || item.code === productCode;
+        });
         var rows = [];
         if (dynamic) {
-            var names = lineName ? [lineName] : LINE_ORDER.slice();
-            names.forEach(function (name) {
-                var amount = dynamicBaseline(name);
+            list.forEach(function (product) {
+                var amount = dynamicBaseline(product.code);
                 rows.push({
-                    cells: [name, amount > 0 ? ('¥' + money(amount)) : '—']
+                    cells: [product.name, amount > 0 ? ('¥' + money(amount)) : '—']
                 });
             });
             return {
                 kind: 'list',
-                columns: ['事业线', '基准日均'],
+                columns: ['产品', '基准日均'],
                 moneyAt: [1],
-                tip: '应付款用该事业线全部门店已发生的营收佣金模拟：所得佣金 = 营业流水 × 门店佣金比例，再乘本事业线产品的渠道结算比例。营业日按各门店分别计数后相加，同一门店同一天多个渠道只算 1 天。提前支付不参与。每个营业日重算一次，不能手改。',
+                tip: '已结款取该产品下 RBT 门店已经到账核销的金额，含提前支付，不含已冻结和在途。营业日按各门店分别计数后相加，同一门店同一天只算 1 天。每个营业日重算一次，不能手改。',
                 rows: rows
             };
         }
-        staticProducts().forEach(function (product) {
-            if (lineName && product.line !== lineName) return;
-            rows.push({
-                lead: lineName ? [product.name] : [product.line, product.name],
-                cells: cfg.durationTiers.map(function (months) {
-                    var days = months * 30;
-                    var amount = product.goods > 0 && days > 0 ? Math.round(product.goods / days * 100) / 100 : 0;
-                    return amount > 0 ? ('¥' + money(amount)) : '—';
-                })
+        list.forEach(function (product) {
+            var amounts = goodsOfProduct(product.code);
+            if (!amounts.length) amounts = [0];
+            amounts.forEach(function (goods) {
+                rows.push({
+                    lead: [product.name],
+                    cells: cfg.durationTiers.map(function (months) {
+                        var days = months * 30;
+                        var amount = goods > 0 && days > 0 ? Math.round(goods / days * 100) / 100 : 0;
+                        return amount > 0 ? ('¥' + money(amount)) : '—';
+                    })
+                });
             });
         });
+        var name = productCode ? productName(productCode) : '';
         return {
             kind: 'matrix',
-            lead: lineName ? ['产品'] : ['事业线', '产品'],
+            lead: ['产品'],
             columns: cfg.durationTiers.map(function (months) { return months + '个月'; }),
-            tip: lineName
-                ? (lineName + '只用本事业线的产品。静态基准 = 产品金额 ÷（该档预期月数 × 30），不按门店拆。每一档各有一个值，不能手改。')
-                : '不同事业线对应不同产品。静态基准 = 产品金额 ÷（该档预期月数 × 30），不按门店拆。每一档各有一个值，不能手改。',
+            tip: (name ? name + '的' : '') + '静态基准 = 产品金额 ÷（该档预期月数 × 30），不按门店拆。每一档各有一个值，不能手改。',
             rows: rows
         };
     }
@@ -848,6 +860,7 @@
         assessDays: assessDays,
         receivableOf: receivableOf,
         bizLineOf: bizLineOf,
+        products: products,
         baselineModeText: baselineModeText,
         baselinePreview: baselinePreview
     };
