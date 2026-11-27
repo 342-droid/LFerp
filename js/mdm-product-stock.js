@@ -1,6 +1,6 @@
 /**
  * 商城 / 代采商品列表 · 剩余库存（【925】）
- * 样式与交互对齐销量列：表头说明气泡 + 点击数字查看库存操作明细。
+ * 商品列表只展示库存数值；库存详情不在列表中展开。
  * 是否维护库存由商品库存配置决定；未维护时展示「—」。
  */
 (function () {
@@ -100,183 +100,17 @@
     }).reverse();
   }
 
-  var products = {};
-
   window.ProductStock = {
     remainOf: remainOf,
     maintainsStock: maintainsStock,
     render: function (channel, item) {
-      var key = channel + ':' + item.code + ':' + item.name;
-      products[key] = { channel: channel, item: item };
       var remain = remainOf(item, channel);
       if (remain == null) {
-        return (
-          '<button type="button" class="product-sales-link product-stock-link is-empty" data-stock-key="' +
-          escape(key) +
-          '" aria-label="查看' +
-          escape(item.name) +
-          '库存说明">—</button>'
-        );
+        return '<span class="product-stock-value is-empty">—</span>';
       }
-      return (
-        '<button type="button" class="product-sales-link product-stock-link" data-stock-key="' +
-        escape(key) +
-        '" aria-label="查看' +
-        escape(item.name) +
-        '库存操作">' +
-        remain +
-        '</button>'
-      );
+      return '<span class="product-stock-value">' + remain + '</span>';
     }
   };
-
-  var DETAIL_PAGE_SIZES = [5, 10, 20];
-
-  function detailRowsHtml(rows) {
-    if (!rows.length) {
-      return '<tr><td colspan="6">未维护库存，无操作记录</td></tr>';
-    }
-    return rows
-      .map(function (row) {
-        var deltaCls = row.delta > 0 ? 'product-stock-delta is-plus' : row.delta < 0 ? 'product-stock-delta is-minus' : 'product-stock-delta';
-        var deltaText = (row.delta > 0 ? '+' : '') + row.delta;
-        return (
-          '<tr><td>' +
-          escape(row.time) +
-          '</td><td>' +
-          escape(row.type) +
-          '</td><td><span class="' +
-          deltaCls +
-          '">' +
-          deltaText +
-          '</span></td><td>' +
-          row.after +
-          '</td><td>' +
-          escape(row.operator) +
-          '</td><td>' +
-          escape(row.remark) +
-          '</td></tr>'
-        );
-      })
-      .join('');
-  }
-
-  function detailPagerHtml(total, page, size) {
-    var pages = Math.max(1, Math.ceil(total / size));
-    var html =
-      '<span class="product-sales-pager__total">共 ' +
-      total +
-      ' 条</span><div class="product-pagination__right">' +
-      '<select class="product-pagination__size" data-stock-size aria-label="每页条数">' +
-      DETAIL_PAGE_SIZES.map(function (n) {
-        return '<option value="' + n + '"' + (n === size ? ' selected' : '') + '>' + n + '条/页</option>';
-      }).join('') +
-      '</select><div class="product-pagination__pages">' +
-      '<button type="button" class="product-pagination__btn" data-stock-page="' +
-      (page - 1) +
-      '"' +
-      (page <= 1 ? ' disabled' : '') +
-      ' aria-label="上一页">‹</button>';
-    for (var i = 1; i <= pages; i++) {
-      html +=
-        '<button type="button" class="product-pagination__btn' +
-        (i === page ? ' is-active' : '') +
-        '" data-stock-page="' +
-        i +
-        '">' +
-        i +
-        '</button>';
-    }
-    return (
-      html +
-      '<button type="button" class="product-pagination__btn" data-stock-page="' +
-      (page + 1) +
-      '"' +
-      (page >= pages ? ' disabled' : '') +
-      ' aria-label="下一页">›</button></div></div>'
-    );
-  }
-
-  function openDetail(product) {
-    var skus = skuRows(product.channel, product.item);
-    var remain = skus.length ? skus.reduce(function (total, sku) { return total + sku.remain; }, 0) : null;
-    var sellableTotal = skus.reduce(function (total, sku) { return total + sku.sellable; }, 0);
-    var reservedTotal = skus.reduce(function (total, sku) { return total + sku.reserved; }, 0);
-    var rows = operationRows(product.channel, product.item, remain);
-    var view = { page: 1, size: DETAIL_PAGE_SIZES[0] };
-    var dialog = document.createElement('dialog');
-    dialog.className = 'erp-modal product-sales-dialog product-stock-dialog';
-    dialog.setAttribute('aria-label', '商品库存操作');
-    var summaryHtml =
-      remain == null
-        ? '<section class="product-sales-summary product-stock-summary--empty"><div>剩余库存<strong>—</strong></div><div>库存维护<strong>未启用</strong></div><div>说明<strong>未维护库存</strong></div></section>'
-        : '<section class="product-sales-summary"><div>可售库存<strong>' +
-          sellableTotal +
-          '</strong></div><div>预占<strong>' +
-          reservedTotal +
-          '</strong></div><div>剩余库存<strong>' +
-          remain +
-          '</strong></div></section>';
-
-    dialog.innerHTML =
-      '<form method="dialog" class="product-sales-header"><header class="erp-modal__header"><h2 class="erp-modal__title">商品库存操作</h2><div class="erp-modal__header-actions"><button class="erp-modal__header-btn" aria-label="关闭">×</button></div></header></form><div class="erp-modal__body">' +
-      '<p>' +
-      escape(product.item.name) +
-      ' · ' +
-      escape(product.item.code) +
-      ' · ' +
-      (product.channel === 'mall' ? '商城商品' : '代采商品') +
-      '</p>' +
-      '<p class="product-sales-note">库存流水 · 原型示例数据</p>' +
-      summaryHtml +
-      '<h3 class="product-stock-sku-title">SPU 下各 SKU 库存</h3><div class="product-sales-scroll"><table><thead><tr><th>SKU 编码</th><th>规格</th><th>可售库存</th><th>预占</th><th>剩余库存</th></tr></thead><tbody>' +
-      (skus.length ? skus.map(function (sku) { return '<tr><td>' + escape(sku.code) + '</td><td>' + escape(sku.spec) + '</td><td>' + sku.sellable + '</td><td>' + sku.reserved + '</td><td>' + sku.remain + '</td></tr>'; }).join('') : '<tr><td colspan="5">未维护库存</td></tr>') +
-      '</tbody></table></div>' +
-      '<p class="product-sales-formula">剩余库存 = 可售库存 − 本渠道预占；表中「变动」是剩余库存的变化。下单成功即预占，付款不重复预占；取消或发货前退款释放对应预占，且不得重复退占。履约释放预占不回补已售剩余。仅当可售按现货计算时，入库联动剩余库存。</p>' +
-      '<div class="product-sales-scroll"><table><thead><tr><th>操作时间</th><th>操作类型</th><th>变动</th><th>变动后剩余</th><th>操作人</th><th>说明</th></tr></thead><tbody data-stock-body></tbody></table></div>' +
-      '<div class="product-pagination product-sales-pager" data-stock-pager></div>' +
-      '</div><form method="dialog" class="erp-modal__footer"><button class="btn btn-secondary">关闭</button></form>';
-
-    function paint() {
-      var pages = Math.max(1, Math.ceil(rows.length / view.size));
-      if (view.page > pages) view.page = pages;
-      if (view.page < 1) view.page = 1;
-      var start = (view.page - 1) * view.size;
-      dialog.querySelector('[data-stock-body]').innerHTML = detailRowsHtml(rows.slice(start, start + view.size));
-      var pager = dialog.querySelector('[data-stock-pager]');
-      pager.hidden = !rows.length;
-      pager.innerHTML = detailPagerHtml(rows.length, view.page, view.size);
-    }
-
-    dialog.addEventListener('click', function (click) {
-      var pageBtn = click.target.closest('[data-stock-page]');
-      if (pageBtn) {
-        if (!pageBtn.disabled) {
-          view.page = parseInt(pageBtn.getAttribute('data-stock-page'), 10) || 1;
-          paint();
-        }
-        return;
-      }
-      if (click.target === dialog) {
-        var box = dialog.getBoundingClientRect();
-        if (click.clientX < box.left || click.clientX > box.right || click.clientY < box.top || click.clientY > box.bottom) {
-          dialog.close();
-        }
-      }
-    });
-    dialog.addEventListener('change', function (change) {
-      if (!change.target.matches('[data-stock-size]')) return;
-      view.size = parseInt(change.target.value, 10) || DETAIL_PAGE_SIZES[0];
-      view.page = 1;
-      paint();
-    });
-    dialog.addEventListener('close', function () {
-      dialog.remove();
-    });
-    paint();
-    document.body.appendChild(dialog);
-    dialog.showModal();
-  }
 
   function helpBubble() {
     return document.getElementById('productStockHelp');
@@ -315,10 +149,6 @@
       return;
     }
     if (!event.target.closest('#productStockHelp')) closeHelp();
-    var button = event.target.closest('[data-stock-key]');
-    if (!button) return;
-    var product = products[button.dataset.stockKey];
-    if (product) openDetail(product);
   });
   document.addEventListener('keydown', function (event) {
     if (event.key === 'Escape') closeHelp();
