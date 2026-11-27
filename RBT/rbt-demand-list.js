@@ -566,17 +566,30 @@
                 return goods;
             }
 
-            /* 货款区间对的是商品包标准售卖金额合计，先据此选产品，再拿该产品的系数折算售价。 */
-            function standardGoods(lines) {
-                var goods = 0;
-                var pending = false;
+            function linesReady(lines) {
+                var ready = false;
+                var bad = false;
                 (lines || []).forEach(function (line) {
                     var qty = qtyNumber(line && line.qtyInput);
-                    var base = priceNumber(line && (line.basePrice != null ? line.basePrice : line.priceInput));
-                    if (!qty || !base) pending = true;
-                    else goods += Math.round(base * 100) * qty;
+                    var priceReady = line && line.priceTouched
+                        ? priceNumber(line.priceInput)
+                        : priceNumber(line && line.basePrice);
+                    if (!qty || !priceReady) bad = true;
+                    else ready = true;
                 });
-                return pending ? 0 : goods;
+                return ready && !bad;
+            }
+
+            function planCoversPackage(plan, pkg) {
+                var names = plan && plan.packages || [];
+                return names.indexOf(pkg.name) >= 0 || names.indexOf(pkg.code) >= 0;
+            }
+
+            /* 非比例付的系数在期数上。已选期数就用它，否则用该产品的第一个期数。 */
+            function matchPeriodOf(plan) {
+                var periods = plan && Array.isArray(plan.periods) ? plan.periods.map(String) : [];
+                if (periods.indexOf(String(createPeriod.value)) >= 0) return String(createPeriod.value);
+                return periods[0] || '';
             }
 
             function countStoreDemands(storeCode) {
@@ -603,24 +616,41 @@
                 createDemandCount.value = countStoreDemands(code);
             }
 
-            function plansForPackage(pkg, lines) {
-                if (!pkg || !lines || !lines.length) return [];
-                var goodsCents = standardGoods(lines);
-                if (!(goodsCents > 0)) return [];
+            function quotedPair(plan) {
+                return ratePairOf(plan, matchPeriodOf(plan));
+            }
+
+            /* 能挂上这个商品包、并且系数算得出售价的产品。不看出不在货款区间。 */
+            function quotablePlans(pkg, lines) {
+                if (!pkg || !linesReady(lines)) return [];
                 return createPlans.value.filter(function (plan) {
-                    var names = plan.packages || [];
-                    if (names.indexOf(pkg.name) < 0 && names.indexOf(pkg.code) < 0) return false;
-                    var min = moneyCents(plan.amountMin);
-                    var max = moneyCents(plan.amountMax);
-                    return isFinite(min) && isFinite(max) && goodsCents >= min && goodsCents <= max;
+                    if (!planCoversPackage(plan, pkg)) return false;
+                    var pair = quotedPair(plan);
+                    return !!(pair && pair.multPts > 0);
+                });
+            }
+
+            /* 货款区间对的是折算后的商品金额。每个候选产品先用自己的系数折算，再看是否落在自己的区间里。 */
+            function planInRange(plan, lines) {
+                var pair = quotedPair(plan);
+                if (!pair || !(pair.multPts > 0)) return false;
+                var goodsCents = quotedGoods(lines, pair.multPts);
+                if (!(goodsCents > 0)) return false;
+                var min = moneyCents(plan.amountMin);
+                var max = moneyCents(plan.amountMax);
+                return isFinite(min) && isFinite(max) && goodsCents >= min && goodsCents <= max;
+            }
+
+            function plansForPackage(pkg, lines) {
+                return quotablePlans(pkg, lines).filter(function (plan) {
+                    return planInRange(plan, lines);
                 });
             }
 
             function plansCoveringPackage(pkg) {
                 if (!pkg) return [];
                 return createPlans.value.filter(function (plan) {
-                    var names = plan.packages || [];
-                    return names.indexOf(pkg.name) >= 0 || names.indexOf(pkg.code) >= 0;
+                    return planCoversPackage(plan, pkg);
                 });
             }
 
@@ -693,8 +723,10 @@
                     var baseReady = line.priceTouched ? priceNumber(line.priceInput) : priceNumber(line.basePrice);
                     if (!qtyNumber(line.qtyInput) || !baseReady) pending = true;
                 });
-                var matched = pkg && !pending ? plansForPackage(pkg, createLines.value) : [];
-                var choice = settleChoice(matched);
+                var quotable = pkg && !pending ? quotablePlans(pkg, createLines.value) : [];
+                var matched = quotable.filter(function (plan) { return planInRange(plan, createLines.value); });
+                /* 区间外也按候选产品把售价和结算字段算出来，只是不能发布。 */
+                var choice = settleChoice(matched.length ? matched : quotable);
                 var pair = ratePairOf(choice.plan, choice.period);
                 var multPts = pair && pair.multPts > 0 ? pair.multPts : 0;
                 var lines = createLines.value.map(function (line) {
@@ -738,6 +770,7 @@
                 if (pkg && !createLines.value.length) settleTip = '请至少保留一件商品';
                 else if (pkg && pending && !multPts) settleTip = '请把商品数量和售卖单价填完整';
                 else if (pkg && !plansCoveringPackage(pkg).length) settleTip = '商品未关联产品配置';
+                else if (pkg && !matched.length && !quotable.length) settleTip = '门店系数与贸易商系数无法算出售价';
                 else if (pkg && !matched.length) settleTip = '售价不在产品配置的货款区间内';
                 else if (pkg && choice.plan && !multPts) settleTip = '门店系数与贸易商系数无法算出售价';
                 else if (pkg && pending) settleTip = '请把商品数量和售卖单价填完整';
