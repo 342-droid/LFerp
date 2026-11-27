@@ -1999,6 +1999,18 @@
     "status": "diff",
     "date": "2026-11-14"
   },
+  "6e4d260|RBT/rbt_h5_provider.html": {
+    "before": "changelog-assets/6e4d260/RBT__rbt_h5_provider.html.before.jpg",
+    "after": "changelog-assets/6e4d260/RBT__rbt_h5_provider.html.after.jpg",
+    "regions": 5,
+    "status": "diff",
+    "date": "2026-11-27"
+  },
+  "6e4d260|RBT/rbt_h5_trader.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-27"
+  },
   "788921b|MDM/mdm_archive_carrier.html": {
     "regions": 0,
     "status": "diff",
@@ -3101,6 +3113,16 @@
     "regions": 0,
     "status": "diff",
     "date": "2026-11-23"
+  },
+  "c36c7d0|RBT/rbt_h5_provider.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-27"
+  },
+  "c36c7d0|RBT/rbt_h5_trader.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-27"
   },
   "c53d30b|RBT/rbt_daily_fulfill.html": {
     "before": "changelog-assets/c53d30b/RBT__rbt_daily_fulfill.html.before.jpg",

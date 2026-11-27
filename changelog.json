@@ -1,10 +1,68 @@
 {
-  "latestSha": "df5a619b0c66acef617f779a462feeba0c3d3161",
-  "total": 654,
+  "latestSha": "c36c7d023067b53d1d3e5e0108fc58af0b5db6eb",
+  "total": 656,
   "days": [
     {
       "date": "2026-11-27",
       "items": [
+        {
+          "sha": "c36c7d0",
+          "type": "feat",
+          "text": "贸易商结款明细按时段汇总，钱包同一天只入账一笔",
+          "author": "sisi",
+          "time": "14:31",
+          "pages": [
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "结款明细的时间筛选放到汇总卡片上方，已结款、待结款、当日支付、提前支付分两行，并一起筛选下方明细；去掉结款总览、按门店统计和日期口径说明；收款数据总览不再展示已作废、已驳回、发货中；门店经营可打开，自定义时段去掉跨年示例和已选时段，按钮改为查询；钱包同一门店同一天只显示一笔结款入账"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "text": "结款总览去掉已结款笔数和按日、按门店的笔数；钱包同一门店同一天只显示一笔结款入账，并去掉账户首页的余额说明"
+            }
+          ]
+        },
+        {
+          "sha": "6e4d260",
+          "type": "feat",
+          "text": "收紧贸易商和服务商钱包首页的账户明细",
+          "author": "sisi",
+          "time": "09:54",
+          "pages": [
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "去掉重复的余额账户和划转说明；充值可绑银行卡并按限额校验；账户明细改为右上角选时间、收支页签，流水按天分组"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "text": "充值和账户明细与贸易商同一套；流水按天分组，时间筛选收进标题右侧"
+            }
+          ]
+        },
         {
           "sha": "df5a619",
           "type": "feat",
