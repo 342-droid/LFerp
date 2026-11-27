@@ -5712,6 +5712,20 @@
     "status": "diff",
     "date": "2026-11-26"
   },
+  "fc85686|MDM/mdm_product_mall.html": {
+    "before": "changelog-assets/fc85686/MDM__mdm_product_mall.html.before.jpg",
+    "after": "changelog-assets/fc85686/MDM__mdm_product_mall.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-11-27"
+  },
+  "fc85686|MDM/mdm_product_proxy_list.html": {
+    "before": "changelog-assets/fc85686/MDM__mdm_product_proxy_list.html.before.jpg",
+    "after": "changelog-assets/fc85686/MDM__mdm_product_proxy_list.html.after.jpg",
+    "regions": 1,
+    "status": "diff",
+    "date": "2026-11-27"
+  },
   "fd64da4|MDM/mdm_product_mall.html": {
     "before": "changelog-assets/fd64da4/MDM__mdm_product_mall.html.before.jpg",
     "after": "changelog-assets/fd64da4/MDM__mdm_product_mall.html.after.jpg",
