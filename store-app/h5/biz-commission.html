@@ -29,12 +29,23 @@
             <div><span>预计累计收入</span><strong id="bizEstimatedTotal">0.00</strong></div>
             <div><span id="bizCreditedLabel">当前已入账金额</span><strong id="bizCreditedTotal">0.00</strong></div>
             <div><span>待结算金额</span><strong id="bizPendingTotal">0.00</strong></div>
-            <div><span>结算中金额</span><strong id="bizSettlingTotal">0.00</strong></div>
+            <div><span>结款中金额</span><strong id="bizSettlingTotal">0.00</strong></div>
           </div>
-          <div class="sa-biz-summary__total" id="bizTotalLine">
-            所选期间共计 <em>0</em> 单，预计佣金 <em>0.00</em> 元
-          </div>
+          <div class="sa-biz-summary__wallet"><span>可提现余额</span><strong id="bizWithdrawAmount">0.00</strong><button type="button" id="bizWithdrawBtn">提现</button></div>
         </section>
+
+        <section class="sa-biz-filter sa-biz-filter--range">
+          <div class="sa-biz-range" id="bizRangeTabs" role="tablist" aria-label="统计周期">
+            <button type="button" class="sa-biz-range__btn is-active" data-range="today">今日</button>
+            <button type="button" class="sa-biz-range__btn" data-range="yesterday">昨日</button>
+            <button type="button" class="sa-biz-range__btn" data-range="7d">近7天</button>
+            <button type="button" class="sa-biz-range__btn" data-range="30d">近30天</button>
+            <button type="button" class="sa-biz-range__btn" data-range="custom">自定义</button>
+          </div>
+          <p class="sa-biz-filter__meta" id="bizPeriodCaption">统计周期 —</p>
+        </section>
+
+        <div class="sa-biz-summary__total sa-biz-summary__total--outside" id="bizTotalLine">所选期间共计 <em>0</em> 单，预计佣金 <em>0.00</em> 元</div>
 
         <section class="sa-biz-period" id="bizPeriodStrip" aria-label="分时段预估佣金">
           <div class="sa-biz-period__cell">
@@ -60,15 +71,6 @@
         </section>
 
         <section class="sa-biz-filter">
-          <div class="sa-biz-range" id="bizRangeTabs" role="tablist" aria-label="统计周期">
-            <button type="button" class="sa-biz-range__btn is-active" data-range="today">今日</button>
-            <button type="button" class="sa-biz-range__btn" data-range="yesterday">昨日</button>
-            <button type="button" class="sa-biz-range__btn" data-range="7d">近7天</button>
-            <button type="button" class="sa-biz-range__btn" data-range="30d">近30天</button>
-            <button type="button" class="sa-biz-range__btn" data-range="custom">自定义</button>
-          </div>
-          <p class="sa-biz-filter__meta" id="bizPeriodCaption">统计周期 —</p>
-          <p class="sa-biz-filter__meta sa-biz-filter__meta--muted" id="bizAsOf">数据更新至 —</p>
 
           <div class="sa-biz-search">
             <button type="button" class="sa-biz-search__go" id="bizSearchBtn" aria-label="搜索">

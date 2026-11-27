@@ -681,3 +681,6 @@
 .sa-rpt-tab.is-active svg {
   color: #ff6501;
 }
+
+.sa-biz-summary__wallet{display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.25);color:#fff}.sa-biz-summary__wallet strong{font-size:20px;margin-left:auto}.sa-biz-summary__wallet button{border:0;border-radius:16px;background:#fff;color:#ff6501;padding:6px 14px}.sa-biz-filter--range{margin-bottom:10px}
+.sa-biz-summary__total--outside{margin:0 12px 8px;padding:0;border:0;color:#626b78}.sa-biz-summary__total--outside em{color:#ff6501}

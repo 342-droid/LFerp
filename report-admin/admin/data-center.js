@@ -4,10 +4,11 @@
   var params = new URLSearchParams(location.search);
   var section = params.get('section') || 'overview';
   var view = params.get('view') || 'overview';
-  if (['overview', 'erp', 'store'].indexOf(section) < 0) section = 'overview';
+  if (section === 'erp') section = 'overview';
+  if (['overview', 'store'].indexOf(section) < 0) section = 'overview';
 
   var erpItems = [
-    { id: 'overview', label: '经营总览', src: '../../MDM/mdm_data_biz_overview.html' },
+    { id: 'overview', label: '平台经营总概览', src: '../../MDM/mdm_data_biz_overview.html' },
     { id: 'rbt', label: 'RBT', src: '../../MDM/mdm_data_biz_rbt.html' },
     { id: 'supplier', label: '供应商分析', src: '../../MDM/mdm_data_biz_supplier.html' },
     { id: 'stores', label: '门店分析', src: '../../MDM/mdm_data_biz_stores.html' },
@@ -79,6 +80,8 @@
       return;
     }
     var posGmv = pos.rows.reduce(function (sum, row) { return sum + Number(row.billAmount || 0); }, 0);
+    var posDineGmv = pos.rows.reduce(function (sum, row) { return sum + Number(row.dineAmount || 0); }, 0);
+    var posTakeoutGmv = pos.rows.reduce(function (sum, row) { return sum + Number(row.takeoutAmount || 0); }, 0);
     var retailGmv = Number(retail.salesTotal || 0);
     var proxyGmv = Number(proxy.salesTotal || 0);
     var refundRetail = Number(retail.refundAmount || 0);
@@ -112,9 +115,9 @@
       return row;
     }).sort(function (a, b) { return b.total - a.total; });
     var sourceRows = [
-      { name: 'POS', detail: '京东秒送 / 美团外卖 / 淘宝闪购 / 堂食 / 抖音', gmv: posGmv, income: null },
-      { name: '零售', detail: '商城 / 直播', gmv: retailGmv, netGmv: retailNetGmv, expected: retailExpected, actual: retailActual },
-      { name: '代采', detail: '门店进货订单，计入平台 GMV', gmv: proxyGmv, netGmv: proxyNetGmv, expected: proxyExpected, actual: proxyActual }
+      { name: '食亨POS', detail: '堂食 / 外卖（美团外卖、京东秒送、淘宝闪购）', gmv: posGmv, income: null },
+      { name: 'ERP · 零售', detail: '商城 / 直播', gmv: retailGmv, netGmv: retailNetGmv, expected: retailExpected, actual: retailActual },
+      { name: 'ERP · 代采', detail: '门店进货订单，计入平台 GMV', gmv: proxyGmv, netGmv: proxyNetGmv, expected: proxyExpected, actual: proxyActual }
     ];
     var periods = [
       { key: 'today', label: '今日' }, { key: 'yesterday', label: '昨日' },
@@ -130,16 +133,20 @@
       '<button type="button" data-custom-apply>应用</button><span data-date-error></span></div>' +
       '<small>数据截止 ' + Center.AS_OF.replace('T', ' ').replace('+08:00', '') + '（北京时间）· 原型示例数据</small></section>';
     main.innerHTML =
-      '<div class="dc-page-head"><h1>平台经营总概览</h1><p>平台总 GMV = POS GMV + 零售 GMV + 代采 GMV。退款后净 GMV = GMV - 成功退款金额。</p></div>' +
+      '<div class="dc-page-head"><h1>平台经营总概览</h1><p>平台总 GMV = 食亨POS GMV + ERP GMV + 抖音 GMV（有数据时）。退款后净 GMV = GMV - 成功退款金额。</p></div>' +
       dateControls +
-      '<section class="dc-card dc-overview-note"><strong>指标口径</strong><p>POS 仅展示门店通过收银系统产生的 GMV；商城、直播和代采展示平台预计收入与实际已入账收入；代采计入平台 GMV，但不计入 BD 佣金。</p></section>' +
+      '<section class="dc-card dc-overview-note"><strong>指标口径</strong><p>食亨POS 包含堂食和外卖，外卖包含美团外卖、京东秒送、淘宝闪购；ERP 和抖音订单独立统计，当前无跨系统订单。食亨POS 仅展示门店通过收银系统产生的 GMV；商城、直播和代采展示平台预计收入与实际已入账收入；代采计入平台 GMV，但不计入 BD 佣金。</p></section>' +
       '<section class="dc-overview-kpis">' +
         '<div class="dc-card"><span>平台总 GMV</span><strong>' + money(totalGmv) + '</strong><small>退款后净 GMV ' + money(totalNetGmv) + ' · POS ' + money(posGmv) + ' · 零售 ' + money(retailGmv) + ' · 代采 ' + money(proxyGmv) + '</small></div>' +
         '<div class="dc-card"><span>平台预计收入</span><strong>' + money(retailExpected + proxyExpected) + '</strong><small>零售 ' + money(retailExpected) + ' · 代采 ' + money(proxyExpected) + ' · POS 暂无法计算</small></div>' +
         '<div class="dc-card"><span>平台当前收入</span><strong>' + money(retailActual + proxyActual) + '</strong><small>零售 ' + money(retailActual) + ' · 代采 ' + money(proxyActual) + ' · POS 暂无法计算</small></div>' +
       '</section>' +
-      '<section class="dc-card"><h2>收入来源拆分</h2><table class="dc-table"><thead><tr><th>来源</th><th>明细</th><th>GMV</th><th>退款后净 GMV</th><th>预计收入</th><th>实际已入账</th></tr></thead><tbody>' +
-        '<tr><td>POS</td><td>京东秒送 / 美团外卖 / 淘宝闪购 / 堂食 / 抖音</td><td>' + money(posGmv) + '</td><td>' + money(posGmv) + '</td><td>—</td><td>—</td></tr>' +
+      '<section class="dc-card"><h2>收入来源拆分</h2><p class="dc-muted">食亨POS和ERP分项是所属来源的拆分行，不重复计入平台合计；抖音当前示例无记录。</p><table class="dc-table"><thead><tr><th>来源</th><th>明细</th><th>GMV</th><th>退款后净 GMV</th><th>预计收入</th><th>实际已入账</th></tr></thead><tbody>' +
+        '<tr><td>食亨POS</td><td>堂食 / 外卖（美团外卖、京东秒送、淘宝闪购）</td><td>' + money(posGmv) + '</td><td>' + money(posGmv) + '</td><td>—</td><td>—</td></tr>' +
+        '<tr><td>食亨POS · 堂食</td><td>堂食订单</td><td>' + money(posDineGmv) + '</td><td>' + money(posDineGmv) + '</td><td>—</td><td>—</td></tr>' +
+        '<tr><td>食亨POS · 外卖</td><td>美团外卖 / 京东秒送 / 淘宝闪购；渠道金额待原始记录拆分</td><td>' + money(posTakeoutGmv) + '</td><td>' + money(posTakeoutGmv) + '</td><td>—</td><td>—</td></tr>' +
+        '<tr><td>ERP</td><td>零售 / 代采</td><td>' + money(retailGmv + proxyGmv) + '</td><td>' + money(retailNetGmv + proxyNetGmv) + '</td><td>' + money(retailExpected + proxyExpected) + '</td><td>' + money(retailActual + proxyActual) + '</td></tr>' +
+        '<tr><td>抖音</td><td>独立订单来源，当前示例无记录</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>' +
         sourceRows.slice(1).map(function (row) { return '<tr><td>' + row.name + '</td><td>' + row.detail + '</td><td>' + money(row.gmv) + '</td><td>' + money(row.netGmv) + '</td><td>' + money(row.expected) + '</td><td>' + money(row.actual) + '</td></tr>'; }).join('') +
       '</tbody></table></section>' +
       '<section class="dc-card"><h2>门店经营表</h2><p class="dc-muted">用于判断门店贡献、渠道结构和待补数据；支持分页。代采 GMV 纳入平台总 GMV，但不产生 BD 分佣。</p><table class="dc-table"><thead><tr><th>门店</th><th>POS GMV</th><th>零售 GMV</th><th>代采 GMV</th><th>门店总 GMV</th><th>退款后净 GMV</th><th>决策提示</th></tr></thead><tbody>' +
@@ -171,7 +178,7 @@
           'mdm_data_biz_marketing.html': 'marketing',
           'mdm_data_biz_store_detail.html': 'store-detail'
         };
-        if (internal[file]) return './index.html?section=erp&view=' + internal[file];
+        if (internal[file]) return './index.html?section=overview&view=' + internal[file];
         if (/^mdm/i.test(file)) return '../../MDM/' + file;
         if (/^rbt/i.test(file)) return '../../RBT/' + file;
         if (file === 'index.html') return '../../index.html';
@@ -208,8 +215,9 @@
     });
   }
 
-  function renderErpPage(erp) {
-    main.innerHTML = '<div class="dc-loading">正在加载' + erp.label + '…</div>';
+  function renderErpPage(erp, combined) {
+    if (combined) main.insertAdjacentHTML('beforeend', '<section class="dc-card dc-erp-intro"><h2>ERP经营数据</h2><p>与平台概览使用同一统计日期；以下为 ERP 业务明细，门店、事业线和订单渠道仅作用于 ERP 明细。</p></section><div data-erp-mount class="dc-loading">正在加载 ERP 经营数据…</div>');
+    else main.innerHTML = '<div class="dc-loading">正在加载' + erp.label + '…</div>';
     ensureBusinessPath();
     var sourceParams = new URLSearchParams(location.search);
     sourceParams.delete('section');
@@ -243,7 +251,7 @@
               };
               if (internal[file]) {
                 var query = new URLSearchParams(absolute.search);
-                query.set('section', 'erp');
+                query.set('section', 'overview');
                 query.set('view', internal[file]);
                 node.setAttribute(attr, './index.html?' + query.toString());
                 return;
@@ -252,7 +260,9 @@
             node.setAttribute(attr, absolute.href);
           });
         });
-        main.innerHTML = '<div class="dc-erp-content">' + sourceMain.innerHTML + '</div>';
+        var content = '<div class="dc-erp-content">' + sourceMain.innerHTML + '</div>';
+        if (combined) main.querySelector('[data-erp-mount]').outerHTML = content;
+        else main.innerHTML = content;
         var scripts = Array.prototype.slice.call(doc.querySelectorAll('script[src]'));
         return scripts.reduce(function (chain, script) {
           return chain.then(function () {
@@ -261,7 +271,8 @@
         }, Promise.resolve());
     }
     function fail(error) {
-      main.innerHTML = '<section class="dc-card dc-load-error"><h2>页面加载失败</h2><p>' +
+      var target = combined ? main.querySelector('[data-erp-mount]') : main;
+      target.innerHTML = '<section class="dc-card dc-load-error"><h2>页面加载失败</h2><p>' +
         String(error && error.message ? error.message : error) +
         '</p><a href="' + sourceUrl + '">打开原页面</a></section>';
     }
@@ -299,21 +310,14 @@
   }
 
   if (section === 'overview') {
-    view = 'overview';
-    title.textContent = '平台经营总概览';
-    renderNav([{ id: 'overview', label: '平台经营总概览' }], 'overview');
-    renderPlatformOverview();
-    return;
-  }
-
-  if (section === 'erp') {
     var erp = view === 'store-detail'
       ? { id: 'store-detail', label: '单店经营详情', src: '../../MDM/mdm_data_biz_store_detail.html' }
       : erpItems.filter(function (item) { return item.id === view; })[0] || erpItems[0];
     view = erp.id;
-    title.textContent = 'ERP经营数据';
-    renderNav(erpItems, 'erp');
-    renderErpPage(erp);
+    title.textContent = '平台经营数据';
+    renderNav(erpItems, 'overview');
+    if (view === 'overview') { renderPlatformOverview(); renderErpPage(erp, true); }
+    else renderErpPage(erp, false);
     return;
   }
 

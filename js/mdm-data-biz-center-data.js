@@ -173,7 +173,9 @@
     var platformIncome = platformCommissionExpected;
     var supplierPayment = r2(98640 * s);
     var liveFee = r2(4200 * s);
-    var paymentFeeCost = r2(salesTotal * 0.006);
+    var paymentFeeCost = filters.channel === 'live' ? r2(salesTotal * 0.0105) : null;
+    /* 非直播订单费率待确认；供应商佣金清分费率 0.005%，清分计费基数待对账，不估算金额。 */
+    var supplierClearingFeeCost = null;
     /* 直播流量使用情况：场次结束后统计消耗量（GB），不可换算金额；≠ 腾讯云系统流量费 */
     var liveTrafficGb = r2((86.4 + 42.2 * s) * (period === 'today' || period === 'yesterday' ? 0.35 : 1));
     /* 积分兑换商品成本 vs 订单积分抵现（1 积分 = 0.1 元） */
@@ -506,7 +508,8 @@
       { type: '直播运营组分佣', party: '直播运营组汇总', amount: liveCommission, status: '已结算', bizTime: '2026-11-16', _protoSample: true },
       { type: '直播流量使用情况', party: '直播场次流量汇总', amount: null, quantityGb: liveTrafficGb, status: '已出账', bizTime: '2026-11-16', _protoSample: true },
       { type: '门店分佣', party: '门店分佣汇总', amount: storeCommission, status: '已结算', bizTime: '2026-11-16', _protoSample: true },
-      { type: '手续费成本', party: '汇付通道', amount: paymentFeeCost, status: '已入账', bizTime: '2026-11-16', _protoSample: true },
+      { type: '下单汇付手续费', party: '汇付通道', amount: paymentFeeCost, status: paymentFeeCost == null ? '待确认' : '示例', bizTime: '2026-11-16', _protoSample: true },
+      { type: '供应商佣金清分手续费', party: '汇付通道', amount: supplierClearingFeeCost, status: '待对账', bizTime: '2026-11-16', _protoSample: true },
       { type: '积分成本', party: '积分兑换＋订单抵现', amount: pointsCostTotal, status: '已入账', bizTime: '2026-11-16', _protoSample: true }
     ];
     /* 运营成本：不含供应商货款、承运商结算；两类积分汇总为「积分成本」；直播流量仅 GB */
@@ -515,7 +518,8 @@
       '直播运营组分佣',
       '直播流量使用情况',
       '门店分佣',
-      '手续费成本',
+      '下单汇付手续费',
+      '供应商佣金清分手续费',
       '积分成本'
     ];
     var expenseSummary = opsCostOrder.map(function (type) {
@@ -528,8 +532,10 @@
               ? null
               : type === '门店分佣'
                 ? storeCommission
-                : type === '手续费成本'
+                : type === '下单汇付手续费'
                   ? paymentFeeCost
+                  : type === '供应商佣金清分手续费'
+                    ? supplierClearingFeeCost
                   : pointsCostTotal;
       return {
         type: type,
@@ -547,8 +553,10 @@
                 ? '场次结束后统计消耗（GB），不可换算金额'
                 : type === '门店分佣'
                   ? '结算分佣 · 门店'
-                  : type === '手续费成本'
-                    ? '订单汇付手续费汇总'
+                  : type === '下单汇付手续费'
+                    ? '直播订单 1.05%；其他订单费率待确认'
+                    : type === '供应商佣金清分手续费'
+                      ? '向供应商清分佣金时收取 0.005%；金额待对账'
                     : '含积分兑换商品成本＋订单积分抵现（1 积分＝0.1 元）'
       };
     });
@@ -660,6 +668,7 @@
       platformCommissionActual: platformCommissionActual,
       platformIncome: platformIncome,
       paymentFeeCost: paymentFeeCost,
+      supplierClearingFeeCost: supplierClearingFeeCost,
       supplierPayment: supplierPayment,
       liveFee: liveFee,
       liveTrafficGb: liveTrafficGb,
@@ -1222,8 +1231,8 @@
       text: '零售结算规则下各方分佣金额，与平台分佣拆分同源。代采订单不产生 BD 分佣；BD 数据中心不展示代采营业额或代采佣金。'
     },
     {
-      name: '手续费成本',
-      text: '订单汇付手续费汇总，列入运营成本。不同于已剔除的腾讯云系统流量费／估算手续费。'
+      name: '汇付手续费',
+      text: '两笔分别统计：下单时扣减的手续费，直播订单费率 1.05%，其他订单费率待确认；平台向供应商清分佣金时手续费率 0.005%，金额按实际清分计费基数对账。不按统一比例估算。'
     },
     {
       name: '直播流量使用情况',

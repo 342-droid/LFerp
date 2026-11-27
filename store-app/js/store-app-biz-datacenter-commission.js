@@ -369,7 +369,7 @@
     current.forEach(function (o) {
       var amount = o.commission == null ? 0 : Number(o.commission) || 0;
       if (o.settleStatus === '待结算') pending += amount;
-      if (o.settleStatus === '结算中') settling += amount;
+      if (o.settleStatus === '结算中' || o.settleStatus === '结算失败') settling += amount;
     });
     estimated = Math.max(estimated, credited + pending + settling);
     if ($('bizEstimatedTotal')) $('bizEstimatedTotal').textContent = money(estimated);
@@ -437,12 +437,9 @@
     if ($('bizBackOverview')) $('bizBackOverview').href = S().href('biz-center.html');
     if ($('commDcTab')) $('commDcTab').href = S().href('biz-center.html');
     var bounds = D().resolveRange(state.range, state.custom);
-    var cmp = D().compareBounds(bounds);
+
     if ($('bizPeriodCaption')) {
-      $('bizPeriodCaption').textContent = S().periodCaption(bounds, cmp.label, {
-        startKey: cmp.startKey,
-        endKey: cmp.endKey
-      });
+      $('bizPeriodCaption').textContent = S().periodCaption(bounds, '');
     }
     if ($('bizAsOf')) {
       $('bizAsOf').textContent = S().updatedCaption(D().UPDATED_AT);

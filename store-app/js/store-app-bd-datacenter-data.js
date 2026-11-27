@@ -61,7 +61,6 @@
       { id: 'MR18', store: 'S-CN', customer: 'C04', pay: at(-2, '10:00:00'), channel: 'mall', role: 'bd', bd: ME, settle: '已结算', settleAt: at(-2, '12:00:00'), lines: [{ name: '番茄', paid: 70, commission: 7 }] },
       { id: 'MR19', store: 'S-CN', customer: 'C01', pay: at(-5, '10:00:00'), channel: 'mall', role: 'bd', bd: ME, settle: '已结算', settleAt: at(-4, '10:00:00'), lines: [{ name: '黄瓜', paid: 90, commission: 9 }] },
       { id: 'MR20', store: 'S-HP', customer: 'C04', pay: at(-3, '10:00:00'), channel: 'mall', role: 'bd', bd: ME, settle: '结算失败', settleAt: '', lines: [{ name: '芒果', paid: 55, commission: 5.5 }] },
-      { id: 'MR21', store: 'S-CN', customer: 'C12', pay: at(-1, '20:00:00'), channel: 'mall', role: 'bd', bd: ME, configured: false, settle: '', settleAt: '', lines: [{ name: '未配置佣金的鱼', paid: 33, commission: null }] },
       { id: 'MR22', store: 'S-HP', customer: 'C01', pay: at(0, '09:00:00'), channel: 'mall', role: 'bd', bd: ME, settle: '待结算', settleAt: '', remark: '测试备注不排除', lines: [{ name: '葡萄', paid: 40, commission: 4 }] },
       { id: 'MR23', store: 'S-HP', customer: 'C04', pay: at(-1, '22:40:00'), channel: 'mall', role: 'bd', bd: ME, settle: '已结算', settleAt: at(-1, '23:10:00'), lines: [{ name: '夜宵饺子', paid: 100, commission: 10 }] },
       { id: 'MR29', store: 'S-CN', customer: 'C09', pay: at(-12, '10:00:00'), channel: 'mall', role: 'bd', bd: ME, settle: '已结算', settleAt: at(-11, '10:00:00'), lines: [{ name: '年糕', paid: 40, commission: 4 }] },
@@ -216,7 +215,7 @@
       paid: paid,
       orders: orders,
       users: Object.keys(users).length,
-      aov: orders > 0 ? K().round2(paid / orders) : null,
+      aov: Object.keys(users).length ? K().round2(paid / Object.keys(users).length) : null,
       days: Object.keys(days).length,
       last: last || null
     };
@@ -360,7 +359,7 @@
       if (b.value !== a.value) return b.value - a.value;
       return a.name < b.name ? -1 : 1;
     });
-    var label = tab === 'proxy' ? (key === 'orders' ? '支付主订单数' : key === 'total' ? '进货支付总额' : '商品支付金额') : key === 'orders' ? '支付主订单数' : key === 'users' ? '支付人数' : '营业额';
+    var label = tab === 'proxy' ? (key === 'orders' ? '订单数' : key === 'total' ? '进货支付总额' : '商品支付金额') : key === 'orders' ? '订单数' : key === 'users' ? '交易人数' : '营业额';
     return { key: key, label: label, money: key !== 'orders' && key !== 'users', rows: rows };
   }
 
@@ -567,7 +566,7 @@
       }).sort(function (a, b) {
         return b.amount - a.amount;
       }),
-      bySource: ['商城', '直播', '代采'].map(function (name) {
+      bySource: ['商城', '直播'].map(function (name) {
         return { name: name, amount: Object.prototype.hasOwnProperty.call(bySource, name) ? bySource[name] : 0 };
       }),
       trend: K().buildTrend(p.bounds, function (slot) {
@@ -593,7 +592,7 @@
       if (storeId && o.store !== storeId) return false;
       if (src === '零售' && sourceName(o.channel) === '代采') return false;
       if (src !== 'all' && src !== '零售' && sourceName(o.channel) !== src) return false;
-      if (st !== 'all' && (o.settle || '未配置') !== st) return false;
+      if (st !== 'all' && (o.settle || '') !== st) return false;
       return true;
     });
     var formed = rows.filter(function (o) {
@@ -634,7 +633,7 @@
           source: sourceName(o.channel),
           pay: o.pay,
           settleAt: o.settleAt || '',
-          settle: o.settle || (c.configured ? '' : '未配置'),
+          settle: o.settle || '',
           amount: c.bucket ? c.amount : null,
           gross: c.gross,
           clawback: c.clawback || 0,
@@ -702,9 +701,9 @@
     selfCheck: selfCheck,
     tips: {
       overview: '先看当前负责门店的营业额。代采订单不属于 BD 经营数据，也不产生 BD 佣金。负责门店数是现在的负责关系，不是有成交的门店数。门店卡片上的「佣金」只统计该店本期归本人的 BD 佣金。',
-      retail: '营业额只计当前负责门店的有效销售。支付主订单按单去重，供应商子单和包裹不增加订单数。支付人数按消费者跨门店重新去重。免费赠品、纯积分、零元营销、积分加现金补差不计入；福利低价仍计入。',
+      retail: '营业额只计当前负责门店的有效销售。支付主订单按单去重，供应商子单和包裹不增加订单数。交易人数按消费者跨门店重新去重。免费赠品、纯积分、零元营销、积分加现金补差不计入；福利低价仍计入。',
       proxy: '代采订单已从 BD 数据中心剔除，不展示代采营业额、进货额或佣金。',
-      commission: '佣金数据包含全部归当前BD的佣金及已交接门店历史账目。门店业务中的佣金按本期支付订单关联，不含运费；佣金数据可按支付时间或结算单创建时间统计。未配置结果显示—，结算失败或取消不进正常合计。历史佣金仅允许查看原订单对账摘要，不开放该门店完整业务。账户余额和提现分开。',
+      commission: '佣金数据包含全部归当前BD的佣金及已交接门店历史账目。门店业务中的佣金按本期支付订单关联，不含运费；佣金数据可按支付时间或结算单创建时间统计。无佣金结果显示—，结算失败或取消不进正常合计。历史佣金仅允许查看原订单对账摘要，不开放该门店完整业务。账户余额和提现分开。',
       note: K().DATA_NOTE
     }
   };

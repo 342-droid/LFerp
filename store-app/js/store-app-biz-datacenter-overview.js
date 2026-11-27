@@ -444,7 +444,7 @@
       $('dcAsOf').textContent = S().updatedCaption(ov.updatedAt || D().UPDATED_AT);
     }
     var rev = ov.revenue || {};
-    if ($('dcHeroTitle')) $('dcHeroTitle').textContent = rev.heroTitle || '支付成交额';
+    if ($('dcHeroTitle')) $('dcHeroTitle').textContent = '营业额';
     if ($('dcCoverNote')) {
       if (rev.partial && rev.coverNote) {
         $('dcCoverNote').hidden = false;
@@ -515,6 +515,13 @@
       }
       btn.textContent = state.showTrendData ? '收起数据' : '查看数据';
     }
+    document.querySelectorAll('.sa-dc-metric__t, #dcHeroTitle').forEach(function (label) {
+      if (label.querySelector('[data-metric-tip]')) return;
+      var name = label.textContent.trim();
+      var btn = document.createElement('button'); btn.type = 'button'; btn.className = 'sa-dc-metric-tip';
+      btn.setAttribute('data-metric-tip', name); btn.setAttribute('aria-label', name + '指标说明'); btn.textContent = 'ⓘ';
+      label.appendChild(btn);
+    });
     restoreScroll();
   }
 
@@ -597,13 +604,19 @@
         render();
       });
     }
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-metric-tip]'); if (!btn) return;
+      var name = btn.getAttribute('data-metric-tip'); var ov = D().buildOverview(state.range, state.custom);
+      var tips = ov.tips || {}; var detail = /退款/.test(name) ? '按成功退款记录统计；退款后净营业额为营业额减成功退款金额。' : /人数|客户/.test(name) ? '所选周期内交易用户按人去重，首购与老客按本店历史交易区分。' : /佣金/.test(name) ? tips.storeIncome : /进货/.test(name) ? tips.proxy : tips.revenue || tips.overview;
+      $('dcSheetTitle').textContent = name; $('dcSheetBody').textContent = detail || name + '按所选统计周期汇总。'; $('dcSheet').hidden = false;
+    });
     document.querySelectorAll('[data-tip]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var ov = D().buildOverview(state.range, state.custom);
         var tip = ov.tips || {};
         var sections = [
           {
-            title: '支付成交额',
+            title: '营业额',
             items: [tip.overview || '', tip.revenue || '', tip.retailPaid || ''].filter(Boolean)
           },
           {
