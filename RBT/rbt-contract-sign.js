@@ -117,13 +117,12 @@
         return { text: '待签署', time: '', done: false };
     }
 
-    /* 贸易商端签署页：摘要可收起，合同里己方显示为「我方」。不展示结算比例。 */
+    /* 贸易商端签署页的需求单信息与需求大厅卡片同一套字段和样式。合同里己方显示为「我方」。 */
     function renderTrader(item, actor, options) {
         if (!item) return '<div class="rbt-sign-empty">需求单不存在</div>';
         var api = window.RbtDemandData;
         var contracts = api && typeof api.signContracts === 'function' ? api.signContracts(item) : [];
         var amounts = options.amounts || {};
-        var open = !!options.summaryOpen;
         var actorParties = [];
         var cards = contracts.map(function (contract) {
             var canSign = false;
@@ -151,31 +150,20 @@
         var banner = item.status === '待签署' && actorParties.length && !selfPending && !allDone
             ? '<div class="rbt-sign-banner" role="status"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8 7.2V11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="5" r="0.8" fill="currentColor"/></svg><span>您已完成签署，待其他方完成签署</span></div>'
             : '';
-        var extra = item.repayMethod && item.repayMethod !== '比例付'
-            ? '<div class="rbt-sign-block"><span>结算期数</span><p>' + esc(item.repayPeriod || '—') + '期</p></div>'
-            : '';
-        var detail = open
-            ? '<div class="rbt-sign-grid">' +
-              '<div><span>需求门店</span><b>' + esc(show(item.storeName)) + '</b></div>' +
-              '<div><span>总金额</span><b class="is-amt">' + esc(yuan(amounts.total)) + '</b></div>' +
-              '<div><span>商品金额</span><b>' + esc(yuan(amounts.goods)) + '</b></div>' +
-              '<div><span>服务费</span><b>' + esc(yuan(amounts.fee)) + '</b></div>' +
-              '<div><span>结算周期</span><b>' + esc(show(item.repayCycle)) + '</b></div>' +
-              '<div><span>结算方式</span><b>' + esc(show(item.repayMethod)) + '</b></div>' +
-              '</div>' +
-              extra
-            : '';
-        var chevron = open
-            ? '<svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M2 4.5 6 8l4-3.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-            : '<svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="M4.5 2 8 6 4.5 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-        return banner +
-            '<section class="rbt-sign-card rbt-sign-brief">' +
-            '<div class="rbt-sign-brief__top"><h2>需求单 ' + esc(item.code || '—') + '</h2>' +
-            '<button type="button" class="rbt-sign-brief__toggle" data-sign-summary>' + (open ? '收起' : '展开') + chevron + '</button></div>' +
-            '<p class="rbt-sign-brief__sub">' + esc(show(item.storeName)) + ' · ' + esc(show(item.packageName)) + ' · ' + esc(yuan(amounts.total)) + '</p>' +
-            detail +
-            '</section>' +
-            cards;
+        var status = item.status || '待签署';
+        var statusClass = status === '已完成' ? ' is-done' : (status === '已作废' || status === '已驳回' ? ' is-off' : '');
+        var demand = '<article class="rbt-hall-card">' +
+            '<div class="rbt-hall-card__top"><h2 class="rbt-hall-card__name">' + esc(show(item.storeName)) + '</h2>' +
+            '<span class="rbt-hall-card__status' + statusClass + '">' + esc(status) + '</span></div>' +
+            '<p class="rbt-hall-card__meta">' + esc(show(item.code)) + ' · ' + esc(show(item.packageName)) + ' ' + esc(show(item.packageCode)) + '</p>' +
+            '<div class="rbt-hall-card__total"><span>收益</span><b>' + esc(yuan(amounts.profit)) + '</b></div>' +
+            '<div class="rbt-hall-card__grid">' +
+            '<div class="rbt-hall-card__cell"><span>应付</span><b>' + esc(yuan(amounts.paid)) + '</b></div>' +
+            '<div class="rbt-hall-card__cell"><span>应收</span><b>' + esc(yuan(amounts.total)) + '</b></div>' +
+            '<div class="rbt-hall-card__cell"><span>结算周期</span><b>' + esc(show(item.repayCycle)) + '</b></div>' +
+            '<div class="rbt-hall-card__cell"><span>结算方式</span><b>' + esc(show(item.repayMethod)) + '</b></div>' +
+            '</div></article>';
+        return banner + demand + cards;
     }
 
     window.RbtContractSign = { render: render };

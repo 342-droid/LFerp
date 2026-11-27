@@ -6,7 +6,6 @@
     var hallFilter = 'pending';
     var detailCode = '';
     var signCode = '';
-    var signSummaryOpen = false;
     var collectFilter = 'open';
     var collectCode = '';
     var fundTab = 'base';
@@ -1688,7 +1687,6 @@
             scroll.innerHTML = (window.RbtContractSign
                 ? window.RbtContractSign.render(signing, { role: 'trader', name: traderName(), phone: account.phone }, {
                     layout: 'trader',
-                    summaryOpen: signSummaryOpen,
                     amounts: signing ? hallAmounts(signing) : {}
                 })
                 : '<div class="rbt-h5-empty">合同签署页不可用</div>');
@@ -2008,7 +2006,6 @@
                 tab = 'hall';
                 screen = 'sign';
                 hallFilter = 'accepted';
-                signSummaryOpen = false;
                 render();
             }
         });
@@ -2077,17 +2074,11 @@
         var confirmDeal = event.target.closest('[data-confirm-deal]');
         var withdraw = event.target.closest('[data-withdraw]');
         var sign = event.target.closest('[data-sign]');
-        var summaryToggle = event.target.closest('[data-sign-summary]');
         var confirmSign = event.target.closest('[data-confirm-sign]');
         var changePassword = event.target.closest('[data-change-password]');
         var savePassword = event.target.closest('[data-save-password]');
         var back = event.target.closest('[data-back]');
         var logout = event.target.closest('[data-logout]');
-        if (summaryToggle) {
-            signSummaryOpen = !signSummaryOpen;
-            render();
-            return;
-        }
         if (confirmSign) {
             var signedCode = confirmSign.getAttribute('data-confirm-sign');
             var signApi = window.RbtDemandData;
@@ -2110,7 +2101,6 @@
             tab = 'hall';
             screen = 'sign';
             hallFilter = 'accepted';
-            signSummaryOpen = false;
             render();
             return;
         }
