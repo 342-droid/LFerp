@@ -458,8 +458,7 @@
             to: walletTo,
             timeOpen: walletTimeOpen,
             draft: walletDraft,
-            account: PROVIDER_ACCOUNTS[account && account.name] || null,
-            note: '已到账的结款记入余额，可提现到收款账户。没有保证金账户，也没有货款账户。'
+            account: PROVIDER_ACCOUNTS[account && account.name] || null
         });
     }
 

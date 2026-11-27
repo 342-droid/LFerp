@@ -337,11 +337,7 @@
   /** 演示「今天」；与门店一键履约演示日对齐 */
   var DEMO_AS_OF = '2026-11-23';
 
-  /* 自定义时段快捷示例：跨月、跨年（须落在可查窗口内） */
-  var CUSTOM_RANGE_PRESETS = [
-    { id: 'cross-month', label: '跨月示例', from: '2026-10-25', to: '2026-11-15' },
-    { id: 'cross-year', label: '跨年示例', from: '2025-12-20', to: '2026-01-12' }
-  ];
+  var CUSTOM_RANGE_PRESETS = [];
 
   function numOf(value) {
     var n = Number(String(value == null ? '' : value).replace(/,/g, '').replace(/^¥/, ''));
@@ -617,12 +613,7 @@
         series: chSeries
       };
     });
-    var rangeTip =
-      '可查看 ' +
-      (windowFrom || '—') +
-      ' 至 ' +
-      (windowTo || '—') +
-      ' 的经营数据：POS 展示堂食／外卖／储值卡营业额，直播与商城展示营业额。支持查看整体情况或选择日期范围，点击趋势图可查看当日营业额。';
+    var tip = frozen ? '需求已结束，经营数据已冻结，不再跟踪后续营业额。' : '';
     return {
       ready: true,
       hasSeries: series.length > 0,
@@ -650,9 +641,7 @@
       }),
       channels: channels,
       series: series,
-      tip: frozen
-        ? rangeTip + '需求已结束，经营数据已冻结，不再跟踪后续营业额。'
-        : rangeTip
+      tip: tip
     };
   }
 
