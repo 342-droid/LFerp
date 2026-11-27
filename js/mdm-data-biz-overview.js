@@ -181,7 +181,7 @@
       '退款按<strong>成功退款发生时间</strong>单独展示，不冲减GMV；采购成本分<strong>支付时</strong>与<strong>退款后实际</strong>两套口径。' +
       '平台分佣分<strong>预计</strong>（支付时点）与<strong>实际</strong>（结算完成入账）。' +
       'ERP 平台分佣与食亨管理费分属不同数据域，本页仅汇总 ERP。' +
-      '<strong>RBT 联营不计入本页 GMV / 平台分佣</strong>，见快捷入口「RBT联营」。' +
+      '<strong>RBT 联营不计入本页 GMV / 平台分佣</strong>，见快捷入口「RBT」。' +
       '运营成本含 BD／直播运营组／门店分佣、汇付手续费、汇总后的<strong>积分成本</strong>（兑换商品＋订单抵现）；<strong>不含供应商货款、承运商结算</strong>（采购成本另列）。' +
       '直播流量仅 GB、不计入金额合计。' +
       '</p>';

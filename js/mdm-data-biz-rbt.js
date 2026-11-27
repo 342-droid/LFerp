@@ -1,6 +1,6 @@
 /**
  * 经营数据中心 · RBT 联营与回收（独立专题）
- * 口径见会话确认：不进 GMV；投入=划拨；约定=发布快照；已履行跟履约域。
+ * 独立统计投入、门店应付与已支付金额。
  */
 (function () {
   var Center = window.MdmDataBizCenter;
@@ -15,16 +15,17 @@
   var fulfillPager = { page: 1, pageSize: 10 };
   function statusBadge(status) {
     var cls =
-      status === '已完成' || status === '已履行'
+      status === '已完成'
         ? 'ldb-badge ldb-badge--ok'
-        : status === '门店付款中' || status === '预计履行'
+        : status === '门店付款中'
           ? 'ldb-badge ldb-badge--warn'
           : 'ldb-badge';
     return '<span class="' + cls + '">' + Ui.esc(status) + '</span>';
   }
 
   function demandHref(code) {
-    return '../RBT/rbt_demand.html?demandCode=' + encodeURIComponent(code || '');
+    var page = window.wmsPath ? window.wmsPath.page('rbt_demand.html') : '../RBT/rbt_demand.html';
+    return page + '?demandCode=' + encodeURIComponent(code || '');
   }
 
   function demandLink(code) {
@@ -138,7 +139,7 @@
         Ui.periodLabel(state) +
         ' · 发货中 ' +
         data.shippingCount +
-        ' · 履约中 ' +
+        ' · 门店付款中 ' +
         data.payingCount +
         ' · 已完成 ' +
         data.doneCount;
@@ -146,11 +147,9 @@
 
     root.querySelector('[data-ldb-tip]').innerHTML =
       '<p class="ldb-tip">' +
-      '本专题为 <strong>RBT 联营与回收</strong>，<strong>不计入</strong>经营总览销售额 / ERP 平台分佣。' +
-      '贸易商投入以<strong>划拨成功进入发货中</strong>起计（冻结不算）；' +
-      '约定回收在<strong>发布成功</strong>时按「商品金额 × 门店结算系数」固化；' +
-      '下方「履约」表与 <a href="../RBT/rbt_performance.html" target="_blank" rel="noopener">RBT 履约</a> 列表字段一致。' +
-      '冷丰实得、贸易商回收、服务商计提按已履行拆分展示。渠道比例可改至门店付款中，只影响日后应扣。' +
+      '<strong>RBT</strong> 独立统计。贸易商投入从<strong>划拨成功进入发货中</strong>起计。' +
+      '门店应付总额在<strong>发布成功</strong>时按「商品金额 × 门店结算系数」固化。' +
+      '累计已支付按冷丰实得、贸易商实收和服务商实收拆分。渠道比例可改至门店付款中，修改后适用于后续应扣金额。' +
       '</p>';
 
     var kpis = root.querySelector('[data-ldb-kpis]');
@@ -159,20 +158,20 @@
       kpis.innerHTML =
         Ui.kpiCard('贸易商总投入', Ui.money(data.investTotal), '', '划拨成功起计 · 含发货中') +
         Ui.kpiCard(
-          '约定回收',
+          '门店应付总额',
           Ui.money(data.agreedTotal),
           '',
           '发布时固化 · 商品金额×门店结算系数'
         ) +
         Ui.kpiCard(
-          '已履行净额',
+          '累计已支付',
           Ui.money(data.fulfilledTotal),
           '',
-          '剩余 ' + Ui.money(data.remainTotal)
+          '剩余应付 ' + Ui.money(data.remainTotal)
         ) +
-        Ui.kpiCard('冷丰实得', Ui.money(data.lengfengConfirmed), '', '已履行中拆给冷丰的服务费') +
-        Ui.kpiCard('贸易商回收', Ui.money(data.traderRecouped), '', '已履行中拆给贸易商') +
-        Ui.kpiCard('服务商计提', Ui.money(data.providerAccrued), '', '已履行中拆给服务商');
+        Ui.kpiCard('冷丰实得', Ui.money(data.lengfengConfirmed), '', '累计已支付中分配给冷丰的服务费') +
+        Ui.kpiCard('贸易商实收', Ui.money(data.traderRecouped), '', '累计已支付中分配给贸易商的金额') +
+        Ui.kpiCard('服务商实收', Ui.money(data.providerAccrued), '', '累计已支付中分配给服务商的金额');
     }
 
     var demandHost = root.querySelector('[data-ldb-demands]');
@@ -198,39 +197,39 @@
           },
           {
             key: 'phase',
-            label: '履约阶段',
+            label: '付款阶段',
             render: function (row) {
               return Ui.esc(row.phase);
             }
           },
           { key: 'invest', label: '贸易商投入', num: true, format: 'money' },
-          { key: 'agreedRecoup', label: '约定回收', num: true, format: 'money' },
-          { key: 'fulfilled', label: '已履行', num: true, format: 'money' },
-          { key: 'remain', label: '剩余', num: true, format: 'money' },
+          { key: 'agreedRecoup', label: '门店应付总额', num: true, format: 'money' },
+          { key: 'fulfilled', label: '累计已支付', num: true, format: 'money' },
+          { key: 'remain', label: '剩余应付', num: true, format: 'money' },
           {
             key: 'progress',
-            label: '进度',
+            label: '付款进度',
             render: function (row) {
               return Ui.esc(row.progress.toFixed(1) + '%');
             }
           },
-          { key: 'traderShare', label: '贸易商回收', num: true, format: 'money' },
+          { key: 'traderShare', label: '贸易商实收', num: true, format: 'money' },
           { key: 'lengfeng', label: '冷丰实得', num: true, format: 'money' },
-          { key: 'provider', label: '服务商计提', num: true, format: 'money' }
+          { key: 'provider', label: '服务商实收', num: true, format: 'money' }
         ],
         data.demands,
         pager,
         { emptyText: '当前筛选暂无联营需求', unitLabel: '笔' }
       ),
-      '<span class="ldb-card__extra">贸易商回收 + 冷丰实得 + 服务商计提 = 已履行</span>'
+      '<span class="ldb-card__extra">贸易商实收 + 冷丰实得 + 服务商实收 = 累计已支付</span>'
     );
     Ui.bindPagedTable(demandHost, pager, render);
 
     var perf = perfRows(data.demands);
     var fulfillHost = root.querySelector('[data-ldb-fulfill]');
     fulfillHost.innerHTML = Ui.sectionCard(
-      '履约',
-      '<p class="ldb-tip" style="margin:0 0 10px">履约列表包含门店付款中和已完成的需求。带链接的需求单号可打开详情，DEMO-RBT 单号为独立示例。</p>' +
+      '付款',
+      '<p class="ldb-tip" style="margin:0 0 10px">付款列表包含门店付款中和已完成的需求。带链接的需求单号可打开详情，DEMO-RBT 单号为独立示例。</p>' +
         Ui.renderPagedTable(
           [
             {
@@ -244,13 +243,13 @@
             { key: 'storeCode', label: '门店编码' },
             { key: 'traderName', label: '贸易商' },
             { key: 'providerName', label: '服务商' },
-            { key: 'amount', label: '总金额', num: true, format: 'money' },
-            { key: 'fulfilledAmount', label: '已履行金额', num: true, format: 'money' },
-            { key: 'fulfillGap', label: '剩余履行额', num: true, format: 'money' },
-            { key: 'fulfillProgress', label: '日均履行进度' },
+            { key: 'amount', label: '门店应付总额', num: true, format: 'money' },
+            { key: 'fulfilledAmount', label: '累计已支付', num: true, format: 'money' },
+            { key: 'fulfillGap', label: '剩余应付', num: true, format: 'money' },
+            { key: 'fulfillProgress', label: '日均付款进度' },
             {
               key: 'riskGrade',
-              label: '履约风险等级',
+              label: '付款风险等级',
               render: function (row) {
                 return row.riskGrade === '—' ? '—' : riskBadge(row.riskGrade);
               }
@@ -259,7 +258,7 @@
             { key: 'repayMethod', label: '结算方式' },
             {
               key: 'fulfillPhase',
-              label: '履约阶段',
+              label: '付款阶段',
               render: function (row) {
                 return statusBadge(row.fulfillPhase);
               }
@@ -268,9 +267,11 @@
           ],
           perf,
           fulfillPager,
-          { emptyText: '暂无履约中或已完成的需求', unitLabel: '笔' }
+          { emptyText: '暂无门店付款中或已完成的需求', unitLabel: '笔' }
         ),
-      '<a class="ldb-link-all" href="../RBT/rbt_performance.html" target="_blank" rel="noopener">打开 RBT 履约</a>'
+      '<a class="ldb-link-all" href="' +
+        Ui.esc(window.wmsPath ? window.wmsPath.page('rbt_performance.html') : '../RBT/rbt_performance.html') +
+        '" target="_blank" rel="noopener">查看 RBT 付款记录</a>'
     );
     Ui.bindPagedTable(fulfillHost, fulfillPager, render);
   }

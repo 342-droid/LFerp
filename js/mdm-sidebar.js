@@ -125,7 +125,7 @@
     /** 平台数据中台 · 经营数据中台 */
     const dataBizItems = [
         { href: 'mdm_data_biz_overview.html', text: '经营总览' },
-        { href: 'mdm_data_biz_rbt.html', text: 'RBT联营' },
+        { href: 'mdm_data_biz_rbt.html', text: 'RBT' },
         { href: 'mdm_data_biz_supplier.html', text: '供应商分析' },
         { href: 'mdm_data_biz_stores.html', text: '门店分析' },
         { href: 'mdm_data_biz_marketing.html', text: '营销活动' }
