@@ -817,7 +817,6 @@
       );
     }
     persistLiveShipFlag(product);
-    if (Demo.persistProducts) Demo.persistProducts(sessionId);
   }
 
   function persistLiveShipFlag(item) {
