@@ -945,6 +945,7 @@
             kind: kind,
             merchantName: merchantName || '—',
             fields: fields,
+            duplicateMatches: r.duplicateMatches || [],
             ext: {
                 huifuId: r.huifuId || r.merchantNo || '',
                 groupName: r.groupName || r.subjectName || '',
@@ -1378,6 +1379,14 @@
         appendOnbAuditLogTable(body, item.auditLogs);
     }
 
+    function appendDuplicateReview(body, item) {
+        var api = window.MdmStoreDuplicateReview;
+        if (!api || !item || item.kind !== 'store' ||
+            (item.auditStatus !== '待BD审核' && item.auditStatus !== '待总监审核')) return;
+        var banner = api.banner(api.reviewMatches(item.duplicateMatches), true);
+        if (banner) body.appendChild(banner);
+    }
+
     function openDetail(item) {
         closeModals();
         var backdrop = el('div', 'erp-modal-backdrop');
@@ -1395,6 +1404,7 @@
         acts.appendChild(closeBtn);
         header.appendChild(acts);
         var body = el('div', 'erp-modal__body');
+        appendDuplicateReview(body, item);
         detailRows(body, item);
         var footer = el('div', 'erp-modal__footer');
         if (item.auditStatus === '审核失败') {
@@ -1490,6 +1500,7 @@
         var header = el('div', 'erp-modal__header');
         header.appendChild(el('h2', 'erp-modal__title', '进件审核'));
         var body = el('div', 'erp-modal__body');
+        appendDuplicateReview(body, item);
         detailRows(body, item);
         appendOnbOpinionBox(body);
         var footer = el('div', 'erp-modal__footer');

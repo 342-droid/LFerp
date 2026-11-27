@@ -1019,13 +1019,18 @@
 }
 
 .store-duplicate-backdrop{position:fixed;inset:0;z-index:3200;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.45)}
-.store-duplicate-dialog{width:min(100%,520px);max-height:85vh;overflow:auto;padding:24px;border-radius:12px;background:#fff;box-shadow:0 18px 48px rgba(0,0,0,.2);color:#334155;font-size:14px}
+.store-duplicate-dialog{display:flex;flex-direction:column;width:min(100%,520px);max-height:85vh;padding:24px;border-radius:12px;background:#fff;box-shadow:0 18px 48px rgba(0,0,0,.2);color:#334155;font-size:14px}
 .store-duplicate-dialog h2{margin:0 0 12px;font-size:20px;color:#172033}
 .store-duplicate-dialog p{margin:0 0 16px;line-height:1.6}
-.store-duplicate-item{display:grid;gap:5px;margin:10px 0;padding:12px;border:1px solid #f3cfac;border-radius:8px;background:#fff9f3}
+.store-duplicate-list{min-height:0;overflow-y:auto;display:grid;gap:10px;padding-right:4px}
+.store-duplicate-item{position:relative;display:grid;grid-template-columns:minmax(150px,.45fr) minmax(0,1fr);column-gap:12px;align-items:center;padding:10px 12px 10px 44px;border:1px solid #f3cfac;border-radius:8px;background:#fff9f3;overflow-wrap:anywhere}
+.store-duplicate-item::before{content:attr(data-sequence);position:absolute;top:12px;left:11px;width:24px;height:24px;display:grid;place-items:center;border-radius:6px;background:#ffe6ca;color:#9a3412;font-size:11px;font-weight:700}
 .store-duplicate-item strong{font-size:15px;color:#172033}
 .store-duplicate-item span{color:#64748b}
 .store-duplicate-item small{font-size:13px;color:#b45309}
+.store-duplicate-item strong,.store-duplicate-item span{grid-column:1}
+.store-duplicate-item small{grid-column:2;grid-row:1 / span 2;line-height:1.45}
+.store-duplicate-dialog .store-duplicate-remaining{max-height:72px;overflow-y:auto;margin:10px 0 0;color:#92400e;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
 .store-duplicate-dialog .store-duplicate-note{margin-top:14px;color:#64748b;font-size:12px}
 .store-duplicate-actions{display:flex;gap:10px;justify-content:flex-end}
 .store-duplicate-actions button{min-height:36px;padding:0 14px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;color:#334155;cursor:pointer}

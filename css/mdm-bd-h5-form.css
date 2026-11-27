@@ -817,15 +817,19 @@
   margin-top: 18px;
 }
 .h5-duplicate-overlay{position:absolute;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(17,24,39,.5)}
-.h5-duplicate-dialog{width:100%;max-width:360px;max-height:calc(100% - 32px);overflow:auto;box-sizing:border-box;padding:20px;border-radius:16px;background:#fff;box-shadow:0 16px 40px rgba(0,0,0,.18);font-size:14px;color:#334155}
+.h5-duplicate-dialog{display:flex;flex-direction:column;width:100%;max-width:360px;max-height:calc(100% - 32px);box-sizing:border-box;padding:20px;border-radius:16px;background:#fff;box-shadow:0 16px 40px rgba(0,0,0,.18);font-size:14px;color:#334155}
 .h5-duplicate-dialog h2{margin:0 0 10px;font-size:19px;color:#172033}
 .h5-duplicate-dialog p{margin:0 0 14px;line-height:1.6}
-.h5-duplicate-list{display:grid;gap:10px;margin:12px 0}
-.h5-duplicate-item{display:grid;gap:4px;padding:12px;border:1px solid #f3cfac;border-radius:10px;background:#fff9f3}
+.h5-duplicate-list{min-height:0;display:grid;gap:10px;overflow-y:auto;margin:12px 0;padding-right:4px}
+.h5-duplicate-item{position:relative;display:grid;gap:3px;padding:10px 10px 10px 42px;border:1px solid #f3cfac;border-radius:10px;background:#fff9f3;overflow-wrap:anywhere;counter-increment:duplicate-item}
+.h5-duplicate-list{counter-reset:duplicate-item}
+.h5-duplicate-item::before{content:counter(duplicate-item,decimal-leading-zero);position:absolute;top:12px;left:10px;width:24px;height:24px;display:grid;place-items:center;border-radius:6px;background:#ffe6ca;color:#9a3412;font-size:11px;font-weight:700}
 .h5-duplicate-item strong{font-size:15px;color:#172033}
 .h5-duplicate-item span{color:#64748b}
 .h5-duplicate-item small{font-size:13px;color:#b45309}
+.h5-duplicate-reasons{color:#b45309;font-size:13px;line-height:1.45}
+.h5-duplicate-dialog .h5-duplicate-remaining{max-height:68px;overflow-y:auto;margin:8px 0;color:#92400e;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
 .h5-duplicate-dialog .h5-duplicate-note{color:#64748b;font-size:12px}
-.h5-duplicate-actions{display:flex;gap:10px;justify-content:flex-end}
+.h5-duplicate-actions{display:flex;gap:10px;justify-content:flex-end;flex-shrink:0}
 .h5-duplicate-actions button{min-height:38px;padding:0 14px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;color:#334155;font-size:14px;cursor:pointer}
 .h5-duplicate-actions [data-duplicate-confirm]{border-color:#d95821;background:#d95821;color:#fff}

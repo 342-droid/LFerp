@@ -1227,6 +1227,21 @@
         return;
       }
     }
+    var duplicateApi = window.MdmStoreDuplicateReview;
+    var matches = duplicateApi ? duplicateApi.find({
+      currentId: STORE.id,
+      name: STORE.name,
+      address: getDraftField('detail_addr') || STORE.address,
+      phone: getDraftField('contact_mobile_no') || STORE.phone
+    }, window.__BD_STORE_AUDITS__ || []) : [];
+    if (duplicateApi && matches.length) {
+      duplicateApi.dialog(matches, function () { commitSubmission(matches); });
+      return;
+    }
+    commitSubmission(matches);
+  }
+
+  function commitSubmission(matches) {
     var now = Date.now();
     /* 提交后进入审核；详情页仅在审核成功后展示。充值绑卡只需已提交证照。 */
     saveRecord({
@@ -1239,6 +1254,7 @@
       channel: '丰银宝',
       createdBy: '门店负责人',
       fields: cloneObj(state.draft),
+      duplicateMatches: cloneObj(matches),
       submittedAt: now,
       auditStatus: '待BD审核',
       nextAuditNode: 'BD审核',

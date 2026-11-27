@@ -801,7 +801,7 @@
             hidden.value = api.formatBiz(selectedBiz());
         }
         function paintBiz(keep) {
-            var opts = api.bizLines(lineSel.value);
+            var opts = api.bizLines(lineSel.value, brandSel.value);
             var keepSet = keep || [];
             checks.innerHTML = '';
             opts.forEach(function (name) {
@@ -816,10 +816,10 @@
                 checks.appendChild(lab);
             });
             tip.textContent = opts.length
-                ? '可多选。更换事业线后，不在该事业线下的业务线会取消勾选。'
+                ? '可多选。更换品牌后，不在该品牌下的业务线会取消勾选。'
                 : lineSel.value
-                  ? '该事业线暂无业务线，请先在门店分类配置中添加。'
-                  : '请先选择事业线。业务线可多选。';
+                  ? '请先选择品牌名称。业务线可多选。'
+                  : '请先选择事业线和品牌名称。业务线可多选，选项随品牌变化。';
             syncHidden();
         }
         function paintBrands(keepBrand, keepBiz) {
@@ -837,10 +837,13 @@
             });
             brandSel.disabled = !list.length;
             brandSel.value = list.indexOf(keepBrand) >= 0 ? keepBrand : '';
-            paintBiz(keepBiz);
+            paintBiz(brandSel.value ? keepBiz : []);
         }
         lineSel.addEventListener('change', function () {
             paintBrands('', []);
+        });
+        brandSel.addEventListener('change', function () {
+            paintBiz([]);
         });
         body.appendChild(editRow('事业线', lineSel, 'bizLine', row));
         body.appendChild(editRow('品牌名称', brandSel, 'brandName', row));
@@ -1335,6 +1338,14 @@
         cells[12].innerHTML = renderActionHtml(rec);
     }
 
+    function appendStoreDuplicateReview(body, row) {
+        var api = window.MdmStoreDuplicateReview;
+        if (!api || !row || row.subjectType !== '门店' ||
+            (row.auditStatus !== '待审核' && row.auditStatus !== '待总监审核')) return;
+        var banner = api.banner(api.reviewMatches(row.duplicateMatches), true);
+        if (banner) body.appendChild(banner);
+    }
+
     function openAuditDetail(row) {
         closeAuditModals();
         var backdrop = el('div', 'erp-modal-backdrop');
@@ -1353,6 +1364,7 @@
         header.appendChild(actions);
 
         var body = el('div', 'erp-modal__body');
+        appendStoreDuplicateReview(body, row);
         appendRegistrationFields(body, row);
         body.appendChild(el('div', 'supplier-detail-section-title', '状态信息'));
         body.appendChild(detailRow('审核状态', row.auditStatus));
@@ -1446,6 +1458,7 @@
         function renderReview() {
             body.innerHTML = '';
             footer.innerHTML = '';
+            appendStoreDuplicateReview(body, row);
             var isSup = isSingleStepAudit(row);
             var phaseLabel;
             if (isSup) {
