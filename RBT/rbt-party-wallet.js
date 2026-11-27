@@ -7,6 +7,40 @@
         '杭州鲜达贸易有限公司': 100000,
         '上海冷链融资租赁有限公司': 200000
     };
+    /* 充值限额与门店钱包一致：支付宝、微信走单笔 5000、单日 50000；银行卡用该卡自己的限额。 */
+    var SINGLE_LIMIT = 5000;
+    var DAILY_LIMIT = 50000;
+    var SMS_CODE = '123456';
+    var BANKS = [
+        { id: 'icbc', name: '工商银行', short: '工', single: 5000, daily: 100000 },
+        { id: 'abc', name: '农业银行', short: '农', single: 700, daily: 10000 },
+        { id: 'boc', name: '中国银行', short: '中', single: 5000, daily: 10000 },
+        { id: 'ccb', name: '建设银行', short: '建', single: 200000, daily: 200000 },
+        { id: 'citic', name: '中信银行', short: '信', single: 5000, daily: 5000 },
+        { id: 'ceb', name: '光大银行', short: '光', single: 200000, daily: 200000 },
+        { id: 'cmb', name: '招商银行', short: '招', single: 50000, daily: 50000 },
+        { id: 'comm', name: '交通银行', short: '交', single: 20000, daily: 50000 }
+    ];
+    var BIN_MAP = {
+        '622202': 'icbc',
+        '622848': 'abc',
+        '621660': 'boc',
+        '621700': 'ccb',
+        '622690': 'citic',
+        '622666': 'ceb',
+        '622588': 'cmb',
+        '622262': 'comm'
+    };
+    var SEED_CARDS = [{
+        id: 'BC-QUICK-001',
+        bankId: 'cmb',
+        bankName: '招商银行',
+        bankShort: '招',
+        cardNo: '6225881234566666',
+        cardTail: '6666',
+        single: 50000,
+        daily: 50000
+    }];
 
     function esc(value) {
         return String(value == null ? '' : value)
@@ -89,7 +123,10 @@
         return {
             recharge: Array.isArray(bag.recharge) ? bag.recharge : [],
             withdraw: Array.isArray(bag.withdraw) ? bag.withdraw : [],
-            transfer: Array.isArray(bag.transfer) ? bag.transfer : []
+            transfer: Array.isArray(bag.transfer) ? bag.transfer : [],
+            cards: Array.isArray(bag.cards) ? bag.cards : null,
+            rechargeDailyDate: bag.rechargeDailyDate || '',
+            rechargeDailyUsed: Number(bag.rechargeDailyUsed || 0)
         };
     }
 
@@ -177,19 +214,198 @@
         };
     }
 
-    function recharge(role, name, amount, method) {
-        if (role !== 'trader') return { ok: false, message: '服务商钱包不支持充值' };
-        var value = round2(amount);
-        if (!(value > 0)) return { ok: false, message: '请填写大于 0 的充值金额' };
+    function editAmount(current, key) {
+        var s = String(current || '');
+        if (key === 'del') return s.slice(0, -1);
+        if (key === '.') {
+            if (!s) return '0.';
+            if (s.indexOf('.') >= 0) return s;
+            return s + '.';
+        }
+        if (!/^\d$/.test(key)) return s;
+        if (s === '0') return key;
+        var dot = s.indexOf('.');
+        if (dot >= 0) {
+            if (s.length - dot > 2) return s;
+            return s + key;
+        }
+        if (s.length >= 8) return s;
+        return s + key;
+    }
+
+    function amountReady(raw, max) {
+        if (!/^\d+(\.\d{1,2})?$/.test(String(raw || ''))) return false;
+        var value = Number(raw);
+        if (!(value > 0)) return false;
+        if (max != null && value > Number(max) + 0.001) return false;
+        return true;
+    }
+
+    function moneyInt(value) {
+        var num = Number(value || 0);
+        if (Math.abs(num - Math.round(num)) < 1e-9) return String(Math.round(num));
+        return num.toFixed(2);
+    }
+
+    function bankById(id) {
+        var i;
+        for (i = 0; i < BANKS.length; i++) {
+            if (BANKS[i].id === id) return BANKS[i];
+        }
+        return null;
+    }
+
+    function detectBank(cardNo) {
+        var text = String(cardNo || '').replace(/\s/g, '');
+        var keys = Object.keys(BIN_MAP);
+        var i;
+        for (i = 0; i < keys.length; i++) {
+            if (text.indexOf(keys[i]) === 0) return bankById(BIN_MAP[keys[i]]);
+        }
+        return null;
+    }
+
+    function cardsOf(name) {
         var bag = bagOf(name);
+        if (!Array.isArray(bag.cards)) {
+            bag.cards = SEED_CARDS.map(function (card) { return Object.assign({}, card); });
+            saveBag(name, bag);
+        }
+        return bag.cards;
+    }
+
+    function rechargeMethods(name) {
+        var cards = cardsOf(name).map(function (card) {
+            return {
+                id: 'card:' + card.id,
+                name: card.bankName + '(' + card.cardTail + ')',
+                short: card.bankShort || '卡',
+                tone: 'is-card',
+                channel: card.bankName,
+                showTip: true,
+                tip: '单笔最高¥' + moneyInt(card.single || SINGLE_LIMIT) + '，单日最高¥' + moneyInt(card.daily || DAILY_LIMIT),
+                single: Number(card.single || SINGLE_LIMIT),
+                daily: Number(card.daily || DAILY_LIMIT)
+            };
+        });
+        return cards.concat([
+            { id: 'alipay', name: '支付宝', short: '支', tone: 'is-alipay', channel: '支付宝', showTip: false },
+            { id: 'wechat', name: '微信', short: '微', tone: 'is-wechat', channel: '微信', showTip: false }
+        ]);
+    }
+
+    function normalizeMethodId(methodId) {
+        if (methodId === '微信') return 'wechat';
+        if (methodId === '支付宝') return 'alipay';
+        return methodId || '';
+    }
+
+    function rechargeMethod(name, methodId) {
+        var methods = rechargeMethods(name);
+        var id = normalizeMethodId(methodId);
+        var i;
+        for (i = 0; i < methods.length; i++) {
+            if (methods[i].id === id) return methods[i];
+        }
+        return methods[0] || null;
+    }
+
+    function dailyRemainOf(name) {
+        var bag = bagOf(name);
+        var used = bag.rechargeDailyDate === today() ? Number(bag.rechargeDailyUsed || 0) : 0;
+        return round2(Math.max(0, DAILY_LIMIT - used));
+    }
+
+    function methodLimit(method) {
+        if (!method) return { single: SINGLE_LIMIT, daily: DAILY_LIMIT };
+        return {
+            single: Number(method.single || SINGLE_LIMIT),
+            daily: Number(method.daily || DAILY_LIMIT)
+        };
+    }
+
+    /* 和门店充值同一套校验：没选方式、金额不对、超过单笔或当日剩余额度。 */
+    function rechargeIssue(name, methodId, raw) {
+        var method = rechargeMethod(name, methodId);
+        var text = String(raw || '');
+        if (!method) return '请先选择充值方式或添加银行卡';
+        if (!text || /\.$/.test(text)) return '';
+        if (!amountReady(text)) return '请输入正确的充值金额';
+        var amount = Number(text);
+        var limit = methodLimit(method);
+        var remain = dailyRemainOf(name);
+        if (amount > limit.single + 0.001) return '单笔最高可充值¥' + moneyInt(limit.single);
+        if (amount > remain + 0.001) return '超过单日剩余额度¥' + moneyInt(remain);
+        return '';
+    }
+
+    function bindReady(form) {
+        form = form || {};
+        var cardNo = String(form.cardNo || '').replace(/\s/g, '');
+        return cardNo.length >= 12 && !!form.bankId && /^\d{11}$/.test(String(form.phone || '')) && String(form.sms || '').length >= 4;
+    }
+
+    function bindCard(name, form) {
+        form = form || {};
+        var cardNo = String(form.cardNo || '').replace(/\s/g, '');
+        var phone = String(form.phone || '');
+        var sms = String(form.sms || '');
+        var bank = bankById(form.bankId) || detectBank(cardNo);
+        if (!cardNo || cardNo.length < 12) return { ok: false, message: '你的银行卡卡号填写错误或者卡号不存在' };
+        if (!bank) return { ok: false, message: '发行行不支持此交易，请更换银行卡绑定。' };
+        if (!/^\d{11}$/.test(phone)) return { ok: false, message: '请输入银行预留手机号' };
+        if (sms !== SMS_CODE) return { ok: false, message: sms ? '验证码错误，请重新填写' : '请填写验证码' };
+        var suffix = cardNo.slice(-4);
+        var suffixMessage = {
+            '0000': '您填写的银行卡号无效或已过期，请更换银行卡绑定。',
+            '1111': '此银行卡已绑定',
+            '2222': '该卡已受限制，请更换银行卡绑定。',
+            '3333': '发行行不支持此交易，请更换银行卡绑定。',
+            '4444': '此卡未开通无卡支付，请更换银行卡绑定。',
+            '5555': '银行卡预留手机号不符，请核对后再试，若银行卡预留手机号已变更，请更新手机号',
+            '6666': '您填写的信息不匹配，请核对后再试。'
+        };
+        if (suffixMessage[suffix]) return { ok: false, message: suffixMessage[suffix] };
+        var bag = bagOf(name);
+        var list = cardsOf(name);
+        if (list.some(function (card) { return card.cardNo === cardNo; })) return { ok: false, message: '此银行卡已绑定' };
+        var card = {
+            id: 'BC' + Date.now(),
+            bankId: bank.id,
+            bankName: bank.name,
+            bankShort: bank.short,
+            cardNo: cardNo,
+            cardTail: cardNo.slice(-4),
+            single: bank.single,
+            daily: bank.daily
+        };
+        bag = bagOf(name);
+        bag.cards = list.concat([card]);
+        saveBag(name, bag);
+        return { ok: true, card: card };
+    }
+
+    function recharge(role, name, amount, methodId) {
+        if (role !== 'trader' && role !== 'provider') return { ok: false, message: '当前钱包不支持充值' };
+        var issue = rechargeIssue(name, methodId, amount);
+        if (issue) return { ok: false, message: issue };
+        var value = round2(amount);
+        if (!(value > 0)) return { ok: false, message: '请输入正确的充值金额' };
+        var method = rechargeMethod(name, methodId);
+        var bag = bagOf(name);
+        if (bag.rechargeDailyDate !== today()) {
+            bag.rechargeDailyDate = today();
+            bag.rechargeDailyUsed = 0;
+        }
+        bag.rechargeDailyUsed = round2(Number(bag.rechargeDailyUsed || 0) + value);
         bag.recharge.push({
             id: 'recharge:' + Date.now(),
             amount: value,
-            method: method === '微信' ? '微信' : '支付宝',
+            method: method ? method.channel : '充值',
             time: nowText()
         });
         saveBag(name, bag);
-        return { ok: true, balance: balanceOf(role, name) };
+        return { ok: true, balance: balanceOf(role, name), method: method };
     }
 
     function withdraw(role, name, amount) {
@@ -245,6 +461,96 @@
             '<label>开始<input type="date" ' + fromAttr + ' value="' + esc(from || '') + '"></label>' +
             '<label>结束<input type="date" ' + toAttr + ' value="' + esc(to || '') + '"></label>' +
             '<button type="button" class="rbt-party-apply" ' + applyAttr + '>查询</button></div>';
+    }
+
+    function monthDay(date) {
+        var matched = String(date || '').match(/(\d{4})-(\d{2})-(\d{2})/);
+        if (!matched) return '';
+        return Number(matched[2]) + '月' + Number(matched[3]) + '日';
+    }
+
+    function rangeLabel(range, from, to) {
+        if (range === '7') return '近7天';
+        if (range === 'all') return '全部时间';
+        if (range === 'custom') return from && to ? (monthDay(from) + '–' + monthDay(to)) : '自定义';
+        return '近30天';
+    }
+
+    function clockOf(time) {
+        var matched = String(time || '').match(/(\d{4})-(\d{2})-(\d{2})(?:\s+(\d{2}:\d{2}))?/);
+        if (!matched) return { day: '', dayLabel: '日期未知', clock: '' };
+        return {
+            day: matched[1] + '-' + matched[2] + '-' + matched[3],
+            dayLabel: Number(matched[2]) + '月' + Number(matched[3]) + '日',
+            clock: matched[4] || ''
+        };
+    }
+
+    function splitTitle(title) {
+        var text = String(title || '');
+        var cut = text.indexOf(' · ');
+        if (cut < 0) return { name: text || '流水', extra: '' };
+        return { name: text.slice(0, cut), extra: text.slice(cut + 3) };
+    }
+
+    function ledgerListHtml(list) {
+        if (!list.length) return '<p class="rbt-party-empty rbt-party-empty--card">该时段暂无明细</p>';
+        var html = '';
+        var lastDay = '';
+        list.forEach(function (row) {
+            var when = clockOf(row.time);
+            var parts = splitTitle(row.title);
+            var sub = [parts.extra, when.clock].filter(Boolean).join(' · ');
+            if (when.day !== lastDay) {
+                if (lastDay) html += '</div></section>';
+                lastDay = when.day;
+                html += '<section class="rbt-party-day"><h3>' + esc(when.dayLabel) + '</h3><div class="rbt-party-day__card">';
+            }
+            html += '<div class="rbt-party-ledger"><div class="rbt-party-ledger__main"><b>' + esc(parts.name) + '</b>' +
+                '<span>' + esc(sub || '—') + '</span></div><em class="' + (row.dir === 'out' ? 'is-out' : '') + '">' +
+                (row.dir === 'out' ? '-' : '+') + '¥' + comma(row.amount) + '</em></div>';
+        });
+        if (lastDay) html += '</div></section>';
+        return html;
+    }
+
+    function timePill(range, from, to, open) {
+        return '<button type="button" class="rbt-party-time' + (open || range !== '30' ? ' is-on' : '') + '" data-wallet-time aria-expanded="' + (open ? 'true' : 'false') + '">' +
+            '<svg class="rbt-party-time__cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>' +
+            '<span>' + esc(rangeLabel(range, from, to)) + '</span>' +
+            '<svg class="rbt-party-time__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>';
+    }
+
+    function timeSheetHtml(range, from, to) {
+        var options = [
+            ['7', '近7天', '最近一周'],
+            ['30', '近30天', '最近一个月'],
+            ['all', '全部', '不限时间'],
+            ['custom', '自定义', '选择起止日期']
+        ];
+        var rows = options.map(function (item) {
+            return '<button type="button" class="rbt-party-pick' + (range === item[0] ? ' is-on' : '') + '" data-wallet-range="' + item[0] + '">' +
+                '<span class="rbt-party-pick__info"><b>' + item[1] + '</b><small>' + item[2] + '</small></span>' +
+                '<em class="rbt-party-radio"></em></button>';
+        }).join('');
+        var custom = range === 'custom'
+            ? '<div class="rbt-party-time-custom">' + dateFields(from, to, 'data-wallet-from', 'data-wallet-to', 'data-wallet-apply') + '</div>'
+            : '';
+        return '<div class="rbt-party-sheet rbt-party-time-sheet"><div class="rbt-party-sheet__mask" data-wallet-time-close></div>' +
+            '<div class="rbt-party-sheet__panel" role="dialog" aria-modal="true" aria-label="选择时间">' +
+            '<div class="rbt-party-sheet__bar"><strong>选择时间</strong><button type="button" data-wallet-time-close aria-label="关闭">×</button></div>' +
+            '<div class="rbt-party-sheet__list">' + rows + '</div>' + custom + '</div></div>';
+    }
+
+    function clearTimeSheet() {
+        var nodes = document.querySelectorAll('#rbtH5App > .rbt-party-time-sheet, #rbtH5Phone > .rbt-party-time-sheet');
+        Array.prototype.forEach.call(nodes, function (node) { node.remove(); });
+    }
+
+    function pinTimeSheet() {
+        var host = document.getElementById('rbtH5App') || document.getElementById('rbtH5Phone');
+        var sheet = document.querySelector('#rbtH5Scroll .rbt-party-time-sheet');
+        if (host && sheet) host.appendChild(sheet);
     }
 
     function overviewHtml(opts) {
@@ -323,28 +629,136 @@
             '</div>' + body + '</section>';
     }
 
+    function keypadHtml() {
+        return '<div class="rbt-party-keypad">' +
+            '123456789'.split('').map(function (key) {
+                return '<button type="button" data-wallet-key="' + key + '">' + key + '</button>';
+            }).join('') +
+            '<button type="button" data-wallet-key=".">.</button>' +
+            '<button type="button" data-wallet-key="0">0</button>' +
+            '<button type="button" class="is-del" data-wallet-key="del" aria-label="删除">删除</button></div>';
+    }
+
+    function amountHtml(label, draft, extra) {
+        return '<div class="rbt-party-yen"><div class="rbt-party-yen__label">' + label + '</div>' +
+            '<div class="rbt-party-yen__row"><span>¥</span><b>' + esc(draft || '') + '</b><i></i></div>' +
+            (extra || '') + '</div>';
+    }
+
+    function methodRow(method) {
+        var tone = method ? method.tone : '';
+        var tip = method && method.showTip && method.tip
+            ? '<small>' + esc(method.tip) + '</small>'
+            : '';
+        return '<button type="button" class="rbt-party-method" data-wallet-method-open>' +
+            '<span>充值方式</span><span class="rbt-party-method__main">' +
+            '<i class="' + esc(tone) + '">' + esc(method ? method.short : '选') + '</i>' +
+            '<span class="rbt-party-method__info"><b>' + esc(method ? method.name : '请选择充值方式') + '</b>' + tip + '</span>' +
+            '<em>›</em></span></button>';
+    }
+
+    function methodSheet(name, method) {
+        var current = method ? method.id : '';
+        var rows = rechargeMethods(name).map(function (item) {
+            var tip = item.showTip && item.tip ? '<small>' + esc(item.tip) + '</small>' : '';
+            return '<button type="button" class="rbt-party-pick' + (item.id === current ? ' is-on' : '') + '" data-wallet-pick="' + esc(item.id) + '">' +
+                '<i class="' + esc(item.tone) + '">' + esc(item.short) + '</i>' +
+                '<span class="rbt-party-pick__info"><b>' + esc(item.name) + '</b>' + tip + '</span>' +
+                '<em class="rbt-party-radio"></em></button>';
+        }).join('');
+        return '<div class="rbt-party-sheet"><div class="rbt-party-sheet__mask" data-wallet-sheet-close></div>' +
+            '<div class="rbt-party-sheet__panel" role="dialog" aria-modal="true" aria-label="选择充值方式">' +
+            '<div class="rbt-party-sheet__bar"><strong>选择充值方式</strong><button type="button" data-wallet-sheet-close aria-label="关闭">×</button></div>' +
+            '<div class="rbt-party-sheet__list">' + rows +
+            '<button type="button" class="rbt-party-add-card" data-wallet-add-card>+ 添加银行卡充值</button></div></div></div>';
+    }
+
+    function rechargeHtml(opts, draft) {
+        var method = rechargeMethod(opts.name, opts.method);
+        var issue = rechargeIssue(opts.name, method && method.id, draft);
+        var ready = !!(method && amountReady(draft) && !issue);
+        var extra = issue ? '<p class="rbt-party-yen__err">' + esc(issue) + '</p>' : '';
+        return '<section class="rbt-party-pay">' +
+            '<div class="rbt-party-pay__body"><div class="rbt-party-card">' +
+            methodRow(method) +
+            amountHtml('充值金额', draft, extra) +
+            '<button type="button" class="rbt-party-submit" data-wallet-submit="recharge"' +
+            (ready ? '' : ' disabled') + '>充值</button></div></div>' +
+            keypadHtml() +
+            (opts.sheet === 'method' ? methodSheet(opts.name, method) : '') +
+            '</section>';
+    }
+
+    function bindHtml(opts) {
+        var form = opts.bind || {};
+        var bank = bankById(form.bankId);
+        var cardNo = String(form.cardNo || '').replace(/\s/g, '').replace(/(\d{4})(?=\d)/g, '$1 ');
+        var ready = bindReady(form);
+        var banks = BANKS.map(function (item) {
+            return '<button type="button" class="rbt-party-pick' + (item.id === form.bankId ? ' is-on' : '') + '" data-wallet-bank="' + esc(item.id) + '">' +
+                '<i class="is-card">' + esc(item.short) + '</i>' +
+                '<span class="rbt-party-pick__info"><b>' + esc(item.name) + '</b>' +
+                '<small>单笔限额' + moneyInt(item.single) + '，单日限额' + moneyInt(item.daily) + '</small></span>' +
+                '<em class="rbt-party-radio"></em></button>';
+        }).join('');
+        return '<section class="rbt-party-pay"><div class="rbt-party-pay__body">' +
+            '<p class="rbt-party-bind__holder">持卡人：' + esc(opts.holder || opts.name || '') +
+            ' <button type="button" data-wallet-holder-info aria-label="持卡人说明">i</button>' +
+            '<span>仅限绑定本人持有借记卡</span></p>' +
+            '<div class="rbt-party-bind">' +
+            '<label><input data-wallet-bind="cardNo" inputmode="numeric" maxlength="23" placeholder="请输入银行卡号" value="' + esc(cardNo) + '"></label>' +
+            '<button type="button" class="rbt-party-bind__bank' + (bank ? '' : ' is-empty') + '" data-wallet-bank-open>' +
+            '<span>' + esc(bank ? bank.name : '请选择开户银行') + '</span><em>›</em></button>' +
+            '<label><input data-wallet-bind="phone" inputmode="numeric" maxlength="11" placeholder="请输入银行预留手机号" value="' + esc(form.phone || '') + '"></label>' +
+            '<label><input data-wallet-bind="sms" inputmode="numeric" maxlength="6" placeholder="请输入验证码" value="' + esc(form.sms || '') + '">' +
+            '<button type="button" data-wallet-sms>获取验证码</button></label></div>' +
+            '<button type="button" class="rbt-party-submit" data-wallet-bind-submit' + (ready ? '' : ' disabled') + '>立即绑卡</button></div>' +
+            (form.sheet === 'bank'
+                ? '<div class="rbt-party-sheet"><div class="rbt-party-sheet__mask" data-wallet-bind-close></div>' +
+                    '<div class="rbt-party-sheet__panel" role="dialog" aria-modal="true" aria-label="选择开户银行">' +
+                    '<div class="rbt-party-sheet__bar"><strong>选择开户银行</strong><button type="button" data-wallet-bind-close aria-label="关闭">×</button></div>' +
+                    '<div class="rbt-party-sheet__list">' + banks + '</div></div></div>'
+                : '') +
+            (form.modal === 'holder'
+                ? '<div class="rbt-party-sheet is-center"><div class="rbt-party-sheet__mask" data-wallet-bind-close></div>' +
+                    '<div class="rbt-party-note-box" role="dialog" aria-modal="true"><strong>持卡人说明</strong>' +
+                    '<p>为了账户资金安全，只能绑定持卡人本人的银行卡。</p>' +
+                    '<button type="button" data-wallet-bind-close>知道了</button></div></div>'
+                : '') +
+            '</section>';
+    }
+
     function walletHtml(opts) {
         opts = opts || {};
         var role = opts.role === 'provider' ? 'provider' : 'trader';
         var view = snapshot(role, opts.name);
-        var pane = opts.pane === 'recharge' || opts.pane === 'withdraw' ? opts.pane : 'main';
-        if (role !== 'trader' && pane === 'recharge') pane = 'main';
+        var pane = opts.pane === 'recharge' || opts.pane === 'withdraw' || opts.pane === 'bind' ? opts.pane : 'main';
         var account = opts.account || {};
-        if (pane === 'recharge') {
-            var method = opts.method === '微信' ? '微信' : '支付宝';
-            return '<section class="rbt-party-form">' +
-                '<p class="rbt-party-note">充值进入余额账户。合同全部签署后，按该需求的商品金额划转至冷丰供应链。支付宝、微信在对方完成密码验证。</p>' +
-                '<label class="rbt-party-amount"><span>充值金额</span><input id="rbtWalletAmount" inputmode="decimal" placeholder="0.00" autocomplete="off" value="' + esc(opts.draft || '') + '"><em>元</em></label>' +
-                '<button type="button" class="rbt-party-method' + (method === '支付宝' ? ' is-on' : '') + '" data-wallet-method="支付宝"><i>支</i><span>支付宝</span></button>' +
-                '<button type="button" class="rbt-party-method' + (method === '微信' ? ' is-on' : '') + '" data-wallet-method="微信"><i class="is-wx">微</i><span>微信</span></button>' +
-                '<button type="button" class="rbt-party-submit" data-wallet-submit="recharge">确认充值</button></section>';
-        }
+        var draft = String(opts.draft || '');
+        if (pane === 'bind') return bindHtml(opts);
+        if (pane === 'recharge') return rechargeHtml(opts, draft);
         if (pane === 'withdraw') {
-            return '<section class="rbt-party-form">' +
-                '<p class="rbt-party-note">可提现 ¥' + comma(view.withdrawable) + '。提现到下方收款账户，需先验证平台支付密码。</p>' +
-                '<label class="rbt-party-amount"><span>提现金额</span><input id="rbtWalletAmount" inputmode="decimal" placeholder="0.00" autocomplete="off" value="' + esc(opts.draft || '') + '"><em>元</em></label>' +
-                '<div class="rbt-party-account"><span>收款账户</span><b>' + esc(account.accountName || '—') + '</b><em>' + esc(account.accountNo || '—') + '</em></div>' +
-                '<button type="button" class="rbt-party-submit" data-wallet-submit="withdraw">确认提现</button></section>';
+            var no = String(account.accountNo || '').replace(/\s/g, '');
+            var tail = no.slice(-4) || '----';
+            var arrive = (account.accountName || '收款账户') + '(' + tail + ')';
+            var mark = String(account.accountName || '户').slice(0, 1);
+            var typing = /\.$/.test(draft);
+            var over = !typing && amountReady(draft) && Number(draft) > view.withdrawable + 0.001;
+            var bad = draft && !typing && !amountReady(draft);
+            var readyWithdraw = amountReady(draft, view.withdrawable);
+            var extra = '<p class="rbt-party-yen__meta">可提现金额¥' + comma(view.withdrawable) +
+                '，<button type="button" data-wallet-all>全部提现</button></p>' +
+                '<p class="rbt-party-yen__hint">提现后预计 T+1 到账</p>' +
+                (bad ? '<p class="rbt-party-yen__err">请输入正确的提现金额</p>' : '') +
+                (over ? '<p class="rbt-party-yen__err">提现金额不能超过可提现金额</p>' : '');
+            return '<section class="rbt-party-pay">' +
+                '<div class="rbt-party-pay__body"><div class="rbt-party-card">' +
+                '<div class="rbt-party-bank"><span>到账账户</span><strong><i class="is-bank">' +
+                esc(mark) + '</i>' + esc(arrive) + '</strong></div>' +
+                amountHtml('提现金额', draft, extra) +
+                '<button type="button" class="rbt-party-submit" data-wallet-submit="withdraw"' +
+                (readyWithdraw ? '' : ' disabled') + '>提现</button></div></div>' +
+                keypadHtml() + '</section>';
         }
         var range = opts.range === '7' || opts.range === 'all' || opts.range === 'custom' ? opts.range : '30';
         var tab = opts.tab === 'in' || opts.tab === 'out' ? opts.tab : 'all';
@@ -361,28 +775,18 @@
             '<div class="rbt-party-total"><span>账户总计</span>' +
             '<div><b>' + comma(view.balance) + '</b><em>总金额</em></div>' +
             '<div><b>' + comma(view.withdrawable) + '</b><em>可提现金额</em></div></div>' +
-            '<div class="rbt-party-acct"><strong>余额账户</strong><p>余额 ¥' + comma(view.balance) + '</p><p>可提款 ¥' + comma(view.withdrawable) + '</p></div>' +
             '<div class="rbt-party-actions">' +
-            (role === 'trader' ? '<button type="button" data-wallet-go="recharge">充值</button>' : '') +
+            '<button type="button" data-wallet-go="recharge">充值</button>' +
             '<button type="button" class="is-primary" data-wallet-go="withdraw">提现</button></div>' +
-            '<p class="rbt-party-note">' + esc(opts.note || '收款到账后可从本钱包提现。没有保证金账户，也没有货款账户。') + '</p>' +
-            '<div class="rbt-party-ledger-head"><strong>账户明细</strong></div>' +
-            '<div class="rbt-party-chips">' +
-            chip('全部', tab === 'all', 'data-wallet-tab', 'all') +
-            chip('收入', tab === 'in', 'data-wallet-tab', 'in') +
-            chip('支出', tab === 'out', 'data-wallet-tab', 'out') +
+            (opts.note ? '<p class="rbt-party-note">' + esc(opts.note) + '</p>' : '') +
+            '<div class="rbt-party-ledger-head"><strong>账户明细</strong>' + timePill(range, from, to, !!opts.timeOpen) + '</div>' +
+            '<div class="rbt-party-tabs" role="tablist">' +
+            '<button type="button"' + (tab === 'all' ? ' class="is-on"' : '') + ' data-wallet-tab="all">全部</button>' +
+            '<button type="button"' + (tab === 'in' ? ' class="is-on"' : '') + ' data-wallet-tab="in">收入</button>' +
+            '<button type="button"' + (tab === 'out' ? ' class="is-on"' : '') + ' data-wallet-tab="out">支出</button>' +
             '</div>' +
-            '<div class="rbt-party-chips">' +
-            chip('近7天', range === '7', 'data-wallet-range', '7') +
-            chip('近30天', range === '30', 'data-wallet-range', '30') +
-            chip('全部', range === 'all', 'data-wallet-range', 'all') +
-            chip('自定义', range === 'custom', 'data-wallet-range', 'custom') +
-            '</div>' +
-            (range === 'custom' ? dateFields(from, to, 'data-wallet-from', 'data-wallet-to', 'data-wallet-apply') : '') +
-            (list.length ? list.map(function (row) {
-                return '<div class="rbt-party-ledger"><b>' + esc(row.title) + '</b><span>' + esc(row.time || '—') + '</span>' +
-                    '<em class="' + (row.dir === 'out' ? 'is-out' : '') + '">' + (row.dir === 'out' ? '-' : '+') + '¥' + comma(row.amount) + '</em></div>';
-            }).join('') : '<p class="rbt-party-empty">' + (waiting ? '选择起止日期后查询' : '该时段暂无明细') + '</p>') +
+            (waiting ? '<p class="rbt-party-empty rbt-party-empty--card">选择起止日期后查询</p>' : ledgerListHtml(list)) +
+            (opts.timeOpen ? timeSheetHtml(range, from, to) : '') +
             '</section>';
     }
 
@@ -445,12 +849,20 @@
         queryDate: queryDate,
         balanceOf: balanceOf,
         snapshot: snapshot,
+        editAmount: editAmount,
+        rechargeMethod: rechargeMethod,
+        rechargeIssue: rechargeIssue,
+        detectBank: detectBank,
+        bindReady: bindReady,
+        bindCard: bindCard,
         recharge: recharge,
         withdraw: withdraw,
         transferToSupply: transferToSupply,
         verifyPassword: verifyPassword,
         overviewHtml: overviewHtml,
         walletHtml: walletHtml,
+        clearTimeSheet: clearTimeSheet,
+        pinTimeSheet: pinTimeSheet,
         openPassword: openPassword
     };
 })(window);
