@@ -106,27 +106,11 @@
     remainOf: remainOf,
     maintainsStock: maintainsStock,
     render: function (channel, item) {
-      var key = channel + ':' + item.code + ':' + item.name;
-      products[key] = { channel: channel, item: item };
       var remain = remainOf(item, channel);
       if (remain == null) {
-        return (
-          '<button type="button" class="product-sales-link product-stock-link is-empty" data-stock-key="' +
-          escape(key) +
-          '" aria-label="查看' +
-          escape(item.name) +
-          '库存说明">—</button>'
-        );
+        return '<span class="product-stock-value is-empty">—</span>';
       }
-      return (
-        '<button type="button" class="product-sales-link product-stock-link" data-stock-key="' +
-        escape(key) +
-        '" aria-label="查看' +
-        escape(item.name) +
-        '库存操作">' +
-        remain +
-        '</button>'
-      );
+      return '<span class="product-stock-value">' + remain + '</span>';
     }
   };
 
@@ -315,10 +299,6 @@
       return;
     }
     if (!event.target.closest('#productStockHelp')) closeHelp();
-    var button = event.target.closest('[data-stock-key]');
-    if (!button) return;
-    var product = products[button.dataset.stockKey];
-    if (product) openDetail(product);
   });
   document.addEventListener('keydown', function (event) {
     if (event.key === 'Escape') closeHelp();
