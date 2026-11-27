@@ -1,0 +1,28 @@
+.lf-duplicate-review { margin: 12px 0 16px; padding: 12px 14px; border: 1px solid #f7c68d; border-radius: 10px; background: #fff8ed; color: #713f12; font-size: 13px; line-height: 1.5; }
+.lf-duplicate-review > strong { display: block; margin-bottom: 4px; font-size: 15px; }
+.lf-duplicate-review p { margin: 0 0 8px; }
+.lf-duplicate-item { position: relative; display: flex; flex-direction: column; gap: 4px; margin-top: 8px; padding: 10px 12px 10px 42px; border: 1px solid #f4dfbf; border-radius: 8px; background: #fff; overflow-wrap: anywhere; }
+.lf-duplicate-item::before { content: attr(data-sequence); position: absolute; top: 10px; left: 11px; width: 23px; height: 23px; display: grid; place-items: center; border-radius: 6px; background: #fff1dc; color: #a54b0b; font-size: 11px; font-weight: 700; }
+.lf-duplicate-item-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; line-height: 1.4; }
+.lf-duplicate-item span { color: #6b7280; font-size: 12px; }
+.lf-duplicate-item strong { line-height: 1.4; }
+.lf-duplicate-reasons { color: #a54b0b; font-size: 12px; line-height: 1.45; }
+.lf-duplicate-remaining { max-height: 68px; overflow-y: auto; margin: 8px 0 0 !important; color: #713f12; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.lf-duplicate-mask { position: fixed; inset: 0; z-index: 12000; display: grid; place-items: center; padding: 16px; background: rgba(0,0,0,.48); }
+.shop-h5-mobile-container, .sa-shell, .bd-mobile-shell { position: relative; }
+.shop-h5-mobile-container .lf-duplicate-mask, .sa-shell .lf-duplicate-mask, .bd-mobile-shell .lf-duplicate-mask { position: absolute; }
+.lf-duplicate-dialog { box-sizing: border-box; display: flex; flex-direction: column; width: min(440px, 100%); max-height: min(680px, calc(100% - 20px)); padding: 20px; border-radius: 14px; background: #fff; box-shadow: 0 18px 48px rgba(0,0,0,.2); color: #222; }
+.lf-duplicate-dialog h2 { margin: 0 0 8px; font-size: 19px; }
+.lf-duplicate-dialog p { margin: 0 0 12px; color: #666; font-size: 13px; line-height: 1.5; }
+.lf-duplicate-list { min-height: 0; overflow-y: auto; display: grid; gap: 10px; padding: 2px 4px 4px 0; }
+.lf-duplicate-list .lf-duplicate-item { margin-top: 0; }
+.lf-duplicate-actions { display: flex; gap: 8px; justify-content: flex-end; flex-shrink: 0; margin-top: 18px; }
+.lf-duplicate-actions button { padding: 9px 14px; border: 1px solid #ddd; border-radius: 8px; background: #fff; cursor: pointer; }
+.lf-duplicate-actions button:last-child { border-color: #ff7518; background: #ff7518; color: #fff; }
+.lf-duplicate-demo { position: fixed; left: calc(50% + 210px); bottom: 24px; z-index: 11000; width: min(260px, calc(50vw - 225px)); padding: 14px; border-radius: 12px; background: #fff; box-shadow: 0 5px 24px rgba(0,0,0,.18); color: #333; font-size: 13px; }
+@media (max-width: 760px) { .lf-duplicate-demo { display: none; } }
+.lf-duplicate-demo strong { display: block; margin-bottom: 10px; font-size: 15px; }
+.lf-duplicate-demo label { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.lf-duplicate-demo select { max-width: 150px; padding: 5px; }
+.lf-duplicate-demo p { margin: 8px 0 10px; color: #888; font-size: 12px; line-height: 1.4; }
+.lf-duplicate-demo button { width: 100%; padding: 9px; border: 0; border-radius: 8px; background: #ff7518; color: #fff; cursor: pointer; }
