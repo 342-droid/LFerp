@@ -23,6 +23,7 @@
         .rbt-period-rate-row__pair { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
         .rbt-period-rates__empty { color: #909399; font-size: 13px; line-height: 32px; }
         .rbt-rate-tip { width: 100%; margin: 6px 0 0; color: #909399; font-size: 12px; line-height: 1.6; }
+        .rbt-rate-warn { color: #f56c6c; }
         .rbt-calc__block { margin-bottom: 16px; }
         .rbt-calc__title { margin: 0 0 10px; font-size: 14px; font-weight: 600; color: #303133; }
         .rbt-calc__row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
@@ -120,7 +121,7 @@
                                 <el-input :model-value="form.providerRate" placeholder="请输入" @input="onDecimal(form, 'providerRate', $event)"></el-input>
                             </div>
                         </div>
-                        <p class="rbt-rate-tip">{{ ratePreview(form) }}</p>
+                        <p class="rbt-rate-tip"><template v-for="(part, index) in tipParts(ratePreview(form))" :key="index"><span v-if="part.warn" class="rbt-rate-warn">{{ part.text }}</span><template v-else>{{ part.text }}</template></template></p>
                     </template>
                     <template #form-channelratio="{form}">
                         <div class="rbt-channel-ratio">
@@ -232,7 +233,7 @@
                             <div><span>还完总金额约</span> <b>{{ calcResult.days }}</b></div>
                         </div>
                     </div>
-                    <p class="rbt-calc__note" v-if="calcResult.notes">{{ calcResult.notes }}</p>
+                    <p class="rbt-calc__note" v-if="calcResult.notes"><template v-for="(part, index) in tipParts(calcResult.notes)" :key="'calc-' + index"><span v-if="part.warn" class="rbt-rate-warn">{{ part.text }}</span><template v-else>{{ part.text }}</template></template></p>
                     <p class="rbt-rate-tip">只在本窗口试算，不写入产品配置。</p>
                     <template #footer>
                         <el-button @click="calcOpen = false">关闭</el-button>

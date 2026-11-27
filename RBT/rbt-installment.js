@@ -9,6 +9,7 @@
     var PACKAGE_KEY = 'rbt_product_package_v2';
     var REPAY_CYCLES = ['日结'];
     var REPAY_METHODS = ['比例付'];
+    var LENG_WARN = '冷丰实收不能小于或等于0';
 
     function migrateEnumLabels(item) {
         if (!item) return false;
@@ -322,7 +323,7 @@
             return Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
         /* 冷丰系数小于等于 0 时算不出金额；算得出但冷丰实收小于等于 0 时，试算数字仍展示，并跟上提示。 */
-        if (quote.blocked) return '冷丰实收不能小于或等于0';
+        if (quote.blocked) return LENG_WARN;
         var sentence = '按商品包金额 50,000 元试算：商品金额 ' + yuan(quote.goods) +
             '，服务费 ' + yuan(quote.fee) +
             '，总金额 ' + yuan(quote.total) +
@@ -332,8 +333,21 @@
             '，冷丰应收 ' + yuan(quote.lengfengReceive) +
             '，服务商实收 ' + yuan(quote.providerPay) +
             '，冷丰实收 ' + yuan(quote.lengfeng) + '。';
-        if (!(Number(quote.lengfeng) > 0)) sentence += '冷丰实收不能小于或等于0';
+        if (!(Number(quote.lengfeng) > 0)) sentence += LENG_WARN;
         return sentence;
+    }
+
+    /* 试算说明里只把「冷丰实收不能小于或等于0」标红，前后的金额说明保持原色。 */
+    function tipParts(text) {
+        var raw = text == null ? '' : String(text);
+        if (!raw || raw.indexOf(LENG_WARN) < 0) return [{ text: raw, warn: false }];
+        var chunks = raw.split(LENG_WARN);
+        var parts = [];
+        chunks.forEach(function (chunk, index) {
+            if (chunk) parts.push({ text: chunk, warn: false });
+            if (index < chunks.length - 1) parts.push({ text: LENG_WARN, warn: true });
+        });
+        return parts;
     }
 
     /* 旧单值结算系数迁成门店/贸易商/服务商；旧费率区间仍先按期插值。 */
@@ -1040,7 +1054,7 @@
                         ? quoteApi.packageQuote(50000, values.storeRate, values.traderRate, values.providerRate)
                         : null;
                     if (!quote || quote.blocked || !(Number(quote.lengfeng) > 0)) {
-                        ElMessage.error('冷丰实收不能小于或等于0');
+                        ElMessage.error(LENG_WARN);
                         return false;
                     }
                     var ratioApi = window.RbtSettleRatio;
@@ -1379,7 +1393,7 @@
                 var quote = goodsOk && storeOk && traderOk && providerOk && window.RbtDemandData && typeof window.RbtDemandData.packageQuote === 'function'
                     ? window.RbtDemandData.packageQuote(goods, form.storeRate, form.traderRate, form.providerRate)
                     : null;
-                if (quote && (quote.blocked || !(Number(quote.lengfeng) > 0))) notes.push('冷丰实收不能小于或等于0');
+                if (quote && (quote.blocked || !(Number(quote.lengfeng) > 0))) notes.push(LENG_WARN);
                 var quotedGoods = quote && !quote.blocked ? quote.goods : null;
                 var fee = quote && !quote.blocked ? quote.fee : null;
                 var total = quote && !quote.blocked ? quote.total : null;
@@ -1481,6 +1495,7 @@
                 toggleEnabled: toggleEnabled,
                 beforeSubmit: beforeSubmit,
                 ratePreview: ratePreview,
+                tipParts: tipParts,
                 addInstallment: addInstallment,
                 updateInstallment: updateInstallment,
                 refreshTable: refreshTable
