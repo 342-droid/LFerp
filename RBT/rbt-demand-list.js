@@ -29,12 +29,6 @@
         return blank(value) ? '—' : String(value);
     }
 
-    function receivableText(row, key) {
-        var pack = dataApi && typeof dataApi.receivables === 'function' ? dataApi.receivables(row) : null;
-        var value = pack && pack[key];
-        return blank(value) ? '—' : ('¥' + value);
-    }
-
     function esc(value) {
         return String(value == null ? '' : value)
             .replace(/&/g, '&amp;')
@@ -78,9 +72,6 @@
                 { dataIndex: 'goodsAmount', title: '商品金额', minWidth: 120, formatter: function (row) { return blank(row.goodsAmount) ? '—' : ('¥' + row.goodsAmount); } },
                 { dataIndex: 'serviceFee', title: '服务费', minWidth: 120, formatter: function (row) { return blank(row.serviceFee) ? '—' : ('¥' + row.serviceFee); } },
                 { dataIndex: 'amount', title: '总金额', minWidth: 120, formatter: function (row) { return blank(row.amount) ? '—' : ('¥' + row.amount); } },
-                { dataIndex: 'traderReceivable', title: '贸易商应收', minWidth: 130, formatter: function (row) { return receivableText(row, 'trader'); } },
-                { dataIndex: 'lengfengReceivable', title: '冷丰应收', minWidth: 120, formatter: function (row) { return receivableText(row, 'lengfeng'); } },
-                { dataIndex: 'providerReceivable', title: '服务商应收', minWidth: 130, formatter: function (row) { return receivableText(row, 'provider'); } },
                 { dataIndex: 'withdrawReason', title: '撤回原因', minWidth: 160, align: 'left', showOverflowTooltip: true, formatter: function (row) { return show(row.withdrawReason); } },
                 { dataIndex: 'remark', title: '备注', minWidth: 180, align: 'left', showOverflowTooltip: true, formatter: function (row) { return show(row.remark); } },
                 { dataIndex: 'creator', title: '创建人', minWidth: 100 },
@@ -139,7 +130,7 @@
                 refreshTable();
                 if (saved && window.RbtDemandDetail && typeof window.RbtDemandDetail.open === 'function') {
                     var drawer = document.querySelector('[data-rbt-demand-drawer]');
-                    if (drawer) window.RbtDemandDetail.open(saved);
+                    if (drawer) window.RbtDemandDetail.open(saved, { manage: true });
                 }
             }
 
@@ -186,7 +177,7 @@
             function openDetail(row) {
                 var item = dataApi.get(row && row.code) || row;
                 if (window.RbtDemandDetail && typeof window.RbtDemandDetail.open === 'function') {
-                    window.RbtDemandDetail.open(item);
+                    window.RbtDemandDetail.open(item, { manage: true });
                 }
             }
 

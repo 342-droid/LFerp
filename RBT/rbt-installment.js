@@ -305,24 +305,23 @@
         return false;
     }
 
-    /* 按商品金额 10000 试算三方分账，方便配置时对照。 */
+    /* 按商品金额 50000 试算扣率，方便配置时对照。 */
     function ratePreview(form) {
-        var rule = '门店实付 = 商品金额 × 门店结算系数；贸易商所得 = 商品金额 × 贸易商结算系数；差额归冷丰，服务商按系数超出 1 的部分从冷丰差额计提。';
+        var rule = '门店实付 = 商品金额 × 门店结算系数；贸易商实付 = 门店实付 ÷ 贸易商结算系数；贸易商实收 = 门店实付；服务商实收 = 贸易商实付 ×（服务商结算系数 − 1）；冷丰实收 = 贸易商实付 − 商品金额 − 服务商实收。冷丰实收须大于 0 才能保存。';
         if (!form || !validDecimal(form.storeRate) || !validDecimal(form.traderRate) || !validDecimal(form.providerRate)) return rule;
-        var goods = 10000;
-        var storePay = goods * Number(form.storeRate);
-        var traderPay = goods * Number(form.traderRate);
-        var gap = storePay - traderPay;
-        var providerPay = goods * (Number(form.providerRate) - 1);
-        var lengfeng = gap - providerPay;
+        var api = window.RbtDemandData;
+        var quote = api && typeof api.deductQuote === 'function'
+            ? api.deductQuote(50000, form.storeRate, form.traderRate, form.providerRate)
+            : null;
+        if (!quote) return rule;
         function yuan(value) {
-            return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            return Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
-        return '按商品金额 10,000 元试算：门店实付 ' + yuan(storePay) +
-            '，贸易商所得 ' + yuan(traderPay) +
-            '，冷丰差额 ' + yuan(gap) +
-            '，服务商计提 ' + yuan(providerPay) +
-            '，冷丰实得 ' + yuan(lengfeng) + '。';
+        return '按商品金额 50,000 元试算：门店实付 ' + yuan(quote.storePay) +
+            '，贸易商实付 ' + yuan(quote.traderPaid) +
+            '，贸易商实收 ' + yuan(quote.traderReceipt) +
+            '，服务商实收 ' + yuan(quote.providerPay) +
+            '，冷丰实收 ' + yuan(quote.lengfeng) + '。';
     }
 
     /* 旧单值结算系数迁成门店/贸易商/服务商；旧费率区间仍先按期插值。 */
@@ -674,7 +673,7 @@
                 return channels;
             }
             var calcForm = ref({
-                goods: '10000', storeRate: '', traderRate: '', providerRate: '',
+                goods: '50000', storeRate: '', traderRate: '', providerRate: '',
                 channels: emptyCalcChannels(), posPick: '', posNewTurnover: '', posNewRatio: '', posSubs: []
             });
             var posSubPick = ref('');
@@ -1024,13 +1023,22 @@
                         ElMessage.error('服务商结算系数不能低于1');
                         return false;
                     }
-                    if (rateCents(values.traderRate) > rateCents(values.storeRate)) {
-                        ElMessage.error('贸易商结算系数不能大于门店结算系数');
+                    if (Number(values.providerRate) >= 2) {
+                        ElMessage.error('服务商结算系数必须小于2');
                         return false;
                     }
-                    /* 服务商计提 = 商品金额 × (服务商系数 - 1)，不能超过冷丰差额 = 商品金额 × (门店系数 - 贸易商系数)。 */
-                    if (rateCents(values.providerRate) - 100 > rateCents(values.storeRate) - rateCents(values.traderRate)) {
-                        ElMessage.error('服务商计提不能超过冷丰差额');
+                    var quoteApi = window.RbtDemandData;
+                    var probes = [10000];
+                    if (validDecimal(values.amountMin) && Number(values.amountMin) >= 1) probes.push(Number(values.amountMin));
+                    if (validDecimal(values.amountMax) && Number(values.amountMax) >= 1) probes.push(Number(values.amountMax));
+                    var blocked = probes.some(function (goods) {
+                        var quote = quoteApi && typeof quoteApi.deductQuote === 'function'
+                            ? quoteApi.deductQuote(goods, values.storeRate, values.traderRate, values.providerRate)
+                            : null;
+                        return !quote || quote.blocked || quote.lengfeng <= 0;
+                    });
+                    if (blocked) {
+                        ElMessage.error('这组系数会使冷丰实收为 0，不能保存');
                         return false;
                     }
                     var ratioApi = window.RbtSettleRatio;
@@ -1366,13 +1374,16 @@
                 if (storeOk && store < 1) notes.push('门店结算系数不能低于1');
                 if (traderOk && trader < 1) notes.push('贸易商结算系数不能低于1');
                 if (providerOk && provider < 1) notes.push('服务商结算系数不能低于1');
-                if (storeOk && traderOk && trader > store) notes.push('贸易商结算系数不能大于门店结算系数');
-                var storePay = goodsOk && storeOk ? goods * store : null;
-                var traderPay = goodsOk && traderOk ? goods * trader : null;
-                var gap = storePay != null && traderPay != null ? storePay - traderPay : null;
-                var providerPay = goodsOk && providerOk ? goods * (provider - 1) : null;
-                if (gap != null && providerPay != null && providerPay > gap + 0.000001) notes.push('服务商计提不能超过冷丰差额');
-                var lengfeng = gap != null && providerPay != null ? gap - providerPay : null;
+                if (providerOk && provider >= 2) notes.push('服务商结算系数必须小于2');
+                var quote = goodsOk && storeOk && traderOk && providerOk && window.RbtDemandData && typeof window.RbtDemandData.deductQuote === 'function'
+                    ? window.RbtDemandData.deductQuote(goods, form.storeRate, form.traderRate, form.providerRate)
+                    : null;
+                if (quote && (quote.blocked || quote.lengfeng <= 0)) notes.push('这组系数会使冷丰实收为 0，不能保存');
+                var storePay = quote ? quote.storePay : null;
+                var traderPaid = quote ? quote.traderPaid : null;
+                var traderReceipt = quote ? quote.traderReceipt : null;
+                var providerPay = quote ? quote.providerPay : null;
+                var lengfeng = quote ? quote.lengfeng : null;
                 var daily = null;
                 var split = posSplit();
                 if (split.overflow) notes.push('二级渠道到账合计不能超过 POS 当日实际到账');
@@ -1397,8 +1408,8 @@
                 var days = storePay != null && daily > 0 ? (storePay / daily).toFixed(2) + ' 天' : '—';
                 return {
                     storePay: yuanText(storePay),
-                    traderPay: yuanText(traderPay),
-                    gap: yuanText(gap),
+                    traderPaid: yuanText(traderPaid),
+                    traderReceipt: yuanText(traderReceipt),
                     providerPay: yuanText(providerPay),
                     lengfeng: yuanText(lengfeng),
                     daily: yuanText(daily),

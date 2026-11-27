@@ -1,4 +1,4 @@
-/* RBT 采购单 / 销售单详情抽屉。 */
+/* RBT 交易单详情抽屉。 */
 (function () {
     function esc(value) {
         return String(value == null || value === '' ? '—' : value)

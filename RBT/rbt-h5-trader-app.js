@@ -163,17 +163,16 @@
         return sign + Math.floor(abs / 100) + '.' + String(abs % 100).padStart(2, '0');
     }
 
-    /* 大厅总金额用贸易商应收（含加价）。需求单商品金额仍是原价，不再单列贸易商服务费。 */
+    /* 大厅收益 = 应收 − 应付。应付是确认签约时要支付并冻结的金额。应收是贸易商应收，等于门店实付。 */
     function hallAmounts(item) {
         var goods = item && item.goodsAmount ? String(item.goodsAmount) : '';
         var api = window.RbtDemandData;
-        var pack = api && typeof api.receivables === 'function' ? api.receivables(item) : null;
-        var markup = api && typeof api.markupOf === 'function' ? api.markupOf(item) : null;
-        var total = pack && pack.trader ? String(pack.trader) : '';
+        var pack = api && typeof api.deductSettlement === 'function' ? api.deductSettlement(item) : null;
         return {
             goods: goods || '—',
-            markup: markup && markup.rateText ? markup.rateText : '—',
-            total: total || '—'
+            paid: pack && pack.traderPaid ? String(pack.traderPaid) : '—',
+            profit: pack && pack.profit ? String(pack.profit) : '—',
+            total: pack && pack.trader ? String(pack.trader) : '—'
         };
     }
 
@@ -211,10 +210,10 @@
             '<div class="rbt-hall-card__top"><h2 class="rbt-hall-card__name">' + esc(item.storeName || '—') + '</h2>' +
             '<span class="rbt-hall-card__status' + status.className + '">' + esc(status.text) + '</span></div>' +
             '<p class="rbt-hall-card__meta">' + esc(item.code || '—') + ' · ' + esc(item.packageName || '—') + ' ' + esc(item.packageCode || '—') + '</p>' +
-            '<div class="rbt-hall-card__total"><span>总金额</span><b>' + esc(yuanText(amounts.total)) + '</b></div>' +
+            '<div class="rbt-hall-card__total"><span>收益</span><b>' + esc(yuanText(amounts.profit)) + '</b></div>' +
             '<div class="rbt-hall-card__grid">' +
-            hallCell('商品金额（原价）', yuanText(amounts.goods)) +
-            hallCell('加价率', amounts.markup) +
+            hallCell('应付', yuanText(amounts.paid)) +
+            hallCell('应收', yuanText(amounts.total)) +
             hallCell('结算周期', item.repayCycle || '—') +
             hallCell('结算方式', item.repayMethod || '—') +
             '</div>';
@@ -222,7 +221,7 @@
 
     function renderHallCard(item, accepted) {
         var actions = hallActions(item, accepted);
-        return hallSummary(item, accepted).replace('<article class="rbt-hall-card">', '<article class="rbt-hall-card" data-demand="' + esc(item.code) + '">') +
+        return hallSummary(item, accepted) +
             (actions ? '<div class="rbt-hall-card__foot">' + actions + '</div>' : '') +
             '</article>';
     }
@@ -330,8 +329,8 @@
         return '¥' + value;
     }
 
-    /* 已结款是已经结清的营业日拆给贸易商的金额。最近一天结算单未确定，明细行仍记待结款。
-       结款不按渠道拆开：各渠道佣金进门店钱包后，用佣金余额支付，同一天多渠道合成一笔。后台每日付款仍按渠道分行。 */
+    /* 已结款是门店已经付过、整笔记给贸易商的金额。最近一天结算单未确定，明细行仍记待结款。
+       结款不按渠道拆开：各渠道佣金进门店钱包后，用佣金余额支付，同一天多渠道合成一笔。后台每日付款页仍按旧口径拆分。 */
     function traderSettled(item) {
         var daily = window.RbtDailyFulfill;
         var rows = daily && typeof daily.payeeSplit === 'function' ? daily.payeeSplit(item) : [];
@@ -351,7 +350,7 @@
                 time: row.time || fact.time || '',
                 channel: row.channel,
                 kind: row.kind || '',
-                amount: row.trader,
+                amount: manual ? row.trader : (fact.actual || fact.due || row.trader),
                 turnover: manual ? '' : (fact.turnover || ''),
                 commission: manual ? '' : (fact.commission || ''),
                 ratio: manual ? '' : (fact.ratio || ''),
@@ -462,7 +461,8 @@
         return {
             receivable: amounts.total,
             goods: amounts.goods,
-            markup: amounts.markup,
+            paid: amounts.paid,
+            profit: amounts.profit,
             settled: settledText,
             pending: pending,
             shares: settled.shares,
@@ -1122,7 +1122,8 @@
         var lines = [
             ['门店', item.storeName || '—'],
             ['商品金额（原价）', yuan(fund.goods)],
-            ['加价率', fund.markup || '—'],
+            ['实付', fund.paid && fund.paid !== '—' ? yuan(fund.paid) : '—'],
+            ['收益', fund.profit && fund.profit !== '—' ? yuan(fund.profit) : '—'],
             ['结算比例', ratioText(item)],
             ['接单时间', item.acceptedAt || '—'],
             ['支付时间', payTimeOf(item) || '—'],
@@ -1413,7 +1414,7 @@
         closeBalanceShort();
         var text = check && check.reason === 'amount'
             ? '暂时无法核对商品金额，请稍后再试'
-            : '当前余额 ¥' + moneyLabel(check && check.balance) + '，本单需支付商品金额 ¥' + moneyLabel(check && check.need) + '。余额不足，请尽快充值后再确认签约。';
+            : '当前余额 ¥' + moneyLabel(check && check.balance) + '，本单需支付 ¥' + moneyLabel(check && check.need) + '。余额不足，请尽快充值后再确认签约。';
         var mask = document.createElement('div');
         mask.className = 'rbt-h5-pay-mask';
         mask.setAttribute('data-balance-short', '1');
@@ -1443,7 +1444,7 @@
         return true;
     }
 
-    /* 确认签约前先说明会生成两份合同并冻结商品金额。稍后处理不改状态；余额够才确认，并进入签署页。 */
+    /* 确认签约前先说明会生成两份合同。余额够本单实付才确认并冻结，随后进入签署页。 */
     function openConfirmSign(code) {
         var phone = document.getElementById('rbtH5Phone');
         if (!phone) return;
@@ -1712,13 +1713,6 @@
         }
         if (back) {
             goBack(back.getAttribute('data-back') || 'home');
-            return;
-        }
-        var demandCard = event.target.closest('[data-demand]');
-        if (demandCard && !event.target.closest('button')) {
-            detailCode = demandCard.getAttribute('data-demand') || '';
-            screen = 'detail';
-            render();
             return;
         }
         if (logout && window.RbtH5TraderLogin) window.RbtH5TraderLogin.logout();

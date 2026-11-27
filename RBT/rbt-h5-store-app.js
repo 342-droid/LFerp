@@ -754,35 +754,11 @@
         return text.charAt(0) === '¥' ? text : '¥' + text;
     }
 
-    function ratioPercent(value) {
-        var num = Number(String(value == null ? '' : value).replace(/%/g, ''));
-        if (!isFinite(num)) return '';
-        return num.toFixed(2) + '%';
-    }
-
     function demandCell(label, value) {
         return '<div class="rbt-demand__cell"><span>' + esc(label) + '</span><b>' + esc(value || '—') + '</b></div>';
     }
 
-    function skuQtyText(line) {
-        var qty = Number(line && line.qty);
-        if (!isFinite(qty) || qty < 1) qty = 1;
-        return (line.name || '—') + '×' + qty;
-    }
-
-    function listRatioLine(item) {
-        if (!item || item.repayMethod !== '比例付' || !item.settleRatios || !item.settleRatios.length) return '';
-        return item.settleRatios.map(function (channel) {
-            var percent = ratioPercent(channel && channel.fallback);
-            var text = (channel && channel.channel ? channel.channel : '渠道') + ' 完成 ' + (percent || '—');
-            var subs = (channel && channel.subs || []).map(function (sub) {
-                var subPercent = ratioPercent(sub && sub.ratio);
-                return sub && sub.name && subPercent ? sub.name + ' ' + subPercent : '';
-            }).filter(Boolean);
-            return subs.length ? text + '（' + subs.join('，') + '）' : text;
-        }).join('；');
-    }
-
+    /* 列表只留摘要和操作。商品、创建时间、结算期数在详情里看。 */
     function renderDemand(item, withCancel) {
         var cancel = withCancel && canCancelDemand(item) && item.storeCode === account.code
             ? '<button type="button" class="rbt-demand__cancel" data-cancel="' + esc(item.code) + '">取消需求</button>'
@@ -800,16 +776,7 @@
         var statusClass = shownPhase === '已完成'
             ? ' is-done'
             : (CLOSED_DEMAND_STATUSES.indexOf(item.status) >= 0 ? ' is-off' : '');
-        var names = (item.skus || []).map(skuQtyText).join('、') || '—';
-        var extra = item.repayMethod && item.repayMethod !== '比例付'
-            ? '<div class="rbt-demand__block"><span>结算期数</span><p>' + esc(item.repayPeriod || '—') + '期</p></div>'
-            : '';
-        var view = repayView(item);
-        var split = fulfillSplit(view && view._days);
-        var hasDays = view && view._days && view._days.length;
-        var nextPay = nextPayableOf(view);
-        var fulfillBlock = '<div class="rbt-demand__block"><span>预计应付金额</span><p>' + esc(hasDays && nextPay ? ('¥' + centsText(nextPay.cents) + '。按次日佣金预估，不是已经发生、只是结算单未定的那一天。') : '未计算。还没有营业流水。') + '</p></div>' +
-            '<div class="rbt-demand__block"><span>应付款</span><p>' + esc(hasDays ? ('¥' + money(split.due) + '。结算单已确定，尚未结款。') : '未产生。结算单未确定。') + '</p></div>';
+        var actions = receive || sign || cancel;
         return '<article class="rbt-demand" data-demand="' + esc(item.code) + '">' +
             '<div class="rbt-demand__top"><h2 class="rbt-demand__name">' + esc(item.packageName || '—') + '</h2>' +
             '<span class="rbt-demand__status' + statusClass + '">' + esc(shownPhase || item.status || '—') + '</span></div>' +
@@ -820,12 +787,8 @@
             demandCell('结算周期', item.repayCycle || '—') +
             demandCell('结算方式', item.repayMethod || '—') +
             '</div>' +
-            '<div class="rbt-demand__block"><span>商品</span><p>' + esc(names) + '</p></div>' +
-            extra +
-            fulfillBlock +
-            '<div class="rbt-demand__foot"><span class="rbt-demand__time">创建时间 ' + esc(item.createdAt || '—') + '</span>' +
-            (receive || sign || cancel) +
-            '</div></article>';
+            (actions ? '<div class="rbt-demand__foot">' + actions + '</div>' : '') +
+            '</article>';
     }
 
     function skuLineAmount(line) {
@@ -874,12 +837,13 @@
             ? rows.map(function (row) {
                 var action = row.confirmed
                     ? '<p class="rbt-demand-ship__done">已确认 ' + esc(row.confirmQty || row.qty) + ' 件</p>'
-                    : (canConfirm
-                        ? '<button type="button" class="rbt-demand__cancel" data-confirm-recv="' + esc(row.id) + '">确认收货</button>'
-                        : '<p class="rbt-demand-ship__done">待确认</p>');
+                    : (canConfirm ? '' : '<p class="rbt-demand-ship__done">待确认</p>');
+                var side = canConfirm && !row.confirmed
+                    ? '<button type="button" class="rbt-demand-ship__confirm" data-confirm-recv="' + esc(row.id) + '">确认收货</button>'
+                    : '<span>' + (row.confirmed ? '已确认' : '待确认') + '</span>';
                 return '<div class="rbt-demand-ship">' +
                     '<div class="rbt-demand-ship__top"><strong>' + esc(row.name || '—') + '</strong>' +
-                    '<span>' + (row.confirmed ? '已确认' : '待确认') + '</span></div>' +
+                    side + '</div>' +
                     '<p>发货数量 ' + esc(row.qty) + ' · 发货金额 ' + esc(yuanText(row.amount)) + '</p>' +
                     '<p>物流单号 ' + esc(row.logisticsNo || '—') + '</p>' +
                     (row.createdAt ? '<p>发货时间 ' + esc(row.createdAt) + '</p>' : '') +

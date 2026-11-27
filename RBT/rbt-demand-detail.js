@@ -18,7 +18,7 @@
 
     function receivableOf(item, key) {
         var api = window.RbtDemandData;
-        var pack = api && typeof api.receivables === 'function' ? api.receivables(item) : null;
+        var pack = api && typeof api.deductSettlement === 'function' ? api.deductSettlement(item) : null;
         return pack && pack[key];
     }
 
@@ -154,7 +154,7 @@
         return cents;
     }
 
-    function amountTable(item, performance) {
+    function amountTable(item, performance, manage) {
         var settled = performance ? settledOf(item) : null;
         var roles = [
             ['贸易商', 'trader'],
@@ -167,6 +167,15 @@
             money(item && item.serviceFee),
             money(item && item.amount)
         ];
+        /* 需求单管理进入的详情不展示实付和三方应收。其他入口仍保留。 */
+        if (manage && !settled) {
+            var briefHead = '<tr><th class="is-money">商品金额</th><th class="is-money">已发货金额</th><th class="is-money">服务费</th><th class="is-money">总金额</th></tr>';
+            var briefBody = '<tr>' + cells.map(function (value) {
+                return '<td class="is-money">' + esc(value) + '</td>';
+            }).join('') + '</tr>';
+            return '<div class="rbt-demand-table-wrap"><table class="rbt-demand-table"><thead>' + briefHead + '</thead><tbody>' + briefBody + '</tbody></table></div>';
+        }
+        cells.push(money(receivableOf(item, 'traderPaid')));
         var head;
         if (settled) {
             ensureAmountGroupStyle();
@@ -175,6 +184,7 @@
                 '<th class="is-money" rowspan="2">已发货金额</th>' +
                 '<th class="is-money" rowspan="2">服务费</th>' +
                 '<th class="is-money" rowspan="2">总金额</th>' +
+                '<th class="is-money" rowspan="2">贸易商实付</th>' +
                 roles.map(function (role) {
                     return '<th class="rbt-amount-group" colspan="2">' + role[0] + '</th>';
                 }).join('') +
@@ -189,7 +199,7 @@
             });
         } else {
             head = '<tr><th class="is-money">商品金额</th><th class="is-money">已发货金额</th><th class="is-money">服务费</th><th class="is-money">总金额</th>' +
-                '<th class="is-money">贸易商应收</th><th class="is-money">冷丰应收</th><th class="is-money">服务商应收</th></tr>';
+                '<th class="is-money">贸易商实付</th><th class="is-money">贸易商应收</th><th class="is-money">冷丰应收</th><th class="is-money">服务商应收</th></tr>';
             roles.forEach(function (role) {
                 cells.push(money(receivableOf(item, role[1])));
             });
@@ -214,10 +224,11 @@
     }
 
     function settledOf(item) {
+        /* 门店回款整笔记给贸易商。冷丰和服务商在贸易商支付时结清，不从日后回款里再拆。 */
         var pack = {
             trader: Number(receivableOf(item, 'trader')) || 0,
-            lengfeng: Number(receivableOf(item, 'lengfeng')) || 0,
-            provider: Number(receivableOf(item, 'provider')) || 0
+            lengfeng: 0,
+            provider: 0
         };
         var days = window.RbtDailyFulfill && typeof window.RbtDailyFulfill.daysOf === 'function'
             ? window.RbtDailyFulfill.daysOf(item)
@@ -882,10 +893,12 @@
             '<input type="file" accept="image/*,.pdf" data-rbt-supplement hidden></label></div>';
     }
 
+    var manageView = false;
+
     function reopenDemand(code) {
         var api = window.RbtDemandData;
         var fresh = api && typeof api.get === 'function' ? api.get(code) : null;
-        if (fresh) open(fresh);
+        if (fresh) open(fresh, { manage: manageView });
     }
 
     function closeFloat(flag) {
@@ -1162,7 +1175,7 @@
         }
     }
 
-    function basePanel(item, performance) {
+    function basePanel(item, performance, manage) {
         var statusText = displayStatus(item, performance);
         return (
             '<div class="supplier-detail-tab">' +
@@ -1187,7 +1200,7 @@
             textCell('更新时间', item.updatedAt) +
             '</div>' +
             '<div class="supplier-detail-section-title">金额信息</div>' +
-            amountTable(item, performance) +
+            amountTable(item, performance, manage) +
             (performance ? payeeSection(item) : '') +
             '<div class="supplier-detail-section-title">商品明细</div>' +
             skuTable(item.skus) +
@@ -1211,7 +1224,8 @@
                     onSaved: function (saved) {
                         open(saved, {
                             keepAudit: true,
-                            performance: !!(options && options.performance)
+                            performance: !!(options && options.performance),
+                            manage: !!(options && options.manage)
                         });
                     }
                 });
@@ -1377,6 +1391,8 @@
             auditSession = options && options.audit ? options.audit : null;
         }
         var performance = !!(options && options.performance);
+        var manage = !!(options && options.manage);
+        manageView = manage;
         var title = performance ? '付款详情' : '需求单详情';
         var statusText = displayStatus(item, performance);
         closeDrawer();
@@ -1418,7 +1434,7 @@
             if (id === 'logs') body.innerHTML = logPanel(item);
             else if (id === 'daily') body.innerHTML = dailyPanel(item);
             else {
-                body.innerHTML = basePanel(item, performance);
+                body.innerHTML = basePanel(item, performance, manage);
                 bindBaseEvents(drawer, item, options);
             }
         }

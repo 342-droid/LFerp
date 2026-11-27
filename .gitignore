@@ -14,6 +14,9 @@ docs/**/*PRD*.md
 docs/**/*PRD*.html
 docs/**/*PRD*.docx
 docs/**/*PRD*.pdf
+
+# RBT 文档：仅本地查阅，不纳入版本库、不推远端
+RBT/docs/
 AGENTS.md
 .agents/skills/
 .cursor/skills/

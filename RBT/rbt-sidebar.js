@@ -10,7 +10,7 @@
     const isProductPackage = currentPage === 'rbt_product_package';
     const isInstallment = currentPage === 'rbt_installment';
     const isDemand = currentPage === 'rbt_demand';
-    const isTrade = currentPage === 'rbt_trade' || currentPage === 'rbt_purchase' || currentPage === 'rbt_sales';
+    const isTrade = currentPage === 'rbt_trade';
     const isPerformance = currentPage === 'rbt_performance';
     const isDailyFulfill = currentPage === 'rbt_daily_fulfill';
     const isRiskConfig = currentPage === 'rbt_risk_config';

@@ -127,7 +127,7 @@
     }
 
     function isFeeLine(line) {
-        return !!(line && line.name === '服务费');
+        return !!(line && (line.fee || line.name === '服务费' || line.name === '冷丰实收' || line.name === '服务商实收'));
     }
 
     function goodsLine(sku) {
@@ -155,9 +155,9 @@
     }
 
     /* 服务费是商品明细中的一行，不是单据字段。数量按 1，售价即这笔差额。 */
-    function feeLine(cents) {
-        var amount = fromCents(cents);
-        return { code: '', name: '服务费', qty: 1, salePrice: amount, amount: amount };
+    function feeLine(cents, name) {
+        var amount = fromCents(Math.max(0, cents || 0));
+        return { code: '', name: name || '服务费', qty: 1, salePrice: amount, amount: amount, fee: true };
     }
 
     function feeCentsOf(skus, mode, rates) {
@@ -279,7 +279,21 @@
         var sourceSkus = demand.shipSkus && demand.shipSkus.length ? demand.shipSkus : demand.skus;
         var upParties = partyFields(storeCode, storeName, traderName, LF_SUPPLY.name);
         var downParties = partyFields(storeCode, storeName, storeName, LF_SUPPLY.name);
-        var feeParties = partyFields(storeCode, storeName, storeName, '');
+        var feeParties = partyFields(storeCode, storeName, traderName, '');
+        var pack = window.RbtDemandData && typeof window.RbtDemandData.deductSettlement === 'function'
+            ? window.RbtDemandData.deductSettlement(demand)
+            : null;
+        var storePay = pack && pack.storePay ? centsOf(pack.storePay) : 0;
+        var goods = centsOf(demand.goodsAmount);
+        var downFee = storePay > goods ? storePay - goods : feeOnGoods(demand, 'trader', rates);
+        var feeLines = [];
+        if (pack && pack.storePay) {
+            var providerPay = centsOf(pack.provider);
+            if (providerPay > 0) feeLines.push(feeLine(providerPay, '服务商实收'));
+            feeLines.push(feeLine(centsOf(pack.lengfeng), '冷丰实收'));
+        } else {
+            feeLines = buildLines(sourceSkus, 'gap', rates, feeOnGoods(demand, 'gap', rates));
+        }
         return {
             up: makeDoc(Object.assign({}, base, upParties, {
                 code: codes.up,
@@ -294,15 +308,14 @@
                 buyerCode: storeCode,
                 buyerName: storeName,
                 sellerName: traderName
-            }), buildLines(sourceSkus, 'trader', rates, feeOnGoods(demand, 'trader', rates))),
+            }), buildLines(sourceSkus, 'trader', rates, downFee)),
             fee: makeDoc(Object.assign({}, base, feeParties, {
                 code: codes.fee,
                 docType: DOC_FEE,
-                buyerCode: storeCode,
-                buyerName: storeName,
+                buyerName: traderName,
                 sellerCode: LF_SUPPLY.code,
                 sellerName: LF_SUPPLY.name
-            }), buildLines(sourceSkus, 'gap', rates, feeOnGoods(demand, 'gap', rates)))
+            }), feeLines)
         };
     }
 

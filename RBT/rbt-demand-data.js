@@ -505,6 +505,69 @@
         };
     }
 
+    /* 扣率：门店应付按门店系数，贸易商实付 = 门店应付 ÷ 贸易商系数，服务商按实付计提。付款、每日付款仍用上面的 receivables。 */
+    function ratePoints(rate) {
+        var num = Number(rate);
+        if (!isFinite(num)) return null;
+        return Math.round(num * 100);
+    }
+
+    function deductAmounts(goodsCents, storeRate, traderRate, providerRate, withProvider) {
+        var storePts = ratePoints(storeRate);
+        var traderPts = ratePoints(traderRate);
+        var providerPts = withProvider ? ratePoints(providerRate) : 100;
+        if (storePts == null || traderPts == null || providerPts == null) return null;
+        if (traderPts <= 0 || providerPts < 100 || providerPts >= 200) return null;
+        var storePay = Math.round(goodsCents * storePts / 100);
+        var traderPaid = Math.round(storePay * 100 / traderPts);
+        var providerPay = withProvider ? Math.round(traderPaid * (providerPts - 100) / 100) : 0;
+        var lengfeng = traderPaid - goodsCents - providerPay;
+        return {
+            storePay: storePay,
+            traderPaid: traderPaid,
+            traderReceipt: storePay,
+            profit: storePay - traderPaid,
+            providerPay: providerPay,
+            lengfeng: lengfeng,
+            s0: traderPts / (200 - providerPts),
+            storeRate: storePts / 100
+        };
+    }
+
+    function deductQuote(goodsYuan, storeRate, traderRate, providerRate) {
+        var goods = Math.round(Number(goodsYuan) * 100);
+        if (!isFinite(goods) || goods < 0) return null;
+        var row = deductAmounts(goods, storeRate, traderRate, providerRate, true);
+        if (!row) return null;
+        return {
+            storePay: row.storePay / 100,
+            traderPaid: row.traderPaid / 100,
+            traderReceipt: row.traderReceipt / 100,
+            profit: row.profit / 100,
+            providerPay: row.providerPay / 100,
+            lengfeng: row.lengfeng / 100,
+            blocked: row.lengfeng <= 0 || row.s0 >= row.storeRate - 0.0000001
+        };
+    }
+
+    function deductSettlement(item) {
+        var empty = { storePay: '', traderPaid: '', trader: '', profit: '', lengfeng: '', provider: '' };
+        if (!item || item.repayMethod !== '比例付') return empty;
+        var rates = productRates(item.installmentCode);
+        if (!rates) return empty;
+        var withProvider = includeProviderReceivable(item);
+        var row = deductAmounts(centsOf(item.goodsAmount), rates.store, rates.trader, withProvider ? rates.provider : '1.00', withProvider);
+        if (!row) return empty;
+        return {
+            storePay: fromCents(row.storePay),
+            traderPaid: fromCents(row.traderPaid),
+            trader: fromCents(row.traderReceipt),
+            profit: fromCents(row.profit),
+            lengfeng: fromCents(row.lengfeng),
+            provider: fromCents(row.providerPay)
+        };
+    }
+
     /* 贸易商服务费并进单价。需求单商品金额仍是原价。加价率 = 贸易商结算系数 − 1。订单实付按原价 ×（1 + 加价率）。 */
     function markupOf(item) {
         var rates = productRates(item && item.installmentCode);
@@ -1129,11 +1192,12 @@
         return text == null ? 0 : moneyNumber(text);
     }
 
-    /* 确认签约前，贸易商余额须覆盖本单商品金额。通过后与生成合同同一步冻结。演示只校验，不扣款。 */
+    /* 确认签约前，贸易商余额须覆盖本单实付。实付 = 门店应付 ÷ 贸易商系数。通过后与生成合同同一步冻结。演示只校验，不扣款。 */
     function traderBalanceCheck(code, trader) {
         var item = code && typeof code === 'object' ? code : get(code);
         var name = traderNameOf(trader);
-        var need = moneyNumber(item && item.goodsAmount);
+        var pack = item ? deductSettlement(item) : null;
+        var need = pack && pack.traderPaid ? moneyNumber(pack.traderPaid) : 0;
         var balance = traderBalanceOf(name);
         if (!item) return { ok: false, reason: 'missing', balance: balance, need: need };
         if (!(need > 0)) return { ok: false, reason: 'amount', balance: balance, need: need, demand: item };
@@ -1141,7 +1205,7 @@
         return { ok: true, balance: balance, need: need, demand: item };
     }
 
-    /* 待确认签约由接单贸易商确认。余额足够时进入待签署，生成两份合同，并冻结本单商品金额。余额不足则不生成合同、不冻结。 */
+    /* 待确认签约由接单贸易商确认。余额足够时进入待签署，生成两份合同，并冻结本单实付。余额不足则不生成合同、不冻结。 */
     function confirmSigning(code, trader) {
         var rows = list();
         var target = findDemand(rows, code);
@@ -1886,6 +1950,8 @@
         canEditSettleRatios: canEditSettleRatios,
         updateSettleRatios: updateSettleRatios,
         receivables: receivables,
+        deductSettlement: deductSettlement,
+        deductQuote: deductQuote,
         markupOf: markupOf,
         settlementRates: settlementRates,
         shipCatalog: function () { return SHIP_CATALOG.slice(); },
