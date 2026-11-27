@@ -1502,6 +1502,13 @@
     "status": "diff",
     "date": "2026-11-14"
   },
+  "4d7626d|RBT/rbt_demand.html": {
+    "before": "changelog-assets/4d7626d/RBT__rbt_demand.html.before.jpg",
+    "after": "changelog-assets/4d7626d/RBT__rbt_demand.html.after.jpg",
+    "regions": 11,
+    "status": "diff",
+    "date": "2026-11-27"
+  },
   "4e563a4|RBT/rbt_h5_provider.html": {
     "regions": 0,
     "status": "diff",
