@@ -165,7 +165,7 @@
                 <el-dialog v-model="calcOpen" class="rbt-calc-dialog" title="结算测算" width="860px" append-to-body>
                     <div class="rbt-calc__block">
                         <p class="rbt-calc__title">结算系数</p>
-                        <p class="rbt-rate-tip">商品金额 = 商品包金额 ×（1 + 门店结算系数 − 贸易商结算系数），四舍五入到分。总金额 = 商品金额 × 贸易商结算系数。服务费 = 总金额 − 商品金额。应付 = 商品金额，应收 = 总金额，收益 = 服务费。服务商实收 = 商品金额 ×（服务商结算系数 − 1）。</p>
+                        <p class="rbt-rate-tip">商品金额 = 商品包金额 ×（1 + 门店结算系数 − 贸易商结算系数），四舍五入到分。总金额 = 商品金额 × 贸易商结算系数。服务费 = 总金额 − 商品金额。贸易商应付 = 商品金额，贸易商应收 = 总金额，贸易商收益 = 服务费。服务商实收 = 商品金额 ×（服务商结算系数 − 1）。冷丰系数 = 门店结算系数 − 贸易商结算系数。冷丰应收 = 商品金额 − 商品金额 /（1 + 冷丰系数）。冷丰实收 = 冷丰应收 − 服务商实收。</p>
                         <div class="rbt-calc__row">
                             <span class="rbt-calc__label">商品包金额</span>
                             <el-input :model-value="calcForm.goods" placeholder="请输入" @input="onCalcField('goods', $event)"></el-input>
@@ -187,10 +187,12 @@
                             <div><span>商品金额</span> <b>{{ calcResult.goods }}</b></div>
                             <div><span>服务费</span> <b>{{ calcResult.fee }}</b></div>
                             <div><span>总金额</span> <b>{{ calcResult.total }}</b></div>
-                            <div><span>应付</span> <b>{{ calcResult.paid }}</b></div>
-                            <div><span>应收</span> <b>{{ calcResult.receive }}</b></div>
-                            <div><span>收益</span> <b>{{ calcResult.profit }}</b></div>
+                            <div><span>贸易商应付</span> <b>{{ calcResult.paid }}</b></div>
+                            <div><span>贸易商应收</span> <b>{{ calcResult.receive }}</b></div>
+                            <div><span>贸易商收益</span> <b>{{ calcResult.profit }}</b></div>
+                            <div><span>冷丰应收</span> <b>{{ calcResult.lengfengReceive }}</b></div>
                             <div><span>服务商实收</span> <b>{{ calcResult.providerPay }}</b></div>
+                            <div><span>冷丰实收</span> <b>{{ calcResult.lengfeng }}</b></div>
                         </div>
                     </div>
                     <div class="rbt-calc__block">

@@ -311,7 +311,7 @@
 
     /* 新增、编辑里按商品包金额 50000 试算，和结算测算同一套口径。 */
     function ratePreview(form) {
-        var rule = '商品金额 = 商品包金额 ×（1 + 门店结算系数 − 贸易商结算系数），四舍五入到分。总金额 = 商品金额 × 贸易商结算系数。服务费 = 总金额 − 商品金额。应付 = 商品金额，应收 = 总金额，收益 = 服务费。服务商实收 = 商品金额 ×（服务商结算系数 − 1）。';
+        var rule = '商品金额 = 商品包金额 ×（1 + 门店结算系数 − 贸易商结算系数），四舍五入到分。总金额 = 商品金额 × 贸易商结算系数。服务费 = 总金额 − 商品金额。贸易商应付 = 商品金额，贸易商应收 = 总金额，贸易商收益 = 服务费。服务商实收 = 商品金额 ×（服务商结算系数 − 1）。冷丰系数 = 门店结算系数 − 贸易商结算系数。冷丰应收 = 商品金额 − 商品金额 /（1 + 冷丰系数）。冷丰实收 = 冷丰应收 − 服务商实收。';
         if (!form || !validDecimal(form.storeRate) || !validDecimal(form.traderRate) || !validDecimal(form.providerRate)) return rule;
         var api = window.RbtDemandData;
         var quote = api && typeof api.packageQuote === 'function'
@@ -325,10 +325,12 @@
         return '按商品包金额 50,000 元试算：商品金额 ' + yuan(quote.goods) +
             '，服务费 ' + yuan(quote.fee) +
             '，总金额 ' + yuan(quote.total) +
-            '，应付 ' + yuan(quote.paid) +
-            '，应收 ' + yuan(quote.receive) +
-            '，收益 ' + yuan(quote.profit) +
-            '，服务商实收 ' + yuan(quote.providerPay) + '。';
+            '，贸易商应付 ' + yuan(quote.paid) +
+            '，贸易商应收 ' + yuan(quote.receive) +
+            '，贸易商收益 ' + yuan(quote.profit) +
+            '，冷丰应收 ' + yuan(quote.lengfengReceive) +
+            '，服务商实收 ' + yuan(quote.providerPay) +
+            '，冷丰实收 ' + yuan(quote.lengfeng) + '。';
     }
 
     /* 旧单值结算系数迁成门店/贸易商/服务商；旧费率区间仍先按期插值。 */
@@ -1387,6 +1389,8 @@
                 var receive = quote && !quote.blocked ? quote.receive : null;
                 var profit = quote && !quote.blocked ? quote.profit : null;
                 var providerPay = quote && !quote.blocked ? quote.providerPay : null;
+                var lengfengReceive = quote && !quote.blocked ? quote.lengfengReceive : null;
+                var lengfeng = quote && !quote.blocked ? quote.lengfeng : null;
                 var daily = null;
                 var split = posSplit();
                 if (split.overflow) notes.push('二级渠道到账合计不能超过 POS 当日实际到账');
@@ -1417,6 +1421,8 @@
                     receive: yuanText(receive),
                     profit: yuanText(profit),
                     providerPay: yuanText(providerPay),
+                    lengfengReceive: yuanText(lengfengReceive),
+                    lengfeng: yuanText(lengfeng),
                     daily: yuanText(daily),
                     days: days,
                     notes: notes.join('；')

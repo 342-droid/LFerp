@@ -580,6 +580,9 @@
         var goods = Math.round(pack * multPts / 100);
         var total = Math.round(goods * traderPts / 100);
         var providerPay = Math.round(goods * (providerPts - 100) / 100);
+        /* 冷丰系数 = 门店系数 − 贸易商系数。售价乘数是 1 + 冷丰系数，冷丰应收是商品金额里多出来的这一截。 */
+        var lengfengReceive = goods - Math.round(goods * 100 / multPts);
+        var lengfeng = lengfengReceive - providerPay;
         return {
             blocked: false,
             goods: goods / 100,
@@ -588,7 +591,9 @@
             paid: goods / 100,
             receive: total / 100,
             profit: (total - goods) / 100,
-            providerPay: providerPay / 100
+            providerPay: providerPay / 100,
+            lengfengReceive: lengfengReceive / 100,
+            lengfeng: lengfeng / 100
         };
     }
 
