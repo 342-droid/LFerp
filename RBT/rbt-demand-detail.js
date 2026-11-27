@@ -1155,9 +1155,9 @@
             ? '<p class="rbt-ship-note">还有这些条件没满足，不能发货完成。</p><ul class="rbt-ship-blocks">' +
                 lines.map(function (line) { return '<li>' + esc(line) + '</li>'; }).join('') + '</ul>'
             : (lines.length
-                ? '<p class="rbt-ship-note">以下只是提示，确定后仍进入门店付款中，并按发货记录生成交易单。</p><ul class="rbt-ship-blocks">' +
+                ? '<p class="rbt-ship-note">以下只是提示，确定后仍进入门店付款中，并按需求单明细生成交易单。</p><ul class="rbt-ship-blocks">' +
                     lines.map(function (line) { return '<li>' + esc(line) + '</li>'; }).join('') + '</ul>'
-                : '<p class="rbt-ship-note">商品已发完，门店已确认。确认后进入门店付款中，并按发货记录生成交易单。</p>');
+                : '<p class="rbt-ship-note">商品已发完，门店已确认。确认后进入门店付款中，并按需求单明细生成交易单。</p>');
         var mask = mountFloat('data-rbt-finish-dialog', '发货完成', '发货完成', body, function () {
             if (blocked) {
                 closeFloat('data-rbt-finish-dialog');

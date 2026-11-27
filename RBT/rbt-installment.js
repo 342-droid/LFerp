@@ -128,9 +128,9 @@
                 repayCycle: '日结',
                 repayMethod: '比例付',
                 periodRatio: '10.00',
-                storeRate: '1.60',
-                traderRate: '1.20',
-                providerRate: '1.05',
+                storeRate: '1.20',
+                traderRate: '1.08',
+                providerRate: '1.02',
                 periods: [],
                 periodRates: {},
                 settleRatios: defaultSettleRatios('10.00'),
@@ -148,9 +148,9 @@
                 repayCycle: '日结',
                 repayMethod: '比例付',
                 periodRatio: '10.00',
-                storeRate: '1.70',
-                traderRate: '1.30',
-                providerRate: '1.05',
+                storeRate: '1.20',
+                traderRate: '1.08',
+                providerRate: '1.02',
                 periods: [],
                 periodRates: {},
                 settleRatios: defaultSettleRatios('10.00'),
@@ -168,8 +168,8 @@
                 repayCycle: '日结',
                 repayMethod: '比例付',
                 periodRatio: '10.00',
-                storeRate: '1.30',
-                traderRate: '1.10',
+                storeRate: '1.20',
+                traderRate: '1.08',
                 providerRate: '1.02',
                 periods: [],
                 periodRates: {},
@@ -188,9 +188,9 @@
                 repayCycle: '日结',
                 repayMethod: '比例付',
                 periodRatio: '8.00',
-                storeRate: '1.80',
-                traderRate: '1.40',
-                providerRate: '1.08',
+                storeRate: '1.20',
+                traderRate: '1.08',
+                providerRate: '1.02',
                 periods: [],
                 periodRates: {},
                 settleRatios: defaultSettleRatios('8.00'),
@@ -208,9 +208,9 @@
                 repayCycle: '日结',
                 repayMethod: '比例付',
                 periodRatio: '10.00',
-                storeRate: '1.50',
-                traderRate: '1.20',
-                providerRate: '1.04',
+                storeRate: '1.20',
+                traderRate: '1.08',
+                providerRate: '1.02',
                 periods: [],
                 periodRates: {},
                 settleRatios: defaultSettleRatios('10.00'),
@@ -275,26 +275,30 @@
         return '1.00';
     }
 
-    /* 示例系数按分账关系重写。只改仍停在旧示例上的记录，门店系数不动。 */
+    /* 演示产品统一为门店 1.20、贸易商 1.08、服务商 1.02。只改仍停在旧示例系数上的记录。 */
+    var DEMO_RATES = { store: '1.20', trader: '1.08', provider: '1.02' };
     var DEMO_RATE_FIX = {
-        FQ00001: { store: '1.60', trader: '1.20', provider: '1.05', previous: [['1.50', '1.40'], ['1.00', '0.60']] },
-        FQ00004: { store: '1.70', trader: '1.30', provider: '1.05', previous: [['1.60', '1.50'], ['1.00', '0.70']] },
-        FQ00005: { store: '1.30', trader: '1.10', provider: '1.02', previous: [['1.20', '1.10'], ['0.80', '0.50']] },
-        FQ00002: { store: '1.80', trader: '1.40', provider: '1.08', previous: [['1.70', '1.60'], ['1.10', '0.70']] },
-        FQ00003: { store: '1.50', trader: '1.20', provider: '1.04', previous: [['1.40', '1.30'], ['0.90', '0.60']] }
+        FQ00001: [['1.60', '1.20', '1.05'], ['1.60', '1.50', '1.40'], ['1.60', '1.00', '0.60']],
+        FQ00004: [['1.70', '1.30', '1.05'], ['1.70', '1.60', '1.50'], ['1.70', '1.00', '0.70']],
+        FQ00005: [['1.30', '1.10', '1.02'], ['1.30', '1.20', '1.10'], ['1.30', '0.80', '0.50']],
+        FQ00002: [['1.80', '1.40', '1.08'], ['1.80', '1.70', '1.60'], ['1.80', '1.10', '0.70']],
+        FQ00003: [['1.50', '1.20', '1.04'], ['1.50', '1.40', '1.30'], ['1.50', '0.90', '0.60']]
     };
 
     function migrateRateSum(item) {
-        var demo = DEMO_RATE_FIX[item.code];
-        if (demo && String(item.storeRate) === demo.store) {
+        var previous = DEMO_RATE_FIX[item.code];
+        if (previous) {
+            var store = String(item.storeRate || '');
             var trader = String(item.traderRate || '');
             var provider = String(item.providerRate || '');
-            var hit = blank(item.providerRate) || demo.previous.some(function (pair) {
-                return pair[0] === trader && pair[1] === provider;
+            var current = store === DEMO_RATES.store && trader === DEMO_RATES.trader && provider === DEMO_RATES.provider;
+            var hit = !current && previous.some(function (pair) {
+                return pair[0] === store && pair[1] === trader && (blank(provider) || pair[2] === provider);
             });
-            if (hit && (trader !== demo.trader || provider !== demo.provider)) {
-                item.traderRate = demo.trader;
-                item.providerRate = demo.provider;
+            if (hit) {
+                item.storeRate = DEMO_RATES.store;
+                item.traderRate = DEMO_RATES.trader;
+                item.providerRate = DEMO_RATES.provider;
                 return true;
             }
         }
@@ -305,23 +309,26 @@
         return false;
     }
 
-    /* 按商品金额 50000 试算扣率，方便配置时对照。 */
+    /* 新增、编辑里按商品包金额 50000 试算，和结算测算同一套口径。 */
     function ratePreview(form) {
-        var rule = '门店实付 = 商品金额 × 门店结算系数；贸易商实付 = 门店实付 ÷ 贸易商结算系数；贸易商实收 = 门店实付；服务商实收 = 贸易商实付 ×（服务商结算系数 − 1）；冷丰实收 = 贸易商实付 − 商品金额 − 服务商实收。冷丰实收须大于 0 才能保存。';
+        var rule = '商品金额 = 商品包金额 ×（1 + 门店结算系数 − 贸易商结算系数），四舍五入到分。总金额 = 商品金额 × 贸易商结算系数。服务费 = 总金额 − 商品金额。应付 = 商品金额，应收 = 总金额，收益 = 服务费。服务商实收 = 商品金额 ×（服务商结算系数 − 1）。';
         if (!form || !validDecimal(form.storeRate) || !validDecimal(form.traderRate) || !validDecimal(form.providerRate)) return rule;
         var api = window.RbtDemandData;
-        var quote = api && typeof api.deductQuote === 'function'
-            ? api.deductQuote(50000, form.storeRate, form.traderRate, form.providerRate)
+        var quote = api && typeof api.packageQuote === 'function'
+            ? api.packageQuote(50000, form.storeRate, form.traderRate, form.providerRate)
             : null;
         if (!quote) return rule;
+        if (quote.blocked) return '门店系数与贸易商系数无法算出售价';
         function yuan(value) {
             return Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
-        return '按商品金额 50,000 元试算：门店实付 ' + yuan(quote.storePay) +
-            '，贸易商实付 ' + yuan(quote.traderPaid) +
-            '，贸易商实收 ' + yuan(quote.traderReceipt) +
-            '，服务商实收 ' + yuan(quote.providerPay) +
-            '，冷丰实收 ' + yuan(quote.lengfeng) + '。';
+        return '按商品包金额 50,000 元试算：商品金额 ' + yuan(quote.goods) +
+            '，服务费 ' + yuan(quote.fee) +
+            '，总金额 ' + yuan(quote.total) +
+            '，应付 ' + yuan(quote.paid) +
+            '，应收 ' + yuan(quote.receive) +
+            '，收益 ' + yuan(quote.profit) +
+            '，服务商实收 ' + yuan(quote.providerPay) + '。';
     }
 
     /* 旧单值结算系数迁成门店/贸易商/服务商；旧费率区间仍先按期插值。 */
@@ -1028,17 +1035,11 @@
                         return false;
                     }
                     var quoteApi = window.RbtDemandData;
-                    var probes = [10000];
-                    if (validDecimal(values.amountMin) && Number(values.amountMin) >= 1) probes.push(Number(values.amountMin));
-                    if (validDecimal(values.amountMax) && Number(values.amountMax) >= 1) probes.push(Number(values.amountMax));
-                    var blocked = probes.some(function (goods) {
-                        var quote = quoteApi && typeof quoteApi.deductQuote === 'function'
-                            ? quoteApi.deductQuote(goods, values.storeRate, values.traderRate, values.providerRate)
-                            : null;
-                        return !quote || quote.blocked || quote.lengfeng <= 0;
-                    });
-                    if (blocked) {
-                        ElMessage.error('这组系数会使冷丰实收为 0，不能保存');
+                    var quote = quoteApi && typeof quoteApi.packageQuote === 'function'
+                        ? quoteApi.packageQuote(50000, values.storeRate, values.traderRate, values.providerRate)
+                        : null;
+                    if (!quote || quote.blocked) {
+                        ElMessage.error('门店系数与贸易商系数无法算出售价');
                         return false;
                     }
                     var ratioApi = window.RbtSettleRatio;
@@ -1375,15 +1376,17 @@
                 if (traderOk && trader < 1) notes.push('贸易商结算系数不能低于1');
                 if (providerOk && provider < 1) notes.push('服务商结算系数不能低于1');
                 if (providerOk && provider >= 2) notes.push('服务商结算系数必须小于2');
-                var quote = goodsOk && storeOk && traderOk && providerOk && window.RbtDemandData && typeof window.RbtDemandData.deductQuote === 'function'
-                    ? window.RbtDemandData.deductQuote(goods, form.storeRate, form.traderRate, form.providerRate)
+                var quote = goodsOk && storeOk && traderOk && providerOk && window.RbtDemandData && typeof window.RbtDemandData.packageQuote === 'function'
+                    ? window.RbtDemandData.packageQuote(goods, form.storeRate, form.traderRate, form.providerRate)
                     : null;
-                if (quote && (quote.blocked || quote.lengfeng <= 0)) notes.push('这组系数会使冷丰实收为 0，不能保存');
-                var storePay = quote ? quote.storePay : null;
-                var traderPaid = quote ? quote.traderPaid : null;
-                var traderReceipt = quote ? quote.traderReceipt : null;
-                var providerPay = quote ? quote.providerPay : null;
-                var lengfeng = quote ? quote.lengfeng : null;
+                if (quote && quote.blocked) notes.push('门店系数与贸易商系数无法算出售价');
+                var quotedGoods = quote && !quote.blocked ? quote.goods : null;
+                var fee = quote && !quote.blocked ? quote.fee : null;
+                var total = quote && !quote.blocked ? quote.total : null;
+                var paid = quote && !quote.blocked ? quote.paid : null;
+                var receive = quote && !quote.blocked ? quote.receive : null;
+                var profit = quote && !quote.blocked ? quote.profit : null;
+                var providerPay = quote && !quote.blocked ? quote.providerPay : null;
                 var daily = null;
                 var split = posSplit();
                 if (split.overflow) notes.push('二级渠道到账合计不能超过 POS 当日实际到账');
@@ -1405,13 +1408,15 @@
                     var subDue = posSubDue(row);
                     if (subDue != null) daily = (daily || 0) + subDue;
                 });
-                var days = storePay != null && daily > 0 ? (storePay / daily).toFixed(2) + ' 天' : '—';
+                var days = total != null && daily > 0 ? (total / daily).toFixed(2) + ' 天' : '—';
                 return {
-                    storePay: yuanText(storePay),
-                    traderPaid: yuanText(traderPaid),
-                    traderReceipt: yuanText(traderReceipt),
+                    goods: yuanText(quotedGoods),
+                    fee: yuanText(fee),
+                    total: yuanText(total),
+                    paid: yuanText(paid),
+                    receive: yuanText(receive),
+                    profit: yuanText(profit),
                     providerPay: yuanText(providerPay),
-                    lengfeng: yuanText(lengfeng),
                     daily: yuanText(daily),
                     days: days,
                     notes: notes.join('；')

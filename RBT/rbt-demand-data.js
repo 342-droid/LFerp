@@ -53,7 +53,7 @@
         if (prev === '待重新确认' && next === '待接单') return '重新发布，状态：待重新确认 → 待接单';
         if (prev === '待确认签约' && next === '待签署') return '确认签约，状态：待确认签约 → 待签署';
         if (prev === '待签署' && next === '发货中') return '合同签署完成，系统自动划款支付，状态：待签署 → 发货中';
-        if (prev === '发货中' && next === '门店付款中') return '确认发货完成，按发货记录生成交易单，状态：发货中 → 门店付款中';
+        if (prev === '发货中' && next === '门店付款中') return '确认发货完成，按需求单明细生成交易单，状态：发货中 → 门店付款中';
         if (next === '已完成') return '需求完成，状态：' + prev + ' → 已完成';
         return '状态：' + prev + ' → ' + next;
     }
@@ -156,8 +156,9 @@
         ];
     }
 
-    /* 按门店已关联的商品包整包下单。明细不可改、不可删，数量和售价与商品包一致。
-       总金额 = 商品金额 × 该产品的门店结算系数。进行中的单每店只留一笔，避免占用超过总额度。
+    /* 按门店已关联的商品包整包下单。明细不可改、不可删。
+       售卖单价 = 商品包标准售卖单价 × 1.12（1 + 1.20 − 1.08），售卖金额 = 数量 × 售卖单价。
+       总金额 = 折算后商品金额 × 贸易商结算系数 1.08。进行中的单每店只留一笔。
        五角场额度盖不住铺货包，余杭未关联商品包，这两家没有需求单。 */
     function extraStoreSeeds() {
         var fresh = { code: 'SPB00001', name: '汉言开业铺货包' };
@@ -172,31 +173,31 @@
             return rows.map(function (line) { return Object.assign({}, line); });
         }
         var freshLines = [
-            { code: 'SKU20001', name: '汉言首批铺货', salePrice: '22000.00', qty: 1 },
-            { code: 'SKU20002', name: '门店设备辅料包', salePrice: '16000.00', qty: 1 },
-            { code: 'SKU20003', name: '门店拉新人力', salePrice: '12000.00', qty: 1 }
+            { code: 'SKU20001', name: '汉言首批铺货', salePrice: '24640.00', qty: 1 },
+            { code: 'SKU20002', name: '门店设备辅料包', salePrice: '17920.00', qty: 1 },
+            { code: 'SKU20003', name: '门店拉新人力', salePrice: '13440.00', qty: 1 }
         ];
         var imageLines = [
-            { code: 'SKU20004', name: '开业拉新物料', salePrice: '30.00', qty: 300 },
-            { code: 'SKU20005', name: '门头招牌及店内品宣', salePrice: '18000.00', qty: 1 },
-            { code: 'SKU20006', name: '门店监控套装', salePrice: '13000.00', qty: 1 }
+            { code: 'SKU20004', name: '开业拉新物料', salePrice: '33.60', qty: 300 },
+            { code: 'SKU20005', name: '门头招牌及店内品宣', salePrice: '20160.00', qty: 1 },
+            { code: 'SKU20006', name: '门店监控套装', salePrice: '14560.00', qty: 1 }
         ];
         var opsLines = [
-            { code: 'SKU20007', name: 'POS及会员管理系统', salePrice: '12000.00', qty: 1 },
-            { code: 'SKU20008', name: '抖音本地生活投放', salePrice: '10000.00', qty: 1 },
-            { code: 'SKU20009', name: '开业督导服务', salePrice: '8000.00', qty: 1 }
+            { code: 'SKU20007', name: 'POS及会员管理系统', salePrice: '13440.00', qty: 1 },
+            { code: 'SKU20008', name: '抖音本地生活投放', salePrice: '11200.00', qty: 1 },
+            { code: 'SKU20009', name: '开业督导服务', salePrice: '8960.00', qty: 1 }
         ];
         return [
             rowSeed({
                 code: 'XQ00013', storeCode: 'ONS00001', storeName: '西湖中心生鲜店',
                 pkg: fresh, plan: freshPlan, status: '已驳回', rejectReason: '门店近期流水不足',
-                skus: linesOf(freshLines), amount: '80000.00',
+                skus: linesOf(freshLines), amount: '60480.00',
                 creator: '喻巧', createdAt: '2026-10-08 09:16:20', updater: '王丽', updatedAt: '2026-10-09 11:02:18'
             }),
             rowSeed({
                 code: 'XQ00014', storeCode: 'ONS00001', storeName: '西湖中心生鲜店',
                 pkg: fresh, plan: freshPlan, status: '已作废',
-                skus: linesOf(freshLines), amount: '80000.00',
+                skus: linesOf(freshLines), amount: '60480.00',
                 creator: '喻巧', createdAt: '2026-10-12 14:06:33', updater: '喻巧', updatedAt: '2026-10-14 16:20:11'
             }),
             /* 履约中，供门店端一键履约。额度已由发货中的 XQ00026 占满，本单不再重复占用。 */
@@ -204,7 +205,7 @@
                 code: 'XQ00023', storeCode: 'ONS00001', storeName: '西湖中心生鲜店',
                 pkg: fresh, plan: freshPlan, status: '门店付款中',
                 quotaHeld: false,
-                skus: linesOf(freshLines), amount: '80000.00',
+                skus: linesOf(freshLines), amount: '60480.00',
                 creator: '喻巧', createdAt: '2026-10-18 09:16:40', updater: '王丽', updatedAt: '2026-11-02 10:28:16',
                 acceptedAt: '2026-10-18 14:02:18',
                 dealLocked: true,
@@ -220,18 +221,18 @@
             rowSeed(Object.assign({
                 code: 'XQ00026', storeCode: 'ONS00001', storeName: '西湖中心生鲜店',
                 pkg: fresh, plan: freshPlan, status: '发货中',
-                skus: linesOf(freshLines), amount: '80000.00',
+                skus: linesOf(freshLines), amount: '60480.00',
                 creator: '喻巧', createdAt: '2026-11-18 09:12:18', updater: '王丽', updatedAt: '2026-11-23 09:18:40',
                 acceptedAt: '2026-11-18 11:06:22',
                 signings: signedRows('ONS00001', '西湖中心生鲜店', '杭州鲜达贸易有限公司', '2026-11-18 16:40:08'),
                 shipments: [
                     {
-                        id: 'FH00026-1', skuCode: 'SKU20001', name: '汉言首批铺货', qty: 1, amount: '22000.00',
+                        id: 'FH00026-1', skuCode: 'SKU20001', name: '汉言首批铺货', qty: 1, amount: '24640.00',
                         logisticsNo: 'SF1029384756', createdAt: '2026-11-20 10:12:08', creator: '王丽',
                         confirmed: true, confirmQty: 1, confirmedAt: '2026-11-20 15:06:21', confirmedBy: '喻巧'
                     },
                     {
-                        id: 'FH00026-2', skuCode: 'SKU20002', name: '门店设备辅料包', qty: 1, amount: '16000.00',
+                        id: 'FH00026-2', skuCode: 'SKU20002', name: '门店设备辅料包', qty: 1, amount: '17920.00',
                         logisticsNo: '', createdAt: '2026-11-23 09:18:40', creator: '王丽',
                         confirmed: false, confirmQty: 0
                     }
@@ -240,14 +241,14 @@
             rowSeed({
                 code: 'XQ00015', storeCode: 'ONS00002', storeName: '东城和平里生鲜店',
                 pkg: image, plan: imagePlan, status: '已作废',
-                skus: linesOf(imageLines), amount: '72000.00',
+                skus: linesOf(imageLines), amount: '48384.00',
                 creator: '夏利', createdAt: '2026-10-20 10:12:40', updater: '夏利', updatedAt: '2026-10-21 09:40:18'
             }),
             rowSeed(Object.assign({
                 code: 'XQ00024', storeCode: 'ONS00001', storeName: '西湖中心生鲜店',
                 pkg: fresh, plan: freshPlan, status: '门店付款中',
                 skus: linesOf(freshLines),
-                amount: '80000.00', creator: '喻巧', createdAt: '2025-12-16 11:08:16', updater: '王丽', updatedAt: '2026-11-12 17:20:08',
+                amount: '60480.00', creator: '喻巧', createdAt: '2025-12-16 11:08:16', updater: '王丽', updatedAt: '2026-11-12 17:20:08',
                 acceptedAt: '2025-12-17 15:42:30',
                 /* 签署／支付提前到 2025-12，便于门店经营自定义时段演示跨年、跨月 */
                 paidAt: '2025-12-18 16:08:26',
@@ -265,7 +266,7 @@
             rowSeed(Object.assign({
                 code: 'XQ00016', storeCode: 'ONS00002', storeName: '东城和平里生鲜店',
                 pkg: image, plan: imagePlan, status: '门店付款中',
-                skus: linesOf(imageLines), amount: '72000.00',
+                skus: linesOf(imageLines), amount: '48384.00',
                 creator: '夏利', createdAt: '2026-11-06 11:22:09', updater: '王丽', updatedAt: '2026-11-12 17:20:08',
                 acceptedAt: '2026-11-06 13:05:44',
                 paidAt: '2026-11-07 09:22:05',
@@ -287,13 +288,13 @@
             rowSeed({
                 code: 'XQ00018', storeCode: 'ONS00003', storeName: '河东大桥道自提点',
                 pkg: ops, plan: opsPlan, status: '已驳回', rejectReason: '门店近期流水不足',
-                skus: linesOf(opsLines), amount: '45000.00',
+                skus: linesOf(opsLines), amount: '36288.00',
                 creator: '周海', createdAt: '2026-10-16 16:18:40', updater: '王丽', updatedAt: '2026-10-17 17:02:11'
             }),
             rowSeed({
                 code: 'XQ00017', storeCode: 'ONS00003', storeName: '河东大桥道自提点',
                 pkg: ops, plan: opsPlan, status: '待接单',
-                skus: linesOf(opsLines), amount: '45000.00',
+                skus: linesOf(opsLines), amount: '36288.00',
                 creator: '周海', createdAt: '2026-11-12 08:46:15', updater: '周海', updatedAt: '2026-11-12 08:46:15'
             })
         ];
@@ -420,15 +421,44 @@
 
     /* 产品配置里的三方结算系数。会话里改过的优先，没有再回落到演示产品。 */
     var PRODUCT_RATES = {
-        FQ00001: { store: '1.60', trader: '1.20', provider: '1.05' },
-        FQ00002: { store: '1.80', trader: '1.40', provider: '1.08' },
-        FQ00003: { store: '1.50', trader: '1.20', provider: '1.04' },
-        FQ00004: { store: '1.70', trader: '1.30', provider: '1.05' },
-        FQ00005: { store: '1.30', trader: '1.10', provider: '1.02' }
+        FQ00001: { store: '1.20', trader: '1.08', provider: '1.02' },
+        FQ00002: { store: '1.20', trader: '1.08', provider: '1.02' },
+        FQ00003: { store: '1.20', trader: '1.08', provider: '1.02' },
+        FQ00004: { store: '1.20', trader: '1.08', provider: '1.02' },
+        FQ00005: { store: '1.20', trader: '1.08', provider: '1.02' }
     };
 
     function settlementRates(item) {
         return productRates(item && item.installmentCode);
+    }
+
+    /* 已打开过的演示产品若还停在旧系数，刷成门店 1.20、贸易商 1.08、服务商 1.02。 */
+    function refreshDemoProductRates(list) {
+        var previous = {
+            FQ00001: [['1.60', '1.20', '1.05'], ['1.60', '1.50', '1.40'], ['1.60', '1.00', '0.60']],
+            FQ00004: [['1.70', '1.30', '1.05'], ['1.70', '1.60', '1.50'], ['1.70', '1.00', '0.70']],
+            FQ00005: [['1.30', '1.10', '1.02'], ['1.30', '1.20', '1.10'], ['1.30', '0.80', '0.50']],
+            FQ00002: [['1.80', '1.40', '1.08'], ['1.80', '1.70', '1.60'], ['1.80', '1.10', '0.70']],
+            FQ00003: [['1.50', '1.20', '1.04'], ['1.50', '1.40', '1.30'], ['1.50', '0.90', '0.60']]
+        };
+        var changed = false;
+        (list || []).forEach(function (item) {
+            var rows = item && previous[item.code];
+            if (!rows) return;
+            var store = String(item.storeRate || '');
+            var trader = String(item.traderRate || '');
+            var provider = String(item.providerRate || '');
+            if (store === '1.20' && trader === '1.08' && provider === '1.02') return;
+            var hit = rows.some(function (pair) {
+                return pair[0] === store && pair[1] === trader && (!provider || pair[2] === provider);
+            });
+            if (!hit) return;
+            item.storeRate = '1.20';
+            item.traderRate = '1.08';
+            item.providerRate = '1.02';
+            changed = true;
+        });
+        return changed;
     }
 
     function productRates(code) {
@@ -436,6 +466,9 @@
         try {
             var raw = sessionStorage.getItem('rbt_installment_v3');
             var list = raw ? JSON.parse(raw) : null;
+            if (Array.isArray(list) && refreshDemoProductRates(list)) {
+                sessionStorage.setItem('rbt_installment_v3', JSON.stringify(list));
+            }
             if (Array.isArray(list)) {
                 list.some(function (item) {
                     if (item && item.code === code) {
@@ -531,6 +564,31 @@
             lengfeng: lengfeng,
             s0: traderPts / (200 - providerPts),
             storeRate: storePts / 100
+        };
+    }
+
+    /* 测算从商品包金额出发。商品金额先按 1 + 门店系数 − 贸易商系数折算，总金额再乘贸易商系数。 */
+    function packageQuote(packageYuan, storeRate, traderRate, providerRate) {
+        var pack = Math.round(Number(packageYuan) * 100);
+        var storePts = ratePoints(storeRate);
+        var traderPts = ratePoints(traderRate);
+        var providerPts = ratePoints(providerRate);
+        if (!isFinite(pack) || pack < 0 || storePts == null || traderPts == null || providerPts == null) return null;
+        if (storePts <= 0 || traderPts <= 0) return null;
+        var multPts = 100 + storePts - traderPts;
+        if (multPts <= 0) return { blocked: true };
+        var goods = Math.round(pack * multPts / 100);
+        var total = Math.round(goods * traderPts / 100);
+        var providerPay = Math.round(goods * (providerPts - 100) / 100);
+        return {
+            blocked: false,
+            goods: goods / 100,
+            fee: (total - goods) / 100,
+            total: total / 100,
+            paid: goods / 100,
+            receive: total / 100,
+            profit: (total - goods) / 100,
+            providerPay: providerPay / 100
         };
     }
 
@@ -712,6 +770,60 @@
         return true;
     }
 
+    /* 演示需求若还停在商品包标准售价，按 1.12 折成售卖单价，并重算总金额。发货金额若仍等于旧售价，一并改掉。 */
+    var DEMO_SALE_QUOTE = {
+        SKU20001: { from: 2200000, to: '24640.00' },
+        SKU20002: { from: 1600000, to: '17920.00' },
+        SKU20003: { from: 1200000, to: '13440.00' },
+        SKU20004: { from: 3000, to: '33.60' },
+        SKU20005: { from: 1800000, to: '20160.00' },
+        SKU20006: { from: 1300000, to: '14560.00' },
+        SKU20007: { from: 1200000, to: '13440.00' },
+        SKU20008: { from: 1000000, to: '11200.00' },
+        SKU20009: { from: 800000, to: '8960.00' }
+    };
+
+    function refreshQuotedSales(item) {
+        if (!item) return false;
+        var touched = false;
+        (item.skus || []).forEach(function (sku) {
+            var spec = sku && DEMO_SALE_QUOTE[sku.code];
+            if (!spec || centsOf(sku.salePrice) !== spec.from) return;
+            sku.salePrice = spec.to;
+            touched = true;
+        });
+        (item.shipments || []).forEach(function (row) {
+            var spec = row && DEMO_SALE_QUOTE[row.skuCode];
+            if (!spec) return;
+            var qty = Number(row.qty);
+            if (!isFinite(qty) || qty < 0) qty = 0;
+            if (centsOf(row.amount) !== spec.from * qty) return;
+            row.amount = fromCents(centsOf(spec.to) * qty);
+            touched = true;
+        });
+        var goods = 0;
+        (item.skus || []).forEach(function (sku) {
+            var qty = Number(sku && sku.qty);
+            if (!isFinite(qty) || qty < 0) qty = 0;
+            goods += centsOf(sku && sku.salePrice) * qty;
+        });
+        var rates = productRates(item.installmentCode);
+        var traderPts = rates && rates.trader ? Math.round(Number(rates.trader) * 100) : null;
+        var nextAmount = traderPts > 0 ? fromCents(Math.round(goods * traderPts / 100)) : '';
+        var staleTotals = {
+            FQ00001: [8000000, 6000000, 6720000],
+            FQ00002: [7200000, 4800000, 5376000],
+            FQ00003: [4500000, 3600000, 4032000]
+        };
+        var stale = staleTotals[item.installmentCode] || [];
+        if (!touched && !(nextAmount && stale.indexOf(centsOf(item.amount)) >= 0)) return false;
+        if (nextAmount && item.amount !== nextAmount) {
+            item.amount = nextAmount;
+            touched = true;
+        }
+        return touched;
+    }
+
     function list() {
         var replaced = replaceLegacyFoodDemands();
         ensurePendingSeed();
@@ -823,6 +935,7 @@
                 item.amount = '2263.68';
                 changed = true;
             }
+            if (refreshQuotedSales(item)) changed = true;
             if (ensureAmountParts(item)) changed = true;
             if (ensureContract(item)) changed = true;
             if (ensureLogs(item)) changed = true;
@@ -843,7 +956,7 @@
                 var item = result && result.demandCode ? findDemand(rows, result.demandCode) : null;
                 if (!item) return;
                 ensureLogs(item);
-                pushLog(item, '生成上游交易单、下游交易单、冷丰服务费单', item.updater || '系统', item.updatedAt);
+                pushLog(item, '生成上游交易单、下游交易单', item.updater || '系统', item.updatedAt);
                 tradeMade = true;
             });
         }
@@ -1047,7 +1160,7 @@
             if (window.RbtTradeDocs && typeof window.RbtTradeDocs.ensureForDemand === 'function') {
                 var madeDocs = window.RbtTradeDocs.ensureForDemand(target, operator);
                 if (madeDocs && madeDocs.created) {
-                    pushLog(target, '生成上游交易单、下游交易单、冷丰服务费单', target.updater, target.updatedAt);
+                    pushLog(target, '生成上游交易单、下游交易单', target.updater, target.updatedAt);
                 }
             }
         }
@@ -1196,12 +1309,11 @@
         return text == null ? 0 : moneyNumber(text);
     }
 
-    /* 确认签约前，贸易商余额须覆盖本单实付。实付 = 门店应付 ÷ 贸易商系数。通过后与生成合同同一步冻结。演示只校验，不扣款。 */
+    /* 确认签约前，贸易商余额须覆盖本单应付。应付 = 商品金额。通过后与生成合同同一步冻结。演示只校验，不扣款。 */
     function traderBalanceCheck(code, trader) {
         var item = code && typeof code === 'object' ? code : get(code);
         var name = traderNameOf(trader);
-        var pack = item ? deductSettlement(item) : null;
-        var need = pack && pack.traderPaid ? moneyNumber(pack.traderPaid) : 0;
+        var need = item && item.goodsAmount ? moneyNumber(item.goodsAmount) : 0;
         var balance = traderBalanceOf(name);
         if (!item) return { ok: false, reason: 'missing', balance: balance, need: need };
         if (!(need > 0)) return { ok: false, reason: 'amount', balance: balance, need: need, demand: item };
@@ -1639,7 +1751,7 @@
         });
         goods = Math.round(goods);
         var rates = productRates(item.installmentCode);
-        var total = rates ? rateShare(goods, rates.store) : goods;
+        var total = rates ? rateShare(goods, rates.trader) : goods;
         if (total == null) total = goods;
         item.goodsAmount = fromCents(goods);
         item.amount = fromCents(total);
@@ -1959,6 +2071,7 @@
         receivables: receivables,
         deductSettlement: deductSettlement,
         deductQuote: deductQuote,
+        packageQuote: packageQuote,
         markupOf: markupOf,
         settlementRates: settlementRates,
         shipCatalog: function () { return SHIP_CATALOG.slice(); },

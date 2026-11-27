@@ -135,7 +135,7 @@
                 var demand = demandApi.get(code);
                 if (!demand) return;
                 closeDrawer();
-                detailApi.open(demand);
+                detailApi.open(demand, { manage: true });
             });
         });
     }

@@ -170,13 +170,13 @@
                                         <el-input class="rbt-package-sku__qty" v-model="row.qty" placeholder="请输入"></el-input>
                                     </template>
                                 </el-table-column>
-                                <el-table-column width="130">
-                                    <template #header><span class="rbt-package-sku__required">售卖单价</span></template>
+                                <el-table-column width="168">
+                                    <template #header><span class="rbt-package-sku__required">标准售卖单价</span></template>
                                     <template #default="{row}">
                                         <el-input class="rbt-package-sku__price" v-model="row.salePrice" placeholder="请输入"></el-input>
                                     </template>
                                 </el-table-column>
-                                <el-table-column label="售卖金额" width="110" align="right">
+                                <el-table-column label="标准售卖金额" width="140" align="right">
                                     <template #default="{row}"><span class="rbt-package-sku__amount">{{ saleAmount(row) }}</span></template>
                                 </el-table-column>
                                 <el-table-column label="是否可修改" width="150">

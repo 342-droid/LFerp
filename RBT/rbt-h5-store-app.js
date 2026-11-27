@@ -462,27 +462,27 @@
     var DEMO_INSTALLMENTS = [
         {
             code: 'FQ00001', name: '开业铺货日结', repayCycle: '日结', periods: [],
-            periodRatio: '10.00', storeRate: '1.60', repayMethod: '比例付',
+            periodRatio: '10.00', storeRate: '1.20', traderRate: '1.08', repayMethod: '比例付',
             amountMin: '20.00', amountMax: '50000', packages: ['汉言开业铺货包']
         },
         {
             code: 'FQ00004', name: '开业铺货加价', repayCycle: '日结', periods: [],
-            periodRatio: '10.00', storeRate: '1.70', repayMethod: '比例付',
+            periodRatio: '10.00', storeRate: '1.20', traderRate: '1.08', repayMethod: '比例付',
             amountMin: '20.00', amountMax: '50000', packages: []
         },
         {
             code: 'FQ00005', name: '开业铺货轻量', repayCycle: '日结', periods: [],
-            periodRatio: '10.00', storeRate: '1.30', repayMethod: '比例付',
+            periodRatio: '10.00', storeRate: '1.20', traderRate: '1.08', repayMethod: '比例付',
             amountMin: '20.00', amountMax: '50000', packages: []
         },
         {
             code: 'FQ00002', name: '门店形象日结', repayCycle: '日结', periods: [],
-            periodRatio: '8.00', storeRate: '1.80', repayMethod: '比例付',
+            periodRatio: '8.00', storeRate: '1.20', traderRate: '1.08', repayMethod: '比例付',
             amountMin: '50.00', amountMax: '100000', packages: ['门店形象配置包']
         },
         {
             code: 'FQ00003', name: '开业运营日结', repayCycle: '日结', periods: [],
-            periodRatio: '10.00', storeRate: '1.50', repayMethod: '比例付',
+            periodRatio: '10.00', storeRate: '1.20', traderRate: '1.08', repayMethod: '比例付',
             amountMin: '5.00', amountMax: '30000', packages: ['开业运营服务包']
         }
     ];
@@ -532,6 +532,14 @@
                     first = first.store != null && first.store !== '' ? first.store : first.trader;
                 }
                 return first == null || first === '' ? '' : String(first);
+            })(),
+            traderRate: (function () {
+                if (item.traderRate != null && item.traderRate !== '') return String(item.traderRate);
+                var first = sourcePeriods.length ? rates[sourcePeriods[0]] : null;
+                if (first && typeof first === 'object' && !Array.isArray(first) && first.trader != null && first.trader !== '') {
+                    return String(first.trader);
+                }
+                return '';
             })(),
             repayMethod: repayMethod,
             amountMin: item.amountMin,
@@ -723,24 +731,22 @@
         return Math.round(Number(value) * 100) / 100;
     }
 
-    /* 门店倍率：定额付取当期倍率，比例付取直接门店倍率。 */
-    function storeRateOf(plan, period) {
-        if (!plan) return 1;
-        var rate;
-        if (plan.repayMethod === '比例付') rate = Number(plan.storeRate);
-        else rate = Number((plan.periodRates || {})[String(period)] || 0);
-        if (!isFinite(rate) || rate <= 0) return 1;
+    /* 总金额 = 商品金额 × 贸易商系数。售价里已经含了门店系数与贸易商系数的折算。 */
+    function traderRateOf(plan) {
+        if (!plan) return null;
+        var rate = Number(plan.traderRate);
+        if (!isFinite(rate) || rate <= 0) return null;
         return rate;
     }
 
-    /* 总金额 = 商品售价合计 × 门店倍率。 */
-    function payableAmount(principal, plan, period) {
+    function payableAmount(principal, plan) {
         var P = Number(principal);
-        if (!isFinite(P) || P <= 0) return null;
-        return roundMoney(P * storeRateOf(plan, period));
+        var rate = traderRateOf(plan);
+        if (!isFinite(P) || P <= 0 || rate == null) return null;
+        return roundMoney(P * rate);
     }
 
-    /* 定额付预估每日结算货款：总金额（已含门店倍率）÷ 结算期数。 */
+    /* 定额付预估每日结算货款：总金额 ÷ 结算期数。 */
     function estimateDailyPay(principal, plan, period) {
         var n = Number(period);
         var total = payableAmount(principal, plan, period);
