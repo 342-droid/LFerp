@@ -1,10 +1,40 @@
 {
-  "latestSha": "d2092af49b8bfa5a49fad18d24205f67021cbe28",
-  "total": 666,
+  "latestSha": "5d114e7ea9479164363b4106a842d8e0c5600386",
+  "total": 667,
   "days": [
     {
       "date": "2026-11-27",
       "items": [
+        {
+          "sha": "5d114e7",
+          "type": "feat",
+          "text": "产品配置把冷丰实收提示标红",
+          "author": "342-droid",
+          "time": "23:27",
+          "pages": [
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "module": "冷丰WMS",
+              "title": "需求单审核"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_installment.html",
+              "text": "测算和新增、编辑试算里「冷丰实收不能小于或等于0」改为红色，其余试算说明保持原色"
+            }
+          ]
+        },
         {
           "sha": "d2092af",
           "type": "other",
