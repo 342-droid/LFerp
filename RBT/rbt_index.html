@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="../css/lf-contract.css?v=20261120-rbt-read">
     <style>
         .rbt-risk-tip { margin: 0 0 12px; }
-        .rbt-risk-cards { display: flex; gap: 12px; margin: 0 0 16px; }
+        .rbt-risk-cards { display: flex; gap: 12px; margin: 16px 0; }
         .rbt-risk-card { flex: 1; padding: 14px 16px; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; }
         .rbt-risk-card span { display: block; color: #909399; font-size: 13px; }
         .rbt-risk-card b { display: block; margin-top: 6px; font-size: 24px; line-height: 1.2; }
@@ -21,6 +21,7 @@
         .rbt-risk-block { margin: 0 0 20px; }
         .rbt-risk-block h3 { margin: 0 0 8px; font-size: 15px; }
         .rbt-risk-note { margin: 0 0 8px; color: #606266; font-size: 13px; line-height: 1.7; }
+        .rbt-risk-table-wrap { width: 100%; overflow-x: auto; }
         .rbt-risk-table { width: 100%; border-collapse: collapse; font-size: 13px; background: #fff; }
         .rbt-risk-table th,
         .rbt-risk-table td { border: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; vertical-align: top; }
@@ -51,24 +52,26 @@
 
             <section class="rbt-risk-block">
                 <h3>当前付款中</h3>
-                <p class="rbt-risk-note">剩余付款额 = 总金额 − 已付款金额。日均付款额是金额，生效基准列写明当前是静态基准还是动态基准。未达到关注条件的，等级是正常，不发异常提醒。</p>
+                <div class="rbt-risk-table-wrap">
                 <table class="rbt-risk-table">
                     <thead>
                         <tr>
-                            <th>门店</th><th>需求单号</th><th>连续未付款天数</th>
-                            <th>应付款</th><th>实际付款</th><th>剩余付款额</th>
-                            <th>日均付款额</th><th>生效基准</th><th>付款风险等级</th><th>最近未付款日期</th>
+                            <th>门店</th><th>付款单号</th><th>需求单号</th>
+                            <th>总金额</th><th>已付款金额</th><th>已结货款</th><th>已结服务费</th><th>剩余付款额</th>
+                            <th>在途</th><th>结款失败</th>
+                            <th>连续未付款天数</th><th>日均付款额</th><th>生效基准</th><th>付款风险等级</th><th>最近未付款日期</th>
                         </tr>
                     </thead>
                     <tbody id="rbtRiskLive"></tbody>
                 </table>
+                </div>
                 <h3 style="margin-top:16px;">异常提醒</h3>
                 <div id="rbtRiskAlerts"></div>
             </section>
 
             <section class="rbt-risk-block">
                 <h3>持续未付款时</h3>
-                <p class="rbt-risk-note">前三行沿用当前付款单已经发生的付款金额，只看连续天数会落到哪一档。最后一行是日均付款额低于异常线。这是评级样例，不改每日付款里的实际付款。</p>
+                <div class="rbt-risk-table-wrap">
                 <table class="rbt-risk-table">
                     <thead>
                         <tr>
@@ -78,6 +81,7 @@
                     </thead>
                     <tbody id="rbtRiskScenes"></tbody>
                 </table>
+                </div>
             </section>
         </main>
     </div>
@@ -89,8 +93,8 @@
     <script src="rbt-store-data.js"></script>
     <script src="rbt-settle-ratio.js"></script>
     <script src="rbt-demand-data.js"></script>
-    <script src="rbt-demand-detail.js?v=20261127-pos-pay"></script>
-    <script src="rbt-daily-fulfill.js?v=20261127-pos-pay"></script>
+    <script src="rbt-demand-detail.js?v=20261128-settle-status"></script>
+    <script src="rbt-daily-fulfill.js?v=20261128-settle-fail"></script>
     <script src="rbt-risk.js?v=20261126-posting"></script>
     <script>
         (function () {
@@ -105,7 +109,44 @@
             function yuan(value) {
                 return '¥' + esc(value);
             }
-            var live = api.liveRows();
+            var dataApi = window.RbtDemandData;
+            var dailyApi = window.RbtDailyFulfill;
+            function demandOf(code) {
+                return dataApi && dataApi.get ? dataApi.get(code) : null;
+            }
+            function ledgerOf(item) {
+                return item && dailyApi && typeof dailyApi.ledgerNo === 'function' ? (dailyApi.ledgerNo(item) || '') : '';
+            }
+            function payCounts(code) {
+                var rows = dailyApi && typeof dailyApi.partyRows === 'function' ? dailyApi.partyRows() : [];
+                var inflight = 0;
+                var failed = 0;
+                rows.forEach(function (row) {
+                    if (!row || row.demandCode !== code) return;
+                    if (row.settleStatus === '在途') inflight += 1;
+                    if (row.settleStatus === '结款失败') failed += 1;
+                });
+                return { inflight: inflight, failed: failed };
+            }
+            function moneyText(value) {
+                if (value == null || value === '' || value === '—') return '—';
+                var text = String(value);
+                return text.charAt(0) === '¥' ? esc(text) : ('¥' + esc(text));
+            }
+            var live = api.liveRows().map(function (row) {
+                var item = demandOf(row.demandCode);
+                var parts = item && dailyApi && typeof dailyApi.settledParts === 'function'
+                    ? dailyApi.settledParts(item, row.actual)
+                    : { goods: '', fee: '' };
+                var counts = payCounts(row.demandCode);
+                row.ledger = ledgerOf(item);
+                row.amount = item && item.amount;
+                row.goods = parts.goods;
+                row.fee = parts.fee;
+                row.inflight = counts.inflight;
+                row.failed = counts.failed;
+                return row;
+            });
             var counts = { '正常': 0, '关注': 0, '预警': 0, '异常': 0 };
             live.forEach(function (row) { counts[row.grade] = (counts[row.grade] || 0) + 1; });
             document.getElementById('rbtRiskCards').innerHTML = [
@@ -118,10 +159,18 @@
             }).join('');
 
             document.getElementById('rbtRiskLive').innerHTML = live.length ? live.map(function (row) {
-                return '<tr><td>' + esc(row.storeName) + '</td><td><button type="button" class="rbt-risk-link" data-demand="' + esc(row.demandCode) + '">' + esc(row.demandCode) + '</button></td>' +
-                    '<td>' + esc(row.streak) + '</td><td class="is-money">' + yuan(row.due) + '</td><td class="is-money">' + yuan(row.actual) + '</td>' +
-                    '<td class="is-money">' + yuan(row.gap) + '</td><td>' + esc(row.progress) + '</td><td>' + esc(row.baseline || '—') + '</td><td>' + tag(row.grade) + '</td><td>' + esc(row.lastMiss) + '</td></tr>';
-            }).join('') : '<tr><td class="is-empty" colspan="10">暂无付款中的需求</td></tr>';
+                return '<tr><td>' + esc(row.storeName) + '</td>' +
+                    '<td><button type="button" class="rbt-risk-link" data-ledger="' + esc(row.demandCode) + '">' + esc(row.ledger || '—') + '</button></td>' +
+                    '<td><button type="button" class="rbt-risk-link" data-demand="' + esc(row.demandCode) + '">' + esc(row.demandCode) + '</button></td>' +
+                    '<td class="is-money">' + moneyText(row.amount) + '</td>' +
+                    '<td class="is-money">' + moneyText(row.actual) + '</td>' +
+                    '<td class="is-money">' + moneyText(row.goods) + '</td>' +
+                    '<td class="is-money">' + moneyText(row.fee) + '</td>' +
+                    '<td class="is-money">' + moneyText(row.gap) + '</td>' +
+                    '<td>' + esc(row.inflight) + '</td><td>' + esc(row.failed) + '</td>' +
+                    '<td>' + esc(row.streak) + '</td><td>' + esc(row.progress) + '</td><td>' + esc(row.baseline || '—') + '</td>' +
+                    '<td>' + tag(row.grade) + '</td><td>' + esc(row.lastMiss) + '</td></tr>';
+            }).join('') : '<tr><td class="is-empty" colspan="15">暂无付款中的需求</td></tr>';
 
             var alerts = live.filter(function (row) { return row.grade !== '正常'; });
             document.getElementById('rbtRiskAlerts').innerHTML = alerts.length
@@ -138,12 +187,13 @@
             }).join('');
 
             document.getElementById('rbtRiskLive').addEventListener('click', function (event) {
-                var button = event.target.closest('[data-demand]');
+                var ledger = event.target.closest('[data-ledger]');
+                var demand = event.target.closest('[data-demand]');
+                var button = ledger || demand;
                 if (!button) return;
-                var code = button.getAttribute('data-demand');
-                var dataApi = window.RbtDemandData;
-                var item = dataApi && dataApi.get ? dataApi.get(code) : null;
-                if (item && window.RbtDemandDetail) window.RbtDemandDetail.open(item, { performance: true });
+                var code = button.getAttribute(ledger ? 'data-ledger' : 'data-demand');
+                var item = demandOf(code);
+                if (item && window.RbtDemandDetail) window.RbtDemandDetail.open(item, ledger ? { performance: true } : undefined);
             });
         })();
     </script>

@@ -48,13 +48,20 @@
             ? risk.assessDays(days, base, row.amount, row)
             : { actual: '', gap: '', progress: '—', baseline: '—', grade: '—' };
         if (dailyApi && typeof dailyApi.performanceFact === 'function') fact = dailyApi.performanceFact(row, fact);
+        var parts = dailyApi && typeof dailyApi.settledParts === 'function'
+            ? dailyApi.settledParts(row, fact.actual)
+            : { goods: '', fee: '' };
         return Object.assign({}, row, {
             fulfilledAmount: fact.actual,
+            settledGoods: parts.goods,
+            settledFee: parts.fee,
             fulfillGap: fact.gap,
             fulfillProgress: fact.progress,
             fulfillBaseline: fact.baseline || '—',
             riskGrade: fact.grade,
-            fulfillPhase: fact.phase || phase(row.status)
+            fulfillPhase: fact.phase || phase(row.status),
+            ledgerNo: dailyApi && typeof dailyApi.ledgerNo === 'function' ? dailyApi.ledgerNo(row) : '',
+            ledger: dailyApi && typeof dailyApi.ledgerNo === 'function' ? dailyApi.ledgerNo(row) : ''
         });
     }
 
@@ -62,7 +69,7 @@
         setup: function () {
             var table = ref(null);
             /* 页内模板会把 v-slot 表达式转成小写，风险等级的键用 riskgrade。 */
-            var slots = { code: 'cell-code', status: 'cell-status', riskgrade: 'cell-riskGrade' };
+            var slots = { code: 'cell-code', ledger: 'cell-ledger', status: 'cell-status', riskgrade: 'cell-riskGrade' };
             var gradeOptions = [
                 { label: '正常', value: '正常' },
                 { label: '关注', value: '关注' },
@@ -70,8 +77,36 @@
                 { label: '异常', value: '异常' }
             ];
 
+            function productOptions() {
+                var names = [];
+                function add(name) {
+                    var text = String(name || '').trim();
+                    if (!text || names.indexOf(text) >= 0) return;
+                    names.push(text);
+                }
+                var stored = [];
+                try {
+                    var raw = sessionStorage.getItem('rbt_installment_v3');
+                    var list = raw ? JSON.parse(raw) : null;
+                    if (Array.isArray(list)) stored = list;
+                } catch (e) {}
+                if (stored.length) {
+                    stored.forEach(function (item) {
+                        if (item && item.enabled !== false) add(item.name);
+                    });
+                } else {
+                    ['开业铺货日结', '开业铺货加价', '开业铺货轻量', '门店形象日结', '开业运营日结'].forEach(add);
+                }
+                (dataApi && dataApi.list ? dataApi.list() : []).forEach(function (item) {
+                    add(item && item.installmentName);
+                });
+                return names.map(function (name) { return { label: name, value: name }; });
+            }
+
             var columns = [
+                { dataIndex: 'ledger', title: '付款单号', minWidth: 168, search: { control: 'input' } },
                 { dataIndex: 'code', title: '需求单号', minWidth: 140, search: { control: 'input' } },
+                { dataIndex: 'installmentName', title: '产品', minWidth: 140, align: 'left', showOverflowTooltip: true, search: { control: 'select', options: productOptions(), placeholder: '请选择' }, formatter: function (row) { return show(row.installmentName); } },
                 { dataIndex: 'storeName', title: '门店', minWidth: 160, align: 'left', search: { control: 'input' } },
                 { dataIndex: 'storeCode', title: '门店编码', minWidth: 120 },
                 { dataIndex: 'traderName', title: '贸易商', minWidth: 180, align: 'left', showOverflowTooltip: true, search: { control: 'input' }, formatter: function (row) { return show(row.traderName); } },
@@ -80,6 +115,8 @@
                 { dataIndex: 'accountNoQuery', title: '收款账户', hideInTable: true, search: { control: 'input' } },
                 { dataIndex: 'amount', title: '总金额', minWidth: 120, formatter: function (row) { return blank(row.amount) ? '—' : ('¥' + row.amount); } },
                 { dataIndex: 'fulfilledAmount', title: '已付款金额', minWidth: 120, align: 'right', formatter: function (row) { return yuan(row.fulfilledAmount); } },
+                { dataIndex: 'settledGoods', title: '已结货款', minWidth: 120, align: 'right', formatter: function (row) { return yuan(row.settledGoods); } },
+                { dataIndex: 'settledFee', title: '已结服务费', minWidth: 120, align: 'right', formatter: function (row) { return yuan(row.settledFee); } },
                 { dataIndex: 'fulfillGap', title: '剩余付款额', minWidth: 120, align: 'right', formatter: function (row) { return yuan(row.fulfillGap); } },
                 { dataIndex: 'fulfillProgress', title: '日均付款额', minWidth: 120 },
                 { dataIndex: 'fulfillBaseline', title: '生效基准', minWidth: 180 },
@@ -121,6 +158,7 @@
                 var matched = (dataApi && dataApi.list ? dataApi.list() : []).filter(function (row) {
                     if (!row || !dailyApi.inPerformance(row.status)) return false;
                     if (!includesText(row.code, params.code)) return false;
+                    if (!blank(params.installmentName) && row.installmentName !== params.installmentName) return false;
                     if (!includesText(row.storeName, params.storeName) && !includesText(row.storeCode, params.storeName)) return false;
                     if (!includesText(row.traderName, params.traderName)) return false;
                     if (!includesText(row.providerName, params.providerName)) return false;
@@ -133,13 +171,25 @@
                         if (row.fulfillPhase !== want) return false;
                     }
                     if (!blank(params.riskGrade) && row.riskGrade !== params.riskGrade) return false;
+                    if (!includesText(row.ledger, params.ledger)) return false;
                     return true;
                 });
                 return Promise.resolve(paginate(matched, params));
             }
 
+            function demandItem(row) {
+                return dataApi && dataApi.get ? (dataApi.get(row && row.code) || row) : row;
+            }
+
+            function openDemand(row) {
+                var item = demandItem(row);
+                if (window.RbtDemandDetail && typeof window.RbtDemandDetail.open === 'function') {
+                    window.RbtDemandDetail.open(item);
+                }
+            }
+
             function openDetail(row) {
-                var item = dataApi && dataApi.get ? (dataApi.get(row && row.code) || row) : row;
+                var item = demandItem(row);
                 if (window.RbtDemandDetail && typeof window.RbtDemandDetail.open === 'function') {
                     window.RbtDemandDetail.open(item, { performance: true });
                 }
@@ -152,6 +202,7 @@
                 requestRows: requestRows,
                 statusType: statusType,
                 phase: phase,
+                openDemand: openDemand,
                 openDetail: openDetail
             };
         }

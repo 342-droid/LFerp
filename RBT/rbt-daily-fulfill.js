@@ -1,4 +1,5 @@
-/* 每日付款：商城、直播应付 = 已入账佣金 × 结算比例。POS 应付 =（经营流水 − 平台服务费）× 结算比例。不叫还款，不拆总金额，不预造未发生的日期。 */
+/* 每日付款：商城、直播应付 = 已入账佣金 × 结算比例。POS 应付 =（经营流水 − 平台服务费）× 结算比例。
+   扣率：门店按日只还给贸易商。平台服务费、服务商服务费在贸易商划转时一次结清，不从每日付款里拆。 */
 (function (global) {
     var SPAN_DEMO_FACTS = [
         { date: '2025-12-20', channel: 'POS', turnover: 540 },
@@ -61,6 +62,38 @@
 
     function manualKey(storeCode, code) {
         return String(storeCode || '') + '|' + String(code || '');
+    }
+
+    /* 一笔提交汇付失败的手动付款。付款子单已经生成，钱没有划出，不进已付款。 */
+    var DEMO_FAILED = {
+        code: 'XQ00023',
+        at: '2026-11-23 10:06:18',
+        cents: 5000,
+        channel: '支付宝'
+    };
+
+    function failedRows(item) {
+        if (!item || item.code !== DEMO_FAILED.code) return [];
+        var amount = (DEMO_FAILED.cents / 100).toFixed(2);
+        return [{
+            id: item.code + ':zfail:huifu',
+            date: String(DEMO_FAILED.at).slice(0, 10),
+            time: DEMO_FAILED.at,
+            storeCode: item.storeCode || '',
+            storeName: item.storeName || '',
+            demandCode: item.code,
+            channel: '手动付款',
+            kind: 'manual',
+            turnover: '',
+            commission: '',
+            ratio: '',
+            due: amount,
+            actual: '',
+            payMethod: DEMO_FAILED.channel,
+            source: '手动付款',
+            fundStatus: 'failed',
+            traderName: item.traderName || ''
+        }];
     }
 
     /* 门店原型固定带一笔已支付成功的提前支付，每日付款打开就能看到。按支付时间认这笔，不重复补。 */
@@ -130,14 +163,14 @@
                 storeCode: item.storeCode || '',
                 storeName: item.storeName || '',
                 demandCode: item.code,
-                channel: '提前支付',
+                channel: '手动付款',
                 turnover: '',
                 commission: '',
                 ratio: '—',
                 due: amount,
                 actual: amount,
                 payMethod: row.channel || '支付宝',
-                source: '提前支付',
+                source: '手动付款',
                 kind: 'manual'
             };
         });
@@ -330,80 +363,362 @@
         return Math.round(num * 100);
     }
 
-    /* 把一组付款额按贸易商、冷丰、服务商应收占比拆开。应收来自产品结算系数。一行三笔之和等于该行实际付款。 */
+    /* 扣率之后，每日付款整笔记给贸易商。平台服务费、服务商服务费不从这一笔里拆。 */
     function allocateShares(item, days) {
-        var keys = ['trader', 'lengfeng', 'provider'];
+        return (days || []).map(function (row) {
+            var base = row && row.due != null && row.due !== '' ? row.due : (row && row.actual);
+            var actual = Math.max(0, cents(base));
+            return {
+                id: row && row.id,
+                date: row && row.date,
+                time: (row && row.time) || '',
+                channel: row && row.channel,
+                kind: (row && row.kind) || '',
+                trader: (actual / 100).toFixed(2),
+                lengfeng: '0.00',
+                provider: '0.00'
+            };
+        });
+    }
+
+    /* 已到账金额按扣率拆成货款和贸易商服务费。货款对应贸易商实付，服务费对应贸易商收益。 */
+    function settledParts(item, amount) {
         var api = global.RbtDemandData;
-        var pack = api && typeof api.receivables === 'function' ? api.receivables(item) : null;
-        var weights = {};
-        var weightTotal = 0;
-        keys.forEach(function (key) {
-            weights[key] = Math.max(0, cents(pack && pack[key]));
-            weightTotal += weights[key];
+        var pack = api && typeof api.deductSettlement === 'function' ? api.deductSettlement(item) : null;
+        var total = cents(amount);
+        if (!(total > 0)) return { goods: '', fee: '' };
+        var store = cents(pack && pack.storePay);
+        var profit = Math.max(0, cents(pack && pack.profit));
+        if (!(store > 0)) return { goods: (total / 100).toFixed(2), fee: '0.00' };
+        var fee = Math.round(total * profit / store);
+        if (fee > total) fee = total;
+        if (fee < 0) fee = 0;
+        return { goods: ((total - fee) / 100).toFixed(2), fee: (fee / 100).toFixed(2) };
+    }
+
+    function sumField(rows, field) {
+        var total = 0;
+        var any = false;
+        (rows || []).forEach(function (row) {
+            if (!row || row[field] == null || row[field] === '') return;
+            any = true;
+            total += cents(row[field]);
         });
-        var actuals = days.map(function (row) {
-            var base = row.due != null && row.due !== '' ? row.due : row.actual;
-            return Math.max(0, cents(base));
+        return any ? (total / 100).toFixed(2) : '';
+    }
+
+    function feeStamp(item) {
+        var text = String((item && (item.paidAt || item.acceptedAt || item.updatedAt)) || '');
+        return { date: text.slice(0, 10), time: text };
+    }
+
+    function channelsOf(item) {
+        var channels = ((item && item.settleRatios) || []).map(function (row) {
+            return row && row.channel;
+        }).filter(Boolean);
+        if (!channels.length) channels = ['POS', '直播', '商城'];
+        return channels;
+    }
+
+    function ratioText(item, channel) {
+        var found = '';
+        ((item && item.settleRatios) || []).some(function (row) {
+            if (!row || row.channel !== channel || row.fallback == null || row.fallback === '') return false;
+            found = row.fallback;
+            return true;
         });
-        var pool = actuals.reduce(function (sum, value) { return sum + value; }, 0);
-        var shares = { trader: 0, lengfeng: 0, provider: 0 };
-        if (weightTotal && pool) {
-            var largest = keys[0];
-            keys.forEach(function (key) {
-                if (weights[key] >= weights[largest]) largest = key;
-            });
-            var used = 0;
-            keys.forEach(function (key) {
-                if (key === largest) return;
-                shares[key] = Math.floor(pool * weights[key] / weightTotal);
-                used += shares[key];
-            });
-            shares[largest] = pool - used;
+        if (!found) {
+            var ratio = channelRatio(item, channel);
+            return ratio ? Number(ratio).toFixed(2) + '%' : '';
         }
-        var remaining = { trader: shares.trader, lengfeng: shares.lengfeng, provider: shares.provider };
-        return days.map(function (row, index) {
-            var actual = actuals[index];
-            var parts = { trader: 0, lengfeng: 0, provider: 0 };
-            if (weightTotal && pool && index === days.length - 1) {
-                keys.forEach(function (key) { parts[key] = remaining[key]; });
-            } else if (weightTotal && pool) {
-                var assigned = 0;
-                keys.forEach(function (key) {
-                    var raw = Math.floor(actual * shares[key] / pool);
-                    if (raw > remaining[key]) raw = remaining[key];
-                    parts[key] = raw;
-                    assigned += raw;
-                });
-                var short = actual - assigned;
-                var order = keys.slice().sort(function (a, b) {
-                    return shares[b] - shares[a] || weights[b] - weights[a];
-                });
-                var guard = 0;
-                while (short > 0 && guard < actual + 5) {
-                    var progressed = false;
-                    var i;
-                    for (i = 0; i < order.length && short > 0; i++) {
-                        var key = order[i];
-                        if (remaining[key] - parts[key] <= 0) continue;
-                        parts[key] += 1;
-                        short -= 1;
-                        progressed = true;
-                    }
-                    guard += 1;
-                    if (!progressed) break;
-                }
-                keys.forEach(function (key) { remaining[key] -= parts[key]; });
+        var num = Number(String(found).replace('%', ''));
+        return isFinite(num) ? num.toFixed(2) + '%' : String(found);
+    }
+
+    /* 自动扣款才按渠道拆所得、比例、应付。手动付款和放款划拨没有渠道营业。 */
+    function channelFields(item, list, daily) {
+        var income = {};
+        var due = {};
+        var ratio = {};
+        channelsOf(item).forEach(function (channel) {
+            if (!daily) {
+                income[channel] = '';
+                due[channel] = '';
+                ratio[channel] = '';
+                return;
             }
+            var incomeCents = 0;
+            var dueCents = 0;
+            var hit = false;
+            (list || []).forEach(function (row) {
+                if (!row || row.channel !== channel) return;
+                hit = true;
+                incomeCents += cents(row.commission);
+                dueCents += cents(row.due);
+            });
+            income[channel] = hit ? (incomeCents / 100).toFixed(2) : '';
+            due[channel] = hit ? (dueCents / 100).toFixed(2) : '';
+            ratio[channel] = ratioText(item, channel);
+        });
+        return {
+            incomePos: income.POS || '',
+            incomeLive: income['直播'] || '',
+            incomeMall: income['商城'] || '',
+            ratioPos: ratio.POS || '',
+            ratioLive: ratio['直播'] || '',
+            ratioMall: ratio['商城'] || '',
+            duePos: due.POS || '',
+            dueLive: due['直播'] || '',
+            dueMall: due['商城'] || ''
+        };
+    }
+
+    /* 冷丰、服务商各一条，时间用贸易商划转（支付）时间。 */
+    function upfrontFeeRows(item) {
+        var api = global.RbtDemandData;
+        var pack = api && typeof api.deductSettlement === 'function' ? api.deductSettlement(item) : null;
+        var stamp = feeStamp(item);
+        if (!pack || !stamp.date) return [];
+        var rows = [];
+        function push(role, amountText) {
+            var amount = Number(amountText);
+            if (!(amount > 0)) return;
+            var lengfeng = role === 'lengfeng';
+            rows.push({
+                id: item.code + ':fee:' + role,
+                date: stamp.date,
+                time: stamp.time,
+                storeCode: item.storeCode || '',
+                storeName: item.storeName || '',
+                demandCode: item.code,
+                channel: '放款划拨',
+                kind: 'fee',
+                turnover: '',
+                commission: '',
+                ratio: '',
+                due: amount.toFixed(2),
+                actual: amount.toFixed(2),
+                payMethod: '放款划拨',
+                source: '放款划拨',
+                fundStatus: 'arrived',
+                traderName: item.traderName || '',
+                traderPay: '',
+                goodsPay: '',
+                feePay: '',
+                lengfengPay: lengfeng ? amount.toFixed(2) : '',
+                providerName: item.providerName || '',
+                providerPay: lengfeng ? '' : amount.toFixed(2)
+            });
+            Object.assign(rows[rows.length - 1], channelFields(item, [], false));
+        }
+        push('lengfeng', pack.lengfeng);
+        push('provider', pack.provider);
+        return rows;
+    }
+
+    /* 同一天各渠道合成一条，全部结给贸易商。手动付款仍单独成行。 */
+    function traderDayRows(item) {
+        var groups = {};
+        var order = [];
+        var manuals = [];
+        daysOf(item).forEach(function (row) {
+            if (!row) return;
+            if (row.kind === 'manual') {
+                manuals.push(row);
+                return;
+            }
+            if (!groups[row.date]) {
+                groups[row.date] = [];
+                order.push(row.date);
+            }
+            groups[row.date].push(row);
+        });
+        /* 在途也生成一条。付款子单号当时就有，结款、实际付款和通道流水到账后再写。 */
+        var daily = [];
+        order.forEach(function (date) {
+            var list = groups[date];
+            var arrived = list.filter(function (row) {
+                return row.fundStatus !== 'inflight' && row.actual !== '';
+            });
+            var pending = !arrived.length;
+            var basis = pending ? list : arrived;
+            var actual = pending ? '' : sumField(basis, 'actual');
+            var parts = pending ? { goods: '', fee: '' } : settledParts(item, actual);
+            var ratios = [];
+            basis.forEach(function (row) {
+                if (row.ratio && ratios.indexOf(row.ratio) < 0) ratios.push(row.ratio);
+            });
+            daily.push(Object.assign({
+                id: item.code + ':day:' + date,
+                date: date,
+                storeCode: item.storeCode || '',
+                storeName: item.storeName || '',
+                demandCode: item.code,
+                channel: '自动扣款',
+                kind: '',
+                turnover: sumField(basis, 'turnover'),
+                commission: sumField(basis, 'commission'),
+                ratio: ratios.length === 1 ? ratios[0] : '',
+                due: sumField(basis, 'due'),
+                actual: actual,
+                payMethod: AUTO_PAY_METHOD,
+                source: '获准营业事实',
+                fundStatus: pending ? 'inflight' : 'arrived',
+                traderName: item.traderName || '',
+                traderPay: actual,
+                goodsPay: parts.goods,
+                feePay: parts.fee,
+                lengfengPay: '',
+                providerName: item.providerName || '',
+                providerPay: ''
+            }, channelFields(item, basis, true)));
+        });
+        failedRows(item).forEach(function (row) { manuals.push(row); });
+        return daily.concat(manuals.map(function (row) {
+            var failed = row.fundStatus === 'failed';
+            var amount = failed ? '' : (row.actual || row.due || '');
+            var parts = failed ? { goods: '', fee: '' } : settledParts(item, amount);
             return {
                 id: row.id,
                 date: row.date,
                 time: row.time || '',
-                channel: row.channel,
-                kind: row.kind || '',
-                trader: (parts.trader / 100).toFixed(2),
-                lengfeng: (parts.lengfeng / 100).toFixed(2),
-                provider: (parts.provider / 100).toFixed(2)
+                storeCode: row.storeCode,
+                storeName: row.storeName,
+                demandCode: row.demandCode,
+                channel: '手动付款',
+                kind: 'manual',
+                turnover: '',
+                commission: '',
+                ratio: '',
+                due: row.due,
+                actual: failed ? '' : row.actual,
+                payMethod: row.payMethod || '',
+                source: row.source || '手动付款',
+                fundStatus: failed ? 'failed' : 'arrived',
+                traderName: item.traderName || '',
+                traderPay: amount,
+                goodsPay: parts.goods,
+                feePay: parts.fee,
+                lengfengPay: '',
+                providerName: item.providerName || '',
+                providerPay: ''
             };
+        }).map(function (row) {
+            return Object.assign(row, channelFields(item, [], false));
+        }));
+    }
+
+    function paidRow(row) {
+        return row && row.actual != null && String(row.actual).trim() !== '';
+    }
+
+    /* 结款失败是这笔子单提交时平台或汇付出错，钱没有划出。已结款才有通道流水和实际付款。 */
+    function settleStatus(row) {
+        if (row && row.fundStatus === 'failed') return '结款失败';
+        return paidRow(row) ? '已结款' : '在途';
+    }
+
+    function hashDigits(seed, length) {
+        var text = String(seed || '');
+        var x = 2166136261;
+        var i;
+        for (i = 0; i < text.length; i++) {
+            x ^= text.charCodeAt(i);
+            x = Math.imul(x, 16777619);
+        }
+        var digits = '';
+        x = x >>> 0;
+        while (digits.length < length) {
+            x = (Math.imul(x, 1664525) + 1013904223) >>> 0;
+            digits += String(100000000 + (x % 100000000)).slice(1);
+        }
+        return digits.slice(0, length);
+    }
+
+    /* 付款单号 FK 加 5 位编码，中间不带横杠。付款子单号再接日期和当天序号，同样连成一串数字。 */
+    function paySerial(item) {
+        var code = String((item && (item.code || item.demandCode)) || '').replace(/\D/g, '');
+        if (!code) return '';
+        while (code.length < 5) code = '0' + code;
+        return code.slice(-5);
+    }
+
+    /* 自动扣款从门店钱包余额扣。手动付款才是支付宝、微信或钱包。放款划拨不记付款账户。 */
+    function payAccountText(channel, payMethod) {
+        if (channel === '自动扣款') return '钱包余额';
+        var tool = String(payMethod || '').trim();
+        if (tool === '余额账户') return '钱包';
+        if (tool === '支付宝' || tool === '微信' || tool === '钱包') return tool;
+        return '';
+    }
+
+    function ledgerNo(item) {
+        var serial = paySerial(item);
+        return serial ? ('FK' + serial) : '';
+    }
+
+    /* 同一张付款单、同一天的子单从 1 往下排。 */
+    function subIndex(row, rows) {
+        var mates = (rows || []).filter(function (item) {
+            return item.demandCode === row.demandCode && item.date === row.date;
+        }).sort(function (a, b) {
+            var left = String(a.id || '');
+            var right = String(b.id || '');
+            if (left === right) return 0;
+            return left < right ? -1 : 1;
+        });
+        var index = 1;
+        mates.forEach(function (item, i) {
+            if (item.id === row.id) index = i + 1;
+        });
+        return index > 9 ? 9 : index;
+    }
+
+    function payDoc(row, rows) {
+        var serial = paySerial(row);
+        var day = String(row.date || '').replace(/\D/g, '');
+        var short = day.length >= 8 ? day.slice(2, 8) : day;
+        return {
+            payNo: serial && short ? ('FK' + serial + short + subIndex(row, rows)) : '',
+            channelFlow: paidRow(row) ? ('003100TOP3B' + hashDigits(row.id + ':flow', 18)) : ''
+        };
+    }
+
+    /* 列表按结款方拆开：贸易商、冷丰、服务商各一条，不再把三方结款并在同一行。 */
+    function partyRows() {
+        var rows = detailRows();
+        return rows.map(function (row) {
+            var role = '贸易商';
+            var name = row.traderName || '';
+            var amount = row.traderPay || '';
+            var goods = row.goodsPay || '';
+            var fee = row.feePay || '';
+            if (row.kind === 'fee' && row.lengfengPay) {
+                role = '冷丰';
+                name = '上海冷丰科技有限公司';
+                amount = row.lengfengPay;
+                goods = '';
+                fee = amount;
+            } else if (row.kind === 'fee') {
+                role = '服务商';
+                name = row.providerName || '';
+                amount = row.providerPay || '';
+                goods = '';
+                fee = amount;
+            }
+            var doc = payDoc(row, rows);
+            return Object.assign({}, row, {
+                payeeRole: role,
+                payeeName: name,
+                settleAmount: amount,
+                goodsPay: goods,
+                feePay: fee,
+                payNo: doc.payNo,
+                channelFlow: doc.channelFlow,
+                payWay: row.channel || '',
+                payAccount: payAccountText(row.channel, row.payMethod),
+                settleStatus: settleStatus(row)
+            });
         });
     }
 
@@ -426,33 +741,14 @@
         });
     }
 
-    /* 付款明细：一行是一天、一个渠道，结款是当日实际付款拆给贸易商、冷丰、服务商的金额。 */
+    /* 付款明细：贸易商按日一条；冷丰、服务商各一条放款划拨，不按日重复。 */
     function detailRows() {
         var api = global.RbtDemandData;
         var list = api && typeof api.list === 'function' ? api.list() : [];
         var out = [];
         list.forEach(function (item) {
             if (!item || !inPerformance(item.status)) return;
-            var shares = {};
-            payeeSplit(item).forEach(function (share) {
-                shares[share.id || (share.date + ':' + share.channel)] = share;
-            });
-            daysOf(item).forEach(function (row) {
-                var share = shares[row.id] || shares[row.date + ':' + row.channel] || { trader: '0.00', lengfeng: '0.00', provider: '0.00' };
-                out.push({
-                    id: row.id,
-                    date: row.date,
-                    storeCode: row.storeCode,
-                    storeName: row.storeName,
-                    demandCode: row.demandCode,
-                    channel: row.channel,
-                    traderName: item.traderName || '',
-                    traderPay: share.trader,
-                    lengfengPay: share.lengfeng,
-                    providerName: item.providerName || '',
-                    providerPay: share.provider
-                });
-            });
+            out = out.concat(upfrontFeeRows(item), traderDayRows(item));
         });
         out.sort(function (a, b) {
             if (a.date !== b.date) return a.date < b.date ? 1 : -1;
@@ -495,6 +791,7 @@
         postedBase: postedBase,
         manualCents: manualCents,
         manualRows: manualLedgerRows,
+        failedRows: failedRows,
         appendManual: appendManual,
         phaseLabel: phaseLabel,
         phaseOf: phaseOf,
@@ -506,6 +803,10 @@
         daysOf: daysOf,
         rows: rows,
         detailRows: detailRows,
+        partyRows: partyRows,
+        ledgerNo: ledgerNo,
+        payAccountText: payAccountText,
+        settledParts: settledParts,
         sumDue: sumDue,
         payeeSplit: payeeSplit
     };

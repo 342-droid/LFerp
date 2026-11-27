@@ -137,12 +137,27 @@
     }
 
     /* 付款详情里同一角色的应收、已结款合成一组：上面角色名，下面左应收、右已结款。 */
+    /* 付款详情的表跟打开它的页面走。异常付款页原先没有这套表样式，这里随详情带上，和付款页一致。 */
     function ensureAmountGroupStyle() {
-        if (document.getElementById('rbtAmountGroupStyle')) return;
         var node = document.createElement('style');
         node.id = 'rbtAmountGroupStyle';
-        node.textContent = '.rbt-demand-table th.rbt-amount-group{text-align:center;}' +
-            '.rbt-demand-table thead th[rowspan]{vertical-align:middle;}';
+        node.textContent =
+            '.rbt-demand-table-wrap{width:100%;overflow-x:auto;}' +
+            '.rbt-demand-table{width:100%;border-collapse:collapse;font-size:13px;}' +
+            '.rbt-demand-table th,.rbt-demand-table td{border:1px solid #e5e7eb;padding:8px 10px;text-align:left;white-space:nowrap;}' +
+            '.rbt-demand-table th{background:#f7f8fa;font-weight:600;color:#303133;}' +
+            '.rbt-demand-table td.is-money,.rbt-demand-table th.is-money{text-align:right;}' +
+            '.rbt-demand-table td.is-empty{text-align:center;color:#909399;}' +
+            '.rbt-demand-table th.rbt-amount-group{text-align:center;}' +
+            '.rbt-demand-table thead th[rowspan]{vertical-align:middle;}' +
+            '.rbt-daily-flow{display:inline-flex;align-items:center;gap:4px;max-width:100%;}' +
+            '.rbt-daily-flow__text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
+            '.rbt-daily-flow__copy{flex:none;display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;padding:0;border:0;background:transparent;color:#909399;cursor:pointer;}' +
+            '.rbt-daily-flow__copy:hover{color:#155bd4;}';
+        if (document.getElementById('rbtAmountGroupStyle')) {
+            document.getElementById('rbtAmountGroupStyle').textContent = node.textContent;
+            return;
+        }
         document.head.appendChild(node);
     }
 
@@ -224,41 +239,24 @@
     }
 
     function settledOf(item) {
-        /* 门店回款整笔记给贸易商。冷丰和服务商在贸易商支付时结清，不从日后回款里再拆。 */
-        var pack = {
-            trader: Number(receivableOf(item, 'trader')) || 0,
-            lengfeng: 0,
-            provider: 0
-        };
+        /* 门店回款整笔记给贸易商。冷丰、服务商在贸易商划转时一次结清，已结款等于应收。 */
         var days = window.RbtDailyFulfill && typeof window.RbtDailyFulfill.daysOf === 'function'
             ? window.RbtDailyFulfill.daysOf(item)
             : [];
         var pool = (days || []).reduce(function (total, row) {
             return total + (Number(row.actual) || 0);
         }, 0);
-        var keys = ['trader', 'lengfeng', 'provider'];
-        var cents = {};
-        var totalCents = 0;
-        keys.forEach(function (key) {
-            cents[key] = Math.max(0, Math.round(pack[key] * 100));
-            totalCents += cents[key];
-        });
-        var poolCents = Math.max(0, Math.round(pool * 100));
-        var out = { trader: '0.00', lengfeng: '0.00', provider: '0.00' };
-        if (!totalCents || !poolCents) return out;
-        var largest = 'trader';
-        keys.forEach(function (key) {
-            if (cents[key] >= cents[largest]) largest = key;
-        });
-        var used = 0;
-        keys.forEach(function (key) {
-            if (key === largest) return;
-            var part = Math.floor(poolCents * cents[key] / totalCents);
-            used += part;
-            out[key] = (part / 100).toFixed(2);
-        });
-        out[largest] = ((poolCents - used) / 100).toFixed(2);
-        return out;
+        function sameAsReceivable(key) {
+            var value = receivableOf(item, key);
+            if (value == null || String(value).trim() === '') return '';
+            var num = Number(value);
+            return isFinite(num) ? num.toFixed(2) : '';
+        }
+        return {
+            trader: pool.toFixed(2),
+            lengfeng: sameAsReceivable('lengfeng'),
+            provider: sameAsReceivable('provider')
+        };
     }
 
     function payeesOf(item) {
@@ -731,47 +729,82 @@
 
     function dailyPanel(item) {
         var api = window.RbtDailyFulfill;
-        var rows = api && typeof api.daysOf === 'function' ? api.daysOf(item).slice() : [];
-        rows.sort(function (a, b) {
-            if (a.date !== b.date) return a.date < b.date ? 1 : -1;
-            return String(a.channel) < String(b.channel) ? -1 : 1;
-        });
-        var shares = api && typeof api.payeeSplit === 'function' ? api.payeeSplit(item) : [];
-        var shareByKey = {};
-        shares.forEach(function (share) {
-            shareByKey[share.id || (share.date + ':' + share.channel)] = share;
-        });
+        var days = api && typeof api.daysOf === 'function' ? api.daysOf(item) : [];
+        var rows = api && typeof api.partyRows === 'function'
+            ? api.partyRows().filter(function (row) { return row && item && row.demandCode === item.code; })
+            : [];
         var partyCents = { trader: 0, lengfeng: 0, provider: 0 };
+        var channels = [
+            { key: 'Pos', label: 'POS' },
+            { key: 'Live', label: '直播' },
+            { key: 'Mall', label: '商城' }
+        ];
+        function addCents(key, value) {
+            partyCents[key] += Math.round((Number(value) || 0) * 100);
+        }
+        function flowCell(value) {
+            var text = String(value || '').trim();
+            if (!text) return '<td>—</td>';
+            return '<td><span class="rbt-daily-flow"><span class="rbt-daily-flow__text" title="' + esc(text) + '">' + esc(text) +
+                '</span><button type="button" class="rbt-daily-flow__copy" data-rbt-flow-copy="' + esc(text) + '" aria-label="复制通道流水">' +
+                '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">' +
+                '<rect x="5.2" y="5.2" width="8" height="8" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.2"></rect>' +
+                '<path d="M3.2 10.6H2.8A1.2 1.2 0 0 1 1.6 9.4V2.8A1.2 1.2 0 0 1 2.8 1.6H9.4A1.2 1.2 0 0 1 10.6 2.8V3.4" fill="none" stroke="currentColor" stroke-width="1.2"></path>' +
+                '</svg></button></span></td>';
+        }
+        function moneyCells(values) {
+            return values.map(function (value) {
+                return '<td class="is-money">' + money(value) + '</td>';
+            }).join('');
+        }
         var body = rows.length
             ? rows.map(function (row) {
-                var share = shareByKey[row.id] || shareByKey[row.date + ':' + row.channel] || { trader: '0.00', lengfeng: '0.00', provider: '0.00' };
-                partyCents.trader += Math.round((Number(share.trader) || 0) * 100);
-                partyCents.lengfeng += Math.round((Number(share.lengfeng) || 0) * 100);
-                partyCents.provider += Math.round((Number(share.provider) || 0) * 100);
+                if (row.payeeRole === '冷丰') addCents('lengfeng', row.settleAmount);
+                else if (row.payeeRole === '服务商') addCents('provider', row.settleAmount);
+                else addCents('trader', row.settleAmount);
                 return (
-                    '<tr><td>' + esc(row.date) + '</td><td>' + esc(row.channel) +
-                    '</td><td class="is-money">' + esc(row.turnover ? ('¥' + row.turnover) : '—') +
-                    '</td><td class="is-money">' + esc(row.commission ? ('¥' + row.commission) : '—') +
-                    '</td><td>' + esc(row.ratio) +
-                    '</td><td class="is-money">¥' + esc(row.due) +
-                    '</td><td class="is-money">¥' + esc(row.actual) +
-                    '</td><td>' + esc(row.payMethod || (api && api.autoPayMethod) || '营业收入自动扣款') +
-                    '</td><td class="is-money">¥' + esc(share.trader) +
-                    '</td><td class="is-money">¥' + esc(share.lengfeng) +
-                    '</td><td class="is-money">¥' + esc(share.provider) + '</td></tr>'
+                    '<tr><td>' + esc(row.date) +
+                    '</td><td>' + esc(row.payNo || '—') +
+                    '</td><td>' + esc(row.settleStatus || '—') +
+                    '</td>' + flowCell(row.channelFlow) +
+                    '<td>' + esc(row.payeeRole || '—') +
+                    '</td><td>' + esc(row.payeeName || '—') +
+                    '</td><td>' + esc(row.payWay || row.channel || '—') +
+                    '</td><td>' + esc(row.payAccount || '—') +
+                    '</td><td class="is-money">' + money(row.turnover) +
+                    '</td>' + moneyCells([row.commission, row.incomePos, row.incomeLive, row.incomeMall]) +
+                    channels.map(function (channel) {
+                        return '<td>' + esc(row['ratio' + channel.key] || '—') + '</td>';
+                    }).join('') +
+                    moneyCells([row.due, row.duePos, row.dueLive, row.dueMall]) +
+                    '<td class="is-money">' + money(row.actual) +
+                    '</td>' + moneyCells([row.settleAmount, row.goodsPay, row.feePay]) +
+                    '</tr>'
                 );
             }).join('')
-            : '<tr><td class="is-empty" colspan="11">暂无已发生的每日付款。</td></tr>';
+            : '<tr><td class="is-empty" colspan="24">暂无已发生的付款。</td></tr>';
+        ensureAmountGroupStyle();
         return (
             '<div class="supplier-detail-tab">' +
-            '<p class="rbt-daily-note">本单已经发生的每日付款。一行是一天、一个渠道。应付款：商城、直播为已入账佣金乘结算比例，POS 为经营流水扣除平台服务费后乘结算比例。当日实际付款按贸易商、冷丰、服务商应收占比拆成三方收款，三笔之和等于当日实际付款。没有服务商时，服务商收款为 0。未发生的日期不出现。' +
-            '<a class="rbt-daily-note__more" href="rbt_daily_fulfill.html">全部门店每日付款</a></p>' +
-            dailySummary(item, rows, partyCents) +
-            '<div class="supplier-detail-section-title">每日明细</div>' +
-            '<div class="rbt-demand-table-wrap"><table class="rbt-demand-table"><thead><tr>' +
-            '<th>日期</th><th>渠道</th><th class="is-money">营业流水</th><th class="is-money">所得佣金</th><th>结算比例</th>' +
-            '<th class="is-money">应付款</th><th class="is-money">实际付款</th><th>支付方式</th>' +
-            '<th class="is-money">贸易商收款</th><th class="is-money">冷丰收款</th><th class="is-money">服务商收款</th>' +
+            dailySummary(item, days, partyCents) +
+            '<div class="supplier-detail-section-title">付款明细</div>' +
+            '<div class="rbt-demand-table-wrap"><table class="rbt-demand-table"><thead>' +
+            '<tr>' +
+            '<th rowspan="2">日期</th><th rowspan="2">付款子单号</th><th rowspan="2">结款状态</th><th rowspan="2">通道流水</th>' +
+            '<th rowspan="2">角色</th><th rowspan="2">收款方名称</th><th rowspan="2">支付方式</th><th rowspan="2">付款账户</th>' +
+            '<th class="is-money" rowspan="2">营业流水</th>' +
+            '<th class="rbt-amount-group" colspan="4">所得收入</th>' +
+            '<th class="rbt-amount-group" colspan="3">结算比例</th>' +
+            '<th class="rbt-amount-group" colspan="4">应付款</th>' +
+            '<th class="is-money" rowspan="2">实际付款</th>' +
+            '<th class="rbt-amount-group" colspan="3">结款</th>' +
+            '</tr><tr>' +
+            '<th class="is-money">总额</th>' +
+            channels.map(function (channel) { return '<th class="is-money">' + esc(channel.label) + '</th>'; }).join('') +
+            channels.map(function (channel) { return '<th>' + esc(channel.label) + '</th>'; }).join('') +
+            '<th class="is-money">应付</th>' +
+            channels.map(function (channel) { return '<th class="is-money">' + esc(channel.label) + '</th>'; }).join('') +
+            '<th class="is-money">已结</th><th class="is-money">货款</th><th class="is-money">服务费</th>' +
             '</tr></thead><tbody>' + body + '</tbody></table></div></div>'
         );
     }
@@ -786,30 +819,46 @@
         if (window.RbtDailyFulfill && typeof window.RbtDailyFulfill.performanceFact === 'function') {
             fact = window.RbtDailyFulfill.performanceFact(item, fact);
         }
+        var parts = window.RbtDailyFulfill && typeof window.RbtDailyFulfill.settledParts === 'function'
+            ? window.RbtDailyFulfill.settledParts(item, fact.actual)
+            : { goods: '', fee: '' };
         var grades = { '正常': 1, '关注': 1, '预警': 1, '异常': 1 };
         var grade = fact.grade && grades[fact.grade]
             ? '<span class="rbt-risk-tag is-' + fact.grade + '">' + esc(fact.grade) + '</span>'
             : esc(fact.grade || '—');
+        /* 已付款下面：已付、货款、服务费。已付是门店已经付给贸易商的合计，等于货款加服务费。 */
+        ensureAmountGroupStyle();
         var cells = [
-            money(item && item.amount),
-            money(fact.due),
-            money(fact.actual),
-            money(fact.gap),
-            fact.progress || '—',
-            fact.baseline || '—',
-            null,
-            money(partyCents.trader / 100),
-            money(partyCents.lengfeng / 100),
-            money(partyCents.provider / 100)
+            { text: money(item && item.amount), money: true },
+            { text: money(fact.due), money: true },
+            { text: money(fact.actual), money: true },
+            { text: money(parts.goods), money: true },
+            { text: money(parts.fee), money: true },
+            { text: money(fact.gap), money: true },
+            { text: fact.progress || '—', money: false },
+            { text: fact.baseline || '—', money: false },
+            { html: grade, money: false },
+            { text: money(partyCents.trader / 100), money: true },
+            { text: money(partyCents.lengfeng / 100), money: true },
+            { text: money(partyCents.provider / 100), money: true }
         ];
-        var titles = ['总金额', '应付款', '已付款金额', '剩余付款额', '日均付款额', '生效基准', '付款风险等级', '贸易商收款', '冷丰收款', '服务商收款'];
-        var head = '<tr>' + titles.map(function (title, index) {
-            return '<th' + (index === 4 || index === 5 || index === 6 ? '' : ' class="is-money"') + '>' + title + '</th>';
-        }).join('') + '</tr>';
-        var body = '<tr>' + cells.map(function (value, index) {
-            if (index === 6) return '<td>' + grade + '</td>';
-            var moneyCell = index !== 4 && index !== 5;
-            return '<td' + (moneyCell ? ' class="is-money"' : '') + '>' + esc(value) + '</td>';
+        var head = '<tr>' +
+            '<th class="is-money" rowspan="2">总金额</th>' +
+            '<th class="is-money" rowspan="2">应付款</th>' +
+            '<th class="rbt-amount-group" colspan="3">已付款</th>' +
+            '<th class="is-money" rowspan="2">剩余付款额</th>' +
+            '<th rowspan="2">日均付款额</th>' +
+            '<th rowspan="2">生效基准</th>' +
+            '<th rowspan="2">付款风险等级</th>' +
+            '<th class="is-money" rowspan="2">贸易商收款</th>' +
+            '<th class="is-money" rowspan="2">冷丰收款</th>' +
+            '<th class="is-money" rowspan="2">服务商收款</th>' +
+            '</tr><tr>' +
+            '<th class="is-money">已付</th><th class="is-money">货款</th><th class="is-money">服务费</th>' +
+            '</tr>';
+        var body = '<tr>' + cells.map(function (cell) {
+            if (cell.html) return '<td>' + cell.html + '</td>';
+            return '<td' + (cell.money ? ' class="is-money"' : '') + '>' + esc(cell.text) + '</td>';
         }).join('') + '</tr>';
         return '<div class="supplier-detail-section-title">付款汇总</div>' +
             '<div class="rbt-demand-table-wrap"><table class="rbt-demand-table"><thead>' + head +
@@ -1385,6 +1434,30 @@
         }
     }
 
+    function copyChannelFlow(value) {
+        var text = String(value || '').trim();
+        if (!text) return;
+        function done() {
+            if (typeof window.showToast === 'function') window.showToast('通道流水已复制', 'success');
+        }
+        function fallback() {
+            var input = document.createElement('textarea');
+            input.value = text;
+            input.setAttribute('readonly', 'readonly');
+            input.style.position = 'fixed';
+            input.style.left = '-9999px';
+            document.body.appendChild(input);
+            input.select();
+            try { document.execCommand('copy'); done(); } catch (error) {}
+            input.remove();
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(done).catch(fallback);
+            return;
+        }
+        fallback();
+    }
+
     function open(item, options) {
         if (!item) return;
         if (!(options && options.keepAudit)) {
@@ -1393,7 +1466,12 @@
         var performance = !!(options && options.performance);
         var manage = !!(options && options.manage);
         manageView = manage;
+        ensureAmountGroupStyle();
         var title = performance ? '付款详情' : '需求单详情';
+        var dailyApi = window.RbtDailyFulfill;
+        var headNo = performance && dailyApi && typeof dailyApi.ledgerNo === 'function'
+            ? (dailyApi.ledgerNo(item) || item.code)
+            : item.code;
         var statusText = displayStatus(item, performance);
         closeDrawer();
         var backdrop = document.createElement('div');
@@ -1409,8 +1487,9 @@
             '<div class="store-drawer__header"><h2 class="store-drawer__title">' + esc(title) + '</h2>' +
             '<button type="button" class="store-drawer__close" data-rbt-demand-close aria-label="关闭">&times;</button></div>' +
             '<div class="store-drawer__hero store-drawer__hero--elevated">' +
-            '<div class="store-drawer__name-row"><span class="store-drawer__name">' + esc(item.code) + '</span>' +
+            '<div class="store-drawer__name-row"><span class="store-drawer__name">' + esc(headNo) + '</span>' +
             '<span class="mdm-detail-tag mdm-detail-tag--' + statusKind(item.status) + '">' + esc(statusText) + '</span></div>' +
+            (performance ? '<div class="store-drawer__meta">需求单号：' + esc(item.code) + '</div>' : '') +
             '<div class="store-drawer__meta">门店：' + esc(item.storeName) + '（' + esc(item.storeCode) + '）</div>' +
             '<div class="store-drawer__meta">商品包：' + esc(item.packageName) + '（' + esc(item.packageCode) + '）</div></div>' +
             '<div class="store-drawer__tabs store-drawer__tabs--sticky" id="rbtDemandTabs">' +
@@ -1442,6 +1521,11 @@
             var button = event.target.closest('[data-tab]');
             if (!button) return;
             show(button.getAttribute('data-tab'));
+        });
+        body.addEventListener('click', function (event) {
+            var copy = event.target.closest('[data-rbt-flow-copy]');
+            if (!copy) return;
+            copyChannelFlow(copy.getAttribute('data-rbt-flow-copy') || '');
         });
         show('base');
         if (auditSession) bindAuditFooter(drawer);

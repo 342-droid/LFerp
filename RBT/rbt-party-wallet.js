@@ -31,7 +31,7 @@
         '622588': 'cmb',
         '622262': 'comm'
     };
-    /* 原型支出，落在近 30 天内。提现是提到收款账户；划转是签完合同后把货款付给冷丰供应链。 */
+    /* 原型支出，落在近 30 天内。贸易商提现是提到收款账户，划转是签完合同后把货款付给冷丰供应链。服务商只提现，金额不超过已入账服务费。 */
     var DEMO_MOVEMENTS = {
         '杭州鲜达贸易有限公司': {
             withdraw: [
@@ -48,6 +48,13 @@
             ],
             transfer: [
                 { code: 'XQ00016', amount: 40000, time: '2026-11-07 09:22:05' }
+            ]
+        },
+        '宁波海丰商业保理有限公司': {
+            withdraw: [
+                { id: 'withdraw:demo:provider:20261125', amount: 600, time: '2026-11-25 14:48:02' },
+                { id: 'withdraw:demo:provider:20261118', amount: 800, time: '2026-11-18 10:05:36' },
+                { id: 'withdraw:demo:provider:20261112', amount: 1200, time: '2026-11-12 16:20:18' }
             ]
         }
     };
@@ -180,12 +187,38 @@
             (row.fundStatus === 'inflight' || row.fundStatus === 'frozen' || row.fundStatus === 'missing' || row.fundStatus === 'pending_freeze');
     }
 
-    /* 各渠道、各需求先汇总进门店钱包，再从门店余额按打款节点打出。同一门店同一天只入账一笔。 */
+    /* 服务商服务费在贸易商划转时一次入账，不再按日拆。 */
+    function providerFeeLines(name) {
+        var api = global.RbtDemandData;
+        if (!name || !api || typeof api.list !== 'function') return [];
+        var out = [];
+        (api.list() || []).forEach(function (item) {
+            if (!item || item.providerName !== name) return;
+            if (item.status !== '门店付款中' && item.status !== '还款中' && item.status !== '已完成') return;
+            var pack = typeof api.deductSettlement === 'function' ? api.deductSettlement(item) : null;
+            var amount = round2(pack && pack.provider);
+            if (!(amount > 0)) return;
+            var when = item.paidAt || '';
+            if (!when) return;
+            out.push({
+                id: 'receipt:fee:' + item.code,
+                time: when,
+                dir: 'in',
+                title: item.storeName ? ('结款入账 · ' + item.storeName) : '结款入账',
+                amount: amount,
+                kind: 'receipt'
+            });
+        });
+        return out;
+    }
+
+    /* 各渠道、各需求先汇总进门店钱包，再从门店余额按打款节点打出。同一门店同一天只入账一笔。服务商不走这条。 */
     function receiptLines(role, name) {
+        if (role === 'provider') return providerFeeLines(name);
         var api = global.RbtDemandData;
         var daily = global.RbtDailyFulfill;
         if (!name || !api || typeof api.list !== 'function' || !daily || typeof daily.payeeSplit !== 'function') return [];
-        var field = role === 'provider' ? 'provider' : 'trader';
+        var field = 'trader';
         var batches = {};
         var batchOrder = [];
         (api.list() || []).forEach(function (item) {
@@ -667,12 +700,12 @@
             chip('自定义', mode === 'custom', 'data-ov-mode', 'custom') +
             '</div>' +
             (mode === 'custom' ? dateFields(from, to, 'data-ov-from', 'data-ov-to', 'data-ov-apply') : '') +
-            '<p class="rbt-party-note">已结款按到账日，待结款按营业日，提前支付按支付日。只汇总结款明细里的金额。</p>' +
+            '<p class="rbt-party-note">已结款按到账日，待结款按营业日，手动付款按支付日。只汇总结款明细里的金额。</p>' +
             '<div class="rbt-party-hero"><span>已结款</span><b>¥' + (waiting ? '—' : comma(settled)) + '</b></div>' +
             '<div class="rbt-party-metrics">' +
             '<div><span>待结款</span><b>' + (waiting ? '—' : ('¥' + comma(pending))) + '</b></div>' +
-            '<div><span>当日支付</span><b>' + (waiting ? '—' : ('¥' + comma(daily))) + '</b></div>' +
-            '<div><span>提前支付</span><b>' + (waiting ? '—' : ('¥' + comma(manual))) + '</b></div>' +
+            '<div><span>' + esc(opts.dailyLabel || '自动扣款') + '</span><b>' + (waiting ? '—' : ('¥' + comma(daily))) + '</b></div>' +
+            '<div><span>' + esc(opts.manualLabel || '手动付款') + '</span><b>' + (waiting ? '—' : ('¥' + comma(manual))) + '</b></div>' +
             '</div>' + body + '</section>';
     }
 
@@ -780,6 +813,8 @@
         var role = opts.role === 'provider' ? 'provider' : 'trader';
         var view = snapshot(role, opts.name);
         var pane = opts.pane === 'recharge' || opts.pane === 'withdraw' || opts.pane === 'bind' ? opts.pane : 'main';
+        /* 服务商钱包只提现，不提供充值。 */
+        if (role === 'provider' && pane === 'recharge') pane = 'main';
         var account = opts.account || {};
         var draft = String(opts.draft || '');
         if (pane === 'bind') return bindHtml(opts);
@@ -823,7 +858,7 @@
             '<div><b>' + comma(view.balance) + '</b><em>总金额</em></div>' +
             '<div><b>' + comma(view.withdrawable) + '</b><em>可提现金额</em></div></div>' +
             '<div class="rbt-party-actions">' +
-            '<button type="button" data-wallet-go="recharge">充值</button>' +
+            (role === 'provider' ? '' : '<button type="button" data-wallet-go="recharge">充值</button>') +
             '<button type="button" class="is-primary" data-wallet-go="withdraw">提现</button></div>' +
             (opts.note ? '<p class="rbt-party-note">' + esc(opts.note) + '</p>' : '') +
             '<div class="rbt-party-ledger-head"><strong>账户明细</strong>' + timePill(range, from, to, !!opts.timeOpen) + '</div>' +
