@@ -65,6 +65,16 @@
     return skus.reduce(function (total, sku) { return total + sku.remain; }, 0);
   }
 
+  function renderSkuRows(channel, item) {
+    if (!item || (parseInt(item.specCount, 10) || 1) <= 1) return '';
+    return skuRows(channel, item).map(function (sku) {
+      return '<tr class="product-proxy-table__row product-sku-row" data-stock-parent-code="' + item.code + '" hidden>' +
+        '<td></td><td></td><td class="product-proxy-table__td product-proxy-table__td--code"><span class="product-proxy-code__sub">' + sku.code + '</span></td>' +
+        '<td colspan="3"></td><td class="product-proxy-table__td product-proxy-table__td--spec">' + sku.spec + '</td><td colspan="3"></td>' +
+        '<td class="product-proxy-table__td product-proxy-table__td--stock"><span class="product-stock-value">' + sku.remain + '</span></td><td colspan="5"></td></tr>';
+    }).join('');
+  }
+
   function operationRows(channel, item, remain) {
     if (remain == null) return [];
     var fulfillRemark = channel === 'mall'
@@ -103,6 +113,8 @@
   window.ProductStock = {
     remainOf: remainOf,
     maintainsStock: maintainsStock,
+    skuRows: skuRows,
+    renderSkuRows: renderSkuRows,
     render: function (channel, item) {
       var remain = remainOf(item, channel);
       if (remain == null) {
@@ -146,6 +158,17 @@
       var bubble = helpBubble();
       if (bubble && !bubble.hidden) closeHelp();
       else openHelp(help);
+      return;
+    }
+    var expand = event.target.closest('[data-stock-expand]');
+    if (expand) {
+      var code = expand.getAttribute('data-stock-expand');
+      var open = expand.getAttribute('aria-expanded') !== 'true';
+      document.querySelectorAll('[data-stock-parent-code]').forEach(function (row) {
+        if (row.getAttribute('data-stock-parent-code') === code) row.hidden = !open;
+      });
+      expand.setAttribute('aria-expanded', open ? 'true' : 'false');
+      expand.textContent = open ? '⌃' : '⌄';
       return;
     }
     if (!event.target.closest('#productStockHelp')) closeHelp();

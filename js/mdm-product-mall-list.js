@@ -957,7 +957,7 @@
             (window.MdmProductListBatch ? window.MdmProductListBatch.cell(item.code) : '') +
             '<td class="product-proxy-table__td product-proxy-table__td--name">' + item.name + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--code">' +
-            '  <div class="product-proxy-code">' + item.code + '</div>' +
+            '  <div class="product-proxy-code">' + (item.specCount > 1 ? '<button type="button" class="product-stock-expand" data-stock-expand="' + item.code + '" aria-expanded="false" aria-label="展开' + item.code + '各 SKU 库存">⌄</button>' : '') + item.code + '</div>' +
             '  <div class="product-proxy-code__sub">' + item.specCount + '个规格</div>' +
             '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--img">' +
@@ -977,7 +977,7 @@
             renderSaleTimeCell(item) +
             '<td class="product-proxy-table__td product-proxy-table__td--status">' + renderStatus(item.status) + '</td>' +
             '<td class="product-proxy-table__td product-proxy-table__td--action">' + renderActions(item) + '</td>' +
-            '</tr>'
+            '</tr>' + (window.ProductStock ? window.ProductStock.renderSkuRows('mall', item) : '')
           );
         })
         .join('');
