@@ -1,10 +1,74 @@
 {
-  "latestSha": "024f94d058646c6f75c075319375ebdfdf5b7147",
-  "total": 679,
+  "latestSha": "22d38171e4820fbaf4b4eb6796430dcb83f7d827",
+  "total": 680,
   "days": [
     {
       "date": "2026-11-28",
       "items": [
+        {
+          "sha": "22d3817",
+          "type": "other",
+          "text": "同步供应商经营与结款数据中心原型到主分支",
+          "author": "u ｌ",
+          "time": "21:21",
+          "pages": [
+            {
+              "file": "store-app/h5/biz-commission.html",
+              "module": "",
+              "title": "佣金明细 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/biz-supplier-home.html",
+              "module": "",
+              "title": "数据中心 · 供应商"
+            },
+            {
+              "file": "store-app/h5/home.html",
+              "module": "",
+              "title": "丰银宝 · 工作台"
+            },
+            {
+              "file": "store-app/h5/supplier-aftersale-detail.html",
+              "module": "",
+              "title": "售后详情 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-aftersale-logistics.html",
+              "module": "",
+              "title": "物流跟踪 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-aftersale.html",
+              "module": "",
+              "title": "售后管理 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-order-detail.html",
+              "module": "",
+              "title": "订单详情 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-orders.html",
+              "module": "",
+              "title": "客户订单 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-settle-bill-detail.html",
+              "module": "",
+              "title": "结款详情 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-settle-ledger-detail.html",
+              "module": "",
+              "title": "清分明细 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/supplier-settle.html",
+              "module": "",
+              "title": "结款中心 · 丰银宝"
+            }
+          ]
+        },
         {
           "sha": "024f94d",
           "type": "other",
@@ -3952,7 +4016,7 @@
             {
               "file": "store-app/h5/supplier-settle.html",
               "module": "",
-              "title": "结算中心 · 丰银宝"
+              "title": "结款中心 · 丰银宝"
             },
             {
               "file": "user-app/h5/cart.html",
@@ -4014,8 +4078,12 @@
               "text": "合同字段补上零售、代采两套结算策略"
             },
             {
-              "file": "store-app/h5/supplier-settle.html",
-              "text": "清分卡片去掉状态摘要，时间放在查看详情左侧；退款后按剩余实付显示清分净额"
+              "file": "MDM/mdm_settle_index.html",
+              "text": "结算中心 · 丰银宝: 清分卡片去掉状态摘要，时间放在查看详情左侧"
+            },
+            {
+              "file": null,
+              "text": "退款后按剩余实付显示清分净额"
             },
             {
               "file": "store-app/h5/supplier-settle-ledger-detail.html",
@@ -13121,7 +13189,7 @@
             {
               "file": "store-app/h5/supplier-settle.html",
               "module": "",
-              "title": "结算中心 · 丰银宝"
+              "title": "结款中心 · 丰银宝"
             },
             {
               "file": "store-app/h5/verify.html",
@@ -17639,7 +17707,7 @@
             {
               "file": "store-app/h5/supplier-settle.html",
               "module": "",
-              "title": "结算中心 · 丰银宝"
+              "title": "结款中心 · 丰银宝"
             }
           ],
           "notes": [
@@ -17875,7 +17943,7 @@
             {
               "file": "store-app/h5/supplier-settle.html",
               "module": "",
-              "title": "结算中心 · 丰银宝"
+              "title": "结款中心 · 丰银宝"
             }
           ],
           "global": true,
@@ -17905,8 +17973,16 @@
               "text": "新增售后单/退款单列表与详情、物流跟踪；处理售后直达售后详情"
             },
             {
-              "file": "store-app/h5/supplier-settle.html",
-              "text": "清分明细去掉清分状态筛选行；去掉组织副标题"
+              "file": "store-app/h5/home.html",
+              "text": "结算中心 · 丰银宝: 清分明细去掉清分状态筛选行"
+            },
+            {
+              "file": "store-app/h5/supplier-settle-ledger-detail.html",
+              "text": "结算中心 · 丰银宝: 清分明细去掉清分状态筛选行"
+            },
+            {
+              "file": null,
+              "text": "去掉组织副标题"
             },
             {
               "file": null,
@@ -18029,7 +18105,7 @@
             {
               "file": "store-app/h5/supplier-settle.html",
               "module": "",
-              "title": "结算中心 · 丰银宝"
+              "title": "结款中心 · 丰银宝"
             },
             {
               "file": "user-app/h5/checkout.html",
@@ -18105,8 +18181,8 @@
               "text": "履约确认后按完成日+周期出结算；售后期结束才取整单售后期最大值；字段去掉「平台默认」备注"
             },
             {
-              "file": "store-app/h5/supplier-settle.html",
-              "text": "结算信息说明对齐上述起算拆分"
+              "file": "MDM/mdm_settle_index.html",
+              "text": "结算中心 · 丰银宝: 结算信息说明对齐上述起算拆分"
             },
             {
               "file": "user-app/h5/order-detail-pickup.html",
@@ -19578,7 +19654,7 @@
             {
               "file": "store-app/h5/supplier-settle.html",
               "module": "",
-              "title": "结算中心 · 丰银宝"
+              "title": "结款中心 · 丰银宝"
             }
           ],
           "global": true,
@@ -19612,8 +19688,16 @@
               "text": "零售/代采一级筛选、状态与时间快捷筛选，状态文案对齐 PC，补齐各状态演示数据与发货售后详情"
             },
             {
-              "file": "store-app/h5/supplier-settle.html",
-              "text": "清分/结款详情页，订单号可跳转客户订单；去掉汇付余额口径文案，结算说明改为结算信息"
+              "file": "MDM/mdm_settle_index.html",
+              "text": "结算中心 · 丰银宝: 清分/结款详情页，订单号可跳转客户订单"
+            },
+            {
+              "file": "store-app/h5/home.html",
+              "text": "结算中心 · 丰银宝: 清分/结款详情页，订单号可跳转客户订单"
+            },
+            {
+              "file": null,
+              "text": "去掉汇付余额口径文案，结算说明改为结算信息"
             },
             {
               "file": "store-app/h5/contracts.html",
@@ -20180,7 +20264,7 @@
             {
               "file": "store-app/h5/supplier-settle.html",
               "module": "",
-              "title": "结算中心 · 丰银宝"
+              "title": "结款中心 · 丰银宝"
             },
             {
               "file": "store-app/h5/verify.html",
