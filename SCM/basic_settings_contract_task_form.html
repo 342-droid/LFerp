@@ -24,7 +24,7 @@
             <hr class="content-divider">
 
             <div class="mdm-biz-tip" role="note">
-                一次提交只创建<strong>一条</strong>法大大签署任务，对应一份签署模板。模板里的文档全部带上，不能再勾进第二份模板。自动触发的模板会在入驻审核通过后单独发起。补充协议不随入驻发出。未设自动触发的模板可以在这里改选后手动发起。相对方未授权也可以提交，打开链接时再实名。创建时参与方或控件与模板不一致，任务不会落库。
+                一次提交只创建<strong>一条</strong>法大大签署任务，对应一份签署模板。模板里的文档全部带上，不能再勾进第二份模板。RBT 需求签署在此直接创建，不判断需求单是否已点确认签约。相对方未授权也可以提交，打开链接时再实名。
             </div>
 
             <section class="pts-rule-card">
@@ -53,7 +53,28 @@
                             <div class="ct-field-tip" id="ctTaskTplTip">一次只选一份模板。自动触发默认选中。补充协议标为变更确认后触发，也可以在这里改选后补发。</div>
                         </div>
                     </div>
-                    <div class="pts-rule-field">
+                    <div class="pts-rule-field" id="ctTaskDemandRow" style="display:none">
+                        <div class="pts-rule-field__label"><span class="erp-req">*</span>需求单号</div>
+                        <div class="pts-rule-field__control">
+                            <input class="erp-input" id="ctTaskDemandCode" maxlength="40" placeholder="如 XQ00023" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="pts-rule-field" id="ctTaskStoreRow" style="display:none">
+                        <div class="pts-rule-field__label"><span class="erp-req">*</span>需求门店</div>
+                        <div class="pts-rule-field__control"><select class="erp-select" id="ctTaskStore"></select></div>
+                    </div>
+                    <div class="pts-rule-field" id="ctTaskTraderRow" style="display:none">
+                        <div class="pts-rule-field__label"><span class="erp-req">*</span>贸易商</div>
+                        <div class="pts-rule-field__control"><select class="erp-select" id="ctTaskTrader"></select></div>
+                    </div>
+                    <div class="pts-rule-field" id="ctTaskSupplyRow" style="display:none">
+                        <div class="pts-rule-field__label"><span class="erp-req">*</span>冷丰供应链</div>
+                        <div class="pts-rule-field__control">
+                            <input class="erp-input" value="冷丰供应链" readonly>
+                            <div class="ct-field-tip">使用平台印章自动签，不用再选主体。</div>
+                        </div>
+                    </div>
+                    <div class="pts-rule-field" id="ctTaskPartyRow">
                         <div class="pts-rule-field__label"><span class="erp-req">*</span>签署相对方</div>
                         <div class="pts-rule-field__control">
                             <select class="erp-select" id="ctTaskParty"></select>
@@ -89,6 +110,6 @@
         </main>
     </div>
     <script src="../js/common.js"></script>
-    <script src="../js/basic-settings-contract.js?v=20261117-entry-audit"></script>
+    <script src="../js/basic-settings-contract.js?v=20261128-rbt-manual-free"></script>
 </body>
 </html>

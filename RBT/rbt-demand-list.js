@@ -266,7 +266,7 @@
                 return dataApi.setStatus(code, '待付款', '冷丰供应链');
             }
 
-            /* 待签署在当前页弹出。冷丰供应链在此确认采购合同，门店和贸易商在各自端签署。 */
+            /* 待签署在当前页查看。采购合同冷丰供应链自动签，门店和贸易商在各自端签署。 */
             function goSign(row) {
                 if (!canGoSign(row) || !row.code) return;
                 var item = dataApi.get(row.code) || row;
