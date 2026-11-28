@@ -942,7 +942,7 @@
                     rateRange: rateText(current),
                     settleRatios: current.settleRatios || [],
                     amountRange: amountText(current),
-                    packages: packageText(current),
+                    packageNames: Array.isArray(current.packages) ? current.packages.filter(Boolean) : [],
                     creator: show(current.creator),
                     createdAt: show(current.createdAt),
                     updater: show(current.updater),

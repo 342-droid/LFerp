@@ -591,9 +591,34 @@
 
     var packageTagOptions = tagOptions();
 
+    function findPackageByName(name) {
+        var text = String(name || '').trim();
+        if (!text) return null;
+        var found = null;
+        read().some(function (item) {
+            if (item && item.name === text) {
+                found = item;
+                return true;
+            }
+            return false;
+        });
+        return found;
+    }
+
+    function detailOf(pkg) {
+        if (!pkg) return null;
+        return Object.assign({}, pkg, {
+            skuItems: normalizeSkus(pkg.skus).map(skuView),
+            storeText: scopeText(pkg),
+            totalText: packageTotalText(pkg)
+        });
+    }
+
     /* 需求单代发要按门店取商品包。只在商品包页挂表格，别的页面引入脚本时不挂载。 */
     window.RbtPackageData = {
         get: findPackage,
+        findByName: findPackageByName,
+        detailOf: detailOf,
         list: function () { return read(); },
         forStore: function (storeCode) {
             return read().filter(function (item) {
@@ -605,6 +630,13 @@
                     skus: normalizeSkus(item.skus).map(skuView)
                 };
             });
+        },
+        /* 产品详情等外链：按编码或名称打开商品包详情。 */
+        openDetail: function (codeOrName) {
+            var pkg = findPackage(codeOrName) || findPackageByName(codeOrName);
+            if (!pkg || !window.RbtPackageDetail || typeof window.RbtPackageDetail.open !== 'function') return false;
+            window.RbtPackageDetail.open(detailOf(pkg));
+            return true;
         }
     };
     if (!document.getElementById('rbtPackageApp')) return;

@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/components.css">
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
+    <link rel="stylesheet" href="../css/lf-business-tags.css">
     <link rel="stylesheet" href="../vendor/octopus-prototype-runtime/runtime.css">
     <link rel="stylesheet" href="../vendor/octopus-prototype-runtime/theme.css">
     <style>
@@ -53,6 +54,31 @@
         .rbt-store-log__who { width: 120px; white-space: nowrap; }
         .rbt-store-log__time { width: 180px; white-space: nowrap; color: #606266; }
         .rbt-store-log__empty { text-align: center; color: #909399; padding: 28px 12px; }
+        .rbt-demand-table-wrap { width: 100%; overflow-x: auto; }
+        .rbt-demand-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .rbt-demand-table th,
+        .rbt-demand-table td { border: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; white-space: nowrap; }
+        .rbt-demand-table th { background: #f7f8fa; font-weight: 600; color: #303133; }
+        .rbt-demand-table td.is-money,
+        .rbt-demand-table th.is-money { text-align: right; }
+        .rbt-demand-table td.is-empty { text-align: center; color: #909399; }
+        .rbt-installment-pkg-link {
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: #1677ff;
+            font: inherit;
+            cursor: pointer;
+        }
+        .rbt-installment-pkg-link:hover { text-decoration: underline; }
+        .rbt-package-sku-table-wrap { width: 100%; overflow-x: auto; }
+        .rbt-package-sku-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .rbt-package-sku-table th,
+        .rbt-package-sku-table td { border: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; white-space: nowrap; }
+        .rbt-package-sku-table th { background: #f7f8fa; font-weight: 600; color: #303133; }
+        .rbt-package-sku-table td.is-money,
+        .rbt-package-sku-table th.is-money { text-align: right; }
+        .rbt-package-sku-table td.is-empty { text-align: center; color: #909399; }
     </style>
 </head>
 <body>
@@ -246,9 +272,14 @@
     <script src="rbt-fresh.js"></script>
     <script src="rbt-demand-data.js"></script>
     <script src="../js/common.js"></script>
+    <script src="../js/business-tag-prototype-store.js"></script>
+    <script src="../js/business-tag-prototype-ui.js"></script>
+    <script src="rbt-store-data.js"></script>
     <script src="rbt-settle-ratio.js"></script>
     <script src="../vendor/octopus-prototype-runtime/runtime.js"></script>
-    <script src="rbt-installment-detail.js"></script>
-    <script src="rbt-installment.js"></script>
+    <script src="rbt-product-package-detail.js"></script>
+    <script src="rbt-product-package.js"></script>
+    <script src="rbt-installment-detail.js?v=20261128-pkg-table"></script>
+    <script src="rbt-installment.js?v=20261128-pkg-table"></script>
 </body>
 </html>
