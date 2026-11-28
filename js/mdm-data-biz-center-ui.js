@@ -213,7 +213,7 @@
 
     html += '<div class="ldb-meta" data-ldb-meta></div>';
     html +=
-      '<button type="button" class="btn btn-secondary" data-open-glossary style="height:32px;padding:0 12px;">指标释义</button>';
+      '<button type="button" class="btn btn-secondary" data-open-glossary style="height:32px;padding:0 12px;">指标说明</button>';
     if (opts.showExport !== false) {
       html +=
         '<button type="button" class="btn btn-secondary" data-export data-lf-skip-export-notify style="height:32px;padding:0 12px;">导出</button>';
@@ -440,7 +440,7 @@
         return '<dt>' + esc(g.name) + '</dt><dd>' + esc(g.text) + '</dd>';
       }).join('') +
       '</dl>';
-    Ui.showDrawer('指标释义', body);
+    Ui.showDrawer('指标说明', body);
   }
 
   function toast(msg) {

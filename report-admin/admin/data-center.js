@@ -131,7 +131,7 @@
       '<input type="date" data-from max="' + asOfDay + '" value="' + from + '"><span>至</span>' +
       '<input type="date" data-to max="' + asOfDay + '" value="' + to + '">' +
       '<button type="button" data-custom-apply>应用</button><span data-date-error></span></div>' +
-      '<small>数据截止 ' + Center.AS_OF.replace('T', ' ').replace('+08:00', '') + '（北京时间）· 原型示例数据</small></section>';
+      '<small>数据截止 ' + Center.AS_OF.replace('T', ' ').replace('+08:00', '') + '（北京时间）</small></section>';
     main.innerHTML =
       '<div class="dc-page-head"><h1>平台经营总概览</h1><p>平台总 GMV = 食亨POS GMV + ERP GMV + 抖音 GMV（有数据时）。退款后净 GMV = GMV - 成功退款金额。</p></div>' +
       dateControls +

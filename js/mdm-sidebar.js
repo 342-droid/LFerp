@@ -131,15 +131,6 @@
         { href: 'mdm_data_biz_marketing.html', text: '营销活动' }
     ];
 
-    const workbenchItems = [
-        {
-            href: '../report-admin/admin/index.html',
-            text: '数据中台',
-            raw: true,
-            target: '_blank'
-        }
-    ];
-
     function groupHasActive(items) {
         return items.some(function (item) { return hrefMatchesCurrentPage(item.href); });
     }
@@ -196,8 +187,8 @@
 
     var itemsHtml;
     if (isWorkbenchPage) {
-        /** ERP 工作台二级入口；数据中台在独立标签页中打开。 */
-        itemsHtml = renderCollapsibleGroup('工作台', '任务管理', workbenchItems, true);
+        /** 保留 ERP 工作台侧栏，仅隐藏数据中台子入口。 */
+        itemsHtml = renderCollapsibleGroup('工作台', '任务管理', [], true);
     } else if (isAuditPage) {
         /** 顶栏「审核中心」独立入口：仅在该模块页面展示侧栏审核菜单 */
         itemsHtml =
