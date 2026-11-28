@@ -1,10 +1,318 @@
 {
-  "latestSha": "8ea921a0614b6dfce40d107c18de1f802412dd50",
-  "total": 675,
+  "latestSha": "96a54301a86712accb8702595b71869988a9a623",
+  "total": 677,
   "days": [
     {
       "date": "2026-11-28",
       "items": [
+        {
+          "sha": "96a5430",
+          "type": "other",
+          "text": "移植数据中台原型与看板调整到main",
+          "author": "u ｌ",
+          "time": "17:41",
+          "pages": [
+            {
+              "file": "MDM/mdm_data_biz_erp.html",
+              "module": "冷丰WMS",
+              "title": "ERP经营分析 · 经营数据中台"
+            },
+            {
+              "file": "MDM/mdm_data_biz_marketing.html",
+              "module": "冷丰WMS",
+              "title": "营销活动 · 经营数据中台"
+            },
+            {
+              "file": "MDM/mdm_data_biz_overview.html",
+              "module": "冷丰WMS",
+              "title": "经营总览 · 经营数据中台"
+            },
+            {
+              "file": "MDM/mdm_data_biz_pos.html",
+              "module": "冷丰WMS",
+              "title": "食亨POS · 经营数据中台"
+            },
+            {
+              "file": "MDM/mdm_data_biz_pos_mapping.html",
+              "module": "冷丰WMS",
+              "title": "ERP与食亨门店关系 · 经营数据中台"
+            },
+            {
+              "file": "MDM/mdm_data_biz_rbt.html",
+              "module": "冷丰WMS",
+              "title": "RBT · 经营数据中台"
+            },
+            {
+              "file": "MDM/mdm_data_biz_store_detail.html",
+              "module": "冷丰WMS",
+              "title": "单店经营详情 · 经营数据中台"
+            },
+            {
+              "file": "MDM/mdm_data_biz_stores.html",
+              "module": "冷丰WMS",
+              "title": "门店分析 · 经营数据中台"
+            },
+            {
+              "file": "MDM/mdm_data_biz_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商分析 · 经营数据中台"
+            },
+            {
+              "file": "MDM/mdm_workbench.html",
+              "module": "冷丰WMS",
+              "title": "工作台"
+            },
+            {
+              "file": "report-admin/admin/index.html",
+              "module": "",
+              "title": "数据中台"
+            },
+            {
+              "file": "store-app/h5/biz-bd-alerts.html",
+              "module": "",
+              "title": "经营提醒 · BD"
+            },
+            {
+              "file": "store-app/h5/biz-bd-center.html",
+              "module": "",
+              "title": "数据中心 · BD"
+            },
+            {
+              "file": "store-app/h5/biz-bd-commission-list.html",
+              "module": "",
+              "title": "佣金明细 · BD"
+            },
+            {
+              "file": "store-app/h5/biz-bd-commission.html",
+              "module": "",
+              "title": "佣金分析 · BD"
+            },
+            {
+              "file": "store-app/h5/biz-bd-home.html",
+              "module": "",
+              "title": "数据中心 · BD"
+            },
+            {
+              "file": "store-app/h5/biz-bd-store.html",
+              "module": "",
+              "title": "门店详情 · BD"
+            },
+            {
+              "file": "store-app/h5/biz-bd-stores.html",
+              "module": "",
+              "title": "门店业务 · BD"
+            },
+            {
+              "file": "store-app/h5/biz-center.html",
+              "module": "",
+              "title": "数据中心 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/biz-commission.html",
+              "module": "",
+              "title": "佣金明细 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/biz-operate.html",
+              "module": "",
+              "title": "运营数据 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/biz-ops.html",
+              "module": "",
+              "title": "经营数据 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/biz-order-goods.html",
+              "module": "",
+              "title": "订单商品明细 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/biz-rbt.html",
+              "module": "",
+              "title": "RBT 付款账单 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/biz-restock-report.html",
+              "module": "",
+              "title": "进货概况 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/biz-revenue.html",
+              "module": "",
+              "title": "营业额 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "module": "",
+              "title": "门店订单 · 丰银宝"
+            }
+          ],
+          "global": true
+        },
+        {
+          "sha": "2397e41",
+          "type": "feat",
+          "text": "合同管理支持 RBT 需求签署，采购合同冷丰自动签",
+          "author": "sisi",
+          "time": "17:38",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "module": "冷丰WMS",
+              "title": "需求单审核"
+            },
+            {
+              "file": "RBT/rbt_admit_store.html",
+              "module": "冷丰RBT",
+              "title": "门店准入管理"
+            },
+            {
+              "file": "RBT/rbt_contract_sign.html",
+              "module": "冷丰RBT",
+              "title": "合同签署"
+            },
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日付款"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "付款"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常付款数据"
+            },
+            {
+              "file": "RBT/rbt_risk_config.html",
+              "module": "冷丰RBT",
+              "title": "风控配置"
+            },
+            {
+              "file": "RBT/rbt_trade.html",
+              "module": "冷丰RBT",
+              "title": "交易单"
+            },
+            {
+              "file": "SCM/basic_settings_contract_config.html",
+              "module": "冷丰WMS",
+              "title": "接入配置"
+            },
+            {
+              "file": "SCM/basic_settings_contract_party.html",
+              "module": "冷丰WMS",
+              "title": "签署主体"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task.html",
+              "module": "冷丰WMS",
+              "title": "签署任务"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_detail.html",
+              "module": "冷丰WMS",
+              "title": "签署任务详情"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template.html",
+              "module": "冷丰WMS",
+              "title": "合同模板"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template_form.html",
+              "module": "冷丰WMS",
+              "title": "合同模板配置"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "SCM/basic_settings_contract_template.html",
+              "text": "新增 RBT需求签署，销售合同和采购合同各一份模板"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template_form.html",
+              "text": "门店合作的入驻审核和进件成功改为二选一；模板文档名称可点开查看；RBT 按签署方顺序签且不可改；采购合同冷丰供应链为自动签"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "text": "可手动创建 RBT 需求签署，不判断需求单是否已点确认签约"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task.html",
+              "text": "签署主体一列列出签署各方"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_detail.html",
+              "text": "采购合同冷丰供应链显示为自动签"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "text": "贸易商签完采购合同后，冷丰供应链自动完成签署"
+            },
+            {
+              "file": "RBT/rbt_contract_sign.html",
+              "text": "冷丰供应链显示待自动签或已自动签署"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "采购合同中冷丰供应链为自动签"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "text": "采购合同中冷丰供应链为自动签"
+            }
+          ]
+        },
         {
           "sha": "8ea921a",
           "type": "feat",
@@ -2587,6 +2895,11 @@
               "title": "贸易商端"
             },
             {
+              "file": "report-admin/admin/index.html",
+              "module": "",
+              "title": "数据中台"
+            },
+            {
               "file": "store-app/h5/biz-bd-alerts.html",
               "module": "",
               "title": "经营提醒 · BD"
@@ -2729,6 +3042,11 @@
               "file": "MDM/mdm_data_biz_supplier.html",
               "module": "冷丰WMS",
               "title": "供应商分析 · 经营数据中台"
+            },
+            {
+              "file": "report-admin/admin/index.html",
+              "module": "",
+              "title": "数据中台"
             }
           ],
           "global": true
@@ -3418,16 +3736,6 @@
               "title": "需求单审核"
             },
             {
-              "file": "MDM/mdm_audit_store_registration.html",
-              "module": "冷丰WMS",
-              "title": "入驻审核"
-            },
-            {
-              "file": "MDM/mdm_bd_stores.html",
-              "module": "",
-              "title": "冷丰 MDM · BD 门店模块"
-            },
-            {
               "file": "MDM/mdm_party_all.html",
               "module": "冷丰WMS",
               "title": "所有主体"
@@ -3508,69 +3816,9 @@
               "title": "交易单"
             },
             {
-              "file": "SCM/basic_settings_contract_config.html",
-              "module": "冷丰WMS",
-              "title": "接入配置"
-            },
-            {
-              "file": "SCM/basic_settings_contract_party.html",
-              "module": "冷丰WMS",
-              "title": "签署主体"
-            },
-            {
-              "file": "SCM/basic_settings_contract_task.html",
-              "module": "冷丰WMS",
-              "title": "签署任务"
-            },
-            {
-              "file": "SCM/basic_settings_contract_task_detail.html",
-              "module": "冷丰WMS",
-              "title": "签署任务详情"
-            },
-            {
-              "file": "SCM/basic_settings_contract_task_form.html",
-              "module": "冷丰WMS",
-              "title": "发起签署"
-            },
-            {
-              "file": "SCM/basic_settings_contract_template.html",
-              "module": "冷丰WMS",
-              "title": "合同模板"
-            },
-            {
-              "file": "SCM/basic_settings_contract_template_form.html",
-              "module": "冷丰WMS",
-              "title": "合同模板配置"
-            },
-            {
-              "file": "SCM/contract_sign.html",
-              "module": "",
-              "title": "合同"
-            },
-            {
-              "file": "shop-h5/h5/store/contracts.html",
-              "module": "",
-              "title": "签署合同 · Shop H5"
-            },
-            {
               "file": "store-app/h5/biz-supplier-home.html",
               "module": "",
               "title": "数据中心 · 供应商"
-            },
-            {
-              "file": "store-app/h5/contract-sign.html",
-              "module": "",
-              "title": "签署合同 · 丰银宝"
-            },
-            {
-              "file": "store-app/h5/contracts.html",
-              "module": "",
-              "title": "合同签署 · 丰银宝"
-            },
-            {
-              "file": "store-app/h5/home.html",
-              "module": "",
-              "title": "丰银宝 · 工作台"
             },
             {
               "file": "store-app/h5/supplier-aftersale-detail.html",
@@ -3653,6 +3901,7 @@
               "title": "我的 · 用户 APP"
             }
           ],
+          "global": true,
           "notes": [
             {
               "file": "MDM/mdm_aftersale_refund.html",
@@ -3801,6 +4050,11 @@
               "file": "SCM/basic_settings_file_center.html",
               "module": "冷丰WMS",
               "title": "文件中心"
+            },
+            {
+              "file": "report-admin/admin/index.html",
+              "module": "",
+              "title": "数据中台"
             }
           ],
           "global": true,
@@ -5197,6 +5451,11 @@
               "title": "供应商分析 · 经营数据中台"
             },
             {
+              "file": "report-admin/admin/index.html",
+              "module": "",
+              "title": "数据中台"
+            },
+            {
               "file": "store-app/h5/biz-bd-center.html",
               "module": "",
               "title": "数据中心 · BD"
@@ -5256,7 +5515,8 @@
               "module": "",
               "title": "门店订单 · 丰银宝"
             }
-          ]
+          ],
+          "global": true
         },
         {
           "sha": "0396ac1",
@@ -5324,6 +5584,11 @@
               "file": "MDM/mdm_data_biz_supplier.html",
               "module": "冷丰WMS",
               "title": "供应商分析 · 经营数据中台"
+            },
+            {
+              "file": "report-admin/admin/index.html",
+              "module": "",
+              "title": "数据中台"
             },
             {
               "file": "store-app/h5/biz-bd-center.html",
@@ -5729,11 +5994,6 @@
               "title": "入驻审核"
             },
             {
-              "file": "MDM/mdm_bd_stores.html",
-              "module": "",
-              "title": "冷丰 MDM · BD 门店模块"
-            },
-            {
               "file": "MDM/mdm_live_session_detail.html",
               "module": "冷丰WMS",
               "title": "直播场次详情"
@@ -5844,84 +6104,9 @@
               "title": "商户主体建档"
             },
             {
-              "file": "RBT/rbt_index.html",
-              "module": "冷丰RBT",
-              "title": "首页"
-            },
-            {
-              "file": "RBT/rbt_performance.html",
-              "module": "冷丰RBT",
-              "title": "付款"
-            },
-            {
-              "file": "RBT/rbt_risk_abnormal.html",
-              "module": "冷丰RBT",
-              "title": "异常付款数据"
-            },
-            {
-              "file": "SCM/basic_settings_contract_config.html",
-              "module": "冷丰WMS",
-              "title": "接入配置"
-            },
-            {
-              "file": "SCM/basic_settings_contract_party.html",
-              "module": "冷丰WMS",
-              "title": "签署主体"
-            },
-            {
-              "file": "SCM/basic_settings_contract_task.html",
-              "module": "冷丰WMS",
-              "title": "签署任务"
-            },
-            {
-              "file": "SCM/basic_settings_contract_task_detail.html",
-              "module": "冷丰WMS",
-              "title": "签署任务详情"
-            },
-            {
-              "file": "SCM/basic_settings_contract_task_form.html",
-              "module": "冷丰WMS",
-              "title": "发起签署"
-            },
-            {
-              "file": "SCM/basic_settings_contract_template.html",
-              "module": "冷丰WMS",
-              "title": "合同模板"
-            },
-            {
-              "file": "SCM/basic_settings_contract_template_form.html",
-              "module": "冷丰WMS",
-              "title": "合同模板配置"
-            },
-            {
               "file": "SCM/basic_settings_order.html",
               "module": "冷丰WMS",
               "title": "门店配置"
-            },
-            {
-              "file": "SCM/contract_sign.html",
-              "module": "",
-              "title": "合同"
-            },
-            {
-              "file": "shop-h5/h5/store/contracts.html",
-              "module": "",
-              "title": "签署合同 · Shop H5"
-            },
-            {
-              "file": "store-app/h5/contract-sign.html",
-              "module": "",
-              "title": "签署合同 · 丰银宝"
-            },
-            {
-              "file": "store-app/h5/contracts.html",
-              "module": "",
-              "title": "合同签署 · 丰银宝"
-            },
-            {
-              "file": "store-app/h5/home.html",
-              "module": "",
-              "title": "丰银宝 · 工作台"
             },
             {
               "file": "user-app/h5/cart.html",
@@ -5959,6 +6144,7 @@
               "title": "确认订单 · 用户 APP"
             }
           ],
+          "global": true,
           "notes": [
             {
               "file": "MDM/mdm_archive_store.html",
@@ -6061,11 +6247,6 @@
               "title": "入驻审核"
             },
             {
-              "file": "MDM/mdm_bd_stores.html",
-              "module": "",
-              "title": "冷丰 MDM · BD 门店模块"
-            },
-            {
               "file": "MDM/mdm_live_session_detail.html",
               "module": "冷丰WMS",
               "title": "直播场次详情"
@@ -6176,89 +6357,14 @@
               "title": "商户主体建档"
             },
             {
-              "file": "RBT/rbt_index.html",
-              "module": "冷丰RBT",
-              "title": "首页"
-            },
-            {
-              "file": "RBT/rbt_performance.html",
-              "module": "冷丰RBT",
-              "title": "付款"
-            },
-            {
-              "file": "RBT/rbt_risk_abnormal.html",
-              "module": "冷丰RBT",
-              "title": "异常付款数据"
-            },
-            {
               "file": "RBT/rbt_risk_config.html",
               "module": "冷丰RBT",
               "title": "风控配置"
             },
             {
-              "file": "SCM/basic_settings_contract_config.html",
-              "module": "冷丰WMS",
-              "title": "接入配置"
-            },
-            {
-              "file": "SCM/basic_settings_contract_party.html",
-              "module": "冷丰WMS",
-              "title": "签署主体"
-            },
-            {
-              "file": "SCM/basic_settings_contract_task.html",
-              "module": "冷丰WMS",
-              "title": "签署任务"
-            },
-            {
-              "file": "SCM/basic_settings_contract_task_detail.html",
-              "module": "冷丰WMS",
-              "title": "签署任务详情"
-            },
-            {
-              "file": "SCM/basic_settings_contract_task_form.html",
-              "module": "冷丰WMS",
-              "title": "发起签署"
-            },
-            {
-              "file": "SCM/basic_settings_contract_template.html",
-              "module": "冷丰WMS",
-              "title": "合同模板"
-            },
-            {
-              "file": "SCM/basic_settings_contract_template_form.html",
-              "module": "冷丰WMS",
-              "title": "合同模板配置"
-            },
-            {
               "file": "SCM/basic_settings_order.html",
               "module": "冷丰WMS",
               "title": "门店配置"
-            },
-            {
-              "file": "SCM/contract_sign.html",
-              "module": "",
-              "title": "合同"
-            },
-            {
-              "file": "shop-h5/h5/store/contracts.html",
-              "module": "",
-              "title": "签署合同 · Shop H5"
-            },
-            {
-              "file": "store-app/h5/contract-sign.html",
-              "module": "",
-              "title": "签署合同 · 丰银宝"
-            },
-            {
-              "file": "store-app/h5/contracts.html",
-              "module": "",
-              "title": "合同签署 · 丰银宝"
-            },
-            {
-              "file": "store-app/h5/home.html",
-              "module": "",
-              "title": "丰银宝 · 工作台"
             },
             {
               "file": "user-app/h5/cart.html",
@@ -6296,6 +6402,7 @@
               "title": "确认订单 · 用户 APP"
             }
           ],
+          "global": true,
           "notes": [
             {
               "file": "RBT/rbt_risk_config.html",
@@ -6764,16 +6871,6 @@
               "title": "异常付款数据"
             },
             {
-              "file": "SCM/basic_settings_contract_config.html",
-              "module": "冷丰WMS",
-              "title": "接入配置"
-            },
-            {
-              "file": "SCM/basic_settings_contract_party.html",
-              "module": "冷丰WMS",
-              "title": "签署主体"
-            },
-            {
               "file": "SCM/basic_settings_contract_task.html",
               "module": "冷丰WMS",
               "title": "签署任务"
@@ -6782,11 +6879,6 @@
               "file": "SCM/basic_settings_contract_task_detail.html",
               "module": "冷丰WMS",
               "title": "签署任务详情"
-            },
-            {
-              "file": "SCM/basic_settings_contract_task_form.html",
-              "module": "冷丰WMS",
-              "title": "发起签署"
             },
             {
               "file": "SCM/basic_settings_contract_template.html",
@@ -6812,11 +6904,6 @@
               "file": "prototype-prd/view.html",
               "module": "",
               "title": "PRD"
-            },
-            {
-              "file": "shop-h5/h5/store/contracts.html",
-              "module": "",
-              "title": "签署合同 · Shop H5"
             },
             {
               "file": "shop-h5/h5/store/register.html",
@@ -7964,21 +8051,6 @@
               "title": "商户主体建档"
             },
             {
-              "file": "RBT/rbt_index.html",
-              "module": "冷丰RBT",
-              "title": "首页"
-            },
-            {
-              "file": "RBT/rbt_performance.html",
-              "module": "冷丰RBT",
-              "title": "付款"
-            },
-            {
-              "file": "RBT/rbt_risk_abnormal.html",
-              "module": "冷丰RBT",
-              "title": "异常付款数据"
-            },
-            {
               "file": "SCM/basic_settings_contract_config.html",
               "module": "冷丰WMS",
               "title": "接入配置"
@@ -8945,21 +9017,6 @@
               "title": "商户主体建档"
             },
             {
-              "file": "RBT/rbt_index.html",
-              "module": "冷丰RBT",
-              "title": "首页"
-            },
-            {
-              "file": "RBT/rbt_performance.html",
-              "module": "冷丰RBT",
-              "title": "付款"
-            },
-            {
-              "file": "RBT/rbt_risk_abnormal.html",
-              "module": "冷丰RBT",
-              "title": "异常付款数据"
-            },
-            {
               "file": "SCM/basic_settings_contract_config.html",
               "module": "冷丰WMS",
               "title": "接入配置"
@@ -9070,6 +9127,7 @@
               "title": "确认订单 · 用户 APP"
             }
           ],
+          "global": true,
           "notes": [
             {
               "file": "MDM/mdm_party_all.html",
@@ -9471,11 +9529,6 @@
               "title": "入驻审核"
             },
             {
-              "file": "MDM/mdm_bd_stores.html",
-              "module": "",
-              "title": "冷丰 MDM · BD 门店模块"
-            },
-            {
               "file": "MDM/mdm_live_product_sched_edit.html",
               "module": "冷丰WMS",
               "title": "直播排品编辑"
@@ -9654,31 +9707,6 @@
               "file": "SCM/basic_settings_contract_template_form.html",
               "module": "冷丰WMS",
               "title": "合同模板配置"
-            },
-            {
-              "file": "SCM/contract_sign.html",
-              "module": "",
-              "title": "合同"
-            },
-            {
-              "file": "shop-h5/h5/store/contracts.html",
-              "module": "",
-              "title": "签署合同 · Shop H5"
-            },
-            {
-              "file": "store-app/h5/contract-sign.html",
-              "module": "",
-              "title": "签署合同 · 丰银宝"
-            },
-            {
-              "file": "store-app/h5/contracts.html",
-              "module": "",
-              "title": "合同签署 · 丰银宝"
-            },
-            {
-              "file": "store-app/h5/home.html",
-              "module": "",
-              "title": "丰银宝 · 工作台"
             },
             {
               "file": "user-app/h5/order-detail.html",
@@ -10065,16 +10093,6 @@
               "title": "需求单审核"
             },
             {
-              "file": "MDM/mdm_audit_store_registration.html",
-              "module": "冷丰WMS",
-              "title": "入驻审核"
-            },
-            {
-              "file": "MDM/mdm_bd_stores.html",
-              "module": "",
-              "title": "冷丰 MDM · BD 门店模块"
-            },
-            {
               "file": "MDM/mdm_live_product_sched_edit.html",
               "module": "冷丰WMS",
               "title": "直播排品编辑"
@@ -10200,36 +10218,12 @@
               "title": "合同模板配置"
             },
             {
-              "file": "SCM/contract_sign.html",
-              "module": "",
-              "title": "合同"
-            },
-            {
-              "file": "shop-h5/h5/store/contracts.html",
-              "module": "",
-              "title": "签署合同 · Shop H5"
-            },
-            {
-              "file": "store-app/h5/contract-sign.html",
-              "module": "",
-              "title": "签署合同 · 丰银宝"
-            },
-            {
-              "file": "store-app/h5/contracts.html",
-              "module": "",
-              "title": "合同签署 · 丰银宝"
-            },
-            {
-              "file": "store-app/h5/home.html",
-              "module": "",
-              "title": "丰银宝 · 工作台"
-            },
-            {
               "file": "user-app/h5/order-detail.html",
               "module": "",
               "title": "订单详情 · 用户 APP"
             }
           ],
+          "global": true,
           "notes": [
             {
               "file": null,
@@ -10936,16 +10930,6 @@
               "title": "供应商档案"
             },
             {
-              "file": "MDM/mdm_audit_store_registration.html",
-              "module": "冷丰WMS",
-              "title": "入驻审核"
-            },
-            {
-              "file": "MDM/mdm_bd_stores.html",
-              "module": "",
-              "title": "冷丰 MDM · BD 门店模块"
-            },
-            {
               "file": "RBT/rbt_index.html",
               "module": "冷丰RBT",
               "title": "首页"
@@ -10994,33 +10978,9 @@
               "file": "SCM/basic_settings_contract_template_form.html",
               "module": "冷丰WMS",
               "title": "合同模板配置"
-            },
-            {
-              "file": "SCM/contract_sign.html",
-              "module": "",
-              "title": "合同"
-            },
-            {
-              "file": "shop-h5/h5/store/contracts.html",
-              "module": "",
-              "title": "签署合同 · Shop H5"
-            },
-            {
-              "file": "store-app/h5/contract-sign.html",
-              "module": "",
-              "title": "签署合同 · 丰银宝"
-            },
-            {
-              "file": "store-app/h5/contracts.html",
-              "module": "",
-              "title": "合同签署 · 丰银宝"
-            },
-            {
-              "file": "store-app/h5/home.html",
-              "module": "",
-              "title": "丰银宝 · 工作台"
             }
           ],
+          "global": true,
           "notes": [
             {
               "file": "MDM/mdm_archive_store.html",
@@ -11367,41 +11327,6 @@
               "title": "商户主体建档"
             },
             {
-              "file": "RBT/rbt_index.html",
-              "module": "冷丰RBT",
-              "title": "首页"
-            },
-            {
-              "file": "RBT/rbt_performance.html",
-              "module": "冷丰RBT",
-              "title": "付款"
-            },
-            {
-              "file": "RBT/rbt_risk_abnormal.html",
-              "module": "冷丰RBT",
-              "title": "异常付款数据"
-            },
-            {
-              "file": "SCM/basic_settings_contract_config.html",
-              "module": "冷丰WMS",
-              "title": "接入配置"
-            },
-            {
-              "file": "SCM/basic_settings_contract_party.html",
-              "module": "冷丰WMS",
-              "title": "签署主体"
-            },
-            {
-              "file": "SCM/basic_settings_contract_task.html",
-              "module": "冷丰WMS",
-              "title": "签署任务"
-            },
-            {
-              "file": "SCM/basic_settings_contract_task_detail.html",
-              "module": "冷丰WMS",
-              "title": "签署任务详情"
-            },
-            {
               "file": "SCM/basic_settings_contract_task_form.html",
               "module": "冷丰WMS",
               "title": "发起签署"
@@ -11422,34 +11347,9 @@
               "title": "门店配置"
             },
             {
-              "file": "SCM/contract_sign.html",
-              "module": "",
-              "title": "合同"
-            },
-            {
-              "file": "shop-h5/h5/store/contracts.html",
-              "module": "",
-              "title": "签署合同 · Shop H5"
-            },
-            {
               "file": "shop-h5/h5/store/register.html",
               "module": "",
               "title": "门店注册 · Shop H5"
-            },
-            {
-              "file": "store-app/h5/contract-sign.html",
-              "module": "",
-              "title": "签署合同 · 丰银宝"
-            },
-            {
-              "file": "store-app/h5/contracts.html",
-              "module": "",
-              "title": "合同签署 · 丰银宝"
-            },
-            {
-              "file": "store-app/h5/home.html",
-              "module": "",
-              "title": "丰银宝 · 工作台"
             },
             {
               "file": "store-app/h5/onboarding.html",
@@ -11497,6 +11397,7 @@
               "title": "我的 · 用户 APP"
             }
           ],
+          "global": true,
           "notes": [
             {
               "file": "MDM/mdm_archive_store.html",
@@ -15829,51 +15730,6 @@
           "time": "16:57",
           "pages": [
             {
-              "file": "MDM/mdm_archive_store.html",
-              "module": "冷丰WMS",
-              "title": "门店档案"
-            },
-            {
-              "file": "MDM/mdm_archive_supplier.html",
-              "module": "冷丰WMS",
-              "title": "供应商档案"
-            },
-            {
-              "file": "MDM/mdm_audit_store_registration.html",
-              "module": "冷丰WMS",
-              "title": "入驻审核"
-            },
-            {
-              "file": "MDM/mdm_bd_stores.html",
-              "module": "",
-              "title": "冷丰 MDM · BD 门店模块"
-            },
-            {
-              "file": "RBT/rbt_index.html",
-              "module": "冷丰RBT",
-              "title": "首页"
-            },
-            {
-              "file": "RBT/rbt_performance.html",
-              "module": "冷丰RBT",
-              "title": "付款"
-            },
-            {
-              "file": "RBT/rbt_risk_abnormal.html",
-              "module": "冷丰RBT",
-              "title": "异常付款数据"
-            },
-            {
-              "file": "SCM/basic_settings_contract_config.html",
-              "module": "冷丰WMS",
-              "title": "接入配置"
-            },
-            {
-              "file": "SCM/basic_settings_contract_party.html",
-              "module": "冷丰WMS",
-              "title": "签署主体"
-            },
-            {
               "file": "SCM/basic_settings_contract_task.html",
               "module": "冷丰WMS",
               "title": "签署任务"
@@ -15882,48 +15738,9 @@
               "file": "SCM/basic_settings_contract_task_detail.html",
               "module": "冷丰WMS",
               "title": "签署任务详情"
-            },
-            {
-              "file": "SCM/basic_settings_contract_task_form.html",
-              "module": "冷丰WMS",
-              "title": "发起签署"
-            },
-            {
-              "file": "SCM/basic_settings_contract_template.html",
-              "module": "冷丰WMS",
-              "title": "合同模板"
-            },
-            {
-              "file": "SCM/basic_settings_contract_template_form.html",
-              "module": "冷丰WMS",
-              "title": "合同模板配置"
-            },
-            {
-              "file": "SCM/contract_sign.html",
-              "module": "",
-              "title": "合同"
-            },
-            {
-              "file": "shop-h5/h5/store/contracts.html",
-              "module": "",
-              "title": "签署合同 · Shop H5"
-            },
-            {
-              "file": "store-app/h5/contract-sign.html",
-              "module": "",
-              "title": "签署合同 · 丰银宝"
-            },
-            {
-              "file": "store-app/h5/contracts.html",
-              "module": "",
-              "title": "合同签署 · 丰银宝"
-            },
-            {
-              "file": "store-app/h5/home.html",
-              "module": "",
-              "title": "丰银宝 · 工作台"
             }
           ],
+          "global": true,
           "notes": [
             {
               "file": "SCM/basic_settings_contract_task.html",
@@ -16645,11 +16462,6 @@
           "time": "14:39",
           "pages": [
             {
-              "file": "MDM/mdm_archive_store.html",
-              "module": "冷丰WMS",
-              "title": "门店档案"
-            },
-            {
               "file": "MDM/mdm_archive_supplier.html",
               "module": "冷丰WMS",
               "title": "供应商档案"
@@ -16663,21 +16475,6 @@
               "file": "MDM/mdm_bd_stores.html",
               "module": "",
               "title": "冷丰 MDM · BD 门店模块"
-            },
-            {
-              "file": "RBT/rbt_index.html",
-              "module": "冷丰RBT",
-              "title": "首页"
-            },
-            {
-              "file": "RBT/rbt_performance.html",
-              "module": "冷丰RBT",
-              "title": "付款"
-            },
-            {
-              "file": "RBT/rbt_risk_abnormal.html",
-              "module": "冷丰RBT",
-              "title": "异常付款数据"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -16740,6 +16537,7 @@
               "title": "丰银宝 · 工作台"
             }
           ],
+          "global": true,
           "notes": [
             {
               "file": "SCM/basic_settings_contract_template.html",
@@ -17427,11 +17225,6 @@
           "time": "11:42",
           "pages": [
             {
-              "file": "MDM/mdm_archive_store.html",
-              "module": "冷丰WMS",
-              "title": "门店档案"
-            },
-            {
               "file": "MDM/mdm_archive_supplier.html",
               "module": "冷丰WMS",
               "title": "供应商档案"
@@ -17445,21 +17238,6 @@
               "file": "MDM/mdm_bd_stores.html",
               "module": "",
               "title": "冷丰 MDM · BD 门店模块"
-            },
-            {
-              "file": "RBT/rbt_index.html",
-              "module": "冷丰RBT",
-              "title": "首页"
-            },
-            {
-              "file": "RBT/rbt_performance.html",
-              "module": "冷丰RBT",
-              "title": "付款"
-            },
-            {
-              "file": "RBT/rbt_risk_abnormal.html",
-              "module": "冷丰RBT",
-              "title": "异常付款数据"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -17562,6 +17340,7 @@
               "title": "设置 · 用户 APP"
             }
           ],
+          "global": true,
           "notes": [
             {
               "file": "SCM/basic_settings_contract_template.html",
@@ -17840,16 +17619,6 @@
               "title": "仓库档案"
             },
             {
-              "file": "MDM/mdm_audit_store_registration.html",
-              "module": "冷丰WMS",
-              "title": "入驻审核"
-            },
-            {
-              "file": "MDM/mdm_bd_stores.html",
-              "module": "",
-              "title": "冷丰 MDM · BD 门店模块"
-            },
-            {
               "file": "MDM/mdm_order_live.html",
               "module": "冷丰WMS",
               "title": "直播订单"
@@ -17900,16 +17669,6 @@
               "title": "标签管理"
             },
             {
-              "file": "SCM/basic_settings_contract_config.html",
-              "module": "冷丰WMS",
-              "title": "接入配置"
-            },
-            {
-              "file": "SCM/basic_settings_contract_party.html",
-              "module": "冷丰WMS",
-              "title": "签署主体"
-            },
-            {
               "file": "SCM/basic_settings_contract_task.html",
               "module": "冷丰WMS",
               "title": "签署任务"
@@ -17918,11 +17677,6 @@
               "file": "SCM/basic_settings_contract_task_detail.html",
               "module": "冷丰WMS",
               "title": "签署任务详情"
-            },
-            {
-              "file": "SCM/basic_settings_contract_task_form.html",
-              "module": "冷丰WMS",
-              "title": "发起签署"
             },
             {
               "file": "SCM/basic_settings_contract_template.html",
@@ -17938,11 +17692,6 @@
               "file": "SCM/contract_sign.html",
               "module": "",
               "title": "合同"
-            },
-            {
-              "file": "shop-h5/h5/store/contracts.html",
-              "module": "",
-              "title": "签署合同 · Shop H5"
             },
             {
               "file": "store-app/h5/biz-supplier-home.html",
@@ -18064,16 +17813,6 @@
               "title": "供应商档案"
             },
             {
-              "file": "MDM/mdm_audit_store_registration.html",
-              "module": "冷丰WMS",
-              "title": "入驻审核"
-            },
-            {
-              "file": "MDM/mdm_bd_stores.html",
-              "module": "",
-              "title": "冷丰 MDM · BD 门店模块"
-            },
-            {
               "file": "MDM/mdm_live_product_sched_edit.html",
               "module": "冷丰WMS",
               "title": "直播排品编辑"
@@ -18142,31 +17881,6 @@
               "file": "SCM/basic_settings_contract_template_form.html",
               "module": "冷丰WMS",
               "title": "合同模板配置"
-            },
-            {
-              "file": "SCM/contract_sign.html",
-              "module": "",
-              "title": "合同"
-            },
-            {
-              "file": "shop-h5/h5/store/contracts.html",
-              "module": "",
-              "title": "签署合同 · Shop H5"
-            },
-            {
-              "file": "store-app/h5/contract-sign.html",
-              "module": "",
-              "title": "签署合同 · 丰银宝"
-            },
-            {
-              "file": "store-app/h5/contracts.html",
-              "module": "",
-              "title": "合同签署 · 丰银宝"
-            },
-            {
-              "file": "store-app/h5/home.html",
-              "module": "",
-              "title": "丰银宝 · 工作台"
             },
             {
               "file": "store-app/h5/restock-aftersale-list.html",
@@ -19568,11 +19282,6 @@
               "title": "入驻审核"
             },
             {
-              "file": "MDM/mdm_bd_stores.html",
-              "module": "",
-              "title": "冷丰 MDM · BD 门店模块"
-            },
-            {
               "file": "MDM/mdm_member_c.html",
               "module": "冷丰WMS",
               "title": "会员管理"
@@ -19658,16 +19367,6 @@
               "title": "异常付款数据"
             },
             {
-              "file": "SCM/basic_settings_contract_config.html",
-              "module": "冷丰WMS",
-              "title": "接入配置"
-            },
-            {
-              "file": "SCM/basic_settings_contract_party.html",
-              "module": "冷丰WMS",
-              "title": "签署主体"
-            },
-            {
               "file": "SCM/basic_settings_contract_task.html",
               "module": "冷丰WMS",
               "title": "签署任务"
@@ -19676,11 +19375,6 @@
               "file": "SCM/basic_settings_contract_task_detail.html",
               "module": "冷丰WMS",
               "title": "签署任务详情"
-            },
-            {
-              "file": "SCM/basic_settings_contract_task_form.html",
-              "module": "冷丰WMS",
-              "title": "发起签署"
             },
             {
               "file": "SCM/basic_settings_contract_template.html",
@@ -19696,11 +19390,6 @@
               "file": "SCM/contract_sign.html",
               "module": "",
               "title": "合同"
-            },
-            {
-              "file": "shop-h5/h5/store/contracts.html",
-              "module": "",
-              "title": "签署合同 · Shop H5"
             },
             {
               "file": "store-app/h5/biz-supplier-home.html",
@@ -20180,11 +19869,6 @@
               "title": "入驻审核"
             },
             {
-              "file": "MDM/mdm_bd_stores.html",
-              "module": "",
-              "title": "冷丰 MDM · BD 门店模块"
-            },
-            {
               "file": "MDM/mdm_live_product_sched_edit.html",
               "module": "冷丰WMS",
               "title": "直播排品编辑"
@@ -20220,69 +19904,9 @@
               "title": "供应商结算"
             },
             {
-              "file": "RBT/rbt_index.html",
-              "module": "冷丰RBT",
-              "title": "首页"
-            },
-            {
-              "file": "RBT/rbt_performance.html",
-              "module": "冷丰RBT",
-              "title": "付款"
-            },
-            {
-              "file": "RBT/rbt_risk_abnormal.html",
-              "module": "冷丰RBT",
-              "title": "异常付款数据"
-            },
-            {
-              "file": "SCM/basic_settings_contract_config.html",
-              "module": "冷丰WMS",
-              "title": "接入配置"
-            },
-            {
-              "file": "SCM/basic_settings_contract_party.html",
-              "module": "冷丰WMS",
-              "title": "签署主体"
-            },
-            {
-              "file": "SCM/basic_settings_contract_task.html",
-              "module": "冷丰WMS",
-              "title": "签署任务"
-            },
-            {
-              "file": "SCM/basic_settings_contract_task_detail.html",
-              "module": "冷丰WMS",
-              "title": "签署任务详情"
-            },
-            {
-              "file": "SCM/basic_settings_contract_task_form.html",
-              "module": "冷丰WMS",
-              "title": "发起签署"
-            },
-            {
-              "file": "SCM/basic_settings_contract_template.html",
-              "module": "冷丰WMS",
-              "title": "合同模板"
-            },
-            {
-              "file": "SCM/basic_settings_contract_template_form.html",
-              "module": "冷丰WMS",
-              "title": "合同模板配置"
-            },
-            {
-              "file": "SCM/contract_sign.html",
-              "module": "",
-              "title": "合同"
-            },
-            {
               "file": "SCM/mobile_index.html",
               "module": "冷丰WMS",
               "title": "移动端"
-            },
-            {
-              "file": "shop-h5/h5/store/contracts.html",
-              "module": "",
-              "title": "签署合同 · Shop H5"
             },
             {
               "file": "store-app/h5/bank-cards.html",
@@ -22279,6 +21903,7 @@
               "title": "丰银宝 · 工作台"
             }
           ],
+          "global": true,
           "notes": [
             {
               "file": "SCM/basic_settings_contract_task.html",
@@ -22351,16 +21976,6 @@
           "time": "00:25",
           "pages": [
             {
-              "file": "MDM/mdm_archive_store.html",
-              "module": "冷丰WMS",
-              "title": "门店档案"
-            },
-            {
-              "file": "MDM/mdm_archive_supplier.html",
-              "module": "冷丰WMS",
-              "title": "供应商档案"
-            },
-            {
               "file": "MDM/mdm_audit_store_registration.html",
               "module": "冷丰WMS",
               "title": "入驻审核"
@@ -22369,21 +21984,6 @@
               "file": "MDM/mdm_bd_stores.html",
               "module": "",
               "title": "冷丰 MDM · BD 门店模块"
-            },
-            {
-              "file": "RBT/rbt_index.html",
-              "module": "冷丰RBT",
-              "title": "首页"
-            },
-            {
-              "file": "RBT/rbt_performance.html",
-              "module": "冷丰RBT",
-              "title": "付款"
-            },
-            {
-              "file": "RBT/rbt_risk_abnormal.html",
-              "module": "冷丰RBT",
-              "title": "异常付款数据"
             },
             {
               "file": "SCM/basic_settings_contract_config.html",
@@ -22436,21 +22036,6 @@
               "title": "门店状态 · Shop H5"
             },
             {
-              "file": "store-app/h5/contract-sign.html",
-              "module": "",
-              "title": "签署合同 · 丰银宝"
-            },
-            {
-              "file": "store-app/h5/contracts.html",
-              "module": "",
-              "title": "合同签署 · 丰银宝"
-            },
-            {
-              "file": "store-app/h5/home.html",
-              "module": "",
-              "title": "丰银宝 · 工作台"
-            },
-            {
               "file": "user-app/h5/change-password.html",
               "module": "",
               "title": "修改密码 · 用户 APP"
@@ -22491,6 +22076,7 @@
               "title": "设置 · 用户 APP"
             }
           ],
+          "global": true,
           "notes": [
             {
               "file": "MDM/mdm_audit_store_registration.html",
@@ -35592,11 +35178,6 @@
               "title": "入驻审核"
             },
             {
-              "file": "MDM/mdm_bd_stores.html",
-              "module": "",
-              "title": "冷丰 MDM · BD 门店模块"
-            },
-            {
               "file": "MDM/mdm_live_control.html",
               "module": "冷丰WMS",
               "title": "直播中控"
@@ -35862,29 +35443,9 @@
               "title": "系统管理"
             },
             {
-              "file": "SCM/contract_sign.html",
-              "module": "",
-              "title": "合同"
-            },
-            {
               "file": "prototype-gen.html",
               "module": "",
               "title": "原型生成 · 版本清单"
-            },
-            {
-              "file": "shop-h5/h5/store/contracts.html",
-              "module": "",
-              "title": "签署合同 · Shop H5"
-            },
-            {
-              "file": "store-app/h5/contract-sign.html",
-              "module": "",
-              "title": "签署合同 · 丰银宝"
-            },
-            {
-              "file": "store-app/h5/contracts.html",
-              "module": "",
-              "title": "合同签署 · 丰银宝"
             },
             {
               "file": "store-app/h5/home.html",
