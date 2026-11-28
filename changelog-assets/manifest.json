@@ -6610,6 +6610,80 @@
     "status": "diff",
     "date": "2026-11-27"
   },
+  "fd289ef|MDM/mdm_audit_rbt_demand.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-28"
+  },
+  "fd289ef|RBT/rbt_admit_store.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-28"
+  },
+  "fd289ef|RBT/rbt_contract_sign.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-28"
+  },
+  "fd289ef|RBT/rbt_daily_fulfill.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-28"
+  },
+  "fd289ef|RBT/rbt_demand.html": {
+    "before": "changelog-assets/fd289ef/RBT__rbt_demand.html.before.jpg",
+    "after": "changelog-assets/fd289ef/RBT__rbt_demand.html.after.jpg",
+    "regions": 38,
+    "status": "diff",
+    "date": "2026-11-28"
+  },
+  "fd289ef|RBT/rbt_h5_provider.html": {
+    "before": "changelog-assets/fd289ef/RBT__rbt_h5_provider.html.before.jpg",
+    "after": "changelog-assets/fd289ef/RBT__rbt_h5_provider.html.after.jpg",
+    "regions": 5,
+    "status": "diff",
+    "date": "2026-11-28"
+  },
+  "fd289ef|RBT/rbt_h5_store.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-28"
+  },
+  "fd289ef|RBT/rbt_h5_trader.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-28"
+  },
+  "fd289ef|RBT/rbt_index.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-28"
+  },
+  "fd289ef|RBT/rbt_installment.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-28"
+  },
+  "fd289ef|RBT/rbt_performance.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-28"
+  },
+  "fd289ef|RBT/rbt_risk_abnormal.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-28"
+  },
+  "fd289ef|RBT/rbt_risk_config.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-28"
+  },
+  "fd289ef|RBT/rbt_trade.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-28"
+  },
   "fd64da4|MDM/mdm_product_mall.html": {
     "before": "changelog-assets/fd64da4/MDM__mdm_product_mall.html.before.jpg",
     "after": "changelog-assets/fd64da4/MDM__mdm_product_mall.html.after.jpg",
