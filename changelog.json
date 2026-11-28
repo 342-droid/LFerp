@@ -1,10 +1,212 @@
 {
-  "latestSha": "4bcc27625240ed800db345e507e9ac6bed8a3b5e",
-  "total": 671,
+  "latestSha": "712fcf3885eec278c2844601c91aa14e1c8a8c4a",
+  "total": 672,
   "days": [
     {
       "date": "2026-11-28",
       "items": [
+        {
+          "sha": "712fcf3",
+          "type": "feat",
+          "text": "付款按扣率整笔结给贸易商，并补上门店 RBF 联营",
+          "author": "sisi",
+          "time": "13:24",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_trader.html",
+              "module": "冷丰WMS",
+              "title": "贸易商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "module": "冷丰WMS",
+              "title": "需求单审核"
+            },
+            {
+              "file": "MDM/mdm_bd_h5.html",
+              "module": "",
+              "title": "冷丰 MDM · 门店扫码 H5"
+            },
+            {
+              "file": "MDM/mdm_bd_store_form.html",
+              "module": "",
+              "title": "冷丰 MDM · 添加 / 编辑门店"
+            },
+            {
+              "file": "MDM/mdm_party_all.html",
+              "module": "冷丰WMS",
+              "title": "所有主体"
+            },
+            {
+              "file": "RBT/rbt_admit_store.html",
+              "module": "冷丰RBT",
+              "title": "门店准入管理"
+            },
+            {
+              "file": "RBT/rbt_contract_sign.html",
+              "module": "冷丰RBT",
+              "title": "合同签署"
+            },
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "module": "冷丰RBT",
+              "title": "每日付款"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "module": "冷丰RBT-移动端",
+              "title": "服务商端"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "module": "冷丰RBT-移动端",
+              "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            },
+            {
+              "file": "RBT/rbt_index.html",
+              "module": "冷丰RBT",
+              "title": "首页"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "module": "冷丰RBT",
+              "title": "付款"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "module": "冷丰RBT",
+              "title": "异常付款数据"
+            },
+            {
+              "file": "RBT/rbt_risk_config.html",
+              "module": "冷丰RBT",
+              "title": "风控配置"
+            },
+            {
+              "file": "RBT/rbt_trade.html",
+              "module": "冷丰RBT",
+              "title": "交易单"
+            },
+            {
+              "file": "shop-h5/h5/store/contracts.html",
+              "module": "",
+              "title": "签署合同 · Shop H5"
+            },
+            {
+              "file": "shop-h5/h5/store/register.html",
+              "module": "",
+              "title": "门店注册 · Shop H5"
+            },
+            {
+              "file": "shop-h5/h5/store/status.html",
+              "module": "",
+              "title": "门店状态 · Shop H5"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_index.html",
+              "text": "改为付款风险统计总览、异常提醒、异常待处理单据和当天付款中"
+            },
+            {
+              "file": "RBT/rbt_performance.html",
+              "text": "已付款只计结给贸易商的已结款，冷丰收款和服务商收款单独展示；付款详情去掉修改结算比例"
+            },
+            {
+              "file": "RBT/rbt_daily_fulfill.html",
+              "text": "贸易商整笔记货款，冷丰放款划拨记货款差额，服务商放款划拨记服务费"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "text": "结算比例仍在需求单修改，付款子单按修改后的生效时间使用对应比例"
+            },
+            {
+              "file": "RBT/rbt_risk_abnormal.html",
+              "text": "修复打开空白，从首页进入时工单状态筛成待处置"
+            },
+            {
+              "file": "RBT/rbt_risk_config.html",
+              "text": "动态基准按已发生营业日计算已结款日均"
+            },
+            {
+              "file": "RBT/rbt_h5_store.html",
+              "text": "每日付款的结款时间改为成功凭据上的真实时间"
+            },
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "基础信息不再展开实付和收益；充值改为线下对公转账提示；支出里划转记货款、提到账户记提现"
+            },
+            {
+              "file": "RBT/rbt_h5_provider.html",
+              "text": "门店付款中和已完成的需求补上服务商放款划拨"
+            },
+            {
+              "file": "MDM/mdm_party_all.html",
+              "text": "新增门店商家在基础信息下增加 RBF 联营，不再填写商品包"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "text": "新增门店的门店额度与需求发布次数、保证金与缴纳凭证各放同一行"
+            },
+            {
+              "file": null,
+              "text": "添加 / 编辑门店: 增加 RBF 联营字段"
+            },
+            {
+              "file": null,
+              "text": "门店扫码 H5: 增加 RBF 联营字段"
+            },
+            {
+              "file": "shop-h5/h5/store/register.html",
+              "text": "基础信息下增加 RBF 联营"
+            }
+          ]
+        },
         {
           "sha": "4bcc276",
           "type": "feat",
