@@ -44,7 +44,7 @@
     '</div><span class="sa-sup-tag ' +
     tagClass(row.settleStatus) +
     '">' +
-    row.settleStatus +
+    String(row.settleStatus).replace(/结算/g, '结款') +
     '</span></div>' +
     '<div class="sa-sup-od-grid">' +
     kv(
@@ -94,8 +94,8 @@
       '<span class="sa-sup-tag ' + tagClass(row.clearStatus) + '">' + row.clearStatus + '</span>'
     ) +
     kv(
-      '结算状态',
-      '<span class="sa-sup-tag ' + tagClass(row.settleStatus) + '">' + row.settleStatus + '</span>'
+      '结款状态',
+      '<span class="sa-sup-tag ' + tagClass(row.settleStatus) + '">' + String(row.settleStatus).replace(/结算/g, '结款') + '</span>'
     ) +
     kv(
       '入账状态',

@@ -14,6 +14,10 @@
     billStatus: '全部'
   };
 
+  function displayStatus(value) {
+    return String(value || '').replace(/待结算/g, '待结款').replace(/结算中/g, '结款中').replace(/已结算/g, '已结款').replace(/结算失败/g, '结款失败');
+  }
+
   function money(v) {
     var n = Number(v);
     return isNaN(n) ? '¥' + v : '¥' + n.toFixed(2);
@@ -64,10 +68,10 @@
       '<div class="sa-sup-summary__item"><span>累计已结款</span><strong>' +
       money(settled) +
       '</strong></div>' +
-      '<div class="sa-sup-summary__item"><span>待结算</span><strong>' +
+      '<div class="sa-sup-summary__item"><span>待结款</span><strong>' +
       money(pending) +
       '</strong></div>' +
-      '<div class="sa-sup-summary__item"><span>结算中</span><strong>' +
+      '<div class="sa-sup-summary__item"><span>结款中</span><strong>' +
       money(settling) +
       '</strong></div></div>' +
       '<article class="sa-sup-card">' +
@@ -78,8 +82,8 @@
       acc.accountNo +
       '</div></article>' +
       '<article class="sa-sup-card">' +
-      '<h3 class="sa-sup-card__name">结算信息</h3>' +
-      '<div class="sa-sup-card__meta">起算节点与周期以供应商档案配置为准；平台改默认后，跟随平台的配置会自动同步。<br>已生成清分不变，新增清分按新配置。<br>· 订单履约确认后：整单完成日 + 结算周期；商品售后期只影响用户售后，与结算无关。<br>· 售后期结束：整单履约后取各商品售后期最大值再进结算周期，同单各行可结算时点一致。</div></article>'
+      '<h3 class="sa-sup-card__name">结款信息</h3>' +
+      '<div class="sa-sup-card__meta">起算节点与周期以供应商档案配置为准；平台改默认后，跟随平台的配置会自动同步。<br>已生成清分不变，新增清分按新配置。<br>· 订单履约确认后：整单完成日 + 结款周期；商品售后期只影响用户售后，与结款无关。<br>· 售后期结束：整单履约后取各商品售后期最大值再进结款周期，同单各行可结款时点一致。</div></article>'
     );
   }
 
@@ -87,11 +91,11 @@
     var html = F.timeRowHtml(state.time);
     if (kind === 'ledger') {
       html +=
-        '<div class="sa-sup-filter__l2" role="tablist" aria-label="结算状态">' +
+        '<div class="sa-sup-filter__l2" role="tablist" aria-label="结款状态">' +
         ['全部']
           .concat(F.SETTLE_STATUSES)
           .map(function (s) {
-            return F.chip(s, state.settleStatus === s, 'data-settle');
+            return F.chip(s, state.settleStatus === s, 'data-settle', displayStatus(s));
           })
           .join('') +
         '</div>';
@@ -130,7 +134,7 @@
             '</div><span class="sa-sup-tag ' +
             tagClass(x.settleStatus) +
             '">' +
-            x.settleStatus +
+            displayStatus(x.settleStatus) +
             '</span></div>' +
             '<h3 class="sa-sup-card__name">' +
             x.product +
@@ -180,7 +184,7 @@
             '</div><span class="sa-sup-tag ' +
             tagClass(x.status) +
             '">' +
-            x.status +
+            displayStatus(x.status) +
             '</span></div>' +
             '<div class="sa-sup-card__row"><div class="sa-sup-card__meta">账期 ' +
             x.cycle +

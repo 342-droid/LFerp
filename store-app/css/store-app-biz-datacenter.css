@@ -1708,3 +1708,6 @@
 .sa-dc-page .sa-dc-mtabs__btn.is-active::after{bottom:3px;height:3px;width:20px;margin-left:-10px}
 
 .sa-dc-dd-bar[hidden]{display:none!important}
+.sa-dc-acceptance{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;padding:8px 10px;border:1px dashed #d9dde5;border-radius:8px;color:#687385;font-size:11px}
+.sa-dc-acceptance label{white-space:nowrap;color:#ff6501}
+#dcProxySection[hidden]{display:none!important}

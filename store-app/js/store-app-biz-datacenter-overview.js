@@ -472,6 +472,12 @@
     if ($('dcMulti')) $('dcMulti').textContent = group(ov.customers.multiBuyCount);
 
     var px = ov.proxy;
+    var noPurchase = $('dcNoPurchaseSwitch') && $('dcNoPurchaseSwitch').checked;
+    if ($('dcProxySection')) $('dcProxySection').hidden = noPurchase || !px.lastPurchaseDayAll;
+    var filterTip = document.querySelector('.sa-dc-filterbar__tip');
+    if (filterTip) filterTip.textContent = noPurchase || !px.lastPurchaseDayAll
+      ? '以下经营、客户概况均按上方周期统计'
+      : '以下经营、进货、客户概况均按上方周期统计';
     if ($('dcProxySummary')) {
       $('dcProxySummary').innerHTML =
         '<div class="sa-dc-grid sa-dc-grid--2">' +
@@ -541,6 +547,13 @@
   }
 
   function bind() {
+    if ($('dcNoPurchaseSwitch')) $('dcNoPurchaseSwitch').addEventListener('change', function () {
+      var url = new URL(location.href);
+      if (this.checked) url.searchParams.set('qaNoPurchase', '1');
+      else url.searchParams.delete('qaNoPurchase');
+      history.replaceState(null, '', url.pathname + url.search + url.hash);
+      render();
+    });
     if ($('dcRanges')) {
       $('dcRanges').addEventListener('click', function (e) {
         var btn = e.target.closest('[data-range]');
@@ -662,6 +675,7 @@
     var f = S() ? S().merge('center') : {};
     state.range = S().normalizeRange(f.range || 'today');
     state.custom = { start: f.start || '', end: f.end || '' };
+    if ($('dcNoPurchaseSwitch')) $('dcNoPurchaseSwitch').checked = new URLSearchParams(location.search).get('qaNoPurchase') === '1';
     if (window.StoreAppBizSession && StoreAppBizSession.boot) {
       StoreAppBizSession.boot({ toast: toast });
     }

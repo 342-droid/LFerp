@@ -8,6 +8,7 @@
   var routeParams = new URLSearchParams(location.search);
   var dcGroup = routeParams.get('group') || 'stores';
   var storeListPage = page === 'stores' && routeParams.get('view') === 'list';
+  var listStoreFilter = '';
 
   function K() { return window.StoreAppRoleDc; }
   function D() { return window.StoreAppBdDcData; }
@@ -110,7 +111,12 @@
     var data = D().overview(s.range, customOf());
     var ranked = D().storesView(s.range, customOf(), 'retail', 'paid').rank;
     var c = data.counts;
-    var rows = ranked.rows.map(function (r) {
+    var currentStores = D().stores().filter(function (store) {
+      return store.scope === 'current' && !K().isTestName(store.name);
+    });
+    var rows = ranked.rows.filter(function (r) {
+      return !listStoreFilter || r.id === listStoreFilter;
+    }).map(function (r) {
       var detail = D().storeView(s.range, customOf(), r.id, 'retail');
       var retail = detail.retail;
       var retailComm = D().businessCommission(s.range, customOf(), 'retail', r.id);
@@ -134,7 +140,10 @@
       rangeBlock() +
       block('负责门店', '',
         '<p class="bd-coverage">当前负责 <strong>' + c.responsible + '</strong> 家门店</p>' +
-        (rows || '<div class="sa-dc-empty">暂无负责门店</div>'));
+        selectFilter('list-store', listStoreFilter, [['', '全部门店']].concat(currentStores.map(function (store) {
+          return [store.id, store.name];
+        })), '选择门店') +
+        (rows || '<div class="sa-dc-empty">当前筛选门店暂无数据</div>'));
 
     paintRanges();
     setCaption(data);
@@ -342,7 +351,7 @@
     nav('佣金分析', api.href('biz-bd-center.html', { store: '' }));
     var data = D().analysis(s.range, customOf(), scope, dim);
     var stores = data.byStore.length
-      ? data.byStore.map(function (r) {
+      ? data.byStore.slice(0, 5).map(function (r) {
           return '<div class="sa-dc-list-row"><div class="sa-dc-list-row__main"><div class="sa-dc-list-row__title">' + esc(r.name) + '</div></div><div class="sa-dc-list-amt">' + K().moneyFmt(r.amount) + '</div></div>';
         }).join('')
       : '<div class="sa-dc-empty">这个范围里还没有可计入的佣金</div>';
@@ -370,7 +379,7 @@
         start: s.range === 'custom' ? s.start : '',
         end: s.range === 'custom' ? s.end : ''
       }) + '">查看佣金明细<span>查看</span></a></div>' +
-      block('门店佣金贡献', '', stores) +
+      block('门店佣金贡献 · TOP5', '', stores) +
       block('佣金来源', '', sources) +
       block('佣金趋势', '', K().chartBox('单位：元'));
     paintRanges();
@@ -388,6 +397,7 @@
     var scope = 'all';
     var dim = s.dim === 'settle' ? 'settle' : 'pay';
     var data = D().commissionList(s.range, customOf(), scope, dim, s.source, s.settle, s.store);
+    var eligibleStores = D().stores().filter(function (store) { return !K().isTestName(store.name); });
     var rows = data.rows.length ? data.rows.map(function (r) {
       var open = openId === r.id;
       var when = dim === 'settle' ? (r.settleAt || '—') : r.pay;
@@ -412,7 +422,8 @@
         { t: '已结算（元）', v: K().moneyFmt(data.settled) }
       ], 3) + '</section>' +
       '<div class="bd-compact-filters bd-compact-filters--status">' +
-      selectFilter('settle',s.settle || 'all',[['all','全部状态']].concat(Array.from(new Set(D().commissionList(s.range, customOf(), scope, dim, s.source, 'all', s.store).rows.map(function(r){return r.settle;}).filter(Boolean))).map(function(v){return [v,v];})),'结算状态') + '</div>' +
+      selectFilter('settle',s.settle || 'all',[['all','全部状态']].concat(Array.from(new Set(D().commissionList(s.range, customOf(), scope, dim, s.source, 'all', s.store).rows.map(function(r){return r.settle;}).filter(Boolean))).map(function(v){return [v,v];})),'结算状态') +
+      selectFilter('store', s.store || '', [['', '全部门店']].concat(eligibleStores.map(function (store) { return [store.id, store.name]; })), '选择门店') + '</div>' +
       '<section class="sa-dc-block">' + rows + '</section>';
     paintRanges();
     setCaption(data);
@@ -455,8 +466,8 @@
     var t = D().tips;
     if (page === 'analysis' || page === 'comm' || (page === 'overview' && dcGroup === 'commission')) return t.commission;
     if (page === 'stores' || page === 'store' || (page === 'overview' && dcGroup === 'stores')) {
-      if (storesTabOf(st().tab) === 'overview') return t.overview + '\n\n' + t.retail + '\n\n' + t.proxy;
-      return t.retail + '\n\n' + t.proxy;
+      if (storesTabOf(st().tab) === 'overview') return t.overview + '\n\n' + t.retail;
+      return t.retail;
     }
     return t.overview + '\n\n' + t.commission;
   }
@@ -475,6 +486,8 @@
     document.getElementById('dcRoot').addEventListener('change', function(e){
       var key=e.target.getAttribute('data-filter');
       if(!key) return;
+      if (key === 'list-store') { listStoreFilter = e.target.value; render(); return; }
+      if (key === 'store') { api.update({ store: e.target.value, settle: 'all' }); render(); return; }
       var patch={}; patch[key]=e.target.value;
       api.update(patch); render();
     });
@@ -547,7 +560,7 @@
       }
       if (e.target.closest('[data-tip]')) {
         document.getElementById('dcSheetTitle').textContent = '指标说明';
-        document.getElementById('dcSheetBody').textContent = tipText() + '\n\n' + D().tips.note;
+        document.getElementById('dcSheetBody').textContent = tipText();
         document.getElementById('dcSheet').hidden = false;
         return;
       }

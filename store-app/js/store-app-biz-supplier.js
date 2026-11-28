@@ -1,6 +1,6 @@
 /**
  * 供应商 · 数据中心交互
- * 一期五区：总览／商品表现／订单退款／履约售后／货款结算（不含独立门店分析）；状态：加载／空／失败
+ * 一期五区：总览／商品表现／订单退款／履约售后／货款结款（不含独立门店分析）；状态：加载／空／失败
  */
 (function () {
   var state = {
@@ -19,7 +19,7 @@
     { id: 'products', label: '商品表现' },
     { id: 'refunds', label: '订单退款' },
     { id: 'fulfill', label: '履约与售后' },
-    { id: 'settle', label: '货款结算' }
+    { id: 'settle', label: '货款结款' }
   ];
 
   function cfg() {
@@ -225,19 +225,19 @@
       '<section class="sa-sbiz-card"><div class="sa-sbiz-card__hd"><h2>交易与供货</h2></div>' +
       '<p class="sa-sbiz-tip">支付交易按支付成功时间统计；实际供货按履约完成统计。以下金额为供应商货款，不是消费者实付。</p>' +
       '<div class="sa-sbiz-grid">' +
-      metricCell('支付交易规模(元)', o.paidGmv, { note: '按支付成功' }) +
-      metricCell('支付交易数量', o.paidQty, { kind: 'int', note: '按支付成功' }) +
-      metricCell('支付订单数', o.orderCount, { kind: 'int', note: '按支付成功' }) +
+      metricCell('销售额(元)', o.paidGmv, { note: '按支付成功' }) +
+      metricCell('商品交易数量', o.paidQty, { kind: 'int', note: '按支付成功' }) +
+      metricCell('订单数', o.orderCount, { kind: 'int', note: '按支付成功' }) +
       metricCell('实际供货数量', o.fulfillQty, { kind: 'int', note: '按履约完成' }) +
       metricCell('实际供货货款(元)', o.fulfillGoodsAmt, { note: '按履约完成' }) +
       metricCell('退款金额(元)', o.refundAmount, { note: '按退款完成' }) +
       '</div></section>' +
-      '<section class="sa-sbiz-card"><div class="sa-sbiz-card__hd"><h2>货款结算摘要</h2></div>' +
-      '<p class="sa-sbiz-tip">应结、待结算、已结算分别展示，请勿直接相加。无记录显示 —，金额为 0 显示 0。</p>' +
+      '<section class="sa-sbiz-card"><div class="sa-sbiz-card__hd"><h2>货款结款摘要</h2></div>' +
+      '<p class="sa-sbiz-tip">应结、待结款、已结款分别展示，请勿直接相加。无记录显示 —，金额为 0 显示 0。</p>' +
       '<div class="sa-sbiz-grid">' +
       metricCell('应结货款(元)', o.duePayable) +
-      metricCell('待结算货款(元)', o.pendingSettle) +
-      metricCell('已结算货款(元)', o.settled) +
+      metricCell('待结款(元)', o.pendingSettle) +
+      metricCell('已结款(元)', o.settled) +
       '</div></section>'
     );
   }
@@ -252,10 +252,10 @@
       '<select class="sa-sbiz-select" id="sbizSort">' +
       '<option value="paidGmv"' +
       (state.sort === 'paidGmv' ? ' selected' : '') +
-      '>按支付交易额</option>' +
+      '>按销售额</option>' +
       '<option value="paidQty"' +
       (state.sort === 'paidQty' ? ' selected' : '') +
-      '>按支付数量</option>' +
+      '>按交易数量</option>' +
       '<option value="fulfillQty"' +
       (state.sort === 'fulfillQty' ? ' selected' : '') +
       '>按履约供货量</option>' +
@@ -292,16 +292,18 @@
           esc(p.refundQty) +
           '／' +
           money(p.refundAmount) +
+          '</td><td>' +
+          Number(p.aftersaleRate || 0).toFixed(1) + '%' +
           '</td></tr>'
         );
       })
       .join('');
     return (
       '<section class="sa-sbiz-card"><div class="sa-sbiz-card__hd"><h2>商品表现</h2></div>' +
-      '<p class="sa-sbiz-tip">支付数量按支付成功统计；履约供货按履约完成统计。退数量与退款金额分开显示。</p>' +
+      '<p class="sa-sbiz-tip">交易数量按支付成功统计；履约供货按履约完成统计。退数量与退款金额分开显示。</p>' +
       bar +
       '<div style="overflow:auto"><table class="sa-sbiz-table"><thead><tr>' +
-      '<th>商品</th><th>支付数量</th><th>履约供货</th><th>支付交易额</th><th>货款</th><th>退数量／退款</th>' +
+      '<th>商品</th><th>交易数量</th><th>履约供货</th><th>销售额</th><th>货款</th><th>退数量／退款</th><th>售后率</th>' +
       '</tr></thead><tbody>' +
       rows +
       '</tbody></table></div></section>'
@@ -336,15 +338,15 @@
           esc(r.orderStatus) +
           '<div style="color:#999;font-size:11px">售后 ' +
           esc(r.aftersaleStatus) +
-          ' · 结算 ' +
-          esc(r.settleStatus) +
+          ' · 结款 ' +
+          esc(String(r.settleStatus).replace(/结算/g, '结款')) +
           '</div></td></tr>'
         );
       })
       .join('');
     return (
       '<section class="sa-sbiz-card"><div class="sa-sbiz-card__hd"><h2>订单退款</h2></div>' +
-      '<p class="sa-sbiz-tip">顾客退款与货款调整分别取自系统记录，金额可能不同。订单、售后、结算状态分开显示。</p>' +
+      '<p class="sa-sbiz-tip">顾客退款与货款调整分别取自系统记录，金额可能不同。订单、售后、结款状态分开显示。</p>' +
       '<div style="overflow:auto"><table class="sa-sbiz-table"><thead><tr>' +
       '<th>订单／商品</th><th>类型</th><th>顾客退款</th><th>货款调整</th><th>状态</th>' +
       '</tr></thead><tbody>' +
@@ -424,21 +426,21 @@
 
   function renderSettle(data) {
     var s = data.settle;
-    if (!s) return renderState('empty', '暂无结算数据');
+    if (!s) return renderState('empty', '暂无结款数据');
     return (
-      '<section class="sa-sbiz-card"><div class="sa-sbiz-card__hd"><h2>货款结算</h2>' +
+      '<section class="sa-sbiz-card"><div class="sa-sbiz-card__hd"><h2>货款结款</h2>' +
       '<a class="sa-sbiz-link" href="' +
       esc(s.detailHref || 'supplier-settle.html') +
-      '">结算单明细</a></div>' +
-      '<p class="sa-sbiz-tip">货款取自供应商结算记录。应结、待结算、已结算分别展示，请勿直接相加。可进入结算单查看关联订单。</p>' +
+      '">结款单明细</a></div>' +
+      '<p class="sa-sbiz-tip">货款取自供应商结款记录。应结、待结款、已结款分别展示，请勿直接相加。可进入结款单查看关联订单。</p>' +
       '<div class="sa-sbiz-grid">' +
       '<div class="sa-sbiz-cell"><span>应结货款(元)</span><b>' +
       money(s.duePayable) +
       '</b></div>' +
-      '<div class="sa-sbiz-cell"><span>待结算货款(元)</span><b>' +
+      '<div class="sa-sbiz-cell"><span>待结款(元)</span><b>' +
       money(s.pendingSettle) +
       '</b></div>' +
-      '<div class="sa-sbiz-cell"><span>已结算货款(元)</span><b>' +
+      '<div class="sa-sbiz-cell"><span>已结款(元)</span><b>' +
       money(s.settled) +
       '</b></div>' +
       '<div class="sa-sbiz-cell"><span>售后／退款冲销(元)</span><b>' +
@@ -658,7 +660,7 @@
       '<option value="normal">正常有数</option>' +
       '<option value="empty">无数据</option>' +
       '<option value="aftersale">售后异常</option>' +
-      '<option value="settle0">结算金额为零</option>' +
+      '<option value="settle0">结款金额为零</option>' +
       '<option value="forbidden">越权访问</option>' +
       '</select>' +
       '<button type="button" id="saSupBizDemoApply">应用并刷新</button>';

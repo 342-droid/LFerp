@@ -88,9 +88,9 @@
     bill.status +
     '</span></div>' +
     '<div class="sa-sup-od-grid">' +
-    kv('单据类型', '供应商销售结算单') +
+    kv('单据类型', '供应商销售结款单') +
     kv('供应商', bill.supplier) +
-    kv('结算周期', bill.cycle) +
+    kv('结款周期', bill.cycle) +
     kv('订单数', String(bill.orders)) +
     kv('创建时间', bill.created) +
     kv('审核时间', bill.auditTime || '—') +
