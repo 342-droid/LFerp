@@ -866,6 +866,45 @@
             body + supplement + '</section>';
     }
 
+    /* 待签署及之后展示关联合同；已签署可查看正文，待签署可去签署。 */
+    function demandContractStatusClass(status) {
+        if (status === '已签署') return ' is-done';
+        if (status === '已作废') return ' is-off';
+        return '';
+    }
+
+    function renderDemandContracts(item) {
+        var api = window.RbtDemandData;
+        if (!item || !api || typeof api.signContracts !== 'function') return '';
+        if (typeof api.hasContractStatus === 'function' && !api.hasContractStatus(item.status) && !item.contractsVoided) {
+            return '';
+        }
+        var contracts = api.signContracts(item) || [];
+        if (!contracts.length) {
+            return '<section class="rbt-demand-sheet"><h3>关联合同</h3>' +
+                '<p class="rbt-demand-sheet__empty">暂无关联合同</p></section>';
+        }
+        var canSign = item.status === '待签署';
+        var rows = contracts.map(function (contract) {
+            var status = (contract && contract.signStatus) || '待签署';
+            var openable = status === '已签署';
+            var signable = status === '待签署' && canSign;
+            var clickable = openable || signable;
+            var tag = clickable ? 'button' : 'div';
+            var attrs = openable
+                ? ' type="button" class="rbt-demand-contract" data-contract-open="' + esc(contract.key) + '"'
+                : (signable
+                    ? ' type="button" class="rbt-demand-contract" data-sign="' + esc(item.code) + '"'
+                    : ' class="rbt-demand-contract is-static"');
+            return '<' + tag + attrs + '>' +
+                '<span class="rbt-demand-contract__name">' + esc((contract && contract.name) || '合同') + '</span>' +
+                '<span class="rbt-demand-contract__status' + demandContractStatusClass(status) + '">' + esc(status) + '</span>' +
+                (clickable ? '<span class="rbt-demand-contract__chev" aria-hidden="true">›</span>' : '') +
+                '</' + tag + '>';
+        }).join('');
+        return '<section class="rbt-demand-sheet"><h3>关联合同</h3>' + rows + '</section>';
+    }
+
     function renderDemandDetail(item) {
         setHead('需求详情');
         var statusClass = item.status === '已完成'
@@ -884,6 +923,7 @@
             (item.acceptedAt ? '<p class="rbt-demand__meta">接单时间 ' + esc(item.acceptedAt) + '</p>' : '') +
             '</article>' +
             '<section class="rbt-demand-sheet"><h3>商品</h3>' + renderDemandSkus(item) + '</section>' +
+            renderDemandContracts(item) +
             renderShipDetail(item) +
             renderSettleDetail(item);
     }
@@ -1911,14 +1951,18 @@
         return matched ? (matched[1] + '年' + matched[2] + '月' + matched[3] + '日') : '';
     }
 
-    /* 正文用合同管理里的销售合同。乙方填门店，签署页盖章并写入签署日期。 */
-    function contractPaperHtml(contract) {
+    /* 销售合同乙方是门店；采购合同乙方是贸易商。签署页盖章并写入签署日期。 */
+    function contractPaperHtml(contract, item) {
+        var purchase = contract && contract.key === 'purchase';
         var bag = window.LF_CONTRACT_BODIES || {};
-        var body = bag.TPL001 || '';
-        var storeParty = (contract.parties || []).filter(function (party) { return party.role === 'store'; })[0];
-        var storeName = storeParty && storeParty.name || '';
+        var body = bag[purchase ? 'TPL004' : 'TPL001'] || '';
+        var parties = (contract && contract.parties) || [];
+        var partyB = parties.filter(function (party) {
+            return party && party.role === (purchase ? 'trader' : 'store');
+        })[0];
+        var partyName = partyB && partyB.name || (purchase ? (item && item.traderName) : (item && item.storeName)) || '';
         var signedAt = '';
-        (contract.parties || []).some(function (party) {
+        parties.some(function (party) {
             if (party && party.signedAt) {
                 signedAt = party.signedAt;
                 return true;
@@ -1928,17 +1972,19 @@
         var dateText = contractCnDate(signedAt);
         if (!body) return '暂无合同正文';
         var lines = body.split('\n');
-        var headEnd = lines.findIndex(function (line) { return line.indexOf('鉴于') === 0; });
+        var headEnd = lines.findIndex(function (line) {
+            return line.indexOf('鉴于') === 0 || line.indexOf('第一条') === 0 || line.indexOf('1.1') === 0;
+        });
         if (headEnd < 0) headEnd = Math.min(lines.length, 24);
         var addressFilled = false;
         for (var i = 0; i < headEnd; i++) {
             var head = lines[i];
-            if (storeName && /^乙方：\s*$/.test(head.trim())) {
-                lines[i] = head.replace(/：\s*$/, '：' + storeName);
+            if (partyName && /^乙方(?:（[^）]*）)?：\s*$/.test(head.trim())) {
+                lines[i] = head.replace(/：\s*$/, '：' + partyName);
                 continue;
             }
-            if (storeName && !addressFilled && /地址：\s*$/.test(head.trim())) {
-                lines[i] = head.replace(/：\s*$/, '：' + storeName);
+            if (!purchase && partyName && !addressFilled && /地址：\s*$/.test(head.trim())) {
+                lines[i] = head.replace(/：\s*$/, '：' + partyName);
                 addressFilled = true;
             }
         }
@@ -1951,22 +1997,46 @@
             if (!inPage || trimmed.indexOf('以下无正文') >= 0) return esc(line);
             if (/^甲方（盖章）/.test(trimmed)) {
                 sealIndex += 1;
-                return '<span class="rbt-contract__sign">' + esc(line) + contractSeal('上海冷丰道善信息科技有限公司', sealIndex) + '</span>';
+                var partyA = ((trimmed.match(/：\s*(.+)$/) || [])[1] || '').replace(/[_\s　]+$/g, '').trim();
+                if (!partyA) partyA = purchase ? '上海冷丰德本信息科技有限公司' : '上海冷丰道善信息科技有限公司';
+                return '<span class="rbt-contract__sign">' + esc(line) + contractSeal(partyA, sealIndex) + '</span>';
             }
-            if (/^乙方（(?:签字|盖章）)/.test(trimmed)) {
+            if (/^乙方（(?:签字|盖章)/.test(trimmed)) {
                 var shown = line;
-                if (storeName && /：\s*[_＿\s　]*$/.test(trimmed)) shown = line.replace(/：\s*[_＿\s　]*$/, '：' + storeName);
+                if (partyName && /：\s*[_＿\s　]*$/.test(trimmed)) shown = line.replace(/：\s*[_＿\s　]*$/, '：' + partyName);
                 sealIndex += 1;
-                return '<span class="rbt-contract__sign">' + esc(shown) + contractSeal(storeName, sealIndex) + '</span>';
+                return '<span class="rbt-contract__sign">' + esc(shown) + contractSeal(partyName, sealIndex) + '</span>';
             }
             if (/^日期/.test(trimmed) && dateText) return esc(line.replace(/：.*/, '：' + dateText));
             return esc(line);
         }).join('\n');
     }
 
+    function demandByCode(code) {
+        if (!code) return null;
+        var found = null;
+        storeDemands().some(function (item) {
+            if (item && item.code === code) {
+                found = item;
+                return true;
+            }
+            return false;
+        });
+        if (found) return found;
+        var api = window.RbtDemandData;
+        return api && typeof api.get === 'function' ? api.get(code) : null;
+    }
+
     function openContract(key) {
-        var item = repayViews().filter(function (row) { return row.code === billCode; })[0];
-        var contract = signedContracts(item).filter(function (row) { return row.key === key; })[0];
+        var item = demandByCode(detailCode) || demandByCode(billCode) ||
+            repayViews().filter(function (row) { return row.code === billCode; })[0];
+        var api = window.RbtDemandData;
+        var contracts = item && api && typeof api.signContracts === 'function'
+            ? api.signContracts(item)
+            : signedContracts(item);
+        var contract = (contracts || []).filter(function (row) {
+            return row && row.key === key && row.signStatus === '已签署';
+        })[0];
         var node = document.getElementById('rbtH5Contract');
         if (!item || !contract || !node) return;
         var signers = (contract.parties || []).map(function (party) {
@@ -1978,7 +2048,7 @@
             esc(contract.name) + '</strong></div>' +
             '<div class="rbt-contract__body">' +
             '<p class="rbt-contract__meta">签署任务 · ' + esc(contract.code) + ' · ' + esc(item.storeName || '') + ' · 已签署</p>' +
-            '<article class="rbt-contract__paper">' + contractPaperHtml(contract) + '</article>' +
+            '<article class="rbt-contract__paper">' + contractPaperHtml(contract, item) + '</article>' +
             '<section class="rbt-contract__side"><h3>详情</h3>' +
             contractSideLine('主题', contract.name) +
             '<div class="rbt-contract__side-line"><span>状态</span><b><i class="rbt-contract__dot"></i>已签署</b></div>' +

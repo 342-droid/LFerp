@@ -343,6 +343,46 @@
         .rbt-demand-sku__side b { display: block; color: #222; font-size: 14px; font-weight: 600; }
         .rbt-demand-sku__side span { display: block; margin-top: 4px; color: #999; font-size: 12px; }
         .rbt-demand-sheet.is-focus { box-shadow: 0 0 0 2px #ff7019; }
+        .rbt-demand__grid + .rbt-demand__meta { margin-top: 12px; }
+        .rbt-demand-contract {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            margin: 0;
+            padding: 12px 0;
+            border: 0;
+            border-top: 1px solid #f2f3f5;
+            background: transparent;
+            text-align: left;
+            cursor: pointer;
+        }
+        .rbt-demand-contract:first-of-type { border-top: 0; padding-top: 2px; }
+        .rbt-demand-contract:last-of-type { padding-bottom: 0; }
+        .rbt-demand-contract.is-static { cursor: default; }
+        .rbt-demand-contract__name {
+            flex: 1;
+            min-width: 0;
+            color: #222;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+        .rbt-demand-contract__status {
+            flex: none;
+            color: #ff7019;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        .rbt-demand-contract__status.is-done { color: #52c41a; }
+        .rbt-demand-contract__status.is-off { color: #999; }
+        .rbt-demand-contract__chev {
+            flex: none;
+            color: #c8c8c8;
+            font-size: 16px;
+            line-height: 1;
+            transform: translateY(-1px);
+        }
         .rbt-demand-ship { padding: 10px 0; border-top: 1px solid #f2f3f5; }
         .rbt-demand-ship:first-of-type { border-top: 0; padding-top: 0; }
         .rbt-demand-ship__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
@@ -1671,13 +1711,13 @@
     <script src="../js/business-tag-prototype-store.js"></script>
     <script src="rbt-store-data.js"></script>
     <script src="rbt-settle-ratio.js"></script>
-    <script src="rbt-demand-data.js?v=20261128-ratio-node"></script>
+    <script src="rbt-demand-data.js?v=20261128-sign-seed"></script>
     <script src="rbt-contract-sign.js"></script>
     <script src="../js/contract-bodies.js?v=20261120-rbt-read"></script>
     <script src="rbt-daily-fulfill.js?v=20261128-ratio-node"></script>
     <script src="../js/store-pay-password.js"></script>
     <script src="../js/store-wallet-demo.js?v=20261127-wallet"></script>
-    <script src="rbt-h5-store-app.js?v=20261128-settle-time"></script>
+    <script src="rbt-h5-store-app.js?v=20261128-demand-contract"></script>
     <script src="rbt-h5-store-login.js"></script>
 </body>
 </html>

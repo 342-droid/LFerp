@@ -260,7 +260,11 @@
 
     function renderHallCard(item, accepted) {
         var actions = hallActions(item, accepted);
-        return hallSummary(item, accepted) +
+        var code = esc(item && item.code || '');
+        return hallSummary(item, accepted).replace(
+            '<article class="rbt-hall-card">',
+            '<article class="rbt-hall-card" data-demand="' + code + '">'
+        ) +
             (actions ? '<div class="rbt-hall-card__foot">' + actions + '</div>' : '') +
             '</article>';
     }
@@ -272,11 +276,10 @@
             var qty = Number(line && line.qty);
             if (!isFinite(qty) || qty < 1) qty = 1;
             var price = line && line.salePrice != null && line.salePrice !== '' ? yuanText(line.salePrice) : '—';
-            var spec = [line && line.code, line && line.spec].filter(Boolean).join(' · ');
             return '<div class="rbt-hall-sku">' +
                 '<div class="rbt-hall-sku__main"><strong>' + esc((line && (line.name || line.code)) || '—') + '</strong>' +
-                '<p>' + esc(spec || '—') + '</p></div>' +
-                '<div class="rbt-hall-sku__side"><b>' + esc(lineAmount(line)) + '</b><span>×' + qty + ' · ' + esc(price) + '</span></div>' +
+                '<p>' + esc((line && line.code) || '—') + '</p></div>' +
+                '<div class="rbt-hall-sku__side"><b>' + esc(lineAmount(line)) + '</b><span>x' + qty + ' ' + esc(price) + '</span></div>' +
                 '</div>';
         }).join('');
     }
@@ -290,14 +293,69 @@
         return '';
     }
 
+    /* 待签署及之后展示关联合同；已签署可查看正文，待签署可去签署。 */
+    function hallContractStatusClass(status) {
+        if (status === '已签署') return ' is-done';
+        if (status === '已作废') return ' is-off';
+        return '';
+    }
+
+    function renderHallContracts(item) {
+        var api = window.RbtDemandData;
+        if (!item || !api || typeof api.signContracts !== 'function') return '';
+        if (typeof api.hasContractStatus === 'function' && !api.hasContractStatus(item.status) && !item.contractsVoided) {
+            return '';
+        }
+        var contracts = api.signContracts(item) || [];
+        if (!contracts.length) {
+            return '<section class="rbt-hall-sheet"><h3>关联合同</h3>' +
+                '<p class="rbt-hall-sheet__empty">暂无关联合同</p></section>';
+        }
+        var canSign = item.status === '待签署';
+        var rows = contracts.map(function (contract) {
+            var status = (contract && contract.signStatus) || '待签署';
+            var openable = status === '已签署';
+            var signable = status === '待签署' && canSign;
+            var clickable = openable || signable;
+            var tag = clickable ? 'button' : 'div';
+            var attrs = openable
+                ? ' type="button" class="rbt-hall-contract" data-contract-open="' + esc(contract.key) + '"'
+                : (signable
+                    ? ' type="button" class="rbt-hall-contract" data-sign="' + esc(item.code) + '"'
+                    : ' class="rbt-hall-contract is-static"');
+            return '<' + tag + attrs + '>' +
+                '<span class="rbt-hall-contract__name">' + esc((contract && contract.name) || '合同') + '</span>' +
+                '<span class="rbt-hall-contract__status' + hallContractStatusClass(status) + '">' + esc(status) + '</span>' +
+                (clickable ? '<span class="rbt-hall-contract__chev" aria-hidden="true">›</span>' : '') +
+                '</' + tag + '>';
+        }).join('');
+        return '<section class="rbt-hall-sheet"><h3>关联合同</h3>' + rows + '</section>';
+    }
+
     function renderHallDetail(item) {
         var accepted = !!(item.traderName && item.traderName === traderName());
         return hallSummary(item, accepted) +
             '<p class="rbt-hall-card__meta">创建时间 ' + esc(item.createdAt || '—') + '</p>' +
-            (accepted ? '<p class="rbt-hall-card__meta">接单时间 ' + esc(item.acceptedAt || '—') + '</p>' : '') +
+            (accepted && item.acceptedAt
+                ? '<p class="rbt-hall-card__meta">接单时间 ' + esc(item.acceptedAt) + '</p>'
+                : '') +
             '</article>' +
-            '<section class="rbt-hall-sheet"><h3>商品</h3>' + renderHallSkus(item) + '</section>' +
+            '<section class="rbt-hall-sheet"><h3>商品明细</h3>' + renderHallSkus(item) + '</section>' +
+            renderHallContracts(item) +
             renderHallSettle(item);
+    }
+
+    function demandByCode(code) {
+        if (!code) return null;
+        var found = null;
+        demandRows().some(function (item) {
+            if (item && item.code === code) {
+                found = item;
+                return true;
+            }
+            return false;
+        });
+        return found;
     }
 
     function syncHomeChrome() {
@@ -818,8 +876,15 @@
     }
 
     function openContract(key) {
-        var item = acceptedDemands().filter(function (row) { return row.code === collectCode; })[0];
-        var contract = traderSignedContracts(item).filter(function (row) { return row.key === key; })[0];
+        var item = demandByCode(detailCode) || demandByCode(collectCode) ||
+            acceptedDemands().filter(function (row) { return row.code === collectCode; })[0];
+        var api = window.RbtDemandData;
+        var contracts = item && api && typeof api.signContracts === 'function'
+            ? api.signContracts(item)
+            : traderSignedContracts(item);
+        var contract = (contracts || []).filter(function (row) {
+            return row && row.key === key && row.signStatus === '已签署';
+        })[0];
         var node = document.getElementById('rbtH5Contract');
         if (!item || !contract || !node) return;
         var signers = (contract.parties || []).map(function (party) {
@@ -2214,6 +2279,15 @@
             else if (result && result.reason === 'provider') toast('服务商不能接单');
             else if (result && result.reason === 'missing') toast('需求单不存在');
             else toast('该需求单已被接单');
+            render();
+            return;
+        }
+        var demandCard = event.target.closest('[data-demand]');
+        if (demandCard && screen === 'hall' && !event.target.closest('.rbt-hall-card__btn')) {
+            detailCode = demandCard.getAttribute('data-demand') || '';
+            if (!detailCode) return;
+            tab = 'hall';
+            screen = 'detail';
             render();
             return;
         }

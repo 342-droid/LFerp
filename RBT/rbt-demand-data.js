@@ -239,6 +239,15 @@
                     }
                 ]
             }, xianDa)),
+            /* 待签署：贸易商已确认签约，合同待各方签署。额度已由发货中占用，本单不重复占。 */
+            rowSeed(Object.assign({
+                code: 'XQ00030', storeCode: 'ONS00001', storeName: '西湖中心生鲜店',
+                pkg: fresh, plan: freshPlan, status: '待签署',
+                quotaHeld: false,
+                skus: linesOf(freshLines), amount: '60480.00',
+                creator: '喻巧', createdAt: '2026-11-25 10:18:26', updater: '王丽', updatedAt: '2026-11-26 15:42:08',
+                acceptedAt: '2026-11-25 14:06:33'
+            }, xianDa)),
             rowSeed({
                 code: 'XQ00015', storeCode: 'ONS00002', storeName: '东城和平里生鲜店',
                 pkg: image, plan: imagePlan, status: '已作废',

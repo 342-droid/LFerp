@@ -480,6 +480,7 @@
         .rbt-hall-card__status.is-off { background: #f2f3f5; color: #999; }
         .rbt-hall-card__status.is-done { background: #f6ffed; color: #52c41a; }
         .rbt-hall-card__meta { margin: 4px 0 0; color: #999; font-size: 12px; line-height: 1.4; }
+        .rbt-hall-card__grid + .rbt-hall-card__meta { margin-top: 12px; }
         .rbt-hall-card__total {
             display: flex;
             align-items: baseline;
@@ -545,16 +546,56 @@
             align-items: flex-start;
             justify-content: space-between;
             gap: 12px;
-            padding: 10px 0;
+            padding: 12px 0;
             border-top: 1px solid #f2f3f5;
         }
         .rbt-hall-sku:first-of-type { border-top: 0; padding-top: 0; }
+        .rbt-hall-sku:last-of-type { padding-bottom: 0; }
         .rbt-hall-sku__main { min-width: 0; }
         .rbt-hall-sku__main strong { display: block; color: #222; font-size: 14px; font-weight: 600; line-height: 1.4; }
         .rbt-hall-sku__main p { margin: 4px 0 0; color: #999; font-size: 12px; line-height: 1.4; }
         .rbt-hall-sku__side { flex: none; text-align: right; }
         .rbt-hall-sku__side b { display: block; color: #222; font-size: 14px; font-weight: 600; }
         .rbt-hall-sku__side span { display: block; margin-top: 4px; color: #999; font-size: 12px; }
+        .rbt-hall-contract {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            margin: 0;
+            padding: 12px 0;
+            border: 0;
+            border-top: 1px solid #f2f3f5;
+            background: transparent;
+            text-align: left;
+            cursor: pointer;
+        }
+        .rbt-hall-contract:first-of-type { border-top: 0; padding-top: 2px; }
+        .rbt-hall-contract:last-of-type { padding-bottom: 0; }
+        .rbt-hall-contract.is-static { cursor: default; }
+        .rbt-hall-contract__name {
+            flex: 1;
+            min-width: 0;
+            color: #222;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+        .rbt-hall-contract__status {
+            flex: none;
+            color: #ff7019;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        .rbt-hall-contract__status.is-done { color: #52c41a; }
+        .rbt-hall-contract__status.is-off { color: #999; }
+        .rbt-hall-contract__chev {
+            flex: none;
+            color: #c8c8c8;
+            font-size: 16px;
+            line-height: 1;
+            transform: translateY(-1px);
+        }
         .rbt-h5-back {
             border: 0;
             background: transparent;
@@ -1496,14 +1537,14 @@
     <script src="../js/mdm-provider-archive-store.js?v=20261117-provider"></script>
     <script src="../js/mdm-trader-archive-store.js?v=20261117-provider"></script>
     <script src="rbt-settle-ratio.js"></script>
-    <script src="rbt-demand-data.js?v=20261128-ratio-node"></script>
+    <script src="rbt-demand-data.js?v=20261128-sign-seed"></script>
     <script src="rbt-daily-fulfill.js?v=20261128-ratio-node"></script>
     <script src="../js/store-pay-password.js"></script>
     <script src="rbt-party-wallet.js?v=20261128-wallet-out"></script>
     <script src="rbt-trader-store-biz.js?v=20261127-no-preset"></script>
     <script src="rbt-contract-sign.js"></script>
     <script src="../js/contract-bodies.js?v=20261123-trader-read"></script>
-    <script src="rbt-h5-trader-app.js?v=20261128-recharge-tip"></script>
+    <script src="rbt-h5-trader-app.js?v=20261128-hall-detail"></script>
     <script src="rbt-h5-trader-login.js"></script>
 </body>
 </html>
