@@ -1901,7 +1901,7 @@
                     if (archiveKind !== 'warehouse' && window.MdmResourceArchiveForms.enqueueEntryAudit) {
                         var partnerMap = { franchise: '加盟店', joint: '联营店', direct: '直营店' };
                         var partnerValue = archiveRefs.partnerSel ? archiveRefs.partnerSel.value : '';
-                        window.MdmResourceArchiveForms.enqueueEntryAudit({
+                        var auditPayload = {
                             kind: archiveKind,
                             source: 'PC 创建主体',
                             subjectName: String(nameBefore || '').trim(),
@@ -1919,7 +1919,11 @@
                             region: archiveRefs.regionInp ? String(archiveRefs.regionInp.value || '').trim() : '',
                             address: archiveRefs.addressTa ? String(archiveRefs.addressTa.value || '').trim() : '',
                             shortName: bizName || String(nameBefore || '').trim()
-                        });
+                        };
+                        if (archiveKind === 'store' && typeof window.MdmResourceArchiveForms.readRbfFromRefs === 'function') {
+                            auditPayload = Object.assign(auditPayload, window.MdmResourceArchiveForms.readRbfFromRefs(archiveRefs));
+                        }
+                        window.MdmResourceArchiveForms.enqueueEntryAudit(auditPayload);
                     }
                     var archiveTip = archiveKind === 'warehouse'
                         ? '已提交首个仓库档案，可在仓库档案查看'

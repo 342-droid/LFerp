@@ -140,6 +140,11 @@
             verifyCode: true
         };
         if (common[fieldKey]) return true;
+        if (fieldKey === 'rbfApply') return true;
+        if (row && row.rbfApply === '是') {
+            if (fieldKey === 'rbfLevel' || fieldKey === 'rbfQuota' || fieldKey === 'rbfTimes' || fieldKey === 'rbfDeposit') return true;
+            if (fieldKey === 'rbfVoucherName' && row.rbfDeposit === '是') return true;
+        }
         if (isFranchiseOrPartnerRow(row) && (fieldKey === 'storeArea' || fieldKey === 'storeFloors')) return true;
         return false;
     }
@@ -261,6 +266,35 @@
             if (!String(p.storeFloors != null ? p.storeFloors : '').trim()) {
                 if (typeof showToast === 'function') showToast('请填写门店楼层', 'error');
                 return false;
+            }
+        }
+        if (!isTraderAuditRow(merged)) {
+            var apply = String(p.rbfApply != null ? p.rbfApply : '').trim();
+            if (apply !== '是' && apply !== '否') {
+                if (typeof showToast === 'function') showToast('请选择是否申请RBF联营', 'error');
+                return false;
+            }
+            if (apply === '是') {
+                if (!String(p.rbfLevel || '').trim()) {
+                    if (typeof showToast === 'function') showToast('请选择RBF等级', 'error');
+                    return false;
+                }
+                if (!/^\d+(\.\d{1,2})?$/.test(String(p.rbfQuota || '')) || Number(p.rbfQuota) <= 0) {
+                    if (typeof showToast === 'function') showToast('门店额度须大于 0，最多两位小数', 'error');
+                    return false;
+                }
+                if (!/^[1-9]\d*$/.test(String(p.rbfTimes || ''))) {
+                    if (typeof showToast === 'function') showToast('需求发布次数须为大于 0 的整数', 'error');
+                    return false;
+                }
+                if (p.rbfDeposit !== '是' && p.rbfDeposit !== '否') {
+                    if (typeof showToast === 'function') showToast('请选择保证金是否缴纳', 'error');
+                    return false;
+                }
+                if (p.rbfDeposit === '是' && !String(p.rbfVoucherName || '').trim()) {
+                    if (typeof showToast === 'function') showToast('请上传保证金缴纳凭证', 'error');
+                    return false;
+                }
             }
         }
         return true;
@@ -489,6 +523,7 @@
         body.appendChild(detailRow('门店合作类型', displayPartnerDivision(row.partnerDivision), 'partnerDivision', row));
         body.appendChild(detailRow('门店类型', row.storeType, 'storeType', row));
         appendStoreBizDetail(body, row);
+        appendRbfDetail(body, row);
         body.appendChild(detailRow('配送仓库', row.warehouse, 'warehouse', row));
         body.appendChild(detailRow('省市区', row.region, 'region', row));
         body.appendChild(detailRow('详细地址', row.address, 'address', row));
@@ -748,7 +783,13 @@
             address: row.address || '',
             bizLine: row.bizLine || '',
             brandName: row.brandName || '',
-            bizLines: bizLines || ''
+            bizLines: bizLines || '',
+            rbfApply: row.rbfApply || '',
+            rbfLevel: row.rbfLevel || '',
+            rbfQuota: row.rbfQuota || '',
+            rbfTimes: row.rbfTimes || '',
+            rbfDeposit: row.rbfDeposit || '',
+            rbfVoucherName: row.rbfVoucherName || ''
         };
         try {
             var list = JSON.parse(localStorage.getItem(APPROVED_STORE_KEY) || '[]');
@@ -859,6 +900,100 @@
         paintBrands(row.brandName || '', api.normalizeBiz(row.bizLines));
     }
 
+    function appendRbfDetail(body, row) {
+        body.appendChild(el('div', 'supplier-detail-section-title', 'RBF联营'));
+        body.appendChild(detailRow('是否申请RBF联营', row.rbfApply || '—', 'rbfApply', row));
+        if (row.rbfApply !== '是') return;
+        body.appendChild(detailRow('RBF等级', row.rbfLevel || '—', 'rbfLevel', row));
+        body.appendChild(detailRow('门店额度', row.rbfQuota ? String(row.rbfQuota) + ' 元' : '—', 'rbfQuota', row));
+        body.appendChild(detailRow('需求发布次数', row.rbfTimes ? String(row.rbfTimes) + ' 次' : '—', 'rbfTimes', row));
+        body.appendChild(detailRow('保证金是否缴纳', row.rbfDeposit || '—', 'rbfDeposit', row));
+        if (row.rbfDeposit === '是') {
+            body.appendChild(detailRow('缴纳凭证', row.rbfVoucherName || '—', 'rbfVoucherName', row));
+        }
+    }
+
+    function appendRbfEdit(body, row) {
+        body.appendChild(el('div', 'supplier-detail-section-title', 'RBF联营'));
+        var applySel = selectInput(
+            [
+                { value: '', label: '请选择' },
+                { value: '是', label: '是' },
+                { value: '否', label: '否' }
+            ],
+            row.rbfApply || ''
+        );
+        body.appendChild(editRow('是否申请RBF联营', applySel, 'rbfApply', row));
+        var levelSel = selectInput(
+            [
+                { value: '', label: '请选择' },
+                { value: 'A', label: 'A' },
+                { value: 'B', label: 'B' },
+                { value: 'C', label: 'C' },
+                { value: 'D', label: 'D' }
+            ],
+            row.rbfLevel || ''
+        );
+        var levelRow = editRow('RBF等级', levelSel, 'rbfLevel', row);
+        var quotaInp = textInput('请输入门店额度', row.rbfQuota || '');
+        var quotaRow = editRow('门店额度（元）', quotaInp, 'rbfQuota', row);
+        var timesInp = textInput('请输入需求发布次数', row.rbfTimes || '1');
+        var timesRow = editRow('需求发布次数（次）', timesInp, 'rbfTimes', row);
+        var depositSel = selectInput(
+            [
+                { value: '', label: '请选择' },
+                { value: '是', label: '是' },
+                { value: '否', label: '否' }
+            ],
+            row.rbfDeposit || ''
+        );
+        var depositRow = editRow('保证金是否缴纳', depositSel, 'rbfDeposit', row);
+        var voucherInp = textInput('', row.rbfVoucherName || '');
+        voucherInp.type = 'hidden';
+        voucherInp.setAttribute('data-audit-field', 'rbfVoucherName');
+        var file = document.createElement('input');
+        file.type = 'file';
+        file.accept = 'image/*,.pdf';
+        var fileName = el('span', '', row.rbfVoucherName ? '已选择：' + row.rbfVoucherName : '支持图片或 PDF，不超过 800KB');
+        var fileWrap = el('div', 'rbt-deposit-file');
+        fileWrap.style.cssText = 'display:flex;align-items:center;gap:8px;flex-wrap:wrap;';
+        fileWrap.appendChild(file);
+        fileWrap.appendChild(fileName);
+        fileWrap.appendChild(voucherInp);
+        var voucherRow = editRow('缴纳凭证', fileWrap, 'rbfVoucherName', row);
+        file.addEventListener('change', function () {
+            var picked = file.files && file.files[0];
+            if (!picked) {
+                voucherInp.value = '';
+                fileName.textContent = '支持图片或 PDF，不超过 800KB';
+                return;
+            }
+            if (picked.size > 800 * 1024) {
+                file.value = '';
+                voucherInp.value = '';
+                fileName.textContent = '支持图片或 PDF，不超过 800KB';
+                if (typeof showToast === 'function') showToast('凭证文件请控制在 800KB 以内', 'error');
+                return;
+            }
+            voucherInp.value = picked.name || '缴纳凭证';
+            fileName.textContent = '已选择：' + voucherInp.value;
+        });
+        [levelRow, quotaRow, timesRow, depositRow, voucherRow].forEach(function (node) {
+            body.appendChild(node);
+        });
+        function syncRbfEdit() {
+            var on = applySel.value === '是';
+            levelRow.style.display = on ? '' : 'none';
+            quotaRow.style.display = on ? '' : 'none';
+            timesRow.style.display = on ? '' : 'none';
+            depositRow.style.display = on ? '' : 'none';
+            voucherRow.style.display = on && depositSel.value === '是' ? '' : 'none';
+        }
+        applySel.addEventListener('change', syncRbfEdit);
+        depositSel.addEventListener('change', syncRbfEdit);
+        syncRbfEdit();
+    }
+
     function editRow(label, control, fieldKey, dataRow) {
         var rowEl = el('div', 'audit-detail-row');
         var labelEl = el('span', 'audit-detail-row__label');
@@ -905,6 +1040,7 @@
         body.appendChild(editRow('门店合作类型', partnerSel, 'partnerDivision', row));
         body.appendChild(editRow('门店类型', textInput('请输入门店类型', row.storeType), 'storeType', row));
         appendStoreBizEdit(body, row);
+        if (!isTraderAuditRow(row)) appendRbfEdit(body, row);
         body.appendChild(editRow('配送仓库', textInput('请输入配送仓库', row.warehouse), 'warehouse', row));
         body.appendChild(editRow('省市区', textInput('请输入省市区', row.region), 'region', row));
         body.appendChild(editRow('详细地址', textInput('请输入详细地址', row.address), 'address', row));
@@ -1058,7 +1194,13 @@
             surroundingCommunityNote: '周边成熟小区多，家庭客群占比高。',
             confidenceReach1000: '老板有多个社群资源，有信心达成。',
             specialCircumstancesNote: '无',
-            specialCircumstancesPhotos: '—'
+            specialCircumstancesPhotos: '—',
+            rbfApply: '是',
+            rbfLevel: 'A',
+            rbfQuota: '80000.00',
+            rbfTimes: '1',
+            rbfDeposit: '是',
+            rbfVoucherName: '保证金缴纳凭证.pdf'
         },
         {
             id: 'WF-STORE-20260507002',
@@ -1115,7 +1257,12 @@
             specialCircumstancesPhotos: [
                 { type: 'image', name: '选址情况说明-1.jpg' },
                 { type: 'image', name: '选址情况说明-2.jpg' }
-            ]
+            ],
+            rbfApply: '是',
+            rbfLevel: 'B',
+            rbfQuota: '50000.00',
+            rbfTimes: '2',
+            rbfDeposit: '否'
         },
         {
             id: 'WF-STORE-20260506001',
@@ -1170,7 +1317,13 @@
             surroundingCommunityNote: '周边新建小区与沿街商铺混合。',
             confidenceReach1000: '需补充社群拉新方案。',
             specialCircumstancesNote: '需补充门头清晰照与视频。',
-            specialCircumstancesPhotos: '—'
+            specialCircumstancesPhotos: '—',
+            rbfApply: '是',
+            rbfLevel: 'C',
+            rbfQuota: '20000.00',
+            rbfTimes: '1',
+            rbfDeposit: '是',
+            rbfVoucherName: '滨江保证金回单.jpg'
         },
         {
             id: 'WF-STORE-20260506008',
@@ -1222,7 +1375,8 @@
                 { type: 'image', name: '上播销量截图-第1天.jpg' },
                 { type: 'image', name: '上播销量截图-第2天.jpg' },
                 { type: 'image', name: '上播销量截图-第3天.jpg' }
-            ]
+            ],
+            rbfApply: '否'
         },
         {
             /* 供应商入驻：字段对齐「新增供应商商家」 */
@@ -1405,6 +1559,17 @@
         /* 供应商商家无独立入驻方名称：列表「入驻方名称」与主体名称同步 */
         if (isSupplierAuditRow(row) && patch.subjectName != null) {
             row.storeName = String(patch.subjectName).trim();
+        }
+        if (!isSupplierAuditRow(row) && !isTraderAuditRow(row)) {
+            if (row.rbfApply !== '是') {
+                row.rbfLevel = '';
+                row.rbfQuota = '';
+                row.rbfTimes = '';
+                row.rbfDeposit = '';
+                row.rbfVoucherName = '';
+            } else if (row.rbfDeposit !== '是') {
+                row.rbfVoucherName = '';
+            }
         }
         if (!isSupplierAuditRow(row) && patch.storeName != null) {
             row.shortName = String(patch.storeName).trim();
