@@ -1,10 +1,74 @@
 {
-  "latestSha": "beef4443c0af6d6e5cf65227bbebfab70d055c87",
-  "total": 678,
+  "latestSha": "024f94d058646c6f75c075319375ebdfdf5b7147",
+  "total": 679,
   "days": [
     {
       "date": "2026-11-28",
       "items": [
+        {
+          "sha": "024f94d",
+          "type": "other",
+          "text": "门店数据中台汇总食亨与抖音来源并补充按日明细",
+          "author": "u ｌ",
+          "time": "21:16",
+          "pages": [
+            {
+              "file": "store-app/h5/biz-bd-center.html",
+              "module": "",
+              "title": "数据中心 · BD"
+            },
+            {
+              "file": "store-app/h5/biz-bd-commission-list.html",
+              "module": "",
+              "title": "佣金明细 · BD"
+            },
+            {
+              "file": "store-app/h5/biz-bd-commission.html",
+              "module": "",
+              "title": "佣金分析 · BD"
+            },
+            {
+              "file": "store-app/h5/biz-bd-store.html",
+              "module": "",
+              "title": "门店详情 · BD"
+            },
+            {
+              "file": "store-app/h5/biz-bd-stores.html",
+              "module": "",
+              "title": "门店业务 · BD"
+            },
+            {
+              "file": "store-app/h5/biz-center.html",
+              "module": "",
+              "title": "数据中心 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/biz-commission.html",
+              "module": "",
+              "title": "佣金明细 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/biz-operate.html",
+              "module": "",
+              "title": "运营数据 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/biz-ops.html",
+              "module": "",
+              "title": "经营数据 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/biz-source-daily.html",
+              "module": "",
+              "title": "来源每日数据 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/store-orders.html",
+              "module": "",
+              "title": "门店订单 · 丰银宝"
+            }
+          ]
+        },
         {
           "sha": "beef444",
           "type": "fix",
@@ -161,6 +225,11 @@
               "file": "store-app/h5/biz-revenue.html",
               "module": "",
               "title": "营业额 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/biz-source-daily.html",
+              "module": "",
+              "title": "来源每日数据 · 丰银宝"
             },
             {
               "file": "store-app/h5/store-orders.html",
@@ -2995,6 +3064,11 @@
               "title": "营业额 · 丰银宝"
             },
             {
+              "file": "store-app/h5/biz-source-daily.html",
+              "module": "",
+              "title": "来源每日数据 · 丰银宝"
+            },
+            {
               "file": "store-app/h5/home.html",
               "module": "",
               "title": "丰银宝 · 工作台"
@@ -5372,6 +5446,11 @@
               "title": "营业额 · 丰银宝"
             },
             {
+              "file": "store-app/h5/biz-source-daily.html",
+              "module": "",
+              "title": "来源每日数据 · 丰银宝"
+            },
+            {
               "file": "store-app/h5/biz-supplier-home.html",
               "module": "",
               "title": "数据中心 · 供应商"
@@ -5526,6 +5605,11 @@
               "title": "经营数据 · 丰银宝"
             },
             {
+              "file": "store-app/h5/biz-source-daily.html",
+              "module": "",
+              "title": "来源每日数据 · 丰银宝"
+            },
+            {
               "file": "store-app/h5/biz-supplier-home.html",
               "module": "",
               "title": "数据中心 · 供应商"
@@ -5659,6 +5743,11 @@
               "file": "store-app/h5/biz-ops.html",
               "module": "",
               "title": "经营数据 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/biz-source-daily.html",
+              "module": "",
+              "title": "来源每日数据 · 丰银宝"
             },
             {
               "file": "store-app/h5/biz-supplier-home.html",
@@ -8525,6 +8614,11 @@
               "title": "营业额 · 丰银宝"
             },
             {
+              "file": "store-app/h5/biz-source-daily.html",
+              "module": "",
+              "title": "来源每日数据 · 丰银宝"
+            },
+            {
               "file": "store-app/h5/home.html",
               "module": "",
               "title": "丰银宝 · 工作台"
@@ -8672,6 +8766,11 @@
               "title": "营业额 · 丰银宝"
             },
             {
+              "file": "store-app/h5/biz-source-daily.html",
+              "module": "",
+              "title": "来源每日数据 · 丰银宝"
+            },
+            {
               "file": "store-app/h5/onboarding.html",
               "module": "",
               "title": "商户进件 · 丰银宝"
@@ -8802,6 +8901,11 @@
               "file": "store-app/h5/biz-revenue.html",
               "module": "",
               "title": "营业额 · 丰银宝"
+            },
+            {
+              "file": "store-app/h5/biz-source-daily.html",
+              "module": "",
+              "title": "来源每日数据 · 丰银宝"
             },
             {
               "file": "store-app/h5/home.html",

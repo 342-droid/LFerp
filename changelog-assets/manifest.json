@@ -1,4 +1,61 @@
 {
+  "024f94d|store-app/h5/biz-bd-center.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-28"
+  },
+  "024f94d|store-app/h5/biz-bd-commission-list.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-28"
+  },
+  "024f94d|store-app/h5/biz-bd-commission.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-28"
+  },
+  "024f94d|store-app/h5/biz-bd-store.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-28"
+  },
+  "024f94d|store-app/h5/biz-bd-stores.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-28"
+  },
+  "024f94d|store-app/h5/biz-center.html": {
+    "before": "changelog-assets/024f94d/store-app__h5__biz-center.html.before.jpg",
+    "after": "changelog-assets/024f94d/store-app__h5__biz-center.html.after.jpg",
+    "regions": 2,
+    "status": "diff",
+    "date": "2026-11-28"
+  },
+  "024f94d|store-app/h5/biz-commission.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-28"
+  },
+  "024f94d|store-app/h5/biz-operate.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-28"
+  },
+  "024f94d|store-app/h5/biz-ops.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-28"
+  },
+  "024f94d|store-app/h5/biz-source-daily.html": {
+    "after": "changelog-assets/024f94d/store-app__h5__biz-source-daily.html.after.jpg",
+    "status": "added",
+    "date": "2026-11-28"
+  },
+  "024f94d|store-app/h5/store-orders.html": {
+    "regions": 0,
+    "status": "diff",
+    "date": "2026-11-28"
+  },
   "0396ac1|MDM/mdm_bd_workbench.html": {
     "before": "changelog-assets/0396ac1/MDM__mdm_bd_workbench.html.before.jpg",
     "after": "changelog-assets/0396ac1/MDM__mdm_bd_workbench.html.after.jpg",
