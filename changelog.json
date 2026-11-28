@@ -1,10 +1,45 @@
 {
-  "latestSha": "fd289ef1d92a7abcbdf2f6950b10efec1b20fa46",
-  "total": 674,
+  "latestSha": "8ea921a0614b6dfce40d107c18de1f802412dd50",
+  "total": 675,
   "days": [
     {
       "date": "2026-11-28",
       "items": [
+        {
+          "sha": "8ea921a",
+          "type": "feat",
+          "text": "产品详情适用商品包改表格并可点编码打开",
+          "author": "342-droid",
+          "time": "16:56",
+          "pages": [
+            {
+              "file": "MDM/mdm_audit_rbt_demand.html",
+              "module": "冷丰WMS",
+              "title": "需求单审核"
+            },
+            {
+              "file": "RBT/rbt_demand.html",
+              "module": "冷丰RBT",
+              "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
+            },
+            {
+              "file": "RBT/rbt_product_package.html",
+              "module": "冷丰RBT",
+              "title": "商品包"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_installment.html",
+              "text": "详情里适用商品包挪到下方表格展示，点编码打开商品包详情"
+            }
+          ]
+        },
         {
           "sha": "fd289ef",
           "type": "feat",
@@ -3086,6 +3121,11 @@
               "file": "RBT/rbt_demand.html",
               "module": "冷丰RBT",
               "title": "需求单管理"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
             },
             {
               "file": "RBT/rbt_product_package.html",
@@ -30576,6 +30616,11 @@
               "title": "门店端"
             },
             {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
+            },
+            {
               "file": "RBT/rbt_product_package.html",
               "module": "冷丰RBT",
               "title": "商品包"
@@ -32345,6 +32390,11 @@
               "title": "门店准入管理"
             },
             {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
+            },
+            {
               "file": "RBT/rbt_product_package.html",
               "module": "冷丰RBT",
               "title": "商品包"
@@ -32401,6 +32451,11 @@
               "file": "RBT/rbt_admit_store.html",
               "module": "冷丰RBT",
               "title": "门店准入管理"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
             },
             {
               "file": "RBT/rbt_product_package.html",
@@ -32635,6 +32690,11 @@
               "file": "RBT/rbt_h5_store.html",
               "module": "冷丰RBT-移动端",
               "title": "门店端"
+            },
+            {
+              "file": "RBT/rbt_installment.html",
+              "module": "冷丰RBT",
+              "title": "产品配置"
             },
             {
               "file": "RBT/rbt_product_package.html",
