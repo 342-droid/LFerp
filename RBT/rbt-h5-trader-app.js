@@ -1944,7 +1944,7 @@
         mask.innerHTML =
             '<div class="rbt-accept-dialog" role="dialog" aria-modal="true" aria-labelledby="rbtAcceptDoneTitle">' +
             '<h2 id="rbtAcceptDoneTitle">接单成功</h2>' +
-            '<p>确定接单成功，需您在「已接单」里确认签约，一个需求单只能由一个贸易商接单</p>' +
+            '<p>确定接单成功，需您在「已接单」里确认签约。</p>' +
             '<div class="rbt-accept-dialog__actions">' +
             '<button type="button" class="is-later" data-accept-later>稍后处理</button>' +
             '<button type="button" class="is-go" data-accept-go>去已接单确认</button>' +
