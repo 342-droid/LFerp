@@ -37,14 +37,14 @@
           <p class="sa-dc-filterbar__tip">以下经营、进货、客户概况均按上方周期统计</p>
         </div>
 
-        <section class="sa-dc-block" aria-label="营业额">
+        <section class="sa-dc-block" aria-label="营业额总览">
           <div class="sa-dc-block__hd">
-            <h2 class="sa-dc-block__title">营业额</h2>
-            <a class="sa-dc-link" id="dcToOps" href="biz-ops.html?tab=retail">查看经营数据</a>
+            <h2 class="sa-dc-block__title">营业额总览</h2>
+            <a class="sa-dc-link" id="dcToOps" href="biz-ops.html?tab=retail">查看商城/直播经营</a>
           </div>
           <p class="sa-dc-cover" id="dcCoverNote" hidden></p>
           <div class="sa-dc-hero sa-dc-hero--soft" id="dcPaidHero">
-            <div class="sa-dc-hero__t" id="dcHeroTitle">营业额</div>
+            <div class="sa-dc-hero__t" id="dcHeroTitle">总营业额</div>
             <div class="sa-dc-hero__v" id="dcPaid">0<span class="sa-dc-hero__unit">元</span></div>
             <div class="sa-dc-hero__foot" id="dcPaidCmp"></div>
           </div>
@@ -55,7 +55,7 @@
               <div class="sa-dc-metric__foot" id="dcRefundCmp"></div>
             </div>
             <div class="sa-dc-metric">
-              <div class="sa-dc-metric__t">退款后净营业额（元）</div>
+              <div class="sa-dc-metric__t">净营业额（元）</div>
               <div class="sa-dc-metric__v" id="dcNet">0</div>
               <div class="sa-dc-metric__foot" id="dcNetCmp"></div>
             </div>
@@ -66,12 +66,13 @@
               <a class="sa-dc-link sa-dc-link--metric" id="dcToCommMetric" href="biz-commission.html">佣金明细</a>
             </div>
           </div>
+          <p class="sa-dc-external__note">退款金额、净营业额仅统计商城与直播。</p>
           <div class="sa-dc-channel" id="dcChannelBody" aria-label="营业额渠道构成"></div>
           <div class="sa-dc-chart" id="dcTrendBox" style="margin-top:14px">
             <div class="sa-dc-block__hd">
               <h2 class="sa-dc-block__title" style="font-size:14px">营业额趋势</h2>
               <div class="sa-dc-chip" id="dcTrendMetric" role="tablist">
-                <button type="button" class="sa-dc-chip__btn is-active" data-metric="revenue">营业额</button>
+                <button type="button" class="sa-dc-chip__btn is-active" data-metric="revenue">总营业额</button>
                 <button type="button" class="sa-dc-chip__btn" data-metric="revenueNet">净营业额</button>
                 <button type="button" class="sa-dc-chip__btn" data-metric="users">交易人数</button>
               </div>
@@ -86,6 +87,33 @@
             </div>
             <div class="sa-dc-chart-x" id="dcTrendX"></div>
             <div class="sa-dc-data-table" id="dcTrendTable" hidden></div>
+          </div>
+        </section>
+
+        <section class="sa-dc-block" aria-label="食亨 POS 与抖音明细">
+          <div class="sa-dc-block__hd">
+            <h2 class="sa-dc-block__title">食亨 POS 与抖音明细</h2>
+          </div>
+          <p class="sa-dc-external__note">仅当前门店可见。食亨 POS 按账单日统计；抖音为独立订单来源。</p>
+          <div class="sa-dc-external__source">
+            <div class="sa-dc-external__head"><strong>食亨 POS</strong><span id="dcPosBillCount">—</span></div>
+            <div class="sa-dc-external__amount"><span>营业额</span><strong id="dcPosTotal">—</strong></div>
+            <a class="sa-dc-link sa-dc-external__link" id="dcPosDailyLink" href="biz-source-daily.html?source=pos">查看每日账单</a>
+            <div class="sa-dc-external__breakdown">
+              <div class="sa-dc-external__row"><span>堂食</span><strong id="dcPosDine">—</strong></div>
+              <div class="sa-dc-external__row"><span>外卖</span><strong id="dcPosTakeout">—</strong></div>
+              <div class="sa-dc-external__platforms" aria-label="外卖平台明细">
+                <div class="sa-dc-external__platform"><span>美团外卖</span><strong id="dcPosMeituan">—</strong></div>
+                <div class="sa-dc-external__platform"><span>京东秒送</span><strong id="dcPosJingdong">—</strong></div>
+                <div class="sa-dc-external__platform"><span>淘宝闪购</span><strong id="dcPosTaobao">—</strong></div>
+              </div>
+            </div>
+            <p class="sa-dc-external__note">食亨账单不含退款金额，此处不展示退款后净额。</p>
+          </div>
+          <div class="sa-dc-external__source">
+            <div class="sa-dc-external__head"><strong>抖音</strong><span id="dcDouyinDayCount">—</span></div>
+            <div class="sa-dc-external__amount"><span>营业额</span><strong id="dcDouyinAmount">—</strong></div>
+            <a class="sa-dc-link sa-dc-external__link" id="dcDouyinDailyLink" href="biz-source-daily.html?source=douyin">查看每日数据</a>
           </div>
         </section>
 

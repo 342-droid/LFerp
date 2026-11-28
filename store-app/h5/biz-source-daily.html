@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>来源每日数据 · 丰银宝</title>
+  <link rel="stylesheet" href="../css/store-app.css">
+  <link rel="stylesheet" href="../css/store-app-biz-report.css">
+  <link rel="stylesheet" href="../css/store-app-biz-datacenter.css">
+</head>
+<body class="store-app-body">
+  <div class="sa-shell sa-rpt-shell">
+    <div class="sa-rpt sa-dc-page">
+      <div class="sa-dc-topbar">
+        <header class="sa-rpt-nav">
+          <a class="sa-rpt-nav__back" id="sourceBack" href="biz-center.html" aria-label="返回总览">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+          </a>
+          <h1 class="sa-rpt-nav__title">来源每日数据</h1>
+        </header>
+        <div class="sa-dc-ranges" id="sourceRanges" role="tablist" aria-label="统计周期"></div>
+        <p class="sa-dc-period sa-dc-source-daily__period" id="sourcePeriod">统计日期 —</p>
+        <div class="sa-dc-source-tabs sa-dc-source-daily__tabs" id="sourceTabs" role="tablist" aria-label="数据来源">
+          <button type="button" data-source="pos" role="tab">食亨 POS</button>
+          <button type="button" data-source="douyin" role="tab">抖音</button>
+        </div>
+      </div>
+      <div class="sa-rpt-scroll">
+        <section class="sa-dc-block">
+          <div class="sa-dc-block__hd"><h2 class="sa-dc-block__title" id="sourceTitle">食亨 POS 每日账单</h2></div>
+          <div class="sa-dc-hero sa-dc-hero--soft">
+            <div class="sa-dc-hero__t" id="sourceTotalLabel">账单营业额</div>
+            <div class="sa-dc-hero__v" id="sourceTotal">—</div>
+          </div>
+          <p class="sa-dc-external__note" id="sourceCoverage"></p>
+        </section>
+        <section class="sa-dc-block">
+          <div class="sa-dc-block__hd"><h2 class="sa-dc-block__title">每日明细</h2></div>
+          <div id="sourceDailyList"></div>
+        </section>
+      </div>
+    </div>
+    <div class="sa-rpt-sheet sa-rpt-sheet--time" id="sourceRangeSheet" hidden>
+      <div class="sa-rpt-sheet__panel" role="dialog" aria-modal="true" aria-label="自定义日期">
+        <div class="sa-rpt-sheet__hd"><strong>自定义日期</strong><button type="button" class="sa-rpt-sheet__close" data-close-range aria-label="关闭">×</button></div>
+        <div class="sa-rpt-custom">
+          <div class="sa-rpt-custom__row">
+            <label class="sa-rpt-custom__field"><span>开始</span><input type="date" id="sourceCustomStart"></label>
+            <span class="sa-rpt-custom__sep">至</span>
+            <label class="sa-rpt-custom__field"><span>结束</span><input type="date" id="sourceCustomEnd"></label>
+          </div>
+          <p class="sa-rpt-custom__err" id="sourceCustomErr" hidden></p>
+          <button type="button" class="sa-rpt-custom__btn" id="sourceCustomApply">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="../../js/business-report-fixtures.js"></script>
+  <script src="../js/store-app-biz-datacenter-data.js"></script>
+  <script src="../js/store-app-biz-session.js"></script>
+  <script src="../js/store-app-biz-datacenter-state.js"></script>
+  <script src="../js/store-app-biz-source-daily.js"></script>
+</body>
+</html>
