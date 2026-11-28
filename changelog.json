@@ -1,10 +1,55 @@
 {
-  "latestSha": "a19e91e801fe239abd12967c6a0f90a3a83f8723",
-  "total": 681,
+  "latestSha": "e5987c5804628db37287801761863ea1753ade49",
+  "total": 682,
   "days": [
     {
       "date": "2026-11-28",
       "items": [
+        {
+          "sha": "e5987c5",
+          "type": "feat",
+          "text": "发起签署按需求单核对合同并带出门店和贸易商",
+          "author": "sisi",
+          "time": "23:13",
+          "pages": [
+            {
+              "file": "SCM/basic_settings_contract_task.html",
+              "module": "冷丰WMS",
+              "title": "签署任务"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_detail.html",
+              "module": "冷丰WMS",
+              "title": "签署任务详情"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template.html",
+              "module": "冷丰WMS",
+              "title": "合同模板"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template_form.html",
+              "module": "冷丰WMS",
+              "title": "合同模板配置"
+            }
+          ],
+          "global": true,
+          "notes": [
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "text": "需求门店改为门店；输入需求单号后核对是否存在、这份合同是否已签订生效，没有生效中合同时可以发起，并带出门店和贸易商"
+            },
+            {
+              "file": "SCM/basic_settings_contract_template_form.html",
+              "text": "切换模板名称后，模板文档和签署方一起更新；销售合同签署方由需求门店改为门店"
+            }
+          ]
+        },
         {
           "sha": "a19e91e",
           "type": "other",
@@ -591,6 +636,11 @@
               "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
               "title": "交易单"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
             }
           ],
           "notes": [
@@ -839,6 +889,11 @@
               "title": "交易单"
             },
             {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
+            },
+            {
               "file": "shop-h5/h5/store/contracts.html",
               "module": "",
               "title": "签署合同 · Shop H5"
@@ -1064,6 +1119,11 @@
               "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
               "title": "交易单"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
             }
           ],
           "notes": [
@@ -1570,6 +1630,11 @@
               "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
               "title": "交易单"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
             }
           ],
           "notes": [
@@ -1655,6 +1720,11 @@
               "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
               "title": "交易单"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
             }
           ],
           "notes": [
@@ -1765,6 +1835,11 @@
               "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
               "title": "交易单"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
             }
           ],
           "notes": [
@@ -1913,6 +1988,11 @@
               "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
               "title": "交易单"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
             }
           ],
           "notes": [
@@ -2061,6 +2141,11 @@
               "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
               "title": "交易单"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
             }
           ],
           "notes": [
@@ -2236,6 +2321,11 @@
               "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
               "title": "交易单"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
             }
           ],
           "notes": [
@@ -2967,6 +3057,11 @@
               "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
               "title": "交易单"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
             }
           ],
           "notes": [
@@ -3294,6 +3389,11 @@
               "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
               "title": "交易单"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
             }
           ],
           "notes": [
@@ -3538,6 +3638,11 @@
               "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
               "title": "交易单"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
             }
           ],
           "notes": [
@@ -3981,6 +4086,11 @@
               "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
               "title": "交易单"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
             },
             {
               "file": "store-app/h5/biz-supplier-home.html",
@@ -4724,6 +4834,11 @@
               "file": "SCM/basic_settings_business_tags.html",
               "module": "冷丰WMS",
               "title": "标签管理"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
             }
           ],
           "global": true,
@@ -5050,6 +5165,11 @@
               "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
               "title": "交易单"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
             }
           ],
           "notes": [
@@ -5147,6 +5267,11 @@
               "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
               "title": "交易单"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
             }
           ],
           "notes": [
@@ -8111,6 +8236,11 @@
               "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
               "title": "交易单"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
             }
           ],
           "notes": [
@@ -8510,6 +8640,11 @@
               "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
               "title": "交易单"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
             }
           ],
           "global": true,
@@ -9639,6 +9774,11 @@
               "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
               "title": "交易单"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
             }
           ],
           "notes": [
@@ -10254,6 +10394,11 @@
               "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
               "title": "交易单"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
             }
           ],
           "notes": [
@@ -10530,6 +10675,11 @@
               "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
               "title": "交易单"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
             }
           ],
           "notes": [
@@ -10635,6 +10785,11 @@
               "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
               "title": "交易单"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
             }
           ],
           "notes": [
@@ -11045,6 +11200,11 @@
               "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
               "title": "交易单"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
             }
           ],
           "notes": [
@@ -11309,6 +11469,11 @@
               "file": "SCM/basic_settings_business_tags.html",
               "module": "冷丰WMS",
               "title": "标签管理"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
             }
           ],
           "notes": [
@@ -11997,6 +12162,11 @@
               "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
               "title": "交易单"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
             }
           ],
           "notes": [
@@ -13547,6 +13717,11 @@
               "file": "RBT/rbt_trade.html",
               "module": "冷丰RBT",
               "title": "交易单"
+            },
+            {
+              "file": "SCM/basic_settings_contract_task_form.html",
+              "module": "冷丰WMS",
+              "title": "发起签署"
             }
           ],
           "global": true,
