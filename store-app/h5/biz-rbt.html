@@ -3,171 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>RBT 付款账单 · 丰银宝</title>
-  <link rel="stylesheet" href="../css/store-app.css?v=20261117-rpt23">
-  <link rel="stylesheet" href="../css/store-app-biz-report.css?v=20261117-rpt23">
-  <style>
-    .sa-rbt-nav {
-      display: flex;
-      align-items: center;
-      height: 46px;
-      padding: 0 8px;
-      background: #fff;
-      border-bottom: 1px solid #f1f2f5;
-      flex-shrink: 0;
-    }
-    .sa-rbt-nav a {
-      width: 36px;
-      height: 36px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      color: #1f2024;
-      text-decoration: none;
-    }
-    .sa-rbt-nav a svg { width: 22px; height: 22px; }
-    .sa-rbt-nav h1 {
-      flex: 1;
-      margin: 0;
-      text-align: center;
-      font-size: 17px;
-      font-weight: 600;
-      padding-right: 36px;
-    }
-    .sa-rbt-list { margin: 12px; }
-    .sa-rbt-row {
-      display: grid;
-      grid-template-columns: 72px 1fr 88px;
-      gap: 8px;
-      padding: 12px;
-      background: #fff;
-      border-radius: 8px;
-      margin-bottom: 8px;
-      font-size: 13px;
-    }
-    .sa-rbt-row__d { color: #71727a; }
-    .sa-rbt-row__m { color: #1f2024; }
-    .sa-rbt-row__a {
-      text-align: right;
-      font-family: "DIN Alternate", "Helvetica Neue", sans-serif;
-      font-weight: 700;
-      color: #1f2024;
-    }
-    .sa-rbt-row__a.is-deduct { color: #45c74a; }
-    .sa-rbt-sum {
-      margin: 12px;
-      padding: 14px;
-      background: #fff;
-      border-radius: 12px;
-    }
-    .sa-rbt-sum__row {
-      display: flex;
-      justify-content: space-between;
-      padding: 6px 0;
-      font-size: 14px;
-    }
-    .sa-rbt-sum__row strong {
-      font-family: "DIN Alternate", "Helvetica Neue", sans-serif;
-    }
-    .sa-rbt-empty {
-      margin: 24px 12px;
-      padding: 28px 16px;
-      text-align: center;
-      background: #fff;
-      border-radius: 12px;
-      color: #71727a;
-      font-size: 14px;
-    }
-  </style>
+  <title>数据中心 · 门店</title>
+  <meta http-equiv="refresh" content="1;url=biz-center.html">
 </head>
-<body class="store-app-body">
-  <div class="sa-shell sa-rpt-shell">
-    <header class="sa-rbt-nav">
-      <a href="biz-center.html" aria-label="返回">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 6l-6 6 6 6"/></svg>
-      </a>
-      <h1>RBT 付款账单</h1>
-    </header>
-    <div class="sa-rpt-scroll" id="rbtRoot"></div>
-  </div>
-  <script src="../js/store-app-biz-report-data.js?v=20261117-bd1"></script>
-  <script src="../js/store-app-biz-session.js?v=20261117-bd2"></script>
+<body>
+  <p><a id="storeCenterLink" href="biz-center.html">返回门店数据中心</a></p>
   <script>
     (function () {
-      var D = window.StoreAppBizReportData;
-      if (!D) return;
-      if (window.StoreAppBizSession && typeof window.StoreAppBizSession.boot === 'function') {
-        window.StoreAppBizSession.boot();
-      }
-
-      function groupThousands(intPart) {
-        return String(intPart).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-      }
-
-      function fmt(n, decimals) {
-        var v = Number(n) || 0;
-        if (decimals || Math.abs(v - Math.round(v)) >= 0.005) {
-          var fixed = D.money ? D.money(v) : v.toFixed(2);
-          var parts = fixed.split('.');
-          return groupThousands(parts[0]) + '.' + (parts[1] || '00');
-        }
-        return groupThousands(String(Math.round(v)));
-      }
-
-      function render() {
-        var root = document.getElementById('rbtRoot');
-        if (!root) return;
-        var rbt = D.buildStoreRbt();
-        if (!rbt.hasRbt) {
-          var backCenter =
-            window.StoreAppBizSession && typeof window.StoreAppBizSession.appendQs === 'function'
-              ? window.StoreAppBizSession.appendQs('biz-center.html')
-              : 'biz-center.html';
-          root.innerHTML =
-            '<div class="sa-rbt-empty">本店暂无 RBT 模块<br><a href="' +
-            backCenter +
-            '" style="color:#ff6501;text-decoration:none;margin-top:8px;display:inline-block">返回数据中心</a></div>';
-          return;
-        }
-        var rows = rbt.dailyRows || [];
-        root.innerHTML =
-          '<div class="sa-rbt-sum">' +
-          '<div class="sa-rbt-sum__row"><span>约定付款</span><strong>¥' +
-          fmt(rbt.agreedPay) +
-          '</strong></div>' +
-          '<div class="sa-rbt-sum__row"><span>累计实付</span><strong>¥' +
-          fmt(rbt.actualPay, true) +
-          '</strong></div>' +
-          '<div class="sa-rbt-sum__row"><span>剩余应付</span><strong>¥' +
-          fmt(rbt.remainPay, true) +
-          '</strong></div>' +
-          '<div class="sa-rbt-sum__row"><span>状态</span><strong>' +
-          (rbt.status || '—') +
-          '</strong></div>' +
-          '<div class="sa-rbt-sum__row"><span>预计回本周期</span><strong>' +
-          (rbt.paybackCycle || '—') +
-          '</strong></div>' +
-          '</div>' +
-          '<p class="sa-rpt-zone__desc" style="margin:0 12px 8px">按日扣款记录（扣款成功）。</p>' +
-          '<div class="sa-rbt-list" id="rbtList">' +
-          rows
-            .map(function (r) {
-              return (
-                '<div class="sa-rbt-row"><span class="sa-rbt-row__d">' +
-                r.d +
-                '</span><span class="sa-rbt-row__m">' +
-                r.m +
-                '</span><span class="sa-rbt-row__a is-deduct">-' +
-                Number(r.a).toFixed(2) +
-                '</span></div>'
-              );
-            })
-            .join('') +
-          '</div>';
-      }
-
-      render();
-      if (D.mountRbtDemoPanel) D.mountRbtDemoPanel();
+      var source = new URLSearchParams(location.search);
+      var target = new URLSearchParams();
+      ['range', 'start', 'end'].forEach(function (key) {
+        if (source.has(key)) target.set(key, source.get(key));
+      });
+      var suffix = target.toString();
+      var href = 'biz-center.html' + (suffix ? '?' + suffix : '');
+      document.getElementById('storeCenterLink').href = href;
+      location.replace(href);
     })();
   </script>
 </body>
