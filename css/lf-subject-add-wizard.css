@@ -207,6 +207,41 @@
     margin-right: 2px;
 }
 
+.subj-wiz .rbf-unit-field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+}
+
+.subj-wiz .rbf-unit-field > .erp-input {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+}
+
+.subj-wiz .rbf-unit {
+    flex: none;
+    color: #606266;
+    font-size: 13px;
+    line-height: 36px;
+}
+
+.subj-wiz .store-radio-row {
+    min-height: 36px;
+    align-items: center;
+}
+
+.subj-wiz .rbt-deposit-file {
+    align-items: center;
+    min-height: 36px;
+}
+
+.subj-wiz .rbt-deposit-file input[type="file"] {
+    max-width: 100%;
+    font-size: 13px;
+}
+
 .subj-wiz .erp-input,
 .subj-wiz .erp-select,
 .subj-wiz .modal-form-group input,

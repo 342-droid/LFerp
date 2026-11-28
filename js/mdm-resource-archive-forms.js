@@ -1111,13 +1111,11 @@
     /* 与门店准入「新增准入门店」同一套填法：等级下拉 A–D，额度最多两位小数，次数为正整数，保证金选「是」后上传凭证。 */
     function rbfMoneyControl(placeholder, unit) {
         var wrap = document.createElement('div');
-        wrap.style.cssText = 'display:flex;align-items:center;gap:8px;';
+        wrap.className = 'rbf-unit-field';
         var input = txt(placeholder, '');
-        input.style.flex = '1';
-        input.style.minWidth = '0';
         var mark = document.createElement('span');
+        mark.className = 'rbf-unit';
         mark.textContent = unit;
-        mark.style.cssText = 'flex:none;color:#606266;font-size:13px;';
         wrap.appendChild(input);
         wrap.appendChild(mark);
         return { wrap: wrap, input: input };
@@ -1265,6 +1263,7 @@
         refs.rbfQuotaInp = quota.input;
         refs.rbfTimesInp = times.input;
         refs.rbfDepositInp = depositHidden;
+        refs.rbfVoucherInp = fileMark;
         /* 打开弹窗时主体页会清空输入。次数默认 1，单选也要收回。 */
         refs.resetRbf = function () {
             applyCtl.querySelectorAll('input[type="radio"]').forEach(function (inp) { inp.checked = false; });
@@ -2645,6 +2644,21 @@
         return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
     }
 
+    function readRbfPayload(refs) {
+        refs = refs || {};
+        var apply = refs.rbfApplyInp ? String(refs.rbfApplyInp.value || '').trim() : '';
+        var payload = { rbfApply: apply };
+        if (apply !== '是') return payload;
+        payload.rbfLevel = refs.rbfLevelSel ? String(refs.rbfLevelSel.value || '').trim() : '';
+        payload.rbfQuota = refs.rbfQuotaInp ? String(refs.rbfQuotaInp.value || '').trim() : '';
+        payload.rbfTimes = refs.rbfTimesInp ? String(refs.rbfTimesInp.value || '').trim() : '';
+        payload.rbfDeposit = refs.rbfDepositInp ? String(refs.rbfDepositInp.value || '').trim() : '';
+        if (payload.rbfDeposit === '是') {
+            payload.rbfVoucherName = refs.rbfVoucherInp ? String(refs.rbfVoucherInp.value || '').trim() : '';
+        }
+        return payload;
+    }
+
     /* 门店、供应商、贸易商新建后进入入驻审核。仓库不进审核、不签合同。 */
     function enqueueEntryAudit(opts) {
         opts = opts || {};
@@ -2682,6 +2696,12 @@
             storeType: opts.storeType || '',
             warehouse: opts.warehouse || '',
             bizLines: opts.bizLines || '',
+            rbfApply: opts.rbfApply || '',
+            rbfLevel: opts.rbfApply === '是' ? (opts.rbfLevel || '') : '',
+            rbfQuota: opts.rbfApply === '是' ? (opts.rbfQuota || '') : '',
+            rbfTimes: opts.rbfApply === '是' ? (opts.rbfTimes || '') : '',
+            rbfDeposit: opts.rbfApply === '是' ? (opts.rbfDeposit || '') : '',
+            rbfVoucherName: opts.rbfApply === '是' && opts.rbfDeposit === '是' ? (opts.rbfVoucherName || '') : '',
             auditStatus: '待审核',
             mdmStatus: '未生成',
             createdBy: '当前用户',
@@ -2700,6 +2720,7 @@
         readVenuePhotos: readVenuePhotos,
         enqueueEntryAudit: enqueueEntryAudit,
         entryAuditTip: ENTRY_AUDIT_TIP,
+        readRbfFromRefs: readRbfPayload,
         buildFirstArchive: buildFirstArchive,
         validateFirstArchive: validateFirstArchive,
         commitFirstArchive: function (kind, subject, bundle) {
@@ -2735,7 +2756,7 @@
                 var partnerValue = refs.partnerSel && refs.partnerSel.value;
                 var partnerLabel = partnerMap[partnerValue] || partnerValue || '—';
                 persistArchiveMaterials(refs, 'store', name);
-                enqueueEntryAudit({
+                enqueueEntryAudit(Object.assign({
                     kind: 'store',
                     source: 'PC 创建门店',
                     subjectName: selectedLabel(refs.subjectSel),
@@ -2752,7 +2773,7 @@
                     bizLines: refs.bizHidden ? refs.bizHidden.value : '',
                     region: region,
                     address: refs.addressTa ? String(refs.addressTa.value || '').trim() : ''
-                });
+                }, readRbfPayload(refs)));
                 return ENTRY_AUDIT_TIP;
             }, null, '门店');
         },

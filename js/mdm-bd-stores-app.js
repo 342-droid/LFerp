@@ -522,6 +522,23 @@
     );
   }
 
+  function rbfArchiveCard(store) {
+    var quota = archiveText(store.rbfQuota);
+    var times = archiveText(store.rbfTimes);
+    var fields = fieldBlock('是否申请RBF联营', archiveText(store.rbfApply), 'rbfApply', store);
+    if (store.rbfApply === '是') {
+      fields +=
+        fieldBlock('RBF等级', archiveText(store.rbfLevel), 'rbfLevel', store) +
+        fieldBlock('门店额度', quota === '—' ? '—' : quota + ' 元', 'rbfQuota', store) +
+        fieldBlock('需求发布次数', times === '—' ? '—' : times + ' 次', 'rbfTimes', store) +
+        fieldBlock('保证金是否缴纳', archiveText(store.rbfDeposit), 'rbfDeposit', store);
+      if (store.rbfDeposit === '是') {
+        fields += fieldBlock('缴纳凭证', archiveText(store.rbfVoucherName), 'rbfVoucherName', store);
+      }
+    }
+    return archiveCard('R', 'RBF联营', '申请时填写的等级、额度和保证金', fields);
+  }
+
   function mapPreview(store) {
     var ok = dash(store.regionCascade) !== '—' && dash(store.detailAddress) !== '—';
     if (!ok) {
@@ -557,6 +574,8 @@
           fieldBlock('审核通过时间', archiveText(store.approvedAt))
       )
     );
+
+    parts.push(rbfArchiveCard(store));
 
     if (window.MdmEntryMaterials && typeof window.MdmEntryMaterials.groupSummary === 'function') {
       var entryData = store.entryMaterials || window.MdmEntryMaterials.load('store', store.name);
@@ -722,6 +741,11 @@
     };
     if (policyReq[fieldKey]) return true;
     if (fr && (fieldKey === 'storeArea' || fieldKey === 'storeFloors')) return true;
+    if (fieldKey === 'rbfApply') return true;
+    if (store && store.rbfApply === '是') {
+      if (fieldKey === 'rbfLevel' || fieldKey === 'rbfQuota' || fieldKey === 'rbfTimes' || fieldKey === 'rbfDeposit') return true;
+      if (fieldKey === 'rbfVoucherName' && store.rbfDeposit === '是') return true;
+    }
     return false;
   }
 
@@ -1487,6 +1511,29 @@
     return changed;
   }
 
+  function fillDemoRbf(list) {
+    var demo = {
+      1: { rbfApply: '是', rbfLevel: 'A', rbfQuota: '80000.00', rbfTimes: '1', rbfDeposit: '是', rbfVoucherName: '保证金缴纳凭证.pdf' },
+      2: { rbfApply: '是', rbfLevel: 'B', rbfQuota: '50000.00', rbfTimes: '2', rbfDeposit: '否' },
+      3: { rbfApply: '是', rbfLevel: 'C', rbfQuota: '20000.00', rbfTimes: '1', rbfDeposit: '是', rbfVoucherName: '悦读保证金回单.jpg' },
+      4: { rbfApply: '是', rbfLevel: 'A', rbfQuota: '15000.00', rbfTimes: '1', rbfDeposit: '否' },
+      5: { rbfApply: '否' },
+      6: { rbfApply: '是', rbfLevel: 'D', rbfQuota: '10000.00', rbfTimes: '3', rbfDeposit: '是', rbfVoucherName: '茶语保证金回单.pdf' },
+      7: { rbfApply: '否' }
+    };
+    var changed = false;
+    (list || []).forEach(function (s) {
+      if (!s || s.rbfApply === '是' || s.rbfApply === '否') return;
+      var row = demo[s.id];
+      if (!row) return;
+      Object.keys(row).forEach(function (k) {
+        s[k] = row[k];
+      });
+      changed = true;
+    });
+    return changed;
+  }
+
   function init() {
     function bootstrap(data) {
       var raw = sessionStorage.getItem('lf_bd_stores_v1');
@@ -1499,7 +1546,7 @@
             stores.forEach(function (s) {
               if (s.phase === 'approved' && !s.storeCode && ensureStoreCode(s)) coded = true;
             });
-            if (migrateFreshPartner(stores) || coded) {
+            if (migrateFreshPartner(stores) || coded || fillDemoRbf(stores)) {
               try {
                 sessionStorage.setItem('lf_bd_stores_v1', JSON.stringify(stores));
               } catch (e2) {}
@@ -1512,6 +1559,7 @@
       }
       stores = JSON.parse(JSON.stringify(Array.isArray(data) ? data : []));
       migrateFreshPartner(stores);
+      fillDemoRbf(stores);
       stores.forEach(function (s) {
         ensureStoreCode(s);
       });
