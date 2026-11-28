@@ -409,7 +409,7 @@
         refs.bizHidden.setAttribute('data-required-msg', '请选择业务线');
         var tip = document.createElement('div');
         tip.className = 'store-form__field-tip';
-        tip.textContent = '请先选择事业线。业务线可多选，选项随事业线变化。';
+        tip.textContent = '请先选择事业线和品牌名称。业务线可多选，选项随品牌变化。';
         wrap.appendChild(refs.bizChecks);
         wrap.appendChild(refs.bizHidden);
         wrap.appendChild(tip);
@@ -424,17 +424,17 @@
             refs.bizHidden.value = api.formatBiz(selectedBiz());
         }
         function paintBiz(keep) {
-            var opts = api.bizLines(refs.bizLineSel.value);
+            var opts = api.bizLines(refs.bizLineSel.value, refs.brandSel.value);
             var keepSet = keep || [];
             refs.bizChecks.innerHTML = '';
             if (!opts.length) {
                 tip.textContent = refs.bizLineSel.value
-                    ? '该事业线暂无业务线，请先在门店分类配置中添加。'
-                    : '请先选择事业线。业务线可多选。';
+                    ? '请先选择品牌名称。业务线可多选。'
+                    : '请先选择事业线和品牌名称。业务线可多选，选项随品牌变化。';
                 syncHidden();
                 return;
             }
-            tip.textContent = '可多选。更换事业线后，不在该事业线下的业务线会取消勾选。';
+            tip.textContent = '可多选。更换品牌后，不在该品牌下的业务线会取消勾选。';
             opts.forEach(function (name) {
                 var lab = document.createElement('label');
                 lab.className = 'store-form__check';
@@ -465,10 +465,13 @@
             });
             refs.brandSel.disabled = !brandList.length;
             refs.brandSel.value = brandList.indexOf(cur) >= 0 ? cur : '';
-            paintBiz(keepBiz);
+            paintBiz(refs.brandSel.value ? keepBiz : []);
         }
         refs.bizLineSel.addEventListener('change', function () {
             paintBrands('', []);
+        });
+        refs.brandSel.addEventListener('change', function () {
+            paintBiz([]);
         });
         refs.setBizStructure = function (line, brand, biz) {
             refs.bizLineSel.value = api.lines().indexOf(line) >= 0 ? line : '';
@@ -746,13 +749,13 @@
                 storeDuplicateSimilarity(detail, peerDetail)
             );
             var peerPhone = String(row.getAttribute('data-phone') || '').replace(/\D/g, '');
-            var phoneMatch = phone.length === 11 && peerPhone.length === 11 && phone === peerPhone;
+            var phoneMatch = /^1\d{10}$/.test(phone) && phone === peerPhone;
             var hits = [];
-            if (nameScore >= 80) hits.push('门店名称相似 ' + nameScore + '%');
-            if (addressScore >= 85) hits.push('门店地址相似 ' + addressScore + '%');
+            if (nameScore >= 60) hits.push('门店名称相似 ' + nameScore + '%');
+            if (addressScore >= 60) hits.push('门店地址相似 ' + addressScore + '%');
             if (phoneMatch) hits.push('手机号相同 100%');
             return hits.length ? { id: cellPlainText(cells[codeIndex]), name: cellPlainText(cells[nameIndex]), hits: hits, score: Math.max(nameScore, addressScore, phoneMatch ? 100 : 0) } : null;
-        }).filter(Boolean).sort(function (a, b) { return b.score - a.score; }).slice(0, 3);
+        }).filter(Boolean).sort(function (a, b) { return b.score - a.score; });
     }
 
     function showStoreDuplicateConfirm(matches, onContinue) {
@@ -766,22 +769,34 @@
         title.textContent = '发现疑似重复门店';
         dialog.appendChild(title);
         var intro = document.createElement('p');
-        intro.textContent = '以下门店的名称、地址或手机号与本次填写内容相同或相似。请核对后决定是否继续保存。';
+        intro.textContent = '发现 ' + matches.length + ' 家疑似门店，请逐条核对名称、编码与命中依据。';
         dialog.appendChild(intro);
-        matches.forEach(function (match) {
+        var list = document.createElement('div');
+        list.className = 'store-duplicate-list';
+        matches.slice(0, 3).forEach(function (match, index) {
             var item = document.createElement('div');
             item.className = 'store-duplicate-item';
+            item.setAttribute('data-sequence', String(index + 1).padStart(2, '0'));
             var name = document.createElement('strong');
             name.textContent = match.name || '未命名门店';
             var id = document.createElement('span');
             id.textContent = '门店编码：' + (match.id || '—');
             var hits = document.createElement('small');
-            hits.textContent = match.hits.join(' · ');
+            hits.textContent = match.hits.join('；');
             item.appendChild(name);
             item.appendChild(id);
             item.appendChild(hits);
-            dialog.appendChild(item);
+            list.appendChild(item);
         });
+        dialog.appendChild(list);
+        if (matches.length > 3) {
+            var remaining = document.createElement('p');
+            remaining.className = 'store-duplicate-remaining';
+            remaining.textContent = '另有 ' + (matches.length - 3) + ' 家疑似门店：' + matches.slice(3).map(function (match) {
+                return (match.name || '未命名门店') + (match.id ? '·' + match.id : '');
+            }).join('、') + '。';
+            dialog.appendChild(remaining);
+        }
         var note = document.createElement('p');
         note.className = 'store-duplicate-note';
         note.textContent = '相似度仅供排查参考；继续保存后仍按原流程处理。';
@@ -1094,27 +1109,6 @@
     }
 
     /* 与门店准入「新增准入门店」同一套填法：等级下拉 A–D，额度最多两位小数，次数为正整数，保证金选「是」后上传凭证。 */
-    function rbfPackageChoices() {
-        var fallback = [
-            { code: 'SPB00001', name: '汉言开业铺货包' },
-            { code: 'SPB00002', name: '门店形象配置包' },
-            { code: 'SPB00003', name: '开业运营服务包' }
-        ];
-        try {
-            var raw = localStorage.getItem('rbt_product_package_v2');
-            var list = raw ? JSON.parse(raw) : null;
-            if (!Array.isArray(list) || !list.length) return fallback;
-            var choices = list.filter(function (item) {
-                return item && item.enabled !== false && item.code;
-            }).map(function (item) {
-                return { code: String(item.code), name: String(item.name || item.code) };
-            });
-            return choices.length ? choices : fallback;
-        } catch (e) {
-            return fallback;
-        }
-    }
-
     function rbfMoneyControl(placeholder, unit) {
         var wrap = document.createElement('div');
         wrap.style.cssText = 'display:flex;align-items:center;gap:8px;';
@@ -1246,36 +1240,7 @@
             fileName.textContent = '已选择：' + (picked.name || '缴纳凭证');
         });
 
-        var checks = document.createElement('div');
-        checks.className = 'store-form__checks';
-        var packageHidden = document.createElement('input');
-        packageHidden.type = 'hidden';
-        packageHidden.setAttribute('data-required-msg', '请选择商品包');
-        rbfPackageChoices().forEach(function (item) {
-            var lb = document.createElement('label');
-            lb.className = 'store-form__check';
-            var box = document.createElement('input');
-            box.type = 'checkbox';
-            box.value = item.code;
-            box.addEventListener('change', function () {
-                var codes = [];
-                checks.querySelectorAll('input:checked').forEach(function (el) { codes.push(el.value); });
-                packageHidden.value = codes.join(',');
-            });
-            lb.appendChild(box);
-            lb.appendChild(document.createTextNode(item.name + '（' + item.code + '）'));
-            checks.appendChild(lb);
-        });
-        var packageWrap = document.createElement('div');
-        var packageTip = document.createElement('div');
-        packageTip.className = 'store-form__field-tip';
-        packageTip.textContent = '可多选。';
-        packageWrap.appendChild(checks);
-        packageWrap.appendChild(packageHidden);
-        packageWrap.appendChild(packageTip);
-        var packageRow = formRow('商品包', true, packageWrap);
-
-        var extraRows = [levelRow, quotaRow, timesRow, depositRow, packageRow];
+        var extraRows = [levelRow, quotaRow, timesRow, depositRow];
         extraRows.concat([voucherRow]).forEach(function (row) {
             row.style.display = 'none';
             body.appendChild(row);
@@ -1300,8 +1265,7 @@
         refs.rbfQuotaInp = quota.input;
         refs.rbfTimesInp = times.input;
         refs.rbfDepositInp = depositHidden;
-        refs.rbfPackageInp = packageHidden;
-        /* 打开弹窗时主体页会清空输入。次数默认 1，单选和商品包勾选也要收回。 */
+        /* 打开弹窗时主体页会清空输入。次数默认 1，单选也要收回。 */
         refs.resetRbf = function () {
             applyCtl.querySelectorAll('input[type="radio"]').forEach(function (inp) { inp.checked = false; });
             depositCtl.querySelectorAll('input[type="radio"]').forEach(function (inp) { inp.checked = false; });
@@ -1310,8 +1274,6 @@
             levelSel.selectedIndex = 0;
             quota.input.value = '';
             times.input.value = '1';
-            packageHidden.value = '';
-            checks.querySelectorAll('input[type="checkbox"]').forEach(function (box) { box.checked = false; });
             file.value = '';
             fileMark.value = '';
             fileMark.setAttribute('data-upload-state', '0');
@@ -1413,8 +1375,8 @@
         refs.storeTypeInp = txt('如社区生鲜店、团购自提点等', '');
         refs.storeTypeInp.setAttribute('data-required-msg', '请输入门店类型');
         body.appendChild(formRow('门店类型', true, refs.storeTypeInp));
-        if (opts.rbfFields) mountRbfApplyFields(body, refs);
         mountStoreBizFields(body, refs);
+        if (opts.rbfFields) mountRbfApplyFields(body, refs);
         refs.warehouseSel = sel([], '');
         refs.warehouseSel.setAttribute('data-required-msg', '请选择配送仓库');
         body.appendChild(formRow('配送仓库', true, refs.warehouseSel));
@@ -1605,7 +1567,7 @@
     }
 
     function buildStoreAddBody(initialVenuePhotos) {
-        return createStoreFormBundle({ initialVenuePhotos: initialVenuePhotos || {} }).body;
+        return createStoreFormBundle({ initialVenuePhotos: initialVenuePhotos || {}, rbfFields: true }).body;
     }
 
     function createSupplierFormBundle(options) {
@@ -2753,7 +2715,7 @@
         writeVenuePhotos: writeVenuePhotos,
         syncVenuePhotosFromOnboarding: syncVenuePhotosFromOnboarding,
         openStoreAdd: function () {
-            var bundle = createStoreFormBundle({});
+            var bundle = createStoreFormBundle({ rbfFields: true });
             hydrateArchiveWarehouseSelect(bundle.refs.warehouseSel, '', '请选择配送仓库');
             if (bundle.refs.partnerSel && !bundle.refs.partnerSel.value) {
                 bundle.refs.partnerSel.value = 'franchise';
@@ -3086,11 +3048,13 @@
                 '门店'
             );
             if (new URLSearchParams(window.location.search).get('previewDuplicate') === '1') {
-                showStoreDuplicateConfirm([{
-                    id: 'HGH00001',
-                    name: '鲜丰水果文一西路店',
-                    hits: ['门店名称相似 92%', '门店地址相似 87%', '手机号相同 100%']
-                }], function () {
+                showStoreDuplicateConfirm([
+                    { id: 'MU20260315001', name: '鲜丰水果文一西路店', hits: ['门店名称相似 92%', '门店地址相似 87%', '手机号相同 100%'] },
+                    { id: 'MU20260509032', name: '文一西路鲜丰店', hits: ['门店名称相似 83%', '手机号相同 100%'] },
+                    { id: 'MU20260412018', name: '鲜丰水果城西店', hits: ['门店名称相似 89%', '门店地址相似 86%'] },
+                    { id: 'MU20260618006', name: '鲜丰水果古墩店', hits: ['门店名称相似 86%'] },
+                    { id: 'MU20260702011', name: '鲜丰果园西溪店', hits: ['门店名称相似 81%'] }
+                ], function () {
                     if (typeof showToast === 'function') showToast('界面预览不会保存资料', 'success');
                 });
             }

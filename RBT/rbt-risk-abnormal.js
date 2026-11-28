@@ -2,6 +2,7 @@
 (function () {
     var Vue = OctopusPrototype.Vue;
     var ref = Vue.ref;
+    var onMounted = Vue.onMounted;
     var api = window.RbtRisk;
     var current = null;
 
@@ -75,6 +76,12 @@
                 return names.map(function (name) { return { label: name, value: name }; });
             }
 
+            var presetRaw = '';
+            try { presetRaw = new URLSearchParams(location.search).get('handle') || ''; } catch (e) {}
+            var preset = presetRaw === '待处理' || presetRaw === '待处置' ? '待处置' : presetRaw;
+            if (api.handleStatuses.indexOf(preset) < 0) preset = '';
+            var presetConsumed = false;
+
             var columns = [
                 { dataIndex: 'storeName', title: '门店', minWidth: 140, align: 'left', showOverflowTooltip: true, search: { control: 'input' } },
                 { dataIndex: 'ledger', title: '付款单号', minWidth: 168, search: { control: 'input' } },
@@ -115,7 +122,9 @@
                     if (!blank(params.installmentName) && row.installmentName !== params.installmentName) return false;
                     if (!blank(params.grade) && row.grade !== params.grade) return false;
                     if (!blank(params.source) && row.source !== params.source) return false;
-                    if (!blank(params.handleStatus) && row.handleStatus !== params.handleStatus) return false;
+                    var handle = params.handleStatus;
+                    if (preset && !presetConsumed && blank(handle)) handle = preset;
+                    if (!blank(handle) && row.handleStatus !== handle) return false;
                     return true;
                 });
                 return Promise.resolve(paginate(matched, params));
@@ -199,6 +208,13 @@
                 closeHandle();
                 refreshTable();
                 if (typeof window.showToast === 'function') window.showToast('已记录处置', 'success');
+            });
+            onMounted(function () {
+                if (!preset) return;
+                var vm = table.value;
+                if (vm && typeof vm.patchSearch === 'function') vm.patchSearch({ handleStatus: preset });
+                if (vm && typeof vm.queryData === 'function') vm.queryData();
+                presetConsumed = true;
             });
             return {
                 table: table,

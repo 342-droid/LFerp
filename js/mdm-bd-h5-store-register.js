@@ -349,7 +349,13 @@
       bizLine: rec.bizLine || '',
       brandName: rec.brandName || '',
       bizLines: window.StoreBizStructure ? window.StoreBizStructure.normalizeBiz(rec.bizLines) : [],
-      entryMaterials: rec.entryMaterials || null
+      entryMaterials: rec.entryMaterials || null,
+      rbfApply: rec.rbfApply || '',
+      rbfLevel: rec.rbfLevel || '',
+      rbfQuota: rec.rbfQuota || '',
+      rbfTimes: rec.rbfTimes || '1',
+      rbfDeposit: rec.rbfDeposit || '',
+      rbfVoucherName: rec.rbfVoucherName || ''
     };
     if (!st0.selectedPoiId && st0.regionCascade && st0.detailAddress) {
       st0.selectedPoiId = 'legacy';
@@ -439,6 +445,15 @@
       bizLines: (st.bizLines || []).slice(),
       phase: phase
     });
+    if (document.getElementById('rbfSec')) {
+      out.rbfApply = st.rbfApply || '';
+      out.rbfLevel = st.rbfLevel || '';
+      out.rbfQuota = st.rbfQuota || '';
+      out.rbfTimes = st.rbfTimes || '1';
+      out.rbfDeposit = st.rbfDeposit || '';
+      out.rbfVoucherName = st.rbfVoucherName || '';
+      out.rbfCaptured = true;
+    }
     if (submitMode === 'submit' && !isCreate && rec.phase === 'awaiting_bd' && phase === 'awaiting_leader') {
       if (!out.auditHistory) out.auditHistory = [];
       out.auditHistory = out.auditHistory.concat([
@@ -644,7 +659,13 @@
       companyCb: false,
       bizLine: '',
       brandName: '',
-      bizLines: []
+      bizLines: [],
+      rbfApply: '',
+      rbfLevel: '',
+      rbfQuota: '',
+      rbfTimes: '1',
+      rbfDeposit: '',
+      rbfVoucherName: ''
     };
 
     if (isBdApp && !bdCtx.isCreate && bdCtx.record) {
@@ -652,6 +673,102 @@
       Object.keys(mapped).forEach(function (k) {
         st[k] = mapped[k];
       });
+    }
+
+    function showRbf() {
+      if (isBdApp) return !!(bdCtx && (bdCtx.isCreate || (bdCtx.record && bdCtx.record.rbfCaptured)));
+      return !supplementMode;
+    }
+
+    function ynRadios(name, current) {
+      return (
+        '<div class="h5-yn">' +
+        ['是', '否']
+          .map(function (label) {
+            return (
+              '<label><input type="radio" name="' +
+              name +
+              '" value="' +
+              label +
+              '"' +
+              (current === label ? ' checked' : '') +
+              '> ' +
+              label +
+              '</label>'
+            );
+          })
+          .join('') +
+        '</div>'
+      );
+    }
+
+    function secRbf() {
+      var levels = ['A', 'B', 'C', 'D']
+        .map(function (grade) {
+          return (
+            '<option value="' +
+            grade +
+            '"' +
+            (st.rbfLevel === grade ? ' selected' : '') +
+            '>' +
+            grade +
+            '</option>'
+          );
+        })
+        .join('');
+      var extraOn = st.rbfApply === '是';
+      var fileOn = extraOn && st.rbfDeposit === '是';
+      return (
+        '<section class="h5-sec" id="rbfSec"><div class="h5-sec-head"><span class="h5-sec-ic">R</span><div><h3 class="h5-sec-t">RBF联营</h3>' +
+        '<p class="h5-sec-s">是否申请 RBF 联营。选「是」后填写等级、额度和保证金</p></div></div>' +
+        '<div class="h5-sec-body">' +
+        field('是否申请RBF联营', true, ynRadios('f_rbf_apply', st.rbfApply)) +
+        '<div id="rbfExtra"' +
+        (extraOn ? '' : ' hidden') +
+        '>' +
+        field(
+          'RBF等级',
+          true,
+          '<select class="h5-input" id="f_rbf_level"><option value="">请选择</option>' + levels + '</select>'
+        ) +
+        field(
+          '门店额度',
+          true,
+          '<input type="text" class="h5-input" id="f_rbf_quota" inputmode="decimal" placeholder="请输入门店额度" value="' +
+            esc(st.rbfQuota || '') +
+            '" />',
+          '元，最多两位小数'
+        ) +
+        field(
+          '需求发布次数',
+          true,
+          '<input type="text" class="h5-input" id="f_rbf_times" inputmode="numeric" placeholder="请输入需求发布次数" value="' +
+            esc(st.rbfTimes || '1') +
+            '" />',
+          '次'
+        ) +
+        field('保证金是否缴纳', true, ynRadios('f_rbf_deposit', st.rbfDeposit)) +
+        '<div id="rbfVoucher"' +
+        (fileOn ? '' : ' hidden') +
+        '>' +
+        field(
+          '缴纳凭证',
+          true,
+          '<input type="file" accept="image/*,.pdf" class="h5-hidden" id="f_rbf_file" />' +
+            '<button type="button" class="bd-btn bd-btn-outline h5-up-btn" id="f_rbf_pick">上传凭证</button>' +
+            '<span class="h5-hint-r" id="f_rbf_file_name">' +
+            esc(st.rbfVoucherName || '支持图片或 PDF，不超过 800KB') +
+            '</span>'
+        ) +
+        '</div></div></div></section>'
+      );
+    }
+
+    function syncRbfPanels() {
+      var extra = document.getElementById('rbfExtra');
+      var voucher = document.getElementById('rbfVoucher');
+      if (extra) extra.hidden = st.rbfApply !== '是';
+      if (voucher) voucher.hidden = !(st.rbfApply === '是' && st.rbfDeposit === '是');
     }
 
     function policyOn() {
@@ -731,6 +848,7 @@
         '</p></div>' +
         '<div class="h5-sections">' +
         secBuilding() +
+        (showRbf() ? secRbf() : '') +
         (window.MdmEntryMaterials ? window.MdmEntryMaterials.h5Section() : '') +
         secDelivery() +
         (!policyOn() ? '<div class="h5-dash-hint">请先选择「门店合作类型」，系统将展示对应的资料项。</div>' : '') +
@@ -1194,7 +1312,7 @@
       if (!api) return '';
       var lineList = api.lines();
       var brandList = api.brands(st.bizLine);
-      var bizOpts = api.bizLines(st.bizLine);
+      var bizOpts = api.bizLines(st.bizLine, st.brandName);
       var picked = api.normalizeBiz(st.bizLines);
       var lineOpts =
         '<option value="">请选择事业线</option>' +
@@ -1231,7 +1349,7 @@
             .join('') +
           '</div>'
         : '<p class="h5-hint">' +
-          (st.bizLine ? '该事业线暂无业务线' : '请先选择事业线') +
+          (st.bizLine ? '请先选择品牌名称' : '请先选择事业线和品牌名称') +
           '</p>';
       return (
         field('事业线', true, '<select class="h5-input" id="f_bizline">' + lineOpts + '</select>', '单选') +
@@ -1306,6 +1424,15 @@
         st.bizLines = Array.prototype.map.call(document.querySelectorAll('[data-biz-item]:checked'), function (cb) {
           return cb.value;
         });
+      }
+      if (el('rbfSec')) {
+        var apply = document.querySelector('input[name="f_rbf_apply"]:checked');
+        st.rbfApply = apply ? apply.value : '';
+        if (el('f_rbf_level')) st.rbfLevel = el('f_rbf_level').value;
+        if (el('f_rbf_quota')) st.rbfQuota = el('f_rbf_quota').value;
+        if (el('f_rbf_times')) st.rbfTimes = el('f_rbf_times').value;
+        var deposit = document.querySelector('input[name="f_rbf_deposit"]:checked');
+        st.rbfDeposit = deposit ? deposit.value : '';
       }
     }
 
@@ -1534,6 +1661,34 @@
         bdToast('请上传门头/场地照');
         return false;
       }
+      if (document.getElementById('rbfSec')) {
+        if (st.rbfApply !== '是' && st.rbfApply !== '否') {
+          bdToast('请选择是否申请RBF联营');
+          return false;
+        }
+        if (st.rbfApply === '是') {
+          if (!st.rbfLevel) {
+            bdToast('请选择RBF等级');
+            return false;
+          }
+          if (!/^\d+(\.\d{1,2})?$/.test(st.rbfQuota) || Number(st.rbfQuota) <= 0) {
+            bdToast('门店额度须大于 0，最多两位小数');
+            return false;
+          }
+          if (!/^[1-9]\d*$/.test(st.rbfTimes)) {
+            bdToast('需求发布次数须为大于 0 的整数');
+            return false;
+          }
+          if (st.rbfDeposit !== '是' && st.rbfDeposit !== '否') {
+            bdToast('请选择保证金是否缴纳');
+            return false;
+          }
+          if (st.rbfDeposit === '是' && !st.rbfVoucherName) {
+            bdToast('请上传保证金缴纳凭证');
+            return false;
+          }
+        }
+      }
       return true;
     }
 
@@ -1557,6 +1712,11 @@
     }
 
     function duplicateMatches() {
+      var demo = window.MdmStoreDuplicateReview;
+      if (isBdApp && bdCtx && bdCtx.isCreate && demo) {
+        if (demo.demoMode() === 'none') return [];
+        if (demo.demoMode() === 'hit') return bdDuplicateDemoMatches();
+      }
       var list = isBdApp && bdCtx ? bdCtx.stores : null;
       if (!list) {
         try { list = JSON.parse(sessionStorage.getItem(BD_STORES_SESSION_KEY) || 'null'); } catch (e) {}
@@ -1570,32 +1730,58 @@
         var nameScore = similarity(st.name, rec.name);
         var addressScore = similarity(currentAddress, (rec.regionCascade || '') + (rec.detailAddress || rec.address || ''));
         var peerPhone = String(rec.contactPhone || '').replace(/\D/g, '');
-        var phoneMatch = currentPhone.length === 11 && peerPhone.length === 11 && currentPhone === peerPhone;
+        var phoneMatch = /^1\d{10}$/.test(currentPhone) && currentPhone === peerPhone;
         var hits = [];
-        if (nameScore >= 80) hits.push('门店名称相似 ' + nameScore + '%');
-        if (addressScore >= 85) hits.push('门店地址相似 ' + addressScore + '%');
+        if (nameScore >= 60) hits.push('门店名称相似 ' + nameScore + '%');
+        if (addressScore >= 60) hits.push('门店地址相似 ' + addressScore + '%');
         if (phoneMatch) hits.push('手机号相同 100%');
-        return { rec: rec, hits: hits, score: Math.max(nameScore >= 80 ? nameScore : 0, addressScore >= 85 ? addressScore : 0, phoneMatch ? 100 : 0) };
-      }).filter(function (x) { return x.hits.length; }).sort(function (a, b) { return b.score - a.score; }).slice(0, 3);
+        return { rec: rec, hits: hits, score: Math.max(nameScore >= 60 ? nameScore : 0, addressScore >= 60 ? addressScore : 0, phoneMatch ? 100 : 0) };
+      }).filter(function (x) { return x.hits.length; }).sort(function (a, b) { return b.score - a.score; });
+    }
+
+    function bdDuplicateDemoMatches() {
+      var api = window.MdmStoreDuplicateReview;
+      var samples = api ? api.demoMatches() : [
+        { name: '鲜丰水果文一西路店', code: 'MU20260315001', reasons: ['门店名称相似 92%', '门店地址相似 87%', '手机号相同 100%'] },
+        { name: '文一西路鲜丰店', code: 'MU20260509032', reasons: ['门店名称相似 83%', '手机号相同 100%'] },
+        { name: '鲜丰水果城西店', code: 'MU20260412018', reasons: ['门店名称相似 89%', '门店地址相似 86%'] },
+        { name: '鲜丰水果古墩店', code: 'MU20260618006', reasons: ['门店名称相似 86%'] },
+        { name: '鲜丰果园西溪店', code: 'MU20260702011', reasons: ['门店名称相似 81%'] }
+      ];
+      return samples.map(function (m, i) {
+        return { rec: { id: i + 1, merchantUid: m.code, name: m.name }, hits: m.reasons, score: 100 - i };
+      });
     }
 
     function confirmDuplicateSubmission(matches, onConfirm) {
       if (!matches.length) { onConfirm(); return; }
+      var existing = document.querySelector('.h5-duplicate-overlay');
+      if (existing) existing.remove();
       var overlay = document.createElement('div');
       overlay.className = 'h5-duplicate-overlay';
       overlay.innerHTML = '<div class="h5-duplicate-dialog" role="dialog" aria-modal="true" aria-labelledby="duplicateTitle">' +
         '<h2 id="duplicateTitle">发现疑似重复门店</h2>' +
-        '<p>以下门店的名称、地址或手机号与本次填写内容相同或相似。请核对后决定是否继续提交。</p>' +
-        '<div class="h5-duplicate-list">' + matches.map(function (x) {
+        '<p>发现 ' + matches.length + ' 家疑似门店，请逐条核对名称、编号与命中依据。</p>' +
+        '<div class="h5-duplicate-list">' + matches.slice(0, 3).map(function (x) {
           return '<div class="h5-duplicate-item"><strong>' + esc(x.rec.name || '未命名门店') + '</strong>' +
-            '<span>门店 ID：' + esc(x.rec.id || '—') + '</span><small>' + esc(x.hits.join(' · ')) + '</small></div>';
+            '<span>门店编号：' + esc(x.rec.merchantUid || x.rec.storeCode || x.rec.id || '—') + '</span>' +
+            '<div class="h5-duplicate-reasons">' + esc(x.hits.join('；')) + '</div></div>';
         }).join('') + '</div>' +
+        (matches.length > 3 ? '<p class="h5-duplicate-remaining">另有 ' + (matches.length - 3) + ' 家疑似门店：' +
+          matches.slice(3).map(function (x) {
+            var code = x.rec.merchantUid || x.rec.storeCode || x.rec.id;
+            return esc(x.rec.name || '未命名门店') + (code ? '·' + esc(code) : '');
+          }).join('、') + '。</p>' : '') +
         '<p class="h5-duplicate-note">相似度仅供排查参考；继续提交后仍进入原审核流程。</p>' +
         '<div class="h5-duplicate-actions"><button type="button" data-duplicate-back>返回修改</button><button type="button" data-duplicate-confirm>确认，继续提交</button></div></div>';
       (document.querySelector('.bd-mobile-shell') || document.body).appendChild(overlay);
       overlay.querySelector('[data-duplicate-back]').onclick = function () { overlay.remove(); };
       overlay.querySelector('[data-duplicate-confirm]').onclick = function () { overlay.remove(); onConfirm(); };
     }
+
+    window.MdmBdDuplicatePreview = function () {
+      confirmDuplicateSubmission(bdDuplicateDemoMatches(), function () { bdToast('界面预览', '示例弹窗不会提交资料'); });
+    };
 
     function bindFormEvents() {
       var el = function (id) {
@@ -1679,7 +1865,7 @@
           }
           if (this && this.id === 'f_brand') {
             var allowed = window.StoreBizStructure
-              ? window.StoreBizStructure.bizLines(st.bizLine)
+              ? window.StoreBizStructure.bizLines(st.bizLine, st.brandName)
               : [];
             st.bizLines = (st.bizLines || []).filter(function (n) {
               return allowed.indexOf(n) >= 0;
@@ -1712,6 +1898,54 @@
           readFormToState();
         };
       });
+
+      Array.prototype.forEach.call(document.querySelectorAll('input[name="f_rbf_apply"], input[name="f_rbf_deposit"]'), function (radio) {
+        radio.onchange = function () {
+          readFormToState();
+          syncRbfPanels();
+        };
+      });
+      if (el('f_rbf_level')) {
+        el('f_rbf_level').onchange = function () {
+          readFormToState();
+        };
+      }
+      if (el('f_rbf_quota')) {
+        el('f_rbf_quota').oninput = function () {
+          var text = String(this.value || '').replace(/[^\d.]/g, '');
+          var parts = text.split('.');
+          if (parts.length > 2) text = parts[0] + '.' + parts.slice(1).join('');
+          parts = text.split('.');
+          if (parts[1] && parts[1].length > 2) text = parts[0] + '.' + parts[1].slice(0, 2);
+          this.value = text;
+          readFormToState();
+        };
+      }
+      if (el('f_rbf_times')) {
+        el('f_rbf_times').oninput = function () {
+          this.value = String(this.value || '').replace(/\D/g, '').replace(/^0+/, '');
+          readFormToState();
+        };
+      }
+      if (el('f_rbf_pick') && el('f_rbf_file')) {
+        el('f_rbf_pick').onclick = function () {
+          el('f_rbf_file').click();
+        };
+        el('f_rbf_file').onchange = function () {
+          var picked = this.files && this.files[0];
+          if (!picked) {
+            st.rbfVoucherName = '';
+          } else if (picked.size > 800 * 1024) {
+            this.value = '';
+            st.rbfVoucherName = '';
+            bdToast('凭证文件请控制在 800KB 以内');
+          } else {
+            st.rbfVoucherName = picked.name || '缴纳凭证';
+          }
+          var nameNode = el('f_rbf_file_name');
+          if (nameNode) nameNode.textContent = st.rbfVoucherName || '支持图片或 PDF，不超过 800KB';
+        };
+      }
 
       ['f', 'i'].forEach(function (w) {
         var key = w === 'f' ? 'vidF' : 'vidI';
@@ -1899,12 +2133,7 @@
     fullRender();
     fillDomFromState();
     if (q.previewDuplicate === '1') {
-      confirmDuplicateSubmission([{
-        rec: { id: '示例 01', name: '鲜丰水果文一西路店' },
-        hits: ['门店名称相似 92%', '门店地址相似 87%', '手机号相同 100%']
-      }], function () {
-        bdToast('界面预览', '示例弹窗不会提交资料');
-      });
+      window.MdmBdDuplicatePreview();
     }
   }
 

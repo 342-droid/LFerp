@@ -9,7 +9,6 @@
     var collectFilter = 'open';
     var collectCode = '';
     var fundTab = 'base';
-    var baseFold = { due: false, settled: false, pending: false };
     /* 门店经营：渠道、总览／自定义时段、点选单日 */
     var bizChannel = 'all';
     var bizRangeMode = 'overview';
@@ -195,16 +194,24 @@
         return sign + Math.floor(abs / 100) + '.' + String(abs % 100).padStart(2, '0');
     }
 
-    /* 大厅收益 = 应收 − 应付。应付是确认签约时要支付并冻结的金额。应收是贸易商应收，等于门店实付。 */
+    /* 大厅收益 = 应收 − 应付。应付是确认签约时要支付并冻结的金额，等于商品金额。应收等于需求总金额，即商品金额 × 贸易商系数。 */
     function hallAmounts(item) {
         var goods = item && item.goodsAmount ? String(item.goodsAmount) : '';
-        var api = window.RbtDemandData;
-        var pack = api && typeof api.deductSettlement === 'function' ? api.deductSettlement(item) : null;
+        var goodsCents = centsOf(goods);
+        var totalCents = centsOf(item && item.amount);
+        if (totalCents == null && goodsCents != null) {
+            var api = window.RbtDemandData;
+            var rates = api && typeof api.settlementRates === 'function' ? api.settlementRates(item) : null;
+            var traderPts = rates && rates.trader ? Math.round(Number(rates.trader) * 100) : null;
+            if (traderPts > 0) totalCents = Math.round(goodsCents * traderPts / 100);
+        }
+        var receive = totalCents != null ? fromCents(totalCents) : '';
+        var profit = goodsCents != null && totalCents != null ? fromCents(totalCents - goodsCents) : '';
         return {
             goods: goods || '—',
-            paid: pack && pack.traderPaid ? String(pack.traderPaid) : '—',
-            profit: pack && pack.profit ? String(pack.profit) : '—',
-            total: pack && pack.trader ? String(pack.trader) : '—'
+            paid: goods || '—',
+            profit: profit || '—',
+            total: receive || '—'
         };
     }
 
@@ -836,7 +843,7 @@
         node.hidden = false;
     }
 
-    /* 已结款的结款时间是营业日次日 08:00:00，只写月日时分秒。一键付款用实际支付时间。待结款还没结，时间用 -。 */
+    /* 结款时间取成功凭据上的真实时间，只写月日时分秒。在途、结款失败写 -。 */
     function paidClock(raw) {
         var matched = String(raw || '').match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{2}:\d{2}:\d{2})/);
         if (!matched) return '';
@@ -868,7 +875,7 @@
                 var failedRow = row.stage === 'failed' || row.fundStatus === 'failed';
                 var pendingRow = row.stage === 'pending';
                 var manual = row.kind === 'manual';
-                var when = failedRow || pendingRow ? '-' : (manual ? (paidClock(row.time) || settleClock(row.date)) : settleClock(row.date));
+                var when = failedRow || pendingRow ? '-' : (paidClock(row.time) || '-');
                 var account = '钱包余额';
                 if (manual) {
                     account = String(row.payMethod || '').trim();
@@ -1256,84 +1263,23 @@
             '</div></section>';
     }
 
-    function settleClock(date) {
-        var parts = String(date || '').split('-');
-        if (parts.length < 3) return '';
-        var day = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
-        if (isNaN(day.getTime())) return '';
-        day.setDate(day.getDate() + 1);
-        return (day.getMonth() + 1) + '月' + day.getDate() + '日 08:00:00';
-    }
-
     function billLine(label, value, extra) {
         return '<div class="rbt-bill__line' + (extra ? ' ' + extra : '') + '"><span>' + esc(label) + '</span><b>' + esc(value) + '</b></div>';
-    }
-
-    function centsText(cents) {
-        if (cents == null || !isFinite(cents)) return '—';
-        return yuan(fromCents(cents));
-    }
-
-    /* 已结、待结按应收中的实付、收益占比拆开。同一行的实付加收益等于该行金额，已结加待结回到应收。 */
-    function fundBreak(fund) {
-        var paid = centsOf(fund && fund.paid);
-        var profit = centsOf(fund && fund.profit);
-        var due = paid != null && profit != null ? paid + profit : centsOf(fund && fund.receivable);
-        var settled = centsOf(fund && fund.settled);
-        if (settled == null) settled = 0;
-        if (due != null && settled > due) settled = due;
-        var pending = due == null ? null : due - settled;
-        var settledPaid = null;
-        var settledProfit = null;
-        if (due > 0 && paid != null && profit != null) {
-            settledProfit = Math.round(settled * profit / due);
-            if (settledProfit > settled) settledProfit = settled;
-            if (settledProfit < 0) settledProfit = 0;
-            settledPaid = settled - settledProfit;
-        }
-        return {
-            paid: paid,
-            profit: profit,
-            settledPaid: settledPaid,
-            settledProfit: settledProfit,
-            pendingPaid: settledPaid == null || paid == null ? null : paid - settledPaid,
-            pendingProfit: settledProfit == null || profit == null ? null : profit - settledProfit,
-            pending: pending
-        };
-    }
-
-    function foldMark(open) {
-        return '<i class="rbt-bill__fold' + (open ? ' is-open' : '') + '" aria-hidden="true"></i>';
-    }
-
-    function foldGroup(key, label, amount, paidText, profitText) {
-        var open = !!baseFold[key];
-        return '<div class="rbt-bill__tree' + (open ? ' is-open' : '') + '">' +
-            '<button type="button" class="rbt-bill__line rbt-bill__sum" data-base-fold="' + key + '" aria-expanded="' + (open ? 'true' : 'false') + '">' +
-            '<span>' + esc(label) + '</span><b>' + esc(amount) + foldMark(open) + '</b></button>' +
-            (open
-                ? '<div class="rbt-bill__kids">' +
-                    billLine('实付', paidText, 'is-child') +
-                    billLine('收益', profitText, 'is-child') +
-                    '</div>'
-                : '') +
-            '</div>';
     }
 
     function renderCollectBill(item) {
         var fund = fundOf(item);
         var payee = fund.account || { accountName: '—', accountNo: '—' };
-        var parts = fundBreak(fund);
         setHead('资金明细');
         var baseSheet =
             billLine('门店', item.storeName || '—') +
             billLine('商品金额（原价）', yuan(fund.goods)) +
-            foldGroup('due', '应收', fund.receivable && fund.receivable !== '—' ? yuan(fund.receivable) : '—', centsText(parts.paid), centsText(parts.profit)) +
+            billLine('应收', fund.receivable && fund.receivable !== '—' ? yuan(fund.receivable) : '—') +
             billLine('接单时间', item.acceptedAt || '—') +
             billLine('支付时间', payTimeOf(item) || '—') +
             billLine('签署时间', effectTimeOf(item) || '—') +
-            foldGroup('settled', '已结款', fund.settled ? yuan(fund.settled) : '未产生', centsText(parts.settledPaid), centsText(parts.settledProfit)) +
-            foldGroup('pending', '待结款', fund.pending ? yuan(fund.pending) : (item.status === '已完成' ? '无' : '未产生'), centsText(parts.pendingPaid), centsText(parts.pendingProfit)) +
+            billLine('已结款', fund.settled ? yuan(fund.settled) : '未产生') +
+            billLine('待结款', fund.pending ? yuan(fund.pending) : (item.status === '已完成' ? '无' : '未产生')) +
             billLine('收款账户名称', payee.accountName || '—') +
             billLine('收款账户', payee.accountNo || '—');
         if (fundTab === 'overview') fundTab = 'share';
@@ -1419,8 +1365,44 @@
             '<section class="rbt-share-detail"><h3>结款明细</h3>' + cards + '</section></section>';
     }
 
+    function closeRechargeTip() {
+        document.querySelectorAll('[data-recharge-tip]').forEach(function (node) {
+            node.remove();
+        });
+    }
+
+    /* 贸易商不在线充值。点充值只提示线下对公转到自己的结算账户，并列出贸易商结算账户。 */
+    function openRechargeTip() {
+        var phone = document.getElementById('rbtH5Phone');
+        if (!phone) return;
+        closeRechargeTip();
+        var mine = traderName();
+        var rows = Object.keys(TRADER_ACCOUNTS).map(function (name) {
+            var row = TRADER_ACCOUNTS[name] || {};
+            var current = name === mine ? '<em class="rbt-recharge-tip__mine">当前</em>' : '';
+            return '<div class="rbt-recharge-tip__item"><strong>' + esc(row.accountName || name) + current + '</strong>' +
+                '<span>账号 ' + esc(row.accountNo || '—') + '</span></div>';
+        }).join('');
+        var mask = document.createElement('div');
+        mask.className = 'rbt-h5-pay-mask';
+        mask.setAttribute('data-recharge-tip', '1');
+        mask.innerHTML =
+            '<div class="rbt-accept-dialog" role="dialog" aria-modal="true" aria-labelledby="rbtRechargeTipTitle">' +
+            '<h2 id="rbtRechargeTipTitle">对公转账</h2>' +
+            '<p>请线下对公转账到自己的结算账户。</p>' +
+            '<div class="rbt-recharge-tip__list">' + (rows || '<p>暂无结算账户</p>') + '</div>' +
+            '<div class="rbt-accept-dialog__actions">' +
+            '<button type="button" class="is-go" data-recharge-tip-ok>知道了</button>' +
+            '</div></div>';
+        mask.addEventListener('click', function (event) {
+            if (event.target === mask || event.target.closest('[data-recharge-tip-ok]')) closeRechargeTip();
+        });
+        phone.appendChild(mask);
+    }
+
     function renderWallet() {
-        var titles = { recharge: '充值', withdraw: '提现', bind: '绑定银行卡' };
+        if (walletPane === 'recharge') walletPane = 'main';
+        var titles = { withdraw: '提现', bind: '绑定银行卡' };
         setHead(titles[walletPane] || '钱包');
         var wallet = window.RbtPartyWallet;
         if (!wallet || typeof wallet.walletHtml !== 'function') return '<div class="rbt-h5-empty">钱包不可用</div>';
@@ -1648,7 +1630,11 @@
         }
         var go = event.target.closest('[data-wallet-go]');
         if (go && screen === 'wallet') {
-            walletPane = go.getAttribute('data-wallet-go') === 'recharge' ? 'recharge' : 'withdraw';
+            if (go.getAttribute('data-wallet-go') === 'recharge') {
+                openRechargeTip();
+                return true;
+            }
+            walletPane = 'withdraw';
             walletDraft = '';
             walletSheet = '';
             walletTimeOpen = false;
@@ -2019,10 +2005,7 @@
             if (event.target.closest('[data-balance-ok]')) closeBalanceShort();
             if (event.target.closest('[data-balance-recharge]')) {
                 closeBalanceShort();
-                tab = 'hall';
-                screen = 'wallet';
-                walletPane = 'recharge';
-                render();
+                openRechargeTip();
             }
         });
         phone.appendChild(mask);
@@ -2265,7 +2248,6 @@
             if (!collectId) return;
             collectCode = collectId;
             fundTab = 'base';
-            baseFold = { due: false, settled: false, pending: false };
             bizChannel = 'all';
             bizRangeMode = 'overview';
             bizFrom = '';
@@ -2275,18 +2257,6 @@
             tab = 'hall';
             screen = 'collect-bill';
             render();
-            return;
-        }
-        var foldBtn = event.target.closest('[data-base-fold]');
-        if (foldBtn && screen === 'collect-bill' && fundTab === 'base') {
-            var foldKey = foldBtn.getAttribute('data-base-fold');
-            if (foldKey === 'due' || foldKey === 'settled' || foldKey === 'pending') {
-                var scrollTop = (document.getElementById('rbtH5Scroll') || {}).scrollTop || 0;
-                baseFold[foldKey] = !baseFold[foldKey];
-                render();
-                var scrollNext = document.getElementById('rbtH5Scroll');
-                if (scrollNext) scrollNext.scrollTop = scrollTop;
-            }
             return;
         }
         var fundTabBtn = event.target.closest('[data-fund-tab]');
