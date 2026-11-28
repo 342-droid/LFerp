@@ -1,10 +1,117 @@
 {
-  "latestSha": "712fcf3885eec278c2844601c91aa14e1c8a8c4a",
-  "total": 672,
+  "latestSha": "6e2a13a7c945273d295c892cdea5598d036af01d",
+  "total": 673,
   "days": [
     {
       "date": "2026-11-28",
       "items": [
+        {
+          "sha": "6e2a13a",
+          "type": "feat",
+          "text": "门店入驻审核带出已填的 RBF 字段",
+          "author": "sisi",
+          "time": "16:11",
+          "pages": [
+            {
+              "file": "MDM/mdm_archive_carrier.html",
+              "module": "冷丰WMS",
+              "title": "承运商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_live_room.html",
+              "module": "冷丰WMS",
+              "title": "直播间档案"
+            },
+            {
+              "file": "MDM/mdm_archive_provider.html",
+              "module": "冷丰WMS",
+              "title": "服务商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "module": "冷丰WMS",
+              "title": "门店档案"
+            },
+            {
+              "file": "MDM/mdm_archive_supplier.html",
+              "module": "冷丰WMS",
+              "title": "供应商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_trader.html",
+              "module": "冷丰WMS",
+              "title": "贸易商档案"
+            },
+            {
+              "file": "MDM/mdm_archive_warehouse.html",
+              "module": "冷丰WMS",
+              "title": "仓库档案"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "module": "冷丰WMS",
+              "title": "入驻审核"
+            },
+            {
+              "file": "MDM/mdm_bd_stores.html",
+              "module": "",
+              "title": "冷丰 MDM · BD 门店模块"
+            },
+            {
+              "file": "MDM/mdm_member_c.html",
+              "module": "冷丰WMS",
+              "title": "会员管理"
+            },
+            {
+              "file": "MDM/mdm_party_all.html",
+              "module": "冷丰WMS",
+              "title": "所有主体"
+            },
+            {
+              "file": "MDM/mdm_people_anchor.html",
+              "module": "冷丰WMS",
+              "title": "主播"
+            },
+            {
+              "file": "MDM/mdm_people_bd.html",
+              "module": "冷丰WMS",
+              "title": "BD推广员"
+            },
+            {
+              "file": "MDM/mdm_people_driver.html",
+              "module": "冷丰WMS",
+              "title": "司机"
+            },
+            {
+              "file": "MDM/mdm_people_purchaser.html",
+              "module": "冷丰WMS",
+              "title": "采购员"
+            },
+            {
+              "file": "MDM/mdm_super_admin_accounts.html",
+              "module": "冷丰WMS",
+              "title": "商户主体建档"
+            }
+          ],
+          "notes": [
+            {
+              "file": "MDM/mdm_party_all.html",
+              "text": "新增门店商家时，门店额度和需求发布次数同一行，保证金是否缴纳和缴纳凭证同一行"
+            },
+            {
+              "file": "MDM/mdm_archive_store.html",
+              "text": "新增门店的额度、次数、保证金和缴纳凭证按同样两行排列"
+            },
+            {
+              "file": "MDM/mdm_audit_store_registration.html",
+              "text": "详情和审核展示已填写的 RBF 字段；选否只显示是否申请，保证金未缴不显示凭证"
+            },
+            {
+              "file": null,
+              "text": "BD 门店模块: 审核资料展示已填写的 RBF 联营字段"
+            }
+          ]
+        },
         {
           "sha": "712fcf3",
           "type": "feat",
