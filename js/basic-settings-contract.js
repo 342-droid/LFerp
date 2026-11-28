@@ -153,7 +153,7 @@
     {
       id: 'STPL-RBT-SALE', name: '销售合同签署模板', scene: 'demand', launch: 'confirm', signInOrder: true,
       actors: [
-        { actorId: '门店', role: '需求门店', actorType: 'corp', signMode: 'manual', keyword: '甲方签署' },
+        { actorId: '门店', role: '门店', actorType: 'corp', signMode: 'manual', keyword: '甲方签署' },
         { actorId: '贸易商', role: '贸易商', actorType: 'corp', signMode: 'manual', keyword: '乙方签署' }
       ],
       fill: ['需求单号', '门店名称', '贸易商名称', '商品金额'],
@@ -521,6 +521,13 @@
       if (!tpl.signInOrder) {
         tpl.signInOrder = true;
         changed = true;
+      }
+      if (tpl.remoteId === 'STPL-RBT-SALE' || tpl.id === 'TPL010') {
+        (tpl.actors || []).forEach(function (actor) {
+          if (!actor || actor.actorId !== '门店' || actor.role === '门店') return;
+          actor.role = '门店';
+          changed = true;
+        });
       }
       if (tpl.remoteId !== 'STPL-RBT-BUY' && tpl.id !== 'TPL011') return;
       (tpl.actors || []).forEach(function (actor) {
@@ -1748,7 +1755,20 @@
       paintRemote(this.value);
       var remote = remoteOfId(this.value);
       if (remote && remote.partnerTypes) writePartnerTypes(remote.partnerTypes);
-      if (!tpl) paintTplName(document.getElementById('ctTplScene').value, remote ? remote.name : '');
+      if (remote) paintTplName(document.getElementById('ctTplScene').value, remote.name);
+    });
+    document.getElementById('ctTplName').addEventListener('change', function () {
+      var sceneId = (document.getElementById('ctTplScene') || {}).value || '';
+      var name = this.value;
+      if (!name || name === SCOPE_ALL) return;
+      var remote = REMOTE_TEMPLATES.filter(function (item) {
+        return item.scene === sceneId && item.name === name;
+      })[0];
+      if (!remote) return;
+      var remoteSel = document.getElementById('ctRemoteTpl');
+      if (remoteSel && remoteSel.value !== remote.id) remoteSel.value = remote.id;
+      paintRemote(remote.id);
+      if (remote.partnerTypes) writePartnerTypes(remote.partnerTypes);
     });
     if (viewMode) {
       document.querySelectorAll('#ctTplScene, #ctTplName, #ctRemoteTpl, #ctTplOn, #ctTplOff, #ctAutoStart, #ctAutoStartOnboard, #ctAutoStartConfirm, #ctSignOrder').forEach(function (el) {
@@ -2654,6 +2674,86 @@
     return findParty(document.getElementById('ctTaskParty').value);
   }
 
+  function findDemandRecord(code) {
+    var typed = String(code || '').trim();
+    if (!typed) return null;
+    var lower = typed.toLowerCase();
+    function match(list) {
+      var found = null;
+      (list || []).some(function (item) {
+        if (item && String(item.code || '').toLowerCase() === lower) {
+          found = item;
+          return true;
+        }
+        return false;
+      });
+      return found;
+    }
+    try {
+      var raw = sessionStorage.getItem('rbt_h5_fund_demand_v2');
+      if (raw) return match(JSON.parse(raw));
+    } catch (e) {}
+    var api = window.RbtDemandData;
+    if (api && typeof api.list === 'function') return match(api.list());
+    return null;
+  }
+
+  function demandContractSigned(demand, kind) {
+    if (!demand || demand.status === '已作废') return false;
+    var api = window.RbtDemandData;
+    var signedOnDemand = false;
+    if (api && typeof api.signContracts === 'function') {
+      api.signContracts(demand).some(function (contract) {
+        if (contract && contract.key === kind && contract.signStatus === '已签署') signedOnDemand = true;
+      });
+    }
+    var ref = 'rbt-demand:' + demand.code + ':' + kind;
+    var signedTask = state.tasks.some(function (task) {
+      return task && task.bizRef === ref && displayStatus(task) === 'sign_completed';
+    });
+    return signedOnDemand || signedTask;
+  }
+
+  function demandContractProgress(demand, kind) {
+    if (!demand || demandContractSigned(demand, kind)) return null;
+    var ref = 'rbt-demand:' + demand.code + ':' + kind;
+    return state.tasks.filter(function (task) {
+      if (!task || task.bizRef !== ref) return false;
+      var shown = displayStatus(task);
+      return shown === 'sign_progress' || shown === 'overdue' || shown === 'voiding';
+    })[0] || null;
+  }
+
+  function lockDemandParty(selectId, type, name, emptyLabel) {
+    var sel = document.getElementById(selectId);
+    fillTypedParty(selectId, type, '', emptyLabel);
+    if (!sel) return null;
+    sel.disabled = true;
+    if (!name) return null;
+    var existing = state.parties.filter(function (party) {
+      return party.type === type && party.name === name;
+    })[0];
+    if (existing) {
+      fillTypedParty(selectId, type, existing.id, emptyLabel);
+      sel.value = existing.id;
+      sel.disabled = true;
+      return existing;
+    }
+    var opt = document.createElement('option');
+    opt.value = 'demand-name';
+    opt.textContent = name;
+    sel.appendChild(opt);
+    sel.value = opt.value;
+    return { id: '', name: name, type: type, pending: true };
+  }
+
+  function paintDemandTip(text, tone) {
+    var tip = document.getElementById('ctTaskDemandTip');
+    if (!tip) return;
+    tip.textContent = text || '';
+    tip.style.color = tone === 'bad' ? '#cf1322' : (tone === 'ok' ? '#389e0d' : '#999');
+  }
+
   function syncTaskName() {
     var tpl = findTpl(readTaskTemplateId());
     var names = docsOfTpl(tpl).map(function (doc) { return doc.name; });
@@ -2696,7 +2796,7 @@
       var tip = document.getElementById('ctTaskTplTip');
       if (tip) {
         tip.textContent = demand
-          ? '销售合同由需求门店与贸易商签。采购合同由贸易商手动签，冷丰供应链自动签。提交后直接创建任务，不判断需求单是否已点确认签约。'
+          ? '销售合同由门店与贸易商签。采购合同由贸易商手动签，冷丰供应链自动签。输入需求单号后带出门店和贸易商；该份合同没有生效中的已签订合同时可以发起。'
           : '一次只选一份模板。自动触发默认选中。补充协议标为变更确认后触发，也可以在这里改选后补发。';
       }
     }
@@ -2705,13 +2805,60 @@
       fillTplOptions(sceneId, selectedIds);
       syncDemandRows(sceneId);
       if (sceneId === 'demand') {
-        fillTypedParty('ctTaskStore', 'store', prefill.store, '请选择需求门店');
+        fillTypedParty('ctTaskStore', 'store', prefill.store, '请选择门店');
         fillTypedParty('ctTaskTrader', 'trader', prefill.trader, '请选择贸易商');
       } else {
         fillPartyOptions(sceneId, retry && retry.scene === sceneId ? retry.partyId : '');
       }
       updatePartyHint();
       syncTaskName();
+      if (sceneId === 'demand') applyDemandLookup();
+    }
+    function applyDemandLookup() {
+      if (document.getElementById('ctTaskScene').value !== 'demand') return null;
+      var code = String((demandCode || {}).value || '').trim();
+      var purchase = demandKindOf(findTpl(readTaskTemplateId())) === 'purchase';
+      var label = purchase ? '采购合同' : '销售合同';
+      if (!code) {
+        lockDemandParty('ctTaskStore', 'store', '', '输入需求单号后带出');
+        lockDemandParty('ctTaskTrader', 'trader', '', '输入需求单号后带出');
+        prefill.store = '';
+        prefill.trader = '';
+        paintDemandTip('');
+        return null;
+      }
+      var demand = findDemandRecord(code);
+      if (!demand) {
+        lockDemandParty('ctTaskStore', 'store', '', '输入需求单号后带出');
+        lockDemandParty('ctTaskTrader', 'trader', '', '输入需求单号后带出');
+        prefill.store = '';
+        prefill.trader = '';
+        paintDemandTip('需求单不存在', 'bad');
+        return { missing: true };
+      }
+      var parties = {
+        storeName: String(demand.storeName || '').trim(),
+        traderName: String(demand.traderName || '').trim()
+      };
+      var storeParty = lockDemandParty('ctTaskStore', 'store', parties.storeName, '输入需求单号后带出');
+      var trader = lockDemandParty('ctTaskTrader', 'trader', parties.traderName, '输入需求单号后带出');
+      prefill.store = storeParty ? storeParty.id : '';
+      prefill.trader = trader ? trader.id : '';
+      var who = '门店：' + (parties.storeName || '—') + '；贸易商：' + (parties.traderName || '—');
+      if (demandContractSigned(demand, purchase ? 'purchase' : 'sale')) {
+        paintDemandTip('该需求的' + label + '已签订，生效中，不能再发起。' + who, 'bad');
+        return { demand: demand, blocked: 'signed', storeParty: storeParty, trader: trader };
+      }
+      if (demandContractProgress(demand, purchase ? 'purchase' : 'sale')) {
+        paintDemandTip('该需求的' + label + '正在签署，不能再发起。' + who, 'bad');
+        return { demand: demand, blocked: 'progress', storeParty: storeParty, trader: trader };
+      }
+      if (!parties.traderName || (!purchase && !parties.storeName)) {
+        paintDemandTip('需求单存在，尚未签订生效中的' + label + '。' + who, 'bad');
+        return { demand: demand, blocked: 'party', storeParty: storeParty, trader: trader };
+      }
+      paintDemandTip('需求单存在，尚未签订生效中的' + label + '，可以发起。' + who, 'ok');
+      return { demand: demand, storeParty: storeParty, trader: trader };
     }
     refreshByScene(retry ? retry.templateId : '');
     if (retry) {
@@ -2733,11 +2880,24 @@
     document.getElementById('ctTaskTpl').addEventListener('change', function () {
       paintTaskDocs(findTpl(readTaskTemplateId()));
       syncDemandRows(document.getElementById('ctTaskScene').value);
+      if (document.getElementById('ctTaskScene').value === 'demand') applyDemandLookup();
       syncTaskName();
     });
     if (demandCode) {
-      demandCode.addEventListener('input', function () {
+      var demandTimer = 0;
+      function queueDemandLookup() {
         prefill.code = demandCode.value;
+        window.clearTimeout(demandTimer);
+        demandTimer = window.setTimeout(function () {
+          applyDemandLookup();
+          syncTaskName();
+        }, 200);
+      }
+      demandCode.addEventListener('input', queueDemandLookup);
+      demandCode.addEventListener('change', function () {
+        window.clearTimeout(demandTimer);
+        prefill.code = demandCode.value;
+        applyDemandLookup();
         syncTaskName();
       });
     }
@@ -2779,19 +2939,24 @@
       var demandNo = '';
       var bizRef = '';
       if (demand) {
-        /* 手动发起只校验本页填写的单号和签署方，不读取需求状态，也不要求先点确认签约。 */
         demandNo = String((document.getElementById('ctTaskDemandCode') || {}).value || '').trim();
         if (!demandNo) return toast('请填写需求单号', 'error');
-        var trader = findParty((document.getElementById('ctTaskTrader') || {}).value);
-        if (!trader) return toast('请选择贸易商', 'error');
-        var storeParty = purchase ? null : findParty((document.getElementById('ctTaskStore') || {}).value);
-        if (!purchase && !storeParty) return toast('请选择需求门店', 'error');
+        var looked = applyDemandLookup();
+        if (!looked || looked.missing || !looked.demand) return toast('需求单不存在', 'error');
+        if (looked.blocked === 'signed') return toast('该需求的' + agreementLabel + '已签订，生效中，不能再发起', 'error');
+        if (looked.blocked === 'progress') return toast('该需求的' + agreementLabel + '正在签署，不能再发起', 'error');
+        var trader = looked.trader && looked.trader.pending
+          ? upsertParty({ type: 'trader', name: looked.trader.name, authStatus: 'done' })
+          : looked.trader;
+        if (!trader) return toast('该需求单还没有贸易商', 'error');
+        var storeParty = purchase ? null : looked.storeParty;
+        if (storeParty && storeParty.pending) {
+          storeParty = upsertParty({ type: 'store', name: storeParty.name, authStatus: 'done' });
+        }
+        if (!purchase && !storeParty) return toast('该需求单没有门店', 'error');
         var key = purchase ? 'purchase' : 'sale';
-        bizRef = 'rbt-demand:' + demandNo + ':' + key;
-        var openTask = state.tasks.filter(function (task) {
-          return task && task.bizRef === bizRef && !taskIsClosed(task.status);
-        })[0];
-        if (openTask) return toast('该需求已有未完成的' + agreementLabel + '签署任务', 'error');
+        bizRef = 'rbt-demand:' + looked.demand.code + ':' + key;
+        demandNo = looked.demand.code;
         actorParties = purchase
           ? { '贸易商': trader.name, '冷丰供应链': '冷丰供应链' }
           : { '门店': storeParty.name, '贸易商': trader.name };
