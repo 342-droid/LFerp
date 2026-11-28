@@ -96,12 +96,13 @@
             : String(item.repayPeriod) + '期';
     }
 
-    function settleRatioSection(item) {
+    function settleRatioSection(item, performance) {
         var ratioApi = window.RbtSettleRatio;
         if (ratioApi && typeof ratioApi.ensureDialogChrome === 'function') ratioApi.ensureDialogChrome();
         var html = ratioApi && typeof ratioApi.tableHtml === 'function' ? ratioApi.tableHtml(item) : '';
         if (!html) return '';
-        var edit = ratioApi && typeof ratioApi.canEdit === 'function' && ratioApi.canEdit(item)
+        /* 付款详情只展示需求单上的当前比例。修改入口在需求单，不在这里。 */
+        var edit = !performance && ratioApi && typeof ratioApi.canEdit === 'function' && ratioApi.canEdit(item)
             ? '<button type="button" class="rbt-demand-contract-link" data-rbt-ratio-edit>修改结算比例</button>'
             : '';
         return '<div class="supplier-detail-section-title">结算比例' + edit + '</div>' + html;
@@ -228,7 +229,8 @@
     /* 收款方是主体。收款账户名称、收款账户用已有进件户，没有指定服务商时这三列留空。 */
     var PAYEE_ACCOUNTS = {
         '杭州鲜达贸易有限公司': { party: '杭州鲜达贸易有限公司', accountName: '杭州鲜达贸易有限公司', accountNo: '6230610210001001007' },
-        '上海冷链融资租赁有限公司': { party: '上海冷链融资租赁有限公司', accountName: '上海冷链融资租赁有限公司', accountNo: '6217920210001002008' }
+        '上海冷链融资租赁有限公司': { party: '上海冷链融资租赁有限公司', accountName: '上海冷链融资租赁有限公司', accountNo: '6217920210001002008' },
+        '宁波海丰商业保理有限公司': { party: '宁波海丰商业保理有限公司', accountName: '宁波海丰商业保理有限公司', accountNo: '6222080210001003009' }
     };
     var LENGFENG_ACCOUNT = { party: '上海冷丰科技有限公司', accountName: '上海冷丰科技有限公司', accountNo: '6666000202016395' };
 
@@ -759,9 +761,11 @@
         }
         var body = rows.length
             ? rows.map(function (row) {
-                if (row.payeeRole === '冷丰') addCents('lengfeng', row.settleAmount);
-                else if (row.payeeRole === '服务商') addCents('provider', row.settleAmount);
-                else addCents('trader', row.settleAmount);
+                if (row.settleStatus === '已结款') {
+                    if (row.payeeRole === '冷丰') addCents('lengfeng', row.settleAmount);
+                    else if (row.payeeRole === '服务商') addCents('provider', row.settleAmount);
+                    else addCents('trader', row.settleAmount);
+                }
                 return (
                     '<tr><td>' + esc(row.date) +
                     '</td><td>' + esc(row.payNo || '—') +
@@ -819,14 +823,14 @@
         if (window.RbtDailyFulfill && typeof window.RbtDailyFulfill.performanceFact === 'function') {
             fact = window.RbtDailyFulfill.performanceFact(item, fact);
         }
-        var parts = window.RbtDailyFulfill && typeof window.RbtDailyFulfill.settledParts === 'function'
-            ? window.RbtDailyFulfill.settledParts(item, fact.actual)
-            : { goods: '', fee: '' };
         var grades = { '正常': 1, '关注': 1, '预警': 1, '异常': 1 };
         var grade = fact.grade && grades[fact.grade]
             ? '<span class="rbt-risk-tag is-' + fact.grade + '">' + esc(fact.grade) + '</span>'
             : esc(fact.grade || '—');
-        /* 已付款下面：已付、货款、服务费。已付是门店已经付给贸易商的合计，等于货款加服务费。 */
+        /* 已付款只计结给贸易商、并且已经结款的金额，全部记货款。冷丰货款差额和服务商服务费不进这三列。 */
+        var parts = window.RbtDailyFulfill && typeof window.RbtDailyFulfill.settledParts === 'function'
+            ? window.RbtDailyFulfill.settledParts(item, fact.actual)
+            : { goods: fact.actual || '', fee: '' };
         ensureAmountGroupStyle();
         var cells = [
             { text: money(item && item.amount), money: true },
@@ -1255,7 +1259,7 @@
             skuTable(item.skus) +
             shipSection(item) +
             supplementSection(item) +
-            settleRatioSection(item) +
+            settleRatioSection(item, performance) +
             contractSection(item, performance) +
             voucherSection(item) +
             relatedDocsSection(item) +

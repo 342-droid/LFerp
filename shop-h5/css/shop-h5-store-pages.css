@@ -849,3 +849,6 @@
   object-fit: contain;
   background: #000;
 }
+
+.shop-h5-yn { display: flex; gap: 18px; align-items: center; min-height: 40px; }
+.shop-h5-yn label { display: flex; align-items: center; gap: 6px; font-size: 14px; color: #303133; }

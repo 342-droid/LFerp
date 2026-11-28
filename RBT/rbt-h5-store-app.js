@@ -1204,14 +1204,11 @@
         return Number(parts[1]) + '月' + Number(parts[2]) + '日';
     }
 
-    /* 当日支付在次日批次到账。提前支付用实际支付时间。还没扣到的不写付款时间。 */
-    function settlementTime(date) {
-        var parts = String(date || '').split('-');
-        if (parts.length < 3) return '';
-        var day = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
-        if (isNaN(day.getTime())) return '';
-        day.setDate(day.getDate() + 1);
-        return day.getFullYear() + '-' + pad(day.getMonth() + 1) + '-' + pad(day.getDate()) + ' 08:00:00';
+    /* 日结时间就是结款时间，取成功凭据上的真实时间，不固定 08:00。在途、结款失败不写。手动付款用实际支付时间。 */
+    function settlementTime(date, seed) {
+        var api = window.RbtDailyFulfill;
+        if (api && typeof api.settledAt === 'function') return api.settledAt(date, seed || date);
+        return '';
     }
 
     function paidAtOf(day) {
@@ -1220,7 +1217,7 @@
         if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}/.test(raw)) return raw.length > 19 ? raw.slice(0, 19) : raw;
         if (day.kind === 'manual') return raw;
         if (day.stage !== 'due') return '';
-        return settlementTime(day.date);
+        return settlementTime(day.date, day.date);
     }
 
     /* 验收场景只改付款页能不能看到每日付款，不把需求改成已完成。订单完成后进入付款中。 */
@@ -1748,7 +1745,7 @@
                 '<span class="rbt-bill__day-stage' + (day.stage === 'failed' ? ' is-fail' : (day.stage === 'due' ? ' is-due' : '')) + '">' + stage + '</span></span>' +
                 turnover +
                 '<span class="rbt-bill__day-meta"><i>货款</i><b>¥' + esc(money(day.due)) + '</b></span>' +
-                '<span class="rbt-bill__day-meta"><i>付款时间</i><b>' + esc(paidAtOf(day) || '—') + '</b></span>' +
+                '<span class="rbt-bill__day-meta"><i>结款时间</i><b>' + esc(paidAtOf(day) || '-') + '</b></span>' +
                 '</div>';
         }).join('');
     }

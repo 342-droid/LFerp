@@ -9,8 +9,9 @@
     <link rel="stylesheet" href="../css/lf-mdm-from-master.css">
     <link rel="stylesheet" href="../css/lf-contract.css?v=20261120-rbt-read">
     <style>
-        .rbt-risk-tip { margin: 0 0 12px; }
-        .rbt-risk-cards { display: flex; gap: 12px; margin: 16px 0; }
+        .rbt-risk-block { margin: 0 0 20px; }
+        .rbt-risk-block:first-of-type { margin-top: 16px; }
+        .rbt-risk-cards { display: flex; gap: 12px; }
         .rbt-risk-card { flex: 1; padding: 14px 16px; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; }
         .rbt-risk-card span { display: block; color: #909399; font-size: 13px; }
         .rbt-risk-card b { display: block; margin-top: 6px; font-size: 24px; line-height: 1.2; }
@@ -18,15 +19,19 @@
         .rbt-risk-card.is-watch b { color: #d48806; }
         .rbt-risk-card.is-warn b { color: #d46b08; }
         .rbt-risk-card.is-bad b { color: #cf1322; }
-        .rbt-risk-block { margin: 0 0 20px; }
-        .rbt-risk-block h3 { margin: 0 0 8px; font-size: 15px; }
-        .rbt-risk-note { margin: 0 0 8px; color: #606266; font-size: 13px; line-height: 1.7; }
+        .rbt-risk-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 8px; }
+        .rbt-risk-head h3 { margin: 0; font-size: 15px; }
+        .rbt-risk-all { color: #155bd4; font-size: 13px; text-decoration: none; white-space: nowrap; }
+        .rbt-risk-all:hover { text-decoration: underline; }
         .rbt-risk-table-wrap { width: 100%; overflow-x: auto; }
+        .rbt-risk-scroll { overflow: auto; }
+        .rbt-risk-scroll thead th { position: sticky; top: 0; z-index: 1; }
         .rbt-risk-table { width: 100%; border-collapse: collapse; font-size: 13px; background: #fff; }
         .rbt-risk-table th,
         .rbt-risk-table td { border: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; vertical-align: top; }
         .rbt-risk-table th { background: #f7f8fa; font-weight: 600; color: #303133; white-space: nowrap; }
         .rbt-risk-table td.is-money { text-align: right; white-space: nowrap; }
+        .rbt-risk-table td.is-empty { text-align: center; color: #909399; }
         .rbt-risk-tag { display: inline-block; padding: 0 8px; border-radius: 4px; line-height: 22px; font-size: 12px; }
         .rbt-risk-tag.is-正常 { color: #389e0d; background: #f6ffed; }
         .rbt-risk-tag.is-关注 { color: #d48806; background: #fffbe6; }
@@ -48,38 +53,58 @@
             <div class="content-tabs"><button type="button" class="active">付款风险</button></div>
             <hr class="content-divider">
 
-            <div class="rbt-risk-cards" id="rbtRiskCards"></div>
+            <section class="rbt-risk-block">
+                <div class="rbt-risk-head"><h3>付款风险统计总览</h3></div>
+                <div class="rbt-risk-cards" id="rbtRiskCards"></div>
+            </section>
 
             <section class="rbt-risk-block">
-                <h3>当前付款中</h3>
+                <div class="rbt-risk-head"><h3>异常提醒</h3></div>
+                <div class="rbt-risk-table-wrap">
+                <table class="rbt-risk-table">
+                    <thead>
+                        <tr>
+                            <th>门店</th><th>付款单号</th><th>需求单号</th><th>付款风险等级</th><th>异常提醒</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rbtRiskAlerts"></tbody>
+                </table>
+                </div>
+            </section>
+
+            <section class="rbt-risk-block">
+                <div class="rbt-risk-head">
+                    <h3>异常待处理单据</h3>
+                    <a class="rbt-risk-all" href="rbt_risk_abnormal.html?handle=待处置">全部</a>
+                </div>
                 <div class="rbt-risk-table-wrap">
                 <table class="rbt-risk-table">
                     <thead>
                         <tr>
                             <th>门店</th><th>付款单号</th><th>需求单号</th>
-                            <th>总金额</th><th>已付款金额</th><th>已结货款</th><th>已结服务费</th><th>剩余付款额</th>
-                            <th>在途</th><th>结款失败</th>
-                            <th>连续未付款天数</th><th>日均付款额</th><th>生效基准</th><th>付款风险等级</th><th>最近未付款日期</th>
+                            <th>付款风险等级</th><th>剩余付款额</th><th>连续未付款天数</th><th>工单状态</th>
                         </tr>
                     </thead>
-                    <tbody id="rbtRiskLive"></tbody>
+                    <tbody id="rbtRiskPending"></tbody>
                 </table>
                 </div>
-                <h3 style="margin-top:16px;">异常提醒</h3>
-                <div id="rbtRiskAlerts"></div>
             </section>
 
             <section class="rbt-risk-block">
-                <h3>持续未付款时</h3>
-                <div class="rbt-risk-table-wrap">
+                <div class="rbt-risk-head">
+                    <h3>当天付款中</h3>
+                    <a class="rbt-risk-all" id="rbtRiskTodayAll" href="rbt_daily_fulfill.html">全部</a>
+                </div>
+                <div class="rbt-risk-table-wrap" id="rbtRiskTodayWrap">
                 <table class="rbt-risk-table">
                     <thead>
                         <tr>
-                            <th>情景</th><th>连续未付款天数</th><th>应付款</th><th>实际付款</th>
-                            <th>剩余付款额</th><th>日均付款额</th><th>生效基准</th><th>付款风险等级</th><th>异常提醒</th>
+                            <th>付款子单号</th><th>结款状态</th><th>门店</th><th>需求单号</th>
+                            <th>角色</th><th>收款方名称</th><th>支付方式</th><th>付款账户</th>
+                            <th>应付</th><th>实际付款</th>
                         </tr>
                     </thead>
-                    <tbody id="rbtRiskScenes"></tbody>
+                    <tbody id="rbtRiskToday"></tbody>
                 </table>
                 </div>
             </section>
@@ -92,10 +117,10 @@
     <script src="../js/basic-settings-contract.js?v=20261120-rbt-read"></script>
     <script src="rbt-store-data.js"></script>
     <script src="rbt-settle-ratio.js"></script>
-    <script src="rbt-demand-data.js"></script>
-    <script src="rbt-demand-detail.js?v=20261128-settle-status"></script>
-    <script src="rbt-daily-fulfill.js?v=20261128-settle-fail"></script>
-    <script src="rbt-risk.js?v=20261126-posting"></script>
+    <script src="rbt-demand-data.js?v=20261128-ratio-node"></script>
+    <script src="rbt-demand-detail.js?v=20261128-ratio-node"></script>
+    <script src="rbt-daily-fulfill.js?v=20261128-ratio-node"></script>
+    <script src="rbt-risk.js?v=20261128-occurred-days"></script>
     <script>
         (function () {
             var api = window.RbtRisk;
@@ -106,9 +131,6 @@
             function tag(grade) {
                 return '<span class="rbt-risk-tag is-' + esc(grade) + '">' + esc(grade) + '</span>';
             }
-            function yuan(value) {
-                return '¥' + esc(value);
-            }
             var dataApi = window.RbtDemandData;
             var dailyApi = window.RbtDailyFulfill;
             function demandOf(code) {
@@ -117,34 +139,28 @@
             function ledgerOf(item) {
                 return item && dailyApi && typeof dailyApi.ledgerNo === 'function' ? (dailyApi.ledgerNo(item) || '') : '';
             }
-            function payCounts(code) {
-                var rows = dailyApi && typeof dailyApi.partyRows === 'function' ? dailyApi.partyRows() : [];
-                var inflight = 0;
-                var failed = 0;
-                rows.forEach(function (row) {
-                    if (!row || row.demandCode !== code) return;
-                    if (row.settleStatus === '在途') inflight += 1;
-                    if (row.settleStatus === '结款失败') failed += 1;
-                });
-                return { inflight: inflight, failed: failed };
-            }
             function moneyText(value) {
                 if (value == null || value === '' || value === '—') return '—';
                 var text = String(value);
                 return text.charAt(0) === '¥' ? esc(text) : ('¥' + esc(text));
             }
+            function todayText() {
+                var now = new Date();
+                var month = String(now.getMonth() + 1);
+                var day = String(now.getDate());
+                if (month.length < 2) month = '0' + month;
+                if (day.length < 2) day = '0' + day;
+                return now.getFullYear() + '-' + month + '-' + day;
+            }
+            function codeCell(text, kind, code) {
+                if (!code) return esc(text || '—');
+                return '<button type="button" class="rbt-risk-link" data-' + kind + '="' + esc(code) + '">' + esc(text || '—') + '</button>';
+            }
+            function emptyRow(cols, text) {
+                return '<tr><td class="is-empty" colspan="' + cols + '">' + esc(text) + '</td></tr>';
+            }
             var live = api.liveRows().map(function (row) {
-                var item = demandOf(row.demandCode);
-                var parts = item && dailyApi && typeof dailyApi.settledParts === 'function'
-                    ? dailyApi.settledParts(item, row.actual)
-                    : { goods: '', fee: '' };
-                var counts = payCounts(row.demandCode);
-                row.ledger = ledgerOf(item);
-                row.amount = item && item.amount;
-                row.goods = parts.goods;
-                row.fee = parts.fee;
-                row.inflight = counts.inflight;
-                row.failed = counts.failed;
+                row.ledger = ledgerOf(demandOf(row.demandCode));
                 return row;
             });
             var counts = { '正常': 0, '关注': 0, '预警': 0, '异常': 0 };
@@ -157,42 +173,45 @@
             ].map(function (item) {
                 return '<div class="rbt-risk-card ' + item[1] + '"><span>' + item[0] + '</span><b>' + (counts[item[0]] || 0) + '</b></div>';
             }).join('');
-
-            document.getElementById('rbtRiskLive').innerHTML = live.length ? live.map(function (row) {
-                return '<tr><td>' + esc(row.storeName) + '</td>' +
-                    '<td><button type="button" class="rbt-risk-link" data-ledger="' + esc(row.demandCode) + '">' + esc(row.ledger || '—') + '</button></td>' +
-                    '<td><button type="button" class="rbt-risk-link" data-demand="' + esc(row.demandCode) + '">' + esc(row.demandCode) + '</button></td>' +
-                    '<td class="is-money">' + moneyText(row.amount) + '</td>' +
-                    '<td class="is-money">' + moneyText(row.actual) + '</td>' +
-                    '<td class="is-money">' + moneyText(row.goods) + '</td>' +
-                    '<td class="is-money">' + moneyText(row.fee) + '</td>' +
-                    '<td class="is-money">' + moneyText(row.gap) + '</td>' +
-                    '<td>' + esc(row.inflight) + '</td><td>' + esc(row.failed) + '</td>' +
-                    '<td>' + esc(row.streak) + '</td><td>' + esc(row.progress) + '</td><td>' + esc(row.baseline || '—') + '</td>' +
-                    '<td>' + tag(row.grade) + '</td><td>' + esc(row.lastMiss) + '</td></tr>';
-            }).join('') : '<tr><td class="is-empty" colspan="15">暂无付款中的需求</td></tr>';
-
             var alerts = live.filter(function (row) { return row.grade !== '正常'; });
-            document.getElementById('rbtRiskAlerts').innerHTML = alerts.length
-                ? '<table class="rbt-risk-table"><thead><tr><th>付款风险等级</th><th>异常提醒</th></tr></thead><tbody>' +
-                    alerts.map(function (row) {
-                        return '<tr><td>' + tag(row.grade) + '</td><td>' + esc(row.alert) + '</td></tr>';
-                    }).join('') + '</tbody></table>'
-                : '<p class="rbt-risk-empty">暂无异常提醒。当前付款中的需求都未达到关注条件。</p>';
+            document.getElementById('rbtRiskAlerts').innerHTML = alerts.length ? alerts.map(function (row) {
+                return '<tr><td>' + esc(row.storeName) + '</td><td>' + codeCell(row.ledger, 'ledger', row.demandCode) + '</td><td>' + codeCell(row.demandCode, 'demand', row.demandCode) + '</td><td>' + tag(row.grade) + '</td><td>' + esc(row.alert) + '</td></tr>';
+            }).join('') : emptyRow(5, '暂无异常提醒');
 
-            document.getElementById('rbtRiskScenes').innerHTML = api.scenarios().map(function (row) {
-                return '<tr><td>' + esc(row.name) + '</td><td>' + esc(row.streak) + '</td><td class="is-money">' + yuan(row.due) + '</td>' +
-                    '<td class="is-money">' + yuan(row.actual) + '</td><td class="is-money">' + yuan(row.gap) + '</td><td>' + esc(row.progress) + '</td>' +
-                    '<td>' + esc(row.baseline || '—') + '</td><td>' + tag(row.grade) + '</td><td>' + esc(row.alert) + '</td></tr>';
-            }).join('');
+            var pending = (typeof api.exceptionRows === 'function' ? api.exceptionRows() : []).filter(function (row) {
+                return row.source === '当前台账' && row.handleStatus === '待处置';
+            });
+            document.getElementById('rbtRiskPending').innerHTML = pending.length ? pending.map(function (row) {
+                var ledger = ledgerOf(demandOf(row.demandCode)) || '—';
+                return '<tr><td>' + esc(row.storeName) + '</td><td>' + codeCell(ledger, 'ledger', row.demandCode) + '</td><td>' + codeCell(row.demandCode, 'demand', row.demandCode) + '</td><td>' + tag(row.grade) + '</td><td class="is-money">' + moneyText(row.gap) + '</td><td>' + esc(row.streak) + '</td><td>' + esc(row.handleStatus) + '</td></tr>';
+            }).join('') : emptyRow(7, '暂无待处理单据');
 
-            document.getElementById('rbtRiskLive').addEventListener('click', function (event) {
+            var today = todayText();
+            document.getElementById('rbtRiskTodayAll').href = 'rbt_daily_fulfill.html?date=' + encodeURIComponent(today);
+            var todayRows = (dailyApi && typeof dailyApi.partyRows === 'function' ? dailyApi.partyRows() : []).filter(function (row) {
+                return row && row.date === today;
+            });
+            document.getElementById('rbtRiskToday').innerHTML = todayRows.length ? todayRows.map(function (row) {
+                return '<tr><td>' + esc(row.payNo || '—') + '</td><td>' + esc(row.settleStatus || '—') + '</td><td>' + esc(row.storeName || '—') + '</td><td>' + codeCell(row.demandCode, 'demand', row.demandCode) + '</td><td>' + esc(row.payeeRole || '—') + '</td><td>' + esc(row.payeeName || '—') + '</td><td>' + esc(row.payWay || row.channel || '—') + '</td><td>' + esc(row.payAccount || '—') + '</td><td class="is-money">' + moneyText(row.due) + '</td><td class="is-money">' + moneyText(row.actual) + '</td></tr>';
+            }).join('') : emptyRow(10, '当天暂无付款');
+            var todayWrap = document.getElementById('rbtRiskTodayWrap');
+            if (todayRows.length > 3) {
+                var head = todayWrap.querySelector('thead');
+                var sample = todayWrap.querySelector('tbody tr');
+                var headHeight = head ? head.getBoundingClientRect().height : 37;
+                var rowHeight = sample ? sample.getBoundingClientRect().height : 37;
+                todayWrap.classList.add('rbt-risk-scroll');
+                todayWrap.style.maxHeight = Math.ceil(headHeight + rowHeight * 3) + 'px';
+            }
+
+            document.querySelector('.main-content').addEventListener('click', function (event) {
                 var ledger = event.target.closest('[data-ledger]');
                 var demand = event.target.closest('[data-demand]');
                 var button = ledger || demand;
                 if (!button) return;
-                var code = button.getAttribute(ledger ? 'data-ledger' : 'data-demand');
-                var item = demandOf(code);
+                var raw = button.getAttribute(ledger ? 'data-ledger' : 'data-demand');
+                if (!raw || raw === '—') return;
+                var item = demandOf(raw);
                 if (item && window.RbtDemandDetail) window.RbtDemandDetail.open(item, ledger ? { performance: true } : undefined);
             });
         })();

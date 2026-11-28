@@ -133,8 +133,17 @@
                 });
             }
 
+            function queryDate() {
+                try {
+                    var value = new URLSearchParams(window.location.search).get('date');
+                    return value ? String(value).trim() : '';
+                } catch (err) {
+                    return '';
+                }
+            }
+
             var query = reactive({
-                date: '',
+                date: queryDate(),
                 storeName: '',
                 demandCode: '',
                 installmentName: '',
@@ -312,12 +321,15 @@
             }
 
             function dayNote(day) {
-                if (day.payeeRole === '冷丰' || day.payeeRole === '服务商' || day.channel === '放款划拨') {
-                    return '这笔在贸易商把货款划到平台供应商公司时一次结清，不进门店每日还款。';
+                if (day.payeeRole === '冷丰') {
+                    return '贸易商把货款打给冷丰供应链。采购、转给服务商之后，剩下的货款差额记在这笔货款上。不进门店每日还款。';
+                }
+                if (day.payeeRole === '服务商' || day.channel === '放款划拨') {
+                    return '冷丰供应链收到贸易商货款后，把服务商这笔转出去，记在服务费。不进门店每日还款。';
                 }
                 if (day.settleStatus === '结款失败') return '付款子单已生成。提交汇付时失败，没有通道流水、实际付款和结款。';
                 if (day.settleStatus === '在途') return '付款子单已生成，并据此发起付款申请。钱还在途，到账后才有通道流水、实际付款和结款。';
-                return '这笔只结给贸易商。货款、服务费从已结里拆出，两者之和等于已结。';
+                return '这笔实付整笔结给贸易商，全部记在货款，不拆服务费。';
             }
 
             /* 查看这一条结款，不打开需求单。 */

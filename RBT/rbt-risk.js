@@ -1,4 +1,4 @@
-/* 付款风险：只看已发生营业日。当天实际付款为 0 才连续计数。单店日均付款额 = 实际付款合计 ÷ 营业日天数，再和生效基准比。不使用百分比进度。 */
+/* 付款风险：从第一笔营收开始观察。一旦开始，到观察结束之间没有流水的日子也计入营业日天数。在途那天先不计入。当天实际付款为 0 才连续计数。单店日均付款额 = 实际付款合计 ÷ 营业日天数，再和生效基准比。不使用百分比进度。 */
 (function (global) {
     var GRADES = ['正常', '关注', '预警', '异常'];
     var CONFIG_KEY = 'rbt_risk_config_v3';
@@ -411,25 +411,88 @@
         });
     }
 
-    /* 已结款只计已经到账核销的金额。提前支付当时核销。已冻结、在途不计入。 */
+    function isoOf(date) {
+        var y = date.getFullYear();
+        var m = date.getMonth() + 1;
+        var d = date.getDate();
+        return y + '-' + (m < 10 ? '0' + m : m) + '-' + (d < 10 ? '0' + d : d);
+    }
+
+    function todayIso() {
+        return isoOf(new Date());
+    }
+
+    function shiftIso(iso, days) {
+        var parts = String(iso || '').split('-');
+        if (parts.length < 3) return '';
+        var date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+        if (isNaN(date.getTime())) return '';
+        date.setDate(date.getDate() + days);
+        return isoOf(date);
+    }
+
+    /* 履约中观察到当天。已结束停在结束日，之后的日子不再计入。 */
+    function observeEnd(item) {
+        var today = todayIso();
+        var status = item && item.status;
+        if (status === '已完成' || status === '已作废' || status === '已驳回') {
+            var done = String((item && item.updatedAt) || '').slice(0, 10);
+            if (/^\d{4}-\d{2}-\d{2}$/.test(done)) return done;
+        }
+        return today;
+    }
+
+    /* 从第一笔营收到观察结束，逐日列入。在途、缺报、已冻结那天先跳过。 */
+    function watchDates(item, rows) {
+        var start = '';
+        var blocked = {};
+        (rows || []).forEach(function (row) {
+            if (!row || !row.date || row.kind === 'manual') return;
+            if (!start || row.date < start) start = row.date;
+            if (fundOpen(row)) blocked[row.date] = 1;
+        });
+        if (!start) return [];
+        var end = observeEnd(item);
+        if (end < start) end = start;
+        var dates = [];
+        var cursor = start;
+        var guard = 0;
+        while (cursor && cursor <= end && guard < 2000) {
+            if (!blocked[cursor]) dates.push(cursor);
+            cursor = shiftIso(cursor, 1);
+            guard += 1;
+        }
+        return dates;
+    }
+
+    /* 已发生营业日：有营业流水的日子，含还在途的那天。没有流水的日子不算。不是等结款确认后才算。 */
+    function occurredDates(rows) {
+        var dates = {};
+        (rows || []).forEach(function (row) {
+            if (!row || !row.date || row.kind === 'manual') return;
+            if (row.fundStatus === 'failed') return;
+            dates[row.date] = 1;
+        });
+        return dates;
+    }
+
+    /* 已结款只计已经到账的金额，含手动付款，不含在途、结款失败和已冻结。分母用已发生营业日。 */
     function settledOfDemand(item) {
         var daily = global.RbtDailyFulfill;
         var rows = daily && typeof daily.daysOf === 'function' ? daily.daysOf(item) : [];
         var cents = 0;
-        var dates = {};
         rows.forEach(function (row) {
             if (!row || !row.date) return;
             if (row.fundStatus && row.fundStatus !== 'arrived') return;
             var amount = row.kind === 'manual' ? (Number(row.actual) || Number(row.due) || 0) : (Number(row.actual) || 0);
             if (!(amount > 0)) return;
             cents += Math.round(amount * 100);
-            dates[row.date] = 1;
         });
-        return { cents: cents, dates: dates };
+        return { cents: cents, dates: occurredDates(rows) };
     }
 
-    /* 动态基准日均 = 该产品下 RBT 门店的已结款合计 ÷ 这些门店对应营业天数总和。
-       同一门店同一天只算 1 天，不同门店同一天分别计算。 */
+    /* 动态基准日均 = 该产品下 RBT 门店的已结款合计 ÷ 这些门店的已发生营业日总和。
+       同一门店同一天只算 1 天。在途那天计入天数，金额不进已结款。 */
     function dynamicBaseline(productCode) {
         var byStore = {};
         var sum = 0;
@@ -467,7 +530,7 @@
         return row && (row.fundStatus === 'inflight' || row.fundStatus === 'frozen' || row.fundStatus === 'missing' || row.fundStatus === 'pending_freeze');
     }
 
-    /* 只统计已经确认结果的营业日。缺报、已冻结、在途整日跳过，不当成 0 元未付款。提前支付只进分子。 */
+    /* 从第一笔营收观察到结束日。没有流水的日子按 0 元计入。在途、缺报、已冻结整天跳过，不当成 0 元未付款。提前支付只进分子。 */
     function assessDays(days, receivable, totalAmount, item) {
         var sorted = (days || []).slice().sort(function (a, b) {
             return a.date < b.date ? -1 : a.date > b.date ? 1 : 0;
@@ -476,8 +539,6 @@
         var actual = 0;
         var early = 0;
         var byDate = {};
-        var dates = [];
-        var blocked = {};
         sorted.forEach(function (row) {
             if (!row || !row.date) return;
             due += Number(row.due) || 0;
@@ -485,23 +546,20 @@
                 early += Number(row.actual) || Number(row.due) || 0;
                 return;
             }
-            if (fundOpen(row)) {
-                blocked[row.date] = 1;
-                return;
-            }
-            if (!byDate[row.date]) {
-                byDate[row.date] = 0;
-                dates.push(row.date);
-            }
+            if (fundOpen(row)) return;
+            if (byDate[row.date] == null) byDate[row.date] = 0;
             var paid = Number(row.actual) || 0;
             byDate[row.date] += paid;
             actual += paid;
         });
+        var dates = watchDates(item, sorted);
+        dates.forEach(function (date) {
+            if (byDate[date] == null) byDate[date] = 0;
+        });
         sorted.forEach(function (row) {
-            if (!row || row.kind !== 'manual' || blocked[row.date] || byDate[row.date] == null) return;
+            if (!row || row.kind !== 'manual' || byDate[row.date] == null) return;
             byDate[row.date] += Number(row.actual) || Number(row.due) || 0;
         });
-        dates = dates.filter(function (date) { return !blocked[date]; });
         actual += early;
         due = Math.round(due * 100) / 100;
         actual = Math.round(actual * 100) / 100;

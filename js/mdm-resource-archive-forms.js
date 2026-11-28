@@ -1109,27 +1109,6 @@
     }
 
     /* 与门店准入「新增准入门店」同一套填法：等级下拉 A–D，额度最多两位小数，次数为正整数，保证金选「是」后上传凭证。 */
-    function rbfPackageChoices() {
-        var fallback = [
-            { code: 'SPB00001', name: '汉言开业铺货包' },
-            { code: 'SPB00002', name: '门店形象配置包' },
-            { code: 'SPB00003', name: '开业运营服务包' }
-        ];
-        try {
-            var raw = localStorage.getItem('rbt_product_package_v2');
-            var list = raw ? JSON.parse(raw) : null;
-            if (!Array.isArray(list) || !list.length) return fallback;
-            var choices = list.filter(function (item) {
-                return item && item.enabled !== false && item.code;
-            }).map(function (item) {
-                return { code: String(item.code), name: String(item.name || item.code) };
-            });
-            return choices.length ? choices : fallback;
-        } catch (e) {
-            return fallback;
-        }
-    }
-
     function rbfMoneyControl(placeholder, unit) {
         var wrap = document.createElement('div');
         wrap.style.cssText = 'display:flex;align-items:center;gap:8px;';
@@ -1261,36 +1240,7 @@
             fileName.textContent = '已选择：' + (picked.name || '缴纳凭证');
         });
 
-        var checks = document.createElement('div');
-        checks.className = 'store-form__checks';
-        var packageHidden = document.createElement('input');
-        packageHidden.type = 'hidden';
-        packageHidden.setAttribute('data-required-msg', '请选择商品包');
-        rbfPackageChoices().forEach(function (item) {
-            var lb = document.createElement('label');
-            lb.className = 'store-form__check';
-            var box = document.createElement('input');
-            box.type = 'checkbox';
-            box.value = item.code;
-            box.addEventListener('change', function () {
-                var codes = [];
-                checks.querySelectorAll('input:checked').forEach(function (el) { codes.push(el.value); });
-                packageHidden.value = codes.join(',');
-            });
-            lb.appendChild(box);
-            lb.appendChild(document.createTextNode(item.name + '（' + item.code + '）'));
-            checks.appendChild(lb);
-        });
-        var packageWrap = document.createElement('div');
-        var packageTip = document.createElement('div');
-        packageTip.className = 'store-form__field-tip';
-        packageTip.textContent = '可多选。';
-        packageWrap.appendChild(checks);
-        packageWrap.appendChild(packageHidden);
-        packageWrap.appendChild(packageTip);
-        var packageRow = formRow('商品包', true, packageWrap);
-
-        var extraRows = [levelRow, quotaRow, timesRow, depositRow, packageRow];
+        var extraRows = [levelRow, quotaRow, timesRow, depositRow];
         extraRows.concat([voucherRow]).forEach(function (row) {
             row.style.display = 'none';
             body.appendChild(row);
@@ -1315,8 +1265,7 @@
         refs.rbfQuotaInp = quota.input;
         refs.rbfTimesInp = times.input;
         refs.rbfDepositInp = depositHidden;
-        refs.rbfPackageInp = packageHidden;
-        /* 打开弹窗时主体页会清空输入。次数默认 1，单选和商品包勾选也要收回。 */
+        /* 打开弹窗时主体页会清空输入。次数默认 1，单选也要收回。 */
         refs.resetRbf = function () {
             applyCtl.querySelectorAll('input[type="radio"]').forEach(function (inp) { inp.checked = false; });
             depositCtl.querySelectorAll('input[type="radio"]').forEach(function (inp) { inp.checked = false; });
@@ -1325,8 +1274,6 @@
             levelSel.selectedIndex = 0;
             quota.input.value = '';
             times.input.value = '1';
-            packageHidden.value = '';
-            checks.querySelectorAll('input[type="checkbox"]').forEach(function (box) { box.checked = false; });
             file.value = '';
             fileMark.value = '';
             fileMark.setAttribute('data-upload-state', '0');
@@ -1428,8 +1375,8 @@
         refs.storeTypeInp = txt('如社区生鲜店、团购自提点等', '');
         refs.storeTypeInp.setAttribute('data-required-msg', '请输入门店类型');
         body.appendChild(formRow('门店类型', true, refs.storeTypeInp));
-        if (opts.rbfFields) mountRbfApplyFields(body, refs);
         mountStoreBizFields(body, refs);
+        if (opts.rbfFields) mountRbfApplyFields(body, refs);
         refs.warehouseSel = sel([], '');
         refs.warehouseSel.setAttribute('data-required-msg', '请选择配送仓库');
         body.appendChild(formRow('配送仓库', true, refs.warehouseSel));
@@ -1620,7 +1567,7 @@
     }
 
     function buildStoreAddBody(initialVenuePhotos) {
-        return createStoreFormBundle({ initialVenuePhotos: initialVenuePhotos || {} }).body;
+        return createStoreFormBundle({ initialVenuePhotos: initialVenuePhotos || {}, rbfFields: true }).body;
     }
 
     function createSupplierFormBundle(options) {
@@ -2768,7 +2715,7 @@
         writeVenuePhotos: writeVenuePhotos,
         syncVenuePhotosFromOnboarding: syncVenuePhotosFromOnboarding,
         openStoreAdd: function () {
-            var bundle = createStoreFormBundle({});
+            var bundle = createStoreFormBundle({ rbfFields: true });
             hydrateArchiveWarehouseSelect(bundle.refs.warehouseSel, '', '请选择配送仓库');
             if (bundle.refs.partnerSel && !bundle.refs.partnerSel.value) {
                 bundle.refs.partnerSel.value = 'franchise';

@@ -349,7 +349,13 @@
       bizLine: rec.bizLine || '',
       brandName: rec.brandName || '',
       bizLines: window.StoreBizStructure ? window.StoreBizStructure.normalizeBiz(rec.bizLines) : [],
-      entryMaterials: rec.entryMaterials || null
+      entryMaterials: rec.entryMaterials || null,
+      rbfApply: rec.rbfApply || '',
+      rbfLevel: rec.rbfLevel || '',
+      rbfQuota: rec.rbfQuota || '',
+      rbfTimes: rec.rbfTimes || '1',
+      rbfDeposit: rec.rbfDeposit || '',
+      rbfVoucherName: rec.rbfVoucherName || ''
     };
     if (!st0.selectedPoiId && st0.regionCascade && st0.detailAddress) {
       st0.selectedPoiId = 'legacy';
@@ -439,6 +445,15 @@
       bizLines: (st.bizLines || []).slice(),
       phase: phase
     });
+    if (document.getElementById('rbfSec')) {
+      out.rbfApply = st.rbfApply || '';
+      out.rbfLevel = st.rbfLevel || '';
+      out.rbfQuota = st.rbfQuota || '';
+      out.rbfTimes = st.rbfTimes || '1';
+      out.rbfDeposit = st.rbfDeposit || '';
+      out.rbfVoucherName = st.rbfVoucherName || '';
+      out.rbfCaptured = true;
+    }
     if (submitMode === 'submit' && !isCreate && rec.phase === 'awaiting_bd' && phase === 'awaiting_leader') {
       if (!out.auditHistory) out.auditHistory = [];
       out.auditHistory = out.auditHistory.concat([
@@ -644,7 +659,13 @@
       companyCb: false,
       bizLine: '',
       brandName: '',
-      bizLines: []
+      bizLines: [],
+      rbfApply: '',
+      rbfLevel: '',
+      rbfQuota: '',
+      rbfTimes: '1',
+      rbfDeposit: '',
+      rbfVoucherName: ''
     };
 
     if (isBdApp && !bdCtx.isCreate && bdCtx.record) {
@@ -652,6 +673,102 @@
       Object.keys(mapped).forEach(function (k) {
         st[k] = mapped[k];
       });
+    }
+
+    function showRbf() {
+      if (isBdApp) return !!(bdCtx && (bdCtx.isCreate || (bdCtx.record && bdCtx.record.rbfCaptured)));
+      return !supplementMode;
+    }
+
+    function ynRadios(name, current) {
+      return (
+        '<div class="h5-yn">' +
+        ['是', '否']
+          .map(function (label) {
+            return (
+              '<label><input type="radio" name="' +
+              name +
+              '" value="' +
+              label +
+              '"' +
+              (current === label ? ' checked' : '') +
+              '> ' +
+              label +
+              '</label>'
+            );
+          })
+          .join('') +
+        '</div>'
+      );
+    }
+
+    function secRbf() {
+      var levels = ['A', 'B', 'C', 'D']
+        .map(function (grade) {
+          return (
+            '<option value="' +
+            grade +
+            '"' +
+            (st.rbfLevel === grade ? ' selected' : '') +
+            '>' +
+            grade +
+            '</option>'
+          );
+        })
+        .join('');
+      var extraOn = st.rbfApply === '是';
+      var fileOn = extraOn && st.rbfDeposit === '是';
+      return (
+        '<section class="h5-sec" id="rbfSec"><div class="h5-sec-head"><span class="h5-sec-ic">R</span><div><h3 class="h5-sec-t">RBF联营</h3>' +
+        '<p class="h5-sec-s">是否申请 RBF 联营。选「是」后填写等级、额度和保证金</p></div></div>' +
+        '<div class="h5-sec-body">' +
+        field('是否申请RBF联营', true, ynRadios('f_rbf_apply', st.rbfApply)) +
+        '<div id="rbfExtra"' +
+        (extraOn ? '' : ' hidden') +
+        '>' +
+        field(
+          'RBF等级',
+          true,
+          '<select class="h5-input" id="f_rbf_level"><option value="">请选择</option>' + levels + '</select>'
+        ) +
+        field(
+          '门店额度',
+          true,
+          '<input type="text" class="h5-input" id="f_rbf_quota" inputmode="decimal" placeholder="请输入门店额度" value="' +
+            esc(st.rbfQuota || '') +
+            '" />',
+          '元，最多两位小数'
+        ) +
+        field(
+          '需求发布次数',
+          true,
+          '<input type="text" class="h5-input" id="f_rbf_times" inputmode="numeric" placeholder="请输入需求发布次数" value="' +
+            esc(st.rbfTimes || '1') +
+            '" />',
+          '次'
+        ) +
+        field('保证金是否缴纳', true, ynRadios('f_rbf_deposit', st.rbfDeposit)) +
+        '<div id="rbfVoucher"' +
+        (fileOn ? '' : ' hidden') +
+        '>' +
+        field(
+          '缴纳凭证',
+          true,
+          '<input type="file" accept="image/*,.pdf" class="h5-hidden" id="f_rbf_file" />' +
+            '<button type="button" class="bd-btn bd-btn-outline h5-up-btn" id="f_rbf_pick">上传凭证</button>' +
+            '<span class="h5-hint-r" id="f_rbf_file_name">' +
+            esc(st.rbfVoucherName || '支持图片或 PDF，不超过 800KB') +
+            '</span>'
+        ) +
+        '</div></div></div></section>'
+      );
+    }
+
+    function syncRbfPanels() {
+      var extra = document.getElementById('rbfExtra');
+      var voucher = document.getElementById('rbfVoucher');
+      if (extra) extra.hidden = st.rbfApply !== '是';
+      if (voucher) voucher.hidden = !(st.rbfApply === '是' && st.rbfDeposit === '是');
     }
 
     function policyOn() {
@@ -731,6 +848,7 @@
         '</p></div>' +
         '<div class="h5-sections">' +
         secBuilding() +
+        (showRbf() ? secRbf() : '') +
         (window.MdmEntryMaterials ? window.MdmEntryMaterials.h5Section() : '') +
         secDelivery() +
         (!policyOn() ? '<div class="h5-dash-hint">请先选择「门店合作类型」，系统将展示对应的资料项。</div>' : '') +
@@ -1307,6 +1425,15 @@
           return cb.value;
         });
       }
+      if (el('rbfSec')) {
+        var apply = document.querySelector('input[name="f_rbf_apply"]:checked');
+        st.rbfApply = apply ? apply.value : '';
+        if (el('f_rbf_level')) st.rbfLevel = el('f_rbf_level').value;
+        if (el('f_rbf_quota')) st.rbfQuota = el('f_rbf_quota').value;
+        if (el('f_rbf_times')) st.rbfTimes = el('f_rbf_times').value;
+        var deposit = document.querySelector('input[name="f_rbf_deposit"]:checked');
+        st.rbfDeposit = deposit ? deposit.value : '';
+      }
     }
 
     function syncFromDom() {
@@ -1534,6 +1661,34 @@
         bdToast('请上传门头/场地照');
         return false;
       }
+      if (document.getElementById('rbfSec')) {
+        if (st.rbfApply !== '是' && st.rbfApply !== '否') {
+          bdToast('请选择是否申请RBF联营');
+          return false;
+        }
+        if (st.rbfApply === '是') {
+          if (!st.rbfLevel) {
+            bdToast('请选择RBF等级');
+            return false;
+          }
+          if (!/^\d+(\.\d{1,2})?$/.test(st.rbfQuota) || Number(st.rbfQuota) <= 0) {
+            bdToast('门店额度须大于 0，最多两位小数');
+            return false;
+          }
+          if (!/^[1-9]\d*$/.test(st.rbfTimes)) {
+            bdToast('需求发布次数须为大于 0 的整数');
+            return false;
+          }
+          if (st.rbfDeposit !== '是' && st.rbfDeposit !== '否') {
+            bdToast('请选择保证金是否缴纳');
+            return false;
+          }
+          if (st.rbfDeposit === '是' && !st.rbfVoucherName) {
+            bdToast('请上传保证金缴纳凭证');
+            return false;
+          }
+        }
+      }
       return true;
     }
 
@@ -1743,6 +1898,54 @@
           readFormToState();
         };
       });
+
+      Array.prototype.forEach.call(document.querySelectorAll('input[name="f_rbf_apply"], input[name="f_rbf_deposit"]'), function (radio) {
+        radio.onchange = function () {
+          readFormToState();
+          syncRbfPanels();
+        };
+      });
+      if (el('f_rbf_level')) {
+        el('f_rbf_level').onchange = function () {
+          readFormToState();
+        };
+      }
+      if (el('f_rbf_quota')) {
+        el('f_rbf_quota').oninput = function () {
+          var text = String(this.value || '').replace(/[^\d.]/g, '');
+          var parts = text.split('.');
+          if (parts.length > 2) text = parts[0] + '.' + parts.slice(1).join('');
+          parts = text.split('.');
+          if (parts[1] && parts[1].length > 2) text = parts[0] + '.' + parts[1].slice(0, 2);
+          this.value = text;
+          readFormToState();
+        };
+      }
+      if (el('f_rbf_times')) {
+        el('f_rbf_times').oninput = function () {
+          this.value = String(this.value || '').replace(/\D/g, '').replace(/^0+/, '');
+          readFormToState();
+        };
+      }
+      if (el('f_rbf_pick') && el('f_rbf_file')) {
+        el('f_rbf_pick').onclick = function () {
+          el('f_rbf_file').click();
+        };
+        el('f_rbf_file').onchange = function () {
+          var picked = this.files && this.files[0];
+          if (!picked) {
+            st.rbfVoucherName = '';
+          } else if (picked.size > 800 * 1024) {
+            this.value = '';
+            st.rbfVoucherName = '';
+            bdToast('凭证文件请控制在 800KB 以内');
+          } else {
+            st.rbfVoucherName = picked.name || '缴纳凭证';
+          }
+          var nameNode = el('f_rbf_file_name');
+          if (nameNode) nameNode.textContent = st.rbfVoucherName || '支持图片或 PDF，不超过 800KB';
+        };
+      }
 
       ['f', 'i'].forEach(function (w) {
         var key = w === 'f' ? 'vidF' : 'vidI';

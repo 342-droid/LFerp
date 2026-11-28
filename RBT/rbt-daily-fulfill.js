@@ -242,8 +242,21 @@
         return num.toFixed(2);
     }
 
-    function channelRatio(item, channel) {
-        var list = (item && item.settleRatios) || [];
+    /* 没改过比例时整单用当前配置。改过之后，生效日之前的子单用旧配置，生效日起用新配置。 */
+    function ratiosForDate(item, date) {
+        var versions = item && item.settleRatioVersions;
+        if (!Array.isArray(versions) || !versions.length) return item && item.settleRatios;
+        var chosen = versions[0];
+        versions.forEach(function (version) {
+            if (!version) return;
+            var from = version.effectiveFrom || '';
+            if (!from || String(date || '') >= from) chosen = version;
+        });
+        return (chosen && chosen.ratios) || (item && item.settleRatios);
+    }
+
+    function channelRatio(item, channel, date) {
+        var list = (date ? ratiosForDate(item, date) : (item && item.settleRatios)) || [];
         var fallback = 0;
         var i;
         for (i = 0; i < list.length; i++) {
@@ -278,6 +291,29 @@
         return fact && !fact.missing;
     }
 
+    /* 结款时间取成功凭据上的真实时间。演示按入账日次日生成，时分秒随这笔变化，不固定 08:00。 */
+    function settledAt(date, seed) {
+        var parts = String(date || '').split('-');
+        if (parts.length < 3) return '';
+        var day = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+        if (isNaN(day.getTime())) return '';
+        day.setDate(day.getDate() + 1);
+        var text = String(seed || date);
+        var x = 2166136261;
+        var i;
+        for (i = 0; i < text.length; i++) {
+            x ^= text.charCodeAt(i);
+            x = Math.imul(x, 16777619);
+        }
+        x = x >>> 0;
+        var hour = 9 + (x % 10);
+        var minute = (x >>> 8) % 60;
+        var second = (x >>> 16) % 60;
+        function pad(n) { return n < 10 ? '0' + n : String(n); }
+        return day.getFullYear() + '-' + pad(day.getMonth() + 1) + '-' + pad(day.getDate()) +
+            ' ' + pad(hour) + ':' + pad(minute) + ':' + pad(second);
+    }
+
     /* 最近一个入账日已日切冻结，次日批次还没到账，不能记成已付款，也不能当成 0 元未付款。 */
     function daysOf(item) {
         if (!item || (item.status !== '门店付款中' && item.status !== '还款中' && item.status !== '已完成') || item.repayMethod !== '比例付') return [];
@@ -305,7 +341,7 @@
         var auto = facts.map(function (fact) {
             var turnover = Math.round(fact.turnover * scale * 100) / 100;
             var commission = postedBase(fact.channel, turnover);
-            var ratio = channelRatio(item, fact.channel);
+            var ratio = channelRatio(item, fact.channel, fact.date);
             var due = Math.round(commission * ratio) / 100;
             /* 需求已完成时，结清日前的批次都已到账，不再留一个在途日。 */
             var inflight = item.status !== '已完成' && fact.date === latest;
@@ -322,6 +358,7 @@
                 ratio: ratio.toFixed(2) + '%',
                 due: money(due),
                 actual: inflight ? '' : money(due),
+                time: inflight ? '' : settledAt(fact.date, item.code + ':' + fact.date),
                 fundStatus: inflight ? 'inflight' : 'arrived',
                 payMethod: AUTO_PAY_METHOD,
                 source: '获准营业事实'
@@ -381,19 +418,11 @@
         });
     }
 
-    /* 已到账金额按扣率拆成货款和贸易商服务费。货款对应贸易商实付，服务费对应贸易商收益。 */
+    /* 贸易商收到的钱全部记货款，不拆服务费。已结仍是这笔金额。 */
     function settledParts(item, amount) {
-        var api = global.RbtDemandData;
-        var pack = api && typeof api.deductSettlement === 'function' ? api.deductSettlement(item) : null;
         var total = cents(amount);
         if (!(total > 0)) return { goods: '', fee: '' };
-        var store = cents(pack && pack.storePay);
-        var profit = Math.max(0, cents(pack && pack.profit));
-        if (!(store > 0)) return { goods: (total / 100).toFixed(2), fee: '0.00' };
-        var fee = Math.round(total * profit / store);
-        if (fee > total) fee = total;
-        if (fee < 0) fee = 0;
-        return { goods: ((total - fee) / 100).toFixed(2), fee: (fee / 100).toFixed(2) };
+        return { goods: (total / 100).toFixed(2), fee: '' };
     }
 
     function sumField(rows, field) {
@@ -458,7 +487,11 @@
             });
             income[channel] = hit ? (incomeCents / 100).toFixed(2) : '';
             due[channel] = hit ? (dueCents / 100).toFixed(2) : '';
-            ratio[channel] = ratioText(item, channel);
+            var used = '';
+            (list || []).forEach(function (row) {
+                if (row && row.channel === channel && row.ratio) used = row.ratio;
+            });
+            ratio[channel] = used || (daily ? ratioText(item, channel) : '');
         });
         return {
             incomePos: income.POS || '',
@@ -473,7 +506,7 @@
         };
     }
 
-    /* 冷丰、服务商各一条，时间用贸易商划转（支付）时间。 */
+    /* 放款各一条：冷丰记货款差额，服务商记转出金额。时间用贸易商打给冷丰供应链的时间。 */
     function upfrontFeeRows(item) {
         var api = global.RbtDemandData;
         var pack = api && typeof api.deductSettlement === 'function' ? api.deductSettlement(item) : null;
@@ -551,6 +584,7 @@
             daily.push(Object.assign({
                 id: item.code + ':day:' + date,
                 date: date,
+                time: pending ? '' : ((basis[0] && basis[0].time) || settledAt(date, item.code + ':' + date)),
                 storeCode: item.storeCode || '',
                 storeName: item.storeName || '',
                 demandCode: item.code,
@@ -697,8 +731,9 @@
                 role = '冷丰';
                 name = '上海冷丰科技有限公司';
                 amount = row.lengfengPay;
-                goods = '';
-                fee = amount;
+                /* 冷丰放款划拨整笔记货款。已结仍是这笔金额，服务费留空。 */
+                goods = amount;
+                fee = '';
             } else if (row.kind === 'fee') {
                 role = '服务商';
                 name = row.providerName || '';
@@ -800,6 +835,7 @@
         performanceFact: performanceFact,
         inPerformance: inPerformance,
         money: money,
+        settledAt: settledAt,
         daysOf: daysOf,
         rows: rows,
         detailRows: detailRows,

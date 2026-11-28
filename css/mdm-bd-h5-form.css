@@ -833,3 +833,5 @@
 .h5-duplicate-actions{display:flex;gap:10px;justify-content:flex-end;flex-shrink:0}
 .h5-duplicate-actions button{min-height:38px;padding:0 14px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;color:#334155;font-size:14px;cursor:pointer}
 .h5-duplicate-actions [data-duplicate-confirm]{border-color:#d95821;background:#d95821;color:#fff}
+.h5-yn{display:flex;gap:18px;align-items:center;min-height:36px}
+.h5-yn label{display:flex;align-items:center;gap:6px;font-size:14px;color:#303133}

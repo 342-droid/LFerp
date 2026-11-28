@@ -175,6 +175,7 @@
     specialUrls: [],
     broadcastUrls: [],
     frontPhotoUploaded: false,
+    rbfVoucherName: '',
     videoStorefrontUrl: null,
     videoInteriorUrl: null,
   };
@@ -453,6 +454,55 @@
       confidenceReach1000: $('confidenceReach1000').value.trim(),
       specialCircumstancesNote: $('specialCircumstancesNote').value.trim(),
       isFranchiseOrPartner: isFranchiseOrPartner,
+      rbfApply: checkedRadio('rbfApply'),
+      rbfLevel: $('rbfLevel').value,
+      rbfQuota: $('rbfQuota').value.trim(),
+      rbfTimes: $('rbfTimes').value.trim(),
+      rbfDeposit: checkedRadio('rbfDeposit'),
+      rbfVoucherName: state.rbfVoucherName || ''
+    };
+  }
+
+  function checkedRadio(name) {
+    var node = document.querySelector('input[name="' + name + '"]:checked');
+    return node ? node.value : '';
+  }
+
+  function syncShopRbf() {
+    var apply = checkedRadio('rbfApply');
+    var deposit = checkedRadio('rbfDeposit');
+    $('rbfExtra').classList.toggle('shop-h5-hidden', apply !== '是');
+    $('rbfVoucher').classList.toggle('shop-h5-hidden', !(apply === '是' && deposit === '是'));
+  }
+
+  function bindShopRbf() {
+    document.querySelectorAll('input[name="rbfApply"], input[name="rbfDeposit"]').forEach(function (radio) {
+      radio.addEventListener('change', syncShopRbf);
+    });
+    $('rbfQuota').addEventListener('input', function () {
+      var text = String(this.value || '').replace(/[^\d.]/g, '');
+      var parts = text.split('.');
+      if (parts.length > 2) text = parts[0] + '.' + parts.slice(1).join('');
+      parts = text.split('.');
+      if (parts[1] && parts[1].length > 2) text = parts[0] + '.' + parts[1].slice(0, 2);
+      this.value = text;
+    });
+    $('rbfTimes').addEventListener('input', function () {
+      this.value = String(this.value || '').replace(/\D/g, '').replace(/^0+/, '');
+    });
+    $('btnRbfVoucher').onclick = function () { $('rbfVoucherFile').click(); };
+    $('rbfVoucherFile').onchange = function () {
+      var picked = this.files && this.files[0];
+      if (!picked) {
+        state.rbfVoucherName = '';
+      } else if (picked.size > 800 * 1024) {
+        this.value = '';
+        state.rbfVoucherName = '';
+        toastLines('凭证文件请控制在 800KB 以内', '', true);
+      } else {
+        state.rbfVoucherName = picked.name || '缴纳凭证';
+      }
+      $('rbfVoucherName').textContent = state.rbfVoucherName || '支持图片或 PDF，不超过 800KB';
     };
   }
 
@@ -511,6 +561,18 @@
     if (!f.companyCallbackNotified)
       return toastLines('请勾选：已知晓需接听公司公务来电（17316440268、17339691157）', '', true), false;
     if (!f.frontPhotoUploaded) return toastLines('请上传门头/场地照', '', true), false;
+
+    if (!$('rbfSection').classList.contains('shop-h5-hidden')) {
+      if (f.rbfApply !== '是' && f.rbfApply !== '否') return toastLines('请选择是否申请RBF联营', '', true), false;
+      if (f.rbfApply === '是') {
+        if (!f.rbfLevel) return toastLines('请选择RBF等级', '', true), false;
+        if (!/^\d+(\.\d{1,2})?$/.test(f.rbfQuota) || Number(f.rbfQuota) <= 0)
+          return toastLines('门店额度须大于 0，最多两位小数', '', true), false;
+        if (!/^[1-9]\d*$/.test(f.rbfTimes)) return toastLines('需求发布次数须为大于 0 的整数', '', true), false;
+        if (f.rbfDeposit !== '是' && f.rbfDeposit !== '否') return toastLines('请选择保证金是否缴纳', '', true), false;
+        if (f.rbfDeposit === '是' && !f.rbfVoucherName) return toastLines('请上传保证金缴纳凭证', '', true), false;
+      }
+    }
 
     return true;
   }
@@ -613,10 +675,12 @@
     if (!window.MdmEntryMaterials || document.querySelector('[data-entry-materials-wrap]')) return;
     var anchor = document.getElementById('storeSubject');
     var section = anchor && anchor.closest ? anchor.closest('section') : null;
-    if (!section || !section.parentNode) return;
+    var rbf = document.getElementById('rbfSection');
+    var after = rbf && rbf.parentNode ? rbf : section;
+    if (!after || !after.parentNode) return;
     var holder = document.createElement('div');
     holder.innerHTML = window.MdmEntryMaterials.h5Section('shop');
-    while (holder.firstChild) section.parentNode.insertBefore(holder.firstChild, section.nextSibling);
+    while (holder.firstChild) after.parentNode.insertBefore(holder.firstChild, after.nextSibling);
   }
 
   function currentShopEntry() {
@@ -816,6 +880,12 @@
           surroundingCommunityNote: f.surroundingCommunityNote,
           confidenceReach1000: f.confidenceReach1000,
           specialCircumstancesNote: f.specialCircumstancesNote,
+          rbfApply: f.rbfApply,
+          rbfLevel: f.rbfLevel,
+          rbfQuota: f.rbfQuota,
+          rbfTimes: f.rbfTimes,
+          rbfDeposit: f.rbfDeposit,
+          rbfVoucherName: f.rbfVoucherName,
           entryMaterials: entryMaterials,
           duplicateMatches: matches,
         });
@@ -909,6 +979,8 @@
     }
 
     state.mode = 'create';
+    $('rbfSection').classList.remove('shop-h5-hidden');
+    bindShopRbf();
     $('pageTitle').textContent = '门店注册';
     $('heroTag').textContent = '扫码注册';
     $('heroDesc').textContent = '请按实际情况填写门店注册资料，提交后将进入审核流程。';

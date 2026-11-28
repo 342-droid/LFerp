@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>门店注册 · Shop H5</title>
   <link rel="stylesheet" href="../../css/shop-h5-app-shell.css">
-  <link rel="stylesheet" href="../../css/shop-h5-store-pages.css?v=20261118-photo-card-2">
+  <link rel="stylesheet" href="../../css/shop-h5-store-pages.css?v=20261128-rbf-store">
   <link rel="stylesheet" href="../../../css/mdm-store-duplicate-review.css?v=20261127-shell">
 </head>
 <body class="shop-h5-app-list" data-shop-store-register="1">
@@ -60,6 +60,56 @@
           <div class="shop-h5-field">
             <div class="shop-h5-field-hd"><span class="shop-h5-req">绑定 BD</span><span class="shop-h5-hint" id="bdHint">默认当前登录账号，不可更改</span></div>
             <input class="shop-h5-input" id="boundBd" type="text" readonly disabled value="">
+          </div>
+        </section>
+
+        <section class="shop-h5-section shop-h5-hidden" id="rbfSection">
+          <div class="shop-h5-sec-head">
+            <div class="shop-h5-sec-icon">R</div>
+            <div class="shop-h5-sec-titles">
+              <h3>RBF联营</h3>
+              <p>是否申请 RBF 联营。选「是」后填写等级、额度和保证金</p>
+            </div>
+          </div>
+          <div class="shop-h5-field">
+            <div class="shop-h5-field-hd"><span class="shop-h5-req">是否申请RBF联营</span></div>
+            <div class="shop-h5-yn">
+              <label><input type="radio" name="rbfApply" value="是"> 是</label>
+              <label><input type="radio" name="rbfApply" value="否"> 否</label>
+            </div>
+          </div>
+          <div id="rbfExtra" class="shop-h5-hidden">
+            <div class="shop-h5-field">
+              <div class="shop-h5-field-hd"><span class="shop-h5-req">RBF等级</span></div>
+              <select class="shop-h5-select" id="rbfLevel">
+                <option value="">请选择</option>
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+              </select>
+            </div>
+            <div class="shop-h5-field">
+              <div class="shop-h5-field-hd"><span class="shop-h5-req">门店额度</span><span class="shop-h5-hint">元，最多两位小数</span></div>
+              <input class="shop-h5-input" id="rbfQuota" type="text" inputmode="decimal" placeholder="请输入门店额度">
+            </div>
+            <div class="shop-h5-field">
+              <div class="shop-h5-field-hd"><span class="shop-h5-req">需求发布次数</span><span class="shop-h5-hint">次</span></div>
+              <input class="shop-h5-input" id="rbfTimes" type="text" inputmode="numeric" value="1" placeholder="请输入需求发布次数">
+            </div>
+            <div class="shop-h5-field">
+              <div class="shop-h5-field-hd"><span class="shop-h5-req">保证金是否缴纳</span></div>
+              <div class="shop-h5-yn">
+                <label><input type="radio" name="rbfDeposit" value="是"> 是</label>
+                <label><input type="radio" name="rbfDeposit" value="否"> 否</label>
+              </div>
+            </div>
+            <div class="shop-h5-field shop-h5-hidden" id="rbfVoucher">
+              <div class="shop-h5-field-hd"><span class="shop-h5-req">缴纳凭证</span><span class="shop-h5-hint">支持图片或 PDF，不超过 800KB</span></div>
+              <input type="file" id="rbfVoucherFile" class="shop-h5-hidden" accept="image/*,.pdf">
+              <button type="button" class="shop-h5-upload-btn" id="btnRbfVoucher">上传凭证</button>
+              <p class="shop-h5-hint" id="rbfVoucherName" style="margin-top:8px">支持图片或 PDF，不超过 800KB</p>
+            </div>
           </div>
         </section>
 
@@ -347,6 +397,6 @@
   <script src="../../../js/mdm-entry-materials.js?v=20261118-photo-card-2"></script>
   <script src="../../../js/mdm-bd-store-audits-data.js?v=20261127-duplicate"></script>
   <script src="../../../js/mdm-store-duplicate-review.js?v=20261127-shell"></script>
-  <script src="../../js/shop-h5-register.js?v=20261118-no-peer"></script>
+  <script src="../../js/shop-h5-register.js?v=20261128-rbf-under"></script>
 </body>
 </html>

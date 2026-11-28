@@ -169,6 +169,7 @@
         var opsPlan = { installmentCode: 'FQ00003', installmentName: '开业运营日结', repayPeriod: '10.00%' };
         var xianDa = { traderName: '杭州鲜达贸易有限公司', traderPhone: '13800001001' };
         var lengLian = { traderName: '上海冷链融资租赁有限公司', traderPhone: '13800001002' };
+        var haiFeng = { providerName: '宁波海丰商业保理有限公司', providerId: 'PRV20190002', hasProvider: true };
         function linesOf(rows) {
             return rows.map(function (line) { return Object.assign({}, line); });
         }
@@ -216,7 +217,7 @@
                     uploadedAt: '2026-10-21 10:28:16',
                     uploadedBy: '王丽'
                 }
-            }, xianDa)),
+            }, xianDa, haiFeng)),
             /* 发货中：首批铺货已到店确认，设备辅料已发出待确认，拉新人力尚未进场。 */
             rowSeed(Object.assign({
                 code: 'XQ00026', storeCode: 'ONS00001', storeName: '西湖中心生鲜店',
@@ -261,7 +262,7 @@
                     uploadedAt: '2025-12-18 17:20:08',
                     uploadedBy: '王丽'
                 }
-            }, xianDa)),
+            }, xianDa, haiFeng)),
             /* 门店付款中：形象包已交付，门店按日还款。担保金凭证供详情和履约查看。 */
             rowSeed(Object.assign({
                 code: 'XQ00016', storeCode: 'ONS00002', storeName: '东城和平里生鲜店',
@@ -280,11 +281,7 @@
                     uploadedAt: '2026-11-12 17:20:08',
                     uploadedBy: '王丽'
                 }
-            }, lengLian, {
-                providerName: '宁波海丰商业保理有限公司',
-                providerId: 'PRV20190002',
-                hasProvider: true
-            })),
+            }, lengLian, haiFeng)),
             rowSeed({
                 code: 'XQ00018', storeCode: 'ONS00003', storeName: '河东大桥道自提点',
                 pkg: ops, plan: opsPlan, status: '已驳回', rejectReason: '门店近期流水不足',
@@ -308,7 +305,7 @@
                 paidAt: '2026-11-02 09:40:18',
                 dealLocked: true,
                 signings: signedRows('ONS00004', '五角场体验店', '杭州鲜达贸易有限公司', '2026-11-02 09:28:06')
-            }, xianDa)),
+            }, xianDa, haiFeng)),
             /* 已结束：接单后作废，没有进入每日付款。 */
             rowSeed(Object.assign({
                 code: 'XQ00028', storeCode: 'ONS00003', storeName: '河东大桥道自提点',
@@ -893,6 +890,13 @@
             if (item.code === 'XQ00023' && item.storeCode === 'ONS00001' && item.status === '已完成' && item.updatedAt === '2026-11-02 10:28:16') {
                 item.status = '门店付款中';
                 item.quotaHeld = false;
+                changed = true;
+            }
+            /* 付款页演示单补上已确认服务商，每日付款才会生成服务商放款划拨。已明确没有服务商的不补。 */
+            if ((item.status === '门店付款中' || item.status === '已完成') && item.hasProvider !== false && !String(item.providerName || '').trim()) {
+                item.providerName = '宁波海丰商业保理有限公司';
+                item.providerId = 'PRV20190002';
+                item.hasProvider = true;
                 changed = true;
             }
             /* 门店付款中/已完成表示贸易商已付款，用于重算已成交 */
@@ -1735,8 +1739,26 @@
         var beforeText = settleRatioLogText(target.settleRatios);
         var afterText = settleRatioLogText(settleRatios);
         if (beforeText === afterText) return null;
-        target.settleRatios = settleRatios;
+        if (!Array.isArray(target.settleRatioVersions) || !target.settleRatioVersions.length) {
+            target.settleRatioVersions = [{ effectiveFrom: '', ratios: JSON.parse(JSON.stringify(target.settleRatios || [])) }];
+        }
         touchAudit(target, operator || '王丽');
+        /* 生效日取这次保存时间的次日，随配置时间变化，不写死日期或时刻。这一天之前的付款子单继续用上一版比例。 */
+        var changedOn = String(target.updatedAt || '').slice(0, 10).split('-');
+        var effectiveFrom = '';
+        if (changedOn.length >= 3) {
+            var nextDay = new Date(Number(changedOn[0]), Number(changedOn[1]) - 1, Number(changedOn[2]));
+            if (!isNaN(nextDay.getTime())) {
+                nextDay.setDate(nextDay.getDate() + 1);
+                var pad = function (n) { return n < 10 ? '0' + n : String(n); };
+                effectiveFrom = nextDay.getFullYear() + '-' + pad(nextDay.getMonth() + 1) + '-' + pad(nextDay.getDate());
+            }
+        }
+        target.settleRatioVersions.push({
+            effectiveFrom: effectiveFrom,
+            ratios: JSON.parse(JSON.stringify(settleRatios))
+        });
+        target.settleRatios = JSON.parse(JSON.stringify(settleRatios));
         ensureLogs(target);
         pushLog(target, '修改结算比例，原因：' + why + '。修改前：' + beforeText + '；修改后：' + afterText, target.updater, target.updatedAt);
         write(rows);

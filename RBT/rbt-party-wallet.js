@@ -31,7 +31,7 @@
         '622588': 'cmb',
         '622262': 'comm'
     };
-    /* 原型支出，落在近 30 天内。贸易商提现是提到收款账户，划转是签完合同后把货款付给冷丰供应链。服务商只提现，金额不超过已入账服务费。 */
+    /* 原型支出，落在近 30 天内。贸易商账户明细里，提现写「提现」，付给冷丰供应链的货款写「货款」。服务商只提现，金额不超过已入账服务费。 */
     var DEMO_MOVEMENTS = {
         '杭州鲜达贸易有限公司': {
             withdraw: [
@@ -240,7 +240,7 @@
                 var amount = round2(row[field]);
                 if (!(amount > 0)) return;
                 var manual = row.kind === 'manual';
-                var when = manual ? (row.time || '') : (addDays(row.date, 1) + ' 08:00:00');
+                var when = manual ? (row.time || fact.time || '') : (fact.time || '');
                 var day = String(when).slice(0, 10);
                 var key = day + '\n' + store;
                 if (!batches[key]) {
@@ -265,19 +265,20 @@
         });
     }
 
-    function movementLines(name) {
+    function movementLines(role, name) {
         var bag = bagOf(name);
+        var trader = role === 'trader';
         return bag.recharge.map(function (row) {
             return { id: row.id, time: row.time, dir: 'in', title: (row.method || '充值') + '充值', amount: round2(row.amount), kind: 'recharge' };
         }).concat(bag.withdraw.map(function (row) {
-            return { id: row.id, time: row.time, dir: 'out', title: '提现到收款账户', amount: round2(row.amount), kind: 'withdraw' };
+            return { id: row.id, time: row.time, dir: 'out', title: trader ? '提现' : '提现到收款账户', amount: round2(row.amount), kind: 'withdraw' };
         })).concat(bag.transfer.map(function (row) {
-            return { id: row.code, time: row.time, dir: 'out', title: '划转冷丰供应链 · ' + row.code, amount: round2(row.amount), kind: 'transfer' };
+            return { id: row.code, time: row.time, dir: 'out', title: (trader ? '货款' : '划转冷丰供应链') + ' · ' + row.code, amount: round2(row.amount), kind: 'transfer' };
         }));
     }
 
     function ledgerOf(role, name) {
-        return receiptLines(role, name).concat(movementLines(name)).filter(function (row) {
+        return receiptLines(role, name).concat(movementLines(role, name)).filter(function (row) {
             return row && row.amount > 0;
         }).sort(function (a, b) {
             return String(b.time || '').localeCompare(String(a.time || ''));
