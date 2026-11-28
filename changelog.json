@@ -1,10 +1,30 @@
 {
-  "latestSha": "96a54301a86712accb8702595b71869988a9a623",
-  "total": 677,
+  "latestSha": "beef4443c0af6d6e5cf65227bbebfab70d055c87",
+  "total": 678,
   "days": [
     {
       "date": "2026-11-28",
       "items": [
+        {
+          "sha": "beef444",
+          "type": "fix",
+          "text": "贸易商接单成功提示去掉仅一商接单说明",
+          "author": "342-droid",
+          "time": "18:14",
+          "pages": [
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "module": "冷丰RBT-移动端",
+              "title": "贸易商端"
+            }
+          ],
+          "notes": [
+            {
+              "file": "RBT/rbt_h5_trader.html",
+              "text": "接单成功弹窗文案改为只需去已接单确认签约"
+            }
+          ]
+        },
         {
           "sha": "96a5430",
           "type": "other",
