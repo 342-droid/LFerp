@@ -201,7 +201,7 @@
           '首购客户：期初从未在本店购买、本期首次购买。',
           '老客户：期初已在本店购买且本期有购买。',
           '本期首次购买后再次购买仍属本期首购。',
-          '公式：首购＋老客＝支付人数。',
+          '公式：首购＋老客＝交易人数。',
           '客户换绑不迁移历史交易。'
         ]
       });
@@ -210,9 +210,9 @@
         title: '购买频次',
         items: [
           '购买2次及以上人数可同时含首购与老客，不与两者相加。',
-          '公式：人均购买次数＝支付主订单数÷支付人数。',
+          '公式：人均购买次数＝订单数÷交易人数。',
           '不使用「复购率」。',
-          '频次分布按本期支付主订单次数分档（1次／2次／3次及以上）。'
+          '频次分布按本期订单数分档（1次／2次／3次及以上）。'
         ]
       });
     } else {
@@ -298,15 +298,15 @@
           name +
           '</h3>' +
           '<div class="sa-dc-source-card__hero">' +
-          '<div class="sa-dc-source-card__label">支付成交额（元）</div>' +
+          '<div class="sa-dc-source-card__label">营业额（元）</div>' +
           '<div class="sa-dc-source-card__amt">' +
           moneyGroup(s.paidAmount) +
           '</div></div>' +
           '<div class="sa-dc-source-card__grid">' +
-          '<div class="sa-dc-source-card__cell"><div class="sa-dc-source-card__t">支付订单数（单）</div><div class="sa-dc-source-card__v">' +
+          '<div class="sa-dc-source-card__cell"><div class="sa-dc-source-card__t">订单数（单）</div><div class="sa-dc-source-card__v">' +
           group(s.orderCount) +
           '</div></div>' +
-          '<div class="sa-dc-source-card__cell"><div class="sa-dc-source-card__t">支付人数（人）</div><div class="sa-dc-source-card__v">' +
+          '<div class="sa-dc-source-card__cell"><div class="sa-dc-source-card__t">交易人数（人）</div><div class="sa-dc-source-card__v">' +
           group(s.payUserCount) +
           '</div></div>' +
           '<div class="sa-dc-source-card__cell"><div class="sa-dc-source-card__t">客单价（元）</div><div class="sa-dc-source-card__v">' +

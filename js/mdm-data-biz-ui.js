@@ -205,7 +205,7 @@
 
     html +=
       '<div class="ldb-meta" data-ldb-meta></div>' +
-      '<button type="button" class="btn btn-secondary" data-open-glossary style="height:32px;padding:0 12px;">指标释义</button>' +
+      '<button type="button" class="btn btn-secondary" data-open-glossary style="height:32px;padding:0 12px;">指标说明</button>' +
       '</div>';
 
     host.innerHTML = html;
@@ -338,7 +338,7 @@
       }).join('') +
       '</dl>' +
       '<p class="ldb-tip" style="margin-top:16px">测试排除仅匹配<strong>门店名称</strong>与<strong>商品名称</strong>中含「测试」或「test」的对象。支付归属与发生日期请用页顶页签切换，勿混算。</p>';
-    showDrawer('指标释义', body);
+    showDrawer('指标说明', body);
   }
 
   function ensureDrawer() {
@@ -882,7 +882,8 @@
       q.set(k, String(v));
     });
     var qs = q.toString();
-    return wp.page(file) + (qs ? '?' + qs : '');
+    var base = wp.page(file);
+    return base + (qs ? (base.indexOf('?') >= 0 ? '&' : '?') + qs : '');
   }
 
   /** 分页条：总数、每页条数、上一页／下一页、页码跳转 */

@@ -61,7 +61,10 @@
 
   function writeState(state) {
     /* 只写入本需求筛选键，清掉旧版 view/sort/platScope 等残留 */
-    var q = new URLSearchParams();
+    /* 数据中台直出页面时保留外层 section/view，独立页面仍清理旧查询参数。 */
+    var q = document.querySelector('.dc-layout')
+      ? new URLSearchParams(window.location.search)
+      : new URLSearchParams();
     var keys = ['period', 'channel', 'line', 'storeId', 'supplierId', 'from', 'to', 'mode', 'tab', 'back'];
     keys.forEach(function (k) {
       var v = state[k];
@@ -210,7 +213,7 @@
 
     html += '<div class="ldb-meta" data-ldb-meta></div>';
     html +=
-      '<button type="button" class="btn btn-secondary" data-open-glossary style="height:32px;padding:0 12px;">指标释义</button>';
+      '<button type="button" class="btn btn-secondary" data-open-glossary style="height:32px;padding:0 12px;">指标说明</button>';
     if (opts.showExport !== false) {
       html +=
         '<button type="button" class="btn btn-secondary" data-export data-lf-skip-export-notify style="height:32px;padding:0 12px;">导出</button>';
@@ -437,7 +440,7 @@
         return '<dt>' + esc(g.name) + '</dt><dd>' + esc(g.text) + '</dd>';
       }).join('') +
       '</dl>';
-    Ui.showDrawer('指标释义', body);
+    Ui.showDrawer('指标说明', body);
   }
 
   function toast(msg) {
@@ -570,6 +573,7 @@
     var id = v != null && v !== '' ? v : row && row.orderId;
     if (id == null || id === '') return '—';
     id = String(id);
+    if (row && row.orderDetailUnavailable) return esc(id);
     var hrefRow = {
       orderId: id,
       biz: row && (row.biz || row.bizKey),
@@ -624,6 +628,137 @@
     Ui.bindPager(host.querySelector('[data-ldb-pager]'), pagerState, onPageChange);
   }
 
+  var incomeColumns = [
+    { key: 'storeIncome', label: '门店预计所得', num: true, format: 'money' },
+    { key: 'platformIncome', label: '平台预计所得', num: true, format: 'money' },
+    { key: 'storeIncomeActual', label: '门店实际分佣', num: true, format: 'money' },
+    { key: 'platformIncomeActual', label: '平台实际分佣', num: true, format: 'money' }
+  ];
+  var orderColumns = [
+    { key: 'orderId', label: '主订单号', render: orderIdCell },
+    { key: 'biz', label: '业务线' },
+    { key: 'storeName', label: '门店' },
+    { key: 'payTime', label: '支付成功时间' },
+    { key: 'goodsSales', label: '商品金额', num: true, format: 'money' },
+    { key: 'freightSales', label: '运费', num: true, format: 'money' },
+    { key: 'refundAmount', label: '退款金额', num: true, format: 'money' }
+  ].concat(incomeColumns);
+  function openTableExport(opts) {
+    var title = opts.title || '导出明细';
+    var exportName = opts.exportName || title;
+    var unitLabel = opts.unitLabel || '条';
+    var rows = opts.rows || [];
+    var columns = opts.columns || [];
+    var checked = {};
+    columns.forEach(function (c) {
+      checked[c.key] = true;
+    });
+    function paint() {
+      Ui.showDrawer(
+        title,
+        '<p class="ldb-tip ldb-tip--flush">勾选导出列（默认全选），提交后生成文件中心下载任务。当前筛选共 ' +
+          intText(rows.length) +
+          ' ' +
+          esc(unitLabel) +
+          '。</p>' +
+          '<div class="ldb-drawer-export__cols">' +
+          columns
+            .map(function (c) {
+              return (
+                '<label class="ldb-drawer-export__col">' +
+                '<input type="checkbox" data-export-col="' +
+                esc(c.key) +
+                '"' +
+                (checked[c.key] ? ' checked' : '') +
+                '> ' +
+                esc(c.label) +
+                '</label>'
+              );
+            })
+            .join('') +
+          '</div>' +
+          '<div class="ldb-drawer-export__actions" style="margin-top:12px">' +
+          '<button type="button" class="ldb-chip" data-export-all>全选</button>' +
+          '<button type="button" class="ldb-chip is-active" data-export-submit data-lf-skip-export-notify>导出到文件中心</button>' +
+          '<button type="button" class="ldb-chip" data-export-cancel>取消</button>' +
+          '</div>'
+      );
+      var body = document.querySelector('[data-ldb-drawer-body]');
+      if (!body) return;
+      body.querySelectorAll('[data-export-col]').forEach(function (box) {
+        box.addEventListener('change', function () {
+          checked[box.getAttribute('data-export-col')] = !!box.checked;
+        });
+      });
+      var allBtn = body.querySelector('[data-export-all]');
+      if (allBtn) {
+        allBtn.addEventListener('click', function () {
+          columns.forEach(function (c) {
+            checked[c.key] = true;
+          });
+          paint();
+        });
+      }
+      var cancel = body.querySelector('[data-export-cancel]');
+      if (cancel) {
+        cancel.addEventListener('click', function () {
+          if (typeof Ui.closeDrawer === 'function') Ui.closeDrawer();
+        });
+      }
+      var submit = body.querySelector('[data-export-submit]');
+      if (submit) {
+        submit.addEventListener('click', function (ev) {
+          var picked = columns
+            .filter(function (c) {
+              return checked[c.key];
+            })
+            .map(function (c) {
+              return c.key;
+            });
+          if (!picked.length) return toast('请至少勾选一列');
+          Ui.exportRowsToFileCenter(exportName, rows, columns, ev, { columns: picked });
+          if (typeof Ui.closeDrawer === 'function') Ui.closeDrawer();
+        });
+      }
+    }
+    paint();
+  }
+
+  function renderStoreKpis(data, mode, showStoreCount) {
+    var all = mode === 'all';
+    var amountLabel = mode === 'proxy' ? '代采进货额' : 'GMV';
+    function commissionCard(label, key, hint) {
+      return Ui.kpiCard(label, money(data.commission[key]), '',
+        mode === 'proxy' && key.indexOf('storeIncome') === 0 ? '代采订单无门店分佣' : hint);
+    }
+
+    return Ui.kpiCard(
+        amountLabel,
+        money(data.kpis.sales),
+        '',
+        '商品 ' + money(data.kpis.goodsSales) + ' · 运费 ' + money(data.kpis.freightSales) +
+          (all ? ' · 零售 ' + money(data.retailKpis.sales) + ' · 代采 ' + money(data.proxyKpis.sales) : '')
+      ) +
+      Ui.kpiCard('支付主订单数', intText(data.kpis.orders), '', '按支付成功时间统计') +
+      Ui.kpiCard(
+        '成功退款',
+        money(data.kpis.refundAmount),
+        '',
+        mode === 'proxy' ? '单独展示，不冲减进货额' : '单独展示，不冲减销售额'
+      ) +
+      (showStoreCount ? Ui.kpiCard(
+        mode === 'proxy' ? '有进货门店' : '有成交门店',
+        intText(data.stores.length),
+        '',
+        '当前筛选'
+      ) : '') +
+      (mode === 'proxy' ? '' :
+        commissionCard('门店预计分佣', 'storeIncome', '按支付成功的示例订单汇总') +
+        commissionCard('门店实际所得', 'storeIncomeActual', '按示例订单的结算完成时间入账')) +
+      commissionCard('平台预计所得', 'platformIncome', '按支付成功的示例订单汇总') +
+      commissionCard('平台实际所得', 'platformIncomeActual', '按示例订单的结算完成时间入账');
+  }
+
   global.MdmDataBizCenterUi = {
     money: money,
     intText: intText,
@@ -645,6 +780,10 @@
     pageHref: pageHref,
     orderDetailHref: orderDetailHref,
     orderIdCell: orderIdCell,
+    storeIncomeColumns: incomeColumns,
+    storeOrderColumns: orderColumns,
+    renderStoreKpis: renderStoreKpis,
+    openTableExport: openTableExport,
     kpiCard: Ui.kpiCard,
     renderBars: Ui.renderBars,
     renderCompositionPie: Ui.renderCompositionPie,

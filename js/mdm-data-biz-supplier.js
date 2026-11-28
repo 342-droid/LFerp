@@ -15,21 +15,28 @@
     return { id: 'SUP-DEMO-' + (index + 1), name: '示例供应商 ' + (index + 1) };
   }));
   var amounts = [
-    { key: 'sales', label: '商品销售额', num: true, format: 'money' },
-    { key: 'cost', label: '采购成本', num: true, format: 'money' },
-    { key: 'margin', label: '商品毛利', num: true, format: 'money' },
-    { key: 'refundAmount', label: '退款金额', num: true, format: 'money' },
-    { key: 'platformIncome', label: '平台所得', num: true, format: 'money' }
+    moneyColumn('sales', '商品销售额'),
+    moneyColumn('refundAmount', '退款金额'),
+    moneyColumn('cost', '支付时采购成本'),
+    moneyColumn('costAfterRefund', '退款后采购成本'),
+    moneyColumn('margin', '预计商品毛利'),
+    moneyColumn('actualMargin', '实际商品毛利'),
+    moneyColumn('platformIncome', '平台预计所得'),
+    moneyColumn('platformIncomeActual', '平台实际所得')
   ];
-  var splitKeys = ['sales', 'margin', 'platformIncome'];
+  var splitKeys = ['sales', 'cost', 'costAfterRefund', 'margin', 'actualMargin', 'platformIncome', 'platformIncomeActual'];
   var businessLines = ['零售', '代采'];
   var listAmounts = amounts.flatMap(function (column) {
-    if (splitKeys.indexOf(column.key) < 0) return [column];
+    if (!['sales', 'margin', 'actualMargin', 'platformIncome', 'platformIncomeActual'].includes(column.key)) return [column];
     return businessLines.map(function (biz) {
       return Object.assign({}, column, { key: column.key + biz, label: biz + column.label });
     });
   });
   var orderColumn = { key: 'orders', label: '订单数', num: true, format: 'int' };
+
+  function moneyColumn(key, label) {
+    return { key: key, label: label, num: true, format: 'money' };
+  }
 
   function orderCount(rows) {
     var ids = new Set();
@@ -61,13 +68,18 @@
         var orderIds = Array.from({ length: Math.ceil(qty / 4) }, function (_, orderIndex) {
           return scope.key + '-' + (index * 5 + orderIndex);
         });
+        var returnedQty = Math.min(qty, Math.round((product ? product.refundQty : index % 4) * factor));
+        var costAfterRefund = qty ? cost - Math.round(cost * returnedQty / qty) : cost;
+        // 原型样本中部分商品订单仍待结算，已结算部分按相同清分单价计入。
+        var settledCount = Math.floor(orderIds.length * (index % 3 === 0 ? 0.7 : 0.9));
         rows.push({
           id: id, name: name, biz: scope.biz, channel: scope.channel,
           qty: qty, orderIds: orderIds, orders: orderIds.length,
-          sales: sales / 100, cost: cost / 100, margin: (sales - cost) / 100,
+          sales: sales / 100, cost: cost / 100, costAfterRefund: costAfterRefund / 100,
+          margin: (sales - cost) / 100, actualMargin: (sales - costAfterRefund) / 100,
           refundAmount: Math.round((product ? product.refundAmount : 80 + index * 15) * factor * 100) / 100,
-          // 原型清分示例值，正式取 ERP 实际清分记录。
-          platformIncome: Math.round(orderIds.length * scope.sampleIncomePerOrder * 100) / 100
+          platformIncome: Math.round(orderIds.length * scope.sampleIncomePerOrder * 100) / 100,
+          platformIncomeActual: settledCount ? Math.round(settledCount * scope.sampleIncomePerOrder * 100) / 100 : null
         });
       });
     }
@@ -75,7 +87,10 @@
   }
 
   function sum(rows, key) {
-    return rows.reduce(function (total, row) { return total + Math.round(row[key] * 100); }, 0) / 100;
+    var available = rows.filter(function (row) { return row[key] != null; });
+    return available.length ? available.reduce(function (total, row) {
+      return total + Math.round(row[key] * 100);
+    }, 0) / 100 : null;
   }
 
   function render() {
@@ -103,14 +118,14 @@
     toolbar.querySelector('[data-ldb-meta]').textContent = Ui.periodLabel(state) + ' · ' +
       (selected ? selected.name : '全部供应商');
     root.querySelector('[data-ldb-tip]').innerHTML =
-      '<p class="ldb-tip">按商品供应商归属汇总。商品明细按商品、业务线和渠道列出。平台所得为清分示例值。</p>';
+      '<p class="ldb-tip">按商品供应商归属汇总。商品明细按商品、业务线和渠道列出。预计毛利按支付时采购成本计算，实际毛利按退款后采购成本计算。平台预计所得和实际所得分别展示支付时的预计清分与已完成结算的示例金额。</p>';
     root.querySelector('[data-ldb-kpis]').innerHTML = amounts.map(function (column) {
       var scoped = state.channel === 'all' ? businessLines : [state.channel === 'proxy' ? '代采' : '零售'];
       var hint = splitKeys.indexOf(column.key) < 0 ? '' : scoped.map(function (biz) {
         return biz + ' ' + Ui.money(sum(rows, column.key + biz));
       }).join(' · ');
       return Ui.kpiCard(column.label, Ui.money(sum(rows, column.key)), '', hint);
-    }).join('') + Ui.kpiCard('订单数', Ui.intText(orderCount(rows.flatMap(function (row) {
+    }).join('') + Ui.kpiCard('支付主订单数', Ui.intText(orderCount(rows.flatMap(function (row) {
       return row.products;
     }))), '', '按示例支付主订单去重');
 

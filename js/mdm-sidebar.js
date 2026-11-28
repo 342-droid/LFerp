@@ -14,6 +14,7 @@
             .pop() || '';
     }
     const currentPage = pageBase(pathForMatch.split('/').pop()) || 'mdm_party_store';
+    const isWorkbenchPage = currentPage === 'mdm_workbench';
 
     function hrefMatchesCurrentPage(href) {
         var full = String(href || '');
@@ -169,7 +170,9 @@
     function renderCollapsibleGroup(label, iconRel, items, sectionActive) {
         var submenuHtml = items.map(function (item) {
             var active = hrefMatchesCurrentPage(item.href);
-            return '<li><a href="' + pageHref(item.href) + '" data-mdm-nav="' + item.href + '"' +
+            var href = item.raw ? item.href : pageHref(item.href);
+            var target = item.target ? ' target="' + item.target + '" rel="noopener"' : '';
+            return '<li><a href="' + href + '" data-mdm-nav="' + item.href + '"' + target +
                 (active ? ' class="active"' : '') + '>' + item.text + '</a></li>';
         }).join('');
         return '<li class="menu-item">' +
@@ -183,7 +186,10 @@
     }
 
     var itemsHtml;
-    if (isAuditPage) {
+    if (isWorkbenchPage) {
+        /** 保留 ERP 工作台侧栏，仅隐藏数据中台子入口。 */
+        itemsHtml = renderCollapsibleGroup('工作台', '任务管理', [], true);
+    } else if (isAuditPage) {
         /** 顶栏「审核中心」独立入口：仅在该模块页面展示侧栏审核菜单 */
         itemsHtml =
             renderCollapsibleGroup('审核中心', '任务管理', auditItems, !isMarketingAuditPage && !isRbtAuditPage) +

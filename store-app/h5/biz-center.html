@@ -34,8 +34,6 @@
       <div class="sa-rpt-scroll" id="dcScroll">
         <div class="sa-dc-filterbar" aria-label="公共筛选">
           <div class="sa-dc-ranges" id="dcRanges" role="tablist" aria-label="统计周期"></div>
-          <p class="sa-dc-period" id="dcPeriod">统计 —</p>
-          <p class="sa-dc-asof" id="dcAsOf">数据截至 —</p>
           <p class="sa-dc-filterbar__tip">以下经营、进货、客户概况均按上方周期统计</p>
         </div>
 
@@ -46,7 +44,7 @@
           </div>
           <p class="sa-dc-cover" id="dcCoverNote" hidden></p>
           <div class="sa-dc-hero sa-dc-hero--soft" id="dcPaidHero">
-            <div class="sa-dc-hero__t" id="dcHeroTitle">支付成交额</div>
+            <div class="sa-dc-hero__t" id="dcHeroTitle">营业额</div>
             <div class="sa-dc-hero__v" id="dcPaid">0<span class="sa-dc-hero__unit">元</span></div>
             <div class="sa-dc-hero__foot" id="dcPaidCmp"></div>
           </div>
@@ -57,7 +55,7 @@
               <div class="sa-dc-metric__foot" id="dcRefundCmp"></div>
             </div>
             <div class="sa-dc-metric">
-              <div class="sa-dc-metric__t">退款后净成交额（元）</div>
+              <div class="sa-dc-metric__t">退款后净营业额（元）</div>
               <div class="sa-dc-metric__v" id="dcNet">0</div>
               <div class="sa-dc-metric__foot" id="dcNetCmp"></div>
             </div>
@@ -71,11 +69,11 @@
           <div class="sa-dc-channel" id="dcChannelBody" aria-label="营业额渠道构成"></div>
           <div class="sa-dc-chart" id="dcTrendBox" style="margin-top:14px">
             <div class="sa-dc-block__hd">
-              <h2 class="sa-dc-block__title" style="font-size:14px">成交额趋势</h2>
+              <h2 class="sa-dc-block__title" style="font-size:14px">营业额趋势</h2>
               <div class="sa-dc-chip" id="dcTrendMetric" role="tablist">
-                <button type="button" class="sa-dc-chip__btn is-active" data-metric="revenue">支付成交额</button>
-                <button type="button" class="sa-dc-chip__btn" data-metric="revenueNet">净成交额</button>
-                <button type="button" class="sa-dc-chip__btn" data-metric="users">支付人数</button>
+                <button type="button" class="sa-dc-chip__btn is-active" data-metric="revenue">营业额</button>
+                <button type="button" class="sa-dc-chip__btn" data-metric="revenueNet">净营业额</button>
+                <button type="button" class="sa-dc-chip__btn" data-metric="users">交易人数</button>
               </div>
             </div>
             <div class="sa-dc-chart__meta">
@@ -106,7 +104,7 @@
           </div>
           <div class="sa-dc-grid sa-dc-grid--2">
             <div class="sa-dc-metric">
-              <div class="sa-dc-metric__t">支付人数（人）</div>
+              <div class="sa-dc-metric__t">交易人数（人）</div>
               <div class="sa-dc-metric__v" id="dcPayUsers">0</div>
             </div>
             <div class="sa-dc-metric">
@@ -178,6 +176,16 @@
       </div>
     </div>
   </div>
+
+    <div class="sa-lp-demo" id="dcNoPurchaseDemo" aria-label="采购支出验收开关">
+      <div class="sa-lp-demo__title">采购支出验收开关</div>
+      <label class="sa-lp-demo__row">进货场景<select id="dcNoPurchaseMode" aria-label="进货场景">
+        <option value="normal">正常有进货记录</option>
+        <option value="noPurchase">门店从未进货</option>
+      </select></label>
+      <p class="sa-lp-demo__hint">模拟门店没有进货记录时，采购支出模块不展示。</p>
+      <button type="button" class="sa-lp-demo__apply" id="dcNoPurchaseApply">应用并刷新</button>
+    </div>
 
   <script src="../../js/business-report-fixtures.js"></script>
   <script src="../js/store-app-biz-datacenter-data.js?v=20261126-yyye"></script>

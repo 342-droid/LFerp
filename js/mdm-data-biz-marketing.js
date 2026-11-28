@@ -102,17 +102,15 @@
   }
 
   var metrics = [
-    { key: 'plan', label: '计划发放金额', hint: '优惠券面额＋红包计划金额' },
     { key: 'issue', label: '成功发放金额', hint: '已发优惠券面额＋已发红包金额' },
     { key: 'claim', label: '实际领取金额', hint: '已领取券面额＋红包实际到账' },
-    { key: 'redeem', label: '优惠券核销金额', hint: '订单实际用券抵扣金额' },
     { key: 'used', label: '实际使用金额', hint: '用券抵扣＋红包到账＋实发商品采购成本＋积分抵现' }
   ];
 
   function usageColumns() {
     return metrics.map(function (metric) {
       return { label: metric.label, num: true, render: function (row) {
-        return moneyCell(row[metric.key + 'Amount']);
+        return metric.key === 'issue' && (row.rewardType === 'coupon' || row.reward === 'coupon') ? '-' : moneyCell(row[metric.key + 'Amount']);
       } };
     }).concat([
       { key: 'users', label: '涉及用户数', num: true, render: function (row) { return row.users ? CUi.intText(row.users) : '-'; } },
@@ -411,13 +409,8 @@
         '<p class="ldb-tip ldb-tip--flush">消耗按场景拆分：<strong>商品兑换</strong>（积分商城）与<strong>下单抵扣</strong>（订单积分抵现），二者口径分开统计。</p>' +
           '<div class="ldb-kpi-row ldb-kpi-row--6">' +
           cards +
-          '</div>' +
-          CUi.renderPagedTable(columns, details, pointsPager, {
-            unitLabel: '条',
-            emptyText: '当前筛选范围内暂无积分流水'
-          })
+          '</div>'
       );
-      CUi.bindPagedTable(host, pointsPager, renderDetails);
     }
     renderDetails();
   }
@@ -458,9 +451,7 @@
       '<div data-ldb-config-table>' + CUi.sectionCard('营销配置使用情况', CUi.renderPagedTable([
         { key: 'name', label: '营销配置' }, { key: 'type', label: '类型' },
         { key: 'source', label: '发放来源' }, { key: 'relation', label: '关联对象' }, { key: 'rewards', label: '奖励' }
-      ].concat(usageColumns(), [{ label: '操作', render: function (row) {
-        return '<button type="button" class="ldb-link-all" data-marketing-detail="' + CUi.esc(row.name) + '">查看明细</button>';
-      } }]), sourceRows, configPager, { unitLabel: '条', emptyText: '当前筛选范围内暂无营销记录' })) + '</div>' +
+      ].concat(usageColumns()), sourceRows, configPager, { unitLabel: '条', emptyText: '当前筛选范围内暂无营销记录' })) + '</div>' +
       '<div id="marketing-points"></div>';
     CUi.bindPagedTable(body.querySelector('[data-ldb-config-table]'), configPager, render);
     bindDetail(rows, activeConfigs);
@@ -468,10 +459,7 @@
   }
 
   root.querySelector('[data-ldb-tip]').innerHTML = '<p class="ldb-tip">计划、发放、领取和核销分别按各自发生时间统计。' +
-    '发放与领取按对应渠道统计，无渠道的流水计入「全部」。优惠券核销按订单渠道归属。<br>' +
-    'UAT 配置入口：<a href="https://uat.lengfenghl.org.cn/#/campaign/marketing-template/template-setting/list" target="_blank" rel="noopener">营销模板</a> · ' +
-    '<a href="https://uat.lengfenghl.org.cn/#/campaign/marketingActive/redPacket" target="_blank" rel="noopener">现金红包</a> · ' +
-    '<a href="https://uat.lengfenghl.org.cn/#/member/memberManagement/memberLevel/edit/3" target="_blank" rel="noopener">会员等级赠券</a></p>';
+    '发放与领取按对应渠道统计，无渠道的流水计入「全部」。优惠券核销按订单渠道归属。</p>';
   render();
   if (window.location.hash === '#marketing-points') body.querySelector('#marketing-points').scrollIntoView();
 })();

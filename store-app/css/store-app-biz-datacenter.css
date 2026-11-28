@@ -17,6 +17,10 @@
   padding: 8px 12px calc(78px + env(safe-area-inset-bottom, 0px));
   background: transparent !important;
 }
+.sa-dc-source-tabs { display: flex; gap: 8px; margin: 0 0 14px; overflow-x: auto; }
+.sa-dc-source-tabs button { border: 1px solid #e3e6eb; border-radius: 18px; background: #f7f8fa; color: #667085; padding: 6px 14px; white-space: nowrap; font: inherit; }
+.sa-dc-source-tabs button.is-active { border-color: #ff6501; background: #fff1e8; color: #ff6501; font-weight: 600; }
+.sa-dc-metric-tip { margin-left: 4px; border: 0; background: none; color: #87909f; font-size: 14px; cursor: pointer; vertical-align: middle; }
 
 /*
  * 统一顶栏：标题／日期／模块 Tab 固定在滚动区外，不透明白底，
@@ -1702,3 +1706,6 @@
 .sa-dc-page .sa-dc-chip__btn.is-active::after{content:"";position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:20px;height:3px;border-radius:3px;background:#ff6501}
 .sa-dc-page .sa-dc-mtabs__btn{padding-top:10px;padding-bottom:12px;line-height:22px}
 .sa-dc-page .sa-dc-mtabs__btn.is-active::after{bottom:3px;height:3px;width:20px;margin-left:-10px}
+
+.sa-dc-dd-bar[hidden]{display:none!important}
+#dcProxySection[hidden]{display:none!important}

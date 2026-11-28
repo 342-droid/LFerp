@@ -142,6 +142,8 @@
 .bd-group-tabs,.bd-section-tabs{display:flex;gap:24px;align-items:center;background:#fff;padding:0 12px;overflow-x:auto}.bd-group-tabs button,.bd-section-tabs button{position:relative;border:0;background:none;white-space:nowrap;padding:12px 0;color:#6b7280;font-size:15px}.bd-group-tabs button.is-active,.bd-section-tabs button.is-active{color:#202124;font-weight:600}.bd-group-tabs button.is-active:after,.bd-section-tabs button.is-active:after{content:"";position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:20px;height:3px;background:#ff6501;border-radius:3px}.bd-group-tabs{justify-content:center;gap:60px;border-bottom:1px solid #f0f1f4}.bd-section-tabs{margin-bottom:10px}
 
 .bd-compact-filters--two{grid-template-columns:1.3fr 1fr;padding:6px 10px;margin-bottom:10px}.sa-role-dc .sa-dc-period{margin:4px 0 8px;line-height:1.4;font-size:12px}.sa-role-dc .sa-dc-ranges{padding-top:4px;padding-bottom:4px}.sa-role-dc .bd-section-tabs{margin-bottom:4px}.sa-role-dc .sa-dc-asof[hidden]{display:none}
+.bd-compact-filters--status{grid-template-columns:1fr 1fr}
+.bd-coverage + select[data-filter="list-store"]{width:100%;margin:0 0 8px;padding:9px 10px;border:1px solid #dfe3ea;border-radius:8px;background:#fff;color:#30343b;font:inherit}
 
 /* BD ranking: amount first, comparison secondary */
 .sa-role-dc a.sa-dc-list-row{align-items:flex-start;gap:12px}

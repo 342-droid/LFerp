@@ -28,29 +28,13 @@
         <div class="sa-dc-ranges" id="opsRanges" role="tablist" aria-label="统计周期"></div>
         <div class="sa-dc-period-row">
           <p class="sa-dc-period" id="opsPeriod">统计 —</p>
-          <p class="sa-dc-asof sa-dc-asof--inline" id="opsAsOf">数据截至 —</p>
-        </div>
-        <div class="sa-dc-mtabs" role="tablist" aria-label="经营模块" id="opsTabs">
-          <button type="button" class="sa-dc-mtabs__btn is-active" data-tab="retail" role="tab" aria-selected="true">营业额</button>
-          <button type="button" class="sa-dc-mtabs__btn" data-tab="proxy" role="tab" aria-selected="false">进货</button>
-          <button type="button" class="sa-dc-mtabs__btn" data-tab="income" role="tab" aria-selected="false">佣金</button>
         </div>
       </div>
 
       <div class="sa-rpt-scroll">
         <section class="sa-dc-panel" id="panel-retail" role="tabpanel">
-          <div class="sa-dc-dd-bar" id="opsRetailFilters" aria-label="营业额筛选">
-            <div class="sa-dc-dd" data-dd="view">
-              <button type="button" class="sa-dc-dd__btn" id="opsViewBtn" aria-haspopup="listbox" aria-expanded="false">
-                <span class="sa-dc-dd__label" id="opsViewLabel">支付订单归属</span>
-                <span class="sa-dc-dd__caret" aria-hidden="true"></span>
-              </button>
-              <div class="sa-dc-dd__menu" id="opsViewMenu" role="listbox" hidden>
-                <button type="button" class="sa-dc-dd__opt" role="option" data-view="pay">支付订单归属</button>
-                <button type="button" class="sa-dc-dd__opt" role="option" data-view="event">发生日期</button>
-              </div>
-            </div>
-            <div class="sa-dc-dd" data-dd="channel">
+          <div class="sa-dc-dd-bar" id="opsRetailFilters" aria-label="营业额筛选" hidden>
+            <div class="sa-dc-dd" data-dd="channel" hidden>
               <button type="button" class="sa-dc-dd__btn" id="opsChannelBtn" aria-haspopup="listbox" aria-expanded="false">
                 <span class="sa-dc-dd__label" id="opsChannelLabel">全部来源</span>
                 <span class="sa-dc-dd__caret" aria-hidden="true"></span>
@@ -63,17 +47,18 @@
             </div>
           </div>
           <div class="sa-dc-block">
+            <div class="sa-dc-source-tabs" id="opsSourceTabs" role="tablist" aria-label="营业额来源"><button type="button" data-source="all">全部来源</button><button type="button" data-source="mall">商城</button><button type="button" data-source="live">直播</button></div>
             <div class="sa-dc-grid sa-dc-grid--3">
-              <div class="sa-dc-metric"><div class="sa-dc-metric__t" id="opsPaidLabel">支付成交额（元）</div><div class="sa-dc-metric__v" id="opsPaid">0</div></div>
-              <div class="sa-dc-metric"><div class="sa-dc-metric__t">支付订单数（单）</div><div class="sa-dc-metric__v" id="opsOrders">0</div></div>
-              <div class="sa-dc-metric"><div class="sa-dc-metric__t">支付人数（人）</div><div class="sa-dc-metric__v" id="opsUsers">0</div></div>
+              <div class="sa-dc-metric"><div class="sa-dc-metric__t" id="opsPaidLabel">营业额（元）</div><div class="sa-dc-metric__v" id="opsPaid">0</div></div>
+              <div class="sa-dc-metric"><div class="sa-dc-metric__t">订单数（单）</div><div class="sa-dc-metric__v" id="opsOrders">0</div></div>
+              <div class="sa-dc-metric"><div class="sa-dc-metric__t">交易人数（人）</div><div class="sa-dc-metric__v" id="opsUsers">0</div></div>
               <div class="sa-dc-metric"><div class="sa-dc-metric__t">客单价（元）</div><div class="sa-dc-metric__v" id="opsAov">—</div></div>
               <div class="sa-dc-metric"><div class="sa-dc-metric__t">商品退款（元）</div><div class="sa-dc-metric__v" id="opsRefund">0</div></div>
               <div class="sa-dc-metric"><div class="sa-dc-metric__t">退款后实付（元）</div><div class="sa-dc-metric__v" id="opsNet">0</div></div>
             </div>
             <div class="sa-dc-chart" style="margin-top:14px">
               <div class="sa-dc-chart__meta">
-                <span>成交额趋势</span>
+                <span>营业额趋势</span>
                 <button type="button" class="sa-dc-data-toggle" id="opsTrendDataBtn" hidden>查看数据</button>
               </div>
               <div class="sa-dc-chart-wrap" id="opsTrendWrap">
@@ -92,6 +77,7 @@
 
         <section class="sa-dc-panel" id="panel-proxy" role="tabpanel" hidden>
           <div class="sa-dc-block">
+            <h2 class="sa-dc-block__title">进货</h2>
             <div class="sa-dc-grid sa-dc-grid--3">
               <div class="sa-dc-metric"><div class="sa-dc-metric__t">进货商品款（元）</div><div class="sa-dc-metric__v" id="opsPxGoods">0</div></div>
               <div class="sa-dc-metric"><div class="sa-dc-metric__t">运费（元）</div><div class="sa-dc-metric__v" id="opsPxFreight">0</div></div>
@@ -118,6 +104,7 @@
 
         <section class="sa-dc-panel" id="panel-income" role="tabpanel" hidden>
           <div class="sa-dc-block">
+            <h2 class="sa-dc-block__title">佣金</h2>
             <div class="sa-dc-hero sa-dc-hero--soft">
               <div class="sa-dc-hero__t">佣金合计</div>
               <div class="sa-dc-hero__v" id="opsIncome">0<span class="sa-dc-hero__unit">元</span></div>

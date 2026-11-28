@@ -6,6 +6,11 @@
   var state = CUi.readState({ period: '30d', channel: 'all', mode: 'sales', back: 'stores' });
   if (state.mode !== 'proxy') state.mode = 'sales';
   var root = document.querySelector('[data-ldb-root]');
+  var orderPager = { page: 1, pageSize: 10 };
+  var orderColumns = CUi.storeOrderColumns.slice(0, 7).concat([
+    { key: 'actualPurchaseCost', label: '采购成本', num: true, format: 'money' },
+    { key: 'actualGoodsMargin', label: '商品毛利', num: true, format: 'money' }
+  ], CUi.storeOrderColumns.slice(7));
 
   function filters() {
     return {
@@ -13,7 +18,7 @@
       from: state.from,
       to: state.to,
       line: state.line,
-      channel: state.channel
+      channel: state.mode === 'proxy' || state.channel === 'proxy' ? 'all' : state.channel
     };
   }
 
@@ -56,14 +61,14 @@
       showChannel: mode === 'sales',
       exportName: '单店详情'
     });
-    CUi.bindToolbar(root.querySelector('[data-ldb-toolbar]'), state, render, {
+    CUi.bindToolbar(root.querySelector('[data-ldb-toolbar]'), state, function () {
+      orderPager.page = 1;
+      render();
+    }, {
       exportName: '单店详情'
     });
     var meta = root.querySelector('[data-ldb-meta]');
     if (meta) meta.textContent = CUi.filterHint(state);
-
-    root.querySelector('[data-ldb-tip]').innerHTML =
-      '<p class="ldb-tip">本店「门店销售」与「门店进货」分开展示，不合并。</p>';
 
     root.querySelector('[data-ldb-tabs]').innerHTML = CUi.pageTabs(
       [
@@ -75,27 +80,18 @@
     root.querySelectorAll('[data-page-tab]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         state.mode = btn.getAttribute('data-page-tab');
+        orderPager.page = 1;
         render();
       });
     });
 
-    var amountLabel = mode === 'proxy' ? '代采进货额' : '销售额';
     var goodsAmountLabel = mode === 'proxy' ? '商品进货额' : '商品销售额';
-
-    root.querySelector('[data-ldb-kpis]').innerHTML =
-      CUi.kpiCard(amountLabel, CUi.money(data.kpis.sales), '', mode === 'proxy' ? '代采实付含运费' : '零售实付含运费') +
-      CUi.kpiCard('订单数', CUi.intText(data.kpis.orders), '', '') +
-      CUi.kpiCard(
-        '成功退款',
-        CUi.money(data.kpis.refundAmount),
-        '',
-        mode === 'proxy' ? '不冲减进货额' : '不冲减销售额'
-      );
+    root.querySelector('[data-ldb-kpis]').innerHTML = CUi.renderStoreKpis(data, mode, false);
 
     root.querySelector('[data-ldb-blocks]').innerHTML =
       '<div class="ldb-grid-2">' +
       CUi.sectionCard(
-        mode === 'proxy' ? '每日进货额' : '每日金额',
+        mode === 'proxy' ? '每日进货额' : '每日销售额',
         '<div class="ldb-chart">' +
           CUi.renderBars(
             data.daily.map(function (d) {
@@ -116,22 +112,26 @@
           data.products
         )
       ) +
-      '</div>' +
+      '</div><div data-ldb-single-store-orders>' +
       CUi.sectionCard(
         '订单明细',
-        CUi.simpleTable(
-          [
-            { key: 'orderId', label: '主订单号', render: CUi.orderIdCell },
-            { key: 'payTime', label: '支付成功时间' },
-            { key: 'goodsSales', label: '商品金额', num: true, format: 'money' },
-            { key: 'freightSales', label: '运费', num: true, format: 'money' },
-            { key: 'purchaseCost', label: '采购成本', num: true, format: 'money' },
-            { key: 'goodsMargin', label: '商品毛利', num: true, format: 'money' },
-            { key: 'refundAmount', label: '退款金额', num: true, format: 'money' }
-          ],
-          data.orders
-        )
-      );
+        CUi.renderPagedTable(orderColumns, data.orders, orderPager, { unitLabel: '单' }) +
+          '<p class="ldb-tip">订单按支付成功时间筛选，实际分佣列仅显示筛选期内已结算的金额。</p>',
+        '<div class="ldb-card__actions"><button type="button" class="ldb-chip is-active" ' +
+          'data-order-list-export data-lf-skip-export-notify' + (data.orders.length ? '' : ' disabled') +
+          '>导出</button></div>'
+      ) + '</div>';
+
+    CUi.bindPagedTable(root.querySelector('[data-ldb-single-store-orders]'), orderPager, render);
+    root.querySelector('[data-order-list-export]').addEventListener('click', function () {
+      CUi.openTableExport({
+        title: '导出订单明细',
+        exportName: (st ? st.name : state.storeId) + (mode === 'proxy' ? '代采' : '零售') + '订单明细',
+        unitLabel: '单',
+        rows: data.orders,
+        columns: orderColumns
+      });
+    });
   }
 
   render();

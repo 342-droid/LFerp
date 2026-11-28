@@ -12,7 +12,7 @@
     openDd: ''
   };
   var TABS = ['retail', 'proxy', 'income'];
-  var VIEW_LABELS = { pay: '支付订单归属', event: '发生日期' };
+  var VIEW_LABELS = { pay: '订单归属', event: '发生日期' };
   var SOURCE_LABELS = { all: '全部来源', mall: '商城', live: '直播' };
 
   function $(id) {
@@ -173,7 +173,7 @@
     closeDropdowns();
     TABS.forEach(function (t) {
       var panel = $('panel-' + t);
-      if (panel) panel.hidden = t !== tab;
+      if (panel) panel.hidden = false;
     });
     document.querySelectorAll('#opsTabs [data-tab]').forEach(function (btn) {
       var on = btn.getAttribute('data-tab') === tab;
@@ -236,14 +236,14 @@
           tips.retailTab || '',
           tips.viewPay || '',
           tips.viewEvent || '',
-          '客单价＝支付成交额÷支付订单数。'
+          '客单价＝营业额÷订单数。'
         ].filter(Boolean)
       });
     } else if (state.tab === 'proxy') {
       title = '采购支出说明';
       sections.push({
         title: '采购支出',
-        items: [tips.proxy || '本店采购商品及运费支出，不计入支付成交额。'].filter(Boolean)
+        items: [tips.proxy || '本店采购商品及运费支出，不计入营业额。'].filter(Boolean)
       });
     } else if (state.tab === 'income') {
       title = '佣金说明';
@@ -338,18 +338,20 @@
     if ($('opsPeriod')) {
       $('opsPeriod').textContent = S().periodCaption(
         data.bounds,
-        data.compareLabel,
-        data.compareRange
+        ''
       );
     }
     syncRetailDd();
+    document.querySelectorAll('#opsSourceTabs [data-source]').forEach(function (btn) {
+      btn.classList.toggle('is-active', btn.getAttribute('data-source') === state.channel);
+    });
     if ($('opsAsOf')) {
       $('opsAsOf').hidden = false;
       $('opsAsOf').textContent = S().updatedCaption(data.updatedAt || D().UPDATED_AT);
     }
 
     var r = data.retail;
-    if ($('opsPaidLabel')) $('opsPaidLabel').textContent = '支付成交额（元）';
+    if ($('opsPaidLabel')) $('opsPaidLabel').textContent = '营业额（元）';
     if ($('opsPaid')) $('opsPaid').textContent = group(r.paidAmount);
     if ($('opsOrders')) $('opsOrders').textContent = group(r.orderCount);
     if ($('opsUsers')) $('opsUsers').textContent = group(r.payUserCount);
@@ -485,6 +487,12 @@
   }
 
   function bind() {
+    if ($('opsSourceTabs')) $('opsSourceTabs').addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-source]');
+      if (!btn) return;
+      state.channel = btn.getAttribute('data-source');
+      render();
+    });
     document.querySelectorAll('#opsTabs [data-tab]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         setTab(btn.getAttribute('data-tab'));
@@ -594,7 +602,7 @@
     var f = S() ? S().merge('ops') : {};
     state.range = S().normalizeRange(f.range || 'today');
     state.custom = { start: f.start || '', end: f.end || '' };
-    state.view = f.view === 'event' ? 'event' : 'pay';
+    state.view = 'pay';
     state.channel = f.channel === 'mall' || f.channel === 'live' ? f.channel : 'all';
     /* 一期不含POS：旧链接 tab=tp 等未知 Tab 一律回退平台零售 */
     state.tab = S().normalizeTab(f.tab || f.section || 'retail') || 'retail';

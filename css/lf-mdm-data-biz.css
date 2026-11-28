@@ -8,7 +8,7 @@
 }
 
 .ldb-demo-banner {
-  display: flex;
+  display: none;
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
@@ -573,6 +573,13 @@
   overflow-x: auto;
   overflow-y: visible;
 }
+
+.ldb-rank-controls, .ldb-rank-pager { display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin:0 0 12px; font-size:13px; color:#606266; }
+.ldb-rank-controls label, .ldb-rank-pager label { display:inline-flex; align-items:center; gap:6px; }
+.ldb-rank-controls select, .ldb-rank-controls input, .ldb-rank-pager select { min-height:32px; padding:4px 8px; border:1px solid #dcdfe6; border-radius:4px; background:#fff; color:#303133; }
+.ldb-rank-controls button, .ldb-rank-pager button { min-height:32px; padding:4px 12px; border:1px solid #dcdfe6; border-radius:4px; background:#fff; color:#606266; cursor:pointer; }
+.ldb-rank-pager { justify-content:flex-end; margin:12px 0 0; }
+.ldb-rank-pager button:disabled { opacity:.45; cursor:default; }
 
 .ldb-table {
   width: 100%;

@@ -1,6 +1,6 @@
 /**
  * 经营数据中心 · RBT 联营与回收（独立专题）
- * 口径见会话确认：不进 GMV；投入=划拨；约定=发布快照；已履行跟履约域。
+ * 独立统计投入、门店应付与已支付金额。
  */
 (function () {
   var Center = window.MdmDataBizCenter;
@@ -24,7 +24,8 @@
   }
 
   function demandHref(code) {
-    return '../RBT/rbt_demand.html?demandCode=' + encodeURIComponent(code || '');
+    var page = window.wmsPath ? window.wmsPath.page('rbt_demand.html') : '../RBT/rbt_demand.html';
+    return page + '?demandCode=' + encodeURIComponent(code || '');
   }
 
   function demandLink(code) {
@@ -168,9 +169,9 @@
           '',
           '剩余应付 ' + Ui.money(data.remainTotal)
         ) +
-        Ui.kpiCard('冷丰实得', Ui.money(data.lengfengConfirmed), '', '门店已付款中分给冷丰的服务费') +
-        Ui.kpiCard('贸易商实收', Ui.money(data.traderRecouped), '', '门店已付款中分给贸易商的金额') +
-        Ui.kpiCard('服务商实收', Ui.money(data.providerAccrued), '', '门店已付款中分给服务商的金额');
+        Ui.kpiCard('冷丰实得', Ui.money(data.lengfengConfirmed), '', '累计已支付中分配给冷丰的服务费') +
+        Ui.kpiCard('贸易商实收', Ui.money(data.traderRecouped), '', '累计已支付中分配给贸易商的金额') +
+        Ui.kpiCard('服务商实收', Ui.money(data.providerAccrued), '', '累计已支付中分配给服务商的金额');
     }
 
     var demandHost = root.querySelector('[data-ldb-demands]');
@@ -268,7 +269,9 @@
           fulfillPager,
           { emptyText: '暂无门店付款中或已完成的需求', unitLabel: '笔' }
         ),
-      '<a class="ldb-link-all" href="../RBT/rbt_performance.html" target="_blank" rel="noopener">查看 RBT 付款记录</a>'
+      '<a class="ldb-link-all" href="' +
+        Ui.esc(window.wmsPath ? window.wmsPath.page('rbt_performance.html') : '../RBT/rbt_performance.html') +
+        '" target="_blank" rel="noopener">查看 RBT 付款记录</a>'
     );
     Ui.bindPagedTable(fulfillHost, fulfillPager, render);
   }

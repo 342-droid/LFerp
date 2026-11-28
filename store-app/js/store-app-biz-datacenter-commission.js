@@ -304,16 +304,13 @@
     });
     showAmt = Math.round(showAmt * 100) / 100;
 
-    if ($('bizExtraLabel')) {
-      $('bizExtraLabel').textContent =
-        state.dim === 'settle'
-          ? '口径：按结算时间 · 已结算佣金'
-          : '口径：按支付时间 · 预估佣金';
-      $('bizExtraLabel').hidden = false;
-    }
+    renderSummaryMetrics();
+
     if ($('bizTotalLine')) {
       $('bizTotalLine').innerHTML =
-        '所选期间佣金 <em>' + money(showAmt) + '</em> 元 <em>' + showCnt + '</em>单';
+        '所选期间共计 <em>' + showCnt + '</em> 单，' +
+        (state.dim === 'settle' ? '已入账佣金 ' : '预计佣金 ') +
+        '<em>' + money(showAmt) + '</em> 元';
     }
 
     if (state.dim === 'pay' && state.status === 'all' && !state.keyword) {
@@ -355,6 +352,33 @@
         );
       })
       .join('');
+  }
+
+  function renderSummaryMetrics() {
+    var all = D().listCommission('30d', {}, 'pay');
+    var current = D().listCommission('today', {}, 'pay');
+    var estimated = 0;
+    var credited = 0;
+    var pending = 0;
+    var settling = 0;
+    all.forEach(function (o) {
+      var amount = o.commission == null ? 0 : Number(o.commission) || 0;
+      if (o.settleBucket !== 'abnormal') estimated += amount;
+      if (o.settleStatus === '已结算') credited += Number(o.credited) || 0;
+    });
+    current.forEach(function (o) {
+      var amount = o.commission == null ? 0 : Number(o.commission) || 0;
+      if (o.settleStatus === '待结算') pending += amount;
+      if (o.settleStatus === '结算中' || o.settleStatus === '结算失败') settling += amount;
+    });
+    estimated = Math.max(estimated, credited + pending + settling);
+    if ($('bizEstimatedTotal')) $('bizEstimatedTotal').textContent = money(estimated);
+    if ($('bizCreditedTotal')) $('bizCreditedTotal').textContent = money(credited);
+    if ($('bizPendingTotal')) $('bizPendingTotal').textContent = money(pending);
+    if ($('bizSettlingTotal')) $('bizSettlingTotal').textContent = money(settling);
+    if ($('bizCreditedLabel')) {
+      $('bizCreditedLabel').textContent = '当前已入账金额';
+    }
   }
 
   function renderBalance() {
@@ -413,12 +437,9 @@
     if ($('bizBackOverview')) $('bizBackOverview').href = S().href('biz-center.html');
     if ($('commDcTab')) $('commDcTab').href = S().href('biz-center.html');
     var bounds = D().resolveRange(state.range, state.custom);
-    var cmp = D().compareBounds(bounds);
+
     if ($('bizPeriodCaption')) {
-      $('bizPeriodCaption').textContent = S().periodCaption(bounds, cmp.label, {
-        startKey: cmp.startKey,
-        endKey: cmp.endKey
-      });
+      $('bizPeriodCaption').textContent = S().periodCaption(bounds, '');
     }
     if ($('bizAsOf')) {
       $('bizAsOf').textContent = S().updatedCaption(D().UPDATED_AT);
