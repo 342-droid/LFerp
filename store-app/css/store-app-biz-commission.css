@@ -106,6 +106,16 @@
   color: #fff;
 }
 
+.sa-biz-summary__metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 16px;
+}
+
+.sa-biz-summary__metrics div { min-width: 0; }
+.sa-biz-summary__metrics span { display: block; font-size: 11px; line-height: 16px; color: rgba(255,255,255,.86); }
+.sa-biz-summary__metrics strong { display: block; margin-top: 3px; font-size: 20px; line-height: 24px; color: #fff; font-variant-numeric: tabular-nums; }
+
 .sa-biz-summary__top {
   display: flex;
   align-items: flex-start;
@@ -176,9 +186,9 @@
 }
 
 .sa-biz-summary__total {
-  margin-top: 4px;
-  padding-top: 0;
-  border-top: 0;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,.24);
   font-size: 12px;
   color: rgba(255, 255, 255, 0.95);
   line-height: 17px;
@@ -671,3 +681,11 @@
 .sa-rpt-tab.is-active svg {
   color: #ff6501;
 }
+
+.sa-biz-summary__wallet{display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.25);color:#fff}.sa-biz-summary__wallet strong{font-size:20px;margin-left:auto}.sa-biz-summary__wallet button{border:0;border-radius:16px;background:#fff;color:#ff6501;padding:6px 14px}.sa-biz-filter--range{margin-bottom:10px}
+.sa-biz-summary__total--outside{margin:0 12px 8px;padding:0;border:0;color:#626b78}.sa-biz-summary__total--outside em{color:#ff6501}
+
+/* 五个时间项在门店屏宽内保持同一行；更窄屏可横向滑动。 */
+.sa-biz-range{flex-wrap:nowrap;overflow-x:auto;gap:4px;justify-content:space-between;scrollbar-width:none}
+.sa-biz-range::-webkit-scrollbar{display:none}
+.sa-biz-range__btn{flex:0 0 auto;padding:0 9px;font-size:12px}

@@ -53,6 +53,7 @@
 
   var RANGE_OPTIONS = [
     { id: 'today', label: '今日' },
+    { id: 'yesterday', label: '昨日' },
     { id: '7d', label: '近7天' },
     { id: '30d', label: '近30天' },
     { id: 'custom', label: '自定义' }
@@ -61,27 +62,30 @@
   /** 演示：按时段缩放周期指标；时点指标固定 */
   var RANGE_SCALE = {
     today: 0.08,
+    yesterday: 0.1,
     '7d': 0.28,
     '30d': 1,
     custom: 0.65
   };
 
   var BASE = {
-    gmv: 64280,
-    qty: 1240,
+    /* 支付交易规模：按支付成功时间 */
+    paidGmv: 64280,
+    paidQty: 1240,
     orderCount: 168,
+    /* 实际供货：按履约完成节点；与支付交易分列，不可混称供货量 */
+    fulfillQty: 1180,
+    fulfillGoodsAmt: 58640,
     refundAmount: 2180.6,
+    refundQty: 46,
     aftersaleCount: 12,
     pendingShip: 8,
-    settleable: 18620.5,
     avgShipHours: 18.6,
     stockoutCancel: 2,
     deliveryAbnormal: 1,
-    storeCount: 26,
-    repurchaseStoreCount: 14,
-    silentStoreCount: 3,
-    receivable: 64280,
-    settling: 9680.4,
+    /* 货款三项分列；未确认互斥前不得相加 */
+    duePayable: 52840.2,
+    pendingSettle: 9680.4,
     settled: 48600.5,
     writeOff: 1280.3,
     reconcileDiff: 1
@@ -108,59 +112,109 @@
       {
         name: '火龙果',
         sku: 'SKU00196',
-        qty: Math.round(320 * s),
-        gmv: round2(12800 * s),
-        refund: round2(120 * s),
+        paidQty: Math.round(320 * s),
+        fulfillQty: Math.round(310 * s),
+        paidGmv: round2(12800 * s),
+        goodsPayable: round2(10240 * s),
+        refundQty: Math.max(0, Math.round(4 * s)),
+        refundAmount: round2(120 * s),
         aftersaleRate: 2.1,
-        stock: 86,
-        activeStores: 12
+        stock: 86
       },
       {
         name: '芒果干',
         sku: 'SPU00088',
-        qty: Math.round(210 * s),
-        gmv: round2(8400 * s),
-        refund: round2(960 * s),
+        paidQty: Math.round(210 * s),
+        fulfillQty: Math.round(190 * s),
+        paidGmv: round2(8400 * s),
+        goodsPayable: round2(6720 * s),
+        refundQty: Math.max(0, Math.round(18 * s)),
+        refundAmount: round2(960 * s),
         aftersaleRate: 11.2,
-        stock: 14,
-        activeStores: 8
+        stock: 14
       },
       {
         name: '白芭乐-快递-ss',
         sku: 'SKU00184',
-        qty: Math.round(90 * s),
-        gmv: round2(3600 * s),
-        refund: 0,
+        paidQty: Math.round(90 * s),
+        fulfillQty: Math.round(88 * s),
+        paidGmv: round2(3600 * s),
+        goodsPayable: round2(2880 * s),
+        refundQty: 0,
+        refundAmount: 0,
         aftersaleRate: 0,
-        stock: 0,
-        activeStores: 5
+        stock: 0
       },
       {
         name: '低糖养乐多',
         sku: 'SPU00204',
-        qty: Math.round(150 * s),
-        gmv: round2(7200 * s),
-        refund: round2(180 * s),
+        paidQty: Math.round(150 * s),
+        fulfillQty: Math.round(146 * s),
+        paidGmv: round2(7200 * s),
+        goodsPayable: round2(5760 * s),
+        refundQty: Math.max(0, Math.round(3 * s)),
+        refundAmount: round2(180 * s),
         aftersaleRate: 3.4,
-        stock: 42,
-        activeStores: 9
+        stock: 42
       },
       {
         name: '运费验收-快递常温2.5kg',
         sku: 'SKU00217',
-        qty: Math.round(40 * s),
-        gmv: round2(800 * s),
-        refund: 0,
+        paidQty: Math.round(40 * s),
+        fulfillQty: Math.round(40 * s),
+        paidGmv: round2(800 * s),
+        goodsPayable: round2(640 * s),
+        refundQty: 0,
+        refundAmount: 0,
         aftersaleRate: 0,
-        stock: 999,
-        activeStores: 4
+        stock: 999
+      }
+    ];
+  }
+
+  /** 订单退款：顾客退款与供应商货款调整分列，金额不默认相等 */
+  function buildRefundOrders(rangeKey) {
+    var s = RANGE_SCALE[rangeKey] || 1;
+    return [
+      {
+        orderNo: 'SO20261115088',
+        goods: '芒果干 ×2',
+        orderStatus: '交易成功',
+        aftersaleStatus: '退款成功',
+        settleStatus: '已冲销',
+        refundType: '全部退货',
+        customerRefund: round2(96 * s),
+        payableAdjust: round2(76.8 * s),
+        refundQty: Math.max(1, Math.round(2 * s))
+      },
+      {
+        orderNo: 'SO20261114021',
+        goods: '火龙果 ×1',
+        orderStatus: '交易成功',
+        aftersaleStatus: '退款成功',
+        settleStatus: '待调整',
+        refundType: '仅退金额',
+        customerRefund: round2(12.5 * s),
+        payableAdjust: round2(10 * s),
+        refundQty: 0
+      },
+      {
+        orderNo: 'SO20261112055',
+        goods: '低糖养乐多 ×3',
+        orderStatus: '部分退款',
+        aftersaleStatus: '退货退款中',
+        settleStatus: '未形成',
+        refundType: '退数量',
+        customerRefund: round2(36 * s),
+        payableAdjust: null,
+        refundQty: Math.max(1, Math.round(1 * s))
       }
     ];
   }
 
   function resolveGrain(rangeKey, custom) {
     var map = (CFG().TREND_GRAIN_BY_RANGE || {});
-    if (rangeKey === 'today') return map.today || 'hour';
+    if (rangeKey === 'today' || rangeKey === 'yesterday') return map.today || 'hour';
     if (rangeKey === '7d' || rangeKey === '30d') return map[rangeKey] || 'day';
     if (rangeKey === 'custom' && custom && custom.from && custom.to) {
       var a = new Date(custom.from.replace(/-/g, '/'));
@@ -170,88 +224,6 @@
       return days <= max ? 'day' : 'week';
     }
     return 'day';
-  }
-
-  function buildTrend(rangeKey, grain) {
-    var n =
-      grain === 'week' ? 6 : grain === 'hour' ? 8 : rangeKey === '7d' ? 7 : rangeKey === 'today' ? 8 : 14;
-    var gmv = [];
-    var orders = [];
-    var qty = [];
-    var asAmt = [];
-    var asRate = [];
-    for (var i = 0; i < n; i++) {
-      var label =
-        grain === 'week'
-          ? 'W' + (i + 1)
-          : grain === 'hour'
-            ? i * 3 + ':00'
-            : '11-' + String(3 + i).padStart(2, '0');
-      var factor = 0.6 + (i % 5) * 0.12;
-      gmv.push({ label: label, value: round2(3200 * factor * (RANGE_SCALE[rangeKey] || 1) * 3) });
-      orders.push({ label: label, value: Math.round(12 * factor * (RANGE_SCALE[rangeKey] || 1) * 3) });
-      qty.push({ label: label, value: Math.round(80 * factor * (RANGE_SCALE[rangeKey] || 1) * 3) });
-      asAmt.push({ label: label, value: round2(90 * factor) });
-      asRate.push({ label: label, value: round2(2 + (i % 4) * 1.1) });
-    }
-    return {
-      grain: grain,
-      gmv: gmv,
-      orders: orders,
-      qty: qty,
-      aftersaleAmount: asAmt,
-      aftersaleRate: asRate
-    };
-  }
-
-  function buildStores(rangeKey) {
-    var idle = (CFG().SILENT_STORE && CFG().SILENT_STORE.idleDays) || 30;
-    return [
-      {
-        name: '斯斯门店商家2',
-        region: '华东 · 杭州',
-        orders: Math.round(48 * (RANGE_SCALE[rangeKey] || 1)),
-        gmv: round2(18600 * (RANGE_SCALE[rangeKey] || 1)),
-        lastPurchase: '2026-11-16',
-        silent: false
-      },
-      {
-        name: '德清乾元天恩冷鲜超市',
-        region: '华东 · 湖州',
-        orders: Math.round(22 * (RANGE_SCALE[rangeKey] || 1)),
-        gmv: round2(9200 * (RANGE_SCALE[rangeKey] || 1)),
-        lastPurchase: '2026-11-12',
-        silent: false
-      },
-      {
-        name: '南京马群生鲜店',
-        region: '华东 · 南京',
-        orders: Math.round(15 * (RANGE_SCALE[rangeKey] || 1)),
-        gmv: round2(6100 * (RANGE_SCALE[rangeKey] || 1)),
-        lastPurchase: '2026-09-28',
-        silent: true,
-        idleDays: idle
-      },
-      {
-        name: '苏州园区联营点',
-        region: '华东 · 苏州',
-        orders: Math.round(9 * (RANGE_SCALE[rangeKey] || 1)),
-        gmv: round2(3400 * (RANGE_SCALE[rangeKey] || 1)),
-        lastPurchase: '2026-10-02',
-        silent: true,
-        idleDays: idle
-      }
-    ];
-  }
-
-  function buildRegions() {
-    return [
-      { name: '杭州', value: 42 },
-      { name: '湖州', value: 18 },
-      { name: '南京', value: 15 },
-      { name: '苏州', value: 12 },
-      { name: '其它', value: 13 }
-    ];
   }
 
   /**
@@ -363,63 +335,78 @@
         if (mode === 'empty') {
           resolve({
             meta: {
-            asOf: AS_OF,
-            supplierId: supplierId,
-            range: params.range || '30d',
-            grain: grain,
-            empty: true,
-            demo: true
-          },
-          overview: null,
-          trends: { grain: grain, gmv: [], orders: [], qty: [], aftersaleAmount: [], aftersaleRate: [] },
+              asOf: AS_OF,
+              supplierId: supplierId,
+              range: params.range || '30d',
+              grain: grain,
+              empty: true,
+              demo: true
+            },
+            overview: null,
             products: [],
+            refundOrders: [],
             fulfillment: null,
-            stores: { summary: null, list: [], regions: [] },
             settle: null
           });
           return;
         }
 
         var hasPrev = rangeKey !== 'today';
-        var gmv = scale(BASE.gmv, rangeKey);
-        var qty = Math.round(scale(BASE.qty, rangeKey));
+        var paidGmv = scale(BASE.paidGmv, rangeKey);
+        var paidQty = Math.round(scale(BASE.paidQty, rangeKey));
+        var fulfillQty = Math.round(scale(BASE.fulfillQty, rangeKey));
+        var fulfillGoodsAmt = scale(BASE.fulfillGoodsAmt, rangeKey);
         var orderCount = Math.round(scale(BASE.orderCount, rangeKey));
         var refund = scale(BASE.refundAmount, rangeKey);
+        var refundQty = Math.round(scale(BASE.refundQty, rangeKey));
         var aftersaleCount = Math.round(scale(BASE.aftersaleCount, rangeKey));
         if (mode === 'aftersale') {
           refund = round2(refund * 3.2);
+          refundQty = Math.round(refundQty * 3);
           aftersaleCount = Math.round(aftersaleCount * 3);
         }
         var aftersaleRate = orderCount ? pct((aftersaleCount / orderCount) * 100) : 0;
+        var duePayable = mode === 'settle0' ? 0 : scale(BASE.duePayable, rangeKey);
+        var pendingSettle = mode === 'settle0' ? 0 : scale(BASE.pendingSettle, rangeKey);
+        var settledAmt = mode === 'settle0' ? 0 : scale(BASE.settled, rangeKey);
 
         var overview = {
-          gmv: comparePair(gmv, hasPrev),
-          qty: comparePair(qty, hasPrev),
+          paidGmv: comparePair(paidGmv, hasPrev),
+          paidQty: comparePair(paidQty, hasPrev),
           orderCount: comparePair(orderCount, hasPrev),
+          fulfillQty: comparePair(fulfillQty, hasPrev),
+          fulfillGoodsAmt: comparePair(fulfillGoodsAmt, hasPrev),
           refundAmount: comparePair(refund, hasPrev),
+          refundQty: comparePair(refundQty, hasPrev),
           aftersaleRate: comparePair(aftersaleRate, hasPrev),
-          pendingShip: { value: BASE.pendingShip, prev: null, deltaPct: null, pointInTime: true },
-          settleable: comparePair(
-            mode === 'settle0' ? 0 : scale(BASE.settleable, rangeKey),
-            hasPrev && mode !== 'settle0'
-          )
+          duePayable: comparePair(duePayable, hasPrev && mode !== 'settle0'),
+          pendingSettle: comparePair(pendingSettle, hasPrev && mode !== 'settle0'),
+          settled: comparePair(settledAmt, hasPrev && mode !== 'settle0'),
+          pendingShip: { value: BASE.pendingShip, prev: null, deltaPct: null, pointInTime: true }
         };
 
         var settle = {
-          receivable: scale(BASE.receivable, rangeKey),
-          settleable: mode === 'settle0' ? 0 : scale(BASE.settleable, rangeKey),
-          settling: mode === 'settle0' ? 0 : scale(BASE.settling, rangeKey),
-          settled: mode === 'settle0' ? 0 : scale(BASE.settled, rangeKey),
+          duePayable: duePayable,
+          pendingSettle: pendingSettle,
+          settled: settledAmt,
           writeOff: scale(BASE.writeOff, rangeKey),
           reconcileDiff: mode === 'settle0' ? 0 : BASE.reconcileDiff,
           pendingArrival: POINT.pendingArrival,
+          /* 三项是否包含关系未确认，禁止前端相加展示合计 */
+          sumForbidden: true,
           detailHref: 'supplier-settle.html'
         };
 
         var products = buildProducts(rangeKey);
         if (mode === 'aftersale') {
           products = products.map(function (p, i) {
-            if (i === 1) return Object.assign({}, p, { aftersaleRate: 18.6, refund: round2(p.refund * 4) });
+            if (i === 1) {
+              return Object.assign({}, p, {
+                aftersaleRate: 18.6,
+                refundAmount: round2(p.refundAmount * 4),
+                refundQty: Math.max(1, p.refundQty * 3)
+              });
+            }
             return p;
           });
         }
@@ -435,12 +422,30 @@
             );
           });
         }
-        var sort = params.sort || 'gmv';
+        var sort = params.sort || 'paidGmv';
         products = products.slice().sort(function (a, b) {
-          if (sort === 'qty') return b.qty - a.qty;
+          if (sort === 'paidQty') return b.paidQty - a.paidQty;
+          if (sort === 'fulfillQty') return b.fulfillQty - a.fulfillQty;
           if (sort === 'aftersaleRate') return b.aftersaleRate - a.aftersaleRate;
-          return b.gmv - a.gmv;
+          return b.paidGmv - a.paidGmv;
         });
+
+        var refundOrders = buildRefundOrders(rangeKey);
+        if (mode === 'aftersale') {
+          refundOrders = refundOrders.concat([
+            {
+              orderNo: 'SO20261110003',
+              goods: '芒果干 ×1',
+              orderStatus: '交易成功',
+              aftersaleStatus: '退款成功',
+              settleStatus: '已冲销',
+              refundType: '全部退货',
+              customerRefund: round2(48),
+              payableAdjust: round2(38.4),
+              refundQty: 1
+            }
+          ]);
+        }
 
         var asTypes = buildAftersaleTypes(rangeKey);
         var asReasons = buildAftersaleReasons(rangeKey);
@@ -474,12 +479,14 @@
             demoMode: mode
           },
           overview: overview,
-          trends: buildTrend(rangeKey, grain),
           products: products,
+          refundOrders: refundOrders,
           fulfillment: {
             pendingShip: BASE.pendingShip,
             /* 现网无承诺时点，不上报准时率 */
             onTimeShipRate: null,
+            fulfillQty: fulfillQty,
+            fulfillOrderCount: Math.max(1, Math.round(orderCount * 0.92)),
             avgShipHours: BASE.avgShipHours,
             stockoutCancel: BASE.stockoutCancel,
             deliveryAbnormal: mode === 'aftersale' ? BASE.deliveryAbnormal + 3 : BASE.deliveryAbnormal,
@@ -487,16 +494,6 @@
             aftersaleReasons: asReasons,
             ordersHref: 'supplier-orders.html',
             aftersaleHref: asHref
-          },
-          stores: {
-            summary: {
-              storeCount: BASE.storeCount,
-              repurchaseStoreCount: BASE.repurchaseStoreCount,
-              silentStoreCount: BASE.silentStoreCount,
-              silentIdleDays: (CFG().SILENT_STORE && CFG().SILENT_STORE.idleDays) || 30
-            },
-            list: buildStores(rangeKey),
-            regions: buildRegions()
           },
           settle: settle
         });

@@ -1,5 +1,5 @@
 /**
- * 供应商 · 数据中心可配置常量（风险标签 / 沉默门店 / 能力开关）
+ * 供应商 · 数据中心可配置常量（风险标签 / 能力开关）
  * 业务逻辑只读本文件，勿在页面脚本里写死阈值。
  */
 (function (global) {
@@ -23,6 +23,7 @@
      */
     TREND_GRAIN_BY_RANGE: {
       today: 'hour',
+      yesterday: 'hour',
       '7d': 'day',
       '30d': 'day',
       customDayMax: 14
@@ -36,14 +37,6 @@
       lowStockQty: 20,
       /** 售后率（%）≥ 该值 → 高售后 */
       highAftersaleRatePct: 8
-    },
-
-    /** 沉默采购门店：筛选周期内曾有采购，且最近采购距今 ≥ N 天 */
-    SILENT_STORE: {
-      /** 近 N 天无采购视为沉默（可配置） */
-      idleDays: 30,
-      definition:
-        '在筛选周期内曾有采购记录，但最近一次采购距今已超过 idleDays 天的关联门店'
     },
 
     /**
@@ -119,17 +112,12 @@
       {
         key: 'products',
         path: 'GET /api/supplier/biz/products',
-        need: 'range + sort + keyword；SKU 排行与库存／动销门店'
+        need: 'range + sort + keyword；SKU 排行与库存'
       },
       {
         key: 'fulfillment',
         path: 'GET /api/supplier/biz/fulfillment-aftersale',
         need: '履约指标 + 售后类型／原因汇总（只读）'
-      },
-      {
-        key: 'stores',
-        path: 'GET /api/supplier/biz/stores',
-        need: '门店贡献／区域／沉默门店；禁止消费者 PII'
       },
       {
         key: 'settle',
@@ -151,11 +139,6 @@
         reuse: '订单／售后明细可衍生，缺现成序列 API'
       },
       {
-        field: '动销门店数、区域分布',
-        suggest: 'products / stores 聚合',
-        reuse: '订单含 storeName，缺标准区域码'
-      },
-      {
         field: '发货准时率',
         suggest: '需预计发货／交货日期等承诺侧字段；现网仅有实际发货事件，指标暂不上屏',
         reuse: '实际发货事件可复用；承诺侧未落库'
@@ -169,11 +152,6 @@
         field: '可结算金额／结算中／冲销／对账差异',
         suggest: 'settle-summary；与结算中心同源',
         reuse: '结算中心有台账／结款单，缺总览聚合与差异数'
-      },
-      {
-        field: '沉默采购门店列表',
-        suggest: 'stores?silent=1&idleDays=',
-        reuse: '可自订单最近采购日计算，缺专用接口'
       }
     ]
   };

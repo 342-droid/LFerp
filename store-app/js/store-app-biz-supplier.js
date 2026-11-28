@@ -1,15 +1,14 @@
 /**
  * 供应商 · 数据中心交互
- * 六区：总览／趋势／商品／履约售后／门店／结算；状态：加载／空／失败
+ * 一期五区：总览／商品表现／订单退款／履约售后／货款结款（不含独立门店分析）；状态：加载／空／失败
  */
 (function () {
   var state = {
     tab: 'overview',
     range: '30d',
     custom: { from: '', to: '' },
-    sort: 'gmv',
+    sort: 'paidGmv',
     keyword: '',
-    trendMetric: 'gmv',
     loading: false,
     error: null,
     data: null
@@ -17,11 +16,10 @@
 
   var TABS = [
     { id: 'overview', label: '经营总览' },
-    { id: 'trends', label: '趋势分析' },
-    { id: 'products', label: '商品分析' },
+    { id: 'products', label: '商品表现' },
+    { id: 'refunds', label: '订单退款' },
     { id: 'fulfill', label: '履约与售后' },
-    { id: 'stores', label: '门店采购' },
-    { id: 'settle', label: '结算概览' }
+    { id: 'settle', label: '货款结款' }
   ];
 
   function cfg() {
@@ -182,6 +180,9 @@
             ? String(pair.value)
             : '—'
           : money(pair && pair.value);
+    var note = opts.note
+      ? '<i class="sa-sbiz-cell__note">' + esc(opts.note) + '</i>'
+      : '';
     return (
       '<div class="sa-sbiz-cell' +
       (opts.wide ? ' is-wide' : '') +
@@ -189,7 +190,9 @@
       esc(label) +
       '</span><b>' +
       esc(val) +
-      '</b><em class="' +
+      '</b>' +
+      note +
+      '<em class="' +
       cmp.cls +
       '">' +
       esc(cmp.text) +
@@ -219,87 +222,23 @@
     var o = data.overview;
     if (!o) return renderState('empty', '本时段暂无经营数据');
     return (
-      '<section class="sa-sbiz-card"><div class="sa-sbiz-card__hd"><h2>核心指标</h2></div>' +
+      '<section class="sa-sbiz-card"><div class="sa-sbiz-card__hd"><h2>交易与供货</h2></div>' +
+      '<p class="sa-sbiz-tip">支付交易按支付成功时间统计；实际供货按履约完成统计。以下金额为供应商货款，不是消费者实付。</p>' +
       '<div class="sa-sbiz-grid">' +
-      metricCell('成交额(元)', o.gmv) +
-      metricCell('销量', o.qty, { kind: 'int' }) +
-      metricCell('订单数', o.orderCount, { kind: 'int' }) +
-      metricCell('退款金额(元)', o.refundAmount) +
-      metricCell('售后率', o.aftersaleRate, { kind: 'pct' }) +
-      metricCell('待发货数', o.pendingShip, { kind: 'int' }) +
-      metricCell('可结算金额(元)', o.settleable, { wide: true }) +
+      metricCell('销售额(元)', o.paidGmv, { note: '按支付成功' }) +
+      metricCell('商品交易数量', o.paidQty, { kind: 'int', note: '按支付成功' }) +
+      metricCell('订单数', o.orderCount, { kind: 'int', note: '按支付成功' }) +
+      metricCell('实际供货数量', o.fulfillQty, { kind: 'int', note: '按履约完成' }) +
+      metricCell('实际供货货款(元)', o.fulfillGoodsAmt, { note: '按履约完成' }) +
+      metricCell('退款金额(元)', o.refundAmount, { note: '按退款完成' }) +
+      '</div></section>' +
+      '<section class="sa-sbiz-card"><div class="sa-sbiz-card__hd"><h2>货款结款摘要</h2></div>' +
+      '<p class="sa-sbiz-tip">应结、待结款、已结款分别展示，请勿直接相加。无记录显示 —，金额为 0 显示 0。</p>' +
+      '<div class="sa-sbiz-grid">' +
+      metricCell('应结货款(元)', o.duePayable) +
+      metricCell('待结款(元)', o.pendingSettle) +
+      metricCell('已结款(元)', o.settled) +
       '</div></section>'
-    );
-  }
-
-  function renderTrends(data) {
-    var t = data.trends || {};
-    var seriesMap = {
-      gmv: { title: '成交额趋势', pts: t.gmv },
-      orders: { title: '订单数趋势', pts: t.orders },
-      qty: { title: '销量趋势', pts: t.qty }
-    };
-    var cur = seriesMap[state.trendMetric] || seriesMap.gmv;
-    var asPts = t.aftersaleAmount || [];
-    var asRate = t.aftersaleRate || [];
-    var emptyMain = !(cur.pts && cur.pts.length);
-    /* 粒度跟随顶栏时段，卡片上不展示「按天／按周」标识 */
-    var html =
-      '<section class="sa-sbiz-card"><div class="sa-sbiz-card__hd"><h2>经营趋势</h2></div>' +
-      '<div class="sa-sbiz-metric-tabs">' +
-      ['gmv', 'orders', 'qty']
-        .map(function (k) {
-          var lab = k === 'gmv' ? '成交额' : k === 'orders' ? '订单数' : '销量';
-          return (
-            '<button type="button" class="sa-sbiz-chip' +
-            (state.trendMetric === k ? ' is-on' : '') +
-            '" data-trend-metric="' +
-            k +
-            '">' +
-            lab +
-            '</button>'
-          );
-        })
-        .join('') +
-      '</div>' +
-      (emptyMain
-        ? renderState('empty', '暂无趋势数据')
-        : '<div class="sa-sbiz-chart-wrap"><div class="sa-sbiz-chart-y" id="sbizTrendY"></div>' +
-          '<svg class="sa-sbiz-chart" id="sbizTrendSvg" viewBox="0 0 289 112"></svg></div>') +
-      '</section>' +
-      '<section class="sa-sbiz-card"><div class="sa-sbiz-card__hd"><h2>售后金额趋势</h2></div>' +
-      (!(asPts && asPts.length)
-        ? renderState('empty', '暂无售后金额趋势')
-        : '<div class="sa-sbiz-chart-wrap"><div class="sa-sbiz-chart-y" id="sbizAsAmtY"></div>' +
-          '<svg class="sa-sbiz-chart" id="sbizAsAmtSvg" viewBox="0 0 289 112"></svg></div>') +
-      '</section>' +
-      '<section class="sa-sbiz-card"><div class="sa-sbiz-card__hd"><h2>售后率趋势</h2></div>' +
-      (!(asRate && asRate.length)
-        ? renderState('empty', '暂无售后率趋势')
-        : '<div class="sa-sbiz-chart-wrap"><div class="sa-sbiz-chart-y" id="sbizAsRateY"></div>' +
-          '<svg class="sa-sbiz-chart" id="sbizAsRateSvg" viewBox="0 0 289 112"></svg></div>') +
-      '</section>';
-    return html;
-  }
-
-  function paintCharts(data) {
-    if (state.tab !== 'trends' || !data || !data.trends) return;
-    var t = data.trends;
-    var map = { gmv: t.gmv, orders: t.orders, qty: t.qty };
-    drawLineChart(
-      document.getElementById('sbizTrendSvg'),
-      document.getElementById('sbizTrendY'),
-      map[state.trendMetric] || t.gmv
-    );
-    drawLineChart(
-      document.getElementById('sbizAsAmtSvg'),
-      document.getElementById('sbizAsAmtY'),
-      t.aftersaleAmount
-    );
-    drawLineChart(
-      document.getElementById('sbizAsRateSvg'),
-      document.getElementById('sbizAsRateY'),
-      t.aftersaleRate
     );
   }
 
@@ -311,18 +250,26 @@
       esc(state.keyword) +
       '"/>' +
       '<select class="sa-sbiz-select" id="sbizSort">' +
-      '<option value="gmv"' +
-      (state.sort === 'gmv' ? ' selected' : '') +
-      '>按成交额</option>' +
-      '<option value="qty"' +
-      (state.sort === 'qty' ? ' selected' : '') +
-      '>按销量</option>' +
+      '<option value="paidGmv"' +
+      (state.sort === 'paidGmv' ? ' selected' : '') +
+      '>按销售额</option>' +
+      '<option value="paidQty"' +
+      (state.sort === 'paidQty' ? ' selected' : '') +
+      '>按交易数量</option>' +
+      '<option value="fulfillQty"' +
+      (state.sort === 'fulfillQty' ? ' selected' : '') +
+      '>按履约供货量</option>' +
       '<option value="aftersaleRate"' +
       (state.sort === 'aftersaleRate' ? ' selected' : '') +
       '>按售后率</option>' +
       '</select></div>';
     if (!list.length) {
-      return '<section class="sa-sbiz-card"><div class="sa-sbiz-card__hd"><h2>商品／SKU 排行</h2></div>' + bar + renderState('empty', '暂无商品数据') + '</section>';
+      return (
+        '<section class="sa-sbiz-card"><div class="sa-sbiz-card__hd"><h2>商品表现</h2></div>' +
+        bar +
+        renderState('empty', '暂无商品数据') +
+        '</section>'
+      );
     }
     var rows = list
       .map(function (p) {
@@ -334,26 +281,74 @@
           '</div><div style="color:#999;font-size:11px">' +
           esc(p.sku) +
           '</div></td><td><b>' +
-          esc(p.qty) +
+          esc(p.paidQty) +
           '</b></td><td><b>' +
-          money(p.gmv) +
+          esc(p.fulfillQty) +
+          '</b></td><td><b>' +
+          money(p.paidGmv) +
           '</b></td><td>' +
-          money(p.refund) +
+          money(p.goodsPayable) +
           '</td><td>' +
-          Number(p.aftersaleRate).toFixed(1) +
-          '%</td><td>' +
-          esc(p.stock) +
+          esc(p.refundQty) +
+          '／' +
+          money(p.refundAmount) +
           '</td><td>' +
-          esc(p.activeStores) +
+          Number(p.aftersaleRate || 0).toFixed(1) + '%' +
           '</td></tr>'
         );
       })
       .join('');
     return (
-      '<section class="sa-sbiz-card"><div class="sa-sbiz-card__hd"><h2>商品／SKU 排行</h2></div>' +
+      '<section class="sa-sbiz-card"><div class="sa-sbiz-card__hd"><h2>商品表现</h2></div>' +
+      '<p class="sa-sbiz-tip">交易数量按支付成功统计；履约供货按履约完成统计。退数量与退款金额分开显示。</p>' +
       bar +
       '<div style="overflow:auto"><table class="sa-sbiz-table"><thead><tr>' +
-      '<th>商品</th><th>销量</th><th>成交额</th><th>退款</th><th>售后率</th><th>库存</th><th>动销门店</th>' +
+      '<th>商品</th><th>交易数量</th><th>履约供货</th><th>销售额</th><th>货款</th><th>退数量／退款</th><th>售后率</th>' +
+      '</tr></thead><tbody>' +
+      rows +
+      '</tbody></table></div></section>'
+    );
+  }
+
+  function renderRefunds(data) {
+    var list = data.refundOrders || [];
+    if (!list.length) {
+      return (
+        '<section class="sa-sbiz-card"><div class="sa-sbiz-card__hd"><h2>订单退款</h2></div>' +
+        renderState('empty', '本时段暂无退款记录') +
+        '</section>'
+      );
+    }
+    var rows = list
+      .map(function (r) {
+        var adj =
+          r.payableAdjust == null ? '—' : money(r.payableAdjust);
+        return (
+          '<tr><td>' +
+          esc(r.orderNo) +
+          '<div style="color:#999;font-size:11px">' +
+          esc(r.goods) +
+          '</div></td><td>' +
+          esc(r.refundType) +
+          '</td><td>' +
+          money(r.customerRefund) +
+          '</td><td>' +
+          adj +
+          '</td><td>' +
+          esc(r.orderStatus) +
+          '<div style="color:#999;font-size:11px">售后 ' +
+          esc(r.aftersaleStatus) +
+          ' · 结款 ' +
+          esc(String(r.settleStatus).replace(/结算/g, '结款')) +
+          '</div></td></tr>'
+        );
+      })
+      .join('');
+    return (
+      '<section class="sa-sbiz-card"><div class="sa-sbiz-card__hd"><h2>订单退款</h2></div>' +
+      '<p class="sa-sbiz-tip">顾客退款与货款调整分别取自系统记录，金额可能不同。订单、售后、结款状态分开显示。</p>' +
+      '<div style="overflow:auto"><table class="sa-sbiz-table"><thead><tr>' +
+      '<th>订单／商品</th><th>类型</th><th>顾客退款</th><th>货款调整</th><th>状态</th>' +
       '</tr></thead><tbody>' +
       rows +
       '</tbody></table></div></section>'
@@ -397,7 +392,14 @@
       '<a class="sa-sbiz-link" href="' +
       esc(f.ordersHref || 'supplier-orders.html') +
       '">客户订单</a></div>' +
+      '<p class="sa-sbiz-tip">实际供货按履约完成统计。售后申请或审核通过不等于退款完成。</p>' +
       '<div class="sa-sbiz-grid">' +
+      '<div class="sa-sbiz-cell"><span>履约完成订单数</span><b>' +
+      esc(f.fulfillOrderCount != null ? f.fulfillOrderCount : '—') +
+      '</b></div>' +
+      '<div class="sa-sbiz-cell"><span>履约完成商品数</span><b>' +
+      esc(f.fulfillQty != null ? f.fulfillQty : '—') +
+      '</b></div>' +
       '<div class="sa-sbiz-cell"><span>待发货数</span><b>' +
       esc(f.pendingShip) +
       '</b></div>' +
@@ -422,97 +424,23 @@
     );
   }
 
-  function renderStores(data) {
-    var s = data.stores || {};
-    var sum = s.summary;
-    if (!sum) return renderState('empty', '暂无门店采购数据');
-    var idle = sum.silentIdleDays || 30;
-    var maxR = Math.max.apply(
-      null,
-      (s.regions || []).map(function (r) {
-        return r.value;
-      }).concat([1])
-    );
-    var regions = (s.regions || [])
-      .map(function (r) {
-        var w = Math.round((r.value / maxR) * 100);
-        return (
-          '<div class="sa-sbiz-bar"><span style="width:48px">' +
-          esc(r.name) +
-          '</span><div class="sa-sbiz-bar__track"><div class="sa-sbiz-bar__fill" style="width:' +
-          w +
-          '%"></div></div><b>' +
-          esc(r.value) +
-          '%</b></div>'
-        );
-      })
-      .join('');
-    var rows = (s.list || [])
-      .map(function (st) {
-        return (
-          '<tr><td>' +
-          esc(st.name) +
-          (st.silent
-            ? ' <span class="sa-sbiz-tag sa-sbiz-tag--warn">沉默</span>'
-            : '') +
-          '</td><td>' +
-          esc(st.region) +
-          '</td><td>' +
-          esc(st.orders) +
-          '</td><td><b>' +
-          money(st.gmv) +
-          '</b></td><td>' +
-          esc(st.lastPurchase) +
-          '</td></tr>'
-        );
-      })
-      .join('');
-    return (
-      '<section class="sa-sbiz-card"><div class="sa-sbiz-card__hd"><h2>门店采购概览</h2></div>' +
-      '<div class="sa-sbiz-grid">' +
-      '<div class="sa-sbiz-cell"><span>采购门店数</span><b>' +
-      esc(sum.storeCount) +
-      '</b></div>' +
-      '<div class="sa-sbiz-cell"><span>复购门店数</span><b>' +
-      esc(sum.repurchaseStoreCount) +
-      '</b></div>' +
-      '<div class="sa-sbiz-cell is-wide"><span>沉默采购门店</span><b>' +
-      esc(sum.silentStoreCount) +
-      '</b><em>近 ' +
-      esc(idle) +
-      ' 天无采购</em></div></div></section>' +
-      '<section class="sa-sbiz-card"><div class="sa-sbiz-card__hd"><h2>区域分布</h2></div>' +
-      (regions || renderState('empty', '暂无区域数据')) +
-      '</section>' +
-      '<section class="sa-sbiz-card"><div class="sa-sbiz-card__hd"><h2>门店贡献</h2></div>' +
-      (rows
-        ? '<div style="overflow:auto"><table class="sa-sbiz-table"><thead><tr><th>门店</th><th>区域</th><th>订单数</th><th>成交额</th><th>最近采购</th></tr></thead><tbody>' +
-          rows +
-          '</tbody></table></div>'
-        : renderState('empty', '暂无门店列表')) +
-      '</section>'
-    );
-  }
-
   function renderSettle(data) {
     var s = data.settle;
-    if (!s) return renderState('empty', '暂无结算数据');
+    if (!s) return renderState('empty', '暂无结款数据');
     return (
-      '<section class="sa-sbiz-card"><div class="sa-sbiz-card__hd"><h2>结算概览</h2>' +
+      '<section class="sa-sbiz-card"><div class="sa-sbiz-card__hd"><h2>货款结款</h2>' +
       '<a class="sa-sbiz-link" href="' +
       esc(s.detailHref || 'supplier-settle.html') +
-      '">结算中心</a></div>' +
+      '">结款单明细</a></div>' +
+      '<p class="sa-sbiz-tip">货款取自供应商结款记录。应结、待结款、已结款分别展示，请勿直接相加。可进入结款单查看关联订单。</p>' +
       '<div class="sa-sbiz-grid">' +
-      '<div class="sa-sbiz-cell"><span>应收金额(元)</span><b>' +
-      money(s.receivable) +
+      '<div class="sa-sbiz-cell"><span>应结货款(元)</span><b>' +
+      money(s.duePayable) +
       '</b></div>' +
-      '<div class="sa-sbiz-cell"><span>可结算金额(元)</span><b>' +
-      money(s.settleable) +
+      '<div class="sa-sbiz-cell"><span>待结款(元)</span><b>' +
+      money(s.pendingSettle) +
       '</b></div>' +
-      '<div class="sa-sbiz-cell"><span>结算中金额(元)</span><b>' +
-      money(s.settling) +
-      '</b></div>' +
-      '<div class="sa-sbiz-cell"><span>已结算金额(元)</span><b>' +
+      '<div class="sa-sbiz-cell"><span>已结款(元)</span><b>' +
       money(s.settled) +
       '</b></div>' +
       '<div class="sa-sbiz-cell"><span>售后／退款冲销(元)</span><b>' +
@@ -546,14 +474,12 @@
     }
     var html = '';
     if (state.tab === 'overview') html = renderOverview(data);
-    else if (state.tab === 'trends') html = renderTrends(data);
     else if (state.tab === 'products') html = renderProducts(data);
+    else if (state.tab === 'refunds') html = renderRefunds(data);
     else if (state.tab === 'fulfill') html = renderFulfill(data);
-    else if (state.tab === 'stores') html = renderStores(data);
     else if (state.tab === 'settle') html = renderSettle(data);
     else html = renderState('empty');
     host.innerHTML = html;
-    paintCharts(data);
     bindBodyControls();
   }
 
@@ -661,7 +587,7 @@
     }
     if (sort) {
       sort.addEventListener('change', function () {
-        state.sort = sort.value || 'gmv';
+        state.sort = sort.value || 'paidGmv';
         load();
       });
     }
@@ -686,12 +612,6 @@
       if (tab) {
         state.tab = tab.getAttribute('data-tab') || 'overview';
         renderChrome();
-        renderBody();
-        return;
-      }
-      var tm = e.target.closest('[data-trend-metric]');
-      if (tm) {
-        state.trendMetric = tm.getAttribute('data-trend-metric') || 'gmv';
         renderBody();
         return;
       }
@@ -740,7 +660,7 @@
       '<option value="normal">正常有数</option>' +
       '<option value="empty">无数据</option>' +
       '<option value="aftersale">售后异常</option>' +
-      '<option value="settle0">结算金额为零</option>' +
+      '<option value="settle0">结款金额为零</option>' +
       '<option value="forbidden">越权访问</option>' +
       '</select>' +
       '<button type="button" id="saSupBizDemoApply">应用并刷新</button>';
@@ -758,6 +678,15 @@
     if (window.FybOrg && window.FybOrg.ensureSupplierModeOrRedirect) {
       if (!window.FybOrg.ensureSupplierModeOrRedirect('home.html')) return;
     }
+    /* 旧链接 tab=trends 回退总览 */
+    try {
+      var q = new URLSearchParams(location.search || '');
+      var tabQ = q.get('tab');
+      if (tabQ === 'trends') state.tab = 'overview';
+      else if (tabQ === 'products' || tabQ === 'refunds' || tabQ === 'fulfill' || tabQ === 'settle' || tabQ === 'overview') {
+        state.tab = tabQ;
+      }
+    } catch (e) {}
     bind();
     mountDemo();
     renderChrome();
