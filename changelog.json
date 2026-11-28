@@ -1,10 +1,29 @@
 {
-  "latestSha": "22d38171e4820fbaf4b4eb6796430dcb83f7d827",
-  "total": 680,
+  "latestSha": "a19e91e801fe239abd12967c6a0f90a3a83f8723",
+  "total": 681,
   "days": [
     {
       "date": "2026-11-28",
       "items": [
+        {
+          "sha": "a19e91e",
+          "type": "other",
+          "text": "隐藏旧版BD入口与RBT付款账单页",
+          "author": "u ｌ",
+          "time": "21:41",
+          "pages": [
+            {
+              "file": "store-app/h5/biz-bd-home.html",
+              "module": "",
+              "title": "数据中心 · BD"
+            },
+            {
+              "file": "store-app/h5/biz-rbt.html",
+              "module": "",
+              "title": "数据中心 · 门店"
+            }
+          ]
+        },
         {
           "sha": "22d3817",
           "type": "other",
@@ -274,11 +293,6 @@
               "file": "store-app/h5/biz-order-goods.html",
               "module": "",
               "title": "订单商品明细 · 丰银宝"
-            },
-            {
-              "file": "store-app/h5/biz-rbt.html",
-              "module": "",
-              "title": "RBT 付款账单 · 丰银宝"
             },
             {
               "file": "store-app/h5/biz-restock-report.html",
@@ -3113,11 +3127,6 @@
               "title": "订单商品明细 · 丰银宝"
             },
             {
-              "file": "store-app/h5/biz-rbt.html",
-              "module": "",
-              "title": "RBT 付款账单 · 丰银宝"
-            },
-            {
               "file": "store-app/h5/biz-restock-report.html",
               "module": "",
               "title": "进货概况 · 丰银宝"
@@ -5501,7 +5510,7 @@
             {
               "file": "store-app/h5/biz-rbt.html",
               "module": "",
-              "title": "RBT 付款账单 · 丰银宝"
+              "title": "数据中心 · 门店"
             },
             {
               "file": "store-app/h5/biz-restock-report.html",
@@ -5546,8 +5555,24 @@
               "text": "页标题与顶栏由「经营参谋」改为「数据中心」"
             },
             {
+              "file": "store-app/h5/biz-bd-center.html",
+              "text": "RBT 付款账单: 返回入口文案改为「返回数据中心」"
+            },
+            {
+              "file": "store-app/h5/biz-bd-home.html",
+              "text": "RBT 付款账单: 返回入口文案改为「返回数据中心」"
+            },
+            {
+              "file": "store-app/h5/biz-center.html",
+              "text": "RBT 付款账单: 返回入口文案改为「返回数据中心」"
+            },
+            {
               "file": "store-app/h5/biz-rbt.html",
-              "text": "返回入口文案改为「返回数据中心」"
+              "text": "RBT 付款账单: 返回入口文案改为「返回数据中心」"
+            },
+            {
+              "file": "store-app/h5/biz-supplier-home.html",
+              "text": "RBT 付款账单: 返回入口文案改为「返回数据中心」"
             },
             {
               "file": null,
@@ -5636,11 +5661,6 @@
               "file": "store-app/h5/biz-bd-commission.html",
               "module": "",
               "title": "佣金分析 · BD"
-            },
-            {
-              "file": "store-app/h5/biz-bd-home.html",
-              "module": "",
-              "title": "数据中心 · BD"
             },
             {
               "file": "store-app/h5/biz-bd-store.html",
@@ -8669,7 +8689,7 @@
             {
               "file": "store-app/h5/biz-rbt.html",
               "module": "",
-              "title": "RBT 付款账单 · 丰银宝"
+              "title": "数据中心 · 门店"
             },
             {
               "file": "store-app/h5/biz-restock-report.html",
@@ -8821,7 +8841,7 @@
             {
               "file": "store-app/h5/biz-rbt.html",
               "module": "",
-              "title": "RBT 付款账单 · 丰银宝"
+              "title": "数据中心 · 门店"
             },
             {
               "file": "store-app/h5/biz-restock-report.html",
@@ -8916,11 +8936,6 @@
               "title": "佣金分析 · BD"
             },
             {
-              "file": "store-app/h5/biz-bd-home.html",
-              "module": "",
-              "title": "数据中心 · BD"
-            },
-            {
               "file": "store-app/h5/biz-bd-store.html",
               "module": "",
               "title": "门店详情 · BD"
@@ -8958,7 +8973,7 @@
             {
               "file": "store-app/h5/biz-rbt.html",
               "module": "",
-              "title": "RBT 付款账单 · 丰银宝"
+              "title": "数据中心 · 门店"
             },
             {
               "file": "store-app/h5/biz-restock-report.html",
@@ -9000,7 +9015,7 @@
               "text": "环比随所选时段"
             },
             {
-              "file": "store-app/h5/biz-rbt.html",
+              "file": null,
               "text": "RBT 付款账单入口"
             },
             {

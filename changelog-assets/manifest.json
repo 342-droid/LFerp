@@ -3965,6 +3965,20 @@
     "status": "diff",
     "date": "2026-11-18"
   },
+  "a19e91e|store-app/h5/biz-bd-home.html": {
+    "before": "changelog-assets/a19e91e/store-app__h5__biz-bd-home.html.before.jpg",
+    "after": "changelog-assets/a19e91e/store-app__h5__biz-bd-home.html.after.jpg",
+    "regions": 7,
+    "status": "diff",
+    "date": "2026-11-28"
+  },
+  "a19e91e|store-app/h5/biz-rbt.html": {
+    "before": "changelog-assets/a19e91e/store-app__h5__biz-rbt.html.before.jpg",
+    "after": "changelog-assets/a19e91e/store-app__h5__biz-rbt.html.after.jpg",
+    "regions": 20,
+    "status": "diff",
+    "date": "2026-11-28"
+  },
   "a326726|MDM/mdm_audit_rbt_demand.html": {
     "regions": 0,
     "status": "diff",
