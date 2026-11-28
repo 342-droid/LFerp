@@ -472,7 +472,7 @@
     if ($('dcMulti')) $('dcMulti').textContent = group(ov.customers.multiBuyCount);
 
     var px = ov.proxy;
-    var noPurchase = $('dcNoPurchaseSwitch') && $('dcNoPurchaseSwitch').checked;
+    var noPurchase = $('dcNoPurchaseMode') && $('dcNoPurchaseMode').value === 'noPurchase';
     if ($('dcProxySection')) $('dcProxySection').hidden = noPurchase || !px.lastPurchaseDayAll;
     var filterTip = document.querySelector('.sa-dc-filterbar__tip');
     if (filterTip) filterTip.textContent = noPurchase || !px.lastPurchaseDayAll
@@ -547,9 +547,9 @@
   }
 
   function bind() {
-    if ($('dcNoPurchaseSwitch')) $('dcNoPurchaseSwitch').addEventListener('change', function () {
+    if ($('dcNoPurchaseApply')) $('dcNoPurchaseApply').addEventListener('click', function () {
       var url = new URL(location.href);
-      if (this.checked) url.searchParams.set('qaNoPurchase', '1');
+      if ($('dcNoPurchaseMode') && $('dcNoPurchaseMode').value === 'noPurchase') url.searchParams.set('qaNoPurchase', '1');
       else url.searchParams.delete('qaNoPurchase');
       history.replaceState(null, '', url.pathname + url.search + url.hash);
       render();
@@ -675,7 +675,7 @@
     var f = S() ? S().merge('center') : {};
     state.range = S().normalizeRange(f.range || 'today');
     state.custom = { start: f.start || '', end: f.end || '' };
-    if ($('dcNoPurchaseSwitch')) $('dcNoPurchaseSwitch').checked = new URLSearchParams(location.search).get('qaNoPurchase') === '1';
+    if ($('dcNoPurchaseMode')) $('dcNoPurchaseMode').value = new URLSearchParams(location.search).get('qaNoPurchase') === '1' ? 'noPurchase' : 'normal';
     if (window.StoreAppBizSession && StoreAppBizSession.boot) {
       StoreAppBizSession.boot({ toast: toast });
     }

@@ -35,10 +35,6 @@
         <div class="sa-dc-filterbar" aria-label="公共筛选">
           <div class="sa-dc-ranges" id="dcRanges" role="tablist" aria-label="统计周期"></div>
           <p class="sa-dc-filterbar__tip">以下经营、进货、客户概况均按上方周期统计</p>
-          <div class="sa-dc-acceptance" aria-label="验收场景开关">
-            <span>验收场景：模拟门店从未进货</span>
-            <label><input type="checkbox" id="dcNoPurchaseSwitch"> 开启</label>
-          </div>
         </div>
 
         <section class="sa-dc-block" aria-label="营业额">
@@ -180,6 +176,16 @@
       </div>
     </div>
   </div>
+
+    <div class="sa-lp-demo" id="dcNoPurchaseDemo" aria-label="采购支出验收开关">
+      <div class="sa-lp-demo__title">采购支出验收开关</div>
+      <label class="sa-lp-demo__row">进货场景<select id="dcNoPurchaseMode" aria-label="进货场景">
+        <option value="normal">正常有进货记录</option>
+        <option value="noPurchase">门店从未进货</option>
+      </select></label>
+      <p class="sa-lp-demo__hint">模拟门店没有进货记录时，采购支出模块不展示。</p>
+      <button type="button" class="sa-lp-demo__apply" id="dcNoPurchaseApply">应用并刷新</button>
+    </div>
 
   <script src="../../js/business-report-fixtures.js"></script>
   <script src="../js/store-app-biz-datacenter-data.js?v=20261126-yyye"></script>
