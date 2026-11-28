@@ -12,7 +12,7 @@
     openDd: ''
   };
   var TABS = ['retail', 'proxy', 'income'];
-  var VIEW_LABELS = { pay: '支付订单归属', event: '发生日期' };
+  var VIEW_LABELS = { pay: '订单归属', event: '发生日期' };
   var SOURCE_LABELS = { all: '全部来源', mall: '商城', live: '直播' };
 
   function $(id) {
@@ -236,7 +236,7 @@
           tips.retailTab || '',
           tips.viewPay || '',
           tips.viewEvent || '',
-          '客单价＝营业额÷支付订单数。'
+          '客单价＝营业额÷订单数。'
         ].filter(Boolean)
       });
     } else if (state.tab === 'proxy') {

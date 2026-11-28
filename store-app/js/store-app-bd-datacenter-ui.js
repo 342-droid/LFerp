@@ -555,7 +555,7 @@
       var metricTip = e.target.closest('[data-metric-tip]');
       if (metricTip) {
         var name = metricTip.getAttribute('data-metric-tip');
-        var detail = /客单价/.test(name) ? '营业额 ÷ 交易人数；没有交易人数时显示—。' : /交易人数/.test(name) ? '按消费者去重，同一人跨负责门店只计一次。' : /订单数/.test(name) ? '支付主订单按单去重，子单和包裹不另计。' : /营业额/.test(name) ? D().tips.retail : tipText();
+        var detail = /客单价/.test(name) ? '营业额 ÷ 交易人数；没有交易人数时显示—。' : /交易人数/.test(name) ? '按消费者去重，同一人跨负责门店只计一次。' : /订单数/.test(name) ? '订单数按支付成功统计并按单去重，子单和包裹不另计。' : /营业额/.test(name) ? D().tips.retail : tipText();
         document.getElementById('dcSheetTitle').textContent = name; document.getElementById('dcSheetBody').textContent = detail; document.getElementById('dcSheet').hidden = false; return;
       }
       if (e.target.closest('[data-tip]')) {
