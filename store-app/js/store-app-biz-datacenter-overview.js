@@ -221,6 +221,16 @@
     if ($('dcToOps')) $('dcToOps').href = S().href('biz-ops.html', { tab: 'retail' });
     if ($('dcToOperate')) $('dcToOperate').href = S().href('biz-operate.html', { tab: 'customers' });
     if ($('dcToProxy')) $('dcToProxy').href = S().href('biz-ops.html', { tab: 'proxy' });
+    ['pos', 'douyin'].forEach(function (source) {
+      var el = $(source === 'pos' ? 'dcPosDailyLink' : 'dcDouyinDailyLink');
+      if (!el) return;
+      var href = S().href('biz-source-daily.html', {
+        range: state.range,
+        start: state.range === 'custom' ? state.custom.start : '',
+        end: state.range === 'custom' ? state.custom.end : ''
+      });
+      el.href = href + (href.indexOf('?') >= 0 ? '&' : '?') + 'source=' + source;
+    });
   }
 
   function persist() {
@@ -243,7 +253,7 @@
     return ch && ch.status !== 'pending' && ch.status !== 'missing' && ch.amount != null;
   }
 
-  /** 全部渠道：展开到叶子（一期仅商城／直播） */
+  /** 门店四个来源：平台零售展开商城与直播，食亨 POS 与抖音保持独立。 */
   function slicesAllChannels(list) {
     var out = [];
     (list || []).forEach(function (ch) {
@@ -378,14 +388,14 @@
   function renderChannels(list) {
     var root = $('dcChannelBody');
     if (!root) return;
-    /* 固定展示商城／直播，按订单来源统计；不再提供业务线／全部渠道切换 */
+    /* 汇总与上方总营业额使用同一组来源。 */
     var slices = slicesAllChannels(list);
     var total = 0;
     slices.forEach(function (s) {
       total = D().round2(total + (Number(s.amount) || 0));
     });
 
-    var head = '<div class="sa-dc-channel__hd"><span>营业额渠道构成</span></div>';
+    var head = '<div class="sa-dc-channel__hd"><span>营业额来源构成</span></div>';
 
     if (!slices.length || total <= 0) {
       root.innerHTML =
@@ -393,7 +403,7 @@
       return;
     }
 
-    /* 一期仅商城／直播：紧凑占比条，避免环形图占屏过高 */
+    /* 紧凑占比条，展示各来源在已取得金额中的占比。 */
     var rows = slices
       .map(function (s, i) {
         var amt = Number(s.amount) || 0;
@@ -426,6 +436,22 @@
     root.innerHTML = head + '<div class="sa-dc-channel-bars">' + rows + '</div>';
   }
 
+  function renderExternalSources(sources) {
+    var pos = sources.pos || {};
+    var douyin = sources.douyin || {};
+    function set(id, value) { if ($(id)) $(id).textContent = value; }
+    function amount(value, available) { return available ? group(value) + ' 元' : '暂无账单'; }
+    set('dcPosBillCount', pos.available ? pos.billCount + ' 个账单日' : '本时段暂无账单');
+    set('dcPosTotal', amount(pos.total, pos.available));
+    set('dcPosDine', amount(pos.dine, pos.available));
+    set('dcPosTakeout', amount(pos.takeout, pos.available));
+    set('dcPosMeituan', amount(pos.meituan, pos.available));
+    set('dcPosJingdong', amount(pos.jingdong, pos.available));
+    set('dcPosTaobao', amount(pos.taobao, pos.available));
+    set('dcDouyinDayCount', douyin.available ? douyin.dayCount + ' 个统计日' : '本时段暂无数据');
+    set('dcDouyinAmount', douyin.available ? group(douyin.amount) + ' 元' : '暂无数据');
+  }
+
   function render() {
     if (!D()) return;
     persist();
@@ -444,7 +470,7 @@
       $('dcAsOf').textContent = S().updatedCaption(ov.updatedAt || D().UPDATED_AT);
     }
     var rev = ov.revenue || {};
-    if ($('dcHeroTitle')) $('dcHeroTitle').textContent = '营业额';
+    if ($('dcHeroTitle')) $('dcHeroTitle').textContent = rev.heroTitle || '总营业额';
     if ($('dcCoverNote')) {
       if (rev.partial && rev.coverNote) {
         $('dcCoverNote').hidden = false;
@@ -465,6 +491,7 @@
     if ($('dcIncome')) $('dcIncome').textContent = group(ov.retail.storeIncome);
     if ($('dcIncomeCmp')) $('dcIncomeCmp').innerHTML = deltaHtml(ov.retail.incomeDelta, ov.compareLabel);
     renderChannels(rev.channels || []);
+    renderExternalSources(ov.externalSources || {});
 
     if ($('dcPayUsers')) $('dcPayUsers').textContent = group(ov.customers.payUserCount);
     if ($('dcFirst')) $('dcFirst').textContent = group(ov.customers.firstBuyCount);
@@ -620,7 +647,7 @@
     document.addEventListener('click', function (e) {
       var btn = e.target.closest('[data-metric-tip]'); if (!btn) return;
       var name = btn.getAttribute('data-metric-tip'); var ov = D().buildOverview(state.range, state.custom);
-      var tips = ov.tips || {}; var detail = /退款/.test(name) ? '按成功退款记录统计；退款后净营业额为营业额减成功退款金额。' : /人数|客户/.test(name) ? '所选周期内交易用户按人去重，首购与老客按本店历史交易区分。' : /佣金/.test(name) ? tips.storeIncome : /进货/.test(name) ? tips.proxy : tips.revenue || tips.overview;
+      var tips = ov.tips || {}; var detail = /退款/.test(name) ? '仅统计商城与直播的成功退款；其退款后净营业额为这两个来源的营业额减对应退款金额。食亨账单没有退款金额。' : /人数|客户/.test(name) ? '所选周期内交易用户按人去重，首购与老客按本店历史交易区分。' : /佣金/.test(name) ? tips.storeIncome : /进货/.test(name) ? tips.proxy : tips.revenue || tips.overview;
       $('dcSheetTitle').textContent = name; $('dcSheetBody').textContent = detail || name + '按所选统计周期汇总。'; $('dcSheet').hidden = false;
     });
     document.querySelectorAll('[data-tip]').forEach(function (btn) {

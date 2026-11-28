@@ -617,6 +617,79 @@
   color: #1f2024;
 }
 
+.sa-dc-external__source {
+  padding: 12px;
+  margin-top: 10px;
+  border: 1px solid #e9edf3;
+  border-radius: 8px;
+  background: #fafbfc;
+}
+
+.sa-dc-external__head,
+.sa-dc-external__amount,
+.sa-dc-external__row,
+.sa-dc-external__platform {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sa-dc-external__head { font-size: 14px; }
+.sa-dc-external__head span,
+.sa-dc-external__note,
+.sa-dc-external__breakdown span,
+.sa-dc-external__amount span { color: #7b8493; font-size: 12px; }
+.sa-dc-external__note { margin: 7px 0 0; line-height: 1.5; }
+.sa-dc-external__amount { margin-top: 12px; }
+.sa-dc-external__amount strong { color: #1f2024; font-size: 21px; }
+.sa-dc-external__breakdown {
+  padding-top: 12px;
+  margin-top: 12px;
+  border-top: 1px solid #e9edf3;
+}
+.sa-dc-external__row { min-height: 30px; }
+.sa-dc-external__row + .sa-dc-external__row { margin-top: 4px; }
+.sa-dc-external__row strong { font-size: 15px; color: #1f2024; }
+.sa-dc-external__platforms {
+  margin: 3px 0 2px 10px;
+  padding: 5px 10px 5px 12px;
+  border-left: 2px solid #ff8a3d;
+  border-radius: 0 6px 6px 0;
+  background: #fff;
+}
+.sa-dc-external__platform { min-height: 27px; }
+.sa-dc-external__platform + .sa-dc-external__platform { margin-top: 3px; }
+.sa-dc-external__platform strong { font-size: 12px; color: #4b5563; }
+.sa-dc-external__link { margin: 4px 0 0 auto; padding-right: 0; }
+
+.sa-dc-source-daily__period { padding: 2px 12px 8px !important; }
+.sa-dc-source-daily__tabs { padding: 0 12px 10px; margin: 0; }
+.sa-dc-source-daily__day { border-top: 1px solid #edf0f4; }
+.sa-dc-source-daily__day:first-child { border-top: 0; }
+.sa-dc-source-daily__day summary,
+.sa-dc-source-daily__day-head,
+.sa-dc-source-daily__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.sa-dc-source-daily__day summary,
+.sa-dc-source-daily__day-head {
+  padding: 14px 2px;
+  color: #344054;
+  font-size: 14px;
+}
+.sa-dc-source-daily__day summary { cursor: pointer; }
+.sa-dc-source-daily__day summary strong,
+.sa-dc-source-daily__day-head strong { color: #1f2024; }
+.sa-dc-source-daily__day[open] summary { color: #ff6501; }
+.sa-dc-source-daily__body { padding: 0 4px 14px 18px; }
+.sa-dc-source-daily__row { min-height: 29px; color: #667085; font-size: 12px; }
+.sa-dc-source-daily__row strong { color: #344054; }
+.sa-dc-source-daily__body .sa-dc-external__platforms { margin-left: 10px; }
+
 .sa-dc-link {
   display: inline-flex;
   align-items: center;

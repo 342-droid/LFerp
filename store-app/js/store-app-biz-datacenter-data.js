@@ -886,16 +886,17 @@
     };
   }
 
-  /**
-   * 营业额／营业额（一期仅商城＋直播；不含POS、代采进货、佣金）。
-   */
+  /** 门店总营业额按各独立来源汇总；退款及净额仅计算有退款记录的商城、直播。 */
   function storeRevenueMetrics(bounds) {
     var retail = retailMetrics(bounds, 'all', 'pay');
+    var external = storeExternalSources(bounds);
+    var days = Math.max(1, Math.round((bounds.endMs - bounds.startMs) / 86400000));
+    var partial = external.pos.billCount < days || external.douyin.dayCount < days;
     var mall = retail.mall || { paidAmount: 0, orderCount: 0 };
     var live = retail.live || { paidAmount: 0, orderCount: 0 };
     var platform = {
       id: 'platformRetail',
-      name: '营业额',
+      name: '商城与直播',
       status: 'ok',
       amount: retail.paidAmount,
       refundAmount: retail.refundAmount,
@@ -919,16 +920,94 @@
     };
 
     return {
-      heroTitle: '营业额',
-      coverNote: '',
-      partial: false,
-      amount: retail.paidAmount,
+      heroTitle: '总营业额',
+      coverNote: partial ? '部分账单日暂无食亨 POS 或抖音数据；总营业额仅汇总已取得的来源金额，缺失日期不按 0 元填充。' : '',
+      partial: partial,
+      amount: round2(retail.paidAmount + external.pos.total + external.douyin.amount),
       refundAmount: retail.refundAmount,
       netAmount: retail.netPaidAmount,
-      channels: [platform],
+      channels: [platform, {
+        id: 'pos', name: '食亨 POS', status: external.pos.available ? 'ok' : 'missing', amount: external.pos.total
+      }, {
+        id: 'douyin', name: '抖音', status: external.douyin.available ? 'ok' : 'missing', amount: external.douyin.amount
+      }],
       platformRetail: platform,
-      sourceNote: '仅含营业额（商城、直播）支付成交；代采进货、佣金不计入。'
+      sourceNote: '总营业额汇总商城、直播、食亨 POS 和抖音；POS 按账单日，其余按对应来源统计日。退款金额及退款后净营业额仅覆盖商城、直播。'
     };
+  }
+
+  /* 门店本人可见的其他来源演示账单。食亨按人工维护的一一对应门店和账单日归集。 */
+  var POS_BILLS = [
+    { offset: -1, dine: 240, meituan: 180, jingdong: 95, taobao: 105 },
+    { offset: -2, dine: 195, meituan: 165, jingdong: 80, taobao: 110 },
+    { offset: -3, dine: 228, meituan: 172, jingdong: 92, taobao: 98 },
+    { offset: -6, dine: 206, meituan: 144, jingdong: 76, taobao: 94 },
+    { offset: -14, dine: 218, meituan: 153, jingdong: 88, taobao: 101 }
+  ].map(function (row) {
+    return {
+      billDate: shiftKey(DEMO_TODAY, row.offset),
+      storeId: STORE.id,
+      posStoreId: 'SH-CN-01',
+      dine: row.dine,
+      meituan: row.meituan,
+      jingdong: row.jingdong,
+      taobao: row.taobao
+    };
+  });
+  var DOUYIN_DAILY = [
+    { offset: 0, amount: 128 },
+    { offset: -1, amount: 268 },
+    { offset: -2, amount: 186 },
+    { offset: -3, amount: 204 },
+    { offset: -6, amount: 172 },
+    { offset: -14, amount: 193 }
+  ].map(function (row) {
+    return { day: shiftKey(DEMO_TODAY, row.offset), storeId: STORE.id, amount: row.amount };
+  });
+
+  function storeExternalSources(bounds) {
+    var bills = POS_BILLS.filter(function (row) {
+      return row.storeId === STORE.id && inBounds(row.billDate, bounds);
+    });
+    var pos = { available: bills.length > 0, billCount: bills.length, dine: 0, meituan: 0, jingdong: 0, taobao: 0, takeout: 0, total: 0 };
+    bills.forEach(function (row) {
+      pos.dine += row.dine;
+      pos.meituan += row.meituan;
+      pos.jingdong += row.jingdong;
+      pos.taobao += row.taobao;
+    });
+    pos.takeout = round2(pos.meituan + pos.jingdong + pos.taobao);
+    pos.total = round2(pos.dine + pos.takeout);
+    var douyinRows = DOUYIN_DAILY.filter(function (row) {
+      return row.storeId === STORE.id && inBounds(row.day, bounds);
+    });
+    var douyin = { available: douyinRows.length > 0, dayCount: douyinRows.length, amount: 0 };
+    douyinRows.forEach(function (row) { douyin.amount = round2(douyin.amount + row.amount); });
+    return { pos: pos, douyin: douyin };
+  }
+
+  function storeExternalSourceDaily(bounds, source) {
+    if (source === 'douyin') {
+      return DOUYIN_DAILY.filter(function (row) {
+        return row.storeId === STORE.id && inBounds(row.day, bounds);
+      }).map(function (row) {
+        return { day: row.day, amount: row.amount };
+      }).sort(function (a, b) { return b.day.localeCompare(a.day); });
+    }
+    return POS_BILLS.filter(function (row) {
+      return row.storeId === STORE.id && inBounds(row.billDate, bounds);
+    }).map(function (row) {
+      var takeout = round2(row.meituan + row.jingdong + row.taobao);
+      return {
+        day: row.billDate,
+        amount: round2(row.dine + takeout),
+        dine: row.dine,
+        takeout: takeout,
+        meituan: row.meituan,
+        jingdong: row.jingdong,
+        taobao: row.taobao
+      };
+    }).sort(function (a, b) { return b.day.localeCompare(a.day); });
   }
 
   function metricValue(bounds, metric, channel) {
@@ -960,6 +1039,10 @@
 
   function buildTrend(bounds, metric, channel) {
     var points = [];
+    /* 食亨只提供日账单，单日总营业额不能虚构小时分布。 */
+    if (bounds.isSingleDay && metric === 'revenue') {
+      return { points: [{ key: bounds.startKey, label: bounds.startKey, value: metricValue(bounds, metric, channel) }], grain: 'day' };
+    }
     /* 单日：按小时；多日：按日 */
     if (bounds.isSingleDay) {
       var dayKey = bounds.startKey;
@@ -1091,12 +1174,13 @@
         amount: revenue.amount,
         refundAmount: revenue.refundAmount,
         netAmount: revenue.netAmount,
-        amountDelta: deltaPack(revenue.amount, revenuePrev.amount),
+        amountDelta: revenue.partial || revenuePrev.partial ? null : deltaPack(revenue.amount, revenuePrev.amount),
         refundDelta: deltaPack(revenue.refundAmount, revenuePrev.refundAmount),
         netDelta: deltaPack(revenue.netAmount, revenuePrev.netAmount),
         channels: revenue.channels,
         sourceNote: revenue.sourceNote
       },
+      externalSources: storeExternalSources(bounds),
       retail: {
         paidAmount: cur.paidAmount,
         paidDelta: deltaPack(cur.paidAmount, prev.paidAmount),
@@ -1121,9 +1205,9 @@
       proxy: proxy,
       tips: {
         overview:
-          '营业额为本店商城、直播订单的营业额合计。',
+          '总营业额为本店商城、直播、食亨 POS、抖音四个来源的金额合计。食亨 POS 按账单日统计，缺失账单不按 0 元填充。',
         revenue:
-          '营业额为所选周期内支付成功订单的实付金额之和。退款金额为关联至这些支付订单的退款；退款后净营业额＝营业额−退款金额。代采进货、佣金不计入。',
+          '退款金额仅统计商城和直播的成功退款；商城与直播退款后净营业额＝商城与直播营业额−对应退款金额。食亨账单无退款金额，不计算全来源净额。',
         retailPaid: '商城、直播渠道成交均计入营业额。',
         storeIncome: '本店获得的佣金，以系统结算记录为准。',
         proxy: '进货支付总额为采购支出（商品款＋运费），不计入营业额；商品款、运费、进货天数等详见进货数据页。'
@@ -1332,6 +1416,8 @@
     },
     retailMetrics: retailMetrics,
     storeRevenueMetrics: storeRevenueMetrics,
+    storeExternalSources: storeExternalSources,
+    storeExternalSourceDaily: storeExternalSourceDaily,
     customerMetrics: customerMetrics,
     OPEN_QUESTIONS: [],
     /* 开发备注勿写入 DATA_SOURCE_NOTE，避免弹层「通用规则」展示给店长 */
