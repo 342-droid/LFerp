@@ -1208,7 +1208,27 @@
         if (RELEASE_STATUSES.indexOf(status) >= 0) releaseDemandQuota(target);
         ensureContract(target);
         write(rows);
+        syncDemandContracts(target, prev, status);
         return target;
+    }
+
+    /* 确认签约生成两份签署任务；各方签完标成已完成；作废未签完的任务。 */
+    function syncDemandContracts(item, prev, status) {
+        var api = window.LfContract;
+        if (!api || !item || !item.code) return;
+        if (prev === '待确认签约' && status === '待签署' && typeof api.generateDemandSignTasks === 'function') {
+            api.generateDemandSignTasks({
+                code: item.code,
+                storeName: item.storeName,
+                traderName: item.traderName
+            });
+        }
+        if (prev === '待签署' && status !== '待签署' && status !== '已作废' && typeof api.completeDemandSignTasks === 'function') {
+            api.completeDemandSignTasks(item.code);
+        }
+        if (status === '已作废' && item.contractsVoided && typeof api.voidDemandSignTasks === 'function') {
+            api.voidDemandSignTasks(item.code);
+        }
     }
 
     function traderNameOf(trader) {
@@ -1473,7 +1493,7 @@
             code: 'CG' + seq,
             parties: [
                 bindParty({ role: 'trader', roleLabel: '贸易商', code: '', name: item.traderName || '' }, 'purchase', signed),
-                bindParty({ role: 'supply', roleLabel: '冷丰供应链', code: 'supply', name: '冷丰供应链' }, 'purchase', signed)
+                bindParty({ role: 'supply', roleLabel: '冷丰供应链', code: 'supply', name: '冷丰供应链', signMode: 'auto' }, 'purchase', signed)
             ]
         });
         var voided = item.status === '已作废' && item.contractsVoided;
@@ -1563,6 +1583,21 @@
             contractKey: contractKey,
             signedAt: nowText()
         });
+        if (contract.key === 'purchase' && mine.role === 'trader') {
+            var supplyParty = (contract.parties || []).filter(function (party) {
+                return party && party.role === 'supply' && !party.signedAt;
+            })[0];
+            if (supplyParty) {
+                target.signings.push({
+                    key: supplyParty.key,
+                    role: 'supply',
+                    code: supplyParty.code || 'supply',
+                    name: supplyParty.name || '冷丰供应链',
+                    contractKey: contractKey,
+                    signedAt: nowText()
+                });
+            }
+        }
         var done = contractsDone(target);
         if (!done) {
             touchAudit(target, mine.name || '签署');

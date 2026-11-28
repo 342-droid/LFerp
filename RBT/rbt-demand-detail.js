@@ -301,7 +301,9 @@
     function agreementPartyLine(party, contract) {
         var name = party && party.name ? party.name : (party && party.role === 'trader' ? '待接单' : '—');
         var extra = party && party.code && party.role !== 'trader' && party.role !== 'supply' ? '（' + party.code + '）' : '';
-        var state = party && party.signedAt ? '已签署 ' + party.signedAt : (party && party.role === 'trader' && !party.name ? '待接单' : '待签署');
+        var state = party && party.signedAt
+            ? ((party.signMode === 'auto' ? '已自动签署 ' : '已签署 ') + party.signedAt)
+            : (party && party.role === 'trader' && !party.name ? '待接单' : (party && party.signMode === 'auto' ? '待自动签' : '待签署'));
         if (contract && contract.signStatus === '已作废') state = '已作废';
         return (party && party.roleLabel ? party.roleLabel : '签署方') + '：' + name + extra + '，' + state;
     }
@@ -465,7 +467,7 @@
     }
 
     function signerCard(name, stateLabel, doneAt) {
-        var done = stateLabel === '已签署';
+        var done = stateLabel === '已签署' || stateLabel === '已自动签署';
         return '<section class="ct-side-sign">' +
             '<div class="ct-side-sign__top"><span>签署</span><span>顺序签署</span></div>' +
             '<div class="ct-side-sign__who"><span>' + esc(name || '—') + '</span>' +
@@ -480,7 +482,9 @@
         var dot = status === '已签署' ? 'is-ok' : (status === '已作废' ? 'is-bad' : 'is-warn');
         var parties = contract.parties || [];
         var cards = parties.map(function (party) {
-            var state = party.signedAt ? '已签署' : (status === '已作废' ? '已作废' : '待签署');
+            var state = party.signedAt
+                ? (party.signMode === 'auto' ? '已自动签署' : '已签署')
+                : (status === '已作废' ? '已作废' : (party.signMode === 'auto' ? '待自动签' : '待签署'));
             return signerCard(party.name || party.roleLabel, state, party.signedAt || '');
         }).join('');
         return sideLine('主题', contract.name) +

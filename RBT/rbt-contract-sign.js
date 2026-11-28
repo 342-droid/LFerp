@@ -43,6 +43,11 @@
     }
 
     function partyState(party) {
+        if (party && party.signMode === 'auto') {
+            return party.signedAt
+                ? { text: '已自动签署 ' + party.signedAt, done: true }
+                : { text: '待自动签', done: false };
+        }
         if (party && party.signedAt) return { text: '已签署 ' + party.signedAt, done: true };
         if (party && party.role === 'trader' && !party.name) return { text: '未接单', done: false };
         return { text: '待签署', done: false };
@@ -60,7 +65,7 @@
                 var state = partyState(party);
                 var extra = party.code && party.role !== 'trader' && party.role !== 'supply'
                     ? '（' + esc(party.code) + '）' : '';
-                if (item.status === '待签署' && partyMatches(party, actor) && !party.signedAt) canSign = true;
+                if (item.status === '待签署' && party.signMode !== 'auto' && partyMatches(party, actor) && !party.signedAt) canSign = true;
                 if (partyMatches(party, actor)) actorParties.push(party);
                 return '<div class="rbt-sign-party">' +
                     '<div><b>' + esc(party.roleLabel) + '</b><span>' + esc(partyName(party)) + extra + '</span></div>' +
@@ -84,7 +89,7 @@
         } else if (actor && actorParties.length && !pending) {
             tip = '<p class="rbt-sign-tip">你已签署，待其他方完成签署。</p>';
         } else if (!actor) {
-            tip = '<p class="rbt-sign-tip">销售合同由需求门店与贸易商签署，采购合同由贸易商与冷丰供应链签署。</p>';
+            tip = '<p class="rbt-sign-tip">销售合同由需求门店与贸易商签署，采购合同由贸易商签署，冷丰供应链自动签。</p>';
         }
         return '<section class="rbt-sign-card">' +
             '<h2>需求单 ' + esc(item.code) + '</h2>' +
@@ -112,6 +117,11 @@
     }
 
     function partyView(party) {
+        if (party && party.signMode === 'auto') {
+            return party.signedAt
+                ? { text: '已自动签署', time: party.signedAt, done: true }
+                : { text: '待自动签', time: '', done: false };
+        }
         if (party && party.signedAt) return { text: '已签署', time: party.signedAt, done: true };
         if (party && party.role === 'trader' && !party.name) return { text: '未接单', time: '', done: false };
         return { text: '待签署', time: '', done: false };
@@ -128,7 +138,7 @@
             var canSign = false;
             var rows = (contract.parties || []).map(function (party) {
                 var state = partyView(party);
-                if (item.status === '待签署' && partyMatches(party, actor) && !party.signedAt) canSign = true;
+                if (item.status === '待签署' && party.signMode !== 'auto' && partyMatches(party, actor) && !party.signedAt) canSign = true;
                 if (partyMatches(party, actor)) actorParties.push(party);
                 return '<div class="rbt-sign-party">' +
                     '<div><b>' + esc(partyLabel(party)) + '</b><span>' + esc(partyName(party)) + '</span></div>' +

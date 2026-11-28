@@ -109,6 +109,20 @@ body[data-ct-page] .table td:last-child {
   min-width: 220px;
 }
 
+body[data-ct-page="task"] .table td.ct-party-col {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  min-width: 280px;
+  width: 280px;
+  vertical-align: middle;
+}
+
+.ct-party-cell__name {
+  white-space: nowrap;
+  line-height: 1.5;
+}
+
 .ct-scene-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -357,6 +371,10 @@ body[data-ct-page] .table td:last-child {
   font-size: 13px;
   color: #333;
   cursor: pointer;
+}
+
+.ct-map-list label[hidden] {
+  display: none;
 }
 
 .ct-detail-grid {
